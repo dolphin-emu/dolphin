@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-29 22:48+0200\n"
+"POT-Creation-Date: 2022-08-06 15:49+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Siegfried, 2013-2022\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1406
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1452
 msgid ""
 "\n"
 "\n"
@@ -34,7 +34,7 @@ msgstr ""
 "게임큐브 디스크 이미지들이 작은 검증 데이터를 담고 있어서, 돌핀이 감지할 수 "
 "없는 문제들이 있을 수도 있습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1412
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1458
 msgid ""
 "\n"
 "\n"
@@ -1346,11 +1346,11 @@ msgstr "모든 장치"
 msgid "All files (*)"
 msgstr "모든 파일 (*)"
 
-#: Source/Core/Core/NetPlayServer.cpp:1170
+#: Source/Core/Core/NetPlayServer.cpp:1172
 msgid "All players' codes synchronized."
 msgstr "모든 플레이어의 코드가 동기화되었습니다."
 
-#: Source/Core/Core/NetPlayServer.cpp:1127
+#: Source/Core/Core/NetPlayServer.cpp:1129
 msgid "All players' saves synchronized."
 msgstr "모든 플레이어의 저장이 동기화되었습니다."
 
@@ -1668,7 +1668,7 @@ msgstr "안 좋은 값이 주어짐"
 msgid "Bad address provided."
 msgstr "안 좋은 주소가 제공되었습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:353
+#: Source/Core/DiscIO/VolumeVerifier.cpp:354
 msgid "Bad dump"
 msgstr "안 좋은 덤프"
 
@@ -1962,7 +1962,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:100
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:107
 msgid "Calculate"
 msgstr "계산"
 
@@ -2022,7 +2022,7 @@ msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "게임이 여전히 구동되는 동안에 넷플레이 세션을 시작할 수 없습니다!"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:57
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:151
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:157
 #: Source/Core/DolphinQt/MenuBar.cpp:1303
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:59
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
@@ -2279,6 +2279,20 @@ msgstr "공통"
 msgid "Comparand:"
 msgstr "비교대상:"
 
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1427
+msgid ""
+"Compared to the Wii disc release of the game, problems of low severity were "
+"found. Despite this, it's possible that this is a good dump compared to the "
+"Wii U eShop release of the game. Dolphin can't verify this."
+msgstr ""
+
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1391
+msgid ""
+"Compared to the Wii disc release of the game, this is a bad dump. Despite "
+"this, it's possible that this is a good dump compared to the Wii U eShop "
+"release of the game. Dolphin can't verify this."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:127
 msgid "Compile Shaders Before Starting"
 msgstr "시작하기 전에 쉐이더들 컴파일"
@@ -2419,7 +2433,7 @@ msgstr "연결중"
 msgid "Connection Type:"
 msgstr "연결 종류:"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1204
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1231
 msgid "Content {0:08x} is corrupt."
 msgstr "내용 {0:08x} 은 오류입니다."
 
@@ -3395,7 +3409,7 @@ msgstr "돌핀은 무료이고 오픈-소스 게임큐브 및 Wii 에뮬레이�
 msgid "Dolphin is too old for traversal server"
 msgstr "횡단 서버에 비해 돌핀이 너무 구 버전입니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1353
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1380
 msgid ""
 "Dolphin is unable to verify typical TGC files properly, since they are not "
 "dumps of actual discs."
@@ -3403,7 +3417,7 @@ msgstr ""
 "실제 디스크의 덤프들이 아니기 때문에, 돌핀은 일반 TGC 파일들을 올바르게 검증"
 "할 수 없습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1346
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1373
 msgid "Dolphin is unable to verify unlicensed discs."
 msgstr "돌핀은 라이슨스되지 않은 디스크들을 검증할 수 없습니다."
 
@@ -3734,11 +3748,11 @@ msgstr "디스크 꺼내기"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "내장형 프레임 버퍼 (EFB)"
 
-#: Source/Core/Core/State.cpp:468
+#: Source/Core/Core/State.cpp:504
 msgid "Empty"
 msgstr "비어있음"
 
-#: Source/Core/Core/Core.cpp:225
+#: Source/Core/Core/Core.cpp:226
 msgid "Emu Thread already running"
 msgstr "에뮬 쓰레드가 이미 구동중임"
 
@@ -4132,11 +4146,11 @@ msgstr "데이터 처리 에러."
 msgid "Error reading file: {0}"
 msgstr "파일 읽기 에러: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1442
+#: Source/Core/Core/NetPlayServer.cpp:1444
 msgid "Error synchronizing cheat codes!"
 msgstr "치트 코드들 동기화 에러!"
 
-#: Source/Core/Core/NetPlayServer.cpp:1429
+#: Source/Core/Core/NetPlayServer.cpp:1431
 msgid "Error synchronizing save data!"
 msgstr "저장 데이터 동기화 에러!"
 
@@ -4152,31 +4166,31 @@ msgstr ""
 "오류: \"{0}\" 뒤에, {1} ({2:#x}) 를 발견하였습니다, 저장 표식 {3} ({4:#x}) 대"
 "신에. 상태 저장 로드를 취소합니다..."
 
-#: Source/Core/Core/HW/GBACore.cpp:192
+#: Source/Core/Core/HW/GBACore.cpp:190
 msgid "Error: GBA{0} failed to create core"
 msgstr "에러: GBA{0} 코어 생성에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:347
+#: Source/Core/Core/HW/GBACore.cpp:345
 msgid "Error: GBA{0} failed to load the BIOS in {1}"
 msgstr "에러: GBA{0} {1} 에서 바이오스 로드에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:212
+#: Source/Core/Core/HW/GBACore.cpp:210
 msgid "Error: GBA{0} failed to load the ROM in {1}"
 msgstr "에러: GBA{0} {1} 에서 롬 로드에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:366
+#: Source/Core/Core/HW/GBACore.cpp:364
 msgid "Error: GBA{0} failed to load the save in {1}"
 msgstr "에러: GBA{0} {1} 에서 저장 로드에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:341
+#: Source/Core/Core/HW/GBACore.cpp:339
 msgid "Error: GBA{0} failed to open the BIOS in {1}"
 msgstr "에러: GBA{0} {1} 에서 바이오스 열기에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:182
+#: Source/Core/Core/HW/GBACore.cpp:180
 msgid "Error: GBA{0} failed to open the ROM in {1}"
 msgstr "에러: GBA{0} {1} 에서 롬 열기에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:360
+#: Source/Core/Core/HW/GBACore.cpp:358
 msgid "Error: GBA{0} failed to open the save in {1}"
 msgstr "에러: GBA{0} {1} 에서 저장 열기에 실패했습니다"
 
@@ -4200,11 +4214,11 @@ msgstr ""
 "오류: Windows-1252 폰트들 접근을 시도하였으나 로드되지 않았습니다. 게임들이 "
 "제대로 폰트들을 보여주지 않거나 깨짐이 발생할 수 있습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1302
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1329
 msgid "Errors were found in {0} blocks in the {1} partition."
 msgstr "{1} 파티션에 {0} 블락들에서 에러들이 발견되었습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1313
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1340
 msgid "Errors were found in {0} unused blocks in the {1} partition."
 msgstr "{1} 파티션에 {0} 사용되지 않은 블락들에서 에러들이 발견되었습니다."
 
@@ -4445,7 +4459,7 @@ msgstr "서명 파일 '%1' 에 덧붙이기에 실패했습니다."
 msgid "Failed to claim interface for BT passthrough: {0}"
 msgstr "블투 패스쓰루용 인터페이스 요청에 실패했습니다: {0}"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:107
+#: Source/Core/DiscIO/VolumeVerifier.cpp:108
 msgid "Failed to connect to Redump.org"
 msgstr "Redump.org 연결에 실패했습니다"
 
@@ -4671,7 +4685,7 @@ msgid "Failed to open the input file \"%1\"."
 msgstr "입력 파일 \"%1\" 열기에 실패했습니다."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:282 Source/Core/DiscIO/FileBlob.cpp:53
-#: Source/Core/DiscIO/WIABlob.cpp:2044
+#: Source/Core/DiscIO/WIABlob.cpp:2036
 msgid ""
 "Failed to open the output file \"{0}\".\n"
 "Check that you have permissions to write the target folder and that the "
@@ -4681,8 +4695,8 @@ msgstr ""
 "타겟 폴더에 쓰기 권한을 가지고 있는지와 미디어가 쓰여질 수 있는지를 확인하세"
 "요."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:219
-#: Source/Core/DiscIO/VolumeVerifier.cpp:317
+#: Source/Core/DiscIO/VolumeVerifier.cpp:220
+#: Source/Core/DiscIO/VolumeVerifier.cpp:318
 msgid "Failed to parse Redump.org data"
 msgstr "Redump.org 데이터 문법분석에 실패했습니다"
 
@@ -4699,7 +4713,7 @@ msgid "Failed to read from file."
 msgstr "파일에서 읽기에 실패했습니다."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:373 Source/Core/DiscIO/FileBlob.cpp:93
-#: Source/Core/DiscIO/WIABlob.cpp:2059
+#: Source/Core/DiscIO/WIABlob.cpp:2051
 msgid "Failed to read from the input file \"{0}\"."
 msgstr "입력 파일 \"{0}\" 로 부터 읽기에 실패했습니다."
 
@@ -4798,7 +4812,7 @@ msgid "Failed to write savefile to disk."
 msgstr "저장파일을 디스크에 쓰기를 실패했습니다. "
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:377 Source/Core/DiscIO/FileBlob.cpp:99
-#: Source/Core/DiscIO/WIABlob.cpp:2063
+#: Source/Core/DiscIO/WIABlob.cpp:2055
 msgid ""
 "Failed to write the output file \"{0}\".\n"
 "Check that you have enough space available on the target drive."
@@ -5575,7 +5589,7 @@ msgstr "GiB"
 msgid "Golf Mode"
 msgstr "골프 모드"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:343
+#: Source/Core/DiscIO/VolumeVerifier.cpp:344
 msgid "Good dump"
 msgstr "좋은 덤프"
 
@@ -5700,7 +5714,7 @@ msgstr "비호환 세션들 숨기기"
 msgid "Hide Remote GBAs"
 msgstr "원격 GBA 숨기기"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:200
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:206
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:425
 msgid "High"
 msgstr "높은"
@@ -6203,7 +6217,7 @@ msgid "Interface"
 msgstr "인터페이스"
 
 #: Source/Core/Core/NetPlayCommon.cpp:67 Source/Core/Core/NetPlayCommon.cpp:151
-#: Source/Core/Core/State.cpp:384
+#: Source/Core/Core/State.cpp:420
 msgid "Internal LZO Error - compression failed"
 msgstr "내부 LZO 오류 - 압축 실패했습니다"
 
@@ -6212,7 +6226,7 @@ msgstr "내부 LZO 오류 - 압축 실패했습니다"
 msgid "Internal LZO Error - decompression failed"
 msgstr "내부 LZO 오류 - 압축해제를 실패했습니다"
 
-#: Source/Core/Core/State.cpp:530
+#: Source/Core/Core/State.cpp:565
 msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
 "Try loading the state again"
@@ -6220,7 +6234,7 @@ msgstr ""
 "내부 LZO 오류 - 압축풀기 실패했습니다({0}) ({1}, {2}) \n"
 "상태 로딩을 다시 해보세요"
 
-#: Source/Core/Core/State.cpp:635
+#: Source/Core/Core/State.cpp:670
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "내부 LZO 오류 -  lzo_init() 실패했습니다"
 
@@ -6410,7 +6424,7 @@ msgstr "JIT 레지스터 캐시 끄기"
 msgid "JIT SystemRegisters Off"
 msgstr "JIT 시스템레지스터 끄기"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:879
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:876
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:719
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -6837,7 +6851,7 @@ msgstr "루프"
 msgid "Lost connection to NetPlay server..."
 msgstr "넷플레이 서버 연결을 잃었습니다..."
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:194
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:200
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:421
 msgid "Low"
 msgstr "낮은"
@@ -6931,7 +6945,7 @@ msgid "May cause slow down in Wii Menu and some games."
 msgstr "Wii 메뉴와 일부 게임에서 느려짐을 유발할지도 모릅니다."
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:228
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:197
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:203
 msgid "Medium"
 msgstr "중간"
 
@@ -7344,11 +7358,11 @@ msgstr "M3U 파일 \"{0}\" 에 경로가 없습니다"
 msgid "No possible functions left. Reset."
 msgstr "가능한 함수가 없습니다. 리셋합니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1383
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1420
 msgid "No problems were found."
 msgstr "문제들이 발견되지 않았습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1377
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1414
 msgid ""
 "No problems were found. This does not guarantee that this is a good dump, "
 "but since Wii titles contain a lot of verification data, it does mean that "
@@ -7370,7 +7384,7 @@ msgstr "로드된 녹화가 없습니다."
 msgid "No save data found."
 msgstr "발견된 저장 데이터가 없습니다."
 
-#: Source/Core/Core/State.cpp:726
+#: Source/Core/Core/State.cpp:761
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
 "undo.dtm 이 없습니다, 무비 갈림을 막기위해서 상태로드 되돌리기를 취소합니다"
@@ -7955,7 +7969,7 @@ msgstr "사설과 공공"
 msgid "Problem"
 msgstr "문제"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1398
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1444
 msgid ""
 "Problems with high severity were found. The game will most likely not work "
 "at all."
@@ -7963,7 +7977,7 @@ msgstr ""
 "높은 심각성을 지닌 문제들이 발견되었습니다. 게임이 전혀 작동하지 않을 가능성"
 "이 높습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1388
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1433
 msgid ""
 "Problems with low severity were found. They will most likely not prevent the "
 "game from running."
@@ -7971,7 +7985,7 @@ msgstr ""
 "낮은 심각성을 지닌 문제들이 발견되었습니다. 게임 구동을 방해할 가능성은 적습"
 "니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1393
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1439
 msgid ""
 "Problems with medium severity were found. The whole game or certain parts of "
 "the game might not work correctly."
@@ -8175,7 +8189,7 @@ msgstr ""
 "용합니다.<br><br><dolphin_emphasis>잘 모르겠으면, 없음을 선택하세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:81
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:86
 msgid "Redump.org Status:"
 msgstr "Redump.org 상태:"
 
@@ -8984,9 +8998,9 @@ msgstr "선택된 폰트"
 msgid "Selected controller profile does not exist"
 msgstr "선택된 컨트롤러 프로파일이 존재하지 않습니다"
 
-#: Source/Core/Core/NetPlayServer.cpp:1282
-#: Source/Core/Core/NetPlayServer.cpp:1625
-#: Source/Core/Core/NetPlayServer.cpp:1902
+#: Source/Core/Core/NetPlayServer.cpp:1284
+#: Source/Core/Core/NetPlayServer.cpp:1628
+#: Source/Core/Core/NetPlayServer.cpp:1905
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:464
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:866
 msgid "Selected game doesn't exist in game list!"
@@ -9088,7 +9102,7 @@ msgstr "보내기"
 msgid "Sensor Bar Position:"
 msgstr "센서 바 위치:"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:313
+#: Source/Core/DiscIO/VolumeVerifier.cpp:314
 msgid ""
 "Serial and/or version data is missing from {0}\n"
 "Please append \"{1}\" (without the quotes) to the datfile URL when "
@@ -9191,7 +9205,7 @@ msgstr ""
 msgid "Settings"
 msgstr "설정"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:410
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:411
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "Wii메모리설정: setting.txt 파일을 생성할 수 없음"
 
@@ -9586,11 +9600,11 @@ msgstr "소켓 테이블"
 msgid "Software Renderer"
 msgstr "소프트웨어 렌더러"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1292
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1319
 msgid "Some of the data could not be read."
 msgstr "데이터의 일부가 읽혀지지 않았습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1025
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1045
 msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
@@ -10158,7 +10172,7 @@ msgid ""
 msgstr ""
 "DFF 의 최소 로더 버전 ({0}) 이 이 FIFO 플레이어의 버전 ({1}) 을 초과합니다"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:580
+#: Source/Core/DiscIO/VolumeVerifier.cpp:598
 msgid "The H3 hash table for the {0} partition is not correct."
 msgstr "{0} 파티션에 대한 H3 해쉬 테이블이 올바르지 않습니다."
 
@@ -10172,7 +10186,7 @@ msgstr "IPL 파일이 알려진 좋은 덤프가 아닙니다. (CRC32: {0:x})"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:465
+#: Source/Core/DiscIO/VolumeVerifier.cpp:483
 msgid "The Masterpiece partitions are missing."
 msgstr "명작 파티션들이 빠져있습니다."
 
@@ -10188,7 +10202,7 @@ msgstr ""
 msgid "The NAND has been repaired."
 msgstr "NAND 가 고쳐졌습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:980
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1000
 msgid ""
 "The TMD is not correctly signed. If you move or copy this title to the SD "
 "Card, the Wii System Menu will not launch it anymore and will also refuse to "
@@ -10198,15 +10212,15 @@ msgstr ""
 "면, Wii 시스템 메뉴는 더이상 그것을 시작하지 않고 NAND 로 다시 복사나 이동도 "
 "거부할 것입니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:448
+#: Source/Core/DiscIO/VolumeVerifier.cpp:466
 msgid "The channel partition is missing."
 msgstr "채널 파티션이 빠져있습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:443
+#: Source/Core/DiscIO/VolumeVerifier.cpp:461
 msgid "The data partition is missing."
 msgstr "데이터 파티션이 빠져있습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:482
+#: Source/Core/DiscIO/VolumeVerifier.cpp:500
 msgid ""
 "The data partition is not at its normal position. This will affect the "
 "emulated loading times. You will be unable to share input recordings and use "
@@ -10216,7 +10230,7 @@ msgstr ""
 "을 줄 것입니다. 입력 녹화들을 공유하거나 좋은 덤프를 사용하는 누군가와 넷플레"
 "이를 사용하는 것들을 할 수 없을 것입니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:593
+#: Source/Core/DiscIO/VolumeVerifier.cpp:611
 msgid ""
 "The data size for the {0} partition is not evenly divisible by the block "
 "size."
@@ -10324,26 +10338,26 @@ msgstr ""
 "는 저장 파일의 지역과 일치하도록 이  파일을 %2, %3, 혹은 %4 로 이름을 바꿔주"
 "세요."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:412
+#: Source/Core/DiscIO/VolumeVerifier.cpp:430
 msgid "The filesystem is invalid or could not be read."
 msgstr "파일시스템이 부적합하거나 읽혀질 수 없습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:761
+#: Source/Core/DiscIO/VolumeVerifier.cpp:778
 msgid ""
 "The format that the disc image is saved in does not store the size of the "
 "disc image."
 msgstr ""
 "디스크 이미지가 저장되어 있는 포맷이 디스크 이미지 크기를 담고있지 않습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:864
+#: Source/Core/DiscIO/VolumeVerifier.cpp:884
 msgid "The game ID is inconsistent."
 msgstr "게임 ID 가 일관되지 않습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:875
+#: Source/Core/DiscIO/VolumeVerifier.cpp:895
 msgid "The game ID is unusually short."
 msgstr "게임 ID 가 비정상적으로 짧습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:856
+#: Source/Core/DiscIO/VolumeVerifier.cpp:876
 msgid "The game ID is {0} but should be {1}."
 msgstr "게임 ID 가 {0} 이지만 {1} 이어야 합니다."
 
@@ -10394,7 +10408,7 @@ msgstr ""
 "호스트 코드가 너무 깁니다.\n"
 "올바른 코드인지 다시 확인해 주세요."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:453
+#: Source/Core/DiscIO/VolumeVerifier.cpp:471
 msgid "The install partition is missing."
 msgstr "설치 파티션이 빠져있습니다."
 
@@ -10422,7 +10436,7 @@ msgstr "프로파일 '%1' 이 존재하지 않습니다"
 msgid "The recorded game ({0}) is not the same as the selected game ({1})"
 msgstr "기록된 게임 ({0}) 은 선택된 게임 ({1}) 과 같지 않습니다"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:893
+#: Source/Core/DiscIO/VolumeVerifier.cpp:913
 msgid ""
 "The region code does not match the game ID. If this is because the region "
 "code has been modified, the game might run at the wrong speed, graphical "
@@ -10468,7 +10482,7 @@ msgstr ""
 "요."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:953
+#: Source/Core/DiscIO/VolumeVerifier.cpp:973
 msgid "The specified common key index is {0} but should be {1}."
 msgstr "명시된 공통 키 인덱스는 {0} 입니다 하지만 {1} 이어야 합니다."
 
@@ -10481,11 +10495,11 @@ msgid "The target memory card already contains a file \"%1\"."
 msgstr "대상 메모리 카드가 이미 파일 \"%1\" 을 가지고 있습니다."
 
 #. i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
-#: Source/Core/DiscIO/VolumeVerifier.cpp:971
+#: Source/Core/DiscIO/VolumeVerifier.cpp:991
 msgid "The ticket is not correctly signed."
 msgstr "티켓이 올바르게 서명되어 있지 않습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:504
+#: Source/Core/DiscIO/VolumeVerifier.cpp:522
 msgid "The type of a partition could not be read."
 msgstr "파티션 종류가 읽혀질 수 없었습니다."
 
@@ -10497,39 +10511,39 @@ msgstr ""
 "업데이트가 취소되었습니다. 불안정한 시스템 소프트웨어 버전을 피하기위해 종료"
 "할 것을 강력히 권장합니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:663
+#: Source/Core/DiscIO/VolumeVerifier.cpp:681
 msgid "The update partition does not contain the IOS used by this title."
 msgstr "업데이트 파티션이 이 타이틀에서 사용되는 IOS 를 담고 있지 않습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:438
+#: Source/Core/DiscIO/VolumeVerifier.cpp:456
 msgid "The update partition is missing."
 msgstr "업데이트 파티션이 빠져있습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:473
+#: Source/Core/DiscIO/VolumeVerifier.cpp:491
 msgid "The update partition is not at its normal position."
 msgstr "업데이트 파티션이 정상적 위치에 있지 않습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:622
+#: Source/Core/DiscIO/VolumeVerifier.cpp:640
 msgid "The {0} partition does not have a valid file system."
 msgstr "{0} 파티션은 적합한 파일 시스템이 없습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:553
+#: Source/Core/DiscIO/VolumeVerifier.cpp:571
 msgid "The {0} partition does not seem to contain valid data."
 msgstr "{0} 파티션은 적합한 데이터를 가지고 있지 않은 것 같습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:573
+#: Source/Core/DiscIO/VolumeVerifier.cpp:591
 msgid "The {0} partition is not correctly signed."
 msgstr "{0} 파티션은 올바르게 서명되어 있지 않습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:520
+#: Source/Core/DiscIO/VolumeVerifier.cpp:538
 msgid "The {0} partition is not properly aligned."
 msgstr "{0} 파티션은 올바르게 정렬되어 있지 않습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:426
+#: Source/Core/DiscIO/VolumeVerifier.cpp:444
 msgid "There are too many partitions in the first partition table."
 msgstr "첫 파티션 테이블에 너무 많은 파티션들이 있습니다."
 
-#: Source/Core/Core/State.cpp:731
+#: Source/Core/Core/State.cpp:766
 msgid "There is nothing to undo!"
 msgstr "되돌릴 것이 없습니다!"
 
@@ -10563,7 +10577,7 @@ msgstr "Gecko 코드가 아무 줄도 포함하고 있지 않습니다."
 
 #. i18n: You may want to leave the term "ERROR #002" untranslated,
 #. since the emulated software always displays it in English.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:918
+#: Source/Core/DiscIO/VolumeVerifier.cpp:938
 msgid ""
 "This Korean title is set to use an IOS that typically isn't used on Korean "
 "consoles. This is likely to lead to ERROR #002."
@@ -10604,15 +10618,15 @@ msgstr ""
 msgid "This cannot be undone!"
 msgstr "이것은 되돌릴 수 없습니다!"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:805
+#: Source/Core/DiscIO/VolumeVerifier.cpp:825
 msgid "This debug disc image has the size of a retail disc image."
 msgstr "이 디버그 디스크 이미지는 리테일 디스크 이미지 크기를 가지고 있습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:828
+#: Source/Core/DiscIO/VolumeVerifier.cpp:848
 msgid "This disc image has an unusual size."
 msgstr "이 디스크 이미지는 비정상적인 크기입니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:822
+#: Source/Core/DiscIO/VolumeVerifier.cpp:842
 msgid ""
 "This disc image has an unusual size. This will likely make the emulated "
 "loading times longer. You will likely be unable to share input recordings "
@@ -10622,7 +10636,7 @@ msgstr ""
 "게 만들 것입니다. 입력 녹화들을 공유하거나 좋은 덤프를 사용하는 누군가와 넷플"
 "레이를 사용하는 것들을 대체로 할 수 없을 것입니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:990
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1010
 msgid ""
 "This disc image is in the NKit format. It is not a good dump in its current "
 "form, but it might become a good dump if converted back. The CRC32 of this "
@@ -10634,7 +10648,7 @@ msgstr ""
 "들이 똑같지는 않더라도 이 파일의 CRC32 가 좋은 덤프의 CRC32 와 매치될지도 모"
 "릅니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:781
+#: Source/Core/DiscIO/VolumeVerifier.cpp:798
 msgid ""
 "This disc image is too small and lacks some data. If your dumping program "
 "saved the disc image as several parts, you need to merge them into one file."
@@ -10642,7 +10656,7 @@ msgstr ""
 "디스크 이미지가 너무 작고 일부 데이터가 부족합니다. 당신의 덤핑 프로그램이 디"
 "스크 이미지를 여러 부분으로 저장했다면, 한 파일로 통합할 필요가 있습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:778
+#: Source/Core/DiscIO/VolumeVerifier.cpp:795
 msgid ""
 "This disc image is too small and lacks some data. The problem is most likely "
 "that this is a dual-layer disc that has been dumped as a single-layer disc."
@@ -10658,7 +10672,7 @@ msgstr "이 파일은 적합한 Wii 파일시스템을 지니고 있지 않습�
 msgid "This file does not look like a BootMii NAND backup."
 msgstr "이 파일은 BootMii NAND 백업처럼 보이지 않습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:753
+#: Source/Core/DiscIO/VolumeVerifier.cpp:770
 msgid ""
 "This game has been hacked to fit on a single-layer DVD. Some content such as "
 "pre-rendered videos, extra languages or entire game modes will be broken. "
@@ -10678,11 +10692,11 @@ msgstr ""
 "픽 카드나 드라이버가 그것을 지원하지 않습니다. 결과적으로 이 게임을 구동하는 "
 "동안 버그나 프리징을 겪을 것입니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1368
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1405
 msgid "This is a bad dump."
 msgstr "이것은 안 좋은 덤프입니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1362
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1398
 msgid ""
 "This is a bad dump. This doesn't necessarily mean that the game won't run "
 "correctly."
@@ -10690,7 +10704,7 @@ msgstr ""
 "이것은 안 좋은 덤프입니다. 이것이 필연적으로 게임이 올바르게 구동되지 않을 것"
 "이라는 것을 의미하지는 않습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1338
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1365
 msgid ""
 "This is a good dump according to Redump.org, but Dolphin has found problems. "
 "This might be a bug in Dolphin."
@@ -10698,7 +10712,7 @@ msgstr ""
 "Redump.org 에 따르면 이것은 좋은 덤프입니다, 하지만 돌핀이 문제를 발견했습니"
 "다. 이것은 돌핀쪽 버그 일지도 모릅니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1333
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1360
 msgid "This is a good dump."
 msgstr "이것은 좋은 덤프입니다."
 
@@ -10727,16 +10741,16 @@ msgstr ""
 msgid "This title cannot be booted."
 msgstr "이 타이틀은 부팅될 수 없습니다."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:926
+#: Source/Core/DiscIO/VolumeVerifier.cpp:946
 msgid "This title is set to use an invalid IOS."
 msgstr "이 타이틀은 부적합 IOS 를 사용하도록 설정되어 있습니다."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:940
+#: Source/Core/DiscIO/VolumeVerifier.cpp:960
 msgid "This title is set to use an invalid common key."
 msgstr "이 타이틀은 부적합 공유 키를 사용하도록 설정되어 있습니다."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:314
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:317
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10748,7 +10762,7 @@ msgstr ""
 "\n"
 "DSPHLE: 알려지지 않은 ucode (CRC = {0:08x}) - 강제 AX."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:305
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:308
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -11113,7 +11127,7 @@ msgstr ""
 msgid "Unable to read file."
 msgstr "파일 읽기가 불가능합니다."
 
-#: Source/Core/DiscIO/NANDImporter.cpp:268
+#: Source/Core/DiscIO/NANDImporter.cpp:267
 msgid "Unable to write to file {0}"
 msgstr "{0} 파일에 쓸 수 없습니다"
 
@@ -11153,7 +11167,7 @@ msgstr ""
 msgid "United States"
 msgstr "미국"
 
-#: Source/Core/Core/State.cpp:472 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/Core/State.cpp:508 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:85
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:43
@@ -11164,7 +11178,7 @@ msgstr "미국"
 msgid "Unknown"
 msgstr "알려지지 않음"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1244
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1254
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "알려지지 않은 DVD 명령 {0:08x} - 치명적 오류"
 
@@ -11172,7 +11186,7 @@ msgstr "알려지지 않은 DVD 명령 {0:08x} - 치명적 오류"
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr "알려지지 않은 SYNC_CODES 메시지를 받았습니다 id: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1190
+#: Source/Core/Core/NetPlayServer.cpp:1192
 msgid ""
 "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} "
 "Kicking player!"
@@ -11184,7 +11198,7 @@ msgstr ""
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "알려지지 않은 SYNC_SAVE_DATA 메시지를 받았습니다 id: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1148
+#: Source/Core/Core/NetPlayServer.cpp:1150
 msgid ""
 "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking "
 "player!"
@@ -11204,7 +11218,7 @@ msgstr "알려지지 않은 저자"
 msgid "Unknown data type"
 msgstr "알려지지 않은 데이터 타입"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:355
+#: Source/Core/DiscIO/VolumeVerifier.cpp:356
 msgid "Unknown disc"
 msgstr "알려지지 않은 디스크"
 
@@ -11224,7 +11238,7 @@ msgstr "알려지지 않은 오류."
 msgid "Unknown message received with id : {0}"
 msgstr "id : {0} 의 알려지지 않은 메시지를 받았습니다"
 
-#: Source/Core/Core/NetPlayServer.cpp:1198
+#: Source/Core/Core/NetPlayServer.cpp:1200
 msgid "Unknown message with id:{0} received from player:{1} Kicking player!"
 msgstr ""
 "알려지지 않은 메시지 id:{0} 를 플레이어:{1} 로부터 받았습니다 플레이어 강퇴!"
@@ -11550,7 +11564,7 @@ msgstr "상세설명"
 msgid "Verify"
 msgstr "검증"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:93
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:100
 msgid "Verify Integrity"
 msgstr "무결성 검증"
 
@@ -11558,8 +11572,8 @@ msgstr "무결성 검증"
 msgid "Verify certificates"
 msgstr "증명서 검증"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:151
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:153
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:157
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:159
 msgid "Verifying"
 msgstr "검증하기"
 
@@ -11942,7 +11956,7 @@ msgstr "Wii TAS 입력 %1 - Wii 리모트 + 눈챠쿠"
 msgid "Wii and Wii Remote"
 msgstr "Wii 와 Wii 리모트"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:102
+#: Source/Core/DiscIO/VolumeVerifier.cpp:103
 msgid "Wii data is not public yet"
 msgstr "Wii 데이터는 아직 공개가 아닙니다"
 
@@ -12360,11 +12374,11 @@ msgstr "정렬되지 않음"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:685
+#: Source/Core/DiscIO/VolumeVerifier.cpp:703
 msgid "{0} (Masterpiece)"
 msgstr "{0} (명작)"
 
-#: Source/Core/UICommon/GameFile.cpp:826
+#: Source/Core/UICommon/GameFile.cpp:822
 msgid "{0} (NKit)"
 msgstr "{0} (NKit)"
 
@@ -12373,11 +12387,11 @@ msgid "{0} IPL found in {1} directory. The disc might not be recognized"
 msgstr ""
 "{1} 디렉토리에서 {0} IPL이 발견되었습니다. 디스크가 인식되지 않은 것 같습니다"
 
-#: Source/Core/Core/NetPlayServer.cpp:1182
+#: Source/Core/Core/NetPlayServer.cpp:1184
 msgid "{0} failed to synchronize codes."
 msgstr " {0} 코드 동기화에 실패했습니다."
 
-#: Source/Core/Core/NetPlayServer.cpp:1139
+#: Source/Core/Core/NetPlayServer.cpp:1141
 msgid "{0} failed to synchronize."
 msgstr "{0} 동기화에 실패했습니다."
 
@@ -12390,7 +12404,7 @@ msgstr ""
 "쓰기 권한을 검사하거나 파일을 돌핀 밖으로 옮기세요."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:260
-#: Source/Core/DiscIO/WIABlob.cpp:1702
+#: Source/Core/DiscIO/WIABlob.cpp:1697
 msgid "{0} of {1} blocks. Compression ratio {2}%"
 msgstr "{1} 블락들의 {0}. 압축 비율 {2}%"
 

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-29 22:48+0200\n"
+"POT-Creation-Date: 2022-08-06 15:49+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: mansoor <asseryma@hotmail.com>, 2013,2015-2022\n"
 "Language-Team: Arabic (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -22,7 +22,7 @@ msgstr ""
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1406
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1452
 msgid ""
 "\n"
 "\n"
@@ -34,7 +34,7 @@ msgstr ""
 "نظرًا لأن صور أقراص جيم كيوب تحتوي على القليل من بيانات التحقق ، فقد تكون "
 "هناك مشكلات يتعذر على دولفين اكتشافها."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1412
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1458
 msgid ""
 "\n"
 "\n"
@@ -1325,11 +1325,11 @@ msgstr "جميع أدوات التحكم"
 msgid "All files (*)"
 msgstr "(*) جميع الملفات"
 
-#: Source/Core/Core/NetPlayServer.cpp:1170
+#: Source/Core/Core/NetPlayServer.cpp:1172
 msgid "All players' codes synchronized."
 msgstr "جميع رموز اللاعبين متزامنة."
 
-#: Source/Core/Core/NetPlayServer.cpp:1127
+#: Source/Core/Core/NetPlayServer.cpp:1129
 msgid "All players' saves synchronized."
 msgstr "حفظ جميع اللاعبين متزامنة."
 
@@ -1638,7 +1638,7 @@ msgstr ""
 msgid "Bad address provided."
 msgstr "تم توفير عنوان غير صحيح."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:353
+#: Source/Core/DiscIO/VolumeVerifier.cpp:354
 msgid "Bad dump"
 msgstr "تفريغ سيئ"
 
@@ -1926,7 +1926,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:100
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:107
 msgid "Calculate"
 msgstr "حساب"
 
@@ -1982,7 +1982,7 @@ msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "لا يمكن بدء جلسة اللعب عبر الشبكة بينما لا تزال اللعبة قيد التشغيل! "
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:57
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:151
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:157
 #: Source/Core/DolphinQt/MenuBar.cpp:1303
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:59
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
@@ -2233,6 +2233,20 @@ msgstr "عام"
 msgid "Comparand:"
 msgstr "مقارنة"
 
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1427
+msgid ""
+"Compared to the Wii disc release of the game, problems of low severity were "
+"found. Despite this, it's possible that this is a good dump compared to the "
+"Wii U eShop release of the game. Dolphin can't verify this."
+msgstr ""
+
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1391
+msgid ""
+"Compared to the Wii disc release of the game, this is a bad dump. Despite "
+"this, it's possible that this is a good dump compared to the Wii U eShop "
+"release of the game. Dolphin can't verify this."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:127
 msgid "Compile Shaders Before Starting"
 msgstr "تجميع التظليل قبل البدء"
@@ -2373,7 +2387,7 @@ msgstr "الاتصال"
 msgid "Connection Type:"
 msgstr "نوع الاتصال"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1204
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1231
 msgid "Content {0:08x} is corrupt."
 msgstr "{0:08x} المحتوى تالف"
 
@@ -3303,7 +3317,7 @@ msgstr "محاكي دولفين مفتوح المصدر لجهاز جيم كيو
 msgid "Dolphin is too old for traversal server"
 msgstr "دولفين قديم جدا لجتياز الخادم "
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1353
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1380
 msgid ""
 "Dolphin is unable to verify typical TGC files properly, since they are not "
 "dumps of actual discs."
@@ -3311,7 +3325,7 @@ msgstr ""
 "يتعذر على دولفين التحقق من ملفات النموذجية بشكل صحيح ، نظرًا لعدم تفريغها من "
 "الأقراص الفعلية"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1346
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1373
 msgid "Dolphin is unable to verify unlicensed discs."
 msgstr "دولفين غير قادر على التحقق من الأقراص غير المرخصة."
 
@@ -3623,11 +3637,11 @@ msgstr "إخراج القرص"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "(EFB) مخزن مؤقت للإطار المضمن"
 
-#: Source/Core/Core/State.cpp:468
+#: Source/Core/Core/State.cpp:504
 msgid "Empty"
 msgstr "فارغة"
 
-#: Source/Core/Core/Core.cpp:225
+#: Source/Core/Core/Core.cpp:226
 msgid "Emu Thread already running"
 msgstr "المحاكي قيد التشغيل بالفعل"
 
@@ -3991,11 +4005,11 @@ msgstr "خطأ في معالجة البيانات."
 msgid "Error reading file: {0}"
 msgstr "{0} خطأ في قراءة الملف"
 
-#: Source/Core/Core/NetPlayServer.cpp:1442
+#: Source/Core/Core/NetPlayServer.cpp:1444
 msgid "Error synchronizing cheat codes!"
 msgstr "خطأ في مزامنة الرموز"
 
-#: Source/Core/Core/NetPlayServer.cpp:1429
+#: Source/Core/Core/NetPlayServer.cpp:1431
 msgid "Error synchronizing save data!"
 msgstr "حدث خطا اثناء مزامنة حفظ البيانات!"
 
@@ -4009,31 +4023,31 @@ msgid ""
 "#x}). Aborting savestate load..."
 msgstr ""
 
-#: Source/Core/Core/HW/GBACore.cpp:192
+#: Source/Core/Core/HW/GBACore.cpp:190
 msgid "Error: GBA{0} failed to create core"
 msgstr "خطأ: فشل جيم بوي أدفانس {0} في إنشاء النواة"
 
-#: Source/Core/Core/HW/GBACore.cpp:347
+#: Source/Core/Core/HW/GBACore.cpp:345
 msgid "Error: GBA{0} failed to load the BIOS in {1}"
 msgstr ""
 
-#: Source/Core/Core/HW/GBACore.cpp:212
+#: Source/Core/Core/HW/GBACore.cpp:210
 msgid "Error: GBA{0} failed to load the ROM in {1}"
 msgstr ""
 
-#: Source/Core/Core/HW/GBACore.cpp:366
+#: Source/Core/Core/HW/GBACore.cpp:364
 msgid "Error: GBA{0} failed to load the save in {1}"
 msgstr ""
 
-#: Source/Core/Core/HW/GBACore.cpp:341
+#: Source/Core/Core/HW/GBACore.cpp:339
 msgid "Error: GBA{0} failed to open the BIOS in {1}"
 msgstr ""
 
-#: Source/Core/Core/HW/GBACore.cpp:182
+#: Source/Core/Core/HW/GBACore.cpp:180
 msgid "Error: GBA{0} failed to open the ROM in {1}"
 msgstr ""
 
-#: Source/Core/Core/HW/GBACore.cpp:360
+#: Source/Core/Core/HW/GBACore.cpp:358
 msgid "Error: GBA{0} failed to open the save in {1}"
 msgstr ""
 
@@ -4057,11 +4071,11 @@ msgstr ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1302
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1329
 msgid "Errors were found in {0} blocks in the {1} partition."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1313
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1340
 msgid "Errors were found in {0} unused blocks in the {1} partition."
 msgstr ""
 
@@ -4288,7 +4302,7 @@ msgstr "Failed to append to signature file '%1'"
 msgid "Failed to claim interface for BT passthrough: {0}"
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:107
+#: Source/Core/DiscIO/VolumeVerifier.cpp:108
 msgid "Failed to connect to Redump.org"
 msgstr "Redump.org فشل الاتصال بـ"
 
@@ -4505,7 +4519,7 @@ msgid "Failed to open the input file \"%1\"."
 msgstr "\"%1\" فشل في فتح ملف الإدخال"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:282 Source/Core/DiscIO/FileBlob.cpp:53
-#: Source/Core/DiscIO/WIABlob.cpp:2044
+#: Source/Core/DiscIO/WIABlob.cpp:2036
 msgid ""
 "Failed to open the output file \"{0}\".\n"
 "Check that you have permissions to write the target folder and that the "
@@ -4514,8 +4528,8 @@ msgstr ""
 "فشل فتح ملف الإخراج \"{0}\".\n"
 "تأكد من أن لديك أذونات لكتابة المجلد المستهدف وأن الوسائط يمكن كتابتها."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:219
-#: Source/Core/DiscIO/VolumeVerifier.cpp:317
+#: Source/Core/DiscIO/VolumeVerifier.cpp:220
+#: Source/Core/DiscIO/VolumeVerifier.cpp:318
 msgid "Failed to parse Redump.org data"
 msgstr "Redump.org فشل تحليل بيانات"
 
@@ -4532,7 +4546,7 @@ msgid "Failed to read from file."
 msgstr "فشلت القراءة من الملف"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:373 Source/Core/DiscIO/FileBlob.cpp:93
-#: Source/Core/DiscIO/WIABlob.cpp:2059
+#: Source/Core/DiscIO/WIABlob.cpp:2051
 msgid "Failed to read from the input file \"{0}\"."
 msgstr "\"{0}\" فشلت القراءة من ملف الإدخال"
 
@@ -4632,7 +4646,7 @@ msgid "Failed to write savefile to disk."
 msgstr "فشل في كتابة ملف الحفظ على القرص"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:377 Source/Core/DiscIO/FileBlob.cpp:99
-#: Source/Core/DiscIO/WIABlob.cpp:2063
+#: Source/Core/DiscIO/WIABlob.cpp:2055
 msgid ""
 "Failed to write the output file \"{0}\".\n"
 "Check that you have enough space available on the target drive."
@@ -5358,7 +5372,7 @@ msgstr "غيغابايت"
 msgid "Golf Mode"
 msgstr "Golf وضع"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:343
+#: Source/Core/DiscIO/VolumeVerifier.cpp:344
 msgid "Good dump"
 msgstr "تفريغ جيد"
 
@@ -5479,7 +5493,7 @@ msgstr "إخفاء جلسات العمل غير المتوافقة"
 msgid "Hide Remote GBAs"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:200
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:206
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:425
 msgid "High"
 msgstr "عالية"
@@ -5948,7 +5962,7 @@ msgid "Interface"
 msgstr "الواجهة"
 
 #: Source/Core/Core/NetPlayCommon.cpp:67 Source/Core/Core/NetPlayCommon.cpp:151
-#: Source/Core/Core/State.cpp:384
+#: Source/Core/Core/State.cpp:420
 msgid "Internal LZO Error - compression failed"
 msgstr "Internal LZO Error - compression failed"
 
@@ -5957,13 +5971,13 @@ msgstr "Internal LZO Error - compression failed"
 msgid "Internal LZO Error - decompression failed"
 msgstr "Internal LZO Error - decompression failed"
 
-#: Source/Core/Core/State.cpp:530
+#: Source/Core/Core/State.cpp:565
 msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
 "Try loading the state again"
 msgstr ""
 
-#: Source/Core/Core/State.cpp:635
+#: Source/Core/Core/State.cpp:670
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Internal LZO Error - lzo_init() failed"
 
@@ -6153,7 +6167,7 @@ msgstr "JIT Register Cache Off"
 msgid "JIT SystemRegisters Off"
 msgstr "JIT SystemRegisters Off"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:879
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:876
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:719
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -6569,7 +6583,7 @@ msgstr "التكرار الحلقي"
 msgid "Lost connection to NetPlay server..."
 msgstr "فقد الاتصال بالخادم"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:194
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:200
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:421
 msgid "Low"
 msgstr "منخفضة"
@@ -6659,7 +6673,7 @@ msgid "May cause slow down in Wii Menu and some games."
 msgstr "قد يسبب تباطؤ في قائمة وي وبعض الألعاب."
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:228
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:197
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:203
 msgid "Medium"
 msgstr "متوسطة"
 
@@ -7063,11 +7077,11 @@ msgstr ""
 msgid "No possible functions left. Reset."
 msgstr "لا توجد وظائف ممكنة متبقية. إعادة ضبط"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1383
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1420
 msgid "No problems were found."
 msgstr "لا توجد مشاكل."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1377
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1414
 msgid ""
 "No problems were found. This does not guarantee that this is a good dump, "
 "but since Wii titles contain a lot of verification data, it does mean that "
@@ -7089,7 +7103,7 @@ msgstr "لم يتم تحميل التسجيل"
 msgid "No save data found."
 msgstr "لم يتم العثور على حفظ البيانات"
 
-#: Source/Core/Core/State.cpp:726
+#: Source/Core/Core/State.cpp:761
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 
@@ -7664,7 +7678,7 @@ msgstr "خاصة و عامة"
 msgid "Problem"
 msgstr "المشكلة"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1398
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1444
 msgid ""
 "Problems with high severity were found. The game will most likely not work "
 "at all."
@@ -7672,7 +7686,7 @@ msgstr ""
 "تم العثور علي مشاكل ذات خطورة عالية. فان اللعبة علي الأرجح لا تعمل علي "
 "الإطلاق"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1388
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1433
 msgid ""
 "Problems with low severity were found. They will most likely not prevent the "
 "game from running."
@@ -7680,7 +7694,7 @@ msgstr ""
 "تم العثور علي مشاكل ذات خطورة منخفضة. فإنها علي الأرجح لا تمنع اللعبة من "
 "التشغيل"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1393
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1439
 msgid ""
 "Problems with medium severity were found. The whole game or certain parts of "
 "the game might not work correctly."
@@ -7880,7 +7894,7 @@ msgid ""
 "unsure, select None.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:81
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:86
 msgid "Redump.org Status:"
 msgstr "Redump.org حالة"
 
@@ -8681,9 +8695,9 @@ msgstr "الخط المحدد"
 msgid "Selected controller profile does not exist"
 msgstr "اختيار الملف التحكم الشخصي غير موجود "
 
-#: Source/Core/Core/NetPlayServer.cpp:1282
-#: Source/Core/Core/NetPlayServer.cpp:1625
-#: Source/Core/Core/NetPlayServer.cpp:1902
+#: Source/Core/Core/NetPlayServer.cpp:1284
+#: Source/Core/Core/NetPlayServer.cpp:1628
+#: Source/Core/Core/NetPlayServer.cpp:1905
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:464
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:866
 msgid "Selected game doesn't exist in game list!"
@@ -8757,7 +8771,7 @@ msgstr "إرسال"
 msgid "Sensor Bar Position:"
 msgstr "موضع الاستشعار"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:313
+#: Source/Core/DiscIO/VolumeVerifier.cpp:314
 msgid ""
 "Serial and/or version data is missing from {0}\n"
 "Please append \"{1}\" (without the quotes) to the datfile URL when "
@@ -8855,7 +8869,7 @@ msgstr ""
 msgid "Settings"
 msgstr "إعدادات"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:410
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:411
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Can't create setting.txt file"
 
@@ -9232,11 +9246,11 @@ msgstr "Socket table"
 msgid "Software Renderer"
 msgstr "Software Renderer"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1292
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1319
 msgid "Some of the data could not be read."
 msgstr "لا يمكن قراءة بعض البيانات."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1025
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1045
 msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
@@ -9780,7 +9794,7 @@ msgid ""
 "Player ({1})"
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:580
+#: Source/Core/DiscIO/VolumeVerifier.cpp:598
 msgid "The H3 hash table for the {0} partition is not correct."
 msgstr ""
 
@@ -9794,7 +9808,7 @@ msgstr ""
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:465
+#: Source/Core/DiscIO/VolumeVerifier.cpp:483
 msgid "The Masterpiece partitions are missing."
 msgstr "أقسام نادرة مفقودة."
 
@@ -9810,22 +9824,22 @@ msgstr ""
 msgid "The NAND has been repaired."
 msgstr "NAND تم اصلاح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:980
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1000
 msgid ""
 "The TMD is not correctly signed. If you move or copy this title to the SD "
 "Card, the Wii System Menu will not launch it anymore and will also refuse to "
 "copy or move it back to the NAND."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:448
+#: Source/Core/DiscIO/VolumeVerifier.cpp:466
 msgid "The channel partition is missing."
 msgstr "قسم القناة مفقود."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:443
+#: Source/Core/DiscIO/VolumeVerifier.cpp:461
 msgid "The data partition is missing."
 msgstr "قسم البيانات مفقود."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:482
+#: Source/Core/DiscIO/VolumeVerifier.cpp:500
 msgid ""
 "The data partition is not at its normal position. This will affect the "
 "emulated loading times. You will be unable to share input recordings and use "
@@ -9835,7 +9849,7 @@ msgstr ""
 "مضاهاتها. لن تتمكن من مشاركة تسجيلات الإدخال واستخدام لعب الشبكة مع أي شخص "
 "يستخدم ملف تفريغ جيد."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:593
+#: Source/Core/DiscIO/VolumeVerifier.cpp:611
 msgid ""
 "The data size for the {0} partition is not evenly divisible by the block "
 "size."
@@ -9934,25 +9948,25 @@ msgid ""
 "of the save files that are on it."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:412
+#: Source/Core/DiscIO/VolumeVerifier.cpp:430
 msgid "The filesystem is invalid or could not be read."
 msgstr "نظام الملفات غير صالح أو لا يمكن قراءته."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:761
+#: Source/Core/DiscIO/VolumeVerifier.cpp:778
 msgid ""
 "The format that the disc image is saved in does not store the size of the "
 "disc image."
 msgstr "التنسيق الذي يتم حفظ صورة القرص به لا يخزن حجم صورة القرص"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:864
+#: Source/Core/DiscIO/VolumeVerifier.cpp:884
 msgid "The game ID is inconsistent."
 msgstr "معرف اللعبة غير متناسق."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:875
+#: Source/Core/DiscIO/VolumeVerifier.cpp:895
 msgid "The game ID is unusually short."
 msgstr "معرف اللعبة قصير بشكل غير عادي."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:856
+#: Source/Core/DiscIO/VolumeVerifier.cpp:876
 msgid "The game ID is {0} but should be {1}."
 msgstr ""
 
@@ -9998,7 +10012,7 @@ msgstr ""
 "رمز المضيف طويل جدًا.\n"
 "يرجى إعادة التحقق من أن لديك الرمز الصحيح."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:453
+#: Source/Core/DiscIO/VolumeVerifier.cpp:471
 msgid "The install partition is missing."
 msgstr "قسم التثبيت مفقود."
 
@@ -10023,7 +10037,7 @@ msgstr "الملف الشخصي '1%' غير موجود"
 msgid "The recorded game ({0}) is not the same as the selected game ({1})"
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:893
+#: Source/Core/DiscIO/VolumeVerifier.cpp:913
 msgid ""
 "The region code does not match the game ID. If this is because the region "
 "code has been modified, the game might run at the wrong speed, graphical "
@@ -10068,7 +10082,7 @@ msgstr ""
 "هل تريد حقًا تمكين عرض البرامج؟ إذا لم تكن متأكدًا ، فحدد \"لا\"."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:953
+#: Source/Core/DiscIO/VolumeVerifier.cpp:973
 msgid "The specified common key index is {0} but should be {1}."
 msgstr ""
 
@@ -10081,11 +10095,11 @@ msgid "The target memory card already contains a file \"%1\"."
 msgstr "\"%1\" تحتوي بطاقة الذاكرة المستهدفة بالفعل على ملف"
 
 #. i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
-#: Source/Core/DiscIO/VolumeVerifier.cpp:971
+#: Source/Core/DiscIO/VolumeVerifier.cpp:991
 msgid "The ticket is not correctly signed."
 msgstr "لم يتم توقيع التذكرة بشكل صحيح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:504
+#: Source/Core/DiscIO/VolumeVerifier.cpp:522
 msgid "The type of a partition could not be read."
 msgstr "لا يمكن قراءة نوع القسم."
 
@@ -10096,39 +10110,39 @@ msgid ""
 msgstr ""
 "تم إلغاء التحديث. يوصى بشدة بإنهائه لتجنب إصدارات برامج النظام غير المتسقة."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:663
+#: Source/Core/DiscIO/VolumeVerifier.cpp:681
 msgid "The update partition does not contain the IOS used by this title."
 msgstr "لا يحتوي قسم التحديث علي نظام التشغيل المستخدم من قبل هذا العنوان"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:438
+#: Source/Core/DiscIO/VolumeVerifier.cpp:456
 msgid "The update partition is missing."
 msgstr "قسم التحديث مفقود"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:473
+#: Source/Core/DiscIO/VolumeVerifier.cpp:491
 msgid "The update partition is not at its normal position."
 msgstr "قسم التحديث ليس في وضعه الطبيعي"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:622
+#: Source/Core/DiscIO/VolumeVerifier.cpp:640
 msgid "The {0} partition does not have a valid file system."
 msgstr "لا يحتوي القسم {0} على نظام ملفات صالح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:553
+#: Source/Core/DiscIO/VolumeVerifier.cpp:571
 msgid "The {0} partition does not seem to contain valid data."
 msgstr "يبدو أن القسم {0} لا يحتوي على بيانات صالحة"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:573
+#: Source/Core/DiscIO/VolumeVerifier.cpp:591
 msgid "The {0} partition is not correctly signed."
 msgstr "لم يتم توقيع القسم {0} بشكل صحيح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:520
+#: Source/Core/DiscIO/VolumeVerifier.cpp:538
 msgid "The {0} partition is not properly aligned."
 msgstr "لم تتم محاذاة القسم {0} بشكل صحيح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:426
+#: Source/Core/DiscIO/VolumeVerifier.cpp:444
 msgid "There are too many partitions in the first partition table."
 msgstr "هناك الكثير من الأقسام في جدول القسم الأول."
 
-#: Source/Core/Core/State.cpp:731
+#: Source/Core/Core/State.cpp:766
 msgid "There is nothing to undo!"
 msgstr "لا يوجد شيء للتراجع !"
 
@@ -10163,7 +10177,7 @@ msgstr ""
 
 #. i18n: You may want to leave the term "ERROR #002" untranslated,
 #. since the emulated software always displays it in English.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:918
+#: Source/Core/DiscIO/VolumeVerifier.cpp:938
 msgid ""
 "This Korean title is set to use an IOS that typically isn't used on Korean "
 "consoles. This is likely to lead to ERROR #002."
@@ -10202,15 +10216,15 @@ msgstr ""
 msgid "This cannot be undone!"
 msgstr "هذا لا يمكن التراجع عنه"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:805
+#: Source/Core/DiscIO/VolumeVerifier.cpp:825
 msgid "This debug disc image has the size of a retail disc image."
 msgstr "تحتوي صوره القرص التصحيح هذه علي حجم صوره قرص البيع بالتجزئة."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:828
+#: Source/Core/DiscIO/VolumeVerifier.cpp:848
 msgid "This disc image has an unusual size."
 msgstr "هذه صورة القرص لها حجم غير عادي."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:822
+#: Source/Core/DiscIO/VolumeVerifier.cpp:842
 msgid ""
 "This disc image has an unusual size. This will likely make the emulated "
 "loading times longer. You will likely be unable to share input recordings "
@@ -10220,7 +10234,7 @@ msgstr ""
 "تمت مضاهاتها أطول. لن تتمكن على الأرجح من مشاركة تسجيلات الإدخال واستخدام "
 "اللعب عبر الشبكة مع أي شخص يستخدم ملف تفريغ جيد."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:990
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1010
 msgid ""
 "This disc image is in the NKit format. It is not a good dump in its current "
 "form, but it might become a good dump if converted back. The CRC32 of this "
@@ -10232,7 +10246,7 @@ msgstr ""
 "file might match the CRC32 of a good dump even though the files are not "
 "identical."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:781
+#: Source/Core/DiscIO/VolumeVerifier.cpp:798
 msgid ""
 "This disc image is too small and lacks some data. If your dumping program "
 "saved the disc image as several parts, you need to merge them into one file."
@@ -10240,7 +10254,7 @@ msgstr ""
 "صورة القرص هذه صغيرة جدًا وتفتقر إلى بعض البيانات. إذا كان برنامج التفريغ "
 "الخاص بك قد حفظ صورة القرص كأجزاء متعددة ، فستحتاج إلى دمجها في ملف واحد."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:778
+#: Source/Core/DiscIO/VolumeVerifier.cpp:795
 msgid ""
 "This disc image is too small and lacks some data. The problem is most likely "
 "that this is a dual-layer disc that has been dumped as a single-layer disc."
@@ -10256,7 +10270,7 @@ msgstr "لا يحتوي هذا الملف على نظام ملفات وي صال
 msgid "This file does not look like a BootMii NAND backup."
 msgstr "BootMii NAND لا يبدو هذا الملف نسخة احتياطية لـ "
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:753
+#: Source/Core/DiscIO/VolumeVerifier.cpp:770
 msgid ""
 "This game has been hacked to fit on a single-layer DVD. Some content such as "
 "pre-rendered videos, extra languages or entire game modes will be broken. "
@@ -10276,17 +10290,17 @@ msgstr ""
 "برامج التشغيل الخاصة بها لا تدعمها. ونتيجة لذلك سوف تواجه الخلل أو يتجمد "
 "أثناء تشغيل هذه اللعبة."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1368
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1405
 msgid "This is a bad dump."
 msgstr "هذا تفريغ سيء"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1362
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1398
 msgid ""
 "This is a bad dump. This doesn't necessarily mean that the game won't run "
 "correctly."
 msgstr "هذا تفريغ سيء. هذا لا يعني بالضرورة أن اللعبة لن تعمل بشكل صحيح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1338
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1365
 msgid ""
 "This is a good dump according to Redump.org, but Dolphin has found problems. "
 "This might be a bug in Dolphin."
@@ -10294,7 +10308,7 @@ msgstr ""
 "Redump.org هذا تفريغ جيد وفقًا لموقع\n"
 "لكن دولفين وجد مشاكل. قد يكون هذا خطأ في دولفين"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1333
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1360
 msgid "This is a good dump."
 msgstr "هذا تفريغ جيد"
 
@@ -10322,16 +10336,16 @@ msgstr "يجب عدم استخدام هذا البرنامج لتشغيل الأ
 msgid "This title cannot be booted."
 msgstr "لا يمكن تشغيل هذا العنوان."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:926
+#: Source/Core/DiscIO/VolumeVerifier.cpp:946
 msgid "This title is set to use an invalid IOS."
 msgstr "تم تعيين هذا العنوان لاستخدام نظام تشغيل غير صالح."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:940
+#: Source/Core/DiscIO/VolumeVerifier.cpp:960
 msgid "This title is set to use an invalid common key."
 msgstr "تم تعيين هذا العنوان لاستخدام مفتاح عام غير صالح"
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:314
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:317
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10339,7 +10353,7 @@ msgid ""
 "DSPHLE: Unknown ucode (CRC = {0:08x}) - forcing AX."
 msgstr ""
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:305
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:308
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10687,7 +10701,7 @@ msgstr ""
 msgid "Unable to read file."
 msgstr "غير قادر على قراءة الملف"
 
-#: Source/Core/DiscIO/NANDImporter.cpp:268
+#: Source/Core/DiscIO/NANDImporter.cpp:267
 msgid "Unable to write to file {0}"
 msgstr "{0} غير قادر على الكتابة إلى الملف"
 
@@ -10728,7 +10742,7 @@ msgstr ""
 msgid "United States"
 msgstr "امريكا"
 
-#: Source/Core/Core/State.cpp:472 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/Core/State.cpp:508 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:85
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:43
@@ -10739,7 +10753,7 @@ msgstr "امريكا"
 msgid "Unknown"
 msgstr "غير معروف"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1244
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1254
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr ""
 
@@ -10747,7 +10761,7 @@ msgstr ""
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr ""
 
-#: Source/Core/Core/NetPlayServer.cpp:1190
+#: Source/Core/Core/NetPlayServer.cpp:1192
 msgid ""
 "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} "
 "Kicking player!"
@@ -10757,7 +10771,7 @@ msgstr ""
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr ""
 
-#: Source/Core/Core/NetPlayServer.cpp:1148
+#: Source/Core/Core/NetPlayServer.cpp:1150
 msgid ""
 "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking "
 "player!"
@@ -10775,7 +10789,7 @@ msgstr "مؤلف غير معروف"
 msgid "Unknown data type"
 msgstr "نوع بيانات غير معروف"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:355
+#: Source/Core/DiscIO/VolumeVerifier.cpp:356
 msgid "Unknown disc"
 msgstr "قرص غير معروف"
 
@@ -10795,7 +10809,7 @@ msgstr "خطأ غير معروف"
 msgid "Unknown message received with id : {0}"
 msgstr "{0} تم استلام رسالة غير معروفة بالمعرف"
 
-#: Source/Core/Core/NetPlayServer.cpp:1198
+#: Source/Core/Core/NetPlayServer.cpp:1200
 msgid "Unknown message with id:{0} received from player:{1} Kicking player!"
 msgstr ""
 
@@ -11084,7 +11098,7 @@ msgstr "عرض الرسائل كنص"
 msgid "Verify"
 msgstr "التحقق"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:93
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:100
 msgid "Verify Integrity"
 msgstr "التحقق من التكامل"
 
@@ -11092,8 +11106,8 @@ msgstr "التحقق من التكامل"
 msgid "Verify certificates"
 msgstr "التحقق من الشهادات"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:151
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:153
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:157
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:159
 msgid "Verifying"
 msgstr "يتحقق"
 
@@ -11430,7 +11444,7 @@ msgstr "Wii TAS Input %1 - ريموت وي + نونشوك"
 msgid "Wii and Wii Remote"
 msgstr "وي و ريموت وي"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:102
+#: Source/Core/DiscIO/VolumeVerifier.cpp:103
 msgid "Wii data is not public yet"
 msgstr "بيانات وي ليست عامة بعد"
 
@@ -11811,11 +11825,11 @@ msgstr "غير محاذي"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:685
+#: Source/Core/DiscIO/VolumeVerifier.cpp:703
 msgid "{0} (Masterpiece)"
 msgstr ""
 
-#: Source/Core/UICommon/GameFile.cpp:826
+#: Source/Core/UICommon/GameFile.cpp:822
 msgid "{0} (NKit)"
 msgstr "{0} (NKit)"
 
@@ -11823,11 +11837,11 @@ msgstr "{0} (NKit)"
 msgid "{0} IPL found in {1} directory. The disc might not be recognized"
 msgstr ""
 
-#: Source/Core/Core/NetPlayServer.cpp:1182
+#: Source/Core/Core/NetPlayServer.cpp:1184
 msgid "{0} failed to synchronize codes."
 msgstr "{0} فشل في مزامنة الرموز"
 
-#: Source/Core/Core/NetPlayServer.cpp:1139
+#: Source/Core/Core/NetPlayServer.cpp:1141
 msgid "{0} failed to synchronize."
 msgstr "{0} فشل في المزامنة"
 
@@ -11840,7 +11854,7 @@ msgstr ""
 "تحقق من أذونات الكتابة أو نقل الملف خارج دولفين"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:260
-#: Source/Core/DiscIO/WIABlob.cpp:1702
+#: Source/Core/DiscIO/WIABlob.cpp:1697
 msgid "{0} of {1} blocks. Compression ratio {2}%"
 msgstr ""
 

@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-29 22:48+0200\n"
+"POT-Creation-Date: 2022-08-06 15:49+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2022\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
@@ -31,7 +31,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1406
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1452
 msgid ""
 "\n"
 "\n"
@@ -43,7 +43,7 @@ msgstr ""
 "由于 GameCube 光盘镜像包含很少的验证数据，因此可能存在 Dolphin 无法检测到的问"
 "题。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1412
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1458
 msgid ""
 "\n"
 "\n"
@@ -1342,11 +1342,11 @@ msgstr "所有设备"
 msgid "All files (*)"
 msgstr "所有文件 (*)"
 
-#: Source/Core/Core/NetPlayServer.cpp:1170
+#: Source/Core/Core/NetPlayServer.cpp:1172
 msgid "All players' codes synchronized."
 msgstr "所有玩家代码已同步。"
 
-#: Source/Core/Core/NetPlayServer.cpp:1127
+#: Source/Core/Core/NetPlayServer.cpp:1129
 msgid "All players' saves synchronized."
 msgstr "所有玩家存档已同步。"
 
@@ -1662,7 +1662,7 @@ msgstr "给定值错误"
 msgid "Bad address provided."
 msgstr "地址格式不正确。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:353
+#: Source/Core/DiscIO/VolumeVerifier.cpp:354
 msgid "Bad dump"
 msgstr "错误的转储"
 
@@ -1954,7 +1954,7 @@ msgstr ""
 "正可能的卡顿。<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:100
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:107
 msgid "Calculate"
 msgstr "计算"
 
@@ -2013,7 +2013,7 @@ msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "游戏运行时无法启动联机会话！"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:57
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:151
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:157
 #: Source/Core/DolphinQt/MenuBar.cpp:1303
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:59
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
@@ -2265,6 +2265,20 @@ msgstr "通用"
 msgid "Comparand:"
 msgstr "被比较字："
 
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1427
+msgid ""
+"Compared to the Wii disc release of the game, problems of low severity were "
+"found. Despite this, it's possible that this is a good dump compared to the "
+"Wii U eShop release of the game. Dolphin can't verify this."
+msgstr ""
+
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1391
+msgid ""
+"Compared to the Wii disc release of the game, this is a bad dump. Despite "
+"this, it's possible that this is a good dump compared to the Wii U eShop "
+"release of the game. Dolphin can't verify this."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:127
 msgid "Compile Shaders Before Starting"
 msgstr "在开始前编译着色器"
@@ -2405,7 +2419,7 @@ msgstr "正在连接"
 msgid "Connection Type:"
 msgstr "连接类型："
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1204
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1231
 msgid "Content {0:08x} is corrupt."
 msgstr "内容 {0:08x} 已损坏。"
 
@@ -3354,13 +3368,13 @@ msgstr "Dolphin 是一个免费开源的 GameCube/Wii 模拟器。"
 msgid "Dolphin is too old for traversal server"
 msgstr "Dolphin 版本太旧，穿透服务器不支持"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1353
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1380
 msgid ""
 "Dolphin is unable to verify typical TGC files properly, since they are not "
 "dumps of actual discs."
 msgstr "Dolphin 无法正确验证典型的 TGC 文件，因为其不是真实光盘的转储。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1346
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1373
 msgid "Dolphin is unable to verify unlicensed discs."
 msgstr "Dolphin 无法验证未经授权的光盘。"
 
@@ -3686,11 +3700,11 @@ msgstr "弹出光盘"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "内置帧缓冲 (EFB)"
 
-#: Source/Core/Core/State.cpp:468
+#: Source/Core/Core/State.cpp:504
 msgid "Empty"
 msgstr "空"
 
-#: Source/Core/Core/Core.cpp:225
+#: Source/Core/Core/Core.cpp:226
 msgid "Emu Thread already running"
 msgstr "模拟线程已经在运行"
 
@@ -4072,11 +4086,11 @@ msgstr "处理数据时出错。"
 msgid "Error reading file: {0}"
 msgstr "读取文件时出错：{0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1442
+#: Source/Core/Core/NetPlayServer.cpp:1444
 msgid "Error synchronizing cheat codes!"
 msgstr "同步保存金手指代码时出错！"
 
-#: Source/Core/Core/NetPlayServer.cpp:1429
+#: Source/Core/Core/NetPlayServer.cpp:1431
 msgid "Error synchronizing save data!"
 msgstr "同步存档数据时出错！"
 
@@ -4092,31 +4106,31 @@ msgstr ""
 "错误：在 “{0}” 之后，发现了 {1} ({2:#x}) 而非存档标记 {3} ({4:#x})。正在中止"
 "加载即时存档..."
 
-#: Source/Core/Core/HW/GBACore.cpp:192
+#: Source/Core/Core/HW/GBACore.cpp:190
 msgid "Error: GBA{0} failed to create core"
 msgstr "错误： GBA{0} 创建核心失败"
 
-#: Source/Core/Core/HW/GBACore.cpp:347
+#: Source/Core/Core/HW/GBACore.cpp:345
 msgid "Error: GBA{0} failed to load the BIOS in {1}"
 msgstr "错误： GBA{0} 在 {1} 中加载 BIOS 失败"
 
-#: Source/Core/Core/HW/GBACore.cpp:212
+#: Source/Core/Core/HW/GBACore.cpp:210
 msgid "Error: GBA{0} failed to load the ROM in {1}"
 msgstr "错误： GBA{0} 在 {1} 中加载 ROM 失败"
 
-#: Source/Core/Core/HW/GBACore.cpp:366
+#: Source/Core/Core/HW/GBACore.cpp:364
 msgid "Error: GBA{0} failed to load the save in {1}"
 msgstr "错误： GBA{0} 在 {1} 中加载存档失败"
 
-#: Source/Core/Core/HW/GBACore.cpp:341
+#: Source/Core/Core/HW/GBACore.cpp:339
 msgid "Error: GBA{0} failed to open the BIOS in {1}"
 msgstr "错误： GBA{0} 在 {1} 中打开 BIOS 失败"
 
-#: Source/Core/Core/HW/GBACore.cpp:182
+#: Source/Core/Core/HW/GBACore.cpp:180
 msgid "Error: GBA{0} failed to open the ROM in {1}"
 msgstr "错误： GBA{0} 在 {1} 中打开 ROM 失败"
 
-#: Source/Core/Core/HW/GBACore.cpp:360
+#: Source/Core/Core/HW/GBACore.cpp:358
 msgid "Error: GBA{0} failed to open the save in {1}"
 msgstr "错误： GBA{0} 在 {1} 中打开存档失败"
 
@@ -4140,11 +4154,11 @@ msgstr ""
 "错误: 正在试图访问 Windows-1252 字体，但它们没有加载。游戏可能无法正确显示字"
 "体，或者崩溃。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1302
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1329
 msgid "Errors were found in {0} blocks in the {1} partition."
 msgstr "在 {1} 分区的 {0} 区块中发现错误。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1313
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1340
 msgid "Errors were found in {0} unused blocks in the {1} partition."
 msgstr "在 {1} 分区未使用的 {0} 区块中发现错误。"
 
@@ -4383,7 +4397,7 @@ msgstr "附加到签名文件 '%1' 失败"
 msgid "Failed to claim interface for BT passthrough: {0}"
 msgstr "申请蓝牙直通接口失败: {0}"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:107
+#: Source/Core/DiscIO/VolumeVerifier.cpp:108
 msgid "Failed to connect to Redump.org"
 msgstr "连接 Redump.org 失败"
 
@@ -4600,7 +4614,7 @@ msgid "Failed to open the input file \"%1\"."
 msgstr "打开输入文件 \"%1\" 失败。"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:282 Source/Core/DiscIO/FileBlob.cpp:53
-#: Source/Core/DiscIO/WIABlob.cpp:2044
+#: Source/Core/DiscIO/WIABlob.cpp:2036
 msgid ""
 "Failed to open the output file \"{0}\".\n"
 "Check that you have permissions to write the target folder and that the "
@@ -4609,8 +4623,8 @@ msgstr ""
 "无法打开输出文件 “{0}”。\n"
 "请检查是否有权限写入目标文件夹并且该媒体能够被写入。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:219
-#: Source/Core/DiscIO/VolumeVerifier.cpp:317
+#: Source/Core/DiscIO/VolumeVerifier.cpp:220
+#: Source/Core/DiscIO/VolumeVerifier.cpp:318
 msgid "Failed to parse Redump.org data"
 msgstr "解析 Redump.org 数据失败"
 
@@ -4627,7 +4641,7 @@ msgid "Failed to read from file."
 msgstr "从文件读取失败。"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:373 Source/Core/DiscIO/FileBlob.cpp:93
-#: Source/Core/DiscIO/WIABlob.cpp:2059
+#: Source/Core/DiscIO/WIABlob.cpp:2051
 msgid "Failed to read from the input file \"{0}\"."
 msgstr "从输入文件 “{0}” 读取失败。"
 
@@ -4725,7 +4739,7 @@ msgid "Failed to write savefile to disk."
 msgstr "存档文件写入磁盘失败。"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:377 Source/Core/DiscIO/FileBlob.cpp:99
-#: Source/Core/DiscIO/WIABlob.cpp:2063
+#: Source/Core/DiscIO/WIABlob.cpp:2055
 msgid ""
 "Failed to write the output file \"{0}\".\n"
 "Check that you have enough space available on the target drive."
@@ -5496,7 +5510,7 @@ msgstr "GiB"
 msgid "Golf Mode"
 msgstr "高尔夫模式"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:343
+#: Source/Core/DiscIO/VolumeVerifier.cpp:344
 msgid "Good dump"
 msgstr "正确的转储"
 
@@ -5620,7 +5634,7 @@ msgstr "隐藏不兼容的会话"
 msgid "Hide Remote GBAs"
 msgstr "隐藏远程 GBA"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:200
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:206
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:425
 msgid "High"
 msgstr "高"
@@ -6111,7 +6125,7 @@ msgid "Interface"
 msgstr "界面"
 
 #: Source/Core/Core/NetPlayCommon.cpp:67 Source/Core/Core/NetPlayCommon.cpp:151
-#: Source/Core/Core/State.cpp:384
+#: Source/Core/Core/State.cpp:420
 msgid "Internal LZO Error - compression failed"
 msgstr "内部 LZO 错误 - 压缩失败"
 
@@ -6120,7 +6134,7 @@ msgstr "内部 LZO 错误 - 压缩失败"
 msgid "Internal LZO Error - decompression failed"
 msgstr "内部 LZO 错误 - 解压失败"
 
-#: Source/Core/Core/State.cpp:530
+#: Source/Core/Core/State.cpp:565
 msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
 "Try loading the state again"
@@ -6128,7 +6142,7 @@ msgstr ""
 "内部 LZO 错误 - 解压失败 ({0}) ({1}, {2})\n"
 "请尝试重新加载状态"
 
-#: Source/Core/Core/State.cpp:635
+#: Source/Core/Core/State.cpp:670
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "内部 LZO 错误 - lzo_init() 失败"
 
@@ -6318,7 +6332,7 @@ msgstr "关闭 JIT 寄存器缓存"
 msgid "JIT SystemRegisters Off"
 msgstr "关闭 JIT 系统寄存器"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:879
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:876
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:719
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -6744,7 +6758,7 @@ msgstr "循环"
 msgid "Lost connection to NetPlay server..."
 msgstr "丢失联机服务器连接..."
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:194
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:200
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:421
 msgid "Low"
 msgstr "低"
@@ -6837,7 +6851,7 @@ msgid "May cause slow down in Wii Menu and some games."
 msgstr "这会导致 Wii 菜单和一些游戏减速。"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:228
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:197
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:203
 msgid "Medium"
 msgstr "中等"
 
@@ -7246,11 +7260,11 @@ msgstr "在 M3U 文件 “{0}” 中找不到路径"
 msgid "No possible functions left. Reset."
 msgstr "未发现可能的函数，重置。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1383
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1420
 msgid "No problems were found."
 msgstr "未发现任何问题。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1377
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1414
 msgid ""
 "No problems were found. This does not guarantee that this is a good dump, "
 "but since Wii titles contain a lot of verification data, it does mean that "
@@ -7271,7 +7285,7 @@ msgstr "没有录制被载入。"
 msgid "No save data found."
 msgstr "没有找到存档数据。"
 
-#: Source/Core/Core/State.cpp:726
+#: Source/Core/Core/State.cpp:761
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr "未找到 undo.dtm 文件，为防止影片出现不同步撤销载入状态操作被取消。"
 
@@ -7849,19 +7863,19 @@ msgstr "私密和公开"
 msgid "Problem"
 msgstr "问题"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1398
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1444
 msgid ""
 "Problems with high severity were found. The game will most likely not work "
 "at all."
 msgstr "发现高严重性问题。游戏很可能根本无法运作。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1388
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1433
 msgid ""
 "Problems with low severity were found. They will most likely not prevent the "
 "game from running."
 msgstr "发现低严重性问题。这些问题很可能不会影响游戏运行。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1393
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1439
 msgid ""
 "Problems with medium severity were found. The whole game or certain parts of "
 "the game might not work correctly."
@@ -8061,7 +8075,7 @@ msgstr ""
 "锯齿并且还可将抗锯齿应用于光源、着色器效果与纹理。<br><br><dolphin_emphasis>"
 "如果不确定，选择“无”。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:81
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:86
 msgid "Redump.org Status:"
 msgstr "Redump.org 状态："
 
@@ -8865,9 +8879,9 @@ msgstr "所选字体"
 msgid "Selected controller profile does not exist"
 msgstr "所选控制器预设不存在"
 
-#: Source/Core/Core/NetPlayServer.cpp:1282
-#: Source/Core/Core/NetPlayServer.cpp:1625
-#: Source/Core/Core/NetPlayServer.cpp:1902
+#: Source/Core/Core/NetPlayServer.cpp:1284
+#: Source/Core/Core/NetPlayServer.cpp:1628
+#: Source/Core/Core/NetPlayServer.cpp:1905
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:464
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:866
 msgid "Selected game doesn't exist in game list!"
@@ -8962,7 +8976,7 @@ msgstr "发送"
 msgid "Sensor Bar Position:"
 msgstr "感应条位置："
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:313
+#: Source/Core/DiscIO/VolumeVerifier.cpp:314
 msgid ""
 "Serial and/or version data is missing from {0}\n"
 "Please append \"{1}\" (without the quotes) to the datfile URL when "
@@ -9062,7 +9076,7 @@ msgstr ""
 msgid "Settings"
 msgstr "设置"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:410
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:411
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: 无法创建 setting.txt 文件"
 
@@ -9451,11 +9465,11 @@ msgstr "套接字表"
 msgid "Software Renderer"
 msgstr "软件渲染器"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1292
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1319
 msgid "Some of the data could not be read."
 msgstr "一些数据无法读取。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1025
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1045
 msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
@@ -10015,7 +10029,7 @@ msgid ""
 "Player ({1})"
 msgstr "DFF 的最低加载程序版本 ({0}) 超过此 FIFO 播放器的版本 ({1})"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:580
+#: Source/Core/DiscIO/VolumeVerifier.cpp:598
 msgid "The H3 hash table for the {0} partition is not correct."
 msgstr "分区 {0} 的 H3 哈希表不正确。"
 
@@ -10029,7 +10043,7 @@ msgstr "此 IPL 文件不是已知的正确转储。(CRC32: {0:x})"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:465
+#: Source/Core/DiscIO/VolumeVerifier.cpp:483
 msgid "The Masterpiece partitions are missing."
 msgstr "缺少杰作分区。"
 
@@ -10043,7 +10057,7 @@ msgstr "该 NAND 无法修复。建议备份您当前的数据并使用新的 NA
 msgid "The NAND has been repaired."
 msgstr "NAND 已修复。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:980
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1000
 msgid ""
 "The TMD is not correctly signed. If you move or copy this title to the SD "
 "Card, the Wii System Menu will not launch it anymore and will also refuse to "
@@ -10052,15 +10066,15 @@ msgstr ""
 "TMD 文件未正确签名。如果你将此游戏移动或复制到 SD 卡，Wii 系统菜单将不再运行"
 "该游戏，并且也会拒绝将其复制或移动回 NAND。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:448
+#: Source/Core/DiscIO/VolumeVerifier.cpp:466
 msgid "The channel partition is missing."
 msgstr "缺少通道分区。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:443
+#: Source/Core/DiscIO/VolumeVerifier.cpp:461
 msgid "The data partition is missing."
 msgstr "缺少数据分区。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:482
+#: Source/Core/DiscIO/VolumeVerifier.cpp:500
 msgid ""
 "The data partition is not at its normal position. This will affect the "
 "emulated loading times. You will be unable to share input recordings and use "
@@ -10069,7 +10083,7 @@ msgstr ""
 "数据分区不在正常位置。这会影响模拟的加载时间。你将无法与正在使用正确转储的其"
 "他人共享输入录制和使用联机功能。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:593
+#: Source/Core/DiscIO/VolumeVerifier.cpp:611
 msgid ""
 "The data size for the {0} partition is not evenly divisible by the block "
 "size."
@@ -10171,25 +10185,25 @@ msgstr ""
 "文件名 %1 不符合 Dolphin 的存储卡区域代码格式。请将此文件重命名为 %2、%3 或 "
 "%4，以匹配其存档文件的区域。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:412
+#: Source/Core/DiscIO/VolumeVerifier.cpp:430
 msgid "The filesystem is invalid or could not be read."
 msgstr "文件系统无效或无法读取。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:761
+#: Source/Core/DiscIO/VolumeVerifier.cpp:778
 msgid ""
 "The format that the disc image is saved in does not store the size of the "
 "disc image."
 msgstr "此光盘镜像的保存格式不存储光盘镜像的大小。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:864
+#: Source/Core/DiscIO/VolumeVerifier.cpp:884
 msgid "The game ID is inconsistent."
 msgstr "游戏 ID 不一致。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:875
+#: Source/Core/DiscIO/VolumeVerifier.cpp:895
 msgid "The game ID is unusually short."
 msgstr "游戏 ID 异常短。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:856
+#: Source/Core/DiscIO/VolumeVerifier.cpp:876
 msgid "The game ID is {0} but should be {1}."
 msgstr "游戏 ID 是 {0} ，但应该为 {1} 。"
 
@@ -10239,7 +10253,7 @@ msgstr ""
 "主机代码太长。\n"
 "请重新检查你是否有正确的代码。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:453
+#: Source/Core/DiscIO/VolumeVerifier.cpp:471
 msgid "The install partition is missing."
 msgstr "缺少安装分区。"
 
@@ -10266,7 +10280,7 @@ msgstr "配置文件 '%1' 不存在"
 msgid "The recorded game ({0}) is not the same as the selected game ({1})"
 msgstr "被录制的游戏 ({0}) 与所选游戏 ({1}) 不一致"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:893
+#: Source/Core/DiscIO/VolumeVerifier.cpp:913
 msgid ""
 "The region code does not match the game ID. If this is because the region "
 "code has been modified, the game might run at the wrong speed, graphical "
@@ -10308,7 +10322,7 @@ msgstr ""
 "您真的想要启用软件渲染吗？如果不确定，请选择“否”。"
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:953
+#: Source/Core/DiscIO/VolumeVerifier.cpp:973
 msgid "The specified common key index is {0} but should be {1}."
 msgstr "指定的公用密钥索引是 {0} ，但应该为 {1} 。"
 
@@ -10321,11 +10335,11 @@ msgid "The target memory card already contains a file \"%1\"."
 msgstr "目标存储卡已包含文件 “%1”。"
 
 #. i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
-#: Source/Core/DiscIO/VolumeVerifier.cpp:971
+#: Source/Core/DiscIO/VolumeVerifier.cpp:991
 msgid "The ticket is not correctly signed."
 msgstr "ticket 文件未正确签名。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:504
+#: Source/Core/DiscIO/VolumeVerifier.cpp:522
 msgid "The type of a partition could not be read."
 msgstr "无法读取的分区类型。"
 
@@ -10335,39 +10349,39 @@ msgid ""
 "order to avoid inconsistent system software versions."
 msgstr "更新已被取消。强烈建议你完成更新，以避免不一致的系统软件版本。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:663
+#: Source/Core/DiscIO/VolumeVerifier.cpp:681
 msgid "The update partition does not contain the IOS used by this title."
 msgstr "更新分区未包含此游戏使用的 IOS。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:438
+#: Source/Core/DiscIO/VolumeVerifier.cpp:456
 msgid "The update partition is missing."
 msgstr "缺少更新分区。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:473
+#: Source/Core/DiscIO/VolumeVerifier.cpp:491
 msgid "The update partition is not at its normal position."
 msgstr "更新分区未处于正常位置。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:622
+#: Source/Core/DiscIO/VolumeVerifier.cpp:640
 msgid "The {0} partition does not have a valid file system."
 msgstr "分区 {0} 无有效的文件系统。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:553
+#: Source/Core/DiscIO/VolumeVerifier.cpp:571
 msgid "The {0} partition does not seem to contain valid data."
 msgstr "分区 {0} 似乎未包含有效数据。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:573
+#: Source/Core/DiscIO/VolumeVerifier.cpp:591
 msgid "The {0} partition is not correctly signed."
 msgstr "分区 {0} 未正确签名。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:520
+#: Source/Core/DiscIO/VolumeVerifier.cpp:538
 msgid "The {0} partition is not properly aligned."
 msgstr "分区 {0} 未正确对齐。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:426
+#: Source/Core/DiscIO/VolumeVerifier.cpp:444
 msgid "There are too many partitions in the first partition table."
 msgstr "第一个分区表中的分区太多。"
 
-#: Source/Core/Core/State.cpp:731
+#: Source/Core/Core/State.cpp:766
 msgid "There is nothing to undo!"
 msgstr "没有需要撤销的操作。"
 
@@ -10400,7 +10414,7 @@ msgstr "此 Gecko 代码不包含任何行。"
 
 #. i18n: You may want to leave the term "ERROR #002" untranslated,
 #. since the emulated software always displays it in English.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:918
+#: Source/Core/DiscIO/VolumeVerifier.cpp:938
 msgid ""
 "This Korean title is set to use an IOS that typically isn't used on Korean "
 "consoles. This is likely to lead to ERROR #002."
@@ -10438,15 +10452,15 @@ msgstr ""
 msgid "This cannot be undone!"
 msgstr "不能被撤销！"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:805
+#: Source/Core/DiscIO/VolumeVerifier.cpp:825
 msgid "This debug disc image has the size of a retail disc image."
 msgstr "此调试版光盘镜像和零售版光盘镜像大小一样。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:828
+#: Source/Core/DiscIO/VolumeVerifier.cpp:848
 msgid "This disc image has an unusual size."
 msgstr "此光盘镜像大小异常。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:822
+#: Source/Core/DiscIO/VolumeVerifier.cpp:842
 msgid ""
 "This disc image has an unusual size. This will likely make the emulated "
 "loading times longer. You will likely be unable to share input recordings "
@@ -10455,7 +10469,7 @@ msgstr ""
 "此光盘镜像大小异常。这可能会使模拟的加载时间更长。你将无法与正在使用正确转储"
 "的其他人共享输入录制和使用联机功能。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:990
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1010
 msgid ""
 "This disc image is in the NKit format. It is not a good dump in its current "
 "form, but it might become a good dump if converted back. The CRC32 of this "
@@ -10465,7 +10479,7 @@ msgstr ""
 "此光盘镜像采用 NKit 格式。这种格式并不是一个正确的转储，但如果转换回去可能会"
 "变成正确转储。即使文件不相同，此文件的 CRC32 也可能与正确转储的 CRC32 匹配。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:781
+#: Source/Core/DiscIO/VolumeVerifier.cpp:798
 msgid ""
 "This disc image is too small and lacks some data. If your dumping program "
 "saved the disc image as several parts, you need to merge them into one file."
@@ -10473,7 +10487,7 @@ msgstr ""
 "此光盘镜像太小并且缺少一些数据。如果你的转储程序将光盘镜像保存为多个部分，则"
 "需要将其合并为一个文件。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:778
+#: Source/Core/DiscIO/VolumeVerifier.cpp:795
 msgid ""
 "This disc image is too small and lacks some data. The problem is most likely "
 "that this is a dual-layer disc that has been dumped as a single-layer disc."
@@ -10489,7 +10503,7 @@ msgstr "此文件未包含有效的 Wii 文件系统。"
 msgid "This file does not look like a BootMii NAND backup."
 msgstr "此文件似乎不是一个 BootMii NAND 备份。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:753
+#: Source/Core/DiscIO/VolumeVerifier.cpp:770
 msgid ""
 "This game has been hacked to fit on a single-layer DVD. Some content such as "
 "pre-rendered videos, extra languages or entire game modes will be broken. "
@@ -10507,17 +10521,17 @@ msgstr ""
 "这个游戏需要边框模拟才能正常运行，但你的显卡或其驱动程序不支持。 因此在运行此"
 "游戏时将会发生错误或画面冻结。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1368
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1405
 msgid "This is a bad dump."
 msgstr "这是一个错误的转储。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1362
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1398
 msgid ""
 "This is a bad dump. This doesn't necessarily mean that the game won't run "
 "correctly."
 msgstr "这是一个错误的转储。但并不一定表示游戏无法正常运行。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1338
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1365
 msgid ""
 "This is a good dump according to Redump.org, but Dolphin has found problems. "
 "This might be a bug in Dolphin."
@@ -10525,7 +10539,7 @@ msgstr ""
 "依据 Redump.org，这是一个正确的转储，但 Dolphin 发现了问题。这可能是 Dolphin "
 "中的错误。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1333
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1360
 msgid "This is a good dump."
 msgstr "这是一个正确的转储。"
 
@@ -10552,16 +10566,16 @@ msgstr "该软件不能用于运行你非法持有的游戏。"
 msgid "This title cannot be booted."
 msgstr "无法启动该软件。"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:926
+#: Source/Core/DiscIO/VolumeVerifier.cpp:946
 msgid "This title is set to use an invalid IOS."
 msgstr "此游戏设置为使用无效的 IOS。"
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:940
+#: Source/Core/DiscIO/VolumeVerifier.cpp:960
 msgid "This title is set to use an invalid common key."
 msgstr "此游戏设置为使用无效的公用密钥。"
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:314
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:317
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10572,7 +10586,7 @@ msgstr ""
 "\n"
 "DSP HLE: 未知 Ucode (CRC = {0:08x}) - 强制 AX."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:305
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:308
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10927,7 +10941,7 @@ msgstr ""
 msgid "Unable to read file."
 msgstr "无法读取文件。"
 
-#: Source/Core/DiscIO/NANDImporter.cpp:268
+#: Source/Core/DiscIO/NANDImporter.cpp:267
 msgid "Unable to write to file {0}"
 msgstr "无法写入文件 {0}"
 
@@ -10967,7 +10981,7 @@ msgstr ""
 msgid "United States"
 msgstr "美国"
 
-#: Source/Core/Core/State.cpp:472 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/Core/State.cpp:508 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:85
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:43
@@ -10978,7 +10992,7 @@ msgstr "美国"
 msgid "Unknown"
 msgstr "未知"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1244
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1254
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "未知 DVD 命令 {0:08x} - 致命错误"
 
@@ -10986,7 +11000,7 @@ msgstr "未知 DVD 命令 {0:08x} - 致命错误"
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr "收到未知的 同步_代码 消息，ID：{0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1190
+#: Source/Core/Core/NetPlayServer.cpp:1192
 msgid ""
 "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} "
 "Kicking player!"
@@ -10996,7 +11010,7 @@ msgstr "收到未知的 同步_GECKO_代码 消息，ID：{0} 来自玩家：{1}
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "收到未知的 同步_存档_数据 消息，ID：{0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1148
+#: Source/Core/Core/NetPlayServer.cpp:1150
 msgid ""
 "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking "
 "player!"
@@ -11014,7 +11028,7 @@ msgstr "未知作者"
 msgid "Unknown data type"
 msgstr "未知数据类型"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:355
+#: Source/Core/DiscIO/VolumeVerifier.cpp:356
 msgid "Unknown disc"
 msgstr "未知光盘"
 
@@ -11034,7 +11048,7 @@ msgstr "未知错误。"
 msgid "Unknown message received with id : {0}"
 msgstr "收到未知的消息，ID：{0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1198
+#: Source/Core/Core/NetPlayServer.cpp:1200
 msgid "Unknown message with id:{0} received from player:{1} Kicking player!"
 msgstr "收到未知的消息，ID：{0} 来自玩家：{1} 剔除玩家！"
 
@@ -11348,7 +11362,7 @@ msgstr "详细"
 msgid "Verify"
 msgstr "验证"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:93
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:100
 msgid "Verify Integrity"
 msgstr "验证完整性"
 
@@ -11356,8 +11370,8 @@ msgstr "验证完整性"
 msgid "Verify certificates"
 msgstr "验证证书"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:151
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:153
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:157
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:159
 msgid "Verifying"
 msgstr "正在验证"
 
@@ -11724,7 +11738,7 @@ msgstr "Wii TAS 输入 %1 - Wii 遥控器 + 双节棍"
 msgid "Wii and Wii Remote"
 msgstr "Wii 和 Wii 遥控器"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:102
+#: Source/Core/DiscIO/VolumeVerifier.cpp:103
 msgid "Wii data is not public yet"
 msgstr "Wii 数据尚未公开"
 
@@ -12134,11 +12148,11 @@ msgstr "未对齐"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:685
+#: Source/Core/DiscIO/VolumeVerifier.cpp:703
 msgid "{0} (Masterpiece)"
 msgstr "{0} (Masterpiece)"
 
-#: Source/Core/UICommon/GameFile.cpp:826
+#: Source/Core/UICommon/GameFile.cpp:822
 msgid "{0} (NKit)"
 msgstr "{0} (NKit)"
 
@@ -12146,11 +12160,11 @@ msgstr "{0} (NKit)"
 msgid "{0} IPL found in {1} directory. The disc might not be recognized"
 msgstr "{0} IPL 位于 {1} 目录中。光盘可能无法识别"
 
-#: Source/Core/Core/NetPlayServer.cpp:1182
+#: Source/Core/Core/NetPlayServer.cpp:1184
 msgid "{0} failed to synchronize codes."
 msgstr "{0} 同步代码失败。"
 
-#: Source/Core/Core/NetPlayServer.cpp:1139
+#: Source/Core/Core/NetPlayServer.cpp:1141
 msgid "{0} failed to synchronize."
 msgstr "{0} 同步失败。"
 
@@ -12163,7 +12177,7 @@ msgstr ""
 "请验证你的写入权限或者将文件移动至 Dolphin 之外"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:260
-#: Source/Core/DiscIO/WIABlob.cpp:1702
+#: Source/Core/DiscIO/WIABlob.cpp:1697
 msgid "{0} of {1} blocks. Compression ratio {2}%"
 msgstr "区块 {0} ，共 {1} 。压缩率 {2}%"
 
