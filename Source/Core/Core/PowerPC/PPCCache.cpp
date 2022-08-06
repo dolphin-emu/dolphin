@@ -3,6 +3,7 @@
 
 #include "Core/PowerPC/PPCCache.h"
 
+#include <algorithm>
 #include <array>
 
 #include "Common/BitUtils.h"
@@ -13,14 +14,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
-
-#ifdef _MSC_VER
-// C++20 is used only for better compile-time checks (constexpr std::all_of and also consteval)
-#define ICACHE_HAS_CXX_20
-#define ICACHE_CONSTEVAL consteval
-#else
-#define ICACHE_CONSTEVAL constexpr
-#endif
 
 namespace PowerPC
 {
@@ -111,18 +104,16 @@ constexpr std::array<std::pair<u8, u8>, ICACHE_WAYS> PLRU_RULES{{
         0b00000000,
     },
 }};
-#ifdef ICACHE_HAS_CXX_20
 static_assert(std::all_of(PLRU_RULES.begin(), PLRU_RULES.end(),
                           [](auto& pair) { return (pair.first & ~PLRU_BIT_MASK) == 0; }),
               "PLRU mask contains bits not matching the number of PLRU bits");
 static_assert(std::all_of(PLRU_RULES.begin(), PLRU_RULES.end(),
                           [](auto& pair) { return (pair.second & ~pair.first) == 0; }),
               "PLRU new value should not contain any bits not set in the corresponding mask");
-#endif
 
 // See the top half of Figure 3-5. PLRU Replacement Algorithm on page 142 of the 750cl manual.
 // This is the lowest-order invalid block in the set.
-ICACHE_CONSTEVAL u8 WayFromValid(u8 valid_bits)
+consteval u8 WayFromValid(u8 valid_bits)
 {
   u8 lowest_invalid_block = 0;
   while ((valid_bits & (1 << lowest_invalid_block)) != 0)
@@ -134,22 +125,22 @@ ICACHE_CONSTEVAL u8 WayFromValid(u8 valid_bits)
 // This array is a used to pre-compute which way to replace if an invalid way exists.
 // Note that this array has a size of 255, not 256; if all ways are valid,
 // then WAY_FROM_PLRU must be used instead.
-constexpr std::array<u8, (1 << ICACHE_WAYS) - 1> WAY_FROM_VALID = []() ICACHE_CONSTEVAL {
+constexpr std::array<u8, (1 << ICACHE_WAYS) - 1> WAY_FROM_VALID = []() consteval
+{
   std::array<u8, (1 << ICACHE_WAYS) - 1> result{};
   for (u8 valid_bits = 0; valid_bits < result.size(); valid_bits++)
     result[valid_bits] = WayFromValid(valid_bits);
   return result;
-}();
-#ifdef ICACHE_HAS_CXX_20
+}
+();
 static_assert(std::all_of(WAY_FROM_VALID.begin(), WAY_FROM_VALID.end(),
                           [](u8 way) { return way < ICACHE_WAYS; }),
               "WAY_FROM_VALID must reference valid ways only");
-#endif
 
 // See the bottom half of Figure 3-5. PLRU Replacement Algorithm on page 142 of the 750cl manual,
 // or Table 3-4. PLRU Replacement Block Selection on page 143.
 // PLRU bits are numbered in a breadth-first manner.
-ICACHE_CONSTEVAL u8 WayFromPLRU(u8 plru_bits)
+consteval u8 WayFromPLRU(u8 plru_bits)
 {
   if ((plru_bits & (1 << 0)) == 0)  // B0 = 0
   {
@@ -203,17 +194,17 @@ ICACHE_CONSTEVAL u8 WayFromPLRU(u8 plru_bits)
   }
 }
 // This array is a used to pre-compute which block to replace based on the PLRU bits.
-constexpr std::array<u8, NUM_PLRU_BIT_VALUES> WAY_FROM_PLRU = []() ICACHE_CONSTEVAL {
+constexpr std::array<u8, NUM_PLRU_BIT_VALUES> WAY_FROM_PLRU = []() consteval
+{
   std::array<u8, NUM_PLRU_BIT_VALUES> result{};
   for (u8 plru_bits = 0; plru_bits < result.size(); plru_bits++)
     result[plru_bits] = WayFromPLRU(plru_bits);
   return result;
-}();
-#ifdef ICACHE_HAS_CXX_20
+}
+();
 static_assert(std::all_of(WAY_FROM_PLRU.begin(), WAY_FROM_PLRU.end(),
                           [](u8 way) { return way < ICACHE_WAYS; }),
               "WAY_FROM_PLRU must reference valid ways only");
-#endif
 }  // Anonymous namespace
 
 InstructionCache::~InstructionCache()
