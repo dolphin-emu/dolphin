@@ -318,7 +318,7 @@ static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 
 #if defined(_M_X86_64)
 
-FUNCTION_TARGET_SSE42
+TARGET_X86_SSE42
 static u64 GetHash64_SSE42_CRC32(const u8* src, u32 len, u32 samples)
 {
   u64 h[4] = {len, 0, 0, 0};
@@ -359,7 +359,7 @@ static u64 GetHash64_SSE42_CRC32(const u8* src, u32 len, u32 samples)
 
 #elif defined(_M_X86)
 
-FUNCTION_TARGET_SSE42
+TARGET_X86_SSE42
 static u64 GetHash64_SSE42_CRC32(const u8* src, u32 len, u32 samples)
 {
   u32 h = len;

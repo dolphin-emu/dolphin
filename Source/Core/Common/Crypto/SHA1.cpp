@@ -11,24 +11,8 @@
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/Intrinsics.h"
 #include "Common/Swap.h"
-
-#ifdef _MSC_VER
-#include <intrin.h>
-#else
-#ifdef _M_X86_64
-#include <immintrin.h>
-#elif defined(_M_ARM_64)
-#include <arm_acle.h>
-#include <arm_neon.h>
-#endif
-#endif
-
-#ifdef _MSC_VER
-#define ATTRIBUTE_TARGET(x)
-#else
-#define ATTRIBUTE_TARGET(x) [[gnu::target(x)]]
-#endif
 
 namespace Common::SHA1
 {
@@ -168,15 +152,14 @@ public:
 private:
   using WorkBlock = CyclicArray<__m128i, 4>;
 
-  ATTRIBUTE_TARGET("ssse3")
+  TARGET_X86_SSSE3
   static inline __m128i byterev_16B(__m128i x)
   {
     return _mm_shuffle_epi8(x, _mm_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
   }
 
   template <size_t I>
-  ATTRIBUTE_TARGET("sha")
-  static inline __m128i MsgSchedule(WorkBlock* wblock)
+  TARGET_X86_SHA static inline __m128i MsgSchedule(WorkBlock* wblock)
   {
     auto& w = *wblock;
     // Update and return this location
@@ -188,7 +171,7 @@ private:
     return wx;
   }
 
-  ATTRIBUTE_TARGET("sha")
+  TARGET_X86_SHA
   virtual void ProcessBlock(const u8* msg) override
   {
     // There are 80 rounds with 4 bytes per round, giving 0x140 byte work space, but we can keep

@@ -145,6 +145,7 @@ if(MSVC AND _M_ARM_64)
 endif()
 
 if(NOT MSVC AND _M_ARM_64)
+  # Workaround Clang's AArch64 Target Function Attributes being lame compared to GCC
   set_source_files_properties(
     Crypto/AES.cpp
     Crypto/SHA1.cpp

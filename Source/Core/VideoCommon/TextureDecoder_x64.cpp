@@ -254,7 +254,7 @@ static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, int width, int hei
   }
 }
 
-FUNCTION_TARGET_SSSE3
+TARGET_X86_SSSE3
 static void TexDecoder_DecodeImpl_I4_SSSE3(u32* dst, const u8* src, int width, int height,
                                            TextureFormat texformat, const u8* tlut,
                                            TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
@@ -394,7 +394,7 @@ static void TexDecoder_DecodeImpl_I4(u32* dst, const u8* src, int width, int hei
   }
 }
 
-FUNCTION_TARGET_SSSE3
+TARGET_X86_SSSE3
 static void TexDecoder_DecodeImpl_I8_SSSE3(u32* dst, const u8* src, int width, int height,
                                            TextureFormat texformat, const u8* tlut,
                                            TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
@@ -579,7 +579,7 @@ static void TexDecoder_DecodeImpl_IA4(u32* dst, const u8* src, int width, int he
   }
 }
 
-FUNCTION_TARGET_SSSE3
+TARGET_X86_SSSE3
 static void TexDecoder_DecodeImpl_IA8_SSSE3(u32* dst, const u8* src, int width, int height,
                                             TextureFormat texformat, const u8* tlut,
                                             TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
@@ -774,7 +774,7 @@ static void TexDecoder_DecodeImpl_RGB565(u32* dst, const u8* src, int width, int
   }
 }
 
-FUNCTION_TARGET_SSSE3
+TARGET_X86_SSSE3
 static void TexDecoder_DecodeImpl_RGB5A3_SSSE3(u32* dst, const u8* src, int width, int height,
                                                TextureFormat texformat, const u8* tlut,
                                                TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
@@ -1001,7 +1001,7 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
   }
 }
 
-FUNCTION_TARGET_SSSE3
+TARGET_X86_SSSE3
 static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, int width, int height,
                                               TextureFormat texformat, const u8* tlut,
                                               TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
