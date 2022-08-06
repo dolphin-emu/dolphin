@@ -57,6 +57,12 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #endif
 
+#if __has_include(<filesystem>)
+#include <cstdint>
+#include <filesystem>
+#include <system_error>
+#endif
+
 #ifndef S_ISDIR
 #define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
 #endif
@@ -608,33 +614,24 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
 bool DeleteDirRecursively(const std::string& directory)
 {
   DEBUG_LOG_FMT(COMMON, "DeleteDirRecursively: {}", directory);
+  // macos needs OS support (>= 10.15) for this, and doesn't accurately reflect that in the feature
+  // macro :(
+#if __cpp_lib_filesystem >= 201703L && !defined(__APPLE__)
+  std::error_code error;
+  const std::uintmax_t num_removed = std::filesystem::remove_all(StringToPath(directory), error);
+  const bool success = num_removed != 0 && !error;
+  if (!success)
+    ERROR_LOG_FMT(COMMON, "DeleteDirRecursively: {} failed {:x}", directory, error.value());
+#else
   bool success = true;
 
-#ifdef _WIN32
-  // Find the first file in the directory.
-  WIN32_FIND_DATA ffd;
-  HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
-
-  if (hFind == INVALID_HANDLE_VALUE)
-  {
-    FindClose(hFind);
-    return false;
-  }
-
-  // Windows loop
-  do
-  {
-    const std::string virtualName(TStrToUTF8(ffd.cFileName));
-#else
   DIR* dirp = opendir(directory.c_str());
   if (!dirp)
     return false;
 
-  // non Windows loop
   while (dirent* result = readdir(dirp))
   {
     const std::string virtualName = result->d_name;
-#endif
 
     // check for "." and ".."
     if (((virtualName[0] == '.') && (virtualName[1] == '\0')) ||
@@ -658,17 +655,13 @@ bool DeleteDirRecursively(const std::string& directory)
         break;
       }
     }
-
-#ifdef _WIN32
-  } while (FindNextFile(hFind, &ffd) != 0);
-  FindClose(hFind);
-#else
   }
   closedir(dirp);
-#endif
   if (success)
-    File::DeleteDir(directory);
-
+    success = File::DeleteDir(directory);
+  if (!success)
+    ERROR_LOG_FMT(COMMON, "DeleteDirRecursively: {} failed", directory);
+#endif
   return success;
 }
 
