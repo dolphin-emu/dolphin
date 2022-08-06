@@ -113,7 +113,7 @@ public:
     // Some games (e.g. Donkey Kong Country Returns) have a few draws that contain NaN.
     // Since NaN != NaN, we need to compare the bits instead.
     const auto bit_equal = [](float val_a, float val_b) {
-      return Common::BitCast<u32>(val_a) == Common::BitCast<u32>(val_b);
+      return std::bit_cast<u32>(val_a) == std::bit_cast<u32>(val_b);
     };
 
     // The last element is allowed to be garbage for SIMD overwrites.

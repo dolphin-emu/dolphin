@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include <bit>
 #include <cmath>
 #include <limits>
 
-#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
@@ -59,13 +59,13 @@ inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
 
     constexpr u64 smallest_normal_single = 0x3810000000000000;
     const u64 value_without_sign =
-        Common::BitCast<u64>(value) & (Common::DOUBLE_EXP | Common::DOUBLE_FRAC);
+        std::bit_cast<u64>(value) & (Common::DOUBLE_EXP | Common::DOUBLE_FRAC);
 
     if (value_without_sign < smallest_normal_single)
     {
-      const u64 flushed_double = Common::BitCast<u64>(value) & Common::DOUBLE_SIGN;
+      const u64 flushed_double = std::bit_cast<u64>(value) & Common::DOUBLE_SIGN;
       const u32 flushed_single = static_cast<u32>(flushed_double >> 32);
-      return Common::BitCast<float>(flushed_single);
+      return std::bit_cast<float>(flushed_single);
     }
   }
 
@@ -90,18 +90,18 @@ inline double ForceDouble(const UReg_FPSCR& fpscr, double d)
 
 inline double Force25Bit(double d)
 {
-  u64 integral = Common::BitCast<u64>(d);
+  u64 integral = std::bit_cast<u64>(d);
 
   integral = (integral & 0xFFFFFFFFF8000000ULL) + (integral & 0x8000000);
 
-  return Common::BitCast<double>(integral);
+  return std::bit_cast<double>(integral);
 }
 
 inline double MakeQuiet(double d)
 {
-  const u64 integral = Common::BitCast<u64>(d) | Common::DOUBLE_QBIT;
+  const u64 integral = std::bit_cast<u64>(d) | Common::DOUBLE_QBIT;
 
-  return Common::BitCast<double>(integral);
+  return std::bit_cast<double>(integral);
 }
 
 // these functions allow globally modify operations behaviour

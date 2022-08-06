@@ -88,16 +88,3 @@ TEST(BitUtils, IsValidLowMask)
   EXPECT_FALSE(Common::IsValidLowMask((u64) ~(0b10000)));
   EXPECT_FALSE(Common::IsValidLowMask((u64)(~((u64)(~0b0) >> 1) | 0b1111)));
 }
-
-TEST(BitUtils, BitCast)
-{
-  EXPECT_EQ(0x00000000U, Common::BitCast<u32>(0.0f));
-  EXPECT_EQ(0x80000000U, Common::BitCast<u32>(-0.0f));
-  EXPECT_EQ(0x3F800000U, Common::BitCast<u32>(1.0f));
-  EXPECT_EQ(0xBF800000U, Common::BitCast<u32>(-1.0f));
-
-  EXPECT_EQ(0x0000000000000000ULL, Common::BitCast<u64>(0.0));
-  EXPECT_EQ(0x8000000000000000ULL, Common::BitCast<u64>(-0.0));
-  EXPECT_EQ(0x3FF0000000000000ULL, Common::BitCast<u64>(1.0));
-  EXPECT_EQ(0xBFF0000000000000ULL, Common::BitCast<u64>(-1.0));
-}

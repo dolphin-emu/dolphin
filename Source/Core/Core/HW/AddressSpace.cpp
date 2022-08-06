@@ -4,8 +4,8 @@
 #include "Core/HW/AddressSpace.h"
 
 #include <algorithm>
+#include <bit>
 
-#include "Common/BitUtils.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DSP.h"
@@ -56,7 +56,7 @@ void Accessors::WriteU64(const Core::CPUThreadGuard& guard, u32 address, u64 val
 
 float Accessors::ReadF32(const Core::CPUThreadGuard& guard, u32 address) const
 {
-  return Common::BitCast<float>(ReadU32(guard, address));
+  return std::bit_cast<float>(ReadU32(guard, address));
 }
 
 Accessors::iterator Accessors::begin() const
