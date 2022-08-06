@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <string_view>
@@ -108,7 +109,6 @@ class FileInfo final
 public:
   explicit FileInfo(const std::string& path);
   explicit FileInfo(const char* path);
-  explicit FileInfo(int fd);
 
   // Returns true if the path exists
   bool Exists() const;
@@ -124,11 +124,8 @@ private:
   void AndroidContentInit(const std::string& path);
 #endif
 
-#ifdef _WIN32
-  struct __stat64 m_stat;
-#else
-  struct stat m_stat;
-#endif
+  std::filesystem::path m_path;
+  std::filesystem::file_status m_status;
   bool m_exists;
 };
 
@@ -143,9 +140,6 @@ bool IsFile(const std::string& path);
 
 // Returns the size of a file (or returns 0 if the path isn't a file that exists)
 u64 GetSize(const std::string& path);
-
-// Overloaded GetSize, accepts file descriptor
-u64 GetSize(const int fd);
 
 // Overloaded GetSize, accepts FILE*
 u64 GetSize(FILE* f);

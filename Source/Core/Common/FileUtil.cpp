@@ -6,13 +6,16 @@
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
+#include <filesystem>
 #include <fstream>
 #include <limits.h>
 #include <string>
 #include <sys/stat.h>
+#include <system_error>
 #include <thread>
 #include <vector>
 
@@ -29,11 +32,10 @@
 #include "Common/StringUtil.h"
 
 #ifdef _WIN32
-#include <windows.h>
+#include <Windows.h>
 #include <Shlwapi.h>
 #include <commdlg.h>  // for GetSaveFileName
 #include <direct.h>   // getcwd
-#include <filesystem>
 #include <io.h>
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
@@ -57,13 +59,8 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #endif
 
-#ifndef S_ISDIR
-#define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
-#endif
+namespace fs = std::filesystem;
 
-// This namespace has various generic functions related to files and paths.
-// The code still needs a ton of cleanup.
-// REMEMBER: strdup considered harmful!
 namespace File
 {
 #ifdef ANDROID
@@ -82,16 +79,6 @@ static DolSecTranslocateIsTranslocatedURL s_is_translocated_url;
 static DolSecTranslocateCreateOriginalPathForURL s_create_orig_path;
 #endif
 
-#ifdef _WIN32
-FileInfo::FileInfo(const std::string& path)
-{
-  m_exists = _tstat64(UTF8ToTStr(path).c_str(), &m_stat) == 0;
-}
-
-FileInfo::FileInfo(const char* path) : FileInfo(std::string(path))
-{
-}
-#else
 FileInfo::FileInfo(const std::string& path) : FileInfo(path.c_str())
 {
 }
@@ -103,13 +90,12 @@ FileInfo::FileInfo(const char* path)
     AndroidContentInit(path);
   else
 #endif
-    m_exists = stat(path, &m_stat) == 0;
-}
-#endif
-
-FileInfo::FileInfo(int fd)
-{
-  m_exists = fstat(fd, &m_stat) == 0;
+  {
+    m_path = StringToPath(path);
+    std::error_code error;
+    m_status = fs::status(m_path, error);
+    m_exists = fs::exists(m_status);
+  }
 }
 
 #ifdef ANDROID
@@ -129,17 +115,23 @@ bool FileInfo::Exists() const
 
 bool FileInfo::IsDirectory() const
 {
-  return m_exists ? S_ISDIR(m_stat.st_mode) : false;
+  return fs::is_directory(m_status);
 }
 
 bool FileInfo::IsFile() const
 {
-  return m_exists ? !S_ISDIR(m_stat.st_mode) : false;
+  return Exists() ? !fs::is_directory(m_status) : false;
 }
 
 u64 FileInfo::GetSize() const
 {
-  return IsFile() ? m_stat.st_size : 0;
+  if (!IsFile())
+    return 0;
+  std::error_code error;
+  std::uintmax_t size = fs::file_size(m_path, error);
+  if (error)
+    return 0;
+  return size;
 }
 
 // Returns true if the path exists
@@ -151,11 +143,7 @@ bool Exists(const std::string& path)
 // Returns true if the path exists and is a directory
 bool IsDirectory(const std::string& path)
 {
-#ifdef _WIN32
-  return PathIsDirectory(UTF8ToWString(path).c_str());
-#else
   return FileInfo(path).IsDirectory();
-#endif
 }
 
 // Returns true if the path exists and is a file
@@ -168,50 +156,44 @@ bool IsFile(const std::string& path)
 // Doesn't supports deleting a directory
 bool Delete(const std::string& filename, IfAbsentBehavior behavior)
 {
-  DEBUG_LOG_FMT(COMMON, "Delete: file {}", filename);
+  DEBUG_LOG_FMT(COMMON, "{}: file {}", __func__, filename);
 
 #ifdef ANDROID
   if (StringBeginsWith(filename, "content://"))
   {
     const bool success = DeleteAndroidContent(filename);
     if (!success)
-      WARN_LOG_FMT(COMMON, "Delete failed on {}", filename);
+      WARN_LOG_FMT(COMMON, "{} failed on {}", __func__, filename);
     return success;
   }
 #endif
 
-  const FileInfo file_info(filename);
+  auto native_path = StringToPath(filename);
+  std::error_code error;
+  auto status = fs::status(native_path, error);
 
   // Return true because we care about the file not being there, not the actual delete.
-  if (!file_info.Exists())
+  if (!fs::exists(status))
   {
     if (behavior == IfAbsentBehavior::ConsoleWarning)
     {
-      WARN_LOG_FMT(COMMON, "Delete: {} does not exist", filename);
+      WARN_LOG_FMT(COMMON, "{}: {} does not exist", __func__, filename);
     }
     return true;
   }
 
-  // We can't delete a directory
-  if (file_info.IsDirectory())
+  // fs::remove can only delete an empty directory. Legacy dolphin behavior is just to bail.
+  if (fs::is_directory(status))
   {
-    WARN_LOG_FMT(COMMON, "Delete failed: {} is a directory", filename);
+    WARN_LOG_FMT(COMMON, "{} failed: {} is a directory", __func__, filename);
     return false;
   }
 
-#ifdef _WIN32
-  if (!DeleteFile(UTF8ToTStr(filename).c_str()))
+  if (!fs::remove(native_path, error))
   {
-    WARN_LOG_FMT(COMMON, "Delete: DeleteFile failed on {}: {}", filename, GetLastErrorString());
+    WARN_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, filename, error.message());
     return false;
   }
-#else
-  if (unlink(filename.c_str()) == -1)
-  {
-    WARN_LOG_FMT(COMMON, "Delete: unlink failed on {}: {}", filename, LastStrerrorString());
-    return false;
-  }
-#endif
 
   return true;
 }
@@ -219,131 +201,82 @@ bool Delete(const std::string& filename, IfAbsentBehavior behavior)
 // Returns true if successful, or path already exists.
 bool CreateDir(const std::string& path)
 {
-  DEBUG_LOG_FMT(COMMON, "CreateDir: directory {}", path);
-#ifdef _WIN32
-  if (::CreateDirectory(UTF8ToTStr(path).c_str(), nullptr))
-    return true;
-  const DWORD error = GetLastError();
-  if (error == ERROR_ALREADY_EXISTS)
-  {
-    WARN_LOG_FMT(COMMON, "CreateDir: CreateDirectory failed on {}: already exists", path);
-    return true;
-  }
-  ERROR_LOG_FMT(COMMON, "CreateDir: CreateDirectory failed on {}: {}", path, error);
-  return false;
-#else
-  if (mkdir(path.c_str(), 0755) == 0)
-    return true;
+  DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, path);
 
-  const int err = errno;
-
-  if (err == EEXIST)
-  {
-    WARN_LOG_FMT(COMMON, "CreateDir: mkdir failed on {}: already exists", path);
-    return true;
-  }
-
-  ERROR_LOG_FMT(COMMON, "CreateDir: mkdir failed on {}: {}", path, strerror(err));
-  return false;
-#endif
+  std::error_code error;
+  auto native_path = StringToPath(path);
+  bool success = fs::create_directory(native_path, error);
+  // If the path was not created, check if it was a pre-existing directory
+  if (!success && fs::is_directory(native_path))
+    success = true;
+  if (!success)
+    ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, path, error.message());
+  return success;
 }
 
 // Creates the full path of fullPath returns true on success
 bool CreateFullPath(const std::string& fullPath)
 {
-  int panicCounter = 100;
-  DEBUG_LOG_FMT(COMMON, "CreateFullPath: path {}", fullPath);
+  DEBUG_LOG_FMT(COMMON, "{}: path {}", __func__, fullPath);
 
-  if (Exists(fullPath))
-  {
-    DEBUG_LOG_FMT(COMMON, "CreateFullPath: path exists {}", fullPath);
-    return true;
-  }
-
-  size_t position = 0;
-  while (true)
-  {
-    // Find next sub path
-    position = fullPath.find(DIR_SEP_CHR, position);
-
-    // we're done, yay!
-    if (position == fullPath.npos)
-      return true;
-
-    // Include the '/' so the first call is CreateDir("/") rather than CreateDir("")
-    std::string const subPath(fullPath.substr(0, position + 1));
-    if (!IsDirectory(subPath))
-      File::CreateDir(subPath);
-
-    // A safety check
-    panicCounter--;
-    if (panicCounter <= 0)
-    {
-      ERROR_LOG_FMT(COMMON, "CreateFullPath: directory structure is too deep");
-      return false;
-    }
-    position++;
-  }
+  std::error_code error;
+  auto native_path = StringToPath(fullPath);
+  bool success = fs::create_directories(native_path, error);
+  // If the path was not created, check if it was a pre-existing directory
+  if (!success && fs::is_directory(native_path))
+    success = true;
+  if (!success)
+    ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, fullPath, error.message());
+  return success;
 }
 
 // Deletes a directory filename, returns true on success
 bool DeleteDir(const std::string& filename, IfAbsentBehavior behavior)
 {
-  DEBUG_LOG_FMT(COMMON, "DeleteDir: directory {}", filename);
+  DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, filename);
+
+  auto native_path = StringToPath(filename);
+  std::error_code error;
+  auto status = fs::status(native_path, error);
 
   // Return true because we care about the directory not being there, not the actual delete.
-  if (!File::Exists(filename))
+  if (!fs::exists(status))
   {
     if (behavior == IfAbsentBehavior::ConsoleWarning)
     {
-      WARN_LOG_FMT(COMMON, "DeleteDir: {} does not exist", filename);
+      WARN_LOG_FMT(COMMON, "{}: {} does not exist", __func__, filename);
     }
     return true;
   }
 
   // check if a directory
-  if (!IsDirectory(filename))
+  if (!fs::is_directory(status))
   {
-    ERROR_LOG_FMT(COMMON, "DeleteDir: Not a directory {}", filename);
+    ERROR_LOG_FMT(COMMON, "{}: Not a directory {}", __func__, filename);
     return false;
   }
 
-#ifdef _WIN32
-  if (::RemoveDirectory(UTF8ToTStr(filename).c_str()))
-    return true;
-  ERROR_LOG_FMT(COMMON, "DeleteDir: RemoveDirectory failed on {}: {}", filename,
-                GetLastErrorString());
-#else
-  if (rmdir(filename.c_str()) == 0)
-    return true;
-  ERROR_LOG_FMT(COMMON, "DeleteDir: rmdir failed on {}: {}", filename, LastStrerrorString());
-#endif
+  if (!fs::remove(native_path, error))
+  {
+    WARN_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, filename, error.message());
+    return false;
+  }
 
-  return false;
+  return true;
 }
 
 // renames file srcFilename to destFilename, returns true on success
 bool Rename(const std::string& srcFilename, const std::string& destFilename)
 {
-  DEBUG_LOG_FMT(COMMON, "Rename: {} --> {}", srcFilename, destFilename);
-#ifdef _WIN32
+  DEBUG_LOG_FMT(COMMON, "{}: {} --> {}", __func__, srcFilename, destFilename);
   std::error_code error;
-  std::filesystem::rename(UTF8ToWString(srcFilename), UTF8ToWString(destFilename), error);
+  std::filesystem::rename(StringToPath(srcFilename), StringToPath(destFilename), error);
   if (error)
   {
-    ERROR_LOG_FMT(COMMON, "Rename failed: {} --> {}: {}", srcFilename, destFilename,
+    ERROR_LOG_FMT(COMMON, "{} failed: {} --> {}: {}", __func__, srcFilename, destFilename,
                   error.message());
   }
-  const bool success = !error;
-#else
-  const bool success = rename(srcFilename.c_str(), destFilename.c_str()) == 0;
-  if (!success)
-  {
-    ERROR_LOG_FMT(COMMON, "Rename failed {} --> {}: {}", srcFilename, destFilename,
-                  LastStrerrorString());
-  }
-#endif
-  return success;
+  return !error;
 }
 
 #ifndef _WIN32
@@ -363,10 +296,14 @@ bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
   if (!Rename(srcFilename, destFilename))
     return false;
 #ifdef _WIN32
-  int fd = _topen(UTF8ToTStr(srcFilename).c_str(), _O_RDONLY);
-  if (fd != -1)
+  int fd = -1;
+  // XXX is this really needed?
+  errno_t err = _wsopen_s(&fd, UTF8ToWString(srcFilename).c_str(), _O_RDONLY, _SH_DENYNO,
+                          _S_IREAD | _S_IWRITE);
+  if (!err && fd >= 0)
   {
-    _commit(fd);
+    if (_commit(fd) != 0)
+      ERROR_LOG_FMT(COMMON, "{} sync failed on {}: {}", __func__, srcFilename, err);
     close(fd);
   }
 #else
@@ -384,42 +321,24 @@ bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
 // copies file source_path to destination_path, returns true on success
 bool Copy(const std::string& source_path, const std::string& destination_path)
 {
-  DEBUG_LOG_FMT(COMMON, "Copy: {} --> {}", source_path, destination_path);
-#ifdef _WIN32
-  if (CopyFile(UTF8ToTStr(source_path).c_str(), UTF8ToTStr(destination_path).c_str(), FALSE))
-    return true;
+  DEBUG_LOG_FMT(COMMON, "{}: {} --> {}", __func__, source_path, destination_path);
 
-  ERROR_LOG_FMT(COMMON, "Copy: failed {} --> {}: {}", source_path, destination_path,
-                GetLastErrorString());
-  return false;
-#else
-  std::ifstream source{source_path, std::ios::binary};
-  std::ofstream destination{destination_path, std::ios::binary};
-
-  // Only attempt to write with << if there is actually something in the file
-  if (source.peek() != std::ifstream::traits_type::eof())
+  auto src_path = StringToPath(source_path);
+  auto dst_path = StringToPath(destination_path);
+  std::error_code error;
+  bool copied = fs::copy_file(src_path, dst_path, fs::copy_options::overwrite_existing, error);
+  if (!copied)
   {
-    destination << source.rdbuf();
-    return source.good() && destination.good();
+    ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: {}", __func__, source_path, destination_path,
+                  error.message());
   }
-  else
-  {
-    // We can't use source.good() here because eofbit will be set, so check for the other bits.
-    return !source.fail() && !source.bad() && destination.good();
-  }
-#endif
+  return copied;
 }
 
 // Returns the size of a file (or returns 0 if the path isn't a file that exists)
 u64 GetSize(const std::string& path)
 {
   return FileInfo(path).GetSize();
-}
-
-// Overloaded GetSize, accepts file descriptor
-u64 GetSize(const int fd)
-{
-  return FileInfo(fd).GetSize();
 }
 
 // Overloaded GetSize, accepts FILE*
@@ -569,156 +488,63 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
 // Deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string& directory)
 {
-  DEBUG_LOG_FMT(COMMON, "DeleteDirRecursively: {}", directory);
-  bool success = true;
+  DEBUG_LOG_FMT(COMMON, "{}: {}", __func__, directory);
 
-#ifdef _WIN32
-  // Find the first file in the directory.
-  WIN32_FIND_DATA ffd;
-  HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
-
-  if (hFind == INVALID_HANDLE_VALUE)
-  {
-    FindClose(hFind);
-    return false;
-  }
-
-  // Windows loop
-  do
-  {
-    const std::string virtualName(TStrToUTF8(ffd.cFileName));
-#else
-  DIR* dirp = opendir(directory.c_str());
-  if (!dirp)
-    return false;
-
-  // non Windows loop
-  while (dirent* result = readdir(dirp))
-  {
-    const std::string virtualName = result->d_name;
-#endif
-
-    // check for "." and ".."
-    if (((virtualName[0] == '.') && (virtualName[1] == '\0')) ||
-        ((virtualName[0] == '.') && (virtualName[1] == '.') && (virtualName[2] == '\0')))
-      continue;
-
-    std::string newPath = directory + DIR_SEP_CHR + virtualName;
-    if (IsDirectory(newPath))
-    {
-      if (!DeleteDirRecursively(newPath))
-      {
-        success = false;
-        break;
-      }
-    }
-    else
-    {
-      if (!File::Delete(newPath))
-      {
-        success = false;
-        break;
-      }
-    }
-
-#ifdef _WIN32
-  } while (FindNextFile(hFind, &ffd) != 0);
-  FindClose(hFind);
-#else
-  }
-  closedir(dirp);
-#endif
-  if (success)
-    File::DeleteDir(directory);
-
+  std::error_code error;
+  const std::uintmax_t num_removed = std::filesystem::remove_all(StringToPath(directory), error);
+  const bool success = num_removed != 0 && !error;
+  if (!success)
+    ERROR_LOG_FMT(COMMON, "{}: {} failed {}", __func__, directory, error.message());
   return success;
 }
 
 // Create directory and copy contents (optionally overwrites existing files)
 bool CopyDir(const std::string& source_path, const std::string& dest_path, const bool destructive)
 {
-  if (source_path == dest_path)
+  auto src_path = StringToPath(source_path);
+  auto dst_path = StringToPath(dest_path);
+  if (fs::equivalent(src_path, dst_path))
     return true;
-  if (!Exists(source_path))
-    return false;
 
-  // Shouldn't be used to short circuit operations after an earlier failure
-  bool everything_copied = true;
+  DEBUG_LOG_FMT(COMMON, "{}: {} --> {}", __func__, source_path, dest_path);
 
-  if (!Exists(dest_path))
-    everything_copied = File::CreateFullPath(dest_path) && everything_copied;
-
-#ifdef _WIN32
-  WIN32_FIND_DATA ffd;
-  HANDLE hFind = FindFirstFile(UTF8ToTStr(source_path + "\\*").c_str(), &ffd);
-
-  if (hFind == INVALID_HANDLE_VALUE)
+  auto options = fs::copy_options::recursive;
+  if (destructive)
+    options |= fs::copy_options::overwrite_existing;
+  std::error_code error;
+  bool copied = fs::copy_file(src_path, dst_path, options, error);
+  if (!copied)
   {
-    FindClose(hFind);
-    return false;
+    ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: {}", __func__, source_path, dest_path,
+                  error.message());
   }
-
-  do
-  {
-    const std::string virtualName(TStrToUTF8(ffd.cFileName));
-#else
-  DIR* dirp = opendir(source_path.c_str());
-  if (!dirp)
-    return false;
-
-  while (dirent* result = readdir(dirp))
-  {
-    const std::string virtualName(result->d_name);
-#endif
-    // check for "." and ".."
-    if (virtualName == "." || virtualName == "..")
-      continue;
-
-    const std::string source = source_path + DIR_SEP + virtualName;
-    const std::string dest = dest_path + DIR_SEP + virtualName;
-    if (IsDirectory(source))
-    {
-      if (!Exists(dest))
-        File::CreateFullPath(dest + DIR_SEP);
-      everything_copied = CopyDir(source, dest, destructive) && everything_copied;
-    }
-    else if (!destructive && !Exists(dest))
-    {
-      everything_copied = Copy(source, dest) && everything_copied;
-    }
-    else if (destructive)
-    {
-      everything_copied = Rename(source, dest) && everything_copied;
-    }
-#ifdef _WIN32
-  } while (FindNextFile(hFind, &ffd) != 0);
-  FindClose(hFind);
-#else
-  }
-  closedir(dirp);
-#endif
-  return everything_copied;
+  return copied;
 }
 
 // Returns the current directory
 std::string GetCurrentDir()
 {
-  // Get the current working directory (getcwd uses malloc)
-  char* dir = __getcwd(nullptr, 0);
-  if (!dir)
+  std::error_code error;
+  auto directory = PathToString(fs::current_path(error));
+  if (error)
   {
-    ERROR_LOG_FMT(COMMON, "GetCurrentDirectory failed: {}", LastStrerrorString());
-    return "";
+    ERROR_LOG_FMT(COMMON, "{} failed: {}", __func__, error.message());
+    return {};
   }
-  std::string strDir = dir;
-  free(dir);
-  return strDir;
+  return directory;
 }
 
 // Sets the current directory to the given directory
 bool SetCurrentDir(const std::string& directory)
 {
-  return __chdir(directory.c_str()) == 0;
+  std::error_code error;
+  fs::current_path(StringToPath(directory), error);
+  if (error)
+  {
+    ERROR_LOG_FMT(COMMON, "{} failed: {}", __func__, error.message());
+    return false;
+  }
+  return true;
 }
 
 std::string CreateTempDir()
@@ -754,18 +580,10 @@ std::string CreateTempDir()
 
 std::string GetTempFilenameForAtomicWrite(std::string path)
 {
-#ifdef _WIN32
-  std::unique_ptr<TCHAR[], decltype(&std::free)> absbuf{
-      _tfullpath(nullptr, UTF8ToTStr(path).c_str(), 0), std::free};
-  if (absbuf != nullptr)
-  {
-    path = TStrToUTF8(absbuf.get());
-  }
-#else
-  char absbuf[PATH_MAX];
-  if (realpath(path.c_str(), absbuf) != nullptr)
-    path = absbuf;
-#endif
+  std::error_code error;
+  auto absolute_path = fs::absolute(StringToPath(path), error);
+  if (!error)
+    path = PathToString(absolute_path);
   return std::move(path) + ".xxx";
 }
 
@@ -818,48 +636,32 @@ std::string GetBundleDirectory()
 
 std::string GetExePath()
 {
-  static const std::string dolphin_path = [] {
-    std::string result;
 #ifdef _WIN32
-    auto dolphin_exe_path = GetModuleName(nullptr);
-    if (dolphin_exe_path)
-    {
-      std::unique_ptr<TCHAR[], decltype(&std::free)> dolphin_exe_expanded_path{
-          _tfullpath(nullptr, dolphin_exe_path->c_str(), 0), std::free};
-      if (dolphin_exe_expanded_path)
-      {
-        result = TStrToUTF8(dolphin_exe_expanded_path.get());
-      }
-      else
-      {
-        result = TStrToUTF8(*dolphin_exe_path);
-      }
-    }
+  auto exe_path = GetModuleName(nullptr);
+  if (!exe_path)
+    return {};
+  std::error_code error;
+  auto exe_path_absolute = fs::absolute(exe_path.value(), error);
+  if (error)
+    return {};
+  return PathToString(exe_path_absolute);
 #elif defined(__APPLE__)
-    result = GetBundleDirectory();
+  return GetBundleDirectory();
 #else
-    char dolphin_exe_path[PATH_MAX];
-    ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));
-    if (len == -1 || len == sizeof(dolphin_exe_path))
-    {
-      len = 0;
-    }
-    dolphin_exe_path[len] = '\0';
-    result = dolphin_exe_path;
+  char dolphin_exe_path[PATH_MAX];
+  ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));
+  if (len == -1 || len == sizeof(dolphin_exe_path))
+  {
+    len = 0;
+  }
+  dolphin_exe_path[len] = '\0';
+  return dolphin_exe_path;
 #endif
-    return result;
-  }();
-  return dolphin_path;
 }
 
 std::string GetExeDirectory()
 {
-  std::string exe_path = GetExePath();
-#ifdef _WIN32
-  return exe_path.substr(0, exe_path.rfind('\\'));
-#else
-  return exe_path.substr(0, exe_path.rfind('/'));
-#endif
+  return PathToString(StringToPath(GetExePath()).parent_path());
 }
 
 static std::string CreateSysDirectoryPath()
