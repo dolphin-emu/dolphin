@@ -5,12 +5,12 @@
 
 #include <array>
 #include <atomic>
+#include <bit>
 #include <string>
 #include <tuple>
 #include <type_traits>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIOHandlers.h"
@@ -88,7 +88,7 @@ inline u16* LowPart(u32* ptr)
 inline u16* LowPart(std::atomic<u32>* ptr)
 {
   static_assert(std::atomic<u32>::is_always_lock_free && sizeof(std::atomic<u32>) == sizeof(u32));
-  return LowPart(Common::BitCast<u32*>(ptr));
+  return LowPart(std::bit_cast<u32*>(ptr));
 }
 inline u16* HighPart(u32* ptr)
 {
@@ -97,7 +97,7 @@ inline u16* HighPart(u32* ptr)
 inline u16* HighPart(std::atomic<u32>* ptr)
 {
   static_assert(std::atomic<u32>::is_always_lock_free && sizeof(std::atomic<u32>) == sizeof(u32));
-  return HighPart(Common::BitCast<u32*>(ptr));
+  return HighPart(std::bit_cast<u32*>(ptr));
 }
 }  // namespace Utils
 

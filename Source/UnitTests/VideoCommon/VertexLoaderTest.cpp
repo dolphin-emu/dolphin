@@ -1,6 +1,7 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <bit>
 #include <limits>
 #include <memory>
 #include <tuple>
@@ -9,7 +10,6 @@
 
 #include <gtest/gtest.h>  // NOLINT
 
-#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/CPMemory.h"
@@ -81,7 +81,7 @@ protected:
     const float actual = m_dst.Read<float, false>();
 
     if (!actual || actual != actual)
-      EXPECT_EQ(Common::BitCast<u32>(expected), Common::BitCast<u32>(actual));
+      EXPECT_EQ(std::bit_cast<u32>(expected), std::bit_cast<u32>(actual));
     else
       EXPECT_EQ(expected, actual);
   }

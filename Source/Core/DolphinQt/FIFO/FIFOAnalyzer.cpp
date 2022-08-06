@@ -4,6 +4,7 @@
 #include "DolphinQt/FIFO/FIFOAnalyzer.h"
 
 #include <algorithm>
+#include <bit>
 
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -646,7 +647,7 @@ public:
         }
         if (format == ComponentFormat::Float)
         {
-          const float value = Common::BitCast<float>(Common::swap32(&vertex_data[i]));
+          const float value = std::bit_cast<float>(Common::swap32(&vertex_data[i]));
           text += QStringLiteral(" (%1)").arg(value);
         }
         i += component_size;

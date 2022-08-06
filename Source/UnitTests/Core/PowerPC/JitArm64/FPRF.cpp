@@ -1,11 +1,11 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <bit>
 #include <functional>
 #include <vector>
 
 #include "Common/Arm64Emitter.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/ScopeGuard.h"
 #include "Core/Core.h"
@@ -38,7 +38,7 @@ public:
 
     auto& ppc_state = system.GetPPCState();
 
-    fprf_single = Common::BitCast<void (*)(u32)>(GetCodePtr());
+    fprf_single = std::bit_cast<void (*)(u32)>(GetCodePtr());
     MOV(ARM64Reg::X15, ARM64Reg::X30);
     MOV(ARM64Reg::X14, PPC_REG);
     MOVP2R(PPC_REG, &ppc_state);
@@ -47,7 +47,7 @@ public:
     MOV(PPC_REG, ARM64Reg::X14);
     RET();
 
-    fprf_double = Common::BitCast<void (*)(u64)>(GetCodePtr());
+    fprf_double = std::bit_cast<void (*)(u64)>(GetCodePtr());
     MOV(ARM64Reg::X15, ARM64Reg::X30);
     MOV(ARM64Reg::X14, PPC_REG);
     MOVP2R(PPC_REG, &ppc_state);
@@ -82,7 +82,7 @@ TEST(JitArm64, FPRF)
   for (const u64 double_input : double_test_values)
   {
     const u32 expected_double = RunUpdateFPRF(
-        ppc_state, [&] { ppc_state.UpdateFPRFDouble(Common::BitCast<double>(double_input)); });
+        ppc_state, [&] { ppc_state.UpdateFPRFDouble(std::bit_cast<double>(double_input)); });
     const u32 actual_double = RunUpdateFPRF(ppc_state, [&] { test.fprf_double(double_input); });
     if (expected_double != actual_double)
       fmt::print("{:016x} -> {:08x} == {:08x}\n", double_input, actual_double, expected_double);
@@ -91,7 +91,7 @@ TEST(JitArm64, FPRF)
     const u32 single_input = ConvertToSingle(double_input);
 
     const u32 expected_single = RunUpdateFPRF(
-        ppc_state, [&] { ppc_state.UpdateFPRFSingle(Common::BitCast<float>(single_input)); });
+        ppc_state, [&] { ppc_state.UpdateFPRFSingle(std::bit_cast<float>(single_input)); });
     const u32 actual_single = RunUpdateFPRF(ppc_state, [&] { test.fprf_single(single_input); });
     if (expected_single != actual_single)
       fmt::print("{:08x} -> {:08x} == {:08x}\n", single_input, actual_single, expected_single);

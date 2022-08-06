@@ -303,7 +303,7 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
       if (string[i] == '*')
       {
         ++i;
-        const s32 result_tmp = Common::BitCast<s32>(args->GetU32());
+        const s32 result_tmp = std::bit_cast<s32>(args->GetU32());
         if (result_tmp >= 0)
           return static_cast<u32>(result_tmp);
 
@@ -415,7 +415,7 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
     }
     case 'c':
     {
-      const s32 value = Common::BitCast<s32>(args->GetU32());
+      const s32 value = std::bit_cast<s32>(args->GetU32());
       if (length_modifier == LengthModifier::l)
       {
         // Same problem as with wide strings here.
@@ -443,12 +443,12 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
           precision ? fmt::format(".{}", *precision) : "");
       if (length_modifier == LengthModifier::ll)
       {
-        const s64 value = Common::BitCast<s64>(args->GetU64());
+        const s64 value = std::bit_cast<s64>(args->GetU64());
         result += fmt::sprintf(fmt::format("%{}" PRId64, options).c_str(), value);
       }
       else
       {
-        s32 value = Common::BitCast<s32>(args->GetU32());
+        s32 value = std::bit_cast<s32>(args->GetU32());
         if (length_modifier == LengthModifier::h)
           value = static_cast<s16>(value);
         else if (length_modifier == LengthModifier::hh)
