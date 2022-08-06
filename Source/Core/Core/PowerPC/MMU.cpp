@@ -668,7 +668,7 @@ std::optional<ReadResult<float>> MMU::HostTryReadF32(const Core::CPUThreadGuard&
   const auto result = HostTryReadUX<u32>(guard, address, space);
   if (!result)
     return std::nullopt;
-  return ReadResult<float>(result->translated, Common::BitCast<float>(result->value));
+  return ReadResult<float>(result->translated, std::bit_cast<float>(result->value));
 }
 
 std::optional<ReadResult<double>> MMU::HostTryReadF64(const Core::CPUThreadGuard& guard,
@@ -677,7 +677,7 @@ std::optional<ReadResult<double>> MMU::HostTryReadF64(const Core::CPUThreadGuard
   const auto result = HostTryReadUX<u64>(guard, address, space);
   if (!result)
     return std::nullopt;
-  return ReadResult<double>(result->translated, Common::BitCast<double>(result->value));
+  return ReadResult<double>(result->translated, std::bit_cast<double>(result->value));
 }
 
 void MMU::Write_U8(const u32 var, const u32 address)
@@ -745,14 +745,14 @@ float MMU::HostRead_F32(const Core::CPUThreadGuard& guard, const u32 address)
 {
   const u32 integral = HostRead_U32(guard, address);
 
-  return Common::BitCast<float>(integral);
+  return std::bit_cast<float>(integral);
 }
 
 double MMU::HostRead_F64(const Core::CPUThreadGuard& guard, const u32 address)
 {
   const u64 integral = HostRead_U64(guard, address);
 
-  return Common::BitCast<double>(integral);
+  return std::bit_cast<double>(integral);
 }
 
 void MMU::HostWrite_U8(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
@@ -782,14 +782,14 @@ void MMU::HostWrite_U64(const Core::CPUThreadGuard& guard, const u64 var, const 
 
 void MMU::HostWrite_F32(const Core::CPUThreadGuard& guard, const float var, const u32 address)
 {
-  const u32 integral = Common::BitCast<u32>(var);
+  const u32 integral = std::bit_cast<u32>(var);
 
   HostWrite_U32(guard, integral, address);
 }
 
 void MMU::HostWrite_F64(const Core::CPUThreadGuard& guard, const double var, const u32 address)
 {
-  const u64 integral = Common::BitCast<u64>(var);
+  const u64 integral = std::bit_cast<u64>(var);
 
   HostWrite_U64(guard, integral, address);
 }
@@ -852,14 +852,14 @@ std::optional<WriteResult> MMU::HostTryWriteU64(const Core::CPUThreadGuard& guar
 std::optional<WriteResult> MMU::HostTryWriteF32(const Core::CPUThreadGuard& guard, const float var,
                                                 const u32 address, RequestedAddressSpace space)
 {
-  const u32 integral = Common::BitCast<u32>(var);
+  const u32 integral = std::bit_cast<u32>(var);
   return HostTryWriteU32(guard, integral, address, space);
 }
 
 std::optional<WriteResult> MMU::HostTryWriteF64(const Core::CPUThreadGuard& guard, const double var,
                                                 const u32 address, RequestedAddressSpace space)
 {
-  const u64 integral = Common::BitCast<u64>(var);
+  const u64 integral = std::bit_cast<u64>(var);
   return HostTryWriteU64(guard, integral, address, space);
 }
 

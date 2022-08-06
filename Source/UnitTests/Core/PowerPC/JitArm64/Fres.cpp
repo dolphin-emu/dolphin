@@ -1,10 +1,10 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <bit>
 #include <functional>
 
 #include "Common/Arm64Emitter.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/ScopeGuard.h"
 #include "Core/Core.h"
@@ -33,7 +33,7 @@ public:
     const u8* raw_fres = GetCodePtr();
     GenerateFres();
 
-    fres = Common::BitCast<u64 (*)(u64)>(GetCodePtr());
+    fres = std::bit_cast<u64 (*)(u64)>(GetCodePtr());
     MOV(ARM64Reg::X15, ARM64Reg::X30);
     MOV(ARM64Reg::X14, PPC_REG);
     MOVP2R(PPC_REG, &system.GetPPCState());
@@ -60,9 +60,9 @@ TEST(JitArm64, Fres)
 
   for (const u64 ivalue : double_test_values)
   {
-    const double dvalue = Common::BitCast<double>(ivalue);
+    const double dvalue = std::bit_cast<double>(ivalue);
 
-    const u64 expected = Common::BitCast<u64>(Common::ApproximateReciprocal(dvalue));
+    const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocal(dvalue));
     const u64 actual = test.fres(ivalue);
 
     if (expected != actual)

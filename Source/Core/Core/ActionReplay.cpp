@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <bit>
 #include <iterator>
 #include <mutex>
 #include <string>
@@ -31,7 +32,6 @@
 
 #include <fmt/format.h>
 
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/IniFile.h"
@@ -519,10 +519,10 @@ static bool Subtype_AddCode(const Core::CPUThreadGuard& guard, const ARAddr& add
     LogInfo("--------");
 
     const u32 read = PowerPC::MMU::HostRead_U32(guard, new_addr);
-    const float read_float = Common::BitCast<float>(read);
+    const float read_float = std::bit_cast<float>(read);
     // data contains an (unsigned?) integer value
     const float fread = read_float + static_cast<float>(data);
-    const u32 newval = Common::BitCast<u32>(fread);
+    const u32 newval = std::bit_cast<u32>(fread);
     PowerPC::MMU::HostWrite_U32(guard, newval, new_addr);
     LogInfo("Old Value {:08x}", read);
     LogInfo("Increment {:08x}", data);

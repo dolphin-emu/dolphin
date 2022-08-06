@@ -1,9 +1,10 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <bit>
+
 #include "Common/Arm64Emitter.h"
 #include "Common/BitSet.h"
-#include "Common/BitUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -62,7 +63,7 @@ public:
 
   void Run()
   {
-    const u64 actual = Common::BitCast<u64 (*)()>(m_code_pointer)();
+    const u64 actual = std::bit_cast<u64 (*)()>(m_code_pointer)();
     constexpr u64 expected = 123;
     EXPECT_EQ(expected, actual);
   }
