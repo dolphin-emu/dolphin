@@ -264,7 +264,7 @@ void NetPlayServer::ThreadFunc()
     int net;
     if (m_traversal_client)
       m_traversal_client->HandleResends();
-    net = enet_host_service(m_server, &netEvent, 1000);
+    net = enet_host_service(m_server, &netEvent, 100);
     while (!m_async_queue.Empty())
     {
       {
