@@ -64,4 +64,14 @@ void Host_UpdateTitle(const std::string& title);
 void Host_YieldToUI();
 void Host_TitleChanged();
 
+void Host_UpdateDiscordClientID(const std::string& client_id = {});
+bool Host_UpdateDiscordPresenceRaw(const std::string& details = {}, const std::string& state = {},
+                                   const std::string& large_image_key = {},
+                                   const std::string& large_image_text = {},
+                                   const std::string& small_image_key = {},
+                                   const std::string& small_image_text = {},
+                                   const int64_t start_timestamp = 0,
+                                   const int64_t end_timestamp = 0, const int party_size = 0,
+                                   const int party_max = 0);
+
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core);
