@@ -402,6 +402,8 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
   if (StringUTF8CodePointCount(new_player.name) > MAX_NAME_LENGTH)
     return ConnectionError::NameTooLong;
 
+  // Update time in milliseconds of no acknoledgment of
+  // sent packets before a connection is deemed disconnected
   enet_peer_timeout(incoming_connection, 0, PEER_TIMEOUT.count(), PEER_TIMEOUT.count());
 
   // force a ping on first netplay loop
@@ -2084,6 +2086,10 @@ void NetPlayServer::SendResponse(MessageID message_id, const Client& player)
   case MessageID::HostInputAuthority:
     response << MessageID::HostInputAuthority;
     response << m_host_input_authority;
+    break;
+  default:
+    INFO_LOG_FMT(NETPLAY, "Warning! Call to SendResponse() failed to send a packet.");
+    return;
     break;
   }
 
