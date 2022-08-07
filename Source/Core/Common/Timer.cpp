@@ -68,6 +68,10 @@ u64 Timer::ElapsedMs() const
 
 u64 Timer::GetLocalTimeSinceJan1970()
 {
+  // TODO Would really, really like to use std::chrono here, but Windows did not support
+  // std::chrono::current_zone() until 19H1, and other compilers don't even provide support for
+  // timezone-related parts of chrono. Someday!
+  // see https://bugs.dolphin-emu.org/issues/13007#note-4
   time_t sysTime, tzDiff, tzDST;
   time(&sysTime);
   tm* gmTime = localtime(&sysTime);
