@@ -7,6 +7,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <ctime>
 #include <timeapi.h>
 #else
 #include <sys/time.h>
@@ -67,12 +68,6 @@ u64 Timer::ElapsedMs() const
 
 u64 Timer::GetLocalTimeSinceJan1970()
 {
-#ifdef _MSC_VER
-  std::chrono::zoned_seconds seconds(
-      std::chrono::current_zone(),
-      std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()));
-  return seconds.get_local_time().time_since_epoch().count();
-#else
   time_t sysTime, tzDiff, tzDST;
   time(&sysTime);
   tm* gmTime = localtime(&sysTime);
@@ -88,7 +83,6 @@ u64 Timer::GetLocalTimeSinceJan1970()
   tzDiff = sysTime - mktime(gmTime);
 
   return static_cast<u64>(sysTime + tzDiff + tzDST);
-#endif
 }
 
 void Timer::IncreaseResolution()
