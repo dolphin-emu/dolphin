@@ -2078,6 +2078,7 @@ void NetPlayServer::SendResponseToPlayer(const Client& player, const MessageID m
 {
   sf::Packet response;
   response << message_id;
+  // this is a C++17 fold expression used to call the << operator for all of the data
   (response << ... << std::forward<Data>(data_to_send));
 
   Send(player.socket, response);
@@ -2088,6 +2089,7 @@ void NetPlayServer::SendResponseToAllPlayers(const MessageID message_id, Data&&.
 {
   sf::Packet response;
   response << message_id;
+  // this is a C++17 fold expression used to call the << operator for all of the data
   (response << ... << std::forward<Data>(data_to_send));
 
   SendToClients(response);
