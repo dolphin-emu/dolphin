@@ -14,6 +14,7 @@
 #include <thread>
 #include <type_traits>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <fmt/format.h>
@@ -412,21 +413,35 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
   AssignNewUserAPad(new_player);
 
   // tell other players a new player joined
-  SendResponse(MessageID::PlayerJoin);
+  SendResponseToAllPlayers(MessageID::PlayerJoin, new_player.pid, new_player.name,
+                           new_player.revision);
 
   // tell new client they connected and their ID
-  SendResponse(MessageID::ConnectionSuccessful, new_player);
+  SendResponseToPlayer(new_player, MessageID::ConnectionSuccessful, new_player.pid);
 
   // tell new client the selected game
   if (!m_selected_game_name.empty())
-    SendResponse(MessageID::ChangeGame, new_player);
+  {
+    sf::Packet send_packet;
+    send_packet << MessageID::ChangeGame;
+    SendSyncIdentifier(send_packet, m_selected_game_identifier);
+    send_packet << m_selected_game_name;
+    Send(new_player.socket, send_packet);
+  }
 
   if (!m_host_input_authority)
-    SendResponse(MessageID::PadBuffer, new_player);
+    SendResponseToPlayer(new_player, MessageID::PadBuffer, m_target_buffer_size);
 
-  SendResponse(MessageID::HostInputAuthority, new_player);
+  SendResponseToPlayer(new_player, MessageID::HostInputAuthority, m_host_input_authority);
 
-  TellNewPlayerAboutExistingPlayers(new_player);
+  for (const auto& existing_player : m_players)
+  {
+    SendResponseToPlayer(new_player, MessageID::PlayerJoin, existing_player.second.pid,
+                         existing_player.second.name, existing_player.second.revision);
+
+    SendResponseToPlayer(new_player, MessageID::GameStatus, existing_player.second.pid,
+                         existing_player.second.game_status);
+  }
 
   if (Config::Get(Config::NETPLAY_ENABLE_QOS))
     new_player.qos_session = Common::QoSSession(new_player.socket);
@@ -2057,64 +2072,25 @@ PlayerId NetPlayServer::GiveFirstAvailableIDTo(ENetPeer* player)
   return pid;
 }
 
-void NetPlayServer::SendResponse(MessageID message_id, const Client& player)
+template <typename... Data>
+void NetPlayServer::SendResponseToPlayer(const Client& player, const MessageID message_id,
+                                         Data&&... data_to_send)
 {
   sf::Packet response;
-  switch (message_id)
-  {
-  case MessageID::PlayerJoin:
-    response << MessageID::PlayerJoin;
-    response << player.pid << player.name << player.revision;
-    break;
+  response << message_id;
+  (response << ... << std::forward<Data>(data_to_send));
 
-  case MessageID::ConnectionSuccessful:
-    response << MessageID::ConnectionSuccessful;
-    response << player.pid;
-    break;
-
-  case MessageID::ChangeGame:
-    response << MessageID::ChangeGame;
-    SendSyncIdentifier(response, m_selected_game_identifier);
-    response << m_selected_game_name;
-    break;
-
-  case MessageID::PadBuffer:
-    response << MessageID::PadBuffer;
-    response << m_target_buffer_size;
-    break;
-
-  case MessageID::HostInputAuthority:
-    response << MessageID::HostInputAuthority;
-    response << m_host_input_authority;
-    break;
-  default:
-    INFO_LOG_FMT(NETPLAY, "Warning! Call to SendResponse() failed to send a packet.");
-    return;
-    break;
-  }
-
-  // no player specified
-  if (player == Client{})
-    SendToClients(response);
-  else
-    Send(player.socket, response);
+  Send(player.socket, response);
 }
 
-void NetPlayServer::TellNewPlayerAboutExistingPlayers(const Client& new_player)
+template <typename... Data>
+void NetPlayServer::SendResponseToAllPlayers(const MessageID message_id, Data&&... data_to_send)
 {
-  sf::Packet send_packet;
-  for (const auto& p : m_players)
-  {
-    send_packet.clear();
-    send_packet << MessageID::PlayerJoin;
-    send_packet << p.second.pid << p.second.name << p.second.revision;
-    Send(new_player.socket, send_packet);
+  sf::Packet response;
+  response << message_id;
+  (response << ... << std::forward<Data>(data_to_send));
 
-    send_packet.clear();
-    send_packet << MessageID::GameStatus;
-    send_packet << p.second.pid << p.second.game_status;
-    Send(new_player.socket, send_packet);
-  }
+  SendToClients(response);
 }
 
 u16 NetPlayServer::GetPort() const
