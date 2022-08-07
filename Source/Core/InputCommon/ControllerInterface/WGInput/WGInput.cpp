@@ -535,7 +535,7 @@ private:
 
   bool UpdateBatteryLevel()
   {
-    ABI::Windows::Devices::Power::IBatteryReport* report = nullptr;
+    ComPtr<ABI::Windows::Devices::Power::IBatteryReport> report;
 
     if (FAILED(m_controller_battery->TryGetBatteryReport(&report)) || !report)
       return false;
@@ -560,7 +560,7 @@ private:
       break;
     }
 
-    ABI::Windows::Foundation::IReference<int>*i_remaining = nullptr, *i_full = nullptr;
+    ComPtr<ABI::Windows::Foundation::IReference<int>> i_remaining, i_full;
     int remaining_value = 0;
     int full_value = 0;
 
