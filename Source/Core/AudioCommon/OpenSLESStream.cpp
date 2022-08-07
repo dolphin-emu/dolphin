@@ -1,7 +1,7 @@
 // Copyright 2013 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#ifdef ANDROID
+#ifdef HAVE_OPENSL_ES
 #include "AudioCommon/OpenSLESStream.h"
 
 #include <cmath>
@@ -143,4 +143,4 @@ void OpenSLESStream::SetVolume(int volume)
       volume <= 0 ? SL_MILLIBEL_MIN : static_cast<SLmillibel>(2000 * std::log10(volume / 100.0f));
   (*bqPlayerVolume)->SetVolumeLevel(bqPlayerVolume, attenuation);
 }
-#endif
+#endif  // HAVE_OPENSL_ES

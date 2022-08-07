@@ -18,14 +18,17 @@ add_library(audiocommon
   WaveFile.h
 )
 
-find_package(OpenSLES)
-if(OPENSLES_FOUND)
-  message(STATUS "OpenSLES found, enabling OpenSLES sound backend")
-  target_sources(audiocommon PRIVATE
-    OpenSLESStream.cpp
-    OpenSLESStream.h
-  )
-  target_link_libraries(audiocommon PRIVATE OpenSLES::OpenSLES)
+if(ANDROID)
+  find_package(OpenSLES)
+  if(OPENSLES_FOUND)
+    message(STATUS "OpenSLES found, enabling OpenSLES sound backend")
+    target_sources(audiocommon PRIVATE
+      OpenSLESStream.cpp
+      OpenSLESStream.h
+    )
+    target_link_libraries(audiocommon PRIVATE OpenSLES::OpenSLES)
+    target_compile_definitions(audiocommon PRIVATE HAVE_OPENSL_ES=1)
+  endif()
 endif()
 
 if(ENABLE_ALSA)
