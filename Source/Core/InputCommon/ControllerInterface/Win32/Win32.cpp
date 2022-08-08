@@ -46,7 +46,6 @@ _Pre_satisfies_(EventDataSize >= sizeof(CM_NOTIFY_EVENT_DATA)) static DWORD CALL
       g_controller_interface.PlatformPopulateDevices([] {
         ciface::DInput::PopulateDevices(s_hwnd);
         ciface::XInput::PopulateDevices();
-        ciface::WGInput::PopulateDevices();
       });
     }
   }
