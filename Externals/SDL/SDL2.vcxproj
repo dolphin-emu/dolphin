@@ -81,19 +81,6 @@
     <ClInclude Include="SDL\include\SDL_surface.h" />
     <ClInclude Include="SDL\include\SDL_system.h" />
     <ClInclude Include="SDL\include\SDL_syswm.h" />
-    <ClInclude Include="SDL\include\SDL_test_assert.h" />
-    <ClInclude Include="SDL\include\SDL_test_common.h" />
-    <ClInclude Include="SDL\include\SDL_test_compare.h" />
-    <ClInclude Include="SDL\include\SDL_test_crc32.h" />
-    <ClInclude Include="SDL\include\SDL_test_font.h" />
-    <ClInclude Include="SDL\include\SDL_test_fuzzer.h" />
-    <ClInclude Include="SDL\include\SDL_test_harness.h" />
-    <ClInclude Include="SDL\include\SDL_test_images.h" />
-    <ClInclude Include="SDL\include\SDL_test_log.h" />
-    <ClInclude Include="SDL\include\SDL_test_md5.h" />
-    <ClInclude Include="SDL\include\SDL_test_memory.h" />
-    <ClInclude Include="SDL\include\SDL_test_random.h" />
-    <ClInclude Include="SDL\include\SDL_test.h" />
     <ClInclude Include="SDL\include\SDL_thread.h" />
     <ClInclude Include="SDL\include\SDL_timer.h" />
     <ClInclude Include="SDL\include\SDL_touch.h" />
@@ -106,6 +93,7 @@
     <ClInclude Include="SDL\src\audio\disk\SDL_diskaudio.h" />
     <ClInclude Include="SDL\src\audio\dummy\SDL_dummyaudio.h" />
     <ClInclude Include="SDL\src\audio\SDL_audio_c.h" />
+    <ClInclude Include="SDL\src\audio\SDL_audio_channel_converters.h" />
     <ClInclude Include="SDL\src\audio\SDL_audio_resampler_filter.h" />
     <ClInclude Include="SDL\src\audio\SDL_audiodev_c.h" />
     <ClInclude Include="SDL\src\audio\SDL_sysaudio.h" />
@@ -114,6 +102,7 @@
     <ClInclude Include="SDL\src\audio\winmm\SDL_winmm.h" />
     <ClInclude Include="SDL\src\core\windows\SDL_directx.h" />
     <ClInclude Include="SDL\src\core\windows\SDL_hid.h" />
+    <ClInclude Include="SDL\src\core\windows\SDL_immdevice.h" />
     <ClInclude Include="SDL\src\core\windows\SDL_windows.h" />
     <ClInclude Include="SDL\src\core\windows\SDL_xinput.h" />
     <ClInclude Include="SDL\src\dynapi\SDL_dynapi_overrides.h" />
@@ -181,6 +170,7 @@
     <ClInclude Include="SDL\src\SDL_hints_c.h" />
     <ClInclude Include="SDL\src\SDL_internal.h" />
     <ClInclude Include="SDL\src\SDL_list.h" />
+    <ClInclude Include="SDL\src\SDL_utils_c.h" />
     <ClInclude Include="SDL\src\sensor\dummy\SDL_dummysensor.h" />
     <ClInclude Include="SDL\src\sensor\SDL_sensor_c.h" />
     <ClInclude Include="SDL\src\sensor\SDL_syssensor.h" />
@@ -265,6 +255,7 @@
     <ClCompile Include="SDL\src\audio\wasapi\SDL_wasapi.c" />
     <ClCompile Include="SDL\src\audio\winmm\SDL_winmm.c" />
     <ClCompile Include="SDL\src\core\windows\SDL_hid.c" />
+    <ClCompile Include="SDL\src\core\windows\SDL_immdevice.c" />
     <ClCompile Include="SDL\src\core\windows\SDL_windows.c" />
     <ClCompile Include="SDL\src\core\windows\SDL_xinput.c" />
     <ClCompile Include="SDL\src\cpuinfo\SDL_cpuinfo.c" />
@@ -289,6 +280,7 @@
     <ClCompile Include="SDL\src\hidapi\SDL_hidapi.c" />
     <ClCompile Include="SDL\src\joystick\controller_type.c" />
     <ClCompile Include="SDL\src\joystick\dummy\SDL_sysjoystick.c" />
+    <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_combined.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_gamecube.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_luna.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_ps4.c" />
@@ -344,6 +336,7 @@
     <ClCompile Include="SDL\src\SDL_hints.c" />
     <ClCompile Include="SDL\src\SDL_list.c" />
     <ClCompile Include="SDL\src\SDL_log.c" />
+    <ClCompile Include="SDL\src\SDL_utils.c" />
     <ClCompile Include="SDL\src\SDL.c" />
     <ClCompile Include="SDL\src\sensor\dummy\SDL_dummysensor.c" />
     <ClCompile Include="SDL\src\sensor\SDL_sensor.c" />
@@ -352,8 +345,7 @@
     <ClCompile Include="SDL\src\stdlib\SDL_getenv.c" />
     <ClCompile Include="SDL\src\stdlib\SDL_iconv.c" />
     <ClCompile Include="SDL\src\stdlib\SDL_malloc.c" />
-    <ClCompile Include="SDL\src\stdlib\SDL_memcpy.c" />
-    <ClCompile Include="SDL\src\stdlib\SDL_memset.c" />
+    <ClCompile Include="SDL\src\stdlib\SDL_mslibc.c" />
     <ClCompile Include="SDL\src\stdlib\SDL_qsort.c" />
     <ClCompile Include="SDL\src\stdlib\SDL_stdlib.c" />
     <ClCompile Include="SDL\src\stdlib\SDL_string.c" />
