@@ -368,7 +368,7 @@ void NetPlayDialog::ConnectWidgets()
     }
   });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [=](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     if (isVisible())
     {
       GameStatusChanged(state != Core::State::Uninitialized);
