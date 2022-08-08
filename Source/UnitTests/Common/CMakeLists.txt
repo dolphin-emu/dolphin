@@ -18,7 +18,7 @@ add_dolphin_test(SPSCQueueTest SPSCQueueTest.cpp)
 add_dolphin_test(StringUtilTest StringUtilTest.cpp)
 add_dolphin_test(SwapTest SwapTest.cpp)
 
-if (_M_X86)
+if (_M_X86_64)
   add_dolphin_test(x64EmitterTest x64EmitterTest.cpp)
   target_link_libraries(x64EmitterTest PRIVATE bdisasm)
 elseif (_M_ARM_64)

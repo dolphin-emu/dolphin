@@ -216,7 +216,7 @@ PRIVATE
   glslang
 )
 
-if(_M_X86)
+if(_M_X86_64)
   target_sources(videocommon PRIVATE
     TextureDecoder_x64.cpp
     VertexLoaderX64.cpp
