@@ -103,12 +103,6 @@ private:
     AllExcept
   };
 
-  enum MappedState
-  {
-    Unmapped,
-    Mapped
-  };
-
   struct AsyncQueueEntry
   {
     sf::Packet packet;

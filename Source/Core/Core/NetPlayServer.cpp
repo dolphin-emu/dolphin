@@ -2049,7 +2049,8 @@ void NetPlayServer::AssignNewUserAPad(const Client& player)
 {
   for (PlayerId& mapping : m_pad_map)
   {
-    if (mapping == Unmapped)
+    // 0 means unmapped
+    if (mapping == 0)
     {
       mapping = player.pid;
       break;
