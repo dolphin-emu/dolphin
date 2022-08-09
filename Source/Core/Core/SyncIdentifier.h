@@ -36,7 +36,7 @@ struct SyncIdentifier
 
 // The order of entries in this enum matters, as the lowest value is
 // treated as the "best" available option.
-enum class SyncIdentifierComparison
+enum class SyncIdentifierComparison : u8
 {
   SameGame,
   DifferentHash,

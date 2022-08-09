@@ -126,10 +126,15 @@ private:
 
   u64 GetInitialNetPlayRTC() const;
 
+  template <typename... Data>
+  void SendResponseToPlayer(const Client& player, const MessageID message_id,
+                            Data&&... data_to_send);
+  template <typename... Data>
+  void SendResponseToAllPlayers(const MessageID message_id, Data&&... data_to_send);
   void SendToClients(const sf::Packet& packet, PlayerId skip_pid = 0,
                      u8 channel_id = DEFAULT_CHANNEL);
   void Send(ENetPeer* socket, const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
-  ConnectionError OnConnect(ENetPeer* socket, sf::Packet& rpac);
+  ConnectionError OnConnect(ENetPeer* socket, sf::Packet& received_packet);
   unsigned int OnDisconnect(const Client& player);
   unsigned int OnData(sf::Packet& packet, Client& player);
 
@@ -146,6 +151,12 @@ private:
 
   void SetupIndex();
   bool PlayerHasControllerMapped(PlayerId pid) const;
+
+  // pulled from OnConnect()
+  void AssignNewUserAPad(const Client& player);
+  // pulled from OnConnect()
+  // returns the PID given
+  PlayerId GiveFirstAvailableIDTo(ENetPeer* player);
 
   NetSettings m_settings;
 
