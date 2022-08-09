@@ -490,6 +490,12 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_LOAD_STATE_SLOT_SELECTED))
         emit StateLoadSlotHotkey();
 
+      if (IsHotkey(HK_INCREMENT_SELECTED_STATE_SLOT))
+        emit IncrementSelectedStateSlotHotkey();
+
+      if (IsHotkey(HK_DECREMENT_SELECTED_STATE_SLOT))
+        emit DecrementSelectedStateSlotHotkey();
+
       // Stereoscopy
       if (IsHotkey(HK_TOGGLE_STEREO_SBS))
       {
