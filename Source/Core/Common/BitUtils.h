@@ -234,7 +234,7 @@ public:
   constexpr Flags(std::underlying_type_t<T> hex) : m_hex(hex) {}
 
   FlagBit<T> operator[](T bit) { return FlagBit(m_hex, bit); }
-  bool operator[](T bit) const
+  constexpr bool operator[](T bit) const
   {
     return (m_hex & static_cast<std::underlying_type_t<T>>(bit)) != 0;
   }
