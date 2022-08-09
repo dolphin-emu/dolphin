@@ -11,6 +11,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -257,6 +258,7 @@ static u32 ReadGPIOIn(Core::System& system)
     gpio_in[GPIO::AVE_SDA] = false;  // pull low
   else
     gpio_in[GPIO::AVE_SDA] = true;  // passive pullup
+  gpio_in[GPIO::AVE_SCL] = true;    // passive pullup
   return gpio_in.m_hex;
 }
 
@@ -267,7 +269,7 @@ u32 WiiIPC::GetGPIOOut()
   // In practice this means that (at least for the AVE I²C pins) a 1 is output when the pin is an
   // input. (RVLoader depends on this.)
   // https://github.com/Aurelio92/RVLoader/blob/75732f248019f589deb1109bba7b5323a8afaadf/source/i2c.c#L101-L109
-  return m_gpio_out.m_hex | ~m_gpio_dir.m_hex;
+  return (m_gpio_out.m_hex | ~(m_gpio_dir.m_hex)) & (ReadGPIOIn(m_system) | m_gpio_dir.m_hex);
 }
 
 void WiiIPC::GPIOOutChanged(u32 old_value_hex)
@@ -275,22 +277,25 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
   Common::Flags<GPIO> old_value;
   old_value.m_hex = old_value_hex;
 
-  if (m_gpio_out[GPIO::DO_EJECT])
+  Common::Flags<GPIO> new_value;
+  new_value.m_hex = GetGPIOOut();
+
+  if (new_value[GPIO::DO_EJECT])
   {
     INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
     m_system.GetDVDInterface().EjectDisc(Core::CPUThreadGuard{m_system}, DVD::EjectCause::Software);
   }
 
   // I²C logic for the audio/video encoder (AVE)
-  if (m_gpio_dir[GPIO::AVE_SCL])
+  if (true || m_gpio_dir[GPIO::AVE_SCL])
   {
-    if (old_value[GPIO::AVE_SCL] && m_gpio_out[GPIO::AVE_SCL])
+    if (old_value[GPIO::AVE_SCL] && new_value[GPIO::AVE_SCL])
     {
       // Check for changes to SDA while the clock is high. This only makes sense if the SDA pin is
       // outbound.
-      if (m_gpio_dir[GPIO::AVE_SDA])
+      if (true || m_gpio_dir[GPIO::AVE_SDA])
       {
-        if (old_value[GPIO::AVE_SDA] && !m_gpio_out[GPIO::AVE_SDA])
+        if (old_value[GPIO::AVE_SDA] && !new_value[GPIO::AVE_SDA])
         {
           DEBUG_LOG_FMT(WII_IPC, "AVE: Start I2C");
           // SDA falling edge (now pulled low) while SCL is high indicates I²C start
@@ -301,7 +306,7 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
           i2c_state.is_correct_i2c_address = false;
           i2c_state.read_ave_address = false;
         }
-        else if (!old_value[GPIO::AVE_SDA] && m_gpio_out[GPIO::AVE_SDA])
+        else if (!old_value[GPIO::AVE_SDA] && new_value[GPIO::AVE_SDA])
         {
           DEBUG_LOG_FMT(WII_IPC, "AVE: Stop I2C");
           // SDA rising edge (now passive pullup) while SCL is high indicates I²C stop
@@ -310,7 +315,7 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
         }
       }
     }
-    else if (!old_value[GPIO::AVE_SCL] && m_gpio_out[GPIO::AVE_SCL])
+    else if (!old_value[GPIO::AVE_SCL] && new_value[GPIO::AVE_SCL])
     {
       // Clock changed from low to high; transfer a new bit.
       if (i2c_state.active && (!i2c_state.read_i2c_address || i2c_state.is_correct_i2c_address))
@@ -327,7 +332,7 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
         if (i2c_state.bit_counter < 8)
         {
           i2c_state.current_byte <<= 1;
-          if (m_gpio_out[GPIO::AVE_SDA])
+          if (new_value[GPIO::AVE_SDA])
             i2c_state.current_byte |= 1;
         }
 
@@ -347,6 +352,9 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
             else
             {
               WARN_LOG_FMT(WII_IPC, "AVE: Wrong I2C address: {:02x}", i2c_state.current_byte >> 1);
+              Dolphin_Debugger::PrintCallstack(Core::CPUThreadGuard(m_system),
+                                               Common::Log::LogType::WII_IPC,
+                                               Common::Log::LogLevel::LINFO);
               i2c_state.acknowledge = false;
               i2c_state.is_correct_i2c_address = false;
             }
