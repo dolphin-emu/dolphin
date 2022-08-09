@@ -277,11 +277,8 @@ u32 WiiIPC::GetGPIOOut()
 
 void WiiIPC::GPIOOutChanged(u32 old_value_hex)
 {
-  Common::Flags<GPIO> old_value;
-  old_value.m_hex = old_value_hex;
-
-  Common::Flags<GPIO> new_value;
-  new_value.m_hex = GetGPIOOut();
+  const Common::Flags<GPIO> old_value(old_value_hex);
+  const Common::Flags<GPIO> new_value(GetGPIOOut());
 
   if (new_value[GPIO::DO_EJECT])
   {
