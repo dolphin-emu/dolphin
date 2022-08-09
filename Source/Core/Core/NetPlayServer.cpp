@@ -440,7 +440,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
                          existing_player.second.name, existing_player.second.revision);
 
     SendResponseToPlayer(new_player, MessageID::GameStatus, existing_player.second.pid,
-                         existing_player.second.game_status);
+                         static_cast<u8>(existing_player.second.game_status));
   }
 
   if (Config::Get(Config::NETPLAY_ENABLE_QOS))
