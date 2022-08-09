@@ -4,6 +4,7 @@
 #include "Core/HW/WII_IPC.h"
 
 #include <array>
+#include <bitset>
 #include <string_view>
 
 #include "Common/ChunkFile.h"
@@ -133,6 +134,7 @@ struct AVEState
 #pragma pack()
 static_assert(sizeof(AVEState) == 0x100);
 static AVEState ave_state;
+static std::bitset<sizeof(AVEState)> ave_ever_logged;  // For logging only; not saved
 
 static CoreTiming::EventType* updateInterrupts;
 
@@ -185,6 +187,7 @@ void WiiIPC::InitState()
 
   i2c_state = {};
   ave_state = {};
+  ave_ever_logged.reset();
 }
 
 void WiiIPC::Init()
@@ -376,10 +379,12 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
           // This is always inbounds, as we're indexing with a u8 and the struct is 0x100 bytes
           const u8 old_ave_value = reinterpret_cast<u8*>(&ave_state)[i2c_state.current_address];
           reinterpret_cast<u8*>(&ave_state)[i2c_state.current_address] = i2c_state.current_byte;
-          if (old_ave_value != i2c_state.current_byte)
+          if (!ave_ever_logged[i2c_state.current_address] ||
+              old_ave_value != i2c_state.current_byte)
           {
             INFO_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", i2c_state.current_byte,
                          i2c_state.current_address, GetAVERegisterName(i2c_state.current_address));
+            ave_ever_logged[i2c_state.current_address] = true;
           }
           else
           {
