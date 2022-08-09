@@ -157,6 +157,7 @@
     <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="ManualUpdateTrackDialog.cpp" />
     <ClCompile Include="MenuBar.cpp" />
     <ClCompile Include="NetPlay\ChunkedProgressDialog.cpp" />
     <ClCompile Include="NetPlay\GameListDialog.cpp" />
@@ -346,6 +347,7 @@
     <QtMoc Include="Host.h" />
     <QtMoc Include="HotkeyScheduler.h" />
     <QtMoc Include="MainWindow.h" />
+    <QtMoc Include="ManualUpdateTrackDialog.h" />
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="NetPlay\ChunkedProgressDialog.h" />
     <QtMoc Include="NetPlay\GameListDialog.h" />

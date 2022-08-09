@@ -554,12 +554,10 @@ void MenuBar::AddOptionsMenu()
   m_change_font = options_menu->addAction(tr("&Font..."), this, &MenuBar::ChangeDebugFont);
 }
 
-void MenuBar::InstallUpdateManually()
+void MenuBar::InstallUpdateManually(const std::string& track)
 {
-  const std::string autoupdate_track = Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK);
-  const std::string manual_track = autoupdate_track.empty() ? "dev" : autoupdate_track;
-  auto* const updater = new Updater(this->parentWidget(), manual_track,
-                                    Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
+  auto* const updater =
+      new Updater(this->parentWidget(), track, Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
 
   if (!updater->CheckForUpdate())
   {
@@ -594,7 +592,7 @@ void MenuBar::AddHelpMenu()
   {
     help_menu->addSeparator();
 
-    help_menu->addAction(tr("&Check for Updates..."), this, &MenuBar::InstallUpdateManually);
+    help_menu->addAction(tr("&Check for Updates..."), this, &MenuBar::ShowManualUpdateDialog);
   }
 
 #ifndef __APPLE__

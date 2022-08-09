@@ -89,6 +89,7 @@
 #include "DolphinQt/GameList/GameList.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/HotkeyScheduler.h"
+#include "DolphinQt/ManualUpdateTrackDialog.h"
 #include "DolphinQt/MenuBar.h"
 #include "DolphinQt/NKitWarningDialog.h"
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
@@ -552,6 +553,9 @@ void MainWindow::ConnectMenuBar()
   connect(m_game_list, &GameList::SelectionChanged, m_menu_bar, &MenuBar::SelectionChanged);
   connect(this, &MainWindow::ReadOnlyModeChanged, m_menu_bar, &MenuBar::ReadOnlyModeChanged);
   connect(this, &MainWindow::RecordingStatusChanged, m_menu_bar, &MenuBar::RecordingStatusChanged);
+
+  // Help
+  connect(m_menu_bar, &MenuBar::ShowManualUpdateDialog, this, &MainWindow::ShowManualUpdateDialog);
 
   // Symbols
   connect(m_menu_bar, &MenuBar::NotifySymbolsUpdated, [this] {
@@ -1813,6 +1817,14 @@ void MainWindow::ShowMemcardManager()
   GCMemcardManager manager(this);
 
   manager.exec();
+}
+
+void MainWindow::ShowManualUpdateDialog()
+{
+  ManualUpdateTrackDialog dialog(this);
+  connect(&dialog, &ManualUpdateTrackDialog::Selected,
+          [this](const QString& track) { m_menu_bar->InstallUpdateManually(track.toStdString()); });
+  dialog.exec();
 }
 
 void MainWindow::ShowResourcePackManager()
