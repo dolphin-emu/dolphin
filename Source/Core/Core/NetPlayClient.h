@@ -43,6 +43,8 @@ struct SerializedWiimoteState;
 
 namespace NetPlay
 {
+constexpr size_t rollback_frames_supported = 10;
+
 class NetPlayUI
 {
 public:
@@ -183,6 +185,8 @@ public:
                       std::string redirect_folder);
 
   static SyncIdentifier GetSDCardIdentifier();
+
+  void OnFrameEnd();
 
 protected:
   struct AsyncQueueEntry
@@ -357,6 +361,9 @@ private:
   std::unique_ptr<IOS::HLE::FS::FileSystem> m_wii_sync_fs;
   std::vector<u64> m_wii_sync_titles;
   std::string m_wii_sync_redirect_folder;
+
+  std::vector<std::vector<GCPadStatus>> inputs;
+  int delay = 2;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);
@@ -365,4 +372,6 @@ bool NetPlay_GetWiimoteData(const std::span<NetPlayClient::WiimoteDataBatchEntry
 unsigned int NetPlay_GetLocalWiimoteForSlot(unsigned int slot);
 
 void NetPlay_RegisterEvents();
+void OnFrameEnd();
+
 }  // namespace NetPlay
