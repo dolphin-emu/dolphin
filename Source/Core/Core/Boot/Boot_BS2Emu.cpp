@@ -230,7 +230,7 @@ void CBoot::SetupGCMemory()
   PowerPC::HostWrite_U32(console_type, 0x8000002C);
 
   // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
-  PowerPC::HostWrite_U32(DiscIO::IsNTSC(SConfig::GetInstance().m_region) ? 0 : 1, 0x800000CC);
+  PowerPC::HostWrite_U32(DiscIO::IsNTSC(SConfig::GetInstance().m_region) ? 6 : 6, 0x800000CC);
 
   PowerPC::HostWrite_U32(0x01000000, 0x800000d0);  // ARAM Size. 16MB main + 4/16/32MB external
                                                    // (retail consoles have no external ARAM)
