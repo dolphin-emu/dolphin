@@ -48,7 +48,9 @@ android {
     buildTypes {
         // Signed by release key, allowing for upload to Play Store.
         release {
-            signingConfig signingConfigs.release
+            if (project.hasProperty('keystore')) {
+                signingConfig signingConfigs.release
+            }
 
             minifyEnabled true
             shrinkResources true
