@@ -51,6 +51,7 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -1407,7 +1408,10 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       {
         m_fps_counter.Update();
 
-        DolphinAnalytics::PerformanceSample perf_sample;
+        if (NetPlay::IsNetPlayRunning())
+          NetPlay::OnFrameEnd();
+
+          DolphinAnalytics::PerformanceSample perf_sample;
         perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
         perf_sample.num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims;
         perf_sample.num_draw_calls = g_stats.this_frame.num_draw_calls;
