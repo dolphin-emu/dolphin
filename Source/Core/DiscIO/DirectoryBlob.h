@@ -204,6 +204,7 @@ public:
 
   bool IsWii() const { return m_is_wii; }
   u64 GetDataSize() const { return m_data_size; }
+  void SetDataSize(u64 size) { m_data_size = size; }
   const std::string& GetRootDirectory() const { return m_root_directory; }
   const std::vector<u8>& GetHeader() const { return m_disc_header; }
   const DiscContentContainer& GetContents() const { return m_contents; }
