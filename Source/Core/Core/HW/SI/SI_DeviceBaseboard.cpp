@@ -120,23 +120,23 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
           break;
         }
       }
-      p += ptr(1) + 2;
+      // p += ptr(1) + 2;
       ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI subcommand {:02x} {:02x} {:02x} {:02x} {:02x}",
                     ptr(0), ptr(1), ptr(2), ptr(3), ptr(4));
-      memset(buffer, 0, request_length);
-      int len = resp - 2;
-      p = 0;
-      res[1] = len;
-      csum = 0;
-      char logptr[1024];
-      char *log = logptr;
-      for( int i=0; i<0x7F; ++i )
-      {
-        csum += ptr(i) = res[i];
-        log += sprintf(log, "%02x ", ptr(i));
-      }
-      ptr(0x7f) = ~csum;
-      INFO_LOG_FMT(SERIALINTERFACE, "Command send back: {:02x}", logptr);
+      // memset(buffer, 0, request_length);
+      // int len = resp - 2;
+      // p = 0;
+      // res[1] = len;
+      // csum = 0;
+      // char logptr[1024];
+      // char *log = logptr;
+      // for( int i=0; i<0x7F; ++i )
+      // {
+      //   csum += ptr(i) = res[i];
+      //   log += sprintf(log, "%02x ", ptr(i));
+      // }
+      // ptr(0x7f) = ~csum;
+      // INFO_LOG_FMT(SERIALINTERFACE, "Command send back: {:02x}", logptr);
 #undef ptr
     }
      // (tmbinc) hotfix: delay output by one command to work around their broken parser. this took me a month to find. ARG!
