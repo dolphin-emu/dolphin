@@ -26,7 +26,9 @@ import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
 import org.dolphinemu.dolphinemu.utils.CompletableFuture;
 import org.dolphinemu.dolphinemu.utils.ContentHandler;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.ThreadUtil;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
@@ -56,6 +58,10 @@ public final class MainPresenter
 
   public void onCreate()
   {
+    // Ask the user to grant write permission if relevant and not already granted
+    if (DirectoryInitialization.isWaitingForWriteAccess(mActivity))
+      PermissionsHandler.requestWritePermission(mActivity);
+
     String versionName = BuildConfig.VERSION_NAME;
     mView.setVersionString(versionName);
 
