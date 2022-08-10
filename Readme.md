@@ -70,7 +70,7 @@ A binary supporting a single architecture can be built using the following steps
 1. `mkdir build`
 2. `cd build`
 3. `cmake ..`
-4. `make -j$(sysctl -n hw.logicalcpu)`
+4. `make -j $(sysctl -n hw.logicalcpu)`
 
 An application bundle will be created in `./Binaries`.
 
