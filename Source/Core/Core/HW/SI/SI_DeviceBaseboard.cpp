@@ -32,7 +32,7 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     u32 id = Common::swap32(SI_BASEBOARD | 0x100);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
-    position = request_length;
+    //position = request_length;
   }
   case EBufferCommands::CMD_GCAM:
   {
@@ -123,7 +123,7 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
       p += ptr(1) + 2;
       ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI subcommand {:02x} {:02x} {:02x} {:02x} {:02x}",
                     ptr(0), ptr(1), ptr(2), ptr(3), ptr(4));
-      memset(_pBuffer, 0, _iLength);
+      memset(buffer, 0, request_length);
       int len = resp - 2;
       p = 0;
       res[1] = len;
@@ -136,7 +136,7 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
         log += sprintf(log, "%02x ", ptr(i));
       }
       ptr(0x7f) = ~csum;
-      INFO_LOG_FMT(SERIALINTERFACE, "Command send back: %s", logptr);
+      INFO_LOG_FMT(SERIALINTERFACE, "Command send back: {:02x}", logptr);
 #undef ptr
     }
      // (tmbinc) hotfix: delay output by one command to work around their broken parser. this took me a month to find. ARG!
