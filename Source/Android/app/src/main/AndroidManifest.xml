@@ -49,7 +49,7 @@
         <activity
             android:name=".ui.main.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Dolphin.Splash">
+            android:theme="@style/Theme.Dolphin.Splash.Main">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
             <intent-filter>
@@ -62,7 +62,7 @@
         <activity
             android:name=".ui.main.TvMainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Dolphin.TV">
+            android:theme="@style/Theme.Dolphin.Splash.TV">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
             <intent-filter>

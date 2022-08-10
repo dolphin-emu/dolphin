@@ -10,6 +10,7 @@ import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.core.splashscreen.SplashScreen;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.leanback.app.BrowseSupportFragment;
@@ -53,6 +54,10 @@ public final class TvMainActivity extends FragmentActivity
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
+    SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+    splashScreen.setKeepOnScreenCondition(
+            () -> !DirectoryInitialization.areDolphinDirectoriesReady());
+
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_tv_main);
 
