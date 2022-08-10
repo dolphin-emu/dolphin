@@ -45,7 +45,7 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     int resp = 0;
 
     int real_len = buffer[1];
-    int p = 2;
+    //int p = 2; msvc shut up
 
     static int d10_1 = 0xfe;
 
