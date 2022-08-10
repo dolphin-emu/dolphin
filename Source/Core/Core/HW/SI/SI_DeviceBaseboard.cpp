@@ -20,7 +20,9 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
 {
   ISIDevice::RunBuffer(buffer, request_length);
 
-  const auto command = static_cast<EBufferCommands>(buffer[0]);
+  int position = 0;
+
+  const auto command = static_cast<EBufferCommands>(buffer[position]);
 
   switch (command)
   {
@@ -30,6 +32,7 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     u32 id = Common::swap32(SI_BASEBOARD | 0x100);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
+    position = request_length;
   }
   case EBufferCommands::CMD_GCAM:
   {
@@ -42,8 +45,7 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     int resp = 0;
 
     int real_len = buffer[1];
-    // oh my god shutup msvc im using it later
-    // int p = 2;
+    int p = 2;
 
     static int d10_1 = 0xfe;
 
@@ -118,18 +120,49 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
           break;
         }
       }
+      p += ptr(1) + 2;
       ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI subcommand {:02x} {:02x} {:02x} {:02x} {:02x}",
                     ptr(0), ptr(1), ptr(2), ptr(3), ptr(4));
+      memset(_pBuffer, 0, _iLength);
+      int len = resp - 2;
+      p = 0;
+      res[1] = len;
+      csum = 0;
+      char logptr[1024];
+      char *log = logptr;
+      for( int i=0; i<0x7F; ++i )
+      {
+        csum += ptr(i) = res[i];
+        log += sprintf(log, "%02x ", ptr(i));
+      }
+      ptr(0x7f) = ~csum;
+      INFO_LOG_FMT(SERIALINTERFACE, "Command send back: %s", logptr);
+#undef ptr
     }
+     // (tmbinc) hotfix: delay output by one command to work around their broken parser. this took me a month to find. ARG!
+     static unsigned char last[2][0x80];
+     static int lastptr[2];
+
+     memcpy(last + 1, buffer, 0x80);
+     memcpy(buffer, last, 0x80);
+     memcpy(last, last + 1, 0x80);
+
+     lastptr[1] = request_length;
+     request_length = lastptr[0];
+     lastptr[0] = lastptr[1];
+
+     position = request_length;
+     break;
   }
   default:
   {
     ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI command {:02x} {:02x} {:02x} {:02x} {:02x}",
                   buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
+    position = request_length;
   }
   }
 
-  return 0;
+  return position;
 }
 
 bool CSIDevice_Baseboard::GetData(u32& hi, u32& low)
