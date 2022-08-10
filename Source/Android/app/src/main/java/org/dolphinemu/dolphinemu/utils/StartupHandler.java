@@ -26,10 +26,6 @@ public final class StartupHandler
 
   public static void HandleInit(FragmentActivity parent)
   {
-    // Ask the user to grant write permission if relevant and not already granted
-    if (DirectoryInitialization.isWaitingForWriteAccess(parent))
-      PermissionsHandler.requestWritePermission(parent);
-
     // Ask the user if he wants to enable analytics if we haven't yet.
     Analytics.checkAnalyticsInit(parent);
 
