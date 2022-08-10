@@ -1,6 +1,6 @@
 include(ExternalProject)
 
-set(MOLTENVK_VERSION "v1.1.10")
+set(MOLTENVK_VERSION "f3ad8e2e5a48005a1ca1cd5e576d9954492b873a")
 
 ExternalProject_Add(MoltenVK
   GIT_REPOSITORY https://github.com/KhronosGroup/MoltenVK.git
