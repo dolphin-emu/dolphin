@@ -173,7 +173,8 @@ Summary:
 - [Classes and Structs](#cpp-code-classes-and-structs)
 
 ## <a name="cpp-code-general"></a>General
-- The codebase currently uses C++17.
+- The codebase currently uses C++20, though not all compilers support all C++20 features.
+  - See CMakeLists.txt "Enforce minimium compiler versions" for the currently supported compilers.
 - Use the [nullptr](https://en.cppreference.com/w/cpp/language/nullptr) type over the macro `NULL`.
 - If a [range-based for loop](https://en.cppreference.com/w/cpp/language/range-for) can be used instead of container iterators, use it.
 - Obviously, try not to use `goto` unless you have a *really* good reason for it.

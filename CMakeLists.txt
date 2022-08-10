@@ -38,6 +38,31 @@ if (MSVC)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
+set(COMPILER ${CMAKE_CXX_COMPILER_ID})
+if (COMPILER STREQUAL "GNU")
+  set(COMPILER "GCC") # perfer printing GCC instead of GNU
+endif()
+
+# Enforce minimium compiler versions that support the c++20 features we use
+set (GCC_min_version 10)
+set (Clang_min_version 11)
+set (AppleClang_min_version 12.0.5)
+set (min_xcode_version "12.5.1") # corrosponding xcode version for AppleClang_min_version
+set (MSVC_min_version 14.32)
+set (min_vs_version "2022 17.2.3") # corrosponding Visual Studio version for MSVC_min_version
+
+message(STATUS "Using ${COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
+
+if ("-" STREQUAL "${${COMPILER}_min_version}-")
+  message(WARNING "Unknown compiler ${COMPILER}, assuming it is new enough")
+else()
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS  ${${COMPILER}_min_version})
+    message(FATAL_ERROR "Requires GCC ${GCC_min_version}, Clang ${Clang_min_version},"
+    " AppleClang ${AppleClang_min_version} (Xcode ${min_xcode_version}),"
+    " or MSVC ${MSVC_min_version} (Visual Studio ${min_vs_version}) or higher")
+  endif()
+endif()
+
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
 # unofficial builds) please consider identifying your distribution with a
 # unique name here.
@@ -253,12 +278,6 @@ else()
   message(FATAL_ERROR "You're building on an unsupported platform: "
       "'${CMAKE_SYSTEM_PROCESSOR}' with ${CMAKE_SIZEOF_VOID_P}-byte pointers."
       " Enable generic build if you really want a JIT-less binary.")
-endif()
-
-
-# Enforce minimum GCC version
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0)
-  message(FATAL_ERROR "Dolphin requires at least GCC 7.0 (found ${CMAKE_CXX_COMPILER_VERSION})")
 endif()
 
 if(CMAKE_GENERATOR MATCHES "Ninja")
