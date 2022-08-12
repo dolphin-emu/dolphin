@@ -45,6 +45,7 @@
 #include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/State.h"
 #ifdef HAS_LIBMGBA
 #include "Core/HW/GBACore.h"
 #endif
@@ -975,9 +976,10 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
   }
 
   inputs.clear();
-
   for (int i = 0; i < m_players.size(); i++)
     inputs.push_back(std::vector<GCPadStatus>{});
+
+  save_states.reset();
 
   m_dialog->OnMsgStartGame();
 }
@@ -1634,6 +1636,47 @@ void NetPlayClient::OnFrameEnd()
 
   if (send_packet)
     SendAsync(std::move(packet));
+
+  lock.unlock();
+  std::shared_ptr<SaveState> new_save_state = std::make_shared<SaveState>();
+  State::SaveToBuffer(*new_save_state);
+  lock.lock();
+  save_states.New() = new_save_state;
+
+  // Wait for inputs if others are behind us, continue if we're behind them
+  int local_player_port = -1;
+  for (int i = 0; i < m_pad_map.size(); i++)
+  {
+    if (m_pad_map.at(i) == m_local_player->pid)
+      local_player_port = i;
+  }
+
+  for (int remote_players = 0; remote_players < inputs.size(); remote_players++)
+  {
+    if (remote_players == local_player_port)
+      continue;
+
+    auto frame_difference = static_cast<long long>(inputs.at(local_player_port).size()) -
+                            static_cast<long long>(inputs.at(remote_players).size());
+
+    if (frame_difference <= 0)
+    {
+      continue;
+    }
+    else
+    {
+      while (frame_difference > rollback_frames_supported + delay)
+      {
+        if (!m_is_running.IsSet())
+          break;
+
+        frame_difference = static_cast<long long>(inputs.at(local_player_port).size()) -
+                           static_cast<long long>(inputs.at(remote_players).size());
+
+        wait_for_inputs.wait_for(lock, 1ms);
+      }
+    }
+  }
 }
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
