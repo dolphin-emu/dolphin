@@ -149,7 +149,7 @@ KeyboardAndMouse::KeyboardAndMouse(void* view)
   AddCombinedInput("Shift", {"Left Shift", "Right Shift"});
   AddCombinedInput("Ctrl", {"Left Control", "Right Control"});
 
-  NSView* cocoa_view = reinterpret_cast<NSView*>(view);
+  NSView* cocoa_view = (__bridge NSView*)view;
 
   // PopulateDevices may be called on the Emuthread, so we need to ensure that
   // these UI APIs are only ever called on the main thread.
