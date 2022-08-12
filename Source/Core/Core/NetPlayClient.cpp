@@ -668,20 +668,12 @@ void NetPlayClient::OnPadData(sf::Packet& packet)
       inputs.at(map).push_back(pad);
     }
 
-    if (m_pad_buffer.at(map).Size() == 0)
-    {
-      m_pad_buffer.at(map).Push(pad);
-    }
-    else
-    {
-      m_pad_buffer.at(map).Pop();
-      m_pad_buffer.at(map).Push(pad);
-    }
+    wait_for_inputs.notify_all();
 
     // Trusting server for good map value (>=0 && <4)
     // add to pad buffer
     /*    m_pad_buffer.at(map).Push(pad);*/
-    m_gc_pad_event.Set();
+    // m_gc_pad_event.Set();
   }
 }
 
@@ -967,17 +959,17 @@ void NetPlayClient::OnDesyncDetected(sf::Packet& packet)
   packet >> pid_to_blame;
   packet >> frame;
 
-  //std::string player = "??";
-  //std::lock_guard lkp(m_crit.players);
+  // std::string player = "??";
+  // std::lock_guard lkp(m_crit.players);
   //{
-  //  const auto it = m_players.find(pid_to_blame);
-  //  if (it != m_players.end())
-  //    player = it->second.name;
-  //}
+  //   const auto it = m_players.find(pid_to_blame);
+  //   if (it != m_players.end())
+  //     player = it->second.name;
+  // }
 
-  //INFO_LOG_FMT(NETPLAY, "Player {} ({}) desynced!", player, pid_to_blame);
+  // INFO_LOG_FMT(NETPLAY, "Player {} ({}) desynced!", player, pid_to_blame);
 
-  //m_dialog->OnDesync(frame, player);
+  // m_dialog->OnDesync(frame, player);
 }
 
 void NetPlayClient::OnSyncGCSRAM(sf::Packet& packet)
@@ -1485,7 +1477,7 @@ void NetPlayClient::OnGameDigestAbort()
   m_dialog->AbortGameDigest();
 }
 
-void NetPlayClient::OnFrameEnd()
+void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
 {
   sf::Packet packet;
   packet << MessageID::PadData;
@@ -1500,6 +1492,41 @@ void NetPlayClient::OnFrameEnd()
 
   if (send_packet)
     SendAsync(std::move(packet));
+
+  // Wait for inputs if others are behind us, continue if we're behind them
+  int local_player_port = -1;
+  for (int i = 0; i < m_pad_map.size(); i++)
+  {
+    if (m_pad_map.at(i) == m_local_player->pid)
+      local_player_port = i;
+  }
+
+  for (int remote_players = 0; remote_players < inputs.size(); remote_players++)
+  {
+    if (remote_players == local_player_port)
+      continue;
+
+    auto frame_difference = static_cast<long long>(inputs.at(local_player_port).size()) -
+                            static_cast<long long>(inputs.at(remote_players).size());
+
+    if (frame_difference <= 0)
+    {
+      continue;
+    }
+    else
+    {
+      while (frame_difference > rollback_frames_supported + delay)
+      {
+        if (!m_is_running.IsSet())
+          break;
+
+        frame_difference = static_cast<long long>(inputs.at(local_player_port).size()) -
+                           static_cast<long long>(inputs.at(remote_players).size());
+
+        wait_for_inputs.wait_for(lock, 1ms);
+      }
+    }
+  }
 }
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
@@ -1942,19 +1969,17 @@ void NetPlayClient::OnConnectFailed(TraversalConnectFailedReason reason)
 // called from ---CPU--- thread
 bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatus* pad_status)
 {
-  if (m_pad_buffer.at(pad_nb).Size() == 0)
+  if (inputs.at(pad_nb).size() > delay)
   {
-    if (inputs.at(pad_nb).size() > delay)
-    {
-      auto delayed_input = inputs.at(pad_nb).rbegin();
-      std::advance(delayed_input, delay);
-      m_pad_buffer.at(pad_nb).Push(*(delayed_input));
-    }
-    else
-    {
-      m_pad_buffer.at(pad_nb).Push(GCPadStatus{});
-    }
+    auto delayed_input = inputs.at(pad_nb).rbegin();
+    std::advance(delayed_input, delay);
+    m_pad_buffer.at(pad_nb).Push(*(delayed_input));
   }
+  else
+  {
+    m_pad_buffer.at(pad_nb).Push(GCPadStatus{});
+  }
+
   // This is where the inputs get used, every other use of m_pad_buffer for rollback
   // is making sure this call always has a pad status.
   m_pad_buffer[pad_nb].Pop(*pad_status);
@@ -2213,15 +2238,6 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
   }
 
   inputs.at(ingame_pad).push_back(pad_status);
-  if (m_pad_buffer.at(ingame_pad).Size() == 0)
-  {
-    m_pad_buffer.at(ingame_pad).Push(pad_status);
-  }
-  else
-  {
-    m_pad_buffer.at(ingame_pad).Pop();
-    m_pad_buffer.at(ingame_pad).Push(pad_status);
-  }
   AddPadStateToPacket(ingame_pad, pad_status, packet);
   data_added = true;
 
@@ -2265,12 +2281,13 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
   // pads (used for batched polls), while 0..3 will poll the respective pad (used for MMIO polls).
   // See GetNetPads for more details.
   //
-  // If the local buffer is non-empty, we skip actually buffering and sending new pad data, this way
-  // don't end up with permanent local latency. It does create a period of time where no inputs are
-  // accepted, but under typical circumstances this is not noticeable.
+  // If the local buffer is non-empty, we skip actually buffering and sending new pad data, this
+  // way don't end up with permanent local latency. It does create a period of time where no
+  // inputs are accepted, but under typical circumstances this is not noticeable.
   //
-  // Additionally, we wait until some actual pad data has been received before buffering and sending
-  // it, otherwise controllers get calibrated wrongly with the default values of GCPadStatus.
+  // Additionally, we wait until some actual pad data has been received before buffering and
+  // sending it, otherwise controllers get calibrated wrongly with the default values of
+  // GCPadStatus.
 
   /* if (m_local_player->pid != m_current_golfer)
      return;
@@ -2770,8 +2787,8 @@ void NetPlay_Disable()
 
 void OnFrameEnd()
 {
-  std::lock_guard lk(crit_netplay_client);
-  netplay_client->OnFrameEnd();
+  std::unique_lock lock(crit_netplay_client);
+  netplay_client->OnFrameEnd(lock);
 }
 
 }  // namespace NetPlay

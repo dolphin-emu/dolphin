@@ -37,7 +37,7 @@ class GameFile;
 
 namespace NetPlay
 {
-constexpr size_t rollback_frames_supported = 10;
+constexpr int rollback_frames_supported = 10;
 
 class NetPlayUI
 {
@@ -163,7 +163,7 @@ public:
 
   static SyncIdentifier GetSDCardIdentifier();
 
-  void OnFrameEnd();
+  void OnFrameEnd(std::unique_lock<std::mutex>& lock);
 
 protected:
   struct AsyncQueueEntry
@@ -336,6 +336,7 @@ private:
 
   std::vector<std::vector<GCPadStatus>> inputs;
   int delay = 2;
+  std::condition_variable wait_for_inputs;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);
