@@ -663,10 +663,14 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
 
     SetPartitionHeader(&partitions[i].partition, partition_address);
 
-    const u64 data_size = partitions[i].partition.GetDataSize();
+    const u64 data_size =
+        Common::AlignUp(partitions[i].partition.GetDataSize(), VolumeWii::BLOCK_DATA_SIZE);
+    partitions[i].partition.SetDataSize(data_size);
+    const u64 encrypted_data_size =
+        (data_size / VolumeWii::BLOCK_DATA_SIZE) * VolumeWii::BLOCK_TOTAL_SIZE;
     const u64 partition_data_offset = partition_address + PARTITION_DATA_OFFSET;
     m_partitions.emplace(partition_data_offset, std::move(partitions[i].partition));
-    m_nonpartition_contents.Add(partition_data_offset, data_size,
+    m_nonpartition_contents.Add(partition_data_offset, encrypted_data_size,
                                 ContentPartition{this, 0, partition_data_offset});
     const u64 unaligned_next_partition_address = VolumeWii::OffsetInHashedPartitionToRawOffset(
         data_size, Partition(partition_address), PARTITION_DATA_OFFSET);
