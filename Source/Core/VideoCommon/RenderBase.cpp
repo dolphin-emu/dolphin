@@ -1365,6 +1365,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       g_vertex_manager->Flush();
 
       // Render any UI elements to the draw list.
+      if (!NetPlay::IsRollingBack())
       {
         auto lock = GetImGuiLock();
 
@@ -1391,7 +1392,8 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
                                     m_backbuffer_height);
         RenderXFBToScreen(render_target_rc, xfb_entry->texture.get(), render_source_rc);
 
-        DrawImGui();
+        if (!NetPlay::IsRollingBack())
+          DrawImGui();
 
         // Present to the window system.
         {
@@ -1411,7 +1413,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
         if (NetPlay::IsNetPlayRunning())
           NetPlay::OnFrameEnd();
 
-          DolphinAnalytics::PerformanceSample perf_sample;
+        DolphinAnalytics::PerformanceSample perf_sample;
         perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
         perf_sample.num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims;
         perf_sample.num_draw_calls = g_stats.this_frame.num_draw_calls;
@@ -1427,7 +1429,8 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
       g_shader_cache->RetrieveAsyncShaders();
       g_vertex_manager->OnEndFrame();
-      BeginImGuiFrame();
+      if (!NetPlay::IsRollingBack())
+        BeginImGuiFrame();
 
       // We invalidate the pipeline object at the start of the frame.
       // This is for the rare case where only a single pipeline configuration is used,

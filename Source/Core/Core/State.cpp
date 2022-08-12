@@ -217,11 +217,11 @@ static void DoState(PointerWrap& p)
 
 void LoadFromBuffer(std::vector<u8>& buffer)
 {
-  if (NetPlay::IsNetPlayRunning())
-  {
-    OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
-    return;
-  }
+  //if (NetPlay::IsNetPlayRunning())
+  //{
+  //  OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+  //  return;
+  //}
 
   Core::RunOnCPUThread(
       [&] {

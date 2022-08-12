@@ -38,7 +38,7 @@ class GameFile;
 namespace NetPlay
 {
 constexpr int rollback_frames_supported = 10;
-using SaveState = std::vector<u8>;
+using SaveState = std::pair<std::vector<u8>, u64>;
 // 0 is the closest SaveState in time from the current frame
 class SaveStateArray
 {
@@ -63,7 +63,6 @@ public:
       save_state = std::shared_ptr<SaveState>{};
   }
 
-private:
   std::array<std::shared_ptr<SaveState>, rollback_frames_supported> main_array;
 };
 
@@ -192,6 +191,7 @@ public:
   static SyncIdentifier GetSDCardIdentifier();
 
   void OnFrameEnd(std::unique_lock<std::mutex>& lock);
+  bool IsRollingBack() { return is_rollingback.load(); }
 
 protected:
   struct AsyncQueueEntry
@@ -366,10 +366,16 @@ private:
   int delay = 2;
   std::condition_variable wait_for_inputs;
   SaveStateArray save_states;
+  size_t current_frame = 0;
+  std::atomic<bool> is_rollingback;
+
+  bool LoadFromFrame(u64 frame);
 };
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
 void OnFrameEnd();
+bool IsRollingBack();
+
 
 }  // namespace NetPlay

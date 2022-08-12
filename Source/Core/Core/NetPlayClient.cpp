@@ -910,6 +910,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     inputs.push_back(std::vector<GCPadStatus>{});
 
   save_states.reset();
+  current_frame = 0;
 
   m_dialog->OnMsgStartGame();
 }
@@ -1479,6 +1480,26 @@ void NetPlayClient::OnGameDigestAbort()
   m_dialog->AbortGameDigest();
 }
 
+bool NetPlayClient::LoadFromFrame(u64 frame)
+{
+  is_rollingback = true;
+  auto save_state = std::find_if(
+      save_states.main_array.begin(), save_states.main_array.end(),
+      [frame](const std::shared_ptr<SaveState>& save) { return save->second == frame; });
+
+  if (save_state == save_states.main_array.end())
+  {
+    is_rollingback = false;
+    return false;
+  }
+  else
+  {
+    State::LoadFromBuffer((**save_state).first);
+    is_rollingback = false;
+    return true;
+  }
+}
+
 void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
 {
   sf::Packet packet;
@@ -1495,10 +1516,13 @@ void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
   if (send_packet)
     SendAsync(std::move(packet));
 
+  std::shared_ptr<SaveState> new_save_state =
+      std::make_shared<SaveState>(std::vector<u8>{}, current_frame);
+
   lock.unlock();
-  std::shared_ptr<SaveState> new_save_state = std::make_shared<SaveState>();
-  State::SaveToBuffer(*new_save_state);
+  State::SaveToBuffer(new_save_state->first);
   lock.lock();
+
   save_states.New() = new_save_state;
 
   // Wait for inputs if others are behind us, continue if we're behind them
@@ -1509,31 +1533,62 @@ void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
       local_player_port = i;
   }
 
+  bool needs_to_rollback = false;
+  u64 farthest_rollback_frame = 0;
+
   for (int remote_players = 0; remote_players < inputs.size(); remote_players++)
   {
+    auto frame_difference = static_cast<long long>(inputs.at(local_player_port).size()) -
+                            static_cast<long long>(inputs.at(remote_players).size());
     if (remote_players == local_player_port)
       continue;
 
-    auto frame_difference = static_cast<long long>(inputs.at(local_player_port).size()) -
-                            static_cast<long long>(inputs.at(remote_players).size());
-
-    if (frame_difference <= 0)
+    if (frame_difference <= delay)
     {
       continue;
     }
     else
     {
-      while (frame_difference > rollback_frames_supported + delay)
+      if (frame_difference <= rollback_frames_supported + delay)
       {
-        if (!m_is_running.IsSet())
-          break;
+        needs_to_rollback = true;
+        farthest_rollback_frame = std::max(inputs.at(local_player_port).size() - frame_difference,
+                                           farthest_rollback_frame);
+      }
+      else
+      {
+        // This probably needs to get fixed.
+        while (frame_difference > rollback_frames_supported + delay)
+        {
+          if (!m_is_running.IsSet())
+            break;
 
-        frame_difference = static_cast<long long>(inputs.at(local_player_port).size()) -
-                           static_cast<long long>(inputs.at(remote_players).size());
+          frame_difference = static_cast<long long>(inputs.at(local_player_port).size()) -
+                             static_cast<long long>(inputs.at(remote_players).size());
 
-        wait_for_inputs.wait_for(lock, 1ms);
+          wait_for_inputs.wait_for(lock, 1ms);
+        }
+        needs_to_rollback = true;
+        farthest_rollback_frame = rollback_frames_supported + delay;
       }
     }
+  }
+
+  if (needs_to_rollback)
+  {
+    if (LoadFromFrame(farthest_rollback_frame))
+    {
+      current_frame = farthest_rollback_frame;
+    }
+    else
+    {
+      current_frame++;
+      DEBUG_LOG_FMT(NETPLAY, "Failed to load save state from frame {}!", farthest_rollback_frame);
+    }
+  }
+  else
+  {
+    current_frame++;
   }
 }
 
@@ -1988,8 +2043,6 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
     m_pad_buffer.at(pad_nb).Push(GCPadStatus{});
   }
 
-  // This is where the inputs get used, every other use of m_pad_buffer for rollback
-  // is making sure this call always has a pad status.
   m_pad_buffer[pad_nb].Pop(*pad_status);
 
   // The interface for this is extremely silly.
@@ -2795,8 +2848,16 @@ void NetPlay_Disable()
 
 void OnFrameEnd()
 {
-  std::unique_lock lock(crit_netplay_client);
-  netplay_client->OnFrameEnd(lock);
+  if (!IsRollingBack())
+  {
+    std::unique_lock lock(crit_netplay_client);
+    netplay_client->OnFrameEnd(lock);
+  }
+}
+
+bool IsRollingBack()
+{
+  return netplay_client->IsRollingBack();
 }
 
 }  // namespace NetPlay
