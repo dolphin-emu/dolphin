@@ -42,6 +42,7 @@
 #include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/State.h"
 #ifdef HAS_LIBMGBA
 #include "Core/HW/GBACore.h"
 #endif
@@ -905,9 +906,10 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
   }
 
   inputs.clear();
-
   for (int i = 0; i < m_players.size(); i++)
     inputs.push_back(std::vector<GCPadStatus>{});
+
+  save_states.reset();
 
   m_dialog->OnMsgStartGame();
 }
@@ -1492,6 +1494,12 @@ void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
 
   if (send_packet)
     SendAsync(std::move(packet));
+
+  lock.unlock();
+  std::shared_ptr<SaveState> new_save_state = std::make_shared<SaveState>();
+  State::SaveToBuffer(*new_save_state);
+  lock.lock();
+  save_states.New() = new_save_state;
 
   // Wait for inputs if others are behind us, continue if we're behind them
   int local_player_port = -1;

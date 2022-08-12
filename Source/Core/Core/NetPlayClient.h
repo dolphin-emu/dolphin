@@ -38,6 +38,34 @@ class GameFile;
 namespace NetPlay
 {
 constexpr int rollback_frames_supported = 10;
+using SaveState = std::vector<u8>;
+// 0 is the closest SaveState in time from the current frame
+class SaveStateArray
+{
+public:
+  std::shared_ptr<SaveState>& New()
+  {
+    std::array<std::shared_ptr<SaveState>, rollback_frames_supported> new_array{};
+
+    for (int i = rollback_frames_supported - 2; i >= 0; i--)
+    {
+      new_array.at(i + 1) = main_array.at(i);
+    }
+    new_array.at(0) = std::shared_ptr<SaveState>{};
+    main_array = std::move(new_array);
+
+    return main_array.at(0);
+  };
+
+  void reset()
+  {
+    for (auto& save_state : main_array)
+      save_state = std::shared_ptr<SaveState>{};
+  }
+
+private:
+  std::array<std::shared_ptr<SaveState>, rollback_frames_supported> main_array;
+};
 
 class NetPlayUI
 {
@@ -337,6 +365,7 @@ private:
   std::vector<std::vector<GCPadStatus>> inputs;
   int delay = 2;
   std::condition_variable wait_for_inputs;
+  SaveStateArray save_states;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);
