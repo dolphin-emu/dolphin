@@ -100,7 +100,7 @@ public interface SettingsActivityView
   void showLoading();
 
   /**
-   * Hide the loading the dialog
+   * Hide the loading dialog
    */
   void hideLoading();
 
