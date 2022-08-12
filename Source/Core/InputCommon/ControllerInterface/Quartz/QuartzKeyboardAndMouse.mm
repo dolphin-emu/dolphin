@@ -23,6 +23,7 @@
 
 @implementation DolWindowPositionObserver
 {
+  NSView* _view;
   NSWindow* _window;
   NSRect _frame;
   std::mutex _mtx;
@@ -30,7 +31,7 @@
 
 - (NSRect)calcFrame
 {
-  return [_window frame];
+  return [_window convertRectToScreen:[_view frame]];
 }
 
 - (instancetype)initWithView:(NSView*)view
@@ -38,6 +39,7 @@
   self = [super init];
   if (self)
   {
+    _view = view;
     _window = [view window];
     _frame = [self calcFrame];
     [_window addObserver:self forKeyPath:@"frame" options:0 context:nil];
