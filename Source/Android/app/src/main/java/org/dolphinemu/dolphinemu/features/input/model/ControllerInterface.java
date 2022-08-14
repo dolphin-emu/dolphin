@@ -95,6 +95,8 @@ public final class ControllerInterface
    */
   public static native void refreshDevices();
 
+  public static native String[] getAllDeviceStrings();
+
   @Keep
   private static void registerInputDeviceListener()
   {

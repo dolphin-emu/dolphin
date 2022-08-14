@@ -47,4 +47,9 @@ public final class InputMappingControlSetting extends SettingsItem
   {
     return null;
   }
+
+  public EmulatedController getController()
+  {
+    return mController;
+  }
 }

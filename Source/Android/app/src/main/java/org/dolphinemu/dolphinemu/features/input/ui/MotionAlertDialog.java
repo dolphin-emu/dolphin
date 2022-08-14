@@ -46,7 +46,7 @@ public final class MotionAlertDialog extends AlertDialog
     mRunning = true;
     new Thread(() ->
     {
-      String result = MappingCommon.detectInput();
+      String result = MappingCommon.detectInput(mSetting.getController(), false);
       mActivity.runOnUiThread(() ->
       {
         if (mRunning)

@@ -22,6 +22,7 @@ import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroup
 import org.dolphinemu.dolphinemu.features.input.model.ControlGroupEnabledSetting;
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController;
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting;
+import org.dolphinemu.dolphinemu.features.input.model.view.InputDeviceSetting;
 import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
@@ -1107,7 +1108,10 @@ public final class SettingsFragmentPresenter
   {
     if (gcPadType == 6) // Emulated
     {
-      addControllerSettings(sl, EmulatedController.getGcPad(gcPadNumber), null);
+      EmulatedController gcPad = EmulatedController.getGcPad(gcPadNumber);
+
+      addControllerMetaSettings(sl, gcPad);
+      addControllerMappingSettings(sl, gcPad, null);
     }
     else if (gcPadType == 12) // Adapter
     {
@@ -1120,6 +1124,10 @@ public final class SettingsFragmentPresenter
 
   private void addWiimoteSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
   {
+    EmulatedController wiimote = EmulatedController.getWiimote(wiimoteNumber);
+
+    addControllerMetaSettings(sl, wiimote);
+
     sl.add(new HeaderSetting(mContext, R.string.wiimote, 0));
     sl.add(new SubmenuSetting(mContext, R.string.wiimote_general,
             MenuTag.getWiimoteGeneralMenuTag(wiimoteNumber)));
@@ -1130,44 +1138,58 @@ public final class SettingsFragmentPresenter
 
     // TYPE_OTHER is included here instead of in addWiimoteGeneralSubSettings so that touchscreen
     // users won't have to dig into a submenu to find the Sideways Wii Remote setting
-    addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
+    addControllerMappingSettings(sl, wiimote,
             new ArraySet<>(Arrays.asList(ControlGroup.TYPE_ATTACHMENTS, ControlGroup.TYPE_OTHER)));
   }
 
   private void addExtensionTypeSettings(ArrayList<SettingsItem> sl, int wiimoteNumber,
           int extensionType)
   {
-    addControllerSettings(sl,
+    addControllerMappingSettings(sl,
             EmulatedController.getWiimoteAttachment(wiimoteNumber, extensionType), null);
   }
 
   private void addWiimoteGeneralSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
   {
-    addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
+    addControllerMappingSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
             Collections.singleton(ControlGroup.TYPE_BUTTONS));
   }
 
   private void addWiimoteMotionSimulationSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
   {
-    addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
+    addControllerMappingSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
             new ArraySet<>(Arrays.asList(ControlGroup.TYPE_FORCE, ControlGroup.TYPE_TILT,
                     ControlGroup.TYPE_CURSOR, ControlGroup.TYPE_SHAKE)));
   }
 
   private void addWiimoteMotionInputSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
   {
-    addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
+    addControllerMappingSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
             new ArraySet<>(Arrays.asList(ControlGroup.TYPE_IMU_ACCELEROMETER,
                     ControlGroup.TYPE_IMU_GYROSCOPE, ControlGroup.TYPE_IMU_CURSOR)));
   }
 
   /**
-   * @param sl The list to place controller settings into.
+   * Adds settings and actions that apply to a controller as a whole.
+   * For instance, the device setting and the Clear action.
+   *
+   * @param sl         The list to place controller settings into.
    * @param controller The controller to add settings for.
+   */
+  private void addControllerMetaSettings(ArrayList<SettingsItem> sl, EmulatedController controller)
+  {
+    sl.add(new InputDeviceSetting(mContext, R.string.input_device, 0, controller));
+  }
+
+  /**
+   * Adds mapping settings and other control-specific settings.
+   *
+   * @param sl              The list to place controller settings into.
+   * @param controller      The controller to add settings for.
    * @param groupTypeFilter If this is non-null, only groups whose types match this are considered.
    */
-  private void addControllerSettings(ArrayList<SettingsItem> sl, EmulatedController controller,
-          Set<Integer> groupTypeFilter)
+  private void addControllerMappingSettings(ArrayList<SettingsItem> sl,
+          EmulatedController controller, Set<Integer> groupTypeFilter)
   {
     int groupCount = controller.getGroupCount();
     for (int i = 0; i < groupCount; i++)

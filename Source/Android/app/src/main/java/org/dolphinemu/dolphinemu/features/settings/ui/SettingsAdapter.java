@@ -253,6 +253,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mClickedItem = item;
     mClickedPosition = position;
 
+    item.refreshChoicesAndValues();
+
     mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
             .setTitle(item.getName())
             .setSingleChoiceItems(item.getChoices(), item.getSelectedValueIndex(getSettings()),

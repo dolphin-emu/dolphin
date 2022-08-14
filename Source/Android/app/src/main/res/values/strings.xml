@@ -27,6 +27,8 @@
     <string name="wiimote_motion_input">Motion Input</string>
     <string name="wiimote_extensions">Extension</string>
 
+    <string name="input_device">Device</string>
+
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>
 

@@ -95,6 +95,11 @@ public abstract class SettingsItem
     return getSetting() != null;
   }
 
+  public boolean canClear()
+  {
+    return hasSetting();
+  }
+
   public void clear(Settings settings)
   {
     getSetting().delete(settings);

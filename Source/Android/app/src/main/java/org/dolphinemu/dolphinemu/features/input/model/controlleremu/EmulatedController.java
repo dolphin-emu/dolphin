@@ -21,6 +21,10 @@ public class EmulatedController
     mPointer = pointer;
   }
 
+  public native String getDefaultDevice();
+
+  public native void setDefaultDevice(String device);
+
   public native int getGroupCount();
 
   public native ControlGroup getGroup(int index);

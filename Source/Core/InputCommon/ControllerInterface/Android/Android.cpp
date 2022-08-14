@@ -1122,4 +1122,11 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_refreshD
 {
   g_controller_interface.RefreshDevices();
 }
+
+JNIEXPORT jobjectArray JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_getAllDeviceStrings(
+    JNIEnv* env, jclass)
+{
+  return VectorToJStringArray(env, g_controller_interface.GetAllDeviceStrings());
+}
 }

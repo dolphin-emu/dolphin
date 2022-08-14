@@ -64,10 +64,8 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
     else if (item instanceof StringSingleChoiceSetting)
     {
       StringSingleChoiceSetting setting = (StringSingleChoiceSetting) item;
-      String[] choices = setting.getChoices();
-      int valueIndex = setting.getSelectedValueIndex(settings);
-      if (valueIndex != -1)
-        mBinding.textSettingDescription.setText(choices[valueIndex]);
+      String choice = setting.getSelectedChoice(settings);
+      mBinding.textSettingDescription.setText(choice);
     }
     else if (item instanceof SingleChoiceSettingDynamicDescriptions)
     {

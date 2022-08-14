@@ -17,6 +17,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/MappingCommon.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/Input/EmulatedController.h"
 
 namespace
 {
@@ -28,10 +29,19 @@ constexpr auto INPUT_DETECT_MAXIMUM_TIME = std::chrono::seconds(5);
 extern "C" {
 
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_MappingCommon_detectInput(JNIEnv* env, jclass)
+Java_org_dolphinemu_dolphinemu_features_input_model_MappingCommon_detectInput(
+    JNIEnv* env, jclass, jobject j_emulated_controller, jboolean all_devices)
 {
-  const std::vector<std::string> device_strings = g_controller_interface.GetAllDeviceStrings();
-  const ciface::Core::DeviceQualifier default_device{};
+  ControllerEmu::EmulatedController* emulated_controller =
+      EmulatedControllerFromJava(env, j_emulated_controller);
+
+  const ciface::Core::DeviceQualifier default_device = emulated_controller->GetDefaultDevice();
+
+  std::vector<std::string> device_strings;
+  if (all_devices)
+    device_strings = g_controller_interface.GetAllDeviceStrings();
+  else
+    device_strings = {default_device.ToString()};
 
   auto detections =
       g_controller_interface.DetectInput(device_strings, INPUT_DETECT_INITIAL_TIME,

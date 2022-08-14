@@ -14,8 +14,8 @@ public class StringSingleChoiceSetting extends SettingsItem
 {
   private AbstractStringSetting mSetting;
 
-  private String[] mChoices;
-  private String[] mValues;
+  protected String[] mChoices;
+  protected String[] mValues;
   private MenuTag mMenuTag;
 
   public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
@@ -60,6 +60,19 @@ public class StringSingleChoiceSetting extends SettingsItem
     return mValues;
   }
 
+  public String getChoiceAt(int index)
+  {
+    if (mChoices == null)
+      return null;
+
+    if (index >= 0 && index < mChoices.length)
+    {
+      return mChoices[index];
+    }
+
+    return "";
+  }
+
   public String getValueAt(int index)
   {
     if (mValues == null)
@@ -71,6 +84,11 @@ public class StringSingleChoiceSetting extends SettingsItem
     }
 
     return "";
+  }
+
+  public String getSelectedChoice(Settings settings)
+  {
+    return getChoiceAt(getSelectedValueIndex(settings));
   }
 
   public String getSelectedValue(Settings settings)
@@ -100,6 +118,10 @@ public class StringSingleChoiceSetting extends SettingsItem
   public void setSelectedValue(Settings settings, String selection)
   {
     mSetting.setString(settings, selection);
+  }
+
+  public void refreshChoicesAndValues()
+  {
   }
 
   @Override

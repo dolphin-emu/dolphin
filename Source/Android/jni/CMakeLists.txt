@@ -17,6 +17,7 @@ add_library(main SHARED
   Input/ControlReference.cpp
   Input/ControlReference.h
   Input/EmulatedController.cpp
+  Input/EmulatedController.h
   Input/InputOverrider.cpp
   Input/MappingCommon.cpp
   Input/NumericSetting.cpp

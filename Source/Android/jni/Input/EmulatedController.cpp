@@ -16,7 +16,7 @@
 #include "jni/Input/ControlGroup.h"
 #include "jni/Input/ControlReference.h"
 
-static ControllerEmu::EmulatedController* GetPointer(JNIEnv* env, jobject obj)
+ControllerEmu::EmulatedController* EmulatedControllerFromJava(JNIEnv* env, jobject obj)
 {
   return reinterpret_cast<ControllerEmu::EmulatedController*>(
       env->GetLongField(obj, IDCache::GetEmulatedControllerPointer()));
@@ -34,25 +34,40 @@ static jobject EmulatedControllerToJava(JNIEnv* env, ControllerEmu::EmulatedCont
 
 extern "C" {
 
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getDefaultDevice(
+    JNIEnv* env, jobject obj)
+{
+  return ToJString(env, EmulatedControllerFromJava(env, obj)->GetDefaultDevice().ToString());
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_setDefaultDevice(
+    JNIEnv* env, jobject obj, jstring j_device)
+{
+  return EmulatedControllerFromJava(env, obj)->SetDefaultDevice(GetJString(env, j_device));
+}
+
 JNIEXPORT jint JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getGroupCount(
     JNIEnv* env, jobject obj)
 {
-  return static_cast<jint>(GetPointer(env, obj)->groups.size());
+  return static_cast<jint>(EmulatedControllerFromJava(env, obj)->groups.size());
 }
 
 JNIEXPORT jobject JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getGroup(
     JNIEnv* env, jobject obj, jint controller_index)
 {
-  return ControlGroupToJava(env, GetPointer(env, obj)->groups[controller_index].get());
+  return ControlGroupToJava(env,
+                            EmulatedControllerFromJava(env, obj)->groups[controller_index].get());
 }
 
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_updateSingleControlReference(
     JNIEnv* env, jobject obj, jobject control_reference)
 {
-  return GetPointer(env, obj)->UpdateSingleControlReference(
+  return EmulatedControllerFromJava(env, obj)->UpdateSingleControlReference(
       g_controller_interface, ControlReferenceFromJava(env, control_reference));
 }
 
