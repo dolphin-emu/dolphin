@@ -39,6 +39,7 @@
 #include "Core/Config/SessionSettings.h"
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -81,6 +82,7 @@ using namespace WiimoteCommon;
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
 static bool s_si_poll_batching = false;
+static std::atomic<bool> is_rollingback;
 
 // called from ---GUI--- thread
 NetPlayClient::~NetPlayClient()
@@ -1482,21 +1484,34 @@ void NetPlayClient::OnGameDigestAbort()
 
 bool NetPlayClient::LoadFromFrame(u64 frame)
 {
-  is_rollingback = true;
   auto save_state = std::find_if(
       save_states.main_array.begin(), save_states.main_array.end(),
       [frame](const std::shared_ptr<SaveState>& save) { return save->second == frame; });
 
   if (save_state == save_states.main_array.end())
   {
-    is_rollingback = false;
     return false;
   }
   else
   {
     State::LoadFromBuffer((**save_state).first);
-    is_rollingback = false;
     return true;
+  }
+}
+
+void NetPlayClient::RollbackToFrame(u64 frame)
+{
+  is_rollingback = true;
+  if (LoadFromFrame(frame))
+  {
+    frame_to_stop_at = current_frame;
+    current_frame = frame;
+    Core::SetIsThrottlerTempDisabled(true);
+  }
+  else
+  {
+    is_rollingback = false;
+    DEBUG_LOG_FMT(NETPLAY, "Failed to roll back to frame {}!", frame);
   }
 }
 
@@ -1557,15 +1572,10 @@ void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
       }
       else
       {
-        // This probably needs to get fixed.
         while (frame_difference > rollback_frames_supported + delay)
         {
-          if (!m_is_running.IsSet())
-            break;
-
           frame_difference = static_cast<long long>(inputs.at(local_player_port).size()) -
                              static_cast<long long>(inputs.at(remote_players).size());
-
           wait_for_inputs.wait_for(lock, 1ms);
         }
         needs_to_rollback = true;
@@ -1575,21 +1585,12 @@ void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
   }
 
   if (needs_to_rollback)
-  {
-    if (LoadFromFrame(farthest_rollback_frame))
-    {
-      current_frame = farthest_rollback_frame;
-    }
-    else
-    {
-      current_frame++;
-      DEBUG_LOG_FMT(NETPLAY, "Failed to load save state from frame {}!", farthest_rollback_frame);
-    }
-  }
-  else
-  {
-    current_frame++;
-  }
+    RollbackToFrame(farthest_rollback_frame);
+}
+
+bool NetPlayClient::IsRollingBack()
+{
+  return is_rollingback.load();
 }
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
@@ -2032,11 +2033,20 @@ void NetPlayClient::OnConnectFailed(TraversalConnectFailedReason reason)
 // called from ---CPU--- thread
 bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatus* pad_status)
 {
-  if (inputs.at(pad_nb).size() > delay)
+  if (inputs.at(pad_nb).size() > delay + rollback_frames_supported)
   {
-    auto delayed_input = inputs.at(pad_nb).rbegin();
-    std::advance(delayed_input, delay);
-    m_pad_buffer.at(pad_nb).Push(*(delayed_input));
+    if (!is_rollingback)
+    {
+      auto delayed_input = inputs.at(pad_nb).rbegin();
+      std::advance(delayed_input, delay);
+      m_pad_buffer.at(pad_nb).Push(*(delayed_input));
+    }
+    else
+    {
+      auto delayed_input = inputs.at(pad_nb).begin();
+      std::advance(delayed_input, (current_frame - delay) - 1);
+      m_pad_buffer.at(pad_nb).Push(*(delayed_input));
+    }
   }
   else
   {
@@ -2848,11 +2858,22 @@ void NetPlay_Disable()
 
 void OnFrameEnd()
 {
-  if (!IsRollingBack())
+  if (!is_rollingback)
   {
     std::unique_lock lock(crit_netplay_client);
     netplay_client->OnFrameEnd(lock);
   }
+  else if (netplay_client->current_frame >= netplay_client->frame_to_stop_at)
+  {
+    Core::SetIsThrottlerTempDisabled(false);
+    is_rollingback = false;
+  }
+  else
+  {
+    DEBUG_LOG_FMT(NETPLAY, "Error occured in NetPlay::OnFrameEnd()");
+  }
+
+  netplay_client->current_frame++;
 }
 
 bool IsRollingBack()

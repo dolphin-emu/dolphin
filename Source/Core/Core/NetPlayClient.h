@@ -191,7 +191,14 @@ public:
   static SyncIdentifier GetSDCardIdentifier();
 
   void OnFrameEnd(std::unique_lock<std::mutex>& lock);
-  bool IsRollingBack() { return is_rollingback.load(); }
+  bool IsRollingBack();
+
+  // Only for use in NetPlayClient.cpp >:(
+  size_t current_frame = 0;
+  // Only for use in NetPlayClient.cpp >:(
+  size_t frame_to_stop_at = 0;
+
+  bool done_fast_forwarding;
 
 protected:
   struct AsyncQueueEntry
@@ -366,16 +373,14 @@ private:
   int delay = 2;
   std::condition_variable wait_for_inputs;
   SaveStateArray save_states;
-  size_t current_frame = 0;
-  std::atomic<bool> is_rollingback;
 
   bool LoadFromFrame(u64 frame);
+  void RollbackToFrame(u64 frame);
 };
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
 void OnFrameEnd();
 bool IsRollingBack();
-
 
 }  // namespace NetPlay
