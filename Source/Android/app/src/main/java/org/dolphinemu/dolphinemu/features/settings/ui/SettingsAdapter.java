@@ -251,7 +251,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
 
     builder.setTitle(item.getName());
-    builder.setSingleChoiceItems(item.getChoicesId(), item.getSelectValueIndex(getSettings()),
+    builder.setSingleChoiceItems(item.getChoices(), item.getSelectedValueIndex(getSettings()),
             this);
 
     mDialog = builder.show();
