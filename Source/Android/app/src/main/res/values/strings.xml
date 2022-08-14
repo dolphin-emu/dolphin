@@ -30,6 +30,11 @@
     <string name="input_device">Device</string>
     <string name="input_device_all_devices">Create Mappings for Other Devices</string>
     <string name="input_device_all_devices_description">Detects inputs from all devices, not just the selected device.</string>
+    <string name="input_reset_to_default">Default</string>
+    <string name="input_reset_to_default_description">Reset settings for this controller to the default.</string>
+    <string name="input_clear">Clear</string>
+    <string name="input_clear_description">Clear settings for this controller.</string>
+    <string name="input_reset_warning">Are you sure? Your current controller settings will be deleted.</string>
 
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>

@@ -1213,6 +1213,13 @@ public final class SettingsFragmentPresenter
         mView.setMappingAllDevices(newValue);
       }
     }, R.string.input_device_all_devices, R.string.input_device_all_devices_description));
+
+    sl.add(new RunRunnable(mContext, R.string.input_reset_to_default,
+            R.string.input_reset_to_default_description, R.string.input_reset_warning, 0, true,
+            () -> loadDefaultControllerSettings(controller)));
+
+    sl.add(new RunRunnable(mContext, R.string.input_clear, R.string.input_clear_description,
+            R.string.input_reset_warning, 0, true, () -> clearControllerSettings(controller)));
   }
 
   /**
@@ -1278,6 +1285,18 @@ public final class SettingsFragmentPresenter
                 setting.getUiDescription()));
         break;
     }
+  }
+
+  private void loadDefaultControllerSettings(EmulatedController controller)
+  {
+    controller.loadDefaultSettings();
+    mView.getAdapter().notifyAllSettingsChanged();
+  }
+
+  private void clearControllerSettings(EmulatedController controller)
+  {
+    controller.clearSettings();
+    mView.getAdapter().notifyAllSettingsChanged();
   }
 
   private static int getLogVerbosityEntries()

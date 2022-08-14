@@ -31,6 +31,10 @@ public class EmulatedController
 
   public native void updateSingleControlReference(ControlReference controlReference);
 
+  public native void loadDefaultSettings();
+
+  public native void clearSettings();
+
   public static native EmulatedController getGcPad(int controllerIndex);
 
   public static native EmulatedController getWiimote(int controllerIndex);

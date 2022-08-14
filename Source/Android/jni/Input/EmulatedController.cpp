@@ -3,6 +3,7 @@
 
 #include <jni.h>
 
+#include "Common/IniFile.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -69,6 +70,29 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 {
   return EmulatedControllerFromJava(env, obj)->UpdateSingleControlReference(
       g_controller_interface, ControlReferenceFromJava(env, control_reference));
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_loadDefaultSettings(
+    JNIEnv* env, jobject obj)
+{
+  ControllerEmu::EmulatedController* controller = EmulatedControllerFromJava(env, obj);
+
+  controller->LoadDefaults(g_controller_interface);
+  controller->UpdateReferences(g_controller_interface);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_clearSettings(
+    JNIEnv* env, jobject obj)
+{
+  ControllerEmu::EmulatedController* controller = EmulatedControllerFromJava(env, obj);
+
+  // Loading an empty IniFile section clears everything.
+  IniFile::Section section;
+
+  controller->LoadConfig(&section);
+  controller->UpdateReferences(g_controller_interface);
 }
 
 JNIEXPORT jobject JNICALL
