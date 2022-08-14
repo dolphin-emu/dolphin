@@ -136,8 +136,8 @@ std::unique_ptr<NFSFileReader> NFSFileReader::Create(File::IOFile first_file,
     return nullptr;
 
   NFSHeader header;
-  if (!first_file.Seek(0, File::SeekOrigin::Begin) ||
-      !first_file.ReadArray(&header, 1) && header.magic != NFS_MAGIC)
+  if (!first_file.Seek(0, File::SeekOrigin::Begin) || !first_file.ReadArray(&header, 1) ||
+      header.magic != NFS_MAGIC)
   {
     return nullptr;
   }
