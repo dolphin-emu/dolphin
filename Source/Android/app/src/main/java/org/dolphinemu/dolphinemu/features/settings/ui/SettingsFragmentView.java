@@ -101,4 +101,12 @@ public interface SettingsFragmentView
    * not just the device configured for the controller.
    */
   boolean isMappingAllDevices();
+
+  /**
+   * Shows or hides a warning telling the user that they're using incompatible controller settings.
+   * The warning is hidden by default.
+   *
+   * @param visible Whether the warning should be visible.
+   */
+  void setOldControllerSettingsWarningVisibility(boolean visible);
 }

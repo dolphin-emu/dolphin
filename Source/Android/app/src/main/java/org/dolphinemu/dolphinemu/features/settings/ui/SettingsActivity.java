@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -339,7 +340,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
   public void setToolbarTitle(String title)
   {
-    mToolbarLayout.setTitle(title);
+    mBinding.toolbarSettingsLayout.setTitle(title);
   }
 
   @Override
@@ -354,6 +355,14 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     return mMappingAllDevices;
   }
 
+  @Override
+  public int setOldControllerSettingsWarningVisibility(boolean visible)
+  {
+    // We use INVISIBLE instead of GONE to avoid getting a stale height for the return value
+    mBinding.oldControllerSettingsWarning.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
+    return visible ? mBinding.oldControllerSettingsWarning.getHeight() : 0;
+  }
+
   private void setInsets()
   {
     ViewCompat.setOnApplyWindowInsetsListener(mBinding.appbarSettings, (v, windowInsets) ->
@@ -363,6 +372,10 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
       InsetsHelper.insetAppBar(insets, mBinding.appbarSettings);
 
       mBinding.frameContentSettings.setPadding(insets.left, 0, insets.right, 0);
+
+      int textPadding = getResources().getDimensionPixelSize(R.dimen.spacing_large);
+      mBinding.oldControllerSettingsWarning.setPadding(textPadding + insets.left, textPadding,
+              textPadding + insets.right, textPadding + insets.bottom);
 
       InsetsHelper.applyNavbarWorkaround(insets.bottom, mBinding.workaroundView);
       ThemeHelper.setNavigationBarColor(this,

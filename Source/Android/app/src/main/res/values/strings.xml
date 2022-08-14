@@ -35,6 +35,7 @@
     <string name="input_clear">Clear</string>
     <string name="input_clear_description">Clear settings for this controller.</string>
     <string name="input_reset_warning">Are you sure? Your current controller settings will be deleted.</string>
+    <string name="old_controller_settings">Your controller settings are from an old version of Dolphin and won\'t work in this version. Press \"Default\" to start over with new settings.</string>
 
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>

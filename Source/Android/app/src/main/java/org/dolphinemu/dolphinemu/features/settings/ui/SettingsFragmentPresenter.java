@@ -80,6 +80,7 @@ public final class SettingsFragmentPresenter
 
   private Settings mSettings;
   private ArrayList<SettingsItem> mSettingsList;
+  private boolean mHasOldControllerSettings = false;
 
   private int mSerialPort1Type;
   private int mControllerNumber;
@@ -144,6 +145,7 @@ public final class SettingsFragmentPresenter
     else
     {
       mView.showSettingsList(mSettingsList);
+      mView.setOldControllerSettingsWarningVisibility(mHasOldControllerSettings);
     }
   }
 
@@ -1220,6 +1222,8 @@ public final class SettingsFragmentPresenter
 
     sl.add(new RunRunnable(mContext, R.string.input_clear, R.string.input_clear_description,
             R.string.input_reset_warning, 0, true, () -> clearControllerSettings(controller)));
+
+    updateOldControllerSettingsWarningVisibility(controller);
   }
 
   /**
@@ -1232,6 +1236,8 @@ public final class SettingsFragmentPresenter
   private void addControllerMappingSettings(ArrayList<SettingsItem> sl,
           EmulatedController controller, Set<Integer> groupTypeFilter)
   {
+    updateOldControllerSettingsWarningVisibility(controller);
+
     int groupCount = controller.getGroupCount();
     for (int i = 0; i < groupCount; i++)
     {
@@ -1287,16 +1293,28 @@ public final class SettingsFragmentPresenter
     }
   }
 
+  private void updateOldControllerSettingsWarningVisibility(EmulatedController controller)
+  {
+    String defaultDevice = controller.getDefaultDevice();
+
+    mHasOldControllerSettings = defaultDevice.startsWith("Android/") &&
+            defaultDevice.endsWith("/Touchscreen");
+
+    mView.setOldControllerSettingsWarningVisibility(mHasOldControllerSettings);
+  }
+
   private void loadDefaultControllerSettings(EmulatedController controller)
   {
     controller.loadDefaultSettings();
     mView.getAdapter().notifyAllSettingsChanged();
+    updateOldControllerSettingsWarningVisibility(controller);
   }
 
   private void clearControllerSettings(EmulatedController controller)
   {
     controller.clearSettings();
     mView.getAdapter().notifyAllSettingsChanged();
+    updateOldControllerSettingsWarningVisibility(controller);
   }
 
   private static int getLogVerbosityEntries()

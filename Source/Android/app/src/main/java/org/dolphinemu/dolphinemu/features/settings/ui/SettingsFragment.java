@@ -38,6 +38,8 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
   private SettingsAdapter mAdapter;
 
+  private int mOldControllerSettingsWarningHeight = 0;
+
   private static final Map<MenuTag, Integer> titles = new HashMap<>();
 
   static
@@ -260,13 +262,23 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     return mActivity.isMappingAllDevices();
   }
 
+  @Override
+  public void setOldControllerSettingsWarningVisibility(boolean visible)
+  {
+    mOldControllerSettingsWarningHeight =
+            mActivity.setOldControllerSettingsWarningVisibility(visible);
+
+    // Trigger the insets listener we've registered
+    mBinding.listSettings.requestApplyInsets();
+  }
+
   private void setInsets()
   {
     ViewCompat.setOnApplyWindowInsetsListener(mBinding.listSettings, (v, windowInsets) ->
     {
       Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-      v.setPadding(0, 0, 0,
-              insets.bottom + getResources().getDimensionPixelSize(R.dimen.spacing_list));
+      int listSpacing = getResources().getDimensionPixelSize(R.dimen.spacing_list);
+      v.setPadding(0, 0, 0, insets.bottom + listSpacing + mOldControllerSettingsWarningHeight);
       return windowInsets;
     });
   }

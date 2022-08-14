@@ -109,4 +109,13 @@ public interface SettingsActivityView
    * not just the device configured for the controller.
    */
   boolean isMappingAllDevices();
+
+  /**
+   * Shows or hides a warning telling the user that they're using incompatible controller settings.
+   * The warning is hidden by default.
+   *
+   * @param visible Whether the warning should be visible.
+   * @return The height of the warning view, or 0 if the view is now invisible.
+   */
+  int setOldControllerSettingsWarningVisibility(boolean visible);
 }
