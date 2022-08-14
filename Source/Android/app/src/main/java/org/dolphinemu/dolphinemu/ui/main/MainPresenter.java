@@ -81,7 +81,7 @@ public final class MainPresenter
 
   public void onFabClick()
   {
-    new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity, true,
+    new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity,
             mView::launchFileListActivity);
   }
 
@@ -99,7 +99,7 @@ public final class MainPresenter
         return true;
 
       case R.id.button_add_directory:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 mView::launchFileListActivity);
         return true;
 
@@ -112,22 +112,22 @@ public final class MainPresenter
         return true;
 
       case R.id.menu_online_system_update:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 this::launchOnlineUpdate);
         return true;
 
       case R.id.menu_install_wad:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 () -> mView.launchOpenFileActivity(REQUEST_WAD_FILE));
         return true;
 
       case R.id.menu_import_wii_save:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 () -> mView.launchOpenFileActivity(REQUEST_WII_SAVE_FILE));
         return true;
 
       case R.id.menu_import_nand_backup:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 () -> mView.launchOpenFileActivity(REQUEST_NAND_BIN_FILE));
         return true;
     }
@@ -325,7 +325,7 @@ public final class MainPresenter
     }
     else
     {
-      new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity, true, () ->
+      new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity, () ->
       {
         SystemMenuNotInstalledDialogFragment dialogFragment =
                 new SystemMenuNotInstalledDialogFragment();

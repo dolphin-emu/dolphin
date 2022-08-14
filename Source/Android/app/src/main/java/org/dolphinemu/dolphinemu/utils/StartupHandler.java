@@ -112,7 +112,7 @@ public final class StartupHandler
     final Instant lastOpened = Instant.ofEpochMilli(lastOpen);
     if (current.isAfter(lastOpened.plus(6, ChronoUnit.HOURS)))
     {
-      new AfterDirectoryInitializationRunner().runWithoutLifecycle(context, false,
+      new AfterDirectoryInitializationRunner().runWithoutLifecycle(
               NativeLibrary::ReportStartToAnalytics);
     }
   }

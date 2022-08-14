@@ -185,7 +185,7 @@ public final class EmulationActivity extends AppCompatActivity
   private static void performLaunchChecks(FragmentActivity activity,
           Runnable continueCallback)
   {
-    new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true, () ->
+    new AfterDirectoryInitializationRunner().runWithLifecycle(activity, () ->
     {
       if (!FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DEFAULT_ISO) ||
               !FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_FS_PATH) ||
