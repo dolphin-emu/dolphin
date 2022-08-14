@@ -1665,8 +1665,22 @@ void SaveRecording(const std::string& filename)
   // header.audioEmulator;
 
   save_record.WriteArray(&header, 1);
+  std::filesystem::path pathToLog = std::filesystem::current_path() / "log.txt";
+  std::ofstream outfile;
 
+  outfile.open(pathToLog.string(), std::ios_base::app);  // append instead of overwrite
   bool success = save_record.WriteBytes(s_temp_input.data(), s_temp_input.size());
+  if (success)
+  {
+    Core::DisplayMessage("DTM saved", 2000);
+    outfile << "DTM Saved to: " + filename;
+  }
+  else
+  {
+    Core::DisplayMessage("Failed to save DTM to: " + filename, 2000);
+    outfile << "Failed to save DTM to: " + filename;
+  }
+  outfile << "\n";
 
   if (success && s_bRecordingFromSaveState)
   {
@@ -1675,9 +1689,17 @@ void SaveRecording(const std::string& filename)
   }
 
   if (success)
-    Core::DisplayMessage("DTM saved", 2000);
+  {
+    Core::DisplayMessage("Save State saved", 2000);
+    outfile << "Save State saved to: " + filename + ".sav";
+  }
   else
-    Core::DisplayMessage("Failed to save DTM", 2000);
+  {
+    Core::DisplayMessage("Failed to save Save State to " + filename + ".sav", 2000);
+    outfile << "Failed to save Save State to: " + filename + ".sav";
+  }
+  outfile << "\n";
+  outfile.close();
 }
 
 void SetGCInputManip(GCManipFunction func)

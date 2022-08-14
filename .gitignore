@@ -43,3 +43,5 @@ CMakeLists.txt.user
 /Source/Core/DolphinQt/output.dtm
 /Source/Core/DolphinQt/output.dtm.sav
 /Source/Core/DolphinQt/output.json
+*.lnk
+/Source/Core/DolphinQt/log.txt

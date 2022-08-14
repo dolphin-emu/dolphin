@@ -107,7 +107,7 @@ private:
   u32 aWriteAddr;  // address where the first code gets written to
 
   std::vector<DefaultGeckoCode> sRequiredCodes = {
-      netplayCommunitySettings, replayStart,       replayEnd,        replayQuit,           replayOvertime,        replayGrudgeFlag1, replayRecordTime,
+      replayStart,       replayEnd,        replayQuit,           replayOvertime,        replayGrudgeFlag1, replayRecordTime,
       replayTimeAllottedHUD, recordItemUse, recordGoalTimestamp, recordMissedShots};
 
   /*

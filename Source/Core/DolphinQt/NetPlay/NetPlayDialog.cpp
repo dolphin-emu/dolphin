@@ -973,6 +973,9 @@ void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
   DisplayMessage(tr("Possible desync detected: %1 might have desynced at frame %2")
                      .arg(QString::fromStdString(player), QString::number(frame)),
                  "red", OSD::Duration::VERY_LONG);
+  OSD::AddTypedMessage(OSD::MessageType::NetPlayDesync,
+                       "Possible desync detected. Game restart advised.", OSD::Duration::VERY_LONG,
+                       OSD::Color::RED);
 }
 
 void NetPlayDialog::OnConnectionLost()

@@ -16,7 +16,7 @@ namespace Common
 #else
 #define BUILD_TYPE_STR ""
 #endif
-#define CITRUS_REV_STR "0.1.0"
+#define CITRUS_REV_STR "0.1.1"
 
 const std::string& GetScmRevStr()
 {

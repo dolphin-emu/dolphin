@@ -197,10 +197,6 @@ void OnFrameEnd()
     StateAuxillary::setBoolWroteCodes(true);
     wroteCodes = true;
   }
-  // unlock everything (done by unlocking bowser cup, which dominoes everything)
-  // funny that it works lol
-  // has to happen here (every frame unfortunately) because doing it in defaultgeckocode is too early
-  Memory::Write_U8(0x1, 0x804df2c4);
 
   static const u32 matchStart = 0x80400000;
   static const u32 matchEnd = 0x80400001;

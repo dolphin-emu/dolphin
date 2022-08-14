@@ -8,8 +8,8 @@
 void DefaultGeckoCodes::RunCodeInject(bool bIsRanked)
 {
   // skip from load mem card scene to main menu
-  Memory::Write_U32(0x2c1f0023, 0x80095914);
-  Memory::Write_U32(0x3be00003, 0x8009591c);
+  //Memory::Write_U32(0x2c1f0023, 0x80095914);
+  //Memory::Write_U32(0x3be00003, 0x8009591c);
 
   aWriteAddr = 0x80400010;  // starting asm write addr (just a lot of blank space)
 
