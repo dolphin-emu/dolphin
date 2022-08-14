@@ -202,6 +202,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
         NOTICE_LOG_FMT(SP1, "XLink Kai BBA connected");
         OSD::AddMessage("XLink Kai BBA connected", 4500);
 
+
         self->m_bba_link_up = true;
         // TODO (in EXI_DeviceEthernet.cpp) bring the BBA link up here
 

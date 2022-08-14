@@ -77,11 +77,41 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
     INFO_LOG_FMT(SP1, "Created XLink Kai BBA network interface connection to {}:34523",
                  Config::Get(Config::MAIN_BBA_XLINK_IP));
     break;
-
+    /*
   case BBADeviceType::netplaybba:
     m_network_interface = std::make_unique<TAPNetworkInterface>(this);
     INFO_LOG_FMT(SP1, "Netplay BBA created and linked.");
     break;
+    */
+
+    /* here*/
+
+      case BBADeviceType::netplaybba:
+    // TODO start BBA with network link down, bring it up after "connected" response from XLink
+
+    // Perform sanity check on BBA MAC address, XLink requires the vendor OUI to be Nintendo's and
+    // to be one of the two used for the GameCube.
+    // Don't actually stop the BBA from initializing though
+    if (!StringBeginsWith(mac_addr_setting, "00:09:bf") &&
+        !StringBeginsWith(mac_addr_setting, "00:17:ab"))
+    {
+      PanicAlertFmtT(
+          "BBA MAC address {0} invalid for XLink Kai. A valid Nintendo GameCube MAC address "
+          "must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.",
+          mac_addr_setting);
+    }
+
+    // m_client_mdentifier should be unique per connected emulator from the XLink kai client's
+    // perspective so lets use "dolphin<bba mac>"
+    m_network_interface =
+        std::make_unique<NetplayBBAnetworkinterface>(this, Config::Get(Config::MAIN_BBA_XLINK_IP), 34523,
+                                                "dolphin" + Config::Get(Config::MAIN_BBA_MAC),
+                                                Config::Get(Config::MAIN_BBA_XLINK_CHAT_OSD));
+    INFO_LOG_FMT(SP1, "Created XLink Kai BBA network interface connection to {}:34523",
+                 Config::Get(Config::MAIN_BBA_XLINK_IP));
+    break;
+
+    /*here*/
 
   }
 
