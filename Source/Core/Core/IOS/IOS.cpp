@@ -263,7 +263,7 @@ void WriteReturnValue(s32 value, u32 address)
   Memory::Write_U32(static_cast<u32>(value), address);
 }
 
-Kernel::Kernel()
+Kernel::Kernel(IOSC::ConsoleType console_type) : m_iosc(console_type)
 {
   // Until the Wii root and NAND path stuff is entirely managed by IOS and made non-static,
   // using more than one IOS instance at a time is not supported.
