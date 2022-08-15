@@ -39,35 +39,30 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     for (int i=0; i < request_length; ++i)
       csum += buffer[i];
 
-    // fix this
-    unsigned char res[0x80];
-    int resp = 0;
-
-    int real_len = buffer[1];
-
-    memset(res, 0, 0x80);
     buffer[1] = 1;
     buffer[2] = 1;
 
-    while (2 < real_len+2)
+    while (2 < buffer[1] + 2) // uhh
     {
       CSIDevice_Baseboard::HandleSubCommand(buffer[2]);
     }
-    // fix this
-    int len = resp - 2;
-    res[1] = len;
+
+    buffer[1] = -2; // what and why
+
     csum = 0;
+    // why is this like this
     char logptr[1024];
     char *log = logptr;
 
     for( int i=0; i<0x7F; ++i )
     {
-      buffer[i] = res[i];
-      csum += res[i];
+      csum += buffer[i];
+      // seriously, why
       log += sprintf(log, "%02x ", buffer[i]);
     }
 
     buffer[0x7f] = ~csum;
+    // like what
     INFO_LOG_FMT(SERIALINTERFACE, "Command send back: {:02x}", logptr);
 
     // (tmbinc) hotfix: delay output by one command to work around their broken parser. this took me a month to find. ARG!
