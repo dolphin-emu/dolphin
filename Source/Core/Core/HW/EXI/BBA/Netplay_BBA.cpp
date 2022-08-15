@@ -28,11 +28,14 @@ namespace ExpansionInterface
 
     if (!m_bba_failure_notifiedtwo)
     {
-      NOTICE_LOG_FMT(SP1, "Hellow World");
-      ERROR_LOG_FMT(SP1, "Hellow world");
-      OSD::AddMessage("Hello World", 30000);
+       OSD::AddMessage("Netplay BBA started.", 30000);
       m_bba_failure_notifiedtwo = true;
     }
+    return false;
+  }
+
+  bool CEXIETHERNET::NetplayBBAnetworkinterface::IsActivated()
+  {
     return false;
   }
 
