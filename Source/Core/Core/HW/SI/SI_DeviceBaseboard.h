@@ -14,7 +14,7 @@ public:
   CSIDevice_Baseboard(SIDevices device, int device_number);
 
   int RunBuffer(u8* buffer, int request_length) override;
-  unsigned char HandleSubCommand(u8 command);
+  void HandleSubCommand(u8* buffer);
   bool GetData(u32& hi, u32& low) override;
   void SendCommand(u32 command, u8 poll) override;
 

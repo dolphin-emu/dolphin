@@ -34,7 +34,7 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
   }
   case 0x70: // CMD_GCAM
   {
-    CSIDevice_Baseboard::HandleSubCommand(buffer[2]);
+    CSIDevice_Baseboard::HandleSubCommand(buffer);
 
     buffer[1] = -2; // what and why
 
@@ -79,15 +79,13 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
   return position;
 }
 
-unsigned char CSIDevice_Baseboard::HandleSubCommand(u8 command)
+void CSIDevice_Baseboard::HandleSubCommand(u8* buffer)
 {
-  unsigned char buffer[0x80];
-
-  switch (command)
+  switch (buffer[2])
   {
   case 0x10:
   {
-    INFO_LOG_FMT(SERIALINTERFACE, "Command 10 {:02x} (READ STATUS&SWITCHES)", command);
+    INFO_LOG_FMT(SERIALINTERFACE, "Command 10 {:02x} (READ STATUS&SWITCHES)", buffer[2]);
     buffer[1] = 0x10;
     buffer[2] = 0x2;
     buffer[3] = 0xFF;
@@ -96,7 +94,7 @@ unsigned char CSIDevice_Baseboard::HandleSubCommand(u8 command)
   }
   case 0x15:
   {
-    INFO_LOG_FMT(SERIALINTERFACE, "Command 15, {:02x} (READ FIRM VERSION)", command);
+    INFO_LOG_FMT(SERIALINTERFACE, "Command 15, {:02x} (READ FIRM VERSION)", buffer[2]);
     buffer[1] = 0x15;
     buffer[2] = 0x02;
      // FIRM VERSION
@@ -106,7 +104,7 @@ unsigned char CSIDevice_Baseboard::HandleSubCommand(u8 command)
   }
   case 0x16:
   {
-    INFO_LOG_FMT(SERIALINTERFACE, "Command 16, {:02x} (READ FPGA VERSION)", command);
+    INFO_LOG_FMT(SERIALINTERFACE, "Command 16, {:02x} (READ FPGA VERSION)", buffer[2]);
     buffer[1] = 0x16;
     buffer[2] = 0x02;
      // FPGA VERSION
@@ -116,7 +114,7 @@ unsigned char CSIDevice_Baseboard::HandleSubCommand(u8 command)
   }
   case 0x1f:
   {
-    INFO_LOG_FMT(SERIALINTERFACE, "Command 1f, {:02x} (REGION)", command);
+    INFO_LOG_FMT(SERIALINTERFACE, "Command 1f, {:02x} (REGION)", buffer[2]);
     unsigned char string[] =  
       "\x00\x00\x30\x00"
       "\x01\xfe\x00\x00" // JAPAN
@@ -132,11 +130,9 @@ unsigned char CSIDevice_Baseboard::HandleSubCommand(u8 command)
   }
   default:
   {
-    ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI subcommand {:02x}", command);
+    ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI subcommand {:02x}", buffer[2]);
   }
   }
-
-  return reinterpret_cast<unsigned char>(buffer);
 }
 
 bool CSIDevice_Baseboard::GetData(u32& hi, u32& low)
