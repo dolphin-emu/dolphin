@@ -140,18 +140,21 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
 #undef ptr
     }
      // (tmbinc) hotfix: delay output by one command to work around their broken parser. this took me a month to find. ARG!
-     static unsigned char last[2][0x80];
-     static int lastptr[2];
+     // 
+      //
+     // mebbe fix games not takingthe input for soeme reason
+     // static unsigned char last[2][0x80];
+     // static int lastptr[2];
 
-     memcpy(last + 1, buffer, 0x80);
-     memcpy(buffer, last, 0x80);
-     memcpy(last, last + 1, 0x80);
+     // memcpy(last + 1, buffer, 0x80);
+     // memcpy(buffer, last, 0x80);
+     // memcpy(last, last + 1, 0x80);
 
-     lastptr[1] = request_length;
-     request_length = lastptr[0];
-     lastptr[0] = lastptr[1];
+     // lastptr[1] = request_length;
+     // request_length = lastptr[0];
+     // lastptr[0] = lastptr[1];
 
-     position = request_length;
+     // position = request_length;
      break;
   }
   default:
