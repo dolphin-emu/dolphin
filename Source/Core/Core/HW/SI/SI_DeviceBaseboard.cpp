@@ -34,22 +34,11 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
   }
   case 0x70: // CMD_GCAM
   {
-    // "calculate checksum over buffer"
-    int csum = 0;
-    for (int i=0; i < request_length; ++i)
-      csum += buffer[i];
-
-    buffer[1] = 1;
-    buffer[2] = 1;
-
-    while (2 < buffer[1] + 2) // uhh
-    {
-      CSIDevice_Baseboard::HandleSubCommand(buffer[2]);
-    }
+    CSIDevice_Baseboard::HandleSubCommand(buffer[2]);
 
     buffer[1] = -2; // what and why
 
-    csum = 0;
+    int csum = 0;
     // why is this like this
     char logptr[1024];
     char *log = logptr;
