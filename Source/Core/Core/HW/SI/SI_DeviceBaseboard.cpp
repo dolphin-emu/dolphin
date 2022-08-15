@@ -22,11 +22,9 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
 
   int position = 0;
 
-  const auto command = static_cast<EBufferCommands>(buffer[position]);
-
-  switch (command)
+  switch (buffer[position])
   {
-  case EBufferCommands::CMD_RESET:
+  case 0x00: // CMD_RESET
   {
     // Bitwise OR the SI ID against a dipswitch state (progressive in this case)
     u32 id = Common::swap32(SI_BASEBOARD | 0x100);
@@ -34,128 +32,57 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     return sizeof(id);
     //position = request_length;
   }
-  case EBufferCommands::CMD_GCAM:
+  case 0x70: // CMD_GCAM
   {
     // "calculate checksum over buffer"
     int csum = 0;
     for (int i=0; i < request_length; ++i)
       csum += buffer[i];
 
+    // fix this
     unsigned char res[0x80];
     int resp = 0;
 
     int real_len = buffer[1];
-    //int p = 2; msvc shut up
-
-    static int d10_1 = 0xfe;
 
     memset(res, 0, 0x80);
-    res[resp++] = 1;
-    res[resp++] = 1;
+    buffer[1] = 1;
+    buffer[2] = 1;
 
-
-#define ptr(x) buffer[(2 + x)]
     while (2 < real_len+2)
     {
-      switch (ptr(0))
-      {
-        case 0x10:
-        {
-          INFO_LOG_FMT(SERIALINTERFACE, "Command 10 {:02x} (READ STATUS&SWITCHES)", ptr(1));
-          // GCPadStatus PadStatus;
-          // memset(&PadStatus, 0 ,sizeof(PadStatus));
-          // Pad::GetStatus(ISIDevice::GetDeviceNumber());
-          res[resp++] = 0x10;
-          res[resp++] = 0x2;
-          int d10_0 = 0xFF;
-
-          res[resp++] = d10_0;
-          res[resp++] = d10_1;
-          break;
-        }
-        case 0x11:
-        {
-          INFO_LOG_FMT(SERIALINTERFACE, "Command 11, {:02x} (READ SERIAL NR)", ptr(1));
-          char string[] = "AADE-01A14964511";
-          res[resp++] = 0x11;
-          res[resp++] = 0x10;
-          memcpy(res + resp, string, 0x10);
-          resp += 0x10;
-          break;
-        }
-        case 0x15:
-        {
-          INFO_LOG_FMT(SERIALINTERFACE, "Command 15, {:02x} (READ FIRM VERSION)", ptr(1));
-          res[resp++] = 0x15;
-          res[resp++] = 0x02;
-           // FIRM VERSION
-          res[resp++] = 0x00;
-          res[resp++] = 0x44;
-          break;
-        }
-        case 0x16:
-        {
-          INFO_LOG_FMT(SERIALINTERFACE, "Command 16, {:02x} (READ FPGA VERSION)", ptr(1));
-          res[resp++] = 0x16;
-          res[resp++] = 0x02;
-           // FPGA VERSION
-          res[resp++] = 0x07;
-          res[resp++] = 0x09;
-          break;
-        }
-        case 0x1f:
-        {
-          INFO_LOG_FMT(SERIALINTERFACE, "Command 1f, {:02x} {:02x} {:02x} {:02x} {:02x} (REGION)", ptr(1), ptr(2), ptr(3), ptr(4), ptr(5));
-          unsigned char string[] =  
-            "\x00\x00\x30\x00"
-            "\x01\xfe\x00\x00" // JAPAN
-            //"\x02\xfd\x00\x00" // USA
-            //"\x03\xfc\x00\x00" // export
-            "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
-          res[resp++] = 0x1f;
-          res[resp++] = 0x14;
-
-          for( int i=0; i<0x14; ++i )
-            res[resp++] = string[i];
-          break;
-        }
-      }
-      // p += ptr(1) + 2;
-      ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI subcommand {:02x} {:02x} {:02x} {:02x} {:02x}",
-                    ptr(0), ptr(1), ptr(2), ptr(3), ptr(4));
-      // memset(buffer, 0, request_length);
-      // int len = resp - 2;
-      // p = 0;
-      // res[1] = len;
-      // csum = 0;
-      // char logptr[1024];
-      // char *log = logptr;
-      // for( int i=0; i<0x7F; ++i )
-      // {
-      //   csum += ptr(i) = res[i];
-      //   log += sprintf(log, "%02x ", ptr(i));
-      // }
-      // ptr(0x7f) = ~csum;
-      // INFO_LOG_FMT(SERIALINTERFACE, "Command send back: {:02x}", logptr);
-#undef ptr
+      CSIDevice_Baseboard::HandleSubCommand(buffer[2]);
     }
-     // (tmbinc) hotfix: delay output by one command to work around their broken parser. this took me a month to find. ARG!
-     // 
-      //
-     // mebbe fix games not takingthe input for soeme reason
-     // static unsigned char last[2][0x80];
-     // static int lastptr[2];
+    // fix this
+    int len = resp - 2;
+    res[1] = len;
+    csum = 0;
+    char logptr[1024];
+    char *log = logptr;
 
-     // memcpy(last + 1, buffer, 0x80);
-     // memcpy(buffer, last, 0x80);
-     // memcpy(last, last + 1, 0x80);
+    for( int i=0; i<0x7F; ++i )
+    {
+      buffer[i] = res[i];
+      csum += res[i];
+      log += sprintf(log, "%02x ", buffer[i]);
+    }
 
-     // lastptr[1] = request_length;
-     // request_length = lastptr[0];
-     // lastptr[0] = lastptr[1];
+    buffer[0x7f] = ~csum;
+    INFO_LOG_FMT(SERIALINTERFACE, "Command send back: {:02x}", logptr);
 
-     // position = request_length;
-     break;
+    // (tmbinc) hotfix: delay output by one command to work around their broken parser. this took me a month to find. ARG!
+    static unsigned char last[2][0x80];
+    static int lastptr[2];
+
+    memcpy(last + 1, buffer, 0x80);
+    memcpy(buffer, last, 0x80);
+    memcpy(last, last + 1, 0x80);
+
+    lastptr[1] = request_length;
+    request_length = lastptr[0];
+    lastptr[0] = lastptr[1];
+
+    position = request_length;
   }
   default:
   {
@@ -166,6 +93,66 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
   }
 
   return position;
+}
+
+unsigned char CSIDevice_Baseboard::HandleSubCommand(u8 command)
+{
+  unsigned char buffer[0x80];
+
+  switch (command)
+  {
+  case 0x10:
+  {
+    INFO_LOG_FMT(SERIALINTERFACE, "Command 10 {:02x} (READ STATUS&SWITCHES)", command);
+    buffer[1] = 0x10;
+    buffer[2] = 0x2;
+    buffer[3] = 0xFF;
+    buffer[4] = 0xfe;
+    break;
+  }
+  case 0x15:
+  {
+    INFO_LOG_FMT(SERIALINTERFACE, "Command 15, {:02x} (READ FIRM VERSION)", command);
+    buffer[1] = 0x15;
+    buffer[2] = 0x02;
+     // FIRM VERSION
+    buffer[3] = 0x00;
+    buffer[4] = 0x44;
+    break;
+  }
+  case 0x16:
+  {
+    INFO_LOG_FMT(SERIALINTERFACE, "Command 16, {:02x} (READ FPGA VERSION)", command);
+    buffer[1] = 0x16;
+    buffer[2] = 0x02;
+     // FPGA VERSION
+    buffer[3] = 0x07;
+    buffer[4] = 0x09;
+    break;
+  }
+  case 0x1f:
+  {
+    INFO_LOG_FMT(SERIALINTERFACE, "Command 1f, {:02x} (REGION)", command);
+    unsigned char string[] =  
+      "\x00\x00\x30\x00"
+      "\x01\xfe\x00\x00" // JAPAN
+      //"\x02\xfd\x00\x00" // USA
+      //"\x03\xfc\x00\x00" // export
+      "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
+    buffer[1] = 0x1f;
+    buffer[2] = 0x14;
+
+    for( int i=0; i<0x14; ++i )
+      buffer[(3 + i)] = string[i];
+    break;
+  }
+  default:
+  {
+    ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI subcommand {:02x}", command);
+  }
+  }
+
+  return reinterpret_cast<unsigned char>(buffer);
 }
 
 bool CSIDevice_Baseboard::GetData(u32& hi, u32& low)
