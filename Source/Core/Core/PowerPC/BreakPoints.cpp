@@ -12,7 +12,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
+#include "Core/Debugger/HLEFormatter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 
@@ -48,6 +50,15 @@ bool BreakPoints::IsBreakPointLogOnHit(u32 address) const
                      [address](const auto& bp) { return bp.address == address && bp.log_on_hit; });
 }
 
+std::optional<TBreakPoint> BreakPoints::GetBreakPoint(u32 address) const
+{
+  const auto it = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
+                               [address](const auto& bp) { return bp.address == address; });
+  if (it == m_breakpoints.end())
+    return std::nullopt;
+  return *it;
+}
+
 BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
 {
   TBreakPointsStr bp_strings;
@@ -58,8 +69,8 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
       std::ostringstream ss;
       ss.imbue(std::locale::classic());
 
-      ss << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "")
-         << (bp.log_on_hit ? "l" : "") << (bp.break_on_hit ? "b" : "");
+      ss << '$' << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "")
+         << (bp.log_on_hit ? "l" : "") << (bp.break_on_hit ? "b" : "") << " " << bp.message;
       bp_strings.push_back(ss.str());
     }
   }
@@ -69,15 +80,19 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
 
 void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
 {
-  for (const std::string& bp_string : bp_strings)
+  for (std::string bp_string : bp_strings)
   {
     TBreakPoint bp;
     std::string flags;
+    StringPopFrontIf(&bp_string, '$');
     std::istringstream iss(bp_string);
     iss.imbue(std::locale::classic());
 
     iss >> std::hex >> bp.address;
     iss >> flags;
+    std::getline(iss, bp.message);
+    StringPopFrontIf(&bp.message, ' ');
+
     bp.is_enabled = flags.find('n') != flags.npos;
     bp.log_on_hit = flags.find('l') != flags.npos;
     bp.break_on_hit = flags.find('b') != flags.npos;
@@ -101,7 +116,8 @@ void BreakPoints::Add(u32 address, bool temp)
   BreakPoints::Add(address, temp, true, false);
 }
 
-void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit)
+void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit,
+                      std::string message)
 {
   // Only add new addresses
   if (IsAddressBreakPoint(address))
@@ -113,6 +129,7 @@ void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit
   bp.break_on_hit = break_on_hit;
   bp.log_on_hit = log_on_hit;
   bp.address = address;
+  bp.message = std::move(message);
 
   m_breakpoints.push_back(bp);
 
@@ -178,9 +195,10 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
     std::ostringstream ss;
     ss.imbue(std::locale::classic());
 
-    ss << std::hex << mc.start_address << " " << mc.end_address << " " << (mc.is_enabled ? "n" : "")
-       << (mc.is_break_on_read ? "r" : "") << (mc.is_break_on_write ? "w" : "")
-       << (mc.log_on_hit ? "l" : "") << (mc.break_on_hit ? "b" : "");
+    ss << '$' << std::hex << mc.start_address << " " << mc.end_address << " "
+       << (mc.is_enabled ? "n" : "") << (mc.is_break_on_read ? "r" : "")
+       << (mc.is_break_on_write ? "w" : "") << (mc.log_on_hit ? "l" : "")
+       << (mc.break_on_hit ? "b" : "") << " " << mc.message;
     mc_strings.push_back(ss.str());
   }
 
@@ -189,14 +207,17 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
 
 void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 {
-  for (const std::string& mc_string : mc_strings)
+  for (std::string mc_string : mc_strings)
   {
     TMemCheck mc;
+    StringPopFrontIf(&mc_string, '$');
     std::istringstream iss(mc_string);
     iss.imbue(std::locale::classic());
 
     std::string flags;
     iss >> std::hex >> mc.start_address >> mc.end_address >> flags;
+    std::getline(iss, mc.message);
+    StringPopFrontIf(&mc.message, ' ');
 
     mc.is_ranged = mc.start_address != mc.end_address;
     mc.is_enabled = flags.find('n') != flags.npos;
@@ -303,9 +324,16 @@ bool TMemCheck::Action(Common::DebugInterface* debug_interface, u64 value, u32 a
   {
     if (log_on_hit)
     {
-      NOTICE_LOG_FMT(MEMMAP, "MBP {:08x} ({}) {}{} {:x} at {:08x} ({})", pc,
-                     debug_interface->GetDescription(pc), write ? "Write" : "Read", size * 8, value,
-                     addr, debug_interface->GetDescription(addr));
+      if (message.empty())
+      {
+        NOTICE_LOG_FMT(MEMMAP, "MBP {:08x} ({}) {}{} {:x} at {:08x} ({})", pc,
+                       debug_interface->GetDescription(pc), write ? "Write" : "Read", size * 8,
+                       value, addr, debug_interface->GetDescription(addr));
+      }
+      else
+      {
+        NOTICE_LOG_FMT(MEMMAP, "{}", Core::Debug::HLEFormatString(message));
+      }
     }
     if (break_on_hit)
       return true;

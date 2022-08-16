@@ -59,6 +59,8 @@ add_library(core
   Debugger/Dump.cpp
   Debugger/Dump.h
   Debugger/GCELF.h
+  Debugger/HLEFormatter.cpp
+  Debugger/HLEFormatter.h
   Debugger/OSThread.cpp
   Debugger/OSThread.h
   Debugger/PPCDebugInterface.cpp

@@ -30,6 +30,8 @@ private:
   void OnBPTypeChanged();
   void OnAddressTypeChanged();
 
+  void ShowHelp();
+
   // Instruction BPs
   QRadioButton* m_instruction_bp;
   QGroupBox* m_instruction_box;
@@ -47,6 +49,8 @@ private:
   QRadioButton* m_memory_on_read;
   QRadioButton* m_memory_on_read_and_write;
   QRadioButton* m_memory_on_write;
+  QLabel* m_log_message_label;
+  QLineEdit* m_log_message;
 
   // Action
   QRadioButton* m_do_log;

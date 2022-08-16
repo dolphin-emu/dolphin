@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -17,6 +18,7 @@ class DebugInterface;
 struct TBreakPoint
 {
   u32 address = 0;
+  std::string message{};
   bool is_enabled = false;
   bool is_temporary = false;
   bool log_on_hit = false;
@@ -27,6 +29,7 @@ struct TMemCheck
 {
   u32 start_address = 0;
   u32 end_address = 0;
+  std::string message{};
 
   bool is_enabled = true;
   bool is_ranged = false;
@@ -52,6 +55,7 @@ public:
   using TBreakPointsStr = std::vector<std::string>;
 
   const TBreakPoints& GetBreakPoints() const { return m_breakpoints; }
+  std::optional<TBreakPoint> GetBreakPoint(u32 address) const;
   TBreakPointsStr GetStrings() const;
   void AddFromStrings(const TBreakPointsStr& bp_strings);
 
@@ -63,7 +67,7 @@ public:
   bool IsBreakPointLogOnHit(u32 address) const;
 
   // Add BreakPoint
-  void Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit);
+  void Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit, std::string message = {});
   void Add(u32 address, bool temp = false);
   void Add(const TBreakPoint& bp);
 

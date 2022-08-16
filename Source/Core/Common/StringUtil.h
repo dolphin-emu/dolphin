@@ -175,6 +175,7 @@ std::string PathToFileName(std::string_view path);
 
 bool StringBeginsWith(std::string_view str, std::string_view begin);
 bool StringEndsWith(std::string_view str, std::string_view end);
+void StringPopFrontIf(std::string* s, char c);
 void StringPopBackIf(std::string* s, char c);
 size_t StringUTF8CodePointCount(const std::string& str);
 

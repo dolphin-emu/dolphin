@@ -344,6 +344,9 @@ if(MSVC)
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /DEBUG")
   # Eliminate dead code and data
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /OPT:REF /OPT:ICF")
+
+  # Set FMT_EXCEPTIONS = 0 to disable fmt exceptions on Windows
+  add_definitions(-DFMT_EXCEPTIONS=0 -DFMT_ASSERT=__noop)
 else()
   add_definitions(-D_DEFAULT_SOURCE)
 

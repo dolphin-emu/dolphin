@@ -189,6 +189,7 @@
     <ClInclude Include="Core\Debugger\Debugger_SymbolMap.h" />
     <ClInclude Include="Core\Debugger\Dump.h" />
     <ClInclude Include="Core\Debugger\GCELF.h" />
+    <ClInclude Include="Core\Debugger\HLEFormatter.h" />
     <ClInclude Include="Core\Debugger\OSThread.h" />
     <ClInclude Include="Core\Debugger\PPCDebugInterface.h" />
     <ClInclude Include="Core\Debugger\RSO.h" />
@@ -805,6 +806,7 @@
     <ClCompile Include="Core\CoreTiming.cpp" />
     <ClCompile Include="Core\Debugger\Debugger_SymbolMap.cpp" />
     <ClCompile Include="Core\Debugger\Dump.cpp" />
+    <ClCompile Include="Core\Debugger\HLEFormatter.cpp" />
     <ClCompile Include="Core\Debugger\OSThread.cpp" />
     <ClCompile Include="Core\Debugger\PPCDebugInterface.cpp" />
     <ClCompile Include="Core\Debugger\RSO.cpp" />

@@ -441,6 +441,12 @@ bool StringEndsWith(std::string_view str, std::string_view end)
   return str.size() >= end.size() && std::equal(end.rbegin(), end.rend(), str.rbegin());
 }
 
+void StringPopFrontIf(std::string* s, char c)
+{
+  if (!s->empty() && s->front() == c)
+    s->erase(0, 1);
+}
+
 void StringPopBackIf(std::string* s, char c)
 {
   if (!s->empty() && s->back() == c)

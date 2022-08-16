@@ -22,6 +22,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/Debugger/HLEFormatter.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
@@ -610,22 +611,30 @@ void CheckExternalExceptions()
 
 void CheckBreakPoints()
 {
-  if (!PowerPC::breakpoints.IsBreakPointEnable(PC))
+  const auto bp = PowerPC::breakpoints.GetBreakPoint(PC);
+  if (!bp)
     return;
 
-  if (PowerPC::breakpoints.IsBreakPointBreakOnHit(PC))
+  if (bp->break_on_hit)
   {
     CPU::Break();
     if (GDBStub::IsActive())
       GDBStub::TakeControl();
   }
-  if (PowerPC::breakpoints.IsBreakPointLogOnHit(PC))
+  if (bp->log_on_hit)
   {
-    NOTICE_LOG_FMT(MEMMAP,
-                   "BP {:08x} {}({:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} "
-                   "{:08x}) LR={:08x}",
-                   PC, g_symbolDB.GetDescription(PC), GPR(3), GPR(4), GPR(5), GPR(6), GPR(7),
-                   GPR(8), GPR(9), GPR(10), GPR(11), GPR(12), LR);
+    if (bp->message.empty())
+    {
+      NOTICE_LOG_FMT(MEMMAP,
+                     "BP {:08x} {}({:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} "
+                     "{:08x}) LR={:08x}",
+                     PC, g_symbolDB.GetDescription(PC), GPR(3), GPR(4), GPR(5), GPR(6), GPR(7),
+                     GPR(8), GPR(9), GPR(10), GPR(11), GPR(12), LR);
+    }
+    else
+    {
+      NOTICE_LOG_FMT(MEMMAP, "{}", Core::Debug::HLEFormatString(bp->message));
+    }
   }
   if (PowerPC::breakpoints.IsTempBreakPoint(PC))
     PowerPC::breakpoints.Remove(PC);
