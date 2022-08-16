@@ -39,20 +39,12 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     buffer[1] = -2; // what and why
 
     int csum = 0;
-    // why is this like this
-    char logptr[1024];
-    char *log = logptr;
-
     for( int i=0; i<0x7F; ++i )
-    {
       csum += buffer[i];
-      // seriously, why
-      log += sprintf(log, "%02x ", buffer[i]);
-    }
 
     buffer[0x7f] = ~csum;
-    // like what
-    INFO_LOG_FMT(SERIALINTERFACE, "Command send back: {:02x}", logptr);
+
+    INFO_LOG_FMT(SERIALINTERFACE, "Subcommand send back: {:02x} {:02x} {:02x} {:02x}", buffer[1], buffer[2], buffer[3], buffer[4]);
 
     // (tmbinc) hotfix: delay output by one command to work around their broken parser. this took me a month to find. ARG!
     static unsigned char last[2][0x80];
