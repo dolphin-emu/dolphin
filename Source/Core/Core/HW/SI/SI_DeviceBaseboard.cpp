@@ -34,6 +34,9 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
   {
     CSIDevice_Baseboard::HandleSubCommand(buffer);
 
+        INFO_LOG_FMT(SERIALINTERFACE, "Subcommand send back before anything like csum voodoo: {:02x} {:02x} {:02x} {:02x} {:02x}",
+                 buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
+
     buffer[1] = -2; // what and why
 
     int csum = 0;
@@ -48,6 +51,7 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     // (tmbinc) hotfix: delay output by one command to work around their broken parser. this took me a month to find. ARG!
     static unsigned char last[2][0x80];
     static int lastptr[2];
+
     memcpy(last + 1, buffer, 0x80);
     memcpy(buffer, last, 0x80);
     memcpy(last, last + 1, 0x80);
@@ -55,6 +59,9 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     lastptr[1] = request_length;
     request_length = lastptr[0];
     lastptr[0] = lastptr[1];
+
+    INFO_LOG_FMT(SERIALINTERFACE, "Subcommand send back post shift voodoo: {:02x} {:02x} {:02x} {:02x} {:02x}",
+                 buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
 
     break;
   }
