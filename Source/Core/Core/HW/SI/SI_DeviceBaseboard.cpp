@@ -79,10 +79,10 @@ void CSIDevice_Baseboard::HandleSubCommand(u8* buffer)
   case 0x10:
   {
     INFO_LOG_FMT(SERIALINTERFACE, "Command 10 {:02x} (READ STATUS&SWITCHES)", buffer[2]);
-    buffer[1] = 0x10;
-    buffer[2] = 0x2;
-    buffer[3] = 0xFF;
-    buffer[4] = 0xfe;
+    buffer[0] = 0x10;
+    buffer[1] = 0x2;
+    buffer[2] = 0xFF;
+    buffer[3] = 0xfe;
     break;
   }
   case 0x15:
