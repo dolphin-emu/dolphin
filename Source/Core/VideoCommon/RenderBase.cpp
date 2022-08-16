@@ -589,21 +589,38 @@ void Renderer::CheckForConfigChanges()
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
-  if (g_ActiveConfig.bShowFPS)
+  if (g_ActiveConfig.bShowFPS | g_ActiveConfig.bShowVPS | g_ActiveConfig.bShowSpeed)
   {
     // Position in the top-right corner of the screen.
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - (10.0f * m_backbuffer_scale),
-                                   10.0f * m_backbuffer_scale),
+                                   10.f * m_backbuffer_scale),
                             ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSize(ImVec2(100.0f * m_backbuffer_scale, 30.0f * m_backbuffer_scale));
 
-    if (ImGui::Begin("FPS", nullptr,
+    int count = g_ActiveConfig.bShowFPS + g_ActiveConfig.bShowVPS + g_ActiveConfig.bShowSpeed;
+    ImGui::SetNextWindowSize(
+        ImVec2(70.f * m_backbuffer_scale, (14.f + 16.f * count) * m_backbuffer_scale));
+
+    if (ImGui::Begin("Performance", nullptr,
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
                          ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
                          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
                          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
     {
-      ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "FPS: %.2f", m_fps_counter.GetFPS());
+      const double fps = m_fps_counter.GetFPS();
+      const double vps = m_vps_counter.GetFPS();
+      const double speed = 100.0 * vps / VideoInterface::GetTargetRefreshRate();
+
+      // Change Color based on % Speed
+      const float r = 1.0 - (speed - 80.0) / 20.0;
+      const float g = speed / 80.0;
+      const float b = (speed - 90.0) / 10.0;
+
+      if (g_ActiveConfig.bShowFPS)
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "FPS: %.0lf", std::round(fps));
+      if (g_ActiveConfig.bShowVPS)
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "VPS: %.0lf", std::round(vps));
+      if (g_ActiveConfig.bShowSpeed)
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "%.0lf%%", std::round(speed));
     }
     ImGui::End();
   }
@@ -615,8 +632,7 @@ void Renderer::DrawDebugText()
   if (show_movie_window)
   {
     // Position under the FPS display.
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - (10.0f * m_backbuffer_scale),
-                                   50.0f * m_backbuffer_scale),
+    ImGui::SetNextWindowPos(ImVec2(80.f * m_backbuffer_scale, 60.f * m_backbuffer_scale),
                             ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowSizeConstraints(
         ImVec2(150.0f * m_backbuffer_scale, 20.0f * m_backbuffer_scale),
@@ -1403,6 +1419,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
         SetWindowSize(xfb_rect.GetWidth(), xfb_rect.GetHeight());
       }
 
+      m_vps_counter.Update();
       if (!is_duplicate_frame)
       {
         m_fps_counter.Update();

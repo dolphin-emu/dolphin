@@ -87,6 +87,8 @@ void GeneralWidget::CreateWidgets()
   auto* m_options_layout = new QGridLayout();
 
   m_show_fps = new GraphicsBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
+  m_show_vps = new GraphicsBool(tr("Show VPS"), Config::GFX_SHOW_VPS);
+  m_show_speed = new GraphicsBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED);
   m_show_ping = new GraphicsBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING);
   m_log_render_time =
       new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
@@ -99,13 +101,14 @@ void GeneralWidget::CreateWidgets()
   m_options_box->setLayout(m_options_layout);
 
   m_options_layout->addWidget(m_show_fps, 0, 0);
-  m_options_layout->addWidget(m_log_render_time, 0, 1);
+  m_options_layout->addWidget(m_show_vps, 1, 0);
+  m_options_layout->addWidget(m_show_speed, 2, 0);
+  m_options_layout->addWidget(m_log_render_time, 3, 0);
 
-  m_options_layout->addWidget(m_render_main_window, 1, 0);
+  m_options_layout->addWidget(m_render_main_window, 0, 1);
   m_options_layout->addWidget(m_autoadjust_window_size, 1, 1);
-
-  m_options_layout->addWidget(m_show_messages, 2, 0);
-  m_options_layout->addWidget(m_show_ping, 2, 1);
+  m_options_layout->addWidget(m_show_messages, 2, 1);
+  m_options_layout->addWidget(m_show_ping, 3, 1);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
@@ -226,8 +229,16 @@ void GeneralWidget::AddDescriptions()
       "this "
       "unchecked.</dolphin_emphasis>");
   static const char TR_SHOW_FPS_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the number of distinct frames rendered per second as a measure of "
+                 "visual smoothness.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_VPS_DESCRIPTION[] =
       QT_TR_NOOP("Shows the number of frames rendered per second as a measure of "
                  "emulation speed.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_SPEED_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the % speed of emulation compared to full speed."
+                 "<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
   static const char TR_SHOW_NETPLAY_PING_DESCRIPTION[] = QT_TR_NOOP(
       "Shows the player's maximum ping while playing on "
@@ -281,6 +292,10 @@ void GeneralWidget::AddDescriptions()
   m_enable_fullscreen->SetDescription(tr(TR_FULLSCREEN_DESCRIPTION));
 
   m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));
+
+  m_show_vps->SetDescription(tr(TR_SHOW_VPS_DESCRIPTION));
+
+  m_show_speed->SetDescription(tr(TR_SHOW_SPEED_DESCRIPTION));
 
   m_show_ping->SetDescription(tr(TR_SHOW_NETPLAY_PING_DESCRIPTION));
 

@@ -75,6 +75,8 @@ struct VideoConfig final
 
   // Information
   bool bShowFPS = false;
+  bool bShowVPS = false;
+  bool bShowSpeed = false;
   bool bShowNetPlayPing = false;
   bool bShowNetPlayMessages = false;
   bool bOverlayStats = false;
@@ -235,16 +237,26 @@ struct VideoConfig final
   } backend_info;
 
   // Utility
-  bool MultisamplingEnabled() const { return iMultisamples > 1; }
+  bool MultisamplingEnabled() const
+  {
+    return iMultisamples > 1;
+  }
+
   bool ExclusiveFullscreenEnabled() const
   {
     return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;
   }
+
   bool UseGPUTextureDecoding() const
   {
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
-  bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
+
+  bool UseVertexRounding() const
+  {
+    return bVertexRounding && iEFBScale != 1;
+  }
+
   bool ManualTextureSamplingWithHiResTextures() const
   {
     // Hi-res textures (including hi-res EFB copies, but not native-resolution EFB copies at higher
