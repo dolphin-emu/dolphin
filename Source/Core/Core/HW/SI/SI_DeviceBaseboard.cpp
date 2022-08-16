@@ -44,7 +44,8 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
 
     buffer[0x7f] = ~csum;
 
-    INFO_LOG_FMT(SERIALINTERFACE, "Subcommand send back: {:02x} {:02x} {:02x} {:02x}", buffer[1], buffer[2], buffer[3], buffer[4]);
+    INFO_LOG_FMT(SERIALINTERFACE, "Subcommand send back: {:02x} {:02x} {:02x} {:02x} {:02x}",
+                 buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
 
     // (tmbinc) hotfix: delay output by one command to work around their broken parser. this took me a month to find. ARG!
     static unsigned char last[2][0x80];
