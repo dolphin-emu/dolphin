@@ -30,7 +30,7 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     u32 id = Common::swap32(SI_BASEBOARD | 0x100);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
-    //position = request_length;
+    break;
   }
   case 0x70: // CMD_GCAM
   {
@@ -59,13 +59,13 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     request_length = lastptr[0];
     lastptr[0] = lastptr[1];
 
-    position = request_length;
+    break;
   }
   default:
   {
     ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI command {:02x} {:02x} {:02x} {:02x} {:02x}",
                   buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
-    position = request_length;
+    break;
   }
   }
 
@@ -124,6 +124,7 @@ void CSIDevice_Baseboard::HandleSubCommand(u8* buffer)
   default:
   {
     ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI subcommand {:02x}", buffer[2]);
+    break;
   }
   }
 }
