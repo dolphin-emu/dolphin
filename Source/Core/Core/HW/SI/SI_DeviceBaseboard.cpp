@@ -20,9 +20,7 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
 {
   ISIDevice::RunBuffer(buffer, request_length);
 
-  int position = 0;
-
-  switch (buffer[position])
+  switch (buffer[0])
   {
   case 0x00: // CMD_RESET
   {
@@ -50,7 +48,6 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     // (tmbinc) hotfix: delay output by one command to work around their broken parser. this took me a month to find. ARG!
     static unsigned char last[2][0x80];
     static int lastptr[2];
-
     memcpy(last + 1, buffer, 0x80);
     memcpy(buffer, last, 0x80);
     memcpy(last, last + 1, 0x80);
@@ -69,7 +66,7 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
   }
   }
 
-  return position;
+  return 0;
 }
 
 void CSIDevice_Baseboard::HandleSubCommand(u8* buffer)
