@@ -4,6 +4,7 @@
 #pragma once
 
 #include <fstream>
+#include <queue>
 
 #include "Common/CommonTypes.h"
 
@@ -24,7 +25,7 @@ public:
   double GetDeltaTime() const { return m_raw_dt; }
 
 private:
-  void LogRenderTimeToFile(u64 val);
+  void LogRenderTimeToFile(s64 val);
   void SetPaused(bool paused);
 
   const char* m_log_name;
@@ -35,6 +36,10 @@ private:
 
   double m_avg_fps = 0.0;
   double m_raw_dt = 0.0;
+
+  s64 m_dt_size = 0;
+  s64 m_dt_total = 0;
+  std::queue<s64> m_dt_queue;
 
   int m_on_state_changed_handle = -1;
   s64 m_last_time_pause = 0;

@@ -13,7 +13,10 @@
 #include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
 
-static constexpr double FPS_COUNTER_RC = 0.8;
+static constexpr double US_TO_MS = 1000.0;
+static constexpr double US_TO_S = 1000000.0;
+
+static constexpr s64 FPS_SAMPLE_TIME_US = 2000000;
 
 FPSCounter::FPSCounter(const char* log_name)
 {
@@ -33,14 +36,14 @@ FPSCounter::~FPSCounter()
   Core::RemoveOnStateChangedCallback(&m_on_state_changed_handle);
 }
 
-void FPSCounter::LogRenderTimeToFile(u64 val)
+void FPSCounter::LogRenderTimeToFile(s64 val)
 {
   if (!m_bench_file.is_open())
   {
     File::OpenFStream(m_bench_file, File::GetUserPath(D_LOGS_IDX) + m_log_name, std::ios_base::out);
   }
 
-  m_bench_file << std::fixed << std::setprecision(8) << (val / 1000.0) << std::endl;
+  m_bench_file << std::fixed << std::setprecision(8) << (val / US_TO_MS) << std::endl;
 }
 
 void FPSCounter::Update()
@@ -51,14 +54,22 @@ void FPSCounter::Update()
     const s64 diff = std::max<s64>(1, time - m_last_time);
     m_last_time = time;
 
+    m_dt_size += 1;
+    m_dt_total += diff;
+    m_dt_queue.push(diff);
+
+    while (1 < m_dt_size && FPS_SAMPLE_TIME_US <= m_dt_total - m_dt_queue.front())
+    {
+      m_dt_size -= 1;
+      m_dt_total -= m_dt_queue.front();
+      m_dt_queue.pop();
+    }
+
+    m_avg_fps = (US_TO_S * m_dt_size) / m_dt_total;
+    m_raw_dt = diff / US_TO_S;
+
     if (g_ActiveConfig.bLogRenderTimeToFile)
       LogRenderTimeToFile(diff);
-
-    m_raw_dt = static_cast<double>(diff / 1000000.0);
-
-    const double raw_fps = 1.0 / m_raw_dt;
-    const double a = 1.0 - std::exp(-m_raw_dt / FPS_COUNTER_RC);
-    m_avg_fps += a * (raw_fps - m_avg_fps);
   }
 }
 
