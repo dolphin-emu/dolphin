@@ -69,13 +69,13 @@ void WiiBanner::ExtractARC(std::string path)
 std::string WiiBanner::GetName() const
 {
   //return UTF16BEToUTF8(m_header.name, std::size(m_header.name));
-  return 0;
+  return std::string();
 }
 
 std::string WiiBanner::GetDescription() const
 {
   //return UTF16BEToUTF8(m_header.description, std::size(m_header.description));
-  return 0;
+  return std::string();
 }
 
 std::vector<u32> WiiBanner::GetBanner(u32* width, u32* height) const
