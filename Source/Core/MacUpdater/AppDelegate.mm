@@ -27,9 +27,16 @@
         args.push_back(std::string([obj UTF8String]));
       }];
 
+  std::optional<Options> maybe_opts = ParseCommandLine(args);
+  if (!maybe_opts)
+  {
+    return;
+  }
+  const Options options = std::move(*maybe_opts);
+
   dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul);
   dispatch_async(queue, ^{
-    RunUpdater(args);
+    RunUpdater(options);
     [NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0.0];
   });
 }

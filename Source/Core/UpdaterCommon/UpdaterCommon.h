@@ -14,4 +14,16 @@
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
-bool RunUpdater(std::vector<std::string> args);
+struct Options
+{
+  std::string this_manifest_url;
+  std::string next_manifest_url;
+  std::string content_store_url;
+  std::string install_base_path;
+  std::optional<std::string> binary_to_restart;
+  std::optional<u32> parent_pid;
+  std::optional<std::string> log_file;
+};
+
+bool RunUpdater(const Options& options);
+std::optional<Options> ParseCommandLine(const std::vector<std::string>& args);

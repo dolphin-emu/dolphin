@@ -584,19 +584,9 @@ std::optional<Manifest> FetchAndParseManifest(const std::string& url)
 
   return ParseManifest(decompressed);
 }
+};  // namespace
 
-struct Options
-{
-  std::string this_manifest_url;
-  std::string next_manifest_url;
-  std::string content_store_url;
-  std::string install_base_path;
-  std::optional<std::string> binary_to_restart;
-  std::optional<u32> parent_pid;
-  std::optional<std::string> log_file;
-};
-
-std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
+std::optional<Options> ParseCommandLine(const std::vector<std::string>& args)
 {
   using optparse::OptionParser;
 
@@ -664,22 +654,13 @@ std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
 
   return opts;
 }
-};  // namespace
 
-bool RunUpdater(std::vector<std::string> args)
+bool RunUpdater(const Options& opts)
 {
-  std::optional<Options> maybe_opts = ParseCommandLine(args);
-
-  if (!maybe_opts)
-  {
-    return false;
-  }
-
   UI::Init();
   UI::SetVisible(false);
 
   Common::ScopeGuard ui_guard{[] { UI::Stop(); }};
-  Options opts = std::move(*maybe_opts);
 
   if (opts.log_file)
   {

@@ -30,8 +30,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
   // Test for write permissions
   bool need_admin = false;
+  std::vector<std::string> args = CommandLineToUtf8Argv(pCmdLine);
+  std::optional<Options> maybe_opts = ParseCommandLine(args);
 
   FILE* test_fh = fopen("Updater.log", "w");
+  if (!maybe_opts)
+  {
+    return false;
+  }
+  const Options options = std::move(*maybe_opts);
 
   if (test_fh == nullptr)
     need_admin = true;
@@ -59,7 +66,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     return 0;
   }
 
-  std::vector<std::string> args = CommandLineToUtf8Argv(pCmdLine);
-
-  return RunUpdater(args) ? 0 : 1;
+  return RunUpdater(options) ? 0 : 1;
 }
