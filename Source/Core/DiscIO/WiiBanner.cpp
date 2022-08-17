@@ -60,7 +60,7 @@ void WiiBanner::ExtractARC(std::string path)
   if (header != 0x55AA382D) // "U.8-"
     m_valid = false;
 
-  file.ReadBytes(&bytes, file.GetSize());
+  file.ReadBytes(&bytes, (file.GetSize() - 600));
   m_arc_unpacker.AddBytes(bytes);
 
   const std::string outdir = File::CreateTempDir();
@@ -94,13 +94,13 @@ void WiiBanner::ExtractIconBin(std::string path)
   file.ReadBytes(&header, sizeof(header));
   if (header == 0x4C5A3737) // "LZ77"
   {
-    DecompressLZ77("booga");
+    DecompressLZ77(path);
   }
   else if (header == 0x55AA382D) // "U.8-"
   {
     std::vector<unsigned char> bytes;
 
-    file.ReadBytes(&bytes, file.GetSize());
+    file.ReadBytes(&bytes, (file.GetSize() - 20));
     m_arc_unpacker.AddBytes(bytes);
 
     const std::string outdir = File::CreateTempDir();
@@ -123,7 +123,19 @@ void WiiBanner::ExtractIconBin(std::string path)
 
 void WiiBanner::DecompressLZ77(std::string path)
 {
-  // hold please
+  File::IOFile file(path, "rb");
+  std::vector<unsigned char> bytes;
+  std::vector<unsigned char> outbytes;
+
+  file.Seek(20, File::SeekOrigin::Begin);
+  file.ReadBytes(&bytes, (file.GetSize() - 20));
+
+  if (!(fastlz_decompress(bytes.data(), bytes.size(), &outbytes, (bytes.size()*4))))
+    m_valid = false;
+
+  const std::string outpath = (File::CreateTempDir() + "lz77tmp.bin");
+  File::IOFile outfile(outpath, "wb");
+  outfile.WriteBytes(outbytes.data(), outbytes.size());
 }
 
 std::string WiiBanner::GetName() const
