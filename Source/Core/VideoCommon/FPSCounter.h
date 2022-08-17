@@ -37,7 +37,6 @@ private:
   double m_avg_fps = 0.0;
   double m_raw_dt = 0.0;
 
-  s64 m_dt_size = 0;
   s64 m_dt_total = 0;
   std::queue<s64> m_dt_queue;
 

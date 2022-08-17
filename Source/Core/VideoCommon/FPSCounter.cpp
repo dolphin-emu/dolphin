@@ -54,18 +54,16 @@ void FPSCounter::Update()
     const s64 diff = std::max<s64>(1, time - m_last_time);
     m_last_time = time;
 
-    m_dt_size += 1;
     m_dt_total += diff;
     m_dt_queue.push(diff);
 
-    while (1 < m_dt_size && FPS_SAMPLE_TIME_US <= m_dt_total - m_dt_queue.front()) 
+    while (1 < m_dt_queue.size() && FPS_SAMPLE_TIME_US <= m_dt_total - m_dt_queue.front()) 
     {
-      m_dt_size -= 1;
       m_dt_total -= m_dt_queue.front();
       m_dt_queue.pop();
     }
 
-    m_avg_fps = (US_TO_S * m_dt_size) / m_dt_total;
+    m_avg_fps = (US_TO_S * m_dt_queue.size()) / m_dt_total;
     m_raw_dt = diff / US_TO_S;
 
     if (g_ActiveConfig.bLogRenderTimeToFile)

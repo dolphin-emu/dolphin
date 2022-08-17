@@ -237,10 +237,7 @@ struct VideoConfig final
   } backend_info;
 
   // Utility
-  bool MultisamplingEnabled() const
-  {
-    return iMultisamples > 1;
-  }
+  bool MultisamplingEnabled() const { return iMultisamples > 1; }
 
   bool ExclusiveFullscreenEnabled() const
   {
@@ -252,10 +249,7 @@ struct VideoConfig final
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
 
-  bool UseVertexRounding() const
-  {
-    return bVertexRounding && iEFBScale != 1;
-  }
+  bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
 
   bool ManualTextureSamplingWithHiResTextures() const
   {
