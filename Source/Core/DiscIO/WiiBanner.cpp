@@ -3,7 +3,6 @@
 
 #include "DiscIO/WiiBanner.h"
 
-#include <iterator>
 #include <string>
 #include <vector>
 
@@ -46,35 +45,94 @@ void WiiBanner::ExtractARC(std::string path)
   IOS::HLE::ARCUnpacker m_arc_unpacker;
   File::IOFile file(path, "rb");
   std::vector<unsigned char> bytes;
+  u32 header;
 
   if (!file)
     m_valid = false;
   else if (file.GetSize() <= BANNER_SIZE * ICON_SIZE)
     m_valid = false;
 
+  file.Seek(600, File::SeekOrigin::Begin);
+
+  file.ReadBytes(&header, sizeof(header));
+  if (header != 0x55AA382D) // "U.8-"
+    m_valid = false;
+
   file.ReadBytes(&bytes, file.GetSize());
   m_arc_unpacker.AddBytes(bytes);
 
-  const auto callback = [this](const std::string& filename, const std::vector<u8>& outbytes)
+  const std::string outdir = File::CreateTempDir();
+
+  const auto callback = [=](const std::string& filename, const std::vector<u8>& outbytes)
   {
-    const std::string outpath = (File::CreateTempDir() + filename);
+    const std::string outpath = (outdir + filename);
     File::CreateFullPath(outpath);
     File::IOFile outfile(outpath, "wb");
     outfile.WriteBytes(outbytes.data(), outbytes.size());
   };
 
   m_arc_unpacker.Extract(callback);
+
+  ExtractIconBin(outdir + "/meta/icon.bin");
+}
+
+void WiiBanner::ExtractIconBin(std::string path)
+{ 
+  IOS::HLE::ARCUnpacker m_arc_unpacker;
+  File::IOFile file(path, "rb");
+  u32 header;
+
+  if (!file)
+    m_valid = false;
+  else if (file.GetSize() <= BANNER_SIZE * ICON_SIZE)
+    m_valid = false;
+
+  file.Seek(20, File::SeekOrigin::Begin);
+
+  file.ReadBytes(&header, sizeof(header));
+  if (header == 0x4C5A3737) // "LZ77"
+  {
+    DecompressLZ77("booga");
+  }
+  else if (header == 0x55AA382D) // "U.8-"
+  {
+    std::vector<unsigned char> bytes;
+
+    file.ReadBytes(&bytes, file.GetSize());
+    m_arc_unpacker.AddBytes(bytes);
+
+    const std::string outdir = File::CreateTempDir();
+
+    const auto callback = [=](const std::string& filename, const std::vector<u8>& outbytes)
+    {
+      const std::string outpath = (outdir + filename);
+      File::CreateFullPath(outpath);
+      File::IOFile outfile(outpath, "wb");
+      outfile.WriteBytes(outbytes.data(), outbytes.size());
+    };
+
+    m_arc_unpacker.Extract(callback);
+  }
+  else
+  {
+    m_valid = false;
+  }
+}
+
+void WiiBanner::DecompressLZ77(std::string path)
+{
+  // hold please
 }
 
 std::string WiiBanner::GetName() const
 {
+  // In the wii save banner.bin the name is from 0x20 to 0x3F
+  // In the opening.bnr the name is SOMETIMES from 0x5C to 0x7B
+  // of course the current extaction is also currently broken (see: the smurfs dance party)
+  // but this wont be any more broken
+  // ok well not exactly
+  // it will be broken in a different way
   //return UTF16BEToUTF8(m_header.name, std::size(m_header.name));
-  return std::string();
-}
-
-std::string WiiBanner::GetDescription() const
-{
-  //return UTF16BEToUTF8(m_header.description, std::size(m_header.description));
   return std::string();
 }
 

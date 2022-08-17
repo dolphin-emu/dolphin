@@ -1149,9 +1149,6 @@ void MenuBar::CheckNAND()
         if (banner.IsValid())
         {
           title_listings += " - " + banner.GetName();
-          const std::string description = banner.GetDescription();
-          if (!StripWhitespace(description).empty())
-            title_listings += " - " + description;
         }
       }
 
