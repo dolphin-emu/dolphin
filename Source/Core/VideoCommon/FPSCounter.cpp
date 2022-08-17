@@ -48,27 +48,26 @@ void FPSCounter::LogRenderTimeToFile(s64 val)
 
 void FPSCounter::Update()
 {
-  if (!m_paused)
+  if (m_paused) return;
+
+  const s64 time = Common::Timer::NowUs();
+  const s64 diff = std::max<s64>(0, time - m_last_time);
+  m_last_time = time;
+
+  m_dt_total += diff;
+  m_dt_queue.push(diff);
+
+  while (FPS_SAMPLE_TIME_US <= m_dt_total - m_dt_queue.front())
   {
-    const s64 time = Common::Timer::NowUs();
-    const s64 diff = std::max<s64>(0, time - m_last_time);
-    m_last_time = time;
-
-    m_dt_total += diff;
-    m_dt_queue.push(diff);
-
-    while (FPS_SAMPLE_TIME_US <= m_dt_total - m_dt_queue.front())
-    {
-      m_dt_total -= m_dt_queue.front();
-      m_dt_queue.pop();
-    }
-
-    m_avg_fps = (US_TO_S * m_dt_queue.size()) / m_dt_total;
-    m_raw_dt = diff / US_TO_S;
-
-    if (g_ActiveConfig.bLogRenderTimeToFile)
-      LogRenderTimeToFile(diff);
+    m_dt_total -= m_dt_queue.front();
+    m_dt_queue.pop();
   }
+
+  m_avg_fps = (US_TO_S * m_dt_queue.size()) / m_dt_total;
+  m_raw_dt = diff / US_TO_S;
+
+  if (g_ActiveConfig.bLogRenderTimeToFile)
+    LogRenderTimeToFile(diff);
 }
 
 void FPSCounter::SetPaused(bool paused)
