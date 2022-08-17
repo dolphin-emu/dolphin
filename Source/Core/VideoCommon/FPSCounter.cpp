@@ -51,13 +51,13 @@ void FPSCounter::Update()
   if (!m_paused)
   {
     const s64 time = Common::Timer::NowUs();
-    const s64 diff = std::max<s64>(1, time - m_last_time);
+    const s64 diff = std::max<s64>(0, time - m_last_time);
     m_last_time = time;
 
     m_dt_total += diff;
     m_dt_queue.push(diff);
 
-    while (1 < m_dt_queue.size() && FPS_SAMPLE_TIME_US <= m_dt_total - m_dt_queue.front())
+    while (FPS_SAMPLE_TIME_US <= m_dt_total - m_dt_queue.front())
     {
       m_dt_total -= m_dt_queue.front();
       m_dt_queue.pop();
