@@ -18,6 +18,8 @@
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Volume.h"
 
+#include "fastlz.h"
+
 namespace DiscIO
 {
 constexpr u32 BANNER_WIDTH = 192;

@@ -79,6 +79,7 @@ PRIVATE
   minizip-ng
   pugixml
   ZLIB::ZLIB
+  FastLZ
 )
 
 if(MSVC)
