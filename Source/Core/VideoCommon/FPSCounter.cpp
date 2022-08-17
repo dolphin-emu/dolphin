@@ -57,7 +57,7 @@ void FPSCounter::Update()
     m_dt_total += diff;
     m_dt_queue.push(diff);
 
-    while (1 < m_dt_queue.size() && FPS_SAMPLE_TIME_US <= m_dt_total - m_dt_queue.front()) 
+    while (1 < m_dt_queue.size() && FPS_SAMPLE_TIME_US <= m_dt_total - m_dt_queue.front())
     {
       m_dt_total -= m_dt_queue.front();
       m_dt_queue.pop();
