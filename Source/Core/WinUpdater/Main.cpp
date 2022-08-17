@@ -10,6 +10,8 @@
 #include <vector>
 
 #include "Common/CommonFuncs.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
 #include "UpdaterCommon/UI.h"
@@ -28,22 +30,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     return 1;
   }
 
-  // Test for write permissions
-  bool need_admin = false;
   std::vector<std::string> args = CommandLineToUtf8Argv(pCmdLine);
   std::optional<Options> maybe_opts = ParseCommandLine(args);
 
-  FILE* test_fh = fopen("Updater.log", "w");
   if (!maybe_opts)
   {
     return false;
   }
   const Options options = std::move(*maybe_opts);
 
-  if (test_fh == nullptr)
-    need_admin = true;
-  else
-    fclose(test_fh);
+  const std::string test_file_path = options.install_base_path + DIR_SEP_CHR + "test.tmp";
+  const bool file_creation_failed = !File::CreateEmptyFile(test_file_path);
+  const bool file_deletion_failed = !File::Delete(test_file_path);
+  const bool need_admin = file_creation_failed || file_deletion_failed;
 
   if (need_admin)
   {

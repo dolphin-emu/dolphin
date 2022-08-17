@@ -37,12 +37,14 @@ bool s_update_triggered = false;
 #ifdef _WIN32
 
 static constexpr char UPDATER_FILENAME[] = "Updater.exe";
-static constexpr char UPDATER_COPY_FILENAME[] = "Updater.2.exe";
+static constexpr char UPDATER_COPY_FILENAME[] = "DolphinUpdater.exe";
+static constexpr char UPDATER_COPY_LEGACY_FILENAME[] = "Updater.2.exe";
 
 #elif defined(__APPLE__)
 
 static constexpr char UPDATER_FILENAME[] = "Dolphin Updater.app";
-static constexpr char UPDATER_COPY_FILENAME[] = ".Dolphin Updater.2.app";
+static constexpr char UPDATER_COPY_FILENAME[] = "Dolphin Updater.app";
+static constexpr char UPDATER_COPY_LEGACY_FILENAME[] = ".Dolphin Updater.2.app";
 static constexpr char UPDATER_BUNDLE_EXE_SUBPATH[] = "/Contents/MacOS/Dolphin Updater";
 
 #endif
@@ -57,7 +59,12 @@ std::string GetUpdaterPath()
 
 std::string GetUpdaterCopyPath()
 {
-  return File::GetExeDirectory() + DIR_SEP_CHR + UPDATER_COPY_FILENAME;
+  return File::GetUserPath(D_USER_IDX) + UPDATER_COPY_FILENAME;
+}
+
+std::string GetUpdaterCopyLegacyPath()
+{
+  return File::GetExeDirectory() + DIR_SEP_CHR + UPDATER_COPY_LEGACY_FILENAME;
 }
 
 std::string GetUpdaterLogPath()
@@ -90,8 +97,10 @@ void CleanupFromPreviousUpdate()
 {
 #ifdef __APPLE__
   File::DeleteDirRecursively(GetUpdaterCopyPath());
+  File::DeleteDirRecursively(GetUpdaterCopyLegacyPath());
 #else
   File::Delete(GetUpdaterCopyPath(), File::IfAbsentBehavior::NoConsoleWarning);
+  File::Delete(GetUpdaterCopyLegacyPath(), File::IfAbsentBehavior::NoConsoleWarning);
 #endif
 }
 #endif
