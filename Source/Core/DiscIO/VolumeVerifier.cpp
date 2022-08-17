@@ -574,7 +574,9 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
 
   if (!m_is_datel)
   {
-    IOS::HLE::Kernel ios;
+    const auto console_type =
+        IsDebugSigned() ? IOS::HLE::IOSC::ConsoleType::RVT : IOS::HLE::IOSC::ConsoleType::Retail;
+    IOS::HLE::Kernel ios(console_type);
     const auto es = ios.GetES();
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(partition);
 
@@ -978,7 +980,7 @@ void VolumeVerifier::CheckMisc()
 
   if (m_volume.GetVolumeType() == Platform::WiiWAD)
   {
-    IOS::HLE::Kernel ios;
+    IOS::HLE::Kernel ios(m_ticket.GetConsoleType());
     const auto es = ios.GetES();
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(PARTITION_NONE);
 
@@ -1456,7 +1458,8 @@ void VolumeVerifier::Finish()
   {
     m_result.summary_text +=
         Common::GetStringT("\n\nBecause this title is not for retail Wii consoles, "
-                           "Dolphin cannot verify that it hasn't been tampered with.");
+                           "Dolphin cannot ensure that it hasn't been tampered with, even if "
+                           "signatures appear valid.");
   }
 }
 

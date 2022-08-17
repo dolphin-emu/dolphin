@@ -110,7 +110,7 @@ void WriteReturnValue(s32 value, u32 address);
 class Kernel
 {
 public:
-  Kernel();
+  explicit Kernel(IOSC::ConsoleType console_type = IOSC::ConsoleType::Retail);
   virtual ~Kernel();
 
   void DoState(PointerWrap& p);
