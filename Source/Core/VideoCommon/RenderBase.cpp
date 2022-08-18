@@ -589,7 +589,7 @@ void Renderer::CheckForConfigChanges()
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
-  if (g_ActiveConfig.bShowFPS | g_ActiveConfig.bShowVPS | g_ActiveConfig.bShowSpeed)
+  if (g_ActiveConfig.bShowFPS || g_ActiveConfig.bShowVPS || g_ActiveConfig.bShowSpeed)
   {
     // Position in the top-right corner of the screen.
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - (10.0f * m_backbuffer_scale),
