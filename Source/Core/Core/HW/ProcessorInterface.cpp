@@ -18,6 +18,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 
 namespace ProcessorInterface
@@ -108,7 +109,19 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if ((val & 1) != 0)
                    {
                      GPFifo::ResetGatherPipe();
-                     Fifo::ResetVideoBuffer();
+
+                     // Call Fifo::ResetVideoBuffer() from the video thread. Since that function
+                     // resets various pointers used by the video thread, we can't call it directly
+                     // from the CPU thread, so queue a task to do it instead. In single-core mode,
+                     // AsyncRequests is in passthrough mode, so this will be safely and immediately
+                     // called on the CPU thread.
+
+                     // NOTE: GPFifo::ResetGatherPipe() only affects
+                     // CPU state, so we can call it directly
+
+                     AsyncRequests::Event ev = {};
+                     ev.type = AsyncRequests::Event::FIFO_RESET;
+                     AsyncRequests::GetInstance()->PushEvent(ev);
                    }
                  }));
 
