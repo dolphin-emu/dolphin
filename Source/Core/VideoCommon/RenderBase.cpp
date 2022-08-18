@@ -616,11 +616,11 @@ void Renderer::DrawDebugText()
       const float b = (speed - 90.0) / 10.0;
 
       if (g_ActiveConfig.bShowFPS)
-        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "FPS: %.0lf", std::round(fps));
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "FPS: %.0lf", fps);
       if (g_ActiveConfig.bShowVPS)
-        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "VPS: %.0lf", std::round(vps));
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "VPS: %.0lf", vps);
       if (g_ActiveConfig.bShowSpeed)
-        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "%.0lf%%", std::round(speed));
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "%.0lf%%", speed);
     }
     ImGui::End();
   }

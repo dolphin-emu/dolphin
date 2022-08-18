@@ -16,7 +16,7 @@
 static constexpr double US_TO_MS = 1000.0;
 static constexpr double US_TO_S = 1000000.0;
 
-static constexpr s64 FPS_SAMPLE_TIME_US = 1000000;
+static constexpr s64 FPS_SAMPLE_TIME_US = 2000000;
 
 FPSCounter::FPSCounter(const char* log_name)
 {
