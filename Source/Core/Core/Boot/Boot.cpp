@@ -476,7 +476,7 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   if (triforce_ipl)
   {
     u8 *skey = Memory::GetPointer(0);
-    INFO_LOG_FMT(BOOT, "Triforce: Session Key {:08x}", skey);
+    INFO_LOG_FMT(BOOT, "Triforce: Session Key {}", skey);
   }
   return true;
 }
