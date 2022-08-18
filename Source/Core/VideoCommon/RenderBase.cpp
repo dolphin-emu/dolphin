@@ -1356,7 +1356,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
     if (xfb_entry &&
         (!g_ActiveConfig.bSkipPresentingDuplicateXFBs || xfb_entry->id != m_last_xfb_id))
     {
-      const bool is_duplicate_frame = xfb_entry->id == m_last_xfb_id || NetPlay::IsRollingBack();
+      const bool is_duplicate_frame = xfb_entry->id == m_last_xfb_id;
       m_last_xfb_id = xfb_entry->id;
 
       // Since we use the common pipelines here and draw vertices if a batch is currently being
@@ -1862,7 +1862,9 @@ void Renderer::DoState(PointerWrap& p)
     m_was_orthographically_anamorphic = false;
 
     // And actually display it.
-    Swap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height, m_last_xfb_ticks);
+    if (!NetPlay::IsRollingBack())
+      Swap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height,
+           m_last_xfb_ticks);
   }
 
 #if defined(HAVE_FFMPEG)

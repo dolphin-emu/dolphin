@@ -909,7 +909,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
 
   inputs.clear();
   for (int i = 0; i < m_players.size(); i++)
-    inputs.push_back(std::vector<GCPadStatus>{});
+    inputs.push_back(std::vector<GCPadStatus>{GCPadStatus{}});
 
   save_states.reset();
   current_frame = 0;
@@ -1506,7 +1506,7 @@ void NetPlayClient::RollbackToFrame(u64 frame)
   {
     frame_to_stop_at = current_frame;
     current_frame = frame;
-    Core::SetIsThrottlerTempDisabled(true);
+    Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 0.0);
   }
   else
   {
@@ -1578,8 +1578,10 @@ void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
                              static_cast<long long>(inputs.at(remote_players).size());
           wait_for_inputs.wait_for(lock, 1ms);
         }
+
         needs_to_rollback = true;
         farthest_rollback_frame = rollback_frames_supported + delay;
+        remote_players = 0;
       }
     }
   }
@@ -2033,27 +2035,10 @@ void NetPlayClient::OnConnectFailed(TraversalConnectFailedReason reason)
 // called from ---CPU--- thread
 bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatus* pad_status)
 {
-  if (inputs.at(pad_nb).size() > delay + rollback_frames_supported)
-  {
-    if (!is_rollingback)
-    {
-      auto delayed_input = inputs.at(pad_nb).rbegin();
-      std::advance(delayed_input, delay);
-      m_pad_buffer.at(pad_nb).Push(*(delayed_input));
-    }
-    else
-    {
-      auto delayed_input = inputs.at(pad_nb).begin();
-      std::advance(delayed_input, (current_frame - delay) - 1);
-      m_pad_buffer.at(pad_nb).Push(*(delayed_input));
-    }
-  }
+  if (is_rollingback && inputs.at(pad_nb).size() > current_frame)
+    *pad_status = inputs.at(pad_nb).at(current_frame);
   else
-  {
-    m_pad_buffer.at(pad_nb).Push(GCPadStatus{});
-  }
-
-  m_pad_buffer[pad_nb].Pop(*pad_status);
+    *pad_status = inputs.at(pad_nb).back();
 
   // The interface for this is extremely silly.
   //
@@ -2865,12 +2850,8 @@ void OnFrameEnd()
   }
   else if (netplay_client->current_frame >= netplay_client->frame_to_stop_at)
   {
-    Core::SetIsThrottlerTempDisabled(false);
+    Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0);
     is_rollingback = false;
-  }
-  else
-  {
-    DEBUG_LOG_FMT(NETPLAY, "Error occured in NetPlay::OnFrameEnd()");
   }
 
   netplay_client->current_frame++;
