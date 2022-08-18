@@ -209,6 +209,8 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
   // Blank out session key (https://debugmo.de/2008/05/part-2-dumping-the-media-board/)
   if (volume.GetVolumeType() == DiscIO::Platform::Triforce)
   {
+    u8 *skey = Memory::GetPointer(0);
+    INFO_LOG_FMT(BOOT, "Triforce: Emulated Session Key {:08x}", skey);
     Memory::Memset(0, 0, 12);
   }
 

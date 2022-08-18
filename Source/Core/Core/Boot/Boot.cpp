@@ -404,6 +404,7 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   constexpr u32 MPAL_v1_1 = 0x667D0B64;  // Brazil
   constexpr u32 PAL_v1_0 = 0x4F319F43;
   constexpr u32 PAL_v1_2 = 0xAD1B7F16;
+  constexpr u32 Triforce = 0xD1883221; // The Triforce's special IPL
 
   // Load the whole ROM dump
   std::string data;
@@ -413,6 +414,7 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   const u32 ipl_hash = Common::ComputeCRC32(data);
   bool known_ipl = false;
   bool pal_ipl = false;
+  bool triforce_ipl = false;
   switch (ipl_hash)
   {
   case NTSC_v1_0:
@@ -426,6 +428,9 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
     pal_ipl = true;
     known_ipl = true;
     break;
+  case Triforce:
+    known_ipl = true;
+    triforce_ipl = true;
   default:
     PanicAlertFmtT("The IPL file is not a known good dump. (CRC32: {0:x})", ipl_hash);
     break;
@@ -464,6 +469,15 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   SetupBAT(/*is_wii*/ false);
 
   PC = 0x81200150;
+
+  // is this the right place to do this?
+  // probably not!
+  // where is the session key set tho https://debugmo.de/2008/05/part-2-dumping-the-media-board/
+  if (triforce_ipl)
+  {
+    u8 *skey = Memory::GetPointer(0);
+    INFO_LOG_FMT(BOOT, "Triforce: Session Key {:08x}", skey);
+  }
   return true;
 }
 
