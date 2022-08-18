@@ -701,6 +701,10 @@ void AXUCode::HandleMail(u32 mail)
 
     case MAIL_NEW_UCODE:
       m_upload_setup_in_progress = true;
+      // Relevant when this uCode is resumed after switching.
+      // The resume mail is sent via the NeedsResumeMail() check above
+      // (and the flag corresponding to it is set by PrepareBootUCode).
+      m_mail_state = MailState::WaitingForCmdListSize;
       break;
 
     case MAIL_RESET:
