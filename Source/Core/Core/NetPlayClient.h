@@ -192,6 +192,7 @@ public:
 
   void OnFrameEnd(std::unique_lock<std::mutex>& lock);
   bool IsRollingBack();
+  bool IsInRollbackMode();
 
   // Only for use in NetPlayClient.cpp >:(
   size_t current_frame = 0;
@@ -374,6 +375,7 @@ private:
   std::condition_variable wait_for_inputs;
   SaveStateArray save_states;
 
+
   bool LoadFromFrame(u64 frame);
   void RollbackToFrame(u64 frame);
 };
@@ -381,6 +383,9 @@ private:
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
 void OnFrameEnd();
+// tells when Dolphin is actually mid rollback
 bool IsRollingBack();
+// tells if we're using rollback networking
+bool IsInRollbackMode();
 
 }  // namespace NetPlay

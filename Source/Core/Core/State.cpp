@@ -193,6 +193,7 @@ static void DoState(PointerWrap& p)
   // Movie must be done before the video backend, because the window is redrawn in the video backend
   // state load, and the frame number must be up-to-date.
   Movie::DoState(p);
+  // there is a weird bug with this marker
   p.DoMarker("Movie");
 
   // Begin with video backend, so that it gets a chance to clear its caches and writeback modified
@@ -217,11 +218,11 @@ static void DoState(PointerWrap& p)
 
 void LoadFromBuffer(std::vector<u8>& buffer)
 {
-  //if (NetPlay::IsNetPlayRunning())
-  //{
-  //  OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
-  //  return;
-  //}
+  if (!NetPlay::IsInRollbackMode() && NetPlay::IsNetPlayRunning())
+  {
+    OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+    return;
+  }
 
   Core::RunOnCPUThread(
       [&] {

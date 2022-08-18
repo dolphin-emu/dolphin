@@ -8,6 +8,7 @@
 #include <cstring>
 #include <fstream>
 #include <functional>
+#include <latch>
 #include <memory>
 #include <mutex>
 #include <sstream>
@@ -666,17 +667,22 @@ void NetPlayClient::OnPadData(sf::Packet& packet)
           pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
     }
 
+    if (m_net_settings.m_RollbackMode)
     {
-      std::lock_guard lock(crit_netplay_client);
-      inputs.at(map).push_back(pad);
+      {
+        std::lock_guard lock(crit_netplay_client);
+        inputs.at(map).push_back(pad);
+      }
+
+      wait_for_inputs.notify_all();
     }
-
-    wait_for_inputs.notify_all();
-
-    // Trusting server for good map value (>=0 && <4)
-    // add to pad buffer
-    /*    m_pad_buffer.at(map).Push(pad);*/
-    // m_gc_pad_event.Set();
+    else
+    {
+      // Trusting server for good map value (>=0 && <4)
+      // add to pad buffer
+      m_pad_buffer.at(map).Push(pad);
+      m_gc_pad_event.Set();
+    }
   }
 }
 
@@ -900,6 +906,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
       packet >> extension;
 
     packet >> m_net_settings.m_GolfMode;
+    packet >> m_net_settings.m_RollbackMode;
     packet >> m_net_settings.m_UseFMA;
     packet >> m_net_settings.m_HideRemoteGBAs;
 
@@ -959,22 +966,25 @@ void NetPlayClient::OnPlayerPingData(sf::Packet& packet)
 
 void NetPlayClient::OnDesyncDetected(sf::Packet& packet)
 {
-  int pid_to_blame;
-  u32 frame;
-  packet >> pid_to_blame;
-  packet >> frame;
+  if (!m_net_settings.m_RollbackMode)
+  {
+    int pid_to_blame;
+    u32 frame;
+    packet >> pid_to_blame;
+    packet >> frame;
 
-  // std::string player = "??";
-  // std::lock_guard lkp(m_crit.players);
-  //{
-  //   const auto it = m_players.find(pid_to_blame);
-  //   if (it != m_players.end())
-  //     player = it->second.name;
-  // }
+    std::string player = "??";
+    std::lock_guard lkp(m_crit.players);
+    {
+      const auto it = m_players.find(pid_to_blame);
+      if (it != m_players.end())
+        player = it->second.name;
+    }
 
-  // INFO_LOG_FMT(NETPLAY, "Player {} ({}) desynced!", player, pid_to_blame);
+    INFO_LOG_FMT(NETPLAY, "Player {} ({}) desynced!", player, pid_to_blame);
 
-  // m_dialog->OnDesync(frame, player);
+    m_dialog->OnDesync(frame, player);
+  }
 }
 
 void NetPlayClient::OnSyncGCSRAM(sf::Packet& packet)
@@ -1517,6 +1527,8 @@ void NetPlayClient::RollbackToFrame(u64 frame)
 
 void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
 {
+  // this function is only called in rollback mode, but the logic to skip it is in
+  // OnFrameEnd() (the one not in NetPlayClient::)
   sf::Packet packet;
   packet << MessageID::PadData;
 
@@ -1593,6 +1605,11 @@ void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
 bool NetPlayClient::IsRollingBack()
 {
   return is_rollingback.load();
+}
+
+bool NetPlayClient::IsInRollbackMode()
+{
+  return m_net_settings.m_RollbackMode;
 }
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
@@ -2035,158 +2052,147 @@ void NetPlayClient::OnConnectFailed(TraversalConnectFailedReason reason)
 // called from ---CPU--- thread
 bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatus* pad_status)
 {
-  if (is_rollingback && inputs.at(pad_nb).size() > current_frame)
-    *pad_status = inputs.at(pad_nb).at(current_frame);
-  else
-    *pad_status = inputs.at(pad_nb).back();
-
-  // The interface for this is extremely silly.
-  //
-  // Imagine a physical device that links three GameCubes together
-  // and emulates NetPlay that way. Which GameCube controls which
-  // in-game controllers can be configured on the device (m_pad_map)
-  // but which sockets on each individual GameCube should be used
-  // to control which players? The solution that Dolphin uses is
-  // that we hardcode the knowledge that they go in order, so if
-  // you have a 3P game with three GameCubes, then every single
-  // controller should be plugged into slot 1.
-  //
-  // If you have a 4P game, then one of the GameCubes will have
-  // a controller plugged into slot 1, and another in slot 2.
-  //
-  // The slot number is the "local" pad number, and what player
-  // it actually means is the "in-game" pad number.
-
-  // When the 1st in-game pad is polled and batching is set, the
-  // others will be polled as well. To reduce latency, we poll all
-  // local controllers at once and then send the status to the other
-  // clients.
-  //
-  // Batching is enabled when polled from VI. If batching is not
-  // enabled, the poll is probably from MMIO, which can poll any
-  // specific pad arbitrarily. In this case, we poll just that pad
-  // and send it.
-
-  // When here when told to so we don't deadlock in certain situations
-  // while (m_wait_on_input)
-  //{
-  //  if (!m_is_running.IsSet())
-  //  {
-  //    return false;
-  //  }
-
-  //  if (m_wait_on_input_received)
-  //  {
-  //    // Tell the server we've acknowledged the message
-  //    sf::Packet spac;
-  //    spac << MessageID::GolfPrepare;
-  //    Send(spac);
-
-  //    m_wait_on_input_received = false;
-  //  }
-
-  //  m_wait_on_input_event.Wait();
-  //}
-
-  // if (IsFirstInGamePad(pad_nb) && batching)
-  //{
-  //   sf::Packet packet;
-  //   packet << MessageID::PadData;
-
-  //  bool send_packet = false;
-  //  const int num_local_pads = NumLocalPads();
-  //  for (int local_pad = 0; local_pad < num_local_pads; local_pad++)
-  //  {
-  //    send_packet = PollLocalPad(local_pad, packet) || send_packet;
-  //  }
-
-  //  if (send_packet)
-  //    SendAsync(std::move(packet));
-
-  //  if (m_host_input_authority)
-  //    SendPadHostPoll(-1);
-  //}
-
-  // if (!batching)
-  //{
-  //   const int local_pad = InGamePadToLocalPad(pad_nb);
-  //   if (local_pad < 4)
-  //   {
-  //     sf::Packet packet;
-  //     packet << MessageID::PadData;
-  //     if (PollLocalPad(local_pad, packet))
-  //       SendAsync(std::move(packet));
-  //   }
-
-  //  if (m_host_input_authority)
-  //    SendPadHostPoll(pad_nb);
-  //}
-
-  // if (m_host_input_authority)
-  //{
-  //   if (m_local_player->pid != m_current_golfer)
-  //   {
-  //     // CoreTiming acts funny and causes what looks like frame skip if
-  //     // we toggle the emulation speed too quickly, so to prevent this
-  //     // we wait until the buffer has been over for at least 1 second.
-
-  //    const bool buffer_over_target = m_pad_buffer[pad_nb].Size() > m_target_buffer_size + 1;
-  //    if (!buffer_over_target)
-  //      m_buffer_under_target_last = std::chrono::steady_clock::now();
-
-  //    std::chrono::duration<double> time_diff =
-  //        std::chrono::steady_clock::now() - m_buffer_under_target_last;
-  //    if (time_diff.count() >= 1.0 || !buffer_over_target)
-  //    {
-  //      // run fast if the buffer is overfilled, otherwise run normal speed
-  //      Config::SetCurrent(Config::MAIN_EMULATION_SPEED, buffer_over_target ? 0.0f : 1.0f);
-  //    }
-  //  }
-  //  else
-  //  {
-  //    // Set normal speed when we're the host, otherwise it can get stuck at unlimited
-  //    Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
-  //  }
-  //}
-
-  // Now, we either use the data pushed earlier, or wait for the
-  // other clients to send it to us
-  // while (m_pad_buffer[pad_nb].Size() == 0)
-  //{
-  //  if (!m_is_running.IsSet())
-  //  {
-  //    return false;
-  //  }
-
-  //  m_gc_pad_event.Wait();
-  //}
-
-  // for (auto& input_vector1 : inputs)
-  //{
-  //   for (auto& input_vector2 : inputs)
-  //   {
-  //     while (std::llabs(static_cast<long long>(input_vector1.size()) -
-  //                       static_cast<long long>(input_vector2.size())) >
-  //            static_cast<long long>(rollback_frames_supported + delay))
-  //     {
-  //       if (!m_is_running.IsSet())
-  //       {
-  //         return false;
-  //       }
-
-  //      m_gc_pad_event.Wait();
-  //    }
-  //  }
-  //}
-
-  if (Movie::IsRecordingInput())
+  if (m_net_settings.m_RollbackMode)
   {
-    Movie::RecordInput(pad_status, pad_nb);
-    Movie::InputUpdate();
+    if (is_rollingback && inputs.at(pad_nb).size() > current_frame)
+      *pad_status = inputs.at(pad_nb).at(current_frame);
+    else
+      *pad_status = inputs.at(pad_nb).back();
   }
   else
   {
-    Movie::CheckPadStatus(pad_status, pad_nb);
+    // The interface for this is extremely silly.
+    //
+    // Imagine a physical device that links three GameCubes together
+    // and emulates NetPlay that way. Which GameCube controls which
+    // in-game controllers can be configured on the device (m_pad_map)
+    // but which sockets on each individual GameCube should be used
+    // to control which players? The solution that Dolphin uses is
+    // that we hardcode the knowledge that they go in order, so if
+    // you have a 3P game with three GameCubes, then every single
+    // controller should be plugged into slot 1.
+    //
+    // If you have a 4P game, then one of the GameCubes will have
+    // a controller plugged into slot 1, and another in slot 2.
+    //
+    // The slot number is the "local" pad number, and what player
+    // it actually means is the "in-game" pad number.
+
+    // When the 1st in-game pad is polled and batching is set, the
+    // others will be polled as well. To reduce latency, we poll all
+    // local controllers at once and then send the status to the other
+    // clients.
+    //
+    // Batching is enabled when polled from VI. If batching is not
+    // enabled, the poll is probably from MMIO, which can poll any
+    // specific pad arbitrarily. In this case, we poll just that pad
+    // and send it.
+
+    // When here when told to so we don't deadlock in certain situations
+    while (m_wait_on_input)
+    {
+      if (!m_is_running.IsSet())
+      {
+        return false;
+      }
+
+      if (m_wait_on_input_received)
+      {
+        // Tell the server we've acknowledged the message
+        sf::Packet spac;
+        spac << MessageID::GolfPrepare;
+        Send(spac);
+
+        m_wait_on_input_received = false;
+      }
+
+      m_wait_on_input_event.Wait();
+    }
+
+    if (IsFirstInGamePad(pad_nb) && batching)
+    {
+      sf::Packet packet;
+      packet << MessageID::PadData;
+
+      bool send_packet = false;
+      const int num_local_pads = NumLocalPads();
+      for (int local_pad = 0; local_pad < num_local_pads; local_pad++)
+      {
+        send_packet = PollLocalPad(local_pad, packet) || send_packet;
+      }
+
+      if (send_packet)
+        SendAsync(std::move(packet));
+
+      if (m_host_input_authority)
+        SendPadHostPoll(-1);
+    }
+
+    if (!batching)
+    {
+      const int local_pad = InGamePadToLocalPad(pad_nb);
+      if (local_pad < 4)
+      {
+        sf::Packet packet;
+        packet << MessageID::PadData;
+        if (PollLocalPad(local_pad, packet))
+          SendAsync(std::move(packet));
+      }
+
+      if (m_host_input_authority)
+        SendPadHostPoll(pad_nb);
+    }
+
+    if (m_host_input_authority)
+    {
+      if (m_local_player->pid != m_current_golfer)
+      {
+        // CoreTiming acts funny and causes what looks like frame skip if
+        // we toggle the emulation speed too quickly, so to prevent this
+        // we wait until the buffer has been over for at least 1 second.
+
+        const bool buffer_over_target = m_pad_buffer[pad_nb].Size() > m_target_buffer_size + 1;
+        if (!buffer_over_target)
+          m_buffer_under_target_last = std::chrono::steady_clock::now();
+
+        std::chrono::duration<double> time_diff =
+            std::chrono::steady_clock::now() - m_buffer_under_target_last;
+        if (time_diff.count() >= 1.0 || !buffer_over_target)
+        {
+          // run fast if the buffer is overfilled, otherwise run normal speed
+          Config::SetCurrent(Config::MAIN_EMULATION_SPEED, buffer_over_target ? 0.0f : 1.0f);
+        }
+      }
+      else
+      {
+        // Set normal speed when we're the host, otherwise it can get stuck at unlimited
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+      }
+    }
+
+    // Now, we either use the data pushed earlier, or wait for the
+    // other clients to send it to us
+    while (m_pad_buffer[pad_nb].Size() == 0)
+    {
+      if (!m_is_running.IsSet())
+      {
+        return false;
+      }
+
+      m_gc_pad_event.Wait();
+    }
+
+    m_pad_buffer[pad_nb].Pop(*pad_status);
+
+    if (Movie::IsRecordingInput())
+    {
+      Movie::RecordInput(pad_status, pad_nb);
+      Movie::InputUpdate();
+    }
+    else
+    {
+      Movie::CheckPadStatus(pad_status, pad_nb);
+    }
   }
 
   return true;
@@ -2293,39 +2299,44 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
     pad_status = Pad::GetStatus(local_pad);
   }
 
-  inputs.at(ingame_pad).push_back(pad_status);
-  AddPadStateToPacket(ingame_pad, pad_status, packet);
-  data_added = true;
+  if (m_net_settings.m_RollbackMode)
+  {
+    inputs.at(ingame_pad).push_back(pad_status);
+    AddPadStateToPacket(ingame_pad, pad_status, packet);
+    data_added = true;
+  }
+  else
+  {
+    if (m_host_input_authority)
+    {
+      if (m_local_player->pid != m_current_golfer)
+      {
+        // add to packet
+        AddPadStateToPacket(ingame_pad, pad_status, packet);
+        data_added = true;
+      }
+      else
+      {
+        // set locally
+        m_last_pad_status[ingame_pad] = pad_status;
+        m_first_pad_status_received[ingame_pad] = true;
+      }
+    }
+    else
+    {
+      // adjust the buffer either up or down
+      // inserting multiple padstates or dropping states
+      while (m_pad_buffer[ingame_pad].Size() <= m_target_buffer_size)
+      {
+        // add to buffer
+        m_pad_buffer[ingame_pad].Push(pad_status);
 
-  // if (m_host_input_authority)
-  //{
-  //   if (m_local_player->pid != m_current_golfer)
-  //   {
-  //     // add to packet
-  //     AddPadStateToPacket(ingame_pad, pad_status, packet);
-  //     data_added = true;
-  //   }
-  //   else
-  //   {
-  //     // set locally
-  //     m_last_pad_status[ingame_pad] = pad_status;
-  //     m_first_pad_status_received[ingame_pad] = true;
-  //   }
-  // }
-  // else
-  //{
-  //   // adjust the buffer either up or down
-  //   // inserting multiple padstates or dropping states
-  //   while (m_pad_buffer[ingame_pad].Size() <= m_target_buffer_size)
-  //   {
-  //     // add to buffer
-  //     m_pad_buffer[ingame_pad].Push(pad_status);
-
-  //    // add to packet
-  //    AddPadStateToPacket(ingame_pad, pad_status, packet);
-  //    data_added = true;
-  //  }
-  //}
+        // add to packet
+        AddPadStateToPacket(ingame_pad, pad_status, packet);
+        data_added = true;
+      }
+    }
+  }
 
   return data_added;
 }
@@ -2345,57 +2356,57 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
   // sending it, otherwise controllers get calibrated wrongly with the default values of
   // GCPadStatus.
 
-  /* if (m_local_player->pid != m_current_golfer)
-     return;
+  if (m_local_player->pid != m_current_golfer)
+    return;
 
-   sf::Packet packet;
-   packet << MessageID::PadHostData;
+  sf::Packet packet;
+  packet << MessageID::PadHostData;
 
-   if (pad_num < 0)
-   {
-     for (size_t i = 0; i < m_pad_map.size(); i++)
-     {
-       if (m_pad_map[i] <= 0)
-         continue;
+  if (pad_num < 0)
+  {
+    for (size_t i = 0; i < m_pad_map.size(); i++)
+    {
+      if (m_pad_map[i] <= 0)
+        continue;
 
-       while (!m_first_pad_status_received[i])
-       {
-         if (!m_is_running.IsSet())
-           return;
+      while (!m_first_pad_status_received[i])
+      {
+        if (!m_is_running.IsSet())
+          return;
 
-         m_first_pad_status_received_event.Wait();
-       }
-     }
+        m_first_pad_status_received_event.Wait();
+      }
+    }
 
-     for (size_t i = 0; i < m_pad_map.size(); i++)
-     {
-       if (m_pad_map[i] == 0 || m_pad_buffer[i].Size() > 0)
-         continue;
+    for (size_t i = 0; i < m_pad_map.size(); i++)
+    {
+      if (m_pad_map[i] == 0 || m_pad_buffer[i].Size() > 0)
+        continue;
 
-       const GCPadStatus& pad_status = m_last_pad_status[i];
-       m_pad_buffer[i].Push(pad_status);
-       AddPadStateToPacket(static_cast<int>(i), pad_status, packet);
-     }
-   }
-   else if (m_pad_map[pad_num] != 0)
-   {
-     while (!m_first_pad_status_received[pad_num])
-     {
-       if (!m_is_running.IsSet())
-         return;
+      const GCPadStatus& pad_status = m_last_pad_status[i];
+      m_pad_buffer[i].Push(pad_status);
+      AddPadStateToPacket(static_cast<int>(i), pad_status, packet);
+    }
+  }
+  else if (m_pad_map[pad_num] != 0)
+  {
+    while (!m_first_pad_status_received[pad_num])
+    {
+      if (!m_is_running.IsSet())
+        return;
 
-       m_first_pad_status_received_event.Wait();
-     }
+      m_first_pad_status_received_event.Wait();
+    }
 
-     if (m_pad_buffer[pad_num].Size() == 0)
-     {
-       const GCPadStatus& pad_status = m_last_pad_status[pad_num];
-       m_pad_buffer[pad_num].Push(pad_status);
-       AddPadStateToPacket(pad_num, pad_status, packet);
-     }
-   }
+    if (m_pad_buffer[pad_num].Size() == 0)
+    {
+      const GCPadStatus& pad_status = m_last_pad_status[pad_num];
+      m_pad_buffer[pad_num].Push(pad_status);
+      AddPadStateToPacket(pad_num, pad_status, packet);
+    }
+  }
 
-   SendAsync(std::move(packet));*/
+  SendAsync(std::move(packet));
 }
 
 // called from ---GUI--- thread and ---NETPLAY--- thread (client side)
@@ -2843,23 +2854,34 @@ void NetPlay_Disable()
 
 void OnFrameEnd()
 {
-  if (!is_rollingback)
+  if (netplay_client)
   {
-    std::unique_lock lock(crit_netplay_client);
-    netplay_client->OnFrameEnd(lock);
-  }
-  else if (netplay_client->current_frame >= netplay_client->frame_to_stop_at)
-  {
-    Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0);
-    is_rollingback = false;
-  }
+    if (netplay_client->IsInRollbackMode())
+    {
+      if (!is_rollingback)
+      {
+        std::unique_lock lock(crit_netplay_client);
+        netplay_client->OnFrameEnd(lock);
+      }
+      else if (netplay_client->current_frame >= netplay_client->frame_to_stop_at)
+      {
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0);
+        is_rollingback = false;
+      }
 
-  netplay_client->current_frame++;
+      netplay_client->current_frame++;
+    }
+  }
 }
 
 bool IsRollingBack()
 {
   return netplay_client->IsRollingBack();
+}
+
+bool IsInRollbackMode()
+{
+  return netplay_client->IsInRollbackMode();
 }
 
 }  // namespace NetPlay
