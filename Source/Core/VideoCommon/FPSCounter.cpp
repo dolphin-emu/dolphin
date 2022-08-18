@@ -48,7 +48,8 @@ void FPSCounter::LogRenderTimeToFile(s64 val)
 
 void FPSCounter::Update()
 {
-  if (m_paused) return;
+  if (m_paused)
+    return;
 
   const s64 time = Common::Timer::NowUs();
   const s64 diff = std::max<s64>(0, time - m_last_time);

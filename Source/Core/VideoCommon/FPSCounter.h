@@ -11,7 +11,7 @@
 class FPSCounter
 {
 public:
-  FPSCounter(const char* log_name = "log.txt");
+  explicit FPSCounter(const char* log_name = "log.txt");
   ~FPSCounter();
   FPSCounter(const FPSCounter&) = delete;
   FPSCounter& operator=(const FPSCounter&) = delete;
