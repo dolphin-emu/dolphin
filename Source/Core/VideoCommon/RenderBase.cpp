@@ -589,7 +589,7 @@ void Renderer::CheckForConfigChanges()
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
-  if (g_ActiveConfig.bShowFPS | g_ActiveConfig.bShowVPS | g_ActiveConfig.bShowSpeed)
+  if (g_ActiveConfig.bShowFPS || g_ActiveConfig.bShowVPS || g_ActiveConfig.bShowSpeed)
   {
     // Position in the top-right corner of the screen.
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - (10.0f * m_backbuffer_scale),
@@ -598,7 +598,7 @@ void Renderer::DrawDebugText()
 
     int count = g_ActiveConfig.bShowFPS + g_ActiveConfig.bShowVPS + g_ActiveConfig.bShowSpeed;
     ImGui::SetNextWindowSize(
-        ImVec2(70.f * m_backbuffer_scale, (14.f + 16.f * count) * m_backbuffer_scale));
+        ImVec2(85.f * m_backbuffer_scale, (14.f + 16.f * count) * m_backbuffer_scale));
 
     if (ImGui::Begin("Performance", nullptr,
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
@@ -616,11 +616,11 @@ void Renderer::DrawDebugText()
       const float b = (speed - 90.0) / 10.0;
 
       if (g_ActiveConfig.bShowFPS)
-        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "FPS: %.0lf", fps);
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "%4.0lf fps", fps);
       if (g_ActiveConfig.bShowVPS)
-        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "VPS: %.0lf", vps);
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "%4.0lf vps", vps);
       if (g_ActiveConfig.bShowSpeed)
-        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "%.0lf%%", speed);
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "%6.0lf%%", speed);
     }
     ImGui::End();
   }
