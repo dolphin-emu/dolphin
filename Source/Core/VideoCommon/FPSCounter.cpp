@@ -66,9 +66,12 @@ void FPSCounter::Update()
     m_dt_queue.pop();
   }
 
-  const double fps = (US_TO_S * m_dt_queue.size()) / m_dt_total;
+  // This check prevents the FPS from becoming inf
+  const double fps = 0 < m_dt_total ? ((US_TO_S * m_dt_queue.size()) / m_dt_total) : 0.0;
   const double a = 1.0 - std::exp(-m_raw_dt / FPS_SAMPLE_RC);
   
+  // Sometimes euler averages can break when the average is inf/nan
+  // This small check makes sure that if it does break, it gets fixed
   if (std::isfinite(m_avg_fps))
     m_avg_fps += a * (fps - m_avg_fps);
   else
