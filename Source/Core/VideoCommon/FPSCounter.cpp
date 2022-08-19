@@ -16,7 +16,8 @@
 static constexpr double US_TO_MS = 1000.0;
 static constexpr double US_TO_S = 1000000.0;
 
-static constexpr s64 FPS_SAMPLE_TIME_US = 2000000;
+static constexpr double FPS_SAMPLE_RC = 0.2;
+static constexpr s64 FPS_SAMPLE_TIME_US = 300000;
 
 FPSCounter::FPSCounter(const char* log_name)
 {
@@ -53,6 +54,7 @@ void FPSCounter::Update()
 
   const s64 time = Common::Timer::NowUs();
   const s64 diff = std::max<s64>(0, time - m_last_time);
+  m_raw_dt = diff / US_TO_S;
   m_last_time = time;
 
   m_dt_total += diff;
@@ -64,8 +66,13 @@ void FPSCounter::Update()
     m_dt_queue.pop();
   }
 
-  m_avg_fps = (US_TO_S * m_dt_queue.size()) / m_dt_total;
-  m_raw_dt = diff / US_TO_S;
+  const double fps = (US_TO_S * m_dt_queue.size()) / m_dt_total;
+  const double a = 1.0 - std::exp(-m_raw_dt / FPS_SAMPLE_RC);
+  
+  if (std::isfinite(m_avg_fps))
+    m_avg_fps += a * (fps - m_avg_fps);
+  else
+    m_avg_fps = fps;
 
   if (g_ActiveConfig.bLogRenderTimeToFile)
     LogRenderTimeToFile(diff);
