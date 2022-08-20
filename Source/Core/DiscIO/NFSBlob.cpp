@@ -76,7 +76,7 @@ std::vector<File::IOFile> NFSFileReader::OpenFiles(const std::string& directory,
   std::vector<File::IOFile> files;
   files.reserve(file_count);
 
-  u64 raw_size = first_file.GetSize();
+  *raw_size_out = first_file.GetSize();
   files.emplace_back(std::move(first_file));
 
   for (u64 i = 1; i < file_count; ++i)
@@ -89,16 +89,16 @@ std::vector<File::IOFile> NFSFileReader::OpenFiles(const std::string& directory,
       return {};
     }
 
-    raw_size += child.GetSize();
+    *raw_size_out += child.GetSize();
     files.emplace_back(std::move(child));
   }
 
-  if (raw_size < expected_raw_size)
+  if (*raw_size_out < expected_raw_size)
   {
     ERROR_LOG_FMT(
         DISCIO,
         "Expected sum of NFS file sizes for {} to be at least {} bytes, but it was {} bytes",
-        directory, expected_raw_size, raw_size);
+        directory, expected_raw_size, *raw_size_out);
     return {};
   }
 
