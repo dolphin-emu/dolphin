@@ -18,13 +18,7 @@ namespace DiscIO
 {
 static std::string MakeAbsolute(const std::string& directory, const std::string& path)
 {
-#ifdef _WIN32
   return PathToString(StringToPath(directory) / StringToPath(path));
-#else
-  if (StringBeginsWith(path, "/"))
-    return path;
-  return directory + "/" + path;
-#endif
 }
 
 std::optional<GameModDescriptor> ParseGameModDescriptorFile(const std::string& filename)

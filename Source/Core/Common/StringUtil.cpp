@@ -645,7 +645,6 @@ std::u16string UTF8ToUTF16(std::string_view input)
   return converter.from_bytes(input.data(), input.data() + input.size());
 }
 
-#ifdef HAS_STD_FILESYSTEM
 // This is a replacement for path::u8path, which is deprecated starting with C++20.
 std::filesystem::path StringToPath(std::string_view path)
 {
@@ -666,7 +665,6 @@ std::string PathToString(const std::filesystem::path& path)
   return path.native();
 #endif
 }
-#endif
 
 #ifdef _WIN32
 std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
