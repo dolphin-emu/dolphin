@@ -89,12 +89,15 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
       m_cache.Clear(UICommon::GameFileCache::DeleteOnDisk::Yes);
       break;
     case CommandType::BeginRefresh:
+      m_refresh_in_progress = true;
       QueueOnObject(this, [] { Settings::Instance().NotifyRefreshGameListStarted(); });
       for (auto& file : m_tracked_files.keys())
         emit GameRemoved(file.toStdString());
       m_tracked_files.clear();
       break;
     case CommandType::EndRefresh:
+      m_refresh_in_progress = false;
+      m_cache.Save();
       QueueOnObject(this, [] { Settings::Instance().NotifyRefreshGameListComplete(); });
       break;
     }
@@ -356,7 +359,7 @@ void GameTracker::LoadGame(const QString& path)
     auto game = m_cache.AddOrGet(converted_path, &cache_changed);
     if (game)
       emit GameLoaded(std::move(game));
-    if (cache_changed)
+    if (cache_changed && !m_refresh_in_progress)
       m_cache.Save();
   }
 }
