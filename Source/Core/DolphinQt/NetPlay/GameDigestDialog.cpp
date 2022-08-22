@@ -1,7 +1,7 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinQt/NetPlay/MD5Dialog.h"
+#include "DolphinQt/NetPlay/GameDigestDialog.h"
 
 #include <algorithm>
 #include <functional>
@@ -36,16 +36,16 @@ static QString GetPlayerNameFromPID(int pid)
   return player_name;
 }
 
-MD5Dialog::MD5Dialog(QWidget* parent) : QDialog(parent)
+GameDigestDialog::GameDigestDialog(QWidget* parent) : QDialog(parent)
 {
   CreateWidgets();
   ConnectWidgets();
-  setWindowTitle(tr("MD5 Checksum"));
+  setWindowTitle(tr("SHA1 Digest"));
   setWindowFlags(Qt::Sheet | Qt::Dialog);
   setWindowModality(Qt::WindowModal);
 }
 
-void MD5Dialog::CreateWidgets()
+void GameDigestDialog::CreateWidgets()
 {
   m_main_layout = new QVBoxLayout;
   m_progress_box = new QGroupBox;
@@ -61,12 +61,12 @@ void MD5Dialog::CreateWidgets()
   setLayout(m_main_layout);
 }
 
-void MD5Dialog::ConnectWidgets()
+void GameDigestDialog::ConnectWidgets()
 {
-  connect(m_button_box, &QDialogButtonBox::rejected, this, &MD5Dialog::reject);
+  connect(m_button_box, &QDialogButtonBox::rejected, this, &GameDigestDialog::reject);
 }
 
-void MD5Dialog::show(const QString& title)
+void GameDigestDialog::show(const QString& title)
 {
   m_progress_box->setTitle(title);
 
@@ -118,7 +118,7 @@ void MD5Dialog::show(const QString& title)
   QDialog::show();
 }
 
-void MD5Dialog::SetProgress(int pid, int progress)
+void GameDigestDialog::SetProgress(int pid, int progress)
 {
   QString player_name = GetPlayerNameFromPID(pid);
 
@@ -130,7 +130,7 @@ void MD5Dialog::SetProgress(int pid, int progress)
   m_progress_bars[pid]->setValue(progress);
 }
 
-void MD5Dialog::SetResult(int pid, const std::string& result)
+void GameDigestDialog::SetResult(int pid, const std::string& result)
 {
   QString player_name = GetPlayerNameFromPID(pid);
 
@@ -162,12 +162,12 @@ void MD5Dialog::SetResult(int pid, const std::string& result)
   }
 }
 
-void MD5Dialog::reject()
+void GameDigestDialog::reject()
 {
   auto server = Settings::Instance().GetNetPlayServer();
 
   if (server)
-    server->AbortMD5();
+    server->AbortGameDigest();
 
   QDialog::reject();
 }
