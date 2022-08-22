@@ -434,8 +434,9 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void updateMotionListener()
   {
-    if (NativeLibrary.IsEmulatingWii() && IntSetting.MAIN_MOTION_CONTROLS.getInt(mSettings) != 2)
-      mMotionListener.enable();
+    int motionSource = IntSetting.MAIN_MOTION_CONTROLS.getInt(mSettings);
+    if (NativeLibrary.IsEmulatingWii() && motionSource != 2)
+      mMotionListener.enable(motionSource);
     else
       mMotionListener.disable();
   }
