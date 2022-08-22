@@ -12,38 +12,16 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)Base.Dolphin.props" />
     <Import Project="$(VSPropsDir)PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <TargetName>Updater</TargetName>
   </PropertyGroup>
-  <ItemDefinitionGroup>
-    <Link>
-      <AdditionalDependencies>iphlpapi.lib;winmm.lib;ws2_32.lib;comctl32.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
       <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)cpp-optparse\cpp-optparse.vcxproj">
-      <Project>{c636d9d1-82fe-42b5-9987-63b7d4836341}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)curl\curl.vcxproj">
-      <Project>{bb00605c-125f-4a21-b33b-7bf418322dcb}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)ed25519\ed25519.vcxproj">
-      <Project>{5bdf4b91-1491-4fb0-bc27-78e9a8e97dc3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)fmt\fmt.vcxproj">
-      <Project>{4BC5A148-0AB3-440F-A980-A29B4B999190}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
-      <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)zlib-ng\zlib-ng.vcxproj">
-      <Project>{F6EA7144-8D64-4EBB-A13E-76DFBD911EAE}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -51,6 +29,12 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="WinUI.cpp" />
   </ItemGroup>
+  <Import Project="$(ExternalsDir)cpp-optparse\exports.props" />
+  <Import Project="$(ExternalsDir)curl\exports.props" />
+  <Import Project="$(ExternalsDir)ed25519\exports.props" />
+  <Import Project="$(ExternalsDir)fmt\exports.props" />
+  <Import Project="$(ExternalsDir)mbedtls\exports.props" />
+  <Import Project="$(ExternalsDir)zlib-ng\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)ed25519;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)ed25519\ed25519.vcxproj">
+      <Project>{5bdf4b91-1491-4fb0-bc27-78e9a8e97dc3}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

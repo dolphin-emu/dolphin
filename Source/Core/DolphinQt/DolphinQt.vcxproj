@@ -13,6 +13,7 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)Base.Dolphin.props" />
     <Import Project="$(VSPropsDir)QtCompile.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -406,7 +407,7 @@
       <Project>{0e033be3-2e08-428e-9ae9-bc673efa12b5}</Project>
     </ProjectReference>
     <!--
-      This project doesn't uses its own PCH during compile (because RTTI setting differs),
+      This project uses its own PCH during compile (because RTTI setting differs),
       but we must also link the "main" pch for the dependants (DolphinLib)
     -->
     <ProjectReference Include="$(SourceDir)PCH\pch.vcxproj">
@@ -416,7 +417,19 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(ExternalsDir)ExternalsReferenceAll.props" />
+  <Import Project="$(ExternalsDir)bzip2\exports.props" />
+  <Import Project="$(ExternalsDir)cpp-optparse\exports.props" />
+  <Import Project="$(ExternalsDir)discord-rpc\exports.props" />
+  <Import Project="$(ExternalsDir)enet\exports.props" />
+  <Import Project="$(ExternalsDir)fmt\exports.props" />
+  <Import Project="$(ExternalsDir)imgui\exports.props" />
+  <Import Project="$(ExternalsDir)liblzma\exports.props" />
+  <Import Project="$(ExternalsDir)mbedtls\exports.props" />
+  <Import Project="$(ExternalsDir)mGBA\exports.props" />
+  <Import Project="$(ExternalsDir)picojson\exports.props" />
+  <Import Project="$(ExternalsDir)SFML\exports.props" />
+  <Import Project="$(ExternalsDir)soundtouch\exports.props" />
+  <Import Project="$(ExternalsDir)zstd\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
