@@ -17,6 +17,8 @@
 // ----------
 #pragma once
 
+#include <mutex>
+#include <queue>
 #include <rangeset/rangesizeset.h>
 
 #include "Common/CommonTypes.h"
@@ -92,6 +94,13 @@ public:
   void WriteRfiExitDestInRSCRATCH();
   void WriteIdleExit(u32 destination);
   bool Cleanup();
+
+  // Runs a function on the CPU during the next JIT compilation
+  void RegisterCPUFunction(std::function<void()> function) override
+  {
+    std::lock_guard lock(m_external_functions_mutex);
+    m_external_functions.push(function);
+  }
 
   void GenerateConstantOverflow(bool overflow);
   void GenerateConstantOverflow(s64 val);
@@ -271,6 +280,9 @@ private:
 
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near;
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far;
+
+  std::mutex m_external_functions_mutex;
+  std::queue<std::function<void()>> m_external_functions{};
 };
 
 void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,

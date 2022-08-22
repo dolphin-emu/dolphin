@@ -44,6 +44,8 @@
 #include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/State.h"
 #ifdef HAS_LIBMGBA
 #include "Core/HW/GBACore.h"
@@ -1511,18 +1513,18 @@ bool NetPlayClient::LoadFromFrame(u64 frame)
 
 void NetPlayClient::RollbackToFrame(u64 frame)
 {
-  is_rollingback = true;
-  if (LoadFromFrame(frame))
+   is_rollingback = true;
+   if (LoadFromFrame(frame))
   {
-    frame_to_stop_at = current_frame;
-    current_frame = frame;
-    Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 0.0);
-  }
-  else
+     frame_to_stop_at = current_frame;
+     current_frame = frame;
+     Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 0.0);
+   }
+   else
   {
-    is_rollingback = false;
-    DEBUG_LOG_FMT(NETPLAY, "Failed to roll back to frame {}!", frame);
-  }
+     is_rollingback = false;
+     DEBUG_LOG_FMT(NETPLAY, "Failed to roll back to frame {}!", frame);
+   }
 }
 
 void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
@@ -1546,9 +1548,9 @@ void NetPlayClient::OnFrameEnd(std::unique_lock<std::mutex>& lock)
   std::shared_ptr<SaveState> new_save_state =
       std::make_shared<SaveState>(std::vector<u8>{}, current_frame);
 
-  lock.unlock();
-  State::SaveToBuffer(new_save_state->first);
-  lock.lock();
+  auto save_state_lambda = [new_save_state]() { State::SaveToBuffer(new_save_state->first); };
+
+  JitInterface::GetCore()->RegisterCPUFunction(save_state_lambda);
 
   save_states.New() = new_save_state;
 

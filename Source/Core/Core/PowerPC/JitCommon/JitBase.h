@@ -147,7 +147,10 @@ public:
   JitBase();
   ~JitBase() override;
 
-  bool IsDebuggingEnabled() const { return m_enable_debugging; }
+  bool IsDebuggingEnabled() const
+  {
+    return m_enable_debugging;
+  }
 
   static const u8* Dispatch(JitBase& jit);
   virtual JitBaseBlockCache* GetBlockCache() = 0;
@@ -157,7 +160,10 @@ public:
   virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
 
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
-  virtual bool HandleStackFault() { return false; }
+  virtual bool HandleStackFault()
+  {
+    return false;
+  }
 
   static constexpr std::size_t code_buffer_size = 32000;
 
