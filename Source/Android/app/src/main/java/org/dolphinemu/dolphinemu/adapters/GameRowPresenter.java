@@ -50,15 +50,14 @@ public final class GameRowPresenter extends Presenter
     GameFile gameFile = (GameFile) item;
 
     holder.imageScreenshot.setImageDrawable(null);
-    PicassoUtils.loadGameCover(holder.imageScreenshot, gameFile);
+    PicassoUtils.loadGameCover(null, holder.imageScreenshot, gameFile);
 
     holder.cardParent.setTitleText(gameFile.getTitle());
 
     if (GameFileCacheManager.findSecondDisc(gameFile) != null)
     {
-      holder.cardParent
-              .setContentText(
-                      context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1));
+      holder.cardParent.setContentText(
+              context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1));
     }
     else
     {
