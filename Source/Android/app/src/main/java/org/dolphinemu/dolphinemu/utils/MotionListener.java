@@ -110,8 +110,8 @@ public class MotionListener implements SensorEventListener
 
   public void enable(int motionSource)
   {
-    if (mEnabled)
-      return;
+    //if (mEnabled)
+      //return;
 
     MotionSource = motionSource;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && motionSource == 3){
