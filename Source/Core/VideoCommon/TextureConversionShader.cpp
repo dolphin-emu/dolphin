@@ -602,7 +602,7 @@ uint GetTiledTexelOffset(uint2 block_size, uint2 coords)
 {
   uint2 block = coords / block_size;
   uint2 offset = coords % block_size;
-  uint buffer_pos = 0;
+  uint buffer_pos = 0u;
   buffer_pos += block.y * u_src_row_stride;
   buffer_pos += block.x * (block_size.x * block_size.y);
   buffer_pos += offset.y * block_size.x;
@@ -672,7 +672,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         // the size of the buffer elements.
         uint2 block = coords.xy / 8u;
         uint2 offset = coords.xy % 8u;
-        uint buffer_pos = 0;
+        uint buffer_pos = 0u;
         buffer_pos += block.y * u_src_row_stride;
         buffer_pos += block.x * 32u;
         buffer_pos += offset.y * 4u;
@@ -810,7 +810,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         // for the entire block, then the GB channels afterwards.
         uint2 block = coords.xy / 4u;
         uint2 offset = coords.xy % 4u;
-        uint buffer_pos = 0;
+        uint buffer_pos = 0u;
 
         // Our buffer has 16-bit elements, so the offsets here are half what they would be in bytes.
         buffer_pos += block.y * u_src_row_stride;
@@ -874,7 +874,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
           // Calculate tiled block coordinates.
           uint2 tile_block_coords = block_coords / 2u;
           uint2 subtile_block_coords = block_coords % 2u;
-          uint buffer_pos = 0;
+          uint buffer_pos = 0u;
           buffer_pos += tile_block_coords.y * u_src_row_stride;
           buffer_pos += tile_block_coords.x * 4u;
           buffer_pos += subtile_block_coords.y * 2u;
@@ -960,7 +960,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         // the size of the buffer elements.
         uint2 block = coords.xy / 8u;
         uint2 offset = coords.xy % 8u;
-        uint buffer_pos = 0;
+        uint buffer_pos = 0u;
         buffer_pos += block.y * u_src_row_stride;
         buffer_pos += block.x * 32u;
         buffer_pos += offset.y * 4u;
