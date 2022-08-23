@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Callback;
@@ -14,6 +15,7 @@ import com.squareup.picasso.Picasso;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 import java.io.File;
 
@@ -35,8 +37,23 @@ public class PicassoUtils
             .into(imageView);
   }
 
-  public static void loadGameCover(ImageView imageView, GameFile gameFile)
+  public static void loadGameCover(GameViewHolder gameViewHolder, ImageView imageView,
+          GameFile gameFile)
   {
+    if (BooleanSetting.MAIN_SHOW_GAME_TITLES.getBooleanGlobal() && gameViewHolder != null)
+    {
+      gameViewHolder.textGameTitle.setText(gameFile.getTitle());
+      gameViewHolder.textGameTitle.setVisibility(View.VISIBLE);
+      gameViewHolder.textGameTitleInner.setVisibility(View.GONE);
+      gameViewHolder.textGameCaption.setVisibility(View.VISIBLE);
+    }
+    else if (gameViewHolder != null)
+    {
+      gameViewHolder.textGameTitleInner.setText(gameFile.getTitle());
+      gameViewHolder.textGameTitle.setVisibility(View.GONE);
+      gameViewHolder.textGameCaption.setVisibility(View.GONE);
+    }
+
     Context context = imageView.getContext();
     File cover = new File(gameFile.getCustomCoverPath());
     if (cover.exists())
@@ -49,7 +66,18 @@ public class PicassoUtils
               .centerInside()
               .config(Bitmap.Config.ARGB_8888)
               .error(R.drawable.no_banner)
-              .into(imageView);
+              .into(imageView, new Callback()
+              {
+                @Override public void onSuccess()
+                {
+                  PicassoUtils.disableInnerTitle(gameViewHolder);
+                }
+
+                @Override public void onError(Exception e)
+                {
+                  PicassoUtils.enableInnerTitle(gameViewHolder, gameFile);
+                }
+              });
     }
     else if ((cover = new File(gameFile.getCoverPath(context))).exists())
     {
@@ -61,7 +89,18 @@ public class PicassoUtils
               .centerInside()
               .config(Bitmap.Config.ARGB_8888)
               .error(R.drawable.no_banner)
-              .into(imageView);
+              .into(imageView, new Callback()
+              {
+                @Override public void onSuccess()
+                {
+                  PicassoUtils.disableInnerTitle(gameViewHolder);
+                }
+
+                @Override public void onError(Exception e)
+                {
+                  PicassoUtils.enableInnerTitle(gameViewHolder, gameFile);
+                }
+              });
     }
     // GameTDB has a pretty close to complete collection for US/EN covers. First pass at getting
     // the cover will be by the disk's region, second will be the US cover, and third EN.
@@ -82,6 +121,7 @@ public class PicassoUtils
                 {
                   CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(),
                           gameFile.getCoverPath(context));
+                  PicassoUtils.disableInnerTitle(gameViewHolder);
                 }
 
                 @Override
@@ -104,6 +144,7 @@ public class PicassoUtils
                               CoverHelper.saveCover(
                                       ((BitmapDrawable) imageView.getDrawable()).getBitmap(),
                                       gameFile.getCoverPath(context));
+                              PicassoUtils.disableInnerTitle(gameViewHolder);
                             }
 
                             @Override
@@ -127,11 +168,13 @@ public class PicassoUtils
                                                   ((BitmapDrawable) imageView.getDrawable())
                                                           .getBitmap(),
                                                   gameFile.getCoverPath(context));
+                                          PicassoUtils.disableInnerTitle(gameViewHolder);
                                         }
 
                                         @Override
                                         public void onError(Exception ex)
                                         {
+                                          PicassoUtils.enableInnerTitle(gameViewHolder, gameFile);
                                         }
                                       });
                             }
@@ -148,7 +191,34 @@ public class PicassoUtils
               .fit()
               .centerInside()
               .config(Bitmap.Config.ARGB_8888)
-              .into(imageView);
+              .into(imageView, new Callback()
+              {
+                @Override public void onSuccess()
+                {
+                  PicassoUtils.disableInnerTitle(gameViewHolder);
+                }
+
+                @Override public void onError(Exception e)
+                {
+                  PicassoUtils.enableInnerTitle(gameViewHolder, gameFile);
+                }
+              });
+    }
+  }
+
+  private static void enableInnerTitle(GameViewHolder gameViewHolder, GameFile gameFile)
+  {
+    if (gameViewHolder != null && !BooleanSetting.MAIN_SHOW_GAME_TITLES.getBooleanGlobal())
+    {
+      gameViewHolder.textGameTitleInner.setVisibility(View.VISIBLE);
+    }
+  }
+
+  private static void disableInnerTitle(GameViewHolder gameViewHolder)
+  {
+    if (gameViewHolder != null && !BooleanSetting.MAIN_SHOW_GAME_TITLES.getBooleanGlobal())
+    {
+      gameViewHolder.textGameTitleInner.setVisibility(View.GONE);
     }
   }
 }

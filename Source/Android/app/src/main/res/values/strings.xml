@@ -193,6 +193,8 @@
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
     <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
+    <string name="show_titles_in_game_list">Show Titles in Game List</string>
+    <string name="show_titles_in_game_list_description">Show the title and creator below each game cover.</string>
 
     <!-- Online Update Region Select Fragment -->
     <string name="region_select_title">Please select a region</string>

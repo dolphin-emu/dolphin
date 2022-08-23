@@ -321,6 +321,8 @@ public final class SettingsFragmentPresenter
             R.string.osd_messages_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_USE_GAME_COVERS,
             R.string.download_game_covers, 0));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_SHOW_GAME_TITLES,
+            R.string.show_titles_in_game_list, R.string.show_titles_in_game_list_description));
   }
 
   private void addAudioSettings(ArrayList<SettingsItem> sl)
