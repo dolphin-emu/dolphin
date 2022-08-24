@@ -265,4 +265,5 @@ u16 ComputeTCPNetworkChecksum(const IPAddress& from, const IPAddress& to, const 
                               u16 length, u8 protocol);
 NetworkErrorState SaveNetworkErrorState();
 void RestoreNetworkErrorState(const NetworkErrorState& state);
+const char* DecodeNetworkError(s32 error_code);
 }  // namespace Common

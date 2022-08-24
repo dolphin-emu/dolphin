@@ -38,23 +38,6 @@
 
 namespace IOS::HLE
 {
-char* WiiSockMan::DecodeError(s32 ErrorCode)
-{
-#ifdef _WIN32
-  // NOT THREAD SAFE
-  static char Message[1024];
-
-  FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
-                     FORMAT_MESSAGE_MAX_WIDTH_MASK,
-                 nullptr, ErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), Message,
-                 sizeof(Message), nullptr);
-
-  return Message;
-#else
-  return strerror(ErrorCode);
-#endif
-}
-
 // The following functions can return
 //  - EAGAIN / EWOULDBLOCK: send(to), recv(from), accept
 //  - EINPROGRESS: connect, bind
@@ -117,7 +100,7 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw)
   }
 
   ERROR_LOG_FMT(IOS_NET, "{} failed with error {}: {}, ret= {}", caller, error_code,
-                DecodeError(error_code), ret);
+                Common::DecodeNetworkError(error_code), ret);
 
   const s32 return_value = TranslateErrorCode(error_code, is_rw);
   WiiSockMan::GetInstance().SetLastNetError(return_value);
@@ -763,12 +746,11 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
     FD_SET(fd, &write_fds);
     FD_SET(fd, &except_fds);
 
-    auto& sm = WiiSockMan::GetInstance();
     if (select(nfds, &read_fds, &write_fds, &except_fds, &t) < 0)
     {
       const s32 error = get_errno();
       ERROR_LOG_FMT(IOS_SSL, "Failed to get socket (fd={}) connection state (err={}): {}", wii_fd,
-                    error, sm.DecodeError(error));
+                    error, Common::DecodeNetworkError(error));
       return ConnectingState::Error;
     }
 
@@ -781,14 +763,14 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
     {
       error = get_errno();
       ERROR_LOG_FMT(IOS_SSL, "Failed to get socket (fd={}) error state (err={}): {}", wii_fd, error,
-                    sm.DecodeError(error));
+                    Common::DecodeNetworkError(error));
       return ConnectingState::Error;
     }
 
     if (error != 0)
     {
       ERROR_LOG_FMT(IOS_SSL, "Non-blocking connect (fd={}) failed (err={}): {}", wii_fd, error,
-                    sm.DecodeError(error));
+                    Common::DecodeNetworkError(error));
       return ConnectingState::Error;
     }
 
@@ -799,7 +781,7 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
     {
       error = get_errno();
       ERROR_LOG_FMT(IOS_SSL, "Non-blocking connect (fd={}) failed to get peername (err={}): {}",
-                    wii_fd, error, sm.DecodeError(error));
+                    wii_fd, error, Common::DecodeNetworkError(error));
       return ConnectingState::Error;
     }
 
