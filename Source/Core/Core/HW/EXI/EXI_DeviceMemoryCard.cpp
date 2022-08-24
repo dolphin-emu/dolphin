@@ -178,11 +178,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
     current_game_id = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
   }
 
-  // TODO(C++20): Use structured bindings when we can use C++20 and refer to structured bindings
-  // in lambda captures
-  const auto folder_path_pair = GetGCIFolderPath(m_card_slot, AllowMovieFolder::Yes);
-  const std::string& dir_path = folder_path_pair.first;
-  const bool migrate = folder_path_pair.second;
+  const auto [dir_path, migrate] = GetGCIFolderPath(m_card_slot, AllowMovieFolder::Yes);
 
   const File::FileInfo file_info(dir_path);
   if (!file_info.Exists())
