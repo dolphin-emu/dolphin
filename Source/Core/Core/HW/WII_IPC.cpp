@@ -136,7 +136,7 @@ public:
   u8 current_byte;
   u8 current_address;
 
-  void Update(bool old_scl, bool new_scl, bool old_sda, bool new_sda);
+  void Update(Core::System& system, bool old_scl, bool new_scl, bool old_sda, bool new_sda);
   bool GetSCL() const;
   bool GetSDA() const;
 
@@ -280,15 +280,15 @@ bool I2CBus::GetSCL() const
 
 bool I2CBus::GetSDA() const
 {
-  if (i2c_state.bit_counter == 9 && i2c_state.acknowledge)
+  if (bit_counter == 9 && acknowledge)
   {
     return false;  // pull low
   }
-  else if (i2c_state.is_read)
+  else if (is_read)
   {
-    if (i2c_state.bit_counter < 8)
-      return ((i2c_state.current_byte << i2c_state.bit_counter) & 0x80) != 0;
-    else if (i2c_state.bit_counter == 9)
+    if (bit_counter < 8)
+      return ((current_byte << bit_counter) & 0x80) != 0;
+    else if (bit_counter == 9)
       return true;
     else
       return true;  // passive pullup
@@ -321,14 +321,14 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
   }
 
   // I²C logic for the audio/video encoder (AVE)
-  i2c_state.Update(old_value[GPIO::AVE_SCL], new_value[GPIO::AVE_SCL], old_value[GPIO::AVE_SDA],
-                   new_value[GPIO::AVE_SDA]);
+  i2c_state.Update(m_system, old_value[GPIO::AVE_SCL], new_value[GPIO::AVE_SCL],
+                   old_value[GPIO::AVE_SDA], new_value[GPIO::AVE_SDA]);
 
   // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
   // TODO: SLOT_LED
 }
 
-void I2CBus::Update(bool old_scl, bool new_scl, bool old_sda, bool new_sda)
+void I2CBus::Update(Core::System& system, bool old_scl, bool new_scl, bool old_sda, bool new_sda)
 {
   if (old_scl != new_scl && old_sda != new_sda)
   {
@@ -339,154 +339,153 @@ void I2CBus::Update(bool old_scl, bool new_scl, bool old_sda, bool new_sda)
 
   if (old_scl && new_scl)
   {
-    INFO_LOG_FMT(WII_IPC, "SCL {} {} {}", i2c_state.bit_counter, new_sda,
-                 !!Common::Flags<GPIO>(ReadGPIOIn())[GPIO::AVE_SDA]);
+    INFO_LOG_FMT(WII_IPC, "SCL {} {} {}", bit_counter, new_sda,
+                 !!Common::Flags<GPIO>(ReadGPIOIn(system))[GPIO::AVE_SDA]);
     // Check for changes to SDA while the clock is high.
     if (old_sda && !new_sda)
     {
       INFO_LOG_FMT(WII_IPC, "AVE: Start I2C");
       // SDA falling edge (now pulled low) while SCL is high indicates I²C start
-      i2c_state.active = true;
-      i2c_state.acknowledge = false;
-      i2c_state.bit_counter = 0;
-      i2c_state.read_i2c_address = false;
-      i2c_state.is_correct_i2c_address = false;
-      // i2c_state.read_ave_address = false;
+      active = true;
+      acknowledge = false;
+      bit_counter = 0;
+      read_i2c_address = false;
+      is_correct_i2c_address = false;
+      // read_ave_address = false;
     }
     else if (!old_sda && new_sda)
     {
       INFO_LOG_FMT(WII_IPC, "AVE: Stop I2C");
-      Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC, Common::Log::LogLevel::LINFO);
+      Dolphin_Debugger::PrintCallstack(Core::CPUThreadGuard(system), Common::Log::LogType::WII_IPC,
+                                       Common::Log::LogLevel::LINFO);
       // SDA rising edge (now passive pullup) while SCL is high indicates I²C stop
-      i2c_state.active = false;
-      i2c_state.bit_counter = 0;
-      i2c_state.read_ave_address = false;
+      active = false;
+      bit_counter = 0;
+      read_ave_address = false;
     }
   }
   else if (!old_scl && new_scl)
   {
-    INFO_LOG_FMT(WII_IPC, "{} {} {}", i2c_state.bit_counter, new_sda,
-                 !!Common::Flags<GPIO>(ReadGPIOIn())[GPIO::AVE_SDA]);
+    INFO_LOG_FMT(WII_IPC, "{} {} {}", bit_counter, new_sda,
+                 !!Common::Flags<GPIO>(ReadGPIOIn(system))[GPIO::AVE_SDA]);
     // Clock changed from low to high; transfer a new bit.
-    if (i2c_state.active && (!i2c_state.read_i2c_address || i2c_state.is_correct_i2c_address))
+    if (active && (!read_i2c_address || is_correct_i2c_address))
     {
-      if (i2c_state.bit_counter == 9)
+      if (bit_counter == 9)
       {
         // Note: 9 not 8, as an extra clock is spent for acknowleding
-        i2c_state.acknowledge = false;
-        if (!i2c_state.is_read)
-          i2c_state.current_byte = 0;
-        i2c_state.bit_counter = 0;
+        acknowledge = false;
+        if (!is_read)
+          current_byte = 0;
+        bit_counter = 0;
       }
 
       // Rising edge: a new bit
-      if (!(i2c_state.is_read && i2c_state.read_i2c_address) && i2c_state.bit_counter < 8)
+      if (!(is_read && read_i2c_address) && bit_counter < 8)
       {
-        i2c_state.current_byte <<= 1;
+        current_byte <<= 1;
         if (new_sda)
-          i2c_state.current_byte |= 1;
+          current_byte |= 1;
       }
 
-      if (i2c_state.bit_counter == 8)
+      if (bit_counter == 8)
       {
-        if (!i2c_state.is_read)
+        if (!is_read)
         {
-          i2c_state.acknowledge = true;
-          DEBUG_LOG_FMT(WII_IPC, "AVE: New byte: {:02x}", i2c_state.current_byte);
+          acknowledge = true;
+          DEBUG_LOG_FMT(WII_IPC, "AVE: New byte: {:02x}", current_byte);
         }
         else
         {
           WARN_LOG_FMT(WII_IPC, "AVE: Read ack: {}", new_sda ? "nack" : "ack");
           if (new_sda)  // nack
           {
-            i2c_state.is_read = false;  // XXX
+            is_read = false;  // XXX
           }
         }
 
-        if (!i2c_state.read_i2c_address)
+        if (!read_i2c_address)
         {
-          i2c_state.read_i2c_address = true;
-          if ((i2c_state.current_byte >> 1) == 0x70)
+          read_i2c_address = true;
+          if ((current_byte >> 1) == 0x70)
           {
-            i2c_state.is_correct_i2c_address = true;
+            is_correct_i2c_address = true;
           }
           else
           {
-            WARN_LOG_FMT(WII_IPC, "AVE: Wrong I2C address: {:02x}", i2c_state.current_byte >> 1);
-            Dolphin_Debugger::PrintCallstack(Core::CPUThreadGuard(m_system),
+            WARN_LOG_FMT(WII_IPC, "AVE: Wrong I2C address: {:02x}", current_byte >> 1);
+            Dolphin_Debugger::PrintCallstack(Core::CPUThreadGuard(system),
                                              Common::Log::LogType::WII_IPC,
                                              Common::Log::LogLevel::LINFO);
-            i2c_state.acknowledge = false;
-            i2c_state.is_correct_i2c_address = false;
+            acknowledge = false;
+            is_correct_i2c_address = false;
           }
 
-          if ((i2c_state.current_byte & 1) == 0)
+          if ((current_byte & 1) == 0)
           {
-            i2c_state.is_read = false;
+            is_read = false;
           }
           else
           {
-            i2c_state.is_read = true;
-            i2c_state.acknowledge = true;
-            if (!i2c_state.read_ave_address)
+            is_read = true;
+            acknowledge = true;
+            if (!read_ave_address)
             {
               WARN_LOG_FMT(WII_IPC, "AVE: Read attempted without setting device address");
-              i2c_state.acknowledge = false;
+              acknowledge = false;
             }
             else
             {
-              i2c_state.current_byte = reinterpret_cast<u8*>(&ave_state)[i2c_state.current_address];
-              INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}",
-                           i2c_state.current_address, GetAVERegisterName(i2c_state.current_address),
-                           i2c_state.current_byte);
-              Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC,
+              current_byte = reinterpret_cast<u8*>(&ave_state)[current_address];
+              INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", current_address,
+                           GetAVERegisterName(current_address), current_byte);
+              Dolphin_Debugger::PrintCallstack(Core::CPUThreadGuard(system),
+                                               Common::Log::LogType::WII_IPC,
                                                Common::Log::LogLevel::LINFO);
             }
           }
         }
-        else if (!i2c_state.is_read)
+        else if (!is_read)
         {
-          if (!i2c_state.read_ave_address)
+          if (!read_ave_address)
           {
-            i2c_state.read_ave_address = true;
-            i2c_state.current_address = i2c_state.current_byte;
-            DEBUG_LOG_FMT(WII_IPC, "AVE address: {:02x} ({})", i2c_state.current_address,
-                          GetAVERegisterName(i2c_state.current_address));
+            read_ave_address = true;
+            current_address = current_byte;
+            DEBUG_LOG_FMT(WII_IPC, "AVE address: {:02x} ({})", current_address,
+                          GetAVERegisterName(current_address));
           }
           else
           {
             // This is always inbounds, as we're indexing with a u8 and the struct is 0x100 bytes
-            const u8 old_ave_value = reinterpret_cast<u8*>(&ave_state)[i2c_state.current_address];
-            reinterpret_cast<u8*>(&ave_state)[i2c_state.current_address] = i2c_state.current_byte;
-            if (!ave_ever_logged[i2c_state.current_address] ||
-                old_ave_value != i2c_state.current_byte)
+            const u8 old_ave_value = reinterpret_cast<u8*>(&ave_state)[current_address];
+            reinterpret_cast<u8*>(&ave_state)[current_address] = current_byte;
+            if (!ave_ever_logged[current_address] || old_ave_value != current_byte)
             {
-              INFO_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", i2c_state.current_byte,
-                           i2c_state.current_address,
-                           GetAVERegisterName(i2c_state.current_address));
-              ave_ever_logged[i2c_state.current_address] = true;
+              INFO_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", current_byte,
+                           current_address, GetAVERegisterName(current_address));
+              ave_ever_logged[current_address] = true;
             }
             else
             {
-              DEBUG_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", i2c_state.current_byte,
-                            i2c_state.current_address,
-                            GetAVERegisterName(i2c_state.current_address));
+              DEBUG_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", current_byte,
+                            current_address, GetAVERegisterName(current_address));
             }
-            i2c_state.current_address++;
+            current_address++;
           }
         }
         else  // is_read is true
         {
-          i2c_state.current_address++;
-          i2c_state.current_byte = reinterpret_cast<u8*>(&ave_state)[i2c_state.current_address];
-          INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", i2c_state.current_address,
-                       GetAVERegisterName(i2c_state.current_address), i2c_state.current_byte);
-          Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC,
+          current_address++;
+          current_byte = reinterpret_cast<u8*>(&ave_state)[current_address];
+          INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", current_address,
+                       GetAVERegisterName(current_address), current_byte);
+          Dolphin_Debugger::PrintCallstack(Core::CPUThreadGuard(system),
+                                           Common::Log::LogType::WII_IPC,
                                            Common::Log::LogLevel::LINFO);
         }
       }
 
-      i2c_state.bit_counter++;
+      bit_counter++;
     }
   }
 }
