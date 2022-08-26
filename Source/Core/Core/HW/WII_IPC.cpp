@@ -82,19 +82,6 @@ static constexpr Common::Flags<GPIO> gpio_owner = {GPIO::SLOT_LED, GPIO::SLOT_IN
 
 static u32 resets;
 
-struct I2CState
-{
-  bool active;
-  u8 bit_counter;
-  bool read_i2c_address;
-  bool is_correct_i2c_address;
-  bool is_read;
-  bool read_ave_address;
-  bool acknowledge;
-  u8 current_byte;
-  u8 current_address;
-};
-I2CState i2c_state;
 #pragma pack(1)
 struct AVEState
 {
@@ -135,6 +122,31 @@ struct AVEState
 static_assert(sizeof(AVEState) == 0x100);
 static AVEState ave_state;
 static std::bitset<sizeof(AVEState)> ave_ever_logged;  // For logging only; not saved
+
+class I2CBus
+{
+public:
+  bool active;
+  u8 bit_counter;
+  bool read_i2c_address;
+  bool is_correct_i2c_address;
+  bool is_read;
+  bool read_ave_address;
+  bool acknowledge;
+  u8 current_byte;
+  u8 current_address;
+
+  void Update(bool old_scl, bool new_scl, bool old_sda, bool new_sda);
+  bool GetSCL() const;
+  bool GetSDA() const;
+
+private:
+  void Start();
+  void Stop();
+  void WriteBit(bool value);
+  bool ReadBit();
+};
+I2CBus i2c_state;
 
 static CoreTiming::EventType* updateInterrupts;
 
@@ -256,27 +268,35 @@ static u32 ReadGPIOIn(Core::System& system)
 {
   Common::Flags<GPIO> gpio_in;
   gpio_in[GPIO::SLOT_IN] = system.GetDVDInterface().IsDiscInside();
-  // Note: This doesn't implement the direction logic currently (are bits not included in the
-  // direction treated as clear?)
+  gpio_in[GPIO::AVE_SCL] = i2c_state.GetSCL();
+  gpio_in[GPIO::AVE_SDA] = i2c_state.GetSDA();
+  return gpio_in.m_hex;
+}
+
+bool I2CBus::GetSCL() const
+{
+  return true;  // passive pullup - no clock stretching
+}
+
+bool I2CBus::GetSDA() const
+{
   if (i2c_state.bit_counter == 9 && i2c_state.acknowledge)
   {
-    gpio_in[GPIO::AVE_SDA] = false;  // pull low
+    return false;  // pull low
   }
   else if (i2c_state.is_read)
   {
     if (i2c_state.bit_counter < 8)
-      gpio_in[GPIO::AVE_SDA] = ((i2c_state.current_byte << i2c_state.bit_counter) & 0x80) != 0;
+      return ((i2c_state.current_byte << i2c_state.bit_counter) & 0x80) != 0;
     else if (i2c_state.bit_counter == 9)
-      gpio_in[GPIO::AVE_SDA] = true;
+      return true;
     else
-      gpio_in[GPIO::AVE_SDA] = true;  // passive pullup
+      return true;  // passive pullup
   }
   else  // write
   {
-    gpio_in[GPIO::AVE_SDA] = true;  // passive pullup
+    return true;  // passive pullup
   }
-  gpio_in[GPIO::AVE_SCL] = true;  // passive pullup
-  return gpio_in.m_hex;
 }
 
 u32 WiiIPC::GetGPIOOut()
@@ -301,12 +321,28 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
   }
 
   // I²C logic for the audio/video encoder (AVE)
-  if (old_value[GPIO::AVE_SCL] && new_value[GPIO::AVE_SCL])
+  i2c_state.Update(old_value[GPIO::AVE_SCL], new_value[GPIO::AVE_SCL], old_value[GPIO::AVE_SDA],
+                   new_value[GPIO::AVE_SDA]);
+
+  // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
+  // TODO: SLOT_LED
+}
+
+void I2CBus::Update(bool old_scl, bool new_scl, bool old_sda, bool new_sda)
+{
+  if (old_scl != new_scl && old_sda != new_sda)
   {
-    INFO_LOG_FMT(WII_IPC, "SCL {} {} {}", i2c_state.bit_counter, new_value[GPIO::AVE_SDA],
+    ERROR_LOG_FMT(WII_IPC, "Both SCL and SDA changed at the same time: SCL {} -> {} SDA {} -> {}",
+                  old_scl, new_scl, old_sda, new_sda);
+    return;
+  }
+
+  if (old_scl && new_scl)
+  {
+    INFO_LOG_FMT(WII_IPC, "SCL {} {} {}", i2c_state.bit_counter, new_sda,
                  !!Common::Flags<GPIO>(ReadGPIOIn())[GPIO::AVE_SDA]);
     // Check for changes to SDA while the clock is high.
-    if (old_value[GPIO::AVE_SDA] && !new_value[GPIO::AVE_SDA])
+    if (old_sda && !new_sda)
     {
       INFO_LOG_FMT(WII_IPC, "AVE: Start I2C");
       // SDA falling edge (now pulled low) while SCL is high indicates I²C start
@@ -317,7 +353,7 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
       i2c_state.is_correct_i2c_address = false;
       // i2c_state.read_ave_address = false;
     }
-    else if (!old_value[GPIO::AVE_SDA] && new_value[GPIO::AVE_SDA])
+    else if (!old_sda && new_sda)
     {
       INFO_LOG_FMT(WII_IPC, "AVE: Stop I2C");
       Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC, Common::Log::LogLevel::LINFO);
@@ -327,9 +363,9 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
       i2c_state.read_ave_address = false;
     }
   }
-  else if (!old_value[GPIO::AVE_SCL] && new_value[GPIO::AVE_SCL])
+  else if (!old_scl && new_scl)
   {
-    INFO_LOG_FMT(WII_IPC, "{} {} {}", i2c_state.bit_counter, new_value[GPIO::AVE_SDA],
+    INFO_LOG_FMT(WII_IPC, "{} {} {}", i2c_state.bit_counter, new_sda,
                  !!Common::Flags<GPIO>(ReadGPIOIn())[GPIO::AVE_SDA]);
     // Clock changed from low to high; transfer a new bit.
     if (i2c_state.active && (!i2c_state.read_i2c_address || i2c_state.is_correct_i2c_address))
@@ -347,7 +383,7 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
       if (!(i2c_state.is_read && i2c_state.read_i2c_address) && i2c_state.bit_counter < 8)
       {
         i2c_state.current_byte <<= 1;
-        if (new_value[GPIO::AVE_SDA])
+        if (new_sda)
           i2c_state.current_byte |= 1;
       }
 
@@ -360,8 +396,8 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
         }
         else
         {
-          WARN_LOG_FMT(WII_IPC, "AVE: Read ack: {}", new_value[GPIO::AVE_SDA] ? "nack" : "ack");
-          if (new_value[GPIO::AVE_SDA])  // nack
+          WARN_LOG_FMT(WII_IPC, "AVE: Read ack: {}", new_sda ? "nack" : "ack");
+          if (new_sda)  // nack
           {
             i2c_state.is_read = false;  // XXX
           }
@@ -391,7 +427,7 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
           else
           {
             i2c_state.is_read = true;
-            i2c_state.acknowledge = true; 
+            i2c_state.acknowledge = true;
             if (!i2c_state.read_ave_address)
             {
               WARN_LOG_FMT(WII_IPC, "AVE: Read attempted without setting device address");
@@ -453,9 +489,6 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
       i2c_state.bit_counter++;
     }
   }
-
-  // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
-  // TODO: SLOT_LED
 }
 
 void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
