@@ -74,7 +74,7 @@ static std::recursive_mutex g_save_thread_mutex;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 141;  // Last changed in PR 8067
+constexpr u32 STATE_VERSION = 148;  // Last changed in PR 10768
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -270,6 +270,35 @@ static int GetEmptySlot(std::map<double, int> m)
   return -1;
 }
 
+// Arbitrarily chosen value (38 years) that is subtracted in GetSystemTimeAsDouble()
+// to increase sub-second precision of the resulting double timestamp
+static constexpr int DOUBLE_TIME_OFFSET = (38 * 365 * 24 * 60 * 60);
+
+static double GetSystemTimeAsDouble()
+{
+  const auto since_epoch = std::chrono::system_clock::now().time_since_epoch();
+
+  const auto since_double_time_epoch = since_epoch - std::chrono::seconds(DOUBLE_TIME_OFFSET);
+  return std::chrono::duration_cast<std::chrono::duration<double>>(since_double_time_epoch).count();
+}
+
+static std::string SystemTimeAsDoubleToString(double time)
+{
+  // revert adjustments from GetSystemTimeAsDouble() to get a normal Unix timestamp again
+  time_t seconds = (time_t)time + DOUBLE_TIME_OFFSET;
+  tm* localTime = localtime(&seconds);
+
+#ifdef _WIN32
+  wchar_t tmp[32] = {};
+  wcsftime(tmp, std::size(tmp), L"%x %X", localTime);
+  return WStringToUTF8(tmp);
+#else
+  char tmp[32] = {};
+  strftime(tmp, sizeof(tmp), "%x %X", localTime);
+  return tmp;
+#endif
+}
+
 static std::string MakeStateFilename(int number);
 
 // read state timestamps
@@ -284,7 +313,7 @@ static std::map<double, int> GetSavedStates()
     {
       if (ReadHeader(filename, header))
       {
-        double d = Common::Timer::GetDoubleTime() - header.time;
+        double d = GetSystemTimeAsDouble() - header.time;
 
         // increase time until unique value is obtained
         while (m.find(d) != m.end())
@@ -359,7 +388,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
   StateHeader header{};
   SConfig::GetInstance().GetGameID().copy(header.gameID, std::size(header.gameID));
   header.size = s_use_compression ? (u32)buffer_size : 0;
-  header.time = Common::Timer::GetDoubleTime();
+  header.time = GetSystemTimeAsDouble();
 
   f.WriteArray(&header, 1);
 
@@ -419,7 +448,7 @@ void SaveAs(const std::string& filename, bool wait)
         // Then actually do the write.
         bool is_write_mode;
         {
-          std::lock_guard lk(g_cs_current_buffer);
+          std::lock_guard lk2(g_cs_current_buffer);
           g_current_buffer.resize(buffer_size);
           ptr = g_current_buffer.data();
           PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
@@ -438,7 +467,7 @@ void SaveAs(const std::string& filename, bool wait)
           save_args.wait = wait;
 
           {
-            std::lock_guard lk(g_save_thread_mutex);
+            std::lock_guard lk3(g_save_thread_mutex);
             Flush();
             g_save_thread = std::thread(CompressAndDumpState, save_args);
           }
@@ -471,7 +500,7 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
   if (!ReadHeader(filename, header))
     return translate ? Common::GetStringT("Unknown") : "Unknown";
 
-  return Common::Timer::GetDateTimeFormatted(header.time);
+  return SystemTimeAsDoubleToString(header.time);
 }
 
 u64 GetUnixTimeOfSlot(int slot)
@@ -481,8 +510,7 @@ u64 GetUnixTimeOfSlot(int slot)
     return 0;
 
   constexpr u64 MS_PER_SEC = 1000;
-  return static_cast<u64>(header.time * MS_PER_SEC) +
-         (Common::Timer::DOUBLE_TIME_OFFSET * MS_PER_SEC);
+  return static_cast<u64>(header.time * MS_PER_SEC) + (DOUBLE_TIME_OFFSET * MS_PER_SEC);
 }
 
 static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
@@ -572,7 +600,7 @@ void LoadAs(const std::string& filename)
         // Save temp buffer for undo load state
         if (!Movie::IsJustStartingRecordingInputFromSaveState())
         {
-          std::lock_guard lk(g_cs_undo_load_buffer);
+          std::lock_guard lk2(g_cs_undo_load_buffer);
           SaveToBuffer(g_undo_load_buffer);
           if (Movie::IsMovieActive())
             Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");

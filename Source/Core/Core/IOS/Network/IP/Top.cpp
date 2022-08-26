@@ -864,13 +864,27 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
         FREE(AdapterAddresses);
       }
     }
-#elif defined(__linux__) && !defined(__ANDROID__)
+#elif (defined(__linux__) && !defined(ANDROID)) || defined(__APPLE__) || defined(__FreeBSD__) ||   \
+    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     if (!Core::WantsDeterminism())
     {
       if (res_init() == 0)
-        address = ntohl(_res.nsaddr_list[0].sin_addr.s_addr);
+      {
+        for (int i = 0; i < _res.nscount; i++)
+        {
+          // Find the first available IPv4 nameserver.
+          sockaddr_in current = _res.nsaddr_list[i];
+          if (current.sin_family == AF_INET)
+          {
+            address = ntohl(_res.nsaddr_list[i].sin_addr.s_addr);
+            break;
+          }
+        }
+      }
       else
+      {
         WARN_LOG_FMT(IOS_NET, "Call to res_init failed");
+      }
     }
 #endif
     if (address == 0)

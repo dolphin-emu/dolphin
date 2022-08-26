@@ -15,6 +15,7 @@ std::string GenerateScreenQuadVertexShader();
 std::string GeneratePassthroughGeometryShader(u32 num_tex, u32 num_colors);
 std::string GenerateTextureCopyVertexShader();
 std::string GenerateTextureCopyPixelShader();
+std::string GenerateResolveColorPixelShader(u32 samples);
 std::string GenerateResolveDepthPixelShader(u32 samples);
 std::string GenerateClearVertexShader();
 std::string GenerateEFBPokeVertexShader();

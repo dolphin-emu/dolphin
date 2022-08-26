@@ -39,6 +39,32 @@ add_library(videocommon
   GeometryShaderGen.h
   GeometryShaderManager.cpp
   GeometryShaderManager.h
+  GraphicsModSystem/Config/GraphicsMod.cpp
+  GraphicsModSystem/Config/GraphicsMod.h
+  GraphicsModSystem/Config/GraphicsModFeature.cpp
+  GraphicsModSystem/Config/GraphicsModFeature.h
+  GraphicsModSystem/Config/GraphicsModGroup.cpp
+  GraphicsModSystem/Config/GraphicsModGroup.h
+  GraphicsModSystem/Config/GraphicsTarget.cpp
+  GraphicsModSystem/Config/GraphicsTarget.h
+  GraphicsModSystem/Config/GraphicsTargetGroup.cpp
+  GraphicsModSystem/Config/GraphicsTargetGroup.h
+  GraphicsModSystem/Constants.h
+  GraphicsModSystem/Runtime/Actions/MoveAction.cpp
+  GraphicsModSystem/Runtime/Actions/MoveAction.h
+  GraphicsModSystem/Runtime/Actions/PrintAction.cpp
+  GraphicsModSystem/Runtime/Actions/PrintAction.h
+  GraphicsModSystem/Runtime/Actions/ScaleAction.cpp
+  GraphicsModSystem/Runtime/Actions/ScaleAction.h
+  GraphicsModSystem/Runtime/Actions/SkipAction.cpp
+  GraphicsModSystem/Runtime/Actions/SkipAction.h
+  GraphicsModSystem/Runtime/FBInfo.cpp
+  GraphicsModSystem/Runtime/FBInfo.h
+  GraphicsModSystem/Runtime/GraphicsModAction.h
+  GraphicsModSystem/Runtime/GraphicsModActionFactory.cpp
+  GraphicsModSystem/Runtime/GraphicsModActionFactory.h
+  GraphicsModSystem/Runtime/GraphicsModManager.cpp
+  GraphicsModSystem/Runtime/GraphicsModManager.h
   HiresTextures.cpp
   HiresTextures.h
   HiresTextures_DDSLoader.cpp
@@ -74,6 +100,8 @@ add_library(videocommon
   ShaderCache.h
   ShaderGenCommon.cpp
   ShaderGenCommon.h
+  Spirv.cpp
+  Spirv.h
   Statistics.cpp
   Statistics.h
   TextureCacheBase.cpp
@@ -136,9 +164,10 @@ PUBLIC
   core
 PRIVATE
   fmt::fmt
-  png
+  spng
   xxhash
   imgui
+  glslang
 )
 
 if(_M_X86)
@@ -180,6 +209,16 @@ if(FFmpeg_FOUND)
     )
   endif()
 endif()
+
+# Silence warnings on glslang by flagging it as a system include
+target_include_directories(videocommon
+SYSTEM PUBLIC
+  ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/Public
+SYSTEM PRIVATE
+  ${CMAKE_SOURCE_DIR}/Externals/glslang/StandAlone
+  ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV
+  ${CMAKE_SOURCE_DIR}/Externals/glslang
+)
 
 if(MSVC)
   # Add precompiled header

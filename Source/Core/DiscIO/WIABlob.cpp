@@ -15,12 +15,12 @@
 #include <utility>
 
 #include <fmt/format.h>
-#include <mbedtls/sha1.h>
 #include <zstd.h>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
@@ -109,9 +109,8 @@ bool WIARVZFileReader<RVZ>::Initialize(const std::string& path)
     return false;
   }
 
-  SHA1 header_1_actual_hash;
-  mbedtls_sha1_ret(reinterpret_cast<const u8*>(&m_header_1), sizeof(m_header_1) - sizeof(SHA1),
-                   header_1_actual_hash.data());
+  const auto header_1_actual_hash = Common::SHA1::CalculateDigest(
+      reinterpret_cast<const u8*>(&m_header_1), sizeof(m_header_1) - Common::SHA1::DIGEST_LEN);
   if (m_header_1.header_1_hash != header_1_actual_hash)
     return false;
 
@@ -130,8 +129,7 @@ bool WIARVZFileReader<RVZ>::Initialize(const std::string& path)
   if (!m_file.ReadBytes(header_2.data(), header_2.size()))
     return false;
 
-  SHA1 header_2_actual_hash;
-  mbedtls_sha1_ret(header_2.data(), header_2.size(), header_2_actual_hash.data());
+  const auto header_2_actual_hash = Common::SHA1::CalculateDigest(header_2);
   if (m_header_1.header_2_hash != header_2_actual_hash)
     return false;
 
@@ -168,9 +166,7 @@ bool WIARVZFileReader<RVZ>::Initialize(const std::string& path)
   if (!m_file.ReadBytes(partition_entries.data(), partition_entries.size()))
     return false;
 
-  SHA1 partition_entries_actual_hash;
-  mbedtls_sha1_ret(reinterpret_cast<const u8*>(partition_entries.data()), partition_entries.size(),
-                   partition_entries_actual_hash.data());
+  const auto partition_entries_actual_hash = Common::SHA1::CalculateDigest(partition_entries);
   if (m_header_2.partition_entries_hash != partition_entries_actual_hash)
     return false;
 
@@ -635,8 +631,8 @@ WIARVZFileReader<RVZ>::Chunk::Chunk(File::IOFile* file, u64 offset_in_file, u64 
       m_rvz_packed_size(rvz_packed_size), m_data_offset(data_offset)
 {
   constexpr size_t MAX_SIZE_PER_EXCEPTION_LIST =
-      Common::AlignUp(VolumeWii::BLOCK_HEADER_SIZE, sizeof(SHA1)) / sizeof(SHA1) *
-          VolumeWii::BLOCKS_PER_GROUP * sizeof(HashExceptionEntry) +
+      Common::AlignUp(VolumeWii::BLOCK_HEADER_SIZE, Common::SHA1::DIGEST_LEN) /
+          Common::SHA1::DIGEST_LEN * VolumeWii::BLOCKS_PER_GROUP * sizeof(HashExceptionEntry) +
       sizeof(u16);
 
   m_out_bytes_allocated_for_exceptions =
@@ -861,11 +857,11 @@ bool WIARVZFileReader<RVZ>::ApplyHashExceptions(
       return false;
 
     const size_t offset_in_block = offset % VolumeWii::BLOCK_HEADER_SIZE;
-    if (offset_in_block + sizeof(SHA1) > VolumeWii::BLOCK_HEADER_SIZE)
+    if (offset_in_block + Common::SHA1::DIGEST_LEN > VolumeWii::BLOCK_HEADER_SIZE)
       return false;
 
     std::memcpy(reinterpret_cast<u8*>(&hash_blocks[block_index]) + offset_in_block, &exception.hash,
-                sizeof(SHA1));
+                Common::SHA1::DIGEST_LEN);
   }
 
   return true;
@@ -929,7 +925,7 @@ ConversionResultCode WIARVZFileReader<RVZ>::SetUpDataEntriesForWriting(
     std::vector<DataEntry>* data_entries, std::vector<const FileSystem*>* partition_file_systems)
 {
   std::vector<Partition> partitions;
-  if (volume && volume->IsEncryptedAndHashed())
+  if (volume && volume->HasWiiHashes() && volume->HasWiiEncryption())
     partitions = volume->GetPartitions();
 
   std::sort(partitions.begin(), partitions.end(),
@@ -1322,8 +1318,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
   {
     const PartitionEntry& partition_entry = partition_entries[parameters.data_entry->index];
 
-    mbedtls_aes_context aes_context;
-    mbedtls_aes_setkey_dec(&aes_context, partition_entry.partition_key.data(), 128);
+    auto aes_context = Common::AES::CreateContextDecrypt(partition_entry.partition_key.data());
 
     const u64 groups = Common::AlignUp(parameters.data.size(), VolumeWii::GROUP_TOTAL_SIZE) /
                        VolumeWii::GROUP_TOTAL_SIZE;
@@ -1392,7 +1387,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
           {
             const u64 offset_of_block = offset_of_group + j * VolumeWii::BLOCK_TOTAL_SIZE;
             VolumeWii::DecryptBlockData(parameters.data.data() + offset_of_block,
-                                        state->decryption_buffer[j].data(), &aes_context);
+                                        state->decryption_buffer[j].data(), aes_context.get());
           }
           else
           {
@@ -1417,10 +1412,10 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
 
           VolumeWii::HashBlock hashes;
           VolumeWii::DecryptBlockHashes(parameters.data.data() + offset_of_block, &hashes,
-                                        &aes_context);
+                                        aes_context.get());
 
           const auto compare_hash = [&](size_t offset_in_block) {
-            ASSERT(offset_in_block + sizeof(SHA1) <= VolumeWii::BLOCK_HEADER_SIZE);
+            ASSERT(offset_in_block + Common::SHA1::DIGEST_LEN <= VolumeWii::BLOCK_HEADER_SIZE);
 
             const u8* desired_hash = reinterpret_cast<u8*>(&hashes) + offset_in_block;
             const u8* computed_hash =
@@ -1432,22 +1427,22 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
             // that affects the recalculated hashes. Chunks which have been marked as reusable at
             // this point normally have zero matching hashes anyway, so this shouldn't waste space.
             if ((chunks_per_wii_group != 1 && output_entries[chunk_index].reuse_id) ||
-                !std::equal(desired_hash, desired_hash + sizeof(SHA1), computed_hash))
+                !std::equal(desired_hash, desired_hash + Common::SHA1::DIGEST_LEN, computed_hash))
             {
               const u64 hash_offset = hash_offset_of_block + offset_in_block;
               ASSERT(hash_offset <= std::numeric_limits<u16>::max());
 
               HashExceptionEntry& exception = exception_lists[exception_list_index].emplace_back();
               exception.offset = static_cast<u16>(Common::swap16(hash_offset));
-              std::memcpy(exception.hash.data(), desired_hash, sizeof(SHA1));
+              std::memcpy(exception.hash.data(), desired_hash, Common::SHA1::DIGEST_LEN);
             }
           };
 
           const auto compare_hashes = [&compare_hash](size_t offset, size_t size) {
-            for (size_t l = 0; l < size; l += sizeof(SHA1))
+            for (size_t l = 0; l < size; l += Common::SHA1::DIGEST_LEN)
               // The std::min is to ensure that we don't go beyond the end of HashBlock with
-              // padding_2, which is 32 bytes long (not divisible by sizeof(SHA1), which is 20).
-              compare_hash(offset + std::min(l, size - sizeof(SHA1)));
+              // padding_2, which is 32 bytes long (not divisible by SHA1::DIGEST_LEN, which is 20).
+              compare_hash(offset + std::min(l, size - Common::SHA1::DIGEST_LEN));
           };
 
           using HashBlock = VolumeWii::HashBlock;
@@ -1736,7 +1731,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
                                File::IOFile* outfile, WIARVZCompressionType compression_type,
                                int compression_level, int chunk_size, CompressCB callback)
 {
-  ASSERT(infile->IsDataSizeAccurate());
+  ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
   ASSERT(chunk_size > 0);
 
   const u64 iso_size = infile->GetDataSize();
@@ -1995,10 +1990,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
   header_2.partition_entry_size = Common::swap32(sizeof(PartitionEntry));
   header_2.partition_entries_offset = Common::swap64(partition_entries_offset);
 
-  if (partition_entries.data() == nullptr)
-    partition_entries.reserve(1);  // Avoid a crash in mbedtls_sha1_ret
-  mbedtls_sha1_ret(reinterpret_cast<const u8*>(partition_entries.data()), partition_entries_size,
-                   header_2.partition_entries_hash.data());
+  header_2.partition_entries_hash = Common::SHA1::CalculateDigest(partition_entries);
 
   header_2.number_of_raw_data_entries = Common::swap32(static_cast<u32>(raw_data_entries.size()));
   header_2.raw_data_entries_offset = Common::swap64(raw_data_entries_offset);
@@ -2014,12 +2006,12 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
   header_1.version_compatible =
       Common::swap32(RVZ ? RVZ_VERSION_WRITE_COMPATIBLE : WIA_VERSION_WRITE_COMPATIBLE);
   header_1.header_2_size = Common::swap32(sizeof(WIAHeader2));
-  mbedtls_sha1_ret(reinterpret_cast<const u8*>(&header_2), sizeof(header_2),
-                   header_1.header_2_hash.data());
+  header_1.header_2_hash =
+      Common::SHA1::CalculateDigest(reinterpret_cast<const u8*>(&header_2), sizeof(header_2));
   header_1.iso_file_size = Common::swap64(infile->GetDataSize());
   header_1.wia_file_size = Common::swap64(outfile->GetSize());
-  mbedtls_sha1_ret(reinterpret_cast<const u8*>(&header_1), offsetof(WIAHeader1, header_1_hash),
-                   header_1.header_1_hash.data());
+  header_1.header_1_hash = Common::SHA1::CalculateDigest(reinterpret_cast<const u8*>(&header_1),
+                                                         offsetof(WIAHeader1, header_1_hash));
 
   if (!outfile->Seek(0, File::SeekOrigin::Begin))
     return ConversionResultCode::WriteFailed;

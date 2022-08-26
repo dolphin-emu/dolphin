@@ -38,6 +38,7 @@ enum class EXIDeviceType : int
   netplay_bba,
   // Only used on Apple devices.
   EthernetTapServer,
+  EthernetBuiltIn,
   None = 0xFF
 };
 
@@ -80,7 +81,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(EXIDeviceType device_type, int chan
 
 template <>
 struct fmt::formatter<ExpansionInterface::EXIDeviceType>
-    : EnumFormatter<ExpansionInterface::EXIDeviceType::EthernetTapServer>
+    : EnumFormatter<ExpansionInterface::EXIDeviceType::EthernetBuiltIn>
 {
   static constexpr array_type names = {
       _trans("Dummy"),
@@ -97,6 +98,7 @@ struct fmt::formatter<ExpansionInterface::EXIDeviceType>
       _trans("Broadband Adapter (XLink Kai)"),
       _trans("Broadband Adapter (Netplay)"),
       _trans("Broadband Adapter (tapserver)"),
+      _trans("Broadband Adapter (HLE)"),
   };
 
   constexpr formatter() : EnumFormatter(names) {}

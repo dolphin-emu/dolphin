@@ -34,8 +34,6 @@ public:
   VkSurfaceKHR GetSurface() const { return m_surface; }
   VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surface_format; }
   AbstractTextureFormat GetTextureFormat() const { return m_texture_format; }
-  bool IsVSyncEnabled() const { return m_vsync_enabled; }
-  bool IsStereoEnabled() const { return m_layers == 2; }
   VkSwapchainKHR GetSwapChain() const { return m_swap_chain; }
   u32 GetWidth() const { return m_width; }
   u32 GetHeight() const { return m_height; }

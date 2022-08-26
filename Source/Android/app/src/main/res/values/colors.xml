@@ -4,8 +4,7 @@
     <color name="dolphin_blue_secondary">#21b0f3</color>
     <color name="dolphin_white">#ffffff</color>
 
-    <color name="dolphin_accent_wii">#9e9e9e</color>
-    <color name="dolphin_accent_wiiware">#2979ff</color>
+    <color name="dolphin_surface">#FDFCFF</color>
 
     <color name="tv_card_unselected">#444444</color>
 

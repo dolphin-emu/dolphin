@@ -784,7 +784,7 @@ void PopulateDevices()
         if (SUCCEEDED(hr = rgc2->get_DisplayName(&hstr)) && hstr)
         {
           device_name =
-              StripSpaces(WStringToUTF8(g_WindowsGetStringRawBuffer_address(hstr, nullptr)));
+              StripWhitespace(WStringToUTF8(g_WindowsGetStringRawBuffer_address(hstr, nullptr)));
         }
       }
 

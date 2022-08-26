@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -28,6 +29,9 @@ class AbstractFramebuffer;
 class AbstractStagingTexture;
 class PointerWrap;
 struct VideoConfig;
+
+constexpr std::string_view EFB_DUMP_PREFIX = "efb1";
+constexpr std::string_view XFB_DUMP_PREFIX = "xfb1";
 
 struct TextureAndTLUTFormat
 {
@@ -53,23 +57,30 @@ struct TextureAndTLUTFormat
 struct EFBCopyParams
 {
   EFBCopyParams(PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_, bool yuv_,
-                bool copy_filter_)
+                bool all_copy_filter_coefs_needed_, bool copy_filter_can_overflow_,
+                bool apply_gamma_)
       : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_),
-        copy_filter(copy_filter_)
+        all_copy_filter_coefs_needed(all_copy_filter_coefs_needed_),
+        copy_filter_can_overflow(copy_filter_can_overflow_), apply_gamma(apply_gamma_)
   {
   }
 
   bool operator<(const EFBCopyParams& rhs) const
   {
-    return std::tie(efb_format, copy_format, depth, yuv, copy_filter) <
-           std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv, rhs.copy_filter);
+    return std::tie(efb_format, copy_format, depth, yuv, all_copy_filter_coefs_needed,
+                    copy_filter_can_overflow,
+                    apply_gamma) < std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv,
+                                            rhs.all_copy_filter_coefs_needed,
+                                            rhs.copy_filter_can_overflow, rhs.apply_gamma);
   }
 
   PixelFormat efb_format;
   EFBCopyFormat copy_format;
   bool depth;
   bool yuv;
-  bool copy_filter;
+  bool all_copy_filter_coefs_needed;
+  bool copy_filter_can_overflow;
+  bool apply_gamma;
 };
 
 template <>
@@ -85,17 +96,11 @@ struct fmt::formatter<EFBCopyParams>
     else
       copy_format = fmt::to_string(uid.copy_format);
     return fmt::format_to(ctx.out(),
-                          "format: {}, copy format: {}, depth: {}, yuv: {}, copy filter: {}",
-                          uid.efb_format, copy_format, uid.depth, uid.yuv, uid.copy_filter);
+                          "format: {}, copy format: {}, depth: {}, yuv: {}, apply_gamma: {}, "
+                          "all_copy_filter_coefs_needed: {}, copy_filter_can_overflow: {}",
+                          uid.efb_format, copy_format, uid.depth, uid.yuv, uid.apply_gamma,
+                          uid.all_copy_filter_coefs_needed, uid.copy_filter_can_overflow);
   }
-};
-
-// Reduced version of the full coefficient array, with a single value for each row.
-struct EFBCopyFilterCoefficients
-{
-  float upper;
-  float middle;
-  float lower;
 };
 
 class TextureCacheBase
@@ -150,6 +155,8 @@ public:
     u32 pending_efb_copy_width = 0;
     u32 pending_efb_copy_height = 0;
     bool pending_efb_copy_invalidated = false;
+
+    std::string texture_info_name = "";
 
     explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                          std::unique_ptr<AbstractFramebuffer> fb);
@@ -235,8 +242,9 @@ public:
 
   void Invalidate();
 
-  TCacheEntry* Load(const u32 stage);
-  TCacheEntry* GetTexture(const int textureCacheSafetyColorSampleSize, TextureInfo& texture_info);
+  TCacheEntry* Load(const TextureInfo& texture_info);
+  TCacheEntry* GetTexture(const int textureCacheSafetyColorSampleSize,
+                          const TextureInfo& texture_info);
   TCacheEntry* GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                              MathUtil::Rectangle<int>* display_rect);
 
@@ -260,8 +268,8 @@ public:
   // Save States
   void DoState(PointerWrap& p);
 
-  // Returns false if the top/bottom row coefficients are zero.
-  static bool NeedsCopyFilterInShader(const EFBCopyFilterCoefficients& coefficients);
+  static bool AllCopyFilterCoefsNeeded(const std::array<u32, 3>& coefficients);
+  static bool CopyFilterCanOverflow(const std::array<u32, 3>& coefficients);
 
 protected:
   // Decodes the specified data to the GPU texture specified by entry.
@@ -278,12 +286,12 @@ protected:
                        u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
                        const MathUtil::Rectangle<int>& src_rect, bool scale_by_half,
                        bool linear_filter, float y_scale, float gamma, bool clamp_top,
-                       bool clamp_bottom, const EFBCopyFilterCoefficients& filter_coefficients);
+                       bool clamp_bottom, const std::array<u32, 3>& filter_coefficients);
   virtual void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                    const MathUtil::Rectangle<int>& src_rect, bool scale_by_half,
                                    bool linear_filter, EFBCopyFormat dst_format, bool is_intensity,
                                    float gamma, bool clamp_top, bool clamp_bottom,
-                                   const EFBCopyFilterCoefficients& filter_coefficients);
+                                   const std::array<u32, 3>& filter_coefficients);
 
   alignas(16) u8* temp = nullptr;
   size_t temp_size = 0;
@@ -327,12 +335,13 @@ private:
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter,
                                            bool discard_pending_efb_copy = false);
 
+  void UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
   void UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
 
   // Precomputing the coefficients for the previous, current, and next lines for the copy filter.
-  static EFBCopyFilterCoefficients
+  static std::array<u32, 3>
   GetRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients);
-  static EFBCopyFilterCoefficients
+  static std::array<u32, 3>
   GetVRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients);
 
   // Flushes a pending EFB copy to RAM from the host to the guest RAM.
@@ -369,6 +378,8 @@ private:
     bool gpu_texture_decoding;
     bool disable_vram_copies;
     bool arbitrary_mipmap_detection;
+    bool graphics_mods;
+    u32 graphics_mod_change_count;
   };
   BackupConfig backup_config = {};
 

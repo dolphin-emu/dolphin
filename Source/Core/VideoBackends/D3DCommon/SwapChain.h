@@ -29,9 +29,6 @@ public:
   AbstractTextureFormat GetFormat() const { return m_texture_format; }
   u32 GetWidth() const { return m_width; }
   u32 GetHeight() const { return m_height; }
-  u32 GetLayers() const { return m_stereo ? 2u : 1u; }
-  bool IsStereoEnabled() const { return m_stereo; }
-  bool HasExclusiveFullscreen() const { return m_has_fullscreen; }
 
   // Mode switches.
   bool GetFullscreen() const;

@@ -53,7 +53,7 @@ public:
 
   u64 GetRawSize() const override { return m_file_size; }
   u64 GetDataSize() const override { return m_header.data_size; }
-  bool IsDataSizeAccurate() const override { return true; }
+  DataSizeType GetDataSizeType() const override { return DataSizeType::Accurate; }
 
   u64 GetBlockSize() const override { return m_header.block_size; }
   bool HasFastRandomAccessInBlock() const override { return false; }

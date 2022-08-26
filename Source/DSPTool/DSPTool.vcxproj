@@ -12,21 +12,15 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)Base.Dolphin.props" />
     <Import Project="$(VSPropsDir)PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <None Include="Testdata\dsp_test.bin" />
-    <None Include="Testdata\dsp_test.S" />
-    <None Include="Testdata\hermes.bin" />
-    <None Include="Testdata\hermes.s" />
-  </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DSPTool.cpp" />
     <ClCompile Include="StubHost.cpp" />
@@ -38,10 +32,8 @@
     <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
       <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)fmt\fmt.vcxproj">
-      <Project>{4BC5A148-0AB3-440F-A980-A29B4B999190}</Project>
-    </ProjectReference>
   </ItemGroup>
+  <Import Project="$(ExternalsDir)fmt\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

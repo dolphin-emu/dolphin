@@ -323,7 +323,7 @@ bool DXContext::CreateRootSignatures()
 bool DXContext::CreateGXRootSignature()
 {
   // GX:
-  //  - 3 constant buffers (bindings 0-2), 0/1 visible in PS, 1 visible in VS, 2 visible in GS.
+  //  - 3 constant buffers (bindings 0-2), 0/1 visible in PS, 2 visible in VS, 1 visible in GS.
   //  - 8 textures (visible in PS).
   //  - 8 samplers (visible in PS).
   //  - 1 UAV (visible in PS).
@@ -340,6 +340,8 @@ bool DXContext::CreateGXRootSignature()
                     0, 8, D3D12_SHADER_VISIBILITY_PIXEL);
   param_count++;
   SetRootParamCBV(&params[param_count], 0, D3D12_SHADER_VISIBILITY_VERTEX);
+  param_count++;
+  SetRootParamCBV(&params[param_count], 1, D3D12_SHADER_VISIBILITY_VERTEX);
   param_count++;
   SetRootParamCBV(&params[param_count], 0, D3D12_SHADER_VISIBILITY_GEOMETRY);
   param_count++;

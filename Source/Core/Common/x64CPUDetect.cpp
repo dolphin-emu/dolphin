@@ -3,12 +3,20 @@
 
 #include "Common/CPUDetect.h"
 
+#ifdef _WIN32
+#include <processthreadsapi.h>
+#endif
+
 #include <cstring>
 #include <string>
 #include <thread>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
+#include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #ifndef _WIN32
 
@@ -33,22 +41,7 @@ static inline void __cpuidex(int info[4], int function_id, int subfunction_id)
 #endif
 }
 
-static inline void __cpuid(int info[4], int function_id)
-{
-  return __cpuidex(info, function_id, 0);
-}
-
-#endif  // ifndef _WIN32
-
-#ifdef _WIN32
-
-static u64 xgetbv(u32 index)
-{
-  return _xgetbv(index);
-}
-constexpr u32 XCR_XFEATURE_ENABLED_MASK = _XCR_XFEATURE_ENABLED_MASK;
-
-#else
+constexpr u32 XCR_XFEATURE_ENABLED_MASK = 0;
 
 static u64 xgetbv(u32 index)
 {
@@ -56,8 +49,53 @@ static u64 xgetbv(u32 index)
   __asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(index));
   return ((u64)edx << 32) | eax;
 }
-constexpr u32 XCR_XFEATURE_ENABLED_MASK = 0;
+
+#else
+
+constexpr u32 XCR_XFEATURE_ENABLED_MASK = _XCR_XFEATURE_ENABLED_MASK;
+
+static u64 xgetbv(u32 index)
+{
+  return _xgetbv(index);
+}
+
+static void WarnIfRunningUnderEmulation()
+{
+  // Starting with win11, arm64 windows can run x64 processes under emulation.
+  // This detects such a scenario and informs the user they probably want to run a native build.
+  PROCESS_MACHINE_INFORMATION info{};
+  if (!GetProcessInformation(GetCurrentProcess(), ProcessMachineTypeInfo, &info, sizeof(info)))
+  {
+    // Possibly we are running on version of windows which doesn't support ProcessMachineTypeInfo.
+    return;
+  }
+  if (info.MachineAttributes & MACHINE_ATTRIBUTES::KernelEnabled)
+  {
+    // KernelEnabled will be set if process arch matches the kernel arch - how we want people to run
+    // dolphin.
+    return;
+  }
+
+  // The process is not native; could use IsWow64Process2 to get native machine type, but for now
+  // we can assume it is arm64.
+  PanicAlertFmtT("This build of Dolphin is not natively compiled for your CPU.\n"
+                 "Please run the ARM64 build of Dolphin for a better experience.");
+}
+
 #endif  // ifdef _WIN32
+
+struct CPUIDResult
+{
+  u32 eax{}, ebx{}, ecx{}, edx{};
+};
+static_assert(sizeof(CPUIDResult) == sizeof(u32) * 4);
+
+static inline CPUIDResult cpuid(int function_id, int subfunction_id = 0)
+{
+  CPUIDResult info;
+  __cpuidex((int*)&info, function_id, subfunction_id);
+  return info;
+}
 
 CPUInfo cpu_info;
 
@@ -66,192 +104,174 @@ CPUInfo::CPUInfo()
   Detect();
 }
 
-// Detects the various CPU features
 void CPUInfo::Detect()
 {
-#ifdef _M_X86_64
-  Mode64bit = true;
-  OS64bit = true;
+#ifdef _WIN32
+  WarnIfRunningUnderEmulation();
 #endif
-  num_cores = 1;
 
-  // Set obvious defaults, for extra safety
-  if (Mode64bit)
-  {
-    bSSE = true;
-    bSSE2 = true;
-    bLongMode = true;
-  }
+  // This should be much more reliable and easier than trying to get the number of cores out of the
+  // CPUID data ourselves.
+  num_cores = std::max(static_cast<int>(std::thread::hardware_concurrency()), 1);
 
   // Assume CPU supports the CPUID instruction. Those that don't can barely
-  // boot modern OS:es anyway.
-  int cpu_id[4];
+  // boot modern OS anyway.
 
-  // Detect CPU's CPUID capabilities, and grab CPU string
-  __cpuid(cpu_id, 0x00000000);
-  u32 max_std_fn = cpu_id[0];  // EAX
-  std::memcpy(&brand_string[0], &cpu_id[1], sizeof(int));
-  std::memcpy(&brand_string[4], &cpu_id[3], sizeof(int));
-  std::memcpy(&brand_string[8], &cpu_id[2], sizeof(int));
-  __cpuid(cpu_id, 0x80000000);
-  u32 max_ex_fn = cpu_id[0];
-  if (!strcmp(brand_string, "GenuineIntel"))
+  // Detect CPU's CPUID capabilities and grab vendor string.
+  auto info = cpuid(0);
+  const u32 func_id_max = info.eax;
+
+  std::string vendor_id;
+  vendor_id.resize(sizeof(u32) * 3);
+  std::memcpy(&vendor_id[0], &info.ebx, sizeof(u32));
+  std::memcpy(&vendor_id[4], &info.edx, sizeof(u32));
+  std::memcpy(&vendor_id[8], &info.ecx, sizeof(u32));
+  TruncateToCString(&vendor_id);
+  if (vendor_id == "GenuineIntel")
     vendor = CPUVendor::Intel;
-  else if (!strcmp(brand_string, "AuthenticAMD"))
+  else if (vendor_id == "AuthenticAMD")
     vendor = CPUVendor::AMD;
   else
     vendor = CPUVendor::Other;
 
-  // Set reasonable default brand string even if brand string not available.
-  strcpy(cpu_string, brand_string);
-
   // Detect family and other misc stuff.
-  bool ht = false;
-  HTT = ht;
-  if (max_std_fn >= 1)
+  bool is_amd_family_17 = false;
+  bool has_sse = false;
+  if (func_id_max >= 1)
   {
-    __cpuid(cpu_id, 0x00000001);
-    int family = ((cpu_id[0] >> 8) & 0xf) + ((cpu_id[0] >> 20) & 0xff);
-    int model = ((cpu_id[0] >> 4) & 0xf) + ((cpu_id[0] >> 12) & 0xf0);
+    info = cpuid(1);
+    const u32 version = info.eax;
+    const u32 family = ((version >> 8) & 0xf) + ((version >> 20) & 0xff);
+    const u32 model = ((version >> 4) & 0xf) + ((version >> 12) & 0xf0);
+    const u32 stepping = version & 0xf;
+
+    cpu_id = fmt::format("{:02X}:{:02X}:{:X}", family, model, stepping);
+
     // Detect people unfortunate enough to be running Dolphin on an Atom
-    if (family == 6 &&
+    if (vendor == CPUVendor::Intel && family == 6 &&
         (model == 0x1C || model == 0x26 || model == 0x27 || model == 0x35 || model == 0x36 ||
          model == 0x37 || model == 0x4A || model == 0x4D || model == 0x5A || model == 0x5D))
       bAtom = true;
+
     // Detect AMD Zen1, Zen1+ and Zen2
-    if (family == 23)
-      bZen1p2 = true;
-    ht = (cpu_id[3] >> 28) & 1;
+    if (vendor == CPUVendor::AMD && family == 0x17)
+      is_amd_family_17 = true;
 
     // AMD CPUs before Zen faked this flag and didn't actually
     // implement simultaneous multithreading (SMT; Intel calls it HTT)
     // but rather some weird middle-ground between 1-2 cores
-    HTT = ht && (vendor == CPUVendor::Intel || family >= 23);
+    const bool ht = (info.edx >> 28) & 1;
+    HTT = ht && (vendor == CPUVendor::Intel || (vendor == CPUVendor::AMD && family >= 0x17));
 
-    if ((cpu_id[3] >> 25) & 1)
-      bSSE = true;
-    if ((cpu_id[3] >> 26) & 1)
-      bSSE2 = true;
-    if ((cpu_id[2]) & 1)
+    if ((info.edx >> 25) & 1)
+      has_sse = true;
+    if (info.ecx & 1)
       bSSE3 = true;
-    if ((cpu_id[2] >> 9) & 1)
+    if ((info.ecx >> 9) & 1)
       bSSSE3 = true;
-    if ((cpu_id[2] >> 19) & 1)
+    if ((info.ecx >> 19) & 1)
       bSSE4_1 = true;
-    if ((cpu_id[2] >> 20) & 1)
+    if ((info.ecx >> 20) & 1)
       bSSE4_2 = true;
-    if ((cpu_id[2] >> 22) & 1)
+    if ((info.ecx >> 22) & 1)
       bMOVBE = true;
-    if ((cpu_id[2] >> 25) & 1)
+    if ((info.ecx >> 25) & 1)
       bAES = true;
-
-    if ((cpu_id[3] >> 24) & 1)
-    {
-      // We can use FXSAVE.
-      bFXSR = true;
-    }
 
     // AVX support requires 3 separate checks:
     //  - Is the AVX bit set in CPUID?
     //  - Is the XSAVE bit set in CPUID?
     //  - XGETBV result has the XCR bit set.
-    if (((cpu_id[2] >> 28) & 1) && ((cpu_id[2] >> 27) & 1))
+    if (((info.ecx >> 28) & 1) && ((info.ecx >> 27) & 1))
     {
-      if ((xgetbv(XCR_XFEATURE_ENABLED_MASK) & 0x6) == 0x6)
+      // Check that XSAVE can be used for SSE and AVX
+      if ((xgetbv(XCR_XFEATURE_ENABLED_MASK) & 0b110) == 0b110)
       {
         bAVX = true;
-        if ((cpu_id[2] >> 12) & 1)
+        if ((info.ecx >> 12) & 1)
           bFMA = true;
       }
     }
 
-    if (max_std_fn >= 7)
+    if (func_id_max >= 7)
     {
-      __cpuidex(cpu_id, 0x00000007, 0x00000000);
-      // careful; we can't enable AVX2 unless the XSAVE/XGETBV checks above passed
-      if ((cpu_id[1] >> 5) & 1)
-        bAVX2 = bAVX;
-      if ((cpu_id[1] >> 3) & 1)
+      info = cpuid(7);
+      if ((info.ebx >> 3) & 1)
         bBMI1 = true;
-      if ((cpu_id[1] >> 8) & 1)
+      if ((info.ebx >> 8) & 1)
         bBMI2 = true;
+      if ((info.ebx >> 29) & 1)
+        bSHA1 = bSHA2 = true;
     }
   }
 
-  bFlushToZero = bSSE;
-  bFastBMI2 = bBMI2 && !bZen1p2;
-
-  if (max_ex_fn >= 0x80000004)
+  info = cpuid(0x80000000);
+  const u32 ext_func_id_max = info.eax;
+  if (ext_func_id_max >= 0x80000004)
   {
     // Extract CPU model string
-    __cpuid(cpu_id, 0x80000002);
-    memcpy(cpu_string, cpu_id, sizeof(cpu_id));
-    __cpuid(cpu_id, 0x80000003);
-    memcpy(cpu_string + 16, cpu_id, sizeof(cpu_id));
-    __cpuid(cpu_id, 0x80000004);
-    memcpy(cpu_string + 32, cpu_id, sizeof(cpu_id));
+    model_name.resize(sizeof(info) * 3);
+    for (u32 i = 0; i < 3; i++)
+    {
+      info = cpuid(0x80000002 + i);
+      memcpy(&model_name[sizeof(info) * i], &info, sizeof(info));
+    }
+    TruncateToCString(&model_name);
+    model_name = StripSpaces(model_name);
   }
-  if (max_ex_fn >= 0x80000001)
+  if (ext_func_id_max >= 0x80000001)
   {
     // Check for more features.
-    __cpuid(cpu_id, 0x80000001);
-    if (cpu_id[2] & 1)
-      bLAHFSAHF64 = true;
-    if ((cpu_id[2] >> 5) & 1)
+    info = cpuid(0x80000001);
+    if ((info.ecx >> 5) & 1)
       bLZCNT = true;
-    if ((cpu_id[2] >> 16) & 1)
+    if ((info.ecx >> 16) & 1)
       bFMA4 = true;
-    if ((cpu_id[3] >> 29) & 1)
-      bLongMode = true;
   }
 
-  // this should be much more reliable and easier
-  // than trying to get the number of cores out of the CPUID data
-  // ourselves
-  num_cores = std::max(std::thread::hardware_concurrency(), 1u);
+  // Computed flags
+  bFlushToZero = has_sse;
+  bBMI2FastParallelBitOps = bBMI2 && !is_amd_family_17;
+  bCRC32 = bSSE4_2;
+
+  model_name = ReplaceAll(model_name, ",", "_");
+  cpu_id = ReplaceAll(cpu_id, ",", "_");
 }
 
-// Turn the CPU info into a string we can show
 std::string CPUInfo::Summarize()
 {
-  std::string sum(cpu_string);
-  sum += " (";
-  sum += brand_string;
-  sum += ")";
+  std::vector<std::string> sum;
+  sum.push_back(model_name);
+  sum.push_back(cpu_id);
 
-  if (bSSE)
-    sum += ", SSE";
-  if (bSSE2)
-  {
-    sum += ", SSE2";
-    if (!bFlushToZero)
-      sum += " (but not DAZ!)";
-  }
   if (bSSE3)
-    sum += ", SSE3";
+    sum.push_back("SSE3");
   if (bSSSE3)
-    sum += ", SSSE3";
+    sum.push_back("SSSE3");
   if (bSSE4_1)
-    sum += ", SSE4.1";
+    sum.push_back("SSE4.1");
   if (bSSE4_2)
-    sum += ", SSE4.2";
+    sum.push_back("SSE4.2");
   if (HTT)
-    sum += ", HTT";
+    sum.push_back("HTT");
   if (bAVX)
-    sum += ", AVX";
-  if (bAVX2)
-    sum += ", AVX2";
+    sum.push_back("AVX");
   if (bBMI1)
-    sum += ", BMI1";
+    sum.push_back("BMI1");
   if (bBMI2)
-    sum += ", BMI2";
+    sum.push_back("BMI2");
   if (bFMA)
-    sum += ", FMA";
-  if (bAES)
-    sum += ", AES";
+    sum.push_back("FMA");
   if (bMOVBE)
-    sum += ", MOVBE";
-  if (bLongMode)
-    sum += ", 64-bit support";
-  return sum;
+    sum.push_back("MOVBE");
+  if (bAES)
+    sum.push_back("AES");
+  if (bCRC32)
+    sum.push_back("CRC32");
+  if (bSHA1)
+    sum.push_back("SHA1");
+  if (bSHA2)
+    sum.push_back("SHA2");
+
+  return JoinStrings(sum, ",");
 }

@@ -1,5 +1,13 @@
-// Copyright 2017 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+/* DSP_MIXER -> PCM VOICE SOFTWARE PROCESSOR (8-16 Bits Mono/Stereo Voices)
+
+// Thanks to Duddie for you hard work and documentation
+
+Copyright (c) 2008 Hermes <www.entuwii.net>
+All rights reserved.
+
+SPDX-License-Identifier: BSD-3-Clause
+
+*/
 
 #include "HermesBinary.h"
 

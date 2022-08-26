@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)FreeSurround\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)FreeSurround\FreeSurround.vcxproj">
+      <Project>{8498f2fa-5ca6-4169-9971-de5b1fe6132c}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

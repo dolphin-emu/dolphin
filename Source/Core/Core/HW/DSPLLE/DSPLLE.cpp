@@ -183,7 +183,7 @@ void DSPLLE::Shutdown()
 
 u16 DSPLLE::DSP_WriteControlRegister(u16 value)
 {
-  m_dsp_core.GetInterpreter().WriteCR(value);
+  m_dsp_core.GetInterpreter().WriteControlRegister(value);
 
   if ((value & CR_EXTERNAL_INT) != 0)
   {
@@ -207,7 +207,7 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 value)
 
 u16 DSPLLE::DSP_ReadControlRegister()
 {
-  return m_dsp_core.GetInterpreter().ReadCR();
+  return m_dsp_core.GetInterpreter().ReadControlRegister();
 }
 
 u16 DSPLLE::DSP_ReadMailBoxHigh(bool cpu_mailbox)

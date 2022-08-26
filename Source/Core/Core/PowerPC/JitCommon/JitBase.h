@@ -93,7 +93,7 @@ protected:
     u8* trampolineExceptionHandler;
 
     bool mustCheckFifo;
-    int fifoBytesSinceCheck;
+    u32 fifoBytesSinceCheck;
 
     PPCAnalyst::BlockStats st;
     PPCAnalyst::BlockRegStats gpa;

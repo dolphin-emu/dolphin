@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
 #include "Common/Swap.h"
 
 namespace DiscIO
@@ -74,7 +75,7 @@ private:
   std::string m_nand_root;
   std::vector<u8> m_nand;
   std::vector<u8> m_nand_keys;
-  std::array<u8, 16> m_aes_key;
+  std::unique_ptr<Common::AES::Context> m_aes_ctx;
   std::unique_ptr<NANDSuperblock> m_superblock;
   std::function<void()> m_update_callback;
 };

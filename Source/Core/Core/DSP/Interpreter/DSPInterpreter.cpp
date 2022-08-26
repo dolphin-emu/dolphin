@@ -7,12 +7,17 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MemoryUtil.h"
 
+#include "Core/CoreTiming.h"
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Interpreter/DSPIntCCUtil.h"
 #include "Core/DSP/Interpreter/DSPIntTables.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
 
 namespace DSP::Interpreter
 {
@@ -81,7 +86,7 @@ int Interpreter::RunCyclesThread(int cycles)
 
   while (true)
   {
-    if ((state.cr & CR_HALT) != 0)
+    if ((state.control_reg & CR_HALT) != 0)
       return 0;
 
     if (state.external_interrupt_waiting.exchange(false, std::memory_order_acquire))
@@ -104,7 +109,7 @@ int Interpreter::RunCyclesDebug(int cycles)
   // First, let's run a few cycles with no idle skipping so that things can progress a bit.
   for (int i = 0; i < 8; i++)
   {
-    if ((state.cr & CR_HALT) != 0)
+    if ((state.control_reg & CR_HALT) != 0)
       return 0;
 
     if (m_dsp_core.BreakPoints().IsAddressBreakPoint(state.pc))
@@ -124,7 +129,7 @@ int Interpreter::RunCyclesDebug(int cycles)
     // idle loops.
     for (int i = 0; i < 8; i++)
     {
-      if ((state.cr & CR_HALT) != 0)
+      if ((state.control_reg & CR_HALT) != 0)
         return 0;
 
       if (m_dsp_core.BreakPoints().IsAddressBreakPoint(state.pc))
@@ -169,7 +174,7 @@ int Interpreter::RunCycles(int cycles)
   // progress a bit.
   for (int i = 0; i < 8; i++)
   {
-    if ((state.cr & CR_HALT) != 0)
+    if ((state.control_reg & CR_HALT) != 0)
       return 0;
 
     Step();
@@ -185,7 +190,7 @@ int Interpreter::RunCycles(int cycles)
     // idle loops.
     for (int i = 0; i < 8; i++)
     {
-      if ((state.cr & CR_HALT) != 0)
+      if ((state.control_reg & CR_HALT) != 0)
         return 0;
 
       if (state.GetAnalyzer().IsIdleSkip(state.pc))
@@ -212,8 +217,19 @@ int Interpreter::RunCycles(int cycles)
 }
 
 // NOTE: These have nothing to do with SDSP::r::cr!
-void Interpreter::WriteCR(u16 val)
+void Interpreter::WriteControlRegister(u16 val)
 {
+  auto& state = m_dsp_core.DSPState();
+
+  if ((state.control_reg & CR_HALT) != (val & CR_HALT))
+  {
+    // This bit is handled by Interpreter::RunCycles and DSPEmitter::CompileDispatcher
+    INFO_LOG_FMT(DSPLLE, "DSP_CONTROL halt bit changed: {:04x} -> {:04x}, PC {:04x}",
+                 state.control_reg, val, state.pc);
+  }
+
+  // The CR_EXTERNAL_INT bit is handled by DSPLLE::DSP_WriteControlRegister
+
   // reset
   if ((val & CR_RESET) != 0)
   {
@@ -221,34 +237,43 @@ void Interpreter::WriteCR(u16 val)
     m_dsp_core.Reset();
     val &= ~CR_RESET;
   }
-  // init
-  else if (val == CR_HALT)
+  // init - unclear if writing CR_INIT_CODE does something. Clearing CR_INIT immediately sets
+  // CR_INIT_CODE, which gets unset a bit later...
+  if (((state.control_reg & CR_INIT) != 0) && ((val & CR_INIT) == 0))
   {
-    // HAX!
-    // OSInitAudioSystem ucode should send this mail - not DSP core itself
     INFO_LOG_FMT(DSPLLE, "DSP_CONTROL INIT");
-    m_dsp_core.SetInitHax(true);
-    val |= CR_INIT;
+    // Copy 1024(?) bytes of uCode from main memory 0x81000000 (or is it ARAM 00000000?)
+    // to IMEM 0000 and jump to that code
+    // TODO: Determine exactly how this initialization works
+    state.pc = 0;
+
+    Common::UnWriteProtectMemory(state.iram, DSP_IRAM_BYTE_SIZE, false);
+    Host::DMAToDSP(state.iram, 0x81000000, 0x1000);
+    Common::WriteProtectMemory(state.iram, DSP_IRAM_BYTE_SIZE, false);
+
+    Host::CodeLoaded(m_dsp_core, 0x81000000, 0x1000);
+
+    val &= ~CR_INIT;
+    val |= CR_INIT_CODE;
+    // Number obtained from real hardware on a Wii, but it's not perfectly consistent
+    state.control_reg_init_code_clear_time = SystemTimers::GetFakeTimeBase() + 130;
   }
 
   // update cr
-  m_dsp_core.DSPState().cr = val;
+  state.control_reg = val;
 }
 
-u16 Interpreter::ReadCR()
+u16 Interpreter::ReadControlRegister()
 {
   auto& state = m_dsp_core.DSPState();
-
-  if ((state.pc & 0x8000) != 0)
+  if ((state.control_reg & CR_INIT_CODE) != 0)
   {
-    state.cr |= CR_INIT;
+    if (SystemTimers::GetFakeTimeBase() >= state.control_reg_init_code_clear_time)
+      state.control_reg &= ~CR_INIT_CODE;
+    else
+      CoreTiming::ForceExceptionCheck(50);  // Keep checking
   }
-  else
-  {
-    state.cr &= ~CR_INIT;
-  }
-
-  return state.cr;
+  return state.control_reg;
 }
 
 void Interpreter::SetSRFlag(u16 flag)

@@ -11,9 +11,9 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
-public final class HeaderViewHolder extends SettingViewHolder
+public class HeaderViewHolder extends SettingViewHolder
 {
-  private TextView mHeaderName;
+  protected TextView mHeaderName;
 
   public HeaderViewHolder(View itemView, SettingsAdapter adapter)
   {

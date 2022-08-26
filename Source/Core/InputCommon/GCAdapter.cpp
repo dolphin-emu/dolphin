@@ -71,7 +71,7 @@ enum
   ADAPTER_DETECTED = 1,
 };
 
-// Current adapter status: detected/not detected/in error (holds the error code)
+// Current adapter status: detected/not detected/in error (libusb error codes are negative)
 static std::atomic<int> s_status = NO_ADAPTER_DETECTED;
 static libusb_device_handle* s_handle = nullptr;
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
@@ -462,7 +462,7 @@ static void Setup()
   s_controller_type.fill(ControllerType::None);
   s_controller_rumble.fill(0);
 
-  s_libusb_context->GetDeviceList([](libusb_device* device) {
+  const int ret = s_libusb_context->GetDeviceList([](libusb_device* device) {
     if (CheckDeviceAccess(device))
     {
       // Only connect to a single adapter in case the user has multiple connected
@@ -471,6 +471,8 @@ static void Setup()
     }
     return true;
   });
+  if (ret != LIBUSB_SUCCESS)
+    WARN_LOG_FMT(CONTROLLERINTERFACE, "Failed to get device list: {}", LibusbUtils::ErrorWrap(ret));
 
   if (s_status != ADAPTER_DETECTED && prev_status != s_status && s_detect_callback != nullptr)
     s_detect_callback();
@@ -537,7 +539,8 @@ static bool CheckDeviceAccess(libusb_device* device)
     // We assume user is using GCAdapterDriver and therefor don't want to detach anything
 #if !defined(__APPLE__)
     ret = libusb_detach_kernel_driver(s_handle, 0);
-    detach_failed = ret < 0 && ret != LIBUSB_ERROR_NOT_FOUND && ret != LIBUSB_ERROR_NOT_SUPPORTED;
+    detach_failed =
+        ret < LIBUSB_SUCCESS && ret != LIBUSB_ERROR_NOT_FOUND && ret != LIBUSB_ERROR_NOT_SUPPORTED;
 #endif
     if (detach_failed)
     {
@@ -555,7 +558,7 @@ static bool CheckDeviceAccess(libusb_device* device)
   // This call makes Nyko-brand (and perhaps other) adapters work.
   // However it returns LIBUSB_ERROR_PIPE with Mayflash adapters.
   const int transfer = libusb_control_transfer(s_handle, 0x21, 11, 0x0001, 0, nullptr, 0, 1000);
-  if (transfer < 0)
+  if (transfer < LIBUSB_SUCCESS)
   {
     WARN_LOG_FMT(CONTROLLERINTERFACE, "libusb_control_transfer failed: {}",
                  LibusbUtils::ErrorWrap(transfer));

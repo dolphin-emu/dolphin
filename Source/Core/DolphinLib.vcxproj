@@ -12,6 +12,7 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)Base.Dolphin.props" />
     <Import Project="$(VSPropsDir)PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -30,6 +31,36 @@
   <ItemGroup>
     <ClCompile Include="Core\HW\EXI\BBA\Netplay_BBA.cpp" />
   </ItemGroup>
+  <Import Project="$(ExternalsDir)Bochs_disasm\exports.props" />
+  <Import Project="$(ExternalsDir)bzip2\exports.props" />
+  <Import Project="$(ExternalsDir)cpp-optparse\exports.props" />
+  <Import Project="$(ExternalsDir)cubeb\exports.props" />
+  <Import Project="$(ExternalsDir)curl\exports.props" />
+  <Import Project="$(ExternalsDir)discord-rpc\exports.props" />
+  <Import Project="$(ExternalsDir)ed25519\exports.props" />
+  <Import Project="$(ExternalsDir)enet\exports.props" />
+  <Import Project="$(ExternalsDir)FatFs\exports.props" />
+  <Import Project="$(ExternalsDir)fmt\exports.props" />
+  <Import Project="$(ExternalsDir)FreeSurround\exports.props" />
+  <Import Project="$(ExternalsDir)glslang\exports.props" />
+  <Import Project="$(ExternalsDir)imgui\exports.props" />
+  <Import Project="$(ExternalsDir)liblzma\exports.props" />
+  <Import Project="$(ExternalsDir)libspng\exports.props" />
+  <Import Project="$(ExternalsDir)libusb\exports.props" />
+  <Import Project="$(ExternalsDir)LZO\exports.props" />
+  <Import Project="$(ExternalsDir)mbedtls\exports.props" />
+  <Import Project="$(ExternalsDir)mGBA\exports.props" />
+  <Import Project="$(ExternalsDir)miniupnpc\exports.props" />
+  <Import Project="$(ExternalsDir)minizip\exports.props" />
+  <Import Project="$(ExternalsDir)picojson\exports.props" />
+  <Import Project="$(ExternalsDir)pugixml\exports.props" />
+  <Import Project="$(ExternalsDir)SDL\exports.props" />
+  <Import Project="$(ExternalsDir)SFML\exports.props" />
+  <Import Project="$(ExternalsDir)soundtouch\exports.props" />
+  <Import Project="$(ExternalsDir)spirv_cross\exports.props" />
+  <Import Project="$(ExternalsDir)xxhash\exports.props" />
+  <Import Project="$(ExternalsDir)zlib-ng\exports.props" />
+  <Import Project="$(ExternalsDir)zstd\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

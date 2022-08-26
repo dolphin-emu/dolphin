@@ -34,88 +34,68 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   const u32 num_texgen = uid_data->num_texgens;
   ShaderCode out;
 
-  out.Write("// Vertex UberShader\n\n");
+  out.Write("// {}\n\n", *uid_data);
   out.Write("{}", s_lighting_struct);
 
   // uniforms
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    out.Write("UBO_BINDING(std140, 2) uniform VSBlock {{\n");
-  else
-    out.Write("cbuffer VSBlock {{\n");
+  out.Write("UBO_BINDING(std140, 2) uniform VSBlock {{\n");
   out.Write("{}", s_shader_uniforms);
   out.Write("}};\n");
 
   out.Write("struct VS_OUTPUT {{\n");
-  GenerateVSOutputMembers(out, api_type, num_texgen, host_config, "");
+  GenerateVSOutputMembers(out, api_type, num_texgen, host_config, "", ShaderStage::Vertex);
   out.Write("}};\n\n");
 
   WriteIsNanHeader(out, api_type);
   WriteBitfieldExtractHeader(out, api_type, host_config);
   WriteLightingFunction(out);
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  out.Write("ATTRIBUTE_LOCATION({}) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
+  out.Write("ATTRIBUTE_LOCATION({}) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
+  out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnormal;\n", SHADER_NORMAL_ATTRIB);
+  out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtangent;\n", SHADER_TANGENT_ATTRIB);
+  out.Write("ATTRIBUTE_LOCATION({}) in float3 rawbinormal;\n", SHADER_BINORMAL_ATTRIB);
+  out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
+  out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
+  for (int i = 0; i < 8; ++i)
+    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtex{};\n", SHADER_TEXTURE0_ATTRIB + i, i);
+
+  if (host_config.backend_geometry_shaders)
   {
-    out.Write("ATTRIBUTE_LOCATION({}) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
-    out.Write("ATTRIBUTE_LOCATION({}) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
-    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnormal;\n", SHADER_NORMAL_ATTRIB);
-    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtangent;\n", SHADER_TANGENT_ATTRIB);
-    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawbinormal;\n", SHADER_BINORMAL_ATTRIB);
-    out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
-    out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
-    for (int i = 0; i < 8; ++i)
-      out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtex{};\n", SHADER_TEXTURE0_ATTRIB + i, i);
-
-    if (host_config.backend_geometry_shaders)
-    {
-      out.Write("VARYING_LOCATION(0) out VertexData {{\n");
-      GenerateVSOutputMembers(out, api_type, num_texgen, host_config,
-                              GetInterpolationQualifier(msaa, ssaa, true, false));
-      out.Write("}} vs;\n");
-    }
-    else
-    {
-      // Let's set up attributes
-      u32 counter = 0;
-      out.Write("VARYING_LOCATION({}) {} out float4 colors_0;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
-      out.Write("VARYING_LOCATION({}) {} out float4 colors_1;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
-      for (u32 i = 0; i < num_texgen; ++i)
-      {
-        out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa), i);
-      }
-      if (!host_config.fast_depth_calc)
-      {
-        out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-      }
-      if (per_pixel_lighting)
-      {
-        out.Write("VARYING_LOCATION({}) {} out float3 Normal;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-        out.Write("VARYING_LOCATION({}) {} out float3 WorldPos;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-      }
-    }
-
-    out.Write("void main()\n{{\n");
+    out.Write("VARYING_LOCATION(0) out VertexData {{\n");
+    GenerateVSOutputMembers(out, api_type, num_texgen, host_config,
+                            GetInterpolationQualifier(msaa, ssaa, true, false),
+                            ShaderStage::Vertex);
+    out.Write("}} vs;\n");
   }
-  else  // D3D
+  else
   {
-    out.Write("VS_OUTPUT main(\n");
-
-    // inputs
-    out.Write("  float3 rawnormal : NORMAL,\n"
-              "  float3 rawtangent : TANGENT,\n"
-              "  float3 rawbinormal : BINORMAL,\n"
-              "  float4 rawcolor0 : COLOR0,\n"
-              "  float4 rawcolor1 : COLOR1,\n");
-    for (int i = 0; i < 8; ++i)
-      out.Write("  float3 rawtex{} : TEXCOORD{},\n", i, i);
-    out.Write("  uint posmtx : BLENDINDICES,\n");
-    out.Write("  float4 rawpos : POSITION) {{\n");
+    // Let's set up attributes
+    u32 counter = 0;
+    out.Write("VARYING_LOCATION({}) {} out float4 colors_0;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
+    out.Write("VARYING_LOCATION({}) {} out float4 colors_1;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
+    for (u32 i = 0; i < num_texgen; ++i)
+    {
+      out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa), i);
+    }
+    if (!host_config.fast_depth_calc)
+    {
+      out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+    }
+    if (per_pixel_lighting)
+    {
+      out.Write("VARYING_LOCATION({}) {} out float3 Normal;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION({}) {} out float3 WorldPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+    }
   }
+
+  out.Write("void main()\n{{\n");
 
   out.Write("VS_OUTPUT o;\n"
             "\n");
@@ -335,45 +315,38 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
               "}}\n");
   }
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  if (host_config.backend_geometry_shaders)
   {
-    if (host_config.backend_geometry_shaders)
-    {
-      AssignVSOutputMembers(out, "vs", "o", num_texgen, host_config);
-    }
-    else
-    {
-      // TODO: Pass interface blocks between shader stages even if geometry shaders
-      // are not supported, however that will require at least OpenGL 3.2 support.
-      for (u32 i = 0; i < num_texgen; ++i)
-        out.Write("tex{}.xyz = o.tex{};\n", i, i);
-      if (!host_config.fast_depth_calc)
-        out.Write("clipPos = o.clipPos;\n");
-      if (per_pixel_lighting)
-      {
-        out.Write("Normal = o.Normal;\n"
-                  "WorldPos = o.WorldPos;\n");
-      }
-      out.Write("colors_0 = o.colors_0;\n"
-                "colors_1 = o.colors_1;\n");
-    }
-
-    if (host_config.backend_depth_clamp)
-    {
-      out.Write("gl_ClipDistance[0] = clipDist0;\n"
-                "gl_ClipDistance[1] = clipDist1;\n");
-    }
-
-    // Vulkan NDC space has Y pointing down (right-handed NDC space).
-    if (api_type == APIType::Vulkan)
-      out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");
-    else
-      out.Write("gl_Position = o.pos;\n");
+    AssignVSOutputMembers(out, "vs", "o", num_texgen, host_config);
   }
-  else  // D3D
+  else
   {
-    out.Write("return o;\n");
+    // TODO: Pass interface blocks between shader stages even if geometry shaders
+    // are not supported, however that will require at least OpenGL 3.2 support.
+    for (u32 i = 0; i < num_texgen; ++i)
+      out.Write("tex{}.xyz = o.tex{};\n", i, i);
+    if (!host_config.fast_depth_calc)
+      out.Write("clipPos = o.clipPos;\n");
+    if (per_pixel_lighting)
+    {
+      out.Write("Normal = o.Normal;\n"
+                "WorldPos = o.WorldPos;\n");
+    }
+    out.Write("colors_0 = o.colors_0;\n"
+              "colors_1 = o.colors_1;\n");
   }
+
+  if (host_config.backend_depth_clamp)
+  {
+    out.Write("gl_ClipDistance[0] = clipDist0;\n"
+              "gl_ClipDistance[1] = clipDist1;\n");
+  }
+
+  // Vulkan NDC space has Y pointing down (right-handed NDC space).
+  if (api_type == APIType::Vulkan)
+    out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");
+  else
+    out.Write("gl_Position = o.pos;\n");
   out.Write("}}\n");
 
   return out;
@@ -393,8 +366,7 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   }
   else
   {
-    out.Write("{}for (uint texgen = 0u; texgen < {}u; texgen++) {{\n",
-              api_type == APIType::D3D ? "[loop] " : "", num_texgen);
+    out.Write("for (uint texgen = 0u; texgen < {}u; texgen++) {{\n", num_texgen);
   }
 
   out.Write("  // Texcoord transforms\n");

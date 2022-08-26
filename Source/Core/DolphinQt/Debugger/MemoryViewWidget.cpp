@@ -10,14 +10,17 @@
 #include <QMenu>
 #include <QMouseEvent>
 #include <QScrollBar>
+#include <QSignalBlocker>
 #include <QTableWidget>
 #include <QtGlobal>
 
 #include <cmath>
+#include <fmt/printf.h>
 
 #include "Common/Align.h"
 #include "Common/FloatUtils.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
 #include "Core/PowerPC/BreakPoints.h"
@@ -32,7 +35,7 @@ constexpr double SCROLL_FRACTION_DEGREES = 15.;
 
 constexpr auto USER_ROLE_IS_ROW_BREAKPOINT_CELL = Qt::UserRole;
 constexpr auto USER_ROLE_CELL_ADDRESS = Qt::UserRole + 1;
-constexpr auto USER_ROLE_HAS_VALUE = Qt::UserRole + 2;
+constexpr auto USER_ROLE_VALUE_TYPE = Qt::UserRole + 2;
 
 // Numbers for the scrollbar. These affect how much big the draggable part of the scrollbar is, how
 // smooth it scrolls, and how much memory it traverses while dragging.
@@ -55,6 +58,7 @@ public:
 
     connect(this, &MemoryViewTable::customContextMenuRequested, m_view,
             &MemoryViewWidget::OnContextMenu);
+    connect(this, &MemoryViewTable::itemChanged, this, &MemoryViewTable::OnItemChanged);
   }
 
   void resizeEvent(QResizeEvent* event) override
@@ -120,6 +124,27 @@ public:
     {
       QTableWidget::mousePressEvent(event);
     }
+  }
+
+  void OnItemChanged(QTableWidgetItem* item)
+  {
+    QString text = item->text();
+    MemoryViewWidget::Type type =
+        static_cast<MemoryViewWidget::Type>(item->data(USER_ROLE_VALUE_TYPE).toInt());
+    std::vector<u8> bytes = m_view->ConvertTextToBytes(type, text);
+
+    u32 address = item->data(USER_ROLE_CELL_ADDRESS).toUInt();
+    u32 end_address = address + static_cast<u32>(bytes.size()) - 1;
+    AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_view->GetAddressSpace());
+
+    if (!bytes.empty() && accessors->IsValidAddress(address) &&
+        accessors->IsValidAddress(end_address))
+    {
+      for (const u8 c : bytes)
+        accessors->WriteU8(address++, c);
+    }
+
+    m_view->Update();
   }
 
 private:
@@ -235,6 +260,8 @@ constexpr int GetCharacterCount(MemoryViewWidget::Type type)
 
 void MemoryViewWidget::Update()
 {
+  const QSignalBlocker blocker(m_table);
+
   m_table->clearSelection();
 
   u32 address = m_address;
@@ -254,6 +281,7 @@ void MemoryViewWidget::Update()
   m_table->verticalHeader()->setDefaultSectionSize(m_font_vspace - 1);
   m_table->verticalHeader()->setMinimumSectionSize(m_font_vspace - 1);
   m_table->horizontalHeader()->setMinimumSectionSize(m_font_width * 2);
+  m_table->setTextElideMode(Qt::TextElideMode::ElideNone);
 
   const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
 
@@ -271,7 +299,7 @@ void MemoryViewWidget::Update()
     bp_item->setFlags(Qt::ItemIsEnabled);
     bp_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, true);
     bp_item->setData(USER_ROLE_CELL_ADDRESS, row_address);
-    bp_item->setData(USER_ROLE_HAS_VALUE, false);
+    bp_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
 
     m_table->setItem(i, 0, bp_item);
 
@@ -281,7 +309,7 @@ void MemoryViewWidget::Update()
     row_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     row_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
     row_item->setData(USER_ROLE_CELL_ADDRESS, row_address);
-    row_item->setData(USER_ROLE_HAS_VALUE, false);
+    row_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
 
     m_table->setItem(i, 1, row_item);
 
@@ -296,7 +324,7 @@ void MemoryViewWidget::Update()
         item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
         item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
         item->setData(USER_ROLE_CELL_ADDRESS, row_address);
-        item->setData(USER_ROLE_HAS_VALUE, false);
+        item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
 
         m_table->setItem(i, c, item);
       }
@@ -371,7 +399,7 @@ void MemoryViewWidget::UpdateColumns(Type type, int first_column)
       for (int c = 0; c < data_columns; c++)
       {
         auto* cell_item = new QTableWidgetItem;
-        cell_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+        cell_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
         cell_item->setTextAlignment(text_alignment);
 
         const u32 cell_address = row_address + c * GetTypeSize(type);
@@ -383,14 +411,14 @@ void MemoryViewWidget::UpdateColumns(Type type, int first_column)
           cell_item->setText(value_to_string(cell_address));
           cell_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
           cell_item->setData(USER_ROLE_CELL_ADDRESS, cell_address);
-          cell_item->setData(USER_ROLE_HAS_VALUE, true);
+          cell_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(type));
         }
         else
         {
           cell_item->setText(QStringLiteral("-"));
           cell_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
           cell_item->setData(USER_ROLE_CELL_ADDRESS, cell_address);
-          cell_item->setData(USER_ROLE_HAS_VALUE, false);
+          cell_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
         }
       }
     };
@@ -536,6 +564,156 @@ AddressSpace::Type MemoryViewWidget::GetAddressSpace() const
   return m_address_space;
 }
 
+std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QString input_text)
+{
+  if (type == Type::Null)
+    return {};
+
+  bool good = false;
+  int radix = 0;
+
+  switch (type)
+  {
+  case Type::ASCII:
+  {
+    const QByteArray qbytes = input_text.toUtf8();
+    std::vector<u8> bytes;
+
+    for (const char c : qbytes)
+      bytes.push_back(static_cast<u8>(c));
+
+    return bytes;
+  }
+  case Type::Float32:
+  {
+    const float float_value = input_text.toFloat(&good);
+
+    if (good)
+    {
+      const u32 value = Common::BitCast<u32>(float_value);
+      auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
+      return std::vector<u8>(std_array.begin(), std_array.end());
+    }
+    break;
+  }
+  case Type::Double:
+  {
+    const double double_value = input_text.toDouble(&good);
+
+    if (good)
+    {
+      const u64 value = Common::BitCast<u64>(double_value);
+      auto std_array = Common::BitCastToArray<u8>(Common::swap64(value));
+      return std::vector<u8>(std_array.begin(), std_array.end());
+    }
+    break;
+  }
+  case Type::Signed8:
+  {
+    const short value = input_text.toShort(&good, radix);
+    good &= std::numeric_limits<signed char>::min() <= value &&
+            value <= std::numeric_limits<signed char>::max();
+    if (good)
+    {
+      auto std_array = Common::BitCastToArray<u8>(Common::swap8(value));
+      return std::vector<u8>(std_array.begin(), std_array.end());
+    }
+    break;
+  }
+  case Type::Signed16:
+  {
+    const short value = input_text.toShort(&good, radix);
+    if (good)
+    {
+      auto std_array = Common::BitCastToArray<u8>(Common::swap16(value));
+      return std::vector<u8>(std_array.begin(), std_array.end());
+    }
+    break;
+  }
+  case Type::Signed32:
+  {
+    const int value = input_text.toInt(&good, radix);
+    if (good)
+    {
+      auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
+      return std::vector<u8>(std_array.begin(), std_array.end());
+    }
+    break;
+  }
+  case Type::Hex8:
+    radix = 16;
+    [[fallthrough]];
+  case Type::Unsigned8:
+  {
+    const unsigned short value = input_text.toUShort(&good, radix);
+    good &= (value & 0xFF00) == 0;
+    if (good)
+    {
+      auto std_array = Common::BitCastToArray<u8>(Common::swap8(value));
+      return std::vector<u8>(std_array.begin(), std_array.end());
+    }
+    break;
+  }
+  case Type::Hex16:
+    radix = 16;
+    [[fallthrough]];
+  case Type::Unsigned16:
+  {
+    const unsigned short value = input_text.toUShort(&good, radix);
+    if (good)
+    {
+      auto std_array = Common::BitCastToArray<u8>(Common::swap16(value));
+      return std::vector<u8>(std_array.begin(), std_array.end());
+    }
+    break;
+  }
+  case Type::Hex32:
+    radix = 16;
+    [[fallthrough]];
+  case Type::Unsigned32:
+  {
+    const u32 value = input_text.toUInt(&good, radix);
+    if (good)
+    {
+      auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
+      return std::vector<u8>(std_array.begin(), std_array.end());
+    }
+    break;
+  }
+  case Type::Hex64:
+  {
+    const u64 value = input_text.toULongLong(&good, 16);
+    if (good)
+    {
+      auto std_array = Common::BitCastToArray<u8>(Common::swap64(value));
+      return std::vector<u8>(std_array.begin(), std_array.end());
+    }
+    break;
+  }
+  case Type::HexString:
+  {
+    // Confirm it is only hex bytes
+    const QRegularExpression is_hex(QStringLiteral("^([0-9A-F]{2})*$"),
+                                    QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpressionMatch match = is_hex.match(input_text);
+    good = match.hasMatch();
+    if (good)
+    {
+      const QByteArray qbytes = QByteArray::fromHex(input_text.toUtf8());
+      std::vector<u8> bytes;
+
+      for (const char c : qbytes)
+        bytes.push_back(static_cast<u8>(c));
+
+      return bytes;
+    }
+    break;
+  }
+  }
+
+  return {};
+}
+
 void MemoryViewWidget::SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view)
 {
   m_type = type;
@@ -637,7 +815,8 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   if (!item_selected || item_selected->data(USER_ROLE_IS_ROW_BREAKPOINT_CELL).toBool())
     return;
 
-  const bool item_has_value = item_selected->data(USER_ROLE_HAS_VALUE).toBool();
+  const bool item_has_value =
+      item_selected->data(USER_ROLE_VALUE_TYPE).toInt() != static_cast<int>(Type::Null);
   const u32 addr = item_selected->data(USER_ROLE_CELL_ADDRESS).toUInt();
 
   auto* menu = new QMenu(this);
@@ -653,7 +832,7 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   auto* copy_value = menu->addAction(tr("Copy Value"), this, [this, &pos] {
     // Re-fetch the item in case the underlying table has refreshed since the menu was opened.
     auto* item = m_table->itemAt(pos);
-    if (item && item->data(USER_ROLE_HAS_VALUE).toBool())
+    if (item && item->data(USER_ROLE_VALUE_TYPE).toInt() != static_cast<int>(Type::Null))
       QApplication::clipboard()->setText(item->text());
   });
   copy_value->setEnabled(item_has_value);

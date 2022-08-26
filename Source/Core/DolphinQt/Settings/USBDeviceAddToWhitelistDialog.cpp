@@ -124,8 +124,8 @@ void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
 
 void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
 {
-  const std::string vid_string(StripSpaces(device_vid_textbox->text().toStdString()));
-  const std::string pid_string(StripSpaces(device_pid_textbox->text().toStdString()));
+  const std::string vid_string(StripWhitespace(device_vid_textbox->text().toStdString()));
+  const std::string pid_string(StripWhitespace(device_pid_textbox->text().toStdString()));
   if (!IsValidUSBIDString(vid_string))
   {
     // i18n: Here, VID means Vendor ID (for a USB device).

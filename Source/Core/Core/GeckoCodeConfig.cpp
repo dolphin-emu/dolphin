@@ -54,7 +54,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
   {
     // Remove \r at the end of the line for files using windows line endings, std::getline only
     // removes \n
-    line = StripSpaces(line);
+    line = StripWhitespace(line);
 
     if (line.empty())
     {
@@ -74,7 +74,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
       std::istringstream ssline(line);
       // stop at [ character (beginning of contributor name)
       std::getline(ssline, gcode.name, '[');
-      gcode.name = StripSpaces(gcode.name);
+      gcode.name = StripWhitespace(gcode.name);
       gcode.user_defined = true;
       // read the code creator name
       std::getline(ssline, gcode.creator, ']');
@@ -165,7 +165,7 @@ std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localI
         ss.seekg(1, std::ios_base::cur);
         // read the code name
         std::getline(ss, gcode.name, '[');  // stop at [ character (beginning of contributor name)
-        gcode.name = StripSpaces(gcode.name);
+        gcode.name = StripWhitespace(gcode.name);
         // read the code creator name
         std::getline(ss, gcode.creator, ']');
         break;

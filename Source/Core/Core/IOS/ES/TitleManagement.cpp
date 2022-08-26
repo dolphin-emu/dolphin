@@ -9,9 +9,9 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/sha1.h>
 
 #include "Common/Align.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Core/CommonTitles.h"
@@ -353,9 +353,7 @@ IPCReply ESDevice::ImportContentData(Context& context, const IOCtlVRequest& requ
 
 static bool CheckIfContentHashMatches(const std::vector<u8>& content, const ES::Content& info)
 {
-  std::array<u8, 20> sha1;
-  mbedtls_sha1_ret(content.data(), info.size, sha1.data());
-  return sha1 == info.sha1;
+  return Common::SHA1::CalculateDigest(content.data(), info.size) == info.sha1;
 }
 
 static std::string GetImportContentPath(u64 title_id, u32 content_id)
@@ -762,11 +760,11 @@ ReturnCode ESDevice::ExportContentData(Context& context, u32 content_fd, u8* dat
   buffer.resize(Common::AlignUp(buffer.size(), 32));
 
   std::vector<u8> output(buffer.size());
-  const ReturnCode decrypt_ret = m_ios.GetIOSC().Encrypt(
+  const ReturnCode encrypt_ret = m_ios.GetIOSC().Encrypt(
       context.title_import_export.key_handle, context.title_import_export.content.iv.data(),
       buffer.data(), buffer.size(), output.data(), PID_ES);
-  if (decrypt_ret != IPC_SUCCESS)
-    return decrypt_ret;
+  if (encrypt_ret != IPC_SUCCESS)
+    return encrypt_ret;
 
   std::copy(output.cbegin(), output.cend(), data);
   return IPC_SUCCESS;

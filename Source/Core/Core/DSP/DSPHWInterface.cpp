@@ -39,16 +39,9 @@ u16 SDSP::ReadMailboxLow(Mailbox mailbox)
   const u32 value = GetMailbox(mailbox).load(std::memory_order_acquire);
   GetMailbox(mailbox).store(value & ~0x80000000, std::memory_order_release);
 
-  if (m_dsp_core.GetInitHax() && mailbox == Mailbox::DSP)
-  {
-    m_dsp_core.SetInitHax(false);
-    m_dsp_core.Reset();
-    return 0x4348;
-  }
-
 #if defined(_DEBUG) || defined(DEBUGFAST)
   const char* const type = mailbox == Mailbox::DSP ? "DSP" : "CPU";
-  DEBUG_LOG_FMT(DSP_MAIL, "{}(RM) B:{} M:0x{:#010x} (pc={:#06x})", type, static_cast<int>(mailbox),
+  DEBUG_LOG_FMT(DSP_MAIL, "{}(RM) B:{} M:{:#010x} (pc={:#06x})", type, static_cast<int>(mailbox),
                 PeekMailbox(mailbox), pc);
 #endif
 
@@ -57,11 +50,6 @@ u16 SDSP::ReadMailboxLow(Mailbox mailbox)
 
 u16 SDSP::ReadMailboxHigh(Mailbox mailbox)
 {
-  if (m_dsp_core.GetInitHax() && mailbox == Mailbox::DSP)
-  {
-    return 0x8054;
-  }
-
   // TODO: mask away the top bit?
   return static_cast<u16>(PeekMailbox(mailbox) >> 16);
 }
@@ -96,9 +84,15 @@ void SDSP::WriteIFX(u32 address, u16 value)
   {
   case DSP_DIRQ:
     if ((value & 1) != 0)
+    {
       Host::InterruptRequest();
-    else
+    }
+    else if (value != 0)
+    {
+      // The homebrew libasnd uCode frequently writes 0 to DIRQ with a comment
+      // saying "clear the interrupt" - we don't need to log in this case.
       WARN_LOG_FMT(DSPLLE, "Unknown Interrupt Request pc={:#06x} ({:#06x})", pc, value);
+    }
     break;
 
   case DSP_DMBH:

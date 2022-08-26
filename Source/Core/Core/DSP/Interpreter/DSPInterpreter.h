@@ -32,8 +32,8 @@ public:
   int RunCycles(int cycles);
   int RunCyclesDebug(int cycles);
 
-  void WriteCR(u16 val);
-  u16 ReadCR();
+  void WriteControlRegister(u16 val);
+  u16 ReadControlRegister();
 
   void SetSRFlag(u16 flag);
   bool IsSRFlagSet(u16 flag) const;

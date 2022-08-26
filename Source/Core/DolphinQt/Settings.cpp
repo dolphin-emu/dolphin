@@ -29,6 +29,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -349,6 +350,22 @@ void Settings::SetKeepWindowOnTop(bool top)
 bool Settings::IsKeepWindowOnTopEnabled() const
 {
   return Config::Get(Config::MAIN_KEEP_WINDOW_ON_TOP);
+}
+
+bool Settings::GetGraphicModsEnabled() const
+{
+  return Config::Get(Config::GFX_MODS_ENABLE);
+}
+
+void Settings::SetGraphicModsEnabled(bool enabled)
+{
+  if (GetGraphicModsEnabled() == enabled)
+  {
+    return;
+  }
+
+  Config::SetBaseOrCurrent(Config::GFX_MODS_ENABLE, enabled);
+  emit EnableGfxModsChanged(enabled);
 }
 
 int Settings::GetVolume() const

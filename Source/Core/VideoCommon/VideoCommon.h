@@ -24,7 +24,7 @@ constexpr u32 MAX_XFB_WIDTH = 720;
 // that are next to each other in memory (TODO: handle that situation).
 constexpr u32 MAX_XFB_HEIGHT = 576;
 
-#define PRIM_LOG(...) DEBUG_LOG_FMT(VIDEO, ##__VA_ARGS__)
+#define PRIM_LOG(t, ...) DEBUG_LOG_FMT(VIDEO, t __VA_OPT__(, ) __VA_ARGS__)
 
 // warning: mapping buffer should be disabled to use this
 // #define LOG_VTX() DEBUG_LOG_FMT(VIDEO, "vtx: {} {} {}, ",
@@ -39,6 +39,7 @@ enum class APIType
   OpenGL,
   D3D,
   Vulkan,
+  Metal,
   Nothing
 };
 

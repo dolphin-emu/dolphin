@@ -62,11 +62,10 @@ enum AXMixControl
   // clang-format on
 };
 
-class AXUCode : public UCodeInterface
+class AXUCode /* not final: subclassed by AXWiiUCode */ : public UCodeInterface
 {
 public:
   AXUCode(DSPHLE* dsphle, u32 crc);
-  ~AXUCode() override;
 
   void Initialize() override;
   void HandleMail(u32 mail) override;
@@ -74,17 +73,9 @@ public:
   void DoState(PointerWrap& p) override;
 
 protected:
-  enum MailType
-  {
-    MAIL_RESUME = 0xCDD10000,
-    MAIL_NEW_UCODE = 0xCDD10001,
-    MAIL_RESET = 0xCDD10002,
-    MAIL_CONTINUE = 0xCDD10003,
-
-    // CPU sends 0xBABE0000 | cmdlist_size to the DSP
-    MAIL_CMDLIST = 0xBABE0000,
-    MAIL_CMDLIST_MASK = 0xFFFF0000
-  };
+  // CPU sends 0xBABE0000 | cmdlist_size to the DSP
+  static constexpr u32 MAIL_CMDLIST = 0xBABE0000;
+  static constexpr u32 MAIL_CMDLIST_MASK = 0xFFFF0000;
 
   // 32 * 5 because 32 samples per millisecond, for max 5 milliseconds.
   int m_samples_main_left[32 * 5]{};
@@ -209,5 +200,14 @@ private:
     CMD_COMPRESSOR = 0x12,
     CMD_SEND_AUX_AND_MIX = 0x13,
   };
+
+  enum class MailState
+  {
+    WaitingForCmdListSize,
+    WaitingForCmdListAddress,
+    WaitingForNextTask,
+  };
+
+  MailState m_mail_state = MailState::WaitingForCmdListSize;
 };
 }  // namespace DSP::HLE

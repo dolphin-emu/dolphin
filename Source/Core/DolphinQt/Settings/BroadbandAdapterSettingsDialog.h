@@ -15,7 +15,8 @@ public:
   {
     Ethernet,
     XLinkKai,
-    Netplaybba
+    Netplaybba,
+    BuiltIn
   };
 
   explicit BroadbandAdapterSettingsDialog(QWidget* target, Type bba_type);

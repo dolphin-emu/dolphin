@@ -448,7 +448,7 @@ void PixelShaderManager::SetGenModeChanged()
 
 void PixelShaderManager::SetZModeControl()
 {
-  u32 late_ztest = bpmem.UseLateDepthTest();
+  u32 late_ztest = bpmem.GetEmulatedZ() == EmulatedZ::Late;
   u32 rgba6_format =
       (bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor) ?
           1 :

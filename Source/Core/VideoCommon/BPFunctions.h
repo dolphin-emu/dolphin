@@ -19,7 +19,10 @@ namespace BPFunctions
 struct ScissorRange
 {
   constexpr ScissorRange() = default;
-  constexpr ScissorRange(int offset, int start, int end) : offset(offset), start(start), end(end) {}
+  constexpr ScissorRange(int offset_, int start_, int end_)
+      : offset(offset_), start(start_), end(end_)
+  {
+  }
   int offset = 0;
   int start = 0;
   int end = 0;

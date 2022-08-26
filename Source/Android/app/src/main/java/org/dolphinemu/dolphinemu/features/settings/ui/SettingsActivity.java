@@ -278,6 +278,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
+  public void onSerialPort1SettingChanged(MenuTag menuTag, int value)
+  {
+    mPresenter.onSerialPort1SettingChanged(menuTag, value);
+  }
+
+  @Override
   public void onGcPadSettingChanged(MenuTag key, int value)
   {
     mPresenter.onGcPadSettingChanged(key, value);

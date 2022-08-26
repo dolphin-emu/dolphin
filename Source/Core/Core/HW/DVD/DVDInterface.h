@@ -113,7 +113,7 @@ void ResetDrive(bool spinup);
 void Shutdown();
 void DoState(PointerWrap& p);
 
-void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii);
 
 void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
              std::optional<std::vector<std::string>> auto_disc_change_paths);

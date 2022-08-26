@@ -68,6 +68,9 @@ enum class LogType : int
   NUMBER_OF_LOGS  // Must be last
 };
 
+constexpr LogType LAST_LOG_TYPE =
+    static_cast<LogType>(static_cast<int>(LogType::NUMBER_OF_LOGS) - 1);
+
 enum class LogLevel : int
 {
   LNOTICE = 1,   // VERY important information that is NOT errors. Like startup and OSReports.
@@ -108,33 +111,38 @@ void GenericLogFmt(LogLevel level, LogType type, const char* file, int line, con
     {                                                                                              \
       /* Use a macro-like name to avoid shadowing warnings */                                      \
       constexpr auto GENERIC_LOG_FMT_N = Common::CountFmtReplacementFields(format);                \
-      Common::Log::GenericLogFmt<GENERIC_LOG_FMT_N>(v, t, __FILE__, __LINE__, FMT_STRING(format),  \
-                                                    ##__VA_ARGS__);                                \
+      Common::Log::GenericLogFmt<GENERIC_LOG_FMT_N>(                                               \
+          v, t, __FILE__, __LINE__, FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__);                \
     }                                                                                              \
   } while (0)
 
 #define ERROR_LOG_FMT(t, ...)                                                                      \
   do                                                                                               \
   {                                                                                                \
-    GENERIC_LOG_FMT(Common::Log::LogType::t, Common::Log::LogLevel::LERROR, __VA_ARGS__);          \
+    GENERIC_LOG_FMT(Common::Log::LogType::t,                                                       \
+                    Common::Log::LogLevel::LERROR __VA_OPT__(, ) __VA_ARGS__);                     \
   } while (0)
 #define WARN_LOG_FMT(t, ...)                                                                       \
   do                                                                                               \
   {                                                                                                \
-    GENERIC_LOG_FMT(Common::Log::LogType::t, Common::Log::LogLevel::LWARNING, __VA_ARGS__);        \
+    GENERIC_LOG_FMT(Common::Log::LogType::t,                                                       \
+                    Common::Log::LogLevel::LWARNING __VA_OPT__(, ) __VA_ARGS__);                   \
   } while (0)
 #define NOTICE_LOG_FMT(t, ...)                                                                     \
   do                                                                                               \
   {                                                                                                \
-    GENERIC_LOG_FMT(Common::Log::LogType::t, Common::Log::LogLevel::LNOTICE, __VA_ARGS__);         \
+    GENERIC_LOG_FMT(Common::Log::LogType::t,                                                       \
+                    Common::Log::LogLevel::LNOTICE __VA_OPT__(, ) __VA_ARGS__);                    \
   } while (0)
 #define INFO_LOG_FMT(t, ...)                                                                       \
   do                                                                                               \
   {                                                                                                \
-    GENERIC_LOG_FMT(Common::Log::LogType::t, Common::Log::LogLevel::LINFO, __VA_ARGS__);           \
+    GENERIC_LOG_FMT(Common::Log::LogType::t,                                                       \
+                    Common::Log::LogLevel::LINFO __VA_OPT__(, ) __VA_ARGS__);                      \
   } while (0)
 #define DEBUG_LOG_FMT(t, ...)                                                                      \
   do                                                                                               \
   {                                                                                                \
-    GENERIC_LOG_FMT(Common::Log::LogType::t, Common::Log::LogLevel::LDEBUG, __VA_ARGS__);          \
+    GENERIC_LOG_FMT(Common::Log::LogType::t,                                                       \
+                    Common::Log::LogLevel::LDEBUG __VA_OPT__(, ) __VA_ARGS__);                     \
   } while (0)

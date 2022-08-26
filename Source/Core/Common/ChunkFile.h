@@ -105,7 +105,7 @@ public:
     case Mode::Read:
       for (x.clear(); count != 0; --count)
       {
-        V value;
+        V value = {};
         Do(value);
         x.insert(value);
       }

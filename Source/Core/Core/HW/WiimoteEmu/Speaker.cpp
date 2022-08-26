@@ -145,8 +145,8 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
 
   // ADPCM sample rate is thought to be x2.(3000 x2 = 6000).
   const unsigned int sample_rate = sample_rate_dividend / reg_data.sample_rate;
-  g_sound_stream->GetMixer()->PushWiimoteSpeakerSamples(samples.get(), sample_length,
-                                                        sample_rate * 2);
+  g_sound_stream->GetMixer()->PushWiimoteSpeakerSamples(
+      samples.get(), sample_length, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / (sample_rate * 2));
 
 #ifdef WIIMOTE_SPEAKER_DUMP
   static int num = 0;

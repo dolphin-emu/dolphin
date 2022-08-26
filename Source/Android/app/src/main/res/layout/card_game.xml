@@ -19,6 +19,7 @@
         android:layout_width="115dp"
         android:layout_height="161dp"
         android:layout_gravity="center"
+        android:layout_marginBottom="8dp"
         app:cardCornerRadius="4dp">
 
         <ImageView
@@ -26,6 +27,21 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"/>
+
+        <TextView
+            android:id="@+id/text_game_title_inner"
+            style="@android:style/TextAppearance.Material.Subhead"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="8dp"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:ellipsize="end"
+            android:gravity="center|top"
+            android:maxLines="2"
+            android:visibility="visible"
+            tools:text="The Legend of Zelda: The Wind Waker" />
+
     </androidx.cardview.widget.CardView>
 
     <TextView
@@ -34,7 +50,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="start"
-        android:layout_marginTop="8dp"
         android:ellipsize="end"
         android:maxLines="2"
         tools:layout_width="140dp"

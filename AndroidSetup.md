@@ -31,7 +31,7 @@ Double clicking any of these tasks will execute it, and also add it to a short l
 
 Clicking the green triangle next to this list will execute the currently selected task.
 
-For command-line users, any task may be executed with `Source/Android/gradlew <task-name>`.
+For command-line users, any task may be executed with `cd Source/Android` followed by `gradlew <task-name>`. In particular, `gradlew assemble` builds debug and release versions of the application (which are placed in `Source/Android/app/build/outputs/apk`).
 
 ## Getting Dependencies
 

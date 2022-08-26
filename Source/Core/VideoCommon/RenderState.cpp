@@ -25,6 +25,25 @@ void DepthState::Generate(const BPMemory& bp)
   func = bp.zmode.func.Value();
 }
 
+static bool IsDualSrc(SrcBlendFactor factor)
+{
+  return factor == SrcBlendFactor::SrcAlpha || factor == SrcBlendFactor::InvSrcAlpha;
+}
+
+static bool IsDualSrc(DstBlendFactor factor)
+{
+  return factor == DstBlendFactor::SrcAlpha || factor == DstBlendFactor::InvSrcAlpha;
+}
+
+bool BlendingState::RequiresDualSrc() const
+{
+  bool requires_dual_src = false;
+  requires_dual_src |= IsDualSrc(srcfactor) || IsDualSrc(srcfactoralpha);
+  requires_dual_src |= IsDualSrc(dstfactor) || IsDualSrc(dstfactoralpha);
+  requires_dual_src &= blendenable && usedualsrc;
+  return requires_dual_src;
+}
+
 // If the framebuffer format has no alpha channel, it is assumed to
 // ONE on blending. As the backends may emulate this framebuffer
 // configuration with an alpha channel, we just drop all references
@@ -92,12 +111,12 @@ void BlendingState::Generate(const BPMemory& bp)
   // Start with everything disabled.
   hex = 0;
 
-  bool target_has_alpha = bp.zcontrol.pixel_format == PixelFormat::RGBA6_Z24;
-  bool alpha_test_may_succeed = bp.alpha_test.TestResult() != AlphaTestResult::Fail;
+  const bool target_has_alpha = bp.zcontrol.pixel_format == PixelFormat::RGBA6_Z24;
+  const bool alpha_test_may_succeed = bp.alpha_test.TestResult() != AlphaTestResult::Fail;
 
   colorupdate = bp.blendmode.colorupdate && alpha_test_may_succeed;
   alphaupdate = bp.blendmode.alphaupdate && target_has_alpha && alpha_test_may_succeed;
-  dstalpha = bp.dstalpha.enable && alphaupdate;
+  const bool dstalpha = bp.dstalpha.enable && alphaupdate;
   usedualsrc = true;
 
   // The subtract bit has the highest priority

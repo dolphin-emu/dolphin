@@ -15,8 +15,10 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/UISettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
+#include "Core/Host.h"
 
 namespace IOS::HLE
 {
@@ -30,26 +32,11 @@ enum
   IOCTL_DOLPHIN_SET_SPEED_LIMIT = 0x04,
   IOCTL_DOLPHIN_GET_CPU_SPEED = 0x05,
   IOCTL_DOLPHIN_GET_REAL_PRODUCTCODE = 0x06,
+  IOCTL_DOLPHIN_DISCORD_SET_CLIENT = 0x07,
+  IOCTL_DOLPHIN_DISCORD_SET_PRESENCE = 0x08,
+  IOCTL_DOLPHIN_DISCORD_RESET = 0x09
 
 };
-
-IPCReply GetSystemTime(const IOCtlVRequest& request)
-{
-  if (!request.HasNumberOfValidVectors(0, 1))
-  {
-    return IPCReply(IPC_EINVAL);
-  }
-
-  if (request.io_vectors[0].size != 4)
-  {
-    return IPCReply(IPC_EINVAL);
-  }
-
-  const u32 milliseconds = Common::Timer::GetTimeMs();
-
-  Memory::Write_U32(milliseconds, request.io_vectors[0].address);
-  return IPCReply(IPC_SUCCESS);
-}
 
 IPCReply GetVersion(const IOCtlVRequest& request)
 {
@@ -157,7 +144,94 @@ IPCReply GetRealProductCode(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
+IPCReply SetDiscordClient(const IOCtlVRequest& request)
+{
+  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    return IPCReply(IPC_EACCES);
+
+  if (!request.HasNumberOfValidVectors(1, 0))
+    return IPCReply(IPC_EINVAL);
+
+  std::string new_client_id =
+      Memory::GetString(request.in_vectors[0].address, request.in_vectors[0].size);
+
+  Host_UpdateDiscordClientID(new_client_id);
+
+  return IPCReply(IPC_SUCCESS);
+}
+
+IPCReply SetDiscordPresence(const IOCtlVRequest& request)
+{
+  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    return IPCReply(IPC_EACCES);
+
+  if (!request.HasNumberOfValidVectors(10, 0))
+    return IPCReply(IPC_EINVAL);
+
+  std::string details =
+      Memory::GetString(request.in_vectors[0].address, request.in_vectors[0].size);
+  std::string state = Memory::GetString(request.in_vectors[1].address, request.in_vectors[1].size);
+  std::string large_image_key =
+      Memory::GetString(request.in_vectors[2].address, request.in_vectors[2].size);
+  std::string large_image_text =
+      Memory::GetString(request.in_vectors[3].address, request.in_vectors[3].size);
+  std::string small_image_key =
+      Memory::GetString(request.in_vectors[4].address, request.in_vectors[4].size);
+  std::string small_image_text =
+      Memory::GetString(request.in_vectors[5].address, request.in_vectors[5].size);
+
+  int64_t start_timestamp = Memory::Read_U64(request.in_vectors[6].address);
+  int64_t end_timestamp = Memory::Read_U64(request.in_vectors[7].address);
+  int party_size = Memory::Read_U32(request.in_vectors[8].address);
+  int party_max = Memory::Read_U32(request.in_vectors[9].address);
+
+  bool ret = Host_UpdateDiscordPresenceRaw(details, state, large_image_key, large_image_text,
+                                           small_image_key, small_image_text, start_timestamp,
+                                           end_timestamp, party_size, party_max);
+
+  if (!ret)
+    return IPCReply(IPC_EACCES);
+
+  return IPCReply(IPC_SUCCESS);
+}
+
+IPCReply ResetDiscord(const IOCtlVRequest& request)
+{
+  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    return IPCReply(IPC_EACCES);
+
+  Host_UpdateDiscordClientID();
+
+  return IPCReply(IPC_SUCCESS);
+}
+
 }  // namespace
+
+IPCReply DolphinDevice::GetSystemTime(const IOCtlVRequest& request) const
+{
+  if (!request.HasNumberOfValidVectors(0, 1))
+  {
+    return IPCReply(IPC_EINVAL);
+  }
+
+  if (request.io_vectors[0].size != 4)
+  {
+    return IPCReply(IPC_EINVAL);
+  }
+
+  // This ioctl is used by emulated software to judge if emulation is running too fast or slow.
+  // By using Common::Timer, the same clock Dolphin uses internally for the same task is exposed.
+  // Return elapsed time instead of current timestamp to make buggy emulated code less likely to
+  // have issuses.
+  const u32 milliseconds = static_cast<u32>(m_timer.ElapsedMs());
+  Memory::Write_U32(milliseconds, request.io_vectors[0].address);
+  return IPCReply(IPC_SUCCESS);
+}
+
+DolphinDevice::DolphinDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+{
+  m_timer.Start();
+}
 
 std::optional<IPCReply> DolphinDevice::IOCtlV(const IOCtlVRequest& request)
 {
@@ -178,6 +252,13 @@ std::optional<IPCReply> DolphinDevice::IOCtlV(const IOCtlVRequest& request)
     return GetCPUSpeed(request);
   case IOCTL_DOLPHIN_GET_REAL_PRODUCTCODE:
     return GetRealProductCode(request);
+  case IOCTL_DOLPHIN_DISCORD_SET_CLIENT:
+    return SetDiscordClient(request);
+  case IOCTL_DOLPHIN_DISCORD_SET_PRESENCE:
+    return SetDiscordPresence(request);
+  case IOCTL_DOLPHIN_DISCORD_RESET:
+    return ResetDiscord(request);
+
   default:
     return IPCReply(IPC_EINVAL);
   }

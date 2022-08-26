@@ -159,7 +159,8 @@ void HiresTexture::Prefetch()
   const size_t max_mem =
       (sys_mem / 2 < recommended_min_mem) ? (sys_mem / 2) : (sys_mem - recommended_min_mem);
 
-  const u32 start_time = Common::Timer::GetTimeMs();
+  Common::Timer timer;
+  timer.Start();
   for (const auto& entry : s_textureMap)
   {
     const std::string& base_filename = entry.first;
@@ -207,13 +208,12 @@ void HiresTexture::Prefetch()
     }
   }
 
-  const u32 stop_time = Common::Timer::GetTimeMs();
   OSD::AddMessage(fmt::format("Custom Textures loaded, {:.1f} MB in {:.1f}s",
-                              size_sum / (1024.0 * 1024.0), (stop_time - start_time) / 1000.0),
+                              size_sum / (1024.0 * 1024.0), timer.ElapsedMs() / 1000.0),
                   10000);
 }
 
-std::string HiresTexture::GenBaseName(TextureInfo& texture_info, bool dump)
+std::string HiresTexture::GenBaseName(const TextureInfo& texture_info, bool dump)
 {
   if (!dump && s_textureMap.empty())
     return "";
@@ -261,7 +261,7 @@ u32 HiresTexture::CalculateMipCount(u32 width, u32 height)
   return mip_count;
 }
 
-std::shared_ptr<HiresTexture> HiresTexture::Search(TextureInfo& texture_info)
+std::shared_ptr<HiresTexture> HiresTexture::Search(const TextureInfo& texture_info)
 {
   const std::string base_filename = GenBaseName(texture_info);
 
@@ -433,17 +433,17 @@ std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_di
     }
   }
 
-  const auto match_gameid = [game_id](const std::string& filename) {
+  const auto match_gameid_or_all = [game_id](const std::string& filename) {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);
-    return basename == game_id || basename == game_id.substr(0, 3);
+    return basename == game_id || basename == game_id.substr(0, 3) || basename == "all";
   };
 
   // Look for any other directories that might be specific to the given gameid
   const auto files = Common::DoFileSearch({root_directory}, {".txt"}, true);
   for (const auto& file : files)
   {
-    if (match_gameid(file))
+    if (match_gameid_or_all(file))
     {
       // The following code is used to calculate the top directory
       // of a found gameid.txt file

@@ -1047,14 +1047,15 @@ ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   // IOS assumes that the CA cert will always be signed by the root certificate,
   // and that the issuer is signed by the CA.
   IOSC& iosc = m_ios.GetIOSC();
-  IOSC::Handle handle;
+  IOSC::Handle ca_handle;
 
   // Create and initialise a handle for the CA cert and the issuer cert.
-  ReturnCode ret = iosc.CreateObject(&handle, IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_RSA2048, PID_ES);
+  ReturnCode ret =
+      iosc.CreateObject(&ca_handle, IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_RSA2048, PID_ES);
   if (ret != IPC_SUCCESS)
     return ret;
-  Common::ScopeGuard ca_guard{[&] { iosc.DeleteObject(handle, PID_ES); }};
-  ret = iosc.ImportCertificate(ca_cert, IOSC::HANDLE_ROOT_KEY, handle, PID_ES);
+  Common::ScopeGuard ca_guard{[&] { iosc.DeleteObject(ca_handle, PID_ES); }};
+  ret = iosc.ImportCertificate(ca_cert, IOSC::HANDLE_ROOT_KEY, ca_handle, PID_ES);
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(ca) failed with error {}", ret);
@@ -1068,7 +1069,7 @@ ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   if (ret != IPC_SUCCESS)
     return ret;
   Common::ScopeGuard issuer_guard{[&] { iosc.DeleteObject(issuer_handle, PID_ES); }};
-  ret = iosc.ImportCertificate(issuer_cert, handle, issuer_handle, PID_ES);
+  ret = iosc.ImportCertificate(issuer_cert, ca_handle, issuer_handle, PID_ES);
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(issuer) failed with error {}",

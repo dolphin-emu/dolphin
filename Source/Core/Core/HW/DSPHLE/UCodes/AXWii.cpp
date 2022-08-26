@@ -30,10 +30,6 @@ AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_m
   m_old_axwii = (crc == 0xfa450138) || (crc == 0x7699af32);
 }
 
-AXWiiUCode::~AXWiiUCode()
-{
-}
-
 void AXWiiUCode::HandleCommandList()
 {
   // Temp variables for addresses computation

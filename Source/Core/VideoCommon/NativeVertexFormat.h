@@ -7,7 +7,6 @@
 #include <functional>  // for hash
 
 #include "Common/CommonTypes.h"
-#include "Common/Hash.h"
 #include "VideoCommon/CPMemory.h"
 
 // m_components
@@ -79,10 +78,37 @@ namespace std
 template <>
 struct hash<PortableVertexDeclaration>
 {
-  size_t operator()(const PortableVertexDeclaration& decl) const
+  // Implementation from Wikipedia.
+  template <typename T>
+  u32 Fletcher32(const T& data) const
   {
-    return Common::HashFletcher(reinterpret_cast<const u8*>(&decl), sizeof(decl));
+    static_assert(sizeof(T) % sizeof(u16) == 0);
+
+    auto buf = reinterpret_cast<const u16*>(&data);
+    size_t len = sizeof(T) / sizeof(u16);
+    u32 sum1 = 0xffff, sum2 = 0xffff;
+
+    while (len)
+    {
+      size_t tlen = len > 360 ? 360 : len;
+      len -= tlen;
+
+      do
+      {
+        sum1 += *buf++;
+        sum2 += sum1;
+      } while (--tlen);
+
+      sum1 = (sum1 & 0xffff) + (sum1 >> 16);
+      sum2 = (sum2 & 0xffff) + (sum2 >> 16);
+    }
+
+    // Second reduction step to reduce sums to 16 bits
+    sum1 = (sum1 & 0xffff) + (sum1 >> 16);
+    sum2 = (sum2 & 0xffff) + (sum2 >> 16);
+    return (sum2 << 16 | sum1);
   }
+  size_t operator()(const PortableVertexDeclaration& decl) const { return Fletcher32(decl); }
 };
 }  // namespace std
 

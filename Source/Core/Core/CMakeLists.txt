@@ -142,6 +142,10 @@ add_library(core
   HW/DSPHLE/DSPHLE.h
   HW/DSPHLE/MailHandler.cpp
   HW/DSPHLE/MailHandler.h
+  HW/DSPHLE/UCodes/ASnd.cpp
+  HW/DSPHLE/UCodes/ASnd.h
+  HW/DSPHLE/UCodes/AESnd.cpp
+  HW/DSPHLE/UCodes/AESnd.h
   HW/DSPHLE/UCodes/AX.cpp
   HW/DSPHLE/UCodes/AX.h
   HW/DSPHLE/UCodes/AXStructs.h
@@ -605,6 +609,7 @@ if (APPLE)
     ${CORESERV_LIBRARY}
     ${IOB_LIBRARY}
     ${IOK_LIBRARY}
+    resolv
   )
 elseif (ANDROID)
   target_link_libraries(core
@@ -628,6 +633,10 @@ if(ENABLE_VULKAN)
   target_link_libraries(core PUBLIC videovulkan)
 endif()
 
+if(APPLE)
+  target_link_libraries(core PUBLIC videometal)
+endif()
+
 if(USE_MGBA)
   target_sources(core PRIVATE
     HW/GBACore.cpp
@@ -644,6 +653,8 @@ if(WIN32)
     HW/EXI/BBA/TAP_Win32.cpp
     HW/EXI/BBA/TAP_Win32.h
     HW/EXI/BBA/XLINK_KAI_BBA.cpp
+    HW/EXI/BBA/BuiltIn.cpp
+    HW/EXI/BBA/BuiltIn.h
     HW/WiimoteReal/IOWin.cpp
     HW/WiimoteReal/IOWin.h
   )
@@ -659,12 +670,16 @@ elseif(APPLE)
     HW/EXI/BBA/TAP_Apple.cpp
     HW/EXI/BBA/TAPServer_Apple.cpp
     HW/EXI/BBA/XLINK_KAI_BBA.cpp
+    HW/EXI/BBA/BuiltIn.cpp
+    HW/EXI/BBA/BuiltIn.h
   )
   target_link_libraries(core PUBLIC ${IOB_LIBRARY})
 elseif(UNIX)
   target_sources(core PRIVATE
     HW/EXI/BBA/TAP_Unix.cpp
     HW/EXI/BBA/XLINK_KAI_BBA.cpp
+    HW/EXI/BBA/BuiltIn.cpp
+    HW/EXI/BBA/BuiltIn.h
   )
   if(ANDROID)
     target_sources(core PRIVATE

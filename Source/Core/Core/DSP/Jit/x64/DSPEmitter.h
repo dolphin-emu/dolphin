@@ -292,7 +292,7 @@ private:
   // SDSP memory offset helpers
   Gen::OpArg M_SDSP_pc();
   Gen::OpArg M_SDSP_exceptions();
-  Gen::OpArg M_SDSP_cr();
+  Gen::OpArg M_SDSP_control_reg();
   Gen::OpArg M_SDSP_external_interrupt_waiting();
   Gen::OpArg M_SDSP_r_st(size_t index);
   Gen::OpArg M_SDSP_reg_stack_ptrs(size_t index);

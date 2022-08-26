@@ -18,7 +18,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <!-- Ensure libusb sees it's own config.h first... -->
-      <AdditionalIncludeDirectories>.\libusb\msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>libusb\msvc;libusb\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

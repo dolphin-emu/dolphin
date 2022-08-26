@@ -12,7 +12,7 @@ namespace ResourcePack
 {
 bool Init();
 
-bool Add(const std::string& path, int offset = -1);
+ResourcePack* Add(const std::string& path, int offset = -1);
 bool Remove(ResourcePack& pack);
 void SetInstalled(const ResourcePack& pack, bool installed);
 bool IsInstalled(const ResourcePack& pack);

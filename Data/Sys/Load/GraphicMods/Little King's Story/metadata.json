@@ -1,0 +1,167 @@
+{
+	"meta":
+	{
+		"title": "Bloom and HUD definitions",
+		"author": "iwubcode"
+	},
+	"groups": [
+		{
+			"name": "HUD",
+			"targets": [
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_96x96_7b5b0f693c1200ad_5"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_40x48_b510b4434b7de70c_5"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_96x96_633c30835459df0f_5"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_24x68_715518a00c14e148_5"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_32x80_f310048c1139815d_14"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_12x16_1e9016c61dfffb7a_14"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_12x16_459c7d7576547909_14"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_12x16_d1b77f0000ff337a_14"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_20x16_798aee4dc7001432_14"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_108x122_911fa08f1554752c_5"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_64x64_96894941f5454ead_3"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_8x8_0017d44adaf2291b_14"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_10x8_7a6a869d5553c4a0_14"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_16x16_49c191eaf4314e9d_14"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_18x16_472b403cdcfc31a3_3"
+				},
+				{
+					"type": "draw_started",
+					"texture_filename": "tex1_30x26_629956a45175e53a_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_96x96_7b5b0f693c1200ad_5"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_40x48_b510b4434b7de70c_5"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_96x96_633c30835459df0f_5"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_24x68_715518a00c14e148_5"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_32x80_f310048c1139815d_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_12x16_1e9016c61dfffb7a_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_12x16_459c7d7576547909_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_12x16_d1b77f0000ff337a_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_20x16_798aee4dc7001432_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_108x122_911fa08f1554752c_5"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_64x64_96894941f5454ead_3"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_8x8_0017d44adaf2291b_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_10x8_7a6a869d5553c4a0_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_16x16_49c191eaf4314e9d_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_18x16_472b403cdcfc31a3_3"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"texture_filename": "tex1_30x26_629956a45175e53a_14"
+				}
+			]
+		},
+		{
+			"name": "Bloom",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n1_320x240_6"
+				}
+			]
+		}
+	]
+}

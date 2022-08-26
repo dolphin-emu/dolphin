@@ -22,12 +22,13 @@
 
 // NOTE: Qt likes to be case-sensitive here even though it shouldn't be thus this ugly regex hack
 static const QStringList game_filters{
-    QStringLiteral("*.[gG][cC][mM]"), QStringLiteral("*.[iI][sS][oO]"),
-    QStringLiteral("*.[tT][gG][cC]"), QStringLiteral("*.[cC][iI][sS][oO]"),
-    QStringLiteral("*.[gG][cC][zZ]"), QStringLiteral("*.[wW][bB][fF][sS]"),
-    QStringLiteral("*.[wW][iI][aA]"), QStringLiteral("*.[rR][vV][zZ]"),
-    QStringLiteral("*.[wW][aA][dD]"), QStringLiteral("*.[eE][lL][fF]"),
-    QStringLiteral("*.[dD][oO][lL]"), QStringLiteral("*.[jJ][sS][oO][nN]")};
+    QStringLiteral("*.[gG][cC][mM]"),    QStringLiteral("*.[iI][sS][oO]"),
+    QStringLiteral("*.[tT][gG][cC]"),    QStringLiteral("*.[cC][iI][sS][oO]"),
+    QStringLiteral("*.[gG][cC][zZ]"),    QStringLiteral("*.[wW][bB][fF][sS]"),
+    QStringLiteral("*.[wW][iI][aA]"),    QStringLiteral("*.[rR][vV][zZ]"),
+    QStringLiteral("hif_000000.nfs"),    QStringLiteral("*.[wW][aA][dD]"),
+    QStringLiteral("*.[eE][lL][fF]"),    QStringLiteral("*.[dD][oO][lL]"),
+    QStringLiteral("*.[jJ][sS][oO][nN]")};
 
 GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 {
@@ -88,12 +89,15 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
       m_cache.Clear(UICommon::GameFileCache::DeleteOnDisk::Yes);
       break;
     case CommandType::BeginRefresh:
+      m_refresh_in_progress = true;
       QueueOnObject(this, [] { Settings::Instance().NotifyRefreshGameListStarted(); });
       for (auto& file : m_tracked_files.keys())
         emit GameRemoved(file.toStdString());
       m_tracked_files.clear();
       break;
     case CommandType::EndRefresh:
+      m_refresh_in_progress = false;
+      m_cache.Save();
       QueueOnObject(this, [] { Settings::Instance().NotifyRefreshGameListComplete(); });
       break;
     }
@@ -355,7 +359,7 @@ void GameTracker::LoadGame(const QString& path)
     auto game = m_cache.AddOrGet(converted_path, &cache_changed);
     if (game)
       emit GameLoaded(std::move(game));
-    if (cache_changed)
+    if (cache_changed && !m_refresh_in_progress)
       m_cache.Save();
   }
 }

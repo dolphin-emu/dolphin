@@ -6,7 +6,9 @@
 #include <algorithm>
 
 #include "Common/Logging/Log.h"
+
 #include "Core/Core.h"
+#include "Core/Host.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
@@ -168,13 +170,6 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
 
 void KeyboardMouse::UpdateCursorInput()
 {
-  POINT point = {};
-  GetCursorPos(&point);
-
-  // Get the cursor position relative to the upper left corner of the current window
-  // (separate or render to main)
-  ScreenToClient(s_hwnd, &point);
-
   // Get the size of the current window (in my case Rect.top and Rect.left was zero).
   RECT rect;
   GetClientRect(s_hwnd, &rect);
@@ -182,6 +177,26 @@ void KeyboardMouse::UpdateCursorInput()
   // Width and height are the size of the rendering window. They could be 0
   const auto win_width = std::max(rect.right - rect.left, 1l);
   const auto win_height = std::max(rect.bottom - rect.top, 1l);
+
+  POINT point = {};
+  if (g_controller_interface.IsMouseCenteringRequested() && Host_RendererHasFocus())
+  {
+    point.x = win_width / 2;
+    point.y = win_height / 2;
+
+    POINT screen_point = point;
+    ClientToScreen(s_hwnd, &screen_point);
+    SetCursorPos(screen_point.x, screen_point.y);
+    g_controller_interface.SetMouseCenteringRequested(false);
+  }
+  else
+  {
+    GetCursorPos(&point);
+
+    // Get the cursor position relative to the upper left corner of the current window
+    // (separate or render to main)
+    ScreenToClient(s_hwnd, &point);
+  }
 
   const auto window_scale = g_controller_interface.GetWindowInputScale();
 
@@ -275,7 +290,7 @@ std::string KeyboardMouse::Button::GetName() const
 
 std::string KeyboardMouse::Axis::GetName() const
 {
-  static char tmpstr[] = "Axis ..";
+  char tmpstr[] = "Axis ..";
   tmpstr[5] = (char)('X' + m_index);
   tmpstr[6] = (m_range < 0 ? '-' : '+');
   return tmpstr;
@@ -283,7 +298,7 @@ std::string KeyboardMouse::Axis::GetName() const
 
 std::string KeyboardMouse::Cursor::GetName() const
 {
-  static char tmpstr[] = "Cursor ..";
+  char tmpstr[] = "Cursor ..";
   tmpstr[7] = (char)('X' + m_index);
   tmpstr[8] = (m_positive ? '+' : '-');
   return tmpstr;

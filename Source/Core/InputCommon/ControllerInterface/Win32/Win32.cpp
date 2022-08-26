@@ -73,11 +73,13 @@ void ciface::Win32::Init(void* hwnd)
     }
     Common::ScopeGuard uninit([] { CoUninitialize(); });
 
+    const auto window_name = TEXT("DolphinWin32ControllerInterface");
+
     WNDCLASSEX window_class_info{};
     window_class_info.cbSize = sizeof(window_class_info);
     window_class_info.lpfnWndProc = WindowProc;
     window_class_info.hInstance = GetModuleHandle(nullptr);
-    window_class_info.lpszClassName = L"Message";
+    window_class_info.lpszClassName = window_name;
 
     ATOM window_class = RegisterClassEx(&window_class_info);
     if (!window_class)
@@ -92,7 +94,7 @@ void ciface::Win32::Init(void* hwnd)
                       Common::HRWrap(GetLastError()));
     });
 
-    message_window = CreateWindowEx(0, L"Message", nullptr, 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
+    message_window = CreateWindowEx(0, window_name, nullptr, 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
                                     nullptr, nullptr);
     promise_guard.Exit();
     if (!message_window)

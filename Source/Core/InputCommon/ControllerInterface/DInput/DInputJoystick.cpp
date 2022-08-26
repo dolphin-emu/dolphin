@@ -293,7 +293,7 @@ std::string Joystick::Axis::GetName() const
 
 std::string Joystick::Hat::GetName() const
 {
-  static char tmpstr[] = "Hat . .";
+  char tmpstr[] = "Hat . .";
   tmpstr[4] = (char)('0' + m_index);
   tmpstr[6] = "NESW"[m_direction];
   return tmpstr;

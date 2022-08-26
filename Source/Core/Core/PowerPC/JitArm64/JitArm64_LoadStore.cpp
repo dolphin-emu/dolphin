@@ -27,6 +27,8 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 {
   // We want to make sure to not get LR as a temp register
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
 
   gpr.BindToRegister(dest, dest == (u32)addr || dest == (u32)offsetReg, false);
   ARM64Reg dest_reg = gpr.R(dest);
@@ -121,6 +123,8 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
   if (!update || early_update)
     regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+  if (!jo.fastmem_arena)
+    regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
   if (!jo.memcheck)
     regs_in_use[DecodeReg(dest_reg)] = 0;
 
@@ -129,10 +133,11 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   if (is_immediate)
     mmio_address = PowerPC::IsOptimizableMMIOAccess(imm_addr, access_size);
 
-  if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, true, false, dest_reg, XA, BitSet32(0), BitSet32(0));
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysUnsafe, dest_reg, XA, regs_in_use,
+                         fprs_in_use);
   }
   else if (mmio_address)
   {
@@ -142,7 +147,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, dest_reg, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, XA, regs_in_use, fprs_in_use);
   }
 
   gpr.BindToRegister(dest, false, true);
@@ -156,6 +161,8 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   }
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Unlock(ARM64Reg::W2);
 }
 
 void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset,
@@ -163,6 +170,8 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 {
   // We want to make sure to not get LR as a temp register
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
 
   ARM64Reg RS = gpr.R(value);
 
@@ -258,6 +267,8 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
   if (!update || early_update)
     regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
+  if (!jo.fastmem_arena)
+    regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
 
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;
@@ -290,10 +301,10 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 
     js.fifoBytesSinceCheck += accessSize >> 3;
   }
-  else if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  else if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, true, false, RS, XA, BitSet32(0), BitSet32(0));
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysUnsafe, RS, XA, regs_in_use, fprs_in_use);
   }
   else if (mmio_address)
   {
@@ -303,7 +314,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, RS, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, RS, XA, regs_in_use, fprs_in_use);
   }
 
   if (update && !early_update)
@@ -314,6 +325,8 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   }
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Unlock(ARM64Reg::W2);
 }
 
 FixupBranch JitArm64::BATAddressLookup(ARM64Reg addr_out, ARM64Reg addr_in, ARM64Reg tmp,
@@ -496,6 +509,8 @@ void JitArm64::lmw(UGeckoInstruction inst)
   s32 offset = inst.SIMM_16;
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
 
   // MMU games make use of a >= d despite this being invalid according to the PEM.
   // Because of this, make sure to not re-read rA after starting doing the loads.
@@ -521,13 +536,15 @@ void JitArm64::lmw(UGeckoInstruction inst)
 
     BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
     BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+    if (!jo.fastmem_arena)
+      regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
     if (i == 31)
       regs_in_use[DecodeReg(addr_reg)] = 0;
     if (!jo.memcheck)
       regs_in_use[DecodeReg(dest_reg)] = 0;
 
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, dest_reg, EncodeRegTo64(addr_reg),
-                         regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, EncodeRegTo64(addr_reg), regs_in_use,
+                         fprs_in_use);
 
     gpr.BindToRegister(i, false, true);
     ASSERT(dest_reg == gpr.R(i));
@@ -537,6 +554,8 @@ void JitArm64::lmw(UGeckoInstruction inst)
   }
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Unlock(ARM64Reg::W2);
 }
 
 void JitArm64::stmw(UGeckoInstruction inst)
@@ -548,6 +567,8 @@ void JitArm64::stmw(UGeckoInstruction inst)
   s32 offset = inst.SIMM_16;
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
 
   ARM64Reg addr_reg = ARM64Reg::W1;
   if (a)
@@ -571,17 +592,21 @@ void JitArm64::stmw(UGeckoInstruction inst)
     BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
     BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
     regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+    if (!jo.fastmem_arena)
+      regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
     if (i == 31)
       regs_in_use[DecodeReg(addr_reg)] = 0;
 
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, src_reg, EncodeRegTo64(addr_reg),
-                         regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, EncodeRegTo64(addr_reg), regs_in_use,
+                         fprs_in_use);
 
     if (i != 31)
       ADD(addr_reg, addr_reg, 4);
   }
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Unlock(ARM64Reg::W2);
 }
 
 void JitArm64::dcbx(UGeckoInstruction inst)
@@ -770,8 +795,14 @@ void JitArm64::dcbz(UGeckoInstruction inst)
   int a = inst.RA, b = inst.RB;
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
 
-  Common::ScopeGuard register_guard([&] { gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30); });
+  Common::ScopeGuard register_guard([&] {
+    gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+    if (!jo.fastmem_arena)
+      gpr.Unlock(ARM64Reg::W2);
+  });
 
   constexpr ARM64Reg addr_reg = ARM64Reg::W0;
   constexpr ARM64Reg temp_reg = ARM64Reg::W30;
@@ -838,8 +869,10 @@ void JitArm64::dcbz(UGeckoInstruction inst)
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
   gprs_to_push[DecodeReg(ARM64Reg::W0)] = 0;
+  if (!jo.fastmem_arena)
+    gprs_to_push[DecodeReg(ARM64Reg::W2)] = 0;
 
-  EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, jo.fastmem, jo.fastmem, ARM64Reg::W0,
+  EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, MemAccessMode::Auto, ARM64Reg::W0,
                        EncodeRegTo64(addr_reg), gprs_to_push, fprs_to_push);
 
   if (using_dcbz_hack)

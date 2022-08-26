@@ -4,12 +4,12 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <vector>
 
-#include <mbedtls/aes.h>
-
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
@@ -50,7 +50,7 @@ private:
 
   std::string m_device_name;
 
-  mbedtls_aes_context m_aes_ctx{};
+  std::unique_ptr<Common::AES::Context> m_aes_ctx{};
   u8 m_aes_key[0x10] = {};
   u8 m_aes_iv[0x10] = {};
 

@@ -325,11 +325,11 @@ static void CheckCPConfiguration(int vtx_attr_group)
   if (g_main_cp_state.matrix_index_a.Hex != xfmem.MatrixIndexA.Hex ||
       g_main_cp_state.matrix_index_b.Hex != xfmem.MatrixIndexB.Hex)
   {
-    PanicAlertFmt("Mismatched matrix index configuration between CP and XF stages - "
-                  "index A: {:08x}/{:08x}, index B {:08x}/{:08x}. "
-                  "Please report on the issue tracker.",
-                  g_main_cp_state.matrix_index_a.Hex, xfmem.MatrixIndexA.Hex,
-                  g_main_cp_state.matrix_index_b.Hex, xfmem.MatrixIndexB.Hex);
+    WARN_LOG_FMT(VIDEO,
+                 "Mismatched matrix index configuration between CP and XF stages - "
+                 "index A: {:08x}/{:08x}, index B {:08x}/{:08x}.",
+                 g_main_cp_state.matrix_index_a.Hex, xfmem.MatrixIndexA.Hex,
+                 g_main_cp_state.matrix_index_b.Hex, xfmem.MatrixIndexB.Hex);
     DolphinAnalytics::Instance().ReportGameQuirk(
         GameQuirk::MISMATCHED_GPU_MATRIX_INDICES_BETWEEN_CP_AND_XF);
   }

@@ -25,3 +25,14 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
                            const vertex_ubershader_uid_data* uid_data);
 void EnumerateVertexShaderUids(const std::function<void(const VertexShaderUid&)>& callback);
 }  // namespace UberShader
+
+template <>
+struct fmt::formatter<UberShader::vertex_ubershader_uid_data>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const UberShader::vertex_ubershader_uid_data& uid, FormatContext& ctx) const
+  {
+    return fmt::format_to(ctx.out(), "Vertex UberShader for {} texgens", uid.num_texgens);
+  }
+};

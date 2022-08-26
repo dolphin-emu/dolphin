@@ -145,6 +145,8 @@ void VideoConfig::Refresh()
   bFastTextureSampling = Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING);
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
+
+  bGraphicMods = Config::Get(Config::GFX_MODS_ENABLE);
 }
 
 void VideoConfig::VerifyValidity()
@@ -177,8 +179,8 @@ bool VideoConfig::UsingUberShaders() const
 
 static u32 GetNumAutoShaderCompilerThreads()
 {
-  // Automatic number. We use clamp(cpus - 3, 1, 4).
-  return static_cast<u32>(std::min(std::max(cpu_info.num_cores - 3, 1), 4));
+  // Automatic number.
+  return static_cast<u32>(std::clamp(cpu_info.num_cores - 3, 1, 4));
 }
 
 static u32 GetNumAutoShaderPreCompilerThreads()

@@ -199,6 +199,14 @@ private:
     void Abort(s32 value);
   };
 
+  enum class ConnectingState
+  {
+    None,
+    Connecting,
+    Connected,
+    Error
+  };
+
   friend class WiiSockMan;
   void SetFd(s32 s);
   void SetWiiFd(s32 s);
@@ -212,11 +220,15 @@ private:
   void DoSock(Request request, NET_IOCTL type);
   void DoSock(Request request, SSL_IOCTL type);
   void Update(bool read, bool write, bool except);
+  void UpdateConnectingState(s32 connect_rv);
+  ConnectingState GetConnectingState() const;
   bool IsValid() const { return fd >= 0; }
+  bool IsTCP() const;
 
   s32 fd = -1;
   s32 wii_fd = -1;
   bool nonBlock = false;
+  ConnectingState connecting_state = ConnectingState::None;
   std::list<sockop> pending_sockops;
 
   std::optional<Timeout> timeout;
@@ -248,8 +260,9 @@ public:
     return instance;             // Instantiated on first use.
   }
   void Update();
-  static void Convert(WiiSockAddrIn const& from, sockaddr_in& to);
-  static void Convert(sockaddr_in const& from, WiiSockAddrIn& to, s32 addrlen = -1);
+  static void ToNativeAddrIn(const u8* from, sockaddr_in* to);
+  static void ToWiiAddrIn(const sockaddr_in& from, u8* to,
+                          socklen_t addrlen = sizeof(WiiSockAddrIn));
   static s32 ConvertEvents(s32 events, ConvertDirection dir);
 
   void DoState(PointerWrap& p);

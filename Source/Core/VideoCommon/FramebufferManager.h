@@ -170,7 +170,9 @@ protected:
 
   std::unique_ptr<AbstractFramebuffer> m_efb_framebuffer;
   std::unique_ptr<AbstractFramebuffer> m_efb_convert_framebuffer;
+  std::unique_ptr<AbstractFramebuffer> m_efb_color_resolve_framebuffer;
   std::unique_ptr<AbstractFramebuffer> m_efb_depth_resolve_framebuffer;
+  std::unique_ptr<AbstractPipeline> m_efb_color_resolve_pipeline;
   std::unique_ptr<AbstractPipeline> m_efb_depth_resolve_pipeline;
 
   // Pipeline for restoring the contents of the EFB from a save state

@@ -421,6 +421,16 @@ Common::Vec2 ControllerInterface::GetWindowInputScale() const
     return {1 / ar, 1.f};
 }
 
+void ControllerInterface::SetMouseCenteringRequested(bool center)
+{
+  m_requested_mouse_centering = center;
+}
+
+bool ControllerInterface::IsMouseCenteringRequested() const
+{
+  return m_requested_mouse_centering.load();
+}
+
 // Register a callback to be called when a device is added or removed (as from the input backends'
 // hotplug thread), or when devices are refreshed
 // Returns a handle for later removing the callback.

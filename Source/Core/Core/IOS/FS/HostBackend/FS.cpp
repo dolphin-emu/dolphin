@@ -678,11 +678,15 @@ ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, 
   if (entry->data.uid != uid && entry->data.is_file && !is_empty)
     return ResultCode::FileNotEmpty;
 
-  entry->data.gid = gid;
-  entry->data.uid = uid;
-  entry->data.attribute = attr;
-  entry->data.modes = modes;
-  SaveFst();
+  if (entry->data.gid != gid || entry->data.uid != uid || entry->data.attribute != attr ||
+      entry->data.modes != modes)
+  {
+    entry->data.gid = gid;
+    entry->data.uid = uid;
+    entry->data.attribute = attr;
+    entry->data.modes = modes;
+    SaveFst();
+  }
 
   return ResultCode::Success;
 }

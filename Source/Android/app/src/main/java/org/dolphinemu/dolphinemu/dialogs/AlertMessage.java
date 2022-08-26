@@ -64,11 +64,11 @@ public final class AlertMessage extends DialogFragment
     else
     {
       builder.setPositiveButton(android.R.string.yes, (dialog, which) ->
-      {
-        sAlertResult = true;
-        dialog.dismiss();
-        NativeLibrary.NotifyAlertMessageLock();
-      })
+              {
+                sAlertResult = true;
+                dialog.dismiss();
+                NativeLibrary.NotifyAlertMessageLock();
+              })
               .setNegativeButton(android.R.string.no, (dialog, which) ->
               {
                 sAlertResult = false;

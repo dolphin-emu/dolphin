@@ -31,6 +31,8 @@ add_library(common
   Crypto/bn.h
   Crypto/ec.cpp
   Crypto/ec.h
+  Crypto/SHA1.cpp
+  Crypto/SHA1.h
   Debug/MemoryPatches.cpp
   Debug/MemoryPatches.h
   Debug/Threads.h
@@ -44,6 +46,8 @@ add_library(common
   EnumFormatter.h
   EnumMap.h
   Event.h
+  FatFsUtil.cpp
+  FatFsUtil.h
   FileSearch.cpp
   FileSearch.h
   FileUtil.cpp
@@ -62,8 +66,6 @@ add_library(common
   HttpRequest.h
   Image.cpp
   Image.h
-  ImageC.c
-  ImageC.h
   IniFile.cpp
   IniFile.h
   Inline.h
@@ -134,6 +136,21 @@ add_library(common
   WorkQueueThread.h
 )
 
+if(MSVC AND _M_ARM_64)
+  # Workaround msvc arm64 optimizer bug
+  # TODO remove after updating to VS 17.4
+  set_source_files_properties(
+    Crypto/SHA1.cpp
+    PROPERTIES COMPILE_FLAGS "/d2ssa-peeps-post-color-")
+endif()
+
+if(NOT MSVC AND _M_ARM_64)
+  set_source_files_properties(
+    Crypto/AES.cpp
+    Crypto/SHA1.cpp
+    PROPERTIES COMPILE_FLAGS "-march=armv8-a+crypto")
+endif()
+
 target_link_libraries(common
 PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}
@@ -144,8 +161,9 @@ PUBLIC
 
 PRIVATE
   ${CURL_LIBRARIES}
+  FatFs
   ${ICONV_LIBRARIES}
-  png
+  spng
   ${VTUNE_LIBRARIES}
 )
 
@@ -312,9 +330,4 @@ endif()
 if(MSVC)
   # Add precompiled header
   target_link_libraries(common PRIVATE use_pch)
-
-  # We need to disable PCH for this one file, because it's C and our PCH is C++
-  set_source_files_properties(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ImageC.c
-    PROPERTIES COMPILE_FLAGS "/Y- /I${CMAKE_SOURCE_DIR}/Source/PCH/nopch")
 endif()

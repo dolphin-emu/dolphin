@@ -16,10 +16,6 @@ INITUCode::INITUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
   INFO_LOG_FMT(DSPHLE, "INITUCode - initialized");
 }
 
-INITUCode::~INITUCode()
-{
-}
-
 void INITUCode::Initialize()
 {
   m_mail_handler.PushMail(0x80544348);
@@ -31,5 +27,10 @@ void INITUCode::Update()
 
 void INITUCode::HandleMail(u32 mail)
 {
+}
+
+void INITUCode::DoState(PointerWrap& p)
+{
+  // We don't need to call DoStateShared() as the init uCode doesn't support launching new uCode
 }
 }  // namespace DSP::HLE
