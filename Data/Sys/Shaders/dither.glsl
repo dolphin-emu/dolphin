@@ -15,7 +15,7 @@ OptionName = RED_BITS
 MinValue = 1
 MaxValue = 8
 StepAmount = 1
-DefaultValue = 2
+DefaultValue = 1
 
 [OptionRangeInteger]
 GUIName = Green Bits
@@ -23,7 +23,7 @@ OptionName = GREEN_BITS
 MinValue = 1
 MaxValue = 8
 StepAmount = 1
-DefaultValue = 4
+DefaultValue = 2
 
 [OptionRangeInteger]
 GUIName = Blue Bits
@@ -31,7 +31,7 @@ OptionName = BLUE_BITS
 MinValue = 1
 MaxValue = 8
 StepAmount = 1
-DefaultValue = 2
+DefaultValue = 1
 
 [OptionRangeBool]
 GUIName = Temporal Dithering
@@ -43,7 +43,15 @@ DefaultValue = true
 
 #define round(x) floor(0.5 + (x))
 
-const highp int dither_blue_noise_64x64[4096] = 
+float r_values = float(1 << GetOption(RED_BITS) - 1);
+float g_values = float(1 << GetOption(GREEN_BITS)) - 1;
+float b_values = float(1 << GetOption(BLUE_BITS) - 1);
+
+float r_step = 1.0 / (r_values);
+float g_step = 1.0 / (g_values);
+float b_step = 1.0 / (b_values);
+
+const highp int dither_blue_noise_64x64[4096] =
 {
   3039, 1368, 3169, 103, 2211, 1248, 2981, 668, 2633, 37, 3963, 2903, 384, 2564, 3115, 1973, 3348, 830, 2505, 1293, 3054, 1060, 1505, 3268, 400, 1341, 593, 3802, 3384, 429, 4082, 1411, 2503, 3863, 126, 1292, 1887, 2855, 205, 2094, 2977, 1899, 3924, 356, 3088, 2500, 3942, 1409, 2293, 1734, 3732, 1291, 3227, 277, 2054, 786, 2871, 411, 2425, 1678, 3986, 455, 2879, 2288,
   388, 1972, 3851, 778, 2768, 3697, 944, 2123, 1501, 3533, 937, 1713, 1381, 3888, 156, 1242, 516, 2888, 1607, 3676, 632, 2397, 3804, 2673, 1898, 3534, 2593, 1777, 1170, 2299, 3013, 1838, 523, 3053, 1647, 3601, 3197, 959, 1520, 3633, 893, 2437, 3367, 2187, 1258, 137, 1965, 401, 3546, 643, 3087, 2498, 733, 2786, 3371, 4053, 1266, 1977, 3663, 183, 2570, 2107, 1183, 3708,
@@ -111,57 +119,40 @@ const highp int dither_blue_noise_64x64[4096] =
   4060, 621, 1710, 2606, 3510, 317, 4017, 1682, 3329, 1159, 1940, 654, 3461, 1789, 1015, 2691, 1455, 3599, 374, 1947, 4069, 71, 2126, 763, 3961, 2278, 3161, 1997, 824, 2623, 2080, 244, 3257, 780, 2732, 2308, 545, 3351, 2476, 3806, 1204, 588, 1591, 963, 3610, 1699, 754, 3049, 2651, 1106, 65, 2221, 1644, 3821, 1100, 2463, 1614, 3801, 965, 2965, 715, 3394, 1593, 212,
 };
 
-float Dither(float2 pos, int offset_x, int offset_y) 
+float Dither(float2 pos, int offset_x, int offset_y)
 {
   int x = (int(pos.x + offset_x) & 63) << 0;
   int y = (int(pos.y + offset_y) & 63) << 6;
   return (float(dither_blue_noise_64x64[x + y]) * 0.000244140625) - 0.5;
 }
 
-float4 GetDither(float2 pos) 
+float4 GetDither(float2 pos)
 {
-  if (OptionEnabled(TEMPORAL)) 
-  {
-    float t = float(GetTime());
-
-    return float4
-    (
-        r_step * Dither(pos, int(3.0 * t + 0.0),  int(17.0 * t + 0.0)),
-        g_step * Dither(pos, int(5.0 * t + 24.0), int(13.0 * t + 48.0)),
-        b_step * Dither(pos, int(7.0 * t + 48.0), int(11.0 * t + 24.0)),
-        0.0
-    );
-  }
+  float time = TEMPORAL * float(GetTime());
+  int x = int(1.00000000000 * time);
+  int y = int(1.61803398875 * time);
 
   return float4
   (
-    r_step * Dither(pos, 0,  0),
-    g_step * Dither(pos, 24, 48),
-    b_step * Dither(pos, 48, 24),
+    r_step * Dither(pos, x + 00, y + 00),
+    g_step * Dither(pos, x + 24, y + 48),
+    b_step * Dither(pos, x + 48, y + 24),
     0.0
   );
 }
 
-float r_values = float(1 << GetOption(RED_BITS) - 1);
-float g_values = float(1 << GetOption(GREEN_BITS)) - 1;
-float b_values = float(1 << GetOption(BLUE_BITS) - 1);
-
-float r_step = 1.0 / (r_values);
-float g_step = 1.0 / (g_values);
-float b_step = 1.0 / (b_values);
-
-float4 GetRoundedRGB(float4 rgb) 
+float4 GetRoundedRGB(float4 rgb)
 {
   return float4
   (
-    r_step * round(rgb.r * r_values),
-    g_step * round(rgb.g * g_values),
-    b_step * round(rgb.b * b_values),
+    round(rgb.r * r_values) * r_step,
+    round(rgb.g * g_values) * g_step,
+    round(rgb.b * b_values) * b_step,
     rgb.a
   );
 }
 
-float4 ApplyGamma(float4 rgb, float gamma) 
+float4 ApplyGamma(float4 rgb, float gamma)
 {
   return float4
   (
