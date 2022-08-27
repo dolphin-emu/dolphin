@@ -1,0 +1,55 @@
+From 07ac3c8603e2abc4a062adc9388f1acd08ac421e Mon Sep 17 00:00:00 2001
+From: Tom Butterworth <tom@derivative.ca>
+Date: Thu, 18 Aug 2022 16:54:20 +0100
+Subject: [PATCH 1/2] Fix crash in vkCreateSwapchainKHR() on macOS 10.14 and
+ earlier
+
+---
+ MoltenVK/MoltenVK/GPUObjects/MVKSwapchain.mm | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/MoltenVK/MoltenVK/GPUObjects/MVKSwapchain.mm b/MoltenVK/MoltenVK/GPUObjects/MVKSwapchain.mm
+index 781f72bb..df2896db 100644
+--- a/MoltenVK/MoltenVK/GPUObjects/MVKSwapchain.mm
++++ b/MoltenVK/MoltenVK/GPUObjects/MVKSwapchain.mm
+@@ -402,10 +402,12 @@ static inline CIE1931XY VkXYColorEXTToCIE1931XY(VkXYColorEXT xy) {
+ 		_presentableImages.push_back(_device->createPresentableSwapchainImage(&imgInfo, this, imgIdx, NULL));
+ 	}
+ 
+-#if MVK_MACOS && !MVK_MACCAT
+-	NSString* screenName = _mtlLayer.screenMVK.localizedName;
+-#else
+ 	NSString* screenName = @"Main Screen";
++#if MVK_MACOS && !MVK_MACCAT
++	if ([_mtlLayer.screenMVK respondsToSelector:@selector(localizedName)])
++	{
++		screenName = _mtlLayer.screenMVK.localizedName;
++	}
+ #endif
+     MVKLogInfo("Created %d swapchain images with initial size (%d, %d) and contents scale %.1f for screen %s.",
+ 			   imgCnt, imgExtent.width, imgExtent.height, _mtlLayer.contentsScale, screenName.UTF8String);
+
+From 47d2c74bd1a3fcf8369c80696fc890aa90b44802 Mon Sep 17 00:00:00 2001
+From: Tom Butterworth <bangnoise@gmail.com>
+Date: Thu, 18 Aug 2022 21:55:17 +0100
+Subject: [PATCH 2/2] Style fix
+
+Co-authored-by: Bill Hollings <bill.hollings@brenwill.com>
+---
+ MoltenVK/MoltenVK/GPUObjects/MVKSwapchain.mm | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/MoltenVK/MoltenVK/GPUObjects/MVKSwapchain.mm b/MoltenVK/MoltenVK/GPUObjects/MVKSwapchain.mm
+index df2896db..2739b872 100644
+--- a/MoltenVK/MoltenVK/GPUObjects/MVKSwapchain.mm
++++ b/MoltenVK/MoltenVK/GPUObjects/MVKSwapchain.mm
+@@ -404,8 +404,7 @@ static inline CIE1931XY VkXYColorEXTToCIE1931XY(VkXYColorEXT xy) {
+ 
+ 	NSString* screenName = @"Main Screen";
+ #if MVK_MACOS && !MVK_MACCAT
+-	if ([_mtlLayer.screenMVK respondsToSelector:@selector(localizedName)])
+-	{
++	if ([_mtlLayer.screenMVK respondsToSelector:@selector(localizedName)]) {
+ 		screenName = _mtlLayer.screenMVK.localizedName;
+ 	}
+ #endif
