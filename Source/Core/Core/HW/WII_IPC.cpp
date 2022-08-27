@@ -126,17 +126,16 @@ static std::bitset<sizeof(AVEState)> ave_ever_logged;  // For logging only; not 
 // An I²C bus implementation accessed via bit-banging.
 // A few assumptions and limitations exist:
 // - All devices support both writes and reads.
-// - All devices use a 1-byte auto-incrementing address which wraps around from 255 to 0.
-// - Reads are performed by writing a 1-byte address, restarting into read mode, and then reading an
-// arbitrary number of bytes. Immediately reading without writing an address is not allowed. Writing
-// multiple bytes and then switching into read mode uses the first written byte as the address, and
-// the subsequent written bytes auto-increment the address, with that incremented address used for
-// reads afterwards. (This is implicit as we don't track how many bytes are written, only if an
-// address _has_ been written). Each write must re-specify the address.
-// - The device address is handled by this I2CBus class, instead of the device itself.
 // - Timing is not implemented at all; the clock signal can be changed as fast as needed.
 // - Devices are not allowed to stretch the clock signal. (Nintendo's write code does not seem to
 // implement clock stretching in any case, though some homebrew does.)
+// - All devices use a 1-byte auto-incrementing address which wraps around from 255 to 0.
+// - The device address is handled by this I2CBus class, instead of the device itself.
+// - The device address is set on writes, and re-used for reads; writing an address and data and
+// then switching to reading uses the incremented address. Every write must specify the address.
+// - Reading without setting the device address beforehand is disallowed; this mode is hypothetically
+// allowed by the I²C specification but does not seem to be used in practice here.
+// - 10-bit addressing and other reserved addressing modes are not implemented.
 class I2CBus
 {
 public:
