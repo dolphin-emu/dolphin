@@ -136,14 +136,15 @@ public:
   u8 current_byte;
   u8 current_address;
 
-  void Update(Core::System& system, bool old_scl, bool new_scl, bool old_sda, bool new_sda);
+  void Update(Core::System& system, const bool old_scl, const bool new_scl, const bool old_sda,
+              const bool new_sda);
   bool GetSCL() const;
   bool GetSDA() const;
 
 private:
   void Start();
-  void Stop();
-  void WriteBit(bool value);
+  void Stop(Core::System& system);
+  void WriteBit(const bool value);
   bool ReadBit();
 };
 I2CBus i2c_state;
@@ -328,7 +329,29 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
   // TODO: SLOT_LED
 }
 
-void I2CBus::Update(Core::System& system, bool old_scl, bool new_scl, bool old_sda, bool new_sda)
+void I2CBus::Start()
+{
+  INFO_LOG_FMT(WII_IPC, "AVE: Start I2C");
+  active = true;
+  acknowledge = false;
+  bit_counter = 0;
+  read_i2c_address = false;
+  is_correct_i2c_address = false;
+  // read_ave_address = false;
+}
+
+void I2CBus::Stop(Core::System& system)
+{
+  INFO_LOG_FMT(WII_IPC, "AVE: Stop I2C");
+  Dolphin_Debugger::PrintCallstack(Core::CPUThreadGuard(system), Common::Log::LogType::WII_IPC,
+                                   Common::Log::LogLevel::LINFO);
+  active = false;
+  bit_counter = 0;
+  read_ave_address = false;
+}
+
+void I2CBus::Update(Core::System& system, const bool old_scl, const bool new_scl,
+                    const bool old_sda, const bool new_sda)
 {
   if (old_scl != new_scl && old_sda != new_sda)
   {
@@ -337,31 +360,26 @@ void I2CBus::Update(Core::System& system, bool old_scl, bool new_scl, bool old_s
     return;
   }
 
+  if (old_scl == new_scl && old_sda == new_sda)
+    return;  // Nothing changed
+
+  if (!new_scl)
+  {
+    // We only care about things that happen when SCL changes to high or is already high
+  }
+
   if (old_scl && new_scl)
   {
-    INFO_LOG_FMT(WII_IPC, "SCL {} {} {}", bit_counter, new_sda,
-                 !!Common::Flags<GPIO>(ReadGPIOIn(system))[GPIO::AVE_SDA]);
     // Check for changes to SDA while the clock is high.
     if (old_sda && !new_sda)
     {
-      INFO_LOG_FMT(WII_IPC, "AVE: Start I2C");
       // SDA falling edge (now pulled low) while SCL is high indicates I²C start
-      active = true;
-      acknowledge = false;
-      bit_counter = 0;
-      read_i2c_address = false;
-      is_correct_i2c_address = false;
-      // read_ave_address = false;
+      Start();
     }
     else if (!old_sda && new_sda)
     {
-      INFO_LOG_FMT(WII_IPC, "AVE: Stop I2C");
-      Dolphin_Debugger::PrintCallstack(Core::CPUThreadGuard(system), Common::Log::LogType::WII_IPC,
-                                       Common::Log::LogLevel::LINFO);
       // SDA rising edge (now passive pullup) while SCL is high indicates I²C stop
-      active = false;
-      bit_counter = 0;
-      read_ave_address = false;
+      Stop(system);
     }
   }
   else if (!old_scl && new_scl)
