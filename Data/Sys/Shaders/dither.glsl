@@ -15,7 +15,7 @@ OptionName = RED_BITS
 MinValue = 1
 MaxValue = 8
 StepAmount = 1
-DefaultValue = 1
+DefaultValue = 2
 
 [OptionRangeInteger]
 GUIName = Green Bits
@@ -23,7 +23,7 @@ OptionName = GREEN_BITS
 MinValue = 1
 MaxValue = 8
 StepAmount = 1
-DefaultValue = 2
+DefaultValue = 4
 
 [OptionRangeInteger]
 GUIName = Blue Bits
@@ -31,7 +31,7 @@ OptionName = BLUE_BITS
 MinValue = 1
 MaxValue = 8
 StepAmount = 1
-DefaultValue = 1
+DefaultValue = 2
 
 [OptionRangeBool]
 GUIName = Temporal Dithering
@@ -165,7 +165,7 @@ float4 ApplyGamma(float4 rgb, float gamma)
 
 void main()
 {
-  float2 pixel = floor(GetCoordinates() * GetResolution());
+  float2 pixel = floor(GetCoordinates() * GetResolution()) + float2(0.5, 0.5);
   float4 rgb = SampleLocation(pixel * GetInvResolution());
 
   rgb = ApplyGamma(rgb, GetOption(GAMMA));
