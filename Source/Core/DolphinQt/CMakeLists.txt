@@ -396,6 +396,9 @@ if (MSVC)
   target_compile_options(dolphin-emu PRIVATE "${qtGuiPriv}")
   target_compile_options(dolphin-emu PRIVATE "${qtWidgets}")
 
+  # Qt 6.3.0 headers use std::aligned_storage instead of alignas
+  target_compile_definitions(dolphin-emu PRIVATE _SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING)
+
   if ("${QT_VERSION_MAJOR}" GREATER_EQUAL 6)
     # Qt6 requires RTTI
     remove_cxx_flag_from_target(dolphin-emu "/GR-")

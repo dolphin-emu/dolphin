@@ -4,6 +4,7 @@
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 
 #include "Common/Align.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/DSP.h"
@@ -89,28 +90,44 @@ void GBAUCode::Update()
 
 void GBAUCode::HandleMail(u32 mail)
 {
-  static bool nextmail_is_mramaddr = false;
-  static bool calc_done = false;
-
   if (m_upload_setup_in_progress)
   {
     PrepareBootUCode(mail);
+    // The GBA ucode ignores the first 3 mails (mram_dest_addr, mram_size, mram_dram_addr)
+    // but we currently don't handle that (they're read when they shoudln't be, but DSP HLE doesn't
+    // implement them so it's fine).
+    return;
   }
-  else if ((mail >> 16 == 0xabba) && !nextmail_is_mramaddr)
+
+  switch (m_mail_state)
   {
-    nextmail_is_mramaddr = true;
+  case MailState::WaitingForRequest:
+  {
+    if (mail == REQUEST_MAIL)
+    {
+      INFO_LOG_FMT(DSPHLE, "GBAUCode - Recieved request mail");
+      m_mail_state = MailState::WaitingForAddress;
+    }
+    else
+    {
+      WARN_LOG_FMT(DSPHLE, "GBAUCode - Expected request mail but got {:08x}", mail);
+    }
+    break;
   }
-  else if (nextmail_is_mramaddr)
+  case MailState::WaitingForAddress:
   {
-    nextmail_is_mramaddr = false;
+    const u32 address = mail & 0x0fff'ffff;
 
-    ProcessGBACrypto(mail);
+    ProcessGBACrypto(address);
 
-    calc_done = true;
     m_mail_handler.PushMail(DSP_DONE);
+    m_mail_state = MailState::WaitingForNextTask;
+    break;
   }
-  else if (((mail & TASK_MAIL_MASK) == TASK_MAIL_TO_DSP) && calc_done)
+  case MailState::WaitingForNextTask:
   {
+    // The GBA uCode checks that the high word is cdd1, so we compare the full mail with
+    // MAIL_NEW_UCODE/MAIL_RESET without doing masking
     switch (mail)
     {
     case MAIL_NEW_UCODE:
@@ -124,9 +141,12 @@ void GBAUCode::HandleMail(u32 mail)
       break;
     }
   }
-  else
-  {
-    WARN_LOG_FMT(DSPHLE, "GBAUCode - unknown command: {:08x}", mail);
   }
+}
+
+void GBAUCode::DoState(PointerWrap& p)
+{
+  DoStateShared(p);
+  p.Do(m_mail_state);
 }
 }  // namespace DSP::HLE

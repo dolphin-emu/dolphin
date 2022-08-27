@@ -6,6 +6,7 @@
 #include <SFML/Network/Packet.hpp>
 
 #include <array>
+#include <chrono>
 #include <optional>
 #include <string>
 #include <vector>
@@ -14,7 +15,10 @@
 
 namespace NetPlay
 {
-constexpr u32 PEER_TIMEOUT = 30000;
+using namespace std::chrono_literals;
+// An arbitrary amount of time of no acknowledgement of sent packets before netplay decides a
+// connection is disconnected
+constexpr std::chrono::milliseconds PEER_TIMEOUT = 30s;
 
 bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
 bool CompressFolderIntoPacket(const std::string& folder_path, sf::Packet& packet);

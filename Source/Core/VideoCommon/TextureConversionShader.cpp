@@ -519,10 +519,49 @@ UBO_BINDING(std140, 1) uniform UBO {
   uint u_palette_offset;
 };
 
-TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer s_input_buffer;
-#ifdef HAS_PALETTE
-TEXEL_BUFFER_BINDING(1) uniform usamplerBuffer s_palette_buffer;
+#if defined(API_METAL)
+
+#if defined(TEXEL_BUFFER_FORMAT_R8)
+  SSBO_BINDING(0) readonly buffer Input { uint8_t s_input_buffer[]; };
+  #define FETCH(offset) uint(s_input_buffer[offset])
+#elif defined(TEXEL_BUFFER_FORMAT_R16)
+  SSBO_BINDING(0) readonly buffer Input { uint16_t s_input_buffer[]; };
+  #define FETCH(offset) uint(s_input_buffer[offset])
+#elif defined(TEXEL_BUFFER_FORMAT_RGBA8)
+  SSBO_BINDING(0) readonly buffer Input { u8vec4 s_input_buffer[]; };
+  #define FETCH(offset) uvec4(s_input_buffer[offset])
+#elif defined(TEXEL_BUFFER_FORMAT_R32G32)
+  SSBO_BINDING(0) readonly buffer Input { uvec2 s_input_buffer[]; };
+  #define FETCH(offset) s_input_buffer[offset]
+#else
+  #error No texel buffer?
 #endif
+
+#ifdef HAS_PALETTE
+  SSBO_BINDING(1) readonly buffer Palette { uint16_t s_palette_buffer[]; };
+  #define FETCH_PALETTE(offset) uint(s_palette_buffer[offset])
+#endif
+
+#else
+
+TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer s_input_buffer;
+
+#if defined(TEXEL_BUFFER_FORMAT_R8) || defined(TEXEL_BUFFER_FORMAT_R16)
+  #define FETCH(offset) texelFetch(s_input_buffer, int((offset) + u_src_offset)).r
+#elif defined(TEXEL_BUFFER_FORMAT_RGBA8)
+  #define FETCH(offset) texelFetch(s_input_buffer, int((offset) + u_src_offset))
+#elif defined(TEXEL_BUFFER_FORMAT_R32G32)
+  #define FETCH(offset) texelFetch(s_input_buffer, int((offset) + u_src_offset)).rg
+#else
+  #error No texel buffer?
+#endif
+
+#ifdef HAS_PALETTE
+  TEXEL_BUFFER_BINDING(1) uniform usamplerBuffer s_palette_buffer;
+  #define FETCH_PALETTE(offset) texelFetch(s_palette_buffer, int((offset) + u_palette_offset)).r
+#endif
+
+#endif // defined(API_METAL)
 IMAGE_BINDING(rgba8, 0) uniform writeonly image2DArray output_image;
 
 #define GROUP_MEMORY_BARRIER_WITH_SYNC memoryBarrierShared(); barrier();
@@ -563,7 +602,7 @@ uint GetTiledTexelOffset(uint2 block_size, uint2 coords)
 {
   uint2 block = coords / block_size;
   uint2 offset = coords % block_size;
-  uint buffer_pos = u_src_offset;
+  uint buffer_pos = 0;
   buffer_pos += block.y * u_src_row_stride;
   buffer_pos += block.x * (block_size.x * block_size.y);
   buffer_pos += offset.y * block_size.x;
@@ -575,7 +614,7 @@ uint GetTiledTexelOffset(uint2 block_size, uint2 coords)
 uint4 GetPaletteColor(uint index)
 {
   // Fetch and swap BE to LE.
-  uint val = Swap16(texelFetch(s_palette_buffer, int(u_palette_offset + index)).x);
+  uint val = Swap16(FETCH_PALETTE(index));
 
   uint4 color;
 #if defined(PALETTE_FORMAT_IA8)
@@ -633,14 +672,14 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         // the size of the buffer elements.
         uint2 block = coords.xy / 8u;
         uint2 offset = coords.xy % 8u;
-        uint buffer_pos = u_src_offset;
+        uint buffer_pos = 0;
         buffer_pos += block.y * u_src_row_stride;
         buffer_pos += block.x * 32u;
         buffer_pos += offset.y * 4u;
         buffer_pos += offset.x / 2u;
 
         // Select high nibble for odd texels, low for even.
-        uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
+        uint val = FETCH(buffer_pos);
         uint i;
         if ((coords.x & 1u) == 0u)
           i = Convert4To8((val >> 4));
@@ -663,7 +702,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
         // Tiled in 8x4 blocks, 8 bits per pixel
         uint buffer_pos = GetTiledTexelOffset(uint2(8u, 4u), coords);
-        uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
+        uint val = FETCH(buffer_pos);
         uint i = Convert4To8((val & 0x0Fu));
         uint a = Convert4To8((val >> 4));
         uint4 color = uint4(i, i, i, a);
@@ -681,7 +720,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
         // Tiled in 8x4 blocks, 8 bits per pixel
         uint buffer_pos = GetTiledTexelOffset(uint2(8u, 4u), coords);
-        uint i = texelFetch(s_input_buffer, int(buffer_pos)).x;
+        uint i = FETCH(buffer_pos);
         uint4 color = uint4(i, i, i, i);
         float4 norm_color = float4(color) / 255.0;
 
@@ -697,7 +736,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
         // Tiled in 4x4 blocks, 16 bits per pixel
         uint buffer_pos = GetTiledTexelOffset(uint2(4u, 4u), coords);
-        uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
+        uint val = FETCH(buffer_pos);
         uint a = (val & 0xFFu);
         uint i = (val >> 8);
         uint4 color = uint4(i, i, i, a);
@@ -714,7 +753,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
         // Tiled in 4x4 blocks
         uint buffer_pos = GetTiledTexelOffset(uint2(4u, 4u), coords);
-        uint val = Swap16(texelFetch(s_input_buffer, int(buffer_pos)).x);
+        uint val = Swap16(FETCH(buffer_pos));
 
         uint4 color;
         color.x = Convert5To8(bitfieldExtract(val, 11, 5));
@@ -736,7 +775,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
         // Tiled in 4x4 blocks
         uint buffer_pos = GetTiledTexelOffset(uint2(4u, 4u), coords);
-        uint val = Swap16(texelFetch(s_input_buffer, int(buffer_pos)).x);
+        uint val = Swap16(FETCH(buffer_pos));
 
         uint4 color;
         if ((val & 0x8000u) != 0u)
@@ -771,7 +810,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         // for the entire block, then the GB channels afterwards.
         uint2 block = coords.xy / 4u;
         uint2 offset = coords.xy % 4u;
-        uint buffer_pos = u_src_offset;
+        uint buffer_pos = 0;
 
         // Our buffer has 16-bit elements, so the offsets here are half what they would be in bytes.
         buffer_pos += block.y * u_src_row_stride;
@@ -780,8 +819,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         buffer_pos += offset.x;
 
         // The two GB channels follow after the block's AR channels.
-        uint val1 = texelFetch(s_input_buffer, int(buffer_pos + 0u)).x;
-        uint val2 = texelFetch(s_input_buffer, int(buffer_pos + 16u)).x;
+        uint val1 = FETCH(buffer_pos +  0u);
+        uint val2 = FETCH(buffer_pos + 16u);
 
         uint4 color;
         color.a = (val1 & 0xFFu);
@@ -814,7 +853,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
       GROUP_SHARED uint2 shared_temp[BLOCKS_PER_GROUP];
 
-      DEFINE_MAIN(GROUP_SIZE, 8)
+      DEFINE_MAIN(GROUP_SIZE, 1)
       {
         uint local_thread_id = gl_LocalInvocationID.x;
         uint block_in_group = local_thread_id / BLOCK_SIZE;
@@ -835,14 +874,14 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
           // Calculate tiled block coordinates.
           uint2 tile_block_coords = block_coords / 2u;
           uint2 subtile_block_coords = block_coords % 2u;
-          uint buffer_pos = u_src_offset;
+          uint buffer_pos = 0;
           buffer_pos += tile_block_coords.y * u_src_row_stride;
           buffer_pos += tile_block_coords.x * 4u;
           buffer_pos += subtile_block_coords.y * 2u;
           buffer_pos += subtile_block_coords.x;
 
           // Read the entire DXT block to shared memory.
-          uint2 raw_data = texelFetch(s_input_buffer, int(buffer_pos)).xy;
+          uint2 raw_data = FETCH(buffer_pos);
           shared_temp[block_in_group] = raw_data;
         }
 
@@ -921,14 +960,14 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         // the size of the buffer elements.
         uint2 block = coords.xy / 8u;
         uint2 offset = coords.xy % 8u;
-        uint buffer_pos = u_src_offset;
+        uint buffer_pos = 0;
         buffer_pos += block.y * u_src_row_stride;
         buffer_pos += block.x * 32u;
         buffer_pos += offset.y * 4u;
         buffer_pos += offset.x / 2u;
 
         // Select high nibble for odd texels, low for even.
-        uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
+        uint val = FETCH(buffer_pos);
         uint index = ((coords.x & 1u) == 0u) ? (val >> 4) : (val & 0x0Fu);
         float4 norm_color = GetPaletteColorNormalized(index);
         imageStore(output_image, int3(int2(coords), 0), norm_color);
@@ -945,7 +984,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
         // Tiled in 8x4 blocks, 8 bits per pixel
         uint buffer_pos = GetTiledTexelOffset(uint2(8u, 4u), coords);
-        uint index = texelFetch(s_input_buffer, int(buffer_pos)).x;
+        uint index = FETCH(buffer_pos);
         float4 norm_color = GetPaletteColorNormalized(index);
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
@@ -960,7 +999,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
         // Tiled in 4x4 blocks, 16 bits per pixel
         uint buffer_pos = GetTiledTexelOffset(uint2(4u, 4u), coords);
-        uint index = Swap16(texelFetch(s_input_buffer, int(buffer_pos)).x) & 0x3FFFu;
+        uint index = Swap16(FETCH(buffer_pos)) & 0x3FFFu;
         float4 norm_color = GetPaletteColorNormalized(index);
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
@@ -976,8 +1015,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       DEFINE_MAIN(8, 8)
       {
         uint2 uv = gl_GlobalInvocationID.xy;
-        int buffer_pos = int(u_src_offset + (uv.y * u_src_row_stride) + (uv.x / 2u));
-        float4 yuyv = float4(texelFetch(s_input_buffer, buffer_pos));
+        uint buffer_pos = (uv.y * u_src_row_stride) + (uv.x / 2u);
+        float4 yuyv = float4(FETCH(buffer_pos));
 
         float y = (uv.x & 1u) != 0u ? yuyv.b : yuyv.r;
 
@@ -1032,6 +1071,25 @@ std::string GenerateDecodingShader(TextureFormat format, std::optional<TLUTForma
       ss << "#define PALETTE_FORMAT_RGB5A3 1\n";
       break;
     }
+  }
+
+  switch (info->buffer_format)
+  {
+  case TEXEL_BUFFER_FORMAT_R8_UINT:
+    ss << "#define TEXEL_BUFFER_FORMAT_R8 1\n";
+    break;
+  case TEXEL_BUFFER_FORMAT_R16_UINT:
+    ss << "#define TEXEL_BUFFER_FORMAT_R16 1\n";
+    break;
+  case TEXEL_BUFFER_FORMAT_RGBA8_UINT:
+    ss << "#define TEXEL_BUFFER_FORMAT_RGBA8 1\n";
+    break;
+  case TEXEL_BUFFER_FORMAT_R32G32_UINT:
+    ss << "#define TEXEL_BUFFER_FORMAT_R32G32 1\n";
+    break;
+  case NUM_TEXEL_BUFFER_FORMATS:
+    ASSERT(0);
+    break;
   }
 
   ss << decoding_shader_header;
@@ -1121,7 +1179,10 @@ float4 DecodePixel(int val)
 
   ss << "\n";
 
-  ss << "TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer samp0;\n";
+  if (api_type == APIType::Metal)
+    ss << "SSBO_BINDING(0) readonly buffer Palette { uint16_t palette[]; };\n";
+  else
+    ss << "TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer samp0;\n";
   ss << "SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n";
   ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
 
@@ -1143,9 +1204,12 @@ float4 DecodePixel(int val)
   ss << "void main() {\n";
   ss << "  float3 coords = v_tex0;\n";
   ss << "  int src = int(round(texture(samp1, coords).r * multiplier));\n";
-  ss << "  src = int(texelFetch(samp0, src + texel_buffer_offset).r);\n";
+  if (api_type == APIType::Metal)
+    ss << "  src = int(palette[uint(src)]);\n";
+  else
+    ss << "  src = int(texelFetch(samp0, src + texel_buffer_offset).r);\n";
 
-  ss << "  src = ((src << 8) & 0xFF00) | (src >> 8);\n";
+  ss << "  src = ((src << 8) | (src >> 8)) & 0xFFFF;\n";
   ss << "  ocol0 = DecodePixel(src);\n";
   ss << "}\n";
 

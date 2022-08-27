@@ -92,18 +92,20 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
   auto it = m_functions.lower_bound(addr);
-  if (it == m_functions.end())
-    return nullptr;
 
-  // If the address is exactly the start address of a symbol, we're done.
-  if (it->second.address == addr)
-    return &it->second;
-
-  // Otherwise, check whether the address is within the bounds of a symbol.
+  if (it != m_functions.end())
+  {
+    // If the address is exactly the start address of a symbol, we're done.
+    if (it->second.address == addr)
+      return &it->second;
+  }
   if (it != m_functions.begin())
+  {
+    // Otherwise, check whether the address is within the bounds of a symbol.
     --it;
-  if (addr >= it->second.address && addr < it->second.address + it->second.size)
-    return &it->second;
+    if (addr >= it->second.address && addr < it->second.address + it->second.size)
+      return &it->second;
+  }
 
   return nullptr;
 }
@@ -298,7 +300,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
       constexpr auto is_hex_str = [](const std::string& s) {
         return !s.empty() && s.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos;
       };
-      const std::string stripped_line(StripSpaces(line));
+      const std::string stripped_line(StripWhitespace(line));
       std::istringstream iss(stripped_line);
       iss.imbue(std::locale::classic());
       std::string word;

@@ -108,7 +108,7 @@ private:
 
 private:
   void SelectEventsForDevice(XIEventMask* mask, int deviceid);
-  void UpdateCursor();
+  void UpdateCursor(bool should_center_mouse);
 
 public:
   void UpdateInput() override;

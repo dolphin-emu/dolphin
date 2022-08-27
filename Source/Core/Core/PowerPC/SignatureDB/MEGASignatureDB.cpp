@@ -52,7 +52,7 @@ bool GetFunctionName(std::istringstream* iss, std::string* name)
 
   std::getline(*iss, buffer);
   size_t next = buffer.find(" ^");
-  *name = StripSpaces(buffer.substr(0, next));
+  *name = StripWhitespace(buffer.substr(0, next));
 
   if (name->empty())
     return false;

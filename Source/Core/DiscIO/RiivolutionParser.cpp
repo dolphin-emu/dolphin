@@ -172,9 +172,10 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
     for (const auto& patch_subnode : patch_node.children())
     {
       const std::string_view patch_name(patch_subnode.name());
-      if (patch_name == "file")
+      if (patch_name == "file" || patch_name == "dolphin_sys_file")
       {
-        auto& file = patch.m_file_patches.emplace_back();
+        auto& file = patch_name == "dolphin_sys_file" ? patch.m_sys_file_patches.emplace_back() :
+                                                        patch.m_file_patches.emplace_back();
         file.m_disc = patch_subnode.attribute("disc").as_string();
         file.m_external = patch_subnode.attribute("external").as_string();
         file.m_resize = patch_subnode.attribute("resize").as_bool(true);
@@ -183,9 +184,11 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
         file.m_fileoffset = patch_subnode.attribute("fileoffset").as_uint(0);
         file.m_length = patch_subnode.attribute("length").as_uint(0);
       }
-      else if (patch_name == "folder")
+      else if (patch_name == "folder" || patch_name == "dolphin_sys_folder")
       {
-        auto& folder = patch.m_folder_patches.emplace_back();
+        auto& folder = patch_name == "dolphin_sys_folder" ?
+                           patch.m_sys_folder_patches.emplace_back() :
+                           patch.m_folder_patches.emplace_back();
         folder.m_disc = patch_subnode.attribute("disc").as_string();
         folder.m_external = patch_subnode.attribute("external").as_string();
         folder.m_resize = patch_subnode.attribute("resize").as_bool(true);

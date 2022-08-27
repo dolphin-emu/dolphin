@@ -102,7 +102,7 @@ void LogWidget::UpdateLog()
     const std::string_view str_view(std::get<std::string>(line));
 
     m_log_text->appendHtml(
-        QStringLiteral("%1 <span style=\"color: %2; white-space: pre\">%3</span>")
+        QStringLiteral("%1<span style=\"color: %2; white-space: pre\">%3</span>")
             .arg(QStringFromStringView(str_view.substr(0, TIMESTAMP_LENGTH)),
                  QString::fromUtf8(color),
                  QStringFromStringView(str_view.substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));

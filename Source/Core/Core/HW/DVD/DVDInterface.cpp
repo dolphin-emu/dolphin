@@ -430,9 +430,9 @@ void Shutdown()
 
 static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
 {
-  u64 size = disc.GetSize();
+  u64 size = disc.GetDataSize();
 
-  if (disc.IsSizeAccurate())
+  if (disc.GetDataSizeType() == DiscIO::DataSizeType::Accurate)
   {
     if (size == DiscIO::MINI_DVD_SIZE)
       return DiscIO::MINI_DVD_SIZE;
@@ -464,7 +464,7 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
   if (has_disc)
   {
     s_disc_end_offset = GetDiscEndOffset(*disc);
-    if (!disc->IsSizeAccurate())
+    if (disc->GetDataSizeType() != DiscIO::DataSizeType::Accurate)
       WARN_LOG_FMT(DVDINTERFACE, "Unknown disc size, guessing {0} bytes", s_disc_end_offset);
 
     const DiscIO::BlobReader& blob = disc->GetBlobReader();
@@ -606,7 +606,7 @@ bool UpdateRunningGameMetadata(std::optional<u64> title_id)
   return DVDThread::UpdateRunningGameMetadata(IOS::HLE::DIDevice::GetCurrentPartition(), title_id);
 }
 
-void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
 {
   mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&s_DISR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
@@ -657,8 +657,18 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // DMA related registers. Mostly direct accesses (+ masking for writes to
   // handle things like address alignment) and complex write on the DMA
   // control register that will trigger the DMA.
+
+  // The DMA address register masks away the top and bottom bits on GameCube, but only the top bits
+  // on Wii (which can be observed by reading back the register; this difference probably exists due
+  // to the existence of MEM2). The behavior of GameCube mode on a Wii (via MIOS/booting form the
+  // system menu) has not been tested yet. Note that RegisterMMIO does not get re-called when
+  // switching to GameCube mode; we handle this difference by applying the masking when using the
+  // GameCube's DI MMIO address (0x0C006000) but not applying it when using the Wii's DI MMIO
+  // address (0x0D006000), although we allow writes to both of these addresses if Dolphin was
+  // started in Wii mode. (Also, normally in Wii mode the DI MMIOs are only written by the
+  // IOS /dev/di module, but we *do* emulate /dev/di writing the DI MMIOs.)
   mmio->Register(base | DI_DMA_ADDRESS_REGISTER, MMIO::DirectRead<u32>(&s_DIMAR),
-                 MMIO::DirectWrite<u32>(&s_DIMAR, ~0x1F));
+                 MMIO::DirectWrite<u32>(&s_DIMAR, is_wii ? ~0x1F : ~0xFC00001F));
   mmio->Register(base | DI_DMA_LENGTH_REGISTER, MMIO::DirectRead<u32>(&s_DILENGTH),
                  MMIO::DirectWrite<u32>(&s_DILENGTH, ~0x1F));
   mmio->Register(base | DI_DMA_CONTROL_REGISTER, MMIO::DirectRead<u32>(&s_DICR.Hex),
@@ -1472,10 +1482,9 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
   u32 buffered_blocks = 0;
   u32 unbuffered_blocks = 0;
 
-  const u32 bytes_per_chunk =
-      partition != DiscIO::PARTITION_NONE && DVDThread::IsEncryptedAndHashed() ?
-          DiscIO::VolumeWii::BLOCK_DATA_SIZE :
-          DVD_ECC_BLOCK_SIZE;
+  const u32 bytes_per_chunk = partition != DiscIO::PARTITION_NONE && DVDThread::HasWiiHashes() ?
+                                  DiscIO::VolumeWii::BLOCK_DATA_SIZE :
+                                  DVD_ECC_BLOCK_SIZE;
 
   do
   {

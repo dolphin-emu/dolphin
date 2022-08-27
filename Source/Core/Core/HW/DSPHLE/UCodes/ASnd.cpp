@@ -52,28 +52,12 @@ constexpr u32 NEW_FLAGS_SAMPLE_FORMAT_MASK = 7;
 constexpr u32 FLAGS_SAMPLE_FORMAT_BYTES_MASK = 0xffff0000;
 constexpr u32 FLAGS_SAMPLE_FORMAT_BYTES_SHIFT = 16;
 
-// November 14, 2008 version (padded to 0x05a0 bytes) - initial release
-// https://github.com/devkitPro/libogc/compare/c76d8b851fafc11b0a5debc0b40842929d5a5825~...353a44f038e75e5982eb550173ec8127ab35e3e3
-constexpr u32 HASH_2008 = 0x8d69a19b;
-// February 5, 2009 version (0x05ac bytes) - added MAIL_TERMINATE
-// https://github.com/devkitPro/libogc/compare/1925217ffb4c97cbee5cf21fa3c0231029b340e2~...3b1f018dbe372859a43bff8560e2525f6efa4433
-constexpr u32 HASH_2009 = 0xcc2fd441;
-// June 11, 2011 version (padded to 0x0620 bytes) - added new sample formats, which shifted flags
-// Note that the source include in the repo does not match the compiled binary exactly; the compiled
-// version differs by using asl instead of lsl, $acc1 instead of $acc0, and $ac0.l instead of $ac0.m
-// in various locations, as well as having the "jmp out_samp" line uncommented in stereo_16bits_le.
-// None of these result in a behavior difference, from the source, though.
-// Note that gcdsptool was also updated, which results in some differences in the source that don't
-// actually correspond to different instructions (e.g. s40 was renamed to s16)
-// https://github.com/devkitPro/libogc/commit/b1b8ecab3af3745c8df0b401abd512bdf5fcc011
-constexpr u32 HASH_2011 = 0xa81582e2;
-// June 12, 2020 version (0x0606 bytes) - libogc switched to compiling the ucode at build time
-// instead of including a pre-compiled version in the repo, so this now corresponds to the code
-// provided in the repo. There appear to be no behavior differences from the 2011 version.
-// https://github.com/devkitPro/libogc/compare/bfb705fe1607a3031d18b65d603975b68a1cffd4~...d20f9bdcfb43260c6c759f4fb98d724931443f93
-constexpr u32 HASH_2020 = 0xdbbeeb61;
-
 constexpr u32 SAMPLE_RATE = 48000;
+
+bool ASndUCode::UseNewFlagMasks() const
+{
+  return m_crc == HASH_2011 || m_crc == HASH_2020 || m_crc == HASH_2020_PAD;
+}
 
 ASndUCode::ASndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
@@ -99,11 +83,11 @@ void ASndUCode::HandleMail(u32 mail)
   {
     PrepareBootUCode(mail);
   }
-  else if (m_next_command_is_voice_addr)
+  else if (m_next_mail_is_voice_addr)
   {
     m_voice_addr = mail;
     INFO_LOG_FMT(DSPHLE, "ASndUCode - Voice data is at {:08x}", mail);
-    m_next_command_is_voice_addr = false;
+    m_next_mail_is_voice_addr = false;
     // No mail is sent in response
   }
   else if ((mail & TASK_MAIL_MASK) == TASK_MAIL_TO_DSP)
@@ -150,7 +134,7 @@ void ASndUCode::HandleMail(u32 mail)
       break;
     case MAIL_SET_VOICE_DATA_BUFFER:
       DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIL_SET_VOICE_DATA_BUFFER: {:08x}", mail);
-      m_next_command_is_voice_addr = true;
+      m_next_mail_is_voice_addr = true;
       // No mail is sent in response
       break;
     case MAIL_INPUT_NEXT_SAMPLES:
@@ -260,9 +244,8 @@ void ASndUCode::DoMixing(u32 return_mail)
 
   // start_main
 
-  const u32 sample_format_mask = (m_crc == HASH_2011 || m_crc == HASH_2020) ?
-                                     NEW_FLAGS_SAMPLE_FORMAT_MASK :
-                                     OLD_FLAGS_SAMPLE_FORMAT_MASK;
+  const u32 sample_format_mask =
+      UseNewFlagMasks() ? NEW_FLAGS_SAMPLE_FORMAT_MASK : OLD_FLAGS_SAMPLE_FORMAT_MASK;
   const u32 sample_format = m_current_voice.flags & sample_format_mask;
   const u32 sample_format_step =
       (m_current_voice.flags & FLAGS_SAMPLE_FORMAT_BYTES_MASK) >> FLAGS_SAMPLE_FORMAT_BYTES_SHIFT;
@@ -276,8 +259,7 @@ void ASndUCode::DoMixing(u32 return_mail)
   };
   const auto sample_function = sample_selector[sample_format];
 
-  const u32 pause_mask =
-      (m_crc == HASH_2011 || m_crc == HASH_2020) ? NEW_FLAGS_VOICE_PAUSE : OLD_FLAGS_VOICE_PAUSE;
+  const u32 pause_mask = UseNewFlagMasks() ? NEW_FLAGS_VOICE_PAUSE : OLD_FLAGS_VOICE_PAUSE;
 
   if ((m_current_voice.flags & pause_mask) == 0)
   {
@@ -438,8 +420,7 @@ void ASndUCode::ChangeBuffer()
   m_current_voice.start_addr = m_current_voice.start_addr2;
   m_current_voice.backup_addr = m_current_voice.start_addr2;
 
-  const u32 loop_mask =
-      (m_crc == HASH_2011 || m_crc == HASH_2020) ? NEW_FLAGS_VOICE_LOOP : OLD_FLAGS_VOICE_LOOP;
+  const u32 loop_mask = UseNewFlagMasks() ? NEW_FLAGS_VOICE_LOOP : OLD_FLAGS_VOICE_LOOP;
 
   if ((m_current_voice.flags & loop_mask) == 0)
   {
@@ -559,7 +540,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleStereo16BitsLittleEndian() const
 void ASndUCode::DoState(PointerWrap& p)
 {
   DoStateShared(p);
-  p.Do(m_next_command_is_voice_addr);
+  p.Do(m_next_mail_is_voice_addr);
   p.Do(m_voice_addr);
   p.Do(m_current_voice);
   p.Do(m_input_sample_buffer);

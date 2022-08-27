@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.splashscreen.SplashScreen;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
 
@@ -55,6 +56,10 @@ public final class MainActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
+    SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+    splashScreen.setKeepOnScreenCondition(
+            () -> !DirectoryInitialization.areDolphinDirectoriesReady());
+
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
@@ -74,7 +79,7 @@ public final class MainActivity extends AppCompatActivity
     if (!DirectoryInitialization.isWaitingForWriteAccess(this))
     {
       new AfterDirectoryInitializationRunner()
-              .runWithLifecycle(this, false, this::setPlatformTabsAndStartGameFileCacheService);
+              .runWithLifecycle(this, this::setPlatformTabsAndStartGameFileCacheService);
     }
   }
 
@@ -87,7 +92,7 @@ public final class MainActivity extends AppCompatActivity
     {
       DirectoryInitialization.start(this);
       new AfterDirectoryInitializationRunner()
-              .runWithLifecycle(this, false, this::setPlatformTabsAndStartGameFileCacheService);
+              .runWithLifecycle(this, this::setPlatformTabsAndStartGameFileCacheService);
     }
 
     mPresenter.onResume();
@@ -263,7 +268,7 @@ public final class MainActivity extends AppCompatActivity
 
       DirectoryInitialization.start(this);
       new AfterDirectoryInitializationRunner()
-              .runWithLifecycle(this, false, this::setPlatformTabsAndStartGameFileCacheService);
+              .runWithLifecycle(this, this::setPlatformTabsAndStartGameFileCacheService);
     }
   }
 

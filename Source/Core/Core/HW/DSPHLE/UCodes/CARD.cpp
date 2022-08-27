@@ -3,6 +3,7 @@
 
 #include "Core/HW/DSPHLE/UCodes/CARD.h"
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/DSP.h"
@@ -43,5 +44,11 @@ void CARDUCode::HandleMail(u32 mail)
 
   m_mail_handler.PushMail(DSP_DONE);
   m_dsphle->SetUCode(UCODE_ROM);
+}
+
+void CARDUCode::DoState(PointerWrap& p)
+{
+  DoStateShared(p);
+  p.Do(m_state);
 }
 }  // namespace DSP::HLE

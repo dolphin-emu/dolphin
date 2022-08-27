@@ -36,6 +36,7 @@
     <ClInclude Include="Common\Crypto\AES.h" />
     <ClInclude Include="Common\Crypto\bn.h" />
     <ClInclude Include="Common\Crypto\ec.h" />
+    <ClInclude Include="Common\Crypto\SHA1.h" />
     <ClInclude Include="Common\Debug\MemoryPatches.h" />
     <ClInclude Include="Common\Debug\Threads.h" />
     <ClInclude Include="Common\Debug\Watches.h" />
@@ -111,7 +112,6 @@
     <ClInclude Include="Common\HRWrap.h" />
     <ClInclude Include="Common\HttpRequest.h" />
     <ClInclude Include="Common\Image.h" />
-    <ClInclude Include="Common\ImageC.h" />
     <ClInclude Include="Common\IniFile.h" />
     <ClInclude Include="Common\Inline.h" />
     <ClInclude Include="Common\Intrinsics.h" />
@@ -238,6 +238,7 @@
     <ClInclude Include="Core\HW\DSPHLE\DSPHLE.h" />
     <ClInclude Include="Core\HW\DSPHLE\MailHandler.h" />
     <ClInclude Include="Core\HW\DSPHLE\UCodes\ASnd.h" />
+    <ClInclude Include="Core\HW\DSPHLE\UCodes\AESnd.h" />
     <ClInclude Include="Core\HW\DSPHLE\UCodes\AX.h" />
     <ClInclude Include="Core\HW\DSPHLE\UCodes\AXStructs.h" />
     <ClInclude Include="Core\HW\DSPHLE\UCodes\AXVoice.h" />
@@ -441,6 +442,7 @@
     <ClInclude Include="DiscIO\LaggedFibonacciGenerator.h" />
     <ClInclude Include="DiscIO\MultithreadedCompressor.h" />
     <ClInclude Include="DiscIO\NANDImporter.h" />
+    <ClInclude Include="DiscIO\NFSBlob.h" />
     <ClInclude Include="DiscIO\RiivolutionParser.h" />
     <ClInclude Include="DiscIO\RiivolutionPatcher.h" />
     <ClInclude Include="DiscIO\ScrubbedBlob.h" />
@@ -722,6 +724,12 @@
     <ClCompile Include="Common\Crypto\AES.cpp" />
     <ClCompile Include="Common\Crypto\bn.cpp" />
     <ClCompile Include="Common\Crypto\ec.cpp" />
+    <ClCompile Include="Common\Crypto\SHA1.cpp">
+      <!--Workaround msvc arm64 optimizer bug
+      TODO remove after updating to VS 17.4
+      -->
+      <AdditionalOptions Condition="'$(Platform)'=='ARM64'">/d2ssa-peeps-post-color- %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="Common\Debug\MemoryPatches.cpp" />
     <ClCompile Include="Common\Debug\Watches.cpp" />
     <ClCompile Include="Common\DynamicLibrary.cpp" />
@@ -739,11 +747,6 @@
     <ClCompile Include="Common\HRWrap.cpp" />
     <ClCompile Include="Common\HttpRequest.cpp" />
     <ClCompile Include="Common\Image.cpp" />
-    <ClCompile Include="Common\ImageC.c">
-      <!-- This is a C file, not a C++ file, so we can't use the C++ pre-compiled header -->
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <ForcedIncludeFiles />
-    </ClCompile>
     <ClCompile Include="Common\IniFile.cpp" />
     <ClCompile Include="Common\IOFile.cpp" />
     <ClCompile Include="Common\JitRegister.cpp" />
@@ -858,6 +861,7 @@
     <ClCompile Include="Core\HW\DSPHLE\DSPHLE.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\MailHandler.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\UCodes\ASnd.cpp" />
+    <ClCompile Include="Core\HW\DSPHLE\UCodes\AESnd.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\UCodes\AX.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\UCodes\AXWii.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\UCodes\CARD.cpp" />
@@ -1058,6 +1062,7 @@
     <ClCompile Include="DiscIO\GameModDescriptor.cpp" />
     <ClCompile Include="DiscIO\LaggedFibonacciGenerator.cpp" />
     <ClCompile Include="DiscIO\NANDImporter.cpp" />
+    <ClCompile Include="DiscIO\NFSBlob.cpp" />
     <ClCompile Include="DiscIO\RiivolutionParser.cpp" />
     <ClCompile Include="DiscIO\RiivolutionPatcher.cpp" />
     <ClCompile Include="DiscIO\ScrubbedBlob.cpp" />

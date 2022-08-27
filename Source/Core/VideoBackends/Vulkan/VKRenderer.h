@@ -77,8 +77,8 @@ public:
                    float far_depth) override;
   void Draw(u32 base_vertex, u32 num_vertices) override;
   void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) override;
-  void DispatchComputeShader(const AbstractShader* shader, u32 groups_x, u32 groups_y,
-                             u32 groups_z) override;
+  void DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
+                             u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z) override;
   void BindBackbuffer(const ClearColor& clear_color = {}) override;
   void PresentBackbuffer() override;
   void SetFullscreen(bool enable_fullscreen) override;

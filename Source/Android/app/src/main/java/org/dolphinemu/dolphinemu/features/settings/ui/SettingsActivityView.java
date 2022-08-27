@@ -59,6 +59,15 @@ public interface SettingsActivityView
   void onSettingChanged();
 
   /**
+   * Called by a containing Fragment to tell the containing Activity that the Serial Port 1 setting
+   * was modified.
+   *
+   * @param menuTag Identifier for the SerialPort that was modified.
+   * @param value   New setting for the SerialPort.
+   */
+  void onSerialPort1SettingChanged(MenuTag menuTag, int value);
+
+  /**
    * Called by a containing Fragment to tell the containing Activity that a GCPad's setting
    * was modified.
    *
@@ -91,7 +100,7 @@ public interface SettingsActivityView
   void showLoading();
 
   /**
-   * Hide the loading the dialog
+   * Hide the loading dialog
    */
   void hideLoading();
 

@@ -35,6 +35,7 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Take Screenshot"),
     _trans("Exit"),
     _trans("Unlock Cursor"),
+    _trans("Center Mouse"),
     _trans("Activate NetPlay Chat"),
     _trans("Control NetPlay Golf Mode"),
 
@@ -178,6 +179,8 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Undo Save State"),
     _trans("Save State"),
     _trans("Load State"),
+    _trans("Increase Selected State Slot"),
+    _trans("Decrease Selected State Slot"),
 
     _trans("Load ROM"),
     _trans("Unload ROM"),
@@ -348,7 +351,7 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Save State"), HK_SAVE_STATE_SLOT_1, HK_SAVE_STATE_SLOT_SELECTED},
      {_trans("Select State"), HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
      {_trans("Load Last State"), HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
-     {_trans("Other State Hotkeys"), HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE},
+     {_trans("Other State Hotkeys"), HK_SAVE_FIRST_STATE, HK_DECREMENT_SELECTED_STATE_SLOT},
      {_trans("GBA Core"), HK_GBA_LOAD, HK_GBA_RESET, true},
      {_trans("GBA Volume"), HK_GBA_VOLUME_DOWN, HK_GBA_TOGGLE_MUTE, true},
      {_trans("GBA Window Size"), HK_GBA_1X, HK_GBA_4X, true}}};

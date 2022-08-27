@@ -56,9 +56,23 @@ void Init()
   memset(s_gather_pipe, 0, sizeof(s_gather_pipe));
 }
 
-bool IsEmpty()
+bool IsBNE()
 {
-  return GetGatherPipeCount() == 0;
+  // TODO: It's not clear exactly when the BNE (buffer not empty) bit is set.
+  // The PPC 750cl manual says in section 2.1.2.12 "Write Pipe Address Register (WPAR)" (page 78):
+  // "A mfspr WPAR is used to read the BNE bit to check for any outstanding data transfers."
+  // In section 9.4.2 "Write Gather Pipe Operation" (page 327) it says:
+  // "Software can check WPAR[BNE] to determine if the buffer is empty or not."
+  // On page 327, it also says "The only way for software to flush out a partially full 32 byte
+  // block is to fill up the block with dummy data,."
+  // On page 328, it says: "Before disabling the write gather pipe, the WPAR[BNE] bit should be
+  // tested to insure that all outstanding transfers from the buffer to the bus have completed."
+  //
+  // GXRedirectWriteGatherPipe and GXRestoreWriteGatherPipe (used for display lists) wait for
+  // the bit to be 0 before continuing, so it can't be a case of any data existing in the FIFO;
+  // it might be a case of over 32 bytes being stored pending transfer to memory? For now, always
+  // return false since that prevents hangs in games that use display lists.
+  return false;
 }
 
 void ResetGatherPipe()

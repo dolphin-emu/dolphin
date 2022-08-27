@@ -55,7 +55,7 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
   glslang::TShader::ForbidIncluder includer;
   EProfile profile = ECoreProfile;
   EShMessages messages = static_cast<EShMessages>(EShMsgDefault | EShMsgSpvRules);
-  if (api_type == APIType::Vulkan)
+  if (api_type == APIType::Vulkan || api_type == APIType::Metal)
     messages = static_cast<EShMessages>(messages | EShMsgVulkanRules);
   int default_version = 450;
 
@@ -124,6 +124,7 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
   if (g_ActiveConfig.bEnableValidationLayer)
   {
     // Attach the source code to the SPIR-V for tools like RenderDoc.
+    intermediate->setSourceFile(stage_filename);
     intermediate->addSourceText(pass_source_code, pass_source_code_length);
 
     options.generateDebugInfo = true;
@@ -154,31 +155,6 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
   const std::string spv_messages = logger.getAllMessages();
   if (!spv_messages.empty())
     WARN_LOG_FMT(VIDEO, "SPIR-V conversion messages: {}", spv_messages);
-
-  // Dump source code of shaders out to file if enabled.
-  if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
-  {
-    static int counter = 0;
-    std::string filename = StringFromFormat("%s%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-                                            stage_filename, counter++);
-
-    std::ofstream stream;
-    File::OpenFStream(stream, filename, std::ios_base::out);
-    if (stream.good())
-    {
-      stream << source << std::endl;
-      stream << "Shader Info Log:" << std::endl;
-      stream << shader->getInfoLog() << std::endl;
-      stream << shader->getInfoDebugLog() << std::endl;
-      stream << "Program Info Log:" << std::endl;
-      stream << program->getInfoLog() << std::endl;
-      stream << program->getInfoDebugLog() << std::endl;
-      stream << "SPIR-V conversion messages: " << std::endl;
-      stream << spv_messages;
-      stream << "SPIR-V:" << std::endl;
-      spv::Disassemble(stream, out_code);
-    }
-  }
 
   return out_code;
 }

@@ -238,11 +238,14 @@ void Interpreter::mfspr(UGeckoInstruction inst)
 
   case SPR_WPAR:
   {
-    // TODO: If wpar_empty ever is false, Paper Mario hangs. Strange.
-    // Maybe WPAR is automatically flushed after a certain amount of time?
-    bool wpar_empty = true;  // GPFifo::IsEmpty();
-    if (!wpar_empty)
-      rSPR(index) |= 1;  // BNE = buffer not empty
+    // The bottom, read-only bit checks if the buffer is not empty.
+    // GXRedirectWriteGatherPipe and GXRestoreWriteGatherPipe (used for display lists) wait for
+    // this bit to be cleared before writing to SPR_WPAR again (with a value of 0x0c00800 (aka
+    // GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)).
+    // Currently, we always treat the buffer as not empty, as the exact behavior is unclear
+    // (and games that use display lists will hang if the bit doesn't eventually become zero).
+    if (GPFifo::IsBNE())
+      rSPR(index) |= 1;
     else
       rSPR(index) &= ~1;
   }
@@ -341,7 +344,8 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_WPAR:
-    ASSERT_MSG(POWERPC, rGPR[inst.RD] == 0x0C008000, "Gather pipe @ {:08x}", PC);
+    ASSERT_MSG(POWERPC, rSPR(SPR_WPAR) == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS,
+               "Gather pipe changed to unexpected address {:08x} @ PC {:08x}", rSPR(SPR_WPAR), PC);
     GPFifo::ResetGatherPipe();
     break;
 

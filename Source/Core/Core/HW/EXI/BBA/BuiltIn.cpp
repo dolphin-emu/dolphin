@@ -56,8 +56,161 @@ void SetIPIdentification(u8* ptr, std::size_t size, u16 value)
   checksum_bitcast_ptr = u16(0);
   checksum_bitcast_ptr = htons(Common::ComputeNetworkChecksum(ip_ptr, ip_header_size));
 }
+}  // namespace
 
-std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref)
+bool CEXIETHERNET::BuiltInBBAInterface::Activate()
+{
+  if (IsActivated())
+    return true;
+
+  m_active = true;
+  for (auto& buf : m_queue_data)
+    buf.reserve(2048);
+
+  // Workaround to get the host IP (might not be accurate)
+  const u32 ip = m_local_ip.empty() ? sf::IpAddress::getLocalAddress().toInteger() :
+                                      sf::IpAddress(m_local_ip).toInteger();
+  m_current_ip = htonl(ip);
+  m_current_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
+  m_arp_table[m_current_ip] = m_current_mac;
+  m_router_ip = (m_current_ip & 0xFFFFFF) | 0x01000000;
+  m_router_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
+  m_arp_table[m_router_ip] = m_router_mac;
+
+  // clear all ref
+  for (auto& ref : network_ref)
+  {
+    ref.ip = 0;
+  }
+
+  return RecvInit();
+}
+
+void CEXIETHERNET::BuiltInBBAInterface::Deactivate()
+{
+  // Is the BBA Active? If not skip shutdown
+  if (!IsActivated())
+    return;
+  // Signal read thread to exit.
+  m_read_enabled.Clear();
+  m_read_thread_shutdown.Set();
+  m_active = false;
+
+  // kill all active socket
+  for (auto& ref : network_ref)
+  {
+    if (ref.ip != 0)
+    {
+      ref.type == IPPROTO_TCP ? ref.tcp_socket.disconnect() : ref.udp_socket.unbind();
+    }
+    ref.ip = 0;
+  }
+
+  m_arp_table.clear();
+
+  // Wait for read thread to exit.
+  if (m_read_thread.joinable())
+    m_read_thread.join();
+}
+
+bool CEXIETHERNET::BuiltInBBAInterface::IsActivated()
+{
+  return m_active;
+}
+
+void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data)
+{
+  m_queue_data[m_queue_write] = data;
+  const u8 next_write_index = (m_queue_write + 1) & 15;
+  if (next_write_index != m_queue_read)
+    m_queue_write = next_write_index;
+}
+
+void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packet)
+{
+  const auto& [hwdata, arpdata] = packet;
+  Common::ARPPacket response(m_current_mac, m_router_mac);
+  response.arp_header = Common::ARPHeader(arpdata.target_ip, ResolveAddress(arpdata.target_ip),
+                                          m_current_ip, m_current_mac);
+  WriteToQueue(response.Build());
+}
+
+void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& packet)
+{
+  const auto& [hwdata, ip, udp_header, ip_options, data] = packet;
+  const Common::DHCPPacket dhcp(packet.data);
+  const Common::DHCPBody& request = dhcp.body;
+  sockaddr_in from;
+  sockaddr_in to;
+  from.sin_addr.s_addr = m_router_ip;
+  from.sin_family = IPPROTO_UDP;
+  from.sin_port = htons(67);
+  to.sin_addr.s_addr = m_current_ip;
+  to.sin_family = IPPROTO_UDP;
+  to.sin_port = udp_header.source_port;
+
+  const u8* router_ip_ptr = reinterpret_cast<const u8*>(&m_router_ip);
+  const std::vector<u8> ip_part(router_ip_ptr, router_ip_ptr + sizeof(m_router_ip));
+
+  const std::vector<u8> timeout_24h = {0, 1, 0x51, 0x80};
+
+  Common::DHCPPacket reply;
+  reply.body = Common::DHCPBody(request.transaction_id, m_current_mac, m_current_ip, m_router_ip);
+
+  // options
+  // send our emulated lan settings
+
+  (dhcp.options.size() == 0 || dhcp.options[0].size() < 2 || dhcp.options[0].at(2) == 1) ?
+      reply.AddOption(53, {2}) :  // default, send a suggestion
+      reply.AddOption(53, {5});
+  reply.AddOption(54, ip_part);                                    // dhcp server ip
+  reply.AddOption(51, timeout_24h);                                // lease time 24h
+  reply.AddOption(58, timeout_24h);                                // renewal time
+  reply.AddOption(59, timeout_24h);                                // rebind time
+  reply.AddOption(1, {255, 255, 255, 0});                          // submask
+  reply.AddOption(28, {ip_part[0], ip_part[1], ip_part[2], 255});  // broadcast ip
+  reply.AddOption(6, ip_part);                                     // dns server
+  reply.AddOption(15, {0x6c, 0x61, 0x6e});                         // domain name "lan"
+  reply.AddOption(3, ip_part);                                     // router ip
+  reply.AddOption(255, {});                                        // end
+
+  const Common::UDPPacket response(m_current_mac, m_router_mac, from, to, reply.Build());
+
+  WriteToQueue(response.Build());
+}
+
+StackRef* CEXIETHERNET::BuiltInBBAInterface::GetAvailableSlot(u16 port)
+{
+  if (port > 0)  // existing connection?
+  {
+    for (auto& ref : network_ref)
+    {
+      if (ref.ip != 0 && ref.local == port)
+        return &ref;
+    }
+  }
+  for (auto& ref : network_ref)
+  {
+    if (ref.ip == 0)
+      return &ref;
+  }
+  return nullptr;
+}
+
+StackRef* CEXIETHERNET::BuiltInBBAInterface::GetTCPSlot(u16 src_port, u16 dst_port, u32 ip)
+{
+  for (auto& ref : network_ref)
+  {
+    if (ref.ip == ip && ref.remote == dst_port && ref.local == src_port)
+    {
+      return &ref;
+    }
+  }
+  return nullptr;
+}
+
+std::optional<std::vector<u8>>
+CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
 {
   size_t datasize = 0;  // Set by socket.receive using a non-const reference
   unsigned short remote_port;
@@ -71,7 +224,9 @@ std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref)
     if (datasize > 0)
     {
       ref->from.sin_port = htons(remote_port);
-      ref->from.sin_addr.s_addr = htonl(ref->target.toInteger());
+      const u32 remote_ip = htonl(ref->target.toInteger());
+      ref->from.sin_addr.s_addr = remote_ip;
+      ref->my_mac = ResolveAddress(remote_ip);
       const std::vector<u8> udp_data(buffer.begin(), buffer.begin() + datasize);
       const Common::UDPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, udp_data);
       return packet.Build();
@@ -127,166 +282,6 @@ std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref)
 
   return std::nullopt;
 }
-}  // namespace
-
-bool CEXIETHERNET::BuiltInBBAInterface::Activate()
-{
-  if (IsActivated())
-    return true;
-
-  m_active = true;
-  for (auto& buf : m_queue_data)
-    buf.reserve(2048);
-  m_fake_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
-
-  // Workaround to get the host IP (might not be accurate)
-  const u32 ip = m_local_ip.empty() ? sf::IpAddress::getLocalAddress().toInteger() :
-                                      sf::IpAddress(m_local_ip).toInteger();
-  m_current_ip = htonl(ip);
-  m_router_ip = (m_current_ip & 0xFFFFFF) | 0x01000000;
-
-  // clear all ref
-  for (auto& ref : network_ref)
-  {
-    ref.ip = 0;
-  }
-
-  return RecvInit();
-}
-
-void CEXIETHERNET::BuiltInBBAInterface::Deactivate()
-{
-  // Is the BBA Active? If not skip shutdown
-  if (!IsActivated())
-    return;
-  // Signal read thread to exit.
-  m_read_enabled.Clear();
-  m_read_thread_shutdown.Set();
-  m_active = false;
-
-  // kill all active socket
-  for (auto& ref : network_ref)
-  {
-    if (ref.ip != 0)
-    {
-      ref.type == IPPROTO_TCP ? ref.tcp_socket.disconnect() : ref.udp_socket.unbind();
-    }
-    ref.ip = 0;
-  }
-
-  // Wait for read thread to exit.
-  if (m_read_thread.joinable())
-    m_read_thread.join();
-}
-
-bool CEXIETHERNET::BuiltInBBAInterface::IsActivated()
-{
-  return m_active;
-}
-
-void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data)
-{
-  m_queue_data[m_queue_write] = data;
-  const u8 next_write_index = (m_queue_write + 1) & 15;
-  if (next_write_index != m_queue_read)
-    m_queue_write = next_write_index;
-}
-
-void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packet)
-{
-  const auto& [hwdata, arpdata] = packet;
-  const Common::MACAddress bba_mac =
-      Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
-  Common::ARPPacket response(bba_mac, m_fake_mac);
-
-  if (arpdata.target_ip == m_current_ip)
-  {
-    // game asked for himself, reply with his mac address
-    response.arp_header = Common::ARPHeader(arpdata.target_ip, bba_mac, m_current_ip, bba_mac);
-  }
-  else
-  {
-    response.arp_header = Common::ARPHeader(arpdata.target_ip, m_fake_mac, m_current_ip, bba_mac);
-  }
-
-  WriteToQueue(response.Build());
-}
-
-void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& packet)
-{
-  const auto& [hwdata, ip, udp_header, ip_options, data] = packet;
-  const Common::DHCPPacket dhcp(packet.data);
-  const Common::DHCPBody& request = dhcp.body;
-  sockaddr_in from;
-  sockaddr_in to;
-  from.sin_addr.s_addr = m_router_ip;
-  from.sin_family = IPPROTO_UDP;
-  from.sin_port = htons(67);
-  to.sin_addr.s_addr = m_current_ip;
-  to.sin_family = IPPROTO_UDP;
-  to.sin_port = udp_header.source_port;
-
-  const u8* router_ip_ptr = reinterpret_cast<const u8*>(&m_router_ip);
-  const std::vector<u8> ip_part(router_ip_ptr, router_ip_ptr + sizeof(m_router_ip));
-
-  const std::vector<u8> timeout_24h = {0, 1, 0x51, 0x80};
-
-  const Common::MACAddress bba_mac =
-      Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
-  Common::DHCPPacket reply;
-  reply.body = Common::DHCPBody(request.transaction_id, bba_mac, m_current_ip, m_router_ip);
-
-  // options
-  // send our emulated lan settings
-
-  (dhcp.options.size() == 0 || dhcp.options[0].size() < 2 || dhcp.options[0].at(2) == 1) ?
-      reply.AddOption(53, {2}) :  // default, send a suggestion
-      reply.AddOption(53, {5});
-  reply.AddOption(54, ip_part);                                    // dhcp server ip
-  reply.AddOption(51, timeout_24h);                                // lease time 24h
-  reply.AddOption(58, timeout_24h);                                // renewal time
-  reply.AddOption(59, timeout_24h);                                // rebind time
-  reply.AddOption(1, {255, 255, 255, 0});                          // submask
-  reply.AddOption(28, {ip_part[0], ip_part[1], ip_part[2], 255});  // broadcast ip
-  reply.AddOption(6, ip_part);                                     // dns server
-  reply.AddOption(15, {0x6c, 0x61, 0x6e});                         // domain name "lan"
-  reply.AddOption(3, ip_part);                                     // router ip
-  reply.AddOption(255, {});                                        // end
-
-  const Common::UDPPacket response(bba_mac, m_fake_mac, from, to, reply.Build());
-
-  WriteToQueue(response.Build());
-}
-
-StackRef* CEXIETHERNET::BuiltInBBAInterface::GetAvailableSlot(u16 port)
-{
-  if (port > 0)  // existing connection?
-  {
-    for (auto& ref : network_ref)
-    {
-      if (ref.ip != 0 && ref.local == port)
-        return &ref;
-    }
-  }
-  for (auto& ref : network_ref)
-  {
-    if (ref.ip == 0)
-      return &ref;
-  }
-  return nullptr;
-}
-
-StackRef* CEXIETHERNET::BuiltInBBAInterface::GetTCPSlot(u16 src_port, u16 dst_port, u32 ip)
-{
-  for (auto& ref : network_ref)
-  {
-    if (ref.ip == ip && ref.remote == dst_port && ref.local == src_port)
-    {
-      return &ref;
-    }
-  }
-  return nullptr;
-}
 
 void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& packet)
 {
@@ -322,12 +317,13 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     ref->type = IPPROTO_TCP;
     for (auto& tcp_buf : ref->tcp_buffers)
       tcp_buf.used = false;
-    ref->from.sin_addr.s_addr = Common::BitCast<u32>(ip_header.destination_addr);
+    const u32 destination_ip = Common::BitCast<u32>(ip_header.destination_addr);
+    ref->from.sin_addr.s_addr = destination_ip;
     ref->from.sin_port = tcp_header.destination_port;
     ref->to.sin_addr.s_addr = Common::BitCast<u32>(ip_header.source_addr);
     ref->to.sin_port = tcp_header.source_port;
-    ref->bba_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
-    ref->my_mac = m_fake_mac;
+    ref->bba_mac = m_current_mac;
+    ref->my_mac = ResolveAddress(destination_ip);
     ref->tcp_socket.setBlocking(false);
 
     // reply with a sin_ack
@@ -337,7 +333,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     result.tcp_options = {0x02, 0x04, 0x05, 0xb4, 0x01, 0x01, 0x01, 0x01};
 
     ref->seq_num++;
-    target = sf::IpAddress(ntohl(Common::BitCast<u32>(ip_header.destination_addr)));
+    target = sf::IpAddress(ntohl(destination_ip));
     ref->tcp_socket.connect(target, ntohs(tcp_header.destination_port));
     ref->ready = false;
     ref->ip = Common::BitCast<u32>(ip_header.destination_addr);
@@ -417,8 +413,8 @@ void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
   ref->local = htons(port);
   ref->remote = htons(port);
   ref->type = IPPROTO_UDP;
-  ref->bba_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
-  ref->my_mac = m_fake_mac;
+  ref->bba_mac = m_current_mac;
+  ref->my_mac = m_router_mac;
   ref->from.sin_addr.s_addr = 0;
   ref->from.sin_port = htons(port);
   ref->to.sin_addr.s_addr = m_current_ip;
@@ -447,14 +443,14 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
     ref->local = udp_header.source_port;
     ref->remote = udp_header.destination_port;
     ref->type = IPPROTO_UDP;
-    ref->bba_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
-    ref->my_mac = m_fake_mac;
+    ref->bba_mac = m_current_mac;
+    ref->my_mac = m_router_mac;
     ref->from.sin_addr.s_addr = destination_addr;
     ref->from.sin_port = udp_header.destination_port;
     ref->to.sin_addr.s_addr = Common::BitCast<u32>(ip_header.source_addr);
     ref->to.sin_port = udp_header.source_port;
     ref->udp_socket.setBlocking(false);
-    if (ref->udp_socket.bind(htons(udp_header.source_port)) != sf::Socket::Done)
+    if (ref->udp_socket.bind(ntohs(udp_header.source_port)) != sf::Socket::Done)
     {
       PanicAlertFmt(
           "Port {:x} is already in use, this game might not work as intented in LAN Mode.",
@@ -464,23 +460,18 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
         ERROR_LOG_FMT(SP1, "Couldn't open UDP socket");
         return;
       }
-      if (ntohs(udp_header.destination_port) == 1900)
+      if (ntohs(udp_header.destination_port) == 1900 && ntohs(udp_header.length) > 150)
       {
-        InitUDPPort(26512);  // MK DD and 1080
-        InitUDPPort(26502);  // Air Ride
-        if (udp_header.length > 150)
-        {
-          // Quick hack to unlock the connection, throw it back at him
-          Common::UDPPacket reply = packet;
-          reply.eth_header.destination = hwdata.source;
-          reply.eth_header.source = hwdata.destination;
-          reply.ip_header.destination_addr = ip_header.source_addr;
-          if (ip_header.destination_addr == Common::IP_ADDR_SSDP)
-            reply.ip_header.source_addr = Common::IP_ADDR_BROADCAST;
-          else
-            reply.ip_header.source_addr = Common::BitCast<Common::IPAddress>(destination_addr);
-          WriteToQueue(reply.Build());
-        }
+        // Quick hack to unlock the connection, throw it back at him
+        Common::UDPPacket reply = packet;
+        reply.eth_header.destination = hwdata.source;
+        reply.eth_header.source = hwdata.destination;
+        reply.ip_header.destination_addr = ip_header.source_addr;
+        if (ip_header.destination_addr == Common::IP_ADDR_SSDP)
+          reply.ip_header.source_addr = Common::IP_ADDR_BROADCAST;
+        else
+          reply.ip_header.source_addr = Common::BitCast<Common::IPAddress>(destination_addr);
+        WriteToQueue(reply.Build());
       }
     }
   }
@@ -491,6 +482,21 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
   else
     target = sf::IpAddress(ntohl(Common::BitCast<u32>(ip_header.destination_addr)));
   ref->udp_socket.send(data.data(), data.size(), target, ntohs(udp_header.destination_port));
+}
+
+const Common::MACAddress& CEXIETHERNET::BuiltInBBAInterface::ResolveAddress(u32 inet_ip)
+{
+  auto it = m_arp_table.lower_bound(inet_ip);
+  if (it != m_arp_table.end() && it->first == inet_ip)
+  {
+    return it->second;
+  }
+  else
+  {
+    return m_arp_table
+        .emplace_hint(it, inet_ip, Common::GenerateMacAddress(Common::MACConsumer::BBA))
+        ->second;
+  }
 }
 
 bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
@@ -550,6 +556,18 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
       HandleTCPFrame(*tcp_packet);
       break;
     }
+
+    case IPPROTO_IGMP:
+    {
+      // Acknowledge IGMP packet
+      const std::vector<u8> data(frame, frame + size);
+      WriteToQueue(data);
+      break;
+    }
+
+    default:
+      ERROR_LOG_FMT(SP1, "Unsupported IP protocol {}", *ip_proto);
+      break;
     }
     break;
   }
@@ -618,7 +636,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
       {
         if (net_ref.ip == 0)
           continue;
-        const auto socket_data = TryGetDataFromSocket(&net_ref);
+        const auto socket_data = self->TryGetDataFromSocket(&net_ref);
         if (socket_data.has_value())
         {
           datasize = socket_data->size();
@@ -670,6 +688,10 @@ bool CEXIETHERNET::BuiltInBBAInterface::RecvInit()
 
 void CEXIETHERNET::BuiltInBBAInterface::RecvStart()
 {
+  if (m_read_enabled.IsSet())
+    return;
+  InitUDPPort(26502);  // Kirby Air Ride
+  InitUDPPort(26512);  // Mario Kart: Double Dash!! and 1080° Avalanche
   m_read_enabled.Set();
 }
 

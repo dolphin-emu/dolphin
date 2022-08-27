@@ -272,7 +272,7 @@ void PopulateDevices()
 }
 
 Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
-    : m_joystick(joystick), m_name(StripSpaces(GetJoystickName(sdl_index)))
+    : m_joystick(joystick), m_name(StripWhitespace(GetJoystickName(sdl_index)))
 {
   // really bad HACKS:
   // to not use SDL for an XInput device

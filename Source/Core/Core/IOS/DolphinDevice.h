@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Common/Timer.h"
 #include "Core/IOS/Device.h"
 
 namespace IOS::HLE
@@ -10,8 +11,12 @@ namespace IOS::HLE
 class DolphinDevice final : public Device
 {
 public:
-  // Inherit the constructor from the Device class, since we don't need to do anything special.
-  using Device::Device;
+  DolphinDevice(Kernel& ios, const std::string& device_name);
   std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
+
+private:
+  IPCReply GetSystemTime(const IOCtlVRequest& request) const;
+
+  Common::Timer m_timer;
 };
 }  // namespace IOS::HLE

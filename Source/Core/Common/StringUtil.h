@@ -46,12 +46,15 @@ inline void CharArrayFromFormat(char (&out)[Count], const char* format, ...)
 // Good
 std::string ArrayToString(const u8* data, u32 size, int line_len = 20, bool spaces = true);
 
+std::string_view StripWhitespace(std::string_view s);
 std::string_view StripSpaces(std::string_view s);
 std::string_view StripQuotes(std::string_view s);
 
 std::string ReplaceAll(std::string result, std::string_view src, std::string_view dest);
 
 void ReplaceBreaksWithSpaces(std::string& str);
+
+void TruncateToCString(std::string* s);
 
 bool TryParse(const std::string& str, bool* output);
 

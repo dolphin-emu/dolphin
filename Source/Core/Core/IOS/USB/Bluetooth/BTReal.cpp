@@ -106,19 +106,42 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
       unsigned char manufacturer[50] = {}, product[50] = {}, serial_number[50] = {};
       const int manufacturer_ret = libusb_get_string_descriptor_ascii(
           m_handle, device_descriptor.iManufacturer, manufacturer, sizeof(manufacturer));
+      if (manufacturer_ret < LIBUSB_SUCCESS)
+      {
+        WARN_LOG_FMT(IOS_WIIMOTE,
+                     "Failed to get string for manufacturer descriptor {:02x} for device "
+                     "{:04x}:{:04x} (rev {:x}): {}",
+                     device_descriptor.iManufacturer, device_descriptor.idVendor,
+                     device_descriptor.idProduct, device_descriptor.bcdDevice,
+                     LibusbUtils::ErrorWrap(manufacturer_ret));
+        manufacturer[0] = '?';
+        manufacturer[1] = '\0';
+      }
       const int product_ret = libusb_get_string_descriptor_ascii(
           m_handle, device_descriptor.iProduct, product, sizeof(product));
+      if (product_ret < LIBUSB_SUCCESS)
+      {
+        WARN_LOG_FMT(IOS_WIIMOTE,
+                     "Failed to get string for product descriptor {:02x} for device "
+                     "{:04x}:{:04x} (rev {:x}): {}",
+                     device_descriptor.iProduct, device_descriptor.idVendor,
+                     device_descriptor.idProduct, device_descriptor.bcdDevice,
+                     LibusbUtils::ErrorWrap(product_ret));
+        product[0] = '?';
+        product[1] = '\0';
+      }
       const int serial_ret = libusb_get_string_descriptor_ascii(
           m_handle, device_descriptor.iSerialNumber, serial_number, sizeof(serial_number));
-      if (manufacturer_ret < LIBUSB_SUCCESS || product_ret < LIBUSB_SUCCESS ||
-          serial_ret < LIBUSB_SUCCESS)
+      if (serial_ret < LIBUSB_SUCCESS)
       {
-        ERROR_LOG_FMT(IOS_WIIMOTE,
-                      "Failed to get descriptor for device {:04x}:{:04x} (rev {:x}): {}/{}/{}",
-                      device_descriptor.idVendor, device_descriptor.idProduct,
-                      device_descriptor.bcdDevice, LibusbUtils::ErrorWrap(manufacturer_ret),
-                      LibusbUtils::ErrorWrap(product_ret), LibusbUtils::ErrorWrap(serial_ret));
-        return true;
+        WARN_LOG_FMT(IOS_WIIMOTE,
+                     "Failed to get string for serial number descriptor {:02x} for device "
+                     "{:04x}:{:04x} (rev {:x}): {}",
+                     device_descriptor.iSerialNumber, device_descriptor.idVendor,
+                     device_descriptor.idProduct, device_descriptor.bcdDevice,
+                     LibusbUtils::ErrorWrap(serial_ret));
+        serial_number[0] = '?';
+        serial_number[1] = '\0';
       }
       NOTICE_LOG_FMT(IOS_WIIMOTE, "Using device {:04x}:{:04x} (rev {:x}) for Bluetooth: {} {} {}",
                      device_descriptor.idVendor, device_descriptor.idProduct,
@@ -348,12 +371,12 @@ void BluetoothRealDevice::UpdateSyncButtonState(const bool is_held)
 {
   if (m_sync_button_state == SyncButtonState::Unpressed && is_held)
   {
-    m_sync_button_held_timer.Update();
+    m_sync_button_held_timer.Start();
     m_sync_button_state = SyncButtonState::Held;
   }
 
   if (m_sync_button_state == SyncButtonState::Held && is_held &&
-      m_sync_button_held_timer.GetTimeDifference() > SYNC_BUTTON_HOLD_MS_TO_RESET)
+      m_sync_button_held_timer.ElapsedMs() > SYNC_BUTTON_HOLD_MS_TO_RESET)
     m_sync_button_state = SyncButtonState::LongPressed;
   else if (m_sync_button_state == SyncButtonState::Held && !is_held)
     m_sync_button_state = SyncButtonState::Pressed;

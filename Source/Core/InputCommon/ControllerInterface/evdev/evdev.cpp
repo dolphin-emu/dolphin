@@ -52,7 +52,7 @@ protected:
   {
     if (const char* code_name = libevdev_event_code_get_name(EV_KEY, m_code))
     {
-      const auto name = StripSpaces(code_name);
+      const auto name = StripWhitespace(code_name);
 
       for (auto remove_prefix : {"BTN_", "KEY_"})
       {
@@ -441,7 +441,7 @@ bool evdevDevice::AddNode(std::string devnode, int fd, libevdev* dev)
   m_nodes.emplace_back(Node{std::move(devnode), fd, dev});
 
   // Take on the alphabetically first name.
-  const auto potential_new_name = StripSpaces(libevdev_get_name(dev));
+  const auto potential_new_name = StripWhitespace(libevdev_get_name(dev));
   if (m_name.empty() || potential_new_name < m_name)
     m_name = potential_new_name;
 

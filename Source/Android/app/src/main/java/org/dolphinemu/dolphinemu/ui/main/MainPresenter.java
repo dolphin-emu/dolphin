@@ -28,6 +28,7 @@ import org.dolphinemu.dolphinemu.utils.CompletableFuture;
 import org.dolphinemu.dolphinemu.utils.ContentHandler;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.ThreadUtil;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
@@ -57,6 +58,10 @@ public final class MainPresenter
 
   public void onCreate()
   {
+    // Ask the user to grant write permission if relevant and not already granted
+    if (DirectoryInitialization.isWaitingForWriteAccess(mActivity))
+      PermissionsHandler.requestWritePermission(mActivity);
+
     String versionName = BuildConfig.VERSION_NAME;
     mView.setVersionString(versionName);
 
@@ -76,7 +81,8 @@ public final class MainPresenter
 
   public void onFabClick()
   {
-    mView.launchFileListActivity();
+    new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity,
+            mView::launchFileListActivity);
   }
 
   public boolean handleOptionSelection(int itemId, ComponentActivity activity)
@@ -93,7 +99,7 @@ public final class MainPresenter
         return true;
 
       case R.id.button_add_directory:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 mView::launchFileListActivity);
         return true;
 
@@ -106,22 +112,22 @@ public final class MainPresenter
         return true;
 
       case R.id.menu_online_system_update:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 this::launchOnlineUpdate);
         return true;
 
       case R.id.menu_install_wad:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 () -> mView.launchOpenFileActivity(REQUEST_WAD_FILE));
         return true;
 
       case R.id.menu_import_wii_save:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 () -> mView.launchOpenFileActivity(REQUEST_WII_SAVE_FILE));
         return true;
 
       case R.id.menu_import_nand_backup:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 () -> mView.launchOpenFileActivity(REQUEST_NAND_BIN_FILE));
         return true;
     }
@@ -319,7 +325,7 @@ public final class MainPresenter
     }
     else
     {
-      new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity, true, () ->
+      new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity, () ->
       {
         SystemMenuNotInstalledDialogFragment dialogFragment =
                 new SystemMenuNotInstalledDialogFragment();

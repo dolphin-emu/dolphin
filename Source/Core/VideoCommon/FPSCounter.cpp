@@ -16,7 +16,7 @@ static constexpr u64 FPS_REFRESH_INTERVAL_US = 250000;
 
 FPSCounter::FPSCounter()
 {
-  m_last_time = Common::Timer::GetTimeUs();
+  m_last_time = Common::Timer::NowUs();
 
   m_on_state_changed_handle = Core::AddOnStateChangedCallback([this](Core::State state) {
     if (state == Core::State::Paused)
@@ -44,7 +44,7 @@ void FPSCounter::LogRenderTimeToFile(u64 val)
 
 void FPSCounter::Update()
 {
-  const u64 time = Common::Timer::GetTimeUs();
+  const u64 time = Common::Timer::NowUs();
   const u64 diff = time - m_last_time;
   m_time_diff_secs = static_cast<double>(diff / 1000000.0);
   if (g_ActiveConfig.bLogRenderTimeToFile)
@@ -66,11 +66,11 @@ void FPSCounter::SetPaused(bool paused)
 {
   if (paused)
   {
-    m_last_time_pause = Common::Timer::GetTimeUs();
+    m_last_time_pause = Common::Timer::NowUs();
   }
   else
   {
-    const u64 time = Common::Timer::GetTimeUs();
+    const u64 time = Common::Timer::NowUs();
     const u64 diff = time - m_last_time_pause;
     m_last_time += diff;
   }

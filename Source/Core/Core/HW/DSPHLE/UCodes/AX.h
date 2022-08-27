@@ -62,7 +62,7 @@ enum AXMixControl
   // clang-format on
 };
 
-class AXUCode : public UCodeInterface
+class AXUCode /* not final: subclassed by AXWiiUCode */ : public UCodeInterface
 {
 public:
   AXUCode(DSPHLE* dsphle, u32 crc);
@@ -200,5 +200,14 @@ private:
     CMD_COMPRESSOR = 0x12,
     CMD_SEND_AUX_AND_MIX = 0x13,
   };
+
+  enum class MailState
+  {
+    WaitingForCmdListSize,
+    WaitingForCmdListAddress,
+    WaitingForNextTask,
+  };
+
+  MailState m_mail_state = MailState::WaitingForCmdListSize;
 };
 }  // namespace DSP::HLE

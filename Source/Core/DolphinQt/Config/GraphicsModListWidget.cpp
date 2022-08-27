@@ -120,24 +120,15 @@ void GraphicsModListWidget::RefreshModList()
 
   std::set<std::string> groups;
 
-  for (const auto& mod : m_mod_group.GetMods())
+  for (const GraphicsModConfig& mod : m_mod_group.GetMods())
   {
-    if (mod.m_groups.empty())
-      continue;
-
-    for (const auto& group : mod.m_groups)
-    {
+    for (const GraphicsTargetGroupConfig& group : mod.m_groups)
       groups.insert(group.m_name);
-    }
   }
 
-  for (const auto& mod : m_mod_group.GetMods())
+  for (const GraphicsModConfig& mod : m_mod_group.GetMods())
   {
-    // Group only mods shouldn't be shown
-    if (mod.m_features.empty())
-      continue;
-
-    // If the group doesn't exist in the available mod's features, skip
+    // If no group matches the mod's features, or if the mod has no features, skip it
     if (std::none_of(mod.m_features.begin(), mod.m_features.end(),
                      [&groups](const GraphicsModFeatureConfig& feature) {
                        return groups.count(feature.m_group) == 1;

@@ -231,7 +231,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 #endif
 
   static const std::unordered_set<std::string> disc_image_extensions = {
-      {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".dol", ".elf"}};
+      {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".nfs", ".dol", ".elf"}};
   if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
   {
     std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
@@ -700,8 +700,13 @@ void AddRiivolutionPatches(BootParameters* boot_params,
   auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
   disc.volume = DiscIO::CreateDisc(DiscIO::DirectoryBlobReader::Create(
       std::move(disc.volume),
+      [&](std::vector<DiscIO::FSTBuilderNode>* fst) {
+        DiscIO::Riivolution::ApplyPatchesToFiles(
+            riivolution_patches, DiscIO::Riivolution::PatchIndex::DolphinSysFiles, fst, nullptr);
+      },
       [&](std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node) {
-        DiscIO::Riivolution::ApplyPatchesToFiles(riivolution_patches, fst, dol_node);
+        DiscIO::Riivolution::ApplyPatchesToFiles(
+            riivolution_patches, DiscIO::Riivolution::PatchIndex::FileSystem, fst, dol_node);
       }));
   boot_params->riivolution_patches = std::move(riivolution_patches);
 }

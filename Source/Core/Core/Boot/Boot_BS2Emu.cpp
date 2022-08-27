@@ -148,7 +148,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
   // TODO - Make Apploader(or just RunFunction()) debuggable!!!
 
   // Call iAppLoaderEntry.
-  DEBUG_LOG_FMT(MASTER_LOG, "Call iAppLoaderEntry");
+  DEBUG_LOG_FMT(BOOT, "Call iAppLoaderEntry");
   const u32 iAppLoaderFuncAddr = is_wii ? 0x80004000 : 0x80003100;
   PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
   PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
@@ -159,15 +159,16 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
   const u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
 
   // iAppLoaderInit
-  DEBUG_LOG_FMT(MASTER_LOG, "Call iAppLoaderInit");
-  HLE::Patch(0x81300000, "AppLoaderReport");  // HLE OSReport for Apploader
+  DEBUG_LOG_FMT(BOOT, "Call iAppLoaderInit");
+  PowerPC::HostWrite_U32(0x4E800020, 0x81300000);  // Write BLR
+  HLE::Patch(0x81300000, "AppLoaderReport");       // HLE OSReport for Apploader
   PowerPC::ppcState.gpr[3] = 0x81300000;
   RunFunction(iAppLoaderInit);
 
   // iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
   // To give you an idea about where the stuff is located on the disc take a look at yagcd
   // ch 13.
-  DEBUG_LOG_FMT(MASTER_LOG, "Call iAppLoaderMain");
+  DEBUG_LOG_FMT(BOOT, "Call iAppLoaderMain");
 
   PowerPC::ppcState.gpr[3] = 0x81300004;
   PowerPC::ppcState.gpr[4] = 0x81300008;
@@ -185,7 +186,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
     const u32 length = PowerPC::Read_U32(0x81300008);
     const u32 dvd_offset = PowerPC::Read_U32(0x8130000c) << (is_wii ? 2 : 0);
 
-    INFO_LOG_FMT(MASTER_LOG, "DVDRead: offset: {:08x}   memOffset: {:08x}   length: {}", dvd_offset,
+    INFO_LOG_FMT(BOOT, "DVDRead: offset: {:08x}   memOffset: {:08x}   length: {}", dvd_offset,
                  ram_address, length);
     DVDRead(volume, dvd_offset, ram_address, length, partition);
 
@@ -199,7 +200,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
   }
 
   // iAppLoaderClose
-  DEBUG_LOG_FMT(MASTER_LOG, "call iAppLoaderClose");
+  DEBUG_LOG_FMT(BOOT, "call iAppLoaderClose");
   RunFunction(iAppLoaderClose);
   HLE::UnPatch("AppLoaderReport");
 

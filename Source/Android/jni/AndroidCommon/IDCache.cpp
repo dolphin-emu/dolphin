@@ -70,6 +70,14 @@ static jclass s_patch_cheat_class;
 static jfieldID s_patch_cheat_pointer;
 static jmethodID s_patch_cheat_constructor;
 
+static jclass s_graphics_mod_group_class;
+static jfieldID s_graphics_mod_group_pointer;
+static jmethodID s_graphics_mod_group_constructor;
+
+static jclass s_graphics_mod_class;
+static jfieldID s_graphics_mod_pointer;
+static jmethodID s_graphics_mod_constructor;
+
 static jclass s_riivolution_patches_class;
 static jfieldID s_riivolution_patches_pointer;
 
@@ -331,6 +339,36 @@ jmethodID GetPatchCheatConstructor()
   return s_patch_cheat_constructor;
 }
 
+jclass GetGraphicsModClass()
+{
+  return s_graphics_mod_class;
+}
+
+jfieldID GetGraphicsModPointer()
+{
+  return s_graphics_mod_pointer;
+}
+
+jmethodID GetGraphicsModConstructor()
+{
+  return s_graphics_mod_constructor;
+}
+
+jclass GetGraphicsModGroupClass()
+{
+  return s_graphics_mod_group_class;
+}
+
+jfieldID GetGraphicsModGroupPointer()
+{
+  return s_graphics_mod_group_pointer;
+}
+
+jmethodID GetGraphicsModGroupConstructor()
+{
+  return s_graphics_mod_group_constructor;
+}
+
 jclass GetRiivolutionPatchesClass()
 {
   return s_riivolution_patches_class;
@@ -480,6 +518,23 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_patch_cheat_constructor = env->GetMethodID(patch_cheat_class, "<init>", "(J)V");
   env->DeleteLocalRef(patch_cheat_class);
 
+  const jclass graphics_mod_group_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/cheats/model/GraphicsModGroup");
+  s_graphics_mod_group_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(graphics_mod_group_class));
+  s_graphics_mod_group_pointer = env->GetFieldID(graphics_mod_group_class, "mPointer", "J");
+  s_graphics_mod_group_constructor = env->GetMethodID(graphics_mod_group_class, "<init>", "(J)V");
+  env->DeleteLocalRef(graphics_mod_group_class);
+
+  const jclass graphics_mod_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/cheats/model/GraphicsMod");
+  s_graphics_mod_class = reinterpret_cast<jclass>(env->NewGlobalRef(graphics_mod_class));
+  s_graphics_mod_pointer = env->GetFieldID(graphics_mod_class, "mPointer", "J");
+  s_graphics_mod_constructor =
+      env->GetMethodID(graphics_mod_class, "<init>",
+                       "(JLorg/dolphinemu/dolphinemu/features/cheats/model/GraphicsModGroup;)V");
+  env->DeleteLocalRef(graphics_mod_class);
+
   const jclass riivolution_patches_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/riivolution/model/RiivolutionPatches");
   s_riivolution_patches_class =
@@ -516,6 +571,8 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_ar_cheat_class);
   env->DeleteGlobalRef(s_gecko_cheat_class);
   env->DeleteGlobalRef(s_patch_cheat_class);
+  env->DeleteGlobalRef(s_graphics_mod_group_class);
+  env->DeleteGlobalRef(s_graphics_mod_class);
   env->DeleteGlobalRef(s_riivolution_patches_class);
   env->DeleteGlobalRef(s_wii_update_cb_class);
 }

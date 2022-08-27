@@ -8,6 +8,8 @@
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
 
+#include "Core/Host.h"
+
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::Quartz
@@ -192,16 +194,36 @@ void KeyboardAndMouse::UpdateInput()
   CFRelease(windowDescriptions);
   CFRelease(windowArray);
 
-  CGEventRef event = CGEventCreate(nil);
-  CGPoint loc = CGEventGetLocation(event);
-  CFRelease(event);
+  const double window_width = std::max(bounds.size.width, 1.0);
+  const double window_height = std::max(bounds.size.height, 1.0);
 
-  const auto window_scale = g_controller_interface.GetWindowInputScale();
+  if (g_controller_interface.IsMouseCenteringRequested() && Host_RendererHasFocus())
+  {
+    m_cursor.x = 0;
+    m_cursor.y = 0;
 
-  loc.x -= bounds.origin.x;
-  loc.y -= bounds.origin.y;
-  m_cursor.x = (loc.x / std::max(bounds.size.width, 1.0) * 2 - 1.0) * window_scale.x;
-  m_cursor.y = (loc.y / std::max(bounds.size.height, 1.0) * 2 - 1.0) * window_scale.y;
+    const CGPoint window_center_global_coordinates =
+        CGPointMake(bounds.origin.x + window_width / 2.0, bounds.origin.y + window_height / 2.0);
+    CGWarpMouseCursorPosition(window_center_global_coordinates);
+    // Without this line there is a short but obvious delay after centering the cursor before it can
+    // be moved again
+    CGAssociateMouseAndMouseCursorPosition(true);
+
+    g_controller_interface.SetMouseCenteringRequested(false);
+  }
+  else
+  {
+    CGEventRef event = CGEventCreate(nil);
+    CGPoint loc = CGEventGetLocation(event);
+    CFRelease(event);
+
+    const auto window_scale = g_controller_interface.GetWindowInputScale();
+
+    loc.x -= bounds.origin.x;
+    loc.y -= bounds.origin.y;
+    m_cursor.x = (loc.x / window_width * 2 - 1.0) * window_scale.x;
+    m_cursor.y = (loc.y / window_height * 2 - 1.0) * window_scale.y;
+  }
 }
 
 std::string KeyboardAndMouse::GetName() const

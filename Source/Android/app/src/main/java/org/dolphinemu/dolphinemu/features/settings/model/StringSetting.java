@@ -13,6 +13,14 @@ public enum StringSetting implements AbstractStringSetting
   // These entries have the same names and order as in C++, just for consistency.
 
   MAIN_DEFAULT_ISO(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "DefaultISO", ""),
+
+  MAIN_BBA_MAC(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "BBA_MAC", ""),
+  MAIN_BBA_XLINK_IP(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "BBA_XLINK_IP", ""),
+
+  // Schthack PSO Server - https://schtserv.com/
+  MAIN_BBA_BUILTIN_DNS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "BBA_BUILTIN_DNS",
+          "149.56.167.128"),
+
   MAIN_GFX_BACKEND(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "GFXBackend",
           NativeLibrary.GetDefaultGraphicsBackendName()),
 
@@ -21,7 +29,10 @@ public enum StringSetting implements AbstractStringSetting
   MAIN_RESOURCEPACK_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "ResourcePackPath",
           ""),
   MAIN_FS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "NANDRootPath", ""),
-  MAIN_SD_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WiiSDCardPath", ""),
+  MAIN_WII_SD_CARD_IMAGE_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WiiSDCardPath",
+          ""),
+  MAIN_WII_SD_CARD_SYNC_FOLDER_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL,
+          "WiiSDCardSyncFolder", ""),
   MAIN_WFS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WFSPath", ""),
 
   GFX_ENHANCE_POST_SHADER(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,

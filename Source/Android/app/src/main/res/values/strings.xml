@@ -131,7 +131,11 @@
     <string name="system_language">System Language</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
+    <string name="serial_port_1_device">GameCube Serial Port 1 Device</string>
     <string name="wii_submenu">Wii</string>
+    <string name="wii_misc_settings">Misc Settings</string>
+    <string name="wii_sd_card_settings">SD Card Settings</string>
+    <string name="wii_wiimote_settings">Wii Remote Settings</string>
     <string name="wii_widescreen">Widescreen</string>
     <string name="wii_widescreen_description">Changes aspect ratio from 4:3 to 16:9 in games that support it.</string>
     <string name="wii_pal60">Use PAL60 Mode (EuRGB60)</string>
@@ -142,6 +146,17 @@
     <string name="insert_sd_card">Insert SD Card</string>
     <string name="insert_sd_card_description">Supports SD and SDHC. Default size is 128 MB.</string>
     <string name="wii_sd_card_allow_writes">Allow Writes to SD Card</string>
+    <string name="wii_sd_card_sync">Automatically Sync with Folder</string>
+    <string name="wii_sd_card_sync_description">Synchronizes the SD Card with the SD Sync Folder when starting and ending emulation.</string>
+    <string name="wii_sd_card_path">SD Card Path</string>
+    <string name="wii_sd_sync_folder">SD Sync Folder</string>
+    <string name="wii_sd_card_folder_to_file">Convert Folder to File Now</string>
+    <string name="wii_sd_card_folder_to_file_confirmation">You are about to convert the content of the SD sync folder into the SD card file. All current content of the file will be deleted. Are you sure you want to continue?</string>
+    <string name="wii_sd_card_file_to_folder">Convert File to Folder Now</string>
+    <string name="wii_sd_card_file_to_folder_confirmation">You are about to convert the content of the SD card file into the SD sync folder. All current content of the folder will be deleted. Are you sure you want to continue?</string>
+    <string name="wii_converting">Converting...</string>
+    <string name="wii_convert_success">Conversion done.</string>
+    <string name="wii_convert_failure">Conversion failed.</string>
     <string name="wiimote_rumble">Wii Remote Rumble</string>
     <string name="wiimote_volume">Wii Remote Speaker Volume</string>
     <string name="sensor_bar_sensitivity">Sensor Bar Sensitivity</string>
@@ -159,6 +174,14 @@
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
     <string name="analytics_new_id">Generate a New Statistics Identity</string>
     <string name="analytics_new_id_confirmation">Are you sure you want to generate a new statistics identity?</string>
+
+    <!-- SerialPort1 Subsetting Fragment -->
+    <string name="serialport1_submenu">Serial Port 1</string>
+    <string name="xlink_kai_guide_header">For setup instructions, <a href="https://www.teamxlink.co.uk/wiki/Dolphin">refer to this page.</a></string>
+    <string name="xlink_kai_bba_ip">XLink Kai IP Address/hostname</string>
+    <string name="xlink_kai_bba_ip_description">IP address or hostname of device running the XLink Kai client</string>
+    <string name="bba_builtin_dns">DNS Server</string>
+    <string name="bba_builtin_dns_description">Use 8.8.8.8 for normal DNS, else enter your custom one</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
@@ -209,7 +232,6 @@
     <string name="dump_path">Dump Path</string>
     <string name="load_path">Load Path</string>
     <string name="resource_pack_path">Resource Pack Path</string>
-    <string name="SD_card_path">SD Card Path</string>
     <string name="wfs_path">WFS Path</string>
 
     <!-- Graphics Settings -->
@@ -297,7 +319,9 @@
     <string name="wait_for_shaders_description">This causes a delay when launching games, but will reduce stuttering early on.</string>
 
     <string name="advanced_graphics_submenu">Advanced</string>
-    <string name="custom_textures">Custom Textures</string>
+    <string name="gfx_mods_and_custom_textures">Graphics Mods and Custom Textures</string>
+    <string name="gfx_mods">Graphics Mods</string>
+    <string name="gfx_mods_description">Loads graphics mods from User/Load/GraphicsMods/.</string>
     <string name="load_custom_texture">Load Custom Textures</string>
     <string name="load_custom_texture_description">Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and User/Load/DynamicInputTextures/&lt;game_id&gt;/.</string>
     <string name="cache_custom_texture">Prefetch Custom Textures</string>
@@ -466,6 +490,7 @@
     <string name="cheats_header_ar">AR Codes</string>
     <string name="cheats_header_gecko">Gecko Codes</string>
     <string name="cheats_header_patch">Patches</string>
+    <string name="cheats_header_graphics_mod">Graphics Mods</string>
     <string name="cheats_add_ar">Add New AR Code</string>
     <string name="cheats_add_gecko">Add New Gecko Code</string>
     <string name="cheats_add_patch">Add New Patch</string>
@@ -486,6 +511,7 @@
     <string name="cheats_download_empty">File contained no codes.</string>
     <string name="cheats_download_succeeded">Downloaded %1$d codes. (added %2$d)</string>
     <string name="cheats_disabled_warning">Dolphin\'s cheat system is currently disabled.</string>
+    <string name="gfx_mods_disabled_warning">Graphics mods are currently disabled.</string>
     <string name="cheats_open_settings">Settings</string>
 
     <!-- Convert Screen -->

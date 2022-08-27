@@ -44,6 +44,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     titles.put(MenuTag.CONFIG_AUDIO, R.string.audio_submenu);
     titles.put(MenuTag.CONFIG_PATHS, R.string.paths_submenu);
     titles.put(MenuTag.CONFIG_GAME_CUBE, R.string.gamecube_submenu);
+    titles.put(MenuTag.CONFIG_SERIALPORT1, R.string.serialport1_submenu);
     titles.put(MenuTag.CONFIG_WII, R.string.wii_submenu);
     titles.put(MenuTag.CONFIG_ADVANCED, R.string.advanced_submenu);
     titles.put(MenuTag.DEBUG, R.string.debug_submenu);
@@ -200,6 +201,12 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   public void onSettingChanged()
   {
     mActivity.onSettingChanged();
+  }
+
+  @Override
+  public void onSerialPort1SettingChanged(MenuTag menuTag, int value)
+  {
+    mActivity.onSerialPort1SettingChanged(menuTag, value);
   }
 
   @Override
