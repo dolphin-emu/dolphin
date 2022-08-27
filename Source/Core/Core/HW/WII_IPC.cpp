@@ -123,18 +123,29 @@ static_assert(sizeof(AVEState) == 0x100);
 static AVEState ave_state;
 static std::bitset<sizeof(AVEState)> ave_ever_logged;  // For logging only; not saved
 
+// An I²C bus implementation accessed via bit-banging.
+// A few assumptions and limitations exist:
+// - All devices support both writes and reads.
+// - All devices use a 1-byte auto-incrementing address which wraps around from 255 to 0.
+// - Reads are performed by writing a 1-byte address, restarting into read mode, and then reading an
+// arbitrary number of bytes. Immediately reading without writing an address is not allowed. Writing
+// multiple bytes and then switching into read mode uses the first written byte as the address, and
+// the subsequent written bytes auto-increment the address, with that incremented address used for
+// reads afterwards. (This is implicit as we don't track how many bytes are written, only if an
+// address _has_ been written). Each write must re-specify the address.
+// - The device address is handled by this I2CBus class, instead of the device itself.
+// - Timing is not implemented at all; the clock signal can be changed as fast as needed.
+// - Devices are not allowed to stretch the clock signal. (Nintendo's write code does not seem to
+// implement clock stretching in any case, though some homebrew does.)
 class I2CBus
 {
 public:
   bool active;
   u8 bit_counter;
-  bool read_i2c_address;
-  bool is_correct_i2c_address;
-  bool is_read;
-  bool read_ave_address;
-  bool acknowledge;
   u8 current_byte;
-  u8 current_address;
+  std::optional<u8> i2c_address;  // Not shifted; includes the read flag
+  std::optional<u8> device_address;
+  bool acknowledge;
 
   void Update(Core::System& system, const bool old_scl, const bool new_scl, const bool old_sda,
               const bool new_sda);
@@ -143,9 +154,7 @@ public:
 
 private:
   void Start();
-  void Stop(Core::System& system);
-  void WriteBit(const bool value);
-  bool ReadBit();
+  void Stop();
 };
 I2CBus i2c_state;
 
@@ -331,23 +340,17 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
 
 void I2CBus::Start()
 {
-  INFO_LOG_FMT(WII_IPC, "AVE: Start I2C");
+  if (active)
+    INFO_LOG_FMT(WII_IPC, "AVE: Re-start I2C");
+  else
+    INFO_LOG_FMT(WII_IPC, "AVE: Start I2C");
   active = true;
-  acknowledge = false;
-  bit_counter = 0;
-  read_i2c_address = false;
-  is_correct_i2c_address = false;
-  // read_ave_address = false;
 }
 
-void I2CBus::Stop(Core::System& system)
+void I2CBus::Stop()
 {
   INFO_LOG_FMT(WII_IPC, "AVE: Stop I2C");
-  Dolphin_Debugger::PrintCallstack(Core::CPUThreadGuard(system), Common::Log::LogType::WII_IPC,
-                                   Common::Log::LogLevel::LINFO);
   active = false;
-  bit_counter = 0;
-  read_ave_address = false;
 }
 
 void I2CBus::Update(Core::System& system, const bool old_scl, const bool new_scl,
@@ -363,11 +366,6 @@ void I2CBus::Update(Core::System& system, const bool old_scl, const bool new_scl
   if (old_scl == new_scl && old_sda == new_sda)
     return;  // Nothing changed
 
-  if (!new_scl)
-  {
-    // We only care about things that happen when SCL changes to high or is already high
-  }
-
   if (old_scl && new_scl)
   {
     // Check for changes to SDA while the clock is high.
@@ -379,14 +377,12 @@ void I2CBus::Update(Core::System& system, const bool old_scl, const bool new_scl
     else if (!old_sda && new_sda)
     {
       // SDA rising edge (now passive pullup) while SCL is high indicates I²C stop
-      Stop(system);
+      Stop();
     }
   }
   else if (!old_scl && new_scl)
   {
-    INFO_LOG_FMT(WII_IPC, "{} {} {}", bit_counter, new_sda,
-                 !!Common::Flags<GPIO>(ReadGPIOIn(system))[GPIO::AVE_SDA]);
-    // Clock changed from low to high; transfer a new bit.
+    // SCL rising edge indicates data clocking. For writes, we transfer in a bit.
     if (active && (!read_i2c_address || is_correct_i2c_address))
     {
       if (bit_counter == 9)
@@ -503,6 +499,14 @@ void I2CBus::Update(Core::System& system, const bool old_scl, const bool new_scl
         }
       }
 
+      bit_counter++;
+    }
+  }
+  else if (old_scl && !new_scl)
+  {
+    // SCL falling edge is used to advance bit_counter.
+    if (active)
+    {
       bit_counter++;
     }
   }
