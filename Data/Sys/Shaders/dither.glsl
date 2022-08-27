@@ -4,8 +4,8 @@
 [OptionRangeFloat]
 GUIName = Gamma
 OptionName = GAMMA
-MinValue = 1.6
-MaxValue = 2.8
+MinValue = 1.0
+MaxValue = 3.2
 StepAmount = 0.1
 DefaultValue = 2.2
 
