@@ -133,8 +133,13 @@ static std::bitset<sizeof(AVEState)> ave_ever_logged;  // For logging only; not 
 // - The device address is handled by this I2CBus class, instead of the device itself.
 // - The device address is set on writes, and re-used for reads; writing an address and data and
 // then switching to reading uses the incremented address. Every write must specify the address.
-// - Reading without setting the device address beforehand is disallowed; this mode is hypothetically
-// allowed by the I²C specification but does not seem to be used in practice here.
+// - Reading without setting the device address beforehand is disallowed; the I²C specification
+// allows such reads but does not specify how they behave (or anything about the behavior of the
+// device address).
+// - Switching between multiple devices using a restart does not reset the device address; the
+// device address is only reset on stopping. This means that a write to one device followed by a
+// read from a different device would result in reading from the last used device address (without
+// any warning).
 // - 10-bit addressing and other reserved addressing modes are not implemented.
 class I2CBus
 {
