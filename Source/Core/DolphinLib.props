@@ -684,6 +684,7 @@
     <ClInclude Include="VideoCommon\UberShaderCommon.h" />
     <ClInclude Include="VideoCommon\UberShaderPixel.h" />
     <ClInclude Include="VideoCommon\UberShaderVertex.h" />
+    <ClInclude Include="VideoCommon\VertexCache.h" />
     <ClInclude Include="VideoCommon\VertexLoader_Color.h" />
     <ClInclude Include="VideoCommon\VertexLoader_Normal.h" />
     <ClInclude Include="VideoCommon\VertexLoader_Position.h" />
@@ -1277,6 +1278,7 @@
     <ClCompile Include="VideoCommon\UberShaderCommon.cpp" />
     <ClCompile Include="VideoCommon\UberShaderPixel.cpp" />
     <ClCompile Include="VideoCommon\UberShaderVertex.cpp" />
+    <ClCompile Include="VideoCommon\VertexCache.cpp" />
     <ClCompile Include="VideoCommon\VertexLoader_Color.cpp" />
     <ClCompile Include="VideoCommon\VertexLoader_Normal.cpp" />
     <ClCompile Include="VideoCommon\VertexLoader_Position.cpp" />

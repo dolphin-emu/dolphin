@@ -15,6 +15,7 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VertexCache.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/XFMemory.h"
@@ -250,31 +251,28 @@ void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
 {
   // load stuff from array to address in xf mem
 
-  u32* currData = (u32*)(&xfmem) + address;
-  u32* newData;
-  if (Fifo::UseDeterministicGPUThread())
-  {
-    newData = (u32*)Fifo::PopFifoAuxBuffer(size * sizeof(u32));
-  }
-  else
-  {
-    newData = (u32*)Memory::GetPointer(g_main_cp_state.array_bases[array] +
-                                       g_main_cp_state.array_strides[array] * index);
-  }
+  u32* cur_data = (u32*)(&xfmem) + address;
   bool changed = false;
-  for (u32 i = 0; i < size; ++i)
+  // Check if this write changes anything, and if so mark the whole region as modified
+  for (u16 i = 0; i < size; ++i)
   {
-    if (currData[i] != Common::swap32(newData[i]))
+    const u32 new_value = Common::swap32(VertexCache::ReadData<u32>(array, index, i * sizeof(u32)));
+    if (cur_data[i] != new_value)
     {
-      changed = true;
       XFMemWritten(size, address);
+      changed = true;
       break;
     }
   }
   if (changed)
   {
-    for (u32 i = 0; i < size; ++i)
-      currData[i] = Common::swap32(newData[i]);
+    // Apply the write now
+    for (u16 i = 0; i < size; ++i)
+    {
+      const u32 new_value =
+          Common::swap32(VertexCache::ReadData<u32>(array, index, i * sizeof(u32)));
+      cur_data[i] = new_value;
+    }
   }
 }
 
