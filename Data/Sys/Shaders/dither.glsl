@@ -128,7 +128,7 @@ float Dither(float2 pos, int offset_x, int offset_y)
 
 float4 GetDither(float2 pos)
 {
-  float time = TEMPORAL * float(GetTime());
+  float time = TEMPORAL * float(GetTime() & 1048575);
   int x = int(1.00000000000 * time);
   int y = int(1.61803398875 * time);
 
