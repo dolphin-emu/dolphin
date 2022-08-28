@@ -5,6 +5,7 @@
 
 #ifdef _WIN32
 #include <WinSock2.h>
+using socklen_t = int;
 #else
 #include <netinet/in.h>
 #endif
@@ -45,6 +46,8 @@ public:
   BbaTcpSocket();
 
   sf::Socket::Status Connect(const sf::IpAddress& dest, u16 port, u32 net_ip);
+  sf::Socket::Status GetPeerName(sockaddr_in* addr) const;
+  sf::Socket::Status GetSockName(sockaddr_in* addr) const;
 };
 
 class BbaUdpSocket : public sf::UdpSocket
