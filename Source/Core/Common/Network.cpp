@@ -566,4 +566,14 @@ const char* DecodeNetworkError(s32 error_code)
   return strerror_r(error_code, buffer, sizeof(buffer));
 #endif
 }
+
+const char* StrNetworkError()
+{
+#ifdef _WIN32
+  const s32 error_code = WSAGetLastError();
+#else
+  const s32 error_code = errno;
+#endif
+  return DecodeNetworkError(error_code);
+}
 }  // namespace Common
