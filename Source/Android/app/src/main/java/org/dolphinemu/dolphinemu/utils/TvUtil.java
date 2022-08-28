@@ -34,6 +34,7 @@ import org.dolphinemu.dolphinemu.services.SyncProgramsJobService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -155,26 +156,43 @@ public class TvUtil
   }
 
   /**
-   * Leanback lanucher requires a uri for poster art so we create a contentUri and
+   * Leanback launcher requires a uri for poster art so we create a contentUri and
    * pass that to LEANBACK_PACKAGE
    */
   public static Uri buildBanner(GameFile game, Context context)
   {
     Uri contentUri = null;
+    File cover;
 
     try
     {
-      File cover = new File(game.getCustomCoverPath());
-      if (cover.exists())
+      String customCoverPath = game.getCustomCoverPath();
+
+      if (ContentHandler.isContentUri(customCoverPath))
+      {
+        try
+        {
+          contentUri = ContentHandler.unmangle(customCoverPath);
+        }
+        catch (FileNotFoundException | SecurityException ignored)
+        {
+          // Let contentUri remain null
+        }
+      }
+      else
+      {
+        if ((cover = new File(customCoverPath)).exists())
+        {
+          contentUri = getUriForFile(context, getFileProvider(context), cover);
+        }
+      }
+
+      if (contentUri == null && (cover = new File(game.getCoverPath(context))).exists())
       {
         contentUri = getUriForFile(context, getFileProvider(context), cover);
       }
-      else if ((cover = new File(game.getCoverPath(context))).exists())
-      {
-        contentUri = getUriForFile(context, getFileProvider(context), cover);
-      }
-      context.grantUriPermission(LEANBACK_PACKAGE, contentUri,
-              FLAG_GRANT_READ_URI_PERMISSION);
+
+      context.grantUriPermission(LEANBACK_PACKAGE, contentUri, FLAG_GRANT_READ_URI_PERMISSION);
     }
     catch (Exception e)
     {
