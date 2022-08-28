@@ -261,6 +261,8 @@ add_executable(dolphin-emu
   NetPlay/NetPlaySetupDialog.h
   NetPlay/PadMappingDialog.cpp
   NetPlay/PadMappingDialog.h
+  NANDRepairDialog.cpp
+  NANDRepairDialog.h
   NKitWarningDialog.cpp
   NKitWarningDialog.h
   QtUtils/AspectRatioWidget.cpp
