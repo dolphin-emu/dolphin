@@ -159,6 +159,8 @@ public:
 private:
   void Start();
   void Stop();
+  void SCLRisingEdge(const bool sda);
+  void SCLFallingEdge(const bool sda);
   bool WriteExpected() const;
 };
 I2CBus i2c_state;
@@ -415,104 +417,111 @@ void I2CBus::Update(Core::System& system, const bool old_scl, const bool new_scl
   {
     if (!old_scl && new_scl)
     {
-      // INFO_LOG_FMT(WII_IPC, "AVE: {} rising edge: {} (write expected: {})", bit_counter, new_sda,
-      //              WriteExpected());
-      // SCL rising edge indicates data clocking. For reads, we set up data at this point.
-      // For writes, we instead process it on the falling edge, to better distinguish
-      // the start/stop condition.
-      if (bit_counter == 0 && !WriteExpected())
-      {
-        // Start of a read.
-        if (device_address.has_value())
-        {
-          current_byte = reinterpret_cast<u8*>(&ave_state)[device_address.value()];
-          INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", device_address.value(),
-                       GetAVERegisterName(device_address.value()), current_byte);
-        }
-        else
-        {
-          ERROR_LOG_FMT(WII_IPC, "AVE: Attempted to read device without having a read address!");
-          acknowledge = false;
-        }
-      }
-      // Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC,
-      // Common::Log::LogLevel::LINFO);
+      SCLRisingEdge(new_sda);
     }
     else if (old_scl && !new_scl)
     {
-      // INFO_LOG_FMT(WII_IPC, "AVE: {} falling edge: {} (write expected: {})", bit_counter,
-      // new_sda,
-      //              WriteExpected());
-      // SCL falling edge is used to advance bit_counter and process wri'tes.
-      if (bit_counter != 9 && WriteExpected())
+      SCLFallingEdge(new_sda);
+    }
+  }
+}
+
+void I2CBus::SCLRisingEdge(const bool sda)
+{
+  // INFO_LOG_FMT(WII_IPC, "AVE: {} rising edge: {} (write expected: {})", bit_counter, new_sda,
+  //              WriteExpected());
+  // SCL rising edge indicates data clocking. For reads, we set up data at this point.
+  // For writes, we instead process it on the falling edge, to better distinguish
+  // the start/stop condition.
+  if (bit_counter == 0 && !WriteExpected())
+  {
+    // Start of a read.
+    if (device_address.has_value())
+    {
+      current_byte = reinterpret_cast<u8*>(&ave_state)[device_address.value()];
+      INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", device_address.value(),
+                   GetAVERegisterName(device_address.value()), current_byte);
+    }
+    else
+    {
+      ERROR_LOG_FMT(WII_IPC, "AVE: Attempted to read device without having a read address!");
+      acknowledge = false;
+    }
+  }
+  // Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC, Common::Log::LogLevel::LINFO);
+}
+
+void I2CBus::SCLFallingEdge(const bool sda)
+{
+  // INFO_LOG_FMT(WII_IPC, "AVE: {} falling edge: {} (write expected: {})", bit_counter, new_sda,
+  //              WriteExpected());
+  // SCL falling edge is used to advance bit_counter and process wri'tes.
+  if (bit_counter != 9 && WriteExpected())
+  {
+    if (bit_counter == 8)
+    {
+      // Acknowledge bit for *reads*.
+      if (sda)
+        WARN_LOG_FMT(WII_IPC, "Read NACK'd");
+    }
+    else
+    {
+      current_byte <<= 1;
+      if (sda)
+        current_byte |= 1;
+
+      if (bit_counter == 7)
       {
-        if (bit_counter == 8)
+        INFO_LOG_FMT(WII_IPC, "AVE: Byte written: {:02x}", current_byte);
+        // Write finished.
+        if (!i2c_address.has_value())
         {
-          // Acknowledge bit for *reads*.
-          if (new_sda)
-            WARN_LOG_FMT(WII_IPC, "Read NACK'd");
+          i2c_address = current_byte;
+          if ((current_byte & 1) == 0)
+          {
+            // Write, which always specifies the device address
+            device_address.reset();
+          }
+          // TODO: Reads should still have the accessed device write the ACK
+          INFO_LOG_FMT(WII_IPC, "AVE: I2C address is {:02x}", current_byte);
+        }
+        else if (!device_address.has_value())
+        {
+          device_address = current_byte;
+          INFO_LOG_FMT(WII_IPC, "AVE: Device address is {:02x}", current_byte);
         }
         else
         {
-          current_byte <<= 1;
-          if (new_sda)
-            current_byte |= 1;
-
-          if (bit_counter == 7)
+          // Actual write
+          const u8 old_ave_value = reinterpret_cast<u8*>(&ave_state)[device_address.value()];
+          reinterpret_cast<u8*>(&ave_state)[device_address.value()] = current_byte;
+          if (!ave_ever_logged[device_address.value()] || old_ave_value != current_byte)
           {
-            INFO_LOG_FMT(WII_IPC, "AVE: Byte written: {:02x}", current_byte);
-            // Write finished.
-            if (!i2c_address.has_value())
-            {
-              i2c_address = current_byte;
-              if ((current_byte & 1) == 0)
-              {
-                // Write, which always specifies the device address
-                device_address.reset();
-              }
-              // TODO: Reads should still have the accessed device write the ACK
-              INFO_LOG_FMT(WII_IPC, "AVE: I2C address is {:02x}", current_byte);
-            }
-            else if (!device_address.has_value())
-            {
-              device_address = current_byte;
-              INFO_LOG_FMT(WII_IPC, "AVE: Device address is {:02x}", current_byte);
-            }
-            else
-            {
-              // Actual write
-              const u8 old_ave_value = reinterpret_cast<u8*>(&ave_state)[device_address.value()];
-              reinterpret_cast<u8*>(&ave_state)[device_address.value()] = current_byte;
-              if (!ave_ever_logged[device_address.value()] || old_ave_value != current_byte)
-              {
-                INFO_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", current_byte,
-                             device_address.value(), GetAVERegisterName(device_address.value()));
-                ave_ever_logged[device_address.value()] = true;
-              }
-              else
-              {
-                DEBUG_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", current_byte,
-                              device_address.value(), GetAVERegisterName(device_address.value()));
-              }
-              device_address = device_address.value() + 1;
-            }
+            INFO_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", current_byte,
+                         device_address.value(), GetAVERegisterName(device_address.value()));
+            ave_ever_logged[device_address.value()] = true;
           }
+          else
+          {
+            DEBUG_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", current_byte,
+                          device_address.value(), GetAVERegisterName(device_address.value()));
+          }
+          device_address = device_address.value() + 1;
         }
       }
-
-      if (bit_counter >= 8)
-      {
-        // Finished a byte and the acknowledge signal.
-        bit_counter = 0;
-      }
-      else
-      {
-        bit_counter++;
-      }
-      // Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC,
-      // Common::Log::LogLevel::LINFO);
     }
   }
+
+  if (bit_counter >= 8)
+  {
+    // Finished a byte and the acknowledge signal.
+    bit_counter = 0;
+  }
+  else
+  {
+    bit_counter++;
+  }
+  // Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC, Common::Log::LogLevel::LINFO);
 }
 
 void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
