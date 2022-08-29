@@ -9,6 +9,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumFormatter.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -144,12 +145,21 @@ static std::bitset<sizeof(AVEState)> ave_ever_logged;  // For logging only; not 
 class I2CBus
 {
 public:
-  bool active;
+  enum class State
+  {
+    Inactive,
+    Activating,
+    SetI2CAddress,
+    WriteDeviceAddress,
+    WriteToDevice,
+    ReadFromDevice,
+  };
+
+  State state;
   u8 bit_counter;
   u8 current_byte;
   std::optional<u8> i2c_address;  // Not shifted; includes the read flag
   std::optional<u8> device_address;
-  bool acknowledge;
 
   void Update(Core::System& system, const bool old_scl, const bool new_scl, const bool old_sda,
               const bool new_sda);
@@ -216,7 +226,7 @@ void WiiIPC::InitState()
 
   i2c_state = {};
   ave_state = {};
-  ave_state.video_output_config = 0x55;
+  ave_state.video_output_config = 0x23;
   ave_ever_logged.reset();
 }
 
@@ -297,22 +307,26 @@ bool I2CBus::GetSCL() const
 
 bool I2CBus::GetSDA() const
 {
-  if (!active || WriteExpected())
+  switch (state)
   {
-    return true;  // passive pullup
-  }
-  else
-  {
-    if (bit_counter == 8)
-    {
-      // Acknowledge bit for a write (implied by !WriteExpected())
-      return acknowledge;
-    }
+  case State::Inactive:
+  case State::Activating:
+  default:
+    return true;  // passive pullup (or NACK)
+
+  case State::SetI2CAddress:
+  case State::WriteDeviceAddress:
+  case State::WriteToDevice:
+    if (bit_counter < 8)
+      return true;  // passive pullup
     else
-    {
-      // Part of a read (implied by !WriteExpected())
+      return false;  // ACK (if we need to NACK, we set the state to inactive)
+
+  case State::ReadFromDevice:
+    if (bit_counter < 8)
       return ((current_byte << bit_counter) & 0x80) != 0;
-    }
+    else
+      return true;  // passive pullup, receiver needs to ACK or NACK
   }
 }
 
@@ -347,7 +361,7 @@ void WiiIPC::GPIOOutChanged(u32 old_value_hex)
 
 void I2CBus::Start()
 {
-  if (active)
+  if (state != State::Inactive)
     INFO_LOG_FMT(WII_IPC, "AVE: Re-start I2C");
   else
     INFO_LOG_FMT(WII_IPC, "AVE: Start I2C");
@@ -355,23 +369,21 @@ void I2CBus::Start()
   if (bit_counter != 0)
     WARN_LOG_FMT(WII_IPC, "I2C: Start happened with a nonzero bit counter: {}", bit_counter);
 
-  active = true;
-  bit_counter = 9;
+  state = State::Activating;
+  bit_counter = 0;
   current_byte = 0;
   i2c_address.reset();
   // Note: don't reset device_address, as it's re-used for reads
-  acknowledge = false;
 }
 
 void I2CBus::Stop()
 {
   INFO_LOG_FMT(WII_IPC, "AVE: Stop I2C");
-  active = false;
+  state = State::Inactive;
   bit_counter = 0;
   current_byte = 0;
   i2c_address.reset();
   device_address.reset();
-  acknowledge = false;
 }
 
 bool I2CBus::WriteExpected() const
@@ -413,7 +425,7 @@ void I2CBus::Update(Core::System& system, const bool old_scl, const bool new_scl
       Stop();
     }
   }
-  else if (active)
+  else if (state != State::Inactive)
   {
     if (!old_scl && new_scl)
     {
@@ -428,41 +440,38 @@ void I2CBus::Update(Core::System& system, const bool old_scl, const bool new_scl
 
 void I2CBus::SCLRisingEdge(const bool sda)
 {
-  // INFO_LOG_FMT(WII_IPC, "AVE: {} rising edge: {} (write expected: {})", bit_counter, new_sda,
-  //              WriteExpected());
+  // INFO_LOG_FMT(WII_IPC, "AVE: {} {} rising edge: {} (write expected: {})", bit_counter, state,
+  //              sda, WriteExpected());
   // SCL rising edge indicates data clocking. For reads, we set up data at this point.
   // For writes, we instead process it on the falling edge, to better distinguish
   // the start/stop condition.
-  if (bit_counter == 0 && !WriteExpected())
+  if (state == State::ReadFromDevice && bit_counter == 0)
   {
     // Start of a read.
-    if (device_address.has_value())
-    {
-      current_byte = reinterpret_cast<u8*>(&ave_state)[device_address.value()];
-      INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", device_address.value(),
-                   GetAVERegisterName(device_address.value()), current_byte);
-    }
-    else
-    {
-      ERROR_LOG_FMT(WII_IPC, "AVE: Attempted to read device without having a read address!");
-      acknowledge = false;
-    }
+    ASSERT(device_address.has_value());  // Implied by the state transition in falling edge
+    current_byte = reinterpret_cast<u8*>(&ave_state)[device_address.value()];
+    INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", device_address.value(),
+                 GetAVERegisterName(device_address.value()), current_byte);
   }
   // Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC, Common::Log::LogLevel::LINFO);
 }
 
 void I2CBus::SCLFallingEdge(const bool sda)
 {
-  // INFO_LOG_FMT(WII_IPC, "AVE: {} falling edge: {} (write expected: {})", bit_counter, new_sda,
-  //              WriteExpected());
-  // SCL falling edge is used to advance bit_counter and process wri'tes.
-  if (bit_counter != 9 && WriteExpected())
+  // INFO_LOG_FMT(WII_IPC, "AVE: {} {} falling edge: {} (write expected: {})", bit_counter, state,
+  //              sda, WriteExpected());
+  // SCL falling edge is used to advance bit_counter/change states and process writes.
+  if (state == State::SetI2CAddress || state == State::WriteDeviceAddress ||
+      state == State::WriteToDevice)
   {
     if (bit_counter == 8)
     {
       // Acknowledge bit for *reads*.
       if (sda)
+      {
         WARN_LOG_FMT(WII_IPC, "Read NACK'd");
+        state = State::Inactive;
+      }
     }
     else
     {
@@ -474,18 +483,19 @@ void I2CBus::SCLFallingEdge(const bool sda)
       {
         INFO_LOG_FMT(WII_IPC, "AVE: Byte written: {:02x}", current_byte);
         // Write finished.
-        if (!i2c_address.has_value())
+        if (state == State::SetI2CAddress)
         {
-          i2c_address = current_byte;
-          if ((current_byte & 1) == 0)
+          if ((current_byte >> 1) != 0x70)
           {
-            // Write, which always specifies the device address
-            device_address.reset();
+            state = State::Inactive;  // NACK
+            WARN_LOG_FMT(WII_IPC, "AVE: Unknown I2C address {:02x}", current_byte);
           }
-          // TODO: Reads should still have the accessed device write the ACK
-          INFO_LOG_FMT(WII_IPC, "AVE: I2C address is {:02x}", current_byte);
+          else
+          {
+            INFO_LOG_FMT(WII_IPC, "AVE: I2C address is {:02x}", current_byte);
+          }
         }
-        else if (!device_address.has_value())
+        else if (state == State::WriteDeviceAddress)
         {
           device_address = current_byte;
           INFO_LOG_FMT(WII_IPC, "AVE: Device address is {:02x}", current_byte);
@@ -493,6 +503,8 @@ void I2CBus::SCLFallingEdge(const bool sda)
         else
         {
           // Actual write
+          ASSERT(state == State::WriteToDevice);
+          ASSERT(device_address.has_value());  // implied by state transition
           const u8 old_ave_value = reinterpret_cast<u8*>(&ave_state)[device_address.value()];
           reinterpret_cast<u8*>(&ave_state)[device_address.value()] = current_byte;
           if (!ave_ever_logged[device_address.value()] || old_ave_value != current_byte)
@@ -512,14 +524,50 @@ void I2CBus::SCLFallingEdge(const bool sda)
     }
   }
 
-  if (bit_counter >= 8)
+  if (state == State::Activating)
   {
-    // Finished a byte and the acknowledge signal.
+    // This is triggered after the start condition.
+    state = State::SetI2CAddress;
     bit_counter = 0;
   }
-  else
+  else if (state != State::Inactive)
   {
-    bit_counter++;
+    if (bit_counter >= 8)
+    {
+      // Finished a byte and the acknowledge signal.
+      bit_counter = 0;
+      switch (state)
+      {
+      case State::SetI2CAddress:
+        i2c_address = current_byte;
+        // Note: i2c_address is known to correspond to a valid device
+        if ((current_byte & 1) == 0)
+        {
+          state = State::WriteDeviceAddress;
+          device_address.reset();
+        }
+        else
+        {
+          if (device_address.has_value())
+          {
+            state = State::ReadFromDevice;
+          }
+          else
+          {
+            state = State::Inactive;  // NACK - required for 8-bit internal addresses
+            ERROR_LOG_FMT(WII_IPC, "AVE: Attempted to read device without having a read address!");
+          }
+        }
+        break;
+      case State::WriteDeviceAddress:
+        state = State::WriteToDevice;
+        break;
+      }
+    }
+    else
+    {
+      bit_counter++;
+    }
   }
   // Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC, Common::Log::LogLevel::LINFO);
 }
@@ -698,3 +746,12 @@ bool WiiIPC::IsReady() const
           ((m_ppc_irq_flags & INT_CAUSE_IPC_BROADWAY) == 0));
 }
 }  // namespace IOS
+
+template <>
+struct fmt::formatter<IOS::I2CBus::State> : EnumFormatter<IOS::I2CBus::State::ReadFromDevice>
+{
+  static constexpr array_type names = {"Inactive",        "Activating",
+                                       "Set I2C Address", "Write Device Address",
+                                       "Write To Device", "Read From Device"};
+  constexpr formatter() : EnumFormatter(names) {}
+};
