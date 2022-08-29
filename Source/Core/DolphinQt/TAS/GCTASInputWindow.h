@@ -30,6 +30,7 @@ private:
   TASCheckBox* m_up_button;
   TASCheckBox* m_down_button;
   TASCheckBox* m_right_button;
+  TASCheckBox* m_unplug_button;
   QSpinBox* m_l_trigger_value;
   QSpinBox* m_r_trigger_value;
   QSpinBox* m_x_main_stick_value;

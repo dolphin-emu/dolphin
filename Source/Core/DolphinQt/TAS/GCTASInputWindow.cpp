@@ -54,6 +54,7 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   m_up_button = CreateButton(QStringLiteral("&Up"));
   m_down_button = CreateButton(QStringLiteral("&Down"));
   m_right_button = CreateButton(QStringLiteral("R&ight"));
+  m_unplug_button = CreateButton(QStringLiteral("U&nplug"));
 
   auto* buttons_layout = new QGridLayout;
   buttons_layout->addWidget(m_a_button, 0, 0);
@@ -69,6 +70,7 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   buttons_layout->addWidget(m_up_button, 1, 2);
   buttons_layout->addWidget(m_down_button, 1, 3);
   buttons_layout->addWidget(m_right_button, 1, 4);
+  buttons_layout->addWidget(m_unplug_button, 1, 5);
 
   buttons_layout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding), 0, 7);
 
@@ -101,6 +103,11 @@ void GCTASInputWindow::GetValues(GCPadStatus* pad)
   GetButton<u16>(m_down_button, pad->button, PAD_BUTTON_DOWN);
   GetButton<u16>(m_right_button, pad->button, PAD_BUTTON_RIGHT);
   GetButton<u16>(m_start_button, pad->button, PAD_BUTTON_START);
+
+  u8 unplug_button = !pad->isConnected;
+  constexpr u8 BOOLEAN_MASK = true;
+  GetButton<u8>(m_unplug_button, unplug_button, BOOLEAN_MASK);
+  pad->isConnected = !unplug_button;
 
   if (m_a_button->isChecked())
     pad->analogA = 0xFF;

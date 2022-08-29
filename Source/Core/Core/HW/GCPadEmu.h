@@ -27,6 +27,7 @@ enum class PadGroup
   Triggers,
   Rumble,
   Mic,
+  ForceDisconnect,
   Options
 };
 
@@ -57,6 +58,7 @@ private:
   ControllerEmu::MixedTriggers* m_triggers;
   ControllerEmu::ControlGroup* m_rumble;
   ControllerEmu::Buttons* m_mic;
+  ControllerEmu::Buttons* m_force_disconnect;
   ControllerEmu::ControlGroup* m_options;
 
   ControllerEmu::SettingValue<bool> m_always_connected_setting;
