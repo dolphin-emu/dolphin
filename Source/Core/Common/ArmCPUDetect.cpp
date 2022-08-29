@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <fstream>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -29,18 +30,20 @@
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
 
-static bool SysctlByName(std::string* value, const std::string& name)
+static std::optional<std::string> ReadSysctlByNameString(const char* name)
 {
-  size_t value_len = 0;
-  if (sysctlbyname(name.c_str(), nullptr, &value_len, nullptr, 0))
-    return false;
+  std::string result;
 
-  value->resize(value_len);
-  if (sysctlbyname(name.c_str(), value->data(), &value_len, nullptr, 0))
-    return false;
+  size_t result_len = 0;
+  if (sysctlbyname(name, nullptr, &result_len, nullptr, 0))
+    return std::nullopt;
 
-  TruncateToCString(value);
-  return true;
+  result.resize(result_len);
+  if (sysctlbyname(name, result.data(), &result_len, nullptr, 0))
+    return std::nullopt;
+
+  TruncateToCString(&result);
+  return result;
 }
 
 #endif
@@ -232,7 +235,7 @@ void CPUInfo::Detect()
   num_cores = std::max(static_cast<int>(std::thread::hardware_concurrency()), 1);
 
 #ifdef __APPLE__
-  SysctlByName(&model_name, "machdep.cpu.brand_string");
+  model_name = ReadSysctlByNameString("machdep.cpu.brand_string").value_or("(not found)");
 
   // M-series CPUs have all of these
   // Apparently the world has accepted that these can be assumed supported "for all time".
@@ -270,7 +273,7 @@ void CPUInfo::Detect()
   // Linux, Android, and FreeBSD
 
 #if defined(__FreeBSD__)
-  SysctlByName(&model_name, "hw.model");
+  model_name = ReadSysctlByNameString("hw.model").value_or("(not found)");
 #elif defined(__linux__)
   if (!ReadDeviceTree(&model_name, "model"))
   {
