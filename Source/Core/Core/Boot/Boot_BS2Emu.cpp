@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -210,7 +212,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
   if (volume.GetVolumeType() == DiscIO::Platform::Triforce)
   {
     u8 *skey = Memory::GetPointer(0);
-    INFO_LOG_FMT(BOOT, "Triforce: Emulated Session Key {}", skey);
+    INFO_LOG_FMT(BOOT, "Triforce: Emulated Session Key {:08x}", fmt::ptr(skey));
     Memory::Memset(0, 0, 12);
   }
 
