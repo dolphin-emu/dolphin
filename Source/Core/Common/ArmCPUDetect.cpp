@@ -48,6 +48,21 @@ static std::optional<std::string> ReadSysctlByNameString(const char* name)
 
 #endif
 
+#if defined(__APPLE__)
+
+static bool IsSysctlByNameFeaturePresent(const char* name)
+{
+  int result = 0;
+
+  size_t result_size = sizeof(result);
+  if (sysctlbyname(name, &result, &result_size, nullptr, 0))
+    return false;
+
+  return result != 0;
+}
+
+#endif
+
 #if defined(_WIN32)
 
 static constexpr char SUBKEY_CORE0[] = R"(HARDWARE\DESCRIPTION\System\CentralProcessor\0)";
@@ -237,13 +252,12 @@ void CPUInfo::Detect()
 #ifdef __APPLE__
   model_name = ReadSysctlByNameString("machdep.cpu.brand_string").value_or("(not found)");
 
-  // M-series CPUs have all of these
-  // Apparently the world has accepted that these can be assumed supported "for all time".
-  // see https://github.com/golang/go/issues/42747
-  bAES = true;
-  bSHA1 = true;
-  bSHA2 = true;
-  bCRC32 = true;
+  // Specific strings to use as as per Apple:
+  // https://developer.apple.com/documentation/kernel/1387446-sysctlbyname/determining_instruction_set_characteristics
+  bAES = IsSysctlByNameFeaturePresent("hw.optional.arm.FEAT_AES");
+  bSHA1 = IsSysctlByNameFeaturePresent("hw.optional.arm.FEAT_SHA1");
+  bSHA2 = IsSysctlByNameFeaturePresent("hw.optional.arm.FEAT_SHA256");
+  bCRC32 = IsSysctlByNameFeaturePresent("hw.optional.armv8_crc32");
 #elif defined(_WIN32)
   // NOTE All this info is from cpu core 0 only.
 
