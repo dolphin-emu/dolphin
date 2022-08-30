@@ -219,7 +219,7 @@ void NetPlayDialog::CreateMainLayout()
 
   m_game_button->setDefault(false);
   m_game_button->setAutoDefault(false);
-  
+
   m_sync_save_data_action->setChecked(true);
   m_sync_codes_action->setChecked(true);
   m_netplay_bba->setChecked(true);
@@ -1174,7 +1174,6 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
   Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
   Config::SetBase(Config::NETPLAY_HIDE_REMOTE_GBAS, m_hide_remote_gbas_action->isChecked());
-
 
   std::string network_mode;
   if (m_fixed_delay_action->isChecked())

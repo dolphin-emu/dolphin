@@ -18,29 +18,24 @@
 networkinterface  */
 
 namespace ExpansionInterface
+{
+
+bool CEXIETHERNET::NetplayBBAnetworkinterface::Activate()
+{
+  if (IsActivated())
+    return true;
+
+  if (!m_bba_failure_notifiedtwo)
   {
-
-  bool CEXIETHERNET::NetplayBBAnetworkinterface::Activate()
-  {
-
-      if (IsActivated())
-      return true;
-
-
-    if (!m_bba_failure_notifiedtwo)
-    {
-       OSD::AddMessage("Netplay BBA started.", 30000);
-      m_bba_failure_notifiedtwo = true;
-    }
-    return false;
+    OSD::AddMessage("Netplay BBA started.", 30000);
+    m_bba_failure_notifiedtwo = true;
   }
+  return false;
+}
 
-  bool CEXIETHERNET::NetplayBBAnetworkinterface::IsActivated()
-  {
-    return false;
-  }
+bool CEXIETHERNET::NetplayBBAnetworkinterface::IsActivated()
+{
+  return false;
+}
 
-
-  }
-
-  
+}  // namespace ExpansionInterfacex
