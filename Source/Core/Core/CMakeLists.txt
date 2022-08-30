@@ -655,6 +655,7 @@ if(WIN32)
     HW/EXI/BBA/XLINK_KAI_BBA.cpp
     HW/EXI/BBA/BuiltIn.cpp
     HW/EXI/BBA/BuiltIn.h
+    HW/EXI/BBA/Netplay_BBA.cpp
     HW/WiimoteReal/IOWin.cpp
     HW/WiimoteReal/IOWin.h
   )
