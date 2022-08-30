@@ -41,6 +41,7 @@ using IPAddress = std::array<u8, IPV4_ADDR_LEN>;
 constexpr IPAddress IP_ADDR_ANY = {0, 0, 0, 0};
 constexpr IPAddress IP_ADDR_BROADCAST = {255, 255, 255, 255};
 constexpr IPAddress IP_ADDR_SSDP = {239, 255, 255, 250};
+constexpr u16 SSDP_PORT = 1900;
 constexpr u16 IPV4_ETHERTYPE = 0x800;
 constexpr u16 ARP_ETHERTYPE = 0x806;
 
@@ -266,4 +267,5 @@ u16 ComputeTCPNetworkChecksum(const IPAddress& from, const IPAddress& to, const 
 NetworkErrorState SaveNetworkErrorState();
 void RestoreNetworkErrorState(const NetworkErrorState& state);
 const char* DecodeNetworkError(s32 error_code);
+const char* StrNetworkError();
 }  // namespace Common

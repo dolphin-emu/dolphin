@@ -61,8 +61,8 @@ public:
   }
 
 private:
-  GraphicsModConfig m_mod;
   std::unique_ptr<GraphicsModAction> m_action_impl;
+  GraphicsModConfig m_mod;
 };
 
 const std::vector<GraphicsModAction*>&

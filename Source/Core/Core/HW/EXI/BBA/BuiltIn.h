@@ -5,6 +5,7 @@
 
 #ifdef _WIN32
 #include <WinSock2.h>
+using socklen_t = int;
 #else
 #include <netinet/in.h>
 #endif
@@ -34,6 +35,29 @@ struct TcpBuffer
   std::vector<u8> data;
 };
 
+// Socket helper classes to ensure network interface consistency.
+//
+// If the socket isn't bound, the system will pick the interface to use automatically.
+// This might result in the source IP address changing when talking to the same peer
+// and multiple interfaces/IP addresses can reach the socket's peer.
+class BbaTcpSocket : public sf::TcpSocket
+{
+public:
+  BbaTcpSocket();
+
+  sf::Socket::Status Connect(const sf::IpAddress& dest, u16 port, u32 net_ip);
+  sf::Socket::Status GetPeerName(sockaddr_in* addr) const;
+  sf::Socket::Status GetSockName(sockaddr_in* addr) const;
+};
+
+class BbaUdpSocket : public sf::UdpSocket
+{
+public:
+  BbaUdpSocket();
+
+  sf::Socket::Status Bind(u16 port, u32 net_ip);
+};
+
 struct StackRef
 {
   u32 ip;
@@ -52,7 +76,7 @@ struct StackRef
   sockaddr_in to;
   Common::MACAddress bba_mac{};
   Common::MACAddress my_mac{};
-  sf::UdpSocket udp_socket;
-  sf::TcpSocket tcp_socket;
+  BbaUdpSocket udp_socket;
+  BbaTcpSocket tcp_socket;
   u64 poke_time;
 };
