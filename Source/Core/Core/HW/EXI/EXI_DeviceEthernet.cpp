@@ -93,7 +93,7 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
 
     /* here*/
 
-      case BBADeviceType::NetPlayBBA:
+  case BBADeviceType::NetPlayBBA:
     // TODO start BBA with network link down, bring it up after "connected" response from XLink
 
     // Perform sanity check on BBA MAC address, XLink requires the vendor OUI to be Nintendo's and
@@ -110,19 +110,16 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
 
     // m_client_mdentifier should be unique per connected emulator from the XLink kai client's
     // perspective so lets use "dolphin<bba mac>"
-    m_network_interface =
-        std::make_unique<NetplayBBAnetworkinterface>(this, Config::Get(Config::MAIN_BBA_XLINK_IP), 34523,
-                                                "dolphin" + Config::Get(Config::MAIN_BBA_MAC),
-                                                Config::Get(Config::MAIN_BBA_XLINK_CHAT_OSD));
+    m_network_interface = std::make_unique<NetplayBBAnetworkinterface>(
+        this, Config::Get(Config::MAIN_BBA_XLINK_IP), 34523,
+        "dolphin" + Config::Get(Config::MAIN_BBA_MAC),
+        Config::Get(Config::MAIN_BBA_XLINK_CHAT_OSD));
     INFO_LOG_FMT(SP1, "Created XLink Kai BBA network interface connection to {}:34523",
                  Config::Get(Config::MAIN_BBA_XLINK_IP));
     break;
 
     /*here*/
-
   }
-
-
 
   tx_fifo = std::make_unique<u8[]>(BBA_TXFIFO_SIZE);
   mBbaMem = std::make_unique<u8[]>(BBA_MEM_SIZE);
