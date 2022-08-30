@@ -49,7 +49,7 @@ const Info<bool> NETPLAY_WRITE_SAVE_DATA{{System::Main, "NetPlay", "WriteSaveDat
 const Info<bool> NETPLAY_LOAD_WII_SAVE{{System::Main, "NetPlay", "LoadWiiSave"}, false};
 const Info<bool> NETPLAY_SYNC_SAVES{{System::Main, "NetPlay", "SyncSaves"}, true};
 const Info<bool> NETPLAY_SYNC_CODES{{System::Main, "NetPlay", "SyncCodes"}, true};
-const Info<bool> NETPLAY_BBA{{System::Main, "NetPlay", "netplay_bba"}, true};
+const Info<bool> NETPLAY_BBA{{System::Main, "NetPlay", "NetPlayBBA"}, true};
 const Info<bool> NETPLAY_RECORD_INPUTS{{System::Main, "NetPlay", "RecordInputs"}, false};
 const Info<bool> NETPLAY_STRICT_SETTINGS_SYNC{{System::Main, "NetPlay", "StrictSettingsSync"},
                                               false};

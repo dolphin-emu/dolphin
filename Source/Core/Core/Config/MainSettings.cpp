@@ -114,8 +114,10 @@ const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInte
 
 const Info<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""};
 const Info<std::string> MAIN_BBA_XLINK_IP{{System::Main, "Core", "BBA_XLINK_IP"}, "127.0.0.1"};
-const Info<std::string> netplay_bba_MAC{{System::Main, "Core", "netplay_bba_MAC"}, "127.0.0.1"};
 const Info<bool> MAIN_BBA_XLINK_CHAT_OSD{{System::Main, "Core", "BBA_XLINK_CHAT_OSD"}, true};
+const Info<std::string> NETPLAY_BBA_MAC{
+    {System::Main, "Core", "NETPLAY_BBA_MAC"},
+    "127.0.0.1"};  // TODO: Replace this with receiving the MAC from the host.
 
 // Schthack PSO Server - https://schtserv.com/
 const Info<std::string> MAIN_BBA_BUILTIN_DNS{{System::Main, "Core", "BBA_BUILTIN_DNS"},

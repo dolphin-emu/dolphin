@@ -205,7 +205,7 @@ enum class BBADeviceType
 {
   TAP,
   XLINK,
-  netplaybba,
+  NetPlayBBA,
 
 #if defined(__APPLE__)
   TAPSERVER,

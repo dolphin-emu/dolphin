@@ -14,7 +14,8 @@
 
 #include <cstring>
 
-/*netplay BBA code will go here. NetplayBBAnetworkinterface  */
+/*netplay BBA code will go here.
+networkinterface  */
 
 namespace ExpansionInterface
   {

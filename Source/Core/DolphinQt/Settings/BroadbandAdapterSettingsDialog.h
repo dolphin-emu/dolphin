@@ -15,7 +15,7 @@ public:
   {
     Ethernet,
     XLinkKai,
-    Netplaybba,
+    NetplayBBA,
     BuiltIn
   };
 

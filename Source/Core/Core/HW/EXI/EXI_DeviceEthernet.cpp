@@ -85,7 +85,7 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
                  Config::Get(Config::MAIN_BBA_XLINK_IP));
     break;
     /*
-  case BBADeviceType::netplaybba:
+  case BBADeviceType::NetplayBBA:
     m_network_interface = std::make_unique<TAPNetworkInterface>(this);
     INFO_LOG_FMT(SP1, "Netplay BBA created and linked.");
     break;
@@ -93,7 +93,7 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
 
     /* here*/
 
-      case BBADeviceType::netplaybba:
+      case BBADeviceType::NetPlayBBA:
     // TODO start BBA with network link down, bring it up after "connected" response from XLink
 
     // Perform sanity check on BBA MAC address, XLink requires the vendor OUI to be Nintendo's and
