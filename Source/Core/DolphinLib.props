@@ -120,6 +120,7 @@
     <ClInclude Include="Common\HostDisassembler.h" />
     <ClInclude Include="Common\HRWrap.h" />
     <ClInclude Include="Common\HttpRequest.h" />
+    <ClInclude Include="Common\I2C.h" />
     <ClInclude Include="Common\Image.h" />
     <ClInclude Include="Common\IniFile.h" />
     <ClInclude Include="Common\Inline.h" />
@@ -812,6 +813,7 @@
     <ClCompile Include="Common\HostDisassembler.cpp" />
     <ClCompile Include="Common\HRWrap.cpp" />
     <ClCompile Include="Common\HttpRequest.cpp" />
+    <ClCompile Include="Common\I2C.cpp" />
     <ClCompile Include="Common\Image.cpp" />
     <ClCompile Include="Common\IniFile.cpp" />
     <ClCompile Include="Common\IOFile.cpp" />
