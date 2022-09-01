@@ -82,9 +82,16 @@ public final class FileBrowserHelper
     return isPathEmptyOrValid(path.getStringGlobal());
   }
 
+  /**
+   * Returns true if at least one of the following applies:
+   *
+   * 1. The input is empty.
+   * 2. The input is something which is not a content URI.
+   * 3. The input is a content URI that points to a file that exists and we're allowed to access.
+   */
   public static boolean isPathEmptyOrValid(String path)
   {
-    return !path.startsWith("content://") || ContentHandler.exists(path);
+    return !ContentHandler.isContentUri(path) || ContentHandler.exists(path);
   }
 
   public static void runAfterExtensionCheck(Context context, Uri uri, Set<String> validExtensions,

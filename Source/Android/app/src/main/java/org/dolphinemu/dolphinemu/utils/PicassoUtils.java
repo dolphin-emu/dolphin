@@ -18,6 +18,7 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 public class PicassoUtils
 {
@@ -54,12 +55,33 @@ public class PicassoUtils
       gameViewHolder.textGameCaption.setVisibility(View.GONE);
     }
 
+    String customCoverPath = gameFile.getCustomCoverPath();
+    Uri customCoverUri = null;
+    boolean customCoverExists = false;
+    if (ContentHandler.isContentUri(customCoverPath))
+    {
+      try
+      {
+        customCoverUri = ContentHandler.unmangle(customCoverPath);
+        customCoverExists = true;
+      }
+      catch (FileNotFoundException | SecurityException ignored)
+      {
+        // Let customCoverExists remain false
+      }
+    }
+    else
+    {
+      customCoverUri = Uri.parse(customCoverPath);
+      customCoverExists = new File(customCoverPath).exists();
+    }
+
     Context context = imageView.getContext();
-    File cover = new File(gameFile.getCustomCoverPath());
-    if (cover.exists())
+    File cover;
+    if (customCoverExists)
     {
       Picasso.get()
-              .load(cover)
+              .load(customCoverUri)
               .noFade()
               .noPlaceholder()
               .fit()
