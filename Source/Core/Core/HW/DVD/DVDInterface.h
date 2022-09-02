@@ -23,6 +23,23 @@ class Mapping;
 
 namespace DVDInterface
 {
+class DVDInterfaceState
+{
+public:
+  DVDInterfaceState();
+  DVDInterfaceState(const DVDInterfaceState&) = delete;
+  DVDInterfaceState(DVDInterfaceState&&) = delete;
+  DVDInterfaceState& operator=(const DVDInterfaceState&) = delete;
+  DVDInterfaceState& operator=(DVDInterfaceState&&) = delete;
+  ~DVDInterfaceState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 enum class DICommand : u8
 {
   Inquiry = 0x12,
