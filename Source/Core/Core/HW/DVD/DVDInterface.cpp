@@ -34,6 +34,7 @@
 #include "Core/IOS/DI/DI.h"
 #include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscUtils.h"
@@ -312,7 +313,10 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
     // Send audio to the mixer.
     std::vector<s16> temp_pcm(s_pending_samples * 2, 0);
     ProcessDTKSamples(&temp_pcm, audio_data);
-    g_sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(), s_pending_samples);
+
+    auto& system = Core::System::GetInstance();
+    SoundStream* sound_stream = system.GetSoundStream();
+    sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(), s_pending_samples);
 
     if (s_stream && AudioInterface::IsPlaying())
     {

@@ -956,10 +956,12 @@ void UpdateTitle(u64 elapsed_ms)
   }
 
   // Update the audio timestretcher with the current speed
-  if (g_sound_stream)
+  auto& system = Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+  if (sound_stream)
   {
-    Mixer* pMixer = g_sound_stream->GetMixer();
-    pMixer->UpdateSpeed((float)Speed / 100);
+    Mixer* mixer = sound_stream->GetMixer();
+    mixer->UpdateSpeed((float)Speed / 100);
   }
 
   Host_UpdateTitle(message);

@@ -19,15 +19,10 @@
 #include "Common/Logging/Log.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
-
-// This shouldn't be a global, at least not here.
-std::unique_ptr<SoundStream> g_sound_stream;
+#include "Core/System.h"
 
 namespace AudioCommon
 {
-static bool s_audio_dump_start = false;
-static bool s_sound_stream_running = false;
-
 constexpr int AUDIO_VOLUME_MIN = 0;
 constexpr int AUDIO_VOLUME_MAX = 100;
 
@@ -53,44 +48,50 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
 void InitSoundStream()
 {
   std::string backend = Config::Get(Config::MAIN_AUDIO_BACKEND);
-  g_sound_stream = CreateSoundStreamForBackend(backend);
+  std::unique_ptr<SoundStream> sound_stream = CreateSoundStreamForBackend(backend);
 
-  if (!g_sound_stream)
+  if (!sound_stream)
   {
     WARN_LOG_FMT(AUDIO, "Unknown backend {}, using {} instead.", backend, GetDefaultSoundBackend());
     backend = GetDefaultSoundBackend();
-    g_sound_stream = CreateSoundStreamForBackend(GetDefaultSoundBackend());
+    sound_stream = CreateSoundStreamForBackend(backend);
   }
 
-  if (!g_sound_stream || !g_sound_stream->Init())
+  if (!sound_stream || !sound_stream->Init())
   {
     WARN_LOG_FMT(AUDIO, "Could not initialize backend {}, using {} instead.", backend,
                  BACKEND_NULLSOUND);
-    g_sound_stream = std::make_unique<NullSound>();
-    g_sound_stream->Init();
+    sound_stream = std::make_unique<NullSound>();
+    sound_stream->Init();
   }
+
+  Core::System::GetInstance().SetSoundStream(std::move(sound_stream));
 }
 
 void PostInitSoundStream()
 {
+  auto& system = Core::System::GetInstance();
+
   // This needs to be called after AudioInterface::Init and SerialInterface::Init (for GBA devices)
   // where input sample rates are set
   UpdateSoundStream();
   SetSoundStreamRunning(true);
 
-  if (Config::Get(Config::MAIN_DUMP_AUDIO) && !s_audio_dump_start)
+  if (Config::Get(Config::MAIN_DUMP_AUDIO) && !system.IsAudioDumpStarted())
     StartAudioDump();
 }
 
 void ShutdownSoundStream()
 {
+  auto& system = Core::System::GetInstance();
+
   INFO_LOG_FMT(AUDIO, "Shutting down sound stream");
 
-  if (Config::Get(Config::MAIN_DUMP_AUDIO) && s_audio_dump_start)
+  if (Config::Get(Config::MAIN_DUMP_AUDIO) && system.IsAudioDumpStarted())
     StopAudioDump();
 
   SetSoundStreamRunning(false);
-  g_sound_stream.reset();
+  system.SetSoundStream(nullptr);
 
   INFO_LOG_FMT(AUDIO, "Done shutting down sound stream");
 }
@@ -162,23 +163,29 @@ bool SupportsVolumeChanges(std::string_view backend)
 
 void UpdateSoundStream()
 {
-  if (g_sound_stream)
+  auto& system = Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+
+  if (sound_stream)
   {
     int volume = Config::Get(Config::MAIN_AUDIO_MUTED) ? 0 : Config::Get(Config::MAIN_AUDIO_VOLUME);
-    g_sound_stream->SetVolume(volume);
+    sound_stream->SetVolume(volume);
   }
 }
 
 void SetSoundStreamRunning(bool running)
 {
-  if (!g_sound_stream)
+  auto& system = Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+
+  if (!sound_stream)
     return;
 
-  if (s_sound_stream_running == running)
+  if (system.IsSoundStreamRunning() == running)
     return;
-  s_sound_stream_running = running;
+  system.SetSoundStreamRunning(running);
 
-  if (g_sound_stream->SetRunning(running))
+  if (sound_stream->SetRunning(running))
     return;
   if (running)
     ERROR_LOG_FMT(AUDIO, "Error starting stream.");
@@ -188,24 +195,30 @@ void SetSoundStreamRunning(bool running)
 
 void SendAIBuffer(const short* samples, unsigned int num_samples)
 {
-  if (!g_sound_stream)
+  auto& system = Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+
+  if (!sound_stream)
     return;
 
-  if (Config::Get(Config::MAIN_DUMP_AUDIO) && !s_audio_dump_start)
+  if (Config::Get(Config::MAIN_DUMP_AUDIO) && !system.IsAudioDumpStarted())
     StartAudioDump();
-  else if (!Config::Get(Config::MAIN_DUMP_AUDIO) && s_audio_dump_start)
+  else if (!Config::Get(Config::MAIN_DUMP_AUDIO) && system.IsAudioDumpStarted())
     StopAudioDump();
 
-  Mixer* pMixer = g_sound_stream->GetMixer();
+  Mixer* mixer = sound_stream->GetMixer();
 
-  if (pMixer && samples)
+  if (mixer && samples)
   {
-    pMixer->PushSamples(samples, num_samples);
+    mixer->PushSamples(samples, num_samples);
   }
 }
 
 void StartAudioDump()
 {
+  auto& system = Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+
   std::time_t start_time = std::time(nullptr);
 
   std::string path_prefix = File::GetUserPath(D_DUMPAUDIO_IDX) + SConfig::GetInstance().GetGameID();
@@ -217,18 +230,21 @@ void StartAudioDump()
   const std::string audio_file_name_dsp = fmt::format("{}_dspdump.wav", base_name);
   File::CreateFullPath(audio_file_name_dtk);
   File::CreateFullPath(audio_file_name_dsp);
-  g_sound_stream->GetMixer()->StartLogDTKAudio(audio_file_name_dtk);
-  g_sound_stream->GetMixer()->StartLogDSPAudio(audio_file_name_dsp);
-  s_audio_dump_start = true;
+  sound_stream->GetMixer()->StartLogDTKAudio(audio_file_name_dtk);
+  sound_stream->GetMixer()->StartLogDSPAudio(audio_file_name_dsp);
+  system.SetAudioDumpStarted(true);
 }
 
 void StopAudioDump()
 {
-  if (!g_sound_stream)
+  auto& system = Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+
+  if (!sound_stream)
     return;
-  g_sound_stream->GetMixer()->StopLogDTKAudio();
-  g_sound_stream->GetMixer()->StopLogDSPAudio();
-  s_audio_dump_start = false;
+  sound_stream->GetMixer()->StopLogDTKAudio();
+  sound_stream->GetMixer()->StopLogDSPAudio();
+  system.SetAudioDumpStarted(false);
 }
 
 void IncreaseVolume(unsigned short offset)

@@ -48,6 +48,7 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace AudioInterface
 {
@@ -126,7 +127,9 @@ void DoState(PointerWrap& p)
   p.Do(s_aid_sample_rate_divisor);
   p.Do(s_cpu_cycles_per_sample);
 
-  g_sound_stream->GetMixer()->DoState(p);
+  auto& system = Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+  sound_stream->GetMixer()->DoState(p);
 }
 
 static void GenerateAudioInterrupt();
@@ -155,8 +158,10 @@ void Init()
 
   event_type_ai = CoreTiming::RegisterEvent("AICallback", Update);
 
-  g_sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(GetAIDSampleRateDivisor());
-  g_sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(GetAISSampleRateDivisor());
+  auto& system = Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+  sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(GetAIDSampleRateDivisor());
+  sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(GetAISSampleRateDivisor());
 }
 
 void Shutdown()
@@ -182,6 +187,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           s_control.AIINTVLD = tmp_ai_ctrl.AIINTVLD;
         }
 
+        auto& system = Core::System::GetInstance();
+        SoundStream* sound_stream = system.GetSoundStream();
+
         // Set frequency of streaming audio
         if (tmp_ai_ctrl.AISFR != s_control.AISFR)
         {
@@ -191,7 +199,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           s_control.AISFR = tmp_ai_ctrl.AISFR;
           s_ais_sample_rate_divisor =
               tmp_ai_ctrl.AISFR ? Get48KHzSampleRateDivisor() : Get32KHzSampleRateDivisor();
-          g_sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(s_ais_sample_rate_divisor);
+          sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(s_ais_sample_rate_divisor);
           s_cpu_cycles_per_sample = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
                                     s_ais_sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
         }
@@ -203,7 +211,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           s_control.AIDFR = tmp_ai_ctrl.AIDFR;
           s_aid_sample_rate_divisor =
               tmp_ai_ctrl.AIDFR ? Get32KHzSampleRateDivisor() : Get48KHzSampleRateDivisor();
-          g_sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(s_aid_sample_rate_divisor);
+          sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(s_aid_sample_rate_divisor);
         }
 
         // Streaming counter
@@ -240,7 +248,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | AI_VOLUME_REGISTER, MMIO::DirectRead<u32>(&s_volume.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    s_volume.hex = val;
-                   g_sound_stream->GetMixer()->SetStreamingVolume(s_volume.left, s_volume.right);
+                   auto& system = Core::System::GetInstance();
+                   SoundStream* sound_stream = system.GetSoundStream();
+                   sound_stream->GetMixer()->SetStreamingVolume(s_volume.left, s_volume.right);
                  }));
 
   mmio->Register(base | AI_SAMPLE_COUNTER, MMIO::ComplexRead<u32>([](u32) {
