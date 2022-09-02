@@ -34,6 +34,23 @@ class TicketReader;
 
 namespace DVDThread
 {
+class DVDThreadState
+{
+public:
+  DVDThreadState();
+  DVDThreadState(const DVDThreadState&) = delete;
+  DVDThreadState(DVDThreadState&&) = delete;
+  DVDThreadState& operator=(const DVDThreadState&) = delete;
+  DVDThreadState& operator=(DVDThreadState&&) = delete;
+  ~DVDThreadState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 void Start();
 void Stop();
 void DoState(PointerWrap& p);
