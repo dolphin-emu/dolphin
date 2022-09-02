@@ -51,6 +51,10 @@ void Metal::Texture::ResolveFromTexture(const AbstractTexture* src,
   g_state_tracker->ResolveTexture(src_tex, m_tex, layer, level);
 }
 
+// Use a temporary texture for large texture loads
+// (Since the main upload buffer doesn't shrink after it grows)
+static constexpr u32 STAGING_TEXTURE_UPLOAD_THRESHOLD = 1024 * 1024 * 4;
+
 void Metal::Texture::Load(u32 level, u32 width, u32 height, u32 row_length,  //
                           const u8* buffer, size_t buffer_size)
 {
@@ -60,7 +64,23 @@ void Metal::Texture::Load(u32 level, u32 width, u32 height, u32 row_length,  //
     const u32 num_rows = Common::AlignUp(height, block_size) / block_size;
     const u32 source_pitch = CalculateStrideForFormat(m_config.format, row_length);
     const u32 upload_size = source_pitch * num_rows;
-    StateTracker::Map map = g_state_tracker->AllocateForTextureUpload(upload_size);
+    MRCOwned<id<MTLBuffer>> tmp_buffer;
+    StateTracker::Map map;
+    if (upload_size > STAGING_TEXTURE_UPLOAD_THRESHOLD)
+    {
+      tmp_buffer = MRCTransfer([g_device
+          newBufferWithLength:upload_size
+                      options:MTLResourceStorageModeShared | MTLResourceCPUCacheModeWriteCombined]);
+      [tmp_buffer setLabel:@"Temp Texture Upload"];
+      map.gpu_buffer = tmp_buffer;
+      map.gpu_offset = 0;
+      map.cpu_buffer = [tmp_buffer contents];
+    }
+    else
+    {
+      map = g_state_tracker->AllocateForTextureUpload(upload_size);
+    }
+
     memcpy(map.cpu_buffer, buffer, upload_size);
     id<MTLBlitCommandEncoder> encoder = g_state_tracker->GetTextureUploadEncoder();
     [encoder copyFromBuffer:map.gpu_buffer
