@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-21 20:14+0200\n"
+"POT-Creation-Date: 2022-09-03 18:21+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Siegfried, 2013-2022\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -194,19 +194,19 @@ msgstr ""
 "%2 오브젝트(들)\n"
 "현재 프레임: %3"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:888
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:889
 msgid "%1 has joined"
 msgstr "%1 가 참가했습니다"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:893
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:894
 msgid "%1 has left"
 msgstr "%1 가 떠났습니다"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1086
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1087
 msgid "%1 is not a valid ROM"
 msgstr "%1 는 적합한 롬이 아닙니다"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1015
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1016
 msgid "%1 is now golfing"
 msgstr "%1 은 지금 골프중입니다"
 
@@ -247,11 +247,11 @@ msgstr "%1, %2, %3, %4"
 msgid "%1: %2"
 msgstr "%1: %2"
 
-#: Source/Core/DolphinQt/NetPlay/MD5Dialog.cpp:141
+#: Source/Core/DolphinQt/NetPlay/GameDigestDialog.cpp:141
 msgid "%1[%2]: %3"
 msgstr "%1[%2]: %3"
 
-#: Source/Core/DolphinQt/NetPlay/MD5Dialog.cpp:129
+#: Source/Core/DolphinQt/NetPlay/GameDigestDialog.cpp:129
 msgid "%1[%2]: %3 %"
 msgstr "%1[%2]: %3 %"
 
@@ -286,19 +286,19 @@ msgstr "%n 주소(들)이 지워졌습니다."
 msgid "& And"
 msgstr "& 그리고"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:428
+#: Source/Core/DolphinQt/GBAWidget.cpp:430
 msgid "&1x"
 msgstr "&1x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:430
+#: Source/Core/DolphinQt/GBAWidget.cpp:432
 msgid "&2x"
 msgstr "&2x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:432
+#: Source/Core/DolphinQt/GBAWidget.cpp:434
 msgid "&3x"
 msgstr "&3x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:434
+#: Source/Core/DolphinQt/GBAWidget.cpp:436
 msgid "&4x"
 msgstr "&4x"
 
@@ -339,7 +339,7 @@ msgstr "자동 시작 (&A)"
 msgid "&Boot from DVD Backup"
 msgstr "DVD 백업에서 부트(&B)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:437
+#: Source/Core/DolphinQt/GBAWidget.cpp:439
 msgid "&Borderless Window"
 msgstr "틀 없는 창(&B)"
 
@@ -375,7 +375,7 @@ msgstr "복제... (&C)"
 msgid "&Code"
 msgstr "코드 (&C)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:382
+#: Source/Core/DolphinQt/GBAWidget.cpp:384
 msgid "&Connected"
 msgstr "연결된(&C)"
 
@@ -420,11 +420,11 @@ msgstr "디스크 꺼내기(&E)"
 msgid "&Emulation"
 msgstr "에뮬레이션(&E)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:409
+#: Source/Core/DolphinQt/GBAWidget.cpp:411
 msgid "&Export Save Game..."
 msgstr "게임 저장 내보내기...(&E)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:417
+#: Source/Core/DolphinQt/GBAWidget.cpp:419
 msgid "&Export State..."
 msgstr "상태 내보내기...(&E)"
 
@@ -472,11 +472,11 @@ msgstr "도움말(&H)"
 msgid "&Hotkey Settings"
 msgstr "단축키 설정(&H)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:406
+#: Source/Core/DolphinQt/GBAWidget.cpp:408
 msgid "&Import Save Game..."
 msgstr "게임 저장 가져오기...(&I)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:414
+#: Source/Core/DolphinQt/GBAWidget.cpp:416
 msgid "&Import State..."
 msgstr "상태 가져오기...(&I)"
 
@@ -488,7 +488,7 @@ msgstr "가져오기... (&I)"
 msgid "&Insert blr"
 msgstr "blr 삽입 (&I)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:447
+#: Source/Core/DolphinQt/GBAWidget.cpp:449
 msgid "&Interframe Blending"
 msgstr "프레임간 혼합(&I)"
 
@@ -520,7 +520,7 @@ msgstr "메모리(&M)"
 msgid "&Movie"
 msgstr "무비(&M)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:420
+#: Source/Core/DolphinQt/GBAWidget.cpp:422
 msgid "&Mute"
 msgstr "음소거(&M)"
 
@@ -582,7 +582,7 @@ msgstr "코드 제거 (&R)"
 msgid "&Rename symbol"
 msgstr "부호 이름 바꾸기 (&R)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:400
+#: Source/Core/DolphinQt/GBAWidget.cpp:402
 #: Source/Core/DolphinQt/MenuBar.cpp:312
 msgid "&Reset"
 msgstr "리셋(&R)"
@@ -595,7 +595,7 @@ msgstr "리소스 팩 매니저(&R)"
 msgid "&Save Symbol Map"
 msgstr "부호 맵 저장 (&S)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:396
+#: Source/Core/DolphinQt/GBAWidget.cpp:398
 msgid "&Scan e-Reader Card(s)..."
 msgstr "e-Reader 카드 스캔...(&S)"
 
@@ -619,7 +619,7 @@ msgstr "쓰레드(&T)"
 msgid "&Tools"
 msgstr "도구(&T)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:392
+#: Source/Core/DolphinQt/GBAWidget.cpp:394
 msgid "&Unload ROM"
 msgstr "롬 언로드(&U)"
 
@@ -690,7 +690,7 @@ msgid "--> %1"
 msgstr "--> %1"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:298
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:692
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:693
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:167
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:99
 msgid "..."
@@ -921,7 +921,7 @@ msgstr ""
 "\n"
 "이 WAD 를 설치하면 되돌릴 수 없게 바꾸게 됩니다. 계속합니까?"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:560
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:564
 msgid "A disc is already about to be inserted."
 msgstr "디스크가 이미 삽입되려는 중입니다."
 
@@ -1388,7 +1388,7 @@ msgstr "항상"
 msgid "Always Connected"
 msgstr "항상 연결됨"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:442
+#: Source/Core/DolphinQt/GBAWidget.cpp:444
 msgid "Always on &Top"
 msgstr "항상 위에(&T)"
 
@@ -1482,7 +1482,7 @@ msgstr "이 파일을 정말로 삭제하시겠습니까?"
 msgid "Are you sure you want to delete this pack?"
 msgstr "이 팩을 정말로 삭제하시겠습니까?"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:475
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:476
 msgid "Are you sure you want to quit NetPlay?"
 msgstr "정말로 넷플레이를 종료하고 싶습니까?"
 
@@ -1499,7 +1499,7 @@ msgstr "종횡비"
 msgid "Aspect Ratio:"
 msgstr "종횡비:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:268
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:269
 msgid "Assign Controller Ports"
 msgstr "컨트롤러 포트 할당"
 
@@ -1552,7 +1552,7 @@ msgstr "자동 (640x528의 배수)"
 msgid "Auto Update Settings"
 msgstr "설정 자동 업데이트"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:456
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:457
 msgid ""
 "Auto internal resolution is not allowed in strict sync mode, as it depends "
 "on window size.\n"
@@ -1824,7 +1824,7 @@ msgstr "중단"
 msgid "Breakpoint"
 msgstr "중단점"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:498
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:519
 msgid "Breakpoint encountered! Step out aborted."
 msgstr "중단점을 만났습니다! 스텝 나가기가 중단되었습니다."
 
@@ -1870,12 +1870,12 @@ msgstr "넷플레이 세션들 둘러보기...(&N)"
 msgid "Buffer Size:"
 msgstr "버퍼 크기:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:903
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:904
 msgid "Buffer size changed to %1"
 msgstr "버퍼 크기가 %1 로 변경되었습니다"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:133
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:934
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:935
 msgid "Buffer:"
 msgstr "버퍼:"
 
@@ -1990,7 +1990,15 @@ msgstr "측정 기간"
 msgid "Call display list at %1 with size %2"
 msgstr "%1 에 %2 크기로 디스플레이 목록 불러오기"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:106
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:137
+msgid "Callers"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:133
+msgid "Calls"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:125
 msgid "Callstack"
 msgstr "콜스텍"
 
@@ -2124,7 +2132,7 @@ msgstr "치트 변경은 게임을 재시작해야만 효과가 반영될 것입
 msgid "Channel Partition (%1)"
 msgstr "채널 파티션 (%1)"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:239
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:240
 msgid "Chat"
 msgstr "대화"
 
@@ -2231,7 +2239,7 @@ msgstr "닫기"
 msgid "Co&nfiguration"
 msgstr "환경설정(&n)"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:30
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:31
 msgid "Code"
 msgstr "코드"
 
@@ -2367,7 +2375,7 @@ msgid "Confirm on Stop"
 msgstr "멈출 때 확인"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1228
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:474
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:475
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:239
 msgid "Confirmation"
 msgstr "확정"
@@ -2421,7 +2429,7 @@ msgstr "인터넷에 연결하여 온라인 시스템 업데이트를 하시겠�
 msgid "Connected"
 msgstr "연결되었습니다"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:690
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:691
 msgid "Connecting"
 msgstr "연결중"
 
@@ -2594,10 +2602,10 @@ msgstr ""
 "변환중...\n"
 "%1"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:265
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:682
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:710
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:738
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:266
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:683
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:711
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:739
 msgid "Copy"
 msgstr "복사"
 
@@ -2769,7 +2777,7 @@ msgstr ""
 "에뮬레이터 디렉토리를 이동한 후에 이 메시지를 받고 있나요?\n"
 "그렇다면, 옵션에서 메모리카드 위치를 재지정해야 합니다."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:969
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:970
 msgid "Couldn't look up central server"
 msgstr "중앙 서버를 찾을 수 없습니다"
 
@@ -3199,7 +3207,7 @@ msgstr ""
 "\n"
 "정말 Direct3D 11로 전환하고 싶습니까? 잘 모르겠으면, '아니오'를 선택하세요."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:382
+#: Source/Core/DolphinQt/GBAWidget.cpp:384
 msgid "Dis&connected"
 msgstr "연결 끊어진(&c)"
 
@@ -3405,7 +3413,7 @@ msgstr "돌핀이 요청된 액션 완수에 실패했습니다."
 msgid "Dolphin is a free and open-source GameCube and Wii emulator."
 msgstr "돌핀은 무료이고 오픈-소스 게임큐브 및 Wii 에뮬레이터입니다."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:974
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:975
 msgid "Dolphin is too old for traversal server"
 msgstr "횡단 서버에 비해 돌핀이 너무 구 버전입니다."
 
@@ -3748,7 +3756,7 @@ msgstr "디스크 꺼내기"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "내장형 프레임 버퍼 (EFB)"
 
-#: Source/Core/Core/State.cpp:504
+#: Source/Core/Core/State.cpp:497
 msgid "Empty"
 msgstr "비어있음"
 
@@ -4074,7 +4082,7 @@ msgstr "RSO 모듈 주소를 입력:"
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:378
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:241
-#: Source/Core/DolphinQt/GBAWidget.cpp:577
+#: Source/Core/DolphinQt/GBAWidget.cpp:579
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:346
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:376
 #: Source/Core/DolphinQt/Main.cpp:207 Source/Core/DolphinQt/Main.cpp:223
@@ -4099,11 +4107,11 @@ msgstr "RSO 모듈 주소를 입력:"
 #: Source/Core/DolphinQt/MenuBar.cpp:1621
 #: Source/Core/DolphinQt/MenuBar.cpp:1671
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:315
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:455
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:715
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:958
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1076
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1086
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:456
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:716
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:959
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1077
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1087
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:334
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:340
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:347
@@ -4166,31 +4174,31 @@ msgstr ""
 "오류: \"{0}\" 뒤에, {1} ({2:#x}) 를 발견하였습니다, 저장 표식 {3} ({4:#x}) 대"
 "신에. 상태 저장 로드를 취소합니다..."
 
-#: Source/Core/Core/HW/GBACore.cpp:190
+#: Source/Core/Core/HW/GBACore.cpp:191
 msgid "Error: GBA{0} failed to create core"
 msgstr "에러: GBA{0} 코어 생성에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:345
+#: Source/Core/Core/HW/GBACore.cpp:346
 msgid "Error: GBA{0} failed to load the BIOS in {1}"
 msgstr "에러: GBA{0} {1} 에서 바이오스 로드에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:210
+#: Source/Core/Core/HW/GBACore.cpp:211
 msgid "Error: GBA{0} failed to load the ROM in {1}"
 msgstr "에러: GBA{0} {1} 에서 롬 로드에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:364
+#: Source/Core/Core/HW/GBACore.cpp:365
 msgid "Error: GBA{0} failed to load the save in {1}"
 msgstr "에러: GBA{0} {1} 에서 저장 로드에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:339
+#: Source/Core/Core/HW/GBACore.cpp:340
 msgid "Error: GBA{0} failed to open the BIOS in {1}"
 msgstr "에러: GBA{0} {1} 에서 바이오스 열기에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:180
+#: Source/Core/Core/HW/GBACore.cpp:181
 msgid "Error: GBA{0} failed to open the ROM in {1}"
 msgstr "에러: GBA{0} {1} 에서 롬 열기에 실패했습니다"
 
-#: Source/Core/Core/HW/GBACore.cpp:358
+#: Source/Core/Core/HW/GBACore.cpp:359
 msgid "Error: GBA{0} failed to open the save in {1}"
 msgstr "에러: GBA{0} {1} 에서 저장 열기에 실패했습니다"
 
@@ -4385,7 +4393,7 @@ msgstr "확장 모션 입력"
 msgid "Extension Motion Simulation"
 msgstr "확장 모션 시뮬레이션"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:498
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:499
 msgid "External"
 msgstr "외부의"
 
@@ -4447,7 +4455,7 @@ msgstr ""
 "메모리 카드 열기에 실패했습니다:\n"
 "%1"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:432
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:433
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr "넷플레이 목록 : %1 에 이 세션을 추가하는데에 실패했습니다"
 
@@ -4463,7 +4471,7 @@ msgstr "블투 패스쓰루용 인터페이스 요청에 실패했습니다: {0}
 msgid "Failed to connect to Redump.org"
 msgstr "Redump.org 연결에 실패했습니다"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:959
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:960
 msgid "Failed to connect to server: %1"
 msgstr "서버 연결에 실패했습니다: %1"
 
@@ -4642,7 +4650,7 @@ msgstr ""
 "{0} 로드에 실패했습니다. 윈도우 7을 사용중이면, KB4019990 업데이트 패키지를 "
 "설치해보세요."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:577
+#: Source/Core/DolphinQt/GBAWidget.cpp:579
 #: Source/Core/DolphinQt/MainWindow.cpp:1602
 #: Source/Core/DolphinQt/RenderWidget.cpp:124
 msgid "Failed to open '%1'"
@@ -4932,10 +4940,6 @@ msgstr "헤더안 파일크기가 실제 카드 크기와 맞지 않습니다."
 msgid "Filesystem"
 msgstr "파일 시스템"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:103
-msgid "Filter Symbols"
-msgstr "부호들 필터"
-
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:102
 msgid "Filters"
 msgstr "필터들"
@@ -5220,14 +5224,6 @@ msgstr "전체화면"
 msgid "Function"
 msgstr "함수"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:130
-msgid "Function callers"
-msgstr "함수 호출자"
-
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:122
-msgid "Function calls"
-msgstr "함수 호출"
-
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:283
 msgid "Functions"
 msgstr "함수들"
@@ -5260,11 +5256,11 @@ msgstr "GBA 볼륨"
 msgid "GBA Window Size"
 msgstr "GBA 창 크기"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:810
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:811
 msgid "GBA%1 ROM changed to \"%2\""
 msgstr "GBA%1 롬이 \"%2\" 로 변경되었습니다"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:815
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:816
 msgid "GBA%1 ROM disabled"
 msgstr "GBA%1 롬이 비활성화되었습니다"
 
@@ -5431,15 +5427,15 @@ msgstr "게임 ID"
 msgid "Game ID:"
 msgstr "게임 ID:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:611
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:612
 msgid "Game Status"
 msgstr "게임 상태"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:802
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:803
 msgid "Game changed to \"%1\""
 msgstr "게임이 \"%1\" 로 변경되었습니다"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:619
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:620
 msgid ""
 "Game file has a different hash; right-click it, select Properties, switch to "
 "the Verify tab, and select Verify Integrity to check the hash"
@@ -5447,11 +5443,11 @@ msgstr ""
 "게임 파일이 다른 해시를 가지고 있습니다; 그걸 우-클릭; 속성 선택, 검증 탭으"
 "로 전환, 그리고 해시를 확인하기위해 무결성 검증을 선택하세요."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:622
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:623
 msgid "Game has a different disc number"
 msgstr "게임이 다른 디스크 넘버를 가지고 있습니다"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:624
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:625
 msgid "Game has a different revision"
 msgstr "게임이 다른 개정을 가지고 있습니다"
 
@@ -5465,7 +5461,7 @@ msgid ""
 msgstr ""
 "게임이 다른 게임 저장과 함께 덮어썼습니다.  {0:#x}, {1:#x} 앞쪽에 데이터 오염"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:626
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:627
 msgid "Game region does not match"
 msgstr "게임 지역이 맞지 않습니다"
 
@@ -5710,7 +5706,7 @@ msgstr "인-게임 세션 숨기기"
 msgid "Hide Incompatible Sessions"
 msgstr "비호환 세션들 숨기기"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:206
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:207
 msgid "Hide Remote GBAs"
 msgstr "원격 GBA 숨기기"
 
@@ -5768,11 +5764,11 @@ msgstr ""
 "3+ 플레이어들과 함께하는 캐주얼 게임에 알맞음, 아마도 불안정하거나 높은 지연 "
 "연결상에서."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:912
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:913
 msgid "Host input authority disabled"
 msgstr "호스트 입력 권한 꺼짐"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:912
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:913
 msgid "Host input authority enabled"
 msgstr "호스트 입력 권한 켜짐"
 
@@ -6221,7 +6217,7 @@ msgid "Interface"
 msgstr "인터페이스"
 
 #: Source/Core/Core/NetPlayCommon.cpp:67 Source/Core/Core/NetPlayCommon.cpp:151
-#: Source/Core/Core/State.cpp:420
+#: Source/Core/Core/State.cpp:413
 msgid "Internal LZO Error - compression failed"
 msgstr "내부 LZO 오류 - 압축 실패했습니다"
 
@@ -6230,7 +6226,7 @@ msgstr "내부 LZO 오류 - 압축 실패했습니다"
 msgid "Internal LZO Error - decompression failed"
 msgstr "내부 LZO 오류 - 압축해제를 실패했습니다"
 
-#: Source/Core/Core/State.cpp:565
+#: Source/Core/Core/State.cpp:558
 msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
 "Try loading the state again"
@@ -6238,7 +6234,7 @@ msgstr ""
 "내부 LZO 오류 - 압축풀기 실패했습니다({0}) ({1}, {2}) \n"
 "상태 로딩을 다시 해보세요"
 
-#: Source/Core/Core/State.cpp:670
+#: Source/Core/Core/State.cpp:663
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "내부 LZO 오류 -  lzo_init() 실패했습니다"
 
@@ -6277,7 +6273,7 @@ msgid "Invalid Pack %1 provided: %2"
 msgstr "부적합한 %1 이 제공됨: %2"
 
 #: Source/Core/DolphinQt/NetPlay/ChunkedProgressDialog.cpp:26
-#: Source/Core/DolphinQt/NetPlay/MD5Dialog.cpp:23
+#: Source/Core/DolphinQt/NetPlay/GameDigestDialog.cpp:23
 msgid "Invalid Player ID"
 msgstr "부적합한 플레이어 아이디"
 
@@ -6285,7 +6281,7 @@ msgstr "부적합한 플레이어 아이디"
 msgid "Invalid RSO module address: %1"
 msgstr "부적합 RSO 모듈 주소: %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:317
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:323
 msgid "Invalid callstack"
 msgstr "부적합한 스텍호출"
 
@@ -6484,7 +6480,7 @@ msgstr "키"
 msgid "KiB"
 msgstr "KiB"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:267
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:268
 msgid "Kick Player"
 msgstr "플레이어 차기"
 
@@ -6503,7 +6499,7 @@ msgstr "한국어"
 msgid "L"
 msgstr "L"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:388
+#: Source/Core/DolphinQt/GBAWidget.cpp:390
 msgid "L&oad ROM..."
 msgstr "롬 로드...(&L)"
 
@@ -6804,7 +6800,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:503
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:504
 msgid "Local"
 msgstr "지역"
 
@@ -6851,7 +6847,7 @@ msgstr ""
 msgid "Loop"
 msgstr "루프"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:952
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:953
 msgid "Lost connection to NetPlay server..."
 msgstr "넷플레이 서버 연결을 잃었습니다..."
 
@@ -6863,10 +6859,6 @@ msgstr "낮은"
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:419
 msgid "Lowest"
 msgstr "최하"
-
-#: Source/Core/DolphinQt/NetPlay/MD5Dialog.cpp:43
-msgid "MD5 Checksum"
-msgstr "MD5 체크섬"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:74
 msgid "MD5:"
@@ -6919,7 +6911,7 @@ msgstr "NAND 관리"
 msgid "Manual Texture Sampling"
 msgstr "수동 텍스처 샘플링"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:611
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:612
 msgid "Mapping"
 msgstr "매핑"
 
@@ -6931,11 +6923,11 @@ msgstr "마스크 롬"
 msgid "Match Found"
 msgstr "일치 발견"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:934
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:935
 msgid "Max Buffer:"
 msgstr "최대 버퍼:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:902
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:903
 msgid "Max buffer size changed to %1"
 msgstr "최대 버퍼 크기가 %1 로 변경되었습니다"
 
@@ -7026,7 +7018,7 @@ msgstr "헤더안 빈 블락 숫자와 실제 사용되지 않은 블락수가 �
 msgid "Mismatch between internal data structures."
 msgstr "내부 데이터 구조들끼리 맞지 않습니다."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1078
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1079
 msgid ""
 "Mismatched ROMs\n"
 "Selected: {0}\n"
@@ -7213,7 +7205,7 @@ msgstr "넷플레이 설정"
 msgid "Netherlands"
 msgstr "네덜란드"
 
-#: Source/Core/Core/NetPlayClient.cpp:2733
+#: Source/Core/Core/NetPlayClient.cpp:2729
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "넷플레이가 NetPlay_GetButtonPress() 에서 비동기화되었습니다"
 
@@ -7350,7 +7342,7 @@ msgstr "구동중인 게임이 없습니다."
 msgid "No issues have been detected."
 msgstr "이슈가 감지되지 않았습니다."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:628
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:629
 msgid "No matching game was found"
 msgstr "매칭하는 게임을 찾지 못했습니다"
 
@@ -7388,7 +7380,7 @@ msgstr "로드된 녹화가 없습니다."
 msgid "No save data found."
 msgstr "발견된 저장 데이터가 없습니다."
 
-#: Source/Core/Core/State.cpp:761
+#: Source/Core/Core/State.cpp:754
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
 "undo.dtm 이 없습니다, 무비 갈림을 막기위해서 상태로드 되돌리기를 취소합니다"
@@ -7409,7 +7401,7 @@ msgstr "북 아메리카"
 msgid "Not Set"
 msgstr "설정 안됨"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:448
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:449
 msgid "Not all players have the game. Do you really want to start?"
 msgstr ""
 "모든 플레이어가 그 게임을 가지고 있지는 않습니다. 정말 시작하고 싶습니까?"
@@ -7434,7 +7426,7 @@ msgstr ""
 "해당 메모리 카드상에 빈 파일들이 충분하지 않습니다. 적어도 %n 빈 파일(들)이 "
 "요구됩니다."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:628
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:629
 msgid "Not found"
 msgstr "발견되지 않음"
 
@@ -7490,7 +7482,7 @@ msgstr "눈챠쿠 방향"
 msgid "Nunchuk Stick"
 msgstr "눈챠쿠 스틱"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:616
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:617
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:57
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:708
 msgid "OK"
@@ -7611,7 +7603,7 @@ msgstr "연산자들"
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:37
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:70
 #: Source/Core/DolphinQt/ConvertDialog.cpp:81
-#: Source/Core/DolphinQt/GBAWidget.cpp:425
+#: Source/Core/DolphinQt/GBAWidget.cpp:427
 msgid "Options"
 msgstr "옵션"
 
@@ -7628,7 +7620,7 @@ msgstr "궤도"
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:86
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:98
 #: Source/Core/DolphinQt/Config/Mapping/FreeLookGeneral.cpp:29
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:201
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:202
 msgid "Other"
 msgstr "다른 것들"
 
@@ -7807,7 +7799,7 @@ msgstr "PiB"
 msgid "Pick a debug font"
 msgstr "디버그 폰트 고르기"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:611
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:612
 msgid "Ping"
 msgstr "핑"
 
@@ -7840,12 +7832,12 @@ msgstr "(입력) 기록 재생"
 msgid "Playback Options"
 msgstr "재생 옵션"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:611
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:612
 msgid "Player"
 msgstr "플레이어"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:224
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:262
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:263
 msgid "Players"
 msgstr "플레이어"
 
@@ -7874,7 +7866,7 @@ msgstr "포트 %1 롬:"
 msgid "Port:"
 msgstr "포트:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:945
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:946
 msgid "Possible desync detected: %1 might have desynced at frame %2"
 msgstr "가능한 비동기 감지됨: %1 가 프레임 %2 에서 비동기화된 듯 합니다"
 
@@ -8148,7 +8140,7 @@ msgstr "리센터"
 msgid "Record"
 msgstr "녹화"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:202
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:203
 msgid "Record Inputs"
 msgstr "입력 녹화"
 
@@ -8389,7 +8381,7 @@ msgstr "기본값 복원"
 msgid "Restore instruction"
 msgstr "명령 복구"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:716
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:717
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:726
 msgid "Retry"
 msgstr "재시도"
@@ -8398,7 +8390,7 @@ msgstr "재시도"
 msgid "Return Speed"
 msgstr "돌아오기 속도"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:611
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:612
 msgid "Revision"
 msgstr "개정"
 
@@ -8456,7 +8448,7 @@ msgstr "왼쪽 구르기"
 msgid "Roll Right"
 msgstr "오른쪽 구르기"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:497
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:498
 msgid "Room ID"
 msgstr "룸 ID"
 
@@ -8501,7 +8493,7 @@ msgstr "GBA 코어들을 전용 쓰레드로 구동합니다"
 msgid "Russia"
 msgstr "러시아"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:196
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:197
 msgid "SD Card"
 msgstr "SD 카드"
 
@@ -8532,6 +8524,10 @@ msgstr "선택"
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:75
 msgid "SHA-1:"
 msgstr "SHA-1:"
+
+#: Source/Core/DolphinQt/NetPlay/GameDigestDialog.cpp:43
+msgid "SHA1 Digest"
+msgstr ""
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:136
 msgid "SP1:"
@@ -8587,11 +8583,11 @@ msgid "Save File to"
 msgstr "에 파일 저장"
 
 #. i18n: Noun (i.e. the data saved by the game)
-#: Source/Core/DolphinQt/GBAWidget.cpp:405
+#: Source/Core/DolphinQt/GBAWidget.cpp:407
 msgid "Save Game"
 msgstr "게임 저장"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:242
+#: Source/Core/DolphinQt/GBAWidget.cpp:243
 msgid "Save Game Files (*.sav);;All Files (*)"
 msgstr "게임 저장 파일들 (*.sav);;모든 파일들 (*)"
 
@@ -8617,7 +8613,7 @@ msgstr "녹화 파일을 다른 이름으로 저장"
 
 #: Source/Core/Core/HotkeyManager.cpp:180
 #: Source/Core/Core/HotkeyManager.cpp:351
-#: Source/Core/DolphinQt/GBAWidget.cpp:413
+#: Source/Core/DolphinQt/GBAWidget.cpp:415
 msgid "Save State"
 msgstr "상태 저장"
 
@@ -8929,8 +8925,8 @@ msgid "Select a Directory"
 msgstr "디렉토리 선택"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:194
-#: Source/Core/DolphinQt/GBAWidget.cpp:210
-#: Source/Core/DolphinQt/GBAWidget.cpp:241
+#: Source/Core/DolphinQt/GBAWidget.cpp:211
+#: Source/Core/DolphinQt/GBAWidget.cpp:242
 #: Source/Core/DolphinQt/MainWindow.cpp:730
 #: Source/Core/DolphinQt/MainWindow.cpp:1302
 #: Source/Core/DolphinQt/MainWindow.cpp:1310
@@ -8961,7 +8957,7 @@ msgstr "게임 선택"
 msgid "Select a title to install to NAND"
 msgstr "NAND 에 설치할 타이틀 선택"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:188
+#: Source/Core/DolphinQt/GBAWidget.cpp:189
 msgid "Select e-Reader Cards"
 msgstr "e-Reader 카드 선택"
 
@@ -9005,8 +9001,8 @@ msgstr "선택된 컨트롤러 프로파일이 존재하지 않습니다"
 #: Source/Core/Core/NetPlayServer.cpp:1244
 #: Source/Core/Core/NetPlayServer.cpp:1588
 #: Source/Core/Core/NetPlayServer.cpp:1865
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:464
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:866
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:465
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:867
 msgid "Selected game doesn't exist in game list!"
 msgstr "선택된 게임은 게임 목록에 존재하지 않습니다!"
 
@@ -9098,7 +9094,7 @@ msgstr ""
 "가 가장 적은 것을 고르세요.<br><br><dolphin_emphasis>잘 모르겠으면, OpenGL을 "
 "선택하세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:242
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:243
 msgid "Send"
 msgstr "보내기"
 
@@ -9287,7 +9283,7 @@ msgstr "게임큐브"
 msgid "Show Germany"
 msgstr "독일"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:204
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:205
 msgid "Show Golf Mode Overlay"
 msgstr "골프 모드 오버레이 보기"
 
@@ -9744,7 +9740,7 @@ msgstr "Riivolution 패치들로 시작"
 msgid "Start with Riivolution Patches..."
 msgstr "Riivolution 패치들로 시작..."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:847
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:848
 msgid "Started game"
 msgstr "시작된 게임"
 
@@ -9783,19 +9779,19 @@ msgstr "스텝 나가기"
 msgid "Step Over"
 msgstr "스텝 넘어가기"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:502
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:523
 msgid "Step out successful!"
 msgstr "스텝 나가기 성공!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:500
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:521
 msgid "Step out timed out!"
 msgstr "스텝 나가기 시간 초과!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:427
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:448
 msgid "Step over in progress..."
 msgstr "스텝 넘어가기 진행 중..."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:412
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:433
 msgid "Step successful!"
 msgstr "스텝 성공!"
 
@@ -9846,7 +9842,7 @@ msgstr "입력 재생/기록 중지"
 msgid "Stop Recording"
 msgstr "녹화 중지"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:381
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:382
 msgid "Stopped game"
 msgstr "멈춰진 게임"
 
@@ -9922,7 +9918,7 @@ msgstr "스타일러스"
 msgid "Success"
 msgstr "성공"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:431
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:432
 msgid "Successfully added to the NetPlay index"
 msgstr "넷플레이 목록에 성공적으로 추가되었습니다"
 
@@ -10049,7 +10045,7 @@ msgid "Symbol name:"
 msgstr "부호 이름:"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:151
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:114
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:129
 #: Source/Core/DolphinQt/MenuBar.cpp:967
 msgid "Symbols"
 msgstr "부호들"
@@ -10258,7 +10254,7 @@ msgstr ""
 msgid "The disc could not be read (at {0:#x} - {1:#x})."
 msgstr "디스크가 읽혀질 수 없었습니다 (위치 {0:#x} - {1:#x})."
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:528
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:532
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr "삽입되려 했던 디스크를 찾을 수 없습니다."
 
@@ -10396,11 +10392,11 @@ msgstr ""
 "\n"
 "({0} 을 지닌 MSAA 샘플이 기본 프레임버퍼상에서 발견되었습니다)"
 
-#: Source/Core/DolphinQt/NetPlay/MD5Dialog.cpp:155
+#: Source/Core/DolphinQt/NetPlay/GameDigestDialog.cpp:155
 msgid "The hashes do not match!"
 msgstr "해쉬가 일치하지 않습니다!"
 
-#: Source/Core/DolphinQt/NetPlay/MD5Dialog.cpp:151
+#: Source/Core/DolphinQt/NetPlay/GameDigestDialog.cpp:151
 msgid "The hashes match!"
 msgstr "해쉬가 일치합니다!"
 
@@ -10547,7 +10543,7 @@ msgstr "{0} 파티션은 올바르게 정렬되어 있지 않습니다."
 msgid "There are too many partitions in the first partition table."
 msgstr "첫 파티션 테이블에 너무 많은 파티션들이 있습니다."
 
-#: Source/Core/Core/State.cpp:766
+#: Source/Core/Core/State.cpp:759
 msgid "There is nothing to undo!"
 msgstr "되돌릴 것이 없습니다!"
 
@@ -10990,8 +10986,8 @@ msgstr "터치"
 msgid "Traditional Chinese"
 msgstr "전통 중국어"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:969
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:973
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:970
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:974
 msgid "Traversal Error"
 msgstr "횡단 에러"
 
@@ -11171,18 +11167,18 @@ msgstr ""
 msgid "United States"
 msgstr "미국"
 
-#: Source/Core/Core/State.cpp:508 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/Core/State.cpp:501 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:85
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:43
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:66
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:125
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:129
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:734
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:735
 msgid "Unknown"
 msgstr "알려지지 않음"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1254
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1258
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "알려지지 않은 DVD 명령 {0:08x} - 치명적 오류"
 
@@ -11762,7 +11758,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:245
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:261
 #: Source/Core/DolphinQt/MenuBar.cpp:1468
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:447
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:448
 msgid "Warning"
 msgstr "경고"
 
@@ -11981,7 +11977,7 @@ msgstr ""
 "키 설정을 할 수 있습니다."
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:25
-#: Source/Core/DolphinQt/GBAWidget.cpp:427
+#: Source/Core/DolphinQt/GBAWidget.cpp:429
 msgid "Window Size"
 msgstr "창 크기"
 
@@ -12031,19 +12027,19 @@ msgstr "로그에 쓰고 중단"
 msgid "Write to Window"
 msgstr "창에 쓰기"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:622
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:623
 msgid "Wrong disc number"
 msgstr "잘못된 디스크 넘버"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:618
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:619
 msgid "Wrong hash"
 msgstr "잘못된 해시"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:626
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:627
 msgid "Wrong region"
 msgstr "잘못된 지역"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:624
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:625
 msgid "Wrong revision"
 msgstr "잘못된 개정"
 
@@ -12281,7 +12277,7 @@ msgstr "기본값"
 msgid "disconnected"
 msgstr "연결이 끊겼습니다"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:188
+#: Source/Core/DolphinQt/GBAWidget.cpp:189
 msgid "e-Reader Cards (*.raw);;All Files (*)"
 msgstr "e-Reader 카드 (*.raw);;모든 파일 (*)"
 
@@ -12327,7 +12323,7 @@ msgstr "마지막 값"
 msgid "m/s"
 msgstr "m/s"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:211
+#: Source/Core/DolphinQt/GBAWidget.cpp:212
 msgid ""
 "mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *.ss8 *."
 "ss9);;All Files (*)"
@@ -12399,7 +12395,7 @@ msgstr " {0} 코드 동기화에 실패했습니다."
 msgid "{0} failed to synchronize."
 msgstr "{0} 동기화에 실패했습니다."
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:208
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:204
 msgid ""
 "{0} is not a directory, failed to move to *.original.\n"
 " Verify your write permissions or move the file outside of Dolphin"
@@ -12412,7 +12408,7 @@ msgstr ""
 msgid "{0} of {1} blocks. Compression ratio {2}%"
 msgstr "{1} 블락들의 {0}. 압축 비율 {2}%"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:199
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:195
 msgid "{0} was not a directory, moved to *.original"
 msgstr "{0} 는 디렉토리가 아닙니다, *.original 로 이동되었습니다."
 
