@@ -384,8 +384,6 @@ VertexPixelShader::CompilePixelShader(const ShaderConfig& config, const ShaderPa
 void VertexPixelShader::PixelShaderHeader(ShaderCode& shader_source, const ShaderPass& pass) const
 {
   shader_source.Write(R"(
-#define GLSL 1
-
 // Type aliases.
 #define float2x2 mat2
 #define float3x3 mat3
@@ -506,16 +504,11 @@ ivec3 SampleInputSize(int value, int lod) {{ return textureSize(samp[value], lod
   shader_source.Write(R"(
 
 // Convert z/w -> linear depth
-// https://gist.github.com/kovrov/a26227aeadde77b78092b8a962bd1a91
-// http://dougrogers.blogspot.com/2013/02/how-to-derive-near-and-far-clip-plane.html
 float ToLinearDepth(float depth)
 {{
   // TODO: The depth values provided by the projection matrix
-  // produce invalid results, need to determine what the correct
-  // values are
-  //float NearZ = z_depth_near;
-  //float FarZ = z_depth_far;
-  //return z_depth_linear_mul / (z_depth_linear_add - DEPTH_VALUE(depth));
+  // produce invalid results, or the math is wrong
+  // need to figure out what the right approach is!
 
   // For now just hardcode our near/far planes
   float NearZ = 0.001f;

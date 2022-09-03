@@ -319,7 +319,6 @@ ComputeShader::CompileShader(const ShaderConfig& config, const ComputeShaderPass
 void ComputeShader::ShaderHeader(ShaderCode& shader_source, const ComputeShaderPass& pass) const
 {
   shader_source.Write(R"(
-#define GLSL 1
 #define main real_main
 
 // Type aliases.
@@ -400,43 +399,43 @@ void SetOutput(float4 color, int3 pixel_coord) {{ imageStore(output_image, pixel
 
 ivec3 SampleInputSize(int value, int lod) {{ return textureSize(samp[value], lod); }}
 
-float4 gather_red(int value, float3 location)
+float4 gather_red(int value, float3 location, int2 offset)
 {{
   float4 result;
-  result.a = SampleInputLocation(value, location.xy).r;
-  result.b = SampleInputLocationOffset(value, location.xy, int2(1, 0)).r;
-  result.r = SampleInputLocationOffset(value, location.xy, int2(0, 1)).r;
-  result.g = SampleInputLocationOffset(value, location.xy, int2(1, 1)).r;
+  result.a = SampleInputLocation(value, location.xy + int2(0, 0) + offset).r;
+  result.b = SampleInputLocation(value, location.xy + int2(1, 0) + offset).r;
+  result.r = SampleInputLocation(value, location.xy + int2(0, 1) + offset).r;
+  result.g = SampleInputLocation(value, location.xy + int2(1, 1) + offset).r;
   return result;
 }}
 
-float4 gather_green(int value, float3 location)
+float4 gather_green(int value, float3 location, int2 offset)
 {{
   float4 result;
-  result.a = SampleInputLocation(value, location.xy).g;
-  result.b = SampleInputLocationOffset(value, location.xy, int2(1, 0)).g;
-  result.r = SampleInputLocationOffset(value, location.xy, int2(0, 1)).g;
-  result.g = SampleInputLocationOffset(value, location.xy, int2(1, 1)).g;
+  result.a = SampleInputLocation(value, location.xy + int2(0, 0) + offset).g;
+  result.b = SampleInputLocation(value, location.xy + int2(1, 0) + offset).g;
+  result.r = SampleInputLocation(value, location.xy + int2(0, 1) + offset).g;
+  result.g = SampleInputLocation(value, location.xy + int2(1, 1) + offset).g;
   return result;
 }}
 
-float4 gather_blue(int value, float3 location)
+float4 gather_blue(int value, float3 location, int2 offset)
 {{
   float4 result;
-  result.a = SampleInputLocation(value, location.xy).b;
-  result.b = SampleInputLocationOffset(value, location.xy, int2(1, 0)).b;
-  result.r = SampleInputLocationOffset(value, location.xy, int2(0, 1)).b;
-  result.g = SampleInputLocationOffset(value, location.xy, int2(1, 1)).b;
+  result.a = SampleInputLocation(value, location.xy + int2(0, 0) + offset).b;
+  result.b = SampleInputLocation(value, location.xy + int2(1, 0) + offset).b;
+  result.r = SampleInputLocation(value, location.xy + int2(0, 1) + offset).b;
+  result.g = SampleInputLocation(value, location.xy + int2(1, 1) + offset).b;
   return result;
 }}
 
-float4 gather_alpha(int value, float3 location)
+float4 gather_alpha(int value, float3 location, int2 offset)
 {{
   float4 result;
-  result.a = SampleInputLocation(value, location.xy).a;
-  result.b = SampleInputLocationOffset(value, location.xy, int2(1, 0)).a;
-  result.r = SampleInputLocationOffset(value, location.xy, int2(0, 1)).a;
-  result.g = SampleInputLocationOffset(value, location.xy, int2(1, 1)).a;
+  result.a = SampleInputLocation(value, location.xy + int2(0, 0) + offset).a;
+  result.b = SampleInputLocation(value, location.xy + int2(1, 0) + offset).a;
+  result.r = SampleInputLocation(value, location.xy + int2(0, 1) + offset).a;
+  result.g = SampleInputLocation(value, location.xy + int2(1, 1) + offset).a;
   return result;
 }}
 )");
@@ -463,23 +462,18 @@ float4 gather_alpha(int value, float3 location)
   shader_source.Write(R"(
 
 // Convert z/w -> linear depth
-// https://gist.github.com/kovrov/a26227aeadde77b78092b8a962bd1a91
-// http://dougrogers.blogspot.com/2013/02/how-to-derive-near-and-far-clip-plane.html
 float ToLinearDepthInternal(float depth)
 {{
   // TODO: The depth values provided by the projection matrix
-  // produce invalid results, need to determine what the correct
-  // values are
-  //float NearZ = z_depth_near;
-  //float FarZ = z_depth_far;
+  // produce invalid results, or the math is wrong
+  // need to figure out what the right approach is!
 
   // For now just hardcode our near/far planes
   float NearZ = 0.001f;
-	float FarZ = 1.0f;
+  float FarZ = 1.0f;
   const float A = (1.0f - (FarZ / NearZ)) / 2.0f;
   const float B = (1.0f + (FarZ / NearZ)) / 2.0f;
   return 1.0f / (A * depth + B);
-  //return z_depth_linear_mul / (z_depth_linear_add - depth);
 }}
 
 float ToLinearDepth(float raw_depth)
