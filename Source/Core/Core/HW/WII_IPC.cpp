@@ -120,7 +120,7 @@ struct AVEState
 };
 #pragma pack()
 static_assert(sizeof(AVEState) == 0x100);
-AVEState ave_state;
+Common::I2CSlaveSimple<0x70, AVEState> ave_state;
 std::bitset<sizeof(AVEState)> ave_ever_logged;
 
 Common::I2CBus i2c_state;
@@ -145,7 +145,7 @@ void WiiIPC::DoState(PointerWrap& p)
   p.Do(m_gpio_dir);
   p.Do(m_gpio_out);
   i2c_state.DoState(p);
-  p.Do(ave_state);
+  p.Do(ave_state.data);
   p.Do(m_resets);
 }
 
@@ -178,7 +178,7 @@ void WiiIPC::InitState()
 
   i2c_state = {};
   ave_state = {};
-  ave_state.video_output_config = 0x23;
+  ave_state.data.video_output_config = 0x23;
   ave_ever_logged.reset();
 }
 

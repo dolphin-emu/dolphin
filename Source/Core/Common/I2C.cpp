@@ -15,15 +15,6 @@
 #include "Common/Logging/Log.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 
-namespace IOS
-{
-struct AVEState;
-extern AVEState ave_state;
-extern std::bitset<0x100> ave_ever_logged;  // For logging only; not saved
-
-std::string_view GetAVERegisterName(u8 address);
-}  // namespace IOS
-
 namespace Common
 {
 void I2CBusBase::AddSlave(I2CSlave* slave)
@@ -211,9 +202,25 @@ void I2CBus::SCLRisingEdge(const bool sda)
   {
     // Start of a read.
     ASSERT(device_address.has_value());  // Implied by the state transition in falling edge
-    current_byte = reinterpret_cast<u8*>(&IOS::ave_state)[device_address.value()];
-    INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", device_address.value(),
-                 IOS::GetAVERegisterName(device_address.value()), current_byte);
+    ASSERT(i2c_address.has_value());
+    I2CSlave* slave = GetSlave(i2c_address.value());
+    ASSERT_MSG(WII_IPC, slave != nullptr,
+               "Expected device with ID {:02x} to be on the I2C bus as it was earlier",
+               i2c_address.value());
+    std::optional<u8> byte = slave->ReadByte(device_address.value());
+    if (!byte.has_value())
+    {
+      WARN_LOG_FMT(WII_IPC, "Failed to read from device {:02x} at address {:02x}",
+                   i2c_address.value(), device_address.value());
+      // TODO
+      current_byte = 0xff;
+    }
+    else
+    {
+      current_byte = byte.value();
+    }
+    // INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", device_address.value(),
+    //              IOS::GetAVERegisterName(device_address.value()), current_byte);
   }
   // Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC, Common::Log::LogLevel::LINFO);
 }
@@ -247,7 +254,8 @@ void I2CBus::SCLFallingEdge(const bool sda)
         // Write finished.
         if (state == State::SetI2CAddress)
         {
-          if ((current_byte >> 1) != 0x70)
+          I2CSlave* slave = GetSlave(current_byte);
+          if (slave != nullptr)
           {
             state = State::Inactive;  // NACK
             WARN_LOG_FMT(WII_IPC, "AVE: Unknown I2C address {:02x}", current_byte);
@@ -267,20 +275,32 @@ void I2CBus::SCLFallingEdge(const bool sda)
           // Actual write
           ASSERT(state == State::WriteToDevice);
           ASSERT(device_address.has_value());  // implied by state transition
-          const u8 old_ave_value = reinterpret_cast<u8*>(&IOS::ave_state)[device_address.value()];
-          reinterpret_cast<u8*>(&IOS::ave_state)[device_address.value()] = current_byte;
-          if (!IOS::ave_ever_logged[device_address.value()] || old_ave_value != current_byte)
+          ASSERT(i2c_address.has_value());
+          I2CSlave* slave = GetSlave(i2c_address.value());
+          ASSERT_MSG(WII_IPC, slave != nullptr,
+                     "Expected device with ID {:02x} to be on the I2C bus as it was earlier",
+                     i2c_address.value());
+          if (slave == nullptr)
           {
-            INFO_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", current_byte,
-                         device_address.value(), IOS::GetAVERegisterName(device_address.value()));
-            IOS::ave_ever_logged[device_address.value()] = true;
+            state = State::Inactive;  // NACK
           }
           else
           {
-            DEBUG_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", current_byte,
-                          device_address.value(), IOS::GetAVERegisterName(device_address.value()));
+            slave->WriteByte(device_address.value(), current_byte);
+            /* if (!IOS::ave_ever_logged[device_address.value()] || old_ave_value != current_byte)
+            {
+              INFO_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", current_byte,
+                           device_address.value(), IOS::GetAVERegisterName(device_address.value()));
+              IOS::ave_ever_logged[device_address.value()] = true;
+            }
+            else
+            {
+              DEBUG_LOG_FMT(WII_IPC, "AVE: Wrote {:02x} to {:02x} ({})", current_byte,
+                            device_address.value(),
+                            IOS::GetAVERegisterName(device_address.value()));
+            }*/
+            device_address = device_address.value() + 1;
           }
-          device_address = device_address.value() + 1;
         }
       }
     }
