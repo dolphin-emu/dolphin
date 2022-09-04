@@ -129,8 +129,7 @@ public:
   void OnItemChanged(QTableWidgetItem* item)
   {
     QString text = item->text();
-    MemoryViewWidget::Type type =
-        static_cast<MemoryViewWidget::Type>(item->data(USER_ROLE_VALUE_TYPE).toInt());
+    MemoryViewWidget::Type type = item->data(USER_ROLE_VALUE_TYPE).value<MemoryViewWidget::Type>();
     std::vector<u8> bytes = m_view->ConvertTextToBytes(type, text);
 
     u32 address = item->data(USER_ROLE_CELL_ADDRESS).toUInt();
@@ -299,7 +298,7 @@ void MemoryViewWidget::Update()
     bp_item->setFlags(Qt::ItemIsEnabled);
     bp_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, true);
     bp_item->setData(USER_ROLE_CELL_ADDRESS, row_address);
-    bp_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
+    bp_item->setData(USER_ROLE_VALUE_TYPE, QVariant::fromValue(Type::Null));
 
     m_table->setItem(i, 0, bp_item);
 
@@ -309,7 +308,7 @@ void MemoryViewWidget::Update()
     row_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     row_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
     row_item->setData(USER_ROLE_CELL_ADDRESS, row_address);
-    row_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
+    row_item->setData(USER_ROLE_VALUE_TYPE, QVariant::fromValue(Type::Null));
 
     m_table->setItem(i, 1, row_item);
 
@@ -324,7 +323,7 @@ void MemoryViewWidget::Update()
         item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
         item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
         item->setData(USER_ROLE_CELL_ADDRESS, row_address);
-        item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
+        item->setData(USER_ROLE_VALUE_TYPE, QVariant::fromValue(Type::Null));
 
         m_table->setItem(i, c, item);
       }
@@ -411,14 +410,14 @@ void MemoryViewWidget::UpdateColumns(Type type, int first_column)
           cell_item->setText(value_to_string(cell_address));
           cell_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
           cell_item->setData(USER_ROLE_CELL_ADDRESS, cell_address);
-          cell_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(type));
+          cell_item->setData(USER_ROLE_VALUE_TYPE, QVariant::fromValue(type));
         }
         else
         {
           cell_item->setText(QStringLiteral("-"));
           cell_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
           cell_item->setData(USER_ROLE_CELL_ADDRESS, cell_address);
-          cell_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
+          cell_item->setData(USER_ROLE_VALUE_TYPE, QVariant::fromValue(type));
         }
       }
     };
@@ -815,8 +814,7 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   if (!item_selected || item_selected->data(USER_ROLE_IS_ROW_BREAKPOINT_CELL).toBool())
     return;
 
-  const bool item_has_value =
-      item_selected->data(USER_ROLE_VALUE_TYPE).toInt() != static_cast<int>(Type::Null);
+  const bool item_has_value = item_selected->data(USER_ROLE_VALUE_TYPE).value<Type>() != Type::Null;
   const u32 addr = item_selected->data(USER_ROLE_CELL_ADDRESS).toUInt();
 
   auto* menu = new QMenu(this);
@@ -832,7 +830,7 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   auto* copy_value = menu->addAction(tr("Copy Value"), this, [this, &pos] {
     // Re-fetch the item in case the underlying table has refreshed since the menu was opened.
     auto* item = m_table->itemAt(pos);
-    if (item && item->data(USER_ROLE_VALUE_TYPE).toInt() != static_cast<int>(Type::Null))
+    if (item && item->data(USER_ROLE_VALUE_TYPE).value<Type>() != Type::Null)
       QApplication::clipboard()->setText(item->text());
   });
   copy_value->setEnabled(item_has_value);

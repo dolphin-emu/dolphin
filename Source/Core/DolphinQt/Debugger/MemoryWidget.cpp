@@ -129,16 +129,16 @@ void MemoryWidget::CreateWidgets()
   m_input_combo = new QComboBox;
   m_input_combo->setMaxVisibleItems(20);
   // Order here determines combo list order.
-  m_input_combo->addItem(tr("Hex Byte String"), int(Type::HexString));
-  m_input_combo->addItem(tr("ASCII"), int(Type::ASCII));
-  m_input_combo->addItem(tr("Float"), int(Type::Float32));
-  m_input_combo->addItem(tr("Double"), int(Type::Double));
-  m_input_combo->addItem(tr("Unsigned 8"), int(Type::Unsigned8));
-  m_input_combo->addItem(tr("Unsigned 16"), int(Type::Unsigned16));
-  m_input_combo->addItem(tr("Unsigned 32"), int(Type::Unsigned32));
-  m_input_combo->addItem(tr("Signed 8"), int(Type::Signed8));
-  m_input_combo->addItem(tr("Signed 16"), int(Type::Signed16));
-  m_input_combo->addItem(tr("Signed 32"), int(Type::Signed32));
+  m_input_combo->addItem(tr("Hex Byte String"), QVariant::fromValue(Type::HexString));
+  m_input_combo->addItem(tr("ASCII"), QVariant::fromValue(Type::ASCII));
+  m_input_combo->addItem(tr("Float"), QVariant::fromValue(Type::Float32));
+  m_input_combo->addItem(tr("Double"), QVariant::fromValue(Type::Double));
+  m_input_combo->addItem(tr("Unsigned 8"), QVariant::fromValue(Type::Unsigned8));
+  m_input_combo->addItem(tr("Unsigned 16"), QVariant::fromValue(Type::Unsigned16));
+  m_input_combo->addItem(tr("Unsigned 32"), QVariant::fromValue(Type::Unsigned32));
+  m_input_combo->addItem(tr("Signed 8"), QVariant::fromValue(Type::Signed8));
+  m_input_combo->addItem(tr("Signed 16"), QVariant::fromValue(Type::Signed16));
+  m_input_combo->addItem(tr("Signed 32"), QVariant::fromValue(Type::Signed32));
 
   // Dump
   auto* dump_group = new QGroupBox(tr("Dump"));
@@ -194,18 +194,18 @@ void MemoryWidget::CreateWidgets()
 
   m_display_combo = new QComboBox;
   m_display_combo->setMaxVisibleItems(20);
-  m_display_combo->addItem(tr("Hex 8"), int(Type::Hex8));
-  m_display_combo->addItem(tr("Hex 16"), int(Type::Hex16));
-  m_display_combo->addItem(tr("Hex 32"), int(Type::Hex32));
-  m_display_combo->addItem(tr("Unsigned 8"), int(Type::Unsigned8));
-  m_display_combo->addItem(tr("Unsigned 16"), int(Type::Unsigned16));
-  m_display_combo->addItem(tr("Unsigned 32"), int(Type::Unsigned32));
-  m_display_combo->addItem(tr("Signed 8"), int(Type::Signed8));
-  m_display_combo->addItem(tr("Signed 16"), int(Type::Signed16));
-  m_display_combo->addItem(tr("Signed 32"), int(Type::Signed32));
-  m_display_combo->addItem(tr("ASCII"), int(Type::ASCII));
-  m_display_combo->addItem(tr("Float"), int(Type::Float32));
-  m_display_combo->addItem(tr("Double"), int(Type::Double));
+  m_display_combo->addItem(tr("Hex 8"), QVariant::fromValue(Type::Hex8));
+  m_display_combo->addItem(tr("Hex 16"), QVariant::fromValue(Type::Hex16));
+  m_display_combo->addItem(tr("Hex 32"), QVariant::fromValue(Type::Hex32));
+  m_display_combo->addItem(tr("Unsigned 8"), QVariant::fromValue(Type::Unsigned8));
+  m_display_combo->addItem(tr("Unsigned 16"), QVariant::fromValue(Type::Unsigned16));
+  m_display_combo->addItem(tr("Unsigned 32"), QVariant::fromValue(Type::Unsigned32));
+  m_display_combo->addItem(tr("Signed 8"), QVariant::fromValue(Type::Signed8));
+  m_display_combo->addItem(tr("Signed 16"), QVariant::fromValue(Type::Signed16));
+  m_display_combo->addItem(tr("Signed 32"), QVariant::fromValue(Type::Signed32));
+  m_display_combo->addItem(tr("ASCII"), QVariant::fromValue(Type::ASCII));
+  m_display_combo->addItem(tr("Float"), QVariant::fromValue(Type::Float32));
+  m_display_combo->addItem(tr("Double"), QVariant::fromValue(Type::Double));
 
   m_align_combo = new QComboBox;
   m_align_combo->addItem(tr("Fixed Alignment"));
@@ -437,7 +437,7 @@ void MemoryWidget::OnAddressSpaceChanged()
 
 void MemoryWidget::OnDisplayChanged()
 {
-  const auto type = static_cast<Type>(m_display_combo->currentData().toInt());
+  const auto type = m_display_combo->currentData().value<Type>();
   int bytes_per_row = m_row_length_combo->currentData().toInt();
   int alignment;
   bool dual_view = m_dual_check->isChecked();
@@ -524,7 +524,7 @@ void MemoryWidget::ValidateAndPreviewInputValue()
 {
   m_data_preview->clear();
   QString input_text = m_data_edit->text();
-  const auto input_type = static_cast<Type>(m_input_combo->currentData().toInt());
+  const auto input_type = m_input_combo->currentData().value<Type>();
 
   m_base_check->setEnabled(input_type == Type::Unsigned32 || input_type == Type::Signed32 ||
                            input_type == Type::Unsigned16 || input_type == Type::Signed16 ||
@@ -588,7 +588,7 @@ QByteArray MemoryWidget::GetInputData() const
   if (m_data_preview->text().isEmpty())
     return QByteArray();
 
-  const auto input_type = static_cast<Type>(m_input_combo->currentData().toInt());
+  const auto input_type = m_input_combo->currentData().value<Type>();
 
   // Ascii might be truncated, pull from data edit box.
   if (input_type == Type::ASCII)

@@ -21,10 +21,10 @@ class MemoryViewWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  enum class Type : int
+  enum class Type
   {
-    Null = 0,
-    Hex8 = 1,
+    Null,
+    Hex8,
     Hex16,
     Hex32,
     Hex64,
