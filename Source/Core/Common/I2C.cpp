@@ -10,6 +10,7 @@
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
+#include "Common/ChunkFile.h"
 #include "Common/EnumFormatter.h"
 #include "Common/Logging/Log.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
@@ -25,47 +26,70 @@ std::string_view GetAVERegisterName(u8 address);
 
 namespace Common
 {
-void I2CBusOld::AddSlave(I2CSlave* slave)
+void I2CBusBase::AddSlave(I2CSlave* slave)
 {
   m_slaves.emplace_back(slave);
 }
 
-void I2CBusOld::RemoveSlave(I2CSlave* slave)
+void I2CBusBase::RemoveSlave(I2CSlave* slave)
 {
   m_slaves.erase(std::remove(m_slaves.begin(), m_slaves.end(), slave), m_slaves.end());
 }
 
-void I2CBusOld::Reset()
+void I2CBusBase::Reset()
 {
   m_slaves.clear();
 }
 
-int I2CBusOld::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+I2CSlave* I2CBusBase::GetSlave(u8 slave_addr)
 {
-  for (auto& slave : m_slaves)
+  for (I2CSlave* slave : m_slaves)
   {
-    auto const bytes_read = slave->BusRead(slave_addr, addr, count, data_out);
-
-    // A slave responded, we are done.
-    if (bytes_read)
-      return bytes_read;
+    if (slave->Matches(slave_addr))
+      return slave;
   }
-
-  return 0;
+  return nullptr;
 }
 
-int I2CBusOld::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+int I2CBusSimple::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
 {
-  for (auto& slave : m_slaves)
+  I2CSlave* slave = GetSlave(slave_addr);
+  if (slave != nullptr)
   {
-    auto const bytes_written = slave->BusWrite(slave_addr, addr, count, data_in);
-
-    // A slave responded, we are done.
-    if (bytes_written)
-      return bytes_written;
+    for (int i = 0; i < count; i++)
+    {
+      // TODO: Does this make sense? The transmitter can't NACK a read... it's the receiver that
+      // does that
+      auto byte = slave->ReadByte(addr + i);
+      if (byte.has_value())
+        data_out[i] = byte.value();
+      else
+        return i;
+    }
+    return count;
   }
+  else
+  {
+    return 0;
+  }
+}
 
-  return 0;
+int I2CBusSimple::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+{
+  I2CSlave* slave = GetSlave(slave_addr);
+  if (slave != nullptr)
+  {
+    for (int i = 0; i < count; i++)
+    {
+      if (!slave->WriteByte(addr + i, data_in[i]))
+        return i;
+    }
+    return count;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 bool I2CBus::GetSCL() const
@@ -308,6 +332,17 @@ void I2CBus::SCLFallingEdge(const bool sda)
     }
   }
   // Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC, Common::Log::LogLevel::LINFO);
+}
+
+void I2CBus::DoState(PointerWrap& p)
+{
+  p.Do(state);
+  p.Do(bit_counter);
+  p.Do(current_byte);
+  p.Do(i2c_address);
+  p.Do(device_address);
+  // TODO: verify m_devices is the same so that the state is compatible.
+  // (We don't take ownership of saving/loading m_devices, though).
 }
 
 };  // namespace Common

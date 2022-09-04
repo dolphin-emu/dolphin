@@ -144,6 +144,8 @@ void WiiIPC::DoState(PointerWrap& p)
   p.Do(m_arm_irq_masks);
   p.Do(m_gpio_dir);
   p.Do(m_gpio_out);
+  i2c_state.DoState(p);
+  p.Do(ave_state);
   p.Do(m_resets);
 }
 
