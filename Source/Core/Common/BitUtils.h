@@ -5,6 +5,7 @@
 
 #include <array>
 #include <climits>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -12,7 +13,6 @@
 #include <type_traits>
 
 #include "Common/Assert.h"
-#include "Common/Concepts.h"
 
 #ifdef _MSC_VER
 #include <intrin.h>

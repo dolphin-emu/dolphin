@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include <bit>          // std::bit_cast
+#include <concepts>     // std::integral
 #include <cstddef>      // std::size_t
 #include <cstdint>      // std::uint32_t, std::uint64_t
 #include <iterator>     // std::input_iterator_tag, std::output_iterator_tag
@@ -38,22 +40,6 @@
 #include "Common/Assert.h"    // DEBUG_ASSERT
 #include "Common/BitUtils.h"  // Common::ExtractBit, Common::ExtractBitsU, Common::ExtractBitsS,
                               // Common::InsertBit, Common::InsertBits, Common::BitSize
-#include "Common/Concepts.h"  // std::integral
-
-#include <version>
-// Terrible C++20 stdlib workaround for buildbots.  Remove ASAP.
-#ifdef __cpp_lib_bit_cast
-#include <bit>  // std::bit_cast
-#else
-namespace std
-{
-template <typename To, typename From>
-inline To bit_cast(const From& source) noexcept
-{
-  return ::Common::BitCast<To>(source);
-}
-}  // namespace std
-#endif
 
 namespace Common
 {
