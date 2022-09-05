@@ -41,6 +41,7 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 #include <algorithm>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/BitFieldView.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/CoreTiming.h"
@@ -61,7 +62,7 @@ enum
   AI_INTERRUPT_TIMING = 0x6C0C,
 };
 
-enum
+enum : bool
 {
   AIS_32KHz = 0,
   AIS_48KHz = 1,
@@ -77,35 +78,30 @@ enum class SampleRate
 };
 
 // AI Control Register
-union AICR
+struct AICR
 {
   AICR() = default;
   explicit AICR(u32 hex_) : hex{hex_} {}
-  struct
-  {
-    u32 PSTAT : 1;     // sample counter/playback enable
-    u32 AISFR : 1;     // AIS Frequency (0=32khz 1=48khz)
-    u32 AIINTMSK : 1;  // 0=interrupt masked 1=interrupt enabled
-    u32 AIINT : 1;     // audio interrupt status
-    u32 AIINTVLD : 1;  // This bit controls whether AIINT is affected by the Interrupt Timing
-                       // register
-                       // matching the sample counter. Once set, AIINT will hold its last value
-    u32 SCRESET : 1;   // write to reset counter
-    u32 AIDFR : 1;     // AID Frequency (0=48khz 1=32khz)
-    u32 : 25;
-  };
+
+  BFVIEW(bool, 1, 0, PSTAT)     // sample counter/playback enable
+  BFVIEW(bool, 1, 1, AISFR)     // AIS Frequency (0=32khz 1=48khz)
+  BFVIEW(bool, 1, 2, AIINTMSK)  // 0=interrupt masked 1=interrupt enabled
+  BFVIEW(bool, 1, 3, AIINT)     // audio interrupt status
+  BFVIEW(bool, 1, 4, AIINTVLD)  // This bit controls whether AIINT is affected by the
+                                // Interrupt Timing register matching the sample
+                                // counter. Once set, AIINT will hold its last value
+  BFVIEW(bool, 1, 5, SCRESET)   // write to reset counter
+  BFVIEW(bool, 1, 6, AIDFR)     // AID Frequency (0=48khz 1=32khz)
+
   u32 hex = 0;
 };
 
 // AI Volume Register
-union AIVR
+struct AIVR
 {
-  struct
-  {
-    u32 left : 8;
-    u32 right : 8;
-    u32 : 16;
-  };
+  BFVIEW(u8, 8, 0, left)
+  BFVIEW(u8, 8, 8, right)
+
   u32 hex = 0;
 };
 
@@ -157,13 +153,13 @@ void UpdateInterrupts()
 {
   auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_AI,
-                                   state.control.AIINT & state.control.AIINTMSK);
+                                   state.control.AIINT() && state.control.AIINTMSK());
 }
 
 void GenerateAudioInterrupt()
 {
   auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
-  state.control.AIINT = 1;
+  state.control.AIINT() = true;
   UpdateInterrupts();
 }
 
@@ -179,9 +175,10 @@ void IncreaseSampleCount(const u32 amount)
 
   if ((state.interrupt_timing - old_sample_counter) <= (state.sample_counter - old_sample_counter))
   {
-    DEBUG_LOG_FMT(
-        AUDIO_INTERFACE, "GenerateAudioInterrupt {:08x}:{:08x} at PC {:08x} control.AIINTVLD={}",
-        state.sample_counter, state.interrupt_timing, PowerPC::ppcState.pc, state.control.AIINTVLD);
+    DEBUG_LOG_FMT(AUDIO_INTERFACE,
+                  "GenerateAudioInterrupt {:08x}:{:08x} at PC {:08x} control.AIINTVLD={}",
+                  state.sample_counter, state.interrupt_timing, PowerPC::ppcState.pc,
+                  state.control.AIINTVLD());
     GenerateAudioInterrupt();
   }
 }
@@ -221,12 +218,12 @@ void SetAIDSampleRate(SampleRate sample_rate)
 
   if (sample_rate == SampleRate::AI32KHz)
   {
-    state.control.AIDFR = AID_32KHz;
+    state.control.AIDFR() = AID_32KHz;
     state.aid_sample_rate_divisor = Get32KHzSampleRateDivisor();
   }
   else
   {
-    state.control.AIDFR = AID_48KHz;
+    state.control.AIDFR() = AID_48KHz;
     state.aid_sample_rate_divisor = Get48KHzSampleRateDivisor();
   }
 
@@ -240,12 +237,12 @@ void SetAISSampleRate(SampleRate sample_rate)
 
   if (sample_rate == SampleRate::AI32KHz)
   {
-    state.control.AISFR = AIS_32KHz;
+    state.control.AISFR() = AIS_32KHz;
     state.ais_sample_rate_divisor = Get32KHzSampleRateDivisor();
   }
   else
   {
-    state.control.AISFR = AIS_48KHz;
+    state.control.AISFR() = AIS_48KHz;
     state.ais_sample_rate_divisor = Get48KHzSampleRateDivisor();
   }
 
@@ -286,41 +283,41 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         const AICR tmp_ai_ctrl(val);
 
         auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
-        if (state.control.AIINTMSK != tmp_ai_ctrl.AIINTMSK)
+        if (state.control.AIINTMSK() != tmp_ai_ctrl.AIINTMSK())
         {
-          DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIINTMSK to {}", tmp_ai_ctrl.AIINTMSK);
-          state.control.AIINTMSK = tmp_ai_ctrl.AIINTMSK;
+          DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIINTMSK to {}", tmp_ai_ctrl.AIINTMSK());
+          state.control.AIINTMSK() = tmp_ai_ctrl.AIINTMSK();
         }
 
-        if (state.control.AIINTVLD != tmp_ai_ctrl.AIINTVLD)
+        if (state.control.AIINTVLD() != tmp_ai_ctrl.AIINTVLD())
         {
-          DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIINTVLD to {}", tmp_ai_ctrl.AIINTVLD);
-          state.control.AIINTVLD = tmp_ai_ctrl.AIINTVLD;
+          DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIINTVLD to {}", tmp_ai_ctrl.AIINTVLD());
+          state.control.AIINTVLD() = tmp_ai_ctrl.AIINTVLD();
         }
 
         // Set frequency of streaming audio
-        if (tmp_ai_ctrl.AISFR != state.control.AISFR)
+        if (tmp_ai_ctrl.AISFR() != state.control.AISFR())
         {
           // AISFR rates below are intentionally inverted wrt yagcd
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AISFR to {}",
-                        tmp_ai_ctrl.AISFR ? "48khz" : "32khz");
-          SetAISSampleRate(tmp_ai_ctrl.AISFR ? SampleRate::AI48KHz : SampleRate::AI32KHz);
+                        tmp_ai_ctrl.AISFR() ? "48khz" : "32khz");
+          SetAISSampleRate(tmp_ai_ctrl.AISFR() ? SampleRate::AI48KHz : SampleRate::AI32KHz);
         }
 
         // Set frequency of DMA
-        if (tmp_ai_ctrl.AIDFR != state.control.AIDFR)
+        if (tmp_ai_ctrl.AIDFR() != state.control.AIDFR())
         {
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIDFR to {}",
-                        tmp_ai_ctrl.AIDFR ? "32khz" : "48khz");
-          SetAIDSampleRate(tmp_ai_ctrl.AIDFR ? SampleRate::AI32KHz : SampleRate::AI48KHz);
+                        tmp_ai_ctrl.AIDFR() ? "32khz" : "48khz");
+          SetAIDSampleRate(tmp_ai_ctrl.AIDFR() ? SampleRate::AI32KHz : SampleRate::AI48KHz);
         }
 
         // Streaming counter
-        if (tmp_ai_ctrl.PSTAT != state.control.PSTAT)
+        if (tmp_ai_ctrl.PSTAT() != state.control.PSTAT())
         {
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "{} streaming audio",
-                        tmp_ai_ctrl.PSTAT ? "start" : "stop");
-          state.control.PSTAT = tmp_ai_ctrl.PSTAT;
+                        tmp_ai_ctrl.PSTAT() ? "start" : "stop");
+          state.control.PSTAT() = tmp_ai_ctrl.PSTAT();
           state.last_cpu_time = CoreTiming::GetTicks();
 
           CoreTiming::RemoveEvent(state.event_type_ai);
@@ -328,14 +325,14 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         }
 
         // AI Interrupt
-        if (tmp_ai_ctrl.AIINT)
+        if (tmp_ai_ctrl.AIINT())
         {
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Clear AIS Interrupt");
-          state.control.AIINT = 0;
+          state.control.AIINT() = false;
         }
 
         // Sample Count Reset
-        if (tmp_ai_ctrl.SCRESET)
+        if (tmp_ai_ctrl.SCRESET())
         {
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Reset AIS sample counter");
           state.sample_counter = 0;
@@ -352,8 +349,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    state.volume.hex = val;
                    auto& system = Core::System::GetInstance();
                    SoundStream* sound_stream = system.GetSoundStream();
-                   sound_stream->GetMixer()->SetStreamingVolume(state.volume.left,
-                                                                state.volume.right);
+                   sound_stream->GetMixer()->SetStreamingVolume(state.volume.left(),
+                                                                state.volume.right());
                  }));
 
   mmio->Register(base | AI_SAMPLE_COUNTER, MMIO::ComplexRead<u32>([](u32) {
@@ -391,7 +388,7 @@ void GenerateAISInterrupt()
 bool IsPlaying()
 {
   auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
-  return (state.control.PSTAT == 1);
+  return (state.control.PSTAT());
 }
 
 u32 GetAIDSampleRateDivisor()
