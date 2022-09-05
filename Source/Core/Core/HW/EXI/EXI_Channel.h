@@ -6,6 +6,7 @@
 #include <array>
 #include <memory>
 
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/HW/GCMemcard/GCMemcard.h"
@@ -29,7 +30,7 @@ public:
   ~CEXIChannel();
 
   // get device
-  IEXIDevice* GetDevice(u8 chip_select);
+  IEXIDevice* GetDevice(const u32 chip_select);
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
@@ -60,51 +61,44 @@ private:
   };
 
   // EXI Status Register - "Channel Parameter Register"
-  union UEXI_STATUS
+  struct EXIStatusRegister
   {
     u32 Hex = 0;
-    // DO NOT obey the warning and give this struct a name. Things will fail.
-    struct
-    {
-      // Indentation Meaning:
-      // Channels 0, 1, 2
-      //  Channels 0, 1 only
-      //      Channel 0 only
-      u32 EXIINTMASK : 1;
-      u32 EXIINT : 1;
-      u32 TCINTMASK : 1;
-      u32 TCINT : 1;
-      u32 CLK : 3;
-      u32 CHIP_SELECT : 3;  // CS1 and CS2 are Channel 0 only
-      u32 EXTINTMASK : 1;
-      u32 EXTINT : 1;
-      u32 EXT : 1;     // External Insertion Status (1: External EXI device present)
-      u32 ROMDIS : 1;  // ROM Disable
-      u32 : 18;
-    };
-    UEXI_STATUS() = default;
-    explicit UEXI_STATUS(u32 hex) : Hex{hex} {}
+
+    BFVIEW(bool, 1, 0, EXIINTMASK)
+    BFVIEW(bool, 1, 1, EXIINT)
+    BFVIEW(bool, 1, 2, TCINTMASK)
+    BFVIEW(bool, 1, 3, TCINT)
+    BFVIEW(u32, 3, 4, CLK)
+    BFVIEW(bool, 1, 7, CS0)
+    BFVIEW(bool, 1, 8, CS1)          // Channel 0 only
+    BFVIEW(bool, 1, 9, CS2)          // Channel 0 only
+    BFVIEW(bool, 1, 10, EXTINTMASK)  // Channel 0, 1 only
+    BFVIEW(bool, 1, 11, EXTINT)      // Channel 0, 1 only
+    BFVIEW(bool, 1, 12, EXT)         // Channel 0, 1 only | 1: External EXI device present
+    BFVIEW(bool, 1, 13, ROMDIS)      // Channel 0 only    | ROM Disable
+    BFVIEW(u32, 3, 7, CHIP_SELECT)   // CS0, CS1, and CS2 merged for convenience.
+
+    EXIStatusRegister() = default;
+    explicit EXIStatusRegister(u32 hex) : Hex{hex} {}
   };
 
   // EXI Control Register
-  union UEXI_CONTROL
+  struct EXIControlRegister
   {
     u32 Hex = 0;
-    struct
-    {
-      u32 TSTART : 1;
-      u32 DMA : 1;
-      u32 RW : 2;
-      u32 TLEN : 2;
-      u32 : 26;
-    };
+
+    BFVIEW(bool, 1, 0, TSTART)
+    BFVIEW(bool, 1, 1, DMA)
+    BFVIEW(u32, 2, 2, RW)
+    BFVIEW(u32, 2, 4, TLEN)
   };
 
   // STATE_TO_SAVE
-  UEXI_STATUS m_status;
+  EXIStatusRegister m_status;
   u32 m_dma_memory_address = 0;
   u32 m_dma_length = 0;
-  UEXI_CONTROL m_control;
+  EXIControlRegister m_control;
   u32 m_imm_data = 0;
 
   // Since channels operate a bit differently from each other

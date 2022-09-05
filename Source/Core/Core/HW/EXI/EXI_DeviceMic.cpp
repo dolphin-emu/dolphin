@@ -57,7 +57,7 @@ long CEXIMic::DataCallback(cubeb_stream* stream, void* user_data, const void* in
   if (mic->samples_avail > mic->stream_size)
   {
     mic->samples_avail = 0;
-    mic->status.buff_ovrflw = 1;
+    mic->status.buff_ovrflw() = true;
   }
 
   return nframes;
@@ -190,7 +190,7 @@ bool CEXIMic::IsInterruptSet()
 {
   if (next_int_ticks && CoreTiming::GetTicks() >= next_int_ticks)
   {
-    if (status.is_active)
+    if (status.is_active())
       UpdateNextInterruptTicks();
     else
       next_int_ticks = 0;
@@ -223,31 +223,31 @@ void CEXIMic::TransferByte(u8& byte)
 
   case cmdGetStatus:
     if (pos == 0)
-      status.button = Pad::GetMicButton(slot);
+      status.button() = Pad::GetMicButton(slot);
 
     byte = status.U8[pos ^ 1];
 
     if (pos == 1)
-      status.buff_ovrflw = 0;
+      status.buff_ovrflw() = false;
     break;
 
   case cmdSetStatus:
   {
-    bool wasactive = status.is_active;
+    bool wasactive = status.is_active();
     status.U8[pos ^ 1] = byte;
 
     // safe to do since these can only be entered if both bytes of status have been written
-    if (!wasactive && status.is_active)
+    if (!wasactive && status.is_active())
     {
-      sample_rate = rate_base << status.sample_rate;
-      buff_size = ring_base << status.buff_size;
+      sample_rate = rate_base << status.sample_rate();
+      buff_size = ring_base << status.buff_size();
       buff_size_samples = buff_size / sample_size;
 
       UpdateNextInterruptTicks();
 
       StreamStart();
     }
-    else if (wasactive && !status.is_active)
+    else if (wasactive && !status.is_active())
     {
       StreamStop();
     }
