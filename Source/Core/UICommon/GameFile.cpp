@@ -45,7 +45,6 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/WiiSaveBanner.h"
 
 namespace UICommon
 {
@@ -447,31 +446,6 @@ void GameFile::XMLMetadataCommit()
   m_custom_name = std::move(m_pending.custom_name);
   m_custom_description = std::move(m_pending.custom_description);
   m_custom_maker = std::move(m_pending.custom_maker);
-}
-
-bool GameFile::WiiBannerChanged()
-{
-  // Wii banners can only be read if there is a save file.
-  // In case the cache was created without a save file existing,
-  // let's try reading the save file again, because it might exist now.
-
-  if (!m_volume_banner.empty())
-    return false;
-  if (!DiscIO::IsWii(m_platform))
-    return false;
-
-  m_pending.volume_banner.buffer =
-      DiscIO::WiiSaveBanner(m_title_id)
-          .GetBanner(&m_pending.volume_banner.width, &m_pending.volume_banner.height);
-
-  // We only reach here if the old banner was empty, so if the new banner isn't empty,
-  // the new banner is guaranteed to be different from the old banner
-  return !m_pending.volume_banner.buffer.empty();
-}
-
-void GameFile::WiiBannerCommit()
-{
-  m_volume_banner = std::move(m_pending.volume_banner);
 }
 
 bool GameFile::ReadPNGBanner(const std::string& path)

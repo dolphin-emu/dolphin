@@ -457,8 +457,8 @@
     <ClInclude Include="DiscIO\WbfsBlob.h" />
     <ClInclude Include="DiscIO\WIABlob.h" />
     <ClInclude Include="DiscIO\WIACompression.h" />
+    <ClInclude Include="DiscIO\WiiBanner.h" />
     <ClInclude Include="DiscIO\WiiEncryptionCache.h" />
-    <ClInclude Include="DiscIO\WiiSaveBanner.h" />
     <ClInclude Include="InputCommon\ControllerEmu\Control\Control.h" />
     <ClInclude Include="InputCommon\ControllerEmu\Control\Input.h" />
     <ClInclude Include="InputCommon\ControllerEmu\Control\Output.h" />
@@ -1077,8 +1077,8 @@
     <ClCompile Include="DiscIO\WbfsBlob.cpp" />
     <ClCompile Include="DiscIO\WIABlob.cpp" />
     <ClCompile Include="DiscIO\WIACompression.cpp" />
+    <ClCompile Include="DiscIO\WiiBanner.cpp" />
     <ClCompile Include="DiscIO\WiiEncryptionCache.cpp" />
-    <ClCompile Include="DiscIO\WiiSaveBanner.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\Control\Control.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\Control\Input.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\Control\Output.cpp" />

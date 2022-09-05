@@ -66,6 +66,7 @@ public:
 
   virtual bool HasWiiHashes() const { return false; }
   virtual bool HasWiiEncryption() const { return false; }
+  virtual bool ExtractARC(std::string path) const { return false; }
   virtual std::vector<Partition> GetPartitions() const { return {}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
   virtual std::optional<u32> GetPartitionType(const Partition& partition) const

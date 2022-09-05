@@ -31,7 +31,7 @@
 #include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/WiiSaveBanner.h"
+#include "DiscIO/WiiBanner.h"
 
 namespace DiscIO
 {
@@ -347,11 +347,7 @@ std::vector<u32> VolumeWii::GetBanner(u32* width, u32* height) const
   *width = 0;
   *height = 0;
 
-  const std::optional<u64> title_id = GetTitleID(GetGamePartition());
-  if (!title_id)
-    return std::vector<u32>();
-
-  return WiiSaveBanner(*title_id).GetBanner(width, height);
+  return WiiBanner(*this, GetGamePartition()).GetBanner(width, height);
 }
 
 Platform VolumeWii::GetVolumeType() const

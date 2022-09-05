@@ -113,8 +113,6 @@ public:
   void DoState(PointerWrap& p);
   bool XMLMetadataChanged();
   void XMLMetadataCommit();
-  bool WiiBannerChanged();
-  void WiiBannerCommit();
   bool CustomBannerChanged();
   void CustomBannerCommit();
   void DownloadDefaultCover();

@@ -812,6 +812,8 @@ else()
   set(LZO lzo2)
 endif()
 
+add_subdirectory(Externals/FastLZ)
+
 add_subdirectory(Externals/libspng)
 
 # Using static FreeSurround from Externals
