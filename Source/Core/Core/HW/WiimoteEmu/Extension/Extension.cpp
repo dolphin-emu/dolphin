@@ -71,19 +71,14 @@ void None::DoState(PointerWrap& p)
   // Nothing needed.
 }
 
-bool None::Matches(u8 slave_addr)
+int None::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
 {
-  return false;
+  return 0;
 }
 
-std::optional<u8> None::ReadByte(u8 addr)
+int None::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
 {
-  return std::nullopt;
-}
-
-bool None::WriteByte(u8 addr, u8 value)
-{
-  return false;
+  return 0;
 }
 
 bool EncryptedExtension::ReadDeviceDetectPin() const

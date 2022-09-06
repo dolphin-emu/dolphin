@@ -51,7 +51,11 @@ int I2CBusSimple::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
     {
       // TODO: Does this make sense? The transmitter can't NACK a read... it's the receiver that
       // does that
-      data_out[i] = slave->ReadByte(addr + i);
+      auto byte = slave->ReadByte(addr + i);
+      if (byte.has_value())
+        data_out[i] = byte.value();
+      else
+        return i;
     }
     return count;
   }
@@ -203,7 +207,18 @@ void I2CBus::SCLRisingEdge(const bool sda)
     ASSERT_MSG(WII_IPC, slave != nullptr,
                "Expected device with ID {:02x} to be on the I2C bus as it was earlier",
                i2c_address.value());
-    current_byte = slave->ReadByte(device_address.value());
+    std::optional<u8> byte = slave->ReadByte(device_address.value());
+    if (!byte.has_value())
+    {
+      WARN_LOG_FMT(WII_IPC, "Failed to read from device {:02x} at address {:02x}",
+                   i2c_address.value(), device_address.value());
+      // TODO
+      current_byte = 0xff;
+    }
+    else
+    {
+      current_byte = byte.value();
+    }
     // INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", device_address.value(),
     //              IOS::GetAVERegisterName(device_address.value()), current_byte);
   }

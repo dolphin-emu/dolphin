@@ -17,27 +17,30 @@ class I2CSlave
 {
 public:
   virtual bool Matches(u8 slave_addr) = 0;
-  virtual u8 ReadByte(u8 addr) = 0;
+  virtual std::optional<u8> ReadByte(u8 addr) = 0;
   virtual bool WriteByte(u8 addr, u8 value) = 0;
+};
 
-protected:
-  ~I2CSlave() = default;
-
-  template<typename T>
-  static u8 RawRead(T* reg_data, u8 addr)
+template <u8 slave_addr_val, typename T>
+class I2CSlaveSimple : I2CSlave
+{
+public:
+  bool Matches(u8 slave_addr) override { return slave_addr == slave_addr_val; }
+  std::optional<u8> ReadByte(u8 addr) { return data_bytes[addr]; }
+  bool WriteByte(u8 addr, u8 value)
   {
-    static_assert(std::is_standard_layout_v<T> && std::is_trivially_copyable_v<T>);
-    static_assert(sizeof(T) == 0x100);
-    return reinterpret_cast<u8*>(reg_data)[addr];
+    data_bytes[addr] = value;
+    return true;
   }
 
-  template <typename T>
-  static void RawWrite(T* reg_data, u8 addr, u8 value)
+  union
   {
-    static_assert(std::is_standard_layout_v<T> && std::is_trivially_copyable_v<T>);
-    static_assert(sizeof(T) == 0x100);
-    reinterpret_cast<u8*>(reg_data)[addr] = value;
-  }
+    T data;
+    std::array<u8, 0x100> data_bytes;
+  };
+
+  static_assert(std::is_standard_layout_v<T> && std::is_trivially_copyable_v<T>);
+  static_assert(sizeof(T) == 0x100);
 };
 
 class I2CBusBase

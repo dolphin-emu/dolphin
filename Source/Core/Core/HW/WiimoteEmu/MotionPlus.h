@@ -248,9 +248,8 @@ private:
   ActivationStatus GetActivationStatus() const;
   PassthroughMode GetPassthroughMode() const;
 
-  bool Matches(u8 slave_addr) override;
-  u8 ReadByte(u8 addr) override;
-  bool WriteByte(u8 addr, u8 value) override;
+  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
+  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
 
   bool ReadDeviceDetectPin() const override;
 
@@ -260,7 +259,7 @@ private:
   u8 m_progress_timer = {};
 
   // The port on the end of the motion plus:
-  Common::I2CBusSimple m_i2c_bus;
+  I2CBus m_i2c_bus;
   ExtensionPort m_extension_port{&m_i2c_bus};
 };
 }  // namespace WiimoteEmu

@@ -5,8 +5,8 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/I2C.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
+#include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 
 namespace Common
@@ -101,7 +101,7 @@ struct IRFull : IRExtended
 };
 static_assert(sizeof(IRFull) == 9, "Wrong size");
 
-class CameraLogic : public Common::I2CSlave
+class CameraLogic : public I2CSlave
 {
 public:
   // OEM sensor bar distance between LED clusters in meters.
@@ -175,9 +175,9 @@ public:
   // The real wiimote reads camera data from the i2c bus at offset 0x37:
   static const u8 REPORT_DATA_OFFSET = offsetof(Register, camera_data);
 
-  bool Matches(u8 slave_addr) override;
-  u8 ReadByte(u8 addr) override;
-  bool WriteByte(u8 addr, u8 value) override;
+private:
+  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
+  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
 
   Register m_reg_data{};
 
