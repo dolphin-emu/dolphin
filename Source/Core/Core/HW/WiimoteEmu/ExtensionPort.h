@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
+#include "Common/I2C.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
-#include "Core/HW/WiimoteEmu/I2CBus.h"
 
 namespace WiimoteEmu
 {
@@ -35,14 +34,14 @@ public:
   static constexpr u8 REPORT_I2C_SLAVE = 0x52;
   static constexpr u8 REPORT_I2C_ADDR = 0x00;
 
-  explicit ExtensionPort(I2CBus* i2c_bus);
+  explicit ExtensionPort(Common::I2CBusBase* i2c_bus);
 
   bool IsDeviceConnected() const;
   void AttachExtension(Extension* dev);
 
 private:
   Extension* m_extension = nullptr;
-  I2CBus& m_i2c_bus;
+  Common::I2CBusBase& m_i2c_bus;
 };
 
 }  // namespace WiimoteEmu

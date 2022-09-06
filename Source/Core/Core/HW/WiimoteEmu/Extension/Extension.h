@@ -10,15 +10,15 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/I2C.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
-#include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 namespace WiimoteEmu
 {
 struct DesiredExtensionState;
 
-class Extension : public ControllerEmu::EmulatedController, public I2CSlave
+class Extension : public ControllerEmu::EmulatedController, public Common::I2CSlave
 {
 public:
   explicit Extension(const char* name);
@@ -56,8 +56,9 @@ private:
   void Reset() override;
   void DoState(PointerWrap& p) override;
 
-  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
-  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
+  bool Matches(u8 slave_addr) override;
+  std::optional<u8> ReadByte(u8 addr) override;
+  bool WriteByte(u8 addr, u8 value) override;
 };
 
 // This class provides the encryption and initialization behavior of most extensions.

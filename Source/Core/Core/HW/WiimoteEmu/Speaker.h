@@ -5,7 +5,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteEmu/I2CBus.h"
+#include "Common/I2C.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace WiimoteEmu
@@ -17,7 +17,7 @@ struct ADPCMState
 
 class Wiimote;
 
-class SpeakerLogic : public I2CSlave
+class SpeakerLogic : public Common::I2CSlave
 {
   friend class Wiimote;
 
@@ -63,8 +63,9 @@ private:
 
   static_assert(0x100 == sizeof(Register));
 
-  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
-  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
+  bool Matches(u8 slave_addr) override;
+  u8 ReadByte(u8 addr) override;
+  bool WriteByte(u8 addr, u8 value) override;
 
   Register reg_data{};
 

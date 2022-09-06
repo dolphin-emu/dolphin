@@ -29,26 +29,20 @@ void CameraLogic::DoState(PointerWrap& p)
   // FYI: m_is_enabled is handled elsewhere.
 }
 
-int CameraLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+bool CameraLogic::Matches(u8 slave_addr)
 {
-  if (I2C_ADDR != slave_addr)
-    return 0;
-
-  if (!m_is_enabled)
-    return 0;
-
-  return RawRead(&m_reg_data, addr, count, data_out);
+  return I2C_ADDR == slave_addr && m_is_enabled;
 }
 
-int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+u8 CameraLogic::ReadByte(u8 addr)
 {
-  if (I2C_ADDR != slave_addr)
-    return 0;
+  return RawRead(&m_reg_data, addr);
+}
 
-  if (!m_is_enabled)
-    return 0;
-
-  return RawWrite(&m_reg_data, addr, count, data_in);
+bool CameraLogic::WriteByte(u8 addr, u8 value)
+{
+  RawWrite(&m_reg_data, addr, value);
+  return true;
 }
 
 std::array<CameraPoint, CameraLogic::NUM_POINTS>

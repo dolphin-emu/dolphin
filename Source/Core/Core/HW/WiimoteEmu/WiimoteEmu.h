@@ -10,6 +10,7 @@
 
 #include "Common/Common.h"
 #include "Common/Config/Config.h"
+#include "Common/I2C.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
@@ -17,7 +18,6 @@
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
-#include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteEmu/Speaker.h"
 
@@ -316,7 +316,7 @@ private:
   MotionPlus m_motion_plus;
   CameraLogic m_camera_logic;
 
-  I2CBus m_i2c_bus;
+  Common::I2CBusSimple m_i2c_bus;
 
   ExtensionPort m_extension_port{&m_i2c_bus};
 

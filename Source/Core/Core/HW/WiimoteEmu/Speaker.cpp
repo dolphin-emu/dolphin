@@ -153,30 +153,29 @@ void SpeakerLogic::SetSpeakerEnabled(bool enabled)
   m_speaker_enabled = enabled;
 }
 
-int SpeakerLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+bool SpeakerLogic::Matches(u8 slave_addr)
 {
-  if (I2C_ADDR != slave_addr)
-    return 0;
-
-  return RawRead(&reg_data, addr, count, data_out);
+  return I2C_ADDR == slave_addr;
 }
 
-int SpeakerLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+u8 SpeakerLogic::ReadByte(u8 addr)
 {
-  if (I2C_ADDR != slave_addr)
-    return 0;
+  return RawRead(&reg_data, addr);
+}
 
+bool SpeakerLogic::WriteByte(u8 addr, u8 value)
+{
   if (0x00 == addr)
   {
     SpeakerData(data_in, count, m_speaker_pan_setting.GetValue() / 100);
-    return count;
+    // TODO: Does writing immediately change the decoder config even when active
+    // or does a write to 0x08 activate the new configuration or something?
   }
   else
   {
-    // TODO: Does writing immediately change the decoder config even when active
-    // or does a write to 0x08 activate the new configuration or something?
-    return RawWrite(&reg_data, addr, count, data_in);
+    RawWrite(&reg_data, addr, value);
   }
+  return true;
 }
 
 }  // namespace WiimoteEmu
