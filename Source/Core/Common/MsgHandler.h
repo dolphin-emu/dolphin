@@ -34,23 +34,18 @@ void RegisterStringTranslator(StringTranslator translator);
 bool MsgAlertFmtImpl(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
                      int line, fmt::string_view format, const fmt::format_args& args);
 
-template <std::size_t NumFields, typename S, typename... Args>
+template <std::size_t NumFields, FmtCompileString S, typename... Args>
 bool MsgAlertFmt(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
                  int line, const S& format, const Args&... args)
 {
   static_assert(NumFields == sizeof...(args),
                 "Unexpected number of replacement fields in format string; did you pass too few or "
                 "too many arguments?");
-#if FMT_VERSION >= 90000
-  static_assert(fmt::detail::is_compile_string<S>::value);
-#else
-  static_assert(fmt::is_compile_string<S>::value);
-#endif
   return MsgAlertFmtImpl(yes_no, style, log_type, file, line, format,
                          fmt::make_format_args(args...));
 }
 
-template <std::size_t NumFields, bool has_non_positional_args, typename S, typename... Args>
+template <std::size_t NumFields, bool has_non_positional_args, FmtCompileString S, typename... Args>
 bool MsgAlertFmtT(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
                   int line, const S& format, fmt::string_view translated_format,
                   const Args&... args)
@@ -60,11 +55,6 @@ bool MsgAlertFmtT(bool yes_no, MsgType style, Common::Log::LogType log_type, con
   static_assert(NumFields == sizeof...(args),
                 "Unexpected number of replacement fields in format string; did you pass too few or "
                 "too many arguments?");
-#if FMT_VERSION >= 90000
-  static_assert(fmt::detail::is_compile_string<S>::value);
-#else
-  static_assert(fmt::is_compile_string<S>::value);
-#endif
   auto arg_list = fmt::make_format_args(args...);
   return MsgAlertFmtImpl(yes_no, style, log_type, file, line, translated_format, arg_list);
 }

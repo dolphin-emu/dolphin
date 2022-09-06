@@ -16,6 +16,9 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
+
+#include "Common/Future/CppLibConcepts.h"
 
 std::string StringFromFormatV(const char* format, va_list args);
 
@@ -54,7 +57,7 @@ void TruncateToCString(std::string* s);
 
 bool TryParse(const std::string& str, bool* output);
 
-template <typename T, std::enable_if_t<std::is_integral_v<T> || std::is_enum_v<T>>* = nullptr>
+template <Common::IntegralOrEnum T>
 bool TryParse(const std::string& str, T* output, int base = 0)
 {
   char* end_ptr = nullptr;
@@ -92,7 +95,7 @@ bool TryParse(const std::string& str, T* output, int base = 0)
   return true;
 }
 
-template <typename T, std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
+template <std::floating_point T>
 bool TryParse(std::string str, T* const output)
 {
   // Replace commas with dots.
@@ -138,7 +141,7 @@ std::string ValueToString(double value);
 std::string ValueToString(int value);
 std::string ValueToString(s64 value);
 std::string ValueToString(bool value);
-template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+template <Common::Enumerated T>
 std::string ValueToString(T value)
 {
   return ValueToString(static_cast<std::underlying_type_t<T>>(value));

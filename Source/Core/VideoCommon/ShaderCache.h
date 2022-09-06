@@ -171,11 +171,11 @@ private:
   void QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 priority);
 
   // Populating various caches.
-  template <ShaderStage stage, typename K, typename T>
+  template <ShaderStage stage, Common::TriviallyCopyable K, typename T>
   void LoadShaderCache(T& cache, APIType api_type, const char* type, bool include_gameid);
   template <typename T>
   void ClearShaderCache(T& cache);
-  template <typename KeyType, typename DiskKeyType, typename T>
+  template <typename KeyType, Common::TriviallyCopyable DiskKeyType, typename T>
   void LoadPipelineCache(T& cache, LinearDiskCache<DiskKeyType, u8>& disk_cache, APIType api_type,
                          const char* type, bool include_gameid);
   template <typename T, typename Y>

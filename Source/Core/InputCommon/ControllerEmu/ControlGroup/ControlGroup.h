@@ -16,21 +16,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ControllerEmu
 {
-class Control;
-
-class NumericSettingBase;
-struct NumericSettingDetails;
-
-template <typename T>
-class NumericSetting;
-
-template <typename T>
-class SettingValue;
-
 using InputOverrideFunction = std::function<std::optional<ControlState>(
     const std::string_view group_name, const std::string_view control_name, ControlState state)>;
 
@@ -79,7 +69,7 @@ public:
   void AddInput(Translatability translate, std::string name, std::string ui_name);
   void AddOutput(Translatability translate, std::string name);
 
-  template <typename T>
+  template <SettingConstraint T>
   void AddSetting(SettingValue<T>* value, const NumericSettingDetails& details,
                   std::common_type_t<T> default_value_, std::common_type_t<T> min_value = {},
                   std::common_type_t<T> max_value = T(100))

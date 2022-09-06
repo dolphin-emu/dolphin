@@ -8,11 +8,11 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/StringUtil.h"
 
@@ -31,10 +31,9 @@ const IOS::ES::TicketReader Volume::INVALID_TICKET{};
 const IOS::ES::TMDReader Volume::INVALID_TMD{};
 const std::vector<u8> Volume::INVALID_CERT_CHAIN{};
 
-template <typename T>
+template <Common::TriviallyCopyable T>
 static void AddToSyncHash(Common::SHA1::Context* context, const T& data)
 {
-  static_assert(std::is_trivially_copyable_v<T>);
   context->Update(reinterpret_cast<const u8*>(&data), sizeof(data));
 }
 

@@ -7,9 +7,11 @@
 #include "Common/StringUtil.h"
 #include "VideoCommon/TextureCacheBase.h"
 
+#include "Common/Future/CppLibConcepts.h"
+
 namespace
 {
-template <typename T, std::enable_if_t<std::is_base_of_v<FBTarget, T>, int> = 0>
+template <std::derived_from<FBTarget> T>
 std::optional<T> DeserializeFBTargetFromConfig(const picojson::object& obj, std::string_view prefix)
 {
   T fb;
