@@ -261,8 +261,11 @@ void WiiIPC::InitState()
 
   m_ppc_irq_masks |= INT_CAUSE_IPC_BROADWAY;
 
+  ave_state.Reset();
   i2c_state = {};
   ave_state.Reset();
+  ave_state.m_registers.video_output_config = 0x23;
+  i2c_state.AddSlave(&ave_state);
 }
 
 void WiiIPC::Init()

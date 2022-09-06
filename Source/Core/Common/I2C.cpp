@@ -305,16 +305,7 @@ void I2CBus::SCLFallingEdge(const bool sda)
   // SCL falling edge is used to advance bit_counter/change states and process writes.
   if (state == State::SetI2CAddress || state == State::WriteToDevice)
   {
-    if (bit_counter == 8)
-    {
-      // Acknowledge bit for *reads*.
-      if (sda)
-      {
-        WARN_LOG_FMT(WII_IPC, "Read NACK'd");
-        state = State::Inactive;
-      }
-    }
-    else
+    if (bit_counter != 8)
     {
       current_byte <<= 1;
       if (sda)
@@ -337,7 +328,7 @@ void I2CBus::SCLFallingEdge(const bool sda)
             else
             {
               state = State::Inactive;  // NACK
-              WARN_LOG_FMT(WII_IPC, "I2C: No device responded to read from {:02x}", current_byte);
+              WARN_LOG_FMT(WII_IPC, "I2C: No device responded to read from {:02x}", slave_addr);
             }
           }
           else
@@ -350,7 +341,7 @@ void I2CBus::SCLFallingEdge(const bool sda)
             else
             {
               state = State::Inactive;  // NACK
-              WARN_LOG_FMT(WII_IPC, "I2C: No device responded to write to {:02x}", current_byte);
+              WARN_LOG_FMT(WII_IPC, "I2C: No device responded to write to {:02x}", slave_addr);
             }
           }
         }
@@ -390,6 +381,15 @@ void I2CBus::SCLFallingEdge(const bool sda)
         else
         {
           state = State::ReadFromDevice;
+        }
+      }
+      else if (state == State::ReadFromDevice)
+      {
+        // Acknowledge bit for *reads*.
+        if (sda)
+        {
+          WARN_LOG_FMT(WII_IPC, "Read NACK'd");
+          state = State::Inactive;
         }
       }
     }
