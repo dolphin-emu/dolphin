@@ -6,7 +6,7 @@
 #include <array>
 #include <type_traits>
 
-#include "Common/TypeUtils.h"
+#include "Common/Concepts.h"
 
 template <std::size_t position, std::size_t bits, typename T, typename StorageType>
 struct BitField;
@@ -36,9 +36,9 @@ public:
   constexpr EnumMap(EnumMap&& other) = default;
   constexpr EnumMap& operator=(EnumMap&& other) = default;
 
-  // Constructor that accepts exactly size Vs (enforcing that all must be specified).
-  template <typename... T, typename = std::enable_if_t<Common::IsNOf<V, s_size, T...>::value>>
-  constexpr EnumMap(T... values) : m_array{static_cast<V>(values)...}
+  template <typename... Ts>
+  constexpr EnumMap(Ts... values) requires CountOfTypes<s_size, Ts...> &&
+      ConvertibleFromAllOf<V, Ts...> : m_array{static_cast<V>(values)...}
   {
   }
 

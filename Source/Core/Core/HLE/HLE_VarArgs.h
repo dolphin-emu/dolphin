@@ -5,11 +5,14 @@
 
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include <type_traits>
+
+#include "Common/Future/CppLibConcepts.h"
 
 namespace Core
 {
@@ -19,15 +22,14 @@ class System;
 
 namespace HLE::SystemVABI
 {
-// SFINAE
 template <typename T>
-constexpr bool IS_ARG_POINTER = std::is_union<T>() || std::is_class<T>();
+concept arg_ARGPOINTER = Common::Union<T> || Common::Class<T>;
 template <typename T>
-constexpr bool IS_WORD = std::is_pointer<T>() || (std::is_integral<T>() && sizeof(T) <= 4);
+concept arg_WORD = Common::Pointer<T> ||(std::integral<T> && sizeof(T) <= 4);
 template <typename T>
-constexpr bool IS_DOUBLE_WORD = std::is_integral<T>() && sizeof(T) == 8;
+concept arg_DOUBLEWORD = std::integral<T> && sizeof(T) == 8;
 template <typename T>
-constexpr bool IS_ARG_REAL = std::is_floating_point<T>();
+concept arg_ARGREAL = std::floating_point<T>;
 
 // See System V ABI (SVR4) for more details
 //  -> 3-18 Parameter Passing
@@ -46,8 +48,7 @@ public:
   }
   virtual ~VAList();
 
-  // 0 - arg_ARGPOINTER
-  template <typename T, typename std::enable_if_t<IS_ARG_POINTER<T>>* = nullptr>
+  template <arg_ARGPOINTER T>
   T GetArg(const Core::CPUThreadGuard& guard)
   {
     T obj;
@@ -61,8 +62,7 @@ public:
     return obj;
   }
 
-  // 1 - arg_WORD
-  template <typename T, typename std::enable_if_t<IS_WORD<T>>* = nullptr>
+  template <arg_WORD T>
   T GetArg(const Core::CPUThreadGuard& guard)
   {
     static_assert(!std::is_pointer<T>(), "VAList doesn't support pointers");
@@ -83,8 +83,7 @@ public:
     return static_cast<T>(value);
   }
 
-  // 2 - arg_DOUBLEWORD
-  template <typename T, typename std::enable_if_t<IS_DOUBLE_WORD<T>>* = nullptr>
+  template <arg_DOUBLEWORD T>
   T GetArg(const Core::CPUThreadGuard& guard)
   {
     u64 value;
@@ -106,8 +105,7 @@ public:
     return static_cast<T>(value);
   }
 
-  // 3 - arg_ARGREAL
-  template <typename T, typename std::enable_if_t<IS_ARG_REAL<T>>* = nullptr>
+  template <arg_ARGREAL T>
   T GetArg(const Core::CPUThreadGuard& guard)
   {
     double value;

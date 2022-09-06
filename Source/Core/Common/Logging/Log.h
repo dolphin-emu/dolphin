@@ -91,7 +91,7 @@ static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
 void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
                        fmt::string_view format, const fmt::format_args& args);
 
-template <std::size_t NumFields, typename S, typename... Args>
+template <std::size_t NumFields, FmtCompileString S, typename... Args>
 void GenericLogFmt(LogLevel level, LogType type, const char* file, int line, const S& format,
                    const Args&... args)
 {

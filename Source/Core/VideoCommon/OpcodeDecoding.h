@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
@@ -12,6 +10,8 @@
 #include "Common/Swap.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/VertexLoaderBase.h"
+
+#include "Common/Future/CppLibConcepts.h"
 
 struct CPState;
 class DataReader;
@@ -118,7 +118,7 @@ public:
 namespace detail
 {
 // Main logic; split so that the main RunCommand can call OnCommand with the returned size.
-template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
+template <std::derived_from<Callback> T>
 static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
 {
   if (available < 1)
@@ -248,7 +248,7 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& cal
 }
 }  // namespace detail
 
-template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
+template <std::derived_from<Callback> T>
 DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
 {
   const u32 size = detail::RunCommand(data, available, callback);
@@ -259,7 +259,7 @@ DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
   return size;
 }
 
-template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
+template <std::derived_from<Callback> T>
 DOLPHIN_FORCE_INLINE u32 Run(const u8* data, u32 available, T& callback)
 {
   u32 size = 0;

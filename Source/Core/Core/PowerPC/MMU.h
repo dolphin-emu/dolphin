@@ -11,6 +11,8 @@
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 
+#include "Common/Future/CppLibConcepts.h"
+
 namespace Core
 {
 class CPUThreadGuard;
@@ -303,14 +305,14 @@ private:
   void UpdateBATs(BatTable& bat_table, u32 base_spr);
   void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr);
 
-  template <XCheckTLBFlag flag, typename T, bool never_translate = false>
+  template <XCheckTLBFlag flag, std::integral T, bool never_translate = false>
   T ReadFromHardware(u32 em_address);
   template <XCheckTLBFlag flag, bool never_translate = false>
   void WriteToHardware(u32 em_address, const u32 data, const u32 size);
   template <XCheckTLBFlag flag>
   bool IsRAMAddress(u32 address, bool translate);
 
-  template <typename T>
+  template <std::integral T>
   static std::optional<ReadResult<T>> HostTryReadUX(const Core::CPUThreadGuard& guard,
                                                     const u32 address, RequestedAddressSpace space);
   static std::optional<WriteResult> HostTryWriteUX(const Core::CPUThreadGuard& guard, const u32 var,

@@ -50,6 +50,8 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 
+#include "Common/Future/CppLibConcepts.h"
+
 namespace PowerPC
 {
 MMU::MMU(Core::System& system, Memory::MemoryManager& memory, PowerPC::PowerPCManager& power_pc)
@@ -145,7 +147,7 @@ static void EFB_Write(u32 data, u32 addr)
   }
 }
 
-template <XCheckTLBFlag flag, typename T, bool never_translate>
+template <XCheckTLBFlag flag, std::integral T, bool never_translate>
 T MMU::ReadFromHardware(u32 em_address)
 {
   const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
@@ -593,7 +595,7 @@ u64 MMU::Read_U64(const u32 address)
   return var;
 }
 
-template <typename T>
+template <std::integral T>
 std::optional<ReadResult<T>> MMU::HostTryReadUX(const Core::CPUThreadGuard& guard,
                                                 const u32 address, RequestedAddressSpace space)
 {

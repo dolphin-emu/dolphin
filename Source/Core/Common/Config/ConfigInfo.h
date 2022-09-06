@@ -10,17 +10,11 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 #include "Common/Config/Enums.h"
 
 namespace Config
 {
-namespace detail
-{
-// std::underlying_type may only be used with enum types, so make sure T is an enum type first.
-template <typename T>
-using UnderlyingType = typename std::enable_if_t<std::is_enum<T>{}, std::underlying_type<T>>::type;
-}  // namespace detail
-
 struct Location
 {
   System system{};
@@ -55,9 +49,8 @@ public:
 
   // Make it easy to convert Info<Enum> into Info<UnderlyingType<Enum>>
   // so that enum settings can still easily work with code that doesn't care about the enum values.
-  template <typename Enum,
-            std::enable_if_t<std::is_same<T, detail::UnderlyingType<Enum>>::value>* = nullptr>
-  Info(const Info<Enum>& other)
+  template <Common::Enumerated Enum>
+  Info(const Info<Enum>& other) requires Common::UnderlyingSameAs<Enum, T>
   {
     *this = other;
   }
@@ -81,9 +74,8 @@ public:
 
   // Make it easy to convert Info<Enum> into Info<UnderlyingType<Enum>>
   // so that enum settings can still easily work with code that doesn't care about the enum values.
-  template <typename Enum,
-            std::enable_if_t<std::is_same<T, detail::UnderlyingType<Enum>>::value>* = nullptr>
-  Info<T>& operator=(const Info<Enum>& other)
+  template <Common::Enumerated Enum>
+  Info<T>& operator=(const Info<Enum>& other) requires Common::UnderlyingSameAs<Enum, T>
   {
     m_location = other.GetLocation();
     m_default_value = static_cast<T>(other.GetDefaultValue());

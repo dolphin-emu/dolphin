@@ -7,13 +7,13 @@
 #include <functional>
 #include <iterator>
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include <fmt/format.h>
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 #include "Common/EnumMap.h"
 #include "Common/StringUtil.h"
 #include "Common/TypeUtils.h"
@@ -65,13 +65,10 @@ public:
  * NOTE: Because LinearDiskCache reads and writes the storage associated with a ShaderUid instance,
  * ShaderUid must be trivially copyable.
  */
-template <class uid_data>
+template <Common::TriviallyCopyable uid_data>
 class ShaderUid : public ShaderGeneratorInterface
 {
 public:
-  static_assert(std::is_trivially_copyable_v<uid_data>,
-                "uid_data must be a trivially copyable type");
-
   ShaderUid() { memset(GetUidData(), 0, GetUidDataSize()); }
 
   bool operator==(const ShaderUid& obj) const

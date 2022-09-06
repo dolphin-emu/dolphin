@@ -5,9 +5,9 @@
 
 #include <cstddef>
 #include <memory>
-#include <type_traits>
 
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 
 namespace Common::Random
 {
@@ -15,10 +15,9 @@ namespace Common::Random
 void Generate(void* buffer, std::size_t size);
 
 /// Generates a random value of arithmetic type `T`
-template <typename T>
+template <Arithmetic T>
 T GenerateValue()
 {
-  static_assert(std::is_arithmetic<T>(), "T must be an arithmetic type in GenerateValue.");
   T value;
   Generate(&value, sizeof(value));
   return value;

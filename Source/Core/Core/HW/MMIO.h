@@ -7,15 +7,17 @@
 #include <atomic>
 #include <string>
 #include <tuple>
-#include <type_traits>
 
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIOHandlers.h"
 #include "Core/System.h"
+
+#include "Common/Future/CppLibConcepts.h"
 
 namespace MMIO
 {
@@ -98,6 +100,9 @@ inline u16* HighPart(std::atomic<u32>* ptr)
 }
 }  // namespace Utils
 
+template <class Unit>
+concept HandlerConstraint = Common::SameAsAnyOf<Unit, u8, u16, u32>;
+
 class Mapping
 {
 public:
@@ -105,20 +110,20 @@ public:
   //
   // Example usages can be found in just about any HW/ module in Dolphin's
   // codebase.
-  template <typename Unit>
-  void RegisterRead(u32 addr, ReadHandlingMethod<Unit>* read)
+  template <HandlerConstraint T>
+  void RegisterRead(u32 addr, ReadHandlingMethod<T>* read)
   {
-    GetHandlerForRead<Unit>(addr).ResetMethod(read);
+    GetHandlerForRead<T>(addr).ResetMethod(read);
   }
 
-  template <typename Unit>
-  void RegisterWrite(u32 addr, WriteHandlingMethod<Unit>* write)
+  template <HandlerConstraint T>
+  void RegisterWrite(u32 addr, WriteHandlingMethod<T>* write)
   {
-    GetHandlerForWrite<Unit>(addr).ResetMethod(write);
+    GetHandlerForWrite<T>(addr).ResetMethod(write);
   }
 
-  template <typename Unit>
-  void Register(u32 addr, ReadHandlingMethod<Unit>* read, WriteHandlingMethod<Unit>* write)
+  template <HandlerConstraint T>
+  void Register(u32 addr, ReadHandlingMethod<T>* read, WriteHandlingMethod<T>* write)
   {
     RegisterRead(addr, read);
     RegisterWrite(addr, write);
@@ -130,16 +135,31 @@ public:
   // address. They are used by the Memory:: access functions, which are
   // called in interpreter mode, from Dolphin's own code, or from JIT'd code
   // where the access address could not be predicted.
-  template <typename Unit>
-  Unit Read(u32 addr)
+  template <HandlerConstraint T>
+  T Read(u32 addr)
   {
-    return GetHandlerForRead<Unit>(addr).Read(Core::System::GetInstance(), addr);
+    return GetHandlerForRead<T>(addr).Read(Core::System::GetInstance(), addr);
   }
 
-  template <typename Unit>
-  void Write(u32 addr, Unit val)
+  template <HandlerConstraint T>
+  void Write(u32 addr, T val)
   {
-    GetHandlerForWrite<Unit>(addr).Write(Core::System::GetInstance(), addr, val);
+    GetHandlerForWrite<T>(addr).Write(Core::System::GetInstance(), addr, val);
+  }
+
+  // Dummy 64 bits variants of these functions. While 64 bits MMIO access is
+  // not supported, we need these in order to make the code compile.
+  template <std::same_as<u64> T>
+  T Read(u32 addr)
+  {
+    ASSERT(false);
+    return 0;
+  }
+
+  template <std::same_as<u64> T>
+  void Write(u32 addr, T val)
+  {
+    ASSERT(false);
   }
 
   // Handlers access interface.
@@ -147,16 +167,16 @@ public:
   // Use when you care more about how to access the MMIO register for an
   // address than the current value of that register. For example, this is
   // what could be used to implement fast MMIO accesses in Dolphin's JIT.
-  template <typename Unit>
-  ReadHandler<Unit>& GetHandlerForRead(u32 addr)
+  template <HandlerConstraint T>
+  ReadHandler<T>& GetHandlerForRead(u32 addr)
   {
-    return GetReadHandler<Unit>(UniqueID(addr) / sizeof(Unit));
+    return GetReadHandler<T>(UniqueID(addr) / sizeof(T));
   }
 
-  template <typename Unit>
-  WriteHandler<Unit>& GetHandlerForWrite(u32 addr)
+  template <HandlerConstraint T>
+  WriteHandler<T>& GetHandlerForWrite(u32 addr)
   {
-    return GetWriteHandler<Unit>(UniqueID(addr) / sizeof(Unit));
+    return GetWriteHandler<T>(UniqueID(addr) / sizeof(T));
   }
 
 private:
@@ -168,11 +188,11 @@ private:
   // Each array contains NUM_MMIOS / sizeof (AccessType) because larger
   // access types mean less possible adresses (assuming aligned only
   // accesses).
-  template <typename Unit>
+  template <HandlerConstraint T>
   struct HandlerArray
   {
-    using Read = std::array<ReadHandler<Unit>, NUM_MMIOS / sizeof(Unit)>;
-    using Write = std::array<WriteHandler<Unit>, NUM_MMIOS / sizeof(Unit)>;
+    using Read = std::array<ReadHandler<T>, NUM_MMIOS / sizeof(T)>;
+    using Write = std::array<WriteHandler<T>, NUM_MMIOS / sizeof(T)>;
   };
 
   HandlerArray<u8>::Read m_read_handlers8;
@@ -184,45 +204,22 @@ private:
   HandlerArray<u32>::Write m_write_handlers32;
 
   // Getter functions for the handler arrays.
-  template <typename Unit>
-  ReadHandler<Unit>& GetReadHandler(size_t index)
+  template <HandlerConstraint T>
+  ReadHandler<T>& GetReadHandler(size_t index)
   {
-    static_assert(std::is_same<Unit, u8>() || std::is_same<Unit, u16>() ||
-                      std::is_same<Unit, u32>(),
-                  "Invalid unit used");
-
     auto handlers = std::tie(m_read_handlers8, m_read_handlers16, m_read_handlers32);
 
-    using ArrayType = typename HandlerArray<Unit>::Read;
+    using ArrayType = typename HandlerArray<T>::Read;
     return std::get<ArrayType&>(handlers)[index];
   }
 
-  template <typename Unit>
-  WriteHandler<Unit>& GetWriteHandler(size_t index)
+  template <HandlerConstraint T>
+  WriteHandler<T>& GetWriteHandler(size_t index)
   {
-    static_assert(std::is_same<Unit, u8>() || std::is_same<Unit, u16>() ||
-                      std::is_same<Unit, u32>(),
-                  "Invalid unit used");
-
     auto handlers = std::tie(m_write_handlers8, m_write_handlers16, m_write_handlers32);
 
-    using ArrayType = typename HandlerArray<Unit>::Write;
+    using ArrayType = typename HandlerArray<T>::Write;
     return std::get<ArrayType&>(handlers)[index];
   }
 };
-
-// Dummy 64 bits variants of these functions. While 64 bits MMIO access is
-// not supported, we need these in order to make the code compile.
-template <>
-inline u64 Mapping::Read<u64>(u32 addr)
-{
-  DEBUG_ASSERT(false);
-  return 0;
-}
-
-template <>
-inline void Mapping::Write(u32 addr, u64 val)
-{
-  DEBUG_ASSERT(false);
-}
 }  // namespace MMIO
