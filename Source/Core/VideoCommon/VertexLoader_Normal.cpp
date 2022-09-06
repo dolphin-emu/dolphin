@@ -14,6 +14,8 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
 
+#include "Common/Future/CppLibConcepts.h"
+
 // warning: mapping buffer should be disabled to use this
 #define LOG_NORM()  // PRIM_LOG("norm: {} {} {}, ", ((float*)g_vertex_manager_write_ptr)[-3],
                     // ((float*)g_vertex_manager_write_ptr)[-2],
@@ -70,11 +72,9 @@ void Normal_ReadDirect(VertexLoader* loader)
   DataSkip<N * 3 * sizeof(T)>();
 }
 
-template <typename I, typename T, u32 N, u32 Offset>
+template <std::unsigned_integral I, typename T, u32 N, u32 Offset>
 void Normal_ReadIndex_Offset(VertexLoader* loader)
 {
-  static_assert(std::is_unsigned_v<I>, "Only unsigned I is sane!");
-
   const auto index = DataRead<I>();
   const auto data = reinterpret_cast<const T*>(
       VertexLoaderManager::cached_arraybases[CPArray::Normal] +
@@ -82,13 +82,13 @@ void Normal_ReadIndex_Offset(VertexLoader* loader)
   ReadIndirect<T, N * 3>(loader, data);
 }
 
-template <typename I, typename T, u32 N>
+template <std::unsigned_integral I, typename T, u32 N>
 void Normal_ReadIndex(VertexLoader* loader)
 {
   Normal_ReadIndex_Offset<I, T, N, 0>(loader);
 }
 
-template <typename I, typename T>
+template <std::unsigned_integral I, typename T>
 void Normal_ReadIndex_Indices3(VertexLoader* loader)
 {
   Normal_ReadIndex_Offset<I, T, 1, 0>(loader);

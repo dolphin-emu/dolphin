@@ -20,6 +20,7 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -47,11 +48,9 @@ static void PushBack(std::vector<u8>* vector, const u8* begin, const u8* end)
   std::copy(begin, end, vector->data() + offset_in_vector);
 }
 
-template <typename T>
+template <Common::TriviallyCopyable T>
 static void PushBack(std::vector<u8>* vector, const T& x)
 {
-  static_assert(std::is_trivially_copyable_v<T>);
-
   const u8* x_ptr = reinterpret_cast<const u8*>(&x);
   PushBack(vector, x_ptr, x_ptr + sizeof(T));
 }

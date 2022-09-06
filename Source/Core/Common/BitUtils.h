@@ -11,6 +11,10 @@
 #include <initializer_list>
 #include <type_traits>
 
+#include "Common/Concepts.h"
+
+#include "Common/Future/CppLibConcepts.h"
+
 #ifdef _MSC_VER
 #include <intrin.h>
 #endif
@@ -161,11 +165,10 @@ constexpr T RotateRight(const T value, size_t amount) noexcept
 ///
 /// @return A bool indicating whether the mask is valid.
 ///
-template <typename T>
+template <std::unsigned_integral T>
 constexpr bool IsValidLowMask(const T mask) noexcept
 {
-  static_assert(std::is_integral<T>::value, "Mask must be an integral type.");
-  static_assert(std::is_unsigned<T>::value, "Signed masks can introduce hard to find bugs.");
+  // Signed masks can introduce hard to find bugs.
 
   // Can be efficiently determined without looping or bit counting. It's the counterpart
   // to https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
@@ -191,38 +194,28 @@ constexpr bool IsValidLowMask(const T mask) noexcept
 /// @pre Both To and From types must be the same size
 /// @pre Both To and From types must satisfy the TriviallyCopyable concept.
 ///
-template <typename To, typename From>
+template <TriviallyCopyable To, TriviallyCopyable From>
 inline To BitCast(const From& source) noexcept
 {
   static_assert(sizeof(From) == sizeof(To),
                 "BitCast source and destination types must be equal in size.");
-  static_assert(std::is_trivially_copyable<From>(),
-                "BitCast source type must be trivially copyable.");
-  static_assert(std::is_trivially_copyable<To>(),
-                "BitCast destination type must be trivially copyable.");
 
   alignas(To) std::byte storage[sizeof(To)];
   std::memcpy(&storage, &source, sizeof(storage));
   return reinterpret_cast<To&>(storage);
 }
 
-template <typename T, typename PtrType>
+template <TriviallyCopyable T, TriviallyCopyable PtrType>
 class BitCastPtrType
 {
 public:
-  static_assert(std::is_trivially_copyable<PtrType>(),
-                "BitCastPtr source type must be trivially copyable.");
-  static_assert(std::is_trivially_copyable<T>(),
-                "BitCastPtr destination type must be trivially copyable.");
-
   explicit BitCastPtrType(PtrType* ptr) : m_ptr(ptr) {}
 
   // Enable operator= only for pointers to non-const data
-  template <typename S>
-  inline typename std::enable_if<std::is_same<S, T>() && !std::is_const<PtrType>()>::type
-  operator=(const S& source)
+  inline BitCastPtrType& operator=(const T& source) requires NotConst<PtrType>
   {
     std::memcpy(m_ptr, &source, sizeof(source));
+    return *this;
   }
 
   inline operator T() const
@@ -247,46 +240,34 @@ inline auto BitCastPtr(PtrType* ptr) noexcept -> BitCastPtrType<T, PtrType>
 }
 
 // Similar to BitCastPtr, but specifically for aliasing structs to arrays.
-template <typename ArrayType, typename T,
-          typename Container = std::array<ArrayType, sizeof(T) / sizeof(ArrayType)>>
+template <typename ArrayType, TriviallyCopyable T,
+          TriviallyCopyable Container = std::array<ArrayType, sizeof(T) / sizeof(ArrayType)>>
 inline auto BitCastToArray(const T& obj) noexcept -> Container
 {
   static_assert(sizeof(T) % sizeof(ArrayType) == 0,
                 "Size of array type must be a factor of size of source type.");
-  static_assert(std::is_trivially_copyable<T>(),
-                "BitCastToArray source type must be trivially copyable.");
-  static_assert(std::is_trivially_copyable<Container>(),
-                "BitCastToArray array type must be trivially copyable.");
 
   Container result;
   std::memcpy(result.data(), &obj, sizeof(T));
   return result;
 }
 
-template <typename ArrayType, typename T,
-          typename Container = std::array<ArrayType, sizeof(T) / sizeof(ArrayType)>>
+template <typename ArrayType, TriviallyCopyable T,
+          TriviallyCopyable Container = std::array<ArrayType, sizeof(T) / sizeof(ArrayType)>>
 inline void BitCastFromArray(const Container& array, T& obj) noexcept
 {
   static_assert(sizeof(T) % sizeof(ArrayType) == 0,
                 "Size of array type must be a factor of size of destination type.");
-  static_assert(std::is_trivially_copyable<Container>(),
-                "BitCastFromArray array type must be trivially copyable.");
-  static_assert(std::is_trivially_copyable<T>(),
-                "BitCastFromArray destination type must be trivially copyable.");
 
   std::memcpy(&obj, array.data(), sizeof(T));
 }
 
-template <typename ArrayType, typename T,
-          typename Container = std::array<ArrayType, sizeof(T) / sizeof(ArrayType)>>
+template <typename ArrayType, TriviallyCopyable T,
+          TriviallyCopyable Container = std::array<ArrayType, sizeof(T) / sizeof(ArrayType)>>
 inline auto BitCastFromArray(const Container& array) noexcept -> T
 {
   static_assert(sizeof(T) % sizeof(ArrayType) == 0,
                 "Size of array type must be a factor of size of destination type.");
-  static_assert(std::is_trivially_copyable<Container>(),
-                "BitCastFromArray array type must be trivially copyable.");
-  static_assert(std::is_trivially_copyable<T>(),
-                "BitCastFromArray destination type must be trivially copyable.");
 
   T obj;
   std::memcpy(&obj, array.data(), sizeof(T));
@@ -352,11 +333,9 @@ public:
 
 // Left-shift a value and set new LSBs to that of the supplied LSB.
 // Converts a value from a N-bit range to an (N+X)-bit range. e.g. 0x101 -> 0x10111
-template <typename T>
+template <std::unsigned_integral T>
 T ExpandValue(T value, size_t left_shift_amount)
 {
-  static_assert(std::is_unsigned<T>(), "ExpandValue is only sane on unsigned types.");
-
   return (value << left_shift_amount) |
          (T(-ExtractBit<0>(value)) >> (BitSize<T>() - left_shift_amount));
 }

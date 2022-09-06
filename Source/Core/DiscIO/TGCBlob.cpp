@@ -6,10 +6,10 @@
 #include <algorithm>
 #include <memory>
 #include <string>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
+#include "Common/Concepts.h"
 #include "Common/IOFile.h"
 #include "Common/Swap.h"
 
@@ -33,11 +33,9 @@ void Replace(u64 offset, u64 size, u8* out_ptr, u64 replace_offset, u64 replace_
   }
 }
 
-template <typename T>
+template <Common::TriviallyCopyable T>
 void Replace(u64 offset, u64 size, u8* out_ptr, u64 replace_offset, const T& replace_value)
 {
-  static_assert(std::is_trivially_copyable_v<T>);
-
   const u8* replace_ptr = reinterpret_cast<const u8*>(&replace_value);
   Replace(offset, size, out_ptr, replace_offset, sizeof(T), replace_ptr);
 }

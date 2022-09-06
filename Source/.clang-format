@@ -34,6 +34,7 @@ BraceWrapping:
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
 BreakBeforeTernaryOperators: false
+BreakBeforeConceptDeclarations: true
 BreakConstructorInitializersBeforeComma: false
 ColumnLimit:     100
 CommentPragmas:  '^ (IWYU pragma:|NOLINT)'

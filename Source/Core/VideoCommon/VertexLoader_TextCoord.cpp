@@ -3,8 +3,6 @@
 
 #include "VideoCommon/VertexLoader_TextCoord.h"
 
-#include <type_traits>
-
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 
@@ -12,6 +10,8 @@
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
+
+#include "Common/Future/CppLibConcepts.h"
 
 namespace
 {
@@ -48,11 +48,9 @@ void TexCoord_ReadDirect(VertexLoader* loader)
   ++loader->m_tcIndex;
 }
 
-template <typename I, typename T, int N>
+template <std::unsigned_integral I, typename T, int N>
 void TexCoord_ReadIndex(VertexLoader* loader)
 {
-  static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
-
   const auto index = DataRead<I>();
   const auto data = reinterpret_cast<const T*>(
       VertexLoaderManager::cached_arraybases[CPArray::TexCoord0 + loader->m_tcIndex] +
