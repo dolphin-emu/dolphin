@@ -14,6 +14,7 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
+#include "Common/Concepts.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"
@@ -59,10 +60,9 @@ Cheats::DataType Cheats::GetDataType(const Cheats::SearchValue& value)
   return static_cast<DataType>(value.m_value.index());
 }
 
-template <typename T>
+template <Common::TriviallyCopyable T>
 static std::vector<u8> ToByteVector(const T& val)
 {
-  static_assert(std::is_trivially_copyable_v<T>);
   const auto* const begin = reinterpret_cast<const u8*>(&val);
   const auto* const end = begin + sizeof(T);
   return {begin, end};

@@ -9,6 +9,8 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Common/Future/CppLibConcepts.h"
+
 namespace Common
 {
 // Similar to std::bitset, this is a class which encapsulates a bitset, i.e.
@@ -29,11 +31,9 @@ namespace Common
 //   operation.)
 // - Counting set bits using .Count() - see comment on that method.
 
-template <typename IntTy>
+template <std::unsigned_integral IntTy>
 class BitSet
 {
-  static_assert(!std::is_signed<IntTy>::value, "BitSet should not be used with signed types");
-
 public:
   // A reference to a particular bit, returned from operator[].
   class Ref

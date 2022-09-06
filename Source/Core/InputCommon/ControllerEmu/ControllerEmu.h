@@ -18,6 +18,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
+#include "Common/Future/CppLibConcepts.h"
+
 class ControllerInterface;
 
 constexpr const char* DIRECTION_UP = _trans("Up");
@@ -210,17 +212,10 @@ public:
   std::vector<std::unique_ptr<ControlGroup>> groups;
 
   // Maps a float from -1.0..+1.0 to an integer in the provided range.
-  template <typename T, typename F>
+  template <std::integral T, std::floating_point F>
   static T MapFloat(F input_value, T zero_value, T neg_1_value = std::numeric_limits<T>::min(),
                     T pos_1_value = std::numeric_limits<T>::max())
   {
-    static_assert(std::is_integral<T>(), "T is only sane for int types.");
-    static_assert(std::is_floating_point<F>(), "F is only sane for float types.");
-
-    static_assert(std::numeric_limits<long long>::min() <= std::numeric_limits<T>::min() &&
-                      std::numeric_limits<long long>::max() >= std::numeric_limits<T>::max(),
-                  "long long is not a superset of T. use of std::llround is not sane.");
-
     // Here we round when converting from float to int.
     // After applying our deadzone, resizing, and reshaping math
     // we sometimes have a near-zero value which is slightly negative. (e.g. -0.0001)

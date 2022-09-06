@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <type_traits>
 
@@ -67,21 +68,23 @@ static_assert(std::is_same_v<ObjectType<&Bar::c>, Foo>);
 static_assert(!std::is_same_v<ObjectType<&Bar::c>, Bar>);
 }  // namespace detail
 
-// Template for checking if Types is count occurrences of T.
-template <typename T, size_t count, typename... Ts>
-struct IsNOf : std::integral_constant<bool, std::conjunction_v<std::is_convertible<Ts, T>...> &&
-                                                sizeof...(Ts) == count>
+// Type trait for checking if the size of Types is equal to N
+template <std::size_t N, typename... Ts>
+struct IsCountOfTypes : std::bool_constant<sizeof...(Ts) == N>
 {
 };
 
-static_assert(IsNOf<int, 0>::value);
-static_assert(!IsNOf<int, 0, int>::value);
-static_assert(IsNOf<int, 1, int>::value);
-static_assert(!IsNOf<int, 1>::value);
-static_assert(!IsNOf<int, 1, int, int>::value);
-static_assert(IsNOf<int, 2, int, int>::value);
-static_assert(IsNOf<int, 2, int, short>::value);  // Type conversions ARE allowed
-static_assert(!IsNOf<int, 2, int, char*>::value);
+// Type trait for checking if all of the given Types are convertible to T
+template <typename T, typename... Ts>
+struct IsConvertibleFromAllOf : std::conjunction<std::is_convertible<Ts, T>...>
+{
+};
+
+// Type trait for checking if any of the given Types are the same as T
+template <typename T, typename... Ts>
+struct IsSameAsAnyOf : std::disjunction<std::is_same<Ts, T>...>
+{
+};
 
 // TODO: This can be replaced with std::array's fill() once C++20 is fully supported.
 // Prior to C++20, std::array's fill() function is, unfortunately, not constexpr.

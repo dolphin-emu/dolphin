@@ -9,12 +9,12 @@
 #include <cstring>
 #include <functional>
 #include <tuple>
-#include <type_traits>
 
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CodeBlock.h"
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 #include "Common/x64ABI.h"
 
 namespace Gen
@@ -979,13 +979,9 @@ public:
   // Utility functions
   // The difference between this and CALL is that this aligns the stack
   // where appropriate.
-  template <typename FunctionPointer>
-  void ABI_CallFunction(FunctionPointer func)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunction(T func)
   {
-    static_assert(std::is_pointer<FunctionPointer>() &&
-                      std::is_function<std::remove_pointer_t<FunctionPointer>>(),
-                  "Supplied type must be a function pointer.");
-
     const void* ptr = reinterpret_cast<const void*>(func);
     const u64 address = reinterpret_cast<u64>(ptr);
     const u64 distance = address - (reinterpret_cast<u64>(code) + 5);
@@ -1002,46 +998,46 @@ public:
     }
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionC16(FunctionPointer func, u16 param1)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionC16(T func, u16 param1)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCC16(FunctionPointer func, u32 param1, u16 param2)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionC(FunctionPointer func, u32 param1)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCC(FunctionPointer func, u32 param1, u32 param2)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionCC16(T func, u32 param1, u16 param2)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
     MOV(32, R(ABI_PARAM2), Imm32(param2));
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCP(FunctionPointer func, u32 param1, const void* param2)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionC(T func, u32 param1)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    ABI_CallFunction(func);
+  }
+
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionCC(T func, u32 param1, u32 param2)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    MOV(32, R(ABI_PARAM2), Imm32(param2));
+    ABI_CallFunction(func);
+  }
+
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionCP(T func, u32 param1, const void* param2)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
     MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCCC(FunctionPointer func, u32 param1, u32 param2, u32 param3)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionCCC(T func, u32 param1, u32 param2, u32 param3)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
     MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -1049,8 +1045,8 @@ public:
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCCP(FunctionPointer func, u32 param1, u32 param2, const void* param3)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionCCP(T func, u32 param1, u32 param2, const void* param3)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
     MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -1058,9 +1054,8 @@ public:
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCCCP(FunctionPointer func, u32 param1, u32 param2, u32 param3,
-                            const void* param4)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionCCCP(T func, u32 param1, u32 param2, u32 param3, const void* param4)
   {
     MOV(32, R(ABI_PARAM1), Imm32(param1));
     MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -1069,23 +1064,23 @@ public:
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionP(FunctionPointer func, const void* param1)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionP(T func, const void* param1)
   {
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPC(FunctionPointer func, const void* param1, u32 param2)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionPC(T func, const void* param1, u32 param2)
   {
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
     MOV(32, R(ABI_PARAM2), Imm32(param2));
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPPC(FunctionPointer func, const void* param1, const void* param2, u32 param3)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionPPC(T func, const void* param1, const void* param2, u32 param3)
   {
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
     MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
@@ -1094,8 +1089,8 @@ public:
   }
 
   // Pass a register as a parameter.
-  template <typename FunctionPointer>
-  void ABI_CallFunctionR(FunctionPointer func, X64Reg reg1)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionR(T func, X64Reg reg1)
   {
     if (reg1 != ABI_PARAM1)
       MOV(32, R(ABI_PARAM1), R(reg1));
@@ -1103,8 +1098,8 @@ public:
   }
 
   // Pass a pointer and register as a parameter.
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPR(FunctionPointer func, const void* ptr, X64Reg reg1)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionPR(T func, const void* ptr, X64Reg reg1)
   {
     if (reg1 != ABI_PARAM2)
       MOV(64, R(ABI_PARAM2), R(reg1));
@@ -1113,24 +1108,24 @@ public:
   }
 
   // Pass two registers as parameters.
-  template <typename FunctionPointer>
-  void ABI_CallFunctionRR(FunctionPointer func, X64Reg reg1, X64Reg reg2)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionRR(T func, X64Reg reg1, X64Reg reg2)
   {
     MOVTwo(64, ABI_PARAM1, reg1, 0, ABI_PARAM2, reg2);
     ABI_CallFunction(func);
   }
 
   // Pass a pointer and two registers as parameters.
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPRR(FunctionPointer func, const void* ptr, X64Reg reg1, X64Reg reg2)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionPRR(T func, const void* ptr, X64Reg reg1, X64Reg reg2)
   {
     MOVTwo(64, ABI_PARAM2, reg1, 0, ABI_PARAM3, reg2);
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionAC(int bits, FunctionPointer func, const Gen::OpArg& arg1, u32 param2)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionAC(int bits, T func, const Gen::OpArg& arg1, u32 param2)
   {
     if (!arg1.IsSimpleReg(ABI_PARAM1))
       MOV(bits, R(ABI_PARAM1), arg1);
@@ -1138,9 +1133,8 @@ public:
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPAC(int bits, FunctionPointer func, const void* ptr1, const Gen::OpArg& arg2,
-                           u32 param3)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionPAC(int bits, T func, const void* ptr1, const Gen::OpArg& arg2, u32 param3)
   {
     if (!arg2.IsSimpleReg(ABI_PARAM2))
       MOV(bits, R(ABI_PARAM2), arg2);
@@ -1149,8 +1143,8 @@ public:
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionA(int bits, FunctionPointer func, const Gen::OpArg& arg1)
+  template <Common::FunctionPointer T>
+  void ABI_CallFunctionA(int bits, T func, const Gen::OpArg& arg1)
   {
     if (!arg1.IsSimpleReg(ABI_PARAM1))
       MOV(bits, R(ABI_PARAM1), arg1);

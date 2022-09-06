@@ -21,7 +21,6 @@
 #include <optional>
 #include <set>
 #include <string>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -29,6 +28,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 #include "Common/EnumMap.h"
 #include "Common/Flag.h"
 #include "Common/Inline.h"
@@ -195,13 +195,13 @@ public:
     DoArray(x.data(), static_cast<u32>(x.size()));
   }
 
-  template <typename T, typename std::enable_if_t<std::is_trivially_copyable_v<T>, int> = 0>
+  template <Common::TriviallyCopyable T>
   void DoArray(T* x, u32 count)
   {
     DoVoid(x, count * sizeof(T));
   }
 
-  template <typename T, typename std::enable_if_t<!std::is_trivially_copyable_v<T>, int> = 0>
+  template <Common::NotTriviallyCopyable T>
   void DoArray(T* x, u32 count)
   {
     for (u32 i = 0; i < count; ++i)
@@ -262,10 +262,9 @@ public:
       atomic.store(temp, std::memory_order_relaxed);
   }
 
-  template <typename T>
+  template <Common::TriviallyCopyable T>
   void Do(T& x)
   {
-    static_assert(std::is_trivially_copyable_v<T>, "Only sane for trivially copyable types");
     // Note:
     // Usually we can just use x = **ptr, etc.  However, this doesn't work
     // for unions containing BitFields (long story, stupid language rules)
