@@ -160,8 +160,8 @@ int I2CBusSimple::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   // Note: No Stop() call before StartRead.
   if (!StartRead(slave_addr))
   {
-    WARN_LOG_FMT(WII_IPC, "I2C: Failed to start read from {:02x} ({:02x}, {:02x})",
-                 slave_addr, addr, count);
+    WARN_LOG_FMT(WII_IPC, "I2C: Failed to start read from {:02x} ({:02x}, {:02x})", slave_addr,
+                 addr, count);
     Stop();
     return 0;
   }
@@ -479,7 +479,9 @@ bool I2CSlaveAutoIncrementing::WriteByte(u8 value)
   {
     if (m_device_address.has_value())
     {
-      WriteByte(m_device_address.value(), value);
+      const u8 cur_addr = m_device_address.value();
+      m_device_address = cur_addr + 1;  // wrapping from 255 to 0 is the assumed behavior
+      WriteByte(cur_addr, value);
     }
     else
     {
