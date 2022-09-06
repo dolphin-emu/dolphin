@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "Common/Concepts.h"
 #include "Common/Config/ConfigInfo.h"
 #include "Common/Config/Enums.h"
 #include "Common/StringUtil.h"
@@ -18,7 +19,7 @@ namespace Config
 {
 namespace detail
 {
-template <typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
+template <Common::NotEnumerated T>
 std::optional<T> TryParse(const std::string& str_value)
 {
   T value;
@@ -27,7 +28,7 @@ std::optional<T> TryParse(const std::string& str_value)
   return value;
 }
 
-template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+template <Common::Enumerated T>
 std::optional<T> TryParse(const std::string& str_value)
 {
   const auto result = TryParse<std::underlying_type_t<T>>(str_value);

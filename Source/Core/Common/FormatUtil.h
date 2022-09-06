@@ -8,6 +8,13 @@
 
 namespace Common
 {
+template <class T>
+#if FMT_VERSION >= 90000
+concept FmtCompileString = fmt::detail::is_compile_string<T>::value;
+#else
+concept FmtCompileString = fmt::is_compile_string<T>::value;
+#endif
+
 constexpr std::size_t CountFmtReplacementFields(std::string_view s)
 {
   std::size_t count = 0;

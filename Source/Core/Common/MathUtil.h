@@ -11,6 +11,7 @@
 
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 
 namespace MathUtil
 {
@@ -32,11 +33,9 @@ constexpr auto Lerp(const T& x, const T& y, const F& a) -> decltype(x + (y - x) 
 
 // Casts the specified value to a Dest. The value will be clamped to fit in the destination type.
 // Warning: The result of SaturatingCast(NaN) is undefined.
-template <typename Dest, typename T>
+template <Common::Integral Dest, typename T>
 constexpr Dest SaturatingCast(T value)
 {
-  static_assert(std::is_integral<Dest>());
-
   [[maybe_unused]] constexpr Dest lo = std::numeric_limits<Dest>::lowest();
   constexpr Dest hi = std::numeric_limits<Dest>::max();
 

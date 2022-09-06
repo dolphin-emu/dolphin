@@ -4,8 +4,8 @@
 
 #include <cstddef>
 #include <initializer_list>
-#include <type_traits>
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 
 #ifdef _WIN32
 
@@ -103,11 +103,9 @@ inline int LeastSignificantSetBit(u64 val)
 //   operation.)
 // - Counting set bits using .Count() - see comment on that method.
 
-template <typename IntTy>
+template <UnsignedIntegral IntTy>
 class BitSet
 {
-  static_assert(!std::is_signed<IntTy>::value, "BitSet should not be used with signed types");
-
 public:
   // A reference to a particular bit, returned from operator[].
   class Ref

@@ -7,9 +7,9 @@
 #include <cstring>
 #include <memory>
 #include <string>
-#include <type_traits>
 
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 #include "Common/IOFile.h"
 #include "Common/Version.h"
 
@@ -46,17 +46,14 @@ public:
 // K and V are some POD type
 // K : the key type
 // V : value array type
-template <typename K, typename V>
+// Since we're reading/writing directly to the storage of K instances, K must be trivially copyable.
+template <Common::TriviallyCopyable K, typename V>
 class LinearDiskCache
 {
 public:
   // return number of read entries
   u32 OpenAndRead(const std::string& filename, LinearDiskCacheReader<K, V>& reader)
   {
-    // Since we're reading/writing directly to the storage of K instances,
-    // K must be trivially copyable.
-    static_assert(std::is_trivially_copyable<K>::value, "K must be a trivially copyable type");
-
     // close any currently opened file
     Close();
     m_num_entries = 0;

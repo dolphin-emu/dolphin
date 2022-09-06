@@ -5,9 +5,9 @@
 
 #include <array>
 #include <cstddef>
-#include <type_traits>
 #include <variant>
 
+#include "Common/Concepts.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/RegCache/CachedReg.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -119,6 +119,9 @@ private:
   std::array<X64CachedReg, NUM_XREGS> m_xregs;
 };
 
+template <class T>
+concept RegCacheConstraint = Common::IsAnyOf<T, RCOpArg, RCX64Reg>;
+
 class RegCache
 {
 public:
@@ -135,17 +138,15 @@ public:
   void SetEmitter(Gen::XEmitter* emitter);
   bool SanityCheck() const;
 
-  template <typename... Ts>
+  template <RegCacheConstraint... Ts>
   static void Realize(Ts&... rc)
   {
-    static_assert(((std::is_same<Ts, RCOpArg>() || std::is_same<Ts, RCX64Reg>()) && ...));
     (rc.Realize(), ...);
   }
 
-  template <typename... Ts>
+  template <RegCacheConstraint... Ts>
   static void Unlock(Ts&... rc)
   {
-    static_assert(((std::is_same<Ts, RCOpArg>() || std::is_same<Ts, RCX64Reg>()) && ...));
     (rc.Unlock(), ...);
   }
 

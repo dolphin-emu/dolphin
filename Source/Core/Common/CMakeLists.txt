@@ -17,6 +17,7 @@ add_library(common
   CommonFuncs.h
   CommonPaths.h
   CommonTypes.h
+  Concepts.h
   Config/Config.cpp
   Config/Config.h
   Config/ConfigInfo.cpp

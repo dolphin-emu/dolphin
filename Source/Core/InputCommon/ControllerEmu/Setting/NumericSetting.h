@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 #include "Common/IniFile.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
@@ -19,6 +20,10 @@ enum class SettingType
   Double,
   Bool,
 };
+
+// NumericSetting is only implemented for int, double, and bool.
+template <class T>
+concept SettingConstraint = Common::IsAnyOf<T, int, double, bool>;
 
 enum class SettingVisibility
 {
@@ -87,18 +92,14 @@ protected:
   NumericSettingDetails m_details;
 };
 
-template <typename T>
+template <SettingConstraint T>
 class SettingValue;
 
-template <typename T>
+template <SettingConstraint T>
 class NumericSetting final : public NumericSettingBase
 {
 public:
   using ValueType = T;
-
-  static_assert(std::is_same<ValueType, int>() || std::is_same<ValueType, double>() ||
-                    std::is_same<ValueType, bool>(),
-                "NumericSetting is only implemented for int, double, and bool.");
 
   NumericSetting(SettingValue<ValueType>* value, const NumericSettingDetails& details,
                  ValueType default_value, ValueType min_value, ValueType max_value)
@@ -169,7 +170,7 @@ private:
   const ValueType m_max_value;
 };
 
-template <typename T>
+template <SettingConstraint T>
 class SettingValue
 {
   using ValueType = T;

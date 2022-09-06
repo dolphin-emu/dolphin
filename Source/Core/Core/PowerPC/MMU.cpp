@@ -10,6 +10,7 @@
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
@@ -170,7 +171,7 @@ BatTable dbat_table;
 
 static void GenerateDSIException(u32 effective_address, bool write);
 
-template <XCheckTLBFlag flag, typename T, bool never_translate = false>
+template <XCheckTLBFlag flag, Common::Integral T, bool never_translate = false>
 static T ReadFromHardware(u32 em_address)
 {
   const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
@@ -571,7 +572,7 @@ float Read_F32(const u32 address)
   return Common::BitCast<float>(integral);
 }
 
-template <typename T>
+template <Common::Integral T>
 static std::optional<ReadResult<T>> HostTryReadUX(const u32 address, RequestedAddressSpace space)
 {
   if (!HostIsRAMAddress(address, space))
