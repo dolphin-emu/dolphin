@@ -32,44 +32,154 @@ void I2CBusBase::Reset()
   m_slaves.clear();
 }
 
-int I2CBusSimple::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+bool I2CBusBase::StartWrite(u8 slave_addr)
 {
-  if (slave != nullptr)
+  bool got_ack = false;
+  for (I2CSlave* slave : m_slaves)
   {
-    for (int i = 0; i < count; i++)
+    if (slave->StartWrite(slave_addr))
     {
-      // TODO: Does this make sense? The transmitter can't NACK a read... it's the receiver that
-      // does that
-      auto byte = slave->ReadByte();
-      if (byte.has_value())
-        data_out[i] = byte.value();
-      else
-        return i;
+      if (got_ack)
+      {
+        WARN_LOG_FMT(WII_IPC, "Multiple I2C slaves ACKed starting write for I2C addr {:02x}",
+                     slave_addr);
+      }
+      got_ack = true;
     }
-    return count;
   }
-  else
+  return got_ack;
+}
+
+bool I2CBusBase::StartRead(u8 slave_addr)
+{
+  bool got_ack = false;
+  for (I2CSlave* slave : m_slaves)
   {
-    return 0;
+    if (slave->StartRead(slave_addr))
+    {
+      if (got_ack)
+      {
+        WARN_LOG_FMT(WII_IPC, "Multiple I2C slaves ACKed starting read for I2C addr {:02x}",
+                     slave_addr);
+      }
+      got_ack = true;
+    }
   }
+  return got_ack;
+}
+
+void I2CBusBase::Stop()
+{
+  for (I2CSlave* slave : m_slaves)
+    slave->Stop();
+}
+
+std::optional<u8> I2CBusBase::ReadByte()
+{
+  std::optional<u8> byte = std::nullopt;
+  for (I2CSlave* slave : m_slaves)
+  {
+    std::optional<u8> byte2 = slave->ReadByte();
+    if (byte.has_value() && byte2.has_value())
+    {
+      WARN_LOG_FMT(WII_IPC, "Multiple slaves responded to read: {:02x} vs {:02x}", *byte, *byte2);
+    }
+    else if (byte2.has_value())
+    {
+      INFO_LOG_FMT(WII_IPC, "I2C: Read {:02x}", byte2.value());
+      byte = byte2;
+    }
+  }
+  return byte;
+}
+
+bool I2CBusBase::WriteByte(u8 value)
+{
+  bool got_ack = false;
+  for (I2CSlave* slave : m_slaves)
+  {
+    if (slave->WriteByte(value))
+    {
+      if (got_ack)
+      {
+        WARN_LOG_FMT(WII_IPC, "Multiple I2C slaves ACKed write of {:02x}", value);
+      }
+      got_ack = true;
+    }
+  }
+  return got_ack;
 }
 
 int I2CBusSimple::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
 {
-  I2CSlave* slave = GetSlave(slave_addr);
-  if (slave != nullptr)
+  if (!StartWrite(slave_addr))
   {
-    for (int i = 0; i < count; i++)
-    {
-      if (!slave->WriteByte(data_in[i]))
-        return i;
-    }
-    return count;
-  }
-  else
-  {
+    WARN_LOG_FMT(WII_IPC, "I2C: Failed to start write to {:02x} ({:02x}, {:02x})", slave_addr, addr,
+                 count);
+    Stop();
     return 0;
   }
+  if (!WriteByte(addr))
+  {
+    WARN_LOG_FMT(WII_IPC, "I2C: Failed to write device address {:02x} to {:02x} ({:02x})", addr,
+                 slave_addr, count);
+    Stop();
+    return 0;
+  }
+  for (int i = 0; i < count; i++)
+  {
+    if (!WriteByte(data_in[i]))
+    {
+      WARN_LOG_FMT(WII_IPC,
+                   "I2C: Failed to byte {} of {} starting at device address {:02x} to {:02x}", i,
+                   count, addr, slave_addr);
+      Stop();
+      return i;
+    }
+  }
+  Stop();
+  return count;
+}
+
+int I2CBusSimple::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+{
+  if (!StartWrite(slave_addr))
+  {
+    WARN_LOG_FMT(WII_IPC, "I2C: Failed to start write for read from {:02x} ({:02x}, {:02x})",
+                 slave_addr, addr, count);
+    Stop();
+    return 0;
+  }
+  if (!WriteByte(addr))
+  {
+    WARN_LOG_FMT(WII_IPC, "I2C: Failed to write device address {:02x} to {:02x} ({:02x})", addr,
+                 slave_addr, count);
+    Stop();
+    return 0;
+  }
+  // Note: No Stop() call before StartRead.
+  if (!StartRead(slave_addr))
+  {
+    WARN_LOG_FMT(WII_IPC, "I2C: Failed to start read from {:02x} ({:02x}, {:02x})",
+                 slave_addr, addr, count);
+    Stop();
+    return 0;
+  }
+  for (int i = 0; i < count; i++)
+  {
+    const std::optional<u8> byte = ReadByte();
+    if (!byte.has_value())
+    {
+      WARN_LOG_FMT(WII_IPC,
+                   "I2C: Failed to byte {} of {} starting at device address {:02x} from {:02x}", i,
+                   count, addr, slave_addr);
+      Stop();
+      return i;
+    }
+    data_out[i] = byte.value();
+  }
+  Stop();
+  return count;
 }
 
 bool I2CBus::GetSCL() const
@@ -120,10 +230,7 @@ void I2CBus::Start()
 void I2CBus::Stop()
 {
   INFO_LOG_FMT(WII_IPC, "AVE: Stop I2C");
-  for (I2CSlave* slave : m_slaves)
-  {
-    slave->Stop();
-  }
+  I2CBusBase::Stop();
 
   state = State::Inactive;
   bit_counter = 0;
@@ -178,19 +285,7 @@ void I2CBus::SCLRisingEdge(const bool sda)
   if (state == State::ReadFromDevice && bit_counter == 0)
   {
     // Start of a read.
-    std::optional<u8> byte = std::nullopt;
-    for (I2CSlave* slave : m_slaves)
-    {
-      std::optional<u8> byte2 = slave->ReadByte();
-      if (byte.has_value() && byte2.has_value())
-      {
-        WARN_LOG_FMT(WII_IPC, "Multiple slaves responded to read: {:02x} vs {:02x}", *byte, *byte2);
-      }
-      else if (byte2.has_value())
-      {
-        byte = byte2;
-      }
-    }
+    const std::optional<u8> byte = ReadByte();
     if (!byte.has_value())
     {
       WARN_LOG_FMT(WII_IPC, "No slaves responded to I2C read");
@@ -233,61 +328,42 @@ void I2CBus::SCLFallingEdge(const bool sda)
         // Write finished.
         if (state == State::SetI2CAddress)
         {
-          bool got_ack = false;
-          for (I2CSlave* slave : m_slaves)
+          const u8 slave_addr = current_byte >> 1;
+          if (current_byte & 1)
           {
-            if (current_byte & 1)
+            if (StartRead(slave_addr))
             {
-              if (slave->StartRead(current_byte >> 1))
-              {
-                if (got_ack)
-                {
-                  WARN_LOG_FMT(WII_IPC, "Multiple slaves ACKed starting read for I2C addr {:02x}",
-                               current_byte);
-                }
-                got_ack = true;
-              }
+              // State transition handled by bit_counter >= 8, as we still need to handle the ACK
+              INFO_LOG_FMT(WII_IPC, "I2C: Start read from {:02x}", slave_addr);
             }
-            else  // (current_byte & 1) == 0
+            else
             {
-              if (slave->StartWrite(current_byte >> 1))
-              {
-                if (got_ack)
-                {
-                  WARN_LOG_FMT(WII_IPC, "Multiple slaves ACKed starting write for I2C addr {:02x}",
-                               current_byte);
-                }
-                got_ack = true;
-              }
+              state = State::Inactive;  // NACK
+              WARN_LOG_FMT(WII_IPC, "I2C: No device responded to read from {:02x}", current_byte);
             }
-          }
-
-          if (!got_ack)
-          {
-            state = State::Inactive;  // NACK
-            WARN_LOG_FMT(WII_IPC, "AVE: Unknown I2C address {:02x}", current_byte);
           }
           else
           {
-            // State transition handled by bit_counter >= 8, as we still need to handle the ACK
-            INFO_LOG_FMT(WII_IPC, "AVE: I2C address is {:02x}", current_byte);
+            if (StartWrite(slave_addr))
+            {
+              // State transition handled by bit_counter >= 8, as we still need to handle the ACK
+              INFO_LOG_FMT(WII_IPC, "I2C: Start write to {:02x}", slave_addr);
+            }
+            else
+            {
+              state = State::Inactive;  // NACK
+              WARN_LOG_FMT(WII_IPC, "I2C: No device responded to write to {:02x}", current_byte);
+            }
           }
         }
         else
         {
           // Actual write
           ASSERT(state == State::WriteToDevice);
-          bool got_ack = false;
-          for (I2CSlave* slave : m_slaves)
+          if (!WriteByte(current_byte))
           {
-            if (slave->WriteByte(current_byte))
-            {
-              if (got_ack)
-              {
-                WARN_LOG_FMT(WII_IPC, "Multiple slaves responded to write of {:02x}", current_byte);
-              }
-              got_ack = true;
-            }
+            state = State::Inactive;
+            WARN_LOG_FMT(WII_IPC, "I2C: Write of {:02x} NACKed", current_byte);
           }
         }
       }

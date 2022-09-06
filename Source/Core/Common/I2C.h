@@ -22,6 +22,8 @@ public:
   virtual bool StartWrite(u8 slave_addr) = 0;
   virtual bool StartRead(u8 slave_addr) = 0;
   virtual void Stop() = 0;
+  // NOTE: std::optional is for ease of implementation. I2C does not provide a way for the
+  // transmitting device to NACK a read; only the receiver can NACK.
   virtual std::optional<u8> ReadByte() = 0;
   virtual bool WriteByte(u8 value) = 0;
 };
@@ -61,9 +63,14 @@ public:
   void Reset();
 
 protected:
-  // Returns nullptr if there is no match
-  I2CSlave* GetSlave(u8 slave_addr);
+  // Signals all slaves on the bus
+  bool StartWrite(u8 slave_addr);
+  bool StartRead(u8 slave_addr);
+  void Stop();
+  std::optional<u8> ReadByte();
+  bool WriteByte(u8 value);
 
+private:
   // Pointers are unowned:
   std::vector<I2CSlave*> m_slaves;
 };
@@ -72,8 +79,8 @@ class I2CBusSimple : public I2CBusBase
 {
 public:
   // TODO: change int to u16 or something
-  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out);
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in);
+  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out);
 };
 
 // An I²C bus implementation accessed via bit-banging.
