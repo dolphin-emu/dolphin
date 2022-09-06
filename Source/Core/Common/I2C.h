@@ -26,9 +26,28 @@ public:
   // transmitting device to NACK a read; only the receiver can NACK.
   virtual std::optional<u8> ReadByte() = 0;
   virtual bool WriteByte(u8 value) = 0;
+
+protected:
+  template <typename T>
+  static u8 RawRead(T* reg_data, u8 addr)
+  {
+    static_assert(std::is_standard_layout_v<T> && std::is_trivially_copyable_v<T>);
+    static_assert(0x100 == sizeof(T));
+
+    return reinterpret_cast<u8*>(reg_data)[addr];
+  }
+
+  template <typename T>
+  static void RawWrite(T* reg_data, u8 addr, u8 value)
+  {
+    static_assert(std::is_standard_layout_v<T> && std::is_trivially_copyable_v<T>);
+    static_assert(0x100 == sizeof(T));
+
+    reinterpret_cast<u8*>(reg_data)[addr] = value;
+  }
 };
 
-class I2CSlaveAutoIncrementing : I2CSlave
+class I2CSlaveAutoIncrementing : public I2CSlave
 {
 public:
   I2CSlaveAutoIncrementing(u8 slave_addr) : m_slave_addr(slave_addr) {}
@@ -40,11 +59,13 @@ public:
   std::optional<u8> ReadByte() override;
   bool WriteByte(u8 value) override;
 
-  virtual void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p);
 
 protected:
   virtual u8 ReadByte(u8 addr) = 0;
   virtual void WriteByte(u8 addr, u8 value) = 0;
+
+  virtual void DoDeviceState(PointerWrap& p) = 0;
 
 private:
   const u8 m_slave_addr;

@@ -295,8 +295,6 @@ void I2CBus::SCLRisingEdge(const bool sda)
     {
       current_byte = byte.value();
     }
-    // INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", device_address.value(),
-    //              IOS::GetAVERegisterName(device_address.value()), current_byte);
   }
   // Dolphin_Debugger::PrintCallstack(Common::Log::LogType::WII_IPC, Common::Log::LogLevel::LINFO);
 }
@@ -508,6 +506,8 @@ void I2CSlaveAutoIncrementing::DoState(PointerWrap& p)
   }
   p.Do(m_active);
   p.Do(m_device_address);
+
+  DoDeviceState(p);
 }
 
 };  // namespace Common

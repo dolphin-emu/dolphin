@@ -120,84 +120,6 @@ struct AVEState
 };
 #pragma pack()
 static_assert(sizeof(AVEState) == 0x100);
-Common::I2CSlaveSimple<0x70, AVEState> ave_state;
-std::bitset<sizeof(AVEState)> ave_ever_logged;
-
-Common::I2CBus i2c_state;
-
-static CoreTiming::EventType* updateInterrupts;
-
-WiiIPC::WiiIPC(Core::System& system) : m_system(system)
-{
-}
-
-WiiIPC::~WiiIPC() = default;
-
-void WiiIPC::DoState(PointerWrap& p)
-{
-  p.Do(m_ppc_msg);
-  p.Do(m_arm_msg);
-  p.Do(m_ctrl);
-  p.Do(m_ppc_irq_flags);
-  p.Do(m_ppc_irq_masks);
-  p.Do(m_arm_irq_flags);
-  p.Do(m_arm_irq_masks);
-  p.Do(m_gpio_dir);
-  p.Do(m_gpio_out);
-  i2c_state.DoState(p);
-  p.Do(ave_state.data);
-  p.Do(m_resets);
-}
-
-void WiiIPC::InitState()
-{
-  m_ctrl = CtrlRegister();
-  m_ppc_msg = 0;
-  m_arm_msg = 0;
-
-  m_ppc_irq_flags = 0;
-  m_ppc_irq_masks = 0;
-  m_arm_irq_flags = 0;
-  m_arm_irq_masks = 0;
-
-  // The only inputs are POWER, EJECT_BTN, SLOT_IN, EEP_MISO, and sometimes AVE_SCL and AVE_SDA;
-  // Broadway only has access to SLOT_IN, AVE_SCL, and AVE_SDA.
-  m_gpio_dir = {
-      GPIO::POWER,      GPIO::SHUTDOWN, GPIO::FAN,    GPIO::DC_DC,   GPIO::DI_SPIN,  GPIO::SLOT_LED,
-      GPIO::SENSOR_BAR, GPIO::DO_EJECT, GPIO::EEP_CS, GPIO::EEP_CLK, GPIO::EEP_MOSI, GPIO::AVE_SCL,
-      GPIO::AVE_SDA,    GPIO::DEBUG0,   GPIO::DEBUG1, GPIO::DEBUG2,  GPIO::DEBUG3,   GPIO::DEBUG4,
-      GPIO::DEBUG5,     GPIO::DEBUG6,   GPIO::DEBUG7,
-  };
-  m_gpio_out = {};
-
-  // A cleared bit indicates the device is reset/off, so set everything to 1 (this may not exactly
-  // match hardware)
-  m_resets = 0xffffffff;
-
-  m_ppc_irq_masks |= INT_CAUSE_IPC_BROADWAY;
-
-  i2c_state = {};
-  ave_state = {};
-  ave_state.data.video_output_config = 0x23;
-  ave_ever_logged.reset();
-}
-
-void WiiIPC::Init()
-{
-  InitState();
-  m_event_type_update_interrupts =
-      m_system.GetCoreTiming().RegisterEvent("IPCInterrupt", UpdateInterruptsCallback);
-}
-
-void WiiIPC::Reset()
-{
-  INFO_LOG_FMT(WII_IPC, "Resetting ...");
-  InitState();
-}
-
-void WiiIPC::Shutdown()
-{
-}
 
 std::string_view GetAVERegisterName(u8 address)
 {
@@ -241,6 +163,123 @@ std::string_view GetAVERegisterName(u8 address)
     return "Closed Captioning control";
   else
     return fmt::format("Unknown ({:02x})", address);
+}
+
+class AVEDevice : public Common::I2CSlaveAutoIncrementing
+{
+public:
+  AVEDevice() : I2CSlaveAutoIncrementing(0x70) {}
+
+  void Reset()
+  {
+    m_registers = {};
+    ave_ever_logged = {};
+  }
+
+  AVEState m_registers{};
+
+protected:
+  u8 ReadByte(u8 addr) override
+  {
+    const u8 result = RawRead(&m_registers, addr);
+    INFO_LOG_FMT(WII_IPC, "AVE: Read from {:02x} ({}) -> {:02x}", addr, GetAVERegisterName(addr),
+                 result);
+    return result;
+  }
+  void WriteByte(u8 addr, u8 value) override
+  {
+    const u8 old_value = RawRead(&m_registers, addr);
+    RawWrite(&m_registers, addr, value);
+
+    if (old_value != value || !ave_ever_logged[addr])
+    {
+      INFO_LOG_FMT(WII_IPC, "AVE: Write to {:02x} ({}): {:02x} -> {:02x}", addr,
+                   GetAVERegisterName(addr), old_value, value);
+      ave_ever_logged[addr] = true;
+    }
+    else
+    {
+      DEBUG_LOG_FMT(WII_IPC, "AVE: Write to {:02x} ({}): {:02x}", addr, GetAVERegisterName(addr),
+                    value);
+    }
+  }
+  void DoDeviceState(PointerWrap& p) override { p.Do(m_registers); }
+
+private:
+  std::bitset<sizeof(AVEState)> ave_ever_logged{};  // logging only, not saved
+};
+AVEDevice ave_state;
+
+Common::I2CBus i2c_state;
+
+WiiIPC::WiiIPC(Core::System& system) : m_system(system)
+{
+}
+
+WiiIPC::~WiiIPC() = default;
+
+void WiiIPC::DoState(PointerWrap& p)
+{
+  p.Do(m_ppc_msg);
+  p.Do(m_arm_msg);
+  p.Do(m_ctrl);
+  p.Do(m_ppc_irq_flags);
+  p.Do(m_ppc_irq_masks);
+  p.Do(m_arm_irq_flags);
+  p.Do(m_arm_irq_masks);
+  p.Do(m_gpio_dir);
+  p.Do(m_gpio_out);
+  i2c_state.DoState(p);
+  ave_state.DoState(p);
+  p.Do(m_resets);
+}
+
+void WiiIPC::InitState()
+{
+  m_ctrl = CtrlRegister();
+  m_ppc_msg = 0;
+  m_arm_msg = 0;
+
+  m_ppc_irq_flags = 0;
+  m_ppc_irq_masks = 0;
+  m_arm_irq_flags = 0;
+  m_arm_irq_masks = 0;
+
+  // The only inputs are POWER, EJECT_BTN, SLOT_IN, EEP_MISO, and sometimes AVE_SCL and AVE_SDA;
+  // Broadway only has access to SLOT_IN, AVE_SCL, and AVE_SDA.
+  m_gpio_dir = {
+      GPIO::POWER,      GPIO::SHUTDOWN, GPIO::FAN,    GPIO::DC_DC,   GPIO::DI_SPIN,  GPIO::SLOT_LED,
+      GPIO::SENSOR_BAR, GPIO::DO_EJECT, GPIO::EEP_CS, GPIO::EEP_CLK, GPIO::EEP_MOSI, GPIO::AVE_SCL,
+      GPIO::AVE_SDA,    GPIO::DEBUG0,   GPIO::DEBUG1, GPIO::DEBUG2,  GPIO::DEBUG3,   GPIO::DEBUG4,
+      GPIO::DEBUG5,     GPIO::DEBUG6,   GPIO::DEBUG7,
+  };
+  m_gpio_out = {};
+
+  // A cleared bit indicates the device is reset/off, so set everything to 1 (this may not exactly
+  // match hardware)
+  m_resets = 0xffffffff;
+
+  m_ppc_irq_masks |= INT_CAUSE_IPC_BROADWAY;
+
+  i2c_state = {};
+  ave_state.Reset();
+}
+
+void WiiIPC::Init()
+{
+  InitState();
+  m_event_type_update_interrupts =
+      m_system.GetCoreTiming().RegisterEvent("IPCInterrupt", UpdateInterruptsCallback);
+}
+
+void WiiIPC::Reset()
+{
+  INFO_LOG_FMT(WII_IPC, "Resetting ...");
+  InitState();
+}
+
+void WiiIPC::Shutdown()
+{
 }
 
 static u32 ReadGPIOIn(Core::System& system)
