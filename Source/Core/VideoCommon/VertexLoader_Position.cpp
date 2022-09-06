@@ -4,10 +4,10 @@
 #include "VideoCommon/VertexLoader_Position.h"
 
 #include <limits>
-#include <type_traits>
 
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
+#include "Common/Future/CppLibConcepts.h"
 #include "Common/Swap.h"
 
 #include "VideoCommon/DataReader.h"
@@ -51,10 +51,9 @@ void Pos_ReadDirect(VertexLoader* loader)
   LOG_VTX();
 }
 
-template <typename I, typename T, int N>
+template <std::unsigned_integral I, typename T, int N>
 void Pos_ReadIndex(VertexLoader* loader)
 {
-  static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
   static_assert(N <= 3, "N > 3 is not sane!");
 
   const auto index = DataRead<I>();

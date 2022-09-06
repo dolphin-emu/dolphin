@@ -224,7 +224,7 @@ static void UnserializePipelineUid(const SerializedUidType& uid, UidType& real_u
   real_uid.blending_state.hex = uid.blending_state_bits;
 }
 
-template <ShaderStage stage, typename K, typename T>
+template <ShaderStage stage, Common::TriviallyCopyable K, typename T>
 void ShaderCache::LoadShaderCache(T& cache, APIType api_type, const char* type, bool include_gameid)
 {
   class CacheReader : public LinearDiskCacheReader<K, u8>
@@ -274,7 +274,7 @@ void ShaderCache::ClearShaderCache(T& cache)
   cache.shader_map.clear();
 }
 
-template <typename KeyType, typename DiskKeyType, typename T>
+template <typename KeyType, Common::TriviallyCopyable DiskKeyType, typename T>
 void ShaderCache::LoadPipelineCache(T& cache, LinearDiskCache<DiskKeyType, u8>& disk_cache,
                                     APIType api_type, const char* type, bool include_gameid)
 {

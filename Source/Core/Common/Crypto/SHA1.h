@@ -7,11 +7,11 @@
 #include <limits>
 #include <memory>
 #include <string_view>
-#include <type_traits>
 #include <vector>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 
 namespace Common::SHA1
 {
@@ -32,10 +32,9 @@ std::unique_ptr<Context> CreateContext();
 
 Digest CalculateDigest(const u8* msg, size_t len);
 
-template <typename T>
+template <TriviallyCopyable T>
 inline Digest CalculateDigest(const std::vector<T>& msg)
 {
-  static_assert(std::is_trivially_copyable_v<T>);
   ASSERT(std::numeric_limits<size_t>::max() / sizeof(T) >= msg.size());
   return CalculateDigest(reinterpret_cast<const u8*>(msg.data()), sizeof(T) * msg.size());
 }
@@ -45,10 +44,9 @@ inline Digest CalculateDigest(const std::string_view& msg)
   return CalculateDigest(reinterpret_cast<const u8*>(msg.data()), msg.size());
 }
 
-template <typename T, size_t Size>
+template <TriviallyCopyable T, size_t Size>
 inline Digest CalculateDigest(const std::array<T, Size>& msg)
 {
-  static_assert(std::is_trivially_copyable_v<T>);
   return CalculateDigest(reinterpret_cast<const u8*>(msg.data()), sizeof(msg));
 }
 }  // namespace Common::SHA1

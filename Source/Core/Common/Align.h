@@ -3,21 +3,19 @@
 #pragma once
 
 #include <cstddef>
-#include <type_traits>
+#include "Common/Future/CppLibConcepts.h"
 
 namespace Common
 {
-template <typename T>
+template <std::unsigned_integral T>
 constexpr T AlignUp(T value, size_t size)
 {
-  static_assert(std::is_unsigned<T>(), "T must be an unsigned value.");
   return static_cast<T>(value + (size - value % size) % size);
 }
 
-template <typename T>
+template <std::unsigned_integral T>
 constexpr T AlignDown(T value, size_t size)
 {
-  static_assert(std::is_unsigned<T>(), "T must be an unsigned value.");
   return static_cast<T>(value - value % size);
 }
 

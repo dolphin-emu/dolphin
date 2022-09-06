@@ -5,6 +5,8 @@
 
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
+#include "Common/Future/CppLibConcepts.h"
 
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -13,15 +15,14 @@
 
 namespace HLE::SystemVABI
 {
-// SFINAE
 template <typename T>
-constexpr bool IS_ARG_POINTER = std::is_union<T>() || std::is_class<T>();
+concept ArgPointer = Common::Union<T> || Common::Class<T>;
 template <typename T>
-constexpr bool IS_WORD = std::is_pointer<T>() || (std::is_integral<T>() && sizeof(T) <= 4);
+concept ArgWord = Common::Pointer<T> ||(std::integral<T> && sizeof(T) <= 4);
 template <typename T>
-constexpr bool IS_DOUBLE_WORD = std::is_integral<T>() && sizeof(T) == 8;
+concept ArgDoubleWord = std::integral<T> && sizeof(T) == 8;
 template <typename T>
-constexpr bool IS_ARG_REAL = std::is_floating_point<T>();
+concept ArgReal = std::floating_point<T>;
 
 // See System V ABI (SVR4) for more details
 //  -> 3-18 Parameter Passing
@@ -39,7 +40,7 @@ public:
   virtual ~VAList();
 
   // 0 - arg_ARGPOINTER
-  template <typename T, typename std::enable_if_t<IS_ARG_POINTER<T>>* = nullptr>
+  template <ArgPointer T>
   T GetArg()
   {
     T obj;
@@ -54,7 +55,7 @@ public:
   }
 
   // 1 - arg_WORD
-  template <typename T, typename std::enable_if_t<IS_WORD<T>>* = nullptr>
+  template <ArgWord T>
   T GetArg()
   {
     static_assert(!std::is_pointer<T>(), "VAList doesn't support pointers");
@@ -76,7 +77,7 @@ public:
   }
 
   // 2 - arg_DOUBLEWORD
-  template <typename T, typename std::enable_if_t<IS_DOUBLE_WORD<T>>* = nullptr>
+  template <ArgDoubleWord T>
   T GetArg()
   {
     u64 value;
@@ -99,7 +100,7 @@ public:
   }
 
   // 3 - arg_ARGREAL
-  template <typename T, typename std::enable_if_t<IS_ARG_REAL<T>>* = nullptr>
+  template <ArgReal T>
   T GetArg()
   {
     double value;

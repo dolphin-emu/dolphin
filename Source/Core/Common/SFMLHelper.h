@@ -8,13 +8,14 @@
 #include <SFML/Network/Packet.hpp>
 
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 #include "Common/Swap.h"
 
 sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u16>& data);
 sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u32>& data);
 sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u64>& data);
 
-template <typename Enum, std::enable_if_t<std::is_enum_v<Enum>>* = nullptr>
+template <Common::Enumerated Enum>
 sf::Packet& operator<<(sf::Packet& packet, Enum e)
 {
   using Underlying = std::underlying_type_t<Enum>;
@@ -22,7 +23,7 @@ sf::Packet& operator<<(sf::Packet& packet, Enum e)
   return packet;
 }
 
-template <typename Enum, std::enable_if_t<std::is_enum_v<Enum>>* = nullptr>
+template <Common::Enumerated Enum>
 sf::Packet& operator>>(sf::Packet& packet, Enum& e)
 {
   using Underlying = std::underlying_type_t<Enum>;

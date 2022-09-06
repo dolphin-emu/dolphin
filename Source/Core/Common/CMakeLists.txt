@@ -17,6 +17,7 @@ add_library(common
   CommonFuncs.h
   CommonPaths.h
   CommonTypes.h
+  Concepts.h
   Config/Config.cpp
   Config/Config.h
   Config/ConfigInfo.cpp
@@ -58,6 +59,7 @@ add_library(common
   FloatUtils.h
   FormatUtil.h
   FPURoundMode.h
+  Future/CppLibConcepts.h
   GekkoDisassembler.cpp
   GekkoDisassembler.h
   Hash.cpp

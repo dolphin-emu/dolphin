@@ -4,7 +4,6 @@
 #pragma once
 
 #include <cstring>
-#include <type_traits>
 
 #ifdef __APPLE__
 #include <libkern/OSByteOrder.h>
@@ -17,6 +16,7 @@
 #endif
 
 #include "Common/CommonTypes.h"
+#include "Common/Concepts.h"
 
 namespace Common
 {
@@ -157,19 +157,16 @@ inline void swap<8>(u8* data)
   std::memcpy(data, &value, sizeof(u64));
 }
 
-template <typename T>
+template <Arithmetic T>
 inline T FromBigEndian(T data)
 {
-  static_assert(std::is_arithmetic<T>::value, "function only makes sense with arithmetic types");
-
   swap<sizeof(data)>(reinterpret_cast<u8*>(&data));
   return data;
 }
 
-template <typename value_type>
+template <Arithmetic value_type>
 struct BigEndianValue
 {
-  static_assert(std::is_arithmetic<value_type>(), "value_type must be an arithmetic type");
   BigEndianValue() = default;
   explicit BigEndianValue(value_type val) { *this = val; }
   operator value_type() const { return FromBigEndian(raw); }

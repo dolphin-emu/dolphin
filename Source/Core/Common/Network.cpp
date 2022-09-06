@@ -19,6 +19,7 @@
 #include <fmt/format.h>
 
 #include "Common/BitUtils.h"
+#include "Common/Concepts.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
 
@@ -315,10 +316,9 @@ u16 ComputeTCPNetworkChecksum(const IPAddress& from, const IPAddress& to, const 
   return htons(static_cast<u16>(tcp_checksum));
 }
 
-template <typename Container, typename T>
+template <typename Container, Common::TriviallyCopyable T>
 static inline void InsertObj(Container* container, const T& obj)
 {
-  static_assert(std::is_trivially_copyable_v<T>);
   const u8* const ptr = reinterpret_cast<const u8*>(&obj);
   container->insert(container->end(), ptr, ptr + sizeof(obj));
 }
