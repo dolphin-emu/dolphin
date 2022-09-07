@@ -412,7 +412,7 @@ void I2CBus::DoState(PointerWrap& p)
 
 bool I2CSlaveAutoIncrementing::StartWrite(u8 slave_addr)
 {
-  if (slave_addr == m_slave_addr)
+  if (DeviceEnabled() && slave_addr == m_slave_addr)
   {
     INFO_LOG_FMT(WII_IPC, "I2C Device {:02x} write started, previously active: {}", m_slave_addr,
                  m_active);
@@ -428,7 +428,7 @@ bool I2CSlaveAutoIncrementing::StartWrite(u8 slave_addr)
 
 bool I2CSlaveAutoIncrementing::StartRead(u8 slave_addr)
 {
-  if (slave_addr == m_slave_addr)
+  if (DeviceEnabled() && slave_addr == m_slave_addr)
   {
     INFO_LOG_FMT(WII_IPC, "I2C Device {:02x} read started, previously active: {}", m_slave_addr,
                  m_active);
@@ -508,8 +508,6 @@ void I2CSlaveAutoIncrementing::DoState(PointerWrap& p)
   }
   p.Do(m_active);
   p.Do(m_device_address);
-
-  DoDeviceState(p);
 }
 
 };  // namespace Common

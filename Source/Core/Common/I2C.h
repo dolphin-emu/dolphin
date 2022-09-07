@@ -47,7 +47,7 @@ protected:
   }
 };
 
-class I2CSlaveAutoIncrementing : public I2CSlave
+class I2CSlaveAutoIncrementing : public virtual I2CSlave
 {
 public:
   I2CSlaveAutoIncrementing(u8 slave_addr) : m_slave_addr(slave_addr) {}
@@ -59,13 +59,13 @@ public:
   std::optional<u8> ReadByte() override;
   bool WriteByte(u8 value) override;
 
-  void DoState(PointerWrap& p);
+  virtual void DoState(PointerWrap& p);
 
 protected:
+  // i.e. should the device respond on the bus
+  virtual bool DeviceEnabled() { return true; }
   virtual u8 ReadByte(u8 addr) = 0;
   virtual void WriteByte(u8 addr, u8 value) = 0;
-
-  virtual void DoDeviceState(PointerWrap& p) = 0;
 
 private:
   const u8 m_slave_addr;
@@ -102,6 +102,16 @@ public:
   // TODO: change int to u16 or something
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in);
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out);
+};
+
+class I2CBusForwarding : public I2CBusSimple
+{
+public:
+  using I2CBusBase::ReadByte;
+  using I2CBusBase::StartRead;
+  using I2CBusBase::StartWrite;
+  using I2CBusBase::Stop;
+  using I2CBusBase::WriteByte;
 };
 
 // An I²C bus implementation accessed via bit-banging.

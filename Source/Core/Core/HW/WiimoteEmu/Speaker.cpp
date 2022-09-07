@@ -146,6 +146,8 @@ void SpeakerLogic::DoState(PointerWrap& p)
 {
   p.Do(adpcm_state);
   p.Do(reg_data);
+  p.Do(m_i2c_active);
+  p.Do(m_device_address);
 }
 
 void SpeakerLogic::SetSpeakerEnabled(bool enabled)
@@ -153,29 +155,104 @@ void SpeakerLogic::SetSpeakerEnabled(bool enabled)
   m_speaker_enabled = enabled;
 }
 
-int SpeakerLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+bool SpeakerLogic::StartWrite(u8 slave_addr)
 {
-  if (I2C_ADDR != slave_addr)
-    return 0;
-
-  return RawRead(&reg_data, addr, count, data_out);
-}
-
-int SpeakerLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
-{
-  if (I2C_ADDR != slave_addr)
-    return 0;
-
-  if (0x00 == addr)
+  if (slave_addr == I2C_ADDR)
   {
-    SpeakerData(data_in, count, m_speaker_pan_setting.GetValue() / 100);
-    return count;
+    INFO_LOG_FMT(WII_IPC, "I2C Device {:02x} write started, previously active: {}", I2C_ADDR,
+                 m_i2c_active);
+    m_i2c_active = true;
+    m_device_address.reset();
+    return true;
   }
   else
   {
-    // TODO: Does writing immediately change the decoder config even when active
-    // or does a write to 0x08 activate the new configuration or something?
-    return RawWrite(&reg_data, addr, count, data_in);
+    return false;
+  }
+}
+
+bool SpeakerLogic::StartRead(u8 slave_addr)
+{
+  if (slave_addr == I2C_ADDR)
+  {
+    INFO_LOG_FMT(WII_IPC, "I2C Device {:02x} read started, previously active: {}", I2C_ADDR,
+                 m_i2c_active);
+    if (m_device_address.has_value())
+    {
+      m_i2c_active = true;
+      return true;
+    }
+    else
+    {
+      WARN_LOG_FMT(WII_IPC,
+                   "I2C Device {:02x}: read attempted without having written device address",
+                   I2C_ADDR);
+      m_i2c_active = false;
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+}
+
+void SpeakerLogic::Stop()
+{
+  m_i2c_active = false;
+  m_device_address.reset();
+}
+
+std::optional<u8> SpeakerLogic::ReadByte()
+{
+  if (m_i2c_active)
+  {
+    // TODO: It seems reading address 0x00 should always return 0xff.
+
+    ASSERT(m_device_address.has_value());  // enforced by StartRead
+    const u8 cur_addr = m_device_address.value();
+    // Wrapping from 255 to 0 is the assumed behavior; this may not make sense here
+    m_device_address = cur_addr + 1;
+    return RawRead(&reg_data, cur_addr);
+  }
+  else
+  {
+    return std::nullopt;
+  }
+}
+
+bool SpeakerLogic::WriteByte(u8 value)
+{
+  if (m_i2c_active)
+  {
+    if (m_device_address.has_value())
+    {
+      const u8 cur_addr = m_device_address.value();
+
+      if (cur_addr == SPEAKER_DATA_OFFSET)  // == 0
+      {
+        // Note: No auto-incrementation in this case
+        SpeakerData(&value, 1, m_speaker_pan_setting.GetValue() / 100);
+      }
+      else
+      {
+        // Wrapping from 255 to 0 is the assumed behavior; this may not make sense here
+        m_device_address = cur_addr + 1;
+
+        // TODO: Does writing immediately change the decoder config even when active
+        // or does a write to 0x08 activate the new configuration or something?
+        RawWrite(&reg_data, cur_addr, value);
+      }
+    }
+    else
+    {
+      m_device_address = value;
+    }
+    return true;
+  }
+  else
+  {
+    return false;
   }
 }
 

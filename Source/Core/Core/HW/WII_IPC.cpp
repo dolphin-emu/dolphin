@@ -176,6 +176,12 @@ public:
     ave_ever_logged = {};
   }
 
+  void DoState(PointerWrap& p) override
+  {
+    I2CSlaveAutoIncrementing::DoState(p);
+    p.Do(m_registers);
+  }
+
   AVEState m_registers{};
 
 protected:
@@ -203,7 +209,6 @@ protected:
                     value);
     }
   }
-  void DoDeviceState(PointerWrap& p) override { p.Do(m_registers); }
 
 private:
   std::bitset<sizeof(AVEState)> ave_ever_logged{};  // logging only, not saved
