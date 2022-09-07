@@ -165,37 +165,38 @@ include(CCache)
 # for revision info
 find_package(Git)
 if(GIT_FOUND)
-  # make sure version information gets re-run when the current Git HEAD changes
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --git-path HEAD
-      OUTPUT_VARIABLE dolphin_git_head_filename
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_filename}")
-
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --symbolic-full-name HEAD
-      OUTPUT_VARIABLE dolphin_git_head_symbolic
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      COMMAND ${GIT_EXECUTABLE} rev-parse --git-path ${dolphin_git_head_symbolic}
-      OUTPUT_VARIABLE dolphin_git_head_symbolic_filename
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_symbolic_filename}")
-
-  # defines DOLPHIN_WC_REVISION
   execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
       OUTPUT_VARIABLE DOLPHIN_WC_REVISION
       OUTPUT_STRIP_TRAILING_WHITESPACE)
-  # defines DOLPHIN_WC_DESCRIBE
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} describe --always --long --dirty
-      OUTPUT_VARIABLE DOLPHIN_WC_DESCRIBE
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(NOT DOLPHIN_WC_REVISION STREQUAL DOLPHIN_WC_REVISION_CACHE)
+    execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --git-path HEAD
+        OUTPUT_VARIABLE dolphin_git_head_filename
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_filename}")
 
-  # remove hash (and trailing "-0" if needed) from description
-  string(REGEX REPLACE "(-0)?-[^-]+((-dirty)?)$" "\\2" DOLPHIN_WC_DESCRIBE "${DOLPHIN_WC_DESCRIBE}")
+    execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --symbolic-full-name HEAD
+        OUTPUT_VARIABLE dolphin_git_head_symbolic
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMAND ${GIT_EXECUTABLE} rev-parse --git-path ${dolphin_git_head_symbolic}
+        OUTPUT_VARIABLE dolphin_git_head_symbolic_filename
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_symbolic_filename}")
 
-  # defines DOLPHIN_WC_BRANCH
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-      OUTPUT_VARIABLE DOLPHIN_WC_BRANCH
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    # defines DOLPHIN_WC_DESCRIBE
+    execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} describe --always --long --dirty
+        OUTPUT_VARIABLE DOLPHIN_WC_DESCRIBE
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+    # remove hash (and trailing "-0" if needed) from description
+    string(REGEX REPLACE "(-0)?-[^-]+((-dirty)?)$" "\\2" DOLPHIN_WC_DESCRIBE "${DOLPHIN_WC_DESCRIBE}")
+
+    # defines DOLPHIN_WC_BRANCH
+    execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+        OUTPUT_VARIABLE DOLPHIN_WC_BRANCH
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
+  set(DOLPHIN_WC_REVISION_CACHE ${DOLPHIN_WC_REVISION} CACHE STRING "DO NOT MODIFY MANUALLY" FORCE)
 endif()
 
 # version number
