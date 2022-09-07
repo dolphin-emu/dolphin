@@ -238,6 +238,8 @@ public:
                                           std::chrono::milliseconds confirmation_wait,
                                           std::chrono::milliseconds maximum_wait) const;
 
+  std::recursive_mutex& GetDevicesMutex() const { return m_devices_mutex; }
+
 protected:
   // Exclusively needed when reading/writing "m_devices"
   mutable std::recursive_mutex m_devices_mutex;
