@@ -17,6 +17,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenuBar>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QScrollArea>
@@ -114,7 +115,6 @@ void MemoryWidget::CreateWidgets()
   m_data_edit = new QLineEdit;
   m_base_check = new QCheckBox(tr("Hex"));
   m_set_value = new QPushButton(tr("Set &Value"));
-  m_from_file = new QPushButton(tr("Set Value From File"));
   m_data_preview = new QLabel;
 
   m_base_check->setLayoutDirection(Qt::RightToLeft);
@@ -139,20 +139,6 @@ void MemoryWidget::CreateWidgets()
   m_input_combo->addItem(tr("Signed 8"), int(Type::Signed8));
   m_input_combo->addItem(tr("Signed 16"), int(Type::Signed16));
   m_input_combo->addItem(tr("Signed 32"), int(Type::Signed32));
-
-  // Dump
-  auto* dump_group = new QGroupBox(tr("Dump"));
-  auto* dump_layout = new QVBoxLayout;
-  dump_group->setLayout(dump_layout);
-  m_dump_mram = new QPushButton(tr("Dump &MRAM"));
-  m_dump_exram = new QPushButton(tr("Dump &ExRAM"));
-  m_dump_aram = new QPushButton(tr("Dump &ARAM"));
-  m_dump_fake_vmem = new QPushButton(tr("Dump &FakeVMEM"));
-
-  dump_layout->addWidget(m_dump_mram);
-  dump_layout->addWidget(m_dump_exram);
-  dump_layout->addWidget(m_dump_aram);
-  dump_layout->addWidget(m_dump_fake_vmem);
 
   // Search Options
   auto* search_group = new QGroupBox(tr("Search"));
@@ -253,14 +239,31 @@ void MemoryWidget::CreateWidgets()
   // Sidebar
   auto* sidebar = new QWidget;
   auto* sidebar_layout = new QVBoxLayout;
+
+  // Sidebar top menu
+  QMenuBar* menubar = new QMenuBar(sidebar);
+  menubar->setNativeMenuBar(false);
+  QMenu* menu_actions = new QMenu(tr("&Actions"));
+
+  menu_actions->addAction(tr("&Load file to current address"), this,
+                          &MemoryWidget::OnSetValueFromFile);
+  menu_actions->addSeparator();
+  menu_actions->addAction(tr("Dump &MRAM"), this, &MemoryWidget::OnDumpMRAM);
+  menu_actions->addAction(tr("Dump &ExRAM"), this, &MemoryWidget::OnDumpExRAM);
+  menu_actions->addAction(tr("Dump &ARAM"), this, &MemoryWidget::OnDumpARAM);
+  menu_actions->addAction(tr("Dump &FakeVMEM"), this, &MemoryWidget::OnDumpFakeVMEM);
+
+  menubar->addMenu(menu_actions);
+
   sidebar_layout->setSpacing(1);
   sidebar->setLayout(sidebar_layout);
+  sidebar_layout->addItem(new QSpacerItem(1, 20));
   sidebar_layout->addWidget(m_address_splitter);
   sidebar_layout->addLayout(input_layout);
   sidebar_layout->addWidget(m_input_combo);
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(m_data_preview);
   sidebar_layout->addWidget(m_set_value);
-  sidebar_layout->addWidget(m_from_file);
   sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(search_group);
   sidebar_layout->addItem(new QSpacerItem(1, 10));
@@ -269,8 +272,6 @@ void MemoryWidget::CreateWidgets()
   sidebar_layout->addWidget(address_space_group);
   sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(bp_group);
-  sidebar_layout->addItem(new QSpacerItem(1, 10));
-  sidebar_layout->addWidget(dump_group);
   sidebar_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
   // Splitter
@@ -302,14 +303,7 @@ void MemoryWidget::ConnectWidgets()
 
   connect(m_input_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &MemoryWidget::ValidateAndPreviewInputValue);
-
   connect(m_set_value, &QPushButton::clicked, this, &MemoryWidget::OnSetValue);
-  connect(m_from_file, &QPushButton::clicked, this, &MemoryWidget::OnSetValueFromFile);
-
-  connect(m_dump_mram, &QPushButton::clicked, this, &MemoryWidget::OnDumpMRAM);
-  connect(m_dump_exram, &QPushButton::clicked, this, &MemoryWidget::OnDumpExRAM);
-  connect(m_dump_aram, &QPushButton::clicked, this, &MemoryWidget::OnDumpARAM);
-  connect(m_dump_fake_vmem, &QPushButton::clicked, this, &MemoryWidget::OnDumpFakeVMEM);
 
   connect(m_find_next, &QPushButton::clicked, this, &MemoryWidget::OnFindNextValue);
   connect(m_find_previous, &QPushButton::clicked, this, &MemoryWidget::OnFindPreviousValue);
