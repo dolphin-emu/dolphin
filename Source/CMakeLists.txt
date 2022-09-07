@@ -27,6 +27,8 @@ if (MSVC)
   # Compile PCH
   add_subdirectory(PCH)
 else()
+  add_compile_options(-fmodules-ts)
+
   check_and_add_flag(HAVE_WALL -Wall)
   # TODO: would like these but they produce overwhelming amounts of warnings
   #check_and_add_flag(EXTRA -Wextra)
