@@ -673,6 +673,7 @@ elseif(APPLE)
     HW/EXI/BBA/XLINK_KAI_BBA.cpp
     HW/EXI/BBA/BuiltIn.cpp
     HW/EXI/BBA/BuiltIn.h
+    HW/EXI/BBA/Netplay_BBA.cpp
   )
   target_link_libraries(core PUBLIC ${IOB_LIBRARY})
 elseif(UNIX)
@@ -681,6 +682,7 @@ elseif(UNIX)
     HW/EXI/BBA/XLINK_KAI_BBA.cpp
     HW/EXI/BBA/BuiltIn.cpp
     HW/EXI/BBA/BuiltIn.h
+    HW/EXI/BBA/Netplay_BBA.cpp
   )
   if(ANDROID)
     target_sources(core PRIVATE
