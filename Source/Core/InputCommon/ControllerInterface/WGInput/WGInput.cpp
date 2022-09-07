@@ -544,8 +544,12 @@ private:
   {
     try
     {
+      // Workaround for Steam. If Steam's GameOverlayRenderer64.dll is loaded, battery_info is null.
+      auto battery_info = m_raw_controller.try_as<WGI::IGameControllerBatteryInfo>();
+      if (!battery_info)
+        return false;
       const winrt::Windows::Devices::Power::BatteryReport report =
-          m_raw_controller.TryGetBatteryReport();
+          battery_info.TryGetBatteryReport();
       if (!report)
         return false;
 
