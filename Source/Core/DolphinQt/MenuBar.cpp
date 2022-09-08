@@ -52,6 +52,7 @@
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/NANDRepairDialog.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
@@ -1126,47 +1127,7 @@ void MenuBar::CheckNAND()
     return;
   }
 
-  QString message = tr("The emulated NAND is damaged. System titles such as the Wii Menu and "
-                       "the Wii Shop Channel may not work correctly.\n\n"
-                       "Do you want to try to repair the NAND?");
-  if (!result.titles_to_remove.empty())
-  {
-    std::string title_listings;
-    Core::TitleDatabase title_db;
-    const DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(true);
-    for (const u64 title_id : result.titles_to_remove)
-    {
-      title_listings += StringFromFormat("%016" PRIx64, title_id);
-
-      const std::string database_name = title_db.GetChannelName(title_id, language);
-      if (!database_name.empty())
-      {
-        title_listings += " - " + database_name;
-      }
-      else
-      {
-        DiscIO::WiiSaveBanner banner(title_id);
-        if (banner.IsValid())
-        {
-          title_listings += " - " + banner.GetName();
-          const std::string description = banner.GetDescription();
-          if (!StripWhitespace(description).empty())
-            title_listings += " - " + description;
-        }
-      }
-
-      title_listings += "\n";
-    }
-
-    message += tr("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
-                  "incomplete data on the NAND, including all associated save data. "
-                  "By continuing, the following title(s) will be removed:\n\n"
-                  "%1"
-                  "\nLaunching these titles may also fix the issues.")
-                   .arg(QString::fromStdString(title_listings));
-  }
-
-  if (ModalMessageBox::question(this, tr("NAND Check"), message) != QMessageBox::Yes)
+  if (NANDRepairDialog(result, this).exec() != QDialog::Accepted)
     return;
 
   if (WiiUtils::RepairNAND(ios))

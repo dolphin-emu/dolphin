@@ -166,6 +166,7 @@
     <ClCompile Include="NetPlay\NetPlayDialog.cpp" />
     <ClCompile Include="NetPlay\NetPlaySetupDialog.cpp" />
     <ClCompile Include="NetPlay\PadMappingDialog.cpp" />
+    <ClCompile Include="NANDRepairDialog.cpp" />
     <ClCompile Include="NKitWarningDialog.cpp" />
     <ClCompile Include="pch_qt.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -355,6 +356,7 @@
     <QtMoc Include="NetPlay\NetPlayDialog.h" />
     <QtMoc Include="NetPlay\NetPlaySetupDialog.h" />
     <QtMoc Include="NetPlay\PadMappingDialog.h" />
+    <QtMoc Include="NANDRepairDialog.h" />
     <QtMoc Include="NKitWarningDialog.h" />
     <QtMoc Include="QtUtils\AspectRatioWidget.h" />
     <QtMoc Include="QtUtils\BlockUserInputFilter.h" />
