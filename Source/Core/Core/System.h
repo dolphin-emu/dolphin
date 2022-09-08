@@ -7,6 +7,15 @@
 
 class SoundStream;
 
+namespace DVDInterface
+{
+class DVDInterfaceState;
+}
+namespace DVDThread
+{
+class DVDThreadState;
+}
+
 namespace Core
 {
 // Central class that encapsulates the running system.
@@ -39,6 +48,9 @@ public:
   void SetSoundStreamRunning(bool running);
   bool IsAudioDumpStarted() const;
   void SetAudioDumpStarted(bool started);
+
+  DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
+  DVDThread::DVDThreadState& GetDVDThreadState() const;
 
 private:
   System();
