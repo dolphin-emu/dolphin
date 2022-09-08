@@ -662,7 +662,7 @@ void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
                    "* This really is an unknown opcode (unlikely)\n"
                    "* Some other sort of bug\n\n"
                    "Further errors will be sent to the Video Backend log and\n"
-                   "Dolphin will now likely crash or hang. Enjoy.",
+                   "Dolphin will now likely crash or hang.",
                    cmd_byte, fmt::ptr(buffer), preprocess);
   }
 }
