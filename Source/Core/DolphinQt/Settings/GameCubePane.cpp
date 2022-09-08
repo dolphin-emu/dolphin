@@ -10,6 +10,7 @@
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
@@ -100,6 +101,21 @@ void GameCubePane::CreateWidgets()
     m_slot_buttons[slot]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   }
 
+  for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
+  {
+    m_memcard_path_layouts[slot] = new QHBoxLayout();
+    m_memcard_path_labels[slot] = new QLabel(tr("Memory Card Path:"));
+    m_memcard_paths[slot] = new QLineEdit();
+    m_memcard_path_layouts[slot]->addWidget(m_memcard_path_labels[slot]);
+    m_memcard_path_layouts[slot]->addWidget(m_memcard_paths[slot]);
+
+    m_agp_path_layouts[slot] = new QHBoxLayout();
+    m_agp_path_labels[slot] = new QLabel(tr("GBA Cartridge Path:"));
+    m_agp_paths[slot] = new QLineEdit();
+    m_agp_path_layouts[slot]->addWidget(m_agp_path_labels[slot]);
+    m_agp_path_layouts[slot]->addWidget(m_agp_paths[slot]);
+  }
+
   // Add slot devices
   for (const auto device : {EXIDeviceType::None, EXIDeviceType::Dummy, EXIDeviceType::MemoryCard,
                             EXIDeviceType::MemoryCardFolder, EXIDeviceType::Gecko,
@@ -127,15 +143,34 @@ void GameCubePane::CreateWidgets()
                                                           static_cast<int>(device));
   }
 
-  device_layout->addWidget(new QLabel(tr("Slot A:")), 0, 0);
-  device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::A], 0, 1);
-  device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::A], 0, 2);
-  device_layout->addWidget(new QLabel(tr("Slot B:")), 1, 0);
-  device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::B], 1, 1);
-  device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::B], 1, 2);
-  device_layout->addWidget(new QLabel(tr("SP1:")), 2, 0);
-  device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::SP1], 2, 1);
-  device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::SP1], 2, 2);
+  {
+    int row = 0;
+    device_layout->addWidget(new QLabel(tr("Slot A:")), row, 0);
+    device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::A], row, 1);
+    device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::A], row, 2);
+
+    ++row;
+    device_layout->addLayout(m_memcard_path_layouts[ExpansionInterface::Slot::A], row, 0, 1, 3);
+
+    ++row;
+    device_layout->addLayout(m_agp_path_layouts[ExpansionInterface::Slot::A], row, 0, 1, 3);
+
+    ++row;
+    device_layout->addWidget(new QLabel(tr("Slot B:")), row, 0);
+    device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::B], row, 1);
+    device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::B], row, 2);
+
+    ++row;
+    device_layout->addLayout(m_memcard_path_layouts[ExpansionInterface::Slot::B], row, 0, 1, 3);
+
+    ++row;
+    device_layout->addLayout(m_agp_path_layouts[ExpansionInterface::Slot::B], row, 0, 1, 3);
+
+    ++row;
+    device_layout->addWidget(new QLabel(tr("SP1:")), row, 0);
+    device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::SP1], row, 1);
+    device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::SP1], row, 2);
+  }
 
 #ifdef HAS_LIBMGBA
   // GBA Settings
@@ -205,6 +240,17 @@ void GameCubePane::ConnectWidgets()
     connect(m_slot_buttons[slot], &QPushButton::clicked, [this, slot] { OnConfigPressed(slot); });
   }
 
+  for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
+  {
+    connect(m_memcard_paths[slot], &QLineEdit::editingFinished, [this, slot] {
+      // revert path change on failure
+      if (!SetMemcard(slot, m_memcard_paths[slot]->text()))
+        LoadSettings();
+    });
+    connect(m_agp_paths[slot], &QLineEdit::editingFinished,
+            [this, slot] { SetAGPRom(slot, m_agp_paths[slot]->text()); });
+  }
+
 #ifdef HAS_LIBMGBA
   // GBA Settings
   connect(m_gba_threads, &QCheckBox::stateChanged, this, &GameCubePane::SaveSettings);
@@ -254,10 +300,18 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
   {
   case ExpansionInterface::Slot::A:
   case ExpansionInterface::Slot::B:
+  {
     has_config = (device == ExpansionInterface::EXIDeviceType::MemoryCard ||
                   device == ExpansionInterface::EXIDeviceType::AGP ||
                   device == ExpansionInterface::EXIDeviceType::Microphone);
+    const bool hide_memory_card = device != ExpansionInterface::EXIDeviceType::MemoryCard ||
+                                  Config::IsDefaultMemcardPathConfigured(slot);
+    m_memcard_path_labels[slot]->setHidden(hide_memory_card);
+    m_memcard_paths[slot]->setHidden(hide_memory_card);
+    m_agp_path_labels[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::AGP);
+    m_agp_paths[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::AGP);
     break;
+  }
   case ExpansionInterface::Slot::SP1:
     has_config = (device == ExpansionInterface::EXIDeviceType::Ethernet ||
                   device == ExpansionInterface::EXIDeviceType::EthernetXLink ||
@@ -315,8 +369,17 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
       QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
       tr("GameCube Memory Cards (*.raw *.gcp)"), 0, QFileDialog::DontConfirmOverwrite);
 
+  if (!filename.isEmpty())
+    SetMemcard(slot, filename);
+}
+
+bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& filename)
+{
   if (filename.isEmpty())
-    return;
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Cannot set memory card to an empty path."));
+    return false;
+  }
 
   const std::string raw_path =
       WithUnifiedPathSeparators(QFileInfo(filename).absoluteFilePath().toStdString());
@@ -338,7 +401,7 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
                                   .arg(QString::fromStdString(PathToFileName(us_path)))
                                   .arg(QString::fromStdString(PathToFileName(eu_path)))
                                   .arg(QString::fromStdString(PathToFileName(jp_path))));
-    return;
+    return false;
   }
 
   // Memcard validity checks
@@ -355,7 +418,7 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
             tr("The file\n%1\nis either corrupted or not a GameCube memory card file.\n%2")
                 .arg(QString::fromStdString(path))
                 .arg(GCMemcardManager::GetErrorMessagesForErrorCode(error_code)));
-        return;
+        return false;
       }
     }
   }
@@ -375,7 +438,7 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
           this, tr("Error"),
           tr("The same file can't be used in multiple slots; it is already used by %1.")
               .arg(QString::fromStdString(fmt::to_string(other_slot))));
-      return;
+      return false;
     }
   }
 
@@ -394,6 +457,9 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
       ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::MemoryCard);
     }
   }
+
+  LoadSettings();
+  return true;
 }
 
 void GameCubePane::BrowseAGPRom(ExpansionInterface::Slot slot)
@@ -404,10 +470,13 @@ void GameCubePane::BrowseAGPRom(ExpansionInterface::Slot slot)
       this, tr("Choose a file to open"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
       tr("Game Boy Advance Carts (*.gba)"), 0, QFileDialog::DontConfirmOverwrite);
 
-  if (filename.isEmpty())
-    return;
+  if (!filename.isEmpty())
+    SetAGPRom(slot, filename);
+}
 
-  QString path_abs = QFileInfo(filename).absoluteFilePath();
+void GameCubePane::SetAGPRom(ExpansionInterface::Slot slot, const QString& filename)
+{
+  QString path_abs = filename.isEmpty() ? QString() : QFileInfo(filename).absoluteFilePath();
 
   QString path_old =
       QFileInfo(QString::fromStdString(Config::Get(Config::GetInfoForAGPCartPath(slot))))
@@ -423,6 +492,8 @@ void GameCubePane::BrowseAGPRom(ExpansionInterface::Slot slot)
     // we might as well do it for the AGP too.
     ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::AGP);
   }
+
+  LoadSettings();
 }
 
 void GameCubePane::BrowseGBABios()
@@ -497,6 +568,14 @@ void GameCubePane::LoadSettings()
     SignalBlocking(m_slot_combos[slot])
         ->setCurrentIndex(m_slot_combos[slot]->findData(static_cast<int>(exi_device)));
     UpdateButton(slot);
+  }
+
+  for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
+  {
+    SignalBlocking(m_memcard_paths[slot])
+        ->setText(QString::fromStdString(Config::GetMemcardPath(slot, std::nullopt)));
+    SignalBlocking(m_agp_paths[slot])
+        ->setText(QString::fromStdString(Config::Get(Config::GetInfoForAGPCartPath(slot))));
   }
 
 #ifdef HAS_LIBMGBA
