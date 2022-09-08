@@ -40,7 +40,7 @@ std::unique_lock<std::recursive_mutex> EmulatedController::GetStateLock()
 
 void EmulatedController::UpdateReferences(const ControllerInterface& devi)
 {
-  const auto lock = GetStateLock();
+  std::scoped_lock lk(s_get_state_mutex, devi.GetDevicesMutex());
 
   m_default_device_is_connected = devi.HasConnectedDevice(m_default_device);
 
