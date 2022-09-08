@@ -73,8 +73,8 @@ struct SConfig
   void LoadDefaults();
   static std::string MakeGameID(std::string_view file_name);
   bool SetPathsAndGameMetadata(const BootParameters& boot);
-  DiscIO::Language GetCurrentLanguage(bool wii) const;
-  DiscIO::Language GetLanguageAdjustedForRegion(bool wii, DiscIO::Region region) const;
+  DiscIO::Language GetCurrentLanguage(DiscIO::Platform platform) const;
+  DiscIO::Language GetAdjustedLanguage(DiscIO::Platform platform, DiscIO::Region region) const;
 
   IniFile LoadDefaultGameIni() const;
   IniFile LoadLocalGameIni() const;

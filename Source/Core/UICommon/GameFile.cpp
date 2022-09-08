@@ -67,7 +67,7 @@ bool UseGameCovers()
 
 DiscIO::Language GameFile::GetConfigLanguage() const
 {
-  return SConfig::GetInstance().GetLanguageAdjustedForRegion(DiscIO::IsWii(m_platform), m_region);
+  return SConfig::GetInstance().GetAdjustedLanguage(m_platform, m_region);
 }
 
 bool operator==(const GameBanner& lhs, const GameBanner& rhs)
@@ -260,7 +260,7 @@ void GameFile::DownloadDefaultCover()
     break;
   case DiscIO::Region::PAL:
   {
-    const auto user_lang = SConfig::GetInstance().GetCurrentLanguage(DiscIO::IsWii(GetPlatform()));
+    const auto user_lang = SConfig::GetInstance().GetCurrentLanguage(GetPlatform());
     switch (user_lang)
     {
     case DiscIO::Language::German:

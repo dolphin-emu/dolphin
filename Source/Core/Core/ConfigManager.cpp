@@ -172,7 +172,9 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   }
 
   const Core::TitleDatabase title_database;
-  const DiscIO::Language language = GetLanguageAdjustedForRegion(bWii, region);
+  const DiscIO::Platform platform =
+      bWii ? DiscIO::Platform::WiiDisc : DiscIO::Platform::GameCubeDisc;
+  const DiscIO::Language language = GetAdjustedLanguage(platform, region);
   m_title_name = title_database.GetTitleName(m_gametdb_id, language);
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
@@ -338,10 +340,10 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
   return true;
 }
 
-DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
+DiscIO::Language SConfig::GetCurrentLanguage(const DiscIO::Platform platform) const
 {
   DiscIO::Language language;
-  if (wii)
+  if (DiscIO::IsWii(platform))
     language = static_cast<DiscIO::Language>(Config::Get(Config::SYSCONF_LANGUAGE));
   else
     language = DiscIO::FromGameCubeLanguage(Config::Get(Config::MAIN_GC_LANGUAGE));
@@ -352,9 +354,11 @@ DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
   return language;
 }
 
-DiscIO::Language SConfig::GetLanguageAdjustedForRegion(bool wii, DiscIO::Region region) const
+DiscIO::Language SConfig::GetAdjustedLanguage(const DiscIO::Platform platform,
+                                              DiscIO::Region region) const
 {
-  const DiscIO::Language language = GetCurrentLanguage(wii);
+  const DiscIO::Language language = GetCurrentLanguage(platform);
+  const bool wii = DiscIO::IsWii(platform);
 
   if (!wii && region == DiscIO::Region::NTSC_K)
     region = DiscIO::Region::NTSC_J;  // NTSC-K only exists on Wii, so use a fallback
