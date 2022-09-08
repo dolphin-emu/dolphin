@@ -282,9 +282,11 @@ void Mixer::PushStreamingSamples(const short* samples, unsigned int num_samples)
 void Mixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples,
                                       unsigned int sample_rate_divisor)
 {
-  short samples_stereo[MAX_SAMPLES * 2];
+  // Max 20 bytes/speaker report, may be 4-bit ADPCM so multiply by 2
+  static constexpr u32 MAX_SPEAKER_SAMPLES = 20 * 2;
+  std::array<short, MAX_SPEAKER_SAMPLES * 2> samples_stereo;
 
-  if (num_samples < MAX_SAMPLES)
+  if (num_samples <= MAX_SPEAKER_SAMPLES)
   {
     m_wiimote_speaker_mixer.SetInputSampleRateDivisor(sample_rate_divisor);
 
@@ -294,7 +296,7 @@ void Mixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_sam
       samples_stereo[i * 2 + 1] = samples[i];
     }
 
-    m_wiimote_speaker_mixer.PushSamples(samples_stereo, num_samples);
+    m_wiimote_speaker_mixer.PushSamples(samples_stereo.data(), num_samples);
   }
 }
 
