@@ -271,12 +271,12 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  // AKA: Color Channel Swapping\n"
             "\n"
             "  int4 ret;\n");
-  out.Write("  ret.r = color[{}];\n", BitfieldExtract<&TevKSel::swap1>("bpmem_tevksel(s * 2u)"));
-  out.Write("  ret.g = color[{}];\n", BitfieldExtract<&TevKSel::swap2>("bpmem_tevksel(s * 2u)"));
+  out.Write("  ret.r = color[{}];\n", BitfieldExtract<&TevKSel::swap_rb>("bpmem_tevksel(s * 2u)"));
+  out.Write("  ret.g = color[{}];\n", BitfieldExtract<&TevKSel::swap_ga>("bpmem_tevksel(s * 2u)"));
   out.Write("  ret.b = color[{}];\n",
-            BitfieldExtract<&TevKSel::swap1>("bpmem_tevksel(s * 2u + 1u)"));
+            BitfieldExtract<&TevKSel::swap_rb>("bpmem_tevksel(s * 2u + 1u)"));
   out.Write("  ret.a = color[{}];\n",
-            BitfieldExtract<&TevKSel::swap2>("bpmem_tevksel(s * 2u + 1u)"));
+            BitfieldExtract<&TevKSel::swap_ga>("bpmem_tevksel(s * 2u + 1u)"));
   out.Write("  return ret;\n"
             "}}\n\n");
 
@@ -581,7 +581,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    ss.order = bpmem_tevorder(stage>>1);\n"
             "    if ((stage & 1u) == 1u)\n"
             "      ss.order = ss.order >> {};\n\n",
-            int(TwoTevStageOrders().enable1.StartBit() - TwoTevStageOrders().enable0.StartBit()));
+            int(TwoTevStageOrders().enable_tex_odd.StartBit() -
+                TwoTevStageOrders().enable_tex_even.StartBit()));
 
   // Disable texturing when there are no texgens (for now)
   if (numTexgen != 0)
@@ -596,11 +597,11 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
     out.Write("\n"
               "    uint tex_coord = {};\n",
-              BitfieldExtract<&TwoTevStageOrders::texcoord0>("ss.order"));
+              BitfieldExtract<&TwoTevStageOrders::texcoord_even>("ss.order"));
     out.Write("    int2 fixedPoint_uv = getTexCoord(tex_coord);\n"
               "\n"
               "    bool texture_enabled = (ss.order & {}u) != 0u;\n",
-              1 << TwoTevStageOrders().enable0.StartBit());
+              1 << TwoTevStageOrders().enable_tex_even.StartBit());
     out.Write("\n"
               "    // Indirect textures\n"
               "    uint tevind = bpmem_tevind(stage);\n"
@@ -712,7 +713,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "    // Sample texture for stage\n"
               "    if (texture_enabled) {{\n"
               "      uint sampler_num = {};\n",
-              BitfieldExtract<&TwoTevStageOrders::texmap0>("ss.order"));
+              BitfieldExtract<&TwoTevStageOrders::texmap_even>("ss.order"));
     out.Write("\n"
               "      int4 color = sampleTextureWrapper(sampler_num, tevcoord.xy, layer);\n"
               "      uint swap = {};\n",
@@ -1216,13 +1217,13 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "int4 getRasColor(State s, StageState ss, float4 colors_0, float4 colors_1) {{\n"
             "  // Select Ras for stage\n"
             "  uint ras = {};\n",
-            BitfieldExtract<&TwoTevStageOrders::colorchan0>("ss.order"));
+            BitfieldExtract<&TwoTevStageOrders::colorchan_even>("ss.order"));
   out.Write("  if (ras < 2u) {{ // Lighting Channel 0 or 1\n"
             "    int4 color = iround(((ras == 0u) ? colors_0 : colors_1) * 255.0);\n"
             "    uint swap = {};\n",
             BitfieldExtract<&TevStageCombiner::AlphaCombiner::rswap>("ss.ac"));
   out.Write("    return Swizzle(swap, color);\n");
-  out.Write("  }} else if (ras == 5u) {{ // Alpha Bumb\n"
+  out.Write("  }} else if (ras == 5u) {{ // Alpha Bump\n"
             "    return int4(s.AlphaBump, s.AlphaBump, s.AlphaBump, s.AlphaBump);\n"
             "  }} else if (ras == 6u) {{ // Normalzied Alpha Bump\n"
             "    int normalized = s.AlphaBump | s.AlphaBump >> 5;\n"
@@ -1239,12 +1240,12 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  uint tevksel = bpmem_tevksel(ss.stage>>1);\n"
             "  if ((ss.stage & 1u) == 0u)\n"
             "    return int4(konstLookup[{}].rgb, konstLookup[{}].a);\n",
-            BitfieldExtract<&TevKSel::kcsel0>("tevksel"),
-            BitfieldExtract<&TevKSel::kasel0>("tevksel"));
+            BitfieldExtract<&TevKSel::kcsel_even>("tevksel"),
+            BitfieldExtract<&TevKSel::kasel_even>("tevksel"));
   out.Write("  else\n"
             "    return int4(konstLookup[{}].rgb, konstLookup[{}].a);\n",
-            BitfieldExtract<&TevKSel::kcsel1>("tevksel"),
-            BitfieldExtract<&TevKSel::kasel1>("tevksel"));
+            BitfieldExtract<&TevKSel::kcsel_odd>("tevksel"),
+            BitfieldExtract<&TevKSel::kasel_odd>("tevksel"));
   out.Write("}}\n");
 
   return out;
