@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -15,6 +17,23 @@ class Mapping;
 
 namespace AudioInterface
 {
+class AudioInterfaceState
+{
+public:
+  AudioInterfaceState();
+  AudioInterfaceState(const AudioInterfaceState&) = delete;
+  AudioInterfaceState(AudioInterfaceState&&) = delete;
+  AudioInterfaceState& operator=(const AudioInterfaceState&) = delete;
+  AudioInterfaceState& operator=(AudioInterfaceState&&) = delete;
+  ~AudioInterfaceState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 void Init();
 void Shutdown();
 void DoState(PointerWrap& p);

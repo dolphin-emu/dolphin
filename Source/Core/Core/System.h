@@ -7,6 +7,10 @@
 
 class SoundStream;
 
+namespace AudioInterface
+{
+class AudioInterfaceState;
+};
 namespace DVDInterface
 {
 class DVDInterfaceState;
@@ -49,6 +53,7 @@ public:
   bool IsAudioDumpStarted() const;
   void SetAudioDumpStarted(bool started);
 
+  AudioInterface::AudioInterfaceState& GetAudioInterfaceState() const;
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;
 
