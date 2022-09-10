@@ -32,6 +32,16 @@
         <item name="buttonBarPositiveButtonStyle">@style/DolphinButton</item>
         <item name="buttonBarNegativeButtonStyle">@style/DolphinButton</item>
         <item name="buttonBarNeutralButtonStyle">@style/DolphinButton</item>
+        <item name="android:windowAnimationStyle">@style/DialogAnimation</item>
+    </style>
+
+    <style name="MaterialDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:windowAnimationStyle">@style/DialogAnimation</item>
+    </style>
+
+    <style name="DialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/fade_in</item>
+        <item name="android:windowExitAnimation">@anim/fade_out</item>
     </style>
 
     <style name="DolphinTVDialog" parent="Theme.Material3.DayNight.Dialog.Alert">

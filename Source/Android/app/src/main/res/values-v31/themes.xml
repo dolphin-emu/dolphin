@@ -27,7 +27,7 @@
         <item name="android:colorControlHighlight">@color/m3_sys_color_dynamic_light_on_surface_variant</item>
         <item name="android:colorEdgeEffect">@color/m3_sys_color_dynamic_light_secondary</item>
 
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
     </style>
 </resources>
