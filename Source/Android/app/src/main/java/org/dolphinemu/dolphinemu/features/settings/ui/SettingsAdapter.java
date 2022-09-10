@@ -10,12 +10,15 @@ import android.provider.DocumentsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.slider.Slider;
+import com.google.android.material.textfield.TextInputEditText;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
@@ -56,7 +59,7 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
 public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
-        implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
+        implements DialogInterface.OnClickListener, Slider.OnChangeListener
 {
   private final SettingsFragmentView mView;
   private final Context mContext;
@@ -64,7 +67,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   private SettingsItem mClickedItem;
   private int mClickedPosition;
-  private int mSeekbarMinValue;
   private int mSeekbarProgress;
 
   private AlertDialog mDialog;
@@ -204,28 +206,27 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     LayoutInflater inflater = LayoutInflater.from(mContext);
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
     View dialogView = inflater.inflate(R.layout.dialog_input_string, null);
-    EditText input = (EditText) dialogView.findViewById(R.id.input);
+    TextInputEditText input = dialogView.findViewById(R.id.input);
     input.setText(item.getSelectedValue(getSettings()));
 
-    builder.setView(dialogView);
-    builder.setMessage(item.getDescription());
-    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
-    {
-      String editTextInput = input.getText().toString();
+    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+            .setView(dialogView)
+            .setMessage(item.getDescription())
+            .setPositiveButton(R.string.ok, (dialogInterface, i) ->
+            {
+              String editTextInput = input.getText().toString();
 
-      if (!item.getSelectedValue(mView.getSettings()).equals(editTextInput))
-      {
-        notifyItemChanged(position);
-        mView.onSettingChanged();
-      }
+              if (!item.getSelectedValue(mView.getSettings()).equals(editTextInput))
+              {
+                notifyItemChanged(position);
+                mView.onSettingChanged();
+              }
 
-      item.setSelectedValue(mView.getSettings(), editTextInput);
-    });
-    builder.setNegativeButton(R.string.cancel, null);
-
-    mDialog = builder.show();
+              item.setSelectedValue(mView.getSettings(), editTextInput);
+            })
+            .setNegativeButton(R.string.cancel, null)
+            .show();
   }
 
   public void onSingleChoiceClick(SingleChoiceSetting item, int position)
@@ -235,12 +236,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     int value = getSelectionForSingleChoiceValue(item);
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
-
-    builder.setTitle(item.getName());
-    builder.setSingleChoiceItems(item.getChoicesId(), value, this);
-
-    mDialog = builder.show();
+    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+            .setTitle(item.getName())
+            .setSingleChoiceItems(item.getChoicesId(), value, this)
+            .show();
   }
 
   public void onStringSingleChoiceClick(StringSingleChoiceSetting item, int position)
@@ -248,13 +247,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mClickedItem = item;
     mClickedPosition = position;
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
-
-    builder.setTitle(item.getName());
-    builder.setSingleChoiceItems(item.getChoices(), item.getSelectedValueIndex(getSettings()),
-            this);
-
-    mDialog = builder.show();
+    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+            .setTitle(item.getName())
+            .setSingleChoiceItems(item.getChoices(), item.getSelectedValueIndex(getSettings()),
+                    this)
+            .show();
   }
 
   public void onSingleChoiceDynamicDescriptionsClick(SingleChoiceSettingDynamicDescriptions item,
@@ -265,29 +262,26 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     int value = getSelectionForSingleChoiceDynamicDescriptionsValue(item);
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
-
-    builder.setTitle(item.getName());
-    builder.setSingleChoiceItems(item.getChoicesId(), value, this);
-
-    mDialog = builder.show();
+    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+            .setTitle(item.getName())
+            .setSingleChoiceItems(item.getChoicesId(), value, this)
+            .show();
   }
 
   public void onSliderClick(SliderSetting item, int position)
   {
     mClickedItem = item;
     mClickedPosition = position;
-    mSeekbarMinValue = item.getMin();
     mSeekbarProgress = item.getSelectedValue(getSettings());
-    AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
 
     LayoutInflater inflater = LayoutInflater.from(mView.getActivity());
-    View view = inflater.inflate(R.layout.dialog_seekbar, null);
+    View view = inflater.inflate(R.layout.dialog_slider, null);
 
-    builder.setTitle(item.getName());
-    builder.setView(view);
-    builder.setPositiveButton(R.string.ok, this);
-    mDialog = builder.show();
+    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+            .setTitle(item.getName())
+            .setView(view)
+            .setPositiveButton(R.string.ok, this)
+            .show();
 
     mTextSliderValue = view.findViewById(R.id.text_value);
     mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
@@ -295,16 +289,12 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     TextView units = view.findViewById(R.id.text_units);
     units.setText(item.getUnits());
 
-    SeekBar seekbar = view.findViewById(R.id.seekbar);
-
-    // TODO: Once we require API 26, uncomment this line and remove the mSeekbarMinValue variable
-    //seekbar.setMin(item.getMin());
-
-    seekbar.setMax(item.getMax() - mSeekbarMinValue);
-    seekbar.setProgress(mSeekbarProgress - mSeekbarMinValue);
-    seekbar.setKeyProgressIncrement(5);
-
-    seekbar.setOnSeekBarChangeListener(this);
+    Slider slider = view.findViewById(R.id.slider);
+    slider.setValueFrom(item.getMin());
+    slider.setValueTo(item.getMax());
+    slider.setValue(mSeekbarProgress);
+    slider.setStepSize(1);
+    slider.addOnChangeListener(this);
   }
 
   public void onSubmenuClick(SubmenuSetting item)
@@ -339,10 +329,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     if (!PermissionsHandler.isExternalStorageLegacy())
     {
-      AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-      builder.setMessage(R.string.path_not_changeable_scoped_storage);
-      builder.setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
-      builder.show();
+      new MaterialAlertDialogBuilder(mContext)
+              .setMessage(R.string.path_not_changeable_scoped_storage)
+              .setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss())
+              .show();
     }
     else
     {
@@ -509,20 +499,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   }
 
   @Override
-  public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+  public void onValueChange(@NonNull Slider slider, float progress, boolean fromUser)
   {
-    mSeekbarProgress = progress + mSeekbarMinValue;
+    mSeekbarProgress = (int) progress;
     mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
-  }
-
-  @Override
-  public void onStartTrackingTouch(SeekBar seekBar)
-  {
-  }
-
-  @Override
-  public void onStopTrackingTouch(SeekBar seekBar)
-  {
   }
 
   private int getValueForSingleChoiceSelection(SingleChoiceSetting item, int which)

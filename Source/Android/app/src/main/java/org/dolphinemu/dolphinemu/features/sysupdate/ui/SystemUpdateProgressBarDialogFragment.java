@@ -3,14 +3,19 @@
 package org.dolphinemu.dolphinemu.features.sysupdate.ui;
 
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import org.dolphinemu.dolphinemu.R;
 
@@ -28,28 +33,20 @@ public class SystemUpdateProgressBarDialogFragment extends DialogFragment
     SystemUpdateViewModel viewModel =
             new ViewModelProvider(requireActivity()).get(SystemUpdateViewModel.class);
 
-    ProgressDialog progressDialog = new ProgressDialog(requireContext());
-    progressDialog.setTitle(getString(R.string.updating));
-    // We need to set the message to something here, otherwise the text will not appear when we set it later.
-    progressDialog.setMessage("");
-    progressDialog.setButton(Dialog.BUTTON_NEGATIVE, getString(R.string.cancel), (dialog, i) ->
-    {
-    });
-    progressDialog.setOnShowListener((dialogInterface) ->
-    {
-      // By default, the ProgressDialog will immediately dismiss itself upon a button being pressed.
-      // Setting the OnClickListener again after the dialog is shown overrides this behavior.
-      progressDialog.getButton(Dialog.BUTTON_NEGATIVE).setOnClickListener((view) ->
-      {
-        viewModel.setCanceled();
-      });
-    });
-    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    View dialogView = getLayoutInflater().inflate(R.layout.dialog_progress, null, false);
+    LinearProgressIndicator progressBar = dialogView.findViewById(R.id.update_progress);
 
-    viewModel.getProgressData().observe(this, (@Nullable Integer progress) ->
-    {
-      progressDialog.setProgress(progress.intValue());
-    });
+    // We need to set the message to something here, otherwise the text will not appear when we set it later.
+    AlertDialog progressDialog = new MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.updating))
+            .setMessage("")
+            .setNegativeButton(getString(R.string.cancel), null)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create();
+
+    viewModel.getProgressData()
+            .observe(this, (@Nullable Integer progress) -> progressBar.setProgress(progress));
 
     viewModel.getTotalData().observe(this, (@Nullable Integer total) ->
     {
@@ -58,13 +55,11 @@ public class SystemUpdateProgressBarDialogFragment extends DialogFragment
         return;
       }
 
-      progressDialog.setMax(total.intValue());
+      progressBar.setMax(total);
     });
 
-    viewModel.getTitleIdData().observe(this, (@Nullable Long titleId) ->
-    {
-      progressDialog.setMessage(getString(R.string.updating_message, titleId));
-    });
+    viewModel.getTitleIdData().observe(this, (@Nullable Long titleId) -> progressDialog.setMessage(
+            getString(R.string.updating_message, titleId)));
 
     viewModel.getResultData().observe(this, (@Nullable Integer result) ->
     {
@@ -87,5 +82,18 @@ public class SystemUpdateProgressBarDialogFragment extends DialogFragment
       viewModel.startUpdate();
     }
     return progressDialog;
+  }
+
+  // By default, the ProgressDialog will immediately dismiss itself upon a button being pressed.
+  // Setting the OnClickListener again after the dialog is shown overrides this behavior.
+  @Override
+  public void onResume()
+  {
+    super.onResume();
+    AlertDialog alertDialog = (AlertDialog) getDialog();
+    SystemUpdateViewModel viewModel =
+            new ViewModelProvider(requireActivity()).get(SystemUpdateViewModel.class);
+    Button negativeButton = alertDialog.getButton(Dialog.BUTTON_NEGATIVE);
+    negativeButton.setOnClickListener(v -> viewModel.setCanceled());
   }
 }

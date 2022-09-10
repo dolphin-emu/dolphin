@@ -29,7 +29,6 @@
         android:focusable="true"
         android:gravity="center"
         android:nextFocusRight="@id/root"
-        android:buttonTint="@color/dolphin_blue"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/text_name"

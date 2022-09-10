@@ -1,102 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/input_scale"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:clickable="false">
+        android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/input_scale_name"
-            style="@style/TextAppearance.MaterialComponents.Headline5"
-            android:layout_width="match_parent"
+            android:layout_width="56dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_marginStart="@dimen/spacing_large"
-            android:layout_marginTop="@dimen/spacing_large"
-            android:layout_marginEnd="@dimen/spacing_large"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="@dimen/spacing_medlarge"
             android:text="@string/emulation_control_scale"
             android:textSize="16sp"
-            tools:text="@string/overclock_enable" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/input_scale_slider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/input_scale_slider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@id/input_scale_name"
+            app:layout_constraintEnd_toStartOf="@id/input_scale_value"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/input_scale_value"
             android:layout_width="40dp"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/input_scale_name"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="@dimen/spacing_small"
-            android:layout_marginTop="@dimen/spacing_medlarge"
-            android:layout_marginEnd="@dimen/spacing_large"
-            android:layout_marginBottom="@dimen/spacing_large"
-            tools:text="99%"
-            android:textAlignment="textEnd"/>
+            android:layout_marginStart="@dimen/spacing_medlarge"
+            android:layout_marginEnd="24dp"
+            android:gravity="end"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/input_scale_slider"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="100%" />
 
-        <SeekBar
-            android:id="@+id/input_scale_seekbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/input_scale_name"
-            android:layout_alignParentStart="true"
-            android:layout_marginTop="@dimen/spacing_medlarge"
-            android:layout_marginBottom="@dimen/spacing_large"
-            android:layout_toStartOf="@id/input_scale_value" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </RelativeLayout>
-
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/input_opacity"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/input_scale"
-        android:layout_alignParentStart="true"
-        android:clickable="false">
+        android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/input_opacity_name"
-            style="@style/TextAppearance.MaterialComponents.Headline5"
-            android:layout_width="match_parent"
+            android:layout_width="56dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_marginStart="@dimen/spacing_large"
-            android:layout_marginTop="@dimen/spacing_large"
-            android:layout_marginEnd="@dimen/spacing_large"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="@dimen/spacing_medlarge"
             android:text="@string/emulation_control_opacity"
             android:textSize="16sp"
-            tools:text="@string/overclock_enable" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/input_opacity_slider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/input_opacity_slider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@id/input_opacity_name"
+            app:layout_constraintEnd_toStartOf="@id/input_opacity_value"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/input_opacity_value"
             android:layout_width="40dp"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/input_opacity_name"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="@dimen/spacing_small"
-            android:layout_marginTop="@dimen/spacing_medlarge"
-            android:layout_marginEnd="@dimen/spacing_large"
-            android:layout_marginBottom="@dimen/spacing_large"
-            tools:text="99%"
-            android:textAlignment="textEnd"/>
+            android:layout_marginStart="@dimen/spacing_medlarge"
+            android:layout_marginEnd="24dp"
+            android:gravity="end"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/input_opacity_slider"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="100%" />
 
-        <SeekBar
-            android:id="@+id/input_opacity_seekbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/input_opacity_name"
-            android:layout_alignParentStart="true"
-            android:layout_marginTop="@dimen/spacing_medlarge"
-            android:layout_marginBottom="@dimen/spacing_large"
-            android:layout_toStartOf="@id/input_opacity_value" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </RelativeLayout>
-
-</RelativeLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>

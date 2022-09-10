@@ -9,8 +9,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -38,7 +39,6 @@ public final class GameDetailsDialog extends DialogFragment
   {
     GameFile gameFile = GameFileCacheManager.addOrGet(getArguments().getString(ARG_GAME_PATH));
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
     ViewGroup contents = (ViewGroup) getActivity().getLayoutInflater()
             .inflate(R.layout.dialog_game_details, null);
 
@@ -116,7 +116,8 @@ public final class GameDetailsDialog extends DialogFragment
 
     PicassoUtils.loadGameBanner(banner, gameFile);
 
-    builder.setView(contents);
-    return builder.create();
+    return new MaterialAlertDialogBuilder(requireActivity())
+            .setView(contents)
+            .create();
   }
 }

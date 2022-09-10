@@ -7,15 +7,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ScrollView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.cheats.model.Cheat;
@@ -25,14 +26,14 @@ public class CheatDetailsFragment extends Fragment
 {
   private View mRoot;
   private ScrollView mScrollView;
-  private TextView mLabelName;
-  private EditText mEditName;
-  private TextView mLabelCreator;
-  private EditText mEditCreator;
-  private TextView mLabelNotes;
-  private EditText mEditNotes;
-  private TextView mLabelCode;
-  private EditText mEditCode;
+  private TextInputLayout mEditNameLayout;
+  private TextInputEditText mEditName;
+  private TextInputLayout mEditCreatorLayout;
+  private TextInputEditText mEditCreator;
+  private TextInputLayout mEditNotesLayout;
+  private TextInputEditText mEditNotes;
+  private TextInputLayout mEditCodeLayout;
+  private TextInputEditText mEditCode;
   private Button mButtonDelete;
   private Button mButtonEdit;
   private Button mButtonCancel;
@@ -54,14 +55,14 @@ public class CheatDetailsFragment extends Fragment
   {
     mRoot = view.findViewById(R.id.root);
     mScrollView = view.findViewById(R.id.scroll_view);
-    mLabelName = view.findViewById(R.id.label_name);
-    mEditName = view.findViewById(R.id.edit_name);
-    mLabelCreator = view.findViewById(R.id.label_creator);
-    mEditCreator = view.findViewById(R.id.edit_creator);
-    mLabelNotes = view.findViewById(R.id.label_notes);
-    mEditNotes = view.findViewById(R.id.edit_notes);
-    mLabelCode = view.findViewById(R.id.label_code);
-    mEditCode = view.findViewById(R.id.edit_code);
+    mEditNameLayout = view.findViewById(R.id.edit_name);
+    mEditName = view.findViewById(R.id.edit_name_input);
+    mEditCreatorLayout = view.findViewById(R.id.edit_creator);
+    mEditCreator = view.findViewById(R.id.edit_creator_input);
+    mEditNotesLayout = view.findViewById(R.id.edit_notes);
+    mEditNotes = view.findViewById(R.id.edit_notes_input);
+    mEditCodeLayout = view.findViewById(R.id.edit_code);
+    mEditCode = view.findViewById(R.id.edit_code_input);
     mButtonDelete = view.findViewById(R.id.button_delete);
     mButtonEdit = view.findViewById(R.id.button_edit);
     mButtonCancel = view.findViewById(R.id.button_cancel);
@@ -84,18 +85,17 @@ public class CheatDetailsFragment extends Fragment
 
   private void clearEditErrors()
   {
-    mEditName.setError(null);
-    mEditCode.setError(null);
+    mEditNameLayout.setError(null);
+    mEditCodeLayout.setError(null);
   }
 
   private void onDeleteClicked(View view)
   {
-    AlertDialog.Builder builder =
-            new AlertDialog.Builder(requireContext());
-    builder.setMessage(getString(R.string.cheats_delete_confirmation, mCheat.getName()));
-    builder.setPositiveButton(R.string.yes, (dialog, i) -> mViewModel.deleteSelectedCheat());
-    builder.setNegativeButton(R.string.no, null);
-    builder.show();
+    new MaterialAlertDialogBuilder(requireContext())
+            .setMessage(getString(R.string.cheats_delete_confirmation, mCheat.getName()))
+            .setPositiveButton(R.string.yes, (dialog, i) -> mViewModel.deleteSelectedCheat())
+            .setNegativeButton(R.string.no, null)
+            .show();
   }
 
   private void onEditClicked(View view)
@@ -134,19 +134,19 @@ public class CheatDetailsFragment extends Fragment
         mButtonEdit.requestFocus();
         break;
       case Cheat.TRY_SET_FAIL_NO_NAME:
-        mEditName.setError(getString(R.string.cheats_error_no_name));
-        mScrollView.smoothScrollTo(0, mLabelName.getTop());
+        mEditNameLayout.setError(getString(R.string.cheats_error_no_name));
+        mScrollView.smoothScrollTo(0, mEditName.getTop());
         break;
       case Cheat.TRY_SET_FAIL_NO_CODE_LINES:
-        mEditCode.setError(getString(R.string.cheats_error_no_code_lines));
+        mEditCodeLayout.setError(getString(R.string.cheats_error_no_code_lines));
         mScrollView.smoothScrollTo(0, mEditCode.getBottom());
         break;
       case Cheat.TRY_SET_FAIL_CODE_MIXED_ENCRYPTION:
-        mEditCode.setError(getString(R.string.cheats_error_mixed_encryption));
+        mEditCodeLayout.setError(getString(R.string.cheats_error_mixed_encryption));
         mScrollView.smoothScrollTo(0, mEditCode.getBottom());
         break;
       default:
-        mEditCode.setError(getString(R.string.cheats_error_on_line, result));
+        mEditCodeLayout.setError(getString(R.string.cheats_error_on_line, result));
         mScrollView.smoothScrollTo(0, mEditCode.getBottom());
         break;
     }
@@ -161,12 +161,9 @@ public class CheatDetailsFragment extends Fragment
     int creatorVisibility = cheat != null && cheat.supportsCreator() ? View.VISIBLE : View.GONE;
     int notesVisibility = cheat != null && cheat.supportsNotes() ? View.VISIBLE : View.GONE;
     int codeVisibility = cheat != null && cheat.supportsCode() ? View.VISIBLE : View.GONE;
-    mLabelCreator.setVisibility(creatorVisibility);
-    mEditCreator.setVisibility(creatorVisibility);
-    mLabelNotes.setVisibility(notesVisibility);
-    mEditNotes.setVisibility(notesVisibility);
-    mLabelCode.setVisibility(codeVisibility);
-    mEditCode.setVisibility(codeVisibility);
+    mEditCreatorLayout.setVisibility(creatorVisibility);
+    mEditNotesLayout.setVisibility(notesVisibility);
+    mEditCodeLayout.setVisibility(codeVisibility);
 
     boolean userDefined = cheat != null && cheat.getUserDefined();
     mButtonDelete.setEnabled(userDefined);

@@ -20,117 +20,100 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/label_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="@style/TextAppearance.MaterialComponents.Headline5"
-                android:textSize="18sp"
-                android:text="@string/cheats_name"
-                android:layout_margin="@dimen/spacing_large"
-                android:labelFor="@id/edit_name"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/edit_name" />
-
-            <EditText
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/edit_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp"
+                android:hint="@string/cheats_name"
+                android:paddingTop="@dimen/spacing_medlarge"
                 android:layout_marginHorizontal="@dimen/spacing_large"
-                android:importantForAutofill="no"
-                android:inputType="text"
+                android:layout_marginVertical="@dimen/spacing_small"
+                app:errorEnabled="true"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/label_name"
-                app:layout_constraintBottom_toTopOf="@id/label_creator"
-                tools:text="Hyrule Field Speed Hack" />
+                app:layout_constraintTop_toBottomOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/edit_creator">
 
-            <TextView
-                android:id="@+id/label_creator"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="@style/TextAppearance.MaterialComponents.Headline5"
-                android:textSize="18sp"
-                android:text="@string/cheats_creator"
-                android:layout_margin="@dimen/spacing_large"
-                android:labelFor="@id/edit_creator"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/edit_name"
-                app:layout_constraintBottom_toTopOf="@id/edit_creator" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edit_name_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    tools:text="Hyrule Field Speed Hack"/>
 
-            <EditText
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/edit_creator"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp"
+                android:hint="@string/cheats_creator"
                 android:layout_marginHorizontal="@dimen/spacing_large"
-                android:importantForAutofill="no"
-                android:inputType="text"
+                android:layout_marginBottom="24dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/label_creator"
-                app:layout_constraintBottom_toTopOf="@id/label_notes" />
+                app:layout_constraintTop_toBottomOf="@id/edit_name"
+                app:layout_constraintBottom_toTopOf="@id/edit_notes">
 
-            <TextView
-                android:id="@+id/label_notes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="@style/TextAppearance.MaterialComponents.Headline5"
-                android:textSize="18sp"
-                android:text="@string/cheats_notes"
-                android:layout_margin="@dimen/spacing_large"
-                android:labelFor="@id/edit_notes"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/edit_creator"
-                app:layout_constraintBottom_toTopOf="@id/edit_notes" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edit_creator_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:importantForAutofill="no"
+                    android:inputType="text"/>
 
-            <EditText
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/edit_notes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp"
+                android:hint="@string/cheats_notes"
                 android:layout_marginHorizontal="@dimen/spacing_large"
-                android:importantForAutofill="no"
-                android:inputType="textMultiLine"
+                android:layout_marginBottom="24dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/label_notes"
-                app:layout_constraintBottom_toTopOf="@id/label_code" />
+                app:layout_constraintTop_toBottomOf="@id/edit_creator"
+                app:layout_constraintBottom_toTopOf="@id/edit_code">
 
-            <TextView
-                android:id="@+id/label_code"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="@style/TextAppearance.MaterialComponents.Headline5"
-                android:textSize="18sp"
-                android:text="@string/cheats_code"
-                android:layout_margin="@dimen/spacing_large"
-                android:labelFor="@id/edit_code"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/edit_notes"
-                app:layout_constraintBottom_toTopOf="@id/edit_code" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edit_notes_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:importantForAutofill="no"
+                    android:inputType="textMultiLine" />
 
-            <EditText
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/edit_code"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="108sp"
                 android:layout_marginHorizontal="@dimen/spacing_large"
-                android:importantForAutofill="no"
-                android:inputType="textMultiLine"
-                android:typeface="monospace"
-                android:gravity="start"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/label_code"
+                android:layout_marginVertical="@dimen/spacing_small"
+                android:hint="@string/cheats_code"
+                app:errorEnabled="true"
                 app:layout_constraintBottom_toBottomOf="parent"
-                tools:text="0x8003d63c:dword:0x60000000\n0x8003d658:dword:0x60000000" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/edit_notes">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edit_code_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="108sp"
+                    android:gravity="start"
+                    android:importantForAutofill="no"
+                    android:inputType="textMultiLine"
+                    android:typeface="monospace"
+                    tools:text="0x8003d63c:dword:0x60000000\n0x8003d658:dword:0x60000000" />
+
+            </com.google.android.material.textfield.TextInputLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -62,7 +62,8 @@ public class PlatformPagerAdapter extends FragmentPagerAdapter
     // Apparently a workaround for TabLayout not supporting icons.
     // TODO: This workaround will eventually not be necessary; switch to more legit methods when that is the case
     // TODO: Also remove additional hax from styles.xml
-    Drawable drawable = mContext.getResources().getDrawable(TAB_ICONS[position]);
+    Drawable drawable =
+            mContext.getResources().getDrawable(TAB_ICONS[position], mContext.getTheme());
     drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
 
     ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);

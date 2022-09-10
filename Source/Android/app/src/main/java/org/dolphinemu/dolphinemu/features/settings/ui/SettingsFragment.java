@@ -127,7 +127,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
     if (titles.containsKey(menuTag))
     {
-      getActivity().setTitle(titles.get(menuTag));
+      mActivity.setToolbarTitle(getString(titles.get(menuTag)));
     }
 
     LinearLayoutManager manager = new LinearLayoutManager(getActivity());

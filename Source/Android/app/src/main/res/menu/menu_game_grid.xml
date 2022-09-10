@@ -16,7 +16,7 @@
 
     <item
         android:id="@+id/menu_open_file"
-        android:icon="@android:drawable/ic_media_play"
+        android:icon="@drawable/ic_play"
         android:title="@string/grid_menu_open_file"
         app:showAsAction="ifRoom"/>
 

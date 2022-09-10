@@ -8,9 +8,9 @@ import android.net.Uri;
 import android.os.Environment;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
 
@@ -126,7 +126,7 @@ public final class FileBrowserHelper
               setToSortedDelimitedString(validExtensions));
     }
 
-    new AlertDialog.Builder(context)
+    new MaterialAlertDialogBuilder(context)
             .setMessage(message)
             .setPositiveButton(R.string.yes, (dialogInterface, i) -> runnable.run())
             .setNegativeButton(R.string.no, null)

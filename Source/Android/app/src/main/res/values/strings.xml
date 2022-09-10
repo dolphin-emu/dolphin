@@ -195,6 +195,7 @@
     <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
     <string name="show_titles_in_game_list">Show Titles in Game List</string>
     <string name="show_titles_in_game_list_description">Show the title and creator below each game cover.</string>
+    <string name="change_theme">Change App Theme</string>
 
     <!-- Online Update Region Select Fragment -->
     <string name="region_select_title">Please select a region</string>
@@ -563,8 +564,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_done">Done</string>
     <string name="emulation_toggle_controls">Toggle Controls</string>
     <string name="emulation_toggle_all">Toggle All</string>
-    <string name="emulation_control_scale">Adjust Scale</string>
-    <string name="emulation_control_opacity">Adjust Opacity</string>
+    <string name="emulation_control_scale">Scale</string>
+    <string name="emulation_control_opacity">Opacity</string>
     <string name="emulation_control_adjustments">Adjust Controls</string>
     <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
     <string name="emulation_control_rumble">Rumble</string>

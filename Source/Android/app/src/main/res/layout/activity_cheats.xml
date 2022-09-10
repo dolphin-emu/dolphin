@@ -1,22 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.slidingpanelayout.widget.SlidingPaneLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/sliding_pane_layout"
+    android:id="@+id/coordinator_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.fragment.app.FragmentContainerView
-        android:layout_width="320dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:id="@+id/cheat_list"
-        android:name="org.dolphinemu.dolphinemu.features.cheats.ui.CheatListFragment" />
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar_cheats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true">
 
-    <androidx.fragment.app.FragmentContainerView
-        android:layout_width="320dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:id="@+id/cheat_details"
-        android:name="org.dolphinemu.dolphinemu.features.cheats.ui.CheatDetailsFragment" />
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar_cheats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurface"/>
 
-</androidx.slidingpanelayout.widget.SlidingPaneLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.slidingpanelayout.widget.SlidingPaneLayout
+        android:id="@+id/sliding_pane_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="56dp">
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/cheat_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:name="org.dolphinemu.dolphinemu.features.cheats.ui.CheatListFragment" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/cheat_details"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:name="org.dolphinemu.dolphinemu.features.cheats.ui.CheatDetailsFragment" />
+
+    </androidx.slidingpanelayout.widget.SlidingPaneLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

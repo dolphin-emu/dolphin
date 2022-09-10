@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -121,10 +120,6 @@ public final class TvMainActivity extends FragmentActivity
   {
     mSwipeRefresh = findViewById(R.id.swipe_refresh);
 
-    TypedValue typedValue = new TypedValue();
-    getTheme().resolveAttribute(R.attr.colorPrimary, typedValue, true);
-    mSwipeRefresh.setColorSchemeColors(typedValue.data);
-
     mSwipeRefresh.setOnRefreshListener(this);
 
     setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
@@ -138,7 +133,7 @@ public final class TvMainActivity extends FragmentActivity
 
     // Set display parameters for the BrowseFragment
     mBrowseFragment.setHeadersState(BrowseSupportFragment.HEADERS_ENABLED);
-    mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_secondary));
+    mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue));
     buildRowsAdapter();
 
     mBrowseFragment.setOnItemViewClickedListener(
@@ -364,7 +359,7 @@ public final class TvMainActivity extends FragmentActivity
     ArrayObjectAdapter rowItems = new ArrayObjectAdapter(new SettingsRowPresenter());
 
     rowItems.add(new TvSettingsItem(R.id.menu_settings,
-            R.drawable.ic_settings,
+            R.drawable.ic_settings_tv,
             R.string.grid_menu_settings));
 
     rowItems.add(new TvSettingsItem(R.id.button_add_directory,
@@ -372,31 +367,31 @@ public final class TvMainActivity extends FragmentActivity
             R.string.add_directory_title));
 
     rowItems.add(new TvSettingsItem(R.id.menu_refresh,
-            R.drawable.ic_refresh,
+            R.drawable.ic_refresh_tv,
             R.string.grid_menu_refresh));
 
     rowItems.add(new TvSettingsItem(R.id.menu_open_file,
-            R.drawable.ic_play,
+            R.drawable.ic_play_tv,
             R.string.grid_menu_open_file));
 
     rowItems.add(new TvSettingsItem(R.id.menu_install_wad,
-            R.drawable.ic_folder,
+            R.drawable.ic_folder_tv,
             R.string.grid_menu_install_wad));
 
     rowItems.add(new TvSettingsItem(R.id.menu_load_wii_system_menu,
-            R.drawable.ic_folder,
+            R.drawable.ic_folder_tv,
             R.string.grid_menu_load_wii_system_menu));
 
     rowItems.add(new TvSettingsItem(R.id.menu_import_wii_save,
-            R.drawable.ic_folder,
+            R.drawable.ic_folder_tv,
             R.string.grid_menu_import_wii_save));
 
     rowItems.add(new TvSettingsItem(R.id.menu_import_nand_backup,
-            R.drawable.ic_folder,
+            R.drawable.ic_folder_tv,
             R.string.grid_menu_import_nand_backup));
 
     rowItems.add(new TvSettingsItem(R.id.menu_online_system_update,
-            R.drawable.ic_folder,
+            R.drawable.ic_folder_tv,
             R.string.grid_menu_online_system_update));
 
     // Create a header for this row.
