@@ -7,6 +7,7 @@
 
 #include "AudioCommon/SoundStream.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/HW/AudioInterface.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/DVD/DVDThread.h"
 
@@ -18,6 +19,7 @@ struct System::Impl
   bool m_sound_stream_running = false;
   bool m_audio_dump_started = false;
 
+  AudioInterface::AudioInterfaceState m_audio_interface_state;
   DVDInterface::DVDInterfaceState m_dvd_interface_state;
   DVDThread::DVDThreadState m_dvd_thread_state;
 };
@@ -62,6 +64,11 @@ bool System::IsAudioDumpStarted() const
 void System::SetAudioDumpStarted(bool started)
 {
   m_impl->m_audio_dump_started = started;
+}
+
+AudioInterface::AudioInterfaceState& System::GetAudioInterfaceState() const
+{
+  return m_impl->m_audio_interface_state;
 }
 
 DVDInterface::DVDInterfaceState& System::GetDVDInterfaceState() const
