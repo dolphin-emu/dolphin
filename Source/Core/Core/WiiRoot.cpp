@@ -151,8 +151,11 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
     auto& sync_titles = boot_session_data.GetWiiSyncTitles();
     if (sync_fs)
     {
+      INFO_LOG_FMT(CORE, "Wii Save Init: Copying from sync_fs to session_fs.");
+
       for (const u64 title : sync_titles)
       {
+        INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title);
         CopySave(sync_fs, session_fs, title);
       }
 
@@ -165,15 +168,19 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
     }
     else
     {
+      INFO_LOG_FMT(CORE, "Wii Save Init: Copying from configured_fs to session_fs.");
+
       if (NetPlay::IsSyncingAllWiiSaves())
       {
         for (const u64 title : sync_titles)
         {
+          INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title);
           CopySave(configured_fs.get(), session_fs, title);
         }
       }
       else
       {
+        INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title_id);
         CopySave(configured_fs.get(), session_fs, title_id);
       }
 
@@ -375,11 +382,22 @@ void InitializeWiiFileSystemContents(
 
 void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
 {
-  if (!WiiRootIsTemporary() || !Config::Get(Config::SESSION_SAVE_DATA_WRITABLE) ||
-      boot_session_data.GetWiiSyncFS())
-  {
+  const bool wii_root_is_temporary = WiiRootIsTemporary();
+  const bool session_save_data_writable = Config::Get(Config::SESSION_SAVE_DATA_WRITABLE);
+  const bool has_wii_sync_fs = !!boot_session_data.GetWiiSyncFS();
+  const bool cleanup_required =
+      wii_root_is_temporary && session_save_data_writable && !has_wii_sync_fs;
+
+  INFO_LOG_FMT(CORE,
+               "Wii FS Cleanup: cleanup_required = {} (wii_root_is_temporary = {}, "
+               "session_save_data_writable = {}, has_wii_sync_fs = {})",
+               cleanup_required, wii_root_is_temporary, session_save_data_writable,
+               has_wii_sync_fs);
+
+  if (!cleanup_required)
     return;
-  }
+
+  INFO_LOG_FMT(CORE, "Wii FS Cleanup: Copying from temporary FS to configured_fs.");
 
   // copy back the temp nand redirected files to where they should normally be redirected to
   for (const auto& redirect : s_temp_nand_redirects)
@@ -402,6 +420,8 @@ void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
 
   for (const u64 title_id : ios->GetES()->GetInstalledTitles())
   {
+    INFO_LOG_FMT(CORE, "Wii FS Cleanup: Copying {0:016x}.", title_id);
+
     const auto session_save = WiiSave::MakeNandStorage(ios->GetFS().get(), title_id);
 
     // FS won't write the save if the directory doesn't exist

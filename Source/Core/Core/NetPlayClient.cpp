@@ -1696,6 +1696,11 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   // boot game
   auto boot_session_data = std::make_unique<BootSessionData>();
+
+  INFO_LOG_FMT(NETPLAY,
+               "Setting Wii sync data: has FS {}, sync_titles = {:016x}, redirect folder = {}",
+               !!m_wii_sync_fs, fmt::join(m_wii_sync_titles, ", "), m_wii_sync_redirect_folder);
+
   boot_session_data->SetWiiSyncData(std::move(m_wii_sync_fs), std::move(m_wii_sync_titles),
                                     std::move(m_wii_sync_redirect_folder), [] {
                                       // on emulation end clean up the Wii save sync directory --
