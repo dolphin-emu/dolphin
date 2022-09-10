@@ -90,6 +90,8 @@ struct DVDThreadState::Data
   std::map<u64, ReadResult> result_map;
 
   std::unique_ptr<DiscIO::Volume> disc;
+
+  FileMonitor::FileLogger file_logger;
 };
 
 DVDThreadState::DVDThreadState() : m_data(std::make_unique<Data>())
@@ -411,7 +413,7 @@ static void DVDThread()
     ReadRequest request;
     while (state.request_queue.Pop(request))
     {
-      FileMonitor::Log(*state.disc, request.partition, request.dvd_offset);
+      state.file_logger.Log(*state.disc, request.partition, request.dvd_offset);
 
       std::vector<u8> buffer(request.length);
       if (!state.disc->Read(request.dvd_offset, request.length, buffer.data(), request.partition))
