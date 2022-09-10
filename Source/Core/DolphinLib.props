@@ -322,6 +322,7 @@
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Extension.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Guitar.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Nunchuk.h" />
+    <ClInclude Include="Core\HW\WiimoteEmu\Extension\Shinkansen.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\TaTaCon.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Turntable.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\UDrawTablet.h" />
@@ -940,6 +941,7 @@
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\Extension.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\Guitar.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\Nunchuk.cpp" />
+    <ClCompile Include="Core\HW\WiimoteEmu\Extension\Shinkansen.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\TaTaCon.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\Turntable.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\UDrawTablet.cpp" />

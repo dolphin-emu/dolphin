@@ -152,6 +152,12 @@ ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGrou
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetTaTaConGroup(group);
 }
 
+ControllerEmu::ControlGroup* GetShinkansenGroup(int number, WiimoteEmu::ShinkansenGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
+      ->GetShinkansenGroup(group);
+}
+
 void Shutdown()
 {
   s_config.UnregisterHotplugCallback();
