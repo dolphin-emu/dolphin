@@ -1725,6 +1725,8 @@ bool NetPlayClient::StartGame(const std::string& path)
                                       if (File::Exists(redirect_path))
                                         File::DeleteDirRecursively(redirect_path);
                                     });
+  boot_session_data->SetNetplaySettings(std::make_unique<NetPlay::NetSettings>(m_net_settings));
+
   m_dialog->BootGame(path, std::move(boot_session_data));
 
   UpdateDevices();
@@ -2574,12 +2576,6 @@ bool IsNetPlayRunning()
   return netplay_client != nullptr;
 }
 
-const NetSettings& GetNetSettings()
-{
-  ASSERT(IsNetPlayRunning());
-  return netplay_client->GetNetSettings();
-}
-
 void SetSIPollBatching(bool state)
 {
   s_si_poll_batching = state;
@@ -2622,7 +2618,7 @@ std::string GetGBASavePath(int pad_num)
 {
   std::lock_guard lk(crit_netplay_client);
 
-  if (!netplay_client || NetPlay::GetNetSettings().m_IsHosting)
+  if (!netplay_client || netplay_client->GetNetSettings().m_IsHosting)
   {
 #ifdef HAS_LIBMGBA
     std::string rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[pad_num]);
@@ -2632,7 +2628,7 @@ std::string GetGBASavePath(int pad_num)
 #endif
   }
 
-  if (!NetPlay::GetNetSettings().m_SyncSaveData)
+  if (!netplay_client->GetNetSettings().m_SyncSaveData)
     return {};
 
   return fmt::format("{}{}{}.sav", File::GetUserPath(D_GBAUSER_IDX), GBA_SAVE_NETPLAY, pad_num + 1);

@@ -39,6 +39,11 @@ struct RegionSetting
 
 class BootExecutableReader;
 
+namespace NetPlay
+{
+struct NetSettings;
+}
+
 enum class DeleteSavestateAfterBoot : u8
 {
   No,
@@ -71,6 +76,9 @@ public:
   void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, std::vector<u64> titles,
                       std::string redirect_folder, WiiSyncCleanupFunction cleanup);
 
+  const NetPlay::NetSettings* GetNetplaySettings() const;
+  void SetNetplaySettings(std::unique_ptr<NetPlay::NetSettings> netplay_settings);
+
 private:
   std::optional<std::string> m_savestate_path;
   DeleteSavestateAfterBoot m_delete_savestate = DeleteSavestateAfterBoot::No;
@@ -79,6 +87,8 @@ private:
   std::vector<u64> m_wii_sync_titles;
   std::string m_wii_sync_redirect_folder;
   WiiSyncCleanupFunction m_wii_sync_cleanup;
+
+  std::unique_ptr<NetPlay::NetSettings> m_netplay_settings;
 };
 
 struct BootParameters
