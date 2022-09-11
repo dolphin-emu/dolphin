@@ -257,9 +257,6 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
                                    const GBAConfigArray& gba_config,
                                    const PadMappingArray& wiimote_map);
 bool IsNetPlayRunning();
-// Precondition: A netplay client instance must be present. In other words,
-//               IsNetPlayRunning() must be true before calling this.
-const NetSettings& GetNetSettings();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
 bool IsSyncingAllWiiSaves();
