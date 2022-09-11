@@ -1814,6 +1814,10 @@ void FpsControls::init_mod_mp2_gc(Region region) {
   } else {}
 }
 
+void wiimote_shake_override(u32) {
+  GPR(26) = CheckJump() ? 1 : 0;
+}
+
 void FpsControls::init_mod_mp3(Region region) {
   prime::GetVariableManager()->register_variable("grapple_lasso_state");
   prime::GetVariableManager()->register_variable("grapple_hand_x");
@@ -1821,6 +1825,7 @@ void FpsControls::init_mod_mp3(Region region) {
   prime::GetVariableManager()->register_variable("trigger_grapple");
   prime::GetVariableManager()->register_variable("new_beam");
   prime::GetVariableManager()->register_variable("beamchange_flag");
+  int wiimote_shake_override_idx = PowerPC::RegisterVmcall(wiimote_shake_override);
 
   if (region == Region::NTSC_U) {
     add_code_change(0x80080ac0, 0xec010072);
@@ -1841,6 +1846,7 @@ void FpsControls::init_mod_mp3(Region region) {
 
     // Steps over bounds checking on the reticle
     add_code_change(0x80016f48, 0x48000120);
+    add_code_change(0x800a8fc0, gen_vmcall(wiimote_shake_override_idx, 0));
   } else if (region == Region::PAL) {
     add_code_change(0x80080ab8, 0xec010072);
     add_code_change(0x8014d9e0, 0x60000000);

@@ -26,6 +26,7 @@
 #include "Core/PrimeHack/Mods/Noclip.h"
 #include "Core/PrimeHack/Mods/SkipCutscene.h"
 #include "Core/PrimeHack/Mods/SpringballButton.h"
+#include "Core/PrimeHack/Mods/STRGPatch.h"
 #include "Core/PrimeHack/Mods/ViewModifier.h"
 #include "Core/PrimeHack/Mods/ContextSensitiveControls.h"
 #include "Core/PrimeHack/Mods/FriendVouchers.h"
@@ -102,6 +103,7 @@ void InitializeHack() {
   hack_mgr.add_mod("unlock_hypermode", std::make_unique<UnlockHypermode>());
   hack_mgr.add_mod("map_controller", std::make_unique<MapController>());
   hack_mgr.add_mod("motd", std::make_unique<Motd>());
+  hack_mgr.add_mod("strg_patch", std::make_unique<STRGPatch>());
 
   hack_mgr.enable_mod("skip_cutscene");
   hack_mgr.enable_mod("fov_modifier");
@@ -109,6 +111,7 @@ void InitializeHack() {
   hack_mgr.enable_mod("bloom_intensity");
   hack_mgr.enable_mod("map_controller");
   hack_mgr.enable_mod("motd");
+  hack_mgr.enable_mod("strg_patch");
 
   // Enable no PrimeHack control mods
   if (!Config::Get(Config::PRIMEHACK_ENABLE))

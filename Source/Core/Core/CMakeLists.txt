@@ -505,6 +505,7 @@ add_library(core
   PrimeHack/Mods/FriendVouchers.h
   PrimeHack/Mods/DisableHudMemoPopup.cpp
   PrimeHack/Mods/ElfModLoader.cpp
+  PrimeHack/Mods/STRGPatch.cpp
   PrimeHack/EmuVariableManager.cpp
   PrimeHack/HackConfig.cpp
   PrimeHack/HackManager.cpp
