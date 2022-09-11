@@ -42,9 +42,6 @@
         <item name="colorPrimaryInverse">@color/dolphin_inversePrimary</item>
         <item name="android:shadowColor">@color/dolphin_shadow</item>
 
-        <item name="android:colorControlHighlight">@color/dolphin_secondary</item>
-        <item name="android:colorEdgeEffect">@color/dolphin_onSurfaceVariant</item>
-
         <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
