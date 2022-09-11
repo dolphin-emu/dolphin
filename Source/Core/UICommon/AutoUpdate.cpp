@@ -246,11 +246,11 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
 #endif
 
   // Run the updater!
-  const std::string command_line = MakeUpdaterCommandLine(updater_flags);
+  std::string command_line = MakeUpdaterCommandLine(updater_flags);
   INFO_LOG_FMT(COMMON, "Updater command line: {}", command_line);
 
 #ifdef _WIN32
-  STARTUPINFO sinfo = {sizeof(sinfo)};
+  STARTUPINFO sinfo{.cb = sizeof(sinfo)};
   sinfo.dwFlags = STARTF_FORCEOFFFEEDBACK;  // No hourglass cursor after starting the process.
   PROCESS_INFORMATION pinfo;
   if (CreateProcessW(UTF8ToWString(reloc_updater_path).c_str(), UTF8ToWString(command_line).data(),

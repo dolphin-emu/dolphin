@@ -3,6 +3,7 @@
 
 #include "MacUpdater/ViewController.h"
 
+#include "UpdaterCommon/Platform.h"
 #include "UpdaterCommon/UI.h"
 
 #include <Cocoa/Cocoa.h>
@@ -135,4 +136,22 @@ void UI::Stop()
 // Stub. Only needed on Windows
 void UI::Init()
 {
+}
+
+Platform::BuildInfo::BuildInfo(const std::string& content)
+{
+  map = {{"OSMinimumVersionMacOS", ""}};
+  Parse(content);
+}
+
+bool Platform::VersionCheck(const BuildInfo& next_build_info)
+{
+  // TODO implement OS Minimum Version check
+  // It should go something like this:
+  // auto target_version = next_build_info.GetVersion("OSMinimumVersionMacOS");
+  // if (!target_version.has_value() || current_version >= target_version)
+  //   return true;
+  // show error
+  // return false;
+  return true;
 }

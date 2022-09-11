@@ -60,4 +60,13 @@
   <Import Project="$(ExternalsDir)zstd\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
+  <ItemGroup>
+    <BuildInfoFiles Include="Common\build_info.txt" />
+  </ItemGroup>
+  <Target Name="CopyBuildInfo" AfterTargets="Build"
+    Inputs="@(BuildInfoFiles)"
+    Outputs="@(BuildInfoFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
+    <Message Text="Copy: @(BuildInfoFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
+    <Copy SourceFiles="@(BuildInfoFiles)" DestinationFolder="$(BinaryOutputDir)" />
+  </Target>
 </Project>

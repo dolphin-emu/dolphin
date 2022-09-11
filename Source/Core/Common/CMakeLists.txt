@@ -324,6 +324,10 @@ if(UNIX)
     target_link_libraries(traversal_server PRIVATE ${SYSTEMD_LIBRARIES})
   endif()
 elseif(WIN32)
+  add_custom_command(TARGET common POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/build_info.txt" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/build_info.txt"
+  )
+
   target_link_libraries(common PRIVATE "-INCLUDE:enableCompatPatches")
 endif()
 

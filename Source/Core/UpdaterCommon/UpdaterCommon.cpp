@@ -17,6 +17,7 @@
 #include "Common/HttpRequest.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
+#include "UpdaterCommon/Platform.h"
 #include "UpdaterCommon/UI.h"
 
 #ifndef _WIN32
@@ -276,6 +277,31 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
   return true;
 }
 
+bool PlatformVersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
+                          const std::string& temp_dir)
+{
+  UI::SetDescription("Checking platform...");
+
+  const auto op_it = std::find_if(to_update.cbegin(), to_update.cend(),
+                                  [&](const auto& op) { return op.filename == "build_info.txt"; });
+  if (op_it == to_update.cend())
+    return true;
+
+  const auto op = *op_it;
+  std::string build_info_path =
+      temp_dir + DIR_SEP + HexEncode(op.new_hash.data(), op.new_hash.size());
+  std::string build_info_content;
+  if (!File::ReadFileToString(build_info_path, build_info_content) ||
+      op.new_hash != ComputeHash(build_info_content))
+  {
+    fprintf(log_fp, "Failed to read %s\n.", build_info_path.c_str());
+    return false;
+  }
+  auto next_build_info = Platform::BuildInfo(build_info_content);
+
+  return Platform::VersionCheck(next_build_info);
+}
+
 TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
 {
   TodoList todo;
@@ -471,6 +497,11 @@ bool PerformUpdate(const TodoList& todo, const std::string& install_base_path,
   if (!DownloadContent(todo.to_download, content_base_url, temp_path))
     return false;
   fprintf(log_fp, "Download step completed.\n");
+
+  fprintf(log_fp, "Starting platform version check step...\n");
+  if (!PlatformVersionCheck(todo.to_update, temp_path))
+    return false;
+  fprintf(log_fp, "Platform version check step completed.\n");
 
   fprintf(log_fp, "Starting update step...\n");
   if (!UpdateFiles(todo.to_update, install_base_path, temp_path))
