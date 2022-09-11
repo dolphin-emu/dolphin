@@ -1261,13 +1261,11 @@ bool NetPlayServer::SetupNetSettings()
   settings.override_region_settings = Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
   settings.dsp_hle = Config::Get(Config::MAIN_DSP_HLE);
   settings.dsp_enable_jit = Config::Get(Config::MAIN_DSP_JIT);
-  settings.write_to_memcard = Config::Get(Config::NETPLAY_WRITE_SAVE_DATA);
   settings.ram_override_enable = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
   settings.mem1_size = Config::Get(Config::MAIN_MEM1_SIZE);
   settings.mem2_size = Config::Get(Config::MAIN_MEM2_SIZE);
   settings.fallback_region = Config::Get(Config::MAIN_FALLBACK_REGION);
   settings.allow_sd_writes = Config::Get(Config::MAIN_ALLOW_SD_WRITES);
-  settings.copy_wii_save = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
   settings.oc_enable = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   settings.oc_factor = Config::Get(Config::MAIN_OVERCLOCK);
 
@@ -1344,11 +1342,13 @@ bool NetPlayServer::SetupNetSettings()
   settings.efb_access_tile_size = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
   settings.efb_access_defer_invalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
 
+  settings.savedata_load = Config::Get(Config::NETPLAY_SAVEDATA_LOAD);
+  settings.savedata_write = settings.savedata_load && Config::Get(Config::NETPLAY_SAVEDATA_WRITE);
+  settings.savedata_sync_all_wii =
+      settings.savedata_load && Config::Get(Config::NETPLAY_SAVEDATA_SYNC_ALL_WII);
+
   settings.strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
-  settings.sync_save_data = Config::Get(Config::NETPLAY_SYNC_SAVES);
   settings.sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
-  settings.sync_all_wii_saves =
-      Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES) && Config::Get(Config::NETPLAY_SYNC_SAVES);
   settings.golf_mode = Config::Get(Config::NETPLAY_NETWORK_MODE) == "golf";
   settings.use_fma = DoAllPlayersHaveHardwareFMA();
   settings.hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
@@ -1382,7 +1382,7 @@ bool NetPlayServer::RequestStartGame()
 
   bool start_now = true;
 
-  if (m_settings.sync_save_data && m_players.size() > 1)
+  if (m_settings.savedata_load && m_players.size() > 1)
   {
     start_now = false;
     m_start_pending = true;
@@ -1451,13 +1451,11 @@ bool NetPlayServer::StartGame()
   spac << m_settings.override_region_settings;
   spac << m_settings.dsp_enable_jit;
   spac << m_settings.dsp_hle;
-  spac << m_settings.write_to_memcard;
   spac << m_settings.ram_override_enable;
   spac << m_settings.mem1_size;
   spac << m_settings.mem2_size;
   spac << m_settings.fallback_region;
   spac << m_settings.allow_sd_writes;
-  spac << m_settings.copy_wii_save;
   spac << m_settings.oc_enable;
   spac << m_settings.oc_factor;
 
@@ -1512,12 +1510,13 @@ bool NetPlayServer::StartGame()
   spac << m_settings.defer_efb_copies;
   spac << m_settings.efb_access_tile_size;
   spac << m_settings.efb_access_defer_invalidation;
+  spac << m_settings.savedata_load;
+  spac << m_settings.savedata_write;
+  spac << m_settings.savedata_sync_all_wii;
   spac << m_settings.strict_settings_sync;
   spac << initial_rtc;
-  spac << m_settings.sync_save_data;
   spac << region;
   spac << m_settings.sync_codes;
-  spac << m_settings.sync_all_wii_saves;
 
   for (size_t i = 0; i < m_settings.wiimote_extension.size(); i++)
   {
@@ -1582,7 +1581,7 @@ bool NetPlayServer::SyncSaveData()
   }
 
   bool wii_save = false;
-  if (m_settings.copy_wii_save && (game->GetPlatform() == DiscIO::Platform::WiiDisc ||
+  if (m_settings.savedata_load && (game->GetPlatform() == DiscIO::Platform::WiiDisc ||
                                    game->GetPlatform() == DiscIO::Platform::WiiWAD ||
                                    game->GetPlatform() == DiscIO::Platform::ELFOrDOL))
   {
@@ -1695,7 +1694,7 @@ bool NetPlayServer::SyncSaveData()
     const auto configured_fs = IOS::HLE::FS::MakeFileSystem(IOS::HLE::FS::Location::Configured);
 
     std::vector<std::pair<u64, WiiSave::StoragePointer>> saves;
-    if (m_settings.sync_all_wii_saves)
+    if (m_settings.savedata_sync_all_wii)
     {
       IOS::HLE::Kernel ios;
       for (const u64 title : ios.GetES()->GetInstalledTitles())

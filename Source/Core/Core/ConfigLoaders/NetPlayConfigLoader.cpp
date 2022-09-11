@@ -41,7 +41,7 @@ public:
     for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
       layer->Set(Config::GetInfoForEXIDevice(slot), m_settings.exi_device[slot]);
     layer->Set(Config::MAIN_MEMORY_CARD_SIZE, m_settings.memcard_size_override);
-    layer->Set(Config::SESSION_SAVE_DATA_WRITABLE, m_settings.write_to_memcard);
+    layer->Set(Config::SESSION_SAVE_DATA_WRITABLE, m_settings.savedata_write);
     layer->Set(Config::MAIN_RAM_OVERRIDE_ENABLE, m_settings.ram_override_enable);
     layer->Set(Config::MAIN_MEM1_SIZE, m_settings.mem1_size);
     layer->Set(Config::MAIN_MEM2_SIZE, m_settings.mem2_size);
@@ -120,7 +120,7 @@ public:
       layer->Set(Config::GFX_SSAA, false);
     }
 
-    if (m_settings.sync_save_data)
+    if (m_settings.savedata_load)
     {
       if (!m_settings.is_hosting)
       {

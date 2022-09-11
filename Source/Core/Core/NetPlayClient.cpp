@@ -812,13 +812,11 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.override_region_settings;
     packet >> m_net_settings.dsp_enable_jit;
     packet >> m_net_settings.dsp_hle;
-    packet >> m_net_settings.write_to_memcard;
     packet >> m_net_settings.ram_override_enable;
     packet >> m_net_settings.mem1_size;
     packet >> m_net_settings.mem2_size;
     packet >> m_net_settings.fallback_region;
     packet >> m_net_settings.allow_sd_writes;
-    packet >> m_net_settings.copy_wii_save;
     packet >> m_net_settings.oc_enable;
     packet >> m_net_settings.oc_factor;
 
@@ -873,14 +871,20 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.defer_efb_copies;
     packet >> m_net_settings.efb_access_tile_size;
     packet >> m_net_settings.efb_access_defer_invalidation;
+    packet >> m_net_settings.savedata_load;
+    packet >> m_net_settings.savedata_write;
+    packet >> m_net_settings.savedata_sync_all_wii;
+    if (!m_net_settings.savedata_load)
+    {
+      m_net_settings.savedata_write = false;
+      m_net_settings.savedata_sync_all_wii = false;
+    }
     packet >> m_net_settings.strict_settings_sync;
 
     m_initial_rtc = Common::PacketReadU64(packet);
 
-    packet >> m_net_settings.sync_save_data;
     packet >> m_net_settings.save_data_region;
     packet >> m_net_settings.sync_codes;
-    packet >> m_net_settings.sync_all_wii_saves;
 
     for (int& extension : m_net_settings.wiimote_extension)
       packet >> extension;
@@ -2576,16 +2580,6 @@ void SendPowerButtonEvent()
   netplay_client->SendPowerButtonEvent();
 }
 
-bool IsSyncingAllWiiSaves()
-{
-  std::lock_guard lk(crit_netplay_client);
-
-  if (netplay_client)
-    return netplay_client->GetNetSettings().sync_all_wii_saves;
-
-  return false;
-}
-
 void SetupWiimotes()
 {
   ASSERT(IsNetPlayRunning());
@@ -2617,7 +2611,7 @@ std::string GetGBASavePath(int pad_num)
 #endif
   }
 
-  if (!netplay_client->GetNetSettings().sync_save_data)
+  if (!netplay_client->GetNetSettings().savedata_load)
     return {};
 
   return fmt::format("{}{}{}.sav", File::GetUserPath(D_GBAUSER_IDX), GBA_SAVE_NETPLAY, pad_num + 1);
