@@ -63,6 +63,8 @@ void TaTaCon::Update()
 
 void TaTaCon::Reset()
 {
+  EncryptedExtension::Reset();
+
   m_reg = {};
   m_reg.identifier = tatacon_id;
 
