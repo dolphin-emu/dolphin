@@ -65,8 +65,9 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 
     // Set theme color to the refresh animation's background
     mSwipeRefresh.setProgressBackgroundColorSchemeColor(
-            MaterialColors.getColor(mSwipeRefresh, R.attr.colorSurfaceVariant));
-    mSwipeRefresh.setColorSchemeColors(MaterialColors.getColor(mSwipeRefresh, R.attr.colorPrimary));
+            MaterialColors.getColor(mSwipeRefresh, R.attr.colorPrimary));
+    mSwipeRefresh.setColorSchemeColors(
+            MaterialColors.getColor(mSwipeRefresh, R.attr.colorOnPrimary));
 
     mSwipeRefresh.setOnRefreshListener(mOnRefreshListener);
 
