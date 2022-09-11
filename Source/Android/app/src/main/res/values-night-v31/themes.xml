@@ -24,9 +24,6 @@
         <item name="colorSurfaceInverse">@color/m3_sys_color_dynamic_dark_surface_variant</item>
         <item name="colorPrimaryInverse">@color/m3_sys_color_dynamic_dark_inverse_primary</item>
 
-        <item name="android:colorControlHighlight">@color/m3_sys_color_dynamic_dark_on_surface_variant</item>
-        <item name="android:colorEdgeEffect">@color/m3_sys_color_dynamic_dark_secondary</item>
-
         <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
     </style>

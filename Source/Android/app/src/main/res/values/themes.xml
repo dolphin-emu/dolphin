@@ -91,9 +91,6 @@
         <item name="colorSurfaceInverse">@color/green_inverseSurface</item>
         <item name="colorPrimaryInverse">@color/green_inversePrimary</item>
 
-        <item name="android:colorControlHighlight">@color/green_onSurfaceVariant</item>
-        <item name="android:colorEdgeEffect">@color/green_secondary</item>
-
         <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
     </style>
@@ -124,9 +121,6 @@
         <item name="colorOnSurfaceInverse">@color/pink_inverseOnSurface</item>
         <item name="colorSurfaceInverse">@color/pink_inverseSurface</item>
         <item name="colorPrimaryInverse">@color/pink_inversePrimary</item>
-
-        <item name="android:colorControlHighlight">@color/pink_onSurfaceVariant</item>
-        <item name="android:colorEdgeEffect">@color/pink_secondary</item>
 
         <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
