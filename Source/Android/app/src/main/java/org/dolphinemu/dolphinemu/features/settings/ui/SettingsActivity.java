@@ -14,11 +14,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -88,10 +89,13 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     mPresenter = new SettingsActivityPresenter(this, getSettings());
     mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, isWii, this);
 
-    Toolbar tb = findViewById(R.id.toolbar_settings);
+    MaterialToolbar tb = findViewById(R.id.toolbar_settings);
     mToolbarLayout = findViewById(R.id.toolbar_settings_layout);
     setSupportActionBar(tb);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+    AppBarLayout appBarLayout = findViewById(R.id.appbar_settings);
+    ThemeHelper.enableScrollTint(tb, appBarLayout, this);
   }
 
   @Override

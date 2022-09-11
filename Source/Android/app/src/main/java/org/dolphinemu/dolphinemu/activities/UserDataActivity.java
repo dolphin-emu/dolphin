@@ -17,6 +17,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.R;
@@ -85,9 +87,12 @@ public class UserDataActivity extends AppCompatActivity
 
     buttonExportUserData.setOnClickListener(view -> exportUserData());
 
-    Toolbar tb = findViewById(R.id.toolbar_user_data);
+    MaterialToolbar tb = findViewById(R.id.toolbar_user_data);
     setSupportActionBar(tb);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+    AppBarLayout appBarLayout = findViewById(R.id.appbar_user_data);
+    ThemeHelper.enableScrollTint(tb, appBarLayout, this);
   }
 
   @Override
