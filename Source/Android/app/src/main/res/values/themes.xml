@@ -60,7 +60,7 @@
         <item name="colorPrimaryContainer">@color/dolphin_primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/dolphin_onPrimaryContainer</item>
 
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
     </style>
 
@@ -94,7 +94,7 @@
         <item name="android:colorControlHighlight">@color/green_onSurfaceVariant</item>
         <item name="android:colorEdgeEffect">@color/green_secondary</item>
 
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
     </style>
 
@@ -128,7 +128,7 @@
         <item name="android:colorControlHighlight">@color/pink_onSurfaceVariant</item>
         <item name="android:colorEdgeEffect">@color/pink_secondary</item>
 
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
     </style>
 
