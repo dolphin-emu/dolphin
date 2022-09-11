@@ -2,6 +2,7 @@ set (MANIFEST_FILE Updater.exe.manifest)
 
 add_executable(winupdater WIN32
   Main.cpp
+  Platform.cpp
   WinUI.cpp
   ${MANIFEST_FILE})
 
