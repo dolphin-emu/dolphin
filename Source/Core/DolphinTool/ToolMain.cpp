@@ -8,10 +8,10 @@
 #include <vector>
 
 #include "Common/Version.h"
-#include "DolphinTool/Command.h"
-#include "DolphinTool/ConvertCommand.h"
-#include "DolphinTool/HeaderCommand.h"
-#include "DolphinTool/VerifyCommand.h"
+
+import ConvertCommand;
+import HeaderCommand;
+import VerifyCommand;
 
 static int PrintUsage(int code)
 {
@@ -37,18 +37,14 @@ int main(int argc, char* argv[])
   // Take off the command selector before passing arguments down
   args.erase(args.begin(), args.begin() + 1);
 
-  std::unique_ptr<DolphinTool::Command> command;
-
   if (command_str == "convert")
-    command = std::make_unique<DolphinTool::ConvertCommand>();
+    return DolphinTool::ConvertCommand::Main(args);
   else if (command_str == "verify")
-    command = std::make_unique<DolphinTool::VerifyCommand>();
+    return DolphinTool::VerifyCommand::Main(args);
   else if (command_str == "header")
-    command = std::make_unique<DolphinTool::HeaderCommand>();
+    return DolphinTool::HeaderCommand::Main(args);
   else
     return PrintUsage(1);
-
-  return command->Main(args);
 }
 
 #ifdef _WIN32
