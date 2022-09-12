@@ -8,6 +8,9 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.appbar.CollapsingToolbarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.ConvertFragment;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
@@ -41,5 +44,18 @@ public class ConvertActivity extends AppCompatActivity
       fragment = ConvertFragment.newInstance(path);
       getSupportFragmentManager().beginTransaction().add(R.id.fragment_convert, fragment).commit();
     }
+
+    MaterialToolbar tb = findViewById(R.id.toolbar_convert);
+    CollapsingToolbarLayout ctb = findViewById(R.id.toolbar_convert_layout);
+    ctb.setTitle(getString(R.string.convert_convert));
+    setSupportActionBar(tb);
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+  }
+
+  @Override
+  public boolean onSupportNavigateUp()
+  {
+    onBackPressed();
+    return true;
   }
 }

@@ -543,6 +543,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     </string>
 
     <!-- Riivolution Boot Screen -->
+    <string name="riivolution_riivolution">Riivolution</string>
     <string name="riivolution_sd_root">SD Root: %1$s</string>
     <string name="riivolution_disabled">Disabled</string>
     <string name="riivolution_start">Start</string>
