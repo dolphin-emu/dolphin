@@ -910,6 +910,7 @@ void NetPlayClient::OnStopGame(sf::Packet& packet)
 
 void NetPlayClient::OnPowerButton()
 {
+  InvokeStop();
   m_dialog->OnMsgPowerButton();
 }
 
