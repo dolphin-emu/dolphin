@@ -2048,6 +2048,22 @@ u64 NetPlayClient::GetInitialRTCValue() const
   return m_initial_rtc;
 }
 
+bool NetPlayClient::WaitForWiimoteBuffer(int _number)
+{
+  while (m_wiimote_buffer[_number].Size() == 0)
+  {
+    if (!m_is_running.IsSet())
+    {
+      return false;
+    }
+
+    // wait for receiving thread to push some data
+    m_wii_pad_event.Wait();
+  }
+
+  return true;
+}
+
 // called from ---CPU--- thread
 bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size, u8 reporting_mode)
 {
@@ -2073,16 +2089,8 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size,
 
   }  // unlock players
 
-  while (m_wiimote_buffer[_number].Size() == 0)
-  {
-    if (!m_is_running.IsSet())
-    {
-      return false;
-    }
-
-    // wait for receiving thread to push some data
-    m_wii_pad_event.Wait();
-  }
+  if (!WaitForWiimoteBuffer(_number))
+    return false;
 
   m_wiimote_buffer[_number].Pop(nw);
 
@@ -2093,16 +2101,8 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size,
     u32 tries = 0;
     while (nw.report_id != reporting_mode)
     {
-      while (m_wiimote_buffer[_number].Size() == 0)
-      {
-        if (!m_is_running.IsSet())
-        {
-          return false;
-        }
-
-        // wait for receiving thread to push some data
-        m_wii_pad_event.Wait();
-      }
+      if (!WaitForWiimoteBuffer(_number))
+        return false;
 
       m_wiimote_buffer[_number].Pop(nw);
 

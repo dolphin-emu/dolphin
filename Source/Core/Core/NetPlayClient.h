@@ -252,6 +252,8 @@ private:
   void DisplayPlayersPing();
   u32 GetPlayersMaxPing() const;
 
+  bool WaitForWiimoteBuffer(int _number);
+
   void OnData(sf::Packet& packet);
   void OnPlayerJoin(sf::Packet& packet);
   void OnPlayerLeave(sf::Packet& packet);
