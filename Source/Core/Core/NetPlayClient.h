@@ -117,6 +117,7 @@ public:
   // Called from the GUI thread.
   bool IsConnected() const { return m_is_connected; }
   bool StartGame(const std::string& path);
+  void InvokeStop();
   bool StopGame();
   void Stop();
   bool ChangeGame(const std::string& game);

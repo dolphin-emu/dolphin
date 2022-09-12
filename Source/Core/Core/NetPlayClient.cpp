@@ -2244,8 +2244,7 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
   SendAsync(std::move(packet));
 }
 
-// called from ---GUI--- thread and ---NETPLAY--- thread (client side)
-bool NetPlayClient::StopGame()
+void NetPlayClient::InvokeStop()
 {
   m_is_running.Clear();
 
@@ -2254,6 +2253,12 @@ bool NetPlayClient::StopGame()
   m_wii_pad_event.Set();
   m_first_pad_status_received_event.Set();
   m_wait_on_input_event.Set();
+}
+
+// called from ---GUI--- thread and ---NETPLAY--- thread (client side)
+bool NetPlayClient::StopGame()
+{
+  InvokeStop();
 
   NetPlay_Disable();
 
@@ -2269,13 +2274,7 @@ void NetPlayClient::Stop()
   if (!m_is_running.IsSet())
     return;
 
-  m_is_running.Clear();
-
-  // stop waiting for input
-  m_gc_pad_event.Set();
-  m_wii_pad_event.Set();
-  m_first_pad_status_received_event.Set();
-  m_wait_on_input_event.Set();
+  InvokeStop();
 
   // Tell the server to stop if we have a pad mapped in game.
   if (LocalPlayerHasControllerMapped())
