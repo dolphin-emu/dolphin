@@ -12,7 +12,7 @@ public:
   void on_state_change(ModState old_state) override {}
 
 private:
-  void run_mod_mp3();
+  void run_mod_mp3(Region region);
 };
 
 }
