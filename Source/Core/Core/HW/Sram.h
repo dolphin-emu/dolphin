@@ -137,5 +137,3 @@ static_assert(sizeof(Sram) == 0x44);
 void InitSRAM(Sram* sram, const std::string& filename);
 void SetCardFlashID(Sram* sram, const u8* buffer, ExpansionInterface::Slot card_slot);
 void FixSRAMChecksums(Sram* sram);
-
-extern Sram g_SRAM;

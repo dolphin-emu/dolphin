@@ -21,10 +21,10 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 
 #include "DiscIO/Enums.h"
 
-Sram g_SRAM;
 bool s_using_overridden_sram = false;
 
 namespace ExpansionInterface
@@ -105,14 +105,15 @@ u8 SlotToEXIDevice(Slot slot)
 
 void Init(const Sram* override_sram)
 {
+  auto& sram = Core::System::GetInstance().GetSRAM();
   if (override_sram)
   {
-    g_SRAM = *override_sram;
+    sram = *override_sram;
     s_using_overridden_sram = true;
   }
   else
   {
-    InitSRAM(&g_SRAM, SConfig::GetInstance().m_strSRAM);
+    InitSRAM(&sram, SConfig::GetInstance().m_strSRAM);
     s_using_overridden_sram = false;
   }
 
@@ -125,9 +126,9 @@ void Init(const Sram* override_sram)
       size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override;
     const bool shift_jis =
         Config::ToGameCubeRegion(SConfig::GetInstance().m_region) == DiscIO::Region::NTSC_J;
-    const CardFlashId& flash_id = g_SRAM.settings_ex.flash_id[Memcard::SLOT_A];
-    const u32 rtc_bias = g_SRAM.settings.rtc_bias;
-    const u32 sram_language = static_cast<u32>(g_SRAM.settings.language);
+    const CardFlashId& flash_id = sram.settings_ex.flash_id[Memcard::SLOT_A];
+    const u32 rtc_bias = sram.settings.rtc_bias;
+    const u32 sram_language = static_cast<u32>(sram.settings.language);
     const u64 format_time =
         Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
 
@@ -162,7 +163,8 @@ void Shutdown()
   if (!s_using_overridden_sram)
   {
     File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
-    file.WriteArray(&g_SRAM, 1);
+    auto& sram = Core::System::GetInstance().GetSRAM();
+    file.WriteArray(&sram, 1);
   }
 }
 
