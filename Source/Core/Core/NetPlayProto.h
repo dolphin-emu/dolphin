@@ -12,6 +12,7 @@
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/Sram.h"
 
 namespace DiscIO
 {
@@ -105,6 +106,8 @@ struct NetSettings
   bool use_fma = false;
   bool hide_remote_gbas = false;
 
+  Sram sram;
+
   // These aren't sent over the network directly
   bool is_hosting = false;
   std::array<std::string, 4> gba_rom_paths{};
@@ -180,7 +183,6 @@ enum class MessageID : u8
   Pong = 0xE1,
   PlayerPingData = 0xE2,
 
-  SyncGCSRAM = 0xF0,
   SyncSaveData = 0xF1,
   SyncCodes = 0xF2,
 };

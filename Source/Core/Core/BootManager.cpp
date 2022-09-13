@@ -93,10 +93,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(*netplay_settings));
     StartUp.bCopyWiiSaveNetplay = netplay_settings->copy_wii_save;
   }
-  else
-  {
-    g_SRAM_netplay_initialized = false;
-  }
 
   // Override out-of-region languages/countries to prevent games from crashing or behaving oddly
   if (!Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))

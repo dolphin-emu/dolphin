@@ -8,6 +8,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/IOFile.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -24,7 +25,7 @@
 #include "DiscIO/Enums.h"
 
 Sram g_SRAM;
-bool g_SRAM_netplay_initialized = false;
+bool s_using_overridden_sram = false;
 
 namespace ExpansionInterface
 {
@@ -102,11 +103,17 @@ u8 SlotToEXIDevice(Slot slot)
   }
 }
 
-void Init()
+void Init(const Sram* override_sram)
 {
-  if (!g_SRAM_netplay_initialized)
+  if (override_sram)
+  {
+    g_SRAM = *override_sram;
+    s_using_overridden_sram = true;
+  }
+  else
   {
     InitSRAM(&g_SRAM, SConfig::GetInstance().m_strSRAM);
+    s_using_overridden_sram = false;
   }
 
   CEXIMemoryCard::Init();
@@ -151,6 +158,12 @@ void Shutdown()
     channel.reset();
 
   CEXIMemoryCard::Shutdown();
+
+  if (!s_using_overridden_sram)
+  {
+    File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
+    file.WriteArray(&g_SRAM, 1);
+  }
 }
 
 void DoState(PointerWrap& p)

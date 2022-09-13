@@ -139,4 +139,3 @@ void SetCardFlashID(Sram* sram, const u8* buffer, ExpansionInterface::Slot card_
 void FixSRAMChecksums(Sram* sram);
 
 extern Sram g_SRAM;
-extern bool g_SRAM_netplay_initialized;

@@ -139,15 +139,8 @@ CEXIIPL::CEXIIPL()
   FixSRAMChecksums(&g_SRAM);
 }
 
-CEXIIPL::~CEXIIPL()
-{
-  // SRAM
-  if (!g_SRAM_netplay_initialized)
-  {
-    File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
-    file.WriteArray(&g_SRAM, 1);
-  }
-}
+CEXIIPL::~CEXIIPL() = default;
+
 void CEXIIPL::DoState(PointerWrap& p)
 {
   p.Do(g_SRAM);

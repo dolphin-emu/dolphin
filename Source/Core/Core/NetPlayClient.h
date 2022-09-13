@@ -281,7 +281,6 @@ private:
   void OnPing(sf::Packet& packet);
   void OnPlayerPingData(sf::Packet& packet);
   void OnDesyncDetected(sf::Packet& packet);
-  void OnSyncGCSRAM(sf::Packet& packet);
   void OnSyncSaveData(sf::Packet& packet);
   void OnSyncSaveDataNotify(sf::Packet& packet);
   void OnSyncSaveDataRaw(sf::Packet& packet);
