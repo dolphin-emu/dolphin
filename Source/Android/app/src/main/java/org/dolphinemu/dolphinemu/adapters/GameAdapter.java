@@ -17,7 +17,7 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
-import org.dolphinemu.dolphinemu.utils.PicassoUtils;
+import org.dolphinemu.dolphinemu.utils.GlideUtils;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   {
     Context context = holder.itemView.getContext();
     GameFile gameFile = mGameFiles.get(position);
-    PicassoUtils.loadGameCover(holder, holder.imageScreenshot, gameFile);
+    GlideUtils.loadGameCover(holder, holder.imageScreenshot, gameFile);
 
     if (GameFileCacheManager.findSecondDisc(gameFile) != null)
     {
