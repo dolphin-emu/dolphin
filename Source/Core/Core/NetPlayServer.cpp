@@ -1440,7 +1440,7 @@ bool NetPlayServer::StartGame()
   if (!g_SRAM_netplay_initialized)
   {
     SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
-    InitSRAM();
+    InitSRAM(&g_SRAM, SConfig::GetInstance().m_strSRAM);
     g_SRAM_netplay_initialized = true;
   }
   sf::Packet srampac;

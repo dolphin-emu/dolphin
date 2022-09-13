@@ -141,7 +141,7 @@ CEXIMemoryCard::CEXIMemoryCard(const Slot slot, bool gci_folder,
   m_memory_card_size = m_memory_card->GetCardId() * SIZE_TO_Mb;
   std::array<u8, 20> header{};
   m_memory_card->Read(0, static_cast<s32>(header.size()), header.data());
-  SetCardFlashID(header.data(), m_card_slot);
+  SetCardFlashID(&g_SRAM, header.data(), m_card_slot);
 }
 
 std::pair<std::string /* path */, bool /* migrate */>

@@ -136,7 +136,7 @@ CEXIIPL::CEXIIPL()
   // you please
   g_SRAM.settings.language = Config::Get(Config::MAIN_GC_LANGUAGE);
   g_SRAM.settings.rtc_bias = 0;
-  FixSRAMChecksums();
+  FixSRAMChecksums(&g_SRAM);
 }
 
 CEXIIPL::~CEXIIPL()

@@ -106,7 +106,7 @@ void Init()
 {
   if (!g_SRAM_netplay_initialized)
   {
-    InitSRAM();
+    InitSRAM(&g_SRAM, SConfig::GetInstance().m_strSRAM);
   }
 
   CEXIMemoryCard::Init();

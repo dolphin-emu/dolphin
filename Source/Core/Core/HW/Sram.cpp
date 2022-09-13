@@ -9,7 +9,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/HW/EXI/EXI.h"
 
 // English
@@ -58,24 +57,24 @@ const SRAM sram_dump_german = {{
 }};
 #endif
 
-void InitSRAM()
+void InitSRAM(Sram* sram, const std::string& filename)
 {
-  File::IOFile file(SConfig::GetInstance().m_strSRAM, "rb");
+  File::IOFile file(filename, "rb");
   if (file)
   {
-    if (!file.ReadArray(&g_SRAM, 1))
+    if (!file.ReadArray(sram, 1))
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "EXI IPL-DEV: Could not read all of SRAM");
-      g_SRAM = sram_dump;
+      *sram = sram_dump;
     }
   }
   else
   {
-    g_SRAM = sram_dump;
+    *sram = sram_dump;
   }
 }
 
-void SetCardFlashID(const u8* buffer, ExpansionInterface::Slot card_slot)
+void SetCardFlashID(Sram* sram, const u8* buffer, ExpansionInterface::Slot card_slot)
 {
   u8 card_index;
   switch (card_slot)
@@ -96,25 +95,25 @@ void SetCardFlashID(const u8* buffer, ExpansionInterface::Slot card_slot)
   for (int i = 0; i < 12; i++)
   {
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-    csum += g_SRAM.settings_ex.flash_id[card_index][i] = buffer[i] - ((u8)rand & 0xff);
+    csum += sram->settings_ex.flash_id[card_index][i] = buffer[i] - ((u8)rand & 0xff);
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
     rand &= (u64)0x0000000000007fffULL;
   }
-  g_SRAM.settings_ex.flash_id_checksum[card_index] = csum ^ 0xFF;
+  sram->settings_ex.flash_id_checksum[card_index] = csum ^ 0xFF;
 }
 
-void FixSRAMChecksums()
+void FixSRAMChecksums(Sram* sram)
 {
   // 16bit big-endian additive checksum
   u16 checksum = 0;
   u16 checksum_inv = 0;
-  for (auto p = reinterpret_cast<u16*>(&g_SRAM.settings.rtc_bias);
-       p != reinterpret_cast<u16*>(&g_SRAM.settings_ex); p++)
+  for (auto p = reinterpret_cast<u16*>(&sram->settings.rtc_bias);
+       p != reinterpret_cast<u16*>(&sram->settings_ex); p++)
   {
     u16 value = Common::FromBigEndian(*p);
     checksum += value;
     checksum_inv += ~value;
   }
-  g_SRAM.settings.checksum = checksum;
-  g_SRAM.settings.checksum_inv = checksum_inv;
+  sram->settings.checksum = checksum;
+  sram->settings.checksum_inv = checksum_inv;
 }
