@@ -8,6 +8,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 
@@ -50,6 +51,9 @@ public class ConvertActivity extends AppCompatActivity
     ctb.setTitle(getString(R.string.convert_convert));
     setSupportActionBar(tb);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+    AppBarLayout appBarLayout = findViewById(R.id.appbar_convert);
+    ThemeHelper.enableScrollTint(tb, appBarLayout, this);
   }
 
   @Override

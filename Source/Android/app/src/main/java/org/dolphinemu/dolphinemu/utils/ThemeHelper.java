@@ -6,6 +6,12 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.preference.PreferenceManager;
 
+import androidx.annotation.ColorInt;
+
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.color.MaterialColors;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider;
 
@@ -103,5 +109,38 @@ public class ThemeHelper
     {
       activity.recreate();
     }
+  }
+
+  private static void setStatusBarColor(@ColorInt int color, Activity activity)
+  {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+    {
+      activity.getWindow()
+              .setStatusBarColor(activity.getResources().getColor(android.R.color.black));
+    }
+    else
+    {
+      activity.getWindow().setStatusBarColor(color);
+    }
+  }
+
+  public static void enableScrollTint(MaterialToolbar toolbar, AppBarLayout appBarLayout,
+          Activity activity)
+  {
+    appBarLayout.addOnOffsetChangedListener((layout, verticalOffset) ->
+    {
+      if (-verticalOffset >= (layout.getTotalScrollRange() / 2))
+      {
+        @ColorInt int color = MaterialColors.getColor(toolbar, R.attr.colorSurfaceVariant);
+        toolbar.setBackgroundColor(color);
+        setStatusBarColor(color, activity);
+      }
+      else
+      {
+        @ColorInt int color = MaterialColors.getColor(toolbar, R.attr.colorSurface);
+        toolbar.setBackgroundColor(color);
+        setStatusBarColor(color, activity);
+      }
+    });
   }
 }

@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 
@@ -86,6 +87,9 @@ public class RiivolutionBootActivity extends AppCompatActivity
     ctb.setTitle(getString(R.string.riivolution_riivolution));
     setSupportActionBar(tb);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+    AppBarLayout appBarLayout = findViewById(R.id.appbar_riivolution);
+    ThemeHelper.enableScrollTint(tb, appBarLayout, this);
   }
 
   @Override
