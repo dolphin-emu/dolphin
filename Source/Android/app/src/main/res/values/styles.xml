@@ -63,4 +63,8 @@
         <item name="tickVisible">false</item>
         <item name="labelBehavior">gone</item>
     </style>
+
+    <style name="DolphinDivider" parent="Widget.Material3.MaterialDivider">
+        <item name="dividerColor">?attr/colorSurfaceVariant</item>
+    </style>
 </resources>
