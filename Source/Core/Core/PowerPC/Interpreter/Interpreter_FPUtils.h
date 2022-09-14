@@ -52,6 +52,25 @@ inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)
 
 inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
 {
+  if (fpscr.NI)
+  {
+    // Emulate a rounding quirk. If the conversion result before rounding is a subnormal single,
+    // it's always flushed to zero, even if rounding would have caused it to become normal.
+
+    constexpr u64 smallest_normal_single = 0x3810000000000000;
+    const u64 value_without_sign =
+        Common::BitCast<u64>(value) & (Common::DOUBLE_EXP | Common::DOUBLE_FRAC);
+
+    if (value_without_sign < smallest_normal_single)
+    {
+      const u64 flushed_double = Common::BitCast<u64>(value) & Common::DOUBLE_SIGN;
+      const u32 flushed_single = static_cast<u32>(flushed_double >> 32);
+      return Common::BitCast<float>(flushed_single);
+    }
+  }
+
+  // Emulate standard conversion to single precision.
+
   float x = static_cast<float>(value);
   if (!cpu_info.bFlushToZero && fpscr.NI)
   {

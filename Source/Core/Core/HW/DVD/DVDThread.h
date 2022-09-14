@@ -34,6 +34,23 @@ class TicketReader;
 
 namespace DVDThread
 {
+class DVDThreadState
+{
+public:
+  DVDThreadState();
+  DVDThreadState(const DVDThreadState&) = delete;
+  DVDThreadState(DVDThreadState&&) = delete;
+  DVDThreadState& operator=(const DVDThreadState&) = delete;
+  DVDThreadState& operator=(DVDThreadState&&) = delete;
+  ~DVDThreadState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 void Start();
 void Stop();
 void DoState(PointerWrap& p);
@@ -41,7 +58,7 @@ void DoState(PointerWrap& p);
 void SetDisc(std::unique_ptr<DiscIO::Volume> disc);
 bool HasDisc();
 
-bool IsEncryptedAndHashed();
+bool HasWiiHashes();
 DiscIO::Platform GetDiscType();
 u64 PartitionOffsetToRawOffset(u64 offset, const DiscIO::Partition& partition);
 IOS::ES::TMDReader GetTMD(const DiscIO::Partition& partition);

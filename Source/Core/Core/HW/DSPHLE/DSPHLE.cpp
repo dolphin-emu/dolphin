@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/SystemTimers.h"
 
@@ -27,6 +28,7 @@ bool DSPHLE::Initialize(bool wii, bool dsp_thread)
   m_dsp_control.Hex = 0;
   m_dsp_control.DSPHalt = 1;
   m_dsp_control.DSPInit = 1;
+  m_mail_handler.SetHalted(m_dsp_control.DSPHalt);
 
   m_dsp_state.Reset();
 
@@ -66,7 +68,7 @@ void DSPHLE::SendMailToDSP(u32 mail)
 
 void DSPHLE::SetUCode(u32 crc)
 {
-  m_mail_handler.Clear();
+  m_mail_handler.ClearPending();
   m_ucode = UCodeFactory(crc, this, m_wii);
   m_ucode->Initialize();
 }
@@ -76,7 +78,7 @@ void DSPHLE::SetUCode(u32 crc)
 // Even callers are deleted.
 void DSPHLE::SwapUCode(u32 crc)
 {
-  m_mail_handler.Clear();
+  m_mail_handler.ClearPending();
 
   if (m_last_ucode && UCodeInterface::GetCRC(m_last_ucode.get()) == crc)
   {
@@ -95,15 +97,16 @@ void DSPHLE::DoState(PointerWrap& p)
 {
   bool is_hle = true;
   p.Do(is_hle);
-  if (!is_hle && p.GetMode() == PointerWrap::MODE_READ)
+  if (!is_hle && p.IsReadMode())
   {
     Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.",
                          3000);
-    p.SetMode(PointerWrap::MODE_VERIFY);
+    p.SetVerifyMode();
     return;
   }
 
   p.DoPOD(m_dsp_control);
+  p.Do(m_control_reg_init_code_clear_time);
   p.DoPOD(m_dsp_state);
 
   int ucode_crc = UCodeInterface::GetCRC(m_ucode.get());
@@ -190,16 +193,34 @@ u16 DSPHLE::DSP_WriteControlRegister(u16 value)
 {
   DSP::UDSPControl temp(value);
 
+  if (m_dsp_control.DSPHalt != temp.DSPHalt)
+  {
+    INFO_LOG_FMT(DSPHLE, "DSP_CONTROL halt bit changed: {:04x} -> {:04x}", m_dsp_control.Hex,
+                 value);
+    m_mail_handler.SetHalted(temp.DSPHalt);
+  }
+
   if (temp.DSPReset)
   {
     SetUCode(UCODE_ROM);
     temp.DSPReset = 0;
   }
-  if (temp.DSPInit == 0)
+
+  // init - unclear if writing DSPInitCode does something. Clearing DSPInit immediately sets
+  // DSPInitCode, which gets unset a bit later...
+  if ((m_dsp_control.DSPInit != 0) && (temp.DSPInit == 0))
   {
-    // copy 128 byte from ARAM 0x000000 to IMEM
+    // Copy 1024(?) bytes of uCode from main memory 0x81000000 (or is it ARAM 00000000?)
+    // to IMEM 0000 and jump to that code
+    // TODO: Determine exactly how this initialization works
+    // We could hash the input data, but this is only used for initialization purposes on licensed
+    // games and by devkitpro, so there's no real point in doing so.
+    // Datel has similar logic to retail games, but they clear bit 0x80 (DSP) instead of bit 0x800
+    // (DSPInit) so they end up not using the init uCode.
     SetUCode(UCODE_INIT_AUDIO_SYSTEM);
-    temp.DSPInitCode = 0;
+    temp.DSPInitCode = 1;
+    // Number obtained from real hardware on a Wii, but it's not perfectly consistent
+    m_control_reg_init_code_clear_time = SystemTimers::GetFakeTimeBase() + 130;
   }
 
   m_dsp_control.Hex = temp.Hex;
@@ -208,6 +229,13 @@ u16 DSPHLE::DSP_WriteControlRegister(u16 value)
 
 u16 DSPHLE::DSP_ReadControlRegister()
 {
+  if (m_dsp_control.DSPInitCode != 0)
+  {
+    if (SystemTimers::GetFakeTimeBase() >= m_control_reg_init_code_clear_time)
+      m_dsp_control.DSPInitCode = 0;
+    else
+      CoreTiming::ForceExceptionCheck(50);  // Keep checking
+  }
   return m_dsp_control.Hex;
 }
 

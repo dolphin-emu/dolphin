@@ -167,9 +167,8 @@ constexpr Common::EnumMap<const char*, TevOutput::Color2> tev_a_output_table{
     "c2.a",
 };
 
-// FIXME: Some of the video card's capabilities (BBox support, EarlyZ support, dstAlpha support)
-//        leak into this UID; This is really unhelpful if these UIDs ever move from one machine to
-//        another.
+constexpr Common::EnumMap<char, ColorChannel::Alpha> rgba_swizzle{'r', 'g', 'b', 'a'};
+
 PixelShaderUid GetPixelShaderUid()
 {
   PixelShaderUid out;
@@ -189,20 +188,25 @@ PixelShaderUid GetPixelShaderUid()
 
   u32 numStages = uid_data->genMode_numtevstages + 1;
 
-  const bool forced_early_z =
-      bpmem.UseEarlyDepthTest() &&
+  uid_data->Pretest = bpmem.alpha_test.TestResult();
+  uid_data->ztest = bpmem.GetEmulatedZ();
+  if (uid_data->ztest == EmulatedZ::Early &&
       (g_ActiveConfig.bFastDepthCalc ||
        bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined)
       // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
       // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
-      && !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+      && !bpmem.genMode.zfreeze)
+  {
+    uid_data->ztest = EmulatedZ::ForcedEarly;
+  }
+
+  const bool forced_early_z = uid_data->ztest == EmulatedZ::ForcedEarly;
   const bool per_pixel_depth =
-      (bpmem.ztex2.op != ZTexOp::Disabled && bpmem.UseLateDepthTest()) ||
+      (bpmem.ztex2.op != ZTexOp::Disabled && uid_data->ztest == EmulatedZ::Late) ||
       (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) ||
       (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
 
   uid_data->per_pixel_depth = per_pixel_depth;
-  uid_data->forced_early_z = forced_early_z;
 
   if (g_ActiveConfig.bEnablePixelLighting)
   {
@@ -252,22 +256,22 @@ PixelShaderUid GetPixelShaderUid()
         ac.a == TevAlphaArg::RasAlpha || ac.b == TevAlphaArg::RasAlpha ||
         ac.c == TevAlphaArg::RasAlpha || ac.d == TevAlphaArg::RasAlpha)
     {
-      const int i = bpmem.combiners[n].alphaC.rswap;
-      uid_data->stagehash[n].tevksel_swap1a = bpmem.tevksel[i * 2].swap1;
-      uid_data->stagehash[n].tevksel_swap2a = bpmem.tevksel[i * 2].swap2;
-      uid_data->stagehash[n].tevksel_swap1b = bpmem.tevksel[i * 2 + 1].swap1;
-      uid_data->stagehash[n].tevksel_swap2b = bpmem.tevksel[i * 2 + 1].swap2;
+      const auto ras_swap_table = bpmem.tevksel.GetSwapTable(bpmem.combiners[n].alphaC.rswap);
+      uid_data->stagehash[n].ras_swap_r = ras_swap_table[ColorChannel::Red];
+      uid_data->stagehash[n].ras_swap_g = ras_swap_table[ColorChannel::Green];
+      uid_data->stagehash[n].ras_swap_b = ras_swap_table[ColorChannel::Blue];
+      uid_data->stagehash[n].ras_swap_a = ras_swap_table[ColorChannel::Alpha];
       uid_data->stagehash[n].tevorders_colorchan = bpmem.tevorders[n / 2].getColorChan(n & 1);
     }
 
     uid_data->stagehash[n].tevorders_enable = bpmem.tevorders[n / 2].getEnable(n & 1);
     if (uid_data->stagehash[n].tevorders_enable)
     {
-      const int i = bpmem.combiners[n].alphaC.tswap;
-      uid_data->stagehash[n].tevksel_swap1c = bpmem.tevksel[i * 2].swap1;
-      uid_data->stagehash[n].tevksel_swap2c = bpmem.tevksel[i * 2].swap2;
-      uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i * 2 + 1].swap1;
-      uid_data->stagehash[n].tevksel_swap2d = bpmem.tevksel[i * 2 + 1].swap2;
+      const auto tex_swap_table = bpmem.tevksel.GetSwapTable(bpmem.combiners[n].alphaC.tswap);
+      uid_data->stagehash[n].tex_swap_r = tex_swap_table[ColorChannel::Red];
+      uid_data->stagehash[n].tex_swap_g = tex_swap_table[ColorChannel::Green];
+      uid_data->stagehash[n].tex_swap_b = tex_swap_table[ColorChannel::Blue];
+      uid_data->stagehash[n].tex_swap_a = tex_swap_table[ColorChannel::Alpha];
       uid_data->stagehash[n].tevorders_texmap = bpmem.tevorders[n / 2].getTexMap(n & 1);
     }
 
@@ -275,8 +279,8 @@ PixelShaderUid GetPixelShaderUid()
         cc.d == TevColorArg::Konst || ac.a == TevAlphaArg::Konst || ac.b == TevAlphaArg::Konst ||
         ac.c == TevAlphaArg::Konst || ac.d == TevAlphaArg::Konst)
     {
-      uid_data->stagehash[n].tevksel_kc = bpmem.tevksel[n / 2].getKC(n & 1);
-      uid_data->stagehash[n].tevksel_ka = bpmem.tevksel[n / 2].getKA(n & 1);
+      uid_data->stagehash[n].tevksel_kc = bpmem.tevksel.GetKonstColor(n);
+      uid_data->stagehash[n].tevksel_ka = bpmem.tevksel.GetKonstAlpha(n);
     }
   }
 
@@ -285,58 +289,23 @@ PixelShaderUid GetPixelShaderUid()
                              sizeof(*uid_data) :
                              MY_STRUCT_OFFSET(*uid_data, stagehash[numStages]);
 
-  uid_data->Pretest = bpmem.alpha_test.TestResult();
-  uid_data->late_ztest = bpmem.UseLateDepthTest();
-
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
   // testing result)
   if (uid_data->Pretest == AlphaTestResult::Undetermined ||
-      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->late_ztest))
+      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->ztest == EmulatedZ::Late))
   {
     uid_data->alpha_test_comp0 = bpmem.alpha_test.comp0;
     uid_data->alpha_test_comp1 = bpmem.alpha_test.comp1;
     uid_data->alpha_test_logic = bpmem.alpha_test.logic;
-
-    // ZCOMPLOC HACK:
-    // The only way to emulate alpha test + early-z is to force early-z in the shader.
-    // As this isn't available on all drivers and as we can't emulate this feature otherwise,
-    // we are only able to choose which one we want to respect more.
-    // Tests seem to have proven that writing depth even when the alpha test fails is more
-    // important that a reliable alpha test, so we just force the alpha test to always succeed.
-    // At least this seems to be less buggy.
-    uid_data->alpha_test_use_zcomploc_hack =
-        bpmem.UseEarlyDepthTest() && bpmem.zmode.updateenable &&
-        !g_ActiveConfig.backend_info.bSupportsEarlyZ && !bpmem.genMode.zfreeze;
   }
 
   uid_data->zfreeze = bpmem.genMode.zfreeze;
   uid_data->ztex_op = bpmem.ztex2.op;
-  uid_data->early_ztest = bpmem.UseEarlyDepthTest();
 
   uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
   uid_data->fog_proj = bpmem.fog.c_proj_fsel.proj;
   uid_data->fog_RangeBaseEnabled = bpmem.fogRange.Base.Enabled;
-
-  BlendingState state = {};
-  state.Generate(bpmem);
-
-  if (((state.usedualsrc && state.dstalpha) ||
-       DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z)) &&
-      g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
-      !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
-  {
-    uid_data->blend_enable = state.blendenable;
-    uid_data->blend_src_factor = state.srcfactor;
-    uid_data->blend_src_factor_alpha = state.srcfactoralpha;
-    uid_data->blend_dst_factor = state.dstfactor;
-    uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
-    uid_data->blend_subtract = state.subtract;
-    uid_data->blend_subtract_alpha = state.subtractAlpha;
-  }
-
-  uid_data->logic_op_enable = state.logicopenable;
-  uid_data->logic_op_mode = u32(state.logicmode.Value());
 
   return out;
 }
@@ -379,23 +348,10 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "int3 iround(float3 x) {{ return int3(round(x)); }}\n"
             "int4 iround(float4 x) {{ return int4(round(x)); }}\n\n");
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
-    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
-  }
-  else  // D3D
-  {
-    // Declare samplers
-    out.Write("SamplerState samp[8] : register(s0);\n"
-              "\n"
-              "Texture2DArray tex[8] : register(t0);\n");
-  }
+  out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
   out.Write("\n");
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    out.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n");
-  else
-    out.Write("cbuffer PSBlock : register(b0) {{\n");
+  out.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n");
 
   out.Write("\tint4 " I_COLORS "[4];\n"
             "\tint4 " I_KCOLORS "[4];\n"
@@ -445,10 +401,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
   {
     out.Write("{}", s_lighting_struct);
 
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-      out.Write("UBO_BINDING(std140, 2) uniform VSBlock {{\n");
-    else
-      out.Write("cbuffer VSBlock : register(b1) {{\n");
+    out.Write("UBO_BINDING(std140, 2) uniform VSBlock {{\n");
 
     out.Write("{}", s_shader_uniforms);
     out.Write("}};\n");
@@ -456,31 +409,9 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
 
   if (bounding_box)
   {
-    if (api_type == APIType::D3D)
-    {
-      out.Write("globallycoherent RWBuffer<int> bbox_data : register(u2);\n"
-                "#define atomicMin InterlockedMin\n"
-                "#define atomicMax InterlockedMax");
-    }
-    else
-    {
-      out.Write("SSBO_BINDING(0) buffer BBox {{\n");
-
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SSBO_FIELD_ATOMICS))
-      {
-        // AMD drivers on Windows seemingly ignore atomic writes to fields or array elements of an
-        // SSBO other than the first one, but using an int4 seems to work fine
-        out.Write("  int4 bbox_data;\n");
-      }
-      else
-      {
-        // The Metal shader compiler fails to compile the atomic instructions when operating on
-        // individual components of a vector
-        out.Write("  int bbox_data[4];\n");
-      }
-
-      out.Write("}};");
-    }
+    out.Write("SSBO_BINDING(0) coherent buffer BBox {{\n"
+              "  int bbox_data[4];\n"
+              "}};");
 
     out.Write(R"(
 #define bbox_left bbox_data[0]
@@ -548,24 +479,12 @@ void UpdateBoundingBox(float2 rawpos) {{
 
   if (host_config.manual_texture_sampling)
   {
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    {
-      out.Write(R"(
+    out.Write(R"(
 int4 readTexture(in sampler2DArray tex, uint u, uint v, int layer, int lod) {{
   return iround(texelFetch(tex, int3(u, v, layer), lod) * 255.0);
 }}
 
 int4 readTextureLinear(in sampler2DArray tex, uint2 uv1, uint2 uv2, int layer, int lod, int2 frac_uv) {{)");
-    }
-    else if (api_type == APIType::D3D)
-    {
-      out.Write(R"(
-int4 readTexture(in Texture2DArray tex, uint u, uint v, int layer, int lod) {{
-  return iround(tex.Load(int4(u, v, layer, lod)) * 255.0);
-}}
-
-int4 readTextureLinear(in Texture2DArray tex, uint2 uv1, uint2 uv2, int layer, int lod, int2 frac_uv) {{)");
-    }
 
     out.Write(R"(
   int4 result =
@@ -634,41 +553,26 @@ uint WrapCoord(int coord, uint wrap, int size) {{
     }
   }
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
-    out.Write("\nint4 sampleTexture(uint texmap, in sampler2DArray tex, int2 uv, int layer) {{\n");
-  }
-  else if (api_type == APIType::D3D)
-  {
-    out.Write("\nint4 sampleTexture(uint texmap, in Texture2DArray tex, in SamplerState tex_samp, "
-              "int2 uv, int layer) {{\n");
-  }
+  out.Write("\nint4 sampleTexture(uint texmap, in sampler2DArray tex, int2 uv, int layer) {{\n");
 
   if (!host_config.manual_texture_sampling)
   {
     out.Write("  float size_s = float(" I_TEXDIMS "[texmap].x * 128);\n"
               "  float size_t = float(" I_TEXDIMS "[texmap].y * 128);\n"
               "  float3 coords = float3(float(uv.x) / size_s, float(uv.y) / size_t, layer);\n");
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    if (!host_config.backend_sampler_lod_bias)
     {
-      if (!host_config.backend_sampler_lod_bias)
-      {
-        out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
-                  "  float lod_bias = float({}) / 256.0f;\n"
-                  "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
-                  BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"));
-      }
-      else
-      {
-        out.Write("  return iround(255.0 * texture(tex, coords));\n");
-      }
+      out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
+                "  float lod_bias = float({}) / 256.0f;\n"
+                "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
+                BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"));
+    }
+    else
+    {
+      out.Write("  return iround(255.0 * texture(tex, coords));\n");
+    }
 
-      out.Write("}}\n");
-    }
-    else if (api_type == APIType::D3D)
-    {
-      out.Write("  return iround(255.0 * tex.Sample(tex_samp, coords));\n}}\n");
-    }
+    out.Write("}}\n");
   }
   else
   {
@@ -707,31 +611,20 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   int native_size_t = )" I_TEXDIMS R"([texmap].y;
 )");
 
-      if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-      {
-        out.Write(R"(
+      out.Write(R"(
   int3 size = textureSize(tex, 0);
   int size_s = size.x;
   int size_t = size.y;
 )");
-        if (g_ActiveConfig.backend_info.bSupportsTextureQueryLevels)
-        {
-          out.Write("  int number_of_levels = textureQueryLevels(tex);\n");
-        }
-        else
-        {
-          out.Write("  int number_of_levels = 256;  // textureQueryLevels is not supported\n");
-          ERROR_LOG_FMT(VIDEO, "textureQueryLevels is not supported!  Odd graphical results may "
-                               "occur if custom textures are in use!");
-        }
-      }
-      else if (api_type == APIType::D3D)
+      if (g_ActiveConfig.backend_info.bSupportsTextureQueryLevels)
       {
-        ASSERT(g_ActiveConfig.backend_info.bSupportsTextureQueryLevels);
-        out.Write(R"(
-  int size_s, size_t, layers, number_of_levels;
-  tex.GetDimensions(0, size_s, size_t, layers, number_of_levels);
-)");
+        out.Write("  int number_of_levels = textureQueryLevels(tex);\n");
+      }
+      else
+      {
+        out.Write("  int number_of_levels = 256;  // textureQueryLevels is not supported\n");
+        ERROR_LOG_FMT(VIDEO, "textureQueryLevels is not supported!  Odd graphical results may "
+                             "occur if custom textures are in use!");
       }
 
       out.Write(R"(
@@ -750,34 +643,23 @@ uint WrapCoord(int coord, uint wrap, int size) {{
 )");
     }
 
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    if (g_ActiveConfig.backend_info.bSupportsCoarseDerivatives)
     {
-      if (g_ActiveConfig.backend_info.bSupportsCoarseDerivatives)
-      {
-        // The software renderer uses the equivalent of coarse derivatives, so use them here for
-        // consistency.  This hasn't been hardware tested.
-        // Note that bSupportsCoarseDerivatives being false only means dFdxCoarse and dFdxFine don't
-        // exist.  The GPU may still implement dFdx using coarse derivatives; we just don't have the
-        // ability to specifically require it.
-        out.Write(R"(
+      // The software renderer uses the equivalent of coarse derivatives, so use them here for
+      // consistency.  This hasn't been hardware tested.
+      // Note that bSupportsCoarseDerivatives being false only means dFdxCoarse and dFdxFine don't
+      // exist.  The GPU may still implement dFdx using coarse derivatives; we just don't have the
+      // ability to specifically require it.
+      out.Write(R"(
   float2 uv_delta_x = abs(dFdxCoarse(float2(uv)));
   float2 uv_delta_y = abs(dFdyCoarse(float2(uv)));
 )");
-      }
-      else
-      {
-        out.Write(R"(
+    }
+    else
+    {
+      out.Write(R"(
   float2 uv_delta_x = abs(dFdx(float2(uv)));
   float2 uv_delta_y = abs(dFdy(float2(uv)));
-)");
-      }
-    }
-    else if (api_type == APIType::D3D)
-    {
-      ASSERT(g_ActiveConfig.backend_info.bSupportsCoarseDerivatives);
-      out.Write(R"(
-  float2 uv_delta_x = abs(ddx_coarse(float2(uv)));
-  float2 uv_delta_y = abs(ddy_coarse(float2(uv)));
 )");
     }
 
@@ -882,18 +764,10 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   WriteBitfieldExtractHeader(out, api_type, host_config);
   WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box);
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
-    out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
-              "sampleTexture(texmap, samp[texmap], uv, layer)\n");
-  }
-  else if (api_type == APIType::D3D)
-  {
-    out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
-              "sampleTexture(texmap, tex[texmap], samp[texmap], uv, layer)\n");
-  }
+  out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
+            "sampleTexture(texmap, samp[texmap], uv, layer)\n");
 
-  if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)
+  if (uid_data->ztest == EmulatedZ::ForcedEarly)
   {
     // Zcomploc (aka early_ztest) is a way to control whether depth test is done before
     // or after texturing and alpha test. PC graphics APIs used to provide no way to emulate
@@ -928,197 +802,133 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     // all of the
     // ARB_image_load_store extension yet.
 
-    // D3D11 also has a way to force the driver to enable early-z, so we're fine here.
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    {
-      // This is a #define which signals whatever early-z method the driver supports.
-      out.Write("FORCE_EARLY_Z; \n");
-    }
-    else
-    {
-      out.Write("[earlydepthstencil]\n");
-    }
+    // This is a #define which signals whatever early-z method the driver supports.
+    out.Write("FORCE_EARLY_Z; \n");
   }
 
-  // Only use dual-source blending when required on drivers that don't support it very well.
-  const bool use_dual_source =
-      host_config.backend_dual_source_blend &&
-      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
-       uid_data->useDstAlpha);
-  const bool use_shader_blend =
-      !use_dual_source &&
-      (uid_data->useDstAlpha ||
-       DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z)) &&
-      host_config.backend_shader_framebuffer_fetch;
-  const bool use_shader_logic_op = !host_config.backend_logic_op && uid_data->logic_op_enable &&
-                                   host_config.backend_shader_framebuffer_fetch;
-  const bool use_framebuffer_fetch =
-      use_shader_blend || use_shader_logic_op ||
-      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z);
+  const bool use_framebuffer_fetch = uid_data->blend_enable || uid_data->logic_op_enable ||
+                                     uid_data->ztest == EmulatedZ::EarlyWithFBFetch;
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
 #ifdef __APPLE__
-    // Framebuffer fetch is only supported by Metal, so ensure that we're running Vulkan (MoltenVK)
-    // if we want to use it.
-    if (api_type == APIType::Vulkan)
+  // Framebuffer fetch is only supported by Metal, so ensure that we're running Vulkan (MoltenVK)
+  // if we want to use it.
+  if (api_type == APIType::Vulkan || api_type == APIType::Metal)
+  {
+    if (!uid_data->no_dual_src)
     {
-      if (use_dual_source)
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 {};\n"
-                  "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n",
-                  use_framebuffer_fetch ? "real_ocol0" : "ocol0");
-      }
-      else
-      {
-        // Metal doesn't support a single unified variable for both input and output,
-        // so when using framebuffer fetch, we declare the input separately below.
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 {};\n",
-                  use_framebuffer_fetch ? "real_ocol0" : "ocol0");
-      }
-
-      if (use_framebuffer_fetch)
-      {
-        // Subpass inputs will be converted to framebuffer fetch by SPIRV-Cross.
-        out.Write("INPUT_ATTACHMENT_BINDING(0, 0, 0) uniform subpassInput in_ocol0;\n");
-      }
-    }
-    else
-#endif
-    {
-      bool has_broken_decoration =
-          DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION);
-
-      out.Write("{} {} vec4 {};\n",
-                has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
-                                        "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
-                use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 {};\n"
+                "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n",
                 use_framebuffer_fetch ? "real_ocol0" : "ocol0");
-
-      if (use_dual_source)
-      {
-        out.Write("{} out vec4 ocol1;\n", has_broken_decoration ?
-                                              "FRAGMENT_OUTPUT_LOCATION(1)" :
-                                              "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)");
-      }
-    }
-
-    if (uid_data->per_pixel_depth)
-      out.Write("#define depth gl_FragDepth\n");
-
-    if (host_config.backend_geometry_shaders)
-    {
-      out.Write("VARYING_LOCATION(0) in VertexData {{\n");
-      GenerateVSOutputMembers(out, api_type, uid_data->genMode_numtexgens, host_config,
-                              GetInterpolationQualifier(msaa, ssaa, true, true));
-
-      if (stereo)
-        out.Write("\tflat int layer;\n");
-
-      out.Write("}};\n");
     }
     else
     {
-      // Let's set up attributes
-      u32 counter = 0;
-      out.Write("VARYING_LOCATION({}) {} in float4 colors_0;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
-      out.Write("VARYING_LOCATION({}) {} in float4 colors_1;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
-      for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
-      {
-        out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa), i);
-      }
-      if (!host_config.fast_depth_calc)
-      {
-        out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-      }
-      if (per_pixel_lighting)
-      {
-        out.Write("VARYING_LOCATION({}) {} in float3 Normal;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-        out.Write("VARYING_LOCATION({}) {} in float3 WorldPos;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-      }
+      // Metal doesn't support a single unified variable for both input and output,
+      // so when using framebuffer fetch, we declare the input separately below.
+      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 {};\n",
+                use_framebuffer_fetch ? "real_ocol0" : "ocol0");
     }
-
-    out.Write("void main()\n{{\n");
-    out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 
     if (use_framebuffer_fetch)
     {
-      // Store off a copy of the initial framebuffer value.
-      //
-      // If FB_FETCH_VALUE isn't defined (i.e. no special keyword for fetching from the
-      // framebuffer), we read from real_ocol0.
-      out.Write("#ifdef FB_FETCH_VALUE\n"
-                "\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
-                "#else\n"
-                "\tfloat4 initial_ocol0 = real_ocol0;\n"
-                "#endif\n");
-
-      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
-      // intermediate value with multiple reads & modifications, so we pull out the "real" output
-      // value above and use a temporary for calculations, then set the output value once at the
-      // end of the shader.
-      out.Write("\tfloat4 ocol0;\n");
-    }
-
-    if (use_shader_blend)
-    {
-      out.Write("\tfloat4 ocol1;\n");
+      // Subpass inputs will be converted to framebuffer fetch by SPIRV-Cross.
+      out.Write("INPUT_ATTACHMENT_BINDING(0, 0, 0) uniform subpassInput in_ocol0;\n");
     }
   }
-  else  // D3D
+  else
+#endif
   {
-    out.Write("void main(\n");
-    if (uid_data->uint_output)
-    {
-      out.Write("  out uint4 ocol0 : SV_Target,\n");
-    }
-    else
-    {
-      out.Write("  out float4 ocol0 : SV_Target0,\n"
-                "  out float4 ocol1 : SV_Target1,\n");
-    }
-    out.Write("{}"
-              "  in float4 rawpos : SV_Position,\n",
-              uid_data->per_pixel_depth ? "  out float depth : SV_Depth,\n" : "");
+    bool has_broken_decoration =
+        DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION);
 
-    out.Write("  in {} float4 colors_0 : COLOR0,\n", GetInterpolationQualifier(msaa, ssaa));
-    out.Write("  in {} float4 colors_1 : COLOR1\n", GetInterpolationQualifier(msaa, ssaa));
+    out.Write("{} {} {} {};\n",
+              has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
+                                      "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
+              use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
+              uid_data->uint_output ? "uvec4" : "vec4",
+              use_framebuffer_fetch ? "real_ocol0" : "ocol0");
 
-    // compute window position if needed because binding semantic WPOS is not widely supported
+    if (!uid_data->no_dual_src)
+    {
+      out.Write("{} out {} ocol1;\n",
+                has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(1)" :
+                                        "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)",
+                uid_data->uint_output ? "uvec4" : "vec4");
+    }
+  }
+
+  if (uid_data->per_pixel_depth)
+    out.Write("#define depth gl_FragDepth\n");
+
+  if (host_config.backend_geometry_shaders)
+  {
+    out.Write("VARYING_LOCATION(0) in VertexData {{\n");
+    GenerateVSOutputMembers(out, api_type, uid_data->genMode_numtexgens, host_config,
+                            GetInterpolationQualifier(msaa, ssaa, true, true), ShaderStage::Pixel);
+
+    out.Write("}};\n");
+  }
+  else
+  {
+    // Let's set up attributes
+    u32 counter = 0;
+    out.Write("VARYING_LOCATION({}) {} in float4 colors_0;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
+    out.Write("VARYING_LOCATION({}) {} in float4 colors_1;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
     for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
-      out.Write(",\n  in {} float3 tex{} : TEXCOORD{}", GetInterpolationQualifier(msaa, ssaa), i,
-                i);
+      out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa), i);
     }
     if (!host_config.fast_depth_calc)
     {
-      out.Write(",\n  in {} float4 clipPos : TEXCOORD{}", GetInterpolationQualifier(msaa, ssaa),
-                uid_data->genMode_numtexgens);
+      out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
     }
     if (per_pixel_lighting)
     {
-      out.Write(",\n  in {} float3 Normal : TEXCOORD{}", GetInterpolationQualifier(msaa, ssaa),
-                uid_data->genMode_numtexgens + 1);
-      out.Write(",\n  in {} float3 WorldPos : TEXCOORD{}", GetInterpolationQualifier(msaa, ssaa),
-                uid_data->genMode_numtexgens + 2);
+      out.Write("VARYING_LOCATION({}) {} in float3 Normal;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION({}) {} in float3 WorldPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
     }
-    if (host_config.backend_geometry_shaders)
-    {
-      out.Write(",\n  in float clipDist0 : SV_ClipDistance0\n"
-                ",\n  in float clipDist1 : SV_ClipDistance1\n");
-    }
-    if (stereo)
-      out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
-    out.Write("        ) {{\n");
   }
-  if (!stereo)
+
+  out.Write("void main()\n{{\n");
+  out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
+
+  if (use_framebuffer_fetch)
+  {
+    // Store off a copy of the initial framebuffer value.
+    //
+    // If FB_FETCH_VALUE isn't defined (i.e. no special keyword for fetching from the
+    // framebuffer), we read from real_ocol0.
+    out.Write("#ifdef FB_FETCH_VALUE\n"
+              "\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
+              "#else\n"
+              "\tfloat4 initial_ocol0 = real_ocol0;\n"
+              "#endif\n");
+
+    // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+    // intermediate value with multiple reads & modifications, so we pull out the "real" output
+    // value above and use a temporary for calculations, then set the output value once at the
+    // end of the shader.
+    out.Write("\tfloat4 ocol0;\n");
+  }
+
+  if (uid_data->blend_enable)
+  {
+    out.Write("\tfloat4 ocol1;\n");
+  }
+
+  if (host_config.backend_geometry_shaders && stereo)
+  {
+    out.Write("\tint layer = gl_Layer;\n");
+  }
+  else
+  {
     out.Write("\tint layer = 0;\n");
+  }
 
   out.Write("\tint4 c0 = " I_COLORS "[1], c1 = " I_COLORS "[2], c2 = " I_COLORS
             "[3], prev = " I_COLORS "[0];\n"
@@ -1232,10 +1042,10 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
   // testing result)
   if (uid_data->Pretest == AlphaTestResult::Undetermined ||
-      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->late_ztest))
+      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->ztest == EmulatedZ::Late))
   {
     WriteAlphaTest(out, uid_data, api_type, uid_data->per_pixel_depth,
-                   use_dual_source || use_shader_blend);
+                   !uid_data->no_dual_src || uid_data->blend_enable);
   }
 
   // This situation is important for Mario Kart Wii's menus (they will render incorrectly if the
@@ -1290,7 +1100,10 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   const bool skip_ztexture = !uid_data->per_pixel_depth && uid_data->fog_fsel == FogType::Off;
 
   // Note: z-textures are not written to depth buffer if early depth test is used
-  if (uid_data->per_pixel_depth && uid_data->early_ztest)
+  const bool early_ztest = uid_data->ztest == EmulatedZ::Early ||
+                           uid_data->ztest == EmulatedZ::EarlyWithFBFetch ||
+                           uid_data->ztest == EmulatedZ::EarlyWithZComplocHack;
+  if (uid_data->per_pixel_depth && early_ztest)
   {
     if (!host_config.backend_reversed_depth_range)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
@@ -1311,7 +1124,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
   }
 
-  if (uid_data->per_pixel_depth && uid_data->late_ztest)
+  if (uid_data->per_pixel_depth && uid_data->ztest == EmulatedZ::Late)
   {
     if (!host_config.backend_reversed_depth_range)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
@@ -1330,14 +1143,14 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   WriteFog(out, uid_data);
 
-  if (use_shader_logic_op)
+  if (uid_data->logic_op_enable)
     WriteLogicOp(out, uid_data);
 
   // Write the color and alpha values to the framebuffer
   // If using shader blend, we still use the separate alpha
-  WriteColor(out, api_type, uid_data, use_dual_source || use_shader_blend);
+  WriteColor(out, api_type, uid_data, !uid_data->no_dual_src || uid_data->blend_enable);
 
-  if (use_shader_blend)
+  if (uid_data->blend_enable)
     WriteBlend(out, uid_data);
   else if (use_framebuffer_fetch)
     out.Write("\treal_ocol0 = ocol0;\n");
@@ -1601,30 +1414,18 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       ac.c == TevAlphaArg::RasAlpha || ac.d == TevAlphaArg::RasAlpha)
   {
     // Generate swizzle string to represent the Ras color channel swapping
-    const char rasswap[5] = {
-        "rgba"[stage.tevksel_swap1a],
-        "rgba"[stage.tevksel_swap2a],
-        "rgba"[stage.tevksel_swap1b],
-        "rgba"[stage.tevksel_swap2b],
-        '\0',
-    };
-
-    out.Write("\trastemp = {}.{};\n", tev_ras_table[stage.tevorders_colorchan], rasswap);
+    out.Write("\trastemp = {}.{}{}{}{};\n", tev_ras_table[stage.tevorders_colorchan],
+              rgba_swizzle[stage.ras_swap_r], rgba_swizzle[stage.ras_swap_g],
+              rgba_swizzle[stage.ras_swap_b], rgba_swizzle[stage.ras_swap_a]);
   }
 
   if (stage.tevorders_enable && uid_data->genMode_numtexgens > 0)
   {
     // Generate swizzle string to represent the texture color channel swapping
-    const char texswap[5] = {
-        "rgba"[stage.tevksel_swap1c],
-        "rgba"[stage.tevksel_swap2c],
-        "rgba"[stage.tevksel_swap1d],
-        "rgba"[stage.tevksel_swap2d],
-        '\0',
-    };
-
-    out.Write("\ttextemp = sampleTextureWrapper({0}u, tevcoord.xy, layer).{1};\n",
-              stage.tevorders_texmap, texswap);
+    out.Write("\ttextemp = sampleTextureWrapper({}u, tevcoord.xy, layer).{}{}{}{};\n",
+              stage.tevorders_texmap, rgba_swizzle[stage.tex_swap_r],
+              rgba_swizzle[stage.tex_swap_g], rgba_swizzle[stage.tex_swap_b],
+              rgba_swizzle[stage.tex_swap_a]);
   }
   else if (uid_data->genMode_numtexgens == 0)
   {
@@ -1874,11 +1675,10 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   }
 
   // ZCOMPLOC HACK:
-  if (!uid_data->alpha_test_use_zcomploc_hack)
+  if (uid_data->ztest != EmulatedZ::EarlyWithZComplocHack)
   {
 #ifdef __APPLE__
-    if (uid_data->forced_early_z &&
-        DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
+    if (uid_data->ztest == EmulatedZ::EarlyWithFBFetch)
     {
       // Instead of using discard, fetch the framebuffer's color value and use it as the output
       // for this fragment.
@@ -1989,7 +1789,7 @@ static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   };
 
   out.Write("\tint4 fb_value = iround(initial_ocol0 * 255.0);\n");
-  out.Write("\tprev = {};\n", logic_op_mode[uid_data->logic_op_mode]);
+  out.Write("\tprev = ({}) & 0xff;\n", logic_op_mode[uid_data->logic_op_mode]);
 }
 
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,

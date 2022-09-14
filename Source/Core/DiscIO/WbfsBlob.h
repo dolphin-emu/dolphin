@@ -25,11 +25,8 @@ public:
   BlobType GetBlobType() const override { return BlobType::WBFS; }
 
   u64 GetRawSize() const override { return m_size; }
-  // The WBFS format does not save the original file size.
-  // This function returns a constant upper bound
-  // (the size of a double-layer Wii disc).
   u64 GetDataSize() const override;
-  bool IsDataSizeAccurate() const override { return false; }
+  DataSizeType GetDataSizeType() const override { return DataSizeType::UpperBound; }
 
   u64 GetBlockSize() const override { return m_wbfs_sector_size; }
   bool HasFastRandomAccessInBlock() const override { return true; }

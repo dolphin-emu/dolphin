@@ -12,6 +12,7 @@ enum class AlphaTestOp : u32;
 enum class AlphaTestResult;
 enum class CompareMode : u32;
 enum class DstBlendFactor : u32;
+enum class EmulatedZ : u32;
 enum class FogProjection : u32;
 enum class FogType : u32;
 enum class KonstSel : u32;
@@ -28,6 +29,7 @@ struct pixel_shader_uid_data
   u32 NumValues() const { return num_values; }
   u32 pad0 : 4;
   u32 useDstAlpha : 1;
+  u32 no_dual_src : 1;
   AlphaTestResult Pretest : 2;
   u32 nIndirectStagesUsed : 4;
   u32 genMode_numtexgens : 4;
@@ -36,16 +38,13 @@ struct pixel_shader_uid_data
   CompareMode alpha_test_comp0 : 3;
   CompareMode alpha_test_comp1 : 3;
   AlphaTestOp alpha_test_logic : 2;
-  u32 alpha_test_use_zcomploc_hack : 1;
   FogProjection fog_proj : 1;
 
   FogType fog_fsel : 3;
   u32 fog_RangeBaseEnabled : 1;
   ZTexOp ztex_op : 2;
   u32 per_pixel_depth : 1;
-  u32 forced_early_z : 1;
-  u32 early_ztest : 1;
-  u32 late_ztest : 1;
+  EmulatedZ ztest : 3;
   u32 bounding_box : 1;
   u32 zfreeze : 1;
   u32 numColorChans : 2;
@@ -126,7 +125,7 @@ struct pixel_shader_uid_data
   {
     // TODO: Can save a lot space by removing the padding bits
     u32 cc : 24;
-    u32 ac : 24;  // tswap and rswap are left blank (encoded into the tevksel fields below)
+    u32 ac : 24;  // tswap and rswap are left blank (decoded into the swap fields below)
 
     u32 tevorders_texmap : 3;
     u32 tevorders_texcoord : 3;
@@ -134,18 +133,19 @@ struct pixel_shader_uid_data
     RasColorChan tevorders_colorchan : 3;
     u32 pad1 : 7;
 
-    // TODO: Clean up the swapXY mess
+    // TODO: We could save space by storing the 4 swap tables elsewhere and only storing references
+    // to which table is used (the tswap and rswap fields), instead of duplicating them here
     u32 tevind : 21;
-    u32 tevksel_swap1a : 2;
-    u32 tevksel_swap2a : 2;
-    u32 tevksel_swap1b : 2;
-    u32 tevksel_swap2b : 2;
+    ColorChannel ras_swap_r : 2;
+    ColorChannel ras_swap_g : 2;
+    ColorChannel ras_swap_b : 2;
+    ColorChannel ras_swap_a : 2;
     u32 pad2 : 2;
 
-    u32 tevksel_swap1c : 2;
-    u32 tevksel_swap2c : 2;
-    u32 tevksel_swap1d : 2;
-    u32 tevksel_swap2d : 2;
+    ColorChannel tex_swap_r : 2;
+    ColorChannel tex_swap_g : 2;
+    ColorChannel tex_swap_b : 2;
+    ColorChannel tex_swap_a : 2;
     KonstSel tevksel_kc : 5;
     KonstSel tevksel_ka : 5;
     u32 pad3 : 14;

@@ -23,6 +23,23 @@ class Mapping;
 
 namespace DVDInterface
 {
+class DVDInterfaceState
+{
+public:
+  DVDInterfaceState();
+  DVDInterfaceState(const DVDInterfaceState&) = delete;
+  DVDInterfaceState(DVDInterfaceState&&) = delete;
+  DVDInterfaceState& operator=(const DVDInterfaceState&) = delete;
+  DVDInterfaceState& operator=(DVDInterfaceState&&) = delete;
+  ~DVDInterfaceState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 enum class DICommand : u8
 {
   Inquiry = 0x12,
@@ -113,7 +130,7 @@ void ResetDrive(bool spinup);
 void Shutdown();
 void DoState(PointerWrap& p);
 
-void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii);
 
 void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
              std::optional<std::vector<std::string>> auto_disc_change_paths);
@@ -134,6 +151,10 @@ bool UpdateRunningGameMetadata(std::optional<u64> title_id = {});
 void ExecuteCommand(ReplyType reply_type);
 void PerformDecryptingRead(u32 position, u32 length, u32 output_address,
                            const DiscIO::Partition& partition, ReplyType reply_type);
+
+// For circumventing Error #001 in DirectoryBlobs, which may have data in the offsets being checked.
+void ForceOutOfBoundsRead(ReplyType reply_type);
+
 // Exposed for use by emulated BS2; does not perform any checks on drive state
 void AudioBufferConfig(bool enable_dtk, u8 dtk_buffer_length);
 

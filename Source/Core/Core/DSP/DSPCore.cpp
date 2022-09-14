@@ -161,7 +161,7 @@ bool SDSP::Initialize(const DSPInitOptions& opts)
   r.sr |= SR_INT_ENABLE;
   r.sr |= SR_EXT_INT_ENABLE;
 
-  cr = CR_INIT | CR_HALT;
+  control_reg = CR_INIT | CR_HALT;
   InitializeIFX();
   // Mostly keep IRAM write protected. We unprotect only when DMA-ing
   // in new ucodes.
@@ -210,7 +210,7 @@ void SDSP::CheckExternalInterrupt()
   // Signal the SPU about new mail
   SetException(ExceptionType::ExternalInterrupt);
 
-  cr &= ~CR_EXTERNAL_INT;
+  control_reg &= ~CR_EXTERNAL_INT;
 }
 
 void SDSP::CheckExceptions()
@@ -378,7 +378,8 @@ void SDSP::DoState(PointerWrap& p)
 {
   p.Do(r);
   p.Do(pc);
-  p.Do(cr);
+  p.Do(control_reg);
+  p.Do(control_reg_init_code_clear_time);
   p.Do(reg_stack_ptrs);
   p.Do(exceptions);
   p.Do(external_interrupt_waiting);
@@ -398,7 +399,7 @@ void SDSP::DoState(PointerWrap& p)
   Common::WriteProtectMemory(iram, DSP_IRAM_BYTE_SIZE, false);
   // TODO: This uses the wrong endianness (producing bad disassembly)
   // and a bogus byte count (producing bad hashes)
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
     Host::CodeLoaded(m_dsp_core, reinterpret_cast<const u8*>(iram), DSP_IRAM_BYTE_SIZE);
   p.DoArray(dram, DSP_DRAM_SIZE);
 }

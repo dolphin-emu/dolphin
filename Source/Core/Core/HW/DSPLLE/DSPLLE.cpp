@@ -42,11 +42,11 @@ void DSPLLE::DoState(PointerWrap& p)
 {
   bool is_hle = false;
   p.Do(is_hle);
-  if (is_hle && p.GetMode() == PointerWrap::MODE_READ)
+  if (is_hle && p.IsReadMode())
   {
     Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.",
                          3000);
-    p.SetMode(PointerWrap::MODE_VERIFY);
+    p.SetVerifyMode();
     return;
   }
   m_dsp_core.DoState(p);
@@ -183,7 +183,7 @@ void DSPLLE::Shutdown()
 
 u16 DSPLLE::DSP_WriteControlRegister(u16 value)
 {
-  m_dsp_core.GetInterpreter().WriteCR(value);
+  m_dsp_core.GetInterpreter().WriteControlRegister(value);
 
   if ((value & CR_EXTERNAL_INT) != 0)
   {
@@ -207,7 +207,7 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 value)
 
 u16 DSPLLE::DSP_ReadControlRegister()
 {
-  return m_dsp_core.GetInterpreter().ReadCR();
+  return m_dsp_core.GetInterpreter().ReadControlRegister();
 }
 
 u16 DSPLLE::DSP_ReadMailBoxHigh(bool cpu_mailbox)

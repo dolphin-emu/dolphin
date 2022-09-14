@@ -50,7 +50,7 @@
       <ExecutionDescription>moc %(Identity)</ExecutionDescription>
 
       <QTDIR Condition="'$(QtVsProjectSettings)' != 'true'"
-        >$(QTDIR)</QTDIR>
+        >$(QtHostToolsDir)</QTDIR>
       <QTDIR Condition="'$(QtVsProjectSettings)' == 'true'"
         >$(QtInstallDir)</QTDIR>
 

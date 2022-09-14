@@ -6,15 +6,15 @@
 #define STRINGIFY_HELPER(x) #x
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 
-#if defined _MSC_FULL_VER && _MSC_FULL_VER < 193030705
+#if defined _MSC_FULL_VER && _MSC_FULL_VER < 193231329
 #pragma message("Current _MSC_FULL_VER: " STRINGIFY(_MSC_FULL_VER))
 #error Please update your build environment to the latest Visual Studio 2022!
 #endif
 
 #include <sdkddkver.h>
-#ifndef NTDDI_WIN10_CO
+#ifndef NTDDI_WIN10_NI
 #pragma message("Current WDK_NTDDI_VERSION: " STRINGIFY(WDK_NTDDI_VERSION))
-#error Windows 10.0.22000 SDK or later is required
+#error Windows 10.0.22621 SDK or later is required
 #endif
 
 #undef STRINGIFY

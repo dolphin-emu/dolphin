@@ -13,7 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
-#include "Core/DSP/Interpreter/DSPIntTables.h"
+#include "Core/DSP/DSPCore.h"
 
 namespace DSP
 {
@@ -39,10 +39,10 @@ const std::array<DSPOPCTemplate, 230> s_opcodes =
   {"RETZ",     0x02d5, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if zero
   {"RETNC",    0x02d6, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if not carry
   {"RETC",     0x02d7, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if carry
-  {"RETx8",    0x02d8, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if TODO
-  {"RETx9",    0x02d9, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if TODO
-  {"RETxA",    0x02da, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if TODO
-  {"RETxB",    0x02db, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if TODO
+  {"RETX8",    0x02d8, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if TODO
+  {"RETX9",    0x02d9, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if TODO
+  {"RETXA",    0x02da, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if TODO
+  {"RETXB",    0x02db, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if TODO
   {"RETLNZ",   0x02dc, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if logic not zero
   {"RETLZ",    0x02dd, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if logic zero
   {"RETO",     0x02de, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if overflow
@@ -56,10 +56,10 @@ const std::array<DSPOPCTemplate, 230> s_opcodes =
   {"RTIZ",     0x02f5, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if zero
   {"RTINC",    0x02f6, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if not carry
   {"RTIC",     0x02f7, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if carry
-  {"RTIx8",    0x02f8, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
-  {"RTIx9",    0x02f9, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
-  {"RTIxA",    0x02fa, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
-  {"RTIxB",    0x02fb, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
+  {"RTIX8",    0x02f8, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
+  {"RTIX9",    0x02f9, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
+  {"RTIXA",    0x02fa, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
+  {"RTIXB",    0x02fb, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
   {"RTILNZ",   0x02fc, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if logic not zero
   {"RTILZ",    0x02fd, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if logic zero
   {"RTIO",     0x02fe, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if overflow
@@ -73,10 +73,10 @@ const std::array<DSPOPCTemplate, 230> s_opcodes =
   {"CALLZ",    0x02b5, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if zero
   {"CALLNC",   0x02b6, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if not carry
   {"CALLC",    0x02b7, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if carry
-  {"CALLx8",   0x02b8, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if TODO
-  {"CALLx9",   0x02b9, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if TODO
-  {"CALLxA",   0x02ba, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if TODO
-  {"CALLxB",   0x02bb, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if TODO
+  {"CALLX8",   0x02b8, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if TODO
+  {"CALLX9",   0x02b9, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if TODO
+  {"CALLXA",   0x02ba, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if TODO
+  {"CALLXB",   0x02bb, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if TODO
   {"CALLLNZ",  0x02bc, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if logic not zero
   {"CALLLZ",   0x02bd, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if logic zero
   {"CALLO",    0x02be, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if overflow
@@ -90,10 +90,10 @@ const std::array<DSPOPCTemplate, 230> s_opcodes =
   {"IFZ",      0x0275, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if zero
   {"IFNC",     0x0276, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if not carry
   {"IFC",      0x0277, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if carry
-  {"IFx8",     0x0278, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if TODO
-  {"IFx9",     0x0279, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if TODO
-  {"IFxA",     0x027a, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if TODO
-  {"IFxB",     0x027b, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if TODO
+  {"IFX8",     0x0278, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if TODO
+  {"IFX9",     0x0279, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if TODO
+  {"IFXA",     0x027a, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if TODO
+  {"IFXB",     0x027b, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if TODO
   {"IFLNZ",    0x027c, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if logic not zero
   {"IFLZ",     0x027d, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if logic zero
   {"IFO",      0x027e, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // if overflow
@@ -107,10 +107,10 @@ const std::array<DSPOPCTemplate, 230> s_opcodes =
   {"JZ",       0x0295, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if zero
   {"JNC",      0x0296, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if not carry
   {"JC",       0x0297, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if carry
-  {"JMPx8",    0x0298, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if TODO
-  {"JMPx9",    0x0299, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if TODO
-  {"JMPxA",    0x029a, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if TODO
-  {"JMPxB",    0x029b, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if TODO
+  {"JMPX8",    0x0298, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if TODO
+  {"JMPX9",    0x0299, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if TODO
+  {"JMPXA",    0x029a, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if TODO
+  {"JMPXB",    0x029b, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if TODO
   {"JLNZ",     0x029c, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if logic not zero
   {"JLZ",      0x029d, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if logic zero
   {"JO",       0x029e, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // jump if overflow
@@ -124,10 +124,10 @@ const std::array<DSPOPCTemplate, 230> s_opcodes =
   {"JRZ",      0x1705, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if zero
   {"JRNC",     0x1706, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if not carry
   {"JRC",      0x1707, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if carry
-  {"JMPRx8",   0x1708, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if TODO
-  {"JMPRx9",   0x1709, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if TODO
-  {"JMPRxA",   0x170a, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if TODO
-  {"JMPRxB",   0x170b, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if TODO
+  {"JMPRX8",   0x1708, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if TODO
+  {"JMPRX9",   0x1709, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if TODO
+  {"JMPRXA",   0x170a, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if TODO
+  {"JMPRXB",   0x170b, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if TODO
   {"JRLNZ",    0x170c, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if logic not zero
   {"JRLZ",     0x170d, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if logic zero
   {"JRO",      0x170e, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false, false}, // jump to $R if overflow
@@ -141,10 +141,10 @@ const std::array<DSPOPCTemplate, 230> s_opcodes =
   {"CALLRZ",   0x1715, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if zero
   {"CALLRNC",  0x1716, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if not carry
   {"CALLRC",   0x1717, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if carry
-  {"CALLRx8",  0x1718, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if TODO
-  {"CALLRx9",  0x1719, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if TODO
-  {"CALLRxA",  0x171a, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if TODO
-  {"CALLRxB",  0x171b, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if TODO
+  {"CALLRX8",  0x1718, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if TODO
+  {"CALLRX9",  0x1719, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if TODO
+  {"CALLRXA",  0x171a, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if TODO
+  {"CALLRXB",  0x171b, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if TODO
   {"CALLRLNZ", 0x171c, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if logic not zero
   {"CALLRLZ",  0x171d, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if logic zero
   {"CALLRO",   0x171e, 0xff1f,    1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, true, false}, // call $R if overflow
@@ -284,7 +284,7 @@ const std::array<DSPOPCTemplate, 230> s_opcodes =
 
   //c-d
   {"MULC",     0xc000, 0xe700,    1, 2, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800}},                            true, false, false, false, true}, // $prod = $acS.m * $axS.h
-  {"CMPAR",    0xc100, 0xe700,    1, 2, {{P_ACC,  1, 0, 11, 0x0800},   {P_REG1A, 1, 0, 12, 0x1000}},                            true, false, false, false, true}, // FLAGS($acS - axR.h)
+  {"CMPAXH",   0xc100, 0xe700,    1, 2, {{P_ACC,  1, 0, 11, 0x0800},   {P_REG1A, 1, 0, 12, 0x1000}},                            true, false, false, false, true}, // FLAGS($acS - axR.h)
   {"MULCMVZ",  0xc200, 0xe600,    1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR.hm, $acR.l, $prod = $prod.hm, 0, $acS.m * $axS.h
   {"MULCAC",   0xc400, 0xe600,    1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR, $prod = $acR + $prod, $acS.m * $axS.h
   {"MULCMV",   0xc600, 0xe600,    1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR, $prod = $prod, $acS.m * $axS.h
@@ -451,44 +451,44 @@ const std::array<pdlabel_t, 96> pdlabels =
 
 const std::array<pdlabel_t, 36> regnames =
 {{
-  {0x00, "AR0",       "Addr Reg 00",},
-  {0x01, "AR1",       "Addr Reg 01",},
-  {0x02, "AR2",       "Addr Reg 02",},
-  {0x03, "AR3",       "Addr Reg 03",},
-  {0x04, "IX0",       "Index Reg 0",},
-  {0x05, "IX1",       "Index Reg 1",},
-  {0x06, "IX2",       "Index Reg 2",},
-  {0x07, "IX3",       "Index Reg 3",},
-  {0x08, "WR0",       "Wrapping Register 0",},
-  {0x09, "WR1",       "Wrapping Register 1",},
-  {0x0a, "WR2",       "Wrapping Register 2",},
-  {0x0b, "WR3",       "Wrapping Register 3",},
-  {0x0c, "ST0",       "Call stack",},
-  {0x0d, "ST1",       "Data stack",},
-  {0x0e, "ST2",       "Loop addr stack",},
-  {0x0f, "ST3",       "Loop counter stack",},
-  {0x10, "AC0.H",     "Accu High 0",},
-  {0x11, "AC1.H",     "Accu High 1",},
-  {0x12, "CR",        "Config Register",},
-  {0x13, "SR",        "Special Register",},
-  {0x14, "PROD.L",    "Prod L",},
-  {0x15, "PROD.M1",   "Prod M1",},
-  {0x16, "PROD.H",    "Prod H",},
-  {0x17, "PROD.M2",   "Prod M2",},
-  {0x18, "AX0.L",     "Extra Accu L 0",},
-  {0x19, "AX1.L",     "Extra Accu L 1",},
-  {0x1a, "AX0.H",     "Extra Accu H 0",},
-  {0x1b, "AX1.H",     "Extra Accu H 1",},
-  {0x1c, "AC0.L",     "Accu Low 0",},
-  {0x1d, "AC1.L",     "Accu Low 1",},
-  {0x1e, "AC0.M",     "Accu Mid 0",},
-  {0x1f, "AC1.M",     "Accu Mid 1",},
+  {DSP_REG_AR0,    "AR0",     "Addr Reg 00",},
+  {DSP_REG_AR1,    "AR1",     "Addr Reg 01",},
+  {DSP_REG_AR2,    "AR2",     "Addr Reg 02",},
+  {DSP_REG_AR3,    "AR3",     "Addr Reg 03",},
+  {DSP_REG_IX0,    "IX0",     "Index Reg 0",},
+  {DSP_REG_IX1,    "IX1",     "Index Reg 1",},
+  {DSP_REG_IX2,    "IX2",     "Index Reg 2",},
+  {DSP_REG_IX3,    "IX3",     "Index Reg 3",},
+  {DSP_REG_WR0,    "WR0",     "Wrapping Register 0",},
+  {DSP_REG_WR1,    "WR1",     "Wrapping Register 1",},
+  {DSP_REG_WR2,    "WR2",     "Wrapping Register 2",},
+  {DSP_REG_WR3,    "WR3",     "Wrapping Register 3",},
+  {DSP_REG_ST0,    "ST0",     "Call stack",},
+  {DSP_REG_ST1,    "ST1",     "Data stack",},
+  {DSP_REG_ST2,    "ST2",     "Loop addr stack",},
+  {DSP_REG_ST3,    "ST3",     "Loop counter stack",},
+  {DSP_REG_ACH0,   "AC0.H",   "Accu High 0",},
+  {DSP_REG_ACH1,   "AC1.H",   "Accu High 1",},
+  {DSP_REG_CR,     "CR",      "Config Register",},
+  {DSP_REG_SR,     "SR",      "Special Register",},
+  {DSP_REG_PRODL,  "PROD.L",  "Prod L",},
+  {DSP_REG_PRODM,  "PROD.M1", "Prod M1",},
+  {DSP_REG_PRODH,  "PROD.H",  "Prod H",},
+  {DSP_REG_PRODM2, "PROD.M2", "Prod M2",},
+  {DSP_REG_AXL0,   "AX0.L",   "Extra Accu L 0",},
+  {DSP_REG_AXL1,   "AX1.L",   "Extra Accu L 1",},
+  {DSP_REG_AXH0,   "AX0.H",   "Extra Accu H 0",},
+  {DSP_REG_AXH1,   "AX1.H",   "Extra Accu H 1",},
+  {DSP_REG_ACL0,   "AC0.L",   "Accu Low 0",},
+  {DSP_REG_ACL1,   "AC1.L",   "Accu Low 1",},
+  {DSP_REG_ACM0,   "AC0.M",   "Accu Mid 0",},
+  {DSP_REG_ACM1,   "AC1.M",   "Accu Mid 1",},
 
   // To resolve combined register names.
-  {0x20, "ACC0",      "Accu Full 0",},
-  {0x21, "ACC1",      "Accu Full 1",},
-  {0x22, "AX0",       "Extra Accu 0",},
-  {0x23, "AX1",       "Extra Accu 1",},
+  {DSP_REG_ACC0_FULL, "ACC0", "Accu Full 0",},
+  {DSP_REG_ACC1_FULL, "ACC1", "Accu Full 1",},
+  {DSP_REG_AX0_FULL,  "AX0",  "Extra Accu 0",},
+  {DSP_REG_AX1_FULL,  "AX1",  "Extra Accu 1",},
 }};
 // clang-format on
 

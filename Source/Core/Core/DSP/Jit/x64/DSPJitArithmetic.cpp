@@ -53,7 +53,7 @@ void DSPEmitter::clrl(const UDSPInstruction opc)
 //----
 
 // ANDCF $acD.m, #I
-// 0000 001r 1100 0000
+// 0000 001d 1100 0000
 // iiii iiii iiii iiii
 // Set logic zero (LZ) flag in status register $sr if result of logic AND of
 // accumulator mid part $acD.m with immediate value I is equal to I.
@@ -88,7 +88,7 @@ void DSPEmitter::andcf(const UDSPInstruction opc)
 }
 
 // ANDF $acD.m, #I
-// 0000 001r 1010 0000
+// 0000 001d 1010 0000
 // iiii iiii iiii iiii
 // Set logic zero (LZ) flag in status register $sr if result of logical AND
 // operation of accumulator mid part $acD.m with immediate value I is equal
@@ -126,7 +126,7 @@ void DSPEmitter::andf(const UDSPInstruction opc)
 
 // TST
 // 1011 r001 xxxx xxxx
-// Test accumulator %acR.
+// Test accumulator $acR.
 //
 // flags out: --xx xx00
 void DSPEmitter::tst(const UDSPInstruction opc)
@@ -152,9 +152,9 @@ void DSPEmitter::tstaxh(const UDSPInstruction opc)
   {
     u8 reg = (opc >> 8) & 0x1;
     //		s16 val = dsp_get_ax_h(reg);
-    get_ax_h(reg);
+    get_ax_h(reg, EAX);
     //		Update_SR_Register16(val);
-    Update_SR_Register16();
+    Update_SR_Register16(EAX);
   }
 }
 
@@ -188,12 +188,12 @@ void DSPEmitter::cmp(const UDSPInstruction opc)
   }
 }
 
-// CMPAR $acS axR.h
+// CMPAXH $acS, $axR.h
 // 110r s001 xxxx xxxx
-// Compares accumulator $acS with accumulator $axR.h.
+// Compares accumulator $acS with high part of secondary accumulator $axR.h.
 //
 // flags out: x-xx xxxx
-void DSPEmitter::cmpar(const UDSPInstruction opc)
+void DSPEmitter::cmpaxh(const UDSPInstruction opc)
 {
   if (FlagsNeeded())
   {
@@ -220,11 +220,12 @@ void DSPEmitter::cmpar(const UDSPInstruction opc)
   }
 }
 
-// CMPI $amD, #I
-// 0000 001r 1000 0000
+// CMPI $acD, #I
+// 0000 001d 1000 0000
 // iiii iiii iiii iiii
-// Compares mid accumulator $acD.hm ($amD) with sign extended immediate value I.
-// Although flags are being set regarding whole accumulator register.
+// Compares accumulator with immediate. Comparison is executed
+// by subtracting the immediate (16-bit sign extended) from mid accumulator
+// $acD.hm and computing flags based on whole accumulator $acD.
 //
 // flags out: x-xx xxxx
 void DSPEmitter::cmpi(const UDSPInstruction opc)
@@ -257,7 +258,7 @@ void DSPEmitter::cmpi(const UDSPInstruction opc)
 // CMPIS $acD, #I
 // 0000 011d iiii iiii
 // Compares accumulator with short immediate. Comparison is executed
-// by subtracting short immediate (8bit sign extended) from mid accumulator
+// by subtracting the short immediate (8-bit sign extended) from mid accumulator
 // $acD.hm and computing flags based on whole accumulator $acD.
 //
 // flags out: x-xx xxxx
@@ -301,16 +302,18 @@ void DSPEmitter::xorr(const UDSPInstruction opc)
   u8 dreg = (opc >> 8) & 0x1;
   u8 sreg = (opc >> 9) & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] ^ g_dsp.r.axh[sreg];
-  get_acc_m(dreg, RAX);
+  X64Reg accm = RAX;
+  get_acc_m(dreg, accm);
   get_ax_h(sreg, RDX);
-  XOR(64, R(RAX), R(RDX));
+  XOR(64, R(accm), R(RDX));
   //	g_dsp.r.acm[dreg] = accm;
-  set_acc_m(dreg);
+  set_acc_m(dreg, R(accm));
   //	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
   if (FlagsNeeded())
   {
-    get_long_acc(dreg, RCX);
-    Update_SR_Register16_OverS32();
+    X64Reg acc_full = RCX;
+    get_long_acc(dreg, acc_full);
+    Update_SR_Register16_OverS32(accm, acc_full, RDX);
   }
 }
 
@@ -326,16 +329,18 @@ void DSPEmitter::andr(const UDSPInstruction opc)
   u8 dreg = (opc >> 8) & 0x1;
   u8 sreg = (opc >> 9) & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] & g_dsp.r.axh[sreg];
-  get_acc_m(dreg, RAX);
+  X64Reg accm = RAX;
+  get_acc_m(dreg, accm);
   get_ax_h(sreg, RDX);
-  AND(64, R(RAX), R(RDX));
+  AND(64, R(accm), R(RDX));
   //	g_dsp.r.acm[dreg] = accm;
-  set_acc_m(dreg);
+  set_acc_m(dreg, R(accm));
   //	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
   if (FlagsNeeded())
   {
-    get_long_acc(dreg, RCX);
-    Update_SR_Register16_OverS32();
+    X64Reg acc_full = RCX;
+    get_long_acc(dreg, acc_full);
+    Update_SR_Register16_OverS32(accm, acc_full, RDX);
   }
 }
 
@@ -351,16 +356,18 @@ void DSPEmitter::orr(const UDSPInstruction opc)
   u8 dreg = (opc >> 8) & 0x1;
   u8 sreg = (opc >> 9) & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] | g_dsp.r.axh[sreg];
-  get_acc_m(dreg, RAX);
+  X64Reg accm = RAX;
+  get_acc_m(dreg, accm);
   get_ax_h(sreg, RDX);
-  OR(64, R(RAX), R(RDX));
+  OR(64, R(accm), R(RDX));
   //	g_dsp.r.acm[dreg] = accm;
-  set_acc_m(dreg);
+  set_acc_m(dreg, R(accm));
   //	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
   if (FlagsNeeded())
   {
-    get_long_acc(dreg, RCX);
-    Update_SR_Register16_OverS32();
+    X64Reg acc_full = RCX;
+    get_long_acc(dreg, acc_full);
+    Update_SR_Register16_OverS32(accm, acc_full, RDX);
   }
 }
 
@@ -375,16 +382,18 @@ void DSPEmitter::andc(const UDSPInstruction opc)
 {
   u8 dreg = (opc >> 8) & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] & g_dsp.r.acm[1 - dreg];
-  get_acc_m(dreg, RAX);
+  X64Reg accm = RAX;
+  get_acc_m(dreg, accm);
   get_acc_m(1 - dreg, RDX);
-  AND(64, R(RAX), R(RDX));
+  AND(64, R(accm), R(RDX));
   //	g_dsp.r.acm[dreg] = accm;
-  set_acc_m(dreg);
+  set_acc_m(dreg, R(accm));
   //	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
   if (FlagsNeeded())
   {
-    get_long_acc(dreg, RCX);
-    Update_SR_Register16_OverS32();
+    X64Reg acc_full = RCX;
+    get_long_acc(dreg, acc_full);
+    Update_SR_Register16_OverS32(accm, acc_full, RDX);
   }
 }
 
@@ -399,16 +408,18 @@ void DSPEmitter::orc(const UDSPInstruction opc)
 {
   u8 dreg = (opc >> 8) & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] | g_dsp.r.acm[1 - dreg];
-  get_acc_m(dreg, RAX);
+  X64Reg accm = RAX;
+  get_acc_m(dreg, accm);
   get_acc_m(1 - dreg, RDX);
-  OR(64, R(RAX), R(RDX));
+  OR(64, R(accm), R(RDX));
   //	g_dsp.r.acm[dreg] = accm;
-  set_acc_m(dreg);
+  set_acc_m(dreg, R(accm));
   //	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
   if (FlagsNeeded())
   {
-    get_long_acc(dreg, RCX);
-    Update_SR_Register16_OverS32();
+    X64Reg acc_full = RCX;
+    get_long_acc(dreg, acc_full);
+    Update_SR_Register16_OverS32(accm, acc_full, RDX);
   }
 }
 
@@ -422,16 +433,18 @@ void DSPEmitter::xorc(const UDSPInstruction opc)
 {
   u8 dreg = (opc >> 8) & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] ^ g_dsp.r.acm[1 - dreg];
-  get_acc_m(dreg, RAX);
+  X64Reg accm = RAX;
+  get_acc_m(dreg, accm);
   get_acc_m(1 - dreg, RDX);
-  XOR(64, R(RAX), R(RDX));
+  XOR(64, R(accm), R(RDX));
   //	g_dsp.r.acm[dreg] = accm;
-  set_acc_m(dreg);
+  set_acc_m(dreg, R(accm));
   //	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
   if (FlagsNeeded())
   {
-    get_long_acc(dreg, RCX);
-    Update_SR_Register16_OverS32();
+    X64Reg acc_full = RCX;
+    get_long_acc(dreg, acc_full);
+    Update_SR_Register16_OverS32(accm, acc_full, RDX);
   }
 }
 
@@ -445,20 +458,22 @@ void DSPEmitter::notc(const UDSPInstruction opc)
 {
   u8 dreg = (opc >> 8) & 0x1;
   //	u16 accm = g_dsp.r.acm[dreg] ^ 0xffff;
-  get_acc_m(dreg, RAX);
-  NOT(16, R(AX));
+  X64Reg accm = RAX;
+  get_acc_m(dreg, accm);
+  NOT(16, R(accm));
   //	g_dsp.r.acm[dreg] = accm;
-  set_acc_m(dreg);
+  set_acc_m(dreg, R(accm));
   //	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
   if (FlagsNeeded())
   {
-    get_long_acc(dreg, RCX);
-    Update_SR_Register16_OverS32();
+    X64Reg acc_full = RCX;
+    get_long_acc(dreg, acc_full);
+    Update_SR_Register16_OverS32(accm, acc_full, RDX);
   }
 }
 
 // XORI $acD.m, #I
-// 0000 001r 0010 0000
+// 0000 001d 0010 0000
 // iiii iiii iiii iiii
 // Logic exclusive or (XOR) of accumulator mid part $acD.m with
 // immediate value I.
@@ -470,19 +485,21 @@ void DSPEmitter::xori(const UDSPInstruction opc)
   //	u16 imm = dsp_fetch_code();
   const u16 imm = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
   //	g_dsp.r.acm[reg] ^= imm;
-  get_acc_m(reg, RAX);
-  XOR(16, R(RAX), Imm16(imm));
-  set_acc_m(reg);
+  X64Reg accm = RAX;
+  get_acc_m(reg, accm);
+  XOR(16, R(accm), Imm16(imm));
+  set_acc_m(reg, R(accm));
   //	Update_SR_Register16((s16)g_dsp.r.acm[reg], false, false, isOverS32(dsp_get_long_acc(reg)));
   if (FlagsNeeded())
   {
-    get_long_acc(reg, RCX);
-    Update_SR_Register16_OverS32();
+    X64Reg acc_full = RCX;
+    get_long_acc(reg, acc_full);
+    Update_SR_Register16_OverS32(accm, acc_full, RDX);
   }
 }
 
 // ANDI $acD.m, #I
-// 0000 001r 0100 0000
+// 0000 001d 0100 0000
 // iiii iiii iiii iiii
 // Logic AND of accumulator mid part $acD.m with immediate value I.
 //
@@ -493,19 +510,21 @@ void DSPEmitter::andi(const UDSPInstruction opc)
   //	u16 imm = dsp_fetch_code();
   const u16 imm = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
   //	g_dsp.r.acm[reg] &= imm;
-  get_acc_m(reg, RAX);
-  AND(16, R(RAX), Imm16(imm));
-  set_acc_m(reg);
+  X64Reg accm = RAX;
+  get_acc_m(reg, accm);
+  AND(16, R(accm), Imm16(imm));
+  set_acc_m(reg, R(accm));
   //	Update_SR_Register16((s16)g_dsp.r.acm[reg], false, false, isOverS32(dsp_get_long_acc(reg)));
   if (FlagsNeeded())
   {
-    get_long_acc(reg, RCX);
-    Update_SR_Register16_OverS32();
+    X64Reg acc_full = RCX;
+    get_long_acc(reg, acc_full);
+    Update_SR_Register16_OverS32(accm, acc_full, RDX);
   }
 }
 
 // ORI $acD.m, #I
-// 0000 001r 0110 0000
+// 0000 001d 0110 0000
 // iiii iiii iiii iiii
 // Logic OR of accumulator mid part $acD.m with immediate value I.
 //
@@ -516,14 +535,16 @@ void DSPEmitter::ori(const UDSPInstruction opc)
   //	u16 imm = dsp_fetch_code();
   const u16 imm = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
   //	g_dsp.r.acm[reg] |= imm;
-  get_acc_m(reg, RAX);
-  OR(16, R(RAX), Imm16(imm));
-  set_acc_m(reg);
+  X64Reg accm = RAX;
+  get_acc_m(reg, accm);
+  OR(16, R(accm), Imm16(imm));
+  set_acc_m(reg, R(accm));
   //	Update_SR_Register16((s16)g_dsp.r.acm[reg], false, false, isOverS32(dsp_get_long_acc(reg)));
   if (FlagsNeeded())
   {
-    get_long_acc(reg, RCX);
-    Update_SR_Register16_OverS32();
+    X64Reg acc_full = RCX;
+    get_long_acc(reg, acc_full);
+    Update_SR_Register16_OverS32(accm, acc_full, RDX);
   }
 }
 
@@ -686,8 +707,8 @@ void DSPEmitter::addaxl(const UDSPInstruction opc)
   }
 }
 
-// ADDI $amR, #I
-// 0000 001r 0000 0000
+// ADDI $acD, #I
+// 0000 001d 0000 0000
 // iiii iiii iiii iiii
 // Adds immediate (16-bit sign extended) to mid accumulator $acD.hm.
 //

@@ -105,9 +105,8 @@ private:
   // Options
   QTableWidget* m_option_list;
 
-  // Range
-  QSlider* m_range_slider;
-  QSpinBox* m_range_spinbox;
+  // Scalar
+  QSpinBox* m_scalar_spinbox;
 
   // Shared actions
   QPushButton* m_select_button;

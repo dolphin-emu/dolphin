@@ -11,6 +11,7 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
+#include "Common/EnumMap.h"
 #include "Common/Inline.h"
 
 // X.h defines None to be 0 and Always to be 2, which causes problems with some of the enums
@@ -683,8 +684,8 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
                           "Clamp: {}\n"
                           "Scale factor: {} / Compare mode: {}\n"
                           "Dest: {}\n"
-                          "Ras sel: {}\n"
-                          "Tex sel: {}",
+                          "Rasterized color swaptable: {}\n"
+                          "Texture color swaptable: {}",
                           ac.a, ac.b, ac.c, ac.d, ac.bias, ac.op, ac.comparison,
                           ac.clamp ? "Yes" : "No", ac.scale, ac.compare_mode, ac.dest, ac.rswap,
                           ac.tswap);
@@ -777,69 +778,82 @@ struct fmt::formatter<RasColorChan> : EnumFormatter<RasColorChan::Zero>
 
 union TwoTevStageOrders
 {
-  BitField<0, 3, u32> texmap0;  // Indirect tex stage texmap
-  BitField<3, 3, u32> texcoord0;
-  BitField<6, 1, bool, u32> enable0;  // true if should read from texture
-  BitField<7, 3, RasColorChan> colorchan0;
+  BitField<0, 3, u32> texmap_even;
+  BitField<3, 3, u32> texcoord_even;
+  BitField<6, 1, bool, u32> enable_tex_even;  // true if should read from texture
+  BitField<7, 3, RasColorChan> colorchan_even;
 
-  BitField<12, 3, u32> texmap1;
-  BitField<15, 3, u32> texcoord1;
-  BitField<18, 1, bool, u32> enable1;  // true if should read from texture
-  BitField<19, 3, RasColorChan> colorchan1;
+  BitField<12, 3, u32> texmap_odd;
+  BitField<15, 3, u32> texcoord_odd;
+  BitField<18, 1, bool, u32> enable_tex_odd;  // true if should read from texture
+  BitField<19, 3, RasColorChan> colorchan_odd;
 
   u32 hex;
-  u32 getTexMap(int i) const { return i ? texmap1.Value() : texmap0.Value(); }
-  u32 getTexCoord(int i) const { return i ? texcoord1.Value() : texcoord0.Value(); }
-  u32 getEnable(int i) const { return i ? enable1.Value() : enable0.Value(); }
-  RasColorChan getColorChan(int i) const { return i ? colorchan1.Value() : colorchan0.Value(); }
+  u32 getTexMap(int i) const { return i ? texmap_odd.Value() : texmap_even.Value(); }
+  u32 getTexCoord(int i) const { return i ? texcoord_odd.Value() : texcoord_even.Value(); }
+  u32 getEnable(int i) const { return i ? enable_tex_odd.Value() : enable_tex_even.Value(); }
+  RasColorChan getColorChan(int i) const
+  {
+    return i ? colorchan_odd.Value() : colorchan_even.Value();
+  }
 };
 template <>
-struct fmt::formatter<TwoTevStageOrders>
+struct fmt::formatter<std::pair<u8, TwoTevStageOrders>>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TwoTevStageOrders& stages, FormatContext& ctx) const
+  auto format(const std::pair<u8, TwoTevStageOrders>& p, FormatContext& ctx) const
   {
+    const auto& [cmd, stages] = p;
+    const u8 stage_even = (cmd - BPMEM_TREF) * 2;
+    const u8 stage_odd = stage_even + 1;
+
     return fmt::format_to(ctx.out(),
-                          "Stage 0 texmap: {}\nStage 0 tex coord: {}\n"
-                          "Stage 0 enable texmap: {}\nStage 0 color channel: {}\n"
-                          "Stage 1 texmap: {}\nStage 1 tex coord: {}\n"
-                          "Stage 1 enable texmap: {}\nStage 1 color channel: {}\n",
-                          stages.texmap0, stages.texcoord0, stages.enable0 ? "Yes" : "No",
-                          stages.colorchan0, stages.texmap1, stages.texcoord1,
-                          stages.enable1 ? "Yes" : "No", stages.colorchan1);
+                          "Stage {0} texmap: {1}\nStage {0} tex coord: {2}\n"
+                          "Stage {0} enable texmap: {3}\nStage {0} rasterized color channel: {4}\n"
+                          "Stage {5} texmap: {6}\nStage {5} tex coord: {7}\n"
+                          "Stage {5} enable texmap: {8}\nStage {5} rasterized color channel: {9}\n",
+                          stage_even, stages.texmap_even, stages.texcoord_even,
+                          stages.enable_tex_even ? "Yes" : "No", stages.colorchan_even, stage_odd,
+                          stages.texmap_odd, stages.texcoord_odd,
+                          stages.enable_tex_odd ? "Yes" : "No", stages.colorchan_odd);
   }
 };
 
 union TEXSCALE
 {
-  BitField<0, 4, u32> ss0;   // Indirect tex stage 0, 2^(-ss0)
-  BitField<4, 4, u32> ts0;   // Indirect tex stage 0
-  BitField<8, 4, u32> ss1;   // Indirect tex stage 1
-  BitField<12, 4, u32> ts1;  // Indirect tex stage 1
+  BitField<0, 4, u32> ss0;   // Indirect tex stage 0 or 2, 2^(-ss0)
+  BitField<4, 4, u32> ts0;   // Indirect tex stage 0 or 2
+  BitField<8, 4, u32> ss1;   // Indirect tex stage 1 or 3
+  BitField<12, 4, u32> ts1;  // Indirect tex stage 1 or 3
   u32 hex;
 };
 template <>
-struct fmt::formatter<TEXSCALE>
+struct fmt::formatter<std::pair<u8, TEXSCALE>>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TEXSCALE& scale, FormatContext& ctx) const
+  auto format(const std::pair<u8, TEXSCALE>& p, FormatContext& ctx) const
   {
+    const auto& [cmd, scale] = p;
+    const u8 even = (cmd - BPMEM_RAS1_SS0) * 2;
+    const u8 odd_ = even + 1;
+
     return fmt::format_to(ctx.out(),
-                          "Even stage S scale: {} ({})\n"
-                          "Even stage T scale: {} ({})\n"
-                          "Odd stage S scale: {} ({})\n"
-                          "Odd stage T scale: {} ({})",
-                          scale.ss0, 1.f / (1 << scale.ss0), scale.ts0, 1.f / (1 << scale.ts0),
-                          scale.ss1, 1.f / (1 << scale.ss1), scale.ts1, 1.f / (1 << scale.ts1));
+                          "Indirect stage {0} S coord scale: {1} ({2})\n"
+                          "Indirect stage {0} T coord scale: {3} ({4})\n"
+                          "Indirect stage {5} S coord scale: {6} ({7})\n"
+                          "Indirect stage {5} T coord scale: {8} ({9})",
+                          even, 1.f / (1 << scale.ss0), scale.ss0, 1.f / (1 << scale.ts0),
+                          scale.ts0, odd_, 1.f / (1 << scale.ss1), scale.ss1,
+                          1.f / (1 << scale.ts1), scale.ts1);
   }
 };
 
 union RAS1_IREF
 {
-  BitField<0, 3, u32> bi0;  // Indirect tex stage 0 ntexmap
-  BitField<3, 3, u32> bc0;  // Indirect tex stage 0 ntexcoord
+  BitField<0, 3, u32> bi0;  // Indirect tex stage 0 texmap
+  BitField<3, 3, u32> bc0;  // Indirect tex stage 0 tex coord
   BitField<6, 3, u32> bi1;
   BitField<9, 3, u32> bc1;
   BitField<12, 3, u32> bi2;
@@ -858,12 +872,11 @@ struct fmt::formatter<RAS1_IREF>
   template <typename FormatContext>
   auto format(const RAS1_IREF& indref, FormatContext& ctx) const
   {
-    // The field names here are suspicious, since there is no bi3 or bc2
     return fmt::format_to(ctx.out(),
-                          "Stage 0 ntexmap: {}\nStage 0 ntexcoord: {}\n"
-                          "Stage 1 ntexmap: {}\nStage 1 ntexcoord: {}\n"
-                          "Stage 2 ntexmap: {}\nStage 2 ntexcoord: {}\n"
-                          "Stage 3 ntexmap: {}\nStage 3 ntexcoord: {}",
+                          "Indirect stage 0 texmap: {}\nIndirect stage 0 tex coord: {}\n"
+                          "Indirect stage 1 texmap: {}\nIndirect stage 1 tex coord: {}\n"
+                          "Indirect stage 2 texmap: {}\nIndirect stage 2 tex coord: {}\n"
+                          "Indirect stage 3 texmap: {}\nIndirect stage 3 tex coord: {}",
                           indref.bi0, indref.bc0, indref.bi1, indref.bc1, indref.bi2, indref.bc2,
                           indref.bi3, indref.bc3);
   }
@@ -1231,10 +1244,10 @@ struct fmt::formatter<ScissorPos>
   template <typename FormatContext>
   auto format(const ScissorPos& pos, FormatContext& ctx)
   {
-    return format_to(ctx.out(),
-                     "X: {} (raw: {})\n"
-                     "Y: {} (raw: {})",
-                     pos.x - 342, pos.x_full, pos.y - 342, pos.y_full);
+    return fmt::format_to(ctx.out(),
+                          "X: {} (raw: {})\n"
+                          "Y: {} (raw: {})",
+                          pos.x - 342, pos.x_full, pos.y - 342, pos.y_full);
   }
 };
 
@@ -1257,10 +1270,10 @@ struct fmt::formatter<ScissorOffset>
   template <typename FormatContext>
   auto format(const ScissorOffset& off, FormatContext& ctx)
   {
-    return format_to(ctx.out(),
-                     "X: {} (raw: {})\n"
-                     "Y: {} (raw: {})",
-                     (off.x << 1) - 342, off.x_full, (off.y << 1) - 342, off.y_full);
+    return fmt::format_to(ctx.out(),
+                          "X: {} (raw: {})\n"
+                          "Y: {} (raw: {})",
+                          (off.x << 1) - 342, off.x_full, (off.y << 1) - 342, off.y_full);
   }
 };
 
@@ -1743,21 +1756,27 @@ union TCInfo
   u32 hex;
 };
 template <>
-struct fmt::formatter<TCInfo>
+struct fmt::formatter<std::pair<bool, TCInfo>>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TCInfo& info, FormatContext& ctx) const
+  auto format(const std::pair<bool, TCInfo>& p, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(),
-                          "Scale: {}\n"
-                          "Range bias: {}\n"
-                          "Cylindric wrap: {}\n"
-                          "Use line offset: {} (s only)\n"
-                          "Use point offset: {} (s only)",
-                          info.scale_minus_1 + 1, info.range_bias ? "Yes" : "No",
-                          info.cylindric_wrap ? "Yes" : "No", info.line_offset ? "Yes" : "No",
-                          info.point_offset ? "Yes" : "No");
+    const auto& [is_s, info] = p;
+    auto out = fmt::format_to(ctx.out(),
+                              "{0} coord scale: {1}\n"
+                              "{0} coord range bias: {2}\n"
+                              "{0} coord cylindric wrap: {3}",
+                              is_s ? 'S' : 'T', info.scale_minus_1 + 1,
+                              info.range_bias ? "Yes" : "No", info.cylindric_wrap ? "Yes" : "No");
+    if (is_s)
+    {
+      out = fmt::format_to(out,
+                           "\nUse line offset: {}"
+                           "\nUse point offset: {}",
+                           info.line_offset ? "Yes" : "No", info.point_offset ? "Yes" : "No");
+    }
+    return out;
   }
 };
 
@@ -1834,6 +1853,19 @@ struct fmt::formatter<TevReg>
   }
 };
 
+enum class ColorChannel : u32
+{
+  Red = 0,
+  Green = 1,
+  Blue = 2,
+  Alpha = 3,
+};
+template <>
+struct fmt::formatter<ColorChannel> : EnumFormatter<ColorChannel::Alpha>
+{
+  formatter() : EnumFormatter({"Red", "Green", "Blue", "Alpha"}) {}
+};
+
 enum class KonstSel : u32
 {
   V1 = 0,
@@ -1908,29 +1940,65 @@ struct fmt::formatter<KonstSel> : EnumFormatter<KonstSel::K3_A>
 
 union TevKSel
 {
-  BitField<0, 2, u32> swap1;
-  BitField<2, 2, u32> swap2;
-  BitField<4, 5, KonstSel> kcsel0;
-  BitField<9, 5, KonstSel> kasel0;
-  BitField<14, 5, KonstSel> kcsel1;
-  BitField<19, 5, KonstSel> kasel1;
+  BitField<0, 2, ColorChannel> swap_rb;  // Odd ksel number: red; even: blue
+  BitField<2, 2, ColorChannel> swap_ga;  // Odd ksel number: green; even: alpha
+  BitField<4, 5, KonstSel> kcsel_even;
+  BitField<9, 5, KonstSel> kasel_even;
+  BitField<14, 5, KonstSel> kcsel_odd;
+  BitField<19, 5, KonstSel> kasel_odd;
   u32 hex;
-
-  KonstSel getKC(int i) const { return i ? kcsel1.Value() : kcsel0.Value(); }
-  KonstSel getKA(int i) const { return i ? kasel1.Value() : kasel0.Value(); }
 };
 template <>
-struct fmt::formatter<TevKSel>
+struct fmt::formatter<std::pair<u8, TevKSel>>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TevKSel& ksel, FormatContext& ctx) const
+  auto format(const std::pair<u8, TevKSel>& p, FormatContext& ctx) const
   {
+    const auto& [cmd, ksel] = p;
+    const u8 swap_number = (cmd - BPMEM_TEV_KSEL) / 2;
+    const bool swap_ba = (cmd - BPMEM_TEV_KSEL) & 1;
+    const u8 even_stage = (cmd - BPMEM_TEV_KSEL) * 2;
+    const u8 odd_stage = even_stage + 1;
+
     return fmt::format_to(ctx.out(),
-                          "Swap 1: {}\nSwap 2: {}\nColor sel 0: {}\nAlpha sel 0: {}\n"
-                          "Color sel 1: {}\nAlpha sel 1: {}",
-                          ksel.swap1, ksel.swap2, ksel.kcsel0, ksel.kasel0, ksel.kcsel1,
-                          ksel.kasel1);
+                          "Swap table {0}: {1} channel comes from input's {2} channel\n"
+                          "Swap table {0}: {3} channel comes from input's {4} channel\n"
+                          "TEV stage {5} konst color: {6}\n"
+                          "TEV stage {5} konst alpha: {7}\n"
+                          "TEV stage {8} konst color: {9}\n"
+                          "TEV stage {8} konst alpha: {10}",
+                          swap_number, swap_ba ? "Blue" : "Red", ksel.swap_rb,
+                          swap_ba ? "Alpha" : "Green", ksel.swap_ga, even_stage, ksel.kcsel_even,
+                          ksel.kasel_even, odd_stage, ksel.kcsel_odd, ksel.kasel_odd);
+  }
+};
+
+struct AllTevKSels
+{
+  std::array<TevKSel, 8> ksel;
+
+  KonstSel GetKonstColor(u32 tev_stage) const
+  {
+    const u32 ksel_num = tev_stage >> 1;
+    const bool odd = tev_stage & 1;
+    const auto& cur_ksel = ksel[ksel_num];
+    return odd ? cur_ksel.kcsel_odd.Value() : cur_ksel.kcsel_even.Value();
+  }
+  KonstSel GetKonstAlpha(u32 tev_stage) const
+  {
+    const u32 ksel_num = tev_stage >> 1;
+    const bool odd = tev_stage & 1;
+    const auto& cur_ksel = ksel[ksel_num];
+    return odd ? cur_ksel.kasel_odd.Value() : cur_ksel.kasel_even.Value();
+  }
+  Common::EnumMap<ColorChannel, ColorChannel::Alpha> GetSwapTable(u32 swap_table_id) const
+  {
+    const u32 rg_ksel_num = swap_table_id << 1;
+    const u32 ba_ksel_num = rg_ksel_num + 1;
+    const auto& rg_ksel = ksel[rg_ksel_num];
+    const auto& ba_ksel = ksel[ba_ksel_num];
+    return {rg_ksel.swap_rb, rg_ksel.swap_ga, ba_ksel.swap_rb, ba_ksel.swap_ga};
   }
 };
 
@@ -2035,17 +2103,30 @@ struct fmt::formatter<FrameToField> : EnumFormatter<FrameToField::InterlacedOdd>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
+enum class GammaCorrection : u32
+{
+  Gamma1_0 = 0,
+  Gamma1_7 = 1,
+  Gamma2_2 = 2,
+  // Hardware testing indicates this behaves the same as Gamma2_2
+  Invalid2_2 = 3,
+};
+template <>
+struct fmt::formatter<GammaCorrection> : EnumFormatter<GammaCorrection::Invalid2_2>
+{
+  constexpr formatter() : EnumFormatter({"1.0", "1.7", "2.2", "Invalid 2.2"}) {}
+};
+
 union UPE_Copy
 {
   u32 Hex;
 
-  BitField<0, 1, bool, u32> clamp_top;      // if set clamp top
-  BitField<1, 1, bool, u32> clamp_bottom;   // if set clamp bottom
-  BitField<2, 1, bool, u32> yuv;            // if set, color conversion from RGB to YUV
+  BitField<0, 1, bool, u32> clamp_top;     // if set clamp top
+  BitField<1, 1, bool, u32> clamp_bottom;  // if set clamp bottom
+  BitField<2, 1, u32> unknown_bit;
   BitField<3, 4, u32> target_pixel_format;  // realformat is (fmt/2)+((fmt&1)*8).... for some reason
                                             // the msb is the lsb (pattern: cycling right shift)
-  // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
-  BitField<7, 2, u32> gamma;
+  BitField<7, 2, GammaCorrection> gamma;
   // "mipmap" filter... false = no filter (scale 1:1) ; true = box filter (scale 2:1)
   BitField<9, 1, bool, u32> half_scale;
   BitField<10, 1, bool, u32> scale_invert;  // if set vertical scaling is on
@@ -2084,23 +2165,10 @@ struct fmt::formatter<UPE_Copy>
       else
         clamp = "None";
     }
-    std::string_view gamma = "Invalid";
-    switch (copy.gamma)
-    {
-    case 0:
-      gamma = "1.0";
-      break;
-    case 1:
-      gamma = "1.7";
-      break;
-    case 2:
-      gamma = "2.2";
-      break;
-    }
 
     return fmt::format_to(ctx.out(),
                           "Clamping: {}\n"
-                          "Converting from RGB to YUV: {}\n"
+                          "Unknown bit: {}\n"
                           "Target pixel format: {}\n"
                           "Gamma correction: {}\n"
                           "Half scale: {}\n"
@@ -2110,7 +2178,7 @@ struct fmt::formatter<UPE_Copy>
                           "Copy to XFB: {}\n"
                           "Intensity format: {}\n"
                           "Automatic color conversion: {}",
-                          clamp, no_yes[copy.yuv], copy.tp_realFormat(), gamma,
+                          clamp, copy.unknown_bit, copy.tp_realFormat(), copy.gamma,
                           no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
                           copy.frame_to_field, no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt],
                           no_yes[copy.auto_conv]);
@@ -2123,10 +2191,12 @@ union CopyFilterCoefficients
 
   u64 Hex;
 
+  BitField<0, 32, u32, u64> Low;
   BitField<0, 6, u64> w0;
   BitField<6, 6, u64> w1;
   BitField<12, 6, u64> w2;
   BitField<18, 6, u64> w3;
+  BitField<32, 32, u32, u64> High;
   BitField<32, 6, u64> w4;
   BitField<38, 6, u64> w5;
   BitField<44, 6, u64> w6;
@@ -2336,75 +2406,92 @@ struct BPCmd
   int newvalue;
 };
 
+enum class EmulatedZ : u32
+{
+  Disabled = 0,
+  Early = 1,
+  Late = 2,
+  ForcedEarly = 3,
+  EarlyWithFBFetch = 4,
+  EarlyWithZComplocHack = 5,
+};
+
 struct BPMemory
 {
-  GenMode genMode;
-  u32 display_copy_filter[4];  // 01-04
-  u32 unknown;                 // 05
+  GenMode genMode;             // 0x00
+  u32 display_copy_filter[4];  // 0x01-0x04
+  u32 unknown;                 // 0x05
   // indirect matrices (set by GXSetIndTexMtx, selected by TevStageIndirect::matrix_index)
   // abc form a 2x3 offset matrix, there's 3 such matrices
   // the 3 offset matrices can either be indirect type, S-type, or T-type
   // 6bit scale factor s is distributed across IND_MTXA/B/C.
   // before using matrices scale by 2^-(s-17)
-  IND_MTX indmtx[3];               // 06-0e GXSetIndTexMtx, 2x3 matrices
-  IND_IMASK imask;                 // 0f
-  TevStageIndirect tevind[16];     // 10 GXSetTevIndirect
-  ScissorPos scissorTL;            // 20
-  ScissorPos scissorBR;            // 21
-  LPSize lineptwidth;              // 22 line and point width
-  u32 sucounter;                   // 23
-  u32 rascounter;                  // 24
-  TEXSCALE texscale[2];            // 25-26 GXSetIndTexCoordScale
-  RAS1_IREF tevindref;             // 27 GXSetIndTexOrder
-  TwoTevStageOrders tevorders[8];  // 28-2F
-  TCoordInfo texcoords[8];         // 0x30 s,t,s,t,s,t,s,t...
-  ZMode zmode;                     // 40
-  BlendMode blendmode;             // 41
-  ConstantAlpha dstalpha;          // 42
-  PEControl zcontrol;              // 43 GXSetZCompLoc, GXPixModeSync
-  FieldMask fieldmask;             // 44
-  u32 drawdone;                    // 45, bit1=1 if end of list
-  u32 unknown5;                    // 46 clock?
-  u32 petoken;                     // 47
-  u32 petokenint;                  // 48
-  X10Y10 copyTexSrcXY;             // 49
-  X10Y10 copyTexSrcWH;             // 4a
-  u32 copyTexDest;                 // 4b// 4b == CopyAddress (GXDispCopy and GXTexCopy use it)
-  u32 unknown6;                    // 4c
-  u32 copyMipMapStrideChannels;  // 4d usually set to 4 when dest is single channel, 8 when dest is
-                                 // 2 channel, 16 when dest is RGBA
-  // also, doubles whenever mipmap box filter option is set (excent on RGBA). Probably to do with
-  // number of bytes to look at when smoothing
-  u32 dispcopyyscale;                 // 4e
-  u32 clearcolorAR;                   // 4f
-  u32 clearcolorGB;                   // 50
-  u32 clearZValue;                    // 51
-  UPE_Copy triggerEFBCopy;            // 52
-  CopyFilterCoefficients copyfilter;  // 53,54
-  u32 boundbox0;                      // 55
-  u32 boundbox1;                      // 56
-  u32 unknown7[2];                    // 57,58
-  ScissorOffset scissorOffset;        // 59
-  u32 unknown8[6];                    // 5a,5b,5c,5d, 5e,5f
-  BPS_TmemConfig tmem_config;         // 60-66
-  u32 metric;                         // 67
-  FieldMode fieldmode;                // 68
-  u32 unknown10[7];                   // 69-6F
-  u32 unknown11[16];                  // 70-7F
-  AllTexUnits tex;                    // 80-bf
-  TevStageCombiner combiners[16];     // 0xC0-0xDF
-  TevReg tevregs[4];                  // 0xE0
-  FogRangeParams fogRange;            // 0xE8
-  FogParams fog;                      // 0xEE,0xEF,0xF0,0xF1,0xF2
-  AlphaTest alpha_test;               // 0xF3
-  ZTex1 ztex1;                        // 0xf4,0xf5
-  ZTex2 ztex2;
-  TevKSel tevksel[8];  // 0xf6,0xf7,f8,f9,fa,fb,fc,fd
-  u32 bpMask;          // 0xFE
-  u32 unknown18;       // ff
+  IND_MTX indmtx[3];               // 0x06-0x0e: GXSetIndTexMtx, 2x3 matrices
+  IND_IMASK imask;                 // 0x0f
+  TevStageIndirect tevind[16];     // 0x10-0x1f: GXSetTevIndirect
+  ScissorPos scissorTL;            // 0x20
+  ScissorPos scissorBR;            // 0x21
+  LPSize lineptwidth;              // 0x22
+  u32 sucounter;                   // 0x23
+  u32 rascounter;                  // 0x24
+  TEXSCALE texscale[2];            // 0x25,0x26: GXSetIndTexCoordScale
+  RAS1_IREF tevindref;             // 0x27: GXSetIndTexOrder
+  TwoTevStageOrders tevorders[8];  // 0x28-0x2f
+  TCoordInfo texcoords[8];         // 0x30-0x4f: s,t,s,t,s,t,s,t...
+  ZMode zmode;                     // 0x40
+  BlendMode blendmode;             // 0x41
+  ConstantAlpha dstalpha;          // 0x42
+  PEControl zcontrol;              // 0x43: GXSetZCompLoc, GXPixModeSync
+  FieldMask fieldmask;             // 0x44
+  u32 drawdone;                    // 0x45: bit1=1 if end of list
+  u32 unknown5;                    // 0x46: clock?
+  u32 petoken;                     // 0x47
+  u32 petokenint;                  // 0x48
+  X10Y10 copyTexSrcXY;             // 0x49
+  X10Y10 copyTexSrcWH;             // 0x4a
+  u32 copyTexDest;                 // 0x4b: CopyAddress (GXDispCopy and GXTexCopy use it)
+  u32 unknown6;                    // 0x4c
+  // usually set to 4 when dest is single channel, 8 when dest is 2 channel, 16 when dest is RGBA
+  // also, doubles whenever mipmap box filter option is set (excent on RGBA). Probably to do
+  // with number of bytes to look at when smoothing
+  u32 copyMipMapStrideChannels;       // 0x4d
+  u32 dispcopyyscale;                 // 0x4e
+  u32 clearcolorAR;                   // 0x4f
+  u32 clearcolorGB;                   // 0x50
+  u32 clearZValue;                    // 0x51
+  UPE_Copy triggerEFBCopy;            // 0x52
+  CopyFilterCoefficients copyfilter;  // 0x53,0x54
+  u32 boundbox0;                      // 0x55
+  u32 boundbox1;                      // 0x56
+  u32 unknown7[2];                    // 0x57,0x58
+  ScissorOffset scissorOffset;        // 0x59
+  u32 unknown8[6];                    // 0x5a-0x5f
+  BPS_TmemConfig tmem_config;         // 0x60-0x66
+  u32 metric;                         // 0x67
+  FieldMode fieldmode;                // 0x68
+  u32 unknown10[7];                   // 0x69-0x6f
+  u32 unknown11[16];                  // 0x70-0x7f
+  AllTexUnits tex;                    // 0x80-0xbf
+  TevStageCombiner combiners[16];     // 0xc0-0xdf
+  TevReg tevregs[4];                  // 0xe0-0xe7
+  FogRangeParams fogRange;            // 0xe8-0xed
+  FogParams fog;                      // 0xee-0xf2
+  AlphaTest alpha_test;               // 0xf3
+  ZTex1 ztex1;                        // 0xf4
+  ZTex2 ztex2;                        // 0xf5
+  AllTevKSels tevksel;                // 0xf6-0xfd
+  u32 bpMask;                         // 0xfe
+  u32 unknown18;                      // 0xff
 
-  bool UseEarlyDepthTest() const { return zcontrol.early_ztest && zmode.testenable; }
-  bool UseLateDepthTest() const { return !zcontrol.early_ztest && zmode.testenable; }
+  EmulatedZ GetEmulatedZ() const
+  {
+    if (!zmode.testenable)
+      return EmulatedZ::Disabled;
+    if (zcontrol.early_ztest)
+      return EmulatedZ::Early;
+    else
+      return EmulatedZ::Late;
+  }
 };
 
 #pragma pack()

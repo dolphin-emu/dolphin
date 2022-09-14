@@ -11,3 +11,8 @@ target_link_libraries(updatercommon PRIVATE
   ed25519
   cpp-optparse
 )
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(updatercommon PRIVATE use_pch)
+endif()

@@ -437,10 +437,10 @@ bool RenderWidget::event(QEvent* event)
 
     if (Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST) && Core::GetState() == Core::State::Running)
     {
-      // If we are declared as the CPU thread, it means that the real CPU thread is waiting
-      // for us to finish showing a panic alert (with that panic alert likely being the cause
-      // of this event), so trying to pause the real CPU thread would cause a deadlock
-      if (!Core::IsCPUThread())
+      // If we are declared as the CPU or GPU thread, it means that the real CPU or GPU thread
+      // is waiting for us to finish showing a panic alert (with that panic alert likely being
+      // the cause of this event), so trying to pause the core would cause a deadlock
+      if (!Core::IsCPUThread() && !Core::IsGPUThread())
         Core::SetState(Core::State::Paused);
     }
 
@@ -528,8 +528,8 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
     // coordinates (as if the screen was standard dpi). We need to update the mouse position in
     // native coordinates, as the UI (and game) is rendered at native resolution.
     const float scale = devicePixelRatio();
-    ImGui::GetIO().MousePos.x = static_cast<const QMouseEvent*>(event)->x() * scale;
-    ImGui::GetIO().MousePos.y = static_cast<const QMouseEvent*>(event)->y() * scale;
+    ImGui::GetIO().MousePos.x = static_cast<const QMouseEvent*>(event)->pos().x() * scale;
+    ImGui::GetIO().MousePos.y = static_cast<const QMouseEvent*>(event)->pos().y() * scale;
   }
   break;
 

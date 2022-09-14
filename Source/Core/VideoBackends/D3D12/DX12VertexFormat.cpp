@@ -83,7 +83,7 @@ void DXVertexFormat::MapAttributes()
   if (m_decl.position.enable)
   {
     AddAttribute(
-        "POSITION", 0, 0,
+        "TEXCOORD", SHADER_POSITION_ATTRIB, 0,
         VarToDXGIFormat(m_decl.position.type, m_decl.position.components, m_decl.position.integer),
         m_decl.position.offset);
   }
@@ -92,8 +92,7 @@ void DXVertexFormat::MapAttributes()
   {
     if (m_decl.normals[i].enable)
     {
-      static constexpr std::array<const char*, 3> NAMES = {"NORMAL", "TANGENT", "BINORMAL"};
-      AddAttribute(NAMES[i], 0, 0,
+      AddAttribute("TEXCOORD", SHADER_NORMAL_ATTRIB + i, 0,
                    VarToDXGIFormat(m_decl.normals[i].type, m_decl.normals[i].components,
                                    m_decl.normals[i].integer),
                    m_decl.normals[i].offset);
@@ -104,7 +103,7 @@ void DXVertexFormat::MapAttributes()
   {
     if (m_decl.colors[i].enable)
     {
-      AddAttribute("COLOR", i, 0,
+      AddAttribute("TEXCOORD", SHADER_COLOR0_ATTRIB + i, 0,
                    VarToDXGIFormat(m_decl.colors[i].type, m_decl.colors[i].components,
                                    m_decl.colors[i].integer),
                    m_decl.colors[i].offset);
@@ -115,7 +114,7 @@ void DXVertexFormat::MapAttributes()
   {
     if (m_decl.texcoords[i].enable)
     {
-      AddAttribute("TEXCOORD", i, 0,
+      AddAttribute("TEXCOORD", SHADER_TEXTURE0_ATTRIB + i, 0,
                    VarToDXGIFormat(m_decl.texcoords[i].type, m_decl.texcoords[i].components,
                                    m_decl.texcoords[i].integer),
                    m_decl.texcoords[i].offset);
@@ -125,7 +124,7 @@ void DXVertexFormat::MapAttributes()
   if (m_decl.posmtx.enable)
   {
     AddAttribute(
-        "BLENDINDICES", 0, 0,
+        "TEXCOORD", SHADER_POSMTX_ATTRIB, 0,
         VarToDXGIFormat(m_decl.posmtx.type, m_decl.posmtx.components, m_decl.posmtx.integer),
         m_decl.posmtx.offset);
   }

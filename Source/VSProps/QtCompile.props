@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup Label="UserMacros">
-    <QTDIRDefault Condition="'$(Platform)'=='x64'">$(ExternalsDir)Qt\Qt5.15.0\msvc2019_64\</QTDIRDefault>
-    <QTDIRDefault Condition="'$(Platform)'=='ARM64'">$(ExternalsDir)Qt\Qt5.15.0\msvc2019_arm64\</QTDIRDefault>
-    <QTDIR Condition="Exists('$(QTDIRDefault)') And ('$(QTDIR)'=='' Or !Exists('$(QTDIR)'))">$(QTDIRDefault)</QTDIR>
+    <ExternalsQtDir>$(ExternalsDir)Qt\Qt6.3.0\</ExternalsQtDir>
+    <QtTargetDirDefault>$(ExternalsQtDir)$(Platform)\</QtTargetDirDefault>
+    <QTDIR Condition="Exists('$(QtTargetDirDefault)') And ('$(QTDIR)'=='' Or !Exists('$(QTDIR)'))">$(QtTargetDirDefault)</QTDIR>
     <QTDIR Condition="Exists('$(QTDIR)') And !HasTrailingSlash('$(QTDIR)')">$(QTDIR)\</QTDIR>
     <QtDirValid>false</QtDirValid>
     <QtDirValid Condition="Exists('$(QTDIR)')">true</QtDirValid>
@@ -13,6 +13,7 @@
     <QtPluginsDir>$(QTDIR)plugins\</QtPluginsDir>
     <QtToolOutDir>$(IntDir)</QtToolOutDir>
     <QtDebugSuffix>d</QtDebugSuffix>
+    <QtHostToolsDir>$(ExternalsQtDir)x64\</QtHostToolsDir>
     <QtLibSuffix Condition="'$(Configuration)'=='Debug'">$(QtDebugSuffix)</QtLibSuffix>
     <QtPluginFolder>QtPlugins</QtPluginFolder>
   </PropertyGroup>
@@ -25,16 +26,15 @@
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Platform)'=='ARM64'">$(QtIncludeDir)QtANGLE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <!--
-        Ignore warnings in locally-instantiated Qt templates.
-        This should be removed at some point (when Qt is fixed).
-        -->
-      <ExternalTemplatesDiagnostics>false</ExternalTemplatesDiagnostics>
+        As of Qt6.3, Qt needs user code deriving from certain Qt types to have RTTI (AS WELL AS MOC, UGH).
+        Do NOT enable in dolphin outside of Qt-dependant code.
+      -->
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(QtLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Qt5Core$(QtLibSuffix).lib;Qt5Gui$(QtLibSuffix).lib;Qt5Widgets$(QtLibSuffix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Qt6Core$(QtLibSuffix).lib;Qt6Gui$(QtLibSuffix).lib;Qt6Widgets$(QtLibSuffix).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <!--
       <AdditionalOptions>"/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\" %(AdditionalOptions)</AdditionalOptions>
@@ -43,8 +43,8 @@
   </ItemDefinitionGroup>
 
   <!--
-    Use the moc implementation provided by "Qt VS Tools"
-    see: https://code.qt.io/cgit/qt-labs/vstools.git/tree/src/qtmsbuild
+    Use the moc implementation provided by (somewhat out-of-date version of) "Qt VS Tools"
+    see: https://code.qt.io/cgit/qt-labs/vstools.git/tree/QtMSBuild
     This provides a wrapper around moc which deals with parallel dispatch to moc,
     as well as creating ClCompile inputs from the moc outputs.
     Note that we currently pass the same ClCompile.PreprocessorDefinitions to moc,
@@ -54,8 +54,14 @@
   <Import Project="qtmoc.props" />
   <ItemDefinitionGroup>
     <QtMoc>
-      <OutputFile>$(QtToolOutDir)moc_%(Filename).cpp</OutputFile>
-      <QtMocDir>$(QtToolOutDir)</QtMocDir>
+      <!--
+        moc task does not properly detect outputs are outdated if Qt version changes
+        (possibly causing Q_MOC_OUTPUT_REVISION to change). This *might* be because we
+        don't give moc the include paths, so it doesn't notice the version change.
+        In any case, we can workaround it by manually changing output path when needed
+        to avoid conflicts. (the numeric postfix is the value of Q_MOC_OUTPUT_REVISION)
+        -->
+      <OutputFile>$(QtToolOutDir)moc_68\moc_%(Filename).cpp</OutputFile>
     </QtMoc>
   </ItemDefinitionGroup>
   <Import Project="qt_globals.targets"/>
@@ -72,34 +78,32 @@
 
   <!--Copy the needed dlls-->
   <ItemGroup>
-    <QtLibNames Include="Qt5Core$(QtLibSuffix);Qt5Gui$(QtLibSuffix);Qt5Widgets$(QtLibSuffix)" />
-
-    <!-- Include ANGLE for ARM64 since there is no native OpenGL -->
-    <QtLibNames Condition="'$(Platform)'=='ARM64'" Include="$(QtLibNames);libEGL$(QtLibSuffix);libGLESv2$(QtLibSuffix)" />
-
-    <QtDlls Include="@(QtLibNames -> '$(QtBinDir)%(Identity).dll')" />
-    <!--Filter plugins to copy based on the observation that all debug versions end in "d"-->
-    <QtAllPlugins Include="$(QtPluginsDir)**\*$(QtLibSuffix).dll" />
-    <QtPlugins Condition="'$(Configuration)'=='Debug'" Include="@(QtAllPlugins)" />
-    <QtPlugins Condition="'$(Configuration)'=='Release'" Exclude="$(QtPluginsDir)**\*$(QtDebugSuffix).dll" Include="@(QtAllPlugins)" />
-    <QtPluginsDest Include="@(QtPlugins -> '$(BinaryOutputDir)$(QtPluginFolder)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <QtDllNames_ Include="Qt6Core;Qt6Gui;Qt6Widgets" />
+    <QtDllNames Include="@(QtDllNames_ -> '%(Identity)$(QtLibSuffix).dll')" />
+    <QtDllsSrc Include="@(QtDllNames -> '$(QtBinDir)%(Identity)')" />
+    <QtDllsDst Include="@(QtDllNames -> '$(BinaryOutputDir)%(Identity)')" />
+    <QtPluginNames_ Include="imageformats\qgif;imageformats\qicns;imageformats\qico;imageformats\qjpeg;
+      imageformats\qtga;imageformats\qwbmp;platforms\qdirect2d;platforms\qminimal;platforms\qoffscreen;
+      platforms\qwindows;styles\qwindowsvistastyle"/>
+    <QtPluginNames Include="@(QtPluginNames_ -> '%(Identity)$(QtLibSuffix).dll')" />
+    <QtPluginsSrc Include="@(QtPluginNames -> '$(QtPluginsDir)%(Identity)')" />
+    <QtPluginsDst Include="@(QtPluginNames -> '$(BinaryOutputDir)$(QtPluginFolder)\%(Identity)')" />
   </ItemGroup>
   <PropertyGroup>
     <QtConfFile>$(BinaryOutputDir)qt.conf</QtConfFile>
   </PropertyGroup>
   <Target Name="QtCopyBinaries"
     AfterTargets="Build"
-    Inputs="@(QtDlls);@(QtPlugins)"
-    Outputs="@(QtDlls -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)');@(QtPlugins -> '$(BinaryOutputDir)$(QtPluginFolder)\%(RecursiveDir)%(Filename)%(Extension)')">
-    <Message Text="Copying Qt .dlls" Importance="High" />
+    Inputs="@(QtDllsSrc);@(QtPluginsSrc)"
+    Outputs="@(QtDllsDst);@(QtPluginsDst)">
     <Copy
-      SourceFiles="@(QtDlls)"
-      DestinationFolder="$(BinaryOutputDir)"
+      SourceFiles="@(QtDllsSrc)"
+      DestinationFiles="@(QtDllsDst)"
       SkipUnchangedFiles="true"
     />
     <Copy
-      SourceFiles="@(QtPlugins)"
-      DestinationFiles="@(QtPluginsDest)"
+      SourceFiles="@(QtPluginsSrc)"
+      DestinationFiles="@(QtPluginsDst)"
       SkipUnchangedFiles="true"
     />
   </Target>

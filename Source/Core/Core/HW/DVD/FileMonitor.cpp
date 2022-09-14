@@ -20,9 +20,6 @@
 
 namespace FileMonitor
 {
-static DiscIO::Partition s_previous_partition;
-static u64 s_previous_file_offset;
-
 // Filtered files
 static bool IsSoundFile(const std::string& filename)
 {
@@ -49,7 +46,11 @@ static bool IsSoundFile(const std::string& filename)
   return extensions.find(extension) != extensions.end();
 }
 
-void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
+FileLogger::FileLogger() = default;
+
+FileLogger::~FileLogger() = default;
+
+void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
 {
   // Do nothing if the log isn't selected
   if (!Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::FILEMON,
@@ -73,7 +74,7 @@ void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 o
   const u64 file_offset = file_info->GetOffset();
 
   // Do nothing if we found the same file again
-  if (s_previous_partition == partition && s_previous_file_offset == file_offset)
+  if (m_previous_partition == partition && m_previous_file_offset == file_offset)
     return;
 
   const std::string size_string = ThousandSeparate(file_info->GetSize() / 1000, 7);
@@ -85,8 +86,8 @@ void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 o
     WARN_LOG_FMT(FILEMON, "{}", log_string);
 
   // Update the last accessed file
-  s_previous_partition = partition;
-  s_previous_file_offset = file_offset;
+  m_previous_partition = partition;
+  m_previous_file_offset = file_offset;
 }
 
 }  // namespace FileMonitor

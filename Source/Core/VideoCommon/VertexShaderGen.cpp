@@ -86,110 +86,80 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("{}", s_lighting_struct);
 
   // uniforms
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    out.Write("UBO_BINDING(std140, 2) uniform VSBlock {{\n");
-  else
-    out.Write("cbuffer VSBlock {{\n");
+  out.Write("UBO_BINDING(std140, 2) uniform VSBlock {{\n");
 
   out.Write("{}", s_shader_uniforms);
   out.Write("}};\n");
 
   out.Write("struct VS_OUTPUT {{\n");
-  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "");
+  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "",
+                          ShaderStage::Vertex);
   out.Write("}};\n\n");
 
   WriteIsNanHeader(out, api_type);
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  out.Write("ATTRIBUTE_LOCATION({}) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
+  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+    out.Write("ATTRIBUTE_LOCATION({}) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
+  if ((uid_data->components & VB_HAS_NORMAL) != 0)
+    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnormal;\n", SHADER_NORMAL_ATTRIB);
+  if ((uid_data->components & VB_HAS_TANGENT) != 0)
+    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtangent;\n", SHADER_TANGENT_ATTRIB);
+  if ((uid_data->components & VB_HAS_BINORMAL) != 0)
+    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawbinormal;\n", SHADER_BINORMAL_ATTRIB);
+
+  if ((uid_data->components & VB_HAS_COL0) != 0)
+    out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
+  if ((uid_data->components & VB_HAS_COL1) != 0)
+    out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
+
+  for (u32 i = 0; i < 8; ++i)
   {
-    out.Write("ATTRIBUTE_LOCATION({}) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
-    if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
-    if ((uid_data->components & VB_HAS_NORMAL) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnormal;\n", SHADER_NORMAL_ATTRIB);
-    if ((uid_data->components & VB_HAS_TANGENT) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtangent;\n", SHADER_TANGENT_ATTRIB);
-    if ((uid_data->components & VB_HAS_BINORMAL) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in float3 rawbinormal;\n", SHADER_BINORMAL_ATTRIB);
+    const u32 has_texmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
 
-    if ((uid_data->components & VB_HAS_COL0) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
-    if ((uid_data->components & VB_HAS_COL1) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
-
-    for (u32 i = 0; i < 8; ++i)
+    if ((uid_data->components & (VB_HAS_UV0 << i)) != 0 || has_texmtx != 0)
     {
-      const u32 has_texmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
-
-      if ((uid_data->components & (VB_HAS_UV0 << i)) != 0 || has_texmtx != 0)
-      {
-        out.Write("ATTRIBUTE_LOCATION({}) in float{} rawtex{};\n", SHADER_TEXTURE0_ATTRIB + i,
-                  has_texmtx != 0 ? 3 : 2, i);
-      }
+      out.Write("ATTRIBUTE_LOCATION({}) in float{} rawtex{};\n", SHADER_TEXTURE0_ATTRIB + i,
+                has_texmtx != 0 ? 3 : 2, i);
     }
-
-    if (host_config.backend_geometry_shaders)
-    {
-      out.Write("VARYING_LOCATION(0) out VertexData {{\n");
-      GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
-                              GetInterpolationQualifier(msaa, ssaa, true, false));
-      out.Write("}} vs;\n");
-    }
-    else
-    {
-      // Let's set up attributes
-      u32 counter = 0;
-      out.Write("VARYING_LOCATION({}) {} out float4 colors_0;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
-      out.Write("VARYING_LOCATION({}) {} out float4 colors_1;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
-      for (u32 i = 0; i < uid_data->numTexGens; ++i)
-      {
-        out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa), i);
-      }
-      if (!host_config.fast_depth_calc)
-      {
-        out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-      }
-      if (per_pixel_lighting)
-      {
-        out.Write("VARYING_LOCATION({}) {} out float3 Normal;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-        out.Write("VARYING_LOCATION({}) {} out float3 WorldPos;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-      }
-    }
-
-    out.Write("void main()\n{{\n");
   }
-  else  // D3D
+
+  if (host_config.backend_geometry_shaders)
   {
-    out.Write("VS_OUTPUT main(\n");
-
-    // inputs
-    if ((uid_data->components & VB_HAS_NORMAL) != 0)
-      out.Write("  float3 rawnormal : NORMAL,\n");
-    if ((uid_data->components & VB_HAS_TANGENT) != 0)
-      out.Write("  float3 rawtangent : TANGENT,\n");
-    if ((uid_data->components & VB_HAS_BINORMAL) != 0)
-      out.Write("  float3 rawbinormal : BINORMAL,\n");
-    if ((uid_data->components & VB_HAS_COL0) != 0)
-      out.Write("  float4 rawcolor0 : COLOR0,\n");
-    if ((uid_data->components & VB_HAS_COL1) != 0)
-      out.Write("  float4 rawcolor1 : COLOR1,\n");
-    for (u32 i = 0; i < 8; ++i)
-    {
-      const u32 has_texmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
-
-      if ((uid_data->components & (VB_HAS_UV0 << i)) != 0 || has_texmtx != 0)
-        out.Write("  float{} rawtex{} : TEXCOORD{},\n", has_texmtx ? 3 : 2, i, i);
-    }
-    if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
-      out.Write("  uint4 posmtx : BLENDINDICES,\n");
-    out.Write("  float4 rawpos : POSITION) {{\n");
+    out.Write("VARYING_LOCATION(0) out VertexData {{\n");
+    GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
+                            GetInterpolationQualifier(msaa, ssaa, true, false),
+                            ShaderStage::Vertex);
+    out.Write("}} vs;\n");
   }
+  else
+  {
+    // Let's set up attributes
+    u32 counter = 0;
+    out.Write("VARYING_LOCATION({}) {} out float4 colors_0;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
+    out.Write("VARYING_LOCATION({}) {} out float4 colors_1;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
+    for (u32 i = 0; i < uid_data->numTexGens; ++i)
+    {
+      out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa), i);
+    }
+    if (!host_config.fast_depth_calc)
+    {
+      out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+    }
+    if (per_pixel_lighting)
+    {
+      out.Write("VARYING_LOCATION({}) {} out float3 Normal;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION({}) {} out float3 WorldPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+    }
+  }
+
+  out.Write("void main()\n{{\n");
 
   out.Write("VS_OUTPUT o;\n");
 
@@ -548,45 +518,38 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
               "}}\n");
   }
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  if (host_config.backend_geometry_shaders)
   {
-    if (host_config.backend_geometry_shaders)
-    {
-      AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, host_config);
-    }
-    else
-    {
-      // TODO: Pass interface blocks between shader stages even if geometry shaders
-      // are not supported, however that will require at least OpenGL 3.2 support.
-      for (u32 i = 0; i < uid_data->numTexGens; ++i)
-        out.Write("tex{}.xyz = o.tex{};\n", i, i);
-      if (!host_config.fast_depth_calc)
-        out.Write("clipPos = o.clipPos;\n");
-      if (per_pixel_lighting)
-      {
-        out.Write("Normal = o.Normal;\n"
-                  "WorldPos = o.WorldPos;\n");
-      }
-      out.Write("colors_0 = o.colors_0;\n"
-                "colors_1 = o.colors_1;\n");
-    }
-
-    if (host_config.backend_depth_clamp)
-    {
-      out.Write("gl_ClipDistance[0] = clipDist0;\n"
-                "gl_ClipDistance[1] = clipDist1;\n");
-    }
-
-    // Vulkan NDC space has Y pointing down (right-handed NDC space).
-    if (api_type == APIType::Vulkan)
-      out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");
-    else
-      out.Write("gl_Position = o.pos;\n");
+    AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, host_config);
   }
-  else  // D3D
+  else
   {
-    out.Write("return o;\n");
+    // TODO: Pass interface blocks between shader stages even if geometry shaders
+    // are not supported, however that will require at least OpenGL 3.2 support.
+    for (u32 i = 0; i < uid_data->numTexGens; ++i)
+      out.Write("tex{}.xyz = o.tex{};\n", i, i);
+    if (!host_config.fast_depth_calc)
+      out.Write("clipPos = o.clipPos;\n");
+    if (per_pixel_lighting)
+    {
+      out.Write("Normal = o.Normal;\n"
+                "WorldPos = o.WorldPos;\n");
+    }
+    out.Write("colors_0 = o.colors_0;\n"
+              "colors_1 = o.colors_1;\n");
   }
+
+  if (host_config.backend_depth_clamp)
+  {
+    out.Write("gl_ClipDistance[0] = clipDist0;\n"
+              "gl_ClipDistance[1] = clipDist1;\n");
+  }
+
+  // Vulkan NDC space has Y pointing down (right-handed NDC space).
+  if (api_type == APIType::Vulkan)
+    out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");
+  else
+    out.Write("gl_Position = o.pos;\n");
   out.Write("}}\n");
 
   return out;

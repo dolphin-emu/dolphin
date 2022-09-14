@@ -51,6 +51,6 @@ void LogVulkanResult(Common::Log::LogLevel level, const char* func_name, VkResul
                      const char* msg, ...);
 
 #define LOG_VULKAN_ERROR(res, ...)                                                                 \
-  LogVulkanResult(Common::Log::LogLevel::LERROR, __func__, res, __VA_ARGS__)
+  LogVulkanResult(Common::Log::LogLevel::LERROR, __func__, res __VA_OPT__(, ) __VA_ARGS__)
 
 }  // namespace Vulkan

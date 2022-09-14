@@ -33,3 +33,8 @@ PUBLIC
 PRIVATE
   ${X11_LIBRARIES}
 )
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(videoogl PRIVATE use_pch)
+endif()

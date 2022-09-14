@@ -166,6 +166,8 @@ struct Patch
 
   std::vector<File> m_file_patches;
   std::vector<Folder> m_folder_patches;
+  std::vector<File> m_sys_file_patches;
+  std::vector<Folder> m_sys_folder_patches;
   std::vector<Savegame> m_savegame_patches;
   std::vector<Memory> m_memory_patches;
 

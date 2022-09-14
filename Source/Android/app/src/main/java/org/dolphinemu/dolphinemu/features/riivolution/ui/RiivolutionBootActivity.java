@@ -12,11 +12,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.CollapsingToolbarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.riivolution.model.RiivolutionPatches;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
 public class RiivolutionBootActivity extends AppCompatActivity
 {
@@ -41,6 +46,8 @@ public class RiivolutionBootActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
+    ThemeHelper.setTheme(this);
+
     super.onCreate(savedInstanceState);
 
     setContentView(R.layout.activity_riivolution_boot);
@@ -74,6 +81,15 @@ public class RiivolutionBootActivity extends AppCompatActivity
       patches.loadConfig();
       runOnUiThread(() -> populateList(patches));
     }).start();
+
+    MaterialToolbar tb = findViewById(R.id.toolbar_riivolution);
+    CollapsingToolbarLayout ctb = findViewById(R.id.toolbar_riivolution_layout);
+    ctb.setTitle(getString(R.string.riivolution_riivolution));
+    setSupportActionBar(tb);
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+    AppBarLayout appBarLayout = findViewById(R.id.appbar_riivolution);
+    ThemeHelper.enableScrollTint(tb, appBarLayout, this);
   }
 
   @Override
@@ -83,6 +99,13 @@ public class RiivolutionBootActivity extends AppCompatActivity
 
     if (mPatches != null)
       mPatches.saveConfig();
+  }
+
+  @Override
+  public boolean onSupportNavigateUp()
+  {
+    onBackPressed();
+    return true;
   }
 
   private void populateList(RiivolutionPatches patches)

@@ -17,6 +17,7 @@
 #include <Windows.h>
 #endif
 
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -125,6 +126,30 @@ void Host_TitleChanged()
 #endif
 }
 
+void Host_UpdateDiscordClientID(const std::string& client_id)
+{
+#ifdef USE_DISCORD_PRESENCE
+  Discord::UpdateClientID(client_id);
+#endif
+}
+
+bool Host_UpdateDiscordPresenceRaw(const std::string& details, const std::string& state,
+                                   const std::string& large_image_key,
+                                   const std::string& large_image_text,
+                                   const std::string& small_image_key,
+                                   const std::string& small_image_text,
+                                   const int64_t start_timestamp, const int64_t end_timestamp,
+                                   const int party_size, const int party_max)
+{
+#ifdef USE_DISCORD_PRESENCE
+  return Discord::UpdateDiscordPresenceRaw(details, state, large_image_key, large_image_text,
+                                           small_image_key, small_image_text, start_timestamp,
+                                           end_timestamp, party_size, party_max);
+#else
+  return false;
+#endif
+}
+
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
 {
   return nullptr;
@@ -230,16 +255,23 @@ int main(int argc, char* argv[])
   if (options.is_set("user"))
     user_directory = static_cast<const char*>(options.get("user"));
 
-  UICommon::SetUserDirectory(user_directory);
-  UICommon::Init();
-  GCAdapter::Init();
-
   s_platform = GetPlatform(options);
   if (!s_platform || !s_platform->Init())
   {
     fprintf(stderr, "No platform found, or failed to initialize.\n");
     return 1;
   }
+
+  const WindowSystemInfo wsi = s_platform->GetWindowSystemInfo();
+
+  UICommon::SetUserDirectory(user_directory);
+  UICommon::Init();
+  UICommon::InitControllers(wsi);
+
+  Common::ScopeGuard ui_common_guard([] {
+    UICommon::ShutdownControllers();
+    UICommon::Shutdown();
+  });
 
   if (save_state_path && !game_specified)
   {
@@ -267,7 +299,7 @@ int main(int argc, char* argv[])
 
   DolphinAnalytics::Instance().ReportDolphinStart("nogui");
 
-  if (!BootManager::BootCore(std::move(boot), s_platform->GetWindowSystemInfo()))
+  if (!BootManager::BootCore(std::move(boot), wsi))
   {
     fprintf(stderr, "Could not boot the specified file\n");
     return 1;
@@ -282,7 +314,6 @@ int main(int argc, char* argv[])
 
   Core::Shutdown();
   s_platform.reset();
-  UICommon::Shutdown();
 
   return 0;
 }

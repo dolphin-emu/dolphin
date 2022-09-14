@@ -18,13 +18,13 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/sha1.h>
 #include <pugixml.hpp>
 
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
@@ -133,8 +133,8 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
       m_block_size = volume->GetBlobReader().GetBlockSize();
       m_compression_method = volume->GetBlobReader().GetCompressionMethod();
       m_file_size = volume->GetRawSize();
-      m_volume_size = volume->GetSize();
-      m_volume_size_is_accurate = volume->IsSizeAccurate();
+      m_volume_size = volume->GetDataSize();
+      m_volume_size_type = volume->GetDataSizeType();
       m_is_datel_disc = volume->IsDatelDisc();
       m_is_nkit = volume->IsNKit();
 
@@ -158,7 +158,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
     m_valid = true;
     m_file_size = m_volume_size = File::GetSize(m_file_path);
     m_game_id = SConfig::MakeGameID(m_file_name);
-    m_volume_size_is_accurate = true;
+    m_volume_size_type = DiscIO::DataSizeType::Accurate;
     m_is_datel_disc = false;
     m_is_nkit = false;
     m_platform = DiscIO::Platform::ELFOrDOL;
@@ -291,7 +291,7 @@ void GameFile::DownloadDefaultCover()
   }
 
   Common::HttpRequest request;
-  constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
+  static constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
   const auto response = request.Get(fmt::format(cover_url, region_code, m_gametdb_id));
 
   if (!response)
@@ -349,7 +349,7 @@ void GameFile::DoState(PointerWrap& p)
 
   p.Do(m_file_size);
   p.Do(m_volume_size);
-  p.Do(m_volume_size_is_accurate);
+  p.Do(m_volume_size_type);
   p.Do(m_is_datel_disc);
   p.Do(m_is_nkit);
 
@@ -627,22 +627,18 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   return name + " (" + ss.str() + ")";
 }
 
-static std::array<u8, 20> GetHash(u32 value)
+static Common::SHA1::Digest GetHash(u32 value)
 {
   auto data = Common::BitCastToArray<u8>(value);
-  std::array<u8, 20> hash;
-  mbedtls_sha1_ret(reinterpret_cast<const unsigned char*>(data.data()), data.size(), hash.data());
-  return hash;
+  return Common::SHA1::CalculateDigest(data);
 }
 
-static std::array<u8, 20> GetHash(std::string_view str)
+static Common::SHA1::Digest GetHash(std::string_view str)
 {
-  std::array<u8, 20> hash;
-  mbedtls_sha1_ret(reinterpret_cast<const unsigned char*>(str.data()), str.size(), hash.data());
-  return hash;
+  return Common::SHA1::CalculateDigest(str);
 }
 
-static std::optional<std::array<u8, 20>> GetFileHash(const std::string& path)
+static std::optional<Common::SHA1::Digest> GetFileHash(const std::string& path)
 {
   std::string buffer;
   if (!File::ReadFileToString(path, buffer))
@@ -650,22 +646,22 @@ static std::optional<std::array<u8, 20>> GetFileHash(const std::string& path)
   return GetHash(buffer);
 }
 
-static std::optional<std::array<u8, 20>> MixHash(const std::optional<std::array<u8, 20>>& lhs,
-                                                 const std::optional<std::array<u8, 20>>& rhs)
+static std::optional<Common::SHA1::Digest> MixHash(const std::optional<Common::SHA1::Digest>& lhs,
+                                                   const std::optional<Common::SHA1::Digest>& rhs)
 {
   if (!lhs && !rhs)
     return std::nullopt;
   if (!lhs || !rhs)
     return !rhs ? lhs : rhs;
-  std::array<u8, 20> result;
+  Common::SHA1::Digest result;
   for (size_t i = 0; i < result.size(); ++i)
     result[i] = (*lhs)[i] ^ (*rhs)[(i + 1) % result.size()];
   return result;
 }
 
-std::array<u8, 20> GameFile::GetSyncHash() const
+Common::SHA1::Digest GameFile::GetSyncHash() const
 {
-  std::optional<std::array<u8, 20>> hash;
+  std::optional<Common::SHA1::Digest> hash;
 
   if (m_platform == DiscIO::Platform::ELFOrDOL)
   {
@@ -703,7 +699,7 @@ std::array<u8, 20> GameFile::GetSyncHash() const
       hash = volume->GetSyncHash();
   }
 
-  return hash.value_or(std::array<u8, 20>{});
+  return hash.value_or(Common::SHA1::Digest{});
 }
 
 NetPlay::SyncIdentifier GameFile::GetSyncIdentifier() const
@@ -720,31 +716,57 @@ GameFile::CompareSyncIdentifier(const NetPlay::SyncIdentifier& sync_identifier) 
   if ((is_elf_or_dol ? m_file_size : 0) != sync_identifier.dol_elf_size)
     return NetPlay::SyncIdentifierComparison::DifferentGame;
 
-  const auto trim = [](const std::string& str, size_t n) {
-    return std::string_view(str.data(), std::min(n, str.size()));
-  };
-
-  if (trim(m_game_id, 3) != trim(sync_identifier.game_id, 3))
+  if (m_is_datel_disc != sync_identifier.is_datel)
     return NetPlay::SyncIdentifierComparison::DifferentGame;
 
-  if (m_disc_number != sync_identifier.disc_number || m_is_datel_disc != sync_identifier.is_datel)
+  if (m_game_id.size() != sync_identifier.game_id.size())
     return NetPlay::SyncIdentifierComparison::DifferentGame;
 
-  const NetPlay::SyncIdentifierComparison mismatch_result =
-      is_elf_or_dol || m_is_datel_disc ? NetPlay::SyncIdentifierComparison::DifferentGame :
-                                         NetPlay::SyncIdentifierComparison::DifferentVersion;
-
-  if (m_game_id != sync_identifier.game_id)
+  if (!is_elf_or_dol && !m_is_datel_disc && m_game_id.size() >= 4 && m_game_id.size() <= 6)
   {
-    const bool game_id_is_title_id = m_game_id.size() > 6 || sync_identifier.game_id.size() > 6;
-    return game_id_is_title_id ? NetPlay::SyncIdentifierComparison::DifferentGame : mismatch_result;
+    // This is a game ID, following specific rules which we can use to give clearer information to
+    // the user.
+
+    // If the first 3 characters don't match, then these are probably different games.
+    // (There are exceptions; in particular Japanese-region games sometimes use a different ID;
+    // for instance, GOYE69, GOYP69, and GGIJ13 are used by GoldenEye: Rogue Agent.)
+    if (std::string_view(&m_game_id[0], 3) != std::string_view(&sync_identifier.game_id[0], 3))
+      return NetPlay::SyncIdentifierComparison::DifferentGame;
+
+    // If the first 3 characters match but the region doesn't match, reject it as such.
+    if (m_game_id[3] != sync_identifier.game_id[3])
+      return NetPlay::SyncIdentifierComparison::DifferentRegion;
+
+    // If the maker code is present, and doesn't match between the two but the main ID does,
+    // these might be different revisions of the same game (e.g. a rerelease with a different
+    // publisher), which we should treat as a different revision.
+    if (std::string_view(&m_game_id[4]) != std::string_view(&sync_identifier.game_id[4]))
+      return NetPlay::SyncIdentifierComparison::DifferentRevision;
+  }
+  else
+  {
+    // Numeric title ID or another generated ID that does not follow the rules above
+    if (m_game_id != sync_identifier.game_id)
+      return NetPlay::SyncIdentifierComparison::DifferentGame;
   }
 
   if (m_revision != sync_identifier.revision)
-    return mismatch_result;
+    return NetPlay::SyncIdentifierComparison::DifferentRevision;
 
-  return GetSyncHash() == sync_identifier.sync_hash ? NetPlay::SyncIdentifierComparison::SameGame :
-                                                      mismatch_result;
+  if (m_disc_number != sync_identifier.disc_number)
+    return NetPlay::SyncIdentifierComparison::DifferentDiscNumber;
+
+  if (GetSyncHash() != sync_identifier.sync_hash)
+  {
+    // Most Datel titles re-use the same game ID (GNHE5d, with that lowercase D, or DTLX01).
+    // So if the hash differs, then it's probably a different game even if the game ID matches.
+    if (m_is_datel_disc)
+      return NetPlay::SyncIdentifierComparison::DifferentGame;
+    else
+      return NetPlay::SyncIdentifierComparison::DifferentHash;
+  }
+
+  return NetPlay::SyncIdentifierComparison::SameGame;
 }
 
 std::string GameFile::GetWiiFSPath() const
@@ -805,7 +827,7 @@ std::string GameFile::GetFileFormatName() const
 
 bool GameFile::ShouldAllowConversion() const
 {
-  return DiscIO::IsDisc(m_platform) && m_volume_size_is_accurate;
+  return DiscIO::IsDisc(m_platform) && m_volume_size_type == DiscIO::DataSizeType::Accurate;
 }
 
 bool GameFile::IsModDescriptor() const

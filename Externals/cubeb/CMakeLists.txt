@@ -15,9 +15,12 @@ endif()
 if(POLICY CMP0063)
   cmake_policy(SET CMP0063 NEW)
 endif()
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if (NOT MSVC)
+  set(CMAKE_C_STANDARD 99)
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 
 if(NOT COMMAND add_sanitizers)
   list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/sanitizers-cmake/cmake")
@@ -45,6 +48,7 @@ add_library(cubeb
   src/cubeb_log.cpp
   src/cubeb_strings.c
    $<TARGET_OBJECTS:speex>)
+dolphin_disable_warnings_msvc(cubeb)
 target_include_directories(cubeb
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
 )
@@ -97,6 +101,7 @@ install(
 
 add_library(speex OBJECT
   src/speex/resample.c)
+dolphin_disable_warnings_msvc(speex)
 set_target_properties(speex PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 target_compile_definitions(speex PRIVATE OUTSIDE_SPEEX)
 target_compile_definitions(speex PRIVATE FLOATING_POINT)

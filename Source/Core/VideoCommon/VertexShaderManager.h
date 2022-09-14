@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/ConstantManager.h"
@@ -19,7 +20,7 @@ public:
   static void DoState(PointerWrap& p);
 
   // constant management
-  static void SetConstants();
+  static void SetConstants(const std::vector<std::string>& textures);
 
   static void InvalidateXFRange(int start, int end);
   static void SetTexMatrixChangedA(u32 value);

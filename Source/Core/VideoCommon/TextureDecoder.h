@@ -50,6 +50,11 @@ static inline bool IsColorIndexed(TextureFormat format)
          format == TextureFormat::C14X2;
 }
 
+static inline bool IsValidTextureFormat(TextureFormat format)
+{
+  return format <= TextureFormat::RGBA8 || IsColorIndexed(format) || format == TextureFormat::CMPR;
+}
+
 // The EFB Copy pipeline looks like:
 //
 //   1. Read EFB -> 2. Select color/depth -> 3. Downscale (optional)

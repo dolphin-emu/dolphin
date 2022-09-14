@@ -1,0 +1,47 @@
+{
+	"meta":
+	{
+		"title": "HUD definitions",
+		"author": "iwubcode"
+	},
+	"groups": [
+		{
+			"name": "HUD",
+			"targets": [
+				{
+					"type": "draw_started",
+					"prettyname": "map border",
+					"texture_filename": "tex1_180x180_6e5c9aa7004f377b_1"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"prettyname": "map border",
+					"texture_filename": "tex1_180x180_6e5c9aa7004f377b_1"
+				},
+				{
+					"type": "draw_started",
+					"prettyname": "map player marker",
+					"texture_filename": "tex1_64x64_f84b318707ee8455_1"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"prettyname": "map player marker",
+					"texture_filename": "tex1_64x64_f84b318707ee8455_1"
+				},
+				{
+					"type": "draw_started",
+					"prettyname": "map player facing pointer",
+					"texture_filename": "tex1_64x64_2ece13b26442de5a_0"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"prettyname": "map player facing pointer",
+					"texture_filename": "tex1_64x64_2ece13b26442de5a_0"
+				}
+			]
+		}
+	]
+}

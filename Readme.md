@@ -16,7 +16,7 @@ Primehack is now supported on MacOS thanks to the efforts of [Brandon Sorensen](
 
 # Original Dolphin Readme file contents:
 
-[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Buildbot](https://dolphin.ci) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu/)
+[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Buildbot](https://dolphin.ci) | [Forums](https://forums.dolphin-emu.org) | [Wiki](https://wiki.dolphin-emu.org) | [Github Wiki](https://github.com/dolphin-emu/dolphin/wiki) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu)
 
 Dolphin is an emulator for running GameCube and Wii games on Windows,
 Linux, macOS, and recent Android devices. It's licensed under the terms
@@ -29,9 +29,9 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 ### Desktop
 
 * OS
-    * Windows (7 SP1 or higher).
+    * Windows (10 or higher).
     * Linux.
-    * macOS (10.13 High Sierra or higher).
+    * macOS (10.14 Mojave or higher).
     * Unix-like systems other than Linux are not officially supported but might work.
 * Processor
     * A CPU with SSE2 support.
@@ -55,7 +55,7 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 ## Building for Windows
 
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2022 17.0 or later is a hard requirement. Other compilers might be
+Visual Studio 2022 17.2.3 or later is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
 recommended to be used. Git and Windows 11 SDK must be installed when building.
 
@@ -67,17 +67,12 @@ git submodule update --init
 The "Release" solution configuration includes performance optimizations for the best user experience but complicates debugging Dolphin.
 The "Debug" solution configuration is significantly slower, more verbose and less permissive but makes debugging Dolphin easier.
 
-An installer can be created by using the `Installer.nsi` script in the
-Installer directory. This will require the Nullsoft Scriptable Install System
-(NSIS) to be installed. Creating an installer is not necessary to run Dolphin
-since the Binary directory contains a working Dolphin distribution.
-
 ## Building for Linux and macOS
 
 Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
-missing packages yourself.
+missing packages yourself. You may refer to the [wiki](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Linux) for more information.
 
 Make sure to pull submodules before building:
 ```sh
@@ -91,7 +86,7 @@ A binary supporting a single architecture can be built using the following steps
 1. `mkdir build`
 2. `cd build`
 3. `cmake ..`
-4. `make`
+4. `make -j $(sysctl -n hw.logicalcpu)`
 
 An application bundle will be created in `./Binaries`.
 
@@ -114,7 +109,7 @@ To install to your system.
 1. `mkdir build`
 2. `cd build`
 3. `cmake ..`
-4. `make`
+4. `make -j $(nproc)`
 5. `sudo make install`
 
 ### Linux Local Build Steps:
@@ -124,7 +119,7 @@ Useful for development as root access is not required.
 1. `mkdir Build`
 2. `cd Build`
 3. `cmake .. -DLINUX_LOCAL_DEV=true`
-4. `make`
+4. `make -j $(nproc)`
 5. `ln -s ../../Data/Sys Binaries/`
 
 ### Linux Portable Build Steps:
@@ -135,7 +130,7 @@ Or useful for having multiple distinct Dolphin setups for testing/development/TA
 1. `mkdir Build`
 2. `cd Build`
 3. `cmake .. -DLINUX_LOCAL_DEV=true`
-4. `make`
+4. `make -j $(nproc)`
 5. `cp -r ../Data/Sys/ Binaries/`
 6. `touch Binaries/portable.txt`
 
@@ -157,28 +152,44 @@ automatically while building the Java code.
 
 ## Uninstalling
 
-When Dolphin has been installed with the NSIS installer, you can uninstall
-Dolphin like any other Windows application.
+On Windows, simply remove the extracted directory, unless it was installed with the NSIS installer,
+in which case you can uninstall Dolphin like any other Windows application.
 
 Linux users can run `cat install_manifest.txt | xargs -d '\n' rm` as root from the build directory
 to uninstall Dolphin from their system.
 
 macOS users can simply delete Dolphin.app to uninstall it.
 
-Additionally, you'll want to remove the global user directory (see below to
-see where it's stored) if you don't plan to reinstall Dolphin.
+Additionally, you'll want to remove the global user directory if you don't plan on reinstalling Dolphin.
 
 ## Command Line Usage
 
-`Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-v <str>] [-a <str>]`
+```Usage: Dolphin.exe [options]... [FILE]...
 
-* -h, --help Show this help message
-* -d, --debugger Opens the debugger
-* -l, --logger Opens the logger
-* -e, --exec=<str> Loads the specified file (DOL,ELF,WAD,GCM,ISO)
-* -b, --batch Exit Dolphin with emulator
-* -v, --video_backend=<str> Specify a video backend
-* -a, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
+Options:
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -u USER, --user=USER  User folder path
+  -m MOVIE, --movie=MOVIE
+                        Play a movie file
+  -e <file>, --exec=<file>
+                        Load the specified file
+  -n <16-character ASCII title ID>, --nand_title=<16-character ASCII title ID>
+                        Launch a NAND title
+  -C <System>.<Section>.<Key>=<Value>, --config=<System>.<Section>.<Key>=<Value>
+                        Set a configuration option
+  -s <file>, --save_state=<file>
+                        Load the initial save state
+  -d, --debugger        Show the debugger pane and additional View menu options
+  -l, --logger          Open the logger
+  -b, --batch           Run Dolphin without the user interface (Requires
+                        --exec or --nand-title)
+  -c, --confirm         Set Confirm on Stop
+  -v VIDEO_BACKEND, --video_backend=VIDEO_BACKEND
+                        Specify a video backend
+  -a AUDIO_EMULATION, --audio_emulation=AUDIO_EMULATION
+                        Choose audio emulation from [HLE|LLE]
+```
 
 Available DSP emulation engines are HLE (High Level Emulation) and
 LLE (Low Level Emulation). HLE is faster but less accurate whereas
@@ -192,7 +203,7 @@ is intended for debugging purposes only.
 
 ## Sys Files
 
-* `wiitdb.txt`: Wii title database from [GameTDB](http://www.gametdb.com)
+* `wiitdb.txt`: Wii title database from [GameTDB](https://www.gametdb.com/)
 * `totaldb.dsy`: Database of symbols (for devs only)
 * `GC/font_western.bin`: font dumps
 * `GC/font_japanese.bin`: font dumps
@@ -223,45 +234,45 @@ These folders are installed read-only and should not be changed:
 
 ## Packaging and udev
 
-The Data folder contains a udev rule file for the official GameCube controller
-adapter and the Mayflash DolphinBar. Package maintainers can use that file in their packages for Dolphin.
-Users compiling Dolphin on Linux can also just copy the file to their udev
-rules folder.
+commands supported: [convert, verify, header]
+```
 
-## User Folder Structure
+```Usage: convert [options]... [FILE]...
 
 A number of user writeable directories are created for caching purposes or for
 allowing the user to edit their contents. On macOS and Linux these folders are
 stored in `~/Library/Application Support/Dolphin/` and `~/.dolphin-emu`
-respectively. On Windows the user directory is stored in the `My Documents`
+respectively, but can be overwritten by setting the environment variable
+`DOLPHIN_EMU_USERPATH`. On Windows the user directory is stored in the `My Documents`
 folder by default, but there are various way to override this behavior:
 
-* Creating a file called `portable.txt` next to the Dolphin executable will
-  store the user directory in a local directory called "User" next to the
-  Dolphin executable.
-* If the registry string value `LocalUserConfig` exists in
-  `HKEY_CURRENT_USER/Software/Dolphin Emulator` and has the value **1**,
-  Dolphin will always start in portable mode.
-* If the registry string value `UserConfigPath` exists in
-  `HKEY_CURRENT_USER/Software/Dolphin Emulator`, the user folders will be
-  stored in the directory given by that string. The other two methods will be
-  prioritized over this setting.
+```
+Usage: verify [options]...
 
-List of user folders:
+Options:
+  -h, --help            show this help message and exit
+  -u USER, --user=USER  User folder path, required for temporary processing
+                        files.Will be automatically created if this option is
+                        not set.
+  -i FILE, --input=FILE
+                        Path to disc image FILE.
+  -a ALGORITHM, --algorithm=ALGORITHM
+                        Optional. Compute and print the digest using the
+                        selected algorithm, then exit. [crc32|md5|sha1]
+```
 
-* `Cache`: used to cache the ISO list
-* `Config`: configuration files
-* `Dump`: anything dumped from Dolphin
-* `GameConfig`: additional settings to be applied per-game
-* `GC`: memory cards and system BIOS
-* `Load`: custom textures
-* `Logs`: logs, if enabled
-* `ScreenShots`: screenshots taken via Dolphin
-* `StateSaves`: save states
-* `Wii`: Wii NAND contents
+```
+Usage: header [options]...
 
-## Custom Textures
-
-Custom textures have to be placed in the user directory under
-`Load/Textures/[GameID]/`. You can find the Game ID by right-clicking a game
-in the ISO list and selecting "ISO Properties".
+Options:
+  -h, --help            show this help message and exit
+  -i FILE, --input=FILE
+                        Path to disc image FILE.
+  -b, --block_size      Optional. Print the block size of GCZ/WIA/RVZ formats,
+then exit.
+  -c, --compression     Optional. Print the compression method of GCZ/WIA/RVZ
+                        formats, then exit.
+  -l, --compression_level
+                        Optional. Print the level of compression for WIA/RVZ
+                        formats, then exit.
+```

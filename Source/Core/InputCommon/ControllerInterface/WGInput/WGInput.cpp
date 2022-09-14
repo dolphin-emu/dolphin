@@ -4,40 +4,32 @@
 #include "InputCommon/ControllerInterface/WGInput/WGInput.h"
 
 #include <array>
+#include <map>
 #include <string_view>
+
+// For CoGetApartmentType
+#include <objbase.h>
+#pragma comment(lib, "ole32")
+
+// NOTE: winrt translates com failures to c++ exceptions, so we must use try/catch in this file to
+// prevent possible errors from escaping and terminating Dolphin.
+#include <winrt/base.h>
+#include <winrt/windows.devices.haptics.h>
+#include <winrt/windows.devices.power.h>
+#include <winrt/windows.foundation.collections.h>
+#include <winrt/windows.gaming.input.h>
+#include <winrt/windows.system.power.h>
+#pragma comment(lib, "windowsapp")
 
 #include <fmt/format.h>
 
-#include <roapi.h>
-#include <windows.gaming.input.h>
-#include <wrl.h>
-
-#include "Common/DynamicLibrary.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-using PIsApiSetImplemented = BOOL(APIENTRY*)(PCSTR Contract);
-using PRoInitialize = decltype(&RoInitialize);
-using PRoUninitialize = decltype(&RoUninitialize);
-using PRoGetActivationFactory = decltype(&RoGetActivationFactory);
-using PWindowsCreateStringReference = decltype(&WindowsCreateStringReference);
-using PWindowsGetStringRawBuffer = decltype(&WindowsGetStringRawBuffer);
-
-namespace WGI = ABI::Windows::Gaming::Input;
-using ABI::Windows::Foundation::Collections::IVectorView;
-using Microsoft::WRL::ComPtr;
-
-namespace
-{
-bool g_runtime_initialized = false;
-bool g_runtime_needs_deinit = false;
-PRoInitialize g_RoInitialize_address = nullptr;
-PRoUninitialize g_RoUninitialize_address = nullptr;
-PRoGetActivationFactory g_RoGetActivationFactory_address = nullptr;
-PWindowsCreateStringReference g_WindowsCreateStringReference_address = nullptr;
-PWindowsGetStringRawBuffer g_WindowsGetStringRawBuffer_address = nullptr;
-}  // namespace
+namespace WGI = winrt::Windows::Gaming::Input;
+namespace Haptics = winrt::Windows::Devices::Haptics;
+using winrt::Windows::Foundation::Collections::IVectorView;
 
 namespace ciface::WGInput
 {
@@ -46,7 +38,7 @@ static constexpr std::string_view SOURCE_NAME = "WGInput";
 // These names correspond to the values of the GameControllerButtonLabel enum.
 // "None" is not used.
 // There are some overlapping names assuming no device exposes both
-// GameControllerButtonLabel_XboxLeftBumper and GameControllerButtonLabel_LeftBumper.
+// GameControllerButtonLabel::XboxLeftBumper and GameControllerButtonLabel::LeftBumper.
 // If needed we can prepend "Xbox" to relevant input names on conflict in the future.
 static constexpr std::array wgi_button_names = {
     "None",      "Back",     "Start",      "Menu",     "View",     "Pad N",
@@ -89,7 +81,7 @@ static constexpr MemberName<WGI::GamepadVibration, double> gamepad_motor_names[]
 class Device : public Core::Device
 {
 public:
-  Device(std::string name, ComPtr<WGI::IRawGameController> raw_controller, WGI::IGamepad* gamepad)
+  Device(std::string name, WGI::RawGameController raw_controller, WGI::Gamepad gamepad)
       : m_name(std::move(name)), m_raw_controller(raw_controller), m_gamepad(gamepad)
   {
     // Buttons:
@@ -121,17 +113,24 @@ public:
 
     if (use_raw_controller_axes)
     {
-      // Axes:
-      INT32 axis_count = 0;
-      if (SUCCEEDED(m_raw_controller->get_AxisCount(&axis_count)))
-        m_axes.resize(axis_count);
-
-      u32 i = 0;
-      for (auto& axis : m_axes)
+      try
       {
-        // AddAnalogInputs adds additional "FullAnalogSurface" Inputs.
-        AddAnalogInputs(new IndexedAxis(&axis, 0.5, +0.5, i), new IndexedAxis(&axis, 0.5, -0.5, i));
-        ++i;
+        // Axes:
+        m_axes.resize(m_raw_controller.AxisCount());
+
+        u32 i = 0;
+        for (auto& axis : m_axes)
+        {
+          // AddAnalogInputs adds additional "FullAnalogSurface" Inputs.
+          AddAnalogInputs(new IndexedAxis(&axis, 0.5, +0.5, i),
+                          new IndexedAxis(&axis, 0.5, -0.5, i));
+          ++i;
+        }
+      }
+      catch (winrt::hresult_error)
+      {
+        // If AxisCount failed, m_axes will remain zero-sized; nothing to do.
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Error populating axes");
       }
     }
 
@@ -143,29 +142,37 @@ public:
     // Switches (Hats):
     if (use_raw_controller_switches)
     {
-      INT32 switch_count = 0;
-      if (SUCCEEDED(m_raw_controller->get_SwitchCount(&switch_count)))
-        m_switches.resize(switch_count);
-
-      u32 i = 0;
-      for (auto& swtch : m_switches)
+      try
       {
-        using gcsp = WGI::GameControllerSwitchPosition;
+        m_switches.resize(m_raw_controller.SwitchCount());
+        // Accumulate switch kinds first, to ensure no inputs are added if there is any error.
+        std::vector<WGI::GameControllerSwitchKind> switch_kinds;
+        for (u32 i = 0; i < m_switches.size(); i++)
+          switch_kinds.push_back(m_raw_controller.GetSwitchKind(i));
 
-        WGI::GameControllerSwitchKind switch_kind;
-        m_raw_controller->GetSwitchKind(i, &switch_kind);
-
-        AddInput(new IndexedSwitch(&swtch, i, gcsp::GameControllerSwitchPosition_Up));
-        AddInput(new IndexedSwitch(&swtch, i, gcsp::GameControllerSwitchPosition_Down));
-
-        if (switch_kind != WGI::GameControllerSwitchKind_TwoWay)
+        u32 i = 0;
+        for (auto& swtch : m_switches)
         {
-          // If it's not a "two-way" switch (up/down only) then add the left/right inputs.
-          AddInput(new IndexedSwitch(&swtch, i, gcsp::GameControllerSwitchPosition_Left));
-          AddInput(new IndexedSwitch(&swtch, i, gcsp::GameControllerSwitchPosition_Right));
-        }
+          using gcsp = WGI::GameControllerSwitchPosition;
 
-        ++i;
+          AddInput(new IndexedSwitch(&swtch, i, gcsp::Up));
+          AddInput(new IndexedSwitch(&swtch, i, gcsp::Down));
+
+          if (switch_kinds[i] != WGI::GameControllerSwitchKind::TwoWay)
+          {
+            // If it's not a "two-way" switch (up/down only) then add the left/right inputs.
+            AddInput(new IndexedSwitch(&swtch, i, gcsp::Left));
+            AddInput(new IndexedSwitch(&swtch, i, gcsp::Right));
+          }
+
+          ++i;
+        }
+      }
+      catch (winrt::hresult_error)
+      {
+        // Safe as no inputs will have been added.
+        m_switches.clear();
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Error populating switches");
       }
     }
 
@@ -173,21 +180,16 @@ public:
     PopulateHaptics();
 
     // Battery:
-    if (SUCCEEDED(m_raw_controller->QueryInterface(&m_controller_battery)) && m_controller_battery)
-    {
-      // It seems many controllers provide IGameControllerBatteryInfo with no battery info.
-      if (UpdateBatteryLevel())
-        AddInput(new Battery(&m_battery_level));
-      else
-        m_controller_battery = nullptr;
-    }
+    if (UpdateBatteryLevel())
+      AddInput(new Battery(&m_battery_level));
   }
 
   int GetSortPriority() const override { return -1; }
 
+  const WGI::RawGameController GetRawGameController() const { return m_raw_controller; }
+
 private:
-  // `boolean` comes from Windows API. (typedef of unsigned char)
-  using ButtonValueType = boolean;
+  using ButtonValueType = u8;
 
   class Button : public Input
   {
@@ -311,7 +313,7 @@ private:
   public:
     IndexedSwitch(const WGI::GameControllerSwitchPosition* swtch, u32 index,
                   WGI::GameControllerSwitchPosition direction)
-        : m_switch(*swtch), m_index(index), m_direction(direction)
+        : m_switch(*swtch), m_index(index), m_direction(static_cast<int32_t>(direction))
     {
     }
     std::string GetName() const override
@@ -320,20 +322,20 @@ private:
     }
     ControlState GetState() const override
     {
-      if (m_switch == WGI::GameControllerSwitchPosition_Center)
+      if (m_switch == WGI::GameControllerSwitchPosition::Center)
         return 0.0;
 
       // All of the "inbetween" states (e.g. Up-Right) are one-off from the four cardinal
       // directions. This tests that the current switch state value is within 1 of the desired
       // state.
-      const auto direction_diff = std::abs(m_switch - m_direction);
+      const auto direction_diff = std::abs(static_cast<int32_t>(m_switch) - m_direction);
       return ControlState(direction_diff <= 1 || direction_diff == 7);
     }
 
   private:
     const WGI::GameControllerSwitchPosition& m_switch;
     const u32 m_index;
-    const WGI::GameControllerSwitchPosition m_direction;
+    const int32_t m_direction;
   };
 
   class Battery : public Input
@@ -354,9 +356,8 @@ private:
   class SimpleHaptics : public Output
   {
   public:
-    SimpleHaptics(ComPtr<ABI::Windows::Devices::Haptics::ISimpleHapticsController> haptics,
-                  ComPtr<ABI::Windows::Devices::Haptics::ISimpleHapticsControllerFeedback> feedback,
-                  u32 haptics_index)
+    SimpleHaptics(Haptics::SimpleHapticsController haptics,
+                  Haptics::SimpleHapticsControllerFeedback feedback, u32 haptics_index)
         : m_haptics(haptics), m_feedback(feedback), m_haptics_index(haptics_index)
     {
     }
@@ -368,18 +369,25 @@ private:
 
       m_current_state = state;
 
-      if (state)
-        m_haptics->SendHapticFeedbackWithIntensity(m_feedback.Get(), state);
-      else
-        m_haptics->StopFeedback();
+      try
+      {
+        if (state)
+          m_haptics.SendHapticFeedback(m_feedback, state);
+        else
+          m_haptics.StopFeedback();
+      }
+      catch (winrt::hresult_error)
+      {
+        // Ignore
+      }
     }
 
   protected:
     u32 GetHapticsIndex() const { return m_haptics_index; }
 
   private:
-    ComPtr<ABI::Windows::Devices::Haptics::ISimpleHapticsController> m_haptics;
-    ComPtr<ABI::Windows::Devices::Haptics::ISimpleHapticsControllerFeedback> m_feedback;
+    Haptics::SimpleHapticsController m_haptics;
+    Haptics::SimpleHapticsControllerFeedback m_feedback;
     const u32 m_haptics_index;
     ControlState m_current_state = 0;
   };
@@ -387,9 +395,9 @@ private:
   class NamedFeedback final : public SimpleHaptics
   {
   public:
-    NamedFeedback(ComPtr<ABI::Windows::Devices::Haptics::ISimpleHapticsController> haptics,
-                  ComPtr<ABI::Windows::Devices::Haptics::ISimpleHapticsControllerFeedback> feedback,
-                  u32 haptics_index, std::string_view feedback_name)
+    NamedFeedback(Haptics::SimpleHapticsController haptics,
+                  Haptics::SimpleHapticsControllerFeedback feedback, u32 haptics_index,
+                  std::string_view feedback_name)
         : SimpleHaptics(haptics, feedback, haptics_index), m_feedback_name(feedback_name)
     {
     }
@@ -404,90 +412,76 @@ private:
 
   void PopulateButtons()
   {
-    // Using RawGameController for buttons because it gives us a nice array instead of a bitmask.
-    INT32 button_count = 0;
-    if (SUCCEEDED(m_raw_controller->get_ButtonCount(&button_count)))
-      m_buttons.resize(button_count);
-
-    u32 i = 0;
-    for (auto& button : m_buttons)
+    try
     {
-      WGI::GameControllerButtonLabel lbl = WGI::GameControllerButtonLabel_None;
-      m_raw_controller->GetButtonLabel(i, &lbl);
+      // Using RawGameController for buttons because it gives us a nice array instead of a bitmask.
+      m_buttons.resize(m_raw_controller.ButtonCount());
 
-      if (lbl != WGI::GameControllerButtonLabel_None && lbl < wgi_button_names.size())
-        AddInput(new NamedButton(&button, wgi_button_names[lbl]));
-      else
-        AddInput(new IndexedButton(&button, i));
+      u32 i = 0;
+      for (const auto& button : m_buttons)
+      {
+        WGI::GameControllerButtonLabel lbl{WGI::GameControllerButtonLabel::None};
+        try
+        {
+          lbl = m_raw_controller.GetButtonLabel(i);
+        }
+        catch (winrt::hresult_error)
+        {
+          lbl = WGI::GameControllerButtonLabel::None;
+        }
 
-      ++i;
+        const int32_t button_name_idx = static_cast<int32_t>(lbl);
+        if (lbl != WGI::GameControllerButtonLabel::None &&
+            button_name_idx < wgi_button_names.size())
+          AddInput(new NamedButton(&button, wgi_button_names[button_name_idx]));
+        else
+          AddInput(new IndexedButton(&button, i));
+
+        ++i;
+      }
+    }
+    catch (winrt::hresult_error)
+    {
+      // If ButtonCount failed, m_buttons will be zero-sized.
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Error populating buttons");
     }
   }
 
   void PopulateHaptics()
   {
-    WGI::IRawGameController2* rgc2 = nullptr;
-    if (FAILED(m_raw_controller->QueryInterface(&rgc2)) || !rgc2)
-      return;
+    static const std::map<uint16_t, std::string> waveform_name_map{
+        {Haptics::KnownSimpleHapticsControllerWaveforms::Click(), "Click"},
+        {Haptics::KnownSimpleHapticsControllerWaveforms::BuzzContinuous(), "Buzz"},
+        {Haptics::KnownSimpleHapticsControllerWaveforms::RumbleContinuous(), "Rumble"},
+    };
 
-    IVectorView<ABI::Windows::Devices::Haptics::SimpleHapticsController*>* haptics = nullptr;
-    if (FAILED(rgc2->get_SimpleHapticsControllers(&haptics)) || !haptics)
-      return;
-
-    unsigned int haptic_count = 0;
-    if (FAILED(haptics->get_Size(&haptic_count)))
-      return;
-
-    for (unsigned int h = 0; h != haptic_count; ++h)
+    try
     {
-      ComPtr<ABI::Windows::Devices::Haptics::ISimpleHapticsController> haptic;
-      if (FAILED(haptics->GetAt(h, &haptic)))
-        continue;
-
-      IVectorView<ABI::Windows::Devices::Haptics::SimpleHapticsControllerFeedback*>* feedbacks =
-          nullptr;
-      if (FAILED(haptic->get_SupportedFeedback(&feedbacks)) || !feedbacks)
-        continue;
-
-      unsigned int feedback_count = 0;
-      if (FAILED(haptics->get_Size(&feedback_count)))
-        continue;
-
-      for (unsigned int f = 0; f != feedback_count; ++f)
+      // SimpleHapticsControllers is available from Windows 1709.
+      u32 haptics_index = 0;
+      for (auto haptics_controller : m_raw_controller.SimpleHapticsControllers())
       {
-        ComPtr<ABI::Windows::Devices::Haptics::ISimpleHapticsControllerFeedback> feedback;
-        if (FAILED(feedbacks->GetAt(f, &feedback)))
-          continue;
-
-        UINT16 waveform = 0;
-        if (FAILED(feedback->get_Waveform(&waveform)))
-          continue;
-
-        std::string_view waveform_name{};
-
-        // Haptic Usage Page from HID spec.
-        switch (waveform)
+        for (Haptics::SimpleHapticsControllerFeedback feedback :
+             haptics_controller.SupportedFeedback())
         {
-        case 0x1003:
-          waveform_name = "Click";
-          break;
-        case 0x1004:
-          waveform_name = "Buzz";
-          break;
-        case 0x1005:
-          waveform_name = "Rumble";
-          break;
+          const uint16_t waveform = feedback.Waveform();
+          auto waveform_name_it = waveform_name_map.find(waveform);
+          if (waveform_name_it == waveform_name_map.end())
+          {
+            WARN_LOG_FMT(CONTROLLERINTERFACE,
+                         "WGInput: Unhandled haptics feedback waveform: 0x{:04x}.", waveform);
+            continue;
+          }
+          AddOutput(new NamedFeedback(haptics_controller, feedback, haptics_index,
+                                      waveform_name_it->second));
         }
-
-        if (!waveform_name.data())
-        {
-          WARN_LOG(CONTROLLERINTERFACE, "WGInput: Unknown haptics feedback waveform: %d.",
-                   waveform);
-          continue;
-        }
-
-        AddOutput(new NamedFeedback(haptic, feedback, h, waveform_name));
+        ++haptics_index;
       }
+    }
+    catch (winrt::hresult_error)
+    {
+      // Don't need to cleanup any state. It's OK if some outputs were added.
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Error populating haptics");
     }
   }
 
@@ -498,209 +492,225 @@ private:
   void UpdateInput() override
   {
     // IRawGameController:
-    const auto button_count = UINT32(m_buttons.size());
-    const auto switch_count = UINT32(m_switches.size());
-    const auto axis_count = UINT32(m_axes.size());
-    UINT64 timestamp = 0;
-    if (FAILED(m_raw_controller->GetCurrentReading(button_count, m_buttons.data(), switch_count,
-                                                   m_switches.data(), axis_count, m_axes.data(),
-                                                   &timestamp)))
+    static_assert(sizeof(bool) == sizeof(ButtonValueType));
+    // This cludge is needed to workaround GetCurrentReading wanting array_view<bool>, while
+    // using std::vector<bool> would create a bit-packed array, which isn't wanted. So, we keep
+    // vector<u8> and view it as array<bool>.
+    auto buttons =
+        winrt::array_view<bool>(reinterpret_cast<winrt::array_view<bool>::pointer>(&m_buttons[0]),
+                                static_cast<winrt::array_view<bool>::size_type>(m_buttons.size()));
+    try
     {
-      ERROR_LOG(CONTROLLERINTERFACE, "WGInput: IRawGameController::GetCurrentReading failed.");
+      m_raw_controller.GetCurrentReading(buttons, m_switches, m_axes);
+    }
+    catch (winrt::hresult_error error)
+    {
+      ERROR_LOG_FMT(CONTROLLERINTERFACE,
+                    "WGInput: IRawGameController::GetCurrentReading failed: {:x}", error.code());
     }
 
     // IGamepad:
-    if (m_gamepad && FAILED(m_gamepad->GetCurrentReading(&m_gamepad_reading)))
+    if (m_gamepad)
     {
-      ERROR_LOG(CONTROLLERINTERFACE, "WGInput: IGamepad::GetCurrentReading failed.");
+      try
+      {
+        m_gamepad_reading = m_gamepad.GetCurrentReading();
+      }
+      catch (winrt::hresult_error error)
+      {
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: IGamepad::GetCurrentReading failed: {:x}",
+                      error.code());
+      }
     }
 
     // IGameControllerBatteryInfo:
-    if (m_controller_battery && !UpdateBatteryLevel())
+    if (!UpdateBatteryLevel())
+      DEBUG_LOG_FMT(CONTROLLERINTERFACE, "WGInput: UpdateBatteryLevel failed.");
+  }
+
+  void UpdateMotors()
+  {
+    try
     {
-      DEBUG_LOG(CONTROLLERINTERFACE, "WGInput: UpdateBatteryLevel failed.");
+      m_gamepad.Vibration(m_state_out);
+    }
+    catch (winrt::hresult_error)
+    {
+      // Ignore
     }
   }
 
-  void UpdateMotors() { m_gamepad->put_Vibration(m_state_out); }
-
   bool UpdateBatteryLevel()
   {
-    ABI::Windows::Devices::Power::IBatteryReport* report = nullptr;
-
-    if (FAILED(m_controller_battery->TryGetBatteryReport(&report)) || !report)
-      return false;
-
-    using ABI::Windows::System::Power::BatteryStatus;
-    BatteryStatus status;
-    if (FAILED(report->get_Status(&status)))
-      return false;
-
-    switch (status)
+    try
     {
-    case BatteryStatus::BatteryStatus_NotPresent:
-      m_battery_level = 0;
-      return true;
+      // Workaround for Steam. If Steam's GameOverlayRenderer64.dll is loaded, battery_info is null.
+      auto battery_info = m_raw_controller.try_as<WGI::IGameControllerBatteryInfo>();
+      if (!battery_info)
+        return false;
+      const winrt::Windows::Devices::Power::BatteryReport report =
+          battery_info.TryGetBatteryReport();
+      if (!report)
+        return false;
 
-    case BatteryStatus::BatteryStatus_Idle:
-    case BatteryStatus::BatteryStatus_Charging:
-      m_battery_level = BATTERY_INPUT_MAX_VALUE;
-      return true;
+      // TryGetBatteryReport causes a memleak of 0x58 bytes each time it is called, up to at
+      // least Windows 21H2. A hack to fix the memleak is recorded here for posterity.
+      // auto report_ = *(uintptr_t***)&report;
+      // auto rc = &report_[0x40 / 8][0x30 / 8];
+      // if (*rc == 2)
+      //  (*rc)--;
 
-    default:
-      break;
-    }
+      using winrt::Windows::System::Power::BatteryStatus;
+      const BatteryStatus status = report.Status();
+      switch (status)
+      {
+      case BatteryStatus::NotPresent:
+        m_battery_level = 0;
+        return true;
 
-    ABI::Windows::Foundation::IReference<int>*i_remaining = nullptr, *i_full = nullptr;
-    int remaining_value = 0;
-    int full_value = 0;
+      case BatteryStatus::Idle:
+      case BatteryStatus::Charging:
+        m_battery_level = BATTERY_INPUT_MAX_VALUE;
+        return true;
 
-    if (report && SUCCEEDED(report->get_RemainingCapacityInMilliwattHours(&i_remaining)) &&
-        i_remaining && SUCCEEDED(i_remaining->get_Value(&remaining_value)) &&
-        SUCCEEDED(report->get_FullChargeCapacityInMilliwattHours(&i_full)) && i_full &&
-        SUCCEEDED(i_full->get_Value(&full_value)))
-    {
+      default:
+        break;
+      }
+
+      const int32_t full_value = report.FullChargeCapacityInMilliwattHours().GetInt32();
+      const int32_t remaining_value = report.RemainingCapacityInMilliwattHours().GetInt32();
       m_battery_level = BATTERY_INPUT_MAX_VALUE * remaining_value / full_value;
       return true;
     }
-
-    return false;
+    catch (winrt::hresult_error)
+    {
+      return false;
+    }
   }
 
   const std::string m_name;
 
-  ComPtr<WGI::IRawGameController> const m_raw_controller;
+  const WGI::RawGameController m_raw_controller;
   std::vector<ButtonValueType> m_buttons;
   std::vector<WGI::GameControllerSwitchPosition> m_switches;
   std::vector<double> m_axes;
 
-  WGI::IGamepad* m_gamepad = nullptr;
+  WGI::Gamepad m_gamepad = nullptr;
   WGI::GamepadReading m_gamepad_reading{};
   WGI::GamepadVibration m_state_out{};
 
-  WGI::IGameControllerBatteryInfo* m_controller_battery = nullptr;
   ControlState m_battery_level = 0;
 };
 
-static bool LoadFunctionPointers()
+static thread_local bool s_initialized_winrt;
+static winrt::event_token s_event_added, s_event_removed;
+
+static bool COMIsInitialized()
 {
-  static Common::DynamicLibrary winrt_l1_1_0_handle;
-  static Common::DynamicLibrary winrt_string_l1_1_0_handle;
-  if (!winrt_l1_1_0_handle.IsOpen() && !winrt_string_l1_1_0_handle.IsOpen())
+  APTTYPE apt_type{};
+  APTTYPEQUALIFIER apt_qualifier{};
+  return CoGetApartmentType(&apt_type, &apt_qualifier) == S_OK;
+}
+
+static void AddDevice(const WGI::RawGameController& raw_game_controller)
+{
+  // Get user-facing device name if available. Otherwise generate a name from vid/pid.
+  std::string device_name;
+  try
   {
-    Common::DynamicLibrary kernelBase("KernelBase.dll");
-    if (!kernelBase.IsOpen())
-      return false;
-
-    void* const IsApiSetImplemented_address = kernelBase.GetSymbolAddress("IsApiSetImplemented");
-    if (!IsApiSetImplemented_address)
-      return false;
-    if (!static_cast<PIsApiSetImplemented>(IsApiSetImplemented_address)(
-            "api-ms-win-core-winrt-l1-1-0"))
+    device_name = StripWhitespace(WStringToUTF8(raw_game_controller.DisplayName().c_str()));
+    if (device_name.empty())
     {
-      return false;
+      const u16 vid = raw_game_controller.HardwareVendorId();
+      const u16 pid = raw_game_controller.HardwareProductId();
+      device_name = fmt::format("Device_{:04x}:{:04x}", vid, pid);
+      INFO_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Empty device name, using {}", device_name);
     }
-    if (!static_cast<PIsApiSetImplemented>(IsApiSetImplemented_address)(
-            "api-ms-win-core-winrt-string-l1-1-0"))
-    {
-      return false;
-    }
-
-    winrt_l1_1_0_handle.Open("api-ms-win-core-winrt-l1-1-0.dll");
-    winrt_string_l1_1_0_handle.Open("api-ms-win-core-winrt-string-l1-1-0.dll");
+  }
+  catch (winrt::hresult_error)
+  {
+    device_name = "Device";
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Failed to get device name, using {}", device_name);
   }
 
-  if (!winrt_l1_1_0_handle.IsOpen() || !winrt_string_l1_1_0_handle.IsOpen())
-    return false;
+  try
+  {
+    WGI::Gamepad gamepad = WGI::Gamepad::FromGameController(raw_game_controller);
+    // Note that gamepad may be nullptr here. The Device class will deal with this.
+    auto dev = std::make_shared<Device>(std::move(device_name), raw_game_controller, gamepad);
 
-  g_RoInitialize_address =
-      static_cast<PRoInitialize>(winrt_l1_1_0_handle.GetSymbolAddress("RoInitialize"));
-  if (!g_RoInitialize_address)
-    return false;
-
-  g_RoUninitialize_address =
-      static_cast<PRoUninitialize>(winrt_l1_1_0_handle.GetSymbolAddress("RoUninitialize"));
-  if (!g_RoUninitialize_address)
-    return false;
-
-  g_RoGetActivationFactory_address = static_cast<PRoGetActivationFactory>(
-      winrt_l1_1_0_handle.GetSymbolAddress("RoGetActivationFactory"));
-  if (!g_RoGetActivationFactory_address)
-    return false;
-
-  g_WindowsCreateStringReference_address = static_cast<PWindowsCreateStringReference>(
-      winrt_string_l1_1_0_handle.GetSymbolAddress("WindowsCreateStringReference"));
-  if (!g_WindowsCreateStringReference_address)
-    return false;
-
-  g_WindowsGetStringRawBuffer_address = static_cast<PWindowsGetStringRawBuffer>(
-      winrt_string_l1_1_0_handle.GetSymbolAddress("WindowsGetStringRawBuffer"));
-  if (!g_WindowsGetStringRawBuffer_address)
-    return false;
-
-  return true;
+    // Only add if it has some inputs/outputs.
+    if (dev->Inputs().size() || dev->Outputs().size())
+      g_controller_interface.AddDevice(std::move(dev));
+  }
+  catch (winrt::hresult_error)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Failed to add device {}", device_name);
+  }
 }
+
+static void RemoveDevice(const WGI::RawGameController& raw_game_controller)
+{
+  g_controller_interface.RemoveDevice([&](const auto* dev) {
+    if (dev->GetSource() != SOURCE_NAME)
+      return false;
+    return static_cast<const Device*>(dev)->GetRawGameController() == raw_game_controller;
+  });
+}
+
+#pragma warning(push)
+// 'winrt::impl::implements_delegate<winrt::Windows::Foundation::EventHandler<winrt::Windows::Gaming::Input::RawGameController>,H>':
+// class has virtual functions, but its non-trivial destructor is not virtual; instances of this
+// class may not be destructed correctly
+// (H is the lambda)
+#pragma warning(disable : 4265)
 
 void Init()
 {
-  if (g_runtime_initialized)
-    return;
-
-  if (!LoadFunctionPointers())
+  if (!COMIsInitialized())
   {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: System lacks support, skipping init.");
-    return;
+    // NOTE: Devices in g_controller_interface should only be accessed by threads that have had
+    // winrt (com) initialized.
+    winrt::init_apartment();
+    s_initialized_winrt = true;
   }
 
-  const HRESULT hr = g_RoInitialize_address(RO_INIT_MULTITHREADED);
-  switch (hr)
+  try
   {
-  case S_OK:
-    g_runtime_initialized = true;
-    g_runtime_needs_deinit = true;
-    break;
+    // These events will be invoked from WGI-managed threadpool.
+    s_event_added = WGI::RawGameController::RawGameControllerAdded(
+        [](auto&&, const WGI::RawGameController raw_game_controller) {
+          RemoveDevice(raw_game_controller);
+          AddDevice(raw_game_controller);
+        });
 
-  case S_FALSE:
-  case RPC_E_CHANGED_MODE:
-    g_runtime_initialized = true;
-    break;
-
-  default:
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: RoInitialize failed.");
-    break;
+    s_event_removed = WGI::RawGameController::RawGameControllerRemoved(
+        [](auto&&, const WGI::RawGameController raw_game_controller) {
+          RemoveDevice(raw_game_controller);
+        });
+  }
+  catch (winrt::hresult_error)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Failed to register event handlers");
   }
 }
+
+#pragma warning(pop)
 
 void DeInit()
 {
-  if (!g_runtime_initialized)
-    return;
+  WGI::RawGameController::RawGameControllerAdded(s_event_added);
+  WGI::RawGameController::RawGameControllerRemoved(s_event_removed);
 
-  if (g_runtime_needs_deinit)
+  if (s_initialized_winrt)
   {
-    g_RoUninitialize_address();
-    g_runtime_needs_deinit = false;
+    winrt::uninit_apartment();
+    s_initialized_winrt = false;
   }
-
-  g_runtime_initialized = false;
-}
-
-template <unsigned int size>
-static HRESULT WindowsCreateStringReferenceAutoSizeWrapper(wchar_t const (&source_string)[size],
-                                                           HSTRING_HEADER* hstring_header,
-                                                           HSTRING* hstring)
-{
-  return g_WindowsCreateStringReference_address(source_string, size - 1, hstring_header, hstring);
 }
 
 void PopulateDevices()
 {
-  if (!g_runtime_initialized)
-    return;
-
-  g_controller_interface.RemoveDevice(
-      [](const auto* dev) { return dev->GetSource() == SOURCE_NAME; });
-
   // WGI Interfaces to potentially use:
   // Gamepad: Buttons, 2x Sticks and 2x Triggers, 4x Vibration Motors
   // RawGameController: Buttons, Switches (Hats), Axes, Haptics
@@ -710,88 +720,22 @@ void PopulateDevices()
   // RacingWheel: Buttons, Clutch, Handbrake, PatternShifterGear, Throttle, Wheel, WheelMotor
   // UINavigationController: Directions, Scrolling, etc.
 
-  HSTRING_HEADER header_raw_game_controller;
-  HSTRING hstr_raw_game_controller;
-  if (FAILED(WindowsCreateStringReferenceAutoSizeWrapper(L"Windows.Gaming.Input.RawGameController",
-                                                         &header_raw_game_controller,
-                                                         &hstr_raw_game_controller)))
-  {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to create string reference.");
-    return;
-  }
+  // RawGameController available from Windows 15063.
+  //  properties added in 1709: DisplayName, NonRoamableId, SimpleHapticsControllers
 
-  HSTRING_HEADER header_gamepad;
-  HSTRING hstr_gamepad;
-  if (FAILED(WindowsCreateStringReferenceAutoSizeWrapper(L"Windows.Gaming.Input.Gamepad",
-                                                         &header_gamepad, &hstr_gamepad)))
+  try
   {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to create string reference.");
-    return;
-  }
-
-  ComPtr<WGI::IRawGameControllerStatics> raw_stats;
-  if (FAILED(g_RoGetActivationFactory_address(
-          hstr_raw_game_controller, __uuidof(WGI::IRawGameControllerStatics), &raw_stats)))
-  {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to get IRawGameControllerStatics.");
-    return;
-  }
-
-  ComPtr<WGI::IGamepadStatics2> gamepad_stats;
-  if (FAILED(g_RoGetActivationFactory_address(hstr_gamepad, __uuidof(WGI::IGamepadStatics2),
-                                              &gamepad_stats)))
-  {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to get IGamepadStatics2.");
-    return;
-  }
-
-  IVectorView<WGI::RawGameController*>* raw_controllers;
-  if (FAILED(raw_stats->get_RawGameControllers(&raw_controllers)))
-  {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: get_RawGameControllers failed.");
-    return;
-  }
-
-  unsigned int raw_count = 0;
-  raw_controllers->get_Size(&raw_count);
-  for (unsigned i = 0; i != raw_count; ++i)
-  {
-    ComPtr<WGI::IRawGameController> raw_controller;
-    if (SUCCEEDED(raw_controllers->GetAt(i, &raw_controller)) && raw_controller)
+    for (const WGI::RawGameController& raw_game_controller :
+         WGI::RawGameController::RawGameControllers())
     {
-      std::string device_name;
-
-      // Attempt to get the controller's name.
-      WGI::IRawGameController2* rgc2 = nullptr;
-      if (SUCCEEDED(raw_controller->QueryInterface(&rgc2)) && rgc2)
-      {
-        HSTRING hstr = {};
-        if (SUCCEEDED(rgc2->get_DisplayName(&hstr)) && hstr)
-        {
-          device_name =
-              StripSpaces(WStringToUTF8(g_WindowsGetStringRawBuffer_address(hstr, nullptr)));
-        }
-      }
-
-      if (device_name.empty())
-      {
-        ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to get device name.");
-        // Set a default name if we couldn't query the name or it was empty.
-        device_name = "Device";
-      }
-
-      WGI::IGameController* gamecontroller = nullptr;
-      WGI::IGamepad* gamepad = nullptr;
-      if (SUCCEEDED(raw_controller->QueryInterface(&gamecontroller)) && gamecontroller)
-        gamepad_stats->FromGameController(gamecontroller, &gamepad);
-
-      // Note that gamepad may be nullptr here. The Device class will deal with this.
-      auto dev = std::make_shared<Device>(std::move(device_name), raw_controller, gamepad);
-
-      // Only add if it has some inputs/outputs.
-      if (dev->Inputs().size() || dev->Outputs().size())
-        g_controller_interface.AddDevice(std::move(dev));
+      RemoveDevice(raw_game_controller);
+      AddDevice(raw_game_controller);
     }
+  }
+  catch (winrt::hresult_error)
+  {
+    // Only reach here if RawGameControllers() failed
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: PopulateDevices failed");
   }
 }
 

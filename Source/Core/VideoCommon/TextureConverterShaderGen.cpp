@@ -6,13 +6,15 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace TextureConversionShaderGen
 {
 TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
-                         bool scale_by_half, bool copy_filter)
+                         bool scale_by_half, float gamma_rcp,
+                         const std::array<u32, 3>& filter_coefficients)
 {
   TCShaderUid out;
 
@@ -22,33 +24,24 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
   uid_data->is_depth_copy = is_depth_copy;
   uid_data->is_intensity = is_intensity;
   uid_data->scale_by_half = scale_by_half;
-  uid_data->copy_filter = copy_filter;
+  uid_data->all_copy_filter_coefs_needed =
+      TextureCacheBase::AllCopyFilterCoefsNeeded(filter_coefficients);
+  uid_data->copy_filter_can_overflow = TextureCacheBase::CopyFilterCanOverflow(filter_coefficients);
+  // If the gamma is needed, then include that too.
+  uid_data->apply_gamma = gamma_rcp != 1.0f;
 
   return out;
 }
 
 static void WriteHeader(APIType api_type, ShaderCode& out)
 {
-  if (api_type == APIType::D3D)
-  {
-    out.Write("cbuffer PSBlock : register(b0) {{\n"
-              "  float2 src_offset, src_size;\n"
-              "  float3 filter_coefficients;\n"
-              "  float gamma_rcp;\n"
-              "  float2 clamp_tb;\n"
-              "  float pixel_height;\n"
-              "}};\n\n");
-  }
-  else if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
-    out.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n"
-              "  float2 src_offset, src_size;\n"
-              "  float3 filter_coefficients;\n"
-              "  float gamma_rcp;\n"
-              "  float2 clamp_tb;\n"
-              "  float pixel_height;\n"
-              "}};\n");
-  }
+  out.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n"
+            "  float2 src_offset, src_size;\n"
+            "  uint3 filter_coefficients;\n"
+            "  float gamma_rcp;\n"
+            "  float2 clamp_tb;\n"
+            "  float pixel_height;\n"
+            "}};\n");
 }
 
 ShaderCode GenerateVertexShader(APIType api_type)
@@ -56,27 +49,19 @@ ShaderCode GenerateVertexShader(APIType api_type)
   ShaderCode out;
   WriteHeader(api_type, out);
 
-  if (api_type == APIType::D3D)
+  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    out.Write("void main(in uint id : SV_VertexID, out float3 v_tex0 : TEXCOORD0,\n"
-              "          out float4 opos : SV_Position) {{\n");
+    out.Write("VARYING_LOCATION(0) out VertexData {{\n"
+              "  float3 v_tex0;\n"
+              "}};\n");
   }
-  else if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  else
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-    {
-      out.Write("VARYING_LOCATION(0) out VertexData {{\n"
-                "  float3 v_tex0;\n"
-                "}};\n");
-    }
-    else
-    {
-      out.Write("VARYING_LOCATION(0) out float3 v_tex0;\n");
-    }
-    out.Write("#define id gl_VertexID\n"
-              "#define opos gl_Position\n"
-              "void main() {{\n");
+    out.Write("VARYING_LOCATION(0) out float3 v_tex0;\n");
   }
+  out.Write("#define id gl_VertexID\n"
+            "#define opos gl_Position\n"
+            "void main() {{\n");
   out.Write("  v_tex0 = float3(float((id << 1) & 2), float(id & 2), 0.0f);\n");
   out.Write(
       "  opos = float4(v_tex0.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);\n");
@@ -98,231 +83,155 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
   ShaderCode out;
   WriteHeader(api_type, out);
 
-  if (api_type == APIType::D3D)
-  {
-    out.Write("Texture2DArray tex0 : register(t0);\n"
-              "SamplerState samp0 : register(s0);\n"
-              "float4 SampleEFB(float3 uv, float y_offset) {{\n"
-              "  return tex0.Sample(samp0, float3(uv.x, clamp(uv.y + (y_offset * pixel_height), "
-              "clamp_tb.x, clamp_tb.y), {}));\n"
-              "}}\n\n",
-              mono_depth ? "0.0" : "uv.z");
-    out.Write("void main(in float3 v_tex0 : TEXCOORD0, out float4 ocol0 : SV_Target)\n{{\n");
-  }
-  else if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
-    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
-    out.Write("float4 SampleEFB(float3 uv, float y_offset) {{\n"
-              "  return texture(samp0, float3(uv.x, clamp(uv.y + (y_offset * pixel_height), "
-              "clamp_tb.x, clamp_tb.y), {}));\n"
-              "}}\n",
-              mono_depth ? "0.0" : "uv.z");
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-    {
-      out.Write("VARYING_LOCATION(0) in VertexData {{\n"
-                "  float3 v_tex0;\n"
-                "}};\n");
-    }
-    else
-    {
-      out.Write("VARYING_LOCATION(0) in vec3 v_tex0;\n");
-    }
-    out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n"
-              "void main()\n{{\n");
-  }
-
-  // The copy filter applies to both color and depth copies. This has been verified on hardware.
-  // The filter is only applied to the RGB channels, the alpha channel is left intact.
-  if (uid_data->copy_filter)
-  {
-    out.Write("  float4 prev_row = SampleEFB(v_tex0, -1.0f);\n"
-              "  float4 current_row = SampleEFB(v_tex0, 0.0f);\n"
-              "  float4 next_row = SampleEFB(v_tex0, 1.0f);\n"
-              "  float4 texcol = float4(min(prev_row.rgb * filter_coefficients[0] +\n"
-              "                               current_row.rgb * filter_coefficients[1] +\n"
-              "                               next_row.rgb * filter_coefficients[2], \n"
-              "                             float3(1, 1, 1)), current_row.a);\n");
-  }
-  else
-  {
-    out.Write(
-        "  float4 current_row = SampleEFB(v_tex0, 0.0f);\n"
-        "  float4 texcol = float4(min(current_row.rgb * filter_coefficients[1], float3(1, 1, 1)),\n"
-        "                         current_row.a);\n");
-  }
-
+  out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
+  out.Write("uint4 SampleEFB(float3 uv, float y_offset) {{\n"
+            "  float4 tex_sample = texture(samp0, float3(uv.x, clamp(uv.y + (y_offset * "
+            "pixel_height), clamp_tb.x, clamp_tb.y), {}));\n",
+            mono_depth ? "0.0" : "uv.z");
   if (uid_data->is_depth_copy)
   {
     if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-      out.Write("texcol.x = 1.0 - texcol.x;\n");
+      out.Write("  tex_sample.x = 1.0 - tex_sample.x;\n");
 
-    out.Write("  int depth = int(texcol.x * 16777216.0);\n"
-
-              // Convert to Z24 format
-              "  int4 workspace;\n"
-              "  workspace.r = (depth >> 16) & 255;\n"
-              "  workspace.g = (depth >> 8) & 255;\n"
-              "  workspace.b = depth & 255;\n"
-
-              // Convert to Z4 format
-              "  workspace.a = (depth >> 16) & 0xF0;\n"
-
-              // Normalize components to [0.0..1.0]
-              "  texcol = float4(workspace) / 255.0;\n");
-    switch (uid_data->dst_format)
-    {
-    case EFBCopyFormat::R4:  // Z4
-      out.Write("  ocol0 = texcol.aaaa;\n");
-      break;
-
-    case EFBCopyFormat::R8_0x1:  // Z8
-    case EFBCopyFormat::R8:      // Z8H
-      out.Write("  ocol0 = texcol.rrrr;\n");
-      break;
-
-    case EFBCopyFormat::RA8:  // Z16
-      out.Write("  ocol0 = texcol.gggr;\n");
-      break;
-
-    case EFBCopyFormat::RG8:  // Z16 (reverse order)
-      out.Write("  ocol0 = texcol.rrrg;\n");
-      break;
-
-    case EFBCopyFormat::RGBA8:  // Z24X8
-      out.Write("  ocol0 = float4(texcol.rgb, 1.0);\n");
-      break;
-
-    case EFBCopyFormat::G8:  // Z8M
-      out.Write("  ocol0 = texcol.gggg;\n");
-      break;
-
-    case EFBCopyFormat::B8:  // Z8L
-      out.Write("  ocol0 = texcol.bbbb;\n");
-      break;
-
-    case EFBCopyFormat::GB8:  // Z16L - copy lower 16 depth bits
-      // expected to be used as an IA8 texture (upper 8 bits stored as intensity, lower 8 bits
-      // stored as alpha)
-      // Used e.g. in Zelda: Skyward Sword
-      out.Write("  ocol0 = texcol.gggb;\n");
-      break;
-
-    default:
-      ERROR_LOG_FMT(VIDEO, "Unknown copy zbuf format: {:#X}",
-                    static_cast<int>(uid_data->dst_format));
-      out.Write("  ocol0 = float4(texcol.bgr, 0.0);\n");
-      break;
-    }
-  }
-  else if (uid_data->is_intensity)
-  {
-    if (!uid_data->efb_has_alpha)
-      out.Write("  texcol.a = 1.0;\n");
-
-    bool has_four_bits =
-        (uid_data->dst_format == EFBCopyFormat::R4 || uid_data->dst_format == EFBCopyFormat::RA4);
-    bool has_alpha =
-        (uid_data->dst_format == EFBCopyFormat::RA4 || uid_data->dst_format == EFBCopyFormat::RA8);
-
-    switch (uid_data->dst_format)
-    {
-    case EFBCopyFormat::R4:      // I4
-    case EFBCopyFormat::R8_0x1:  // I8
-    case EFBCopyFormat::R8:      // I8
-    case EFBCopyFormat::RA4:     // IA4
-    case EFBCopyFormat::RA8:     // IA8
-      if (has_four_bits)
-        out.Write("  texcol = float4(int4(texcol * 255.0) & 0xF0) * (1.0 / 240.0);\n");
-
-      // TODO - verify these coefficients
-      out.Write("  const float3 coefficients = float3(0.257, 0.504, 0.098);\n"
-                "  float intensity = dot(texcol.rgb, coefficients) + 16.0 / 255.0;\n"
-                "  ocol0 = float4(intensity, intensity, intensity, {});\n",
-                has_alpha ? "texcol.a" : "intensity");
-      break;
-
-    default:
-      ERROR_LOG_FMT(VIDEO, "Unknown copy intensity format: {:#X}",
-                    static_cast<int>(uid_data->dst_format));
-      out.Write("  ocol0 = texcol;\n");
-      break;
-    }
+    out.Write("  uint depth = uint(tex_sample.x * 16777216.0);\n"
+              "  return uint4((depth >> 16) & 255u, (depth >> 8) & 255u, depth & 255u, 255u);\n"
+              "}}\n");
   }
   else
   {
-    if (!uid_data->efb_has_alpha)
-      out.Write("  texcol.a = 1.0;\n");
+    out.Write("  return uint4(tex_sample * 255.0);\n"
+              "}}\n");
+  }
 
-    switch (uid_data->dst_format)
-    {
-    case EFBCopyFormat::R4:  // R4
-      out.Write("  float red = float(int(texcol.r * 255.0) & 0xF0) * (1.0 / 240.0);\n"
-                "  ocol0 = float4(red, red, red, red);\n");
-      break;
+  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  {
+    out.Write("VARYING_LOCATION(0) in VertexData {{\n"
+              "  float3 v_tex0;\n"
+              "}};\n");
+  }
+  else
+  {
+    out.Write("VARYING_LOCATION(0) in vec3 v_tex0;\n");
+  }
 
-    case EFBCopyFormat::R8_0x1:  // R8
-    case EFBCopyFormat::R8:      // R8
-      out.Write("  ocol0 = texcol.rrrr;\n");
-      break;
+  out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n"
+            "void main()\n{{\n");
 
-    case EFBCopyFormat::RA4:  // RA4
-      out.Write("  float2 red_alpha = float2(int2(texcol.ra * 255.0) & 0xF0) * (1.0 / 240.0);\n"
-                "  ocol0 = red_alpha.rrrg;\n");
-      break;
+  // The copy filter applies to both color and depth copies. This has been verified on hardware.
+  // The filter is only applied to the RGB channels, the alpha channel is left intact.
+  if (uid_data->all_copy_filter_coefs_needed)
+  {
+    out.Write("  uint4 prev_row = SampleEFB(v_tex0, -1.0f);\n"
+              "  uint4 current_row = SampleEFB(v_tex0, 0.0f);\n"
+              "  uint4 next_row = SampleEFB(v_tex0, 1.0f);\n"
+              "  uint3 combined_rows = prev_row.rgb * filter_coefficients[0] +\n"
+              "                        current_row.rgb * filter_coefficients[1] +\n"
+              "                        next_row.rgb * filter_coefficients[2];\n");
+  }
+  else
+  {
+    out.Write("  uint4 current_row = SampleEFB(v_tex0, 0.0f);\n"
+              "  uint3 combined_rows = current_row.rgb * filter_coefficients[1];\n");
+  }
+  out.Write("  // Shift right by 6 to divide by 64, as filter coefficients\n"
+            "  // that sum to 64 result in no change in brightness\n"
+            "  uint4 texcol_raw = uint4(combined_rows.rgb >> 6, {});\n",
+            uid_data->efb_has_alpha ? "current_row.a" : "255");
 
-    case EFBCopyFormat::RA8:  // RA8
-      out.Write("  ocol0 = texcol.rrra;\n");
-      break;
+  if (uid_data->copy_filter_can_overflow)
+    out.Write("  texcol_raw &= 0x1ffu;\n");
+  // Note that overflow occurs when the sum of values is >= 128, but this max situation can be hit
+  // on >= 64, so we always include it.
+  out.Write("  texcol_raw = min(texcol_raw, uint4(255, 255, 255, 255));\n");
 
-    case EFBCopyFormat::A8:  // A8
-      out.Write("  ocol0 = texcol.aaaa;\n");
-      break;
+  if (uid_data->apply_gamma)
+  {
+    out.Write("  texcol_raw = uint4(round(pow(abs(float4(texcol_raw) / 255.0),\n"
+              "                     float4(gamma_rcp, gamma_rcp, gamma_rcp, 1.0)) * 255.0));\n");
+  }
 
-    case EFBCopyFormat::G8:  // G8
-      out.Write("  ocol0 = texcol.gggg;\n");
-      break;
+  if (uid_data->is_intensity)
+  {
+    out.Write("  // Intensity/YUV format conversion constants determined by hardware testing\n"
+              "  const float4 y_const = float4( 66, 129,  25,  16);\n"
+              "  const float4 u_const = float4(-38, -74, 112, 128);\n"
+              "  const float4 v_const = float4(112, -94, -18, 128);\n"
+              "  // Intensity/YUV format conversion\n"
+              "  texcol_raw.rgb = uint3(dot(y_const, float4(texcol_raw.rgb, 256)),\n"
+              "                         dot(u_const, float4(texcol_raw.rgb, 256)),\n"
+              "                         dot(v_const, float4(texcol_raw.rgb, 256)));\n"
+              "  // Divide by 256 and round .5 and higher up\n"
+              "  texcol_raw.rgb = (texcol_raw.rgb >> 8) + ((texcol_raw.rgb >> 7) & 1u);\n");
+  }
 
-    case EFBCopyFormat::B8:  // B8
-      out.Write("  ocol0 = texcol.bbbb;\n");
-      break;
+  switch (uid_data->dst_format)
+  {
+  case EFBCopyFormat::R4:  // R4
+    out.Write("  float red = float(texcol_raw.r & 0xF0u) / 240.0;\n"
+              "  ocol0 = float4(red, red, red, red);\n");
+    break;
 
-    case EFBCopyFormat::RG8:  // RG8
-      out.Write("  ocol0 = texcol.rrrg;\n");
-      break;
+  case EFBCopyFormat::R8_0x1:  // R8
+  case EFBCopyFormat::R8:      // R8
+    out.Write("  ocol0 = float4(texcol_raw).rrrr / 255.0;\n");
+    break;
 
-    case EFBCopyFormat::GB8:  // GB8
-      out.Write("  ocol0 = texcol.gggb;\n");
-      break;
+  case EFBCopyFormat::RA4:  // RA4
+    out.Write("  float2 red_alpha = float2(texcol_raw.ra & 0xF0u) / 240.0;\n"
+              "  ocol0 = red_alpha.rrrg;\n");
+    break;
 
-    case EFBCopyFormat::RGB565:  // RGB565
-      out.Write("  float2 red_blue = float2(int2(texcol.rb * 255.0) & 0xF8) * (1.0 / 248.0);\n"
-                "  float green = float(int(texcol.g * 255.0) & 0xFC) * (1.0 / 252.0);\n"
-                "  ocol0 = float4(red_blue.r, green, red_blue.g, 1.0);\n");
-      break;
+  case EFBCopyFormat::RA8:  // RA8
+    out.Write("  ocol0 = float4(texcol_raw).rrra / 255.0;\n");
+    break;
 
-    case EFBCopyFormat::RGB5A3:  // RGB5A3
-      // TODO: The MSB controls whether we have RGB5 or RGB4A3, this selection
-      // will need to be implemented once we move away from floats.
-      out.Write("  float3 color = float3(int3(texcol.rgb * 255.0) & 0xF8) * (1.0 / 248.0);\n"
-                "  float alpha = float(int(texcol.a * 255.0) & 0xE0) * (1.0 / 224.0);\n"
-                "  ocol0 = float4(color, alpha);\n");
-      break;
+  case EFBCopyFormat::A8:  // A8
+    out.Write("  ocol0 = float4(texcol_raw).aaaa / 255.0;\n");
+    break;
 
-    case EFBCopyFormat::RGBA8:  // RGBA8
-      out.Write("  ocol0 = texcol;\n");
-      break;
+  case EFBCopyFormat::G8:  // G8
+    out.Write("  ocol0 = float4(texcol_raw).gggg / 255.0;\n");
+    break;
 
-    case EFBCopyFormat::XFB:
-      out.Write(
-          "  ocol0 = float4(pow(texcol.rgb, float3(gamma_rcp, gamma_rcp, gamma_rcp)), 1.0f);\n");
-      break;
+  case EFBCopyFormat::B8:  // B8
+    out.Write("  ocol0 = float4(texcol_raw).bbbb / 255.0;\n");
+    break;
 
-    default:
-      ERROR_LOG_FMT(VIDEO, "Unknown copy color format: {:#X}",
-                    static_cast<int>(uid_data->dst_format));
-      out.Write("  ocol0 = texcol;\n");
-      break;
-    }
+  case EFBCopyFormat::RG8:  // RG8
+    out.Write("  ocol0 = float4(texcol_raw).rrrg / 255.0;\n");
+    break;
+
+  case EFBCopyFormat::GB8:  // GB8
+    out.Write("  ocol0 = float4(texcol_raw).gggb / 255.0;\n");
+    break;
+
+  case EFBCopyFormat::RGB565:  // RGB565
+    out.Write("  float2 red_blue = float2(texcol_raw.rb & 0xF8u) / 248.0;\n"
+              "  float green = float(texcol_raw.g & 0xFCu) / 252.0;\n"
+              "  ocol0 = float4(red_blue.r, green, red_blue.g, 1.0);\n");
+    break;
+
+  case EFBCopyFormat::RGB5A3:  // RGB5A3
+    // TODO: The MSB controls whether we have RGB5 or RGB4A3, this selection
+    // will need to be implemented once we move away from floats.
+    out.Write("  float3 color = float3(texcol_raw.rgb & 0xF8u) / 248.0;\n"
+              "  float alpha = float(texcol_raw.a & 0xE0u) / 224.0;\n"
+              "  ocol0 = float4(color, alpha);\n");
+    break;
+
+  case EFBCopyFormat::RGBA8:  // RGBA8
+    out.Write("  ocol0 = float4(texcol_raw.rgba) / 255.0;\n");
+    break;
+
+  case EFBCopyFormat::XFB:
+    out.Write("  ocol0 = float4(float3(texcol_raw.rgb) / 255.0, 1.0);\n");
+    break;
+
+  default:
+    ERROR_LOG_FMT(VIDEO, "Unknown copy/intensity color format: {} {}", uid_data->dst_format,
+                  uid_data->is_intensity);
+    out.Write("  ocol0 = float4(texcol_raw.rgba) / 255.0;\n");
+    break;
   }
 
   out.Write("}}\n");

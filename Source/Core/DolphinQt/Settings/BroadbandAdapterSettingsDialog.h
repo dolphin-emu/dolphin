@@ -15,6 +15,7 @@ public:
   {
     Ethernet,
     XLinkKai,
+    BuiltIn
   };
 
   explicit BroadbandAdapterSettingsDialog(QWidget* target, Type bba_type);

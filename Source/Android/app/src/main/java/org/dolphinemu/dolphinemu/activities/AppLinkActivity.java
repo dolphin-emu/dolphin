@@ -63,7 +63,7 @@ public class AppLinkActivity extends FragmentActivity
   private void initResources()
   {
     mAfterDirectoryInitializationRunner = new AfterDirectoryInitializationRunner();
-    mAfterDirectoryInitializationRunner.runWithLifecycle(this, true, () -> tryPlay(playAction));
+    mAfterDirectoryInitializationRunner.runWithLifecycle(this, () -> tryPlay(playAction));
 
     GameFileCacheManager.isLoading().observe(this, (isLoading) ->
     {

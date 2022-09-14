@@ -38,11 +38,26 @@ IMUCursor::IMUCursor(std::string name_, std::string ui_name_)
               // i18n: Refers to emulated wii remote movements.
               _trans("Clamping of rotation about the yaw axis.")},
              25, 0, 360);
+
+  AddSetting(&m_accel_weight_setting,
+             {// i18n: Percentage value of accelerometer data (complementary filter coefficient).
+              _trans("Accelerometer Influence"),
+              // i18n: The symbol/abbreviation for percent.
+              _trans("%"),
+              // i18n: Refers to a setting controling the influence of accelerometer data.
+              _trans("Influence of accelerometer data on pitch and roll. Higher values will reduce "
+                     "drift at the cost of noise. Consider values between 1% and 3%.")},
+             2, 0, 100);
 }
 
 ControlState IMUCursor::GetTotalYaw() const
 {
   return m_yaw_setting.GetValue() * MathUtil::TAU / 360;
+}
+
+ControlState IMUCursor::GetAccelWeight() const
+{
+  return m_accel_weight_setting.GetValue() / 100;
 }
 
 }  // namespace ControllerEmu

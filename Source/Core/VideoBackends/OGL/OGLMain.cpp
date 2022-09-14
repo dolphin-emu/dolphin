@@ -93,6 +93,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsShaderBinaries = false;
   g_Config.backend_info.bSupportsPipelineCacheData = false;
   g_Config.backend_info.bSupportsLodBiasInSampler = true;
+  g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
 
   // TODO: There is a bug here, if texel buffers or SSBOs/atomics are not supported the graphics
   // options will show the option when it is not supported. The only way around this would be

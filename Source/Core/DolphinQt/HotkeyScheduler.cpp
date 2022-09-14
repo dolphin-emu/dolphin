@@ -49,8 +49,6 @@ constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
 
 HotkeyScheduler::HotkeyScheduler() : m_stop_requested(false)
 {
-  HotkeyManagerEmu::Initialize();
-  HotkeyManagerEmu::LoadConfig();
   HotkeyManagerEmu::Enable(true);
 }
 
@@ -235,6 +233,9 @@ void HotkeyScheduler::Run()
       // Unlock Cursor
       if (IsHotkey(HK_UNLOCK_CURSOR))
         emit UnlockCursor();
+
+      if (IsHotkey(HK_CENTER_MOUSE, true))
+        g_controller_interface.SetMouseCenteringRequested(true);
 
       auto& settings = Settings::Instance();
 
@@ -489,6 +490,12 @@ void HotkeyScheduler::Run()
 
       if (IsHotkey(HK_LOAD_STATE_SLOT_SELECTED))
         emit StateLoadSlotHotkey();
+
+      if (IsHotkey(HK_INCREMENT_SELECTED_STATE_SLOT))
+        emit IncrementSelectedStateSlotHotkey();
+
+      if (IsHotkey(HK_DECREMENT_SELECTED_STATE_SLOT))
+        emit DecrementSelectedStateSlotHotkey();
 
       // Stereoscopy
       if (IsHotkey(HK_TOGGLE_STEREO_SBS))

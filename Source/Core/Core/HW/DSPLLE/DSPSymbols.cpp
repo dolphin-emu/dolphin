@@ -15,8 +15,6 @@
 
 namespace DSP::Symbols
 {
-DSPSymbolDB g_dsp_symbol_db;
-
 static std::map<u16, int> addr_to_line;
 static std::map<int, u16> line_to_addr;
 static std::vector<std::string> lines;
@@ -52,22 +50,6 @@ const char* GetLineText(int line)
   }
 }
 
-Common::Symbol* DSPSymbolDB::GetSymbolFromAddr(u32 addr)
-{
-  auto it = m_functions.find(addr);
-
-  if (it != m_functions.end())
-    return &it->second;
-
-  for (auto& func : m_functions)
-  {
-    if (addr >= func.second.address && addr < func.second.address + func.second.size)
-      return &func.second;
-  }
-
-  return nullptr;
-}
-
 void AutoDisassembly(const SDSP& dsp, u16 start_addr, u16 end_addr)
 {
   AssemblerSettings settings;
@@ -77,13 +59,15 @@ void AutoDisassembly(const SDSP& dsp, u16 start_addr, u16 end_addr)
 
   u16 addr = start_addr;
   const u16* ptr = (start_addr >> 15) != 0 ? dsp.irom : dsp.iram;
+  constexpr size_t size = DSP_IROM_SIZE;
+  static_assert(size == DSP_IRAM_SIZE);
   while (addr < end_addr)
   {
     line_to_addr[line_counter] = addr;
     addr_to_line[addr] = line_counter;
 
     std::string buf;
-    if (!disasm.DisassembleOpcode(ptr, &addr, buf))
+    if (!disasm.DisassembleOpcode(ptr, size, &addr, buf))
     {
       ERROR_LOG_FMT(DSPLLE, "disasm failed at {:04x}", addr);
       break;

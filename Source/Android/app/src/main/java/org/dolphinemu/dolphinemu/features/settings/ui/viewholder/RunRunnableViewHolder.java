@@ -8,7 +8,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.RunRunnable;
@@ -54,19 +55,16 @@ public final class RunRunnableViewHolder extends SettingViewHolder
 
     if (alertTextID > 0)
     {
-      AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase)
+      new MaterialAlertDialogBuilder(mContext)
               .setTitle(mItem.getName())
-              .setMessage(alertTextID);
-
-      builder
+              .setMessage(alertTextID)
               .setPositiveButton(R.string.ok, (dialog, whichButton) ->
               {
                 runRunnable();
                 dialog.dismiss();
               })
-              .setNegativeButton(R.string.cancel, (dialog, whichButton) -> dialog.dismiss());
-
-      builder.show();
+              .setNegativeButton(R.string.cancel, (dialog, whichButton) -> dialog.dismiss())
+              .show();
     }
     else
     {

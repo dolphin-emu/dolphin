@@ -3,7 +3,8 @@
   <PropertyGroup Label="Configuration">
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
-    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <PreferredToolArchitecture Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)'=='x64'">x64</PreferredToolArchitecture>
+    <PreferredToolArchitecture Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)'=='ARM64'">ARM64</PreferredToolArchitecture>
     <!-- To use ASAN, just uncomment this. For simplicity, you should run VS/windbg/etc
     (including the built executables themselves) after using vcvarsall or similar to setup
     environment, as ASAN needs access to libs and executables in the toolchain paths.

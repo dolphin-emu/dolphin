@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\Source\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3d780617-ec8c-4721-b9fd-dfc9bb658c7c}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ClCompile Include="SPIRV-Cross\spirv_cfg.cpp" />
+    <ClCompile Include="SPIRV-Cross\spirv_cpp.cpp" />
+    <ClCompile Include="SPIRV-Cross\spirv_cross.cpp" />
+    <ClCompile Include="SPIRV-Cross\spirv_cross_c.cpp" />
+    <ClCompile Include="SPIRV-Cross\spirv_cross_parsed_ir.cpp" />
+    <ClCompile Include="SPIRV-Cross\spirv_cross_util.cpp" />
+    <ClCompile Include="SPIRV-Cross\spirv_glsl.cpp" />
+    <ClCompile Include="SPIRV-Cross\spirv_hlsl.cpp" />
+    <ClCompile Include="SPIRV-Cross\spirv_msl.cpp" />
+    <ClCompile Include="SPIRV-Cross\spirv_parser.cpp" />
+    <ClCompile Include="SPIRV-Cross\spirv_reflect.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SPIRV-Cross\GLSL.std.450.h" />
+    <ClInclude Include="SPIRV-Cross\spirv.h" />
+    <ClInclude Include="SPIRV-Cross\spirv.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_cfg.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_common.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_cpp.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_cross.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_cross_c.h" />
+    <ClInclude Include="SPIRV-Cross\spirv_cross_containers.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_cross_error_handling.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_cross_parsed_ir.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_cross_util.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_glsl.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_hlsl.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_msl.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_parser.hpp" />
+    <ClInclude Include="SPIRV-Cross\spirv_reflect.hpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

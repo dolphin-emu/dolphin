@@ -474,11 +474,13 @@ void dump_all_ucodes(bool fastmode)
 
     real_dsp.Reset();
 
-    VIDEO_WaitVSync();
     // Loop over handling mail until we've stopped stepping
     // dsp_steps-3 compensates for mails to setup the ucode
     for (int steps_cache = dsp_steps - 3; steps_cache <= dsp_steps; steps_cache++)
+    {
+      VIDEO_WaitVSync();
       handle_dsp_mail();
+    }
     VIDEO_WaitVSync();
 
     sprintf(filename, "sd:/dsp_dump_all.bin");

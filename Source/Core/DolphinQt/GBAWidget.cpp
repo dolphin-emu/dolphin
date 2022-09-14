@@ -26,6 +26,7 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
@@ -325,7 +326,8 @@ void GBAWidget::UpdateTitle()
 void GBAWidget::UpdateVolume()
 {
   int volume = m_muted ? 0 : m_volume * 256 / 100;
-  g_sound_stream->GetMixer()->SetGBAVolume(m_core_info.device_number, volume, volume);
+  auto& system = Core::System::GetInstance();
+  system.GetSoundStream()->GetMixer()->SetGBAVolume(m_core_info.device_number, volume, volume);
   UpdateTitle();
 }
 
@@ -510,7 +512,13 @@ void GBAWidget::mouseMoveEvent(QMouseEvent* event)
 {
   if (!m_moving)
     return;
-  move(event->globalPos() - m_move_pos - (geometry().topLeft() - pos()));
+  auto event_pos =
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+      event->globalPosition().toPoint();
+#else
+      event->globalPos();
+#endif
+  move(event_pos - m_move_pos - (geometry().topLeft() - pos()));
 }
 
 void GBAWidget::paintEvent(QPaintEvent* event)

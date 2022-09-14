@@ -18,6 +18,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/Debugger/MemoryWidget.h"
 #include "DolphinQt/Debugger/NewBreakpointDialog.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -355,13 +356,13 @@ void BreakpointWidget::OnContextMenu()
     if (bp_iter == inst_breakpoints.end())
       return;
 
+    menu->addAction(tr("Show in Code"), [this, bp_address] { emit ShowCode(bp_address); });
     menu->addAction(bp_iter->is_enabled ? tr("Disable") : tr("Enable"), [this, &bp_address]() {
       PowerPC::breakpoints.ToggleBreakPoint(bp_address);
 
       emit BreakpointsChanged();
       Update();
     });
-    menu->addAction(tr("Go to"), [this, bp_address] { emit SelectedBreakpoint(bp_address); });
   }
   else
   {
@@ -372,6 +373,7 @@ void BreakpointWidget::OnContextMenu()
     if (mb_iter == memory_breakpoints.end())
       return;
 
+    menu->addAction(tr("Show in Memory"), [this, bp_address] { emit ShowMemory(bp_address); });
     menu->addAction(mb_iter->is_enabled ? tr("Disable") : tr("Enable"), [this, &bp_address]() {
       PowerPC::memchecks.ToggleBreakPoint(bp_address);
 

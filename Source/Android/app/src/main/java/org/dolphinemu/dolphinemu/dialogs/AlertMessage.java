@@ -6,8 +6,9 @@ import android.app.Dialog;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -47,8 +48,7 @@ public final class AlertMessage extends DialogFragment
     boolean isWarning = requireArguments().getBoolean(ARG_IS_WARNING);
     setCancelable(false);
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity,
-            R.style.DolphinDialogBase)
+    MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(emulationActivity)
             .setTitle(title)
             .setMessage(message);
 
@@ -65,11 +65,11 @@ public final class AlertMessage extends DialogFragment
     else
     {
       builder.setPositiveButton(android.R.string.yes, (dialog, which) ->
-      {
-        sAlertResult = true;
-        dialog.dismiss();
-        NativeLibrary.NotifyAlertMessageLock();
-      })
+              {
+                sAlertResult = true;
+                dialog.dismiss();
+                NativeLibrary.NotifyAlertMessageLock();
+              })
               .setNegativeButton(android.R.string.no, (dialog, which) ->
               {
                 sAlertResult = false;

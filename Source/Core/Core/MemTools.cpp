@@ -113,6 +113,11 @@ void UninstallExceptionHandler()
     s_veh_handle = nullptr;
 }
 
+bool IsExceptionHandlerSupported()
+{
+  return true;
+}
+
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
 
 static void CheckKR(const char* name, kern_return_t kr)
@@ -152,7 +157,6 @@ static void ExceptionThread(mach_port_t port)
 #pragma pack()
   memset(&msg_in, 0xee, sizeof(msg_in));
   memset(&msg_out, 0xee, sizeof(msg_out));
-  mach_msg_header_t* send_msg = nullptr;
   mach_msg_size_t send_size = 0;
   mach_msg_option_t option = MACH_RCV_MSG;
   while (true)
@@ -162,7 +166,7 @@ static void ExceptionThread(mach_port_t port)
     // thread_set_exception_ports, or MACH_NOTIFY_NO_SENDERS due to
     // mach_port_request_notification.
     CheckKR("mach_msg_overwrite",
-            mach_msg_overwrite(send_msg, option, send_size, sizeof(msg_in), port,
+            mach_msg_overwrite(&msg_out.Head, option, send_size, sizeof(msg_in), port,
                                MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL, &msg_in.Head, 0));
 
     if (msg_in.Head.msgh_id == MACH_NOTIFY_NO_SENDERS)
@@ -211,7 +215,6 @@ static void ExceptionThread(mach_port_t port)
     msg_out.Head.msgh_size =
         offsetof(__typeof__(msg_out), new_state) + msg_out.new_stateCnt * sizeof(natural_t);
 
-    send_msg = &msg_out.Head;
     send_size = msg_out.Head.msgh_size;
     option |= MACH_SEND_MSG;
   }
@@ -243,6 +246,11 @@ void InstallExceptionHandler()
 
 void UninstallExceptionHandler()
 {
+}
+
+bool IsExceptionHandlerSupported()
+{
+  return true;
 }
 
 #elif defined(_POSIX_VERSION) && !defined(_M_GENERIC)
@@ -353,13 +361,25 @@ void UninstallExceptionHandler()
   sigaction(SIGBUS, &old_sa_bus, nullptr);
 #endif
 }
+
+bool IsExceptionHandlerSupported()
+{
+  return true;
+}
+
 #else  // _M_GENERIC or unsupported platform
 
 void InstallExceptionHandler()
 {
 }
+
 void UninstallExceptionHandler()
 {
+}
+
+bool IsExceptionHandlerSupported()
+{
+  return false;
 }
 
 #endif

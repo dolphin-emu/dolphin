@@ -45,7 +45,7 @@ void Interpreter::clrl(const UDSPInstruction opc)
 //----
 
 // ANDCF $acD.m, #I
-// 0000 001r 1100 0000
+// 0000 001d 1100 0000
 // iiii iiii iiii iiii
 // Set logic zero (LZ) flag in status register $sr if result of logic AND of
 // accumulator mid part $acD.m with immediate value I is equal to I.
@@ -61,7 +61,7 @@ void Interpreter::andcf(const UDSPInstruction opc)
 }
 
 // ANDF $acD.m, #I
-// 0000 001r 1010 0000
+// 0000 001d 1010 0000
 // iiii iiii iiii iiii
 // Set logic zero (LZ) flag in status register $sr if result of logical AND
 // operation of accumulator mid part $acD.m with immediate value I is equal
@@ -81,7 +81,7 @@ void Interpreter::andf(const UDSPInstruction opc)
 
 // TST
 // 1011 r001 xxxx xxxx
-// Test accumulator %acR.
+// Test accumulator $acR.
 //
 // flags out: --xx xx00
 void Interpreter::tst(const UDSPInstruction opc)
@@ -124,12 +124,12 @@ void Interpreter::cmp(const UDSPInstruction)
   ZeroWriteBackLog();
 }
 
-// CMPAR $acS axR.h
+// CMPAXH $acS, $axR.h
 // 110r s001 xxxx xxxx
-// Compares accumulator $acS with accumulator $axR.h.
+// Compares accumulator $acS with high part of secondary accumulator $axR.h.
 //
 // flags out: x-xx xxxx
-void Interpreter::cmpar(const UDSPInstruction opc)
+void Interpreter::cmpaxh(const UDSPInstruction opc)
 {
   const u8 rreg = (opc >> 12) & 0x1;
   const u8 sreg = (opc >> 11) & 0x1;
@@ -143,11 +143,12 @@ void Interpreter::cmpar(const UDSPInstruction opc)
   ZeroWriteBackLog();
 }
 
-// CMPI $amD, #I
-// 0000 001r 1000 0000
+// CMPI $acD, #I
+// 0000 001d 1000 0000
 // iiii iiii iiii iiii
-// Compares mid accumulator $acD.hm ($amD) with sign extended immediate value I.
-// Although flags are being set regarding whole accumulator register.
+// Compares accumulator with immediate. Comparison is executed
+// by subtracting the immediate (16-bit sign extended) from mid accumulator
+// $acD.hm and computing flags based on whole accumulator $acD.
 //
 // flags out: x-xx xxxx
 void Interpreter::cmpi(const UDSPInstruction opc)
@@ -166,8 +167,8 @@ void Interpreter::cmpi(const UDSPInstruction opc)
 
 // CMPIS $acD, #I
 // 0000 011d iiii iiii
-// Compares accumulator with short immediate. Comaprison is executed
-// by subtracting short immediate (8bit sign extended) from mid accumulator
+// Compares accumulator with short immediate. Comparison is executed
+// by subtracting the short immediate (8-bit sign extended) from mid accumulator
 // $acD.hm and computing flags based on whole accumulator $acD.
 //
 // flags out: x-xx xxxx
@@ -320,7 +321,7 @@ void Interpreter::notc(const UDSPInstruction opc)
 }
 
 // XORI $acD.m, #I
-// 0000 001r 0010 0000
+// 0000 001d 0010 0000
 // iiii iiii iiii iiii
 // Logic exclusive or (XOR) of accumulator mid part $acD.m with
 // immediate value I.
@@ -337,7 +338,7 @@ void Interpreter::xori(const UDSPInstruction opc)
 }
 
 // ANDI $acD.m, #I
-// 0000 001r 0100 0000
+// 0000 001d 0100 0000
 // iiii iiii iiii iiii
 // Logic AND of accumulator mid part $acD.m with immediate value I.
 //
@@ -354,7 +355,7 @@ void Interpreter::andi(const UDSPInstruction opc)
 }
 
 // ORI $acD.m, #I
-// 0000 001r 0110 0000
+// 0000 001d 0110 0000
 // iiii iiii iiii iiii
 // Logic OR of accumulator mid part $acD.m with immediate value I.
 //
@@ -489,8 +490,8 @@ void Interpreter::addaxl(const UDSPInstruction opc)
   UpdateSR64Add(acc, acx, GetLongAcc(dreg));
 }
 
-// ADDI $amR, #I
-// 0000 001r 0000 0000
+// ADDI $acD, #I
+// 0000 001d 0000 0000
 // iiii iiii iiii iiii
 // Adds immediate (16-bit sign extended) to mid accumulator $acD.hm.
 //

@@ -39,6 +39,8 @@ public:
   static void Shutdown();
 
   void Log(LogLevel level, LogType type, const char* file, int line, const char* message);
+  void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
+                       const char* message);
 
   LogLevel GetLogLevel() const;
   void SetLogLevel(LogLevel level);
@@ -73,11 +75,10 @@ private:
   LogManager(LogManager&&) = delete;
   LogManager& operator=(LogManager&&) = delete;
 
-  void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                       const char* message);
+  static std::string GetTimestamp();
 
   LogLevel m_level;
-  EnumMap<LogContainer, LogType::WIIMOTE> m_log{};
+  EnumMap<LogContainer, LAST_LOG_TYPE> m_log{};
   std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
   BitSet32 m_listener_ids;
   size_t m_path_cutoff_point = 0;

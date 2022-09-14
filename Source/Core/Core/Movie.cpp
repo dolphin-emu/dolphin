@@ -985,7 +985,16 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   {
     const std::string savestate_path_temp = movie_path + ".sav";
     if (File::Exists(savestate_path_temp))
+    {
       *savestate_path = savestate_path_temp;
+    }
+    else
+    {
+      PanicAlertFmtT("Movie {0} indicates that it starts from a savestate, but {1} doesn't exist. "
+                     "The movie will likely not sync!",
+                     movie_path, savestate_path_temp);
+    }
+
     s_bRecordingFromSaveState = true;
     Movie::LoadInput(movie_path);
   }
@@ -1470,6 +1479,9 @@ void GetSettings()
   }
   else
   {
+    const auto raw_memcard_exists = [](ExpansionInterface::Slot card_slot) {
+      return File::Exists(Config::GetMemcardPath(card_slot, SConfig::GetInstance().m_region));
+    };
     const auto gci_folder_has_saves = [](ExpansionInterface::Slot card_slot) {
       const auto [path, migrate] = ExpansionInterface::CEXIMemoryCard::GetGCIFolderPath(
           card_slot, ExpansionInterface::AllowMovieFolder::No);
@@ -1477,11 +1489,10 @@ void GetSettings()
       return number_of_saves > 0;
     };
 
-    s_bClearSave =
-        !(slot_a_has_raw_memcard && File::Exists(Config::Get(Config::MAIN_MEMCARD_A_PATH))) &&
-        !(slot_b_has_raw_memcard && File::Exists(Config::Get(Config::MAIN_MEMCARD_B_PATH))) &&
-        !(slot_a_has_gci_folder && gci_folder_has_saves(ExpansionInterface::Slot::A)) &&
-        !(slot_b_has_gci_folder && gci_folder_has_saves(ExpansionInterface::Slot::B));
+    s_bClearSave = !(slot_a_has_raw_memcard && raw_memcard_exists(ExpansionInterface::Slot::A)) &&
+                   !(slot_b_has_raw_memcard && raw_memcard_exists(ExpansionInterface::Slot::B)) &&
+                   !(slot_a_has_gci_folder && gci_folder_has_saves(ExpansionInterface::Slot::A)) &&
+                   !(slot_b_has_gci_folder && gci_folder_has_saves(ExpansionInterface::Slot::B));
   }
   s_memcards |= (slot_a_has_raw_memcard || slot_a_has_gci_folder) << 0;
   s_memcards |= (slot_b_has_raw_memcard || slot_b_has_gci_folder) << 1;

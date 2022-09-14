@@ -61,7 +61,7 @@ public class GameFileCache
       String path = dolphinIni.getString(Settings.SECTION_INI_GENERAL,
               SettingsFile.KEY_ISO_PATH_BASE + i, "");
 
-      if (path.startsWith("content://") ? ContentHandler.exists(path) : new File(path).exists())
+      if (ContentHandler.isContentUri(path) ? ContentHandler.exists(path) : new File(path).exists())
       {
         pathSet.add(path);
       }

@@ -125,7 +125,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
   "${CMAKE_CURRENT_SOURCE_DIR}/support/cmake")
 
 include(cxx14)
-include(CheckCXXCompilerFlag)
 include(JoinPaths)
 
 list(FIND CMAKE_CXX_COMPILE_FEATURES "cxx_variadic_templates" index)
@@ -209,18 +208,6 @@ if (FMT_MASTER_PROJECT AND CMAKE_GENERATOR MATCHES "Visual Studio")
     ${CMAKE_MAKE_PROGRAM} -p:FrameworkPathOverride=\"${netfxpath}\" %*")
 endif ()
 
-set(strtod_l_headers stdlib.h)
-if (APPLE)
-  set(strtod_l_headers ${strtod_l_headers} xlocale.h)
-endif ()
-
-include(CheckSymbolExists)
-if (WIN32)
-  check_symbol_exists(_strtod_l "${strtod_l_headers}" HAVE_STRTOD_L)
-else ()
-  check_symbol_exists(strtod_l "${strtod_l_headers}" HAVE_STRTOD_L)
-endif ()
-
 function(add_headers VAR)
   set(headers ${${VAR}})
   foreach (header ${ARGN})
@@ -242,18 +229,8 @@ else()
 endif ()
 
 add_library(fmt ${FMT_SOURCES} ${FMT_HEADERS} README.rst ChangeLog.rst)
+dolphin_disable_warnings_msvc(fmt)
 add_library(fmt::fmt ALIAS fmt)
-
-if (HAVE_STRTOD_L)
-  target_compile_definitions(fmt PUBLIC FMT_LOCALE)
-endif ()
-
-if (MINGW)
-  check_cxx_compiler_flag("-Wa,-mbig-obj" FMT_HAS_MBIG_OBJ)
-  if (${FMT_HAS_MBIG_OBJ})
-    target_compile_options(fmt PUBLIC "-Wa,-mbig-obj")
-  endif()
-endif ()
 
 if (FMT_WERROR)
   target_compile_options(fmt PRIVATE ${WERROR_FLAG})
@@ -275,6 +252,7 @@ set(FMT_DEBUG_POSTFIX d CACHE STRING "Debug library postfix.")
 
 set_target_properties(fmt PROPERTIES
   VERSION ${FMT_VERSION} SOVERSION ${CPACK_PACKAGE_VERSION_MAJOR}
+  PUBLIC_HEADER "${FMT_HEADERS}"
   DEBUG_POSTFIX "${FMT_DEBUG_POSTFIX}")
 
 # Set FMT_LIB_NAME for pkg-config fmt.pc. We cannot use the OUTPUT_NAME target
@@ -352,6 +330,8 @@ if (FMT_INSTALL)
   install(TARGETS ${INSTALL_TARGETS} EXPORT ${targets_export_name}
           LIBRARY DESTINATION ${FMT_LIB_DIR}
           ARCHIVE DESTINATION ${FMT_LIB_DIR}
+          PUBLIC_HEADER DESTINATION "${FMT_INC_DIR}/fmt"
+          FRAMEWORK DESTINATION "."
           RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   # Use a namespace because CMake provides better diagnostics for namespaced
@@ -368,7 +348,6 @@ if (FMT_INSTALL)
 
   install(FILES $<TARGET_PDB_FILE:${INSTALL_TARGETS}>
           DESTINATION ${FMT_LIB_DIR} OPTIONAL)
-  install(FILES ${FMT_HEADERS} DESTINATION "${FMT_INC_DIR}/fmt")
   install(FILES "${pkgconfig}" DESTINATION "${FMT_PKGCONFIG_DIR}")
 endif ()
 

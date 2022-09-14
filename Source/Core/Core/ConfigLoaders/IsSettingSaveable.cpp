@@ -39,10 +39,10 @@ bool IsSettingSaveable(const Config::Location& config_location)
     // TODO: Kill the current Android controller mappings system
     if (config_location.section == "Android")
     {
-      static constexpr std::array<const char*, 10> android_setting_saveable = {
-          "ControlScale",    "ControlOpacity",  "EmulationOrientation", "JoystickRelCenter",
-          "LastPlatformTab", "MotionControls",  "PhoneRumble",          "ShowInputOverlay",
-          "IRMode",          "IRAlwaysRecenter"};
+      static constexpr std::array<const char*, 12> android_setting_saveable = {
+          "ControlScale",    "ControlOpacity",   "EmulationOrientation", "JoystickRelCenter",
+          "LastPlatformTab", "MotionControls",   "PhoneRumble",          "ShowInputOverlay",
+          "IRMode",          "IRAlwaysRecenter", "ShowGameTitles",       "InterfaceTheme"};
 
       return std::any_of(
           android_setting_saveable.cbegin(), android_setting_saveable.cend(),
@@ -81,6 +81,8 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_AGP_CART_B_PATH.GetLocation(),
       &Config::MAIN_BBA_MAC.GetLocation(),
       &Config::MAIN_BBA_XLINK_IP.GetLocation(),
+      &Config::MAIN_BBA_BUILTIN_DNS.GetLocation(),
+      &Config::MAIN_BBA_BUILTIN_IP.GetLocation(),
       &Config::MAIN_BBA_XLINK_CHAT_OSD.GetLocation(),
       &Config::MAIN_OVERRIDE_REGION_SETTINGS.GetLocation(),
       &Config::MAIN_CUSTOM_RTC_ENABLE.GetLocation(),
@@ -108,6 +110,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_FASTMEM.GetLocation(),
       &Config::MAIN_TIMING_VARIANCE.GetLocation(),
       &Config::MAIN_WII_SD_CARD.GetLocation(),
+      &Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC.GetLocation(),
       &Config::MAIN_WII_KEYBOARD.GetLocation(),
       &Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING.GetLocation(),
       &Config::MAIN_WIIMOTE_ENABLE_SPEAKER.GetLocation(),

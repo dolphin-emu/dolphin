@@ -44,7 +44,12 @@ void VideoConfig::Refresh()
     // invalid values. Instead, pause emulation first, which will flush the video thread,
     // update the config and correct it, then resume emulation, after which the video
     // thread will detect the config has changed and act accordingly.
-    Config::AddConfigChangedCallback([]() { Core::RunAsCPUThread([]() { g_Config.Refresh(); }); });
+    Config::AddConfigChangedCallback([]() {
+      Core::RunAsCPUThread([]() {
+        g_Config.Refresh();
+        g_Config.VerifyValidity();
+      });
+    });
     s_has_registered_callback = true;
   }
 
@@ -141,7 +146,7 @@ void VideoConfig::Refresh()
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
-  VerifyValidity();
+  bGraphicMods = Config::Get(Config::GFX_MODS_ENABLE);
 }
 
 void VideoConfig::VerifyValidity()
@@ -174,8 +179,8 @@ bool VideoConfig::UsingUberShaders() const
 
 static u32 GetNumAutoShaderCompilerThreads()
 {
-  // Automatic number. We use clamp(cpus - 3, 1, 4).
-  return static_cast<u32>(std::min(std::max(cpu_info.num_cores - 3, 1), 4));
+  // Automatic number.
+  return static_cast<u32>(std::clamp(cpu_info.num_cores - 3, 1, 4));
 }
 
 static u32 GetNumAutoShaderPreCompilerThreads()

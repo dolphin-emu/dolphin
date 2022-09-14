@@ -310,6 +310,7 @@ void WatchWidget::ShowContextMenu()
 
       if (row >= 0)
       {
+        menu->addAction(tr("Show in Memory"), this, [this, row] { ShowInMemory(row); });
         // i18n: This kind of "watch" is used for watching emulated memory.
         // It's not related to timekeeping devices.
         menu->addAction(tr("&Delete Watch"), this, [this, row] { DeleteWatch(row); });
@@ -393,6 +394,11 @@ void WatchWidget::DeleteWatch(int row)
 void WatchWidget::AddWatchBreakpoint(int row)
 {
   emit RequestMemoryBreakpoint(PowerPC::debug_interface.GetWatch(row).address);
+}
+
+void WatchWidget::ShowInMemory(int row)
+{
+  emit ShowMemory(PowerPC::debug_interface.GetWatch(row).address);
 }
 
 void WatchWidget::AddWatch(QString name, u32 addr)

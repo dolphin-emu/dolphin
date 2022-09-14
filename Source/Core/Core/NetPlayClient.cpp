@@ -16,11 +16,11 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/md5.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -90,10 +90,10 @@ NetPlayClient::~NetPlayClient()
 
   if (m_is_connected)
   {
-    m_should_compute_MD5 = false;
-    m_dialog->AbortMD5();
-    if (m_MD5_thread.joinable())
-      m_MD5_thread.join();
+    m_should_compute_game_digest = false;
+    m_dialog->AbortGameDigest();
+    if (m_game_digest_thread.joinable())
+      m_game_digest_thread.join();
     m_do_loop.Clear();
     m_thread.join();
 
@@ -152,8 +152,9 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       return;
     }
 
-    // Extend reliable traffic timeout
-    enet_peer_timeout(m_server, 0, PEER_TIMEOUT, PEER_TIMEOUT);
+    // Update time in milliseconds of no acknoledgment of
+    // sent packets before a connection is deemed disconnected
+    enet_peer_timeout(m_server, 0, PEER_TIMEOUT.count(), PEER_TIMEOUT.count());
 
     ENetEvent netEvent;
     int net = enet_host_service(m_client, &netEvent, 5000);
@@ -211,8 +212,9 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
         case ENET_EVENT_TYPE_CONNECT:
           m_server = netEvent.peer;
 
-          // Extend reliable traffic timeout
-          enet_peer_timeout(m_server, 0, PEER_TIMEOUT, PEER_TIMEOUT);
+          // Update time in milliseconds of no acknoledgment of
+          // sent packets before a connection is deemed disconnected
+          enet_peer_timeout(m_server, 0, PEER_TIMEOUT.count(), PEER_TIMEOUT.count());
 
           if (Connect())
           {
@@ -224,7 +226,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
           break;
         }
       }
-      if (connect_timer.GetTimeElapsed() > 5000)
+      if (connect_timer.ElapsedMs() > 5000)
         break;
     }
     m_dialog->OnConnectionError(_trans("Could not communicate with host."));
@@ -442,24 +444,24 @@ void NetPlayClient::OnData(sf::Packet& packet)
     OnSyncCodes(packet);
     break;
 
-  case MessageID::ComputeMD5:
-    OnComputeMD5(packet);
+  case MessageID::ComputeGameDigest:
+    OnComputeGameDigest(packet);
     break;
 
-  case MessageID::MD5Progress:
-    OnMD5Progress(packet);
+  case MessageID::GameDigestProgress:
+    OnGameDigestProgress(packet);
     break;
 
-  case MessageID::MD5Result:
-    OnMD5Result(packet);
+  case MessageID::GameDigestResult:
+    OnGameDigestResult(packet);
     break;
 
-  case MessageID::MD5Error:
-    OnMD5Error(packet);
+  case MessageID::GameDigestError:
+    OnGameDigestError(packet);
     break;
 
-  case MessageID::MD5Abort:
-    OnMD5Abort();
+  case MessageID::GameDigestAbort:
+    OnGameDigestAbort();
     break;
 
   default:
@@ -1419,48 +1421,48 @@ void NetPlayClient::OnSyncCodesDataAR(sf::Packet& packet)
   ActionReplay::UpdateSyncedCodes(synced_codes);
 }
 
-void NetPlayClient::OnComputeMD5(sf::Packet& packet)
+void NetPlayClient::OnComputeGameDigest(sf::Packet& packet)
 {
   SyncIdentifier sync_identifier;
   ReceiveSyncIdentifier(packet, sync_identifier);
 
-  ComputeMD5(sync_identifier);
+  ComputeGameDigest(sync_identifier);
 }
 
-void NetPlayClient::OnMD5Progress(sf::Packet& packet)
+void NetPlayClient::OnGameDigestProgress(sf::Packet& packet)
 {
   PlayerId pid;
   int progress;
   packet >> pid;
   packet >> progress;
 
-  m_dialog->SetMD5Progress(pid, progress);
+  m_dialog->SetGameDigestProgress(pid, progress);
 }
 
-void NetPlayClient::OnMD5Result(sf::Packet& packet)
+void NetPlayClient::OnGameDigestResult(sf::Packet& packet)
 {
   PlayerId pid;
   std::string result;
   packet >> pid;
   packet >> result;
 
-  m_dialog->SetMD5Result(pid, result);
+  m_dialog->SetGameDigestResult(pid, result);
 }
 
-void NetPlayClient::OnMD5Error(sf::Packet& packet)
+void NetPlayClient::OnGameDigestError(sf::Packet& packet)
 {
   PlayerId pid;
   std::string error;
   packet >> pid;
   packet >> error;
 
-  m_dialog->SetMD5Result(pid, error);
+  m_dialog->SetGameDigestResult(pid, error);
 }
 
-void NetPlayClient::OnMD5Abort()
+void NetPlayClient::OnGameDigestAbort()
 {
-  m_should_compute_MD5 = false;
-  m_dialog->AbortMD5();
+  m_should_compute_game_digest = false;
+  m_dialog->AbortGameDigest();
 }
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
@@ -1585,49 +1587,6 @@ void NetPlayClient::ThreadFunc()
 
   Disconnect();
   return;
-}
-
-// called from ---GUI--- thread
-void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
-{
-  std::lock_guard lkp(m_crit.players);
-
-  std::ostringstream ss;
-
-  for (const auto& entry : m_players)
-  {
-    const Player& player = entry.second;
-    ss << player.name << "[" << static_cast<int>(player.pid) << "] : " << player.revision << " | "
-       << GetPlayerMappingString(player.pid, m_pad_map, m_gba_config, m_wiimote_map) << " |\n";
-
-    ss << "Ping: " << player.ping << "ms\n";
-    ss << "Status: ";
-
-    switch (player.game_status)
-    {
-    case SyncIdentifierComparison::SameGame:
-      ss << "ready";
-      break;
-
-    case SyncIdentifierComparison::DifferentVersion:
-      ss << "wrong game version";
-      break;
-
-    case SyncIdentifierComparison::DifferentGame:
-      ss << "game missing";
-      break;
-
-    default:
-      ss << "unknown";
-      break;
-    }
-
-    ss << "\n\n";
-
-    pid_list.push_back(player.pid);
-  }
-
-  list = ss.str();
 }
 
 // called from ---GUI--- thread
@@ -1766,6 +1725,8 @@ bool NetPlayClient::StartGame(const std::string& path)
                                       if (File::Exists(redirect_path))
                                         File::DeleteDirRecursively(redirect_path);
                                     });
+  boot_session_data->SetNetplaySettings(std::make_unique<NetPlay::NetSettings>(m_net_settings));
+
   m_dialog->BootGame(path, std::move(boot_session_data));
 
   UpdateDevices();
@@ -2479,16 +2440,15 @@ bool NetPlayClient::DoAllPlayersHaveGame()
   });
 }
 
-static std::string MD5Sum(const std::string& file_path, std::function<bool(int)> report_progress)
+static std::string SHA1Sum(const std::string& file_path, std::function<bool(int)> report_progress)
 {
   std::vector<u8> data(8 * 1024 * 1024);
   u64 read_offset = 0;
-  mbedtls_md5_context ctx;
 
   std::unique_ptr<DiscIO::BlobReader> file(DiscIO::CreateBlobReader(file_path));
   u64 game_size = file->GetDataSize();
 
-  mbedtls_md5_starts_ret(&ctx);
+  auto ctx = Common::SHA1::CreateContext();
 
   while (read_offset < game_size)
   {
@@ -2496,7 +2456,7 @@ static std::string MD5Sum(const std::string& file_path, std::function<bool(int)>
     if (!file->Read(read_offset, read_size, data.data()))
       return "";
 
-    mbedtls_md5_update_ret(&ctx, data.data(), read_size);
+    ctx->Update(data.data(), read_size);
     read_offset += read_size;
 
     int progress =
@@ -2505,50 +2465,47 @@ static std::string MD5Sum(const std::string& file_path, std::function<bool(int)>
       return "";
   }
 
-  std::array<u8, 16> output;
-  mbedtls_md5_finish_ret(&ctx, output.data());
-
   // Convert to hex
-  return fmt::format("{:02x}", fmt::join(output, ""));
+  return fmt::format("{:02x}", fmt::join(ctx->Finish(), ""));
 }
 
-void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
+void NetPlayClient::ComputeGameDigest(const SyncIdentifier& sync_identifier)
 {
-  if (m_should_compute_MD5)
+  if (m_should_compute_game_digest)
     return;
 
-  m_dialog->ShowMD5Dialog(sync_identifier.game_id);
-  m_should_compute_MD5 = true;
+  m_dialog->ShowGameDigestDialog(sync_identifier.game_id);
+  m_should_compute_game_digest = true;
 
   std::string file;
   if (sync_identifier == GetSDCardIdentifier())
-    file = File::GetUserPath(F_WIISDCARD_IDX);
+    file = File::GetUserPath(F_WIISDCARDIMAGE_IDX);
   else if (auto game = m_dialog->FindGameFile(sync_identifier))
     file = game->GetFilePath();
 
   if (file.empty() || !File::Exists(file))
   {
     sf::Packet packet;
-    packet << MessageID::MD5Error;
+    packet << MessageID::GameDigestError;
     packet << "file not found";
     Send(packet);
     return;
   }
 
-  if (m_MD5_thread.joinable())
-    m_MD5_thread.join();
-  m_MD5_thread = std::thread([this, file]() {
-    std::string sum = MD5Sum(file, [&](int progress) {
+  if (m_game_digest_thread.joinable())
+    m_game_digest_thread.join();
+  m_game_digest_thread = std::thread([this, file]() {
+    std::string sum = SHA1Sum(file, [&](int progress) {
       sf::Packet packet;
-      packet << MessageID::MD5Progress;
+      packet << MessageID::GameDigestProgress;
       packet << progress;
       SendAsync(std::move(packet));
 
-      return m_should_compute_MD5;
+      return m_should_compute_game_digest;
     });
 
     sf::Packet packet;
-    packet << MessageID::MD5Result;
+    packet << MessageID::GameDigestResult;
     packet << sum;
     SendAsync(std::move(packet));
   });
@@ -2619,12 +2576,6 @@ bool IsNetPlayRunning()
   return netplay_client != nullptr;
 }
 
-const NetSettings& GetNetSettings()
-{
-  ASSERT(IsNetPlayRunning());
-  return netplay_client->GetNetSettings();
-}
-
 void SetSIPollBatching(bool state)
 {
   s_si_poll_batching = state;
@@ -2667,7 +2618,7 @@ std::string GetGBASavePath(int pad_num)
 {
   std::lock_guard lk(crit_netplay_client);
 
-  if (!netplay_client || NetPlay::GetNetSettings().m_IsHosting)
+  if (!netplay_client || netplay_client->GetNetSettings().m_IsHosting)
   {
 #ifdef HAS_LIBMGBA
     std::string rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[pad_num]);
@@ -2677,7 +2628,7 @@ std::string GetGBASavePath(int pad_num)
 #endif
   }
 
-  if (!NetPlay::GetNetSettings().m_SyncSaveData)
+  if (!netplay_client->GetNetSettings().m_SyncSaveData)
     return {};
 
   return fmt::format("{}{}{}.sav", File::GetUserPath(D_GBAUSER_IDX), GBA_SAVE_NETPLAY, pad_num + 1);

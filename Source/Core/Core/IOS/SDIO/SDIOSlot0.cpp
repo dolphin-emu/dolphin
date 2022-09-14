@@ -57,7 +57,7 @@ void SDIOSlot0Device::RefreshConfig()
 void SDIOSlot0Device::DoState(PointerWrap& p)
 {
   DoStateShared(p);
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     OpenInternal();
   }
@@ -89,7 +89,7 @@ void SDIOSlot0Device::EventNotify()
 
 void SDIOSlot0Device::OpenInternal()
 {
-  const std::string filename = File::GetUserPath(F_WIISDCARD_IDX);
+  const std::string filename = File::GetUserPath(F_WIISDCARDIMAGE_IDX);
   m_card.Open(filename, "r+b");
   if (!m_card)
   {

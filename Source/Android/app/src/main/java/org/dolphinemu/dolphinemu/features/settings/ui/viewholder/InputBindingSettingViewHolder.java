@@ -61,7 +61,7 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
       return;
     }
 
-    getAdapter().onInputBindingClick(mItem, getAdapterPosition());
+    getAdapter().onInputBindingClick(mItem, getBindingAdapterPosition());
 
     setStyle(mTextSettingName, mItem);
   }

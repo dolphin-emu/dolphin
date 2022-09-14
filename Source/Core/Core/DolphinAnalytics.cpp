@@ -10,7 +10,6 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/sha1.h>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -25,6 +24,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Random.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -100,9 +100,8 @@ void DolphinAnalytics::GenerateNewIdentity()
 
 std::string DolphinAnalytics::MakeUniqueId(std::string_view data) const
 {
-  std::array<u8, 20> digest;
   const auto input = std::string{m_unique_id}.append(data);
-  mbedtls_sha1_ret(reinterpret_cast<const u8*>(input.c_str()), input.size(), digest.data());
+  const auto digest = Common::SHA1::CalculateDigest(input);
 
   // Convert to hex string and truncate to 64 bits.
   std::string out;
@@ -136,7 +135,7 @@ void DolphinAnalytics::ReportGameStart()
 }
 
 // Keep in sync with enum class GameQuirk definition.
-constexpr std::array<const char*, 24> GAME_QUIRKS_NAMES{
+constexpr std::array<const char*, 28> GAME_QUIRKS_NAMES{
     "icache-matters",
     "directly-reads-wiimote-input",
     "uses-DVDLowStopLaser",
@@ -161,6 +160,10 @@ constexpr std::array<const char*, 24> GAME_QUIRKS_NAMES{
     "sets-xf-clipdisable-bit-0",
     "sets-xf-clipdisable-bit-1",
     "sets-xf-clipdisable-bit-2",
+    "mismatched-gpu-colors-between-cp-and-xf",
+    "mismatched-gpu-normals-between-cp-and-xf",
+    "mismatched-gpu-tex-coords-between-cp-and-xf",
+    "mismatched-gpu-matrix-indices-between-cp-and-xf",
 };
 static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::COUNT),
               "Game quirks names and enum definition are out of sync.");
@@ -228,18 +231,18 @@ void DolphinAnalytics::InitializePerformanceSampling()
   u64 wait_us =
       PERFORMANCE_SAMPLING_INITIAL_WAIT_TIME_SECS * 1000000 +
       Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
-  m_sampling_next_start_us = Common::Timer::GetTimeUs() + wait_us;
+  m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
 }
 
 bool DolphinAnalytics::ShouldStartPerformanceSampling()
 {
-  if (Common::Timer::GetTimeUs() < m_sampling_next_start_us)
+  if (Common::Timer::NowUs() < m_sampling_next_start_us)
     return false;
 
   u64 wait_us =
       PERFORMANCE_SAMPLING_INTERVAL_SECS * 1000000 +
       Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
-  m_sampling_next_start_us = Common::Timer::GetTimeUs() + wait_us;
+  m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
   return true;
 }
 

@@ -38,10 +38,8 @@ public:
   BlobType GetBlobType() const override { return BlobType::CISO; }
 
   u64 GetRawSize() const override;
-  // The CISO format does not save the original file size.
-  // This function returns an upper bound.
   u64 GetDataSize() const override;
-  bool IsDataSizeAccurate() const override { return false; }
+  DataSizeType GetDataSizeType() const override { return DataSizeType::UpperBound; }
 
   u64 GetBlockSize() const override { return m_block_size; }
   bool HasFastRandomAccessInBlock() const override { return true; }

@@ -12,10 +12,12 @@
 #include "Core/HW/GCMemcard/GCIFile.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCMemcard/GCMemcardBase.h"
+#include "DiscIO/Enums.h"
 
 // Uncomment this to write the system data of the memorycard from directory to disc
 //#define _WRITE_MC_HEADER 1
-void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterface::Slot card_slot);
+void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterface::Slot card_slot,
+                            DiscIO::Region region);
 
 class GCMemcardDirectory : public MemoryCardBase
 {

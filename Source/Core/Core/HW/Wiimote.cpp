@@ -378,7 +378,7 @@ void DoState(PointerWrap& p)
       static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
     }
 
-    if (p.GetMode() == PointerWrap::MODE_READ)
+    if (p.IsReadMode())
     {
       // If using a real wiimote or the save-state source does not match the current source,
       // then force a reconnection on load.

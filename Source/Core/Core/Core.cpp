@@ -20,11 +20,13 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FPURoundMode.h"
+#include "Common/FatFsUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
@@ -97,6 +99,7 @@ static bool s_wants_determinism;
 
 // Declarations and definitions
 static Common::Timer s_timer;
+static u64 s_timer_offset;
 static std::atomic<u32> s_drawn_frame;
 static std::atomic<u32> s_drawn_video;
 
@@ -127,6 +130,7 @@ static std::queue<HostJob> s_host_jobs_queue;
 static Common::Event s_cpu_thread_job_finished;
 
 static thread_local bool tls_is_cpu_thread = false;
+static thread_local bool tls_is_gpu_thread = false;
 
 static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi);
 
@@ -203,14 +207,7 @@ bool IsCPUThread()
 
 bool IsGPUThread()
 {
-  if (Core::System::GetInstance().IsDualCoreMode())
-  {
-    return (s_emu_thread.joinable() && (s_emu_thread.get_id() == std::this_thread::get_id()));
-  }
-  else
-  {
-    return IsCPUThread();
-  }
+  return tls_is_gpu_thread;
 }
 
 bool WantsDeterminism()
@@ -275,8 +272,6 @@ void Stop()  // - Hammertime!
 
   s_is_stopping = true;
 
-  s_timer.Stop();
-
   CallOnStateChangedCallbacks(State::Stopping);
 
   // Dump left over jobs
@@ -311,6 +306,16 @@ void DeclareAsCPUThread()
 void UndeclareAsCPUThread()
 {
   tls_is_cpu_thread = false;
+}
+
+void DeclareAsGPUThread()
+{
+  tls_is_gpu_thread = true;
+}
+
+void UndeclareAsGPUThread()
+{
+  tls_is_gpu_thread = false;
 }
 
 // For the CPU Thread only.
@@ -459,83 +464,46 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
   Common::SetCurrentThreadName("Emuthread - Starting");
 
+  DeclareAsGPUThread();
+
   // For a time this acts as the CPU thread...
   DeclareAsCPUThread();
   s_frame_step = false;
 
-  // The frontend will likely have initialized the controller interface, as it needs
-  // it to provide the configuration dialogs. In this case, instead of re-initializing
-  // entirely, we switch the window used for inputs to the render window. This way, the
-  // cursor position is relative to the render window, instead of the main window.
-  bool init_controllers = false;
-  if (!g_controller_interface.IsInit())
-  {
-    g_controller_interface.Initialize(wsi);
-    Pad::Initialize();
-    Pad::InitializeGBA();
-    Keyboard::Initialize();
-    init_controllers = true;
-  }
-  else
-  {
-    g_controller_interface.ChangeWindow(wsi.render_window);
-    Pad::LoadConfig();
-    Pad::LoadGBAConfig();
-    Keyboard::LoadConfig();
-  }
+  // Switch the window used for inputs to the render window. This way, the cursor position
+  // is relative to the render window, instead of the main window.
+  ASSERT(g_controller_interface.IsInit());
+  g_controller_interface.ChangeWindow(wsi.render_window);
+
+  Pad::LoadConfig();
+  Pad::LoadGBAConfig();
+  Keyboard::LoadConfig();
 
   BootSessionData boot_session_data = std::move(boot->boot_session_data);
   const std::optional<std::string>& savestate_path = boot_session_data.GetSavestatePath();
   const bool delete_savestate =
       boot_session_data.GetDeleteSavestate() == DeleteSavestateAfterBoot::Yes;
 
-  // Load and Init Wiimotes - only if we are booting in Wii mode
-  bool init_wiimotes = false;
+  bool sync_sd_folder = core_parameter.bWii && Config::Get(Config::MAIN_WII_SD_CARD) &&
+                        Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC);
+  if (sync_sd_folder)
+    sync_sd_folder = Common::SyncSDFolderToSDImage(Core::WantsDeterminism());
+
+  Common::ScopeGuard sd_folder_sync_guard{[sync_sd_folder] {
+    if (sync_sd_folder && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
+      Common::SyncSDImageToSDFolder();
+  }};
+
+  // Load Wiimotes - only if we are booting in Wii mode
   if (core_parameter.bWii && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
   {
-    if (init_controllers)
-    {
-      Wiimote::Initialize(savestate_path ? Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
-                                           Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
-      init_wiimotes = true;
-    }
-    else
-    {
-      Wiimote::LoadConfig();
-    }
+    Wiimote::LoadConfig();
 
     if (NetPlay::IsNetPlayRunning())
       NetPlay::SetupWiimotes();
   }
 
-  if (init_controllers)
-  {
-    FreeLook::Initialize();
-  }
-  else
-  {
-    FreeLook::LoadInputConfig();
-  }
-
-  Common::ScopeGuard controller_guard{[init_controllers, init_wiimotes] {
-    if (!init_controllers)
-      return;
-
-    if (init_wiimotes)
-    {
-      Wiimote::ResetAllWiimotes();
-      Wiimote::Shutdown();
-    }
-
-    FreeLook::Shutdown();
-
-    ResetRumble();
-
-    Keyboard::Shutdown();
-    Pad::Shutdown();
-    Pad::ShutdownGBA();
-    g_controller_interface.Shutdown();
-  }};
+  FreeLook::LoadInputConfig();
 
   Movie::Init(*boot);
   Common::ScopeGuard movie_guard{&Movie::Shutdown};
@@ -693,21 +661,18 @@ void SetState(State state)
     CPU::EnableStepping(true);  // Break
     Wiimote::Pause();
     ResetRumble();
-    s_timer.Update();
+    s_timer_offset = s_timer.ElapsedMs();
     break;
   case State::Running:
+  {
     CPU::EnableStepping(false);
     Wiimote::Resume();
-    if (!s_timer.IsRunning())
-    {
-      s_timer.Start();
-    }
-    else
-    {
-      // Add time difference from the last pause
-      s_timer.AddTimeDifference();
-    }
+    // Restart timer, accounting for time that had elapsed between previous s_timer.Start() and
+    // emulator pause
+    s_timer.StartWithOffset(s_timer_offset);
+    s_timer_offset = 0;
     break;
+  }
   default:
     PanicAlertFmt("Invalid state");
     break;
@@ -879,12 +844,12 @@ void RunOnCPUThread(std::function<void()> function, bool wait_for_completion)
 void VideoThrottle()
 {
   // Update info per second
-  u32 ElapseTime = (u32)s_timer.GetTimeElapsed();
-  if ((ElapseTime >= 1000 && s_drawn_video.load() > 0) || s_frame_step)
+  u64 elapsed_ms = s_timer.ElapsedMs();
+  if ((elapsed_ms >= 1000 && s_drawn_video.load() > 0) || s_frame_step)
   {
     s_timer.Start();
 
-    UpdateTitle(ElapseTime);
+    UpdateTitle(elapsed_ms);
 
     s_drawn_frame.store(0);
     s_drawn_video.store(0);
@@ -926,15 +891,15 @@ void Callback_NewField()
   }
 }
 
-void UpdateTitle(u32 ElapseTime)
+void UpdateTitle(u64 elapsed_ms)
 {
-  if (ElapseTime == 0)
-    ElapseTime = 1;
+  if (elapsed_ms == 0)
+    elapsed_ms = 1;
 
-  float FPS = (float)(s_drawn_frame.load() * 1000.0 / ElapseTime);
-  float VPS = (float)(s_drawn_video.load() * 1000.0 / ElapseTime);
+  float FPS = (float)(s_drawn_frame.load() * 1000.0 / elapsed_ms);
+  float VPS = (float)(s_drawn_video.load() * 1000.0 / elapsed_ms);
   float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) /
-                        (VideoInterface::GetTargetRefreshRate() * ElapseTime));
+                        (VideoInterface::GetTargetRefreshRate() * elapsed_ms));
 
   // Settings are shown the same for both extended and summary info
   const std::string SSettings = fmt::format(
@@ -991,10 +956,12 @@ void UpdateTitle(u32 ElapseTime)
   }
 
   // Update the audio timestretcher with the current speed
-  if (g_sound_stream)
+  auto& system = Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+  if (sound_stream)
   {
-    Mixer* pMixer = g_sound_stream->GetMixer();
-    pMixer->UpdateSpeed((float)Speed / 100);
+    Mixer* mixer = sound_stream->GetMixer();
+    mixer->UpdateSpeed((float)Speed / 100);
   }
 
   Host_UpdateTitle(message);

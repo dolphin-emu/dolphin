@@ -97,7 +97,7 @@ void GamecubeControllersWidget::CreateLayout()
   m_gc_box->setLayout(m_gc_layout);
 
   auto* layout = new QVBoxLayout;
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
   layout->setAlignment(Qt::AlignTop);
   layout->addWidget(m_gc_box);
   setLayout(layout);

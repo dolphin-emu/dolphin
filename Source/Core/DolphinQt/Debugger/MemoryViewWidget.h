@@ -3,27 +3,32 @@
 
 #pragma once
 
-#include <QTableWidget>
+#include <QWidget>
 
 #include "Common/CommonTypes.h"
 
 class QPoint;
+class QScrollBar;
 
 namespace AddressSpace
 {
 enum class Type;
 }
 
-class MemoryViewWidget : public QTableWidget
+class MemoryViewTable;
+
+class MemoryViewWidget final : public QWidget
 {
   Q_OBJECT
 public:
   enum class Type : int
   {
+    Null = 0,
     Hex8 = 1,
     Hex16,
     Hex32,
     Hex64,
+    HexString,
     Unsigned8,
     Unsigned16,
     Unsigned32,
@@ -48,6 +53,7 @@ public:
   void UpdateFont();
   void ToggleBreakpoint(u32 addr, bool row);
 
+  std::vector<u8> ConvertTextToBytes(Type type, QString input_text);
   void SetAddressSpace(AddressSpace::Type address_space);
   AddressSpace::Type GetAddressSpace() const;
   void SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view);
@@ -55,11 +61,6 @@ public:
   void SetAddress(u32 address);
 
   void SetBPLoggingEnabled(bool enabled);
-
-  void resizeEvent(QResizeEvent*) override;
-  void keyPressEvent(QKeyEvent* event) override;
-  void mousePressEvent(QMouseEvent* event) override;
-  void wheelEvent(QWheelEvent* event) override;
 
 signals:
   void BreakpointsChanged();
@@ -72,7 +73,11 @@ private:
   void OnCopyHex(u32 addr);
   void UpdateBreakpointTags();
   void UpdateColumns(Type type, int first_column);
+  void ScrollbarActionTriggered(int action);
+  void ScrollbarSliderReleased();
 
+  MemoryViewTable* m_table;
+  QScrollBar* m_scrollbar;
   AddressSpace::Type m_address_space{};
   Type m_type = Type::Hex32;
   BPType m_bp_type = BPType::ReadWrite;
@@ -83,4 +88,6 @@ private:
   int m_bytes_per_row = 16;
   int m_alignment = 16;
   bool m_dual_view = false;
+
+  friend class MemoryViewTable;
 };

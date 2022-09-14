@@ -55,7 +55,7 @@ void USBHost::UpdateWantDeterminism(const bool new_want_determinism)
 
 void USBHost::DoState(PointerWrap& p)
 {
-  if (IsOpened() && p.GetMode() == PointerWrap::MODE_READ)
+  if (IsOpened() && p.IsReadMode())
   {
     // After a state has loaded, there may be insertion hooks for devices that were
     // already plugged in, and which need to be triggered.
@@ -121,7 +121,7 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
 
   if (m_context.IsValid())
   {
-    m_context.GetDeviceList([&](libusb_device* device) {
+    const int ret = m_context.GetDeviceList([&](libusb_device* device) {
       libusb_device_descriptor descriptor;
       libusb_get_device_descriptor(device, &descriptor);
       if (whitelist.count({descriptor.idVendor, descriptor.idProduct}) == 0)
@@ -137,6 +137,8 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
         hooks.emplace(GetDeviceById(id), ChangeEvent::Inserted);
       return true;
     });
+    if (ret != LIBUSB_SUCCESS)
+      WARN_LOG_FMT(IOS_USB, "GetDeviceList failed: {}", LibusbUtils::ErrorWrap(ret));
   }
 #endif
   return true;

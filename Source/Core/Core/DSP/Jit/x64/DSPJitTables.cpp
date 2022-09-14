@@ -178,7 +178,7 @@ const std::array<JITOpInfo, 125> s_opcodes =
 
   // C-D
   {0xc000, 0xe700, &DSPEmitter::mulc},
-  {0xc100, 0xe700, &DSPEmitter::cmpar},
+  {0xc100, 0xe700, &DSPEmitter::cmpaxh},
   {0xc200, 0xe600, &DSPEmitter::mulcmvz},
   {0xc400, 0xe600, &DSPEmitter::mulcac},
   {0xc600, 0xe600, &DSPEmitter::mulcmv},

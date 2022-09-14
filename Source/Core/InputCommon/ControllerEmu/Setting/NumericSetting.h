@@ -20,13 +20,20 @@ enum class SettingType
   Bool,
 };
 
+enum class SettingVisibility
+{
+  Normal,
+  Advanced,
+};
+
 struct NumericSettingDetails
 {
   NumericSettingDetails(const char* const _ini_name, const char* const _ui_suffix = nullptr,
                         const char* const _ui_description = nullptr,
-                        const char* const _ui_name = nullptr)
+                        const char* const _ui_name = nullptr,
+                        SettingVisibility _visibility = SettingVisibility::Normal)
       : ini_name(_ini_name), ui_suffix(_ui_suffix), ui_description(_ui_description),
-        ui_name(_ui_name ? _ui_name : _ini_name)
+        ui_name(_ui_name ? _ui_name : _ini_name), visibility(_visibility)
   {
   }
 
@@ -41,6 +48,9 @@ struct NumericSettingDetails
 
   // The name used in the UI (if different from ini file).
   const char* const ui_name;
+
+  // Advanced settings should be harder to change in the UI. They might confuse users.
+  const SettingVisibility visibility;
 };
 
 class NumericSettingBase
@@ -66,9 +76,12 @@ public:
 
   virtual SettingType GetType() const = 0;
 
+  virtual void SetToDefault() = 0;
+
   const char* GetUIName() const;
   const char* GetUISuffix() const;
   const char* GetUIDescription() const;
+  SettingVisibility GetVisibility() const;
 
 protected:
   NumericSettingDetails m_details;
@@ -92,8 +105,10 @@ public:
       : NumericSettingBase(details), m_value(*value), m_default_value(default_value),
         m_min_value(min_value), m_max_value(max_value)
   {
-    m_value.SetValue(m_default_value);
+    SetToDefault();
   }
+
+  void SetToDefault() override { m_value.SetValue(m_default_value); }
 
   void LoadFromIni(const IniFile::Section& section, const std::string& group_name) override
   {

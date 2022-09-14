@@ -27,6 +27,7 @@ public:
       EFB_PEEK_Z,
       SWAP_EVENT,
       BBOX_READ,
+      FIFO_RESET,
       PERF_QUERY,
       DO_SAVE_STATE,
     } type;
@@ -61,6 +62,10 @@ public:
         int index;
         u16* data;
       } bbox;
+
+      struct
+      {
+      } fifo_reset;
 
       struct
       {

@@ -31,7 +31,8 @@ public:
 
 signals:
   void BreakpointsChanged();
-  void SelectedBreakpoint(u32 address);
+  void ShowCode(u32 address);
+  void ShowMemory(u32 address);
 
 protected:
   void closeEvent(QCloseEvent*) override;

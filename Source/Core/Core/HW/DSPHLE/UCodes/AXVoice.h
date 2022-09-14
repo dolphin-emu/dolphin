@@ -51,9 +51,9 @@ union AXBuffers
 {
   struct
   {
-    int* left;
-    int* right;
-    int* surround;
+    int* main_left;
+    int* main_right;
+    int* main_surround;
 
     int* auxA_left;
     int* auxA_right;
@@ -361,10 +361,10 @@ void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
 }
 
 // Add samples to an output buffer, with optional volume ramping.
-void MixAdd(int* out, const s16* input, u32 count, u16* pvol, s16* dpop, bool ramp)
+void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bool ramp)
 {
-  u16& volume = pvol[0];
-  u16 volume_delta = pvol[1];
+  u16& volume = vd->volume;
+  u16 volume_delta = vd->volume_delta;
 
   // If volume ramping is disabled, set volume_delta to 0. That way, the
   // mixing loop can avoid testing if volume ramping is enabled at each step,
@@ -411,8 +411,8 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
   // Apply a global volume ramp using the volume envelope parameters.
   for (u32 i = 0; i < count; ++i)
   {
-    samples[i] = std::clamp(((s32)samples[i] * pb.vol_env.cur_volume) >> 15, -32767,
-                            32767);  // -32768 ?
+    const s32 sample = ((s32)samples[i] * pb.vol_env.cur_volume) >> 15;
+    samples[i] = std::clamp(sample, -32767, 32767);  // -32768 ?
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }
 
@@ -428,43 +428,70 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 #define MIX_ON(C) (0 != (mctrl & MIX_##C))
 #define RAMP_ON(C) (0 != (mctrl & MIX_##C##_RAMP))
 
-  if (MIX_ON(L))
-    MixAdd(buffers.left, samples, count, &pb.mixer.left, &pb.dpop.left, RAMP_ON(L));
-  if (MIX_ON(R))
-    MixAdd(buffers.right, samples, count, &pb.mixer.right, &pb.dpop.right, RAMP_ON(R));
-  if (MIX_ON(S))
-    MixAdd(buffers.surround, samples, count, &pb.mixer.surround, &pb.dpop.surround, RAMP_ON(S));
+  if (MIX_ON(MAIN_L))
+  {
+    MixAdd(buffers.main_left, samples, count, &pb.mixer.main_left, &pb.dpop.main_left,
+           RAMP_ON(MAIN_L));
+  }
+  if (MIX_ON(MAIN_R))
+  {
+    MixAdd(buffers.main_right, samples, count, &pb.mixer.main_right, &pb.dpop.main_right,
+           RAMP_ON(MAIN_R));
+  }
+  if (MIX_ON(MAIN_S))
+  {
+    MixAdd(buffers.main_surround, samples, count, &pb.mixer.main_surround, &pb.dpop.main_surround,
+           RAMP_ON(MAIN_S));
+  }
 
   if (MIX_ON(AUXA_L))
+  {
     MixAdd(buffers.auxA_left, samples, count, &pb.mixer.auxA_left, &pb.dpop.auxA_left,
            RAMP_ON(AUXA_L));
+  }
   if (MIX_ON(AUXA_R))
+  {
     MixAdd(buffers.auxA_right, samples, count, &pb.mixer.auxA_right, &pb.dpop.auxA_right,
            RAMP_ON(AUXA_R));
+  }
   if (MIX_ON(AUXA_S))
+  {
     MixAdd(buffers.auxA_surround, samples, count, &pb.mixer.auxA_surround, &pb.dpop.auxA_surround,
            RAMP_ON(AUXA_S));
+  }
 
   if (MIX_ON(AUXB_L))
+  {
     MixAdd(buffers.auxB_left, samples, count, &pb.mixer.auxB_left, &pb.dpop.auxB_left,
            RAMP_ON(AUXB_L));
+  }
   if (MIX_ON(AUXB_R))
+  {
     MixAdd(buffers.auxB_right, samples, count, &pb.mixer.auxB_right, &pb.dpop.auxB_right,
            RAMP_ON(AUXB_R));
+  }
   if (MIX_ON(AUXB_S))
+  {
     MixAdd(buffers.auxB_surround, samples, count, &pb.mixer.auxB_surround, &pb.dpop.auxB_surround,
            RAMP_ON(AUXB_S));
+  }
 
 #ifdef AX_WII
   if (MIX_ON(AUXC_L))
+  {
     MixAdd(buffers.auxC_left, samples, count, &pb.mixer.auxC_left, &pb.dpop.auxC_left,
            RAMP_ON(AUXC_L));
+  }
   if (MIX_ON(AUXC_R))
+  {
     MixAdd(buffers.auxC_right, samples, count, &pb.mixer.auxC_right, &pb.dpop.auxC_right,
            RAMP_ON(AUXC_R));
+  }
   if (MIX_ON(AUXC_S))
+  {
     MixAdd(buffers.auxC_surround, samples, count, &pb.mixer.auxC_surround, &pb.dpop.auxC_surround,
            RAMP_ON(AUXC_S));
+  }
 #endif
 
 #undef MIX_ON

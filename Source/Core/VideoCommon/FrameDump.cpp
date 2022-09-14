@@ -28,7 +28,9 @@ extern "C" {
 #include "Common/ChunkFile.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -95,7 +97,17 @@ void InitAVCodec()
         // keep libav debug messages visible in release build of dolphin
         log_level = Common::Log::LogLevel::LINFO;
 
-      GENERIC_LOG_V(Common::Log::LogType::FRAMEDUMP, log_level, fmt, vl);
+      // Don't perform this formatting if the log level is disabled
+      auto* log_manager = Common::Log::LogManager::GetInstance();
+      if (log_manager != nullptr &&
+          log_manager->IsEnabled(Common::Log::LogType::FRAMEDUMP, log_level))
+      {
+        constexpr size_t MAX_MSGLEN = 1024;
+        char message[MAX_MSGLEN];
+        CharArrayFromFormatV(message, MAX_MSGLEN, fmt, vl);
+
+        GENERIC_LOG_FMT(Common::Log::LogType::FRAMEDUMP, log_level, "{}", message);
+      }
     });
 
     // TODO: We never call avformat_network_deinit.
@@ -470,7 +482,7 @@ void FrameDump::CloseVideoFile()
 
 void FrameDump::DoState(PointerWrap& p)
 {
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
     ++m_savestate_index;
 }
 

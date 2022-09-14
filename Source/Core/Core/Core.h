@@ -98,6 +98,8 @@ void Shutdown();
 
 void DeclareAsCPUThread();
 void UndeclareAsCPUThread();
+void DeclareAsGPUThread();
+void UndeclareAsGPUThread();
 
 std::string StopMessage(bool main_thread, std::string_view message);
 
@@ -124,7 +126,7 @@ void OnFrameEnd();
 
 void VideoThrottle();
 
-void UpdateTitle(u32 ElapseTime);
+void UpdateTitle(u64 elapsed_ms);
 
 // Run a function as the CPU thread.
 //

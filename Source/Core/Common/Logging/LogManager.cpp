@@ -4,6 +4,7 @@
 #include "Common/Logging/LogManager.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdarg>
 #include <cstring>
 #include <locale>
@@ -11,6 +12,7 @@
 #include <ostream>
 #include <string>
 
+#include <fmt/chrono.h>
 #include <fmt/format.h>
 
 #include "Common/CommonPaths.h"
@@ -19,12 +21,9 @@
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Common/Timer.h"
 
 namespace Common::Log
 {
-constexpr size_t MAX_MSGLEN = 1024;
-
 const Config::Info<bool> LOGGER_WRITE_TO_FILE{{Config::System::Logger, "Options", "WriteToFile"},
                                               false};
 const Config::Info<bool> LOGGER_WRITE_TO_CONSOLE{
@@ -61,40 +60,6 @@ private:
   std::ofstream m_logfile;
   bool m_enable;
 };
-
-void GenericLog(LogLevel level, LogType type, const char* file, int line, const char* fmt, ...)
-{
-  auto* instance = LogManager::GetInstance();
-  if (instance == nullptr)
-    return;
-
-  if (!instance->IsEnabled(type, level))
-    return;
-
-  va_list args;
-  va_start(args, fmt);
-  char message[MAX_MSGLEN];
-  CharArrayFromFormatV(message, MAX_MSGLEN, fmt, args);
-  va_end(args);
-
-  instance->Log(level, type, file, line, message);
-}
-
-void GenericLogV(LogLevel level, LogType type, const char* file, int line, const char* fmt,
-                 va_list args)
-{
-  auto* instance = LogManager::GetInstance();
-  if (instance == nullptr)
-    return;
-
-  if (!instance->IsEnabled(type, level))
-    return;
-
-  char message[MAX_MSGLEN];
-  CharArrayFromFormatV(message, MAX_MSGLEN, fmt, args);
-
-  instance->Log(level, type, file, line, message);
-}
 
 void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
                        fmt::string_view format, const fmt::format_args& args)
@@ -153,6 +118,7 @@ LogManager::LogManager()
   m_log[LogType::GDB_STUB] = {"GDB_STUB", "GDB Stub"};
   m_log[LogType::GPFIFO] = {"GP", "GatherPipe FIFO"};
   m_log[LogType::HOST_GPU] = {"Host GPU", "Host GPU"};
+  m_log[LogType::HSP] = {"HSP", "High-Speed Port (HSP)"};
   m_log[LogType::IOS] = {"IOS", "IOS"};
   m_log[LogType::IOS_DI] = {"IOS_DI", "IOS - Drive Interface"};
   m_log[LogType::IOS_ES] = {"IOS_ES", "IOS - ETicket Services"};
@@ -239,11 +205,23 @@ void LogManager::Log(LogLevel level, LogType type, const char* file, int line, c
   LogWithFullPath(level, type, file + m_path_cutoff_point, line, message);
 }
 
+std::string LogManager::GetTimestamp()
+{
+  // NOTE: the Qt LogWidget hardcodes the expected length of the timestamp portion of the log line,
+  // so ensure they stay in sync
+
+  // We want milliseconds *and not hours*, so can't directly use STL formatters
+  const auto now = std::chrono::system_clock::now();
+  const auto now_s = std::chrono::floor<std::chrono::seconds>(now);
+  const auto now_ms = std::chrono::floor<std::chrono::milliseconds>(now);
+  return fmt::format("{:%M:%S}:{:03}", now_s, (now_ms - now_s).count());
+}
+
 void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
                                  const char* message)
 {
   const std::string msg =
-      fmt::format("{} {}:{} {}[{}]: {}\n", Common::Timer::GetTimeFormatted(), file, line,
+      fmt::format("{} {}:{} {}[{}]: {}\n", GetTimestamp(), file, line,
                   LOG_LEVEL_TO_CHAR[static_cast<int>(level)], GetShortName(type), message);
 
   for (const auto listener_id : m_listener_ids)

@@ -13,4 +13,5 @@ extern const Info<bool> SESSION_LOAD_IPL_DUMP;
 extern const Info<bool> SESSION_GCI_FOLDER_CURRENT_GAME_ONLY;
 extern const Info<bool> SESSION_CODE_SYNC_OVERRIDE;
 extern const Info<bool> SESSION_SAVE_DATA_WRITABLE;
+extern const Info<bool> SESSION_SHOULD_FAKE_ERROR_001;
 }  // namespace Config

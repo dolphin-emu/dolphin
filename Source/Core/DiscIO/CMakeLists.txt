@@ -30,6 +30,8 @@ add_library(discio
   MultithreadedCompressor.h
   NANDImporter.cpp
   NANDImporter.h
+  NFSBlob.cpp
+  NFSBlob.h
   RiivolutionParser.cpp
   RiivolutionParser.h
   RiivolutionPatcher.cpp
@@ -73,7 +75,12 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
-  minizip
+  minizip-ng
   pugixml
   ZLIB::ZLIB
 )
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(discio PRIVATE use_pch)
+endif()

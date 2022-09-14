@@ -35,6 +35,9 @@
 #ifdef HAS_VULKAN
 #include "VideoBackends/Vulkan/VideoBackend.h"
 #endif
+#ifdef __APPLE__
+#include "VideoBackends/Metal/VideoBackend.h"
+#endif
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
@@ -215,10 +218,7 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     std::vector<std::unique_ptr<VideoBackendBase>> backends;
 
     // OGL > D3D11 > D3D12 > Vulkan > SW > Null
-    //
-    // On macOS Mojave and newer, we prefer Vulkan over OGL due to outdated drivers.
-    // However, on macOS High Sierra and older, we still prefer OGL due to its older Metal version
-    // missing several features required by the Vulkan backend.
+    // On macOS, we prefer Vulkan over OpenGL due to OpenGL support being deprecated by Apple.
 #ifdef HAS_OPENGL
     backends.push_back(std::make_unique<OGL::VideoBackend>());
 #endif
@@ -228,17 +228,12 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
 #endif
 #ifdef HAS_VULKAN
 #ifdef __APPLE__
-    // If we can run the Vulkan backend, emplace it at the beginning of the vector so
-    // it takes precedence over OpenGL.
-    if (__builtin_available(macOS 10.14, *))
-    {
-      backends.emplace(backends.begin(), std::make_unique<Vulkan::VideoBackend>());
-    }
-    else
+    // Emplace the Vulkan backend at the beginning so it takes precedence over OpenGL.
+    backends.emplace(backends.begin(), std::make_unique<Vulkan::VideoBackend>());
+    backends.push_back(std::make_unique<Metal::VideoBackend>());
+#else
+    backends.push_back(std::make_unique<Vulkan::VideoBackend>());
 #endif
-    {
-      backends.push_back(std::make_unique<Vulkan::VideoBackend>());
-    }
 #endif
 #ifdef HAS_OPENGL
     backends.push_back(std::make_unique<SW::VideoSoftware>());
@@ -272,11 +267,15 @@ void VideoBackendBase::ActivateBackend(const std::string& name)
 
 void VideoBackendBase::PopulateBackendInfo()
 {
-  // We refresh the config after initializing the backend info, as system-specific settings
-  // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
+  g_Config.Refresh();
+  // Reset backend_info so if the backend forgets to initialize something it doesn't end up using
+  // a value from the previously used renderer
+  g_Config.backend_info = {};
   ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
   g_video_backend->InitBackendInfo();
-  g_Config.Refresh();
+  // We validate the config after initializing the backend info, as system-specific settings
+  // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
+  g_Config.VerifyValidity();
 }
 
 void VideoBackendBase::PopulateBackendInfoFromUI()

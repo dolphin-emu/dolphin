@@ -187,11 +187,10 @@ private:
   u32 m_reverb_pb_base_addr = 0;
 };
 
-class ZeldaUCode : public UCodeInterface
+class ZeldaUCode final : public UCodeInterface
 {
 public:
   ZeldaUCode(DSPHLE* dsphle, u32 crc);
-  ~ZeldaUCode() override;
 
   void Initialize() override;
   void HandleMail(u32 mail) override;

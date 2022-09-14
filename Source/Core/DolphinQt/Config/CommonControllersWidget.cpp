@@ -36,7 +36,7 @@ void CommonControllersWidget::CreateLayout()
   m_common_box->setLayout(m_common_layout);
 
   auto* layout = new QVBoxLayout;
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
   layout->setAlignment(Qt::AlignTop);
   layout->addWidget(m_common_box);
   setLayout(layout);

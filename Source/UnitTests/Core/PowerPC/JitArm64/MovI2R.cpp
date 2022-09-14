@@ -79,6 +79,37 @@ TEST(JitArm64, MovI2R_Rand)
   }
 }
 
+// Construct and test every 64-bit logical immediate
+TEST(JitArm64, MovI2R_LogImm)
+{
+  TestMovI2R test;
+
+  for (unsigned size = 2; size <= 64; size *= 2)
+  {
+    for (unsigned length = 1; length < size; ++length)
+    {
+      u64 imm = ~u64{0} >> (64 - length);
+      for (unsigned e = size; e < 64; e *= 2)
+      {
+        imm |= imm << e;
+      }
+      for (unsigned rotation = 0; rotation < size; ++rotation)
+      {
+        test.Check64(imm);
+        EXPECT_EQ(static_cast<bool>(LogicalImm(imm, 64)), true);
+
+        if (size < 64)
+        {
+          test.Check32(imm);
+          EXPECT_EQ(static_cast<bool>(LogicalImm(static_cast<u32>(imm), 32)), true);
+        }
+
+        imm = (imm >> 63) | (imm << 1);
+      }
+    }
+  }
+}
+
 TEST(JitArm64, MovI2R_ADP)
 {
   TestMovI2R test;

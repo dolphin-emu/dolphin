@@ -168,11 +168,11 @@ enum class MessageID : u8
   TimeBase = 0xB0,
   DesyncDetected = 0xB1,
 
-  ComputeMD5 = 0xC0,
-  MD5Progress = 0xC1,
-  MD5Result = 0xC2,
-  MD5Abort = 0xC3,
-  MD5Error = 0xC4,
+  ComputeGameDigest = 0xC0,
+  GameDigestProgress = 0xC1,
+  GameDigestResult = 0xC2,
+  GameDigestAbort = 0xC3,
+  GameDigestError = 0xC4,
 
   Ready = 0xD0,
   NotReady = 0xD1,
@@ -257,9 +257,6 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
                                    const GBAConfigArray& gba_config,
                                    const PadMappingArray& wiimote_map);
 bool IsNetPlayRunning();
-// Precondition: A netplay client instance must be present. In other words,
-//               IsNetPlayRunning() must be true before calling this.
-const NetSettings& GetNetSettings();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
 bool IsSyncingAllWiiSaves();

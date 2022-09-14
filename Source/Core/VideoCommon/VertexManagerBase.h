@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/IndexGenerator.h"
@@ -173,7 +174,8 @@ protected:
 
   void CalculateZSlope(NativeVertexFormat* format);
   void CalculateBinormals(NativeVertexFormat* format);
-  void LoadTextures();
+
+  BitSet32 UsedTextures() const;
 
   u8* m_cur_buffer_pointer = nullptr;
   u8* m_base_buffer_pointer = nullptr;
@@ -210,6 +212,7 @@ private:
   // CPU access tracking
   u32 m_draw_counter = 0;
   u32 m_last_efb_copy_draw_counter = 0;
+  bool m_unflushed_efb_copy = false;
   std::vector<u32> m_cpu_accesses_this_frame;
   std::vector<u32> m_scheduled_command_buffer_kicks;
   bool m_allow_background_execution = true;

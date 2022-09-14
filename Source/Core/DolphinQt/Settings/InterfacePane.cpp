@@ -23,6 +23,7 @@
 #include "Core/Config/UISettings.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/GameFile.h"
@@ -237,21 +238,24 @@ void InterfacePane::ConnectLayout()
 
 void InterfacePane::LoadConfig()
 {
-  m_checkbox_use_builtin_title_database->setChecked(
-      Config::Get(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE));
-  m_checkbox_show_debugging_ui->setChecked(Settings::Instance().IsDebugModeEnabled());
-  m_combobox_language->setCurrentIndex(m_combobox_language->findData(
-      QString::fromStdString(Config::Get(Config::MAIN_INTERFACE_LANGUAGE))));
-  m_combobox_theme->setCurrentIndex(
-      m_combobox_theme->findText(QString::fromStdString(Config::Get(Config::MAIN_THEME_NAME))));
+  SignalBlocking(m_checkbox_use_builtin_title_database)
+      ->setChecked(Config::Get(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE));
+  SignalBlocking(m_checkbox_show_debugging_ui)
+      ->setChecked(Settings::Instance().IsDebugModeEnabled());
+  SignalBlocking(m_combobox_language)
+      ->setCurrentIndex(m_combobox_language->findData(
+          QString::fromStdString(Config::Get(Config::MAIN_INTERFACE_LANGUAGE))));
+  SignalBlocking(m_combobox_theme)
+      ->setCurrentIndex(
+          m_combobox_theme->findText(QString::fromStdString(Config::Get(Config::MAIN_THEME_NAME))));
 
   const QString userstyle = Settings::Instance().GetCurrentUserStyle();
   const int index = m_combobox_userstyle->findData(QFileInfo(userstyle).fileName());
 
   if (index > 0)
-    m_combobox_userstyle->setCurrentIndex(index);
+    SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
 
-  m_checkbox_use_userstyle->setChecked(Settings::Instance().AreUserStylesEnabled());
+  SignalBlocking(m_checkbox_use_userstyle)->setChecked(Settings::Instance().AreUserStylesEnabled());
 
   const bool visible = m_checkbox_use_userstyle->isChecked();
 
@@ -259,23 +263,28 @@ void InterfacePane::LoadConfig()
   m_label_userstyle->setVisible(visible);
 
   // Render Window Options
-  m_checkbox_top_window->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
-  m_checkbox_confirm_on_stop->setChecked(Config::Get(Config::MAIN_CONFIRM_ON_STOP));
-  m_checkbox_use_panic_handlers->setChecked(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
-  m_checkbox_enable_osd->setChecked(Config::Get(Config::MAIN_OSD_MESSAGES));
-  m_checkbox_show_active_title->setChecked(Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE));
-  m_checkbox_pause_on_focus_lost->setChecked(Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST));
-  m_checkbox_use_covers->setChecked(Config::Get(Config::MAIN_USE_GAME_COVERS));
-  m_checkbox_focused_hotkeys->setChecked(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
-  m_radio_cursor_visible_movement->setChecked(Settings::Instance().GetCursorVisibility() ==
-                                              Config::ShowCursor::OnMovement);
-  m_radio_cursor_visible_always->setChecked(Settings::Instance().GetCursorVisibility() ==
-                                            Config::ShowCursor::Constantly);
-  m_radio_cursor_visible_never->setChecked(Settings::Instance().GetCursorVisibility() ==
-                                           Config::ShowCursor::Never);
+  SignalBlocking(m_checkbox_top_window)
+      ->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
+  SignalBlocking(m_checkbox_confirm_on_stop)->setChecked(Config::Get(Config::MAIN_CONFIRM_ON_STOP));
+  SignalBlocking(m_checkbox_use_panic_handlers)
+      ->setChecked(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
+  SignalBlocking(m_checkbox_enable_osd)->setChecked(Config::Get(Config::MAIN_OSD_MESSAGES));
+  SignalBlocking(m_checkbox_show_active_title)
+      ->setChecked(Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE));
+  SignalBlocking(m_checkbox_pause_on_focus_lost)
+      ->setChecked(Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST));
+  SignalBlocking(m_checkbox_use_covers)->setChecked(Config::Get(Config::MAIN_USE_GAME_COVERS));
+  SignalBlocking(m_checkbox_focused_hotkeys)->setChecked(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
+  SignalBlocking(m_radio_cursor_visible_movement)
+      ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::OnMovement);
+  SignalBlocking(m_radio_cursor_visible_always)
+      ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Constantly);
+  SignalBlocking(m_radio_cursor_visible_never)
+      ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never);
 
-  m_checkbox_lock_mouse->setChecked(Settings::Instance().GetLockCursor());
-  m_checkbox_disable_screensaver->setChecked(Config::Get(Config::MAIN_DISABLE_SCREENSAVER));
+  SignalBlocking(m_checkbox_lock_mouse)->setChecked(Settings::Instance().GetLockCursor());
+  SignalBlocking(m_checkbox_disable_screensaver)
+      ->setChecked(Config::Get(Config::MAIN_DISABLE_SCREENSAVER));
 }
 
 void InterfacePane::OnSaveConfig()

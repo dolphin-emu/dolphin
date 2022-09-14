@@ -136,7 +136,7 @@ public:
   // More information on default handles: https://wiibrew.org/wiki/IOS/Syscalls
   enum DefaultHandle : u32
   {
-    // ECC-233 private signing key (per-console)
+    // NG private key. ECC-233 private signing key (per-console)
     HANDLE_CONSOLE_KEY = 0,
     // Console ID
     HANDLE_CONSOLE_ID = 1,
@@ -252,7 +252,7 @@ private:
     ExcludeRootKey,
   };
 
-  void LoadDefaultEntries(ConsoleType console_type);
+  void LoadDefaultEntries();
   void LoadEntries();
 
   KeyEntries::iterator FindFreeEntry();
@@ -265,12 +265,12 @@ private:
   ReturnCode DecryptEncrypt(Common::AES::Mode mode, Handle key_handle, u8* iv, const u8* input,
                             size_t size, u8* output, u32 pid) const;
 
+  ConsoleType m_console_type{ConsoleType::Retail};
   KeyEntries m_key_entries;
   KeyEntry m_root_key_entry;
   Common::ec::Signature m_console_signature{};
-  // Retail keyblob are issued by CA00000001. Default to 1 even though IOSC actually defaults to 2.
-  u32 m_ms_id = 2;
-  u32 m_ca_id = 1;
+  u32 m_ms_id = 0;
+  u32 m_ca_id = 0;
   u32 m_console_key_id = 0;
 };
 }  // namespace HLE

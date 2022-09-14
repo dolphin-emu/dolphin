@@ -15,13 +15,26 @@ class DSPHLE;
 // written back to RAM at the dest address provided in the crypto parameters.
 void ProcessGBACrypto(u32 address);
 
-struct GBAUCode : public UCodeInterface
+class GBAUCode final : public UCodeInterface
 {
+public:
   GBAUCode(DSPHLE* dsphle, u32 crc);
-  ~GBAUCode() override;
 
   void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
+  void DoState(PointerWrap& p) override;
+
+private:
+  static constexpr u32 REQUEST_MAIL = 0xabba0000;
+
+  enum class MailState
+  {
+    WaitingForRequest,
+    WaitingForAddress,
+    WaitingForNextTask,
+  };
+
+  MailState m_mail_state = MailState::WaitingForRequest;
 };
 }  // namespace DSP::HLE

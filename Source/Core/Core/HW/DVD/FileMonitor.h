@@ -4,14 +4,20 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-
-namespace DiscIO
-{
-struct Partition;
-class Volume;
-}  // namespace DiscIO
+#include "DiscIO/Volume.h"
 
 namespace FileMonitor
 {
-void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset);
-}
+class FileLogger
+{
+public:
+  FileLogger();
+  ~FileLogger();
+
+  void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset);
+
+private:
+  DiscIO::Partition m_previous_partition;
+  u64 m_previous_file_offset;
+};
+}  // namespace FileMonitor

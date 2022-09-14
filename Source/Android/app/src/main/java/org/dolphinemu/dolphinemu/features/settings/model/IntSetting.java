@@ -20,6 +20,7 @@ public enum IntSetting implements AbstractIntSetting
   MAIN_GC_LANGUAGE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SelectedLanguage", 0),
   MAIN_SLOT_A(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SlotA", 8),
   MAIN_SLOT_B(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SlotB", 255),
+  MAIN_SERIAL_PORT_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SerialPort1", 255),
   MAIN_FALLBACK_REGION(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "FallbackRegion", 2),
   MAIN_SI_DEVICE_0(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice0", 6),
   MAIN_SI_DEVICE_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice1", 0),
@@ -32,6 +33,7 @@ public enum IntSetting implements AbstractIntSetting
   MAIN_CONTROL_OPACITY(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlOpacity", 65),
   MAIN_EMULATION_ORIENTATION(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "EmulationOrientation", ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE),
+  MAIN_INTERFACE_THEME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "InterfaceTheme", 0),
   MAIN_LAST_PLATFORM_TAB(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "LastPlatformTab", 0),
   MAIN_MOTION_CONTROLS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "MotionControls", 1),
   MAIN_IR_MODE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "IRMode",
@@ -77,6 +79,7 @@ public enum IntSetting implements AbstractIntSetting
           MAIN_GC_LANGUAGE,
           MAIN_SLOT_A,  // Can actually be changed, but specific code is required
           MAIN_SLOT_B,  // Can actually be changed, but specific code is required
+          MAIN_SERIAL_PORT_1,
           MAIN_FALLBACK_REGION,
           MAIN_SI_DEVICE_0,  // Can actually be changed, but specific code is required
           MAIN_SI_DEVICE_1,  // Can actually be changed, but specific code is required

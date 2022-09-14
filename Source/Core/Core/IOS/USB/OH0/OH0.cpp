@@ -75,7 +75,7 @@ std::optional<IPCReply> OH0::IOCtlV(const IOCtlVRequest& request)
 
 void OH0::DoState(PointerWrap& p)
 {
-  if (p.GetMode() == PointerWrap::MODE_READ && !m_devices.empty())
+  if (p.IsReadMode() && !m_devices.empty())
   {
     Core::DisplayMessage("It is suggested that you unplug and replug all connected USB devices.",
                          5000);

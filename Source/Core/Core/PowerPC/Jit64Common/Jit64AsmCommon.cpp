@@ -65,7 +65,7 @@ void CommonAsmRoutines::GenConvertDoubleToSingle()
 
   // Don't Denormalize
 
-  if (cpu_info.bFastBMI2)
+  if (cpu_info.bBMI2FastParallelBitOps)
   {
     // Extract bits 0-1 and 5-34
     MOV(64, R(RSCRATCH), Imm64(0xc7ffffffe0000000));

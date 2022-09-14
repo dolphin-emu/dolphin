@@ -4,6 +4,7 @@
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
 #include <QCheckBox>
+#include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -164,8 +165,54 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     }
   }
 
+  AddSettingWidgets(form_layout, group, ControllerEmu::SettingVisibility::Normal);
+
+  if (group->default_value != ControllerEmu::ControlGroup::DefaultValue::AlwaysEnabled)
+  {
+    QLabel* group_enable_label = new QLabel(tr("Enable"));
+    QCheckBox* group_enable_checkbox = new QCheckBox();
+    group_enable_checkbox->setChecked(group->enabled);
+    form_layout->insertRow(0, group_enable_label, group_enable_checkbox);
+    auto enable_group_by_checkbox = [group, form_layout, group_enable_label,
+                                     group_enable_checkbox] {
+      group->enabled = group_enable_checkbox->isChecked();
+      for (int i = 0; i < form_layout->count(); ++i)
+      {
+        QWidget* widget = form_layout->itemAt(i)->widget();
+        if (widget != nullptr && widget != group_enable_label && widget != group_enable_checkbox)
+          widget->setEnabled(group->enabled);
+      }
+    };
+    enable_group_by_checkbox();
+    connect(group_enable_checkbox, &QCheckBox::toggled, this, enable_group_by_checkbox);
+    connect(this, &MappingWidget::ConfigChanged, this,
+            [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
+  }
+
+  const auto advanced_setting_count = std::count_if(
+      group->numeric_settings.begin(), group->numeric_settings.end(), [](auto& setting) {
+        return setting->GetVisibility() == ControllerEmu::SettingVisibility::Advanced;
+      });
+
+  if (advanced_setting_count != 0)
+  {
+    const auto advanced_button = new QPushButton(tr("Advanced"));
+    form_layout->addRow(advanced_button);
+    connect(advanced_button, &QPushButton::clicked,
+            [this, group] { ShowAdvancedControlGroupDialog(group); });
+  }
+
+  return group_box;
+}
+
+void MappingWidget::AddSettingWidgets(QFormLayout* layout, ControllerEmu::ControlGroup* group,
+                                      ControllerEmu::SettingVisibility visibility)
+{
   for (auto& setting : group->numeric_settings)
   {
+    if (setting->GetVisibility() != visibility)
+      continue;
+
     QWidget* setting_widget = nullptr;
 
     switch (setting->GetType())
@@ -192,33 +239,59 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
       hbox->addWidget(setting_widget);
       hbox->addWidget(CreateSettingAdvancedMappingButton(*setting));
 
-      form_layout->addRow(tr(setting->GetUIName()), hbox);
+      layout->addRow(tr(setting->GetUIName()), hbox);
     }
   }
+}
 
-  if (group->default_value != ControllerEmu::ControlGroup::DefaultValue::AlwaysEnabled)
-  {
-    QLabel* group_enable_label = new QLabel(tr("Enable"));
-    QCheckBox* group_enable_checkbox = new QCheckBox();
-    group_enable_checkbox->setChecked(group->enabled);
-    form_layout->insertRow(0, group_enable_label, group_enable_checkbox);
-    auto enable_group_by_checkbox = [group, form_layout, group_enable_label,
-                                     group_enable_checkbox] {
-      group->enabled = group_enable_checkbox->isChecked();
-      for (int i = 0; i < form_layout->count(); ++i)
-      {
-        QWidget* widget = form_layout->itemAt(i)->widget();
-        if (widget != nullptr && widget != group_enable_label && widget != group_enable_checkbox)
-          widget->setEnabled(group->enabled);
-      }
-    };
-    enable_group_by_checkbox();
-    connect(group_enable_checkbox, &QCheckBox::toggled, this, enable_group_by_checkbox);
-    connect(this, &MappingWidget::ConfigChanged, this,
-            [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
-  }
+void MappingWidget::ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* group)
+{
+  QDialog dialog{this};
+  dialog.setWindowTitle(tr(group->ui_name.c_str()));
 
-  return group_box;
+  const auto group_box = new QGroupBox(tr("Advanced Settings"));
+
+  QFormLayout* form_layout = new QFormLayout();
+
+  AddSettingWidgets(form_layout, group, ControllerEmu::SettingVisibility::Advanced);
+
+  const auto reset_button = new QPushButton(tr("Reset All"));
+  form_layout->addRow(reset_button);
+
+  connect(reset_button, &QPushButton::clicked, [this, group] {
+    for (auto& setting : group->numeric_settings)
+    {
+      if (setting->GetVisibility() != ControllerEmu::SettingVisibility::Advanced)
+        continue;
+
+      setting->SetToDefault();
+    }
+
+    emit ConfigChanged();
+  });
+
+  const auto main_layout = new QVBoxLayout();
+  const auto button_box = new QDialogButtonBox(QDialogButtonBox::Close);
+
+  group_box->setLayout(form_layout);
+
+  main_layout->addWidget(group_box);
+  main_layout->addWidget(button_box);
+
+  dialog.setLayout(main_layout);
+
+  // Focusing something else by default instead of the first spin box.
+  // Dynamically changing expression-backed settings pause when taking input.
+  // This just avoids that weird edge case behavior when the dialog is first open.
+  button_box->setFocus();
+
+  // Signal the newly created numeric setting widgets to display the current values.
+  emit ConfigChanged();
+
+  // Enable "Close" button functionality.
+  connect(button_box, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+  dialog.exec();
 }
 
 QGroupBox* MappingWidget::CreateControlsBox(const QString& name, ControllerEmu::ControlGroup* group,

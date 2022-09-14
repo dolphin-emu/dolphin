@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <functional>
 #include <string>
 #include <vector>
@@ -19,9 +20,15 @@ static const u32 NUM_STATES = 10;
 struct StateHeader
 {
   char gameID[6];
+  u16 reserved1;
   u32 size;
+  u32 reserved2;
   double time;
 };
+constexpr size_t STATE_HEADER_SIZE = sizeof(StateHeader);
+static_assert(STATE_HEADER_SIZE == 24);
+static_assert(offsetof(StateHeader, size) == 8);
+static_assert(offsetof(StateHeader, time) == 16);
 
 void Init();
 

@@ -115,6 +115,7 @@ set(ZSTD_SRCS
 )
 
 add_library(zstd STATIC ${ZSTD_SRCS} ${ZSTD_PUBLIC_HDRS} ${ZSTD_PRIVATE_HDRS})
+dolphin_disable_warnings_msvc(zstd)
 add_library(zstd::zstd ALIAS zstd)
 
 target_include_directories(zstd

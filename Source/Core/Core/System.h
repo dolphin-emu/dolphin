@@ -5,6 +5,21 @@
 
 #include <memory>
 
+class SoundStream;
+
+namespace AudioInterface
+{
+class AudioInterfaceState;
+};
+namespace DVDInterface
+{
+class DVDInterfaceState;
+}
+namespace DVDThread
+{
+class DVDThreadState;
+}
+
 namespace Core
 {
 // Central class that encapsulates the running system.
@@ -30,6 +45,17 @@ public:
 
   bool IsDualCoreMode() const { return m_separate_cpu_and_gpu_threads; }
   bool IsMMUMode() const { return m_mmu_enabled; }
+
+  SoundStream* GetSoundStream() const;
+  void SetSoundStream(std::unique_ptr<SoundStream> sound_stream);
+  bool IsSoundStreamRunning() const;
+  void SetSoundStreamRunning(bool running);
+  bool IsAudioDumpStarted() const;
+  void SetAudioDumpStarted(bool started);
+
+  AudioInterface::AudioInterfaceState& GetAudioInterfaceState() const;
+  DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
+  DVDThread::DVDThreadState& GetDVDThreadState() const;
 
 private:
   System();

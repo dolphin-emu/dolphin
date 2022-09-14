@@ -8,9 +8,8 @@
 #include <string>
 #include <vector>
 
-#include <mbedtls/sha1.h>
-
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
@@ -95,7 +94,7 @@ bool VolumeDisc::IsNKit() const
   return ReadSwapped<u32>(0x200, PARTITION_NONE) == NKIT_MAGIC;
 }
 
-void VolumeDisc::AddGamePartitionToSyncHash(mbedtls_sha1_context* context) const
+void VolumeDisc::AddGamePartitionToSyncHash(Common::SHA1::Context* context) const
 {
   const Partition partition = GetGamePartition();
 

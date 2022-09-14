@@ -61,7 +61,7 @@ public class RumbleBindingViewHolder extends SettingViewHolder
       return;
     }
 
-    getAdapter().onInputBindingClick(mItem, getAdapterPosition());
+    getAdapter().onInputBindingClick(mItem, getBindingAdapterPosition());
 
     setStyle(mTextSettingName, mItem);
   }

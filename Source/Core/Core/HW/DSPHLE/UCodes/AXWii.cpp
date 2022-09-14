@@ -30,10 +30,6 @@ AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_m
   m_old_axwii = (crc == 0xfa450138) || (crc == 0x7699af32);
 }
 
-AXWiiUCode::~AXWiiUCode()
-{
-}
-
 void AXWiiUCode::HandleCommandList()
 {
   // Temp variables for addresses computation
@@ -253,48 +249,17 @@ void AXWiiUCode::HandleCommandList()
 
 void AXWiiUCode::SetupProcessing(u32 init_addr)
 {
-  // TODO: should be easily factorizable with AX
-  s16 init_data[60];
-
-  for (u32 i = 0; i < 60; ++i)
-    init_data[i] = HLEMemory_Read_U16(init_addr + 2 * i);
-
-  // List of all buffers we have to initialize
-  struct
-  {
-    int* ptr;
-    u32 samples;
-  } buffers[] = {
-      {m_samples_left, 32},      {m_samples_right, 32},      {m_samples_surround, 32},
+  const std::array<BufferDesc, 20> buffers = {{
+      {m_samples_main_left, 32}, {m_samples_main_right, 32}, {m_samples_main_surround, 32},
       {m_samples_auxA_left, 32}, {m_samples_auxA_right, 32}, {m_samples_auxA_surround, 32},
       {m_samples_auxB_left, 32}, {m_samples_auxB_right, 32}, {m_samples_auxB_surround, 32},
       {m_samples_auxC_left, 32}, {m_samples_auxC_right, 32}, {m_samples_auxC_surround, 32},
 
       {m_samples_wm0, 6},        {m_samples_aux0, 6},        {m_samples_wm1, 6},
       {m_samples_aux1, 6},       {m_samples_wm2, 6},         {m_samples_aux2, 6},
-      {m_samples_wm3, 6},        {m_samples_aux3, 6}};
-
-  u32 init_idx = 0;
-  for (auto& buffer : buffers)
-  {
-    s32 init_val = (s32)((init_data[init_idx] << 16) | init_data[init_idx + 1]);
-    s16 delta = (s16)init_data[init_idx + 2];
-
-    init_idx += 3;
-
-    if (!init_val)
-    {
-      memset(buffer.ptr, 0, 3 * buffer.samples * sizeof(int));
-    }
-    else
-    {
-      for (u32 j = 0; j < 3 * buffer.samples; ++j)
-      {
-        buffer.ptr[j] = init_val;
-        init_val += delta;
-      }
-    }
-  }
+      {m_samples_wm3, 6},        {m_samples_aux3, 6},
+  }};
+  InitMixingBuffers<3 /*ms*/>(init_addr, buffers);
 }
 
 void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
@@ -306,8 +271,8 @@ void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
     if (neg)
       val = -val;
 
-    m_samples_left[i] += val;
-    m_samples_right[i] += val;
+    m_samples_main_left[i] += val;
+    m_samples_main_right[i] += val;
   }
 }
 
@@ -317,12 +282,12 @@ void AXWiiUCode::AddSubToLR(u32 val_addr)
   for (int i = 0; i < 32 * 3; ++i)
   {
     int val = (int)Common::swap32(*ptr++);
-    m_samples_left[i] += val;
+    m_samples_main_left[i] += val;
   }
   for (int i = 0; i < 32 * 3; ++i)
   {
     int val = (int)Common::swap32(*ptr++);
-    m_samples_right[i] -= val;
+    m_samples_main_right[i] -= val;
   }
 }
 
@@ -331,45 +296,45 @@ AXMixControl AXWiiUCode::ConvertMixerControl(u32 mixer_control)
   u32 ret = 0;
 
   if (mixer_control & 0x00000001)
-    ret |= MIX_L;
+    ret |= MIX_MAIN_L;
   if (mixer_control & 0x00000002)
-    ret |= MIX_R;
+    ret |= MIX_MAIN_R;
   if (mixer_control & 0x00000004)
-    ret |= MIX_L_RAMP | MIX_R_RAMP;
+    ret |= MIX_MAIN_L | MIX_MAIN_R | MIX_MAIN_L_RAMP | MIX_MAIN_R_RAMP;
   if (mixer_control & 0x00000008)
-    ret |= MIX_S;
+    ret |= MIX_MAIN_S;
   if (mixer_control & 0x00000010)
-    ret |= MIX_S_RAMP;
+    ret |= MIX_MAIN_S | MIX_MAIN_S_RAMP;
   if (mixer_control & 0x00010000)
     ret |= MIX_AUXA_L;
   if (mixer_control & 0x00020000)
     ret |= MIX_AUXA_R;
   if (mixer_control & 0x00040000)
-    ret |= MIX_AUXA_L_RAMP | MIX_AUXA_R_RAMP;
+    ret |= MIX_AUXA_L | MIX_AUXA_R | MIX_AUXA_L_RAMP | MIX_AUXA_R_RAMP;
   if (mixer_control & 0x00080000)
     ret |= MIX_AUXA_S;
   if (mixer_control & 0x00100000)
-    ret |= MIX_AUXA_S_RAMP;
+    ret |= MIX_AUXA_S | MIX_AUXA_S_RAMP;
   if (mixer_control & 0x00200000)
     ret |= MIX_AUXB_L;
   if (mixer_control & 0x00400000)
     ret |= MIX_AUXB_R;
   if (mixer_control & 0x00800000)
-    ret |= MIX_AUXB_L_RAMP | MIX_AUXB_R_RAMP;
+    ret |= MIX_AUXB_L | MIX_AUXB_R | MIX_AUXB_L_RAMP | MIX_AUXB_R_RAMP;
   if (mixer_control & 0x01000000)
     ret |= MIX_AUXB_S;
   if (mixer_control & 0x02000000)
-    ret |= MIX_AUXB_S_RAMP;
+    ret |= MIX_AUXB_S | MIX_AUXB_S_RAMP;
   if (mixer_control & 0x04000000)
     ret |= MIX_AUXC_L;
   if (mixer_control & 0x08000000)
     ret |= MIX_AUXC_R;
   if (mixer_control & 0x10000000)
-    ret |= MIX_AUXC_L_RAMP | MIX_AUXC_R_RAMP;
+    ret |= MIX_AUXC_L | MIX_AUXC_R | MIX_AUXC_L_RAMP | MIX_AUXC_R_RAMP;
   if (mixer_control & 0x20000000)
     ret |= MIX_AUXC_S;
   if (mixer_control & 0x40000000)
-    ret |= MIX_AUXC_S_RAMP;
+    ret |= MIX_AUXC_S | MIX_AUXC_S_RAMP;
 
   return (AXMixControl)ret;
 }
@@ -453,7 +418,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
 
   while (pb_addr)
   {
-    AXBuffers buffers = {{m_samples_left,      m_samples_right,      m_samples_surround,
+    AXBuffers buffers = {{m_samples_main_left, m_samples_main_right, m_samples_main_surround,
                           m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround,
                           m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround,
                           m_samples_auxC_left, m_samples_auxC_right, m_samples_auxC_surround,
@@ -498,9 +463,9 @@ void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 vo
   m_last_aux_volumes[aux_id] = volume;
 
   std::array<int*, 3> main_buffers{
-      m_samples_left,
-      m_samples_right,
-      m_samples_surround,
+      m_samples_main_left,
+      m_samples_main_right,
+      m_samples_main_surround,
   };
 
   std::array<const int*, 3> buffers{};
@@ -578,7 +543,8 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
   GenerateVolumeRamp(volume_ramp, m_last_aux_volumes[aux_id], volume, 96);
   m_last_aux_volumes[aux_id] = volume;
 
-  int* mix_dest[4] = {m_samples_left, m_samples_right, m_samples_surround, m_samples_auxC_left};
+  int* mix_dest[4] = {m_samples_main_left, m_samples_main_right, m_samples_main_surround,
+                      m_samples_auxC_left};
   for (u32 mix_i = 0; mix_i < 4; ++mix_i)
   {
     int* dl_ptr = (int*)HLEMemory_Get_Pointer(addresses[2 + mix_i]);
@@ -603,7 +569,7 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
   std::array<int, 3 * 32> upload_buffer{};
 
   for (size_t i = 0; i < upload_buffer.size(); ++i)
-    upload_buffer[i] = Common::swap32(m_samples_surround[i]);
+    upload_buffer[i] = Common::swap32(m_samples_main_surround[i]);
   memcpy(HLEMemory_Get_Pointer(surround_addr), upload_buffer.data(), sizeof(upload_buffer));
 
   if (upload_auxc)
@@ -617,22 +583,22 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
   // Clamp internal buffers to 16 bits.
   for (size_t i = 0; i < volume_ramp.size(); ++i)
   {
-    int left = m_samples_left[i];
-    int right = m_samples_right[i];
+    int left = m_samples_main_left[i];
+    int right = m_samples_main_right[i];
 
     // Apply global volume. Cast to s64 to avoid overflow.
     left = ((s64)left * volume_ramp[i]) >> 15;
     right = ((s64)right * volume_ramp[i]) >> 15;
 
-    m_samples_left[i] = std::clamp(left, -32767, 32767);
-    m_samples_right[i] = std::clamp(right, -32767, 32767);
+    m_samples_main_left[i] = std::clamp(left, -32767, 32767);
+    m_samples_main_right[i] = std::clamp(right, -32767, 32767);
   }
 
   std::array<s16, 3 * 32 * 2> buffer;
   for (size_t i = 0; i < 3 * 32; ++i)
   {
-    buffer[2 * i] = Common::swap16(m_samples_right[i]);
-    buffer[2 * i + 1] = Common::swap16(m_samples_left[i]);
+    buffer[2 * i] = Common::swap16(m_samples_main_right[i]);
+    buffer[2 * i + 1] = Common::swap16(m_samples_main_left[i]);
   }
 
   memcpy(HLEMemory_Get_Pointer(lr_addr), buffer.data(), sizeof(buffer));

@@ -64,8 +64,8 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
     else if (item instanceof StringSingleChoiceSetting)
     {
       StringSingleChoiceSetting setting = (StringSingleChoiceSetting) item;
-      String[] choices = setting.getChoicesId();
-      int valueIndex = setting.getSelectValueIndex(getAdapter().getSettings());
+      String[] choices = setting.getChoices();
+      int valueIndex = setting.getSelectedValueIndex(getAdapter().getSettings());
       if (valueIndex != -1)
         mTextSettingDescription.setText(choices[valueIndex]);
     }
@@ -98,7 +98,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
       return;
     }
 
-    int position = getAdapterPosition();
+    int position = getBindingAdapterPosition();
     if (mItem instanceof SingleChoiceSetting)
     {
       getAdapter().onSingleChoiceClick((SingleChoiceSetting) mItem, position);

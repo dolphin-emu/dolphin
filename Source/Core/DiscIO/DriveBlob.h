@@ -27,7 +27,7 @@ public:
 
   u64 GetRawSize() const override { return m_size; }
   u64 GetDataSize() const override { return m_size; }
-  bool IsDataSizeAccurate() const override { return true; }
+  DataSizeType GetDataSizeType() const override { return DataSizeType::Accurate; }
 
   u64 GetBlockSize() const override { return ECC_BLOCK_SIZE; }
   bool HasFastRandomAccessInBlock() const override { return false; }

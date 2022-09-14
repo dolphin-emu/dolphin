@@ -103,7 +103,8 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
             "}};\n");
 
   out.Write("struct VS_OUTPUT {{\n");
-  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "");
+  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "",
+                          ShaderStage::Geometry);
   out.Write("}};\n");
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
@@ -113,15 +114,14 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
 
     out.Write("VARYING_LOCATION(0) in VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
-                            GetInterpolationQualifier(msaa, ssaa, true, true));
+                            GetInterpolationQualifier(msaa, ssaa, true, true),
+                            ShaderStage::Geometry);
     out.Write("}} vs[{}];\n", vertex_in);
 
     out.Write("VARYING_LOCATION(0) out VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
-                            GetInterpolationQualifier(msaa, ssaa, true, false));
-
-    if (stereo)
-      out.Write("\tflat int layer;\n");
+                            GetInterpolationQualifier(msaa, ssaa, true, false),
+                            ShaderStage::Geometry);
 
     out.Write("}} ps;\n");
 
@@ -133,7 +133,10 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     out.Write("\tVS_OUTPUT o;\n");
 
     if (stereo)
+    {
       out.Write("\tuint layer : SV_RenderTargetArrayIndex;\n");
+    }
+    out.Write("\tfloat4 posout : SV_Position;\n");
 
     out.Write("}};\n");
 
@@ -216,7 +219,11 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
   if (wireframe)
     out.Write("\tVS_OUTPUT first;\n");
 
-  out.Write("\tfor (int i = 0; i < {}; ++i) {{\n", vertex_in);
+  // Avoid D3D warning about forced unrolling of single-iteration loop
+  if (vertex_in > 1)
+    out.Write("\tfor (int i = 0; i < {}; ++i) {{\n", vertex_in);
+  else
+    out.Write("\tint i = 0;\n");
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
@@ -307,7 +314,9 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     EmitVertex(out, host_config, uid_data, "f", api_type, wireframe, stereo, true);
   }
 
-  out.Write("\t}}\n");
+  // Only close loop if previous code was in one (See D3D warning above)
+  if (vertex_in > 1)
+    out.Write("\t}}\n");
 
   EndPrimitive(out, host_config, uid_data, api_type, wireframe, stereo);
 
@@ -344,14 +353,18 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
   else
   {
     out.Write("\tps.o = {};\n", vertex);
+    out.Write("\tps.posout = {}.pos;\n", vertex);
   }
 
   if (stereo)
   {
     // Select the output layer
-    out.Write("\tps.layer = eye;\n");
     if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
       out.Write("\tgl_Layer = eye;\n");
+    else
+    {
+      out.Write("\tps.layer = eye;\n");
+    }
   }
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)

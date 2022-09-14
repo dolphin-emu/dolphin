@@ -13,8 +13,6 @@
 
 class Mixer;
 
-extern std::unique_ptr<SoundStream> g_sound_stream;
-
 namespace AudioCommon
 {
 void InitSoundStream();

@@ -72,6 +72,7 @@ add_library(enet STATIC
         unix.c
         win32.c
     )
+dolphin_disable_warnings_msvc(enet)
 if(HAIKU)
   target_link_libraries(enet network)
 endif(HAIKU)

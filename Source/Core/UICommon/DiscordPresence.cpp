@@ -198,6 +198,22 @@ void Init()
 #endif
 }
 
+void UpdateClientID(const std::string& new_client)
+{
+#ifdef USE_DISCORD_PRESENCE
+  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    return;
+
+  s_using_custom_client = new_client.empty() || new_client.compare(DEFAULT_CLIENT_ID) != 0;
+
+  Shutdown();
+  if (s_using_custom_client)
+    Discord_Initialize(new_client.c_str(), nullptr, 0, nullptr);
+  else  // if initialising dolphin's client ID, make sure to restore event handlers
+    Init();
+#endif
+}
+
 void CallPendingCallbacks()
 {
 #ifdef USE_DISCORD_PRESENCE
@@ -216,6 +232,39 @@ void InitNetPlayFunctionality(Handler& handler)
 #endif
 }
 
+bool UpdateDiscordPresenceRaw(const std::string& details, const std::string& state,
+                              const std::string& large_image_key,
+                              const std::string& large_image_text,
+                              const std::string& small_image_key,
+                              const std::string& small_image_text, const int64_t start_timestamp,
+                              const int64_t end_timestamp, const int party_size,
+                              const int party_max)
+{
+#ifdef USE_DISCORD_PRESENCE
+  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    return false;
+
+  // only /dev/dolphin sets this, don't let homebrew change official client ID raw presence
+  if (!s_using_custom_client)
+    return false;
+
+  DiscordRichPresence discord_presence = {};
+  discord_presence.details = details.c_str();
+  discord_presence.state = state.c_str();
+  discord_presence.largeImageKey = large_image_key.c_str();
+  discord_presence.largeImageText = large_image_text.c_str();
+  discord_presence.smallImageKey = small_image_key.c_str();
+  discord_presence.smallImageText = small_image_text.c_str();
+  discord_presence.startTimestamp = start_timestamp;
+  discord_presence.endTimestamp = end_timestamp;
+  discord_presence.partySize = party_size;
+  discord_presence.partyMax = party_max;
+  Discord_UpdatePresence(&discord_presence);
+
+  return true;
+#endif
+}
+
 void UpdateDiscordPresence(int party_size, SecretType type, const std::string& secret,
                            const std::string& current_game)
 {
@@ -223,7 +272,12 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
+  // reset the client ID if running homebrew has changed it
+  if (s_using_custom_client)
+    UpdateClientID(DEFAULT_CLIENT_ID);
+
   const std::string& title = "v" + Common::GetScmRevStr() + " (Dolphin Emulator Fork)";
+  std::string game_artwork = ArtworkForGameId(SConfig::GetInstance().GetGameID());
 
   DiscordRichPresence discord_presence = {};
   discord_presence.largeImageKey = "primehack_logo";

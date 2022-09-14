@@ -72,13 +72,7 @@ struct SConfig
 
   void LoadDefaults();
   static std::string MakeGameID(std::string_view file_name);
-  // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
-  static DiscIO::Region ToGameCubeRegion(DiscIO::Region region);
-  // The region argument must be valid for GameCube (i.e. must not be NTSC-K)
-  static const char* GetDirectoryForRegion(DiscIO::Region region);
-  std::string GetBootROMPath(const std::string& region_directory) const;
   bool SetPathsAndGameMetadata(const BootParameters& boot);
-  static DiscIO::Region GetFallbackRegion();
   DiscIO::Language GetCurrentLanguage(bool wii) const;
   DiscIO::Language GetLanguageAdjustedForRegion(bool wii, DiscIO::Region region) const;
 

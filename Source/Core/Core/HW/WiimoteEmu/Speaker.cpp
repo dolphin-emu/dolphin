@@ -11,6 +11,7 @@
 #include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/System.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -141,12 +142,15 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
   const u32 l_volume = std::min(u32(std::min(1.f - speaker_pan, 1.f) * volume), 255u);
   const u32 r_volume = std::min(u32(std::min(1.f + speaker_pan, 1.f) * volume), 255u);
 
-  g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(l_volume, r_volume);
+  auto& system = Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+
+  sound_stream->GetMixer()->SetWiimoteSpeakerVolume(l_volume, r_volume);
 
   // ADPCM sample rate is thought to be x2.(3000 x2 = 6000).
   const unsigned int sample_rate = sample_rate_dividend / reg_data.sample_rate;
-  g_sound_stream->GetMixer()->PushWiimoteSpeakerSamples(samples.get(), sample_length,
-                                                        sample_rate * 2);
+  sound_stream->GetMixer()->PushWiimoteSpeakerSamples(
+      samples.get(), sample_length, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / (sample_rate * 2));
 
 #ifdef WIIMOTE_SPEAKER_DUMP
   static int num = 0;

@@ -17,3 +17,8 @@ PUBLIC
   common
   videocommon
 )
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(videonull PRIVATE use_pch)
+endif()

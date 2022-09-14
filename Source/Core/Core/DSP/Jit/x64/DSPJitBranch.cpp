@@ -304,7 +304,7 @@ void DSPEmitter::rti(const UDSPInstruction opc)
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
 void DSPEmitter::halt(const UDSPInstruction)
 {
-  OR(16, M_SDSP_cr(), Imm16(CR_HALT));
+  OR(16, M_SDSP_control_reg(), Imm16(CR_HALT));
   //	g_dsp.pc = dsp_reg_load_stack(StackRegister::Call);
   dsp_reg_load_stack(StackRegister::Call);
   MOV(16, M_SDSP_pc(), R(DX));
@@ -322,14 +322,14 @@ void DSPEmitter::HandleLoop()
   MOVZX(32, 16, ECX, M_SDSP_r_st(3));
 
   TEST(32, R(RCX), R(RCX));
-  FixupBranch rLoopCntG = J_CC(CC_LE, true);
+  FixupBranch rLoopCntG = J_CC(CC_E, true);
   CMP(16, R(RAX), Imm16(m_compile_pc - 1));
   FixupBranch rLoopAddrG = J_CC(CC_NE, true);
 
   SUB(16, M_SDSP_r_st(3), Imm16(1));
   CMP(16, M_SDSP_r_st(3), Imm16(0));
 
-  FixupBranch loadStack = J_CC(CC_LE, true);
+  FixupBranch loadStack = J_CC(CC_E, true);
   MOVZX(32, 16, ECX, M_SDSP_r_st(0));
   MOV(16, M_SDSP_pc(), R(RCX));
   FixupBranch loopUpdated = J(true);
@@ -358,8 +358,7 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 {
   u16 reg = opc & 0x1f;
   //	u16 cnt = g_dsp.r[reg];
-  // todo: check if we can use normal variant here
-  dsp_op_read_reg_dont_saturate(reg, RDX, RegisterExtension::Zero);
+  dsp_op_read_reg(reg, RDX, RegisterExtension::Zero);
   u16 loop_pc = m_compile_pc + 1;
 
   TEST(16, R(EDX), R(EDX));
@@ -429,8 +428,7 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 {
   const u16 reg = opc & 0x1f;
   //	u16 cnt = g_dsp.r[reg];
-  // todo: check if we can use normal variant here
-  dsp_op_read_reg_dont_saturate(reg, RDX, RegisterExtension::Zero);
+  dsp_op_read_reg(reg, RDX, RegisterExtension::Zero);
   const u16 loop_pc = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
 
   TEST(16, R(EDX), R(EDX));

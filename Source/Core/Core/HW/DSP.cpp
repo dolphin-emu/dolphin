@@ -33,6 +33,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
 
+#include "Core/HW/HSP/HSP.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -329,6 +330,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         s_dspState.DSPReset = tmpControl.DSPReset;
         s_dspState.DSPAssertInt = tmpControl.DSPAssertInt;
         s_dspState.DSPHalt = tmpControl.DSPHalt;
+        s_dspState.DSPInitCode = tmpControl.DSPInitCode;
         s_dspState.DSPInit = tmpControl.DSPInit;
 
         // Interrupt (mask)
@@ -345,7 +347,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           s_dspState.DSP = 0;
 
         // unknown
-        s_dspState.DSPInitCode = tmpControl.DSPInitCode;
         s_dspState.pad = tmpControl.pad;
         if (s_dspState.pad != 0)
         {
@@ -543,13 +544,11 @@ static void Do_ARAM_DMA()
         s_arDMA.Cnt.count -= 8;
       }
     }
-    else
+    else if (!s_ARAM.wii_mode)
     {
-      // Assuming no external ARAM installed; returns zeros on out of bounds reads (verified on real
-      // HW)
       while (s_arDMA.Cnt.count)
       {
-        Memory::Write_U64(0, s_arDMA.MMAddr);
+        Memory::Write_U64(HSP::Read(s_arDMA.ARAddr), s_arDMA.MMAddr);
         s_arDMA.MMAddr += 8;
         s_arDMA.ARAddr += 8;
         s_arDMA.Cnt.count -= 8;
@@ -596,13 +595,16 @@ static void Do_ARAM_DMA()
         s_arDMA.Cnt.count -= 8;
       }
     }
-    else
+    else if (!s_ARAM.wii_mode)
     {
-      // Assuming no external ARAM installed; writes nothing to ARAM when out of bounds (verified on
-      // real HW)
-      s_arDMA.MMAddr += s_arDMA.Cnt.count;
-      s_arDMA.ARAddr += s_arDMA.Cnt.count;
-      s_arDMA.Cnt.count = 0;
+      while (s_arDMA.Cnt.count)
+      {
+        HSP::Write(s_arDMA.ARAddr, Memory::Read_U64(s_arDMA.MMAddr));
+
+        s_arDMA.MMAddr += 8;
+        s_arDMA.ARAddr += 8;
+        s_arDMA.Cnt.count -= 8;
+      }
     }
   }
 }

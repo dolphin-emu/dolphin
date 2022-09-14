@@ -7,17 +7,37 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MemoryUtil.h"
 
+#include "Core/CoreTiming.h"
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Interpreter/DSPIntCCUtil.h"
 #include "Core/DSP/Interpreter/DSPIntTables.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
 
 namespace DSP::Interpreter
 {
-// Not needed for game ucodes (it slows down interpreter + easier to compare int VS
-// dspjit64 without it)
+// Correctly handle instructions such as `INC'L $ac0 : $ac0.l, @$ar0` (encoded as 0x7660) where both
+// the main opcode and the extension opcode modify the same register. See the "Extended opcodes"
+// section in the manual for more details.  No official uCode writes to the same register twice like
+// this, so we don't emulate it by default (and also don't support it in the recompiler).
+//
+// Dolphin only supports this behavior in the interpreter when PRECISE_BACKLOG is defined.
+// In ExecuteInstruction, if an extended opcode is in use, the extended opcode's behavior is
+// executed first, followed by the main opcode's behavior. The extended opcode does not directly
+// write to registers, but instead records the writes into a backlog (WriteToBackLog). The main
+// opcode calls ZeroWriteBackLog after it is done reading the register values; this directly
+// writes zero to all registers that have pending writes in the backlog. The main opcode then is
+// free to write directly to registers it changes. Afterwards, ApplyWriteBackLog bitwise-ors the
+// value of the register and the value in the backlog; if the main opcode didn't write to the
+// register then ZeroWriteBackLog means that the pending value is being or'd with zero, so it's
+// used without changes. When PRECISE_BACKLOG is not defined, ZeroWriteBackLog does nothing and
+// ApplyWriteBackLog overwrites the register value with the value from the backlog (so writes from
+// extended opcodes "win" over the main opcode).
 //#define PRECISE_BACKLOG
 
 Interpreter::Interpreter(DSPCore& dsp) : m_dsp_core{dsp}
@@ -66,7 +86,7 @@ int Interpreter::RunCyclesThread(int cycles)
 
   while (true)
   {
-    if ((state.cr & CR_HALT) != 0)
+    if ((state.control_reg & CR_HALT) != 0)
       return 0;
 
     if (state.external_interrupt_waiting.exchange(false, std::memory_order_acquire))
@@ -89,7 +109,7 @@ int Interpreter::RunCyclesDebug(int cycles)
   // First, let's run a few cycles with no idle skipping so that things can progress a bit.
   for (int i = 0; i < 8; i++)
   {
-    if ((state.cr & CR_HALT) != 0)
+    if ((state.control_reg & CR_HALT) != 0)
       return 0;
 
     if (m_dsp_core.BreakPoints().IsAddressBreakPoint(state.pc))
@@ -109,7 +129,7 @@ int Interpreter::RunCyclesDebug(int cycles)
     // idle loops.
     for (int i = 0; i < 8; i++)
     {
-      if ((state.cr & CR_HALT) != 0)
+      if ((state.control_reg & CR_HALT) != 0)
         return 0;
 
       if (m_dsp_core.BreakPoints().IsAddressBreakPoint(state.pc))
@@ -154,7 +174,7 @@ int Interpreter::RunCycles(int cycles)
   // progress a bit.
   for (int i = 0; i < 8; i++)
   {
-    if ((state.cr & CR_HALT) != 0)
+    if ((state.control_reg & CR_HALT) != 0)
       return 0;
 
     Step();
@@ -170,7 +190,7 @@ int Interpreter::RunCycles(int cycles)
     // idle loops.
     for (int i = 0; i < 8; i++)
     {
-      if ((state.cr & CR_HALT) != 0)
+      if ((state.control_reg & CR_HALT) != 0)
         return 0;
 
       if (state.GetAnalyzer().IsIdleSkip(state.pc))
@@ -197,8 +217,19 @@ int Interpreter::RunCycles(int cycles)
 }
 
 // NOTE: These have nothing to do with SDSP::r::cr!
-void Interpreter::WriteCR(u16 val)
+void Interpreter::WriteControlRegister(u16 val)
 {
+  auto& state = m_dsp_core.DSPState();
+
+  if ((state.control_reg & CR_HALT) != (val & CR_HALT))
+  {
+    // This bit is handled by Interpreter::RunCycles and DSPEmitter::CompileDispatcher
+    INFO_LOG_FMT(DSPLLE, "DSP_CONTROL halt bit changed: {:04x} -> {:04x}, PC {:04x}",
+                 state.control_reg, val, state.pc);
+  }
+
+  // The CR_EXTERNAL_INT bit is handled by DSPLLE::DSP_WriteControlRegister
+
   // reset
   if ((val & CR_RESET) != 0)
   {
@@ -206,34 +237,43 @@ void Interpreter::WriteCR(u16 val)
     m_dsp_core.Reset();
     val &= ~CR_RESET;
   }
-  // init
-  else if (val == CR_HALT)
+  // init - unclear if writing CR_INIT_CODE does something. Clearing CR_INIT immediately sets
+  // CR_INIT_CODE, which gets unset a bit later...
+  if (((state.control_reg & CR_INIT) != 0) && ((val & CR_INIT) == 0))
   {
-    // HAX!
-    // OSInitAudioSystem ucode should send this mail - not DSP core itself
     INFO_LOG_FMT(DSPLLE, "DSP_CONTROL INIT");
-    m_dsp_core.SetInitHax(true);
-    val |= CR_INIT;
+    // Copy 1024(?) bytes of uCode from main memory 0x81000000 (or is it ARAM 00000000?)
+    // to IMEM 0000 and jump to that code
+    // TODO: Determine exactly how this initialization works
+    state.pc = 0;
+
+    Common::UnWriteProtectMemory(state.iram, DSP_IRAM_BYTE_SIZE, false);
+    Host::DMAToDSP(state.iram, 0x81000000, 0x1000);
+    Common::WriteProtectMemory(state.iram, DSP_IRAM_BYTE_SIZE, false);
+
+    Host::CodeLoaded(m_dsp_core, 0x81000000, 0x1000);
+
+    val &= ~CR_INIT;
+    val |= CR_INIT_CODE;
+    // Number obtained from real hardware on a Wii, but it's not perfectly consistent
+    state.control_reg_init_code_clear_time = SystemTimers::GetFakeTimeBase() + 130;
   }
 
   // update cr
-  m_dsp_core.DSPState().cr = val;
+  state.control_reg = val;
 }
 
-u16 Interpreter::ReadCR()
+u16 Interpreter::ReadControlRegister()
 {
   auto& state = m_dsp_core.DSPState();
-
-  if ((state.pc & 0x8000) != 0)
+  if ((state.control_reg & CR_INIT_CODE) != 0)
   {
-    state.cr |= CR_INIT;
+    if (SystemTimers::GetFakeTimeBase() >= state.control_reg_init_code_clear_time)
+      state.control_reg &= ~CR_INIT_CODE;
+    else
+      CoreTiming::ForceExceptionCheck(50);  // Keep checking
   }
-  else
-  {
-    state.cr &= ~CR_INIT;
-  }
-
-  return state.cr;
+  return state.control_reg;
 }
 
 void Interpreter::SetSRFlag(u16 flag)
@@ -685,31 +725,29 @@ u16 Interpreter::OpReadRegister(int reg_)
     return state.r.ac[reg - DSP_REG_ACL0].l;
   case DSP_REG_ACM0:
   case DSP_REG_ACM1:
+  {
+    // Saturate reads from $ac0.m or $ac1.m if that mode is enabled.
+    if (IsSRFlagSet(SR_40_MODE_BIT))
+    {
+      const s64 acc = GetLongAcc(reg - DSP_REG_ACM0);
+
+      if (acc != static_cast<s32>(acc))
+      {
+        if (acc > 0)
+          return 0x7fff;
+        else
+          return 0x8000;
+      }
+
+      return state.r.ac[reg - DSP_REG_ACM0].m;
+    }
+
     return state.r.ac[reg - DSP_REG_ACM0].m;
+  }
   default:
     ASSERT_MSG(DSPLLE, 0, "cannot happen");
     return 0;
   }
-}
-
-u16 Interpreter::OpReadRegisterAndSaturate(int reg) const
-{
-  if (IsSRFlagSet(SR_40_MODE_BIT))
-  {
-    const s64 acc = GetLongAcc(reg);
-
-    if (acc != static_cast<s32>(acc))
-    {
-      if (acc > 0)
-        return 0x7fff;
-      else
-        return 0x8000;
-    }
-
-    return m_dsp_core.DSPState().r.ac[reg].m;
-  }
-
-  return m_dsp_core.DSPState().r.ac[reg].m;
 }
 
 void Interpreter::OpWriteRegister(int reg_, u16 val)
@@ -809,7 +847,7 @@ void Interpreter::ConditionalExtendAccum(int reg)
 void Interpreter::ApplyWriteBackLog()
 {
   // Always make sure to have an extra entry at the end w/ -1 to avoid
-  // infinitive loops
+  // infinite loops
   for (int i = 0; m_write_back_log_idx[i] != -1; i++)
   {
     u16 value = m_write_back_log[i];
@@ -823,6 +861,11 @@ void Interpreter::ApplyWriteBackLog()
   }
 }
 
+// The ext ops are calculated in parallel with the actual op. That means that
+// both the main op and the ext op see the same register state as input. The
+// output is simple as long as the main and ext ops don't change the same
+// register. If they do the output is the bitwise OR of the result of both the
+// main and ext ops.
 void Interpreter::WriteToBackLog(int i, int idx, u16 value)
 {
   m_write_back_log[i] = value;
@@ -840,7 +883,7 @@ void Interpreter::ZeroWriteBackLog()
 {
 #ifdef PRECISE_BACKLOG
   // always make sure to have an extra entry at the end w/ -1 to avoid
-  // infinitive loops
+  // infinite loops
   for (int i = 0; m_write_back_log_idx[i] != -1; i++)
   {
     OpWriteRegister(m_write_back_log_idx[i], 0);

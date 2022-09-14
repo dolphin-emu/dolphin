@@ -5,14 +5,15 @@
 
 #include <future>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include <mbedtls/md5.h>
-#include <mbedtls/sha1.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/DiscScrubber.h"
 #include "DiscIO/Volume.h"
@@ -126,6 +127,7 @@ public:
   VolumeVerifier(const Volume& volume, bool redump_verification, Hashes<bool> hashes_to_calculate);
   ~VolumeVerifier();
 
+  static Hashes<bool> GetDefaultHashesToCalculate();
   void Start();
   void Process();
   u64 GetBytesProcessed() const;
@@ -174,7 +176,7 @@ private:
   bool m_calculating_any_hash = false;
   u32 m_crc32_context = 0;
   mbedtls_md5_context m_md5_context{};
-  mbedtls_sha1_context m_sha1_context{};
+  std::unique_ptr<Common::SHA1::Context> m_sha1_context;
 
   u64 m_excess_bytes = 0;
   std::vector<u8> m_data;
@@ -200,6 +202,7 @@ private:
   bool m_done = false;
   u64 m_progress = 0;
   u64 m_max_progress = 0;
+  DataSizeType m_data_size_type;
 };
 
 }  // namespace DiscIO

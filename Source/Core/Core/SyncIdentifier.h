@@ -34,10 +34,15 @@ struct SyncIdentifier
   bool operator!=(const SyncIdentifier& s) const { return !operator==(s); }
 };
 
-enum class SyncIdentifierComparison
+// The order of entries in this enum matters, as the lowest value is
+// treated as the "best" available option.
+enum class SyncIdentifierComparison : u8
 {
   SameGame,
-  DifferentVersion,
+  DifferentHash,
+  DifferentDiscNumber,
+  DifferentRevision,
+  DifferentRegion,
   DifferentGame,
   Unknown,
 };

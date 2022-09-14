@@ -69,6 +69,14 @@ jclass GetPatchCheatClass();
 jfieldID GetPatchCheatPointer();
 jmethodID GetPatchCheatConstructor();
 
+jclass GetGraphicsModGroupClass();
+jfieldID GetGraphicsModGroupPointer();
+jmethodID GetGraphicsModGroupConstructor();
+
+jclass GetGraphicsModClass();
+jfieldID GetGraphicsModPointer();
+jmethodID GetGraphicsModConstructor();
+
 jclass GetRiivolutionPatchesClass();
 jfieldID GetRiivolutionPatchesPointer();
 

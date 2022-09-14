@@ -42,6 +42,8 @@ std::unique_lock<std::recursive_mutex> EmulatedController::GetStateLock()
 
 void EmulatedController::UpdateReferences(const ControllerInterface& devi)
 {
+  std::scoped_lock lk(s_get_state_mutex, devi.GetDevicesMutex());
+
   m_default_device_is_connected = devi.HasConnectedDevice(m_default_device);
 
   ciface::ExpressionParser::ControlEnvironment env(devi, GetDefaultDevice(), m_expression_vars);
@@ -140,6 +142,7 @@ void EmulatedController::SetDefaultDevice(ciface::Core::DeviceQualifier devq)
 
 void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& base)
 {
+  const auto lock = GetStateLock();
   std::string defdev = GetDefaultDevice().ToString();
   if (base.empty())
   {
@@ -153,6 +156,7 @@ void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& ba
 
 void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& base)
 {
+  const auto lock = GetStateLock();
   const std::string defdev = GetDefaultDevice().ToString();
   if (base.empty())
     sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
@@ -163,6 +167,7 @@ void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& ba
 
 void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
 {
+  const auto lock = GetStateLock();
   // load an empty inifile section, clears everything
   IniFile::Section sec;
   LoadConfig(&sec);

@@ -14,24 +14,24 @@ public class StringSingleChoiceSetting extends SettingsItem
 {
   private AbstractStringSetting mSetting;
 
-  private String[] mChoicesId;
-  private String[] mValuesId;
+  private String[] mChoices;
+  private String[] mValues;
   private MenuTag mMenuTag;
 
   public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
-          int descriptionId, String[] choicesId, String[] valuesId, MenuTag menuTag)
+          int descriptionId, String[] choices, String[] values, MenuTag menuTag)
   {
     super(context, titleId, descriptionId);
     mSetting = setting;
-    mChoicesId = choicesId;
-    mValuesId = valuesId;
+    mChoices = choices;
+    mValues = values;
     mMenuTag = menuTag;
   }
 
   public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
-          int descriptionId, String[] choicesId, String[] valuesId)
+          int descriptionId, String[] choices, String[] values)
   {
-    this(context, setting, titleId, descriptionId, choicesId, valuesId, null);
+    this(context, setting, titleId, descriptionId, choices, values, null);
   }
 
   public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
@@ -39,8 +39,8 @@ public class StringSingleChoiceSetting extends SettingsItem
   {
     super(context, titleId, descriptionId);
     mSetting = setting;
-    mChoicesId = DolphinApplication.getAppContext().getResources().getStringArray(choicesId);
-    mValuesId = DolphinApplication.getAppContext().getResources().getStringArray(valuesId);
+    mChoices = DolphinApplication.getAppContext().getResources().getStringArray(choicesId);
+    mValues = DolphinApplication.getAppContext().getResources().getStringArray(valuesId);
     mMenuTag = menuTag;
   }
 
@@ -50,24 +50,24 @@ public class StringSingleChoiceSetting extends SettingsItem
     this(context, setting, titleId, descriptionId, choicesId, valuesId, null);
   }
 
-  public String[] getChoicesId()
+  public String[] getChoices()
   {
-    return mChoicesId;
+    return mChoices;
   }
 
-  public String[] getValuesId()
+  public String[] getValues()
   {
-    return mValuesId;
+    return mValues;
   }
 
   public String getValueAt(int index)
   {
-    if (mValuesId == null)
+    if (mValues == null)
       return null;
 
-    if (index >= 0 && index < mValuesId.length)
+    if (index >= 0 && index < mValues.length)
     {
-      return mValuesId[index];
+      return mValues[index];
     }
 
     return "";
@@ -78,12 +78,12 @@ public class StringSingleChoiceSetting extends SettingsItem
     return mSetting.getString(settings);
   }
 
-  public int getSelectValueIndex(Settings settings)
+  public int getSelectedValueIndex(Settings settings)
   {
     String selectedValue = getSelectedValue(settings);
-    for (int i = 0; i < mValuesId.length; i++)
+    for (int i = 0; i < mValues.length; i++)
     {
-      if (mValuesId[i].equals(selectedValue))
+      if (mValues[i].equals(selectedValue))
       {
         return i;
       }

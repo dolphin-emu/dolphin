@@ -13,9 +13,12 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.ViewCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.slidingpanelayout.widget.SlidingPaneLayout;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.cheats.model.Cheat;
@@ -24,6 +27,7 @@ import org.dolphinemu.dolphinemu.features.cheats.model.GeckoCheat;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.ui.TwoPaneOnBackPressedCallback;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
 public class CheatsActivity extends AppCompatActivity
         implements SlidingPaneLayout.PanelSlideListener
@@ -60,6 +64,8 @@ public class CheatsActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
+    ThemeHelper.setTheme(this);
+
     super.onCreate(savedInstanceState);
 
     MainPresenter.skipRescanningLibrary();
@@ -94,7 +100,8 @@ public class CheatsActivity extends AppCompatActivity
 
     mViewModel.getOpenDetailsViewEvent().observe(this, this::openDetailsView);
 
-    // show up button
+    Toolbar tb = findViewById(R.id.toolbar_cheats);
+    setSupportActionBar(tb);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
@@ -191,10 +198,10 @@ public class CheatsActivity extends AppCompatActivity
 
   public void downloadGeckoCodes()
   {
-    AlertDialog progressDialog = new AlertDialog.Builder(this, R.style.DolphinDialogBase).create();
-    progressDialog.setTitle(R.string.cheats_downloading);
-    progressDialog.setCancelable(false);
-    progressDialog.show();
+    AlertDialog progressDialog = new MaterialAlertDialogBuilder(this)
+            .setMessage(R.string.cheats_downloading)
+            .setCancelable(false)
+            .show();
 
     new Thread(() ->
     {
@@ -206,14 +213,14 @@ public class CheatsActivity extends AppCompatActivity
 
         if (codes == null)
         {
-          new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+          new MaterialAlertDialogBuilder(this)
                   .setMessage(getString(R.string.cheats_download_failed))
                   .setPositiveButton(R.string.ok, null)
                   .show();
         }
         else if (codes.length == 0)
         {
-          new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+          new MaterialAlertDialogBuilder(this)
                   .setMessage(getString(R.string.cheats_download_empty))
                   .setPositiveButton(R.string.ok, null)
                   .show();
@@ -223,7 +230,7 @@ public class CheatsActivity extends AppCompatActivity
           int cheatsAdded = mViewModel.addDownloadedGeckoCodes(codes);
           String message = getString(R.string.cheats_download_succeeded, codes.length, cheatsAdded);
 
-          new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+          new MaterialAlertDialogBuilder(this)
                   .setMessage(message)
                   .setPositiveButton(R.string.ok, null)
                   .show();

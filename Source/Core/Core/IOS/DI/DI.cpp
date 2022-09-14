@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -131,6 +132,16 @@ std::optional<DIDevice::DIResult> DIDevice::WriteIfFits(const IOCtlRequest& requ
     return DIResult::Success;
   }
 }
+
+namespace
+{
+struct DiscRange
+{
+  u32 start;
+  u32 end;
+  bool is_error_001_range;
+};
+}  // namespace
 
 std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& request)
 {
@@ -315,20 +326,31 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     // (start, end) as 32-bit offsets
     // Older IOS versions only accept the first range.  Later versions added the extra ranges to
     // check how the drive responds to out of bounds reads (an error 001 check).
-    constexpr std::array<std::pair<u32, u32>, 3> valid_ranges = {
-        std::make_pair(0, 0x14000),  // "System area"
-        std::make_pair(0x460A0000, 0x460A0008),
-        std::make_pair(0x7ED40000, 0x7ED40008),
+    constexpr std::array<DiscRange, 3> valid_ranges = {
+        DiscRange{0, 0x14000, false},  // "System area"
+        DiscRange{0x460A0000, 0x460A0008, true},
+        DiscRange{0x7ED40000, 0x7ED40008, true},
     };
     for (auto range : valid_ranges)
     {
-      if (range.first <= position && position <= range.second && range.first <= end &&
-          end <= range.second)
+      if (range.start <= position && position <= range.end && range.start <= end &&
+          end <= range.end)
       {
         DICMDBUF0 = 0xA8000000;
         DICMDBUF1 = position;
         DICMDBUF2 = length;
-        return StartDMATransfer(length, request);
+        if (range.is_error_001_range && Config::Get(Config::SESSION_SHOULD_FAKE_ERROR_001))
+        {
+          DIMAR = request.buffer_out;
+          m_last_length = length;
+          DILENGTH = length;
+          DVDInterface::ForceOutOfBoundsRead(DVDInterface::ReplyType::IOS);
+          return {};
+        }
+        else
+        {
+          return StartDMATransfer(length, request);
+        }
       }
     }
     WARN_LOG_FMT(IOS_DI, "DVDLowUnencryptedRead: trying to read from an illegal region!");

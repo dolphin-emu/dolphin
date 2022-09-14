@@ -158,6 +158,10 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
     *e.bbox.data = g_renderer->BBoxRead(e.bbox.index);
     break;
 
+  case Event::FIFO_RESET:
+    Fifo::ResetVideoBuffer();
+    break;
+
   case Event::PERF_QUERY:
     g_perf_query->FlushResults();
     break;

@@ -50,8 +50,7 @@ int TexDecoder_GetTexelSizeInNibbles(TextureFormat format)
   case TextureFormat::XFB:
     return 4;
   default:
-    PanicAlertFmt("Invalid Texture Format ({:#X})! (GetTexelSizeInNibbles)",
-                  static_cast<int>(format));
+    PanicAlertFmt("Invalid Texture Format {}! (GetTexelSizeInNibbles)", format);
     return 1;
   }
 }
@@ -90,8 +89,7 @@ int TexDecoder_GetBlockWidthInTexels(TextureFormat format)
   case TextureFormat::XFB:
     return 16;
   default:
-    PanicAlertFmt("Invalid Texture Format ({:#X})! (GetBlockWidthInTexels)",
-                  static_cast<int>(format));
+    PanicAlertFmt("Invalid Texture Format {}! (GetBlockWidthInTexels)", format);
     return 8;
   }
 }
@@ -125,8 +123,7 @@ int TexDecoder_GetBlockHeightInTexels(TextureFormat format)
   case TextureFormat::XFB:
     return 1;
   default:
-    PanicAlertFmt("Invalid Texture Format ({:#X})! (GetBlockHeightInTexels)",
-                  static_cast<int>(format));
+    PanicAlertFmt("Invalid Texture Format {}! (GetBlockHeightInTexels)", format);
     return 4;
   }
 }
@@ -160,8 +157,7 @@ int TexDecoder_GetEFBCopyBlockWidthInTexels(EFBCopyFormat format)
   case EFBCopyFormat::XFB:
     return 16;
   default:
-    PanicAlertFmt("Invalid EFB Copy Format ({:#X})! (GetEFBCopyBlockWidthInTexels)",
-                  static_cast<int>(format));
+    PanicAlertFmt("Invalid EFB Copy Format {}! (GetEFBCopyBlockWidthInTexels)", format);
     return 8;
   }
 }
@@ -195,8 +191,7 @@ int TexDecoder_GetEFBCopyBlockHeightInTexels(EFBCopyFormat format)
   case EFBCopyFormat::XFB:
     return 1;
   default:
-    PanicAlertFmt("Invalid EFB Copy Format ({:#X})! (GetEFBCopyBlockHeightInTexels)",
-                  static_cast<int>(format));
+    PanicAlertFmt("Invalid EFB Copy Format {}! (GetEFBCopyBlockHeightInTexels)", format);
     return 4;
   }
 }
@@ -247,8 +242,7 @@ TextureFormat TexDecoder_GetEFBCopyBaseFormat(EFBCopyFormat format)
   case EFBCopyFormat::XFB:
     return TextureFormat::XFB;
   default:
-    PanicAlertFmt("Invalid EFB Copy Format ({:#X})! (GetEFBCopyBaseFormat)",
-                  static_cast<int>(format));
+    PanicAlertFmt("Invalid EFB Copy Format {}! (GetEFBCopyBaseFormat)", format);
     return static_cast<TextureFormat>(format);
   }
 }
@@ -258,77 +252,6 @@ void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center)
   TexFmt_Overlay_Enable = enable;
   TexFmt_Overlay_Center = center;
 }
-
-static const char* texfmt[] = {
-    // pixel
-    "I4",
-    "I8",
-    "IA4",
-    "IA8",
-    "RGB565",
-    "RGB5A3",
-    "RGBA8",
-    "0x07",
-    "C4",
-    "C8",
-    "C14X2",
-    "0x0B",
-    "0x0C",
-    "0x0D",
-    "CMPR",
-    "0x0F",
-    // Z-buffer
-    "0x10",
-    "Z8",
-    "0x12",
-    "Z16",
-    "0x14",
-    "0x15",
-    "Z24X8",
-    "0x17",
-    "0x18",
-    "0x19",
-    "0x1A",
-    "0x1B",
-    "0x1C",
-    "0x1D",
-    "0x1E",
-    "0x1F",
-    // pixel + copy
-    "CR4",
-    "0x21",
-    "CRA4",
-    "CRA8",
-    "0x24",
-    "0x25",
-    "CYUVA8",
-    "CA8",
-    "CR8",
-    "CG8",
-    "CB8",
-    "CRG8",
-    "CGB8",
-    "0x2D",
-    "0x2E",
-    "XFB",
-    // Z + copy
-    "CZ4",
-    "0x31",
-    "0x32",
-    "0x33",
-    "0x34",
-    "0x35",
-    "0x36",
-    "0x37",
-    "0x38",
-    "CZ8M",
-    "CZ8L",
-    "0x3B",
-    "CZ16L",
-    "0x3D",
-    "0x3E",
-    "0x3F",
-};
 
 static void TexDecoder_DrawOverlay(u8* dst, int width, int height, TextureFormat texformat)
 {
@@ -344,11 +267,11 @@ static void TexDecoder_DrawOverlay(u8* dst, int width, int height, TextureFormat
     yoff = 0;
   }
 
-  const char* fmt = texfmt[static_cast<int>(texformat) & 15];
-  while (*fmt)
+  const auto fmt_str = fmt::to_string(texformat);
+  for (char ch : fmt_str)
   {
     int xcnt = 0;
-    int nchar = sfont_map[(int)*fmt];
+    int nchar = sfont_map[ch];
 
     const unsigned char* ptr = sfont_raw[nchar];  // each char is up to 9x10
 
@@ -369,7 +292,6 @@ static void TexDecoder_DrawOverlay(u8* dst, int width, int height, TextureFormat
       ptr += 9;
     }
     xoff += xcnt;
-    fmt++;
   }
 }
 
@@ -707,6 +629,8 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
 
     // We do the inverse BT.601 conversion for YCbCr to RGB
     // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+    // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB isn't
+    // in a real texture format, so does this conversion actually ever happen?)
     u8 R = std::clamp(int(1.164f * Y + 1.596f * V), 0, 255);
     u8 G = std::clamp(int(1.164f * Y - 0.392f * U - 0.813f * V), 0, 255);
     u8 B = std::clamp(int(1.164f * Y + 2.017f * U), 0, 255);
@@ -772,6 +696,8 @@ void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 str
 
       // We do the inverse BT.601 conversion for YCbCr to RGB
       // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+      // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB
+      // isn't in a real texture format, so does this conversion actually ever happen?)
       u8 R1 = static_cast<u8>(std::clamp(int(1.164f * Y1 + 1.596f * V), 0, 255));
       u8 G1 = static_cast<u8>(std::clamp(int(1.164f * Y1 - 0.392f * U - 0.813f * V), 0, 255));
       u8 B1 = static_cast<u8>(std::clamp(int(1.164f * Y1 + 2.017f * U), 0, 255));

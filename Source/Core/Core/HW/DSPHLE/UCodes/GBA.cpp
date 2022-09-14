@@ -4,6 +4,7 @@
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 
 #include "Common/Align.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/DSP.h"
@@ -73,11 +74,6 @@ GBAUCode::GBAUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
 }
 
-GBAUCode::~GBAUCode()
-{
-  m_mail_handler.Clear();
-}
-
 void GBAUCode::Initialize()
 {
   m_mail_handler.PushMail(DSP_INIT);
@@ -85,8 +81,8 @@ void GBAUCode::Initialize()
 
 void GBAUCode::Update()
 {
-  // check if we have to send something
-  if (!m_mail_handler.IsEmpty())
+  // check if we have something to send
+  if (m_mail_handler.HasPending())
   {
     DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
   }
@@ -94,34 +90,50 @@ void GBAUCode::Update()
 
 void GBAUCode::HandleMail(u32 mail)
 {
-  static bool nextmail_is_mramaddr = false;
-  static bool calc_done = false;
-
   if (m_upload_setup_in_progress)
   {
     PrepareBootUCode(mail);
+    // The GBA ucode ignores the first 3 mails (mram_dest_addr, mram_size, mram_dram_addr)
+    // but we currently don't handle that (they're read when they shoudln't be, but DSP HLE doesn't
+    // implement them so it's fine).
+    return;
   }
-  else if ((mail >> 16 == 0xabba) && !nextmail_is_mramaddr)
-  {
-    nextmail_is_mramaddr = true;
-  }
-  else if (nextmail_is_mramaddr)
-  {
-    nextmail_is_mramaddr = false;
 
-    ProcessGBACrypto(mail);
-
-    calc_done = true;
-    m_mail_handler.PushMail(DSP_DONE);
-  }
-  else if ((mail >> 16 == 0xcdd1) && calc_done)
+  switch (m_mail_state)
   {
-    switch (mail & 0xffff)
+  case MailState::WaitingForRequest:
+  {
+    if (mail == REQUEST_MAIL)
     {
-    case 1:
+      INFO_LOG_FMT(DSPHLE, "GBAUCode - Recieved request mail");
+      m_mail_state = MailState::WaitingForAddress;
+    }
+    else
+    {
+      WARN_LOG_FMT(DSPHLE, "GBAUCode - Expected request mail but got {:08x}", mail);
+    }
+    break;
+  }
+  case MailState::WaitingForAddress:
+  {
+    const u32 address = mail & 0x0fff'ffff;
+
+    ProcessGBACrypto(address);
+
+    m_mail_handler.PushMail(DSP_DONE);
+    m_mail_state = MailState::WaitingForNextTask;
+    break;
+  }
+  case MailState::WaitingForNextTask:
+  {
+    // The GBA uCode checks that the high word is cdd1, so we compare the full mail with
+    // MAIL_NEW_UCODE/MAIL_RESET without doing masking
+    switch (mail)
+    {
+    case MAIL_NEW_UCODE:
       m_upload_setup_in_progress = true;
       break;
-    case 2:
+    case MAIL_RESET:
       m_dsphle->SetUCode(UCODE_ROM);
       break;
     default:
@@ -129,9 +141,12 @@ void GBAUCode::HandleMail(u32 mail)
       break;
     }
   }
-  else
-  {
-    WARN_LOG_FMT(DSPHLE, "GBAUCode - unknown command: {:08x}", mail);
   }
+}
+
+void GBAUCode::DoState(PointerWrap& p)
+{
+  DoStateShared(p);
+  p.Do(m_mail_state);
 }
 }  // namespace DSP::HLE

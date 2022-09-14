@@ -64,7 +64,7 @@ DEFAULT_CONFIG = {
 
     # Minimum macOS version for each architecture slice
     "arm64_mac_os_deployment_target":  "11.0.0",
-    "x86_64_mac_os_deployment_target": "10.13.0",
+    "x86_64_mac_os_deployment_target": "10.14.0",
 
     # CMake Generator to use for building
     "generator": "Unix Makefiles",
@@ -260,10 +260,12 @@ def build(config):
         if not os.path.exists(arch):
             os.mkdir(arch)
 
+        # Place Qt on the prefix path.
+        prefix_path = config[arch+"_qt5_path"]+';'+config[arch+"_cmake_prefix"]
+
         env = os.environ.copy()
-        env["Qt5_DIR"] = config[arch+"_qt5_path"]
         env["CMAKE_OSX_ARCHITECTURES"] = arch
-        env["CMAKE_PREFIX_PATH"] = config[arch+"_cmake_prefix"]
+        env["CMAKE_PREFIX_PATH"] = prefix_path
 
         # Add the other architecture's prefix path to the ignore path so that
         # CMake doesn't try to pick up the wrong architecture's libraries when
@@ -281,7 +283,7 @@ def build(config):
                 # System name needs to be specified for CMake to use
                 # the specified CMAKE_SYSTEM_PROCESSOR
                 "-DCMAKE_SYSTEM_NAME=Darwin",
-                "-DCMAKE_PREFIX_PATH="+config[arch+"_cmake_prefix"],
+                "-DCMAKE_PREFIX_PATH="+prefix_path,
                 "-DCMAKE_SYSTEM_PROCESSOR="+arch,
                 "-DCMAKE_IGNORE_PATH="+ignore_path,
                 "-DCMAKE_OSX_DEPLOYMENT_TARGET="

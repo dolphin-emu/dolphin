@@ -17,6 +17,7 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GPFifo.h"
+#include "Core/HW/HSP/HSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
@@ -43,7 +44,8 @@ void Init()
   SerialInterface::Init();
   ProcessorInterface::Init();
   ExpansionInterface::Init();  // Needs to be initialized before Memory
-  Memory::Init();              // Needs to be initialized before AddressSpace
+  HSP::Init();
+  Memory::Init();  // Needs to be initialized before AddressSpace
   AddressSpace::Init();
   DSP::Init(Config::Get(Config::MAIN_DSP_HLE));
   DVDInterface::Init();
@@ -72,6 +74,7 @@ void Shutdown()
   DSP::Shutdown();
   AddressSpace::Shutdown();
   Memory::Shutdown();
+  HSP::Shutdown();
   ExpansionInterface::Shutdown();
   SerialInterface::Shutdown();
   AudioInterface::Shutdown();
@@ -100,6 +103,8 @@ void DoState(PointerWrap& p)
   p.DoMarker("ExpansionInterface");
   AudioInterface::DoState(p);
   p.DoMarker("AudioInterface");
+  HSP::DoState(p);
+  p.DoMarker("HSP");
 
   if (SConfig::GetInstance().bWii)
   {

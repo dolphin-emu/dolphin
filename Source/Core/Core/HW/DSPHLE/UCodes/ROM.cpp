@@ -28,13 +28,8 @@ ROMUCode::ROMUCode(DSPHLE* dsphle, u32 crc)
   INFO_LOG_FMT(DSPHLE, "UCode_Rom - initialized");
 }
 
-ROMUCode::~ROMUCode()
-{
-}
-
 void ROMUCode::Initialize()
 {
-  m_mail_handler.Clear();
   m_mail_handler.PushMail(0x8071FEED);
 }
 

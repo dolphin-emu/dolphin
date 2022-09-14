@@ -19,10 +19,7 @@ void Interpreter::mrr(const UDSPInstruction opc)
   const u8 sreg = opc & 0x1f;
   const u8 dreg = (opc >> 5) & 0x1f;
 
-  if (sreg >= DSP_REG_ACM0)
-    OpWriteRegister(dreg, OpReadRegisterAndSaturate(sreg - DSP_REG_ACM0));
-  else
-    OpWriteRegister(dreg, OpReadRegister(sreg));
+  OpWriteRegister(dreg, OpReadRegister(sreg));
 
   ConditionalExtendAccum(dreg);
 }

@@ -90,55 +90,6 @@ MemoryCard::~MemoryCard()
   }
 }
 
-void MemoryCard::CheckPath(std::string& memcardPath, const std::string& gameRegion,
-                           ExpansionInterface::Slot card_slot)
-{
-  bool is_slot_a = card_slot == ExpansionInterface::Slot::A;
-  std::string ext("." + gameRegion + ".raw");
-  if (memcardPath.empty())
-  {
-    // Use default memcard path if there is no user defined name
-    std::string defaultFilename = is_slot_a ? GC_MEMCARDA : GC_MEMCARDB;
-    memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
-  }
-  else
-  {
-    std::string filename = memcardPath;
-    std::string region = filename.substr(filename.size() - 7, 3);
-    bool hasregion = false;
-    hasregion |= region.compare(USA_DIR) == 0;
-    hasregion |= region.compare(JAP_DIR) == 0;
-    hasregion |= region.compare(EUR_DIR) == 0;
-    if (!hasregion)
-    {
-      // filename doesn't have region in the extension
-      if (File::Exists(filename))
-      {
-        // If the old file exists we are polite and ask if we should copy it
-        std::string oldFilename = filename;
-        filename.replace(filename.size() - 4, 4, ext);
-        if (PanicYesNoFmtT("Memory Card filename in Slot {0} is incorrect\n"
-                           "Region not specified\n\n"
-                           "Slot {1} path was changed to\n"
-                           "{2}\n"
-                           "Would you like to copy the old file to this new location?\n",
-                           is_slot_a ? 'A' : 'B', is_slot_a ? 'A' : 'B', filename))
-        {
-          if (!File::Copy(oldFilename, filename))
-            PanicAlertFmtT("Copy failed");
-        }
-      }
-      memcardPath = filename;  // Always correct the path!
-    }
-    else if (region.compare(gameRegion) != 0)
-    {
-      // filename has region, but it's not == gameRegion
-      // Just set the correct filename, the EXI Device will create it if it doesn't exist
-      memcardPath = filename.replace(filename.size() - ext.size(), ext.size(), ext);
-    }
-  }
-}
-
 void MemoryCard::FlushThread()
 {
   if (!Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))

@@ -162,12 +162,12 @@ struct fmt::formatter<CoordComponentCount> : EnumFormatter<CoordComponentCount::
 enum class NormalComponentCount
 {
   N = 0,
-  NBT = 1,
+  NTB = 1,
 };
 template <>
-struct fmt::formatter<NormalComponentCount> : EnumFormatter<NormalComponentCount::NBT>
+struct fmt::formatter<NormalComponentCount> : EnumFormatter<NormalComponentCount::NTB>
 {
-  constexpr formatter() : EnumFormatter({"1 (n)", "3 (n, b, t)"}) {}
+  constexpr formatter() : EnumFormatter({"1 (normal)", "3 (normal, tangent, binormal)"}) {}
 };
 
 enum class ColorComponentCount
@@ -348,8 +348,9 @@ struct fmt::formatter<UVAT_group0>
   {
     static constexpr std::array<const char*, 2> byte_dequant = {
         "shift does not apply to u8/s8 components", "shift applies to u8/s8 components"};
-    static constexpr std::array<const char*, 2> normalindex3 = {"single index per normal",
-                                                                "triple-index per nine-normal"};
+    static constexpr std::array<const char*, 2> normalindex3 = {
+        "single index shared by normal, tangent, and binormal",
+        "three indices, one each for normal, tangent, and binormal"};
 
     return fmt::format_to(ctx.out(),
                           "Position elements: {}\n"

@@ -3,7 +3,6 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -21,6 +20,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -361,12 +363,11 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
     return () ->
     {
       Context context = requireContext();
-      AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase);
-      builder.setMessage(warning_text)
+      new MaterialAlertDialogBuilder(context)
+              .setMessage(warning_text)
               .setPositiveButton(R.string.yes, (dialog, i) -> action.run())
-              .setNegativeButton(R.string.no, null);
-      AlertDialog alert = builder.create();
-      alert.show();
+              .setNegativeButton(R.string.no, null)
+              .show();
     };
   }
 
@@ -422,20 +423,16 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
 
     mCanceled = false;
 
-    // For some reason, setting R.style.DolphinDialogBase as the theme here gives us white text
-    // on a white background when the device is set to dark mode, so let's not set a theme.
-    ProgressDialog progressDialog = new ProgressDialog(context);
+    View dialogView = getLayoutInflater().inflate(R.layout.dialog_progress, null, false);
+    LinearProgressIndicator progressBar = dialogView.findViewById(R.id.update_progress);
+    progressBar.setMax(PROGRESS_RESOLUTION);
 
-    progressDialog.setTitle(R.string.convert_converting);
-
-    progressDialog.setIndeterminate(false);
-    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-    progressDialog.setMax(PROGRESS_RESOLUTION);
-
-    progressDialog.setCancelable(true);
-    progressDialog.setOnCancelListener((dialog) -> mCanceled = true);
-
-    progressDialog.show();
+    AlertDialog progressDialog = new MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.convert_converting)
+            .setOnCancelListener((dialog) -> mCanceled = true)
+            .setNegativeButton(getString(R.string.cancel), (dialog, i) -> dialog.dismiss())
+            .setView(dialogView)
+            .show();
 
     mThread = new Thread(() ->
     {
@@ -447,9 +444,8 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
                 requireActivity().runOnUiThread(() ->
                 {
                   progressDialog.setMessage(text);
-                  progressDialog.setProgress((int) (completion * PROGRESS_RESOLUTION));
+                  progressBar.setProgress((int) (completion * PROGRESS_RESOLUTION));
                 });
-
                 return !mCanceled;
               });
 
@@ -459,7 +455,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
         {
           progressDialog.dismiss();
 
-          AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase);
+          MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
           if (success)
           {
             builder.setMessage(R.string.convert_success_message)
@@ -475,8 +471,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
             builder.setMessage(R.string.convert_failure_message)
                     .setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
           }
-          AlertDialog alert = builder.create();
-          alert.show();
+          builder.show();
         });
       }
     });

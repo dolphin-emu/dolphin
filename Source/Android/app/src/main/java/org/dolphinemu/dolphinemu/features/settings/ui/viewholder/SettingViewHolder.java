@@ -10,8 +10,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
@@ -96,20 +97,17 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
 
     Context context = clicked.getContext();
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase)
-            .setMessage(R.string.setting_clear_confirm);
-
-    builder
+    new MaterialAlertDialogBuilder(context)
+            .setMessage(R.string.setting_clear_confirm)
             .setPositiveButton(R.string.ok, (dialog, whichButton) ->
             {
-              getAdapter().clearSetting(item, getAdapterPosition());
+              getAdapter().clearSetting(item, getBindingAdapterPosition());
               bind(item);
               Toast.makeText(context, R.string.setting_cleared, Toast.LENGTH_SHORT).show();
               dialog.dismiss();
             })
-            .setNegativeButton(R.string.cancel, (dialog, whichButton) -> dialog.dismiss());
-
-    builder.show();
+            .setNegativeButton(R.string.cancel, (dialog, whichButton) -> dialog.dismiss())
+            .show();
 
     return true;
   }

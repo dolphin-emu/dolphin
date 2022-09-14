@@ -13,7 +13,11 @@
 
 typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSPROC)(Display*, GLXFBConfig, GLXContext, Bool,
                                                      const int*);
+
+#ifndef GLX_EXT_swap_control
 typedef void (*PFNGLXSWAPINTERVALEXTPROC)(Display*, GLXDrawable, int);
+#endif
+
 typedef int (*PFNGLXSWAPINTERVALMESAPROC)(unsigned int);
 
 static PFNGLXCREATECONTEXTATTRIBSPROC glXCreateContextAttribs = nullptr;

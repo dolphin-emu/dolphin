@@ -26,6 +26,7 @@ add_library(minizip STATIC
   unzip.h
   zip.h
 )
+dolphin_disable_warnings_msvc(minizip)
 
 if (UNIX)
   target_sources(minizip PRIVATE
@@ -66,4 +67,4 @@ endif()
 
 target_link_libraries(minizip PUBLIC ZLIB::ZLIB)
 
-add_library(MiniZip::minizip ALIAS minizip)
+add_library(minizip-ng ALIAS minizip)

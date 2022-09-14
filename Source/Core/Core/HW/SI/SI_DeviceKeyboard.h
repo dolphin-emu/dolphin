@@ -37,9 +37,6 @@ private:
 
   KeyArray MapKeys(const KeyboardStatus& key_status) const;
 
-  // PADAnalogMode
-  u8 m_mode = 0;
-
   // Internal counter synchonizing GC and keyboard
   u8 m_counter = 0;
 };

@@ -18,9 +18,15 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "VideoCommon/AsyncRequests.h"
+#include "VideoCommon/Fifo.h"
 
 namespace ProcessorInterface
 {
+constexpr u32 FLIPPER_REV_A = 0x046500B0;
+constexpr u32 FLIPPER_REV_B = 0x146500B1;
+constexpr u32 FLIPPER_REV_C = 0x246500B1;
+
 // STATE_TO_SAVE
 u32 m_InterruptCause;
 u32 m_InterruptMask;
@@ -29,10 +35,7 @@ u32 Fifo_CPUBase;
 u32 Fifo_CPUEnd;
 u32 Fifo_CPUWritePointer;
 
-static u32 m_Fifo_Reset;
 static u32 m_ResetCode;
-static u32 m_FlipperRev;
-static u32 m_Unknown;
 
 // ID and callback for scheduling reset button presses/releases
 static CoreTiming::EventType* toggleResetButton;
@@ -54,10 +57,7 @@ void DoState(PointerWrap& p)
   p.Do(Fifo_CPUBase);
   p.Do(Fifo_CPUEnd);
   p.Do(Fifo_CPUWritePointer);
-  p.Do(m_Fifo_Reset);
   p.Do(m_ResetCode);
-  p.Do(m_FlipperRev);
-  p.Do(m_Unknown);
 }
 
 void Init()
@@ -68,13 +68,6 @@ void Init()
   Fifo_CPUBase = 0;
   Fifo_CPUEnd = 0;
   Fifo_CPUWritePointer = 0;
-  /*
-  Previous Flipper IDs:
-  0x046500B0 = A
-  0x146500B1 = B
-  */
-  m_FlipperRev = 0x246500B1;  // revision C
-  m_Unknown = 0;
 
   m_ResetCode = 0;  // Cold reset
   m_InterruptCause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
@@ -111,7 +104,25 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | PI_FIFO_RESET, MMIO::InvalidRead<u32>(),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   WARN_LOG_FMT(PROCESSORINTERFACE, "Fifo reset ({:08x})", val);
+                   // Used by GXAbortFrame
+                   INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_FIFO_RESET: {:08x}", val);
+                   if ((val & 1) != 0)
+                   {
+                     GPFifo::ResetGatherPipe();
+
+                     // Call Fifo::ResetVideoBuffer() from the video thread. Since that function
+                     // resets various pointers used by the video thread, we can't call it directly
+                     // from the CPU thread, so queue a task to do it instead. In single-core mode,
+                     // AsyncRequests is in passthrough mode, so this will be safely and immediately
+                     // called on the CPU thread.
+
+                     // NOTE: GPFifo::ResetGatherPipe() only affects
+                     // CPU state, so we can call it directly
+
+                     AsyncRequests::Event ev = {};
+                     ev.type = AsyncRequests::Event::FIFO_RESET;
+                     AsyncRequests::GetInstance()->PushEvent(ev);
+                   }
                  }));
 
   mmio->Register(base | PI_RESET_CODE, MMIO::ComplexRead<u32>([](u32) {
@@ -127,7 +138,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    }
                  }));
 
-  mmio->Register(base | PI_FLIPPER_REV, MMIO::DirectRead<u32>(&m_FlipperRev),
+  mmio->Register(base | PI_FLIPPER_REV, MMIO::Constant<u32>(FLIPPER_REV_C),
                  MMIO::InvalidWrite<u32>());
 
   // 16 bit reads are based on 32 bit reads.

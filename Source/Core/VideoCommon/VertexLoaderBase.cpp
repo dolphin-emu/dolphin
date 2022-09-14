@@ -152,7 +152,7 @@ u32 VertexLoaderBase::GetVertexComponents(const TVtxDesc& vtx_desc, const VAT& v
   if (vtx_desc.low.Normal != VertexComponentFormat::NotPresent)
   {
     components |= VB_HAS_NORMAL;
-    if (vtx_attr.g0.NormalElements == NormalComponentCount::NBT)
+    if (vtx_attr.g0.NormalElements == NormalComponentCount::NTB)
       components |= VB_HAS_TANGENT | VB_HAS_BINORMAL;
   }
   for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)

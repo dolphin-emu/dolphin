@@ -16,8 +16,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
-import org.dolphinemu.dolphinemu.ui.platform.Platform;
-import org.dolphinemu.dolphinemu.utils.PicassoUtils;
+import org.dolphinemu.dolphinemu.utils.GlideUtils;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
 /**
@@ -51,15 +50,14 @@ public final class GameRowPresenter extends Presenter
     GameFile gameFile = (GameFile) item;
 
     holder.imageScreenshot.setImageDrawable(null);
-    PicassoUtils.loadGameCover(holder.imageScreenshot, gameFile);
+    GlideUtils.loadGameCover(null, holder.imageScreenshot, gameFile);
 
     holder.cardParent.setTitleText(gameFile.getTitle());
 
     if (GameFileCacheManager.findSecondDisc(gameFile) != null)
     {
-      holder.cardParent
-              .setContentText(
-                      context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1));
+      holder.cardParent.setContentText(
+              context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1));
     }
     else
     {
@@ -68,23 +66,8 @@ public final class GameRowPresenter extends Presenter
 
     holder.gameFile = gameFile;
 
-    // Set the platform-dependent background color of the card
-    int backgroundId;
-    switch (Platform.fromNativeInt(gameFile.getPlatform()))
-    {
-      case GAMECUBE:
-        backgroundId = R.drawable.tv_card_background_gamecube;
-        break;
-      case WII:
-        backgroundId = R.drawable.tv_card_background_wii;
-        break;
-      case WIIWARE:
-        backgroundId = R.drawable.tv_card_background_wiiware;
-        break;
-      default:
-        throw new AssertionError("Not reachable.");
-    }
-    Drawable background = ContextCompat.getDrawable(context, backgroundId);
+    // Set the background color of the card
+    Drawable background = ContextCompat.getDrawable(context, R.drawable.tv_card_background);
     holder.cardParent.setInfoAreaBackground(background);
     holder.cardParent.setOnLongClickListener((view) ->
     {

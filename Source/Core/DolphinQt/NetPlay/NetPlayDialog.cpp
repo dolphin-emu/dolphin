@@ -45,8 +45,8 @@
 #include "Core/SyncIdentifier.h"
 
 #include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
+#include "DolphinQt/NetPlay/GameDigestDialog.h"
 #include "DolphinQt/NetPlay/GameListDialog.h"
-#include "DolphinQt/NetPlay/MD5Dialog.h"
 #include "DolphinQt/NetPlay/PadMappingDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
@@ -100,7 +100,7 @@ NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model,
   setWindowIcon(Resources::GetAppIcon());
 
   m_pad_mapping = new PadMappingDialog(this);
-  m_md5_dialog = new MD5Dialog(this);
+  m_game_digest_dialog = new GameDigestDialog(this);
   m_chunked_progress_dialog = new ChunkedProgressDialog(this);
 
   ResetExternalIP();
@@ -182,19 +182,20 @@ void NetPlayDialog::CreateMainLayout()
   m_network_mode_group->addAction(m_golf_mode_action);
   m_fixed_delay_action->setChecked(true);
 
-  m_md5_menu = m_menu_bar->addMenu(tr("Checksum"));
-  m_md5_menu->addAction(tr("Current game"), this, [this] {
-    Settings::Instance().GetNetPlayServer()->ComputeMD5(m_current_game_identifier);
+  m_game_digest_menu = m_menu_bar->addMenu(tr("Checksum"));
+  m_game_digest_menu->addAction(tr("Current game"), this, [this] {
+    Settings::Instance().GetNetPlayServer()->ComputeGameDigest(m_current_game_identifier);
   });
-  m_md5_menu->addAction(tr("Other game..."), this, [this] {
+  m_game_digest_menu->addAction(tr("Other game..."), this, [this] {
     GameListDialog gld(m_game_list_model, this);
 
     if (gld.exec() != QDialog::Accepted)
       return;
-    Settings::Instance().GetNetPlayServer()->ComputeMD5(gld.GetSelectedGame().GetSyncIdentifier());
+    Settings::Instance().GetNetPlayServer()->ComputeGameDigest(
+        gld.GetSelectedGame().GetSyncIdentifier());
   });
-  m_md5_menu->addAction(tr("SD Card"), this, [] {
-    Settings::Instance().GetNetPlayServer()->ComputeMD5(
+  m_game_digest_menu->addAction(tr("SD Card"), this, [] {
+    Settings::Instance().GetNetPlayServer()->ComputeGameDigest(
         NetPlay::NetPlayClient::GetSDCardIdentifier());
   });
 
@@ -506,7 +507,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
 
   m_data_menu->menuAction()->setVisible(is_hosting);
   m_network_menu->menuAction()->setVisible(is_hosting);
-  m_md5_menu->menuAction()->setVisible(is_hosting);
+  m_game_digest_menu->menuAction()->setVisible(is_hosting);
 #ifdef HAS_LIBMGBA
   m_hide_remote_gbas_action->setVisible(is_hosting);
 #else
@@ -611,25 +612,42 @@ void NetPlayDialog::UpdateGUI()
       {tr("Player"), tr("Game Status"), tr("Ping"), tr("Mapping"), tr("Revision")});
   m_players_list->setRowCount(m_player_count);
 
-  static const std::map<NetPlay::SyncIdentifierComparison, QString> player_status{
-      {NetPlay::SyncIdentifierComparison::SameGame, tr("OK")},
-      {NetPlay::SyncIdentifierComparison::DifferentVersion, tr("Wrong Version")},
-      {NetPlay::SyncIdentifierComparison::DifferentGame, tr("Not Found")},
-  };
+  static const std::map<NetPlay::SyncIdentifierComparison, std::pair<QString, QString>>
+      player_status{
+          {NetPlay::SyncIdentifierComparison::SameGame, {tr("OK"), tr("OK")}},
+          {NetPlay::SyncIdentifierComparison::DifferentHash,
+           {tr("Wrong hash"),
+            tr("Game file has a different hash; right-click it, select Properties, switch to the "
+               "Verify tab, and select Verify Integrity to check the hash")}},
+          {NetPlay::SyncIdentifierComparison::DifferentDiscNumber,
+           {tr("Wrong disc number"), tr("Game has a different disc number")}},
+          {NetPlay::SyncIdentifierComparison::DifferentRevision,
+           {tr("Wrong revision"), tr("Game has a different revision")}},
+          {NetPlay::SyncIdentifierComparison::DifferentRegion,
+           {tr("Wrong region"), tr("Game region does not match")}},
+          {NetPlay::SyncIdentifierComparison::DifferentGame,
+           {tr("Not found"), tr("No matching game was found")}},
+      };
 
   for (int i = 0; i < m_player_count; i++)
   {
     const auto* p = players[i];
 
     auto* name_item = new QTableWidgetItem(QString::fromStdString(p->name));
-    auto* status_item = new QTableWidgetItem(player_status.count(p->game_status) ?
-                                                 player_status.at(p->game_status) :
-                                                 QStringLiteral("?"));
+    name_item->setToolTip(name_item->text());
+    const auto& status_info = player_status.count(p->game_status) ?
+                                  player_status.at(p->game_status) :
+                                  std::make_pair(QStringLiteral("?"), QStringLiteral("?"));
+    auto* status_item = new QTableWidgetItem(status_info.first);
+    status_item->setToolTip(status_info.second);
     auto* ping_item = new QTableWidgetItem(QStringLiteral("%1 ms").arg(p->ping));
+    ping_item->setToolTip(ping_item->text());
     auto* mapping_item =
         new QTableWidgetItem(QString::fromStdString(NetPlay::GetPlayerMappingString(
             p->pid, client->GetPadMapping(), client->GetGBAConfig(), client->GetWiimoteMapping())));
+    mapping_item->setToolTip(mapping_item->text());
     auto* revision_item = new QTableWidgetItem(QString::fromStdString(p->revision));
+    revision_item->setToolTip(revision_item->text());
 
     for (auto* item : {name_item, status_item, ping_item, mapping_item, revision_item})
     {
@@ -1158,39 +1176,39 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_NETWORK_MODE, network_mode);
 }
 
-void NetPlayDialog::ShowMD5Dialog(const std::string& title)
+void NetPlayDialog::ShowGameDigestDialog(const std::string& title)
 {
   QueueOnObject(this, [this, title] {
-    m_md5_menu->setEnabled(false);
+    m_game_digest_menu->setEnabled(false);
 
-    if (m_md5_dialog->isVisible())
-      m_md5_dialog->close();
+    if (m_game_digest_dialog->isVisible())
+      m_game_digest_dialog->close();
 
-    m_md5_dialog->show(QString::fromStdString(title));
+    m_game_digest_dialog->show(QString::fromStdString(title));
   });
 }
 
-void NetPlayDialog::SetMD5Progress(int pid, int progress)
+void NetPlayDialog::SetGameDigestProgress(int pid, int progress)
 {
   QueueOnObject(this, [this, pid, progress] {
-    if (m_md5_dialog->isVisible())
-      m_md5_dialog->SetProgress(pid, progress);
+    if (m_game_digest_dialog->isVisible())
+      m_game_digest_dialog->SetProgress(pid, progress);
   });
 }
 
-void NetPlayDialog::SetMD5Result(int pid, const std::string& result)
+void NetPlayDialog::SetGameDigestResult(int pid, const std::string& result)
 {
   QueueOnObject(this, [this, pid, result] {
-    m_md5_dialog->SetResult(pid, result);
-    m_md5_menu->setEnabled(true);
+    m_game_digest_dialog->SetResult(pid, result);
+    m_game_digest_menu->setEnabled(true);
   });
 }
 
-void NetPlayDialog::AbortMD5()
+void NetPlayDialog::AbortGameDigest()
 {
   QueueOnObject(this, [this] {
-    m_md5_dialog->close();
-    m_md5_menu->setEnabled(true);
+    m_game_digest_dialog->close();
+    m_game_digest_menu->setEnabled(true);
   });
 }
 

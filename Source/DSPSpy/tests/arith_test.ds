@@ -138,3 +138,6 @@ sub $acc1, $acc0
 set16
 
 call send_back 	; 20
+
+; We're done, DO NOT DELETE THIS LINE
+jmp end_of_test

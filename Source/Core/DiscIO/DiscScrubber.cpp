@@ -30,7 +30,7 @@ bool DiscScrubber::SetupScrub(const Volume* disc)
     return false;
   m_disc = disc;
 
-  m_file_size = m_disc->GetSize();
+  m_file_size = m_disc->GetDataSize();
 
   // Round up when diving by CLUSTER_SIZE, otherwise MarkAsUsed might write out of bounds
   const size_t num_clusters = static_cast<size_t>((m_file_size + CLUSTER_SIZE - 1) / CLUSTER_SIZE);
@@ -47,7 +47,11 @@ bool DiscScrubber::SetupScrub(const Volume* disc)
 
 bool DiscScrubber::CanBlockBeScrubbed(u64 offset) const
 {
-  return m_is_scrubbing && m_free_table[offset / CLUSTER_SIZE];
+  if (!m_is_scrubbing)
+    return false;
+
+  const u64 cluster_index = offset / CLUSTER_SIZE;
+  return cluster_index >= m_free_table.size() || m_free_table[cluster_index];
 }
 
 void DiscScrubber::MarkAsUsed(u64 offset, u64 size)
@@ -92,7 +96,7 @@ void DiscScrubber::MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
 // Compensate for 0x400 (SHA-1) per 0x8000 (cluster), and round to whole clusters
 u64 DiscScrubber::ToClusterOffset(u64 offset) const
 {
-  if (m_disc->IsEncryptedAndHashed())
+  if (m_disc->HasWiiHashes())
     return offset / 0x7c00 * CLUSTER_SIZE;
   else
     return Common::AlignDown(offset, CLUSTER_SIZE);

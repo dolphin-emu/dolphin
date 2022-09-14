@@ -42,6 +42,11 @@ namespace SerialInterface
 enum SIDevices : int;
 }
 
+namespace HSP
+{
+enum class HSPDeviceType : int;
+}
+
 namespace Config
 {
 // Main.Core
@@ -81,10 +86,13 @@ const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInte
 extern const Info<std::string> MAIN_BBA_MAC;
 extern const Info<std::string> MAIN_BBA_XLINK_IP;
 extern const Info<bool> MAIN_BBA_XLINK_CHAT_OSD;
+extern const Info<std::string> MAIN_BBA_BUILTIN_DNS;
+extern const Info<std::string> MAIN_BBA_BUILTIN_IP;
 const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel);
 const Info<bool>& GetInfoForAdapterRumble(int channel);
 const Info<bool>& GetInfoForSimulateKonga(int channel);
 extern const Info<bool> MAIN_WII_SD_CARD;
+extern const Info<bool> MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC;
 extern const Info<bool> MAIN_WII_KEYBOARD;
 extern const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING;
 extern const Info<bool> MAIN_WIIMOTE_ENABLE_SPEAKER;
@@ -110,6 +118,8 @@ extern const Info<u32> MAIN_MEM1_SIZE;
 extern const Info<u32> MAIN_MEM2_SIZE;
 // Should really be part of System::GFX, but again, we're stuck with past mistakes.
 extern const Info<std::string> MAIN_GFX_BACKEND;
+extern const Info<HSP::HSPDeviceType> MAIN_HSP_DEVICE;
+extern const Info<u32> MAIN_ARAM_EXPANSION_SIZE;
 
 enum class GPUDeterminismMode
 {
@@ -169,7 +179,8 @@ extern const Info<std::string> MAIN_DUMP_PATH;
 extern const Info<std::string> MAIN_LOAD_PATH;
 extern const Info<std::string> MAIN_RESOURCEPACK_PATH;
 extern const Info<std::string> MAIN_FS_PATH;
-extern const Info<std::string> MAIN_SD_PATH;
+extern const Info<std::string> MAIN_WII_SD_CARD_IMAGE_PATH;
+extern const Info<std::string> MAIN_WII_SD_CARD_SYNC_FOLDER_PATH;
 extern const Info<std::string> MAIN_WFS_PATH;
 extern const Info<bool> MAIN_SHOW_LAG;
 extern const Info<bool> MAIN_SHOW_FRAME_COUNT;
@@ -197,6 +208,7 @@ extern const Info<bool> MAIN_NETWORK_SSL_DUMP_WRITE;
 extern const Info<bool> MAIN_NETWORK_SSL_VERIFY_CERTIFICATES;
 extern const Info<bool> MAIN_NETWORK_SSL_DUMP_ROOT_CA;
 extern const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT;
+extern const Info<bool> MAIN_NETWORK_DUMP_BBA;
 extern const Info<bool> MAIN_NETWORK_DUMP_AS_PCAP;
 extern const Info<int> MAIN_NETWORK_TIMEOUT;
 
@@ -338,4 +350,19 @@ extern const Info<bool> PRIMEHACK_FRIENDVOUCHERS;
 extern const Info<bool> PRIMEHACK_DISABLE_HUDMEMO;
 extern const Info<bool> PRIMEHACK_UNLOCK_HYPERMODE;
 
+// GameCube path utility functions
+
+// Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
+DiscIO::Region ToGameCubeRegion(DiscIO::Region region);
+// The region argument must be valid for GameCube (i.e. must not be NTSC-K)
+const char* GetDirectoryForRegion(DiscIO::Region region);
+std::string GetBootROMPath(const std::string& region_directory);
+// Builds the memory card according to the configuration with the given region and size. If the
+// given region is std::nullopt, the region in the configured path is used if there is one, or the
+// fallback region otherwise.
+std::string GetMemcardPath(ExpansionInterface::Slot slot, std::optional<DiscIO::Region> region,
+                           u16 size_mb = 0x80);
+std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::Slot slot,
+                           std::optional<DiscIO::Region> region, u16 size_mb = 0x80);
+bool IsDefaultMemcardPathConfigured(ExpansionInterface::Slot slot);
 }  // namespace Config

@@ -56,24 +56,10 @@ constexpr const char basic_data<T>::right_padding_shifts[];
 template <typename T> constexpr const unsigned basic_data<T>::prefixes[];
 #endif
 
-template <typename T>
-int format_float(char* buf, std::size_t size, const char* format, int precision,
-                 T value) {
-#ifdef FMT_FUZZ
-  if (precision > 100000)
-    throw std::runtime_error(
-        "fuzz mode - avoid large allocation inside snprintf");
-#endif
-  // Suppress the warning about nonliteral format string.
-  int (*snprintf_ptr)(char*, size_t, const char*, ...) = FMT_SNPRINTF;
-  return precision < 0 ? snprintf_ptr(buf, size, format, value)
-                       : snprintf_ptr(buf, size, format, precision, value);
-}
-
-template FMT_API dragonbox::decimal_fp<float> dragonbox::to_decimal(float x)
-    FMT_NOEXCEPT;
-template FMT_API dragonbox::decimal_fp<double> dragonbox::to_decimal(double x)
-    FMT_NOEXCEPT;
+template FMT_API dragonbox::decimal_fp<float> dragonbox::to_decimal(
+    float x) noexcept;
+template FMT_API dragonbox::decimal_fp<double> dragonbox::to_decimal(
+    double x) noexcept;
 }  // namespace detail
 
 // Workaround a bug in MSVC2013 that prevents instantiation of format_float.
@@ -100,11 +86,6 @@ template FMT_API void detail::vformat_to(
     detail::buffer<char>&, string_view,
     basic_format_args<FMT_BUFFER_CONTEXT(char)>, detail::locale_ref);
 
-template FMT_API int detail::snprintf_float(double, int, detail::float_specs,
-                                            detail::buffer<char>&);
-template FMT_API int detail::snprintf_float(long double, int,
-                                            detail::float_specs,
-                                            detail::buffer<char>&);
 template FMT_API int detail::format_float(double, int, detail::float_specs,
                                           detail::buffer<char>&);
 template FMT_API int detail::format_float(long double, int, detail::float_specs,

@@ -11,11 +11,10 @@ namespace DSP::HLE
 struct AXPBWii;
 class DSPHLE;
 
-class AXWiiUCode : public AXUCode
+class AXWiiUCode final : public AXUCode
 {
 public:
   AXWiiUCode(DSPHLE* dsphle, u32 crc);
-  ~AXWiiUCode() override;
 
   void DoState(PointerWrap& p) override;
 

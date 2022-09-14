@@ -128,7 +128,7 @@ static std::string CodesToHeader(const std::vector<std::vector<u16>>& codes,
   return header;
 }
 
-static void PerformBinaryComparison(const std::string& lhs, const std::string& rhs)
+static bool PerformBinaryComparison(const std::string& lhs, const std::string& rhs)
 {
   std::string binary_code;
 
@@ -138,7 +138,7 @@ static void PerformBinaryComparison(const std::string& lhs, const std::string& r
   File::ReadFileToString(rhs, binary_code);
   const std::vector<u16> code2 = DSP::BinaryStringBEToCode(binary_code);
 
-  DSP::Compare(code1, code2);
+  return DSP::Compare(code1, code2);
 }
 
 static void PrintResults(const std::string& input_name, const std::string& output_name,
@@ -482,8 +482,7 @@ int main(int argc, const char* argv[])
 
   if (compare)
   {
-    PerformBinaryComparison(input_name, output_name);
-    return 0;
+    return PerformBinaryComparison(input_name, output_name) ? 0 : 1;
   }
 
   if (print_results)

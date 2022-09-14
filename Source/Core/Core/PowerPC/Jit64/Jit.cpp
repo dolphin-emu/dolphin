@@ -44,9 +44,6 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
-#if defined(_DEBUG) || defined(DEBUGFAST)
-#include "Common/GekkoDisassembler.h"
-#endif
 
 using namespace Gen;
 using namespace PowerPC;
