@@ -54,6 +54,7 @@
         <item name="materialAlertDialogTheme">@style/DolphinMaterialDialog</item>
         <item name="popupTheme">@style/DolphinPopup</item>
         <item name="sliderStyle">@style/DolphinSlider</item>
+        <item name="materialDividerStyle">@style/DolphinDivider</item>
     </style>
 
     <!-- Trick for API >= 27 specific changes -->

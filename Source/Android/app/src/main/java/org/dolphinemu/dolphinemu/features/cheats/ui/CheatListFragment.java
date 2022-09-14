@@ -14,9 +14,10 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.divider.MaterialDividerItemDecoration;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
-import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
 
 public class CheatListFragment extends Fragment
 {
@@ -38,6 +39,10 @@ public class CheatListFragment extends Fragment
 
     recyclerView.setAdapter(new CheatsAdapter(activity, viewModel));
     recyclerView.setLayoutManager(new LinearLayoutManager(activity));
-    recyclerView.addItemDecoration(new DividerItemDecoration(activity, null));
+
+    MaterialDividerItemDecoration divider =
+            new MaterialDividerItemDecoration(requireActivity(), LinearLayoutManager.VERTICAL);
+    divider.setLastItemDecorated(false);
+    recyclerView.addItemDecoration(divider);
   }
 }
