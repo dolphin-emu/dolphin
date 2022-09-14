@@ -346,7 +346,7 @@ public final class MainActivity extends AppCompatActivity
   private void setPlatformTabsAndStartGameFileCacheService()
   {
     PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
-            getSupportFragmentManager(), this, this);
+            getSupportFragmentManager(), this);
     mViewPager.setAdapter(platformPagerAdapter);
     mViewPager.setOffscreenPageLimit(platformPagerAdapter.getCount());
     mTabLayout.setupWithViewPager(mViewPager);
@@ -359,6 +359,11 @@ public final class MainActivity extends AppCompatActivity
         IntSetting.MAIN_LAST_PLATFORM_TAB.setIntGlobal(NativeConfig.LAYER_BASE, tab.getPosition());
       }
     });
+
+    for (int i = 0; i < PlatformPagerAdapter.TAB_ICONS.length; i++)
+    {
+      mTabLayout.getTabAt(i).setIcon(PlatformPagerAdapter.TAB_ICONS[i]);
+    }
 
     mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getIntGlobal());
 
