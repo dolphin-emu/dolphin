@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Hax to make Tablayout render icons -->
-    <style name="MyCustomTextAppearance" parent="TextAppearance.Design.Tab">
-        <item name="textAllCaps">false</item>
-    </style>
-
     <!-- Custom button styles -->
     <style name="InGameMenuOption" parent="Widget.Material3.Button.TextButton">
         <item name="android:textColor">?attr/colorOnSurface</item>
