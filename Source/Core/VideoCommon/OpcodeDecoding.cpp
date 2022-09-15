@@ -122,7 +122,7 @@ public:
     // HACK
     DataReader src{const_cast<u8*>(vertex_data), const_cast<u8*>(vertex_data) + size};
     const u32 bytes =
-        VertexLoaderManager::RunVertices(vat, primitive, num_vertices, src, is_preprocess);
+        VertexLoaderManager::RunVertices<is_preprocess>(vat, primitive, num_vertices, src);
 
     ASSERT(bytes == size);
 
