@@ -138,44 +138,7 @@ constexpr Table<TPipelineFunction> s_table_read_position = {
         e(Pos_ReadIndex<u16, float, 2>, Pos_ReadIndex<u16, float, 3>),
     }),
 };
-
-constexpr Table<u32> s_table_read_position_vertex_size = {
-    g({
-        e(0u, 0u),
-        e(0u, 0u),
-        e(0u, 0u),
-        e(0u, 0u),
-        e(0u, 0u),
-    }),
-    g({
-        e(2, 3),
-        e(2, 3),
-        e(4, 6),
-        e(4, 6),
-        e(8, 12),
-    }),
-    g({
-        e(1, 1),
-        e(1, 1),
-        e(1, 1),
-        e(1, 1),
-        e(1, 1),
-    }),
-    g({
-        e(2, 2),
-        e(2, 2),
-        e(2, 2),
-        e(2, 2),
-        e(2, 2),
-    }),
-};
 }  // Anonymous namespace
-
-u32 VertexLoader_Position::GetSize(VertexComponentFormat type, ComponentFormat format,
-                                   CoordComponentCount elements)
-{
-  return s_table_read_position_vertex_size[type][format][elements];
-}
 
 TPipelineFunction VertexLoader_Position::GetFunction(VertexComponentFormat type,
                                                      ComponentFormat format,

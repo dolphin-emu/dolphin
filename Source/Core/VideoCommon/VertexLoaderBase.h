@@ -62,7 +62,6 @@ class VertexLoaderBase
 public:
   static u32 GetVertexSize(const TVtxDesc& vtx_desc, const VAT& vtx_attr);
   static u32 GetVertexComponents(const TVtxDesc& vtx_desc, const VAT& vtx_attr);
-  static std::vector<u32> GetVertexComponentSizes(const TVtxDesc& vtx_desc, const VAT& vtx_attr);
   static std::unique_ptr<VertexLoaderBase> CreateVertexLoader(const TVtxDesc& vtx_desc,
                                                               const VAT& vtx_attr);
   virtual ~VertexLoaderBase() {}
