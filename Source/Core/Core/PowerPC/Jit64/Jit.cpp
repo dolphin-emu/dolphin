@@ -4,6 +4,7 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 
 #include <map>
+#include <mutex>
 #include <sstream>
 #include <string>
 
@@ -32,6 +33,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/MachineContext.h"
+#include "Core/NetPlayClient.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
@@ -916,6 +918,18 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   u8* const start = AlignCode4();
   b->checkedEntry = start;
   b->normalEntry = start;
+
+  {
+    std::unique_lock lock(m_external_functions_mutex);
+    while (!m_external_functions.empty())
+    {
+      auto external_function = m_external_functions.front();
+      m_external_functions.pop();
+      lock.unlock();
+      external_function();
+      lock.lock();
+    }
+  }
 
   // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
   if (ImHereDebug)

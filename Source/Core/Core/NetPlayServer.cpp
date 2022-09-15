@@ -1350,6 +1350,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.m_SyncAllWiiSaves =
       Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES) && Config::Get(Config::NETPLAY_SYNC_SAVES);
   settings.m_GolfMode = Config::Get(Config::NETPLAY_NETWORK_MODE) == "golf";
+  settings.m_RollbackMode = Config::Get(Config::NETPLAY_NETWORK_MODE) == "rollback";
   settings.m_UseFMA = DoAllPlayersHaveHardwareFMA();
   settings.m_HideRemoteGBAs = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
 
@@ -1541,6 +1542,7 @@ bool NetPlayServer::StartGame()
   }
 
   spac << m_settings.m_GolfMode;
+  spac << m_settings.m_RollbackMode;
   spac << m_settings.m_UseFMA;
   spac << m_settings.m_HideRemoteGBAs;
 

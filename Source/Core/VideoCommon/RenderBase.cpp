@@ -51,6 +51,7 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -1364,6 +1365,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       g_vertex_manager->Flush();
 
       // Render any UI elements to the draw list.
+      if (!NetPlay::IsRollingBack())
       {
         auto lock = GetImGuiLock();
 
@@ -1390,7 +1392,8 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
                                     m_backbuffer_height);
         RenderXFBToScreen(render_target_rc, xfb_entry->texture.get(), render_source_rc);
 
-        DrawImGui();
+        if (!NetPlay::IsRollingBack())
+          DrawImGui();
 
         // Present to the window system.
         {
@@ -1406,6 +1409,9 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       if (!is_duplicate_frame)
       {
         m_fps_counter.Update();
+
+        if (NetPlay::IsNetPlayRunning())
+          NetPlay::OnFrameEnd();
 
         DolphinAnalytics::PerformanceSample perf_sample;
         perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
@@ -1423,7 +1429,8 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
       g_shader_cache->RetrieveAsyncShaders();
       g_vertex_manager->OnEndFrame();
-      BeginImGuiFrame();
+      if (!NetPlay::IsRollingBack())
+        BeginImGuiFrame();
 
       // We invalidate the pipeline object at the start of the frame.
       // This is for the rare case where only a single pipeline configuration is used,
@@ -1855,7 +1862,9 @@ void Renderer::DoState(PointerWrap& p)
     m_was_orthographically_anamorphic = false;
 
     // And actually display it.
-    Swap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height, m_last_xfb_ticks);
+    if (!NetPlay::IsRollingBack())
+      Swap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height,
+           m_last_xfb_ticks);
   }
 
 #if defined(HAVE_FFMPEG)

@@ -102,6 +102,7 @@ struct NetSettings
   bool m_SyncAllWiiSaves = false;
   std::array<int, 4> m_WiimoteExtension{};
   bool m_GolfMode = false;
+  bool m_RollbackMode = false;
   bool m_UseFMA = false;
   bool m_HideRemoteGBAs = false;
 
