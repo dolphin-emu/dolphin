@@ -202,7 +202,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 {
   CPState* state = preprocess ? &g_preprocess_cp_state : &g_main_cp_state;
   BitSet8& attr_dirty = preprocess ? g_preprocess_vat_dirty : g_main_vat_dirty;
-  auto& vertex_loaders = preprocess ? g_main_vertex_loaders : g_preprocess_vertex_loaders;
+  auto& vertex_loaders = preprocess ? g_preprocess_vertex_loaders : g_main_vertex_loaders;
   g_current_vat = vtx_attr_group;
 
   VertexLoaderBase* loader;
