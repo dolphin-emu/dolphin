@@ -65,6 +65,8 @@ jmethodID s_controller_interface_unregister_input_device_listener;
 
 jclass s_sensor_event_listener_class;
 jmethodID s_sensor_event_listener_constructor;
+jmethodID s_sensor_event_listener_constructor_input_device;
+jmethodID s_sensor_event_listener_set_device_qualifier;
 jmethodID s_sensor_event_listener_enable_sensor_events;
 jmethodID s_sensor_event_listener_disable_sensor_events;
 jmethodID s_sensor_event_listener_get_axis_names;
@@ -76,7 +78,6 @@ using Clock = std::chrono::steady_clock;
 constexpr Clock::duration ACTIVE_INPUT_TIMEOUT = std::chrono::milliseconds(1000);
 
 std::unordered_map<jint, ciface::Core::DeviceQualifier> s_device_id_to_device_qualifier;
-ciface::Core::DeviceQualifier s_sensor_device_qualifier;
 
 constexpr int MAX_KEYCODE = AKEYCODE_PROFILE_SWITCH;  // Up to date as of SDK 31
 
@@ -502,7 +503,7 @@ class AndroidDevice final : public Core::Device
 {
 public:
   AndroidDevice(JNIEnv* env, jobject input_device)
-      : m_sensor_event_listener(nullptr),
+      : m_sensor_event_listener(AddSensors(env, input_device)),
         m_source(env->CallIntMethod(input_device, s_input_device_get_sources)),
         m_controller_number(env->CallIntMethod(input_device, s_input_device_get_controller_number))
   {
@@ -519,7 +520,7 @@ public:
 
   // Constructor for the device added by Dolphin to contain sensor inputs
   AndroidDevice(JNIEnv* env, std::string name)
-      : m_sensor_event_listener(AddSensors(env)), m_source(AINPUT_SOURCE_SENSOR),
+      : m_sensor_event_listener(AddSensors(env, nullptr)), m_source(AINPUT_SOURCE_SENSOR),
         m_controller_number(0), m_name(std::move(name))
   {
   }
@@ -608,10 +609,20 @@ private:
     env->DeleteLocalRef(motion_ranges_list);
   }
 
-  jobject AddSensors(JNIEnv* env)
+  jobject AddSensors(JNIEnv* env, jobject input_device)
   {
-    jobject sensor_event_listener =
-        env->NewObject(s_sensor_event_listener_class, s_sensor_event_listener_constructor);
+    jobject sensor_event_listener;
+    if (input_device)
+    {
+      sensor_event_listener =
+          env->NewObject(s_sensor_event_listener_class,
+                         s_sensor_event_listener_constructor_input_device, input_device);
+    }
+    else
+    {
+      sensor_event_listener =
+          env->NewObject(s_sensor_event_listener_class, s_sensor_event_listener_constructor);
+    }
 
     jobjectArray j_axis_names = reinterpret_cast<jobjectArray>(
         env->CallObjectMethod(sensor_event_listener, s_sensor_event_listener_get_axis_names));
@@ -720,6 +731,10 @@ void Init()
       reinterpret_cast<jclass>(env->NewGlobalRef(sensor_event_listener_class));
   s_sensor_event_listener_constructor =
       env->GetMethodID(s_sensor_event_listener_class, "<init>", "()V");
+  s_sensor_event_listener_constructor_input_device =
+      env->GetMethodID(s_sensor_event_listener_class, "<init>", "(Landroid/view/InputDevice;)V");
+  s_sensor_event_listener_set_device_qualifier = env->GetMethodID(
+      s_sensor_event_listener_class, "setDeviceQualifier", "(Ljava/lang/String;)V");
   s_sensor_event_listener_enable_sensor_events =
       env->GetMethodID(s_sensor_event_listener_class, "enableSensorEvents",
                        "(Lorg/dolphinemu/dolphinemu/features/input/model/SensorEventRequester;)V");
@@ -775,6 +790,11 @@ static void AddDevice(JNIEnv* env, int device_id)
   INFO_LOG_FMT(CONTROLLERINTERFACE, "Added device ID {} as {}", device_id,
                device->GetQualifiedName());
   s_device_id_to_device_qualifier.emplace(device_id, qualifier);
+
+  jstring j_qualifier = ToJString(env, qualifier.ToString());
+  env->CallVoidMethod(device->GetSensorEventListener(),
+                      s_sensor_event_listener_set_device_qualifier, j_qualifier);
+  env->DeleteLocalRef(j_qualifier);
 }
 
 static void AddSensorDevice(JNIEnv* env)
@@ -793,7 +813,11 @@ static void AddSensorDevice(JNIEnv* env)
   qualifier.FromDevice(device.get());
 
   INFO_LOG_FMT(CONTROLLERINTERFACE, "Added sensor device as {}", device->GetQualifiedName());
-  s_sensor_device_qualifier = qualifier;
+
+  jstring j_qualifier = ToJString(env, qualifier.ToString());
+  env->CallVoidMethod(device->GetSensorEventListener(),
+                      s_sensor_event_listener_set_device_qualifier, j_qualifier);
+  env->DeleteLocalRef(j_qualifier);
 }
 
 void PopulateDevices()
@@ -912,10 +936,12 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
 
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchSensorEvent(
-    JNIEnv* env, jclass, jstring j_axis_name, jfloat value)
+    JNIEnv* env, jclass, jstring j_device_qualifier, jstring j_axis_name, jfloat value)
 {
+  ciface::Core::DeviceQualifier device_qualifier;
+  device_qualifier.FromString(GetJString(env, j_device_qualifier));
   const std::shared_ptr<ciface::Core::Device> device =
-      g_controller_interface.FindDevice(s_sensor_device_qualifier);
+      g_controller_interface.FindDevice(device_qualifier);
   if (!device)
     return;
 
@@ -936,28 +962,24 @@ JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_enableSensorEvents(
     JNIEnv* env, jclass, jobject j_sensor_event_requester)
 {
-  const std::shared_ptr<ciface::Core::Device> device =
-      g_controller_interface.FindDevice(s_sensor_device_qualifier);
-  if (!device)
-    return;
-
-  env->CallVoidMethod(
-      static_cast<ciface::Android::AndroidDevice*>(device.get())->GetSensorEventListener(),
-      s_sensor_event_listener_enable_sensor_events, j_sensor_event_requester);
+  for (std::shared_ptr<ciface::Core::Device>& device : g_controller_interface.GetAllDevices())
+  {
+    env->CallVoidMethod(
+        static_cast<ciface::Android::AndroidDevice*>(device.get())->GetSensorEventListener(),
+        s_sensor_event_listener_enable_sensor_events, j_sensor_event_requester);
+  }
 }
 
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_disableSensorEvents(
     JNIEnv* env, jclass)
 {
-  const std::shared_ptr<ciface::Core::Device> device =
-      g_controller_interface.FindDevice(s_sensor_device_qualifier);
-  if (!device)
-    return;
-
-  env->CallVoidMethod(
-      static_cast<ciface::Android::AndroidDevice*>(device.get())->GetSensorEventListener(),
-      s_sensor_event_listener_disable_sensor_events);
+  for (std::shared_ptr<ciface::Core::Device>& device : g_controller_interface.GetAllDevices())
+  {
+    env->CallVoidMethod(
+        static_cast<ciface::Android::AndroidDevice*>(device.get())->GetSensorEventListener(),
+        s_sensor_event_listener_disable_sensor_events);
+  }
 }
 
 JNIEXPORT void JNICALL

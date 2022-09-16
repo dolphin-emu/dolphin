@@ -6,6 +6,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
+import android.view.InputDevice;
 import android.view.Surface;
 
 import androidx.annotation.Keep;
@@ -55,6 +56,10 @@ public class DolphinSensorEventListener implements SensorEventListener
 
   private final HashMap<Sensor, SensorDetails> mSensorDetails = new HashMap<>();
 
+  private final boolean mRotateCoordinatesForScreenOrientation;
+
+  private String mDeviceQualifier = "";
+
   private SensorEventRequester mRequester = null;
 
   // The fastest sampling rate Android lets us use without declaring the HIGH_SAMPLING_RATE_SENSORS
@@ -66,8 +71,26 @@ public class DolphinSensorEventListener implements SensorEventListener
   {
     mSensorManager = (SensorManager)
             DolphinApplication.getAppContext().getSystemService(Context.SENSOR_SERVICE);
+    mRotateCoordinatesForScreenOrientation = true;
 
     addSensors();
+  }
+
+  @Keep
+  public DolphinSensorEventListener(InputDevice inputDevice)
+  {
+    mRotateCoordinatesForScreenOrientation = false;
+
+    if (Build.VERSION.SDK_INT >= 31)
+    {
+      mSensorManager = inputDevice.getSensorManager();
+
+      addSensors();
+    }
+    else
+    {
+      mSensorManager = null;
+    }
   }
 
   private void addSensors()
@@ -201,7 +224,8 @@ public class DolphinSensorEventListener implements SensorEventListener
               axisSetDetails[detailsAxisSetIndex].firstAxisOfSet == eventAxisIndex)
       {
         int rotation = Surface.ROTATION_0;
-        if (axisSetDetails[detailsAxisSetIndex].axisSetType == AXIS_SET_TYPE_DEVICE_COORDINATES)
+        if (mRotateCoordinatesForScreenOrientation &&
+                axisSetDetails[detailsAxisSetIndex].axisSetType == AXIS_SET_TYPE_DEVICE_COORDINATES)
         {
           rotation = mRequester.getDisplay().getRotation();
         }
@@ -230,12 +254,17 @@ public class DolphinSensorEventListener implements SensorEventListener
 
         float z = values[eventAxisIndex + 2];
 
-        ControllerInterface.dispatchSensorEvent(axisNames[detailsAxisIndex], x);
-        ControllerInterface.dispatchSensorEvent(axisNames[detailsAxisIndex + 1], x);
-        ControllerInterface.dispatchSensorEvent(axisNames[detailsAxisIndex + 2], y);
-        ControllerInterface.dispatchSensorEvent(axisNames[detailsAxisIndex + 3], y);
-        ControllerInterface.dispatchSensorEvent(axisNames[detailsAxisIndex + 4], z);
-        ControllerInterface.dispatchSensorEvent(axisNames[detailsAxisIndex + 5], z);
+        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex], x);
+        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex + 1],
+                x);
+        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex + 2],
+                y);
+        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex + 3],
+                y);
+        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex + 4],
+                z);
+        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex + 5],
+                z);
 
         eventAxisIndex += 3;
         detailsAxisIndex += 6;
@@ -243,7 +272,7 @@ public class DolphinSensorEventListener implements SensorEventListener
       }
       else
       {
-        ControllerInterface.dispatchSensorEvent(axisNames[detailsAxisIndex],
+        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex],
                 values[eventAxisIndex]);
 
         eventAxisIndex++;
@@ -256,6 +285,16 @@ public class DolphinSensorEventListener implements SensorEventListener
   public void onAccuracyChanged(Sensor sensor, int i)
   {
     // We don't care about this
+  }
+
+  /**
+   * The device qualifier set here will be passed on to native code,
+   * for the purpose of letting native code identify which device this object belongs to.
+   */
+  @Keep
+  public void setDeviceQualifier(String deviceQualifier)
+  {
+    mDeviceQualifier = deviceQualifier;
   }
 
   /**
@@ -275,9 +314,12 @@ public class DolphinSensorEventListener implements SensorEventListener
 
     mRequester = requester;
 
-    for (Sensor sensor : mSensorDetails.keySet())
+    if (mSensorManager != null)
     {
-      mSensorManager.registerListener(this, sensor, SAMPLING_PERIOD_US);
+      for (Sensor sensor : mSensorDetails.keySet())
+      {
+        mSensorManager.registerListener(this, sensor, SAMPLING_PERIOD_US);
+      }
     }
   }
 
@@ -291,7 +333,10 @@ public class DolphinSensorEventListener implements SensorEventListener
   {
     mRequester = null;
 
-    mSensorManager.unregisterListener(this);
+    if (mSensorManager != null)
+    {
+      mSensorManager.unregisterListener(this);
+    }
   }
 
   @Keep

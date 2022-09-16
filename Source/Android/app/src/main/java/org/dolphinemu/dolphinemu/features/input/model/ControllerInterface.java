@@ -67,7 +67,8 @@ public final class ControllerInterface
   /**
    * {@link DolphinSensorEventListener} calls this for each axis of a received SensorEvent.
    */
-  public static native void dispatchSensorEvent(String axisName, float value);
+  public static native void dispatchSensorEvent(String deviceQualifier, String axisName,
+          float value);
 
   /**
    * Enables delivering sensor events to native code.
