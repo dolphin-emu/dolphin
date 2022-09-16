@@ -17,6 +17,7 @@
 #include <android/keycodes.h>
 #include <jni.h>
 
+#include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
@@ -62,12 +63,20 @@ jclass s_controller_interface_class;
 jmethodID s_controller_interface_register_input_device_listener;
 jmethodID s_controller_interface_unregister_input_device_listener;
 
+jclass s_sensor_event_listener_class;
+jmethodID s_sensor_event_listener_constructor;
+jmethodID s_sensor_event_listener_enable_sensor_events;
+jmethodID s_sensor_event_listener_disable_sensor_events;
+jmethodID s_sensor_event_listener_get_axis_names;
+jmethodID s_sensor_event_listener_get_negative_axes;
+
 jintArray s_keycodes_array;
 
 using Clock = std::chrono::steady_clock;
 constexpr Clock::duration ACTIVE_INPUT_TIMEOUT = std::chrono::milliseconds(1000);
 
 std::unordered_map<jint, ciface::Core::DeviceQualifier> s_device_id_to_device_qualifier;
+ciface::Core::DeviceQualifier s_sensor_device_qualifier;
 
 constexpr int MAX_KEYCODE = AKEYCODE_PROFILE_SWITCH;  // Up to date as of SDK 31
 
@@ -460,11 +469,15 @@ public:
   explicit AndroidKey(int keycode) : AndroidInput(ConstructKeyName(keycode)) {}
 };
 
-class AndroidAxis final : public AndroidInput
+class AndroidAxis : public AndroidInput
 {
 public:
   AndroidAxis(int source, int axis, bool negative)
       : AndroidInput(ConstructAxisName(source, axis, negative)), m_negative(negative)
+  {
+  }
+
+  AndroidAxis(std::string name, bool negative) : AndroidInput(std::move(name)), m_negative(negative)
   {
   }
 
@@ -477,12 +490,21 @@ private:
   bool m_negative;
 };
 
+class AndroidSensorAxis final : public AndroidAxis
+{
+public:
+  AndroidSensorAxis(std::string name, bool negative) : AndroidAxis(std::move(name), negative) {}
+
+  bool IsDetectable() const override { return false; }
+};
+
 class AndroidDevice final : public Core::Device
 {
 public:
   AndroidDevice(JNIEnv* env, jobject input_device)
-      : m_source(env->CallIntMethod(input_device, s_input_device_get_sources)),
-        m_controller_number(env->CallIntMethod(input_device, s_input_device_get_controller_number)
+      : m_sensor_event_listener(nullptr),
+        m_source(env->CallIntMethod(input_device, s_input_device_get_sources)),
+        m_controller_number(env->CallIntMethod(input_device, s_input_device_get_controller_number))
   {
     jstring j_name =
         reinterpret_cast<jstring>(env->CallObjectMethod(input_device, s_input_device_get_name));
@@ -493,6 +515,19 @@ public:
 
     AddKeys(env, input_device);
     AddAxes(env, input_device);
+  }
+
+  // Constructor for the device added by Dolphin to contain sensor inputs
+  AndroidDevice(JNIEnv* env, std::string name)
+      : m_sensor_event_listener(AddSensors(env)), m_source(AINPUT_SOURCE_SENSOR),
+        m_controller_number(0), m_name(std::move(name))
+  {
+  }
+
+  ~AndroidDevice()
+  {
+    if (m_sensor_event_listener)
+      IDCache::GetEnvForThread()->DeleteGlobalRef(m_sensor_event_listener);
   }
 
   std::string GetName() const override { return m_name; }
@@ -518,6 +553,8 @@ public:
 
     return -3;
   }
+
+  jobject GetSensorEventListener() { return m_sensor_event_listener; }
 
 private:
   void AddKeys(JNIEnv* env, jobject input_device)
@@ -571,6 +608,35 @@ private:
     env->DeleteLocalRef(motion_ranges_list);
   }
 
+  jobject AddSensors(JNIEnv* env)
+  {
+    jobject sensor_event_listener =
+        env->NewObject(s_sensor_event_listener_class, s_sensor_event_listener_constructor);
+
+    jobjectArray j_axis_names = reinterpret_cast<jobjectArray>(
+        env->CallObjectMethod(sensor_event_listener, s_sensor_event_listener_get_axis_names));
+    std::vector<std::string> axis_names = JStringArrayToVector(env, j_axis_names);
+    env->DeleteLocalRef(j_axis_names);
+
+    jbooleanArray j_negative_axes = reinterpret_cast<jbooleanArray>(
+        env->CallObjectMethod(sensor_event_listener, s_sensor_event_listener_get_negative_axes));
+    jboolean* negative_axes = env->GetBooleanArrayElements(j_negative_axes, nullptr);
+
+    ASSERT(axis_names.size() == env->GetArrayLength(j_negative_axes));
+    for (size_t i = 0; i < axis_names.size(); ++i)
+      AddInput(new AndroidSensorAxis(axis_names[i], negative_axes[i]));
+
+    env->ReleaseBooleanArrayElements(j_negative_axes, negative_axes, 0);
+    env->DeleteLocalRef(j_negative_axes);
+
+    jobject global_sensor_event_listener = env->NewGlobalRef(sensor_event_listener);
+
+    env->DeleteLocalRef(sensor_event_listener);
+
+    return global_sensor_event_listener;
+  }
+
+  const jobject m_sensor_event_listener;
   const int m_source;
   const int m_controller_number;
   std::string m_name;
@@ -648,6 +714,22 @@ void Init()
   s_controller_interface_unregister_input_device_listener =
       env->GetStaticMethodID(s_controller_interface_class, "unregisterInputDeviceListener", "()V");
 
+  const jclass sensor_event_listener_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/DolphinSensorEventListener");
+  s_sensor_event_listener_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(sensor_event_listener_class));
+  s_sensor_event_listener_constructor =
+      env->GetMethodID(s_sensor_event_listener_class, "<init>", "()V");
+  s_sensor_event_listener_enable_sensor_events =
+      env->GetMethodID(s_sensor_event_listener_class, "enableSensorEvents",
+                       "(Lorg/dolphinemu/dolphinemu/features/input/model/SensorEventRequester;)V");
+  s_sensor_event_listener_disable_sensor_events =
+      env->GetMethodID(s_sensor_event_listener_class, "disableSensorEvents", "()V");
+  s_sensor_event_listener_get_axis_names =
+      env->GetMethodID(s_sensor_event_listener_class, "getAxisNames", "()[Ljava/lang/String;");
+  s_sensor_event_listener_get_negative_axes =
+      env->GetMethodID(s_sensor_event_listener_class, "getNegativeAxes", "()[Z");
+
   jintArray keycodes_array = CreateKeyCodesArray(env);
   s_keycodes_array = reinterpret_cast<jintArray>(env->NewGlobalRef(keycodes_array));
   env->DeleteLocalRef(keycodes_array);
@@ -669,6 +751,7 @@ void Shutdown()
   env->DeleteGlobalRef(s_key_event_class);
   env->DeleteGlobalRef(s_motion_event_class);
   env->DeleteGlobalRef(s_controller_interface_class);
+  env->DeleteGlobalRef(s_sensor_event_listener_class);
   env->DeleteGlobalRef(s_keycodes_array);
 }
 
@@ -694,6 +777,25 @@ static void AddDevice(JNIEnv* env, int device_id)
   s_device_id_to_device_qualifier.emplace(device_id, qualifier);
 }
 
+static void AddSensorDevice(JNIEnv* env)
+{
+  // Device sensors (accelerometer, etc.) aren't associated with any Android InputDevice.
+  // Create an otherwise empty Dolphin input device so that they have somewhere to live.
+
+  auto device = std::make_shared<AndroidDevice>(env, "Device Sensors");
+
+  if (device->Inputs().empty() && device->Outputs().empty())
+    return;
+
+  g_controller_interface.AddDevice(device);
+
+  Core::DeviceQualifier qualifier;
+  qualifier.FromDevice(device.get());
+
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "Added sensor device as {}", device->GetQualifiedName());
+  s_sensor_device_qualifier = qualifier;
+}
+
 void PopulateDevices()
 {
   INFO_LOG_FMT(CONTROLLERINTERFACE, "Android populating devices");
@@ -708,6 +810,8 @@ void PopulateDevices()
     AddDevice(env, device_ids[i]);
   env->ReleaseIntArrayElements(device_ids_array, device_ids, JNI_ABORT);
   env->DeleteLocalRef(device_ids_array);
+
+  AddSensorDevice(env);
 }
 
 }  // namespace ciface::Android
@@ -804,6 +908,56 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
   }
 
   return last_polled >= Clock::now() - ACTIVE_INPUT_TIMEOUT;
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchSensorEvent(
+    JNIEnv* env, jclass, jstring j_axis_name, jfloat value)
+{
+  const std::shared_ptr<ciface::Core::Device> device =
+      g_controller_interface.FindDevice(s_sensor_device_qualifier);
+  if (!device)
+    return;
+
+  const std::string axis_name = GetJString(env, j_axis_name);
+
+  for (ciface::Core::Device::Input* input : device->Inputs())
+  {
+    const std::string input_name = input->GetName();
+    if (input_name == axis_name)
+    {
+      auto casted_input = static_cast<ciface::Android::AndroidInput*>(input);
+      casted_input->SetState(value);
+    }
+  }
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_enableSensorEvents(
+    JNIEnv* env, jclass, jobject j_sensor_event_requester)
+{
+  const std::shared_ptr<ciface::Core::Device> device =
+      g_controller_interface.FindDevice(s_sensor_device_qualifier);
+  if (!device)
+    return;
+
+  env->CallVoidMethod(
+      static_cast<ciface::Android::AndroidDevice*>(device.get())->GetSensorEventListener(),
+      s_sensor_event_listener_enable_sensor_events, j_sensor_event_requester);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_disableSensorEvents(
+    JNIEnv* env, jclass)
+{
+  const std::shared_ptr<ciface::Core::Device> device =
+      g_controller_interface.FindDevice(s_sensor_device_qualifier);
+  if (!device)
+    return;
+
+  env->CallVoidMethod(
+      static_cast<ciface::Android::AndroidDevice*>(device.get())->GetSensorEventListener(),
+      s_sensor_event_listener_disable_sensor_events);
 }
 
 JNIEXPORT void JNICALL

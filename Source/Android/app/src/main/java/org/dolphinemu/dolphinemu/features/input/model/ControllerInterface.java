@@ -65,6 +65,26 @@ public final class ControllerInterface
   public static native boolean dispatchGenericMotionEvent(MotionEvent event);
 
   /**
+   * {@link DolphinSensorEventListener} calls this for each axis of a received SensorEvent.
+   */
+  public static native void dispatchSensorEvent(String axisName, float value);
+
+  /**
+   * Enables delivering sensor events to native code.
+   *
+   * @param requester The activity or other component which is requesting sensor events to be
+   *                  delivered.
+   */
+  public static native void enableSensorEvents(SensorEventRequester requester);
+
+  /**
+   * Disables delivering sensor events to native code.
+   *
+   * Calling this when sensor events are no longer needed will save battery.
+   */
+  public static native void disableSensorEvents();
+
+  /**
    * Rescans for input devices.
    */
   public static native void refreshDevices();
