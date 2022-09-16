@@ -440,28 +440,6 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
   )
 
-  # Copy VC++ Redist.
-  # NOTE This *intentionally* does not copy debug redist files.
-  # TODO This should really occur for any executable target.
-  # TODO Actually use cmake 'install' and InstallRequiredSystemLibraries.
-  if(MSVC_C_ARCHITECTURE_ID)
-    string(TOLOWER "${MSVC_C_ARCHITECTURE_ID}" CMAKE_MSVC_ARCH)
-  elseif(MSVC_CXX_ARCHITECTURE_ID)
-    string(TOLOWER "${MSVC_CXX_ARCHITECTURE_ID}" CMAKE_MSVC_ARCH)
-  else()
-    set(CMAKE_MSVC_ARCH x86)
-  endif()
-  set(MSVC_REDIST_NAME VC${MSVC_TOOLSET_VERSION})
-  find_path(MSVC_REDIST_DIR NAMES ${CMAKE_MSVC_ARCH}/Microsoft.${MSVC_REDIST_NAME}.CRT)
-  mark_as_advanced(MSVC_REDIST_DIR)
-  set(MSVC_CRT_DIR "${MSVC_REDIST_DIR}/${CMAKE_MSVC_ARCH}/Microsoft.${MSVC_REDIST_NAME}.CRT")
-  file(GLOB MSVC_REDIST_DLLS "${MSVC_CRT_DIR}/*.dll")
-  foreach(MsvcRedistDll IN LISTS MSVC_REDIST_DLLS)
-    add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MsvcRedistDll}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-    )
-  endforeach()
-
   # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
   get_target_property(MOC_EXECUTABLE_LOCATION Qt${QT_VERSION_MAJOR}::moc IMPORTED_LOCATION)
   get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
