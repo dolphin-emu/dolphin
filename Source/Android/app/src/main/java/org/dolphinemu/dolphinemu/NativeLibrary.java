@@ -235,30 +235,6 @@ public final class NativeLibrary
   }
 
   /**
-   * Default touchscreen device
-   */
-  public static final String TouchScreenDevice = "Touchscreen";
-
-  /**
-   * Handles button press events for a gamepad.
-   *
-   * @param Device The input descriptor of the gamepad.
-   * @param Button Key code identifying which button was pressed.
-   * @param Action Mask identifying which action is happening (button pressed down, or button released).
-   * @return If we handled the button press.
-   */
-  public static native boolean onGamePadEvent(String Device, int Button, int Action);
-
-  /**
-   * Handles gamepad movement events.
-   *
-   * @param Device The device ID of the gamepad.
-   * @param Axis   The axis ID
-   * @param Value  The value of the axis represented by the given ID.
-   */
-  public static native void onGamePadMoveEvent(String Device, int Axis, float Value);
-
-  /**
    * Rumble sent from native. Currently only supports phone rumble.
    *
    * @param padID Ignored for now. Future use would be to pass rumble to a connected controller
@@ -276,9 +252,6 @@ public final class NativeLibrary
 
     Rumble.checkRumble(padID, state);
   }
-
-  public static native void SetMotionSensorsEnabled(boolean accelerometerEnabled,
-          boolean gyroscopeEnabled);
 
   /**
    * Gets the Dolphin version string.

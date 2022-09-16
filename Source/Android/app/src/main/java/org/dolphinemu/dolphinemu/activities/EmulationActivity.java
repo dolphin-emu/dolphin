@@ -64,7 +64,6 @@ import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.IniFile;
-import org.dolphinemu.dolphinemu.utils.MotionListener;
 import org.dolphinemu.dolphinemu.utils.Rumble;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
@@ -89,7 +88,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   private EmulationFragment mEmulationFragment;
 
   private SharedPreferences mPreferences;
-  private MotionListener mMotionListener;
 
   private Settings mSettings;
 
@@ -359,8 +357,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     updateOrientation();
 
-    mMotionListener = new MotionListener(this);
-
     // Set these options now so that the SurfaceView the game renders into is the right size.
     enableFullscreenImmersive();
 
@@ -452,16 +448,12 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     }
 
     updateOrientation();
-
-    if (NativeLibrary.IsGameMetadataValid())
-      updateMotionListener();
   }
 
   @Override
   protected void onPause()
   {
     super.onPause();
-    mMotionListener.disable();
   }
 
   @Override
@@ -481,17 +473,8 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     }
 
     setTitle(NativeLibrary.GetCurrentTitleDescription());
-    updateMotionListener();
 
     mEmulationFragment.refreshInputOverlay();
-  }
-
-  private void updateMotionListener()
-  {
-    if (NativeLibrary.IsEmulatingWii() && IntSetting.MAIN_MOTION_CONTROLS.getInt(mSettings) != 2)
-      mMotionListener.enable();
-    else
-      mMotionListener.disable();
   }
 
   @Override
@@ -1062,8 +1045,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
                     (dialog, indexSelected) ->
                     {
                       IntSetting.MAIN_MOTION_CONTROLS.setInt(mSettings, indexSelected);
-
-                      updateMotionListener();
 
                       updateWiimoteNewImuIr(indexSelected);
                       NativeLibrary.ReloadWiimoteConfig();
