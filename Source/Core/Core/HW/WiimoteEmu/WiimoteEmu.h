@@ -192,7 +192,7 @@ private:
 
   void HandleExtensionSwap();
   bool ProcessExtensionPortEvent();
-  void SendDataReport();
+  void SendDataReport(const DesiredWiimoteState& target_state);
   bool ProcessReadDataRequest();
 
   void SetRumble(bool on);

@@ -449,6 +449,11 @@ DesiredWiimoteState Wiimote::BuildDesiredWiimoteState()
   m_dpad->GetState(&wiimote_state.buttons.hex,
                    IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
 
+  // Calculate accelerometer state.
+  // Calibration values are 8-bit but we want 10-bit precision, so << 2.
+  wiimote_state.acceleration =
+      ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
+
   return wiimote_state;
 }
 
@@ -493,10 +498,10 @@ void Wiimote::Update()
     return;
   }
 
-  SendDataReport();
+  SendDataReport(target_state);
 }
 
-void Wiimote::SendDataReport()
+void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 {
   Movie::SetPolledDevice();
 
@@ -532,10 +537,7 @@ void Wiimote::SendDataReport()
     // Acceleration:
     if (rpt_builder.HasAccel())
     {
-      // Calibration values are 8-bit but we want 10-bit precision, so << 2.
-      AccelData accel =
-          ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
-      rpt_builder.SetAccelData(accel);
+      rpt_builder.SetAccelData(target_state.acceleration);
     }
 
     // IR Camera:
