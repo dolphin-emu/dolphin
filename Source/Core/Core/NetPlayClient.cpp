@@ -910,6 +910,7 @@ void NetPlayClient::OnStopGame(sf::Packet& packet)
 
 void NetPlayClient::OnPowerButton()
 {
+  InvokeStop();
   m_dialog->OnMsgPowerButton();
 }
 
@@ -2048,6 +2049,22 @@ u64 NetPlayClient::GetInitialRTCValue() const
   return m_initial_rtc;
 }
 
+bool NetPlayClient::WaitForWiimoteBuffer(int _number)
+{
+  while (m_wiimote_buffer[_number].Size() == 0)
+  {
+    if (!m_is_running.IsSet())
+    {
+      return false;
+    }
+
+    // wait for receiving thread to push some data
+    m_wii_pad_event.Wait();
+  }
+
+  return true;
+}
+
 // called from ---CPU--- thread
 bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size, u8 reporting_mode)
 {
@@ -2073,16 +2090,8 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size,
 
   }  // unlock players
 
-  while (m_wiimote_buffer[_number].Size() == 0)
-  {
-    if (!m_is_running.IsSet())
-    {
-      return false;
-    }
-
-    // wait for receiving thread to push some data
-    m_wii_pad_event.Wait();
-  }
+  if (!WaitForWiimoteBuffer(_number))
+    return false;
 
   m_wiimote_buffer[_number].Pop(nw);
 
@@ -2093,16 +2102,8 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size,
     u32 tries = 0;
     while (nw.report_id != reporting_mode)
     {
-      while (m_wiimote_buffer[_number].Size() == 0)
-      {
-        if (!m_is_running.IsSet())
-        {
-          return false;
-        }
-
-        // wait for receiving thread to push some data
-        m_wii_pad_event.Wait();
-      }
+      if (!WaitForWiimoteBuffer(_number))
+        return false;
 
       m_wiimote_buffer[_number].Pop(nw);
 
@@ -2244,8 +2245,7 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
   SendAsync(std::move(packet));
 }
 
-// called from ---GUI--- thread and ---NETPLAY--- thread (client side)
-bool NetPlayClient::StopGame()
+void NetPlayClient::InvokeStop()
 {
   m_is_running.Clear();
 
@@ -2254,6 +2254,12 @@ bool NetPlayClient::StopGame()
   m_wii_pad_event.Set();
   m_first_pad_status_received_event.Set();
   m_wait_on_input_event.Set();
+}
+
+// called from ---GUI--- thread and ---NETPLAY--- thread (client side)
+bool NetPlayClient::StopGame()
+{
+  InvokeStop();
 
   NetPlay_Disable();
 
@@ -2269,13 +2275,7 @@ void NetPlayClient::Stop()
   if (!m_is_running.IsSet())
     return;
 
-  m_is_running.Clear();
-
-  // stop waiting for input
-  m_gc_pad_event.Set();
-  m_wii_pad_event.Set();
-  m_first_pad_status_received_event.Set();
-  m_wait_on_input_event.Set();
+  InvokeStop();
 
   // Tell the server to stop if we have a pad mapped in game.
   if (LocalPlayerHasControllerMapped())
