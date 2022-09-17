@@ -8,6 +8,8 @@
 #include "Common/Assert.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
@@ -50,9 +52,9 @@ Shinkansen::Shinkansen() : Extension3rdParty("Shinkansen", _trans("Shinkansen Co
   m_led->AddOutput(ControllerEmu::Translate, _trans("Doors Locked"));
 }
 
-void Shinkansen::Update()
+void Shinkansen::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
-  DataFormat ext_data = {};
+  DesiredState& state = target_state->data.emplace<DesiredState>();
 
   u16 digital = 0;
   const u16 lever_bitmasks[2] = {};
@@ -62,8 +64,8 @@ void Shinkansen::Update()
   // guesses).
   const u8 brake_values[] = {0, 53, 79, 105, 132, 159, 187, 217, 250};
   const u8 power_values[] = {255, 229, 208, 189, 170, 153, 135, 118, 101, 85, 68, 51, 35, 17};
-  ext_data.brake = brake_values[size_t(analog[0] * (sizeof(brake_values) - 1))];
-  ext_data.power = power_values[size_t(analog[1] * (sizeof(power_values) - 1))];
+  state.brake = brake_values[size_t(analog[0] * (sizeof(brake_values) - 1))];
+  state.power = power_values[size_t(analog[1] * (sizeof(power_values) - 1))];
 
   // Note: This currently assumes a little-endian host.
   const u16 button_bitmasks[] = {
@@ -78,8 +80,27 @@ void Shinkansen::Update()
       0x0010,  // Select
       0x0004,  // Start
   };
-  m_buttons->GetState(&ext_data.buttons, button_bitmasks);
-  ext_data.buttons ^= 0xFFFF;
+  m_buttons->GetState(&state.buttons, button_bitmasks);
+}
+
+void Shinkansen::Update(const DesiredExtensionState& target_state)
+{
+  DesiredState desired_state;
+  if (std::holds_alternative<DesiredState>(target_state.data))
+  {
+    desired_state = std::get<DesiredState>(target_state.data);
+  }
+  else
+  {
+    desired_state.brake = 0;
+    desired_state.power = 255;
+    desired_state.buttons = 0;
+  }
+
+  DataFormat ext_data = {};
+  ext_data.brake = desired_state.brake;
+  ext_data.power = desired_state.power;
+  ext_data.buttons = desired_state.buttons ^ 0xFFFF;
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = ext_data;
 
   const auto lock = GetStateLock();

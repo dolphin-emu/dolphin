@@ -38,6 +38,7 @@ class Tilt;
 namespace WiimoteEmu
 {
 struct DesiredWiimoteState;
+struct DesiredExtensionState;
 
 enum class WiimoteGroup
 {

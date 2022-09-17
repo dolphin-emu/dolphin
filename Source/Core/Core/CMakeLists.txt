@@ -287,6 +287,7 @@ add_library(core
   HW/WiimoteEmu/Encryption.h
   HW/WiimoteEmu/Extension/Classic.cpp
   HW/WiimoteEmu/Extension/Classic.h
+  HW/WiimoteEmu/Extension/DesiredExtensionState.h
   HW/WiimoteEmu/Extension/DrawsomeTablet.cpp
   HW/WiimoteEmu/Extension/DrawsomeTablet.h
   HW/WiimoteEmu/Extension/Drums.cpp

@@ -18,6 +18,7 @@
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 
 namespace
 {
@@ -387,7 +388,12 @@ bool MotionPlus::ReadDeviceDetectPin() const
   }
 }
 
-void MotionPlus::Update()
+void MotionPlus::BuildDesiredExtensionState(DesiredExtensionState* target_state)
+{
+  // MotionPlus is handled separately, nothing to do here.
+}
+
+void MotionPlus::Update(const DesiredExtensionState& target_state)
 {
   if (m_progress_timer)
     --m_progress_timer;

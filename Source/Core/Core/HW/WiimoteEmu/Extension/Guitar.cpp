@@ -11,6 +11,8 @@
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -93,7 +95,7 @@ Guitar::Guitar() : Extension1stParty(_trans("Guitar"))
   groups.emplace_back(m_slider_bar = new ControllerEmu::Slider(_trans("Slider Bar")));
 }
 
-void Guitar::Update()
+void Guitar::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DataFormat guitar_data = {};
 
@@ -135,7 +137,12 @@ void Guitar::Update()
   // flip button bits
   guitar_data.bt ^= 0xFFFF;
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = guitar_data;
+  target_state->data = guitar_data;
+}
+
+void Guitar::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void Guitar::Reset()

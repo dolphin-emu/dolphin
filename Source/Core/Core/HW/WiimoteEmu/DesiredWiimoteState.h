@@ -8,6 +8,7 @@
 
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Camera.h"
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
@@ -26,5 +27,6 @@ struct DesiredWiimoteState
   WiimoteCommon::AccelData acceleration = DEFAULT_ACCELERATION;
   std::array<CameraPoint, 2> camera_points = DEFAULT_CAMERA;
   std::optional<MotionPlus::DataFormat::Data> motion_plus = std::nullopt;
+  DesiredExtensionState extension;
 };
 }  // namespace WiimoteEmu

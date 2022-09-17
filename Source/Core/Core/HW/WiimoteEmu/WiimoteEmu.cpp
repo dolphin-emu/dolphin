@@ -27,6 +27,7 @@
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
@@ -465,6 +466,13 @@ DesiredWiimoteState Wiimote::BuildDesiredWiimoteState()
   if (m_motion_plus_setting.GetValue())
     wiimote_state.motion_plus = MotionPlus::GetGyroscopeData(GetTotalAngularVelocity());
 
+  // Build Extension state.
+  // This also allows the extension to perform any regular duties it may need.
+  // (e.g. Nunchuk motion simulation step)
+  static_cast<Extension*>(
+      m_attachments->GetAttachmentList()[m_attachments->GetSelectedAttachment()].get())
+      ->BuildDesiredExtensionState(&wiimote_state.extension);
+
   return wiimote_state;
 }
 
@@ -480,19 +488,16 @@ void Wiimote::Update()
   UpdateButtonsStatus(target_state);
 
   // If a new extension is requested in the GUI the change will happen here.
-  HandleExtensionSwap(static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment()),
+  HandleExtensionSwap(static_cast<ExtensionNumber>(target_state.extension.data.index()),
                       target_state.motion_plus.has_value());
 
-  // Allow extension to perform any regular duties it may need.
-  // (e.g. Nunchuk motion simulation step)
-  // Input is prepared here too.
-  // TODO: Separate input preparation from Update.
-  GetActiveExtension()->Update();
+  // Prepare input data of the extension for reading.
+  GetActiveExtension()->Update(target_state.extension);
 
   if (m_is_motion_plus_attached)
   {
     // M+ has some internal state that must processed.
-    m_motion_plus.Update();
+    m_motion_plus.Update(target_state.extension);
   }
 
   // Returns true if a report was sent.

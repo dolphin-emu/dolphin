@@ -28,6 +28,15 @@ enum class DrumsGroup
 class Drums : public Extension1stParty
 {
 public:
+  struct DesiredState
+  {
+    u8 stick_x;    // 6 bits
+    u8 stick_y;    // 6 bits
+    u8 buttons;    // 2 bits
+    u8 drum_pads;  // 6 bits
+    u8 softness;   // 3 bits
+  };
+
   struct DataFormat
   {
     u8 stick_x : 6;
@@ -77,7 +86,8 @@ public:
 
   Drums();
 
-  void Update() override;
+  void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;
+  void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(DrumsGroup group);

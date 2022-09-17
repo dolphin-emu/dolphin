@@ -27,7 +27,8 @@ class DrawsomeTablet : public Extension3rdParty
 public:
   DrawsomeTablet();
 
-  void Update() override;
+  void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;
+  void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(DrawsomeTabletGroup group);
