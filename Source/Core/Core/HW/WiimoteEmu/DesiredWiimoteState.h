@@ -4,9 +4,11 @@
 #pragma once
 
 #include <array>
+#include <optional>
 
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Camera.h"
+#include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 namespace WiimoteEmu
@@ -23,5 +25,6 @@ struct DesiredWiimoteState
   WiimoteCommon::ButtonData buttons{};  // non-button state in this is ignored
   WiimoteCommon::AccelData acceleration = DEFAULT_ACCELERATION;
   std::array<CameraPoint, 2> camera_points = DEFAULT_CAMERA;
+  std::optional<MotionPlus::DataFormat::Data> motion_plus = std::nullopt;
 };
 }  // namespace WiimoteEmu

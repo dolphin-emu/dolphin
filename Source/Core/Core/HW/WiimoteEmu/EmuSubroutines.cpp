@@ -142,7 +142,8 @@ void Wiimote::SendAck(OutputReportID rpt_id, ErrorCode error_code)
   InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
 }
 
-void Wiimote::HandleExtensionSwap()
+void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
+                                  bool desired_motion_plus)
 {
   if (WIIMOTE_BALANCE_BOARD == m_index)
   {
@@ -150,11 +151,6 @@ void Wiimote::HandleExtensionSwap()
     // In the future if we support an emulated balance board we can force the BB "extension" here.
     return;
   }
-
-  ExtensionNumber desired_extension_number =
-      static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment());
-
-  const bool desired_motion_plus = m_motion_plus_setting.GetValue();
 
   // FYI: AttachExtension also connects devices to the i2c bus
 

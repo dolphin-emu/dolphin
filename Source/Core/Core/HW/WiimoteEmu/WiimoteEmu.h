@@ -190,7 +190,7 @@ private:
   template <typename T, typename H>
   void InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneric& rpt, u32 size);
 
-  void HandleExtensionSwap();
+  void HandleExtensionSwap(ExtensionNumber desired_extension_number, bool desired_motion_plus);
   bool ProcessExtensionPortEvent();
   void SendDataReport(const DesiredWiimoteState& target_state);
   bool ProcessReadDataRequest();

@@ -174,7 +174,8 @@ void Wiimote::Reset()
 
   // Switch to desired M+ status and extension (if any).
   // M+ and EXT are reset on attachment.
-  HandleExtensionSwap();
+  HandleExtensionSwap(static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment()),
+                      m_motion_plus_setting.GetValue());
 
   // Reset sub-devices.
   m_speaker_logic.Reset();
@@ -460,6 +461,10 @@ DesiredWiimoteState Wiimote::BuildDesiredWiimoteState()
       Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
           float(MathUtil::TAU));
 
+  // Calculate MotionPlus state.
+  if (m_motion_plus_setting.GetValue())
+    wiimote_state.motion_plus = MotionPlus::GetGyroscopeData(GetTotalAngularVelocity());
+
   return wiimote_state;
 }
 
@@ -475,7 +480,8 @@ void Wiimote::Update()
   UpdateButtonsStatus(target_state);
 
   // If a new extension is requested in the GUI the change will happen here.
-  HandleExtensionSwap();
+  HandleExtensionSwap(static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment()),
+                      target_state.motion_plus.has_value());
 
   // Allow extension to perform any regular duties it may need.
   // (e.g. Nunchuk motion simulation step)
@@ -579,7 +585,9 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
       if (m_is_motion_plus_attached)
       {
         // TODO: Make input preparation triggered by bus read.
-        m_motion_plus.PrepareInput(GetTotalAngularVelocity());
+        m_motion_plus.PrepareInput(target_state.motion_plus.has_value() ?
+                                       target_state.motion_plus.value() :
+                                       MotionPlus::GetDefaultGyroscopeData());
       }
 
       u8* ext_data = rpt_builder.GetExtDataPtr();
