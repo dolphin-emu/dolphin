@@ -28,10 +28,20 @@ u32 bsearch_strg_table(std::string const& key, u32 strg_header) {
   return bsearch_left;
 }
 
-void patch_strg_entry_mp3(u32 rgn) {
+void patch_strg_entry_mp3(u32 vers) {
   u32 strg_header = GPR(31), key_ptr = GPR(4);
 
-  u32 patched_table_addr = rgn == 0 ? 0x80676c00 : 0x8067a400;
+  u32 patched_table_addr = 0;
+  switch (vers) {
+    case 0:
+      patched_table_addr = 0x80676c00;
+    case 1:
+      patched_table_addr = 0x8067a400;
+    case 2:
+      patched_table_addr = 0x80684800;
+    default:
+      break;
+  }
   std::string key = readin_str(key_ptr);
   if (key == "ShakeOffGandrayda") {
     u32 bsearch_result = bsearch_strg_table(key, strg_header);
@@ -54,21 +64,20 @@ void STRGPatch::run_mod(Game game, Region region) {
   case Game::PRIME_1_GCN_R2:
   case Game::PRIME_2:
   case Game::PRIME_2_GCN:
-  case Game::PRIME_3_STANDALONE:
     break;
+  case Game::PRIME_3_STANDALONE:
   case Game::PRIME_3:
-    run_mod_mp3(region);
+    run_mod_mp3();
     break;
   default:
     break;
   }
 }
 
-void STRGPatch::run_mod_mp3(Region region) {
-  u32 addr = region == Region::NTSC_U ? 0x80676c00 : 0x8067a400;
+void STRGPatch::run_mod_mp3() {
   char str[] = "&just=center;Mash Jump [&image=0x5FC17B1F30BAA7AE;] to shake off Gandrayda!";
   for (size_t i = 0; i < sizeof(str); i++) {
-    write8(str[i], addr + i);
+    write8(str[i], replace_string_addr + i);
   }
 }
 
@@ -80,13 +89,22 @@ bool STRGPatch::init_mod(Game game, Region region) {
   case Game::PRIME_1_GCN_R2:
   case Game::PRIME_2:
   case Game::PRIME_2_GCN:
-  case Game::PRIME_3_STANDALONE:
     break;
+  case Game::PRIME_3_STANDALONE: {
+    int vmc_id = PowerPC::RegisterVmcall(patch_strg_entry_mp3);
+    if (region == Region::NTSC_U) {
+      replace_string_addr = 0x80684800;
+      add_code_change(0x803cdd64, gen_vmcall(vmc_id, 2));
+    }
+    break;
+  }
   case Game::PRIME_3: {
     int vmc_id = PowerPC::RegisterVmcall(patch_strg_entry_mp3);
     if (region == Region::NTSC_U) {
+      replace_string_addr = 0x80676c00;
       add_code_change(0x803cc3f4, gen_vmcall(vmc_id, 0));
     } else if (region == Region::PAL) {
+      replace_string_addr = 0x8067a400;
       add_code_change(0x803cbb10, gen_vmcall(vmc_id, 1));
     }
     break;

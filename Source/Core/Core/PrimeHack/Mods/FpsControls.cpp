@@ -1901,6 +1901,8 @@ void FpsControls::init_mod_mp3_standalone(Region region) {
 
     // Steps over bounds checking on the reticle
     add_code_change(0x80017290, 0x48000120);
+    const int wiimote_shake_override_idx = PowerPC::RegisterVmcall(wiimote_shake_override);
+    add_code_change(0x800a8f40, gen_vmcall(wiimote_shake_override_idx, 0));
   } else if (region == Region::NTSC_J) {
     add_code_change(0x80081018, 0xec010072);
     add_code_change(0x80153ed4, 0x60000000);

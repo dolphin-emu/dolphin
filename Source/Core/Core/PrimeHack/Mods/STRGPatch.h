@@ -12,7 +12,9 @@ public:
   void on_state_change(ModState old_state) override {}
 
 private:
-  void run_mod_mp3(Region region);
+  void run_mod_mp3();
+
+  u32 replace_string_addr;
 };
 
 }
