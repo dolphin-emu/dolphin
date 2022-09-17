@@ -1015,6 +1015,8 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
               editor.apply();
               mEmulationFragment.refreshInputOverlay(mSettings);
             })
+            .setNeutralButton(R.string.emulation_more_controller_settings,
+                    (dialogInterface, i) -> SettingsActivity.launch(this, MenuTag.SETTINGS))
             .show();
   }
 

@@ -573,6 +573,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_control_adjustments">Adjust Controls</string>
     <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
     <string name="emulation_choose_controller">Choose Controller</string>
+    <string name="emulation_more_controller_settings">More Settings</string>
     <string name="emulation_menu_help">Press Back to access the menu.\nLong press Back to exit emulation.</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
     <string name="emulation_ir_group">Touch IR Pointer</string>
