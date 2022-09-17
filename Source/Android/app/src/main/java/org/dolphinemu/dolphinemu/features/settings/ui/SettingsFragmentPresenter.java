@@ -1127,8 +1127,10 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(mContext, R.string.wiimote_motion_input,
             MenuTag.getWiimoteMotionInputMenuTag(wiimoteNumber)));
 
+    // TYPE_OTHER is included here instead of in addWiimoteGeneralSubSettings so that touchscreen
+    // users won't have to dig into a submenu to find the Sideways Wii Remote setting
     addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
-            Collections.singleton(ControlGroup.TYPE_ATTACHMENTS));
+            new ArraySet<>(Arrays.asList(ControlGroup.TYPE_ATTACHMENTS, ControlGroup.TYPE_OTHER)));
   }
 
   private void addExtensionTypeSettings(ArrayList<SettingsItem> sl, int wiimoteNumber,
@@ -1141,7 +1143,7 @@ public final class SettingsFragmentPresenter
   private void addWiimoteGeneralSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
   {
     addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
-            new ArraySet<>(Arrays.asList(ControlGroup.TYPE_BUTTONS, ControlGroup.TYPE_OTHER)));
+            Collections.singleton(ControlGroup.TYPE_BUTTONS));
   }
 
   private void addWiimoteMotionSimulationSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
