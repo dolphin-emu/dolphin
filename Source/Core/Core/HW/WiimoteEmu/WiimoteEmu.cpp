@@ -454,6 +454,12 @@ DesiredWiimoteState Wiimote::BuildDesiredWiimoteState()
   wiimote_state.acceleration =
       ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
 
+  // Calculate IR camera state.
+  wiimote_state.camera_points = CameraLogic::GetCameraPoints(
+      GetTotalTransformation(),
+      Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
+          float(MathUtil::TAU));
+
   return wiimote_state;
 }
 
@@ -545,9 +551,7 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
     {
       // Note: Camera logic currently contains no changing state so we can just update it here.
       // If that changes this should be moved to Wiimote::Update();
-      m_camera_logic.Update(GetTotalTransformation(),
-                            Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) /
-                                360 * float(MathUtil::TAU));
+      m_camera_logic.Update(target_state.camera_points);
 
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
       const u8 camera_data_offset =

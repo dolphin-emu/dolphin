@@ -3,7 +3,10 @@
 
 #pragma once
 
+#include <array>
+
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
+#include "Core/HW/WiimoteEmu/Camera.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 namespace WiimoteEmu
@@ -14,7 +17,11 @@ struct DesiredWiimoteState
   static constexpr WiimoteCommon::AccelData DEFAULT_ACCELERATION = WiimoteCommon::AccelData(
       {Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ZERO_G << 2, Wiimote::ACCEL_ONE_G << 2});
 
+  // No light detected by the IR camera.
+  static constexpr std::array<CameraPoint, 2> DEFAULT_CAMERA = {CameraPoint(), CameraPoint()};
+
   WiimoteCommon::ButtonData buttons{};  // non-button state in this is ignored
   WiimoteCommon::AccelData acceleration = DEFAULT_ACCELERATION;
+  std::array<CameraPoint, 2> camera_points = DEFAULT_CAMERA;
 };
 }  // namespace WiimoteEmu
