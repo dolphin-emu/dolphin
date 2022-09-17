@@ -37,6 +37,8 @@ class Tilt;
 
 namespace WiimoteEmu
 {
+struct DesiredWiimoteState;
+
 enum class WiimoteGroup
 {
   Buttons,
@@ -150,7 +152,8 @@ private:
   void RefreshConfig();
 
   void StepDynamics();
-  void UpdateButtonsStatus();
+  void UpdateButtonsStatus(const DesiredWiimoteState& target_state);
+  DesiredWiimoteState BuildDesiredWiimoteState();
 
   // Returns simulated accelerometer data in m/s^2.
   Common::Vec3 GetAcceleration(

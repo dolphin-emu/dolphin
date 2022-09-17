@@ -315,6 +315,7 @@
     <ClInclude Include="Core\HW\WiimoteCommon\WiimoteReport.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Camera.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Dynamics.h" />
+    <ClInclude Include="Core\HW\WiimoteEmu\DesiredWiimoteState.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Encryption.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Classic.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\DrawsomeTablet.h" />

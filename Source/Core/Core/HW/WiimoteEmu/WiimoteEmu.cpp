@@ -25,6 +25,7 @@
 
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
@@ -427,20 +428,13 @@ bool Wiimote::ProcessExtensionPortEvent()
   return true;
 }
 
-// Update buttons in status struct from user input.
-void Wiimote::UpdateButtonsStatus()
+void Wiimote::UpdateButtonsStatus(const DesiredWiimoteState& target_state)
 {
-  m_status.buttons.hex = 0;
-
-  m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
-  m_dpad->GetState(&m_status.buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
+  m_status.buttons.hex = target_state.buttons.hex & ButtonData::BUTTON_MASK;
 }
 
-// This is called every ::Wiimote::UPDATE_FREQ (200hz)
-void Wiimote::Update()
+DesiredWiimoteState Wiimote::BuildDesiredWiimoteState()
 {
-  const auto lock = GetStateLock();
-
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
   m_hotkeys->UpdateState();
@@ -448,12 +442,26 @@ void Wiimote::Update()
   // Update our motion simulations.
   StepDynamics();
 
+  DesiredWiimoteState wiimote_state;
+
+  // Fetch pressed buttons from user input.
+  m_buttons->GetState(&wiimote_state.buttons.hex, button_bitmasks);
+  m_dpad->GetState(&wiimote_state.buttons.hex,
+                   IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
+
+  return wiimote_state;
+}
+
+// This is called every ::Wiimote::UPDATE_FREQ (200hz)
+void Wiimote::Update()
+{
+  const auto lock = GetStateLock();
+
+  // Build target state.
+  auto target_state = BuildDesiredWiimoteState();
+
   // Update buttons in the status struct which is sent in 99% of input reports.
-  // FYI: Movies only sync button updates in data reports.
-  if (!Core::WantsDeterminism())
-  {
-    UpdateButtonsStatus();
-  }
+  UpdateButtonsStatus(target_state);
 
   // If a new extension is requested in the GUI the change will happen here.
   HandleExtensionSwap();
@@ -518,12 +526,6 @@ void Wiimote::SendDataReport()
     // Core buttons:
     if (rpt_builder.HasCore())
     {
-      if (Core::WantsDeterminism())
-      {
-        // When running non-deterministically we've already updated buttons in Update()
-        UpdateButtonsStatus();
-      }
-
       rpt_builder.SetCoreData(m_status.buttons);
     }
 
