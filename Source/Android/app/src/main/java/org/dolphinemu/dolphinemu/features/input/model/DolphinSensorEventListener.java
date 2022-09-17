@@ -12,12 +12,15 @@ import android.view.Surface;
 import androidx.annotation.Keep;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DolphinSensorEventListener implements SensorEventListener
 {
@@ -43,6 +46,7 @@ public class DolphinSensorEventListener implements SensorEventListener
     public final int sensorType;
     public final String[] axisNames;
     public final AxisSetDetails[] axisSetDetails;
+    public boolean isSuspended = true;
 
     public SensorDetails(int sensorType, String[] axisNames, AxisSetDetails[] axisSetDetails)
     {
@@ -52,6 +56,8 @@ public class DolphinSensorEventListener implements SensorEventListener
     }
   }
 
+  private static int sDeviceRotation = Surface.ROTATION_0;
+
   private final SensorManager mSensorManager;
 
   private final HashMap<Sensor, SensorDetails> mSensorDetails = new HashMap<>();
@@ -59,8 +65,6 @@ public class DolphinSensorEventListener implements SensorEventListener
   private final boolean mRotateCoordinatesForScreenOrientation;
 
   private String mDeviceQualifier = "";
-
-  private SensorEventRequester mRequester = null;
 
   // The fastest sampling rate Android lets us use without declaring the HIGH_SAMPLING_RATE_SENSORS
   // permission is 200 Hz. This is also the sampling rate of a Wii Remote, so it fits us perfectly.
@@ -218,6 +222,7 @@ public class DolphinSensorEventListener implements SensorEventListener
     int eventAxisIndex = 0;
     int detailsAxisIndex = 0;
     int detailsAxisSetIndex = 0;
+    boolean keepSensorAlive = false;
     while (eventAxisIndex < values.length && detailsAxisIndex < axisNames.length)
     {
       if (detailsAxisSetIndex < axisSetDetails.length &&
@@ -227,7 +232,7 @@ public class DolphinSensorEventListener implements SensorEventListener
         if (mRotateCoordinatesForScreenOrientation &&
                 axisSetDetails[detailsAxisSetIndex].axisSetType == AXIS_SET_TYPE_DEVICE_COORDINATES)
         {
-          rotation = mRequester.getDisplay().getRotation();
+          rotation = sDeviceRotation;
         }
 
         float x, y;
@@ -254,17 +259,18 @@ public class DolphinSensorEventListener implements SensorEventListener
 
         float z = values[eventAxisIndex + 2];
 
-        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex], x);
-        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex + 1],
-                x);
-        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex + 2],
-                y);
-        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex + 3],
-                y);
-        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex + 4],
-                z);
-        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex + 5],
-                z);
+        keepSensorAlive |= ControllerInterface.dispatchSensorEvent(mDeviceQualifier,
+                axisNames[detailsAxisIndex], x);
+        keepSensorAlive |= ControllerInterface.dispatchSensorEvent(mDeviceQualifier,
+                axisNames[detailsAxisIndex + 1], x);
+        keepSensorAlive |= ControllerInterface.dispatchSensorEvent(mDeviceQualifier,
+                axisNames[detailsAxisIndex + 2], y);
+        keepSensorAlive |= ControllerInterface.dispatchSensorEvent(mDeviceQualifier,
+                axisNames[detailsAxisIndex + 3], y);
+        keepSensorAlive |= ControllerInterface.dispatchSensorEvent(mDeviceQualifier,
+                axisNames[detailsAxisIndex + 4], z);
+        keepSensorAlive |= ControllerInterface.dispatchSensorEvent(mDeviceQualifier,
+                axisNames[detailsAxisIndex + 5], z);
 
         eventAxisIndex += 3;
         detailsAxisIndex += 6;
@@ -272,12 +278,17 @@ public class DolphinSensorEventListener implements SensorEventListener
       }
       else
       {
-        ControllerInterface.dispatchSensorEvent(mDeviceQualifier, axisNames[detailsAxisIndex],
-                values[eventAxisIndex]);
+        keepSensorAlive |= ControllerInterface.dispatchSensorEvent(mDeviceQualifier,
+                axisNames[detailsAxisIndex], values[eventAxisIndex]);
 
         eventAxisIndex++;
         detailsAxisIndex++;
       }
+    }
+
+    if (!keepSensorAlive)
+    {
+      setSensorSuspended(sensorEvent.sensor, sensorDetails, true);
     }
   }
 
@@ -298,44 +309,48 @@ public class DolphinSensorEventListener implements SensorEventListener
   }
 
   /**
-   * Enables delivering sensor events to native code.
+   * If a sensor has been suspended to save battery, this unsuspends it.
+   * If the sensor isn't currently suspended, nothing happens.
    *
-   * @param requester The activity or other component which is requesting sensor events to be
-   *                  delivered.
+   * @param axisName The name of any of the sensor's axes.
    */
   @Keep
-  public void enableSensorEvents(SensorEventRequester requester)
+  public void requestUnsuspendSensor(String axisName)
   {
-    if (mRequester != null)
+    for (Map.Entry<Sensor, SensorDetails> entry : mSensorDetails.entrySet())
     {
-      throw new IllegalStateException("Attempted to enable sensor events when someone else" +
-              "had already enabled them");
-    }
-
-    mRequester = requester;
-
-    if (mSensorManager != null)
-    {
-      for (Sensor sensor : mSensorDetails.keySet())
+      if (Arrays.asList(entry.getValue().axisNames).contains(axisName))
       {
-        mSensorManager.registerListener(this, sensor, SAMPLING_PERIOD_US);
+        setSensorSuspended(entry.getKey(), entry.getValue(), false);
       }
     }
   }
 
-  /**
-   * Disables delivering sensor events to native code.
-   *
-   * Calling this when sensor events are no longer needed will save battery.
-   */
-  @Keep
-  public void disableSensorEvents()
+  private void setSensorSuspended(Sensor sensor, SensorDetails sensorDetails, boolean suspend)
   {
-    mRequester = null;
+    boolean changeOccurred = false;
 
-    if (mSensorManager != null)
+    synchronized (sensorDetails)
     {
-      mSensorManager.unregisterListener(this);
+      if (sensorDetails.isSuspended != suspend)
+      {
+        ControllerInterface.notifySensorSuspendedState(mDeviceQualifier, sensorDetails.axisNames,
+                suspend);
+
+        if (suspend)
+          mSensorManager.unregisterListener(this, sensor);
+        else
+          mSensorManager.registerListener(this, sensor, SAMPLING_PERIOD_US);
+
+        sensorDetails.isSuspended = suspend;
+
+        changeOccurred = true;
+      }
+    }
+
+    if (changeOccurred)
+    {
+      Log.info((suspend ? "Suspended sensor " : "Unsuspended sensor ") + sensor.getName());
     }
   }
 
@@ -402,5 +417,18 @@ public class DolphinSensorEventListener implements SensorEventListener
     ArrayList<SensorDetails> sensorDetails = new ArrayList<>(mSensorDetails.values());
     Collections.sort(sensorDetails, Comparator.comparingInt(s -> s.sensorType));
     return sensorDetails;
+  }
+
+  /**
+   * Should be called when an activity or other component that uses sensor events is resumed.
+   *
+   * Sensor events that contain device coordinates will have the coordinates rotated by the value
+   * passed to this function.
+   *
+   * @param deviceRotation The current rotation of the device (i.e. rotation of the default display)
+   */
+  public static void setDeviceRotation(int deviceRotation)
+  {
+    sDeviceRotation = deviceRotation;
   }
 }

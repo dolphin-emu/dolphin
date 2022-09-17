@@ -66,24 +66,22 @@ public final class ControllerInterface
 
   /**
    * {@link DolphinSensorEventListener} calls this for each axis of a received SensorEvent.
+   *
+   * @return true if the emulator core seems to be interested in this event.
+   * false if the sensor can be suspended to save battery.
    */
-  public static native void dispatchSensorEvent(String deviceQualifier, String axisName,
+  public static native boolean dispatchSensorEvent(String deviceQualifier, String axisName,
           float value);
 
   /**
-   * Enables delivering sensor events to native code.
+   * Called when a sensor is suspended or unsuspended.
    *
-   * @param requester The activity or other component which is requesting sensor events to be
-   *                  delivered.
+   * @param deviceQualifier A string used by native code for uniquely identifying devices.
+   * @param axisNames       The name of all axes for the sensor.
+   * @param suspended       Whether the sensor is now suspended.
    */
-  public static native void enableSensorEvents(SensorEventRequester requester);
-
-  /**
-   * Disables delivering sensor events to native code.
-   *
-   * Calling this when sensor events are no longer needed will save battery.
-   */
-  public static native void disableSensorEvents();
+  public static native void notifySensorSuspendedState(String deviceQualifier, String[] axisNames,
+          boolean suspended);
 
   /**
    * Rescans for input devices.

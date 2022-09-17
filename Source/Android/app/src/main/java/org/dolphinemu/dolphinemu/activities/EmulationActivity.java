@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Pair;
 import android.util.SparseIntArray;
-import android.view.Display;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,7 +42,7 @@ import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogIrSensitivityBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogSkylandersManagerBinding;
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface;
-import org.dolphinemu.dolphinemu.features.input.model.SensorEventRequester;
+import org.dolphinemu.dolphinemu.features.input.model.DolphinSensorEventListener;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -445,14 +444,14 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     updateOrientation();
 
-    ControllerInterface.enableSensorEvents(() -> getWindowManager().getDefaultDisplay());
+    DolphinSensorEventListener.setDeviceRotation(
+            getWindowManager().getDefaultDisplay().getRotation());
   }
 
   @Override
   protected void onPause()
   {
     super.onPause();
-    ControllerInterface.disableSensorEvents();
   }
 
   @Override

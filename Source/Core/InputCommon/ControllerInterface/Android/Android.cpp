@@ -67,8 +67,7 @@ jclass s_sensor_event_listener_class;
 jmethodID s_sensor_event_listener_constructor;
 jmethodID s_sensor_event_listener_constructor_input_device;
 jmethodID s_sensor_event_listener_set_device_qualifier;
-jmethodID s_sensor_event_listener_enable_sensor_events;
-jmethodID s_sensor_event_listener_disable_sensor_events;
+jmethodID s_sensor_event_listener_request_unsuspend_sensor;
 jmethodID s_sensor_event_listener_get_axis_names;
 jmethodID s_sensor_event_listener_get_negative_axes;
 
@@ -494,9 +493,45 @@ private:
 class AndroidSensorAxis final : public AndroidAxis
 {
 public:
-  AndroidSensorAxis(std::string name, bool negative) : AndroidAxis(std::move(name), negative) {}
+  // This class does not create its own global reference to the passed-in sensor_event_listener.
+  // That is, it's up to the device that contains this axis to keep sensor_event_listener valid.
+  // It does however create its own global reference to the passed-in name.
+  AndroidSensorAxis(JNIEnv* env, jobject sensor_event_listener, jstring j_name, bool negative)
+      : AndroidAxis(GetJString(env, j_name), negative),
+        m_sensor_event_listener(sensor_event_listener),
+        m_j_name(reinterpret_cast<jstring>(env->NewGlobalRef(j_name)))
+  {
+  }
+
+  ~AndroidSensorAxis() { IDCache::GetEnvForThread()->DeleteGlobalRef(m_j_name); }
 
   bool IsDetectable() const override { return false; }
+
+  ControlState GetState() const override
+  {
+    if (m_is_suspended.load(std::memory_order_relaxed))
+    {
+      IDCache::GetEnvForThread()->CallVoidMethod(
+          m_sensor_event_listener, s_sensor_event_listener_request_unsuspend_sensor, m_j_name);
+
+      // m_is_suspended is intentionally not updated here. To prevent the C++ suspended status from
+      // ending up desynced with the Java suspended status, we only update m_is_suspended when Java
+      // calls notifySensorSuspendedState (which calls NotifyIsSuspended). This way, Java is the
+      // authoritative source for the suspended status, and C++ mirrors it (possibly with a delay).
+    }
+
+    return AndroidAxis::GetState();
+  }
+
+  void NotifyIsSuspended(bool is_suspended)
+  {
+    m_is_suspended.store(is_suspended, std::memory_order_relaxed);
+  }
+
+private:
+  const jobject m_sensor_event_listener;
+  const jstring m_j_name;
+  std::atomic<bool> m_is_suspended = true;
 };
 
 class AndroidDevice final : public Core::Device
@@ -611,40 +646,45 @@ private:
 
   jobject AddSensors(JNIEnv* env, jobject input_device)
   {
-    jobject sensor_event_listener;
+    jobject local_sensor_event_listener;
     if (input_device)
     {
-      sensor_event_listener =
+      local_sensor_event_listener =
           env->NewObject(s_sensor_event_listener_class,
                          s_sensor_event_listener_constructor_input_device, input_device);
     }
     else
     {
-      sensor_event_listener =
+      local_sensor_event_listener =
           env->NewObject(s_sensor_event_listener_class, s_sensor_event_listener_constructor);
     }
 
+    jobject sensor_event_listener = env->NewGlobalRef(local_sensor_event_listener);
+
+    env->DeleteLocalRef(local_sensor_event_listener);
+
     jobjectArray j_axis_names = reinterpret_cast<jobjectArray>(
         env->CallObjectMethod(sensor_event_listener, s_sensor_event_listener_get_axis_names));
-    std::vector<std::string> axis_names = JStringArrayToVector(env, j_axis_names);
-    env->DeleteLocalRef(j_axis_names);
 
     jbooleanArray j_negative_axes = reinterpret_cast<jbooleanArray>(
         env->CallObjectMethod(sensor_event_listener, s_sensor_event_listener_get_negative_axes));
     jboolean* negative_axes = env->GetBooleanArrayElements(j_negative_axes, nullptr);
 
-    ASSERT(axis_names.size() == env->GetArrayLength(j_negative_axes));
-    for (size_t i = 0; i < axis_names.size(); ++i)
-      AddInput(new AndroidSensorAxis(axis_names[i], negative_axes[i]));
+    const jsize axis_count = env->GetArrayLength(j_axis_names);
+    ASSERT(axis_count == env->GetArrayLength(j_negative_axes));
+    for (jsize i = 0; i < axis_count; ++i)
+    {
+      const jstring axis_name =
+          reinterpret_cast<jstring>(env->GetObjectArrayElement(j_axis_names, i));
+      AddInput(new AndroidSensorAxis(env, sensor_event_listener, axis_name, negative_axes[i]));
+      env->DeleteLocalRef(axis_name);
+    }
 
+    env->DeleteLocalRef(j_axis_names);
     env->ReleaseBooleanArrayElements(j_negative_axes, negative_axes, 0);
     env->DeleteLocalRef(j_negative_axes);
 
-    jobject global_sensor_event_listener = env->NewGlobalRef(sensor_event_listener);
-
-    env->DeleteLocalRef(sensor_event_listener);
-
-    return global_sensor_event_listener;
+    return sensor_event_listener;
   }
 
   const jobject m_sensor_event_listener;
@@ -735,11 +775,8 @@ void Init()
       env->GetMethodID(s_sensor_event_listener_class, "<init>", "(Landroid/view/InputDevice;)V");
   s_sensor_event_listener_set_device_qualifier = env->GetMethodID(
       s_sensor_event_listener_class, "setDeviceQualifier", "(Ljava/lang/String;)V");
-  s_sensor_event_listener_enable_sensor_events =
-      env->GetMethodID(s_sensor_event_listener_class, "enableSensorEvents",
-                       "(Lorg/dolphinemu/dolphinemu/features/input/model/SensorEventRequester;)V");
-  s_sensor_event_listener_disable_sensor_events =
-      env->GetMethodID(s_sensor_event_listener_class, "disableSensorEvents", "()V");
+  s_sensor_event_listener_request_unsuspend_sensor = env->GetMethodID(
+      s_sensor_event_listener_class, "requestUnsuspendSensor", "(Ljava/lang/String;)V");
   s_sensor_event_listener_get_axis_names =
       env->GetMethodID(s_sensor_event_listener_class, "getAxisNames", "()[Ljava/lang/String;");
   s_sensor_event_listener_get_negative_axes =
@@ -934,7 +971,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
   return last_polled >= Clock::now() - ACTIVE_INPUT_TIMEOUT;
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchSensorEvent(
     JNIEnv* env, jclass, jstring j_device_qualifier, jstring j_axis_name, jfloat value)
 {
@@ -943,9 +980,11 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
   const std::shared_ptr<ciface::Core::Device> device =
       g_controller_interface.FindDevice(device_qualifier);
   if (!device)
-    return;
+    return JNI_FALSE;
 
   const std::string axis_name = GetJString(env, j_axis_name);
+
+  Clock::time_point last_polled{};
 
   for (ciface::Core::Device::Input* input : device->Inputs())
   {
@@ -954,31 +993,34 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
     {
       auto casted_input = static_cast<ciface::Android::AndroidInput*>(input);
       casted_input->SetState(value);
+      last_polled = std::max(last_polled, casted_input->GetLastPolled());
     }
   }
+
+  return last_polled >= Clock::now() - ACTIVE_INPUT_TIMEOUT;
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_enableSensorEvents(
-    JNIEnv* env, jclass, jobject j_sensor_event_requester)
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_notifySensorSuspendedState(
+    JNIEnv* env, jclass, jstring j_device_qualifier, jobjectArray j_axis_names, jboolean suspended)
 {
-  for (std::shared_ptr<ciface::Core::Device>& device : g_controller_interface.GetAllDevices())
-  {
-    env->CallVoidMethod(
-        static_cast<ciface::Android::AndroidDevice*>(device.get())->GetSensorEventListener(),
-        s_sensor_event_listener_enable_sensor_events, j_sensor_event_requester);
-  }
-}
+  ciface::Core::DeviceQualifier device_qualifier;
+  device_qualifier.FromString(GetJString(env, j_device_qualifier));
+  const std::shared_ptr<ciface::Core::Device> device =
+      g_controller_interface.FindDevice(device_qualifier);
+  if (!device)
+    return;
 
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_disableSensorEvents(
-    JNIEnv* env, jclass)
-{
-  for (std::shared_ptr<ciface::Core::Device>& device : g_controller_interface.GetAllDevices())
+  const std::vector<std::string> axis_names = JStringArrayToVector(env, j_axis_names);
+
+  for (ciface::Core::Device::Input* input : device->Inputs())
   {
-    env->CallVoidMethod(
-        static_cast<ciface::Android::AndroidDevice*>(device.get())->GetSensorEventListener(),
-        s_sensor_event_listener_disable_sensor_events);
+    const std::string input_name = input->GetName();
+    if (std::find(axis_names.begin(), axis_names.end(), input_name) != axis_names.end())
+    {
+      auto casted_input = static_cast<ciface::Android::AndroidSensorAxis*>(input);
+      casted_input->NotifyIsSuspended(static_cast<bool>(suspended));
+    }
   }
 }
 
