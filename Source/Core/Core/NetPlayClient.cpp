@@ -635,7 +635,7 @@ void NetPlayClient::OnGBAConfig(sf::Packet& packet)
         std::tie(old_config.has_rom, old_config.title, old_config.hash))
     {
       m_dialog->OnMsgChangeGBARom(static_cast<int>(i), config);
-      m_net_settings.m_GBARomPaths[i] =
+      m_net_settings.gba_rom_paths[i] =
           config.has_rom ?
               m_dialog->FindGBARomPath(config.hash, config.title, static_cast<int>(i)) :
               "";
@@ -809,91 +809,91 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     INFO_LOG_FMT(NETPLAY, "Start of game {}", m_selected_game.game_id);
 
     packet >> m_current_game;
-    packet >> m_net_settings.m_CPUthread;
-    packet >> m_net_settings.m_CPUcore;
-    packet >> m_net_settings.m_EnableCheats;
-    packet >> m_net_settings.m_SelectedLanguage;
-    packet >> m_net_settings.m_OverrideRegionSettings;
-    packet >> m_net_settings.m_DSPEnableJIT;
-    packet >> m_net_settings.m_DSPHLE;
-    packet >> m_net_settings.m_WriteToMemcard;
-    packet >> m_net_settings.m_RAMOverrideEnable;
-    packet >> m_net_settings.m_Mem1Size;
-    packet >> m_net_settings.m_Mem2Size;
-    packet >> m_net_settings.m_FallbackRegion;
-    packet >> m_net_settings.m_AllowSDWrites;
-    packet >> m_net_settings.m_CopyWiiSave;
-    packet >> m_net_settings.m_OCEnable;
-    packet >> m_net_settings.m_OCFactor;
+    packet >> m_net_settings.cpu_thread;
+    packet >> m_net_settings.cpu_core;
+    packet >> m_net_settings.enable_cheats;
+    packet >> m_net_settings.selected_language;
+    packet >> m_net_settings.override_region_settings;
+    packet >> m_net_settings.dsp_enable_jit;
+    packet >> m_net_settings.dsp_hle;
+    packet >> m_net_settings.write_to_memcard;
+    packet >> m_net_settings.ram_override_enable;
+    packet >> m_net_settings.mem1_size;
+    packet >> m_net_settings.mem2_size;
+    packet >> m_net_settings.fallback_region;
+    packet >> m_net_settings.allow_sd_writes;
+    packet >> m_net_settings.copy_wii_save;
+    packet >> m_net_settings.oc_enable;
+    packet >> m_net_settings.oc_factor;
 
     for (auto slot : ExpansionInterface::SLOTS)
-      packet >> m_net_settings.m_EXIDevice[slot];
+      packet >> m_net_settings.exi_device[slot];
 
-    packet >> m_net_settings.m_MemcardSizeOverride;
+    packet >> m_net_settings.memcard_size_override;
 
-    for (u32& value : m_net_settings.m_SYSCONFSettings)
+    for (u32& value : m_net_settings.sysconf_settings)
       packet >> value;
 
-    packet >> m_net_settings.m_EFBAccessEnable;
-    packet >> m_net_settings.m_BBoxEnable;
-    packet >> m_net_settings.m_ForceProgressive;
-    packet >> m_net_settings.m_EFBToTextureEnable;
-    packet >> m_net_settings.m_XFBToTextureEnable;
-    packet >> m_net_settings.m_DisableCopyToVRAM;
-    packet >> m_net_settings.m_ImmediateXFBEnable;
-    packet >> m_net_settings.m_EFBEmulateFormatChanges;
-    packet >> m_net_settings.m_SafeTextureCacheColorSamples;
-    packet >> m_net_settings.m_PerfQueriesEnable;
-    packet >> m_net_settings.m_FloatExceptions;
-    packet >> m_net_settings.m_DivideByZeroExceptions;
-    packet >> m_net_settings.m_FPRF;
-    packet >> m_net_settings.m_AccurateNaNs;
-    packet >> m_net_settings.m_DisableICache;
-    packet >> m_net_settings.m_SyncOnSkipIdle;
-    packet >> m_net_settings.m_SyncGPU;
-    packet >> m_net_settings.m_SyncGpuMaxDistance;
-    packet >> m_net_settings.m_SyncGpuMinDistance;
-    packet >> m_net_settings.m_SyncGpuOverclock;
-    packet >> m_net_settings.m_JITFollowBranch;
-    packet >> m_net_settings.m_FastDiscSpeed;
-    packet >> m_net_settings.m_MMU;
-    packet >> m_net_settings.m_Fastmem;
-    packet >> m_net_settings.m_SkipIPL;
-    packet >> m_net_settings.m_LoadIPLDump;
-    packet >> m_net_settings.m_VertexRounding;
-    packet >> m_net_settings.m_InternalResolution;
-    packet >> m_net_settings.m_EFBScaledCopy;
-    packet >> m_net_settings.m_FastDepthCalc;
-    packet >> m_net_settings.m_EnablePixelLighting;
-    packet >> m_net_settings.m_WidescreenHack;
-    packet >> m_net_settings.m_ForceFiltering;
-    packet >> m_net_settings.m_MaxAnisotropy;
-    packet >> m_net_settings.m_ForceTrueColor;
-    packet >> m_net_settings.m_DisableCopyFilter;
-    packet >> m_net_settings.m_DisableFog;
-    packet >> m_net_settings.m_ArbitraryMipmapDetection;
-    packet >> m_net_settings.m_ArbitraryMipmapDetectionThreshold;
-    packet >> m_net_settings.m_EnableGPUTextureDecoding;
-    packet >> m_net_settings.m_DeferEFBCopies;
-    packet >> m_net_settings.m_EFBAccessTileSize;
-    packet >> m_net_settings.m_EFBAccessDeferInvalidation;
-    packet >> m_net_settings.m_StrictSettingsSync;
+    packet >> m_net_settings.efb_access_enable;
+    packet >> m_net_settings.bbox_enable;
+    packet >> m_net_settings.force_progressive;
+    packet >> m_net_settings.efb_to_texture_enable;
+    packet >> m_net_settings.xfb_to_texture_enable;
+    packet >> m_net_settings.disable_copy_to_vram;
+    packet >> m_net_settings.immediate_xfb_enable;
+    packet >> m_net_settings.efb_emulate_format_changes;
+    packet >> m_net_settings.safe_texture_cache_color_samples;
+    packet >> m_net_settings.perf_queries_enable;
+    packet >> m_net_settings.float_exceptions;
+    packet >> m_net_settings.divide_by_zero_exceptions;
+    packet >> m_net_settings.fprf;
+    packet >> m_net_settings.accurate_nans;
+    packet >> m_net_settings.disable_icache;
+    packet >> m_net_settings.sync_on_skip_idle;
+    packet >> m_net_settings.sync_gpu;
+    packet >> m_net_settings.sync_gpu_max_distance;
+    packet >> m_net_settings.sync_gpu_min_distance;
+    packet >> m_net_settings.sync_gpu_overclock;
+    packet >> m_net_settings.jit_follow_branch;
+    packet >> m_net_settings.fast_disc_speed;
+    packet >> m_net_settings.mmu;
+    packet >> m_net_settings.fastmem;
+    packet >> m_net_settings.skip_ipl;
+    packet >> m_net_settings.load_ipl_dump;
+    packet >> m_net_settings.vertex_rounding;
+    packet >> m_net_settings.internal_resolution;
+    packet >> m_net_settings.efb_scaled_copy;
+    packet >> m_net_settings.fast_depth_calc;
+    packet >> m_net_settings.enable_pixel_lighting;
+    packet >> m_net_settings.widescreen_hack;
+    packet >> m_net_settings.force_filtering;
+    packet >> m_net_settings.max_anisotropy;
+    packet >> m_net_settings.force_true_color;
+    packet >> m_net_settings.disable_copy_filter;
+    packet >> m_net_settings.disable_fog;
+    packet >> m_net_settings.arbitrary_mipmap_detection;
+    packet >> m_net_settings.arbitrary_mipmap_detection_threshold;
+    packet >> m_net_settings.enable_gpu_texture_decoding;
+    packet >> m_net_settings.defer_efb_copies;
+    packet >> m_net_settings.efb_access_tile_size;
+    packet >> m_net_settings.efb_access_defer_invalidation;
+    packet >> m_net_settings.strict_settings_sync;
 
     m_initial_rtc = Common::PacketReadU64(packet);
 
-    packet >> m_net_settings.m_SyncSaveData;
-    packet >> m_net_settings.m_SaveDataRegion;
-    packet >> m_net_settings.m_SyncCodes;
-    packet >> m_net_settings.m_SyncAllWiiSaves;
+    packet >> m_net_settings.sync_save_data;
+    packet >> m_net_settings.save_data_region;
+    packet >> m_net_settings.sync_codes;
+    packet >> m_net_settings.sync_all_wii_saves;
 
-    for (int& extension : m_net_settings.m_WiimoteExtension)
+    for (int& extension : m_net_settings.wiimote_extension)
       packet >> extension;
 
-    packet >> m_net_settings.m_GolfMode;
-    packet >> m_net_settings.m_UseFMA;
-    packet >> m_net_settings.m_HideRemoteGBAs;
+    packet >> m_net_settings.golf_mode;
+    packet >> m_net_settings.use_fma;
+    packet >> m_net_settings.hide_remote_gbas;
 
-    m_net_settings.m_IsHosting = m_local_player->IsHost();
+    m_net_settings.is_hosting = m_local_player->IsHost();
   }
 
   m_dialog->OnMsgStartGame();
@@ -2299,7 +2299,7 @@ void NetPlayClient::SendPowerButtonEvent()
 
 void NetPlayClient::RequestGolfControl(const PlayerId pid)
 {
-  if (!m_host_input_authority || !m_net_settings.m_GolfMode)
+  if (!m_host_input_authority || !m_net_settings.golf_mode)
     return;
 
   sf::Packet packet;
@@ -2401,7 +2401,7 @@ void NetPlayClient::SendGameStatus()
   for (size_t i = 0; i < 4; ++i)
   {
     if (m_gba_config[i].enabled && m_gba_config[i].has_rom &&
-        m_net_settings.m_GBARomPaths[i].empty())
+        m_net_settings.gba_rom_paths[i].empty())
     {
       result = SyncIdentifierComparison::DifferentGame;
     }
@@ -2591,7 +2591,7 @@ bool IsSyncingAllWiiSaves()
   std::lock_guard lk(crit_netplay_client);
 
   if (netplay_client)
-    return netplay_client->GetNetSettings().m_SyncAllWiiSaves;
+    return netplay_client->GetNetSettings().sync_all_wii_saves;
 
   return false;
 }
@@ -2601,14 +2601,14 @@ void SetupWiimotes()
   ASSERT(IsNetPlayRunning());
   const NetSettings& netplay_settings = netplay_client->GetNetSettings();
   const PadMappingArray& wiimote_map = netplay_client->GetWiimoteMapping();
-  for (size_t i = 0; i < netplay_settings.m_WiimoteExtension.size(); i++)
+  for (size_t i = 0; i < netplay_settings.wiimote_extension.size(); i++)
   {
     if (wiimote_map[i] > 0)
     {
       static_cast<ControllerEmu::Attachments*>(
           static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(int(i)))
               ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments))
-          ->SetSelectedAttachment(netplay_settings.m_WiimoteExtension[i]);
+          ->SetSelectedAttachment(netplay_settings.wiimote_extension[i]);
     }
   }
 }
@@ -2617,7 +2617,7 @@ std::string GetGBASavePath(int pad_num)
 {
   std::lock_guard lk(crit_netplay_client);
 
-  if (!netplay_client || netplay_client->GetNetSettings().m_IsHosting)
+  if (!netplay_client || netplay_client->GetNetSettings().is_hosting)
   {
 #ifdef HAS_LIBMGBA
     std::string rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[pad_num]);
@@ -2627,7 +2627,7 @@ std::string GetGBASavePath(int pad_num)
 #endif
   }
 
-  if (!netplay_client->GetNetSettings().m_SyncSaveData)
+  if (!netplay_client->GetNetSettings().sync_save_data)
     return {};
 
   return fmt::format("{}{}{}.sav", File::GetUserPath(D_GBAUSER_IDX), GBA_SAVE_NETPLAY, pad_num + 1);
@@ -2663,7 +2663,7 @@ PadDetails GetPadDetails(int pad_num)
   }
   res.is_local = netplay_client->IsLocalPlayer(pad_map[pad_num]);
   res.local_pad = res.is_local ? local_pad : netplay_client->NumLocalPads() + non_local_pad;
-  res.hide_gba = !res.is_local && netplay_client->GetNetSettings().m_HideRemoteGBAs &&
+  res.hide_gba = !res.is_local && netplay_client->GetNetSettings().hide_remote_gbas &&
                  netplay_client->LocalPlayerHasControllerMapped();
   return res;
 }
