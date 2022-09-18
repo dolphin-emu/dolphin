@@ -1,3 +1,0 @@
-This program uses VC++ Redistributable code. The license for those object
-files can be found at:
-https://visualstudio.microsoft.com/license-terms/vs2022-ga-community/

@@ -84,16 +84,4 @@
       <AdditionalOptions>/NODEFAULTLIB:msvcrt %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
-
-  <Target Name="CopyVCRedist" AfterTargets="Build" Condition="'$(ConfigurationType)'=='Application'">
-    <ItemGroup>
-      <VCRedistSourceFiles
-        Include="$(VCToolsRedistInstallDir)$(Platform)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.dll" />
-    </ItemGroup>
-    <Copy
-      SourceFiles="@(VCRedistSourceFiles)"
-      DestinationFolder="$(BinaryOutputDir)"
-      SkipUnchangedFiles="true"
-    />
-  </Target>
 </Project>
