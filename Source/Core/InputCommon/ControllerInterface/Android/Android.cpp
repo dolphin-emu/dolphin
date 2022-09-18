@@ -62,6 +62,9 @@ jmethodID s_motion_event_get_source;
 jclass s_controller_interface_class;
 jmethodID s_controller_interface_register_input_device_listener;
 jmethodID s_controller_interface_unregister_input_device_listener;
+jmethodID s_controller_interface_get_vibrator_manager;
+jmethodID s_controller_interface_get_system_vibrator_manager;
+jmethodID s_controller_interface_vibrate;
 
 jclass s_sensor_event_listener_class;
 jmethodID s_sensor_event_listener_constructor;
@@ -70,6 +73,10 @@ jmethodID s_sensor_event_listener_set_device_qualifier;
 jmethodID s_sensor_event_listener_request_unsuspend_sensor;
 jmethodID s_sensor_event_listener_get_axis_names;
 jmethodID s_sensor_event_listener_get_negative_axes;
+
+jclass s_dolphin_vibrator_manager_class;
+jmethodID s_dolphin_vibrator_manager_get_vibrator;
+jmethodID s_dolphin_vibrator_manager_get_vibrator_ids;
 
 jintArray s_keycodes_array;
 
@@ -534,6 +541,35 @@ private:
   std::atomic<bool> m_is_suspended = true;
 };
 
+class AndroidMotor : public Core::Device::Output
+{
+public:
+  AndroidMotor(JNIEnv* env, jobject vibrator, jint id)
+      : m_vibrator(env->NewGlobalRef(vibrator)), m_id(id)
+  {
+  }
+
+  ~AndroidMotor() { IDCache::GetEnvForThread()->DeleteGlobalRef(m_vibrator); }
+
+  std::string GetName() const override { return "Motor " + std::to_string(m_id); }
+
+  void SetState(ControlState state) override
+  {
+    ControlState old_state = m_state.exchange(state, std::memory_order_relaxed);
+
+    if (old_state < 0.5 && state >= 0.5)
+    {
+      IDCache::GetEnvForThread()->CallStaticVoidMethod(s_controller_interface_class,
+                                                       s_controller_interface_vibrate, m_vibrator);
+    }
+  }
+
+private:
+  const jobject m_vibrator;
+  const jint m_id;
+  std::atomic<ControlState> m_state = 0;
+};
+
 class AndroidDevice final : public Core::Device
 {
 public:
@@ -551,6 +587,7 @@ public:
 
     AddKeys(env, input_device);
     AddAxes(env, input_device);
+    AddMotors(env, input_device);
   }
 
   // Constructor for the device added by Dolphin to contain sensor inputs
@@ -558,6 +595,7 @@ public:
       : m_sensor_event_listener(AddSensors(env, nullptr)), m_source(AINPUT_SOURCE_SENSOR),
         m_controller_number(0), m_name(std::move(name))
   {
+    AddSystemMotors(env);
   }
 
   ~AndroidDevice()
@@ -687,6 +725,41 @@ private:
     return sensor_event_listener;
   }
 
+  void AddMotors(JNIEnv* env, jobject input_device)
+  {
+    jobject vibrator_manager = env->CallStaticObjectMethod(
+        s_controller_interface_class, s_controller_interface_get_vibrator_manager, input_device);
+    AddMotorsFromManager(env, vibrator_manager);
+    env->DeleteLocalRef(vibrator_manager);
+  }
+
+  void AddSystemMotors(JNIEnv* env)
+  {
+    jobject vibrator_manager = env->CallStaticObjectMethod(
+        s_controller_interface_class, s_controller_interface_get_system_vibrator_manager);
+    AddMotorsFromManager(env, vibrator_manager);
+    env->DeleteLocalRef(vibrator_manager);
+  }
+
+  void AddMotorsFromManager(JNIEnv* env, jobject vibrator_manager)
+  {
+    jintArray j_vibrator_ids = reinterpret_cast<jintArray>(
+        env->CallObjectMethod(vibrator_manager, s_dolphin_vibrator_manager_get_vibrator_ids));
+    jint* vibrator_ids = env->GetIntArrayElements(j_vibrator_ids, nullptr);
+
+    jint size = env->GetArrayLength(j_vibrator_ids);
+    for (jint i = 0; i < size; ++i)
+    {
+      jobject vibrator =
+          env->CallObjectMethod(vibrator_manager, s_dolphin_vibrator_manager_get_vibrator, i);
+      AddOutput(new AndroidMotor(env, vibrator, i));
+      env->DeleteLocalRef(vibrator);
+    }
+
+    env->ReleaseIntArrayElements(j_vibrator_ids, vibrator_ids, 0);
+    env->DeleteLocalRef(j_vibrator_ids);
+  }
+
   const jobject m_sensor_event_listener;
   const int m_source;
   const int m_controller_number;
@@ -764,6 +837,15 @@ void Init()
       env->GetStaticMethodID(s_controller_interface_class, "registerInputDeviceListener", "()V");
   s_controller_interface_unregister_input_device_listener =
       env->GetStaticMethodID(s_controller_interface_class, "unregisterInputDeviceListener", "()V");
+  s_controller_interface_get_vibrator_manager =
+      env->GetStaticMethodID(s_controller_interface_class, "getVibratorManager",
+                             "(Landroid/view/InputDevice;)Lorg/dolphinemu/dolphinemu/features/"
+                             "input/model/DolphinVibratorManager;");
+  s_controller_interface_get_system_vibrator_manager = env->GetStaticMethodID(
+      s_controller_interface_class, "getSystemVibratorManager",
+      "()Lorg/dolphinemu/dolphinemu/features/input/model/DolphinVibratorManager;");
+  s_controller_interface_vibrate =
+      env->GetStaticMethodID(s_controller_interface_class, "vibrate", "(Landroid/os/Vibrator;)V");
 
   const jclass sensor_event_listener_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/input/model/DolphinSensorEventListener");
@@ -781,6 +863,15 @@ void Init()
       env->GetMethodID(s_sensor_event_listener_class, "getAxisNames", "()[Ljava/lang/String;");
   s_sensor_event_listener_get_negative_axes =
       env->GetMethodID(s_sensor_event_listener_class, "getNegativeAxes", "()[Z");
+
+  const jclass dolphin_vibrator_manager_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/DolphinVibratorManager");
+  s_dolphin_vibrator_manager_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(dolphin_vibrator_manager_class));
+  s_dolphin_vibrator_manager_get_vibrator =
+      env->GetMethodID(s_dolphin_vibrator_manager_class, "getVibrator", "(I)Landroid/os/Vibrator;");
+  s_dolphin_vibrator_manager_get_vibrator_ids =
+      env->GetMethodID(s_dolphin_vibrator_manager_class, "getVibratorIds", "()[I");
 
   jintArray keycodes_array = CreateKeyCodesArray(env);
   s_keycodes_array = reinterpret_cast<jintArray>(env->NewGlobalRef(keycodes_array));
@@ -804,6 +895,7 @@ void Shutdown()
   env->DeleteGlobalRef(s_motion_event_class);
   env->DeleteGlobalRef(s_controller_interface_class);
   env->DeleteGlobalRef(s_sensor_event_listener_class);
+  env->DeleteGlobalRef(s_dolphin_vibrator_manager_class);
   env->DeleteGlobalRef(s_keycodes_array);
 }
 

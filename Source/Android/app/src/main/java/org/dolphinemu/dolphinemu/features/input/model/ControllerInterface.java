@@ -4,11 +4,18 @@ package org.dolphinemu.dolphinemu.features.input.model;
 
 import android.content.Context;
 import android.hardware.input.InputManager;
+import android.os.Build;
 import android.os.Handler;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.os.VibratorManager;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.utils.LooperThread;
@@ -117,6 +124,50 @@ public final class ControllerInterface
 
       im.unregisterInputDeviceListener(mInputDeviceListener);
       mInputDeviceListener = null;
+    }
+  }
+
+  @Keep @NonNull
+  private static DolphinVibratorManager getVibratorManager(InputDevice device)
+  {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    {
+      return new DolphinVibratorManagerPassthrough(device.getVibratorManager());
+    }
+    else
+    {
+      return new DolphinVibratorManagerCompat(device.getVibrator());
+    }
+  }
+
+  @Keep @NonNull
+  private static DolphinVibratorManager getSystemVibratorManager()
+  {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    {
+      VibratorManager vibratorManager = (VibratorManager)
+              DolphinApplication.getAppContext().getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
+
+      if (vibratorManager != null)
+        return new DolphinVibratorManagerPassthrough(vibratorManager);
+    }
+
+    Vibrator vibrator = (Vibrator)
+            DolphinApplication.getAppContext().getSystemService(Context.VIBRATOR_SERVICE);
+
+    return new DolphinVibratorManagerCompat(vibrator);
+  }
+
+  @Keep
+  private static void vibrate(@NonNull Vibrator vibrator)
+  {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+    {
+      vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
+    }
+    else
+    {
+      vibrator.vibrate(100);
     }
   }
 }
