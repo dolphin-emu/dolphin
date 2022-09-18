@@ -15,6 +15,7 @@
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/VideoEvents.h"
 
+class CustomShaderCache;
 class DataReader;
 class NativeVertexFormat;
 class PointerWrap;
@@ -128,6 +129,7 @@ public:
     m_current_pipeline_object = nullptr;
     m_pipeline_config_changed = true;
   }
+  void NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config);
 
   // Utility pipeline drawing (e.g. EFB copies, post-processing, UI).
   virtual void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size);
@@ -229,6 +231,8 @@ private:
   std::vector<u32> m_cpu_accesses_this_frame;
   std::vector<u32> m_scheduled_command_buffer_kicks;
   bool m_allow_background_execution = true;
+
+  std::unique_ptr<CustomShaderCache> m_custom_shader_cache;
 
   Common::EventHook m_frame_end_event;
 };
