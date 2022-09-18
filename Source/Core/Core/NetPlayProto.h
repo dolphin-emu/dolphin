@@ -107,7 +107,6 @@ struct NetSettings
 
   // These aren't sent over the network directly
   bool m_IsHosting = false;
-  bool m_HostInputAuthority = false;
   std::array<std::string, 4> m_GBARomPaths{};
 };
 

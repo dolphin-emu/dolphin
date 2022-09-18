@@ -894,7 +894,6 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.m_HideRemoteGBAs;
 
     m_net_settings.m_IsHosting = m_local_player->IsHost();
-    m_net_settings.m_HostInputAuthority = m_host_input_authority;
   }
 
   m_dialog->OnMsgStartGame();
