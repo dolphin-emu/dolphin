@@ -64,7 +64,6 @@ import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.IniFile;
-import org.dolphinemu.dolphinemu.utils.Rumble;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
 import java.io.File;
@@ -157,7 +156,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public static final int MENU_ACTION_EXIT = 22;
   public static final int MENU_ACTION_CHANGE_DISC = 23;
   public static final int MENU_ACTION_JOYSTICK_REL_CENTER = 24;
-  public static final int MENU_ACTION_RUMBLE = 25;
   public static final int MENU_ACTION_RESET_OVERLAY = 26;
   public static final int MENU_SET_IR_RECENTER = 27;
   public static final int MENU_SET_IR_MODE = 28;
@@ -192,7 +190,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
             EmulationActivity.MENU_ACTION_CHOOSE_CONTROLLER);
     buttonsActionsMap.append(R.id.menu_emulation_joystick_rel_center,
             EmulationActivity.MENU_ACTION_JOYSTICK_REL_CENTER);
-    buttonsActionsMap.append(R.id.menu_emulation_rumble, EmulationActivity.MENU_ACTION_RUMBLE);
     buttonsActionsMap
             .append(R.id.menu_emulation_reset_overlay, EmulationActivity.MENU_ACTION_RESET_OVERLAY);
     buttonsActionsMap.append(R.id.menu_emulation_ir_recenter,
@@ -359,8 +356,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     // Set these options now so that the SurfaceView the game renders into is the right size.
     enableFullscreenImmersive();
-
-    Rumble.initRumble(this);
 
     ActivityEmulationBinding binding = ActivityEmulationBinding.inflate(getLayoutInflater());
     setContentView(binding.getRoot());
@@ -627,8 +622,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     // Populate the switch value for joystick center on touch
     menu.findItem(R.id.menu_emulation_joystick_rel_center)
             .setChecked(BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBoolean(mSettings));
-    menu.findItem(R.id.menu_emulation_rumble)
-            .setChecked(BooleanSetting.MAIN_PHONE_RUMBLE.getBoolean(mSettings));
     if (wii)
     {
       menu.findItem(R.id.menu_emulation_ir_recenter)
@@ -667,10 +660,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
       case MENU_ACTION_JOYSTICK_REL_CENTER:
         item.setChecked(!item.isChecked());
         toggleJoystickRelCenter(item.isChecked());
-        break;
-      case MENU_ACTION_RUMBLE:
-        item.setChecked(!item.isChecked());
-        toggleRumble(item.isChecked());
         break;
       case MENU_SET_IR_RECENTER:
         item.setChecked(!item.isChecked());
@@ -840,12 +829,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   private void toggleJoystickRelCenter(boolean state)
   {
     BooleanSetting.MAIN_JOYSTICK_REL_CENTER.setBoolean(mSettings, state);
-  }
-
-  private void toggleRumble(boolean state)
-  {
-    BooleanSetting.MAIN_PHONE_RUMBLE.setBoolean(mSettings, state);
-    Rumble.setPhoneVibrator(state, this);
   }
 
   private void toggleRecenter(boolean state)

@@ -13,7 +13,6 @@ static jclass s_string_class;
 
 static jclass s_native_library_class;
 static jmethodID s_display_alert_msg;
-static jmethodID s_do_rumble;
 static jmethodID s_update_touch_pointer;
 static jmethodID s_on_title_changed;
 static jmethodID s_finish_emulation_activity;
@@ -122,11 +121,6 @@ jclass GetNativeLibraryClass()
 jmethodID GetDisplayAlertMsg()
 {
   return s_display_alert_msg;
-}
-
-jmethodID GetDoRumble()
-{
-  return s_do_rumble;
 }
 
 jmethodID GetUpdateTouchPointer()
@@ -408,7 +402,6 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_native_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(native_library_class));
   s_display_alert_msg = env->GetStaticMethodID(s_native_library_class, "displayAlertMsg",
                                                "(Ljava/lang/String;Ljava/lang/String;ZZZ)Z");
-  s_do_rumble = env->GetStaticMethodID(s_native_library_class, "rumble", "(ID)V");
   s_update_touch_pointer =
       env->GetStaticMethodID(s_native_library_class, "updateTouchPointer", "()V");
   s_on_title_changed = env->GetStaticMethodID(s_native_library_class, "onTitleChanged", "()V");

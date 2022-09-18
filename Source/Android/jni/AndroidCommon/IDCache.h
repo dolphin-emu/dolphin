@@ -13,7 +13,6 @@ jclass GetStringClass();
 
 jclass GetNativeLibraryClass();
 jmethodID GetDisplayAlertMsg();
-jmethodID GetDoRumble();
 jmethodID GetUpdateTouchPointer();
 jmethodID GetOnTitleChanged();
 jmethodID GetFinishEmulationActivity();

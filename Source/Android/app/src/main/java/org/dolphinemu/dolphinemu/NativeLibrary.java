@@ -18,7 +18,6 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.AlertMessage;
 import org.dolphinemu.dolphinemu.utils.CompressCallback;
 import org.dolphinemu.dolphinemu.utils.Log;
-import org.dolphinemu.dolphinemu.utils.Rumble;
 
 import java.lang.ref.WeakReference;
 import java.util.LinkedHashMap;
@@ -232,25 +231,6 @@ public final class NativeLibrary
   private NativeLibrary()
   {
     // Disallows instantiation.
-  }
-
-  /**
-   * Rumble sent from native. Currently only supports phone rumble.
-   *
-   * @param padID Ignored for now. Future use would be to pass rumble to a connected controller
-   * @param state Ignored for now since phone rumble can't just be 'turned' on/off
-   */
-  @Keep
-  public static void rumble(int padID, double state)
-  {
-    final EmulationActivity emulationActivity = sEmulationActivity.get();
-    if (emulationActivity == null)
-    {
-      Log.warning("[NativeLibrary] EmulationActivity is null");
-      return;
-    }
-
-    Rumble.checkRumble(padID, state);
   }
 
   /**
