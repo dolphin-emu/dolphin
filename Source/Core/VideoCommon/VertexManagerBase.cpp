@@ -23,12 +23,14 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomShaderCache.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PerfQueryBase.h"
+#include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -106,6 +108,7 @@ bool VertexManagerBase::Initialize()
 {
   m_frame_end_event = AfterFrameEvent::Register([this] { OnEndFrame(); }, "VertexManagerBase");
   m_index_generator.Init();
+  m_custom_shader_cache = std::make_unique<CustomShaderCache>();
   m_cpu_cull.Init();
   return true;
 }
@@ -527,6 +530,7 @@ void VertexManagerBase::Flush()
   // Calculate ZSlope for zfreeze
   const auto used_textures = UsedTextures();
   std::vector<std::string> texture_names;
+  std::vector<u32> texture_units;
   if (!m_cull_all)
   {
     if (!g_ActiveConfig.bGraphicMods)
@@ -543,7 +547,12 @@ void VertexManagerBase::Flush()
         const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
         if (cache_entry)
         {
-          texture_names.push_back(cache_entry->texture_info_name);
+          if (std::find(texture_names.begin(), texture_names.end(),
+                        cache_entry->texture_info_name) == texture_names.end())
+          {
+            texture_names.push_back(cache_entry->texture_info_name);
+            texture_units.push_back(i);
+          }
         }
       }
     }
@@ -562,13 +571,24 @@ void VertexManagerBase::Flush()
 
   if (!m_cull_all)
   {
-    for (const auto& texture_name : texture_names)
+    CustomPixelShaderContents custom_pixel_shader_contents;
+    std::optional<CustomPixelShader> custom_pixel_shader;
+    std::vector<std::string> custom_pixel_texture_names;
+    for (int i = 0; i < texture_names.size(); i++)
     {
+      const std::string& texture_name = texture_names[i];
+      const u32 texture_unit = texture_units[i];
       bool skip = false;
-      GraphicsModActionData::DrawStarted draw_started{&skip};
+      GraphicsModActionData::DrawStarted draw_started{texture_unit, &skip, &custom_pixel_shader};
       for (const auto action : g_graphics_mod_manager->GetDrawStartedActions(texture_name))
       {
         action->OnDrawStarted(&draw_started);
+        if (custom_pixel_shader)
+        {
+          custom_pixel_shader_contents.shaders.push_back(*custom_pixel_shader);
+          custom_pixel_texture_names.push_back(texture_name);
+        }
+        custom_pixel_shader = std::nullopt;
       }
       if (skip == true)
         return;
@@ -610,7 +630,52 @@ void VertexManagerBase::Flush()
     UpdatePipelineObject();
     if (m_current_pipeline_object)
     {
-      g_gfx->SetPipeline(m_current_pipeline_object);
+      const AbstractPipeline* current_pipeline = m_current_pipeline_object;
+      if (!custom_pixel_shader_contents.shaders.empty())
+      {
+        CustomShaderInstance custom_shaders;
+        custom_shaders.pixel_contents = std::move(custom_pixel_shader_contents);
+
+        switch (g_ActiveConfig.iShaderCompilationMode)
+        {
+        case ShaderCompilationMode::Synchronous:
+        case ShaderCompilationMode::AsynchronousSkipRendering:
+        {
+          if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
+                  m_current_pipeline_config, custom_shaders, m_current_pipeline_object->m_config))
+          {
+            current_pipeline = *pipeline;
+          }
+        }
+        break;
+        case ShaderCompilationMode::SynchronousUberShaders:
+        {
+          if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
+                  m_current_uber_pipeline_config, custom_shaders,
+                  m_current_pipeline_object->m_config))
+          {
+            current_pipeline = *pipeline;
+          }
+        }
+        break;
+        case ShaderCompilationMode::AsynchronousUberShaders:
+        {
+          if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
+                  m_current_pipeline_config, custom_shaders, m_current_pipeline_object->m_config))
+          {
+            current_pipeline = *pipeline;
+          }
+          else if (auto uber_pipeline = m_custom_shader_cache->GetPipelineAsync(
+                       m_current_uber_pipeline_config, custom_shaders,
+                       m_current_pipeline_object->m_config))
+          {
+            current_pipeline = *uber_pipeline;
+          }
+        }
+        break;
+        };
+      }
+      g_gfx->SetPipeline(current_pipeline);
       if (PerfQueryBase::ShouldEmulate())
         g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
@@ -1005,4 +1070,10 @@ void VertexManagerBase::OnEndFrame()
   // and hybrid ubershaders have compiled the specialized shader, but without any
   // state changes the specialized shader will not take over.
   InvalidatePipelineObject();
+}
+
+void VertexManagerBase::NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config)
+{
+  m_custom_shader_cache->SetHostConfig(host_config);
+  m_custom_shader_cache->Reload();
 }
