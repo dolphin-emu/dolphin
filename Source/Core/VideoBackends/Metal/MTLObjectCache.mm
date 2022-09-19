@@ -220,7 +220,7 @@ static MTLCullMode Convert(CullMode cull)
   switch (cull)
   {
   case CullMode::None:
-  case CullMode::All:  // Handled by disabling rasterization
+  case CullMode::All:  // Handled by VertexLoaderManager::RunVertices
     return MTLCullModeNone;
   case CullMode::Front:
     return MTLCullModeFront;
@@ -328,15 +328,13 @@ public:
         blend.subtractAlpha  = cfg.blending_state.subtractAlpha.Value();
         // clang-format on
       }
-      // Throw extras in bits we don't otherwise use
-      if (cfg.rasterization_state.cullmode == CullMode::All)
-        blend.hex |= 1 << 29;
+
       if (cfg.usage != AbstractPipelineUsage::GXUber)
       {
         if (cfg.rasterization_state.primitive == PrimitiveType::Points)
-          blend.hex |= 1 << 30;
+          is_points = true;
         else if (cfg.rasterization_state.primitive == PrimitiveType::Lines)
-          blend.hex |= 1 << 31;
+          is_lines = true;
       }
     }
     PipelineID() { memset(this, 0, sizeof(*this)); }
@@ -363,7 +361,13 @@ public:
     VertexAttribute v_posmtx;
     const Shader* vertex_shader;
     const Shader* fragment_shader;
-    BlendingState blend;
+    union
+    {
+      BlendingState blend;
+      // Throw extras in bits we don't otherwise use
+      BitField<30, 1, bool, u32> is_points;
+      BitField<31, 1, bool, u32> is_lines;
+    };
     FramebufferState framebuffer;
   };
 
@@ -392,8 +396,6 @@ public:
       RasterizationState rs = config.rasterization_state;
       if (config.usage != AbstractPipelineUsage::GXUber)
         [desc setInputPrimitiveTopology:GetClass(rs.primitive)];
-      if (rs.cullmode == CullMode::All)
-        [desc setRasterizationEnabled:NO];
       MTLRenderPipelineColorAttachmentDescriptor* color0 =
           [[desc colorAttachments] objectAtIndexedSubscript:0];
       BlendingState bs = config.blending_state;
