@@ -210,6 +210,8 @@ public:
   ReturnCode Decrypt(Handle key_handle, u8* iv, const u8* input, size_t size, u8* output,
                      u32 pid) const;
 
+  ReturnCode CryptOFB(u8* key, u8* iv, u8* input, size_t size, u8* output);
+
   ReturnCode VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle signer_handle,
                                  const std::vector<u8>& signature, u32 pid) const;
   // Import a certificate (signed by the certificate in signer_handle) into dest_handle.

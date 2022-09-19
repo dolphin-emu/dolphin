@@ -17,7 +17,6 @@
 #if defined(_M_X86_64)
 #include <x86intrin.h>
 #elif defined(_M_ARM_64)
-#include <arm_acle.h>
 #include <arm_neon.h>
 #endif
 #endif
@@ -406,6 +405,23 @@ std::unique_ptr<Context> CreateContextEncrypt(const u8* key)
 std::unique_ptr<Context> CreateContextDecrypt(const u8* key)
 {
   return CreateContext<Mode::Decrypt>(key);
+}
+
+// OFB encryption and decryption are the exact same. We don't encrypt though.
+void CryptOFB(const u8* key, const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out, size_t size)
+{
+  mbedtls_aes_context aes_ctx;
+  size_t iv_offset = 0;
+
+  std::array<u8, 16> iv_tmp{};
+  if (iv)
+    std::memcpy(&iv_tmp[0], iv, 16);
+
+  ASSERT(!mbedtls_aes_setkey_enc(&aes_ctx, key, 128));
+  mbedtls_aes_crypt_ofb(&aes_ctx, size, &iv_offset, &iv_tmp[0], buf_in, buf_out);
+
+  if (iv_out)
+    std::memcpy(iv_out, &iv_tmp[0], 16);
 }
 
 }  // namespace Common::AES

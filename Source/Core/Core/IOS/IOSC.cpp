@@ -370,6 +370,12 @@ ReturnCode IOSC::Decrypt(Handle key_handle, u8* iv, const u8* input, size_t size
   return DecryptEncrypt(Common::AES::Mode::Decrypt, key_handle, iv, input, size, output, pid);
 }
 
+ReturnCode IOSC::CryptOFB(u8* key, u8* iv, u8* input, size_t size, u8* output)
+{
+  Common::AES::CryptOFB(key, iv, iv, input, output, size);
+  return IPC_SUCCESS;
+}
+
 ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle signer_handle,
                                      const std::vector<u8>& signature, u32 pid) const
 {

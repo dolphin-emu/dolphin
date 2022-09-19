@@ -19,6 +19,7 @@
 #include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/Network/KD/VFF/VFFUtil.h"
 #include "Core/IOS/Network/Socket.h"
 #include "Core/IOS/Uids.h"
 
@@ -145,13 +146,142 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
 }  // Anonymous namespace
 
 NetKDRequestDevice::NetKDRequestDevice(Kernel& ios, const std::string& device_name)
-    : Device(ios, device_name), config{ios.GetFS()}
+    : Device(ios, device_name), config{ios.GetFS()}, dl_list{ios.GetFS()}
 {
+  m_work_queue.Reset([this](AsyncTask task) {
+    const IPCReply reply = task.handler();
+    {
+      std::lock_guard lg(m_async_reply_lock);
+      m_async_replies.emplace(AsyncReply{task.request, reply.return_value});
+    }
+  });
 }
 
 NetKDRequestDevice::~NetKDRequestDevice()
 {
   WiiSockMan::GetInstance().Clean();
+}
+
+void NetKDRequestDevice::Update()
+{
+  {
+    std::lock_guard lg(m_async_reply_lock);
+    while (!m_async_replies.empty())
+    {
+      const auto& reply = m_async_replies.front();
+      GetIOS()->EnqueueIPCReply(reply.request, reply.return_value);
+      m_async_replies.pop();
+    }
+  }
+}
+
+NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
+                                                const std::optional<u8> subtask_id)
+{
+  std::vector<u8> file_data;
+
+  // Content metadata
+  const std::string content_name = dl_list.GetVFFContentName(entry_index, subtask_id);
+  const std::string url = dl_list.GetDownloadURL(entry_index, subtask_id);
+
+  INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_DOWNLOAD_NOW_EX - NI - URL: {}", url);
+
+  INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_DOWNLOAD_NOW_EX - NI - Name: {}", content_name);
+
+  const Common::HttpRequest::Response response = m_http.Get(url);
+
+  if (!response)
+  {
+    ERROR_LOG_FMT(IOS_WC24, "Failed to request data at {}", url);
+    return NWC24::WC24_ERR_NETWORK;
+  }
+
+  // Write buffer to temporary file
+  const auto temp = m_ios.GetFS()->CreateAndOpenFile(
+      PID_KD, PID_KD, DL_CNT_PATH, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
+  if (!temp)
+  {
+    ERROR_LOG_FMT(IOS_WC24, "Failed to create dlcnt.bin");
+    return NWC24::WC24_ERR_FILE_OPEN;
+  }
+
+  temp->Write(response->data(), response->size());
+
+  // Now we read the file
+  NWC24::WC24File wc24File;
+  temp->Seek(0, FS::SeekMode::Set);
+  temp->Read(&wc24File, 1);
+
+  std::vector<u8> tempBuffer(response->size() - 320);
+  temp->Read(tempBuffer.data(), tempBuffer.size());
+
+  // TODO: Verify SHA-1 Signature maybe.
+
+  if (dl_list.isEncrypted(entry_index))
+  {
+    NWC24::WC24PubkMod pubkMod = dl_list.GetWC24PubkMod(entry_index);
+
+    file_data = std::vector<u8>(response->size() - 320);
+
+    m_ios.GetIOSC().CryptOFB(pubkMod.aes_key, wc24File.iv, tempBuffer.data(), tempBuffer.size(),
+                             file_data.data());
+  }
+  else
+  {
+    file_data = tempBuffer;
+  }
+
+  NWC24::ErrorCode reply = IOS::HLE::NWC24::OpenVFF(dl_list.GetVFFPath(entry_index), content_name,
+                                                    m_ios.GetFS(), file_data);
+
+  // Now delete dlcnt.bin
+  if (m_ios.GetFS()->Delete(PID_KD, PID_KD, DL_CNT_PATH) != FS::ResultCode::Success)
+    ERROR_LOG_FMT(IOS_WC24, "Failed to delete dlcnt.bin");
+
+  return reply;
+}
+
+IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& request)
+{
+  const s32 flags = static_cast<s32>(Memory::Read_U32(request.buffer_in));
+  // Nintendo converts the entry ID between a u32 and u16
+  // several times, presumably for alignment purposes.
+  // We'll skip past buffer_in+4 and keep the entry index as a u16.
+  const u16 entry_index = Memory::Read_U16(request.buffer_in + 6);
+  const s32 subtask_bitmask = static_cast<s32>(Memory::Read_U32(request.buffer_in + 8));
+
+  INFO_LOG_FMT(IOS_WC24,
+               "NET_KD_REQ: IOCTL_NWC24_DOWNLOAD_NOW_EX - NI - flags: {}, index: {}, bitmask: {}",
+               flags, entry_index, subtask_bitmask);
+
+  NWC24::ErrorCode reply = NWC24::WC24_ERR_BROKEN;  // FIXME
+
+  // Determine if we have subtasks to handle
+  if ((flags << 0x1d) < 0)
+  {
+    for (u8 subtask_id = 0; subtask_id < 32; subtask_id++)
+    {
+      // Check if we are done
+      if (((subtask_bitmask >> subtask_id) << 0x1f) >= 0)
+      {
+        break;
+      }
+
+      reply = KDDownload(entry_index, subtask_id);
+      if (reply != NWC24::WC24_OK)
+      {
+        // An error has occurred, break out and return error.
+        break;
+      }
+    }
+  }
+  else
+  {
+    reply = KDDownload(entry_index, std::nullopt);
+  }
+
+  WriteReturnValue(reply, request.buffer_out);
+  return IPCReply(reply);
 }
 
 std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
@@ -287,6 +417,9 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_NWC24_SAVE_MAIL_NOW:
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW - NI");
     break;
+
+  case IOCTL_NWC24_DOWNLOAD_NOW_EX:
+    return LaunchAsyncTask(&NetKDRequestDevice::HandleNWC24DownloadNowEx, request);
 
   case IOCTL_NWC24_REQUEST_SHUTDOWN:
   {
