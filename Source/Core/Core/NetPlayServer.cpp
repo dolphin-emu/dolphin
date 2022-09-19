@@ -862,7 +862,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (!m_players.count(pid) || !PlayerHasControllerMapped(player.pid))
       break;
 
-    if (m_host_input_authority && m_settings.m_GolfMode && m_pending_golfer == 0 &&
+    if (m_host_input_authority && m_settings.golf_mode && m_pending_golfer == 0 &&
         m_current_golfer != pid && PlayerHasControllerMapped(pid))
     {
       m_pending_golfer = pid;
@@ -1254,22 +1254,22 @@ bool NetPlayServer::SetupNetSettings()
       ConfigLoaders::GenerateLocalGameConfigLoader(game->GetGameID(), game->GetRevision()));
 
   // Copy all relevant settings
-  settings.m_CPUthread = Config::Get(Config::MAIN_CPU_THREAD);
-  settings.m_CPUcore = Config::Get(Config::MAIN_CPU_CORE);
-  settings.m_EnableCheats = Config::Get(Config::MAIN_ENABLE_CHEATS);
-  settings.m_SelectedLanguage = Config::Get(Config::MAIN_GC_LANGUAGE);
-  settings.m_OverrideRegionSettings = Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
-  settings.m_DSPHLE = Config::Get(Config::MAIN_DSP_HLE);
-  settings.m_DSPEnableJIT = Config::Get(Config::MAIN_DSP_JIT);
-  settings.m_WriteToMemcard = Config::Get(Config::NETPLAY_WRITE_SAVE_DATA);
-  settings.m_RAMOverrideEnable = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
-  settings.m_Mem1Size = Config::Get(Config::MAIN_MEM1_SIZE);
-  settings.m_Mem2Size = Config::Get(Config::MAIN_MEM2_SIZE);
-  settings.m_FallbackRegion = Config::Get(Config::MAIN_FALLBACK_REGION);
-  settings.m_AllowSDWrites = Config::Get(Config::MAIN_ALLOW_SD_WRITES);
-  settings.m_CopyWiiSave = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
-  settings.m_OCEnable = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
-  settings.m_OCFactor = Config::Get(Config::MAIN_OVERCLOCK);
+  settings.cpu_thread = Config::Get(Config::MAIN_CPU_THREAD);
+  settings.cpu_core = Config::Get(Config::MAIN_CPU_CORE);
+  settings.enable_cheats = Config::Get(Config::MAIN_ENABLE_CHEATS);
+  settings.selected_language = Config::Get(Config::MAIN_GC_LANGUAGE);
+  settings.override_region_settings = Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
+  settings.dsp_hle = Config::Get(Config::MAIN_DSP_HLE);
+  settings.dsp_enable_jit = Config::Get(Config::MAIN_DSP_JIT);
+  settings.write_to_memcard = Config::Get(Config::NETPLAY_WRITE_SAVE_DATA);
+  settings.ram_override_enable = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
+  settings.mem1_size = Config::Get(Config::MAIN_MEM1_SIZE);
+  settings.mem2_size = Config::Get(Config::MAIN_MEM2_SIZE);
+  settings.fallback_region = Config::Get(Config::MAIN_FALLBACK_REGION);
+  settings.allow_sd_writes = Config::Get(Config::MAIN_ALLOW_SD_WRITES);
+  settings.copy_wii_save = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
+  settings.oc_enable = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
+  settings.oc_factor = Config::Get(Config::MAIN_OVERCLOCK);
 
   for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
   {
@@ -1283,75 +1283,75 @@ bool NetPlayServer::SetupNetSettings()
     {
       device = Config::Get(Config::GetInfoForEXIDevice(slot));
     }
-    settings.m_EXIDevice[slot] = device;
+    settings.exi_device[slot] = device;
   }
 
-  settings.m_MemcardSizeOverride = Config::Get(Config::MAIN_MEMORY_CARD_SIZE);
+  settings.memcard_size_override = Config::Get(Config::MAIN_MEMORY_CARD_SIZE);
 
   for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)
   {
     std::visit(
         [&](auto* info) {
           static_assert(sizeof(info->GetDefaultValue()) <= sizeof(u32));
-          settings.m_SYSCONFSettings[i] = static_cast<u32>(Config::Get(*info));
+          settings.sysconf_settings[i] = static_cast<u32>(Config::Get(*info));
         },
         Config::SYSCONF_SETTINGS[i].config_info);
   }
 
-  settings.m_EFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
-  settings.m_BBoxEnable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
-  settings.m_ForceProgressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
-  settings.m_EFBToTextureEnable = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  settings.m_XFBToTextureEnable = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
-  settings.m_DisableCopyToVRAM = Config::Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
-  settings.m_ImmediateXFBEnable = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
-  settings.m_EFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
-  settings.m_SafeTextureCacheColorSamples =
+  settings.efb_access_enable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
+  settings.bbox_enable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
+  settings.force_progressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
+  settings.efb_to_texture_enable = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  settings.xfb_to_texture_enable = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
+  settings.disable_copy_to_vram = Config::Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
+  settings.immediate_xfb_enable = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
+  settings.efb_emulate_format_changes = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+  settings.safe_texture_cache_color_samples =
       Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
-  settings.m_PerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
-  settings.m_FloatExceptions = Config::Get(Config::MAIN_FLOAT_EXCEPTIONS);
-  settings.m_DivideByZeroExceptions = Config::Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS);
-  settings.m_FPRF = Config::Get(Config::MAIN_FPRF);
-  settings.m_AccurateNaNs = Config::Get(Config::MAIN_ACCURATE_NANS);
-  settings.m_DisableICache = Config::Get(Config::MAIN_DISABLE_ICACHE);
-  settings.m_SyncOnSkipIdle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
-  settings.m_SyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
-  settings.m_SyncGpuMaxDistance = Config::Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
-  settings.m_SyncGpuMinDistance = Config::Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
-  settings.m_SyncGpuOverclock = Config::Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
-  settings.m_JITFollowBranch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
-  settings.m_FastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
-  settings.m_MMU = Config::Get(Config::MAIN_MMU);
-  settings.m_Fastmem = Config::Get(Config::MAIN_FASTMEM);
-  settings.m_SkipIPL = Config::Get(Config::MAIN_SKIP_IPL) || !DoAllPlayersHaveIPLDump();
-  settings.m_LoadIPLDump = Config::Get(Config::SESSION_LOAD_IPL_DUMP) && DoAllPlayersHaveIPLDump();
-  settings.m_VertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUNDING);
-  settings.m_InternalResolution = Config::Get(Config::GFX_EFB_SCALE);
-  settings.m_EFBScaledCopy = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
-  settings.m_FastDepthCalc = Config::Get(Config::GFX_FAST_DEPTH_CALC);
-  settings.m_EnablePixelLighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
-  settings.m_WidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  settings.m_ForceFiltering = Config::Get(Config::GFX_ENHANCE_FORCE_FILTERING);
-  settings.m_MaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
-  settings.m_ForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
-  settings.m_DisableCopyFilter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
-  settings.m_DisableFog = Config::Get(Config::GFX_DISABLE_FOG);
-  settings.m_ArbitraryMipmapDetection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
-  settings.m_ArbitraryMipmapDetectionThreshold =
+  settings.perf_queries_enable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
+  settings.float_exceptions = Config::Get(Config::MAIN_FLOAT_EXCEPTIONS);
+  settings.divide_by_zero_exceptions = Config::Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS);
+  settings.fprf = Config::Get(Config::MAIN_FPRF);
+  settings.accurate_nans = Config::Get(Config::MAIN_ACCURATE_NANS);
+  settings.disable_icache = Config::Get(Config::MAIN_DISABLE_ICACHE);
+  settings.sync_on_skip_idle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
+  settings.sync_gpu = Config::Get(Config::MAIN_SYNC_GPU);
+  settings.sync_gpu_max_distance = Config::Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
+  settings.sync_gpu_min_distance = Config::Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
+  settings.sync_gpu_overclock = Config::Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
+  settings.jit_follow_branch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
+  settings.fast_disc_speed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
+  settings.mmu = Config::Get(Config::MAIN_MMU);
+  settings.fastmem = Config::Get(Config::MAIN_FASTMEM);
+  settings.skip_ipl = Config::Get(Config::MAIN_SKIP_IPL) || !DoAllPlayersHaveIPLDump();
+  settings.load_ipl_dump = Config::Get(Config::SESSION_LOAD_IPL_DUMP) && DoAllPlayersHaveIPLDump();
+  settings.vertex_rounding = Config::Get(Config::GFX_HACK_VERTEX_ROUNDING);
+  settings.internal_resolution = Config::Get(Config::GFX_EFB_SCALE);
+  settings.efb_scaled_copy = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
+  settings.fast_depth_calc = Config::Get(Config::GFX_FAST_DEPTH_CALC);
+  settings.enable_pixel_lighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
+  settings.widescreen_hack = Config::Get(Config::GFX_WIDESCREEN_HACK);
+  settings.force_filtering = Config::Get(Config::GFX_ENHANCE_FORCE_FILTERING);
+  settings.max_anisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
+  settings.force_true_color = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+  settings.disable_copy_filter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+  settings.disable_fog = Config::Get(Config::GFX_DISABLE_FOG);
+  settings.arbitrary_mipmap_detection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+  settings.arbitrary_mipmap_detection_threshold =
       Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
-  settings.m_EnableGPUTextureDecoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
-  settings.m_DeferEFBCopies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
-  settings.m_EFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
-  settings.m_EFBAccessDeferInvalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
+  settings.enable_gpu_texture_decoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
+  settings.defer_efb_copies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
+  settings.efb_access_tile_size = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
+  settings.efb_access_defer_invalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
 
-  settings.m_StrictSettingsSync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
-  settings.m_SyncSaveData = Config::Get(Config::NETPLAY_SYNC_SAVES);
-  settings.m_SyncCodes = Config::Get(Config::NETPLAY_SYNC_CODES);
-  settings.m_SyncAllWiiSaves =
+  settings.strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
+  settings.sync_save_data = Config::Get(Config::NETPLAY_SYNC_SAVES);
+  settings.sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
+  settings.sync_all_wii_saves =
       Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES) && Config::Get(Config::NETPLAY_SYNC_SAVES);
-  settings.m_GolfMode = Config::Get(Config::NETPLAY_NETWORK_MODE) == "golf";
-  settings.m_UseFMA = DoAllPlayersHaveHardwareFMA();
-  settings.m_HideRemoteGBAs = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
+  settings.golf_mode = Config::Get(Config::NETPLAY_NETWORK_MODE) == "golf";
+  settings.use_fma = DoAllPlayersHaveHardwareFMA();
+  settings.hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
 
   // Unload GameINI to restore things to normal
   Config::RemoveLayer(Config::LayerType::GlobalGame);
@@ -1382,7 +1382,7 @@ bool NetPlayServer::RequestStartGame()
 
   bool start_now = true;
 
-  if (m_settings.m_SyncSaveData && m_players.size() > 1)
+  if (m_settings.sync_save_data && m_players.size() > 1)
   {
     start_now = false;
     m_start_pending = true;
@@ -1395,7 +1395,7 @@ bool NetPlayServer::RequestStartGame()
   }
 
   // Check To Send Codes to Clients
-  if (m_settings.m_SyncCodes && m_players.size() > 1)
+  if (m_settings.sync_codes && m_players.size() > 1)
   {
     start_now = false;
     m_start_pending = true;
@@ -1455,82 +1455,82 @@ bool NetPlayServer::StartGame()
   sf::Packet spac;
   spac << MessageID::StartGame;
   spac << m_current_game;
-  spac << m_settings.m_CPUthread;
-  spac << m_settings.m_CPUcore;
-  spac << m_settings.m_EnableCheats;
-  spac << m_settings.m_SelectedLanguage;
-  spac << m_settings.m_OverrideRegionSettings;
-  spac << m_settings.m_DSPEnableJIT;
-  spac << m_settings.m_DSPHLE;
-  spac << m_settings.m_WriteToMemcard;
-  spac << m_settings.m_RAMOverrideEnable;
-  spac << m_settings.m_Mem1Size;
-  spac << m_settings.m_Mem2Size;
-  spac << m_settings.m_FallbackRegion;
-  spac << m_settings.m_AllowSDWrites;
-  spac << m_settings.m_CopyWiiSave;
-  spac << m_settings.m_OCEnable;
-  spac << m_settings.m_OCFactor;
+  spac << m_settings.cpu_thread;
+  spac << m_settings.cpu_core;
+  spac << m_settings.enable_cheats;
+  spac << m_settings.selected_language;
+  spac << m_settings.override_region_settings;
+  spac << m_settings.dsp_enable_jit;
+  spac << m_settings.dsp_hle;
+  spac << m_settings.write_to_memcard;
+  spac << m_settings.ram_override_enable;
+  spac << m_settings.mem1_size;
+  spac << m_settings.mem2_size;
+  spac << m_settings.fallback_region;
+  spac << m_settings.allow_sd_writes;
+  spac << m_settings.copy_wii_save;
+  spac << m_settings.oc_enable;
+  spac << m_settings.oc_factor;
 
   for (auto slot : ExpansionInterface::SLOTS)
-    spac << static_cast<int>(m_settings.m_EXIDevice[slot]);
+    spac << static_cast<int>(m_settings.exi_device[slot]);
 
-  spac << m_settings.m_MemcardSizeOverride;
+  spac << m_settings.memcard_size_override;
 
-  for (u32 value : m_settings.m_SYSCONFSettings)
+  for (u32 value : m_settings.sysconf_settings)
     spac << value;
 
-  spac << m_settings.m_EFBAccessEnable;
-  spac << m_settings.m_BBoxEnable;
-  spac << m_settings.m_ForceProgressive;
-  spac << m_settings.m_EFBToTextureEnable;
-  spac << m_settings.m_XFBToTextureEnable;
-  spac << m_settings.m_DisableCopyToVRAM;
-  spac << m_settings.m_ImmediateXFBEnable;
-  spac << m_settings.m_EFBEmulateFormatChanges;
-  spac << m_settings.m_SafeTextureCacheColorSamples;
-  spac << m_settings.m_PerfQueriesEnable;
-  spac << m_settings.m_FloatExceptions;
-  spac << m_settings.m_DivideByZeroExceptions;
-  spac << m_settings.m_FPRF;
-  spac << m_settings.m_AccurateNaNs;
-  spac << m_settings.m_DisableICache;
-  spac << m_settings.m_SyncOnSkipIdle;
-  spac << m_settings.m_SyncGPU;
-  spac << m_settings.m_SyncGpuMaxDistance;
-  spac << m_settings.m_SyncGpuMinDistance;
-  spac << m_settings.m_SyncGpuOverclock;
-  spac << m_settings.m_JITFollowBranch;
-  spac << m_settings.m_FastDiscSpeed;
-  spac << m_settings.m_MMU;
-  spac << m_settings.m_Fastmem;
-  spac << m_settings.m_SkipIPL;
-  spac << m_settings.m_LoadIPLDump;
-  spac << m_settings.m_VertexRounding;
-  spac << m_settings.m_InternalResolution;
-  spac << m_settings.m_EFBScaledCopy;
-  spac << m_settings.m_FastDepthCalc;
-  spac << m_settings.m_EnablePixelLighting;
-  spac << m_settings.m_WidescreenHack;
-  spac << m_settings.m_ForceFiltering;
-  spac << m_settings.m_MaxAnisotropy;
-  spac << m_settings.m_ForceTrueColor;
-  spac << m_settings.m_DisableCopyFilter;
-  spac << m_settings.m_DisableFog;
-  spac << m_settings.m_ArbitraryMipmapDetection;
-  spac << m_settings.m_ArbitraryMipmapDetectionThreshold;
-  spac << m_settings.m_EnableGPUTextureDecoding;
-  spac << m_settings.m_DeferEFBCopies;
-  spac << m_settings.m_EFBAccessTileSize;
-  spac << m_settings.m_EFBAccessDeferInvalidation;
-  spac << m_settings.m_StrictSettingsSync;
+  spac << m_settings.efb_access_enable;
+  spac << m_settings.bbox_enable;
+  spac << m_settings.force_progressive;
+  spac << m_settings.efb_to_texture_enable;
+  spac << m_settings.xfb_to_texture_enable;
+  spac << m_settings.disable_copy_to_vram;
+  spac << m_settings.immediate_xfb_enable;
+  spac << m_settings.efb_emulate_format_changes;
+  spac << m_settings.safe_texture_cache_color_samples;
+  spac << m_settings.perf_queries_enable;
+  spac << m_settings.float_exceptions;
+  spac << m_settings.divide_by_zero_exceptions;
+  spac << m_settings.fprf;
+  spac << m_settings.accurate_nans;
+  spac << m_settings.disable_icache;
+  spac << m_settings.sync_on_skip_idle;
+  spac << m_settings.sync_gpu;
+  spac << m_settings.sync_gpu_max_distance;
+  spac << m_settings.sync_gpu_min_distance;
+  spac << m_settings.sync_gpu_overclock;
+  spac << m_settings.jit_follow_branch;
+  spac << m_settings.fast_disc_speed;
+  spac << m_settings.mmu;
+  spac << m_settings.fastmem;
+  spac << m_settings.skip_ipl;
+  spac << m_settings.load_ipl_dump;
+  spac << m_settings.vertex_rounding;
+  spac << m_settings.internal_resolution;
+  spac << m_settings.efb_scaled_copy;
+  spac << m_settings.fast_depth_calc;
+  spac << m_settings.enable_pixel_lighting;
+  spac << m_settings.widescreen_hack;
+  spac << m_settings.force_filtering;
+  spac << m_settings.max_anisotropy;
+  spac << m_settings.force_true_color;
+  spac << m_settings.disable_copy_filter;
+  spac << m_settings.disable_fog;
+  spac << m_settings.arbitrary_mipmap_detection;
+  spac << m_settings.arbitrary_mipmap_detection_threshold;
+  spac << m_settings.enable_gpu_texture_decoding;
+  spac << m_settings.defer_efb_copies;
+  spac << m_settings.efb_access_tile_size;
+  spac << m_settings.efb_access_defer_invalidation;
+  spac << m_settings.strict_settings_sync;
   spac << initial_rtc;
-  spac << m_settings.m_SyncSaveData;
+  spac << m_settings.sync_save_data;
   spac << region;
-  spac << m_settings.m_SyncCodes;
-  spac << m_settings.m_SyncAllWiiSaves;
+  spac << m_settings.sync_codes;
+  spac << m_settings.sync_all_wii_saves;
 
-  for (size_t i = 0; i < m_settings.m_WiimoteExtension.size(); i++)
+  for (size_t i = 0; i < m_settings.wiimote_extension.size(); i++)
   {
     const int extension =
         static_cast<ControllerEmu::Attachments*>(
@@ -1540,9 +1540,9 @@ bool NetPlayServer::StartGame()
     spac << extension;
   }
 
-  spac << m_settings.m_GolfMode;
-  spac << m_settings.m_UseFMA;
-  spac << m_settings.m_HideRemoteGBAs;
+  spac << m_settings.golf_mode;
+  spac << m_settings.use_fma;
+  spac << m_settings.hide_remote_gbas;
 
   SendAsyncToClients(std::move(spac));
 
@@ -1574,7 +1574,7 @@ bool NetPlayServer::SyncSaveData()
 
   for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
-    if (m_settings.m_EXIDevice[slot] == ExpansionInterface::EXIDeviceType::MemoryCard ||
+    if (m_settings.exi_device[slot] == ExpansionInterface::EXIDeviceType::MemoryCard ||
         Config::Get(Config::GetInfoForEXIDevice(slot)) ==
             ExpansionInterface::EXIDeviceType::MemoryCardFolder)
     {
@@ -1590,7 +1590,7 @@ bool NetPlayServer::SyncSaveData()
   }
 
   bool wii_save = false;
-  if (m_settings.m_CopyWiiSave && (game->GetPlatform() == DiscIO::Platform::WiiDisc ||
+  if (m_settings.copy_wii_save && (game->GetPlatform() == DiscIO::Platform::WiiDisc ||
                                    game->GetPlatform() == DiscIO::Platform::WiiWAD ||
                                    game->GetPlatform() == DiscIO::Platform::ELFOrDOL))
   {
@@ -1635,9 +1635,9 @@ bool NetPlayServer::SyncSaveData()
   {
     const bool is_slot_a = slot == ExpansionInterface::Slot::A;
 
-    if (m_settings.m_EXIDevice[slot] == ExpansionInterface::EXIDeviceType::MemoryCard)
+    if (m_settings.exi_device[slot] == ExpansionInterface::EXIDeviceType::MemoryCard)
     {
-      const int size_override = m_settings.m_MemcardSizeOverride;
+      const int size_override = m_settings.memcard_size_override;
       const u16 card_size_mbits =
           size_override >= 0 && size_override <= 4 ?
               static_cast<u16>(Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override) :
@@ -1703,7 +1703,7 @@ bool NetPlayServer::SyncSaveData()
     const auto configured_fs = IOS::HLE::FS::MakeFileSystem(IOS::HLE::FS::Location::Configured);
 
     std::vector<std::pair<u64, WiiSave::StoragePointer>> saves;
-    if (m_settings.m_SyncAllWiiSaves)
+    if (m_settings.sync_all_wii_saves)
     {
       IOS::HLE::Kernel ios;
       for (const u64 title : ios.GetES()->GetInstalledTitles())

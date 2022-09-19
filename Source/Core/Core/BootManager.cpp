@@ -91,7 +91,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
       return false;
 
     Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(*netplay_settings));
-    StartUp.bCopyWiiSaveNetplay = netplay_settings->m_CopyWiiSave;
+    StartUp.bCopyWiiSaveNetplay = netplay_settings->copy_wii_save;
   }
   else
   {
