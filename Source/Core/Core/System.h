@@ -6,6 +6,7 @@
 #include <memory>
 
 class SoundStream;
+struct Sram;
 
 namespace AudioInterface
 {
@@ -56,6 +57,7 @@ public:
   AudioInterface::AudioInterfaceState& GetAudioInterfaceState() const;
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;
+  Sram& GetSRAM() const;
 
 private:
   System();

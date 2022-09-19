@@ -1436,20 +1436,9 @@ bool NetPlayServer::StartGame()
   const std::string region = Config::GetDirectoryForRegion(
       Config::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game_identifier)->GetRegion()));
 
-  // sync GC SRAM with clients
-  if (!g_SRAM_netplay_initialized)
-  {
-    SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
-    InitSRAM();
-    g_SRAM_netplay_initialized = true;
-  }
-  sf::Packet srampac;
-  srampac << MessageID::SyncGCSRAM;
-  for (size_t i = 0; i < sizeof(g_SRAM) - offsetof(Sram, settings); ++i)
-  {
-    srampac << g_SRAM[offsetof(Sram, settings) + i];
-  }
-  SendAsyncToClients(std::move(srampac), 1);
+  // load host's GC SRAM
+  SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+  InitSRAM(&m_settings.sram, SConfig::GetInstance().m_strSRAM);
 
   // tell clients to start game
   sf::Packet spac;
@@ -1543,6 +1532,9 @@ bool NetPlayServer::StartGame()
   spac << m_settings.golf_mode;
   spac << m_settings.use_fma;
   spac << m_settings.hide_remote_gbas;
+
+  for (size_t i = 0; i < sizeof(m_settings.sram); ++i)
+    spac << m_settings.sram[i];
 
   SendAsyncToClients(std::move(spac));
 

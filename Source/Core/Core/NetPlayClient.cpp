@@ -432,10 +432,6 @@ void NetPlayClient::OnData(sf::Packet& packet)
     OnDesyncDetected(packet);
     break;
 
-  case MessageID::SyncGCSRAM:
-    OnSyncGCSRAM(packet);
-    break;
-
   case MessageID::SyncSaveData:
     OnSyncSaveData(packet);
     break;
@@ -893,6 +889,9 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.use_fma;
     packet >> m_net_settings.hide_remote_gbas;
 
+    for (size_t i = 0; i < sizeof(m_net_settings.sram); ++i)
+      packet >> m_net_settings.sram[i];
+
     m_net_settings.is_hosting = m_local_player->IsHost();
   }
 
@@ -958,20 +957,6 @@ void NetPlayClient::OnDesyncDetected(sf::Packet& packet)
   INFO_LOG_FMT(NETPLAY, "Player {} ({}) desynced!", player, pid_to_blame);
 
   m_dialog->OnDesync(frame, player);
-}
-
-void NetPlayClient::OnSyncGCSRAM(sf::Packet& packet)
-{
-  const size_t sram_settings_len = sizeof(g_SRAM) - offsetof(Sram, settings);
-  u8 sram[sram_settings_len];
-  for (u8& cell : sram)
-    packet >> cell;
-
-  {
-    std::lock_guard lkg(m_crit.game);
-    memcpy(&g_SRAM.settings, sram, sram_settings_len);
-    g_SRAM_netplay_initialized = true;
-  }
 }
 
 void NetPlayClient::OnSyncSaveData(sf::Packet& packet)

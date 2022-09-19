@@ -10,6 +10,7 @@
 #include "Core/CoreTiming.h"
 
 class PointerWrap;
+struct Sram;
 
 namespace CoreTiming
 {
@@ -51,7 +52,7 @@ constexpr bool IsMemcardSlot(Slot slot)
 u8 SlotToEXIChannel(Slot slot);
 u8 SlotToEXIDevice(Slot slot);
 
-void Init();
+void Init(const Sram* override_sram);
 void Shutdown();
 void DoState(PointerWrap& p);
 void PauseAndLock(bool doLock, bool unpauseOnUnlock);
