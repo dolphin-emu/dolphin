@@ -122,7 +122,7 @@ public:
     // HACK
     DataReader src{const_cast<u8*>(vertex_data), const_cast<u8*>(vertex_data) + size};
     const u32 bytes =
-        VertexLoaderManager::RunVertices(vat, primitive, num_vertices, src, is_preprocess);
+        VertexLoaderManager::RunVertices<is_preprocess>(vat, primitive, num_vertices, src);
 
     ASSERT(bytes == size);
 
@@ -226,6 +226,12 @@ public:
       return g_preprocess_cp_state;
     else
       return g_main_cp_state;
+  }
+
+  OPCODE_CALLBACK(u32 GetVertexSize(u8 vat))
+  {
+    VertexLoaderBase* loader = VertexLoaderManager::RefreshLoader<is_preprocess>(vat);
+    return loader->m_vertex_size;
   }
 
   u32 m_cycles = 0;

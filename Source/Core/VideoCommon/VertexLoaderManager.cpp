@@ -54,7 +54,6 @@ Common::EnumMap<u8*, CPArray::TexCoord7> cached_arraybases;
 BitSet8 g_main_vat_dirty;
 BitSet8 g_preprocess_vat_dirty;
 bool g_bases_dirty;  // Main only
-u8 g_current_vat;    // Main only
 std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_main_vertex_loaders;
 std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_preprocess_vertex_loaders;
 
@@ -78,7 +77,7 @@ void Clear()
 void UpdateVertexArrayPointers()
 {
   // Anything to update?
-  if (!g_bases_dirty)
+  if (!g_bases_dirty) [[likely]]
     return;
 
   // Some games such as Burnout 2 can put invalid addresses into
@@ -198,58 +197,49 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
   return GetOrCreateMatchingFormat(new_decl);
 }
 
-static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = false)
+namespace detail
 {
-  CPState* state = preprocess ? &g_preprocess_cp_state : &g_main_cp_state;
-  BitSet8& attr_dirty = preprocess ? g_preprocess_vat_dirty : g_main_vat_dirty;
-  auto& vertex_loaders = preprocess ? g_main_vertex_loaders : g_preprocess_vertex_loaders;
-  g_current_vat = vtx_attr_group;
+template <bool IsPreprocess>
+VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
+{
+  constexpr CPState* state = IsPreprocess ? &g_preprocess_cp_state : &g_main_cp_state;
+  constexpr BitSet8& attr_dirty = IsPreprocess ? g_preprocess_vat_dirty : g_main_vat_dirty;
+  constexpr auto& vertex_loaders =
+      IsPreprocess ? g_preprocess_vertex_loaders : g_main_vertex_loaders;
 
   VertexLoaderBase* loader;
-  if (attr_dirty[vtx_attr_group])
-  {
-    // We are not allowed to create a native vertex format on preprocessing as this is on the wrong
-    // thread
-    bool check_for_native_format = !preprocess;
 
-    VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
-    std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
-    VertexLoaderMap::iterator iter = s_vertex_loader_map.find(uid);
-    if (iter != s_vertex_loader_map.end())
-    {
-      loader = iter->second.get();
-      check_for_native_format &= !loader->m_native_vertex_format;
-    }
-    else
-    {
-      s_vertex_loader_map[uid] =
-          VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
-      loader = s_vertex_loader_map[uid].get();
-      INCSTAT(g_stats.num_vertex_loaders);
-    }
-    if (check_for_native_format)
-    {
-      // search for a cached native vertex format
-      const PortableVertexDeclaration& format = loader->m_native_vtx_decl;
-      std::unique_ptr<NativeVertexFormat>& native = s_native_vertex_map[format];
-      if (!native)
-        native = g_renderer->CreateNativeVertexFormat(format);
-      loader->m_native_vertex_format = native.get();
-    }
-    vertex_loaders[vtx_attr_group] = loader;
-    attr_dirty[vtx_attr_group] = false;
+  // We are not allowed to create a native vertex format on preprocessing as this is on the wrong
+  // thread
+  bool check_for_native_format = !IsPreprocess;
+
+  VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
+  std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
+  VertexLoaderMap::iterator iter = s_vertex_loader_map.find(uid);
+  if (iter != s_vertex_loader_map.end())
+  {
+    loader = iter->second.get();
+    check_for_native_format &= !loader->m_native_vertex_format;
   }
   else
   {
-    loader = vertex_loaders[vtx_attr_group];
+    auto [it, added] = s_vertex_loader_map.try_emplace(
+        uid,
+        VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]));
+    loader = it->second.get();
+    INCSTAT(g_stats.num_vertex_loaders);
   }
-
-  // Lookup pointers for any vertex arrays.
-  if (!preprocess)
-    UpdateVertexArrayPointers();
-
+  if (check_for_native_format)
+  {
+    // search for a cached native vertex format
+    loader->m_native_vertex_format = GetOrCreateMatchingFormat(loader->m_native_vtx_decl);
+  }
+  vertex_loaders[vtx_attr_group] = loader;
+  attr_dirty[vtx_attr_group] = false;
   return loader;
 }
+
+}  // namespace detail
 
 static void CheckCPConfiguration(int vtx_attr_group)
 {
@@ -335,52 +325,60 @@ static void CheckCPConfiguration(int vtx_attr_group)
   }
 }
 
-int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, DataReader src,
-                bool is_preprocess)
+template <bool IsPreprocess>
+int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, DataReader src)
 {
   if (count == 0)
     return 0;
   ASSERT(count > 0);
 
-  VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
+  VertexLoaderBase* loader = RefreshLoader<IsPreprocess>(vtx_attr_group);
 
   int size = count * loader->m_vertex_size;
   if ((int)src.size() < size)
     return -1;
 
-  if (is_preprocess)
-    return size;
-
-  CheckCPConfiguration(vtx_attr_group);
-
-  // If the native vertex format changed, force a flush.
-  if (loader->m_native_vertex_format != s_current_vtx_fmt ||
-      loader->m_native_components != g_current_components)
+  if constexpr (!IsPreprocess)
   {
-    g_vertex_manager->Flush();
+    // Doing early return for the opposite case would be cleaner
+    // but triggers a false unreachable code warning in MSVC debug builds.
+
+    CheckCPConfiguration(vtx_attr_group);
+
+    // If the native vertex format changed, force a flush.
+    if (loader->m_native_vertex_format != s_current_vtx_fmt ||
+        loader->m_native_components != g_current_components)
+    {
+      g_vertex_manager->Flush();
+    }
+    s_current_vtx_fmt = loader->m_native_vertex_format;
+    g_current_components = loader->m_native_components;
+    VertexShaderManager::SetVertexFormat(loader->m_native_components);
+
+    // if cull mode is CULL_ALL, tell VertexManager to skip triangles and quads.
+    // They still need to go through vertex loading, because we need to calculate a zfreeze refrence
+    // slope.
+    bool cullall = (bpmem.genMode.cullmode == CullMode::All &&
+                    primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES);
+
+    DataReader dst = g_vertex_manager->PrepareForAdditionalData(
+        primitive, count, loader->m_native_vtx_decl.stride, cullall);
+
+    count = loader->RunVertices(src, dst, count);
+
+    g_vertex_manager->AddIndices(primitive, count);
+    g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
+
+    ADDSTAT(g_stats.this_frame.num_prims, count);
+    INCSTAT(g_stats.this_frame.num_primitive_joins);
   }
-  s_current_vtx_fmt = loader->m_native_vertex_format;
-  g_current_components = loader->m_native_components;
-  VertexShaderManager::SetVertexFormat(loader->m_native_components);
-
-  // if cull mode is CULL_ALL, tell VertexManager to skip triangles and quads.
-  // They still need to go through vertex loading, because we need to calculate a zfreeze refrence
-  // slope.
-  bool cullall = (bpmem.genMode.cullmode == CullMode::All &&
-                  primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES);
-
-  DataReader dst = g_vertex_manager->PrepareForAdditionalData(
-      primitive, count, loader->m_native_vtx_decl.stride, cullall);
-
-  count = loader->RunVertices(src, dst, count);
-
-  g_vertex_manager->AddIndices(primitive, count);
-  g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
-
-  ADDSTAT(g_stats.this_frame.num_prims, count);
-  INCSTAT(g_stats.this_frame.num_primitive_joins);
   return size;
 }
+
+template int RunVertices<false>(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count,
+                                DataReader src);
+template int RunVertices<true>(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count,
+                               DataReader src);
 
 NativeVertexFormat* GetCurrentVertexFormat()
 {
