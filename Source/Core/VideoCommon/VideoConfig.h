@@ -232,6 +232,7 @@ struct VideoConfig final
     bool bSupportsLodBiasInSampler = false;
     bool bSupportsSettingObjectNames = false;
     bool bSupportsPartialMultisampleResolve = false;
+    bool bSupportsUnrestrictedDepthRange = false;
   } backend_info;
 
   // Utility

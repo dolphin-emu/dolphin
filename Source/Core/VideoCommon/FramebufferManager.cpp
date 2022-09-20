@@ -122,13 +122,7 @@ AbstractTextureFormat FramebufferManager::GetEFBColorFormat()
 
 AbstractTextureFormat FramebufferManager::GetEFBDepthFormat()
 {
-  // 32-bit depth clears are broken in the Adreno Vulkan driver, and have no effect.
-  // To work around this, we use a D24_S8 buffer instead, which results in a loss of accuracy.
-  // We still resolve this to a R32F texture, as there is no 24-bit format.
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_D32F_CLEAR))
-    return AbstractTextureFormat::D24_S8;
-  else
-    return AbstractTextureFormat::D32F;
+  return AbstractTextureFormat::D24_S8;
 }
 
 AbstractTextureFormat FramebufferManager::GetEFBDepthCopyFormat()
@@ -715,13 +709,15 @@ void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear
     float padding1, padding2, padding3;
   };
   static_assert(std::is_standard_layout<Uniforms>::value);
+
+  float depth = static_cast<float>(z & 0xFFFFFF);
+  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    depth = EFB_MAX_DEPTH - depth;
   Uniforms uniforms = {{static_cast<float>((color >> 16) & 0xFF) / 255.0f,
                         static_cast<float>((color >> 8) & 0xFF) / 255.0f,
                         static_cast<float>((color >> 0) & 0xFF) / 255.0f,
                         static_cast<float>((color >> 24) & 0xFF) / 255.0f},
-                       static_cast<float>(z & 0xFFFFFF) / 16777216.0f};
-  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-    uniforms.clear_depth = 1.0f - uniforms.clear_depth;
+                       depth / 16777215.0f};
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 
   const auto target_rc = g_renderer->ConvertFramebufferRectangle(
@@ -805,13 +801,13 @@ void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)
     m_efb_color_cache.readback_texture->WriteTexel(x, y, &color);
 }
 
-void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
+void FramebufferManager::PokeEFBDepth(u32 x, u32 y, u32 depth)
 {
   // Flush if we exceeded the number of vertices per batch.
   if ((m_depth_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
     FlushEFBPokes();
 
-  CreatePokeVertices(&m_depth_poke_vertices, x, y, depth, 0);
+  CreatePokeVertices(&m_depth_poke_vertices, x, y, depth / EFB_MAX_DEPTH, 0);
 
   // See comment above for reasoning for lower-left coordinates.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
@@ -992,6 +988,7 @@ void FramebufferManager::DoLoadState(PointerWrap& p)
       color_tex->texture->GetLayers() != m_efb_color_texture->GetLayers())
   {
     WARN_LOG_FMT(VIDEO, "Failed to deserialize EFB contents. Clearing instead.");
+
     g_renderer->SetAndClearFramebuffer(
         m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
         g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f : 0.0f);

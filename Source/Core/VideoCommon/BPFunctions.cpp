@@ -220,8 +220,8 @@ void SetScissorAndViewport()
   float y = g_renderer->EFBToScaledYf(raw_y);
   float width = g_renderer->EFBToScaledXf(raw_width);
   float height = g_renderer->EFBToScaledYf(raw_height);
-  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-  float max_depth = xfmem.viewport.farZ / 16777216.0f;
+  float min_depth = xfmem.viewport.farZ - xfmem.viewport.zRange;
+  float max_depth = xfmem.viewport.farZ;
   if (width < 0.f)
   {
     x += width;
@@ -231,35 +231,6 @@ void SetScissorAndViewport()
   {
     y += height;
     height *= -1;
-  }
-
-  // The maximum depth that is written to the depth buffer should never exceed this value.
-  // This is necessary because we use a 2^24 divisor for all our depth values to prevent
-  // floating-point round-trip errors. However the console GPU doesn't ever write a value
-  // to the depth buffer that exceeds 2^24 - 1.
-  constexpr float GX_MAX_DEPTH = 16777215.0f / 16777216.0f;
-  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
-  {
-    // There's no way to support oversized depth ranges in this situation. Let's just clamp the
-    // range to the maximum value supported by the console GPU and hope for the best.
-    min_depth = std::clamp(min_depth, 0.0f, GX_MAX_DEPTH);
-    max_depth = std::clamp(max_depth, 0.0f, GX_MAX_DEPTH);
-  }
-
-  if (g_renderer->UseVertexDepthRange())
-  {
-    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
-    // Taking into account whether the depth range is inverted or not.
-    if (xfmem.viewport.zRange < 0.0f && g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-    {
-      min_depth = GX_MAX_DEPTH;
-      max_depth = 0.0f;
-    }
-    else
-    {
-      min_depth = 0.0f;
-      max_depth = GX_MAX_DEPTH;
-    }
   }
 
   float near_depth, far_depth;
@@ -274,15 +245,24 @@ void SetScissorAndViewport()
     // We use an inverted depth range here to apply the Reverse Z trick.
     // This trick makes sure we match the precision provided by the 1:0
     // clipping depth range on the hardware.
-    near_depth = 1.0f - max_depth;
-    far_depth = 1.0f - min_depth;
+    near_depth = EFB_MAX_DEPTH - max_depth;
+    far_depth = EFB_MAX_DEPTH - min_depth;
+  }
+
+  if (!g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+  {
+    // If the API doesn't support unrestricted depth range we have to normalize the depth
+    // range to a 0..1 value. To do this we use a 2^24 divisor to prevent rounding errors.
+    near_depth = std::clamp(near_depth, 0.0f, EFB_MAX_DEPTH);
+    far_depth = std::clamp(far_depth, 0.0f, EFB_MAX_DEPTH);
   }
 
   // Lower-left flip.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
     y = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetHeight()) - y - height;
 
-  g_renderer->SetViewport(x, y, width, height, near_depth, far_depth);
+  g_renderer->SetViewport(x, y, width, height, near_depth / EFB_MAX_DEPTH,
+                          far_depth / EFB_MAX_DEPTH);
 }
 
 void SetDepthMode()

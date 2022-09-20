@@ -486,6 +486,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       GLExtensions::Supports("GL_ARB_derivative_control") || GLExtensions::Version() >= 450;
   g_Config.backend_info.bSupportsTextureQueryLevels =
       GLExtensions::Supports("GL_ARB_texture_query_levels") || GLExtensions::Version() >= 430;
+  g_Config.backend_info.bSupportsUnrestrictedDepthRange =
+      GLExtensions::Supports("GL_NV_depth_buffer_float");
 
   if (m_main_gl_context->IsGLES())
   {
@@ -879,7 +881,10 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
     glViewport(iceilf(x), iceilf(y), iceilf(width), iceilf(height));
   }
 
-  glDepthRangef(near_depth, far_depth);
+  if (g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+    glDepthRangedNV(near_depth, far_depth);
+  else
+    glDepthRangef(near_depth, far_depth);
 }
 
 void Renderer::Draw(u32 base_vertex, u32 num_vertices)
@@ -936,7 +941,10 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable,
   if (zEnable)
   {
     glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
-    glClearDepthf(float(z & 0xFFFFFF) / 16777216.0f);
+    if (g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+      glClearDepthdNV(float(z & 0xFFFFFF) / EFB_MAX_DEPTH);
+    else
+      glClearDepthf(float(z & 0xFFFFFF) / EFB_MAX_DEPTH);
     clear_mask |= GL_DEPTH_BUFFER_BIT;
   }
 
@@ -1009,7 +1017,10 @@ void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
   if (framebuffer->HasDepthBuffer())
   {
     glDepthMask(GL_TRUE);
-    glClearDepthf(depth_value);
+    if (g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+      glClearDepthdNV(depth_value);
+    else
+      glClearDepthf(depth_value);
     clear_mask |= GL_DEPTH_BUFFER_BIT;
   }
   glClear(clear_mask);

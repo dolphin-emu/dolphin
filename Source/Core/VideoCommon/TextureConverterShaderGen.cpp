@@ -90,11 +90,11 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
             mono_depth ? "0.0" : "uv.z");
   if (uid_data->is_depth_copy)
   {
-    if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-      out.Write("  tex_sample.x = 1.0 - tex_sample.x;\n");
+    out.Write("  uint depth = uint(tex_sample.x * 16777215.0);\n");
 
-    out.Write("  uint depth = uint(tex_sample.x * 16777216.0);\n"
-              "  return uint4((depth >> 16) & 255u, (depth >> 8) & 255u, depth & 255u, 255u);\n"
+    if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+      out.Write("  depth = 0xFFFFFF - depth;\n");
+    out.Write("  return uint4((depth >> 16) & 255u, (depth >> 8) & 255u, depth & 255u, 255u);\n"
               "}}\n");
   }
   else

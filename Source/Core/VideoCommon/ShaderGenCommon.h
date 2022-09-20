@@ -156,7 +156,7 @@ union ShaderHostConfig
   BitField<3, 1, bool, u32> wireframe;
   BitField<4, 1, bool, u32> per_pixel_lighting;
   BitField<5, 1, bool, u32> vertex_rounding;
-  BitField<6, 1, bool, u32> fast_depth_calc;
+  BitField<6, 1, bool, u32> backend_unrestricted_depth_range;
   BitField<7, 1, bool, u32> bounding_box;
   BitField<8, 1, bool, u32> backend_dual_source_blend;
   BitField<9, 1, bool, u32> backend_geometry_shaders;
@@ -297,7 +297,7 @@ static const char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\tfloat4 " I_TRANSFORMMATRICES "[64];\n"
                                         "\tfloat4 " I_NORMALMATRICES "[32];\n"
                                         "\tfloat4 " I_POSTTRANSFORMMATRICES "[64];\n"
-                                        "\tfloat4 " I_PIXELCENTERCORRECTION ";\n"
+                                        "\tfloat2 " I_PIXELCENTERCORRECTION ";\n"
                                         "\tfloat2 " I_VIEWPORT_SIZE ";\n"
                                         "\tuint4   xfmem_pack1[8];\n"
                                         "\tfloat4 " I_CACHED_TANGENT ";\n"

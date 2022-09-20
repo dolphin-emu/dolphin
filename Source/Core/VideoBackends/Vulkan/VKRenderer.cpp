@@ -168,9 +168,10 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
   clear_color_value.color.float32[1] = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
   clear_color_value.color.float32[2] = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
   clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
-  clear_depth_value.depthStencil.depth = static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
+  clear_depth_value.depthStencil.depth = static_cast<float>(z & 0xFFFFFF);
   if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-    clear_depth_value.depthStencil.depth = 1.0f - clear_depth_value.depthStencil.depth;
+    clear_depth_value.depthStencil.depth = EFB_MAX_DEPTH - clear_depth_value.depthStencil.depth;
+  clear_depth_value.depthStencil.depth = clear_depth_value.depthStencil.depth / EFB_MAX_DEPTH;
 
   // If we're not in a render pass (start of the frame), we can use a clear render pass
   // to discard the data, rather than loading and then clearing.

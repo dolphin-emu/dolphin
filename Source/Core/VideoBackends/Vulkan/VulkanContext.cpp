@@ -295,6 +295,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsLodBiasInSampler = false;          // Dependent on OS.
   config->backend_info.bSupportsSettingObjectNames = false;        // Dependent on features.
   config->backend_info.bSupportsPartialMultisampleResolve = true;  // Assumed support.
+  config->backend_info.bSupportsUnrestrictedDepthRange = false;    // Dependent on features.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)
@@ -503,6 +504,9 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
   if (AddExtension(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME, true))
     INFO_LOG_FMT(VIDEO, "Using VK_EXT_full_screen_exclusive for exclusive fullscreen.");
 #endif
+
+  g_Config.backend_info.bSupportsUnrestrictedDepthRange =
+      AddExtension(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME, false);
 
   return true;
 }

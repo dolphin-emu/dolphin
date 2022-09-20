@@ -190,12 +190,10 @@ PixelShaderUid GetPixelShaderUid()
 
   uid_data->Pretest = bpmem.alpha_test.TestResult();
   uid_data->ztest = bpmem.GetEmulatedZ();
-  if (uid_data->ztest == EmulatedZ::Early &&
-      (g_ActiveConfig.bFastDepthCalc ||
-       bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined)
+  if (uid_data->ztest == EmulatedZ::Early && !g_renderer->UseSlowDepth() &&
       // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
       // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
-      && !bpmem.genMode.zfreeze)
+      !bpmem.genMode.zfreeze)
   {
     uid_data->ztest = EmulatedZ::ForcedEarly;
   }
@@ -203,7 +201,7 @@ PixelShaderUid GetPixelShaderUid()
   const bool forced_early_z = uid_data->ztest == EmulatedZ::ForcedEarly;
   const bool per_pixel_depth =
       (bpmem.ztex2.op != ZTexOp::Disabled && uid_data->ztest == EmulatedZ::Late) ||
-      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) ||
+      (g_renderer->UseSlowDepth() && bpmem.zmode.testenable && !forced_early_z) ||
       (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
 
   uid_data->per_pixel_depth = per_pixel_depth;
@@ -880,7 +878,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
     }
-    if (!host_config.fast_depth_calc)
+    if (!host_config.backend_unrestricted_depth_range)
     {
       out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
@@ -1074,13 +1072,12 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tint zCoord = int(" I_ZSLOPE ".z + " I_ZSLOPE ".x * screenpos.x + " I_ZSLOPE
               ".y * screenpos.y);\n");
   }
-  else if (!host_config.fast_depth_calc)
+  else if (!host_config.backend_unrestricted_depth_range)
   {
-    // FastDepth means to trust the depth generated in perspective division.
-    // It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
-    // For disabled FastDepth we just calculate the depth value again.
-    // The performance impact of this additional calculation doesn't matter, but it prevents
-    // the host GPU driver from performing any early depth test optimizations.
+    // If we don't support an unrestricted depth range we can't trust the depth generated in the
+    // perspective division. So in case it is not supported we just calculate the depth value again.
+    // The performance impact of this additional calculation doesn't matter, but writing depth from
+    // the pixel shader prevents the GPU driver from performing any early depth test optimizations.
     out.SetConstantsUsed(C_ZBIAS + 1, C_ZBIAS + 1);
     // the screen space depth value = far z + (clip z / clip w) * z range
     out.Write("\tint zCoord = " I_ZBIAS "[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS
@@ -1088,10 +1085,13 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   }
   else
   {
+    // We can trust the value calculated by the perspective division, however since the floating
+    // point depth buffer doesn't clamp the depth value we still need to write a clamped depth back
+    // to the depth buffer if the depth range is oversized (larger than 2^24-1).
     if (!host_config.backend_reversed_depth_range)
-      out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
+      out.Write("\tint zCoord = 0xFFFFFF - int(rawpos.z);\n");
     else
-      out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
+      out.Write("\tint zCoord = int(rawpos.z);\n");
   }
   out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
 
@@ -1105,10 +1105,12 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
                            uid_data->ztest == EmulatedZ::EarlyWithZComplocHack;
   if (uid_data->per_pixel_depth && early_ztest)
   {
-    if (!host_config.backend_reversed_depth_range)
-      out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
+    if (host_config.backend_reversed_depth_range)
+      out.Write("\tint zbuffer_zCoord = zCoord;\n");
     else
-      out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+      out.Write("\tint zbuffer_zCoord = 0xFFFFFF - zCoord;\n");
+
+    out.Write("\tdepth = float(zbuffer_zCoord) / 16777215.0;\n");
   }
 
   // Note: depth texture output is only written to depth buffer if late depth test is used
@@ -1126,10 +1128,12 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   if (uid_data->per_pixel_depth && uid_data->ztest == EmulatedZ::Late)
   {
-    if (!host_config.backend_reversed_depth_range)
-      out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
+    if (host_config.backend_reversed_depth_range)
+      out.Write("\tint zbuffer_zCoord = zCoord;\n");
     else
-      out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+      out.Write("\tint zbuffer_zCoord = 0xFFFFFF - zCoord;\n");
+
+    out.Write("\tdepth = float(zbuffer_zCoord) / 16777215.0;\n");
   }
 
   // No dithering for RGB8 mode
