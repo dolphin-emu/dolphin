@@ -165,6 +165,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   switch (config.usage)
   {
   case AbstractPipelineUsage::GX:
+  case AbstractPipelineUsage::GXUber:
     desc.pRootSignature = g_dx_context->GetGXRootSignature();
     break;
   case AbstractPipelineUsage::Utility:

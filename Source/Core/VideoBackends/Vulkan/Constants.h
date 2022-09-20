@@ -39,6 +39,8 @@ enum DESCRIPTOR_SET_LAYOUT
 //       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS) [set=0, binding=0-2]
 //       - 8 combined image samplers (accessible from PS) [set=1, binding=0-7]
 //       - 1 SSBO accessible from PS if supported [set=2, binding=0]
+//   - Uber
+//       - Like standard, plus 1 SSBO accessible from VS if supported [set=2, binding=1]
 //   - Utility
 //       - 1 combined UBO, accessible from VS/GS/PS [set=0, binding=0]
 //       - 8 combined image samplers (accessible from PS) [set=1, binding=0-7]
@@ -55,6 +57,7 @@ enum DESCRIPTOR_SET_LAYOUT
 enum PIPELINE_LAYOUT
 {
   PIPELINE_LAYOUT_STANDARD,
+  PIPELINE_LAYOUT_UBER,
   PIPELINE_LAYOUT_UTILITY,
   PIPELINE_LAYOUT_COMPUTE,
   NUM_PIPELINE_LAYOUTS

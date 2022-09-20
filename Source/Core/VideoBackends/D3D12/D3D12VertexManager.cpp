@@ -64,6 +64,18 @@ bool VertexManager::Initialize()
                                                         &srv_desc, dh.cpu_handle);
   }
 
+  if (!g_dx_context->GetDescriptorHeapManager().Allocate(&m_vertex_srv))
+  {
+    PanicAlertFmt("Failed to allocate descriptor for vertex srv");
+    return false;
+  }
+
+  D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {DXGI_FORMAT_R32_UINT, D3D12_SRV_DIMENSION_BUFFER,
+                                              D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING};
+  srv_desc.Buffer.NumElements = m_vertex_stream_buffer.GetSize() / sizeof(u32);
+  g_dx_context->GetDevice()->CreateShaderResourceView(m_vertex_stream_buffer.GetBuffer(), &srv_desc,
+                                                      m_vertex_srv.cpu_handle);
+
   UploadAllConstants();
   return true;
 }
@@ -115,7 +127,8 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
   ADDSTAT(g_stats.this_frame.bytes_vertex_streamed, static_cast<int>(vertex_data_size));
   ADDSTAT(g_stats.this_frame.bytes_index_streamed, static_cast<int>(index_data_size));
 
-  Renderer::GetInstance()->SetVertexBuffer(m_vertex_stream_buffer.GetGPUPointer(), vertex_stride,
+  Renderer::GetInstance()->SetVertexBuffer(m_vertex_stream_buffer.GetGPUPointer(),
+                                           m_vertex_srv.cpu_handle, vertex_stride,
                                            m_vertex_stream_buffer.GetSize());
   Renderer::GetInstance()->SetIndexBuffer(m_index_stream_buffer.GetGPUPointer(),
                                           m_index_stream_buffer.GetSize(), DXGI_FORMAT_R16_UINT);

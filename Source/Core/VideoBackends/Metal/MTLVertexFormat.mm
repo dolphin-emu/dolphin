@@ -125,7 +125,7 @@ static void SetAttribute(MTLVertexDescriptor* desc, u32 attribute, const Attribu
 
 template <size_t N>
 static void SetAttributes(MTLVertexDescriptor* desc, u32 attribute,
-                          const AttributeFormat (&format)[N])
+                          const std::array<AttributeFormat, N>& format)
 {
   for (size_t i = 0; i < N; ++i)
     SetAttribute(desc, attribute + i, format[i]);
