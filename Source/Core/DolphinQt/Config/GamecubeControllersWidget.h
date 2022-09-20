@@ -23,8 +23,8 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  void OnGCTypeChanged(int state);
-  void OnGCPadConfigure();
+  void OnGCTypeChanged(size_t index);
+  void OnGCPadConfigure(size_t index);
 
   void CreateLayout();
   void ConnectWidgets();

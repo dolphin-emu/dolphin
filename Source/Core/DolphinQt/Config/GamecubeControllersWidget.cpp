@@ -22,22 +22,25 @@
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/GCAdapter.h"
 
-static const std::vector<std::pair<SerialInterface::SIDevices, const char*>> s_gc_types = {
-    {SerialInterface::SIDEVICE_NONE, _trans("None")},
-    {SerialInterface::SIDEVICE_GC_CONTROLLER, _trans("Standard Controller")},
-    {SerialInterface::SIDEVICE_WIIU_ADAPTER, _trans("GameCube Adapter for Wii U")},
-    {SerialInterface::SIDEVICE_GC_STEERING, _trans("Steering Wheel")},
-    {SerialInterface::SIDEVICE_DANCEMAT, _trans("Dance Mat")},
-    {SerialInterface::SIDEVICE_GC_TARUKONGA, _trans("DK Bongos")},
+using SIDeviceName = std::pair<SerialInterface::SIDevices, const char*>;
+static constexpr std::array s_gc_types = {
+    SIDeviceName{SerialInterface::SIDEVICE_NONE, _trans("None")},
+    SIDeviceName{SerialInterface::SIDEVICE_GC_CONTROLLER, _trans("Standard Controller")},
+    SIDeviceName{SerialInterface::SIDEVICE_WIIU_ADAPTER, _trans("GameCube Adapter for Wii U")},
+    SIDeviceName{SerialInterface::SIDEVICE_GC_STEERING, _trans("Steering Wheel")},
+    SIDeviceName{SerialInterface::SIDEVICE_DANCEMAT, _trans("Dance Mat")},
+    SIDeviceName{SerialInterface::SIDEVICE_GC_TARUKONGA, _trans("DK Bongos")},
 #ifdef HAS_LIBMGBA
-    {SerialInterface::SIDEVICE_GC_GBA_EMULATED, _trans("GBA (Integrated)")},
+    SIDeviceName{SerialInterface::SIDEVICE_GC_GBA_EMULATED, _trans("GBA (Integrated)")},
 #endif
-    {SerialInterface::SIDEVICE_GC_GBA, _trans("GBA (TCP)")},
-    {SerialInterface::SIDEVICE_GC_KEYBOARD, _trans("Keyboard")}};
+    SIDeviceName{SerialInterface::SIDEVICE_GC_GBA, _trans("GBA (TCP)")},
+    SIDeviceName{SerialInterface::SIDEVICE_GC_KEYBOARD, _trans("Keyboard")},
+};
 
 static std::optional<int> ToGCMenuIndex(const SerialInterface::SIDevices sidevice)
 {
@@ -54,16 +57,14 @@ static SerialInterface::SIDevices FromGCMenuIndex(const int menudevice)
   return s_gc_types[menudevice].first;
 }
 
-static bool IsConfigurable(SerialInterface::SIDevices sidevice)
-{
-  return sidevice != SerialInterface::SIDEVICE_NONE && sidevice != SerialInterface::SIDEVICE_GC_GBA;
-}
-
 GamecubeControllersWidget::GamecubeControllersWidget(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
   LoadSettings();
   ConnectWidgets();
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+          &GamecubeControllersWidget::LoadSettings);
 }
 
 void GamecubeControllersWidget::CreateLayout()
@@ -100,43 +101,27 @@ void GamecubeControllersWidget::CreateLayout()
 
 void GamecubeControllersWidget::ConnectWidgets()
 {
-  for (size_t i = 0; i < m_gc_controller_boxes.size(); i++)
+  for (size_t i = 0; i < m_gc_controller_boxes.size(); ++i)
   {
     connect(m_gc_controller_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
-            &GamecubeControllersWidget::SaveSettings);
-    connect(m_gc_controller_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
-            &GamecubeControllersWidget::OnGCTypeChanged);
-    connect(m_gc_buttons[i], &QPushButton::clicked, this,
-            &GamecubeControllersWidget::OnGCPadConfigure);
+            [this, i] {
+              OnGCTypeChanged(i);
+              SaveSettings();
+            });
+    connect(m_gc_buttons[i], &QPushButton::clicked, this, [this, i] { OnGCPadConfigure(i); });
   }
 }
 
-void GamecubeControllersWidget::OnGCTypeChanged(int type)
+void GamecubeControllersWidget::OnGCTypeChanged(size_t index)
 {
-  const auto* box = static_cast<QComboBox*>(QObject::sender());
-
-  for (size_t i = 0; i < m_gc_groups.size(); i++)
-  {
-    if (m_gc_controller_boxes[i] == box)
-    {
-      const SerialInterface::SIDevices si_device = FromGCMenuIndex(box->currentIndex());
-      m_gc_buttons[i]->setEnabled(IsConfigurable(si_device));
-      return;
-    }
-  }
-
-  SaveSettings();
+  const SerialInterface::SIDevices si_device =
+      FromGCMenuIndex(m_gc_controller_boxes[index]->currentIndex());
+  m_gc_buttons[index]->setEnabled(si_device != SerialInterface::SIDEVICE_NONE &&
+                                  si_device != SerialInterface::SIDEVICE_GC_GBA);
 }
 
-void GamecubeControllersWidget::OnGCPadConfigure()
+void GamecubeControllersWidget::OnGCPadConfigure(size_t index)
 {
-  size_t index;
-  for (index = 0; index < m_gc_groups.size(); index++)
-  {
-    if (m_gc_buttons[index] == QObject::sender())
-      break;
-  }
-
   MappingWindow::Type type;
 
   switch (FromGCMenuIndex(m_gc_controller_boxes[index]->currentIndex()))
@@ -184,30 +169,32 @@ void GamecubeControllersWidget::LoadSettings()
     const std::optional<int> gc_index = ToGCMenuIndex(si_device);
     if (gc_index)
     {
-      m_gc_controller_boxes[i]->setCurrentIndex(*gc_index);
-      m_gc_buttons[i]->setEnabled(IsConfigurable(si_device));
+      SignalBlocking(m_gc_controller_boxes[i])->setCurrentIndex(*gc_index);
+      OnGCTypeChanged(i);
     }
   }
 }
 
 void GamecubeControllersWidget::SaveSettings()
 {
-  for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
-    const int index = m_gc_controller_boxes[i]->currentIndex();
-    const SerialInterface::SIDevices si_device = FromGCMenuIndex(index);
-    Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)), si_device);
+    Config::ConfigChangeCallbackGuard config_guard;
 
-    if (Core::IsRunning())
-      SerialInterface::ChangeDevice(si_device, static_cast<s32>(i));
+    for (size_t i = 0; i < m_gc_groups.size(); ++i)
+    {
+      const SerialInterface::SIDevices si_device =
+          FromGCMenuIndex(m_gc_controller_boxes[i]->currentIndex());
+      Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)), si_device);
 
-    m_gc_buttons[i]->setEnabled(IsConfigurable(si_device));
+      if (Core::IsRunning())
+        SerialInterface::ChangeDevice(si_device, static_cast<s32>(i));
+    }
+
+    if (GCAdapter::UseAdapter())
+      GCAdapter::StartScanThread();
+    else
+      GCAdapter::StopScanThread();
   }
-
-  if (GCAdapter::UseAdapter())
-    GCAdapter::StartScanThread();
-  else
-    GCAdapter::StopScanThread();
 
   SConfig::GetInstance().SaveSettings();
 }
