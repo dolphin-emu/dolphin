@@ -160,7 +160,8 @@ struct PowerPCState
 
   // special purpose registers - controls quantizers, DMA, and lots of other misc extensions.
   // also for power management, but we don't care about that.
-  u32 spr[1024]{};
+  // JitArm64 needs 64-bit alignment for SPR_TL.
+  alignas(8) u32 spr[1024]{};
 
   // Storage for the stack pointer of the BLR optimization.
   u8* stored_stack_pointer = nullptr;

@@ -336,6 +336,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
 
     ADD(Xresult, XA, Xresult, ArithOption(Xresult, ShiftType::LSR, 3));
     STR(IndexType::Unsigned, Xresult, PPC_REG, PPCSTATE_OFF_SPR(SPR_TL));
+    static_assert((PPCSTATE_OFF_SPR(SPR_TL) & 0x7) == 0);
 
     if (CanMergeNextInstructions(1))
     {
