@@ -13,12 +13,17 @@
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
+#include "DolphinQt/Settings.h"
 
 CommonControllersWidget::CommonControllersWidget(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
   LoadSettings();
   ConnectWidgets();
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+          &CommonControllersWidget::LoadSettings);
 }
 
 void CommonControllersWidget::CreateLayout()
@@ -59,7 +64,7 @@ void CommonControllersWidget::OnControllerInterfaceConfigure()
 
 void CommonControllersWidget::LoadSettings()
 {
-  m_common_bg_input->setChecked(Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT));
+  SignalBlocking(m_common_bg_input)->setChecked(Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT));
 }
 
 void CommonControllersWidget::SaveSettings()
