@@ -61,7 +61,6 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
   m_stop_action->setEnabled(running);
   m_fullscreen_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
-  m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
 
   bool playing = running && state != Core::State::Paused;
   UpdatePausePlayButtonState(playing);
@@ -130,7 +129,6 @@ void ToolBar::MakeActions()
   m_config_action = addAction(tr("Config"), this, &ToolBar::SettingsPressed);
   m_graphics_action = addAction(tr("Graphics"), this, &ToolBar::GraphicsPressed);
   m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
-  m_controllers_action->setEnabled(true);
 
   // Ensure every button has about the same width
   std::vector<QWidget*> items;
