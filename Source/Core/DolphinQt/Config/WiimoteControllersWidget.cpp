@@ -27,6 +27,7 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
+#include "Core/NetPlayProto.h"
 #include "Core/WiiUtils.h"
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
@@ -286,6 +287,7 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
   const bool running_gc = running && !SConfig::GetInstance().bWii;
   const bool enable_passthrough = m_wiimote_passthrough->isChecked() && !running_gc;
   const bool enable_emu_bt = !m_wiimote_passthrough->isChecked() && !running_gc;
+  const bool running_netplay = running && NetPlay::IsNetPlayRunning();
 
   m_wiimote_sync->setEnabled(enable_passthrough);
   m_wiimote_reset->setEnabled(enable_passthrough);
@@ -296,14 +298,14 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
     m_wiimote_labels[i]->setEnabled(enable_emu_bt);
-    m_wiimote_boxes[i]->setEnabled(enable_emu_bt);
+    m_wiimote_boxes[i]->setEnabled(enable_emu_bt && !running_netplay);
 
     const bool is_emu_wiimote = m_wiimote_boxes[i]->currentIndex() == 1;
     m_wiimote_buttons[i]->setEnabled(enable_emu_bt && is_emu_wiimote);
   }
 
-  m_wiimote_real_balance_board->setEnabled(enable_emu_bt);
-  m_wiimote_speaker_data->setEnabled(enable_emu_bt);
+  m_wiimote_real_balance_board->setEnabled(enable_emu_bt && !running_netplay);
+  m_wiimote_speaker_data->setEnabled(enable_emu_bt && !running_netplay);
 
   const bool ciface_wiimotes = m_wiimote_ciface->isChecked();
 
