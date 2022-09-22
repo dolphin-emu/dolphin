@@ -70,6 +70,8 @@ constexpr std::array<std::string_view, 7> named_buttons{
 
 void Wiimote::Reset()
 {
+  const bool want_determinism = Core::WantsDeterminism();
+
   SetRumble(false);
 
   // Wiimote starts in non-continuous CORE mode:
@@ -79,8 +81,12 @@ void Wiimote::Reset()
   m_speaker_mute = false;
 
   // EEPROM
+
+  // TODO: This feels sketchy, this needs to properly handle the case where the load and the write
+  // happen under different Wii Roots and/or determinism modes.
+
   std::string eeprom_file = (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" + GetName() + ".bin");
-  if (m_eeprom_dirty)
+  if (!want_determinism && m_eeprom_dirty)
   {
     // Write out existing EEPROM
     INFO_LOG_FMT(WIIMOTE, "Wrote EEPROM for {}", GetName());
@@ -93,7 +99,7 @@ void Wiimote::Reset()
   }
   m_eeprom = {};
 
-  if (File::Exists(eeprom_file))
+  if (!want_determinism && File::Exists(eeprom_file))
   {
     // Read existing EEPROM
     std::ifstream file;
@@ -173,19 +179,26 @@ void Wiimote::Reset()
   m_extension_port.AttachExtension(GetNoneExtension());
   m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
 
-  // Switch to desired M+ status and extension (if any).
-  // M+ and EXT are reset on attachment.
-  HandleExtensionSwap(static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment()),
-                      m_motion_plus_setting.GetValue());
+  if (!want_determinism)
+  {
+    // Switch to desired M+ status and extension (if any).
+    // M+ and EXT are reset on attachment.
+    HandleExtensionSwap(static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment()),
+                        m_motion_plus_setting.GetValue());
+  }
 
   // Reset sub-devices.
   m_speaker_logic.Reset();
   m_camera_logic.Reset();
 
   m_status = {};
-  // This will suppress a status report on connect when an extension is already attached.
-  // TODO: I am not 100% sure if this is proper.
-  m_status.extension = m_extension_port.IsDeviceConnected();
+
+  if (!want_determinism)
+  {
+    // This will suppress a status report on connect when an extension is already attached.
+    // TODO: I am not 100% sure if this is proper.
+    m_status.extension = m_extension_port.IsDeviceConnected();
+  }
 
   // Dynamics:
   m_swing_state = {};
