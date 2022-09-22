@@ -5,8 +5,11 @@ package org.dolphinemu.dolphinemu.activities;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.widget.NestedScrollView;
 
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
@@ -14,6 +17,7 @@ import com.google.android.material.appbar.MaterialToolbar;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.ConvertFragment;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
 public class ConvertActivity extends AppCompatActivity
@@ -36,6 +40,8 @@ public class ConvertActivity extends AppCompatActivity
 
     setContentView(R.layout.activity_convert);
 
+    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
     String path = getIntent().getStringExtra(ARG_GAME_PATH);
 
     ConvertFragment fragment = (ConvertFragment) getSupportFragmentManager()
@@ -53,7 +59,10 @@ public class ConvertActivity extends AppCompatActivity
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
     AppBarLayout appBarLayout = findViewById(R.id.appbar_convert);
-    ThemeHelper.enableScrollTint(tb, appBarLayout, this);
+    NestedScrollView scrollView = findViewById(R.id.scroll_view_convert);
+    View workaroundView = findViewById(R.id.workaround_view);
+    InsetsHelper.setUpAppBarWithScrollView(this, appBarLayout, scrollView, workaroundView);
+    ThemeHelper.enableScrollTint(this, tb, appBarLayout);
   }
 
   @Override

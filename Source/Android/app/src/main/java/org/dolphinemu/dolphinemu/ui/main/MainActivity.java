@@ -9,15 +9,18 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.splashscreen.SplashScreen;
+import androidx.core.view.WindowCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
 
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 
@@ -35,6 +38,7 @@ import org.dolphinemu.dolphinemu.utils.Action1;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
@@ -50,6 +54,7 @@ public final class MainActivity extends AppCompatActivity
   private ViewPager mViewPager;
   private Toolbar mToolbar;
   private TabLayout mTabLayout;
+  private AppBarLayout mAppBarLayout;
   private FloatingActionButton mFab;
 
   private int mThemeId;
@@ -69,6 +74,11 @@ public final class MainActivity extends AppCompatActivity
     setContentView(R.layout.activity_main);
 
     findViews();
+
+    View workaroundView = findViewById(R.id.workaround_view);
+    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+    InsetsHelper.setUpMainLayout(this, mAppBarLayout, mFab, mViewPager, workaroundView);
+    ThemeHelper.enableStatusBarScrollTint(this, mAppBarLayout);
 
     setSupportActionBar(mToolbar);
 
@@ -147,6 +157,7 @@ public final class MainActivity extends AppCompatActivity
   // TODO: Replace with a ButterKnife injection.
   private void findViews()
   {
+    mAppBarLayout = findViewById(R.id.appbar_main);
     mToolbar = findViewById(R.id.toolbar_main);
     mViewPager = findViewById(R.id.pager_platforms);
     mTabLayout = findViewById(R.id.tabs_platforms);

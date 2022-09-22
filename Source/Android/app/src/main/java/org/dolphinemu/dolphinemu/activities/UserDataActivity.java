@@ -15,7 +15,8 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.WindowCompat;
+import androidx.core.widget.NestedScrollView;
 
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -23,6 +24,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 import org.dolphinemu.dolphinemu.utils.ThreadUtil;
@@ -61,6 +63,8 @@ public class UserDataActivity extends AppCompatActivity
 
     setContentView(R.layout.activity_user_data);
 
+    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
     TextView textType = findViewById(R.id.text_type);
     TextView textPath = findViewById(R.id.text_path);
     TextView textAndroid11 = findViewById(R.id.text_android_11);
@@ -92,7 +96,10 @@ public class UserDataActivity extends AppCompatActivity
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
     AppBarLayout appBarLayout = findViewById(R.id.appbar_user_data);
-    ThemeHelper.enableScrollTint(tb, appBarLayout, this);
+    NestedScrollView scrollView = findViewById(R.id.scroll_view_user_data);
+    View workaroundView = findViewById(R.id.workaround_view);
+    InsetsHelper.setUpAppBarWithScrollView(this, appBarLayout, scrollView, workaroundView);
+    ThemeHelper.enableScrollTint(this, tb, appBarLayout);
   }
 
   @Override

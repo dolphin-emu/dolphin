@@ -19,6 +19,7 @@ import com.google.android.material.color.MaterialColors;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 
 public final class PlatformGamesFragment extends Fragment implements PlatformGamesView
 {
@@ -74,7 +75,7 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
     mRecyclerView.setLayoutManager(layoutManager);
     mRecyclerView.setAdapter(mAdapter);
 
-    mRecyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(8));
+    InsetsHelper.setUpList(getContext(), mRecyclerView);
 
     setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
 

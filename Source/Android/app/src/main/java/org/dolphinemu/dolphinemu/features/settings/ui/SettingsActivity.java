@@ -9,11 +9,15 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -26,6 +30,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
 import java.util.Set;
@@ -78,6 +83,8 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
     setContentView(R.layout.activity_settings);
 
+    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
     Intent launcher = getIntent();
     String gameID = launcher.getStringExtra(ARG_GAME_ID);
     if (gameID == null)
@@ -95,7 +102,15 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
     AppBarLayout appBarLayout = findViewById(R.id.appbar_settings);
-    ThemeHelper.enableScrollTint(tb, appBarLayout, this);
+    FrameLayout frameLayout = findViewById(R.id.frame_content_settings);
+
+    // TODO: Remove this when CollapsingToolbarLayouts are fixed by Google
+    // https://github.com/material-components/material-components-android/issues/1310
+    ViewCompat.setOnApplyWindowInsetsListener(mToolbarLayout, null);
+
+    View workaroundView = findViewById(R.id.workaround_view);
+    InsetsHelper.setUpSettingsLayout(this, appBarLayout, frameLayout, workaroundView);
+    ThemeHelper.enableScrollTint(this, tb, appBarLayout);
   }
 
   @Override
@@ -162,8 +177,8 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
       transaction.addToBackStack(null);
     }
-    transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag, gameID, extras),
-            FRAGMENT_TAG);
+    transaction.replace(R.id.frame_content_settings,
+            SettingsFragment.newInstance(menuTag, gameID, extras), FRAGMENT_TAG);
 
     transaction.commit();
   }

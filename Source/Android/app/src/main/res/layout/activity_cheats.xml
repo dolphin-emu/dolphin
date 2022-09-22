@@ -3,20 +3,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/coordinator_main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar_cheats"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
+        app:liftOnScroll="false"
         app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar_cheats"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorSurface"/>
+            android:background="?attr/colorSurface" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -24,7 +26,7 @@
         android:id="@+id/sliding_pane_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="56dp">
+        android:layout_marginTop="64dp">
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/cheat_list"
@@ -39,5 +41,13 @@
             android:name="org.dolphinemu.dolphinemu.features.cheats.ui.CheatDetailsFragment" />
 
     </androidx.slidingpanelayout.widget.SlidingPaneLayout>
+
+    <View
+        android:id="@+id/workaround_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="bottom"
+        android:clickable="true"
+        android:background="@android:color/transparent" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
