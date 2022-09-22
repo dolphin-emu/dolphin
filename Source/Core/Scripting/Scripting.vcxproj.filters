@@ -32,6 +32,9 @@
     <ClCompile Include="Python\Modules\controllermodule.cpp">
       <Filter>Python\Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Python\Modules\registersmodule.cpp">
+      <Filter>Python\Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ScriptingEngine.h" />
@@ -80,6 +83,9 @@
     <ClInclude Include="Python\Modules\controllermodule.h">
       <Filter>Python\Modules</Filter>
     </ClInclude>
+    <ClCompile Include="Python\Modules\registersmodule.h">
+      <Filter>Python\Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Python">

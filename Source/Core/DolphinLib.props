@@ -162,6 +162,7 @@
     <ClInclude Include="Core\API\Events.h" />
     <ClInclude Include="Core\API\Memory.h" />
     <ClInclude Include="Core\API\Gui.h" />
+    <ClInclude Include="Core\API\Registers.h" />
     <ClInclude Include="Core\ARDecrypt.h" />
     <ClInclude Include="Core\Boot\Boot.h" />
     <ClInclude Include="Core\Boot\DolReader.h" />
