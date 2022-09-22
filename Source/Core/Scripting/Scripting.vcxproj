@@ -30,6 +30,7 @@
     <ClCompile Include="Python\Modules\guimodule.cpp" />
     <ClCompile Include="Python\Modules\memorymodule.cpp" />
     <ClCompile Include="Python\Modules\savestatemodule.cpp" />
+    <ClCompile Include="Python\Modules\registersmodule.cpp" />
     <ClCompile Include="Python\PyScriptingBackend.cpp" />
     <ClCompile Include="Python\Utils\object_wrapper.cpp" />
     <ClCompile Include="ScriptingEngine.cpp" />
@@ -43,6 +44,7 @@
     <ClInclude Include="Python\Modules\guimodule.h" />
     <ClInclude Include="Python\Modules\memorymodule.h" />
     <ClInclude Include="Python\Modules\savestatemodule.h" />
+    <ClCompile Include="Python\Modules\registersmodule.h" />
     <ClInclude Include="Python\PyScriptingBackend.h" />
     <ClInclude Include="Python\Utils\as_py_func.h" />
     <ClInclude Include="Python\Utils\convert.h" />

@@ -20,6 +20,7 @@
 #include "Scripting/Python/Modules/eventmodule.h"
 #include "Scripting/Python/Modules/guimodule.h"
 #include "Scripting/Python/Modules/memorymodule.h"
+#include "Scripting/Python/Modules/registersmodule.h"
 #include "Scripting/Python/Modules/savestatemodule.h"
 
 namespace PyScripting
@@ -50,6 +51,8 @@ static PyThreadState* InitMainPythonInterpreter()
     ERROR_LOG_FMT(SCRIPTING, "failed to add dolphin_savestate to builtins");
   if (PyImport_AppendInittab("dolphin_controller", PyInit_controller) == -1)
     ERROR_LOG_FMT(SCRIPTING, "failed to add dolphin_controller to builtins");
+  if (PyImport_AppendInittab("dolphin_registers", PyInit_registers) == -1)
+    ERROR_LOG_FMT(SCRIPTING, "failed to add dolphin_registers to builtins");
 
   if (PyImport_AppendInittab("dolphin", PyInit_dolphin) == -1)
     ERROR_LOG_FMT(SCRIPTING, "failed to add dolphin to builtins");
