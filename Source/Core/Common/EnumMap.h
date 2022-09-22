@@ -65,50 +65,50 @@ public:
   // These only exist to perform the safety check; without them, BitFieldView's implicit
   // conversion would work (but since BitFieldView is used for game-generated data, we need to
   // be careful about bounds-checking)
-  template <typename field_t, std::size_t start, std::size_t width>
-  constexpr const V& operator[](BitFieldFixedView<field_t, start, width, T> key) const
+  template <IntegralOrEnum field_t, std::size_t start, std::size_t width>
+  constexpr const V& operator[](EnumBitFieldFixedView<field_t, start, width, T> key) const
   {
     static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
     return m_array[static_cast<std::size_t>(key.Get())];
   }
-  template <typename field_t, std::size_t start, std::size_t width>
-  constexpr V& operator[](BitFieldFixedView<field_t, start, width, T> key)
+  template <IntegralOrEnum field_t, std::size_t start, std::size_t width>
+  constexpr V& operator[](EnumBitFieldFixedView<field_t, start, width, T> key)
   {
     static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
     return m_array[static_cast<std::size_t>(key.Get())];
   }
-  template <typename field_t, std::size_t start, std::size_t width>
-  constexpr const V& operator[](ConstBitFieldFixedView<field_t, start, width, T> key) const
+  template <IntegralOrEnum field_t, std::size_t start, std::size_t width>
+  constexpr const V& operator[](EnumConstBitFieldFixedView<field_t, start, width, T> key) const
   {
     static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
     return m_array[static_cast<std::size_t>(key.Get())];
   }
-  template <typename field_t, std::size_t start, std::size_t width>
-  constexpr V& operator[](ConstBitFieldFixedView<field_t, start, width, T> key)
+  template <IntegralOrEnum field_t, std::size_t start, std::size_t width>
+  constexpr V& operator[](EnumConstBitFieldFixedView<field_t, start, width, T> key)
   {
     static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
     return m_array[static_cast<std::size_t>(key.Get())];
   }
-  template <typename field_t, std::size_t start, std::size_t width>
-  constexpr const V& operator[](BitFieldView<field_t, T> key) const
+  template <IntegralOrEnum field_t, std::size_t start, std::size_t width>
+  constexpr const V& operator[](EnumBitFieldView<field_t, T> key) const
   {
     static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
     return m_array[static_cast<std::size_t>(key.Get())];
   }
-  template <typename field_t, std::size_t start, std::size_t width>
-  constexpr V& operator[](BitFieldView<field_t, T> key)
+  template <IntegralOrEnum field_t, std::size_t start, std::size_t width>
+  constexpr V& operator[](EnumBitFieldView<field_t, T> key)
   {
     static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
     return m_array[static_cast<std::size_t>(key.Get())];
   }
-  template <typename field_t, std::size_t start, std::size_t width>
-  constexpr const V& operator[](ConstBitFieldView<field_t, T> key) const
+  template <IntegralOrEnum field_t, std::size_t start, std::size_t width>
+  constexpr const V& operator[](EnumConstBitFieldView<field_t, T> key) const
   {
     static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
     return m_array[static_cast<std::size_t>(key.Get())];
   }
-  template <typename field_t, std::size_t start, std::size_t width>
-  constexpr V& operator[](ConstBitFieldView<field_t, T> key)
+  template <IntegralOrEnum field_t, std::size_t start, std::size_t width>
+  constexpr V& operator[](EnumConstBitFieldView<field_t, T> key)
   {
     static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
     return m_array[static_cast<std::size_t>(key.Get())];

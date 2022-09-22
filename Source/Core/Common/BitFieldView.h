@@ -201,73 +201,108 @@ constexpr void SetBitField(const std::size_t start, const std::size_t width, dou
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
 
-template <IntegralOrEnum field_t_, std::size_t start_, std::size_t width_, typename host_t_>
+template <IntegralOrEnum field_t, std::size_t start, std::size_t width, typename host_t>
 class BitFieldFixedView;
+template <Enumerated field_t, std::size_t start, std::size_t width, typename host_t>
+class EnumBitFieldFixedView;
 
-template <IntegralOrEnum field_t_, std::size_t start_, std::size_t width_, typename host_t_>
+template <IntegralOrEnum field_t, std::size_t start, std::size_t width, typename host_t>
 class ConstBitFieldFixedView;
+template <Enumerated field_t, std::size_t start, std::size_t width, typename host_t>
+class EnumConstBitFieldFixedView;
 
-template <IntegralOrEnum field_t_, typename host_t_>
+template <IntegralOrEnum field_t, typename host_t>
 class BitFieldView;
+template <Enumerated field_t, typename host_t>
+class EnumBitFieldView;
 
-template <IntegralOrEnum field_t_, typename host_t_>
+template <IntegralOrEnum field_t, typename host_t>
 class ConstBitFieldView;
+template <Enumerated field_t, typename host_t>
+class EnumConstBitFieldView;
 
-template <IntegralOrEnum field_t_, std::size_t start_, std::size_t width_, std::size_t length_,
-          typename host_t_>
+template <IntegralOrEnum field_t, std::size_t start, std::size_t width, std::size_t length,
+          typename host_t>
 class BitFieldFixedViewArray;
+template <Enumerated field_t, std::size_t start, std::size_t width, std::size_t length,
+          typename host_t>
+class EnumBitFieldFixedViewArray;
 
-template <IntegralOrEnum field_t_, std::size_t start_, std::size_t width_, std::size_t length_,
+template <IntegralOrEnum field_t, std::size_t start, std::size_t width, std::size_t length,
           typename host_t_>
 class ConstBitFieldFixedViewArray;
+template <Enumerated field_t, std::size_t start, std::size_t width, std::size_t length,
+          typename host_t_>
+class EnumConstBitFieldFixedViewArray;
 
-template <IntegralOrEnum field_t_, std::size_t start_, std::size_t width_, typename host_t_>
+template <IntegralOrEnum field_t, std::size_t start, std::size_t width, typename host_t>
 class FixedViewArrayIterator;
+template <Enumerated field_t, std::size_t start, std::size_t width, typename host_t>
+class EnumFixedViewArrayIterator;
 
-template <IntegralOrEnum field_t_, std::size_t start_, std::size_t width_, typename host_t_>
+template <IntegralOrEnum field_t, std::size_t start, std::size_t width, typename host_t>
 class FixedViewArrayConstIterator;
+template <Enumerated field_t, std::size_t start, std::size_t width, typename host_t>
+class EnumFixedViewArrayConstIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Even C++17 cannot partially deduce template parameters for constructors.  For them, it's all or
-// nothing.  Functions, however, can, so we should define some pre-C++17-esque helper functions.
+// Define some pre-C++17-esque helper functions.  We do this because:
+//  - Even as of C++17, one cannot partially deduce template parameters for constructors.  For them,
+//    it's all or nothing.
+//  - This abstraction seamlessly guides the end-user to the syntax-saving enum variants when
+//    appropriate.  The non-enum variants cannot prevent the end-user from using an enumerated type,
+//    as they are the base class of their own enum variant.
 
 template <IntegralOrEnum field_t, std::size_t start, std::size_t width, typename host_t>
-constexpr BitFieldFixedView<field_t, start, width, host_t>  //
-MakeBitFieldFixedView(host_t& host)
+constexpr auto MakeBitFieldFixedView(host_t& host)
 {
-  return BitFieldFixedView<field_t, start, width, host_t>(host);
+  if constexpr (std::is_enum_v<field_t>)
+    return EnumBitFieldFixedView<field_t, start, width, host_t>(host);
+  else
+    return BitFieldFixedView<field_t, start, width, host_t>(host);
 }
 template <IntegralOrEnum field_t, std::size_t start, std::size_t width, typename host_t>
-constexpr ConstBitFieldFixedView<field_t, start, width, host_t>  //
-MakeConstBitFieldFixedView(const host_t& host)
+constexpr auto MakeConstBitFieldFixedView(const host_t& host)
 {
-  return ConstBitFieldFixedView<field_t, start, width, host_t>(host);
+  if constexpr (std::is_enum_v<field_t>)
+    return EnumConstBitFieldFixedView<field_t, start, width, host_t>(host);
+  else
+    return ConstBitFieldFixedView<field_t, start, width, host_t>(host);
 }
 template <IntegralOrEnum field_t, typename host_t>
-constexpr BitFieldView<field_t, host_t>  //
-MakeBitFieldView(const std::size_t start, const std::size_t width, host_t& host)
+constexpr auto MakeBitFieldView(const std::size_t start, const std::size_t width, host_t& host)
 {
-  return BitFieldView<field_t, host_t>(start, width, host);
+  if constexpr (std::is_enum_v<field_t>)
+    return EnumBitFieldView<field_t, host_t>(start, width, host);
+  else
+    return BitFieldView<field_t, host_t>(start, width, host);
 }
 template <IntegralOrEnum field_t, typename host_t>
-constexpr ConstBitFieldView<field_t, host_t>  //
-MakeConstBitFieldView(const std::size_t start, const std::size_t width, const host_t& host)
+constexpr auto MakeConstBitFieldView(const std::size_t start, const std::size_t width,
+                                     const host_t& host)
 {
-  return ConstBitFieldView<field_t, host_t>(start, width, host);
+  if constexpr (std::is_enum_v<field_t>)
+    return EnumConstBitFieldView<field_t, host_t>(start, width, host);
+  else
+    return ConstBitFieldView<field_t, host_t>(start, width, host);
 }
 template <IntegralOrEnum field_t, std::size_t start, std::size_t width, std::size_t length,
           typename host_t>
-constexpr BitFieldFixedViewArray<field_t, start, width, length, host_t>  //
-MakeBitFieldFixedViewArray(host_t& host)
+constexpr auto MakeBitFieldFixedViewArray(host_t& host)
 {
-  return BitFieldFixedViewArray<field_t, start, width, length, host_t>(host);
+  if constexpr (std::is_enum_v<field_t>)
+    return EnumBitFieldFixedViewArray<field_t, start, width, length, host_t>(host);
+  else
+    return BitFieldFixedViewArray<field_t, start, width, length, host_t>(host);
 }
 template <IntegralOrEnum field_t, std::size_t start, std::size_t width, std::size_t length,
           typename host_t>
-constexpr ConstBitFieldFixedViewArray<field_t, start, width, length, host_t>  //
-MakeConstBitFieldFixedViewArray(const host_t& host)
+constexpr auto MakeConstBitFieldFixedViewArray(const host_t& host)
 {
-  return ConstBitFieldFixedViewArray<field_t, start, width, length, host_t>(host);
+  if constexpr (std::is_enum_v<field_t>)
+    return EnumConstBitFieldFixedViewArray<field_t, start, width, length, host_t>(host);
+  else
+    return ConstBitFieldFixedViewArray<field_t, start, width, length, host_t>(host);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,7 +316,7 @@ public:
   constexpr static std::size_t start = start_;
   constexpr static std::size_t width = width_;
 
-private:
+protected:
   host_t& host;
 
 public:
@@ -312,6 +347,30 @@ public:
   constexpr bool operator!() const { return !static_cast<bool>(Get()); }
 };
 
+template <Enumerated field_t_, std::size_t start_, std::size_t width_, typename host_t_>
+class EnumBitFieldFixedView : public BitFieldFixedView<field_t_, start_, width_, host_t_>
+{
+public:
+  EnumBitFieldFixedView() = delete;
+  constexpr EnumBitFieldFixedView(host_t_& host_)
+      : BitFieldFixedView<field_t_, start_, width_, host_t_>(host_){};
+
+  constexpr EnumBitFieldFixedView& operator=(const EnumBitFieldFixedView& rhs)
+  {
+    return operator=(rhs.Get());
+  }
+  constexpr EnumBitFieldFixedView& operator=(const field_t_ rhs)
+  {
+    this->Set(rhs);
+    return *this;
+  }
+  using underlying_field_t = std::underlying_type_t<field_t_>;
+  constexpr explicit operator underlying_field_t() const
+  {
+    return static_cast<underlying_field_t>(this->Get());
+  }
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <IntegralOrEnum field_t_, std::size_t start_, std::size_t width_, typename host_t_>
@@ -323,7 +382,7 @@ public:
   constexpr static std::size_t start = start_;
   constexpr static std::size_t width = width_;
 
-private:
+protected:
   const host_t& host;
 
 public:
@@ -336,6 +395,21 @@ public:
   constexpr bool operator!() const { return !static_cast<bool>(Get()); }
 };
 
+template <Enumerated field_t_, std::size_t start_, std::size_t width_, typename host_t_>
+class EnumConstBitFieldFixedView : public ConstBitFieldFixedView<field_t_, start_, width_, host_t_>
+{
+public:
+  EnumConstBitFieldFixedView() = delete;
+  constexpr EnumConstBitFieldFixedView(const host_t_& host_)
+      : ConstBitFieldFixedView<field_t_, start_, width_, host_t_>(host_){};
+
+  using underlying_field_t = std::underlying_type_t<field_t_>;
+  constexpr explicit operator underlying_field_t() const
+  {
+    return static_cast<underlying_field_t>(this->Get());
+  }
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <IntegralOrEnum field_t_, typename host_t_>
@@ -344,10 +418,10 @@ class BitFieldView
 public:
   using host_t = host_t_;
   using field_t = field_t_;
-
-private:
   const std::size_t start;
   const std::size_t width;
+
+protected:
   host_t& host;
 
 public:
@@ -376,6 +450,30 @@ public:
   constexpr bool operator!() const { return !static_cast<bool>(Get()); }
 };
 
+template <Enumerated field_t_, typename host_t_>
+class EnumBitFieldView : public BitFieldView<field_t_, host_t_>
+{
+public:
+  EnumBitFieldView() = delete;
+  constexpr EnumBitFieldView(const std::size_t start_, const std::size_t width_, host_t_& host_)
+      : BitFieldView<field_t_, host_t_>(start_, width_, host_){};
+
+  constexpr EnumBitFieldView& operator=(const EnumBitFieldView& rhs)
+  {
+    return operator=(rhs.Get());
+  }
+  constexpr EnumBitFieldView& operator=(const field_t_ rhs)
+  {
+    this->Set(rhs);
+    return *this;
+  }
+  using underlying_field_t = std::underlying_type_t<field_t_>;
+  constexpr explicit operator underlying_field_t() const
+  {
+    return static_cast<underlying_field_t>(this->Get());
+  }
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <IntegralOrEnum field_t_, typename host_t_>
@@ -384,10 +482,10 @@ class ConstBitFieldView
 public:
   using host_t = host_t_;
   using field_t = field_t_;
-
-private:
   const std::size_t start;
   const std::size_t width;
+
+protected:
   const host_t& host;
 
 public:
@@ -400,6 +498,22 @@ public:
 
   constexpr operator field_t() const { return Get(); }
   constexpr bool operator!() const { return !static_cast<bool>(Get()); }
+};
+
+template <Enumerated field_t_, typename host_t_>
+class EnumConstBitFieldView : public ConstBitFieldView<field_t_, host_t_>
+{
+public:
+  EnumConstBitFieldView() = delete;
+  constexpr EnumConstBitFieldView(const std::size_t start_, const std::size_t width_,
+                                  const host_t_& host_)
+      : ConstBitFieldView<field_t_, host_t_>(start_, width_, host_){};
+
+  using underlying_field_t = std::underlying_type_t<field_t_>;
+  constexpr explicit operator underlying_field_t() const
+  {
+    return static_cast<underlying_field_t>(this->Get());
+  }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -415,6 +529,13 @@ public:
   constexpr static std::size_t width = width_;
   constexpr static std::size_t length = length_;
 
+protected:
+  host_t& host;
+
+private:
+  using Iterator = FixedViewArrayIterator<field_t, start, width, host_t>;
+  using ConstIterator = FixedViewArrayConstIterator<field_t, start, width, host_t>;
+
   static_assert(width > 0, "BitFieldViewArray is invalid (zero width)");
   static_assert(length > 0, "BitFieldViewArray is invalid (zero length)");
   // These static assertions are normally the job of fixed variant Get/SetBitField functions.
@@ -423,11 +544,6 @@ public:
                 "Boolean fields should only be 1 bit wide");
   static_assert(!Arithmetic<host_t> || start + width * length <= BitSize<host_t>(),
                 "BitFieldViewArray out of range");
-
-private:
-  using Iterator = FixedViewArrayIterator<field_t, start, width, host_t>;
-  using ConstIterator = FixedViewArrayConstIterator<field_t, start, width, host_t>;
-  host_t& host;
 
 public:
   BitFieldFixedViewArray() = delete;
@@ -444,12 +560,12 @@ public:
     SetBitField<field_t>(start + width * idx, width, host, val);
   }
 
-  constexpr BitFieldView<field_t, host_t> operator[](const std::size_t idx)
+  constexpr auto operator[](const std::size_t idx)
   {
     DEBUG_ASSERT(idx < length);  // Index out of range
     return MakeBitFieldView<field_t>(start + width * idx, width, host);
   }
-  constexpr ConstBitFieldView<field_t, host_t> operator[](const std::size_t idx) const
+  constexpr auto operator[](const std::size_t idx) const
   {
     DEBUG_ASSERT(idx < length);  // Index out of range
     return MakeConstBitFieldView<field_t>(start + width * idx, width, host);
@@ -465,6 +581,30 @@ public:
   constexpr std::size_t Length() const { return length; }
 };
 
+template <Enumerated field_t_, std::size_t start_, std::size_t width_, std::size_t length_,
+          typename host_t_>
+class EnumBitFieldFixedViewArray
+    : public BitFieldFixedViewArray<field_t_, start_, width_, length_, host_t_>
+{
+private:
+  using Iterator = EnumFixedViewArrayIterator<field_t_, start_, width_, host_t_>;
+  using ConstIterator = EnumFixedViewArrayConstIterator<field_t_, start_, width_, host_t_>;
+
+public:
+  EnumBitFieldFixedViewArray() = delete;
+  constexpr EnumBitFieldFixedViewArray(host_t_& host_)
+      : BitFieldFixedViewArray<field_t_, start_, width_, length_, host_t_>(host_)
+  {
+  }
+
+  constexpr Iterator begin() { return Iterator(this->host, 0); }
+  constexpr Iterator end() { return Iterator(this->host, length_); }
+  constexpr ConstIterator begin() const { return ConstIterator(this->host, 0); }
+  constexpr ConstIterator end() const { return ConstIterator(this->host, length_); }
+  constexpr ConstIterator cbegin() const { return ConstIterator(this->host, 0); }
+  constexpr ConstIterator cend() const { return ConstIterator(this->host, length_); }
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <IntegralOrEnum field_t_, std::size_t start_, std::size_t width_, std::size_t length_,
@@ -478,6 +618,12 @@ public:
   constexpr static std::size_t width = width_;
   constexpr static std::size_t length = length_;
 
+protected:
+  const host_t& host;
+
+private:
+  using ConstIterator = FixedViewArrayConstIterator<field_t, start, width, host_t>;
+
   static_assert(width > 0, "BitFieldViewArray is invalid (zero width)");
   static_assert(length > 0, "BitFieldViewArray is invalid (zero length)");
   // These static assertions are normally the job of fixed variant Get/SetBitField functions.
@@ -486,10 +632,6 @@ public:
                 "Boolean fields should only be 1 bit wide");
   static_assert(!Arithmetic<host_t> || start + width * length <= BitSize<host_t>(),
                 "BitFieldViewArray out of range");
-
-private:
-  using ConstIterator = FixedViewArrayConstIterator<field_t, start, width, host_t>;
-  const host_t& host;
 
 public:
   ConstBitFieldFixedViewArray() = delete;
@@ -501,7 +643,7 @@ public:
     return GetBitField<field_t>(start + width * idx, width, host);
   }
 
-  constexpr ConstBitFieldView<field_t, host_t> operator[](const std::size_t idx) const
+  constexpr auto operator[](const std::size_t idx) const
   {
     DEBUG_ASSERT(idx < length);  // Index out of range
     return MakeConstBitFieldView<field_t>(start + width * idx, width, host);
@@ -513,6 +655,29 @@ public:
   constexpr ConstIterator cend() const { return ConstIterator(host, length); }
   constexpr std::size_t Size() const { return length; }
   constexpr std::size_t Length() const { return length; }
+};
+
+template <Enumerated field_t_, std::size_t start_, std::size_t width_, std::size_t length_,
+          typename host_t_>
+class EnumConstBitFieldFixedViewArray
+    : public ConstBitFieldFixedViewArray<field_t_, start_, width_, length_, host_t_>
+{
+private:
+  using ConstIterator = EnumFixedViewArrayConstIterator<field_t_, start_, width_, host_t_>;
+
+public:
+  EnumConstBitFieldFixedViewArray() = delete;
+  constexpr EnumConstBitFieldFixedViewArray(const host_t_& host_)
+      : ConstBitFieldFixedViewArray<field_t_, start_, width_, length_, host_t_>(host_)
+  {
+  }
+
+  constexpr ConstIterator begin() const { return ConstIterator(this->host, 0); }
+  constexpr ConstIterator end() const { return ConstIterator(this->host, length_); }
+  constexpr ConstIterator cbegin() const { return ConstIterator(this->host, 0); }
+  constexpr ConstIterator cend() const { return ConstIterator(this->host, length_); }
+  constexpr std::size_t Size() const { return this->length; }
+  constexpr std::size_t Length() const { return this->length; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -531,20 +696,19 @@ public:
   constexpr static std::size_t start = start_;
   constexpr static std::size_t width = width_;
 
-private:
+protected:
   host_t& host;
   std::size_t idx;
 
 public:
   // Required by std::input_or_output_iterator
   constexpr FixedViewArrayIterator() = default;
-  // Required by LegacyIterator
-  constexpr FixedViewArrayIterator(const FixedViewArrayIterator& other) = default;
-  // Required by LegacyIterator
-  FixedViewArrayIterator& operator=(const FixedViewArrayIterator& other) = default;
+  // Copy constructor and assignment operators, required by LegacyIterator
+  constexpr FixedViewArrayIterator(const FixedViewArrayIterator&) = default;
+  FixedViewArrayIterator& operator=(const FixedViewArrayIterator&) = default;
   // Move constructor and assignment operators, explicitly defined for completeness
-  constexpr FixedViewArrayIterator(FixedViewArrayIterator&& other) = default;
-  FixedViewArrayIterator& operator=(FixedViewArrayIterator&& other) = default;
+  constexpr FixedViewArrayIterator(FixedViewArrayIterator&&) = default;
+  FixedViewArrayIterator& operator=(FixedViewArrayIterator&&) = default;
 
   FixedViewArrayIterator(host_t& host_, const std::size_t idx_) : host(host_), idx(idx_) {}
 
@@ -565,6 +729,55 @@ public:
   constexpr bool operator!=(const FixedViewArrayIterator& other) const { return idx != other.idx; }
 };
 
+template <Enumerated field_t_, std::size_t start_, std::size_t width_, typename host_t_>
+class EnumFixedViewArrayIterator : public FixedViewArrayIterator<field_t_, start_, width_, host_t_>
+{
+public:
+  using iterator_category = std::output_iterator_tag;
+  using value_type = field_t_;
+  using difference_type = ptrdiff_t;
+  using pointer = void;
+  using reference = EnumBitFieldView<field_t_, host_t_>;
+
+  // Required by std::input_or_output_iterator
+  constexpr EnumFixedViewArrayIterator() = default;
+  // Copy constructor and assignment operators, required by LegacyIterator
+  constexpr EnumFixedViewArrayIterator(const EnumFixedViewArrayIterator&) = default;
+  EnumFixedViewArrayIterator& operator=(const EnumFixedViewArrayIterator&) = default;
+  // Move constructor and assignment operators, explicitly defined for completeness
+  constexpr EnumFixedViewArrayIterator(EnumFixedViewArrayIterator&&) = default;
+  EnumFixedViewArrayIterator& operator=(EnumFixedViewArrayIterator&&) = default;
+
+  EnumFixedViewArrayIterator(host_t_& host_, const std::size_t idx_)
+      : FixedViewArrayIterator<field_t_, start_, width_, host_t_>(host_, idx_)
+  {
+  }
+
+  EnumFixedViewArrayIterator& operator++()
+  {
+    ++this->idx;
+    return *this;
+  }
+  EnumFixedViewArrayIterator operator++(int)
+  {
+    EnumFixedViewArrayIterator other(*this);
+    ++*this;
+    return other;
+  }
+  constexpr reference operator*() const
+  {
+    return reference(start_ + width_ * this->idx, width_, this->host);
+  }
+  constexpr bool operator==(const EnumFixedViewArrayIterator other) const
+  {
+    return this->idx == other.idx;
+  }
+  constexpr bool operator!=(const EnumFixedViewArrayIterator other) const
+  {
+    return this->idx != other.idx;
+  }
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <IntegralOrEnum field_t_, std::size_t start_, std::size_t width_, typename host_t_>
@@ -581,20 +794,19 @@ public:
   constexpr static std::size_t start = start_;
   constexpr static std::size_t width = width_;
 
-private:
+protected:
   const host_t& host;
   std::size_t idx;
 
 public:
   // Required by std::input_or_output_iterator
   constexpr FixedViewArrayConstIterator() = default;
-  // Required by LegacyIterator
-  constexpr FixedViewArrayConstIterator(const FixedViewArrayConstIterator& other) = default;
-  // Required by LegacyIterator
-  FixedViewArrayConstIterator& operator=(const FixedViewArrayConstIterator& other) = default;
+  // Copy constructor and assignment operators, required by LegacyIterator
+  constexpr FixedViewArrayConstIterator(const FixedViewArrayConstIterator&) = default;
+  FixedViewArrayConstIterator& operator=(const FixedViewArrayConstIterator&) = default;
   // Move constructor and assignment operators, explicitly defined for completeness
-  constexpr FixedViewArrayConstIterator(FixedViewArrayConstIterator&& other) = default;
-  FixedViewArrayConstIterator& operator=(FixedViewArrayConstIterator&& other) = default;
+  constexpr FixedViewArrayConstIterator(FixedViewArrayConstIterator&&) = default;
+  FixedViewArrayConstIterator& operator=(FixedViewArrayConstIterator&&) = default;
 
   FixedViewArrayConstIterator(const host_t& host_, const std::size_t idx_) : host(host_), idx(idx_)
   {
@@ -622,6 +834,56 @@ public:
     return idx != other.idx;
   }
 };
+
+template <Enumerated field_t_, std::size_t start_, std::size_t width_, typename host_t_>
+class EnumFixedViewArrayConstIterator
+    : public FixedViewArrayConstIterator<field_t_, start_, width_, host_t_>
+{
+public:
+  using iterator_category = std::input_iterator_tag;
+  using value_type = field_t_;
+  using difference_type = ptrdiff_t;
+  using pointer = void;
+  using reference = EnumConstBitFieldView<field_t_, host_t_>;
+
+  // Required by std::input_or_output_iterator
+  constexpr EnumFixedViewArrayConstIterator() = default;
+  // Copy constructor and assignment operators, required by LegacyIterator
+  constexpr EnumFixedViewArrayConstIterator(const EnumFixedViewArrayConstIterator&) = default;
+  EnumFixedViewArrayConstIterator& operator=(const EnumFixedViewArrayConstIterator&) = default;
+  // Move constructor and assignment operators, explicitly defined for completeness
+  constexpr EnumFixedViewArrayConstIterator(EnumFixedViewArrayConstIterator&&) = default;
+  EnumFixedViewArrayConstIterator& operator=(EnumFixedViewArrayConstIterator&&) = default;
+
+  EnumFixedViewArrayConstIterator(const host_t_& host_, const std::size_t idx_)
+      : FixedViewArrayConstIterator<field_t_, start_, width_, host_t_>(host_, idx_)
+  {
+  }
+
+  EnumFixedViewArrayConstIterator& operator++()
+  {
+    ++this->idx;
+    return *this;
+  }
+  EnumFixedViewArrayConstIterator operator++(int)
+  {
+    EnumFixedViewArrayConstIterator other(*this);
+    ++*this;
+    return other;
+  }
+  constexpr reference operator*() const
+  {
+    return reference(start_ + width_ * this->idx, width_, this->host);
+  }
+  constexpr bool operator==(const EnumFixedViewArrayConstIterator other) const
+  {
+    return this->idx == other.idx;
+  }
+  constexpr bool operator!=(const EnumFixedViewArrayConstIterator other) const
+  {
+    return this->idx != other.idx;
+  }
+};
 };  // namespace Common
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -632,7 +894,7 @@ public:
 //   u32 hex_a;
 //   u32 hex_b;
 //
-//   BFVIEW_IN     (hex_a, u32, 3, 3,    arbitrary_field)
+//   BFVIEW_IN(hex_a, u32, 3, 3, arbitrary_field)
 //   BFVIEWARRAY_IN(hex_b, u32, 9, 2, 5, arbitrary_field_array)
 // };
 
@@ -663,7 +925,7 @@ public:
 // {
 //   u32 hex;
 //
-//   BFVIEW     (u32, 3, 3,    arbitrary_field)
+//   BFVIEW(u32, 3, 3, arbitrary_field)
 //   BFVIEWARRAY(u32, 9, 2, 5, arbitrary_field_array)
 // };
 
@@ -707,6 +969,18 @@ struct fmt::formatter<Common::BitFieldFixedView<field_t, start, width, host_t>>
     return m_formatter.format(ref.Get(), ctx);
   }
 };
+template <Common::Enumerated field_t, std::size_t start, std::size_t width, typename host_t>
+struct fmt::formatter<Common::EnumBitFieldFixedView<field_t, start, width, host_t>>
+{
+  fmt::formatter<field_t> m_formatter;
+  constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
+  template <typename FormatContext>
+  auto format(const Common::EnumBitFieldFixedView<field_t, start, width, host_t>& ref,
+              FormatContext& ctx) const
+  {
+    return m_formatter.format(ref.Get(), ctx);
+  }
+};
 
 template <Common::IntegralOrEnum field_t, std::size_t start, std::size_t width, typename host_t>
 struct fmt::formatter<Common::ConstBitFieldFixedView<field_t, start, width, host_t>>
@@ -715,6 +989,18 @@ struct fmt::formatter<Common::ConstBitFieldFixedView<field_t, start, width, host
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
   auto format(const Common::ConstBitFieldFixedView<field_t, start, width, host_t>& ref,
+              FormatContext& ctx) const
+  {
+    return m_formatter.format(ref.Get(), ctx);
+  }
+};
+template <Common::Enumerated field_t, std::size_t start, std::size_t width, typename host_t>
+struct fmt::formatter<Common::EnumConstBitFieldFixedView<field_t, start, width, host_t>>
+{
+  fmt::formatter<field_t> m_formatter;
+  constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
+  template <typename FormatContext>
+  auto format(const Common::EnumConstBitFieldFixedView<field_t, start, width, host_t>& ref,
               FormatContext& ctx) const
   {
     return m_formatter.format(ref.Get(), ctx);
@@ -732,6 +1018,17 @@ struct fmt::formatter<Common::BitFieldView<field_t, host_t>>
     return m_formatter.format(ref.Get(), ctx);
   }
 };
+template <Common::Enumerated field_t, typename host_t>
+struct fmt::formatter<Common::EnumBitFieldView<field_t, host_t>>
+{
+  fmt::formatter<field_t> m_formatter;
+  constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
+  template <typename FormatContext>
+  auto format(const Common::EnumBitFieldView<field_t, host_t>& ref, FormatContext& ctx) const
+  {
+    return m_formatter.format(ref.Get(), ctx);
+  }
+};
 
 template <Common::IntegralOrEnum field_t, typename host_t>
 struct fmt::formatter<Common::ConstBitFieldView<field_t, host_t>>
@@ -740,6 +1037,17 @@ struct fmt::formatter<Common::ConstBitFieldView<field_t, host_t>>
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
   auto format(const Common::ConstBitFieldView<field_t, host_t>& ref, FormatContext& ctx) const
+  {
+    return m_formatter.format(ref.Get(), ctx);
+  }
+};
+template <Common::Enumerated field_t, typename host_t>
+struct fmt::formatter<Common::EnumConstBitFieldView<field_t, host_t>>
+{
+  fmt::formatter<field_t> m_formatter;
+  constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
+  template <typename FormatContext>
+  auto format(const Common::EnumConstBitFieldView<field_t, host_t>& ref, FormatContext& ctx) const
   {
     return m_formatter.format(ref.Get(), ctx);
   }

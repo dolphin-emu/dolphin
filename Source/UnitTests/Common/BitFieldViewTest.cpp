@@ -15,10 +15,22 @@ enum class TestEnum : u64
   D,
 };
 
+template <>
+struct fmt::formatter<TestEnum> : EnumFormatter<TestEnum::D>
+{
+  constexpr formatter() : EnumFormatter({"A", "B", "C", "D"}) {}
+};
+
 enum class TestBoolEnum : bool
 {
   Falsy = false,
   Truthy = true,
+};
+
+template <>
+struct fmt::formatter<TestBoolEnum> : EnumFormatter<TestBoolEnum::Truthy>
+{
+  constexpr formatter() : EnumFormatter({"Falsy", "Truthy"}) {}
 };
 
 struct TestStruct
@@ -106,10 +118,10 @@ TEST(BitFieldView, Read)
     EXPECT_EQ(*(s64*)&val, object.full_s64());
     EXPECT_EQ((val >> 9) & 0x7, object.regular_field_unsigned());
     EXPECT_EQ((val >> 9) & 0x7, object.regular_field_unsigned2());
-    EXPECT_EQ(((s64)(object.hex << 52)) >> 61, object.regular_field_signed());
-    EXPECT_EQ(((s64)(object.hex << 30)) >> 60, object.at_dword_boundary());
-    EXPECT_EQ(((object.hex >> 15) & 1) ? -1 : 0, object.signed_1bit());
-    EXPECT_EQ((bool)object.flag(), ((object.hex >> 63) & 1));
+    EXPECT_EQ(((s64)(val << 52)) >> 61, object.regular_field_signed());
+    EXPECT_EQ(((s64)(val << 30)) >> 60, object.at_dword_boundary());
+    EXPECT_EQ(((val >> 15) & 1) ? -1 : 0, object.signed_1bit());
+    EXPECT_EQ(((val >> 63) & 1) ? true : false, object.flag());
     EXPECT_EQ(static_cast<TestBoolEnum>(((object.hex >> 63) & 1)), object.enum_flag());
     EXPECT_EQ(static_cast<TestEnum>((object.hex >> 16) & 3), object.enum_1());
     EXPECT_EQ(static_cast<TestEnum>((object.hex >> 48) & 3), object.enum_2());
@@ -139,7 +151,7 @@ TEST(BitFieldView, Assignment)
     EXPECT_EQ((val & 1) ? -1 : 0, object.signed_1bit());
 
     object.regular_field_signed() = val;
-    EXPECT_EQ(((s64)(object.hex << 61)) >> 61, object.regular_field_signed());
+    EXPECT_EQ(((s64)(val << 61)) >> 61, object.regular_field_signed());
 
     // Assignment from other BitField
     object.at_dword_boundary() = object.regular_field_signed();
@@ -159,17 +171,30 @@ TEST(BitFieldView, Assignment)
   }
 }
 
-template <>
-struct fmt::formatter<TestEnum> : EnumFormatter<TestEnum::D>
+// This is testing that the syntax-saving EnumBitFieldView variants compile
+TEST(BitFieldView, EnumVariant)
 {
-  constexpr formatter() : EnumFormatter({"A", "B", "C", "D"}) {}
-};
+  using TestEnumUnderlying = std::underlying_type_t<TestEnum>;
+  using TestBoolEnumUnderlying = std::underlying_type_t<TestBoolEnum>;
 
-template <>
-struct fmt::formatter<TestBoolEnum> : EnumFormatter<TestBoolEnum::Truthy>
-{
-  constexpr formatter() : EnumFormatter({"Falsy", "Truthy"}) {}
-};
+  for (u64 val : table)
+  {
+    TestStruct object = val;
+
+    [[maybe_unused]] TestEnumUnderlying enum_1 = static_cast<TestEnumUnderlying>(object.enum_1());
+    [[maybe_unused]] TestEnumUnderlying enum_2 = static_cast<TestEnumUnderlying>(object.enum_2());
+    [[maybe_unused]] TestBoolEnumUnderlying enum_flag =
+        static_cast<TestBoolEnumUnderlying>(object.enum_flag());
+
+    // Sanity check that stuff from the base class is still accessible
+    [[maybe_unused]] decltype(object.enum_1())::host_t of_host_type = {};
+    [[maybe_unused]] decltype(object.enum_1())::field_t of_field_type = {};
+    [[maybe_unused]] std::size_t start = decltype(object.enum_1())::start;
+    [[maybe_unused]] std::size_t width = decltype(object.enum_1())::width;
+    [[maybe_unused]] std::size_t start2 = object.enum_1().start;
+    [[maybe_unused]] std::size_t width2 = object.enum_1().width;
+  }
+}
 
 // Test behavior of using BitFields with fmt
 TEST(BitFieldView, Fmt)
@@ -450,6 +475,35 @@ TEST(BitFieldViewArray, Enum)
   EXPECT_EQ("[A (0), B (1), C (2), D (3)]", fmt::format("[{}]", fmt::join(object.arr(), ", ")));
   EXPECT_EQ("[0x0u /* A */, 0x1u /* B */, 0x2u /* C */, 0x3u /* D */]",
             fmt::format("[{:s}]", fmt::join(object.arr(), ", ")));
+}
+
+// This is testing that the syntax-saving EnumBitFieldViewArray variants compile
+TEST(BitFieldViewArray, EnumVariant)
+{
+  using TestEnumUnderlying = std::underlying_type_t<TestEnum>;
+
+  for (u64 val : table)
+  {
+    TestStruct4 object{val};
+
+    [[maybe_unused]] TestEnumUnderlying temp0 = static_cast<TestEnumUnderlying>(object.arr()[0]);
+    [[maybe_unused]] TestEnumUnderlying temp1 = static_cast<TestEnumUnderlying>(object.arr()[1]);
+    [[maybe_unused]] TestEnumUnderlying temp2 = static_cast<TestEnumUnderlying>(object.arr()[2]);
+    [[maybe_unused]] TestEnumUnderlying temp3 = static_cast<TestEnumUnderlying>(object.arr()[3]);
+
+    for (const auto& view : object.arr())
+      [[maybe_unused]] TestEnumUnderlying temp = static_cast<TestEnumUnderlying>(view);
+
+    // Sanity check that stuff from the base class is still accessible
+    [[maybe_unused]] decltype(object.arr())::host_t of_host_type = {};
+    [[maybe_unused]] decltype(object.arr())::field_t of_field_type = {};
+    [[maybe_unused]] std::size_t start = decltype(object.arr())::start;
+    [[maybe_unused]] std::size_t width = decltype(object.arr())::width;
+    [[maybe_unused]] std::size_t length = decltype(object.arr())::length;
+    [[maybe_unused]] std::size_t start2 = object.arr().start;
+    [[maybe_unused]] std::size_t width2 = object.arr().width;
+    [[maybe_unused]] std::size_t length2 = object.arr().length;
+  }
 }
 
 struct TestStruct5
