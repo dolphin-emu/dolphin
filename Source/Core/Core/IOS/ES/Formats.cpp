@@ -720,9 +720,6 @@ CertReader::CertReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(byt
   if (!IsSignatureValid())
     return;
 
-  // XXX: in old GCC versions, capturing 'this' does not work for some lambdas. The workaround
-  // is to not use auto for the parameter (even though the type is obvious).
-  // This can be dropped once we require GCC 7.
   using CertStructInfo = std::tuple<SignatureType, PublicKeyType, size_t>;
   static constexpr std::array<CertStructInfo, 4> types{{
       {SignatureType::RSA4096, PublicKeyType::RSA2048, sizeof(CertRSA4096RSA2048)},
