@@ -3,6 +3,7 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 
+#include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomPixelShaderAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/MoveAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/PrintAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/ScaleAction.h"
@@ -28,6 +29,10 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   else if (name == "scale")
   {
     return ScaleAction::Create(json_data);
+  }
+  else if (name == "custom_pixel")
+  {
+    return CustomPixelShaderAction::Create(json_data, path);
   }
 
   return nullptr;
