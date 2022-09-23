@@ -3,34 +3,29 @@
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.view.View;
-import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
+import org.dolphinemu.dolphinemu.databinding.ListItemHeaderBinding;
 
 public class HeaderViewHolder extends SettingViewHolder
 {
-  protected TextView mHeaderName;
+  private final ListItemHeaderBinding mBinding;
 
-  public HeaderViewHolder(View itemView, SettingsAdapter adapter)
+  public HeaderViewHolder(@NonNull ListItemHeaderBinding binding, SettingsAdapter adapter)
   {
-    super(itemView, adapter);
+    super(binding.getRoot(), adapter);
     itemView.setOnClickListener(null);
+    mBinding = binding;
   }
 
   @Override
-  protected void findViews(View root)
+  public void bind(@NonNull SettingsItem item)
   {
-    mHeaderName = root.findViewById(R.id.text_header_name);
-  }
-
-  @Override
-  public void bind(SettingsItem item)
-  {
-    mHeaderName.setText(item.getName());
+    mBinding.textHeaderName.setText(item.getName());
   }
 
   @Override

@@ -5,17 +5,12 @@ package org.dolphinemu.dolphinemu.activities;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
-import androidx.core.widget.NestedScrollView;
-
-import com.google.android.material.appbar.AppBarLayout;
-import com.google.android.material.appbar.CollapsingToolbarLayout;
-import com.google.android.material.appbar.MaterialToolbar;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ActivityConvertBinding;
 import org.dolphinemu.dolphinemu.fragments.ConvertFragment;
 import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
@@ -38,7 +33,8 @@ public class ConvertActivity extends AppCompatActivity
 
     super.onCreate(savedInstanceState);
 
-    setContentView(R.layout.activity_convert);
+    ActivityConvertBinding binding = ActivityConvertBinding.inflate(getLayoutInflater());
+    setContentView(binding.getRoot());
 
     WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
@@ -52,17 +48,13 @@ public class ConvertActivity extends AppCompatActivity
       getSupportFragmentManager().beginTransaction().add(R.id.fragment_convert, fragment).commit();
     }
 
-    MaterialToolbar tb = findViewById(R.id.toolbar_convert);
-    CollapsingToolbarLayout ctb = findViewById(R.id.toolbar_convert_layout);
-    ctb.setTitle(getString(R.string.convert_convert));
-    setSupportActionBar(tb);
+    binding.toolbarConvertLayout.setTitle(getString(R.string.convert_convert));
+    setSupportActionBar(binding.toolbarConvert);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-    AppBarLayout appBarLayout = findViewById(R.id.appbar_convert);
-    NestedScrollView scrollView = findViewById(R.id.scroll_view_convert);
-    View workaroundView = findViewById(R.id.workaround_view);
-    InsetsHelper.setUpAppBarWithScrollView(this, appBarLayout, scrollView, workaroundView);
-    ThemeHelper.enableScrollTint(this, tb, appBarLayout);
+    InsetsHelper.setUpAppBarWithScrollView(this, binding.appbarConvert, binding.scrollViewConvert,
+            binding.workaroundView);
+    ThemeHelper.enableScrollTint(this, binding.toolbarConvert, binding.appbarConvert);
   }
 
   @Override

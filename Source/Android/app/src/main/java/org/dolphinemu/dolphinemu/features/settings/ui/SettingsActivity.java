@@ -28,6 +28,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ActivitySettingsBinding;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.InsetsHelper;
@@ -81,7 +82,8 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
       MainPresenter.skipRescanningLibrary();
     }
 
-    setContentView(R.layout.activity_settings);
+    ActivitySettingsBinding binding = ActivitySettingsBinding.inflate(getLayoutInflater());
+    setContentView(binding.getRoot());
 
     WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
@@ -96,21 +98,17 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     mPresenter = new SettingsActivityPresenter(this, getSettings());
     mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, isWii, this);
 
-    MaterialToolbar tb = findViewById(R.id.toolbar_settings);
-    mToolbarLayout = findViewById(R.id.toolbar_settings_layout);
-    setSupportActionBar(tb);
+    mToolbarLayout = binding.toolbarSettingsLayout;
+    setSupportActionBar(binding.toolbarSettings);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-    AppBarLayout appBarLayout = findViewById(R.id.appbar_settings);
-    FrameLayout frameLayout = findViewById(R.id.frame_content_settings);
 
     // TODO: Remove this when CollapsingToolbarLayouts are fixed by Google
     // https://github.com/material-components/material-components-android/issues/1310
     ViewCompat.setOnApplyWindowInsetsListener(mToolbarLayout, null);
 
-    View workaroundView = findViewById(R.id.workaround_view);
-    InsetsHelper.setUpSettingsLayout(this, appBarLayout, frameLayout, workaroundView);
-    ThemeHelper.enableScrollTint(this, tb, appBarLayout);
+    InsetsHelper.setUpSettingsLayout(this, binding.appbarSettings, binding.frameContentSettings,
+            binding.workaroundView);
+    ThemeHelper.enableScrollTint(this, binding.toolbarSettings, binding.appbarSettings);
   }
 
   @Override

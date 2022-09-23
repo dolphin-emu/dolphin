@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ListItemRiivolutionBinding;
 import org.dolphinemu.dolphinemu.features.riivolution.model.RiivolutionPatches;
 
 import java.util.ArrayList;
@@ -48,8 +48,8 @@ public class RiivolutionAdapter extends RecyclerView.Adapter<RiivolutionViewHold
   public RiivolutionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
   {
     LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-    return new RiivolutionViewHolder(
-            inflater.inflate(R.layout.list_item_riivolution, parent, false));
+    ListItemRiivolutionBinding binding = ListItemRiivolutionBinding.inflate(inflater);
+    return new RiivolutionViewHolder(binding.getRoot(), binding);
   }
 
   @Override

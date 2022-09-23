@@ -1,37 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:focusable="true"
+    android:clickable="true"
+    android:background="?android:attr/selectableItemBackground"
     android:nextFocusRight="@id/checkbox">
 
     <TextView
         android:id="@+id/text_name"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
         style="@style/TextAppearance.MaterialComponents.Headline5"
+        android:layout_width="wrap_content"
+        android:layout_height="64dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:gravity="center_vertical"
+        android:layout_marginStart="@dimen/spacing_large"
         android:textSize="16sp"
-        tools:text="Hyrule Field Speed Hack"
-        android:layout_margin="@dimen/spacing_large"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/checkbox"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        tools:text="Hyrule Field Speed Hack" />
 
     <CheckBox
         android:id="@+id/checkbox"
-        android:layout_width="48dp"
-        android:layout_height="64dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="@dimen/spacing_small"
         android:focusable="true"
-        android:gravity="center"
-        android:nextFocusRight="@id/root"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/text_name"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:nextFocusRight="@id/root" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>

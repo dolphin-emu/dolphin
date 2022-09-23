@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="54dp"
-                android:background="?android:attr/selectableItemBackground"
-                android:focusable="true"
-                android:clickable="true">
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="54dp"
+    android:background="?android:attr/selectableItemBackground"
+    android:focusable="true"
+    android:clickable="true">
 
     <TextView
         android:layout_width="0dp"
@@ -20,6 +21,6 @@
         android:layout_marginEnd="@dimen/spacing_large"
         android:layout_marginTop="@dimen/spacing_large"
         android:id="@+id/text_setting_name"
-        android:textSize="16sp"/>
+        android:textSize="16sp" />
 
 </RelativeLayout>

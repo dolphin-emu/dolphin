@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.provider.DocumentsContract;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -21,6 +20,12 @@ import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.DialogInputStringBinding;
+import org.dolphinemu.dolphinemu.databinding.DialogSliderBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemHeaderBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingCheckboxBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemSubmenuBinding;
 import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
@@ -79,59 +84,50 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mClickedPosition = -1;
   }
 
+  @NonNull
   @Override
-  public SettingViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
+  public SettingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
   {
-    View view;
     LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-
     switch (viewType)
     {
       case SettingsItem.TYPE_HEADER:
-        view = inflater.inflate(R.layout.list_item_header, parent, false);
-        return new HeaderViewHolder(view, this);
+        return new HeaderViewHolder(ListItemHeaderBinding.inflate(inflater), this);
 
       case SettingsItem.TYPE_CHECKBOX:
-        view = inflater.inflate(R.layout.list_item_setting_checkbox, parent, false);
-        return new CheckBoxSettingViewHolder(view, this);
+        return new CheckBoxSettingViewHolder(ListItemSettingCheckboxBinding.inflate(inflater),
+                this);
 
       case SettingsItem.TYPE_STRING_SINGLE_CHOICE:
       case SettingsItem.TYPE_SINGLE_CHOICE_DYNAMIC_DESCRIPTIONS:
       case SettingsItem.TYPE_SINGLE_CHOICE:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new SingleChoiceViewHolder(view, this);
+        return new SingleChoiceViewHolder(ListItemSettingBinding.inflate(inflater), this);
 
       case SettingsItem.TYPE_SLIDER:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new SliderViewHolder(view, this, mContext);
+        return new SliderViewHolder(ListItemSettingBinding.inflate(inflater), this, mContext);
 
       case SettingsItem.TYPE_SUBMENU:
-        view = inflater.inflate(R.layout.list_item_submenu, parent, false);
-        return new SubmenuViewHolder(view, this);
+        return new SubmenuViewHolder(ListItemSubmenuBinding.inflate(inflater), this);
 
       case SettingsItem.TYPE_INPUT_BINDING:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new InputBindingSettingViewHolder(view, this, mContext);
+        return new InputBindingSettingViewHolder(ListItemSettingBinding.inflate(inflater), this,
+                mContext);
 
       case SettingsItem.TYPE_RUMBLE_BINDING:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new RumbleBindingViewHolder(view, this, mContext);
+        return new RumbleBindingViewHolder(ListItemSettingBinding.inflate(inflater), this,
+                mContext);
 
       case SettingsItem.TYPE_FILE_PICKER:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new FilePickerViewHolder(view, this);
+        return new FilePickerViewHolder(ListItemSettingBinding.inflate(inflater), this);
 
       case SettingsItem.TYPE_RUN_RUNNABLE:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new RunRunnableViewHolder(view, this, mContext);
+        return new RunRunnableViewHolder(ListItemSettingBinding.inflate(inflater), this, mContext);
 
       case SettingsItem.TYPE_STRING:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new InputStringSettingViewHolder(view, this);
+        return new InputStringSettingViewHolder(ListItemSettingBinding.inflate(inflater), this);
 
       case SettingsItem.TYPE_HYPERLINK_HEADER:
-        view = inflater.inflate(R.layout.list_item_header, parent, false);
-        return new HeaderHyperLinkViewHolder(view, this, mContext);
+        return new HeaderHyperLinkViewHolder(ListItemHeaderBinding.inflate(inflater), this);
 
       default:
         throw new IllegalArgumentException("Invalid view type: " + viewType);
@@ -139,7 +135,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   }
 
   @Override
-  public void onBindViewHolder(SettingViewHolder holder, int position)
+  public void onBindViewHolder(@NonNull SettingViewHolder holder, int position)
   {
     holder.bind(getItem(position));
   }
@@ -206,12 +202,12 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     LayoutInflater inflater = LayoutInflater.from(mContext);
 
-    View dialogView = inflater.inflate(R.layout.dialog_input_string, null);
-    TextInputEditText input = dialogView.findViewById(R.id.input);
+    DialogInputStringBinding binding = DialogInputStringBinding.inflate(inflater);
+    TextInputEditText input = binding.input;
     input.setText(item.getSelectedValue(getSettings()));
 
     mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
-            .setView(dialogView)
+            .setView(binding.getRoot())
             .setMessage(item.getDescription())
             .setPositiveButton(R.string.ok, (dialogInterface, i) ->
             {
@@ -275,26 +271,25 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mSeekbarProgress = item.getSelectedValue(getSettings());
 
     LayoutInflater inflater = LayoutInflater.from(mView.getActivity());
-    View view = inflater.inflate(R.layout.dialog_slider, null);
+    DialogSliderBinding binding = DialogSliderBinding.inflate(inflater);
 
-    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
-            .setTitle(item.getName())
-            .setView(view)
-            .setPositiveButton(R.string.ok, this)
-            .show();
-
-    mTextSliderValue = view.findViewById(R.id.text_value);
+    mTextSliderValue = binding.textValue;
     mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
 
-    TextView units = view.findViewById(R.id.text_units);
-    units.setText(item.getUnits());
+    binding.textUnits.setText(item.getUnits());
 
-    Slider slider = view.findViewById(R.id.slider);
+    Slider slider = binding.slider;
     slider.setValueFrom(item.getMin());
     slider.setValueTo(item.getMax());
     slider.setValue(mSeekbarProgress);
     slider.setStepSize(1);
     slider.addOnChangeListener(this);
+
+    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+            .setTitle(item.getName())
+            .setView(binding.getRoot())
+            .setPositiveButton(R.string.ok, this)
+            .show();
   }
 
   public void onSubmenuClick(SubmenuSetting item)

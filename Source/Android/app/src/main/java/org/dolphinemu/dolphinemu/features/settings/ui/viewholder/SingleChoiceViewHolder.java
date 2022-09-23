@@ -5,11 +5,11 @@ package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 import android.content.res.Resources;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
@@ -20,19 +20,12 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
 {
   private SettingsItem mItem;
 
-  private TextView mTextSettingName;
-  private TextView mTextSettingDescription;
+  private final ListItemSettingBinding mBinding;
 
-  public SingleChoiceViewHolder(View itemView, SettingsAdapter adapter)
+  public SingleChoiceViewHolder(@NonNull ListItemSettingBinding binding, SettingsAdapter adapter)
   {
-    super(itemView, adapter);
-  }
-
-  @Override
-  protected void findViews(View root)
-  {
-    mTextSettingName = root.findViewById(R.id.text_setting_name);
-    mTextSettingDescription = root.findViewById(R.id.text_setting_description);
+    super(binding.getRoot(), adapter);
+    mBinding = binding;
   }
 
   @Override
@@ -40,24 +33,24 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
   {
     mItem = item;
 
-    mTextSettingName.setText(item.getName());
+    mBinding.textSettingName.setText(item.getName());
 
     if (!TextUtils.isEmpty(item.getDescription()))
     {
-      mTextSettingDescription.setText(item.getDescription());
+      mBinding.textSettingDescription.setText(item.getDescription());
     }
     else if (item instanceof SingleChoiceSetting)
     {
       SingleChoiceSetting setting = (SingleChoiceSetting) item;
       int selected = setting.getSelectedValue(getAdapter().getSettings());
-      Resources resMgr = mTextSettingDescription.getContext().getResources();
+      Resources resMgr = mBinding.textSettingDescription.getContext().getResources();
       String[] choices = resMgr.getStringArray(setting.getChoicesId());
       int[] values = resMgr.getIntArray(setting.getValuesId());
       for (int i = 0; i < values.length; ++i)
       {
         if (values[i] == selected)
         {
-          mTextSettingDescription.setText(choices[i]);
+          mBinding.textSettingDescription.setText(choices[i]);
         }
       }
     }
@@ -67,26 +60,26 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
       String[] choices = setting.getChoices();
       int valueIndex = setting.getSelectedValueIndex(getAdapter().getSettings());
       if (valueIndex != -1)
-        mTextSettingDescription.setText(choices[valueIndex]);
+        mBinding.textSettingDescription.setText(choices[valueIndex]);
     }
     else if (item instanceof SingleChoiceSettingDynamicDescriptions)
     {
       SingleChoiceSettingDynamicDescriptions setting =
               (SingleChoiceSettingDynamicDescriptions) item;
       int selected = setting.getSelectedValue(getAdapter().getSettings());
-      Resources resMgr = mTextSettingDescription.getContext().getResources();
+      Resources resMgr = mBinding.textSettingDescription.getContext().getResources();
       String[] choices = resMgr.getStringArray(setting.getDescriptionChoicesId());
       int[] values = resMgr.getIntArray(setting.getDescriptionValuesId());
       for (int i = 0; i < values.length; ++i)
       {
         if (values[i] == selected)
         {
-          mTextSettingDescription.setText(choices[i]);
+          mBinding.textSettingDescription.setText(choices[i]);
         }
       }
     }
 
-    setStyle(mTextSettingName, mItem);
+    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Override
@@ -113,7 +106,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
               (SingleChoiceSettingDynamicDescriptions) mItem, position);
     }
 
-    setStyle(mTextSettingName, mItem);
+    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Nullable @Override

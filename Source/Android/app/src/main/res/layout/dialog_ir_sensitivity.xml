@@ -12,7 +12,7 @@
         android:layout_weight="1">
 
         <com.google.android.material.slider.Slider
-            android:id="@+id/slider_width"
+            android:id="@+id/slider_yaw"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toStartOf="@id/text_ir_yaw"
@@ -26,10 +26,10 @@
             android:layout_marginEnd="24dp"
             android:layout_marginStart="@dimen/spacing_medlarge"
             android:gravity="end"
-            app:layout_constraintBottom_toBottomOf="@+id/slider_width"
+            app:layout_constraintBottom_toBottomOf="@+id/slider_yaw"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/slider_width"
-            app:layout_constraintTop_toTopOf="@+id/slider_width"
+            app:layout_constraintStart_toEndOf="@id/slider_yaw"
+            app:layout_constraintTop_toTopOf="@+id/slider_yaw"
             tools:text="100" />
 
         <TextView
@@ -39,10 +39,10 @@
             android:gravity="start"
             android:layout_marginStart="24dp"
             android:layout_marginEnd="@dimen/spacing_medlarge"
-            app:layout_constraintBottom_toBottomOf="@+id/slider_width"
-            app:layout_constraintEnd_toStartOf="@id/slider_width"
+            app:layout_constraintBottom_toBottomOf="@+id/slider_yaw"
+            app:layout_constraintEnd_toStartOf="@id/slider_yaw"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/slider_width"
+            app:layout_constraintTop_toTopOf="@+id/slider_yaw"
             tools:text="Total Yaw" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

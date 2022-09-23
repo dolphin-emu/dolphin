@@ -10,43 +10,38 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProvider;
 
-import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ListItemCheatBinding;
 import org.dolphinemu.dolphinemu.features.cheats.model.Cheat;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
 
 public class CheatViewHolder extends CheatItemViewHolder
         implements View.OnClickListener, CompoundButton.OnCheckedChangeListener
 {
-  private final View mRoot;
-  private final TextView mName;
-  private final CheckBox mCheckbox;
+  private final ListItemCheatBinding mBinding;
 
   private CheatsViewModel mViewModel;
   private Cheat mCheat;
   private int mPosition;
 
-  public CheatViewHolder(@NonNull View itemView)
+  public CheatViewHolder(@NonNull ListItemCheatBinding binding)
   {
-    super(itemView);
-
-    mRoot = itemView.findViewById(R.id.root);
-    mName = itemView.findViewById(R.id.text_name);
-    mCheckbox = itemView.findViewById(R.id.checkbox);
+    super(binding.getRoot());
+    mBinding = binding;
   }
 
   public void bind(CheatsActivity activity, CheatItem item, int position)
   {
-    mCheckbox.setOnCheckedChangeListener(null);
+    mBinding.checkbox.setOnCheckedChangeListener(null);
 
     mViewModel = new ViewModelProvider(activity).get(CheatsViewModel.class);
     mCheat = item.getCheat();
     mPosition = position;
 
-    mName.setText(mCheat.getName());
-    mCheckbox.setChecked(mCheat.getEnabled());
+    mBinding.textName.setText(mCheat.getName());
+    mBinding.checkbox.setChecked(mCheat.getEnabled());
 
-    mRoot.setOnClickListener(this);
-    mCheckbox.setOnCheckedChangeListener(this);
+    mBinding.root.setOnClickListener(this);
+    mBinding.checkbox.setOnCheckedChangeListener(this);
   }
 
   public void onClick(View root)

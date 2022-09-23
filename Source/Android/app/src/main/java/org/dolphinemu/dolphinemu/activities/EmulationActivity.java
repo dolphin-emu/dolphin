@@ -13,7 +13,6 @@ import android.preference.PreferenceManager;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -33,6 +32,9 @@ import androidx.fragment.app.FragmentManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding;
+import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding;
+import org.dolphinemu.dolphinemu.databinding.DialogIrSensitivityBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -62,7 +64,6 @@ import java.util.List;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
 
 public final class EmulationActivity extends AppCompatActivity implements ThemeProvider
@@ -338,7 +339,8 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     Rumble.initRumble(this);
 
-    setContentView(R.layout.activity_emulation);
+    ActivityEmulationBinding binding = ActivityEmulationBinding.inflate(getLayoutInflater());
+    setContentView(binding.getRoot());
 
     // Find or create the EmulationFragment
     mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
@@ -905,11 +907,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
   private void adjustScale()
   {
-    LayoutInflater inflater = LayoutInflater.from(this);
-    View view = inflater.inflate(R.layout.dialog_input_adjust, null);
+    DialogInputAdjustBinding dialogBinding = DialogInputAdjustBinding.inflate(getLayoutInflater());
 
-    final Slider scaleSlider = view.findViewById(R.id.input_scale_slider);
-    final TextView scaleValue = view.findViewById(R.id.input_scale_value);
+    final Slider scaleSlider = dialogBinding.inputScaleSlider;
+    final TextView scaleValue = dialogBinding.inputScaleValue;
     scaleSlider.setValueTo(150);
     scaleSlider.setValue(IntSetting.MAIN_CONTROL_SCALE.getInt(mSettings));
     scaleSlider.setStepSize(1);
@@ -918,8 +919,8 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     scaleValue.setText(((int) scaleSlider.getValue() + 50) + "%");
 
     // alpha
-    final Slider sliderOpacity = view.findViewById(R.id.input_opacity_slider);
-    final TextView valueOpacity = view.findViewById(R.id.input_opacity_value);
+    final Slider sliderOpacity = dialogBinding.inputOpacitySlider;
+    final TextView valueOpacity = dialogBinding.inputOpacityValue;
     sliderOpacity.setValueTo(100);
     sliderOpacity.setValue(IntSetting.MAIN_CONTROL_OPACITY.getInt(mSettings));
     sliderOpacity.setStepSize(1);
@@ -927,10 +928,9 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
             (slider, progress, fromUser) -> valueOpacity.setText(((int) progress) + "%"));
     valueOpacity.setText(((int) sliderOpacity.getValue()) + "%");
 
-
     new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.emulation_control_adjustments)
-            .setView(view)
+            .setView(dialogBinding.getRoot())
             .setPositiveButton(R.string.ok, (dialog, which) ->
             {
               IntSetting.MAIN_CONTROL_SCALE.setInt(mSettings, (int) scaleSlider.getValue());
@@ -1008,12 +1008,12 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     int ir_pitch = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH, 20);
 
-    LayoutInflater inflater = LayoutInflater.from(this);
-    View view = inflater.inflate(R.layout.dialog_ir_sensitivity, null);
+    DialogIrSensitivityBinding dialogBinding =
+            DialogIrSensitivityBinding.inflate(getLayoutInflater());
 
-    TextView text_slider_value_pitch = view.findViewById(R.id.text_ir_pitch);
-    TextView units = view.findViewById(R.id.text_ir_pitch_units);
-    Slider slider_pitch = view.findViewById(R.id.slider_pitch);
+    TextView text_slider_value_pitch = dialogBinding.textIrPitch;
+    TextView units = dialogBinding.textIrPitchUnits;
+    Slider slider_pitch = dialogBinding.sliderPitch;
 
     text_slider_value_pitch.setText(String.valueOf(ir_pitch));
     units.setText(getString(R.string.pitch));
@@ -1026,9 +1026,9 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     int ir_yaw = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW, 25);
 
-    TextView text_slider_value_yaw = view.findViewById(R.id.text_ir_yaw);
-    TextView units_yaw = view.findViewById(R.id.text_ir_yaw_units);
-    Slider seekbar_yaw = view.findViewById(R.id.slider_width);
+    TextView text_slider_value_yaw = dialogBinding.textIrYaw;
+    TextView units_yaw = dialogBinding.textIrYawUnits;
+    Slider seekbar_yaw = dialogBinding.sliderYaw;
 
     text_slider_value_yaw.setText(String.valueOf(ir_yaw));
     units_yaw.setText(getString(R.string.yaw));
@@ -1038,13 +1038,12 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     seekbar_yaw.addOnChangeListener((slider, progress, fromUser) -> text_slider_value_yaw.setText(
             String.valueOf((int) progress)));
 
-
     int ir_vertical_offset =
             ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET, 10);
 
-    TextView text_slider_value_vertical_offset = view.findViewById(R.id.text_ir_vertical_offset);
-    TextView units_vertical_offset = view.findViewById(R.id.text_ir_vertical_offset_units);
-    Slider seekbar_vertical_offset = view.findViewById(R.id.slider_vertical_offset);
+    TextView text_slider_value_vertical_offset = dialogBinding.textIrVerticalOffset;
+    TextView units_vertical_offset = dialogBinding.textIrVerticalOffsetUnits;
+    Slider seekbar_vertical_offset = dialogBinding.sliderVerticalOffset;
 
     text_slider_value_vertical_offset.setText(String.valueOf(ir_vertical_offset));
     units_vertical_offset.setText(getString(R.string.vertical_offset));
@@ -1057,7 +1056,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     new MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.emulation_ir_sensitivity))
-            .setView(view)
+            .setView(dialogBinding.getRoot())
             .setPositiveButton(R.string.ok, (dialogInterface, i) ->
             {
               ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH,

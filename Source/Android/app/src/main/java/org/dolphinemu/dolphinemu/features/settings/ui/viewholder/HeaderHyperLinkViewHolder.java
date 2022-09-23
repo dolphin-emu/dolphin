@@ -2,33 +2,35 @@
 
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
-import android.content.Context;
 import android.text.method.LinkMovementMethod;
-import android.view.View;
+
+import androidx.annotation.NonNull;
 
 import com.google.android.material.color.MaterialColors;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ListItemHeaderBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
 public final class HeaderHyperLinkViewHolder extends HeaderViewHolder
 {
-  private Context mContext;
+  private final ListItemHeaderBinding mBinding;
 
-  public HeaderHyperLinkViewHolder(View itemView, SettingsAdapter adapter, Context context)
+  public HeaderHyperLinkViewHolder(@NonNull ListItemHeaderBinding binding, SettingsAdapter adapter)
   {
-    super(itemView, adapter);
-    mContext = context;
+    super(binding, adapter);
+    mBinding = binding;
     itemView.setOnClickListener(null);
   }
 
   @Override
-  public void bind(SettingsItem item)
+  public void bind(@NonNull SettingsItem item)
   {
     super.bind(item);
 
-    mHeaderName.setMovementMethod(LinkMovementMethod.getInstance());
-    mHeaderName.setLinkTextColor(MaterialColors.getColor(itemView, R.attr.colorTertiary));
+    mBinding.textHeaderName.setMovementMethod(LinkMovementMethod.getInstance());
+    mBinding.textHeaderName.setLinkTextColor(
+            MaterialColors.getColor(itemView, R.attr.colorTertiary));
   }
 }

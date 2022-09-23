@@ -32,8 +32,6 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
 
     itemView.setOnClickListener(this);
     itemView.setOnLongClickListener(this);
-
-    findViews(itemView);
   }
 
   protected SettingsAdapter getAdapter()
@@ -55,13 +53,6 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
     Toast.makeText(DolphinApplication.getAppContext(), R.string.setting_not_runtime_editable,
             Toast.LENGTH_SHORT).show();
   }
-
-  /**
-   * Gets handles to all this ViewHolder's child views using their XML-defined identifiers.
-   *
-   * @param root The newly inflated top-level view.
-   */
-  protected abstract void findViews(View root);
 
   /**
    * Called by the adapter to set this ViewHolder's child views to display the list item

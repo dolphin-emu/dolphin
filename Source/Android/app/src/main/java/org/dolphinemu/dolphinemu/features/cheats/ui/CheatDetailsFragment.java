@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ScrollView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,78 +13,57 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.FragmentCheatDetailsBinding;
 import org.dolphinemu.dolphinemu.features.cheats.model.Cheat;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
 
 public class CheatDetailsFragment extends Fragment
 {
-  private View mRoot;
-  private ScrollView mScrollView;
-  private TextInputLayout mEditNameLayout;
-  private TextInputEditText mEditName;
-  private TextInputLayout mEditCreatorLayout;
-  private TextInputEditText mEditCreator;
-  private TextInputLayout mEditNotesLayout;
-  private TextInputEditText mEditNotes;
-  private TextInputLayout mEditCodeLayout;
-  private TextInputEditText mEditCode;
-  private Button mButtonDelete;
-  private Button mButtonEdit;
-  private Button mButtonCancel;
-  private Button mButtonOk;
-
   private CheatsViewModel mViewModel;
   private Cheat mCheat;
 
+  private FragmentCheatDetailsBinding mBinding;
+
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
           @Nullable Bundle savedInstanceState)
   {
-    return inflater.inflate(R.layout.fragment_cheat_details, container, false);
+    mBinding = FragmentCheatDetailsBinding.inflate(inflater, container, false);
+    return mBinding.getRoot();
   }
 
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
   {
-    mRoot = view.findViewById(R.id.root);
-    mScrollView = view.findViewById(R.id.scroll_view);
-    mEditNameLayout = view.findViewById(R.id.edit_name);
-    mEditName = view.findViewById(R.id.edit_name_input);
-    mEditCreatorLayout = view.findViewById(R.id.edit_creator);
-    mEditCreator = view.findViewById(R.id.edit_creator_input);
-    mEditNotesLayout = view.findViewById(R.id.edit_notes);
-    mEditNotes = view.findViewById(R.id.edit_notes_input);
-    mEditCodeLayout = view.findViewById(R.id.edit_code);
-    mEditCode = view.findViewById(R.id.edit_code_input);
-    mButtonDelete = view.findViewById(R.id.button_delete);
-    mButtonEdit = view.findViewById(R.id.button_edit);
-    mButtonCancel = view.findViewById(R.id.button_cancel);
-    mButtonOk = view.findViewById(R.id.button_ok);
-
     CheatsActivity activity = (CheatsActivity) requireActivity();
     mViewModel = new ViewModelProvider(activity).get(CheatsViewModel.class);
 
     mViewModel.getSelectedCheat().observe(getViewLifecycleOwner(), this::onSelectedCheatUpdated);
     mViewModel.getIsEditing().observe(getViewLifecycleOwner(), this::onIsEditingUpdated);
 
-    mButtonDelete.setOnClickListener(this::onDeleteClicked);
-    mButtonEdit.setOnClickListener(this::onEditClicked);
-    mButtonCancel.setOnClickListener(this::onCancelClicked);
-    mButtonOk.setOnClickListener(this::onOkClicked);
+    mBinding.buttonDelete.setOnClickListener(this::onDeleteClicked);
+    mBinding.buttonEdit.setOnClickListener(this::onEditClicked);
+    mBinding.buttonCancel.setOnClickListener(this::onCancelClicked);
+    mBinding.buttonOk.setOnClickListener(this::onOkClicked);
 
     CheatsActivity.setOnFocusChangeListenerRecursively(view,
             (v, hasFocus) -> activity.onDetailsViewFocusChange(hasFocus));
   }
 
+  @Override
+  public void onDestroyView()
+  {
+    super.onDestroyView();
+    mBinding = null;
+  }
+
   private void clearEditErrors()
   {
-    mEditNameLayout.setError(null);
-    mEditCodeLayout.setError(null);
+    mBinding.editName.setError(null);
+    mBinding.editCode.setError(null);
   }
 
   private void onDeleteClicked(View view)
@@ -101,22 +78,24 @@ public class CheatDetailsFragment extends Fragment
   private void onEditClicked(View view)
   {
     mViewModel.setIsEditing(true);
-    mButtonOk.requestFocus();
+    mBinding.buttonOk.requestFocus();
   }
 
   private void onCancelClicked(View view)
   {
     mViewModel.setIsEditing(false);
     onSelectedCheatUpdated(mCheat);
-    mButtonDelete.requestFocus();
+    mBinding.buttonDelete.requestFocus();
   }
 
   private void onOkClicked(View view)
   {
     clearEditErrors();
 
-    int result = mCheat.trySet(mEditName.getText().toString(), mEditCreator.getText().toString(),
-            mEditNotes.getText().toString(), mEditCode.getText().toString());
+    int result = mCheat.trySet(mBinding.editNameInput.getText().toString(),
+            mBinding.editCreatorInput.getText().toString(),
+            mBinding.editNotesInput.getText().toString(),
+            mBinding.editCodeInput.getText().toString());
 
     switch (result)
     {
@@ -131,23 +110,23 @@ public class CheatDetailsFragment extends Fragment
           mViewModel.notifySelectedCheatChanged();
           mViewModel.setIsEditing(false);
         }
-        mButtonEdit.requestFocus();
+        mBinding.buttonEdit.requestFocus();
         break;
       case Cheat.TRY_SET_FAIL_NO_NAME:
-        mEditNameLayout.setError(getString(R.string.cheats_error_no_name));
-        mScrollView.smoothScrollTo(0, mEditName.getTop());
+        mBinding.editName.setError(getString(R.string.cheats_error_no_name));
+        mBinding.scrollView.smoothScrollTo(0, mBinding.editNameInput.getTop());
         break;
       case Cheat.TRY_SET_FAIL_NO_CODE_LINES:
-        mEditCodeLayout.setError(getString(R.string.cheats_error_no_code_lines));
-        mScrollView.smoothScrollTo(0, mEditCode.getBottom());
+        mBinding.editCode.setError(getString(R.string.cheats_error_no_code_lines));
+        mBinding.scrollView.smoothScrollTo(0, mBinding.editCodeInput.getBottom());
         break;
       case Cheat.TRY_SET_FAIL_CODE_MIXED_ENCRYPTION:
-        mEditCodeLayout.setError(getString(R.string.cheats_error_mixed_encryption));
-        mScrollView.smoothScrollTo(0, mEditCode.getBottom());
+        mBinding.editCode.setError(getString(R.string.cheats_error_mixed_encryption));
+        mBinding.scrollView.smoothScrollTo(0, mBinding.editCodeInput.getBottom());
         break;
       default:
-        mEditCodeLayout.setError(getString(R.string.cheats_error_on_line, result));
-        mScrollView.smoothScrollTo(0, mEditCode.getBottom());
+        mBinding.editCode.setError(getString(R.string.cheats_error_on_line, result));
+        mBinding.scrollView.smoothScrollTo(0, mBinding.editCodeInput.getBottom());
         break;
     }
   }
@@ -156,18 +135,18 @@ public class CheatDetailsFragment extends Fragment
   {
     clearEditErrors();
 
-    mRoot.setVisibility(cheat == null ? View.GONE : View.VISIBLE);
+    mBinding.root.setVisibility(cheat == null ? View.GONE : View.VISIBLE);
 
     int creatorVisibility = cheat != null && cheat.supportsCreator() ? View.VISIBLE : View.GONE;
     int notesVisibility = cheat != null && cheat.supportsNotes() ? View.VISIBLE : View.GONE;
     int codeVisibility = cheat != null && cheat.supportsCode() ? View.VISIBLE : View.GONE;
-    mEditCreatorLayout.setVisibility(creatorVisibility);
-    mEditNotesLayout.setVisibility(notesVisibility);
-    mEditCodeLayout.setVisibility(codeVisibility);
+    mBinding.editCreator.setVisibility(creatorVisibility);
+    mBinding.editNotes.setVisibility(notesVisibility);
+    mBinding.editCode.setVisibility(codeVisibility);
 
     boolean userDefined = cheat != null && cheat.getUserDefined();
-    mButtonDelete.setEnabled(userDefined);
-    mButtonEdit.setEnabled(userDefined);
+    mBinding.buttonDelete.setEnabled(userDefined);
+    mBinding.buttonEdit.setEnabled(userDefined);
 
     // If the fragment was recreated while editing a cheat, it's vital that we
     // don't repopulate the fields, otherwise the user's changes will be lost
@@ -175,10 +154,10 @@ public class CheatDetailsFragment extends Fragment
 
     if (!isEditing && cheat != null)
     {
-      mEditName.setText(cheat.getName());
-      mEditCreator.setText(cheat.getCreator());
-      mEditNotes.setText(cheat.getNotes());
-      mEditCode.setText(cheat.getCode());
+      mBinding.editNameInput.setText(cheat.getName());
+      mBinding.editCreatorInput.setText(cheat.getCreator());
+      mBinding.editNotesInput.setText(cheat.getNotes());
+      mBinding.editCodeInput.setText(cheat.getCode());
     }
 
     mCheat = cheat;
@@ -186,14 +165,14 @@ public class CheatDetailsFragment extends Fragment
 
   private void onIsEditingUpdated(boolean isEditing)
   {
-    mEditName.setEnabled(isEditing);
-    mEditCreator.setEnabled(isEditing);
-    mEditNotes.setEnabled(isEditing);
-    mEditCode.setEnabled(isEditing);
+    mBinding.editNameInput.setEnabled(isEditing);
+    mBinding.editCreatorInput.setEnabled(isEditing);
+    mBinding.editNotesInput.setEnabled(isEditing);
+    mBinding.editCodeInput.setEnabled(isEditing);
 
-    mButtonDelete.setVisibility(isEditing ? View.GONE : View.VISIBLE);
-    mButtonEdit.setVisibility(isEditing ? View.GONE : View.VISIBLE);
-    mButtonCancel.setVisibility(isEditing ? View.VISIBLE : View.GONE);
-    mButtonOk.setVisibility(isEditing ? View.VISIBLE : View.GONE);
+    mBinding.buttonDelete.setVisibility(isEditing ? View.GONE : View.VISIBLE);
+    mBinding.buttonEdit.setVisibility(isEditing ? View.GONE : View.VISIBLE);
+    mBinding.buttonCancel.setVisibility(isEditing ? View.VISIBLE : View.GONE);
+    mBinding.buttonOk.setVisibility(isEditing ? View.VISIBLE : View.GONE);
   }
 }

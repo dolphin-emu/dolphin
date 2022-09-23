@@ -13,11 +13,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.databinding.FragmentEmulationBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
@@ -40,6 +41,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   private boolean mLaunchSystemMenu;
 
   private EmulationActivity activity;
+
+  private FragmentEmulationBinding mBinding;
 
   public static EmulationFragment newInstance(String[] gamePaths, boolean riivolution,
           boolean systemMenu)
@@ -83,20 +86,24 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     mLaunchSystemMenu = getArguments().getBoolean(KEY_SYSTEM_MENU);
   }
 
-  /**
-   * Initialize the UI and start emulation in here.
-   */
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+          Bundle savedInstanceState)
   {
-    View contents = inflater.inflate(R.layout.fragment_emulation, container, false);
+    mBinding = FragmentEmulationBinding.inflate(inflater, container, false);
+    return mBinding.getRoot();
+  }
 
-    SurfaceView surfaceView = contents.findViewById(R.id.surface_emulation);
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+  {
+    // The new Surface created here will get passed to the native code via onSurfaceChanged.
+    SurfaceView surfaceView = mBinding.surfaceEmulation;
     surfaceView.getHolder().addCallback(this);
 
-    mInputOverlay = contents.findViewById(R.id.surface_input_overlay);
+    mInputOverlay = mBinding.surfaceInputOverlay;
 
-    Button doneButton = contents.findViewById(R.id.done_control_config);
+    Button doneButton = mBinding.doneControlConfig;
     if (doneButton != null)
     {
       doneButton.setOnClickListener(v -> stopConfiguringControls());
@@ -104,7 +111,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
     if (mInputOverlay != null)
     {
-      contents.post(() ->
+      view.post(() ->
       {
         int overlayX = mInputOverlay.getLeft();
         int overlayY = mInputOverlay.getTop();
@@ -113,10 +120,13 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
                 surfaceView.getRight() - overlayX, surfaceView.getBottom() - overlayY));
       });
     }
+  }
 
-    // The new Surface created here will get passed to the native code via onSurfaceChanged.
-
-    return contents;
+  @Override
+  public void onDestroyView()
+  {
+    super.onDestroyView();
+    mBinding = null;
   }
 
   @Override
@@ -223,7 +233,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   {
     if (mInputOverlay != null)
     {
-      requireView().findViewById(R.id.done_control_config).setVisibility(View.VISIBLE);
+      mBinding.doneControlConfig.setVisibility(View.VISIBLE);
       mInputOverlay.setIsInEditMode(true);
     }
   }
@@ -232,7 +242,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   {
     if (mInputOverlay != null)
     {
-      requireView().findViewById(R.id.done_control_config).setVisibility(View.GONE);
+      mBinding.doneControlConfig.setVisibility(View.GONE);
       mInputOverlay.setIsInEditMode(false);
     }
   }
