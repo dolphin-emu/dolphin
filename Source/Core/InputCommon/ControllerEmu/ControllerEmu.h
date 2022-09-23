@@ -110,6 +110,8 @@ struct RawValue
 
   T value;
 
+  constexpr bool operator==(const RawValue& other) const = default;
+
   template <typename OtherT, size_t OtherBits>
   auto GetNormalizedValue(const TwoPointCalibration<OtherT, OtherBits>& calibration) const
   {
