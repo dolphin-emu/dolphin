@@ -74,6 +74,9 @@ DEFAULT_CONFIG = {
 
     # Whether we should make a build for Steam.
     "steam": False,
+
+    # Whether our autoupdate functionality is enabled or not.
+    "autoupdate": True
 }
 
 # Architectures to build for. This is explicity left out of the command line
@@ -126,6 +129,12 @@ def parse_args(conf=DEFAULT_CONFIG):
         help="Create a build for Steam",
         action="store_true",
         default=conf["steam"])
+
+    parser.add_argument(
+        "--autoupdate",
+        help="Enables our autoupdate functionality",
+        action=argparse.BooleanOptionalAction,
+        default=conf["autoupdate"])
 
     parser.add_argument(
         "--codesign",
@@ -304,7 +313,9 @@ def build(config):
                 + config["codesign_identity"],
                 '-DMACOS_CODE_SIGNING="ON"',
                 "-DSTEAM="
-                + python_to_cmake_bool(config["steam"])
+                + python_to_cmake_bool(config["steam"]),
+                "-DENABLE_AUTOUPDATE="
+                + python_to_cmake_bool(config["autoupdate"]),
             ],
             env=env, cwd=arch)
 
