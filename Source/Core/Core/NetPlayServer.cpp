@@ -52,6 +52,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/ES/ES.h"
@@ -827,27 +828,33 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (player.current_game != m_current_game)
       break;
 
-    PadIndex map;
-    u8 size;
-    packet >> map >> size;
-    std::vector<u8> data(size);
-    for (u8& byte : data)
-      packet >> byte;
-
-    // If the data is not from the correct player,
-    // then disconnect them.
-    if (m_wiimote_map.at(map) != player.pid)
-    {
-      return 1;
-    }
-
-    // relay to clients
     sf::Packet spac;
     spac << MessageID::WiimoteData;
-    spac << map;
-    spac << size;
-    for (const u8& byte : data)
-      spac << byte;
+
+    while (!packet.endOfPacket())
+    {
+      PadIndex map;
+      packet >> map;
+
+      // If the data is not from the correct player,
+      // then disconnect them.
+      if (m_wiimote_map.at(map) != player.pid)
+      {
+        return 1;
+      }
+
+      WiimoteEmu::SerializedWiimoteState pad;
+      packet >> pad.length;
+      if (pad.length > pad.data.size())
+        return 1;
+      for (size_t i = 0; i < pad.length; ++i)
+        packet >> pad.data[i];
+
+      spac << map;
+      spac << pad.length;
+      for (size_t i = 0; i < pad.length; ++i)
+        spac << pad.data[i];
+    }
 
     SendToClients(spac, player.pid);
   }
@@ -1517,16 +1524,6 @@ bool NetPlayServer::StartGame()
   spac << initial_rtc;
   spac << region;
   spac << m_settings.sync_codes;
-
-  for (size_t i = 0; i < m_settings.wiimote_extension.size(); i++)
-  {
-    const int extension =
-        static_cast<ControllerEmu::Attachments*>(
-            static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(int(i)))
-                ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments))
-            ->GetSelectedAttachment();
-    spac << extension;
-  }
 
   spac << m_settings.golf_mode;
   spac << m_settings.use_fma;

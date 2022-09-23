@@ -210,8 +210,6 @@ private:
   Extension* GetActiveExtension() const;
   Extension* GetNoneExtension() const;
 
-  bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
-
   // TODO: Kill this nonsensical function used for TAS:
   EncryptionKey GetExtensionEncryptionKey() const;
 

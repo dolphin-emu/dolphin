@@ -101,7 +101,6 @@ struct NetSettings
   bool strict_settings_sync = false;
   bool sync_codes = false;
   std::string save_data_region;
-  std::array<int, 4> wiimote_extension{};
   bool golf_mode = false;
   bool use_fma = false;
   bool hide_remote_gbas = false;
@@ -228,11 +227,6 @@ enum : u8
   CHANNEL_COUNT
 };
 
-struct WiimoteInput
-{
-  u8 report_id = 0;
-  std::vector<u8> data;
-};
 using PlayerId = u8;
 using FrameNum = u32;
 using PadIndex = s8;
@@ -260,7 +254,6 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
 bool IsNetPlayRunning();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
-void SetupWiimotes();
 std::string GetGBASavePath(int pad_num);
 PadDetails GetPadDetails(int pad_num);
 }  // namespace NetPlay

@@ -21,7 +21,6 @@
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -632,15 +631,6 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 
     Movie::CallWiiInputManip(rpt_builder, m_bt_device_index, m_active_extension,
                              GetExtensionEncryptionKey());
-  }
-
-  if (NetPlay::IsNetPlayRunning())
-  {
-    NetPlay_GetWiimoteData(m_index, rpt_builder.GetDataPtr(), rpt_builder.GetDataSize(),
-                           u8(m_reporting_mode));
-
-    // TODO: clean up how m_status.buttons is updated.
-    rpt_builder.GetCoreData(&m_status.buttons);
   }
 
   Movie::CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,

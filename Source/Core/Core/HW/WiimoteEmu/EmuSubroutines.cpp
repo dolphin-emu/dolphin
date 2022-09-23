@@ -156,6 +156,9 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
 
   if (m_is_motion_plus_attached && !desired_motion_plus)
   {
+    INFO_LOG_FMT(WIIMOTE, "Detaching Motion Plus (Wiimote {} in slot {})", m_index,
+                 m_bt_device_index);
+
     // M+ is attached and it's not wanted, so remove it.
     m_extension_port.AttachExtension(GetNoneExtension());
     m_is_motion_plus_attached = false;
@@ -180,6 +183,9 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
     }
     else
     {
+      INFO_LOG_FMT(WIIMOTE, "Attaching Motion Plus (Wiimote {} in slot {})", m_index,
+                   m_bt_device_index);
+
       // No extension attached so attach M+.
       m_is_motion_plus_attached = true;
       m_extension_port.AttachExtension(&m_motion_plus);
@@ -194,12 +200,18 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
     // A different extension is wanted (either by user or by the M+ logic above)
     if (GetActiveExtensionNumber() != ExtensionNumber::NONE)
     {
+      INFO_LOG_FMT(WIIMOTE, "Detaching Extension (Wiimote {} in slot {})", m_index,
+                   m_bt_device_index);
+
       // First we must detach the current extension.
       // The next call will change to the new extension if needed.
       m_active_extension = ExtensionNumber::NONE;
     }
     else
     {
+      INFO_LOG_FMT(WIIMOTE, "Switching to Extension {} (Wiimote {} in slot {})",
+                   desired_extension_number, m_index, m_bt_device_index);
+
       m_active_extension = desired_extension_number;
     }
 

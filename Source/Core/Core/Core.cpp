@@ -498,9 +498,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   if (core_parameter.bWii && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
   {
     Wiimote::LoadConfig();
-
-    if (NetPlay::IsNetPlayRunning())
-      NetPlay::SetupWiimotes();
   }
 
   FreeLook::LoadInputConfig();

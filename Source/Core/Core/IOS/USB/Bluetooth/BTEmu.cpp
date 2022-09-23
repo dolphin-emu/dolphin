@@ -22,6 +22,8 @@
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayProto.h"
 #include "Core/SysConf.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -59,7 +61,9 @@ BluetoothEmuDevice::BluetoothEmuDevice(Kernel& ios, const std::string& device_na
     DEBUG_LOG_FMT(IOS_WIIMOTE, "Wii Remote {} BT ID {:x},{:x},{:x},{:x},{:x},{:x}", i, tmp_bd[0],
                   tmp_bd[1], tmp_bd[2], tmp_bd[3], tmp_bd[4], tmp_bd[5]);
 
-    m_wiimotes[i] = std::make_unique<WiimoteDevice>(this, tmp_bd, i);
+    const unsigned int hid_source_number =
+        NetPlay::IsNetPlayRunning() ? NetPlay::NetPlay_GetLocalWiimoteForSlot(i) : i;
+    m_wiimotes[i] = std::make_unique<WiimoteDevice>(this, tmp_bd, hid_source_number);
   }
 
   bt_dinf.num_registered = MAX_BBMOTES;
@@ -347,6 +351,21 @@ void BluetoothEmuDevice::Update()
 
     for (size_t i = 0; i < m_wiimotes.size(); ++i)
       next_call[i] = m_wiimotes[i]->PrepareInput(&wiimote_states[i]);
+
+    if (NetPlay::IsNetPlayRunning())
+    {
+      for (size_t i = 0; i < 4; ++i)
+      {
+        if (next_call[i] != WiimoteDevice::NextUpdateInputCall::None)
+        {
+          WiimoteEmu::SerializedWiimoteState serialized_state =
+              WiimoteEmu::SerializeDesiredState(wiimote_states[i]);
+          NetPlay::NetPlay_GetWiimoteData(static_cast<int>(i), &serialized_state);
+          if (!WiimoteEmu::DeserializeDesiredState(&wiimote_states[i], serialized_state))
+            PanicAlertFmtT("Received invalid Wii Remote data from Netplay.");
+        }
+      }
+    }
 
     for (size_t i = 0; i < m_wiimotes.size(); ++i)
       m_wiimotes[i]->UpdateInput(next_call[i], wiimote_states[i]);
