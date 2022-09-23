@@ -10,9 +10,8 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include <concepts>
 #include <type_traits>
-
-#include "Common/Future/CppLibConcepts.h"
 
 namespace Core
 {

@@ -4,14 +4,13 @@
 #pragma once
 
 #include <array>
+#include <concepts>
 #include <cstddef>
 #include <optional>
 #include <string>
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
-
-#include "Common/Future/CppLibConcepts.h"
 
 namespace Core
 {

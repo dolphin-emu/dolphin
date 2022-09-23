@@ -7,8 +7,6 @@
 #include "Common/StringUtil.h"
 #include "VideoCommon/TextureCacheBase.h"
 
-#include "Common/Future/CppLibConcepts.h"
-
 namespace
 {
 template <std::derived_from<FBTarget> T>

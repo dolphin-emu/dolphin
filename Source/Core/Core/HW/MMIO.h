@@ -5,6 +5,7 @@
 
 #include <array>
 #include <atomic>
+#include <concepts>
 #include <string>
 #include <tuple>
 
@@ -16,8 +17,6 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIOHandlers.h"
 #include "Core/System.h"
-
-#include "Common/Future/CppLibConcepts.h"
 
 namespace MMIO
 {

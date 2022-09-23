@@ -6,13 +6,12 @@
 #include <algorithm>
 #include <bit>
 #include <cmath>
+#include <concepts>
 #include <limits>
 #include <type_traits>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-
-#include "Common/Future/CppLibConcepts.h"
 
 namespace MathUtil
 {

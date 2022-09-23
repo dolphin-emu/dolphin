@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <concepts>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdlib>
@@ -17,8 +18,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Concepts.h"
-
-#include "Common/Future/CppLibConcepts.h"
 
 std::string StringFromFormatV(const char* format, va_list args);
 

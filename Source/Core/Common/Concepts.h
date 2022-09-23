@@ -2,12 +2,11 @@
 
 #pragma once
 
+#include <concepts>
 #include <cstddef>
 #include <type_traits>
 
 #include "Common/TypeUtils.h"
-
-#include "Common/Future/CppLibConcepts.h"
 
 namespace Common
 {

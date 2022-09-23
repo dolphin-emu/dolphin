@@ -2,9 +2,8 @@
 
 #pragma once
 
+#include <concepts>
 #include <cstddef>
-
-#include "Common/Future/CppLibConcepts.h"
 
 namespace Common
 {

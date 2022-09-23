@@ -3,6 +3,7 @@
 
 #include "VideoCommon/VertexLoader_Position.h"
 
+#include <concepts>
 #include <limits>
 
 #include "Common/CommonTypes.h"
@@ -13,8 +14,6 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
 #include "VideoCommon/VideoCommon.h"
-
-#include "Common/Future/CppLibConcepts.h"
 
 namespace
 {

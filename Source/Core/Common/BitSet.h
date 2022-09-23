@@ -3,13 +3,12 @@
 #pragma once
 
 #include <bit>
+#include <concepts>
 #include <cstddef>
 #include <initializer_list>
 #include <type_traits>
 
 #include "Common/CommonTypes.h"
-
-#include "Common/Future/CppLibConcepts.h"
 
 namespace Common
 {

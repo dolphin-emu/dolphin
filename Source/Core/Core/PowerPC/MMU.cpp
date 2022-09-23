@@ -26,6 +26,7 @@
 #include "Core/PowerPC/MMU.h"
 
 #include <bit>
+#include <concepts>
 #include <cstddef>
 #include <cstring>
 #include <string>
@@ -49,8 +50,6 @@
 #include "Core/System.h"
 
 #include "VideoCommon/VideoBackendBase.h"
-
-#include "Common/Future/CppLibConcepts.h"
 
 namespace PowerPC
 {

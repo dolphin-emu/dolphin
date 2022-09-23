@@ -5,6 +5,7 @@
 
 #include <array>
 #include <climits>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -12,8 +13,6 @@
 #include <type_traits>
 
 #include "Common/Concepts.h"
-
-#include "Common/Future/CppLibConcepts.h"
 
 namespace Common
 {

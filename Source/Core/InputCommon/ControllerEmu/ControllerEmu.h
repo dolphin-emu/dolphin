@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cmath>
+#include <concepts>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -17,8 +18,6 @@
 #include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
-
-#include "Common/Future/CppLibConcepts.h"
 
 class ControllerInterface;
 

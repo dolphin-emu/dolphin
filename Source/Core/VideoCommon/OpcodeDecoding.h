@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <concepts>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
@@ -10,8 +12,6 @@
 #include "Common/Swap.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/VertexLoaderBase.h"
-
-#include "Common/Future/CppLibConcepts.h"
 
 struct CPState;
 class DataReader;
