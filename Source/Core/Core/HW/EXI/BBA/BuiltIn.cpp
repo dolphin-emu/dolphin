@@ -510,7 +510,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
 void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
 {
   StackRef* ref = GetAvailableSlot(0);
-  if (m_upnp_httpd.accept(ref->tcp_socket) != sf::Socket::Done)
+  if (ref == nullptr || m_upnp_httpd.accept(ref->tcp_socket) != sf::Socket::Done)
     return;
 
   if (ref->tcp_socket.GetPeerName(&ref->from) != sf::Socket::Status::Done ||
