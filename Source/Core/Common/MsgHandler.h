@@ -29,7 +29,7 @@ using StringTranslator = std::string (*)(const char* text);
 void RegisterMsgAlertHandler(MsgAlertHandler handler);
 void RegisterStringTranslator(StringTranslator translator);
 
-std::string GetStringT(const char* string);
+[[nodiscard]] std::string GetStringT(const char* string);
 
 bool MsgAlertFmtImpl(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
                      int line, fmt::string_view format, const fmt::format_args& args);
