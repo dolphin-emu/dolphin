@@ -357,7 +357,7 @@ void MainWindow::ShutdownControllers()
 
 void MainWindow::InitCoreCallbacks()
 {
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [=](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     if (state == Core::State::Uninitialized)
       OnStopComplete();
     if (state != Core::State::Uninitialized && NetPlay::IsNetPlayRunning() && m_controllers_window)
@@ -374,7 +374,7 @@ void MainWindow::InitCoreCallbacks()
 
   // Handle file open events
   auto* filter = new FileOpenEventFilter(QGuiApplication::instance());
-  connect(filter, &FileOpenEventFilter::fileOpened, this, [=](const QString& file_name) {
+  connect(filter, &FileOpenEventFilter::fileOpened, this, [this](const QString& file_name) {
     StartGame(BootParameters::GenerateFromFile(file_name.toStdString()));
   });
 }
