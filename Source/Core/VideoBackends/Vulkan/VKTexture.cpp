@@ -21,6 +21,7 @@
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan
@@ -698,13 +699,22 @@ void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer,
                        &barrier);
 }
 
-VKStagingTexture::VKStagingTexture(StagingTextureType type, const TextureConfig& config,
-                                   std::unique_ptr<StagingBuffer> buffer)
-    : AbstractStagingTexture(type, config), m_staging_buffer(std::move(buffer))
+VKStagingTexture::VKStagingTexture(PrivateTag, StagingTextureType type, const TextureConfig& config,
+                                   std::unique_ptr<StagingBuffer> buffer, VkImage linear_image,
+                                   VkDeviceMemory linear_image_memory)
+    : AbstractStagingTexture(type, config), m_staging_buffer(std::move(buffer)),
+      m_linear_image(linear_image), m_linear_image_memory(linear_image_memory)
 {
 }
 
-VKStagingTexture::~VKStagingTexture() = default;
+VKStagingTexture::~VKStagingTexture()
+{
+  if (m_linear_image != VK_NULL_HANDLE)
+  {
+    g_command_buffer_mgr->DeferImageDestruction(m_linear_image);
+    g_command_buffer_mgr->DeferDeviceMemoryDestruction(m_linear_image_memory);
+  }
+}
 
 std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType type,
                                                            const TextureConfig& config)
@@ -739,10 +749,20 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
     return nullptr;
   }
 
+  // Linear image
+  VkImage linear_image = VK_NULL_HANDLE;
+  VkDeviceMemory linear_image_device_memory = VK_NULL_HANDLE;
+  if (DriverDetails::HasBug(DriverDetails::BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY) &&
+      type == StagingTextureType::Readback && config.samples == 1)
+  {
+    std::tie(linear_image, linear_image_device_memory) = CreateLinearImage(type, config);
+  }
+
   std::unique_ptr<StagingBuffer> staging_buffer =
       std::make_unique<StagingBuffer>(buffer_type, buffer, memory, buffer_size, coherent);
-  std::unique_ptr<VKStagingTexture> staging_tex = std::unique_ptr<VKStagingTexture>(
-      new VKStagingTexture(type, config, std::move(staging_buffer)));
+  std::unique_ptr<VKStagingTexture> staging_tex =
+      std::make_unique<VKStagingTexture>(PrivateTag{}, type, config, std::move(staging_buffer),
+                                         linear_image, linear_image_device_memory);
 
   // Use persistent mapping.
   if (!staging_tex->m_staging_buffer->Map())
@@ -750,6 +770,75 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
   staging_tex->m_map_pointer = staging_tex->m_staging_buffer->GetMapPointer();
   staging_tex->m_map_stride = stride;
   return staging_tex;
+}
+
+std::pair<VkImage, VkDeviceMemory> VKStagingTexture::CreateLinearImage(StagingTextureType type,
+                                                                       const TextureConfig& config)
+{
+  // Create a intermediate texture with linear tiling
+  VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                                  nullptr,
+                                  0,
+                                  VK_IMAGE_TYPE_2D,
+                                  VKTexture::GetVkFormatForHostTextureFormat(config.format),
+                                  {config.width, config.height, 1},
+                                  1,
+                                  1,
+                                  VK_SAMPLE_COUNT_1_BIT,
+                                  VK_IMAGE_TILING_LINEAR,
+                                  VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                                  VK_SHARING_MODE_EXCLUSIVE,
+                                  0,
+                                  nullptr,
+                                  VK_IMAGE_LAYOUT_UNDEFINED};
+
+  VkImageFormatProperties format_properties;
+  VkResult res = vkGetPhysicalDeviceImageFormatProperties(
+      g_vulkan_context->GetPhysicalDevice(), image_info.format, image_info.imageType,
+      image_info.tiling, image_info.usage, image_info.flags, &format_properties);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "Linear images are not supported for the staging texture: ");
+    return std::make_pair(VK_NULL_HANDLE, VK_NULL_HANDLE);
+  }
+
+  VkImage image;
+  res = vkCreateImage(g_vulkan_context->GetDevice(), &image_info, nullptr, &image);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateImage failed: ");
+    return std::make_pair(VK_NULL_HANDLE, VK_NULL_HANDLE);
+  }
+
+  // Allocate memory to back this texture, we want device local memory in this case
+  VkMemoryRequirements memory_requirements;
+  vkGetImageMemoryRequirements(g_vulkan_context->GetDevice(), image, &memory_requirements);
+
+  VkMemoryAllocateInfo memory_info = {
+      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, nullptr, memory_requirements.size,
+      g_vulkan_context
+          ->GetMemoryType(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                          false)
+          .value_or(0)};
+
+  VkDeviceMemory device_memory;
+  res = vkAllocateMemory(g_vulkan_context->GetDevice(), &memory_info, nullptr, &device_memory);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
+    vkDestroyImage(g_vulkan_context->GetDevice(), image, nullptr);
+    return std::make_pair(VK_NULL_HANDLE, VK_NULL_HANDLE);
+  }
+
+  res = vkBindImageMemory(g_vulkan_context->GetDevice(), image, device_memory, 0);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkBindImageMemory failed: ");
+    vkDestroyImage(g_vulkan_context->GetDevice(), image, nullptr);
+    vkFreeMemory(g_vulkan_context->GetDevice(), device_memory, nullptr);
+    return std::make_pair(VK_NULL_HANDLE, VK_NULL_HANDLE);
+  }
+  return std::make_pair(image, device_memory);
 }
 
 void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
@@ -783,7 +872,16 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
   image_copy.imageOffset = {src_rect.left, src_rect.top, 0};
   image_copy.imageExtent = {static_cast<u32>(src_rect.GetWidth()),
                             static_cast<u32>(src_rect.GetHeight()), 1u};
-  vkCmdCopyImageToBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_tex->GetImage(),
+
+  VkImage src_image = src_tex->GetImage();
+  if (m_linear_image != VK_NULL_HANDLE)
+  {
+    CopyFromTextureToLinearImage(src_tex, src_rect, src_layer, src_level, dst_rect);
+    src_image = m_linear_image;
+    image_copy.imageOffset = {0, 0, 0};
+  }
+
+  vkCmdCopyImageToBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_image,
                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_staging_buffer->GetBuffer(), 1,
                          &image_copy);
 
@@ -792,6 +890,55 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
 
   m_needs_flush = true;
   m_flush_fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+}
+
+void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
+                                                    const MathUtil::Rectangle<int>& src_rect,
+                                                    u32 src_layer, u32 src_level,
+                                                    const MathUtil::Rectangle<int>& dst_rect)
+{
+  // The proprietary Qualcomm driver allocates a temporary image when copying from an image
+  // with optimal tiling (VK_IMAGE_TILING_OPTIMAL) to a buffer.
+  // That allocation is very slow, so we just do it ourself and reuse the intermediate image.
+
+  const VkImageAspectFlags aspect = VKTexture::GetImageViewAspectForFormat(src_tex->GetFormat());
+
+  VkImageMemoryBarrier linear_image_barrier = {};
+  linear_image_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+  linear_image_barrier.pNext = nullptr;
+  linear_image_barrier.srcAccessMask = 0;
+  linear_image_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT;
+  linear_image_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  linear_image_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+  linear_image_barrier.image = m_linear_image;
+  linear_image_barrier.subresourceRange = {aspect, 0, 1, 0, 1};
+  vkCmdPipelineBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                       VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
+                       nullptr, 0, nullptr, 1, &linear_image_barrier);
+
+  VkImageBlit blit;
+  blit.srcSubresource = {aspect, src_level, src_layer, 1};
+  blit.dstSubresource.layerCount = 1;
+  blit.dstSubresource.baseArrayLayer = 0;
+  blit.dstSubresource.mipLevel = 0;
+  blit.dstSubresource.aspectMask = linear_image_barrier.subresourceRange.aspectMask;
+  blit.srcOffsets[0] = {src_rect.left, src_rect.top, 0};
+  blit.srcOffsets[1] = {static_cast<s32>(blit.srcOffsets[0].x + src_rect.GetWidth()),
+                        static_cast<s32>(blit.srcOffsets[0].y + src_rect.GetHeight()), 1};
+  blit.dstOffsets[0] = {0, 0, 0};
+  blit.dstOffsets[1] = {dst_rect.GetWidth(), dst_rect.GetHeight(), 1u};
+
+  vkCmdBlitImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_tex->GetImage(),
+                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_linear_image,
+                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_NEAREST);
+
+  linear_image_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+  linear_image_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+  linear_image_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+
+  vkCmdPipelineBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                       VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
+                       nullptr, 0, nullptr, 1, &linear_image_barrier);
 }
 
 void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,

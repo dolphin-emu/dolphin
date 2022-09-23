@@ -329,6 +329,13 @@ enum Bug
   // Started version: -1
   // Ended version: -1
   BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING,
+
+  // BUG: vkCmdCopyImageToBuffer allocates a staging image when used to copy from
+  // an image with optimal tiling.
+  // Affected devices: Adreno
+  // Started Version: -1
+  // Ended Version: -1
+  BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY
 };
 
 // Initializes our internal vendor, device family, and driver version
