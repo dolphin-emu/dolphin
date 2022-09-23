@@ -520,6 +520,13 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
     return;
   }
 
+  if (m_current_ip == ref->from.sin_addr.s_addr)
+  {
+    ref->tcp_socket.disconnect();
+    WARN_LOG_FMT(SP1, "Ignoring UPnP request to itself");
+    return;
+  }
+
   ref->delay = GetTickCountStd();
   ref->ip = ref->from.sin_addr.s_addr;
   ref->local = ref->to.sin_port;
