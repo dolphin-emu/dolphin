@@ -103,12 +103,14 @@ struct ThreePointCalibration
 template <typename T, size_t Bits>
 struct RawValue
 {
-  RawValue() = default;
-  explicit RawValue(const T& value_) : value{value_} {}
+  constexpr RawValue() = default;
+  constexpr explicit RawValue(const T& value_) : value{value_} {}
 
   static constexpr size_t BITS_OF_PRECISION = Bits;
 
   T value;
+
+  constexpr bool operator==(const RawValue& other) const = default;
 
   template <typename OtherT, size_t OtherBits>
   auto GetNormalizedValue(const TwoPointCalibration<OtherT, OtherBits>& calibration) const
