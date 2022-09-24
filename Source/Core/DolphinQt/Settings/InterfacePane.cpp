@@ -309,8 +309,6 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_SHOW_ACTIVE_TITLE, m_checkbox_show_active_title->isChecked());
   Config::SetBase(Config::MAIN_PAUSE_ON_FOCUS_LOST, m_checkbox_pause_on_focus_lost->isChecked());
 
-  Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
-
   auto new_language = m_combobox_language->currentData().toString().toStdString();
   if (new_language != Config::Get(Config::MAIN_INTERFACE_LANGUAGE))
   {
