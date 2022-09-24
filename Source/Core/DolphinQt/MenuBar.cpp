@@ -548,8 +548,7 @@ void MenuBar::AddOptionsMenu()
   m_reset_ignore_panic_handler = options_menu->addAction(tr("Reset Ignore Panic Handler"));
 
   connect(m_reset_ignore_panic_handler, &QAction::triggered, this, []() {
-    if (Config::Get(Config::MAIN_USE_PANIC_HANDLERS))
-      Common::SetEnableAlert(true);
+    Config::DeleteKey(Config::LayerType::CurrentRun, Config::MAIN_USE_PANIC_HANDLERS);
   });
 
   m_change_font = options_menu->addAction(tr("&Font..."), this, &MenuBar::ChangeDebugFont);

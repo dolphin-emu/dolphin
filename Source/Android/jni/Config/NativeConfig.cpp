@@ -16,6 +16,7 @@ constexpr jint LAYER_BASE_OR_CURRENT = 0;
 constexpr jint LAYER_BASE = 1;
 constexpr jint LAYER_LOCAL_GAME = 2;
 constexpr jint LAYER_ACTIVE = 3;
+constexpr jint LAYER_CURRENT = 4;
 
 static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, jstring key)
 {
@@ -74,6 +75,10 @@ static std::shared_ptr<Config::Layer> GetLayer(jint layer, const Config::Locatio
 
   case LAYER_ACTIVE:
     layer_type = Config::GetActiveLayerForConfig(location);
+    break;
+
+  case LAYER_CURRENT:
+    layer_type = Config::LayerType::CurrentRun;
     break;
 
   default:

@@ -329,6 +329,18 @@ public enum BooleanSetting implements AbstractBooleanSetting
     }
   }
 
+  public void setBoolean(int layerType, boolean newValue)
+  {
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    {
+      NativeConfig.setBoolean(layerType, mFile, mSection, mKey, newValue);
+    }
+    else
+    {
+      throw new UnsupportedOperationException("The old config system doesn't support layers");
+    }
+  }
+
   public boolean getBooleanGlobal()
   {
     return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
