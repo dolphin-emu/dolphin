@@ -933,6 +933,7 @@
     <ClCompile Include="Core\HW\Wiimote.cpp" />
     <ClCompile Include="Core\HW\WiimoteCommon\DataReport.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Camera.cpp" />
+    <ClCompile Include="Core\HW\WiimoteEmu\DesiredWiimoteState.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Dynamics.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\EmuSubroutines.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Encryption.cpp" />
