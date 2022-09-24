@@ -24,6 +24,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace
 {
@@ -341,6 +342,8 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
              inst.hex, PC, last_pc, LR);
+  if (Core::System::GetInstance().IsPauseOnPanicMode())
+    CPU::Break();
 }
 
 void Interpreter::ClearCache()

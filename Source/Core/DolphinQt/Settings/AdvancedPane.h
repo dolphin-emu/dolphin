@@ -32,6 +32,7 @@ private:
 
   QComboBox* m_cpu_emulation_engine_combobox;
   QCheckBox* m_enable_mmu_checkbox;
+  QCheckBox* m_pause_on_panic_checkbox;
   QCheckBox* m_cpu_clock_override_checkbox;
   QSlider* m_cpu_clock_override_slider;
   QLabel* m_cpu_clock_override_slider_label;
