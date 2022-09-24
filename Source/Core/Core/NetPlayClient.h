@@ -117,6 +117,7 @@ public:
   // Called from the GUI thread.
   bool IsConnected() const { return m_is_connected; }
   bool StartGame(const std::string& path);
+  void InvokeStop();
   bool StopGame();
   void Stop();
   bool ChangeGame(const std::string& game);
@@ -252,6 +253,8 @@ private:
   void DisplayPlayersPing();
   u32 GetPlayersMaxPing() const;
 
+  bool WaitForWiimoteBuffer(int _number);
+
   void OnData(sf::Packet& packet);
   void OnPlayerJoin(sf::Packet& packet);
   void OnPlayerLeave(sf::Packet& packet);
@@ -278,7 +281,6 @@ private:
   void OnPing(sf::Packet& packet);
   void OnPlayerPingData(sf::Packet& packet);
   void OnDesyncDetected(sf::Packet& packet);
-  void OnSyncGCSRAM(sf::Packet& packet);
   void OnSyncSaveData(sf::Packet& packet);
   void OnSyncSaveDataNotify(sf::Packet& packet);
   void OnSyncSaveDataRaw(sf::Packet& packet);

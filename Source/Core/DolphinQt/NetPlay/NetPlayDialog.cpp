@@ -369,7 +369,7 @@ void NetPlayDialog::ConnectWidgets()
     }
   });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [=](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     if (isVisible())
     {
       GameStatusChanged(state != Core::State::Uninitialized);
@@ -850,8 +850,7 @@ void NetPlayDialog::OnMsgStartGame()
   g_netplay_chat_ui =
       std::make_unique<NetPlayChatUI>([this](const std::string& message) { SendMessage(message); });
 
-  if (m_host_input_authority &&
-      Settings::Instance().GetNetPlayClient()->GetNetSettings().m_GolfMode)
+  if (m_host_input_authority && Settings::Instance().GetNetPlayClient()->GetNetSettings().golf_mode)
   {
     g_netplay_golf_ui = std::make_unique<NetPlayGolfUI>(Settings::Instance().GetNetPlayClient());
   }

@@ -103,12 +103,14 @@ struct ThreePointCalibration
 template <typename T, size_t Bits>
 struct RawValue
 {
-  RawValue() = default;
-  explicit RawValue(const T& value_) : value{value_} {}
+  constexpr RawValue() = default;
+  constexpr explicit RawValue(const T& value_) : value{value_} {}
 
   static constexpr size_t BITS_OF_PRECISION = Bits;
 
   T value;
+
+  constexpr bool operator==(const RawValue& other) const = default;
 
   template <typename OtherT, size_t OtherBits>
   auto GetNormalizedValue(const TwoPointCalibration<OtherT, OtherBits>& calibration) const
@@ -206,9 +208,9 @@ public:
     static_assert(std::is_integral<T>(), "T is only sane for int types.");
     static_assert(std::is_floating_point<F>(), "F is only sane for float types.");
 
-    static_assert(std::numeric_limits<long>::min() <= std::numeric_limits<T>::min() &&
-                      std::numeric_limits<long>::max() >= std::numeric_limits<T>::max(),
-                  "long is not a superset of T. use of std::lround is not sane.");
+    static_assert(std::numeric_limits<long long>::min() <= std::numeric_limits<T>::min() &&
+                      std::numeric_limits<long long>::max() >= std::numeric_limits<T>::max(),
+                  "long long is not a superset of T. use of std::llround is not sane.");
 
     // Here we round when converting from float to int.
     // After applying our deadzone, resizing, and reshaping math
@@ -216,9 +218,9 @@ public:
     // Casting would round down but rounding will yield our "zero_value".
 
     if (input_value > 0)
-      return T(std::lround((pos_1_value - zero_value) * input_value + zero_value));
+      return T(std::llround((pos_1_value - zero_value) * input_value + zero_value));
     else
-      return T(std::lround((zero_value - neg_1_value) * input_value + zero_value));
+      return T(std::llround((zero_value - neg_1_value) * input_value + zero_value));
   }
 
 protected:

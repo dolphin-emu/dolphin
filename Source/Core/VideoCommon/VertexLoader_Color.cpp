@@ -205,23 +205,7 @@ constexpr Table<TPipelineFunction> s_table_read_color = {
        Color_ReadIndex_32b_8888<u16>}),
 };
 
-constexpr Table<u32> s_table_read_color_vertex_size = {
-    g({0u, 0u, 0u, 0u, 0u, 0u}),
-    g({2u, 3u, 4u, 2u, 3u, 4u}),
-    g({1u, 1u, 1u, 1u, 1u, 1u}),
-    g({2u, 2u, 2u, 2u, 2u, 2u}),
-};
 }  // Anonymous namespace
-
-u32 VertexLoader_Color::GetSize(VertexComponentFormat type, ColorFormat format)
-{
-  if (format > ColorFormat::RGBA8888)
-  {
-    PanicAlertFmt("Invalid color format {}", format);
-    return 0;
-  }
-  return s_table_read_color_vertex_size[type][format];
-}
 
 TPipelineFunction VertexLoader_Color::GetFunction(VertexComponentFormat type, ColorFormat format)
 {

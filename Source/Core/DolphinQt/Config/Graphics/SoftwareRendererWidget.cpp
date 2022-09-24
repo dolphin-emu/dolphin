@@ -34,8 +34,9 @@ SoftwareRendererWidget::SoftwareRendererWidget(GraphicsWindow* parent)
   emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
 
   connect(parent, &GraphicsWindow::BackendChanged, [this] { LoadSettings(); });
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+    OnEmulationStateChanged(state != Core::State::Uninitialized);
+  });
   OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
 }
 

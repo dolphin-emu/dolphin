@@ -50,7 +50,7 @@
                 app:layout_constraintWidth_max="400dp"
                 app:layout_constraintEnd_toStartOf="@id/divider"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@id/divider"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:text="@string/user_data_new_location" />
 
             <TextView
@@ -84,15 +84,14 @@
                 app:barrierDirection="end"
                 app:constraint_referenced_ids="text_type,text_path,text_android_11" />
 
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/divider"
                 android:layout_width="1dp"
                 android:layout_height="0dp"
-                android:background="#1F000000"
                 android:layout_marginStart="24dp"
                 android:layout_marginEnd="24dp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="@id/text_type"
+                app:layout_constraintBottom_toBottomOf="@id/text_android_11"
                 app:layout_constraintStart_toEndOf="@id/barrier_text"
                 app:layout_constraintEnd_toStartOf="@id/barrier_buttons" />
 

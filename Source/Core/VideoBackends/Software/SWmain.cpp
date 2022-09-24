@@ -89,6 +89,7 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsLodBiasInSampler = false;
   g_Config.backend_info.bSupportsSettingObjectNames = false;
   g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
+  g_Config.backend_info.bSupportsDynamicVertexLoader = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};

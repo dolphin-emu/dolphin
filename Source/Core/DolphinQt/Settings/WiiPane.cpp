@@ -107,8 +107,9 @@ void WiiPane::ConnectLayout()
   connect(m_wiimote_motor, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
 
   // Emulation State
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+    OnEmulationStateChanged(state != Core::State::Uninitialized);
+  });
 }
 
 void WiiPane::CreateMisc()

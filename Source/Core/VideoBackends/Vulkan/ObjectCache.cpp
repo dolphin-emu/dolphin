@@ -123,8 +123,10 @@ bool ObjectCache::CreateDescriptorSetLayouts()
        VK_SHADER_STAGE_FRAGMENT_BIT},
   }};
 
-  static const std::array<VkDescriptorSetLayoutBinding, 1> standard_ssbo_bindings{{
+  // The dynamic veretex loader's vertex buffer must be last here, for similar reasons
+  static const std::array<VkDescriptorSetLayoutBinding, 2> standard_ssbo_bindings{{
       {0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+      {1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT},
   }};
 
   static const std::array<VkDescriptorSetLayoutBinding, 1> utility_ubo_bindings{{
@@ -173,6 +175,10 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS].bindingCount--;
 
+  // Remove the dynamic vertex loader's buffer if it'll never be needed
+  if (!g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+    create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS].bindingCount--;
+
   for (size_t i = 0; i < create_infos.size(); i++)
   {
     VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &create_infos[i],
@@ -206,6 +212,11 @@ bool ObjectCache::CreatePipelineLayouts()
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS],
   };
+  const std::array<VkDescriptorSetLayout, 3> uber_sets{
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SAMPLERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS],
+  };
   const std::array<VkDescriptorSetLayout, 2> utility_sets{
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UTILITY_UNIFORM_BUFFER],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UTILITY_SAMPLERS],
@@ -220,6 +231,10 @@ bool ObjectCache::CreatePipelineLayouts()
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(standard_sets.size()), standard_sets.data(), 0, nullptr},
 
+      // Uber
+      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(uber_sets.size()), uber_sets.data(), 0, nullptr},
+
       // Utility
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(utility_sets.size()), utility_sets.data(), 0, nullptr},
@@ -232,6 +247,10 @@ bool ObjectCache::CreatePipelineLayouts()
   // If bounding box is unsupported, don't bother with the SSBO descriptor set.
   if (!g_ActiveConfig.backend_info.bSupportsBBox)
     pipeline_layout_info[PIPELINE_LAYOUT_STANDARD].setLayoutCount--;
+  // If neither SSBO-using feature is supported, skip in ubershaders too
+  if (!g_ActiveConfig.backend_info.bSupportsBBox &&
+      !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+    pipeline_layout_info[PIPELINE_LAYOUT_UBER].setLayoutCount--;
 
   for (size_t i = 0; i < pipeline_layout_info.size(); i++)
   {

@@ -608,7 +608,7 @@ void Metal::StateTracker::PrepareRender()
     BeginRenderPass(MTLLoadActionLoad);
   id<MTLRenderCommandEncoder> enc = m_current_render_encoder;
   const Pipeline* pipe = m_state.render_pipeline;
-  bool is_gx = pipe->Usage() == AbstractPipelineUsage::GX;
+  bool is_gx = pipe->Usage() != AbstractPipelineUsage::Utility;
   NSString* label = is_gx ? LABEL_GX : LABEL_UTIL;
   if (m_flags.should_apply_label && m_current.label != label)
   {

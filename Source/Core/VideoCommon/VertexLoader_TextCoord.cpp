@@ -127,44 +127,7 @@ constexpr Table<TPipelineFunction> s_table_read_tex_coord = {
         e(TexCoord_ReadIndex<u16, float, 1>, TexCoord_ReadIndex<u16, float, 2>),
     }),
 };
-
-constexpr Table<u32> s_table_read_tex_coord_vertex_size = {
-    g({
-        e(0u, 0u),
-        e(0u, 0u),
-        e(0u, 0u),
-        e(0u, 0u),
-        e(0u, 0u),
-    }),
-    g({
-        e(1, 2),
-        e(1, 2),
-        e(2, 4),
-        e(2, 4),
-        e(4, 8),
-    }),
-    g({
-        e(1, 1),
-        e(1, 1),
-        e(1, 1),
-        e(1, 1),
-        e(1, 1),
-    }),
-    g({
-        e(2, 2),
-        e(2, 2),
-        e(2, 2),
-        e(2, 2),
-        e(2, 2),
-    }),
-};
 }  // Anonymous namespace
-
-u32 VertexLoader_TextCoord::GetSize(VertexComponentFormat type, ComponentFormat format,
-                                    TexComponentCount elements)
-{
-  return s_table_read_tex_coord_vertex_size[type][format][elements];
-}
 
 TPipelineFunction VertexLoader_TextCoord::GetFunction(VertexComponentFormat type,
                                                       ComponentFormat format,

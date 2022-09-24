@@ -42,8 +42,9 @@
       <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">HAS_OPENGL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>HAS_VULKAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>HAS_LIBMGBA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions>AUTOUPDATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(AutoUpdate)'!='false'">AUTOUPDATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>HAVE_SDL2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Steam)'=='true'">STEAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 
       <!-- Warnings one may want to ignore when using Level4.
       4201  nonstandard extension used : nameless struct/union

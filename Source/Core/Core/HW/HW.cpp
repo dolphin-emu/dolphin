@@ -31,7 +31,7 @@
 
 namespace HW
 {
-void Init()
+void Init(const Sram* override_sram)
 {
   CoreTiming::Init();
   SystemTimers::PreInit();
@@ -43,7 +43,7 @@ void Init()
   VideoInterface::Init();
   SerialInterface::Init();
   ProcessorInterface::Init();
-  ExpansionInterface::Init();  // Needs to be initialized before Memory
+  ExpansionInterface::Init(override_sram);  // Needs to be initialized before Memory
   HSP::Init();
   Memory::Init();  // Needs to be initialized before AddressSpace
   AddressSpace::Init();

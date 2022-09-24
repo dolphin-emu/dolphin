@@ -4,6 +4,7 @@
 #include "UpdaterCommon/UpdaterCommon.h"
 
 #include <array>
+#include <memory>
 #include <optional>
 
 #include <OptionParser.h>
@@ -132,16 +133,17 @@ std::optional<std::string> GzipInflate(const std::string& data)
   inflateInit2(&zstrm, 16 + MAX_WBITS);
 
   std::string out;
-  char buffer[4096];
+  const size_t buf_len = 20 * 1024 * 1024;
+  auto buffer = std::make_unique<char[]>(buf_len);
   int ret;
 
   do
   {
-    zstrm.avail_out = sizeof(buffer);
-    zstrm.next_out = reinterpret_cast<u8*>(buffer);
+    zstrm.avail_out = buf_len;
+    zstrm.next_out = reinterpret_cast<u8*>(buffer.get());
 
     ret = inflate(&zstrm, 0);
-    out.append(buffer, sizeof(buffer) - zstrm.avail_out);
+    out.append(buffer.get(), buf_len - zstrm.avail_out);
   } while (ret == Z_OK);
 
   inflateEnd(&zstrm);

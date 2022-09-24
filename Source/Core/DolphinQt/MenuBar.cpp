@@ -90,7 +90,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   AddPrimeHackMenu();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [=](Core::State state) { OnEmulationStateChanged(state); });
+          [=, this](Core::State state) { OnEmulationStateChanged(state); });
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
           [this] { OnEmulationStateChanged(Core::GetState()); });
 
@@ -343,7 +343,7 @@ void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
   {
     QAction* action = m_state_load_slots_menu->addAction(QString{});
 
-    connect(action, &QAction::triggered, this, [=]() { emit StateLoadSlotAt(i); });
+    connect(action, &QAction::triggered, this, [=, this]() { emit StateLoadSlotAt(i); });
   }
 }
 
@@ -360,7 +360,7 @@ void MenuBar::AddStateSaveMenu(QMenu* emu_menu)
   {
     QAction* action = m_state_save_slots_menu->addAction(QString{});
 
-    connect(action, &QAction::triggered, this, [=]() { emit StateSaveSlotAt(i); });
+    connect(action, &QAction::triggered, this, [=, this]() { emit StateSaveSlotAt(i); });
   }
 }
 
@@ -377,7 +377,7 @@ void MenuBar::AddStateSlotMenu(QMenu* emu_menu)
     if (Settings::Instance().GetStateSlot() == i)
       action->setChecked(true);
 
-    connect(action, &QAction::triggered, this, [=]() { emit SetStateSlot(i); });
+    connect(action, &QAction::triggered, this, [=, this]() { emit SetStateSlot(i); });
   }
 }
 
