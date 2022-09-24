@@ -142,14 +142,17 @@ private:
   QPushButton* m_start_button;
   QLabel* m_buffer_label;
   QSpinBox* m_buffer_size_box;
-  QAction* m_write_save_data_action;
-  QAction* m_load_wii_action;
-  QAction* m_sync_save_data_action;
+
+  QActionGroup* m_savedata_style_group;
+  QAction* m_savedata_none_action;
+  QAction* m_savedata_load_only_action;
+  QAction* m_savedata_load_and_write_action;
+  QAction* m_savedata_all_wii_saves_action;
+
   QAction* m_sync_codes_action;
   QAction* m_record_input_action;
   QAction* m_strict_settings_sync_action;
   QAction* m_host_input_authority_action;
-  QAction* m_sync_all_wii_saves_action;
   QAction* m_golf_mode_action;
   QAction* m_golf_mode_overlay_action;
   QAction* m_fixed_delay_action;

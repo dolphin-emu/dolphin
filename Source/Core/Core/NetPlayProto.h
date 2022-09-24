@@ -38,13 +38,11 @@ struct NetSettings
   bool override_region_settings = false;
   bool dsp_hle = false;
   bool dsp_enable_jit = false;
-  bool write_to_memcard = false;
   bool ram_override_enable = false;
   u32 mem1_size = 0;
   u32 mem2_size = 0;
   DiscIO::Region fallback_region{};
   bool allow_sd_writes = false;
-  bool copy_wii_save = false;
   bool oc_enable = false;
   float oc_factor = 0;
   Common::EnumMap<ExpansionInterface::EXIDeviceType, ExpansionInterface::MAX_SLOT> exi_device{};
@@ -96,11 +94,13 @@ struct NetSettings
   int efb_access_tile_size = 0;
   bool efb_access_defer_invalidation = false;
 
+  bool savedata_load = false;
+  bool savedata_write = false;
+  bool savedata_sync_all_wii = false;
+
   bool strict_settings_sync = false;
-  bool sync_save_data = false;
   bool sync_codes = false;
   std::string save_data_region;
-  bool sync_all_wii_saves = false;
   std::array<int, 4> wiimote_extension{};
   bool golf_mode = false;
   bool use_fma = false;
@@ -260,7 +260,6 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
 bool IsNetPlayRunning();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
-bool IsSyncingAllWiiSaves();
 void SetupWiimotes();
 std::string GetGBASavePath(int pad_num);
 PadDetails GetPadDetails(int pad_num);
