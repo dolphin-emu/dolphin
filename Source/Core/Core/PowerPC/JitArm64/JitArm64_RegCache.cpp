@@ -362,6 +362,16 @@ void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool do_load, 
       m_emit->LDR(IndexType::Unsigned, host_reg, PPC_REG, u32(guest_reg.ppc_offset));
     }
   }
+  else if (reg_type == RegType::Immediate)
+  {
+    const ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
+    if (do_load)
+    {
+      m_emit->MOVI2R(host_reg, reg.GetImm());
+    }
+    reg.Load(host_reg);
+    reg.SetDirty(set_dirty);
+  }
   else if (set_dirty)
   {
     reg.SetDirty(true);
