@@ -30,6 +30,9 @@ public:
   virtual void EventLinked() = 0;
   virtual void EventUnlinked() = 0;
 
+  virtual u8 GetWiimoteDeviceIndex() const = 0;
+  virtual void SetWiimoteDeviceIndex(u8 index) = 0;
+
   // Called every ~200hz after HID channels are established.
   virtual void Update() = 0;
 

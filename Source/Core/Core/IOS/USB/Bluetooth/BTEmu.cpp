@@ -58,7 +58,7 @@ BluetoothEmuDevice::BluetoothEmuDevice(Kernel& ios, const std::string& device_na
     DEBUG_LOG_FMT(IOS_WIIMOTE, "Wii Remote {} BT ID {:x},{:x},{:x},{:x},{:x},{:x}", i, tmp_bd[0],
                   tmp_bd[1], tmp_bd[2], tmp_bd[3], tmp_bd[4], tmp_bd[5]);
 
-    m_wiimotes.emplace_back(std::make_unique<WiimoteDevice>(this, i, tmp_bd));
+    m_wiimotes.emplace_back(std::make_unique<WiimoteDevice>(this, tmp_bd, i));
   }
 
   bt_dinf.num_registered = MAX_BBMOTES;

@@ -209,7 +209,7 @@ void Wiimote::Reset()
   m_imu_cursor_state = {};
 }
 
-Wiimote::Wiimote(const unsigned int index) : m_index(index)
+Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(index)
 {
   // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
@@ -489,6 +489,16 @@ DesiredWiimoteState Wiimote::BuildDesiredWiimoteState()
   return wiimote_state;
 }
 
+u8 Wiimote::GetWiimoteDeviceIndex() const
+{
+  return m_bt_device_index;
+}
+
+void Wiimote::SetWiimoteDeviceIndex(u8 index)
+{
+  m_bt_device_index = index;
+}
+
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
 void Wiimote::Update()
 {
@@ -551,7 +561,8 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
   DataReportBuilder rpt_builder(m_reporting_mode);
 
   if (Movie::IsPlayingInput() &&
-      Movie::PlayWiimote(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey()))
+      Movie::PlayWiimote(m_bt_device_index, rpt_builder, m_active_extension,
+                         GetExtensionEncryptionKey()))
   {
     // Update buttons in status struct from movie:
     rpt_builder.GetCoreData(&m_status.buttons);
@@ -619,7 +630,8 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
       }
     }
 
-    Movie::CallWiiInputManip(rpt_builder, m_index, m_active_extension, GetExtensionEncryptionKey());
+    Movie::CallWiiInputManip(rpt_builder, m_bt_device_index, m_active_extension,
+                             GetExtensionEncryptionKey());
   }
 
   if (NetPlay::IsNetPlayRunning())
@@ -631,7 +643,8 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
     rpt_builder.GetCoreData(&m_status.buttons);
   }
 
-  Movie::CheckWiimoteStatus(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey());
+  Movie::CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
+                            GetExtensionEncryptionKey());
 
   // Send the report:
   InterruptDataInputCallback(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());

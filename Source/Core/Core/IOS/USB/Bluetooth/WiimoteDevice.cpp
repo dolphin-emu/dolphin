@@ -54,24 +54,28 @@ private:
 
 constexpr int CONNECTION_MESSAGE_TIME = 3000;
 
-WiimoteDevice::WiimoteDevice(BluetoothEmuDevice* host, int number, bdaddr_t bd)
+WiimoteDevice::WiimoteDevice(BluetoothEmuDevice* host, bdaddr_t bd, unsigned int hid_source_number)
     : m_host(host), m_bd(bd),
-      m_name(number == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
+      m_name(GetNumber() == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
 
 {
-  INFO_LOG_FMT(IOS_WIIMOTE, "Wiimote: #{} Constructed", number);
+  INFO_LOG_FMT(IOS_WIIMOTE, "Wiimote: #{} Constructed", GetNumber());
 
-  m_link_key.fill(0xa0 + number);
+  m_link_key.fill(0xa0 + GetNumber());
   m_class = {0x00, 0x04, 0x48};
   m_features = {0xBC, 0x02, 0x04, 0x38, 0x08, 0x00, 0x00, 0x00};
   m_lmp_version = 0x2;
   m_lmp_subversion = 0x229;
 
-  const auto hid_source = WiimoteCommon::GetHIDWiimoteSource(GetNumber());
+  const auto hid_source = WiimoteCommon::GetHIDWiimoteSource(hid_source_number);
 
-  // UGLY: This prevents an OSD message in SetSource -> Activate.
   if (hid_source)
+  {
+    hid_source->SetWiimoteDeviceIndex(GetNumber());
+
+    // UGLY: This prevents an OSD message in SetSource -> Activate.
     SetBasebandState(BasebandState::RequestConnection);
+  }
 
   SetSource(hid_source);
 }

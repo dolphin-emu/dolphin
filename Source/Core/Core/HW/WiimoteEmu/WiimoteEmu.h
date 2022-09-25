@@ -129,6 +129,9 @@ public:
   ControllerEmu::ControlGroup* GetTaTaConGroup(TaTaConGroup group) const;
   ControllerEmu::ControlGroup* GetShinkansenGroup(ShinkansenGroup group) const;
 
+  u8 GetWiimoteDeviceIndex() const override;
+  void SetWiimoteDeviceIndex(u8 index) override;
+
   void Update() override;
   void EventLinked() override;
   void EventUnlinked() override;
@@ -281,8 +284,14 @@ private:
 
   ExtensionPort m_extension_port{&m_i2c_bus};
 
-  // Wiimote index, 0-3
+  // Wiimote index, 0-3.
+  // Can also be 4 for Balance Board.
+  // This is used to look up the user button config.
   const u8 m_index;
+
+  // The Bluetooth 'slot' this device is connected to.
+  // This is usually the same as m_index, but can differ during Netplay.
+  u8 m_bt_device_index;
 
   WiimoteCommon::InputReportID m_reporting_mode;
   bool m_reporting_continuous;

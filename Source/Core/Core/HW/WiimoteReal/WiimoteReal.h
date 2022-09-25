@@ -62,6 +62,10 @@ public:
   bool IsBalanceBoard();
 
   void InterruptDataOutput(const u8* data, const u32 size) override;
+
+  u8 GetWiimoteDeviceIndex() const override;
+  void SetWiimoteDeviceIndex(u8 index) override;
+
   void Update() override;
   void EventLinked() override;
   void EventUnlinked() override;
@@ -97,6 +101,8 @@ protected:
   // In any other case, data reporting is not paused to allow reconnecting on any button press.
   // This is not enabled on all platforms as connecting a Wiimote can be a pain on some platforms.
   bool m_really_disconnect = false;
+
+  u8 m_bt_device_index = 0;
 
 private:
   void Read();
