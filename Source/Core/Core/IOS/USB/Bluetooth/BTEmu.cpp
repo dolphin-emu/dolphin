@@ -354,14 +354,28 @@ void BluetoothEmuDevice::Update()
 
     if (NetPlay::IsNetPlayRunning())
     {
+      std::array<WiimoteEmu::SerializedWiimoteState, MAX_BBMOTES> serialized;
+      std::array<NetPlay::NetPlayClient::WiimoteDataBatchEntry, MAX_BBMOTES> batch;
+      size_t batch_count = 0;
       for (size_t i = 0; i < 4; ++i)
       {
-        if (next_call[i] != WiimoteDevice::NextUpdateInputCall::None)
+        if (next_call[i] == WiimoteDevice::NextUpdateInputCall::None)
+          continue;
+        serialized[i] = WiimoteEmu::SerializeDesiredState(wiimote_states[i]);
+        batch[batch_count].state = &serialized[i];
+        batch[batch_count].wiimote = static_cast<int>(i);
+        ++batch_count;
+      }
+
+      if (batch_count > 0)
+      {
+        NetPlay::NetPlay_GetWiimoteData(
+            std::span<NetPlay::NetPlayClient::WiimoteDataBatchEntry>(batch.data(), batch_count));
+
+        for (size_t i = 0; i < batch_count; ++i)
         {
-          WiimoteEmu::SerializedWiimoteState serialized_state =
-              WiimoteEmu::SerializeDesiredState(wiimote_states[i]);
-          NetPlay::NetPlay_GetWiimoteData(static_cast<int>(i), &serialized_state);
-          if (!WiimoteEmu::DeserializeDesiredState(&wiimote_states[i], serialized_state))
+          const int wiimote = batch[i].wiimote;
+          if (!WiimoteEmu::DeserializeDesiredState(&wiimote_states[wiimote], serialized[wiimote]))
             PanicAlertFmtT("Received invalid Wii Remote data from Netplay.");
         }
       }

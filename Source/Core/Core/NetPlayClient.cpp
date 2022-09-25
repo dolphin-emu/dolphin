@@ -2051,42 +2051,41 @@ u64 NetPlayClient::GetInitialRTCValue() const
 }
 
 // called from ---CPU--- thread
-bool NetPlayClient::WiimoteUpdate(int wiimote_number,
-                                  WiimoteEmu::SerializedWiimoteState* target_state)
+bool NetPlayClient::WiimoteUpdate(const std::span<WiimoteDataBatchEntry>& entries)
 {
+  for (const WiimoteDataBatchEntry& entry : entries)
   {
-    const int local_wiimote = InGameWiimoteToLocalWiimote(wiimote_number);
-    DEBUG_LOG_FMT(
-        NETPLAY,
-        "Entering WiimoteUpdate() with wiimote_number {}, local_wiimote {}, target_state [{:02x}]",
-        wiimote_number, local_wiimote,
-        fmt::join(std::span(target_state->data.data(), target_state->length), ", "));
+    const int local_wiimote = InGameWiimoteToLocalWiimote(entry.wiimote);
+    DEBUG_LOG_FMT(NETPLAY,
+                  "Entering WiimoteUpdate() with wiimote {}, local_wiimote {}, state [{:02x}]",
+                  entry.wiimote, local_wiimote,
+                  fmt::join(std::span(entry.state->data.data(), entry.state->length), ", "));
     if (local_wiimote < 4)
     {
       sf::Packet packet;
       packet << MessageID::WiimoteData;
-      if (AddLocalWiimoteToBuffer(local_wiimote, *target_state, packet))
+      if (AddLocalWiimoteToBuffer(local_wiimote, *entry.state, packet))
         SendAsync(std::move(packet));
     }
-  }
 
-  // Now, we either use the data pushed earlier, or wait for the
-  // other clients to send it to us
-  while (m_wiimote_buffer[wiimote_number].Size() == 0)
-  {
-    if (!m_is_running.IsSet())
+    // Now, we either use the data pushed earlier, or wait for the
+    // other clients to send it to us
+    while (m_wiimote_buffer[entry.wiimote].Size() == 0)
     {
-      return false;
+      if (!m_is_running.IsSet())
+      {
+        return false;
+      }
+
+      m_wii_pad_event.Wait();
     }
 
-    m_wii_pad_event.Wait();
+    m_wiimote_buffer[entry.wiimote].Pop(*entry.state);
+
+    DEBUG_LOG_FMT(NETPLAY, "Exiting WiimoteUpdate() with wiimote {}, state [{:02x}]", entry.wiimote,
+                  fmt::join(std::span(entry.state->data.data(), entry.state->length), ", "));
   }
 
-  m_wiimote_buffer[wiimote_number].Pop(*target_state);
-
-  DEBUG_LOG_FMT(NETPLAY, "Exiting WiimoteUpdate() with wiimote_number {}, target_state [{:02x}]",
-                wiimote_number,
-                fmt::join(std::span(target_state->data.data(), target_state->length), ", "));
   return true;
 }
 
@@ -2681,12 +2680,12 @@ bool SerialInterface::CSIDevice_GCController::NetPlay_GetInput(int pad_num, GCPa
   return false;
 }
 
-bool NetPlay::NetPlay_GetWiimoteData(int wiimote, WiimoteEmu::SerializedWiimoteState* target_state)
+bool NetPlay::NetPlay_GetWiimoteData(const std::span<NetPlayClient::WiimoteDataBatchEntry>& entries)
 {
   std::lock_guard lk(crit_netplay_client);
 
   if (netplay_client)
-    return netplay_client->WiimoteUpdate(wiimote, target_state);
+    return netplay_client->WiimoteUpdate(entries);
 
   return false;
 }

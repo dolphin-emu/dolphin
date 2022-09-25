@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <span>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -134,7 +135,12 @@ public:
   std::string GetCurrentGolfer();
 
   // Send and receive pads values
-  bool WiimoteUpdate(int wiimote_number, WiimoteEmu::SerializedWiimoteState* target_state);
+  struct WiimoteDataBatchEntry
+  {
+    int wiimote;
+    WiimoteEmu::SerializedWiimoteState* state;
+  };
+  bool WiimoteUpdate(const std::span<WiimoteDataBatchEntry>& entries);
   bool GetNetPads(int pad_nb, bool from_vi, GCPadStatus* pad_status);
 
   u64 GetInitialRTCValue() const;
@@ -345,6 +351,6 @@ private:
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
-bool NetPlay_GetWiimoteData(int wiimote, WiimoteEmu::SerializedWiimoteState* target_state);
+bool NetPlay_GetWiimoteData(const std::span<NetPlayClient::WiimoteDataBatchEntry>& entries);
 unsigned int NetPlay_GetLocalWiimoteForSlot(unsigned int slot);
 }  // namespace NetPlay
