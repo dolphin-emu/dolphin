@@ -151,6 +151,7 @@ public:
 
   bool IsFirstInGamePad(int ingame_pad) const;
   int NumLocalPads() const;
+  int NumLocalWiimotes() const;
 
   int InGamePadToLocalPad(int ingame_pad) const;
   int LocalPadToInGamePad(int local_pad) const;

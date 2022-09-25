@@ -287,7 +287,8 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
   const bool running_gc = running && !SConfig::GetInstance().bWii;
   const bool enable_passthrough = m_wiimote_passthrough->isChecked() && !running_gc;
   const bool enable_emu_bt = !m_wiimote_passthrough->isChecked() && !running_gc;
-  const bool running_netplay = running && NetPlay::IsNetPlayRunning();
+  const bool is_netplay = NetPlay::IsNetPlayRunning();
+  const bool running_netplay = running && is_netplay;
 
   m_wiimote_sync->setEnabled(enable_passthrough);
   m_wiimote_reset->setEnabled(enable_passthrough);
@@ -295,13 +296,15 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
   for (auto* pt_label : m_wiimote_pt_labels)
     pt_label->setEnabled(enable_passthrough);
 
+  const int num_local_wiimotes = is_netplay ? NetPlay::NumLocalWiimotes() : 4;
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
     m_wiimote_labels[i]->setEnabled(enable_emu_bt);
     m_wiimote_boxes[i]->setEnabled(enable_emu_bt && !running_netplay);
 
     const bool is_emu_wiimote = m_wiimote_boxes[i]->currentIndex() == 1;
-    m_wiimote_buttons[i]->setEnabled(enable_emu_bt && is_emu_wiimote);
+    m_wiimote_buttons[i]->setEnabled(enable_emu_bt && is_emu_wiimote &&
+                                     static_cast<int>(i) < num_local_wiimotes);
   }
 
   m_wiimote_real_balance_board->setEnabled(enable_emu_bt && !running_netplay);

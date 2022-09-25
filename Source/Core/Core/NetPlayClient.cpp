@@ -2321,11 +2321,22 @@ bool NetPlayClient::IsFirstInGamePad(int ingame_pad) const
                       [](auto mapping) { return mapping > 0; });
 }
 
+static int CountLocalPads(const PadMappingArray& pad_map, const PlayerId& local_player_pid)
+{
+  return static_cast<int>(
+      std::count_if(pad_map.begin(), pad_map.end(), [&local_player_pid](const auto& mapping) {
+        return mapping == local_player_pid;
+      }));
+}
+
 int NetPlayClient::NumLocalPads() const
 {
-  return static_cast<int>(std::count_if(m_pad_map.begin(), m_pad_map.end(), [this](auto mapping) {
-    return mapping == m_local_player->pid;
-  }));
+  return CountLocalPads(m_pad_map, m_local_player->pid);
+}
+
+int NetPlayClient::NumLocalWiimotes() const
+{
+  return CountLocalPads(m_wiimote_map, m_local_player->pid);
 }
 
 static int InGameToLocal(int ingame_pad, const PadMappingArray& pad_map, PlayerId local_player_pid)
@@ -2651,6 +2662,14 @@ PadDetails GetPadDetails(int pad_num)
   res.hide_gba = !res.is_local && netplay_client->GetNetSettings().hide_remote_gbas &&
                  netplay_client->LocalPlayerHasControllerMapped();
   return res;
+}
+
+int NumLocalWiimotes()
+{
+  std::lock_guard lk(crit_netplay_client);
+  if (netplay_client)
+    return netplay_client->NumLocalWiimotes();
+  return 0;
 }
 
 void NetPlay_Enable(NetPlayClient* const np)

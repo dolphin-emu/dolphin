@@ -256,4 +256,5 @@ void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
 std::string GetGBASavePath(int pad_num);
 PadDetails GetPadDetails(int pad_num);
+int NumLocalWiimotes();
 }  // namespace NetPlay
