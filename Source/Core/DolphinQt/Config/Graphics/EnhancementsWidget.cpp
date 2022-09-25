@@ -41,6 +41,8 @@ EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent) : m_block_save(fa
           [this](const QString& backend) { LoadSettings(); });
   connect(parent, &GraphicsWindow::UseFastTextureSamplingChanged, this,
           &EnhancementsWidget::LoadSettings);
+  connect(parent, &GraphicsWindow::UseGPUTextureDecodingChanged, this,
+          &EnhancementsWidget::LoadSettings);
 }
 
 constexpr int TEXTURE_FILTERING_DEFAULT = 0;
@@ -295,6 +297,7 @@ void EnhancementsWidget::LoadSettings()
 {
   m_block_save = true;
   m_texture_filtering_combo->setEnabled(Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
+  m_arbitrary_mipmap_detection->setEnabled(!Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
 
   // Anti-Aliasing
 
