@@ -60,7 +60,7 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  std::vector<std::unique_ptr<WiimoteDevice>> m_wiimotes;
+  std::array<std::unique_ptr<WiimoteDevice>, MAX_BBMOTES> m_wiimotes;
 
   bdaddr_t m_controller_bd{{0x11, 0x02, 0x19, 0x79, 0x00, 0xff}};
 

@@ -66,10 +66,11 @@ public:
   u8 GetWiimoteDeviceIndex() const override;
   void SetWiimoteDeviceIndex(u8 index) override;
 
-  void Update() override;
+  void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state) override;
+  void Update(const WiimoteEmu::DesiredWiimoteState& target_state) override;
   void EventLinked() override;
   void EventUnlinked() override;
-  bool IsButtonPressed() override;
+  WiimoteCommon::ButtonData GetCurrentlyPressedButtons() override;
 
   void EmuStop();
 

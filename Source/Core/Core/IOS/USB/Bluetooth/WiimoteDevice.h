@@ -13,6 +13,11 @@
 
 class PointerWrap;
 
+namespace WiimoteEmu
+{
+struct DesiredWiimoteState;
+}
+
 namespace IOS::HLE
 {
 class BluetoothEmuDevice;
@@ -38,7 +43,15 @@ public:
   void Update();
 
   // Called every ~200hz.
-  void UpdateInput();
+  enum class NextUpdateInputCall
+  {
+    None,
+    Activate,
+    Update
+  };
+  NextUpdateInputCall PrepareInput(WiimoteEmu::DesiredWiimoteState* wiimote_state);
+  void UpdateInput(NextUpdateInputCall next_call,
+                   const WiimoteEmu::DesiredWiimoteState& wiimote_state);
 
   void DoState(PointerWrap& p);
 

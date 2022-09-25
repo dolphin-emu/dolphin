@@ -448,7 +448,7 @@ void Wiimote::UpdateButtonsStatus(const DesiredWiimoteState& target_state)
   m_status.buttons.hex = target_state.buttons.hex & ButtonData::BUTTON_MASK;
 }
 
-DesiredWiimoteState Wiimote::BuildDesiredWiimoteState()
+void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state)
 {
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
@@ -457,36 +457,35 @@ DesiredWiimoteState Wiimote::BuildDesiredWiimoteState()
   // Update our motion simulations.
   StepDynamics();
 
-  DesiredWiimoteState wiimote_state;
-
   // Fetch pressed buttons from user input.
-  m_buttons->GetState(&wiimote_state.buttons.hex, button_bitmasks);
-  m_dpad->GetState(&wiimote_state.buttons.hex,
+  target_state->buttons.hex = 0;
+  m_buttons->GetState(&target_state->buttons.hex, button_bitmasks);
+  m_dpad->GetState(&target_state->buttons.hex,
                    IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
 
   // Calculate accelerometer state.
   // Calibration values are 8-bit but we want 10-bit precision, so << 2.
-  wiimote_state.acceleration =
+  target_state->acceleration =
       ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
 
   // Calculate IR camera state.
-  wiimote_state.camera_points = CameraLogic::GetCameraPoints(
+  target_state->camera_points = CameraLogic::GetCameraPoints(
       GetTotalTransformation(),
       Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
           float(MathUtil::TAU));
 
   // Calculate MotionPlus state.
   if (m_motion_plus_setting.GetValue())
-    wiimote_state.motion_plus = MotionPlus::GetGyroscopeData(GetTotalAngularVelocity());
+    target_state->motion_plus = MotionPlus::GetGyroscopeData(GetTotalAngularVelocity());
+  else
+    target_state->motion_plus = std::nullopt;
 
   // Build Extension state.
   // This also allows the extension to perform any regular duties it may need.
   // (e.g. Nunchuk motion simulation step)
   static_cast<Extension*>(
       m_attachments->GetAttachmentList()[m_attachments->GetSelectedAttachment()].get())
-      ->BuildDesiredExtensionState(&wiimote_state.extension);
-
-  return wiimote_state;
+      ->BuildDesiredExtensionState(&target_state->extension);
 }
 
 u8 Wiimote::GetWiimoteDeviceIndex() const
@@ -500,13 +499,14 @@ void Wiimote::SetWiimoteDeviceIndex(u8 index)
 }
 
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
-void Wiimote::Update()
+void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state)
 {
   const auto lock = GetStateLock();
+  BuildDesiredWiimoteState(target_state);
+}
 
-  // Build target state.
-  auto target_state = BuildDesiredWiimoteState();
-
+void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
+{
   // Update buttons in the status struct which is sent in 99% of input reports.
   UpdateButtonsStatus(target_state);
 
@@ -656,14 +656,15 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
     m_reporting_mode = InputReportID::ReportInterleave1;
 }
 
-bool Wiimote::IsButtonPressed()
+ButtonData Wiimote::GetCurrentlyPressedButtons()
 {
-  u16 buttons = 0;
   const auto lock = GetStateLock();
-  m_buttons->GetState(&buttons, button_bitmasks);
-  m_dpad->GetState(&buttons, dpad_bitmasks);
 
-  return buttons != 0;
+  ButtonData buttons{};
+  m_buttons->GetState(&buttons.hex, button_bitmasks);
+  m_dpad->GetState(&buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
+
+  return buttons;
 }
 
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)

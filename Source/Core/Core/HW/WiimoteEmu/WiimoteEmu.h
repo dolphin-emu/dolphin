@@ -132,11 +132,12 @@ public:
   u8 GetWiimoteDeviceIndex() const override;
   void SetWiimoteDeviceIndex(u8 index) override;
 
-  void Update() override;
+  void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state) override;
+  void Update(const WiimoteEmu::DesiredWiimoteState& target_state) override;
   void EventLinked() override;
   void EventUnlinked() override;
   void InterruptDataOutput(const u8* data, u32 size) override;
-  bool IsButtonPressed() override;
+  WiimoteCommon::ButtonData GetCurrentlyPressedButtons() override;
 
   void Reset();
 
@@ -157,7 +158,7 @@ private:
 
   void StepDynamics();
   void UpdateButtonsStatus(const DesiredWiimoteState& target_state);
-  DesiredWiimoteState BuildDesiredWiimoteState();
+  void BuildDesiredWiimoteState(DesiredWiimoteState* target_state);
 
   // Returns simulated accelerometer data in m/s^2.
   Common::Vec3 GetAcceleration(

@@ -19,6 +19,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 #include "Core/SysConf.h"
@@ -58,7 +59,7 @@ BluetoothEmuDevice::BluetoothEmuDevice(Kernel& ios, const std::string& device_na
     DEBUG_LOG_FMT(IOS_WIIMOTE, "Wii Remote {} BT ID {:x},{:x},{:x},{:x},{:x},{:x}", i, tmp_bd[0],
                   tmp_bd[1], tmp_bd[2], tmp_bd[3], tmp_bd[4], tmp_bd[5]);
 
-    m_wiimotes.emplace_back(std::make_unique<WiimoteDevice>(this, tmp_bd, i));
+    m_wiimotes[i] = std::make_unique<WiimoteDevice>(this, tmp_bd, i);
   }
 
   bt_dinf.num_registered = MAX_BBMOTES;
@@ -340,8 +341,16 @@ void BluetoothEmuDevice::Update()
   {
     g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::Bluetooth);
     g_controller_interface.UpdateInput();
-    for (auto& wiimote : m_wiimotes)
-      wiimote->UpdateInput();
+
+    std::array<WiimoteEmu::DesiredWiimoteState, MAX_BBMOTES> wiimote_states;
+    std::array<WiimoteDevice::NextUpdateInputCall, MAX_BBMOTES> next_call;
+
+    for (size_t i = 0; i < m_wiimotes.size(); ++i)
+      next_call[i] = m_wiimotes[i]->PrepareInput(&wiimote_states[i]);
+
+    for (size_t i = 0; i < m_wiimotes.size(); ++i)
+      m_wiimotes[i]->UpdateInput(next_call[i], wiimote_states[i]);
+
     m_last_ticks = now;
   }
 
