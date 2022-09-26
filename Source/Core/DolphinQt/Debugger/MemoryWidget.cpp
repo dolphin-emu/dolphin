@@ -17,6 +17,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QMenuBar>
 #include <QPushButton>
 #include <QRegularExpression>
@@ -32,6 +33,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/System.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 #include "DolphinQt/Host.h"
@@ -41,7 +43,7 @@
 using Type = MemoryViewWidget::Type;
 
 MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
-    : QDockWidget(parent), m_system(system)
+    : QDockWidget(parent), m_system(system), m_ppc_symbol_db(system.GetPPCSymbolDB())
 {
   setWindowTitle(tr("Memory"));
   setObjectName(QStringLiteral("memory"));
@@ -247,6 +249,17 @@ void MemoryWidget::CreateWidgets()
   bp_layout->addWidget(m_bp_log_check);
   bp_layout->setSpacing(1);
 
+  // Notes
+  m_note_group = new QGroupBox(tr("Notes"));
+  auto* note_layout = new QVBoxLayout;
+  m_note_list = new QListWidget;
+  m_search_notes = new QLineEdit;
+  m_search_notes->setPlaceholderText(tr("Filter Note List"));
+
+  m_note_group->setLayout(note_layout);
+  note_layout->addWidget(m_note_list);
+  note_layout->addWidget(m_search_notes);
+
   // Sidebar
   auto* sidebar = new QWidget;
   auto* sidebar_layout = new QVBoxLayout;
@@ -262,8 +275,9 @@ void MemoryWidget::CreateWidgets()
                          &MemoryWidget::OnSetValueFromFile);
   menubar->addMenu(menu_import);
 
+  // View Menu
   auto* auto_update_action =
-      menu_views->addAction(tr("Auto update memory values"), this, [this](bool checked) {
+      menu_views->addAction(tr("&Auto update memory values"), this, [this](bool checked) {
         m_auto_update_enabled = checked;
         if (checked)
           RegisterAfterFrameEventCallback();
@@ -274,13 +288,22 @@ void MemoryWidget::CreateWidgets()
   auto_update_action->setChecked(true);
 
   auto* highlight_update_action =
-      menu_views->addAction(tr("Highlight recently changed values"), this,
+      menu_views->addAction(tr("&Highlight recently changed values"), this,
                             [this](bool checked) { m_memory_view->ToggleHighlights(checked); });
   highlight_update_action->setCheckable(true);
   highlight_update_action->setChecked(true);
 
-  menu_views->addAction(tr("Highlight color"), this,
+  menu_views->addAction(tr("Highlight &color"), this,
                         [this] { m_memory_view->SetHighlightColor(); });
+
+  auto* show_notes =
+      menu_views->addAction(tr("&Show symbols and notes"), this, [this](bool checked) {
+        m_notes_visible = checked;
+        m_memory_view->ShowSymbols(checked);
+        UpdateNotes();
+      });
+  show_notes->setCheckable(true);
+  show_notes->setChecked(true);
 
   QMenu* menu_export = new QMenu(tr("&Export"), menubar);
   menu_export->addAction(tr("Dump &MRAM"), this, &MemoryWidget::OnDumpMRAM);
@@ -306,6 +329,7 @@ void MemoryWidget::CreateWidgets()
   sidebar_layout->addWidget(address_space_group);
   sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(bp_group);
+  sidebar_layout->addWidget(m_note_group);
   sidebar_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
   // Splitter
@@ -327,6 +351,7 @@ void MemoryWidget::CreateWidgets()
   auto* widget = new QWidget;
   widget->setLayout(layout);
   setWidget(widget);
+  UpdateNotes();
 }
 
 void MemoryWidget::ConnectWidgets()
@@ -359,6 +384,9 @@ void MemoryWidget::ConnectWidgets()
 
   connect(m_base_check, &QCheckBox::toggled, this, &MemoryWidget::ValidateAndPreviewInputValue);
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
+  connect(m_note_list, &QListWidget::itemClicked, this, &MemoryWidget::OnSelectNote);
+  connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this, &MemoryWidget::UpdateNotes);
+  connect(m_search_notes, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchNotes);
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
   connect(m_memory_view, &MemoryViewWidget::RequestWatch, this, &MemoryWidget::RequestWatch);
   connect(m_memory_view, &MemoryViewWidget::ActivateSearch, this,
@@ -779,6 +807,57 @@ void MemoryWidget::OnSetValueFromFile()
     accessors->WriteU8(guard, target_addr.address++, b);
 
   Update();
+}
+
+void MemoryWidget::OnSearchNotes()
+{
+  m_note_filter = m_search_notes->text();
+  UpdateNotes();
+}
+
+void MemoryWidget::OnSelectNote()
+{
+  const auto items = m_note_list->selectedItems();
+  if (items.isEmpty())
+    return;
+
+  const u32 address = items[0]->data(Qt::UserRole).toUInt();
+
+  SetAddress(address);
+}
+
+void MemoryWidget::UpdateNotes()
+{
+  if (!m_notes_visible || m_ppc_symbol_db.Notes().empty())
+  {
+    m_note_group->hide();
+    return;
+  }
+
+  m_note_group->show();
+
+  // Save selection to re-apply.
+  const QString selection = m_note_list->selectedItems().isEmpty() ?
+                                QStringLiteral("") :
+                                m_note_list->selectedItems()[0]->text();
+  m_note_list->clear();
+
+  for (const auto& note : m_ppc_symbol_db.Notes())
+  {
+    const QString name = QString::fromStdString(note.second.name);
+
+    auto* item = new QListWidgetItem(name);
+    if (name == selection)
+      item->setSelected(true);
+
+    item->setData(Qt::UserRole, note.second.address);
+
+    // Filter notes based on the search text.
+    if (name.toUpper().indexOf(m_note_filter.toUpper()) != -1)
+      m_note_list->addItem(item);
+  }
+
+  m_note_list->sortItems();
 }
 
 static void DumpArray(const std::string& filename, const u8* data, size_t length)
