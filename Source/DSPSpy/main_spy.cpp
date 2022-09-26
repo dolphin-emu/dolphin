@@ -149,21 +149,17 @@ void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_
   {
     for (int i = 0; i < 8; i++)
     {
-      // Do not even display the loop stack registers.
       const int reg = j * 8 + i;
+      u8 color1 = regs[reg] == compare_regs[reg] ? CON_BRIGHT_WHITE : CON_BRIGHT_RED;
       CON_SetColor(sel == reg ? CON_BRIGHT_YELLOW : CON_GREEN);
       CON_Printf(x + j * 9, i + y, "%s ", reg_names[reg]);
-      if (j != 1 || i < 4)
+      for (int k = 0; k < 4; k++)
       {
-        u8 color1 = regs[reg] == compare_regs[reg] ? CON_BRIGHT_WHITE : CON_BRIGHT_RED;
-        for (int k = 0; k < 4; k++)
-        {
-          if (sel == reg && k == small_cursor_x && ui_mode == UIM_EDIT_REG)
-            CON_SetColor(CON_BRIGHT_CYAN);
-          else
-            CON_SetColor(color1);
-          CON_Printf(x + 4 + j * 9 + k, i + y, "%01x", (regs[reg] >> ((3 - k) * 4)) & 0xf);
-        }
+        if (sel == reg && k == small_cursor_x && ui_mode == UIM_EDIT_REG)
+          CON_SetColor(CON_BRIGHT_CYAN);
+        else
+          CON_SetColor(color1);
+        CON_Printf(x + 4 + j * 9 + k, i + y, "%01x", (regs[reg] >> ((3 - k) * 4)) & 0xf);
       }
     }
   }
