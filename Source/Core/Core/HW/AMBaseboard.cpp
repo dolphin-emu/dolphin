@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <fstream>
+#include <sstream>
 
 #include "Common/Common.h" // Common
 #include "Common/ChunkFile.h"
@@ -42,19 +43,15 @@ static inline void PrintMBBuffer( u32 Address )
 
 void Init( void )
 {
-	//AMBaseboard::gameid = 0;
-	u32 tempID = 0;
+	u32 gameid;
 	memset( media_buffer, 0, sizeof(media_buffer) );
 
 	//Convert game ID into hex
 	// My compiler somehow throws an error instead of a warning for this sscanf,
 	// Using for loop to manually convert chars to ints instead for now
 	//sscanf( SConfig::GetInstance().GetGameID().c_str(), "%s", &gameid );
-	std::string gameidstr = SConfig::GetInstance().GetGameID();
-	for (int i = 0; i < gameidstr.length(); i++) {
-		tempID += (u32) (gameidstr[i] << (8 * i));
-	}
-	AMBaseboard::gameid = tempID;
+	std::istringstream strstream(SConfig::GetInstance().GetGameID());
+	strstream >> gameid;
 	//TODO: Calculate correct ID configs for each game, likely won't match
 	//the original vals
 	// This is checking for the real game IDs (not those people made up) (See boot.id within the game)

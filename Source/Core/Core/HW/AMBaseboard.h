@@ -14,7 +14,6 @@ namespace AMBaseboard
 	u32		ExecuteCommand( u32 Command, u32 Length, u32 Address, u32 Offset );
 	u32		GetControllerType( void );
 	void	Shutdown( void );
-	u32 gameid;
 };
 
 #endif

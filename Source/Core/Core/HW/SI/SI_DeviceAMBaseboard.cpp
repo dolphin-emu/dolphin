@@ -165,9 +165,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 					case 0x10:
 					{
 						DEBUG_LOG_FMT(AMBASEBOARDDEBUG, "GC-AM: Command 10, {:02x} (READ STATUS&SWITCHES)", ptr(1));
-						SPADStatus PadStatus;
+						GCPadStatus PadStatus;
 						memset(&PadStatus, 0 ,sizeof(PadStatus));
-						Pad::GetStatus(ISIDevice::GetDeviceNumber, &PadStatus);
+						Pad::GetStatus(ISIDevice::GetDeviceNumber());
 						res[resp++] = 0x10;
 						res[resp++] = 0x2;
 						int d10_0 = 0xFF;
@@ -791,8 +791,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 
 									msg.addData(1);
 
-									SPADStatus PadStatus;
-									Pad::GetStatus(0, &PadStatus);
+									GCPadStatus PadStatus;
+									Pad::GetStatus(0);
 
 									// Test button
 									if( PadStatus.button & PAD_BUTTON_Y )
@@ -802,8 +802,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 
 									for( int i=0; i<player_count; ++i )
 									{
-										SPADStatus PadStatus;
-										Pad::GetStatus(i, &PadStatus);
+										GCPadStatus PadStatus;
+										Pad::GetStatus(i);
 										unsigned char player_data[3] = {0,0,0};
 
 										switch(AMBaseboard::GetControllerType())
@@ -888,12 +888,12 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 								// read m_coin inputs
 								case 0x21:
 								{
-									SPADStatus PadStatus;
+									GCPadStatus PadStatus;
 									int slots = *jvs_io++;
 									msg.addData(1);
 									for( int i = 0; i < slots; i++ )
 									{
-										Pad::GetStatus(i, &PadStatus);
+										Pad::GetStatus(i);
 										if ((PadStatus.button & PAD_TRIGGER_Z) && !m_coin_pressed[i])
 										{
 											m_coin[i]++;
@@ -910,13 +910,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 								{
 									msg.addData(1);	// status
 									int analogs = *jvs_io++;
-									SPADStatus PadStatus;
-									Pad::GetStatus(0, &PadStatus);
+									GCPadStatus PadStatus;
+									Pad::GetStatus(0);
 
 									switch(AMBaseboard::GetControllerType())
 									{
 										// F-Zero AX
 										case 1:
+										{
 											// Steering
 											if( m_motorforce )
 											{
@@ -948,12 +949,13 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 											// Brake
 											msg.addData(PadStatus.triggerLeft);
 											msg.addData((u8)0);
-
+										}
 											break;
 										//  Virtua Strike games
 										case 2:
-											SPADStatus PadStatus2;
-											Pad::GetStatus(1, &PadStatus2);
+										{
+											GCPadStatus PadStatus2;
+											Pad::GetStatus(1);
 
 											msg.addData(PadStatus.stickX);
 											msg.addData((u8)0);
@@ -964,9 +966,11 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 											msg.addData((u8)0);
 											msg.addData(PadStatus2.stickY);
 											msg.addData((u8)0);
+										}
 											break;
 										// Mario Kart and other games
 										case 3:
+										{
 											// Steering
 											msg.addData(PadStatus.stickX);
 											msg.addData((u8)0);
@@ -978,6 +982,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 											// Brake
 											msg.addData(PadStatus.triggerLeft);
 											msg.addData((u8)0);
+										}
 											break;
 									}
 								}
@@ -1073,7 +1078,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 				for( int i=0; i<0x7F; ++i )
 				{
 					csum += ptr(i) = res[i];
-					log += sprintf(log, "{:02x} ", ptr(i));
+					log += sprintf(log, "%02x ", ptr(i));
 				}
 				ptr(0x7f) = ~csum;
 				DEBUG_LOG_FMT(AMBASEBOARDDEBUG, "Command send back: {:s}", logptr);
@@ -1101,7 +1106,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 		default:
 			{
 				ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command     (0x{:x})", command);
-				PanicAlert("SI: Unknown command");
+				PanicAlertFmtT("SI: Unknown command");
 				iPosition = _iLength;
 			}
 			break;
