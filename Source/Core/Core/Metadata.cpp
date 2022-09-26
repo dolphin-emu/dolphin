@@ -423,18 +423,11 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     si.cb = sizeof(si);
     //si.wShowWindow = SW_HIDE;
     // CREATE_NO_WINDOW
-    std::filesystem::path pathToLog = std::filesystem::current_path() / "log.txt";
-    std::ofstream outfile;
-    outfile.open(pathToLog.string(), std::ios_base::app);  // append instead of overwrite
-    outfile << "Path to Batch: " + pathToBatch + "\n" + "Batch Path and Args: " + batchPath;
     if (!CreateProcessA(pathToBatch.c_str(), &batchPath[0], NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL,
                    NULL, (LPSTARTUPINFOA)&si, &pi))
     {
-      outfile << "\n";
-      outfile << GetLastErrorAsString();
+      // would handle error in here
     }
-    outfile << "\n";
-    outfile.close();
     // the task has ended so close the handle
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
