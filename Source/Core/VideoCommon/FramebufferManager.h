@@ -99,7 +99,9 @@ public:
   float PeekEFBDepth(u32 x, u32 y);
   void SetEFBCacheTileSize(u32 size);
   void InvalidatePeekCache(bool forced = true);
+  void RefreshPeekCache();
   void FlagPeekCacheAsOutOfDate();
+  void EndOfFrame();
 
   // Writes a value to the framebuffer. This will never block, and writes will be batched.
   void PokeEFBColor(u32 x, u32 y, u32 color);
@@ -117,6 +119,12 @@ protected:
   };
   static_assert(std::is_standard_layout<EFBPokeVertex>::value, "EFBPokeVertex is standard-layout");
 
+  struct EFBCacheTile
+  {
+    bool present;
+    u8 frame_access_mask;
+  };
+
   // EFB cache - for CPU EFB access
   // Tiles are ordered left-to-right, then top-to-bottom
   struct EFBCacheData
@@ -125,9 +133,10 @@ protected:
     std::unique_ptr<AbstractFramebuffer> framebuffer;
     std::unique_ptr<AbstractStagingTexture> readback_texture;
     std::unique_ptr<AbstractPipeline> copy_pipeline;
-    std::vector<bool> tiles;
+    std::vector<EFBCacheTile> tiles;
     bool out_of_date;
     bool valid;
+    bool needs_flush;
   };
 
   bool CreateEFBFramebuffer();
@@ -151,7 +160,7 @@ protected:
   bool IsUsingTiledEFBCache() const;
   bool IsEFBCacheTilePresent(bool depth, u32 x, u32 y, u32* tile_index) const;
   MathUtil::Rectangle<int> GetEFBCacheTileRect(u32 tile_index) const;
-  void PopulateEFBCache(bool depth, u32 tile_index);
+  void PopulateEFBCache(bool depth, u32 tile_index, bool async = false);
 
   void CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, u32 x, u32 y, float z,
                           u32 color);

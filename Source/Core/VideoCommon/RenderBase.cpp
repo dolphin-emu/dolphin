@@ -1346,6 +1346,8 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
     m_graphics_mod_manager.EndOfFrame();
   }
 
+  g_framebuffer_manager->EndOfFrame();
+
   if (xfb_addr && fb_width && fb_stride && fb_height)
   {
     // Get the current XFB from texture cache
