@@ -104,12 +104,6 @@ void VideoConfig::Refresh()
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
-  bDumpObjects = Config::Get(Config::GFX_SW_DUMP_OBJECTS);
-  bDumpTevStages = Config::Get(Config::GFX_SW_DUMP_TEV_STAGES);
-  bDumpTevTextureFetches = Config::Get(Config::GFX_SW_DUMP_TEV_TEX_FETCHES);
-  drawStart = Config::Get(Config::GFX_SW_DRAW_START);
-  drawEnd = Config::Get(Config::GFX_SW_DRAW_END);
-
   bForceFiltering = Config::Get(Config::GFX_ENHANCE_FORCE_FILTERING);
   iMaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
   sPostProcessingShader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);

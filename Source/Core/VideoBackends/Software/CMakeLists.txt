@@ -2,8 +2,6 @@ add_library(videosoftware
   Clipper.cpp
   Clipper.h
   CopyRegion.h
-  DebugUtil.cpp
-  DebugUtil.h
   EfbCopy.cpp
   EfbCopy.h
   EfbInterface.cpp

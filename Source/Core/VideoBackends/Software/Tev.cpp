@@ -9,7 +9,6 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/SWBoundingBox.h"
 #include "VideoBackends/Software/TextureSampler.h"
@@ -428,16 +427,6 @@ void Tev::Draw()
     TextureSampler::Sample(Uv[texcoordSel].s >> scaleS, Uv[texcoordSel].t >> scaleT,
                            IndirectLod[stageNum], IndirectLinear[stageNum], texmap,
                            IndirectTex[stageNum]);
-
-#if ALLOW_TEV_DUMPS
-    if (g_ActiveConfig.bDumpTevStages)
-    {
-      u8 stage[4] = {IndirectTex[stageNum][TextureSampler::ALP_SMP],
-                     IndirectTex[stageNum][TextureSampler::BLU_SMP],
-                     IndirectTex[stageNum][TextureSampler::GRN_SMP], 255};
-      DebugUtil::DrawTempBuffer(stage, INDIRECT + stageNum);
-    }
-#endif
   }
 
   for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; stageNum++)
@@ -477,11 +466,6 @@ void Tev::Draw()
         // hardware testing is needed.
         std::memset(texel, 0, 4);
       }
-
-#if ALLOW_TEV_DUMPS
-      if (g_ActiveConfig.bDumpTevTextureFetches)
-        DebugUtil::DrawTempBuffer(texel, DIRECT_TFETCH + stageNum);
-#endif
 
       const auto& swap = bpmem.tevksel.GetSwapTable(ac.tswap);
       TexColor.r = texel[u32(swap[ColorChannel::Red])];
@@ -547,15 +531,6 @@ void Tev::Draw()
       Reg[ac.dest].a = Clamp255(Reg[ac.dest].a);
     else
       Reg[ac.dest].a = Clamp1024(Reg[ac.dest].a);
-
-#if ALLOW_TEV_DUMPS
-    if (g_ActiveConfig.bDumpTevStages)
-    {
-      u8 stage[4] = {(u8)Reg[cc.dest].r, (u8)Reg[cc.dest].g, (u8)Reg[cc.dest].b,
-                     (u8)Reg[ac.dest].a};
-      DebugUtil::DrawTempBuffer(stage, DIRECT + stageNum);
-    }
-#endif
   }
 
   // convert to 8 bits per component
@@ -710,26 +685,6 @@ void Tev::Draw()
   // extents of these groups, rather than the exact pixel.
   BBoxManager::Update(static_cast<u16>(Position[0] & ~1), static_cast<u16>(Position[0] | 1),
                       static_cast<u16>(Position[1] & ~1), static_cast<u16>(Position[1] | 1));
-
-#if ALLOW_TEV_DUMPS
-  if (g_ActiveConfig.bDumpTevStages)
-  {
-    for (u32 i = 0; i < bpmem.genMode.numindstages; ++i)
-      DebugUtil::CopyTempBuffer(Position[0], Position[1], INDIRECT, i, "Indirect");
-    for (u32 i = 0; i <= bpmem.genMode.numtevstages; ++i)
-      DebugUtil::CopyTempBuffer(Position[0], Position[1], DIRECT, i, "Stage");
-  }
-
-  if (g_ActiveConfig.bDumpTevTextureFetches)
-  {
-    for (u32 i = 0; i <= bpmem.genMode.numtevstages; ++i)
-    {
-      TwoTevStageOrders& order = bpmem.tevorders[i >> 1];
-      if (order.getEnable(i & 1))
-        DebugUtil::CopyTempBuffer(Position[0], Position[1], DIRECT_TFETCH, i, "TFetch");
-    }
-  }
-#endif
 
   INCSTAT(g_stats.this_frame.tev_pixels_out);
   EfbInterface::IncPerfCounterQuadCount(PQ_BLEND_INPUT);

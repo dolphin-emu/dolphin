@@ -575,7 +575,6 @@
     <ClInclude Include="VideoBackends\OGL\VideoBackend.h" />
     <ClInclude Include="VideoBackends\Software\Clipper.h" />
     <ClInclude Include="VideoBackends\Software\CopyRegion.h" />
-    <ClInclude Include="VideoBackends\Software\DebugUtil.h" />
     <ClInclude Include="VideoBackends\Software\EfbCopy.h" />
     <ClInclude Include="VideoBackends\Software\EfbInterface.h" />
     <ClInclude Include="VideoBackends\Software\NativeVertexFormat.h" />
@@ -1183,7 +1182,6 @@
     <ClCompile Include="VideoBackends\OGL\ProgramShaderCache.cpp" />
     <ClCompile Include="VideoBackends\OGL\SamplerCache.cpp" />
     <ClCompile Include="VideoBackends\Software\Clipper.cpp" />
-    <ClCompile Include="VideoBackends\Software\DebugUtil.cpp" />
     <ClCompile Include="VideoBackends\Software\EfbCopy.cpp" />
     <ClCompile Include="VideoBackends\Software\EfbInterface.cpp" />
     <ClCompile Include="VideoBackends\Software\Rasterizer.cpp" />

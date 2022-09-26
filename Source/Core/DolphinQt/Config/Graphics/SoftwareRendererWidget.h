@@ -30,12 +30,4 @@ private:
   void OnEmulationStateChanged(bool running);
 
   ToolTipComboBox* m_backend_combo;
-  GraphicsBool* m_show_statistics;
-  GraphicsBool* m_dump_textures;
-  GraphicsBool* m_dump_objects;
-  GraphicsBool* m_dump_tev_stages;
-  GraphicsBool* m_dump_tev_fetches;
-
-  QSpinBox* m_object_range_min;
-  QSpinBox* m_object_range_max;
 };
