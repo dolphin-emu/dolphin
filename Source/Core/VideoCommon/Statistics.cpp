@@ -93,6 +93,8 @@ void Statistics::Display() const
   draw_statistic("Vertex Loaders", "%d", num_vertex_loaders);
   draw_statistic("EFB peeks:", "%d", this_frame.num_efb_peeks);
   draw_statistic("EFB pokes:", "%d", this_frame.num_efb_pokes);
+  draw_statistic("Draw dones:", "%d", this_frame.num_draw_done);
+  draw_statistic("Tokens:", "%d/%d", this_frame.num_token, this_frame.num_token_int);
 
   ImGui::Columns(1);
 
