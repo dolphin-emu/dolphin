@@ -43,38 +43,39 @@ static inline void PrintMBBuffer( u32 Address )
 
 void Init( void )
 {
-	u32 gameid;
+  u64 gameid = 0;
 	memset( media_buffer, 0, sizeof(media_buffer) );
 
 	//Convert game ID into hex
-	// My compiler somehow throws an error instead of a warning for this sscanf,
-	// Using for loop to manually convert chars to ints instead for now
-	//sscanf( SConfig::GetInstance().GetGameID().c_str(), "%s", &gameid );
-	std::istringstream strstream(SConfig::GetInstance().GetGameID());
-	strstream >> gameid;
-	//TODO: Calculate correct ID configs for each game, likely won't match
-	//the original vals
+
+	// Game IDs for Triforce are now 64 bit instead of 32 bit
+	const char * name = SConfig::GetInstance().GetGameID().c_str();
+	for (int i = 0; i < 6; i++) {
+		gameid += ((u64) *(name + i) << (8 * i));
+	}
 	// This is checking for the real game IDs (not those people made up) (See boot.id within the game)
-	switch(Common::swap32(gameid))
+	switch(Common::swap64(gameid) >> 16)
 	{
-		// SBGE - F-ZERO AX
-		case 0x53424745:
+		// GFZJ8P - F-ZERO AX
+		case 0x47465a4a3850:
 			m_controllertype = 1;
 			break;
-		// SBLJ - VIRTUA STRIKER 4 Ver.2006
-		case 0x53424C4A:
-		// SBHJ - VIRTUA STRIKER 4 VER.A
-		case 0x5342484A:
-		// SBJJ - VIRTUA STRIKER 4
-		case 0x53424A4A:
-		// SBEJ - Virtua Striker 2002
-		case 0x5342454A:
+		// Apparently, all of the Virtua Strickers games have the same ID(?)
+		// GVSJ8P - VIRTUA STRIKER 4 Ver.2006
+		//case 0x53424C4A:
+		// GVSJ8P - VIRTUA STRIKER 4 VER.A
+		//case 0x5342484A:
+		// GVSJ8P - VIRTUA STRIKER 4
+		//case 0x53424A4A:
+		// GVSJ8P - Virtua Striker 2002
+		case 0x4756534a3850:
 			m_controllertype = 2;
 			break;
-		// SBKJ - MARIOKART ARCADE GP
-		case 0x53424B4A:
-		// SBNJ - MARIOKART ARCADE GP2
-		case 0x53424E4A:
+		// GGPE01 - MARIOKART ARCADE GP
+		case 0x474750453031:
+		// GGPE02 - MARIOKART ARCADE GP2
+		case 0x474750453032:
+			//printf("PLAYING MARIO KART");
 			m_controllertype = 3;
 			break;
 		default:

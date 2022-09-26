@@ -133,6 +133,7 @@ void GameCubePane::CreateWidgets()
            EXIDeviceType::Dummy,
            EXIDeviceType::Ethernet,
            EXIDeviceType::EthernetXLink,
+           EXIDeviceType::AMBaseboard,
 #ifdef __APPLE__
            EXIDeviceType::EthernetTapServer,
 #endif

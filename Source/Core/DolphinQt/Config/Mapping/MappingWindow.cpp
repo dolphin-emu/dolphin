@@ -397,6 +397,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     setWindowTitle(tr("GameCube Keyboard at Port %1").arg(GetPort() + 1));
     AddWidget(tr("GameCube Keyboard"), widget);
     break;
+  case Type::MAPPING_TRIFORCE:
   case Type::MAPPING_GC_BONGOS:
   case Type::MAPPING_GC_STEERINGWHEEL:
   case Type::MAPPING_GC_DANCEMAT:

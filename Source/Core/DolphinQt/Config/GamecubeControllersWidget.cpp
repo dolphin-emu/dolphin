@@ -33,6 +33,7 @@ static const std::vector<std::pair<SerialInterface::SIDevices, const char*>> s_g
     {SerialInterface::SIDEVICE_GC_STEERING, _trans("Steering Wheel")},
     {SerialInterface::SIDEVICE_DANCEMAT, _trans("Dance Mat")},
     {SerialInterface::SIDEVICE_GC_TARUKONGA, _trans("DK Bongos")},
+    {SerialInterface::SIDEVICE_AM_BASEBOARD, _trans("Triforce AMBaseboard")},
 #ifdef HAS_LIBMGBA
     {SerialInterface::SIDEVICE_GC_GBA_EMULATED, _trans("GBA (Integrated)")},
 #endif
@@ -144,6 +145,7 @@ void GamecubeControllersWidget::OnGCPadConfigure()
   case SerialInterface::SIDEVICE_NONE:
   case SerialInterface::SIDEVICE_GC_GBA:
     return;
+  case SerialInterface::SIDEVICE_AM_BASEBOARD:
   case SerialInterface::SIDEVICE_GC_CONTROLLER:
     type = MappingWindow::Type::MAPPING_GCPAD;
     break;

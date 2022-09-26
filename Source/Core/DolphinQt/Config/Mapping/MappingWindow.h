@@ -39,6 +39,8 @@ public:
     MAPPING_GCPAD,
     MAPPING_GC_STEERINGWHEEL,
     MAPPING_GC_MICROPHONE,
+    // Triforce
+    MAPPING_TRIFORCE,
     // Wii
     MAPPING_WIIMOTE_EMU,
     // Hotkeys
