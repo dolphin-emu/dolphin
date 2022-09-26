@@ -8,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_DeviceAD16.h"
 #include "Core/HW/EXI/EXI_DeviceAGP.h"
+#include "Core/HW/EXI/EXI_DeviceAMBaseboard.h"
 #include "Core/HW/EXI/EXI_DeviceDummy.h"
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 #include "Core/HW/EXI/EXI_DeviceGecko.h"
@@ -156,6 +157,9 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(const EXIDeviceType device_type, co
     break;
 
   case EXIDeviceType::AMBaseboard:
+    result = std::make_unique<CEXIAMBaseboard>();
+    break;
+
   case EXIDeviceType::None:
   default:
     result = std::make_unique<IEXIDevice>();

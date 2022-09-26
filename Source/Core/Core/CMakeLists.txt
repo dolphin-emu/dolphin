@@ -132,6 +132,8 @@ add_library(core
   HotkeyManager.h
   HW/AddressSpace.cpp
   HW/AddressSpace.h
+  HW/AMBaseboard.cpp
+  HW/AMBaseboard.h
   HW/AudioInterface.cpp
   HW/AudioInterface.h
   HW/CPU.cpp
@@ -185,6 +187,8 @@ add_library(core
   HW/EXI/EXI_DeviceAD16.h
   HW/EXI/EXI_DeviceAGP.cpp
   HW/EXI/EXI_DeviceAGP.h
+  HW/EXI/EXI_DeviceAMBaseboard.cpp
+  HW/EXI/EXI_DeviceAMBaseboard.h
   HW/EXI/EXI_DeviceDummy.cpp
   HW/EXI/EXI_DeviceDummy.h
   HW/EXI/EXI_DeviceEthernet.cpp
@@ -244,6 +248,8 @@ add_library(core
   HW/ProcessorInterface.h
   HW/SI/SI_Device.cpp
   HW/SI/SI_Device.h
+  HW/SI/SI_DeviceAMBaseboard.cpp
+  HW/SI/SI_DeviceAMBaseboard.h
   HW/SI/SI_DeviceDanceMat.cpp
   HW/SI/SI_DeviceDanceMat.h
   HW/SI/SI_DeviceGBA.cpp

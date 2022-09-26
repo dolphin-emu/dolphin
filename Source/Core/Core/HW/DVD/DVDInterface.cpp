@@ -23,13 +23,16 @@
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/AudioInterface.h"
+#include "Core/HW/AMBaseboard.h"
 #include "Core/HW/DVD/DVDMath.h"
 #include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/StreamADPCM.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/DI/DI.h"
 #include "Core/IOS/IOS.h"
@@ -206,7 +209,7 @@ static u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptT
 
 static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition,
                           u32 output_address, ReplyType reply_type);
-
+bool g_GCAM = false;
 void DoState(PointerWrap& p)
 {
   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
@@ -398,6 +401,17 @@ void Init()
 
   u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
   CoreTiming::ScheduleEvent(0, state.finish_executing_command, userdata);
+
+  /*g_GCAM = ((SConfig::GetInstance().m_SIDevice[0] == SerialInterface::SIDEVICE_AM_BASEBOARD)
+&& (SConfig::GetInstance().m_EXIDevice[2] == ExpansionInterface::EXIDeviceType::AMBaseboard))
+? 1 : 0;*/
+  //Temp solution to only check if MKarcade2 is in the emulator
+  g_GCAM = SConfig::GetInstance().GetGameID() == "GGPE02";
+
+  if(g_GCAM)
+  {
+    AMBaseboard::Init();
+  }
 }
 
 // Resets state on the MN102 chip in the drive itself, but not the DI registers exposed on the
@@ -447,9 +461,15 @@ void ResetDrive(bool spinup)
 
 void Shutdown()
 {
+  if (g_GCAM) {
+    AMBaseboard::Shutdown();
+  }
   DVDThread::Stop();
 }
-
+bool isAMBaseboard( void )
+{
+  return g_GCAM;
+}
 static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
 {
   u64 size = disc.GetDataSize();

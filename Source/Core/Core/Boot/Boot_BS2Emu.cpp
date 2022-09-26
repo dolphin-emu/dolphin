@@ -297,6 +297,11 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
   // Global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
   PowerPC::ppcState.gpr[13] = ntsc ? 0x81465320 : 0x814b4fc0;
 
+  //Clear media board encryption seeds
+  if(DVDInterface::isAMBaseboard()) {
+    char *ptr = (char*)(Memory::GetPointer(0));
+    memset(ptr, 0, 12);
+  }
   return RunApploader(/*is_wii*/ false, volume, riivolution_patches);
 }
 

@@ -135,6 +135,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii);
 void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
              std::optional<std::vector<std::string>> auto_disc_change_paths);
 bool IsDiscInside();
+bool isAMBaseboard( void );
 void EjectDisc(EjectCause cause);                        // Must only be called on the CPU thread
 void ChangeDisc(const std::vector<std::string>& paths);  // Must only be called on the CPU thread
 void ChangeDisc(const std::string& new_path);            // Must only be called on the CPU thread

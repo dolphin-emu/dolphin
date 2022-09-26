@@ -207,7 +207,6 @@ void SConfig::LoadDefaults()
   bBootToPause = false;
 
   bWii = false;
-
   ResetRunningGameMetadata();
 }
 
