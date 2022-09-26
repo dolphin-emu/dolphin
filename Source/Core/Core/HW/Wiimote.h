@@ -96,6 +96,7 @@ ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
                                                     WiimoteEmu::DrawsomeTabletGroup group);
 ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group);
 
+WiimoteSource GetSource(unsigned int index);
 void ChangeUIPrimeHack(int number, bool useMetroidUI);
 
 bool CheckVisor(int visor_count);

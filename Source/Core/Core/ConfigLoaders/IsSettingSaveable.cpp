@@ -137,8 +137,8 @@ bool IsSettingSaveable(const Config::Location& config_location)
 
       // PrimeHack
 
-      &Config::PRIMEHACK_ENABLE.GetLocation(),
       &Config::PRIMEHACK_INITIAL_RUN.GetLocation(),
+      &Config::PRIMEHACK_ENABLE.GetLocation(),
       &Config::PRIMEHACK_PROMPT_TAB.GetLocation(),
       &Config::PRIMEHACK_NOCLIP.GetLocation(),
       &Config::PRIMEHACK_INVULNERABILITY.GetLocation(),

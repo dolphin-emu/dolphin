@@ -500,4 +500,8 @@ std::string GetMotd() {
   auto lock = std::lock_guard<std::mutex>(motd_lock);
   return trilogy_motd;
 }
+
+bool UsingRealWiimote() {
+  return Wiimote::GetSource(0) == WiimoteSource::Real;
+}
 }  // namespace prime

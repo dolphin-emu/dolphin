@@ -37,11 +37,6 @@ namespace
 static std::array<std::atomic<WiimoteSource>, MAX_BBMOTES> s_wiimote_sources;
 static std::optional<size_t> s_config_callback_id = std::nullopt;
 
-WiimoteSource GetSource(unsigned int index)
-{
-  return s_wiimote_sources[index];
-}
-
 void OnSourceChanged(unsigned int index, WiimoteSource source)
 {
   const WiimoteSource previous_source = s_wiimote_sources[index].exchange(source);
@@ -50,10 +45,6 @@ void OnSourceChanged(unsigned int index, WiimoteSource source)
   {
     // No change. Do nothing.
     return;
-  }
-
-  if (index == 0) {
-    Config::SetBaseOrCurrent(Config::PRIMEHACK_ENABLE, source == WiimoteSource::Real ? false : true);
   }
 
   WiimoteReal::HandleWiimoteSourceChange(index);
@@ -84,7 +75,7 @@ HIDWiimote* GetHIDWiimoteSource(unsigned int index)
 {
   HIDWiimote* hid_source = nullptr;
 
-  WiimoteSource src = GetSource(index);
+  WiimoteSource src = Wiimote::GetSource(index);
   switch (src)
   {
   case WiimoteSource::Emulated:
@@ -225,6 +216,11 @@ void Resume()
 void Pause()
 {
   WiimoteReal::Pause();
+}
+
+WiimoteSource GetSource(unsigned int index)
+{
+  return s_wiimote_sources[index];
 }
 
 void ChangeUIPrimeHack(int number, bool useMetroidUI)

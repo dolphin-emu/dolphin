@@ -215,7 +215,7 @@ void HackManager::update_mod_states() {
   }
 
   // Disallow any PrimeHack control mods
-  if (!Config::Get(Config::PRIMEHACK_ENABLE))
+  if (!Config::Get(Config::PRIMEHACK_ENABLE) || UsingRealWiimote())
   {
     disable_mod("fps_controls");
     disable_mod("springball_button");

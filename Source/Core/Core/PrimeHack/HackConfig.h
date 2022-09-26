@@ -102,4 +102,6 @@ void ResumeMod();
 
 void SetMotd(std::string const& motd);
 std::string GetMotd();
+
+bool UsingRealWiimote();
 }
