@@ -29,12 +29,21 @@ struct SCall
   u32 call_address;
 };
 
+struct Note
+{
+  std::string name;
+  u32 address = 0;
+  u32 size = 0;
+  int layer = 0;
+};
+
 struct Symbol
 {
   enum class Type
   {
     Function,
     Data,
+    Note,
   };
 
   Symbol() = default;
@@ -70,6 +79,7 @@ class SymbolDB
 {
 public:
   using XFuncMap = std::map<u32, Symbol>;
+  using XNoteMap = std::map<u32, Note>;
   using XFuncPtrMap = std::map<u32, std::set<Symbol*>>;
 
   SymbolDB();
@@ -85,6 +95,7 @@ public:
   std::vector<Symbol*> GetSymbolsFromHash(u32 hash);
 
   const XFuncMap& Symbols() const { return m_functions; }
+  const XNoteMap& Notes() const { return m_notes; }
   XFuncMap& AccessSymbols() { return m_functions; }
   bool IsEmpty() const;
   void Clear(const char* prefix = "");
@@ -93,6 +104,7 @@ public:
 
 protected:
   XFuncMap m_functions;
+  XNoteMap m_notes;
   XFuncPtrMap m_checksum_to_function;
 };
 }  // namespace Common

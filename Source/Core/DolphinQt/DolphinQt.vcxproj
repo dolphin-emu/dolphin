@@ -139,6 +139,7 @@
     <ClCompile Include="Debugger\CodeDiffDialog.cpp" />
     <ClCompile Include="Debugger\CodeViewWidget.cpp" />
     <ClCompile Include="Debugger\CodeWidget.cpp" />
+    <ClCompile Include="Debugger\EditSymbolDialog.cpp" />
     <ClCompile Include="Debugger\JITWidget.cpp" />
     <ClCompile Include="Debugger\MemoryViewWidget.cpp" />
     <ClCompile Include="Debugger\MemoryWidget.cpp" />
@@ -347,6 +348,7 @@
     <QtMoc Include="Debugger\CodeDiffDialog.h" />
     <QtMoc Include="Debugger\CodeViewWidget.h" />
     <QtMoc Include="Debugger\CodeWidget.h" />
+    <QtMoc Include="Debugger\EditSymbolDialog.h" />
     <QtMoc Include="Debugger\JITWidget.h" />
     <QtMoc Include="Debugger\MemoryViewWidget.h" />
     <QtMoc Include="Debugger\MemoryWidget.h" />

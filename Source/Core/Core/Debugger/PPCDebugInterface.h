@@ -101,7 +101,9 @@ public:
   void Step() override {}
   void RunToBreakpoint() override;
   u32 GetColor(const Core::CPUThreadGuard* guard, u32 address) const override;
+  u32 GetNoteColor(const Core::CPUThreadGuard* guard, u32 address) const override;
   std::string GetDescription(u32 address) const override;
+  void UpdateNote(u32 address, u32 size, std::string name) override;
 
   std::shared_ptr<Core::NetworkCaptureLogger> NetworkLogger();
 

@@ -16,7 +16,9 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QStyleHints>
+#include <QTabWidget>
 #include <QTableWidget>
+#include <QVBoxLayout>
 #include <QWidget>
 
 #include "Common/Event.h"
@@ -132,8 +134,22 @@ void CodeWidget::CreateWidgets()
   m_search_callstack = add_search_line_edit(tr("Callstack"), m_callstack_list);
 
   // Symbols
+  m_search_symbols = new QLineEdit;
+  auto* s_label = new QLabel(tr("Symbols"));
+
+  auto* symbols_tab = new QTabWidget;
   m_symbols_list = new QListWidget;
-  m_search_symbols = add_search_line_edit(tr("Symbols"), m_symbols_list);
+  m_note_list = new QListWidget;
+  symbols_tab->addTab(m_symbols_list, tr("Symbols"));
+  symbols_tab->addTab(m_note_list, tr("Notes"));
+
+  auto* s_layout = new QGridLayout;
+  auto* s_widget = new QWidget;
+  s_widget->setLayout(s_layout);
+  s_layout->addWidget(s_label, 0, 0);
+  s_layout->addWidget(m_search_symbols, 0, 1);
+  s_layout->addWidget(symbols_tab, 1, 0, -1, -1);
+  m_box_splitter->addWidget(s_widget);
 
   // Function calls
   m_function_calls_list = new QListWidget;
@@ -182,7 +198,7 @@ void CodeWidget::ConnectWidgets()
   connect(m_search_callstack, &QLineEdit::textChanged, this, &CodeWidget::UpdateCallstack);
 
   connect(m_code_diff, &QPushButton::pressed, this, &CodeWidget::OnDiff);
-
+  connect(m_note_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectNote);
   connect(m_symbols_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectSymbol);
   connect(m_callstack_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectCallstack);
   connect(m_function_calls_list, &QListWidget::itemPressed, this,
@@ -200,6 +216,7 @@ void CodeWidget::ConnectWidgets()
       UpdateFunctionCallers(symbol);
     }
   });
+  connect(m_code_view, &CodeViewWidget::NotesChanged, this, &CodeWidget::UpdateNotes);
   connect(m_code_view, &CodeViewWidget::BreakpointsChanged, this,
           [this] { emit BreakpointsChanged(); });
   connect(m_code_view, &CodeViewWidget::UpdateCodeWidget, this, &CodeWidget::Update);
@@ -249,6 +266,7 @@ void CodeWidget::OnSearchSymbols()
 {
   m_symbol_filter = m_search_symbols->text();
   UpdateSymbols();
+  UpdateNotes();
 }
 
 void CodeWidget::OnSelectSymbol()
@@ -266,6 +284,17 @@ void CodeWidget::OnSelectSymbol()
   UpdateFunctionCallers(symbol);
 
   m_code_view->setFocus();
+}
+
+void CodeWidget::OnSelectNote()
+{
+  const auto items = m_note_list->selectedItems();
+  if (items.isEmpty())
+    return;
+
+  const u32 address = items[0]->data(Qt::UserRole).toUInt();
+
+  m_code_view->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
 }
 
 void CodeWidget::OnSelectCallstack()
@@ -394,6 +423,30 @@ void CodeWidget::UpdateSymbols()
   }
 
   m_symbols_list->sortItems();
+}
+
+void CodeWidget::UpdateNotes()
+{
+  QString selection = m_note_list->selectedItems().isEmpty() ?
+                          QStringLiteral("") :
+                          m_note_list->selectedItems()[0]->text();
+  m_note_list->clear();
+
+  for (const auto& note : g_symbolDB.Notes())
+  {
+    QString name = QString::fromStdString(note.second.name);
+
+    auto* item = new QListWidgetItem(name);
+    if (name == selection)
+      item->setSelected(true);
+
+    item->setData(Qt::UserRole, note.second.address);
+
+    if (name.toUpper().indexOf(m_symbol_filter.toUpper()) != -1)
+      m_note_list->addItem(item);
+  }
+
+  m_note_list->sortItems();
 }
 
 void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)

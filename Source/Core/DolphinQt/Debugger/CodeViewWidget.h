@@ -56,6 +56,7 @@ signals:
   void RequestPPCComparison(u32 addr);
   void ShowMemory(u32 address);
   void SymbolsChanged();
+  void NotesChanged();
   void BreakpointsChanged();
   void UpdateCodeWidget();
 
@@ -85,13 +86,15 @@ private:
   void OnCopyFunction();
   void OnCopyCode();
   void OnCopyHex();
-  void OnRenameSymbol();
   void OnSelectionChanged();
-  void OnSetSymbolSize();
-  void OnSetSymbolEndAddress();
   void OnRunToHere();
   void OnAddFunction();
+  void OnEditSymbol();
+  void OnDeleteSymbol();
+  void OnAddNote();
   void OnPPCComparison();
+  void OnEditNote();
+  void OnDeleteNote();
   void OnInsertBLR();
   void OnInsertNOP();
   void OnReplaceInstruction();
