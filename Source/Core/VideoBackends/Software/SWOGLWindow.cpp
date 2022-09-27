@@ -105,7 +105,7 @@ void SWOGLWindow::ShowImage(const AbstractTexture* image,
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(sw_image->GetConfig().width),
                static_cast<GLsizei>(sw_image->GetConfig().height), 0, GL_RGBA, GL_UNSIGNED_BYTE,
-               sw_image->GetData());
+               sw_image->GetData(0, 0));
 
   glUseProgram(m_image_program);
 
