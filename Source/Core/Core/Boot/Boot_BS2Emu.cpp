@@ -41,6 +41,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/XFMemory.h"
 
+
 namespace
 {
 void PresetTimeBaseTicks()

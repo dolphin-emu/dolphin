@@ -5,6 +5,7 @@
 #ifndef _SIDEVICE_AMBASEBOARD_H
 #define _SIDEVICE_AMBASEBOARD_H
 
+
 // triforce (GC-AM) baseboard
 class CSIDevice_AMBaseboard : public SerialInterface::ISIDevice
 {
@@ -70,5 +71,4 @@ public:
 	// send a command directly
 	virtual void SendCommand(u32 _Cmd, u8 _Poll);
 };
-
 #endif // _SIDEVICE_AMBASEBOARD_H

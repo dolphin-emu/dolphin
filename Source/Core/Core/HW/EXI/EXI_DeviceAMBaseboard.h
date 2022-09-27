@@ -6,6 +6,7 @@
 #ifndef _EXIDEVICE_AMBASEBOARD_H
 #define _EXIDEVICE_AMBASEBOARD_H
 
+
 class PointerWrap;
 class CEXIAMBaseboard : public ExpansionInterface::IEXIDevice
 {

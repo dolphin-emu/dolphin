@@ -14,6 +14,7 @@
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/EXI/EXI_DeviceAMBaseboard.h"
 
+
 CEXIAMBaseboard::CEXIAMBaseboard()
 	: m_position(0)
 	, m_have_irq(false)
