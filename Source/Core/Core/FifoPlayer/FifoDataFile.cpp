@@ -96,9 +96,19 @@ void FifoDataFile::SetIsWii(bool isWii)
   SetFlag(FLAG_IS_WII, isWii);
 }
 
+void FifoDataFile::SetIsTriforce(bool isTriforce)
+{
+  SetFlag(FLAG_IS_TRIFORCE, isTriforce);
+}
+
 bool FifoDataFile::GetIsWii() const
 {
   return GetFlag(FLAG_IS_WII);
+}
+
+bool FifoDataFile::GetIsTriforce() const
+{
+  return GetFlag(FLAG_IS_TRIFORCE);
 }
 
 void FifoDataFile::AddFrame(const FifoFrameInfo& frameInfo)

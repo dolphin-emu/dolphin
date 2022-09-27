@@ -141,6 +141,9 @@ const BlobReader& VolumeGC::GetBlobReader() const
 
 Platform VolumeGC::GetVolumeType() const
 {
+  // Check GetGameID for MKArcade2 for now
+  if (GetGameID() == "GGPE02")
+    return Platform::TriforceDisc;
   return Platform::GameCubeDisc;
 }
 

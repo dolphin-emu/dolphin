@@ -900,6 +900,11 @@ void ExecuteCommand(ReplyType reply_type)
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
   bool command_handled_by_thread = false;
 
+  //Triforce games have reverse endianess, reverse bits of command then drop leading 0s
+  if (DVDThread::GetDiscType() == DiscIO::Platform::TriforceDisc) {
+    state.DICMDBUF[0] = Common::swap32(state.DICMDBUF[0]) & 0xFF000000;
+  }
+
   // DVDLowRequestError needs access to the error code set by the previous command
   if (static_cast<DICommand>(state.DICMDBUF[0] >> 24) != DICommand::RequestError)
     SetDriveError(DriveError::None);

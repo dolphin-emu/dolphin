@@ -250,3 +250,7 @@ bool ElfReader::IsWii() const
 
   return false;
 }
+//TODO: Implement tis method
+bool ElfReader::IsTriforce() const {
+  return false;
+}

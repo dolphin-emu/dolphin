@@ -60,7 +60,9 @@ public:
   ~FifoDataFile();
 
   void SetIsWii(bool isWii);
+  void SetIsTriforce(bool isTriforce);
   bool GetIsWii() const;
+  bool GetIsTriforce() const;
   bool HasBrokenEFBCopies() const;
   bool ShouldGenerateFakeVIUpdates() const;
 
@@ -82,7 +84,8 @@ public:
 private:
   enum
   {
-    FLAG_IS_WII = 1
+    FLAG_IS_WII = 1,
+    FLAG_IS_TRIFORCE = 1,
   };
 
   void PadFile(size_t numBytes, File::IOFile& file);

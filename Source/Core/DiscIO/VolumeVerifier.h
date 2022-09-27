@@ -97,6 +97,7 @@ private:
 
   static DownloadState m_gc_download_state;
   static DownloadState m_wii_download_state;
+  static DownloadState m_triforce_download_state;
 };
 
 class VolumeVerifier final
@@ -165,6 +166,7 @@ private:
   Result m_result;
   bool m_is_tgc = false;
   bool m_is_datel = false;
+  bool m_is_triforce = false;
   bool m_is_not_retail = false;
 
   bool m_redump_verification;

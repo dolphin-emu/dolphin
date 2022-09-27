@@ -40,6 +40,7 @@ public:
   // TODO: actually check for validity.
   bool IsValid() const override { return true; }
   bool IsWii() const override;
+  bool IsTriforce() const override;
 
   int GetNumSegments() const { return (int)(header->e_phnum); }
   int GetNumSections() const { return (int)(header->e_shnum); }

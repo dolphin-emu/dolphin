@@ -50,6 +50,7 @@ namespace DiscIO
 {
 RedumpVerifier::DownloadState RedumpVerifier::m_gc_download_state;
 RedumpVerifier::DownloadState RedumpVerifier::m_wii_download_state;
+RedumpVerifier::DownloadState RedumpVerifier::m_triforce_download_state;
 
 void RedumpVerifier::Start(const Volume& volume)
 {
@@ -79,6 +80,11 @@ void RedumpVerifier::Start(const Volume& volume)
     case Platform::WiiDisc:
       system = "wii";
       download_state = &m_wii_download_state;
+      break;
+
+    case Platform::TriforceDisc:
+      system = "tri";
+      download_state = &m_triforce_download_state;
       break;
 
     default:
@@ -403,6 +409,7 @@ void VolumeVerifier::Start()
 
   m_is_tgc = m_volume.GetBlobType() == BlobType::TGC;
   m_is_datel = m_volume.IsDatelDisc();
+  m_is_triforce = m_volume.GetVolumeType() == Platform::TriforceDisc;
   m_is_not_retail = (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.HasWiiHashes()) ||
                     IsDebugSigned();
 
@@ -1381,6 +1388,13 @@ void VolumeVerifier::Finish()
     m_result.summary_text =
         Common::GetStringT("Dolphin is unable to verify typical TGC files properly, "
                            "since they are not dumps of actual discs.");
+    return;
+  }
+  if (m_is_triforce)
+  {
+    m_result.summary_text =
+      Common::GetStringT("Dolphin is unable to verify Triforce "
+                                              "games at this time.");
     return;
   }
 

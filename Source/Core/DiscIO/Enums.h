@@ -15,6 +15,7 @@ namespace DiscIO
 enum class Platform
 {
   GameCubeDisc = 0,
+  TriforceDisc,
   WiiDisc,
   WiiWAD,
   ELFOrDOL,
@@ -73,6 +74,7 @@ std::string GetName(Language language, bool translate);
 
 bool IsDisc(Platform volume_type);
 bool IsWii(Platform volume_type);
+bool IsTriforce(Platform volume_type);
 bool IsNTSC(Region region);
 
 int ToGameCubeLanguage(Language language);

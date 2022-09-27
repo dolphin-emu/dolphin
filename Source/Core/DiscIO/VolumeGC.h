@@ -103,6 +103,7 @@ private:
   Common::Lazy<std::unique_ptr<FileSystem>> m_file_system;
 
   std::unique_ptr<BlobReader> m_reader;
+
 };
 
 }  // namespace DiscIO

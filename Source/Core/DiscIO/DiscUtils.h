@@ -24,6 +24,7 @@ constexpr u64 DL_DVD_R_SIZE = 8543666176;  // Wii RVT-R
 
 constexpr u32 GAMECUBE_DISC_MAGIC = 0xC2339F3D;
 constexpr u32 WII_DISC_MAGIC = 0x5D1C9EA3;
+// Triforce games have same Magic ID
 
 constexpr u32 PARTITION_DATA = 0;
 constexpr u32 PARTITION_UPDATE = 1;

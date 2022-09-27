@@ -24,6 +24,7 @@ public:
 
   bool IsValid() const override { return m_is_valid; }
   bool IsWii() const override { return m_is_wii; }
+  bool IsTriforce() const override {return m_is_triforce; }
   u32 GetEntryPoint() const override { return m_dolheader.entryPoint; }
   bool LoadIntoMemory(bool only_in_mem1 = false) const override;
   bool LoadSymbols() const override { return false; }
@@ -57,6 +58,7 @@ private:
 
   bool m_is_valid;
   bool m_is_wii;
+  bool m_is_triforce;
 
   // Copy sections to internal buffers
   bool Initialize(const std::vector<u8>& buffer);

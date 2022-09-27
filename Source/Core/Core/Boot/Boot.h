@@ -197,6 +197,7 @@ public:
   virtual u32 GetEntryPoint() const = 0;
   virtual bool IsValid() const = 0;
   virtual bool IsWii() const = 0;
+  virtual bool IsTriforce() const = 0;
   virtual bool LoadIntoMemory(bool only_in_mem1 = false) const = 0;
   virtual bool LoadSymbols() const = 0;
 
