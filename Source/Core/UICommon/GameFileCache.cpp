@@ -4,7 +4,6 @@
 #include "UICommon/GameFileCache.h"
 
 #include <algorithm>
-#include <atomic>
 #include <cstddef>
 #include <functional>
 #include <list>
@@ -204,7 +203,7 @@ bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_fil
   if (custom_cover_changed)
     copy->CustomCoverCommit();
 
-  std::atomic_store(game_file, std::move(copy));
+  *game_file = std::move(copy);
 
   return true;
 }

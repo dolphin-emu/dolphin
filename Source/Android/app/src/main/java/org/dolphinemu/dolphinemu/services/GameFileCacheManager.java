@@ -227,25 +227,24 @@ public final class GameFileCacheManager
     {
       String[] gamePaths = GameFileCache.getAllGamePaths();
 
-      boolean changed;
       synchronized (sGameFileCache)
       {
-        changed = sGameFileCache.update(gamePaths);
-      }
-      if (changed)
-      {
-        updateGameFileArray();
-      }
+        boolean changed = sGameFileCache.update(gamePaths);
+        if (changed)
+        {
+          updateGameFileArray();
+        }
 
-      boolean additionalMetadataChanged = sGameFileCache.updateAdditionalMetadata();
-      if (additionalMetadataChanged)
-      {
-        updateGameFileArray();
-      }
+        boolean additionalMetadataChanged = sGameFileCache.updateAdditionalMetadata();
+        if (additionalMetadataChanged)
+        {
+          updateGameFileArray();
+        }
 
-      if (changed || additionalMetadataChanged)
-      {
-        sGameFileCache.save();
+        if (changed || additionalMetadataChanged)
+        {
+          sGameFileCache.save();
+        }
       }
     }
 
