@@ -26,6 +26,7 @@ public final class GameFileCacheManager
   private static GameFileCache sGameFileCache = null;
   private static final MutableLiveData<GameFile[]> sGameFiles =
           new MutableLiveData<>(new GameFile[]{});
+  private static boolean sFirstLoadDone = false;
   private static boolean sRunRescanAfterLoad = false;
 
   private static final ExecutorService sExecutor = Executors.newFixedThreadPool(1);
@@ -125,6 +126,8 @@ public final class GameFileCacheManager
    */
   public static void startLoad(Context context)
   {
+    createGameFileCacheIfNeeded();
+
     if (!sLoadInProgress.getValue())
     {
       sLoadInProgress.setValue(true);
@@ -141,6 +144,8 @@ public final class GameFileCacheManager
    */
   public static void startRescan(Context context)
   {
+    createGameFileCacheIfNeeded();
+
     if (!sRescanInProgress.getValue())
     {
       sRescanInProgress.setValue(true);
@@ -165,6 +170,7 @@ public final class GameFileCacheManager
 
     // Unusual case: The game wasn't found in the cache.
     // Scan the game and add it to the cache so that we can return it.
+    createGameFileCacheIfNeeded();
     synchronized (sGameFileCache)
     {
       return sGameFileCache.addOrGet(gamePath);
@@ -178,12 +184,11 @@ public final class GameFileCacheManager
    */
   private static void load()
   {
-    if (sGameFileCache == null)
+    if (!sFirstLoadDone)
     {
-      GameFileCache temp = new GameFileCache();
-      synchronized (temp)
+      synchronized (sGameFileCache)
       {
-        sGameFileCache = temp;
+        sFirstLoadDone = true;
         sGameFileCache.load();
         if (sGameFileCache.getSize() != 0)
         {
@@ -214,7 +219,7 @@ public final class GameFileCacheManager
    */
   private static void rescan()
   {
-    if (sGameFileCache == null)
+    if (!sFirstLoadDone)
     {
       sRunRescanAfterLoad = true;
     }
@@ -252,5 +257,17 @@ public final class GameFileCacheManager
     GameFile[] gameFilesTemp = sGameFileCache.getAllGames();
     Arrays.sort(gameFilesTemp, (lhs, rhs) -> lhs.getTitle().compareToIgnoreCase(rhs.getTitle()));
     sGameFiles.postValue(gameFilesTemp);
+  }
+
+  private static void createGameFileCacheIfNeeded()
+  {
+    // Creating the GameFileCache in the static initializer may be unsafe, because GameFileCache
+    // relies on native code, and the native library isn't loaded right when the app starts.
+    // We create it here instead.
+
+    if (sGameFileCache == null)
+    {
+      sGameFileCache = new GameFileCache();
+    }
   }
 }
