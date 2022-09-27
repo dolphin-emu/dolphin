@@ -240,7 +240,7 @@ struct SetGameMetadata
 
     *region = DiscIO::Region::Unknown;
     config->bWii = executable.reader->IsWii();
-    //config->bTriforce = executable.reader->IsTriforce();
+    config->bTriforce = executable.reader->IsTriforce();
 
     // Strip the .elf/.dol file extension and directories before the name
     SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
