@@ -158,7 +158,7 @@ public final class GameFileCacheManager
   {
     // Common case: The game is in the cache, so just grab it from there.
     // (Actually, addOrGet already checks for this case, but we want to avoid calling it if possible
-    // because onHandleIntent may hold a lock on sGameFileCache for extended periods of time.)
+    // because the executor thread may hold a lock on sGameFileCache for extended periods of time.)
     GameFile[] allGames = sGameFiles.getValue();
     for (GameFile game : allGames)
     {
@@ -171,10 +171,7 @@ public final class GameFileCacheManager
     // Unusual case: The game wasn't found in the cache.
     // Scan the game and add it to the cache so that we can return it.
     createGameFileCacheIfNeeded();
-    synchronized (sGameFileCache)
-    {
-      return sGameFileCache.addOrGet(gamePath);
-    }
+    return sGameFileCache.addOrGet(gamePath);
   }
 
   /**
@@ -186,14 +183,11 @@ public final class GameFileCacheManager
   {
     if (!sFirstLoadDone)
     {
-      synchronized (sGameFileCache)
+      sFirstLoadDone = true;
+      sGameFileCache.load();
+      if (sGameFileCache.getSize() != 0)
       {
-        sFirstLoadDone = true;
-        sGameFileCache.load();
-        if (sGameFileCache.getSize() != 0)
-        {
-          updateGameFileArray();
-        }
+        updateGameFileArray();
       }
     }
 
@@ -227,24 +221,21 @@ public final class GameFileCacheManager
     {
       String[] gamePaths = GameFileCache.getAllGamePaths();
 
-      synchronized (sGameFileCache)
+      boolean changed = sGameFileCache.update(gamePaths);
+      if (changed)
       {
-        boolean changed = sGameFileCache.update(gamePaths);
-        if (changed)
-        {
-          updateGameFileArray();
-        }
+        updateGameFileArray();
+      }
 
-        boolean additionalMetadataChanged = sGameFileCache.updateAdditionalMetadata();
-        if (additionalMetadataChanged)
-        {
-          updateGameFileArray();
-        }
+      boolean additionalMetadataChanged = sGameFileCache.updateAdditionalMetadata();
+      if (additionalMetadataChanged)
+      {
+        updateGameFileArray();
+      }
 
-        if (changed || additionalMetadataChanged)
-        {
-          sGameFileCache.save();
-        }
+      if (changed || additionalMetadataChanged)
+      {
+        sGameFileCache.save();
       }
     }
 
