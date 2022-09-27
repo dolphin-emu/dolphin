@@ -2,8 +2,6 @@
 
 package org.dolphinemu.dolphinemu.services;
 
-import android.content.Context;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -124,7 +122,7 @@ public final class GameFileCacheManager
    * if the games are still present in the user's configured folders.
    * If this has already been called, calling it again has no effect.
    */
-  public static void startLoad(Context context)
+  public static void startLoad()
   {
     createGameFileCacheIfNeeded();
 
@@ -142,7 +140,7 @@ public final class GameFileCacheManager
    * If loading the game file cache hasn't started or hasn't finished,
    * the execution of this will be postponed until it finishes.
    */
-  public static void startRescan(Context context)
+  public static void startRescan()
   {
     createGameFileCacheIfNeeded();
 

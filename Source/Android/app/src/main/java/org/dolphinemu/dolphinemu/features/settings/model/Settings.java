@@ -233,7 +233,7 @@ public class Settings implements Closeable
       if (mLoadedRecursiveIsoPathsValue != BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this))
       {
         // Refresh game library
-        GameFileCacheManager.startRescan(context);
+        GameFileCacheManager.startRescan();
       }
     }
     else

@@ -301,7 +301,7 @@ public final class MainActivity extends AppCompatActivity
   public void onRefresh()
   {
     setRefreshing(true);
-    GameFileCacheManager.startRescan(this);
+    GameFileCacheManager.startRescan();
   }
 
   /**
@@ -368,7 +368,7 @@ public final class MainActivity extends AppCompatActivity
     mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getIntGlobal());
 
     showGames();
-    GameFileCacheManager.startLoad(this);
+    GameFileCacheManager.startLoad();
   }
 
   @Override
