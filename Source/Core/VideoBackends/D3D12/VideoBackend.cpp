@@ -66,7 +66,7 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsReversedDepthRange = false;
   g_Config.backend_info.bSupportsComputeShaders = true;
   g_Config.backend_info.bSupportsLogicOp = true;
-  g_Config.backend_info.bSupportsMultithreading = true;
+  g_Config.backend_info.bSupportsMultithreading = false;
   g_Config.backend_info.bSupportsGPUTextureDecoding = true;
   g_Config.backend_info.bSupportsST3CTextures = false;
   g_Config.backend_info.bSupportsCopyToVram = true;
