@@ -232,6 +232,7 @@
     <ClInclude Include="Core\Host.h" />
     <ClInclude Include="Core\HotkeyManager.h" />
     <ClInclude Include="Core\HW\AddressSpace.h" />
+    <ClInclude Include="Core\HW\AMBaseboard.h" >/
     <ClInclude Include="Core\HW\AudioInterface.h" />
     <ClInclude Include="Core\HW\CPU.h" />
     <ClInclude Include="Core\HW\DSP.h" />
@@ -262,6 +263,7 @@
     <ClInclude Include="Core\HW\EXI\EXI_Device.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceAD16.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceAGP.h" />
+    <ClInclude Include="Core\HW\EXI\EXI_DeviceAMBaseboard.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceDummy.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceEthernet.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceGecko.h" />
@@ -294,6 +296,7 @@
     <ClInclude Include="Core\HW\MMIOHandlers.h" />
     <ClInclude Include="Core\HW\ProcessorInterface.h" />
     <ClInclude Include="Core\HW\SI\SI_Device.h" />
+    <ClInclude Include="Core\HW\SI\SI_DeviceAMBaseboard.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceDanceMat.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGBA.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGBAEmu.h" />
