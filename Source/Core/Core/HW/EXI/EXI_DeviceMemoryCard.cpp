@@ -295,8 +295,6 @@ void CEXIMemoryCard::SetCS(int cs)
     case Command::ChipErase:
       if (m_position > 2)
       {
-        // TODO: Investigate on HW, I (LPFaint99) believe that this only
-        // erases the system area (Blocks 0-4)
         m_memory_card->ClearAll();
         m_status &= ~MC_STATUS_BUSY;
       }
