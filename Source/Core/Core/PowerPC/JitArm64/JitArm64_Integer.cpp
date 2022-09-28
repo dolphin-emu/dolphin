@@ -319,6 +319,98 @@ void JitArm64::boolX(UGeckoInstruction inst)
       PanicAlertFmt("WTF!");
     }
   }
+  else if ((gpr.IsImm(s) && (gpr.GetImm(s) == 0 || gpr.GetImm(s) == 0xFFFFFFFF)) ||
+           (gpr.IsImm(b) && (gpr.GetImm(b) == 0 || gpr.GetImm(b) == 0xFFFFFFFF)))
+  {
+    const auto [i, j] = gpr.IsImm(s) ? std::pair(s, b) : std::pair(b, s);
+    bool is_zero = gpr.GetImm(i) == 0;
+
+    bool complement_b = (inst.SUBOP10 == 60 /* andcx */) || (inst.SUBOP10 == 412 /* orcx */);
+    const bool final_not = (inst.SUBOP10 == 476 /* nandx */) || (inst.SUBOP10 == 124 /* norx */);
+    const bool is_and = (inst.SUBOP10 == 28 /* andx */) || (inst.SUBOP10 == 60 /* andcx */) ||
+                        (inst.SUBOP10 == 476 /* nandx */);
+    const bool is_or = (inst.SUBOP10 == 444 /* orx */) || (inst.SUBOP10 == 412 /* orcx */) ||
+                       (inst.SUBOP10 == 124 /* norx */);
+    const bool is_xor = (inst.SUBOP10 == 316 /* xorx */) || (inst.SUBOP10 == 284 /* eqvx */);
+
+    if ((complement_b && i == b) || (inst.SUBOP10 == 284 /* eqvx */))
+    {
+      is_zero = !is_zero;
+      complement_b = false;
+    }
+
+    if (is_xor)
+    {
+      if (!is_zero)
+      {
+        gpr.BindToRegister(a, a == j);
+        MVN(gpr.R(a), gpr.R(j));
+      }
+      else if (a != j)
+      {
+        gpr.BindToRegister(a, false);
+        MOV(gpr.R(a), gpr.R(j));
+      }
+      if (inst.Rc)
+        ComputeRC0(gpr.R(a));
+    }
+    else if (is_and)
+    {
+      if (is_zero)
+      {
+        gpr.SetImmediate(a, final_not ? 0xFFFFFFFF : 0);
+        if (inst.Rc)
+          ComputeRC0(gpr.GetImm(a));
+      }
+      else if (final_not || complement_b)
+      {
+        gpr.BindToRegister(a, a == j);
+        MVN(gpr.R(a), gpr.R(j));
+        if (inst.Rc)
+          ComputeRC0(gpr.R(a));
+      }
+      else
+      {
+        if (a != j)
+        {
+          gpr.BindToRegister(a, false);
+          MOV(gpr.R(a), gpr.R(j));
+        }
+        if (inst.Rc)
+          ComputeRC0(gpr.R(a));
+      }
+    }
+    else if (is_or)
+    {
+      if (!is_zero)
+      {
+        gpr.SetImmediate(a, final_not ? 0 : 0xFFFFFFFF);
+        if (inst.Rc)
+          ComputeRC0(gpr.GetImm(a));
+      }
+      else if (final_not || complement_b)
+      {
+        gpr.BindToRegister(a, a == j);
+        MVN(gpr.R(a), gpr.R(j));
+        if (inst.Rc)
+          ComputeRC0(gpr.R(a));
+      }
+      else
+      {
+        if (a != j)
+        {
+          gpr.BindToRegister(a, false);
+          MOV(gpr.R(a), gpr.R(j));
+        }
+        if (inst.Rc)
+          ComputeRC0(gpr.R(a));
+      }
+    }
+    else
+    {
+      PanicAlertFmt("WTF!");
+    }
+  }
   else
   {
     gpr.BindToRegister(a, (a == s) || (a == b));
