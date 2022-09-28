@@ -197,6 +197,7 @@ void AdvancedWidget::SaveSettings()
 
 void AdvancedWidget::OnBackendChanged()
 {
+  m_backend_multithreading->setEnabled(g_Config.backend_info.bSupportsMultithreading);
 }
 
 void AdvancedWidget::OnEmulationStateChanged(bool running)
