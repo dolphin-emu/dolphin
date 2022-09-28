@@ -209,7 +209,6 @@ static u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptT
 
 static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition,
                           u32 output_address, ReplyType reply_type);
-bool g_GCAM = false;
 void DoState(PointerWrap& p)
 {
   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
@@ -396,9 +395,10 @@ void Init()
 && (SConfig::GetInstance().m_EXIDevice[2] == ExpansionInterface::EXIDeviceType::AMBaseboard))
 ? 1 : 0;*/
   //Temp solution to only check if MKarcade2 is in the emulator
-  g_GCAM = SConfig::GetInstance().GetGameID() == "GGPE02";
+  /*g_GCAM = (SConfig::GetInstance().GetGameID() == "GGPE02" || SConfig::GetInstance().GetGameID() == "GGPE01" ||
+        SConfig::GetInstance().GetGameID() == "GVSJ8P" || SConfig::GetInstance().GetGameID() == "GFZJ8P");*/
 
-  if(g_GCAM)
+  if(isAMBaseboard())
   {
     AMBaseboard::Init();
   }
@@ -462,14 +462,15 @@ void ResetDrive(bool spinup)
 
 void Shutdown()
 {
-  if (g_GCAM) {
+  if (isAMBaseboard()) {
     AMBaseboard::Shutdown();
   }
   DVDThread::Stop();
 }
 bool isAMBaseboard( void )
 {
-  return g_GCAM;
+  return (SConfig::GetInstance().GetGameID() == "GGPE02" || SConfig::GetInstance().GetGameID() == "GGPE01" ||
+        SConfig::GetInstance().GetGameID() == "GVSJ8P" || SConfig::GetInstance().GetGameID() == "GFZJ8P");
 }
 static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
 {
