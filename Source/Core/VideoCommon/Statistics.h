@@ -71,6 +71,10 @@ struct Statistics
 
     int num_efb_peeks;
     int num_efb_pokes;
+
+    int num_draw_done;
+    int num_token;
+    int num_token_int;
   };
   ThisFrame this_frame;
   void ResetFrame();
