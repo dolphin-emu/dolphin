@@ -40,6 +40,10 @@ ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
   ConnectWidgets();
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &ThreadWidget::Update);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+    if (state == Core::State::Paused)
+      Update();
+  });
 
   connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });

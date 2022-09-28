@@ -45,6 +45,10 @@ RegisterWidget::RegisterWidget(QWidget* parent)
   ConnectWidgets();
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &RegisterWidget::Update);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+    if (state == Core::State::Paused)
+      Update();
+  });
 
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });

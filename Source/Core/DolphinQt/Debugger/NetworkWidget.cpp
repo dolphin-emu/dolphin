@@ -163,6 +163,10 @@ NetworkWidget::NetworkWidget(QWidget* parent) : QDockWidget(parent)
   ConnectWidgets();
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &NetworkWidget::Update);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+    if (state == Core::State::Paused)
+      Update();
+  });
 
   connect(&Settings::Instance(), &Settings::NetworkVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
