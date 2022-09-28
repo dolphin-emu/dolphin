@@ -207,6 +207,7 @@ void SConfig::LoadDefaults()
   bBootToPause = false;
 
   bWii = false;
+  bTriforce = false;
   ResetRunningGameMetadata();
 }
 
@@ -226,6 +227,7 @@ struct SetGameMetadata
   {
     *region = disc.volume->GetRegion();
     config->bWii = disc.volume->GetVolumeType() == DiscIO::Platform::WiiDisc;
+    config->bTriforce = disc.volume->GetVolumeType() == DiscIO::Platform::TriforceDisc;
     config->m_disc_booted_from_game_list = true;
     config->SetRunningGameMetadata(*disc.volume, disc.volume->GetGamePartition());
     return true;
@@ -238,7 +240,7 @@ struct SetGameMetadata
 
     *region = DiscIO::Region::Unknown;
     config->bWii = executable.reader->IsWii();
-
+    config->bTriforce = executable.reader->IsTriforce();
     // Strip the .elf/.dol file extension and directories before the name
     SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
 
@@ -296,6 +298,7 @@ struct SetGameMetadata
   {
     *region = ipl.region;
     config->bWii = false;
+    config->bTriforce = false;
     Host_TitleChanged();
 
     return true;
@@ -309,6 +312,7 @@ struct SetGameMetadata
 
     *region = DiscIO::Region::NTSC_U;
     config->bWii = dff_file->GetIsWii();
+    config->bTriforce = dff_file->GetIsTriforce();
     Host_TitleChanged();
 
     return true;
