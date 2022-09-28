@@ -18,10 +18,8 @@
 #endif
 
 #ifdef ANDROID
-
 #include "Common/StringUtil.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
-
 #endif
 
 // User directory indices for GetUserPath
