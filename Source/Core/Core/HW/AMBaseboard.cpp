@@ -118,7 +118,6 @@ u32 ExecuteCommand( u32 Command, u32 Length, u32 Address, u32 Offset )
 {
 	NOTICE_LOG_FMT(DVDINTERFACE, "GCAM: {:08x} {:08x} DMA=addr:{:08x},len:{:08x}",
 		Command, Offset, Address, Length);
-
 	switch(Command>>24)
 	{
 		// Inquiry

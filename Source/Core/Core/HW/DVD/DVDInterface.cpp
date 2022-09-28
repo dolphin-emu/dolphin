@@ -392,16 +392,6 @@ void Init()
 
   ResetDrive(false);
 
-  state.auto_change_disc = CoreTiming::RegisterEvent("AutoChangeDisc", AutoChangeDiscCallback);
-  state.eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
-  state.insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
-
-  state.finish_executing_command =
-      CoreTiming::RegisterEvent("FinishExecutingCommand", FinishExecutingCommandCallback);
-
-  u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
-  CoreTiming::ScheduleEvent(0, state.finish_executing_command, userdata);
-
   /*g_GCAM = ((SConfig::GetInstance().m_SIDevice[0] == SerialInterface::SIDEVICE_AM_BASEBOARD)
 && (SConfig::GetInstance().m_EXIDevice[2] == ExpansionInterface::EXIDeviceType::AMBaseboard))
 ? 1 : 0;*/
@@ -412,6 +402,17 @@ void Init()
   {
     AMBaseboard::Init();
   }
+
+  state.auto_change_disc = CoreTiming::RegisterEvent("AutoChangeDisc", AutoChangeDiscCallback);
+  state.eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
+  state.insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
+
+  state.finish_executing_command =
+      CoreTiming::RegisterEvent("FinishExecutingCommand", FinishExecutingCommandCallback);
+
+  u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
+  CoreTiming::ScheduleEvent(0, state.finish_executing_command, userdata);
+
 }
 
 // Resets state on the MN102 chip in the drive itself, but not the DI registers exposed on the
@@ -901,10 +902,20 @@ void ExecuteCommand(ReplyType reply_type)
   bool command_handled_by_thread = false;
 
   //Triforce games have reverse endianess, reverse bits of command then drop leading 0s
+  // https://github.com/Zopolis4/dolphin/blob/master/Source/Core/Core/HW/DVD/DVDInterface.cpp
   if (DVDThread::GetDiscType() == DiscIO::Platform::TriforceDisc) {
-    state.DICMDBUF[0] = Common::swap32(state.DICMDBUF[0]) & 0xFF000000;
+    state.DIIMMBUF = AMBaseboard::ExecuteCommand(state.DICMDBUF[0] << 24, state.DILENGTH,
+                        state.DIMAR, state.DICMDBUF[1] << 2);
+    // transfer is done
+    //TODO IMPLEMENT THE COMMENTED STEPS
+    state.DICR.TSTART = 0;
+    state.DILENGTH = 0;
+    GenerateDIInterrupt(DIInterruptType::TCINT);
+    state.error_code = DriveError::None;
+    return;
+    //state.DICMDBUF[0] = (Common::swap32(state.DICMDBUF[0]) & 0xFF000000);
+    //AMBaseboard::ExecuteCommand(state.DICMDBUF[0], state.DILENGTH, state.DIMAR, state.disc_end_offset);
   }
-
   // DVDLowRequestError needs access to the error code set by the previous command
   if (static_cast<DICommand>(state.DICMDBUF[0] >> 24) != DICommand::RequestError)
     SetDriveError(DriveError::None);
