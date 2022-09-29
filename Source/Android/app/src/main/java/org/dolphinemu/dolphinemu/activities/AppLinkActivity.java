@@ -74,7 +74,7 @@ public class AppLinkActivity extends FragmentActivity
     });
 
     DirectoryInitialization.start(this);
-    GameFileCacheManager.startLoad(this);
+    GameFileCacheManager.startLoad();
   }
 
   /**

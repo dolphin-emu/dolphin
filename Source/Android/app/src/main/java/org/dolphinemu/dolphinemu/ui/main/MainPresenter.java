@@ -96,7 +96,7 @@ public final class MainPresenter
 
       case R.id.menu_refresh:
         mView.setRefreshing(true);
-        GameFileCacheManager.startRescan(activity);
+        GameFileCacheManager.startRescan();
         return true;
 
       case R.id.button_add_directory:
@@ -146,7 +146,7 @@ public final class MainPresenter
 
     if (sShouldRescanLibrary)
     {
-      GameFileCacheManager.startRescan(mActivity);
+      GameFileCacheManager.startRescan();
     }
 
     sShouldRescanLibrary = true;
