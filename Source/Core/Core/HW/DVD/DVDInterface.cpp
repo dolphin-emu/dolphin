@@ -897,7 +897,7 @@ void ExecuteCommand(ReplyType reply_type)
   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
   bool command_handled_by_thread = false;
-  printf("BOOTING");
+  //printf("BOOTING");
   //Triforce games have reverse endianess, reverse bits of command then drop leading 0s
   // https://github.com/Zopolis4/dolphin/blob/master/Source/Core/Core/HW/DVD/DVDInterface.cpp
   if (DVDThread::GetDiscType() == DiscIO::Platform::TriforceDisc) {
