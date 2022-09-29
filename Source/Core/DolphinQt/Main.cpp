@@ -92,7 +92,7 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 
     if (button == QMessageBox::Ignore)
     {
-      Common::SetEnableAlert(false);
+      Config::SetCurrent(Config::MAIN_USE_PANIC_HANDLERS, false);
       return true;
     }
 

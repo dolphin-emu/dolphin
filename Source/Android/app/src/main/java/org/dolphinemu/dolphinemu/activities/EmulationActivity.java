@@ -88,14 +88,12 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   private String[] mPaths;
   private boolean mRiivolution;
   private boolean mLaunchSystemMenu;
-  private boolean mIgnoreWarnings;
   private static boolean sUserPausedEmulation;
   private boolean mMenuToastShown;
 
   public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
   public static final String EXTRA_RIIVOLUTION = "Riivolution";
   public static final String EXTRA_SYSTEM_MENU = "SystemMenu";
-  public static final String EXTRA_IGNORE_WARNINGS = "IgnoreWarnings";
   public static final String EXTRA_USER_PAUSED_EMULATION = "sUserPausedEmulation";
   public static final String EXTRA_MENU_TOAST_SHOWN = "MenuToastShown";
 
@@ -316,7 +314,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
       mPaths = gameToEmulate.getStringArrayExtra(EXTRA_SELECTED_GAMES);
       mRiivolution = gameToEmulate.getBooleanExtra(EXTRA_RIIVOLUTION, false);
       mLaunchSystemMenu = gameToEmulate.getBooleanExtra(EXTRA_SYSTEM_MENU, false);
-      mIgnoreWarnings = gameToEmulate.getBooleanExtra(EXTRA_IGNORE_WARNINGS, false);
       sUserPausedEmulation = gameToEmulate.getBooleanExtra(EXTRA_USER_PAUSED_EMULATION, false);
       mMenuToastShown = false;
       activityRecreated = false;
@@ -366,7 +363,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
       mEmulationFragment.saveTemporaryState();
     }
     outState.putStringArray(EXTRA_SELECTED_GAMES, mPaths);
-    outState.putBoolean(EXTRA_IGNORE_WARNINGS, mIgnoreWarnings);
     outState.putBoolean(EXTRA_USER_PAUSED_EMULATION, sUserPausedEmulation);
     outState.putBoolean(EXTRA_MENU_TOAST_SHOWN, mMenuToastShown);
     super.onSaveInstanceState(outState);
@@ -375,7 +371,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   protected void restoreState(Bundle savedInstanceState)
   {
     mPaths = savedInstanceState.getStringArray(EXTRA_SELECTED_GAMES);
-    mIgnoreWarnings = savedInstanceState.getBoolean(EXTRA_IGNORE_WARNINGS);
     sUserPausedEmulation = savedInstanceState.getBoolean(EXTRA_USER_PAUSED_EMULATION);
     mMenuToastShown = savedInstanceState.getBoolean(EXTRA_MENU_TOAST_SHOWN);
   }
@@ -752,16 +747,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
         mEmulationFragment.stopEmulation();
         break;
     }
-  }
-
-  public boolean isIgnoringWarnings()
-  {
-    return mIgnoreWarnings;
-  }
-
-  public void setIgnoreWarnings(boolean value)
-  {
-    mIgnoreWarnings = value;
   }
 
   public static boolean getHasUserPausedEmulation()

@@ -57,6 +57,8 @@
 
 namespace UICommon
 {
+static size_t s_config_changed_callback_id;
+
 static void CreateDumpPath(std::string path)
 {
   if (!path.empty())
@@ -108,6 +110,12 @@ static void InitCustomPaths()
 #endif
 }
 
+static void RefreshConfig()
+{
+  Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
+  Common::SetAbortOnPanicAlert(Config::Get(Config::MAIN_ABORT_ON_PANIC_ALERT));
+}
+
 void Init()
 {
   Core::RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
@@ -120,12 +128,14 @@ void Init()
   Common::Log::LogManager::Init();
   VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
-  Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
-  Common::SetAbortOnPanicAlert(Config::Get(Config::MAIN_ABORT_ON_PANIC_ALERT));
+  s_config_changed_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
+  RefreshConfig();
 }
 
 void Shutdown()
 {
+  Config::RemoveConfigChangedCallback(s_config_changed_callback_id);
+
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();
   Common::Log::LogManager::Shutdown();

@@ -120,6 +120,13 @@ void SetBaseOrCurrent(const Info<T>& info, const std::common_type_t<T>& value)
     Set<T>(LayerType::CurrentRun, info, value);
 }
 
+template <typename T>
+void DeleteKey(LayerType layer, const Info<T>& info)
+{
+  if (GetLayer(layer)->DeleteKey(info.GetLocation()))
+    OnConfigChanged();
+}
+
 // Used to defer OnConfigChanged until after the completion of many config changes.
 class ConfigChangeCallbackGuard
 {
