@@ -159,6 +159,7 @@ bool SIDevice_IsGCController(SIDevices type)
   switch (type)
   {
   case SIDEVICE_GC_CONTROLLER:
+  case SIDEVICE_AM_BASEBOARD:
   case SIDEVICE_WIIU_ADAPTER:
   case SIDEVICE_GC_TARUKONGA:
   case SIDEVICE_DANCEMAT:

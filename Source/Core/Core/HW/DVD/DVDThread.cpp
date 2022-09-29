@@ -24,6 +24,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/AMBaseboard.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/DVD/FileMonitor.h"
 #include "Core/HW/Memmap.h"
@@ -127,6 +128,9 @@ static void StartDVDThread(DVDThreadState::Data& state)
 
 void Stop()
 {
+  if (DVDInterface::isAMBaseboard()) {
+    AMBaseboard::Shutdown();
+  }
   auto& state = Core::System::GetInstance().GetDVDThreadState().GetData();
   StopDVDThread(state);
   state.disc.reset();

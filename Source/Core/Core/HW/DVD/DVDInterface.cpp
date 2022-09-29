@@ -373,12 +373,11 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
 void Init()
 {
   ASSERT(!IsDiscInside());
-
   DVDThread::Start();
 
   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
   state.DISR.Hex = 0;
-  state.DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
+  state.DICVR.Hex = (isAMBaseboard()) ? 0 : 1;  // Disc Channel relies on cover being open when no disc is inserted
   state.DICMDBUF[0] = 0;
   state.DICMDBUF[1] = 0;
   state.DICMDBUF[2] = 0;
@@ -387,7 +386,7 @@ void Init()
   state.DICR.Hex = 0;
   state.DIIMMBUF = 0;
   state.DICFG.Hex = 0;
-  state.DICFG.CONFIG = 1;  // Disable bootrom descrambler
+  state.DICFG.CONFIG = (isAMBaseboard()) ? 0 : 1;  // Disable bootrom descrambler
 
   ResetDrive(false);
 
@@ -462,9 +461,6 @@ void ResetDrive(bool spinup)
 
 void Shutdown()
 {
-  if (isAMBaseboard()) {
-    AMBaseboard::Shutdown();
-  }
   DVDThread::Stop();
 }
 bool isAMBaseboard( void )
@@ -901,7 +897,7 @@ void ExecuteCommand(ReplyType reply_type)
   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
   bool command_handled_by_thread = false;
-
+  printf("BOOTING");
   //Triforce games have reverse endianess, reverse bits of command then drop leading 0s
   // https://github.com/Zopolis4/dolphin/blob/master/Source/Core/Core/HW/DVD/DVDInterface.cpp
   if (DVDThread::GetDiscType() == DiscIO::Platform::TriforceDisc) {
