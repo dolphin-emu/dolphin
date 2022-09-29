@@ -33,30 +33,21 @@ enum : u32
 };
 
 static std::mutex s_fatfs_mutex;
-static File::IOFile* s_image;
-static bool s_deterministic;
+static Common::FatFsCallbacks* s_callbacks;
 
-extern "C" DSTATUS disk_status(BYTE pdrv)
+namespace
 {
-  return 0;
-}
-
-extern "C" DSTATUS disk_initialize(BYTE pdrv)
-{
-  return 0;
-}
-
-extern "C" DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
+int SDCardDiskRead(File::IOFile* image, u8 pdrv, u8* buff, u32 sector, unsigned int count)
 {
   const u64 offset = static_cast<u64>(sector) * SECTOR_SIZE;
-  if (!s_image->Seek(offset, File::SeekOrigin::Begin))
+  if (!image->Seek(offset, File::SeekOrigin::Begin))
   {
     ERROR_LOG_FMT(COMMON, "SD image seek failed (offset={})", offset);
     return RES_ERROR;
   }
 
   const size_t size = static_cast<size_t>(count) * SECTOR_SIZE;
-  if (!s_image->ReadBytes(buff, size))
+  if (!image->ReadBytes(buff, size))
   {
     ERROR_LOG_FMT(COMMON, "SD image read failed (offset={}, size={})", offset, size);
     return RES_ERROR;
@@ -65,17 +56,17 @@ extern "C" DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
   return RES_OK;
 }
 
-extern "C" DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
+int SDCardDiskWrite(File::IOFile* image, u8 pdrv, const u8* buff, u32 sector, unsigned int count)
 {
   const u64 offset = static_cast<u64>(sector) * SECTOR_SIZE;
-  if (!s_image->Seek(offset, File::SeekOrigin::Begin))
+  if (!image->Seek(offset, File::SeekOrigin::Begin))
   {
     ERROR_LOG_FMT(COMMON, "SD image seek failed (offset={})", offset);
     return RES_ERROR;
   }
 
   const size_t size = static_cast<size_t>(count) * SECTOR_SIZE;
-  if (!s_image->WriteBytes(buff, size))
+  if (!image->WriteBytes(buff, size))
   {
     ERROR_LOG_FMT(COMMON, "SD image write failed (offset={}, size={})", offset, size);
     return RES_ERROR;
@@ -84,14 +75,14 @@ extern "C" DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT co
   return RES_OK;
 }
 
-extern "C" DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
+int SDCardDiskIOCtl(File::IOFile* image, u8 pdrv, u8 cmd, void* buff)
 {
   switch (cmd)
   {
   case CTRL_SYNC:
     return RES_OK;
   case GET_SECTOR_COUNT:
-    *reinterpret_cast<LBA_t*>(buff) = s_image->GetSize() / SECTOR_SIZE;
+    *reinterpret_cast<LBA_t*>(buff) = image->GetSize() / SECTOR_SIZE;
     return RES_OK;
   default:
     WARN_LOG_FMT(COMMON, "Unexpected SD image ioctl {}", cmd);
@@ -99,11 +90,8 @@ extern "C" DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
   }
 }
 
-extern "C" DWORD get_fattime(void)
+u32 GetSystemTimeFAT()
 {
-  if (s_deterministic)
-    return 0;
-
   const std::time_t time = std::time(nullptr);
   std::tm tm;
 #ifdef _WIN32
@@ -120,6 +108,91 @@ extern "C" DWORD get_fattime(void)
   fattime |= tm.tm_min << 5;
   fattime |= std::min(tm.tm_sec, 59) >> 1;
   return fattime;
+}
+}  // namespace
+
+namespace Common
+{
+FatFsCallbacks::FatFsCallbacks() = default;
+FatFsCallbacks::~FatFsCallbacks() = default;
+
+u8 FatFsCallbacks::DiskInitialize(u8 pdrv)
+{
+  return 0;
+}
+
+u8 FatFsCallbacks::DiskStatus(u8 pdrv)
+{
+  return 0;
+}
+
+u32 FatFsCallbacks::GetCurrentTimeFAT()
+{
+  return GetSystemTimeFAT();
+}
+}  // namespace Common
+
+namespace
+{
+class SDCardFatFsCallbacks : public Common::FatFsCallbacks
+{
+public:
+  int DiskRead(u8 pdrv, u8* buff, u32 sector, unsigned int count) override
+  {
+    return SDCardDiskRead(m_image, pdrv, buff, sector, count);
+  }
+
+  int DiskWrite(u8 pdrv, const u8* buff, u32 sector, unsigned int count) override
+  {
+    return SDCardDiskWrite(m_image, pdrv, buff, sector, count);
+  }
+
+  int DiskIOCtl(u8 pdrv, u8 cmd, void* buff) override
+  {
+    return SDCardDiskIOCtl(m_image, pdrv, cmd, buff);
+  }
+
+  u32 GetCurrentTimeFAT() override
+  {
+    if (m_deterministic)
+      return 0;
+
+    return GetSystemTimeFAT();
+  }
+
+  File::IOFile* m_image;
+  bool m_deterministic;
+};
+}  // namespace
+
+extern "C" DSTATUS disk_status(BYTE pdrv)
+{
+  return static_cast<DSTATUS>(s_callbacks->DiskStatus(pdrv));
+}
+
+extern "C" DSTATUS disk_initialize(BYTE pdrv)
+{
+  return static_cast<DSTATUS>(s_callbacks->DiskInitialize(pdrv));
+}
+
+extern "C" DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
+{
+  return static_cast<DRESULT>(s_callbacks->DiskRead(pdrv, buff, sector, count));
+}
+
+extern "C" DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
+{
+  return static_cast<DRESULT>(s_callbacks->DiskWrite(pdrv, buff, sector, count));
+}
+
+extern "C" DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
+{
+  return static_cast<DRESULT>(s_callbacks->DiskIOCtl(pdrv, cmd, buff));
+}
+
+extern "C" DWORD get_fattime(void)
+{
+  return static_cast<DWORD>(s_callbacks->GetCurrentTimeFAT());
 }
 
 extern "C" void* ff_memalloc(UINT msize)
@@ -435,11 +508,13 @@ bool SyncSDFolderToSDImage(bool deterministic)
   size = AlignUp(size, MAX_CLUSTER_SIZE);
 
   std::lock_guard lk(s_fatfs_mutex);
+  SDCardFatFsCallbacks callbacks;
+  s_callbacks = &callbacks;
+  Common::ScopeGuard callbacks_guard{[] { s_callbacks = nullptr; }};
 
   File::IOFile image;
-  s_image = &image;
-  Common::ScopeGuard image_guard{[] { s_image = nullptr; }};
-  s_deterministic = deterministic;
+  callbacks.m_image = &image;
+  callbacks.m_deterministic = deterministic;
 
   const std::string temp_image_path = File::GetTempFilenameForAtomicWrite(image_path);
   if (!image.Open(temp_image_path, "w+b"))
@@ -672,17 +747,19 @@ bool SyncSDImageToSDFolder()
     return false;
 
   std::lock_guard lk(s_fatfs_mutex);
+  SDCardFatFsCallbacks callbacks;
+  s_callbacks = &callbacks;
+  Common::ScopeGuard callbacks_guard{[] { s_callbacks = nullptr; }};
 
   INFO_LOG_FMT(COMMON, "Starting SD card conversion from file {} to folder {}", image_path,
                target_dir);
 
   File::IOFile image;
-  s_image = &image;
-  Common::ScopeGuard image_guard{[] { s_image = nullptr; }};
+  callbacks.m_image = &image;
 
   // this shouldn't matter since we're not modifying the SD image here, but initialize it to
   // something consistent just in case
-  s_deterministic = true;
+  callbacks.m_deterministic = true;
 
   if (!image.Open(image_path, "r+b"))
   {
@@ -739,5 +816,13 @@ bool SyncSDImageToSDFolder()
 
   INFO_LOG_FMT(COMMON, "Successfully unpacked SD image {} to {}", image_path, target_dir);
   return true;
+}
+
+void RunInFatFsContext(FatFsCallbacks& callbacks, const std::function<void()>& function)
+{
+  std::lock_guard lk(s_fatfs_mutex);
+  s_callbacks = &callbacks;
+  Common::ScopeGuard callbacks_guard{[] { s_callbacks = nullptr; }};
+  function();
 }
 }  // namespace Common
