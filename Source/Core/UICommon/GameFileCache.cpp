@@ -34,7 +34,7 @@ std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& direct
 {
   static const std::vector<std::string> search_extensions = {
       ".gcm", ".tgc", ".iso", ".ciso", ".gcz", ".wbfs", ".wia",
-      ".rvz", ".nfs", ".wad", ".dol",  ".elf", ".json"};
+      ".rvz", ".nfs", ".wad", ".dol",  ".elf", ".json", ".bin"};
 
   // TODO: We could process paths iteratively as they are found
   return Common::DoFileSearch(directories_to_scan, search_extensions, recursive_scan);

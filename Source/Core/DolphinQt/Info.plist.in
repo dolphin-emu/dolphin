@@ -20,11 +20,15 @@
                 <string>wad</string>
                 <string>wia</string>
                 <string>wbfs</string>
+                <string>bin</string>
             </array>
             <key>CFBundleTypeIconFile</key>
             <string>Dolphin.icns</string>
             <key>CFBundleTypeName</key>
-            <string>Nintendo GC/Wii file</string>
+            <array>
+              <string>Nintendo GC/Wii file</string>
+              <string>Triforce file</string>
+            </array>
             <key>CFBundleTypeRole</key>
             <string>Viewer</string>
         </dict>
