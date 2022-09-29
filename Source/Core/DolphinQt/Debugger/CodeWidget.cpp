@@ -176,7 +176,16 @@ void CodeWidget::ConnectWidgets()
   connect(m_function_callers_list, &QListWidget::itemPressed, this,
           &CodeWidget::OnSelectFunctionCallers);
 
-  connect(m_code_view, &CodeViewWidget::SymbolsChanged, this, &CodeWidget::UpdateSymbols);
+  connect(m_code_view, &CodeViewWidget::SymbolsChanged, this, [this]() {
+    UpdateCallstack();
+    UpdateSymbols();
+    const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
+    if (symbol)
+    {
+      UpdateFunctionCalls(symbol);
+      UpdateFunctionCallers(symbol);
+    }
+  });
   connect(m_code_view, &CodeViewWidget::BreakpointsChanged, this,
           [this] { emit BreakpointsChanged(); });
   connect(m_code_view, &CodeViewWidget::UpdateCodeWidget, this, &CodeWidget::Update);
