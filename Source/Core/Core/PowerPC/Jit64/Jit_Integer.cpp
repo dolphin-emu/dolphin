@@ -682,7 +682,7 @@ void Jit64::boolX(UGeckoInstruction inst)
     const bool is_xor = (inst.SUBOP10 == 316 /* xorx */) || (inst.SUBOP10 == 284 /* eqvx */);
 
     // Precompute complement when possible
-    if (complement_b && gpr.IsImm(b) || (inst.SUBOP10 == 284 /* eqvx */))
+    if ((complement_b && gpr.IsImm(b)) || (inst.SUBOP10 == 284 /* eqvx */))
     {
       imm = ~imm;
       complement_b = false;
@@ -706,7 +706,9 @@ void Jit64::boolX(UGeckoInstruction inst)
         NOT(32, Ra);
       }
       else if (a == j)
+      {
         XOR(32, Ra, Imm32(imm));
+      }
       else if (s32(imm) >= -128 && s32(imm) <= 127)
       {
         MOV(32, Ra, Rj);
@@ -721,7 +723,9 @@ void Jit64::boolX(UGeckoInstruction inst)
     else if (is_and)
     {
       if (imm == 0)
+      {
         gpr.SetImmediate32(a, final_not ? 0xFFFFFFFF : 0);
+      }
       else
       {
         RCOpArg Rj = gpr.Use(j, RCMode::Read);
@@ -746,7 +750,9 @@ void Jit64::boolX(UGeckoInstruction inst)
         else
         {
           if (a == j)
+          {
             AND(32, Ra, Imm32(imm));
+          }
           else if (s32(imm) >= -128 && s32(imm) <= 127)
           {
             MOV(32, Ra, Rj);
@@ -790,7 +796,9 @@ void Jit64::boolX(UGeckoInstruction inst)
       else
       {
         if (a == j)
+        {
           OR(32, Ra, Imm32(imm));
+        }
         else if (s32(imm) >= -128 && s32(imm) <= 127)
         {
           MOV(32, Ra, Rj);
