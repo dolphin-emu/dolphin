@@ -317,20 +317,20 @@ public final class MainPresenter
 
   private void launchWiiSystemMenu()
   {
-    if (WiiUtils.isSystemMenuInstalled())
+    new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity, () ->
     {
-      EmulationActivity.launchSystemMenu(mActivity);
-    }
-    else
-    {
-      new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity, () ->
+      if (WiiUtils.isSystemMenuInstalled())
+      {
+        EmulationActivity.launchSystemMenu(mActivity);
+      }
+      else
       {
         SystemMenuNotInstalledDialogFragment dialogFragment =
                 new SystemMenuNotInstalledDialogFragment();
         dialogFragment
                 .show(mActivity.getSupportFragmentManager(),
                         "SystemMenuNotInstalledDialogFragment");
-      });
-    }
+      }
+    });
   }
 }
