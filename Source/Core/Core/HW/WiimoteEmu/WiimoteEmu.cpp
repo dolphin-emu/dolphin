@@ -30,6 +30,7 @@
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Extension/Shinkansen.h"
 #include "Core/HW/WiimoteEmu/Extension/TaTaCon.h"
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
@@ -247,6 +248,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::UDrawTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Shinkansen>());
 
   m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
 
@@ -397,6 +399,13 @@ ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(DrawsomeTabletGroup
 ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
 {
   return static_cast<TaTaCon*>(m_attachments->GetAttachmentList()[ExtensionNumber::TATACON].get())
+      ->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetShinkansenGroup(ShinkansenGroup group) const
+{
+  return static_cast<Shinkansen*>(
+             m_attachments->GetAttachmentList()[ExtensionNumber::SHINKANSEN].get())
       ->GetGroup(group);
 }
 

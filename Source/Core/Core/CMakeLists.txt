@@ -296,6 +296,8 @@ add_library(core
   HW/WiimoteEmu/Extension/Guitar.h
   HW/WiimoteEmu/Extension/Nunchuk.cpp
   HW/WiimoteEmu/Extension/Nunchuk.h
+  HW/WiimoteEmu/Extension/Shinkansen.cpp
+  HW/WiimoteEmu/Extension/Shinkansen.h
   HW/WiimoteEmu/Extension/TaTaCon.cpp
   HW/WiimoteEmu/Extension/TaTaCon.h
   HW/WiimoteEmu/Extension/Turntable.cpp
