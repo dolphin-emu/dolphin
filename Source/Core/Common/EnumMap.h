@@ -6,6 +6,7 @@
 #include <array>
 #include <type_traits>
 
+#include "Common/BitFieldView.h"
 #include "Common/Concepts.h"
 
 template <std::size_t position, std::size_t bits, typename T, typename StorageType>
@@ -57,6 +58,22 @@ public:
   {
     static_assert(1 << bits == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
     return m_array[static_cast<std::size_t>(key.Value())];
+  }
+
+  // This only exists to perform the safety check; without them, A BitFieldView's implicit
+  // conversion would work (but since BitFieldViews are used for game-generated data, we need
+  // to be careful about bounds-checking)
+  template <BitFieldView T>
+  constexpr const V& operator[](T key)
+  {
+    static_assert(1 << T::width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
+    return m_array[static_cast<std::size_t>(key.Get())];
+  }
+  template <BitFieldView T>
+  constexpr const V& operator[](T key) const
+  {
+    static_assert(1 << T::width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
+    return m_array[static_cast<std::size_t>(key.Get())];
   }
 
   constexpr bool InBounds(T key) const { return static_cast<std::size_t>(key) < s_size; }
