@@ -84,8 +84,16 @@ private:
 
 class VKStagingTexture final : public AbstractStagingTexture
 {
+  struct PrivateTag
+  {
+  };
+
 public:
   VKStagingTexture() = delete;
+  VKStagingTexture(PrivateTag, StagingTextureType type, const TextureConfig& config,
+                   std::unique_ptr<StagingBuffer> buffer, VkImage linear_image,
+                   VkDeviceMemory linear_image_memory);
+
   ~VKStagingTexture();
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
@@ -102,11 +110,17 @@ public:
   static std::unique_ptr<VKStagingTexture> Create(StagingTextureType type,
                                                   const TextureConfig& config);
 
+  static std::pair<VkImage, VkDeviceMemory> CreateLinearImage(StagingTextureType type,
+                                                              const TextureConfig& config);
+
 private:
-  VKStagingTexture(StagingTextureType type, const TextureConfig& config,
-                   std::unique_ptr<StagingBuffer> buffer);
+  void CopyFromTextureToLinearImage(const VKTexture* src_tex,
+                                    const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                    u32 src_level, const MathUtil::Rectangle<int>& dst_rect);
 
   std::unique_ptr<StagingBuffer> m_staging_buffer;
+  VkImage m_linear_image = VK_NULL_HANDLE;
+  VkDeviceMemory m_linear_image_memory = VK_NULL_HANDLE;
   u64 m_flush_fence_counter = 0;
 };
 
