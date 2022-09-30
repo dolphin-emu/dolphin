@@ -123,8 +123,6 @@ private:
   u32 m_current_frame = 0;
 
   // Threaded command buffer execution
-  // Semaphore determines when a command buffer can be queued
-  Common::Semaphore m_submit_semaphore;
   std::thread m_submit_thread;
   std::unique_ptr<Common::BlockingLoop> m_submit_loop;
   struct PendingCommandBufferSubmit
@@ -136,6 +134,8 @@ private:
   VkSemaphore m_present_semaphore = VK_NULL_HANDLE;
   std::deque<PendingCommandBufferSubmit> m_pending_submits;
   std::mutex m_pending_submit_lock;
+  std::condition_variable m_submit_worker_condvar;
+  bool m_submit_worker_idle = true;
   Common::Flag m_last_present_failed;
   VkResult m_last_present_result = VK_SUCCESS;
   bool m_use_threaded_submission = false;

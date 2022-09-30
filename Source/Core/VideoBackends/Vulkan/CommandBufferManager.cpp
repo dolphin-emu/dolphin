@@ -15,7 +15,7 @@
 namespace Vulkan
 {
 CommandBufferManager::CommandBufferManager(bool use_threaded_submission)
-    : m_submit_semaphore(1, 1), m_use_threaded_submission(use_threaded_submission)
+    : m_use_threaded_submission(use_threaded_submission)
 {
 }
 
@@ -24,6 +24,7 @@ CommandBufferManager::~CommandBufferManager()
   // If the worker thread is enabled, stop and block until it exits.
   if (m_use_threaded_submission)
   {
+    WaitForWorkerThreadIdle();
     m_submit_loop->Stop();
     m_submit_thread.join();
   }
@@ -194,6 +195,8 @@ bool CommandBufferManager::CreateSubmitThread()
         if (m_pending_submits.empty())
         {
           m_submit_loop->AllowSleep();
+          m_submit_worker_idle = true;
+          m_submit_worker_condvar.notify_all();
           return;
         }
 
@@ -203,6 +206,15 @@ bool CommandBufferManager::CreateSubmitThread()
 
       SubmitCommandBuffer(submit.command_buffer_index, submit.present_swap_chain,
                           submit.present_image_index);
+
+      {
+        std::lock_guard<std::mutex> guard(m_pending_submit_lock);
+        if (m_pending_submits.empty())
+        {
+          m_submit_worker_idle = true;
+          m_submit_worker_condvar.notify_all();
+        }
+      }
     });
   });
 
@@ -211,9 +223,11 @@ bool CommandBufferManager::CreateSubmitThread()
 
 void CommandBufferManager::WaitForWorkerThreadIdle()
 {
-  // Drain the semaphore, then allow another request in the future.
-  m_submit_semaphore.Wait();
-  m_submit_semaphore.Post();
+  if (!m_use_threaded_submission)
+    return;
+
+  std::unique_lock lock{m_pending_submit_lock};
+  m_submit_worker_condvar.wait(lock, [&] { return m_submit_worker_idle; });
 }
 
 void CommandBufferManager::WaitForFenceCounter(u64 fence_counter)
@@ -286,17 +300,13 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
     }
   }
 
-  // Grab the semaphore before submitting command buffer either on-thread or off-thread.
-  // This prevents a race from occurring where a second command buffer is executed
-  // before the worker thread has woken and executed the first one yet.
-  m_submit_semaphore.Wait();
-
   // Submitting off-thread?
   if (m_use_threaded_submission && submit_on_worker_thread && !wait_for_completion)
   {
     // Push to the pending submit queue.
     {
       std::lock_guard<std::mutex> guard(m_pending_submit_lock);
+      m_submit_worker_idle = false;
       m_pending_submits.push_back({present_swap_chain, present_image_index, m_current_frame});
     }
 
@@ -305,6 +315,8 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
   }
   else
   {
+    WaitForWorkerThreadIdle();
+
     // Pass through to normal submission path.
     SubmitCommandBuffer(m_current_frame, present_swap_chain, present_image_index);
     if (wait_for_completion)
@@ -394,9 +406,6 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
 #endif
     }
   }
-
-  // Command buffer has been queued, so permit the next one.
-  m_submit_semaphore.Post();
 }
 
 void CommandBufferManager::BeginCommandBuffer()
