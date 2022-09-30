@@ -3,6 +3,7 @@ add_library(common
   Analytics.h
   Assert.h
   BitField.h
+  BitFieldView.h
   BitSet.h
   BitUtils.h
   BlockingLoop.h
@@ -25,6 +26,7 @@ add_library(common
   Config/Enums.h
   Config/Layer.cpp
   Config/Layer.h
+  ConstantPack.h
   CPUDetect.h
   Crypto/AES.cpp
   Crypto/AES.h
@@ -60,6 +62,8 @@ add_library(common
   FormatUtil.h
   FPURoundMode.h
   Future/CppLibConcepts.h
+  Future/CppLibIsScopedEnum.h
+  Future/CppLibToUnderlying.h
   GekkoDisassembler.cpp
   GekkoDisassembler.h
   Hash.cpp

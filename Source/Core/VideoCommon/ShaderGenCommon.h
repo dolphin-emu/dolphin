@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 #include "Common/Concepts.h"
 #include "Common/EnumMap.h"
@@ -213,6 +214,15 @@ std::string BitfieldExtract(std::string_view source)
   return fmt::format("bitfieldExtract({}({}), {}, {})", BitFieldT::IsSigned() ? "int" : "uint",
                      source, static_cast<u32>(BitFieldT::StartBit()),
                      static_cast<u32>(BitFieldT::NumBits()));
+}
+
+// bitfieldExtract generator for fixed-variant BitFieldView
+template <Common::FixedBitFieldView T>
+std::string BitfieldExtract(std::string_view source, T /*unused*/)
+{
+  return fmt::format("bitfieldExtract({}({}), {}, {})",
+                     std::is_signed_v<typename T::FieldType> ? "int" : "uint", source,
+                     static_cast<u32>(T::BitStart()), static_cast<u32>(T::BitWidth()));
 }
 
 template <auto last_member, typename = decltype(last_member)>
