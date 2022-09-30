@@ -93,7 +93,10 @@ bool CommandBufferManager::CreateCommandBuffers()
       LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
       return false;
     }
+  }
 
+  for (VkDescriptorPool& descriptor_pool : m_descriptor_pools)
+  {
     // TODO: A better way to choose the number of descriptors.
     const std::array<VkDescriptorPoolSize, 5> pool_sizes{{
         {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 500000},
@@ -112,7 +115,7 @@ bool CommandBufferManager::CreateCommandBuffers()
         pool_sizes.data(),
     };
 
-    res = vkCreateDescriptorPool(device, &pool_create_info, nullptr, &resources.descriptor_pool);
+    res = vkCreateDescriptorPool(device, &pool_create_info, nullptr, &descriptor_pool);
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreateDescriptorPool failed: ");
@@ -155,9 +158,12 @@ void CommandBufferManager::DestroyCommandBuffers()
 
     if (resources.fence != VK_NULL_HANDLE)
       vkDestroyFence(device, resources.fence, nullptr);
+  }
 
-    if (resources.descriptor_pool != VK_NULL_HANDLE)
-      vkDestroyDescriptorPool(device, resources.descriptor_pool, nullptr);
+  for (VkDescriptorPool descriptor_pool : m_descriptor_pools)
+  {
+    if (descriptor_pool != VK_NULL_HANDLE)
+      vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
   }
 
   vkDestroySemaphore(device, m_present_semaphore, nullptr);
@@ -340,6 +346,12 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
       }
       cmd_buffer_index = (cmd_buffer_index + 1) % NUM_COMMAND_BUFFERS;
     }
+
+    // Reset the descriptor pool
+    VkResult res =
+        vkResetDescriptorPool(g_vulkan_context->GetDevice(), GetCurrentDescriptorPool(), 0);
+    if (res != VK_SUCCESS)
+      LOG_VULKAN_ERROR(res, "vkResetDescriptorPool failed: ");
   }
 
   // Switch to next cmdbuffer.
@@ -456,11 +468,6 @@ void CommandBufferManager::BeginCommandBuffer()
     if (res != VK_SUCCESS)
       LOG_VULKAN_ERROR(res, "vkBeginCommandBuffer failed: ");
   }
-
-  // Also can do the same for the descriptor pools
-  res = vkResetDescriptorPool(g_vulkan_context->GetDevice(), resources.descriptor_pool, 0);
-  if (res != VK_SUCCESS)
-    LOG_VULKAN_ERROR(res, "vkResetDescriptorPool failed: ");
 
   // Reset upload command buffer state
   resources.init_command_buffer_used = false;
