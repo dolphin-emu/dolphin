@@ -11,9 +11,11 @@
 
 namespace Vulkan
 {
-// Number of command buffers. Having two allows one buffer to be
-// executed whilst another is being built.
-constexpr size_t NUM_COMMAND_BUFFERS = 2;
+// Number of command buffers.
+constexpr size_t NUM_COMMAND_BUFFERS = 8;
+
+// Number of frames in flight, will be used to decide how many descriptor pools are used
+constexpr size_t NUM_FRAMES_IN_FLIGHT = 2;
 
 // Staging buffer usage - optimize for uploads or readbacks
 enum STAGING_BUFFER_TYPE
