@@ -64,7 +64,7 @@ DEFAULT_CONFIG = {
 
     # Minimum macOS version for each architecture slice
     "arm64_mac_os_deployment_target":  "11.0.0",
-    "x86_64_mac_os_deployment_target": "10.14.0",
+    "x86_64_mac_os_deployment_target": "10.15.0",
 
     # CMake Generator to use for building
     "generator": "Unix Makefiles",
