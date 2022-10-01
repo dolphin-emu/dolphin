@@ -1433,7 +1433,7 @@ void JitArm64::divwx(UGeckoInstruction inst)
   {
     const u32 dividend = gpr.GetImm(a);
 
-    gpr.BindToRegister(d, d == b);
+    gpr.BindToRegister(d, d == a || d == b);
 
     ARM64Reg RB = gpr.R(b);
     ARM64Reg RD = gpr.R(d);
