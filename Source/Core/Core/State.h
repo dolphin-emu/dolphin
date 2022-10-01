@@ -64,9 +64,6 @@ void SaveFirstSaved();
 void UndoSaveState();
 void UndoLoadState();
 
-// wait until previously scheduled savestate event (if any) is done
-void Flush();
-
 // for calling back into UI code without introducing a dependency on it in core
 using AfterLoadCallbackFunc = std::function<void()>;
 void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback);
