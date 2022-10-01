@@ -476,9 +476,11 @@ void JitArm64::addx(UGeckoInstruction inst)
   {
     int imm_reg = gpr.IsImm(a) ? a : b;
     int in_reg = gpr.IsImm(a) ? b : a;
+    int imm_value = gpr.GetImm(imm_reg);
+
     gpr.BindToRegister(d, d == in_reg);
     ARM64Reg WA = gpr.GetReg();
-    ADDI2R(gpr.R(d), gpr.R(in_reg), gpr.GetImm(imm_reg), WA);
+    ADDI2R(gpr.R(d), gpr.R(in_reg), imm_value, WA);
     gpr.Unlock(WA);
     if (inst.Rc)
       ComputeRC0(gpr.R(d));
@@ -745,11 +747,11 @@ void JitArm64::rlwnmx(UGeckoInstruction inst)
   }
   else if (gpr.IsImm(b))
   {
+    int imm_value = gpr.GetImm(b) & 0x1f;
     gpr.BindToRegister(a, a == s);
     ARM64Reg WA = gpr.GetReg();
-    ArithOption Shift(gpr.R(s), ShiftType::ROR, 32 - (gpr.GetImm(b) & 0x1f));
     MOVI2R(WA, mask);
-    AND(gpr.R(a), WA, gpr.R(s), Shift);
+    AND(gpr.R(a), WA, gpr.R(s), ArithOption(gpr.R(s), ShiftType::ROR, 32 - imm_value));
     gpr.Unlock(WA);
     if (inst.Rc)
       ComputeRC0(gpr.R(a));
@@ -1433,7 +1435,7 @@ void JitArm64::divwx(UGeckoInstruction inst)
   {
     const u32 dividend = gpr.GetImm(a);
 
-    gpr.BindToRegister(d, d == b);
+    gpr.BindToRegister(d, d == a || d == b);
 
     ARM64Reg RB = gpr.R(b);
     ARM64Reg RD = gpr.R(d);
