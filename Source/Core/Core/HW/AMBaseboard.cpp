@@ -9,6 +9,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/IOFile.h"
 #include "Common/FileUtil.h"
+#include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
@@ -227,6 +228,10 @@ u32 ExecuteCommand( u32 Command, u32 Length, u32 Address, u32 Offset )
 			{
 				PanicAlertFmtT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
 			}*/
+			/*if (!Boot::CBoot::DVDRead(const DiscIO::VolumeDisc& disc, (u64) Offset, Address, Length,
+			                    DiscIO::PARTITION_NONE)) {
+					PanicAlertFmtT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
+				}*/
 			break;
 		// Write
 		case 0xAA:

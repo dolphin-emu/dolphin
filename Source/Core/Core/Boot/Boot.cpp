@@ -526,7 +526,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (!volume)
         return false;
 
-      if (!EmulatedBS2(config.bWii, *volume, riivolution_patches))
+      if (!EmulatedBS2(config.bWii, config.bTriforce, *volume, riivolution_patches))
         return false;
 
       SConfig::OnNewTitleLoad();

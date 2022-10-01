@@ -38,6 +38,7 @@
 #include "Core/System.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace Memory
 {

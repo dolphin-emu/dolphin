@@ -149,6 +149,25 @@ struct PowerPCState
   // lscbx
   u16 xer_stringctrl = 0;
 
+  // special purpose registers - controls quantizers, DMA, and lots of other misc extensions.
+  // also for power management, but we don't care about that.
+  //u32 spr[1024];
+
+  /*u32 DebugCount;
+
+  u32 dtlb_last;
+  u32 dtlb_va[128];
+  u32 dtlb_pa[128];
+
+  u32 itlb_last;
+  u32 itlb_va[128];
+  u32 itlb_pa[128];*/
+
+  //u32 pagetable_base;
+  //u32 pagetable_hashmask;
+
+  //InstructionCache iCache;
+
 #if _M_X86_64
   // This member exists only for the purpose of an assertion that its offset <= 0x100.
   std::tuple<> above_fits_in_first_0x100;

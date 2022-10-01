@@ -31,10 +31,12 @@
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/PowerPC/MMU.h"
+#include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/RiivolutionPatcher.h"
+#include "DiscIO/VolumeFileBlobReader.h"
 #include "DiscIO/VolumeDisc.h"
 
 #include "VideoCommon/VertexManagerBase.h"
@@ -299,10 +301,10 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
   PowerPC::ppcState.gpr[13] = ntsc ? 0x81465320 : 0x814b4fc0;
 
   //Clear media board encryption seeds
-  if(DVDInterface::isAMBaseboard()) {
+  /*if(DVDInterface::isAMBaseboard()) {
     char *ptr = (char*)(Memory::GetPointer(0));
     memset(ptr, 0, 12);
-  }
+  }*/
   return RunApploader(/*is_wii*/ false, volume, riivolution_patches);
 }
 
@@ -328,6 +330,166 @@ static DiscIO::Region CodeRegion(char c)
   default:
     return DiscIO::Region::Unknown;
   }
+}
+
+bool CBoot::EmulatedBS2_TRI(const DiscIO::VolumeDisc& volume,
+                           const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
+{
+  // Booting using GC algorithm for now
+  // Below method gives bad pointers causing need to force quit dolphin!!!
+  INFO_LOG_FMT(BOOT, "Faking TRI BS2...");
+  return CBoot::EmulatedBS2_GC(volume, riivolution_patches);
+  /*INFO_LOG_FMT(BOOT, "Faking TRI BS2...");
+  SetupMSR();
+  SetupHID(/*is_wii*/ /*false);
+  SetupBAT(/*is_wii*/ /*false);
+
+UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
+m_MSR.FP = 1;
+
+// Clear ALL memory
+Memory::Clear();
+
+// Write necessary values
+// Here we write values to memory that the apploader does not take care of. Game info goes
+// to 0x80000000 according to yagcd 4.2.
+CBoot::DVDRead(volume, 0x00000000, 0x80000000, 0x20, DiscIO::PARTITION_NONE); // write disc info
+
+Memory::Write_U32(0x0D15EA5E, 0x80000020);	// booted from bootrom. 0xE5207C22 = booted from jtag
+Memory::Write_U32(0x1800000, 0x80000028);	// Physical Memory Size (24MB on retail)
+// TODO determine why some games fail when using a retail id. (Seem to take different EXI paths, see ikaruga for example)
+Memory::Write_U32(0x10000006, 0x8000002C);	// Console type - DevKit  (retail ID == 0x00000003) see yagcd 4.2.1.1.2
+
+Memory::Write_U32(DiscIO::IsNTSC(SConfig::GetInstance().m_region)
+           ? 6 : 6, 0x800000CC);	// fake the VI Init of the IPL (yagcd 4.2.1.4)
+
+Memory::Write_U32(0x01000000, 0x800000d0);	// ARAM Size. 16MB main + 4/16/32MB external (retail consoles have no external ARAM)
+
+Memory::Write_U32(0x09a7ec80, 0x800000F8);	// Bus Clock Speed
+Memory::Write_U32(0x1cf7c580, 0x800000FC);	// CPU Clock Speed
+
+Memory::Write_U32(0x4c000064, 0x80000300);	// write default DFI Handler:		rfi
+Memory::Write_U32(0x4c000064, 0x80000800);	// write default FPU Handler:		rfi
+Memory::Write_U32(0x4c000064, 0x80000C00);	// write default Syscall Handler:   rfi
+
+Memory::Write_U64((u64)ExpansionInterface::CEXIIPL::GetEmulatedTime
+(ExpansionInterface::CEXIIPL::GC_EPOCH) * (u64)40500000, 0x800030D8);	// preset time base ticks
+// HIO checks this
+//Memory::Write_U16(0x8200,     0x000030e6);	// Console type
+
+HLE::Patch(0x81300000, "OSReport"); // HLE OSReport for Apploader
+
+// Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
+// but the size can differ between discs. Compare with yagcd chap 13.
+u32 iAppLoaderOffset = 0x2440;
+u32 temp;
+u32 temp1;
+u32 temp2;
+//DiscIO::VolumeFileBlobReader::Read((u64) iAppLoaderOffset + 0x10, 4, (u8*) &temp);
+//u32 iAppLoaderEntry	= VolumeHandler::Read32(iAppLoaderOffset + 0x10);
+volume.Read((u64) iAppLoaderOffset + 0x10, 4, (u8*) &temp, DiscIO::PARTITION_NONE);
+u32 iAppLoaderEntry = Common::swap32(temp);
+//DiscIO::VolumeFileBlobReader::Read((u64) iAppLoaderOffset + 0x14, 4, (u8*) &temp1);
+//u32 iAppLoaderSize	= VolumeHandler::Read32(iAppLoaderOffset + 0x14) + VolumeHandler::Read32(iAppLoaderOffset + 0x18);
+volume.Read((u64) (iAppLoaderOffset + 0x14), 4, (u8*) &temp1, DiscIO::PARTITION_NONE);
+volume.Read((u64) (iAppLoaderOffset + 0x18), 4, (u8*) &temp2, DiscIO::PARTITION_NONE);
+u32 iAppLoaderSize = Common::swap32(temp1 + temp2);
+if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
+{
+  INFO_LOG_FMT(BOOT, "GC BS2: Not running apploader!");
+  return false;
+}
+//VolumeHandler::ReadToPtr(Memory::GetPointer(0x81200000), iAppLoaderOffset + 0x20, iAppLoaderSize);
+//DiscIO::VolumeFileBlobReader::Read((u64) (iAppLoaderOffset + 0x20), (u64) iAppLoaderSize, Memory::GetPointer(0x81200000));
+volume.Read((u64) (iAppLoaderOffset + 0x20), (u64) iAppLoaderSize,
+Memory::GetPointer(0x81200000), DiscIO::PARTITION_NONE);
+// Setup pointers like real BS2 does
+if (DiscIO::IsNTSC(SConfig::GetInstance().m_region))
+{
+  PowerPC::ppcState.gpr[1] = 0x81566550;		// StackPointer, used to be set to 0x816ffff0
+  PowerPC::ppcState.gpr[2] = 0x81465cc0;		// global pointer to Small Data Area 2 Base (haven't seen anything use it...meh)
+  PowerPC::ppcState.gpr[13] = 0x81465320;		// global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
+}
+else
+{
+  PowerPC::ppcState.gpr[1] = 0x815edca8;
+  PowerPC::ppcState.gpr[2] = 0x814b5b20;
+  PowerPC::ppcState.gpr[13] = 0x814b4fc0;
+}
+
+// TODO - Make Apploader(or just RunFunction()) debuggable!!!
+
+// Call iAppLoaderEntry.
+DEBUG_LOG_FMT(MASTER_LOG, "Call iAppLoaderEntry");
+u32 iAppLoaderFuncAddr = 0x80003100;
+PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
+PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
+PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
+RunFunction(iAppLoaderEntry);
+u32 iAppLoaderInit = Memory::Read_U32(iAppLoaderFuncAddr + 0);
+/*u32 iAppLoaderMain = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr + 4);
+u32 iAppLoaderClose = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr + 8);*/
+/*u32 iAppLoaderMain = Memory::Read_U32(Common::swap32(iAppLoaderFuncAddr + 4));
+u32 iAppLoaderClose = Memory::Read_U32(Common::swap32(iAppLoaderFuncAddr + 8));
+u32 iAppLoaderMain = Memory::Read_U32(iAppLoaderFuncAddr + 4);
+u32 iAppLoaderClose = Memory::Read_U32(iAppLoaderFuncAddr + 8);
+
+// iAppLoaderInit
+DEBUG_LOG_FMT(MASTER_LOG, "Call iAppLoaderInit");
+PowerPC::ppcState.gpr[3] = 0x81300000;
+RunFunction(iAppLoaderInit);
+
+// iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
+// To give you an idea about where the stuff is located on the disc take a look at yagcd
+// ch 13.
+DEBUG_LOG_FMT(MASTER_LOG, "Call iAppLoaderMain");
+do
+{
+  PowerPC::ppcState.gpr[3] = 0x81300004;
+  PowerPC::ppcState.gpr[4] = 0x81300008;
+  PowerPC::ppcState.gpr[5] = 0x8130000c;
+
+  RunFunction(iAppLoaderMain);
+
+  /*u32 iRamAddress	= Memory::ReadUnchecked_U32(0x81300004);
+  u32 iLength		= Memory::ReadUnchecked_U32(0x81300008);
+  u32 iDVDOffset	= Memory::ReadUnchecked_U32(0x8130000c);
+  u32 iRamAddress	= Memory::Read_U32(0x81300004);
+  u32 iLength		= Memory::Read_U32(0x81300008);
+  u32 iDVDOffset	= Memory::Read_U32(0x8130000c);
+  /*u32 iRamAddress	= Memory::Read_U32(Common::swap32(0x81300004));
+  u32 iLength		= Memory::Read_U32(Common::swap32(0x81300008));
+  u32 iDVDOffset	= Memory::Read_U32(Common::swap32(0x8130000c));
+  INFO_LOG_FMT(MASTER_LOG, "DVDRead: offset: {08x}   memOffset: {08x}   length: {i}", iDVDOffset, iRamAddress, iLength);
+  //DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength);
+  CBoot::DVDRead(volume, (u64) iDVDOffset, iRamAddress, iLength, DiscIO::PARTITION_NONE);
+
+} while(PowerPC::ppcState.gpr[3] != 0x00);
+
+// iAppLoaderClose
+DEBUG_LOG_FMT(MASTER_LOG, "call iAppLoaderClose");
+RunFunction(iAppLoaderClose);
+
+// return
+PC = PowerPC::ppcState.gpr[3];
+
+// Load patches
+PatchEngine::LoadPatches();
+
+//TODO: DO we need this?
+//PowerPC::ppcState.DebugCount = 0;
+
+// If we have any patches that need to be applied very early, here's a good place
+PatchEngine::ApplyFramePatches();
+
+//Clear media board encryption seeds
+if(DVDInterface::isAMBaseboard())
+{
+  char *ptr = (char*)(Memory::GetPointer(0));
+  memset( ptr, 0, 12 );
+}
+
+return true;*/
 }
 
 bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
@@ -581,9 +743,14 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume,
 
 // Returns true if apploader has run successfully. If is_wii is true, the disc
 // that volume refers to must currently be inserted into the emulated disc drive.
-bool CBoot::EmulatedBS2(bool is_wii, const DiscIO::VolumeDisc& volume,
+bool CBoot::EmulatedBS2(bool is_wii, bool is_triforce, const DiscIO::VolumeDisc& volume,
                         const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
-  return is_wii ? EmulatedBS2_Wii(volume, riivolution_patches) :
-                  EmulatedBS2_GC(volume, riivolution_patches);
+  if (is_wii) {
+    return EmulatedBS2_Wii(volume, riivolution_patches);
+  }
+  if (is_triforce) {
+    return EmulatedBS2_TRI(volume, riivolution_patches);
+  }
+  return EmulatedBS2_GC(volume, riivolution_patches);
 }
