@@ -353,7 +353,10 @@ bool DXContext::CreateGXRootSignature()
   param_count++;
   SetRootParamCBV(&params[param_count], 1, D3D12_SHADER_VISIBILITY_VERTEX);
   param_count++;
-  SetRootParamCBV(&params[param_count], 0, D3D12_SHADER_VISIBILITY_GEOMETRY);
+  if (g_ActiveConfig.UseVSForLinePointExpand())
+    SetRootParamCBV(&params[param_count], 2, D3D12_SHADER_VISIBILITY_VERTEX);
+  else
+    SetRootParamCBV(&params[param_count], 0, D3D12_SHADER_VISIBILITY_GEOMETRY);
   param_count++;
   SetRootParamTable(&params[param_count], &ranges[param_count], D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3,
                     1, D3D12_SHADER_VISIBILITY_VERTEX);

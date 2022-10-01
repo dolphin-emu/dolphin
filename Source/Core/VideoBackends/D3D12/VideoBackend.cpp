@@ -88,6 +88,7 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsSettingObjectNames = true;
   g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
   g_Config.backend_info.bSupportsDynamicVertexLoader = true;
+  g_Config.backend_info.bSupportsVSLinePointExpand = true;
 
   // We can only check texture support once we have a device.
   if (g_dx_context)
