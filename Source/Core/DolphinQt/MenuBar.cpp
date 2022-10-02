@@ -131,9 +131,6 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_recording_play->setEnabled(m_game_selected && !running);
   m_recording_start->setEnabled((m_game_selected || running) && !Movie::IsPlayingInput());
 
-  // Options
-  m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
-
   // JIT
   m_jit_interpreter_core->setEnabled(running);
   m_jit_block_linking->setEnabled(!running);

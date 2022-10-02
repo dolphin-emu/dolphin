@@ -24,9 +24,17 @@ enum class ShinkansenGroup
 class Shinkansen : public Extension3rdParty
 {
 public:
+  struct DesiredState
+  {
+    u8 brake;
+    u8 power;
+    u16 buttons;
+  };
+
   Shinkansen();
 
-  void Update() override;
+  void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;
+  void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
   ControllerEmu::ControlGroup* GetGroup(ShinkansenGroup group);
 

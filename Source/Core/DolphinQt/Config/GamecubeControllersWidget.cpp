@@ -18,6 +18,7 @@
 #include "Core/Core.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
+#include "Core/NetPlayProto.h"
 
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
@@ -60,11 +61,13 @@ static SerialInterface::SIDevices FromGCMenuIndex(const int menudevice)
 GamecubeControllersWidget::GamecubeControllersWidget(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
-  LoadSettings();
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
-          &GamecubeControllersWidget::LoadSettings);
+          [this] { LoadSettings(Core::GetState()); });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          [this](Core::State state) { LoadSettings(state); });
+  LoadSettings(Core::GetState());
 }
 
 void GamecubeControllersWidget::CreateLayout()
@@ -160,8 +163,9 @@ void GamecubeControllersWidget::OnGCPadConfigure(size_t index)
   window->show();
 }
 
-void GamecubeControllersWidget::LoadSettings()
+void GamecubeControllersWidget::LoadSettings(Core::State state)
 {
+  const bool running = state != Core::State::Uninitialized;
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
     const SerialInterface::SIDevices si_device =
@@ -170,6 +174,7 @@ void GamecubeControllersWidget::LoadSettings()
     if (gc_index)
     {
       SignalBlocking(m_gc_controller_boxes[i])->setCurrentIndex(*gc_index);
+      m_gc_controller_boxes[i]->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
       OnGCTypeChanged(i);
     }
   }

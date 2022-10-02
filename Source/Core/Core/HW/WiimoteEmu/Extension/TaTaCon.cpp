@@ -10,6 +10,8 @@
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -48,7 +50,7 @@ TaTaCon::TaTaCon() : Extension3rdParty("TaTaCon", _trans("Taiko Drum"))
     m_rim->AddInput(ControllerEmu::Translate, name);
 }
 
-void TaTaCon::Update()
+void TaTaCon::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DataFormat tatacon_data = {};
 
@@ -58,7 +60,12 @@ void TaTaCon::Update()
   // Flip button bits.
   tatacon_data.state ^= 0xff;
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tatacon_data;
+  target_state->data = tatacon_data;
+}
+
+void TaTaCon::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void TaTaCon::Reset()

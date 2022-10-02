@@ -37,6 +37,9 @@ class Tilt;
 
 namespace WiimoteEmu
 {
+struct DesiredWiimoteState;
+struct DesiredExtensionState;
+
 enum class WiimoteGroup
 {
   Buttons,
@@ -126,11 +129,15 @@ public:
   ControllerEmu::ControlGroup* GetTaTaConGroup(TaTaConGroup group) const;
   ControllerEmu::ControlGroup* GetShinkansenGroup(ShinkansenGroup group) const;
 
-  void Update() override;
+  u8 GetWiimoteDeviceIndex() const override;
+  void SetWiimoteDeviceIndex(u8 index) override;
+
+  void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state) override;
+  void Update(const WiimoteEmu::DesiredWiimoteState& target_state) override;
   void EventLinked() override;
   void EventUnlinked() override;
   void InterruptDataOutput(const u8* data, u32 size) override;
-  bool IsButtonPressed() override;
+  WiimoteCommon::ButtonData GetCurrentlyPressedButtons() override;
 
   void Reset();
 
@@ -150,7 +157,8 @@ private:
   void RefreshConfig();
 
   void StepDynamics();
-  void UpdateButtonsStatus();
+  void UpdateButtonsStatus(const DesiredWiimoteState& target_state);
+  void BuildDesiredWiimoteState(DesiredWiimoteState* target_state);
 
   // Returns simulated accelerometer data in m/s^2.
   Common::Vec3 GetAcceleration(
@@ -187,9 +195,9 @@ private:
   template <typename T, typename H>
   void InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneric& rpt, u32 size);
 
-  void HandleExtensionSwap();
+  void HandleExtensionSwap(ExtensionNumber desired_extension_number, bool desired_motion_plus);
   bool ProcessExtensionPortEvent();
-  void SendDataReport();
+  void SendDataReport(const DesiredWiimoteState& target_state);
   bool ProcessReadDataRequest();
 
   void SetRumble(bool on);
@@ -201,8 +209,6 @@ private:
 
   Extension* GetActiveExtension() const;
   Extension* GetNoneExtension() const;
-
-  bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
 
   // TODO: Kill this nonsensical function used for TAS:
   EncryptionKey GetExtensionEncryptionKey() const;
@@ -277,8 +283,14 @@ private:
 
   ExtensionPort m_extension_port{&m_i2c_bus};
 
-  // Wiimote index, 0-3
+  // Wiimote index, 0-3.
+  // Can also be 4 for Balance Board.
+  // This is used to look up the user button config.
   const u8 m_index;
+
+  // The Bluetooth 'slot' this device is connected to.
+  // This is usually the same as m_index, but can differ during Netplay.
+  u8 m_bt_device_index;
 
   WiimoteCommon::InputReportID m_reporting_mode;
   bool m_reporting_continuous;

@@ -94,8 +94,6 @@ ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
                                                     WiimoteEmu::DrawsomeTabletGroup group);
 ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group);
 ControllerEmu::ControlGroup* GetShinkansenGroup(int number, WiimoteEmu::ShinkansenGroup group);
-
-bool NetPlay_GetButtonPress(int wiimote, bool pressed);
 }  // namespace Wiimote
 
 namespace WiimoteReal

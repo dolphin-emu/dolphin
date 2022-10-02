@@ -9,6 +9,8 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Inline.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "Common/Logging/Log.h"
@@ -43,7 +45,12 @@ bool None::ReadDeviceDetectPin() const
   return false;
 }
 
-void None::Update()
+void None::BuildDesiredExtensionState(DesiredExtensionState* target_state)
+{
+  target_state->data.emplace<std::monostate>();
+}
+
+void None::Update(const DesiredExtensionState& target_state)
 {
   // Nothing needed.
 }

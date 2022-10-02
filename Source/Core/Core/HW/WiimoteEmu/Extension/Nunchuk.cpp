@@ -12,7 +12,9 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -60,7 +62,7 @@ Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
                           "IMUAccelerometer", _trans("Accelerometer")));
 }
 
-void Nunchuk::Update()
+void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DataFormat nc_data = {};
 
@@ -110,7 +112,12 @@ void Nunchuk::Update()
   const auto acc = ConvertAccelData(accel, ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
   nc_data.SetAccel(acc.value);
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = nc_data;
+  target_state->data = nc_data;
+}
+
+void Nunchuk::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void Nunchuk::Reset()

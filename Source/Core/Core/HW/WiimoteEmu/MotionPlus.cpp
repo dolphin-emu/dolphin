@@ -18,6 +18,7 @@
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 
 namespace
 {
@@ -387,7 +388,12 @@ bool MotionPlus::ReadDeviceDetectPin() const
   }
 }
 
-void MotionPlus::Update()
+void MotionPlus::BuildDesiredExtensionState(DesiredExtensionState* target_state)
+{
+  // MotionPlus is handled separately, nothing to do here.
+}
+
+void MotionPlus::Update(const DesiredExtensionState& target_state)
 {
   if (m_progress_timer)
     --m_progress_timer;
@@ -522,9 +528,56 @@ void MotionPlus::Update()
   }
 }
 
+MotionPlus::DataFormat::Data MotionPlus::GetGyroscopeData(const Common::Vec3& angular_velocity)
+{
+  // Conversion from radians to the calibrated values in degrees.
+  constexpr float VALUE_SCALE =
+      (CALIBRATION_SCALE_OFFSET >> (CALIBRATION_BITS - BITS_OF_PRECISION)) / float(MathUtil::TAU) *
+      360;
+
+  constexpr float SLOW_SCALE = VALUE_SCALE / CALIBRATION_SLOW_SCALE_DEGREES;
+  constexpr float FAST_SCALE = VALUE_SCALE / CALIBRATION_FAST_SCALE_DEGREES;
+
+  static_assert(ZERO_VALUE == 1 << (BITS_OF_PRECISION - 1),
+                "SLOW_MAX_RAD_PER_SEC assumes calibrated zero is at center of sensor values.");
+
+  constexpr u16 SENSOR_RANGE = 1 << (BITS_OF_PRECISION - 1);
+  constexpr float SLOW_MAX_RAD_PER_SEC = SENSOR_RANGE / SLOW_SCALE;
+
+  // Slow (high precision) scaling can be used if it fits in the sensor range.
+  const float yaw = angular_velocity.z;
+  const bool yaw_slow = (std::abs(yaw) < SLOW_MAX_RAD_PER_SEC);
+  const s32 yaw_value = yaw * (yaw_slow ? SLOW_SCALE : FAST_SCALE);
+
+  const float roll = angular_velocity.y;
+  const bool roll_slow = (std::abs(roll) < SLOW_MAX_RAD_PER_SEC);
+  const s32 roll_value = roll * (roll_slow ? SLOW_SCALE : FAST_SCALE);
+
+  const float pitch = angular_velocity.x;
+  const bool pitch_slow = (std::abs(pitch) < SLOW_MAX_RAD_PER_SEC);
+  const s32 pitch_value = pitch * (pitch_slow ? SLOW_SCALE : FAST_SCALE);
+
+  const u16 clamped_yaw_value = u16(std::clamp(yaw_value + ZERO_VALUE, 0, MAX_VALUE));
+  const u16 clamped_roll_value = u16(std::clamp(roll_value + ZERO_VALUE, 0, MAX_VALUE));
+  const u16 clamped_pitch_value = u16(std::clamp(pitch_value + ZERO_VALUE, 0, MAX_VALUE));
+
+  return MotionPlus::DataFormat::Data{
+      MotionPlus::DataFormat::GyroRawValue{MotionPlus::DataFormat::GyroType(
+          clamped_pitch_value, clamped_roll_value, clamped_yaw_value)},
+      MotionPlus::DataFormat::SlowType(pitch_slow, roll_slow, yaw_slow)};
+}
+
+MotionPlus::DataFormat::Data MotionPlus::GetDefaultGyroscopeData()
+{
+  return MotionPlus::DataFormat::Data{
+      MotionPlus::DataFormat::GyroRawValue{
+          MotionPlus::DataFormat::GyroType(u16(ZERO_VALUE), u16(ZERO_VALUE), u16(ZERO_VALUE))},
+      MotionPlus::DataFormat::SlowType(true, true, true)};
+}
+
 // This is something that is triggered by a read of 0x00 on real hardware.
 // But we do it here for determinism reasons.
-void MotionPlus::PrepareInput(const Common::Vec3& angular_velocity)
+void MotionPlus::PrepareInput(const MotionPlus::DataFormat::Data& gyroscope_data)
 {
   if (GetActivationStatus() != ActivationStatus::Active)
     return;
@@ -592,41 +645,16 @@ void MotionPlus::PrepareInput(const Common::Vec3& angular_velocity)
   // If the above logic determined this should be M+ data, update it here.
   if (mplus_data.is_mp_data)
   {
-    constexpr int BITS_OF_PRECISION = 14;
+    const bool pitch_slow = gyroscope_data.is_slow.x;
+    const bool roll_slow = gyroscope_data.is_slow.y;
+    const bool yaw_slow = gyroscope_data.is_slow.z;
+    const u16 pitch_value = gyroscope_data.gyro.value.x;
+    const u16 roll_value = gyroscope_data.gyro.value.y;
+    const u16 yaw_value = gyroscope_data.gyro.value.z;
 
-    // Conversion from radians to the calibrated values in degrees.
-    constexpr float VALUE_SCALE =
-        (CALIBRATION_SCALE_OFFSET >> (CALIBRATION_BITS - BITS_OF_PRECISION)) /
-        float(MathUtil::TAU) * 360;
-
-    constexpr float SLOW_SCALE = VALUE_SCALE / CALIBRATION_SLOW_SCALE_DEGREES;
-    constexpr float FAST_SCALE = VALUE_SCALE / CALIBRATION_FAST_SCALE_DEGREES;
-
-    constexpr s32 ZERO_VALUE = CALIBRATION_ZERO >> (CALIBRATION_BITS - BITS_OF_PRECISION);
-    constexpr s32 MAX_VALUE = (1 << BITS_OF_PRECISION) - 1;
-
-    static_assert(ZERO_VALUE == 1 << (BITS_OF_PRECISION - 1),
-                  "SLOW_MAX_RAD_PER_SEC assumes calibrated zero is at center of sensor values.");
-
-    constexpr u16 SENSOR_RANGE = 1 << (BITS_OF_PRECISION - 1);
-    constexpr float SLOW_MAX_RAD_PER_SEC = SENSOR_RANGE / SLOW_SCALE;
-
-    // Slow (high precision) scaling can be used if it fits in the sensor range.
-    const float yaw = angular_velocity.z;
-    mplus_data.yaw_slow = (std::abs(yaw) < SLOW_MAX_RAD_PER_SEC);
-    s32 yaw_value = yaw * (mplus_data.yaw_slow ? SLOW_SCALE : FAST_SCALE);
-
-    const float roll = angular_velocity.y;
-    mplus_data.roll_slow = (std::abs(roll) < SLOW_MAX_RAD_PER_SEC);
-    s32 roll_value = roll * (mplus_data.roll_slow ? SLOW_SCALE : FAST_SCALE);
-
-    const float pitch = angular_velocity.x;
-    mplus_data.pitch_slow = (std::abs(pitch) < SLOW_MAX_RAD_PER_SEC);
-    s32 pitch_value = pitch * (mplus_data.pitch_slow ? SLOW_SCALE : FAST_SCALE);
-
-    yaw_value = std::clamp(yaw_value + ZERO_VALUE, 0, MAX_VALUE);
-    roll_value = std::clamp(roll_value + ZERO_VALUE, 0, MAX_VALUE);
-    pitch_value = std::clamp(pitch_value + ZERO_VALUE, 0, MAX_VALUE);
+    mplus_data.yaw_slow = u8(yaw_slow);
+    mplus_data.roll_slow = u8(roll_slow);
+    mplus_data.pitch_slow = u8(pitch_slow);
 
     // Bits 0-7
     mplus_data.yaw1 = u8(yaw_value);

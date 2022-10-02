@@ -21,11 +21,12 @@
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
@@ -68,6 +69,8 @@ constexpr std::array<std::string_view, 7> named_buttons{
 
 void Wiimote::Reset()
 {
+  const bool want_determinism = Core::WantsDeterminism();
+
   SetRumble(false);
 
   // Wiimote starts in non-continuous CORE mode:
@@ -77,8 +80,12 @@ void Wiimote::Reset()
   m_speaker_mute = false;
 
   // EEPROM
+
+  // TODO: This feels sketchy, this needs to properly handle the case where the load and the write
+  // happen under different Wii Roots and/or determinism modes.
+
   std::string eeprom_file = (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" + GetName() + ".bin");
-  if (m_eeprom_dirty)
+  if (!want_determinism && m_eeprom_dirty)
   {
     // Write out existing EEPROM
     INFO_LOG_FMT(WIIMOTE, "Wrote EEPROM for {}", GetName());
@@ -91,7 +98,7 @@ void Wiimote::Reset()
   }
   m_eeprom = {};
 
-  if (File::Exists(eeprom_file))
+  if (!want_determinism && File::Exists(eeprom_file))
   {
     // Read existing EEPROM
     std::ifstream file;
@@ -171,18 +178,26 @@ void Wiimote::Reset()
   m_extension_port.AttachExtension(GetNoneExtension());
   m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
 
-  // Switch to desired M+ status and extension (if any).
-  // M+ and EXT are reset on attachment.
-  HandleExtensionSwap();
+  if (!want_determinism)
+  {
+    // Switch to desired M+ status and extension (if any).
+    // M+ and EXT are reset on attachment.
+    HandleExtensionSwap(static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment()),
+                        m_motion_plus_setting.GetValue());
+  }
 
   // Reset sub-devices.
   m_speaker_logic.Reset();
   m_camera_logic.Reset();
 
   m_status = {};
-  // This will suppress a status report on connect when an extension is already attached.
-  // TODO: I am not 100% sure if this is proper.
-  m_status.extension = m_extension_port.IsDeviceConnected();
+
+  if (!want_determinism)
+  {
+    // This will suppress a status report on connect when an extension is already attached.
+    // TODO: I am not 100% sure if this is proper.
+    m_status.extension = m_extension_port.IsDeviceConnected();
+  }
 
   // Dynamics:
   m_swing_state = {};
@@ -193,7 +208,7 @@ void Wiimote::Reset()
   m_imu_cursor_state = {};
 }
 
-Wiimote::Wiimote(const unsigned int index) : m_index(index)
+Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(index)
 {
   // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
@@ -427,20 +442,13 @@ bool Wiimote::ProcessExtensionPortEvent()
   return true;
 }
 
-// Update buttons in status struct from user input.
-void Wiimote::UpdateButtonsStatus()
+void Wiimote::UpdateButtonsStatus(const DesiredWiimoteState& target_state)
 {
-  m_status.buttons.hex = 0;
-
-  m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
-  m_dpad->GetState(&m_status.buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
+  m_status.buttons.hex = target_state.buttons.hex & ButtonData::BUTTON_MASK;
 }
 
-// This is called every ::Wiimote::UPDATE_FREQ (200hz)
-void Wiimote::Update()
+void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state)
 {
-  const auto lock = GetStateLock();
-
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
   m_hotkeys->UpdateState();
@@ -448,26 +456,70 @@ void Wiimote::Update()
   // Update our motion simulations.
   StepDynamics();
 
+  // Fetch pressed buttons from user input.
+  target_state->buttons.hex = 0;
+  m_buttons->GetState(&target_state->buttons.hex, button_bitmasks);
+  m_dpad->GetState(&target_state->buttons.hex,
+                   IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
+
+  // Calculate accelerometer state.
+  // Calibration values are 8-bit but we want 10-bit precision, so << 2.
+  target_state->acceleration =
+      ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
+
+  // Calculate IR camera state.
+  target_state->camera_points = CameraLogic::GetCameraPoints(
+      GetTotalTransformation(),
+      Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
+          float(MathUtil::TAU));
+
+  // Calculate MotionPlus state.
+  if (m_motion_plus_setting.GetValue())
+    target_state->motion_plus = MotionPlus::GetGyroscopeData(GetTotalAngularVelocity());
+  else
+    target_state->motion_plus = std::nullopt;
+
+  // Build Extension state.
+  // This also allows the extension to perform any regular duties it may need.
+  // (e.g. Nunchuk motion simulation step)
+  static_cast<Extension*>(
+      m_attachments->GetAttachmentList()[m_attachments->GetSelectedAttachment()].get())
+      ->BuildDesiredExtensionState(&target_state->extension);
+}
+
+u8 Wiimote::GetWiimoteDeviceIndex() const
+{
+  return m_bt_device_index;
+}
+
+void Wiimote::SetWiimoteDeviceIndex(u8 index)
+{
+  m_bt_device_index = index;
+}
+
+// This is called every ::Wiimote::UPDATE_FREQ (200hz)
+void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state)
+{
+  const auto lock = GetStateLock();
+  BuildDesiredWiimoteState(target_state);
+}
+
+void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
+{
   // Update buttons in the status struct which is sent in 99% of input reports.
-  // FYI: Movies only sync button updates in data reports.
-  if (!Core::WantsDeterminism())
-  {
-    UpdateButtonsStatus();
-  }
+  UpdateButtonsStatus(target_state);
 
   // If a new extension is requested in the GUI the change will happen here.
-  HandleExtensionSwap();
+  HandleExtensionSwap(static_cast<ExtensionNumber>(target_state.extension.data.index()),
+                      target_state.motion_plus.has_value());
 
-  // Allow extension to perform any regular duties it may need.
-  // (e.g. Nunchuk motion simulation step)
-  // Input is prepared here too.
-  // TODO: Separate input preparation from Update.
-  GetActiveExtension()->Update();
+  // Prepare input data of the extension for reading.
+  GetActiveExtension()->Update(target_state.extension);
 
   if (m_is_motion_plus_attached)
   {
     // M+ has some internal state that must processed.
-    m_motion_plus.Update();
+    m_motion_plus.Update(target_state.extension);
   }
 
   // Returns true if a report was sent.
@@ -485,10 +537,10 @@ void Wiimote::Update()
     return;
   }
 
-  SendDataReport();
+  SendDataReport(target_state);
 }
 
-void Wiimote::SendDataReport()
+void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 {
   Movie::SetPolledDevice();
 
@@ -508,7 +560,8 @@ void Wiimote::SendDataReport()
   DataReportBuilder rpt_builder(m_reporting_mode);
 
   if (Movie::IsPlayingInput() &&
-      Movie::PlayWiimote(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey()))
+      Movie::PlayWiimote(m_bt_device_index, rpt_builder, m_active_extension,
+                         GetExtensionEncryptionKey()))
   {
     // Update buttons in status struct from movie:
     rpt_builder.GetCoreData(&m_status.buttons);
@@ -518,22 +571,13 @@ void Wiimote::SendDataReport()
     // Core buttons:
     if (rpt_builder.HasCore())
     {
-      if (Core::WantsDeterminism())
-      {
-        // When running non-deterministically we've already updated buttons in Update()
-        UpdateButtonsStatus();
-      }
-
       rpt_builder.SetCoreData(m_status.buttons);
     }
 
     // Acceleration:
     if (rpt_builder.HasAccel())
     {
-      // Calibration values are 8-bit but we want 10-bit precision, so << 2.
-      AccelData accel =
-          ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
-      rpt_builder.SetAccelData(accel);
+      rpt_builder.SetAccelData(target_state.acceleration);
     }
 
     // IR Camera:
@@ -541,9 +585,7 @@ void Wiimote::SendDataReport()
     {
       // Note: Camera logic currently contains no changing state so we can just update it here.
       // If that changes this should be moved to Wiimote::Update();
-      m_camera_logic.Update(GetTotalTransformation(),
-                            Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) /
-                                360 * float(MathUtil::TAU));
+      m_camera_logic.Update(target_state.camera_points);
 
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
       const u8 camera_data_offset =
@@ -571,7 +613,9 @@ void Wiimote::SendDataReport()
       if (m_is_motion_plus_attached)
       {
         // TODO: Make input preparation triggered by bus read.
-        m_motion_plus.PrepareInput(GetTotalAngularVelocity());
+        m_motion_plus.PrepareInput(target_state.motion_plus.has_value() ?
+                                       target_state.motion_plus.value() :
+                                       MotionPlus::GetDefaultGyroscopeData());
       }
 
       u8* ext_data = rpt_builder.GetExtDataPtr();
@@ -585,19 +629,12 @@ void Wiimote::SendDataReport()
       }
     }
 
-    Movie::CallWiiInputManip(rpt_builder, m_index, m_active_extension, GetExtensionEncryptionKey());
+    Movie::CallWiiInputManip(rpt_builder, m_bt_device_index, m_active_extension,
+                             GetExtensionEncryptionKey());
   }
 
-  if (NetPlay::IsNetPlayRunning())
-  {
-    NetPlay_GetWiimoteData(m_index, rpt_builder.GetDataPtr(), rpt_builder.GetDataSize(),
-                           u8(m_reporting_mode));
-
-    // TODO: clean up how m_status.buttons is updated.
-    rpt_builder.GetCoreData(&m_status.buttons);
-  }
-
-  Movie::CheckWiimoteStatus(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey());
+  Movie::CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
+                            GetExtensionEncryptionKey());
 
   // Send the report:
   InterruptDataInputCallback(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());
@@ -609,14 +646,15 @@ void Wiimote::SendDataReport()
     m_reporting_mode = InputReportID::ReportInterleave1;
 }
 
-bool Wiimote::IsButtonPressed()
+ButtonData Wiimote::GetCurrentlyPressedButtons()
 {
-  u16 buttons = 0;
   const auto lock = GetStateLock();
-  m_buttons->GetState(&buttons, button_bitmasks);
-  m_dpad->GetState(&buttons, dpad_bitmasks);
 
-  return buttons != 0;
+  ButtonData buttons{};
+  m_buttons->GetState(&buttons.hex, button_bitmasks);
+  m_dpad->GetState(&buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
+
+  return buttons;
 }
 
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)

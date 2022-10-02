@@ -21,6 +21,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/Host.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteHIDAttr.h"
@@ -54,24 +55,28 @@ private:
 
 constexpr int CONNECTION_MESSAGE_TIME = 3000;
 
-WiimoteDevice::WiimoteDevice(BluetoothEmuDevice* host, int number, bdaddr_t bd)
+WiimoteDevice::WiimoteDevice(BluetoothEmuDevice* host, bdaddr_t bd, unsigned int hid_source_number)
     : m_host(host), m_bd(bd),
-      m_name(number == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
+      m_name(GetNumber() == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
 
 {
-  INFO_LOG_FMT(IOS_WIIMOTE, "Wiimote: #{} Constructed", number);
+  INFO_LOG_FMT(IOS_WIIMOTE, "Wiimote: #{} Constructed", GetNumber());
 
-  m_link_key.fill(0xa0 + number);
+  m_link_key.fill(0xa0 + GetNumber());
   m_class = {0x00, 0x04, 0x48};
   m_features = {0xBC, 0x02, 0x04, 0x38, 0x08, 0x00, 0x00, 0x00};
   m_lmp_version = 0x2;
   m_lmp_subversion = 0x229;
 
-  const auto hid_source = WiimoteCommon::GetHIDWiimoteSource(GetNumber());
+  const auto hid_source = WiimoteCommon::GetHIDWiimoteSource(hid_source_number);
 
-  // UGLY: This prevents an OSD message in SetSource -> Activate.
   if (hid_source)
+  {
+    hid_source->SetWiimoteDeviceIndex(GetNumber());
+
+    // UGLY: This prevents an OSD message in SetSource -> Activate.
     SetBasebandState(BasebandState::RequestConnection);
+  }
 
   SetSource(hid_source);
 }
@@ -337,25 +342,51 @@ void WiimoteDevice::Update()
   }
 }
 
-void WiimoteDevice::UpdateInput()
+WiimoteDevice::NextUpdateInputCall
+WiimoteDevice::PrepareInput(WiimoteEmu::DesiredWiimoteState* wiimote_state)
 {
   if (m_connection_request_counter)
     --m_connection_request_counter;
 
   if (!IsSourceValid())
-    return;
+    return NextUpdateInputCall::None;
 
-  // Allow button press to trigger activation after a second of no connection activity.
-  if (!m_connection_request_counter && m_baseband_state == BasebandState::Inactive)
+  if (m_baseband_state == BasebandState::Inactive)
   {
-    if (Wiimote::NetPlay_GetButtonPress(GetNumber(), m_hid_source->IsButtonPressed()))
-      Activate(true);
+    // Allow button press to trigger activation after a second of no connection activity.
+    if (!m_connection_request_counter)
+    {
+      wiimote_state->buttons = m_hid_source->GetCurrentlyPressedButtons();
+      return NextUpdateInputCall::Activate;
+    }
+    return NextUpdateInputCall::None;
   }
 
   // Verify interrupt channel is connected and configured.
   const auto* channel = FindChannelWithPSM(L2CAP_PSM_HID_INTR);
   if (channel && channel->IsComplete())
-    m_hid_source->Update();
+  {
+    m_hid_source->PrepareInput(wiimote_state);
+    return NextUpdateInputCall::Update;
+  }
+  return NextUpdateInputCall::None;
+}
+
+void WiimoteDevice::UpdateInput(NextUpdateInputCall next_call,
+                                const WiimoteEmu::DesiredWiimoteState& wiimote_state)
+{
+  switch (next_call)
+  {
+  case NextUpdateInputCall::Activate:
+    if (wiimote_state.buttons.hex & WiimoteCommon::ButtonData::BUTTON_MASK)
+      Activate(true);
+    break;
+  case NextUpdateInputCall::Update:
+    m_hid_source->Update(wiimote_state);
+    break;
+  default:
+    break;
+  }
 }
 
 // This function receives L2CAP commands from the CPU

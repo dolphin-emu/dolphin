@@ -10,6 +10,8 @@
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -105,7 +107,7 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
   }
 }
 
-void Classic::Update()
+void Classic::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DataFormat classic_data = {};
 
@@ -149,7 +151,12 @@ void Classic::Update()
 
   classic_data.SetButtons(buttons);
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = classic_data;
+  target_state->data = classic_data;
+}
+
+void Classic::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void Classic::Reset()

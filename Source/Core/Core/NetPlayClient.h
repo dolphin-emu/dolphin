@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <span>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -33,6 +34,11 @@ class FileSystem;
 namespace UICommon
 {
 class GameFile;
+}
+
+namespace WiimoteEmu
+{
+struct SerializedWiimoteState;
 }
 
 namespace NetPlay
@@ -129,7 +135,12 @@ public:
   std::string GetCurrentGolfer();
 
   // Send and receive pads values
-  bool WiimoteUpdate(int _number, u8* data, std::size_t size, u8 reporting_mode);
+  struct WiimoteDataBatchEntry
+  {
+    int wiimote;
+    WiimoteEmu::SerializedWiimoteState* state;
+  };
+  bool WiimoteUpdate(const std::span<WiimoteDataBatchEntry>& entries);
   bool GetNetPads(int pad_nb, bool from_vi, GCPadStatus* pad_status);
 
   u64 GetInitialRTCValue() const;
@@ -140,13 +151,17 @@ public:
 
   bool IsFirstInGamePad(int ingame_pad) const;
   int NumLocalPads() const;
+  int NumLocalWiimotes() const;
 
   int InGamePadToLocalPad(int ingame_pad) const;
-  int LocalPadToInGamePad(int localPad) const;
+  int LocalPadToInGamePad(int local_pad) const;
+  int InGameWiimoteToLocalWiimote(int ingame_wiimote) const;
+  int LocalWiimoteToInGameWiimote(int local_wiimote) const;
 
   bool PlayerHasControllerMapped(PlayerId pid) const;
   bool LocalPlayerHasControllerMapped() const;
   bool IsLocalPlayer(PlayerId pid) const;
+  const PlayerId& GetLocalPlayerId() const;
 
   static void SendTimeBase();
   bool DoAllPlayersHaveGame();
@@ -182,7 +197,7 @@ protected:
   Common::SPSCQueue<AsyncQueueEntry, false> m_async_queue;
 
   std::array<Common::SPSCQueue<GCPadStatus>, 4> m_pad_buffer;
-  std::array<Common::SPSCQueue<WiimoteInput>, 4> m_wiimote_buffer;
+  std::array<Common::SPSCQueue<WiimoteEmu::SerializedWiimoteState>, 4> m_wiimote_buffer;
 
   std::array<GCPadStatus, 4> m_last_pad_status{};
   std::array<bool, 4> m_first_pad_status_received{};
@@ -242,9 +257,13 @@ private:
   bool PollLocalPad(int local_pad, sf::Packet& packet);
   void SendPadHostPoll(PadIndex pad_num);
 
+  bool AddLocalWiimoteToBuffer(int local_wiimote, const WiimoteEmu::SerializedWiimoteState& state,
+                               sf::Packet& packet);
+
   void UpdateDevices();
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
-  void SendWiimoteState(int in_game_pad, const WiimoteInput& nw);
+  void AddWiimoteStateToPacket(int in_game_pad, const WiimoteEmu::SerializedWiimoteState& np,
+                               sf::Packet& packet);
   void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
   void Disconnect();
   bool Connect();
@@ -252,8 +271,6 @@ private:
   void ComputeGameDigest(const SyncIdentifier& sync_identifier);
   void DisplayPlayersPing();
   u32 GetPlayersMaxPing() const;
-
-  bool WaitForWiimoteBuffer(int _number);
 
   void OnData(sf::Packet& packet);
   void OnPlayerJoin(sf::Packet& packet);
@@ -335,4 +352,6 @@ private:
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
+bool NetPlay_GetWiimoteData(const std::span<NetPlayClient::WiimoteDataBatchEntry>& entries);
+unsigned int NetPlay_GetLocalWiimoteForSlot(unsigned int slot);
 }  // namespace NetPlay

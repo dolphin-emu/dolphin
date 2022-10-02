@@ -279,6 +279,8 @@ add_library(core
   HW/WiimoteCommon/WiimoteReport.h
   HW/WiimoteEmu/Camera.cpp
   HW/WiimoteEmu/Camera.h
+  HW/WiimoteEmu/DesiredWiimoteState.cpp
+  HW/WiimoteEmu/DesiredWiimoteState.h
   HW/WiimoteEmu/Dynamics.cpp
   HW/WiimoteEmu/Dynamics.h
   HW/WiimoteEmu/EmuSubroutines.cpp
@@ -286,6 +288,7 @@ add_library(core
   HW/WiimoteEmu/Encryption.h
   HW/WiimoteEmu/Extension/Classic.cpp
   HW/WiimoteEmu/Extension/Classic.h
+  HW/WiimoteEmu/Extension/DesiredExtensionState.h
   HW/WiimoteEmu/Extension/DrawsomeTablet.cpp
   HW/WiimoteEmu/Extension/DrawsomeTablet.h
   HW/WiimoteEmu/Extension/Drums.cpp

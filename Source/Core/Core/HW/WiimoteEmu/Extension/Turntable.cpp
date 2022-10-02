@@ -10,6 +10,8 @@
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -78,7 +80,7 @@ Turntable::Turntable() : Extension1stParty("Turntable", _trans("DJ Turntable"))
   groups.emplace_back(m_crossfade = new ControllerEmu::Slider(_trans("Crossfade")));
 }
 
-void Turntable::Update()
+void Turntable::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DataFormat tt_data = {};
 
@@ -133,7 +135,12 @@ void Turntable::Update()
   tt_data.bt ^= (BUTTON_L_GREEN | BUTTON_L_RED | BUTTON_L_BLUE | BUTTON_R_GREEN | BUTTON_R_RED |
                  BUTTON_R_BLUE | BUTTON_MINUS | BUTTON_PLUS | BUTTON_EUPHORIA);
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tt_data;
+  target_state->data = tt_data;
+}
+
+void Turntable::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void Turntable::Reset()

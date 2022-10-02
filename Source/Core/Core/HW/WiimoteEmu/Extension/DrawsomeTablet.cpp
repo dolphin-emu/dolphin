@@ -9,6 +9,8 @@
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -31,9 +33,9 @@ DrawsomeTablet::DrawsomeTablet() : Extension3rdParty("Drawsome", _trans("Drawsom
   m_touch->AddInput(ControllerEmu::Translate, _trans("Pressure"));
 }
 
-void DrawsomeTablet::Update()
+void DrawsomeTablet::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
-  DataFormat tablet_data = {};
+  DataFormat& tablet_data = target_state->data.emplace<DataFormat>();
 
   // Stylus X/Y (calibrated values):
   constexpr u16 MIN_X = 0x0000;
@@ -77,8 +79,11 @@ void DrawsomeTablet::Update()
 
   tablet_data.pressure1 = u8(pressure);
   tablet_data.pressure2 = u8(pressure >> 8);
+}
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tablet_data;
+void DrawsomeTablet::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void DrawsomeTablet::Reset()

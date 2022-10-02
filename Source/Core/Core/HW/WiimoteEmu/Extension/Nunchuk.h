@@ -149,7 +149,8 @@ public:
 
   Nunchuk();
 
-  void Update() override;
+  void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;
+  void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
   void DoState(PointerWrap& p) override;
 
