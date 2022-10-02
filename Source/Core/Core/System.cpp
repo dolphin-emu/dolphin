@@ -8,6 +8,7 @@
 #include "AudioCommon/SoundStream.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/AudioInterface.h"
+#include "Core/HW/DSP.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/Sram.h"
@@ -21,6 +22,7 @@ struct System::Impl
   bool m_audio_dump_started = false;
 
   AudioInterface::AudioInterfaceState m_audio_interface_state;
+  DSP::DSPState m_dsp_state;
   DVDInterface::DVDInterfaceState m_dvd_interface_state;
   DVDThread::DVDThreadState m_dvd_thread_state;
   Sram m_sram;
@@ -72,6 +74,11 @@ void System::SetAudioDumpStarted(bool started)
 AudioInterface::AudioInterfaceState& System::GetAudioInterfaceState() const
 {
   return m_impl->m_audio_interface_state;
+}
+
+DSP::DSPState& System::GetDSPState() const
+{
+  return m_impl->m_dsp_state;
 }
 
 DVDInterface::DVDInterfaceState& System::GetDVDInterfaceState() const
