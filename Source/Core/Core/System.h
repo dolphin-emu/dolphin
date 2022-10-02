@@ -12,6 +12,10 @@ namespace AudioInterface
 {
 class AudioInterfaceState;
 };
+namespace DSP
+{
+class DSPState;
+}
 namespace DVDInterface
 {
 class DVDInterfaceState;
@@ -56,6 +60,7 @@ public:
   void SetAudioDumpStarted(bool started);
 
   AudioInterface::AudioInterfaceState& GetAudioInterfaceState() const;
+  DSP::DSPState& GetDSPState() const;
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;
   Sram& GetSRAM() const;

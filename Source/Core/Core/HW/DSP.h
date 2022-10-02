@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -14,6 +16,23 @@ class Mapping;
 
 namespace DSP
 {
+class DSPState
+{
+public:
+  DSPState();
+  DSPState(const DSPState&) = delete;
+  DSPState(DSPState&&) = delete;
+  DSPState& operator=(const DSPState&) = delete;
+  DSPState& operator=(DSPState&&) = delete;
+  ~DSPState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 enum DSPInterruptType
 {
   INT_DSP = 0x80,
