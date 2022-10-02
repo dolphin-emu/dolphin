@@ -365,12 +365,16 @@ void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool do_load, 
   else if (reg_type == RegType::Immediate)
   {
     const ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
-    if (do_load)
+    if (do_load || !set_dirty)
     {
+      // TODO: Emitting this instruction when (!do_load && !set_dirty) would be unnecessary if we
+      // had some way to indicate to Flush that the immediate value should be written to ppcState
+      // even though there is a host register allocated
       m_emit->MOVI2R(host_reg, reg.GetImm());
     }
     reg.Load(host_reg);
-    reg.SetDirty(set_dirty);
+    // If the register had an immediate value, the register was effectively already dirty
+    reg.SetDirty(true);
   }
   else if (set_dirty)
   {

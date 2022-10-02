@@ -254,33 +254,55 @@ public:
   // but in other cases it can be set to ARM64Reg::INVALID_REG when convenient for the caller.
   void Flush(FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) override;
 
-  // Returns a guest GPR inside of a host register
-  // Will dump an immediate to the host register as well
+  // Returns a guest GPR inside of a host register.
+  // Will dump an immediate to the host register as well.
   Arm64Gen::ARM64Reg R(size_t preg) { return R(GetGuestGPR(preg)); }
-  // Returns a guest CR inside of a host register
+
+  // Returns a guest CR inside of a host register.
   Arm64Gen::ARM64Reg CR(size_t preg) { return R(GetGuestCR(preg)); }
-  // Set a register to an immediate, only valid for guest GPRs
+
+  // Set a register to an immediate. Only valid for guest GPRs.
   void SetImmediate(size_t preg, u32 imm) { SetImmediate(GetGuestGPR(preg), imm); }
-  // Returns if a register is set as an immediate, only valid for guest GPRs
+
+  // Returns if a register is set as an immediate. Only valid for guest GPRs.
   bool IsImm(size_t preg) const { return GetGuestGPROpArg(preg).GetType() == RegType::Immediate; }
-  // Gets the immediate that a register is set to, only valid for guest GPRs
+
+  // Gets the immediate that a register is set to. Only valid for guest GPRs.
   u32 GetImm(size_t preg) const { return GetGuestGPROpArg(preg).GetImm(); }
-  // Binds a guest GPR to a host register, optionally loading its value
+
+  // Binds a guest GPR to a host register, optionally loading its value.
+  //
+  // Using set_dirty = false is a little trick that's useful when emulating a memory load that might
+  // have to be rolled back. (Don't use set_dirty = false in other circumstances.) By calling this
+  // function with set_dirty = false before performing the load, this function guarantees that the
+  // guest register will be marked as dirty (needing to be written back to ppcState) only if the
+  // guest register previously contained a value that needs to be written back to ppcState.
+  //
+  // This trick prevents a problem that would otherwise happen where the call to this function could
+  // allocate a new host register without writing anything to it (if do_load = false), and then
+  // later when preparing to jump to an exception handler, a call to Flush would write the old value
+  // in the host register to ppcState because the register was marked dirty.
+  //
+  // If you call this with set_dirty = false, you must make sure to call this with set_dirty = true
+  // later.
   void BindToRegister(size_t preg, bool do_load, bool set_dirty = true)
   {
     BindToRegister(GetGuestGPR(preg), do_load, set_dirty);
   }
-  // Binds a guest CR to a host register, optionally loading its value
+
+  // Binds a guest CR to a host register, optionally loading its value.
   void BindCRToRegister(size_t preg, bool do_load, bool set_dirty = true)
   {
     BindToRegister(GetGuestCR(preg), do_load, set_dirty);
   }
+
   BitSet32 GetCallerSavedUsed() const override;
 
   void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
   {
     FlushRegisters(regs, false, tmp_reg);
   }
+
   void StoreCRRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
   {
     FlushCRRegisters(regs, false, tmp_reg);
