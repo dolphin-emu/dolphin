@@ -317,7 +317,7 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
     m_wiimote_labels[i]->setEnabled(enable_emu_bt);
     m_wiimote_boxes[i]->setEnabled(enable_emu_bt);
 
-    const bool is_emu_wiimote = m_wiimote_boxes[i]->currentIndex() == 1;
+    const bool is_emu_wiimote = m_wiimote_boxes[i]->currentIndex() == 1 || m_wiimote_boxes[i]->currentIndex() == 3;
     m_wiimote_buttons[i]->setEnabled(enable_emu_bt && is_emu_wiimote);
   }
 
