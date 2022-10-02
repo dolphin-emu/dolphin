@@ -18,6 +18,7 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
@@ -80,6 +81,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     WIIMOTE_H_BUTTONS.add(ButtonType.WIIMOTE_BUTTON_B);
     WIIMOTE_H_BUTTONS.add(ButtonType.WIIMOTE_BUTTON_1);
     WIIMOTE_H_BUTTONS.add(ButtonType.WIIMOTE_BUTTON_2);
+  }
+
+  // Buttons that have secondary actions such as analog triggers
+  private static final ArrayList<Integer> SECONDARY_FUNCTION_BUTTONS = new ArrayList<>();
+
+  static
+  {
+    SECONDARY_FUNCTION_BUTTONS.add(ButtonType.TRIGGER_R);
+    SECONDARY_FUNCTION_BUTTONS.add(ButtonType.TRIGGER_L);
   }
 
   private static final ArrayList<Integer> WIIMOTE_O_BUTTONS = new ArrayList<>();
@@ -215,10 +225,18 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           if (button.getBounds()
                   .contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
           {
+
+            int buttonId = button.getId();
+            if (button.getSecondaryBounds()
+                    .contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
+            {
+              buttonId = button.getSecondaryId();
+              button.setSecondaryPressedState(true);
+            }
             button.setPressedState(true);
             button.setTrackId(event.getPointerId(pointerIndex));
             pressed = true;
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
+            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, buttonId,
                     ButtonState.PRESSED);
           }
           break;
@@ -228,8 +246,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           if (button.getTrackId() == event.getPointerId(pointerIndex))
           {
             button.setPressedState(false);
+            button.setSecondaryPressedState(false);
             NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
                     ButtonState.RELEASED);
+            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getSecondaryId(),
+                    ButtonState.RELEASED);
+
             button.setTrackId(-1);
           }
           break;
@@ -530,12 +552,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_6.getBooleanGlobal())
     {
       overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_l,
-              R.drawable.gcpad_l_pressed, ButtonType.TRIGGER_L, orientation));
+              R.drawable.gcpad_l_pressed, ButtonType.TRIGGER_L, orientation,
+              R.drawable.gcpad_l_pressed_analog, ButtonType.TRIGGER_L_ANALOG));
     }
     if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_7.getBooleanGlobal())
     {
       overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_r,
-              R.drawable.gcpad_r_pressed, ButtonType.TRIGGER_R, orientation));
+              R.drawable.gcpad_r_pressed, ButtonType.TRIGGER_R, orientation,
+              R.drawable.gcpad_r_pressed_analog, ButtonType.TRIGGER_R_ANALOG));
     }
     if (BooleanSetting.MAIN_BUTTON_TOGGLE_GC_8.getBooleanGlobal())
     {
@@ -897,6 +921,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   private static InputOverlayDrawableButton initializeOverlayButton(Context context,
           int defaultResId, int pressedResId, int buttonId, String orientation)
   {
+    return initializeOverlayButton(context, defaultResId, pressedResId, buttonId, orientation,
+            -1, -1);
+  }
+
+  private static InputOverlayDrawableButton initializeOverlayButton(Context context,
+          int defaultResId, int pressedResId, int buttonId, String orientation,
+          int secondaryPressedResId, int secondaryButtonId)
+  {
     // Resources handle for fetching the initial Drawable resource.
     final Resources res = context.getResources();
 
@@ -919,9 +951,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         scale = 0.175f;
         break;
       case ButtonType.BUTTON_Z:
+        scale = 0.225f;
+        break;
       case ButtonType.TRIGGER_L:
       case ButtonType.TRIGGER_R:
-        scale = 0.225f;
+      case ButtonType.TRIGGER_R_ANALOG:
+      case ButtonType.TRIGGER_L_ANALOG:
+        scale = 0.3f;
         break;
       case ButtonType.BUTTON_START:
         scale = 0.075f;
@@ -972,12 +1008,26 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     int height = overlayDrawable.getHeight();
 
     // Now set the bounds for the InputOverlayDrawableButton.
-    // This will dictate where on the screen (and the what the size) the InputOverlayDrawableButton will be.
+    // This will dictate where on the screen (and what size) the InputOverlayDrawableButton will be.
     overlayDrawable.setBounds(drawableX, drawableY, drawableX + width, drawableY + height);
 
     // Need to set the image's position
     overlayDrawable.setPosition(drawableX, drawableY);
     overlayDrawable.setOpacity(IntSetting.MAIN_CONTROL_OPACITY.getIntGlobal() * 255 / 100);
+
+    // Set the button secondary function if it exist such as analog triggers
+    if (SECONDARY_FUNCTION_BUTTONS.contains(buttonId) && buttonId >= 0)
+    {
+      final Bitmap secondaryPressedStateBitmap =
+              resizeBitmap(context, BitmapFactory.decodeResource(res, secondaryPressedResId),
+                      scale);
+      overlayDrawable.setSecondaryButton(res, secondaryPressedStateBitmap, secondaryButtonId);
+
+      Rect secondaryBounds = new Rect(overlayDrawable.getBounds());
+      //This will set the analog function to the top half of the button
+      secondaryBounds.bottom = secondaryBounds.bottom - secondaryBounds.height() / 2;
+      overlayDrawable.setSecondaryBounds(secondaryBounds);
+    }
 
     return overlayDrawable;
   }
