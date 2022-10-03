@@ -29,6 +29,7 @@ public:
 
 private:
   void UpdateExt(u8 ext);
+  void SetOrientationAndTriggerBoxes();
   int m_num;
   TASCheckBox* m_a_button;
   TASCheckBox* m_b_button;

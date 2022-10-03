@@ -15,6 +15,13 @@ class QGroupBox;
 class QSpinBox;
 class QString;
 class TASCheckBox;
+class TASSlider;
+
+struct SliderValuePair
+{
+  TASSlider* slider;
+  QSpinBox* value;
+};
 
 class TASInputWindow : public QDialog
 {
@@ -32,9 +39,10 @@ protected:
   QBoxLayout* CreateSliderValuePairLayout(QString name, QSpinBox*& value, int default_, u16 max,
                                           Qt::Key shortcut_key, QWidget* shortcut_widget,
                                           bool invert = false);
-  QSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, u16 max,
-                                  QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
-                                  QWidget* shortcut_widget, bool invert = false);
+  SliderValuePair* CreateSliderValuePair(QBoxLayout* layout, int default_, u16 max,
+                                         QKeySequence shortcut_key_sequence,
+                                         Qt::Orientation orientation, QWidget* shortcut_widget,
+                                         bool invert = false);
   template <typename UX>
   void GetButton(TASCheckBox* button, UX& pad, UX mask);
   void GetSpinBoxU8(QSpinBox* spin, u8& controller_value);

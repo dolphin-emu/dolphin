@@ -85,11 +85,13 @@ QGroupBox* TASInputWindow::CreateStickInputs(QString name, QSpinBox*& x_value, Q
 
   auto* x_layout = new QHBoxLayout;
   x_value = CreateSliderValuePair(x_layout, x_default, max_x, x_shortcut_key_sequence,
-                                  Qt::Horizontal, box);
+                                  Qt::Horizontal, box)
+                ->value;
 
   auto* y_layout = new QVBoxLayout;
   y_value =
-      CreateSliderValuePair(y_layout, y_default, max_y, y_shortcut_key_sequence, Qt::Vertical, box);
+      CreateSliderValuePair(y_layout, y_default, max_y, y_shortcut_key_sequence, Qt::Vertical, box)
+          ->value;
   y_value->setMaximumWidth(60);
 
   auto* visual = new StickWidget(this, max_x, max_y);
@@ -127,19 +129,22 @@ QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(QString name, QSpinBox*&
   QBoxLayout* layout = new QHBoxLayout;
   layout->addWidget(label);
 
-  value = CreateSliderValuePair(layout, default_, max, shortcut_key_sequence, Qt::Horizontal,
-                                shortcut_widget, invert);
+  SliderValuePair* sliderValuePair = CreateSliderValuePair(
+      layout, default_, max, shortcut_key_sequence, Qt::Horizontal, shortcut_widget, invert);
+
+  value = sliderValuePair->value;
 
   return layout;
 }
 
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
 // This is done to avoid ambigous shortcuts
-QSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int default_, u16 max,
-                                                QKeySequence shortcut_key_sequence,
-                                                Qt::Orientation orientation,
-                                                QWidget* shortcut_widget, bool invert)
+SliderValuePair* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int default_, u16 max,
+                                                       QKeySequence shortcut_key_sequence,
+                                                       Qt::Orientation orientation,
+                                                       QWidget* shortcut_widget, bool invert)
 {
+  auto* sliderValuePair = new SliderValuePair();
   auto* value = new QSpinBox();
   value->setRange(0, 99999);
   value->setValue(default_);
@@ -167,7 +172,10 @@ QSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int default_
   if (orientation == Qt::Vertical)
     layout->setAlignment(slider, Qt::AlignRight);
 
-  return value;
+  sliderValuePair->slider = slider;
+  sliderValuePair->value = value;
+
+  return sliderValuePair;
 }
 
 template <typename UX>

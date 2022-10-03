@@ -7,6 +7,8 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QLabel>
+#include <QShortcut>
 #include <QSpacerItem>
 #include <QSpinBox>
 #include <QVBoxLayout>
@@ -14,6 +16,7 @@
 #include "Common/CommonTypes.h"
 
 #include "DolphinQt/TAS/TASCheckBox.h"
+#include "DolphinQt/TAS/TASSlider.h"
 
 #include "InputCommon/GCPadStatus.h"
 
@@ -30,17 +33,7 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   top_layout->addWidget(m_main_stick_box);
   top_layout->addWidget(m_c_stick_box);
 
-  m_triggers_box = new QGroupBox(tr("Triggers"));
-
-  auto* l_trigger_layout =
-      CreateSliderValuePairLayout(tr("Left"), m_l_trigger_value, 0, 255, Qt::Key_N, m_triggers_box);
-  auto* r_trigger_layout = CreateSliderValuePairLayout(tr("Right"), m_r_trigger_value, 0, 255,
-                                                       Qt::Key_M, m_triggers_box);
-
-  auto* triggers_layout = new QVBoxLayout;
-  triggers_layout->addLayout(l_trigger_layout);
-  triggers_layout->addLayout(r_trigger_layout);
-  m_triggers_box->setLayout(triggers_layout);
+  SetTriggersBox();
 
   m_a_button = CreateButton(QStringLiteral("&A"));
   m_b_button = CreateButton(QStringLiteral("&B"));
@@ -82,6 +75,40 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   layout->addWidget(m_settings_box);
 
   setLayout(layout);
+}
+
+void GCTASInputWindow::SetTriggersBox()
+{
+  m_triggers_box = new QGroupBox(tr("Triggers"));
+
+  const QKeySequence l_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_N);
+  const QKeySequence r_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_M);
+
+  auto* l_label =
+      new QLabel(tr("Left (%1)").arg(l_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+  auto* r_label =
+      new QLabel(tr("Right (%1)").arg(r_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+
+  QBoxLayout* l_layout = new QHBoxLayout;
+  l_layout->addWidget(l_label);
+  QBoxLayout* r_layout = new QHBoxLayout;
+  r_layout->addWidget(r_label);
+
+  SliderValuePair* l_sliderValuePair = CreateSliderValuePair(
+      l_layout, 0, 255, l_shortcut_key_sequence, Qt::Horizontal, m_triggers_box);
+  SliderValuePair* r_sliderValuePair = CreateSliderValuePair(
+      r_layout, 0, 255, r_shortcut_key_sequence, Qt::Horizontal, m_triggers_box);
+
+  // Create grid layout
+  QGridLayout* triggers_layout = new QGridLayout;
+  triggers_layout->addWidget(l_label, 0, 0);
+  triggers_layout->addWidget(l_sliderValuePair->slider, 0, 1);
+  triggers_layout->addWidget(l_sliderValuePair->value, 0, 2);
+  triggers_layout->addWidget(r_label, 1, 0);
+  triggers_layout->addWidget(r_sliderValuePair->slider, 1, 1);
+  triggers_layout->addWidget(r_sliderValuePair->value, 1, 2);
+
+  m_triggers_box->setLayout(triggers_layout);
 }
 
 void GCTASInputWindow::GetValues(GCPadStatus* pad)
