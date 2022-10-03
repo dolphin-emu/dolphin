@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
 
 #include "Common/MathUtil.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -221,9 +222,10 @@ WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
        u16(std::clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))});
 }
 
-void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed)
+void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
+                  const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed)
 {
-  const auto cursor = ir_group->GetState(true);
+  const auto cursor = ir_group->GetState(true, override_func);
 
   if (!cursor.IsVisible())
   {

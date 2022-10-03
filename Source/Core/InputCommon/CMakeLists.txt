@@ -140,6 +140,8 @@ elseif(ANDROID)
     ControllerInterface/Android/Android.h
     ControllerInterface/Touch/ButtonManager.cpp
     ControllerInterface/Touch/ButtonManager.h
+    ControllerInterface/Touch/InputOverrider.cpp
+    ControllerInterface/Touch/InputOverrider.h
     ControllerInterface/Touch/Touchscreen.cpp
     ControllerInterface/Touch/Touchscreen.h
   )

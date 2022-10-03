@@ -69,6 +69,7 @@ public:
 
   static const u8 STICK_CENTER = 0x20;
   static const u8 STICK_RADIUS = 0x1f;
+  static const u8 STICK_RANGE = 0x3f;
 
   // TODO: Test real hardware. Is this accurate?
   static const u8 STICK_GATE_RADIUS = 0x16;

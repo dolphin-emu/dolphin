@@ -40,8 +40,7 @@ public enum IntSetting implements AbstractIntSetting
           InputOverlayPointer.MODE_FOLLOW),
 
   MAIN_DOUBLE_TAP_BUTTON(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
-          "DoubleTapButton",
-          InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A)),
+          "DoubleTapButton", NativeLibrary.ButtonType.WIIMOTE_BUTTON_A),
 
   SYSCONF_LANGUAGE(Settings.FILE_SYSCONF, "IPL", "LNG", 0x01),
   SYSCONF_SOUND_MODE(Settings.FILE_SYSCONF, "IPL", "SND", 0x01),

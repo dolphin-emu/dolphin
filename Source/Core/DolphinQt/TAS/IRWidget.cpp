@@ -54,8 +54,8 @@ void IRWidget::paintEvent(QPaintEvent* event)
   painter.drawLine(PADDING + w / 2, PADDING, PADDING + w / 2, PADDING + h);
 
   // convert from value space to widget space
-  u16 x = PADDING + (w - (m_x * w) / ir_max_x);
-  u16 y = PADDING + ((m_y * h) / ir_max_y);
+  u16 x = PADDING + ((m_x * w) / ir_max_x);
+  u16 y = PADDING + (h - (m_y * h) / ir_max_y);
 
   painter.drawLine(PADDING + w / 2, PADDING + h / 2, x, y);
 
@@ -87,8 +87,8 @@ void IRWidget::handleMouseEvent(QMouseEvent* event)
   else
   {
     // convert from widget space to value space
-    int new_x = ir_max_x - (event->pos().x() * ir_max_x) / width();
-    int new_y = (event->pos().y() * ir_max_y) / height();
+    int new_x = (event->pos().x() * ir_max_x) / width();
+    int new_y = ir_max_y - (event->pos().y() * ir_max_y) / height();
 
     m_x = std::max(0, std::min(static_cast<int>(ir_max_x), new_x));
     m_y = std::max(0, std::min(static_cast<int>(ir_max_y), new_y));

@@ -17,6 +17,8 @@ public:
 
   void GetState(u16* digital, const u16* bitmasks, ControlState* analog,
                 bool adjusted = true) const;
+  void GetState(u16* digital, const u16* bitmasks, ControlState* analog,
+                const InputOverrideFunction& override_func, bool adjusted = true) const;
 
   ControlState GetDeadzone() const;
   ControlState GetThreshold() const;

@@ -4,6 +4,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 
 #include <cmath>
+#include <optional>
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
@@ -46,6 +47,34 @@ AnalogStick::ReshapeData AnalogStick::GetReshapableState(bool adjusted) const
 AnalogStick::StateData AnalogStick::GetState() const
 {
   return GetReshapableState(true);
+}
+
+AnalogStick::StateData AnalogStick::GetState(const InputOverrideFunction& override_func) const
+{
+  bool override_occurred = false;
+  return GetState(override_func, &override_occurred);
+}
+
+AnalogStick::StateData AnalogStick::GetState(const InputOverrideFunction& override_func,
+                                             bool* override_occurred) const
+{
+  StateData state = GetState();
+  if (!override_func)
+    return state;
+
+  if (const std::optional<ControlState> x_override = override_func(name, X_INPUT_OVERRIDE, state.x))
+  {
+    state.x = *x_override;
+    *override_occurred = true;
+  }
+
+  if (const std::optional<ControlState> y_override = override_func(name, Y_INPUT_OVERRIDE, state.y))
+  {
+    state.y = *y_override;
+    *override_occurred = true;
+  }
+
+  return state;
 }
 
 ControlState AnalogStick::GetGateRadiusAtAngle(double ang) const
