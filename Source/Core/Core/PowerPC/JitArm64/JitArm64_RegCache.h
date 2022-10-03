@@ -272,28 +272,39 @@ public:
 
   // Binds a guest GPR to a host register, optionally loading its value.
   //
-  // Using set_dirty = false is a little trick that's useful when emulating a memory load that might
-  // have to be rolled back. (Don't use set_dirty = false in other circumstances.) By calling this
-  // function with set_dirty = false before performing the load, this function guarantees that the
-  // guest register will be marked as dirty (needing to be written back to ppcState) only if the
-  // guest register previously contained a value that needs to be written back to ppcState.
+  // preg: The guest register index.
+  // will_read: Whether the caller intends to read from the register.
+  // will_write: Whether the caller intends to write to the register.
   //
-  // This trick prevents a problem that would otherwise happen where the call to this function could
-  // allocate a new host register without writing anything to it (if do_load = false), and then
-  // later when preparing to jump to an exception handler, a call to Flush would write the old value
-  // in the host register to ppcState because the register was marked dirty.
+  // Normally, you should call this function if you intend to write to a register, and shouldn't
+  // call this function if you don't intend to write to a register. There is however one situation
+  // where calling this function with will_write = false is a useful trick: When emulating a memory
+  // load that might have to be rolled back.
   //
-  // If you call this with set_dirty = false, you must make sure to call this with set_dirty = true
-  // later.
-  void BindToRegister(size_t preg, bool do_load, bool set_dirty = true)
+  // By calling this function with will_write = false before performing the load, this function
+  // guarantees that the guest register will be marked as dirty (needing to be written back to
+  // ppcState) only if the guest register previously contained a value that needs to be written back
+  // to ppcState. This trick prevents the following problem that otherwise would happen:
+  //
+  // 1. The caller calls this function with will_read = false and will_write = true.
+  // 2. The guest register didn't have a host register allocated, so this function allocates one.
+  // 3. This function does *not* write anything to the host register, since will_read was false.
+  // 4. The caller emits code for the load.
+  // 5. The caller calls Flush (to emit code for jumping to an exception handler).
+  // 6. Flush writes the value in the host register to ppcState, even though it was a stale value.
+  //
+  // By calling this function with will_write = false before the Flush call, no stale values will be
+  // flushed. Just remember to call this function again with will_write = true after the Flush call.
+  void BindToRegister(size_t preg, bool will_read, bool will_write = true)
   {
-    BindToRegister(GetGuestGPR(preg), do_load, set_dirty);
+    BindToRegister(GetGuestGPR(preg), will_read, will_write);
   }
 
   // Binds a guest CR to a host register, optionally loading its value.
-  void BindCRToRegister(size_t preg, bool do_load, bool set_dirty = true)
+  // The description of BindToRegister above applies to this function as well.
+  void BindCRToRegister(size_t preg, bool will_read, bool will_write = true)
   {
-    BindToRegister(GetGuestCR(preg), do_load, set_dirty);
+    BindToRegister(GetGuestCR(preg), will_read, will_write);
   }
 
   BitSet32 GetCallerSavedUsed() const override;
@@ -335,7 +346,7 @@ private:
 
   Arm64Gen::ARM64Reg R(const GuestRegInfo& guest_reg);
   void SetImmediate(const GuestRegInfo& guest_reg, u32 imm);
-  void BindToRegister(const GuestRegInfo& guest_reg, bool do_load, bool set_dirty = true);
+  void BindToRegister(const GuestRegInfo& guest_reg, bool will_read, bool will_write = true);
 
   void FlushRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
   void FlushCRRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);

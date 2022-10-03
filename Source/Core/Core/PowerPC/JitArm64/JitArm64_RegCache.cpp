@@ -343,7 +343,7 @@ void Arm64GPRCache::SetImmediate(const GuestRegInfo& guest_reg, u32 imm)
   reg.LoadToImm(imm);
 }
 
-void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool do_load, bool set_dirty)
+void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool will_read, bool will_write)
 {
   OpArg& reg = guest_reg.reg;
   const size_t bitsize = guest_reg.bitsize;
@@ -355,8 +355,8 @@ void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool do_load, 
   {
     const ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
     reg.Load(host_reg);
-    reg.SetDirty(set_dirty);
-    if (do_load)
+    reg.SetDirty(will_write);
+    if (will_read)
     {
       ASSERT_MSG(DYNA_REC, reg_type != RegType::Discarded, "Attempted to load a discarded value");
       m_emit->LDR(IndexType::Unsigned, host_reg, PPC_REG, u32(guest_reg.ppc_offset));
@@ -365,9 +365,9 @@ void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool do_load, 
   else if (reg_type == RegType::Immediate)
   {
     const ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
-    if (do_load || !set_dirty)
+    if (will_read || !will_write)
     {
-      // TODO: Emitting this instruction when (!do_load && !set_dirty) would be unnecessary if we
+      // TODO: Emitting this instruction when (!will_read && !will_write) would be unnecessary if we
       // had some way to indicate to Flush that the immediate value should be written to ppcState
       // even though there is a host register allocated
       m_emit->MOVI2R(host_reg, reg.GetImm());
@@ -376,7 +376,7 @@ void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool do_load, 
     // If the register had an immediate value, the register was effectively already dirty
     reg.SetDirty(true);
   }
-  else if (set_dirty)
+  else if (will_write)
   {
     reg.SetDirty(true);
   }
