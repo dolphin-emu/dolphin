@@ -42,6 +42,7 @@ private:
   InputOverrider m_wiimote_overrider;
   InputOverrider m_nunchuk_overrider;
   InputOverrider m_classic_overrider;
+  InputOverrider m_balance_board_overrider;
 
   TASCheckBox* m_a_button;
   TASCheckBox* m_b_button;

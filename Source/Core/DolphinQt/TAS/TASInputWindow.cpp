@@ -235,6 +235,25 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int defaul
   return value;
 }
 
+QDoubleSpinBox* TASInputWindow::CreateWeightSliderValuePair(std::string_view group_name,
+                                                            std::string_view control_name,
+                                                            InputOverrider* overrider,
+                                                            QBoxLayout* layout, int min, int max,
+                                                            QKeySequence shortcut_key_sequence,
+                                                            QWidget* shortcut_widget)
+{
+  QDoubleSpinBox* value =
+      CreateWeightSliderValuePair(layout, min, max, shortcut_key_sequence, shortcut_widget);
+
+  InputOverrider::OverrideFunction func = [this, value](ControlState controller_state) {
+    return GetSpinBox(value, controller_state);
+  };
+
+  overrider->AddFunction(group_name, control_name, std::move(func));
+
+  return value;
+}
+
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
 // This is done to avoid ambigous shortcuts
 QDoubleSpinBox* TASInputWindow::CreateWeightSliderValuePair(QBoxLayout* layout, int min, int max,
@@ -301,4 +320,25 @@ std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, int zer
     spin->OnControllerValueChanged(controller_value);
 
   return (spin->GetValue() - zero) / scale;
+}
+
+std::optional<ControlState> TASInputWindow::GetSpinBox(QDoubleSpinBox* spin,
+                                                       ControlState controller_state)
+{
+  if (m_use_controller->isChecked())
+  {
+    if (!m_spinbox_most_recent_values_double.count(spin) ||
+        m_spinbox_most_recent_values_double[spin] != controller_state)
+    {
+      QueueOnObjectBlocking(spin, [spin, controller_state] { spin->setValue(controller_state); });
+    }
+
+    m_spinbox_most_recent_values_double[spin] = controller_state;
+  }
+  else
+  {
+    m_spinbox_most_recent_values_double.clear();
+  }
+
+  return spin->value();
 }
