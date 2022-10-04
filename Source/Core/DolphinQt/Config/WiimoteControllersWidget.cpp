@@ -315,7 +315,7 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
   for (auto* pt_label : m_wiimote_pt_labels)
     pt_label->setEnabled(enable_passthrough);
 
-  const int num_local_wiimotes = is_netplay ? NetPlay::NumLocalWiimotes() : 4;
+  const int num_local_wiimotes = is_netplay ? NetPlay::NumLocalWiimotes() : MAX_BBMOTES;
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
     m_wiimote_labels[i]->setEnabled(enable_emu_bt);
