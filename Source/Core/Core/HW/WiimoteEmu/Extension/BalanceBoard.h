@@ -33,6 +33,13 @@ public:
   };
   static_assert(sizeof(DataFormat) == 12, "Wrong size");
 
+  static constexpr const char* BALANCE_GROUP = "Balance";
+
+  static constexpr const char* TOP_RIGHT_SENSOR = "TR";
+  static constexpr const char* BOTTOM_RIGHT_SENSOR = "BR";
+  static constexpr const char* TOP_LEFT_SENSOR = "TL";
+  static constexpr const char* BOTTOM_LEFT_SENSOR = "BL";
+
   BalanceBoardExt(BalanceBoard* owner);
 
   static constexpr float DEFAULT_WEIGHT = 63.5;  // kilograms; no specific meaning to this value

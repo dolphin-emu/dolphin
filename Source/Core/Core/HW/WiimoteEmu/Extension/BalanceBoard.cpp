@@ -39,10 +39,34 @@ void BalanceBoardExt::BuildDesiredExtensionState(DesiredExtensionState* target_s
 
   const double total_weight = DEFAULT_WEIGHT * weight;  // kilograms
 
-  const auto top_right = total_weight * (1 + balance_state.x + balance_state.y) / 4;
-  const auto bottom_right = total_weight * (1 + balance_state.x - balance_state.y) / 4;
-  const auto top_left = total_weight * (1 - balance_state.x + balance_state.y) / 4;
-  const auto bottom_left = total_weight * (1 - balance_state.x - balance_state.y) / 4;
+  auto top_right = total_weight * (1 + balance_state.x + balance_state.y) / 4;
+  auto bottom_right = total_weight * (1 + balance_state.x - balance_state.y) / 4;
+  auto top_left = total_weight * (1 - balance_state.x + balance_state.y) / 4;
+  auto bottom_left = total_weight * (1 - balance_state.x - balance_state.y) / 4;
+
+  if (m_input_override_function)
+  {
+    if (const std::optional<ControlState> top_right_override =
+            m_input_override_function(BALANCE_GROUP, TOP_RIGHT_SENSOR, top_right))
+    {
+      top_right = *top_right_override;
+    }
+    if (const std::optional<ControlState> bottom_right_override =
+            m_input_override_function(BALANCE_GROUP, BOTTOM_RIGHT_SENSOR, bottom_right))
+    {
+      bottom_right = *bottom_right_override;
+    }
+    if (const std::optional<ControlState> top_left_override =
+            m_input_override_function(BALANCE_GROUP, TOP_LEFT_SENSOR, top_left))
+    {
+      top_left = *top_left_override;
+    }
+    if (const std::optional<ControlState> bottom_left_override =
+            m_input_override_function(BALANCE_GROUP, BOTTOM_LEFT_SENSOR, bottom_left))
+    {
+      bottom_left = *bottom_left_override;
+    }
+  }
 
   DataFormat bb_data = {};
 
