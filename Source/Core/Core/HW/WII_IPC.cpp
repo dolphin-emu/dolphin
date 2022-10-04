@@ -5,7 +5,7 @@
 
 #include <array>
 #include <bitset>
-#include <string_view>
+#include <string>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -121,7 +121,7 @@ struct AVEState
 #pragma pack()
 static_assert(sizeof(AVEState) == 0x100);
 
-std::string_view GetAVERegisterName(u8 address)
+std::string GetAVERegisterName(u8 address)
 {
   if (address == 0x00)
     return "A/V Timings";
@@ -158,7 +158,7 @@ std::string_view GetAVERegisterName(u8 address)
   else if (address == 0x71)
     return "Audio stereo output control - right volume";
   else if (address == 0x72)
-    return "Audio stereo output control - right volume";
+    return "Audio stereo output control - left volume";
   else if (address >= 0x7a && address <= 0x7d)
     return "Closed Captioning control";
   else
