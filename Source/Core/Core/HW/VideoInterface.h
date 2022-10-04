@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -13,6 +15,23 @@ class Mapping;
 
 namespace VideoInterface
 {
+class VideoInterfaceState
+{
+public:
+  VideoInterfaceState();
+  VideoInterfaceState(const VideoInterfaceState&) = delete;
+  VideoInterfaceState(VideoInterfaceState&&) = delete;
+  VideoInterfaceState& operator=(const VideoInterfaceState&) = delete;
+  VideoInterfaceState& operator=(VideoInterfaceState&&) = delete;
+  ~VideoInterfaceState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 // VI Internal Hardware Addresses
 enum
 {

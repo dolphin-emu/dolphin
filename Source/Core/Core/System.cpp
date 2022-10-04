@@ -12,6 +12,7 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/Sram.h"
+#include "Core/HW/VideoInterface.h"
 
 namespace Core
 {
@@ -26,6 +27,7 @@ struct System::Impl
   DVDInterface::DVDInterfaceState m_dvd_interface_state;
   DVDThread::DVDThreadState m_dvd_thread_state;
   Sram m_sram;
+  VideoInterface::VideoInterfaceState m_video_interface_state;
 };
 
 System::System() : m_impl{std::make_unique<Impl>()}
@@ -94,5 +96,10 @@ DVDThread::DVDThreadState& System::GetDVDThreadState() const
 Sram& System::GetSRAM() const
 {
   return m_impl->m_sram;
+}
+
+VideoInterface::VideoInterfaceState& System::GetVideoInterfaceState() const
+{
+  return m_impl->m_video_interface_state;
 }
 }  // namespace Core

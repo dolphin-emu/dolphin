@@ -24,6 +24,10 @@ namespace DVDThread
 {
 class DVDThreadState;
 }
+namespace VideoInterface
+{
+class VideoInterfaceState;
+};
 
 namespace Core
 {
@@ -64,6 +68,7 @@ public:
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;
   Sram& GetSRAM() const;
+  VideoInterface::VideoInterfaceState& GetVideoInterfaceState() const;
 
 private:
   System();
