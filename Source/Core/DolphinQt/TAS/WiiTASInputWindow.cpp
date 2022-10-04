@@ -50,20 +50,20 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
                                     ir_x_shortcut_key_sequence.toString(QKeySequence::NativeText),
                                     ir_y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
-  const int ir_x_center = static_cast<int>(std::round(ir_max_x / 2.));
-  const int ir_y_center = static_cast<int>(std::round(ir_max_y / 2.));
+  const int ir_x_center = static_cast<int>(std::round(IRWidget::ir_max_x / 2.));
+  const int ir_y_center = static_cast<int>(std::round(IRWidget::ir_max_y / 2.));
 
   auto* x_layout = new QHBoxLayout;
   m_ir_x_value = CreateSliderValuePair(
       WiimoteEmu::Wiimote::IR_GROUP, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE,
-      &m_wiimote_overrider, x_layout, ir_x_center, ir_x_center, ir_min_x, ir_max_x,
-      ir_x_shortcut_key_sequence, Qt::Horizontal, m_ir_box);
+      &m_wiimote_overrider, x_layout, ir_x_center, ir_x_center, IRWidget::ir_min_x,
+      IRWidget::ir_max_x, ir_x_shortcut_key_sequence, Qt::Horizontal, m_ir_box);
 
   auto* y_layout = new QVBoxLayout;
   m_ir_y_value = CreateSliderValuePair(
       WiimoteEmu::Wiimote::IR_GROUP, ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE,
-      &m_wiimote_overrider, y_layout, ir_y_center, ir_y_center, ir_min_y, ir_max_y,
-      ir_y_shortcut_key_sequence, Qt::Vertical, m_ir_box);
+      &m_wiimote_overrider, y_layout, ir_y_center, ir_y_center, IRWidget::ir_min_y,
+      IRWidget::ir_max_y, ir_y_shortcut_key_sequence, Qt::Vertical, m_ir_box);
   m_ir_y_value->setMaximumWidth(60);
 
   auto* visual = new IRWidget(this);
@@ -75,7 +75,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   connect(visual, &IRWidget::ChangedX, m_ir_x_value, &QSpinBox::setValue);
   connect(visual, &IRWidget::ChangedY, m_ir_y_value, &QSpinBox::setValue);
 
-  auto* visual_ar = new AspectRatioWidget(visual, ir_max_x, ir_max_y);
+  auto* visual_ar = new AspectRatioWidget(visual, IRWidget::ir_max_x, IRWidget::ir_max_y);
 
   auto* visual_layout = new QHBoxLayout;
   visual_layout->addWidget(visual_ar);
