@@ -12,15 +12,15 @@ class TASControlState
 public:
   // Call this from the CPU thread to get the current value. (This function can also safely be
   // called from the UI thread, but you're effectively just getting the value the UI control has.)
-  u16 GetValue() const;
+  int GetValue() const;
   // Call this from the CPU thread when the controller state changes.
   // If the return value is true, queue up a call to ApplyControllerChangeValue on the UI thread.
-  bool OnControllerValueChanged(u16 new_value);
+  bool OnControllerValueChanged(int new_value);
   // Call this from the UI thread when the user changes the value using the UI.
-  void OnUIValueChanged(u16 new_value);
+  void OnUIValueChanged(int new_value);
   // Call this from the UI thread after OnControllerValueChanged returns true,
   // and set the state of the UI control to the return value.
-  u16 ApplyControllerValueChange();
+  int ApplyControllerValueChange();
 
 private:
   // A description of how threading is handled: The UI thread can update its copy of the state
@@ -34,8 +34,8 @@ private:
 
   struct State
   {
-    u16 version = 0;
-    u16 value = 0;
+    int version = 0;
+    int value = 0;
   };
 
   std::atomic<State> m_ui_thread_state;

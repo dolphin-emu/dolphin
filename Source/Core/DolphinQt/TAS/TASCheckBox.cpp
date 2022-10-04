@@ -58,7 +58,7 @@ void TASCheckBox::mousePressEvent(QMouseEvent* event)
 
 void TASCheckBox::OnUIValueChanged(int new_value)
 {
-  m_state.OnUIValueChanged(static_cast<u16>(new_value));
+  m_state.OnUIValueChanged(new_value);
 }
 
 void TASCheckBox::ApplyControllerValueChange()

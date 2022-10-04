@@ -17,13 +17,13 @@ int TASSpinBox::GetValue() const
 
 void TASSpinBox::OnControllerValueChanged(int new_value)
 {
-  if (m_state.OnControllerValueChanged(static_cast<u16>(new_value)))
+  if (m_state.OnControllerValueChanged(new_value))
     QueueOnObject(this, &TASSpinBox::ApplyControllerValueChange);
 }
 
 void TASSpinBox::OnUIValueChanged(int new_value)
 {
-  m_state.OnUIValueChanged(static_cast<u16>(new_value));
+  m_state.OnUIValueChanged(new_value);
 }
 
 void TASSpinBox::ApplyControllerValueChange()
