@@ -116,10 +116,10 @@ private:
   // If not, ends the render pass if it is a clear render pass.
   bool IsViewportWithinRenderArea() const;
 
-  bool UpdateDescriptorSet();
-  bool UpdateGXDescriptorSet();
-  bool UpdateUtilityDescriptorSet();
-  bool UpdateComputeDescriptorSet();
+  void UpdateDescriptorSet();
+  void UpdateGXDescriptorSet();
+  void UpdateUtilityDescriptorSet();
+  void UpdateComputeDescriptorSet();
 
   // Which bindings/state has to be updated before the next draw.
   u32 m_dirty_flags = 0;
