@@ -356,67 +356,19 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
               "  float4 other_p2 = P2;\n"
               "  if ((components & {}u) != 0u) {{ // VB_HAS_POSMTXIDX\n",
               VB_HAS_POSMTXIDX);
-    out.Write("    uint other_posidx = int(load_input_uint4_ubyte4(other_base_offset, "
-              "vertex_offset_posmtx).r);\n"
+    out.Write("    uint other_posidx = load_input_uint4_ubyte4(other_base_offset, "
+              "vertex_offset_posmtx).r;\n"
               "    other_p0 = " I_TRANSFORMMATRICES "[other_posidx];\n"
               "    other_p1 = " I_TRANSFORMMATRICES "[other_posidx+1];\n"
               "    other_p2 = " I_TRANSFORMMATRICES "[other_posidx+2];\n"
               "  }}\n"
               "  float4 other_pos = float4(dot(other_p0, other_rawpos), "
-              "dot(other_p1, other_rawpos), dot(other_p2, other_rawpos), 1.0);\n"
-              "  other_pos = float4(dot(" I_PROJECTION "[0], other_pos), dot(" I_PROJECTION
-              "[1], other_pos), dot(" I_PROJECTION "[2], other_pos), dot(" I_PROJECTION
-              "[3], other_pos));\n"
-              "\n"
-              "  float sign = is_right ? 1.0f : -1.0f;\n"
-              // GameCube/Wii's line drawing algorithm is a little quirky. It does not
-              // use the correct line caps. Instead, the line caps are vertical or
-              // horizontal depending the slope of the line.
-              "  float2 offset;\n"
-              "  float2 to = abs(o.pos.xy / o.pos.w - other_pos.xy / other_pos.w);\n"
-              // FIXME: What does real hardware do when line is at a 45-degree angle?
-              // FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
-              "  if (" I_LINEPTPARAMS ".y * to.y > " I_LINEPTPARAMS ".x * to.x) {{\n"
-              // Line is more tall. Extend geometry left and right.
-              // Lerp LineWidth/2 from [0..VpWidth] to [-1..1]
-              "    offset = float2(sign * " I_LINEPTPARAMS ".z / " I_LINEPTPARAMS ".x, 0);\n"
-              "  }} else {{\n"
-              // Line is more wide. Extend geometry up and down.
-              // Lerp LineWidth/2 from [0..VpHeight] to [1..-1]
-              "    offset = float2(0, sign * " I_LINEPTPARAMS ".z / " I_LINEPTPARAMS ".y);\n"
-              "  }}\n"
-              "\n"
-              "  o.pos.xy += offset * o.pos.w;\n");
-    if (num_texgen > 0)
-    {
-      out.Write("  if ((" I_TEXOFFSET "[2] != 0) && is_right) {{\n"
-                "    float texOffset = 1.0 / float(" I_TEXOFFSET "[2]);\n");
-      for (u32 i = 0; i < num_texgen; i++)
-      {
-        out.Write("    if (((" I_TEXOFFSET "[0] >> {}) & 0x1) != 0)\n", i);
-        out.Write("      o.tex{}.x += texOffset;\n", i);
-      }
-      out.Write("  }}\n");
-    }
+              "dot(other_p1, other_rawpos), dot(other_p2, other_rawpos), 1.0);\n");
+    GenerateVSLineExpansion(out, "  ", num_texgen);
     out.Write("}} else if (vs_expand == {}u) {{ // Point\n", static_cast<u32>(VSExpand::Point));
     out.Write("  bool is_bottom = (gl_VertexID & 2) != 0;\n"
-              "  bool is_right = (gl_VertexID & 1) != 0;\n"
-              "  float2 sign = float2(is_right ? 1.0f : -1.0f, is_bottom ? 1.0f : -1.0f);\n"
-              "  float2 offset = sign * " I_LINEPTPARAMS ".ww / " I_LINEPTPARAMS ".xy;\n"
-              "  o.pos.xy += offset * o.pos.w;\n");
-    if (num_texgen > 0)
-    {
-      out.Write("  if (" I_TEXOFFSET "[3] != 0) {{\n"
-                "    float texOffsetMagnitude = 1.0f / float(" I_TEXOFFSET "[3]);\n"
-                "    float2 texOffset = float2(is_right ? texOffsetMagnitude : 0.0f, "
-                "is_bottom ? texOffsetMagnitude : 0.0f);");
-      for (u32 i = 0; i < num_texgen; i++)
-      {
-        out.Write("    if (((" I_TEXOFFSET "[1] >> {}) & 0x1) != 0)\n", i);
-        out.Write("      o.tex{}.xy += texOffset;\n", i);
-      }
-      out.Write("  }}\n");
-    }
+              "  bool is_right = (gl_VertexID & 1) != 0;\n");
+    GenerateVSPointExpansion(out, "  ", num_texgen);
     out.Write("}}\n");
   }
 

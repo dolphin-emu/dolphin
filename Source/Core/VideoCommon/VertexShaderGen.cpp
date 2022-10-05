@@ -547,56 +547,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("other_pos = float4(dot(P0, other_pos), dot(P1, other_pos), dot(P2, other_pos), "
                 "1.0f);\n");
     }
-    out.Write("other_pos = float4(dot(" I_PROJECTION "[0], other_pos), dot(" I_PROJECTION
-              "[1], other_pos), dot(" I_PROJECTION "[2], other_pos), dot(" I_PROJECTION
-              "[3], other_pos));\n"
-              "float expand_sign = is_right ? 1.0f : -1.0f;\n"
-              "float2 offset;\n"
-              "float2 to = abs(o.pos.xy / o.pos.w - other_pos.xy / other_pos.w);\n"
-              // FIXME: What does real hardware do when line is at a 45-degree angle?
-              // FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
-              "if (" I_LINEPTPARAMS ".y * to.y > " I_LINEPTPARAMS ".x * to.x) {{\n"
-              // Line is more tall. Extend geometry left and right.
-              // Lerp LineWidth/2 from [0..VpWidth] to [-1..1]
-              "  offset = float2(expand_sign * " I_LINEPTPARAMS ".z / " I_LINEPTPARAMS ".x, 0);\n"
-              "}} else {{\n"
-              // Line is more wide. Extend geometry up and down.
-              // Lerp LineWidth/2 from [0..VpHeight] to [1..-1]
-              "  offset = float2(0, expand_sign * " I_LINEPTPARAMS ".z / " I_LINEPTPARAMS ".y);\n"
-              "}}\n"
-              "\n"
-              "o.pos.xy += offset * o.pos.w;\n");
-    if (uid_data->numTexGens > 0)
-    {
-      out.Write("if ((" I_TEXOFFSET "[2] != 0) && is_right) {{\n"
-                "  float texOffset = 1.0 / float(" I_TEXOFFSET "[2]);\n");
-      for (u32 i = 0; i < uid_data->numTexGens; i++)
-      {
-        out.Write("  if (((" I_TEXOFFSET "[0] >> {}) & 0x1) != 0)\n", i);
-        out.Write("    o.tex{}.x += texOffset;\n", i);
-      }
-      out.Write("}}\n");
-    }
+    GenerateVSLineExpansion(out, "", uid_data->numTexGens);
   }
   else if (uid_data->vs_expand == VSExpand::Point)
   {
-    out.Write("// Point expansion\n"
-              "float2 expand_sign = float2(is_right ? 1.0f : -1.0f, is_bottom ? 1.0f : -1.0f);\n"
-              "float2 offset = expand_sign * " I_LINEPTPARAMS ".ww / " I_LINEPTPARAMS ".xy;\n"
-              "o.pos.xy += offset * o.pos.w;\n");
-    if (uid_data->numTexGens > 0)
-    {
-      out.Write("if (" I_TEXOFFSET "[3] != 0) {{\n"
-                "  float texOffsetMagnitude = 1.0f / float(" I_TEXOFFSET "[3]);\n"
-                "  float2 texOffset = float2(is_right ? texOffsetMagnitude : 0.0f, "
-                "is_bottom ? texOffsetMagnitude : 0.0f);");
-      for (u32 i = 0; i < uid_data->numTexGens; i++)
-      {
-        out.Write("  if (((" I_TEXOFFSET "[1] >> {}) & 0x1) != 0)\n", i);
-        out.Write("    o.tex{}.xy += texOffset;\n", i);
-      }
-      out.Write("}}\n");
-    }
+    out.Write("// Point expansion\n");
+    GenerateVSPointExpansion(out, "", uid_data->numTexGens);
   }
 
   if (per_pixel_lighting)

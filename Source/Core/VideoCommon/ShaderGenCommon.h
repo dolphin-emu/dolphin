@@ -198,6 +198,13 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
 void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_view b, u32 texgens,
                            const ShaderHostConfig& host_config);
 
+void GenerateLineOffset(ShaderCode& object, std::string_view indent0, std::string_view indent1,
+                        std::string_view pos_a, std::string_view pos_b, std::string_view sign);
+
+void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, u32 texgens);
+
+void GenerateVSPointExpansion(ShaderCode& object, std::string_view indent, u32 texgens);
+
 // We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the
 // pixel shader will be executed for each pixel which has at least one passed sample.
 // So there may be rendered pixels where the center of the pixel isn't in the primitive.
