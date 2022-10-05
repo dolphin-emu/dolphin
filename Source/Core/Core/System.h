@@ -24,6 +24,10 @@ namespace DVDThread
 {
 class DVDThreadState;
 }
+namespace ExpansionInterface
+{
+class ExpansionInterfaceState;
+};
 namespace VideoInterface
 {
 class VideoInterfaceState;
@@ -67,6 +71,7 @@ public:
   DSP::DSPState& GetDSPState() const;
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;
+  ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;
   Sram& GetSRAM() const;
   VideoInterface::VideoInterfaceState& GetVideoInterfaceState() const;
 

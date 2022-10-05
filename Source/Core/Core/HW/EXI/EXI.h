@@ -4,6 +4,7 @@
 #pragma once
 
 #include <initializer_list>
+#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
@@ -23,6 +24,23 @@ class Mapping;
 
 namespace ExpansionInterface
 {
+class ExpansionInterfaceState
+{
+public:
+  ExpansionInterfaceState();
+  ExpansionInterfaceState(const ExpansionInterfaceState&) = delete;
+  ExpansionInterfaceState(ExpansionInterfaceState&&) = delete;
+  ExpansionInterfaceState& operator=(const ExpansionInterfaceState&) = delete;
+  ExpansionInterfaceState& operator=(ExpansionInterfaceState&&) = delete;
+  ~ExpansionInterfaceState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 class CEXIChannel;
 class IEXIDevice;
 enum class EXIDeviceType : int;
