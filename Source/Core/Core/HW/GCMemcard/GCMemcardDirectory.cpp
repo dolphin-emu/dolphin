@@ -595,7 +595,6 @@ bool GCMemcardDirectory::SetUsedBlocks(int save_index)
 void GCMemcardDirectory::FlushToFile()
 {
   std::unique_lock l(m_write_mutex);
-  int errors = 0;
   Memcard::DEntry invalid;
   for (Memcard::GCIFile& save : m_saves)
   {
@@ -644,11 +643,17 @@ void GCMemcardDirectory::FlushToFile()
           }
           else
           {
-            ++errors;
             Core::DisplayMessage(
-                fmt::format("Failed to write save contents to {}", save.m_filename), 4000);
+                fmt::format("Failed to write save contents to {}", save.m_filename), 10000);
             ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to save data to {}", save.m_filename);
           }
+        }
+        else
+        {
+          Core::DisplayMessage(
+              fmt::format("Failed to open file at {} for writing", save.m_filename), 10000);
+          ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to open file at {} for writing",
+                        save.m_filename);
         }
       }
       else if (save.m_filename.length() != 0)
