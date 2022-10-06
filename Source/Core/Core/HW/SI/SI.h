@@ -15,6 +15,23 @@ class Mapping;
 
 namespace SerialInterface
 {
+class SerialInterfaceState
+{
+public:
+  SerialInterfaceState();
+  SerialInterfaceState(const SerialInterfaceState&) = delete;
+  SerialInterfaceState(SerialInterfaceState&&) = delete;
+  SerialInterfaceState& operator=(const SerialInterfaceState&) = delete;
+  SerialInterfaceState& operator=(SerialInterfaceState&&) = delete;
+  ~SerialInterfaceState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 class ISIDevice;
 enum SIDevices : int;
 
