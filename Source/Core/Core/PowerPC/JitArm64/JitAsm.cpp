@@ -239,8 +239,8 @@ void JitArm64::GenerateFres()
 
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 52, 11);  // Grab the exponent
   m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
-  CMP(ARM64Reg::X2, 895);
   AND(ARM64Reg::X3, ARM64Reg::X1, LogicalImm(Common::DOUBLE_SIGN, 64));
+  CMP(ARM64Reg::X2, 895);
   FixupBranch small_exponent = B(CCFlags::CC_LO);
 
   MOVI2R(ARM64Reg::X4, 1148LL);
@@ -291,8 +291,8 @@ void JitArm64::GenerateFrsqrte()
   // inf, even the mantissa matches. But the mantissa does not match for most other inputs, so in
   // the normal case we calculate the mantissa using the table-based algorithm from the interpreter.
 
-  TST(ARM64Reg::X1, LogicalImm(Common::DOUBLE_EXP | Common::DOUBLE_FRAC, 64));
   m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
+  TST(ARM64Reg::X1, LogicalImm(Common::DOUBLE_EXP | Common::DOUBLE_FRAC, 64));
   FixupBranch zero = B(CCFlags::CC_EQ);
   AND(ARM64Reg::X2, ARM64Reg::X1, LogicalImm(Common::DOUBLE_EXP, 64));
   MOVI2R(ARM64Reg::X3, Common::DOUBLE_EXP);
@@ -351,9 +351,9 @@ void JitArm64::GenerateFrsqrte()
 void JitArm64::GenerateConvertDoubleToSingle()
 {
   UBFX(ARM64Reg::X2, ARM64Reg::X0, 52, 11);
+  LSR(ARM64Reg::X1, ARM64Reg::X0, 32);
   SUB(ARM64Reg::W3, ARM64Reg::W2, 874);
   CMP(ARM64Reg::W3, 896 - 874);
-  LSR(ARM64Reg::X1, ARM64Reg::X0, 32);
   FixupBranch denormal = B(CCFlags::CC_LS);
 
   AND(ARM64Reg::X1, ARM64Reg::X1, LogicalImm(0xc0000000, 64));
@@ -398,8 +398,8 @@ void JitArm64::GenerateConvertSingleToDouble()
   RET();
 
   SetJumpTarget(normal_or_nan);
-  CMP(ARM64Reg::W1, 0xff);
   AND(ARM64Reg::W2, ARM64Reg::W0, LogicalImm(0x40000000, 32));
+  CMP(ARM64Reg::W1, 0xff);
   CSET(ARM64Reg::W4, CCFlags::CC_NEQ);
   AND(ARM64Reg::W3, ARM64Reg::W0, LogicalImm(0xc0000000, 32));
   EOR(ARM64Reg::W2, ARM64Reg::W4, ARM64Reg::W2, ArithOption(ARM64Reg::W2, ShiftType::LSR, 30));
@@ -441,14 +441,13 @@ void JitArm64::GenerateFPRF(bool single)
   // First of all, start the load of the old FPSCR value, in case it takes a while
   LDR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
 
-  CMP(input_reg, 0);  // Grab sign bit (conveniently the same bit for floats as for integers)
-  AND(exp_reg, input_reg, LogicalImm(input_exp_mask, input_size));  // Grab exponent
-
   // Most branches handle the sign in the same way. Perform that handling before branching
   MOVI2R(ARM64Reg::W3, Common::PPC_FPCLASS_PN);
   MOVI2R(ARM64Reg::W1, Common::PPC_FPCLASS_NN);
+  CMP(input_reg, 0);  // Grab sign bit (conveniently the same bit for floats as for integers)
   CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W3, CCFlags::CC_LT);
 
+  AND(exp_reg, input_reg, LogicalImm(input_exp_mask, input_size));  // Grab exponent
   FixupBranch zero_or_denormal = CBZ(exp_reg);
 
   // exp != 0
@@ -478,9 +477,9 @@ void JitArm64::GenerateFPRF(bool single)
 
   // exp == EXP_MASK
   SetJumpTarget(nan_or_inf);
-  TST(input_reg, LogicalImm(input_frac_mask, input_size));
-  ORR(ARM64Reg::W1, fprf_reg, LogicalImm(Common::PPC_FPCLASS_PINF & ~output_sign_mask, 32));
   MOVI2R(ARM64Reg::W2, Common::PPC_FPCLASS_QNAN);
+  ORR(ARM64Reg::W1, fprf_reg, LogicalImm(Common::PPC_FPCLASS_PINF & ~output_sign_mask, 32));
+  TST(input_reg, LogicalImm(input_frac_mask, input_size));
   CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W2, CCFlags::CC_EQ);
   B(write_fprf_and_ret);
 }
