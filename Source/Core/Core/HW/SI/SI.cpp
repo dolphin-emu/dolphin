@@ -351,8 +351,8 @@ void DoState(PointerWrap& p)
   }
 
   p.Do(s_poll);
-  p.DoPOD(s_com_csr);
-  p.DoPOD(s_status_reg);
+  p.Do(s_com_csr);
+  p.Do(s_status_reg);
   p.Do(s_exi_clock_count);
   p.Do(s_si_buffer);
 }

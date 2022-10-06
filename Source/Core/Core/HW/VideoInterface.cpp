@@ -93,8 +93,8 @@ static constexpr u32 NUM_HALF_LINES_FOR_SI_POLL = (7 * 2) + 1;  // this is how l
 void DoState(PointerWrap& p)
 {
   auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-  p.DoPOD(state.vertical_timing_register);
-  p.DoPOD(state.display_control_register);
+  p.Do(state.vertical_timing_register);
+  p.Do(state.display_control_register);
   p.Do(state.h_timing_0);
   p.Do(state.h_timing_1);
   p.Do(state.vblank_timing_odd);
@@ -108,7 +108,7 @@ void DoState(PointerWrap& p)
   p.DoArray(state.interrupt_register);
   p.DoArray(state.latch_register);
   p.Do(state.picture_configuration);
-  p.DoPOD(state.horizontal_scaling);
+  p.Do(state.horizontal_scaling);
   p.Do(state.filter_coef_tables);
   p.Do(state.unknown_aa_register);
   p.Do(state.clock);
