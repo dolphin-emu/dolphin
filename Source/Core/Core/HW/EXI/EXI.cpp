@@ -25,14 +25,23 @@
 
 #include "DiscIO/Enums.h"
 
-bool s_using_overridden_sram = false;
-
 namespace ExpansionInterface
 {
-static CoreTiming::EventType* changeDevice;
-static CoreTiming::EventType* updateInterrupts;
+struct ExpansionInterfaceState::Data
+{
+  CoreTiming::EventType* event_type_change_device;
+  CoreTiming::EventType* event_type_update_interrupts;
 
-static std::array<std::unique_ptr<CEXIChannel>, MAX_EXI_CHANNELS> g_Channels;
+  std::array<std::unique_ptr<CEXIChannel>, MAX_EXI_CHANNELS> channels;
+
+  bool using_overridden_sram = false;
+};
+
+ExpansionInterfaceState::ExpansionInterfaceState() : m_data(std::make_unique<Data>())
+{
+}
+
+ExpansionInterfaceState::~ExpansionInterfaceState() = default;
 
 static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate);
 static void UpdateInterruptsCallback(u64 userdata, s64 cycles_late);
@@ -67,7 +76,8 @@ void AddMemoryCard(Slot slot)
     memorycard_device = Config::Get(Config::GetInfoForEXIDevice(slot));
   }
 
-  g_Channels[SlotToEXIChannel(slot)]->AddDevice(memorycard_device, SlotToEXIDevice(slot));
+  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
+  state.channels[SlotToEXIChannel(slot)]->AddDevice(memorycard_device, SlotToEXIDevice(slot));
 }
 }  // namespace
 
@@ -105,16 +115,18 @@ u8 SlotToEXIDevice(Slot slot)
 
 void Init(const Sram* override_sram)
 {
-  auto& sram = Core::System::GetInstance().GetSRAM();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetExpansionInterfaceState().GetData();
+  auto& sram = system.GetSRAM();
   if (override_sram)
   {
     sram = *override_sram;
-    s_using_overridden_sram = true;
+    state.using_overridden_sram = true;
   }
   else
   {
     InitSRAM(&sram, SConfig::GetInstance().m_strSRAM);
-    s_using_overridden_sram = false;
+    state.using_overridden_sram = false;
   }
 
   CEXIMemoryCard::Init();
@@ -137,60 +149,68 @@ void Init(const Sram* override_sram)
       Memcard::HeaderData header_data;
       Memcard::InitializeHeaderData(&header_data, flash_id, size_mbits, shift_jis, rtc_bias,
                                     sram_language, format_time + i);
-      g_Channels[i] = std::make_unique<CEXIChannel>(i, header_data);
+      state.channels[i] = std::make_unique<CEXIChannel>(i, header_data);
     }
   }
 
   for (Slot slot : MEMCARD_SLOTS)
     AddMemoryCard(slot);
 
-  g_Channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
-  g_Channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1),
-                                                     SlotToEXIDevice(Slot::SP1));
-  g_Channels[2]->AddDevice(EXIDeviceType::AD16, 0);
+  state.channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
+  state.channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1),
+                                                         SlotToEXIDevice(Slot::SP1));
+  state.channels[2]->AddDevice(EXIDeviceType::AD16, 0);
 
-  changeDevice = CoreTiming::RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
-  updateInterrupts = CoreTiming::RegisterEvent("EXIUpdateInterrupts", UpdateInterruptsCallback);
+  state.event_type_change_device =
+      CoreTiming::RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
+  state.event_type_update_interrupts =
+      CoreTiming::RegisterEvent("EXIUpdateInterrupts", UpdateInterruptsCallback);
 }
 
 void Shutdown()
 {
-  for (auto& channel : g_Channels)
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetExpansionInterfaceState().GetData();
+
+  for (auto& channel : state.channels)
     channel.reset();
 
   CEXIMemoryCard::Shutdown();
 
-  if (!s_using_overridden_sram)
+  if (!state.using_overridden_sram)
   {
     File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
-    auto& sram = Core::System::GetInstance().GetSRAM();
+    auto& sram = system.GetSRAM();
     file.WriteArray(&sram, 1);
   }
 }
 
 void DoState(PointerWrap& p)
 {
-  for (auto& channel : g_Channels)
+  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
+  for (auto& channel : state.channels)
     channel->DoState(p);
 }
 
 void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
-  for (auto& channel : g_Channels)
+  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
+  for (auto& channel : state.channels)
     channel->PauseAndLock(doLock, unpauseOnUnlock);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
+  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
   for (int i = 0; i < MAX_EXI_CHANNELS; ++i)
   {
-    DEBUG_ASSERT(g_Channels[i] != nullptr);
+    DEBUG_ASSERT(state.channels[i] != nullptr);
     // Each channel has 5 32 bit registers assigned to it. We offset the
     // base that we give to each channel for registration.
     //
     // Be careful: this means the base is no longer aligned on a page
     // boundary and using "base | FOO" is not valid!
-    g_Channels[i]->RegisterMMIO(mmio, base + 5 * 4 * i);
+    state.channels[i]->RegisterMMIO(mmio, base + 5 * 4 * i);
   }
 }
 
@@ -200,7 +220,8 @@ static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate)
   u8 type = (u8)(userdata >> 16);
   u8 num = (u8)userdata;
 
-  g_Channels.at(channel)->AddDevice(static_cast<EXIDeviceType>(type), num);
+  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
+  state.channels.at(channel)->AddDevice(static_cast<EXIDeviceType>(type), num);
 }
 
 void ChangeDevice(Slot slot, EXIDeviceType device_type, CoreTiming::FromThread from_thread)
@@ -212,22 +233,25 @@ void ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
                   CoreTiming::FromThread from_thread)
 {
   // Let the hardware see no device for 1 second
-  CoreTiming::ScheduleEvent(0, changeDevice,
+  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
+  CoreTiming::ScheduleEvent(0, state.event_type_change_device,
                             ((u64)channel << 32) | ((u64)EXIDeviceType::None << 16) | device_num,
                             from_thread);
-  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), changeDevice,
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), state.event_type_change_device,
                             ((u64)channel << 32) | ((u64)device_type << 16) | device_num,
                             from_thread);
 }
 
 CEXIChannel* GetChannel(u32 index)
 {
-  return g_Channels.at(index).get();
+  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
+  return state.channels.at(index).get();
 }
 
 IEXIDevice* GetDevice(Slot slot)
 {
-  return g_Channels.at(SlotToEXIChannel(slot))->GetDevice(1 << SlotToEXIDevice(slot));
+  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
+  return state.channels.at(SlotToEXIChannel(slot))->GetDevice(1 << SlotToEXIDevice(slot));
 }
 
 void UpdateInterrupts()
@@ -236,10 +260,11 @@ void UpdateInterrupts()
   // Channel 0 Device 0 generates interrupt on channel 0
   // Channel 0 Device 2 generates interrupt on channel 2
   // Channel 1 Device 0 generates interrupt on channel 1
-  g_Channels[2]->SetEXIINT(g_Channels[0]->GetDevice(4)->IsInterruptSet());
+  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
+  state.channels[2]->SetEXIINT(state.channels[0]->GetDevice(4)->IsInterruptSet());
 
   bool causeInt = false;
-  for (auto& channel : g_Channels)
+  for (auto& channel : state.channels)
     causeInt |= channel->IsCausingInterrupt();
 
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
@@ -252,7 +277,8 @@ static void UpdateInterruptsCallback(u64 userdata, s64 cycles_late)
 
 void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late)
 {
-  CoreTiming::ScheduleEvent(cycles_late, updateInterrupts, 0, from);
+  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
+  CoreTiming::ScheduleEvent(cycles_late, state.event_type_update_interrupts, 0, from);
 }
 
 }  // namespace ExpansionInterface
