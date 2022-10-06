@@ -70,9 +70,9 @@ void Shutdown()
   CPU::Shutdown();
   DVDInterface::Shutdown();
   DSP::Shutdown();
+  MemoryInterface::Shutdown();
   AddressSpace::Shutdown();
   Memory::Shutdown();
-  MemoryInterface::Shutdown();
   HSP::Shutdown();
   ExpansionInterface::Shutdown();
   SerialInterface::Shutdown();
