@@ -19,6 +19,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/HSP/HSP.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/MemoryInterface.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SystemTimers.h"
@@ -83,6 +84,8 @@ void DoState(PointerWrap& p)
 {
   Memory::DoState(p);
   p.DoMarker("Memory");
+  MemoryInterface::DoState(p);
+  p.DoMarker("MemoryInterface");
   VideoInterface::DoState(p);
   p.DoMarker("VideoInterface");
   SerialInterface::DoState(p);
