@@ -701,13 +701,7 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
   p.Do(m_dir2);
   p.Do(m_bat1);
   p.Do(m_bat2);
-  int num_saves = (int)m_saves.size();
-  p.Do(num_saves);
-  m_saves.resize(num_saves);
-  for (Memcard::GCIFile& save : m_saves)
-  {
-    save.DoState(p);
-  }
+  p.DoEachElement(m_saves, [](PointerWrap& p, Memcard::GCIFile& save) { save.DoState(p); });
 }
 
 void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterface::Slot card_slot,
