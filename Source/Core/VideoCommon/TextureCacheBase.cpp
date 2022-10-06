@@ -440,7 +440,7 @@ void TextureCacheBase::SerializeTexture(AbstractTexture* tex, const TextureConfi
 {
   // If we're in measure mode, skip the actual readback to save some time.
   const bool skip_readback = p.IsMeasureMode();
-  p.DoPOD(config);
+  p.Do(config);
 
   if (skip_readback || CheckReadbackTexture(config.width, config.height, config.format))
   {

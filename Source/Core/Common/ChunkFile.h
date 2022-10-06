@@ -257,12 +257,6 @@ public:
     DoVoid((void*)&x, sizeof(x));
   }
 
-  template <typename T>
-  void DoPOD(T& x)
-  {
-    DoVoid((void*)&x, sizeof(x));
-  }
-
   void Do(bool& x)
   {
     // bool's size can vary depending on platform, which can

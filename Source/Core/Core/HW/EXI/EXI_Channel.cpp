@@ -233,14 +233,14 @@ IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
 
 void CEXIChannel::DoState(PointerWrap& p)
 {
-  p.DoPOD(m_status);
+  p.Do(m_status);
   p.Do(m_dma_memory_address);
   p.Do(m_dma_length);
   p.Do(m_control);
   p.Do(m_imm_data);
 
   Memcard::HeaderData old_header_data = m_memcard_header_data;
-  p.DoPOD(m_memcard_header_data);
+  p.Do(m_memcard_header_data);
 
   for (int device_index = 0; device_index < NUM_DEVICES; ++device_index)
   {
