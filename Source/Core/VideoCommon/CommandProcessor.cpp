@@ -107,9 +107,9 @@ void SCPFifoStruct::DoState(PointerWrap& p)
 
 void DoState(PointerWrap& p)
 {
-  p.DoPOD(m_CPStatusReg);
-  p.DoPOD(m_CPCtrlReg);
-  p.DoPOD(m_CPClearReg);
+  p.Do(m_CPStatusReg);
+  p.Do(m_CPCtrlReg);
+  p.Do(m_CPClearReg);
   p.Do(m_bboxleft);
   p.Do(m_bboxtop);
   p.Do(m_bboxright);

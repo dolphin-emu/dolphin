@@ -169,7 +169,7 @@ void DoState(PointerWrap& p)
   p.Do(m_DstAlphaConf);
   p.Do(m_AlphaModeConf);
   p.Do(m_AlphaRead);
-  p.DoPOD(m_Control);
+  p.Do(m_Control);
 
   p.Do(s_token);
   p.Do(s_token_pending);

@@ -11,6 +11,8 @@
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/DVD/DVDThread.h"
+#include "Core/HW/EXI/EXI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/VideoInterface.h"
 
@@ -26,6 +28,8 @@ struct System::Impl
   DSP::DSPState m_dsp_state;
   DVDInterface::DVDInterfaceState m_dvd_interface_state;
   DVDThread::DVDThreadState m_dvd_thread_state;
+  ExpansionInterface::ExpansionInterfaceState m_expansion_interface_state;
+  SerialInterface::SerialInterfaceState m_serial_interface_state;
   Sram m_sram;
   VideoInterface::VideoInterfaceState m_video_interface_state;
 };
@@ -91,6 +95,16 @@ DVDInterface::DVDInterfaceState& System::GetDVDInterfaceState() const
 DVDThread::DVDThreadState& System::GetDVDThreadState() const
 {
   return m_impl->m_dvd_thread_state;
+}
+
+ExpansionInterface::ExpansionInterfaceState& System::GetExpansionInterfaceState() const
+{
+  return m_impl->m_expansion_interface_state;
+}
+
+SerialInterface::SerialInterfaceState& System::GetSerialInterfaceState() const
+{
+  return m_impl->m_serial_interface_state;
 }
 
 Sram& System::GetSRAM() const

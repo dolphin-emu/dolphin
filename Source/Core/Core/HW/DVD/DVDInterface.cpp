@@ -211,14 +211,14 @@ void DoState(PointerWrap& p)
 {
   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
 
-  p.DoPOD(state.DISR);
-  p.DoPOD(state.DICVR);
+  p.Do(state.DISR);
+  p.Do(state.DICVR);
   p.DoArray(state.DICMDBUF);
   p.Do(state.DIMAR);
   p.Do(state.DILENGTH);
   p.Do(state.DICR);
   p.Do(state.DIIMMBUF);
-  p.DoPOD(state.DICFG);
+  p.Do(state.DICFG);
 
   p.Do(state.stream);
   p.Do(state.stop_at_track_end);

@@ -135,6 +135,16 @@ struct MIMemStruct
 // STATE_TO_SAVE
 static MIMemStruct g_mi_mem;
 
+void Init()
+{
+  memset(&g_mi_mem, 0, sizeof(MIMemStruct));
+}
+
+void Shutdown()
+{
+  memset(&g_mi_mem, 0, sizeof(MIMemStruct));
+}
+
 void DoState(PointerWrap& p)
 {
   p.Do(g_mi_mem);

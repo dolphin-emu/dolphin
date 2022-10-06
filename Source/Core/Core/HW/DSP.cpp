@@ -164,9 +164,9 @@ void DoState(PointerWrap& p)
 
   if (!state.aram.wii_mode)
     p.DoArray(state.aram.ptr, state.aram.size);
-  p.DoPOD(state.dsp_control);
-  p.DoPOD(state.audio_dma);
-  p.DoPOD(state.aram_dma);
+  p.Do(state.dsp_control);
+  p.Do(state.audio_dma);
+  p.Do(state.aram_dma);
   p.Do(state.aram_info);
   p.Do(state.aram_mode);
   p.Do(state.aram_refresh);

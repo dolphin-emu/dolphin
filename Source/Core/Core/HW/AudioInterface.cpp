@@ -138,8 +138,8 @@ void DoState(PointerWrap& p)
   auto& system = Core::System::GetInstance();
   auto& state = system.GetAudioInterfaceState().GetData();
 
-  p.DoPOD(state.control);
-  p.DoPOD(state.volume);
+  p.Do(state.control);
+  p.Do(state.volume);
   p.Do(state.sample_counter);
   p.Do(state.interrupt_timing);
   p.Do(state.last_cpu_time);

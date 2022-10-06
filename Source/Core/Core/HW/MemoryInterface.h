@@ -13,7 +13,9 @@ class PointerWrap;
 
 namespace MemoryInterface
 {
-void DoState(PointerWrap& p);
+void Init();
+void Shutdown();
 
+void DoState(PointerWrap& p);
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 }  // namespace MemoryInterface

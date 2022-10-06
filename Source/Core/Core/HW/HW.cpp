@@ -46,6 +46,7 @@ void Init(const Sram* override_sram)
   HSP::Init();
   Memory::Init();  // Needs to be initialized before AddressSpace
   AddressSpace::Init();
+  MemoryInterface::Init();
   DSP::Init(Config::Get(Config::MAIN_DSP_HLE));
   DVDInterface::Init();
   GPFifo::Init();
@@ -71,6 +72,7 @@ void Shutdown()
   DSP::Shutdown();
   AddressSpace::Shutdown();
   Memory::Shutdown();
+  MemoryInterface::Shutdown();
   HSP::Shutdown();
   ExpansionInterface::Shutdown();
   SerialInterface::Shutdown();
