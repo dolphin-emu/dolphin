@@ -10,13 +10,6 @@
 
 #include "format.h"
 
-// __declspec(deprecated) is broken in some MSVC versions.
-#if FMT_MSC_VER
-#  define FMT_DEPRECATED_NONMSVC
-#else
-#  define FMT_DEPRECATED_NONMSVC FMT_DEPRECATED
-#endif
-
 FMT_BEGIN_NAMESPACE
 FMT_MODULE_EXPORT_BEGIN
 
@@ -270,16 +263,6 @@ class text_style {
     return lhs |= rhs;
   }
 
-  FMT_DEPRECATED_NONMSVC FMT_CONSTEXPR text_style& operator&=(
-      const text_style& rhs) {
-    return and_assign(rhs);
-  }
-
-  FMT_DEPRECATED_NONMSVC friend FMT_CONSTEXPR text_style
-  operator&(text_style lhs, const text_style& rhs) {
-    return lhs.and_assign(rhs);
-  }
-
   FMT_CONSTEXPR bool has_foreground() const noexcept {
     return set_foreground_color;
   }
@@ -315,36 +298,9 @@ class text_style {
     }
   }
 
-  // DEPRECATED!
-  FMT_CONSTEXPR text_style& and_assign(const text_style& rhs) {
-    if (!set_foreground_color) {
-      set_foreground_color = rhs.set_foreground_color;
-      foreground_color = rhs.foreground_color;
-    } else if (rhs.set_foreground_color) {
-      if (!foreground_color.is_rgb || !rhs.foreground_color.is_rgb)
-        FMT_THROW(format_error("can't AND a terminal color"));
-      foreground_color.value.rgb_color &= rhs.foreground_color.value.rgb_color;
-    }
+  friend FMT_CONSTEXPR text_style fg(detail::color_type foreground) noexcept;
 
-    if (!set_background_color) {
-      set_background_color = rhs.set_background_color;
-      background_color = rhs.background_color;
-    } else if (rhs.set_background_color) {
-      if (!background_color.is_rgb || !rhs.background_color.is_rgb)
-        FMT_THROW(format_error("can't AND a terminal color"));
-      background_color.value.rgb_color &= rhs.background_color.value.rgb_color;
-    }
-
-    ems = static_cast<emphasis>(static_cast<uint8_t>(ems) &
-                                static_cast<uint8_t>(rhs.ems));
-    return *this;
-  }
-
-  friend FMT_CONSTEXPR_DECL text_style
-  fg(detail::color_type foreground) noexcept;
-
-  friend FMT_CONSTEXPR_DECL text_style
-  bg(detail::color_type background) noexcept;
+  friend FMT_CONSTEXPR text_style bg(detail::color_type background) noexcept;
 
   detail::color_type foreground_color;
   detail::color_type background_color;
@@ -527,7 +483,7 @@ template <typename S, typename Char = char_t<S>>
 void vprint(std::FILE* f, const text_style& ts, const S& format,
             basic_format_args<buffer_context<type_identity_t<Char>>> args) {
   basic_memory_buffer<Char> buf;
-  detail::vformat_to(buf, ts, to_string_view(format), args);
+  detail::vformat_to(buf, ts, detail::to_string_view(format), args);
   if (detail::is_utf8()) {
     detail::print(f, basic_string_view<Char>(buf.begin(), buf.size()));
   } else {
@@ -577,7 +533,7 @@ inline std::basic_string<Char> vformat(
     const text_style& ts, const S& format_str,
     basic_format_args<buffer_context<type_identity_t<Char>>> args) {
   basic_memory_buffer<Char> buf;
-  detail::vformat_to(buf, ts, to_string_view(format_str), args);
+  detail::vformat_to(buf, ts, detail::to_string_view(format_str), args);
   return fmt::to_string(buf);
 }
 
@@ -596,7 +552,7 @@ inline std::basic_string<Char> vformat(
 template <typename S, typename... Args, typename Char = char_t<S>>
 inline std::basic_string<Char> format(const text_style& ts, const S& format_str,
                                       const Args&... args) {
-  return fmt::vformat(ts, to_string_view(format_str),
+  return fmt::vformat(ts, detail::to_string_view(format_str),
                       fmt::make_format_args<buffer_context<Char>>(args...));
 }
 
@@ -631,7 +587,7 @@ template <typename OutputIt, typename S, typename... Args,
 inline auto format_to(OutputIt out, const text_style& ts, const S& format_str,
                       Args&&... args) ->
     typename std::enable_if<enable, OutputIt>::type {
-  return vformat_to(out, ts, to_string_view(format_str),
+  return vformat_to(out, ts, detail::to_string_view(format_str),
                     fmt::make_format_args<buffer_context<char_t<S>>>(args...));
 }
 
@@ -678,8 +634,9 @@ struct formatter<detail::styled_arg<T>, Char> : formatter<T, Char> {
 
   **Example**::
 
-    fmt::print("Elapsed time: {s:.2f} seconds",
-               fmt::styled(1.23, fmt::fg(fmt::color::green) | fmt::bg(fmt::color::blue)));
+    fmt::print("Elapsed time: {0:.2f} seconds",
+               fmt::styled(1.23, fmt::fg(fmt::color::green) |
+                                 fmt::bg(fmt::color::blue)));
   \endrst
  */
 template <typename T>
