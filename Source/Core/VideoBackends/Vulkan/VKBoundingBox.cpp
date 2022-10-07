@@ -20,8 +20,7 @@ VKBoundingBox::~VKBoundingBox()
 {
   if (m_gpu_buffer != VK_NULL_HANDLE)
   {
-    vkDestroyBuffer(g_vulkan_context->GetDevice(), m_gpu_buffer, nullptr);
-    vkFreeMemory(g_vulkan_context->GetDevice(), m_gpu_memory, nullptr);
+    vmaDestroyBuffer(g_vulkan_context->GetMemoryAllocator(), m_gpu_buffer, m_gpu_allocation);
   }
 }
 
@@ -118,47 +117,27 @@ bool VKBoundingBox::CreateGPUBuffer()
       nullptr                                // const uint32_t*        pQueueFamilyIndices
   };
 
+  VmaAllocationCreateInfo alloc_create_info = {};
+  alloc_create_info.flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
+  alloc_create_info.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+  alloc_create_info.pool = VK_NULL_HANDLE;
+  alloc_create_info.pUserData = nullptr;
+  alloc_create_info.priority = 0.0;
+  alloc_create_info.requiredFlags = 0;
+  alloc_create_info.preferredFlags = 0;
+
   VkBuffer buffer;
-  VkResult res = vkCreateBuffer(g_vulkan_context->GetDevice(), &info, nullptr, &buffer);
+  VmaAllocation alloc;
+  VkResult res = vmaCreateBuffer(g_vulkan_context->GetMemoryAllocator(), &info, &alloc_create_info,
+                                 &buffer, &alloc, nullptr);
   if (res != VK_SUCCESS)
   {
-    LOG_VULKAN_ERROR(res, "vkCreateBuffer failed: ");
-    return false;
-  }
-
-  VkMemoryRequirements memory_requirements;
-  vkGetBufferMemoryRequirements(g_vulkan_context->GetDevice(), buffer, &memory_requirements);
-
-  uint32_t memory_type_index = g_vulkan_context
-                                   ->GetMemoryType(memory_requirements.memoryTypeBits,
-                                                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, false)
-                                   .value_or(0);
-  VkMemoryAllocateInfo memory_allocate_info = {
-      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // VkStructureType    sType
-      nullptr,                                 // const void*        pNext
-      memory_requirements.size,                // VkDeviceSize       allocationSize
-      memory_type_index                        // uint32_t           memoryTypeIndex
-  };
-  VkDeviceMemory memory;
-  res = vkAllocateMemory(g_vulkan_context->GetDevice(), &memory_allocate_info, nullptr, &memory);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-    vkDestroyBuffer(g_vulkan_context->GetDevice(), buffer, nullptr);
-    return false;
-  }
-
-  res = vkBindBufferMemory(g_vulkan_context->GetDevice(), buffer, memory, 0);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkBindBufferMemory failed: ");
-    vkDestroyBuffer(g_vulkan_context->GetDevice(), buffer, nullptr);
-    vkFreeMemory(g_vulkan_context->GetDevice(), memory, nullptr);
+    LOG_VULKAN_ERROR(res, "vmaCreateBuffer failed: ");
     return false;
   }
 
   m_gpu_buffer = buffer;
-  m_gpu_memory = memory;
+  m_gpu_allocation = alloc;
   return true;
 }
 
