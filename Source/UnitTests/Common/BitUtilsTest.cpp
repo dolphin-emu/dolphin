@@ -40,21 +40,87 @@ TEST(BitUtils, ExtractBits)
   //       mangling the template function usages.
 
   constexpr s32 two_hundred_four_signed = 0b0011001100;
-  EXPECT_EQ((Common::ExtractBits<2, 3>(two_hundred_four_signed)), 3u);
-  EXPECT_EQ((Common::ExtractBits<2, 7>(two_hundred_four_signed)), 51u);
-  EXPECT_EQ((Common::ExtractBits<3, 6>(two_hundred_four_signed)), 9u);
+  EXPECT_EQ((Common::ExtractBitsU<2, 2>(two_hundred_four_signed)), 3u);
+  EXPECT_EQ((Common::ExtractBitsU<6, 2>(two_hundred_four_signed)), 51u);
+  EXPECT_EQ((Common::ExtractBitsU<4, 3>(two_hundred_four_signed)), 9u);
+  EXPECT_EQ((Common::ExtractBitsU<5, 5>(two_hundred_four_signed)), 6u);
+  EXPECT_EQ((Common::ExtractBitsS<2, 2>(two_hundred_four_signed)), -1);
+  EXPECT_EQ((Common::ExtractBitsS<6, 2>(two_hundred_four_signed)), -13);
+  EXPECT_EQ((Common::ExtractBitsS<4, 3>(two_hundred_four_signed)), -7);
+  EXPECT_EQ((Common::ExtractBitsS<5, 5>(two_hundred_four_signed)), 6);
 
   constexpr u32 two_hundred_four_unsigned = 0b0011001100;
-  EXPECT_EQ((Common::ExtractBits<2, 3>(two_hundred_four_unsigned)), 3u);
-  EXPECT_EQ((Common::ExtractBits<2, 7>(two_hundred_four_unsigned)), 51u);
-  EXPECT_EQ((Common::ExtractBits<3, 6>(two_hundred_four_unsigned)), 9u);
+  EXPECT_EQ((Common::ExtractBitsU<2, 2>(two_hundred_four_unsigned)), 3u);
+  EXPECT_EQ((Common::ExtractBitsU<6, 2>(two_hundred_four_unsigned)), 51u);
+  EXPECT_EQ((Common::ExtractBitsU<4, 3>(two_hundred_four_unsigned)), 9u);
+  EXPECT_EQ((Common::ExtractBitsU<5, 5>(two_hundred_four_unsigned)), 6u);
+  EXPECT_EQ((Common::ExtractBitsS<2, 2>(two_hundred_four_unsigned)), -1);
+  EXPECT_EQ((Common::ExtractBitsS<6, 2>(two_hundred_four_unsigned)), -13);
+  EXPECT_EQ((Common::ExtractBitsS<4, 3>(two_hundred_four_unsigned)), -7);
+  EXPECT_EQ((Common::ExtractBitsS<5, 5>(two_hundred_four_unsigned)), 6);
 
-  // Ensure bit extraction remains sign-independent even when signed types are used.
+  // Ensure the identity operation remains sign-independent.
   constexpr s32 negative_one = -1;
-  EXPECT_EQ((Common::ExtractBits<0, 31>(negative_one)), 0xFFFFFFFFU);
+  constexpr u32 unsigned_max = 0xFFFFFFFFU;
+  EXPECT_EQ((Common::ExtractBitsU<32, 0>(negative_one)), 0xFFFFFFFFU);
+  EXPECT_EQ((Common::ExtractBitsU<32, 0>(unsigned_max)), 0xFFFFFFFFU);
+  EXPECT_EQ((Common::ExtractBitsS<32, 0>(negative_one)), -1);
+  EXPECT_EQ((Common::ExtractBitsS<32, 0>(unsigned_max)), -1);
+}
 
-  // Ensure bit extraction with type overriding works as expected
-  EXPECT_EQ((Common::ExtractBits<0, 31, s32, s32>(negative_one)), -1);
+TEST(BitUtils, InsertBit)
+{
+  u32 host = 0;
+
+  Common::InsertBit<2>(host, true);
+  EXPECT_EQ(host, 0b0000000'1'00u);
+  Common::InsertBit<4>(host, true);
+  EXPECT_EQ(host, 0b00000'1'0100u);
+  Common::InsertBit<2>(host, true);  // true over true
+  EXPECT_EQ(host, 0b0000010'1'00u);
+  Common::InsertBit<2>(host, false);
+  EXPECT_EQ(host, 0b0000010'0'00u);
+  Common::InsertBit<4>(host, false);
+  EXPECT_EQ(host, 0b00000'0'0000u);
+  Common::InsertBit<2>(host, false);  // false over false
+  EXPECT_EQ(host, 0b0000000'0'00u);
+}
+
+TEST(BitUtils, InsertBits)
+{
+  u32 host;
+
+  host = 0;
+  // A typical field, a field larger than the value, and overwriting bits with 1s
+  Common::InsertBits<2, 2>(host, 3u);
+  EXPECT_EQ(host, 0b000000'11'00u);
+  Common::InsertBits<2 + 4, 2>(host, 3u);
+  EXPECT_EQ(host, 0b00'000011'00u);
+  Common::InsertBits<8, 1>(host, 255u);
+  EXPECT_EQ(host, 0b0'11111111'0u);
+
+  host = 0;
+  // Overflow by 1 (same as writing 0s)
+  Common::InsertBits<8, 1>(host, 256u);
+  EXPECT_EQ(host, 0b0'00000000'0u);
+
+  enum class TestEnum
+  {
+    A = 5,
+    B = 12,
+    C = -7,
+  };
+
+  host = 0;
+  // Negative value and enum values
+  Common::InsertBits<6, 1>(host, -7);
+  EXPECT_EQ(host, 0b000'111001'0u);
+  Common::InsertBits<6, 1>(host, TestEnum::A);
+  EXPECT_EQ(host, 0b000'000101'0u);
+  Common::InsertBits<6, 1>(host, TestEnum::B);
+  EXPECT_EQ(host, 0b000'001100'0u);
+  Common::InsertBits<6, 1>(host, TestEnum::C);
+  EXPECT_EQ(host, 0b000'111001'0u);
 }
 
 TEST(BitUtils, IsValidLowMask)
@@ -100,4 +166,40 @@ TEST(BitUtils, BitCast)
   EXPECT_EQ(0x8000000000000000ULL, Common::BitCast<u64>(-0.0));
   EXPECT_EQ(0x3FF0000000000000ULL, Common::BitCast<u64>(1.0));
   EXPECT_EQ(0xBFF0000000000000ULL, Common::BitCast<u64>(-1.0));
+}
+
+TEST(BitUtils, ShortCharLowMask)
+{
+  // Logical NOT takes place after integral promotion, but I didn't know that when I replaced
+  // std::numeric_limits<T>::max with ~T{0} (for unsigned types, of course).  To be absolutely
+  // certain low masks for short and char are never broken again, we shall check them all.
+
+  EXPECT_EQ(0b00000000, Common::CalcLowMaskSafe<u8>(0));
+  EXPECT_EQ(0b00000001, Common::CalcLowMaskSafe<u8>(1));
+  EXPECT_EQ(0b00000011, Common::CalcLowMaskSafe<u8>(2));
+  EXPECT_EQ(0b00000111, Common::CalcLowMaskSafe<u8>(3));
+  EXPECT_EQ(0b00001111, Common::CalcLowMaskSafe<u8>(4));
+  EXPECT_EQ(0b00011111, Common::CalcLowMaskSafe<u8>(5));
+  EXPECT_EQ(0b00111111, Common::CalcLowMaskSafe<u8>(6));
+  EXPECT_EQ(0b01111111, Common::CalcLowMaskSafe<u8>(7));
+  EXPECT_EQ(0b11111111, Common::CalcLowMaskSafe<u8>(8));
+
+  EXPECT_EQ(0b00000000'00000000, Common::CalcLowMaskSafe<u16>(0));
+  EXPECT_EQ(0b00000000'00000001, Common::CalcLowMaskSafe<u16>(1));
+  EXPECT_EQ(0b00000000'00000011, Common::CalcLowMaskSafe<u16>(2));
+  EXPECT_EQ(0b00000000'00000111, Common::CalcLowMaskSafe<u16>(3));
+  EXPECT_EQ(0b00000000'00001111, Common::CalcLowMaskSafe<u16>(4));
+  EXPECT_EQ(0b00000000'00011111, Common::CalcLowMaskSafe<u16>(5));
+  EXPECT_EQ(0b00000000'00111111, Common::CalcLowMaskSafe<u16>(6));
+  EXPECT_EQ(0b00000000'01111111, Common::CalcLowMaskSafe<u16>(7));
+  EXPECT_EQ(0b00000000'11111111, Common::CalcLowMaskSafe<u16>(8));
+
+  EXPECT_EQ(0b00000001'11111111, Common::CalcLowMaskSafe<u16>(9));
+  EXPECT_EQ(0b00000011'11111111, Common::CalcLowMaskSafe<u16>(10));
+  EXPECT_EQ(0b00000111'11111111, Common::CalcLowMaskSafe<u16>(11));
+  EXPECT_EQ(0b00001111'11111111, Common::CalcLowMaskSafe<u16>(12));
+  EXPECT_EQ(0b00011111'11111111, Common::CalcLowMaskSafe<u16>(13));
+  EXPECT_EQ(0b00111111'11111111, Common::CalcLowMaskSafe<u16>(14));
+  EXPECT_EQ(0b01111111'11111111, Common::CalcLowMaskSafe<u16>(15));
+  EXPECT_EQ(0b11111111'11111111, Common::CalcLowMaskSafe<u16>(16));
 }

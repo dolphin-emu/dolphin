@@ -1,5 +1,4 @@
-// Copyright 2017 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: CC0-1.0
 
 #pragma once
 
@@ -11,6 +10,7 @@
 #include <initializer_list>
 #include <type_traits>
 
+#include "Common/Assert.h"
 #include "Common/Concepts.h"
 
 #include "Common/Future/CppLibConcepts.h"
@@ -31,80 +31,259 @@ constexpr size_t BitSize() noexcept
 }
 
 ///
-/// Extracts a bit from a value.
+/// Calculates a least-significant bit mask in four operations, assuming the width is never zero.
 ///
-/// @param  src The value to extract a bit from.
-/// @param  bit The bit to extract.
+/// @tparam T      The type of the bit mask.  Must satisfy std::integral.
+/// @param  width  The width of the bit mask.  Must not equal zero to avoid UB.
 ///
-/// @tparam T   The type of the value.
+/// @return A bit mask of the given width starting from the least-significant bit.
 ///
-/// @return The extracted bit.
-///
-template <typename T>
-constexpr T ExtractBit(const T src, const size_t bit) noexcept
+template <std::integral T>
+constexpr T CalcLowMaskFast(const size_t width) noexcept
 {
-  return (src >> bit) & static_cast<T>(1);
+  DEBUG_ASSERT(width > 0);              // width == 0 causes undefined behavior
+  DEBUG_ASSERT(width <= BitSize<T>());  // Bit width larger than BitSize<T>
+  constexpr std::make_unsigned_t<T> ones = ~std::make_unsigned_t<T>{0};
+  return static_cast<T>(ones >> (BitSize<T>() - width));
+}
+
+///
+/// Calculates a least-significant bit mask in six or seven operations.
+///
+/// @tparam T      The type of the bit mask.  Must satisfy std::integral.
+/// @param  width  The width of the bit mask.
+///
+/// @return A bit mask of the given width starting from the least-significant bit.
+///
+template <std::integral T>
+constexpr T CalcLowMaskSafe(const size_t width) noexcept
+{
+  if (width != 0)
+    return CalcLowMaskFast<T>(width);
+  else [[unlikely]]
+    return 0;
 }
 
 ///
 /// Extracts a bit from a value.
 ///
-/// @param  src The value to extract a bit from.
-///
-/// @tparam bit The bit to extract.
-/// @tparam T   The type of the value.
+/// @param  start  The bit to extract. Bit 0 is the least-significant bit.
+/// @param  host   The host value to extract the bit from. Must satisfy std::integral.
 ///
 /// @return The extracted bit.
 ///
-template <size_t bit, typename T>
-constexpr T ExtractBit(const T src) noexcept
+template <std::integral T>
+constexpr bool ExtractBit(const size_t start, const T host) noexcept
 {
-  static_assert(bit < BitSize<T>(), "Specified bit must be within T's bit width.");
-
-  return ExtractBit(src, bit);
+  DEBUG_ASSERT(start < BitSize<T>());  // Bit start out of range
+  return static_cast<bool>((host >> start) & T{1});
 }
 
 ///
-/// Extracts a range of bits from a value.
+/// Extracts a bit from a value.
 ///
-/// @param  src    The value to extract the bits from.
-/// @param  begin  The beginning of the bit range. This is inclusive.
-/// @param  end    The ending of the bit range. This is inclusive.
+/// @tparam start  The bit to extract. Bit 0 is the least-significant bit.
+/// @param  host   The host value to extract the bit from. Must satisfy std::integral.
 ///
-/// @tparam T      The type of the value.
-/// @tparam Result The returned result type. This is the unsigned analog
-///                of a signed type if a signed type is passed as T.
+/// @return The extracted bit.
+///
+template <size_t start, std::integral T>
+constexpr bool ExtractBit(const T host) noexcept
+{
+  static_assert(start < BitSize<T>(), "Bit start out of range");
+  return ExtractBit(start, host);
+}
+
+// TODO C++23: The x86 CPU extension "Bit Manipulation Instruction Set 1" provides unsigned bit
+// field extraction instructions which could theoretically be faster than the idiomatic way of doing
+// this. However, the only way to create specializations using BEXTR intrinsics while remaining
+// constexpr requires consteval if statements. Even then, BMI1 is from 2012-ish (SSE2 is Dolphin
+// Emulator's only hard-required x86 CPU extension atm), so these specializations would only really
+// be available to end-users using GCC/Clang who enable -march=native when compiling.
+// Bit Manipulation Instruction Set 2's PEXT/PDEP instructions also are worth looking at.
+
+///
+/// Extracts a zero-extended range of bits from a value.
+///
+/// @param  width  The width of the bit range in bits.
+/// @param  start  The beginning of the bit range. Bit 0 is the least-significant bit.
+/// @param  host   The host value to extract the bits from. Must satisfy std::integral.
 ///
 /// @return The extracted bits.
 ///
-template <typename T, typename Result = std::make_unsigned_t<T>>
-constexpr Result ExtractBits(const T src, const size_t begin, const size_t end) noexcept
+template <std::integral T>
+constexpr std::make_unsigned_t<T> ExtractBitsU(const size_t width, const size_t start,
+                                               const T host) noexcept
 {
-  return static_cast<Result>(((static_cast<Result>(src) << ((BitSize<T>() - 1) - end)) >>
-                              (BitSize<T>() - end + begin - 1)));
+  DEBUG_ASSERT(start + width <= BitSize<T>());  // Bitfield out of range
+  DEBUG_ASSERT(width > 0);                      // Bitfield is invalid (zero width)
+  const T mask = CalcLowMaskFast<T>(width);
+  return static_cast<std::make_unsigned_t<T>>((host >> start) & mask);
 }
 
 ///
-/// Extracts a range of bits from a value.
+/// Extracts a zero-extended range of bits from a value.
 ///
-/// @param  src    The value to extract the bits from.
-///
-/// @tparam begin  The beginning of the bit range. This is inclusive.
-/// @tparam end    The ending of the bit range. This is inclusive.
-/// @tparam T      The type of the value.
-/// @tparam Result The returned result type. This is the unsigned analog
-///                of a signed type if a signed type is passed as T.
+/// @tparam width  The width of the bit range in bits.
+/// @param  start  The beginning of the bit range. Bit 0 is the least-significant bit.
+/// @param  host   The host value to extract the bits from. Must satisfy std::integral.
 ///
 /// @return The extracted bits.
 ///
-template <size_t begin, size_t end, typename T, typename Result = std::make_unsigned_t<T>>
-constexpr Result ExtractBits(const T src) noexcept
+template <size_t width, std::integral T>
+constexpr std::make_unsigned_t<T> ExtractBitsU(const size_t start, const T host) noexcept
 {
-  static_assert(begin < end, "Beginning bit must be less than the ending bit.");
-  static_assert(begin < BitSize<T>(), "Beginning bit is larger than T's bit width.");
-  static_assert(end < BitSize<T>(), "Ending bit is larger than T's bit width.");
+  static_assert(width > 0, "Bitfield is invalid (zero width)");
+  return ExtractBitsU(width, start, host);
+}
 
-  return ExtractBits<T, Result>(src, begin, end);
+///
+/// Extracts a zero-extended range of bits from a value.
+///
+/// @tparam width  The width of the bit range in bits.
+/// @tparam start  The beginning of the bit range. Bit 0 is the least-significant bit.
+/// @param  host   The host value to extract the bits from. Must satisfy std::integral.
+///
+/// @return The extracted bits.
+///
+template <size_t width, size_t start, std::integral T>
+constexpr std::make_unsigned_t<T> ExtractBitsU(const T host) noexcept
+{
+  static_assert(start + width <= BitSize<T>(), "Bitfield out of range");
+  return ExtractBitsU<width>(start, host);
+}
+
+///
+/// Extracts a sign-extended range of bits from a value.
+///
+/// @param  width  The width of the bit range in bits.
+/// @param  start  The beginning of the bit range. Bit 0 is the least-significant bit.
+/// @param  host   The host value to extract the bits from. Must satisfy std::integral.
+///
+/// @return The extracted bits.
+///
+template <std::integral T>
+constexpr std::make_signed_t<T> ExtractBitsS(const size_t width, const size_t start,
+                                             const T host) noexcept
+{
+  // This idiom was both undefined and implementation-defined behavior up until C++20.
+  // https://en.cppreference.com/w/cpp/language/operator_arithmetic#Bitwise_shift_operators
+  DEBUG_ASSERT(start + width <= BitSize<T>());  // Bitfield out of range
+  DEBUG_ASSERT(width > 0);                      // Bitfield is invalid (zero width)
+  const size_t rshift = BitSize<T>() - width;
+  const size_t lshift = rshift - start;
+  return static_cast<std::make_signed_t<T>>(host << lshift) >> rshift;
+}
+
+///
+/// Extracts a sign-extended range of bits from a value.
+///
+/// @tparam width  The width of the bit range in bits.
+/// @param  start  The beginning of the bit range. Bit 0 is the least-significant bit.
+/// @param  host   The host value to extract the bits from. Must satisfy std::integral.
+///
+/// @return The extracted bits.
+///
+template <size_t width, std::integral T>
+constexpr std::make_signed_t<T> ExtractBitsS(const size_t start, const T host) noexcept
+{
+  static_assert(width > 0, "Bitfield is invalid (zero width)");
+  return ExtractBitsS(width, start, host);
+}
+
+///
+/// Extracts a sign-extended range of bits from a value.
+///
+/// @tparam width  The width of the bit range in bits.
+/// @tparam start  The beginning of the bit range. Bit 0 is the least-significant bit.
+/// @param  host   The host value to extract the bits from. Must satisfy std::integral.
+///
+/// @return The extracted bits.
+///
+template <size_t width, size_t start, std::integral T>
+constexpr std::make_signed_t<T> ExtractBitsS(const T host) noexcept
+{
+  static_assert(start + width <= BitSize<T>(), "Bitfield out of range");
+  return ExtractBitsS<width>(start, host);
+}
+
+///
+/// Inserts a bit into a value.
+///
+/// @param  start  The index of the bit. Bit 0 is the least-significant bit.
+/// @param  host   The host value to insert the bits into. Must satisfy std::integral.
+/// @param  val    The boolean value which is inserted into the host.
+///
+template <std::integral T>
+void InsertBit(size_t start, T& host, bool val) noexcept
+{
+  // Take advantage of the inherent bit-size of a C++ boolean to skip a mask.  This is a variant of
+  // https://graphics.stanford.edu/~seander/bithacks.html#ConditionalSetOrClearBitsWithoutBranching
+  DEBUG_ASSERT(start < BitSize<T>());  // Bit out of range
+  const T mask = (T{1} << start);
+  host = (host & ~mask) | (static_cast<T>(val) << start);
+}
+
+///
+/// Inserts a bit into a value.
+///
+/// @tparam start  The index of the bit. Bit 0 is the least-significant bit.
+/// @param  host   The host value to insert the bits into.  Must satisfy std::integral.
+/// @param  val    The boolean value which is inserted into the host.
+///
+template <size_t start, std::integral T>
+void InsertBit(T& host, bool val) noexcept
+{
+  static_assert(start < BitSize<T>(), "Bit out of range");
+  InsertBit(start, host, val);
+}
+
+///
+/// Inserts a range of bits into a value.
+///
+/// @param  width  The width of the bit range in bits.
+/// @param  start  The beginning of the bit range.  Bit 0 is the least-significant bit.
+/// @param  host   The host value to insert the field bits into.  Must satisfy std::integral.
+/// @param  val    The value which is inserted into the host.
+///
+template <std::integral T>
+constexpr void InsertBits(const size_t width, const size_t start, T& host, const auto val) noexcept
+{
+  // https://graphics.stanford.edu/~seander/bithacks.html#ConditionalSetOrClearBitsWithoutBranching
+  DEBUG_ASSERT(start + width <= BitSize<T>());  // BitField out of range
+  DEBUG_ASSERT(width > 0);                      // BitField is invalid (zero width)
+  const T mask = CalcLowMaskFast<T>(width) << start;
+  host = (host & ~mask) | ((static_cast<T>(val) << start) & mask);
+}
+
+///
+/// Inserts a range of bits into a value.
+///
+/// @tparam width  The width of the bit range in bits.
+/// @param  start  The beginning of the bit range.  Bit 0 is the least-significant bit.
+/// @param  host   The host value to insert the field bits into.  Must satisfy std::integral.
+/// @param  val    The value which is inserted into the host.
+///
+template <size_t width, std::integral T>
+constexpr void InsertBits(const size_t start, T& host, const auto val) noexcept
+{
+  static_assert(width > 0, "Bitfield is invalid (zero width)");
+  InsertBits(width, start, host, val);
+}
+
+///
+/// Inserts a range of bits into a value.
+///
+/// @tparam width  The width of the bit range in bits.
+/// @tparam start  The beginning of the bit range.  Bit 0 is the least-significant bit.
+/// @param  host   The host value to insert the field bits into.  Must satisfy std::integral.
+/// @param  val    The value which is inserted into the host.
+///
+template <size_t width, size_t start, std::integral T>
+constexpr void InsertBits(T& host, const auto val) noexcept
+{
+  static_assert(start + width <= BitSize<T>(), "Bitfield out of range");
+  InsertBits<width>(start, host, val);
 }
 
 ///
@@ -227,23 +406,6 @@ inline auto BitCastFromArray(const Container& array) noexcept -> T
 }
 
 template <typename T>
-void SetBit(T& value, size_t bit_number, bool bit_value)
-{
-  static_assert(std::is_unsigned<T>(), "SetBit is only sane on unsigned types.");
-
-  if (bit_value)
-    value |= (T{1} << bit_number);
-  else
-    value &= ~(T{1} << bit_number);
-}
-
-template <size_t bit_number, typename T>
-void SetBit(T& value, bool bit_value)
-{
-  SetBit(value, bit_number, bit_value);
-}
-
-template <typename T>
 class FlagBit
 {
 public:
@@ -289,6 +451,6 @@ template <std::unsigned_integral T>
 T ExpandValue(T value, size_t left_shift_amount)
 {
   return (value << left_shift_amount) |
-         (T(-ExtractBit<0>(value)) >> (BitSize<T>() - left_shift_amount));
+         (T(-static_cast<T>(ExtractBit<0>(value))) >> (BitSize<T>() - left_shift_amount));
 }
 }  // namespace Common

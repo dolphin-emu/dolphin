@@ -82,10 +82,10 @@ struct IncludeAccel : virtual DataReportManipulator
     result->value.x |= core.acc_bits & 0b11;
 
     // Y and Z only have 9 bits of precision. (convert them to 10)
-    result->value.y =
-        Common::ExpandValue<u16>(accel.y << 1 | Common::ExtractBit<0>(core.acc_bits2), 1);
-    result->value.z =
-        Common::ExpandValue<u16>(accel.z << 1 | Common::ExtractBit<1>(core.acc_bits2), 1);
+    result->value.y = Common::ExpandValue<u16>(
+        accel.y << 1 | static_cast<u8>(Common::ExtractBit<0>(core.acc_bits2)), 1);
+    result->value.z = Common::ExpandValue<u16>(
+        accel.z << 1 | static_cast<u8>(Common::ExtractBit<1>(core.acc_bits2)), 1);
   }
 
   void SetAccelData(const AccelData& new_accel) override

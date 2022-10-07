@@ -62,8 +62,8 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
     const u8 accel_x_high = u8(accel_x >> 2);
     const u8 accel_y_high = u8(accel_y >> 2);
     const u8 accel_z_high = u8(accel_z >> 2);
-    const u8 accel_low = u8((accel_x & 0b11) | (Common::ExtractBit<1>(accel_y) << 2) |
-                            (Common::ExtractBit<1>(accel_z) << 3));
+    const u8 accel_low = u8((accel_x & 0b11) | (u8(Common::ExtractBit<1>(accel_y)) << 2) |
+                            (u8(Common::ExtractBit<1>(accel_z)) << 3));
 
     if (has_buttons)
     {
@@ -251,10 +251,10 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     const u8 accel_y_high = d[pos + 2];
     const u8 accel_z_high = d[pos + 3];
     state->acceleration.value.x = (accel_x_high << 2) | (accel_low & 0b11);
-    state->acceleration.value.y =
-        Common::ExpandValue<u16>((accel_y_high << 1) | Common::ExtractBit<2>(accel_low), 1);
-    state->acceleration.value.z =
-        Common::ExpandValue<u16>((accel_z_high << 1) | Common::ExtractBit<3>(accel_low), 1);
+    state->acceleration.value.y = Common::ExpandValue<u16>(
+        (accel_y_high << 1) | static_cast<u8>(Common::ExtractBit<2>(accel_low)), 1);
+    state->acceleration.value.z = Common::ExpandValue<u16>(
+        (accel_z_high << 1) | static_cast<u8>(Common::ExtractBit<3>(accel_low)), 1);
     pos += 4;
   }
 
