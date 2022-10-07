@@ -98,14 +98,6 @@ public:
     return m_device_properties.limits.bufferImageGranularity;
   }
   float GetMaxSamplerAnisotropy() const { return m_device_properties.limits.maxSamplerAnisotropy; }
-  // Finds a memory type index for the specified memory properties and the bits returned by
-  // vkGetImageMemoryRequirements
-  std::optional<u32> GetMemoryType(u32 bits, VkMemoryPropertyFlags properties, bool strict,
-                                   bool* is_coherent = nullptr);
-
-  // Finds a memory type for upload or readback buffers.
-  u32 GetUploadMemoryType(u32 bits, bool* is_coherent = nullptr);
-  u32 GetReadbackMemoryType(u32 bits, bool* is_coherent = nullptr);
 
   // Returns true if the specified extension is supported and enabled.
   bool SupportsDeviceExtension(const char* name) const;
