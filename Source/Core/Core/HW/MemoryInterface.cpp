@@ -4,6 +4,8 @@
 #include "Core/HW/MemoryInterface.h"
 
 #include <array>
+#include <cstring>
+#include <type_traits>
 
 #include "Common/BitField.h"
 #include "Common/ChunkFile.h"
@@ -134,6 +136,17 @@ struct MIMemStruct
 
 // STATE_TO_SAVE
 static MIMemStruct g_mi_mem;
+
+void Init()
+{
+  static_assert(std::is_trivially_copyable_v<MIMemStruct>);
+  std::memset(&g_mi_mem, 0, sizeof(MIMemStruct));
+}
+
+void Shutdown()
+{
+  Init();
+}
 
 void DoState(PointerWrap& p)
 {

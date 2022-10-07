@@ -19,6 +19,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/HSP/HSP.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/MemoryInterface.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SystemTimers.h"
@@ -45,6 +46,7 @@ void Init(const Sram* override_sram)
   HSP::Init();
   Memory::Init();  // Needs to be initialized before AddressSpace
   AddressSpace::Init();
+  MemoryInterface::Init();
   DSP::Init(Config::Get(Config::MAIN_DSP_HLE));
   DVDInterface::Init();
   GPFifo::Init();
@@ -68,6 +70,7 @@ void Shutdown()
   CPU::Shutdown();
   DVDInterface::Shutdown();
   DSP::Shutdown();
+  MemoryInterface::Shutdown();
   AddressSpace::Shutdown();
   Memory::Shutdown();
   HSP::Shutdown();
@@ -83,6 +86,8 @@ void DoState(PointerWrap& p)
 {
   Memory::DoState(p);
   p.DoMarker("Memory");
+  MemoryInterface::DoState(p);
+  p.DoMarker("MemoryInterface");
   VideoInterface::DoState(p);
   p.DoMarker("VideoInterface");
   SerialInterface::DoState(p);
