@@ -37,6 +37,42 @@
 #undef VULKAN_INSTANCE_ENTRY_POINT
 #undef VULKAN_MODULE_ENTRY_POINT
 
+// Include vma allocator globally since including it before the vulkan headers causes
+// errors
+#ifdef _MSVC_LANG
+#pragma warning(push, 4)
+#pragma warning(disable : 4189)  // local variable is initialized but not referenced
+
+#endif  // #ifdef _MSVC_LANG
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#endif  // #ifdef __clang__
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif  // #ifdef __GNUC__
+
+#define VMA_VULKAN_VERSION 1001000
+#define VMA_STATIC_VULKAN_FUNCTIONS 1
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 0
+#undef VK_NO_PROTOTYPES
+#include "vk_mem_alloc.h"
+
+#ifdef _MSVC_LANG
+#pragma warning(pop)
+#endif  // #ifdef _MSVC_LANG
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif  // #ifdef __clang__
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif  // #ifdef __GNUC__
+
 #include "Common/Logging/Log.h"
 
 namespace Vulkan

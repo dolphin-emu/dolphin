@@ -52,6 +52,7 @@ PRIVATE
 target_include_directories(videovulkan
 PRIVATE
   ${CMAKE_SOURCE_DIR}/Externals/Vulkan/Include
+  ${CMAKE_SOURCE_DIR}/Externals/VulkanMemoryAllocator/include
 )
 
 if(MSVC)
