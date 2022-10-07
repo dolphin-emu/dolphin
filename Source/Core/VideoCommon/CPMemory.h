@@ -658,8 +658,6 @@ class PointerWrap;
 extern CPState g_main_cp_state;
 extern CPState g_preprocess_cp_state;
 
-void DoCPState(PointerWrap& p);
-
 void CopyPreprocessCPStateFromMain();
 
 std::pair<std::string, std::string> GetCPRegInfo(u8 cmd, u32 value);

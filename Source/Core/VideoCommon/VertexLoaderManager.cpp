@@ -123,6 +123,7 @@ struct entry
 
 void MarkAllDirty()
 {
+  g_bases_dirty = true;
   g_main_vat_dirty = BitSet8::AllTrue(8);
   g_preprocess_vat_dirty = BitSet8::AllTrue(8);
 }
