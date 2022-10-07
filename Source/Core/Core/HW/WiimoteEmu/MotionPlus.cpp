@@ -681,15 +681,15 @@ void MotionPlus::ApplyPassthroughModifications(PassthroughMode mode, u8* data)
     // Verified on real hardware via a test of every bit.
     // Data passing through drops the least significant bit of the three accelerometer values.
     // Bit 7 of byte 5 is moved to bit 6 of byte 5, overwriting it
-    Common::SetBit<6>(data[5], Common::ExtractBit<7>(data[5]));
+    Common::InsertBit<6>(data[5], Common::ExtractBit<7>(data[5]));
     // Bit 0 of byte 4 is moved to bit 7 of byte 5
-    Common::SetBit<7>(data[5], Common::ExtractBit<0>(data[4]));
+    Common::InsertBit<7>(data[5], Common::ExtractBit<0>(data[4]));
     // Bit 3 of byte 5 is moved to  bit 4 of byte 5, overwriting it
-    Common::SetBit<4>(data[5], Common::ExtractBit<3>(data[5]));
+    Common::InsertBit<4>(data[5], Common::ExtractBit<3>(data[5]));
     // Bit 1 of byte 5 is moved to bit 3 of byte 5
-    Common::SetBit<3>(data[5], Common::ExtractBit<1>(data[5]));
+    Common::InsertBit<3>(data[5], Common::ExtractBit<1>(data[5]));
     // Bit 0 of byte 5 is moved to bit 2 of byte 5, overwriting it
-    Common::SetBit<2>(data[5], Common::ExtractBit<0>(data[5]));
+    Common::InsertBit<2>(data[5], Common::ExtractBit<0>(data[5]));
   }
   else if (mode == PassthroughMode::Classic)
   {
@@ -698,8 +698,8 @@ void MotionPlus::ApplyPassthroughModifications(PassthroughMode mode, u8* data)
     // Data passing through drops the least significant bit of the axes of the left (or only)
     // joystick Bit 0 of Byte 4 is overwritten [by the 'extension_connected' flag] Bits 0 and
     // 1 of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting what was there before.
-    Common::SetBit<0>(data[0], Common::ExtractBit<0>(data[5]));
-    Common::SetBit<0>(data[1], Common::ExtractBit<1>(data[5]));
+    Common::InsertBit<0>(data[0], Common::ExtractBit<0>(data[5]));
+    Common::InsertBit<0>(data[1], Common::ExtractBit<1>(data[5]));
   }
 }
 
@@ -708,30 +708,30 @@ void MotionPlus::ReversePassthroughModifications(PassthroughMode mode, u8* data)
   if (mode == PassthroughMode::Nunchuk)
   {
     // Undo M+'s "nunchuk passthrough" modifications.
-    Common::SetBit<0>(data[5], Common::ExtractBit<2>(data[5]));
-    Common::SetBit<1>(data[5], Common::ExtractBit<3>(data[5]));
-    Common::SetBit<3>(data[5], Common::ExtractBit<4>(data[5]));
-    Common::SetBit<0>(data[4], Common::ExtractBit<7>(data[5]));
-    Common::SetBit<7>(data[5], Common::ExtractBit<6>(data[5]));
+    Common::InsertBit<0>(data[5], Common::ExtractBit<2>(data[5]));
+    Common::InsertBit<1>(data[5], Common::ExtractBit<3>(data[5]));
+    Common::InsertBit<3>(data[5], Common::ExtractBit<4>(data[5]));
+    Common::InsertBit<0>(data[4], Common::ExtractBit<7>(data[5]));
+    Common::InsertBit<7>(data[5], Common::ExtractBit<6>(data[5]));
 
     // Set the overwritten bits from the next LSB.
-    Common::SetBit<2>(data[5], Common::ExtractBit<3>(data[5]));
-    Common::SetBit<4>(data[5], Common::ExtractBit<5>(data[5]));
-    Common::SetBit<6>(data[5], Common::ExtractBit<7>(data[5]));
+    Common::InsertBit<2>(data[5], Common::ExtractBit<3>(data[5]));
+    Common::InsertBit<4>(data[5], Common::ExtractBit<5>(data[5]));
+    Common::InsertBit<6>(data[5], Common::ExtractBit<7>(data[5]));
   }
   else if (mode == PassthroughMode::Classic)
   {
     // Undo M+'s "classic controller passthrough" modifications.
-    Common::SetBit<0>(data[5], Common::ExtractBit<0>(data[0]));
-    Common::SetBit<1>(data[5], Common::ExtractBit<0>(data[1]));
+    Common::InsertBit<0>(data[5], Common::ExtractBit<0>(data[0]));
+    Common::InsertBit<1>(data[5], Common::ExtractBit<0>(data[1]));
 
     // Set the overwritten bits from the next LSB.
-    Common::SetBit<0>(data[0], Common::ExtractBit<1>(data[0]));
-    Common::SetBit<0>(data[1], Common::ExtractBit<1>(data[1]));
+    Common::InsertBit<0>(data[0], Common::ExtractBit<1>(data[0]));
+    Common::InsertBit<0>(data[1], Common::ExtractBit<1>(data[1]));
 
     // This is an overwritten unused button bit on the Classic Controller.
     // Note it's a significant bit on the DJ Hero Turntable. (passthrough not feasible)
-    Common::SetBit<0>(data[4], 1);
+    Common::InsertBit<0>(data[4], 1);
   }
 }
 

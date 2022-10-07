@@ -84,12 +84,12 @@ inline u32 CompressZ16(u32 z24depth, DepthFormat format)
 
   u32 leading_ones = Common::CountLeadingZeros((~z24depth) << 8);
   bool next_bit_is_one = false;  // AKA: Did we clamp leading_ones?
-  u32 exp_bits;
+  u32 exp_width;
 
   switch (format)
   {
   case DepthFormat::ZNEAR:
-    exp_bits = 2;
+    exp_width = 2;
     if (leading_ones >= 3u)
     {
       leading_ones = 3u;
@@ -97,7 +97,7 @@ inline u32 CompressZ16(u32 z24depth, DepthFormat format)
     }
     break;
   case DepthFormat::ZMID:
-    exp_bits = 3;
+    exp_width = 3;
     if (leading_ones >= 7u)
     {
       leading_ones = 7u;
@@ -105,7 +105,7 @@ inline u32 CompressZ16(u32 z24depth, DepthFormat format)
     }
     break;
   case DepthFormat::ZFAR:
-    exp_bits = 4;
+    exp_width = 4;
     if (leading_ones >= 12u)
     {
       // The hardware implementation only uses values 0 to 12 in the exponent
@@ -117,18 +117,18 @@ inline u32 CompressZ16(u32 z24depth, DepthFormat format)
     return z24depth >> 8;
   }
 
-  u32 mantissa_bits = 16 - exp_bits;
+  u32 mantissa_width = 16 - exp_width;
 
   // Calculate which bits we need to extract from z24depth for our mantissa
-  u32 top = std::max<u32>(24 - leading_ones, mantissa_bits);
+  u32 top = std::max<u32>(24 - leading_ones, mantissa_width);
   if (!next_bit_is_one)
   {
     top -= 1;  // We know the next bit is zero, so we don't need to include it.
   }
-  u32 bottom = top - mantissa_bits;
+  u32 bottom = top - mantissa_width;
 
-  u32 exponent = leading_ones << mantissa_bits;  // Upper bits contain exponent
-  u32 mantissa = Common::ExtractBits(z24depth, bottom, top - 1);
+  u32 exponent = leading_ones << mantissa_width;  // Upper bits contain exponent
+  u32 mantissa = Common::ExtractBitsU(mantissa_width, bottom, z24depth);
 
   return exponent | mantissa;
 }
