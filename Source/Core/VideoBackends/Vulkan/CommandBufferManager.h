@@ -92,6 +92,7 @@ public:
   void DeferBufferDestruction(VkBuffer buffer, VmaAllocation alloc);
   void DeferFramebufferDestruction(VkFramebuffer object);
   void DeferImageDestruction(VkImage object);
+  void DeferImageDestruction(VkImage object, VmaAllocation alloc);
   void DeferImageViewDestruction(VkImageView object);
 
 private:
