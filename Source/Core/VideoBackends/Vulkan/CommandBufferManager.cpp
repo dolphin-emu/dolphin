@@ -546,6 +546,14 @@ void CommandBufferManager::DeferDeviceMemoryDestruction(VkDeviceMemory object)
       [object]() { vkFreeMemory(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
+void CommandBufferManager::DeferBufferDestruction(VkBuffer buffer, VmaAllocation alloc)
+{
+  CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
+  cmd_buffer_resources.cleanup_resources.push_back([buffer, alloc]() {
+    vmaDestroyBuffer(g_vulkan_context->GetMemoryAllocator(), buffer, alloc);
+  });
+}
+
 void CommandBufferManager::DeferFramebufferDestruction(VkFramebuffer object)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();

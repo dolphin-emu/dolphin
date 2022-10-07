@@ -741,10 +741,10 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
   }
 
   VkBuffer buffer;
-  VkDeviceMemory memory;
-  bool coherent;
-  if (!StagingBuffer::AllocateBuffer(buffer_type, buffer_size, buffer_usage, &buffer, &memory,
-                                     &coherent))
+  VmaAllocation alloc;
+  char* map_ptr;
+  if (!StagingBuffer::AllocateBuffer(buffer_type, buffer_size, buffer_usage, &buffer, &alloc,
+                                     &map_ptr))
   {
     return nullptr;
   }
@@ -759,7 +759,7 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
   }
 
   std::unique_ptr<StagingBuffer> staging_buffer =
-      std::make_unique<StagingBuffer>(buffer_type, buffer, memory, buffer_size, coherent);
+      std::make_unique<StagingBuffer>(buffer_type, buffer, alloc, buffer_size, map_ptr);
   std::unique_ptr<VKStagingTexture> staging_tex =
       std::make_unique<VKStagingTexture>(PrivateTag{}, type, config, std::move(staging_buffer),
                                          linear_image, linear_image_device_memory);
