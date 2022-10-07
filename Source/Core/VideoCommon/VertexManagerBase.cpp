@@ -564,6 +564,8 @@ void VertexManagerBase::DoState(PointerWrap& p)
   }
 
   p.Do(m_zslope);
+  p.Do(VertexLoaderManager::tangent_cache);
+  p.Do(VertexLoaderManager::binormal_cache);
 }
 
 void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
