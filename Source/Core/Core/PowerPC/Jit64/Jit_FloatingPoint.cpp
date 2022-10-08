@@ -298,7 +298,56 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   }
   else
   {
-    avx_op(avxOp, sseOp, dest, Ra, Rarg2, packed, reversible);
+    if (Ra.IsSimpleReg(dest))
+    {
+      (this->*sseOp)(dest, Rarg2);
+    }
+    else if (reversible && Rarg2.IsSimpleReg(dest))
+    {
+      (this->*sseOp)(dest, Ra);
+    }
+    else if (cpu_info.bAVX && Ra.IsSimpleReg())
+    {
+      (this->*avxOp)(dest, Ra.GetSimpleReg(), Rarg2);
+    }
+    else if (cpu_info.bAVX && reversible && Rarg2.IsSimpleReg())
+    {
+      (this->*avxOp)(dest, Rarg2.GetSimpleReg(), Ra);
+    }
+    else if (!Rarg2.IsSimpleReg(dest))
+    {
+      if (packed)
+        MOVAPD(dest, Ra);
+      else
+        MOVSD(dest, Ra);
+      (this->*sseOp)(dest, OpArg(Ra) == OpArg(Rarg2) ? R(dest) : Rarg2);
+    }
+    else if (reversible && !Ra.IsSimpleReg(dest))
+    {
+      if (packed)
+        MOVAPD(dest, Rarg2);
+      else
+        MOVSD(dest, Rarg2);
+      (this->*sseOp)(dest, OpArg(Ra) == OpArg(Rarg2) ? R(dest) : Ra);
+    }
+    else
+    {
+      // The ugly case: Not reversible, and we have dest == Rarg2 without AVX or with Ra == memory
+      if (!Ra.IsSimpleReg(XMM0))
+        MOVAPD(XMM0, Ra);
+      if (cpu_info.bAVX)
+      {
+        (this->*avxOp)(dest, XMM0, Rarg2);
+      }
+      else
+      {
+        (this->*sseOp)(XMM0, Rarg2);
+        if (packed)
+          MOVAPD(dest, R(XMM0));
+        else
+          MOVSD(dest, R(XMM0));
+      }
+    }
   }
 
   switch (inst.SUBOP5)
