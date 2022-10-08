@@ -59,6 +59,7 @@ void JitBaseBlockCache::Clear()
 #endif
   m_jit.js.fifoWriteAddresses.clear();
   m_jit.js.pairedQuantizeAddresses.clear();
+  m_jit.js.noSpeculativeConstantsAddresses.clear();
   for (auto& e : block_map)
   {
     DestroyBlock(e.second);
@@ -255,6 +256,7 @@ void JitBaseBlockCache::InvalidateICacheInternal(u32 physical_address, u32 addre
       {
         m_jit.js.fifoWriteAddresses.erase(i);
         m_jit.js.pairedQuantizeAddresses.erase(i);
+        m_jit.js.noSpeculativeConstantsAddresses.erase(i);
       }
     }
   }
