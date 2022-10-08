@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <fmt/format.h>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -14,6 +15,8 @@
 
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -195,6 +198,8 @@ double Expression::Evaluate() const
 
   SynchronizeBindings(SynchronizeDirection::To);
 
+  Reporting(result);
+
   return result;
 }
 
@@ -233,6 +238,29 @@ void Expression::SynchronizeBindings(SynchronizeDirection dir) const
       break;
     }
   }
+}
+
+void Expression::Reporting(const double result) const
+{
+  bool is_nan = std::isnan(result);
+  std::string message;
+
+  for (auto* v = m_vars->head; v != nullptr; v = v->next)
+  {
+    if (std::isnan(v->value))
+      is_nan = true;
+
+    fmt::format_to(std::back_inserter(message), "  {}={}", v->name, v->value);
+  }
+
+  if (is_nan)
+  {
+    message.append("\nBreakpoint condition encountered a NaN");
+    Core::DisplayMessage("Breakpoint condition has encountered a NaN.", 2000);
+  }
+
+  if (result != 0.0 || is_nan)
+    NOTICE_LOG_FMT(MEMMAP, "Breakpoint condition returned: {}. Vars:{}", result, message);
 }
 
 std::string Expression::GetText() const

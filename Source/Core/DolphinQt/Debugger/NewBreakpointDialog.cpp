@@ -261,6 +261,11 @@ void NewBreakpointDialog::ShowConditionHelp()
       "p = r3 + 0x8, p == 0x8003510 && read_u32(p) != 0\n"
       "Write and break: r4 = 8, 1\n"
       "Write and continue: f3 = f1 + f2, 0\n"
-      "The condition must always be last\n");
+      "The condition must always be last\n\n"
+      "All variables will be printed in the Memory Interface log, if there's a hit or a NaN "
+      "result. To check for issues, assign a variable to your equation, so it can be printed.\n\n"
+      "Note: All values are internally converted to Doubles for calculations. It's possible for "
+      "them to go out of range or to become NaN. A warning will be given if NaN is returned, and "
+      "the var that became NaN will be logged.");
   ModalMessageBox::information(this, tr("Conditional help"), message);
 }
