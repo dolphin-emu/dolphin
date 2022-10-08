@@ -282,7 +282,9 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   RCOpArg Rarg2 = fpr.Use(arg2, RCMode::Read);
   RegCache::Realize(Rd, Ra, Rarg2);
 
-  X64Reg dest = preserve_inputs ? XMM1 : static_cast<X64Reg>(Rd);
+  X64Reg dest = X64Reg(Rd);
+  if (preserve_inputs && (a == d || arg2 == d))
+    dest = XMM1;
   if (round_rhs)
   {
     if (a == d && !preserve_inputs)
@@ -314,39 +316,16 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     {
       (this->*avxOp)(dest, Rarg2.GetSimpleReg(), Ra);
     }
-    else if (!Rarg2.IsSimpleReg(dest))
+    else
     {
+      if (Rarg2.IsSimpleReg(dest))
+        dest = XMM1;
+
       if (packed)
         MOVAPD(dest, Ra);
       else
         MOVSD(dest, Ra);
-      (this->*sseOp)(dest, OpArg(Ra) == OpArg(Rarg2) ? R(dest) : Rarg2);
-    }
-    else if (reversible && !Ra.IsSimpleReg(dest))
-    {
-      if (packed)
-        MOVAPD(dest, Rarg2);
-      else
-        MOVSD(dest, Rarg2);
-      (this->*sseOp)(dest, OpArg(Ra) == OpArg(Rarg2) ? R(dest) : Ra);
-    }
-    else
-    {
-      // The ugly case: Not reversible, and we have dest == Rarg2 without AVX or with Ra == memory
-      if (!Ra.IsSimpleReg(XMM0))
-        MOVAPD(XMM0, Ra);
-      if (cpu_info.bAVX)
-      {
-        (this->*avxOp)(dest, XMM0, Rarg2);
-      }
-      else
-      {
-        (this->*sseOp)(XMM0, Rarg2);
-        if (packed)
-          MOVAPD(dest, R(XMM0));
-        else
-          MOVSD(dest, R(XMM0));
-      }
+      (this->*sseOp)(dest, a == arg2 ? R(dest) : Rarg2);
     }
   }
 
