@@ -270,8 +270,8 @@ void CommandBufferManager::WaitForCommandBufferCompletion(u32 index)
   // Clean up any resources for command buffers between the last known completed buffer and this
   // now-completed command buffer. If we use >2 buffers, this may be more than one buffer.
   const u64 now_completed_counter = resources.fence_counter;
-  u32 cleanup_index = (index + 1) % NUM_COMMAND_BUFFERS;
-  while (cleanup_index != index)
+  u32 cleanup_index = (m_current_cmd_buffer + 1) % NUM_COMMAND_BUFFERS;
+  while (cleanup_index != m_current_cmd_buffer)
   {
     CmdBufferResources& cleanup_resources = m_command_buffers[cleanup_index];
     if (cleanup_resources.fence_counter > now_completed_counter)
