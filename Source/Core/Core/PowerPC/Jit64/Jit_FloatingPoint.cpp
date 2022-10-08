@@ -92,7 +92,7 @@ void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
   SetFPRFIfNeeded(input, false);
 }
 
-void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Reg clobber)
+void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
 {
   //                      | PowerPC  | x86
   // ---------------------+----------+---------
@@ -103,11 +103,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
   // to be positive, so we'll have to handle them manually.
 
   if (!m_accurate_nans)
-  {
-    if (xmm_out != xmm)
-      MOVAPD(xmm_out, R(xmm));
     return;
-  }
 
   ASSERT(xmm != clobber);
 
@@ -200,8 +196,6 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
       SetJumpTarget(done);
     }
   }
-  if (xmm_out != xmm)
-    MOVAPD(xmm_out, R(xmm));
 }
 
 void Jit64::fp_arith(UGeckoInstruction inst)
@@ -259,11 +253,11 @@ void Jit64::fp_arith(UGeckoInstruction inst)
       avx_op(avxOp, sseOp, dest, Rop1, Rop2, packed, reversible);
     }
 
-    HandleNaNs(inst, Rd, dest, XMM0);
+    HandleNaNs(inst, dest, XMM0);
     if (single)
-      FinalizeSingleResult(Rd, Rd, packed, true);
+      FinalizeSingleResult(Rd, R(dest), packed, true);
     else
-      FinalizeDoubleResult(Rd, Rd);
+      FinalizeDoubleResult(Rd, R(dest));
   };
 
   switch (inst.SUBOP5)
@@ -482,7 +476,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     result_xmm = Rd;
   }
 
-  HandleNaNs(inst, result_xmm, result_xmm, XMM0);
+  HandleNaNs(inst, result_xmm, XMM0);
 
   if (single)
     FinalizeSingleResult(Rd, R(result_xmm), packed, true);

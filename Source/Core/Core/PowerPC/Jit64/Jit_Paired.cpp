@@ -77,8 +77,8 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   default:
     PanicAlertFmt("ps_sum WTF!!!");
   }
-  HandleNaNs(inst, Rd, tmp, tmp == XMM1 ? XMM0 : XMM1);
-  FinalizeSingleResult(Rd, Rd);
+  HandleNaNs(inst, tmp, tmp == XMM1 ? XMM0 : XMM1);
+  FinalizeSingleResult(Rd, R(tmp));
 }
 
 void Jit64::ps_muls(UGeckoInstruction inst)
@@ -112,8 +112,8 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   if (round_input)
     Force25BitPrecision(XMM1, R(XMM1), XMM0);
   MULPD(XMM1, Ra);
-  HandleNaNs(inst, Rd, XMM1, XMM0);
-  FinalizeSingleResult(Rd, Rd);
+  HandleNaNs(inst, XMM1, XMM0);
+  FinalizeSingleResult(Rd, R(XMM1));
 }
 
 void Jit64::ps_mergeXX(UGeckoInstruction inst)
