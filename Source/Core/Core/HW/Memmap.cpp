@@ -75,7 +75,6 @@ static u32 s_fakevmem_size;
 static u32 s_fakevmem_mask;
 static u32 s_L1_cache_size;
 static u32 s_L1_cache_mask;
-static u32 s_io_size;
 // s_exram_size is the amount allocated by the emulator, whereas s_exram_size_real
 // is what gets used by emulated software.  If using retail IOS, it will
 // always be set to 64MB.
@@ -110,10 +109,6 @@ u32 GetL1CacheSize()
 u32 GetL1CacheMask()
 {
   return s_L1_cache_mask;
-}
-u32 GetIOSize()
-{
-  return s_io_size;
 }
 u32 GetExRamSizeReal()
 {
@@ -247,7 +242,6 @@ void Init()
   s_fakevmem_mask = GetFakeVMemSize() - 1;
   s_L1_cache_size = 0x00040000;
   s_L1_cache_mask = GetL1CacheSize() - 1;
-  s_io_size = 0x00010000;
   s_exram_size_real = get_mem2_size();
   s_exram_size = MathUtil::NextPowerOf2(GetExRamSizeReal());
   s_exram_mask = GetExRamSize() - 1;

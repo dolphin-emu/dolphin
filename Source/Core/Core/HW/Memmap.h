@@ -45,7 +45,6 @@ u32 GetFakeVMemSize();
 u32 GetFakeVMemMask();
 u32 GetL1CacheSize();
 u32 GetL1CacheMask();
-u32 GetIOSize();
 u32 GetExRamSizeReal();
 u32 GetExRamSize();
 u32 GetExRamMask();
