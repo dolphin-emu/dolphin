@@ -152,11 +152,7 @@ struct VideoConfig final
   bool bEnableValidationLayer = false;
 
   // Multithreaded submission, currently only supported with Vulkan.
-#if defined(ANDROID)
-  bool bBackendMultithreading = false;
-#else
   bool bBackendMultithreading = true;
-#endif
 
   // Early command buffer execution interval in number of draws.
   // Currently only supported with Vulkan.
