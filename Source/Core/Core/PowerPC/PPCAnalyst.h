@@ -81,8 +81,6 @@ struct CodeOp  // 16B
 
 struct BlockStats
 {
-  bool isFirstBlockOfFunction;
-  bool isLastBlockOfFunction;
   int numCycles;
 };
 
