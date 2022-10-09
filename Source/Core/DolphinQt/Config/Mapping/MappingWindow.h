@@ -23,6 +23,7 @@ class QGroupBox;
 class QVBoxLayout;
 class QPushButton;
 class QTabWidget;
+class QToolButton;
 class QWidget;
 
 class MappingWindow final : public QDialog
@@ -98,7 +99,7 @@ private:
   QGroupBox* m_devices_box;
   QHBoxLayout* m_devices_layout;
   QComboBox* m_devices_combo;
-  QPushButton* m_devices_refresh;
+  QAction* m_all_devices_action;
 
   // Profiles
   QGroupBox* m_profiles_box;
