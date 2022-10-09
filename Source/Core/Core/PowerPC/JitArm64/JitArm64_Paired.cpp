@@ -86,22 +86,23 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
   const u32 d = inst.FD;
   const u32 op5 = inst.SUBOP5;
 
-  const bool use_b = (op5 & ~0x1) != 12;   // muls uses no B
+  const bool use_c = op5 == 25 || (op5 & ~0x13) == 12;  // mul, muls, and all kinds of maddXX
+  const bool use_b = op5 != 25 && (op5 & ~0x1) != 12;   // mul and muls don't use B
 
   const auto singles_func = [&] {
-    return fpr.IsSingle(a) && (!use_b || fpr.IsSingle(b)) && fpr.IsSingle(c);
+    return fpr.IsSingle(a) && (!use_b || fpr.IsSingle(b)) && (!use_c || fpr.IsSingle(c));
   };
   const bool singles = singles_func();
 
   const bool inaccurate_fma = !Config::Get(Config::SESSION_USE_FMA);
-  const bool round_c = !js.op->fprIsSingle[inst.FC];
+  const bool round_c = use_c && !js.op->fprIsSingle[inst.FC];
   const RegType type = singles ? RegType::Single : RegType::Register;
   const u8 size = singles ? 32 : 64;
   const auto reg_encoder = singles ? EncodeRegToDouble : EncodeRegToQuad;
 
   const ARM64Reg VA = reg_encoder(fpr.R(a, type));
   const ARM64Reg VB = use_b ? reg_encoder(fpr.R(b, type)) : ARM64Reg::INVALID_REG;
-  ARM64Reg VC = reg_encoder(fpr.R(c, type));
+  ARM64Reg VC = use_c ? reg_encoder(fpr.R(c, type)) : ARM64Reg::INVALID_REG;
   const ARM64Reg VD = reg_encoder(fpr.RW(d, type));
 
   ARM64Reg V0Q = ARM64Reg::INVALID_REG;
@@ -187,6 +188,18 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
       m_float_emit.FMLA(size, V0, VA, VC, 1);
       result_reg = V0;
     }
+    break;
+  case 18:  // ps_div
+    m_float_emit.FDIV(size, VD, VA, VB);
+    break;
+  case 20:  // ps_sub
+    m_float_emit.FSUB(size, VD, VA, VB);
+    break;
+  case 21:  // ps_add
+    m_float_emit.FADD(size, VD, VA, VB);
+    break;
+  case 25:  // ps_mul
+    m_float_emit.FMUL(size, VD, VA, VC);
     break;
   case 28:  // ps_msub:  d = a * c - b
   case 30:  // ps_nmsub: d = -(a * c - b)
