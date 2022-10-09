@@ -13,5 +13,5 @@ namespace ENetUtil
 {
 void WakeupThread(ENetHost* host);
 int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event);
-void SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id);
+bool SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id);
 }  // namespace ENetUtil

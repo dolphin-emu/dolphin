@@ -4,6 +4,7 @@
 #include "Common/ENetUtil.h"
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 namespace ENetUtil
 {
@@ -36,10 +37,23 @@ int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event)
   return 0;
 }
 
-void SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id)
+bool SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id)
 {
   ENetPacket* epac =
       enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
-  enet_peer_send(socket, channel_id, epac);
+  if (!epac)
+  {
+    ERROR_LOG_FMT(NETPLAY, "Failed to create ENetPacket ({} bytes).", packet.getDataSize());
+    return false;
+  }
+
+  const int result = enet_peer_send(socket, channel_id, epac);
+  if (result != 0)
+  {
+    ERROR_LOG_FMT(NETPLAY, "Failed to send ENetPacket (error code {}).", result);
+    return false;
+  }
+
+  return true;
 }
 }  // namespace ENetUtil
