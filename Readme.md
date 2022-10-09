@@ -148,7 +148,8 @@ Additionally, you'll want to remove the global user directory if you don't plan 
 
 ## Command Line Usage
 
-```Usage: Dolphin.exe [options]... [FILE]...
+```
+Usage: Dolphin.exe [options]... [FILE]...
 
 Options:
   --version             show program's version number and exit
@@ -192,7 +193,8 @@ usage: dolphin-tool COMMAND -h
 commands supported: [convert, verify, header]
 ```
 
-```Usage: convert [options]... [FILE]...
+```
+Usage: convert [options]... [FILE]...
 
 Options:
   -h, --help            show this help message and exit
