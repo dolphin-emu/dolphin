@@ -80,7 +80,7 @@ void Jit64::FinalizeSingleResult(X64Reg output, const OpArg& input, bool packed,
         MOVAPD(output, input);
     }
 
-    SetFPRFIfNeeded(input, true);
+    SetFPRFIfNeeded(input, false);
   }
 }
 
