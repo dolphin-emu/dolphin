@@ -35,4 +35,11 @@ int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event)
   }
   return 0;
 }
+
+void SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id)
+{
+  ENetPacket* epac =
+      enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
+  enet_peer_send(socket, channel_id, epac);
+}
 }  // namespace ENetUtil
