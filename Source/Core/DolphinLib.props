@@ -650,6 +650,7 @@
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\SkipAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\FBInfo.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModAction.h" />
+    <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionData.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionFactory.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModGroup.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModManager.h" />

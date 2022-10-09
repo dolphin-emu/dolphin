@@ -30,18 +30,26 @@ MoveAction::MoveAction(Common::Vec3 position_offset) : m_position_offset(positio
 {
 }
 
-void MoveAction::OnProjection(Common::Matrix44* matrix)
+void MoveAction::OnProjection(GraphicsModActionData::Projection* projection)
 {
-  if (!matrix)
+  if (!projection) [[unlikely]]
     return;
 
-  *matrix *= Common::Matrix44::Translate(m_position_offset);
+  if (!projection->matrix) [[unlikely]]
+    return;
+
+  auto& matrix = *projection->matrix;
+  matrix = matrix * Common::Matrix44::Translate(m_position_offset);
 }
 
-void MoveAction::OnProjectionAndTexture(Common::Matrix44* matrix)
+void MoveAction::OnProjectionAndTexture(GraphicsModActionData::Projection* projection)
 {
-  if (!matrix)
+  if (!projection) [[unlikely]]
     return;
 
-  *matrix *= Common::Matrix44::Translate(m_position_offset);
+  if (!projection->matrix) [[unlikely]]
+    return;
+
+  auto& matrix = *projection->matrix;
+  matrix = matrix * Common::Matrix44::Translate(m_position_offset);
 }

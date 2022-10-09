@@ -8,7 +8,6 @@
 class SkipAction final : public GraphicsModAction
 {
 public:
-  void OnDrawStarted(bool* skip) override;
-  void OnEFB(bool* skip, u32 texture_width, u32 texture_height, u32* scaled_width,
-             u32* scaled_height) override;
+  void OnDrawStarted(GraphicsModActionData::DrawStarted*) override;
+  void OnEFB(GraphicsModActionData::EFB*) override;
 };

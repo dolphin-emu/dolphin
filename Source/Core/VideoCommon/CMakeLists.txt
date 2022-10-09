@@ -61,6 +61,7 @@ add_library(videocommon
   GraphicsModSystem/Runtime/FBInfo.cpp
   GraphicsModSystem/Runtime/FBInfo.h
   GraphicsModSystem/Runtime/GraphicsModAction.h
+  GraphicsModSystem/Runtime/GraphicsModActionData.h
   GraphicsModSystem/Runtime/GraphicsModActionFactory.cpp
   GraphicsModSystem/Runtime/GraphicsModActionFactory.h
   GraphicsModSystem/Runtime/GraphicsModManager.cpp

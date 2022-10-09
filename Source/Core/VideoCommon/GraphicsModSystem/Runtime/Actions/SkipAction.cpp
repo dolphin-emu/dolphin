@@ -3,18 +3,24 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/SkipAction.h"
 
-void SkipAction::OnDrawStarted(bool* skip)
+void SkipAction::OnDrawStarted(GraphicsModActionData::DrawStarted* draw_started)
 {
-  if (!skip)
+  if (!draw_started) [[unlikely]]
     return;
 
-  *skip = true;
+  if (!draw_started->skip) [[unlikely]]
+    return;
+
+  *draw_started->skip = true;
 }
 
-void SkipAction::OnEFB(bool* skip, u32, u32, u32*, u32*)
+void SkipAction::OnEFB(GraphicsModActionData::EFB* efb)
 {
-  if (!skip)
+  if (!efb) [[unlikely]]
     return;
 
-  *skip = true;
+  if (!efb->skip) [[unlikely]]
+    return;
+
+  *efb->skip = true;
 }
