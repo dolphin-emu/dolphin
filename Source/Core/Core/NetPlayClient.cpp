@@ -1465,9 +1465,7 @@ void NetPlayClient::OnGameDigestAbort()
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
 {
-  ENetPacket* epac =
-      enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
-  enet_peer_send(m_server, channel_id, epac);
+  ENetUtil::SendPacket(m_server, packet, channel_id);
 }
 
 void NetPlayClient::DisplayPlayersPing()
