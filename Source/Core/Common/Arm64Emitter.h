@@ -559,11 +559,11 @@ struct LogicalImm
     // pick the next sequence of ones. This ensures we get a complete element
     // that has not been cut-in-half due to rotation across the word boundary.
 
-    const int rotation = Common::CountTrailingZeros(value & (value + 1));
+    const int rotation = std::countr_zero(value & (value + 1));
     const u64 normalized = std::rotr(value, rotation);
 
-    const int element_size = Common::CountTrailingZeros(normalized & (normalized + 1));
-    const int ones = Common::CountTrailingZeros(~normalized);
+    const int element_size = std::countr_zero(normalized & (normalized + 1));
+    const int ones = std::countr_one(normalized);
 
     // Check the value is repeating; also ensures element size is a power of two.
 
@@ -578,8 +578,8 @@ struct LogicalImm
     // segment.
 
     r = static_cast<u8>((element_size - rotation) & (element_size - 1));
-    s = (((~element_size + 1) << 1) | (ones - 1)) & 0x3f;
-    n = (element_size >> 6) & 1;
+    s = static_cast<u8>((((~element_size + 1) << 1) | (ones - 1)) & 0x3f);
+    n = Common::ExtractBit<6>(element_size);
 
     valid = true;
   }
