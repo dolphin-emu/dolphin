@@ -948,7 +948,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.downcountAmount = 0;
   js.skipInstructions = 0;
   js.carryFlag = CarryFlag::InPPCState;
-  js.constantGqr.clear();
+  js.constantGqrValid = BitSet8();
 
   // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
   // loads and stores,
@@ -979,6 +979,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         CMP_or_TEST(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm32(value));
         J_CC(CC_NZ, target);
       }
+      js.constantGqrValid = gqr_static;
     }
   }
 

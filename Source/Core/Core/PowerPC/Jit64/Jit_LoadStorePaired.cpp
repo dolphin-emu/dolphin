@@ -35,10 +35,6 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   int w = indexed ? inst.Wx : inst.W;
   FALLBACK_IF(!a);
 
-  auto it = js.constantGqr.find(i);
-  bool gqrIsConstant = it != js.constantGqr.end();
-  u32 gqrValue = gqrIsConstant ? it->second & 0xffff : 0;
-
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
   RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
   RCOpArg Rb = indexed ? gpr.Use(b, RCMode::Read) : RCOpArg::Imm32((u32)offset);
@@ -56,8 +52,10 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   else
     CVTPD2PS(XMM0, Rs);  // pair
 
+  const bool gqrIsConstant = js.constantGqrValid[i];
   if (gqrIsConstant)
   {
+    const u32 gqrValue = js.constantGqr[i] & 0xffff;
     int type = gqrValue & 0x7;
 
     // Paired stores (other than w/type zero) don't yield any real change in
@@ -126,10 +124,6 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   int w = indexed ? inst.Wx : inst.W;
   FALLBACK_IF(!a);
 
-  auto it = js.constantGqr.find(i);
-  bool gqrIsConstant = it != js.constantGqr.end();
-  u32 gqrValue = gqrIsConstant ? it->second >> 16 : 0;
-
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
   RCX64Reg Ra = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
   RCOpArg Rb = indexed ? gpr.Use(b, RCMode::Read) : RCOpArg::Imm32((u32)offset);
@@ -142,8 +136,10 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   if (update && !jo.memcheck)
     MOV(32, Ra, R(RSCRATCH_EXTRA));
 
+  const bool gqrIsConstant = js.constantGqrValid[i];
   if (gqrIsConstant)
   {
+    const u32 gqrValue = js.constantGqr[i] >> 16;
     GenQuantizedLoad(w == 1, static_cast<EQuantizeType>(gqrValue & 0x7), (gqrValue & 0x3F00) >> 8);
   }
   else
