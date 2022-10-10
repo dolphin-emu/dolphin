@@ -26,9 +26,9 @@ bool DSPHLE::Initialize(bool wii, bool dsp_thread)
   SetUCode(UCODE_ROM);
 
   m_dsp_control.Hex = 0;
-  m_dsp_control.DSPHalt = 1;
-  m_dsp_control.DSPInit = 1;
-  m_mail_handler.SetHalted(m_dsp_control.DSPHalt);
+  m_dsp_control.DSPHalt() = true;
+  m_dsp_control.DSPInit() = true;
+  m_mail_handler.SetHalted(m_dsp_control.DSPHalt());
 
   m_dsp_state.Reset();
 
@@ -191,24 +191,24 @@ void DSPHLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
 // Other DSP functions
 u16 DSPHLE::DSP_WriteControlRegister(u16 value)
 {
-  DSP::UDSPControl temp(value);
+  DSP::DSPControl temp(value);
 
-  if (m_dsp_control.DSPHalt != temp.DSPHalt)
+  if (m_dsp_control.DSPHalt() != temp.DSPHalt())
   {
     INFO_LOG_FMT(DSPHLE, "DSP_CONTROL halt bit changed: {:04x} -> {:04x}", m_dsp_control.Hex,
                  value);
-    m_mail_handler.SetHalted(temp.DSPHalt);
+    m_mail_handler.SetHalted(temp.DSPHalt());
   }
 
-  if (temp.DSPReset)
+  if (temp.DSPReset())
   {
     SetUCode(UCODE_ROM);
-    temp.DSPReset = 0;
+    temp.DSPReset() = false;
   }
 
   // init - unclear if writing DSPInitCode does something. Clearing DSPInit immediately sets
   // DSPInitCode, which gets unset a bit later...
-  if ((m_dsp_control.DSPInit != 0) && (temp.DSPInit == 0))
+  if (m_dsp_control.DSPInit() && !temp.DSPInit())
   {
     // Copy 1024(?) bytes of uCode from main memory 0x81000000 (or is it ARAM 00000000?)
     // to IMEM 0000 and jump to that code
@@ -218,7 +218,7 @@ u16 DSPHLE::DSP_WriteControlRegister(u16 value)
     // Datel has similar logic to retail games, but they clear bit 0x80 (DSP) instead of bit 0x800
     // (DSPInit) so they end up not using the init uCode.
     SetUCode(UCODE_INIT_AUDIO_SYSTEM);
-    temp.DSPInitCode = 1;
+    temp.DSPInitCode() = true;
     // Number obtained from real hardware on a Wii, but it's not perfectly consistent
     m_control_reg_init_code_clear_time = SystemTimers::GetFakeTimeBase() + 130;
   }
@@ -229,10 +229,10 @@ u16 DSPHLE::DSP_WriteControlRegister(u16 value)
 
 u16 DSPHLE::DSP_ReadControlRegister()
 {
-  if (m_dsp_control.DSPInitCode != 0)
+  if (m_dsp_control.DSPInitCode())
   {
     if (SystemTimers::GetFakeTimeBase() >= m_control_reg_init_code_clear_time)
-      m_dsp_control.DSPInitCode = 0;
+      m_dsp_control.DSPInitCode() = false;
     else
       CoreTiming::ForceExceptionCheck(50);  // Keep checking
   }

@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -47,34 +48,33 @@ enum
   ARAM_MASK = 0x00FFFFFF,
 };
 
-// UDSPControl
+// DSPControl
 constexpr u16 DSP_CONTROL_MASK = 0x0C07;
-union UDSPControl
+struct DSPControl
 {
   u16 Hex;
-  struct
-  {
-    // DSP Control
-    u16 DSPReset : 1;  // Write 1 to reset and waits for 0
-    u16 DSPAssertInt : 1;
-    u16 DSPHalt : 1;
-    // Interrupt for DMA to the AI/speakers
-    u16 AID : 1;
-    u16 AID_mask : 1;
-    // ARAM DMA interrupt
-    u16 ARAM : 1;
-    u16 ARAM_mask : 1;
-    // DSP DMA interrupt
-    u16 DSP : 1;
-    u16 DSP_mask : 1;
-    // Other ???
-    u16 DMAState : 1;     // DSPGetDMAStatus() uses this flag. __ARWaitForDMA() uses it too...maybe
-                          // it's just general DMA flag
-    u16 DSPInitCode : 1;  // Indicator that the DSP was initialized?
-    u16 DSPInit : 1;      // DSPInit() writes to this flag
-    u16 pad : 4;
-  };
-  UDSPControl(u16 hex = 0) : Hex(hex) {}
+
+  // DSP Control
+  BFVIEW(bool, 1, 0, DSPReset)  // Write 1 to reset and waits for 0
+  BFVIEW(bool, 1, 1, DSPAssertInt)
+  BFVIEW(bool, 1, 2, DSPHalt)
+  // Interrupt for DMA to the AI/speakers
+  BFVIEW(bool, 1, 3, AID)
+  BFVIEW(bool, 1, 4, AID_mask)
+  // ARAM DMA interrupt
+  BFVIEW(bool, 1, 5, ARAM)
+  BFVIEW(bool, 1, 6, ARAM_mask)
+  // DSP DMA interrupt
+  BFVIEW(bool, 1, 7, DSP)
+  BFVIEW(bool, 1, 8, DSP_mask)
+  // Other ???
+  BFVIEW(bool, 1, 9, DMAState)      // DSPGetDMAStatus() uses this flag. __ARWaitForDMA()
+                                    // uses it too... maybe it's just general DMA flag
+  BFVIEW(bool, 1, 10, DSPInitCode)  // Indicator that the DSP was initialized?
+  BFVIEW(bool, 1, 11, DSPInit)      // DSPInit() writes to this flag
+  BFVIEW(u16, 4, 12, pad)
+
+  DSPControl(u16 hex = 0) : Hex(hex) {}
 };
 
 void Init(bool hle);
