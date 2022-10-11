@@ -107,20 +107,20 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
   if (format->enable)
   {
     m_elems[m_num_elems].SemanticName = "TEXCOORD";
-    m_elems[m_num_elems].SemanticIndex = SHADER_POSITION_ATTRIB;
+    m_elems[m_num_elems].SemanticIndex = static_cast<u32>(ShaderAttrib::Position);
     m_elems[m_num_elems].AlignedByteOffset = format->offset;
     m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
     m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
     ++m_num_elems;
   }
 
-  for (int i = 0; i < 3; i++)
+  for (u32 i = 0; i < 3; i++)
   {
     format = &vtx_decl.normals[i];
     if (format->enable)
     {
       m_elems[m_num_elems].SemanticName = "TEXCOORD";
-      m_elems[m_num_elems].SemanticIndex = SHADER_NORMAL_ATTRIB + i;
+      m_elems[m_num_elems].SemanticIndex = static_cast<u32>(ShaderAttrib::Normal + i);
       m_elems[m_num_elems].AlignedByteOffset = format->offset;
       m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
       m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
@@ -128,13 +128,13 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
     }
   }
 
-  for (int i = 0; i < 2; i++)
+  for (u32 i = 0; i < 2; i++)
   {
     format = &vtx_decl.colors[i];
     if (format->enable)
     {
       m_elems[m_num_elems].SemanticName = "TEXCOORD";
-      m_elems[m_num_elems].SemanticIndex = SHADER_COLOR0_ATTRIB + i;
+      m_elems[m_num_elems].SemanticIndex = static_cast<u32>(ShaderAttrib::Color0 + i);
       m_elems[m_num_elems].AlignedByteOffset = format->offset;
       m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
       m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
@@ -142,13 +142,13 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
     }
   }
 
-  for (int i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; i++)
   {
     format = &vtx_decl.texcoords[i];
     if (format->enable)
     {
       m_elems[m_num_elems].SemanticName = "TEXCOORD";
-      m_elems[m_num_elems].SemanticIndex = SHADER_TEXTURE0_ATTRIB + i;
+      m_elems[m_num_elems].SemanticIndex = static_cast<u32>(ShaderAttrib::TexCoord0 + i);
       m_elems[m_num_elems].AlignedByteOffset = format->offset;
       m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
       m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
@@ -160,7 +160,7 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
   if (format->enable)
   {
     m_elems[m_num_elems].SemanticName = "TEXCOORD";
-    m_elems[m_num_elems].SemanticIndex = SHADER_POSMTX_ATTRIB;
+    m_elems[m_num_elems].SemanticIndex = static_cast<u32>(ShaderAttrib::PositionMatrix);
     m_elems[m_num_elems].AlignedByteOffset = format->offset;
     m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
     m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;

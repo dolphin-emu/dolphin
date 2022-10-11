@@ -138,7 +138,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     m_continue_install = Memory::Read_U32(request.buffer_in + 36);
 
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: patch type {}, continue install: {}",
-                 m_patch_type, m_continue_install ? "true" : "false");
+                 static_cast<u32>(m_patch_type), m_continue_install ? "true" : "false");
 
     if (m_patch_type == PatchType::PATCH_TYPE_2)
     {

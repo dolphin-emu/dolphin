@@ -14,15 +14,12 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
 
-enum
-{
-  FILE_ID = 0x0d01f1f0,
-  VERSION_NUMBER = 5,
-  MIN_LOADER_VERSION = 1,
-  // This value is only used if the DFF file was created with overridden RAM sizes.
-  // If the MIN_LOADER_VERSION ever exceeds this, it's alright to remove it.
-  MIN_LOADER_VERSION_FOR_RAM_OVERRIDE = 5,
-};
+constexpr u32 FILE_ID = 0x0d01f1f0;
+constexpr u32 VERSION_NUMBER = 5;
+constexpr u32 MIN_LOADER_VERSION = 1;
+// This value is only used if the DFF file was created with overridden RAM sizes.
+// If the MIN_LOADER_VERSION ever exceeds this, it's alright to remove it.
+constexpr u32 MIN_LOADER_VERSION_FOR_RAM_OVERRIDE = 5;
 
 #pragma pack(push, 1)
 

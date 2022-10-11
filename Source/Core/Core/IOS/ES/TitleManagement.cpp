@@ -71,7 +71,7 @@ ReturnCode ESDevice::ImportTicket(const std::vector<u8>& ticket_bytes,
     if (ret < 0)
     {
       ERROR_LOG_FMT(IOS_ES, "ImportTicket: Failed to unpersonalise ticket for {:016x} ({})",
-                    ticket.GetTitleId(), ret);
+                    ticket.GetTitleId(), static_cast<s32>(ret));
       return ret;
     }
   }
@@ -156,7 +156,7 @@ ReturnCode ESDevice::ImportTmd(Context& context, const std::vector<u8>& tmd_byte
                         context.title_import_export.tmd, cert_store);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "ImportTmd: VerifyContainer failed with error {}", ret);
+    ERROR_LOG_FMT(IOS_ES, "ImportTmd: VerifyContainer failed with error {}", static_cast<s32>(ret));
     return ret;
   }
 
@@ -170,7 +170,7 @@ ReturnCode ESDevice::ImportTmd(Context& context, const std::vector<u8>& tmd_byte
                       &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "ImportTmd: InitBackupKey failed with error {}", ret);
+    ERROR_LOG_FMT(IOS_ES, "ImportTmd: InitBackupKey failed with error {}", static_cast<s32>(ret));
     return ret;
   }
 

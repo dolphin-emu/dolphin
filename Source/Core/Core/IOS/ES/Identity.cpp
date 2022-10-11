@@ -146,14 +146,16 @@ ReturnCode ESDevice::VerifySign(const std::vector<u8>& hash, const std::vector<u
                         certs_bytes, ng_cert);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "VerifySign: VerifyContainer(ng) failed with error {}", ret);
+    ERROR_LOG_FMT(IOS_ES, "VerifySign: VerifyContainer(ng) failed with error {}",
+                  static_cast<s32>(ret));
     return ret;
   }
 
   ret = iosc.VerifyPublicKeySign(ap.GetSha1(), ng_cert, ap.GetSignatureData(), PID_ES);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(ap) failed with error {}", ret);
+    ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(ap) failed with error {}",
+                  static_cast<s32>(ret));
     return ret;
   }
 
@@ -166,7 +168,8 @@ ReturnCode ESDevice::VerifySign(const std::vector<u8>& hash, const std::vector<u
   ret = iosc.ImportPublicKey(ap_cert, ap.GetPublicKey().data(), nullptr, PID_ES);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_ImportPublicKey(ap) failed with error {}", ret);
+    ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_ImportPublicKey(ap) failed with error {}",
+                  static_cast<s32>(ret));
     return ret;
   }
 
@@ -174,7 +177,8 @@ ReturnCode ESDevice::VerifySign(const std::vector<u8>& hash, const std::vector<u
   ret = iosc.VerifyPublicKeySign(hash_digest, ap_cert, ecc_signature, PID_ES);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(data) failed with error {}", ret);
+    ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(data) failed with error {}",
+                  static_cast<s32>(ret));
     return ret;
   }
 
