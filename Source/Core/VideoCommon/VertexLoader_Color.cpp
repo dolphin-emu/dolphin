@@ -176,33 +176,18 @@ void Color_ReadDirect_32b_8888(VertexLoader* loader)
   SetCol(loader, DataReadU32Unswapped());
 }
 
-using Common::EnumMap;
+using Row = Common::EnumMap<TPipelineFunction, ColorFormat::RGBA8888>;
+using Table = Common::EnumMap<Row, VertexComponentFormat::Index16>;
 
-// These functions are to work around a "too many initializer values" error with nested brackets
-// C++ does not let you write std::array<std::array<u32, 2>, 2> a = {{1, 2}, {3, 4}}
-// (although it does allow std::array<std::array<u32, 2>, 2> b = {1, 2, 3, 4})
-constexpr EnumMap<TPipelineFunction, ColorFormat::RGBA8888>
-f(EnumMap<TPipelineFunction, ColorFormat::RGBA8888> in)
-{
-  return in;
-}
-constexpr EnumMap<u32, ColorFormat::RGBA8888> g(EnumMap<u32, ColorFormat::RGBA8888> in)
-{
-  return in;
-}
-
-template <typename T>
-using Table = EnumMap<EnumMap<T, ColorFormat::RGBA8888>, VertexComponentFormat::Index16>;
-
-constexpr Table<TPipelineFunction> s_table_read_color = {
-    f({nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}),
-    f({Color_ReadDirect_16b_565, Color_ReadDirect_24b_888, Color_ReadDirect_32b_888x,
-       Color_ReadDirect_16b_4444, Color_ReadDirect_24b_6666, Color_ReadDirect_32b_8888}),
-    f({Color_ReadIndex_16b_565<u8>, Color_ReadIndex_24b_888<u8>, Color_ReadIndex_32b_888x<u8>,
-       Color_ReadIndex_16b_4444<u8>, Color_ReadIndex_24b_6666<u8>, Color_ReadIndex_32b_8888<u8>}),
-    f({Color_ReadIndex_16b_565<u16>, Color_ReadIndex_24b_888<u16>, Color_ReadIndex_32b_888x<u16>,
-       Color_ReadIndex_16b_4444<u16>, Color_ReadIndex_24b_6666<u16>,
-       Color_ReadIndex_32b_8888<u16>}),
+constexpr Table s_table_read_color = {
+    Row(nullptr, nullptr, nullptr, nullptr, nullptr, nullptr),
+    Row(Color_ReadDirect_16b_565, Color_ReadDirect_24b_888, Color_ReadDirect_32b_888x,
+        Color_ReadDirect_16b_4444, Color_ReadDirect_24b_6666, Color_ReadDirect_32b_8888),
+    Row(Color_ReadIndex_16b_565<u8>, Color_ReadIndex_24b_888<u8>, Color_ReadIndex_32b_888x<u8>,
+        Color_ReadIndex_16b_4444<u8>, Color_ReadIndex_24b_6666<u8>, Color_ReadIndex_32b_8888<u8>),
+    Row(Color_ReadIndex_16b_565<u16>, Color_ReadIndex_24b_888<u16>, Color_ReadIndex_32b_888x<u16>,
+        Color_ReadIndex_16b_4444<u16>, Color_ReadIndex_24b_6666<u16>,
+        Color_ReadIndex_32b_8888<u16>),
 };
 
 }  // Anonymous namespace

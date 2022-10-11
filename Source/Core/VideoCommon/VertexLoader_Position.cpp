@@ -77,65 +77,38 @@ void Pos_ReadIndex(VertexLoader* loader)
   LOG_VTX();
 }
 
-using Common::EnumMap;
+using ComponentCountRow = Common::EnumMap<TPipelineFunction, CoordComponentCount::XYZ>;
+using ComponentFormatTable = Common::EnumMap<ComponentCountRow, ComponentFormat::Float>;
+using Table = Common::EnumMap<ComponentFormatTable, VertexComponentFormat::Index16>;
 
-// These functions are to work around a "too many initializer values" error with nested brackets
-// C++ does not let you write std::array<std::array<u32, 2>, 2> a = {{1, 2}, {3, 4}}
-// (although it does allow std::array<std::array<u32, 2>, 2> b = {1, 2, 3, 4})
-constexpr EnumMap<TPipelineFunction, CoordComponentCount::XYZ> e(TPipelineFunction xy,
-                                                                 TPipelineFunction xyz)
-{
-  return {xy, xyz};
-}
-constexpr EnumMap<u32, CoordComponentCount::XYZ> e(u32 xy, u32 xyz)
-{
-  return {xy, xyz};
-}
-
-constexpr EnumMap<EnumMap<TPipelineFunction, CoordComponentCount::XYZ>, ComponentFormat::Float>
-f(EnumMap<EnumMap<TPipelineFunction, CoordComponentCount::XYZ>, ComponentFormat::Float> in)
-{
-  return in;
-}
-
-constexpr EnumMap<EnumMap<u32, CoordComponentCount::XYZ>, ComponentFormat::Float>
-g(EnumMap<EnumMap<u32, CoordComponentCount::XYZ>, ComponentFormat::Float> in)
-{
-  return in;
-}
-
-template <typename T>
-using Table = EnumMap<EnumMap<EnumMap<T, CoordComponentCount::XYZ>, ComponentFormat::Float>,
-                      VertexComponentFormat::Index16>;
-
-constexpr Table<TPipelineFunction> s_table_read_position = {
-    f({
-        e(nullptr, nullptr),
-        e(nullptr, nullptr),
-        e(nullptr, nullptr),
-        e(nullptr, nullptr),
-        e(nullptr, nullptr),
+constexpr Table s_table_read_position = {
+    ComponentFormatTable({
+        ComponentCountRow(nullptr, nullptr),
+        ComponentCountRow(nullptr, nullptr),
+        ComponentCountRow(nullptr, nullptr),
+        ComponentCountRow(nullptr, nullptr),
+        ComponentCountRow(nullptr, nullptr),
     }),
-    f({
-        e(Pos_ReadDirect<u8, 2>, Pos_ReadDirect<u8, 3>),
-        e(Pos_ReadDirect<s8, 2>, Pos_ReadDirect<s8, 3>),
-        e(Pos_ReadDirect<u16, 2>, Pos_ReadDirect<u16, 3>),
-        e(Pos_ReadDirect<s16, 2>, Pos_ReadDirect<s16, 3>),
-        e(Pos_ReadDirect<float, 2>, Pos_ReadDirect<float, 3>),
+    ComponentFormatTable({
+        ComponentCountRow(Pos_ReadDirect<u8, 2>, Pos_ReadDirect<u8, 3>),
+        ComponentCountRow(Pos_ReadDirect<s8, 2>, Pos_ReadDirect<s8, 3>),
+        ComponentCountRow(Pos_ReadDirect<u16, 2>, Pos_ReadDirect<u16, 3>),
+        ComponentCountRow(Pos_ReadDirect<s16, 2>, Pos_ReadDirect<s16, 3>),
+        ComponentCountRow(Pos_ReadDirect<float, 2>, Pos_ReadDirect<float, 3>),
     }),
-    f({
-        e(Pos_ReadIndex<u8, u8, 2>, Pos_ReadIndex<u8, u8, 3>),
-        e(Pos_ReadIndex<u8, s8, 2>, Pos_ReadIndex<u8, s8, 3>),
-        e(Pos_ReadIndex<u8, u16, 2>, Pos_ReadIndex<u8, u16, 3>),
-        e(Pos_ReadIndex<u8, s16, 2>, Pos_ReadIndex<u8, s16, 3>),
-        e(Pos_ReadIndex<u8, float, 2>, Pos_ReadIndex<u8, float, 3>),
+    ComponentFormatTable({
+        ComponentCountRow(Pos_ReadIndex<u8, u8, 2>, Pos_ReadIndex<u8, u8, 3>),
+        ComponentCountRow(Pos_ReadIndex<u8, s8, 2>, Pos_ReadIndex<u8, s8, 3>),
+        ComponentCountRow(Pos_ReadIndex<u8, u16, 2>, Pos_ReadIndex<u8, u16, 3>),
+        ComponentCountRow(Pos_ReadIndex<u8, s16, 2>, Pos_ReadIndex<u8, s16, 3>),
+        ComponentCountRow(Pos_ReadIndex<u8, float, 2>, Pos_ReadIndex<u8, float, 3>),
     }),
-    f({
-        e(Pos_ReadIndex<u16, u8, 2>, Pos_ReadIndex<u16, u8, 3>),
-        e(Pos_ReadIndex<u16, s8, 2>, Pos_ReadIndex<u16, s8, 3>),
-        e(Pos_ReadIndex<u16, u16, 2>, Pos_ReadIndex<u16, u16, 3>),
-        e(Pos_ReadIndex<u16, s16, 2>, Pos_ReadIndex<u16, s16, 3>),
-        e(Pos_ReadIndex<u16, float, 2>, Pos_ReadIndex<u16, float, 3>),
+    ComponentFormatTable({
+        ComponentCountRow(Pos_ReadIndex<u16, u8, 2>, Pos_ReadIndex<u16, u8, 3>),
+        ComponentCountRow(Pos_ReadIndex<u16, s8, 2>, Pos_ReadIndex<u16, s8, 3>),
+        ComponentCountRow(Pos_ReadIndex<u16, u16, 2>, Pos_ReadIndex<u16, u16, 3>),
+        ComponentCountRow(Pos_ReadIndex<u16, s16, 2>, Pos_ReadIndex<u16, s16, 3>),
+        ComponentCountRow(Pos_ReadIndex<u16, float, 2>, Pos_ReadIndex<u16, float, 3>),
     }),
 };
 }  // Anonymous namespace
