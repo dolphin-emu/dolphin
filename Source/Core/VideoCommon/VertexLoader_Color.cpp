@@ -186,10 +186,6 @@ f(EnumMap<TPipelineFunction, ColorFormat::RGBA8888> in)
 {
   return in;
 }
-constexpr EnumMap<u32, ColorFormat::RGBA8888> g(EnumMap<u32, ColorFormat::RGBA8888> in)
-{
-  return in;
-}
 
 template <typename T>
 using Table = EnumMap<EnumMap<T, ColorFormat::RGBA8888>, VertexComponentFormat::Index16>;

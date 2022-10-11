@@ -87,19 +87,9 @@ constexpr EnumMap<TPipelineFunction, CoordComponentCount::XYZ> e(TPipelineFuncti
 {
   return {xy, xyz};
 }
-constexpr EnumMap<u32, CoordComponentCount::XYZ> e(u32 xy, u32 xyz)
-{
-  return {xy, xyz};
-}
 
 constexpr EnumMap<EnumMap<TPipelineFunction, CoordComponentCount::XYZ>, ComponentFormat::Float>
 f(EnumMap<EnumMap<TPipelineFunction, CoordComponentCount::XYZ>, ComponentFormat::Float> in)
-{
-  return in;
-}
-
-constexpr EnumMap<EnumMap<u32, CoordComponentCount::XYZ>, ComponentFormat::Float>
-g(EnumMap<EnumMap<u32, CoordComponentCount::XYZ>, ComponentFormat::Float> in)
 {
   return in;
 }

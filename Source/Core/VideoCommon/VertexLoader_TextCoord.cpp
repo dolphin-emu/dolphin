@@ -76,19 +76,9 @@ constexpr EnumMap<TPipelineFunction, TexComponentCount::ST> e(TPipelineFunction 
 {
   return {s, st};
 }
-constexpr EnumMap<u32, TexComponentCount::ST> e(u32 s, u32 st)
-{
-  return {s, st};
-}
 
 constexpr EnumMap<EnumMap<TPipelineFunction, TexComponentCount::ST>, ComponentFormat::Float>
 f(EnumMap<EnumMap<TPipelineFunction, TexComponentCount::ST>, ComponentFormat::Float> in)
-{
-  return in;
-}
-
-constexpr EnumMap<EnumMap<u32, TexComponentCount::ST>, ComponentFormat::Float>
-g(EnumMap<EnumMap<u32, TexComponentCount::ST>, ComponentFormat::Float> in)
 {
   return in;
 }
