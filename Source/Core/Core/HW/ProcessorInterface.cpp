@@ -142,7 +142,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::InvalidWrite<u32>());
 
   // 16 bit reads are based on 32 bit reads.
-  for (int i = 0; i < 0x1000; i += 4)
+  for (u32 i = 0; i < 0x1000; i += 4)
   {
     mmio->Register(base | i, MMIO::ReadToLarger<u16>(mmio, base | i, 16),
                    MMIO::InvalidWrite<u16>());

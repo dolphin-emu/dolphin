@@ -433,7 +433,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   // Map 8 bit reads (not writes) to 16 bit reads.
-  for (int i = 0; i < 0x1000; i += 2)
+  for (u32 i = 0; i < 0x1000; i += 2)
   {
     mmio->Register(base | i, MMIO::ReadToLarger<u8>(mmio, base | i, 8), MMIO::InvalidWrite<u8>());
     mmio->Register(base | (i + 1), MMIO::ReadToLarger<u8>(mmio, base | i, 0),
@@ -441,7 +441,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 
   // Map 32 bit reads and writes to 16 bit reads and writes.
-  for (int i = 0; i < 0x1000; i += 4)
+  for (u32 i = 0; i < 0x1000; i += 4)
   {
     mmio->Register(base | i, MMIO::ReadToSmaller<u32>(mmio, base | i, base | (i + 2)),
                    MMIO::WriteToSmaller<u32>(mmio, base | i, base | (i + 2)));
