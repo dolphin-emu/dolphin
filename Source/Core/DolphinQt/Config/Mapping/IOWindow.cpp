@@ -303,6 +303,7 @@ void IOWindow::CreateMainLayout()
   m_functions_combo->addItem(QStringLiteral("min"));
   m_functions_combo->addItem(QStringLiteral("max"));
   m_functions_combo->addItem(QStringLiteral("clamp"));
+  m_functions_combo->addItem(QStringLiteral("abs"));
 
   m_variables_combo = new QComboBoxWithMouseWheelDisabled(this);
   m_variables_combo->addItem(tr("User Variables"));
