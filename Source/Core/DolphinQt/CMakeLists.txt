@@ -626,7 +626,7 @@ if(APPLE)
       /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/Dolphin.app" || true)
   endif()
 else()
-  install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
+  install(TARGETS dolphin-emu RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND STEAM)

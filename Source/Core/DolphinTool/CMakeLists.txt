@@ -25,4 +25,4 @@ if(MSVC)
 endif()
 
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} dolphin-tool)
-install(TARGETS dolphin-tool RUNTIME DESTINATION ${bindir})
+install(TARGETS dolphin-tool RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
