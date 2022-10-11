@@ -6,8 +6,9 @@
 
 #include <gtest/gtest.h>
 
-#include "Common/BitUtils.h"
 #include "Common/FloatUtils.h"
+
+#include "Common/Future/CppLibBitCast.h"
 
 TEST(FloatUtils, IsQNAN)
 {
@@ -50,15 +51,15 @@ TEST(FloatUtils, FlushToZero)
   for (u32 i = 0; i <= 0x007fffffu; ++i)
   {
     u32 i_tmp = i;
-    EXPECT_EQ(+0.f, Common::FlushToZero(Common::BitCast<float>(i_tmp)));
+    EXPECT_EQ(+0.f, Common::FlushToZero(std::bit_cast<float>(i_tmp)));
 
     i_tmp |= 0x80000000u;
-    EXPECT_EQ(-0.f, Common::FlushToZero(Common::BitCast<float>(i_tmp)));
+    EXPECT_EQ(-0.f, Common::FlushToZero(std::bit_cast<float>(i_tmp)));
 
     i_tmp = dist(engine);
-    EXPECT_EQ(i_tmp, Common::BitCast<u32>(Common::FlushToZero(Common::BitCast<float>(i_tmp))));
+    EXPECT_EQ(i_tmp, std::bit_cast<u32>(Common::FlushToZero(std::bit_cast<float>(i_tmp))));
 
     i_tmp |= 0x80000000u;
-    EXPECT_EQ(i_tmp, Common::BitCast<u32>(Common::FlushToZero(Common::BitCast<float>(i_tmp))));
+    EXPECT_EQ(i_tmp, std::bit_cast<u32>(Common::FlushToZero(std::bit_cast<float>(i_tmp))));
   }
 }

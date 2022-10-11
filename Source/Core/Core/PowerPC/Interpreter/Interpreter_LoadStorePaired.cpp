@@ -9,13 +9,14 @@
 #include <utility>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+
+#include "Common/Future/CppLibBitCast.h"
 
 // dequantize table
 const float m_dequantizeTable[] = {
@@ -185,7 +186,7 @@ static void Helper_Quantize(const PowerPC::PowerPCState* ppcs, u32 addr, u32 ins
   {
   case QUANTIZE_FLOAT:
   {
-    const u64 integral_ps0 = Common::BitCast<u64>(ps0);
+    const u64 integral_ps0 = std::bit_cast<u64>(ps0);
     const u32 conv_ps0 = ConvertToSingleFTZ(integral_ps0);
 
     if (instW != 0)
@@ -194,7 +195,7 @@ static void Helper_Quantize(const PowerPC::PowerPCState* ppcs, u32 addr, u32 ins
     }
     else
     {
-      const u64 integral_ps1 = Common::BitCast<u64>(ps1);
+      const u64 integral_ps1 = std::bit_cast<u64>(ps1);
       const u32 conv_ps1 = ConvertToSingleFTZ(integral_ps1);
 
       WritePair<u32>(conv_ps0, conv_ps1, addr);
@@ -264,14 +265,14 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
     if (instW != 0)
     {
       const u32 value = ReadUnpaired<u32>(addr);
-      ps0 = Common::BitCast<double>(ConvertToDouble(value));
+      ps0 = std::bit_cast<double>(ConvertToDouble(value));
       ps1 = 1.0;
     }
     else
     {
       const auto [first, second] = ReadPair<u32>(addr);
-      ps0 = Common::BitCast<double>(ConvertToDouble(first));
-      ps1 = Common::BitCast<double>(ConvertToDouble(second));
+      ps0 = std::bit_cast<double>(ConvertToDouble(first));
+      ps1 = std::bit_cast<double>(ConvertToDouble(second));
     }
     break;
 

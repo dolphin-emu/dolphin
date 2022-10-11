@@ -59,6 +59,7 @@ add_library(common
   FloatUtils.h
   FormatUtil.h
   FPURoundMode.h
+  Future/CppLibBitCast.h
   Future/CppLibConcepts.h
   GekkoDisassembler.cpp
   GekkoDisassembler.h

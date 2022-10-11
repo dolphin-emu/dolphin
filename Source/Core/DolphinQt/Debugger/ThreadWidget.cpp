@@ -11,12 +11,13 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-#include "Common/BitUtils.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Settings.h"
+
+#include "Common/Future/CppLibBitCast.h"
 
 ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
 {
@@ -349,8 +350,7 @@ void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& cont
   const auto format_f64_as_u64_idx = [](const auto& table, std::size_t index) {
     if (!table || index >= table->size())
       return QString{};
-    return QStringLiteral("%1").arg(Common::BitCast<u64>(table->at(index)), 16, 16,
-                                    QLatin1Char('0'));
+    return QStringLiteral("%1").arg(std::bit_cast<u64>(table->at(index)), 16, 16, QLatin1Char('0'));
   };
 
   m_context_table->setRowCount(0);

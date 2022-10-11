@@ -6,8 +6,9 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/Random.h"
+
+#include "Common/Future/CppLibBitCast.h"
 
 #include <gtest/gtest.h>
 
@@ -33,7 +34,7 @@ public:
 
     FlushIcacheSection(const_cast<u8*>(fn), const_cast<u8*>(GetCodePtr()));
 
-    const u64 result = Common::BitCast<u64 (*)()>(fn)();
+    const u64 result = std::bit_cast<u64 (*)()>(fn)();
     EXPECT_EQ(value, result);
   }
 
@@ -50,7 +51,7 @@ public:
 
     FlushIcacheSection(const_cast<u8*>(fn), const_cast<u8*>(GetCodePtr()));
 
-    const u64 result = Common::BitCast<u64 (*)()>(fn)();
+    const u64 result = std::bit_cast<u64 (*)()>(fn)();
     EXPECT_EQ(value, result);
   }
 };
@@ -113,7 +114,7 @@ TEST(JitArm64, MovI2R_LogImm)
 TEST(JitArm64, MovI2R_ADP)
 {
   TestMovI2R test;
-  const u64 base = Common::BitCast<u64>(test.GetCodePtr());
+  const u64 base = std::bit_cast<u64>(test.GetCodePtr());
 
   // Test offsets around 0
   for (s64 i = -0x20000; i < 0x20000; i++)
@@ -136,7 +137,7 @@ TEST(JitArm64, MovI2R_ADP)
 TEST(JitArm64, MovI2R_ADRP)
 {
   TestMovI2R test;
-  const u64 base = Common::BitCast<u64>(test.GetCodePtr()) & ~0xFFF;
+  const u64 base = std::bit_cast<u64>(test.GetCodePtr()) & ~0xFFF;
 
   // Test offsets around 0
   for (s64 i = -0x20000; i < 0x20000; i++)

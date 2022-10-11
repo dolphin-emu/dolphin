@@ -3,7 +3,6 @@
 
 #include <cstring>
 
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
 #include "Common/x64ABI.h"
@@ -11,6 +10,8 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+
+#include "Common/Future/CppLibBitCast.h"
 
 #include "../TestValues.h"
 
@@ -64,9 +65,9 @@ TEST(Jit64, Frsqrte)
 
   for (const u64 ivalue : double_test_values)
   {
-    double dvalue = Common::BitCast<double>(ivalue);
+    double dvalue = std::bit_cast<double>(ivalue);
 
-    u64 expected = Common::BitCast<u64>(Common::ApproximateReciprocalSquareRoot(dvalue));
+    u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocalSquareRoot(dvalue));
 
     u64 actual = routines.wrapped_frsqrte(ivalue, fpscr);
 

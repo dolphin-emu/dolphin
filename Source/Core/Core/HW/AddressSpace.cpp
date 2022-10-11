@@ -5,11 +5,12 @@
 
 #include <algorithm>
 
-#include "Common/BitUtils.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
+
+#include "Common/Future/CppLibBitCast.h"
 
 namespace AddressSpace
 {
@@ -54,7 +55,7 @@ void Accessors::WriteU64(u32 address, u64 value)
 
 float Accessors::ReadF32(u32 address) const
 {
-  return Common::BitCast<float>(ReadU32(address));
+  return std::bit_cast<float>(ReadU32(address));
 }
 
 Accessors::iterator Accessors::begin() const

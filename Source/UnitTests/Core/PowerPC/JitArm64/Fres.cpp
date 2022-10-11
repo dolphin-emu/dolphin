@@ -4,11 +4,12 @@
 #include <functional>
 
 #include "Common/Arm64Emitter.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/PowerPC.h"
+
+#include "Common/Future/CppLibBitCast.h"
 
 #include "../TestValues.h"
 
@@ -30,7 +31,7 @@ public:
     const u8* raw_fres = GetCodePtr();
     GenerateFres();
 
-    fres = Common::BitCast<u64 (*)(u64)>(GetCodePtr());
+    fres = std::bit_cast<u64 (*)(u64)>(GetCodePtr());
     MOV(ARM64Reg::X15, ARM64Reg::X30);
     MOV(ARM64Reg::X14, PPC_REG);
     MOVP2R(PPC_REG, &PowerPC::ppcState);
@@ -54,9 +55,9 @@ TEST(JitArm64, Fres)
 
   for (const u64 ivalue : double_test_values)
   {
-    const double dvalue = Common::BitCast<double>(ivalue);
+    const double dvalue = std::bit_cast<double>(ivalue);
 
-    const u64 expected = Common::BitCast<u64>(Common::ApproximateReciprocal(dvalue));
+    const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocal(dvalue));
     const u64 actual = test.fres(ivalue);
 
     if (expected != actual)

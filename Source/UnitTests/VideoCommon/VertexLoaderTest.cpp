@@ -9,7 +9,6 @@
 
 #include <gtest/gtest.h>  // NOLINT
 
-#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/CPMemory.h"
@@ -17,6 +16,8 @@
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
+
+#include "Common/Future/CppLibBitCast.h"
 
 TEST(VertexLoaderUID, UniqueEnough)
 {
@@ -81,7 +82,7 @@ protected:
     const float actual = m_dst.Read<float, false>();
 
     if (!actual || actual != actual)
-      EXPECT_EQ(Common::BitCast<u32>(expected), Common::BitCast<u32>(actual));
+      EXPECT_EQ(std::bit_cast<u32>(expected), std::bit_cast<u32>(actual));
     else
       EXPECT_EQ(expected, actual);
   }

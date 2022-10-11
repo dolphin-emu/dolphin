@@ -6,7 +6,6 @@
 #include <limits>
 
 #include "Common/Arm64Emitter.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
 #include "Common/JitRegister.h"
@@ -20,6 +19,8 @@
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+
+#include "Common/Future/CppLibBitCast.h"
 
 using namespace Arm64Gen;
 
@@ -262,8 +263,7 @@ void JitArm64::GenerateFres()
   SetJumpTarget(small_exponent);
   TST(ARM64Reg::X1, LogicalImm(Common::DOUBLE_EXP | Common::DOUBLE_FRAC, 64));
   FixupBranch zero = B(CCFlags::CC_EQ);
-  MOVI2R(ARM64Reg::X4,
-         Common::BitCast<u64>(static_cast<double>(std::numeric_limits<float>::max())));
+  MOVI2R(ARM64Reg::X4, std::bit_cast<u64>(static_cast<double>(std::numeric_limits<float>::max())));
   ORR(ARM64Reg::X0, ARM64Reg::X3, ARM64Reg::X4);
   RET();
 
@@ -333,7 +333,7 @@ void JitArm64::GenerateFrsqrte()
   RET();
 
   SetJumpTarget(nan_or_inf);
-  MOVI2R(ARM64Reg::X3, Common::BitCast<u64>(-std::numeric_limits<double>::infinity()));
+  MOVI2R(ARM64Reg::X3, std::bit_cast<u64>(-std::numeric_limits<double>::infinity()));
   CMP(ARM64Reg::X1, ARM64Reg::X3);
   FixupBranch nan_or_positive_inf = B(CCFlags::CC_NEQ);
 

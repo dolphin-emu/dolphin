@@ -30,6 +30,8 @@
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/XFStructs.h"
 
+#include "Common/Future/CppLibBitCast.h"
+
 // Values range from 0 to number of frames - 1
 constexpr int FRAME_ROLE = Qt::UserRole;
 // Values range from 0 to number of parts - 1
@@ -650,7 +652,7 @@ public:
         }
         if (format == ComponentFormat::Float)
         {
-          const float value = Common::BitCast<float>(Common::swap32(&vertex_data[i]));
+          const float value = std::bit_cast<float>(Common::swap32(&vertex_data[i]));
           text += QStringLiteral(" (%1)").arg(value);
         }
         i += component_size;

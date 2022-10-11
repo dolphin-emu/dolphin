@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
@@ -32,6 +31,8 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 
+#include "Common/Future/CppLibBitCast.h"
+
 namespace PowerPC
 {
 // STATE_TO_SAVE
@@ -50,22 +51,22 @@ static CoreTiming::EventType* s_invalidate_cache_thread_safe;
 
 double PairedSingle::PS0AsDouble() const
 {
-  return Common::BitCast<double>(ps0);
+  return std::bit_cast<double>(ps0);
 }
 
 double PairedSingle::PS1AsDouble() const
 {
-  return Common::BitCast<double>(ps1);
+  return std::bit_cast<double>(ps1);
 }
 
 void PairedSingle::SetPS0(double value)
 {
-  ps0 = Common::BitCast<u64>(value);
+  ps0 = std::bit_cast<u64>(value);
 }
 
 void PairedSingle::SetPS1(double value)
 {
-  ps1 = Common::BitCast<u64>(value);
+  ps1 = std::bit_cast<u64>(value);
 }
 
 static void InvalidateCacheThreadSafe(u64 userdata, s64 cyclesLate)
