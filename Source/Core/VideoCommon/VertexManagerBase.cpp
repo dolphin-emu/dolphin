@@ -557,13 +557,11 @@ void VertexManagerBase::DoState(PointerWrap& p)
   {
     // Flush old vertex data before loading state.
     Flush();
-
-    // Clear all caches that touch RAM
-    // (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
-    VertexLoaderManager::MarkAllDirty();
   }
 
   p.Do(m_zslope);
+  p.Do(VertexLoaderManager::tangent_cache);
+  p.Do(VertexLoaderManager::binormal_cache);
 }
 
 void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)

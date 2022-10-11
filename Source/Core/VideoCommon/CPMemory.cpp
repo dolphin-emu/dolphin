@@ -15,24 +15,6 @@
 CPState g_main_cp_state;
 CPState g_preprocess_cp_state;
 
-void DoCPState(PointerWrap& p)
-{
-  // We don't save g_preprocess_cp_state separately because the GPU should be
-  // synced around state save/load.
-  p.DoArray(g_main_cp_state.array_bases);
-  p.DoArray(g_main_cp_state.array_strides);
-  p.Do(g_main_cp_state.matrix_index_a);
-  p.Do(g_main_cp_state.matrix_index_b);
-  p.Do(g_main_cp_state.vtx_desc);
-  p.DoArray(g_main_cp_state.vtx_attr);
-  p.DoMarker("CP Memory");
-  if (p.IsReadMode())
-  {
-    CopyPreprocessCPStateFromMain();
-    VertexLoaderManager::g_bases_dirty = true;
-  }
-}
-
 void CopyPreprocessCPStateFromMain()
 {
   std::memcpy(&g_preprocess_cp_state, &g_main_cp_state, sizeof(CPState));
