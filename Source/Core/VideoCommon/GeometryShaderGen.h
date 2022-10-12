@@ -6,6 +6,7 @@
 #include <fmt/format.h>
 #include <functional>
 
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/RenderState.h"
@@ -19,8 +20,10 @@ struct geometry_shader_uid_data
   u32 NumValues() const { return sizeof(geometry_shader_uid_data); }
   bool IsPassthrough() const;
 
-  u32 numTexGens : 4;
-  u32 primitive_type : 2;
+  u8 _data1;
+
+  BFVIEW(u32, 4, 0, numTexGens);
+  BFVIEW(PrimitiveType, 2, 4, primitive_type);
 };
 #pragma pack()
 
@@ -38,7 +41,7 @@ struct fmt::formatter<geometry_shader_uid_data>
   template <typename FormatContext>
   auto format(const geometry_shader_uid_data& uid, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "passthrough: {}, {} tex gens, primitive type {}",
-                          uid.IsPassthrough(), uid.numTexGens, uid.primitive_type);
+    return fmt::format_to(ctx.out(), "passthrough: {}, {} tex gens, primitive type: {}",
+                          uid.IsPassthrough(), uid.numTexGens(), uid.primitive_type());
   }
 };

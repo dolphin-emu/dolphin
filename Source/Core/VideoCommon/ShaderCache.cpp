@@ -1244,8 +1244,8 @@ void ShaderCache::QueueUberShaderPipelines()
         config.vs_uid = vs_uid;
         config.gs_uid = gs_uid;
         config.ps_uid = ps_uid;
-        config.rasterization_state = RenderState::GetCullBackFaceRasterizationState(
-            static_cast<PrimitiveType>(gs_uid.GetUidData()->primitive_type));
+        config.rasterization_state =
+            RenderState::GetCullBackFaceRasterizationState(gs_uid.GetUidData()->primitive_type());
         config.depth_state = RenderState::GetNoDepthTestingDepthState();
         config.blending_state = blend;
         if (ps_uid.GetUidData()->uint_output)
@@ -1273,7 +1273,7 @@ void ShaderCache::QueueUberShaderPipelines()
       UberShader::PixelShaderUid cleared_puid = puid;
       UberShader::ClearUnusedPixelShaderUidBits(m_api_type, m_host_config, &cleared_puid);
       EnumerateGeometryShaderUids([&](const GeometryShaderUid& guid) {
-        if (guid.GetUidData()->numTexGens != vuid.GetUidData()->num_texgens ||
+        if (guid.GetUidData()->numTexGens() != vuid.GetUidData()->num_texgens ||
             (!guid.GetUidData()->IsPassthrough() && !m_host_config.backend_geometry_shaders()))
         {
           return;

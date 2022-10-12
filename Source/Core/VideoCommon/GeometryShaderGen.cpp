@@ -33,7 +33,7 @@ bool geometry_shader_uid_data::IsPassthrough() const
 {
   const bool stereo = g_ActiveConfig.stereo_mode != StereoMode::Off;
   const bool wireframe = g_ActiveConfig.bWireFrame;
-  return primitive_type >= static_cast<u32>(PrimitiveType::Triangles) && !stereo && !wireframe;
+  return primitive_type() >= PrimitiveType::Triangles && !stereo && !wireframe;
 }
 
 GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type)
@@ -41,8 +41,8 @@ GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type)
   GeometryShaderUid out;
 
   geometry_shader_uid_data* const uid_data = out.GetUidData();
-  uid_data->primitive_type = static_cast<u32>(primitive_type);
-  uid_data->numTexGens = xfmem.numTexGen.numTexGens;
+  uid_data->primitive_type() = primitive_type;
+  uid_data->numTexGens() = xfmem.numTexGen.numTexGens;
 
   return out;
 }
@@ -64,7 +64,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
   const bool msaa = host_config.msaa();
   const bool ssaa = host_config.ssaa();
   const bool stereo = host_config.stereo();
-  const auto primitive_type = static_cast<PrimitiveType>(uid_data->primitive_type);
+  const PrimitiveType primitive_type = uid_data->primitive_type();
   const u32 vertex_in = vertex_in_map[primitive_type];
   u32 vertex_out = vertex_out_map[primitive_type];
 
@@ -103,7 +103,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
             "}};\n");
 
   out.Write("struct VS_OUTPUT {{\n");
-  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "",
+  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens(), host_config, "",
                           ShaderStage::Geometry);
   out.Write("}};\n");
 
@@ -113,13 +113,13 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
       out.Write("#define InstanceID gl_InvocationID\n");
 
     out.Write("VARYING_LOCATION(0) in VertexData {{\n");
-    GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
+    GenerateVSOutputMembers(out, api_type, uid_data->numTexGens(), host_config,
                             GetInterpolationQualifier(msaa, ssaa, true, true),
                             ShaderStage::Geometry);
     out.Write("}} vs[{}];\n", vertex_in);
 
     out.Write("VARYING_LOCATION(0) out VertexData {{\n");
-    GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
+    GenerateVSOutputMembers(out, api_type, uid_data->numTexGens(), host_config,
                             GetInterpolationQualifier(msaa, ssaa, true, false),
                             ShaderStage::Geometry);
 
@@ -162,8 +162,8 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     {
       out.Write("\tVS_OUTPUT start, end;\n");
-      AssignVSOutputMembers(out, "start", "vs[0]", uid_data->numTexGens, host_config);
-      AssignVSOutputMembers(out, "end", "vs[1]", uid_data->numTexGens, host_config);
+      AssignVSOutputMembers(out, "start", "vs[0]", uid_data->numTexGens(), host_config);
+      AssignVSOutputMembers(out, "end", "vs[1]", uid_data->numTexGens(), host_config);
     }
     else
     {
@@ -193,7 +193,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     {
       out.Write("\tVS_OUTPUT center;\n");
-      AssignVSOutputMembers(out, "center", "vs[0]", uid_data->numTexGens, host_config);
+      AssignVSOutputMembers(out, "center", "vs[0]", uid_data->numTexGens(), host_config);
     }
     else
     {
@@ -228,7 +228,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
     out.Write("\tVS_OUTPUT f;\n");
-    AssignVSOutputMembers(out, "f", "vs[i]", uid_data->numTexGens, host_config);
+    AssignVSOutputMembers(out, "f", "vs[i]", uid_data->numTexGens(), host_config);
 
     if (host_config.backend_depth_clamp() &&
         DriverDetails::HasBug(DriverDetails::BUG_BROKEN_CLIP_DISTANCE))
@@ -268,7 +268,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     out.Write("\tif (" I_TEXOFFSET "[2] != 0) {{\n");
     out.Write("\tfloat texOffset = 1.0 / float(" I_TEXOFFSET "[2]);\n");
 
-    for (u32 i = 0; i < uid_data->numTexGens; ++i)
+    for (u32 i = 0; i < uid_data->numTexGens(); ++i)
     {
       out.Write("\tif (((" I_TEXOFFSET "[0] >> {}) & 0x1) != 0)\n", i);
       out.Write("\t\tr.tex{}.x += texOffset;\n", i);
@@ -294,7 +294,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     out.Write("\tfloat2 texOffset = float2(1.0 / float(" I_TEXOFFSET
               "[3]), 1.0 / float(" I_TEXOFFSET "[3]));\n");
 
-    for (u32 i = 0; i < uid_data->numTexGens; ++i)
+    for (u32 i = 0; i < uid_data->numTexGens(); ++i)
     {
       out.Write("\tif (((" I_TEXOFFSET "[1] >> {}) & 0x1) != 0) {{\n", i);
       out.Write("\t\tul.tex{}.xy += float2(0,1) * texOffset;\n", i);
@@ -348,7 +348,7 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
       out.Write("\tgl_ClipDistance[0] = {}.clipDist0;\n", vertex);
       out.Write("\tgl_ClipDistance[1] = {}.clipDist1;\n", vertex);
     }
-    AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, host_config);
+    AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens(), host_config);
   }
   else
   {
@@ -397,11 +397,11 @@ void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUi
   for (PrimitiveType primitive : primitive_lut)
   {
     geometry_shader_uid_data* const guid = uid.GetUidData();
-    guid->primitive_type = static_cast<u32>(primitive);
+    guid->primitive_type() = primitive;
 
     for (u32 texgens = 0; texgens <= 8; texgens++)
     {
-      guid->numTexGens = texgens;
+      guid->numTexGens() = texgens;
       callback(uid);
     }
   }
