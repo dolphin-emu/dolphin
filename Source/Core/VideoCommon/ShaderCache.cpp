@@ -621,10 +621,10 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   pixel_shader_uid_data* ps = out.ps_uid.GetUidData();
   BlendingState& blend = out.blending_state;
 
-  if (ps->ztest == EmulatedZ::ForcedEarly && !out.depth_state.updateenable())
+  if (ps->ztest() == EmulatedZ::ForcedEarly && !out.depth_state.updateenable())
   {
     // No need to force early depth test if you're not writing z
-    ps->ztest = EmulatedZ::Early;
+    ps->ztest() = EmulatedZ::Early;
   }
 
   const bool benefits_from_ps_dual_source_off =
@@ -634,7 +634,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   if (benefits_from_ps_dual_source_off && !blend.RequiresDualSrc())
   {
     // Only use dual-source blending when required on drivers that don't support it very well.
-    ps->no_dual_src = true;
+    ps->no_dual_src() = true;
     blend.usedualsrc() = false;
   }
 
@@ -643,32 +643,32 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
     bool fbfetch_blend = false;
     if ((DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z) ||
          !g_ActiveConfig.backend_info.bSupportsEarlyZ) &&
-        ps->ztest == EmulatedZ::ForcedEarly)
+        ps->ztest() == EmulatedZ::ForcedEarly)
     {
-      ps->ztest = EmulatedZ::EarlyWithFBFetch;
+      ps->ztest() = EmulatedZ::EarlyWithFBFetch;
       fbfetch_blend |= out.blending_state.blendenable();
-      ps->no_dual_src = true;
+      ps->no_dual_src() = true;
     }
     fbfetch_blend |= blend.logicopenable() && !g_ActiveConfig.backend_info.bSupportsLogicOp;
     fbfetch_blend |= blend.usedualsrc() && !g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
     if (fbfetch_blend)
     {
-      ps->no_dual_src = true;
+      ps->no_dual_src() = true;
       if (blend.logicopenable())
       {
-        ps->logic_op_enable = true;
-        ps->logic_op_mode = static_cast<u32>(blend.logicmode());
+        ps->logic_op_enable() = true;
+        ps->logic_op_mode() = blend.logicmode();
         blend.logicopenable() = false;
       }
       if (blend.blendenable())
       {
-        ps->blend_enable = true;
-        ps->blend_src_factor = blend.srcfactor();
-        ps->blend_src_factor_alpha = blend.srcfactoralpha();
-        ps->blend_dst_factor = blend.dstfactor();
-        ps->blend_dst_factor_alpha = blend.dstfactoralpha();
-        ps->blend_subtract = blend.subtract();
-        ps->blend_subtract_alpha = blend.subtractAlpha();
+        ps->blend_enable() = true;
+        ps->blend_src_factor() = blend.srcfactor();
+        ps->blend_src_factor_alpha() = blend.srcfactoralpha();
+        ps->blend_dst_factor() = blend.dstfactor();
+        ps->blend_dst_factor_alpha() = blend.dstfactoralpha();
+        ps->blend_subtract() = blend.subtract();
+        ps->blend_subtract_alpha() = blend.subtractAlpha();
         blend.blendenable() = false;
       }
     }
@@ -677,14 +677,14 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   // force dual src off if we can't support it
   if (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
   {
-    ps->no_dual_src = true;
+    ps->no_dual_src() = true;
     blend.usedualsrc() = false;
   }
 
-  if (ps->ztest == EmulatedZ::ForcedEarly && !g_ActiveConfig.backend_info.bSupportsEarlyZ)
+  if (ps->ztest() == EmulatedZ::ForcedEarly && !g_ActiveConfig.backend_info.bSupportsEarlyZ)
   {
     // These things should be false
-    ASSERT(!ps->zfreeze);
+    ASSERT(!ps->zfreeze());
     // ZCOMPLOC HACK:
     // The only way to emulate alpha test + early-z is to force early-z in the shader.
     // As this isn't available on all drivers and as we can't emulate this feature otherwise,
@@ -692,7 +692,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
     // Tests seem to have proven that writing depth even when the alpha test fails is more
     // important that a reliable alpha test, so we just force the alpha test to always succeed.
     // At least this seems to be less buggy.
-    ps->ztest = EmulatedZ::EarlyWithZComplocHack;
+    ps->ztest() = EmulatedZ::EarlyWithZComplocHack;
   }
 
   return out;
