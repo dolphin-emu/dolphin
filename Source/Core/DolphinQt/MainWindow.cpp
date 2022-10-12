@@ -16,6 +16,8 @@
 #include <QVBoxLayout>
 #include <QWindow>
 
+#include <fmt/format.h>
+
 #include <future>
 #include <optional>
 #include <variant>
@@ -1346,8 +1348,8 @@ void MainWindow::SetStateSlot(int slot)
   Settings::Instance().SetStateSlot(slot);
   m_state_slot = slot;
 
-  Core::DisplayMessage(StringFromFormat("Selected slot %d - %s", m_state_slot,
-                                        State::GetInfoStringOfSlot(m_state_slot, false).c_str()),
+  Core::DisplayMessage(fmt::format("Selected slot {} - {}", m_state_slot,
+                                   State::GetInfoStringOfSlot(m_state_slot, false)),
                        2500);
 }
 

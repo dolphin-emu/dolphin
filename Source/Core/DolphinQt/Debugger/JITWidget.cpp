@@ -9,8 +9,9 @@
 #include <QTextBrowser>
 #include <QVBoxLayout>
 
+#include <fmt/format.h>
+
 #include "Common/GekkoDisassembler.h"
-#include "Common/StringUtil.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "UICommon/Disassembler.h"
 
@@ -214,7 +215,7 @@ void JITWidget::Update()
   {
     m_host_asm_widget->setHtml(
         QStringLiteral("<pre>%1</pre>")
-            .arg(QString::fromStdString(StringFromFormat("(non-code address: %08x)", m_address))));
+            .arg(QString::fromStdString(fmt::format("(non-code address: {:08x})", m_address))));
     m_ppc_asm_widget->setHtml(QStringLiteral("<i>---</i>"));
   }
 }

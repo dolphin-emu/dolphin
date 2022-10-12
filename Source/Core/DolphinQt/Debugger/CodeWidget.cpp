@@ -5,6 +5,8 @@
 
 #include <chrono>
 
+#include <fmt/format.h>
+
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -16,7 +18,6 @@
 #include <QWidget>
 
 #include "Common/Event.h"
-#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/CPU.h"
@@ -389,7 +390,7 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
     if (call_symbol)
     {
       const QString name =
-          QString::fromStdString(StringFromFormat("> %s (%08x)", call_symbol->name.c_str(), addr));
+          QString::fromStdString(fmt::format("> {} ({:08x})", call_symbol->name, addr));
 
       if (name.toUpper().indexOf(filter.toUpper()) == -1)
         continue;
@@ -413,8 +414,8 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
 
     if (caller_symbol)
     {
-      const QString name = QString::fromStdString(
-          StringFromFormat("< %s (%08x)", caller_symbol->name.c_str(), addr));
+      const QString name =
+          QString::fromStdString(fmt::format("< {} ({:08x})", caller_symbol->name, addr));
 
       if (name.toUpper().indexOf(filter.toUpper()) == -1)
         continue;
