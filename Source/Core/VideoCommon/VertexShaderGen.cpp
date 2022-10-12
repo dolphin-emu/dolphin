@@ -20,34 +20,34 @@ VertexShaderUid GetVertexShaderUid()
 
   VertexShaderUid out;
   vertex_shader_uid_data* const uid_data = out.GetUidData();
-  uid_data->numTexGens = xfmem.numTexGen.numTexGens;
-  uid_data->components = VertexLoaderManager::g_current_components;
-  uid_data->numColorChans = xfmem.numChan.numColorChans;
+  uid_data->numTexGens() = xfmem.numTexGen.numTexGens;
+  uid_data->components() = VertexLoaderManager::g_current_components;
+  uid_data->numColorChans() = xfmem.numChan.numColorChans;
 
   GetLightingShaderUid(uid_data->lighting);
 
   // transform texcoords
-  for (u32 i = 0; i < uid_data->numTexGens; ++i)
+  for (u32 i = 0; i < uid_data->numTexGens(); ++i)
   {
     auto& texinfo = uid_data->texMtxInfo[i];
 
-    texinfo.sourcerow = xfmem.texMtxInfo[i].sourcerow;
-    texinfo.texgentype = xfmem.texMtxInfo[i].texgentype;
-    texinfo.inputform = xfmem.texMtxInfo[i].inputform;
+    texinfo.sourcerow() = xfmem.texMtxInfo[i].sourcerow;
+    texinfo.texgentype() = xfmem.texMtxInfo[i].texgentype;
+    texinfo.inputform() = xfmem.texMtxInfo[i].inputform;
 
     // first transformation
-    switch (texinfo.texgentype)
+    switch (texinfo.texgentype())
     {
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
-      if ((uid_data->components & (VB_HAS_TANGENT | VB_HAS_BINORMAL)) != 0)
+      if ((uid_data->components() & (VB_HAS_TANGENT | VB_HAS_BINORMAL)) != 0)
       {
         // transform the light dir into tangent space
-        texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
-        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
+        texinfo.embosslightshift() = xfmem.texMtxInfo[i].embosslightshift;
+        texinfo.embosssourceshift() = xfmem.texMtxInfo[i].embosssourceshift;
       }
       else
       {
-        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
+        texinfo.embosssourceshift() = xfmem.texMtxInfo[i].embosssourceshift;
       }
       break;
     case TexGenType::Color0:
@@ -55,18 +55,17 @@ VertexShaderUid GetVertexShaderUid()
       break;
     case TexGenType::Regular:
     default:
-      uid_data->texMtxInfo_n_projection |= static_cast<u32>(xfmem.texMtxInfo[i].projection.Value())
-                                           << i;
+      uid_data->texMtxInfo_n_projection()[i] = xfmem.texMtxInfo[i].projection;
       break;
     }
 
-    uid_data->dualTexTrans_enabled = xfmem.dualTexTrans.enabled;
+    uid_data->dualTexTrans_enabled() = xfmem.dualTexTrans.enabled;
     // CHECKME: does this only work for regular tex gen types?
-    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
+    if (uid_data->dualTexTrans_enabled() && texinfo.texgentype() == TexGenType::Regular)
     {
       auto& postInfo = uid_data->postMtxInfo[i];
-      postInfo.index = xfmem.postMtxInfo[i].index;
-      postInfo.normalize = xfmem.postMtxInfo[i].normalize;
+      postInfo.index() = xfmem.postMtxInfo[i].index;
+      postInfo.normalize() = xfmem.postMtxInfo[i].normalize;
     }
   }
 
@@ -92,42 +91,42 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("}};\n");
 
   out.Write("struct VS_OUTPUT {{\n");
-  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "",
+  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens(), host_config, "",
                           ShaderStage::Vertex);
   out.Write("}};\n\n");
 
   WriteIsNanHeader(out, api_type);
 
   out.Write("ATTRIBUTE_LOCATION({}) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
-  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+  if ((uid_data->components() & VB_HAS_POSMTXIDX) != 0)
     out.Write("ATTRIBUTE_LOCATION({}) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
-  if ((uid_data->components & VB_HAS_NORMAL) != 0)
+  if ((uid_data->components() & VB_HAS_NORMAL) != 0)
     out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnormal;\n", SHADER_NORMAL_ATTRIB);
-  if ((uid_data->components & VB_HAS_TANGENT) != 0)
+  if ((uid_data->components() & VB_HAS_TANGENT) != 0)
     out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtangent;\n", SHADER_TANGENT_ATTRIB);
-  if ((uid_data->components & VB_HAS_BINORMAL) != 0)
+  if ((uid_data->components() & VB_HAS_BINORMAL) != 0)
     out.Write("ATTRIBUTE_LOCATION({}) in float3 rawbinormal;\n", SHADER_BINORMAL_ATTRIB);
 
-  if ((uid_data->components & VB_HAS_COL0) != 0)
+  if ((uid_data->components() & VB_HAS_COL0) != 0)
     out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
-  if ((uid_data->components & VB_HAS_COL1) != 0)
+  if ((uid_data->components() & VB_HAS_COL1) != 0)
     out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
 
   for (u32 i = 0; i < 8; ++i)
   {
-    const u32 has_texmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
+    const bool has_texmtx = (uid_data->components() & (VB_HAS_TEXMTXIDX0 << i)) != 0;
 
-    if ((uid_data->components & (VB_HAS_UV0 << i)) != 0 || has_texmtx != 0)
+    if ((uid_data->components() & (VB_HAS_UV0 << i)) != 0 || has_texmtx)
     {
       out.Write("ATTRIBUTE_LOCATION({}) in float{} rawtex{};\n", SHADER_TEXTURE0_ATTRIB + i,
-                has_texmtx != 0 ? 3 : 2, i);
+                has_texmtx ? 3 : 2, i);
     }
   }
 
   if (host_config.backend_geometry_shaders())
   {
     out.Write("VARYING_LOCATION(0) out VertexData {{\n");
-    GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
+    GenerateVSOutputMembers(out, api_type, uid_data->numTexGens(), host_config,
                             GetInterpolationQualifier(msaa, ssaa, true, false),
                             ShaderStage::Vertex);
     out.Write("}} vs;\n");
@@ -140,7 +139,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
               GetInterpolationQualifier(msaa, ssaa));
     out.Write("VARYING_LOCATION({}) {} out float4 colors_1;\n", counter++,
               GetInterpolationQualifier(msaa, ssaa));
-    for (u32 i = 0; i < uid_data->numTexGens; ++i)
+    for (u32 i = 0; i < uid_data->numTexGens(); ++i)
     {
       out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
@@ -170,15 +169,15 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   // To use color 1, the vertex descriptor must have color 0 and 1.
   // If color 1 is present but not color 0, it is used for lighting channel 0.
   const bool use_color_1 =
-      (uid_data->components & (VB_HAS_COL0 | VB_HAS_COL1)) == (VB_HAS_COL0 | VB_HAS_COL1);
+      (uid_data->components() & (VB_HAS_COL0 | VB_HAS_COL1)) == (VB_HAS_COL0 | VB_HAS_COL1);
   for (u32 color = 0; color < NUM_XF_COLOR_CHANNELS; color++)
   {
-    if ((color == 0 || use_color_1) && (uid_data->components & (VB_HAS_COL0 << color)) != 0)
+    if ((color == 0 || use_color_1) && (uid_data->components() & (VB_HAS_COL0 << color)) != 0)
     {
       // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are present.
       out.Write("vertex_color_{0} = rawcolor{0};\n", color);
     }
-    else if (color == 0 && (uid_data->components & VB_HAS_COL1) != 0)
+    else if (color == 0 && (uid_data->components() & VB_HAS_COL1) != 0)
     {
       // Use color1 for channel 0 if color0 is not present.
       out.Write("vertex_color_{} = rawcolor1;\n", color);
@@ -190,14 +189,14 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   }
 
   // transforms
-  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+  if ((uid_data->components() & VB_HAS_POSMTXIDX) != 0)
   {
     // Vertex format has a per-vertex matrix
     out.Write("int posidx = int(posmtx.r);\n"
               "float4 P0 = " I_TRANSFORMMATRICES "[posidx];\n"
               "float4 P1 = " I_TRANSFORMMATRICES "[posidx + 1];\n"
               "float4 P2 = " I_TRANSFORMMATRICES "[posidx + 2];\n");
-    if ((uid_data->components & VB_HAS_NORMAL) != 0)
+    if ((uid_data->components() & VB_HAS_NORMAL) != 0)
     {
       out.Write("int normidx = posidx & 31;\n"
                 "float3 N0 = " I_NORMALMATRICES "[normidx].xyz;\n"
@@ -211,7 +210,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("float4 P0 = " I_POSNORMALMATRIX "[0];\n"
               "float4 P1 = " I_POSNORMALMATRIX "[1];\n"
               "float4 P2 = " I_POSNORMALMATRIX "[2];\n");
-    if ((uid_data->components & VB_HAS_NORMAL) != 0)
+    if ((uid_data->components() & VB_HAS_NORMAL) != 0)
     {
       out.Write("float3 N0 = " I_POSNORMALMATRIX "[3].xyz;\n"
                 "float3 N1 = " I_POSNORMALMATRIX "[4].xyz;\n"
@@ -221,11 +220,11 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   out.Write("// Multiply the position vector by the position matrix\n"
             "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n");
-  if ((uid_data->components & VB_HAS_NORMAL) != 0)
+  if ((uid_data->components() & VB_HAS_NORMAL) != 0)
   {
-    if ((uid_data->components & VB_HAS_TANGENT) == 0)
+    if ((uid_data->components() & VB_HAS_TANGENT) == 0)
       out.Write("float3 rawtangent = " I_CACHED_TANGENT ".xyz;\n");
-    if ((uid_data->components & VB_HAS_BINORMAL) == 0)
+    if ((uid_data->components() & VB_HAS_BINORMAL) == 0)
       out.Write("float3 rawbinormal = " I_CACHED_BINORMAL ".xyz;\n");
 
     // The scale of the transform matrix is used to control the size of the emboss map effect, by
@@ -258,42 +257,43 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   // transform texcoords
   out.Write("float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n");
-  for (u32 i = 0; i < uid_data->numTexGens; ++i)
+  for (u32 i = 0; i < uid_data->numTexGens(); ++i)
   {
     auto& texinfo = uid_data->texMtxInfo[i];
 
     out.Write("{{\n");
     out.Write("coord = float4(0.0, 0.0, 1.0, 1.0);\n");
-    switch (texinfo.sourcerow)
+    switch (texinfo.sourcerow())
     {
     case SourceRow::Geom:
       out.Write("coord.xyz = rawpos.xyz;\n");
       break;
     case SourceRow::Normal:
-      if ((uid_data->components & VB_HAS_NORMAL) != 0)
+      if ((uid_data->components() & VB_HAS_NORMAL) != 0)
       {
         out.Write("coord.xyz = rawnormal.xyz;\n");
       }
       break;
     case SourceRow::Colors:
-      ASSERT(texinfo.texgentype == TexGenType::Color0 || texinfo.texgentype == TexGenType::Color1);
+      ASSERT(texinfo.texgentype() == TexGenType::Color0 ||
+             texinfo.texgentype() == TexGenType::Color1);
       break;
     case SourceRow::BinormalT:
-      if ((uid_data->components & VB_HAS_TANGENT) != 0)
+      if ((uid_data->components() & VB_HAS_TANGENT) != 0)
       {
         out.Write("coord.xyz = rawtangent.xyz;\n");
       }
       break;
     case SourceRow::BinormalB:
-      if ((uid_data->components & VB_HAS_BINORMAL) != 0)
+      if ((uid_data->components() & VB_HAS_BINORMAL) != 0)
       {
         out.Write("coord.xyz = rawbinormal.xyz;\n");
       }
       break;
     default:
-      ASSERT(texinfo.sourcerow >= SourceRow::Tex0 && texinfo.sourcerow <= SourceRow::Tex7);
-      u32 texnum = static_cast<u32>(texinfo.sourcerow) - static_cast<u32>(SourceRow::Tex0);
-      if ((uid_data->components & (VB_HAS_UV0 << (texnum))) != 0)
+      ASSERT(texinfo.sourcerow() >= SourceRow::Tex0 && texinfo.sourcerow() <= SourceRow::Tex7);
+      u32 texnum = static_cast<u32>(texinfo.sourcerow()) - static_cast<u32>(SourceRow::Tex0);
+      if ((uid_data->components() & (VB_HAS_UV0 << (texnum))) != 0)
       {
         out.Write("coord = float4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n", texnum, texnum);
       }
@@ -301,7 +301,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
     // Input form of AB11 sets z element to 1.0
 
-    if (texinfo.inputform == TexInputForm::AB11)
+    if (texinfo.inputform() == TexInputForm::AB11)
       out.Write("coord.z = 1.0;\n");
 
     // Convert NaNs to 1 - needed to fix eyelids in Shadow the Hedgehog during cutscenes
@@ -312,16 +312,16 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("if (dolphin_isnan(coord.z)) coord.z = 1.0;\n");
 
     // first transformation
-    switch (texinfo.texgentype)
+    switch (texinfo.texgentype())
     {
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
 
       // transform the light dir into tangent space
       out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
-                LIGHT_POS_PARAMS(texinfo.embosslightshift));
+                LIGHT_POS_PARAMS(texinfo.embosslightshift()));
       out.Write(
           "o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n",
-          i, texinfo.embosssourceshift);
+          i, texinfo.embosssourceshift());
 
       break;
     case TexGenType::Color0:
@@ -332,10 +332,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       break;
     case TexGenType::Regular:
     default:
-      if ((uid_data->components & (VB_HAS_TEXMTXIDX0 << i)) != 0)
+      if ((uid_data->components() & (VB_HAS_TEXMTXIDX0 << i)) != 0)
       {
         out.Write("int tmp = int(rawtex{}.z);\n", i);
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        if (uid_data->texMtxInfo_n_projection()[i] == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
                     "[tmp]), dot(coord, " I_TRANSFORMMATRICES
@@ -351,7 +351,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       else
       {
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        if (uid_data->texMtxInfo_n_projection()[i] == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TEXMATRICES
                     "[{}]), dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
@@ -369,16 +369,17 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
 
     // CHECKME: does this only work for regular tex gen types?
-    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
+    if (uid_data->dualTexTrans_enabled() && texinfo.texgentype() == TexGenType::Regular)
     {
       auto& postInfo = uid_data->postMtxInfo[i];
 
       out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES "[{}];\n"
                 "float4 P1 = " I_POSTTRANSFORMMATRICES "[{}];\n"
                 "float4 P2 = " I_POSTTRANSFORMMATRICES "[{}];\n",
-                postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
+                postInfo.index() & 0x3f, (postInfo.index() + 1) & 0x3f,
+                (postInfo.index() + 2) & 0x3f);
 
-      if (postInfo.normalize)
+      if (postInfo.normalize())
         out.Write("o.tex{}.xyz = normalize(o.tex{}.xyz);\n", i, i);
 
       // multiply by postmatrix
@@ -392,7 +393,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // This can be seen in devkitPro's neheGX Lesson08 example for Wii
     // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
     // TODO: check if this only affects XF_TEXGEN_REGULAR
-    if (texinfo.texgentype == TexGenType::Regular)
+    if (texinfo.texgentype() == TexGenType::Regular)
     {
       out.Write(
           "if(o.tex{0}.z == 0.0f)\n"
@@ -419,9 +420,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   {
     // The number of colors available to TEV is determined by numColorChans.
     // We have to provide the fields to match the interface, so set to zero if it's not enabled.
-    if (uid_data->numColorChans == 0)
+    if (uid_data->numColorChans() == 0)
       out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-    if (uid_data->numColorChans <= 1)
+    if (uid_data->numColorChans() <= 1)
       out.Write("o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
@@ -520,13 +521,13 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   if (host_config.backend_geometry_shaders())
   {
-    AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, host_config);
+    AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens(), host_config);
   }
   else
   {
     // TODO: Pass interface blocks between shader stages even if geometry shaders
     // are not supported, however that will require at least OpenGL 3.2 support.
-    for (u32 i = 0; i < uid_data->numTexGens; ++i)
+    for (u32 i = 0; i < uid_data->numTexGens(); ++i)
       out.Write("tex{}.xyz = o.tex{};\n", i, i);
     if (!host_config.fast_depth_calc())
       out.Write("clipPos = o.clipPos;\n");

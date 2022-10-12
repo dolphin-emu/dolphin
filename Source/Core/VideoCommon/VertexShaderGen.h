@@ -38,29 +38,36 @@ enum : int
 struct vertex_shader_uid_data
 {
   u32 NumValues() const { return sizeof(vertex_shader_uid_data); }
-  u32 components : 23;
-  u32 numTexGens : 4;
-  u32 numColorChans : 2;
-  u32 dualTexTrans_enabled : 1;
 
-  u32 texMtxInfo_n_projection : 16;  // Stored separately to guarantee that the texMtxInfo struct is
-                                     // 8 bits wide
-  u32 pad : 18;
+  u32 _data1;
+  u16 _data2;
+
+  BFVIEW_IN(_data1, u32, 23, 0, components)
+  BFVIEW_IN(_data1, u32, 4, 23, numTexGens)
+  BFVIEW_IN(_data1, u32, 2, 27, numColorChans)
+  BFVIEW_IN(_data1, bool, 1, 29, dualTexTrans_enabled)
+  // 1 bit padding
+
+  // Stored separately to guarantee that the texMtxInfo struct is 8 bits wide
+  BFVIEW_IN(_data2, TexSize, 1, 0, texMtxInfo_n_projection, 16);
 
   struct
   {
-    TexInputForm inputform : 2;
-    TexGenType texgentype : 3;
-    SourceRow sourcerow : 5;
-    u32 embosssourceshift : 3;
-    u32 embosslightshift : 3;
+    u16 hex;
+
+    BFVIEW(TexInputForm, 2, 0, inputform)
+    BFVIEW(TexGenType, 3, 2, texgentype)
+    BFVIEW(SourceRow, 5, 5, sourcerow)
+    BFVIEW(u16, 3, 10, embosssourceshift)
+    BFVIEW(u16, 3, 13, embosslightshift)
   } texMtxInfo[8];
 
   struct
   {
-    u32 index : 6;
-    u32 normalize : 1;
-    u32 pad : 1;
+    u8 hex;
+
+    BFVIEW(u8, 6, 0, index)
+    BFVIEW(bool, 1, 6, normalize)
   } postMtxInfo[8];
 
   LightingUidData lighting;
