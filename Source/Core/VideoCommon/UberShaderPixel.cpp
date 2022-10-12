@@ -42,7 +42,7 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   pixel_ubershader_uid_data* const uid_data = uid->GetUidData();
 
   // With fbfetch, ubershaders always blend using that and don't use dual src
-  if (host_config.backend_shader_framebuffer_fetch || !host_config.backend_dual_source_blend)
+  if (host_config.backend_shader_framebuffer_fetch() || !host_config.backend_dual_source_blend())
     uid_data->no_dual_src = 1;
   // Dual source is always enabled in the shader if this bug is not present
   else if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING))
@@ -51,22 +51,22 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
   // Therefore, it is not necessary to use a uint output on these backends. We also disable the
   // uint output when logic op is not supported (i.e. driver/device does not support D3D11.1).
-  if (api_type != APIType::D3D || !host_config.backend_logic_op)
+  if (api_type != APIType::D3D || !host_config.backend_logic_op())
     uid_data->uint_output = 0;
 }
 
 ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
                           const pixel_ubershader_uid_data* uid_data)
 {
-  const bool per_pixel_lighting = host_config.per_pixel_lighting;
-  const bool msaa = host_config.msaa;
-  const bool ssaa = host_config.ssaa;
-  const bool stereo = host_config.stereo;
-  const bool use_framebuffer_fetch = host_config.backend_shader_framebuffer_fetch;
-  const bool use_dual_source = host_config.backend_dual_source_blend && !uid_data->no_dual_src;
+  const bool per_pixel_lighting = host_config.per_pixel_lighting();
+  const bool msaa = host_config.msaa();
+  const bool ssaa = host_config.ssaa();
+  const bool stereo = host_config.stereo();
+  const bool use_framebuffer_fetch = host_config.backend_shader_framebuffer_fetch();
+  const bool use_dual_source = host_config.backend_dual_source_blend() && !uid_data->no_dual_src;
   const bool early_depth = uid_data->early_depth != 0;
   const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
-  const bool bounding_box = host_config.bounding_box;
+  const bool bounding_box = host_config.bounding_box();
   const u32 numTexgen = uid_data->num_texgens;
   ShaderCode out;
 
@@ -128,7 +128,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   if (per_pixel_depth)
     out.Write("#define depth gl_FragDepth\n");
 
-  if (host_config.backend_geometry_shaders)
+  if (host_config.backend_geometry_shaders())
   {
     out.Write("VARYING_LOCATION(0) in VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, numTexgen, host_config,
@@ -149,7 +149,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
     }
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc())
     {
       out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
@@ -239,7 +239,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   //   Texture Sampling
   // =====================
 
-  if (host_config.backend_dynamic_sampler_indexing)
+  if (host_config.backend_dynamic_sampler_indexing())
   {
     // Doesn't look like DirectX supports this. Oh well the code path is here just in case it
     // supports this in the future.
@@ -504,7 +504,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     out.Write(")\n\n");
   }
 
-  if (early_depth && host_config.backend_early_z)
+  if (early_depth && host_config.backend_early_z())
     out.Write("FORCE_EARLY_Z;\n");
 
   out.Write("void main()\n{{\n");
@@ -530,7 +530,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "  float4 ocol1;\n");
   }
 
-  if (host_config.backend_geometry_shaders && stereo)
+  if (host_config.backend_geometry_shaders() && stereo)
   {
     out.Write("\tint layer = gl_Layer;\n");
   }
@@ -876,9 +876,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("  TevResult &= 255;\n\n");
 
-  if (host_config.fast_depth_calc)
+  if (host_config.fast_depth_calc())
   {
-    if (!host_config.backend_reversed_depth_range)
+    if (!host_config.backend_reversed_depth_range())
       out.Write("  int zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
     else
       out.Write("  int zCoord = int(rawpos.z * 16777216.0);\n");
@@ -934,7 +934,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     out.Write("  // If early depth is enabled, write to zbuffer before depth textures\n"
               "  // If early depth isn't enabled, we write to the zbuffer here\n"
               "  int zbuffer_zCoord = bpmem_late_ztest ? zCoord : early_zCoord;\n");
-    if (!host_config.backend_reversed_depth_range)
+    if (!host_config.backend_reversed_depth_range())
       out.Write("  depth = 1.0 - float(zbuffer_zCoord) / 16777216.0;\n");
     else
       out.Write("  depth = float(zbuffer_zCoord) / 16777216.0;\n");

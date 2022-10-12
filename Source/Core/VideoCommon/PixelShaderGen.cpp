@@ -318,12 +318,12 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
   // Therefore, it is not necessary to use a uint output on these backends. We also disable the
   // uint output when logic op is not supported (i.e. driver/device does not support D3D11.1).
-  if (api_type != APIType::D3D || !host_config.backend_logic_op)
+  if (api_type != APIType::D3D || !host_config.backend_logic_op())
     uid_data->uint_output = 0;
 
   // If bounding box is enabled when a UID cache is created, then later disabled, we shouldn't
   // emit the bounding box portion of the shader.
-  uid_data->bounding_box &= host_config.bounding_box & host_config.backend_bbox;
+  uid_data->bounding_box &= host_config.bounding_box() && host_config.backend_bbox();
 }
 
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
@@ -397,7 +397,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "#define samp_texmode0(i) (bpmem_pack2[(i)].z)\n"
             "#define samp_texmode1(i) (bpmem_pack2[(i)].w)\n\n");
 
-  if (host_config.per_pixel_lighting)
+  if (host_config.per_pixel_lighting())
   {
     out.Write("{}", s_lighting_struct);
 
@@ -477,7 +477,7 @@ void UpdateBoundingBox(float2 rawpos) {{
               fmt::arg("efb_height", EFB_HEIGHT), fmt::arg("efb_scale", I_EFBSCALE));
   }
 
-  if (host_config.manual_texture_sampling)
+  if (host_config.manual_texture_sampling())
   {
     out.Write(R"(
 int4 readTexture(in sampler2DArray tex, uint u, uint v, int layer, int lod) {{
@@ -496,7 +496,7 @@ int4 readTextureLinear(in sampler2DArray tex, uint2 uv1, uint2 uv2, int layer, i
 }}
 )");
 
-    if (host_config.manual_texture_sampling_custom_texture_sizes)
+    if (host_config.manual_texture_sampling_custom_texture_sizes())
     {
       // This is slower, and doesn't result in the same odd behavior that happens on console when
       // wrapping with non-power-of-2 sizes, but it's fine for custom textures to have non-console
@@ -555,12 +555,12 @@ uint WrapCoord(int coord, uint wrap, int size) {{
 
   out.Write("\nint4 sampleTexture(uint texmap, in sampler2DArray tex, int2 uv, int layer) {{\n");
 
-  if (!host_config.manual_texture_sampling)
+  if (!host_config.manual_texture_sampling())
   {
     out.Write("  float size_s = float(" I_TEXDIMS "[texmap].x * 128);\n"
               "  float size_t = float(" I_TEXDIMS "[texmap].y * 128);\n"
               "  float3 coords = float3(float(uv.x) / size_s, float(uv.y) / size_t, layer);\n");
-    if (!host_config.backend_sampler_lod_bias)
+    if (!host_config.backend_sampler_lod_bias())
     {
       out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
                 "  float lod_bias = float({}) / 256.0f;\n"
@@ -604,7 +604,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
               BitfieldExtract<&SamplerState::TM1::min_lod>("texmode1"),
               BitfieldExtract<&SamplerState::TM1::max_lod>("texmode1"));
 
-    if (host_config.manual_texture_sampling_custom_texture_sizes)
+    if (host_config.manual_texture_sampling_custom_texture_sizes())
     {
       out.Write(R"(
   int native_size_s = )" I_TEXDIMS R"([texmap].x;
@@ -751,9 +751,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   ShaderCode out;
 
   const bool per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
-  const bool msaa = host_config.msaa;
-  const bool ssaa = host_config.ssaa;
-  const bool stereo = host_config.stereo;
+  const bool msaa = host_config.msaa();
+  const bool ssaa = host_config.ssaa();
+  const bool stereo = host_config.stereo();
   const u32 numStages = uid_data->genMode_numtevstages + 1;
 
   out.Write("// Pixel Shader for TEV stages\n");
@@ -859,7 +859,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   if (uid_data->per_pixel_depth)
     out.Write("#define depth gl_FragDepth\n");
 
-  if (host_config.backend_geometry_shaders)
+  if (host_config.backend_geometry_shaders())
   {
     out.Write("VARYING_LOCATION(0) in VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, uid_data->genMode_numtexgens, host_config,
@@ -880,7 +880,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
     }
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc())
     {
       out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
@@ -921,7 +921,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tfloat4 ocol1;\n");
   }
 
-  if (host_config.backend_geometry_shaders && stereo)
+  if (host_config.backend_geometry_shaders() && stereo)
   {
     out.Write("\tint layer = gl_Layer;\n");
   }
@@ -1074,7 +1074,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tint zCoord = int(" I_ZSLOPE ".z + " I_ZSLOPE ".x * screenpos.x + " I_ZSLOPE
               ".y * screenpos.y);\n");
   }
-  else if (!host_config.fast_depth_calc)
+  else if (!host_config.fast_depth_calc())
   {
     // FastDepth means to trust the depth generated in perspective division.
     // It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
@@ -1088,7 +1088,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   }
   else
   {
-    if (!host_config.backend_reversed_depth_range)
+    if (!host_config.backend_reversed_depth_range())
       out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
     else
       out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
@@ -1105,7 +1105,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
                            uid_data->ztest == EmulatedZ::EarlyWithZComplocHack;
   if (uid_data->per_pixel_depth && early_ztest)
   {
-    if (!host_config.backend_reversed_depth_range)
+    if (!host_config.backend_reversed_depth_range())
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
@@ -1126,7 +1126,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   if (uid_data->per_pixel_depth && uid_data->ztest == EmulatedZ::Late)
   {
-    if (!host_config.backend_reversed_depth_range)
+    if (!host_config.backend_reversed_depth_range())
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");

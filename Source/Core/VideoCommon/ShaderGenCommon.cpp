@@ -13,37 +13,37 @@
 ShaderHostConfig ShaderHostConfig::GetCurrent()
 {
   ShaderHostConfig bits = {};
-  bits.msaa = g_ActiveConfig.iMultisamples > 1;
-  bits.ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA &&
-              g_ActiveConfig.backend_info.bSupportsSSAA;
-  bits.stereo = g_ActiveConfig.stereo_mode != StereoMode::Off;
-  bits.wireframe = g_ActiveConfig.bWireFrame;
-  bits.per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
-  bits.vertex_rounding = g_ActiveConfig.UseVertexRounding();
-  bits.fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
-  bits.bounding_box = g_ActiveConfig.bBBoxEnable;
-  bits.backend_dual_source_blend = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
-  bits.backend_geometry_shaders = g_ActiveConfig.backend_info.bSupportsGeometryShaders;
-  bits.backend_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ;
-  bits.backend_bbox = g_ActiveConfig.backend_info.bSupportsBBox;
-  bits.backend_gs_instancing = g_ActiveConfig.backend_info.bSupportsGSInstancing;
-  bits.backend_clip_control = g_ActiveConfig.backend_info.bSupportsClipControl;
-  bits.backend_ssaa = g_ActiveConfig.backend_info.bSupportsSSAA;
-  bits.backend_atomics = g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics;
-  bits.backend_depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
-  bits.backend_reversed_depth_range = g_ActiveConfig.backend_info.bSupportsReversedDepthRange;
-  bits.backend_bitfield = g_ActiveConfig.backend_info.bSupportsBitfield;
-  bits.backend_dynamic_sampler_indexing =
+  bits.msaa() = g_ActiveConfig.iMultisamples > 1;
+  bits.ssaa() = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA &&
+                g_ActiveConfig.backend_info.bSupportsSSAA;
+  bits.stereo() = g_ActiveConfig.stereo_mode != StereoMode::Off;
+  bits.wireframe() = g_ActiveConfig.bWireFrame;
+  bits.per_pixel_lighting() = g_ActiveConfig.bEnablePixelLighting;
+  bits.vertex_rounding() = g_ActiveConfig.UseVertexRounding();
+  bits.fast_depth_calc() = g_ActiveConfig.bFastDepthCalc;
+  bits.bounding_box() = g_ActiveConfig.bBBoxEnable;
+  bits.backend_dual_source_blend() = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+  bits.backend_geometry_shaders() = g_ActiveConfig.backend_info.bSupportsGeometryShaders;
+  bits.backend_early_z() = g_ActiveConfig.backend_info.bSupportsEarlyZ;
+  bits.backend_bbox() = g_ActiveConfig.backend_info.bSupportsBBox;
+  bits.backend_gs_instancing() = g_ActiveConfig.backend_info.bSupportsGSInstancing;
+  bits.backend_clip_control() = g_ActiveConfig.backend_info.bSupportsClipControl;
+  bits.backend_ssaa() = g_ActiveConfig.backend_info.bSupportsSSAA;
+  bits.backend_atomics() = g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics;
+  bits.backend_depth_clamp() = g_ActiveConfig.backend_info.bSupportsDepthClamp;
+  bits.backend_reversed_depth_range() = g_ActiveConfig.backend_info.bSupportsReversedDepthRange;
+  bits.backend_bitfield() = g_ActiveConfig.backend_info.bSupportsBitfield;
+  bits.backend_dynamic_sampler_indexing() =
       g_ActiveConfig.backend_info.bSupportsDynamicSamplerIndexing;
-  bits.backend_shader_framebuffer_fetch = g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
-  bits.backend_logic_op = g_ActiveConfig.backend_info.bSupportsLogicOp;
-  bits.backend_palette_conversion = g_ActiveConfig.backend_info.bSupportsPaletteConversion;
-  bits.enable_validation_layer = g_ActiveConfig.bEnableValidationLayer;
-  bits.manual_texture_sampling = !g_ActiveConfig.bFastTextureSampling;
-  bits.manual_texture_sampling_custom_texture_sizes =
+  bits.backend_shader_framebuffer_fetch() = g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
+  bits.backend_logic_op() = g_ActiveConfig.backend_info.bSupportsLogicOp;
+  bits.backend_palette_conversion() = g_ActiveConfig.backend_info.bSupportsPaletteConversion;
+  bits.enable_validation_layer() = g_ActiveConfig.bEnableValidationLayer;
+  bits.manual_texture_sampling() = !g_ActiveConfig.bFastTextureSampling;
+  bits.manual_texture_sampling_custom_texture_sizes() =
       g_ActiveConfig.ManualTextureSamplingWithHiResTextures();
-  bits.backend_sampler_lod_bias = g_ActiveConfig.backend_info.bSupportsLodBiasInSampler;
-  bits.backend_dynamic_vertex_loader = g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader;
+  bits.backend_sampler_lod_bias() = g_ActiveConfig.backend_info.bSupportsLodBiasInSampler;
+  bits.backend_dynamic_vertex_loader() = g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader;
   return bits;
 }
 
@@ -106,7 +106,7 @@ void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
   // ==============================================
   //  BitfieldExtract for APIs which don't have it
   // ==============================================
-  if (!host_config.backend_bitfield)
+  if (!host_config.backend_bitfield())
   {
     out.Write("uint bitfieldExtract(uint val, int off, int size) {{\n"
               "  // This built-in function is only supported in OpenGL 4.0+ and ES 3.1+\n"
@@ -163,7 +163,7 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
 
     const unsigned int index_base = 3;
     unsigned int index_offset = 0;
-    if (host_config.backend_geometry_shaders)
+    if (host_config.backend_geometry_shaders())
     {
       DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, stage, "TEXCOORD",
                          index_base + index_offset);
@@ -179,14 +179,14 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
     }
     index_offset += texgens;
 
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc())
     {
       DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, stage, "TEXCOORD",
                          index_base + index_offset);
       index_offset++;
     }
 
-    if (host_config.per_pixel_lighting)
+    if (host_config.per_pixel_lighting())
     {
       DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, stage, "TEXCOORD",
                          index_base + index_offset);
@@ -201,7 +201,7 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
     DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, stage, "COLOR", 0);
     DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, stage, "COLOR", 1);
 
-    if (host_config.backend_geometry_shaders)
+    if (host_config.backend_geometry_shaders())
     {
       DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, stage,
                          "SV_ClipDistance", 0);
@@ -212,11 +212,11 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
     for (unsigned int i = 0; i < texgens; ++i)
       DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, stage, "TEXCOORD", i);
 
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc())
       DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, stage, "TEXCOORD",
                          texgens);
 
-    if (host_config.per_pixel_lighting)
+    if (host_config.per_pixel_lighting())
     {
       DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, stage, "TEXCOORD",
                          texgens + 1);
@@ -236,16 +236,16 @@ void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_v
   for (unsigned int i = 0; i < texgens; ++i)
     object.Write("\t{}.tex{} = {}.tex{};\n", a, i, b, i);
 
-  if (!host_config.fast_depth_calc)
+  if (!host_config.fast_depth_calc())
     object.Write("\t{}.clipPos = {}.clipPos;\n", a, b);
 
-  if (host_config.per_pixel_lighting)
+  if (host_config.per_pixel_lighting())
   {
     object.Write("\t{}.Normal = {}.Normal;\n", a, b);
     object.Write("\t{}.WorldPos = {}.WorldPos;\n", a, b);
   }
 
-  if (host_config.backend_geometry_shaders)
+  if (host_config.backend_geometry_shaders())
   {
     object.Write("\t{}.clipDist0 = {}.clipDist0;\n", a, b);
     object.Write("\t{}.clipDist1 = {}.clipDist1;\n", a, b);

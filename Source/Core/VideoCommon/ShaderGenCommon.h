@@ -144,38 +144,38 @@ private:
 };
 
 // Host config contains the settings which can influence generated shaders.
-union ShaderHostConfig
+struct ShaderHostConfig
 {
   u32 bits;
 
-  BitField<0, 1, bool, u32> msaa;
-  BitField<1, 1, bool, u32> ssaa;
-  BitField<2, 1, bool, u32> stereo;
-  BitField<3, 1, bool, u32> wireframe;
-  BitField<4, 1, bool, u32> per_pixel_lighting;
-  BitField<5, 1, bool, u32> vertex_rounding;
-  BitField<6, 1, bool, u32> fast_depth_calc;
-  BitField<7, 1, bool, u32> bounding_box;
-  BitField<8, 1, bool, u32> backend_dual_source_blend;
-  BitField<9, 1, bool, u32> backend_geometry_shaders;
-  BitField<10, 1, bool, u32> backend_early_z;
-  BitField<11, 1, bool, u32> backend_bbox;
-  BitField<12, 1, bool, u32> backend_gs_instancing;
-  BitField<13, 1, bool, u32> backend_clip_control;
-  BitField<14, 1, bool, u32> backend_ssaa;
-  BitField<15, 1, bool, u32> backend_atomics;
-  BitField<16, 1, bool, u32> backend_depth_clamp;
-  BitField<17, 1, bool, u32> backend_reversed_depth_range;
-  BitField<18, 1, bool, u32> backend_bitfield;
-  BitField<19, 1, bool, u32> backend_dynamic_sampler_indexing;
-  BitField<20, 1, bool, u32> backend_shader_framebuffer_fetch;
-  BitField<21, 1, bool, u32> backend_logic_op;
-  BitField<22, 1, bool, u32> backend_palette_conversion;
-  BitField<23, 1, bool, u32> enable_validation_layer;
-  BitField<24, 1, bool, u32> manual_texture_sampling;
-  BitField<25, 1, bool, u32> manual_texture_sampling_custom_texture_sizes;
-  BitField<26, 1, bool, u32> backend_sampler_lod_bias;
-  BitField<27, 1, bool, u32> backend_dynamic_vertex_loader;
+  BFVIEW(bool, 1, 0, msaa)
+  BFVIEW(bool, 1, 1, ssaa)
+  BFVIEW(bool, 1, 2, stereo)
+  BFVIEW(bool, 1, 3, wireframe)
+  BFVIEW(bool, 1, 4, per_pixel_lighting)
+  BFVIEW(bool, 1, 5, vertex_rounding)
+  BFVIEW(bool, 1, 6, fast_depth_calc)
+  BFVIEW(bool, 1, 7, bounding_box)
+  BFVIEW(bool, 1, 8, backend_dual_source_blend)
+  BFVIEW(bool, 1, 9, backend_geometry_shaders)
+  BFVIEW(bool, 1, 10, backend_early_z)
+  BFVIEW(bool, 1, 11, backend_bbox)
+  BFVIEW(bool, 1, 12, backend_gs_instancing)
+  BFVIEW(bool, 1, 13, backend_clip_control)
+  BFVIEW(bool, 1, 14, backend_ssaa)
+  BFVIEW(bool, 1, 15, backend_atomics)
+  BFVIEW(bool, 1, 16, backend_depth_clamp)
+  BFVIEW(bool, 1, 17, backend_reversed_depth_range)
+  BFVIEW(bool, 1, 18, backend_bitfield)
+  BFVIEW(bool, 1, 19, backend_dynamic_sampler_indexing)
+  BFVIEW(bool, 1, 20, backend_shader_framebuffer_fetch)
+  BFVIEW(bool, 1, 21, backend_logic_op)
+  BFVIEW(bool, 1, 22, backend_palette_conversion)
+  BFVIEW(bool, 1, 23, enable_validation_layer)
+  BFVIEW(bool, 1, 24, manual_texture_sampling)
+  BFVIEW(bool, 1, 25, manual_texture_sampling_custom_texture_sizes)
+  BFVIEW(bool, 1, 26, backend_sampler_lod_bias)
+  BFVIEW(bool, 1, 27, backend_dynamic_vertex_loader)
 
   static ShaderHostConfig GetCurrent();
 };

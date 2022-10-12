@@ -60,10 +60,10 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
   ShaderCode out;
   // Non-uid template parameters will write to the dummy data (=> gets optimized out)
 
-  const bool wireframe = host_config.wireframe;
-  const bool msaa = host_config.msaa;
-  const bool ssaa = host_config.ssaa;
-  const bool stereo = host_config.stereo;
+  const bool wireframe = host_config.wireframe();
+  const bool msaa = host_config.msaa();
+  const bool ssaa = host_config.ssaa();
+  const bool stereo = host_config.stereo();
   const auto primitive_type = static_cast<PrimitiveType>(uid_data->primitive_type);
   const u32 vertex_in = vertex_in_map[primitive_type];
   u32 vertex_out = vertex_out_map[primitive_type];
@@ -74,7 +74,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
     // Insert layout parameters
-    if (host_config.backend_gs_instancing)
+    if (host_config.backend_gs_instancing())
     {
       out.Write("layout({}, invocations = {}) in;\n", primitives_ogl[primitive_type],
                 stereo ? 2 : 1);
@@ -109,7 +109,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
-    if (host_config.backend_gs_instancing)
+    if (host_config.backend_gs_instancing())
       out.Write("#define InstanceID gl_InvocationID\n");
 
     out.Write("VARYING_LOCATION(0) in VertexData {{\n");
@@ -140,7 +140,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
 
     out.Write("}};\n");
 
-    if (host_config.backend_gs_instancing)
+    if (host_config.backend_gs_instancing())
     {
       out.Write("[maxvertexcount({})]\n[instance({})]\n", vertex_out, stereo ? 2 : 1);
       out.Write("void main({} VS_OUTPUT o[{}], inout {}Stream<VertexData> output, in uint "
@@ -210,7 +210,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
   {
     // If the GPU supports invocation we don't need a for loop and can simply use the
     // invocation identifier to determine which layer we're rendering.
-    if (host_config.backend_gs_instancing)
+    if (host_config.backend_gs_instancing())
       out.Write("\tint eye = InstanceID;\n");
     else
       out.Write("\tfor (int eye = 0; eye < 2; ++eye) {{\n");
@@ -230,7 +230,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     out.Write("\tVS_OUTPUT f;\n");
     AssignVSOutputMembers(out, "f", "vs[i]", uid_data->numTexGens, host_config);
 
-    if (host_config.backend_depth_clamp &&
+    if (host_config.backend_depth_clamp() &&
         DriverDetails::HasBug(DriverDetails::BUG_BROKEN_CLIP_DISTANCE))
     {
       // On certain GPUs we have to consume the clip distance from the vertex shader
@@ -320,7 +320,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
 
   EndPrimitive(out, host_config, uid_data, api_type, wireframe, stereo);
 
-  if (stereo && !host_config.backend_gs_instancing)
+  if (stereo && !host_config.backend_gs_instancing())
     out.Write("\t}}\n");
 
   out.Write("}}\n");
@@ -343,7 +343,7 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
     else
       out.Write("\tgl_Position = {}.pos;\n", vertex);
 
-    if (host_config.backend_depth_clamp)
+    if (host_config.backend_depth_clamp())
     {
       out.Write("\tgl_ClipDistance[0] = {}.clipDist0;\n", vertex);
       out.Write("\tgl_ClipDistance[1] = {}.clipDist1;\n", vertex);

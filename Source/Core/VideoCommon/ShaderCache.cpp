@@ -359,7 +359,7 @@ void ShaderCache::LoadCaches()
                                                                     "uber-ps", false);
 
     // We also share geometry shaders, as there aren't many variants.
-    if (m_host_config.backend_geometry_shaders)
+    if (m_host_config.backend_geometry_shaders())
       LoadShaderCache<ShaderStage::Geometry, GeometryShaderUid>(m_gs_cache, m_api_type, "gs",
                                                                 false);
 
@@ -576,12 +576,12 @@ const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid&
 
 bool ShaderCache::NeedsGeometryShader(const GeometryShaderUid& uid) const
 {
-  return m_host_config.backend_geometry_shaders && !uid.GetUidData()->IsPassthrough();
+  return m_host_config.backend_geometry_shaders() && !uid.GetUidData()->IsPassthrough();
 }
 
 bool ShaderCache::UseGeometryShaderForEFBCopies() const
 {
-  return m_host_config.backend_geometry_shaders && m_host_config.stereo;
+  return m_host_config.backend_geometry_shaders() && m_host_config.stereo();
 }
 
 AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
@@ -1274,7 +1274,7 @@ void ShaderCache::QueueUberShaderPipelines()
       UberShader::ClearUnusedPixelShaderUidBits(m_api_type, m_host_config, &cleared_puid);
       EnumerateGeometryShaderUids([&](const GeometryShaderUid& guid) {
         if (guid.GetUidData()->numTexGens != vuid.GetUidData()->num_texgens ||
-            (!guid.GetUidData()->IsPassthrough() && !m_host_config.backend_geometry_shaders))
+            (!guid.GetUidData()->IsPassthrough() && !m_host_config.backend_geometry_shaders()))
         {
           return;
         }
@@ -1438,7 +1438,7 @@ bool ShaderCache::CompileSharedPipelines()
       return false;
   }
 
-  if (m_host_config.backend_palette_conversion)
+  if (m_host_config.backend_palette_conversion())
   {
     config.vertex_shader = m_screen_quad_vertex_shader.get();
     config.geometry_shader = nullptr;
