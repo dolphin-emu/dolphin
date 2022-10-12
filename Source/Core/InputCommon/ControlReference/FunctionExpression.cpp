@@ -69,6 +69,22 @@ private:
   void SetValue(ControlState value) override { GetArg(0).SetValue(1.0 - value); }
 };
 
+// usage: abs(expression)
+class AbsExpression final : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() const override { return std::abs(GetArg(0).GetValue()); }
+};
+
 // usage: sin(expression)
 class SinExpression : public FunctionExpression
 {
@@ -641,6 +657,8 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name
     return std::make_unique<NotExpression>();
   if (name == "if")
     return std::make_unique<IfExpression>();
+  if (name == "abs")
+    return std::make_unique<AbsExpression>();
   if (name == "sin")
     return std::make_unique<SinExpression>();
   if (name == "cos")
