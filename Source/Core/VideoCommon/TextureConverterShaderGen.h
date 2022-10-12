@@ -6,6 +6,7 @@
 #include <fmt/format.h>
 #include <string>
 
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/ShaderGenCommon.h"
@@ -20,14 +21,15 @@ struct UidData
 {
   u32 NumValues() const { return sizeof(UidData); }
   EFBCopyFormat dst_format;
+  u8 _data1;
 
-  u32 efb_has_alpha : 1;
-  u32 is_depth_copy : 1;
-  u32 is_intensity : 1;
-  u32 scale_by_half : 1;
-  u32 all_copy_filter_coefs_needed : 1;
-  u32 copy_filter_can_overflow : 1;
-  u32 apply_gamma : 1;
+  BFVIEW_IN(_data1, bool, 1, 0, efb_has_alpha);
+  BFVIEW_IN(_data1, bool, 1, 1, is_depth_copy);
+  BFVIEW_IN(_data1, bool, 1, 2, is_intensity);
+  BFVIEW_IN(_data1, bool, 1, 3, scale_by_half);
+  BFVIEW_IN(_data1, bool, 1, 4, all_copy_filter_coefs_needed);
+  BFVIEW_IN(_data1, bool, 1, 5, copy_filter_can_overflow);
+  BFVIEW_IN(_data1, bool, 1, 6, apply_gamma);
 };
 #pragma pack()
 
@@ -58,8 +60,8 @@ struct fmt::formatter<TextureConversionShaderGen::UidData>
                           "dst_format: {}, efb_has_alpha: {}, is_depth_copy: {}, is_intensity: {}, "
                           "scale_by_half: {}, all_copy_filter_coefs_needed: {}, "
                           "copy_filter_can_overflow: {}, apply_gamma: {}",
-                          dst_format, uid.efb_has_alpha, uid.is_depth_copy, uid.is_intensity,
-                          uid.scale_by_half, uid.all_copy_filter_coefs_needed,
-                          uid.copy_filter_can_overflow, uid.apply_gamma);
+                          dst_format, uid.efb_has_alpha(), uid.is_depth_copy(), uid.is_intensity(),
+                          uid.scale_by_half(), uid.all_copy_filter_coefs_needed(),
+                          uid.copy_filter_can_overflow(), uid.apply_gamma());
   }
 };

@@ -20,15 +20,16 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
 
   UidData* const uid_data = out.GetUidData();
   uid_data->dst_format = dst_format;
-  uid_data->efb_has_alpha = bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24;
-  uid_data->is_depth_copy = is_depth_copy;
-  uid_data->is_intensity = is_intensity;
-  uid_data->scale_by_half = scale_by_half;
-  uid_data->all_copy_filter_coefs_needed =
+  uid_data->efb_has_alpha() = bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24;
+  uid_data->is_depth_copy() = is_depth_copy;
+  uid_data->is_intensity() = is_intensity;
+  uid_data->scale_by_half() = scale_by_half;
+  uid_data->all_copy_filter_coefs_needed() =
       TextureCacheBase::AllCopyFilterCoefsNeeded(filter_coefficients);
-  uid_data->copy_filter_can_overflow = TextureCacheBase::CopyFilterCanOverflow(filter_coefficients);
+  uid_data->copy_filter_can_overflow() =
+      TextureCacheBase::CopyFilterCanOverflow(filter_coefficients);
   // If the gamma is needed, then include that too.
-  uid_data->apply_gamma = gamma_rcp != 1.0f;
+  uid_data->apply_gamma() = gamma_rcp != 1.0f;
 
   return out;
 }
@@ -78,7 +79,7 @@ ShaderCode GenerateVertexShader(APIType api_type)
 
 ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
 {
-  const bool mono_depth = uid_data->is_depth_copy && g_ActiveConfig.bStereoEFBMonoDepth;
+  const bool mono_depth = uid_data->is_depth_copy() && g_ActiveConfig.bStereoEFBMonoDepth;
 
   ShaderCode out;
   WriteHeader(api_type, out);
@@ -88,7 +89,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
             "  float4 tex_sample = texture(samp0, float3(uv.x, clamp(uv.y + (y_offset * "
             "pixel_height), clamp_tb.x, clamp_tb.y), {}));\n",
             mono_depth ? "0.0" : "uv.z");
-  if (uid_data->is_depth_copy)
+  if (uid_data->is_depth_copy())
   {
     if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
       out.Write("  tex_sample.x = 1.0 - tex_sample.x;\n");
@@ -119,7 +120,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
 
   // The copy filter applies to both color and depth copies. This has been verified on hardware.
   // The filter is only applied to the RGB channels, the alpha channel is left intact.
-  if (uid_data->all_copy_filter_coefs_needed)
+  if (uid_data->all_copy_filter_coefs_needed())
   {
     out.Write("  uint4 prev_row = SampleEFB(v_tex0, -1.0f);\n"
               "  uint4 current_row = SampleEFB(v_tex0, 0.0f);\n"
@@ -136,21 +137,21 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
   out.Write("  // Shift right by 6 to divide by 64, as filter coefficients\n"
             "  // that sum to 64 result in no change in brightness\n"
             "  uint4 texcol_raw = uint4(combined_rows.rgb >> 6, {});\n",
-            uid_data->efb_has_alpha ? "current_row.a" : "255");
+            uid_data->efb_has_alpha() ? "current_row.a" : "255");
 
-  if (uid_data->copy_filter_can_overflow)
+  if (uid_data->copy_filter_can_overflow())
     out.Write("  texcol_raw &= 0x1ffu;\n");
   // Note that overflow occurs when the sum of values is >= 128, but this max situation can be hit
   // on >= 64, so we always include it.
   out.Write("  texcol_raw = min(texcol_raw, uint4(255, 255, 255, 255));\n");
 
-  if (uid_data->apply_gamma)
+  if (uid_data->apply_gamma())
   {
     out.Write("  texcol_raw = uint4(round(pow(abs(float4(texcol_raw) / 255.0),\n"
               "                     float4(gamma_rcp, gamma_rcp, gamma_rcp, 1.0)) * 255.0));\n");
   }
 
-  if (uid_data->is_intensity)
+  if (uid_data->is_intensity())
   {
     out.Write("  // Intensity/YUV format conversion constants determined by hardware testing\n"
               "  const float4 y_const = float4( 66, 129,  25,  16);\n"
@@ -229,7 +230,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
 
   default:
     ERROR_LOG_FMT(VIDEO, "Unknown copy/intensity color format: {} {}", uid_data->dst_format,
-                  uid_data->is_intensity);
+                  uid_data->is_intensity());
     out.Write("  ocol0 = float4(texcol_raw.rgba) / 255.0;\n");
     break;
   }
