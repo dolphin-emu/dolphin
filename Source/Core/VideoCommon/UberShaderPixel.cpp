@@ -22,7 +22,7 @@ PixelShaderUid GetPixelShaderUid()
   PixelShaderUid out;
 
   pixel_ubershader_uid_data* const uid_data = out.GetUidData();
-  uid_data->num_texgens = xfmem.numTexGen.numTexGens;
+  uid_data->num_texgens = xfmem.numTexGen.numTexGens();
   uid_data->early_depth = bpmem.GetEmulatedZ() == EmulatedZ::Early &&
                           (g_ActiveConfig.bFastDepthCalc ||
                            bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined) &&

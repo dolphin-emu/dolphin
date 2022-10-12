@@ -353,7 +353,7 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
   // is a guardband (and with certain scissor configurations, things can show up in it)
   // Mario Party 8 in widescreen breaks without this: https://bugs.dolphin-emu.org/issues/12769
   bool skip_clipping = false;
-  if (xfmem.clipDisable.disable_clipping_detection)
+  if (xfmem.clipDisable.disable_clipping_detection())
   {
     // If any w coordinate is negative, then the perspective divide will flip coordinates, breaking
     // various assumptions (including backface).  So, we still need to do clipping in that case.
@@ -402,7 +402,7 @@ static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, i
 
   if (apply_line_offset && LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff()] != 0)
   {
-    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
+    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens(); coord_num++)
     {
       if (bpmem.texcoords[coord_num].s.line_offset())
       {
@@ -482,7 +482,7 @@ static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, 
   const float point_offset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff()];
   if (point_offset != 0)
   {
-    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
+    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens(); coord_num++)
     {
       const auto coord_info = bpmem.texcoords[coord_num];
       if (coord_info.s.point_offset())

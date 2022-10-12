@@ -109,7 +109,7 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
                                      const InputVertexData* srcVertex, OutputVertexData* dstVertex)
 {
   Vec3 src;
-  switch (texinfo.sourcerow)
+  switch (texinfo.sourcerow())
   {
   case SourceRow::Geom:
     src = srcVertex->position;
@@ -125,8 +125,8 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
     break;
   default:
   {
-    ASSERT(texinfo.sourcerow >= SourceRow::Tex0 && texinfo.sourcerow <= SourceRow::Tex7);
-    u32 texnum = static_cast<u32>(texinfo.sourcerow.Value()) - static_cast<u32>(SourceRow::Tex0);
+    ASSERT(texinfo.sourcerow() >= SourceRow::Tex0 && texinfo.sourcerow() <= SourceRow::Tex7);
+    u32 texnum = static_cast<u32>(texinfo.sourcerow()) - static_cast<u32>(SourceRow::Tex0);
     src.x = srcVertex->texCoords[texnum][0];
     src.y = srcVertex->texCoords[texnum][1];
     src.z = 1.0f;
@@ -146,30 +146,30 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
   const float* mat = &xfmem.posMatrices[srcVertex->texMtx[coordNum] * 4];
   Vec3* dst = &dstVertex->texCoords[coordNum];
 
-  if (texinfo.projection == TexSize::ST)
+  if (texinfo.projection() == TexSize::ST)
   {
-    if (texinfo.inputform == TexInputForm::AB11)
+    if (texinfo.inputform() == TexInputForm::AB11)
       MultiplyVec2Mat24(src, mat, *dst);
     else
       MultiplyVec3Mat24(src, mat, *dst);
   }
   else  // texinfo.projection == TexSize::STQ
   {
-    if (texinfo.inputform == TexInputForm::AB11)
+    if (texinfo.inputform() == TexInputForm::AB11)
       MultiplyVec2Mat34(src, mat, *dst);
     else
       MultiplyVec3Mat34(src, mat, *dst);
   }
 
-  if (xfmem.dualTexTrans.enabled)
+  if (xfmem.dualTexTrans.enabled())
   {
     Vec3 tempCoord;
 
     // normalize
     const PostMtxInfo& postInfo = xfmem.postMtxInfo[coordNum];
-    const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
+    const float* postMat = &xfmem.postMatrices[postInfo.index() * 4];
 
-    if (postInfo.normalize)
+    if (postInfo.normalize())
       tempCoord = dst->Normalized();
     else
       tempCoord = *dst;
@@ -215,7 +215,7 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   float attn = 1.0f;
   Vec3& ldir = *_ldir;
 
-  switch (chan.attnfunc)
+  switch (chan.attnfunc())
   {
   case AttenuationFunc::None:
   case AttenuationFunc::Dir:
@@ -232,7 +232,7 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
     Vec3 attLen = Vec3(1.0, attn, attn * attn);
     Vec3 cosAttn = light->cosatt;
     Vec3 distAttn = light->distatt;
-    if (chan.diffusefunc != DiffuseFunc::None)
+    if (chan.diffusefunc() != DiffuseFunc::None)
       distAttn = distAttn.Normalized();
 
     attn = SafeDivide(std::max(0.0f, attLen * cosAttn), attLen * distAttn);
@@ -251,7 +251,7 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
     break;
   }
   default:
-    PanicAlertFmt("Invalid attnfunc: {}", chan.attnfunc);
+    PanicAlertFmt("Invalid attnfunc: {}", chan.attnfunc());
   }
 
   return attn;
@@ -266,7 +266,7 @@ static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
   float attn = CalculateLightAttn(light, &ldir, normal, chan);
 
   float difAttn = ldir * normal;
-  switch (chan.diffusefunc)
+  switch (chan.diffusefunc())
   {
   case DiffuseFunc::None:
     AddScaledIntegerColor(light->color, attn, lightCol);
@@ -279,7 +279,7 @@ static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
     AddScaledIntegerColor(light->color, attn * difAttn, lightCol);
     break;
   default:
-    PanicAlertFmt("Invalid diffusefunc: {}", chan.attnfunc);
+    PanicAlertFmt("Invalid diffusefunc: {}", chan.attnfunc());
   }
 }
 
@@ -292,7 +292,7 @@ static void LightAlpha(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
   float attn = CalculateLightAttn(light, &ldir, normal, chan);
 
   float difAttn = ldir * normal;
-  switch (chan.diffusefunc)
+  switch (chan.diffusefunc())
   {
   case DiffuseFunc::None:
     lightCol += light->color[0] * attn;
@@ -305,7 +305,7 @@ static void LightAlpha(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
     lightCol += light->color[0] * attn * difAttn;
     break;
   default:
-    PanicAlertFmt("Invalid diffusefunc: {}", chan.attnfunc);
+    PanicAlertFmt("Invalid diffusefunc: {}", chan.attnfunc());
   }
 }
 
@@ -319,15 +319,15 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
 
     // color
     const LitChannel& colorchan = xfmem.color[chan];
-    if (colorchan.matsource == MatSource::Vertex)
+    if (colorchan.matsource() == MatSource::Vertex)
       matcolor = src->color[chan];
     else
       std::memcpy(matcolor.data(), &xfmem.matColor[chan], sizeof(u32));
 
-    if (colorchan.enablelighting)
+    if (colorchan.enablelighting())
     {
       Vec3 lightCol;
-      if (colorchan.ambsource == AmbSource::Vertex)
+      if (colorchan.ambsource() == AmbSource::Vertex)
       {
         lightCol.x = src->color[chan][1];
         lightCol.y = src->color[chan][2];
@@ -362,15 +362,15 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
 
     // alpha
     const LitChannel& alphachan = xfmem.alpha[chan];
-    if (alphachan.matsource == MatSource::Vertex)
+    if (alphachan.matsource() == MatSource::Vertex)
       matcolor[0] = src->color[chan][0];
     else
       matcolor[0] = xfmem.matColor[chan] & 0xff;
 
-    if (xfmem.alpha[chan].enablelighting)
+    if (xfmem.alpha[chan].enablelighting())
     {
       float lightCol;
-      if (alphachan.ambsource == AmbSource::Vertex)
+      if (alphachan.ambsource() == AmbSource::Vertex)
         lightCol = src->color[chan][0];
       else
         lightCol = static_cast<float>(xfmem.ambColor[chan] & 0xff);
@@ -398,47 +398,47 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
 
 void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
 {
-  for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; coordNum++)
+  for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens(); coordNum++)
   {
     const TexMtxInfo& texinfo = xfmem.texMtxInfo[coordNum];
 
-    switch (texinfo.texgentype)
+    switch (texinfo.texgentype())
     {
     case TexGenType::Regular:
       TransformTexCoordRegular(texinfo, coordNum, src, dst);
       break;
     case TexGenType::EmbossMap:
     {
-      const LightPointer* light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
+      const LightPointer* light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift()];
 
       Vec3 ldir = (light->pos - dst->mvPosition).Normalized();
       float d1 = ldir * dst->normal[1];
       float d2 = ldir * dst->normal[2];
 
-      dst->texCoords[coordNum].x = dst->texCoords[texinfo.embosssourceshift].x + d1;
-      dst->texCoords[coordNum].y = dst->texCoords[texinfo.embosssourceshift].y + d2;
-      dst->texCoords[coordNum].z = dst->texCoords[texinfo.embosssourceshift].z;
+      dst->texCoords[coordNum].x = dst->texCoords[texinfo.embosssourceshift()].x + d1;
+      dst->texCoords[coordNum].y = dst->texCoords[texinfo.embosssourceshift()].y + d2;
+      dst->texCoords[coordNum].z = dst->texCoords[texinfo.embosssourceshift()].z;
     }
     break;
     case TexGenType::Color0:
-      ASSERT(texinfo.inputform == TexInputForm::AB11);
+      ASSERT(texinfo.inputform() == TexInputForm::AB11);
       dst->texCoords[coordNum].x = (float)dst->color[0][0] / 255.0f;
       dst->texCoords[coordNum].y = (float)dst->color[0][1] / 255.0f;
       dst->texCoords[coordNum].z = 1.0f;
       break;
     case TexGenType::Color1:
-      ASSERT(texinfo.inputform == TexInputForm::AB11);
+      ASSERT(texinfo.inputform() == TexInputForm::AB11);
       dst->texCoords[coordNum].x = (float)dst->color[1][0] / 255.0f;
       dst->texCoords[coordNum].y = (float)dst->color[1][1] / 255.0f;
       dst->texCoords[coordNum].z = 1.0f;
       break;
     default:
-      ERROR_LOG_FMT(VIDEO, "Bad tex gen type {}", texinfo.texgentype);
+      ERROR_LOG_FMT(VIDEO, "Bad tex gen type {}", texinfo.texgentype());
       break;
     }
   }
 
-  for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; coordNum++)
+  for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens(); coordNum++)
   {
     dst->texCoords[coordNum][0] *= (bpmem.texcoords[coordNum].s.scale_minus_1() + 1);
     dst->texCoords[coordNum][1] *= (bpmem.texcoords[coordNum].t.scale_minus_1() + 1);

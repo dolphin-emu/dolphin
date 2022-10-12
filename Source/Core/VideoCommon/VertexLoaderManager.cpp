@@ -260,7 +260,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
     num_cp_normals = 1;
 
   std::optional<u32> num_xf_normals;
-  switch (xfmem.invtxspec.numnormals)
+  switch (xfmem.invtxspec.numnormals())
   {
   case NormalCount::None:
     num_xf_normals = 0;
@@ -272,27 +272,27 @@ static void CheckCPConfiguration(int vtx_attr_group)
     num_xf_normals = 3;
     break;
   default:
-    PanicAlertFmt("xfmem.invtxspec.numnormals is invalid: {}", xfmem.invtxspec.numnormals);
+    PanicAlertFmt("xfmem.invtxspec.numnormals is invalid: {}", xfmem.invtxspec.numnormals());
     break;
   }
 
-  if (num_cp_colors != xfmem.invtxspec.numcolors || num_cp_normals != num_xf_normals ||
-      num_cp_tex_coords != xfmem.invtxspec.numtextures)
+  if (num_cp_colors != xfmem.invtxspec.numcolors() || num_cp_normals != num_xf_normals ||
+      num_cp_tex_coords != xfmem.invtxspec.numtextures())
   {
     PanicAlertFmt("Mismatched configuration between CP and XF stages - {}/{} colors, {}/{} "
                   "normals, {}/{} texture coordinates. Please report on the issue tracker.\n\n"
                   "VCD: {:08x} {:08x}\nVAT {}: {:08x} {:08x} {:08x}\nXF vertex spec: {:08x}",
-                  num_cp_colors, xfmem.invtxspec.numcolors, num_cp_normals,
+                  num_cp_colors, xfmem.invtxspec.numcolors(), num_cp_normals,
                   num_xf_normals.has_value() ? fmt::to_string(num_xf_normals.value()) : "invalid",
-                  num_cp_tex_coords, xfmem.invtxspec.numtextures, g_main_cp_state.vtx_desc.low.Hex,
-                  g_main_cp_state.vtx_desc.high.Hex, vtx_attr_group,
-                  g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+                  num_cp_tex_coords, xfmem.invtxspec.numtextures(),
+                  g_main_cp_state.vtx_desc.low.Hex, g_main_cp_state.vtx_desc.high.Hex,
+                  vtx_attr_group, g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
                   g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
                   g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex, xfmem.invtxspec.hex);
 
     // Analytics reporting so we can discover which games have this problem, that way when we
     // eventually simulate the behavior we have test cases for it.
-    if (num_cp_colors != xfmem.invtxspec.numcolors)
+    if (num_cp_colors != xfmem.invtxspec.numcolors())
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_COLORS_BETWEEN_CP_AND_XF);
@@ -302,7 +302,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_NORMALS_BETWEEN_CP_AND_XF);
     }
-    if (num_cp_tex_coords != xfmem.invtxspec.numtextures)
+    if (num_cp_tex_coords != xfmem.invtxspec.numtextures())
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_TEX_COORDS_BETWEEN_CP_AND_XF);

@@ -43,11 +43,11 @@ static void XFRegWritten(u32 address, u32 value)
     case XFMEM_CLIPDISABLE:
     {
       ClipDisable setting{.hex = value};
-      if (setting.disable_clipping_detection)
+      if (setting.disable_clipping_detection())
         DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SETS_XF_CLIPDISABLE_BIT_0);
-      if (setting.disable_trivial_rejection)
+      if (setting.disable_trivial_rejection())
         DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SETS_XF_CLIPDISABLE_BIT_1);
-      if (setting.disable_cpoly_clipping_acceleration)
+      if (setting.disable_cpoly_clipping_acceleration())
         DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SETS_XF_CLIPDISABLE_BIT_2);
       break;
     }
@@ -56,7 +56,7 @@ static void XFRegWritten(u32 address, u32 value)
       break;
 
     case XFMEM_SETNUMCHAN:
-      if (xfmem.numChan.numColorChans != (value & 3))
+      if (xfmem.numChan.numColorChans() != (value & 3))
         g_vertex_manager->Flush();
       VertexShaderManager::SetLightingConfigChanged();
       break;
@@ -95,7 +95,7 @@ static void XFRegWritten(u32 address, u32 value)
       break;
 
     case XFMEM_DUALTEX:
-      if (xfmem.dualTexTrans.enabled != bool(value & 1))
+      if (xfmem.dualTexTrans.enabled() != bool(value & 1))
         g_vertex_manager->Flush();
       VertexShaderManager::SetTexMatrixInfoChanged(-1);
       break;
@@ -132,7 +132,7 @@ static void XFRegWritten(u32 address, u32 value)
       break;
 
     case XFMEM_SETNUMTEXGENS:  // GXSetNumTexGens
-      if (xfmem.numTexGen.numTexGens != (value & 15))
+      if (xfmem.numTexGen.numTexGens() != (value & 15))
         g_vertex_manager->Flush();
       break;
 

@@ -360,24 +360,24 @@ void VertexManagerBase::Flush()
 
   m_is_flushed = true;
 
-  if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens() ||
-      xfmem.numChan.numColorChans != bpmem.genMode.numcolchans())
+  if (xfmem.numTexGen.numTexGens() != bpmem.genMode.numtexgens() ||
+      xfmem.numChan.numColorChans() != bpmem.genMode.numcolchans())
   {
     ERROR_LOG_FMT(
         VIDEO,
         "Mismatched configuration between XF and BP stages - {}/{} texgens, {}/{} colors. "
         "Skipping draw. Please report on the issue tracker.",
-        xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens(), xfmem.numChan.numColorChans,
+        xfmem.numTexGen.numTexGens(), bpmem.genMode.numtexgens(), xfmem.numChan.numColorChans(),
         bpmem.genMode.numcolchans());
 
     // Analytics reporting so we can discover which games have this problem, that way when we
     // eventually simulate the behavior we have test cases for it.
-    if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens())
+    if (xfmem.numTexGen.numTexGens() != bpmem.genMode.numtexgens())
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_TEXGENS_BETWEEN_XF_AND_BP);
     }
-    if (xfmem.numChan.numColorChans != bpmem.genMode.numcolchans())
+    if (xfmem.numChan.numColorChans() != bpmem.genMode.numcolchans())
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_COLORS_BETWEEN_XF_AND_BP);
@@ -388,36 +388,36 @@ void VertexManagerBase::Flush()
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   PRIM_LOG("frame{}:\n texgen={}, numchan={}, dualtex={}, ztex={}, cole={}, alpe={}, ze={}",
-           g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens, xfmem.numChan.numColorChans,
-           xfmem.dualTexTrans.enabled, bpmem.ztex2.op(), bpmem.blendmode.colorupdate(),
-           bpmem.blendmode.alphaupdate(), bpmem.zmode.updateenable());
+           g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens(),
+           xfmem.numChan.numColorChans(), xfmem.dualTexTrans.enabled(), bpmem.ztex2.op(),
+           bpmem.blendmode.colorupdate(), bpmem.blendmode.alphaupdate(),
+           bpmem.zmode.updateenable());
 
-  for (u32 i = 0; i < xfmem.numChan.numColorChans; ++i)
+  for (u32 i = 0; i < xfmem.numChan.numColorChans(); ++i)
   {
     LitChannel* ch = &xfmem.color[i];
     PRIM_LOG("colchan{}: matsrc={}, light={:#x}, ambsrc={}, diffunc={}, attfunc={}", i,
-             ch->matsource.Value(), ch->GetFullLightMask(), ch->ambsource.Value(),
-             ch->diffusefunc.Value(), ch->attnfunc.Value());
+             ch->matsource(), ch->GetFullLightMask(), ch->ambsource(), ch->diffusefunc(),
+             ch->attnfunc());
     ch = &xfmem.alpha[i];
     PRIM_LOG("alpchan{}: matsrc={}, light={:#x}, ambsrc={}, diffunc={}, attfunc={}", i,
-             ch->matsource.Value(), ch->GetFullLightMask(), ch->ambsource.Value(),
-             ch->diffusefunc.Value(), ch->attnfunc.Value());
+             ch->matsource(), ch->GetFullLightMask(), ch->ambsource(), ch->diffusefunc(),
+             ch->attnfunc());
   }
 
-  for (u32 i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+  for (u32 i = 0; i < xfmem.numTexGen.numTexGens(); ++i)
   {
     TexMtxInfo tinfo = xfmem.texMtxInfo[i];
-    if (tinfo.texgentype != TexGenType::EmbossMap)
+    if (tinfo.texgentype() != TexGenType::EmbossMap)
       tinfo.hex &= 0x7ff;
-    if (tinfo.texgentype != TexGenType::Regular)
-      tinfo.projection = TexSize::ST;
+    if (tinfo.texgentype() != TexGenType::Regular)
+      tinfo.projection() = TexSize::ST;
 
     PRIM_LOG("txgen{}: proj={}, input={}, gentype={}, srcrow={}, embsrc={}, emblght={}, "
              "postmtx={}, postnorm={}",
-             i, tinfo.projection.Value(), tinfo.inputform.Value(), tinfo.texgentype.Value(),
-             tinfo.sourcerow.Value(), tinfo.embosssourceshift.Value(),
-             tinfo.embosslightshift.Value(), xfmem.postMtxInfo[i].index.Value(),
-             xfmem.postMtxInfo[i].normalize.Value());
+             i, tinfo.projection(), tinfo.inputform(), tinfo.texgentype(), tinfo.sourcerow(),
+             tinfo.embosssourceshift(), tinfo.embosslightshift(), xfmem.postMtxInfo[i].index(),
+             xfmem.postMtxInfo[i].normalize());
   }
 
   PRIM_LOG("pixel: tev={}, ind={}, texgen={}, dstalpha={}, alphatest={:#x}",
@@ -543,11 +543,11 @@ void VertexManagerBase::Flush()
     }
   }
 
-  if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens())
+  if (xfmem.numTexGen.numTexGens() != bpmem.genMode.numtexgens())
   {
     ERROR_LOG_FMT(VIDEO,
                   "xf.numtexgens ({}) does not match bp.numtexgens ({}). Error in command stream.",
-                  xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens());
+                  xfmem.numTexGen.numTexGens(), bpmem.genMode.numtexgens());
   }
 }
 

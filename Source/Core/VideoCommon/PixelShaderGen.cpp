@@ -210,7 +210,7 @@ PixelShaderUid GetPixelShaderUid()
 
   if (g_ActiveConfig.bEnablePixelLighting)
   {
-    uid_data->numColorChans() = xfmem.numChan.numColorChans;
+    uid_data->numColorChans() = xfmem.numChan.numColorChans();
     GetLightingShaderUid(uid_data->lighting);
   }
 
@@ -219,7 +219,7 @@ PixelShaderUid GetPixelShaderUid()
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens(); ++i)
     {
       // optional perspective divides
-      uid_data->texMtxInfo_n_projection()[i] = xfmem.texMtxInfo[i].projection;
+      uid_data->texMtxInfo_n_projection()[i] = xfmem.texMtxInfo[i].projection();
     }
   }
 

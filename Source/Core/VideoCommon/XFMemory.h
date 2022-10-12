@@ -18,7 +18,7 @@ constexpr size_t NUM_XF_COLOR_CHANNELS = 2;
 // Lighting
 
 // Projection
-enum class TexSize : u32
+enum class TexSize : bool
 {
   ST = 0,
   STQ = 1
@@ -30,7 +30,7 @@ struct fmt::formatter<TexSize> : EnumFormatter<TexSize::STQ>
 };
 
 // Input form
-enum class TexInputForm : u32
+enum class TexInputForm : bool
 {
   AB11 = 0,
   ABC1 = 1
@@ -111,7 +111,7 @@ struct fmt::formatter<SourceRow> : EnumFormatter<SourceRow::Tex7>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-enum class MatSource : u32
+enum class MatSource : bool
 {
   MatColorRegister = 0,
   Vertex = 1,
@@ -122,7 +122,7 @@ struct fmt::formatter<MatSource> : EnumFormatter<MatSource::Vertex>
   constexpr formatter() : EnumFormatter({"Material color register", "Vertex color"}) {}
 };
 
-enum class AmbSource : u32
+enum class AmbSource : bool
 {
   AmbColorRegister = 0,
   Vertex = 1,
@@ -167,7 +167,7 @@ struct fmt::formatter<AttenuationFunc> : EnumFormatter<AttenuationFunc::Spot>
 };
 
 // Projection type
-enum class ProjectionType : u32
+enum class ProjectionType : bool
 {
   Perspective = 0,
   Orthographic = 1
@@ -233,20 +233,20 @@ enum
   XFMEM_REGISTERS_END = 0x1058,
 };
 
-union LitChannel
+struct LitChannel
 {
-  BitField<0, 1, MatSource> matsource;
-  BitField<1, 1, bool, u32> enablelighting;
-  BitField<2, 4, u32> lightMask0_3;
-  BitField<6, 1, AmbSource> ambsource;
-  BitField<7, 2, DiffuseFunc> diffusefunc;
-  BitField<9, 2, AttenuationFunc> attnfunc;
-  BitField<11, 4, u32> lightMask4_7;
+  BFVIEW(MatSource, 1, 0, matsource)
+  BFVIEW(bool, 1, 1, enablelighting)
+  BFVIEW(u32, 4, 2, lightMask0_3)
+  BFVIEW(AmbSource, 1, 6, ambsource)
+  BFVIEW(DiffuseFunc, 2, 7, diffusefunc)
+  BFVIEW(AttenuationFunc, 2, 9, attnfunc)
+  BFVIEW(u32, 4, 11, lightMask4_7)
   u32 hex;
 
   unsigned int GetFullLightMask() const
   {
-    return enablelighting ? (lightMask0_3 | (lightMask4_7 << 4)) : 0;
+    return enablelighting() ? (lightMask0_3() | (lightMask4_7() << 4)) : 0;
   }
 };
 template <>
@@ -260,16 +260,16 @@ struct fmt::formatter<LitChannel>
         ctx.out(),
         "Material source: {0}\nEnable lighting: {1}\nLight mask: {2:x} ({2:08b})\n"
         "Ambient source: {3}\nDiffuse function: {4}\nAttenuation function: {5}",
-        chan.matsource, chan.enablelighting ? "Yes" : "No", chan.GetFullLightMask(), chan.ambsource,
-        chan.diffusefunc, chan.attnfunc);
+        chan.matsource(), chan.enablelighting() ? "Yes" : "No", chan.GetFullLightMask(),
+        chan.ambsource(), chan.diffusefunc(), chan.attnfunc());
   }
 };
 
-union ClipDisable
+struct ClipDisable
 {
-  BitField<0, 1, bool, u32> disable_clipping_detection;
-  BitField<1, 1, bool, u32> disable_trivial_rejection;
-  BitField<2, 1, bool, u32> disable_cpoly_clipping_acceleration;
+  BFVIEW(bool, 1, 0, disable_clipping_detection)
+  BFVIEW(bool, 1, 1, disable_trivial_rejection)
+  BFVIEW(bool, 1, 2, disable_cpoly_clipping_acceleration)
   u32 hex;
 };
 template <>
@@ -283,17 +283,17 @@ struct fmt::formatter<ClipDisable>
                           "Disable clipping detection: {}\n"
                           "Disable trivial rejection: {}\n"
                           "Disable cpoly clipping acceleration: {}",
-                          cd.disable_clipping_detection ? "Yes" : "No",
-                          cd.disable_trivial_rejection ? "Yes" : "No",
-                          cd.disable_cpoly_clipping_acceleration ? "Yes" : "No");
+                          cd.disable_clipping_detection() ? "Yes" : "No",
+                          cd.disable_trivial_rejection() ? "Yes" : "No",
+                          cd.disable_cpoly_clipping_acceleration() ? "Yes" : "No");
   }
 };
 
-union INVTXSPEC
+struct INVTXSPEC
 {
-  BitField<0, 2, u32> numcolors;
-  BitField<2, 2, NormalCount> numnormals;
-  BitField<4, 4, u32> numtextures;
+  BFVIEW(u32, 2, 0, numcolors)
+  BFVIEW(NormalCount, 2, 2, numnormals)
+  BFVIEW(u32, 4, 4, numtextures)
   u32 hex;
 };
 template <>
@@ -304,20 +304,20 @@ struct fmt::formatter<INVTXSPEC>
   auto format(const INVTXSPEC& spec, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(), "Num colors: {}\nNum normals: {}\nNum textures: {}",
-                          spec.numcolors, spec.numnormals, spec.numtextures);
+                          spec.numcolors(), spec.numnormals(), spec.numtextures());
   }
 };
 
-union TexMtxInfo
+struct TexMtxInfo
 {
-  BitField<0, 1, u32> unknown;
-  BitField<1, 1, TexSize> projection;
-  BitField<2, 1, TexInputForm> inputform;
-  BitField<3, 1, u32> unknown2;
-  BitField<4, 3, TexGenType> texgentype;
-  BitField<7, 5, SourceRow> sourcerow;
-  BitField<12, 3, u32> embosssourceshift;  // what generated texcoord to use
-  BitField<15, 3, u32> embosslightshift;   // light index that is used
+  BFVIEW(u32, 1, 0, unknown)
+  BFVIEW(TexSize, 1, 1, projection)
+  BFVIEW(TexInputForm, 1, 2, inputform)
+  BFVIEW(u32, 1, 3, unknown2)
+  BFVIEW(TexGenType, 3, 4, texgentype)
+  BFVIEW(SourceRow, 5, 7, sourcerow)
+  BFVIEW(u32, 3, 12, embosssourceshift)  // what generated texcoord to use
+  BFVIEW(u32, 3, 15, embosslightshift)   // light index that is used
   u32 hex;
 };
 template <>
@@ -330,16 +330,16 @@ struct fmt::formatter<TexMtxInfo>
     return fmt::format_to(ctx.out(),
                           "Projection: {}\nInput form: {}\nTex gen type: {}\n"
                           "Source row: {}\nEmboss source shift: {}\nEmboss light shift: {}",
-                          i.projection, i.inputform, i.texgentype, i.sourcerow, i.embosssourceshift,
-                          i.embosslightshift);
+                          i.projection(), i.inputform(), i.texgentype(), i.sourcerow(),
+                          i.embosssourceshift(), i.embosslightshift());
   }
 };
 
-union PostMtxInfo
+struct PostMtxInfo
 {
-  BitField<0, 6, u32> index;            // base row of dual transform matrix
-  BitField<6, 2, u32> unused;           //
-  BitField<8, 1, bool, u32> normalize;  // normalize before send operation
+  BFVIEW(u32, 6, 0, index)       // base row of dual transform matrix
+  BFVIEW(u32, 2, 6, unused)      //
+  BFVIEW(bool, 1, 8, normalize)  // normalize before send operation
   u32 hex;
 };
 
@@ -350,26 +350,26 @@ struct fmt::formatter<PostMtxInfo>
   template <typename FormatContext>
   auto format(const PostMtxInfo& i, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Index: {}\nNormalize before send operation: {}", i.index,
-                          i.normalize ? "Yes" : "No");
+    return fmt::format_to(ctx.out(), "Index: {}\nNormalize before send operation: {}", i.index(),
+                          i.normalize() ? "Yes" : "No");
   }
 };
 
-union NumColorChannel
+struct NumColorChannel
 {
-  BitField<0, 2, u32> numColorChans;
+  BFVIEW(u32, 2, 0, numColorChans)
   u32 hex;
 };
 
-union NumTexGen
+struct NumTexGen
 {
-  BitField<0, 4, u32> numTexGens;
+  BFVIEW(u32, 4, 0, numTexGens)
   u32 hex;
 };
 
-union DualTexInfo
+struct DualTexInfo
 {
-  BitField<0, 1, bool, u32> enabled;
+  BFVIEW(bool, 1, 0, enabled)
   u32 hex;
 };
 

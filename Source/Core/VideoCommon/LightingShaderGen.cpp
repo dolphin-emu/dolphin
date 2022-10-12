@@ -152,23 +152,23 @@ void GetLightingShaderUid(LightingUidData& uid_data)
 {
   for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
   {
-    uid_data.matsource()[j] = xfmem.color[j].matsource;
-    uid_data.matsource()[j + 2] = xfmem.alpha[j].matsource;
-    uid_data.enablelighting()[j] = xfmem.color[j].enablelighting;
-    uid_data.enablelighting()[j + 2] = xfmem.alpha[j].enablelighting;
+    uid_data.matsource()[j] = xfmem.color[j].matsource();
+    uid_data.matsource()[j + 2] = xfmem.alpha[j].matsource();
+    uid_data.enablelighting()[j] = xfmem.color[j].enablelighting();
+    uid_data.enablelighting()[j + 2] = xfmem.alpha[j].enablelighting();
 
     if (uid_data.enablelighting()[j])  // Color lights
     {
-      uid_data.ambsource()[j] = xfmem.color[j].ambsource;
-      uid_data.attnfunc()[j] = xfmem.color[j].attnfunc;
-      uid_data.diffusefunc()[j] = xfmem.color[j].diffusefunc;
+      uid_data.ambsource()[j] = xfmem.color[j].ambsource();
+      uid_data.attnfunc()[j] = xfmem.color[j].attnfunc();
+      uid_data.diffusefunc()[j] = xfmem.color[j].diffusefunc();
       uid_data.light_mask()[j] = xfmem.color[j].GetFullLightMask();
     }
     if (uid_data.enablelighting()[j + 2])  // Alpha lights
     {
-      uid_data.ambsource()[j + 2] = xfmem.alpha[j].ambsource;
-      uid_data.attnfunc()[j + 2] = xfmem.alpha[j].attnfunc;
-      uid_data.diffusefunc()[j + 2] = xfmem.alpha[j].diffusefunc;
+      uid_data.ambsource()[j + 2] = xfmem.alpha[j].ambsource();
+      uid_data.attnfunc()[j + 2] = xfmem.alpha[j].attnfunc();
+      uid_data.diffusefunc()[j + 2] = xfmem.alpha[j].diffusefunc();
       uid_data.light_mask()[j + 2] = xfmem.alpha[j].GetFullLightMask();
     }
   }

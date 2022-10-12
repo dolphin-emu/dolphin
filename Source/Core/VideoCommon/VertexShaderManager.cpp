@@ -432,7 +432,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
   if (bTexMtxInfoChanged)
   {
     bTexMtxInfoChanged = false;
-    constants.xfmem_dualTexInfo = xfmem.dualTexTrans.enabled;
+    constants.xfmem_dualTexInfo = xfmem.dualTexTrans.enabled();
     for (size_t i = 0; i < std::size(xfmem.texMtxInfo); i++)
       constants.xfmem_pack1[i][0] = xfmem.texMtxInfo[i].hex;
     for (size_t i = 0; i < std::size(xfmem.postMtxInfo); i++)
@@ -450,7 +450,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
       constants.xfmem_pack1[i][2] = xfmem.color[i].hex;
       constants.xfmem_pack1[i][3] = xfmem.alpha[i].hex;
     }
-    constants.xfmem_numColorChans = xfmem.numChan.numColorChans;
+    constants.xfmem_numColorChans = xfmem.numChan.numColorChans();
     dirty = true;
   }
 }

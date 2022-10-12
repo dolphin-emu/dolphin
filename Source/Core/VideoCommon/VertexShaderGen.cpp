@@ -15,14 +15,14 @@
 
 VertexShaderUid GetVertexShaderUid()
 {
-  ASSERT(bpmem.genMode.numtexgens() == xfmem.numTexGen.numTexGens);
-  ASSERT(bpmem.genMode.numcolchans() == xfmem.numChan.numColorChans);
+  ASSERT(bpmem.genMode.numtexgens() == xfmem.numTexGen.numTexGens());
+  ASSERT(bpmem.genMode.numcolchans() == xfmem.numChan.numColorChans());
 
   VertexShaderUid out;
   vertex_shader_uid_data* const uid_data = out.GetUidData();
-  uid_data->numTexGens() = xfmem.numTexGen.numTexGens;
+  uid_data->numTexGens() = xfmem.numTexGen.numTexGens();
   uid_data->components() = VertexLoaderManager::g_current_components;
-  uid_data->numColorChans() = xfmem.numChan.numColorChans;
+  uid_data->numColorChans() = xfmem.numChan.numColorChans();
 
   GetLightingShaderUid(uid_data->lighting);
 
@@ -31,9 +31,9 @@ VertexShaderUid GetVertexShaderUid()
   {
     auto& texinfo = uid_data->texMtxInfo[i];
 
-    texinfo.sourcerow() = xfmem.texMtxInfo[i].sourcerow;
-    texinfo.texgentype() = xfmem.texMtxInfo[i].texgentype;
-    texinfo.inputform() = xfmem.texMtxInfo[i].inputform;
+    texinfo.sourcerow() = xfmem.texMtxInfo[i].sourcerow();
+    texinfo.texgentype() = xfmem.texMtxInfo[i].texgentype();
+    texinfo.inputform() = xfmem.texMtxInfo[i].inputform();
 
     // first transformation
     switch (texinfo.texgentype())
@@ -42,12 +42,12 @@ VertexShaderUid GetVertexShaderUid()
       if ((uid_data->components() & (VB_HAS_TANGENT | VB_HAS_BINORMAL)) != 0)
       {
         // transform the light dir into tangent space
-        texinfo.embosslightshift() = xfmem.texMtxInfo[i].embosslightshift;
-        texinfo.embosssourceshift() = xfmem.texMtxInfo[i].embosssourceshift;
+        texinfo.embosslightshift() = xfmem.texMtxInfo[i].embosslightshift();
+        texinfo.embosssourceshift() = xfmem.texMtxInfo[i].embosssourceshift();
       }
       else
       {
-        texinfo.embosssourceshift() = xfmem.texMtxInfo[i].embosssourceshift;
+        texinfo.embosssourceshift() = xfmem.texMtxInfo[i].embosssourceshift();
       }
       break;
     case TexGenType::Color0:
@@ -55,17 +55,17 @@ VertexShaderUid GetVertexShaderUid()
       break;
     case TexGenType::Regular:
     default:
-      uid_data->texMtxInfo_n_projection()[i] = xfmem.texMtxInfo[i].projection;
+      uid_data->texMtxInfo_n_projection()[i] = xfmem.texMtxInfo[i].projection();
       break;
     }
 
-    uid_data->dualTexTrans_enabled() = xfmem.dualTexTrans.enabled;
+    uid_data->dualTexTrans_enabled() = xfmem.dualTexTrans.enabled();
     // CHECKME: does this only work for regular tex gen types?
     if (uid_data->dualTexTrans_enabled() && texinfo.texgentype() == TexGenType::Regular)
     {
       auto& postInfo = uid_data->postMtxInfo[i];
-      postInfo.index() = xfmem.postMtxInfo[i].index;
-      postInfo.normalize() = xfmem.postMtxInfo[i].normalize;
+      postInfo.index() = xfmem.postMtxInfo[i].index();
+      postInfo.normalize() = xfmem.postMtxInfo[i].normalize();
     }
   }
 

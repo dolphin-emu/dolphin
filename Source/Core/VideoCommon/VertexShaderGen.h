@@ -8,7 +8,7 @@
 #include "VideoCommon/ShaderGenCommon.h"
 
 enum class APIType;
-enum class TexInputForm : u32;
+enum class TexInputForm : bool;
 enum class TexGenType : u32;
 enum class SourceRow : u32;
 
