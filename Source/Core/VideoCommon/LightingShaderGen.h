@@ -4,7 +4,10 @@
 #pragma once
 
 #include <string_view>
+
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
+#include "VideoCommon/XFMemory.h"
 
 class ShaderCode;
 
@@ -28,12 +31,15 @@ class ShaderCode;
  */
 struct LightingUidData
 {
-  u32 matsource : 4;       // 4x1 bit
-  u32 enablelighting : 4;  // 4x1 bit
-  u32 ambsource : 4;       // 4x1 bit
-  u32 diffusefunc : 8;     // 4x2 bits
-  u32 attnfunc : 8;        // 4x2 bits
-  u32 light_mask : 32;     // 4x8 bits
+  u64 hex;
+
+  BFVIEW(MatSource, 1, 0, matsource, 4)        // 4x1 bit
+  BFVIEW(bool, 1, 4, enablelighting, 4)        // 4x1 bit
+  BFVIEW(AmbSource, 1, 8, ambsource, 4)        // 4x1 bit
+  BFVIEW(DiffuseFunc, 2, 16, diffusefunc, 4)   // 4x2 bits
+  BFVIEW(AttenuationFunc, 2, 24, attnfunc, 4)  // 4x2 bits
+  BFVIEW(u8, 8, 32, light_mask, 4)             // 4x8 bits
+  BFVIEW(bool, 1, 32, light_mask_bits, 4, 8)   // 4x8x1 bit (overlaps light_mask)
 };
 
 constexpr char s_lighting_struct[] = "struct Light {\n"
