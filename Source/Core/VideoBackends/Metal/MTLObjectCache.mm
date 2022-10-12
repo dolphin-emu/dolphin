@@ -310,30 +310,30 @@ public:
       }
       vertex_shader = static_cast<const Shader*>(cfg.vertex_shader);
       fragment_shader = static_cast<const Shader*>(cfg.pixel_shader);
-      framebuffer.color_texture_format = cfg.framebuffer_state.color_texture_format.Value();
-      framebuffer.depth_texture_format = cfg.framebuffer_state.depth_texture_format.Value();
-      framebuffer.samples = cfg.framebuffer_state.samples.Value();
-      blend.colorupdate = cfg.blending_state.colorupdate.Value();
-      blend.alphaupdate = cfg.blending_state.alphaupdate.Value();
-      if (cfg.blending_state.blendenable)
+      framebuffer.color_texture_format() = cfg.framebuffer_state.color_texture_format();
+      framebuffer.depth_texture_format() = cfg.framebuffer_state.depth_texture_format();
+      framebuffer.samples() = cfg.framebuffer_state.samples();
+      blend.colorupdate() = cfg.blending_state.colorupdate();
+      blend.alphaupdate() = cfg.blending_state.alphaupdate();
+      if (cfg.blending_state.blendenable())
       {
         // clang-format off
-        blend.blendenable = true;
-        blend.usedualsrc     = cfg.blending_state.usedualsrc.Value();
-        blend.srcfactor      = cfg.blending_state.srcfactor.Value();
-        blend.dstfactor      = cfg.blending_state.dstfactor.Value();
-        blend.srcfactoralpha = cfg.blending_state.srcfactoralpha.Value();
-        blend.dstfactoralpha = cfg.blending_state.dstfactoralpha.Value();
-        blend.subtract       = cfg.blending_state.subtract.Value();
-        blend.subtractAlpha  = cfg.blending_state.subtractAlpha.Value();
+        blend.blendenable() = true;
+        blend.usedualsrc()     = cfg.blending_state.usedualsrc();
+        blend.srcfactor()      = cfg.blending_state.srcfactor();
+        blend.dstfactor()      = cfg.blending_state.dstfactor();
+        blend.srcfactoralpha() = cfg.blending_state.srcfactoralpha();
+        blend.dstfactoralpha() = cfg.blending_state.dstfactoralpha();
+        blend.subtract()       = cfg.blending_state.subtract();
+        blend.subtractAlpha()  = cfg.blending_state.subtractAlpha();
         // clang-format on
       }
 
       if (cfg.usage != AbstractPipelineUsage::GXUber)
       {
-        if (cfg.rasterization_state.primitive == PrimitiveType::Points)
+        if (cfg.rasterization_state.primitive() == PrimitiveType::Points)
           is_points = true;
-        else if (cfg.rasterization_state.primitive == PrimitiveType::Lines)
+        else if (cfg.rasterization_state.primitive() == PrimitiveType::Lines)
           is_lines = true;
       }
     }
@@ -395,34 +395,34 @@ public:
         [desc setVertexDescriptor:static_cast<const VertexFormat*>(config.vertex_format)->Get()];
       RasterizationState rs = config.rasterization_state;
       if (config.usage != AbstractPipelineUsage::GXUber)
-        [desc setInputPrimitiveTopology:GetClass(rs.primitive)];
+        [desc setInputPrimitiveTopology:GetClass(rs.primitive())];
       MTLRenderPipelineColorAttachmentDescriptor* color0 =
           [[desc colorAttachments] objectAtIndexedSubscript:0];
       BlendingState bs = config.blending_state;
       MTLColorWriteMask mask = MTLColorWriteMaskNone;
-      if (bs.colorupdate)
+      if (bs.colorupdate())
         mask |= MTLColorWriteMaskRed | MTLColorWriteMaskGreen | MTLColorWriteMaskBlue;
-      if (bs.alphaupdate)
+      if (bs.alphaupdate())
         mask |= MTLColorWriteMaskAlpha;
       [color0 setWriteMask:mask];
-      if (bs.blendenable)
+      if (bs.blendenable())
       {
         // clang-format off
         [color0 setBlendingEnabled:YES];
-        [color0 setSourceRGBBlendFactor:       Convert(bs.srcfactor,      bs.usedualsrc)];
-        [color0 setSourceAlphaBlendFactor:     Convert(bs.srcfactoralpha, bs.usedualsrc)];
-        [color0 setDestinationRGBBlendFactor:  Convert(bs.dstfactor,      bs.usedualsrc)];
-        [color0 setDestinationAlphaBlendFactor:Convert(bs.dstfactoralpha, bs.usedualsrc)];
-        [color0 setRgbBlendOperation:  bs.subtract      ? MTLBlendOperationReverseSubtract : MTLBlendOperationAdd];
-        [color0 setAlphaBlendOperation:bs.subtractAlpha ? MTLBlendOperationReverseSubtract : MTLBlendOperationAdd];
+        [color0 setSourceRGBBlendFactor:       Convert(bs.srcfactor(),      bs.usedualsrc())];
+        [color0 setSourceAlphaBlendFactor:     Convert(bs.srcfactoralpha(), bs.usedualsrc())];
+        [color0 setDestinationRGBBlendFactor:  Convert(bs.dstfactor(),      bs.usedualsrc())];
+        [color0 setDestinationAlphaBlendFactor:Convert(bs.dstfactoralpha(), bs.usedualsrc())];
+        [color0 setRgbBlendOperation:  bs.subtract()      ? MTLBlendOperationReverseSubtract : MTLBlendOperationAdd];
+        [color0 setAlphaBlendOperation:bs.subtractAlpha() ? MTLBlendOperationReverseSubtract : MTLBlendOperationAdd];
         // clang-format on
       }
       FramebufferState fs = config.framebuffer_state;
-      [desc setRasterSampleCount:fs.samples];
-      [color0 setPixelFormat:Util::FromAbstract(fs.color_texture_format)];
-      [desc setDepthAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format)];
-      if (Util::HasStencil(fs.depth_texture_format))
-        [desc setStencilAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format)];
+      [desc setRasterSampleCount:fs.samples()];
+      [color0 setPixelFormat:Util::FromAbstract(fs.color_texture_format())];
+      [desc setDepthAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format())];
+      if (Util::HasStencil(fs.depth_texture_format()))
+        [desc setStencilAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format())];
       NSError* err = nullptr;
       MTLRenderPipelineReflection* reflection = nullptr;
       id<MTLRenderPipelineState> pipe =
@@ -491,8 +491,8 @@ Metal::ObjectCache::CreatePipeline(const AbstractPipelineConfig& config)
   if (!pipeline.first)
     return nullptr;
   return std::make_unique<Pipeline>(
-      std::move(pipeline.first), pipeline.second, Convert(config.rasterization_state.primitive),
-      Convert(config.rasterization_state.cullmode), config.depth_state, config.usage);
+      std::move(pipeline.first), pipeline.second, Convert(config.rasterization_state.primitive()),
+      Convert(config.rasterization_state.cullmode()), config.depth_state, config.usage);
 }
 
 void Metal::ObjectCache::ShaderDestroyed(const Shader* shader)

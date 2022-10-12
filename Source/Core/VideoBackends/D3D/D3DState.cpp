@@ -311,38 +311,38 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
     return it->second.Get();
 
   D3D11_SAMPLER_DESC sampdc = CD3D11_SAMPLER_DESC(CD3D11_DEFAULT());
-  if (state.tm0.mipmap_filter == FilterMode::Linear)
+  if (state.tm0.mipmap_filter() == FilterMode::Linear)
   {
-    if (state.tm0.min_filter == FilterMode::Linear)
-      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+    if (state.tm0.min_filter() == FilterMode::Linear)
+      sampdc.Filter = (state.tm0.mag_filter() == FilterMode::Linear) ?
                           D3D11_FILTER_MIN_MAG_MIP_LINEAR :
                           D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
     else
-      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+      sampdc.Filter = (state.tm0.mag_filter() == FilterMode::Linear) ?
                           D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR :
                           D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
   }
   else
   {
-    if (state.tm0.min_filter == FilterMode::Linear)
-      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+    if (state.tm0.min_filter() == FilterMode::Linear)
+      sampdc.Filter = (state.tm0.mag_filter() == FilterMode::Linear) ?
                           D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT :
                           D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
     else
-      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
+      sampdc.Filter = (state.tm0.mag_filter() == FilterMode::Linear) ?
                           D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT :
                           D3D11_FILTER_MIN_MAG_MIP_POINT;
   }
 
   static constexpr std::array<D3D11_TEXTURE_ADDRESS_MODE, 3> address_modes = {
       {D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_MIRROR}};
-  sampdc.AddressU = address_modes[static_cast<u32>(state.tm0.wrap_u.Value())];
-  sampdc.AddressV = address_modes[static_cast<u32>(state.tm0.wrap_v.Value())];
-  sampdc.MaxLOD = state.tm1.max_lod / 16.f;
-  sampdc.MinLOD = state.tm1.min_lod / 16.f;
-  sampdc.MipLODBias = state.tm0.lod_bias / 256.f;
+  sampdc.AddressU = address_modes[static_cast<u32>(state.tm0.wrap_u())];
+  sampdc.AddressV = address_modes[static_cast<u32>(state.tm0.wrap_v())];
+  sampdc.MaxLOD = state.tm1.max_lod() / 16.f;
+  sampdc.MinLOD = state.tm1.min_lod() / 16.f;
+  sampdc.MipLODBias = state.tm0.lod_bias() / 256.f;
 
-  if (state.tm0.anisotropic_filtering)
+  if (state.tm0.anisotropic_filtering())
   {
     sampdc.Filter = D3D11_FILTER_ANISOTROPIC;
     sampdc.MaxAnisotropy = 1u << g_ActiveConfig.iMaxAnisotropy;
@@ -361,16 +361,16 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   if (it != m_blend.end())
     return it->second.Get();
 
-  if (state.logicopenable && g_ActiveConfig.backend_info.bSupportsLogicOp)
+  if (state.logicopenable() && g_ActiveConfig.backend_info.bSupportsLogicOp)
   {
     D3D11_BLEND_DESC1 desc = {};
     D3D11_RENDER_TARGET_BLEND_DESC1& tdesc = desc.RenderTarget[0];
-    if (state.colorupdate)
+    if (state.colorupdate())
       tdesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
                                     D3D11_COLOR_WRITE_ENABLE_BLUE;
     else
       tdesc.RenderTargetWriteMask = 0;
-    if (state.alphaupdate)
+    if (state.alphaupdate())
       tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
     static constexpr std::array<D3D11_LOGIC_OP, 16> logic_ops = {
@@ -380,7 +380,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
          D3D11_LOGIC_OP_COPY_INVERTED, D3D11_LOGIC_OP_OR_INVERTED, D3D11_LOGIC_OP_NAND,
          D3D11_LOGIC_OP_SET}};
     tdesc.LogicOpEnable = TRUE;
-    tdesc.LogicOp = logic_ops[u32(state.logicmode.Value())];
+    tdesc.LogicOp = logic_ops[u32(state.logicmode())];
 
     ComPtr<ID3D11BlendState1> res;
     HRESULT hr = D3D::device1->CreateBlendState1(&desc, res.GetAddressOf());
@@ -396,17 +396,17 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   desc.IndependentBlendEnable = FALSE;
 
   D3D11_RENDER_TARGET_BLEND_DESC& tdesc = desc.RenderTarget[0];
-  tdesc.BlendEnable = state.blendenable;
+  tdesc.BlendEnable = state.blendenable();
 
-  if (state.colorupdate)
+  if (state.colorupdate())
     tdesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
                                   D3D11_COLOR_WRITE_ENABLE_BLUE;
   else
     tdesc.RenderTargetWriteMask = 0;
-  if (state.alphaupdate)
+  if (state.alphaupdate())
     tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
-  const bool use_dual_source = state.usedualsrc;
+  const bool use_dual_source = state.usedualsrc();
   const std::array<D3D11_BLEND, 8> src_factors = {
       {D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR,
        use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
@@ -418,12 +418,12 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
        use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
        D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
 
-  tdesc.SrcBlend = src_factors[u32(state.srcfactor.Value())];
-  tdesc.SrcBlendAlpha = src_factors[u32(state.srcfactoralpha.Value())];
-  tdesc.DestBlend = dst_factors[u32(state.dstfactor.Value())];
-  tdesc.DestBlendAlpha = dst_factors[u32(state.dstfactoralpha.Value())];
-  tdesc.BlendOp = state.subtract ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
-  tdesc.BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
+  tdesc.SrcBlend = src_factors[u32(state.srcfactor())];
+  tdesc.SrcBlendAlpha = src_factors[u32(state.srcfactoralpha())];
+  tdesc.DestBlend = dst_factors[u32(state.dstfactor())];
+  tdesc.DestBlendAlpha = dst_factors[u32(state.dstfactoralpha())];
+  tdesc.BlendOp = state.subtract() ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
+  tdesc.BlendOpAlpha = state.subtractAlpha() ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
 
   ComPtr<ID3D11BlendState> res;
   HRESULT hr = D3D::device->CreateBlendState(&desc, res.GetAddressOf());
@@ -443,7 +443,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 
   D3D11_RASTERIZER_DESC desc = {};
   desc.FillMode = D3D11_FILL_SOLID;
-  desc.CullMode = cull_modes[u32(state.cullmode.Value())];
+  desc.CullMode = cull_modes[u32(state.cullmode())];
   desc.ScissorEnable = TRUE;
 
   ComPtr<ID3D11RasterizerState> res;
@@ -474,12 +474,12 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
       D3D11_COMPARISON_GREATER_EQUAL, D3D11_COMPARISON_LESS,    D3D11_COMPARISON_NOT_EQUAL,
       D3D11_COMPARISON_LESS_EQUAL,    D3D11_COMPARISON_ALWAYS};
 
-  if (state.testenable)
+  if (state.testenable())
   {
     depthdc.DepthEnable = TRUE;
     depthdc.DepthWriteMask =
-        state.updateenable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-    depthdc.DepthFunc = d3dCmpFuncs[u32(state.func.Value())];
+        state.updateenable() ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+    depthdc.DepthFunc = d3dCmpFuncs[u32(state.func())];
   }
   else
   {

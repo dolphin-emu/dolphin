@@ -428,8 +428,8 @@ void Metal::StateTracker::SetTexture(u32 idx, id<MTLTexture> texture)
 void Metal::StateTracker::SetSamplerForce(u32 idx, const SamplerState& sampler)
 {
   m_state.samplers[idx] = g_object_cache->GetSampler(sampler);
-  m_state.sampler_min_lod[idx] = sampler.tm1.min_lod;
-  m_state.sampler_max_lod[idx] = sampler.tm1.max_lod;
+  m_state.sampler_min_lod[idx] = sampler.tm1.min_lod();
+  m_state.sampler_max_lod[idx] = sampler.tm1.max_lod();
   m_state.sampler_states[idx] = sampler;
   m_dirty_samplers |= 1 << idx;
 }

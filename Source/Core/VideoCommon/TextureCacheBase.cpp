@@ -1002,15 +1002,15 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
   // Force texture filtering config option.
   if (g_ActiveConfig.bForceFiltering)
   {
-    state.tm0.min_filter = FilterMode::Linear;
-    state.tm0.mag_filter = FilterMode::Linear;
-    state.tm0.mipmap_filter =
+    state.tm0.min_filter() = FilterMode::Linear;
+    state.tm0.mag_filter() = FilterMode::Linear;
+    state.tm0.mipmap_filter() =
         tm0.mipmap_filter != MipMode::None ? FilterMode::Linear : FilterMode::Near;
   }
 
   // Custom textures may have a greater number of mips
   if (custom_tex)
-    state.tm1.max_lod = 255;
+    state.tm1.max_lod() = 255;
 
   // Anisotropic filtering option.
   if (g_ActiveConfig.iMaxAnisotropy != 0 && IsAnisostropicEnhancementSafe(tm0))
@@ -1022,15 +1022,15 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     // Letting the game set other combinations will have varying arbitrary results;
     // possibly being interpreted as equal to bilinear/trilinear, implicitly
     // disabling anisotropy, or changing the anisotropic algorithm employed.
-    state.tm0.min_filter = FilterMode::Linear;
-    state.tm0.mag_filter = FilterMode::Linear;
+    state.tm0.min_filter() = FilterMode::Linear;
+    state.tm0.mag_filter() = FilterMode::Linear;
     if (tm0.mipmap_filter != MipMode::None)
-      state.tm0.mipmap_filter = FilterMode::Linear;
-    state.tm0.anisotropic_filtering = true;
+      state.tm0.mipmap_filter() = FilterMode::Linear;
+    state.tm0.anisotropic_filtering() = true;
   }
   else
   {
-    state.tm0.anisotropic_filtering = false;
+    state.tm0.anisotropic_filtering() = false;
   }
 
   if (has_arbitrary_mips && tm0.mipmap_filter != MipMode::None)
@@ -1040,10 +1040,10 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     // distance they kick in at is important to preserve at any resolution.
     // Correct this with the upscaling factor of custom textures.
     s32 lod_offset = std::log2(g_renderer->GetEFBScale() / custom_tex_scale) * 256.f;
-    state.tm0.lod_bias = std::clamp<s32>(state.tm0.lod_bias + lod_offset, -32768, 32767);
+    state.tm0.lod_bias() = std::clamp<s32>(state.tm0.lod_bias() + lod_offset, -32768, 32767);
 
     // Anisotropic also pushes mips farther away so it cannot be used either
-    state.tm0.anisotropic_filtering = false;
+    state.tm0.anisotropic_filtering() = false;
   }
 
   g_renderer->SetSamplerState(index, state);

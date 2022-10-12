@@ -29,7 +29,7 @@ DXPipeline::~DXPipeline()
 
 static D3D12_PRIMITIVE_TOPOLOGY GetD3DTopology(const RasterizationState& state)
 {
-  switch (state.primitive)
+  switch (state.primitive())
   {
   case PrimitiveType::Points:
     return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
@@ -45,7 +45,7 @@ static D3D12_PRIMITIVE_TOPOLOGY GetD3DTopology(const RasterizationState& state)
 
 static D3D12_PRIMITIVE_TOPOLOGY_TYPE GetD3DTopologyType(const RasterizationState& state)
 {
-  switch (state.primitive)
+  switch (state.primitive())
   {
   case PrimitiveType::Points:
     return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
@@ -66,8 +66,8 @@ static void GetD3DRasterizerDesc(D3D12_RASTERIZER_DESC* desc, const Rasterizatio
       {D3D12_CULL_MODE_NONE, D3D12_CULL_MODE_BACK, D3D12_CULL_MODE_FRONT, D3D12_CULL_MODE_FRONT}};
 
   desc->FillMode = D3D12_FILL_MODE_SOLID;
-  desc->CullMode = cull_modes[u32(rs_state.cullmode.Value())];
-  desc->MultisampleEnable = fb_state.samples > 1;
+  desc->CullMode = cull_modes[u32(rs_state.cullmode())];
+  desc->MultisampleEnable = fb_state.samples() > 1;
 }
 
 static void GetD3DDepthDesc(D3D12_DEPTH_STENCIL_DESC* desc, const DepthState& state)
@@ -79,10 +79,10 @@ static void GetD3DDepthDesc(D3D12_DEPTH_STENCIL_DESC* desc, const DepthState& st
        D3D12_COMPARISON_FUNC_NOT_EQUAL, D3D12_COMPARISON_FUNC_LESS_EQUAL,
        D3D12_COMPARISON_FUNC_ALWAYS}};
 
-  desc->DepthEnable = state.testenable;
-  desc->DepthFunc = compare_funcs[u32(state.func.Value())];
+  desc->DepthEnable = state.testenable();
+  desc->DepthFunc = compare_funcs[u32(state.func())];
   desc->DepthWriteMask =
-      state.updateenable ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+      state.updateenable() ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 }
 
 static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state)
@@ -116,43 +116,44 @@ static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state)
   desc->IndependentBlendEnable = FALSE;
 
   D3D12_RENDER_TARGET_BLEND_DESC* rtblend = &desc->RenderTarget[0];
-  if (state.colorupdate)
+  if (state.colorupdate())
   {
     rtblend->RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_RED |
                                       D3D12_COLOR_WRITE_ENABLE_GREEN |
                                       D3D12_COLOR_WRITE_ENABLE_BLUE;
   }
-  if (state.alphaupdate)
+  if (state.alphaupdate())
   {
     rtblend->RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_ALPHA;
   }
 
   // blend takes precedence over logic op
-  rtblend->BlendEnable = state.blendenable;
-  if (state.blendenable)
+  rtblend->BlendEnable = state.blendenable();
+  if (state.blendenable())
   {
-    rtblend->BlendOp = state.subtract ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
-    rtblend->BlendOpAlpha = state.subtractAlpha ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
-    if (state.usedualsrc)
+    rtblend->BlendOp = state.subtract() ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
+    rtblend->BlendOpAlpha =
+        state.subtractAlpha() ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
+    if (state.usedualsrc())
     {
-      rtblend->SrcBlend = src_dual_src_factors[u32(state.srcfactor.Value())];
-      rtblend->SrcBlendAlpha = src_dual_src_factors[u32(state.srcfactoralpha.Value())];
-      rtblend->DestBlend = dst_dual_src_factors[u32(state.dstfactor.Value())];
-      rtblend->DestBlendAlpha = dst_dual_src_factors[u32(state.dstfactoralpha.Value())];
+      rtblend->SrcBlend = src_dual_src_factors[u32(state.srcfactor())];
+      rtblend->SrcBlendAlpha = src_dual_src_factors[u32(state.srcfactoralpha())];
+      rtblend->DestBlend = dst_dual_src_factors[u32(state.dstfactor())];
+      rtblend->DestBlendAlpha = dst_dual_src_factors[u32(state.dstfactoralpha())];
     }
     else
     {
-      rtblend->SrcBlend = src_factors[u32(state.srcfactor.Value())];
-      rtblend->SrcBlendAlpha = src_factors[u32(state.srcfactoralpha.Value())];
-      rtblend->DestBlend = dst_factors[u32(state.dstfactor.Value())];
-      rtblend->DestBlendAlpha = dst_factors[u32(state.dstfactoralpha.Value())];
+      rtblend->SrcBlend = src_factors[u32(state.srcfactor())];
+      rtblend->SrcBlendAlpha = src_factors[u32(state.srcfactoralpha())];
+      rtblend->DestBlend = dst_factors[u32(state.dstfactor())];
+      rtblend->DestBlendAlpha = dst_factors[u32(state.dstfactoralpha())];
     }
   }
   else
   {
-    rtblend->LogicOpEnable = state.logicopenable;
-    if (state.logicopenable)
-      rtblend->LogicOp = logic_ops[u32(state.logicmode.Value())];
+    rtblend->LogicOpEnable = state.logicopenable();
+    if (state.logicopenable())
+      rtblend->LogicOp = logic_ops[u32(state.logicmode())];
   }
 }
 
@@ -189,20 +190,20 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   GetD3DDepthDesc(&desc.DepthStencilState, config.depth_state);
   if (config.vertex_format)
     static_cast<const DXVertexFormat*>(config.vertex_format)->GetInputLayoutDesc(&desc.InputLayout);
-  desc.IBStripCutValue = config.rasterization_state.primitive == PrimitiveType::TriangleStrip ?
+  desc.IBStripCutValue = config.rasterization_state.primitive() == PrimitiveType::TriangleStrip ?
                              D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF :
                              D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
   desc.PrimitiveTopologyType = GetD3DTopologyType(config.rasterization_state);
-  if (config.framebuffer_state.color_texture_format != AbstractTextureFormat::Undefined)
+  if (config.framebuffer_state.color_texture_format() != AbstractTextureFormat::Undefined)
   {
     desc.NumRenderTargets = 1;
     desc.RTVFormats[0] = D3DCommon::GetRTVFormatForAbstractFormat(
-        config.framebuffer_state.color_texture_format, config.blending_state.logicopenable);
+        config.framebuffer_state.color_texture_format(), config.blending_state.logicopenable());
   }
-  if (config.framebuffer_state.depth_texture_format != AbstractTextureFormat::Undefined)
+  if (config.framebuffer_state.depth_texture_format() != AbstractTextureFormat::Undefined)
     desc.DSVFormat =
-        D3DCommon::GetDSVFormatForAbstractFormat(config.framebuffer_state.depth_texture_format);
-  desc.SampleDesc.Count = config.framebuffer_state.samples;
+        D3DCommon::GetDSVFormatForAbstractFormat(config.framebuffer_state.depth_texture_format());
+  desc.SampleDesc.Count = config.framebuffer_state.samples();
   desc.NodeMask = 1;
   desc.CachedPSO.pCachedBlob = cache_data;
   desc.CachedPSO.CachedBlobSizeInBytes = cache_data_size;
@@ -217,7 +218,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   }
 
   const bool use_integer_rtv =
-      !config.blending_state.blendenable && config.blending_state.logicopenable;
+      !config.blending_state.blendenable() && config.blending_state.logicopenable();
   return std::make_unique<DXPipeline>(pso, desc.pRootSignature, config.usage,
                                       GetD3DTopology(config.rasterization_state), use_integer_rtv);
 }

@@ -565,7 +565,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
       out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
                 "  float lod_bias = float({}) / 256.0f;\n"
                 "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
-                BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"));
+                BitfieldExtract("texmode0", SamplerState::TM0().lod_bias()));
     }
     else
     {
@@ -592,17 +592,17 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   int min_lod = int({});
   int max_lod = int({});
 )",
-              BitfieldExtract<&SamplerState::TM0::wrap_u>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::wrap_v>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::mag_filter>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::mipmap_filter>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::min_filter>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::diag_lod>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"),
-              // BitfieldExtract<&SamplerState::TM0::max_aniso>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::lod_clamp>("texmode0"),
-              BitfieldExtract<&SamplerState::TM1::min_lod>("texmode1"),
-              BitfieldExtract<&SamplerState::TM1::max_lod>("texmode1"));
+              BitfieldExtract("texmode0", SamplerState::TM0().wrap_u()),
+              BitfieldExtract("texmode0", SamplerState::TM0().wrap_v()),
+              BitfieldExtract("texmode0", SamplerState::TM0().mag_filter()),
+              BitfieldExtract("texmode0", SamplerState::TM0().mipmap_filter()),
+              BitfieldExtract("texmode0", SamplerState::TM0().min_filter()),
+              BitfieldExtract("texmode0", SamplerState::TM0().diag_lod()),
+              BitfieldExtract("texmode0", SamplerState::TM0().lod_bias()),
+              // BitfieldExtract("texmode0", SamplerState::TM0().max_aniso()),
+              BitfieldExtract("texmode0", SamplerState::TM0().lod_clamp()),
+              BitfieldExtract("texmode1", SamplerState::TM1().min_lod()),
+              BitfieldExtract("texmode1", SamplerState::TM1().max_lod()));
 
     if (host_config.manual_texture_sampling_custom_texture_sizes())
     {

@@ -1106,15 +1106,15 @@ bool Renderer::RecompileImGuiPipeline()
   pconfig.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
   pconfig.depth_state = RenderState::GetNoDepthTestingDepthState();
   pconfig.blending_state = RenderState::GetNoBlendingBlendState();
-  pconfig.blending_state.blendenable = true;
-  pconfig.blending_state.srcfactor = SrcBlendFactor::SrcAlpha;
-  pconfig.blending_state.dstfactor = DstBlendFactor::InvSrcAlpha;
-  pconfig.blending_state.srcfactoralpha = SrcBlendFactor::Zero;
-  pconfig.blending_state.dstfactoralpha = DstBlendFactor::One;
-  pconfig.framebuffer_state.color_texture_format = m_backbuffer_format;
-  pconfig.framebuffer_state.depth_texture_format = AbstractTextureFormat::Undefined;
-  pconfig.framebuffer_state.samples = 1;
-  pconfig.framebuffer_state.per_sample_shading = false;
+  pconfig.blending_state.blendenable() = true;
+  pconfig.blending_state.srcfactor() = SrcBlendFactor::SrcAlpha;
+  pconfig.blending_state.dstfactor() = DstBlendFactor::InvSrcAlpha;
+  pconfig.blending_state.srcfactoralpha() = SrcBlendFactor::Zero;
+  pconfig.blending_state.dstfactoralpha() = DstBlendFactor::One;
+  pconfig.framebuffer_state.color_texture_format() = m_backbuffer_format;
+  pconfig.framebuffer_state.depth_texture_format() = AbstractTextureFormat::Undefined;
+  pconfig.framebuffer_state.samples() = 1;
+  pconfig.framebuffer_state.per_sample_shading() = false;
   pconfig.usage = AbstractPipelineUsage::Utility;
   m_imgui_pipeline = CreatePipeline(pconfig);
   if (!m_imgui_pipeline)

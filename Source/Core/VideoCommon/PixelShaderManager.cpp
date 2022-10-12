@@ -475,49 +475,49 @@ void PixelShaderManager::SetBlendModeChanged()
   }
   BlendingState state = {};
   state.Generate(bpmem);
-  if (constants.blend_enable != state.blendenable)
+  if (static_cast<bool>(constants.blend_enable) != state.blendenable())
   {
-    constants.blend_enable = state.blendenable;
+    constants.blend_enable = state.blendenable();
     dirty = true;
   }
-  if (constants.blend_src_factor != state.srcfactor)
+  if (constants.blend_src_factor != state.srcfactor())
   {
-    constants.blend_src_factor = state.srcfactor;
+    constants.blend_src_factor = state.srcfactor();
     dirty = true;
   }
-  if (constants.blend_src_factor_alpha != state.srcfactoralpha)
+  if (constants.blend_src_factor_alpha != state.srcfactoralpha())
   {
-    constants.blend_src_factor_alpha = state.srcfactoralpha;
+    constants.blend_src_factor_alpha = state.srcfactoralpha();
     dirty = true;
   }
-  if (constants.blend_dst_factor != state.dstfactor)
+  if (constants.blend_dst_factor != state.dstfactor())
   {
-    constants.blend_dst_factor = state.dstfactor;
+    constants.blend_dst_factor = state.dstfactor();
     dirty = true;
   }
-  if (constants.blend_dst_factor_alpha != state.dstfactoralpha)
+  if (constants.blend_dst_factor_alpha != state.dstfactoralpha())
   {
-    constants.blend_dst_factor_alpha = state.dstfactoralpha;
+    constants.blend_dst_factor_alpha = state.dstfactoralpha();
     dirty = true;
   }
-  if (constants.blend_subtract != state.subtract)
+  if (static_cast<bool>(constants.blend_subtract) != state.subtract())
   {
-    constants.blend_subtract = state.subtract;
+    constants.blend_subtract = state.subtract();
     dirty = true;
   }
-  if (constants.blend_subtract_alpha != state.subtractAlpha)
+  if (static_cast<bool>(constants.blend_subtract_alpha) != state.subtractAlpha())
   {
-    constants.blend_subtract_alpha = state.subtractAlpha;
+    constants.blend_subtract_alpha = state.subtractAlpha();
     dirty = true;
   }
-  if (constants.logic_op_enable != state.logicopenable)
+  if (static_cast<bool>(constants.logic_op_enable) != state.logicopenable())
   {
-    constants.logic_op_enable = state.logicopenable;
+    constants.logic_op_enable = state.logicopenable();
     dirty = true;
   }
-  if (constants.logic_op_mode != state.logicmode)
+  if (constants.logic_op_mode != state.logicmode())
   {
-    constants.logic_op_mode = state.logicmode;
+    constants.logic_op_mode = state.logicmode();
     dirty = true;
   }
   s_bDestAlphaDirty = true;

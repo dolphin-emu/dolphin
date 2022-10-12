@@ -602,7 +602,7 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
   config.framebuffer_state = g_framebuffer_manager->GetEFBFramebufferState();
 
   // We can use framebuffer fetch to emulate logic ops in the fragment shader.
-  if (config.blending_state.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp &&
+  if (config.blending_state.logicopenable() && !g_ActiveConfig.backend_info.bSupportsLogicOp &&
       !g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
   {
     WARN_LOG_FMT(VIDEO,
@@ -621,7 +621,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   pixel_shader_uid_data* ps = out.ps_uid.GetUidData();
   BlendingState& blend = out.blending_state;
 
-  if (ps->ztest == EmulatedZ::ForcedEarly && !out.depth_state.updateenable)
+  if (ps->ztest == EmulatedZ::ForcedEarly && !out.depth_state.updateenable())
   {
     // No need to force early depth test if you're not writing z
     ps->ztest = EmulatedZ::Early;
@@ -635,7 +635,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   {
     // Only use dual-source blending when required on drivers that don't support it very well.
     ps->no_dual_src = true;
-    blend.usedualsrc = false;
+    blend.usedualsrc() = false;
   }
 
   if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
@@ -646,30 +646,30 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
         ps->ztest == EmulatedZ::ForcedEarly)
     {
       ps->ztest = EmulatedZ::EarlyWithFBFetch;
-      fbfetch_blend |= static_cast<bool>(out.blending_state.blendenable);
+      fbfetch_blend |= out.blending_state.blendenable();
       ps->no_dual_src = true;
     }
-    fbfetch_blend |= blend.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp;
-    fbfetch_blend |= blend.usedualsrc && !g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+    fbfetch_blend |= blend.logicopenable() && !g_ActiveConfig.backend_info.bSupportsLogicOp;
+    fbfetch_blend |= blend.usedualsrc() && !g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
     if (fbfetch_blend)
     {
       ps->no_dual_src = true;
-      if (blend.logicopenable)
+      if (blend.logicopenable())
       {
         ps->logic_op_enable = true;
-        ps->logic_op_mode = static_cast<u32>(blend.logicmode.Value());
-        blend.logicopenable = false;
+        ps->logic_op_mode = static_cast<u32>(blend.logicmode());
+        blend.logicopenable() = false;
       }
-      if (blend.blendenable)
+      if (blend.blendenable())
       {
         ps->blend_enable = true;
-        ps->blend_src_factor = blend.srcfactor;
-        ps->blend_src_factor_alpha = blend.srcfactoralpha;
-        ps->blend_dst_factor = blend.dstfactor;
-        ps->blend_dst_factor_alpha = blend.dstfactoralpha;
-        ps->blend_subtract = blend.subtract;
-        ps->blend_subtract_alpha = blend.subtractAlpha;
-        blend.blendenable = false;
+        ps->blend_src_factor = blend.srcfactor();
+        ps->blend_src_factor_alpha = blend.srcfactoralpha();
+        ps->blend_dst_factor = blend.dstfactor();
+        ps->blend_dst_factor_alpha = blend.dstfactoralpha();
+        ps->blend_subtract = blend.subtract();
+        ps->blend_subtract_alpha = blend.subtractAlpha();
+        blend.blendenable() = false;
       }
     }
   }
@@ -678,7 +678,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   if (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
   {
     ps->no_dual_src = true;
-    blend.usedualsrc = false;
+    blend.usedualsrc() = false;
   }
 
   if (ps->ztest == EmulatedZ::ForcedEarly && !g_ActiveConfig.backend_info.bSupportsEarlyZ)
@@ -749,15 +749,15 @@ static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
   {
     // Always blend in shader
     out.blending_state.hex = 0;
-    out.blending_state.colorupdate = in.blending_state.colorupdate.Value();
-    out.blending_state.alphaupdate = in.blending_state.alphaupdate.Value();
+    out.blending_state.colorupdate() = in.blending_state.colorupdate();
+    out.blending_state.alphaupdate() = in.blending_state.alphaupdate();
     out.ps_uid.GetUidData()->no_dual_src = true;
   }
   else if (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend ||
            (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) &&
             !out.blending_state.RequiresDualSrc()))
   {
-    out.blending_state.usedualsrc = false;
+    out.blending_state.usedualsrc() = false;
     out.ps_uid.GetUidData()->no_dual_src = true;
   }
   return out;
@@ -1251,8 +1251,8 @@ void ShaderCache::QueueUberShaderPipelines()
         if (ps_uid.GetUidData()->uint_output)
         {
           // uint_output is only ever enabled when logic ops are enabled.
-          config.blending_state.logicopenable = true;
-          config.blending_state.logicmode = LogicOp::And;
+          config.blending_state.logicopenable() = true;
+          config.blending_state.logicmode() = LogicOp::And;
         }
 
         auto iter = m_gx_uber_pipeline_cache.find(config);
@@ -1302,18 +1302,18 @@ void ShaderCache::QueueUberShaderPipelines()
           // Windows D3D12:
           //  - AMD: Keyed on dual source blend and vertex layout
           //  - Nvidia Kepler: No recompiles for changes to vertex layout or blend
-          blend.alphaupdate = false;
+          blend.alphaupdate() = false;
           QueueDummyPipeline(vuid, guid, cleared_puid, blend);
-          blend.alphaupdate = true;
-          blend.colorupdate = false;
+          blend.alphaupdate() = true;
+          blend.colorupdate() = false;
           QueueDummyPipeline(vuid, guid, cleared_puid, blend);
-          blend.colorupdate = true;
+          blend.colorupdate() = true;
           if (!cleared_puid.GetUidData()->no_dual_src && !cleared_puid.GetUidData()->uint_output)
           {
-            blend.blendenable = true;
-            blend.usedualsrc = true;
-            blend.srcfactor = SrcBlendFactor::SrcAlpha;
-            blend.dstfactor = DstBlendFactor::InvSrcAlpha;
+            blend.blendenable() = true;
+            blend.usedualsrc() = true;
+            blend.srcfactor() = SrcBlendFactor::SrcAlpha;
+            blend.dstfactor() = DstBlendFactor::InvSrcAlpha;
             QueueDummyPipeline(vuid, guid, cleared_puid, blend);
           }
         }

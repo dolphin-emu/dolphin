@@ -158,10 +158,10 @@ TextureConfig FramebufferManager::GetEFBDepthTextureConfig()
 FramebufferState FramebufferManager::GetEFBFramebufferState() const
 {
   FramebufferState ret = {};
-  ret.color_texture_format = m_efb_color_texture->GetFormat();
-  ret.depth_texture_format = m_efb_depth_texture->GetFormat();
-  ret.per_sample_shading = IsEFBMultisampled() && g_ActiveConfig.bSSAA;
-  ret.samples = m_efb_color_texture->GetSamples();
+  ret.color_texture_format() = m_efb_color_texture->GetFormat();
+  ret.depth_texture_format() = m_efb_depth_texture->GetFormat();
+  ret.per_sample_shading() = IsEFBMultisampled() && g_ActiveConfig.bSSAA;
+  ret.samples() = m_efb_color_texture->GetSamples();
   return ret;
 }
 
@@ -585,7 +585,7 @@ bool FramebufferManager::CompileReadbackPipelines()
     return false;
 
   // same for depth, except different format
-  config.framebuffer_state.color_texture_format = GetEFBDepthCopyFormat();
+  config.framebuffer_state.color_texture_format() = GetEFBDepthCopyFormat();
   m_efb_depth_cache.copy_pipeline = g_renderer->CreatePipeline(config);
   if (!m_efb_depth_cache.copy_pipeline)
     return false;
@@ -605,7 +605,7 @@ bool FramebufferManager::CompileReadbackPipelines()
 
     if (!g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
     {
-      config.framebuffer_state.color_texture_format = GetEFBColorFormat();
+      config.framebuffer_state.color_texture_format() = GetEFBColorFormat();
       auto color_resolve_shader = g_renderer->CreateShaderFromSource(
           ShaderStage::Pixel,
           FramebufferShaderGen::GenerateResolveColorPixelShader(GetEFBSamples()),
@@ -629,7 +629,7 @@ bool FramebufferManager::CompileReadbackPipelines()
 
   config.depth_state = RenderState::GetAlwaysWriteDepthState();
   config.framebuffer_state = GetEFBFramebufferState();
-  config.framebuffer_state.per_sample_shading = false;
+  config.framebuffer_state.per_sample_shading() = false;
   config.vertex_shader = g_shader_cache->GetScreenQuadVertexShader();
   config.pixel_shader = restore_shader.get();
   m_efb_restore_pipeline = g_renderer->CreatePipeline(config);
@@ -852,14 +852,14 @@ bool FramebufferManager::CompileClearPipelines()
 
   for (u32 color_enable = 0; color_enable < 2; color_enable++)
   {
-    config.blending_state.colorupdate = color_enable != 0;
+    config.blending_state.colorupdate() = color_enable != 0;
     for (u32 alpha_enable = 0; alpha_enable < 2; alpha_enable++)
     {
-      config.blending_state.alphaupdate = alpha_enable != 0;
+      config.blending_state.alphaupdate() = alpha_enable != 0;
       for (u32 depth_enable = 0; depth_enable < 2; depth_enable++)
       {
-        config.depth_state.testenable = depth_enable != 0;
-        config.depth_state.updateenable = depth_enable != 0;
+        config.depth_state.testenable() = depth_enable != 0;
+        config.depth_state.updateenable() = depth_enable != 0;
 
         m_efb_clear_pipelines[color_enable][alpha_enable][depth_enable] =
             g_renderer->CreatePipeline(config);
