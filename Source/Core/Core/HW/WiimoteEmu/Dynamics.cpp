@@ -398,7 +398,9 @@ Common::Quaternion GetRotationFromAcceleration(const Common::Vec3& accel)
 
 Common::Quaternion GetRotationFromGyroscope(const Common::Vec3& gyro)
 {
-  return Common::Quaternion{1, gyro.x / 2, gyro.y / 2, gyro.z / 2};
+  const auto length = gyro.Length();
+  return (length != 0) ? Common::Quaternion::Rotate(length, gyro / length) :
+                         Common::Quaternion::Identity();
 }
 
 Common::Matrix33 GetRotationalMatrix(const Common::Vec3& angle)
