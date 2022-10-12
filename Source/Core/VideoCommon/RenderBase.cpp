@@ -263,15 +263,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     // a little-endian value is expected to be returned
     color = ((color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000));
 
-    if (bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24)
+    if (bpmem.zcontrol.pixel_format() == PixelFormat::RGBA6_Z24)
     {
       color = RGBA8ToRGBA6ToRGBA8(color);
     }
-    else if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16)
+    else if (bpmem.zcontrol.pixel_format() == PixelFormat::RGB565_Z16)
     {
       color = RGBA8ToRGB565ToRGBA8(color);
     }
-    if (bpmem.zcontrol.pixel_format != PixelFormat::RGBA6_Z24)
+    if (bpmem.zcontrol.pixel_format() != PixelFormat::RGBA6_Z24)
     {
       color |= 0xFF000000;
     }
@@ -306,7 +306,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     // Convert to 24bit depth
     u32 z24depth = std::clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
 
-    if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16)
+    if (bpmem.zcontrol.pixel_format() == PixelFormat::RGB565_Z16)
     {
       // When in RGB565_Z16 mode, EFB Z peeks return a 16bit value, which is presumably a
       // resolved sample from the MSAA buffer.
@@ -317,7 +317,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
       // This is mostly transparent, unless the game does an EFB read.
       // But we can simply convert the 24bit depth on the fly to the 16bit depth the game expects.
 
-      return CompressZ16(z24depth, bpmem.zcontrol.zformat);
+      return CompressZ16(z24depth, bpmem.zcontrol.zformat());
     }
 
     return z24depth;
@@ -1823,7 +1823,7 @@ bool Renderer::UseVertexDepthRange() const
     return false;
 
   // We need a full depth range if a ztexture is used.
-  if (bpmem.ztex2.op != ZTexOp::Disabled && !bpmem.zcontrol.early_ztest)
+  if (bpmem.ztex2.op() != ZTexOp::Disabled && !bpmem.zcontrol.early_ztest())
     return true;
 
   // If an inverted depth range is unsupported, we also need to check if the range is inverted.

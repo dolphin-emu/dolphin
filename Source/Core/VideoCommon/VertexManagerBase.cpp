@@ -341,14 +341,14 @@ bool VertexManagerBase::UploadTexelBuffer(const void* data, u32 data_size, Texel
 BitSet32 VertexManagerBase::UsedTextures() const
 {
   BitSet32 usedtextures;
-  for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
+  for (u32 i = 0; i < bpmem.genMode.numtevstages() + 1u; ++i)
     if (bpmem.tevorders[i / 2].getEnable(i & 1))
       usedtextures[bpmem.tevorders[i / 2].getTexMap(i & 1)] = true;
 
-  if (bpmem.genMode.numindstages > 0)
-    for (unsigned int i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
-      if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
-        usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
+  if (bpmem.genMode.numindstages() > 0)
+    for (unsigned int i = 0; i < bpmem.genMode.numtevstages() + 1u; ++i)
+      if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt() < bpmem.genMode.numindstages())
+        usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt())] = true;
 
   return usedtextures;
 }
@@ -360,24 +360,24 @@ void VertexManagerBase::Flush()
 
   m_is_flushed = true;
 
-  if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens ||
-      xfmem.numChan.numColorChans != bpmem.genMode.numcolchans)
+  if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens() ||
+      xfmem.numChan.numColorChans != bpmem.genMode.numcolchans())
   {
     ERROR_LOG_FMT(
         VIDEO,
         "Mismatched configuration between XF and BP stages - {}/{} texgens, {}/{} colors. "
         "Skipping draw. Please report on the issue tracker.",
-        xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value(), xfmem.numChan.numColorChans,
-        bpmem.genMode.numcolchans.Value());
+        xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens(), xfmem.numChan.numColorChans,
+        bpmem.genMode.numcolchans());
 
     // Analytics reporting so we can discover which games have this problem, that way when we
     // eventually simulate the behavior we have test cases for it.
-    if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
+    if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens())
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_TEXGENS_BETWEEN_XF_AND_BP);
     }
-    if (xfmem.numChan.numColorChans != bpmem.genMode.numcolchans)
+    if (xfmem.numChan.numColorChans != bpmem.genMode.numcolchans())
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_COLORS_BETWEEN_XF_AND_BP);
@@ -389,8 +389,8 @@ void VertexManagerBase::Flush()
 #if defined(_DEBUG) || defined(DEBUGFAST)
   PRIM_LOG("frame{}:\n texgen={}, numchan={}, dualtex={}, ztex={}, cole={}, alpe={}, ze={}",
            g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens, xfmem.numChan.numColorChans,
-           xfmem.dualTexTrans.enabled, bpmem.ztex2.op.Value(), bpmem.blendmode.colorupdate.Value(),
-           bpmem.blendmode.alphaupdate.Value(), bpmem.zmode.updateenable.Value());
+           xfmem.dualTexTrans.enabled, bpmem.ztex2.op(), bpmem.blendmode.colorupdate(),
+           bpmem.blendmode.alphaupdate(), bpmem.zmode.updateenable());
 
   for (u32 i = 0; i < xfmem.numChan.numColorChans; ++i)
   {
@@ -421,8 +421,8 @@ void VertexManagerBase::Flush()
   }
 
   PRIM_LOG("pixel: tev={}, ind={}, texgen={}, dstalpha={}, alphatest={:#x}",
-           bpmem.genMode.numtevstages.Value() + 1, bpmem.genMode.numindstages.Value(),
-           bpmem.genMode.numtexgens.Value(), bpmem.dstalpha.enable.Value(),
+           bpmem.genMode.numtevstages() + 1, bpmem.genMode.numindstages(),
+           bpmem.genMode.numtexgens(), bpmem.dstalpha.enable(),
            (bpmem.alpha_test.hex >> 16) & 0xff);
 #endif
 
@@ -477,7 +477,7 @@ void VertexManagerBase::Flush()
     }
   }
   VertexShaderManager::SetConstants(texture_names);
-  if (!bpmem.genMode.zfreeze)
+  if (!bpmem.genMode.zfreeze())
   {
     // Must be done after VertexShaderManager::SetConstants()
     CalculateZSlope(VertexLoaderManager::GetCurrentVertexFormat());
@@ -528,13 +528,13 @@ void VertexManagerBase::Flush()
     {
       g_renderer->SetPipeline(m_current_pipeline_object);
       if (PerfQueryBase::ShouldEmulate())
-        g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+        g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest() ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
       DrawCurrentBatch(base_index, num_indices, base_vertex);
       INCSTAT(g_stats.this_frame.num_draw_calls);
 
       if (PerfQueryBase::ShouldEmulate())
-        g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+        g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest() ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
       OnDraw();
 
@@ -543,11 +543,11 @@ void VertexManagerBase::Flush()
     }
   }
 
-  if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
+  if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens())
   {
     ERROR_LOG_FMT(VIDEO,
                   "xf.numtexgens ({}) does not match bp.numtexgens ({}). Error in command stream.",
-                  xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value());
+                  xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens());
   }
 }
 
@@ -569,8 +569,8 @@ void VertexManagerBase::DoState(PointerWrap& p)
 void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
 {
   float out[12];
-  float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
-                         xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
+  float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x() * 2,
+                         xfmem.viewport.yOrig - bpmem.scissorOffset.y() * 2};
 
   if (m_current_primitive_type != PrimitiveType::Triangles &&
       m_current_primitive_type != PrimitiveType::TriangleStrip)

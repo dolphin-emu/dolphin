@@ -988,7 +988,7 @@ void TextureCacheBase::DumpTexture(TCacheEntry* entry, std::string basename, uns
 // misaligned from the correct pixels when filtered anisotropically.
 static bool IsAnisostropicEnhancementSafe(const TexMode0& tm0)
 {
-  return !(tm0.min_filter == FilterMode::Near && tm0.mag_filter == FilterMode::Near);
+  return !(tm0.min_filter() == FilterMode::Near && tm0.mag_filter() == FilterMode::Near);
 }
 
 static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
@@ -1005,7 +1005,7 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     state.tm0.min_filter() = FilterMode::Linear;
     state.tm0.mag_filter() = FilterMode::Linear;
     state.tm0.mipmap_filter() =
-        tm0.mipmap_filter != MipMode::None ? FilterMode::Linear : FilterMode::Near;
+        tm0.mipmap_filter() != MipMode::None ? FilterMode::Linear : FilterMode::Near;
   }
 
   // Custom textures may have a greater number of mips
@@ -1024,7 +1024,7 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     // disabling anisotropy, or changing the anisotropic algorithm employed.
     state.tm0.min_filter() = FilterMode::Linear;
     state.tm0.mag_filter() = FilterMode::Linear;
-    if (tm0.mipmap_filter != MipMode::None)
+    if (tm0.mipmap_filter() != MipMode::None)
       state.tm0.mipmap_filter() = FilterMode::Linear;
     state.tm0.anisotropic_filtering() = true;
   }
@@ -1033,7 +1033,7 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     state.tm0.anisotropic_filtering() = false;
   }
 
-  if (has_arbitrary_mips && tm0.mipmap_filter != MipMode::None)
+  if (has_arbitrary_mips && tm0.mipmap_filter() != MipMode::None)
   {
     // Apply a secondary bias calculated from the IR scale to pull inwards mipmaps
     // that have arbitrary contents, eg. are used for fog effects where the
@@ -2261,10 +2261,10 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   if (copy_to_ram)
   {
     const std::array<u32, 3> coefficients = GetRAMCopyFilterCoefficients(filter_coefficients);
-    PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
-    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
-                         AllCopyFilterCoefsNeeded(coefficients),
-                         CopyFilterCanOverflow(coefficients), gamma != 1.0);
+    const PixelFormat srcFormat = bpmem.zcontrol.pixel_format();
+    const EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
+                               AllCopyFilterCoefsNeeded(coefficients),
+                               CopyFilterCanOverflow(coefficients), gamma != 1.0);
 
     std::unique_ptr<AbstractStagingTexture> staging_texture = GetEFBCopyStagingTexture();
     if (staging_texture)

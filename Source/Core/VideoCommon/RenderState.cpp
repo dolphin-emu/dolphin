@@ -10,7 +10,7 @@
 
 void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_type)
 {
-  cullmode() = bp.genMode.cullmode;
+  cullmode() = bp.genMode.cullmode();
   primitive() = primitive_type;
 
   // Back-face culling should be disabled for points/lines.
@@ -20,9 +20,9 @@ void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_ty
 
 void DepthState::Generate(const BPMemory& bp)
 {
-  testenable() = bp.zmode.testenable;
-  updateenable() = bp.zmode.updateenable;
-  func() = bp.zmode.func;
+  testenable() = bp.zmode.testenable();
+  updateenable() = bp.zmode.updateenable();
+  func() = bp.zmode.func();
 }
 
 static bool IsDualSrc(SrcBlendFactor factor)
@@ -111,16 +111,16 @@ void BlendingState::Generate(const BPMemory& bp)
   // Start with everything disabled.
   hex = 0;
 
-  const bool target_has_alpha = bp.zcontrol.pixel_format == PixelFormat::RGBA6_Z24;
+  const bool target_has_alpha = bp.zcontrol.pixel_format() == PixelFormat::RGBA6_Z24;
   const bool alpha_test_may_succeed = bp.alpha_test.TestResult() != AlphaTestResult::Fail;
 
-  colorupdate() = bp.blendmode.colorupdate && alpha_test_may_succeed;
-  alphaupdate() = bp.blendmode.alphaupdate && target_has_alpha && alpha_test_may_succeed;
-  const bool dstalpha = bp.dstalpha.enable && alphaupdate();
+  colorupdate() = bp.blendmode.colorupdate() && alpha_test_may_succeed;
+  alphaupdate() = bp.blendmode.alphaupdate() && target_has_alpha && alpha_test_may_succeed;
+  const bool dstalpha = bp.dstalpha.enable() && alphaupdate();
   usedualsrc() = true;
 
   // The subtract bit has the highest priority
-  if (bp.blendmode.subtract)
+  if (bp.blendmode.subtract())
   {
     blendenable() = true;
     subtractAlpha() = subtract() = true;
@@ -136,11 +136,11 @@ void BlendingState::Generate(const BPMemory& bp)
   }
 
   // The blendenable bit has the middle priority
-  else if (bp.blendmode.blendenable)
+  else if (bp.blendmode.blendenable())
   {
     blendenable() = true;
-    srcfactor() = bp.blendmode.srcfactor;
-    dstfactor() = bp.blendmode.dstfactor;
+    srcfactor() = bp.blendmode.srcfactor();
+    dstfactor() = bp.blendmode.dstfactor();
     if (!target_has_alpha)
     {
       // uses ONE instead of DSTALPHA
@@ -160,9 +160,9 @@ void BlendingState::Generate(const BPMemory& bp)
   }
 
   // The logicop bit has the lowest priority
-  else if (bp.blendmode.logicopenable)
+  else if (bp.blendmode.logicopenable())
   {
-    if (bp.blendmode.logicmode == LogicOp::NoOp)
+    if (bp.blendmode.logicmode() == LogicOp::NoOp)
     {
       // Fast path for Kirby's Return to Dreamland, they use it with dstAlpha.
       colorupdate() = false;
@@ -171,7 +171,7 @@ void BlendingState::Generate(const BPMemory& bp)
     else
     {
       logicopenable() = true;
-      logicmode() = bp.blendmode.logicmode;
+      logicmode() = bp.blendmode.logicmode();
 
       if (dstalpha)
       {
@@ -228,13 +228,13 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
 
   // GX can configure the mip filter to none. However, D3D and Vulkan can't express this in their
   // sampler states. Therefore, we set the min/max LOD to zero if this option is used.
-  tm0.min_filter() = bp_tm0.min_filter;
+  tm0.min_filter() = bp_tm0.min_filter();
   tm0.mipmap_filter() =
-      bp_tm0.mipmap_filter == MipMode::Linear ? FilterMode::Linear : FilterMode::Near;
-  tm0.mag_filter() = bp_tm0.mag_filter;
+      bp_tm0.mipmap_filter() == MipMode::Linear ? FilterMode::Linear : FilterMode::Near;
+  tm0.mag_filter() = bp_tm0.mag_filter();
 
   // If mipmaps are disabled, clamp min/max lod
-  if (bp_tm0.mipmap_filter == MipMode::None)
+  if (bp_tm0.mipmap_filter() == MipMode::None)
   {
     tm1.max_lod() = 0;
     tm1.min_lod() = 0;
@@ -243,9 +243,9 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
   else
   {
     // NOTE: When comparing, max is checked first, then min; if max is less than min, max wins
-    tm1.max_lod() = bp_tm1.max_lod.Value();
-    tm1.min_lod() = std::min(u32(tm1.max_lod().Get()), bp_tm1.min_lod.Value());
-    tm0.lod_bias() = bp_tm0.lod_bias * (256 / 32);
+    tm1.max_lod() = bp_tm1.max_lod();
+    tm1.min_lod() = std::min(tm1.max_lod().Get(), bp_tm1.min_lod().Get());
+    tm0.lod_bias() = bp_tm0.lod_bias() * (256 / 32);
   }
 
   // Wrap modes
@@ -253,12 +253,12 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
   auto filter_invalid_wrap = [](WrapMode mode) {
     return (mode <= WrapMode::Mirror) ? mode : WrapMode::Clamp;
   };
-  tm0.wrap_u() = filter_invalid_wrap(bp_tm0.wrap_s);
-  tm0.wrap_v() = filter_invalid_wrap(bp_tm0.wrap_t);
+  tm0.wrap_u() = filter_invalid_wrap(bp_tm0.wrap_s());
+  tm0.wrap_v() = filter_invalid_wrap(bp_tm0.wrap_t());
 
-  tm0.diag_lod() = bp_tm0.diag_lod;
-  tm0.anisotropic_filtering() = false;  // TODO: Respect BP anisotropic filtering mode
-  tm0.lod_clamp() = bp_tm0.lod_clamp;   // TODO: What does this do?
+  tm0.diag_lod() = bp_tm0.diag_lod();
+  tm0.anisotropic_filtering() = false;   // TODO: Respect BP anisotropic filtering mode
+  tm0.lod_clamp() = bp_tm0.lod_clamp();  // TODO: What does this do?
 }
 
 namespace RenderState

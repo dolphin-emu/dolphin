@@ -440,8 +440,8 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
 
   for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; coordNum++)
   {
-    dst->texCoords[coordNum][0] *= (bpmem.texcoords[coordNum].s.scale_minus_1 + 1);
-    dst->texCoords[coordNum][1] *= (bpmem.texcoords[coordNum].t.scale_minus_1 + 1);
+    dst->texCoords[coordNum][0] *= (bpmem.texcoords[coordNum].s.scale_minus_1() + 1);
+    dst->texCoords[coordNum][1] *= (bpmem.texcoords[coordNum].t.scale_minus_1() + 1);
   }
 }
 }  // namespace TransformUnit

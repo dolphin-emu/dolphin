@@ -266,8 +266,8 @@ void Statistics::DisplayScissor()
   const auto draw_scissor = [&](size_t index) {
     const auto& info = scissors[index];
     const ImU32 col = ImGui::GetColorU32(COLORS[index % COLORS.size()]);
-    int x_off = info.scissor_off.x << 1;
-    int y_off = info.scissor_off.y << 1;
+    int x_off = info.scissor_off.x() << 1;
+    int y_off = info.scissor_off.y() << 1;
     // Subtract 2048 instead of 1024, because when x_off is large enough we need to show two
     // rectangles in the upper sections
     for (int y = y_off - 2048; y < DRAW_END; y += 1024)
@@ -278,12 +278,12 @@ void Statistics::DisplayScissor()
       }
     }
     // Use the full offset here so that ones that have the extra bit set show up distinctly
-    draw_x(info.scissor_off.x_full << 1, info.scissor_off.y_full << 1, 4, col);
+    draw_x(info.scissor_off.x_full() << 1, info.scissor_off.y_full() << 1, 4, col);
 
     if (show_scissors)
     {
-      draw_rect(info.scissor_tl.x, info.scissor_tl.y, info.scissor_br.x + 1, info.scissor_br.y + 1,
-                col);
+      draw_rect(info.scissor_tl.x(), info.scissor_tl.y(), info.scissor_br.x() + 1,
+                info.scissor_br.y() + 1, col);
     }
     if (show_viewports)
     {
@@ -315,12 +315,12 @@ void Statistics::DisplayScissor()
   };
   const auto draw_scissor_table_row = [&](size_t index) {
     const auto& info = scissors[index];
-    int x_off = (info.scissor_off.x << 1) - info.viewport_top;
-    int y_off = (info.scissor_off.y << 1) - info.viewport_left;
-    int x0 = info.scissor_tl.x - info.viewport_top;
-    int x1 = info.scissor_br.x - info.viewport_left;
-    int y0 = info.scissor_tl.y - info.viewport_top;
-    int y1 = info.scissor_br.y - info.viewport_left;
+    int x_off = (info.scissor_off.x() << 1) - info.viewport_top;
+    int y_off = (info.scissor_off.y() << 1) - info.viewport_left;
+    int x0 = info.scissor_tl.x() - info.viewport_top;
+    int x1 = info.scissor_br.x() - info.viewport_left;
+    int y0 = info.scissor_tl.y() - info.viewport_top;
+    int y1 = info.scissor_br.y() - info.viewport_left;
     ImGui::TableNextColumn();
     ImGui::TextColored(COLORS[index % COLORS.size()], "%zu", index + 1);
     ImGui::TableNextColumn();
@@ -366,17 +366,17 @@ void Statistics::DisplayScissor()
       ImGui::TableNextColumn();
       ImGui::TextColored(COLORS[index % COLORS.size()], "Raw");
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_tl.x_full.Value());
+      ImGui::Text("%d", info.scissor_tl.x_full().Get());
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_tl.y_full.Value());
+      ImGui::Text("%d", info.scissor_tl.y_full().Get());
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_br.x_full.Value());
+      ImGui::Text("%d", info.scissor_br.x_full().Get());
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_br.y_full.Value());
+      ImGui::Text("%d", info.scissor_br.y_full().Get());
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_off.x_full.Value());
+      ImGui::Text("%d", info.scissor_off.x_full().Get());
       ImGui::TableNextColumn();
-      ImGui::Text("%d", info.scissor_off.y_full.Value());
+      ImGui::Text("%d", info.scissor_off.y_full().Get());
       ImGui::TableNextColumn();
     }
   };

@@ -38,7 +38,7 @@ static inline u32 GetDepthOffset(u16 x, u16 y)
 
 static void SetPixelAlphaOnly(u32 offset, u8 a)
 {
-  switch (bpmem.zcontrol.pixel_format)
+  switch (bpmem.zcontrol.pixel_format())
   {
   case PixelFormat::RGB8_Z24:
   case PixelFormat::Z24:
@@ -55,14 +55,14 @@ static void SetPixelAlphaOnly(u32 offset, u8 a)
   }
   break;
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format());
     break;
   }
 }
 
 static void SetPixelColorOnly(u32 offset, u8* rgb)
 {
-  switch (bpmem.zcontrol.pixel_format)
+  switch (bpmem.zcontrol.pixel_format())
   {
   case PixelFormat::RGB8_Z24:
   case PixelFormat::Z24:
@@ -96,14 +96,14 @@ static void SetPixelColorOnly(u32 offset, u8* rgb)
   }
   break;
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format());
     break;
   }
 }
 
 static void SetPixelAlphaColor(u32 offset, u8* color)
 {
-  switch (bpmem.zcontrol.pixel_format)
+  switch (bpmem.zcontrol.pixel_format())
   {
   case PixelFormat::RGB8_Z24:
   case PixelFormat::Z24:
@@ -138,7 +138,7 @@ static void SetPixelAlphaColor(u32 offset, u8* color)
   }
   break;
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format());
     break;
   }
 }
@@ -148,7 +148,7 @@ static u32 GetPixelColor(u32 offset)
   u32 src;
   std::memcpy(&src, &efb[offset], sizeof(u32));
 
-  switch (bpmem.zcontrol.pixel_format)
+  switch (bpmem.zcontrol.pixel_format())
   {
   case PixelFormat::RGB8_Z24:
   case PixelFormat::Z24:
@@ -165,14 +165,14 @@ static u32 GetPixelColor(u32 offset)
     return 0xff | ((src & 0x00ffffff) << 8);
 
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format());
     return 0;
   }
 }
 
 static void SetPixelDepth(u32 offset, u32 depth)
 {
-  switch (bpmem.zcontrol.pixel_format)
+  switch (bpmem.zcontrol.pixel_format())
   {
   case PixelFormat::RGB8_Z24:
   case PixelFormat::RGBA6_Z24:
@@ -194,7 +194,7 @@ static void SetPixelDepth(u32 offset, u32 depth)
   }
   break;
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format());
     break;
   }
 }
@@ -203,7 +203,7 @@ static u32 GetPixelDepth(u32 offset)
 {
   u32 depth = 0;
 
-  switch (bpmem.zcontrol.pixel_format)
+  switch (bpmem.zcontrol.pixel_format())
   {
   case PixelFormat::RGB8_Z24:
   case PixelFormat::RGBA6_Z24:
@@ -219,7 +219,7 @@ static u32 GetPixelDepth(u32 offset)
   }
   break;
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format());
     break;
   }
 
@@ -310,8 +310,8 @@ static u32 GetDestinationFactor(u8* srcClr, u8* dstClr, DstBlendFactor mode)
 
 static void BlendColor(u8* srcClr, u8* dstClr)
 {
-  u32 srcFactor = GetSourceFactor(srcClr, dstClr, bpmem.blendmode.srcfactor);
-  u32 dstFactor = GetDestinationFactor(srcClr, dstClr, bpmem.blendmode.dstfactor);
+  u32 srcFactor = GetSourceFactor(srcClr, dstClr, bpmem.blendmode.srcfactor());
+  u32 dstFactor = GetDestinationFactor(srcClr, dstClr, bpmem.blendmode.dstfactor());
 
   for (int i = 0; i < 4; i++)
   {
@@ -397,7 +397,7 @@ static void SubtractBlend(u8* srcClr, u8* dstClr)
 static void Dither(u16 x, u16 y, u8* color)
 {
   // No blending for RGB8 mode
-  if (!bpmem.blendmode.dither || bpmem.zcontrol.pixel_format != PixelFormat::RGBA6_Z24)
+  if (!bpmem.blendmode.dither() || bpmem.zcontrol.pixel_format() != PixelFormat::RGBA6_Z24)
     return;
 
   // Flipper uses a standard 2x2 Bayer Matrix for 6 bit dithering
@@ -415,34 +415,34 @@ void BlendTev(u16 x, u16 y, u8* color)
 
   u8* dstClrPtr = (u8*)&dstClr;
 
-  if (bpmem.blendmode.blendenable)
+  if (bpmem.blendmode.blendenable())
   {
-    if (bpmem.blendmode.subtract)
+    if (bpmem.blendmode.subtract())
       SubtractBlend(color, dstClrPtr);
     else
       BlendColor(color, dstClrPtr);
   }
-  else if (bpmem.blendmode.logicopenable)
+  else if (bpmem.blendmode.logicopenable())
   {
-    LogicBlend(*((u32*)color), &dstClr, bpmem.blendmode.logicmode);
+    LogicBlend(*((u32*)color), &dstClr, bpmem.blendmode.logicmode());
   }
   else
   {
     dstClrPtr = color;
   }
 
-  if (bpmem.dstalpha.enable)
-    dstClrPtr[ALP_C] = bpmem.dstalpha.alpha;
+  if (bpmem.dstalpha.enable())
+    dstClrPtr[ALP_C] = bpmem.dstalpha.alpha();
 
-  if (bpmem.blendmode.colorupdate)
+  if (bpmem.blendmode.colorupdate())
   {
     Dither(x, y, dstClrPtr);
-    if (bpmem.blendmode.alphaupdate)
+    if (bpmem.blendmode.alphaupdate())
       SetPixelAlphaColor(offset, dstClrPtr);
     else
       SetPixelColorOnly(offset, dstClrPtr);
   }
-  else if (bpmem.blendmode.alphaupdate)
+  else if (bpmem.blendmode.alphaupdate())
   {
     SetPixelAlphaOnly(offset, dstClrPtr[ALP_C]);
   }
@@ -451,14 +451,14 @@ void BlendTev(u16 x, u16 y, u8* color)
 void SetColor(u16 x, u16 y, u8* color)
 {
   u32 offset = GetColorOffset(x, y);
-  if (bpmem.blendmode.colorupdate)
+  if (bpmem.blendmode.colorupdate())
   {
-    if (bpmem.blendmode.alphaupdate)
+    if (bpmem.blendmode.alphaupdate())
       SetPixelAlphaColor(offset, color);
     else
       SetPixelColorOnly(offset, color);
   }
-  else if (bpmem.blendmode.alphaupdate)
+  else if (bpmem.blendmode.alphaupdate())
   {
     SetPixelAlphaOnly(offset, color[ALP_C]);
   }
@@ -466,7 +466,7 @@ void SetColor(u16 x, u16 y, u8* color)
 
 void SetDepth(u16 x, u16 y, u32 depth)
 {
-  if (bpmem.zmode.updateenable)
+  if (bpmem.zmode.updateenable())
     SetPixelDepth(GetDepthOffset(x, y), depth);
 }
 
@@ -569,8 +569,8 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>
 
   const int left = source_rect.left;
   const int right = source_rect.right;
-  const bool clamp_top = bpmem.triggerEFBCopy.clamp_top;
-  const bool clamp_bottom = bpmem.triggerEFBCopy.clamp_bottom;
+  const bool clamp_top = bpmem.triggerEFBCopy.clamp_top();
+  const bool clamp_bottom = bpmem.triggerEFBCopy.clamp_bottom();
   const float gamma_rcp = 1.0f / gamma;
   const auto filter_coefficients = bpmem.copyfilter.GetCoefficients();
 
@@ -654,7 +654,7 @@ bool ZCompare(u16 x, u16 y, u32 z)
 
   bool pass;
 
-  switch (bpmem.zmode.func)
+  switch (bpmem.zmode.func())
   {
   case CompareMode::Never:
     pass = false;
@@ -682,11 +682,11 @@ bool ZCompare(u16 x, u16 y, u32 z)
     break;
   default:
     pass = false;
-    ERROR_LOG_FMT(VIDEO, "Bad Z compare mode {}", bpmem.zmode.func);
+    ERROR_LOG_FMT(VIDEO, "Bad Z compare mode {}", bpmem.zmode.func());
     break;
   }
 
-  if (pass && bpmem.zmode.updateenable)
+  if (pass && bpmem.zmode.updateenable())
   {
     SetPixelDepth(offset, z);
   }

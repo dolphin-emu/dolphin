@@ -94,11 +94,11 @@ void PixelShaderManager::SetConstants()
   {
     // set by two components, so keep changed flag here
     // TODO: try to split both registers and move this logic to the shader
-    if (!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled == 1)
+    if (!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled())
     {
       // bpmem.fogRange.Base.Center : center of the viewport in x axis. observation:
       // bpmem.fogRange.Base.Center = realcenter + 342;
-      int center = ((u32)bpmem.fogRange.Base.Center) - 342;
+      int center = ((u32)bpmem.fogRange.Base.Center()) - 342;
       // normalize center to make calculations easy
       float ScreenSpaceCenter = center / (2.0f * xfmem.viewport.wd);
       ScreenSpaceCenter = (ScreenSpaceCenter * 2.0f) - 1.0f;
@@ -145,18 +145,18 @@ void PixelShaderManager::SetConstants()
     for (int i = 0; i < 4; i++)
       constants.pack1[i][3] = 0;
 
-    for (u32 i = 0; i < (bpmem.genMode.numtevstages + 1); ++i)
+    for (u32 i = 0; i < (bpmem.genMode.numtevstages() + 1u); ++i)
     {
       // Note: a tevind of zero just happens to be a passthrough, so no need
       // to set an extra bit.  Furthermore, wrap and add to previous apply even if there is no
       // indirect stage.
       constants.pack1[i][2] = bpmem.tevind[i].hex;
 
-      u32 stage = bpmem.tevind[i].bt;
+      u32 stage = bpmem.tevind[i].bt();
 
       // We use an extra bit (1 << 16) to provide a fast way of testing if this feature is in use.
       // Note also that this is indexed by indirect stage, not by TEV stage.
-      if (bpmem.tevind[i].IsActive() && stage < bpmem.genMode.numindstages)
+      if (bpmem.tevind[i].IsActive() && stage < bpmem.genMode.numindstages())
         constants.pack1[stage][3] =
             bpmem.tevindref.getTexCoord(stage) | bpmem.tevindref.getTexMap(stage) << 8 | 1 << 16;
     }
@@ -169,8 +169,8 @@ void PixelShaderManager::SetConstants()
   {
     // Destination alpha is only enabled if alpha writes are enabled. Force entire uniform to zero
     // when disabled.
-    u32 dstalpha = bpmem.blendmode.alphaupdate && bpmem.dstalpha.enable &&
-                           bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 ?
+    u32 dstalpha = bpmem.blendmode.alphaupdate() && bpmem.dstalpha.enable() &&
+                           bpmem.zcontrol.pixel_format() == PixelFormat::RGBA6_Z24 ?
                        bpmem.dstalpha.hex :
                        0;
 
@@ -245,9 +245,9 @@ void PixelShaderManager::SetTevIndirectChanged()
 
 void PixelShaderManager::SetAlpha()
 {
-  constants.alpha[0] = bpmem.alpha_test.ref0;
-  constants.alpha[1] = bpmem.alpha_test.ref1;
-  constants.alpha[3] = static_cast<s32>(bpmem.dstalpha.alpha);
+  constants.alpha[0] = bpmem.alpha_test.ref0();
+  constants.alpha[1] = bpmem.alpha_test.ref1();
+  constants.alpha[3] = static_cast<s32>(bpmem.dstalpha.alpha());
   dirty = true;
 }
 
@@ -293,7 +293,7 @@ void PixelShaderManager::SetSamplerState(int texmapid, u32 tm0, u32 tm1)
 
 void PixelShaderManager::SetZTextureBias()
 {
-  constants.zbias[1][3] = bpmem.ztex1.bias;
+  constants.zbias[1][3] = bpmem.ztex1.bias();
   dirty = true;
 }
 
@@ -321,10 +321,10 @@ void PixelShaderManager::SetZSlope(float dfdx, float dfdy, float f0)
 
 void PixelShaderManager::SetIndTexScaleChanged(bool high)
 {
-  constants.indtexscale[high][0] = bpmem.texscale[high].ss0;
-  constants.indtexscale[high][1] = bpmem.texscale[high].ts0;
-  constants.indtexscale[high][2] = bpmem.texscale[high].ss1;
-  constants.indtexscale[high][3] = bpmem.texscale[high].ts1;
+  constants.indtexscale[high][0] = bpmem.texscale[high].ss0();
+  constants.indtexscale[high][1] = bpmem.texscale[high].ts0();
+  constants.indtexscale[high][2] = bpmem.texscale[high].ss1();
+  constants.indtexscale[high][3] = bpmem.texscale[high].ts1();
   dirty = true;
 }
 
@@ -334,25 +334,25 @@ void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
 
   // xyz - static matrix
   // w - dynamic matrix scale / 128
-  constants.indtexmtx[2 * matrixidx][0] = bpmem.indmtx[matrixidx].col0.ma;
-  constants.indtexmtx[2 * matrixidx][1] = bpmem.indmtx[matrixidx].col1.mc;
-  constants.indtexmtx[2 * matrixidx][2] = bpmem.indmtx[matrixidx].col2.me;
+  constants.indtexmtx[2 * matrixidx][0] = bpmem.indmtx[matrixidx].col0.ma();
+  constants.indtexmtx[2 * matrixidx][1] = bpmem.indmtx[matrixidx].col1.mc();
+  constants.indtexmtx[2 * matrixidx][2] = bpmem.indmtx[matrixidx].col2.me();
   constants.indtexmtx[2 * matrixidx][3] = 17 - scale;
-  constants.indtexmtx[2 * matrixidx + 1][0] = bpmem.indmtx[matrixidx].col0.mb;
-  constants.indtexmtx[2 * matrixidx + 1][1] = bpmem.indmtx[matrixidx].col1.md;
-  constants.indtexmtx[2 * matrixidx + 1][2] = bpmem.indmtx[matrixidx].col2.mf;
+  constants.indtexmtx[2 * matrixidx + 1][0] = bpmem.indmtx[matrixidx].col0.mb();
+  constants.indtexmtx[2 * matrixidx + 1][1] = bpmem.indmtx[matrixidx].col1.md();
+  constants.indtexmtx[2 * matrixidx + 1][2] = bpmem.indmtx[matrixidx].col2.mf();
   constants.indtexmtx[2 * matrixidx + 1][3] = 17 - scale;
   dirty = true;
 
   PRIM_LOG("indmtx{}: scale={}, mat=({} {} {}; {} {} {})", matrixidx, scale,
-           bpmem.indmtx[matrixidx].col0.ma, bpmem.indmtx[matrixidx].col1.mc,
-           bpmem.indmtx[matrixidx].col2.me, bpmem.indmtx[matrixidx].col0.mb,
-           bpmem.indmtx[matrixidx].col1.md, bpmem.indmtx[matrixidx].col2.mf);
+           bpmem.indmtx[matrixidx].col0.ma(), bpmem.indmtx[matrixidx].col1.mc(),
+           bpmem.indmtx[matrixidx].col2.me(), bpmem.indmtx[matrixidx].col0.mb(),
+           bpmem.indmtx[matrixidx].col1.md(), bpmem.indmtx[matrixidx].col2.mf());
 }
 
 void PixelShaderManager::SetZTextureTypeChanged()
 {
-  switch (bpmem.ztex2.type)
+  switch (bpmem.ztex2.type())
   {
   case ZTexFormat::U8:
     constants.zbias[0][0] = 0;
@@ -373,7 +373,7 @@ void PixelShaderManager::SetZTextureTypeChanged()
     constants.zbias[0][3] = 0;
     break;
   default:
-    PanicAlertFmt("Invalid ztex format {}", bpmem.ztex2.type);
+    PanicAlertFmt("Invalid ztex format {}", bpmem.ztex2.type());
     break;
   }
   dirty = true;
@@ -381,15 +381,15 @@ void PixelShaderManager::SetZTextureTypeChanged()
 
 void PixelShaderManager::SetZTextureOpChanged()
 {
-  constants.ztex_op = bpmem.ztex2.op;
+  constants.ztex_op = bpmem.ztex2.op();
   dirty = true;
 }
 
 void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
 {
   TCoordInfo& tc = bpmem.texcoords[texmapid];
-  constants.texdims[texmapid][2] = tc.s.scale_minus_1 + 1;
-  constants.texdims[texmapid][3] = tc.t.scale_minus_1 + 1;
+  constants.texdims[texmapid][2] = tc.s.scale_minus_1() + 1;
+  constants.texdims[texmapid][3] = tc.t.scale_minus_1() + 1;
   dirty = true;
 }
 
@@ -398,9 +398,9 @@ void PixelShaderManager::SetFogColorChanged()
   if (g_ActiveConfig.bDisableFog)
     return;
 
-  constants.fogcolor[0] = bpmem.fog.color.r;
-  constants.fogcolor[1] = bpmem.fog.color.g;
-  constants.fogcolor[2] = bpmem.fog.color.b;
+  constants.fogcolor[0] = bpmem.fog.color.r();
+  constants.fogcolor[1] = bpmem.fog.color.g();
+  constants.fogcolor[2] = bpmem.fog.color.b();
   dirty = true;
 }
 
@@ -450,10 +450,10 @@ void PixelShaderManager::SetZModeControl()
 {
   u32 late_ztest = bpmem.GetEmulatedZ() == EmulatedZ::Late;
   u32 rgba6_format =
-      (bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor) ?
+      (bpmem.zcontrol.pixel_format() == PixelFormat::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor) ?
           1 :
           0;
-  u32 dither = rgba6_format && bpmem.blendmode.dither;
+  u32 dither = rgba6_format && bpmem.blendmode.dither();
   if (constants.late_ztest != late_ztest || constants.rgba6_format != rgba6_format ||
       constants.dither != dither)
   {
@@ -467,7 +467,7 @@ void PixelShaderManager::SetZModeControl()
 
 void PixelShaderManager::SetBlendModeChanged()
 {
-  u32 dither = constants.rgba6_format && bpmem.blendmode.dither;
+  u32 dither = constants.rgba6_format && bpmem.blendmode.dither();
   if (constants.dither != dither)
   {
     constants.dither = dither;

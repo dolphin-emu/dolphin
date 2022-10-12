@@ -359,7 +359,7 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
     // if cull mode is CULL_ALL, tell VertexManager to skip triangles and quads.
     // They still need to go through vertex loading, because we need to calculate a zfreeze refrence
     // slope.
-    bool cullall = (bpmem.genMode.cullmode == CullMode::All &&
+    bool cullall = (bpmem.genMode.cullmode() == CullMode::All &&
                     primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES);
 
     DataReader dst = g_vertex_manager->PrepareForAdditionalData(

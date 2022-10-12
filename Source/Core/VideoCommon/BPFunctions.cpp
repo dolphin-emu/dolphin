@@ -124,16 +124,16 @@ ScissorResult::ScissorResult(const BPMemory& bpmemory, const XFMemory& xfmemory)
 }
 ScissorResult::ScissorResult(const BPMemory& bpmemory, std::pair<float, float> viewport_x,
                              std::pair<float, float> viewport_y)
-    : scissor_tl{.hex = bpmemory.scissorTL.hex}, scissor_br{.hex = bpmemory.scissorBR.hex},
-      scissor_off{.hex = bpmemory.scissorOffset.hex}, viewport_left(viewport_x.first),
+    : scissor_tl{bpmemory.scissorTL.hex}, scissor_br{bpmemory.scissorBR.hex},
+      scissor_off{bpmemory.scissorOffset.hex}, viewport_left(viewport_x.first),
       viewport_right(viewport_x.second), viewport_top(viewport_y.first),
       viewport_bottom(viewport_y.second)
 {
   // Range is [left, right] and [top, bottom] (closed intervals)
-  const int left = scissor_tl.x;
-  const int right = scissor_br.x;
-  const int top = scissor_tl.y;
-  const int bottom = scissor_br.y;
+  const int left = scissor_tl.x();
+  const int right = scissor_br.x();
+  const int top = scissor_tl.y();
+  const int bottom = scissor_br.y();
   // When left > right or top > bottom, nothing renders (even with wrapping from the offsets)
   if (left > right || top > bottom)
     return;
@@ -142,8 +142,8 @@ ScissorResult::ScissorResult(const BPMemory& bpmemory, std::pair<float, float> v
   // functions (for the offsets, this is before they are divided by 2/right shifted). This code
   // could undo both sets of offsets, but it doesn't need to since they cancel out when subtracting
   // (and those offsets actually matter for the left > right and top > bottom checks).
-  const int x_off = scissor_off.x << 1;
-  const int y_off = scissor_off.y << 1;
+  const int x_off = scissor_off.x() << 1;
+  const int y_off = scissor_off.y() << 1;
 
   RangeList x_ranges = ComputeScissorRanges(left, right, x_off, EFB_WIDTH);
   RangeList y_ranges = ComputeScissorRanges(top, bottom, y_off, EFB_HEIGHT);
@@ -315,10 +315,10 @@ void SetBlendMode()
 */
 void ClearScreen(const MathUtil::Rectangle<int>& rc)
 {
-  bool colorEnable = (bpmem.blendmode.colorupdate != 0);
-  bool alphaEnable = (bpmem.blendmode.alphaupdate != 0);
-  bool zEnable = (bpmem.zmode.updateenable != 0);
-  auto pixel_format = bpmem.zcontrol.pixel_format;
+  bool colorEnable = bpmem.blendmode.colorupdate();
+  bool alphaEnable = bpmem.blendmode.alphaupdate();
+  bool zEnable = bpmem.zmode.updateenable();
+  PixelFormat pixel_format = bpmem.zcontrol.pixel_format();
 
   // (1): Disable unused color channels
   if (pixel_format == PixelFormat::RGB8_Z24 || pixel_format == PixelFormat::RGB565_Z16 ||
@@ -364,11 +364,11 @@ void OnPixelFormatChange()
   if (!g_ActiveConfig.bEFBEmulateFormatChanges)
     return;
 
-  const auto old_format = g_renderer->GetPrevPixelFormat();
-  const auto new_format = bpmem.zcontrol.pixel_format;
+  const PixelFormat old_format = g_renderer->GetPrevPixelFormat();
+  const PixelFormat new_format = bpmem.zcontrol.pixel_format();
   g_renderer->StorePixelFormat(new_format);
 
-  DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", new_format, bpmem.zcontrol.zformat);
+  DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", new_format, bpmem.zcontrol.zformat());
 
   // no need to reinterpret pixel data in these cases
   if (new_format == old_format || old_format == PixelFormat::INVALID_FMT)
@@ -443,15 +443,15 @@ void SetInterlacingMode(const BPCmd& bp)
   {
     // SDK always sets bpmem.lineptwidth.lineaspect via BPMEM_LINEPTWIDTH
     // just before this cmd
-    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMODE texLOD:{} lineaspect:{}", bpmem.fieldmode.texLOD,
-                  bpmem.lineptwidth.adjust_for_aspect_ratio);
+    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMODE texLOD:{} lineaspect:{}", bpmem.fieldmode.texLOD(),
+                  bpmem.lineptwidth.adjust_for_aspect_ratio());
   }
   break;
   case BPMEM_FIELDMASK:
   {
     // Determines if fields will be written to EFB (always computed)
-    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMASK even:{} odd:{}", bpmem.fieldmask.even,
-                  bpmem.fieldmask.odd);
+    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMASK even:{} odd:{}", bpmem.fieldmask.even(),
+                  bpmem.fieldmask.odd());
   }
   break;
   default:

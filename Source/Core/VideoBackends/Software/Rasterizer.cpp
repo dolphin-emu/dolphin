@@ -155,7 +155,7 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   {
     // TODO: Test if perf regs are incremented even if test is disabled
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT_ZCOMPLOC);
-    if (bpmem.zmode.testenable)
+    if (bpmem.zmode.testenable())
     {
       // early z
       if (!EfbInterface::ZCompare(x, y, z))
@@ -171,7 +171,7 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   tev.Position[2] = z;
 
   //  colors
-  for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numcolchans(); i++)
   {
     for (int comp = 0; comp < 4; comp++)
     {
@@ -185,20 +185,20 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   }
 
   // tex coords
-  for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numtexgens(); i++)
   {
     // multiply by 128 because TEV stores UVs as s17.7
     tev.Uv[i].s = (s32)(pixel.Uv[i][0] * 128);
     tev.Uv[i].t = (s32)(pixel.Uv[i][1] * 128);
   }
 
-  for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numindstages(); i++)
   {
     tev.IndirectLod[i] = rasterBlock.IndirectLod[i];
     tev.IndirectLinear[i] = rasterBlock.IndirectLinear[i];
   }
 
-  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++)
+  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages(); i++)
   {
     tev.TextureLod[i] = rasterBlock.TextureLod[i];
     tev.TextureLinear[i] = rasterBlock.TextureLinear[i];
@@ -227,7 +227,7 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
   float dudy = fabsf(uv00[0] - uv01[0]);
   float dvdy = fabsf(uv00[1] - uv01[1]);
 
-  if (tm0.diag_lod == LODType::Diagonal)
+  if (tm0.diag_lod() == LODType::Diagonal)
   {
     sDelta = dudx + dudy;
     tDelta = dvdx + dvdy;
@@ -242,18 +242,18 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
   s32 lod = FixedLog2(std::max(sDelta, tDelta));
 
   // bias is s2.5
-  int bias = tm0.lod_bias;
+  int bias = tm0.lod_bias();
   bias >>= 1;
   lod += bias;
 
-  *linear = ((lod > 0 && tm0.min_filter == FilterMode::Linear) ||
-             (lod <= 0 && tm0.mag_filter == FilterMode::Linear));
+  *linear = ((lod > 0 && tm0.min_filter() == FilterMode::Linear) ||
+             (lod <= 0 && tm0.mag_filter() == FilterMode::Linear));
 
   // NOTE: The order of comparisons for this clamp check matters.
-  if (lod > static_cast<s32>(tm1.max_lod))
-    lod = static_cast<s32>(tm1.max_lod);
-  else if (lod < static_cast<s32>(tm1.min_lod))
-    lod = static_cast<s32>(tm1.min_lod);
+  if (lod > static_cast<s32>(tm1.max_lod()))
+    lod = static_cast<s32>(tm1.max_lod());
+  else if (lod < static_cast<s32>(tm1.min_lod()))
+    lod = static_cast<s32>(tm1.min_lod());
 
   *lodp = lod;
 }
@@ -273,7 +273,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
       pixel.InvW = invW;
 
       // tex coords
-      for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
+      for (unsigned int i = 0; i < bpmem.genMode.numtexgens(); i++)
       {
         float projection = invW;
         float q = TexSlopes[i][2].GetValue(x, y) * invW;
@@ -286,7 +286,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
     }
   }
 
-  for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numindstages(); i++)
   {
     u32 texmap = bpmem.tevindref.getTexMap(i);
     u32 texcoord = bpmem.tevindref.getTexCoord(i);
@@ -294,7 +294,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
     CalculateLOD(&rasterBlock.IndirectLod[i], &rasterBlock.IndirectLinear[i], texmap, texcoord);
   }
 
-  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++)
+  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages(); i++)
   {
     int stageOdd = i & 1;
     const TwoTevStageOrders& order = bpmem.tevorders[i >> 1];
@@ -311,7 +311,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
 void UpdateZSlope(const OutputVertexData* v0, const OutputVertexData* v1,
                   const OutputVertexData* v2, s32 x_off, s32 y_off)
 {
-  if (!bpmem.genMode.zfreeze)
+  if (!bpmem.genMode.zfreeze())
   {
     const s32 X1 = iround(16.0f * (v0->screenPosition.x - x_off)) - 9;
     const s32 Y1 = iround(16.0f * (v0->screenPosition.y - y_off)) - 9;
@@ -386,13 +386,13 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
                 1.0f / v2->projectedPosition.w};
   WSlope = Slope(w[0], w[1], w[2], ctx);
 
-  for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numcolchans(); i++)
   {
     for (int comp = 0; comp < 4; comp++)
       ColorSlopes[i][comp] = Slope(v0->color[i][comp], v1->color[i][comp], v2->color[i][comp], ctx);
   }
 
-  for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numtexgens(); i++)
   {
     for (int comp = 0; comp < 3; comp++)
     {

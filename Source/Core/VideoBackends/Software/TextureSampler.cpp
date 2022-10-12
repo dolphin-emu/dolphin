@@ -78,14 +78,14 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
 
   const s32 lodFract = lod & 0xf;
 
-  if (lod > 0 && tm0.mipmap_filter != MipMode::None)
+  if (lod > 0 && tm0.mipmap_filter() != MipMode::None)
   {
     // use mipmap
     baseMip = lod >> 4;
-    mipLinear = (lodFract && tm0.mipmap_filter == MipMode::Linear);
+    mipLinear = (lodFract && tm0.mipmap_filter() == MipMode::Linear);
 
     // if using nearest mip filter and lodFract >= 0.5 round up to next mip
-    if (tm0.mipmap_filter == MipMode::Point && lodFract >= 8)
+    if (tm0.mipmap_filter() == MipMode::Point && lodFract >= 8)
       baseMip++;
   }
 
@@ -119,27 +119,27 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
   const TexMode0& tm0 = texUnit.texMode0;
   const TexImage0& ti0 = texUnit.texImage0;
   const TexTLUT& texTlut = texUnit.texTlut;
-  const TextureFormat texfmt = ti0.format;
-  const TLUTFormat tlutfmt = texTlut.tlut_format;
+  const TextureFormat texfmt = ti0.format();
+  const TLUTFormat tlutfmt = texTlut.tlut_format();
 
   const u8* imageSrc;
   const u8* imageSrcOdd = nullptr;
-  if (texUnit.texImage1.cache_manually_managed)
+  if (texUnit.texImage1.cache_manually_managed())
   {
-    imageSrc = &texMem[texUnit.texImage1.tmem_even * TMEM_LINE_SIZE];
+    imageSrc = &texMem[texUnit.texImage1.tmem_even() * TMEM_LINE_SIZE];
     if (texfmt == TextureFormat::RGBA8)
-      imageSrcOdd = &texMem[texUnit.texImage2.tmem_odd * TMEM_LINE_SIZE];
+      imageSrcOdd = &texMem[texUnit.texImage2.tmem_odd() * TMEM_LINE_SIZE];
   }
   else
   {
-    const u32 imageBase = texUnit.texImage3.image_base << 5;
+    const u32 imageBase = texUnit.texImage3.image_base() << 5;
     imageSrc = Memory::GetPointer(imageBase);
   }
 
-  int image_width_minus_1 = ti0.width;
-  int image_height_minus_1 = ti0.height;
+  int image_width_minus_1 = ti0.width();
+  int image_height_minus_1 = ti0.height();
 
-  const int tlutAddress = texTlut.tmem_offset << 9;
+  const int tlutAddress = texTlut.tmem_offset() << 9;
   const u8* tlut = &texMem[tlutAddress];
 
   // reduce sample location and texture size to mip level
@@ -191,12 +191,12 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     u8 sampledTex[4];
     u32 texel[4];
 
-    WrapCoord(&imageS, tm0.wrap_s, image_width_minus_1 + 1);
-    WrapCoord(&imageT, tm0.wrap_t, image_height_minus_1 + 1);
-    WrapCoord(&imageSPlus1, tm0.wrap_s, image_width_minus_1 + 1);
-    WrapCoord(&imageTPlus1, tm0.wrap_t, image_height_minus_1 + 1);
+    WrapCoord(&imageS, tm0.wrap_s(), image_width_minus_1 + 1);
+    WrapCoord(&imageT, tm0.wrap_t(), image_height_minus_1 + 1);
+    WrapCoord(&imageSPlus1, tm0.wrap_s(), image_width_minus_1 + 1);
+    WrapCoord(&imageTPlus1, tm0.wrap_t(), image_height_minus_1 + 1);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
+    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed()))
     {
       TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageT, image_width_minus_1, texfmt,
                              tlut, tlutfmt);
@@ -245,10 +245,10 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     int imageT = t >> 7;
 
     // nearest neighbor sampling
-    WrapCoord(&imageS, tm0.wrap_s, image_width_minus_1 + 1);
-    WrapCoord(&imageT, tm0.wrap_t, image_height_minus_1 + 1);
+    WrapCoord(&imageS, tm0.wrap_s(), image_width_minus_1 + 1);
+    WrapCoord(&imageT, tm0.wrap_t(), image_height_minus_1 + 1);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
+    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed()))
       TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, image_width_minus_1, texfmt, tlut,
                              tlutfmt);
     else

@@ -583,29 +583,29 @@ void FifoPlayer::ClearEfb()
   // The target address is 0, and there shouldn't be anything there,
   // but even if there is it should be loaded in by LoadTextureMemory afterwards
   X10Y10 tl = bpmem.copyTexSrcXY;
-  tl.x = 0;
-  tl.y = 0;
+  tl.x() = 0;
+  tl.y() = 0;
   LoadBPReg(BPMEM_EFB_TL, tl.hex);
   X10Y10 wh = bpmem.copyTexSrcWH;
-  wh.x = EFB_WIDTH - 1;
-  wh.y = EFB_HEIGHT - 1;
+  wh.x() = EFB_WIDTH - 1;
+  wh.y() = EFB_HEIGHT - 1;
   LoadBPReg(BPMEM_EFB_WH, wh.hex);
   LoadBPReg(BPMEM_MIPMAP_STRIDE, 0x140);
   // The clear color and Z value have already been loaded via LoadRegisters()
   LoadBPReg(BPMEM_EFB_ADDR, 0);
-  UPE_Copy copy = bpmem.triggerEFBCopy;
-  copy.clamp_top = false;
-  copy.clamp_bottom = false;
-  copy.unknown_bit = false;
-  copy.target_pixel_format = static_cast<u32>(EFBCopyFormat::RGBA8) << 1;
-  copy.gamma = GammaCorrection::Gamma1_0;
-  copy.half_scale = false;
-  copy.scale_invert = false;
-  copy.clear = true;
-  copy.frame_to_field = FrameToField::Progressive;
-  copy.copy_to_xfb = false;
-  copy.intensity_fmt = false;
-  copy.auto_conv = false;
+  PE_Copy copy = bpmem.triggerEFBCopy;
+  copy.clamp_top() = false;
+  copy.clamp_bottom() = false;
+  copy.unknown_bit() = false;
+  copy.target_pixel_format() = static_cast<u32>(EFBCopyFormat::RGBA8) << 1;
+  copy.gamma() = GammaCorrection::Gamma1_0;
+  copy.half_scale() = false;
+  copy.scale_invert() = false;
+  copy.clear() = true;
+  copy.frame_to_field() = FrameToField::Progressive;
+  copy.copy_to_xfb() = false;
+  copy.intensity_fmt() = false;
+  copy.auto_conv() = false;
   LoadBPReg(BPMEM_TRIGGER_EFB_COPY, copy.Hex);
   // Restore existing data - this only works at the start of the fifolog.
   // In practice most fifologs probably explicitly specify the size each time, but this is still
