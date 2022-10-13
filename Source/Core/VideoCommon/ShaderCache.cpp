@@ -751,14 +751,14 @@ static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
     out.blending_state.hex = 0;
     out.blending_state.colorupdate() = in.blending_state.colorupdate();
     out.blending_state.alphaupdate() = in.blending_state.alphaupdate();
-    out.ps_uid.GetUidData()->no_dual_src = true;
+    out.ps_uid.GetUidData()->no_dual_src() = true;
   }
   else if (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend ||
            (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) &&
             !out.blending_state.RequiresDualSrc()))
   {
     out.blending_state.usedualsrc() = false;
-    out.ps_uid.GetUidData()->no_dual_src = true;
+    out.ps_uid.GetUidData()->no_dual_src() = true;
   }
   return out;
 }
@@ -1248,7 +1248,7 @@ void ShaderCache::QueueUberShaderPipelines()
             RenderState::GetCullBackFaceRasterizationState(gs_uid.GetUidData()->primitive_type());
         config.depth_state = RenderState::GetNoDepthTestingDepthState();
         config.blending_state = blend;
-        if (ps_uid.GetUidData()->uint_output)
+        if (ps_uid.GetUidData()->uint_output())
         {
           // uint_output is only ever enabled when logic ops are enabled.
           config.blending_state.logicopenable() = true;
@@ -1267,7 +1267,7 @@ void ShaderCache::QueueUberShaderPipelines()
   UberShader::EnumerateVertexShaderUids([&](const UberShader::VertexShaderUid& vuid) {
     UberShader::EnumeratePixelShaderUids([&](const UberShader::PixelShaderUid& puid) {
       // UIDs must have compatible texgens, a mismatching combination will never be queried.
-      if (vuid.GetUidData()->num_texgens != puid.GetUidData()->num_texgens)
+      if (vuid.GetUidData()->num_texgens != puid.GetUidData()->num_texgens())
         return;
 
       UberShader::PixelShaderUid cleared_puid = puid;
@@ -1308,7 +1308,8 @@ void ShaderCache::QueueUberShaderPipelines()
           blend.colorupdate() = false;
           QueueDummyPipeline(vuid, guid, cleared_puid, blend);
           blend.colorupdate() = true;
-          if (!cleared_puid.GetUidData()->no_dual_src && !cleared_puid.GetUidData()->uint_output)
+          if (!cleared_puid.GetUidData()->no_dual_src() &&
+              !cleared_puid.GetUidData()->uint_output())
           {
             blend.blendenable() = true;
             blend.usedualsrc() = true;

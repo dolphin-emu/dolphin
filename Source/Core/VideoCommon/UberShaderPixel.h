@@ -4,6 +4,8 @@
 #pragma once
 
 #include <functional>
+
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/ShaderGenCommon.h"
 
@@ -14,11 +16,13 @@ namespace UberShader
 #pragma pack(1)
 struct pixel_ubershader_uid_data
 {
-  u32 num_texgens : 4;
-  u32 early_depth : 1;
-  u32 per_pixel_depth : 1;
-  u32 uint_output : 1;
-  u32 no_dual_src : 1;
+  u8 _data1;
+
+  BFVIEW(u32, 4, 0, num_texgens)
+  BFVIEW(bool, 1, 4, early_depth)
+  BFVIEW(bool, 1, 5, per_pixel_depth)
+  BFVIEW(bool, 1, 6, uint_output)
+  BFVIEW(bool, 1, 7, no_dual_src)
 
   u32 NumValues() const { return sizeof(pixel_ubershader_uid_data); }
 };
@@ -43,9 +47,10 @@ struct fmt::formatter<UberShader::pixel_ubershader_uid_data>
   template <typename FormatContext>
   auto format(const UberShader::pixel_ubershader_uid_data& uid, FormatContext& ctx) const
   {
-    return fmt::format_to(
-        ctx.out(), "Pixel UberShader for {} texgens{}{}{}{}", uid.num_texgens,
-        uid.early_depth ? ", early-depth" : "", uid.per_pixel_depth ? ", per-pixel depth" : "",
-        uid.uint_output ? ", uint output" : "", uid.no_dual_src ? ", no dual-source blending" : "");
+    return fmt::format_to(ctx.out(), "Pixel UberShader for {} texgens{}{}{}{}", uid.num_texgens(),
+                          uid.early_depth() ? ", early-depth" : "",
+                          uid.per_pixel_depth() ? ", per-pixel depth" : "",
+                          uid.uint_output() ? ", uint output" : "",
+                          uid.no_dual_src() ? ", no dual-source blending" : "");
   }
 };

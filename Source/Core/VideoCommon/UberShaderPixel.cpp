@@ -22,16 +22,16 @@ PixelShaderUid GetPixelShaderUid()
   PixelShaderUid out;
 
   pixel_ubershader_uid_data* const uid_data = out.GetUidData();
-  uid_data->num_texgens = xfmem.numTexGen.numTexGens();
-  uid_data->early_depth = bpmem.GetEmulatedZ() == EmulatedZ::Early &&
-                          (g_ActiveConfig.bFastDepthCalc ||
-                           bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined) &&
-                          !(bpmem.zmode.testenable() && bpmem.genMode.zfreeze());
-  uid_data->per_pixel_depth =
+  uid_data->num_texgens() = xfmem.numTexGen.numTexGens();
+  uid_data->early_depth() = bpmem.GetEmulatedZ() == EmulatedZ::Early &&
+                            (g_ActiveConfig.bFastDepthCalc ||
+                             bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined) &&
+                            !(bpmem.zmode.testenable() && bpmem.genMode.zfreeze());
+  uid_data->per_pixel_depth() =
       (bpmem.ztex2.op() != ZTexOp::Disabled && bpmem.GetEmulatedZ() == EmulatedZ::Late) ||
-      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable() && !uid_data->early_depth) ||
+      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable() && !uid_data->early_depth()) ||
       (bpmem.zmode.testenable() && bpmem.genMode.zfreeze());
-  uid_data->uint_output = bpmem.blendmode.UseLogicOp();
+  uid_data->uint_output() = bpmem.blendmode.UseLogicOp();
 
   return out;
 }
@@ -43,16 +43,16 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
 
   // With fbfetch, ubershaders always blend using that and don't use dual src
   if (host_config.backend_shader_framebuffer_fetch() || !host_config.backend_dual_source_blend())
-    uid_data->no_dual_src = 1;
+    uid_data->no_dual_src() = true;
   // Dual source is always enabled in the shader if this bug is not present
   else if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING))
-    uid_data->no_dual_src = 0;
+    uid_data->no_dual_src() = false;
 
   // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
   // Therefore, it is not necessary to use a uint output on these backends. We also disable the
   // uint output when logic op is not supported (i.e. driver/device does not support D3D11.1).
   if (api_type != APIType::D3D || !host_config.backend_logic_op())
-    uid_data->uint_output = 0;
+    uid_data->uint_output() = false;
 }
 
 ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
@@ -63,11 +63,11 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   const bool ssaa = host_config.ssaa();
   const bool stereo = host_config.stereo();
   const bool use_framebuffer_fetch = host_config.backend_shader_framebuffer_fetch();
-  const bool use_dual_source = host_config.backend_dual_source_blend() && !uid_data->no_dual_src;
-  const bool early_depth = uid_data->early_depth != 0;
-  const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
+  const bool use_dual_source = host_config.backend_dual_source_blend() && !uid_data->no_dual_src();
+  const bool early_depth = uid_data->early_depth();
+  const bool per_pixel_depth = uid_data->per_pixel_depth();
   const bool bounding_box = host_config.bounding_box();
-  const u32 numTexgen = uid_data->num_texgens;
+  const u32 numTexgen = uid_data->num_texgens();
   ShaderCode out;
 
   ASSERT_MSG(VIDEO, !(use_dual_source && use_framebuffer_fetch),
@@ -113,7 +113,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
                                       "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
               use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
-              uid_data->uint_output ? "uvec4" : "vec4",
+              uid_data->uint_output() ? "uvec4" : "vec4",
               use_framebuffer_fetch ? "real_ocol0" : "ocol0");
 
     if (use_dual_source)
@@ -121,7 +121,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("{} out {} ocol1;\n",
                 has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(1)" :
                                         "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)",
-                uid_data->uint_output ? "uvec4" : "vec4");
+                uid_data->uint_output() ? "uvec4" : "vec4");
     }
   }
 
@@ -1096,7 +1096,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   }
 
   // D3D requires that the shader outputs be uint when writing to a uint render target for logic op.
-  if (api_type == APIType::D3D && uid_data->uint_output)
+  if (api_type == APIType::D3D && uid_data->uint_output())
   {
     out.Write("  if (bpmem_rgba6_format)\n"
               "    ocol0 = uint4(TevResult & 0xFC);\n"
@@ -1260,24 +1260,24 @@ void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& 
   for (u32 texgens = 0; texgens <= 8; texgens++)
   {
     pixel_ubershader_uid_data* const puid = uid.GetUidData();
-    puid->num_texgens = texgens;
+    puid->num_texgens() = texgens;
 
-    for (u32 early_depth = 0; early_depth < 2; early_depth++)
+    for (bool early_depth : {false, true})
     {
-      puid->early_depth = early_depth != 0;
-      for (u32 per_pixel_depth = 0; per_pixel_depth < 2; per_pixel_depth++)
+      puid->early_depth() = early_depth;
+      for (bool per_pixel_depth : {false, true})
       {
         // Don't generate shaders where we have early depth tests enabled, and write gl_FragDepth.
         if (early_depth && per_pixel_depth)
           continue;
 
-        puid->per_pixel_depth = per_pixel_depth != 0;
-        for (u32 uint_output = 0; uint_output < 2; uint_output++)
+        puid->per_pixel_depth() = per_pixel_depth;
+        for (bool uint_output : {false, true})
         {
-          puid->uint_output = uint_output;
-          for (u32 no_dual_src = 0; no_dual_src < 2; no_dual_src++)
+          puid->uint_output() = uint_output;
+          for (bool no_dual_src : {false, true})
           {
-            puid->no_dual_src = no_dual_src;
+            puid->no_dual_src() = no_dual_src;
             callback(uid);
           }
         }
