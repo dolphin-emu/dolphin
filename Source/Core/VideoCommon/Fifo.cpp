@@ -164,7 +164,7 @@ void Shutdown()
 void ExitGpuLoop()
 {
   // This should break the wait loop in CPU thread
-  CommandProcessor::fifo.bFF_GPReadEnable.store(0, std::memory_order_relaxed);
+  CommandProcessor::fifo.bFF_GPReadEnable.store(false, std::memory_order_relaxed);
   FlushGpu();
 
   // Terminate GPU thread loop
@@ -353,7 +353,7 @@ void RunGpuLoop()
           // check if we are able to run this buffer
           while (!CommandProcessor::IsInterruptWaiting() &&
                  fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) &&
-                 fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint())
+                 fifo.CPReadWriteDistance.load(std::memory_order_relaxed) != 0 && !AtBreakpoint())
           {
             if (s_config_sync_gpu && s_sync_ticks.load() < s_config_sync_gpu_min_distance)
               break;
@@ -473,7 +473,7 @@ static int RunGpuOnCpu(int ticks)
   bool reset_simd_state = false;
   int available_ticks = int(ticks * s_config_sync_gpu_overclock) + s_sync_ticks.load();
   while (fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) &&
-         fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint() &&
+         fifo.CPReadWriteDistance.load(std::memory_order_relaxed) != 0 && !AtBreakpoint() &&
          available_ticks >= 0)
   {
     if (s_use_deterministic_gpu_thread)

@@ -5,6 +5,7 @@
 
 #include <atomic>
 
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -28,17 +29,17 @@ struct SCPFifoStruct
   std::atomic<u32> CPBreakpoint;
   std::atomic<u32> SafeCPReadPointer;
 
-  std::atomic<u32> bFF_GPLinkEnable;
-  std::atomic<u32> bFF_GPReadEnable;
-  std::atomic<u32> bFF_BPEnable;
-  std::atomic<u32> bFF_BPInt;
-  std::atomic<u32> bFF_Breakpoint;
+  std::atomic<bool> bFF_GPLinkEnable;
+  std::atomic<bool> bFF_GPReadEnable;
+  std::atomic<bool> bFF_BPEnable;
+  std::atomic<bool> bFF_BPInt;
+  std::atomic<bool> bFF_Breakpoint;
 
-  std::atomic<u32> bFF_LoWatermarkInt;
-  std::atomic<u32> bFF_HiWatermarkInt;
+  std::atomic<bool> bFF_LoWatermarkInt;
+  std::atomic<bool> bFF_HiWatermarkInt;
 
-  std::atomic<u32> bFF_LoWatermark;
-  std::atomic<u32> bFF_HiWatermark;
+  std::atomic<bool> bFF_LoWatermark;
+  std::atomic<bool> bFF_HiWatermark;
 
   void Init();
   void DoState(PointerWrap& p);
@@ -101,53 +102,44 @@ enum
 };
 
 // Fifo Status Register
-union UCPStatusReg
+struct CPStatusReg
 {
-  struct
-  {
-    u16 OverflowHiWatermark : 1;
-    u16 UnderflowLoWatermark : 1;
-    u16 ReadIdle : 1;
-    u16 CommandIdle : 1;
-    u16 Breakpoint : 1;
-    u16 : 11;
-  };
+  BFVIEW(bool, 1, 0, OverflowHiWatermark)
+  BFVIEW(bool, 1, 1, UnderflowLoWatermark)
+  BFVIEW(bool, 1, 2, ReadIdle)
+  BFVIEW(bool, 1, 3, CommandIdle)
+  BFVIEW(bool, 1, 4, Breakpoint)
+
   u16 Hex;
-  UCPStatusReg() { Hex = 0; }
-  UCPStatusReg(u16 _hex) { Hex = _hex; }
+  CPStatusReg() { Hex = 0; }
+  CPStatusReg(u16 _hex) { Hex = _hex; }
 };
 
 // Fifo Control Register
-union UCPCtrlReg
+struct CPCtrlReg
 {
-  struct
-  {
-    u16 GPReadEnable : 1;
-    u16 BPEnable : 1;
-    u16 FifoOverflowIntEnable : 1;
-    u16 FifoUnderflowIntEnable : 1;
-    u16 GPLinkEnable : 1;
-    u16 BPInt : 1;
-    u16 : 10;
-  };
+  BFVIEW(bool, 1, 0, GPReadEnable)
+  BFVIEW(bool, 1, 1, BPEnable)
+  BFVIEW(bool, 1, 2, FifoOverflowIntEnable)
+  BFVIEW(bool, 1, 3, FifoUnderflowIntEnable)
+  BFVIEW(bool, 1, 4, GPLinkEnable)
+  BFVIEW(bool, 1, 5, BPInt)
+
   u16 Hex;
-  UCPCtrlReg() { Hex = 0; }
-  UCPCtrlReg(u16 _hex) { Hex = _hex; }
+  CPCtrlReg() { Hex = 0; }
+  CPCtrlReg(u16 _hex) { Hex = _hex; }
 };
 
 // Fifo Clear Register
-union UCPClearReg
+struct CPClearReg
 {
-  struct
-  {
-    u16 ClearFifoOverflow : 1;
-    u16 ClearFifoUnderflow : 1;
-    u16 ClearMetrices : 1;
-    u16 : 13;
-  };
+  BFVIEW(bool, 1, 0, ClearFifoOverflow)
+  BFVIEW(bool, 1, 1, ClearFifoUnderflow)
+  BFVIEW(bool, 1, 2, ClearMetrices)
+
   u16 Hex;
-  UCPClearReg() { Hex = 0; }
-  UCPClearReg(u16 _hex) { Hex = _hex; }
+  CPClearReg() { Hex = 0; }
+  CPClearReg(u16 _hex) { Hex = _hex; }
 };
 
 // Init

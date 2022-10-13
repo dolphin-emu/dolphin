@@ -781,14 +781,14 @@ bool FifoPlayer::ShouldLoadXF(u8 reg)
 
 bool FifoPlayer::IsIdleSet()
 {
-  CommandProcessor::UCPStatusReg status =
+  CommandProcessor::CPStatusReg status =
       PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
-  return status.CommandIdle;
+  return status.CommandIdle();
 }
 
 bool FifoPlayer::IsHighWatermarkSet()
 {
-  CommandProcessor::UCPStatusReg status =
+  CommandProcessor::CPStatusReg status =
       PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
-  return status.OverflowHiWatermark;
+  return status.OverflowHiWatermark();
 }

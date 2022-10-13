@@ -29,9 +29,9 @@ static CoreTiming::EventType* et_UpdateInterrupts;
 
 // STATE_TO_SAVE
 SCPFifoStruct fifo;
-static UCPStatusReg m_CPStatusReg;
-static UCPCtrlReg m_CPCtrlReg;
-static UCPClearReg m_CPClearReg;
+static CPStatusReg m_CPStatusReg;
+static CPCtrlReg m_CPCtrlReg;
+static CPClearReg m_CPClearReg;
 
 static u16 m_bboxleft;
 static u16 m_bboxtop;
@@ -66,16 +66,16 @@ void SCPFifoStruct::Init()
   CPBreakpoint = 0;
   SafeCPReadPointer = 0;
 
-  bFF_GPLinkEnable = 0;
-  bFF_GPReadEnable = 0;
-  bFF_BPEnable = 0;
-  bFF_BPInt = 0;
+  bFF_GPLinkEnable = false;
+  bFF_GPReadEnable = false;
+  bFF_BPEnable = false;
+  bFF_BPInt = false;
 
-  bFF_Breakpoint.store(0, std::memory_order_relaxed);
-  bFF_HiWatermark.store(0, std::memory_order_relaxed);
-  bFF_HiWatermarkInt.store(0, std::memory_order_relaxed);
-  bFF_LoWatermark.store(0, std::memory_order_relaxed);
-  bFF_LoWatermarkInt.store(0, std::memory_order_relaxed);
+  bFF_Breakpoint.store(false, std::memory_order_relaxed);
+  bFF_HiWatermark.store(false, std::memory_order_relaxed);
+  bFF_HiWatermarkInt.store(false, std::memory_order_relaxed);
+  bFF_LoWatermark.store(false, std::memory_order_relaxed);
+  bFF_LoWatermarkInt.store(false, std::memory_order_relaxed);
 
   s_is_fifo_error_seen = false;
 }
@@ -130,8 +130,8 @@ static inline void WriteHigh(std::atomic<u32>& reg, u16 highbits)
 void Init()
 {
   m_CPStatusReg.Hex = 0;
-  m_CPStatusReg.CommandIdle = 1;
-  m_CPStatusReg.ReadIdle = 1;
+  m_CPStatusReg.CommandIdle() = true;
+  m_CPStatusReg.ReadIdle() = true;
 
   m_CPCtrlReg.Hex = 0;
 
@@ -248,7 +248,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | CTRL_REGISTER, MMIO::DirectRead<u16>(&m_CPCtrlReg.Hex),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   UCPCtrlReg tmp(val);
+                   CPCtrlReg tmp(val);
                    m_CPCtrlReg.Hex = tmp.Hex;
                    SetCpControlRegister();
                    Fifo::RunGpu();
@@ -256,7 +256,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | CLEAR_REGISTER, MMIO::DirectRead<u16>(&m_CPClearReg.Hex),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   UCPClearReg tmp(val);
+                   CPClearReg tmp(val);
                    m_CPClearReg.Hex = tmp.Hex;
                    SetCpClearRegister();
                    Fifo::RunGpu();
@@ -345,7 +345,7 @@ void GatherPipeBursted()
   SetCPStatusFromCPU();
 
   // if we aren't linked, we don't care about gather pipe data
-  if (!m_CPCtrlReg.GPLinkEnable)
+  if (!m_CPCtrlReg.GPLinkEnable())
   {
     if (IsOnThread() && !Fifo::UseDeterministicGPUThread())
     {
@@ -373,7 +373,7 @@ void GatherPipeBursted()
     fifo.CPWritePointer.fetch_add(GPFifo::GATHER_PIPE_SIZE, std::memory_order_relaxed);
   }
 
-  if (m_CPCtrlReg.GPReadEnable && m_CPCtrlReg.GPLinkEnable)
+  if (m_CPCtrlReg.GPReadEnable() && m_CPCtrlReg.GPLinkEnable())
   {
     ProcessorInterface::Fifo_CPUWritePointer = fifo.CPWritePointer.load(std::memory_order_relaxed);
     ProcessorInterface::Fifo_CPUBase = fifo.CPBase.load(std::memory_order_relaxed);
@@ -381,7 +381,7 @@ void GatherPipeBursted()
   }
 
   // If the game is running close to overflowing, make the exception checking more frequent.
-  if (fifo.bFF_HiWatermark.load(std::memory_order_relaxed) != 0)
+  if (fifo.bFF_HiWatermark.load(std::memory_order_relaxed))
     CoreTiming::ForceExceptionCheck(0);
 
   fifo.CPReadWriteDistance.fetch_add(GPFifo::GATHER_PIPE_SIZE, std::memory_order_seq_cst);
@@ -441,7 +441,7 @@ void SetCPStatusFromGPU()
 {
   // breakpoint
   const bool breakpoint = fifo.bFF_Breakpoint.load(std::memory_order_relaxed);
-  if (fifo.bFF_BPEnable.load(std::memory_order_relaxed) != 0)
+  if (fifo.bFF_BPEnable.load(std::memory_order_relaxed))
   {
     if (fifo.CPBreakpoint.load(std::memory_order_relaxed) ==
         fifo.CPReadPointer.load(std::memory_order_relaxed))
@@ -450,7 +450,7 @@ void SetCPStatusFromGPU()
       {
         DEBUG_LOG_FMT(COMMANDPROCESSOR, "Hit breakpoint at {}",
                       fifo.CPReadPointer.load(std::memory_order_relaxed));
-        fifo.bFF_Breakpoint.store(1, std::memory_order_relaxed);
+        fifo.bFF_Breakpoint.store(true, std::memory_order_relaxed);
       }
     }
     else
@@ -459,7 +459,7 @@ void SetCPStatusFromGPU()
       {
         DEBUG_LOG_FMT(COMMANDPROCESSOR, "Cleared breakpoint at {}",
                       fifo.CPReadPointer.load(std::memory_order_relaxed));
-        fifo.bFF_Breakpoint.store(0, std::memory_order_relaxed);
+        fifo.bFF_Breakpoint.store(false, std::memory_order_relaxed);
       }
     }
   }
@@ -488,7 +488,7 @@ void SetCPStatusFromGPU()
   bool undfInt = fifo.bFF_LoWatermark.load(std::memory_order_relaxed) &&
                  fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed);
 
-  bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable;
+  bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable();
 
   if (interrupt != s_interrupt_set.IsSet() && !s_interrupt_waiting.IsSet())
   {
@@ -526,7 +526,7 @@ void SetCPStatusFromCPU()
   bool undfInt = fifo.bFF_LoWatermark.load(std::memory_order_relaxed) &&
                  fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed);
 
-  bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable;
+  bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable();
 
   if (interrupt != s_interrupt_set.IsSet() && !s_interrupt_waiting.IsSet())
   {
@@ -550,49 +550,50 @@ void SetCPStatusFromCPU()
 void SetCpStatusRegister()
 {
   // Here always there is one fifo attached to the GPU
-  m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint.load(std::memory_order_relaxed);
-  m_CPStatusReg.ReadIdle = !fifo.CPReadWriteDistance.load(std::memory_order_relaxed) ||
-                           (fifo.CPReadPointer.load(std::memory_order_relaxed) ==
-                            fifo.CPWritePointer.load(std::memory_order_relaxed));
-  m_CPStatusReg.CommandIdle = !fifo.CPReadWriteDistance.load(std::memory_order_relaxed) ||
-                              Fifo::AtBreakpoint() ||
-                              !fifo.bFF_GPReadEnable.load(std::memory_order_relaxed);
-  m_CPStatusReg.UnderflowLoWatermark = fifo.bFF_LoWatermark.load(std::memory_order_relaxed);
-  m_CPStatusReg.OverflowHiWatermark = fifo.bFF_HiWatermark.load(std::memory_order_relaxed);
+  m_CPStatusReg.Breakpoint() = fifo.bFF_Breakpoint.load(std::memory_order_relaxed);
+  m_CPStatusReg.ReadIdle() = !fifo.CPReadWriteDistance.load(std::memory_order_relaxed) ||
+                             (fifo.CPReadPointer.load(std::memory_order_relaxed) ==
+                              fifo.CPWritePointer.load(std::memory_order_relaxed));
+  m_CPStatusReg.CommandIdle() = !fifo.CPReadWriteDistance.load(std::memory_order_relaxed) ||
+                                Fifo::AtBreakpoint() ||
+                                !fifo.bFF_GPReadEnable.load(std::memory_order_relaxed);
+  m_CPStatusReg.UnderflowLoWatermark() = fifo.bFF_LoWatermark.load(std::memory_order_relaxed);
+  m_CPStatusReg.OverflowHiWatermark() = fifo.bFF_HiWatermark.load(std::memory_order_relaxed);
 
   DEBUG_LOG_FMT(COMMANDPROCESSOR, "\t Read from STATUS_REGISTER : {:04x}", m_CPStatusReg.Hex);
-  DEBUG_LOG_FMT(
-      COMMANDPROCESSOR, "(r) status: iBP {} | fReadIdle {} | fCmdIdle {} | iOvF {} | iUndF {}",
-      m_CPStatusReg.Breakpoint ? "ON" : "OFF", m_CPStatusReg.ReadIdle ? "ON" : "OFF",
-      m_CPStatusReg.CommandIdle ? "ON" : "OFF", m_CPStatusReg.OverflowHiWatermark ? "ON" : "OFF",
-      m_CPStatusReg.UnderflowLoWatermark ? "ON" : "OFF");
+  DEBUG_LOG_FMT(COMMANDPROCESSOR,
+                "(r) status: iBP {} | fReadIdle {} | fCmdIdle {} | iOvF {} | iUndF {}",
+                m_CPStatusReg.Breakpoint() ? "ON" : "OFF", m_CPStatusReg.ReadIdle() ? "ON" : "OFF",
+                m_CPStatusReg.CommandIdle() ? "ON" : "OFF",
+                m_CPStatusReg.OverflowHiWatermark() ? "ON" : "OFF",
+                m_CPStatusReg.UnderflowLoWatermark() ? "ON" : "OFF");
 }
 
 void SetCpControlRegister()
 {
-  fifo.bFF_BPInt.store(m_CPCtrlReg.BPInt, std::memory_order_relaxed);
-  fifo.bFF_BPEnable.store(m_CPCtrlReg.BPEnable, std::memory_order_relaxed);
-  fifo.bFF_HiWatermarkInt.store(m_CPCtrlReg.FifoOverflowIntEnable, std::memory_order_relaxed);
-  fifo.bFF_LoWatermarkInt.store(m_CPCtrlReg.FifoUnderflowIntEnable, std::memory_order_relaxed);
-  fifo.bFF_GPLinkEnable.store(m_CPCtrlReg.GPLinkEnable, std::memory_order_relaxed);
+  fifo.bFF_BPInt.store(m_CPCtrlReg.BPInt(), std::memory_order_relaxed);
+  fifo.bFF_BPEnable.store(m_CPCtrlReg.BPEnable(), std::memory_order_relaxed);
+  fifo.bFF_HiWatermarkInt.store(m_CPCtrlReg.FifoOverflowIntEnable(), std::memory_order_relaxed);
+  fifo.bFF_LoWatermarkInt.store(m_CPCtrlReg.FifoUnderflowIntEnable(), std::memory_order_relaxed);
+  fifo.bFF_GPLinkEnable.store(m_CPCtrlReg.GPLinkEnable(), std::memory_order_relaxed);
 
-  if (fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) && !m_CPCtrlReg.GPReadEnable)
+  if (fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) && !m_CPCtrlReg.GPReadEnable())
   {
-    fifo.bFF_GPReadEnable.store(m_CPCtrlReg.GPReadEnable, std::memory_order_relaxed);
+    fifo.bFF_GPReadEnable.store(m_CPCtrlReg.GPReadEnable(), std::memory_order_relaxed);
     Fifo::FlushGpu();
   }
   else
   {
-    fifo.bFF_GPReadEnable = m_CPCtrlReg.GPReadEnable;
+    fifo.bFF_GPReadEnable = m_CPCtrlReg.GPReadEnable();
   }
 
   DEBUG_LOG_FMT(COMMANDPROCESSOR, "\t GPREAD {} | BP {} | Int {} | OvF {} | UndF {} | LINK {}",
                 fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) ? "ON" : "OFF",
                 fifo.bFF_BPEnable.load(std::memory_order_relaxed) ? "ON" : "OFF",
                 fifo.bFF_BPInt.load(std::memory_order_relaxed) ? "ON" : "OFF",
-                m_CPCtrlReg.FifoOverflowIntEnable ? "ON" : "OFF",
-                m_CPCtrlReg.FifoUnderflowIntEnable ? "ON" : "OFF",
-                m_CPCtrlReg.GPLinkEnable ? "ON" : "OFF");
+                m_CPCtrlReg.FifoOverflowIntEnable() ? "ON" : "OFF",
+                m_CPCtrlReg.FifoUnderflowIntEnable() ? "ON" : "OFF",
+                m_CPCtrlReg.GPLinkEnable() ? "ON" : "OFF");
 }
 
 // NOTE: We intentionally don't emulate this function at the moment.
