@@ -25,124 +25,71 @@
 
 namespace PixelEngine
 {
-// Note: These enums are (assumed to be) identical to the one in BPMemory, but the base type is set
-// to u16 instead of u32 for BitField
-enum class CompareMode : u16
-{
-  Never = 0,
-  Less = 1,
-  Equal = 2,
-  LEqual = 3,
-  Greater = 4,
-  NEqual = 5,
-  GEqual = 6,
-  Always = 7
-};
+enum class CompareMode : u32;
+enum class SrcBlendFactor : u32;
+enum class DstBlendFactor : u32;
+enum class LogicOp : u32;
 
-union UPEZConfReg
+struct PEZConfReg
 {
   u16 hex;
-  BitField<0, 1, bool, u16> z_comparator_enable;
-  BitField<1, 3, CompareMode, u16> function;
-  BitField<4, 1, bool, u16> z_update_enable;
+  BFVIEW(bool, 1, 0, z_comparator_enable)
+  BFVIEW(CompareMode, 3, 1, function)
+  BFVIEW(bool, 1, 4, z_update_enable)
 };
 
-enum class SrcBlendFactor : u16
-{
-  Zero = 0,
-  One = 1,
-  DstClr = 2,
-  InvDstClr = 3,
-  SrcAlpha = 4,
-  InvSrcAlpha = 5,
-  DstAlpha = 6,
-  InvDstAlpha = 7
-};
-
-enum class DstBlendFactor : u16
-{
-  Zero = 0,
-  One = 1,
-  SrcClr = 2,
-  InvSrcClr = 3,
-  SrcAlpha = 4,
-  InvSrcAlpha = 5,
-  DstAlpha = 6,
-  InvDstAlpha = 7
-};
-
-enum class LogicOp : u16
-{
-  Clear = 0,
-  And = 1,
-  AndReverse = 2,
-  Copy = 3,
-  AndInverted = 4,
-  NoOp = 5,
-  Xor = 6,
-  Or = 7,
-  Nor = 8,
-  Equiv = 9,
-  Invert = 10,
-  OrReverse = 11,
-  CopyInverted = 12,
-  OrInverted = 13,
-  Nand = 14,
-  Set = 15
-};
-
-union UPEAlphaConfReg
+struct PEAlphaConfReg
 {
   u16 hex;
-  BitField<0, 1, bool, u16> blend;  // Set for GX_BM_BLEND or GX_BM_SUBTRACT
-  BitField<1, 1, bool, u16> logic;  // Set for GX_BM_LOGIC
-  BitField<2, 1, bool, u16> dither;
-  BitField<3, 1, bool, u16> color_update_enable;
-  BitField<4, 1, bool, u16> alpha_update_enable;
-  BitField<5, 3, DstBlendFactor, u16> dst_factor;
-  BitField<8, 3, SrcBlendFactor, u16> src_factor;
-  BitField<11, 1, bool, u16> subtract;  // Set for GX_BM_SUBTRACT
-  BitField<12, 4, LogicOp, u16> logic_op;
+  BFVIEW(bool, 1, 0, blend)  // Set for GX_BM_BLEND or GX_BM_SUBTRACT
+  BFVIEW(bool, 1, 1, logic)  // Set for GX_BM_LOGIC
+  BFVIEW(bool, 1, 2, dither)
+  BFVIEW(bool, 1, 3, color_update_enable)
+  BFVIEW(bool, 1, 4, alpha_update_enable)
+  BFVIEW(DstBlendFactor, 3, 5, dst_factor)
+  BFVIEW(SrcBlendFactor, 3, 8, src_factor)
+  BFVIEW(bool, 1, 11, subtract)  // Set for GX_BM_SUBTRACT
+  BFVIEW(LogicOp, 4, 12, logic_op)
 };
 
-union UPEDstAlphaConfReg
+struct PEDstAlphaConfReg
 {
   u16 hex;
-  BitField<0, 8, u8, u16> alpha;
-  BitField<8, 1, bool, u16> enable;
+  BFVIEW(u8, 8, 0, alpha)
+  BFVIEW(bool, 1, 8, enable)
 };
 
-union UPEAlphaModeConfReg
+struct PEAlphaModeConfReg
 {
   u16 hex;
-  BitField<0, 8, u8, u16> threshold;
+  BFVIEW(u8, 8, 0, threshold)
   // Yagcd and libogc use 8 bits for this, but the enum only needs 3
-  BitField<8, 3, CompareMode, u16> compare_mode;
+  BFVIEW(CompareMode, 3, 8, compare_mode)
 };
 
-union UPEAlphaReadReg
+struct PEAlphaReadReg
 {
   u16 hex;
-  BitField<0, 2, AlphaReadMode, u16> read_mode;
+  BFVIEW(AlphaReadMode, 2, 0, read_mode)
 };
 
 // fifo Control Register
-union UPECtrlReg
+struct PECtrlReg
 {
   u16 hex;
-  BitField<0, 1, bool, u16> pe_token_enable;
-  BitField<1, 1, bool, u16> pe_finish_enable;
-  BitField<2, 1, bool, u16> pe_token;   // Write only
-  BitField<3, 1, bool, u16> pe_finish;  // Write only
+  BFVIEW(bool, 1, 0, pe_token_enable)
+  BFVIEW(bool, 1, 1, pe_finish_enable)
+  BFVIEW(bool, 1, 2, pe_token)   // Write only
+  BFVIEW(bool, 1, 3, pe_finish)  // Write only
 };
 
 // STATE_TO_SAVE
-static UPEZConfReg m_ZConf;
-static UPEAlphaConfReg m_AlphaConf;
-static UPEDstAlphaConfReg m_DstAlphaConf;
-static UPEAlphaModeConfReg m_AlphaModeConf;
-static UPEAlphaReadReg m_AlphaRead;
-static UPECtrlReg m_Control;
+static PEZConfReg m_ZConf;
+static PEAlphaConfReg m_AlphaConf;
+static PEDstAlphaConfReg m_DstAlphaConf;
+static PEAlphaModeConfReg m_AlphaModeConf;
+static PEAlphaReadReg m_AlphaRead;
+static PECtrlReg m_Control;
 
 static std::mutex s_token_finish_mutex;
 static u16 s_token;
@@ -255,18 +202,18 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // Control register
   mmio->Register(base | PE_CTRL_REGISTER, MMIO::DirectRead<u16>(&m_Control.hex),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   UPECtrlReg tmpCtrl{.hex = val};
+                   PECtrlReg tmpCtrl{val};
 
-                   if (tmpCtrl.pe_token)
+                   if (tmpCtrl.pe_token())
                      s_signal_token_interrupt = false;
 
-                   if (tmpCtrl.pe_finish)
+                   if (tmpCtrl.pe_finish())
                      s_signal_finish_interrupt = false;
 
-                   m_Control.pe_token_enable = tmpCtrl.pe_token_enable.Value();
-                   m_Control.pe_finish_enable = tmpCtrl.pe_finish_enable.Value();
-                   m_Control.pe_token = false;   // this flag is write only
-                   m_Control.pe_finish = false;  // this flag is write only
+                   m_Control.pe_token_enable() = tmpCtrl.pe_token_enable();
+                   m_Control.pe_finish_enable() = tmpCtrl.pe_finish_enable();
+                   m_Control.pe_token() = false;   // this flag is write only
+                   m_Control.pe_finish() = false;  // this flag is write only
 
                    DEBUG_LOG_FMT(PIXELENGINE, "(w16) CTRL_REGISTER: {:#06x}", val);
                    UpdateInterrupts();
@@ -290,11 +237,11 @@ static void UpdateInterrupts()
 {
   // check if there is a token-interrupt
   ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN,
-                                   s_signal_token_interrupt && m_Control.pe_token_enable);
+                                   s_signal_token_interrupt && m_Control.pe_token_enable());
 
   // check if there is a finish-interrupt
   ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH,
-                                   s_signal_finish_interrupt && m_Control.pe_finish_enable);
+                                   s_signal_finish_interrupt && m_Control.pe_finish_enable());
 }
 
 static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate)
@@ -373,7 +320,7 @@ void SetFinish(int cycles_into_future)
 
 AlphaReadMode GetAlphaReadMode()
 {
-  return m_AlphaRead.read_mode;
+  return m_AlphaRead.read_mode();
 }
 
 }  // namespace PixelEngine
