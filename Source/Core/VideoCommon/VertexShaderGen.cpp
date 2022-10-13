@@ -39,7 +39,7 @@ VertexShaderUid GetVertexShaderUid()
     switch (texinfo.texgentype())
     {
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
-      if ((uid_data->components() & (VB_HAS_TANGENT | VB_HAS_BINORMAL)) != 0)
+      if (uid_data->has_tangent() || uid_data->has_binormal())
       {
         // transform the light dir into tangent space
         texinfo.embosslightshift() = xfmem.texMtxInfo[i].embosslightshift();
@@ -98,25 +98,26 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   WriteIsNanHeader(out, api_type);
 
   out.Write("ATTRIBUTE_LOCATION({}) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
-  if ((uid_data->components() & VB_HAS_POSMTXIDX) != 0)
+  if (uid_data->has_posmtxidx())
     out.Write("ATTRIBUTE_LOCATION({}) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
-  if ((uid_data->components() & VB_HAS_NORMAL) != 0)
+  if (uid_data->has_normal())
     out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnormal;\n", SHADER_NORMAL_ATTRIB);
-  if ((uid_data->components() & VB_HAS_TANGENT) != 0)
+  if (uid_data->has_tangent())
     out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtangent;\n", SHADER_TANGENT_ATTRIB);
-  if ((uid_data->components() & VB_HAS_BINORMAL) != 0)
+  if (uid_data->has_binormal())
     out.Write("ATTRIBUTE_LOCATION({}) in float3 rawbinormal;\n", SHADER_BINORMAL_ATTRIB);
 
-  if ((uid_data->components() & VB_HAS_COL0) != 0)
+  if (uid_data->has_col()[0])
     out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
-  if ((uid_data->components() & VB_HAS_COL1) != 0)
+  if (uid_data->has_col()[1])
     out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
 
   for (u32 i = 0; i < 8; ++i)
   {
-    const bool has_texmtx = (uid_data->components() & (VB_HAS_TEXMTXIDX0 << i)) != 0;
+    const bool has_texmtx = uid_data->has_texmtxidx()[i];
+    const bool has_uv = uid_data->has_uv()[i];
 
-    if ((uid_data->components() & (VB_HAS_UV0 << i)) != 0 || has_texmtx)
+    if (has_uv || has_texmtx)
     {
       out.Write("ATTRIBUTE_LOCATION({}) in float{} rawtex{};\n", SHADER_TEXTURE0_ATTRIB + i,
                 has_texmtx ? 3 : 2, i);
@@ -168,16 +169,15 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   // To use color 1, the vertex descriptor must have color 0 and 1.
   // If color 1 is present but not color 0, it is used for lighting channel 0.
-  const bool use_color_1 =
-      (uid_data->components() & (VB_HAS_COL0 | VB_HAS_COL1)) == (VB_HAS_COL0 | VB_HAS_COL1);
+  const bool use_color_1 = uid_data->has_col()[0] && uid_data->has_col()[1];
   for (u32 color = 0; color < NUM_XF_COLOR_CHANNELS; color++)
   {
-    if ((color == 0 || use_color_1) && (uid_data->components() & (VB_HAS_COL0 << color)) != 0)
+    if ((color == 0 || use_color_1) && uid_data->has_col()[color])
     {
       // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are present.
       out.Write("vertex_color_{0} = rawcolor{0};\n", color);
     }
-    else if (color == 0 && (uid_data->components() & VB_HAS_COL1) != 0)
+    else if (color == 0 && uid_data->has_col()[1])
     {
       // Use color1 for channel 0 if color0 is not present.
       out.Write("vertex_color_{} = rawcolor1;\n", color);
@@ -189,14 +189,14 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   }
 
   // transforms
-  if ((uid_data->components() & VB_HAS_POSMTXIDX) != 0)
+  if (uid_data->has_posmtxidx())
   {
     // Vertex format has a per-vertex matrix
     out.Write("int posidx = int(posmtx.r);\n"
               "float4 P0 = " I_TRANSFORMMATRICES "[posidx];\n"
               "float4 P1 = " I_TRANSFORMMATRICES "[posidx + 1];\n"
               "float4 P2 = " I_TRANSFORMMATRICES "[posidx + 2];\n");
-    if ((uid_data->components() & VB_HAS_NORMAL) != 0)
+    if (uid_data->has_normal())
     {
       out.Write("int normidx = posidx & 31;\n"
                 "float3 N0 = " I_NORMALMATRICES "[normidx].xyz;\n"
@@ -210,7 +210,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("float4 P0 = " I_POSNORMALMATRIX "[0];\n"
               "float4 P1 = " I_POSNORMALMATRIX "[1];\n"
               "float4 P2 = " I_POSNORMALMATRIX "[2];\n");
-    if ((uid_data->components() & VB_HAS_NORMAL) != 0)
+    if (uid_data->has_normal())
     {
       out.Write("float3 N0 = " I_POSNORMALMATRIX "[3].xyz;\n"
                 "float3 N1 = " I_POSNORMALMATRIX "[4].xyz;\n"
@@ -220,11 +220,11 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   out.Write("// Multiply the position vector by the position matrix\n"
             "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n");
-  if ((uid_data->components() & VB_HAS_NORMAL) != 0)
+  if (uid_data->has_normal())
   {
-    if ((uid_data->components() & VB_HAS_TANGENT) == 0)
+    if (!uid_data->has_tangent())
       out.Write("float3 rawtangent = " I_CACHED_TANGENT ".xyz;\n");
-    if ((uid_data->components() & VB_HAS_BINORMAL) == 0)
+    if (!uid_data->has_binormal())
       out.Write("float3 rawbinormal = " I_CACHED_BINORMAL ".xyz;\n");
 
     // The scale of the transform matrix is used to control the size of the emboss map effect, by
@@ -269,7 +269,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("coord.xyz = rawpos.xyz;\n");
       break;
     case SourceRow::Normal:
-      if ((uid_data->components() & VB_HAS_NORMAL) != 0)
+      if (uid_data->has_normal())
       {
         out.Write("coord.xyz = rawnormal.xyz;\n");
       }
@@ -279,13 +279,13 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
              texinfo.texgentype() == TexGenType::Color1);
       break;
     case SourceRow::BinormalT:
-      if ((uid_data->components() & VB_HAS_TANGENT) != 0)
+      if (uid_data->has_tangent())
       {
         out.Write("coord.xyz = rawtangent.xyz;\n");
       }
       break;
     case SourceRow::BinormalB:
-      if ((uid_data->components() & VB_HAS_BINORMAL) != 0)
+      if (uid_data->has_binormal())
       {
         out.Write("coord.xyz = rawbinormal.xyz;\n");
       }
@@ -293,7 +293,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     default:
       ASSERT(texinfo.sourcerow() >= SourceRow::Tex0 && texinfo.sourcerow() <= SourceRow::Tex7);
       u32 texnum = static_cast<u32>(texinfo.sourcerow()) - static_cast<u32>(SourceRow::Tex0);
-      if ((uid_data->components() & (VB_HAS_UV0 << (texnum))) != 0)
+      if (uid_data->has_uv()[texnum])
       {
         out.Write("coord = float4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n", texnum, texnum);
       }
@@ -332,7 +332,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       break;
     case TexGenType::Regular:
     default:
-      if ((uid_data->components() & (VB_HAS_TEXMTXIDX0 << i)) != 0)
+      if (uid_data->has_texmtxidx()[i])
       {
         out.Write("int tmp = int(rawtex{}.z);\n", i);
         if (uid_data->texMtxInfo_n_projection()[i] == TexSize::STQ)
