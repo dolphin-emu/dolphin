@@ -88,40 +88,10 @@ struct IsSameAsAnyOf : std::disjunction<std::is_same<Ts, T>...>
 {
 };
 
-// Like std::conditional but operating on templates rather than types.
-// MetaConditional<C, X, Y>::type<T> is equivalent to std::conditional<C, X<T>, Y<T>>,
-// but doesn't require both X<T> and Y<T> to be valid.
-template <bool Cond, template <typename> class IfTrue, template <typename> class IfFalse>
-struct MetaConditional
+// Type trait for checking if T is an unscoped enum (why was this not included in C++23?)
+template <class T>
+struct IsUnscopedEnum : std::conjunction<std::is_enum<T>, std::negation<std::is_scoped_enum<T>>>
 {
-  template <typename T>
-  using type = IfTrue<T>;
-};
-// Partial specialization for false.
-template <template <typename> class IfTrue, template <typename> class IfFalse>
-struct MetaConditional<false, IfTrue, IfFalse>
-{
-  template <typename T>
-  using type = IfFalse<T>;
 };
 
-// FIXME: Even Clang 15 is not okay with a variadic template being used for the IfFalse templated
-// template in the following templated typedef.  GCC and MSVC have no such issue, otherwise I would
-// just use std::void_t.
-template <typename>
-using UnvariadicVoidTmpl = void;
-
-// Useful for defining an explicit casting operator overload for templated wrapper or interface
-// classes which may contain a scoped enum, as the declaration must still be a valid expression.
-// See: BitFieldView
-template <typename T>
-using ScopedEnumUnderlyingElseVoid =
-    typename MetaConditional<std::is_scoped_enum_v<T>, std::underlying_type_t,
-                             UnvariadicVoidTmpl>::template type<T>;
-
-// TODO add comment
-template <typename T>
-using EnumUnderlyingElseIdentity =
-    typename MetaConditional<std::is_enum_v<T>, std::underlying_type_t,
-                             std::type_identity_t>::template type<T>;
 }  // namespace Common

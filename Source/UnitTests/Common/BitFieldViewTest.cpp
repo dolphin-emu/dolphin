@@ -7,6 +7,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 
+#include "Common/Future/CppLibConcepts.h"
+
 enum class TestEnum : u64
 {
   A,
@@ -33,7 +35,7 @@ struct fmt::formatter<TestBoolEnum> : EnumFormatter<TestBoolEnum::Truthy>
   constexpr formatter() : EnumFormatter({"Falsy", "Truthy"}) {}
 };
 
-enum TestNoScopeEnum
+enum TestNoScopeEnum : u64
 {
   MLG,
   MtnDew,
@@ -83,7 +85,7 @@ static u64 table[] = {
 };
 
 // Verify that bitfields in a union have the same underlying data
-TEST(MutLooseBitFieldView, Storage)
+TEST(BitFieldView, Storage)
 {
   TestStruct object;
 
@@ -101,7 +103,7 @@ TEST(MutLooseBitFieldView, Storage)
   }
 }
 
-TEST(MutLooseBitFieldView, Read)
+TEST(BitFieldView, Read)
 {
   TestStruct object;
 
@@ -137,7 +139,7 @@ TEST(MutLooseBitFieldView, Read)
   }
 }
 
-TEST(MutLooseBitFieldView, Assignment)
+TEST(BitFieldView, Assignment)
 {
   TestStruct object;
 
@@ -180,31 +182,67 @@ TEST(MutLooseBitFieldView, Assignment)
   }
 }
 
-// This is testing that the syntax-saving ScopedEnumBitFieldView variants compile
-TEST(MutLooseBitFieldView, EnumVariant)
+namespace test
 {
-  using TestEnumUnderlying = std::underlying_type_t<TestEnum>;
-  using TestBoolEnumUnderlying = std::underlying_type_t<TestBoolEnum>;
-  using TestNoScopeEnumUnderlying = std::underlying_type_t<TestNoScopeEnum>;
-
-  for (u64 val : table)
-  {
-    TestStruct object = val;
-
-    [[maybe_unused]] TestEnumUnderlying enum_1 = static_cast<TestEnumUnderlying>(object.enum_1());
-    [[maybe_unused]] TestEnumUnderlying enum_2 = static_cast<TestEnumUnderlying>(object.enum_2());
-    [[maybe_unused]] TestBoolEnumUnderlying enum_flag =
-        static_cast<TestBoolEnumUnderlying>(object.enum_flag());
-
-    // Unscoped enums compile fine, too!
-    [[maybe_unused]] TestNoScopeEnumUnderlying enum_3a =
-        static_cast<TestNoScopeEnumUnderlying>(object.enum_3());
-    [[maybe_unused]] TestNoScopeEnumUnderlying enum_3b = object.enum_3();
-  }
+template <class T, class U = T>  // Don't you dare automatically deduce on me
+void pass(const U);
 }
 
+#define BFVIEW_REQ(field_t, name) requires(::Common::MutFixedBitFieldView<field_t, 1, 0, u64> name)
+
+// This is testing that all types of valid explicit / implicit casts compile.
+TEST(BitFieldView, CastingCompileTest)
+{
+  enum class EnumS1 : u64;
+  enum class EnumS2 : u16;
+  enum EnumU1 : u64;
+  enum EnumU2 : u16;
+
+  // Sorry, but requires clauses lint like ass because clang-format 15 isn't widely available yet.
+  // clang-format off
+
+  // Scoped enum
+  //
+  // Explicit cast -> underlying scalar
+  EXPECT_TRUE(BFVIEW_REQ(EnumS1, bfv) { static_cast<u64>(bfv); });
+  // Explicit cast -> unrelated scalar
+  EXPECT_TRUE(BFVIEW_REQ(EnumS1, bfv) { static_cast<u16>(bfv); });
+  // Explicit cast -> different scoped enum
+  EXPECT_TRUE(BFVIEW_REQ(EnumS1, bfv) { static_cast<EnumS2>(bfv); });
+  // Explicit cast -> unscoped enum
+  EXPECT_TRUE(BFVIEW_REQ(EnumS1, bfv) { static_cast<EnumU1>(bfv); });
+  // Implicit cast -> same scoped enum
+  EXPECT_TRUE(BFVIEW_REQ(EnumS1, bfv) { {bfv} -> std::convertible_to<EnumS1>; });
+
+  // Unscoped enum
+  //
+  // Implicit cast -> underlying scalar
+  EXPECT_TRUE(BFVIEW_REQ(EnumU1, bfv) { {bfv} -> std::convertible_to<u64>; });
+  // Implicit cast -> unrelated scalar
+  EXPECT_TRUE(BFVIEW_REQ(EnumU1, bfv) { {bfv} -> std::convertible_to<u16>; });
+  // Implicit cast -> different unscoped enum
+  EXPECT_TRUE(BFVIEW_REQ(EnumU1, bfv) { {bfv} -> std::convertible_to<EnumU2>; });
+  // Explicit cast -> scoped enum
+  EXPECT_TRUE(BFVIEW_REQ(EnumU1, bfv) { static_cast<EnumS1>(bfv); });
+
+  // Scalar
+  //
+  // Implicit cast -> same scalar
+  EXPECT_TRUE(BFVIEW_REQ(u64, bfv) { {bfv} -> std::convertible_to<u64>; });
+  // Implicit cast -> different scalar
+  EXPECT_TRUE(BFVIEW_REQ(u64, bfv) { {bfv} -> std::convertible_to<u16>; });
+  // Explicit cast -> scoped enum
+  EXPECT_TRUE(BFVIEW_REQ(u64, bfv) { static_cast<EnumS1>(bfv); });
+  // Implicit cast -> unscoped enum
+  EXPECT_TRUE(BFVIEW_REQ(u64, bfv) { {bfv} -> std::convertible_to<EnumU1>; });
+
+  // clang-format on
+}
+
+#undef BFVIEW_REQ
+
 // Test behavior of using BitFields with fmt
-TEST(MutLooseBitFieldView, Fmt)
+TEST(BitFieldView, Fmt)
 {
   TestStruct object;
 
@@ -482,25 +520,6 @@ TEST(BitFieldViewArray, Enum)
   EXPECT_EQ("[A (0), B (1), C (2), D (3)]", fmt::format("[{}]", fmt::join(object.arr(), ", ")));
   EXPECT_EQ("[0x0u /* A */, 0x1u /* B */, 0x2u /* C */, 0x3u /* D */]",
             fmt::format("[{:s}]", fmt::join(object.arr(), ", ")));
-}
-
-// This is testing that the syntax-saving ScopedEnumBitFieldViewArray variants compile
-TEST(BitFieldViewArray, EnumVariant)
-{
-  using TestEnumUnderlying = std::underlying_type_t<TestEnum>;
-
-  for (u64 val : table)
-  {
-    TestStruct4 object{val};
-
-    [[maybe_unused]] TestEnumUnderlying temp0 = static_cast<TestEnumUnderlying>(object.arr()[0]);
-    [[maybe_unused]] TestEnumUnderlying temp1 = static_cast<TestEnumUnderlying>(object.arr()[1]);
-    [[maybe_unused]] TestEnumUnderlying temp2 = static_cast<TestEnumUnderlying>(object.arr()[2]);
-    [[maybe_unused]] TestEnumUnderlying temp3 = static_cast<TestEnumUnderlying>(object.arr()[3]);
-
-    for (const auto& view : object.arr())
-      [[maybe_unused]] TestEnumUnderlying temp = static_cast<TestEnumUnderlying>(view);
-  }
 }
 
 struct TestStruct5

@@ -12,12 +12,11 @@
 #include "Common/BitUtils.h"      // Common::ExtractBitsU, Common::ExtractBitsS,
                                   // Common::InsertBits, Common::ExtractBit, Common::InsertBit,
                                   // Common::BitSize
-#include "Common/Concepts.h"      // Common::SameAsOrUnderlyingSameAs
+#include "Common/Concepts.h"      // Common::SameAsOrUnderlyingSameAs, Common::UnscopedEnum
 #include "Common/ConstantPack.h"  // Common::IndexPack
 #include "Common/TypeUtils.h"     // Common::ScopedEnumUnderlyingElseVoid
 
-#include "Common/Future/CppLibConcepts.h"      // std::integral
-#include "Common/Future/CppLibToUnderlying.h"  // std::to_underlying
+#include "Common/Future/CppLibConcepts.h"  // std::integral
 
 namespace Common
 {
@@ -465,9 +464,15 @@ public:
   constexpr MutFixedBitFieldView& operator^=(const field_t rhs) { return operator=(Get() ^ rhs); }
 
   constexpr operator field_t() const { return Get(); }
-  constexpr explicit operator ScopedEnumUnderlyingElseVoid<field_t>() const
+  template <UnscopedEnum T>     // This only compiles because it is constrained, otherwise you
+  constexpr operator T() const  // would see the error "conversion function cannot be redeclared"
   {
-    return std::to_underlying(Get());
+    return static_cast<T>(Get());  // Surprisingly required static_cast
+  }
+  template <class T>
+  constexpr explicit operator T() const
+  {
+    return static_cast<T>(Get());  // Test your luck.
   }
   constexpr bool operator!() const { return !static_cast<bool>(Get()); }
 };
@@ -492,9 +497,15 @@ public:
   constexpr field_t Get() const { return GetFixedBitField<field_t, width, start>(host); }
 
   constexpr operator field_t() const { return Get(); }
-  constexpr explicit operator ScopedEnumUnderlyingElseVoid<field_t>() const
+  template <UnscopedEnum T>     // This only compiles because it is constrained, otherwise you
+  constexpr operator T() const  // would see the error "conversion function cannot be redeclared"
   {
-    return std::to_underlying(Get());
+    return static_cast<T>(Get());  // Surprisingly required static_cast
+  }
+  template <class T>
+  constexpr explicit operator T() const
+  {
+    return static_cast<T>(Get());  // Test your luck.
   }
   constexpr bool operator!() const { return !static_cast<bool>(Get()); }
 };
@@ -542,9 +553,15 @@ public:
   constexpr MutLooseBitFieldView& operator^=(const field_t rhs) { return operator=(Get() ^ rhs); }
 
   constexpr operator field_t() const { return Get(); }
-  constexpr explicit operator ScopedEnumUnderlyingElseVoid<field_t>() const
+  template <UnscopedEnum T>     // This only compiles because it is constrained, otherwise you
+  constexpr operator T() const  // would see the error "conversion function cannot be redeclared"
   {
-    return std::to_underlying(Get());
+    return static_cast<T>(Get());  // Surprisingly required static_cast
+  }
+  template <class T>
+  constexpr explicit operator T() const
+  {
+    return static_cast<T>(Get());  // Test your luck.
   }
   constexpr bool operator!() const { return !static_cast<bool>(Get()); }
 };
@@ -571,9 +588,15 @@ public:
   constexpr field_t Get() const { return GetLooseBitField<field_t, width>(start, host); }
 
   constexpr operator field_t() const { return Get(); }
-  constexpr explicit operator ScopedEnumUnderlyingElseVoid<field_t>() const
+  template <UnscopedEnum T>     // This only compiles because it is constrained, otherwise you
+  constexpr operator T() const  // would see the error "conversion function cannot be redeclared"
   {
-    return std::to_underlying(Get());
+    return static_cast<T>(Get());  // Surprisingly required static_cast
+  }
+  template <class T>
+  constexpr explicit operator T() const
+  {
+    return static_cast<T>(Get());  // Test your luck.
   }
   constexpr bool operator!() const { return !static_cast<bool>(Get()); }
 };

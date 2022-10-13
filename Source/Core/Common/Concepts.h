@@ -31,6 +31,12 @@ template <class T>
 concept NotEnumerated = !Enumerated<T>;
 
 template <class T>
+concept ScopedEnum = std::is_scoped_enum<T>::value;
+
+template <class T>
+concept UnscopedEnum = Common::IsUnscopedEnum<T>::value;
+
+template <class T>
 concept Class = std::is_class<T>::value;
 
 template <class T>
