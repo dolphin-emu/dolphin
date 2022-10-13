@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
@@ -148,7 +149,7 @@ constexpr u32 GetElementSize(ComponentFormat format)
   }
 }
 
-enum class CoordComponentCount
+enum class CoordComponentCount : bool
 {
   XY = 0,
   XYZ = 1,
@@ -159,7 +160,7 @@ struct fmt::formatter<CoordComponentCount> : EnumFormatter<CoordComponentCount::
   constexpr formatter() : EnumFormatter({"2 (x, y)", "3 (x, y, z)"}) {}
 };
 
-enum class NormalComponentCount
+enum class NormalComponentCount : bool
 {
   N = 0,
   NTB = 1,
@@ -170,7 +171,7 @@ struct fmt::formatter<NormalComponentCount> : EnumFormatter<NormalComponentCount
   constexpr formatter() : EnumFormatter({"1 (normal)", "3 (normal, tangent, binormal)"}) {}
 };
 
-enum class ColorComponentCount
+enum class ColorComponentCount : bool
 {
   RGB = 0,
   RGBA = 1,
@@ -200,7 +201,7 @@ struct fmt::formatter<ColorFormat> : EnumFormatter<ColorFormat::RGBA8888>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-enum class TexComponentCount
+enum class TexComponentCount : bool
 {
   S = 0,
   ST = 1,
@@ -213,40 +214,40 @@ struct fmt::formatter<TexComponentCount> : EnumFormatter<TexComponentCount::ST>
 
 struct TVtxDesc
 {
-  union Low
+  struct Low
   {
     // false: not present
     // true: present
-    BitField<0, 1, bool, u32> PosMatIdx;
-    BitField<1, 1, bool, u32> Tex0MatIdx;
-    BitField<2, 1, bool, u32> Tex1MatIdx;
-    BitField<3, 1, bool, u32> Tex2MatIdx;
-    BitField<4, 1, bool, u32> Tex3MatIdx;
-    BitField<5, 1, bool, u32> Tex4MatIdx;
-    BitField<6, 1, bool, u32> Tex5MatIdx;
-    BitField<7, 1, bool, u32> Tex6MatIdx;
-    BitField<8, 1, bool, u32> Tex7MatIdx;
-    BitFieldArray<1, 1, 8, bool, u32> TexMatIdx;
+    BFVIEW(bool, 1, 0, PosMatIdx)
+    BFVIEW(bool, 1, 1, Tex0MatIdx)
+    BFVIEW(bool, 1, 2, Tex1MatIdx)
+    BFVIEW(bool, 1, 3, Tex2MatIdx)
+    BFVIEW(bool, 1, 4, Tex3MatIdx)
+    BFVIEW(bool, 1, 5, Tex4MatIdx)
+    BFVIEW(bool, 1, 6, Tex5MatIdx)
+    BFVIEW(bool, 1, 7, Tex6MatIdx)
+    BFVIEW(bool, 1, 8, Tex7MatIdx)
+    BFVIEW(bool, 1, 1, TexMatIdx, 8)  // 8x1 bit
 
-    BitField<9, 2, VertexComponentFormat> Position;
-    BitField<11, 2, VertexComponentFormat> Normal;
-    BitField<13, 2, VertexComponentFormat> Color0;
-    BitField<15, 2, VertexComponentFormat> Color1;
-    BitFieldArray<13, 2, 2, VertexComponentFormat> Color;
+    BFVIEW(VertexComponentFormat, 2, 9, Position)
+    BFVIEW(VertexComponentFormat, 2, 11, Normal)
+    BFVIEW(VertexComponentFormat, 2, 13, Color0)
+    BFVIEW(VertexComponentFormat, 2, 15, Color1)
+    BFVIEW(VertexComponentFormat, 2, 13, Color, 2)  // 2x2 bits
 
     u32 Hex = 0;
   };
-  union High
+  struct High
   {
-    BitField<0, 2, VertexComponentFormat> Tex0Coord;
-    BitField<2, 2, VertexComponentFormat> Tex1Coord;
-    BitField<4, 2, VertexComponentFormat> Tex2Coord;
-    BitField<6, 2, VertexComponentFormat> Tex3Coord;
-    BitField<8, 2, VertexComponentFormat> Tex4Coord;
-    BitField<10, 2, VertexComponentFormat> Tex5Coord;
-    BitField<12, 2, VertexComponentFormat> Tex6Coord;
-    BitField<14, 2, VertexComponentFormat> Tex7Coord;
-    BitFieldArray<0, 2, 8, VertexComponentFormat> TexCoord;
+    BFVIEW(VertexComponentFormat, 2, 0, Tex0Coord)
+    BFVIEW(VertexComponentFormat, 2, 2, Tex1Coord)
+    BFVIEW(VertexComponentFormat, 2, 4, Tex2Coord)
+    BFVIEW(VertexComponentFormat, 2, 6, Tex3Coord)
+    BFVIEW(VertexComponentFormat, 2, 8, Tex4Coord)
+    BFVIEW(VertexComponentFormat, 2, 10, Tex5Coord)
+    BFVIEW(VertexComponentFormat, 2, 12, Tex6Coord)
+    BFVIEW(VertexComponentFormat, 2, 14, Tex7Coord)
+    BFVIEW(VertexComponentFormat, 2, 0, TexCoord, 8)  // 8x2 bits
 
     u32 Hex = 0;
   };
@@ -278,10 +279,10 @@ struct fmt::formatter<TVtxDesc::Low>
         "Normal: {}\n"
         "Color 0: {}\n"
         "Color 1: {}",
-        present[desc.PosMatIdx], present[desc.Tex0MatIdx], present[desc.Tex1MatIdx],
-        present[desc.Tex2MatIdx], present[desc.Tex3MatIdx], present[desc.Tex4MatIdx],
-        present[desc.Tex5MatIdx], present[desc.Tex6MatIdx], present[desc.Tex7MatIdx], desc.Position,
-        desc.Normal, desc.Color0, desc.Color1);
+        present[desc.PosMatIdx()], present[desc.Tex0MatIdx()], present[desc.Tex1MatIdx()],
+        present[desc.Tex2MatIdx()], present[desc.Tex3MatIdx()], present[desc.Tex4MatIdx()],
+        present[desc.Tex5MatIdx()], present[desc.Tex6MatIdx()], present[desc.Tex7MatIdx()],
+        desc.Position(), desc.Normal(), desc.Color0(), desc.Color1());
   }
 };
 template <>
@@ -300,8 +301,8 @@ struct fmt::formatter<TVtxDesc::High>
                           "Texture Coord 5: {}\n"
                           "Texture Coord 6: {}\n"
                           "Texture Coord 7: {}",
-                          desc.Tex0Coord, desc.Tex1Coord, desc.Tex2Coord, desc.Tex3Coord,
-                          desc.Tex4Coord, desc.Tex5Coord, desc.Tex6Coord, desc.Tex7Coord);
+                          desc.Tex0Coord(), desc.Tex1Coord(), desc.Tex2Coord(), desc.Tex3Coord(),
+                          desc.Tex4Coord(), desc.Tex5Coord(), desc.Tex6Coord(), desc.Tex7Coord());
   }
 };
 template <>
@@ -315,36 +316,36 @@ struct fmt::formatter<TVtxDesc>
   }
 };
 
-union UVAT_group0
+struct VAT_group0
 {
   u32 Hex = 0;
   // 0:8
-  BitField<0, 1, CoordComponentCount> PosElements;
-  BitField<1, 3, ComponentFormat> PosFormat;
-  BitField<4, 5, u32> PosFrac;
+  BFVIEW(CoordComponentCount, 1, 0, PosElements)
+  BFVIEW(ComponentFormat, 3, 1, PosFormat)
+  BFVIEW(u32, 5, 4, PosFrac)
   // 9:12
-  BitField<9, 1, NormalComponentCount> NormalElements;
-  BitField<10, 3, ComponentFormat> NormalFormat;
+  BFVIEW(NormalComponentCount, 1, 9, NormalElements)
+  BFVIEW(ComponentFormat, 3, 10, NormalFormat)
   // 13:16
-  BitField<13, 1, ColorComponentCount> Color0Elements;
-  BitField<14, 3, ColorFormat> Color0Comp;
+  BFVIEW(ColorComponentCount, 1, 13, Color0Elements)
+  BFVIEW(ColorFormat, 3, 14, Color0Comp)
   // 17:20
-  BitField<17, 1, ColorComponentCount> Color1Elements;
-  BitField<18, 3, ColorFormat> Color1Comp;
+  BFVIEW(ColorComponentCount, 1, 17, Color1Elements)
+  BFVIEW(ColorFormat, 3, 18, Color1Comp)
   // 21:29
-  BitField<21, 1, TexComponentCount> Tex0CoordElements;
-  BitField<22, 3, ComponentFormat> Tex0CoordFormat;
-  BitField<25, 5, u8, u32> Tex0Frac;
+  BFVIEW(TexComponentCount, 1, 21, Tex0CoordElements)
+  BFVIEW(ComponentFormat, 3, 22, Tex0CoordFormat)
+  BFVIEW(u8, 5, 25, Tex0Frac)
   // 30:31
-  BitField<30, 1, bool, u32> ByteDequant;
-  BitField<31, 1, bool, u32> NormalIndex3;
+  BFVIEW(bool, 1, 30, ByteDequant)
+  BFVIEW(bool, 1, 31, NormalIndex3)
 };
 template <>
-struct fmt::formatter<UVAT_group0>
+struct fmt::formatter<VAT_group0>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const UVAT_group0& g0, FormatContext& ctx) const
+  auto format(const VAT_group0& g0, FormatContext& ctx) const
   {
     static constexpr std::array<const char*, 2> byte_dequant = {
         "shift does not apply to u8/s8 components", "shift applies to u8/s8 components"};
@@ -367,41 +368,42 @@ struct fmt::formatter<UVAT_group0>
                           "Texture coord 0 shift: {} ({})\n"
                           "Byte dequant: {}\n"
                           "Normal index 3: {}",
-                          g0.PosElements, g0.PosFormat, g0.PosFrac, 1.f / (1 << g0.PosFrac),
-                          g0.NormalElements, g0.NormalFormat, g0.Color0Elements, g0.Color0Comp,
-                          g0.Color1Elements, g0.Color1Comp, g0.Tex0CoordElements,
-                          g0.Tex0CoordFormat, g0.Tex0Frac, 1.f / (1 << g0.Tex0Frac),
-                          byte_dequant[g0.ByteDequant], normalindex3[g0.NormalIndex3]);
+                          g0.PosElements(), g0.PosFormat(), g0.PosFrac(), 1.f / (1 << g0.PosFrac()),
+                          g0.NormalElements(), g0.NormalFormat(), g0.Color0Elements(),
+                          g0.Color0Comp(), g0.Color1Elements(), g0.Color1Comp(),
+                          g0.Tex0CoordElements(), g0.Tex0CoordFormat(), g0.Tex0Frac(),
+                          1.f / (1 << g0.Tex0Frac()), byte_dequant[g0.ByteDequant()],
+                          normalindex3[g0.NormalIndex3()]);
   }
 };
 
-union UVAT_group1
+struct VAT_group1
 {
   u32 Hex = 0;
   // 0:8
-  BitField<0, 1, TexComponentCount> Tex1CoordElements;
-  BitField<1, 3, ComponentFormat> Tex1CoordFormat;
-  BitField<4, 5, u8, u32> Tex1Frac;
+  BFVIEW(TexComponentCount, 1, 0, Tex1CoordElements)
+  BFVIEW(ComponentFormat, 3, 1, Tex1CoordFormat)
+  BFVIEW(u8, 5, 4, Tex1Frac)
   // 9:17
-  BitField<9, 1, TexComponentCount> Tex2CoordElements;
-  BitField<10, 3, ComponentFormat> Tex2CoordFormat;
-  BitField<13, 5, u8, u32> Tex2Frac;
+  BFVIEW(TexComponentCount, 1, 9, Tex2CoordElements)
+  BFVIEW(ComponentFormat, 3, 10, Tex2CoordFormat)
+  BFVIEW(u8, 5, 13, Tex2Frac)
   // 18:26
-  BitField<18, 1, TexComponentCount> Tex3CoordElements;
-  BitField<19, 3, ComponentFormat> Tex3CoordFormat;
-  BitField<22, 5, u8, u32> Tex3Frac;
+  BFVIEW(TexComponentCount, 1, 18, Tex3CoordElements)
+  BFVIEW(ComponentFormat, 3, 19, Tex3CoordFormat)
+  BFVIEW(u8, 5, 22, Tex3Frac)
   // 27:30
-  BitField<27, 1, TexComponentCount> Tex4CoordElements;
-  BitField<28, 3, ComponentFormat> Tex4CoordFormat;
+  BFVIEW(TexComponentCount, 1, 27, Tex4CoordElements)
+  BFVIEW(ComponentFormat, 3, 28, Tex4CoordFormat)
   // 31
-  BitField<31, 1, bool, u32> VCacheEnhance;
+  BFVIEW(bool, 1, 31, VCacheEnhance)
 };
 template <>
-struct fmt::formatter<UVAT_group1>
+struct fmt::formatter<VAT_group1>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const UVAT_group1& g1, FormatContext& ctx) const
+  auto format(const VAT_group1& g1, FormatContext& ctx) const
   {
     return fmt::format_to(
         ctx.out(),
@@ -417,37 +419,37 @@ struct fmt::formatter<UVAT_group1>
         "Texture coord 4 elements: {}\n"
         "Texture coord 4 format: {}\n"
         "Enhance VCache (must always be on): {}",
-        g1.Tex1CoordElements, g1.Tex1CoordFormat, g1.Tex1Frac, 1.f / (1 << g1.Tex1Frac),
-        g1.Tex2CoordElements, g1.Tex2CoordFormat, g1.Tex2Frac, 1.f / (1 << g1.Tex2Frac),
-        g1.Tex3CoordElements, g1.Tex3CoordFormat, g1.Tex3Frac, 1.f / (1 << g1.Tex3Frac),
-        g1.Tex4CoordElements, g1.Tex4CoordFormat, g1.VCacheEnhance ? "Yes" : "No");
+        g1.Tex1CoordElements(), g1.Tex1CoordFormat(), g1.Tex1Frac(), 1.f / (1 << g1.Tex1Frac()),
+        g1.Tex2CoordElements(), g1.Tex2CoordFormat(), g1.Tex2Frac(), 1.f / (1 << g1.Tex2Frac()),
+        g1.Tex3CoordElements(), g1.Tex3CoordFormat(), g1.Tex3Frac(), 1.f / (1 << g1.Tex3Frac()),
+        g1.Tex4CoordElements(), g1.Tex4CoordFormat(), g1.VCacheEnhance() ? "Yes" : "No");
   }
 };
 
-union UVAT_group2
+struct VAT_group2
 {
   u32 Hex = 0;
   // 0:4
-  BitField<0, 5, u8, u32> Tex4Frac;
+  BFVIEW(u8, 5, 0, Tex4Frac)
   // 5:13
-  BitField<5, 1, TexComponentCount> Tex5CoordElements;
-  BitField<6, 3, ComponentFormat> Tex5CoordFormat;
-  BitField<9, 5, u8, u32> Tex5Frac;
+  BFVIEW(TexComponentCount, 1, 5, Tex5CoordElements)
+  BFVIEW(ComponentFormat, 3, 6, Tex5CoordFormat)
+  BFVIEW(u8, 5, 9, Tex5Frac)
   // 14:22
-  BitField<14, 1, TexComponentCount> Tex6CoordElements;
-  BitField<15, 3, ComponentFormat> Tex6CoordFormat;
-  BitField<18, 5, u8, u32> Tex6Frac;
+  BFVIEW(TexComponentCount, 1, 14, Tex6CoordElements)
+  BFVIEW(ComponentFormat, 3, 15, Tex6CoordFormat)
+  BFVIEW(u8, 5, 18, Tex6Frac)
   // 23:31
-  BitField<23, 1, TexComponentCount> Tex7CoordElements;
-  BitField<24, 3, ComponentFormat> Tex7CoordFormat;
-  BitField<27, 5, u8, u32> Tex7Frac;
+  BFVIEW(TexComponentCount, 1, 23, Tex7CoordElements)
+  BFVIEW(ComponentFormat, 3, 24, Tex7CoordFormat)
+  BFVIEW(u8, 5, 27, Tex7Frac)
 };
 template <>
-struct fmt::formatter<UVAT_group2>
+struct fmt::formatter<VAT_group2>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const UVAT_group2& g2, FormatContext& ctx) const
+  auto format(const VAT_group2& g2, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(),
                           "Texture coord 4 shift: {} ({})\n"
@@ -460,28 +462,28 @@ struct fmt::formatter<UVAT_group2>
                           "Texture coord 7 elements: {}\n"
                           "Texture coord 7 format: {}\n"
                           "Texture coord 7 shift: {} ({})",
-                          g2.Tex4Frac, 1.f / (1 << g2.Tex4Frac), g2.Tex5CoordElements,
-                          g2.Tex5CoordFormat, g2.Tex5Frac, 1.f / (1 << g2.Tex5Frac),
-                          g2.Tex6CoordElements, g2.Tex6CoordFormat, g2.Tex6Frac,
-                          1.f / (1 << g2.Tex6Frac), g2.Tex7CoordElements, g2.Tex7CoordFormat,
-                          g2.Tex7Frac, 1.f / (1 << g2.Tex7Frac));
+                          g2.Tex4Frac(), 1.f / (1 << g2.Tex4Frac()), g2.Tex5CoordElements(),
+                          g2.Tex5CoordFormat(), g2.Tex5Frac(), 1.f / (1 << g2.Tex5Frac()),
+                          g2.Tex6CoordElements(), g2.Tex6CoordFormat(), g2.Tex6Frac(),
+                          1.f / (1 << g2.Tex6Frac()), g2.Tex7CoordElements(), g2.Tex7CoordFormat(),
+                          g2.Tex7Frac(), 1.f / (1 << g2.Tex7Frac()));
   }
 };
 
 struct VAT
 {
-  UVAT_group0 g0;
-  UVAT_group1 g1;
-  UVAT_group2 g2;
+  VAT_group0 g0;
+  VAT_group1 g1;
+  VAT_group2 g2;
 
   constexpr ColorComponentCount GetColorElements(size_t idx) const
   {
     switch (idx)
     {
     case 0:
-      return g0.Color0Elements;
+      return g0.Color0Elements();
     case 1:
-      return g0.Color1Elements;
+      return g0.Color1Elements();
     default:
       PanicAlertFmt("Invalid color index {}", idx);
       return ColorComponentCount::RGB;
@@ -492,9 +494,9 @@ struct VAT
     switch (idx)
     {
     case 0:
-      return g0.Color0Comp;
+      return g0.Color0Comp();
     case 1:
-      return g0.Color1Comp;
+      return g0.Color1Comp();
     default:
       PanicAlertFmt("Invalid color index {}", idx);
       return ColorFormat::RGB565;
@@ -505,21 +507,21 @@ struct VAT
     switch (idx)
     {
     case 0:
-      return g0.Tex0CoordElements;
+      return g0.Tex0CoordElements();
     case 1:
-      return g1.Tex1CoordElements;
+      return g1.Tex1CoordElements();
     case 2:
-      return g1.Tex2CoordElements;
+      return g1.Tex2CoordElements();
     case 3:
-      return g1.Tex3CoordElements;
+      return g1.Tex3CoordElements();
     case 4:
-      return g1.Tex4CoordElements;
+      return g1.Tex4CoordElements();
     case 5:
-      return g2.Tex5CoordElements;
+      return g2.Tex5CoordElements();
     case 6:
-      return g2.Tex6CoordElements;
+      return g2.Tex6CoordElements();
     case 7:
-      return g2.Tex7CoordElements;
+      return g2.Tex7CoordElements();
     default:
       PanicAlertFmt("Invalid tex coord index {}", idx);
       return TexComponentCount::S;
@@ -530,21 +532,21 @@ struct VAT
     switch (idx)
     {
     case 0:
-      return g0.Tex0CoordFormat;
+      return g0.Tex0CoordFormat();
     case 1:
-      return g1.Tex1CoordFormat;
+      return g1.Tex1CoordFormat();
     case 2:
-      return g1.Tex2CoordFormat;
+      return g1.Tex2CoordFormat();
     case 3:
-      return g1.Tex3CoordFormat;
+      return g1.Tex3CoordFormat();
     case 4:
-      return g1.Tex4CoordFormat;
+      return g1.Tex4CoordFormat();
     case 5:
-      return g2.Tex5CoordFormat;
+      return g2.Tex5CoordFormat();
     case 6:
-      return g2.Tex6CoordFormat;
+      return g2.Tex6CoordFormat();
     case 7:
-      return g2.Tex7CoordFormat;
+      return g2.Tex7CoordFormat();
     default:
       PanicAlertFmt("Invalid tex coord index {}", idx);
       return ComponentFormat::UByte;
@@ -555,21 +557,21 @@ struct VAT
     switch (idx)
     {
     case 0:
-      return g0.Tex0Frac;
+      return g0.Tex0Frac();
     case 1:
-      return g1.Tex1Frac;
+      return g1.Tex1Frac();
     case 2:
-      return g1.Tex2Frac;
+      return g1.Tex2Frac();
     case 3:
-      return g1.Tex3Frac;
+      return g1.Tex3Frac();
     case 4:
-      return g2.Tex4Frac;
+      return g2.Tex4Frac();
     case 5:
-      return g2.Tex5Frac;
+      return g2.Tex5Frac();
     case 6:
-      return g2.Tex6Frac;
+      return g2.Tex6Frac();
     case 7:
-      return g2.Tex7Frac;
+      return g2.Tex7Frac();
     default:
       PanicAlertFmt("Invalid tex coord index {}", idx);
       return 0;
@@ -588,13 +590,13 @@ struct fmt::formatter<VAT>
 };
 
 // Matrix indices
-union TMatrixIndexA
+struct TMatrixIndexA
 {
-  BitField<0, 6, u32> PosNormalMtxIdx;
-  BitField<6, 6, u32> Tex0MtxIdx;
-  BitField<12, 6, u32> Tex1MtxIdx;
-  BitField<18, 6, u32> Tex2MtxIdx;
-  BitField<24, 6, u32> Tex3MtxIdx;
+  BFVIEW(u32, 6, 0, PosNormalMtxIdx)
+  BFVIEW(u32, 6, 6, Tex0MtxIdx)
+  BFVIEW(u32, 6, 12, Tex1MtxIdx)
+  BFVIEW(u32, 6, 18, Tex2MtxIdx)
+  BFVIEW(u32, 6, 24, Tex3MtxIdx)
   u32 Hex;
 };
 template <>
@@ -605,17 +607,17 @@ struct fmt::formatter<TMatrixIndexA>
   auto format(const TMatrixIndexA& m, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(), "PosNormal: {}\nTex0: {}\nTex1: {}\nTex2: {}\nTex3: {}",
-                          m.PosNormalMtxIdx, m.Tex0MtxIdx, m.Tex1MtxIdx, m.Tex2MtxIdx,
-                          m.Tex3MtxIdx);
+                          m.PosNormalMtxIdx(), m.Tex0MtxIdx(), m.Tex1MtxIdx(), m.Tex2MtxIdx(),
+                          m.Tex3MtxIdx());
   }
 };
 
-union TMatrixIndexB
+struct TMatrixIndexB
 {
-  BitField<0, 6, u32> Tex4MtxIdx;
-  BitField<6, 6, u32> Tex5MtxIdx;
-  BitField<12, 6, u32> Tex6MtxIdx;
-  BitField<18, 6, u32> Tex7MtxIdx;
+  BFVIEW(u32, 6, 0, Tex4MtxIdx)
+  BFVIEW(u32, 6, 6, Tex5MtxIdx)
+  BFVIEW(u32, 6, 12, Tex6MtxIdx)
+  BFVIEW(u32, 6, 18, Tex7MtxIdx)
   u32 Hex;
 };
 template <>
@@ -625,8 +627,8 @@ struct fmt::formatter<TMatrixIndexB>
   template <typename FormatContext>
   auto format(const TMatrixIndexB& m, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Tex4: {}\nTex5: {}\nTex6: {}\nTex7: {}", m.Tex4MtxIdx,
-                          m.Tex5MtxIdx, m.Tex6MtxIdx, m.Tex7MtxIdx);
+    return fmt::format_to(ctx.out(), "Tex4: {}\nTex5: {}\nTex6: {}\nTex7: {}", m.Tex4MtxIdx(),
+                          m.Tex5MtxIdx(), m.Tex6MtxIdx(), m.Tex7MtxIdx());
   }
 };
 

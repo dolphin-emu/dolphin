@@ -71,7 +71,7 @@ VertexLoader::VertexLoader(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
   CompileVertexTranslator();
 
   // generate frac factors
-  m_posScale = 1.0f / (1U << m_VtxAttr.g0.PosFrac);
+  m_posScale = 1.0f / (1U << m_VtxAttr.g0.PosFrac());
   for (u32 i = 0; i < 8; i++)
     m_tcScale[i] = 1.0f / (1U << m_VtxAttr.GetTexFrac(i));
 }
@@ -85,7 +85,7 @@ void VertexLoader::CompileVertexTranslator()
   int nat_offset = 0;
 
   // Position Matrix Index
-  if (m_VtxDesc.low.PosMatIdx)
+  if (m_VtxDesc.low.PosMatIdx())
   {
     WriteCall(PosMtx_ReadDirect_UByte);
     m_native_vtx_decl.posmtx.components = 4;
@@ -96,17 +96,17 @@ void VertexLoader::CompileVertexTranslator()
     nat_offset += 4;
   }
 
-  for (auto texmtxidx : m_VtxDesc.low.TexMatIdx)
+  for (bool texmtxidx : m_VtxDesc.low.TexMatIdx())
   {
     if (texmtxidx)
       WriteCall(TexMtx_ReadDirect_UByte);
   }
 
   // Write vertex position loader
-  WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat,
-                                               m_VtxAttr.g0.PosElements));
+  WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.low.Position(), m_VtxAttr.g0.PosFormat(),
+                                               m_VtxAttr.g0.PosElements()));
 
-  int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
+  int pos_elements = m_VtxAttr.g0.PosElements() == CoordComponentCount::XY ? 2 : 3;
   m_native_vtx_decl.position.components = pos_elements;
   m_native_vtx_decl.position.enable = true;
   m_native_vtx_decl.position.offset = nat_offset;
@@ -115,21 +115,21 @@ void VertexLoader::CompileVertexTranslator()
   nat_offset += pos_elements * sizeof(float);
 
   // Normals
-  if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
+  if (m_VtxDesc.low.Normal() != VertexComponentFormat::NotPresent)
   {
-    TPipelineFunction pFunc =
-        VertexLoader_Normal::GetFunction(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat,
-                                         m_VtxAttr.g0.NormalElements, m_VtxAttr.g0.NormalIndex3);
+    TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(
+        m_VtxDesc.low.Normal(), m_VtxAttr.g0.NormalFormat(), m_VtxAttr.g0.NormalElements(),
+        m_VtxAttr.g0.NormalIndex3());
 
     if (pFunc == nullptr)
     {
       PanicAlertFmt("VertexLoader_Normal::GetFunction({} {} {} {}) returned zero!",
-                    m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, m_VtxAttr.g0.NormalElements,
-                    m_VtxAttr.g0.NormalIndex3);
+                    m_VtxDesc.low.Normal(), m_VtxAttr.g0.NormalFormat(),
+                    m_VtxAttr.g0.NormalElements(), m_VtxAttr.g0.NormalIndex3());
     }
     WriteCall(pFunc);
 
-    for (int i = 0; i < (m_VtxAttr.g0.NormalElements == NormalComponentCount::NTB ? 3 : 1); i++)
+    for (int i = 0; i < (m_VtxAttr.g0.NormalElements() == NormalComponentCount::NTB ? 3 : 1); i++)
     {
       m_native_vtx_decl.normals[i].components = 3;
       m_native_vtx_decl.normals[i].enable = true;
@@ -140,21 +140,21 @@ void VertexLoader::CompileVertexTranslator()
     }
   }
 
-  for (size_t i = 0; i < m_VtxDesc.low.Color.Size(); i++)
+  for (size_t i = 0; i < m_VtxDesc.low.Color().size(); i++)
   {
     m_native_vtx_decl.colors[i].components = 4;
     m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
     m_native_vtx_decl.colors[i].integer = false;
 
     TPipelineFunction pFunc =
-        VertexLoader_Color::GetFunction(m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i));
+        VertexLoader_Color::GetFunction(m_VtxDesc.low.Color()[i], m_VtxAttr.GetColorFormat(i));
 
     if (pFunc != nullptr)
       WriteCall(pFunc);
     else
-      ASSERT(m_VtxDesc.low.Color[i] == VertexComponentFormat::NotPresent);
+      ASSERT(m_VtxDesc.low.Color()[i] == VertexComponentFormat::NotPresent);
 
-    if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
+    if (m_VtxDesc.low.Color()[i] != VertexComponentFormat::NotPresent)
     {
       m_native_vtx_decl.colors[i].offset = nat_offset;
       m_native_vtx_decl.colors[i].enable = true;
@@ -163,15 +163,15 @@ void VertexLoader::CompileVertexTranslator()
   }
 
   // Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
-  for (size_t i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
+  for (size_t i = 0; i < m_VtxDesc.high.TexCoord().size(); i++)
   {
     m_native_vtx_decl.texcoords[i].offset = nat_offset;
     m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;
     m_native_vtx_decl.texcoords[i].integer = false;
 
-    const auto tc = m_VtxDesc.high.TexCoord[i].Value();
-    const auto format = m_VtxAttr.GetTexFormat(i);
-    const auto elements = m_VtxAttr.GetTexElements(i);
+    const VertexComponentFormat tc = m_VtxDesc.high.TexCoord()[i];
+    const ComponentFormat format = m_VtxAttr.GetTexFormat(i);
+    const TexComponentCount elements = m_VtxAttr.GetTexElements(i);
 
     if (tc != VertexComponentFormat::NotPresent)
     {
@@ -185,7 +185,7 @@ void VertexLoader::CompileVertexTranslator()
       WriteCall(VertexLoader_TextCoord::GetFunction(tc, format, elements));
     }
 
-    if (m_VtxDesc.low.TexMatIdx[i])
+    if (m_VtxDesc.low.TexMatIdx()[i])
     {
       m_native_vtx_decl.texcoords[i].enable = true;
       m_native_vtx_decl.texcoords[i].components = 3;
@@ -214,15 +214,15 @@ void VertexLoader::CompileVertexTranslator()
     {
       // if there's more tex coords later, have to write a dummy call
       bool has_more = false;
-      for (size_t j = 0; j < m_VtxDesc.high.TexCoord.Size(); ++j)
+      for (size_t j = 0; j < m_VtxDesc.high.TexCoord().size(); ++j)
       {
-        if (m_VtxDesc.high.TexCoord[j] != VertexComponentFormat::NotPresent)
+        if (m_VtxDesc.high.TexCoord()[j] != VertexComponentFormat::NotPresent)
         {
           has_more = true;
           WriteCall(VertexLoader_TextCoord::GetDummyFunction());  // important to get indices right!
           break;
         }
-        else if (m_VtxDesc.low.TexMatIdx[i])
+        else if (m_VtxDesc.low.TexMatIdx()[i])
         {
           has_more = true;
         }
@@ -236,7 +236,7 @@ void VertexLoader::CompileVertexTranslator()
   }
 
   // indexed position formats may skip the vertex
-  if (IsIndexed(m_VtxDesc.low.Position))
+  if (IsIndexed(m_VtxDesc.low.Position()))
   {
     WriteCall(SkipVertex);
   }

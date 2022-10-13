@@ -86,24 +86,24 @@ void UpdateVertexArrayPointers()
   // Note: Only array bases 0 through 11 are used by the Vertex loaders.
   //       12 through 15 are used for loading data into xfmem.
   // We also only update the array base if the vertex description states we are going to use it.
-  if (IsIndexed(g_main_cp_state.vtx_desc.low.Position))
+  if (IsIndexed(g_main_cp_state.vtx_desc.low.Position()))
     cached_arraybases[CPArray::Position] =
         Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Position]);
 
-  if (IsIndexed(g_main_cp_state.vtx_desc.low.Normal))
+  if (IsIndexed(g_main_cp_state.vtx_desc.low.Normal()))
     cached_arraybases[CPArray::Normal] =
         Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Normal]);
 
-  for (u8 i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
+  for (u8 i = 0; i < g_main_cp_state.vtx_desc.low.Color().size(); i++)
   {
-    if (IsIndexed(g_main_cp_state.vtx_desc.low.Color[i]))
+    if (IsIndexed(g_main_cp_state.vtx_desc.low.Color()[i]))
       cached_arraybases[CPArray::Color0 + i] =
           Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Color0 + i]);
   }
 
-  for (u8 i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)
+  for (u8 i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord().size(); i++)
   {
-    if (IsIndexed(g_main_cp_state.vtx_desc.high.TexCoord[i]))
+    if (IsIndexed(g_main_cp_state.vtx_desc.high.TexCoord()[i]))
       cached_arraybases[CPArray::TexCoord0 + i] =
           Memory::GetPointer(g_main_cp_state.array_bases[CPArray::TexCoord0 + i]);
   }
@@ -245,16 +245,18 @@ static void CheckCPConfiguration(int vtx_attr_group)
 {
   // Validate that the XF input configuration matches the CP configuration
   u32 num_cp_colors = std::count_if(
-      g_main_cp_state.vtx_desc.low.Color.begin(), g_main_cp_state.vtx_desc.low.Color.end(),
+      g_main_cp_state.vtx_desc.low.Color().begin(), g_main_cp_state.vtx_desc.low.Color().end(),
       [](auto format) { return format != VertexComponentFormat::NotPresent; });
-  u32 num_cp_tex_coords = std::count_if(
-      g_main_cp_state.vtx_desc.high.TexCoord.begin(), g_main_cp_state.vtx_desc.high.TexCoord.end(),
-      [](auto format) { return format != VertexComponentFormat::NotPresent; });
+  u32 num_cp_tex_coords =
+      std::count_if(g_main_cp_state.vtx_desc.high.TexCoord().begin(),
+                    g_main_cp_state.vtx_desc.high.TexCoord().end(),
+                    [](auto format) { return format != VertexComponentFormat::NotPresent; });
 
   u32 num_cp_normals;
-  if (g_main_cp_state.vtx_desc.low.Normal == VertexComponentFormat::NotPresent)
+  if (g_main_cp_state.vtx_desc.low.Normal() == VertexComponentFormat::NotPresent)
     num_cp_normals = 0;
-  else if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalElements == NormalComponentCount::NTB)
+  else if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalElements() ==
+           NormalComponentCount::NTB)
     num_cp_normals = 3;
   else
     num_cp_normals = 1;

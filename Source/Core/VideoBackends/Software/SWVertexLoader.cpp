@@ -95,15 +95,15 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
 
 void SWVertexLoader::SetFormat()
 {
-  m_vertex.posMtx = xfmem.MatrixIndexA.PosNormalMtxIdx;
-  m_vertex.texMtx[0] = xfmem.MatrixIndexA.Tex0MtxIdx;
-  m_vertex.texMtx[1] = xfmem.MatrixIndexA.Tex1MtxIdx;
-  m_vertex.texMtx[2] = xfmem.MatrixIndexA.Tex2MtxIdx;
-  m_vertex.texMtx[3] = xfmem.MatrixIndexA.Tex3MtxIdx;
-  m_vertex.texMtx[4] = xfmem.MatrixIndexB.Tex4MtxIdx;
-  m_vertex.texMtx[5] = xfmem.MatrixIndexB.Tex5MtxIdx;
-  m_vertex.texMtx[6] = xfmem.MatrixIndexB.Tex6MtxIdx;
-  m_vertex.texMtx[7] = xfmem.MatrixIndexB.Tex7MtxIdx;
+  m_vertex.posMtx = xfmem.MatrixIndexA.PosNormalMtxIdx();
+  m_vertex.texMtx[0] = xfmem.MatrixIndexA.Tex0MtxIdx();
+  m_vertex.texMtx[1] = xfmem.MatrixIndexA.Tex1MtxIdx();
+  m_vertex.texMtx[2] = xfmem.MatrixIndexA.Tex2MtxIdx();
+  m_vertex.texMtx[3] = xfmem.MatrixIndexA.Tex3MtxIdx();
+  m_vertex.texMtx[4] = xfmem.MatrixIndexB.Tex4MtxIdx();
+  m_vertex.texMtx[5] = xfmem.MatrixIndexB.Tex5MtxIdx();
+  m_vertex.texMtx[6] = xfmem.MatrixIndexB.Tex6MtxIdx();
+  m_vertex.texMtx[7] = xfmem.MatrixIndexB.Tex7MtxIdx();
 }
 
 template <typename T, typename I>

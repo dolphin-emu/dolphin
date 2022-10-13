@@ -579,7 +579,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   }
 
   // Global matrix ID.
-  u32 mtxIdx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
+  u32 mtxIdx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx();
   const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
 
   // Make sure the buffer contains at least 3 vertices.

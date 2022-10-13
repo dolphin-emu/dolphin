@@ -133,11 +133,11 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   CoordComponentCount elements;
   int frac;
   std::tie(addr, format, elements, frac) = GetParam();
-  this->m_vtx_desc.low.Position = addr;
-  this->m_vtx_attr.g0.PosFormat = format;
-  this->m_vtx_attr.g0.PosElements = elements;
-  this->m_vtx_attr.g0.PosFrac = frac;
-  this->m_vtx_attr.g0.ByteDequant = true;
+  this->m_vtx_desc.low.Position() = addr;
+  this->m_vtx_attr.g0.PosFormat() = format;
+  this->m_vtx_attr.g0.PosElements() = elements;
+  this->m_vtx_attr.g0.PosFrac() = frac;
+  this->m_vtx_attr.g0.ByteDequant() = true;
   const u32 elem_size = GetElementSize(format);
   const u32 elem_count = elements == CoordComponentCount::XY ? 2 : 3;
 
@@ -238,8 +238,8 @@ TEST_P(VertexLoaderParamTest, PositionAll)
 
 TEST_F(VertexLoaderTest, PositionIndex16FloatXY)
 {
-  m_vtx_desc.low.Position = VertexComponentFormat::Index16;
-  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
+  m_vtx_desc.low.Position() = VertexComponentFormat::Index16;
+  m_vtx_attr.g0.PosFormat() = ComponentFormat::Float;
   CreateAndCheckSizes(sizeof(u16), 2 * sizeof(float));
   Input<u16>(1);
   Input<u16>(0);
@@ -274,9 +274,9 @@ TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
   CoordComponentCount elements = static_cast<CoordComponentCount>(elements_i);
   fmt::print("format: {}, elements: {}\n", format, elements);
   const u32 elem_count = elements == CoordComponentCount::XY ? 2 : 3;
-  m_vtx_desc.low.Position = VertexComponentFormat::Direct;
-  m_vtx_attr.g0.PosFormat = format;
-  m_vtx_attr.g0.PosElements = elements;
+  m_vtx_desc.low.Position() = VertexComponentFormat::Direct;
+  m_vtx_attr.g0.PosFormat() = format;
+  m_vtx_attr.g0.PosElements() = elements;
   const size_t elem_size = GetElementSize(format);
   CreateAndCheckSizes(elem_count * elem_size, elem_count * sizeof(float));
   for (int i = 0; i < 1000; ++i)
@@ -291,11 +291,11 @@ TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
   TexComponentCount elements = static_cast<TexComponentCount>(elements_i);
   fmt::print("format: {}, elements: {}\n", format, elements);
   const u32 elem_count = elements == TexComponentCount::S ? 1 : 2;
-  m_vtx_desc.low.Position = VertexComponentFormat::Direct;
-  m_vtx_attr.g0.PosFormat = ComponentFormat::Byte;
-  m_vtx_desc.high.Tex0Coord = VertexComponentFormat::Direct;
-  m_vtx_attr.g0.Tex0CoordFormat = format;
-  m_vtx_attr.g0.Tex0CoordElements = elements;
+  m_vtx_desc.low.Position() = VertexComponentFormat::Direct;
+  m_vtx_attr.g0.PosFormat() = ComponentFormat::Byte;
+  m_vtx_desc.high.Tex0Coord() = VertexComponentFormat::Direct;
+  m_vtx_attr.g0.Tex0CoordFormat() = format;
+  m_vtx_attr.g0.Tex0CoordElements() = elements;
   const size_t elem_size = GetElementSize(format);
   CreateAndCheckSizes(2 * sizeof(s8) + elem_count * elem_size,
                       2 * sizeof(float) + elem_count * sizeof(float));
@@ -306,52 +306,52 @@ TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
 TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 {
   // Enables most attributes in floating point indexed mode to test speed.
-  m_vtx_desc.low.PosMatIdx = 1;
-  m_vtx_desc.low.Tex0MatIdx = 1;
-  m_vtx_desc.low.Tex1MatIdx = 1;
-  m_vtx_desc.low.Tex2MatIdx = 1;
-  m_vtx_desc.low.Tex3MatIdx = 1;
-  m_vtx_desc.low.Tex4MatIdx = 1;
-  m_vtx_desc.low.Tex5MatIdx = 1;
-  m_vtx_desc.low.Tex6MatIdx = 1;
-  m_vtx_desc.low.Tex7MatIdx = 1;
-  m_vtx_desc.low.Position = VertexComponentFormat::Index16;
-  m_vtx_desc.low.Normal = VertexComponentFormat::Index16;
-  m_vtx_desc.low.Color0 = VertexComponentFormat::Index16;
-  m_vtx_desc.low.Color1 = VertexComponentFormat::Index16;
-  m_vtx_desc.high.Tex0Coord = VertexComponentFormat::Index16;
-  m_vtx_desc.high.Tex1Coord = VertexComponentFormat::Index16;
-  m_vtx_desc.high.Tex2Coord = VertexComponentFormat::Index16;
-  m_vtx_desc.high.Tex3Coord = VertexComponentFormat::Index16;
-  m_vtx_desc.high.Tex4Coord = VertexComponentFormat::Index16;
-  m_vtx_desc.high.Tex5Coord = VertexComponentFormat::Index16;
-  m_vtx_desc.high.Tex6Coord = VertexComponentFormat::Index16;
-  m_vtx_desc.high.Tex7Coord = VertexComponentFormat::Index16;
+  m_vtx_desc.low.PosMatIdx() = true;
+  m_vtx_desc.low.Tex0MatIdx() = true;
+  m_vtx_desc.low.Tex1MatIdx() = true;
+  m_vtx_desc.low.Tex2MatIdx() = true;
+  m_vtx_desc.low.Tex3MatIdx() = true;
+  m_vtx_desc.low.Tex4MatIdx() = true;
+  m_vtx_desc.low.Tex5MatIdx() = true;
+  m_vtx_desc.low.Tex6MatIdx() = true;
+  m_vtx_desc.low.Tex7MatIdx() = true;
+  m_vtx_desc.low.Position() = VertexComponentFormat::Index16;
+  m_vtx_desc.low.Normal() = VertexComponentFormat::Index16;
+  m_vtx_desc.low.Color0() = VertexComponentFormat::Index16;
+  m_vtx_desc.low.Color1() = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex0Coord() = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex1Coord() = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex2Coord() = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex3Coord() = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex4Coord() = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex5Coord() = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex6Coord() = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex7Coord() = VertexComponentFormat::Index16;
 
-  m_vtx_attr.g0.PosElements = CoordComponentCount::XYZ;
-  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
-  m_vtx_attr.g0.NormalElements = NormalComponentCount::NTB;
-  m_vtx_attr.g0.NormalFormat = ComponentFormat::Float;
-  m_vtx_attr.g0.Color0Elements = ColorComponentCount::RGBA;
-  m_vtx_attr.g0.Color0Comp = ColorFormat::RGBA8888;
-  m_vtx_attr.g0.Color1Elements = ColorComponentCount::RGBA;
-  m_vtx_attr.g0.Color1Comp = ColorFormat::RGBA8888;
-  m_vtx_attr.g0.Tex0CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g0.Tex0CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g1.Tex1CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g1.Tex1CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g1.Tex2CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g1.Tex2CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g1.Tex3CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g1.Tex3CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g1.Tex4CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g1.Tex4CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g2.Tex5CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g2.Tex5CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g2.Tex6CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g2.Tex6CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g2.Tex7CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g2.Tex7CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g0.PosElements() = CoordComponentCount::XYZ;
+  m_vtx_attr.g0.PosFormat() = ComponentFormat::Float;
+  m_vtx_attr.g0.NormalElements() = NormalComponentCount::NTB;
+  m_vtx_attr.g0.NormalFormat() = ComponentFormat::Float;
+  m_vtx_attr.g0.Color0Elements() = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color0Comp() = ColorFormat::RGBA8888;
+  m_vtx_attr.g0.Color1Elements() = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color1Comp() = ColorFormat::RGBA8888;
+  m_vtx_attr.g0.Tex0CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g0.Tex0CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex1CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex1CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex2CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex2CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex3CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex3CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex4CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex4CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex5CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex5CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex6CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex6CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex7CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex7CoordFormat() = ComponentFormat::Float;
 
   CreateAndCheckSizes(33, 156);
 
@@ -369,52 +369,52 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 
 TEST_F(VertexLoaderTest, DirectAllComponents)
 {
-  m_vtx_desc.low.PosMatIdx = 1;
-  m_vtx_desc.low.Tex0MatIdx = 1;
-  m_vtx_desc.low.Tex1MatIdx = 1;
-  m_vtx_desc.low.Tex2MatIdx = 1;
-  m_vtx_desc.low.Tex3MatIdx = 1;
-  m_vtx_desc.low.Tex4MatIdx = 1;
-  m_vtx_desc.low.Tex5MatIdx = 1;
-  m_vtx_desc.low.Tex6MatIdx = 1;
-  m_vtx_desc.low.Tex7MatIdx = 1;
-  m_vtx_desc.low.Position = VertexComponentFormat::Direct;
-  m_vtx_desc.low.Normal = VertexComponentFormat::Direct;
-  m_vtx_desc.low.Color0 = VertexComponentFormat::Direct;
-  m_vtx_desc.low.Color1 = VertexComponentFormat::Direct;
-  m_vtx_desc.high.Tex0Coord = VertexComponentFormat::Direct;
-  m_vtx_desc.high.Tex1Coord = VertexComponentFormat::Direct;
-  m_vtx_desc.high.Tex2Coord = VertexComponentFormat::Direct;
-  m_vtx_desc.high.Tex3Coord = VertexComponentFormat::Direct;
-  m_vtx_desc.high.Tex4Coord = VertexComponentFormat::Direct;
-  m_vtx_desc.high.Tex5Coord = VertexComponentFormat::Direct;
-  m_vtx_desc.high.Tex6Coord = VertexComponentFormat::Direct;
-  m_vtx_desc.high.Tex7Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.low.PosMatIdx() = true;
+  m_vtx_desc.low.Tex0MatIdx() = true;
+  m_vtx_desc.low.Tex1MatIdx() = true;
+  m_vtx_desc.low.Tex2MatIdx() = true;
+  m_vtx_desc.low.Tex3MatIdx() = true;
+  m_vtx_desc.low.Tex4MatIdx() = true;
+  m_vtx_desc.low.Tex5MatIdx() = true;
+  m_vtx_desc.low.Tex6MatIdx() = true;
+  m_vtx_desc.low.Tex7MatIdx() = true;
+  m_vtx_desc.low.Position() = VertexComponentFormat::Direct;
+  m_vtx_desc.low.Normal() = VertexComponentFormat::Direct;
+  m_vtx_desc.low.Color0() = VertexComponentFormat::Direct;
+  m_vtx_desc.low.Color1() = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex0Coord() = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex1Coord() = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex2Coord() = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex3Coord() = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex4Coord() = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex5Coord() = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex6Coord() = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex7Coord() = VertexComponentFormat::Direct;
 
-  m_vtx_attr.g0.PosElements = CoordComponentCount::XYZ;
-  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
-  m_vtx_attr.g0.NormalElements = NormalComponentCount::NTB;
-  m_vtx_attr.g0.NormalFormat = ComponentFormat::Float;
-  m_vtx_attr.g0.Color0Elements = ColorComponentCount::RGBA;
-  m_vtx_attr.g0.Color0Comp = ColorFormat::RGBA8888;
-  m_vtx_attr.g0.Color1Elements = ColorComponentCount::RGBA;
-  m_vtx_attr.g0.Color1Comp = ColorFormat::RGBA8888;
-  m_vtx_attr.g0.Tex0CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g0.Tex0CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g1.Tex1CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g1.Tex1CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g1.Tex2CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g1.Tex2CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g1.Tex3CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g1.Tex3CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g1.Tex4CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g1.Tex4CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g2.Tex5CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g2.Tex5CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g2.Tex6CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g2.Tex6CoordFormat = ComponentFormat::Float;
-  m_vtx_attr.g2.Tex7CoordElements = TexComponentCount::ST;
-  m_vtx_attr.g2.Tex7CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g0.PosElements() = CoordComponentCount::XYZ;
+  m_vtx_attr.g0.PosFormat() = ComponentFormat::Float;
+  m_vtx_attr.g0.NormalElements() = NormalComponentCount::NTB;
+  m_vtx_attr.g0.NormalFormat() = ComponentFormat::Float;
+  m_vtx_attr.g0.Color0Elements() = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color0Comp() = ColorFormat::RGBA8888;
+  m_vtx_attr.g0.Color1Elements() = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color1Comp() = ColorFormat::RGBA8888;
+  m_vtx_attr.g0.Tex0CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g0.Tex0CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex1CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex1CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex2CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex2CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex3CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex3CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex4CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex4CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex5CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex5CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex6CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex6CoordFormat() = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex7CoordElements() = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex7CoordFormat() = ComponentFormat::Float;
 
   CreateAndCheckSizes(129, 39 * sizeof(float));
 
@@ -555,14 +555,14 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
   bool index3;
   std::tie(addr, format, elements, index3) = GetParam();
 
-  m_vtx_desc.low.Position = VertexComponentFormat::Direct;
-  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
-  m_vtx_attr.g0.PosElements = CoordComponentCount::XY;
-  m_vtx_attr.g0.PosFrac = 0;
-  m_vtx_desc.low.Normal = addr;
-  m_vtx_attr.g0.NormalFormat = format;
-  m_vtx_attr.g0.NormalElements = elements;
-  m_vtx_attr.g0.NormalIndex3 = index3;
+  m_vtx_desc.low.Position() = VertexComponentFormat::Direct;
+  m_vtx_attr.g0.PosFormat() = ComponentFormat::Float;
+  m_vtx_attr.g0.PosElements() = CoordComponentCount::XY;
+  m_vtx_attr.g0.PosFrac() = 0;
+  m_vtx_desc.low.Normal() = addr;
+  m_vtx_attr.g0.NormalFormat() = format;
+  m_vtx_attr.g0.NormalElements() = elements;
+  m_vtx_attr.g0.NormalIndex3() = index3;
 
   const u32 in_size = [&]() -> u32 {
     if (addr == VertexComponentFormat::NotPresent)

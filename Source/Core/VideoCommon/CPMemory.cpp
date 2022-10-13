@@ -55,19 +55,19 @@ std::pair<std::string, std::string> GetCPRegInfo(u8 cmd, u32 value)
       return std::make_pair("CP_VAT_REG_A invalid", "");
 
     return std::make_pair(fmt::format("CP_VAT_REG_A - Format {}", cmd & CP_VAT_MASK),
-                          fmt::to_string(UVAT_group0{.Hex = value}));
+                          fmt::to_string(VAT_group0{.Hex = value}));
   case CP_VAT_REG_B:
     if (cmd - CP_VAT_REG_B >= CP_NUM_VAT_REG)
       return std::make_pair("CP_VAT_REG_B invalid", "");
 
     return std::make_pair(fmt::format("CP_VAT_REG_B - Format {}", cmd & CP_VAT_MASK),
-                          fmt::to_string(UVAT_group1{.Hex = value}));
+                          fmt::to_string(VAT_group1{.Hex = value}));
   case CP_VAT_REG_C:
     if (cmd - CP_VAT_REG_C >= CP_NUM_VAT_REG)
       return std::make_pair("CP_VAT_REG_C invalid", "");
 
     return std::make_pair(fmt::format("CP_VAT_REG_C - Format {}", cmd & CP_VAT_MASK),
-                          fmt::to_string(UVAT_group2{.Hex = value}));
+                          fmt::to_string(VAT_group2{.Hex = value}));
   case ARRAY_BASE:
     return std::make_pair(
         fmt::format("ARRAY_BASE Array {}", static_cast<CPArray>(cmd & CP_ARRAY_MASK)),

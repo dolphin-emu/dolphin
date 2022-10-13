@@ -82,39 +82,39 @@ void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primiti
 
   u32 offset = 0;
 
-  if (vtx_desc.low.PosMatIdx)
+  if (vtx_desc.low.PosMatIdx())
     offset++;
-  for (auto texmtxidx : vtx_desc.low.TexMatIdx)
+  for (bool texmtxidx : vtx_desc.low.TexMatIdx())
   {
     if (texmtxidx)
       offset++;
   }
-  const u32 pos_size = VertexLoader_Position::GetSize(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
-                                                      vtx_attr.g0.PosElements);
-  ProcessVertexComponent(CPArray::Position, vtx_desc.low.Position, offset, vertex_size,
+  const u32 pos_size = VertexLoader_Position::GetSize(
+      vtx_desc.low.Position(), vtx_attr.g0.PosFormat(), vtx_attr.g0.PosElements());
+  ProcessVertexComponent(CPArray::Position, vtx_desc.low.Position(), offset, vertex_size,
                          num_vertices, vertex_data);
   offset += pos_size;
 
   const u32 norm_size =
-      VertexLoader_Normal::GetSize(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
-                                   vtx_attr.g0.NormalElements, vtx_attr.g0.NormalIndex3);
-  ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Position, offset, vertex_size, num_vertices,
-                         vertex_data);
+      VertexLoader_Normal::GetSize(vtx_desc.low.Normal(), vtx_attr.g0.NormalFormat(),
+                                   vtx_attr.g0.NormalElements(), vtx_attr.g0.NormalIndex3());
+  ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Position(), offset, vertex_size,
+                         num_vertices, vertex_data);
   offset += norm_size;
 
-  for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)
+  for (u32 i = 0; i < vtx_desc.low.Color().size(); i++)
   {
     const u32 color_size =
-        VertexLoader_Color::GetSize(vtx_desc.low.Color[i], vtx_attr.GetColorFormat(i));
-    ProcessVertexComponent(CPArray::Color0 + i, vtx_desc.low.Position, offset, vertex_size,
+        VertexLoader_Color::GetSize(vtx_desc.low.Color()[i], vtx_attr.GetColorFormat(i));
+    ProcessVertexComponent(CPArray::Color0 + i, vtx_desc.low.Position(), offset, vertex_size,
                            num_vertices, vertex_data);
     offset += color_size;
   }
-  for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); i++)
+  for (u32 i = 0; i < vtx_desc.high.TexCoord().size(); i++)
   {
     const u32 tc_size = VertexLoader_TextCoord::GetSize(
-        vtx_desc.high.TexCoord[i], vtx_attr.GetTexFormat(i), vtx_attr.GetTexElements(i));
-    ProcessVertexComponent(CPArray::TexCoord0 + i, vtx_desc.low.Position, offset, vertex_size,
+        vtx_desc.high.TexCoord()[i], vtx_attr.GetTexFormat(i), vtx_attr.GetTexElements(i));
+    ProcessVertexComponent(CPArray::TexCoord0 + i, vtx_desc.low.Position(), offset, vertex_size,
                            num_vertices, vertex_data);
     offset += tc_size;
   }

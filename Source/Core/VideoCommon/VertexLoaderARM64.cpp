@@ -331,18 +331,18 @@ void VertexLoaderARM64::GenerateVertexLoader()
 
   bool has_tc = false;
   bool has_tc_scale = false;
-  for (size_t i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
+  for (size_t i = 0; i < m_VtxDesc.high.TexCoord().size(); i++)
   {
-    has_tc |= m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent;
+    has_tc |= m_VtxDesc.high.TexCoord()[i] != VertexComponentFormat::NotPresent;
     has_tc_scale |= (m_VtxAttr.GetTexFrac(i) != 0);
   }
 
-  bool need_scale = (m_VtxAttr.g0.ByteDequant && m_VtxAttr.g0.PosFrac) ||
+  bool need_scale = (m_VtxAttr.g0.ByteDequant() && m_VtxAttr.g0.PosFrac()) ||
                     (has_tc && has_tc_scale) ||
-                    (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent);
+                    (m_VtxDesc.low.Normal() != VertexComponentFormat::NotPresent);
 
   AlignCode16();
-  if (IsIndexed(m_VtxDesc.low.Position))
+  if (IsIndexed(m_VtxDesc.low.Position()))
     MOV(skipped_reg, ARM64Reg::WZR);
   ADD(saved_count, remaining_reg, 1);
 
@@ -354,7 +354,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
 
   const u8* loop_start = GetCodePtr();
 
-  if (m_VtxDesc.low.PosMatIdx)
+  if (m_VtxDesc.low.PosMatIdx())
   {
     LDRB(IndexType::Unsigned, scratch1_reg, src_reg, m_src_ofs);
     AND(scratch1_reg, scratch1_reg, LogicalImm(0x3F, 32));
@@ -377,66 +377,66 @@ void VertexLoaderARM64::GenerateVertexLoader()
   }
 
   std::array<u32, 8> texmatidx_ofs;
-  for (size_t i = 0; i < m_VtxDesc.low.TexMatIdx.Size(); i++)
+  for (size_t i = 0; i < m_VtxDesc.low.TexMatIdx().size(); i++)
   {
-    if (m_VtxDesc.low.TexMatIdx[i])
+    if (m_VtxDesc.low.TexMatIdx()[i])
       texmatidx_ofs[i] = m_src_ofs++;
   }
 
   // Position
   {
-    const int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
+    const int pos_elements = m_VtxAttr.g0.PosElements() == CoordComponentCount::XY ? 2 : 3;
 
-    const auto [reg, offset] = GetVertexAddr(CPArray::Position, m_VtxDesc.low.Position);
-    ReadVertex(m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat, pos_elements, pos_elements,
-               m_VtxAttr.g0.ByteDequant, m_VtxAttr.g0.PosFrac, &m_native_vtx_decl.position, reg,
+    const auto [reg, offset] = GetVertexAddr(CPArray::Position, m_VtxDesc.low.Position());
+    ReadVertex(m_VtxDesc.low.Position(), m_VtxAttr.g0.PosFormat(), pos_elements, pos_elements,
+               m_VtxAttr.g0.ByteDequant(), m_VtxAttr.g0.PosFrac(), &m_native_vtx_decl.position, reg,
                offset);
   }
 
-  if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
+  if (m_VtxDesc.low.Normal() != VertexComponentFormat::NotPresent)
   {
     static constexpr Common::EnumMap<u8, static_cast<ComponentFormat>(7)> SCALE_MAP = {7, 6, 15, 14,
                                                                                        0, 0, 0,  0};
-    const u8 scaling_exponent = SCALE_MAP[m_VtxAttr.g0.NormalFormat];
+    const u8 scaling_exponent = SCALE_MAP[m_VtxAttr.g0.NormalFormat()];
 
     // Normal
-    auto [reg, offset] = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal);
-    ReadVertex(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3, true, scaling_exponent,
+    auto [reg, offset] = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal());
+    ReadVertex(m_VtxDesc.low.Normal(), m_VtxAttr.g0.NormalFormat(), 3, 3, true, scaling_exponent,
                &m_native_vtx_decl.normals[0], reg, offset);
 
-    if (m_VtxAttr.g0.NormalElements == NormalComponentCount::NTB)
+    if (m_VtxAttr.g0.NormalElements() == NormalComponentCount::NTB)
     {
-      const bool index3 = IsIndexed(m_VtxDesc.low.Normal) && m_VtxAttr.g0.NormalIndex3;
-      const int elem_size = GetElementSize(m_VtxAttr.g0.NormalFormat);
+      const bool index3 = IsIndexed(m_VtxDesc.low.Normal()) && m_VtxAttr.g0.NormalIndex3();
+      const int elem_size = GetElementSize(m_VtxAttr.g0.NormalFormat());
       const int load_bytes = elem_size * 3;
 
       // Tangent
       // If in Index3 mode, and indexed components are used, replace the index with a new index.
       if (index3)
-        std::tie(reg, offset) = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal);
+        std::tie(reg, offset) = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal());
       // The tangent comes after the normal; even in index3 mode, an extra offset of load_bytes is
       // applied. Note that this is different from adding 1 to the index, as the stride for indices
       // may be different from the size of the tangent itself.
-      ReadVertex(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3, true, scaling_exponent,
+      ReadVertex(m_VtxDesc.low.Normal(), m_VtxAttr.g0.NormalFormat(), 3, 3, true, scaling_exponent,
                  &m_native_vtx_decl.normals[1], reg, offset + load_bytes);
       // Binormal
       if (index3)
-        std::tie(reg, offset) = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal);
-      ReadVertex(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3, true, scaling_exponent,
+        std::tie(reg, offset) = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal());
+      ReadVertex(m_VtxDesc.low.Normal(), m_VtxAttr.g0.NormalFormat(), 3, 3, true, scaling_exponent,
                  &m_native_vtx_decl.normals[2], reg, offset + load_bytes * 2);
     }
   }
 
-  for (u8 i = 0; i < m_VtxDesc.low.Color.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.low.Color().size(); i++)
   {
     m_native_vtx_decl.colors[i].components = 4;
     m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
     m_native_vtx_decl.colors[i].integer = false;
 
-    if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
+    if (m_VtxDesc.low.Color()[i] != VertexComponentFormat::NotPresent)
     {
-      const auto [reg, offset] = GetVertexAddr(CPArray::Color0 + i, m_VtxDesc.low.Color[i]);
-      ReadColor(m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i), reg, offset);
+      const auto [reg, offset] = GetVertexAddr(CPArray::Color0 + i, m_VtxDesc.low.Color()[i]);
+      ReadColor(m_VtxDesc.low.Color()[i], m_VtxAttr.GetColorFormat(i), reg, offset);
       m_native_vtx_decl.colors[i].components = 4;
       m_native_vtx_decl.colors[i].enable = true;
       m_native_vtx_decl.colors[i].offset = m_dst_ofs;
@@ -446,22 +446,23 @@ void VertexLoaderARM64::GenerateVertexLoader()
     }
   }
 
-  for (u8 i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.high.TexCoord().size(); i++)
   {
     m_native_vtx_decl.texcoords[i].offset = m_dst_ofs;
     m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;
     m_native_vtx_decl.texcoords[i].integer = false;
 
     const int elements = m_VtxAttr.GetTexElements(i) == TexComponentCount::S ? 1 : 2;
-    if (m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent)
+    if (m_VtxDesc.high.TexCoord()[i] != VertexComponentFormat::NotPresent)
     {
-      const auto [reg, offset] = GetVertexAddr(CPArray::TexCoord0 + i, m_VtxDesc.high.TexCoord[i]);
+      const auto [reg, offset] =
+          GetVertexAddr(CPArray::TexCoord0 + i, m_VtxDesc.high.TexCoord()[i]);
       u8 scaling_exponent = m_VtxAttr.GetTexFrac(i);
-      ReadVertex(m_VtxDesc.high.TexCoord[i], m_VtxAttr.GetTexFormat(i), elements,
-                 m_VtxDesc.low.TexMatIdx[i] ? 2 : elements, m_VtxAttr.g0.ByteDequant,
+      ReadVertex(m_VtxDesc.high.TexCoord()[i], m_VtxAttr.GetTexFormat(i), elements,
+                 m_VtxDesc.low.TexMatIdx()[i] ? 2 : elements, m_VtxAttr.g0.ByteDequant(),
                  scaling_exponent, &m_native_vtx_decl.texcoords[i], reg, offset);
     }
-    if (m_VtxDesc.low.TexMatIdx[i])
+    if (m_VtxDesc.low.TexMatIdx()[i])
     {
       m_native_vtx_decl.texcoords[i].components = 3;
       m_native_vtx_decl.texcoords[i].enable = true;
@@ -471,7 +472,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
       LDRB(IndexType::Unsigned, scratch2_reg, src_reg, texmatidx_ofs[i]);
       m_float_emit.UCVTF(ARM64Reg::S31, scratch2_reg);
 
-      if (m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent)
+      if (m_VtxDesc.high.TexCoord()[i] != VertexComponentFormat::NotPresent)
       {
         m_float_emit.STR(32, IndexType::Unsigned, ARM64Reg::D31, dst_reg, m_dst_ofs);
         m_dst_ofs += sizeof(float);
@@ -496,7 +497,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
   SUBS(remaining_reg, remaining_reg, 1);
   B(CCFlags::CC_GE, loop_start);
 
-  if (IsIndexed(m_VtxDesc.low.Position))
+  if (IsIndexed(m_VtxDesc.low.Position()))
   {
     SUB(ARM64Reg::W0, saved_count, skipped_reg);
     RET(ARM64Reg::X30);
