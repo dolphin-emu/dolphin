@@ -137,32 +137,27 @@ struct pixel_shader_uid_data
   {
     // TODO: Can save a lot space by removing the padding bits
     u64 _data1;
-    u64 _data2;
+    u32 cc : 24;
+    u32 ac : 24;  // tswap and rswap are left blank (decoded into the swap fields below)
 
-    // Is there an int24_t?  C23's _BitInt?
-    BFVIEW_IN(_data1, u32, 24, 0, cc)
-    BFVIEW_IN(_data1, u32, 24, 24, ac)  // tswap and rswap are left blank
-                                        // (decoded into the swap fields below)
-    BFVIEW_IN(_data1, u32, 3, 48, tevorders_texmap)
-    BFVIEW_IN(_data1, u32, 3, 51, tevorders_texcoord)
-    BFVIEW_IN(_data1, bool, 1, 54, tevorders_enable)
-    BFVIEW_IN(_data1, RasColorChan, 3, 55, tevorders_colorchan)
-    // 6 bits of padding
-
+    BFVIEW_IN(_data1, u32, 3, 0, tevorders_texmap)
+    BFVIEW_IN(_data1, u32, 3, 3, tevorders_texcoord)
+    BFVIEW_IN(_data1, bool, 1, 6, tevorders_enable)
+    BFVIEW_IN(_data1, RasColorChan, 3, 7, tevorders_colorchan)
     // TODO: We could save space by storing the 4 swap tables elsewhere and only storing references
     // to which table is used (the tswap and rswap fields), instead of duplicating them here
-    BFVIEW_IN(_data2, u32, 21, 0, tevind)
-    BFVIEW_IN(_data2, ColorChannel, 2, 21, ras_swap_r)
-    BFVIEW_IN(_data2, ColorChannel, 2, 23, ras_swap_g)
-    BFVIEW_IN(_data2, ColorChannel, 2, 25, ras_swap_b)
-    BFVIEW_IN(_data2, ColorChannel, 2, 27, ras_swap_a)
-    BFVIEW_IN(_data2, ColorChannel, 2, 29, tex_swap_r)
-    BFVIEW_IN(_data2, ColorChannel, 2, 31, tex_swap_g)
-    BFVIEW_IN(_data2, ColorChannel, 2, 33, tex_swap_b)
-    BFVIEW_IN(_data2, ColorChannel, 2, 35, tex_swap_a)
-    BFVIEW_IN(_data2, KonstSel, 5, 37, tevksel_kc)
-    BFVIEW_IN(_data2, KonstSel, 5, 42, tevksel_ka)
-    // 17 bits of padding
+    BFVIEW_IN(_data1, u32, 21, 10, tevind)
+    BFVIEW_IN(_data1, ColorChannel, 2, 31, ras_swap_r)
+    BFVIEW_IN(_data1, ColorChannel, 2, 33, ras_swap_g)
+    BFVIEW_IN(_data1, ColorChannel, 2, 35, ras_swap_b)
+    BFVIEW_IN(_data1, ColorChannel, 2, 37, ras_swap_a)
+    BFVIEW_IN(_data1, ColorChannel, 2, 39, tex_swap_r)
+    BFVIEW_IN(_data1, ColorChannel, 2, 41, tex_swap_g)
+    BFVIEW_IN(_data1, ColorChannel, 2, 43, tex_swap_b)
+    BFVIEW_IN(_data1, ColorChannel, 2, 45, tex_swap_a)
+    BFVIEW_IN(_data1, KonstSel, 5, 47, tevksel_kc)
+    BFVIEW_IN(_data1, KonstSel, 5, 52, tevksel_ka)
+    // 7 bits of padding
   } stagehash[16];
 
   LightingUidData lighting;

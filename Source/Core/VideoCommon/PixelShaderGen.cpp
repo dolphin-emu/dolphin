@@ -243,8 +243,8 @@ PixelShaderUid GetPixelShaderUid()
 
     TevStageCombiner::ColorCombiner& cc = bpmem.combiners[n].colorC;
     TevStageCombiner::AlphaCombiner& ac = bpmem.combiners[n].alphaC;
-    uid_data->stagehash[n].cc() = cc.hex & 0xFFFFFF;
-    uid_data->stagehash[n].ac() = ac.hex & 0xFFFFF0;  // Storing rswap and tswap later
+    uid_data->stagehash[n].cc = cc.hex & 0xFFFFFF;
+    uid_data->stagehash[n].ac = ac.hex & 0xFFFFF0;  // Storing rswap and tswap later
 
     if (cc.a == TevColorArg::RasAlpha || cc.a == TevColorArg::RasColor ||
         cc.b == TevColorArg::RasAlpha || cc.b == TevColorArg::RasColor ||
@@ -1022,8 +1022,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     // regardless of the used destination register
     TevStageCombiner::ColorCombiner last_cc;
     TevStageCombiner::AlphaCombiner last_ac;
-    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages()].cc();
-    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages()].ac();
+    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages()].cc;
+    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages()].ac;
     if (last_cc.dest != TevOutput::Prev)
     {
       out.Write("\tprev.rgb = {};\n", tev_c_output_table[last_cc.dest]);
@@ -1400,8 +1400,8 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 
   TevStageCombiner::ColorCombiner cc;
   TevStageCombiner::AlphaCombiner ac;
-  cc.hex = stage.cc();
-  ac.hex = stage.ac();
+  cc.hex = stage.cc;
+  ac.hex = stage.ac;
 
   if (cc.a == TevColorArg::RasAlpha || cc.a == TevColorArg::RasColor ||
       cc.b == TevColorArg::RasAlpha || cc.b == TevColorArg::RasColor ||
