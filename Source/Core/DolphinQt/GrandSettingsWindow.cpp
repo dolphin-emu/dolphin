@@ -21,7 +21,6 @@
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 #include "DolphinQt/Config/Graphics/GeneralWidget.h"
 #include "DolphinQt/Config/Graphics/HacksWidget.h"
-#include "DolphinQt/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt/Config/WiimoteControllersWidget.h"
 #include "DolphinQt/GrandSettingsWindow.h"
 #include "DolphinQt/Settings/AdvancedPane.h"
@@ -140,44 +139,31 @@ void GrandSettingsWindow::PopulateWidgets()
 
   auto graphics = create_item(nullptr, tr("Graphics"), {});
 
-  if (Config::Get(Config::MAIN_GFX_BACKEND) != "Software Renderer")
+  auto* general_widget = new GeneralWidget(m_xrr_config, this);
+  auto* enhancements_widget = new EnhancementsWidget(this);
+  auto* hacks_widget = new HacksWidget(this);
+  auto* advanced_widget = new AdvancedWidget(this);
+
+  connect(general_widget, &GeneralWidget::BackendChanged, this,
+          &GrandSettingsWindow::OnBackendChanged);
+
+  auto* graphics_pane = create_item_with_widget(graphics, tr("General"), {}, general_widget);
+  QVariant pane_index_data = graphics_pane->data(1, Qt::UserRole);
+  if (pane_index_data.isValid() && !pane_index_data.isNull() &&
+      m_selected_pane == SelectedPane::Graphics)
   {
-    auto* general_widget = new GeneralWidget(m_xrr_config, this);
-    auto* enhancements_widget = new EnhancementsWidget(this);
-    auto* hacks_widget = new HacksWidget(this);
-    auto* advanced_widget = new AdvancedWidget(this);
-
-    connect(general_widget, &GeneralWidget::BackendChanged, this,
-            &GrandSettingsWindow::OnBackendChanged);
-
-    auto* graphics_pane = create_item_with_widget(graphics, tr("General"), {}, general_widget);
-    QVariant pane_index_data = graphics_pane->data(1, Qt::UserRole);
-    if (pane_index_data.isValid() && !pane_index_data.isNull() &&
-        m_selected_pane == SelectedPane::Graphics)
-    {
-      m_widget_stack->setCurrentIndex(pane_index_data.toInt());
-      graphics_pane->setSelected(true);
-      graphics_pane->parent()->setExpanded(true);
-    }
-    create_item_with_widget(graphics, tr("Enhancements"), {}, enhancements_widget);
-    create_item_with_widget(graphics, tr("Hacks"), {}, hacks_widget);
-    create_item_with_widget(graphics, tr("Advanced"), {}, advanced_widget);
+    m_widget_stack->setCurrentIndex(pane_index_data.toInt());
+    graphics_pane->setSelected(true);
+    graphics_pane->parent()->setExpanded(true);
   }
-  else
-  {
-    auto* software_renderer = new SoftwareRendererWidget(this);
-
-    connect(software_renderer, &SoftwareRendererWidget::BackendChanged, this,
-            &GrandSettingsWindow::OnBackendChanged);
-
-    create_item_with_widget(graphics, tr("Software Renderer"), {}, software_renderer);
-  }
+  create_item_with_widget(graphics, tr("Enhancements"), {}, enhancements_widget);
+  create_item_with_widget(graphics, tr("Hacks"), {}, hacks_widget);
+  create_item_with_widget(graphics, tr("Advanced"), {}, advanced_widget);
 
   auto inputs = create_item(nullptr, tr("Inputs"), {});
 
   auto gamecube_inputs = new GamecubeControllersWidget(this);
   auto gamecube_pane = create_item_with_widget(inputs, tr("Gamecube"), {}, gamecube_inputs);
-  QVariant pane_index_data = gamecube_pane->data(1, Qt::UserRole);
   if (pane_index_data.isValid() && !pane_index_data.isNull() &&
       m_selected_pane == SelectedPane::Controllers && m_controllers_enabled)
   {
