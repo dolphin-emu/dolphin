@@ -17,7 +17,7 @@ VertexShaderUid GetVertexShaderUid()
   VertexShaderUid out;
 
   vertex_ubershader_uid_data* const uid_data = out.GetUidData();
-  uid_data->num_texgens = xfmem.numTexGen.numTexGens();
+  uid_data->num_texgens() = xfmem.numTexGen.numTexGens();
 
   return out;
 }
@@ -35,7 +35,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   const bool ssaa = host_config.ssaa();
   const bool per_pixel_lighting = host_config.per_pixel_lighting();
   const bool vertex_rounding = host_config.vertex_rounding();
-  const u32 num_texgen = uid_data->num_texgens;
+  const u32 num_texgen = uid_data->num_texgens();
   ShaderCode out;
 
   out.Write("// {}\n\n", *uid_data);
@@ -671,7 +671,7 @@ void EnumerateVertexShaderUids(const std::function<void(const VertexShaderUid&)>
   for (u32 texgens = 0; texgens <= 8; texgens++)
   {
     vertex_ubershader_uid_data* const vuid = uid.GetUidData();
-    vuid->num_texgens = texgens;
+    vuid->num_texgens() = texgens;
     callback(uid);
   }
 }

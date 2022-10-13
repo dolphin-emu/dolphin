@@ -11,7 +11,9 @@ namespace UberShader
 #pragma pack(1)
 struct vertex_ubershader_uid_data
 {
-  u32 num_texgens : 4;
+  u8 _data1;
+
+  BFVIEW(u32, 4, 0, num_texgens)
 
   u32 NumValues() const { return sizeof(vertex_ubershader_uid_data); }
 };
@@ -33,6 +35,6 @@ struct fmt::formatter<UberShader::vertex_ubershader_uid_data>
   template <typename FormatContext>
   auto format(const UberShader::vertex_ubershader_uid_data& uid, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Vertex UberShader for {} texgens", uid.num_texgens);
+    return fmt::format_to(ctx.out(), "Vertex UberShader for {} texgens", uid.num_texgens());
   }
 };

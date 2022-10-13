@@ -1267,13 +1267,13 @@ void ShaderCache::QueueUberShaderPipelines()
   UberShader::EnumerateVertexShaderUids([&](const UberShader::VertexShaderUid& vuid) {
     UberShader::EnumeratePixelShaderUids([&](const UberShader::PixelShaderUid& puid) {
       // UIDs must have compatible texgens, a mismatching combination will never be queried.
-      if (vuid.GetUidData()->num_texgens != puid.GetUidData()->num_texgens())
+      if (vuid.GetUidData()->num_texgens() != puid.GetUidData()->num_texgens())
         return;
 
       UberShader::PixelShaderUid cleared_puid = puid;
       UberShader::ClearUnusedPixelShaderUidBits(m_api_type, m_host_config, &cleared_puid);
       EnumerateGeometryShaderUids([&](const GeometryShaderUid& guid) {
-        if (guid.GetUidData()->numTexGens() != vuid.GetUidData()->num_texgens ||
+        if (guid.GetUidData()->numTexGens() != vuid.GetUidData()->num_texgens() ||
             (!guid.GetUidData()->IsPassthrough() && !m_host_config.backend_geometry_shaders()))
         {
           return;
