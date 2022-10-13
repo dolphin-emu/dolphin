@@ -75,19 +75,24 @@ CameraLogic::GetCameraPoints(const Common::Matrix44& transform, Common::Vec2 fie
     const auto point = camera_view * Vec4(v, 1.0);
 
     // Check if LED is behind camera.
-    if (point.z > 0)
-    {
-      // FYI: Casting down vs. rounding seems to produce more symmetrical output.
-      const auto x = s32((1 - point.x / point.w) * CAMERA_RES_X / 2);
-      const auto y = s32((1 - point.y / point.w) * CAMERA_RES_Y / 2);
+    if (point.z < 0)
+      return CameraPoint();
 
-      const auto point_size = std::lround(MAX_POINT_SIZE / point.w / 2);
+    // FYI: truncating vs. rounding seems to produce more symmetrical cursor positioning.
+    const auto x = s32((1 - point.x / point.w) * CAMERA_RES_X / 2);
+    const auto y = s32((1 - point.y / point.w) * CAMERA_RES_Y / 2);
 
-      if (x >= 0 && y >= 0 && x < CAMERA_RES_X && y < CAMERA_RES_Y)
-        return CameraPoint({u16(x), u16(y)}, u8(point_size));
-    }
+    // Check if LED is outside of view.
+    if (x < 0 || y < 0 || x >= CAMERA_RES_X || y >= CAMERA_RES_Y)
+      return CameraPoint();
 
-    return CameraPoint();
+    // Curve fit from data using an official WM+ and sensor bar at middle "sensitivity".
+    // Point sizes at minimum and maximum sensitivity differ by around 0.5 (not implemented).
+    const auto point_size = 2.37f * std::pow(point.z, -0.778f);
+
+    const auto clamped_point_size = std::clamp<s32>(std::lround(point_size), 1, MAX_POINT_SIZE);
+
+    return CameraPoint({u16(x), u16(y)}, u8(clamped_point_size));
   });
 
   return camera_points;
