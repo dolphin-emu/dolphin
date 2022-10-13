@@ -14,6 +14,7 @@
 #include "Core/Host.h"
 #include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "VideoCommon/Fifo.h"
 
 namespace CPU
@@ -193,7 +194,7 @@ static void RunAdjacentSystems(bool running)
   Fifo::EmulatorState(running);
   // Core is responsible for shutting down the sound stream.
   if (s_state != State::PowerDown)
-    AudioCommon::SetSoundStreamRunning(running);
+    AudioCommon::SetSoundStreamRunning(Core::System::GetInstance(), running);
 }
 
 void Stop()
