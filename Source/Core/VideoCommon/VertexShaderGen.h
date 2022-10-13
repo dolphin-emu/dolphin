@@ -43,14 +43,6 @@ struct vertex_shader_uid_data
   u16 _data2;
 
   BFVIEW_IN(_data1, u32, 23, 0, components)
-  BFVIEW_IN(_data1, bool, 1, 0, has_pos)  // Implied, it always has pos! don't bother testing
-  BFVIEW_IN(_data1, bool, 1, 1, has_posmtxidx)
-  BFVIEW_IN(_data1, bool, 1, 2, has_texmtxidx, 8)  // 8x1 bit
-  BFVIEW_IN(_data1, bool, 1, 10, has_normal)
-  BFVIEW_IN(_data1, bool, 1, 11, has_tangent)
-  BFVIEW_IN(_data1, bool, 1, 12, has_binormal)
-  BFVIEW_IN(_data1, bool, 1, 13, has_col, 2)  // 2x1 bit
-  BFVIEW_IN(_data1, bool, 1, 15, has_uv, 8)   // 8x1 bit
   BFVIEW_IN(_data1, u32, 4, 23, numTexGens)
   BFVIEW_IN(_data1, u32, 2, 27, numColorChans)
   BFVIEW_IN(_data1, bool, 1, 29, dualTexTrans_enabled)
