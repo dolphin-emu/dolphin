@@ -55,7 +55,8 @@ struct vertex_shader_uid_data
   {
     u16 hex;
 
-    BFVIEW(TexInputForm, 2, 0, inputform)
+    BFVIEW(TexInputForm, 1, 0, inputform)  // inputform used to be 2 bits wide, but documentation
+    // 1 bit padding.                         in XFMemory.h suggests the second bit is unknown.
     BFVIEW(TexGenType, 3, 2, texgentype)
     BFVIEW(SourceRow, 5, 5, sourcerow)
     BFVIEW(u16, 3, 10, embosssourceshift)
