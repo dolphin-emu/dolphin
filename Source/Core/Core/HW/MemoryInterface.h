@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Common/CommonTypes.h"
 
 namespace MMIO
@@ -13,6 +15,23 @@ class PointerWrap;
 
 namespace MemoryInterface
 {
+class MemoryInterfaceState
+{
+public:
+  MemoryInterfaceState();
+  MemoryInterfaceState(const MemoryInterfaceState&) = delete;
+  MemoryInterfaceState(MemoryInterfaceState&&) = delete;
+  MemoryInterfaceState& operator=(const MemoryInterfaceState&) = delete;
+  MemoryInterfaceState& operator=(MemoryInterfaceState&&) = delete;
+  ~MemoryInterfaceState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 void Init();
 void Shutdown();
 

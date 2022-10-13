@@ -28,6 +28,10 @@ namespace ExpansionInterface
 {
 class ExpansionInterfaceState;
 };
+namespace MemoryInterface
+{
+class MemoryInterfaceState;
+};
 namespace SerialInterface
 {
 class SerialInterfaceState;
@@ -76,6 +80,7 @@ public:
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;
   ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;
+  MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
   SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;
   Sram& GetSRAM() const;
   VideoInterface::VideoInterfaceState& GetVideoInterfaceState() const;
