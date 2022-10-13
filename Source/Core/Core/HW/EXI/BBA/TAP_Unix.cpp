@@ -9,6 +9,8 @@
 #include <unistd.h>
 #endif
 
+#include <fmt/format.h>
+
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -50,7 +52,7 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
   const int MAX_INTERFACES = 32;
   for (int i = 0; i < MAX_INTERFACES; ++i)
   {
-    strncpy(ifr.ifr_name, StringFromFormat("Dolphin%d", i).c_str(), IFNAMSIZ);
+    fmt::format_to_n(ifr.ifr_name, IFNAMSIZ, "Dolphin{}", i);
 
     int err;
     if ((err = ioctl(fd, TUNSETIFF, (void*)&ifr)) < 0)

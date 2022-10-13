@@ -3,13 +3,16 @@
 
 #include "DolphinQt/Translation.h"
 
-#include <QApplication>
-#include <QLocale>
-#include <QTranslator>
 #include <algorithm>
 #include <cstring>
 #include <iterator>
 #include <string>
+
+#include <fmt/format.h>
+
+#include <QApplication>
+#include <QLocale>
+#include <QTranslator>
 
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -275,15 +278,14 @@ static bool TryInstallTranslator(const QString& exact_language_code)
     std::string lang = qlang.toStdString();
     auto filename =
 #if defined _WIN32
-        File::GetExeDirectory() + StringFromFormat("/Languages/%s.mo", lang.c_str())
+        fmt::format("{}/Languages/{}.mo", File::GetExeDirectory(), lang)
 #elif defined __APPLE__
-        File::GetBundleDirectory() +
-        StringFromFormat("/Contents/Resources/%s.lproj/dolphin-emu.mo", lang.c_str())
+        fmt::format("{}/Contents/Resources/{}.lproj/dolphin-emu.mo", File::GetBundleDirectory(),
+                    lang)
 #elif defined LINUX_LOCAL_DEV
-        File::GetExeDirectory() +
-        StringFromFormat("/../Source/Core/DolphinQt/%s/dolphin-emu.mo", lang.c_str())
+        fmt::format("{}/../Source/Core/DolphinQt/{}/dolphin-emu.mo", File::GetExeDirectory(), lang)
 #else
-        StringFromFormat(DATA_DIR "/../locale/%s/LC_MESSAGES/dolphin-emu.mo", lang.c_str())
+        fmt::format("{}/../locale/{}/LC_MESSAGES/dolphin-emu.mo", DATA_DIR, lang)
 #endif
         ;
 

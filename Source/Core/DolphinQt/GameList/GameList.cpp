@@ -22,6 +22,8 @@
 #include <cmath>
 #include <utility>
 
+#include <fmt/format.h>
+
 #include <QDesktopServices>
 #include <QDir>
 #include <QErrorMessage>
@@ -714,9 +716,9 @@ void GameList::OpenGCSaveFolder()
     {
     case ExpansionInterface::EXIDeviceType::MemoryCardFolder:
     {
-      std::string path = StringFromFormat("%s/%s/%s", File::GetUserPath(D_GCUSER_IDX).c_str(),
-                                          Config::GetDirectoryForRegion(game->GetRegion()),
-                                          slot == Slot::A ? "Card A" : "Card B");
+      std::string path = fmt::format("{}/{}/{}", File::GetUserPath(D_GCUSER_IDX),
+                                     Config::GetDirectoryForRegion(game->GetRegion()),
+                                     slot == Slot::A ? "Card A" : "Card B");
 
       std::string override_path = Config::Get(Config::GetInfoForGCIPathOverride(slot));
 

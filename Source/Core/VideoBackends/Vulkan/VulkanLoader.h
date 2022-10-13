@@ -48,9 +48,9 @@ void UnloadVulkanLibrary();
 
 const char* VkResultToString(VkResult res);
 void LogVulkanResult(Common::Log::LogLevel level, const char* func_name, VkResult res,
-                     const char* msg, ...);
+                     const char* msg);
 
-#define LOG_VULKAN_ERROR(res, ...)                                                                 \
-  LogVulkanResult(Common::Log::LogLevel::LERROR, __func__, res __VA_OPT__(, ) __VA_ARGS__)
+#define LOG_VULKAN_ERROR(res, msg)                                                                 \
+  LogVulkanResult(Common::Log::LogLevel::LERROR, __func__, res, msg)
 
 }  // namespace Vulkan
