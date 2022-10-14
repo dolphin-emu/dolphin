@@ -19,6 +19,7 @@
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 using namespace Gen;
 
@@ -220,7 +221,7 @@ public:
   {
     LoadAddrMaskToReg(8 * sizeof(T), addr, mask);
   }
-  void VisitComplex(const std::function<T(u32)>* lambda) override
+  void VisitComplex(const std::function<T(Core::System&, u32)>* lambda) override
   {
     CallLambda(8 * sizeof(T), lambda);
   }
@@ -269,10 +270,10 @@ private:
     }
   }
 
-  void CallLambda(int sbits, const std::function<T(u32)>* lambda)
+  void CallLambda(int sbits, const std::function<T(Core::System&, u32)>* lambda)
   {
     m_code->ABI_PushRegistersAndAdjustStack(m_registers_in_use, 0);
-    m_code->ABI_CallLambdaC(lambda, m_address);
+    m_code->ABI_CallLambdaPC(lambda, &Core::System::GetInstance(), m_address);
     m_code->ABI_PopRegistersAndAdjustStack(m_registers_in_use, 0);
     MoveOpArgToReg(sbits, R(ABI_RETURN));
   }

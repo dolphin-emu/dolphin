@@ -18,6 +18,10 @@
 // u8/u16/u32 with the same code while providing type safety: it is impossible
 // to mix code from these types, and the type system enforces it.
 
+namespace Core
+{
+class System;
+}
 namespace MMIO
 {
 class Mapping;
@@ -51,9 +55,9 @@ WriteHandlingMethod<T>* DirectWrite(T* addr, u32 mask = 0xFFFFFFFF);
 // to directly provide a function that will be called when a read/write needs
 // to be done.
 template <typename T>
-ReadHandlingMethod<T>* ComplexRead(std::function<T(u32)>);
+ReadHandlingMethod<T>* ComplexRead(std::function<T(Core::System&, u32)>);
 template <typename T>
-WriteHandlingMethod<T>* ComplexWrite(std::function<void(u32, T)>);
+WriteHandlingMethod<T>* ComplexWrite(std::function<void(Core::System&, u32, T)>);
 
 // Invalid: log an error and return -1 in case of a read. These are the default
 // handlers set for all MMIO types.
@@ -97,7 +101,7 @@ class ReadHandlingMethodVisitor
 public:
   virtual void VisitConstant(T value) = 0;
   virtual void VisitDirect(const T* addr, u32 mask) = 0;
-  virtual void VisitComplex(const std::function<T(u32)>* lambda) = 0;
+  virtual void VisitComplex(const std::function<T(Core::System&, u32)>* lambda) = 0;
 };
 template <typename T>
 class WriteHandlingMethodVisitor
@@ -105,7 +109,7 @@ class WriteHandlingMethodVisitor
 public:
   virtual void VisitNop() = 0;
   virtual void VisitDirect(T* addr, u32 mask) = 0;
-  virtual void VisitComplex(const std::function<void(u32, T)>* lambda) = 0;
+  virtual void VisitComplex(const std::function<void(Core::System&, u32, T)>* lambda) = 0;
 };
 
 // These classes are INTERNAL. Do not use outside of the MMIO implementation
@@ -126,7 +130,7 @@ public:
   // Entry point for read handling method visitors.
   void Visit(ReadHandlingMethodVisitor<T>& visitor);
 
-  T Read(u32 addr);
+  T Read(Core::System& system, u32 addr);
 
   // Internal method called when changing the internal method object. Its
   // main role is to make sure the read function is updated at the same time.
@@ -137,7 +141,7 @@ private:
   // useless initialization of thousands of unused handler objects.
   void InitializeInvalid();
   std::unique_ptr<ReadHandlingMethod<T>> m_Method;
-  std::function<T(u32)> m_ReadFunc;
+  std::function<T(Core::System&, u32)> m_ReadFunc;
 };
 template <typename T>
 class WriteHandler
@@ -153,7 +157,7 @@ public:
   // Entry point for write handling method visitors.
   void Visit(WriteHandlingMethodVisitor<T>& visitor);
 
-  void Write(u32 addr, T val);
+  void Write(Core::System& system, u32 addr, T val);
 
   // Internal method called when changing the internal method object. Its
   // main role is to make sure the write function is updated at the same
@@ -165,7 +169,7 @@ private:
   // useless initialization of thousands of unused handler objects.
   void InitializeInvalid();
   std::unique_ptr<WriteHandlingMethod<T>> m_Method;
-  std::function<void(u32, T)> m_WriteFunc;
+  std::function<void(Core::System&, u32, T)> m_WriteFunc;
 };
 
 // Boilerplate boilerplate boilerplate.
@@ -182,8 +186,10 @@ private:
   MaybeExtern template WriteHandlingMethod<T>* Nop<T>();                                           \
   MaybeExtern template ReadHandlingMethod<T>* DirectRead(const T* addr, u32 mask);                 \
   MaybeExtern template WriteHandlingMethod<T>* DirectWrite(T* addr, u32 mask);                     \
-  MaybeExtern template ReadHandlingMethod<T>* ComplexRead<T>(std::function<T(u32)>);               \
-  MaybeExtern template WriteHandlingMethod<T>* ComplexWrite<T>(std::function<void(u32, T)>);       \
+  MaybeExtern template ReadHandlingMethod<T>* ComplexRead<T>(                                      \
+      std::function<T(Core::System&, u32)>);                                                       \
+  MaybeExtern template WriteHandlingMethod<T>* ComplexWrite<T>(                                    \
+      std::function<void(Core::System&, u32, T)>);                                                 \
   MaybeExtern template ReadHandlingMethod<T>* InvalidRead<T>();                                    \
   MaybeExtern template WriteHandlingMethod<T>* InvalidWrite<T>();                                  \
   MaybeExtern template class ReadHandler<T>;                                                       \

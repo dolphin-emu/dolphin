@@ -242,11 +242,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   };
   for (auto& pq_reg : pq_regs)
   {
-    mmio->Register(base | pq_reg.addr, MMIO::ComplexRead<u16>([pq_reg](u32) {
+    mmio->Register(base | pq_reg.addr, MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32) {
                      return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) & 0xFFFF;
                    }),
                    MMIO::InvalidWrite<u16>());
-    mmio->Register(base | (pq_reg.addr + 2), MMIO::ComplexRead<u16>([pq_reg](u32) {
+    mmio->Register(base | (pq_reg.addr + 2), MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32) {
                      return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) >> 16;
                    }),
                    MMIO::InvalidWrite<u16>());
@@ -254,7 +254,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // Control register
   mmio->Register(base | PE_CTRL_REGISTER, MMIO::DirectRead<u16>(&m_Control.hex),
-                 MMIO::ComplexWrite<u16>([](u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](Core::System&, u32, u16 val) {
                    UPECtrlReg tmpCtrl{.hex = val};
 
                    if (tmpCtrl.pe_token)
@@ -278,7 +278,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // BBOX registers, readonly and need to update a flag.
   for (int i = 0; i < 4; ++i)
   {
-    mmio->Register(base | (PE_BBOX_LEFT + 2 * i), MMIO::ComplexRead<u16>([i](u32) {
+    mmio->Register(base | (PE_BBOX_LEFT + 2 * i), MMIO::ComplexRead<u16>([i](Core::System&, u32) {
                      g_renderer->BBoxDisable();
                      return g_video_backend->Video_GetBoundingBox(i);
                    }),
