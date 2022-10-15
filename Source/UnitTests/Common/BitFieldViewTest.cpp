@@ -184,13 +184,34 @@ TEST(BitFieldView, Assignment)
 
 namespace test
 {
-template <class T, class U = T>  // Don't you dare automatically deduce on me
-void pass(const U);
-}
+// idk why, but std::assignable_from doesn't work.
+template <class field_t, class LHS>
+concept assignable_from_bfview = requires(::Common::MutFixedBitFieldView<field_t, 1, 0, u64> mf_bfv,
+                                          ::Common::ConFixedBitFieldView<field_t, 1, 0, u64> cf_bfv,
+                                          ::Common::MutLooseBitFieldView<field_t, 1, u64> ml_bfv,
+                                          ::Common::ConLooseBitFieldView<field_t, 1, u64> cl_bfv,
+                                          LHS lhs)
+{
+  lhs = mf_bfv;
+  lhs = cf_bfv;
+  lhs = ml_bfv;
+  lhs = cl_bfv;
+};
 
-#define BFVIEW_REQ(field_t, name) requires(::Common::MutFixedBitFieldView<field_t, 1, 0, u64> name)
+template <class field_t, class TYPE>
+concept explicit_cast_bfview = requires(::Common::MutFixedBitFieldView<field_t, 1, 0, u64> mf_bfv,
+                                        ::Common::ConFixedBitFieldView<field_t, 1, 0, u64> cf_bfv,
+                                        ::Common::MutLooseBitFieldView<field_t, 1, u64> ml_bfv,
+                                        ::Common::ConLooseBitFieldView<field_t, 1, u64> cl_bfv)
+{
+  static_cast<TYPE>(mf_bfv);
+  static_cast<TYPE>(cf_bfv);
+  static_cast<TYPE>(ml_bfv);
+  static_cast<TYPE>(cl_bfv);
+};
+}  // namespace test
 
-// This is testing that all types of valid explicit / implicit casts compile.
+// This is testing that most (but not all) combinations of explicit / implicit casts compile.
 TEST(BitFieldView, CastingCompileTest)
 {
   enum class EnumS1 : u64;
@@ -198,48 +219,43 @@ TEST(BitFieldView, CastingCompileTest)
   enum EnumU1 : u64;
   enum EnumU2 : u16;
 
-  // Sorry, but requires clauses lint like ass because clang-format 15 isn't widely available yet.
-  // clang-format off
-
   // Scoped enum
   //
   // Explicit cast -> underlying scalar
-  EXPECT_TRUE(BFVIEW_REQ(EnumS1, bfv) { static_cast<u64>(bfv); });
+  EXPECT_TRUE((test::explicit_cast_bfview<EnumS1, u64>));
   // Explicit cast -> unrelated scalar
-  EXPECT_TRUE(BFVIEW_REQ(EnumS1, bfv) { static_cast<u16>(bfv); });
+  EXPECT_TRUE((test::explicit_cast_bfview<EnumS1, u16>));
   // Explicit cast -> different scoped enum
-  EXPECT_TRUE(BFVIEW_REQ(EnumS1, bfv) { static_cast<EnumS2>(bfv); });
+  EXPECT_TRUE((test::explicit_cast_bfview<EnumS1, EnumS2>));
   // Explicit cast -> unscoped enum
-  EXPECT_TRUE(BFVIEW_REQ(EnumS1, bfv) { static_cast<EnumU1>(bfv); });
+  EXPECT_TRUE((test::explicit_cast_bfview<EnumS1, EnumU1>));
   // Implicit cast -> same scoped enum
-  EXPECT_TRUE(BFVIEW_REQ(EnumS1, bfv) { {bfv} -> std::convertible_to<EnumS1>; });
+  EXPECT_TRUE((test::assignable_from_bfview<EnumS1, EnumS1>));
 
   // Unscoped enum
   //
   // Implicit cast -> underlying scalar
-  EXPECT_TRUE(BFVIEW_REQ(EnumU1, bfv) { {bfv} -> std::convertible_to<u64>; });
+  EXPECT_TRUE((test::assignable_from_bfview<EnumU1, u64>));
   // Implicit cast -> unrelated scalar
-  EXPECT_TRUE(BFVIEW_REQ(EnumU1, bfv) { {bfv} -> std::convertible_to<u16>; });
-  // Implicit cast -> different unscoped enum
-  EXPECT_TRUE(BFVIEW_REQ(EnumU1, bfv) { {bfv} -> std::convertible_to<EnumU2>; });
+  EXPECT_TRUE((test::assignable_from_bfview<EnumU1, u16>));
+  // Implicit cast -> different unscoped enum.   I have found a solution for this, but it causes
+  // compile errors when combined with globally-deleted operator overloads in qflags.h (of Qt)
+  EXPECT_FALSE((test::assignable_from_bfview<EnumU1, EnumU2>));
   // Explicit cast -> scoped enum
-  EXPECT_TRUE(BFVIEW_REQ(EnumU1, bfv) { static_cast<EnumS1>(bfv); });
+  EXPECT_TRUE((test::explicit_cast_bfview<EnumU1, EnumS1>));
 
   // Scalar
   //
   // Implicit cast -> same scalar
-  EXPECT_TRUE(BFVIEW_REQ(u64, bfv) { {bfv} -> std::convertible_to<u64>; });
+  EXPECT_TRUE((test::assignable_from_bfview<u64, u64>));
   // Implicit cast -> different scalar
-  EXPECT_TRUE(BFVIEW_REQ(u64, bfv) { {bfv} -> std::convertible_to<u16>; });
+  EXPECT_TRUE((test::assignable_from_bfview<u64, u16>));
   // Explicit cast -> scoped enum
-  EXPECT_TRUE(BFVIEW_REQ(u64, bfv) { static_cast<EnumS1>(bfv); });
-  // Implicit cast -> unscoped enum
-  EXPECT_TRUE(BFVIEW_REQ(u64, bfv) { {bfv} -> std::convertible_to<EnumU1>; });
-
-  // clang-format on
+  EXPECT_TRUE((test::explicit_cast_bfview<u64, EnumS1>));
+  // Implicit cast -> unscoped enum.   I have found a solution for this, but it causes compile
+  // errors when combined with globally-deleted operator overloads in qflags.h (of Qt)
+  EXPECT_FALSE((test::assignable_from_bfview<u64, EnumU1>));
 }
-
-#undef BFVIEW_REQ
 
 // Test behavior of using BitFields with fmt
 TEST(BitFieldView, Fmt)

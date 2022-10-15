@@ -464,11 +464,13 @@ public:
   constexpr MutFixedBitFieldView& operator^=(const field_t rhs) { return operator=(Get() ^ rhs); }
 
   constexpr operator field_t() const { return Get(); }
-  template <UnscopedEnum T>     // This only compiles because it is constrained, otherwise you
-  constexpr operator T() const  // would see the error "conversion function cannot be redeclared"
-  {
-    return static_cast<T>(Get());  // Surprisingly required static_cast
-  }
+  /// This code enables implicit casts to unscoped enums, but also somehow clashes with Qt, which
+  /// globally deletes many non-typesafe operations for QFlags with Q_DECLARE_OPERATORS_FOR_FLAGS.
+  // template <class T> requires(std::is_enum_v<T> && !std::is_scoped_enum_v<T>)
+  // constexpr operator T() const
+  // {
+  //   return static_cast<T>(Get());  // Surprisingly required static_cast
+  // }
   template <class T>
   constexpr explicit operator T() const
   {
@@ -497,11 +499,13 @@ public:
   constexpr field_t Get() const { return GetFixedBitField<field_t, width, start>(host); }
 
   constexpr operator field_t() const { return Get(); }
-  template <UnscopedEnum T>     // This only compiles because it is constrained, otherwise you
-  constexpr operator T() const  // would see the error "conversion function cannot be redeclared"
-  {
-    return static_cast<T>(Get());  // Surprisingly required static_cast
-  }
+  /// This code enables implicit casts to unscoped enums, but also somehow clashes with Qt, which
+  /// globally deletes many non-typesafe operations for QFlags with Q_DECLARE_OPERATORS_FOR_FLAGS.
+  // template <class T> requires(std::is_enum_v<T> && !std::is_scoped_enum_v<T>)
+  // constexpr operator T() const
+  // {
+  //   return static_cast<T>(Get());  // Surprisingly required static_cast
+  // }
   template <class T>
   constexpr explicit operator T() const
   {
@@ -553,11 +557,13 @@ public:
   constexpr MutLooseBitFieldView& operator^=(const field_t rhs) { return operator=(Get() ^ rhs); }
 
   constexpr operator field_t() const { return Get(); }
-  template <UnscopedEnum T>     // This only compiles because it is constrained, otherwise you
-  constexpr operator T() const  // would see the error "conversion function cannot be redeclared"
-  {
-    return static_cast<T>(Get());  // Surprisingly required static_cast
-  }
+  /// This code enables implicit casts to unscoped enums, but also somehow clashes with Qt, which
+  /// globally deletes many non-typesafe operations for QFlags with Q_DECLARE_OPERATORS_FOR_FLAGS.
+  // template <class T> requires(std::is_enum_v<T> && !std::is_scoped_enum_v<T>)
+  // constexpr operator T() const
+  // {
+  //   return static_cast<T>(Get());  // Surprisingly required static_cast
+  // }
   template <class T>
   constexpr explicit operator T() const
   {
@@ -588,11 +594,13 @@ public:
   constexpr field_t Get() const { return GetLooseBitField<field_t, width>(start, host); }
 
   constexpr operator field_t() const { return Get(); }
-  template <UnscopedEnum T>     // This only compiles because it is constrained, otherwise you
-  constexpr operator T() const  // would see the error "conversion function cannot be redeclared"
-  {
-    return static_cast<T>(Get());  // Surprisingly required static_cast
-  }
+  /// This code enables implicit casts to unscoped enums, but also somehow clashes with Qt, which
+  /// globally deletes many non-typesafe operations for QFlags with Q_DECLARE_OPERATORS_FOR_FLAGS.
+  // template <class T> requires(std::is_enum_v<T> && !std::is_scoped_enum_v<T>)
+  // constexpr operator T() const
+  // {
+  //   return static_cast<T>(Get());  // Surprisingly required static_cast
+  // }
   template <class T>
   constexpr explicit operator T() const
   {
