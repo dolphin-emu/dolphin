@@ -1282,7 +1282,7 @@ void Jit64::IntializeSpeculativeConstants()
         ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
                           static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
         ABI_PopRegistersAndAdjustStack({}, 0);
-        JMP(asm_routines.dispatcher, true);
+        JMP(asm_routines.dispatcher_no_check, true);
         SwitchToNearCode();
       }
       CMP(32, PPCSTATE(gpr[i]), Imm32(compileTimeValue));
