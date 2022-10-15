@@ -429,7 +429,7 @@ constexpr auto MakeBitFieldArrayView(const std::size_t start, const host_t& host
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, std::size_t width, std::size_t start, class host_t>
-class MutFixedBitFieldView
+class MutFixedBitFieldView final
 {
 protected:
   host_t& host;
@@ -482,7 +482,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, std::size_t width, std::size_t start, class host_t>
-class ConFixedBitFieldView
+class ConFixedBitFieldView final
 {
 protected:
   const host_t& host;
@@ -517,7 +517,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, std::size_t width, class host_t>
-class MutLooseBitFieldView
+class MutLooseBitFieldView final
 {
 protected:
   host_t& host;
@@ -575,7 +575,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, std::size_t width, class host_t>
-class ConLooseBitFieldView
+class ConLooseBitFieldView final
 {
 protected:
   const host_t& host;
@@ -613,7 +613,7 @@ public:
 
 template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
           class host_t>
-class MutFixedBitFieldArrayView
+class MutFixedBitFieldArrayView final
 {
 protected:
   host_t& host;
@@ -671,7 +671,7 @@ public:
 
 template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
           class host_t>
-class ConFixedBitFieldArrayView
+class ConFixedBitFieldArrayView final
 {
 protected:
   const host_t& host;
@@ -716,7 +716,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
-class MutLooseBitFieldArrayView
+class MutLooseBitFieldArrayView final
 {
 protected:
   host_t& host;
@@ -771,7 +771,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
-class ConLooseBitFieldArrayView
+class ConLooseBitFieldArrayView final
 {
 protected:
   const host_t& host;
@@ -814,7 +814,7 @@ public:
 
 template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
           class host_t>
-class MutFixedBitFieldArrayViewIterator
+class MutFixedBitFieldArrayViewIterator final
 {
 protected:
   host_t& host;
@@ -873,7 +873,7 @@ public:
 
 template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
           class host_t>
-class ConFixedBitFieldArrayViewIterator
+class ConFixedBitFieldArrayViewIterator final
 {
 protected:
   const host_t& host;
@@ -932,7 +932,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
-class MutLooseBitFieldArrayViewIterator
+class MutLooseBitFieldArrayViewIterator final
 {
 protected:
   host_t& host;
@@ -992,7 +992,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
-class ConLooseBitFieldArrayViewIterator
+class ConLooseBitFieldArrayViewIterator final
 {
 protected:
   const host_t& host;
