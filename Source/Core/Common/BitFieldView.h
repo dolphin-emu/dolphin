@@ -176,26 +176,22 @@ class MutLooseBitFieldView;
 template <class field_t, std::size_t width, class host_t>
 class ConLooseBitFieldView;
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 class MutFixedBitFieldArrayView;
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t_>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t_>
 class ConFixedBitFieldArrayView;
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 class MutLooseBitFieldArrayView;
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t_>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t_>
 class ConLooseBitFieldArrayView;
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 class MutFixedBitFieldArrayViewIterator;
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 class ConFixedBitFieldArrayViewIterator;
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 class MutLooseBitFieldArrayViewIterator;
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 class ConLooseBitFieldArrayViewIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -239,11 +235,9 @@ concept CL_BFView = requires(T t)
   PassConLooseBitFieldView(t);
 };
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 void PassMutFixedBitFieldArrayView(MutFixedBitFieldArrayView<field_t, Ns, width, start, host_t>);
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 void PassConFixedBitFieldArrayView(ConFixedBitFieldArrayView<field_t, Ns, width, start, host_t>);
 
 template <class T>
@@ -257,9 +251,9 @@ concept CF_BFArrayView = requires(T t)
   PassConFixedBitFieldArrayView(t);
 };
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 void PassMutLooseBitFieldArrayView(MutLooseBitFieldArrayView<field_t, Ns, width, host_t>);
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 void PassConLooseBitFieldArrayView(ConLooseBitFieldArrayView<field_t, Ns, width, host_t>);
 
 template <class T>
@@ -273,12 +267,10 @@ concept CL_BFArrayView = requires(T t)
   PassConLooseBitFieldArrayView(t);
 };
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 void PassMutFixedBitFieldArrayViewIterator(
     MutFixedBitFieldArrayViewIterator<field_t, Ns, width, start, host_t>);
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 void PassConFixedBitFieldArrayViewIterator(
     ConFixedBitFieldArrayViewIterator<field_t, Ns, width, start, host_t>);
 
@@ -293,10 +285,10 @@ concept CF_BFArrayViewIter = requires(T t)
   PassConFixedBitFieldArrayViewIterator(t);
 };
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 void PassMutLooseBitFieldArrayViewIterator(
     MutLooseBitFieldArrayViewIterator<field_t, Ns, width, host_t>);
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 void PassConLooseBitFieldArrayViewIterator(
     ConLooseBitFieldArrayViewIterator<field_t, Ns, width, host_t>);
 
@@ -403,24 +395,22 @@ constexpr auto MakeBitFieldView(const std::size_t start, const host_t& host)
   return ConLooseBitFieldView<field_t, width, host_t>(start, host);
 }
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 constexpr auto MakeBitFieldArrayView(host_t& host)
 {
   return MutFixedBitFieldArrayView<field_t, Ns, width, start, host_t>(host);
 }
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 constexpr auto MakeBitFieldArrayView(const host_t& host)
 {
   return ConFixedBitFieldArrayView<field_t, Ns, width, start, host_t>(host);
 }
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 constexpr auto MakeBitFieldArrayView(const std::size_t start, host_t& host)
 {
   return MutLooseBitFieldArrayView<field_t, Ns, width, host_t>(start, host);
 }
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 constexpr auto MakeBitFieldArrayView(const std::size_t start, const host_t& host)
 {
   return ConLooseBitFieldArrayView<field_t, Ns, width, host_t>(start, host);
@@ -611,8 +601,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 class MutFixedBitFieldArrayView final
 {
 protected:
@@ -669,8 +658,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 class ConFixedBitFieldArrayView final
 {
 protected:
@@ -715,7 +703,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 class MutLooseBitFieldArrayView final
 {
 protected:
@@ -770,7 +758,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 class ConLooseBitFieldArrayView final
 {
 protected:
@@ -812,8 +800,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 class MutFixedBitFieldArrayViewIterator final
 {
 protected:
@@ -871,8 +858,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, std::size_t start,
-          class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 class ConFixedBitFieldArrayViewIterator final
 {
 protected:
@@ -931,7 +917,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 class MutLooseBitFieldArrayViewIterator final
 {
 protected:
@@ -991,7 +977,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <class field_t, AnyConstantPack<std::size_t> Ns, std::size_t width, class host_t>
+template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 class ConLooseBitFieldArrayViewIterator final
 {
 protected:

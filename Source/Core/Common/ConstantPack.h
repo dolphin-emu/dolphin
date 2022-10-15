@@ -35,9 +35,19 @@ template <typename T, T... vals>
 void PassConstantPack(ConstantPack<T, vals...>);
 }  // namespace detail
 
-template <class T, typename U = typename T::value_type>
+template <class T>
 concept AnyConstantPack = requires(T t)
 {
-  detail::PassConstantPack<U>(t);
+  detail::PassConstantPack(t);
 };
+
+template <class T>
+concept AnyIndexPack = requires(T t)
+{
+  detail::PassConstantPack<std::size_t>(t);
+};
+
+// If you need to further constrain an AnyConstantPack to a certain type, use a requires clause:
+// requires std::same_as<typename T::value_type, TYPE>
+
 }  // namespace Common
