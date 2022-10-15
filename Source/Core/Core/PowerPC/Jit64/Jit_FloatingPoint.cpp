@@ -116,13 +116,17 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
     if (std::find(inputs.begin(), inputs.end(), i) == inputs.end())
       inputs.push_back(i);
   }
+
   if (inst.OPCD != 4)
   {
     // not paired-single
+
     UCOMISD(xmm, R(xmm));
     FixupBranch handle_nan = J_CC(CC_P, true);
     SwitchToFarCode();
     SetJumpTarget(handle_nan);
+
+    // If any inputs are NaNs, pick the first NaN of them
     std::vector<FixupBranch> fixups;
     for (u32 x : inputs)
     {
@@ -132,9 +136,15 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
       UCOMISD(xmm, R(xmm));
       fixups.push_back(J_CC(CC_P));
     }
-    MOVDDUP(xmm, MConst(psGeneratedQNaN));
+
+    // Otherwise, pick the PPC default NaN (will be finished below)
+    XORPD(xmm, R(xmm));
+
+    // Turn SNaNs into QNaNs (or finish writing the PPC default NaN)
     for (FixupBranch fixup : fixups)
       SetJumpTarget(fixup);
+    ORPD(xmm, MConst(psGeneratedQNaN));
+
     FixupBranch done = J(true);
     SwitchToNearCode();
     SetJumpTarget(done);
@@ -142,7 +152,9 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
   else
   {
     // paired-single
+
     std::reverse(inputs.begin(), inputs.end());
+
     if (cpu_info.bSSE4_1)
     {
       avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, R(xmm), R(xmm), CMP_UNORD);
@@ -150,8 +162,12 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
       FixupBranch handle_nan = J_CC(CC_NZ, true);
       SwitchToFarCode();
       SetJumpTarget(handle_nan);
+
+      // Replace NaNs with PPC default NaN
       ASSERT_MSG(DYNA_REC, clobber == XMM0, "BLENDVPD implicitly uses XMM0");
       BLENDVPD(xmm, MConst(psGeneratedQNaN));
+
+      // If any inputs are NaNs, use those instead
       for (u32 x : inputs)
       {
         RCOpArg Rx = fpr.Use(x, RCMode::Read);
@@ -159,13 +175,11 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
         avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, Rx, Rx, CMP_UNORD);
         BLENDVPD(xmm, Rx);
       }
-      FixupBranch done = J(true);
-      SwitchToNearCode();
-      SetJumpTarget(done);
     }
     else
     {
       // SSE2 fallback
+
       RCX64Reg tmp = fpr.Scratch();
       RegCache::Realize(tmp);
       MOVAPD(clobber, R(xmm));
@@ -175,11 +189,15 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
       FixupBranch handle_nan = J_CC(CC_NZ, true);
       SwitchToFarCode();
       SetJumpTarget(handle_nan);
+
+      // Replace NaNs with PPC default NaN
       MOVAPD(tmp, R(clobber));
       ANDNPD(clobber, R(xmm));
       ANDPD(tmp, MConst(psGeneratedQNaN));
       ORPD(tmp, R(clobber));
       MOVAPD(xmm, tmp);
+
+      // If any inputs are NaNs, use those instead
       for (u32 x : inputs)
       {
         RCOpArg Rx = fpr.Use(x, RCMode::Read);
@@ -191,10 +209,16 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
         ANDPD(xmm, tmp);
         ORPD(xmm, R(clobber));
       }
-      FixupBranch done = J(true);
-      SwitchToNearCode();
-      SetJumpTarget(done);
     }
+
+    // Turn SNaNs into QNaNs
+    avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, R(xmm), R(xmm), CMP_UNORD);
+    ANDPD(clobber, MConst(psGeneratedQNaN));
+    ORPD(xmm, R(clobber));
+
+    FixupBranch done = J(true);
+    SwitchToNearCode();
+    SetJumpTarget(done);
   }
 }
 
