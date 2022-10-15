@@ -190,12 +190,10 @@ void Wiimote::Reset()
 
   m_status = {};
 
-  if (!want_determinism)
-  {
-    // This will suppress a status report on connect when an extension is already attached.
-    // TODO: I am not 100% sure if this is proper.
-    m_status.extension = m_extension_port.IsDeviceConnected();
-  }
+  // A real wii remote does not normally send a status report on connection.
+  // But if an extension is already attached it does send one.
+  // Clearing this initially will simulate that on the first update cycle.
+  m_status.extension = 0;
 
   // Dynamics:
   m_swing_state = {};
