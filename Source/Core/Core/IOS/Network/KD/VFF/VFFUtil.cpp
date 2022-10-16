@@ -198,31 +198,13 @@ static ErrorCode WriteFile(const std::string& filename, const std::vector<u8>& t
     return WC24_ERR_FILE_OPEN;
   }
 
-  size_t size = tmp_buffer.size();
-  size_t offset = 0;
-  while (size > 0)
+  u32 written_size;
+  const auto write_error_code =
+      f_write(&dst, tmp_buffer.data(), static_cast<UINT>(tmp_buffer.size()), &written_size);
+  if (write_error_code != FR_OK)
   {
-    constexpr size_t MAX_CHUNK_SIZE = 32768;
-    u32 chunk_size = static_cast<u32>(std::min(size, MAX_CHUNK_SIZE));
-
-    u32 written_size;
-    const auto write_error_code =
-        f_write(&dst, tmp_buffer.data() + offset, chunk_size, &written_size);
-    if (write_error_code != FR_OK)
-    {
-      ERROR_LOG_FMT(IOS_WC24, "Failed to write file {} to VFF {}", filename, write_error_code);
-      return WC24_ERR_FILE_WRITE;
-    }
-
-    if (written_size != chunk_size)
-    {
-      ERROR_LOG_FMT(IOS_WC24, "Failed to write bytes of file {} to VFF ({} != {})", filename,
-                    written_size, chunk_size);
-      return WC24_ERR_FILE_WRITE;
-    }
-
-    size -= chunk_size;
-    offset += chunk_size;
+    ERROR_LOG_FMT(IOS_WC24, "Failed to write file {} to VFF {}", filename, write_error_code);
+    return WC24_ERR_FILE_WRITE;
   }
 
   const auto close_error_code = f_close(&dst);
