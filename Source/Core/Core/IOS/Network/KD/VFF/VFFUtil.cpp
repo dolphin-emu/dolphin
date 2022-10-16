@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <vector>
 
 #include <fmt/format.h>
@@ -96,6 +97,10 @@ static DRESULT read_vff_header(IOS::HLE::FS::FileHandle* vff, FATFS* fs)
 
   fs->id = 0;
   fs->cdir = 0;
+
+  // invalidate window
+  fs->wflag = 0;
+  fs->winsect = std::numeric_limits<LBA_t>::max();
 
   return RES_OK;
 }
