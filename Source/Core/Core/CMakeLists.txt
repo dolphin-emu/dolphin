@@ -363,6 +363,11 @@ add_library(core
   IOS/Network/KD/NetKDTime.h
   IOS/Network/KD/NWC24Config.cpp
   IOS/Network/KD/NWC24Config.h
+  IOS/Network/KD/NWC24DL.cpp
+  IOS/Network/KD/NWC24DL.h
+  IOS/Network/KD/VFF/VFFUtil.cpp
+  IOS/Network/KD/VFF/VFFUtil.h
+  IOS/Network/KD/WC24File.h
   IOS/Network/MACUtils.cpp
   IOS/Network/MACUtils.h
   IOS/Network/NCD/Manage.cpp
@@ -598,6 +603,7 @@ PUBLIC
   videosoftware
 
 PRIVATE
+  FatFs
   fmt::fmt
   ${LZO}
   ZLIB::ZLIB

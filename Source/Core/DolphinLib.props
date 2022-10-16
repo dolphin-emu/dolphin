@@ -354,6 +354,9 @@
     <ClInclude Include="Core\IOS\Network\KD\NetKDRequest.h" />
     <ClInclude Include="Core\IOS\Network\KD\NetKDTime.h" />
     <ClInclude Include="Core\IOS\Network\KD\NWC24Config.h" />
+    <ClInclude Include="Core\IOS\Network\KD\NWC24DL.h" />
+    <ClInclude Include="Core\IOS\Network\KD\VFF\VFFUtil.h" />
+    <ClInclude Include="Core\IOS\Network\KD\WC24File.h" />
     <ClInclude Include="Core\IOS\Network\MACUtils.h" />
     <ClInclude Include="Core\IOS\Network\NCD\Manage.h" />
     <ClInclude Include="Core\IOS\Network\NCD\WiiNetConfig.h" />
@@ -980,6 +983,8 @@
     <ClCompile Include="Core\IOS\Network\KD\NetKDRequest.cpp" />
     <ClCompile Include="Core\IOS\Network\KD\NetKDTime.cpp" />
     <ClCompile Include="Core\IOS\Network\KD\NWC24Config.cpp" />
+    <ClCompile Include="Core\IOS\Network\KD\NWC24DL.cpp" />
+    <ClCompile Include="Core\IOS\Network\KD\VFF\VFFUtil.cpp" />
     <ClCompile Include="Core\IOS\Network\MACUtils.cpp" />
     <ClCompile Include="Core\IOS\Network\NCD\Manage.cpp" />
     <ClCompile Include="Core\IOS\Network\NCD\WiiNetConfig.cpp" />
