@@ -92,15 +92,8 @@ void Jit64AsmRoutineManager::Generate()
   if (enable_debugging)
   {
     MOV(64, R(RSCRATCH), ImmPtr(CPU::GetStatePtr()));
-    TEST(32, MatR(RSCRATCH), Imm32(static_cast<u32>(CPU::State::Stepping)));
-    FixupBranch notStepping = J_CC(CC_Z);
-    ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunction(PowerPC::CheckBreakPoints);
-    ABI_PopRegistersAndAdjustStack({}, 0);
-    MOV(64, R(RSCRATCH), ImmPtr(CPU::GetStatePtr()));
     TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
     dbg_exit = J_CC(CC_NZ, true);
-    SetJumpTarget(notStepping);
   }
 
   SetJumpTarget(skipToRealDispatch);
