@@ -493,6 +493,9 @@ void FramebufferManager::RefreshPeekCache()
         flush_command_buffer = true;
       }
     }
+
+    m_efb_depth_cache.valid = true;
+    m_efb_color_cache.valid = true;
   }
   else
   {
