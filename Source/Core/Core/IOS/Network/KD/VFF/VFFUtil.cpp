@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <vector>
 
 #include <fmt/format.h>
@@ -97,6 +98,10 @@ static DRESULT read_vff_header(IOS::HLE::FS::FileHandle* vff, FATFS* fs)
   fs->id = 0;
   fs->cdir = 0;
 
+  // invalidate window
+  fs->wflag = 0;
+  fs->winsect = std::numeric_limits<LBA_t>::max();
+
   return RES_OK;
 }
 
@@ -185,7 +190,7 @@ namespace IOS::HLE::NWC24
 {
 static ErrorCode WriteFile(const std::string& filename, const std::vector<u8>& tmp_buffer)
 {
-  FIL dst;
+  FIL dst{};
   const auto open_error_code = f_open(&dst, filename.c_str(), FA_CREATE_ALWAYS | FA_WRITE);
   if (open_error_code != FR_OK)
   {
@@ -269,7 +274,7 @@ ErrorCode OpenVFF(const std::string& path, const std::string& filename,
 
     Common::ScopeGuard vff_delete_guard{[&] { fs->Delete(PID_KD, PID_KD, path); }};
 
-    FATFS fatfs;
+    FATFS fatfs{};
     const FRESULT fatfs_mount_error_code = f_mount(&fatfs, "", 0);
     if (fatfs_mount_error_code != FR_OK)
     {
