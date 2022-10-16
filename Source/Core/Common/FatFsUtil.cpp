@@ -360,7 +360,7 @@ static bool Pack(const File::FSTEntry& entry, bool is_root, std::vector<u8>& tmp
       return false;
     }
 
-    FIL dst;
+    FIL dst{};
     const auto open_error_code =
         f_open(&dst, entry.virtualName.c_str(), FA_CREATE_ALWAYS | FA_WRITE);
     if (open_error_code != FR_OK)
@@ -549,7 +549,7 @@ bool SyncSDFolderToSDImage(bool deterministic)
     return false;
   }
 
-  FATFS fs;
+  FATFS fs{};
   const auto mount_error_code = f_mount(&fs, "", 0);
   if (mount_error_code != FR_OK)
   {
@@ -591,7 +591,7 @@ static bool Unpack(const std::string path, bool is_directory, const char* name,
 {
   if (!is_directory)
   {
-    FIL src;
+    FIL src{};
     const auto open_error_code = f_open(&src, name, FA_READ);
     if (open_error_code != FR_OK)
     {
@@ -667,7 +667,7 @@ static bool Unpack(const std::string path, bool is_directory, const char* name,
     return false;
   }
 
-  DIR directory;
+  DIR directory{};
   const auto opendir_error_code = f_opendir(&directory, ".");
   if (opendir_error_code != FR_OK)
   {
@@ -676,7 +676,7 @@ static bool Unpack(const std::string path, bool is_directory, const char* name,
     return false;
   }
 
-  FILINFO entry;
+  FILINFO entry{};
   while (true)
   {
     const auto readdir_error_code = f_readdir(&directory, &entry);
@@ -767,7 +767,7 @@ bool SyncSDImageToSDFolder()
     return false;
   }
 
-  FATFS fs;
+  FATFS fs{};
   const auto mount_error_code = f_mount(&fs, "", 0);
   if (mount_error_code != FR_OK)
   {
