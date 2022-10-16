@@ -267,17 +267,14 @@ IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& reques
   {
     for (u8 subtask_id = 0; subtask_id < 32; subtask_id++)
     {
-      // Check if we are done
-      if (!Common::ExtractBit(subtask_bitmask, subtask_id))
+      if (Common::ExtractBit(subtask_bitmask, subtask_id))
       {
-        break;
-      }
-
-      reply = KDDownload(entry_index, subtask_id);
-      if (reply != NWC24::WC24_OK)
-      {
-        // An error has occurred, break out and return error.
-        break;
+        reply = KDDownload(entry_index, subtask_id);
+        if (reply != NWC24::WC24_OK)
+        {
+          // An error has occurred, break out and return error.
+          break;
+        }
       }
     }
   }
