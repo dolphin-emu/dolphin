@@ -43,7 +43,6 @@ public:
     const CmdBufferResources& cmd_buffer_resources = m_command_buffers[m_current_cmd_buffer];
     return cmd_buffer_resources.command_buffers[1];
   }
-  VkDescriptorPool GetCurrentDescriptorPool() const { return m_descriptor_pools[m_current_frame]; }
   // Allocates a descriptors set from the pool reserved for the current frame.
   VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetLayout set_layout);
 
@@ -105,6 +104,10 @@ private:
                            u32 present_image_index);
   void BeginCommandBuffer();
 
+  VkDescriptorPool CreateDescriptorPool(u32 descriptor_sizes);
+
+  const u32 DESCRIPTOR_SETS_PER_POOL = 1024;
+
   struct CmdBufferResources
   {
     // [0] - Init (upload) command buffer, [1] - draw command buffer
@@ -120,6 +123,14 @@ private:
     std::vector<std::function<void()>> cleanup_resources;
   };
 
+  struct FrameResources
+  {
+    std::vector<VkDescriptorPool> descriptor_pools;
+    u32 current_descriptor_pool_index = 0;
+  };
+
+  FrameResources& GetCurrentFrameResources() { return m_frame_resources[m_current_frame]; }
+
   CmdBufferResources& GetCurrentCmdBufferResources()
   {
     return m_command_buffers[m_current_cmd_buffer];
@@ -128,7 +139,7 @@ private:
   u64 m_next_fence_counter = 1;
   u64 m_completed_fence_counter = 0;
 
-  std::array<VkDescriptorPool, NUM_FRAMES_IN_FLIGHT> m_descriptor_pools;
+  std::array<FrameResources, NUM_FRAMES_IN_FLIGHT> m_frame_resources;
   std::array<CmdBufferResources, NUM_COMMAND_BUFFERS> m_command_buffers;
   u32 m_current_frame = 0;
   u32 m_current_cmd_buffer = 0;
@@ -150,6 +161,7 @@ private:
   Common::Flag m_last_present_failed;
   VkResult m_last_present_result = VK_SUCCESS;
   bool m_use_threaded_submission = false;
+  u32 m_descriptor_set_count = 0;
 };
 
 extern std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;
