@@ -20,6 +20,7 @@ struct ConstantPack : std::integer_sequence<T, vals...>
 {
   using value_type = T;
   using peel = ConstantPack<T, vals...>;
+
   template <std::ptrdiff_t>
   static constexpr auto at = std::nullopt;
 };
@@ -29,10 +30,10 @@ struct ConstantPack<T, val, vals...> : std::integer_sequence<T, val, vals...>
 {
   using value_type = T;
   using peel = ConstantPack<T, vals...>;
+  static constexpr T first = val;
+
   template <std::ptrdiff_t idx>
   static constexpr auto at = (idx == 0) ? std::optional(first) : peel::template at<idx - 1>;
-
-  static constexpr T first = val;
 };
 
 template <std::size_t... vals>
