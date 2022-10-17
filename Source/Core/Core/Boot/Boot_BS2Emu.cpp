@@ -190,6 +190,12 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
     INFO_LOG_FMT(BOOT, "DVDRead: offset: {:08x}   memOffset: {:08x}   length: {}", dvd_offset,
                  ram_address, length);
     DVDRead(volume, dvd_offset, ram_address, length, partition);
+    for (u32 i = 0; i < length; i += 32)
+    {
+      if (PowerPC::ppcState.m_enable_dcache)
+        PowerPC::ppcState.dCache.Invalidate(ram_address + i);
+      PowerPC::ppcState.iCache.Invalidate(ram_address + i);
+    }
 
     DiscIO::Riivolution::ApplyApploaderMemoryPatches(riivolution_patches, ram_address, length);
 

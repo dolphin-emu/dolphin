@@ -61,6 +61,9 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 {
   const u32 access_size = BackPatchInfo::GetFlagSize(flags);
 
+  if (m_accurate_cpu_cache_enabled)
+    mode = MemAccessMode::AlwaysSafe;
+
   const bool emit_fastmem = mode != MemAccessMode::AlwaysSafe;
   const bool emit_slowmem = mode != MemAccessMode::AlwaysUnsafe;
 

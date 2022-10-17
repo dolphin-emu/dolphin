@@ -136,6 +136,7 @@ protected:
   bool m_fastmem_enabled = false;
   bool m_mmu_enabled = false;
   bool m_pause_on_panic_enabled = false;
+  bool m_accurate_cpu_cache_enabled = false;
 
   void RefreshConfig();
 

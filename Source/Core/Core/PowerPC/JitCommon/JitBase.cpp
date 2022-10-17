@@ -58,6 +58,13 @@ void JitBase::RefreshConfig()
   m_fastmem_enabled = Config::Get(Config::MAIN_FASTMEM);
   m_mmu_enabled = Core::System::GetInstance().IsMMUMode();
   m_pause_on_panic_enabled = Core::System::GetInstance().IsPauseOnPanicMode();
+  m_accurate_cpu_cache_enabled = Config::Get(Config::MAIN_ACCURATE_CPU_CACHE);
+  if (m_accurate_cpu_cache_enabled)
+  {
+    m_fastmem_enabled = false;
+    // This hack is unneeded if the data cache is being emulated.
+    m_low_dcbz_hack = false;
+  }
 
   analyzer.SetDebuggingEnabled(m_enable_debugging);
   analyzer.SetBranchFollowingEnabled(Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH));
