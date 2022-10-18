@@ -53,7 +53,7 @@ DIDevice::DIDevice(Kernel& ios, const std::string& device_name) : Device(ios, de
 
 void DIDevice::DoState(PointerWrap& p)
 {
-  DoStateShared(p);
+  Device::DoState(p);
   p.Do(m_commands_to_execute);
   p.Do(m_executing_command);
   p.Do(m_current_partition);

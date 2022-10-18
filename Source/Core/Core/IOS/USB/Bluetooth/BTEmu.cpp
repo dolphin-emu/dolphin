@@ -102,7 +102,7 @@ void BluetoothEmuDevice::DoState(PointerWrap& p)
     return;
   }
 
-  p.Do(m_is_active);
+  Device::DoState(p);
   p.Do(m_controller_bd);
   DoStateForMessage(m_ios, p, m_hci_endpoint);
   DoStateForMessage(m_ios, p, m_acl_endpoint);

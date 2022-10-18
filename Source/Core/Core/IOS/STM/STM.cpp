@@ -81,13 +81,13 @@ std::optional<IPCReply> STMEventHookDevice::IOCtl(const IOCtlRequest& request)
 
 void STMEventHookDevice::DoState(PointerWrap& p)
 {
+  Device::DoState(p);
   u32 address = s_event_hook_request ? s_event_hook_request->address : 0;
   p.Do(address);
   if (address != 0)
     s_event_hook_request = std::make_unique<IOCtlRequest>(address);
   else
     s_event_hook_request.reset();
-  Device::DoState(p);
 }
 
 bool STMEventHookDevice::HasHookInstalled() const

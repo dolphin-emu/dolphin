@@ -181,7 +181,6 @@ public:
 
   virtual ~Device() = default;
   virtual void DoState(PointerWrap& p);
-  void DoStateShared(PointerWrap& p);
 
   const std::string& GetDeviceName() const { return m_name; }
   // Replies to Open and Close requests are sent by the IPC request handler (HandleCommand),
