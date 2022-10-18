@@ -1093,8 +1093,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "  }}\n");
   }
 
-  // D3D requires that the shader outputs be uint when writing to a uint render target for logic op.
-  if (api_type == APIType::D3D && uid_data->uint_output)
+  // Some backends require that the shader outputs be uint when writing to a uint render target for
+  // logic op.
+  if (uid_data->uint_output)
   {
     out.Write("  if (bpmem_rgba6_format)\n"
               "    ocol0 = uint4(TevResult & 0xFC);\n"

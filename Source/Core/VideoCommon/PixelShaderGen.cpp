@@ -1665,9 +1665,17 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   else
     out.Write(")) {{\n");
 
-  out.Write("\t\tocol0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-  if (use_dual_source && !(api_type == APIType::D3D && uid_data->uint_output))
-    out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
+  if (uid_data->uint_output)
+    out.Write("\t\tocol0 = uint4(0, 0, 0, 0);\n");
+  else
+    out.Write("\t\tocol0 = float4(0.0, 0.0, 0.0, 0.0);\n");
+  if (use_dual_source)
+  {
+    if (uid_data->uint_output)
+      out.Write("\t\tocol1 = uint4(0, 0, 0, 0);\n");
+    else
+      out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
+  }
   if (per_pixel_depth)
   {
     out.Write("\t\tdepth = {};\n",
@@ -1795,8 +1803,9 @@ static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source)
 {
-  // D3D requires that the shader outputs be uint when writing to a uint render target for logic op.
-  if (api_type == APIType::D3D && uid_data->uint_output)
+  // Some backends require the shader outputs be uint when writing to a uint render target for logic
+  // op.
+  if (uid_data->uint_output)
   {
     if (uid_data->rgba6_format)
       out.Write("\tocol0 = uint4(prev & 0xFC);\n");
