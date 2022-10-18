@@ -93,6 +93,7 @@ FSDevice::FSDevice(Kernel& ios, const std::string& device_name) : Device(ios, de
 
 void FSDevice::DoState(PointerWrap& p)
 {
+  Device::DoState(p);
   p.Do(m_dirty_cache);
   p.Do(m_cache_chain_index);
   p.Do(m_cache_fd);

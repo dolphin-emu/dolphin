@@ -56,7 +56,7 @@ void SDIOSlot0Device::RefreshConfig()
 
 void SDIOSlot0Device::DoState(PointerWrap& p)
 {
-  DoStateShared(p);
+  Device::DoState(p);
   if (p.IsReadMode())
   {
     OpenInternal();

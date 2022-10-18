@@ -323,6 +323,7 @@ void BluetoothRealDevice::DoState(PointerWrap& p)
     return;
   }
 
+  Device::DoState(p);
   // Prevent the transfer callbacks from messing with m_current_transfers after we have started
   // writing a savestate. We cannot use a scoped lock here because DoState is called twice and
   // we would lose the lock between the two calls.

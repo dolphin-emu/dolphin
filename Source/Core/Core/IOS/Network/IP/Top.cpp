@@ -75,7 +75,7 @@ NetIPTopDevice::NetIPTopDevice(Kernel& ios, const std::string& device_name)
 
 void NetIPTopDevice::DoState(PointerWrap& p)
 {
-  DoStateShared(p);
+  Device::DoState(p);
   WiiSockMan::GetInstance().DoState(p);
 }
 
