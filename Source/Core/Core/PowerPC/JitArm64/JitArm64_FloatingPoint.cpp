@@ -575,8 +575,8 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
       m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), RoundingMode::Z);
     }
 
-    m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD),
-                     EncodeRegToDouble(FPR_CONSTANT_FFF8_0000_0000_0000));
+    m_float_emit.INS(32, EncodeRegToDouble(VD), 1,
+                     EncodeRegToDouble(FPR_CONSTANT_FFF8_0000_3F80_0000), 1);
   }
   else
   {

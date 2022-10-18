@@ -119,7 +119,7 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   if (w)
   {
     // Set ps1 to 1.0
-    m_float_emit.INS(32, VS, 1, FPR_CONSTANT_0000_0000_3F80_0000, 0);
+    m_float_emit.INS(32, VS, 1, FPR_CONSTANT_FFF8_0000_3F80_0000, 0);
   }
 
   const ARM64Reg VS_again = fpr.RW(inst.RS, RegType::Single, true);

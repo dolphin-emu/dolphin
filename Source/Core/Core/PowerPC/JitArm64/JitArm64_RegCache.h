@@ -26,9 +26,8 @@ constexpr Arm64Gen::ARM64Reg PPC_REG = Arm64Gen::ARM64Reg::X29;
 constexpr Arm64Gen::ARM64Reg DISPATCHER_PC = Arm64Gen::ARM64Reg::W26;
 
 // FPR constants
-constexpr Arm64Gen::ARM64Reg FPR_CONSTANT_0000_0000_0000_0000 = Arm64Gen::ARM64Reg::Q13;
-constexpr Arm64Gen::ARM64Reg FPR_CONSTANT_0000_0000_3F80_0000 = Arm64Gen::ARM64Reg::Q14;
-constexpr Arm64Gen::ARM64Reg FPR_CONSTANT_FFF8_0000_0000_0000 = Arm64Gen::ARM64Reg::Q15;
+constexpr Arm64Gen::ARM64Reg FPR_CONSTANT_0000_0000_0000_0000 = Arm64Gen::ARM64Reg::Q14;
+constexpr Arm64Gen::ARM64Reg FPR_CONSTANT_FFF8_0000_3F80_0000 = Arm64Gen::ARM64Reg::Q15;
 
 #ifdef __GNUC__
 #define PPCSTATE_OFF(elem)                                                                         \

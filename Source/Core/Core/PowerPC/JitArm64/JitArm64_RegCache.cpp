@@ -748,6 +748,7 @@ void Arm64FPRCache::GetAllocationOrder()
       ARM64Reg::Q10,
       ARM64Reg::Q11,
       ARM64Reg::Q12,
+      ARM64Reg::Q13,
 
       // Caller saved
       ARM64Reg::Q16,
