@@ -1229,9 +1229,15 @@ public:
   void TRN2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void ZIP2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 
-  // Shift by immediate
+  // Scalar shift by immediate
+  void SHL(ARM64Reg Rd, ARM64Reg Rn, u32 shift);
+  void URSHR(ARM64Reg Rd, ARM64Reg Rn, u32 shift);
+
+  // Vector shift by immediate
+  void SHL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void SSHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void SSHLL2(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
+  void URSHR(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void USHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void USHLL2(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void SHRN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);

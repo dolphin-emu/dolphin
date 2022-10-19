@@ -45,24 +45,18 @@ void JitArm64::SetFPRFIfNeeded(bool single, ARM64Reg reg)
 // Emulate the odd truncation/rounding that the PowerPC does on the RHS operand before
 // a single precision multiply. To be precise, it drops the low 28 bits of the mantissa,
 // rounding to nearest as it does.
-void JitArm64::Force25BitPrecision(ARM64Reg output, ARM64Reg input, ARM64Reg temp)
+void JitArm64::Force25BitPrecision(ARM64Reg output, ARM64Reg input)
 {
-  ASSERT(output != input && output != temp && input != temp);
-
-  // temp   = 0x0000'0000'0800'0000ULL
-  // output = 0xFFFF'FFFF'F800'0000ULL
-  m_float_emit.MOVI(32, temp, 0x08, 24);
-  m_float_emit.MOVI(64, output, 0xFFFF'FFFF'0000'0000ULL);
-  m_float_emit.BIC(temp, temp, output);
-  m_float_emit.ORR(32, output, 0xF8, 24);
-
-  // output = (input & ~0xFFFFFFF) + ((input & (1ULL << 27)) << 1)
-  m_float_emit.AND(temp, input, temp);
-  m_float_emit.AND(output, input, output);
   if (IsQuad(input))
-    m_float_emit.ADD(64, output, output, temp);
+  {
+    m_float_emit.URSHR(64, output, input, 28);
+    m_float_emit.SHL(64, output, output, 28);
+  }
   else
-    m_float_emit.ADD(output, output, temp);
+  {
+    m_float_emit.URSHR(output, input, 28);
+    m_float_emit.SHL(output, output, 28);
+  }
 }
 
 void JitArm64::fp_arith(UGeckoInstruction inst)
@@ -113,9 +107,8 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       ASSERT_MSG(DYNA_REC, !inputs_are_singles, "Tried to apply 25-bit precision to single");
 
       V0Q = fpr.GetReg();
-      V1Q = fpr.GetReg();
 
-      Force25BitPrecision(reg_encoder(V0Q), VC, reg_encoder(V1Q));
+      Force25BitPrecision(reg_encoder(V0Q), VC);
       VC = reg_encoder(V0Q);
     }
 
@@ -160,18 +153,16 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     {
       ASSERT_MSG(DYNA_REC, !inputs_are_singles, "Tried to apply 25-bit precision to single");
 
-      V0Q = fpr.GetReg();
       V1Q = fpr.GetReg();
 
-      Force25BitPrecision(reg_encoder(V1Q), VC, reg_encoder(V0Q));
+      Force25BitPrecision(reg_encoder(V1Q), VC);
       VC = reg_encoder(V1Q);
     }
 
     ARM64Reg inaccurate_fma_temp_reg = VD;
     if (inaccurate_fma && d == b)
     {
-      if (V0Q == ARM64Reg::INVALID_REG)
-        V0Q = fpr.GetReg();
+      V0Q = fpr.GetReg();
 
       inaccurate_fma_temp_reg = reg_encoder(V0Q);
     }
