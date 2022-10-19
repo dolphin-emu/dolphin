@@ -168,147 +168,19 @@ constexpr void SetLooseBitField(const std::size_t start, double& host, const fie
 // Forward declarations.
 
 template <class field_t, std::size_t width, std::size_t start, class host_t>
-class MutFixedBitFieldView;
+class FixedBitFieldView;
 template <class field_t, std::size_t width, class host_t>
-class MutLooseBitFieldView;
+class LooseBitFieldView;
 
 template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
-class MutFixedBitFieldArrayView;
+class FixedBitFieldArrayView;
 template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
-class MutLooseBitFieldArrayView;
+class LooseBitFieldArrayView;
 
 template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
-class MutFixedBitFieldArrayViewIterator;
+class FixedBitFieldArrayViewIterator;
 template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
-class MutLooseBitFieldArrayViewIterator;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// BitFieldView concepts
-
-// This is the best solution I could come up with given the circumstances.  There exist tricks for
-// detecting if a type is an instantiation of a given template *without* abusing requires clauses,
-// but the ones I found do not work when value parameters are thrown into the mix.  In short,
-// template instances are just types, lacking a direct link back to the template it originated from.
-namespace detail
-{
-template <class field_t, std::size_t width, std::size_t start, class host_t>
-void PassMutFixedBitFieldView(MutFixedBitFieldView<field_t, width, start, host_t>);
-template <class T>
-concept MF_BFView = requires(T t)
-{
-  PassMutFixedBitFieldView(t);
-};
-
-template <class field_t, std::size_t width, class host_t>
-void PassMutLooseBitFieldView(MutLooseBitFieldView<field_t, width, host_t>);
-
-template <class T>
-concept ML_BFView = requires(T t)
-{
-  PassMutLooseBitFieldView(t);
-};
-
-template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
-void PassMutFixedBitFieldArrayView(MutFixedBitFieldArrayView<field_t, Ns, width, start, host_t>);
-template <class T>
-concept MF_BFArrayView = requires(T t)
-{
-  PassMutFixedBitFieldArrayView(t);
-};
-
-template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
-void PassMutLooseBitFieldArrayView(MutLooseBitFieldArrayView<field_t, Ns, width, host_t>);
-
-template <class T>
-concept ML_BFArrayView = requires(T t)
-{
-  PassMutLooseBitFieldArrayView(t);
-};
-
-template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
-void PassMutFixedBitFieldArrayViewIterator(
-    MutFixedBitFieldArrayViewIterator<field_t, Ns, width, start, host_t>);
-
-template <class T>
-concept MF_BFArrayViewIter = requires(T t)
-{
-  PassMutFixedBitFieldArrayViewIterator(t);
-};
-
-template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
-void PassMutLooseBitFieldArrayViewIterator(
-    MutLooseBitFieldArrayViewIterator<field_t, Ns, width, host_t>);
-
-template <class T>
-concept ML_BFArrayViewIter = requires(T t)
-{
-  PassMutLooseBitFieldArrayViewIterator(t);
-};
-};  // namespace detail
-
-template <class T>
-concept FixedBitFieldView = detail::MF_BFView<T>;
-template <class T>
-concept LooseBitFieldView = detail::ML_BFView<T>;
-template <class T>
-concept BitFieldView = FixedBitFieldView<T> || LooseBitFieldView<T>;
-
-template <class T>
-concept FixedBitFieldArrayView = detail::MF_BFArrayView<T>;
-template <class T>
-concept LooseBitFieldArrayView = detail::ML_BFArrayView<T>;
-template <class T>
-concept BitFieldArrayView = FixedBitFieldArrayView<T> || LooseBitFieldArrayView<T>;
-
-template <class T>
-concept FixedBitFieldArrayViewIterator = detail::MF_BFArrayViewIter<T>;
-template <class T>
-concept LooseBitFieldArrayViewIterator = detail::ML_BFArrayViewIter<T>;
-template <class T>
-concept BitFieldArrayViewIterator =
-    FixedBitFieldArrayViewIterator<T> || LooseBitFieldArrayViewIterator<T>;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// BitFieldView type traits
-
-template <class T>
-struct IsFixedBitFieldView : std::bool_constant<FixedBitFieldView<T>>
-{
-};
-template <class T>
-struct IsLooseBitFieldView : std::bool_constant<LooseBitFieldView<T>>
-{
-};
-template <class T>
-struct IsBitFieldView : std::bool_constant<BitFieldView<T>>
-{
-};
-
-template <class T>
-struct IsFixedBitFieldArrayView : std::bool_constant<FixedBitFieldArrayView<T>>
-{
-};
-template <class T>
-struct IsLooseBitFieldArrayView : std::bool_constant<LooseBitFieldArrayView<T>>
-{
-};
-template <class T>
-struct IsBitFieldArrayView : std::bool_constant<BitFieldArrayView<T>>
-{
-};
-
-template <class T>
-struct IsFixedBitFieldArrayViewIterator : std::bool_constant<FixedBitFieldArrayViewIterator<T>>
-{
-};
-template <class T>
-struct IsLooseBitFieldArrayViewIterator : std::bool_constant<LooseBitFieldArrayViewIterator<T>>
-{
-};
-template <class T>
-struct IsBitFieldArrayViewIterator : std::bool_constant<BitFieldArrayViewIterator<T>>
-{
-};
+class LooseBitFieldArrayViewIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Define some pre-C++17-esque helper functions.  We do this because, even as of C++17, one cannot
@@ -317,49 +189,49 @@ struct IsBitFieldArrayViewIterator : std::bool_constant<BitFieldArrayViewIterato
 template <class field_t, std::size_t width, std::size_t start, class host_t>
 constexpr auto MakeBitFieldView(host_t& host)
 {
-  return MutFixedBitFieldView<field_t, width, start, host_t>(host);
+  return FixedBitFieldView<field_t, width, start, host_t>(host);
 }
 template <class field_t, std::size_t width, std::size_t start, class host_t>
 constexpr auto MakeBitFieldView(const host_t& host)
 {
-  return MutFixedBitFieldView<field_t, width, start, const host_t>(host);
+  return FixedBitFieldView<field_t, width, start, const host_t>(host);
 }
 template <class field_t, std::size_t width, class host_t>
 constexpr auto MakeBitFieldView(const std::size_t start, host_t& host)
 {
-  return MutLooseBitFieldView<field_t, width, host_t>(start, host);
+  return LooseBitFieldView<field_t, width, host_t>(start, host);
 }
 template <class field_t, std::size_t width, class host_t>
 constexpr auto MakeBitFieldView(const std::size_t start, const host_t& host)
 {
-  return MutLooseBitFieldView<field_t, width, const host_t>(start, host);
+  return LooseBitFieldView<field_t, width, const host_t>(start, host);
 }
 
 template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 constexpr auto MakeBitFieldArrayView(host_t& host)
 {
-  return MutFixedBitFieldArrayView<field_t, Ns, width, start, host_t>(host);
+  return FixedBitFieldArrayView<field_t, Ns, width, start, host_t>(host);
 }
 template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 constexpr auto MakeBitFieldArrayView(const host_t& host)
 {
-  return MutFixedBitFieldArrayView<field_t, Ns, width, start, const host_t>(host);
+  return FixedBitFieldArrayView<field_t, Ns, width, start, const host_t>(host);
 }
 template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 constexpr auto MakeBitFieldArrayView(const std::size_t start, host_t& host)
 {
-  return MutLooseBitFieldArrayView<field_t, Ns, width, host_t>(start, host);
+  return LooseBitFieldArrayView<field_t, Ns, width, host_t>(start, host);
 }
 template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 constexpr auto MakeBitFieldArrayView(const std::size_t start, const host_t& host)
 {
-  return MutLooseBitFieldArrayView<field_t, Ns, width, const host_t>(start, host);
+  return LooseBitFieldArrayView<field_t, Ns, width, const host_t>(start, host);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, std::size_t width, std::size_t start, class host_t>
-class MutFixedBitFieldView final
+class FixedBitFieldView final
 {
 protected:
   host_t& host;
@@ -370,9 +242,9 @@ public:
   constexpr static std::size_t BitWidth() { return width; }
   constexpr static std::size_t BitStart() { return start; }
 
-  MutFixedBitFieldView() = delete;
-  constexpr MutFixedBitFieldView(host_t& host_) : host(host_){};
-  constexpr MutFixedBitFieldView& operator=(const MutFixedBitFieldView& rhs)
+  FixedBitFieldView() = delete;
+  constexpr FixedBitFieldView(host_t& host_) : host(host_){};
+  constexpr FixedBitFieldView& operator=(const FixedBitFieldView& rhs)
   {
     return operator=(rhs.Get());
   }
@@ -380,18 +252,18 @@ public:
   constexpr field_t Get() const { return GetFixedBitField<field_t, width, start>(host); }
   constexpr void Set(const field_t val) { SetFixedBitField<field_t, width, start>(host, val); }
 
-  constexpr MutFixedBitFieldView& operator=(const field_t rhs)
+  constexpr FixedBitFieldView& operator=(const field_t rhs)
   {
     Set(rhs);
     return *this;
   }
-  constexpr MutFixedBitFieldView& operator+=(const field_t rhs) { return operator=(Get() + rhs); }
-  constexpr MutFixedBitFieldView& operator-=(const field_t rhs) { return operator=(Get() - rhs); }
-  constexpr MutFixedBitFieldView& operator*=(const field_t rhs) { return operator=(Get() * rhs); }
-  constexpr MutFixedBitFieldView& operator/=(const field_t rhs) { return operator=(Get() / rhs); }
-  constexpr MutFixedBitFieldView& operator|=(const field_t rhs) { return operator=(Get() | rhs); }
-  constexpr MutFixedBitFieldView& operator&=(const field_t rhs) { return operator=(Get() & rhs); }
-  constexpr MutFixedBitFieldView& operator^=(const field_t rhs) { return operator=(Get() ^ rhs); }
+  constexpr FixedBitFieldView& operator+=(const field_t rhs) { return operator=(Get() + rhs); }
+  constexpr FixedBitFieldView& operator-=(const field_t rhs) { return operator=(Get() - rhs); }
+  constexpr FixedBitFieldView& operator*=(const field_t rhs) { return operator=(Get() * rhs); }
+  constexpr FixedBitFieldView& operator/=(const field_t rhs) { return operator=(Get() / rhs); }
+  constexpr FixedBitFieldView& operator|=(const field_t rhs) { return operator=(Get() | rhs); }
+  constexpr FixedBitFieldView& operator&=(const field_t rhs) { return operator=(Get() & rhs); }
+  constexpr FixedBitFieldView& operator^=(const field_t rhs) { return operator=(Get() ^ rhs); }
 
   constexpr operator field_t() const { return Get(); }
   /// This code enables implicit casts to unscoped enums, but also somehow clashes with Qt, which
@@ -412,7 +284,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, std::size_t width, class host_t>
-class MutLooseBitFieldView final
+class LooseBitFieldView final
 {
 protected:
   host_t& host;
@@ -424,10 +296,10 @@ public:
   constexpr static std::size_t BitWidth() { return width; }
   std::size_t BitStart() { return start; }
 
-  MutLooseBitFieldView() = delete;
-  constexpr MutLooseBitFieldView(const std::size_t start_, host_t& host_)
+  LooseBitFieldView() = delete;
+  constexpr LooseBitFieldView(const std::size_t start_, host_t& host_)
       : host(host_), start(start_){};
-  constexpr MutLooseBitFieldView& operator=(const MutLooseBitFieldView& rhs)
+  constexpr LooseBitFieldView& operator=(const LooseBitFieldView& rhs)
   {
     return operator=(rhs.Get());
   }
@@ -438,18 +310,18 @@ public:
     return SetLooseBitField<field_t, width>(start, host, val);
   }
 
-  constexpr MutLooseBitFieldView& operator=(const field_t rhs)
+  constexpr LooseBitFieldView& operator=(const field_t rhs)
   {
     Set(rhs);
     return *this;
   }
-  constexpr MutLooseBitFieldView& operator+=(const field_t rhs) { return operator=(Get() + rhs); }
-  constexpr MutLooseBitFieldView& operator-=(const field_t rhs) { return operator=(Get() - rhs); }
-  constexpr MutLooseBitFieldView& operator*=(const field_t rhs) { return operator=(Get() * rhs); }
-  constexpr MutLooseBitFieldView& operator/=(const field_t rhs) { return operator=(Get() / rhs); }
-  constexpr MutLooseBitFieldView& operator|=(const field_t rhs) { return operator=(Get() | rhs); }
-  constexpr MutLooseBitFieldView& operator&=(const field_t rhs) { return operator=(Get() & rhs); }
-  constexpr MutLooseBitFieldView& operator^=(const field_t rhs) { return operator=(Get() ^ rhs); }
+  constexpr LooseBitFieldView& operator+=(const field_t rhs) { return operator=(Get() + rhs); }
+  constexpr LooseBitFieldView& operator-=(const field_t rhs) { return operator=(Get() - rhs); }
+  constexpr LooseBitFieldView& operator*=(const field_t rhs) { return operator=(Get() * rhs); }
+  constexpr LooseBitFieldView& operator/=(const field_t rhs) { return operator=(Get() / rhs); }
+  constexpr LooseBitFieldView& operator|=(const field_t rhs) { return operator=(Get() | rhs); }
+  constexpr LooseBitFieldView& operator&=(const field_t rhs) { return operator=(Get() & rhs); }
+  constexpr LooseBitFieldView& operator^=(const field_t rhs) { return operator=(Get() ^ rhs); }
 
   constexpr operator field_t() const { return Get(); }
   /// This code enables implicit casts to unscoped enums, but also somehow clashes with Qt, which
@@ -470,7 +342,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
-class MutFixedBitFieldArrayView final
+class FixedBitFieldArrayView final
 {
 protected:
   host_t& host;
@@ -478,22 +350,22 @@ protected:
 public:
   using reference =
       std::conditional_t<(Ns::size() > 1),
-                         MutLooseBitFieldArrayView<field_t, typename Ns::peel, width, host_t>,
-                         MutLooseBitFieldView<field_t, width, host_t>>;
+                         LooseBitFieldArrayView<field_t, typename Ns::peel, width, host_t>,
+                         LooseBitFieldView<field_t, width, host_t>>;
   using const_reference =
       std::conditional_t<(Ns::size() > 1),
-                         MutLooseBitFieldArrayView<field_t, typename Ns::peel, width, const host_t>,
-                         MutLooseBitFieldView<field_t, width, const host_t>>;
-  using iterator = MutFixedBitFieldArrayViewIterator<field_t, Ns, width, start, host_t>;
-  using const_iterator = MutFixedBitFieldArrayViewIterator<field_t, Ns, width, start, const host_t>;
+                         LooseBitFieldArrayView<field_t, typename Ns::peel, width, const host_t>,
+                         LooseBitFieldView<field_t, width, const host_t>>;
+  using iterator = FixedBitFieldArrayViewIterator<field_t, Ns, width, start, host_t>;
+  using const_iterator = FixedBitFieldArrayViewIterator<field_t, Ns, width, start, const host_t>;
 
   using HostType = host_t;
   using FieldType = field_t;
   constexpr static std::size_t BitWidth() { return reference::BitWidth() * length(); }
   constexpr static std::size_t BitStart() { return start; }
 
-  MutFixedBitFieldArrayView() = delete;
-  constexpr MutFixedBitFieldArrayView(host_t& host_) : host(host_)
+  FixedBitFieldArrayView() = delete;
+  constexpr FixedBitFieldArrayView(host_t& host_) : host(host_)
   {
     // This static assertion is normally the job of the GetFixedBitField/SetFixedBitField functions.
     // BitFieldArrayViews never run into those functions, though, which could lead to nasty bugs.
@@ -527,7 +399,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
-class MutLooseBitFieldArrayView final
+class LooseBitFieldArrayView final
 {
 protected:
   host_t& host;
@@ -536,22 +408,22 @@ protected:
 public:
   using reference =
       std::conditional_t<(Ns::size() > 1),
-                         MutLooseBitFieldArrayView<field_t, typename Ns::peel, width, host_t>,
-                         MutLooseBitFieldView<field_t, width, host_t>>;
+                         LooseBitFieldArrayView<field_t, typename Ns::peel, width, host_t>,
+                         LooseBitFieldView<field_t, width, host_t>>;
   using const_reference =
       std::conditional_t<(Ns::size() > 1),
-                         MutLooseBitFieldArrayView<field_t, typename Ns::peel, width, const host_t>,
-                         MutLooseBitFieldView<field_t, width, const host_t>>;
-  using iterator = MutLooseBitFieldArrayViewIterator<field_t, Ns, width, host_t>;
-  using const_iterator = MutLooseBitFieldArrayViewIterator<field_t, Ns, width, const host_t>;
+                         LooseBitFieldArrayView<field_t, typename Ns::peel, width, const host_t>,
+                         LooseBitFieldView<field_t, width, const host_t>>;
+  using iterator = LooseBitFieldArrayViewIterator<field_t, Ns, width, host_t>;
+  using const_iterator = LooseBitFieldArrayViewIterator<field_t, Ns, width, const host_t>;
 
   using HostType = host_t;
   using FieldType = field_t;
   constexpr static std::size_t BitWidth() { return reference::BitWidth() * Ns::first; }
   std::size_t BitStart() { return start; }
 
-  MutLooseBitFieldArrayView() = delete;
-  constexpr MutLooseBitFieldArrayView(const std::size_t start_, host_t& host_)
+  LooseBitFieldArrayView() = delete;
+  constexpr LooseBitFieldArrayView(const std::size_t start_, host_t& host_)
       : host(host_), start(start_)
   {
   }
@@ -582,7 +454,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
-class MutFixedBitFieldArrayViewIterator final
+class FixedBitFieldArrayViewIterator final
 {
 protected:
   host_t& host;
@@ -595,35 +467,33 @@ public:
   using pointer = void;
   using reference =
       std::conditional_t<(Ns::size() > 1),
-                         MutLooseBitFieldArrayView<field_t, typename Ns::peel, width, host_t>,
-                         MutLooseBitFieldView<field_t, width, host_t>>;
+                         LooseBitFieldArrayView<field_t, typename Ns::peel, width, host_t>,
+                         LooseBitFieldView<field_t, width, host_t>>;
 
   using HostType = host_t;
   using FieldType = field_t;
   constexpr static std::size_t BitWidth() { return reference::BitWidth(); }
   constexpr static std::size_t BitStart() { return start; }
 
-  MutFixedBitFieldArrayViewIterator(host_t& host_, const std::size_t idx_) : host(host_), idx(idx_)
-  {
-  }
+  FixedBitFieldArrayViewIterator(host_t& host_, const std::size_t idx_) : host(host_), idx(idx_) {}
 
   // Required by std::input_or_output_iterator
-  constexpr MutFixedBitFieldArrayViewIterator() = default;
+  constexpr FixedBitFieldArrayViewIterator() = default;
   // Copy constructor and assignment operators, required by LegacyIterator
-  constexpr MutFixedBitFieldArrayViewIterator(const MutFixedBitFieldArrayViewIterator&) = default;
-  MutFixedBitFieldArrayViewIterator& operator=(const MutFixedBitFieldArrayViewIterator&) = default;
+  constexpr FixedBitFieldArrayViewIterator(const FixedBitFieldArrayViewIterator&) = default;
+  FixedBitFieldArrayViewIterator& operator=(const FixedBitFieldArrayViewIterator&) = default;
   // Move constructor and assignment operators, explicitly defined for completeness
-  constexpr MutFixedBitFieldArrayViewIterator(MutFixedBitFieldArrayViewIterator&&) = default;
-  MutFixedBitFieldArrayViewIterator& operator=(MutFixedBitFieldArrayViewIterator&&) = default;
+  constexpr FixedBitFieldArrayViewIterator(FixedBitFieldArrayViewIterator&&) = default;
+  FixedBitFieldArrayViewIterator& operator=(FixedBitFieldArrayViewIterator&&) = default;
 
-  MutFixedBitFieldArrayViewIterator& operator++()
+  FixedBitFieldArrayViewIterator& operator++()
   {
     ++idx;
     return *this;
   }
-  MutFixedBitFieldArrayViewIterator operator++(int)
+  FixedBitFieldArrayViewIterator operator++(int)
   {
-    MutFixedBitFieldArrayViewIterator other{*this};
+    FixedBitFieldArrayViewIterator other{*this};
     ++*this;
     return other;
   }
@@ -631,7 +501,7 @@ public:
   {
     return reference(start + reference::BitWidth() * idx, host);
   }
-  constexpr bool operator==(const MutFixedBitFieldArrayViewIterator& other) const
+  constexpr bool operator==(const FixedBitFieldArrayViewIterator& other) const
   {
     return idx == other.idx;
   }
@@ -640,7 +510,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
-class MutLooseBitFieldArrayViewIterator final
+class LooseBitFieldArrayViewIterator final
 {
 protected:
   host_t& host;
@@ -654,36 +524,36 @@ public:
   using pointer = void;
   using reference =
       std::conditional_t<(Ns::size() > 1),
-                         MutLooseBitFieldArrayView<field_t, typename Ns::peel, width, host_t>,
-                         MutLooseBitFieldView<field_t, width, host_t>>;
+                         LooseBitFieldArrayView<field_t, typename Ns::peel, width, host_t>,
+                         LooseBitFieldView<field_t, width, host_t>>;
 
   using HostType = host_t;
   using FieldType = field_t;
   constexpr static std::size_t BitWidth() { return reference::BitWidth(); }
   std::size_t BitStart() { return start; }
 
-  MutLooseBitFieldArrayViewIterator(const std::size_t start_, host_t& host_, const std::size_t idx_)
+  LooseBitFieldArrayViewIterator(const std::size_t start_, host_t& host_, const std::size_t idx_)
       : host(host_), idx(idx_), start(start_)
   {
   }
 
   // Required by std::input_or_output_iterator
-  constexpr MutLooseBitFieldArrayViewIterator() = default;
+  constexpr LooseBitFieldArrayViewIterator() = default;
   // Copy constructor and assignment operators, required by LegacyIterator
-  constexpr MutLooseBitFieldArrayViewIterator(const MutLooseBitFieldArrayViewIterator&) = default;
-  MutLooseBitFieldArrayViewIterator& operator=(const MutLooseBitFieldArrayViewIterator&) = default;
+  constexpr LooseBitFieldArrayViewIterator(const LooseBitFieldArrayViewIterator&) = default;
+  LooseBitFieldArrayViewIterator& operator=(const LooseBitFieldArrayViewIterator&) = default;
   // Move constructor and assignment operators, explicitly defined for completeness
-  constexpr MutLooseBitFieldArrayViewIterator(MutLooseBitFieldArrayViewIterator&&) = default;
-  MutLooseBitFieldArrayViewIterator& operator=(MutLooseBitFieldArrayViewIterator&&) = default;
+  constexpr LooseBitFieldArrayViewIterator(LooseBitFieldArrayViewIterator&&) = default;
+  LooseBitFieldArrayViewIterator& operator=(LooseBitFieldArrayViewIterator&&) = default;
 
-  MutLooseBitFieldArrayViewIterator& operator++()
+  LooseBitFieldArrayViewIterator& operator++()
   {
     ++idx;
     return *this;
   }
-  MutLooseBitFieldArrayViewIterator operator++(int)
+  LooseBitFieldArrayViewIterator operator++(int)
   {
-    MutLooseBitFieldArrayViewIterator other(*this);
+    LooseBitFieldArrayViewIterator other(*this);
     ++*this;
     return other;
   }
@@ -691,7 +561,7 @@ public:
   {
     return reference(start + reference::BitWidth() * idx, host);
   }
-  constexpr bool operator==(const MutLooseBitFieldArrayViewIterator& other) const
+  constexpr bool operator==(const LooseBitFieldArrayViewIterator& other) const
   {
     return idx == other.idx;
   }
@@ -755,13 +625,27 @@ public:
 
 #include <fmt/format.h>
 
-template <Common::BitFieldView T>
-struct fmt::formatter<T>
+template <Common::IntegralOrEnum field_t, std::size_t width, std::size_t start, class host_t>
+struct fmt::formatter<Common::FixedBitFieldView<field_t, width, start, host_t>>
 {
-  fmt::formatter<typename T::FieldType> m_formatter;
+  fmt::formatter<field_t> m_formatter;
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
-  auto format(const T& ref, FormatContext& ctx) const
+  auto format(const Common::FixedBitFieldView<field_t, width, start, host_t>& ref,
+              FormatContext& ctx) const
+  {
+    return m_formatter.format(ref.Get(), ctx);
+  }
+};
+
+template <Common::IntegralOrEnum field_t, std::size_t width, class host_t>
+struct fmt::formatter<Common::LooseBitFieldView<field_t, width, host_t>>
+{
+  fmt::formatter<field_t> m_formatter;
+  constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
+  template <typename FormatContext>
+  auto format(const Common::LooseBitFieldView<field_t, width, host_t>& ref,
+              FormatContext& ctx) const
   {
     return m_formatter.format(ref.Get(), ctx);
   }

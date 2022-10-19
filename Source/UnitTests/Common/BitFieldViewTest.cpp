@@ -186,20 +186,20 @@ namespace test
 {
 // idk why, but std::assignable_from doesn't work.
 template <class field_t, class LHS>
-concept assignable_from_bfview = requires(::Common::MutFixedBitFieldView<field_t, 1, 0, u64> mf_bfv,
-                                          ::Common::MutLooseBitFieldView<field_t, 1, u64> ml_bfv,
+concept assignable_from_bfview = requires(::Common::FixedBitFieldView<field_t, 1, 0, u64> f_bfv,
+                                          ::Common::LooseBitFieldView<field_t, 1, u64> l_bfv,
                                           LHS lhs)
 {
-  lhs = mf_bfv;
-  lhs = ml_bfv;
+  lhs = f_bfv;
+  lhs = l_bfv;
 };
 
 template <class field_t, class TYPE>
-concept explicit_cast_bfview = requires(::Common::MutFixedBitFieldView<field_t, 1, 0, u64> mf_bfv,
-                                        ::Common::MutLooseBitFieldView<field_t, 1, u64> ml_bfv)
+concept explicit_cast_bfview = requires(::Common::FixedBitFieldView<field_t, 1, 0, u64> f_bfv,
+                                        ::Common::LooseBitFieldView<field_t, 1, u64> l_bfv)
 {
-  static_cast<TYPE>(mf_bfv);
-  static_cast<TYPE>(ml_bfv);
+  static_cast<TYPE>(f_bfv);
+  static_cast<TYPE>(l_bfv);
 };
 }  // namespace test
 

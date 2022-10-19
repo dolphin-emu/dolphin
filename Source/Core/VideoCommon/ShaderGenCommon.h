@@ -219,7 +219,7 @@ std::string BitfieldExtract(std::string_view source)
 // bitfieldExtract generator for fixed-variant BitFieldView
 template <Common::IntegralOrEnum field_t, std::size_t width, std::size_t start, class host_t>
 std::string BitfieldExtract(std::string_view source,
-                            Common::MutFixedBitFieldView<field_t, width, start, host_t>
+                            Common::FixedBitFieldView<field_t, width, start, host_t>
                             /*unused*/)
 {
   return fmt::format("bitfieldExtract({}({}), {}, {})", std::is_signed_v<field_t> ? "int" : "uint",
