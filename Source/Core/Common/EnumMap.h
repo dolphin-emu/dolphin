@@ -65,15 +65,15 @@ public:
   // This only exists to perform the safety check; without them, A BitFieldView's implicit
   // conversion would work (but since BitFieldViews are used for game-generated data, we need
   // to be careful about bounds-checking)
-  template <BitFieldView T>
-  constexpr const V& operator[](T key) const
+  template <IntegralOrEnum field_t, std::size_t width, std::size_t start, typename host_t>
+  constexpr const V& operator[](const MutFixedBitFieldView<field_t, width, start, host_t> key) const
   {
-    static_assert(size_t{1} << T::BitWidth() == s_size,
+    static_assert(size_t{1} << width == s_size,
                   "Unsafe indexing into EnumMap (may go out of bounds)");
     return m_array[static_cast<std::size_t>(key.Get())];
   }
-  template <BitFieldView T>
-  constexpr V& operator[](T key)
+  template <IntegralOrEnum field_t, std::size_t width, std::size_t start, typename host_t>
+  constexpr V& operator[](const MutFixedBitFieldView<field_t, width, start, host_t> key)
   {
     static_assert(size_t{1} << T::BitWidth() == s_size,
                   "Unsafe indexing into EnumMap (may go out of bounds)");

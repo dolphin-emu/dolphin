@@ -187,27 +187,19 @@ namespace test
 // idk why, but std::assignable_from doesn't work.
 template <class field_t, class LHS>
 concept assignable_from_bfview = requires(::Common::MutFixedBitFieldView<field_t, 1, 0, u64> mf_bfv,
-                                          ::Common::ConFixedBitFieldView<field_t, 1, 0, u64> cf_bfv,
                                           ::Common::MutLooseBitFieldView<field_t, 1, u64> ml_bfv,
-                                          ::Common::ConLooseBitFieldView<field_t, 1, u64> cl_bfv,
                                           LHS lhs)
 {
   lhs = mf_bfv;
-  lhs = cf_bfv;
   lhs = ml_bfv;
-  lhs = cl_bfv;
 };
 
 template <class field_t, class TYPE>
 concept explicit_cast_bfview = requires(::Common::MutFixedBitFieldView<field_t, 1, 0, u64> mf_bfv,
-                                        ::Common::ConFixedBitFieldView<field_t, 1, 0, u64> cf_bfv,
-                                        ::Common::MutLooseBitFieldView<field_t, 1, u64> ml_bfv,
-                                        ::Common::ConLooseBitFieldView<field_t, 1, u64> cl_bfv)
+                                        ::Common::MutLooseBitFieldView<field_t, 1, u64> ml_bfv)
 {
   static_cast<TYPE>(mf_bfv);
-  static_cast<TYPE>(cf_bfv);
   static_cast<TYPE>(ml_bfv);
-  static_cast<TYPE>(cl_bfv);
 };
 }  // namespace test
 
