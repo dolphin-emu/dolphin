@@ -216,7 +216,7 @@ std::string BitfieldExtract(std::string_view source)
                      static_cast<u32>(BitFieldT::NumBits()));
 }
 
-// bitfieldExtract generator for fixed-variant BitFieldView
+// bitfieldExtract generator for FixedBitFieldViews
 template <Common::IntegralOrEnum field_t, std::size_t width, std::size_t start, class host_t>
 std::string BitfieldExtract(std::string_view source,
                             Common::FixedBitFieldView<field_t, width, start, host_t>

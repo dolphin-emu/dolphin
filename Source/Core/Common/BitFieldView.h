@@ -233,7 +233,7 @@ constexpr auto MakeBitFieldArrayView(const std::size_t start, const host_t& host
 template <class field_t, std::size_t width, std::size_t start, class host_t>
 class FixedBitFieldView final
 {
-protected:
+private:
   host_t& host;
 
 public:
@@ -286,7 +286,7 @@ public:
 template <class field_t, std::size_t width, class host_t>
 class LooseBitFieldView final
 {
-protected:
+private:
   host_t& host;
   const std::size_t start;
 
@@ -344,7 +344,7 @@ public:
 template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 class FixedBitFieldArrayView final
 {
-protected:
+private:
   host_t& host;
 
 public:
@@ -401,7 +401,7 @@ public:
 template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 class LooseBitFieldArrayView final
 {
-protected:
+private:
   host_t& host;
   const std::size_t start;
 
@@ -456,7 +456,7 @@ public:
 template <class field_t, AnyIndexPack Ns, std::size_t width, std::size_t start, class host_t>
 class FixedBitFieldArrayViewIterator final
 {
-protected:
+private:
   host_t& host;
   std::size_t idx;
 
@@ -512,7 +512,7 @@ public:
 template <class field_t, AnyIndexPack Ns, std::size_t width, class host_t>
 class LooseBitFieldArrayViewIterator final
 {
-protected:
+private:
   host_t& host;
   std::size_t idx;
   const std::size_t start;
@@ -566,7 +566,65 @@ public:
     return idx == other.idx;
   }
 };
-};  // namespace Common
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// BitFieldView concepts
+
+namespace detail
+{
+template <IntegralOrEnum f, std::size_t w, std::size_t s, class h>
+void PassFixedBitFieldView(FixedBitFieldView<f, w, s, h>);
+template <IntegralOrEnum f, std::size_t w, class h>
+void PassLooseBitFieldView(LooseBitFieldView<f, w, h>);
+template <IntegralOrEnum f, AnyIndexPack Ns, std::size_t w, std::size_t s, class h>
+void PassFixedBitFieldArrayView(FixedBitFieldArrayView<f, Ns, w, s, h>);
+template <IntegralOrEnum f, AnyIndexPack Ns, std::size_t w, class h>
+void PassLooseBitFieldArrayView(LooseBitFieldArrayView<f, Ns, w, h>);
+template <IntegralOrEnum f, AnyIndexPack Ns, std::size_t w, std::size_t s, class h>
+void PassFixedBitFieldArrayViewIterator(FixedBitFieldArrayViewIterator<f, Ns, w, s, h>);
+template <IntegralOrEnum f, AnyIndexPack Ns, std::size_t w, class h>
+void PassLooseBitFieldArrayViewIterator(LooseBitFieldArrayViewIterator<f, Ns, w, h>);
+}  // namespace detail
+
+template <class T>
+concept AnyFixedBitFieldView = requires(T t)
+{
+  detail::PassFixedBitFieldView(t);
+};
+template <class T>
+concept AnyLooseBitFieldView = requires(T t)
+{
+  detail::PassLooseBitFieldView(t);
+};
+template <class T>
+concept AnyFixedBitFieldArrayView = requires(T t)
+{
+  detail::PassFixedBitFieldArrayView(t);
+};
+template <class T>
+concept AnyLooseBitFieldArrayView = requires(T t)
+{
+  detail::PassLooseBitFieldArrayView(t);
+};
+template <class T>
+concept AnyFixedBitFieldArrayViewIterator = requires(T t)
+{
+  detail::PassFixedBitFieldArrayViewIterator(t);
+};
+template <class T>
+concept AnyLooseBitFieldArrayViewIterator = requires(T t)
+{
+  detail::PassLooseBitFieldArrayViewIterator(t);
+};
+
+template <class T>
+concept AnyBitFieldView = AnyFixedBitFieldView<T> || AnyLooseBitFieldView<T>;
+template <class T>
+concept AnyBitFieldArrayView = AnyFixedBitFieldArrayView<T> || AnyLooseBitFieldArrayView<T>;
+template <class T>
+concept AnyBitFieldArrayViewIterator =
+    AnyFixedBitFieldArrayViewIterator<T> || AnyLooseBitFieldArrayViewIterator<T>;
+}  // namespace Common
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Easily create BitFieldView(Array) methods in a class which target a given host member.
