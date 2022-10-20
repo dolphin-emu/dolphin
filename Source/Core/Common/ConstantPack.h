@@ -4,14 +4,14 @@
 #pragma once
 
 #include <cstddef>
-#include <optional>
+#include <type_traits>
 #include <utility>
 
 // ConstantPack allows one to recursively iterate through a std::integer_sequence
 // e.g. Common::ConstantPack<int, 23, 15, 73, 26, 64>::peel::peel::first == 73
 
-// ConstantPack can also be directly indexed.  Negative or out-of-bounds indicies are std::nullopt.
-// e.g. Common::ConstantPack<int, 23, 15, 73, 26, 64>::at<2>.value() == 73
+// ConstantPack can also be directly indexed, resulting in a std::integral_constant
+// e.g. Common::ConstantPack<int, 23, 15, 73, 26, 64>::at<2>::value == 73
 
 namespace Common
 {
@@ -22,7 +22,7 @@ struct ConstantPack : std::integer_sequence<T, vals...>
   using peel = ConstantPack<T, vals...>;
 
   template <std::ptrdiff_t>
-  static constexpr auto at = std::nullopt;
+  using at = void;
 };
 
 template <typename T, T val, T... vals>
@@ -33,7 +33,8 @@ struct ConstantPack<T, val, vals...> : std::integer_sequence<T, val, vals...>
   static constexpr T first = val;
 
   template <std::ptrdiff_t idx>
-  static constexpr auto at = (idx == 0) ? std::optional(first) : peel::template at<idx - 1>;
+  using at = std::conditional_t<idx == 0, std::integral_constant<T, val>,
+                                typename peel::template at<idx - 1>>;
 };
 
 template <std::size_t... vals>
@@ -57,7 +58,7 @@ concept AnyIndexPack = requires(T t)
   detail::PassConstantPack<std::size_t>(t);
 };
 
-// If you need to further constrain an AnyConstantPack to a certain type, use a requires clause:
-// requires std::same_as<typename T::value_type, TYPE>
+// If you need to further constrain an AnyConstantPack to a certain type, use a requires clause
+// e.g. requires std::same_as<typename T::value_type, TYPE>
 
 }  // namespace Common
