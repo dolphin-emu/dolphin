@@ -441,6 +441,7 @@
     <string name="grid_menu_online_system_update">Perform Online System Update</string>
     <string name="grid_menu_load_wii_system_menu">Load Wii System Menu</string>
     <string name="grid_menu_load_wii_system_menu_installed">Load Wii System Menu (%s)</string>
+    <string name="grid_menu_load_vwii_system_menu_installed">Load vWii System Menu (%s)</string>
     <string name="import_in_progress">Importing...</string>
     <string name="export_in_progress">Exporting...</string>
     <string name="do_not_close_app">Do not close the app!</string>
