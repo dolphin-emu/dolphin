@@ -25,8 +25,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\UpdaterCommon\Platform.h" />
+    <ClInclude Include="..\UpdaterCommon\UI.h" />
+    <ClInclude Include="..\UpdaterCommon\UpdaterCommon.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="..\UpdaterCommon\UpdaterCommon.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Platform.cpp" />
     <ClCompile Include="WinUI.cpp" />
   </ItemGroup>
   <Import Project="$(ExternalsDir)cpp-optparse\exports.props" />
