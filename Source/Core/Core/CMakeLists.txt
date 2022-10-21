@@ -3,6 +3,7 @@ add_library(core
   ActionReplay.h
   ARDecrypt.cpp
   ARDecrypt.h
+  Boot/AncastTypes.h
   Boot/Boot_BS2Emu.cpp
   Boot/Boot_WiiWAD.cpp
   Boot/Boot.cpp
