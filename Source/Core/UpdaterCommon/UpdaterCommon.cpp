@@ -13,6 +13,7 @@
 #include <mbedtls/sha256.h>
 #include <zlib.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
@@ -24,6 +25,11 @@
 #ifndef _WIN32
 #include <sys/stat.h>
 #include <sys/types.h>
+#endif
+
+#ifdef _WIN32
+#include <Windows.h>
+#include <filesystem>
 #endif
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
@@ -414,6 +420,11 @@ bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
 bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
                  const std::string& install_base_path, const std::string& temp_path)
 {
+#ifdef _WIN32
+  const auto self_path = std::filesystem::path(GetModuleName(nullptr).value());
+  const auto self_filename = self_path.filename();
+#endif
+
   for (const auto& op : to_update)
   {
     std::string path = install_base_path + DIR_SEP + op.filename;
@@ -445,6 +456,26 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
 
       permission = file_stats.st_mode;
 #endif
+
+#ifdef _WIN32
+      // If incoming file would overwrite the currently executing file, rename ourself to allow the
+      // overwrite to complete. Renaming ourself while executing is fine, but deleting ourself is
+      // rather tricky. The best way to handle that would be to execute the newly-placed Updater.exe
+      // after entire update has completed, and have it delete our relocated executable. For now we
+      // just let the relocated file hang around.
+      // It is enough to match based on filename, don't need File/VolumeId etc.
+      if (op.filename == self_filename)
+      {
+        auto reloc_path = self_path;
+        reloc_path.replace_filename("Updater.2.exe");
+        if (!MoveFile(self_path.wstring().c_str(), reloc_path.wstring().c_str()))
+        {
+          fprintf(log_fp, "Failed to relocate %s.\n", op.filename.c_str());
+          // Just let the Copy fail, later.
+        }
+      }
+#endif
+
       std::string contents;
       if (!File::ReadFileToString(path, contents))
       {
