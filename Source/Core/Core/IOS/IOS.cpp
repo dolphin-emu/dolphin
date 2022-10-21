@@ -481,7 +481,7 @@ bool Kernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc, const std::string
 
 void Kernel::InitIPC()
 {
-  if (s_ios == nullptr)
+  if (!Core::IsRunning())
     return;
 
   INFO_LOG_FMT(IOS, "IPC initialised.");
