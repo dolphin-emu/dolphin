@@ -1010,10 +1010,14 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
     const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
 
     const QString sysmenu_version =
-        tmd.IsValid() ?
-            QString::fromStdString(DiscIO::GetSysMenuVersionString(tmd.GetTitleVersion())) :
-            QString{};
-    m_boot_sysmenu->setText(tr("Load Wii System Menu %1").arg(sysmenu_version));
+        tmd.IsValid() ? QString::fromStdString(
+                            DiscIO::GetSysMenuVersionString(tmd.GetTitleVersion(), tmd.IsvWii())) :
+                        QString{};
+
+    const QString sysmenu_text = (tmd.IsValid() && tmd.IsvWii()) ? tr("Load vWii System Menu %1") :
+                                                                   tr("Load Wii System Menu %1");
+
+    m_boot_sysmenu->setText(sysmenu_text.arg(sysmenu_version));
 
     m_boot_sysmenu->setEnabled(tmd.IsValid());
 

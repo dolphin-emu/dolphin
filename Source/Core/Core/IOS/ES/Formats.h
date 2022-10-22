@@ -68,6 +68,8 @@ struct TMDHeader
   u8 tmd_version;
   u8 ca_crl_version;
   u8 signer_crl_version;
+  // This is usually an always 0 padding byte, which is set to 1 on vWii TMDs
+  u8 is_vwii;
   u64 ios_id;
   u64 title_id;
   u32 title_flags;
@@ -85,6 +87,7 @@ struct TMDHeader
   u16 fill2;
 };
 static_assert(sizeof(TMDHeader) == 0x1e4, "TMDHeader has the wrong size");
+static_assert(offsetof(TMDHeader, ios_id) == 0x184);
 
 struct Content
 {
@@ -200,6 +203,7 @@ public:
   u16 GetTitleVersion() const;
   u16 GetGroupId() const;
   DiscIO::Region GetRegion() const;
+  bool IsvWii() const;
 
   // Constructs a 6-character game ID in the format typically used by Dolphin.
   // If the 6-character game ID would contain unprintable characters,

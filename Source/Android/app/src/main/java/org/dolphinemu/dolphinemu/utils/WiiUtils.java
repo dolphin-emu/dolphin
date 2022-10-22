@@ -32,6 +32,8 @@ public final class WiiUtils
 
   public static native boolean isSystemMenuInstalled();
 
+  public static native boolean isSystemMenuvWii();
+
   public static native String getSystemMenuVersion();
 
   public static native boolean syncSdFolderToSdImage();

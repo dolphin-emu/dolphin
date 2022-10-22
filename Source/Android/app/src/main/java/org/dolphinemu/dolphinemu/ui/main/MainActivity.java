@@ -161,9 +161,12 @@ public final class MainActivity extends AppCompatActivity
 
     if (WiiUtils.isSystemMenuInstalled())
     {
+      int resId = WiiUtils.isSystemMenuvWii() ?
+              R.string.grid_menu_load_vwii_system_menu_installed :
+              R.string.grid_menu_load_wii_system_menu_installed;
+
       menu.findItem(R.id.menu_load_wii_system_menu).setTitle(
-              getString(R.string.grid_menu_load_wii_system_menu_installed,
-                      WiiUtils.getSystemMenuVersion()));
+              getString(resId, WiiUtils.getSystemMenuVersion()));
     }
 
     return true;
