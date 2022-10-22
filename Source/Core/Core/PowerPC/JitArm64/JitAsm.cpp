@@ -84,6 +84,7 @@ void JitArm64::GenerateAsm()
   // The result of slice decrementation should be in flags if somebody jumped here
   FixupBranch bail = B(CC_LE);
 
+  dispatcher_no_timing_check = GetCodePtr();
   dispatcher_no_check = GetCodePtr();
 
   bool assembly_dispatcher = true;

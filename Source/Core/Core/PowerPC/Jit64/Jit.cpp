@@ -598,10 +598,6 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
 
   MOV(32, PPCSTATE(pc), Imm32(destination));
 
-  // Do not skip breakpoint check if debugging.
-  const u8* dispatcher =
-      m_enable_debugging ? asm_routines.dispatcher : asm_routines.dispatcher_no_check;
-
   // Perform downcount flag check, followed by the requested exit
   if (bl)
   {
@@ -613,7 +609,7 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
     SwitchToNearCode();
 
     linkData.exitPtrs = GetWritableCodePtr();
-    CALL(dispatcher);
+    CALL(asm_routines.dispatcher_no_timing_check);
 
     SetJumpTarget(after_fixup);
     POP(RSCRATCH);
@@ -624,7 +620,7 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
     J_CC(CC_LE, asm_routines.do_timing);
 
     linkData.exitPtrs = GetWritableCodePtr();
-    JMP(dispatcher, true);
+    JMP(asm_routines.dispatcher_no_timing_check, true);
   }
 
   b->linkData.push_back(linkData);
