@@ -13,7 +13,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
-#include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Triggers.h"
 
 namespace WiimoteEmu
 {
@@ -29,10 +29,10 @@ Shinkansen::Shinkansen() : Extension3rdParty("Shinkansen", _trans("Shinkansen Co
   //   Down                    B
   //
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Left"));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Down"));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Right"));
   m_buttons->AddInput(ControllerEmu::Translate, _trans("Up"));
+  m_buttons->AddInput(ControllerEmu::Translate, _trans("Down"));
+  m_buttons->AddInput(ControllerEmu::Translate, _trans("Left"));
+  m_buttons->AddInput(ControllerEmu::Translate, _trans("Right"));
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, "A");
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, "B");
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, "C");
@@ -42,11 +42,9 @@ Shinkansen::Shinkansen() : Extension3rdParty("Shinkansen", _trans("Shinkansen Co
 
   // For easier axis mapping the right lever is inverted in Dolphin,
   // so that the train coasts when no trigger is squeezed.
-  groups.emplace_back(m_levers = new ControllerEmu::MixedTriggers(_trans("Levers")));
+  groups.emplace_back(m_levers = new ControllerEmu::Triggers(_trans("Levers")));
   m_levers->AddInput(ControllerEmu::Translate, _trans("L"));
   m_levers->AddInput(ControllerEmu::Translate, _trans("R"));
-  m_levers->AddInput(ControllerEmu::Translate, _trans("L-Analog"));
-  m_levers->AddInput(ControllerEmu::Translate, _trans("R-Analog"));
 
   groups.emplace_back(m_led = new ControllerEmu::ControlGroup(_trans("Light")));
   m_led->AddOutput(ControllerEmu::Translate, _trans("Doors Locked"));
@@ -56,10 +54,7 @@ void Shinkansen::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DesiredState& state = target_state->data.emplace<DesiredState>();
 
-  u16 digital = 0;
-  const u16 lever_bitmasks[2] = {};
-  double analog[2] = {};
-  m_levers->GetState(&digital, lever_bitmasks, analog);
+  const auto analog = m_levers->GetState().data;
   // The game requires these specific values, all other values are treated like 0/255 (which are
   // guesses).
   const u8 brake_values[] = {0, 53, 79, 105, 132, 159, 187, 217, 250};
@@ -70,10 +65,10 @@ void Shinkansen::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 
   // Note: This currently assumes a little-endian host.
   const u16 button_bitmasks[] = {
-      0x0200,  // Left
-      0x0040,  // Down
-      0x0080,  // Right
       0x0100,  // Up
+      0x0040,  // Down
+      0x0200,  // Left
+      0x0080,  // Right
       0x2000,  // A
       0x4000,  // B
       0x1000,  // C
