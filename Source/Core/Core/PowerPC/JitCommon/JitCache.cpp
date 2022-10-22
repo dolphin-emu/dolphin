@@ -163,12 +163,12 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
   if (Common::JitRegister::IsEnabled() &&
       (symbol = g_symbolDB.GetSymbolFromAddr(block.effectiveAddress)) != nullptr)
   {
-    Common::JitRegister::Register(block.checkedEntry, block.codeSize, "JIT_PPC_{}_{:08x}",
+    Common::JitRegister::Register(block.normalEntry, block.codeSize, "JIT_PPC_{}_{:08x}",
                                   symbol->function_name.c_str(), block.physicalAddress);
   }
   else
   {
-    Common::JitRegister::Register(block.checkedEntry, block.codeSize, "JIT_PPC_{:08x}",
+    Common::JitRegister::Register(block.normalEntry, block.codeSize, "JIT_PPC_{:08x}",
                                   block.physicalAddress);
   }
 }

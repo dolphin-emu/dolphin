@@ -311,7 +311,6 @@ void CachedInterpreter::Jit(u32 address)
   js.numFloatingPointInst = 0;
   js.curBlock = b;
 
-  b->checkedEntry = GetCodePtr();
   b->normalEntry = GetCodePtr();
 
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
@@ -374,7 +373,7 @@ void CachedInterpreter::Jit(u32 address)
   }
   m_code.emplace_back();
 
-  b->codeSize = (u32)(GetCodePtr() - b->checkedEntry);
+  b->codeSize = static_cast<u32>(GetCodePtr() - b->normalEntry);
   b->originalSize = code_block.m_num_instructions;
 
   m_block_cache.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);

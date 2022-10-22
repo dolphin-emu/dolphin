@@ -30,9 +30,6 @@ struct JitBlockData
   u8* far_begin;
   u8* far_end;
 
-  // A special entry point for block linking; usually used to check the
-  // downcount.
-  u8* checkedEntry;
   // The normal entry point for the block, returned by Dispatch().
   u8* normalEntry;
 
