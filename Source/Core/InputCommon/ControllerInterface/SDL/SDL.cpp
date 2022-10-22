@@ -271,6 +271,11 @@ void PopulateDevices()
 #endif
 }
 
+void UpdateInput()
+{
+  SDL_JoystickUpdate();
+}
+
 Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
     : m_joystick(joystick), m_name(StripWhitespace(GetJoystickName(sdl_index)))
 {
@@ -619,8 +624,6 @@ void Joystick::Motor::SetState(ControlState state)
 
 void Joystick::UpdateInput()
 {
-  // TODO: Don't call this for every Joystick, only once per ControllerInterface::UpdateInput()
-  SDL_JoystickUpdate();
 }
 
 std::string Joystick::GetName() const

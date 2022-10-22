@@ -28,6 +28,7 @@ namespace ciface::SDL
 void Init();
 void DeInit();
 void PopulateDevices();
+void UpdateInput();
 
 class Joystick : public Core::Device
 {
