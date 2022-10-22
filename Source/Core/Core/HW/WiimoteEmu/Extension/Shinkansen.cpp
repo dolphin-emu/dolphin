@@ -29,10 +29,10 @@ Shinkansen::Shinkansen() : Extension3rdParty("Shinkansen", _trans("Shinkansen Co
   //   Down                    B
   //
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Left"));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Down"));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Right"));
   m_buttons->AddInput(ControllerEmu::Translate, _trans("Up"));
+  m_buttons->AddInput(ControllerEmu::Translate, _trans("Down"));
+  m_buttons->AddInput(ControllerEmu::Translate, _trans("Left"));
+  m_buttons->AddInput(ControllerEmu::Translate, _trans("Right"));
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, "A");
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, "B");
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, "C");
@@ -70,10 +70,10 @@ void Shinkansen::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 
   // Note: This currently assumes a little-endian host.
   const u16 button_bitmasks[] = {
-      0x0200,  // Left
-      0x0040,  // Down
-      0x0080,  // Right
       0x0100,  // Up
+      0x0040,  // Down
+      0x0200,  // Left
+      0x0080,  // Right
       0x2000,  // A
       0x4000,  // B
       0x1000,  // C
