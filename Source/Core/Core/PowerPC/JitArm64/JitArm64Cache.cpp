@@ -29,8 +29,9 @@ void JitArm64BlockCache::WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit,
     emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
     if (source.call)
     {
-      while (emit.GetCodePtr() < start + BLOCK_LINK_FAST_BL_OFFSET && !emit.HasWriteFailed())
+      if (emit.GetCodePtr() == start + BLOCK_LINK_FAST_BL_OFFSET - sizeof(u32))
         emit.NOP();
+      DEBUG_ASSERT(emit.GetCodePtr() == start + BLOCK_LINK_FAST_BL_OFFSET || emit.HasWriteFailed());
       emit.BL(m_jit.GetAsmRoutines()->dispatcher);
     }
     else
@@ -45,10 +46,8 @@ void JitArm64BlockCache::WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit,
       // The "fast" BL should be the last instruction, so that the return address matches the
       // address that was pushed onto the stack by the function that called WriteLinkBlock
       FixupBranch fast = emit.B(CC_GT);
-      emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
-      emit.BL(m_jit.GetAsmRoutines()->do_timing);
-      while (emit.GetCodePtr() < start + BLOCK_LINK_FAST_BL_OFFSET && !emit.HasWriteFailed())
-        emit.BRK(101);
+      emit.B(source.exitFarcode);
+      DEBUG_ASSERT(emit.GetCodePtr() == start + BLOCK_LINK_FAST_BL_OFFSET || emit.HasWriteFailed());
       emit.SetJumpTarget(fast);
       emit.BL(dest->normalEntry);
     }
@@ -59,16 +58,14 @@ void JitArm64BlockCache::WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit,
       if (block_distance >= -0x40000 && block_distance <= 0x3FFFF)
       {
         emit.B(CC_GT, dest->normalEntry);
-        emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
-        emit.B(m_jit.GetAsmRoutines()->do_timing);
+        emit.B(source.exitFarcode);
       }
       else
       {
         FixupBranch slow = emit.B(CC_LE);
         emit.B(dest->normalEntry);
         emit.SetJumpTarget(slow);
-        emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
-        emit.B(m_jit.GetAsmRoutines()->do_timing);
+        emit.B(source.exitFarcode);
       }
     }
   }

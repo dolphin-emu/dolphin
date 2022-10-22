@@ -372,12 +372,29 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
     STP(IndexType::Pre, ARM64Reg::X0, ARM64Reg::X1, ARM64Reg::SP, -16);
   }
 
+  constexpr size_t primary_farcode_size = 3 * sizeof(u32);
+  const bool switch_to_far_code = !IsInFarCode();
+  const u8* primary_farcode_addr;
+  if (switch_to_far_code)
+  {
+    SwitchToFarCode();
+    primary_farcode_addr = GetCodePtr();
+    SwitchToNearCode();
+  }
+  else
+  {
+    primary_farcode_addr = GetCodePtr() + JitArm64BlockCache::BLOCK_LINK_SIZE +
+                           (LK ? JitArm64BlockCache::BLOCK_LINK_SIZE : 0);
+  }
+  const u8* return_farcode_addr = primary_farcode_addr + primary_farcode_size;
+
   JitBlock* b = js.curBlock;
   JitBlock::LinkData linkData;
   linkData.exitAddress = destination;
   linkData.exitPtrs = GetWritableCodePtr();
   linkData.linkStatus = false;
   linkData.call = LK;
+  linkData.exitFarcode = primary_farcode_addr;
   b->linkData.push_back(linkData);
 
   blocks.WriteLinkBlock(*this, linkData);
@@ -391,10 +408,32 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
     linkData.exitPtrs = GetWritableCodePtr();
     linkData.linkStatus = false;
     linkData.call = false;
+    linkData.exitFarcode = return_farcode_addr;
     b->linkData.push_back(linkData);
 
     blocks.WriteLinkBlock(*this, linkData);
   }
+
+  if (switch_to_far_code)
+    SwitchToFarCode();
+  DEBUG_ASSERT(GetCodePtr() == primary_farcode_addr || HasWriteFailed());
+  MOVI2R(DISPATCHER_PC, destination);
+  if (LK)
+    BL(GetAsmRoutines()->do_timing);
+  else
+    B(GetAsmRoutines()->do_timing);
+
+  if (LK)
+  {
+    if (GetCodePtr() == return_farcode_addr - sizeof(u32))
+      BRK(101);
+    DEBUG_ASSERT(GetCodePtr() == return_farcode_addr || HasWriteFailed());
+    MOVI2R(DISPATCHER_PC, exit_address_after_return);
+    B(GetAsmRoutines()->do_timing);
+  }
+
+  if (switch_to_far_code)
+    SwitchToNearCode();
 }
 
 void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_after_return)
@@ -431,9 +470,27 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
     linkData.exitPtrs = GetWritableCodePtr();
     linkData.linkStatus = false;
     linkData.call = false;
+    const bool switch_to_far_code = !IsInFarCode();
+    if (switch_to_far_code)
+    {
+      SwitchToFarCode();
+      linkData.exitFarcode = GetCodePtr();
+      SwitchToNearCode();
+    }
+    else
+    {
+      linkData.exitFarcode = GetCodePtr() + JitArm64BlockCache::BLOCK_LINK_SIZE;
+    }
     b->linkData.push_back(linkData);
 
     blocks.WriteLinkBlock(*this, linkData);
+
+    if (switch_to_far_code)
+      SwitchToFarCode();
+    MOVI2R(DISPATCHER_PC, exit_address_after_return);
+    B(GetAsmRoutines()->do_timing);
+    if (switch_to_far_code)
+      SwitchToNearCode();
   }
 }
 
@@ -465,9 +522,27 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return)
   linkData.exitPtrs = GetWritableCodePtr();
   linkData.linkStatus = false;
   linkData.call = false;
+  const bool switch_to_far_code = !IsInFarCode();
+  if (switch_to_far_code)
+  {
+    SwitchToFarCode();
+    linkData.exitFarcode = GetCodePtr();
+    SwitchToNearCode();
+  }
+  else
+  {
+    linkData.exitFarcode = GetCodePtr() + JitArm64BlockCache::BLOCK_LINK_SIZE;
+  }
   b->linkData.push_back(linkData);
 
   blocks.WriteLinkBlock(*this, linkData);
+
+  if (switch_to_far_code)
+    SwitchToFarCode();
+  MOVI2R(DISPATCHER_PC, exit_address_after_return);
+  B(GetAsmRoutines()->do_timing);
+  if (switch_to_far_code)
+    SwitchToNearCode();
 
   SetJumpTarget(skip_exit);
 }
