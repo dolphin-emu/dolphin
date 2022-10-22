@@ -361,11 +361,14 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
 
   LK &= m_enable_blr_optimization;
 
+  const u8* host_address_after_return;
   if (LK)
   {
-    // Push {ARM_PC+20; PPC_PC} on the stack
+    // Push {ARM_PC; PPC_PC} on the stack
     MOVI2R(ARM64Reg::X1, exit_address_after_return);
-    ADR(ARM64Reg::X0, 20);
+    constexpr s32 adr_offset = JitArm64BlockCache::BLOCK_LINK_SIZE + sizeof(u32) * 2;
+    host_address_after_return = GetCodePtr() + adr_offset;
+    ADR(ARM64Reg::X0, adr_offset);
     STP(IndexType::Pre, ARM64Reg::X0, ARM64Reg::X1, ARM64Reg::SP, -16);
   }
 
@@ -381,6 +384,8 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
 
   if (LK)
   {
+    DEBUG_ASSERT(GetCodePtr() == host_address_after_return || HasWriteFailed());
+
     // Write the regular exit node after the return.
     linkData.exitAddress = exit_address_after_return;
     linkData.exitPtrs = GetWritableCodePtr();
@@ -411,10 +416,13 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
   {
     // Push {ARM_PC, PPC_PC} on the stack
     MOVI2R(ARM64Reg::X1, exit_address_after_return);
-    ADR(ARM64Reg::X0, 12);
+    constexpr s32 adr_offset = sizeof(u32) * 3;
+    const u8* host_address_after_return = GetCodePtr() + adr_offset;
+    ADR(ARM64Reg::X0, adr_offset);
     STP(IndexType::Pre, ARM64Reg::X0, ARM64Reg::X1, ARM64Reg::SP, -16);
 
     BL(dispatcher);
+    DEBUG_ASSERT(GetCodePtr() == host_address_after_return || HasWriteFailed());
 
     // Write the regular exit node after the return.
     JitBlock* b = js.curBlock;
@@ -440,11 +448,14 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return)
   ARM64Reg after_reg = gpr.GetReg();
   ARM64Reg code_reg = gpr.GetReg();
   MOVI2R(after_reg, exit_address_after_return);
-  ADR(EncodeRegTo64(code_reg), 12);
+  constexpr s32 adr_offset = sizeof(u32) * 3;
+  const u8* host_address_after_return = GetCodePtr() + adr_offset;
+  ADR(EncodeRegTo64(code_reg), adr_offset);
   STP(IndexType::Pre, EncodeRegTo64(code_reg), EncodeRegTo64(after_reg), ARM64Reg::SP, -16);
   gpr.Unlock(after_reg, code_reg);
 
   FixupBranch skip_exit = BL();
+  DEBUG_ASSERT(GetCodePtr() == host_address_after_return || HasWriteFailed());
   gpr.Unlock(ARM64Reg::W30);
 
   // Write the regular exit node after the return.
@@ -839,17 +850,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   u8* const start = GetWritableCodePtr();
   b->checkedEntry = start;
-
-  // Downcount flag check, Only valid for linked blocks
-  {
-    FixupBranch bail = B(CC_PL);
-    MOVI2R(DISPATCHER_PC, js.blockStart);
-    B(do_timing);
-    SetJumpTarget(bail);
-  }
-
-  // Normal entry doesn't need to check for downcount.
-  b->normalEntry = GetWritableCodePtr();
+  b->normalEntry = start;
 
   // Conditionally add profiling code.
   if (jo.profile_blocks)

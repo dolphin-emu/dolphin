@@ -22,52 +22,73 @@ void JitArm64BlockCache::Init()
 void JitArm64BlockCache::WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit,
                                         const JitBlock::LinkData& source, const JitBlock* dest)
 {
+  const u8* start = emit.GetCodePtr();
+
   if (!dest)
   {
-    // Use a fixed amount of instructions, so we can assume to use 3 instructions on patching.
-    emit.MOVZ(DISPATCHER_PC, source.exitAddress & 0xFFFF, ShiftAmount::Shift0);
-    emit.MOVK(DISPATCHER_PC, source.exitAddress >> 16, ShiftAmount::Shift16);
-
+    emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
     if (source.call)
+    {
+      while (emit.GetCodePtr() < start + BLOCK_LINK_FAST_BL_OFFSET && !emit.HasWriteFailed())
+        emit.NOP();
       emit.BL(m_jit.GetAsmRoutines()->dispatcher);
+    }
     else
+    {
       emit.B(m_jit.GetAsmRoutines()->dispatcher);
-    return;
+    }
+  }
+  else
+  {
+    if (source.call)
+    {
+      // The "fast" BL should be the last instruction, so that the return address matches the
+      // address that was pushed onto the stack by the function that called WriteLinkBlock
+      FixupBranch fast = emit.B(CC_GT);
+      emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
+      emit.BL(m_jit.GetAsmRoutines()->do_timing);
+      while (emit.GetCodePtr() < start + BLOCK_LINK_FAST_BL_OFFSET && !emit.HasWriteFailed())
+        emit.BRK(101);
+      emit.SetJumpTarget(fast);
+      emit.BL(dest->normalEntry);
+    }
+    else
+    {
+      // Are we able to jump directly to the block?
+      s64 block_distance = ((s64)dest->normalEntry - (s64)emit.GetCodePtr()) >> 2;
+      if (block_distance >= -0x40000 && block_distance <= 0x3FFFF)
+      {
+        emit.B(CC_GT, dest->normalEntry);
+        emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
+        emit.B(m_jit.GetAsmRoutines()->do_timing);
+      }
+      else
+      {
+        FixupBranch slow = emit.B(CC_LE);
+        emit.B(dest->normalEntry);
+        emit.SetJumpTarget(slow);
+        emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
+        emit.B(m_jit.GetAsmRoutines()->do_timing);
+      }
+    }
   }
 
-  if (source.call)
+  // Use a fixed number of instructions so we have enough room for any patching needed later.
+  const u8* end = start + BLOCK_LINK_SIZE;
+  while (emit.GetCodePtr() < end)
   {
-    // The "fast" BL must be the third instruction. So just use the former two to inline the
-    // downcount check here. It's better to do this near jump before the long jump to the other
-    // block.
-    FixupBranch fast_link = emit.B(CC_GT);
-    emit.BL(dest->checkedEntry);
-    emit.SetJumpTarget(fast_link);
-    emit.BL(dest->normalEntry);
-    return;
-  }
-
-  // Are we able to jump directly to the normal entry?
-  s64 distance = ((s64)dest->normalEntry - (s64)emit.GetCodePtr()) >> 2;
-  if (distance >= -0x40000 && distance <= 0x3FFFF)
-  {
-    emit.B(CC_GT, dest->normalEntry);
-    emit.B(dest->checkedEntry);
     emit.BRK(101);
-    return;
+    if (emit.HasWriteFailed())
+      return;
   }
-
-  FixupBranch fast_link = emit.B(CC_GT);
-  emit.B(dest->checkedEntry);
-  emit.SetJumpTarget(fast_link);
-  emit.B(dest->normalEntry);
+  ASSERT(emit.GetCodePtr() == end);
 }
 
 void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest)
 {
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   u8* location = source.exitPtrs;
-  ARM64XEmitter emit(location, location + 12);
+  ARM64XEmitter emit(location, location + BLOCK_LINK_SIZE);
 
   WriteLinkBlock(emit, source, dest);
   emit.FlushIcache();
