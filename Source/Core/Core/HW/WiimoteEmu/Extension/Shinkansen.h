@@ -9,7 +9,7 @@ namespace ControllerEmu
 {
 class Buttons;
 class ControlGroup;
-class MixedTriggers;
+class Triggers;
 }  // namespace ControllerEmu
 
 namespace WiimoteEmu
@@ -40,7 +40,7 @@ public:
 
 private:
   ControllerEmu::Buttons* m_buttons;
-  ControllerEmu::MixedTriggers* m_levers;
+  ControllerEmu::Triggers* m_levers;
   ControllerEmu::ControlGroup* m_led;
 
   struct DataFormat
