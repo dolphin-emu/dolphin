@@ -103,12 +103,9 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
     ASSERT_MSG(DYNA_REC, !singles, "Tried to apply 25-bit precision to single");
 
     V0Q = fpr.GetReg();
-    const ARM64Reg V1Q = fpr.GetReg();
 
-    Force25BitPrecision(reg_encoder(V0Q), reg_encoder(VC), reg_encoder(V1Q));
+    Force25BitPrecision(reg_encoder(V0Q), reg_encoder(VC));
     VC = reg_encoder(V0Q);
-
-    fpr.Unlock(V1Q);
   }
 
   m_float_emit.FMUL(size, reg_encoder(VD), reg_encoder(VA), reg_encoder(VC), upper ? 1 : 0);
@@ -165,10 +162,9 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   {
     ASSERT_MSG(DYNA_REC, !singles, "Tried to apply 25-bit precision to single");
 
-    allocate_v0_if_needed();
     V1Q = fpr.GetReg();
 
-    Force25BitPrecision(reg_encoder(V1Q), VC, V0);
+    Force25BitPrecision(reg_encoder(V1Q), VC);
     VC = reg_encoder(V1Q);
   }
 
