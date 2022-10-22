@@ -285,6 +285,8 @@ protected:
 
   void ResetFreeMemoryRanges();
 
+  void IntializeSpeculativeConstants();
+
   // AsmRoutines
   void GenerateAsm();
   void GenerateCommonAsm();

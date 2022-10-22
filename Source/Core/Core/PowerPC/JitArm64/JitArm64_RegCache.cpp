@@ -202,37 +202,40 @@ void Arm64GPRCache::FlushRegister(size_t index, bool maintain_state, ARM64Reg tm
   }
   else if (reg.GetType() == RegType::Immediate)
   {
-    if (!reg.GetImm())
+    if (reg.IsDirty())
     {
-      m_emit->STR(IndexType::Unsigned, bitsize == 64 ? ARM64Reg::ZR : ARM64Reg::WZR, PPC_REG,
-                  u32(guest_reg.ppc_offset));
-    }
-    else
-    {
-      bool allocated_tmp_reg = false;
-      if (tmp_reg != ARM64Reg::INVALID_REG)
+      if (!reg.GetImm())
       {
-        ASSERT(IsGPR(tmp_reg));
+        m_emit->STR(IndexType::Unsigned, bitsize == 64 ? ARM64Reg::ZR : ARM64Reg::WZR, PPC_REG,
+                    u32(guest_reg.ppc_offset));
       }
       else
       {
-        ASSERT_MSG(DYNA_REC, !maintain_state,
-                   "Flushing immediate while maintaining state requires temporary register");
-        tmp_reg = GetReg();
-        allocated_tmp_reg = true;
+        bool allocated_tmp_reg = false;
+        if (tmp_reg != ARM64Reg::INVALID_REG)
+        {
+          ASSERT(IsGPR(tmp_reg));
+        }
+        else
+        {
+          ASSERT_MSG(DYNA_REC, !maintain_state,
+                     "Flushing immediate while maintaining state requires temporary register");
+          tmp_reg = GetReg();
+          allocated_tmp_reg = true;
+        }
+
+        const ARM64Reg encoded_tmp_reg = bitsize != 64 ? tmp_reg : EncodeRegTo64(tmp_reg);
+
+        m_emit->MOVI2R(encoded_tmp_reg, reg.GetImm());
+        m_emit->STR(IndexType::Unsigned, encoded_tmp_reg, PPC_REG, u32(guest_reg.ppc_offset));
+
+        if (allocated_tmp_reg)
+          UnlockRegister(tmp_reg);
       }
 
-      const ARM64Reg encoded_tmp_reg = bitsize != 64 ? tmp_reg : EncodeRegTo64(tmp_reg);
-
-      m_emit->MOVI2R(encoded_tmp_reg, reg.GetImm());
-      m_emit->STR(IndexType::Unsigned, encoded_tmp_reg, PPC_REG, u32(guest_reg.ppc_offset));
-
-      if (allocated_tmp_reg)
-        UnlockRegister(tmp_reg);
+      if (!maintain_state)
+        reg.Flush();
     }
-
-    if (!maintain_state)
-      reg.Flush();
   }
 }
 
@@ -335,12 +338,13 @@ ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
   return ARM64Reg::INVALID_REG;
 }
 
-void Arm64GPRCache::SetImmediate(const GuestRegInfo& guest_reg, u32 imm)
+void Arm64GPRCache::SetImmediate(const GuestRegInfo& guest_reg, u32 imm, bool dirty)
 {
   OpArg& reg = guest_reg.reg;
   if (reg.GetType() == RegType::Register)
     UnlockRegister(EncodeRegTo32(reg.GetReg()));
   reg.LoadToImm(imm);
+  reg.SetDirty(dirty);
 }
 
 void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool will_read, bool will_write)
@@ -373,8 +377,8 @@ void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool will_read
       m_emit->MOVI2R(host_reg, reg.GetImm());
     }
     reg.Load(host_reg);
-    // If the register had an immediate value, the register was effectively already dirty
-    reg.SetDirty(true);
+    if (will_write)
+      reg.SetDirty(true);
   }
   else if (will_write)
   {
