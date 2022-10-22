@@ -356,7 +356,6 @@ void JitArm64::GenerateConvertDoubleToSingle()
   LSR(ARM64Reg::X1, ARM64Reg::X0, 32);
   FixupBranch denormal = B(CCFlags::CC_LS);
 
-  AND(ARM64Reg::X1, ARM64Reg::X1, LogicalImm(0xc0000000, 64));
   BFXIL(ARM64Reg::X1, ARM64Reg::X0, 29, 30);
   RET();
 
