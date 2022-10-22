@@ -12,6 +12,7 @@
 #include "Common/Matrix.h"
 #include "Common/WindowSystemInfo.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
+#include "InputCommon/ControllerInterface/InputBackend.h"
 
 // enable disable sources
 #ifdef _WIN32
@@ -133,6 +134,8 @@ private:
   WindowSystemInfo m_wsi;
   std::atomic<float> m_aspect_ratio_adjustment = 1;
   std::atomic<bool> m_requested_mouse_centering = false;
+
+  std::vector<std::unique_ptr<ciface::InputBackend>> m_input_backends;
 };
 
 namespace ciface
