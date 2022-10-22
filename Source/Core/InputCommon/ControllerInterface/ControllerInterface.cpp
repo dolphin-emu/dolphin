@@ -70,7 +70,7 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 // nothing needed
 #endif
 #ifdef CIFACE_USE_EVDEV
-  ciface::evdev::Init();
+  m_input_backends.emplace_back(ciface::evdev::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_PIPES
 // nothing needed
@@ -184,9 +184,6 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
 #ifdef CIFACE_USE_ANDROID
   ciface::Android::PopulateDevices();
 #endif
-#ifdef CIFACE_USE_EVDEV
-  ciface::evdev::PopulateDevices();
-#endif
 #ifdef CIFACE_USE_PIPES
   ciface::Pipes::PopulateDevices();
 #endif
@@ -245,13 +242,11 @@ void ControllerInterface::Shutdown()
 #ifdef CIFACE_USE_ANDROID
 // nothing needed
 #endif
-#ifdef CIFACE_USE_EVDEV
-  ciface::evdev::Shutdown();
-#endif
 #ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
   ciface::DualShockUDPClient::DeInit();
 #endif
 
+  // Empty the container of input backends to deconstruct and deinitialize them.
   m_input_backends.clear();
 
   // Make sure no devices had been added within Shutdown() in the time
