@@ -76,7 +76,7 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 // nothing needed
 #endif
 #ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
-  ciface::DualShockUDPClient::Init();
+  m_input_backends.emplace_back(ciface::DualShockUDPClient::CreateInputBackend(this));
 #endif
 
   // Don't allow backends to add devices before the first RefreshDevices() as they will be cleaned
@@ -187,9 +187,6 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
 #ifdef CIFACE_USE_PIPES
   ciface::Pipes::PopulateDevices();
 #endif
-#ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
-  ciface::DualShockUDPClient::PopulateDevices();
-#endif
 
   for (auto& backend : m_input_backends)
     backend->PopulateDevices();
@@ -241,9 +238,6 @@ void ControllerInterface::Shutdown()
 #endif
 #ifdef CIFACE_USE_ANDROID
 // nothing needed
-#endif
-#ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
-  ciface::DualShockUDPClient::DeInit();
 #endif
 
   // Empty the container of input backends to deconstruct and deinitialize them.
