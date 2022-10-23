@@ -50,14 +50,8 @@ void MemoryPatches::UnsetPatch(u32 address)
   if (it == m_patches.end())
     return;
 
-  const std::size_t size = m_patches.size();
-  std::size_t index = size - std::distance(it, m_patches.end());
-  while (index < size)
-  {
-    DisablePatch(index);
-    ++index;
-  }
-  m_patches.erase(it, m_patches.end());
+  const std::size_t index = std::distance(m_patches.begin(), it);
+  RemovePatch(index);
 }
 
 void MemoryPatches::EnablePatch(std::size_t index)
