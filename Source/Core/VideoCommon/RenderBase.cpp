@@ -488,6 +488,7 @@ void Renderer::CheckForConfigChanges()
 
   UpdateActiveConfig();
   FreeLook::UpdateActiveConfig();
+  g_vertex_manager->OnConfigChange();
 
   g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
 

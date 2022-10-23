@@ -3,6 +3,7 @@
 
 #include "VideoCommon/UberShaderVertex.h"
 
+#include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/UberShaderCommon.h"
@@ -35,6 +36,8 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   const bool ssaa = host_config.ssaa;
   const bool per_pixel_lighting = host_config.per_pixel_lighting;
   const bool vertex_rounding = host_config.vertex_rounding;
+  const bool vertex_loader =
+      host_config.backend_dynamic_vertex_loader || host_config.backend_vs_point_line_expand;
   const u32 num_texgen = uid_data->num_texgens;
   ShaderCode out;
 
@@ -46,6 +49,13 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   out.Write("{}", s_shader_uniforms);
   out.Write("}};\n");
 
+  if (vertex_loader)
+  {
+    out.Write("UBO_BINDING(std140, 3) uniform GSBlock {{\n");
+    out.Write("{}", s_geometry_shader_uniforms);
+    out.Write("}};\n");
+  }
+
   out.Write("struct VS_OUTPUT {{\n");
   GenerateVSOutputMembers(out, api_type, num_texgen, host_config, "", ShaderStage::Vertex);
   out.Write("}};\n\n");
@@ -54,7 +64,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   WriteBitfieldExtractHeader(out, api_type, host_config);
   WriteLightingFunction(out);
 
-  if (host_config.backend_dynamic_vertex_loader)
+  if (vertex_loader)
   {
     out.Write(R"(
 SSBO_BINDING(1) readonly restrict buffer Vertices {{
@@ -73,17 +83,17 @@ SSBO_BINDING(1) readonly restrict buffer Vertices {{
       // D3D12 uses a root constant for this uniform, since it changes with every draw.
       // D3D11 doesn't currently support dynamic vertex loader, and we'll have to figure something
       // out for it if we want to support it in the future.
-      out.Write("UBO_BINDING(std140, 3) uniform DX_Constants {{\n"
+      out.Write("UBO_BINDING(std140, 4) uniform DX_Constants {{\n"
                 "  uint base_vertex;\n"
                 "}};\n\n"
-                "uint GetVertexBaseOffset() {{\n"
-                "  return (gl_VertexID + base_vertex) * vertex_stride;\n"
+                "uint GetVertexBaseOffset(uint vertex_id) {{\n"
+                "  return (vertex_id + base_vertex) * vertex_stride;\n"
                 "}}\n");
     }
     else
     {
-      out.Write("uint GetVertexBaseOffset() {{\n"
-                "  return gl_VertexID * vertex_stride;\n"
+      out.Write("uint GetVertexBaseOffset(uint vertex_id) {{\n"
+                "  return vertex_id * vertex_stride;\n"
                 "}}\n");
     }
 
@@ -187,9 +197,17 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
 
   out.Write("VS_OUTPUT o;\n"
             "\n");
-  if (host_config.backend_dynamic_vertex_loader)
+  if (host_config.backend_vs_point_line_expand)
   {
-    out.Write("uint vertex_base_offset = GetVertexBaseOffset();\n");
+    out.Write("uint vertex_id = gl_VertexID;\n"
+              "if (vs_expand != 0u) {{\n"
+              "  vertex_id = vertex_id >> 2;\n"
+              "}}\n"
+              "uint vertex_base_offset = GetVertexBaseOffset(vertex_id);\n");
+  }
+  else if (host_config.backend_dynamic_vertex_loader)
+  {
+    out.Write("uint vertex_base_offset = GetVertexBaseOffset(gl_VertexID);\n");
   }
   // rawpos is always needed
   LoadVertexAttribute(out, host_config, 0, "rawpos", "float4", "rawpos");
@@ -319,6 +337,40 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
   // Texture Coordinates
   if (num_texgen > 0)
     GenVertexShaderTexGens(api_type, host_config, num_texgen, out);
+
+  if (host_config.backend_vs_point_line_expand)
+  {
+    out.Write("if (vs_expand == {}u) {{ // Line\n", static_cast<u32>(VSExpand::Line));
+    out.Write("  bool is_bottom = (gl_VertexID & 2) != 0;\n"
+              "  bool is_right = (gl_VertexID & 1) != 0;\n"
+              "  uint other_base_offset = vertex_base_offset;\n"
+              "  if (is_bottom) {{\n"
+              "    other_base_offset -= vertex_stride;\n"
+              "  }} else {{\n"
+              "    other_base_offset += vertex_stride;\n"
+              "  }}\n"
+              "  float4 other_rawpos = load_input_float4_rawpos(other_base_offset, "
+              "vertex_offset_rawpos);\n"
+              "  float4 other_p0 = P0;\n"
+              "  float4 other_p1 = P1;\n"
+              "  float4 other_p2 = P2;\n"
+              "  if ((components & {}u) != 0u) {{ // VB_HAS_POSMTXIDX\n",
+              VB_HAS_POSMTXIDX);
+    out.Write("    uint other_posidx = load_input_uint4_ubyte4(other_base_offset, "
+              "vertex_offset_posmtx).r;\n"
+              "    other_p0 = " I_TRANSFORMMATRICES "[other_posidx];\n"
+              "    other_p1 = " I_TRANSFORMMATRICES "[other_posidx+1];\n"
+              "    other_p2 = " I_TRANSFORMMATRICES "[other_posidx+2];\n"
+              "  }}\n"
+              "  float4 other_pos = float4(dot(other_p0, other_rawpos), "
+              "dot(other_p1, other_rawpos), dot(other_p2, other_rawpos), 1.0);\n");
+    GenerateVSLineExpansion(out, "  ", num_texgen);
+    out.Write("}} else if (vs_expand == {}u) {{ // Point\n", static_cast<u32>(VSExpand::Point));
+    out.Write("  bool is_bottom = (gl_VertexID & 2) != 0;\n"
+              "  bool is_right = (gl_VertexID & 1) != 0;\n");
+    GenerateVSPointExpansion(out, "  ", num_texgen);
+    out.Write("}}\n");
+  }
 
   if (per_pixel_lighting)
   {
@@ -574,7 +626,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
             "    {{\n");
   out.Write("      if ((components & ({}u /* VB_HAS_TEXMTXIDX0 */ << texgen)) != 0u) {{\n",
             VB_HAS_TEXMTXIDX0);
-  if (host_config.backend_dynamic_vertex_loader)
+  if (host_config.backend_dynamic_vertex_loader || host_config.backend_vs_point_line_expand)
   {
     out.Write("        int tmp = int(load_input_float3_rawtex(vertex_base_offset, "
               "vertex_offset_rawtex[texgen / 4][texgen % 4]).z);\n"
@@ -655,7 +707,7 @@ static void LoadVertexAttribute(ShaderCode& code, const ShaderHostConfig& host_c
                                 std::string_view name, std::string_view shader_type,
                                 std::string_view stored_type, std::string_view offset_name)
 {
-  if (host_config.backend_dynamic_vertex_loader)
+  if (host_config.backend_dynamic_vertex_loader || host_config.backend_vs_point_line_expand)
   {
     code.Write("{:{}}{} {} = load_input_{}_{}(vertex_base_offset, vertex_offset_{});\n", "", indent,
                shader_type, name, shader_type, stored_type,

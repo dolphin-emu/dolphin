@@ -15,6 +15,7 @@
 #include "VideoBackends/Metal/MTLTexture.h"
 #include "VideoBackends/Metal/MTLUtil.h"
 
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -462,9 +463,10 @@ void Metal::StateTracker::UnbindTexture(id<MTLTexture> texture)
   }
 }
 
-void Metal::StateTracker::InvalidateUniforms(bool vertex, bool fragment)
+void Metal::StateTracker::InvalidateUniforms(bool vertex, bool geometry, bool fragment)
 {
   m_flags.has_gx_vs_uniform &= !vertex;
+  m_flags.has_gx_gs_uniform &= !geometry;
   m_flags.has_gx_ps_uniform &= !fragment;
 }
 
@@ -721,6 +723,14 @@ void Metal::StateTracker::PrepareRender()
         SetFragmentBufferNow(1, map.gpu_buffer, map.gpu_offset);
       ADDSTAT(g_stats.this_frame.bytes_uniform_streamed,
               Align(sizeof(VertexShaderConstants), AlignMask::Uniform));
+    }
+    if (!m_flags.has_gx_gs_uniform && pipe->UsesVertexBuffer(2))
+    {
+      m_flags.has_gx_gs_uniform = true;
+      [m_current_render_encoder setVertexBytes:&GeometryShaderManager::constants
+                                        length:sizeof(GeometryShaderConstants)
+                                       atIndex:2];
+      ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, sizeof(GeometryShaderConstants));
     }
     if (!m_flags.has_gx_ps_uniform)
     {

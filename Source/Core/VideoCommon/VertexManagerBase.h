@@ -140,6 +140,9 @@ public:
                                  u32* out_offset, const void* palette_data, u32 palette_size,
                                  TexelBufferFormat palette_format, u32* out_palette_offset);
 
+  // Call if active config changes
+  void OnConfigChange();
+
   // CPU access tracking - call after a draw call is made.
   void OnDraw();
 

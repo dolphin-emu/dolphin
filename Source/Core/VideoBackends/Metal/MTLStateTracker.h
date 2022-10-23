@@ -83,7 +83,7 @@ public:
   void SetTexture(u32 idx, id<MTLTexture> texture);
   void SetSampler(u32 idx, const SamplerState& sampler);
   void SetComputeTexture(const Texture* texture);
-  void InvalidateUniforms(bool vertex, bool fragment);
+  void InvalidateUniforms(bool vertex, bool geometry, bool fragment);
   void SetUtilityUniform(const void* buffer, size_t size);
   void SetTexelBuffer(id<MTLBuffer> buffer, u32 offset0, u32 offset1);
   void SetVerticesAndIndices(id<MTLBuffer> vertices, id<MTLBuffer> indices);
@@ -180,6 +180,7 @@ private:
     {
       // clang-format off
       bool has_gx_vs_uniform      : 1;
+      bool has_gx_gs_uniform      : 1;
       bool has_gx_ps_uniform      : 1;
       bool has_utility_vs_uniform : 1;
       bool has_utility_ps_uniform : 1;

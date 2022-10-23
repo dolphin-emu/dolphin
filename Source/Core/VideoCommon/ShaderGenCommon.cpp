@@ -5,6 +5,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "VideoCommon/VideoCommon.h"
@@ -44,6 +45,7 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
       g_ActiveConfig.ManualTextureSamplingWithHiResTextures();
   bits.backend_sampler_lod_bias = g_ActiveConfig.backend_info.bSupportsLodBiasInSampler;
   bits.backend_dynamic_vertex_loader = g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader;
+  bits.backend_vs_point_line_expand = g_ActiveConfig.UseVSForLinePointExpand();
   return bits;
 }
 
@@ -249,6 +251,78 @@ void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_v
   {
     object.Write("\t{}.clipDist0 = {}.clipDist0;\n", a, b);
     object.Write("\t{}.clipDist1 = {}.clipDist1;\n", a, b);
+  }
+}
+
+void GenerateLineOffset(ShaderCode& object, std::string_view indent0, std::string_view indent1,
+                        std::string_view pos_a, std::string_view pos_b, std::string_view sign)
+{
+  // GameCube/Wii's line drawing algorithm is a little quirky. It does not
+  // use the correct line caps. Instead, the line caps are vertical or
+  // horizontal depending the slope of the line.
+  object.Write("{indent0}float2 offset;\n"
+               "{indent0}float2 to = abs({pos_a}.xy / {pos_a}.w - {pos_b}.xy / {pos_b}.w);\n"
+               // FIXME: What does real hardware do when line is at a 45-degree angle?
+               // FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
+               "{indent0}if (" I_LINEPTPARAMS ".y * to.y > " I_LINEPTPARAMS ".x * to.x) {{\n"
+               // Line is more tall. Extend geometry left and right.
+               // Lerp LineWidth/2 from [0..VpWidth] to [-1..1]
+               "{indent1}offset = float2({sign}" I_LINEPTPARAMS ".z / " I_LINEPTPARAMS ".x, 0);\n"
+               "{indent0}}} else {{\n"
+               // Line is more wide. Extend geometry up and down.
+               // Lerp LineWidth/2 from [0..VpHeight] to [1..-1]
+               "{indent1}offset = float2(0, {sign}-" I_LINEPTPARAMS ".z / " I_LINEPTPARAMS ".y);\n"
+               "{indent0}}}\n",
+               fmt::arg("indent0", indent0), fmt::arg("indent1", indent1),  //
+               fmt::arg("pos_a", pos_a), fmt::arg("pos_b", pos_b), fmt::arg("sign", sign));
+}
+
+void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, u32 texgens)
+{
+  std::string indent1 = std::string(indent) + "  ";
+  object.Write("{0}other_pos = float4(dot(" I_PROJECTION "[0], other_pos), dot(" I_PROJECTION
+               "[1], other_pos), dot(" I_PROJECTION "[2], other_pos), dot(" I_PROJECTION
+               "[3], other_pos));\n"
+               "\n"
+               "{0}float expand_sign = is_right ? 1.0f : -1.0f;\n",
+               indent);
+  GenerateLineOffset(object, indent, indent1, "o.pos", "other_pos", "expand_sign * ");
+  object.Write("\n"
+               "{}o.pos.xy += offset * o.pos.w;\n",
+               indent);
+  if (texgens > 0)
+  {
+    object.Write("{}if ((" I_TEXOFFSET "[2] != 0) && is_right) {{\n", indent);
+    object.Write("{}  float texOffset = 1.0 / float(" I_TEXOFFSET "[2]);\n", indent);
+    for (u32 i = 0; i < texgens; i++)
+    {
+      object.Write("{}  if (((" I_TEXOFFSET "[0] >> {}) & 0x1) != 0)\n", indent, i);
+      object.Write("{}    o.tex{}.x += texOffset;\n", indent, i);
+    }
+    object.Write("{}}}\n", indent);
+  }
+}
+
+void GenerateVSPointExpansion(ShaderCode& object, std::string_view indent, u32 texgens)
+{
+  object.Write(
+      "{0}float2 expand_sign = float2(is_right ? 1.0f : -1.0f, is_bottom ? -1.0f : 1.0f);\n"
+      "{0}float2 offset = expand_sign * " I_LINEPTPARAMS ".ww / " I_LINEPTPARAMS ".xy;\n"
+      "{0}o.pos.xy += offset * o.pos.w;\n",
+      indent);
+  if (texgens > 0)
+  {
+    object.Write("{0}if (" I_TEXOFFSET "[3] != 0) {{\n"
+                 "{0}  float texOffsetMagnitude = 1.0f / float(" I_TEXOFFSET "[3]);\n"
+                 "{0}  float2 texOffset = float2(is_right ? texOffsetMagnitude : 0.0f, "
+                 "is_bottom ? texOffsetMagnitude : 0.0f);",
+                 indent);
+    for (u32 i = 0; i < texgens; i++)
+    {
+      object.Write("{}  if (((" I_TEXOFFSET "[1] >> {}) & 0x1) != 0)\n", indent, i);
+      object.Write("{}    o.tex{}.xy += texOffset;\n", indent, i);
+    }
+    object.Write("{}}}\n", indent);
   }
 }
 

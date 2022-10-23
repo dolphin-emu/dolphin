@@ -190,11 +190,73 @@ u16* AddLineStrip(u16* index_ptr, u32 num_verts, u32 index)
   return index_ptr;
 }
 
+template <bool pr, bool linestrip>
+u16* AddLines_VSExpand(u16* index_ptr, u32 num_verts, u32 index)
+{
+  // VS Expand uses (index >> 2) as the base vertex
+  // Bit 0 indicates which side of the line (left/right for a vertical line)
+  // Bit 1 indicates which point of the line (top/bottom for a vertical line)
+  // VS Expand assumes the two points will be adjacent vertices
+  constexpr u32 advance = linestrip ? 1 : 2;
+  for (u32 i = 1; i < num_verts; i += advance)
+  {
+    u32 p0 = (index + i - 1) << 2;
+    u32 p1 = (index + i - 0) << 2;
+    if constexpr (pr)
+    {
+      *index_ptr++ = p0 + 0;
+      *index_ptr++ = p0 + 1;
+      *index_ptr++ = p1 + 2;
+      *index_ptr++ = p1 + 3;
+      *index_ptr++ = s_primitive_restart;
+    }
+    else
+    {
+      *index_ptr++ = p0 + 0;
+      *index_ptr++ = p0 + 1;
+      *index_ptr++ = p1 + 2;
+      *index_ptr++ = p0 + 1;
+      *index_ptr++ = p1 + 2;
+      *index_ptr++ = p1 + 3;
+    }
+  }
+  return index_ptr;
+}
+
 u16* AddPoints(u16* index_ptr, u32 num_verts, u32 index)
 {
   for (u32 i = 0; i != num_verts; ++i)
   {
     *index_ptr++ = index + i;
+  }
+  return index_ptr;
+}
+
+template <bool pr>
+u16* AddPoints_VSExpand(u16* index_ptr, u32 num_verts, u32 index)
+{
+  // VS Expand uses (index >> 2) as the base vertex
+  // Bottom two bits indicate which of (TL, TR, BL, BR) this is
+  for (u32 i = 0; i < num_verts; ++i)
+  {
+    u32 base = (index + i) << 2;
+    if constexpr (pr)
+    {
+      *index_ptr++ = base + 0;
+      *index_ptr++ = base + 1;
+      *index_ptr++ = base + 2;
+      *index_ptr++ = base + 3;
+      *index_ptr++ = s_primitive_restart;
+    }
+    else
+    {
+      *index_ptr++ = base + 0;
+      *index_ptr++ = base + 1;
+      *index_ptr++ = base + 2;
+      *index_ptr++ = base + 1;
+      *index_ptr++ = base + 2;
+      *index_ptr++ = base + 3;
+    }
   }
   return index_ptr;
 }
@@ -220,9 +282,27 @@ void IndexGenerator::Init()
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_STRIP] = AddStrip<false>;
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_FAN] = AddFan<false>;
   }
-  m_primitive_table[Primitive::GX_DRAW_LINES] = AddLineList;
-  m_primitive_table[Primitive::GX_DRAW_LINE_STRIP] = AddLineStrip;
-  m_primitive_table[Primitive::GX_DRAW_POINTS] = AddPoints;
+  if (g_Config.UseVSForLinePointExpand())
+  {
+    if (g_Config.backend_info.bSupportsPrimitiveRestart)
+    {
+      m_primitive_table[Primitive::GX_DRAW_LINES] = AddLines_VSExpand<true, false>;
+      m_primitive_table[Primitive::GX_DRAW_LINE_STRIP] = AddLines_VSExpand<true, true>;
+      m_primitive_table[Primitive::GX_DRAW_POINTS] = AddPoints_VSExpand<true>;
+    }
+    else
+    {
+      m_primitive_table[Primitive::GX_DRAW_LINES] = AddLines_VSExpand<false, false>;
+      m_primitive_table[Primitive::GX_DRAW_LINE_STRIP] = AddLines_VSExpand<false, true>;
+      m_primitive_table[Primitive::GX_DRAW_POINTS] = AddPoints_VSExpand<false>;
+    }
+  }
+  else
+  {
+    m_primitive_table[Primitive::GX_DRAW_LINES] = AddLineList;
+    m_primitive_table[Primitive::GX_DRAW_LINE_STRIP] = AddLineStrip;
+    m_primitive_table[Primitive::GX_DRAW_POINTS] = AddPoints;
+  }
 }
 
 void IndexGenerator::Start(u16* index_ptr)
@@ -246,10 +326,14 @@ void IndexGenerator::AddExternalIndices(const u16* indices, u32 num_indices, u32
   m_base_index += num_vertices;
 }
 
-u32 IndexGenerator::GetRemainingIndices() const
+u32 IndexGenerator::GetRemainingIndices(OpcodeDecoder::Primitive primitive) const
 {
-  // -1 is reserved for primitive restart (OGL + DX11)
-  constexpr u32 max_index = 65534;
+  u32 max_index = USHRT_MAX;
 
-  return max_index - m_base_index;
+  if (g_Config.UseVSForLinePointExpand() && primitive >= OpcodeDecoder::Primitive::GX_DRAW_LINES)
+    max_index >>= 2;
+
+  // -1 is reserved for primitive restart
+
+  return max_index - m_base_index - 1;
 }

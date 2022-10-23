@@ -73,6 +73,7 @@ extern const Info<ShaderCompilationMode> GFX_SHADER_COMPILATION_MODE;
 extern const Info<int> GFX_SHADER_COMPILER_THREADS;
 extern const Info<int> GFX_SHADER_PRECOMPILER_THREADS;
 extern const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE;
+extern const Info<bool> GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION;
 
 extern const Info<bool> GFX_SW_DUMP_OBJECTS;
 extern const Info<bool> GFX_SW_DUMP_TEV_STAGES;

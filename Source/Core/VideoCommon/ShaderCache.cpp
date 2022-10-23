@@ -10,6 +10,7 @@
 #include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 
+#include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
@@ -695,6 +696,35 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
     ps->ztest = EmulatedZ::EarlyWithZComplocHack;
   }
 
+  if (g_ActiveConfig.UseVSForLinePointExpand() &&
+      (out.rasterization_state.primitive == PrimitiveType::Points ||
+       out.rasterization_state.primitive == PrimitiveType::Lines))
+  {
+    // All primitives are expanded to triangles in the vertex shader
+    vertex_shader_uid_data* vs = out.vs_uid.GetUidData();
+    const PortableVertexDeclaration& decl = out.vertex_format->GetVertexDeclaration();
+    vs->position_has_3_elems = decl.position.components >= 3;
+    vs->texcoord_elem_count = 0;
+    for (int i = 0; i < 8; i++)
+    {
+      if (decl.texcoords[i].enable)
+      {
+        ASSERT(decl.texcoords[i].components <= 3);
+        vs->texcoord_elem_count |= decl.texcoords[i].components << (i * 2);
+      }
+    }
+    out.vertex_format = nullptr;
+    if (out.rasterization_state.primitive == PrimitiveType::Points)
+      vs->vs_expand = VSExpand::Point;
+    else
+      vs->vs_expand = VSExpand::Line;
+    PrimitiveType prim = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+                             PrimitiveType::TriangleStrip :
+                             PrimitiveType::Triangles;
+    out.rasterization_state.primitive = prim;
+    out.gs_uid.GetUidData()->primitive_type = static_cast<u32>(prim);
+  }
+
   return out;
 }
 
@@ -760,6 +790,17 @@ static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
     out.blending_state.usedualsrc = false;
     out.ps_uid.GetUidData()->no_dual_src = true;
   }
+
+  if (g_ActiveConfig.UseVSForLinePointExpand())
+  {
+    // All primitives are expanded to triangles in the vertex shader
+    PrimitiveType prim = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+                             PrimitiveType::TriangleStrip :
+                             PrimitiveType::Triangles;
+    out.rasterization_state.primitive = prim;
+    out.gs_uid.GetUidData()->primitive_type = static_cast<u32>(prim);
+  }
+
   return out;
 }
 

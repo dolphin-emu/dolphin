@@ -58,6 +58,11 @@ bool VertexManager::Initialize()
 
   m_vertex_buffer = StreamBuffer::Create(GL_ARRAY_BUFFER, VERTEX_STREAM_BUFFER_SIZE);
   m_index_buffer = StreamBuffer::Create(GL_ELEMENT_ARRAY_BUFFER, INDEX_STREAM_BUFFER_SIZE);
+  if (g_ActiveConfig.UseVSForLinePointExpand() ||
+      g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+  {
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_vertex_buffer->GetGLBufferId());
+  }
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
   {
