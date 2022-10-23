@@ -375,7 +375,7 @@ void CleanUpTempDir(const std::string& temp_dir, const TodoList& todo)
 bool BackupFile(const std::string& path)
 {
   std::string backup_path = path + ".bak";
-  fprintf(log_fp, "Backing up unknown pre-existing %s to .bak.\n", path.c_str());
+  fprintf(log_fp, "Backing up existing %s to .bak.\n", path.c_str());
   if (!File::Rename(path, backup_path))
   {
     fprintf(log_fp, "Cound not rename %s to %s for backup.\n", path.c_str(), backup_path.c_str());
