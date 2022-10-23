@@ -127,7 +127,10 @@ public:
     ASSERT(bytes == size);
 
     // 4 GPU ticks per vertex, 3 CPU ticks per GPU tick
-    m_cycles += num_vertices * 4 * 3 + 6;
+    // HACK:  Use a flat minimum cycles for low vertice scenes.
+    // Dolphin's GPU timings are way too fast, especially in low polygon scenes.
+    // This hack prevents hangs in Speed Challenge and Splinter Cell: Chaos Theory.
+    m_cycles += std::max(1600, num_vertices * 4 * 3 + 6);
   }
   // This can't be inlined since it calls Run, which makes it recursive
   // m_in_display_list prevents it from actually recursing infinitely, but there's no real benefit
