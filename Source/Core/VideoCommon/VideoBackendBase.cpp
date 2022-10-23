@@ -274,6 +274,7 @@ void VideoBackendBase::PopulateBackendInfo()
   // a value from the previously used renderer
   g_Config.backend_info = {};
   ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
+  g_Config.backend_info.DisplayName = g_video_backend->GetDisplayName();
   g_video_backend->InitBackendInfo();
   // We validate the config after initializing the backend info, as system-specific settings
   // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
