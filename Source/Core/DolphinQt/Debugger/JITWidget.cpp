@@ -182,12 +182,6 @@ void JITWidget::Update()
     // Add stats to the end of the ppc box since it's generally the shortest.
     ppc_disasm << std::dec << std::endl;
 
-    // Add some generic analysis
-    if (st.isFirstBlockOfFunction)
-      ppc_disasm << "(first block of function)" << std::endl;
-    if (st.isLastBlockOfFunction)
-      ppc_disasm << "(last block of function)" << std::endl;
-
     ppc_disasm << st.numCycles << " estimated cycles" << std::endl;
 
     ppc_disasm << "Num instr: PPC: " << code_block.m_num_instructions
