@@ -26,10 +26,10 @@
 
 namespace Vulkan
 {
-VKTexture::VKTexture(const TextureConfig& tex_config, VkDeviceMemory device_memory, VkImage image,
+VKTexture::VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkImage image,
                      std::string_view name, VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
                      ComputeImageLayout compute_layout /* = ComputeImageLayout::Undefined */)
-    : AbstractTexture(tex_config), m_device_memory(device_memory), m_image(image), m_layout(layout),
+    : AbstractTexture(tex_config), m_alloc(alloc), m_image(image), m_layout(layout),
       m_compute_layout(compute_layout), m_name(name)
 {
   if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
@@ -49,10 +49,9 @@ VKTexture::~VKTexture()
   g_command_buffer_mgr->DeferImageViewDestruction(m_view);
 
   // If we don't have device memory allocated, the image is not owned by us (e.g. swapchain)
-  if (m_device_memory != VK_NULL_HANDLE)
+  if (m_alloc != VK_NULL_HANDLE)
   {
-    g_command_buffer_mgr->DeferImageDestruction(m_image);
-    g_command_buffer_mgr->DeferDeviceMemoryDestruction(m_device_memory);
+    g_command_buffer_mgr->DeferImageDestruction(m_image, m_alloc);
   }
 }
 
@@ -85,46 +84,28 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
                                   nullptr,
                                   VK_IMAGE_LAYOUT_UNDEFINED};
 
+  VmaAllocationCreateInfo alloc_create_info = {};
+  alloc_create_info.flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
+  alloc_create_info.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+  alloc_create_info.pool = VK_NULL_HANDLE;
+  alloc_create_info.pUserData = nullptr;
+  alloc_create_info.priority =
+      tex_config.IsComputeImage() || tex_config.IsRenderTarget() ? 1.0 : 0.0;
+  alloc_create_info.requiredFlags = 0;
+  alloc_create_info.preferredFlags = 0;
+
   VkImage image = VK_NULL_HANDLE;
-  VkResult res = vkCreateImage(g_vulkan_context->GetDevice(), &image_info, nullptr, &image);
+  VmaAllocation alloc = VK_NULL_HANDLE;
+  VkResult res = vmaCreateImage(g_vulkan_context->GetMemoryAllocator(), &image_info,
+                                &alloc_create_info, &image, &alloc, nullptr);
   if (res != VK_SUCCESS)
   {
-    LOG_VULKAN_ERROR(res, "vkCreateImage failed: ");
+    LOG_VULKAN_ERROR(res, "vmaCreateImage failed: ");
     return nullptr;
   }
 
-  // Allocate memory to back this texture, we want device local memory in this case
-  VkMemoryRequirements memory_requirements;
-  vkGetImageMemoryRequirements(g_vulkan_context->GetDevice(), image, &memory_requirements);
-
-  VkMemoryAllocateInfo memory_info = {
-      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, nullptr, memory_requirements.size,
-      g_vulkan_context
-          ->GetMemoryType(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                          false)
-          .value_or(0)};
-
-  VkDeviceMemory device_memory;
-  res = vkAllocateMemory(g_vulkan_context->GetDevice(), &memory_info, nullptr, &device_memory);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-    vkDestroyImage(g_vulkan_context->GetDevice(), image, nullptr);
-    return nullptr;
-  }
-
-  res = vkBindImageMemory(g_vulkan_context->GetDevice(), image, device_memory, 0);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkBindImageMemory failed: ");
-    vkDestroyImage(g_vulkan_context->GetDevice(), image, nullptr);
-    vkFreeMemory(g_vulkan_context->GetDevice(), device_memory, nullptr);
-    return nullptr;
-  }
-
-  std::unique_ptr<VKTexture> texture =
-      std::make_unique<VKTexture>(tex_config, device_memory, image, name, VK_IMAGE_LAYOUT_UNDEFINED,
-                                  ComputeImageLayout::Undefined);
+  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
+      tex_config, alloc, image, name, VK_IMAGE_LAYOUT_UNDEFINED, ComputeImageLayout::Undefined);
   if (!texture->CreateView(VK_IMAGE_VIEW_TYPE_2D_ARRAY))
     return nullptr;
 
@@ -135,7 +116,7 @@ std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_con
                                                     VkImageViewType view_type, VkImageLayout layout)
 {
   std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
-      tex_config, VkDeviceMemory(VK_NULL_HANDLE), image, "", layout, ComputeImageLayout::Undefined);
+      tex_config, VmaAllocation(VK_NULL_HANDLE), image, "", layout, ComputeImageLayout::Undefined);
   if (!texture->CreateView(view_type))
     return nullptr;
 
@@ -701,9 +682,9 @@ void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer,
 
 VKStagingTexture::VKStagingTexture(PrivateTag, StagingTextureType type, const TextureConfig& config,
                                    std::unique_ptr<StagingBuffer> buffer, VkImage linear_image,
-                                   VkDeviceMemory linear_image_memory)
+                                   VmaAllocation linear_image_alloc)
     : AbstractStagingTexture(type, config), m_staging_buffer(std::move(buffer)),
-      m_linear_image(linear_image), m_linear_image_memory(linear_image_memory)
+      m_linear_image(linear_image), m_linear_image_alloc(linear_image_alloc)
 {
 }
 
@@ -711,8 +692,7 @@ VKStagingTexture::~VKStagingTexture()
 {
   if (m_linear_image != VK_NULL_HANDLE)
   {
-    g_command_buffer_mgr->DeferImageDestruction(m_linear_image);
-    g_command_buffer_mgr->DeferDeviceMemoryDestruction(m_linear_image_memory);
+    g_command_buffer_mgr->DeferImageDestruction(m_linear_image, m_linear_image_alloc);
   }
 }
 
@@ -741,28 +721,27 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
   }
 
   VkBuffer buffer;
-  VkDeviceMemory memory;
-  bool coherent;
-  if (!StagingBuffer::AllocateBuffer(buffer_type, buffer_size, buffer_usage, &buffer, &memory,
-                                     &coherent))
+  VmaAllocation alloc;
+  char* map_ptr;
+  if (!StagingBuffer::AllocateBuffer(buffer_type, buffer_size, buffer_usage, &buffer, &alloc,
+                                     &map_ptr))
   {
     return nullptr;
   }
 
   // Linear image
   VkImage linear_image = VK_NULL_HANDLE;
-  VkDeviceMemory linear_image_device_memory = VK_NULL_HANDLE;
+  VmaAllocation linear_image_alloc = VK_NULL_HANDLE;
   if (DriverDetails::HasBug(DriverDetails::BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY) &&
       type == StagingTextureType::Readback && config.samples == 1)
   {
-    std::tie(linear_image, linear_image_device_memory) = CreateLinearImage(type, config);
+    std::tie(linear_image, linear_image_alloc) = CreateLinearImage(type, config);
   }
 
   std::unique_ptr<StagingBuffer> staging_buffer =
-      std::make_unique<StagingBuffer>(buffer_type, buffer, memory, buffer_size, coherent);
-  std::unique_ptr<VKStagingTexture> staging_tex =
-      std::make_unique<VKStagingTexture>(PrivateTag{}, type, config, std::move(staging_buffer),
-                                         linear_image, linear_image_device_memory);
+      std::make_unique<StagingBuffer>(buffer_type, buffer, alloc, buffer_size, map_ptr);
+  std::unique_ptr<VKStagingTexture> staging_tex = std::make_unique<VKStagingTexture>(
+      PrivateTag{}, type, config, std::move(staging_buffer), linear_image, linear_image_alloc);
 
   // Use persistent mapping.
   if (!staging_tex->m_staging_buffer->Map())
@@ -772,8 +751,8 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
   return staging_tex;
 }
 
-std::pair<VkImage, VkDeviceMemory> VKStagingTexture::CreateLinearImage(StagingTextureType type,
-                                                                       const TextureConfig& config)
+std::pair<VkImage, VmaAllocation> VKStagingTexture::CreateLinearImage(StagingTextureType type,
+                                                                      const TextureConfig& config)
 {
   // Create a intermediate texture with linear tiling
   VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -802,43 +781,25 @@ std::pair<VkImage, VkDeviceMemory> VKStagingTexture::CreateLinearImage(StagingTe
     return std::make_pair(VK_NULL_HANDLE, VK_NULL_HANDLE);
   }
 
+  VmaAllocationCreateInfo alloc_create_info = {};
+  alloc_create_info.flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
+  alloc_create_info.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+  alloc_create_info.pool = VK_NULL_HANDLE;
+  alloc_create_info.pUserData = nullptr;
+  alloc_create_info.priority = 0.0;
+  alloc_create_info.requiredFlags = 0;
+  alloc_create_info.preferredFlags = 0;
+
   VkImage image;
-  res = vkCreateImage(g_vulkan_context->GetDevice(), &image_info, nullptr, &image);
+  VmaAllocation alloc;
+  res = vmaCreateImage(g_vulkan_context->GetMemoryAllocator(), &image_info, &alloc_create_info,
+                       &image, &alloc, nullptr);
   if (res != VK_SUCCESS)
   {
-    LOG_VULKAN_ERROR(res, "vkCreateImage failed: ");
+    LOG_VULKAN_ERROR(res, "vmaCreateImage failed: ");
     return std::make_pair(VK_NULL_HANDLE, VK_NULL_HANDLE);
   }
-
-  // Allocate memory to back this texture, we want device local memory in this case
-  VkMemoryRequirements memory_requirements;
-  vkGetImageMemoryRequirements(g_vulkan_context->GetDevice(), image, &memory_requirements);
-
-  VkMemoryAllocateInfo memory_info = {
-      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, nullptr, memory_requirements.size,
-      g_vulkan_context
-          ->GetMemoryType(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                          false)
-          .value_or(0)};
-
-  VkDeviceMemory device_memory;
-  res = vkAllocateMemory(g_vulkan_context->GetDevice(), &memory_info, nullptr, &device_memory);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-    vkDestroyImage(g_vulkan_context->GetDevice(), image, nullptr);
-    return std::make_pair(VK_NULL_HANDLE, VK_NULL_HANDLE);
-  }
-
-  res = vkBindImageMemory(g_vulkan_context->GetDevice(), image, device_memory, 0);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkBindImageMemory failed: ");
-    vkDestroyImage(g_vulkan_context->GetDevice(), image, nullptr);
-    vkFreeMemory(g_vulkan_context->GetDevice(), device_memory, nullptr);
-    return std::make_pair(VK_NULL_HANDLE, VK_NULL_HANDLE);
-  }
-  return std::make_pair(image, device_memory);
+  return std::make_pair(image, alloc);
 }
 
 void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,

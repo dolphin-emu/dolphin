@@ -525,13 +525,6 @@ void CommandBufferManager::BeginCommandBuffer()
   m_current_cmd_buffer = next_buffer_index;
 }
 
-void CommandBufferManager::DeferBufferDestruction(VkBuffer object)
-{
-  CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
-  cmd_buffer_resources.cleanup_resources.push_back(
-      [object]() { vkDestroyBuffer(g_vulkan_context->GetDevice(), object, nullptr); });
-}
-
 void CommandBufferManager::DeferBufferViewDestruction(VkBufferView object)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
@@ -539,11 +532,12 @@ void CommandBufferManager::DeferBufferViewDestruction(VkBufferView object)
       [object]() { vkDestroyBufferView(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
-void CommandBufferManager::DeferDeviceMemoryDestruction(VkDeviceMemory object)
+void CommandBufferManager::DeferBufferDestruction(VkBuffer buffer, VmaAllocation alloc)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
-  cmd_buffer_resources.cleanup_resources.push_back(
-      [object]() { vkFreeMemory(g_vulkan_context->GetDevice(), object, nullptr); });
+  cmd_buffer_resources.cleanup_resources.push_back([buffer, alloc]() {
+    vmaDestroyBuffer(g_vulkan_context->GetMemoryAllocator(), buffer, alloc);
+  });
 }
 
 void CommandBufferManager::DeferFramebufferDestruction(VkFramebuffer object)
@@ -553,11 +547,11 @@ void CommandBufferManager::DeferFramebufferDestruction(VkFramebuffer object)
       [object]() { vkDestroyFramebuffer(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
-void CommandBufferManager::DeferImageDestruction(VkImage object)
+void CommandBufferManager::DeferImageDestruction(VkImage image, VmaAllocation alloc)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
   cmd_buffer_resources.cleanup_resources.push_back(
-      [object]() { vkDestroyImage(g_vulkan_context->GetDevice(), object, nullptr); });
+      [image, alloc]() { vmaDestroyImage(g_vulkan_context->GetMemoryAllocator(), image, alloc); });
 }
 
 void CommandBufferManager::DeferImageViewDestruction(VkImageView object)

@@ -40,6 +40,8 @@ VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_devi
 
 VulkanContext::~VulkanContext()
 {
+  if (m_allocator != VK_NULL_HANDLE)
+    vmaDestroyAllocator(m_allocator);
   if (m_device != VK_NULL_HANDLE)
     vkDestroyDevice(m_device, nullptr);
 
@@ -86,7 +88,8 @@ bool VulkanContext::CheckValidationLayerAvailablility()
 }
 
 VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_report,
-                                               bool enable_validation_layer)
+                                               bool enable_validation_layer,
+                                               u32* out_vk_api_version)
 {
   std::vector<const char*> enabled_extensions;
   if (!SelectInstanceExtensions(&enabled_extensions, wstype, enable_debug_report))
@@ -113,6 +116,8 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
       app_info.apiVersion = VK_MAKE_VERSION(1, 1, 0);
     }
   }
+
+  *out_vk_api_version = app_info.apiVersion;
 
   VkInstanceCreateInfo instance_create_info = {};
   instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -429,10 +434,9 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(
     config->backend_info.AAModes.emplace_back(64);
 }
 
-std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhysicalDevice gpu,
-                                                     VkSurfaceKHR surface,
-                                                     bool enable_debug_reports,
-                                                     bool enable_validation_layer)
+std::unique_ptr<VulkanContext>
+VulkanContext::Create(VkInstance instance, VkPhysicalDevice gpu, VkSurfaceKHR surface,
+                      bool enable_debug_reports, bool enable_validation_layer, u32 vk_api_version)
 {
   std::unique_ptr<VulkanContext> context = std::make_unique<VulkanContext>(instance, gpu);
 
@@ -445,7 +449,8 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
     context->EnableDebugReports();
 
   // Attempt to create the device.
-  if (!context->CreateDevice(surface, enable_validation_layer))
+  if (!context->CreateDevice(surface, enable_validation_layer) ||
+      !context->CreateAllocator(vk_api_version))
   {
     // Since we are destroying the instance, we're also responsible for destroying the surface.
     if (surface != VK_NULL_HANDLE)
@@ -507,6 +512,9 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
   if (AddExtension(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME, true))
     INFO_LOG_FMT(VIDEO, "Using VK_EXT_full_screen_exclusive for exclusive fullscreen.");
 #endif
+
+  AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
+  AddExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME, false);
 
   return true;
 }
@@ -695,6 +703,34 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   return true;
 }
 
+bool VulkanContext::CreateAllocator(u32 vk_api_version)
+{
+  VmaAllocatorCreateInfo allocator_info = {};
+  allocator_info.flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT;
+  allocator_info.physicalDevice = m_physical_device;
+  allocator_info.device = m_device;
+  allocator_info.preferredLargeHeapBlockSize = 64 << 20;
+  allocator_info.pAllocationCallbacks = nullptr;
+  allocator_info.pDeviceMemoryCallbacks = nullptr;
+  allocator_info.pHeapSizeLimit = nullptr;
+  allocator_info.pVulkanFunctions = nullptr;
+  allocator_info.instance = m_instance;
+  allocator_info.vulkanApiVersion = vk_api_version;
+  allocator_info.pTypeExternalMemoryHandleTypes = nullptr;
+
+  if (SupportsDeviceExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME))
+    allocator_info.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+
+  VkResult res = vmaCreateAllocator(&allocator_info, &m_allocator);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vmaCreateAllocator failed: ");
+    return false;
+  }
+
+  return true;
+}
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT flags,
                                                           VkDebugReportObjectTypeEXT objectType,
                                                           uint64_t object, size_t location,
@@ -754,109 +790,6 @@ void VulkanContext::DisableDebugReports()
     vkDestroyDebugReportCallbackEXT(m_instance, m_debug_report_callback, nullptr);
     m_debug_report_callback = VK_NULL_HANDLE;
   }
-}
-
-std::optional<u32> VulkanContext::GetMemoryType(u32 bits, VkMemoryPropertyFlags properties,
-                                                bool strict, bool* is_coherent)
-{
-  static constexpr u32 ALL_MEMORY_PROPERTY_FLAGS = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
-                                                   VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-
-  const u32 mask = strict ? ALL_MEMORY_PROPERTY_FLAGS : properties;
-
-  for (u32 i = 0; i < VK_MAX_MEMORY_TYPES; i++)
-  {
-    if ((bits & (1 << i)) != 0)
-    {
-      const VkMemoryPropertyFlags type_flags =
-          m_device_memory_properties.memoryTypes[i].propertyFlags;
-      const VkMemoryPropertyFlags supported = type_flags & mask;
-      if (supported == properties)
-      {
-        if (is_coherent)
-          *is_coherent = (type_flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0;
-        return i;
-      }
-    }
-  }
-
-  return std::nullopt;
-}
-
-u32 VulkanContext::GetUploadMemoryType(u32 bits, bool* is_coherent)
-{
-  static constexpr VkMemoryPropertyFlags COHERENT_FLAGS =
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-  // Try for coherent memory. Some drivers (looking at you, Adreno) have the cached type before the
-  // uncached type, so use a strict check first.
-  std::optional<u32> type_index = GetMemoryType(bits, COHERENT_FLAGS, true, is_coherent);
-  if (type_index)
-    return type_index.value();
-
-  // Try for coherent memory, with any other bits set.
-  type_index = GetMemoryType(bits, COHERENT_FLAGS, false, is_coherent);
-  if (type_index)
-  {
-    WARN_LOG_FMT(VIDEO,
-                 "Strict check for upload memory properties failed, this may affect performance");
-    return type_index.value();
-  }
-
-  // Fall back to non-coherent memory.
-  WARN_LOG_FMT(
-      VIDEO,
-      "Vulkan: Failed to find a coherent memory type for uploads, this will affect performance.");
-  type_index = GetMemoryType(bits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, false, is_coherent);
-  if (type_index)
-    return type_index.value();
-
-  // Shouldn't happen, there should be at least one host-visible heap.
-  PanicAlertFmt("Unable to get memory type for upload.");
-  return 0;
-}
-
-u32 VulkanContext::GetReadbackMemoryType(u32 bits, bool* is_coherent)
-{
-  std::optional<u32> type_index;
-
-  // Mali driver appears to be significantly slower for readbacks when using cached memory.
-  if (DriverDetails::HasBug(DriverDetails::BUG_SLOW_CACHED_READBACK_MEMORY))
-  {
-    type_index = GetMemoryType(
-        bits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, true,
-        is_coherent);
-    if (type_index)
-      return type_index.value();
-  }
-
-  // Optimal config uses cached+coherent.
-  type_index =
-      GetMemoryType(bits,
-                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT |
-                        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                    true, is_coherent);
-  if (type_index)
-    return type_index.value();
-
-  // Otherwise, prefer cached over coherent if we must choose one.
-  type_index =
-      GetMemoryType(bits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
-                    false, is_coherent);
-  if (type_index)
-    return type_index.value();
-
-  WARN_LOG_FMT(VIDEO, "Vulkan: Failed to find a cached memory type for readbacks, this will affect "
-                      "performance.");
-  type_index = GetMemoryType(bits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, false, is_coherent);
-  *is_coherent = false;
-  if (type_index)
-    return type_index.value();
-
-  // We should have at least one host visible memory type...
-  PanicAlertFmt("Unable to get memory type for upload.");
-  return 0;
 }
 
 bool VulkanContext::SupportsDeviceExtension(const char* name) const
