@@ -37,8 +37,8 @@ Shinkansen::Shinkansen() : Extension3rdParty("Shinkansen", _trans("Shinkansen Co
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, "B");
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, "C");
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, "D");
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Select"));
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Start"));
+  m_buttons->AddInput(ControllerEmu::Translate, _trans("SELECT"));
+  m_buttons->AddInput(ControllerEmu::Translate, _trans("START"));
 
   // For easier axis mapping the right lever is inverted in Dolphin,
   // so that the train coasts when no trigger is squeezed.
@@ -46,7 +46,10 @@ Shinkansen::Shinkansen() : Extension3rdParty("Shinkansen", _trans("Shinkansen Co
   m_levers->AddInput(ControllerEmu::Translate, _trans("L"));
   m_levers->AddInput(ControllerEmu::Translate, _trans("R"));
 
+  // i18n: Noun. This is used as a label for a control group that represents lights on controllers.
   groups.emplace_back(m_led = new ControllerEmu::ControlGroup(_trans("Light")));
+  // i18n: A light on the Shinkansen controller that lights up when the train doors are locked.
+  // Labeled 戸じめ (in Japanese) on the actual controller.
   m_led->AddOutput(ControllerEmu::Translate, _trans("Doors Locked"));
 }
 
