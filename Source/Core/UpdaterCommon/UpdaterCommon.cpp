@@ -464,16 +464,10 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
       // after entire update has completed, and have it delete our relocated executable. For now we
       // just let the relocated file hang around.
       // It is enough to match based on filename, don't need File/VolumeId etc.
-      if (op.filename == self_filename)
-      {
-        auto reloc_path = self_path;
-        reloc_path.replace_filename("Updater.2.exe");
-        if (!MoveFile(self_path.wstring().c_str(), reloc_path.wstring().c_str()))
-        {
-          fprintf(log_fp, "Failed to move %s.\n", op.filename.c_str());
-          // Just let the Copy fail, later.
-        }
-      }
+      const bool is_self = op.filename == self_filename;
+#else
+      // On other platforms, the renaming is handled by Dolphin before running the Updater.
+      const bool is_self = false;
 #endif
 
       std::string contents;
@@ -488,7 +482,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
         fprintf(log_fp, "File %s was already up to date. Partial update?\n", op.filename.c_str());
         continue;
       }
-      else if (!op.old_hash || contents_hash != *op.old_hash)
+      else if (!op.old_hash || contents_hash != *op.old_hash || is_self)
       {
         if (!BackupFile(path))
           return false;
