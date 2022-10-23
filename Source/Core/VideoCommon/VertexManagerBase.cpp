@@ -826,6 +826,12 @@ void VertexManagerBase::UpdatePipelineObject()
   }
 }
 
+void VertexManagerBase::OnConfigChange()
+{
+  // Reload index generator function tables in case VS expand config changed
+  m_index_generator.Init();
+}
+
 void VertexManagerBase::OnDraw()
 {
   m_draw_counter++;

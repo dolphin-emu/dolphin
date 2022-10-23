@@ -202,7 +202,6 @@ void AdvancedWidget::OnBackendChanged()
 {
   m_backend_multithreading->setEnabled(g_Config.backend_info.bSupportsMultithreading);
   m_prefer_vs_for_point_line_expansion->setEnabled(
-      Core::GetState() == Core::State::Uninitialized &&
       g_Config.backend_info.bSupportsGeometryShaders &&
       g_Config.backend_info.bSupportsVSLinePointExpand);
   AddDescriptions();
@@ -211,10 +210,6 @@ void AdvancedWidget::OnBackendChanged()
 void AdvancedWidget::OnEmulationStateChanged(bool running)
 {
   m_enable_prog_scan->setEnabled(!running);
-  m_prefer_vs_for_point_line_expansion->setEnabled(
-      !running &&
-      g_Config.backend_info.bSupportsGeometryShaders &&
-      g_Config.backend_info.bSupportsVSLinePointExpand);
 }
 
 void AdvancedWidget::AddDescriptions()
