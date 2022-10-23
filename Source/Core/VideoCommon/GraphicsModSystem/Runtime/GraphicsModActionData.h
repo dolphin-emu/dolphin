@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 
 namespace GraphicsModActionData
@@ -19,6 +20,7 @@ struct EFB
 {
   u32 texture_width;
   u32 texture_height;
+  MathUtil::Rectangle<int> src_rect;
   bool* skip;
   u32* scaled_width;
   u32* scaled_height;

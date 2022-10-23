@@ -2188,7 +2188,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     else
     {
       bool skip = false;
-      GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
+      GraphicsModActionData::EFB efb{tex_w, tex_h, srcRect, &skip, &scaled_tex_w, &scaled_tex_h};
       for (const auto action : g_renderer->GetGraphicsModManager().GetEFBActions(info))
       {
         action->OnEFB(&efb);
