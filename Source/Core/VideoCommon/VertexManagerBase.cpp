@@ -535,7 +535,13 @@ void VertexManagerBase::Flush()
     for (const auto& texture_name : texture_names)
     {
       bool skip = false;
-      GraphicsModActionData::DrawStarted draw_started{&skip};
+      GraphicsModActionData::DrawStarted draw_started{bpmem.scissorOffset.x,
+                                                      bpmem.scissorOffset.y,
+                                                      xfmem.viewport.xOrig,
+                                                      xfmem.viewport.yOrig,
+                                                      xfmem.viewport.wd,
+                                                      xfmem.viewport.ht,
+                                                      &skip};
       for (const auto action :
            g_renderer->GetGraphicsModManager().GetDrawStartedActions(texture_name))
       {

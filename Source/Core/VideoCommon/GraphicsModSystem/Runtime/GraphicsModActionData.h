@@ -15,6 +15,12 @@ namespace GraphicsModActionData
 {
 struct DrawStarted
 {
+  u32 scissors_x;
+  u32 scissors_y;
+  float viewport_x;
+  float viewport_y;
+  float viewport_width;
+  float viewport_height;
   bool* skip;
 };
 
