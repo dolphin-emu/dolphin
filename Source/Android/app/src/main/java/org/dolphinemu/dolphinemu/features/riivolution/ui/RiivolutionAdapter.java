@@ -4,7 +4,6 @@ package org.dolphinemu.dolphinemu.features.riivolution.ui;
 
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -49,18 +48,8 @@ public class RiivolutionAdapter extends RecyclerView.Adapter<RiivolutionViewHold
   public RiivolutionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
   {
     LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-
-    switch (viewType)
-    {
-      case RiivolutionViewHolder.TYPE_HEADER:
-        View headerView = inflater.inflate(R.layout.list_item_riivolution_header, parent, false);
-        return new RiivolutionViewHolder(headerView);
-      case RiivolutionViewHolder.TYPE_OPTION:
-        View optionView = inflater.inflate(R.layout.list_item_riivolution_option, parent, false);
-        return new RiivolutionViewHolder(optionView);
-      default:
-        throw new UnsupportedOperationException();
-    }
+    return new RiivolutionViewHolder(
+            inflater.inflate(R.layout.list_item_riivolution, parent, false));
   }
 
   @Override
@@ -73,12 +62,5 @@ public class RiivolutionAdapter extends RecyclerView.Adapter<RiivolutionViewHold
   public int getItemCount()
   {
     return mItems.size();
-  }
-
-  @Override
-  public int getItemViewType(int position)
-  {
-    return mItems.get(position).mOptionIndex != -1 ?
-            RiivolutionViewHolder.TYPE_OPTION : RiivolutionViewHolder.TYPE_HEADER;
   }
 }
