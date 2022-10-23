@@ -202,6 +202,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
           "WaitForShadersBeforeStarting", false),
   GFX_SAVE_TEXTURE_CACHE_TO_STATE(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "SaveTextureCacheToState", true),
+  GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
+          "PreferVSForLinePointExpansion", false),
   GFX_MODS_ENABLE(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "EnableMods", false),
 
   GFX_ENHANCE_FORCE_FILTERING(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,

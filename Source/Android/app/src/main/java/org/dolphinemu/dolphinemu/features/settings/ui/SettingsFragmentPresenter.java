@@ -824,6 +824,9 @@ public final class SettingsFragmentPresenter
             R.string.progressive_scan, 0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_BACKEND_MULTITHREADING,
             R.string.backend_multithreading, R.string.backend_multithreading_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION,
+            R.string.prefer_vs_for_point_line_expansion,
+            R.string.prefer_vs_for_point_line_expansion_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_EFB_DEFER_INVALIDATION,
             R.string.defer_efb_invalidation, R.string.defer_efb_invalidation_description));
     sl.add(new InvertedCheckBoxSetting(mContext, BooleanSetting.GFX_HACK_FAST_TEXTURE_SAMPLING,
