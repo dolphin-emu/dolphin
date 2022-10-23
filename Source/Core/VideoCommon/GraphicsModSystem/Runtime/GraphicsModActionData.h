@@ -9,6 +9,8 @@
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 
+#include "VideoCommon/XFMemory.h"
+
 namespace GraphicsModActionData
 {
 struct DrawStarted
@@ -28,6 +30,7 @@ struct EFB
 
 struct Projection
 {
+  ProjectionType projection_type;
   Common::Matrix44* matrix;
 };
 struct TextureLoad

@@ -396,7 +396,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     if (g_freelook_camera.IsActive() && xfmem.projection.type == ProjectionType::Perspective)
       corrected_matrix *= g_freelook_camera.GetView();
 
-    GraphicsModActionData::Projection projection{&corrected_matrix};
+    GraphicsModActionData::Projection projection{xfmem.projection.type, &corrected_matrix};
     for (auto action : projection_actions)
     {
       action->OnProjection(&projection);
