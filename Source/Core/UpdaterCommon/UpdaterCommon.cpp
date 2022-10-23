@@ -470,7 +470,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
         reloc_path.replace_filename("Updater.2.exe");
         if (!MoveFile(self_path.wstring().c_str(), reloc_path.wstring().c_str()))
         {
-          fprintf(log_fp, "Failed to relocate %s.\n", op.filename.c_str());
+          fprintf(log_fp, "Failed to move %s.\n", op.filename.c_str());
           // Just let the Copy fail, later.
         }
       }
