@@ -19,6 +19,8 @@ import com.google.android.material.divider.MaterialDividerItemDecoration;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -142,6 +144,8 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
             new MaterialDividerItemDecoration(requireActivity(), LinearLayoutManager.VERTICAL);
     divider.setLastItemDecorated(false);
     recyclerView.addItemDecoration(divider);
+
+    InsetsHelper.setUpList(getContext(), recyclerView);
 
     SettingsActivityView activity = (SettingsActivityView) getActivity();
     mPresenter.onViewCreated(menuTag, activity.getSettings());

@@ -150,35 +150,12 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   @Override
   public boolean onLongClick(View view)
   {
-    FragmentActivity activity = (FragmentActivity) view.getContext();
     GameViewHolder holder = (GameViewHolder) view.getTag();
-    String gameId = holder.gameFile.getGameId();
 
     GamePropertiesDialog fragment = GamePropertiesDialog.newInstance(holder.gameFile);
     ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction()
             .add(fragment, GamePropertiesDialog.TAG).commit();
 
     return true;
-  }
-
-  public static class SpacesItemDecoration extends RecyclerView.ItemDecoration
-  {
-    private int space;
-
-    public SpacesItemDecoration(int space)
-    {
-      this.space = space;
-    }
-
-    @Override
-    public void getItemOffsets(@NonNull Rect outRect, @NonNull View view,
-            @NonNull RecyclerView parent,
-            @NonNull RecyclerView.State state)
-    {
-      outRect.left = space;
-      outRect.right = space;
-      outRect.bottom = space;
-      outRect.top = space;
-    }
   }
 }

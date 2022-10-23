@@ -18,6 +18,7 @@ import com.google.android.material.divider.MaterialDividerItemDecoration;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 
 public class CheatListFragment extends Fragment
 {
@@ -44,5 +45,7 @@ public class CheatListFragment extends Fragment
             new MaterialDividerItemDecoration(requireActivity(), LinearLayoutManager.VERTICAL);
     divider.setLastItemDecorated(false);
     recyclerView.addItemDecoration(divider);
+
+    InsetsHelper.setUpList(getContext(), recyclerView);
   }
 }

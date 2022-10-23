@@ -10,14 +10,18 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.slidingpanelayout.widget.SlidingPaneLayout;
 
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.R;
@@ -27,6 +31,7 @@ import org.dolphinemu.dolphinemu.features.cheats.model.GeckoCheat;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.ui.TwoPaneOnBackPressedCallback;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
 public class CheatsActivity extends AppCompatActivity
@@ -83,6 +88,8 @@ public class CheatsActivity extends AppCompatActivity
 
     setContentView(R.layout.activity_cheats);
 
+    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
     mSlidingPaneLayout = findViewById(R.id.sliding_pane_layout);
     mCheatList = findViewById(R.id.cheat_list);
     mCheatDetails = findViewById(R.id.cheat_details);
@@ -100,9 +107,18 @@ public class CheatsActivity extends AppCompatActivity
 
     mViewModel.getOpenDetailsViewEvent().observe(this, this::openDetailsView);
 
-    Toolbar tb = findViewById(R.id.toolbar_cheats);
+    MaterialToolbar tb = findViewById(R.id.toolbar_cheats);
     setSupportActionBar(tb);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+    View workaroundView = findViewById(R.id.workaround_view);
+    AppBarLayout appBarLayout = findViewById(R.id.appbar_cheats);
+    InsetsHelper.setUpCheatsLayout(this, appBarLayout, mSlidingPaneLayout, mCheatDetails,
+            workaroundView);
+
+    @ColorInt int color = MaterialColors.getColor(tb, R.attr.colorSurfaceVariant);
+    tb.setBackgroundColor(color);
+    ThemeHelper.setStatusBarColor(this, color);
   }
 
   @Override
