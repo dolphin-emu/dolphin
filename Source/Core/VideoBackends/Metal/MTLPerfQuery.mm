@@ -56,6 +56,7 @@ void Metal::PerfQuery::FlushResults()
 
   // There's a possibility that some active performance queries are unflushed
   g_state_tracker->FlushEncoders();
+  g_state_tracker->NotifyOfCPUGPUSync();
 
   std::unique_lock<std::mutex> lock(m_results_mtx);
   while (!IsFlushed())

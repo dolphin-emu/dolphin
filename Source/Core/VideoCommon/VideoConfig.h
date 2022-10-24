@@ -45,6 +45,13 @@ enum class ShaderCompilationMode : int
   AsynchronousSkipRendering
 };
 
+enum class TriState : int
+{
+  Off,
+  On,
+  Auto
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -148,6 +155,10 @@ struct VideoConfig final
 
   // D3D only config, mostly to be merged into the above
   int iAdapter = 0;
+
+  // Metal only config
+  TriState iManuallyUploadBuffers = TriState::Auto;
+  bool bUsePresentDrawable = false;
 
   // Enable API validation layers, currently only supported with Vulkan.
   bool bEnableValidationLayer = false;

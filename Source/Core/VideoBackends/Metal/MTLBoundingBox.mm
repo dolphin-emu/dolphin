@@ -36,6 +36,7 @@ std::vector<BBoxType> Metal::BoundingBox::Read(u32 index, u32 length)
   {
     g_state_tracker->EndRenderPass();
     g_state_tracker->FlushEncoders();
+    g_state_tracker->NotifyOfCPUGPUSync();
     g_state_tracker->WaitForFlushedEncoders();
     return std::vector<BBoxType>(m_cpu_buffer_ptr + index, m_cpu_buffer_ptr + index + length);
   }

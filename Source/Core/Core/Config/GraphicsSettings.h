@@ -11,6 +11,7 @@ enum class AspectMode : int;
 enum class ShaderCompilationMode : int;
 enum class StereoMode : int;
 enum class FreelookControlType : int;
+enum class TriState : int;
 
 namespace Config
 {
@@ -74,6 +75,9 @@ extern const Info<int> GFX_SHADER_COMPILER_THREADS;
 extern const Info<int> GFX_SHADER_PRECOMPILER_THREADS;
 extern const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE;
 extern const Info<bool> GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION;
+
+extern const Info<TriState> GFX_MTL_MANUALLY_UPLOAD_BUFFERS;
+extern const Info<bool> GFX_MTL_USE_PRESENT_DRAWABLE;
 
 extern const Info<bool> GFX_SW_DUMP_OBJECTS;
 extern const Info<bool> GFX_SW_DUMP_TEV_STAGES;
