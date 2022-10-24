@@ -4,9 +4,10 @@ package org.dolphinemu.dolphinemu.features.settings.model.view;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+
+import androidx.preference.PreferenceManager;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
