@@ -56,7 +56,7 @@ void VideoConfig::Refresh()
   bVSync = Config::Get(Config::GFX_VSYNC);
   iAdapter = Config::Get(Config::GFX_ADAPTER);
   iManuallyUploadBuffers = Config::Get(Config::GFX_MTL_MANUALLY_UPLOAD_BUFFERS);
-  bUsePresentDrawable = Config::Get(Config::GFX_MTL_USE_PRESENT_DRAWABLE);
+  iUsePresentDrawable = Config::Get(Config::GFX_MTL_USE_PRESENT_DRAWABLE);
 
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
   aspect_mode = Config::Get(Config::GFX_ASPECT_RATIO);
