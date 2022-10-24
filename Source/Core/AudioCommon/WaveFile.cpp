@@ -119,10 +119,16 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count,
                                         u32 sample_rate_divisor, int l_volume, int r_volume)
 {
   if (!file)
+  {
     ERROR_LOG_FMT(AUDIO, "WaveFileWriter - file not open.");
+    return;
+  }
 
-  if (count > BUFFER_SIZE * 2)
+  if (count * 2 > BUFFER_SIZE)
+  {
     ERROR_LOG_FMT(AUDIO, "WaveFileWriter - buffer too small (count = {}).", count);
+    return;
+  }
 
   if (skip_silence)
   {
