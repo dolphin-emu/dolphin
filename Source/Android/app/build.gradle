@@ -143,6 +143,7 @@ dependencies {
     implementation 'androidx.core:core-splashscreen:1.0.0'
     implementation 'androidx.preference:preference:1.2.0'
     implementation 'androidx.profileinstaller:profileinstaller:1.2.2'
+    implementation 'androidx.activity:activity:1.6.1'
 
     // Force dependency version to solve build conflict with androidx preferences
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"

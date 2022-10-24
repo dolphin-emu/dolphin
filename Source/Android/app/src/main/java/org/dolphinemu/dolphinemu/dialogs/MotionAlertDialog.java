@@ -62,19 +62,6 @@ public final class MotionAlertDialog extends AlertDialog
   }
 
   @Override
-  public boolean onKeyLongPress(int keyCode, @NonNull KeyEvent event)
-  {
-    // Intended for devices with no touchscreen or mouse
-    if (keyCode == KeyEvent.KEYCODE_BACK)
-    {
-      setting.clearValue(mAdapter.getSettings());
-      dismiss();
-      return true;
-    }
-    return super.onKeyLongPress(keyCode, event);
-  }
-
-  @Override
   public boolean dispatchKeyEvent(KeyEvent event)
   {
     // Handle this key if we care about it, otherwise pass it down the framework

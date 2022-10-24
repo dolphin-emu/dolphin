@@ -22,6 +22,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -385,6 +386,18 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     if (NativeLibrary.IsGameMetadataValid())
       setTitle(NativeLibrary.GetCurrentTitleDescription());
 
+    getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true)
+    {
+      @Override
+      public void handleOnBackPressed()
+      {
+        if (!closeSubmenu())
+        {
+          toggleMenu();
+        }
+      }
+    });
+
     if (sSkylanderSlots.isEmpty())
     {
       for (int i = 0; i < 8; i++)
@@ -499,26 +512,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   {
     super.onDestroy();
     mSettings.close();
-  }
-
-  @Override
-  public void onBackPressed()
-  {
-    if (!closeSubmenu())
-    {
-      toggleMenu();
-    }
-  }
-
-  @Override
-  public boolean onKeyLongPress(int keyCode, @NonNull KeyEvent event)
-  {
-    if (keyCode == KeyEvent.KEYCODE_BACK)
-    {
-      mEmulationFragment.stopEmulation();
-      return true;
-    }
-    return super.onKeyLongPress(keyCode, event);
   }
 
   @Override
