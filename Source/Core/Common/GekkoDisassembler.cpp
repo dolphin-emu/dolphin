@@ -56,7 +56,7 @@ namespace Common
 #define PPCMMASK 0x0000003e
 #define PPCCRDMASK 0x03800000
 #define PPCCRAMASK 0x001c0000
-#define PPCLMASK 0x00600000
+#define PPCLMASK 0x00200000
 #define PPCOE 0x00000400
 #define PPCVRC 0x00000400
 #define PPCDST 0x02000000
@@ -476,26 +476,18 @@ void GekkoDisassembler::trapi(u32 in, unsigned char dmode)
 void GekkoDisassembler::cmpi(u32 in, int uimm)
 {
   int i = (int)PPCGETL(in);
+  if (i != 0)
+    m_flags |= PPCF_64;
 
-  if (i < 2)
+  m_opcode = fmt::format("{}i", cmpname[uimm * 2 + i]);
+
+  i = (int)PPCGETCRD(in);
+  if (i != 0)
   {
-    if (i != 0)
-      m_flags |= PPCF_64;
-
-    m_opcode = fmt::format("{}i", cmpname[uimm * 2 + i]);
-
-    i = (int)PPCGETCRD(in);
-    if (i != 0)
-    {
-      m_operands += fmt::format("cr{}, ", i);
-    }
-
-    m_operands += imm(in, uimm, 2, false);
+    m_operands += fmt::format("cr{}, ", i);
   }
-  else
-  {
-    ill(in);
-  }
+
+  m_operands += imm(in, uimm, 2, false);
 }
 
 void GekkoDisassembler::addi(u32 in, std::string_view ext)
@@ -689,24 +681,16 @@ void GekkoDisassembler::rld(u32 in, std::string_view name, int i)
 void GekkoDisassembler::cmp(u32 in)
 {
   int i = (int)PPCGETL(in);
+  if (i != 0)
+    m_flags |= PPCF_64;
 
-  if (i < 2)
-  {
-    if (i != 0)
-      m_flags |= PPCF_64;
+  m_opcode = cmpname[((in & PPCIDX2MASK) ? 2 : 0) + i];
 
-    m_opcode = cmpname[((in & PPCIDX2MASK) ? 2 : 0) + i];
+  i = (int)PPCGETCRD(in);
+  if (i != 0)
+    m_operands += fmt::format("cr{},", i);
 
-    i = (int)PPCGETCRD(in);
-    if (i != 0)
-      m_operands += fmt::format("cr{},", i);
-
-    m_operands += ra_rb(in);
-  }
-  else
-  {
-    ill(in);
-  }
+  m_operands += ra_rb(in);
 }
 
 void GekkoDisassembler::trap(u32 in, unsigned char dmode)
