@@ -20,7 +20,6 @@ public:
   ~StreamBuffer();
 
   VkBuffer GetBuffer() const { return m_buffer; }
-  VkDeviceMemory GetDeviceMemory() const { return m_memory; }
   u8* GetHostPointer() const { return m_host_pointer; }
   u8* GetCurrentHostPointer() const { return m_host_pointer + m_current_offset; }
   u32 GetCurrentSize() const { return m_size; }
@@ -45,13 +44,11 @@ private:
   u32 m_last_allocation_size = 0;
 
   VkBuffer m_buffer = VK_NULL_HANDLE;
-  VkDeviceMemory m_memory = VK_NULL_HANDLE;
+  VmaAllocation m_alloc = VK_NULL_HANDLE;
   u8* m_host_pointer = nullptr;
 
   // List of fences and the corresponding positions in the buffer
   std::deque<std::pair<u64, u32>> m_tracked_fences;
-
-  bool m_coherent_mapping = false;
 };
 
 }  // namespace Vulkan

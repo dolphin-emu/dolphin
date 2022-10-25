@@ -90,7 +90,7 @@ public:
   // Texel buffer will fit the maximum size of an encoded GX texture. 1024x1024, RGBA8 = 4MB.
   static constexpr u32 VERTEX_STREAM_BUFFER_SIZE = 48 * 1024 * 1024;
   static constexpr u32 INDEX_STREAM_BUFFER_SIZE = 8 * 1024 * 1024;
-  static constexpr u32 UNIFORM_STREAM_BUFFER_SIZE = 32 * 1024 * 1024;
+  static constexpr u32 UNIFORM_STREAM_BUFFER_SIZE = 64 * 1024 * 1024;
   static constexpr u32 TEXEL_STREAM_BUFFER_SIZE = 16 * 1024 * 1024;
 
   VertexManagerBase();
@@ -139,6 +139,9 @@ public:
   virtual bool UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
                                  u32* out_offset, const void* palette_data, u32 palette_size,
                                  TexelBufferFormat palette_format, u32* out_palette_offset);
+
+  // Call if active config changes
+  void OnConfigChange();
 
   // CPU access tracking - call after a draw call is made.
   void OnDraw();

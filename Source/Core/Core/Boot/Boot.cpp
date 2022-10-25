@@ -50,6 +50,7 @@ namespace fs = std::filesystem;
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
+#include "Core/NetPlayProto.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -174,6 +175,16 @@ void BootSessionData::SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> f
   m_wii_sync_titles = std::move(titles);
   m_wii_sync_redirect_folder = std::move(redirect_folder);
   m_wii_sync_cleanup = std::move(cleanup);
+}
+
+const NetPlay::NetSettings* BootSessionData::GetNetplaySettings() const
+{
+  return m_netplay_settings.get();
+}
+
+void BootSessionData::SetNetplaySettings(std::unique_ptr<NetPlay::NetSettings> netplay_settings)
+{
+  m_netplay_settings = std::move(netplay_settings);
 }
 
 BootParameters::BootParameters(Parameters&& parameters_, BootSessionData boot_session_data_)

@@ -33,6 +33,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
 #include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -177,8 +178,10 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     switch (bp.newvalue & 0xFF)
     {
     case 0x02:
+      INCSTAT(g_stats.this_frame.num_draw_done);
       g_texture_cache->FlushEFBCopies();
       g_framebuffer_manager->InvalidatePeekCache(false);
+      g_framebuffer_manager->RefreshPeekCache();
       if (!Fifo::UseDeterministicGPUThread())
         PixelEngine::SetFinish(cycles_into_future);  // may generate interrupt
       DEBUG_LOG_FMT(VIDEO, "GXSetDrawDone SetPEFinish (value: {:#04X})", bp.newvalue & 0xFFFF);
@@ -190,15 +193,19 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     }
     return;
   case BPMEM_PE_TOKEN_ID:  // Pixel Engine Token ID
+    INCSTAT(g_stats.this_frame.num_token);
     g_texture_cache->FlushEFBCopies();
     g_framebuffer_manager->InvalidatePeekCache(false);
+    g_framebuffer_manager->RefreshPeekCache();
     if (!Fifo::UseDeterministicGPUThread())
       PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false, cycles_into_future);
     DEBUG_LOG_FMT(VIDEO, "SetPEToken {:#06X}", bp.newvalue & 0xFFFF);
     return;
   case BPMEM_PE_TOKEN_INT_ID:  // Pixel Engine Interrupt Token ID
+    INCSTAT(g_stats.this_frame.num_token_int);
     g_texture_cache->FlushEFBCopies();
     g_framebuffer_manager->InvalidatePeekCache(false);
+    g_framebuffer_manager->RefreshPeekCache();
     if (!Fifo::UseDeterministicGPUThread())
       PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true, cycles_into_future);
     DEBUG_LOG_FMT(VIDEO, "SetPEToken + INT {:#06X}", bp.newvalue & 0xFFFF);
@@ -811,7 +818,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_IND_CMD + 13:
   case BPMEM_IND_CMD + 14:
   case BPMEM_IND_CMD + 15:
-    return std::make_pair(fmt::format("BPMEM_IND_CMD command {}", cmd - BPMEM_IND_CMD),
+    return std::make_pair(fmt::format("BPMEM_IND_CMD number {}", cmd - BPMEM_IND_CMD),
                           fmt::to_string(TevStageIndirect{.fullhex = cmddata}));
 
   case BPMEM_SCISSORTL:  // 0x20
@@ -832,14 +839,12 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     // TODO: Description
 
   case BPMEM_RAS1_SS0:  // 0x25
-    return std::make_pair(
-        RegName(BPMEM_RAS1_SS0),
-        fmt::format("Indirect texture stages 0 and 1:\n{}", TEXSCALE{.hex = cmddata}));
+    return std::make_pair(RegName(BPMEM_RAS1_SS0),
+                          fmt::to_string(std::make_pair(cmd, TEXSCALE{.hex = cmddata})));
 
   case BPMEM_RAS1_SS1:  // 0x26
-    return std::make_pair(
-        RegName(BPMEM_RAS1_SS1),
-        fmt::format("Indirect texture stages 2 and 3:\n{}", TEXSCALE{.hex = cmddata}));
+    return std::make_pair(RegName(BPMEM_RAS1_SS1),
+                          fmt::to_string(std::make_pair(cmd, TEXSCALE{.hex = cmddata})));
 
   case BPMEM_IREF:  // 0x27
     return std::make_pair(RegName(BPMEM_IREF), fmt::to_string(RAS1_IREF{.hex = cmddata}));
@@ -853,7 +858,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_TREF + 6:
   case BPMEM_TREF + 7:
     return std::make_pair(fmt::format("BPMEM_TREF number {}", cmd - BPMEM_TREF),
-                          fmt::to_string(TwoTevStageOrders{.hex = cmddata}));
+                          fmt::to_string(std::make_pair(cmd, TwoTevStageOrders{.hex = cmddata})));
 
   case BPMEM_SU_SSIZE:  // 0x30
   case BPMEM_SU_SSIZE + 2:
@@ -864,7 +869,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_SU_SSIZE + 12:
   case BPMEM_SU_SSIZE + 14:
     return std::make_pair(fmt::format("BPMEM_SU_SSIZE number {}", (cmd - BPMEM_SU_SSIZE) / 2),
-                          fmt::format("S size info:\n{}", TCInfo{.hex = cmddata}));
+                          fmt::to_string(std::make_pair(true, TCInfo{.hex = cmddata})));
 
   case BPMEM_SU_TSIZE:  // 0x31
   case BPMEM_SU_TSIZE + 2:
@@ -875,7 +880,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_SU_TSIZE + 12:
   case BPMEM_SU_TSIZE + 14:
     return std::make_pair(fmt::format("BPMEM_SU_TSIZE number {}", (cmd - BPMEM_SU_TSIZE) / 2),
-                          fmt::format("T size info:\n{}", TCInfo{.hex = cmddata}));
+                          fmt::to_string(std::make_pair(false, TCInfo{.hex = cmddata})));
 
   case BPMEM_ZMODE:  // 0x40
     return std::make_pair(RegName(BPMEM_ZMODE), fmt::format("Z mode: {}", ZMode{.hex = cmddata}));
@@ -1249,7 +1254,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_TEV_KSEL + 6:
   case BPMEM_TEV_KSEL + 7:
     return std::make_pair(fmt::format("BPMEM_TEV_KSEL number {}", cmd - BPMEM_TEV_KSEL),
-                          fmt::to_string(TevKSel{.hex = cmddata}));
+                          fmt::to_string(std::make_pair(cmd, TevKSel{.hex = cmddata})));
 
   case BPMEM_BP_MASK:  // 0xFE
     return std::make_pair(RegName(BPMEM_BP_MASK),

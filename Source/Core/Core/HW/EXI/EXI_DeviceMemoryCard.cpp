@@ -34,6 +34,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 #include "DiscIO/Enums.h"
 
 namespace ExpansionInterface
@@ -141,7 +142,8 @@ CEXIMemoryCard::CEXIMemoryCard(const Slot slot, bool gci_folder,
   m_memory_card_size = m_memory_card->GetCardId() * SIZE_TO_Mb;
   std::array<u8, 20> header{};
   m_memory_card->Read(0, static_cast<s32>(header.size()), header.data());
-  SetCardFlashID(header.data(), m_card_slot);
+  auto& sram = Core::System::GetInstance().GetSRAM();
+  SetCardFlashID(&sram, header.data(), m_card_slot);
 }
 
 std::pair<std::string /* path */, bool /* migrate */>
@@ -178,11 +180,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
     current_game_id = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
   }
 
-  // TODO(C++20): Use structured bindings when we can use C++20 and refer to structured bindings
-  // in lambda captures
-  const auto folder_path_pair = GetGCIFolderPath(m_card_slot, AllowMovieFolder::Yes);
-  const std::string& dir_path = folder_path_pair.first;
-  const bool migrate = folder_path_pair.second;
+  const auto [dir_path, migrate] = GetGCIFolderPath(m_card_slot, AllowMovieFolder::Yes);
 
   const File::FileInfo file_info(dir_path);
   if (!file_info.Exists())
@@ -297,8 +295,6 @@ void CEXIMemoryCard::SetCS(int cs)
     case Command::ChipErase:
       if (m_position > 2)
       {
-        // TODO: Investigate on HW, I (LPFaint99) believe that this only
-        // erases the system area (Blocks 0-4)
         m_memory_card->ClearAll();
         m_status &= ~MC_STATUS_BUSY;
       }

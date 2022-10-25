@@ -25,7 +25,7 @@
 #include <unistd.h>
 #endif
 
-#if defined _WIN32 || defined __APPLE__
+#if defined(_WIN32) || defined(__APPLE__)
 #define OS_SUPPORTS_UPDATER
 #endif
 
@@ -34,28 +34,35 @@
 namespace
 {
 bool s_update_triggered = false;
-#ifdef _WIN32
 
-const char UPDATER_FILENAME[] = "Updater.exe";
-const char UPDATER_RELOC_FILENAME[] = "Updater.2.exe";
-
-#elif defined(__APPLE__)
-
-const char UPDATER_FILENAME[] = "Dolphin Updater.app";
-const char UPDATER_RELOC_FILENAME[] = ".Dolphin Updater.2.app";
-
+#ifdef __APPLE__
+const char UPDATER_CONTENT_PATH[] = "/Contents/MacOS/Dolphin Updater";
 #endif
 
 #ifdef OS_SUPPORTS_UPDATER
+
 const char UPDATER_LOG_FILE[] = "Updater.log";
+
+std::string UpdaterPath(bool relocated = false)
+{
+  std::string path(File::GetExeDirectory() + DIR_SEP);
+#ifdef __APPLE__
+  if (relocated)
+    path += ".Dolphin Updater.2.app";
+  else
+    path += "Dolphin Updater.app";
+  return path;
+#else
+  return path + "Updater.exe";
+#endif
+}
 
 std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& flags)
 {
 #ifdef __APPLE__
-  std::string cmdline = "\"" + File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME +
-                        "/Contents/MacOS/Dolphin Updater\"";
+  std::string cmdline = "\"" + UpdaterPath(true) + UPDATER_CONTENT_PATH + "\"";
 #else
-  std::string cmdline = File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME;
+  std::string cmdline = UpdaterPath();
 #endif
 
   cmdline += " ";
@@ -70,17 +77,14 @@ std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& fla
   return cmdline;
 }
 
-// Used to remove the relocated updater file once we don't need it anymore.
+#ifdef __APPLE__
 void CleanupFromPreviousUpdate()
 {
-  std::string reloc_updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME;
-
-#ifdef __APPLE__
-  File::DeleteDirRecursively(reloc_updater_path);
-#else
-  File::Delete(reloc_updater_path);
-#endif
+  // Remove the relocated updater file.
+  File::DeleteDirRecursively(UpdaterPath(true));
 }
+#endif
+
 #endif
 
 // This ignores i18n because most of the text in there (change descriptions) is only going to be
@@ -128,7 +132,7 @@ std::string GenerateChangelog(const picojson::array& versions)
 
 bool AutoUpdateChecker::SystemSupportsAutoUpdates()
 {
-#if defined(AUTOUPDATE) && (defined(_WIN32) || defined(__APPLE__))
+#if defined(AUTOUPDATE) && defined(OS_SUPPORTS_UPDATER)
   return true;
 #else
   return false;
@@ -161,7 +165,7 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   if (!SystemSupportsAutoUpdates() || update_track.empty())
     return;
 
-#ifdef OS_SUPPORTS_UPDATER
+#ifdef __APPLE__
   CleanupFromPreviousUpdate();
 #endif
 
@@ -234,26 +238,22 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   if (restart_mode == RestartMode::RESTART_AFTER_UPDATE)
     updater_flags["binary-to-restart"] = File::GetExePath();
 
-  // Copy the updater so it can update itself if needed.
-  std::string updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_FILENAME;
-  std::string reloc_updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME;
-
 #ifdef __APPLE__
-  File::CopyDir(updater_path, reloc_updater_path);
-  chmod((reloc_updater_path + "/Contents/MacOS/Dolphin Updater").c_str(), 0700);
-#else
-  File::Copy(updater_path, reloc_updater_path);
+  // Copy the updater so it can update itself if needed.
+  const std::string reloc_updater_path = UpdaterPath(true);
+  File::CopyDir(UpdaterPath(), reloc_updater_path);
+  chmod((reloc_updater_path + UPDATER_CONTENT_PATH).c_str(), 0700);
 #endif
 
   // Run the updater!
-  const std::string command_line = MakeUpdaterCommandLine(updater_flags);
+  std::string command_line = MakeUpdaterCommandLine(updater_flags);
   INFO_LOG_FMT(COMMON, "Updater command line: {}", command_line);
 
 #ifdef _WIN32
-  STARTUPINFO sinfo = {sizeof(sinfo)};
+  STARTUPINFO sinfo{.cb = sizeof(sinfo)};
   sinfo.dwFlags = STARTF_FORCEOFFFEEDBACK;  // No hourglass cursor after starting the process.
   PROCESS_INFORMATION pinfo;
-  if (CreateProcessW(UTF8ToWString(reloc_updater_path).c_str(), UTF8ToWString(command_line).data(),
+  if (CreateProcessW(UTF8ToWString(UpdaterPath()).c_str(), UTF8ToWString(command_line).data(),
                      nullptr, nullptr, FALSE, 0, nullptr, nullptr, &sinfo, &pinfo))
   {
     CloseHandle(pinfo.hThread);

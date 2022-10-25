@@ -52,7 +52,53 @@ int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   return RawWrite(&m_reg_data, addr, count, data_in);
 }
 
-void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_of_view)
+std::array<CameraPoint, CameraLogic::NUM_POINTS>
+CameraLogic::GetCameraPoints(const Common::Matrix44& transform, Common::Vec2 field_of_view)
+{
+  using Common::Matrix33;
+  using Common::Matrix44;
+  using Common::Vec3;
+  using Common::Vec4;
+
+  const std::array<Vec3, NUM_POINTS> leds{
+      Vec3{-SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
+      Vec3{SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
+  };
+
+  const auto camera_view =
+      Matrix44::Perspective(field_of_view.y, field_of_view.x / field_of_view.y, 0.001f, 1000) *
+      Matrix44::FromMatrix33(Matrix33::RotateX(float(MathUtil::TAU / 4))) * transform;
+
+  std::array<CameraPoint, leds.size()> camera_points;
+
+  std::transform(leds.begin(), leds.end(), camera_points.begin(), [&](const Vec3& v) {
+    const auto point = camera_view * Vec4(v, 1.0);
+
+    // Check if LED is behind camera.
+    if (point.z < 0)
+      return CameraPoint();
+
+    // FYI: truncating vs. rounding seems to produce more symmetrical cursor positioning.
+    const auto x = s32((1 - point.x / point.w) * CAMERA_RES_X / 2);
+    const auto y = s32((1 - point.y / point.w) * CAMERA_RES_Y / 2);
+
+    // Check if LED is outside of view.
+    if (x < 0 || y < 0 || x >= CAMERA_RES_X || y >= CAMERA_RES_Y)
+      return CameraPoint();
+
+    // Curve fit from data using an official WM+ and sensor bar at middle "sensitivity".
+    // Point sizes at minimum and maximum sensitivity differ by around 0.5 (not implemented).
+    const auto point_size = 2.37f * std::pow(point.z, -0.778f);
+
+    const auto clamped_point_size = std::clamp<s32>(std::lround(point_size), 1, MAX_POINT_SIZE);
+
+    return CameraPoint({u16(x), u16(y)}, u8(clamped_point_size));
+  });
+
+  return camera_points;
+}
+
+void CameraLogic::Update(const std::array<CameraPoint, NUM_POINTS>& camera_points)
 {
   // IR data is read from offset 0x37 on real hardware.
   auto& data = m_reg_data.camera_data;
@@ -68,56 +114,6 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
   // If the sensor bar is off the camera will see no LEDs and return 0xFFs.
   if (!IOS::g_gpio_out[IOS::GPIO::SENSOR_BAR])
     return;
-
-  using Common::Matrix33;
-  using Common::Matrix44;
-  using Common::Vec3;
-  using Common::Vec4;
-
-  // FYI: A real wiimote normally only returns 1 point for each LED cluster (2 total).
-  // Sending all 4 points can actually cause some stuttering issues.
-  constexpr int NUM_POINTS = 2;
-
-  // Range from 0-15. Small values (2-4) seem to be very typical.
-  // This is reduced based on distance from sensor bar.
-  constexpr int MAX_POINT_SIZE = 15;
-
-  const std::array<Vec3, NUM_POINTS> leds{
-      Vec3{-SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
-      Vec3{SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
-  };
-
-  const auto camera_view =
-      Matrix44::Perspective(field_of_view.y, field_of_view.x / field_of_view.y, 0.001f, 1000) *
-      Matrix44::FromMatrix33(Matrix33::RotateX(float(MathUtil::TAU / 4))) * transform;
-
-  struct CameraPoint
-  {
-    IRBasic::IRObject position;
-    u8 size = 0;
-  };
-
-  std::array<CameraPoint, leds.size()> camera_points;
-
-  std::transform(leds.begin(), leds.end(), camera_points.begin(), [&](const Vec3& v) {
-    const auto point = camera_view * Vec4(v, 1.0);
-
-    // Check if LED is behind camera.
-    if (point.z > 0)
-    {
-      // FYI: Casting down vs. rounding seems to produce more symmetrical output.
-      const auto x = s32((1 - point.x / point.w) * CAMERA_RES_X / 2);
-      const auto y = s32((1 - point.y / point.w) * CAMERA_RES_Y / 2);
-
-      const auto point_size = std::lround(MAX_POINT_SIZE / point.w / 2);
-
-      if (x >= 0 && y >= 0 && x < CAMERA_RES_X && y < CAMERA_RES_Y)
-        return CameraPoint{{u16(x), u16(y)}, u8(point_size)};
-    }
-
-    // 0xFFFFs are interpreted as "not visible".
-    return CameraPoint{{0xffff, 0xffff}, 0xff};
-  });
 
   switch (m_reg_data.mode)
   {

@@ -10,17 +10,19 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <span>
 #include <sstream>
 #include <thread>
+#include <tuple>
 #include <type_traits>
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/md5.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -54,6 +56,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -90,10 +93,10 @@ NetPlayClient::~NetPlayClient()
 
   if (m_is_connected)
   {
-    m_should_compute_MD5 = false;
-    m_dialog->AbortMD5();
-    if (m_MD5_thread.joinable())
-      m_MD5_thread.join();
+    m_should_compute_game_digest = false;
+    m_dialog->AbortGameDigest();
+    if (m_game_digest_thread.joinable())
+      m_game_digest_thread.join();
     m_do_loop.Clear();
     m_thread.join();
 
@@ -432,10 +435,6 @@ void NetPlayClient::OnData(sf::Packet& packet)
     OnDesyncDetected(packet);
     break;
 
-  case MessageID::SyncGCSRAM:
-    OnSyncGCSRAM(packet);
-    break;
-
   case MessageID::SyncSaveData:
     OnSyncSaveData(packet);
     break;
@@ -444,24 +443,24 @@ void NetPlayClient::OnData(sf::Packet& packet)
     OnSyncCodes(packet);
     break;
 
-  case MessageID::ComputeMD5:
-    OnComputeMD5(packet);
+  case MessageID::ComputeGameDigest:
+    OnComputeGameDigest(packet);
     break;
 
-  case MessageID::MD5Progress:
-    OnMD5Progress(packet);
+  case MessageID::GameDigestProgress:
+    OnGameDigestProgress(packet);
     break;
 
-  case MessageID::MD5Result:
-    OnMD5Result(packet);
+  case MessageID::GameDigestResult:
+    OnGameDigestResult(packet);
     break;
 
-  case MessageID::MD5Error:
-    OnMD5Error(packet);
+  case MessageID::GameDigestError:
+    OnGameDigestError(packet);
     break;
 
-  case MessageID::MD5Abort:
-    OnMD5Abort();
+  case MessageID::GameDigestAbort:
+    OnGameDigestAbort();
     break;
 
   default:
@@ -635,7 +634,7 @@ void NetPlayClient::OnGBAConfig(sf::Packet& packet)
         std::tie(old_config.has_rom, old_config.title, old_config.hash))
     {
       m_dialog->OnMsgChangeGBARom(static_cast<int>(i), config);
-      m_net_settings.m_GBARomPaths[i] =
+      m_net_settings.gba_rom_paths[i] =
           config.has_rom ?
               m_dialog->FindGBARomPath(config.hash, config.title, static_cast<int>(i)) :
               "";
@@ -699,20 +698,29 @@ void NetPlayClient::OnPadHostData(sf::Packet& packet)
 
 void NetPlayClient::OnWiimoteData(sf::Packet& packet)
 {
-  PadIndex map;
-  WiimoteInput nw;
-  u8 size;
+  while (!packet.endOfPacket())
+  {
+    PadIndex map;
+    packet >> map;
 
-  packet >> map >> nw.report_id >> size;
+    WiimoteEmu::SerializedWiimoteState pad;
+    packet >> pad.length;
+    ASSERT(pad.length <= pad.data.size());
+    if (pad.length <= pad.data.size())
+    {
+      for (size_t i = 0; i < pad.length; ++i)
+        packet >> pad.data[i];
+    }
+    else
+    {
+      pad.length = 0;
+    }
 
-  nw.data.resize(size);
-  for (auto& byte : nw.data)
-    packet >> byte;
-
-  // Trusting server for good map value (>=0 && <4)
-  // add to Wiimote buffer
-  m_wiimote_buffer.at(map).Push(nw);
-  m_wii_pad_event.Set();
+    // Trusting server for good map value (>=0 && <4)
+    // add to pad buffer
+    m_wiimote_buffer.at(map).Push(pad);
+    m_wii_pad_event.Set();
+  }
 }
 
 void NetPlayClient::OnPadBuffer(sf::Packet& packet)
@@ -809,92 +817,95 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     INFO_LOG_FMT(NETPLAY, "Start of game {}", m_selected_game.game_id);
 
     packet >> m_current_game;
-    packet >> m_net_settings.m_CPUthread;
-    packet >> m_net_settings.m_CPUcore;
-    packet >> m_net_settings.m_EnableCheats;
-    packet >> m_net_settings.m_SelectedLanguage;
-    packet >> m_net_settings.m_OverrideRegionSettings;
-    packet >> m_net_settings.m_DSPEnableJIT;
-    packet >> m_net_settings.m_DSPHLE;
-    packet >> m_net_settings.m_WriteToMemcard;
-    packet >> m_net_settings.m_RAMOverrideEnable;
-    packet >> m_net_settings.m_Mem1Size;
-    packet >> m_net_settings.m_Mem2Size;
-    packet >> m_net_settings.m_FallbackRegion;
-    packet >> m_net_settings.m_AllowSDWrites;
-    packet >> m_net_settings.m_CopyWiiSave;
-    packet >> m_net_settings.m_OCEnable;
-    packet >> m_net_settings.m_OCFactor;
+    packet >> m_net_settings.cpu_thread;
+    packet >> m_net_settings.cpu_core;
+    packet >> m_net_settings.enable_cheats;
+    packet >> m_net_settings.selected_language;
+    packet >> m_net_settings.override_region_settings;
+    packet >> m_net_settings.dsp_enable_jit;
+    packet >> m_net_settings.dsp_hle;
+    packet >> m_net_settings.ram_override_enable;
+    packet >> m_net_settings.mem1_size;
+    packet >> m_net_settings.mem2_size;
+    packet >> m_net_settings.fallback_region;
+    packet >> m_net_settings.allow_sd_writes;
+    packet >> m_net_settings.oc_enable;
+    packet >> m_net_settings.oc_factor;
 
     for (auto slot : ExpansionInterface::SLOTS)
-      packet >> m_net_settings.m_EXIDevice[slot];
+      packet >> m_net_settings.exi_device[slot];
 
-    packet >> m_net_settings.m_MemcardSizeOverride;
+    packet >> m_net_settings.memcard_size_override;
 
-    for (u32& value : m_net_settings.m_SYSCONFSettings)
+    for (u32& value : m_net_settings.sysconf_settings)
       packet >> value;
 
-    packet >> m_net_settings.m_EFBAccessEnable;
-    packet >> m_net_settings.m_BBoxEnable;
-    packet >> m_net_settings.m_ForceProgressive;
-    packet >> m_net_settings.m_EFBToTextureEnable;
-    packet >> m_net_settings.m_XFBToTextureEnable;
-    packet >> m_net_settings.m_DisableCopyToVRAM;
-    packet >> m_net_settings.m_ImmediateXFBEnable;
-    packet >> m_net_settings.m_EFBEmulateFormatChanges;
-    packet >> m_net_settings.m_SafeTextureCacheColorSamples;
-    packet >> m_net_settings.m_PerfQueriesEnable;
-    packet >> m_net_settings.m_FloatExceptions;
-    packet >> m_net_settings.m_DivideByZeroExceptions;
-    packet >> m_net_settings.m_FPRF;
-    packet >> m_net_settings.m_AccurateNaNs;
-    packet >> m_net_settings.m_DisableICache;
-    packet >> m_net_settings.m_SyncOnSkipIdle;
-    packet >> m_net_settings.m_SyncGPU;
-    packet >> m_net_settings.m_SyncGpuMaxDistance;
-    packet >> m_net_settings.m_SyncGpuMinDistance;
-    packet >> m_net_settings.m_SyncGpuOverclock;
-    packet >> m_net_settings.m_JITFollowBranch;
-    packet >> m_net_settings.m_FastDiscSpeed;
-    packet >> m_net_settings.m_MMU;
-    packet >> m_net_settings.m_Fastmem;
-    packet >> m_net_settings.m_SkipIPL;
-    packet >> m_net_settings.m_LoadIPLDump;
-    packet >> m_net_settings.m_VertexRounding;
-    packet >> m_net_settings.m_InternalResolution;
-    packet >> m_net_settings.m_EFBScaledCopy;
-    packet >> m_net_settings.m_FastDepthCalc;
-    packet >> m_net_settings.m_EnablePixelLighting;
-    packet >> m_net_settings.m_WidescreenHack;
-    packet >> m_net_settings.m_ForceFiltering;
-    packet >> m_net_settings.m_MaxAnisotropy;
-    packet >> m_net_settings.m_ForceTrueColor;
-    packet >> m_net_settings.m_DisableCopyFilter;
-    packet >> m_net_settings.m_DisableFog;
-    packet >> m_net_settings.m_ArbitraryMipmapDetection;
-    packet >> m_net_settings.m_ArbitraryMipmapDetectionThreshold;
-    packet >> m_net_settings.m_EnableGPUTextureDecoding;
-    packet >> m_net_settings.m_DeferEFBCopies;
-    packet >> m_net_settings.m_EFBAccessTileSize;
-    packet >> m_net_settings.m_EFBAccessDeferInvalidation;
-    packet >> m_net_settings.m_StrictSettingsSync;
+    packet >> m_net_settings.efb_access_enable;
+    packet >> m_net_settings.bbox_enable;
+    packet >> m_net_settings.force_progressive;
+    packet >> m_net_settings.efb_to_texture_enable;
+    packet >> m_net_settings.xfb_to_texture_enable;
+    packet >> m_net_settings.disable_copy_to_vram;
+    packet >> m_net_settings.immediate_xfb_enable;
+    packet >> m_net_settings.efb_emulate_format_changes;
+    packet >> m_net_settings.safe_texture_cache_color_samples;
+    packet >> m_net_settings.perf_queries_enable;
+    packet >> m_net_settings.float_exceptions;
+    packet >> m_net_settings.divide_by_zero_exceptions;
+    packet >> m_net_settings.fprf;
+    packet >> m_net_settings.accurate_nans;
+    packet >> m_net_settings.disable_icache;
+    packet >> m_net_settings.sync_on_skip_idle;
+    packet >> m_net_settings.sync_gpu;
+    packet >> m_net_settings.sync_gpu_max_distance;
+    packet >> m_net_settings.sync_gpu_min_distance;
+    packet >> m_net_settings.sync_gpu_overclock;
+    packet >> m_net_settings.jit_follow_branch;
+    packet >> m_net_settings.fast_disc_speed;
+    packet >> m_net_settings.mmu;
+    packet >> m_net_settings.fastmem;
+    packet >> m_net_settings.skip_ipl;
+    packet >> m_net_settings.load_ipl_dump;
+    packet >> m_net_settings.vertex_rounding;
+    packet >> m_net_settings.internal_resolution;
+    packet >> m_net_settings.efb_scaled_copy;
+    packet >> m_net_settings.fast_depth_calc;
+    packet >> m_net_settings.enable_pixel_lighting;
+    packet >> m_net_settings.widescreen_hack;
+    packet >> m_net_settings.force_filtering;
+    packet >> m_net_settings.max_anisotropy;
+    packet >> m_net_settings.force_true_color;
+    packet >> m_net_settings.disable_copy_filter;
+    packet >> m_net_settings.disable_fog;
+    packet >> m_net_settings.arbitrary_mipmap_detection;
+    packet >> m_net_settings.arbitrary_mipmap_detection_threshold;
+    packet >> m_net_settings.enable_gpu_texture_decoding;
+    packet >> m_net_settings.defer_efb_copies;
+    packet >> m_net_settings.efb_access_tile_size;
+    packet >> m_net_settings.efb_access_defer_invalidation;
+    packet >> m_net_settings.savedata_load;
+    packet >> m_net_settings.savedata_write;
+    packet >> m_net_settings.savedata_sync_all_wii;
+    if (!m_net_settings.savedata_load)
+    {
+      m_net_settings.savedata_write = false;
+      m_net_settings.savedata_sync_all_wii = false;
+    }
+    packet >> m_net_settings.strict_settings_sync;
 
     m_initial_rtc = Common::PacketReadU64(packet);
 
-    packet >> m_net_settings.m_SyncSaveData;
-    packet >> m_net_settings.m_SaveDataRegion;
-    packet >> m_net_settings.m_SyncCodes;
-    packet >> m_net_settings.m_SyncAllWiiSaves;
+    packet >> m_net_settings.save_data_region;
+    packet >> m_net_settings.sync_codes;
 
-    for (int& extension : m_net_settings.m_WiimoteExtension)
-      packet >> extension;
+    packet >> m_net_settings.golf_mode;
+    packet >> m_net_settings.use_fma;
+    packet >> m_net_settings.hide_remote_gbas;
 
-    packet >> m_net_settings.m_GolfMode;
-    packet >> m_net_settings.m_UseFMA;
-    packet >> m_net_settings.m_HideRemoteGBAs;
+    for (size_t i = 0; i < sizeof(m_net_settings.sram); ++i)
+      packet >> m_net_settings.sram[i];
 
-    m_net_settings.m_IsHosting = m_local_player->IsHost();
-    m_net_settings.m_HostInputAuthority = m_host_input_authority;
+    m_net_settings.is_hosting = m_local_player->IsHost();
   }
 
   m_dialog->OnMsgStartGame();
@@ -910,6 +921,7 @@ void NetPlayClient::OnStopGame(sf::Packet& packet)
 
 void NetPlayClient::OnPowerButton()
 {
+  InvokeStop();
   m_dialog->OnMsgPowerButton();
 }
 
@@ -958,20 +970,6 @@ void NetPlayClient::OnDesyncDetected(sf::Packet& packet)
   INFO_LOG_FMT(NETPLAY, "Player {} ({}) desynced!", player, pid_to_blame);
 
   m_dialog->OnDesync(frame, player);
-}
-
-void NetPlayClient::OnSyncGCSRAM(sf::Packet& packet)
-{
-  const size_t sram_settings_len = sizeof(g_SRAM) - offsetof(Sram, settings);
-  u8 sram[sram_settings_len];
-  for (u8& cell : sram)
-    packet >> cell;
-
-  {
-    std::lock_guard lkg(m_crit.game);
-    memcpy(&g_SRAM.settings, sram, sram_settings_len);
-    g_SRAM_netplay_initialized = true;
-  }
 }
 
 void NetPlayClient::OnSyncSaveData(sf::Packet& packet)
@@ -1421,55 +1419,53 @@ void NetPlayClient::OnSyncCodesDataAR(sf::Packet& packet)
   ActionReplay::UpdateSyncedCodes(synced_codes);
 }
 
-void NetPlayClient::OnComputeMD5(sf::Packet& packet)
+void NetPlayClient::OnComputeGameDigest(sf::Packet& packet)
 {
   SyncIdentifier sync_identifier;
   ReceiveSyncIdentifier(packet, sync_identifier);
 
-  ComputeMD5(sync_identifier);
+  ComputeGameDigest(sync_identifier);
 }
 
-void NetPlayClient::OnMD5Progress(sf::Packet& packet)
+void NetPlayClient::OnGameDigestProgress(sf::Packet& packet)
 {
   PlayerId pid;
   int progress;
   packet >> pid;
   packet >> progress;
 
-  m_dialog->SetMD5Progress(pid, progress);
+  m_dialog->SetGameDigestProgress(pid, progress);
 }
 
-void NetPlayClient::OnMD5Result(sf::Packet& packet)
+void NetPlayClient::OnGameDigestResult(sf::Packet& packet)
 {
   PlayerId pid;
   std::string result;
   packet >> pid;
   packet >> result;
 
-  m_dialog->SetMD5Result(pid, result);
+  m_dialog->SetGameDigestResult(pid, result);
 }
 
-void NetPlayClient::OnMD5Error(sf::Packet& packet)
+void NetPlayClient::OnGameDigestError(sf::Packet& packet)
 {
   PlayerId pid;
   std::string error;
   packet >> pid;
   packet >> error;
 
-  m_dialog->SetMD5Result(pid, error);
+  m_dialog->SetGameDigestResult(pid, error);
 }
 
-void NetPlayClient::OnMD5Abort()
+void NetPlayClient::OnGameDigestAbort()
 {
-  m_should_compute_MD5 = false;
-  m_dialog->AbortMD5();
+  m_should_compute_game_digest = false;
+  m_dialog->AbortGameDigest();
 }
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
 {
-  ENetPacket* epac =
-      enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
-  enet_peer_send(m_server, channel_id, epac);
+  ENetUtil::SendPacket(m_server, packet, channel_id);
 }
 
 void NetPlayClient::DisplayPlayersPing()
@@ -1630,15 +1626,14 @@ void NetPlayClient::AddPadStateToPacket(const int in_game_pad, const GCPadStatus
 }
 
 // called from ---CPU--- thread
-void NetPlayClient::SendWiimoteState(const int in_game_pad, const WiimoteInput& nw)
+void NetPlayClient::AddWiimoteStateToPacket(int in_game_pad,
+                                            const WiimoteEmu::SerializedWiimoteState& state,
+                                            sf::Packet& packet)
 {
-  sf::Packet packet;
-  packet << MessageID::WiimoteData;
   packet << static_cast<PadIndex>(in_game_pad);
-  packet << static_cast<u8>(nw.report_id);
-  packet << static_cast<u8>(nw.data.size());
-  packet.append(nw.data.data(), nw.data.size());
-  SendAsync(std::move(packet));
+  packet << state.length;
+  for (size_t i = 0; i < state.length; ++i)
+    packet << state.data[i];
 }
 
 // called from ---GUI--- thread
@@ -1711,6 +1706,11 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   // boot game
   auto boot_session_data = std::make_unique<BootSessionData>();
+
+  INFO_LOG_FMT(NETPLAY,
+               "Setting Wii sync data: has FS {}, sync_titles = {:016x}, redirect folder = {}",
+               !!m_wii_sync_fs, fmt::join(m_wii_sync_titles, ", "), m_wii_sync_redirect_folder);
+
   boot_session_data->SetWiiSyncData(std::move(m_wii_sync_fs), std::move(m_wii_sync_titles),
                                     std::move(m_wii_sync_redirect_folder), [] {
                                       // on emulation end clean up the Wii save sync directory --
@@ -1725,6 +1725,8 @@ bool NetPlayClient::StartGame(const std::string& path)
                                       if (File::Exists(redirect_path))
                                         File::DeleteDirRecursively(redirect_path);
                                     });
+  boot_session_data->SetNetplaySettings(std::make_unique<NetPlay::NetSettings>(m_net_settings));
+
   m_dialog->BootGame(path, std::move(boot_session_data));
 
   UpdateDevices();
@@ -2047,78 +2049,41 @@ u64 NetPlayClient::GetInitialRTCValue() const
 }
 
 // called from ---CPU--- thread
-bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size, u8 reporting_mode)
+bool NetPlayClient::WiimoteUpdate(const std::span<WiimoteDataBatchEntry>& entries)
 {
-  WiimoteInput nw;
-  nw.report_id = reporting_mode;
+  for (const WiimoteDataBatchEntry& entry : entries)
   {
-    std::lock_guard lkp(m_crit.players);
-
-    // Only send data, if this Wiimote is mapped to this player
-    if (m_wiimote_map[_number] == m_local_player->pid)
+    const int local_wiimote = InGameWiimoteToLocalWiimote(entry.wiimote);
+    DEBUG_LOG_FMT(NETPLAY,
+                  "Entering WiimoteUpdate() with wiimote {}, local_wiimote {}, state [{:02x}]",
+                  entry.wiimote, local_wiimote,
+                  fmt::join(std::span(entry.state->data.data(), entry.state->length), ", "));
+    if (local_wiimote < 4)
     {
-      nw.data.assign(data, data + size);
-
-      // TODO: add a seperate setting for wiimote buffer?
-      while (m_wiimote_buffer[_number].Size() <= m_target_buffer_size * 200 / 120)
-      {
-        // add to buffer
-        m_wiimote_buffer[_number].Push(nw);
-
-        SendWiimoteState(_number, nw);
-      }
+      sf::Packet packet;
+      packet << MessageID::WiimoteData;
+      if (AddLocalWiimoteToBuffer(local_wiimote, *entry.state, packet))
+        SendAsync(std::move(packet));
     }
 
-  }  // unlock players
-
-  while (m_wiimote_buffer[_number].Size() == 0)
-  {
-    if (!m_is_running.IsSet())
+    // Now, we either use the data pushed earlier, or wait for the
+    // other clients to send it to us
+    while (m_wiimote_buffer[entry.wiimote].Size() == 0)
     {
-      return false;
-    }
-
-    // wait for receiving thread to push some data
-    m_wii_pad_event.Wait();
-  }
-
-  m_wiimote_buffer[_number].Pop(nw);
-
-  // If the reporting mode has changed, we just need to pop through the buffer,
-  // until we reach a good input
-  if (nw.report_id != reporting_mode)
-  {
-    u32 tries = 0;
-    while (nw.report_id != reporting_mode)
-    {
-      while (m_wiimote_buffer[_number].Size() == 0)
+      if (!m_is_running.IsSet())
       {
-        if (!m_is_running.IsSet())
-        {
-          return false;
-        }
-
-        // wait for receiving thread to push some data
-        m_wii_pad_event.Wait();
+        return false;
       }
 
-      m_wiimote_buffer[_number].Pop(nw);
-
-      ++tries;
-      if (tries > m_target_buffer_size * 200 / 120)
-        break;
+      m_wii_pad_event.Wait();
     }
 
-    // If it still mismatches, it surely desynced
-    if (nw.report_id != reporting_mode)
-    {
-      PanicAlertFmtT("Netplay has desynced. There is no way to recover from this.");
-      return false;
-    }
+    m_wiimote_buffer[entry.wiimote].Pop(*entry.state);
+
+    DEBUG_LOG_FMT(NETPLAY, "Exiting WiimoteUpdate() with wiimote {}, state [{:02x}]", entry.wiimote,
+                  fmt::join(std::span(entry.state->data.data(), entry.state->length), ", "));
   }
 
-  ASSERT(nw.data.size() == size);
-  std::copy(nw.data.begin(), nw.data.end(), data);
   return true;
 }
 
@@ -2170,6 +2135,28 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
       AddPadStateToPacket(ingame_pad, pad_status, packet);
       data_added = true;
     }
+  }
+
+  return data_added;
+}
+
+bool NetPlayClient::AddLocalWiimoteToBuffer(const int local_wiimote,
+                                            const WiimoteEmu::SerializedWiimoteState& state,
+                                            sf::Packet& packet)
+{
+  const int ingame_pad = LocalWiimoteToInGameWiimote(local_wiimote);
+  bool data_added = false;
+
+  // adjust the buffer either up or down
+  // inserting multiple padstates or dropping states
+  while (m_wiimote_buffer[ingame_pad].Size() <= m_target_buffer_size)
+  {
+    // add to buffer
+    m_wiimote_buffer[ingame_pad].Push(state);
+
+    // add to packet
+    AddWiimoteStateToPacket(ingame_pad, state, packet);
+    data_added = true;
   }
 
   return data_added;
@@ -2242,8 +2229,7 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
   SendAsync(std::move(packet));
 }
 
-// called from ---GUI--- thread and ---NETPLAY--- thread (client side)
-bool NetPlayClient::StopGame()
+void NetPlayClient::InvokeStop()
 {
   m_is_running.Clear();
 
@@ -2252,6 +2238,12 @@ bool NetPlayClient::StopGame()
   m_wii_pad_event.Set();
   m_first_pad_status_received_event.Set();
   m_wait_on_input_event.Set();
+}
+
+// called from ---GUI--- thread and ---NETPLAY--- thread (client side)
+bool NetPlayClient::StopGame()
+{
+  InvokeStop();
 
   NetPlay_Disable();
 
@@ -2267,13 +2259,7 @@ void NetPlayClient::Stop()
   if (!m_is_running.IsSet())
     return;
 
-  m_is_running.Clear();
-
-  // stop waiting for input
-  m_gc_pad_event.Set();
-  m_wii_pad_event.Set();
-  m_first_pad_status_received_event.Set();
-  m_wait_on_input_event.Set();
+  InvokeStop();
 
   // Tell the server to stop if we have a pad mapped in game.
   if (LocalPlayerHasControllerMapped())
@@ -2298,7 +2284,7 @@ void NetPlayClient::SendPowerButtonEvent()
 
 void NetPlayClient::RequestGolfControl(const PlayerId pid)
 {
-  if (!m_host_input_authority || !m_net_settings.m_GolfMode)
+  if (!m_host_input_authority || !m_net_settings.golf_mode)
     return;
 
   sf::Packet packet;
@@ -2333,32 +2319,43 @@ bool NetPlayClient::IsFirstInGamePad(int ingame_pad) const
                       [](auto mapping) { return mapping > 0; });
 }
 
-int NetPlayClient::NumLocalPads() const
+static int CountLocalPads(const PadMappingArray& pad_map, const PlayerId& local_player_pid)
 {
-  return static_cast<int>(std::count_if(m_pad_map.begin(), m_pad_map.end(), [this](auto mapping) {
-    return mapping == m_local_player->pid;
-  }));
+  return static_cast<int>(
+      std::count_if(pad_map.begin(), pad_map.end(), [&local_player_pid](const auto& mapping) {
+        return mapping == local_player_pid;
+      }));
 }
 
-int NetPlayClient::InGamePadToLocalPad(int ingame_pad) const
+int NetPlayClient::NumLocalPads() const
+{
+  return CountLocalPads(m_pad_map, m_local_player->pid);
+}
+
+int NetPlayClient::NumLocalWiimotes() const
+{
+  return CountLocalPads(m_wiimote_map, m_local_player->pid);
+}
+
+static int InGameToLocal(int ingame_pad, const PadMappingArray& pad_map, PlayerId local_player_pid)
 {
   // not our pad
-  if (m_pad_map[ingame_pad] != m_local_player->pid)
+  if (pad_map[ingame_pad] != local_player_pid)
     return 4;
 
   int local_pad = 0;
   int pad = 0;
 
-  for (; pad < ingame_pad; pad++)
+  for (; pad < ingame_pad; ++pad)
   {
-    if (m_pad_map[pad] == m_local_player->pid)
+    if (pad_map[pad] == local_player_pid)
       local_pad++;
   }
 
   return local_pad;
 }
 
-int NetPlayClient::LocalPadToInGamePad(int local_pad) const
+static int LocalToInGame(int local_pad, const PadMappingArray& pad_map, PlayerId local_player_pid)
 {
   // Figure out which in-game pad maps to which local pad.
   // The logic we have here is that the local slots always
@@ -2367,7 +2364,7 @@ int NetPlayClient::LocalPadToInGamePad(int local_pad) const
   int ingame_pad = 0;
   for (; ingame_pad < 4; ingame_pad++)
   {
-    if (m_pad_map[ingame_pad] == m_local_player->pid)
+    if (pad_map[ingame_pad] == local_player_pid)
       local_pad_count++;
 
     if (local_pad_count == local_pad)
@@ -2375,6 +2372,26 @@ int NetPlayClient::LocalPadToInGamePad(int local_pad) const
   }
 
   return ingame_pad;
+}
+
+int NetPlayClient::InGamePadToLocalPad(int ingame_pad) const
+{
+  return InGameToLocal(ingame_pad, m_pad_map, m_local_player->pid);
+}
+
+int NetPlayClient::LocalPadToInGamePad(int local_pad) const
+{
+  return LocalToInGame(local_pad, m_pad_map, m_local_player->pid);
+}
+
+int NetPlayClient::InGameWiimoteToLocalWiimote(int ingame_wiimote) const
+{
+  return InGameToLocal(ingame_wiimote, m_wiimote_map, m_local_player->pid);
+}
+
+int NetPlayClient::LocalWiimoteToInGameWiimote(int local_wiimote) const
+{
+  return LocalToInGame(local_wiimote, m_wiimote_map, m_local_player->pid);
 }
 
 bool NetPlayClient::PlayerHasControllerMapped(const PlayerId pid) const
@@ -2390,6 +2407,11 @@ bool NetPlayClient::IsLocalPlayer(const PlayerId pid) const
   return pid == m_local_player->pid;
 }
 
+const PlayerId& NetPlayClient::GetLocalPlayerId() const
+{
+  return m_local_player->pid;
+}
+
 void NetPlayClient::SendGameStatus()
 {
   sf::Packet packet;
@@ -2400,7 +2422,7 @@ void NetPlayClient::SendGameStatus()
   for (size_t i = 0; i < 4; ++i)
   {
     if (m_gba_config[i].enabled && m_gba_config[i].has_rom &&
-        m_net_settings.m_GBARomPaths[i].empty())
+        m_net_settings.gba_rom_paths[i].empty())
     {
       result = SyncIdentifierComparison::DifferentGame;
     }
@@ -2438,16 +2460,15 @@ bool NetPlayClient::DoAllPlayersHaveGame()
   });
 }
 
-static std::string MD5Sum(const std::string& file_path, std::function<bool(int)> report_progress)
+static std::string SHA1Sum(const std::string& file_path, std::function<bool(int)> report_progress)
 {
   std::vector<u8> data(8 * 1024 * 1024);
   u64 read_offset = 0;
-  mbedtls_md5_context ctx;
 
   std::unique_ptr<DiscIO::BlobReader> file(DiscIO::CreateBlobReader(file_path));
   u64 game_size = file->GetDataSize();
 
-  mbedtls_md5_starts_ret(&ctx);
+  auto ctx = Common::SHA1::CreateContext();
 
   while (read_offset < game_size)
   {
@@ -2455,7 +2476,7 @@ static std::string MD5Sum(const std::string& file_path, std::function<bool(int)>
     if (!file->Read(read_offset, read_size, data.data()))
       return "";
 
-    mbedtls_md5_update_ret(&ctx, data.data(), read_size);
+    ctx->Update(data.data(), read_size);
     read_offset += read_size;
 
     int progress =
@@ -2464,20 +2485,17 @@ static std::string MD5Sum(const std::string& file_path, std::function<bool(int)>
       return "";
   }
 
-  std::array<u8, 16> output;
-  mbedtls_md5_finish_ret(&ctx, output.data());
-
   // Convert to hex
-  return fmt::format("{:02x}", fmt::join(output, ""));
+  return fmt::format("{:02x}", fmt::join(ctx->Finish(), ""));
 }
 
-void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
+void NetPlayClient::ComputeGameDigest(const SyncIdentifier& sync_identifier)
 {
-  if (m_should_compute_MD5)
+  if (m_should_compute_game_digest)
     return;
 
-  m_dialog->ShowMD5Dialog(sync_identifier.game_id);
-  m_should_compute_MD5 = true;
+  m_dialog->ShowGameDigestDialog(sync_identifier.game_id);
+  m_should_compute_game_digest = true;
 
   std::string file;
   if (sync_identifier == GetSDCardIdentifier())
@@ -2488,26 +2506,26 @@ void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
   if (file.empty() || !File::Exists(file))
   {
     sf::Packet packet;
-    packet << MessageID::MD5Error;
+    packet << MessageID::GameDigestError;
     packet << "file not found";
     Send(packet);
     return;
   }
 
-  if (m_MD5_thread.joinable())
-    m_MD5_thread.join();
-  m_MD5_thread = std::thread([this, file]() {
-    std::string sum = MD5Sum(file, [&](int progress) {
+  if (m_game_digest_thread.joinable())
+    m_game_digest_thread.join();
+  m_game_digest_thread = std::thread([this, file]() {
+    std::string sum = SHA1Sum(file, [&](int progress) {
       sf::Packet packet;
-      packet << MessageID::MD5Progress;
+      packet << MessageID::GameDigestProgress;
       packet << progress;
       SendAsync(std::move(packet));
 
-      return m_should_compute_MD5;
+      return m_should_compute_game_digest;
     });
 
     sf::Packet packet;
-    packet << MessageID::MD5Result;
+    packet << MessageID::GameDigestResult;
     packet << sum;
     SendAsync(std::move(packet));
   });
@@ -2578,12 +2596,6 @@ bool IsNetPlayRunning()
   return netplay_client != nullptr;
 }
 
-const NetSettings& GetNetSettings()
-{
-  ASSERT(IsNetPlayRunning());
-  return netplay_client->GetNetSettings();
-}
-
 void SetSIPollBatching(bool state)
 {
   s_si_poll_batching = state;
@@ -2595,38 +2607,11 @@ void SendPowerButtonEvent()
   netplay_client->SendPowerButtonEvent();
 }
 
-bool IsSyncingAllWiiSaves()
-{
-  std::lock_guard lk(crit_netplay_client);
-
-  if (netplay_client)
-    return netplay_client->GetNetSettings().m_SyncAllWiiSaves;
-
-  return false;
-}
-
-void SetupWiimotes()
-{
-  ASSERT(IsNetPlayRunning());
-  const NetSettings& netplay_settings = netplay_client->GetNetSettings();
-  const PadMappingArray& wiimote_map = netplay_client->GetWiimoteMapping();
-  for (size_t i = 0; i < netplay_settings.m_WiimoteExtension.size(); i++)
-  {
-    if (wiimote_map[i] > 0)
-    {
-      static_cast<ControllerEmu::Attachments*>(
-          static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(int(i)))
-              ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments))
-          ->SetSelectedAttachment(netplay_settings.m_WiimoteExtension[i]);
-    }
-  }
-}
-
 std::string GetGBASavePath(int pad_num)
 {
   std::lock_guard lk(crit_netplay_client);
 
-  if (!netplay_client || NetPlay::GetNetSettings().m_IsHosting)
+  if (!netplay_client || netplay_client->GetNetSettings().is_hosting)
   {
 #ifdef HAS_LIBMGBA
     std::string rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[pad_num]);
@@ -2636,7 +2621,7 @@ std::string GetGBASavePath(int pad_num)
 #endif
   }
 
-  if (!NetPlay::GetNetSettings().m_SyncSaveData)
+  if (!netplay_client->GetNetSettings().savedata_load)
     return {};
 
   return fmt::format("{}{}{}.sav", File::GetUserPath(D_GBAUSER_IDX), GBA_SAVE_NETPLAY, pad_num + 1);
@@ -2672,9 +2657,17 @@ PadDetails GetPadDetails(int pad_num)
   }
   res.is_local = netplay_client->IsLocalPlayer(pad_map[pad_num]);
   res.local_pad = res.is_local ? local_pad : netplay_client->NumLocalPads() + non_local_pad;
-  res.hide_gba = !res.is_local && netplay_client->GetNetSettings().m_HideRemoteGBAs &&
+  res.hide_gba = !res.is_local && netplay_client->GetNetSettings().hide_remote_gbas &&
                  netplay_client->LocalPlayerHasControllerMapped();
   return res;
+}
+
+int NumLocalWiimotes()
+{
+  std::lock_guard lk(crit_netplay_client);
+  if (netplay_client)
+    return netplay_client->NumLocalWiimotes();
+  return 0;
 }
 
 void NetPlay_Enable(NetPlayClient* const np)
@@ -2704,37 +2697,51 @@ bool SerialInterface::CSIDevice_GCController::NetPlay_GetInput(int pad_num, GCPa
   return false;
 }
 
-bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode)
+bool NetPlay::NetPlay_GetWiimoteData(const std::span<NetPlayClient::WiimoteDataBatchEntry>& entries)
 {
-  std::lock_guard lk(NetPlay::crit_netplay_client);
+  std::lock_guard lk(crit_netplay_client);
 
-  if (NetPlay::netplay_client)
-    return NetPlay::netplay_client->WiimoteUpdate(wiimote, data, size, reporting_mode);
+  if (netplay_client)
+    return netplay_client->WiimoteUpdate(entries);
 
   return false;
 }
 
-// Sync the info whether a button was pressed or not. Used for the reconnect on button press feature
-bool Wiimote::NetPlay_GetButtonPress(int wiimote, bool pressed)
+unsigned int NetPlay::NetPlay_GetLocalWiimoteForSlot(unsigned int slot)
 {
-  std::lock_guard lk(NetPlay::crit_netplay_client);
+  if (slot >= std::tuple_size_v<PadMappingArray>)
+    return slot;
 
-  // Use the reporting mode 0 for the button pressed event, the real ones start at RT_REPORT_CORE
-  static const u8 BUTTON_PRESS_REPORTING_MODE = 0;
+  std::lock_guard lk(crit_netplay_client);
 
-  if (NetPlay::netplay_client)
+  if (!netplay_client)
+    return slot;
+
+  const auto& mapping = netplay_client->GetWiimoteMapping();
+  const auto& local_player_id = netplay_client->GetLocalPlayerId();
+
+  std::array<unsigned int, std::tuple_size_v<std::decay_t<decltype(mapping)>>> slot_map;
+  size_t player_count = 0;
+  for (size_t i = 0; i < mapping.size(); ++i)
   {
-    std::array<u8, 1> data = {u8(pressed)};
-    if (NetPlay::netplay_client->WiimoteUpdate(wiimote, data.data(), data.size(),
-                                               BUTTON_PRESS_REPORTING_MODE))
+    if (mapping[i] == local_player_id)
     {
-      return data[0];
+      slot_map[i] = static_cast<unsigned int>(player_count);
+      ++player_count;
     }
-    PanicAlertFmtT("Netplay has desynced in NetPlay_GetButtonPress()");
-    return false;
+  }
+  for (size_t i = 0; i < mapping.size(); ++i)
+  {
+    if (mapping[i] != local_player_id)
+    {
+      slot_map[i] = static_cast<unsigned int>(player_count);
+      ++player_count;
+    }
   }
 
-  return pressed;
+  INFO_LOG_FMT(NETPLAY, "Wiimote slot map: [{}]", fmt::join(slot_map, ", "));
+
+  return slot_map[slot];
 }
 
 // called from ---CPU--- thread

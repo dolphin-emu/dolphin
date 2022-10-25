@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 
 #include "Common/IniFile.h"
 
@@ -40,7 +41,7 @@ std::unique_lock<std::recursive_mutex> EmulatedController::GetStateLock()
 
 void EmulatedController::UpdateReferences(const ControllerInterface& devi)
 {
-  const auto lock = GetStateLock();
+  std::scoped_lock lk(s_get_state_mutex, devi.GetDevicesMutex());
 
   m_default_device_is_connected = devi.HasConnectedDevice(m_default_device);
 
@@ -176,4 +177,15 @@ void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
     SetDefaultDevice(default_device_string);
   }
 }
+
+void EmulatedController::SetInputOverrideFunction(InputOverrideFunction override_func)
+{
+  m_input_override_function = std::move(override_func);
+}
+
+void EmulatedController::ClearInputOverrideFunction()
+{
+  m_input_override_function = {};
+}
+
 }  // namespace ControllerEmu

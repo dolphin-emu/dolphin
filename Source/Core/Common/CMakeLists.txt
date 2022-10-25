@@ -324,6 +324,17 @@ if(UNIX)
     target_link_libraries(traversal_server PRIVATE ${SYSTEMD_LIBRARIES})
   endif()
 elseif(WIN32)
+  find_package(PowerShell REQUIRED)
+  execute_process(
+    COMMAND ${POWERSHELL_EXE} -Command "[System.Diagnostics.FileVersionInfo]::GetVersionInfo('$ENV{VCToolsRedistDir}vc_redist.x64.exe').ProductVersion"
+    OUTPUT_VARIABLE VC_TOOLS_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/build_info.txt.in"
+    "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/build_info.txt"
+    )
+
   target_link_libraries(common PRIVATE "-INCLUDE:enableCompatPatches")
 endif()
 

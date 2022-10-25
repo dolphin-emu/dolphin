@@ -595,7 +595,6 @@ bool GCMemcardDirectory::SetUsedBlocks(int save_index)
 void GCMemcardDirectory::FlushToFile()
 {
   std::unique_lock l(m_write_mutex);
-  int errors = 0;
   Memcard::DEntry invalid;
   for (Memcard::GCIFile& save : m_saves)
   {
@@ -644,11 +643,17 @@ void GCMemcardDirectory::FlushToFile()
           }
           else
           {
-            ++errors;
             Core::DisplayMessage(
-                fmt::format("Failed to write save contents to {}", save.m_filename), 4000);
+                fmt::format("Failed to write save contents to {}", save.m_filename), 10000);
             ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to save data to {}", save.m_filename);
           }
+        }
+        else
+        {
+          Core::DisplayMessage(
+              fmt::format("Failed to open file at {} for writing", save.m_filename), 10000);
+          ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to open file at {} for writing",
+                        save.m_filename);
         }
       }
       else if (save.m_filename.length() != 0)
@@ -691,18 +696,12 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
   m_last_block = -1;
   m_last_block_address = nullptr;
   p.Do(m_save_directory);
-  p.DoPOD<Memcard::Header>(m_hdr);
-  p.DoPOD<Memcard::Directory>(m_dir1);
-  p.DoPOD<Memcard::Directory>(m_dir2);
-  p.DoPOD<Memcard::BlockAlloc>(m_bat1);
-  p.DoPOD<Memcard::BlockAlloc>(m_bat2);
-  int num_saves = (int)m_saves.size();
-  p.Do(num_saves);
-  m_saves.resize(num_saves);
-  for (Memcard::GCIFile& save : m_saves)
-  {
-    save.DoState(p);
-  }
+  p.Do(m_hdr);
+  p.Do(m_dir1);
+  p.Do(m_dir2);
+  p.Do(m_bat1);
+  p.Do(m_bat2);
+  p.DoEachElement(m_saves, [](PointerWrap& p, Memcard::GCIFile& save) { save.DoState(p); });
 }
 
 void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterface::Slot card_slot,

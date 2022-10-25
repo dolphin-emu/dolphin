@@ -498,9 +498,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   if (core_parameter.bWii && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
   {
     Wiimote::LoadConfig();
-
-    if (NetPlay::IsNetPlayRunning())
-      NetPlay::SetupWiimotes();
   }
 
   FreeLook::LoadInputConfig();
@@ -511,7 +508,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   AudioCommon::InitSoundStream();
   Common::ScopeGuard audio_guard{&AudioCommon::ShutdownSoundStream};
 
-  HW::Init();
+  HW::Init(NetPlay::IsNetPlayRunning() ? &(boot_session_data.GetNetplaySettings()->sram) : nullptr);
 
   Common::ScopeGuard hw_guard{[] {
     // We must set up this flag before executing HW::Shutdown()
@@ -956,10 +953,12 @@ void UpdateTitle(u64 elapsed_ms)
   }
 
   // Update the audio timestretcher with the current speed
-  if (g_sound_stream)
+  auto& system = Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+  if (sound_stream)
   {
-    Mixer* pMixer = g_sound_stream->GetMixer();
-    pMixer->UpdateSpeed((float)Speed / 100);
+    Mixer* mixer = sound_stream->GetMixer();
+    mixer->UpdateSpeed((float)Speed / 100);
   }
 
   Host_UpdateTitle(message);

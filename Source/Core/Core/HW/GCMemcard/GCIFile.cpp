@@ -87,16 +87,10 @@ int GCIFile::UsesBlock(u16 block_num)
 
 void GCIFile::DoState(PointerWrap& p)
 {
-  p.DoPOD<DEntry>(m_gci_header);
+  p.Do(m_gci_header);
   p.Do(m_dirty);
   p.Do(m_filename);
-  int num_blocks = (int)m_save_data.size();
-  p.Do(num_blocks);
-  m_save_data.resize(num_blocks);
-  for (auto itr = m_save_data.begin(); itr != m_save_data.end(); ++itr)
-  {
-    p.DoPOD<GCMBlock>(*itr);
-  }
+  p.Do(m_save_data);
   p.Do(m_used_blocks);
 }
 }  // namespace Memcard

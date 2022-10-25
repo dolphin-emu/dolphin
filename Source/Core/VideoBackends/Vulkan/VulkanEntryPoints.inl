@@ -37,6 +37,7 @@ VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceSurfaceSupportKHR, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceSurfaceFormatsKHR, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceSurfacePresentModesKHR, false)
+VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceMemoryProperties2, false)
 
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateWin32SurfaceKHR, false)
@@ -192,6 +193,10 @@ VULKAN_DEVICE_ENTRY_POINT(vkDestroySwapchainKHR, false)
 VULKAN_DEVICE_ENTRY_POINT(vkGetSwapchainImagesKHR, false)
 VULKAN_DEVICE_ENTRY_POINT(vkAcquireNextImageKHR, false)
 VULKAN_DEVICE_ENTRY_POINT(vkQueuePresentKHR, false)
+VULKAN_DEVICE_ENTRY_POINT(vkGetBufferMemoryRequirements2, false)
+VULKAN_DEVICE_ENTRY_POINT(vkGetImageMemoryRequirements2, false)
+VULKAN_DEVICE_ENTRY_POINT(vkBindBufferMemory2, false)
+VULKAN_DEVICE_ENTRY_POINT(vkBindImageMemory2, false)
 
 #ifdef SUPPORTS_VULKAN_EXCLUSIVE_FULLSCREEN
 VULKAN_DEVICE_ENTRY_POINT(vkAcquireFullScreenExclusiveModeEXT, false)

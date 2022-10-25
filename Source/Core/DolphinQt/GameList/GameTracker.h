@@ -94,6 +94,7 @@ private:
   bool m_initial_games_emitted = false;
   bool m_started = false;
   bool m_needs_purge = false;
+  bool m_refresh_in_progress = false;
   std::atomic_bool m_processing_halted = false;
 };
 

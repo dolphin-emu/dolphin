@@ -10,7 +10,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
-#include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWRenderer.h"
@@ -42,8 +41,6 @@ DataReader SWVertexLoader::PrepareForAdditionalData(OpcodeDecoder::Primitive pri
 
 void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
-  DebugUtil::OnObjectBegin();
-
   using OpcodeDecoder::Primitive;
   Primitive primitive_type = Primitive::GX_DRAW_QUADS;
   switch (m_current_primitive_type)
@@ -67,15 +64,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     g_renderer->BBoxFlush();
 
   m_setup_unit.Init(primitive_type);
-
-  // set all states with are stored within video sw
-  for (int i = 0; i < 4; i++)
-  {
-    Rasterizer::SetTevReg(i, Tev::RED_C, PixelShaderManager::constants.kcolors[i][0]);
-    Rasterizer::SetTevReg(i, Tev::GRN_C, PixelShaderManager::constants.kcolors[i][1]);
-    Rasterizer::SetTevReg(i, Tev::BLU_C, PixelShaderManager::constants.kcolors[i][2]);
-    Rasterizer::SetTevReg(i, Tev::ALP_C, PixelShaderManager::constants.kcolors[i][3]);
-  }
+  Rasterizer::SetTevKonstColors();
 
   for (u32 i = 0; i < m_index_generator.GetIndexLen(); i++)
   {
@@ -98,10 +87,10 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     // assemble and rasterize the primitive
     m_setup_unit.SetupVertex();
 
-    INCSTAT(g_stats.this_frame.num_vertices_loaded)
+    INCSTAT(g_stats.this_frame.num_vertices_loaded);
   }
 
-  DebugUtil::OnObjectEnd();
+  INCSTAT(g_stats.this_frame.num_drawn_objects);
 }
 
 void SWVertexLoader::SetFormat()

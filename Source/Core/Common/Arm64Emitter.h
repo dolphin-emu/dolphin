@@ -1229,9 +1229,15 @@ public:
   void TRN2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void ZIP2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 
-  // Shift by immediate
+  // Scalar shift by immediate
+  void SHL(ARM64Reg Rd, ARM64Reg Rn, u32 shift);
+  void URSHR(ARM64Reg Rd, ARM64Reg Rn, u32 shift);
+
+  // Vector shift by immediate
+  void SHL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void SSHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void SSHLL2(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
+  void URSHR(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void USHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void USHLL2(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void SHRN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
@@ -1282,8 +1288,8 @@ private:
   void EmitCondSelect(bool M, bool S, CCFlags cond, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitPermute(u32 size, u32 op, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitScalarImm(bool M, bool S, u32 type, u32 imm5, ARM64Reg Rd, u32 imm8);
-  void EmitShiftImm(bool Q, bool U, u32 immh, u32 immb, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
-  void EmitScalarShiftImm(bool U, u32 immh, u32 immb, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
+  void EmitShiftImm(bool Q, bool U, u32 imm, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
+  void EmitScalarShiftImm(bool U, u32 imm, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
   void EmitLoadStoreMultipleStructure(u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn);
   void EmitLoadStoreMultipleStructurePost(u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn,
                                           ARM64Reg Rm);

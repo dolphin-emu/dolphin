@@ -33,14 +33,14 @@ public enum IntSetting implements AbstractIntSetting
   MAIN_CONTROL_OPACITY(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlOpacity", 65),
   MAIN_EMULATION_ORIENTATION(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "EmulationOrientation", ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE),
+  MAIN_INTERFACE_THEME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "InterfaceTheme", 0),
   MAIN_LAST_PLATFORM_TAB(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "LastPlatformTab", 0),
   MAIN_MOTION_CONTROLS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "MotionControls", 1),
   MAIN_IR_MODE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "IRMode",
           InputOverlayPointer.MODE_FOLLOW),
 
   MAIN_DOUBLE_TAP_BUTTON(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
-          "DoubleTapButton",
-          InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A)),
+          "DoubleTapButton", NativeLibrary.ButtonType.WIIMOTE_BUTTON_A),
 
   SYSCONF_LANGUAGE(Settings.FILE_SYSCONF, "IPL", "LNG", 0x01),
   SYSCONF_SOUND_MODE(Settings.FILE_SYSCONF, "IPL", "SND", 0x01),

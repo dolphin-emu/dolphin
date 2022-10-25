@@ -50,7 +50,8 @@ public:
 
   Guitar();
 
-  void Update() override;
+  void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;
+  void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(GuitarGroup group);
@@ -68,6 +69,7 @@ public:
 
   static const u8 STICK_CENTER = 0x20;
   static const u8 STICK_RADIUS = 0x1f;
+  static const u8 STICK_RANGE = 0x3f;
 
   // TODO: Test real hardware. Is this accurate?
   static const u8 STICK_GATE_RADIUS = 0x16;

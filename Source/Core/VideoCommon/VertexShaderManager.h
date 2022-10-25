@@ -10,6 +10,7 @@
 #include "VideoCommon/ConstantManager.h"
 
 class PointerWrap;
+struct PortableVertexDeclaration;
 
 // The non-API dependent parts.
 class VertexShaderManager
@@ -29,7 +30,7 @@ public:
   static void SetProjectionChanged();
   static void SetMaterialColorChanged(int index);
 
-  static void SetVertexFormat(u32 components);
+  static void SetVertexFormat(u32 components, const PortableVertexDeclaration& format);
   static void SetTexMatrixInfoChanged(int index);
   static void SetLightingConfigChanged();
 

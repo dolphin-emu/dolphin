@@ -479,6 +479,34 @@
         <item>-1</item>
     </integer-array>
 
+    <!-- Monet must always have a value exclusive to >= API 31 -->
+    <string-array name="themeEntries">
+        <item>Default</item>
+        <item>Material Default</item>
+        <item>Green</item>
+        <item>Pink</item>
+    </string-array>
+    <integer-array name="themeValues">
+        <item>0</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </integer-array>
+    <string-array name="themeEntriesA12">
+        <item>Default</item>
+        <item>Material You</item>
+        <item>Material Default</item>
+        <item>Green</item>
+        <item>Pink</item>
+    </string-array>
+    <integer-array name="themeValuesA12">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </integer-array>
+
     <string-array name="synchronizeGpuThreadEntries">
         <item>Never</item>
         <item>On Idle Skipping</item>

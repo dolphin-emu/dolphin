@@ -33,8 +33,9 @@ AdvancedWidget::AdvancedWidget(GraphicsWindow* parent)
   AddDescriptions();
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+    OnEmulationStateChanged(state != Core::State::Uninitialized);
+  });
 
   OnBackendChanged();
   OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
@@ -127,15 +128,18 @@ void AdvancedWidget::CreateWidgets()
   m_enable_prog_scan = new ToolTipCheckBox(tr("Enable Progressive Scan"));
   m_backend_multithreading =
       new GraphicsBool(tr("Backend Multithreading"), Config::GFX_BACKEND_MULTITHREADING);
+  m_prefer_vs_for_point_line_expansion = new GraphicsBool(
+      tr("Prefer VS for Point/Line Expansion"), Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION);
 
   misc_layout->addWidget(m_enable_cropping, 0, 0);
   misc_layout->addWidget(m_enable_prog_scan, 0, 1);
   misc_layout->addWidget(m_backend_multithreading, 1, 0);
+  misc_layout->addWidget(m_prefer_vs_for_point_line_expansion, 1, 1);
 #ifdef _WIN32
   m_borderless_fullscreen =
       new GraphicsBool(tr("Borderless Fullscreen"), Config::GFX_BORDERLESS_FULLSCREEN);
 
-  misc_layout->addWidget(m_borderless_fullscreen, 1, 1);
+  misc_layout->addWidget(m_borderless_fullscreen, 2, 0);
 #endif
 
   // Experimental.
@@ -196,6 +200,11 @@ void AdvancedWidget::SaveSettings()
 
 void AdvancedWidget::OnBackendChanged()
 {
+  m_backend_multithreading->setEnabled(g_Config.backend_info.bSupportsMultithreading);
+  m_prefer_vs_for_point_line_expansion->setEnabled(
+      g_Config.backend_info.bSupportsGeometryShaders &&
+      g_Config.backend_info.bSupportsVSLinePointExpand);
+  AddDescriptions();
 }
 
 void AdvancedWidget::OnEmulationStateChanged(bool running)
@@ -287,6 +296,11 @@ void AdvancedWidget::AddDescriptions()
                  "this option may result in a performance improvement on systems with more than "
                  "two CPU cores. Currently, this is limited to the Vulkan backend.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static const char TR_PREFER_VS_FOR_POINT_LINE_EXPANSION_DESCRIPTION[] =
+      QT_TR_NOOP("On backends that support both using the geometry shader and the vertex shader "
+                 "for expanding points and lines, selects the vertex shader for the job.  May "
+                 "affect performance."
+                 "<br><br>%1");
   static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] = QT_TR_NOOP(
       "Defers invalidation of the EFB access cache until a GPU synchronization command "
       "is executed. If disabled, the cache will be invalidated with every draw call. "
@@ -314,6 +328,9 @@ void AdvancedWidget::AddDescriptions()
       "unchecked.</dolphin_emphasis>");
 #endif
 
+  static const char IF_UNSURE_UNCHECKED[] =
+      QT_TR_NOOP("<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+
   m_enable_wireframe->SetDescription(tr(TR_WIREFRAME_DESCRIPTION));
   m_show_statistics->SetDescription(tr(TR_SHOW_STATS_DESCRIPTION));
   m_enable_format_overlay->SetDescription(tr(TR_TEXTURE_FORMAT_DESCRIPTION));
@@ -335,6 +352,17 @@ void AdvancedWidget::AddDescriptions()
   m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
   m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
   m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
+  QString vsexpand_extra;
+  if (!g_Config.backend_info.bSupportsGeometryShaders)
+    vsexpand_extra = tr("Forced on because %1 doesn't support geometry shaders.")
+                         .arg(tr(g_Config.backend_info.DisplayName.c_str()));
+  else if (!g_Config.backend_info.bSupportsVSLinePointExpand)
+    vsexpand_extra = tr("Forced off because %1 doesn't support VS expansion.")
+                         .arg(tr(g_Config.backend_info.DisplayName.c_str()));
+  else
+    vsexpand_extra = tr(IF_UNSURE_UNCHECKED);
+  m_prefer_vs_for_point_line_expansion->SetDescription(
+      tr(TR_PREFER_VS_FOR_POINT_LINE_EXPANSION_DESCRIPTION).arg(vsexpand_extra));
 #ifdef _WIN32
   m_borderless_fullscreen->SetDescription(tr(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
 #endif

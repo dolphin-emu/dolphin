@@ -79,6 +79,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
   MAIN_DEBUG_JIT_REGISTER_CACHE_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG,
           "JitRegisterCacheOff", false),
 
+  MAIN_SHOW_GAME_TITLES(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "ShowGameTitles", true),
   MAIN_JOYSTICK_REL_CENTER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "JoystickRelCenter", true),
   MAIN_PHONE_RUMBLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
@@ -197,11 +199,13 @@ public enum BooleanSetting implements AbstractBooleanSetting
   GFX_ENABLE_VALIDATION_LAYER(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "EnableValidationLayer", false),
   GFX_BACKEND_MULTITHREADING(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
-          "BackendMultithreading", false),
+          "BackendMultithreading", true),
   GFX_WAIT_FOR_SHADERS_BEFORE_STARTING(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "WaitForShadersBeforeStarting", false),
   GFX_SAVE_TEXTURE_CACHE_TO_STATE(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "SaveTextureCacheToState", true),
+  GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
+          "PreferVSForLinePointExpansion", false),
   GFX_MODS_ENABLE(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "EnableMods", false),
 
   GFX_ENHANCE_FORCE_FILTERING(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,
@@ -326,6 +330,18 @@ public enum BooleanSetting implements AbstractBooleanSetting
     else
     {
       settings.getSection(mFile, mSection).setBoolean(mKey, newValue);
+    }
+  }
+
+  public void setBoolean(int layerType, boolean newValue)
+  {
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    {
+      NativeConfig.setBoolean(layerType, mFile, mSection, mKey, newValue);
+    }
+    else
+    {
+      throw new UnsupportedOperationException("The old config system doesn't support layers");
     }
   }
 

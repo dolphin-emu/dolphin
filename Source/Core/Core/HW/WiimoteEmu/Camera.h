@@ -16,11 +16,26 @@ class Matrix44;
 
 namespace WiimoteEmu
 {
+using IRObject = Common::TVec2<u16>;
+
+struct CameraPoint
+{
+  IRObject position;
+  u8 size;
+
+  // 0xFFFFs are interpreted as "not visible".
+  constexpr CameraPoint() : position({0xffff, 0xffff}), size(0xff) {}
+  constexpr CameraPoint(IRObject position_, u8 size_) : position(position_), size(size_) {}
+  constexpr bool operator==(const CameraPoint& other) const
+  {
+    return this->position == other.position && this->size == other.size;
+  }
+  constexpr bool operator!=(const CameraPoint& other) const { return !(*this == other); }
+};
+
 // Four bytes for two objects. Filled with 0xFF if empty
 struct IRBasic
 {
-  using IRObject = Common::TVec2<u16>;
-
   u8 x1;
   u8 y1;
   u8 x2hi : 2;
@@ -59,8 +74,8 @@ struct IRExtended
   u8 xhi : 2;
   u8 yhi : 2;
 
-  auto GetPosition() const { return IRBasic::IRObject(xhi << 8 | x, yhi << 8 | y); }
-  void SetPosition(const IRBasic::IRObject& obj)
+  auto GetPosition() const { return IRObject(xhi << 8 | x, yhi << 8 | y); }
+  void SetPosition(const IRObject& obj)
   {
     x = obj.x;
     xhi = obj.x >> 8;
@@ -109,9 +124,19 @@ public:
     IR_MODE_FULL = 5,
   };
 
+  // FYI: A real wiimote normally only returns 1 point for each LED cluster (2 total).
+  // Sending all 4 points can actually cause some stuttering issues.
+  static constexpr int NUM_POINTS = 2;
+
+  // Range from 0-15. Small values (2-4) seem to be very typical.
+  // This is reduced based on distance from sensor bar.
+  static constexpr int MAX_POINT_SIZE = 15;
+
   void Reset();
   void DoState(PointerWrap& p);
-  void Update(const Common::Matrix44& transform, Common::Vec2 field_of_view);
+  static std::array<CameraPoint, NUM_POINTS> GetCameraPoints(const Common::Matrix44& transform,
+                                                             Common::Vec2 field_of_view);
+  void Update(const std::array<CameraPoint, NUM_POINTS>& camera_points);
   void SetEnabled(bool is_enabled);
 
   static constexpr u8 I2C_ADDR = 0x58;

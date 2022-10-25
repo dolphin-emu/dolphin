@@ -58,9 +58,9 @@ struct PortableVertexDeclaration
   int stride;
 
   AttributeFormat position;
-  AttributeFormat normals[3];
-  AttributeFormat colors[2];
-  AttributeFormat texcoords[8];
+  std::array<AttributeFormat, 3> normals;
+  std::array<AttributeFormat, 2> colors;
+  std::array<AttributeFormat, 8> texcoords;
   AttributeFormat posmtx;
 
   inline bool operator<(const PortableVertexDeclaration& b) const

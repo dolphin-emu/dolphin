@@ -1432,8 +1432,9 @@ void VolumeVerifier::Finish()
       }
       else
       {
-        Common::GetStringT("Problems with low severity were found. They will most "
-                           "likely not prevent the game from running.");
+        m_result.summary_text =
+            Common::GetStringT("Problems with low severity were found. They will most "
+                               "likely not prevent the game from running.");
       }
       break;
     case Severity::Medium:

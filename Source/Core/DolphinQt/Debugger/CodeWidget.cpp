@@ -5,8 +5,11 @@
 
 #include <chrono>
 
+#include <fmt/format.h>
+
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
@@ -15,7 +18,6 @@
 #include <QWidget>
 
 #include "Common/Event.h"
-#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/CPU.h"
@@ -95,51 +97,45 @@ void CodeWidget::CreateWidgets()
   layout->setSpacing(0);
 
   m_search_address = new QLineEdit;
-  m_search_symbols = new QLineEdit;
   m_code_diff = new QPushButton(tr("Diff"));
   m_code_view = new CodeViewWidget;
 
   m_search_address->setPlaceholderText(tr("Search Address"));
-  m_search_symbols->setPlaceholderText(tr("Filter Symbols"));
-
-  // Callstack
-  auto* callstack_box = new QGroupBox(tr("Callstack"));
-  auto* callstack_layout = new QVBoxLayout;
-  m_callstack_list = new QListWidget;
-
-  callstack_box->setLayout(callstack_layout);
-  callstack_layout->addWidget(m_callstack_list);
-
-  // Symbols
-  auto* symbols_box = new QGroupBox(tr("Symbols"));
-  auto* symbols_layout = new QVBoxLayout;
-  m_symbols_list = new QListWidget;
-
-  symbols_box->setLayout(symbols_layout);
-  symbols_layout->addWidget(m_symbols_list);
-
-  // Function calls
-  auto* function_calls_box = new QGroupBox(tr("Function calls"));
-  auto* function_calls_layout = new QVBoxLayout;
-  m_function_calls_list = new QListWidget;
-
-  function_calls_box->setLayout(function_calls_layout);
-  function_calls_layout->addWidget(m_function_calls_list);
-
-  // Function callers
-  auto* function_callers_box = new QGroupBox(tr("Function callers"));
-  auto* function_callers_layout = new QVBoxLayout;
-  m_function_callers_list = new QListWidget;
-
-  function_callers_box->setLayout(function_callers_layout);
-  function_callers_layout->addWidget(m_function_callers_list);
 
   m_box_splitter = new QSplitter(Qt::Vertical);
+  m_box_splitter->setStyleSheet(QStringLiteral(
+      "QSplitter::handle { border-top: 1px dashed black; width: 1px; margin-left: 10px; "
+      "margin-right: 10px; }"));
 
-  m_box_splitter->addWidget(callstack_box);
-  m_box_splitter->addWidget(symbols_box);
-  m_box_splitter->addWidget(function_calls_box);
-  m_box_splitter->addWidget(function_callers_box);
+  auto add_search_line_edit = [this](const QString& name, QListWidget* list_widget) {
+    auto* widget = new QWidget;
+    auto* layout = new QGridLayout;
+    auto* label = new QLabel(name);
+    auto* search_line_edit = new QLineEdit;
+
+    widget->setLayout(layout);
+    layout->addWidget(label, 0, 0);
+    layout->addWidget(search_line_edit, 0, 1);
+    layout->addWidget(list_widget, 1, 0, -1, -1);
+    m_box_splitter->addWidget(widget);
+    return search_line_edit;
+  };
+
+  // Callstack
+  m_callstack_list = new QListWidget;
+  m_search_callstack = add_search_line_edit(tr("Callstack"), m_callstack_list);
+
+  // Symbols
+  m_symbols_list = new QListWidget;
+  m_search_symbols = add_search_line_edit(tr("Symbols"), m_symbols_list);
+
+  // Function calls
+  m_function_calls_list = new QListWidget;
+  m_search_calls = add_search_line_edit(tr("Calls"), m_function_calls_list);
+
+  // Function callers
+  m_function_callers_list = new QListWidget;
+  m_search_callers = add_search_line_edit(tr("Callers"), m_function_callers_list);
 
   m_code_splitter = new QSplitter(Qt::Horizontal);
 
@@ -147,7 +143,6 @@ void CodeWidget::CreateWidgets()
   m_code_splitter->addWidget(m_code_view);
 
   layout->addWidget(m_search_address, 0, 0);
-  layout->addWidget(m_search_symbols, 0, 1);
   layout->addWidget(m_code_diff, 0, 2);
   layout->addWidget(m_code_splitter, 1, 0, -1, -1);
 
@@ -161,6 +156,18 @@ void CodeWidget::ConnectWidgets()
   connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
   connect(m_search_address, &QLineEdit::returnPressed, this, &CodeWidget::OnSearchAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
+  connect(m_search_calls, &QLineEdit::textChanged, this, [this]() {
+    const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
+    if (symbol)
+      UpdateFunctionCalls(symbol);
+  });
+  connect(m_search_callers, &QLineEdit::textChanged, this, [this]() {
+    const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
+    if (symbol)
+      UpdateFunctionCallers(symbol);
+  });
+  connect(m_search_callstack, &QLineEdit::textChanged, this, &CodeWidget::UpdateCallstack);
+
   connect(m_code_diff, &QPushButton::pressed, this, &CodeWidget::OnDiff);
 
   connect(m_symbols_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectSymbol);
@@ -170,7 +177,16 @@ void CodeWidget::ConnectWidgets()
   connect(m_function_callers_list, &QListWidget::itemPressed, this,
           &CodeWidget::OnSelectFunctionCallers);
 
-  connect(m_code_view, &CodeViewWidget::SymbolsChanged, this, &CodeWidget::UpdateSymbols);
+  connect(m_code_view, &CodeViewWidget::SymbolsChanged, this, [this]() {
+    UpdateCallstack();
+    UpdateSymbols();
+    const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
+    if (symbol)
+    {
+      UpdateFunctionCalls(symbol);
+      UpdateFunctionCallers(symbol);
+    }
+  });
   connect(m_code_view, &CodeViewWidget::BreakpointsChanged, this,
           [this] { emit BreakpointsChanged(); });
   connect(m_code_view, &CodeViewWidget::UpdateCodeWidget, this, &CodeWidget::Update);
@@ -318,12 +334,17 @@ void CodeWidget::UpdateCallstack()
     return;
   }
 
+  const QString filter = m_search_callstack->text();
+
   for (const auto& frame : stack)
   {
-    auto* item =
-        new QListWidgetItem(QString::fromStdString(frame.Name.substr(0, frame.Name.length() - 1)));
-    item->setData(Qt::UserRole, frame.vAddress);
+    const QString name = QString::fromStdString(frame.Name.substr(0, frame.Name.length() - 1));
 
+    if (name.toUpper().indexOf(filter.toUpper()) == -1)
+      continue;
+
+    auto* item = new QListWidgetItem(name);
+    item->setData(Qt::UserRole, frame.vAddress);
     m_callstack_list->addItem(item);
   }
 }
@@ -359,6 +380,7 @@ void CodeWidget::UpdateSymbols()
 void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
 {
   m_function_calls_list->clear();
+  const QString filter = m_search_calls->text();
 
   for (const auto& call : symbol->calls)
   {
@@ -367,10 +389,14 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
 
     if (call_symbol)
     {
-      auto* item = new QListWidgetItem(
-          QString::fromStdString(StringFromFormat("> %s (%08x)", call_symbol->name.c_str(), addr)));
-      item->setData(Qt::UserRole, addr);
+      const QString name =
+          QString::fromStdString(fmt::format("> {} ({:08x})", call_symbol->name, addr));
 
+      if (name.toUpper().indexOf(filter.toUpper()) == -1)
+        continue;
+
+      auto* item = new QListWidgetItem(name);
+      item->setData(Qt::UserRole, addr);
       m_function_calls_list->addItem(item);
     }
   }
@@ -379,6 +405,7 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
 void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
 {
   m_function_callers_list->clear();
+  const QString filter = m_search_callers->text();
 
   for (const auto& caller : symbol->callers)
   {
@@ -387,10 +414,14 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
 
     if (caller_symbol)
     {
-      auto* item = new QListWidgetItem(QString::fromStdString(
-          StringFromFormat("< %s (%08x)", caller_symbol->name.c_str(), addr)));
-      item->setData(Qt::UserRole, addr);
+      const QString name =
+          QString::fromStdString(fmt::format("< {} ({:08x})", caller_symbol->name, addr));
 
+      if (name.toUpper().indexOf(filter.toUpper()) == -1)
+        continue;
+
+      auto* item = new QListWidgetItem(name);
+      item->setData(Qt::UserRole, addr);
       m_function_callers_list->addItem(item);
     }
   }

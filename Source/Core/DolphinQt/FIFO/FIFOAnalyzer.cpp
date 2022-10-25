@@ -224,7 +224,7 @@ public:
     const auto [name, desc] = GetXFTransferInfo(address, count, data);
     ASSERT(!name.empty());
 
-    const u32 command = address | (count << 16);
+    const u32 command = address | ((count - 1) << 16);
 
     text = QStringLiteral("XF  %1  ").arg(command, 8, 16, QLatin1Char('0'));
 
@@ -315,6 +315,11 @@ public:
   OPCODE_CALLBACK(void OnCommand(const u8* data, u32 size)) {}
 
   OPCODE_CALLBACK(CPState& GetCPState()) { return m_cpmem; }
+
+  OPCODE_CALLBACK(u32 GetVertexSize(u8 vat))
+  {
+    return VertexLoaderBase::GetVertexSize(GetCPState().vtx_desc, GetCPState().vtx_attr[vat]);
+  }
 
   QString text;
   CPState m_cpmem;
@@ -730,6 +735,11 @@ public:
   OPCODE_CALLBACK(void OnCommand(const u8* data, u32 size)) {}
 
   OPCODE_CALLBACK(CPState& GetCPState()) { return m_cpmem; }
+
+  OPCODE_CALLBACK(u32 GetVertexSize(u8 vat))
+  {
+    return VertexLoaderBase::GetVertexSize(GetCPState().vtx_desc, GetCPState().vtx_attr[vat]);
+  }
 
   QString text;
   CPState m_cpmem;

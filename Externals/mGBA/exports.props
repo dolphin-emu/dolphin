@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)mGBA\mgba\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)mGBA\mgba.vcxproj">
+      <Project>{864C4C8E-296D-3DBC-AD83-F1D5CB6E8EC6}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

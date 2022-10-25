@@ -3,6 +3,7 @@
 
 #include "VideoCommon/UberShaderVertex.h"
 
+#include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/UberShaderCommon.h"
@@ -22,7 +23,11 @@ VertexShaderUid GetVertexShaderUid()
   return out;
 }
 
-static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode& out);
+static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& host_config,
+                                   u32 num_texgen, ShaderCode& out);
+static void LoadVertexAttribute(ShaderCode& code, const ShaderHostConfig& host_config, u32 indent,
+                                std::string_view name, std::string_view shader_type,
+                                std::string_view stored_type, std::string_view offset_name = {});
 
 ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config,
                            const vertex_ubershader_uid_data* uid_data)
@@ -31,6 +36,8 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   const bool ssaa = host_config.ssaa;
   const bool per_pixel_lighting = host_config.per_pixel_lighting;
   const bool vertex_rounding = host_config.vertex_rounding;
+  const bool vertex_loader =
+      host_config.backend_dynamic_vertex_loader || host_config.backend_vs_point_line_expand;
   const u32 num_texgen = uid_data->num_texgens;
   ShaderCode out;
 
@@ -42,6 +49,13 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   out.Write("{}", s_shader_uniforms);
   out.Write("}};\n");
 
+  if (vertex_loader)
+  {
+    out.Write("UBO_BINDING(std140, 3) uniform GSBlock {{\n");
+    out.Write("{}", s_geometry_shader_uniforms);
+    out.Write("}};\n");
+  }
+
   out.Write("struct VS_OUTPUT {{\n");
   GenerateVSOutputMembers(out, api_type, num_texgen, host_config, "", ShaderStage::Vertex);
   out.Write("}};\n\n");
@@ -50,15 +64,99 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   WriteBitfieldExtractHeader(out, api_type, host_config);
   WriteLightingFunction(out);
 
-  out.Write("ATTRIBUTE_LOCATION({}) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
-  out.Write("ATTRIBUTE_LOCATION({}) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
-  out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnormal;\n", SHADER_NORMAL_ATTRIB);
-  out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtangent;\n", SHADER_TANGENT_ATTRIB);
-  out.Write("ATTRIBUTE_LOCATION({}) in float3 rawbinormal;\n", SHADER_BINORMAL_ATTRIB);
-  out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
-  out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
-  for (int i = 0; i < 8; ++i)
-    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtex{};\n", SHADER_TEXTURE0_ATTRIB + i, i);
+  if (vertex_loader)
+  {
+    out.Write(R"(
+SSBO_BINDING(1) readonly restrict buffer Vertices {{
+  uint vertex_buffer[];
+}};
+)");
+    if (api_type == APIType::D3D)
+    {
+      // Write a function to get an offset into vertex_buffer corresponding to this vertex.
+      // This must be done differently for D3D compared to OpenGL/Vulkan/Metal, as on OpenGL, etc.,
+      // gl_VertexID starts counting at the base vertex specified in glDrawElementsBaseVertex,
+      // while on D3D, SV_VertexID (which spirv-cross translates gl_VertexID into) starts counting
+      // at 0 regardless of the BaseVertexLocation value passed to DrawIndexed.  In both cases,
+      // offset 0 of vertex_buffer corresponds to index 0 with basevertex set to 0, so we have to
+      // manually apply the basevertex offset for D3D
+      // D3D12 uses a root constant for this uniform, since it changes with every draw.
+      // D3D11 doesn't currently support dynamic vertex loader, and we'll have to figure something
+      // out for it if we want to support it in the future.
+      out.Write("UBO_BINDING(std140, 4) uniform DX_Constants {{\n"
+                "  uint base_vertex;\n"
+                "}};\n\n"
+                "uint GetVertexBaseOffset(uint vertex_id) {{\n"
+                "  return (vertex_id + base_vertex) * vertex_stride;\n"
+                "}}\n");
+    }
+    else
+    {
+      out.Write("uint GetVertexBaseOffset(uint vertex_id) {{\n"
+                "  return vertex_id * vertex_stride;\n"
+                "}}\n");
+    }
+
+    out.Write(R"(
+uint4 load_input_uint4_ubyte4(uint vtx_offset, uint attr_offset) {{
+  uint value = vertex_buffer[vtx_offset + attr_offset];
+  return uint4(value & 0xff, (value >> 8) & 0xff, (value >> 16) & 0xff, value >> 24);
+}}
+
+float4 load_input_float4_ubyte4(uint vtx_offset, uint attr_offset) {{
+  return float4(load_input_uint4_ubyte4(vtx_offset, attr_offset)) / 255.0f;
+}}
+
+float3 load_input_float3_float3(uint vtx_offset, uint attr_offset) {{
+  uint offset = vtx_offset + attr_offset;
+  return float3(uintBitsToFloat(vertex_buffer[offset + 0]),
+                uintBitsToFloat(vertex_buffer[offset + 1]),
+                uintBitsToFloat(vertex_buffer[offset + 2]));
+}}
+
+float4 load_input_float4_rawpos(uint vtx_offset, uint attr_offset) {{
+  uint components = attr_offset >> 16;
+  uint offset = vtx_offset + (attr_offset & 0xffff);
+  if (components < 3)
+    return float4(uintBitsToFloat(vertex_buffer[offset + 0]),
+                  uintBitsToFloat(vertex_buffer[offset + 1]),
+                  0.0f, 1.0f);
+  else
+    return float4(uintBitsToFloat(vertex_buffer[offset + 0]),
+                  uintBitsToFloat(vertex_buffer[offset + 1]),
+                  uintBitsToFloat(vertex_buffer[offset + 2]),
+                  1.0f);
+}}
+
+float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
+  uint components = attr_offset >> 16;
+  uint offset = vtx_offset + (attr_offset & 0xffff);
+  if (components < 2)
+    return float3(uintBitsToFloat(vertex_buffer[offset + 0]), 0.0f, 0.0f);
+  else if (components < 3)
+    return float3(uintBitsToFloat(vertex_buffer[offset + 0]),
+                  uintBitsToFloat(vertex_buffer[offset + 1]),
+                  0.0f);
+  else
+    return float3(uintBitsToFloat(vertex_buffer[offset + 0]),
+                  uintBitsToFloat(vertex_buffer[offset + 1]),
+                  uintBitsToFloat(vertex_buffer[offset + 2]));
+}}
+
+)");
+  }
+  else
+  {
+    out.Write("ATTRIBUTE_LOCATION({}) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION({}) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnormal;\n", SHADER_NORMAL_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtangent;\n", SHADER_TANGENT_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawbinormal;\n", SHADER_BINORMAL_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
+    for (int i = 0; i < 8; ++i)
+      out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtex{};\n", SHADER_TEXTURE0_ATTRIB + i, i);
+  }
 
   if (host_config.backend_geometry_shaders)
   {
@@ -99,7 +197,20 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
 
   out.Write("VS_OUTPUT o;\n"
             "\n");
-
+  if (host_config.backend_vs_point_line_expand)
+  {
+    out.Write("uint vertex_id = gl_VertexID;\n"
+              "if (vs_expand != 0u) {{\n"
+              "  vertex_id = vertex_id >> 2;\n"
+              "}}\n"
+              "uint vertex_base_offset = GetVertexBaseOffset(vertex_id);\n");
+  }
+  else if (host_config.backend_dynamic_vertex_loader)
+  {
+    out.Write("uint vertex_base_offset = GetVertexBaseOffset(gl_VertexID);\n");
+  }
+  // rawpos is always needed
+  LoadVertexAttribute(out, host_config, 0, "rawpos", "float4", "rawpos");
   // Transforms
   out.Write("// Position matrix\n"
             "float4 P0;\n"
@@ -113,6 +224,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "\n"
             "if ((components & {}u) != 0u) {{ // VB_HAS_POSMTXIDX\n",
             VB_HAS_POSMTXIDX);
+  LoadVertexAttribute(out, host_config, 2, "posmtx", "uint4", "ubyte4");
   out.Write("  // Vertex format has a per-vertex matrix\n"
             "  int posidx = int(posmtx.r);\n"
             "  P0 = " I_TRANSFORMMATRICES "[posidx];\n"
@@ -144,27 +256,40 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "// by lighting calculations and needs to be unit length), the same transform matrix\n"
             "// can do double duty, scaling for emboss mapping, and not scaling for lighting.\n"
             "float3 _normal = float3(0.0, 0.0, 0.0);\n"
-            "if ((components & {}u) != 0u) // VB_HAS_NORMAL\n",
+            "if ((components & {}u) != 0u) // VB_HAS_NORMAL\n"
+            "{{\n",
             VB_HAS_NORMAL);
+  LoadVertexAttribute(out, host_config, 2, "rawnormal", "float3", "float3");
   out.Write("  _normal = normalize(float3(dot(N0, rawnormal), dot(N1, rawnormal), dot(N2, "
             "rawnormal)));\n"
+            "}}\n"
             "\n"
             "float3 _tangent = float3(0.0, 0.0, 0.0);\n"
-            "if ((components & {}u) != 0u) // VB_HAS_TANGENT\n",
+            "if ((components & {}u) != 0u) // VB_HAS_TANGENT\n"
+            "{{\n",
             VB_HAS_TANGENT);
+  LoadVertexAttribute(out, host_config, 2, "rawtangent", "float3", "float3");
   out.Write("  _tangent = float3(dot(N0, rawtangent), dot(N1, rawtangent), dot(N2, rawtangent));\n"
+            "}}\n"
             "else\n"
+            "{{\n"
             "  _tangent = float3(dot(N0, " I_CACHED_TANGENT ".xyz), dot(N1, " I_CACHED_TANGENT
             ".xyz), dot(N2, " I_CACHED_TANGENT ".xyz));\n"
+            "}}\n"
             "\n"
             "float3 _binormal = float3(0.0, 0.0, 0.0);\n"
-            "if ((components & {}u) != 0u) // VB_HAS_BINORMAL\n",
+            "if ((components & {}u) != 0u) // VB_HAS_BINORMAL\n"
+            "{{\n",
             VB_HAS_BINORMAL);
+  LoadVertexAttribute(out, host_config, 2, "rawbinormal", "float3", "float3");
   out.Write("  _binormal = float3(dot(N0, rawbinormal), dot(N1, rawbinormal), dot(N2, "
             "rawbinormal));\n"
+            "}}\n"
             "else\n"
+            "{{\n"
             "  _binormal = float3(dot(N0, " I_CACHED_BINORMAL ".xyz), dot(N1, " I_CACHED_BINORMAL
             ".xyz), dot(N2, " I_CACHED_BINORMAL ".xyz));\n"
+            "}}\n"
             "\n");
 
   // Hardware Lighting
@@ -178,34 +303,74 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "bool use_color_1 = ((components & {0}u) == {0}u); // VB_HAS_COL0 | VB_HAS_COL1\n",
             VB_HAS_COL0 | VB_HAS_COL1);
 
-  out.Write("for (uint color = 0u; color < {}u; color++) {{\n", NUM_XF_COLOR_CHANNELS);
-  out.Write("  if ((color == 0u || use_color_1) && (components & ({}u << color)) != 0u) {{\n",
-            VB_HAS_COL0);
-  out.Write("    // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are "
-            "present.\n"
-            "    if (color == 0u)\n"
-            "      vertex_color_0 = rawcolor0;\n"
-            "    else\n"
-            "      vertex_color_1 = rawcolor1;\n"
-            "  }} else if (color == 0u && (components & {}u) != 0u) {{\n",
-            VB_HAS_COL1);
-  out.Write("    // Use color1 for channel 0 if color0 is not present.\n"
-            "    vertex_color_0 = rawcolor1;\n"
-            "  }} else {{\n"
-            "    if (color == 0u)\n"
-            "      vertex_color_0 = missing_color_value;\n"
-            "    else\n"
-            "      vertex_color_1 = missing_color_value;\n"
-            "  }}\n"
+  out.Write("if ((components & {0}u) == {0}u) // VB_HAS_COL0 | VB_HAS_COL1\n"
+            "{{\n",
+            VB_HAS_COL0 | VB_HAS_COL1);
+  LoadVertexAttribute(out, host_config, 2, "rawcolor0", "float4", "ubyte4");
+  LoadVertexAttribute(out, host_config, 2, "rawcolor1", "float4", "ubyte4");
+  out.Write("  vertex_color_0 = rawcolor0;\n"
+            "  vertex_color_1 = rawcolor1;\n"
             "}}\n"
-            "\n");
+            "else if ((components & {}u) != 0u) // VB_HAS_COL0\n"
+            "{{\n",
+            VB_HAS_COL0);
+  LoadVertexAttribute(out, host_config, 2, "rawcolor0", "float4", "ubyte4");
+  out.Write("  vertex_color_0 = rawcolor0;\n"
+            "  vertex_color_1 = rawcolor0;\n"
+            "}}\n"
+            "else if ((components & {}u) != 0u) // VB_HAS_COL1\n"
+            "{{\n",
+            VB_HAS_COL1);
+  LoadVertexAttribute(out, host_config, 2, "rawcolor1", "float4", "ubyte4");
+  out.Write("  vertex_color_0 = rawcolor1;\n"
+            "  vertex_color_1 = rawcolor1;\n"
+            "}}\n"
+            "else\n"
+            "{{\n"
+            "  vertex_color_0 = missing_color_value;\n"
+            "  vertex_color_1 = missing_color_value;\n"
+            "}}\n");
 
   WriteVertexLighting(out, api_type, "pos.xyz", "_normal", "vertex_color_0", "vertex_color_1",
                       "o.colors_0", "o.colors_1");
 
   // Texture Coordinates
   if (num_texgen > 0)
-    GenVertexShaderTexGens(api_type, num_texgen, out);
+    GenVertexShaderTexGens(api_type, host_config, num_texgen, out);
+
+  if (host_config.backend_vs_point_line_expand)
+  {
+    out.Write("if (vs_expand == {}u) {{ // Line\n", static_cast<u32>(VSExpand::Line));
+    out.Write("  bool is_bottom = (gl_VertexID & 2) != 0;\n"
+              "  bool is_right = (gl_VertexID & 1) != 0;\n"
+              "  uint other_base_offset = vertex_base_offset;\n"
+              "  if (is_bottom) {{\n"
+              "    other_base_offset -= vertex_stride;\n"
+              "  }} else {{\n"
+              "    other_base_offset += vertex_stride;\n"
+              "  }}\n"
+              "  float4 other_rawpos = load_input_float4_rawpos(other_base_offset, "
+              "vertex_offset_rawpos);\n"
+              "  float4 other_p0 = P0;\n"
+              "  float4 other_p1 = P1;\n"
+              "  float4 other_p2 = P2;\n"
+              "  if ((components & {}u) != 0u) {{ // VB_HAS_POSMTXIDX\n",
+              VB_HAS_POSMTXIDX);
+    out.Write("    uint other_posidx = load_input_uint4_ubyte4(other_base_offset, "
+              "vertex_offset_posmtx).r;\n"
+              "    other_p0 = " I_TRANSFORMMATRICES "[other_posidx];\n"
+              "    other_p1 = " I_TRANSFORMMATRICES "[other_posidx+1];\n"
+              "    other_p2 = " I_TRANSFORMMATRICES "[other_posidx+2];\n"
+              "  }}\n"
+              "  float4 other_pos = float4(dot(other_p0, other_rawpos), "
+              "dot(other_p1, other_rawpos), dot(other_p2, other_rawpos), 1.0);\n");
+    GenerateVSLineExpansion(out, "  ", num_texgen);
+    out.Write("}} else if (vs_expand == {}u) {{ // Point\n", static_cast<u32>(VSExpand::Point));
+    out.Write("  bool is_bottom = (gl_VertexID & 2) != 0;\n"
+              "  bool is_right = (gl_VertexID & 1) != 0;\n");
+    GenerateVSPointExpansion(out, "  ", num_texgen);
+    out.Write("}}\n");
+  }
 
   if (per_pixel_lighting)
   {
@@ -352,7 +517,8 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   return out;
 }
 
-static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode& out)
+static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& host_config,
+                                   u32 num_texgen, ShaderCode& out)
 {
   // The HLSL compiler complains that the output texture coordinates are uninitialized when trying
   // to dynamically index them.
@@ -377,27 +543,40 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   out.Write("    coord.xyz = rawpos.xyz;\n");
   out.Write("    break;\n\n");
   out.Write("  case {:s}:\n", SourceRow::Normal);
-  out.Write("    coord.xyz = ((components & {}u /* VB_HAS_NORMAL */) != 0u) ? rawnormal.xyz : "
-            "coord.xyz;",
+  out.Write("    if ((components & {}u) != 0u) // VB_HAS_NORMAL\n"
+            "    {{\n",
             VB_HAS_NORMAL);
-  out.Write("    break;\n\n");
+  LoadVertexAttribute(out, host_config, 6, "rawnormal", "float3", "float3");
+  out.Write("      coord.xyz = rawnormal.xyz;\n"
+            "    }}\n"
+            "    break;\n\n");
   out.Write("  case {:s}:\n", SourceRow::BinormalT);
-  out.Write("    coord.xyz = ((components & {}u /* VB_HAS_TANGENT */) != 0u) ? rawtangent.xyz : "
-            "coord.xyz;",
+  out.Write("    if ((components & {}u) != 0u) // VB_HAS_TANGENT\n"
+            "    {{\n",
             VB_HAS_TANGENT);
-  out.Write("    break;\n\n");
+  LoadVertexAttribute(out, host_config, 6, "rawtangent", "float3", "float3");
+  out.Write("      coord.xyz = rawtangent.xyz;\n"
+            "    }}\n"
+            "    break;\n\n");
   out.Write("  case {:s}:\n", SourceRow::BinormalB);
-  out.Write("    coord.xyz = ((components & {}u /* VB_HAS_BINORMAL */) != 0u) ? rawbinormal.xyz : "
-            "coord.xyz;",
+  out.Write("    if ((components & {}u) != 0u) // VB_HAS_BINORMAL\n"
+            "    {{\n",
             VB_HAS_BINORMAL);
-  out.Write("    break;\n\n");
+  LoadVertexAttribute(out, host_config, 6, "rawbinormal", "float3", "float3");
+  out.Write("      coord.xyz = rawbinormal.xyz;\n"
+            "    }}\n"
+            "    break;\n\n");
   for (u32 i = 0; i < 8; i++)
   {
     out.Write("  case {:s}:\n", static_cast<SourceRow>(static_cast<u32>(SourceRow::Tex0) + i));
-    out.Write(
-        "    coord = ((components & {}u /* VB_HAS_UV{} */) != 0u) ? float4(rawtex{}.x, rawtex{}.y, "
-        "1.0, 1.0) : coord;\n",
-        VB_HAS_UV0 << i, i, i, i);
+    out.Write("    if ((components & {}u) != 0u) // VB_HAS_UV{}\n"
+              "    {{\n",
+              VB_HAS_UV0 << i, i);
+    LoadVertexAttribute(out, host_config, 6, fmt::format("rawtex{}", i), "float3", "rawtex",
+                        fmt::format("rawtex[{}][{}]", i / 4, i % 4));
+    out.Write("      coord = float4(rawtex{}.x, rawtex{}.y, 1.0f, 1.0f);\n"
+              "    }}\n",
+              i, i);
     out.Write("    break;\n\n");
   }
   out.Write("  }}\n"
@@ -447,14 +626,24 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
             "    {{\n");
   out.Write("      if ((components & ({}u /* VB_HAS_TEXMTXIDX0 */ << texgen)) != 0u) {{\n",
             VB_HAS_TEXMTXIDX0);
-  out.Write("        // This is messy, due to dynamic indexing of the input texture coordinates.\n"
-            "        // Hopefully the compiler will unroll this whole loop anyway and the switch.\n"
-            "        int tmp = 0;\n"
-            "        switch (texgen) {{\n");
-  for (u32 i = 0; i < num_texgen; i++)
-    out.Write("        case {}u: tmp = int(rawtex{}.z); break;\n", i, i);
-  out.Write("        }}\n"
-            "\n");
+  if (host_config.backend_dynamic_vertex_loader || host_config.backend_vs_point_line_expand)
+  {
+    out.Write("        int tmp = int(load_input_float3_rawtex(vertex_base_offset, "
+              "vertex_offset_rawtex[texgen / 4][texgen % 4]).z);\n"
+              "\n");
+  }
+  else
+  {
+    out.Write(
+        "        // This is messy, due to dynamic indexing of the input texture coordinates.\n"
+        "        // Hopefully the compiler will unroll this whole loop anyway and the switch.\n"
+        "        int tmp = 0;\n"
+        "        switch (texgen) {{\n");
+    for (u32 i = 0; i < num_texgen; i++)
+      out.Write("        case {}u: tmp = int(rawtex{}.z); break;\n", i, i);
+    out.Write("        }}\n"
+              "\n");
+  }
   out.Write("        if ({} == {:s}) {{\n", BitfieldExtract<&TexMtxInfo::projection>("texMtxInfo"),
             TexSize::STQ);
   out.Write("          output_tex.xyz = float3(dot(coord, " I_TRANSFORMMATRICES "[tmp]),\n"
@@ -512,6 +701,19 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
     out.Write("  case {}u: o.tex{} = output_tex; break;\n", i, i);
   out.Write("  }}\n"
             "}}\n");
+}
+
+static void LoadVertexAttribute(ShaderCode& code, const ShaderHostConfig& host_config, u32 indent,
+                                std::string_view name, std::string_view shader_type,
+                                std::string_view stored_type, std::string_view offset_name)
+{
+  if (host_config.backend_dynamic_vertex_loader || host_config.backend_vs_point_line_expand)
+  {
+    code.Write("{:{}}{} {} = load_input_{}_{}(vertex_base_offset, vertex_offset_{});\n", "", indent,
+               shader_type, name, shader_type, stored_type,
+               offset_name.empty() ? name : offset_name);
+  }
+  // else inputs are always available
 }
 
 void EnumerateVertexShaderUids(const std::function<void(const VertexShaderUid&)>& callback)

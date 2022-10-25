@@ -10,12 +10,19 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.slidingpanelayout.widget.SlidingPaneLayout;
+
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.color.MaterialColors;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.cheats.model.Cheat;
@@ -24,6 +31,8 @@ import org.dolphinemu.dolphinemu.features.cheats.model.GeckoCheat;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.ui.TwoPaneOnBackPressedCallback;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
+import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
 public class CheatsActivity extends AppCompatActivity
         implements SlidingPaneLayout.PanelSlideListener
@@ -60,6 +69,8 @@ public class CheatsActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
+    ThemeHelper.setTheme(this);
+
     super.onCreate(savedInstanceState);
 
     MainPresenter.skipRescanningLibrary();
@@ -76,6 +87,8 @@ public class CheatsActivity extends AppCompatActivity
     mViewModel.load(mGameId, mRevision);
 
     setContentView(R.layout.activity_cheats);
+
+    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
     mSlidingPaneLayout = findViewById(R.id.sliding_pane_layout);
     mCheatList = findViewById(R.id.cheat_list);
@@ -94,8 +107,18 @@ public class CheatsActivity extends AppCompatActivity
 
     mViewModel.getOpenDetailsViewEvent().observe(this, this::openDetailsView);
 
-    // show up button
+    MaterialToolbar tb = findViewById(R.id.toolbar_cheats);
+    setSupportActionBar(tb);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+    View workaroundView = findViewById(R.id.workaround_view);
+    AppBarLayout appBarLayout = findViewById(R.id.appbar_cheats);
+    InsetsHelper.setUpCheatsLayout(this, appBarLayout, mSlidingPaneLayout, mCheatDetails,
+            workaroundView);
+
+    @ColorInt int color = MaterialColors.getColor(tb, R.attr.colorSurfaceVariant);
+    tb.setBackgroundColor(color);
+    ThemeHelper.setStatusBarColor(this, color);
   }
 
   @Override
@@ -191,10 +214,10 @@ public class CheatsActivity extends AppCompatActivity
 
   public void downloadGeckoCodes()
   {
-    AlertDialog progressDialog = new AlertDialog.Builder(this).create();
-    progressDialog.setTitle(R.string.cheats_downloading);
-    progressDialog.setCancelable(false);
-    progressDialog.show();
+    AlertDialog progressDialog = new MaterialAlertDialogBuilder(this)
+            .setMessage(R.string.cheats_downloading)
+            .setCancelable(false)
+            .show();
 
     new Thread(() ->
     {
@@ -206,14 +229,14 @@ public class CheatsActivity extends AppCompatActivity
 
         if (codes == null)
         {
-          new AlertDialog.Builder(this)
+          new MaterialAlertDialogBuilder(this)
                   .setMessage(getString(R.string.cheats_download_failed))
                   .setPositiveButton(R.string.ok, null)
                   .show();
         }
         else if (codes.length == 0)
         {
-          new AlertDialog.Builder(this)
+          new MaterialAlertDialogBuilder(this)
                   .setMessage(getString(R.string.cheats_download_empty))
                   .setPositiveButton(R.string.ok, null)
                   .show();
@@ -223,7 +246,7 @@ public class CheatsActivity extends AppCompatActivity
           int cheatsAdded = mViewModel.addDownloadedGeckoCodes(codes);
           String message = getString(R.string.cheats_download_succeeded, codes.length, cheatsAdded);
 
-          new AlertDialog.Builder(this)
+          new MaterialAlertDialogBuilder(this)
                   .setMessage(message)
                   .setPositiveButton(R.string.ok, null)
                   .show();

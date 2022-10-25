@@ -14,10 +14,9 @@ class ScaleAction final : public GraphicsModAction
 public:
   static std::unique_ptr<ScaleAction> Create(const picojson::value& json_data);
   explicit ScaleAction(Common::Vec3 scale);
-  void OnEFB(bool* skip, u32 texture_width, u32 texture_height, u32* scaled_width,
-             u32* scaled_height) override;
-  void OnProjection(Common::Matrix44* matrix) override;
-  void OnProjectionAndTexture(Common::Matrix44* matrix) override;
+  void OnEFB(GraphicsModActionData::EFB*) override;
+  void OnProjection(GraphicsModActionData::Projection*) override;
+  void OnProjectionAndTexture(GraphicsModActionData::Projection*) override;
 
 private:
   Common::Vec3 m_scale;

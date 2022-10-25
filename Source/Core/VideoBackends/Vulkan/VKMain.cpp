@@ -35,8 +35,9 @@ void VideoBackend::InitBackendInfo()
 
   if (LoadVulkanLibrary())
   {
-    VkInstance temp_instance =
-        VulkanContext::CreateVulkanInstance(WindowSystemType::Headless, false, false);
+    u32 vk_api_version = 0;
+    VkInstance temp_instance = VulkanContext::CreateVulkanInstance(WindowSystemType::Headless,
+                                                                   false, false, &vk_api_version);
     if (temp_instance)
     {
       if (LoadVulkanInstanceFunctions(temp_instance))
@@ -114,8 +115,9 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   // We use this instance to fill in backend info, then re-use it for the actual device.
   bool enable_surface = wsi.type != WindowSystemType::Headless;
   bool enable_debug_reports = ShouldEnableDebugReports(enable_validation_layer);
-  VkInstance instance =
-      VulkanContext::CreateVulkanInstance(wsi.type, enable_debug_reports, enable_validation_layer);
+  u32 vk_api_version = 0;
+  VkInstance instance = VulkanContext::CreateVulkanInstance(
+      wsi.type, enable_debug_reports, enable_validation_layer, &vk_api_version);
   if (instance == VK_NULL_HANDLE)
   {
     PanicAlertFmt("Failed to create Vulkan instance.");
@@ -171,8 +173,9 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   }
 
   // Now we can create the Vulkan device. VulkanContext takes ownership of the instance and surface.
-  g_vulkan_context = VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface,
-                                           enable_debug_reports, enable_validation_layer);
+  g_vulkan_context =
+      VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface,
+                            enable_debug_reports, enable_validation_layer, vk_api_version);
   if (!g_vulkan_context)
   {
     PanicAlertFmt("Failed to create Vulkan device");

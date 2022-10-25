@@ -9,8 +9,9 @@
 #include <QTextBrowser>
 #include <QVBoxLayout>
 
+#include <fmt/format.h>
+
 #include "Common/GekkoDisassembler.h"
-#include "Common/StringUtil.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "UICommon/Disassembler.h"
 
@@ -181,12 +182,6 @@ void JITWidget::Update()
     // Add stats to the end of the ppc box since it's generally the shortest.
     ppc_disasm << std::dec << std::endl;
 
-    // Add some generic analysis
-    if (st.isFirstBlockOfFunction)
-      ppc_disasm << "(first block of function)" << std::endl;
-    if (st.isLastBlockOfFunction)
-      ppc_disasm << "(last block of function)" << std::endl;
-
     ppc_disasm << st.numCycles << " estimated cycles" << std::endl;
 
     ppc_disasm << "Num instr: PPC: " << code_block.m_num_instructions
@@ -214,7 +209,7 @@ void JITWidget::Update()
   {
     m_host_asm_widget->setHtml(
         QStringLiteral("<pre>%1</pre>")
-            .arg(QString::fromStdString(StringFromFormat("(non-code address: %08x)", m_address))));
+            .arg(QString::fromStdString(fmt::format("(non-code address: {:08x})", m_address))));
     m_ppc_asm_widget->setHtml(QStringLiteral("<i>---</i>"));
   }
 }

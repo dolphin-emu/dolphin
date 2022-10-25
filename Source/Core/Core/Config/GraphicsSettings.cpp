@@ -71,17 +71,10 @@ const Info<bool> GFX_BORDERLESS_FULLSCREEN{{System::GFX, "Settings", "Borderless
 const Info<bool> GFX_ENABLE_VALIDATION_LAYER{{System::GFX, "Settings", "EnableValidationLayer"},
                                              false};
 
-#if defined(ANDROID)
-const Info<bool> GFX_BACKEND_MULTITHREADING{{System::GFX, "Settings", "BackendMultithreading"},
-                                            false};
-const Info<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL{
-    {System::GFX, "Settings", "CommandBufferExecuteInterval"}, 0};
-#else
 const Info<bool> GFX_BACKEND_MULTITHREADING{{System::GFX, "Settings", "BackendMultithreading"},
                                             true};
 const Info<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL{
     {System::GFX, "Settings", "CommandBufferExecuteInterval"}, 100};
-#endif
 
 const Info<bool> GFX_SHADER_CACHE{{System::GFX, "Settings", "ShaderCache"}, true};
 const Info<bool> GFX_WAIT_FOR_SHADERS_BEFORE_STARTING{
@@ -93,13 +86,18 @@ const Info<int> GFX_SHADER_PRECOMPILER_THREADS{
     {System::GFX, "Settings", "ShaderPrecompilerThreads"}, -1};
 const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE{
     {System::GFX, "Settings", "SaveTextureCacheToState"}, true};
+const Info<bool> GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION{
+    {System::GFX, "Settings", "PreferVSForLinePointExpansion"}, false};
+
+const Info<TriState> GFX_MTL_MANUALLY_UPLOAD_BUFFERS{
+    {System::GFX, "Settings", "ManuallyUploadBuffers"}, TriState::Auto};
+const Info<bool> GFX_MTL_USE_PRESENT_DRAWABLE{{System::GFX, "Settings", "MTLUsePresentDrawable"},
+                                              false};
 
 const Info<bool> GFX_SW_DUMP_OBJECTS{{System::GFX, "Settings", "SWDumpObjects"}, false};
 const Info<bool> GFX_SW_DUMP_TEV_STAGES{{System::GFX, "Settings", "SWDumpTevStages"}, false};
 const Info<bool> GFX_SW_DUMP_TEV_TEX_FETCHES{{System::GFX, "Settings", "SWDumpTevTexFetches"},
                                              false};
-const Info<int> GFX_SW_DRAW_START{{System::GFX, "Settings", "SWDrawStart"}, 0};
-const Info<int> GFX_SW_DRAW_END{{System::GFX, "Settings", "SWDrawEnd"}, 100000};
 
 const Info<bool> GFX_PREFER_GLES{{System::GFX, "Settings", "PreferGLES"}, false};
 

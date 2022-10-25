@@ -14,10 +14,13 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.divider.MaterialDividerItemDecoration;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
-import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -127,7 +130,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
     if (titles.containsKey(menuTag))
     {
-      getActivity().setTitle(titles.get(menuTag));
+      mActivity.setToolbarTitle(getString(titles.get(menuTag)));
     }
 
     LinearLayoutManager manager = new LinearLayoutManager(getActivity());
@@ -136,7 +139,13 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
     recyclerView.setAdapter(mAdapter);
     recyclerView.setLayoutManager(manager);
-    recyclerView.addItemDecoration(new DividerItemDecoration(requireActivity(), null));
+
+    MaterialDividerItemDecoration divider =
+            new MaterialDividerItemDecoration(requireActivity(), LinearLayoutManager.VERTICAL);
+    divider.setLastItemDecorated(false);
+    recyclerView.addItemDecoration(divider);
+
+    InsetsHelper.setUpList(getContext(), recyclerView);
 
     SettingsActivityView activity = (SettingsActivityView) getActivity();
     mPresenter.onViewCreated(menuTag, activity.getSettings());

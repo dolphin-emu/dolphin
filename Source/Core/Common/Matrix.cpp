@@ -78,7 +78,7 @@ Quaternion::Quaternion(float w, float x, float y, float z) : data(x, y, z, w)
 
 float Quaternion::Norm() const
 {
-  return data.Dot(data);
+  return std::sqrt(data.Dot(data));
 }
 
 Quaternion Quaternion::Normalized() const

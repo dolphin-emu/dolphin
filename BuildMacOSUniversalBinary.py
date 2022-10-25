@@ -72,6 +72,11 @@ DEFAULT_CONFIG = {
 
     "run_unit_tests": False,
 
+    # Whether we should make a build for Steam.
+    "steam": False,
+
+    # Whether our autoupdate functionality is enabled or not.
+    "autoupdate": True
 }
 
 # Architectures to build for. This is explicity left out of the command line
@@ -118,6 +123,18 @@ def parse_args(conf=DEFAULT_CONFIG):
 
     parser.add_argument("--run_unit_tests", action="store_true",
                         default=conf["run_unit_tests"])
+
+    parser.add_argument(
+        "--steam",
+        help="Create a build for Steam",
+        action="store_true",
+        default=conf["steam"])
+
+    parser.add_argument(
+        "--autoupdate",
+        help="Enables our autoupdate functionality",
+        action=argparse.BooleanOptionalAction,
+        default=conf["autoupdate"])
 
     parser.add_argument(
         "--codesign",
@@ -246,6 +263,8 @@ def recursive_merge_binaries(src0, src1, dst):
             relative_path = os.path.relpath(os.path.realpath(newpath1), src1)
             os.symlink(relative_path, new_dst_path)
 
+def python_to_cmake_bool(boolean):
+    return "ON" if boolean else "OFF"
 
 def build(config):
     """
@@ -292,7 +311,11 @@ def build(config):
                 + config["codesign_identity"],
                 "-DMACOS_CODE_SIGNING_IDENTITY_UPDATER="
                 + config["codesign_identity"],
-                '-DMACOS_CODE_SIGNING="ON"'
+                '-DMACOS_CODE_SIGNING="ON"',
+                "-DSTEAM="
+                + python_to_cmake_bool(config["steam"]),
+                "-DENABLE_AUTOUPDATE="
+                + python_to_cmake_bool(config["autoupdate"]),
             ],
             env=env, cwd=arch)
 

@@ -17,7 +17,7 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
-import org.dolphinemu.dolphinemu.utils.PicassoUtils;
+import org.dolphinemu.dolphinemu.utils.GlideUtils;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 import java.util.ArrayList;
@@ -72,9 +72,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   {
     Context context = holder.itemView.getContext();
     GameFile gameFile = mGameFiles.get(position);
-    PicassoUtils.loadGameCover(holder.imageScreenshot, gameFile);
-
-    holder.textGameTitle.setText(gameFile.getTitle());
+    GlideUtils.loadGameCover(holder, holder.imageScreenshot, gameFile);
 
     if (GameFileCacheManager.findSecondDisc(gameFile) != null)
     {
@@ -152,35 +150,12 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   @Override
   public boolean onLongClick(View view)
   {
-    FragmentActivity activity = (FragmentActivity) view.getContext();
     GameViewHolder holder = (GameViewHolder) view.getTag();
-    String gameId = holder.gameFile.getGameId();
 
     GamePropertiesDialog fragment = GamePropertiesDialog.newInstance(holder.gameFile);
     ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction()
             .add(fragment, GamePropertiesDialog.TAG).commit();
 
     return true;
-  }
-
-  public static class SpacesItemDecoration extends RecyclerView.ItemDecoration
-  {
-    private int space;
-
-    public SpacesItemDecoration(int space)
-    {
-      this.space = space;
-    }
-
-    @Override
-    public void getItemOffsets(@NonNull Rect outRect, @NonNull View view,
-            @NonNull RecyclerView parent,
-            @NonNull RecyclerView.State state)
-    {
-      outRect.left = space;
-      outRect.right = space;
-      outRect.bottom = space;
-      outRect.top = space;
-    }
   }
 }

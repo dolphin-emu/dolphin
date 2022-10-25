@@ -108,4 +108,9 @@ public interface SettingsActivityView
    * Tell the user that there is junk in the game INI and ask if they want to delete the whole file.
    */
   void showGameIniJunkDeletionQuestion();
+
+  /**
+   * Accesses the material toolbar layout and changes the title
+   */
+  void setToolbarTitle(String title);
 }

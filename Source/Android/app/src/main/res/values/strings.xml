@@ -193,6 +193,9 @@
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
     <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
+    <string name="show_titles_in_game_list">Show Titles in Game List</string>
+    <string name="show_titles_in_game_list_description">Show the title and creator below each game cover.</string>
+    <string name="change_theme">Change App Theme</string>
 
     <!-- Online Update Region Select Fragment -->
     <string name="region_select_title">Please select a region</string>
@@ -340,8 +343,10 @@
     <string name="crop">Crop</string>
     <string name="crop_description">Crops the picture from its native aspect ratio to 4:3 or 16:9. If unsure, leave this unchecked.</string>
     <string name="progressive_scan">Enable Progressive Scan</string>
-    <string name="backend_multithreading">Backend Multithreading</string> <!--Backend Multithreading is only disabled by default on Android  -->
-    <string name="backend_multithreading_description">Enables graphics backend multithreading (Vulkan only). May affect performance. If unsure, leave this unchecked.</string>
+    <string name="backend_multithreading">Backend Multithreading</string>
+    <string name="backend_multithreading_description">Enables graphics backend multithreading (Vulkan only). May affect performance. If unsure, leave this checked.</string>
+    <string name="prefer_vs_for_point_line_expansion">Prefer VS for Point/Line Expansion</string>
+    <string name="prefer_vs_for_point_line_expansion_description">On backends that support both using the geometry shader and the vertex shader for expanding points and lines, selects the vertex shader for the job. May affect performance.</string>
     <string name="defer_efb_invalidation">Defer EFB Cache Invalidation</string>
     <string name="defer_efb_invalidation_description">Defers invalidation of the EFB access cache until a GPU synchronization command is executed. May improve performance in some games at the cost of stability. If unsure, leave this unchecked.</string>
     <string name="manual_texture_sampling">Manual Texture Sampling</string>
@@ -442,6 +447,7 @@
     <string name="grid_menu_online_system_update">Perform Online System Update</string>
     <string name="grid_menu_load_wii_system_menu">Load Wii System Menu</string>
     <string name="grid_menu_load_wii_system_menu_installed">Load Wii System Menu (%s)</string>
+    <string name="grid_menu_load_vwii_system_menu_installed">Load vWii System Menu (%s)</string>
     <string name="import_in_progress">Importing...</string>
     <string name="export_in_progress">Exporting...</string>
     <string name="do_not_close_app">Do not close the app!</string>
@@ -544,6 +550,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     </string>
 
     <!-- Riivolution Boot Screen -->
+    <string name="riivolution_riivolution">Riivolution</string>
     <string name="riivolution_sd_root">SD Root: %1$s</string>
     <string name="riivolution_disabled">Disabled</string>
     <string name="riivolution_start">Start</string>
@@ -565,8 +572,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_done">Done</string>
     <string name="emulation_toggle_controls">Toggle Controls</string>
     <string name="emulation_toggle_all">Toggle All</string>
-    <string name="emulation_control_scale">Adjust Scale</string>
-    <string name="emulation_control_opacity">Adjust Opacity</string>
+    <string name="emulation_control_scale">Scale</string>
+    <string name="emulation_control_opacity">Opacity</string>
     <string name="emulation_control_adjustments">Adjust Controls</string>
     <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
     <string name="emulation_control_rumble">Rumble</string>

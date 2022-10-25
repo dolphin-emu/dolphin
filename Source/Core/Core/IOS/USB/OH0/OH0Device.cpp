@@ -44,7 +44,7 @@ OH0Device::OH0Device(Kernel& ios, const std::string& name) : Device(ios, name, D
 void OH0Device::DoState(PointerWrap& p)
 {
   m_oh0 = std::static_pointer_cast<OH0>(GetIOS()->GetDeviceByName("/dev/usb/oh0"));
-  p.Do(m_name);
+  Device::DoState(p);
   p.Do(m_vid);
   p.Do(m_pid);
   p.Do(m_device_id);

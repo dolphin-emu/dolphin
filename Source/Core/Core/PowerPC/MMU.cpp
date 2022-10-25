@@ -244,6 +244,11 @@ static T ReadFromHardware(u32 em_address)
   }
 
   PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, PC);
+  if (Core::System::GetInstance().IsPauseOnPanicMode())
+  {
+    CPU::Break();
+    ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+  }
   return 0;
 }
 
@@ -406,6 +411,11 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
   }
 
   PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, PC);
+  if (Core::System::GetInstance().IsPauseOnPanicMode())
+  {
+    CPU::Break();
+    ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+  }
 }
 // =====================
 
@@ -1148,6 +1158,11 @@ static void GenerateDSIException(u32 effective_address, bool write)
   {
     PanicAlertFmt("Invalid {} {:#010x}, PC = {:#010x}", write ? "write to" : "read from",
                   effective_address, PC);
+    if (Core::System::GetInstance().IsPauseOnPanicMode())
+    {
+      CPU::Break();
+      ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+    }
     return;
   }
 

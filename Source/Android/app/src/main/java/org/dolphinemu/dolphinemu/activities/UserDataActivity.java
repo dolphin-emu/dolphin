@@ -14,12 +14,19 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.widget.NestedScrollView;
+
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 import org.dolphinemu.dolphinemu.utils.ThreadUtil;
 
 import java.io.File;
@@ -50,9 +57,13 @@ public class UserDataActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
+    ThemeHelper.setTheme(this);
+
     super.onCreate(savedInstanceState);
 
     setContentView(R.layout.activity_user_data);
+
+    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
     TextView textType = findViewById(R.id.text_type);
     TextView textPath = findViewById(R.id.text_path);
@@ -80,8 +91,15 @@ public class UserDataActivity extends AppCompatActivity
 
     buttonExportUserData.setOnClickListener(view -> exportUserData());
 
-    // show up button
+    MaterialToolbar tb = findViewById(R.id.toolbar_user_data);
+    setSupportActionBar(tb);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+    AppBarLayout appBarLayout = findViewById(R.id.appbar_user_data);
+    NestedScrollView scrollView = findViewById(R.id.scroll_view_user_data);
+    View workaroundView = findViewById(R.id.workaround_view);
+    InsetsHelper.setUpAppBarWithScrollView(this, appBarLayout, scrollView, workaroundView);
+    ThemeHelper.enableScrollTint(this, tb, appBarLayout);
   }
 
   @Override
@@ -100,26 +118,25 @@ public class UserDataActivity extends AppCompatActivity
     {
       Uri uri = data.getData();
 
-      AlertDialog.Builder builder = new AlertDialog.Builder(this);
+      new MaterialAlertDialogBuilder(this)
+              .setMessage(R.string.user_data_import_warning)
+              .setNegativeButton(R.string.no, (dialog, i) -> dialog.dismiss())
+              .setPositiveButton(R.string.yes, (dialog, i) ->
+              {
+                dialog.dismiss();
 
-      builder.setMessage(R.string.user_data_import_warning);
-      builder.setNegativeButton(R.string.no, (dialog, i) -> dialog.dismiss());
-      builder.setPositiveButton(R.string.yes, (dialog, i) ->
-      {
-        dialog.dismiss();
-
-        ThreadUtil.runOnThreadAndShowResult(this, R.string.import_in_progress,
-                R.string.do_not_close_app, () -> getResources().getString(importUserData(uri)),
-                (dialogInterface) ->
-                {
-                  if (sMustRestartApp)
-                  {
-                    System.exit(0);
-                  }
-                });
-      });
-
-      builder.show();
+                ThreadUtil.runOnThreadAndShowResult(this, R.string.import_in_progress,
+                        R.string.do_not_close_app,
+                        () -> getResources().getString(importUserData(uri)),
+                        (dialogInterface) ->
+                        {
+                          if (sMustRestartApp)
+                          {
+                            System.exit(0);
+                          }
+                        });
+              })
+              .show();
     }
     else if (requestCode == REQUEST_CODE_EXPORT && resultCode == Activity.RESULT_OK)
     {
@@ -148,7 +165,7 @@ public class UserDataActivity extends AppCompatActivity
       {
         // Activity not found. Perhaps it was removed by the OEM, or by some new Android version
         // that didn't exist at the time of writing. Not much we can do other than tell the user
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setMessage(R.string.user_data_open_system_file_manager_failed)
                 .setPositiveButton(R.string.ok, null)
                 .show();

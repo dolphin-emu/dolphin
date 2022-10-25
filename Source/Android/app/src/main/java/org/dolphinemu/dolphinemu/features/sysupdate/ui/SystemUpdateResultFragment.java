@@ -6,9 +6,10 @@ import android.app.Dialog;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
@@ -88,13 +89,10 @@ public class SystemUpdateResultFragment extends DialogFragment
         throw new IllegalStateException("Unexpected value: " + mResult);
     }
 
-    return new AlertDialog.Builder(requireContext())
+    return new MaterialAlertDialogBuilder(requireContext())
             .setTitle(title)
             .setMessage(message)
-            .setPositiveButton(R.string.ok, (dialog, which) ->
-            {
-              dismiss();
-            })
+            .setPositiveButton(R.string.ok, (dialog, which) -> dismiss())
             .create();
   }
 

@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
 
 #include "Common/MathUtil.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -221,9 +222,10 @@ WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
        u16(std::clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))});
 }
 
-void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed)
+void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
+                  const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed)
 {
-  const auto cursor = ir_group->GetState(true);
+  const auto cursor = ir_group->GetState(true, override_func);
 
   if (!cursor.IsVisible())
   {
@@ -396,7 +398,9 @@ Common::Quaternion GetRotationFromAcceleration(const Common::Vec3& accel)
 
 Common::Quaternion GetRotationFromGyroscope(const Common::Vec3& gyro)
 {
-  return Common::Quaternion{1, gyro.x / 2, gyro.y / 2, gyro.z / 2};
+  const auto length = gyro.Length();
+  return (length != 0) ? Common::Quaternion::Rotate(length, gyro / length) :
+                         Common::Quaternion::Identity();
 }
 
 Common::Matrix33 GetRotationalMatrix(const Common::Vec3& angle)

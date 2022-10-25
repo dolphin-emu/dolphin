@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "Common/Common.h"
@@ -31,4 +32,25 @@ Triggers::StateData Triggers::GetState() const
 
   return result;
 }
+
+Triggers::StateData Triggers::GetState(const InputOverrideFunction& override_func) const
+{
+  if (!override_func)
+    return GetState();
+
+  const size_t trigger_count = controls.size();
+  const ControlState deadzone = m_deadzone_setting.GetValue() / 100;
+
+  StateData result(trigger_count);
+  for (size_t i = 0; i < trigger_count; ++i)
+  {
+    ControlState state = ApplyDeadzone(controls[i]->GetState(), deadzone);
+    if (std::optional<ControlState> state_override = override_func(name, controls[i]->name, state))
+      state = *state_override;
+    result.data[i] = std::min(state, 1.0);
+  }
+
+  return result;
+}
+
 }  // namespace ControllerEmu

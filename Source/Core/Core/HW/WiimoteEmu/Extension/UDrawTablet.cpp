@@ -9,6 +9,8 @@
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -48,7 +50,7 @@ UDrawTablet::UDrawTablet() : Extension3rdParty("uDraw", _trans("uDraw GameTablet
   m_touch->AddInput(ControllerEmu::Translate, _trans("Pressure"));
 }
 
-void UDrawTablet::Update()
+void UDrawTablet::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DataFormat tablet_data = {};
 
@@ -105,7 +107,12 @@ void UDrawTablet::Update()
   // Always 0xff
   tablet_data.unk = 0xff;
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tablet_data;
+  target_state->data = tablet_data;
+}
+
+void UDrawTablet::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void UDrawTablet::Reset()

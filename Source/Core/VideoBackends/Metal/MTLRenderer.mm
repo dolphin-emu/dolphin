@@ -20,6 +20,7 @@ Metal::Renderer::Renderer(MRCOwned<CAMetalLayer*> layer, int width, int height, 
       m_layer(std::move(layer))
 {
   UpdateActiveConfig();
+  [m_layer setDisplaySyncEnabled:g_ActiveConfig.bVSyncActive];
 }
 
 Metal::Renderer::~Renderer() = default;
@@ -454,8 +455,15 @@ void Metal::Renderer::PresentBackbuffer()
     g_state_tracker->EndRenderPass();
     if (m_drawable)
     {
-      [g_state_tracker->GetRenderCmdBuf()
-          addScheduledHandler:[drawable = std::move(m_drawable)](id) { [drawable present]; }];
+      // PresentDrawable refuses to allow Dolphin to present faster than the display's refresh rate
+      // when windowed (or fullscreen with vsync enabled, but that's more understandable).
+      // On the other hand, it helps Xcode's GPU captures start and stop on frame boundaries
+      // which is convenient.  Put it here as a default-off config, which we can override in Xcode.
+      if (g_ActiveConfig.bUsePresentDrawable)
+        [g_state_tracker->GetRenderCmdBuf() presentDrawable:m_drawable];
+      else
+        [g_state_tracker->GetRenderCmdBuf()
+            addScheduledHandler:[drawable = std::move(m_drawable)](id) { [drawable present]; }];
       m_bb_texture->SetMTLTexture(nullptr);
       m_drawable = nullptr;
     }

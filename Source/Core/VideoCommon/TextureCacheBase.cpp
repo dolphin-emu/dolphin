@@ -37,6 +37,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -440,7 +441,7 @@ void TextureCacheBase::SerializeTexture(AbstractTexture* tex, const TextureConfi
 {
   // If we're in measure mode, skip the actual readback to save some time.
   const bool skip_readback = p.IsMeasureMode();
-  p.DoPOD(config);
+  p.Do(config);
 
   if (skip_readback || CheckReadbackTexture(config.width, config.height, config.format))
   {
@@ -2158,9 +2159,10 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     else
     {
       bool skip = false;
+      GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
       for (const auto action : g_renderer->GetGraphicsModManager().GetEFBActions(info))
       {
-        action->OnEFB(&skip, tex_w, tex_h, &scaled_tex_w, &scaled_tex_h);
+        action->OnEFB(&efb);
       }
       if (skip == true)
       {

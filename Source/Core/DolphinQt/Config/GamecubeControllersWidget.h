@@ -13,6 +13,11 @@ class QGridLayout;
 class QGroupBox;
 class QPushButton;
 
+namespace Core
+{
+enum class State;
+}
+
 class GamecubeControllersWidget final : public QWidget
 {
   Q_OBJECT
@@ -20,11 +25,11 @@ public:
   explicit GamecubeControllersWidget(QWidget* parent);
 
 private:
-  void LoadSettings();
+  void LoadSettings(Core::State state);
   void SaveSettings();
 
-  void OnGCTypeChanged(int state);
-  void OnGCPadConfigure();
+  void OnGCTypeChanged(size_t index);
+  void OnGCPadConfigure(size_t index);
 
   void CreateLayout();
   void ConnectWidgets();

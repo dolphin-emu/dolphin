@@ -30,6 +30,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 
 namespace HW::GBA
 {
@@ -403,7 +404,10 @@ void Core::SetSampleRates()
   m_core->setAudioBufferSize(m_core, SAMPLES);
   blip_set_rates(m_core->getAudioChannel(m_core, 0), m_core->frequency(m_core), SAMPLE_RATE);
   blip_set_rates(m_core->getAudioChannel(m_core, 1), m_core->frequency(m_core), SAMPLE_RATE);
-  g_sound_stream->GetMixer()->SetGBAInputSampleRateDivisors(
+
+  auto& system = ::Core::System::GetInstance();
+  SoundStream* sound_stream = system.GetSoundStream();
+  sound_stream->GetMixer()->SetGBAInputSampleRateDivisors(
       m_device_number, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / SAMPLE_RATE);
 }
 
@@ -436,7 +440,10 @@ void Core::SetAVStream()
     std::vector<s16> buffer(SAMPLES * 2);
     blip_read_samples(left, &buffer[0], SAMPLES, 1);
     blip_read_samples(right, &buffer[1], SAMPLES, 1);
-    g_sound_stream->GetMixer()->PushGBASamples(core->m_device_number, &buffer[0], SAMPLES);
+
+    auto& system = ::Core::System::GetInstance();
+    SoundStream* sound_stream = system.GetSoundStream();
+    sound_stream->GetMixer()->PushGBASamples(core->m_device_number, &buffer[0], SAMPLES);
   };
   m_core->setAVStream(m_core, &m_stream);
 }

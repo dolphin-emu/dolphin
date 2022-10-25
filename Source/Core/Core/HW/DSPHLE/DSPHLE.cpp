@@ -105,9 +105,9 @@ void DSPHLE::DoState(PointerWrap& p)
     return;
   }
 
-  p.DoPOD(m_dsp_control);
+  p.Do(m_dsp_control);
   p.Do(m_control_reg_init_code_clear_time);
-  p.DoPOD(m_dsp_state);
+  p.Do(m_dsp_state);
 
   int ucode_crc = UCodeInterface::GetCRC(m_ucode.get());
   int ucode_crc_before_load = ucode_crc;

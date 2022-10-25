@@ -8,9 +8,9 @@ import android.net.Uri;
 import android.os.Environment;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
 
@@ -82,9 +82,16 @@ public final class FileBrowserHelper
     return isPathEmptyOrValid(path.getStringGlobal());
   }
 
+  /**
+   * Returns true if at least one of the following applies:
+   *
+   * 1. The input is empty.
+   * 2. The input is something which is not a content URI.
+   * 3. The input is a content URI that points to a file that exists and we're allowed to access.
+   */
   public static boolean isPathEmptyOrValid(String path)
   {
-    return !path.startsWith("content://") || ContentHandler.exists(path);
+    return !ContentHandler.isContentUri(path) || ContentHandler.exists(path);
   }
 
   public static void runAfterExtensionCheck(Context context, Uri uri, Set<String> validExtensions,
@@ -119,7 +126,7 @@ public final class FileBrowserHelper
               setToSortedDelimitedString(validExtensions));
     }
 
-    new AlertDialog.Builder(context)
+    new MaterialAlertDialogBuilder(context)
             .setMessage(message)
             .setPositiveButton(R.string.yes, (dialogInterface, i) -> runnable.run())
             .setNegativeButton(R.string.no, null)

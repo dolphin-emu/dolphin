@@ -46,7 +46,7 @@
 % Document front page material
 \title{\textbf{\Huge GameCube DSP User's Manual}}
 \author{Reverse-engineered and documented by Duddie \\ \href{mailto:duddie@walla.com}{duddie@walla.com}}
-\date{\today\\v0.1.4}
+\date{\today\\v0.1.5}
 
 % Title formatting commands
 \newcommand{\OpcodeTitle}[1]{\subsection{#1}\label{instruction:#1}}
@@ -262,6 +262,7 @@ The purpose of this documentation is purely academic and it aims at understandin
 0.1.2            & 2022.05.21    & Pokechu22       & Fixed ``ILLR'' typo in Instruction Memory section                                        \\ \hline
 0.1.3            & 2022.05.27    & Pokechu22       & Renamed \texttt{CMPAR} instruction to \texttt{CMPAXH}                                    \\ \hline
 0.1.4            & 2022.06.02    & Pokechu22       & Fixed typos; added sections on 16-bit and 40-bit modes and on main and extended opcode writing to the same register. \\ \hline
+0.1.5            & 2022.09.29    & vpelletier      & Fixed \texttt{BLOOP} and \texttt{BLOOPI} suboperation order \\ \hline
 \end{tabular}
 \end{table}
 
@@ -1664,10 +1665,11 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
     // On real hardware, the below does not happen,
     // this opcode only sets stack registers
-    WHILE ($st3--)
+    WHILE ($st3)
         DO
             EXECUTE_OPCODE($pc)
         WHILE($pc != $st2)
+        $st3--
         $pc = $st0
     END
     $pc = addrA + 1
@@ -1702,10 +1704,11 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
     // On real hardware, the below does not happen,
     // this opcode only sets stack registers
-    WHILE ($st3--)
+    WHILE ($st3)
         DO
             EXECUTE_OPCODE($pc)
         WHILE($pc != $st2)
+        $st3--
         $pc = $st0
     END
     $pc = addrA + 1

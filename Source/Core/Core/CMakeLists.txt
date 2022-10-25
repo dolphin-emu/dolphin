@@ -3,6 +3,7 @@ add_library(core
   ActionReplay.h
   ARDecrypt.cpp
   ARDecrypt.h
+  Boot/AncastTypes.h
   Boot/Boot_BS2Emu.cpp
   Boot/Boot_WiiWAD.cpp
   Boot/Boot.cpp
@@ -279,6 +280,8 @@ add_library(core
   HW/WiimoteCommon/WiimoteReport.h
   HW/WiimoteEmu/Camera.cpp
   HW/WiimoteEmu/Camera.h
+  HW/WiimoteEmu/DesiredWiimoteState.cpp
+  HW/WiimoteEmu/DesiredWiimoteState.h
   HW/WiimoteEmu/Dynamics.cpp
   HW/WiimoteEmu/Dynamics.h
   HW/WiimoteEmu/EmuSubroutines.cpp
@@ -286,6 +289,7 @@ add_library(core
   HW/WiimoteEmu/Encryption.h
   HW/WiimoteEmu/Extension/Classic.cpp
   HW/WiimoteEmu/Extension/Classic.h
+  HW/WiimoteEmu/Extension/DesiredExtensionState.h
   HW/WiimoteEmu/Extension/DrawsomeTablet.cpp
   HW/WiimoteEmu/Extension/DrawsomeTablet.h
   HW/WiimoteEmu/Extension/Drums.cpp
@@ -296,6 +300,8 @@ add_library(core
   HW/WiimoteEmu/Extension/Guitar.h
   HW/WiimoteEmu/Extension/Nunchuk.cpp
   HW/WiimoteEmu/Extension/Nunchuk.h
+  HW/WiimoteEmu/Extension/Shinkansen.cpp
+  HW/WiimoteEmu/Extension/Shinkansen.h
   HW/WiimoteEmu/Extension/TaTaCon.cpp
   HW/WiimoteEmu/Extension/TaTaCon.h
   HW/WiimoteEmu/Extension/Turntable.cpp
@@ -358,6 +364,11 @@ add_library(core
   IOS/Network/KD/NetKDTime.h
   IOS/Network/KD/NWC24Config.cpp
   IOS/Network/KD/NWC24Config.h
+  IOS/Network/KD/NWC24DL.cpp
+  IOS/Network/KD/NWC24DL.h
+  IOS/Network/KD/VFF/VFFUtil.cpp
+  IOS/Network/KD/VFF/VFFUtil.h
+  IOS/Network/KD/WC24File.h
   IOS/Network/MACUtils.cpp
   IOS/Network/MACUtils.h
   IOS/Network/NCD/Manage.cpp
@@ -593,6 +604,7 @@ PUBLIC
   videosoftware
 
 PRIVATE
+  FatFs
   fmt::fmt
   ${LZO}
   ZLIB::ZLIB

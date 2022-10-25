@@ -17,6 +17,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Timer.h"
+#include "Core/Boot/AncastTypes.h"
 #include "Core/Boot/DolReader.h"
 #include "Core/Boot/ElfReader.h"
 #include "Core/CommonTitles.h"
@@ -206,6 +207,15 @@ static void ReleasePPC()
   PC = 0x3400;
 }
 
+static void ReleasePPCAncast()
+{
+  Memory::Write_U32(0, 0);
+  // On a real console the Espresso verifies and decrypts the Ancast image,
+  // then jumps to the decrypted ancast body.
+  // The Ancast loader already did this, so just jump to the decrypted body.
+  PC = ESPRESSO_ANCAST_LOCATION_VIRT + sizeof(EspressoAncastHeader);
+}
+
 void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type)
 {
   // Don't touch anything if the feature isn't enabled.
@@ -393,11 +403,14 @@ bool Kernel::BootstrapPPC(const std::string& boot_content_path)
   // Reset the PPC and pause its execution until we're ready.
   ResetAndPausePPC();
 
+  if (dol.IsAncast())
+    INFO_LOG_FMT(IOS, "BootstrapPPC: Loading ancast image");
+
   if (!dol.LoadIntoMemory())
     return false;
 
   INFO_LOG_FMT(IOS, "BootstrapPPC: {}", boot_content_path);
-  CoreTiming::ScheduleEvent(ticks, s_event_finish_ppc_bootstrap);
+  CoreTiming::ScheduleEvent(ticks, s_event_finish_ppc_bootstrap, dol.IsAncast());
   return true;
 }
 
@@ -481,7 +494,7 @@ bool Kernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc, const std::string
 
 void Kernel::InitIPC()
 {
-  if (s_ios == nullptr)
+  if (!Core::IsRunning())
     return;
 
   INFO_LOG_FMT(IOS, "IPC initialised.");
@@ -865,7 +878,13 @@ IOSC& Kernel::GetIOSC()
 
 static void FinishPPCBootstrap(u64 userdata, s64 cycles_late)
 {
-  ReleasePPC();
+  // See Kernel::BootstrapPPC
+  const bool is_ancast = userdata == 1;
+  if (is_ancast)
+    ReleasePPCAncast();
+  else
+    ReleasePPC();
+
   SConfig::OnNewTitleLoad();
   INFO_LOG_FMT(IOS, "Bootstrapping done.");
 }

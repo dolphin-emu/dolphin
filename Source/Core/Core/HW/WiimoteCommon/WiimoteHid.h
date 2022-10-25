@@ -7,6 +7,11 @@
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
+namespace WiimoteEmu
+{
+struct DesiredWiimoteState;
+}
+
 namespace WiimoteCommon
 {
 // Source: HID_010_SPC_PFL/1.0 (official HID specification)
@@ -30,8 +35,12 @@ public:
   virtual void EventLinked() = 0;
   virtual void EventUnlinked() = 0;
 
+  virtual u8 GetWiimoteDeviceIndex() const = 0;
+  virtual void SetWiimoteDeviceIndex(u8 index) = 0;
+
   // Called every ~200hz after HID channels are established.
-  virtual void Update() = 0;
+  virtual void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state) = 0;
+  virtual void Update(const WiimoteEmu::DesiredWiimoteState& target_state) = 0;
 
   void SetInterruptCallback(InterruptCallbackType callback) { m_callback = std::move(callback); }
 
@@ -39,8 +48,10 @@ public:
   // Does not include HID-type header.
   virtual void InterruptDataOutput(const u8* data, u32 size) = 0;
 
-  // Used to connect a disconnected wii remote on button press.
-  virtual bool IsButtonPressed() = 0;
+  // Get a snapshot of the current state of the Wiimote's buttons.
+  // Note that only the button bits of the return value are meaningful, the rest should be ignored.
+  // This is used to query a disconnected Wiimote whether it wants to reconnect.
+  virtual ButtonData GetCurrentlyPressedButtons() = 0;
 
 protected:
   void InterruptDataInputCallback(const u8* data, u32 size)

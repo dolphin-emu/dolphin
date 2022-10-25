@@ -55,6 +55,8 @@ void VideoConfig::Refresh()
 
   bVSync = Config::Get(Config::GFX_VSYNC);
   iAdapter = Config::Get(Config::GFX_ADAPTER);
+  iManuallyUploadBuffers = Config::Get(Config::GFX_MTL_MANUALLY_UPLOAD_BUFFERS);
+  bUsePresentDrawable = Config::Get(Config::GFX_MTL_USE_PRESENT_DRAWABLE);
 
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
   aspect_mode = Config::Get(Config::GFX_ASPECT_RATIO);
@@ -87,6 +89,7 @@ void VideoConfig::Refresh()
   iBitrateKbps = Config::Get(Config::GFX_BITRATE_KBPS);
   bInternalResolutionFrameDumps = Config::Get(Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
   bEnableGPUTextureDecoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
+  bPreferVSForLinePointExpansion = Config::Get(Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION);
   bEnablePixelLighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
   bFastDepthCalc = Config::Get(Config::GFX_FAST_DEPTH_CALC);
   iMultisamples = Config::Get(Config::GFX_MSAA);
@@ -105,12 +108,6 @@ void VideoConfig::Refresh()
   iShaderCompilationMode = Config::Get(Config::GFX_SHADER_COMPILATION_MODE);
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
-
-  bDumpObjects = Config::Get(Config::GFX_SW_DUMP_OBJECTS);
-  bDumpTevStages = Config::Get(Config::GFX_SW_DUMP_TEV_STAGES);
-  bDumpTevTextureFetches = Config::Get(Config::GFX_SW_DUMP_TEV_TEX_FETCHES);
-  drawStart = Config::Get(Config::GFX_SW_DRAW_START);
-  drawEnd = Config::Get(Config::GFX_SW_DRAW_END);
 
   bForceFiltering = Config::Get(Config::GFX_ENHANCE_FORCE_FILTERING);
   iMaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);

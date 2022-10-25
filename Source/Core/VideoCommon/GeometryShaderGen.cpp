@@ -97,10 +97,8 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
   else
     out.Write("cbuffer GSBlock {{\n");
 
-  out.Write("\tfloat4 " I_STEREOPARAMS ";\n"
-            "\tfloat4 " I_LINEPTPARAMS ";\n"
-            "\tint4 " I_TEXOFFSET ";\n"
-            "}};\n");
+  out.Write("{}", s_geometry_shader_uniforms);
+  out.Write("}};\n");
 
   out.Write("struct VS_OUTPUT {{\n");
   GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "",
@@ -171,22 +169,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
                 "\tVS_OUTPUT end = o[1];\n");
     }
 
-    // GameCube/Wii's line drawing algorithm is a little quirky. It does not
-    // use the correct line caps. Instead, the line caps are vertical or
-    // horizontal depending the slope of the line.
-    out.Write("\tfloat2 offset;\n"
-              "\tfloat2 to = abs(end.pos.xy / end.pos.w - start.pos.xy / start.pos.w);\n"
-              // FIXME: What does real hardware do when line is at a 45-degree angle?
-              // FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
-              "\tif (" I_LINEPTPARAMS ".y * to.y > " I_LINEPTPARAMS ".x * to.x) {{\n"
-              // Line is more tall. Extend geometry left and right.
-              // Lerp LineWidth/2 from [0..VpWidth] to [-1..1]
-              "\t\toffset = float2(" I_LINEPTPARAMS ".z / " I_LINEPTPARAMS ".x, 0);\n"
-              "\t}} else {{\n"
-              // Line is more wide. Extend geometry up and down.
-              // Lerp LineWidth/2 from [0..VpHeight] to [1..-1]
-              "\t\toffset = float2(0, -" I_LINEPTPARAMS ".z / " I_LINEPTPARAMS ".y);\n"
-              "\t}}\n");
+    GenerateLineOffset(out, "\t", "\t\t", "end.pos", "start.pos", "");
   }
   else if (primitive_type == PrimitiveType::Points)
   {

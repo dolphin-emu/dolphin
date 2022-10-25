@@ -34,7 +34,6 @@ public:
     Uniform,
     Vertex,
     Index,
-    TextureData,
     Texels,
     Last = Texels
   };
@@ -75,6 +74,14 @@ public:
     return m_current_draw != 1 + m_last_finished_draw.load(std::memory_order_acquire);
   }
   void ReloadSamplers();
+  void NotifyOfCPUGPUSync()
+  {
+    if (!g_features.manual_buffer_upload || !m_manual_buffer_upload)
+      return;
+    if (m_upload_cmdbuf || m_current_render_cmdbuf)
+      return;
+    SetManualBufferUpload(false);
+  }
 
   void SetPipeline(const Pipeline* pipe);
   void SetPipeline(const ComputePipeline* pipe);
@@ -83,7 +90,7 @@ public:
   void SetTexture(u32 idx, id<MTLTexture> texture);
   void SetSampler(u32 idx, const SamplerState& sampler);
   void SetComputeTexture(const Texture* texture);
-  void InvalidateUniforms(bool vertex, bool fragment);
+  void InvalidateUniforms(bool vertex, bool geometry, bool fragment);
   void SetUtilityUniform(const void* buffer, size_t size);
   void SetTexelBuffer(id<MTLBuffer> buffer, u32 offset0, u32 offset1);
   void SetVerticesAndIndices(id<MTLBuffer> vertices, id<MTLBuffer> indices);
@@ -106,6 +113,7 @@ public:
   {
     return (amt + static_cast<size_t>(align)) & ~static_cast<size_t>(align);
   }
+  Map AllocateForTextureUpload(size_t amt);
   Map Allocate(UploadBuffer buffer_idx, size_t amt, AlignMask align)
   {
     Preallocate(buffer_idx, amt);
@@ -119,6 +127,7 @@ public:
                   static_cast<size_t>(align)) == 0);
     return CommitPreallocation(buffer_idx, Align(amt, align));
   }
+  id<MTLBlitCommandEncoder> GetUploadEncoder();
   id<MTLBlitCommandEncoder> GetTextureUploadEncoder();
   id<MTLCommandBuffer> GetRenderCmdBuf();
 
@@ -142,11 +151,20 @@ private:
     void Reset(size_t new_size);
   };
 
-  struct Buffer
+  struct CPUBuffer
   {
     UsageTracker usage;
     MRCOwned<id<MTLBuffer>> mtlbuffer;
     void* buffer = nullptr;
+  };
+
+  struct BufferPair
+  {
+    UsageTracker usage;
+    MRCOwned<id<MTLBuffer>> cpubuffer;
+    MRCOwned<id<MTLBuffer>> gpubuffer;
+    void* buffer = nullptr;
+    size_t last_upload = 0;
   };
 
   struct Backref;
@@ -154,6 +172,7 @@ private:
 
   std::shared_ptr<Backref> m_backref;
   std::vector<std::shared_ptr<PerfQueryTracker>> m_perf_query_tracker_cache;
+  MRCOwned<id<MTLFence>> m_fence;
   MRCOwned<id<MTLCommandBuffer>> m_upload_cmdbuf;
   MRCOwned<id<MTLBlitCommandEncoder>> m_upload_encoder;
   MRCOwned<id<MTLCommandBuffer>> m_texture_upload_cmdbuf;
@@ -165,7 +184,8 @@ private:
   MRCOwned<MTLRenderPassDescriptor*> m_render_pass_desc[3];
   MRCOwned<MTLRenderPassDescriptor*> m_resolve_pass_desc;
   Framebuffer* m_current_framebuffer;
-  Buffer m_upload_buffers[static_cast<int>(UploadBuffer::Last) + 1];
+  CPUBuffer m_texture_upload_buffer;
+  BufferPair m_upload_buffers[static_cast<int>(UploadBuffer::Last) + 1];
   u64 m_current_draw = 1;
   std::atomic<u64> m_last_finished_draw{0};
 
@@ -180,6 +200,7 @@ private:
     {
       // clang-format off
       bool has_gx_vs_uniform      : 1;
+      bool has_gx_gs_uniform      : 1;
       bool has_gx_ps_uniform      : 1;
       bool has_utility_vs_uniform : 1;
       bool has_utility_ps_uniform : 1;
@@ -249,9 +270,12 @@ private:
   } m_state;
 
   u32 m_perf_query_tracker_counter = 0;
+  bool m_manual_buffer_upload = false;
 
+  void SetManualBufferUpload(bool enable);
   std::shared_ptr<PerfQueryTracker> NewPerfQueryTracker();
   void SetSamplerForce(u32 idx, const SamplerState& sampler);
+  void Sync(BufferPair& buffer);
   Map CommitPreallocation(UploadBuffer buffer_idx, size_t actual_amt);
   void CheckViewport();
   void CheckScissor();

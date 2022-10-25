@@ -83,7 +83,8 @@ protected:
     Gen::FixupBranch exceptionHandler;
 
     bool assumeNoPairedQuantize;
-    std::map<u8, u32> constantGqr;
+    BitSet8 constantGqrValid;
+    std::array<u32, 8> constantGqr;
     bool firstFPInstructionFound;
     bool isLastInstruction;
     int skipInstructions;
@@ -134,6 +135,7 @@ protected:
   bool m_accurate_nans = false;
   bool m_fastmem_enabled = false;
   bool m_mmu_enabled = false;
+  bool m_pause_on_panic_enabled = false;
 
   void RefreshConfig();
 

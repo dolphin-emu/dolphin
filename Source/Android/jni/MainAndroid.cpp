@@ -302,13 +302,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetMotionSen
   ciface::Android::SetMotionSensorsEnabled(accelerometer_enabled, gyroscope_enabled);
 }
 
-JNIEXPORT double JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetInputRadiusAtAngle(
-    JNIEnv*, jclass, int emu_pad_id, int stick, double angle)
-{
-  const auto casted_stick = static_cast<ButtonManager::ButtonType>(stick);
-  return ButtonManager::GetInputRadiusAtAngle(emu_pad_id, casted_stick, angle);
-}
-
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,
                                                                                         jclass)
 {

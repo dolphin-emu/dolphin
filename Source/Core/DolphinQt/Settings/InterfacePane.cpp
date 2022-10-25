@@ -213,8 +213,9 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_disable_screensaver, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_focused_hotkeys, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
-  connect(m_combobox_theme, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          [=](int index) { Settings::Instance().SetThemeName(m_combobox_theme->itemText(index)); });
+  connect(
+      m_combobox_theme, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      [this](int index) { Settings::Instance().SetThemeName(m_combobox_theme->itemText(index)); });
   connect(m_combobox_userstyle, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
   connect(m_combobox_language, qOverload<int>(&QComboBox::currentIndexChanged), this,
@@ -307,8 +308,6 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_OSD_MESSAGES, m_checkbox_enable_osd->isChecked());
   Config::SetBase(Config::MAIN_SHOW_ACTIVE_TITLE, m_checkbox_show_active_title->isChecked());
   Config::SetBase(Config::MAIN_PAUSE_ON_FOCUS_LOST, m_checkbox_pause_on_focus_lost->isChecked());
-
-  Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
 
   auto new_language = m_combobox_language->currentData().toString().toStdString();
   if (new_language != Config::Get(Config::MAIN_INTERFACE_LANGUAGE))

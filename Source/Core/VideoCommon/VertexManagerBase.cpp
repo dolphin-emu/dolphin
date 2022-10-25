@@ -21,6 +21,7 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -139,12 +140,12 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
 
   // Check for size in buffer, if the buffer gets full, call Flush()
   if (!m_is_flushed &&
-      (count > m_index_generator.GetRemainingIndices() || count > GetRemainingIndices(primitive) ||
-       needed_vertex_bytes > GetRemainingSize()))
+      (count > m_index_generator.GetRemainingIndices(primitive) ||
+       count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize()))
   {
     Flush();
 
-    if (count > m_index_generator.GetRemainingIndices())
+    if (count > m_index_generator.GetRemainingIndices(primitive))
     {
       ERROR_LOG_FMT(VIDEO, "Too little remaining index values. Use 32-bit or reset them on flush.");
     }
@@ -192,7 +193,55 @@ u32 VertexManagerBase::GetRemainingIndices(OpcodeDecoder::Primitive primitive) c
 {
   const u32 index_len = MAXIBUFFERSIZE - m_index_generator.GetIndexLen();
 
-  if (g_Config.backend_info.bSupportsPrimitiveRestart)
+  if (primitive >= Primitive::GX_DRAW_LINES)
+  {
+    if (g_Config.UseVSForLinePointExpand())
+    {
+      if (g_Config.backend_info.bSupportsPrimitiveRestart)
+      {
+        switch (primitive)
+        {
+        case Primitive::GX_DRAW_LINES:
+          return index_len / 5 * 2;
+        case Primitive::GX_DRAW_LINE_STRIP:
+          return index_len / 5 + 1;
+        case Primitive::GX_DRAW_POINTS:
+          return index_len / 5;
+        default:
+          return 0;
+        }
+      }
+      else
+      {
+        switch (primitive)
+        {
+        case Primitive::GX_DRAW_LINES:
+          return index_len / 6 * 2;
+        case Primitive::GX_DRAW_LINE_STRIP:
+          return index_len / 6 + 1;
+        case Primitive::GX_DRAW_POINTS:
+          return index_len / 6;
+        default:
+          return 0;
+        }
+      }
+    }
+    else
+    {
+      switch (primitive)
+      {
+      case Primitive::GX_DRAW_LINES:
+        return index_len;
+      case Primitive::GX_DRAW_LINE_STRIP:
+        return index_len / 2 + 1;
+      case Primitive::GX_DRAW_POINTS:
+        return index_len;
+      default:
+        return 0;
+      }
+    }
+  }
+  else if (g_Config.backend_info.bSupportsPrimitiveRestart)
   {
     switch (primitive)
     {
@@ -205,15 +254,6 @@ u32 VertexManagerBase::GetRemainingIndices(OpcodeDecoder::Primitive primitive) c
       return index_len / 1 - 1;
     case Primitive::GX_DRAW_TRIANGLE_FAN:
       return index_len / 6 * 4 + 1;
-
-    case Primitive::GX_DRAW_LINES:
-      return index_len;
-    case Primitive::GX_DRAW_LINE_STRIP:
-      return index_len / 2 + 1;
-
-    case Primitive::GX_DRAW_POINTS:
-      return index_len;
-
     default:
       return 0;
     }
@@ -231,15 +271,6 @@ u32 VertexManagerBase::GetRemainingIndices(OpcodeDecoder::Primitive primitive) c
       return index_len / 3 + 2;
     case Primitive::GX_DRAW_TRIANGLE_FAN:
       return index_len / 3 + 2;
-
-    case Primitive::GX_DRAW_LINES:
-      return index_len;
-    case Primitive::GX_DRAW_LINE_STRIP:
-      return index_len / 2 + 1;
-
-    case Primitive::GX_DRAW_POINTS:
-      return index_len;
-
     default:
       return 0;
     }
@@ -492,10 +523,11 @@ void VertexManagerBase::Flush()
     for (const auto& texture_name : texture_names)
     {
       bool skip = false;
+      GraphicsModActionData::DrawStarted draw_started{&skip};
       for (const auto action :
            g_renderer->GetGraphicsModManager().GetDrawStartedActions(texture_name))
       {
-        action->OnDrawStarted(&skip);
+        action->OnDrawStarted(&draw_started);
       }
       if (skip == true)
         return;
@@ -509,13 +541,24 @@ void VertexManagerBase::Flush()
                  VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(), num_indices,
                  &base_vertex, &base_index);
 
+    if (g_ActiveConfig.backend_info.api_type != APIType::D3D &&
+        g_ActiveConfig.UseVSForLinePointExpand() &&
+        (m_current_primitive_type == PrimitiveType::Points ||
+         m_current_primitive_type == PrimitiveType::Lines))
+    {
+      // VS point/line expansion puts the vertex id at gl_VertexID << 2
+      // That means the base vertex has to be adjusted to match
+      // (The shader adds this after shifting right on D3D, so no need to do this)
+      base_vertex <<= 2;
+    }
+
     // Texture loading can cause palettes to be applied (-> uniforms -> draws).
     // Palette application does not use vertices, only a full-screen quad, so this is okay.
     // Same with GPU texture decoding, which uses compute shaders.
     g_texture_cache->BindTextures(used_textures);
 
     // Now we can upload uniforms, as nothing else will override them.
-    GeometryShaderManager::SetConstants();
+    GeometryShaderManager::SetConstants(m_current_primitive_type);
     PixelShaderManager::SetConstants();
     UploadUniforms();
 
@@ -555,13 +598,11 @@ void VertexManagerBase::DoState(PointerWrap& p)
   {
     // Flush old vertex data before loading state.
     Flush();
-
-    // Clear all caches that touch RAM
-    // (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
-    VertexLoaderManager::MarkAllDirty();
   }
 
   p.Do(m_zslope);
+  p.Do(VertexLoaderManager::tangent_cache);
+  p.Do(VertexLoaderManager::binormal_cache);
 }
 
 void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
@@ -783,6 +824,12 @@ void VertexManagerBase::UpdatePipelineObject()
   }
   break;
   }
+}
+
+void VertexManagerBase::OnConfigChange()
+{
+  // Reload index generator function tables in case VS expand config changed
+  m_index_generator.Init();
 }
 
 void VertexManagerBase::OnDraw()

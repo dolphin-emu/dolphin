@@ -18,6 +18,7 @@
 #include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/XFMemory.h"
@@ -38,7 +39,12 @@ void VideoCommon_DoState(PointerWrap& p)
   p.DoMarker("BP Memory");
 
   // CP Memory
-  DoCPState(p);
+  // We don't save g_preprocess_cp_state separately because the GPU should be
+  // synced around state save/load.
+  p.Do(g_main_cp_state);
+  p.DoMarker("CP Memory");
+  if (p.IsReadMode())
+    CopyPreprocessCPStateFromMain();
 
   // XF Memory
   p.Do(xfmem);
@@ -90,5 +96,6 @@ void VideoCommon_DoState(PointerWrap& p)
   {
     // Inform backend of new state from registers.
     BPReload();
+    VertexLoaderManager::MarkAllDirty();
   }
 }

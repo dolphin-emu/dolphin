@@ -315,13 +315,16 @@
     <ClInclude Include="Core\HW\WiimoteCommon\WiimoteReport.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Camera.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Dynamics.h" />
+    <ClInclude Include="Core\HW\WiimoteEmu\DesiredWiimoteState.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Encryption.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Classic.h" />
+    <ClInclude Include="Core\HW\WiimoteEmu\Extension\DesiredExtensionState.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\DrawsomeTablet.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Drums.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Extension.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Guitar.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Nunchuk.h" />
+    <ClInclude Include="Core\HW\WiimoteEmu\Extension\Shinkansen.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\TaTaCon.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\Turntable.h" />
     <ClInclude Include="Core\HW\WiimoteEmu\Extension\UDrawTablet.h" />
@@ -351,6 +354,9 @@
     <ClInclude Include="Core\IOS\Network\KD\NetKDRequest.h" />
     <ClInclude Include="Core\IOS\Network\KD\NetKDTime.h" />
     <ClInclude Include="Core\IOS\Network\KD\NWC24Config.h" />
+    <ClInclude Include="Core\IOS\Network\KD\NWC24DL.h" />
+    <ClInclude Include="Core\IOS\Network\KD\VFF\VFFUtil.h" />
+    <ClInclude Include="Core\IOS\Network\KD\WC24File.h" />
     <ClInclude Include="Core\IOS\Network\MACUtils.h" />
     <ClInclude Include="Core\IOS\Network\NCD\Manage.h" />
     <ClInclude Include="Core\IOS\Network\NCD\WiiNetConfig.h" />
@@ -575,7 +581,6 @@
     <ClInclude Include="VideoBackends\OGL\VideoBackend.h" />
     <ClInclude Include="VideoBackends\Software\Clipper.h" />
     <ClInclude Include="VideoBackends\Software\CopyRegion.h" />
-    <ClInclude Include="VideoBackends\Software\DebugUtil.h" />
     <ClInclude Include="VideoBackends\Software\EfbCopy.h" />
     <ClInclude Include="VideoBackends\Software\EfbInterface.h" />
     <ClInclude Include="VideoBackends\Software\NativeVertexFormat.h" />
@@ -648,6 +653,7 @@
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\SkipAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\FBInfo.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModAction.h" />
+    <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionData.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionFactory.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModGroup.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModManager.h" />
@@ -931,6 +937,7 @@
     <ClCompile Include="Core\HW\Wiimote.cpp" />
     <ClCompile Include="Core\HW\WiimoteCommon\DataReport.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Camera.cpp" />
+    <ClCompile Include="Core\HW\WiimoteEmu\DesiredWiimoteState.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Dynamics.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\EmuSubroutines.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Encryption.cpp" />
@@ -940,6 +947,7 @@
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\Extension.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\Guitar.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\Nunchuk.cpp" />
+    <ClCompile Include="Core\HW\WiimoteEmu\Extension\Shinkansen.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\TaTaCon.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\Turntable.cpp" />
     <ClCompile Include="Core\HW\WiimoteEmu\Extension\UDrawTablet.cpp" />
@@ -975,6 +983,8 @@
     <ClCompile Include="Core\IOS\Network\KD\NetKDRequest.cpp" />
     <ClCompile Include="Core\IOS\Network\KD\NetKDTime.cpp" />
     <ClCompile Include="Core\IOS\Network\KD\NWC24Config.cpp" />
+    <ClCompile Include="Core\IOS\Network\KD\NWC24DL.cpp" />
+    <ClCompile Include="Core\IOS\Network\KD\VFF\VFFUtil.cpp" />
     <ClCompile Include="Core\IOS\Network\MACUtils.cpp" />
     <ClCompile Include="Core\IOS\Network\NCD\Manage.cpp" />
     <ClCompile Include="Core\IOS\Network\NCD\WiiNetConfig.cpp" />
@@ -1183,7 +1193,6 @@
     <ClCompile Include="VideoBackends\OGL\ProgramShaderCache.cpp" />
     <ClCompile Include="VideoBackends\OGL\SamplerCache.cpp" />
     <ClCompile Include="VideoBackends\Software\Clipper.cpp" />
-    <ClCompile Include="VideoBackends\Software\DebugUtil.cpp" />
     <ClCompile Include="VideoBackends\Software\EfbCopy.cpp" />
     <ClCompile Include="VideoBackends\Software\EfbInterface.cpp" />
     <ClCompile Include="VideoBackends\Software\Rasterizer.cpp" />

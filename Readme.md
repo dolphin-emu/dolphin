@@ -1,6 +1,6 @@
 # Dolphin - A GameCube and Wii Emulator
 
-[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Buildbot](https://dolphin.ci) | [Forums](https://forums.dolphin-emu.org) | [Wiki](https://wiki.dolphin-emu.org) | [Github Wiki](https://github.com/dolphin-emu/dolphin/wiki) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu)
+[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Buildbot](https://dolphin.ci/) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [GitHub Wiki](https://github.com/dolphin-emu/dolphin/wiki) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://explore.transifex.com/delroth/dolphin-emu/)
 
 Dolphin is an emulator for running GameCube and Wii games on Windows,
 Linux, macOS, and recent Android devices. It's licensed under the terms
@@ -148,7 +148,8 @@ Additionally, you'll want to remove the global user directory if you don't plan 
 
 ## Command Line Usage
 
-```Usage: Dolphin.exe [options]... [FILE]...
+```
+Usage: Dolphin.exe [options]... [FILE]...
 
 Options:
   --version             show program's version number and exit
@@ -192,7 +193,8 @@ usage: dolphin-tool COMMAND -h
 commands supported: [convert, verify, header]
 ```
 
-```Usage: convert [options]... [FILE]...
+```
+Usage: convert [options]... [FILE]...
 
 Options:
   -h, --help            show this help message and exit

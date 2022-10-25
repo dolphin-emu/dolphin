@@ -45,12 +45,21 @@ enum class NormalCount : u32
 {
   None = 0,
   Normal = 1,
-  NormalTangentBinormal = 2
+  NormalTangentBinormal = 2,
+  // Hardware testing indicates that this beahves the same as NormalTangentBinormal.
+  // Call of Duty: Black Ops uses this in some cases; see https://bugs.dolphin-emu.org/issues/13070
+  Invalid = 3,
 };
 template <>
-struct fmt::formatter<NormalCount> : EnumFormatter<NormalCount::NormalTangentBinormal>
+struct fmt::formatter<NormalCount> : EnumFormatter<NormalCount::Invalid>
 {
-  constexpr formatter() : EnumFormatter({"None", "Normal only", "Normal, tangent, and binormal"}) {}
+  static constexpr array_type names = {
+      "None",
+      "Normal only",
+      "Normal, tangent, and binormal",
+      "Invalid (Normal, tangent, and binormal)",
+  };
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 // Texture generation type

@@ -74,6 +74,8 @@ void Metal::Util::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsSettingObjectNames = true;
   // Metal requires multisample resolve to be done on a render pass
   config->backend_info.bSupportsPartialMultisampleResolve = false;
+  config->backend_info.bSupportsDynamicVertexLoader = true;
+  config->backend_info.bSupportsVSLinePointExpand = true;
 }
 
 void Metal::Util::PopulateBackendInfoAdapters(VideoConfig* config,
@@ -215,6 +217,27 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
       config->backend_info.AAModes.push_back(i);
   }
 
+  switch (config->iManuallyUploadBuffers)
+  {
+  case TriState::Off:
+    g_features.manual_buffer_upload = false;
+    break;
+  case TriState::On:
+    g_features.manual_buffer_upload = true;
+    break;
+  case TriState::Auto:
+#if TARGET_OS_OSX
+    g_features.manual_buffer_upload = false;
+    if (@available(macOS 10.15, *))
+      if (![device hasUnifiedMemory])
+        g_features.manual_buffer_upload = true;
+#else
+    // All iOS devices have unified memory
+    g_features.manual_buffer_upload = false;
+#endif
+    break;
+  }
+
   g_features.subgroup_ops = false;
   if (@available(macOS 10.15, iOS 13, *))
   {
@@ -223,7 +246,7 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
         [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple6];
     config->backend_info.bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
   }
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_INVOCATION_ID))
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_OPS))
     g_features.subgroup_ops = false;
 #if TARGET_OS_OSX
   if (@available(macOS 11, *))
@@ -376,6 +399,12 @@ static const std::string_view MSL_HEADER =
     // These are usually when the compiler doesn't think a switch is exhaustive
     "#pragma clang diagnostic ignored \"-Wreturn-type\"\n";
 
+static constexpr std::pair<std::string_view, std::string_view> MSL_FIXUPS[] = {
+    // Force-unroll the lighting loop in ubershaders, which greatly reduces register pressure on AMD
+    {"for (uint chan = 0u; chan < 2u; chan++)",
+     "_Pragma(\"unroll\") for (uint chan = 0u; chan < 2u; chan++)"},
+};
+
 static constexpr spirv_cross::MSLResourceBinding
 MakeResourceBinding(spv::ExecutionModel stage, u32 set, u32 binding,  //
                     u32 msl_buffer, u32 msl_texture, u32 msl_sampler)
@@ -426,6 +455,8 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
   static const spirv_cross::MSLResourceBinding resource_bindings[] = {
       MakeResourceBinding(spv::ExecutionModelVertex,    0, 0, 1, 0, 0), // vs/ubo
       MakeResourceBinding(spv::ExecutionModelVertex,    0, 1, 1, 0, 0), // vs/ubo
+      MakeResourceBinding(spv::ExecutionModelVertex,    0, 2, 2, 0, 0), // vs/ubo
+      MakeResourceBinding(spv::ExecutionModelVertex,    2, 1, 0, 0, 0), // vs/ssbo
       MakeResourceBinding(spv::ExecutionModelFragment,  0, 0, 0, 0, 0), // vs/ubo
       MakeResourceBinding(spv::ExecutionModelFragment,  0, 1, 1, 0, 0), // vs/ubo
       MakeResourceBinding(spv::ExecutionModelFragment,  1, 0, 0, 0, 0), // ps/samp0
@@ -470,7 +501,27 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
   for (auto& binding : resource_bindings)
     compiler.add_msl_resource_binding(binding);
 
-  std::string msl(MSL_HEADER);
-  msl += compiler.compile();
-  return msl;
+  std::string output(MSL_HEADER);
+  std::string compiled = compiler.compile();
+  std::string_view remaining = compiled;
+  while (!remaining.empty())
+  {
+    // Apply fixups
+    std::string_view piece = remaining;
+    std::string_view fixup_piece = {};
+    size_t next = piece.size();
+    for (const auto& fixup : MSL_FIXUPS)
+    {
+      size_t found = piece.find(fixup.first);
+      if (found == std::string_view::npos)
+        continue;
+      piece = piece.substr(0, found);
+      fixup_piece = fixup.second;
+      next = found + fixup.first.size();
+    }
+    output += piece;
+    output += fixup_piece;
+    remaining = remaining.substr(next);
+  }
+  return output;
 }

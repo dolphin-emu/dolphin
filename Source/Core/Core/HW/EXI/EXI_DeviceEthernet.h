@@ -449,6 +449,7 @@ private:
     u32 m_router_ip = 0;
     Common::MACAddress m_router_mac{};
     std::map<u32, Common::MACAddress> m_arp_table;
+    sf::TcpListener m_upnp_httpd;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     std::array<StackRef, 10> network_ref{};  // max 10 at same time, i think most gc game had a
@@ -468,6 +469,7 @@ private:
     void HandleTCPFrame(const Common::TCPPacket& packet);
     void InitUDPPort(u16 port);
     void HandleUDPFrame(const Common::UDPPacket& packet);
+    void HandleUPnPClient();
     const Common::MACAddress& ResolveAddress(u32 inet_ip);
   };
 

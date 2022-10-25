@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import org.dolphinemu.dolphinemu.R;
 
 import java.util.function.Supplier;
@@ -27,12 +29,14 @@ public class ThreadUtil
           @Nullable DialogInterface.OnDismissListener onResultDismiss)
   {
     Resources resources = activity.getResources();
-    AlertDialog progressDialog = new AlertDialog.Builder(activity)
+    AlertDialog progressDialog = new MaterialAlertDialogBuilder(activity)
+            .setTitle(progressTitle)
+            .setCancelable(false)
             .create();
-    progressDialog.setTitle(progressTitle);
+
     if (progressMessage != 0)
       progressDialog.setMessage(resources.getString(progressMessage));
-    progressDialog.setCancelable(false);
+
     progressDialog.show();
 
     new Thread(() ->
@@ -44,12 +48,11 @@ public class ThreadUtil
 
         if (result != null)
         {
-          AlertDialog.Builder builder =
-                  new AlertDialog.Builder(activity);
-          builder.setMessage(result);
-          builder.setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
-          builder.setOnDismissListener(onResultDismiss);
-          builder.show();
+          new MaterialAlertDialogBuilder(activity)
+                  .setMessage(result)
+                  .setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss())
+                  .setOnDismissListener(onResultDismiss)
+                  .show();
         }
       });
     }, resources.getString(progressTitle)).start();

@@ -6,7 +6,7 @@ import android.content.Context;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
 
-import androidx.core.content.ContextCompat;
+import com.google.android.material.color.MaterialColors;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
@@ -27,7 +27,8 @@ public final class HeaderHyperLinkViewHolder extends HeaderViewHolder
   public void bind(SettingsItem item)
   {
     super.bind(item);
+
     mHeaderName.setMovementMethod(LinkMovementMethod.getInstance());
-    mHeaderName.setLinkTextColor(ContextCompat.getColor(mContext, R.color.dolphin_blue_secondary));
+    mHeaderName.setLinkTextColor(MaterialColors.getColor(itemView, R.attr.colorTertiary));
   }
 }

@@ -61,7 +61,7 @@ public class GameFileCache
       String path = dolphinIni.getString(Settings.SECTION_INI_GENERAL,
               SettingsFile.KEY_ISO_PATH_BASE + i, "");
 
-      if (path.startsWith("content://") ? ContentHandler.exists(path) : new File(path).exists())
+      if (ContentHandler.isContentUri(path) ? ContentHandler.exists(path) : new File(path).exists())
       {
         pathSet.add(path);
       }
@@ -109,11 +109,11 @@ public class GameFileCache
 
   public static native String[] getAllGamePaths(String[] folderPaths, boolean recursiveScan);
 
-  public native int getSize();
+  public synchronized native int getSize();
 
-  public native GameFile[] getAllGames();
+  public synchronized native GameFile[] getAllGames();
 
-  public native GameFile addOrGet(String gamePath);
+  public synchronized native GameFile addOrGet(String gamePath);
 
   /**
    * Sets the list of games to cache.
@@ -123,7 +123,7 @@ public class GameFileCache
    *
    * @return true if the cache was modified
    */
-  public native boolean update(String[] gamePaths);
+  public synchronized native boolean update(String[] gamePaths);
 
   /**
    * For each game that already is in the cache, scans the folder that contains the game
@@ -131,9 +131,9 @@ public class GameFileCache
    *
    * @return true if the cache was modified
    */
-  public native boolean updateAdditionalMetadata();
+  public synchronized native boolean updateAdditionalMetadata();
 
-  public native boolean load();
+  public synchronized native boolean load();
 
-  public native boolean save();
+  public synchronized native boolean save();
 }

@@ -280,9 +280,6 @@ public final class NativeLibrary
   public static native void SetMotionSensorsEnabled(boolean accelerometerEnabled,
           boolean gyroscopeEnabled);
 
-  // Angle is in radians and should be non-negative
-  public static native double GetInputRadiusAtAngle(int emu_pad_id, int stick, double angle);
-
   /**
    * Gets the Dolphin version string.
    *
@@ -511,59 +508,54 @@ public final class NativeLibrary
     Log.error("[NativeLibrary] Alert: " + text);
     final EmulationActivity emulationActivity = sEmulationActivity.get();
     boolean result = false;
-    if (isWarning && emulationActivity != null && emulationActivity.isIgnoringWarnings())
+
+    // We can't use AlertMessages unless we have a non-null activity reference
+    // and are allowed to block. As a fallback, we can use toasts.
+    if (emulationActivity == null || nonBlocking)
     {
-      return true;
+      new Handler(Looper.getMainLooper()).post(
+              () -> Toast.makeText(DolphinApplication.getAppContext(), text, Toast.LENGTH_LONG)
+                      .show());
     }
     else
     {
-      // We can't use AlertMessages unless we have a non-null activity reference
-      // and are allowed to block. As a fallback, we can use toasts.
-      if (emulationActivity == null || nonBlocking)
+      sIsShowingAlertMessage = true;
+
+      emulationActivity.runOnUiThread(() ->
       {
-        new Handler(Looper.getMainLooper()).post(
-                () -> Toast.makeText(DolphinApplication.getAppContext(), text, Toast.LENGTH_LONG)
-                        .show());
+        FragmentManager fragmentManager = emulationActivity.getSupportFragmentManager();
+        if (fragmentManager.isStateSaved())
+        {
+          // The activity is being destroyed, so we can't use it to display an AlertMessage.
+          // Fall back to a toast.
+          Toast.makeText(emulationActivity, text, Toast.LENGTH_LONG).show();
+          NotifyAlertMessageLock();
+        }
+        else
+        {
+          AlertMessage.newInstance(caption, text, yesNo, isWarning)
+                  .show(fragmentManager, "AlertMessage");
+        }
+      });
+
+      // Wait for the lock to notify that it is complete.
+      synchronized (sAlertMessageLock)
+      {
+        try
+        {
+          sAlertMessageLock.wait();
+        }
+        catch (Exception ignored)
+        {
+        }
       }
-      else
+
+      if (yesNo)
       {
-        sIsShowingAlertMessage = true;
-
-        emulationActivity.runOnUiThread(() ->
-        {
-          FragmentManager fragmentManager = emulationActivity.getSupportFragmentManager();
-          if (fragmentManager.isStateSaved())
-          {
-            // The activity is being destroyed, so we can't use it to display an AlertMessage.
-            // Fall back to a toast.
-            Toast.makeText(emulationActivity, text, Toast.LENGTH_LONG).show();
-            NotifyAlertMessageLock();
-          }
-          else
-          {
-            AlertMessage.newInstance(caption, text, yesNo, isWarning)
-                    .show(fragmentManager, "AlertMessage");
-          }
-        });
-
-        // Wait for the lock to notify that it is complete.
-        synchronized (sAlertMessageLock)
-        {
-          try
-          {
-            sAlertMessageLock.wait();
-          }
-          catch (Exception ignored)
-          {
-          }
-        }
-
-        if (yesNo)
-        {
-          result = AlertMessage.getAlertResult();
-        }
+        result = AlertMessage.getAlertResult();
       }
     }
+
     sIsShowingAlertMessage = false;
     return result;
   }

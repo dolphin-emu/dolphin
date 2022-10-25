@@ -79,9 +79,10 @@ OpArg VertexLoaderX64::GetVertexAddr(CPArray array, VertexComponentFormat attrib
   }
 }
 
-int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, ComponentFormat format,
-                                int count_in, int count_out, bool dequantize, u8 scaling_exponent,
-                                AttributeFormat* native_format)
+void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
+                                 ComponentFormat format, int count_in, int count_out,
+                                 bool dequantize, u8 scaling_exponent,
+                                 AttributeFormat* native_format)
 {
   static const __m128i shuffle_lut[5][3] = {
       {_mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFF00L),   // 1x u8
@@ -276,8 +277,6 @@ int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, Com
   }
 
   write_zfreeze();
-
-  return load_bytes;
 }
 
 void VertexLoaderX64::ReadColor(OpArg data, VertexComponentFormat attribute, ColorFormat format)
@@ -459,20 +458,45 @@ void VertexLoaderX64::GenerateVertexLoader()
 
   if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
   {
-    static const u8 map[8] = {7, 6, 15, 14};
-    const u8 scaling_exponent = map[u32(m_VtxAttr.g0.NormalFormat.Value())];
-    const int limit = m_VtxAttr.g0.NormalElements == NormalComponentCount::NTB ? 3 : 1;
+    static constexpr Common::EnumMap<u8, static_cast<ComponentFormat>(7)> SCALE_MAP = {7, 6, 15, 14,
+                                                                                       0, 0, 0,  0};
+    const u8 scaling_exponent = SCALE_MAP[m_VtxAttr.g0.NormalFormat];
 
-    for (int i = 0; i < limit; i++)
+    // Normal
+    data = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal);
+    ReadVertex(data, m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3, true, scaling_exponent,
+               &m_native_vtx_decl.normals[0]);
+
+    if (m_VtxAttr.g0.NormalElements == NormalComponentCount::NTB)
     {
-      if (!i || m_VtxAttr.g0.NormalIndex3)
-      {
+      const bool index3 = IsIndexed(m_VtxDesc.low.Normal) && m_VtxAttr.g0.NormalIndex3;
+      const int elem_size = GetElementSize(m_VtxAttr.g0.NormalFormat);
+      const int load_bytes = elem_size * 3;
+
+      // Tangent
+      // If in Index3 mode, and indexed components are used, replace the index with a new index.
+      if (index3)
         data = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal);
-        int elem_size = GetElementSize(m_VtxAttr.g0.NormalFormat);
-        data.AddMemOffset(i * elem_size * 3);
-      }
-      data.AddMemOffset(ReadVertex(data, m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3,
-                                   true, scaling_exponent, &m_native_vtx_decl.normals[i]));
+      // The tangent comes after the normal; even in index3 mode, this offset is applied.
+      // Note that this is different from adding 1 to the index, as the stride for indices may be
+      // different from the size of the tangent itself.
+      data.AddMemOffset(load_bytes);
+
+      ReadVertex(data, m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3, true,
+                 scaling_exponent, &m_native_vtx_decl.normals[1]);
+
+      // Undo the offset above so that data points to the normal instead of the tangent.
+      // This way, we can add 2*elem_size below to always point to the binormal, even if we replace
+      // data with a new index (which would point to the normal).
+      data.AddMemOffset(-load_bytes);
+
+      // Binormal
+      if (index3)
+        data = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal);
+      data.AddMemOffset(load_bytes * 2);
+
+      ReadVertex(data, m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3, true,
+                 scaling_exponent, &m_native_vtx_decl.normals[2]);
     }
   }
 

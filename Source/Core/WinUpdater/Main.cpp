@@ -21,10 +21,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 {
   if (lstrlenW(pCmdLine) == 0)
   {
-    MessageBox(nullptr,
-               L"This updater is not meant to be launched directly. Configure Auto-Update in "
-               "Dolphin's settings instead.",
-               L"Error", MB_ICONERROR);
+    MessageBoxW(nullptr,
+                L"This updater is not meant to be launched directly. Configure Auto-Update in "
+                "Dolphin's settings instead.",
+                L"Error", MB_ICONERROR);
     return 1;
   }
 

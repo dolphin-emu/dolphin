@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include <fmt/format.h>
+
 #include <QApplication>
 #include <QClipboard>
 #include <QHeaderView>
@@ -656,7 +658,7 @@ void CodeViewWidget::OnCopyFunction()
   for (u32 addr = start; addr != end; addr += 4)
   {
     const std::string disasm = PowerPC::debug_interface.Disassemble(addr);
-    text += StringFromFormat("%08x: ", addr) + disasm + "\r\n";
+    fmt::format_to(std::back_inserter(text), "{:08x}: {}\r\n", addr, disasm);
   }
 
   QApplication::clipboard()->setText(QString::fromStdString(text));

@@ -15,12 +15,18 @@
 #include "Common/IniFile.h"
 #include "Common/MathUtil.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
 class ControllerInterface;
 
-const char* const named_directions[] = {_trans("Up"), _trans("Down"), _trans("Left"),
-                                        _trans("Right")};
+constexpr const char* DIRECTION_UP = _trans("Up");
+constexpr const char* DIRECTION_DOWN = _trans("Down");
+constexpr const char* DIRECTION_LEFT = _trans("Left");
+constexpr const char* DIRECTION_RIGHT = _trans("Right");
+
+constexpr const char* named_directions[] = {DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT,
+                                            DIRECTION_RIGHT};
 
 class ControlReference;
 
@@ -103,12 +109,14 @@ struct ThreePointCalibration
 template <typename T, size_t Bits>
 struct RawValue
 {
-  RawValue() = default;
-  explicit RawValue(const T& value_) : value{value_} {}
+  constexpr RawValue() = default;
+  constexpr explicit RawValue(const T& value_) : value{value_} {}
 
   static constexpr size_t BITS_OF_PRECISION = Bits;
 
   T value;
+
+  constexpr bool operator==(const RawValue& other) const = default;
 
   template <typename OtherT, size_t OtherBits>
   auto GetNormalizedValue(const TwoPointCalibration<OtherT, OtherBits>& calibration) const
@@ -182,6 +190,9 @@ public:
   void SetDefaultDevice(const std::string& device);
   void SetDefaultDevice(ciface::Core::DeviceQualifier devq);
 
+  void SetInputOverrideFunction(InputOverrideFunction override_func);
+  void ClearInputOverrideFunction();
+
   void UpdateReferences(const ControllerInterface& devi);
   void UpdateSingleControlReference(const ControllerInterface& devi, ControlReference* ref);
 
@@ -198,7 +209,7 @@ public:
 
   std::vector<std::unique_ptr<ControlGroup>> groups;
 
-  // Maps a float from -1.0..+1.0 to an integer of the provided values.
+  // Maps a float from -1.0..+1.0 to an integer in the provided range.
   template <typename T, typename F>
   static T MapFloat(F input_value, T zero_value, T neg_1_value = std::numeric_limits<T>::min(),
                     T pos_1_value = std::numeric_limits<T>::max())
@@ -206,9 +217,9 @@ public:
     static_assert(std::is_integral<T>(), "T is only sane for int types.");
     static_assert(std::is_floating_point<F>(), "F is only sane for float types.");
 
-    static_assert(std::numeric_limits<long>::min() <= std::numeric_limits<T>::min() &&
-                      std::numeric_limits<long>::max() >= std::numeric_limits<T>::max(),
-                  "long is not a superset of T. use of std::lround is not sane.");
+    static_assert(std::numeric_limits<long long>::min() <= std::numeric_limits<T>::min() &&
+                      std::numeric_limits<long long>::max() >= std::numeric_limits<T>::max(),
+                  "long long is not a superset of T. use of std::llround is not sane.");
 
     // Here we round when converting from float to int.
     // After applying our deadzone, resizing, and reshaping math
@@ -216,15 +227,32 @@ public:
     // Casting would round down but rounding will yield our "zero_value".
 
     if (input_value > 0)
-      return T(std::lround((pos_1_value - zero_value) * input_value + zero_value));
+      return T(std::llround((pos_1_value - zero_value) * input_value + zero_value));
     else
-      return T(std::lround((zero_value - neg_1_value) * input_value + zero_value));
+      return T(std::llround((zero_value - neg_1_value) * input_value + zero_value));
+  }
+
+  // The inverse of the function above.
+  // Maps an integer in the provided range to a float in the range -1.0..1.0.
+  template <typename F, typename T>
+  static F MapToFloat(T input_value, T zero_value, T neg_1_value = std::numeric_limits<T>::min(),
+                      T pos_1_value = std::numeric_limits<T>::max())
+  {
+    static_assert(std::is_integral<T>(), "T is only sane for int types.");
+    static_assert(std::is_floating_point<F>(), "F is only sane for float types.");
+
+    if (input_value >= zero_value)
+      return F(input_value - zero_value) / F(pos_1_value - zero_value);
+    else
+      return -F(zero_value - input_value) / F(zero_value - neg_1_value);
   }
 
 protected:
   // TODO: Wiimote attachments actually end up using their parent controller value for this,
   // so theirs won't be used (and thus shouldn't even exist).
   ciface::ExpressionParser::ControlEnvironment::VariableContainer m_expression_vars;
+
+  InputOverrideFunction m_input_override_function;
 
   void UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env);
 

@@ -8,6 +8,7 @@ public class NativeConfig
   public static final int LAYER_BASE = 1;
   public static final int LAYER_LOCAL_GAME = 2;
   public static final int LAYER_ACTIVE = 3;
+  public static final int LAYER_CURRENT = 4;
 
   public static native boolean isSettingSaveable(String file, String section, String key);
 

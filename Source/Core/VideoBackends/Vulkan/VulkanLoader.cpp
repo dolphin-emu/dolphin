@@ -1,6 +1,7 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#define VMA_IMPLEMENTATION
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 
 #include <atomic>
@@ -205,17 +206,10 @@ const char* VkResultToString(VkResult res)
 }
 
 void LogVulkanResult(Common::Log::LogLevel level, const char* func_name, VkResult res,
-                     const char* msg, ...)
+                     const char* msg)
 {
-  std::va_list ap;
-  va_start(ap, msg);
-  std::string real_msg = StringFromFormatV(msg, ap);
-  va_end(ap);
-
-  real_msg = fmt::format("({}) {} ({}: {})", func_name, real_msg, static_cast<int>(res),
-                         VkResultToString(res));
-
-  GENERIC_LOG_FMT(Common::Log::LogType::VIDEO, level, "{}", real_msg);
+  GENERIC_LOG_FMT(Common::Log::LogType::VIDEO, level, "({}) {} ({}: {})", func_name, msg,
+                  static_cast<int>(res), VkResultToString(res));
 }
 
 }  // namespace Vulkan

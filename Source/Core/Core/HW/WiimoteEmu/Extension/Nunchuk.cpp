@@ -12,7 +12,9 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -35,14 +37,13 @@ constexpr std::array<u8, 2> nunchuk_button_bitmasks{{
 Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
 {
   // buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "C");
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "Z");
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
+  m_buttons->AddInput(ControllerEmu::DoNotTranslate, C_BUTTON);
+  m_buttons->AddInput(ControllerEmu::DoNotTranslate, Z_BUTTON);
 
   // stick
   constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
-  groups.emplace_back(m_stick =
-                          new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
+  groups.emplace_back(m_stick = new ControllerEmu::OctagonAnalogStick(STICK_GROUP, gate_radius));
 
   // swing
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
@@ -57,37 +58,42 @@ Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
 
   // accelerometer
   groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
-                          "IMUAccelerometer", _trans("Accelerometer")));
+                          ACCELEROMETER_GROUP, _trans("Accelerometer")));
 }
 
-void Nunchuk::Update()
+void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DataFormat nc_data = {};
 
   // stick
-  const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
-  nc_data.jx = u8(STICK_CENTER + stick_state.x * STICK_RADIUS);
-  nc_data.jy = u8(STICK_CENTER + stick_state.y * STICK_RADIUS);
+  bool override_occurred = false;
+  const ControllerEmu::AnalogStick::StateData stick_state =
+      m_stick->GetState(m_input_override_function, &override_occurred);
+  nc_data.jx = MapFloat<u8>(stick_state.x, STICK_CENTER, 0, STICK_RANGE);
+  nc_data.jy = MapFloat<u8>(stick_state.y, STICK_CENTER, 0, STICK_RANGE);
 
-  // Some terribly coded games check whether to move with a check like
-  //
-  //     if (x != 0 && y != 0)
-  //         do_movement(x, y);
-  //
-  // With keyboard controls, these games break if you simply hit
-  // of the axes. Adjust this if you're hitting one of the axes so that
-  // we slightly tweak the other axis.
-  if (nc_data.jx != STICK_CENTER || nc_data.jy != STICK_CENTER)
+  if (!override_occurred)
   {
-    if (nc_data.jx == STICK_CENTER)
-      ++nc_data.jx;
-    if (nc_data.jy == STICK_CENTER)
-      ++nc_data.jy;
+    // Some terribly coded games check whether to move with a check like
+    //
+    //     if (x != 0 && y != 0)
+    //         do_movement(x, y);
+    //
+    // With keyboard controls, these games break if you simply hit one
+    // of the axes. Adjust this if you're hitting one of the axes so that
+    // we slightly tweak the other axis.
+    if (nc_data.jx != STICK_CENTER || nc_data.jy != STICK_CENTER)
+    {
+      if (nc_data.jx == STICK_CENTER)
+        ++nc_data.jx;
+      if (nc_data.jy == STICK_CENTER)
+        ++nc_data.jy;
+    }
   }
 
   // buttons
   u8 buttons = 0;
-  m_buttons->GetState(&buttons, nunchuk_button_bitmasks.data());
+  m_buttons->GetState(&buttons, nunchuk_button_bitmasks.data(), m_input_override_function);
   nc_data.SetButtons(buttons);
 
   // Acceleration data:
@@ -106,11 +112,18 @@ void Nunchuk::Update()
   // shake
   accel += m_shake_state.acceleration;
 
+  accel = Wiimote::OverrideVec3(m_imu_accelerometer, accel, m_input_override_function);
+
   // Calibration values are 8-bit but we want 10-bit precision, so << 2.
   const auto acc = ConvertAccelData(accel, ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
   nc_data.SetAccel(acc.value);
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = nc_data;
+  target_state->data = nc_data;
+}
+
+void Nunchuk::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void Nunchuk::Reset()

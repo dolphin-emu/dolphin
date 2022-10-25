@@ -76,19 +76,19 @@
             android:name=".features.settings.ui.SettingsActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize"
-            android:theme="@style/Theme.Dolphin.Settings"
+            android:theme="@style/Theme.Dolphin.Main"
             android:label="@string/settings"/>
 
         <activity
             android:name=".features.cheats.ui.CheatsActivity"
             android:exported="false"
-            android:theme="@style/Theme.Dolphin.Settings"
+            android:theme="@style/Theme.Dolphin.Main"
             android:label="@string/cheats"/>
 
         <activity
             android:name=".activities.EmulationActivity"
             android:exported="false"
-            android:theme="@style/Theme.Dolphin.Main.Emulation"
+            android:theme="@style/Theme.Dolphin.Main"
             android:preferMinimalPostProcessing="true"/>
 
         <activity
@@ -125,7 +125,7 @@
             android:name=".activities.UserDataActivity"
             android:exported="false"
             android:label="@string/user_data_submenu"
-            android:theme="@style/Theme.Dolphin.Settings" />
+            android:theme="@style/Theme.Dolphin.Main" />
 
         <activity
             android:name=".features.riivolution.ui.RiivolutionBootActivity"

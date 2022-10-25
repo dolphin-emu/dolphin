@@ -34,6 +34,7 @@ distribution.
 #pragma once
 
 #include <array>
+#include <string>
 
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
@@ -133,9 +134,6 @@ static_assert(sizeof(Sram) == 0x44);
 
 #pragma pack(pop)
 
-void InitSRAM();
-void SetCardFlashID(const u8* buffer, ExpansionInterface::Slot card_slot);
-void FixSRAMChecksums();
-
-extern Sram g_SRAM;
-extern bool g_SRAM_netplay_initialized;
+void InitSRAM(Sram* sram, const std::string& filename);
+void SetCardFlashID(Sram* sram, const u8* buffer, ExpansionInterface::Slot card_slot);
+void FixSRAMChecksums(Sram* sram);

@@ -177,6 +177,8 @@ union ShaderHostConfig
   BitField<24, 1, bool, u32> manual_texture_sampling;
   BitField<25, 1, bool, u32> manual_texture_sampling_custom_texture_sizes;
   BitField<26, 1, bool, u32> backend_sampler_lod_bias;
+  BitField<27, 1, bool, u32> backend_dynamic_vertex_loader;
+  BitField<28, 1, bool, u32> backend_vs_point_line_expand;
 
   static ShaderHostConfig GetCurrent();
 };
@@ -195,6 +197,13 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
 
 void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_view b, u32 texgens,
                            const ShaderHostConfig& host_config);
+
+void GenerateLineOffset(ShaderCode& object, std::string_view indent0, std::string_view indent1,
+                        std::string_view pos_a, std::string_view pos_b, std::string_view sign);
+
+void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, u32 texgens);
+
+void GenerateVSPointExpansion(ShaderCode& object, std::string_view indent, u32 texgens);
 
 // We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the
 // pixel shader will be executed for each pixel which has at least one passed sample.
@@ -302,7 +311,21 @@ static const char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\tuint4   xfmem_pack1[8];\n"
                                         "\tfloat4 " I_CACHED_TANGENT ";\n"
                                         "\tfloat4 " I_CACHED_BINORMAL ";\n"
+                                        "\tuint vertex_stride;\n"
+                                        "\tuint vertex_offset_rawnormal;\n"
+                                        "\tuint vertex_offset_rawtangent;\n"
+                                        "\tuint vertex_offset_rawbinormal;\n"
+                                        "\tuint vertex_offset_rawpos;\n"
+                                        "\tuint vertex_offset_posmtx;\n"
+                                        "\tuint vertex_offset_rawcolor0;\n"
+                                        "\tuint vertex_offset_rawcolor1;\n"
+                                        "\tuint4 vertex_offset_rawtex[2];\n"  // std140 is pain
                                         "\t#define xfmem_texMtxInfo(i) (xfmem_pack1[(i)].x)\n"
                                         "\t#define xfmem_postMtxInfo(i) (xfmem_pack1[(i)].y)\n"
                                         "\t#define xfmem_color(i) (xfmem_pack1[(i)].z)\n"
                                         "\t#define xfmem_alpha(i) (xfmem_pack1[(i)].w)\n";
+
+static const char s_geometry_shader_uniforms[] = "\tfloat4 " I_STEREOPARAMS ";\n"
+                                                 "\tfloat4 " I_LINEPTPARAMS ";\n"
+                                                 "\tint4 " I_TEXOFFSET ";\n"
+                                                 "\tuint vs_expand;\n";

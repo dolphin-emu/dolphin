@@ -93,6 +93,20 @@ struct VertexShaderConstants
 
   float4 cached_tangent;
   float4 cached_binormal;
+  // For UberShader vertex loader
+  u32 vertex_stride;
+  std::array<u32, 3> vertex_offset_normals;
+  u32 vertex_offset_position;
+  u32 vertex_offset_posmtx;
+  std::array<u32, 2> vertex_offset_colors;
+  std::array<u32, 8> vertex_offset_texcoords;
+};
+
+enum class VSExpand : u32
+{
+  None = 0,
+  Point,
+  Line,
 };
 
 struct GeometryShaderConstants
@@ -100,4 +114,6 @@ struct GeometryShaderConstants
   float4 stereoparams;
   float4 lineptparams;
   int4 texoffset;
+  VSExpand vs_expand;  // Used by VS point/line expansion in ubershaders
+  u32 pad[3];
 };

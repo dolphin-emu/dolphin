@@ -10,6 +10,8 @@
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -78,22 +80,23 @@ Turntable::Turntable() : Extension1stParty("Turntable", _trans("DJ Turntable"))
   groups.emplace_back(m_crossfade = new ControllerEmu::Slider(_trans("Crossfade")));
 }
 
-void Turntable::Update()
+void Turntable::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DataFormat tt_data = {};
 
   // stick
   {
-    const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
+    const ControllerEmu::AnalogStick::StateData stick_state =
+        m_stick->GetState(m_input_override_function);
 
-    tt_data.sx = static_cast<u8>((stick_state.x * STICK_RADIUS) + STICK_CENTER);
-    tt_data.sy = static_cast<u8>((stick_state.y * STICK_RADIUS) + STICK_CENTER);
+    tt_data.sx = MapFloat<u8>(stick_state.x, STICK_CENTER, 0, STICK_RANGE);
+    tt_data.sy = MapFloat<u8>(stick_state.y, STICK_CENTER, 0, STICK_RANGE);
   }
 
   // left table
   {
-    const ControllerEmu::Slider::StateData lt = m_left_table->GetState();
-    const s8 tt = static_cast<s8>(lt.value * TABLE_RANGE);
+    const ControllerEmu::Slider::StateData lt = m_left_table->GetState(m_input_override_function);
+    const s8 tt = MapFloat<u8>(lt.value, 0, 0, TABLE_RANGE);
 
     tt_data.ltable1 = tt;
     tt_data.ltable2 = tt >> 5;
@@ -101,8 +104,8 @@ void Turntable::Update()
 
   // right table
   {
-    const ControllerEmu::Slider::StateData rt = m_right_table->GetState();
-    const s8 tt = static_cast<s8>(rt.value * TABLE_RANGE);
+    const ControllerEmu::Slider::StateData rt = m_right_table->GetState(m_input_override_function);
+    const s8 tt = MapFloat<u8>(rt.value, 0, 0, TABLE_RANGE);
 
     tt_data.rtable1 = tt;
     tt_data.rtable2 = tt >> 1;
@@ -112,8 +115,8 @@ void Turntable::Update()
 
   // effect dial
   {
-    const auto dial_state = m_effect_dial->GetState();
-    const u8 dial = static_cast<u8>(dial_state.value * EFFECT_DIAL_RANGE) + EFFECT_DIAL_CENTER;
+    const auto dial_state = m_effect_dial->GetState(m_input_override_function);
+    const u8 dial = MapFloat<u8>(dial_state.value, EFFECT_DIAL_CENTER, 0, EFFECT_DIAL_RANGE);
 
     tt_data.dial1 = dial;
     tt_data.dial2 = dial >> 3;
@@ -121,19 +124,24 @@ void Turntable::Update()
 
   // crossfade slider
   {
-    const ControllerEmu::Slider::StateData cfs = m_crossfade->GetState();
+    const ControllerEmu::Slider::StateData cfs = m_crossfade->GetState(m_input_override_function);
 
-    tt_data.slider = static_cast<u8>((cfs.value * CROSSFADE_RANGE) + CROSSFADE_CENTER);
+    tt_data.slider = MapFloat<u8>(cfs.value, CROSSFADE_CENTER, 0, CROSSFADE_RANGE);
   }
 
   // buttons
-  m_buttons->GetState(&tt_data.bt, turntable_button_bitmasks.data());
+  m_buttons->GetState(&tt_data.bt, turntable_button_bitmasks.data(), m_input_override_function);
 
   // flip button bits :/
   tt_data.bt ^= (BUTTON_L_GREEN | BUTTON_L_RED | BUTTON_L_BLUE | BUTTON_R_GREEN | BUTTON_R_RED |
                  BUTTON_R_BLUE | BUTTON_MINUS | BUTTON_PLUS | BUTTON_EUPHORIA);
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tt_data;
+  target_state->data = tt_data;
+}
+
+void Turntable::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void Turntable::Reset()

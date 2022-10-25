@@ -107,9 +107,9 @@ void SCPFifoStruct::DoState(PointerWrap& p)
 
 void DoState(PointerWrap& p)
 {
-  p.DoPOD(m_CPStatusReg);
-  p.DoPOD(m_CPCtrlReg);
-  p.DoPOD(m_CPClearReg);
+  p.Do(m_CPStatusReg);
+  p.Do(m_CPCtrlReg);
+  p.Do(m_CPClearReg);
   p.Do(m_bboxleft);
   p.Do(m_bboxtop);
   p.Do(m_bboxright);
@@ -662,7 +662,7 @@ void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
                    "* This really is an unknown opcode (unlikely)\n"
                    "* Some other sort of bug\n\n"
                    "Further errors will be sent to the Video Backend log and\n"
-                   "Dolphin will now likely crash or hang. Enjoy.",
+                   "Dolphin will now likely crash or hang.",
                    cmd_byte, fmt::ptr(buffer), preprocess);
   }
 }

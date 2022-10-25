@@ -154,20 +154,6 @@ Section "Base" SEC01
   
   SetOutPath "$TEMP"
   SetOverwrite on
-  File /r "dxredist"
-  File /r "vcredist"
-SectionEnd
-
-Section "DirectX Runtime" SEC02
-   DetailPrint "Running DirectX runtime setup..."
-   ExecWait '"$TEMP\dxredist\DXSETUP.exe" /silent'
-   DetailPrint "Finished DirectX runtime setup"
-SectionEnd
-
-Section "Visual C++ 2015 Redistributable" SEC03
-   DetailPrint "Running Visual C++ 2015 Redistributable setup..."
-   ExecWait '"$TEMP\vcredist\vc_redist.x64.exe" /install /quiet /norestart'
-   DetailPrint "Finished Visual C++ 2015 Redistributable setup"
 SectionEnd
 
 Section -AdditionalIcons
@@ -193,8 +179,6 @@ SectionEnd
 ; Section descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC01} "Installs all files required to run the Dolphin Emulator."
-  !insertmacro MUI_DESCRIPTION_TEXT ${SEC02} "Installs the recommended DirectX runtime libraries that are needed by Dolphin."
-  !insertmacro MUI_DESCRIPTION_TEXT ${SEC03} "Installs the required Visual C++ 2015 Redistributable that is needed by Dolphin."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 Section Uninstall

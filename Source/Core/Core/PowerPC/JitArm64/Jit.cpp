@@ -320,6 +320,51 @@ void JitArm64::FreeStack()
 #endif
 }
 
+void JitArm64::IntializeSpeculativeConstants()
+{
+  // If the block depends on an input register which looks like a gather pipe or MMIO related
+  // constant, guess that it is actually a constant input, and specialize the block based on this
+  // assumption. This happens when there are branches in code writing to the gather pipe, but only
+  // the first block loads the constant.
+  // Insert a check at the start of the block to verify that the value is actually constant.
+  // This can save a lot of backpatching and optimize gather pipe writes in more places.
+  const u8* fail = nullptr;
+  for (auto i : code_block.m_gpr_inputs)
+  {
+    u32 compile_time_value = PowerPC::ppcState.gpr[i];
+    if (PowerPC::IsOptimizableGatherPipeWrite(compile_time_value) ||
+        PowerPC::IsOptimizableGatherPipeWrite(compile_time_value - 0x8000) ||
+        compile_time_value == 0xCC000000)
+    {
+      if (!fail)
+      {
+        SwitchToFarCode();
+        fail = GetCodePtr();
+        MOVI2R(DISPATCHER_PC, js.blockStart);
+        STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+        MOVP2R(ARM64Reg::X8, &JitInterface::CompileExceptionCheck);
+        MOVI2R(ARM64Reg::W0, static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
+        // Write dispatcher_no_check to LR for tail call
+        MOVP2R(ARM64Reg::X30, dispatcher_no_check);
+        BR(ARM64Reg::X8);
+        SwitchToNearCode();
+      }
+
+      ARM64Reg tmp = gpr.GetReg();
+      ARM64Reg value = gpr.R(i);
+      MOVI2R(tmp, compile_time_value);
+      CMP(value, tmp);
+      gpr.Unlock(tmp);
+
+      FixupBranch no_fail = B(CCFlags::CC_EQ);
+      B(fail);
+      SetJumpTarget(no_fail);
+
+      gpr.SetImmediate(i, compile_time_value, true);
+    }
+  }
+}
+
 void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return)
 {
   Cleanup();
@@ -793,10 +838,11 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(fail);
       MOVI2R(DISPATCHER_PC, js.blockStart);
       STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+      MOVP2R(ARM64Reg::X8, &JitInterface::CompileExceptionCheck);
       MOVI2R(ARM64Reg::W0, static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
-      MOVP2R(ARM64Reg::X1, &JitInterface::CompileExceptionCheck);
-      BLR(ARM64Reg::X1);
-      B(dispatcher_no_check);
+      // Write dispatcher_no_check to LR for tail call
+      MOVP2R(ARM64Reg::X30, dispatcher_no_check);
+      BR(ARM64Reg::X8);
       SwitchToNearCode();
       SetJumpTarget(no_fail);
       js.assumeNoPairedQuantize = true;
@@ -805,6 +851,12 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   gpr.Start(js.gpa);
   fpr.Start(js.fpa);
+
+  if (js.noSpeculativeConstantsAddresses.find(js.blockStart) ==
+      js.noSpeculativeConstantsAddresses.end())
+  {
+    IntializeSpeculativeConstants();
+  }
 
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)

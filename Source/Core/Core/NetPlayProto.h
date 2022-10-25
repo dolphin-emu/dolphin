@@ -12,6 +12,7 @@
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/Sram.h"
 
 namespace DiscIO
 {
@@ -30,85 +31,85 @@ namespace NetPlay
 {
 struct NetSettings
 {
-  bool m_CPUthread = false;
-  PowerPC::CPUCore m_CPUcore{};
-  bool m_EnableCheats = false;
-  int m_SelectedLanguage = 0;
-  bool m_OverrideRegionSettings = false;
-  bool m_DSPHLE = false;
-  bool m_DSPEnableJIT = false;
-  bool m_WriteToMemcard = false;
-  bool m_RAMOverrideEnable = false;
-  u32 m_Mem1Size = 0;
-  u32 m_Mem2Size = 0;
-  DiscIO::Region m_FallbackRegion{};
-  bool m_AllowSDWrites = false;
-  bool m_CopyWiiSave = false;
-  bool m_OCEnable = false;
-  float m_OCFactor = 0;
-  Common::EnumMap<ExpansionInterface::EXIDeviceType, ExpansionInterface::MAX_SLOT> m_EXIDevice{};
-  int m_MemcardSizeOverride = -1;
+  bool cpu_thread = false;
+  PowerPC::CPUCore cpu_core{};
+  bool enable_cheats = false;
+  int selected_language = 0;
+  bool override_region_settings = false;
+  bool dsp_hle = false;
+  bool dsp_enable_jit = false;
+  bool ram_override_enable = false;
+  u32 mem1_size = 0;
+  u32 mem2_size = 0;
+  DiscIO::Region fallback_region{};
+  bool allow_sd_writes = false;
+  bool oc_enable = false;
+  float oc_factor = 0;
+  Common::EnumMap<ExpansionInterface::EXIDeviceType, ExpansionInterface::MAX_SLOT> exi_device{};
+  int memcard_size_override = -1;
 
-  std::array<u32, Config::SYSCONF_SETTINGS.size()> m_SYSCONFSettings{};
+  std::array<u32, Config::SYSCONF_SETTINGS.size()> sysconf_settings{};
 
-  bool m_EFBAccessEnable = false;
-  bool m_BBoxEnable = false;
-  bool m_ForceProgressive = false;
-  bool m_EFBToTextureEnable = false;
-  bool m_XFBToTextureEnable = false;
-  bool m_DisableCopyToVRAM = false;
-  bool m_ImmediateXFBEnable = false;
-  bool m_EFBEmulateFormatChanges = false;
-  int m_SafeTextureCacheColorSamples = 0;
-  bool m_PerfQueriesEnable = false;
-  bool m_FloatExceptions = false;
-  bool m_DivideByZeroExceptions = false;
-  bool m_FPRF = false;
-  bool m_AccurateNaNs = false;
-  bool m_DisableICache = false;
-  bool m_SyncOnSkipIdle = false;
-  bool m_SyncGPU = false;
-  int m_SyncGpuMaxDistance = 0;
-  int m_SyncGpuMinDistance = 0;
-  float m_SyncGpuOverclock = 0;
-  bool m_JITFollowBranch = false;
-  bool m_FastDiscSpeed = false;
-  bool m_MMU = false;
-  bool m_Fastmem = false;
-  bool m_SkipIPL = false;
-  bool m_LoadIPLDump = false;
-  bool m_VertexRounding = false;
-  int m_InternalResolution = 0;
-  bool m_EFBScaledCopy = false;
-  bool m_FastDepthCalc = false;
-  bool m_EnablePixelLighting = false;
-  bool m_WidescreenHack = false;
-  bool m_ForceFiltering = false;
-  int m_MaxAnisotropy = 0;
-  bool m_ForceTrueColor = false;
-  bool m_DisableCopyFilter = false;
-  bool m_DisableFog = false;
-  bool m_ArbitraryMipmapDetection = false;
-  float m_ArbitraryMipmapDetectionThreshold = 0;
-  bool m_EnableGPUTextureDecoding = false;
-  bool m_DeferEFBCopies = false;
-  int m_EFBAccessTileSize = 0;
-  bool m_EFBAccessDeferInvalidation = false;
+  bool efb_access_enable = false;
+  bool bbox_enable = false;
+  bool force_progressive = false;
+  bool efb_to_texture_enable = false;
+  bool xfb_to_texture_enable = false;
+  bool disable_copy_to_vram = false;
+  bool immediate_xfb_enable = false;
+  bool efb_emulate_format_changes = false;
+  int safe_texture_cache_color_samples = 0;
+  bool perf_queries_enable = false;
+  bool float_exceptions = false;
+  bool divide_by_zero_exceptions = false;
+  bool fprf = false;
+  bool accurate_nans = false;
+  bool disable_icache = false;
+  bool sync_on_skip_idle = false;
+  bool sync_gpu = false;
+  int sync_gpu_max_distance = 0;
+  int sync_gpu_min_distance = 0;
+  float sync_gpu_overclock = 0;
+  bool jit_follow_branch = false;
+  bool fast_disc_speed = false;
+  bool mmu = false;
+  bool fastmem = false;
+  bool skip_ipl = false;
+  bool load_ipl_dump = false;
+  bool vertex_rounding = false;
+  int internal_resolution = 0;
+  bool efb_scaled_copy = false;
+  bool fast_depth_calc = false;
+  bool enable_pixel_lighting = false;
+  bool widescreen_hack = false;
+  bool force_filtering = false;
+  int max_anisotropy = 0;
+  bool force_true_color = false;
+  bool disable_copy_filter = false;
+  bool disable_fog = false;
+  bool arbitrary_mipmap_detection = false;
+  float arbitrary_mipmap_detection_threshold = 0;
+  bool enable_gpu_texture_decoding = false;
+  bool defer_efb_copies = false;
+  int efb_access_tile_size = 0;
+  bool efb_access_defer_invalidation = false;
 
-  bool m_StrictSettingsSync = false;
-  bool m_SyncSaveData = false;
-  bool m_SyncCodes = false;
-  std::string m_SaveDataRegion;
-  bool m_SyncAllWiiSaves = false;
-  std::array<int, 4> m_WiimoteExtension{};
-  bool m_GolfMode = false;
-  bool m_UseFMA = false;
-  bool m_HideRemoteGBAs = false;
+  bool savedata_load = false;
+  bool savedata_write = false;
+  bool savedata_sync_all_wii = false;
+
+  bool strict_settings_sync = false;
+  bool sync_codes = false;
+  std::string save_data_region;
+  bool golf_mode = false;
+  bool use_fma = false;
+  bool hide_remote_gbas = false;
+
+  Sram sram;
 
   // These aren't sent over the network directly
-  bool m_IsHosting = false;
-  bool m_HostInputAuthority = false;
-  std::array<std::string, 4> m_GBARomPaths{};
+  bool is_hosting = false;
+  std::array<std::string, 4> gba_rom_paths{};
 };
 
 struct NetTraversalConfig
@@ -168,11 +169,11 @@ enum class MessageID : u8
   TimeBase = 0xB0,
   DesyncDetected = 0xB1,
 
-  ComputeMD5 = 0xC0,
-  MD5Progress = 0xC1,
-  MD5Result = 0xC2,
-  MD5Abort = 0xC3,
-  MD5Error = 0xC4,
+  ComputeGameDigest = 0xC0,
+  GameDigestProgress = 0xC1,
+  GameDigestResult = 0xC2,
+  GameDigestAbort = 0xC3,
+  GameDigestError = 0xC4,
 
   Ready = 0xD0,
   NotReady = 0xD1,
@@ -181,7 +182,6 @@ enum class MessageID : u8
   Pong = 0xE1,
   PlayerPingData = 0xE2,
 
-  SyncGCSRAM = 0xF0,
   SyncSaveData = 0xF1,
   SyncCodes = 0xF2,
 };
@@ -227,11 +227,6 @@ enum : u8
   CHANNEL_COUNT
 };
 
-struct WiimoteInput
-{
-  u8 report_id = 0;
-  std::vector<u8> data;
-};
 using PlayerId = u8;
 using FrameNum = u32;
 using PadIndex = s8;
@@ -257,13 +252,9 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
                                    const GBAConfigArray& gba_config,
                                    const PadMappingArray& wiimote_map);
 bool IsNetPlayRunning();
-// Precondition: A netplay client instance must be present. In other words,
-//               IsNetPlayRunning() must be true before calling this.
-const NetSettings& GetNetSettings();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
-bool IsSyncingAllWiiSaves();
-void SetupWiimotes();
 std::string GetGBASavePath(int pad_num);
 PadDetails GetPadDetails(int pad_num);
+int NumLocalWiimotes();
 }  // namespace NetPlay

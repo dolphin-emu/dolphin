@@ -8,6 +8,8 @@
 #include <memory>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -15,7 +17,6 @@
 #include "Common/GL/GLContext.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "Common/Version.h"
 
 #include "Core/ConfigManager.h"
@@ -108,9 +109,9 @@ void SHADER::SetProgramVariables()
   for (int a = 0; a < 8; ++a)
   {
     // Still need to get sampler locations since we aren't binding them statically in the shaders
-    int loc = glGetUniformLocation(glprogid, StringFromFormat("samp[%d]", a).c_str());
+    int loc = glGetUniformLocation(glprogid, fmt::format("samp[{}]", a).c_str());
     if (loc < 0)
-      loc = glGetUniformLocation(glprogid, StringFromFormat("samp%d", a).c_str());
+      loc = glGetUniformLocation(glprogid, fmt::format("samp{}", a).c_str());
     if (loc >= 0)
       glUniform1i(loc, a);
   }
@@ -146,8 +147,9 @@ void SHADER::SetProgramBindings(bool is_compute)
 
   for (int i = 0; i < 8; i++)
   {
-    std::string attrib_name = StringFromFormat("rawtex%d", i);
-    glBindAttribLocation(glprogid, SHADER_TEXTURE0_ATTRIB + i, attrib_name.c_str());
+    // Per documentation: OpenGL copies the name string when glBindAttribLocation is called, so an
+    // application may free its copy of the name string immediately after the function returns.
+    glBindAttribLocation(glprogid, SHADER_TEXTURE0_ATTRIB + i, fmt::format("rawtex{}", i).c_str());
   }
 }
 
@@ -727,35 +729,35 @@ void ProgramShaderCache::CreateHeader()
 )";
   }
 
-  s_glsl_header = StringFromFormat(
-      "%s\n"
-      "%s\n"  // ubo
-      "%s\n"  // early-z
-      "%s\n"  // 420pack
-      "%s\n"  // msaa
-      "%s\n"  // Input/output/sampler binding
-      "%s\n"  // Varying location
-      "%s\n"  // storage buffer
-      "%s\n"  // shader5
-      "%s\n"  // SSAA
-      "%s\n"  // Geometry point size
-      "%s\n"  // AEP
-      "%s\n"  // texture buffer
-      "%s\n"  // ES texture buffer
-      "%s\n"  // ES dual source blend
-      "%s\n"  // shader image load store
-      "%s\n"  // shader framebuffer fetch
-      "%s\n"  // shader thread shuffle
-      "%s\n"  // derivative control
-      "%s\n"  // query levels
+  s_glsl_header = fmt::format(
+      "{}\n"
+      "{}\n"  // ubo
+      "{}\n"  // early-z
+      "{}\n"  // 420pack
+      "{}\n"  // msaa
+      "{}\n"  // Input/output/sampler binding
+      "{}\n"  // Varying location
+      "{}\n"  // storage buffer
+      "{}\n"  // shader5
+      "{}\n"  // SSAA
+      "{}\n"  // Geometry point size
+      "{}\n"  // AEP
+      "{}\n"  // texture buffer
+      "{}\n"  // ES texture buffer
+      "{}\n"  // ES dual source blend
+      "{}\n"  // shader image load store
+      "{}\n"  // shader framebuffer fetch
+      "{}\n"  // shader thread shuffle
+      "{}\n"  // derivative control
+      "{}\n"  // query levels
 
       // Precision defines for GLSL ES
-      "%s\n"
-      "%s\n"
-      "%s\n"
-      "%s\n"
-      "%s\n"
-      "%s\n"
+      "{}\n"
+      "{}\n"
+      "{}\n"
+      "{}\n"
+      "{}\n"
+      "{}\n"
 
       // Silly differences
       "#define API_OPENGL 1\n"
@@ -772,8 +774,8 @@ void ProgramShaderCache::CreateHeader()
       "#define lerp mix\n"
 
       ,
-      GetGLSLVersionString().c_str(),
-      v < Glsl140 ? "#extension GL_ARB_uniform_buffer_object : enable" : "", earlyz_string.c_str(),
+      GetGLSLVersionString(), v < Glsl140 ? "#extension GL_ARB_uniform_buffer_object : enable" : "",
+      earlyz_string,
       (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GlslEs310) ?
           "#extension GL_ARB_shading_language_420pack : enable" :
           "",
@@ -811,12 +813,12 @@ void ProgramShaderCache::CreateHeader()
       v < Glsl400 && g_ActiveConfig.backend_info.bSupportsSSAA ?
           "#extension GL_ARB_sample_shading : enable" :
           "",
-      SupportedESPointSize.c_str(),
+      SupportedESPointSize,
       g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : "",
       v < Glsl140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ?
           "#extension GL_ARB_texture_buffer_object : enable" :
           "",
-      SupportedESTextureBuffer.c_str(),
+      SupportedESTextureBuffer,
       is_glsles && g_ActiveConfig.backend_info.bSupportsDualSourceBlend ?
           "#extension GL_EXT_blend_func_extended : enable" :
           ""
@@ -826,7 +828,7 @@ void ProgramShaderCache::CreateHeader()
               ((!is_glsles && v < Glsl430) || (is_glsles && v < GlslEs310)) ?
           "#extension GL_ARB_shader_image_load_store : enable" :
           "",
-      framebuffer_fetch_string.c_str(), shader_shuffle_string.c_str(),
+      framebuffer_fetch_string, shader_shuffle_string,
       g_ActiveConfig.backend_info.bSupportsCoarseDerivatives ?
           "#extension GL_ARB_derivative_control : enable" :
           "",

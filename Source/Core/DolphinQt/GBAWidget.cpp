@@ -26,6 +26,7 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
@@ -325,7 +326,8 @@ void GBAWidget::UpdateTitle()
 void GBAWidget::UpdateVolume()
 {
   int volume = m_muted ? 0 : m_volume * 256 / 100;
-  g_sound_stream->GetMixer()->SetGBAVolume(m_core_info.device_number, volume, volume);
+  auto& system = Core::System::GetInstance();
+  system.GetSoundStream()->GetMixer()->SetGBAVolume(m_core_info.device_number, volume, volume);
   UpdateTitle();
 }
 
