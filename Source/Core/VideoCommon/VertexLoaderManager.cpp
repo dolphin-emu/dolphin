@@ -270,10 +270,8 @@ static void CheckCPConfiguration(int vtx_attr_group)
     num_xf_normals = 1;
     break;
   case NormalCount::NormalTangentBinormal:
+  case NormalCount::Invalid:  // see https://bugs.dolphin-emu.org/issues/13070
     num_xf_normals = 3;
-    break;
-  default:
-    PanicAlertFmt("xfmem.invtxspec.numnormals is invalid: {}", xfmem.invtxspec.numnormals);
     break;
   }
 
