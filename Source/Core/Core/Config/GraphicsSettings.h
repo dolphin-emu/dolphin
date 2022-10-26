@@ -10,7 +10,6 @@
 enum class AspectMode : int;
 enum class ShaderCompilationMode : int;
 enum class StereoMode : int;
-enum class FreelookControlType : int;
 enum class TriState : int;
 
 namespace Config
