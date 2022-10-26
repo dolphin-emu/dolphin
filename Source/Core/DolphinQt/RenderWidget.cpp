@@ -397,8 +397,10 @@ bool RenderWidget::event(QEvent* event)
   // Note that this event in Windows is not always aligned to the window that is highlighted,
   // it's the window that has keyboard and mouse focus
   case QEvent::WindowActivate:
-    if (Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST) && Core::GetState() == Core::State::Paused)
+    if (m_should_unpause_on_focus && Core::GetState() == Core::State::Paused)
       Core::SetState(Core::State::Running);
+
+    m_should_unpause_on_focus = false;
 
     UpdateCursor();
 
@@ -425,7 +427,10 @@ bool RenderWidget::event(QEvent* event)
       // is waiting for us to finish showing a panic alert (with that panic alert likely being
       // the cause of this event), so trying to pause the core would cause a deadlock
       if (!Core::IsCPUThread() && !Core::IsGPUThread())
+      {
+        m_should_unpause_on_focus = true;
         Core::SetState(Core::State::Paused);
+      }
     }
 
     emit FocusChanged(false);
