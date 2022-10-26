@@ -235,14 +235,14 @@ bool IsPressed(int id, bool held)
       static_cast<HotkeyManager*>(s_config.GetController(0))->GetIndexForGroup(group, id);
   if (Common::ExtractBit(group_key, s_hotkey.button[group]))
   {
-    s_hotkey_down[group] |= (1 << group_key);
     const bool pressed = Common::ExtractBit(group_key, s_hotkey_down[group]);
+    Common::SetBit(group_key, s_hotkey_down[group]);
     if (!pressed || held)
       return true;
   }
   else
   {
-    s_hotkey_down[group] &= ~(1 << group_key);
+    Common::ClearBit(group_key, s_hotkey_down[group]);
   }
 
   return false;
@@ -391,7 +391,7 @@ void HotkeyManager::GetInput(HotkeyStatus* kb, bool ignore_focus)
     const int group_count = (s_groups_info[group].last - s_groups_info[group].first) + 1;
     std::vector<u32> bitmasks(group_count);
     for (size_t key = 0; key < bitmasks.size(); key++)
-      bitmasks[key] = static_cast<u32>(1 << key);
+      Common::SetBit(key, bitmasks[key]);
 
     kb->button[group] = 0;
     m_keys[group]->GetState(&kb->button[group], bitmasks.data());

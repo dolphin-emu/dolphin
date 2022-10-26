@@ -3786,7 +3786,7 @@ void ARM64FloatEmitter::MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift)
       ASSERT_MSG(DYNA_REC, tmp == 0xFF || tmp == 0, "size64 Invalid immediate! ({} -> {})", imm,
                  tmp);
       if (tmp == 0xFF)
-        abcdefgh |= (1 << i);
+        Common::SetBit(i, abcdefgh);
     }
   }
   EncodeModImm(Q, op, cmode, 0, Rd, abcdefgh);

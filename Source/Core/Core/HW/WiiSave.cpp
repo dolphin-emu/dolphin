@@ -22,6 +22,7 @@
 #include <fmt/format.h>
 
 #include "Common/Align.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Crypto/ec.h"
@@ -123,7 +124,7 @@ public:
       return {};
     header.permissions = mode;
     // remove nocopy flag
-    header.banner[7] &= ~1;
+    Common::ClearBit<0>(header.banner[7]);
 
     Md5 md5_calc;
     mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());

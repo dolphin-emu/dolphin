@@ -405,6 +405,34 @@ inline auto BitCastFromArray(const Container& array) noexcept -> T
   return obj;
 }
 
+template <std::integral T>
+constexpr void SetBit(const size_t start, T& host)
+{
+  DEBUG_ASSERT(start < BitSize<T>());  // Bit out of range
+  host |= (T{1} << start);
+}
+
+template <size_t start, std::integral T>
+constexpr void SetBit(T& host)
+{
+  static_assert(start < BitSize<T>(), "Bit out of range");
+  SetBit(start, host);
+}
+
+template <std::integral T>
+constexpr void ClearBit(const size_t start, T& host)
+{
+  DEBUG_ASSERT(start < BitSize<T>());  // Bit out of range
+  host &= ~(T{1} << start);
+}
+
+template <size_t start, std::integral T>
+constexpr void ClearBit(T& host)
+{
+  static_assert(start < BitSize<T>(), "Bit out of range");
+  ClearBit(start, host);
+}
+
 template <typename T>
 class FlagBit
 {

@@ -5,8 +5,8 @@
 #include <bit>
 #include <cstddef>
 #include <initializer_list>
-#include <type_traits>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
 #include "Common/Future/CppLibConcepts.h"
@@ -73,7 +73,7 @@ public:
       else
       {
         int bit = std::countr_zero(m_val);
-        m_val &= ~(1 << bit);
+        ClearBit(bit, m_val);
         m_bit = bit;
       }
       return *this;
@@ -98,7 +98,7 @@ public:
   constexpr BitSet(std::initializer_list<int> init)
   {
     for (int bit : init)
-      m_val |= (IntTy)1 << bit;
+      SetBit(bit, m_val);
   }
 
   constexpr static BitSet AllTrue(size_t count)

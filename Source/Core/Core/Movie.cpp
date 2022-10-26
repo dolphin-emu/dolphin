@@ -575,7 +575,7 @@ bool BeginRecordingInput(const ControllerTypeArray& controllers,
     {
       const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
       if (si_device == SerialInterface::SIDEVICE_GC_TARUKONGA)
-        s_bongos |= (1 << i);
+        Common::SetBit(i, s_bongos);
     }
 
     if (Core::IsRunningAndStarted())
@@ -1400,11 +1400,11 @@ void SaveRecording(const std::string& filename)
   for (int i = 0; i < 4; ++i)
   {
     if (IsUsingGBA(i))
-      header.GBAControllers |= 1 << i;
+      Common::SetBit(i, header.GBAControllers);
     if (IsUsingPad(i))
-      header.controllers |= 1 << i;
+      Common::SetBit(i, header.controllers);
     if (IsUsingWiimote(i) && SConfig::GetInstance().bWii)
-      header.controllers |= 1 << (i + 4);
+      Common::SetBit(i + 4, header.controllers);
   }
 
   header.bFromSaveState = s_bRecordingFromSaveState;

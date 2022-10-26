@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -700,9 +701,9 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     js.skipInstructions = 1;
     js.downcountAmount++;
     int dst = 3 - (next.CRBD & 3);
-    output[3 - (next.CRBD & 3)] &= ~(1 << dst);
-    output[3 - (next.CRBA & 3)] |= 1 << dst;
-    output[3 - (next.CRBB & 3)] |= 1 << dst;
+    Common::ClearBit(dst, output[3 - (next.CRBD & 3)]);
+    Common::SetBit(dst, output[3 - (next.CRBA & 3)]);
+    Common::SetBit(dst, output[3 - (next.CRBB & 3)]);
   }
 
   RCOpArg Ra = upper ? fpr.Bind(a, RCMode::Read) : fpr.Use(a, RCMode::Read);

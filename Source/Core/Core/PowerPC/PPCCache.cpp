@@ -268,8 +268,8 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
       lookup_table[(addr >> 5) & 0xfffff] = way;
 
     addrs[set][way] = addr;
-    valid[set] |= (1 << way);
-    modified[set] &= ~(1 << way);
+    Common::SetBit(way, valid[set]);
+    Common::ClearBit(way, modified[set]);
   }
 
   // update plru

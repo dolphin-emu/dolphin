@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstring>
 
+#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
@@ -113,12 +114,12 @@ void SDSP::WriteIFX(u32 address, u16 value)
 
   case DSP_DSBL:
     m_ifx_regs[DSP_DSBL] = value;
-    m_ifx_regs[DSP_DSCR] |= 4;  // Doesn't really matter since we do DMA instantly
+    Common::SetBit<2>(m_ifx_regs[DSP_DSCR]);  // Doesn't really matter since we do DMA instantly
     if (!m_ifx_regs[DSP_AMDM])
       DoDMA();
     else
       NOTICE_LOG_FMT(DSPLLE, "Masked DMA skipped");
-    m_ifx_regs[DSP_DSCR] &= ~4;
+    Common::ClearBit<2>(m_ifx_regs[DSP_DSCR]);
     m_ifx_regs[DSP_DSBL] = 0;
     break;
 

@@ -12,6 +12,7 @@
 #include <sstream>
 
 #include "Common/BitField.h"
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -368,7 +369,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     mmio->Register(base | (SI_CHANNEL_0_IN_HI + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](Core::System& system, u32) {
                      auto& si = system.GetSerialInterface();
-                     si.m_status_reg.hex &= ~(1U << rdst_bit);
+                     Common::ClearBit(rdst_bit, si.m_status_reg.hex);
                      si.UpdateInterrupts();
                      return si.m_channel[i].in_hi.hex;
                    }),
@@ -376,7 +377,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](Core::System& system, u32) {
                      auto& si = system.GetSerialInterface();
-                     si.m_status_reg.hex &= ~(1U << rdst_bit);
+                     Common::ClearBit(rdst_bit, si.m_status_reg.hex);
                      si.UpdateInterrupts();
                      return si.m_channel[i].in_lo.hex;
                    }),

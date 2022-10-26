@@ -311,16 +311,16 @@ void KeyboardMouse::UpdateInput()
     switch (event.xcookie.evtype)
     {
     case XI_ButtonPress:
-      m_state.buttons |= 1 << (dev_event->detail - 1);
+      Common::SetBit(dev_event->detail - 1, m_state.buttons);
       break;
     case XI_ButtonRelease:
-      m_state.buttons &= ~(1 << (dev_event->detail - 1));
+      Common::ClearBit(dev_event->detail - 1, m_state.buttons);
       break;
     case XI_KeyPress:
-      m_state.keyboard[dev_event->detail / 8] |= 1 << (dev_event->detail % 8);
+      Common::SetBit(dev_event->detail % 8, m_state.keyboard[dev_event->detail / 8]);
       break;
     case XI_KeyRelease:
-      m_state.keyboard[dev_event->detail / 8] &= ~(1 << (dev_event->detail % 8));
+      Common::ClearBit(dev_event->detail % 8, m_state.keyboard[dev_event->detail / 8]);
       break;
     case XI_RawMotion:
     {

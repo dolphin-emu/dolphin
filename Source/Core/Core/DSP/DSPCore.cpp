@@ -195,7 +195,8 @@ void SDSP::FreeMemoryPages()
 
 void SDSP::SetException(ExceptionType exception)
 {
-  exceptions |= 1 << static_cast<std::underlying_type_t<ExceptionType>>(exception);
+  // C++23 TODO: std::to_underlying would be nice
+  Common::SetBit(static_cast<std::underlying_type_t<ExceptionType>>(exception), exceptions);
 }
 
 void SDSP::SetExternalInterrupt(bool val)
@@ -232,7 +233,7 @@ void SDSP::CheckExceptions()
         StoreStack(StackRegister::Data, r.sr);
 
         pc = static_cast<u16>(i * 2);
-        exceptions &= ~(1 << i);
+        Common::ClearBit(i, exceptions);
         if (i == 7)
           r.sr &= ~SR_EXT_INT_ENABLE;
         else

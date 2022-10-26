@@ -119,8 +119,8 @@ public:
     ClearAll();
   }
 
-  void Set(u32 bit) { m_valid_block[bit / 32] |= 1u << (bit % 32); }
-  void Clear(u32 bit) { m_valid_block[bit / 32] &= ~(1u << (bit % 32)); }
+  void Set(u32 bit) { Common::SetBit(bit % 32, m_valid_block[bit / 32]); }
+  void Clear(u32 bit) { Common::ClearBit(bit % 32, m_valid_block[bit / 32]); }
   void ClearAll() { memset(m_valid_block.get(), 0, sizeof(u32) * VALID_BLOCK_ALLOC_ELEMENTS); }
   bool Test(u32 bit) const { return Common::ExtractBit(bit % 32, m_valid_block[bit / 32]); }
 };

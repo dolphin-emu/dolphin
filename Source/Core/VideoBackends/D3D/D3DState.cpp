@@ -8,6 +8,7 @@
 #include <bit>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -204,7 +205,7 @@ u32 StateManager::UnsetTexture(ID3D11ShaderResourceView* srv)
     if (m_current.textures[index] == srv)
     {
       SetTexture(index, nullptr);
-      mask |= 1 << index;
+      Common::SetBit(index, mask);
     }
   }
 
@@ -217,7 +218,7 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
   {
     const int index = std::countr_zero(textureSlotMask);
     SetTexture(index, srv);
-    textureSlotMask &= ~(1 << index);
+    Common::ClearBit(index, textureSlotMask);
   }
 }
 

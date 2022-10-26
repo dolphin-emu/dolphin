@@ -99,7 +99,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
     if (comp_block_size != m_header.block_size)
       ERROR_LOG_FMT(DISCIO, "Uncompressed block with wrong size");
     uncompressed = true;
-    offset &= ~(1ULL << 63);
+    Common::ClearBit<63>(offset);
   }
 
   // clear unused part of zlib buffer. maybe this can be deleted when it works fully.

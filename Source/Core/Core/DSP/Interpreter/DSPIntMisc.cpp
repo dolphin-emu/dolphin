@@ -9,6 +9,8 @@
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 
+#include "Common/BitUtils.h"
+
 namespace DSP::Interpreter
 {
 // MRR $D, $S
@@ -127,7 +129,7 @@ void Interpreter::sbclr(const UDSPInstruction opc)
   auto& state = m_dsp_core.DSPState();
   const u8 bit = (opc & 0x7) + 6;
 
-  state.r.sr &= ~(1U << bit);
+  Common::ClearBit(bit, state.r.sr);
 }
 
 // SBSET #I
@@ -139,7 +141,7 @@ void Interpreter::sbset(const UDSPInstruction opc)
   auto& state = m_dsp_core.DSPState();
   const u8 bit = (opc & 0x7) + 6;
 
-  state.r.sr |= (1U << bit);
+  Common::SetBit(bit, state.r.sr);
 }
 
 // This is a bunch of flag setters, flipping bits in SR.
