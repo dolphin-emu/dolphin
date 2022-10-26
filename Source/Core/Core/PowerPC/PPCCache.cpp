@@ -5,6 +5,7 @@
 
 #include <array>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
@@ -242,7 +243,7 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
     else
       way = s_way_from_plru[plru[set]];
 
-    if (valid[set] & (1 << way))
+    if (Common::ExtractBit(way, valid[set]))
     {
       // store the cache back to main memory
       if (modified[set] & (1 << way))
@@ -349,7 +350,7 @@ void Cache::DoState(PointerWrap& p)
     {
       for (u32 way = 0; way < CACHE_WAYS; way++)
       {
-        if ((valid[set] & (1 << way)) != 0)
+        if (Common::ExtractBit(way, valid[set]))
         {
           if (addrs[set][way] & CACHE_VMEM_BIT)
             lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
@@ -375,7 +376,7 @@ void Cache::DoState(PointerWrap& p)
     {
       for (u32 way = 0; way < CACHE_WAYS; way++)
       {
-        if ((valid[set] & (1 << way)) != 0)
+        if (Common::ExtractBit(way, valid[set]))
         {
           if (addrs[set][way] & CACHE_VMEM_BIT)
             lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;

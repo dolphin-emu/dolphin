@@ -5,6 +5,7 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
@@ -234,7 +235,7 @@ void JitArm64::twx(UGeckoInstruction inst)
 
   for (int i = 0; i < 5; i++)
   {
-    if (inst.TO & (1 << i))
+    if (Common::ExtractBit(i, inst.TO))
     {
       FixupBranch f = B(conditions[i]);
       fixups.push_back(f);
@@ -913,7 +914,7 @@ void JitArm64::mtfsfx(UGeckoInstruction inst)
   u32 mask = 0;
   for (int i = 0; i < 8; i++)
   {
-    if (inst.FM & (1 << i))
+    if (Common::ExtractBit(i, inst.FM))
       mask |= 0xFU << (4 * i);
   }
 

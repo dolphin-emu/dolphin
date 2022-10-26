@@ -15,6 +15,7 @@
 
 #include "Common/Align.h"
 #include "Common/BitField.h"
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -1068,8 +1069,8 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   // Used by both GC and Wii
   case DICommand::StopMotor:
   {
-    const bool eject = (m_DICMDBUF[0] & (1 << 17));
-    const bool kill = (m_DICMDBUF[0] & (1 << 20));
+    const bool eject = Common::ExtractBit<17>(m_DICMDBUF[0]);
+    const bool kill = Common::ExtractBit<20>(m_DICMDBUF[0]);
     INFO_LOG_FMT(DVDINTERFACE, "DVDLowStopMotor{}{}", eject ? " eject" : "", kill ? " kill!" : "");
 
     if (m_drive_state == DriveState::Ready || m_drive_state == DriveState::ReadyNoReadsMade ||

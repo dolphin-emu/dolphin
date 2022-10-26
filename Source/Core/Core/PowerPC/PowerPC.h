@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/Debugger/PPCDebugInterface.h"
@@ -210,15 +211,15 @@ struct PowerPCState
     xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
   }
 
-  u32 GetXER_SO() const { return xer_so_ov >> 1; }
+  bool GetXER_SO() const { return Common::ExtractBit<1>(xer_so_ov); }
 
-  void SetXER_SO(bool value) { xer_so_ov |= static_cast<u32>(value) << 1; }
+  void SetXER_SO(bool value) { Common::InsertBit<1>(xer_so_ov, value); }
 
-  u32 GetXER_OV() const { return xer_so_ov & 1; }
+  bool GetXER_OV() const { return Common::ExtractBit<0>(xer_so_ov); }
 
   void SetXER_OV(bool value)
   {
-    xer_so_ov = (xer_so_ov & 0xFE) | static_cast<u32>(value);
+    Common::InsertBit<0>(xer_so_ov, value);
     SetXER_SO(value);
   }
 

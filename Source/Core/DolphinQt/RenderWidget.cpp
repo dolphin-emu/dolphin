@@ -23,6 +23,8 @@
 #include "Core/Core.h"
 #include "Core/State.h"
 
+#include "Common/BitUtils.h"
+
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"

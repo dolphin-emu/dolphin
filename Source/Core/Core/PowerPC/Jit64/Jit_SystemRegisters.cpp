@@ -4,6 +4,7 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 
 #include "Common/BitSet.h"
+#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -860,7 +861,7 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
   u32 mask = 0;
   for (int i = 0; i < 8; i++)
   {
-    if (inst.FM & (1 << i))
+    if (Common::ExtractBit(i, inst.FM))
       mask |= 0xF << (4 * i);
   }
 

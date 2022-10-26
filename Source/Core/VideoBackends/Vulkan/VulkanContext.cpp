@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"

@@ -16,8 +16,8 @@ void Interpreter::Helper_UpdateCR0(PowerPC::PowerPCState& ppc_state, u32 value)
 {
   const s64 sign_extended = s64{s32(value)};
   u64 cr_val = u64(sign_extended);
-  cr_val = (cr_val & ~(1ULL << PowerPC::CR_EMU_SO_BIT)) |
-           (u64{ppc_state.GetXER_SO()} << PowerPC::CR_EMU_SO_BIT);
+
+  Common::InsertBit<PowerPC::CR_EMU_SO_BIT>(cr_val, ppc_state.GetXER_SO());
 
   ppc_state.cr.fields[0] = cr_val;
 }

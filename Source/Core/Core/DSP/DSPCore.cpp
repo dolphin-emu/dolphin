@@ -9,6 +9,7 @@
 #include <memory>
 #include <type_traits>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
@@ -222,7 +223,7 @@ void SDSP::CheckExceptions()
   for (int i = 7; i > 0; i--)
   {
     // Seems exp int are not masked by sr_int_enable
-    if ((exceptions & (1U << i)) != 0)
+    if (Common::ExtractBit(i, exceptions))
     {
       if (IsSRFlagSet(SR_INT_ENABLE) || i == static_cast<int>(ExceptionType::ExternalInterrupt))
       {

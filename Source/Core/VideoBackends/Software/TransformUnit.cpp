@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -344,7 +345,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
       u8 mask = colorchan.GetFullLightMask();
       for (int i = 0; i < 8; ++i)
       {
-        if (mask & (1 << i))
+        if (Common::ExtractBit(i, mask))
           LightColor(dst->mvPosition, dst->normal[0], i, colorchan, lightCol);
       }
 
@@ -378,7 +379,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
       u8 mask = alphachan.GetFullLightMask();
       for (int i = 0; i < 8; ++i)
       {
-        if (mask & (1 << i))
+        if (Common::ExtractBit(i, mask))
           LightAlpha(dst->mvPosition, dst->normal[0], i, alphachan, lightCol);
       }
 

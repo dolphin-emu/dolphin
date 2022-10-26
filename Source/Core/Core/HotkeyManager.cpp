@@ -10,6 +10,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -232,10 +233,10 @@ bool IsPressed(int id, bool held)
   unsigned int group = static_cast<HotkeyManager*>(s_config.GetController(0))->FindGroupByID(id);
   unsigned int group_key =
       static_cast<HotkeyManager*>(s_config.GetController(0))->GetIndexForGroup(group, id);
-  if (s_hotkey.button[group] & (1 << group_key))
+  if (Common::ExtractBit(group_key, s_hotkey.button[group]))
   {
-    const bool pressed = !!(s_hotkey_down[group] & (1 << group_key));
     s_hotkey_down[group] |= (1 << group_key);
+    const bool pressed = Common::ExtractBit(group_key, s_hotkey_down[group]);
     if (!pressed || held)
       return true;
   }

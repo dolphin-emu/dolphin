@@ -8,6 +8,7 @@
 
 #include <SDL_events.h>
 
+#include "Common/BitUtils.h"
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
@@ -705,7 +706,7 @@ ControlState Joystick::Axis::GetState() const
 
 ControlState Joystick::Hat::GetState() const
 {
-  return (SDL_JoystickGetHat(m_js, m_index) & (1 << m_direction)) > 0;
+  return Common::ExtractBit(m_direction, SDL_JoystickGetHat(m_js, m_index));
 }
 #ifdef USE_SDL_GAMECONTROLLER
 

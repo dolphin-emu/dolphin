@@ -4,6 +4,7 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/GPFifo.h"
@@ -85,7 +86,7 @@ void Interpreter::mtfsfx(Interpreter& interpreter, UGeckoInstruction inst)
   u32 m = 0;
   for (u32 i = 0; i < 8; i++)
   {
-    if ((fm & (1U << i)) != 0)
+    if (Common::ExtractBit(i, fm))
       m |= (0xFU << (i * 4));
   }
 
@@ -125,7 +126,7 @@ void Interpreter::mtcrf(Interpreter& interpreter, UGeckoInstruction inst)
     u32 mask = 0;
     for (u32 i = 0; i < 8; i++)
     {
-      if ((crm & (1U << i)) != 0)
+      if (Common::ExtractBit(i, crm))
         mask |= 0xFU << (i * 4);
     }
 
@@ -260,10 +261,7 @@ void Interpreter::mfspr(Interpreter& interpreter, UGeckoInstruction inst)
     // GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)).
     // Currently, we always treat the buffer as not empty, as the exact behavior is unclear
     // (and games that use display lists will hang if the bit doesn't eventually become zero).
-    if (interpreter.m_system.GetGPFifo().IsBNE())
-      ppc_state.spr[index] |= 1;
-    else
-      ppc_state.spr[index] &= ~1;
+    Common::InsertBit<0>(ppc_state.spr[index], interpreter.m_system.GetGPFifo().IsBNE());
   }
   break;
 

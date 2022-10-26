@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
@@ -268,7 +269,6 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
     return;
 
   u8 HashCmd;
-  u64 Mask;
   DEBUG_LOG_FMT(EXPANSIONINTERFACE, "AGP command {:x}", _uData);
   switch (m_current_cmd)
   {
@@ -277,31 +277,31 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
     // 25 bit address shifted one bit right = 24 bits
     m_rw_offset = ((_uData & 0xFFFFFF00) >> (8 - 1));
     m_return_pos = 0;
-    HashCmd = (_uData & 0xFF000000) >> 24;
+    HashCmd = Common::ExtractBitsU<8, 24>(_uData);
     CRC8(&HashCmd, 1);
-    HashCmd = (_uData & 0x00FF0000) >> 16;
+    HashCmd = Common::ExtractBitsU<8, 16>(_uData);
     CRC8(&HashCmd, 1);
-    HashCmd = (_uData & 0x0000FF00) >> 8;
+    HashCmd = Common::ExtractBitsU<8, 8>(_uData);
     CRC8(&HashCmd, 1);
     break;
   case 0xAE040000:  // set up 16 bit address for read 1 byte
     // ToDo: Flash special handling
-    m_eeprom_pos = ((_uData & 0xFFFF0000) >> 0x10) & m_eeprom_mask;
-    HashCmd = (_uData & 0xFF000000) >> 24;
+    m_eeprom_pos = Common::ExtractBitsU<16, 16>(_uData) & m_eeprom_mask;
+    HashCmd = Common::ExtractBitsU<8, 24>(_uData);
     CRC8(&HashCmd, 1);
-    HashCmd = (_uData & 0x00FF0000) >> 16;
+    HashCmd = Common::ExtractBitsU<8, 16>(_uData);
     CRC8(&HashCmd, 1);
     break;
   case 0xAE070000:  // write 1 byte from 16 bit address
     // ToDo: Flash special handling
-    m_eeprom_pos = ((_uData & 0xFFFF0000) >> 0x10) & m_eeprom_mask;
+    m_eeprom_pos = Common::ExtractBitsU<16, 16>(_uData) & m_eeprom_mask;
     if (m_eeprom_size != 0)
-      ((m_eeprom.data()))[(m_eeprom_pos)] = (_uData & 0x0000FF00) >> 0x8;
-    HashCmd = (_uData & 0xFF000000) >> 24;
+      ((m_eeprom.data()))[(m_eeprom_pos)] = Common::ExtractBitsU<8, 8>(_uData);
+    HashCmd = Common::ExtractBitsU<8, 24>(_uData);
     CRC8(&HashCmd, 1);
-    HashCmd = (_uData & 0x00FF0000) >> 16;
+    HashCmd = Common::ExtractBitsU<8, 16>(_uData);
     CRC8(&HashCmd, 1);
-    HashCmd = (_uData & 0x0000FF00) >> 8;
+    HashCmd = Common::ExtractBitsU<8, 8>(_uData);
     CRC8(&HashCmd, 1);
     break;
   case 0xAE0C0000:  // write 1 bit from dma with 6 or 14 bit address
@@ -309,11 +309,8 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
         (m_eeprom_pos == ((m_eeprom_cmd & m_eeprom_read_mask) ? m_eeprom_add_end :
                                                                 m_eeprom_add_end + EE_DATA_BITS)))
     {
-      Mask = (1ULL << (m_eeprom_add_end - std::min(m_eeprom_pos, m_eeprom_add_end)));
-      if ((_uData >> 16) & 0x1)
-        m_eeprom_cmd |= Mask;
-      else
-        m_eeprom_cmd &= ~Mask;
+      const u16 start = m_eeprom_add_end - std::min(m_eeprom_pos, m_eeprom_add_end);
+      Common::InsertBit(start, m_eeprom_cmd, Common::ExtractBit<16>(_uData));
       if (m_eeprom_pos == m_eeprom_add_end + EE_DATA_BITS)
       {
         // Change to byte access instead of endian file access?
@@ -324,17 +321,14 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
     }
     else
     {
-      Mask = (1ULL << (m_eeprom_add_end + EE_DATA_BITS - 1 - m_eeprom_pos));
-      if ((_uData >> 16) & 0x1)
-        m_eeprom_data |= Mask;
-      else
-        m_eeprom_data &= ~Mask;
+      const u16 start = m_eeprom_add_end + EE_DATA_BITS - 1 - m_eeprom_pos;
+      Common::InsertBit(start, m_eeprom_data, Common::ExtractBit<16>(_uData));
     }
     m_eeprom_pos++;
     m_return_pos = 0;
-    HashCmd = (_uData & 0xFF000000) >> 24;
+    HashCmd = Common::ExtractBitsU<8, 24>(_uData);
     CRC8(&HashCmd, 1);
-    HashCmd = (_uData & 0x00FF0000) >> 16;
+    HashCmd = Common::ExtractBitsU<8, 16>(_uData);
     CRC8(&HashCmd, 1);
     break;
   case 0xAE0B0000:
@@ -352,7 +346,7 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
     m_current_cmd = _uData;
     m_return_pos = 0;
     m_hash = 0xFF;
-    HashCmd = (_uData & 0x00FF0000) >> 16;
+    HashCmd = Common::ExtractBitsU<8, 16>(_uData);
     CRC8(&HashCmd, 1);
     break;
   }

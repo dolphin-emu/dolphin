@@ -260,12 +260,12 @@ void CEXIETHERNET::DoState(PointerWrap& p)
 
 bool CEXIETHERNET::IsMXCommand(u32 const data)
 {
-  return !!(data & (1 << 31));
+  return Common::ExtractBit<31>(data);
 }
 
 bool CEXIETHERNET::IsWriteCommand(u32 const data)
 {
-  return IsMXCommand(data) ? !!(data & (1 << 30)) : !!(data & (1 << 14));
+  return IsMXCommand(data) ? Common::ExtractBit<30>(data) : Common::ExtractBit<14>(data);
 }
 
 const char* CEXIETHERNET::GetRegisterName() const
@@ -521,7 +521,7 @@ inline bool CEXIETHERNET::RecvMACFilter()
   {
     // Lookup the dest eth address in the hashmap
     u16 index = HashIndex(mRecvBuffer.get());
-    return !!(mBbaMem[BBA_NAFR_MAR0 + index / 8] & (1 << (index % 8)));
+    return Common::ExtractBit(index % 8, mBbaMem[BBA_NAFR_MAR0 + index / 8]);
   }
 }
 

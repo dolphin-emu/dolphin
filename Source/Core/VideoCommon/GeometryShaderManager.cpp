@@ -5,6 +5,7 @@
 
 #include <cstring>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
@@ -113,11 +114,8 @@ void GeometryShaderManager::SetLinePtWidthChanged()
 void GeometryShaderManager::SetTexCoordChanged(u8 texmapid)
 {
   TCoordInfo& tc = bpmem.texcoords[texmapid];
-  int bitmask = 1 << texmapid;
-  constants.texoffset[0] &= ~bitmask;
-  constants.texoffset[0] |= tc.s.line_offset << texmapid;
-  constants.texoffset[1] &= ~bitmask;
-  constants.texoffset[1] |= tc.s.point_offset << texmapid;
+  Common::InsertBit(texmapid, constants.texoffset[0], tc.s.line_offset);
+  Common::InsertBit(texmapid, constants.texoffset[1], tc.s.point_offset);
   dirty = true;
 }
 

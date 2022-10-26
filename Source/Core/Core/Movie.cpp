@@ -21,6 +21,7 @@
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
@@ -422,7 +423,7 @@ bool IsUsingPad(int controller)
 
 bool IsUsingBongo(int controller)
 {
-  return ((s_bongos & (1 << controller)) != 0);
+  return Common::ExtractBit(controller, s_bongos);
 }
 
 bool IsUsingGBA(int controller)
@@ -922,13 +923,13 @@ void ReadHeader()
 {
   for (int i = 0; i < 4; ++i)
   {
-    if (tmpHeader.GBAControllers & (1 << i))
+    if (Common::ExtractBit(i, tmpHeader.GBAControllers))
       s_controllers[i] = ControllerType::GBA;
-    else if (tmpHeader.controllers & (1 << i))
+    else if (Common::ExtractBit(i, tmpHeader.controllers))
       s_controllers[i] = ControllerType::GC;
     else
       s_controllers[i] = ControllerType::None;
-    s_wiimotes[i] = (tmpHeader.controllers & (1 << (i + 4))) != 0;
+    s_wiimotes[i] = Common::ExtractBit(i + 4, tmpHeader.controllers);
   }
   s_recordingStartTime = tmpHeader.recordingStartTime;
   if (s_rerecords < tmpHeader.numRerecords)
@@ -1493,8 +1494,8 @@ void GetSettings()
                    !(slot_a_has_gci_folder && gci_folder_has_saves(ExpansionInterface::Slot::A)) &&
                    !(slot_b_has_gci_folder && gci_folder_has_saves(ExpansionInterface::Slot::B));
   }
-  s_memcards |= (slot_a_has_raw_memcard || slot_a_has_gci_folder) << 0;
-  s_memcards |= (slot_b_has_raw_memcard || slot_b_has_gci_folder) << 1;
+  Common::InsertBit<0>(s_memcards, slot_a_has_raw_memcard || slot_a_has_gci_folder);
+  Common::InsertBit<1>(s_memcards, slot_b_has_raw_memcard || slot_b_has_gci_folder);
 
   s_revision = ConvertGitRevisionToBytes(Common::GetScmRevGitStr());
 

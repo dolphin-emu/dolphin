@@ -16,6 +16,7 @@
 #include <mbedtls/rsa.h>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/Crypto/AES.h"
 #include "Common/Crypto/SHA1.h"
@@ -690,7 +691,7 @@ bool IOSC::HasOwnership(Handle handle, u32 pid) const
 {
   u32 owner_mask;
   return handle == HANDLE_ROOT_KEY ||
-         (GetOwnership(handle, &owner_mask) == IPC_SUCCESS && ((1 << pid) & owner_mask) != 0);
+         (GetOwnership(handle, &owner_mask) == IPC_SUCCESS && Common::ExtractBit(pid, owner_mask));
 }
 
 bool IOSC::IsDefaultHandle(Handle handle) const

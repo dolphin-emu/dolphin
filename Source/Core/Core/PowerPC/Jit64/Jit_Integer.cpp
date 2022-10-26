@@ -1096,7 +1096,7 @@ void Jit64::subfx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
-  const bool carry = !(inst.SUBOP10 & (1 << 5));
+  const bool carry = !Common::ExtractBit<5>(inst.SUBOP10);
 
   if (a == b)
   {
@@ -1402,7 +1402,7 @@ void Jit64::divwux(UGeckoInstruction inst)
     else
     {
       u32 shift = 31;
-      while (!(divisor & (1 << shift)))
+      while (!Common::ExtractBit(shift, divisor))
         shift--;
 
       if (divisor == (u32)(1 << shift))
@@ -1833,7 +1833,7 @@ void Jit64::addx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
-  bool carry = !(inst.SUBOP10 & (1 << 8));
+  bool carry = !Common::ExtractBit<8>(inst.SUBOP10);
 
   if (gpr.IsImm(a, b))
   {
@@ -2714,7 +2714,7 @@ void Jit64::twX(UGeckoInstruction inst)
 
   for (size_t i = 0; i < conditions.size(); i++)
   {
-    if (inst.TO & (1 << i))
+    if (Common::ExtractBit(i, inst.TO))
     {
       FixupBranch f = J_CC(conditions[i], true);
       fixups.push_back(f);

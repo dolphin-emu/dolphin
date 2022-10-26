@@ -5,6 +5,8 @@
 
 #include <Metal/Metal.h>
 
+#include "Common/BitUtils.h"
+
 #include "VideoBackends/Metal/MRCHelpers.h"
 #include "VideoBackends/Metal/MTLObjectCache.h"
 #include "VideoBackends/Metal/MTLShader.h"
@@ -41,8 +43,14 @@ public:
   u32 GetSamplers() const { return m_reflection.samplers; }
   u32 GetVertexBuffers() const { return m_reflection.vertex_buffers; }
   u32 GetFragmentBuffers() const { return m_reflection.fragment_buffers; }
-  bool UsesVertexBuffer(u32 index) const { return m_reflection.vertex_buffers & (1 << index); }
-  bool UsesFragmentBuffer(u32 index) const { return m_reflection.fragment_buffers & (1 << index); }
+  bool UsesVertexBuffer(u32 index) const
+  {
+    return Common::ExtractBit(index, m_reflection.vertex_buffers);
+  }
+  bool UsesFragmentBuffer(u32 index) const
+  {
+    return Common::ExtractBit(index, m_reflection.fragment_buffers);
+  }
 
 private:
   MRCOwned<id<MTLRenderPipelineState>> m_pipeline;
@@ -61,8 +69,8 @@ public:
                            MRCOwned<id<MTLComputePipelineState>> pipeline);
 
   id<MTLComputePipelineState> GetComputePipeline() const { return m_compute_pipeline; }
-  bool UsesTexture(u32 index) const { return m_textures & (1 << index); }
-  bool UsesBuffer(u32 index) const { return m_buffers & (1 << index); }
+  bool UsesTexture(u32 index) const { return Common::ExtractBit(index, m_textures); }
+  bool UsesBuffer(u32 index) const { return Common::ExtractBit(index, m_buffers); }
 
 private:
   MRCOwned<id<MTLComputePipelineState>> m_compute_pipeline;

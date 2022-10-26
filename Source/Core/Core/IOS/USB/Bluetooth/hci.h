@@ -85,6 +85,7 @@
 #include <array>
 #include <cstdint>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
 // All structs in this file are packed
@@ -2526,7 +2527,7 @@ static __inline int hci_filter_test(uint8_t bit, const struct hci_filter* filter
   uint8_t off = bit - 1;
 
   off >>= 5;
-  return (filter->mask[off] & (1 << ((bit - 1) & 0x1f)));
+  return Common::ExtractBit((bit - 1) & 0x1f, filter->mask[off]);
 }
 
 /*

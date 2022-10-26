@@ -7,6 +7,7 @@
 #include <array>
 #include <map>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -639,7 +640,7 @@ void ZeldaUCode::RenderAudio()
       // Test the sync flag for this voice, skip it if not set.
       u16 flags = m_sync_voice_skip_flags[m_rendering_curr_voice >> 4];
       u8 bit = 0xF - (m_rendering_curr_voice & 0xF);
-      if (flags & (1 << bit))
+      if (Common::ExtractBit(bit, flags))
         m_renderer.AddVoice(m_rendering_curr_voice);
 
       m_rendering_curr_voice++;

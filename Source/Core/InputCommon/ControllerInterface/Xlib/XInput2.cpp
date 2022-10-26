@@ -11,6 +11,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/BitUtils.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Host.h"
@@ -430,7 +431,7 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* key
 
 ControlState KeyboardMouse::Key::GetState() const
 {
-  return (m_keyboard[m_keycode / 8] & (1 << (m_keycode % 8))) != 0;
+  return Common::ExtractBit(m_keycode % 8, m_keyboard[m_keycode / 8]);
 }
 
 KeyboardMouse::Button::Button(unsigned int index, unsigned int* buttons)
@@ -441,7 +442,7 @@ KeyboardMouse::Button::Button(unsigned int index, unsigned int* buttons)
 
 ControlState KeyboardMouse::Button::GetState() const
 {
-  return ((*m_buttons & (1 << m_index)) != 0);
+  return Common::ExtractBit(m_index, *m_buttons);
 }
 
 KeyboardMouse::Cursor::Cursor(u8 index, bool positive, const float* cursor)

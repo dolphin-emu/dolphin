@@ -1081,13 +1081,13 @@ void Interpreter::stwcxd(Interpreter& interpreter, UGeckoInstruction inst)
       if (!(ppc_state.Exceptions & EXCEPTION_DSI))
       {
         ppc_state.reserve = false;
-        ppc_state.cr.SetField(0, 2 | ppc_state.GetXER_SO());
+        ppc_state.cr.SetField(0, 2 | static_cast<u32>(ppc_state.GetXER_SO()));
         return;
       }
     }
   }
 
-  ppc_state.cr.SetField(0, ppc_state.GetXER_SO());
+  ppc_state.cr.SetField(0, static_cast<u32>(ppc_state.GetXER_SO()));
 }
 
 void Interpreter::stwux(Interpreter& interpreter, UGeckoInstruction inst)

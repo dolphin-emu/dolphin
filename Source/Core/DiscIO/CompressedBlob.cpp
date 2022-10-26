@@ -19,6 +19,7 @@
 #endif
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
@@ -93,7 +94,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
   u64 offset = m_block_pointers[block_num] + m_data_offset;
 
-  if (offset & (1ULL << 63))
+  if (Common::ExtractBit<63>(offset))
   {
     if (comp_block_size != m_header.block_size)
       ERROR_LOG_FMT(DISCIO, "Uncompressed block with wrong size");

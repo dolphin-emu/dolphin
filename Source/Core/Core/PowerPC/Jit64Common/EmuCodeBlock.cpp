@@ -7,6 +7,7 @@
 #include <limits>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/FloatUtils.h"
 #include "Common/Intrinsics.h"
@@ -234,7 +235,7 @@ private:
   {
     if (m_sign_extend)
     {
-      u32 sign = !!(value & (1 << (sbits - 1)));
+      const bool sign = Common::ExtractBit(sbits - 1, value);
       value |= sign * ((0xFFFFFFFF >> sbits) << sbits);
     }
     m_code->MOV(32, R(m_dst_reg), Gen::Imm32(value));
