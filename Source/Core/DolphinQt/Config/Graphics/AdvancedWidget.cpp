@@ -45,6 +45,27 @@ void AdvancedWidget::CreateWidgets()
 {
   auto* main_layout = new QVBoxLayout;
 
+  // Performance
+  auto* performance_box = new QGroupBox(tr("Performance Statistics"));
+  auto* performance_layout = new QGridLayout();
+  performance_box->setLayout(performance_layout);
+
+  m_show_fps = new GraphicsBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
+  m_show_vps = new GraphicsBool(tr("Show VPS"), Config::GFX_SHOW_VPS);
+  m_show_speed = new GraphicsBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED);
+  m_show_speed_colors = new GraphicsBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
+  m_perf_samp_window = new GraphicsInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, 100);
+  m_log_render_time =
+      new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
+
+  performance_layout->addWidget(m_show_fps, 0, 0);
+  performance_layout->addWidget(m_show_vps, 1, 0);
+  performance_layout->addWidget(m_show_speed, 0, 1);
+  performance_layout->addWidget(new QLabel(tr("Performance Sample Window (ms):")), 2, 0);
+  performance_layout->addWidget(m_perf_samp_window, 2, 1);
+  performance_layout->addWidget(m_log_render_time, 3, 0);
+  performance_layout->addWidget(m_show_speed_colors, 3, 1);
+
   // Debugging
   auto* debugging_box = new QGroupBox(tr("Debugging"));
   auto* debugging_layout = new QGridLayout();
@@ -155,6 +176,7 @@ void AdvancedWidget::CreateWidgets()
   experimental_layout->addWidget(m_defer_efb_access_invalidation, 0, 0);
   experimental_layout->addWidget(m_manual_texture_sampling, 0, 1);
 
+  main_layout->addWidget(performance_box);
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
   main_layout->addWidget(texture_dump_box);
@@ -214,6 +236,32 @@ void AdvancedWidget::OnEmulationStateChanged(bool running)
 
 void AdvancedWidget::AddDescriptions()
 {
+  static const char TR_SHOW_FPS_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the number of distinct frames rendered per second as a measure of "
+                 "visual smoothness.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_VPS_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the number of frames rendered per second as a measure of "
+                 "emulation speed.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_SPEED_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the % speed of emulation compared to full speed."
+                 "<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_SPEED_COLORS_DESCRIPTION[] =
+      QT_TR_NOOP("Changes the color of the FPS counter depending on emulation speed."
+                 "<br><br><dolphin_emphasis>If unsure, leave this "
+                 "checked.</dolphin_emphasis>");
+  static const char TR_PERF_SAMP_WINDOW_DESCRIPTION[] =
+      QT_TR_NOOP("The amount of time the FPS and VPS counters will sample over."
+                 "<br><br>The higher the value, the more stable the FPS/VPS counter will be, "
+                 "but the slower it will be slower to update."
+                 "<br><br><dolphin_emphasis>If unsure, leave this "
+                 "at 1000ms.</dolphin_emphasis>");
+  static const char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
+      "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use this "
+      "feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
+      "unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_WIREFRAME_DESCRIPTION[] =
       QT_TR_NOOP("Renders the scene as a wireframe.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
@@ -331,10 +379,17 @@ void AdvancedWidget::AddDescriptions()
   static const char IF_UNSURE_UNCHECKED[] =
       QT_TR_NOOP("<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
+  m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));
+  m_show_vps->SetDescription(tr(TR_SHOW_VPS_DESCRIPTION));
+  m_show_speed->SetDescription(tr(TR_SHOW_SPEED_DESCRIPTION));
+  m_log_render_time->SetDescription(tr(TR_LOG_RENDERTIME_DESCRIPTION));
+  m_show_speed_colors->SetDescription(tr(TR_SHOW_SPEED_COLORS_DESCRIPTION));
+
   m_enable_wireframe->SetDescription(tr(TR_WIREFRAME_DESCRIPTION));
   m_show_statistics->SetDescription(tr(TR_SHOW_STATS_DESCRIPTION));
   m_enable_format_overlay->SetDescription(tr(TR_TEXTURE_FORMAT_DESCRIPTION));
   m_enable_api_validation->SetDescription(tr(TR_VALIDATION_LAYER_DESCRIPTION));
+  m_perf_samp_window->SetDescription(tr(TR_PERF_SAMP_WINDOW_DESCRIPTION));
   m_dump_textures->SetDescription(tr(TR_DUMP_TEXTURE_DESCRIPTION));
   m_dump_mip_textures->SetDescription(tr(TR_DUMP_MIP_TEXTURE_DESCRIPTION));
   m_dump_base_textures->SetDescription(tr(TR_DUMP_BASE_TEXTURE_DESCRIPTION));
