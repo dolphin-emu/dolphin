@@ -10,8 +10,6 @@
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "Common/Future/CppLibBitCast.h"
-
 #include "../TestValues.h"
 
 #include <gtest/gtest.h>
@@ -34,7 +32,7 @@ public:
     const u8* raw_fprf_double = GetCodePtr();
     GenerateFPRF(false);
 
-    fprf_single = std::bit_cast<void (*)(u32)>(GetCodePtr());
+    fprf_single = __builtin_bit_cast(void (*)(u32), GetCodePtr());
     MOV(ARM64Reg::X15, ARM64Reg::X30);
     MOV(ARM64Reg::X14, PPC_REG);
     MOVP2R(PPC_REG, &PowerPC::ppcState);
@@ -43,7 +41,7 @@ public:
     MOV(PPC_REG, ARM64Reg::X14);
     RET();
 
-    fprf_double = std::bit_cast<void (*)(u64)>(GetCodePtr());
+    fprf_double = __builtin_bit_cast(void (*)(u64), GetCodePtr());
     MOV(ARM64Reg::X15, ARM64Reg::X30);
     MOV(ARM64Reg::X14, PPC_REG);
     MOVP2R(PPC_REG, &PowerPC::ppcState);
@@ -73,14 +71,14 @@ TEST(JitArm64, FPRF)
   for (const u64 double_input : double_test_values)
   {
     const u32 expected_double =
-        RunUpdateFPRF([&] { PowerPC::UpdateFPRFDouble(std::bit_cast<double>(double_input)); });
+        RunUpdateFPRF([&] { PowerPC::UpdateFPRFDouble(__builtin_bit_cast(double, double_input)); });
     const u32 actual_double = RunUpdateFPRF([&] { test.fprf_double(double_input); });
     EXPECT_EQ(expected_double, actual_double);
 
     const u32 single_input = ConvertToSingle(double_input);
 
     const u32 expected_single =
-        RunUpdateFPRF([&] { PowerPC::UpdateFPRFSingle(std::bit_cast<float>(single_input)); });
+        RunUpdateFPRF([&] { PowerPC::UpdateFPRFSingle(__builtin_bit_cast(float, single_input)); });
     const u32 actual_single = RunUpdateFPRF([&] { test.fprf_single(single_input); });
     EXPECT_EQ(expected_single, actual_single);
   }

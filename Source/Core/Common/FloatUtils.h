@@ -8,8 +8,6 @@
 
 #include "Common/CommonTypes.h"
 
-#include "Common/Future/CppLibBitCast.h"
-
 namespace Common
 {
 template <typename T>
@@ -38,37 +36,37 @@ enum : u32
 
 inline bool IsQNAN(double d)
 {
-  const u64 i = std::bit_cast<u64>(d);
+  const u64 i = __builtin_bit_cast(u64, d);
   return ((i & DOUBLE_EXP) == DOUBLE_EXP) && ((i & DOUBLE_QBIT) == DOUBLE_QBIT);
 }
 
 inline bool IsSNAN(double d)
 {
-  const u64 i = std::bit_cast<u64>(d);
+  const u64 i = __builtin_bit_cast(u64, d);
   return ((i & DOUBLE_EXP) == DOUBLE_EXP) && ((i & DOUBLE_FRAC) != DOUBLE_ZERO) &&
          ((i & DOUBLE_QBIT) == DOUBLE_ZERO);
 }
 
 inline float FlushToZero(float f)
 {
-  u32 i = std::bit_cast<u32>(f);
+  u32 i = __builtin_bit_cast(u32, f);
   if ((i & FLOAT_EXP) == 0)
   {
     // Turn into signed zero
     i &= FLOAT_SIGN;
   }
-  return std::bit_cast<float>(i);
+  return __builtin_bit_cast(float, i);
 }
 
 inline double FlushToZero(double d)
 {
-  u64 i = std::bit_cast<u64>(d);
+  u64 i = __builtin_bit_cast(u64, d);
   if ((i & DOUBLE_EXP) == 0)
   {
     // Turn into signed zero
     i &= DOUBLE_SIGN;
   }
-  return std::bit_cast<double>(i);
+  return __builtin_bit_cast(double, i);
 }
 
 enum PPCFpClass

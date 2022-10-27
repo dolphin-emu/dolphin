@@ -25,7 +25,6 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 
-#include "Common/Future/CppLibBitCast.h"
 #include "Common/Future/CppLibConcepts.h"
 
 namespace PowerPC
@@ -574,14 +573,14 @@ double Read_F64(const u32 address)
 {
   const u64 integral = Read_U64(address);
 
-  return std::bit_cast<double>(integral);
+  return __builtin_bit_cast(double, integral);
 }
 
 float Read_F32(const u32 address)
 {
   const u32 integral = Read_U32(address);
 
-  return std::bit_cast<float>(integral);
+  return __builtin_bit_cast(float, integral);
 }
 
 template <std::integral T>
@@ -640,7 +639,7 @@ std::optional<ReadResult<float>> HostTryReadF32(u32 address, RequestedAddressSpa
   const auto result = HostTryReadUX<u32>(address, space);
   if (!result)
     return std::nullopt;
-  return ReadResult<float>(result->translated, std::bit_cast<float>(result->value));
+  return ReadResult<float>(result->translated, __builtin_bit_cast(float, result->value));
 }
 
 std::optional<ReadResult<double>> HostTryReadF64(u32 address, RequestedAddressSpace space)
@@ -648,7 +647,7 @@ std::optional<ReadResult<double>> HostTryReadF64(u32 address, RequestedAddressSp
   const auto result = HostTryReadUX<u64>(address, space);
   if (!result)
     return std::nullopt;
-  return ReadResult<double>(result->translated, std::bit_cast<double>(result->value));
+  return ReadResult<double>(result->translated, __builtin_bit_cast(double, result->value));
 }
 
 u32 Read_U8_ZX(const u32 address)
@@ -700,7 +699,7 @@ void Write_U64_Swap(const u64 var, const u32 address)
 
 void Write_F64(const double var, const u32 address)
 {
-  const u64 integral = std::bit_cast<u64>(var);
+  const u64 integral = __builtin_bit_cast(u64, var);
 
   Write_U64(integral, address);
 }
@@ -729,14 +728,14 @@ float HostRead_F32(const u32 address)
 {
   const u32 integral = HostRead_U32(address);
 
-  return std::bit_cast<float>(integral);
+  return __builtin_bit_cast(float, integral);
 }
 
 double HostRead_F64(const u32 address)
 {
   const u64 integral = HostRead_U64(address);
 
-  return std::bit_cast<double>(integral);
+  return __builtin_bit_cast(double, integral);
 }
 
 void HostWrite_U8(const u32 var, const u32 address)
@@ -762,14 +761,14 @@ void HostWrite_U64(const u64 var, const u32 address)
 
 void HostWrite_F32(const float var, const u32 address)
 {
-  const u32 integral = std::bit_cast<u32>(var);
+  const u32 integral = __builtin_bit_cast(u32, var);
 
   HostWrite_U32(integral, address);
 }
 
 void HostWrite_F64(const double var, const u32 address)
 {
-  const u64 integral = std::bit_cast<u64>(var);
+  const u64 integral = __builtin_bit_cast(u64, var);
 
   HostWrite_U64(integral, address);
 }
@@ -830,14 +829,14 @@ std::optional<WriteResult> HostTryWriteU64(const u64 var, const u32 address,
 std::optional<WriteResult> HostTryWriteF32(const float var, const u32 address,
                                            RequestedAddressSpace space)
 {
-  const u32 integral = std::bit_cast<u32>(var);
+  const u32 integral = __builtin_bit_cast(u32, var);
   return HostTryWriteU32(integral, address, space);
 }
 
 std::optional<WriteResult> HostTryWriteF64(const double var, const u32 address,
                                            RequestedAddressSpace space)
 {
-  const u64 integral = std::bit_cast<u64>(var);
+  const u64 integral = __builtin_bit_cast(u64, var);
   return HostTryWriteU64(integral, address, space);
 }
 

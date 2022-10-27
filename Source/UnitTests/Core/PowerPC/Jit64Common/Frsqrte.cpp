@@ -11,8 +11,6 @@
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 
-#include "Common/Future/CppLibBitCast.h"
-
 #include "../TestValues.h"
 
 #include <fmt/format.h>
@@ -65,9 +63,9 @@ TEST(Jit64, Frsqrte)
 
   for (const u64 ivalue : double_test_values)
   {
-    double dvalue = std::bit_cast<double>(ivalue);
+    double dvalue = __builtin_bit_cast(double, ivalue);
 
-    u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocalSquareRoot(dvalue));
+    u64 expected = __builtin_bit_cast(u64, Common::ApproximateReciprocalSquareRoot(dvalue));
 
     u64 actual = routines.wrapped_frsqrte(ivalue, fpscr);
 

@@ -10,8 +10,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 
-#include "Common/Future/CppLibBitCast.h"
-
 namespace AddressSpace
 {
 u16 Accessors::ReadU16(u32 address) const
@@ -55,7 +53,7 @@ void Accessors::WriteU64(u32 address, u64 value)
 
 float Accessors::ReadF32(u32 address) const
 {
-  return std::bit_cast<float>(ReadU32(address));
+  return __builtin_bit_cast(float, ReadU32(address));
 }
 
 Accessors::iterator Accessors::begin() const

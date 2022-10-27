@@ -31,8 +31,6 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
-#include "Common/Future/CppLibBitCast.h"
-
 // "Most mouse types work in steps of 15 degrees, in which case the delta value is a multiple of
 // 120; i.e., 120 units * 1/8 = 15 degrees." (http://doc.qt.io/qt-5/qwheelevent.html#angleDelta)
 constexpr double SCROLL_FRACTION_DEGREES = 15.;
@@ -473,17 +471,17 @@ void MemoryViewWidget::UpdateColumns(Type type, int first_column)
       break;
     case Type::Signed8:
       update_values([&accessors](u32 address) {
-        return QString::number(std::bit_cast<s8>(accessors->ReadU8(address)));
+        return QString::number(__builtin_bit_cast(s8, accessors->ReadU8(address)));
       });
       break;
     case Type::Signed16:
       update_values([&accessors](u32 address) {
-        return QString::number(std::bit_cast<s16>(accessors->ReadU16(address)));
+        return QString::number(__builtin_bit_cast(s16, accessors->ReadU16(address)));
       });
       break;
     case Type::Signed32:
       update_values([&accessors](u32 address) {
-        return QString::number(std::bit_cast<s32>(accessors->ReadU32(address)));
+        return QString::number(__builtin_bit_cast(s32, accessors->ReadU32(address)));
       });
       break;
     case Type::Float32:
@@ -499,7 +497,7 @@ void MemoryViewWidget::UpdateColumns(Type type, int first_column)
     case Type::Double:
       update_values([&accessors](u32 address) {
         QString string =
-            QString::number(std::bit_cast<double>(accessors->ReadU64(address)), 'g', 4);
+            QString::number(__builtin_bit_cast(double, accessors->ReadU64(address)), 'g', 4);
         // Align to first digit.
         if (!string.startsWith(QLatin1Char('-')))
           string.prepend(QLatin1Char(' '));
@@ -594,7 +592,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QString input_te
 
     if (good)
     {
-      const u32 value = std::bit_cast<u32>(float_value);
+      const u32 value = __builtin_bit_cast(u32, float_value);
       auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
       return std::vector<u8>(std_array.begin(), std_array.end());
     }
@@ -606,7 +604,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QString input_te
 
     if (good)
     {
-      const u64 value = std::bit_cast<u64>(double_value);
+      const u64 value = __builtin_bit_cast(u64, double_value);
       auto std_array = Common::BitCastToArray<u8>(Common::swap64(value));
       return std::vector<u8>(std_array.begin(), std_array.end());
     }

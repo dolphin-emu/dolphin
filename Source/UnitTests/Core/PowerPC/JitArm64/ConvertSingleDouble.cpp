@@ -9,8 +9,6 @@
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 
-#include "Common/Future/CppLibBitCast.h"
-
 #include "../TestValues.h"
 
 #include <fmt/format.h>
@@ -51,13 +49,13 @@ public:
     gpr.Lock(ARM64Reg::W30);
     fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
 
-    convert_single_to_double_lower = std::bit_cast<u64 (*)(u32)>(GetCodePtr());
+    convert_single_to_double_lower = __builtin_bit_cast(u64(*)(u32), GetCodePtr());
     m_float_emit.INS(32, ARM64Reg::S0, 0, ARM64Reg::W0);
     ConvertSingleToDoubleLower(0, ARM64Reg::D0, ARM64Reg::S0, ARM64Reg::Q1);
     m_float_emit.UMOV(64, ARM64Reg::X0, ARM64Reg::D0, 0);
     RET();
 
-    convert_single_to_double_pair = std::bit_cast<Pair<u64> (*)(u32, u32)>(GetCodePtr());
+    convert_single_to_double_pair = __builtin_bit_cast(Pair<u64>(*)(u32, u32), GetCodePtr());
     m_float_emit.INS(32, ARM64Reg::D0, 0, ARM64Reg::W0);
     m_float_emit.INS(32, ARM64Reg::D0, 1, ARM64Reg::W1);
     ConvertSingleToDoublePair(0, ARM64Reg::Q0, ARM64Reg::D0, ARM64Reg::Q1);
@@ -65,13 +63,13 @@ public:
     m_float_emit.UMOV(64, ARM64Reg::X1, ARM64Reg::Q0, 1);
     RET();
 
-    convert_double_to_single_lower = std::bit_cast<u32 (*)(u64)>(GetCodePtr());
+    convert_double_to_single_lower = __builtin_bit_cast(u32(*)(u64), GetCodePtr());
     m_float_emit.INS(64, ARM64Reg::D0, 0, ARM64Reg::X0);
     ConvertDoubleToSingleLower(0, ARM64Reg::S0, ARM64Reg::D0);
     m_float_emit.UMOV(32, ARM64Reg::W0, ARM64Reg::S0, 0);
     RET();
 
-    convert_double_to_single_pair = std::bit_cast<Pair<u32> (*)(u64, u64)>(GetCodePtr());
+    convert_double_to_single_pair = __builtin_bit_cast(Pair<u32>(*)(u64, u64), GetCodePtr());
     m_float_emit.INS(64, ARM64Reg::Q0, 0, ARM64Reg::X0);
     m_float_emit.INS(64, ARM64Reg::Q0, 1, ARM64Reg::X1);
     ConvertDoubleToSinglePair(0, ARM64Reg::D0, ARM64Reg::Q0);

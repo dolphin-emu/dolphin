@@ -13,8 +13,6 @@
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "Common/Future/CppLibBitCast.h"
-
 constexpr double PPC_NAN = std::numeric_limits<double>::quiet_NaN();
 
 // the 4 less-significand bits in FPSCR[FPRF]
@@ -60,13 +58,13 @@ inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
 
     constexpr u64 smallest_normal_single = 0x3810000000000000;
     const u64 value_without_sign =
-        std::bit_cast<u64>(value) & (Common::DOUBLE_EXP | Common::DOUBLE_FRAC);
+        __builtin_bit_cast(u64, value) & (Common::DOUBLE_EXP | Common::DOUBLE_FRAC);
 
     if (value_without_sign < smallest_normal_single)
     {
-      const u64 flushed_double = std::bit_cast<u64>(value) & Common::DOUBLE_SIGN;
+      const u64 flushed_double = __builtin_bit_cast(u64, value) & Common::DOUBLE_SIGN;
       const u32 flushed_single = static_cast<u32>(flushed_double >> 32);
-      return std::bit_cast<float>(flushed_single);
+      return __builtin_bit_cast(float, flushed_single);
     }
   }
 
@@ -91,18 +89,18 @@ inline double ForceDouble(const UReg_FPSCR& fpscr, double d)
 
 inline double Force25Bit(double d)
 {
-  u64 integral = std::bit_cast<u64>(d);
+  u64 integral = __builtin_bit_cast(u64, d);
 
   integral = (integral & 0xFFFFFFFFF8000000ULL) + (integral & 0x8000000);
 
-  return std::bit_cast<double>(integral);
+  return __builtin_bit_cast(double, integral);
 }
 
 inline double MakeQuiet(double d)
 {
-  const u64 integral = std::bit_cast<u64>(d) | Common::DOUBLE_QBIT;
+  const u64 integral = __builtin_bit_cast(u64, d) | Common::DOUBLE_QBIT;
 
-  return std::bit_cast<double>(integral);
+  return __builtin_bit_cast(double, integral);
 }
 
 // these functions allow globally modify operations behaviour

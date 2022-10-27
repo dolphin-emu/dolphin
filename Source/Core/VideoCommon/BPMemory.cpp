@@ -3,8 +3,6 @@
 
 #include "VideoCommon/BPMemory.h"
 
-#include "Common/Future/CppLibBitCast.h"
-
 // BP state
 // STATE_TO_SAVE
 BPMemory bpmem;
@@ -50,14 +48,14 @@ float FogParam0::FloatValue() const
 {
   // scale mantissa from 11 to 23 bits
   const u32 integral = (sign << 31) | (exp << 23) | (mant << 12);
-  return std::bit_cast<float>(integral);
+  return __builtin_bit_cast(float, integral);
 }
 
 float FogParam3::FloatValue() const
 {
   // scale mantissa from 11 to 23 bits
   const u32 integral = (c_sign << 31) | (c_exp << 23) | (c_mant << 12);
-  return std::bit_cast<float>(integral);
+  return __builtin_bit_cast(float, integral);
 }
 
 float FogParams::GetA() const

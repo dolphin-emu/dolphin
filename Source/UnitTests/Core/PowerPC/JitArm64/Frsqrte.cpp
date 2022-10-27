@@ -9,8 +9,6 @@
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "Common/Future/CppLibBitCast.h"
-
 #include "../TestValues.h"
 
 #include <gtest/gtest.h>
@@ -31,7 +29,7 @@ public:
     const u8* raw_frsqrte = GetCodePtr();
     GenerateFrsqrte();
 
-    frsqrte = std::bit_cast<u64 (*)(u64)>(GetCodePtr());
+    frsqrte = __builtin_bit_cast(u64(*)(u64), GetCodePtr());
     MOV(ARM64Reg::X15, ARM64Reg::X30);
     MOV(ARM64Reg::X14, PPC_REG);
     MOVP2R(PPC_REG, &PowerPC::ppcState);
@@ -55,9 +53,9 @@ TEST(JitArm64, Frsqrte)
 
   for (const u64 ivalue : double_test_values)
   {
-    const double dvalue = std::bit_cast<double>(ivalue);
+    const double dvalue = __builtin_bit_cast(double, ivalue);
 
-    const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocalSquareRoot(dvalue));
+    const u64 expected = __builtin_bit_cast(u64, Common::ApproximateReciprocalSquareRoot(dvalue));
     const u64 actual = test.frsqrte(ivalue);
 
     if (expected != actual)

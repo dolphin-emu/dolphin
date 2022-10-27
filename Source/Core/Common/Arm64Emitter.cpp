@@ -18,8 +18,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
-#include "Common/Future/CppLibBitCast.h"
-
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -51,12 +49,12 @@ float FPImm8ToFloat(u8 bits)
   const u32 mantissa = (bits & 0xF) << 19;
   const u32 f = (sign << 31) | (exp << 23) | mantissa;
 
-  return std::bit_cast<float>(f);
+  return __builtin_bit_cast(float, f);
 }
 
 std::optional<u8> FPImm8FromFloat(float value)
 {
-  const u32 f = std::bit_cast<u32>(value);
+  const u32 f = __builtin_bit_cast(u32, value);
   const u32 mantissa4 = (f & 0x7FFFFF) >> 19;
   const u32 exponent = (f >> 23) & 0xFF;
   const u32 sign = f >> 31;
@@ -4252,7 +4250,7 @@ void ARM64FloatEmitter::MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch, bool 
     if (negate)
       value = -value;
 
-    const u32 ival = std::bit_cast<u32>(value);
+    const u32 ival = __builtin_bit_cast(u32, value);
     m_emit->MOVI2R(scratch, ival);
     FMOV(Rd, scratch);
   }

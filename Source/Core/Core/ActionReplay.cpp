@@ -42,8 +42,6 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/PowerPC/MMU.h"
 
-#include "Common/Future/CppLibBitCast.h"
-
 namespace ActionReplay
 {
 enum
@@ -515,10 +513,10 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("--------");
 
     const u32 read = PowerPC::HostRead_U32(new_addr);
-    const float read_float = std::bit_cast<float>(read);
+    const float read_float = __builtin_bit_cast(float, read);
     // data contains an (unsigned?) integer value
     const float fread = read_float + static_cast<float>(data);
-    const u32 newval = std::bit_cast<u32>(fread);
+    const u32 newval = __builtin_bit_cast(u32, fread);
     PowerPC::HostWrite_U32(newval, new_addr);
     LogInfo("Old Value {:08x}", read);
     LogInfo("Increment {:08x}", data);
