@@ -17,11 +17,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>${DOLPHIN_WC_DESCRIBE}</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>${DOLPHIN_VERSION_MAJOR}.${DOLPHIN_VERSION_MINOR}</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.9</string>
+	<string>${CMAKE_OSX_DEPLOYMENT_TARGET}</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Licensed under GPL version 2 or later (GPLv2+)</string>
 	<key>NSMainStoryboardFile</key>
