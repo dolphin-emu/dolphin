@@ -55,9 +55,11 @@ TEST(FloatUtils, FlushToZero)
     EXPECT_EQ(-0.f, Common::FlushToZero(__builtin_bit_cast(float, i_tmp)));
 
     i_tmp = dist(engine);
-    EXPECT_EQ(i_tmp, __builtin_bit_cast(u32 > (Common::FlushToZero(std::bit_cast < float, i_tmp))));
+    EXPECT_EQ(i_tmp,
+              __builtin_bit_cast(u32, Common::FlushToZero(__builtin_bit_cast(float, i_tmp))));
 
     i_tmp |= 0x80000000u;
-    EXPECT_EQ(i_tmp, __builtin_bit_cast(u32 > (Common::FlushToZero(std::bit_cast < float, i_tmp))));
+    EXPECT_EQ(i_tmp,
+              __builtin_bit_cast(u32, Common::FlushToZero(__builtin_bit_cast(float, i_tmp))));
   }
 }
