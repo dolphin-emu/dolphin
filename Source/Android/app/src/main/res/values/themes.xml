@@ -6,12 +6,6 @@
         <item name="postSplashScreenTheme">@style/Theme.Dolphin.Main</item>
     </style>
 
-    <style name="Theme.Dolphin.Splash.TV" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/dolphin_surface</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_dolphin</item>
-        <item name="postSplashScreenTheme">@style/Theme.Dolphin.TV</item>
-    </style>
-
     <!-- Base theme -->
     <style name="Theme.Dolphin" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/dolphin_primary</item>
@@ -141,18 +135,5 @@
 
         <!-- If you want to set a specific toolbar theme, do it here -->
         <item name="nnf_toolbarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
-    </style>
-
-    <style name="Theme.Dolphin.TV" parent="Theme.Leanback.Browse">
-        <!-- Enable window content transitions -->
-        <item name="android:windowContentTransitions">true</item>
-        <item name="android:windowAllowEnterTransitionOverlap">true</item>
-        <item name="android:windowAllowReturnTransitionOverlap">true</item>
-
-        <!-- Use CustomTitleView as the leanback title view. -->
-        <item name="browseTitleViewLayout">@layout/titleview</item>
-
-        <!-- Global AlertDialog Theme -->
-        <item name="alertDialogTheme">@style/DolphinTVDialog</item>
     </style>
 </resources>

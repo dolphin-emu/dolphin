@@ -99,7 +99,7 @@ public class SyncProgramsJobService extends JobService
           for (Platform platform : Platform.values())
           {
             if (channel != null &&
-                    channel.getAppLinkIntentUri().equals(AppLinkHelper.buildBrowseUri(platform)))
+                    channel.getAppLinkIntentUri().equals(AppLinkHelper.buildBrowseUri()))
             {
               getGamesByPlatform(platform);
               syncPrograms(channelId);
@@ -145,7 +145,7 @@ public class SyncProgramsJobService extends JobService
 
     private PreviewProgram buildProgram(long channelId, GameFile game)
     {
-      Uri appLinkUri = AppLinkHelper.buildGameUri(channelId, game.getGameId());
+      Uri appLinkUri = AppLinkHelper.buildGameUri(game);
       Uri banner = TvUtil.buildBanner(game, context);
       if (banner == null)
         banner = TvUtil.getUriToResource(context, R.drawable.banner_tv);

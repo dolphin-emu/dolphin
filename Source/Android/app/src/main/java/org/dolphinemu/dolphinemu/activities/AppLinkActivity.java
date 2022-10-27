@@ -6,12 +6,14 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.fragment.app.FragmentActivity;
 
+import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
-import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.AppLinkHelper;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
@@ -82,7 +84,7 @@ public class AppLinkActivity extends FragmentActivity
    */
   private void browse()
   {
-    Intent openApp = new Intent(this, TvMainActivity.class);
+    Intent openApp = new Intent(this, MainActivity.class);
     startActivity(openApp);
 
     finish();
@@ -99,24 +101,27 @@ public class AppLinkActivity extends FragmentActivity
     // If game == null and the load is done, call play with a null game, making us exit in failure.
     if (game != null || !GameFileCacheManager.isLoading().getValue())
     {
-      play(action, game);
+      play(game);
     }
   }
 
   /**
    * Action if program(game) is selected
    */
-  private void play(AppLinkHelper.PlayAction action, GameFile game)
+  private void play(GameFile game)
   {
-    Log.d(TAG, "Playing game "
-            + action.getGameId()
-            + " from channel "
-            + action.getChannelId());
-
-    if (game == null)
-      Log.e(TAG, "Invalid Game: " + action.getGameId());
-    else
-      startGame(game);
+    // Check if game is valid
+    try
+    {
+      game.getGameId();
+    }
+    catch (NullPointerException e)
+    {
+      Toast.makeText(this, R.string.game_not_found, Toast.LENGTH_SHORT).show();
+      finish();
+      return;
+    }
+    startGame(game);
     finish();
   }
 

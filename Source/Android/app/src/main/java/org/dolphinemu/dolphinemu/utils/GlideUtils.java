@@ -68,14 +68,15 @@ public class GlideUtils
   public static void loadGameCover(GameAdapter.GameViewHolder gameViewHolder, ImageView imageView,
           GameFile gameFile, Activity activity)
   {
-    if (BooleanSetting.MAIN_SHOW_GAME_TITLES.getBooleanGlobal() && gameViewHolder != null)
+    GameFile gameFile = gameViewHolder.gameFile;
+    if (BooleanSetting.MAIN_SHOW_GAME_TITLES.getBooleanGlobal())
     {
       gameViewHolder.binding.textGameTitle.setText(gameFile.getTitle());
       gameViewHolder.binding.textGameTitle.setVisibility(View.VISIBLE);
       gameViewHolder.binding.textGameTitleInner.setVisibility(View.GONE);
       gameViewHolder.binding.textGameCaption.setVisibility(View.VISIBLE);
     }
-    else if (gameViewHolder != null)
+    else
     {
       gameViewHolder.binding.textGameTitleInner.setText(gameFile.getTitle());
       gameViewHolder.binding.textGameTitle.setVisibility(View.GONE);

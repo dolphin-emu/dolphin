@@ -631,5 +631,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
     <string name="ignore_warning_alert_messages">Ignore for this session</string>
     <string name="make_sure_continuous_scan_enabled">Please make sure Continuous Scanning is enabled in Core Settings.</string>
+    <string name="game_not_found">Game not found.</string>
 
 </resources>

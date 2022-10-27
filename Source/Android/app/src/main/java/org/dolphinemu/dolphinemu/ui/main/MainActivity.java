@@ -38,6 +38,7 @@ import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
+import org.dolphinemu.dolphinemu.utils.TvUtil;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 /**
@@ -315,6 +316,11 @@ public final class MainActivity extends AppCompatActivity
   @Override
   public void showGames()
   {
+    if (TvUtil.isLeanback(getApplicationContext()))
+    {
+      TvUtil.updateAllChannels(getApplicationContext());
+    }
+
     forEachPlatformGamesView(PlatformGamesView::showGames);
   }
 

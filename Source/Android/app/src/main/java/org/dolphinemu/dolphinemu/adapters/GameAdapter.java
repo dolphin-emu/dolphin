@@ -86,6 +86,8 @@ public final class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameView
     }
 
     holder.gameFile = gameFile;
+    
+    GlideUtils.loadGameCover(holder);
   }
 
   public static class GameViewHolder extends RecyclerView.ViewHolder

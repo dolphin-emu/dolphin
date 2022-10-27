@@ -115,15 +115,6 @@ public class CheatsActivity extends AppCompatActivity
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu)
-  {
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.menu_settings, menu);
-
-    return true;
-  }
-
-  @Override
   protected void onStop()
   {
     super.onStop();

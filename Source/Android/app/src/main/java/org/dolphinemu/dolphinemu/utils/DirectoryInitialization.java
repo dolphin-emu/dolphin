@@ -354,6 +354,7 @@ public final class DirectoryInitialization
     // All phones which are running a compatible version of Android support ACTION_OPEN_DOCUMENT and
     // ACTION_OPEN_DOCUMENT_TREE, as this is required by the mobile Android CTS (unlike Android TV).
 
+    // Maybe there should be an additional check for the shield tv to handle this situation?
     return Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
             PermissionsHandler.isExternalStorageLegacy() && TvUtil.isLeanback(context);
   }

@@ -6,7 +6,7 @@ import android.net.Uri;
 
 import androidx.annotation.StringDef;
 
-import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.model.GameFile;
 
 import java.util.List;
 
@@ -21,29 +21,30 @@ public class AppLinkHelper
   private static final String URI_PLAY = SCHEMA_URI_PREFIX + PLAY;
   private static final String URI_VIEW = SCHEMA_URI_PREFIX + BROWSE;
   private static final int URI_INDEX_OPTION = 0;
-  private static final int URI_INDEX_CHANNEL = 1;
-  private static final int URI_INDEX_GAME = 2;
+  private static final int URI_INDEX_GAME = 1;
 
-  public static Uri buildGameUri(long channelId, String gameId)
+  public static Uri buildGameUri(GameFile game)
   {
     return Uri.parse(URI_PLAY)
             .buildUpon()
-            .appendPath(String.valueOf(channelId))
-            .appendPath(String.valueOf(gameId))
+            .appendPath(String.valueOf(game.getPlatform()))
+            .appendPath(String.valueOf(game.getGameId()))
             .build();
   }
 
-  public static Uri buildBrowseUri(Platform platform)
+  public static Uri buildBrowseUri()
   {
-    return Uri.parse(URI_VIEW).buildUpon().appendPath(platform.getIdString()).build();
+    return Uri.parse(URI_VIEW)
+            .buildUpon()
+            .build();
   }
 
   public static AppLinkAction extractAction(Uri uri)
   {
     if (isGameUri(uri))
-      return new PlayAction(extractChannelId(uri), extractGameId(uri));
+      return new PlayAction(extractGameId(uri));
     else if (isBrowseUri(uri))
-      return new BrowseAction(extractSubscriptionName(uri));
+      return new BrowseAction();
 
     throw new IllegalArgumentException("No action found for uri " + uri);
   }
@@ -67,24 +68,9 @@ public class AppLinkHelper
     return BROWSE.equals(option);
   }
 
-  private static String extractSubscriptionName(Uri uri)
-  {
-    return extract(uri, URI_INDEX_CHANNEL);
-  }
-
-  private static long extractChannelId(Uri uri)
-  {
-    return extractLong(uri, URI_INDEX_CHANNEL);
-  }
-
   private static String extractGameId(Uri uri)
   {
     return extract(uri, URI_INDEX_GAME);
-  }
-
-  private static long extractLong(Uri uri, int index)
-  {
-    return Long.parseLong(extract(uri, index));
   }
 
   private static String extract(Uri uri, int index)
@@ -117,11 +103,8 @@ public class AppLinkHelper
    */
   public static class BrowseAction implements AppLinkAction
   {
-    private final String mSubscriptionName;
-
-    private BrowseAction(String subscriptionName)
+    private BrowseAction()
     {
-      this.mSubscriptionName = subscriptionName;
     }
 
     @Override
@@ -136,18 +119,11 @@ public class AppLinkHelper
    */
   public static class PlayAction implements AppLinkAction
   {
-    private final long channelId;
     private final String gameId;
 
-    private PlayAction(long channelId, String gameId)
+    private PlayAction(String gameId)
     {
-      this.channelId = channelId;
       this.gameId = gameId;
-    }
-
-    public long getChannelId()
-    {
-      return channelId;
     }
 
     public String getGameId()

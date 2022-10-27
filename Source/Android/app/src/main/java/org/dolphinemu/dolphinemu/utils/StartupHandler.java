@@ -31,7 +31,9 @@ public final class StartupHandler
 
     // Set up and/or sync Android TV channels
     if (TvUtil.isLeanback(parent))
+    {
       TvUtil.scheduleSyncingChannel(parent);
+    }
 
     String[] gamesToLaunch = getGamesFromIntent(parent.getIntent());
     if (gamesToLaunch != null && gamesToLaunch.length > 0)

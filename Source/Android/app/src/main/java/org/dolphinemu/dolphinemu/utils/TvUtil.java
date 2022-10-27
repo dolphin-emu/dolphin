@@ -284,7 +284,7 @@ public class TvUtil
       subs.add(new HomeScreenChannel(
               context.getString(platform.getHeaderName()),
               context.getString(platform.getHeaderName()),
-              AppLinkHelper.buildBrowseUri(platform)));
+              AppLinkHelper.buildBrowseUri()));
     }
     return subs;
   }

@@ -112,15 +112,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu)
-  {
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.menu_settings, menu);
-
-    return true;
-  }
-
-  @Override
   protected void onSaveInstanceState(@NonNull Bundle outState)
   {
     // Critical: If super method is not called, rotations will be busted.

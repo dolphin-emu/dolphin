@@ -107,12 +107,12 @@ dependencies {
     implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.core:core-splashscreen:1.0.0'
     implementation 'androidx.preference:preference:1.2.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
     // Force dependency version to solve build conflict with androidx preferences
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
 
-    // Android TV UI libraries.
-    implementation 'androidx.leanback:leanback:1.0.0'
+    // Android TV functionality
     implementation 'androidx.tvprovider:tvprovider:1.0.0'
 
     // For REST calls
