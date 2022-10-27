@@ -262,7 +262,7 @@ void JitArm64::GenerateFres()
   TST(ARM64Reg::X1, LogicalImm(Common::DOUBLE_EXP | Common::DOUBLE_FRAC, 64));
   FixupBranch zero = B(CCFlags::CC_EQ);
   MOVI2R(ARM64Reg::X4,
-         __builtin_bit_cast(u64 > (static_cast < double, std::numeric_limits<float>::max())));
+         __builtin_bit_cast(u64, static_cast<double>(std::numeric_limits<float>::max())));
   ORR(ARM64Reg::X0, ARM64Reg::X3, ARM64Reg::X4);
   RET();
 
