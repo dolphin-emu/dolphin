@@ -12,5 +12,5 @@ public:
   void OnEFB(GraphicsModActionData::EFB*) override;
   void OnProjection(GraphicsModActionData::Projection*) override;
   void OnProjectionAndTexture(GraphicsModActionData::Projection*) override;
-  void OnTextureLoad() override;
+  void OnTextureLoad(GraphicsModActionData::TextureLoad*) override;
 };

@@ -46,7 +46,7 @@ private:
   std::unordered_map<std::string, std::vector<GraphicsModAction*>>
       m_projection_texture_target_to_actions;
   std::unordered_map<std::string, std::vector<GraphicsModAction*>> m_draw_started_target_to_actions;
-  std::unordered_map<std::string, std::vector<GraphicsModAction*>> m_load_target_to_actions;
+  std::unordered_map<std::string, std::vector<GraphicsModAction*>> m_load_texture_target_to_actions;
   std::unordered_map<FBInfo, std::vector<GraphicsModAction*>, FBInfoHasher> m_efb_target_to_actions;
   std::unordered_map<FBInfo, std::vector<GraphicsModAction*>, FBInfoHasher> m_xfb_target_to_actions;
 

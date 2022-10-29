@@ -1243,6 +1243,13 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture
   if (entry->texture_info_name.empty() && g_ActiveConfig.bGraphicMods)
   {
     entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
+
+    GraphicsModActionData::TextureLoad texture_load{entry->texture_info_name};
+    for (const auto action :
+         g_renderer->GetGraphicsModManager().GetTextureLoadActions(entry->texture_info_name))
+    {
+      action->OnTextureLoad(&texture_load);
+    }
   }
   bound_textures[texture_info.GetStage()] = entry;
 

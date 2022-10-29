@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <string_view>
+
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 
@@ -25,5 +27,9 @@ struct EFB
 struct Projection
 {
   Common::Matrix44* matrix;
+};
+struct TextureLoad
+{
+  std::string_view texture_name;
 };
 }  // namespace GraphicsModActionData

@@ -46,11 +46,11 @@ public:
       return;
     m_action_impl->OnProjectionAndTexture(projection);
   }
-  void OnTextureLoad() override
+  void OnTextureLoad(GraphicsModActionData::TextureLoad* texture_load) override
   {
     if (!m_mod.m_enabled)
       return;
-    m_action_impl->OnTextureLoad();
+    m_action_impl->OnTextureLoad(texture_load);
   }
   void OnFrameEnd() override
   {
@@ -105,8 +105,8 @@ GraphicsModManager::GetDrawStartedActions(const std::string& texture_name) const
 const std::vector<GraphicsModAction*>&
 GraphicsModManager::GetTextureLoadActions(const std::string& texture_name) const
 {
-  if (const auto it = m_load_target_to_actions.find(texture_name);
-      it != m_load_target_to_actions.end())
+  if (const auto it = m_load_texture_target_to_actions.find(texture_name);
+      it != m_load_texture_target_to_actions.end())
   {
     return it->second;
   }
@@ -196,7 +196,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
                       m_actions.back().get());
                 },
                 [&](const LoadTextureTarget& the_target) {
-                  m_load_target_to_actions[the_target.m_texture_info_string].push_back(
+                  m_load_texture_target_to_actions[the_target.m_texture_info_string].push_back(
                       m_actions.back().get());
                 },
                 [&](const EFBTarget& the_target) {
@@ -272,7 +272,7 @@ void GraphicsModManager::Reset()
   m_projection_target_to_actions.clear();
   m_projection_texture_target_to_actions.clear();
   m_draw_started_target_to_actions.clear();
-  m_load_target_to_actions.clear();
+  m_load_texture_target_to_actions.clear();
   m_efb_target_to_actions.clear();
   m_xfb_target_to_actions.clear();
 }
