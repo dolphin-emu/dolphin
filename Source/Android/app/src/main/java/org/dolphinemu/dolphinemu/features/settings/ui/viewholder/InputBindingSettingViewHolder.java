@@ -5,12 +5,12 @@ package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.view.View;
-import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
 
-import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
@@ -19,23 +19,16 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
 {
   private InputBindingSetting mItem;
 
-  private TextView mTextSettingName;
-  private TextView mTextSettingDescription;
+  private final Context mContext;
 
-  private Context mContext;
+  private final ListItemSettingBinding mBinding;
 
-  public InputBindingSettingViewHolder(View itemView, SettingsAdapter adapter, Context context)
+  public InputBindingSettingViewHolder(@NonNull ListItemSettingBinding binding,
+          SettingsAdapter adapter, Context context)
   {
-    super(itemView, adapter);
-
+    super(binding.getRoot(), adapter);
+    mBinding = binding;
     mContext = context;
-  }
-
-  @Override
-  protected void findViews(View root)
-  {
-    mTextSettingName = root.findViewById(R.id.text_setting_name);
-    mTextSettingDescription = root.findViewById(R.id.text_setting_description);
   }
 
   @Override
@@ -45,11 +38,11 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
 
     mItem = (InputBindingSetting) item;
 
-    mTextSettingName.setText(mItem.getName());
-    mTextSettingDescription
+    mBinding.textSettingName.setText(mItem.getName());
+    mBinding.textSettingDescription
             .setText(sharedPreferences.getString(mItem.getKey() + mItem.getGameId(), ""));
 
-    setStyle(mTextSettingName, mItem);
+    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Override
@@ -63,7 +56,7 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
 
     getAdapter().onInputBindingClick(mItem, getBindingAdapterPosition());
 
-    setStyle(mTextSettingName, mItem);
+    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Nullable @Override

@@ -4,11 +4,11 @@ package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
@@ -17,19 +17,13 @@ public final class InputStringSettingViewHolder extends SettingViewHolder
 {
   private InputStringSetting mInputString;
 
-  private TextView mTextSettingName;
-  private TextView mTextSettingDescription;
+  private final ListItemSettingBinding mBinding;
 
-  public InputStringSettingViewHolder(View itemView, SettingsAdapter adapter)
+  public InputStringSettingViewHolder(@NonNull ListItemSettingBinding binding,
+          SettingsAdapter adapter)
   {
-    super(itemView, adapter);
-  }
-
-  @Override
-  protected void findViews(View root)
-  {
-    mTextSettingName = root.findViewById(R.id.text_setting_name);
-    mTextSettingDescription = root.findViewById(R.id.text_setting_description);
+    super(binding.getRoot(), adapter);
+    mBinding = binding;
   }
 
   @Override
@@ -39,18 +33,18 @@ public final class InputStringSettingViewHolder extends SettingViewHolder
 
     String inputString = mInputString.getSelectedValue(getAdapter().getSettings());
 
-    mTextSettingName.setText(item.getName());
+    mBinding.textSettingName.setText(item.getName());
 
     if (!TextUtils.isEmpty(inputString))
     {
-      mTextSettingDescription.setText(inputString);
+      mBinding.textSettingDescription.setText(inputString);
     }
     else
     {
-      mTextSettingDescription.setText(item.getDescription());
+      mBinding.textSettingDescription.setText(item.getDescription());
     }
 
-    setStyle(mTextSettingName, mInputString);
+    setStyle(mBinding.textSettingName, mInputString);
   }
 
   @Override
@@ -62,11 +56,11 @@ public final class InputStringSettingViewHolder extends SettingViewHolder
       return;
     }
 
-    int position = getAdapterPosition();
+    int position = getBindingAdapterPosition();
 
     getAdapter().onInputStringClick(mInputString, position);
 
-    setStyle(mTextSettingName, mInputString);
+    setStyle(mBinding.textSettingName, mInputString);
   }
 
   @Nullable @Override

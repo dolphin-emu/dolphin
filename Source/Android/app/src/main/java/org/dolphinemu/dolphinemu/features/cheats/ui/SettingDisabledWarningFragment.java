@@ -6,14 +6,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.FragmentCheatWarningBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
@@ -28,6 +26,8 @@ public abstract class SettingDisabledWarningFragment extends Fragment
   private final MenuTag mSettingShortcut;
   private final int mText;
 
+  private FragmentCheatWarningBinding mBinding;
+
   public SettingDisabledWarningFragment(AbstractBooleanSetting setting, MenuTag settingShortcut,
           int text)
   {
@@ -38,10 +38,11 @@ public abstract class SettingDisabledWarningFragment extends Fragment
 
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
           @Nullable Bundle savedInstanceState)
   {
-    return inflater.inflate(R.layout.fragment_cheat_warning, container, false);
+    mBinding = FragmentCheatWarningBinding.inflate(inflater, container, false);
+    return mBinding.getRoot();
   }
 
   @Override
@@ -49,11 +50,8 @@ public abstract class SettingDisabledWarningFragment extends Fragment
   {
     mView = view;
 
-    TextView textView = view.findViewById(R.id.text_warning);
-    textView.setText(mText);
-
-    Button settingsButton = view.findViewById(R.id.button_settings);
-    settingsButton.setOnClickListener(this);
+    mBinding.textWarning.setText(mText);
+    mBinding.buttonSettings.setOnClickListener(this);
 
     CheatsActivity activity = (CheatsActivity) requireActivity();
     CheatsActivity.setOnFocusChangeListenerRecursively(view,
@@ -71,6 +69,13 @@ public abstract class SettingDisabledWarningFragment extends Fragment
       boolean cheatsEnabled = mSetting.getBoolean(settings);
       mView.setVisibility(cheatsEnabled ? View.GONE : View.VISIBLE);
     }
+  }
+
+  @Override
+  public void onDestroyView()
+  {
+    super.onDestroyView();
+    mBinding = null;
   }
 
   public void onClick(View view)

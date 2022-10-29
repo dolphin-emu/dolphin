@@ -5,22 +5,14 @@ package org.dolphinemu.dolphinemu.features.riivolution.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
-import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.google.android.material.appbar.AppBarLayout;
-import com.google.android.material.appbar.CollapsingToolbarLayout;
-import com.google.android.material.appbar.MaterialToolbar;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.databinding.ActivityRiivolutionBootBinding;
 import org.dolphinemu.dolphinemu.features.riivolution.model.RiivolutionPatches;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
@@ -35,6 +27,8 @@ public class RiivolutionBootActivity extends AppCompatActivity
   private static final String ARG_DISC_NUMBER = "disc_number";
 
   private RiivolutionPatches mPatches;
+
+  private ActivityRiivolutionBootBinding mBinding;
 
   public static void launch(Context context, String gamePath, String gameId, int revision,
           int discNumber)
@@ -54,7 +48,8 @@ public class RiivolutionBootActivity extends AppCompatActivity
 
     super.onCreate(savedInstanceState);
 
-    setContentView(R.layout.activity_riivolution_boot);
+    mBinding = ActivityRiivolutionBootBinding.inflate(getLayoutInflater());
+    setContentView(mBinding.getRoot());
 
     WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
@@ -69,11 +64,9 @@ public class RiivolutionBootActivity extends AppCompatActivity
     if (loadPath.isEmpty())
       loadPath = DirectoryInitialization.getUserDirectory() + "/Load";
 
-    TextView textSdRoot = findViewById(R.id.text_sd_root);
-    textSdRoot.setText(getString(R.string.riivolution_sd_root, loadPath + "/Riivolution"));
+    mBinding.textSdRoot.setText(getString(R.string.riivolution_sd_root, loadPath + "/Riivolution"));
 
-    Button buttonStart = findViewById(R.id.button_start);
-    buttonStart.setOnClickListener((v) ->
+    mBinding.buttonStart.setOnClickListener((v) ->
     {
       if (mPatches != null)
         mPatches.saveConfig();
@@ -88,17 +81,13 @@ public class RiivolutionBootActivity extends AppCompatActivity
       runOnUiThread(() -> populateList(patches));
     }).start();
 
-    MaterialToolbar tb = findViewById(R.id.toolbar_riivolution);
-    CollapsingToolbarLayout ctb = findViewById(R.id.toolbar_riivolution_layout);
-    ctb.setTitle(getString(R.string.riivolution_riivolution));
-    setSupportActionBar(tb);
+    mBinding.toolbarRiivolutionLayout.setTitle(getString(R.string.riivolution_riivolution));
+    setSupportActionBar(mBinding.toolbarRiivolution);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-    AppBarLayout appBarLayout = findViewById(R.id.appbar_riivolution);
-    NestedScrollView scrollView = findViewById(R.id.scroll_view_riivolution);
-    View workaroundView = findViewById(R.id.workaround_view);
-    InsetsHelper.setUpAppBarWithScrollView(this, appBarLayout, scrollView, workaroundView);
-    ThemeHelper.enableScrollTint(this, tb, appBarLayout);
+    InsetsHelper.setUpAppBarWithScrollView(this, mBinding.appbarRiivolution,
+            mBinding.scrollViewRiivolution, mBinding.workaroundView);
+    ThemeHelper.enableScrollTint(this, mBinding.toolbarRiivolution, mBinding.appbarRiivolution);
   }
 
   @Override
@@ -121,9 +110,7 @@ public class RiivolutionBootActivity extends AppCompatActivity
   {
     mPatches = patches;
 
-    RecyclerView recyclerView = findViewById(R.id.recycler_view);
-
-    recyclerView.setAdapter(new RiivolutionAdapter(this, patches));
-    recyclerView.setLayoutManager(new LinearLayoutManager(this));
+    mBinding.recyclerView.setAdapter(new RiivolutionAdapter(this, patches));
+    mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
   }
 }

@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
@@ -27,6 +26,8 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.DialogProgressBinding;
+import org.dolphinemu.dolphinemu.databinding.FragmentConvertBinding;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
@@ -114,20 +115,12 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
   private DropdownValue mCompression = new DropdownValue();
   private DropdownValue mCompressionLevel = new DropdownValue();
 
-  private TextInputLayout mFormatLayout;
-  private MaterialAutoCompleteTextView mFormatDropdown;
-  private TextInputLayout mBlockSizeLayout;
-  private MaterialAutoCompleteTextView mBlockSizeDropdown;
-  private TextInputLayout mCompressionLayout;
-  private MaterialAutoCompleteTextView mCompressionDropdown;
-  private TextInputLayout mCompressionLevelLayout;
-  private MaterialAutoCompleteTextView mCompressionLevelDropdown;
-  private CheckBox mRemoveJunkDataCheckbox;
-
   private GameFile gameFile;
 
   private volatile boolean mCanceled;
   private volatile Thread mThread = null;
+
+  private FragmentConvertBinding mBinding;
 
   public static ConvertFragment newInstance(String gamePath)
   {
@@ -150,20 +143,19 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
           Bundle savedInstanceState)
   {
-    return inflater.inflate(R.layout.fragment_convert, container, false);
+    mBinding = FragmentConvertBinding.inflate(inflater, container, false);
+    return mBinding.getRoot();
   }
 
   @Override
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState)
   {
-    findViews();
-
     // TODO: Remove workaround for text filtering issue in material components when fixed
     // https://github.com/material-components/material-components-android/issues/1464
-    mFormatDropdown.setSaveEnabled(false);
-    mBlockSizeDropdown.setSaveEnabled(false);
-    mCompressionDropdown.setSaveEnabled(false);
-    mCompressionLevelDropdown.setSaveEnabled(false);
+    mBinding.dropdownFormat.setSaveEnabled(false);
+    mBinding.dropdownBlockSize.setSaveEnabled(false);
+    mBinding.dropdownCompression.setSaveEnabled(false);
+    mBinding.dropdownCompressionLevel.setSaveEnabled(false);
 
     populateFormats();
     populateBlockSize();
@@ -177,33 +169,21 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
     mCompression.addCallback(this::populateCompressionLevel);
     mFormat.addCallback(this::populateRemoveJunkData);
 
-    view.findViewById(R.id.button_convert).setOnClickListener(this);
+    mBinding.buttonConvert.setOnClickListener(this);
 
     if (savedInstanceState != null)
     {
-      setDropdownSelection(mFormatDropdown, mFormat, savedInstanceState.getInt(KEY_FORMAT));
-      setDropdownSelection(mBlockSizeDropdown, mBlockSize,
+      setDropdownSelection(mBinding.dropdownFormat, mFormat, savedInstanceState.getInt(KEY_FORMAT));
+      setDropdownSelection(mBinding.dropdownBlockSize, mBlockSize,
               savedInstanceState.getInt(KEY_BLOCK_SIZE));
-      setDropdownSelection(mCompressionDropdown, mCompression,
+      setDropdownSelection(mBinding.dropdownCompression, mCompression,
               savedInstanceState.getInt(KEY_COMPRESSION));
-      setDropdownSelection(mCompressionLevelDropdown, mCompressionLevel,
+      setDropdownSelection(mBinding.dropdownCompressionLevel, mCompressionLevel,
               savedInstanceState.getInt(KEY_COMPRESSION_LEVEL));
 
-      mRemoveJunkDataCheckbox.setChecked(savedInstanceState.getBoolean(KEY_REMOVE_JUNK_DATA));
+      mBinding.checkboxRemoveJunkData.setChecked(
+              savedInstanceState.getBoolean(KEY_REMOVE_JUNK_DATA));
     }
-  }
-
-  private void findViews()
-  {
-    mFormatLayout = requireView().findViewById(R.id.format);
-    mFormatDropdown = requireView().findViewById(R.id.dropdown_format);
-    mBlockSizeLayout = requireView().findViewById(R.id.block_size);
-    mBlockSizeDropdown = requireView().findViewById(R.id.dropdown_block_size);
-    mCompressionLayout = requireView().findViewById(R.id.compression);
-    mCompressionDropdown = requireView().findViewById(R.id.dropdown_compression);
-    mCompressionLevelLayout = requireView().findViewById(R.id.compression_level);
-    mCompressionLevelDropdown = requireView().findViewById(R.id.dropdown_compression_level);
-    mRemoveJunkDataCheckbox = requireView().findViewById(R.id.checkbox_remove_junk_data);
   }
 
   @Override
@@ -214,7 +194,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
     outState.putInt(KEY_COMPRESSION, mCompression.getPosition());
     outState.putInt(KEY_COMPRESSION_LEVEL, mCompressionLevel.getPosition());
 
-    outState.putBoolean(KEY_REMOVE_JUNK_DATA, mRemoveJunkDataCheckbox.isChecked());
+    outState.putBoolean(KEY_REMOVE_JUNK_DATA, mBinding.checkboxRemoveJunkData.isChecked());
   }
 
   private void setDropdownSelection(MaterialAutoCompleteTextView dropdown,
@@ -234,6 +214,13 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
 
     mCanceled = true;
     joinThread();
+  }
+
+  @Override
+  public void onDestroyView()
+  {
+    super.onDestroyView();
+    mBinding = null;
   }
 
   private void populateDropdown(TextInputLayout layout, MaterialAutoCompleteTextView dropdown,
@@ -263,13 +250,15 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
 
   private void populateFormats()
   {
-    populateDropdown(mFormatLayout, mFormatDropdown, R.array.convertFormatEntries,
+    populateDropdown(mBinding.format, mBinding.dropdownFormat, R.array.convertFormatEntries,
             R.array.convertFormatValues, mFormat);
     if (gameFile.getBlobType() == BLOB_TYPE_ISO)
     {
-      setDropdownSelection(mFormatDropdown, mFormat, mFormatDropdown.getAdapter().getCount() - 1);
+      setDropdownSelection(mBinding.dropdownFormat, mFormat,
+              mBinding.dropdownFormat.getAdapter().getCount() - 1);
     }
-    mFormatDropdown.setText(mFormatDropdown.getAdapter().getItem(mFormat.getPosition()).toString(),
+    mBinding.dropdownFormat.setText(
+            mBinding.dropdownFormat.getAdapter().getItem(mFormat.getPosition()).toString(),
             false);
   }
 
@@ -281,25 +270,31 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
         // In the equivalent DolphinQt code, we have some logic for avoiding block sizes that can
         // trigger bugs in Dolphin versions older than 5.0-11893, but it was too annoying to port.
         // TODO: Port it?
-        populateDropdown(mBlockSizeLayout, mBlockSizeDropdown, R.array.convertBlockSizeGczEntries,
+        populateDropdown(mBinding.blockSize, mBinding.dropdownBlockSize,
+                R.array.convertBlockSizeGczEntries,
                 R.array.convertBlockSizeGczValues, mBlockSize);
         mBlockSize.setPosition(0);
-        mBlockSizeDropdown.setText(mBlockSizeDropdown.getAdapter().getItem(0).toString(), false);
+        mBinding.dropdownBlockSize.setText(
+                mBinding.dropdownBlockSize.getAdapter().getItem(0).toString(), false);
         break;
       case BLOB_TYPE_WIA:
-        populateDropdown(mBlockSizeLayout, mBlockSizeDropdown, R.array.convertBlockSizeWiaEntries,
+        populateDropdown(mBinding.blockSize, mBinding.dropdownBlockSize,
+                R.array.convertBlockSizeWiaEntries,
                 R.array.convertBlockSizeWiaValues, mBlockSize);
         mBlockSize.setPosition(0);
-        mBlockSizeDropdown.setText(mBlockSizeDropdown.getAdapter().getItem(0).toString(), false);
+        mBinding.dropdownBlockSize.setText(
+                mBinding.dropdownBlockSize.getAdapter().getItem(0).toString(), false);
         break;
       case BLOB_TYPE_RVZ:
-        populateDropdown(mBlockSizeLayout, mBlockSizeDropdown, R.array.convertBlockSizeRvzEntries,
+        populateDropdown(mBinding.blockSize, mBinding.dropdownBlockSize,
+                R.array.convertBlockSizeRvzEntries,
                 R.array.convertBlockSizeRvzValues, mBlockSize);
         mBlockSize.setPosition(2);
-        mBlockSizeDropdown.setText(mBlockSizeDropdown.getAdapter().getItem(2).toString(), false);
+        mBinding.dropdownBlockSize.setText(
+                mBinding.dropdownBlockSize.getAdapter().getItem(2).toString(), false);
         break;
       default:
-        clearDropdown(mBlockSizeLayout, mBlockSizeDropdown, mBlockSize);
+        clearDropdown(mBinding.blockSize, mBinding.dropdownBlockSize, mBlockSize);
     }
   }
 
@@ -308,31 +303,31 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
     switch (mFormat.getValue(requireContext()))
     {
       case BLOB_TYPE_GCZ:
-        populateDropdown(mCompressionLayout, mCompressionDropdown,
+        populateDropdown(mBinding.compression, mBinding.dropdownCompression,
                 R.array.convertCompressionGczEntries, R.array.convertCompressionGczValues,
                 mCompression);
         mCompression.setPosition(0);
-        mCompressionDropdown.setText(mCompressionDropdown.getAdapter().getItem(0).toString(),
-                false);
+        mBinding.dropdownCompression.setText(
+                mBinding.dropdownCompression.getAdapter().getItem(0).toString(), false);
         break;
       case BLOB_TYPE_WIA:
-        populateDropdown(mCompressionLayout, mCompressionDropdown,
+        populateDropdown(mBinding.compression, mBinding.dropdownCompression,
                 R.array.convertCompressionWiaEntries, R.array.convertCompressionWiaValues,
                 mCompression);
         mCompression.setPosition(0);
-        mCompressionDropdown.setText(mCompressionDropdown.getAdapter().getItem(0).toString(),
-                false);
+        mBinding.dropdownCompression.setText(
+                mBinding.dropdownCompression.getAdapter().getItem(0).toString(), false);
         break;
       case BLOB_TYPE_RVZ:
-        populateDropdown(mCompressionLayout, mCompressionDropdown,
+        populateDropdown(mBinding.compression, mBinding.dropdownCompression,
                 R.array.convertCompressionRvzEntries, R.array.convertCompressionRvzValues,
                 mCompression);
         mCompression.setPosition(4);
-        mCompressionDropdown.setText(mCompressionDropdown.getAdapter().getItem(4).toString(),
-                false);
+        mBinding.dropdownCompression.setText(
+                mBinding.dropdownCompression.getAdapter().getItem(4).toString(), false);
         break;
       default:
-        clearDropdown(mCompressionLayout, mCompressionDropdown, mCompression);
+        clearDropdown(mBinding.compression, mBinding.dropdownCompression, mCompression);
     }
   }
 
@@ -343,24 +338,25 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
       case COMPRESSION_BZIP2:
       case COMPRESSION_LZMA:
       case COMPRESSION_LZMA2:
-        populateDropdown(mCompressionLevelLayout, mCompressionLevelDropdown,
+        populateDropdown(mBinding.compressionLevel, mBinding.dropdownCompressionLevel,
                 R.array.convertCompressionLevelEntries, R.array.convertCompressionLevelValues,
                 mCompressionLevel);
         mCompressionLevel.setPosition(4);
-        mCompressionLevelDropdown.setText(
-                mCompressionLevelDropdown.getAdapter().getItem(4).toString(), false);
+        mBinding.dropdownCompressionLevel.setText(
+                mBinding.dropdownCompressionLevel.getAdapter().getItem(4).toString(), false);
         break;
       case COMPRESSION_ZSTD:
         // TODO: Query DiscIO for the supported compression levels, like we do in DolphinQt?
-        populateDropdown(mCompressionLevelLayout, mCompressionLevelDropdown,
+        populateDropdown(mBinding.compressionLevel, mBinding.dropdownCompressionLevel,
                 R.array.convertCompressionLevelZstdEntries,
                 R.array.convertCompressionLevelZstdValues, mCompressionLevel);
         mCompressionLevel.setPosition(4);
-        mCompressionLevelDropdown.setText(
-                mCompressionLevelDropdown.getAdapter().getItem(4).toString(), false);
+        mBinding.dropdownCompressionLevel.setText(
+                mBinding.dropdownCompressionLevel.getAdapter().getItem(4).toString(), false);
         break;
       default:
-        clearDropdown(mCompressionLevelLayout, mCompressionLevelDropdown, mCompressionLevel);
+        clearDropdown(mBinding.compressionLevel, mBinding.dropdownCompressionLevel,
+                mCompressionLevel);
     }
   }
 
@@ -369,15 +365,15 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
     boolean scrubbingAllowed = mFormat.getValue(requireContext()) != BLOB_TYPE_RVZ &&
             !gameFile.isDatelDisc();
 
-    mRemoveJunkDataCheckbox.setEnabled(scrubbingAllowed);
+    mBinding.checkboxRemoveJunkData.setEnabled(scrubbingAllowed);
     if (!scrubbingAllowed)
-      mRemoveJunkDataCheckbox.setChecked(false);
+      mBinding.checkboxRemoveJunkData.setChecked(false);
   }
 
   @Override
   public void onClick(View view)
   {
-    boolean scrub = mRemoveJunkDataCheckbox.isChecked();
+    boolean scrub = mBinding.checkboxRemoveJunkData.isChecked();
     int format = mFormat.getValue(requireContext());
 
     Runnable action = this::showSavePrompt;
@@ -466,15 +462,15 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
 
     mCanceled = false;
 
-    View dialogView = getLayoutInflater().inflate(R.layout.dialog_progress, null, false);
-    LinearProgressIndicator progressBar = dialogView.findViewById(R.id.update_progress);
-    progressBar.setMax(PROGRESS_RESOLUTION);
+    DialogProgressBinding dialogProgressBinding =
+            DialogProgressBinding.inflate(getLayoutInflater(), null, false);
+    dialogProgressBinding.updateProgress.setMax(PROGRESS_RESOLUTION);
 
     AlertDialog progressDialog = new MaterialAlertDialogBuilder(context)
             .setTitle(R.string.convert_converting)
             .setOnCancelListener((dialog) -> mCanceled = true)
             .setNegativeButton(getString(R.string.cancel), (dialog, i) -> dialog.dismiss())
-            .setView(dialogView)
+            .setView(dialogProgressBinding.getRoot())
             .show();
 
     mThread = new Thread(() ->
@@ -482,12 +478,13 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
       boolean success = NativeLibrary.ConvertDiscImage(gameFile.getPath(), outPath,
               gameFile.getPlatform(), mFormat.getValue(context), mBlockSize.getValueOr(context, 0),
               mCompression.getValueOr(context, 0), mCompressionLevel.getValueOr(context, 0),
-              mRemoveJunkDataCheckbox.isChecked(), (text, completion) ->
+              mBinding.checkboxRemoveJunkData.isChecked(), (text, completion) ->
               {
                 requireActivity().runOnUiThread(() ->
                 {
                   progressDialog.setMessage(text);
-                  progressBar.setProgress((int) (completion * PROGRESS_RESOLUTION));
+                  dialogProgressBinding.updateProgress.setProgress(
+                          (int) (completion * PROGRESS_RESOLUTION));
                 });
                 return !mCanceled;
               });

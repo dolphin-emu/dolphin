@@ -11,21 +11,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.databinding.FragmentIngameMenuBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 
 public final class MenuFragment extends Fragment implements View.OnClickListener
 {
-  private TextView mTitleText;
-  private View mPauseEmulation;
-  private View mUnpauseEmulation;
-
   private static final String KEY_TITLE = "title";
   private static final String KEY_WII = "wii";
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -53,6 +51,8 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     buttonsActionsMap.append(R.id.menu_settings, EmulationActivity.MENU_ACTION_SETTINGS);
   }
 
+  private FragmentIngameMenuBinding mBinding;
+
   public static MenuFragment newInstance()
   {
     MenuFragment fragment = new MenuFragment();
@@ -76,26 +76,28 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     return visibleFrame.bottom - visibleFrame.top - getResources().getDisplayMetrics().heightPixels;
   }
 
+  @NonNull
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+          Bundle savedInstanceState)
   {
-    View rootView = inflater.inflate(R.layout.fragment_ingame_menu, container, false);
+    mBinding = FragmentIngameMenuBinding.inflate(inflater, container, false);
+    return mBinding.getRoot();
+  }
 
-    LinearLayout options = rootView.findViewById(R.id.layout_options);
-
-    mPauseEmulation = options.findViewById(R.id.menu_pause_emulation);
-    mUnpauseEmulation = options.findViewById(R.id.menu_unpause_emulation);
-
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+  {
     updatePauseUnpauseVisibility();
 
     if (!requireActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN))
     {
-      options.findViewById(R.id.menu_overlay_controls).setVisibility(View.GONE);
+      mBinding.menuOverlayControls.setVisibility(View.GONE);
     }
 
     if (!getArguments().getBoolean(KEY_WII, true))
     {
-      options.findViewById(R.id.menu_refresh_wiimotes).setVisibility(View.GONE);
+      mBinding.menuRefreshWiimotes.setVisibility(View.GONE);
     }
 
     int bottomPaddingRequired = getBottomPaddingRequired();
@@ -107,12 +109,13 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
       bottomPaddingRequired += 32 * density;
     }
 
-    if (bottomPaddingRequired > rootView.getPaddingBottom())
+    if (bottomPaddingRequired > view.getPaddingBottom())
     {
-      rootView.setPadding(rootView.getPaddingLeft(), rootView.getPaddingTop(),
-              rootView.getPaddingRight(), bottomPaddingRequired);
+      view.setPadding(view.getPaddingLeft(), view.getPaddingTop(),
+              view.getPaddingRight(), bottomPaddingRequired);
     }
 
+    LinearLayout options = mBinding.layoutOptions;
     for (int childIndex = 0; childIndex < options.getChildCount(); childIndex++)
     {
       Button button = (Button) options.getChildAt(childIndex);
@@ -120,21 +123,18 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
       button.setOnClickListener(this);
     }
 
-    rootView.findViewById(R.id.menu_exit).setOnClickListener(this);
+    mBinding.menuExit.setOnClickListener(this);
 
-    mTitleText = rootView.findViewById(R.id.text_game_title);
     String title = getArguments().getString(KEY_TITLE, null);
     if (title != null)
     {
-      mTitleText.setText(title);
+      mBinding.textGameTitle.setText(title);
     }
 
     if (getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_LTR)
     {
-      rootView.post(() -> NativeLibrary.SetObscuredPixelsLeft(rootView.getWidth()));
+      view.post(() -> NativeLibrary.SetObscuredPixelsLeft(view.getWidth()));
     }
-
-    return rootView;
   }
 
   @Override
@@ -142,14 +142,12 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
   {
     super.onResume();
 
-    LinearLayout options = requireView().findViewById(R.id.layout_options);
-
     boolean savestatesEnabled = BooleanSetting.MAIN_ENABLE_SAVESTATES.getBooleanGlobal();
     int savestateVisibility = savestatesEnabled ? View.VISIBLE : View.GONE;
-    options.findViewById(R.id.menu_quicksave).setVisibility(savestateVisibility);
-    options.findViewById(R.id.menu_quickload).setVisibility(savestateVisibility);
-    options.findViewById(R.id.menu_emulation_save_root).setVisibility(savestateVisibility);
-    options.findViewById(R.id.menu_emulation_load_root).setVisibility(savestateVisibility);
+    mBinding.menuQuicksave.setVisibility(savestateVisibility);
+    mBinding.menuQuickload.setVisibility(savestateVisibility);
+    mBinding.menuEmulationSaveRoot.setVisibility(savestateVisibility);
+    mBinding.menuEmulationLoadRoot.setVisibility(savestateVisibility);
   }
 
   @Override
@@ -158,14 +156,15 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     super.onDestroyView();
 
     NativeLibrary.SetObscuredPixelsLeft(0);
+    mBinding = null;
   }
 
   private void updatePauseUnpauseVisibility()
   {
     boolean paused = EmulationActivity.getHasUserPausedEmulation();
 
-    mUnpauseEmulation.setVisibility(paused ? View.VISIBLE : View.GONE);
-    mPauseEmulation.setVisibility(paused ? View.GONE : View.VISIBLE);
+    mBinding.menuUnpauseEmulation.setVisibility(paused ? View.VISIBLE : View.GONE);
+    mBinding.menuPauseEmulation.setVisibility(paused ? View.GONE : View.VISIBLE);
   }
 
   @Override
@@ -178,7 +177,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     {
       // We could use the button parameter as the anchor here, but this often results in a tiny menu
       // (because the button often is in the middle of the screen), so let's use mTitleText instead
-      activity.showOverlayControlsMenu(mTitleText);
+      activity.showOverlayControlsMenu(mBinding.textGameTitle);
     }
     else if (action >= 0)
     {

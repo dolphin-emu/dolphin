@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:focusable="true"
-             android:layout_height="48dp">
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:focusable="true"
+    android:layout_height="wrap_content">
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/text_header_name"
-        tools:text="CPU Settings"
+        android:layout_width="wrap_content"
+        android:layout_height="46dp"
+        android:gravity="bottom"
+        android:layout_alignParentTop="true"
         android:layout_marginStart="@dimen/spacing_large"
-        android:layout_marginBottom="@dimen/spacing_small"
+        android:layout_marginBottom="2dp"
         android:textColor="?attr/colorPrimary"
         android:textStyle="bold"
-        android:layout_gravity="start|bottom"/>
+        tools:text="CPU Settings" />
 
-</FrameLayout>
+</RelativeLayout>

@@ -12,40 +12,47 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.divider.MaterialDividerItemDecoration;
 
-import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.FragmentCheatListBinding;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
 import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 
 public class CheatListFragment extends Fragment
 {
+  private FragmentCheatListBinding mBinding;
+
   @Nullable
   @Override
-  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
           @Nullable Bundle savedInstanceState)
   {
-    return inflater.inflate(R.layout.fragment_cheat_list, container, false);
+    mBinding = FragmentCheatListBinding.inflate(inflater, container, false);
+    return mBinding.getRoot();
   }
 
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
   {
-    RecyclerView recyclerView = view.findViewById(R.id.cheat_list);
-
     CheatsActivity activity = (CheatsActivity) requireActivity();
     CheatsViewModel viewModel = new ViewModelProvider(activity).get(CheatsViewModel.class);
 
-    recyclerView.setAdapter(new CheatsAdapter(activity, viewModel));
-    recyclerView.setLayoutManager(new LinearLayoutManager(activity));
+    mBinding.cheatList.setAdapter(new CheatsAdapter(activity, viewModel));
+    mBinding.cheatList.setLayoutManager(new LinearLayoutManager(activity));
 
     MaterialDividerItemDecoration divider =
             new MaterialDividerItemDecoration(requireActivity(), LinearLayoutManager.VERTICAL);
     divider.setLastItemDecorated(false);
-    recyclerView.addItemDecoration(divider);
+    mBinding.cheatList.addItemDecoration(divider);
 
-    InsetsHelper.setUpList(getContext(), recyclerView);
+    InsetsHelper.setUpList(getContext(), mBinding.cheatList);
+  }
+
+  @Override
+  public void onDestroyView()
+  {
+    super.onDestroyView();
+    mBinding = null;
   }
 }

@@ -2,14 +2,13 @@
 
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
-import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
@@ -22,23 +21,12 @@ public final class FilePickerViewHolder extends SettingViewHolder
   private FilePicker mFilePicker;
   private SettingsItem mItem;
 
-  private TextView mTextSettingName;
-  private TextView mTextSettingDescription;
+  private final ListItemSettingBinding mBinding;
 
-  private Drawable mDefaultBackground;
-
-  public FilePickerViewHolder(View itemView, SettingsAdapter adapter)
+  public FilePickerViewHolder(ListItemSettingBinding binding, SettingsAdapter adapter)
   {
-    super(itemView, adapter);
-  }
-
-  @Override
-  protected void findViews(View root)
-  {
-    mTextSettingName = root.findViewById(R.id.text_setting_name);
-    mTextSettingDescription = root.findViewById(R.id.text_setting_description);
-
-    mDefaultBackground = root.getBackground();
+    super(binding.getRoot(), adapter);
+    mBinding = binding;
   }
 
   @Override
@@ -51,18 +39,18 @@ public final class FilePickerViewHolder extends SettingViewHolder
 
     if (FileBrowserHelper.isPathEmptyOrValid(path))
     {
-      itemView.setBackground(mDefaultBackground);
+      itemView.setBackground(mBinding.getRoot().getBackground());
     }
     else
     {
       itemView.setBackgroundResource(R.drawable.invalid_setting_background);
     }
 
-    mTextSettingName.setText(item.getName());
+    mBinding.textSettingName.setText(item.getName());
 
     if (!TextUtils.isEmpty(item.getDescription()))
     {
-      mTextSettingDescription.setText(item.getDescription());
+      mBinding.textSettingDescription.setText(item.getDescription());
     }
     else
     {
@@ -75,10 +63,10 @@ public final class FilePickerViewHolder extends SettingViewHolder
         }
       }
 
-      mTextSettingDescription.setText(path);
+      mBinding.textSettingDescription.setText(path);
     }
 
-    setStyle(mTextSettingName, mItem);
+    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Override
@@ -100,7 +88,7 @@ public final class FilePickerViewHolder extends SettingViewHolder
       getAdapter().onFilePickerFileClick(mItem, position);
     }
 
-    setStyle(mTextSettingName, mItem);
+    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Nullable @Override

@@ -5,7 +5,6 @@ package org.dolphinemu.dolphinemu.features.sysupdate.ui;
 import android.app.Dialog;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
@@ -15,9 +14,9 @@ import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.DialogProgressBinding;
 
 public class SystemUpdateProgressBarDialogFragment extends DialogFragment
 {
@@ -33,20 +32,22 @@ public class SystemUpdateProgressBarDialogFragment extends DialogFragment
     SystemUpdateViewModel viewModel =
             new ViewModelProvider(requireActivity()).get(SystemUpdateViewModel.class);
 
-    View dialogView = getLayoutInflater().inflate(R.layout.dialog_progress, null, false);
-    LinearProgressIndicator progressBar = dialogView.findViewById(R.id.update_progress);
+    DialogProgressBinding dialogProgressBinding =
+            DialogProgressBinding.inflate(getLayoutInflater());
 
     // We need to set the message to something here, otherwise the text will not appear when we set it later.
     AlertDialog progressDialog = new MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.updating))
             .setMessage("")
             .setNegativeButton(getString(R.string.cancel), null)
-            .setView(dialogView)
+            .setView(dialogProgressBinding.getRoot())
             .setCancelable(false)
             .create();
 
     viewModel.getProgressData()
-            .observe(this, (@Nullable Integer progress) -> progressBar.setProgress(progress));
+            .observe(this, (@Nullable
+                    Integer progress) -> dialogProgressBinding.updateProgress.setProgress(
+                    progress));
 
     viewModel.getTotalData().observe(this, (@Nullable Integer total) ->
     {
@@ -55,7 +56,7 @@ public class SystemUpdateProgressBarDialogFragment extends DialogFragment
         return;
       }
 
-      progressBar.setMax(total);
+      dialogProgressBinding.updateProgress.setMax(total);
     });
 
     viewModel.getTitleIdData().observe(this, (@Nullable Long titleId) -> progressDialog.setMessage(

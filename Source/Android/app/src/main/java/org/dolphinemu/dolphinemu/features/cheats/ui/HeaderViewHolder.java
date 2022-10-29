@@ -8,16 +8,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ListItemHeaderBinding;
 
 public class HeaderViewHolder extends CheatItemViewHolder
 {
   private TextView mHeaderName;
 
-  public HeaderViewHolder(@NonNull View itemView)
+  public HeaderViewHolder(@NonNull ListItemHeaderBinding binding)
   {
-    super(itemView);
+    super(binding.getRoot());
 
-    mHeaderName = itemView.findViewById(R.id.text_header_name);
+    mHeaderName = binding.textHeaderName;
   }
 
   public void bind(CheatsActivity activity, CheatItem item, int position)
