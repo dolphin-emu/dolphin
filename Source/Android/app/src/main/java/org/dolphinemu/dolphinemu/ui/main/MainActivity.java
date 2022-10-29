@@ -6,22 +6,22 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
-import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 
+import org.dolphinemu.dolphinemu.MoreFragment;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
 import org.dolphinemu.dolphinemu.databinding.ActivityMainBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig;
@@ -29,6 +29,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesFragment;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.utils.Action1;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
@@ -39,14 +40,8 @@ import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
-import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
-/**
- * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
- * individually display a grid of available games for each Fragment, in a tabbed layout.
- */
-public final class MainActivity extends AppCompatActivity
-        implements MainView, SwipeRefreshLayout.OnRefreshListener, ThemeProvider
+public final class MainActivity extends AppCompatActivity implements MainView, ThemeProvider
 {
   private int mThemeId;
 
@@ -70,7 +65,7 @@ public final class MainActivity extends AppCompatActivity
 
     WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
     InsetsHelper.setUpMainLayout(this, mBinding.appbarMain, mBinding.buttonAddDirectory,
-            mBinding.pagerPlatforms, mBinding.workaroundView);
+            mBinding.frameMain, mBinding.navigation, mBinding.workaroundView);
     ThemeHelper.enableStatusBarScrollTint(this, mBinding.appbarMain);
 
     setSupportActionBar(mBinding.toolbarMain);
@@ -92,6 +87,9 @@ public final class MainActivity extends AppCompatActivity
       new AfterDirectoryInitializationRunner()
               .runWithLifecycle(this, this::setPlatformTabsAndStartGameFileCacheService);
     }
+
+    // Set up Navigation View
+    setUpNavigation();
   }
 
   @Override
@@ -145,25 +143,6 @@ public final class MainActivity extends AppCompatActivity
     }
 
     StartupHandler.setSessionTime(this);
-  }
-
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu)
-  {
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.menu_game_grid, menu);
-
-    if (WiiUtils.isSystemMenuInstalled())
-    {
-      int resId = WiiUtils.isSystemMenuvWii() ?
-              R.string.grid_menu_load_vwii_system_menu_installed :
-              R.string.grid_menu_load_wii_system_menu_installed;
-
-      menu.findItem(R.id.menu_load_wii_system_menu).setTitle(
-              getString(resId, WiiUtils.getSystemMenuVersion()));
-    }
-
-    return true;
   }
 
   /**
@@ -280,28 +259,6 @@ public final class MainActivity extends AppCompatActivity
   }
 
   /**
-   * Called by the framework whenever any actionbar/toolbar icon is clicked.
-   *
-   * @param item The icon that was clicked on.
-   * @return True if the event was handled, false to bubble it up to the OS.
-   */
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item)
-  {
-    return mPresenter.handleOptionSelection(item.getItemId(), this);
-  }
-
-  /**
-   * Called when the user requests a refresh by swiping down.
-   */
-  @Override
-  public void onRefresh()
-  {
-    setRefreshing(true);
-    GameFileCacheManager.startRescan();
-  }
-
-  /**
    * Shows or hides the loading indicator.
    */
   @Override
@@ -326,9 +283,9 @@ public final class MainActivity extends AppCompatActivity
 
   private void forEachPlatformGamesView(Action1<PlatformGamesView> action)
   {
-    for (Platform platform : Platform.values())
+    for (Tab tab : Tab.values())
     {
-      PlatformGamesView fragment = getPlatformGamesView(platform);
+      PlatformGamesView fragment = getPlatformGamesView(tab);
       if (fragment != null)
       {
         action.call(fragment);
@@ -337,43 +294,115 @@ public final class MainActivity extends AppCompatActivity
   }
 
   @Nullable
-  private PlatformGamesView getPlatformGamesView(Platform platform)
+  private PlatformGamesView getPlatformGamesView(Tab tab)
   {
-    String fragmentTag =
-            "android:switcher:" + mBinding.pagerPlatforms.getId() + ":" + platform.toInt();
+    Fragment fragment = getSupportFragmentManager().findFragmentByTag(tab.getIdString());
+    if (fragment instanceof PlatformGamesView)
+    {
+      return (PlatformGamesView) fragment;
+    }
+    return null;
+  }
 
-    return (PlatformGamesView) getSupportFragmentManager().findFragmentByTag(fragmentTag);
+  private void setUpNavigation()
+  {
+    ((NavigationBarView) mBinding.navigation).setOnItemSelectedListener(
+            item ->
+            {
+              switch (item.getItemId())
+              {
+                case R.id.action_gamecube:
+                  changeFragment(PlatformGamesFragment.newInstance(Platform.GAMECUBE),
+                          Tab.GAMECUBE.getIdString());
+                  IntSetting.MAIN_LAST_PLATFORM_TAB.setIntGlobal(NativeConfig.LAYER_BASE,
+                          Tab.GAMECUBE.toInt());
+                  return true;
+                case R.id.action_wii:
+                  changeFragment(PlatformGamesFragment.newInstance(Platform.WII),
+                          Tab.WII.getIdString());
+                  IntSetting.MAIN_LAST_PLATFORM_TAB.setIntGlobal(NativeConfig.LAYER_BASE,
+                          Tab.WII.toInt());
+                  return true;
+                case R.id.action_wiiware:
+                  changeFragment(PlatformGamesFragment.newInstance(Platform.WIIWARE),
+                          Tab.WIIWARE.getIdString());
+                  IntSetting.MAIN_LAST_PLATFORM_TAB.setIntGlobal(NativeConfig.LAYER_BASE,
+                          Tab.WIIWARE.toInt());
+                  return true;
+                case R.id.action_more:
+                  // TODO: MAKE THIS FRAGMENT
+                  mBinding.appbarMain.setExpanded(true);
+                  changeFragment(new MoreFragment(), Tab.MORE.getIdString());
+                  IntSetting.MAIN_LAST_PLATFORM_TAB.setIntGlobal(NativeConfig.LAYER_BASE,
+                          Tab.MORE.toInt());
+                  return true;
+              }
+              return false;
+            });
+
+    if (DirectoryInitialization.areDolphinDirectoriesReady())
+    {
+      ((NavigationBarView) mBinding.navigation).setSelectedItemId(
+              Tab.getTabId(IntSetting.MAIN_LAST_PLATFORM_TAB.getIntGlobal()));
+    }
+
+    // Hide FAB when scrolling down
+    if (mBinding.navigation instanceof BottomNavigationView)
+    {
+      mBinding.appbarMain.addOnOffsetChangedListener((appBarLayout, verticalOffset) ->
+      {
+        if (-verticalOffset == appBarLayout.getTotalScrollRange())
+        {
+          mBinding.buttonAddDirectory.hide();
+        }
+        else if (!mBinding.buttonAddDirectory.isShown() ||
+                -verticalOffset < appBarLayout.getTotalScrollRange())
+        {
+          mBinding.buttonAddDirectory.show();
+        }
+      });
+    }
   }
 
   // Don't call this before DirectoryInitialization completes.
   private void setPlatformTabsAndStartGameFileCacheService()
   {
-    PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
-            getSupportFragmentManager(), this);
-    mBinding.pagerPlatforms.setAdapter(platformPagerAdapter);
-    mBinding.pagerPlatforms.setOffscreenPageLimit(platformPagerAdapter.getCount());
-    mBinding.tabsPlatforms.setupWithViewPager(mBinding.pagerPlatforms);
-    mBinding.tabsPlatforms.addOnTabSelectedListener(
-            new TabLayout.ViewPagerOnTabSelectedListener(mBinding.pagerPlatforms)
-            {
-              @Override
-              public void onTabSelected(@NonNull TabLayout.Tab tab)
-              {
-                super.onTabSelected(tab);
-                IntSetting.MAIN_LAST_PLATFORM_TAB.setIntGlobal(NativeConfig.LAYER_BASE,
-                        tab.getPosition());
-              }
-            });
-
-    for (int i = 0; i < PlatformPagerAdapter.TAB_ICONS.length; i++)
-    {
-      mBinding.tabsPlatforms.getTabAt(i).setIcon(PlatformPagerAdapter.TAB_ICONS[i]);
-    }
-
-    mBinding.pagerPlatforms.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getIntGlobal());
-
     showGames();
     GameFileCacheManager.startLoad();
+
+    ((NavigationBarView) mBinding.navigation).setSelectedItemId(
+            Tab.getTabId(IntSetting.MAIN_LAST_PLATFORM_TAB.getIntGlobal()));
+  }
+
+  // Solution from https://stackoverflow.com/a/53203785
+  // This is the best way to ensure fragments are reused
+  private void changeFragment(Fragment fragment, String fragmentTag)
+  {
+    FragmentManager manager = getSupportFragmentManager();
+    FragmentTransaction transaction = manager.beginTransaction();
+    Fragment currentFragment = manager.getPrimaryNavigationFragment();
+
+    transaction.setCustomAnimations(R.anim.anim_fragment_in, R.anim.anim_fragment_out);
+    if (currentFragment != null)
+    {
+      transaction.hide(currentFragment);
+    }
+
+    Fragment targetFragment = manager.findFragmentByTag(fragmentTag);
+    if (targetFragment == null)
+    {
+      targetFragment = fragment;
+      transaction.add(R.id.frame_main, targetFragment, fragmentTag);
+    }
+    else
+    {
+      transaction.show(targetFragment);
+    }
+
+    transaction
+            .setPrimaryNavigationFragment(targetFragment)
+            .setReorderingAllowed(true)
+            .commitAllowingStateLoss();
   }
 
   @Override

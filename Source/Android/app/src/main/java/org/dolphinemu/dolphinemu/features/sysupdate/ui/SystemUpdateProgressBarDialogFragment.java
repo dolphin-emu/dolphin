@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import org.dolphinemu.dolphinemu.MoreFragment;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.databinding.DialogProgressBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogProgressTvBinding;
@@ -102,6 +103,9 @@ public class SystemUpdateProgressBarDialogFragment extends DialogFragment
       progressBarFragment.show(getParentFragmentManager(), "OnlineUpdateResultFragment");
 
       getActivity().setRequestedOrientation(orientation);
+
+      // Notify the More Fragment to set installed system menu version text
+      MoreFragment.mIsSystemMenuInstalled.postValue(true);
 
       dismiss();
     });

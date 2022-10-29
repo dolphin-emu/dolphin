@@ -7,17 +7,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import androidx.annotation.ColorInt;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.widget.NestedScrollView;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.fragment.app.FragmentContainerView;
 import androidx.slidingpanelayout.widget.SlidingPaneLayout;
-import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.color.MaterialColors;
+import com.google.android.material.elevation.ElevationOverlayProvider;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.dolphinemu.dolphinemu.R;
@@ -25,7 +27,7 @@ import org.dolphinemu.dolphinemu.R;
 public class InsetsHelper
 {
   public static final int FAB_INSET = 16;
-  public static final int EXTRA_NAV_INSET = 32;
+  public static final int NAV_BAR_INSET = 128;
 
   public static final int THREE_BUTTON_NAVIGATION = 0;
   public static final int TWO_BUTTON_NAVIGATION = 1;
@@ -57,40 +59,44 @@ public class InsetsHelper
     });
   }
 
-  public static void setUpList(Context context, RecyclerView recyclerView)
+  public static void setUpList(Context context, View view)
   {
-    ViewCompat.setOnApplyWindowInsetsListener(recyclerView, (v, windowInsets) ->
+    ViewCompat.setOnApplyWindowInsetsListener(view, (v, windowInsets) ->
     {
       Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-      v.setPadding(0, 0, 0, insets.bottom + dpToPx(context, EXTRA_NAV_INSET));
+      v.setPadding(0, 0, 0, insets.bottom + dpToPx(context, NAV_BAR_INSET));
 
       return windowInsets;
     });
   }
 
   public static void setUpMainLayout(AppCompatActivity activity, AppBarLayout appBarLayout,
-          FloatingActionButton fab, ViewPager viewPager, View workaroundView)
+          FloatingActionButton fab, FragmentContainerView container, View bottomNav,
+          View workaroundView)
   {
     ViewCompat.setOnApplyWindowInsetsListener(appBarLayout, (v, windowInsets) ->
     {
       Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
 
+      if (bottomNav instanceof BottomNavigationView)
+      {
+        int fabPadding = InsetsHelper.dpToPx(activity.getApplicationContext(), FAB_INSET);
+        ViewGroup.MarginLayoutParams mlpFab = (ViewGroup.MarginLayoutParams) fab.getLayoutParams();
+        mlpFab.leftMargin = insets.left + fabPadding;
+        mlpFab.rightMargin = insets.right + fabPadding;
+        mlpFab.bottomMargin = fabPadding;
+        fab.setLayoutParams(mlpFab);
+      }
+
+      container.setPadding(insets.left, 0, insets.right, 0);
+
       insetAppBar(insets, appBarLayout);
-
-      ViewGroup.MarginLayoutParams mlpFab = (ViewGroup.MarginLayoutParams) fab.getLayoutParams();
-      int fabPadding =
-              InsetsHelper.dpToPx(activity.getApplicationContext(), FAB_INSET);
-      mlpFab.leftMargin = insets.left + fabPadding;
-      mlpFab.bottomMargin = insets.bottom + fabPadding;
-      mlpFab.rightMargin = insets.right + fabPadding;
-      fab.setLayoutParams(mlpFab);
-
-      viewPager.setPadding(insets.left, 0, insets.right, 0);
 
       applyWorkaround(insets.bottom, workaroundView);
 
-      ThemeHelper.setNavigationBarColor(activity,
-              MaterialColors.getColor(appBarLayout, R.attr.colorSurface));
+      @ColorInt int color = new ElevationOverlayProvider(bottomNav.getContext()).compositeOverlay(
+              MaterialColors.getColor(bottomNav, R.attr.colorSurface), bottomNav.getElevation());
+      ThemeHelper.setNavigationBarColor(activity, color);
 
       return windowInsets;
     });

@@ -102,7 +102,7 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.5.1'
-    implementation 'androidx.fragment:fragment:1.5.2'
+    implementation 'androidx.fragment:fragment:1.5.4'
     implementation 'androidx.slidingpanelayout:slidingpanelayout:1.2.0'
     implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.core:core-splashscreen:1.0.0'

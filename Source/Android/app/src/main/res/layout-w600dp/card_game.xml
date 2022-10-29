@@ -19,10 +19,11 @@
     <com.google.android.material.card.MaterialCardView
         style="?attr/materialCardViewElevatedStyle"
         android:id="@+id/card_game_art"
-        android:layout_width="115dp"
-        android:layout_height="161dp"
+        android:layout_width="144dp"
+        android:layout_height="201dp"
         android:layout_gravity="center_horizontal"
-        app:cardCornerRadius="4dp">
+        app:cardCornerRadius="4dp"
+        app:cardElevation="6dp">
 
         <ImageView
             android:id="@+id/image_game_screen"
@@ -49,24 +50,24 @@
     <TextView
         android:id="@+id/text_game_title"
         style="@android:style/TextAppearance.Material.Subhead"
-        android:layout_width="115dp"
+        android:layout_width="144dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:ellipsize="end"
         android:maxLines="2"
         android:paddingTop="8dp"
-        android:layout_gravity="center"
         tools:text="The Legend of Zelda: The Wind Waker" />
 
     <TextView
         android:id="@+id/text_game_caption"
         style="@android:style/TextAppearance.Material.Caption"
-        android:layout_width="115dp"
+        android:layout_width="144dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:ellipsize="end"
         android:lines="1"
         android:maxLines="1"
         android:paddingTop="8dp"
-        android:layout_gravity="center"
         tools:text="Nintendo" />
 
 </LinearLayout>

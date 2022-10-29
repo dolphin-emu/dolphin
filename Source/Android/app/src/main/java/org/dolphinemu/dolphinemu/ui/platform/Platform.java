@@ -9,9 +9,9 @@ import org.dolphinemu.dolphinemu.R;
  */
 public enum Platform
 {
-  GAMECUBE(0, R.string.platform_gamecube, "GameCube Games"),
-  WII(1, R.string.platform_wii, "Wii Games"),
-  WIIWARE(2, R.string.platform_wiiware, "WiiWare Games");
+  GAMECUBE(0, R.string.platform_gamecube, "GameCube"),
+  WII(1, R.string.platform_wii, "Wii"),
+  WIIWARE(2, R.string.platform_wiiware, "WiiWare");
 
   private final int value;
   private final int headerName;

@@ -15,11 +15,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
-import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateProgressBarDialogFragment;
-import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemMenuNotInstalledDialogFragment;
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateViewModel;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
@@ -69,9 +66,7 @@ public final class MainPresenter
     GameFileCacheManager.getGameFiles().observe(mActivity, (gameFiles) -> mView.showGames());
 
     Observer<Boolean> refreshObserver = (isLoading) ->
-    {
-      mView.setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
-    };
+            mView.setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
     GameFileCacheManager.isLoading().observe(mActivity, refreshObserver);
     GameFileCacheManager.isRescanning().observe(mActivity, refreshObserver);
   }
@@ -84,56 +79,6 @@ public final class MainPresenter
   {
     new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity,
             mView::launchFileListActivity);
-  }
-
-  public boolean handleOptionSelection(int itemId, ComponentActivity activity)
-  {
-    switch (itemId)
-    {
-      case R.id.menu_settings:
-        mView.launchSettingsActivity(MenuTag.SETTINGS);
-        return true;
-
-      case R.id.menu_refresh:
-        mView.setRefreshing(true);
-        GameFileCacheManager.startRescan();
-        return true;
-
-      case R.id.button_add_directory:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
-                mView::launchFileListActivity);
-        return true;
-
-      case R.id.menu_open_file:
-        mView.launchOpenFileActivity(REQUEST_GAME_FILE);
-        return true;
-
-      case R.id.menu_load_wii_system_menu:
-        launchWiiSystemMenu();
-        return true;
-
-      case R.id.menu_online_system_update:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
-                this::launchOnlineUpdate);
-        return true;
-
-      case R.id.menu_install_wad:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
-                () -> mView.launchOpenFileActivity(REQUEST_WAD_FILE));
-        return true;
-
-      case R.id.menu_import_wii_save:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
-                () -> mView.launchOpenFileActivity(REQUEST_WII_SAVE_FILE));
-        return true;
-
-      case R.id.menu_import_nand_backup:
-        new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
-                () -> mView.launchOpenFileActivity(REQUEST_NAND_BIN_FILE));
-        return true;
-    }
-
-    return false;
   }
 
   public void onResume()
@@ -280,24 +225,6 @@ public final class MainPresenter
     sShouldRescanLibrary = false;
   }
 
-  private void launchOnlineUpdate()
-  {
-    if (WiiUtils.isSystemMenuInstalled())
-    {
-      SystemUpdateViewModel viewModel =
-              new ViewModelProvider(mActivity).get(SystemUpdateViewModel.class);
-      viewModel.setRegion(-1);
-      launchUpdateProgressBarFragment(mActivity);
-    }
-    else
-    {
-      SystemMenuNotInstalledDialogFragment dialogFragment =
-              new SystemMenuNotInstalledDialogFragment();
-      dialogFragment
-              .show(mActivity.getSupportFragmentManager(), "SystemMenuNotInstalledDialogFragment");
-    }
-  }
-
   public static void launchDiscUpdate(String path, FragmentActivity activity)
   {
     SystemUpdateViewModel viewModel =
@@ -306,31 +233,12 @@ public final class MainPresenter
     launchUpdateProgressBarFragment(activity);
   }
 
-  private static void launchUpdateProgressBarFragment(FragmentActivity activity)
+  public static void launchUpdateProgressBarFragment(FragmentActivity activity)
   {
     SystemUpdateProgressBarDialogFragment progressBarFragment =
             new SystemUpdateProgressBarDialogFragment();
     progressBarFragment
             .show(activity.getSupportFragmentManager(), "SystemUpdateProgressBarDialogFragment");
     progressBarFragment.setCancelable(false);
-  }
-
-  private void launchWiiSystemMenu()
-  {
-    new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity, () ->
-    {
-      if (WiiUtils.isSystemMenuInstalled())
-      {
-        EmulationActivity.launchSystemMenu(mActivity);
-      }
-      else
-      {
-        SystemMenuNotInstalledDialogFragment dialogFragment =
-                new SystemMenuNotInstalledDialogFragment();
-        dialogFragment
-                .show(mActivity.getSupportFragmentManager(),
-                        "SystemMenuNotInstalledDialogFragment");
-      }
-    });
   }
 }

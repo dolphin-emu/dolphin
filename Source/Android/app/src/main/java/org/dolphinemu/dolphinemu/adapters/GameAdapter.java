@@ -73,7 +73,6 @@ public final class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameView
   {
     Context context = holder.itemView.getContext();
     GameFile gameFile = mGameFiles.get(position);
-    GlideUtils.loadGameCover(holder, holder.binding.imageGameScreen, gameFile, mActivity);
 
     if (GameFileCacheManager.findSecondDisc(gameFile) != null)
     {
@@ -86,8 +85,8 @@ public final class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameView
     }
 
     holder.gameFile = gameFile;
-    
-    GlideUtils.loadGameCover(holder);
+
+    GlideUtils.loadGameCover(holder, mActivity);
   }
 
   public static class GameViewHolder extends RecyclerView.ViewHolder

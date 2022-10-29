@@ -65,8 +65,7 @@ public class GlideUtils
     }
   }
 
-  public static void loadGameCover(GameAdapter.GameViewHolder gameViewHolder, ImageView imageView,
-          GameFile gameFile, Activity activity)
+  public static void loadGameCover(GameAdapter.GameViewHolder gameViewHolder, Activity activity)
   {
     GameFile gameFile = gameViewHolder.gameFile;
     if (BooleanSetting.MAIN_SHOW_GAME_TITLES.getBooleanGlobal())
@@ -106,6 +105,7 @@ public class GlideUtils
         customCoverExists = new File(customCoverPath).exists();
       }
 
+      ImageView imageView = gameViewHolder.binding.imageGameScreen;
       Context context = imageView.getContext();
       boolean finalCustomCoverExists = customCoverExists;
       Uri finalCustomCoverUri = customCoverUri;
