@@ -32,6 +32,7 @@ void MemoryPatches::SetPatch(u32 address, u32 value)
 
 void MemoryPatches::SetPatch(u32 address, std::vector<u8> value)
 {
+  UnsetPatch(address);
   const std::size_t index = m_patches.size();
   m_patches.emplace_back(address, std::move(value));
   Patch(index);
@@ -44,20 +45,14 @@ const std::vector<MemoryPatch>& MemoryPatches::GetPatches() const
 
 void MemoryPatches::UnsetPatch(u32 address)
 {
-  const auto it = std::remove_if(m_patches.begin(), m_patches.end(),
-                                 [address](const auto& patch) { return patch.address == address; });
+  const auto it = std::find_if(m_patches.begin(), m_patches.end(),
+                               [address](const auto& patch) { return patch.address == address; });
 
   if (it == m_patches.end())
     return;
 
-  const std::size_t size = m_patches.size();
-  std::size_t index = size - std::distance(it, m_patches.end());
-  while (index < size)
-  {
-    DisablePatch(index);
-    ++index;
-  }
-  m_patches.erase(it, m_patches.end());
+  const std::size_t index = std::distance(m_patches.begin(), it);
+  RemovePatch(index);
 }
 
 void MemoryPatches::EnablePatch(std::size_t index)

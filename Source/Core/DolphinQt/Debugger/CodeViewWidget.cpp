@@ -513,7 +513,6 @@ void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
 
 void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
 {
-  PowerPC::debug_interface.UnsetPatch(address);
   PowerPC::debug_interface.SetPatch(address, replace == ReplaceWith::BLR ? 0x4e800020 : 0x60000000);
   Update();
 }
@@ -823,7 +822,6 @@ void CodeViewWidget::OnReplaceInstruction()
 
   if (dialog.exec() == QDialog::Accepted)
   {
-    PowerPC::debug_interface.UnsetPatch(addr);
     PowerPC::debug_interface.SetPatch(addr, dialog.GetCode());
     Update();
   }
