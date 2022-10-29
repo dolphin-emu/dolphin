@@ -41,7 +41,6 @@ private:
   u32 m_descriptor_increment_size = 0;
 
   D3D12_CPU_DESCRIPTOR_HANDLE m_heap_base_cpu = {};
-  D3D12_GPU_DESCRIPTOR_HANDLE m_heap_base_gpu = {};
 
   static constexpr u32 BITSET_SIZE = 1024;
   using BitSetType = std::bitset<BITSET_SIZE>;

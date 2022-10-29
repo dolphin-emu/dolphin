@@ -101,8 +101,8 @@ bool D3D12BoundingBox::CreateBuffers()
                                      D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS};
 
   HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
-      &gpu_heap_properties, D3D12_HEAP_FLAG_NONE, &buffer_desc,
-      D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_gpu_buffer));
+      &gpu_heap_properties, D3D12_HEAP_FLAG_NONE, &buffer_desc, D3D12_RESOURCE_STATE_COMMON,
+      nullptr, IID_PPV_ARGS(&m_gpu_buffer));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating bounding box GPU buffer failed: {}", DX12HRWrap(hr));
   if (FAILED(hr) || !g_dx_context->GetDescriptorHeapManager().Allocate(&m_gpu_descriptor))
     return false;

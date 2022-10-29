@@ -236,18 +236,20 @@ void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
 
 void Renderer::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
 {
-  BindFramebuffer(static_cast<DXFramebuffer*>(framebuffer));
+  SetFramebuffer(framebuffer);
 
   static const D3D12_DISCARD_REGION dr = {0, nullptr, 0, 1};
   if (framebuffer->HasColorBuffer())
   {
-    g_dx_context->GetCommandList()->DiscardResource(
-        static_cast<DXTexture*>(framebuffer->GetColorAttachment())->GetResource(), &dr);
+    DXTexture* color_attachment = static_cast<DXTexture*>(framebuffer->GetColorAttachment());
+    color_attachment->TransitionToState(D3D12_RESOURCE_STATE_RENDER_TARGET);
+    g_dx_context->GetCommandList()->DiscardResource(color_attachment->GetResource(), &dr);
   }
   if (framebuffer->HasDepthBuffer())
   {
-    g_dx_context->GetCommandList()->DiscardResource(
-        static_cast<DXTexture*>(framebuffer->GetDepthAttachment())->GetResource(), &dr);
+    DXTexture* depth_attachment = static_cast<DXTexture*>(framebuffer->GetDepthAttachment());
+    depth_attachment->TransitionToState(D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    g_dx_context->GetCommandList()->DiscardResource(depth_attachment->GetResource(), &dr);
   }
 }
 
