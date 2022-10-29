@@ -513,6 +513,53 @@ static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, i
 
 void ProcessLine(OutputVertexData* v0, OutputVertexData* v1)
 {
+  // TODO: How does clipping for lines work? For now, I'm just using the main radius (no guardband).
+  ClipPlaneResult cr0 = CheckClipPlanes(v0, MAIN_RADIUS);
+  ClipPlaneResult cr1 = CheckClipPlanes(v1, MAIN_RADIUS);
+
+  if ((cr0.planes & cr1.planes) != ClipPlane::None)
+  {
+    // Trivially rejected
+    return;
+  }
+
+  OutputVertexData nv0 = *v0;
+  OutputVertexData nv1 = *v1;
+  if ((cr0.planes | cr1.planes) != ClipPlane::None)
+  {
+    // Clipping is needed
+    float a0 = 0;
+    float a1 = 1;
+
+    auto process_plane = [&](ClipPlane plane, float ClipPlaneResult::*member_pointer) {
+      if ((cr0.planes & plane) == plane)
+        a0 = std::max(a0, ComputeIntersection(cr0.*member_pointer, cr1.*member_pointer));
+      else if ((cr1.planes & plane) == plane)
+        a1 = std::min(a1, ComputeIntersection(cr0.*member_pointer, cr1.*member_pointer));
+    };
+
+    process_plane(ClipPlane::PositiveX, &ClipPlaneResult::positive_x);
+    process_plane(ClipPlane::NegativeX, &ClipPlaneResult::negative_x);
+    process_plane(ClipPlane::PositiveY, &ClipPlaneResult::positive_y);
+    process_plane(ClipPlane::NegativeY, &ClipPlaneResult::negative_y);
+    process_plane(ClipPlane::PositiveZ, &ClipPlaneResult::positive_z);
+    process_plane(ClipPlane::NegativeZ, &ClipPlaneResult::negative_z);
+
+    if (a0 >= a1)
+    {
+      // Nontrivial rejection
+      return;
+    }
+
+    if (a0 != 0)
+      nv0.Lerp(a0, v0, v1);
+    if (a1 != 1)
+      nv1.Lerp(a1, v0, v1);
+
+    v0 = &nv0;
+    v1 = &nv1;
+  }
+
   PerspectiveDivide(v0);
   PerspectiveDivide(v1);
 
