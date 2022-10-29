@@ -25,7 +25,6 @@ bool DescriptorHeapManager::Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_T
     return false;
 
   m_heap_base_cpu = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
-  m_heap_base_gpu = m_descriptor_heap->GetGPUDescriptorHandleForHeapStart();
   m_num_descriptors = num_descriptors;
   m_descriptor_increment_size = device->GetDescriptorHandleIncrementSize(type);
 
@@ -60,7 +59,7 @@ bool DescriptorHeapManager::Allocate(DescriptorHandle* handle)
 
     handle->index = index;
     handle->cpu_handle.ptr = m_heap_base_cpu.ptr + index * m_descriptor_increment_size;
-    handle->gpu_handle.ptr = m_heap_base_gpu.ptr + index * m_descriptor_increment_size;
+    handle->gpu_handle.ptr = 0;
     return true;
   }
 
