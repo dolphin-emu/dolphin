@@ -238,14 +238,15 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
 
     const int version = version_string.empty() ? 0 : std::stoi(version_string);
 
+    const std::string serials = game.child("serial").text().as_string();
+    if (!serials.empty())
+      serials_exist = true;
+
     // The revisions for Korean GameCube games whose four-char game IDs end in E are numbered from
     // 0x30 in ring codes and in disc headers, but Redump switched to numbering them from 0 in 2019.
     if (version % 0x30 != m_revision % 0x30)
       continue;
 
-    const std::string serials = game.child("serial").text().as_string();
-    if (!serials.empty())
-      serials_exist = true;
     if (serials.empty() || StringBeginsWith(serials, "DS"))
     {
       // GC Datel discs have no serials in Redump, Wii Datel discs have serials like "DS000101"
