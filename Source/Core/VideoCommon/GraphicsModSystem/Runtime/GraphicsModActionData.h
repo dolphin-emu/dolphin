@@ -3,10 +3,13 @@
 
 #pragma once
 
+#include <optional>
 #include <string_view>
 
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
+
+#include "VideoCommon/RenderState.h"
 
 namespace GraphicsModActionData
 {
@@ -31,5 +34,10 @@ struct Projection
 struct TextureLoad
 {
   std::string_view texture_name;
+  std::optional<FilterMode>* min_filter;
+  std::optional<FilterMode>* mag_filter;
+  std::optional<FilterMode>* mipmap_filter;
+  std::optional<WrapMode>* wrap_u;
+  std::optional<WrapMode>* wrap_v;
 };
 }  // namespace GraphicsModActionData
