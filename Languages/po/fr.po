@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-23 22:12+0200\n"
+"POT-Creation-Date: 2022-10-30 22:38+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Pascal <pascal2j-language@yahoo.com>, 2013-2022\n"
 "Language-Team: French (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -28,7 +28,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % "
 "1000000 == 0 ? 1 : 2;\n"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1455
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1456
 msgid ""
 "\n"
 "\n"
@@ -40,7 +40,7 @@ msgstr ""
 "Comme les images de disques GameCube contiennent peu de données de contrôle, "
 "il peut y avoir des problèmes que Dolphin ne peut détecter."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1461
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1462
 msgid ""
 "\n"
 "\n"
@@ -132,7 +132,7 @@ msgid "%1 (Revision %3)"
 msgstr "%1 (Révision %3)"
 
 #. i18n: "Stock" refers to input profiles included with Dolphin
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:500
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:507
 msgid "%1 (Stock)"
 msgstr "%1 (préréglage)"
 
@@ -298,7 +298,7 @@ msgstr "&4x"
 msgid "&About"
 msgstr "&À propos"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:246
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:249
 msgid "&Actions"
 msgstr "&Actions"
 
@@ -311,7 +311,7 @@ msgstr "&&Ajouter un point d'arrêt mémoire"
 msgid "&Add New Code..."
 msgstr "&Ajouter un nouveau code..."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:560
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:559
 msgid "&Add function"
 msgstr "&Ajouter une fonction"
 
@@ -379,7 +379,7 @@ msgstr "&Connecté"
 msgid "&Controller Settings"
 msgstr "Paramètres des &manettes"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:536
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:535
 msgid "&Copy address"
 msgstr "&Copier l'adresse"
 
@@ -480,7 +480,7 @@ msgstr "&Importer l'état..."
 msgid "&Import..."
 msgstr "&Importer..."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:562
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:561
 msgid "&Insert blr"
 msgstr "&Insérer blr"
 
@@ -504,7 +504,7 @@ msgstr "&Charger l'état"
 msgid "&Load Symbol Map"
 msgstr "&Charger une Carte de Symboles"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:248
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:251
 msgid "&Load file to current address"
 msgstr "&Charger le fichier à l'adresse actuelle"
 
@@ -578,7 +578,7 @@ msgstr "&Retirer"
 msgid "&Remove Code"
 msgstr "&Retirer le Code"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:551
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:550
 msgid "&Rename symbol"
 msgstr "&Renommer symbole"
 
@@ -704,7 +704,7 @@ msgstr "/ Diviser"
 msgid "128 Mbit (2043 blocks)"
 msgstr "128 Mbit (2043 blocs)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:204
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:207
 msgid "16 Bytes"
 msgstr "16 octets"
 
@@ -774,7 +774,7 @@ msgstr "Entier 32 bits non signé"
 #. i18n: Stereoscopic 3D
 #: Source/Core/Core/HotkeyManager.cpp:347
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:22
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:447
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:454
 msgid "3D"
 msgstr "3D"
 
@@ -792,7 +792,7 @@ msgstr "3x"
 msgid "3x Native (1920x1584) for 1080p"
 msgstr "3x la réso. native (1920x1584) pour 1080p"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:202
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:205
 msgid "4 Bytes"
 msgstr "4 octets"
 
@@ -844,7 +844,7 @@ msgstr "6x la réso. native (3840x3168) pour 4K"
 msgid "7x Native (4480x3696)"
 msgstr "7x la réso. native (4480x3696)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:203
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:206
 msgid "8 Bytes"
 msgstr "8 octets"
 
@@ -994,8 +994,8 @@ msgstr "Code AR"
 msgid "AR Codes"
 msgstr "Codes AR"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:133
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:192
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:136
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:195
 msgid "ASCII"
 msgstr "ASCII"
 
@@ -1211,7 +1211,7 @@ msgid "Address"
 msgstr "Adresse"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:44
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:158
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:161
 msgid "Address Space"
 msgstr "Espace d'adresse"
 
@@ -1347,11 +1347,7 @@ msgstr "Tout Entier Signé"
 msgid "All Unsigned Integer"
 msgstr "Tout Entier Non-signé"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:381
-msgid "All devices"
-msgstr "Tous les appareils"
-
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:662
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:687
 msgid "All files (*)"
 msgstr "Tous les fichiers (*)"
 
@@ -1484,7 +1480,7 @@ msgstr "Appliquer un fichier de signature"
 msgid "Arbitrary Mipmap Detection"
 msgstr "Détection de mipmap arbitraire"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:252
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:265
 msgid "Are you sure that you want to delete '%1'?"
 msgstr "Êtes-vous sûr de vouloir supprimer \"%1\" ?"
 
@@ -1606,7 +1602,7 @@ msgstr ""
 "dolphin_emphasis>"
 
 #. i18n: The "Auxiliary" address space is the address space of ARAM (Auxiliary RAM).
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:166
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:169
 msgid "Auxiliary"
 msgstr "Auxiliaire"
 
@@ -1669,27 +1665,27 @@ msgstr "Entrée en arrière-plan"
 msgid "Backward"
 msgstr "Arrière"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:788
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:813
 msgid "Bad Value Given"
 msgstr "Mauvaise valeur entrée"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:608
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:651
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:774
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:633
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:676
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:799
 msgid "Bad address provided."
 msgstr "Mauvaise adresse fournie."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:354
+#: Source/Core/DiscIO/VolumeVerifier.cpp:355
 msgid "Bad dump"
 msgstr "Mauvais dump"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:614
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:657
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:780
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:639
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:682
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:805
 msgid "Bad offset provided."
 msgstr "Mauvais offset fourni."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:623
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:648
 msgid "Bad value provided."
 msgstr "Mauvaise valeur fournie."
 
@@ -2250,7 +2246,7 @@ msgstr "Manette classique"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:136
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:246
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:137
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:152
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:109
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:90
 msgid "Clear"
@@ -2321,7 +2317,7 @@ msgstr "Tous"
 msgid "Comparand:"
 msgstr "Comparer :"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1429
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1430
 msgid ""
 "Compared to the Wii disc release of the game, problems of low severity were "
 "found. Despite this, it's possible that this is a good dump compared to the "
@@ -2331,7 +2327,7 @@ msgstr ""
 "ont été détectés. Malgré cela, il est possible que ce soit un bon dump "
 "comparé à la version eShop de Wii U du jeu. Dolphin ne peut pas le vérifier."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1393
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1394
 msgid ""
 "Compared to the Wii disc release of the game, this is a bad dump. Despite "
 "this, it's possible that this is a good dump compared to the Wii U eShop "
@@ -2399,7 +2395,7 @@ msgstr "Configurer l'entrée"
 msgid "Configure Output"
 msgstr "Configurer la sortie"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:251
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:264
 #: Source/Core/DolphinQt/ConvertDialog.cpp:281
 #: Source/Core/DolphinQt/ConvertDialog.cpp:402
 #: Source/Core/DolphinQt/GameList/GameList.cpp:631
@@ -2481,7 +2477,7 @@ msgstr "Connexion en cours"
 msgid "Connection Type:"
 msgstr "Type de connexion :"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1233
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1234
 msgid "Content {0:08x} is corrupt."
 msgstr "Le contenu {0:08x} est corrompu."
 
@@ -2498,7 +2494,7 @@ msgstr "Contrôler le mode Golf de NetPlay"
 msgid "Control Stick"
 msgstr "Stick de contrôle"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:444
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:451
 msgid "Controller Profile"
 msgstr "Config de manette"
 
@@ -2659,11 +2655,11 @@ msgstr ""
 msgid "Copy"
 msgstr "Copier"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:538
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:537
 msgid "Copy &function"
 msgstr "Copier la &fonction"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:541
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:540
 msgid "Copy &hex"
 msgstr "Copier l'&hex"
 
@@ -2683,11 +2679,11 @@ msgstr "Copier l'Hex"
 msgid "Copy Value"
 msgstr "Copier la valeur"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:540
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:539
 msgid "Copy code &line"
 msgstr "Copier la &ligne de code"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:547
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:546
 msgid "Copy tar&get address"
 msgstr "Copier l'adresse &cible"
 
@@ -2850,6 +2846,10 @@ msgstr "Pays :"
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:74
 msgid "Create New Memory Card"
 msgstr "Créer une nouvelle Carte mémoire"
+
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:108
+msgid "Create mappings for other devices"
+msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:45
 msgid "Create..."
@@ -3041,7 +3041,7 @@ msgid "Debug"
 msgstr "Débug"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:49
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:441
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:448
 msgid "Debugging"
 msgstr "Débogage"
 
@@ -3087,7 +3087,7 @@ msgstr "Réduire X"
 msgid "Decrease Y"
 msgstr "Réduire Y"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:138
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:153
 msgid "Default"
 msgstr "Par défaut"
 
@@ -3134,7 +3134,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>Dans le doute, décochez cette case.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:116
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:131
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:108
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:89
 msgid "Delete"
@@ -3204,7 +3204,7 @@ msgstr "Double cœur déterministe :"
 msgid "Dev (multiple times a day)"
 msgstr "Dev (plusieurs fois par jour)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:96
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:98
 msgid "Device"
 msgstr "Appareil"
 
@@ -3348,7 +3348,7 @@ msgstr "Disque"
 msgid "Discard"
 msgstr "Fermer"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:177
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:180
 msgid "Display Type"
 msgstr "Type d'affichage"
 
@@ -3481,7 +3481,7 @@ msgstr "Dolphin est un émulateur de GameCube et Wii, libre et open-source."
 msgid "Dolphin is too old for traversal server"
 msgstr "Dolphin est trop ancien pour le serveur traversal"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1382
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1383
 msgid ""
 "Dolphin is unable to verify typical TGC files properly, since they are not "
 "dumps of actual discs."
@@ -3489,7 +3489,7 @@ msgstr ""
 "Dolphin ne peut vérifier les fichiers TGC typiques, car ce ne sont pas des "
 "dumps de disques."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1375
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1376
 msgid "Dolphin is unable to verify unlicensed discs."
 msgstr "Dolphin ne peut vérifier les disques non licenciés."
 
@@ -3529,8 +3529,8 @@ msgid "Doors Locked"
 msgstr ""
 
 #. i18n: A double precision floating point number
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:135
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:194
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:138
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:197
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:150
 msgid "Double"
 msgstr "Double"
@@ -3582,7 +3582,7 @@ msgstr "Kit de percussions"
 msgid "Dual Core"
 msgstr "Double cœur (Dual Core)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:207
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:210
 msgid "Dual View"
 msgstr "Affichage double"
 
@@ -3590,19 +3590,19 @@ msgstr "Affichage double"
 msgid "Dummy"
 msgstr "Factice"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:253
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:256
 msgid "Dump &ARAM"
 msgstr "Dumper l'&ARAM"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:252
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:255
 msgid "Dump &ExRAM"
 msgstr "Dumper l' &ExRAM"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:254
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:257
 msgid "Dump &FakeVMEM"
 msgstr "Dumper &FakeVMEM"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:251
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:254
 msgid "Dump &MRAM"
 msgstr "Dumper la &MRAM"
 
@@ -3757,7 +3757,7 @@ msgstr "Effets"
 
 #. i18n: "Effective" addresses are the addresses used directly by the CPU and may be subject to
 #. translation via the MMU to physical addresses.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:164
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:167
 msgid "Effective"
 msgstr "Effective"
 
@@ -4093,22 +4093,22 @@ msgstr "Entrer l'adresse du module RSO :"
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:325
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:46
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:521
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:242
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:281
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:255
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:294
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:232
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:259
 #: Source/Core/DolphinQt/ConvertDialog.cpp:452
 #: Source/Core/DolphinQt/ConvertDialog.cpp:506
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:608
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:614
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:623
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:632
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:651
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:633
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:639
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:648
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:657
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:672
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:680
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:702
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:709
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:676
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:682
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:727
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:734
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:150
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
@@ -4259,11 +4259,11 @@ msgstr ""
 "chargées. Les jeux peuvent ne pas afficher les polices correctement, ou "
 "planter."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1331
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1332
 msgid "Errors were found in {0} blocks in the {1} partition."
 msgstr "Des erreurs ont été trouvées dans {0} blocs de la partition n°{1}."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1342
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1343
 msgid "Errors were found in {0} unused blocks in the {1} partition."
 msgstr ""
 "Des erreurs ont été trouvées dans {0} blocs inutilisés de la partition n°{1}."
@@ -4422,16 +4422,16 @@ msgid "Exported %n save(s)"
 msgstr "%n sauvegarde(s) exportée(s)"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:251
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:424
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:431
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:47
 msgid "Extension"
 msgstr "Extension"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:120
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:121
 msgid "Extension Motion Input"
 msgstr "Entrée MotionPlus"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:121
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:122
 msgid "Extension Motion Simulation"
 msgstr "Simulation du MotionPlus"
 
@@ -4559,11 +4559,11 @@ msgstr "Impossible de détacher le driver du Kernel pour l'adaptateur BT : {0}"
 msgid "Failed to download codes."
 msgstr "Impossible de télécharger les codes."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:703
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:728
 msgid "Failed to dump %1: Can't open file"
 msgstr "Impossible de dumper %1 : impossible d'ouvrir le fichier"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:710
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:735
 msgid "Failed to dump %1: Failed to write to file"
 msgstr "Impossible de dumper %1 : impossible d'écrire vers le fichier"
 
@@ -4752,7 +4752,7 @@ msgstr ""
 "destination et que le média peut être écrit."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:220
-#: Source/Core/DiscIO/VolumeVerifier.cpp:318
+#: Source/Core/DiscIO/VolumeVerifier.cpp:319
 msgid "Failed to parse Redump.org data"
 msgstr "Impossible de traiter les données de Redump.org"
 
@@ -5015,11 +5015,11 @@ msgstr ""
 "<br><br><dolphin_emphasis>Dans le doute, décochez cette case.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:148
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:151
 msgid "Find &Next"
 msgstr "Chercher le &suivant"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:149
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:152
 msgid "Find &Previous"
 msgstr "Chercher le &précédent"
 
@@ -5047,7 +5047,7 @@ msgstr "Corriger les sommes de contrôle"
 msgid "Fix Checksums Failed"
 msgstr "Échec de la correction des sommes de contrôle"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:197
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:200
 msgid "Fixed Alignment"
 msgstr "Alignement fixé"
 
@@ -5060,14 +5060,14 @@ msgstr "Drapeaux"
 
 #. i18n: A floating point number
 #. i18n: Floating-point (non-integer) number
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:134
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:193
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:137
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:196
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:148
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:161
 msgid "Float"
 msgstr "Flottant"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:532
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:531
 msgid "Follow &branch"
 msgstr "Suivre la &branche"
 
@@ -5229,7 +5229,7 @@ msgstr "%1 fichiers libres"
 msgid "Free Look Control Type"
 msgstr "Type de contrôle de la vue libre"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:459
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:466
 msgid "Free Look Controller %1"
 msgstr "Manette %1 pour la Vue libre"
 
@@ -5465,8 +5465,8 @@ msgstr ""
 msgid "Game"
 msgstr "Jeu"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:393
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:450
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:400
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:457
 msgid "Game Boy Advance"
 msgstr "Game Boy Advance"
 
@@ -5482,7 +5482,7 @@ msgstr ""
 "ROM de Game Boy Advance (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *."
 "bin);;Tous les fichiers (*)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:392
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:399
 msgid "Game Boy Advance at Port %1"
 msgstr "Game Boy Advance sur le Port %1"
 
@@ -5564,11 +5564,11 @@ msgstr "Adaptateur GameCube pour Wii U"
 msgid "GameCube Adapter for Wii U at Port %1"
 msgstr "Adaptateur GameCube pour Wii U sur le Port %1"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:406
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:413
 msgid "GameCube Controller"
 msgstr "Manette GameCube"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:405
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:412
 msgid "GameCube Controller at Port %1"
 msgstr "Manette GameCube sur le port %1"
 
@@ -5576,11 +5576,11 @@ msgstr "Manette GameCube sur le port %1"
 msgid "GameCube Controllers"
 msgstr "Manettes GameCube"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:398
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:405
 msgid "GameCube Keyboard"
 msgstr "Clavier pour GameCube"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:397
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:404
 msgid "GameCube Keyboard at Port %1"
 msgstr "Clavier pour GameCube sur le Port %1"
 
@@ -5597,7 +5597,7 @@ msgstr "Cartes mémoire de GameCube"
 msgid "GameCube Memory Cards (*.raw *.gcp)"
 msgstr "Cartes mémoire de GameCube (*.raw *.gcp)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:410
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:417
 msgid "GameCube Microphone Slot %1"
 msgstr "Micro pour GameCube, Slot %1"
 
@@ -5619,13 +5619,13 @@ msgstr "Codes Gecko"
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:62
 #: Source/Core/DolphinQt/Config/Graphics/PostProcessingConfigWindow.cpp:115
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:21
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:436
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:457
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:443
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:464
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:37
 msgid "General"
 msgstr "Général"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:421
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:428
 msgid "General and Options"
 msgstr "Général et Options"
 
@@ -5667,12 +5667,12 @@ msgstr "Gio"
 msgid "Golf Mode"
 msgstr "Mode Golf"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:344
+#: Source/Core/DiscIO/VolumeVerifier.cpp:345
 msgid "Good dump"
 msgstr "Dump OK"
 
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:32
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:445
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:452
 #: Source/Core/DolphinQt/ToolBar.cpp:130
 msgid "Graphics"
 msgstr "Graphismes"
@@ -5747,23 +5747,23 @@ msgstr "Head"
 msgid "Help"
 msgstr "Aide"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:116
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:119
 msgid "Hex"
 msgstr "Hex"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:184
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:187
 msgid "Hex 16"
 msgstr "Hex 16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:185
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:188
 msgid "Hex 32"
 msgstr "Hex 32"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:183
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:186
 msgid "Hex 8"
 msgstr "Hex 8"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:132
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:135
 msgid "Hex Byte String"
 msgstr "Hex Byte String"
 
@@ -5863,7 +5863,7 @@ msgstr "Hôte avec Netplay"
 msgid "Hostname"
 msgstr "Nom de l'hôte"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:451
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:458
 msgid "Hotkey Settings"
 msgstr "Paramètres des Raccouris clavier"
 
@@ -6260,7 +6260,7 @@ msgstr "Force d'appui requise pour l'activation."
 msgid "Input strength to ignore and remap."
 msgstr "Force de l'entrée à ignorer et remapper."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:563
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:562
 msgid "Insert &nop"
 msgstr "Insérer &nop"
 
@@ -6748,7 +6748,7 @@ msgid "Listening"
 msgstr "Écoute"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:23
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:114
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:129
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:111
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:91
 msgid "Load"
@@ -6946,7 +6946,7 @@ msgid "Lock Mouse Cursor"
 msgstr "Verrouiller le curseur de la souris"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:34
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:231
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:234
 msgid "Log"
 msgstr "Journal"
 
@@ -7058,7 +7058,7 @@ msgstr "Mappage"
 msgid "Mask ROM"
 msgstr "ROM masque"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:806
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:831
 msgid "Match Found"
 msgstr "Correspondance trouvée"
 
@@ -7108,7 +7108,7 @@ msgstr "Dossier de la carte mémoire :"
 msgid "Memory Override"
 msgstr "Modification de la mémoire"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:215
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:218
 msgid "Memory breakpoint options"
 msgstr "Options pour le point d'arrêt en mémoire"
 
@@ -7146,7 +7146,7 @@ msgstr "Mio"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:91 Source/Core/Core/HW/GCPadEmu.h:60
 #: Source/Core/DolphinQt/Config/Mapping/GCMicrophone.cpp:26
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:412
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:419
 msgid "Microphone"
 msgstr "Micro"
 
@@ -7219,11 +7219,11 @@ msgstr "Ombres monoscopiques"
 msgid "Monospaced Font"
 msgstr "Police mono-espacée."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:423
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:430
 msgid "Motion Input"
 msgstr "Entrée des mouvements"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:422
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:429
 msgid "Motion Simulation"
 msgstr "Simulation des mouvements"
 
@@ -7464,7 +7464,7 @@ msgstr "Non"
 msgid "No Adapter Detected"
 msgstr "Aucun adaptateur détecté"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:199
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:202
 msgid "No Alignment"
 msgstr "Aucun alignement"
 
@@ -7478,7 +7478,7 @@ msgstr "Pas de sortie audio"
 msgid "No Compression"
 msgstr "Aucune compression"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:818
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:843
 msgid "No Match"
 msgstr "Aucune correspondance trouvée"
 
@@ -7531,11 +7531,11 @@ msgstr "Aucun chemin trouvé dans le fichier M3U \"{0}\""
 msgid "No possible functions left. Reset."
 msgstr "Aucune fonction restante possible. Réinitialiser."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1422
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1423
 msgid "No problems were found."
 msgstr "Aucun problème n'a été trouvé."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1416
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1417
 msgid ""
 "No problems were found. This does not guarantee that this is a good dump, "
 "but since Wii titles contain a lot of verification data, it does mean that "
@@ -7686,7 +7686,7 @@ msgstr "Océanie"
 msgid "Off"
 msgstr "Arrêt"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:106
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:109
 msgid "Offset"
 msgstr "Offset"
 
@@ -7821,7 +7821,7 @@ msgstr "Autre partition (%1)"
 msgid "Other State Hotkeys"
 msgstr "Autres raccourcis clavier"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:449
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:456
 msgid "Other State Management"
 msgstr "Autres manipulations des états"
 
@@ -7859,7 +7859,7 @@ msgstr "Fichier d'image PNG (*.png);; Tous le fichiers (*)"
 msgid "PPC Size"
 msgstr "Taille PPC"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:561
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:560
 msgid "PPC vs Host"
 msgstr "PPC vs Hôte"
 
@@ -7982,7 +7982,7 @@ msgstr "Exécuter une mise à jour du Système"
 
 #. i18n: The "Physical" address space is the address space that reflects how devices (e.g. RAM) is
 #. physically wired up.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:169
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:172
 msgid "Physical"
 msgstr "Physique"
 
@@ -8054,7 +8054,7 @@ msgid "Point"
 msgstr "Pointer"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:82
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:63
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:65
 msgid "Port %1"
 msgstr "Port %1"
 
@@ -8173,7 +8173,7 @@ msgstr "Privée et publique"
 msgid "Problem"
 msgstr "Problème"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1447
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1448
 msgid ""
 "Problems with high severity were found. The game will most likely not work "
 "at all."
@@ -8181,7 +8181,7 @@ msgstr ""
 "Des problèmes d'une haute importance ont été trouvés. Le jeu ne fonctionnera "
 "probablement pas."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1436
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1437
 msgid ""
 "Problems with low severity were found. They will most likely not prevent the "
 "game from running."
@@ -8189,7 +8189,7 @@ msgstr ""
 "Des problèmes de faible importance ont été trouvés. Ils n'empêcheront "
 "probablement pas le jeu de fonctionner."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1442
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1443
 msgid ""
 "Problems with medium severity were found. The whole game or certain parts of "
 "the game might not work correctly."
@@ -8197,7 +8197,7 @@ msgstr ""
 "Des problèmes d'une importance moyenne ont été trouvés. Tout ou partie du "
 "jeu peuvent ne pas fonctionner correctement."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:112
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:127
 msgid "Profile"
 msgstr "Profil"
 
@@ -8302,7 +8302,7 @@ msgstr "Fin de zone :"
 msgid "Range Start: "
 msgstr "Début de zone :"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:565
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:564
 msgid "Re&place instruction"
 msgstr "Rem&placer l'instruction"
 
@@ -8314,14 +8314,14 @@ msgstr "Lire"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation or write operation occurs.
 #. The string is not a command to read and write something or to allow reading and writing.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:222
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:225
 msgid "Read and write"
 msgstr "Lu et écrit"
 
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation occurs.
 #. The string does not mean "read-only" in the sense that something cannot be written to.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:226
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:229
 msgid "Read only"
 msgstr "Uniquement lu"
 
@@ -8407,7 +8407,7 @@ msgstr "État de Redump.org :"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:202
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:80
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:98
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:105
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:102
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:98
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:88
@@ -8500,8 +8500,8 @@ msgstr ""
 "l'espace lors de la conversion en ISO (sauf si vous compressez ensuite le "
 "fichier ISO en ZIP par exemple). Voulez-vous tout de même continuer ?"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:738
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:773
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:737
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:772
 msgid "Rename symbol"
 msgstr "Renommer le symbole"
 
@@ -8532,7 +8532,7 @@ msgstr "Quelqu'un demande à rejoindre votre partie"
 #: Source/Core/Core/FreeLookManager.cpp:97
 #: Source/Core/Core/HotkeyManager.cpp:33 Source/Core/Core/HotkeyManager.cpp:187
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:899
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:136
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:151
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:101
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:740
 msgid "Reset"
@@ -8591,7 +8591,7 @@ msgstr "Redémarrage requis"
 msgid "Restore Defaults"
 msgstr "Restaurer les valeurs par défaut"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:567
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:566
 msgid "Restore instruction"
 msgstr "Restaurer l'instruction"
 
@@ -8667,7 +8667,7 @@ msgstr "Enrouler vers la droite"
 msgid "Room ID"
 msgstr "ID Room"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:458
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:465
 msgid "Rotation"
 msgstr "Rotation"
 
@@ -8697,7 +8697,7 @@ msgstr ""
 msgid "Rumble"
 msgstr "Vibreur"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:558
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:557
 msgid "Run &To Here"
 msgstr "Exécu&ter jusqu'ici"
 
@@ -8775,7 +8775,7 @@ msgid "Safe"
 msgstr "Sûr "
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:21
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:115
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:130
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:112
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:92
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:710
@@ -8899,7 +8899,7 @@ msgstr "Sauvegarder la carte des symboles &sous..."
 msgid "Save Texture Cache to State"
 msgstr "Enreg. le cache de texture dans la sauveg. de l'état"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:448
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:455
 msgid "Save and Load State"
 msgstr "Sauvegarder et Charger un état"
 
@@ -8977,14 +8977,14 @@ msgstr "Recherche terminée."
 msgid "ScrShot"
 msgstr "Capt écran"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:144
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:86
 #: Source/Core/DolphinQt/MenuBar.cpp:512
 msgid "Search"
 msgstr "Rechercher"
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:103
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:105
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:108
 msgid "Search Address"
 msgstr "Rechercher l'adresse"
 
@@ -9168,7 +9168,7 @@ msgstr "Sélectionner un Jeu"
 msgid "Select a SD Card Image"
 msgstr "Sélectionner une image de carte SD"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:661
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:686
 msgid "Select a file"
 msgstr "Sélectionner un fichier"
 
@@ -9312,7 +9312,7 @@ msgstr "Envoyer"
 msgid "Sensor Bar Position:"
 msgstr "Position de la Sensor Bar :"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:314
+#: Source/Core/DiscIO/VolumeVerifier.cpp:315
 msgid ""
 "Serial and/or version data is missing from {0}\n"
 "Please append \"{1}\" (without the quotes) to the datfile URL when "
@@ -9336,7 +9336,7 @@ msgstr "Port du serveur"
 msgid "Server rejected traversal attempt"
 msgstr "Le serveur a rejeté la tentative traversal"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:117
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:120
 msgid "Set &Value"
 msgstr "Définir &Valeur"
 
@@ -9361,19 +9361,19 @@ msgstr "Sélectionner un fichier de carte mémoire pour le Slot A"
 msgid "Set memory card file for Slot B"
 msgstr "Sélectionner un fichier de carte mémoire pour le Slot B"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:555
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:554
 msgid "Set symbol &end address"
 msgstr "Définir l'adresse de &fin du symbole"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:553
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:552
 msgid "Set symbol &size"
 msgstr "Définir la taille du &symbole"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:796
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:795
 msgid "Set symbol end address"
 msgstr "Définir l'adresse de fin du symbole"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:774
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:773
 msgid "Set symbol size (%1):"
 msgstr "Entrer la taille du symbole (%1) :"
 
@@ -9609,7 +9609,7 @@ msgstr "Afficher Wii"
 msgid "Show World"
 msgstr "Afficher Monde"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:543
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:542
 msgid "Show in &memory"
 msgstr "Afficher dans la &mémoire"
 
@@ -9634,7 +9634,7 @@ msgstr "Afficher dans la mémoire"
 msgid "Show in server browser"
 msgstr "Afficher dans le navigateur de serveurs"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:545
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:544
 msgid "Show target in memor&y"
 msgstr "Afficher la &mémoire cible"
 
@@ -9695,18 +9695,18 @@ msgstr "Wiimote à l'horizontale"
 msgid "Signature Database"
 msgstr "Base de données de Signatures"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:140
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:190
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:143
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:193
 msgid "Signed 16"
 msgstr "Signé 16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:141
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:191
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:144
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:194
 msgid "Signed 32"
 msgstr "Signé 32"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:139
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:189
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:142
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:192
 msgid "Signed 8"
 msgstr "Signé 8"
 
@@ -9810,11 +9810,11 @@ msgstr "Table des sockets"
 msgid "Software Renderer"
 msgstr "Rendu logiciel"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1321
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1322
 msgid "Some of the data could not be read."
 msgstr "Des données n'ont pu être lues."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1047
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1048
 msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
@@ -10125,7 +10125,7 @@ msgstr "Style"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:257
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:381
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:269
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:282
 #: Source/Core/DolphinQt/ConvertDialog.cpp:513
 #: Source/Core/DolphinQt/GameList/GameList.cpp:616
 #: Source/Core/DolphinQt/GameList/GameList.cpp:644
@@ -10144,7 +10144,7 @@ msgctxt ""
 msgid "Successfully converted %n image(s)."
 msgstr "%n image(s) convertie(s) avec succès."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:270
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:283
 msgid "Successfully deleted '%1'."
 msgstr "Suppression réussie de \"%1\"."
 
@@ -10239,7 +10239,7 @@ msgstr "Basculer vers B"
 msgid "Symbol"
 msgstr "Symbole"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:797
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:796
 msgid "Symbol (%1) end address:"
 msgstr "Adresse de fin du symbole (%1) :"
 
@@ -10257,7 +10257,7 @@ msgstr ""
 "Symboles -> Générer les Symboles depuis ->\n"
 "\tAdresse | Base de donnée de Signatures | Modules RSO"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:738
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:737
 msgid "Symbol name:"
 msgstr "Nom du symbole :"
 
@@ -10322,7 +10322,7 @@ msgstr "Entrée TAS"
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:439
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:446
 msgid "TAS Tools"
 msgstr "Outils TAS"
 
@@ -10351,7 +10351,7 @@ msgstr "Taïwan"
 msgid "Take Screenshot"
 msgstr "Capture d'écran"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:632
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:657
 msgid "Target address range is invalid."
 msgstr "La zone d'adresse cible n'est pas valide."
 
@@ -10384,7 +10384,7 @@ msgstr ""
 "La version minimum du loader DFF ({0}) est supérieure à la version de ce "
 "lecteur FIFO ({1})"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:600
+#: Source/Core/DiscIO/VolumeVerifier.cpp:601
 msgid "The H3 hash table for the {0} partition is not correct."
 msgstr "Le table de hash H3 pour la partition {0} n'est pas correcte."
 
@@ -10398,7 +10398,7 @@ msgstr "Le fichier IPL n'est pas connu comme un dump correct. (CRC32 : {0:x})"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:483
+#: Source/Core/DiscIO/VolumeVerifier.cpp:484
 msgid "The Masterpiece partitions are missing."
 msgstr "La partition des Chefs-d'œuvre est manquante."
 
@@ -10414,7 +10414,7 @@ msgstr ""
 msgid "The NAND has been repaired."
 msgstr "La NAND a été réparée."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1002
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1003
 msgid ""
 "The TMD is not correctly signed. If you move or copy this title to the SD "
 "Card, the Wii System Menu will not launch it anymore and will also refuse to "
@@ -10424,15 +10424,15 @@ msgstr ""
 "vers la carte SD, le menu système de la Wii ne démarrera plus et refusera "
 "également de le recopier ou le redéplacer vers la NAND."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:466
+#: Source/Core/DiscIO/VolumeVerifier.cpp:467
 msgid "The channel partition is missing."
 msgstr "La partition des chaînes est manquante."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:461
+#: Source/Core/DiscIO/VolumeVerifier.cpp:462
 msgid "The data partition is missing."
 msgstr "La partition des données est manquante."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:500
+#: Source/Core/DiscIO/VolumeVerifier.cpp:501
 msgid ""
 "The data partition is not at its normal position. This will affect the "
 "emulated loading times. You will be unable to share input recordings and use "
@@ -10442,7 +10442,7 @@ msgstr ""
 "les temps de chargement. Vous ne pourrez pas partager vos enregistrements "
 "d'entrées ni utiliser NetPlay avec une personne utilisant un bon dump."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:613
+#: Source/Core/DiscIO/VolumeVerifier.cpp:614
 msgid ""
 "The data size for the {0} partition is not evenly divisible by the block "
 "size."
@@ -10549,26 +10549,26 @@ msgstr ""
 "Dolphin pour les cartes mémoires. Veuillez renommer ce fichier en %2, %3 ou "
 "%4, correspondant à la région des fichiers de sauvegarde qu'il contient."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:430
+#: Source/Core/DiscIO/VolumeVerifier.cpp:431
 msgid "The filesystem is invalid or could not be read."
 msgstr "Le système de fichiers n'est pas valide ou ne peut être lu."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:780
+#: Source/Core/DiscIO/VolumeVerifier.cpp:781
 msgid ""
 "The format that the disc image is saved in does not store the size of the "
 "disc image."
 msgstr ""
 "Le format dans lequel l'image-disque est sauvegardée n'indique pas sa taille."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:886
+#: Source/Core/DiscIO/VolumeVerifier.cpp:887
 msgid "The game ID is inconsistent."
 msgstr "L'ID du jeu est incohérent."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:897
+#: Source/Core/DiscIO/VolumeVerifier.cpp:898
 msgid "The game ID is unusually short."
 msgstr "L'ID du jeu est anormalement court."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:878
+#: Source/Core/DiscIO/VolumeVerifier.cpp:879
 msgid "The game ID is {0} but should be {1}."
 msgstr "L'ID du jeu est {0} au lieu de {1}"
 
@@ -10620,7 +10620,7 @@ msgstr ""
 "Le code de l'hôte est trop long.\n"
 "Veuillez vérifier que le code est correct."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:471
+#: Source/Core/DiscIO/VolumeVerifier.cpp:472
 msgid "The install partition is missing."
 msgstr "La partition d'installation est manquante."
 
@@ -10642,8 +10642,8 @@ msgstr ""
 "Les patchs dans %1 ne sont pas conçus pour le jeu sélectionné ou cette "
 "révision du jeu."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:243
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:282
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:256
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:295
 msgid "The profile '%1' does not exist"
 msgstr "Le profil \"%1\" n'existe pas."
 
@@ -10652,7 +10652,7 @@ msgid "The recorded game ({0}) is not the same as the selected game ({1})"
 msgstr ""
 "Le jeu enregistré ({0}) n'est pas le même que le jeu sélectionné  ({1})"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:915
+#: Source/Core/DiscIO/VolumeVerifier.cpp:916
 msgid ""
 "The region code does not match the game ID. If this is because the region "
 "code has been modified, the game might run at the wrong speed, graphical "
@@ -10700,7 +10700,7 @@ msgstr ""
 "'Non'."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:975
+#: Source/Core/DiscIO/VolumeVerifier.cpp:976
 msgid "The specified common key index is {0} but should be {1}."
 msgstr "L'index de la clé commune spécifiée est {0} au lieu de {1}."
 
@@ -10713,11 +10713,11 @@ msgid "The target memory card already contains a file \"%1\"."
 msgstr "La carte mémoire cible contient déjà un fichier nommé \"%1\"."
 
 #. i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
-#: Source/Core/DiscIO/VolumeVerifier.cpp:993
+#: Source/Core/DiscIO/VolumeVerifier.cpp:994
 msgid "The ticket is not correctly signed."
 msgstr "Le ticket n'est pas correctement signé."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:522
+#: Source/Core/DiscIO/VolumeVerifier.cpp:523
 msgid "The type of a partition could not be read."
 msgstr "Le type de partition ne peut être lu."
 
@@ -10729,36 +10729,36 @@ msgstr ""
 "La mise à jour a été annulée. Il est vivement recommandé de la terminer afin "
 "d'éviter des conflits de versions du logiciel système."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:683
+#: Source/Core/DiscIO/VolumeVerifier.cpp:684
 msgid "The update partition does not contain the IOS used by this title."
 msgstr ""
 "La partition de mise à jour ne contient pas l'IOS utilisé par ce titre."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:456
+#: Source/Core/DiscIO/VolumeVerifier.cpp:457
 msgid "The update partition is missing."
 msgstr "La partition des mises à jour est manquante."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:491
+#: Source/Core/DiscIO/VolumeVerifier.cpp:492
 msgid "The update partition is not at its normal position."
 msgstr "La partition des mises à jour n'est pas à sa position normale."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:642
+#: Source/Core/DiscIO/VolumeVerifier.cpp:643
 msgid "The {0} partition does not have a valid file system."
 msgstr "La partition n°{0} n'a pas de système de fichiers valide."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:571
+#: Source/Core/DiscIO/VolumeVerifier.cpp:572
 msgid "The {0} partition does not seem to contain valid data."
 msgstr "La partition n°{0} ne semble pas contenir de données valides."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:593
+#: Source/Core/DiscIO/VolumeVerifier.cpp:594
 msgid "The {0} partition is not correctly signed."
 msgstr "La partition n°{0} n'est pas correctement signée."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:538
+#: Source/Core/DiscIO/VolumeVerifier.cpp:539
 msgid "The {0} partition is not properly aligned."
 msgstr "La partition n°{0} n'est pas correctement alignée."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:444
+#: Source/Core/DiscIO/VolumeVerifier.cpp:445
 msgid "There are too many partitions in the first partition table."
 msgstr "Il y a trop de partitions dans la première table de partitions."
 
@@ -10796,7 +10796,7 @@ msgstr "Ce code Gecko ne contient aucune ligne."
 
 #. i18n: You may want to leave the term "ERROR #002" untranslated,
 #. since the emulated software always displays it in English.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:940
+#: Source/Core/DiscIO/VolumeVerifier.cpp:941
 msgid ""
 "This Korean title is set to use an IOS that typically isn't used on Korean "
 "consoles. This is likely to lead to ERROR #002."
@@ -10833,21 +10833,21 @@ msgstr ""
 "Cette build de Dolphin n'est pas nativement compatible avec votre CPU.\n"
 "Veuillez exécuter la version ARM64 de Dolphin pour une meilleure expérience."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:253
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:266
 #: Source/Core/DolphinQt/GameList/GameList.cpp:816
 msgid "This cannot be undone!"
 msgstr "Ceci est irréversible !"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:827
+#: Source/Core/DiscIO/VolumeVerifier.cpp:828
 msgid "This debug disc image has the size of a retail disc image."
 msgstr ""
 "L'image-disque de débug a la taille d'une image d'un disque commercialisé."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:850
+#: Source/Core/DiscIO/VolumeVerifier.cpp:851
 msgid "This disc image has an unusual size."
 msgstr "L'image du disque n'a pas une taille habituelle."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:844
+#: Source/Core/DiscIO/VolumeVerifier.cpp:845
 msgid ""
 "This disc image has an unusual size. This will likely make the emulated "
 "loading times longer. You will likely be unable to share input recordings "
@@ -10857,7 +10857,7 @@ msgstr ""
 "de chargement plus longs. Vous ne pourrez pas partager vos enregistrements "
 "d'entrées ni utiliser NetPlay avec une personne utilisant un bon dump."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1012
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1013
 msgid ""
 "This disc image is in the NKit format. It is not a good dump in its current "
 "form, but it might become a good dump if converted back. The CRC32 of this "
@@ -10869,7 +10869,7 @@ msgstr ""
 "peut correspondre au CRC32 d'un bon dump même si les fichiers ne sont pas "
 "identiques."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:800
+#: Source/Core/DiscIO/VolumeVerifier.cpp:801
 msgid ""
 "This disc image is too small and lacks some data. If your dumping program "
 "saved the disc image as several parts, you need to merge them into one file."
@@ -10878,7 +10878,7 @@ msgstr ""
 "de dump a sauvegardé l'image-disque en plusieurs parties, vous devez les "
 "rassembler en un seul fichier."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:797
+#: Source/Core/DiscIO/VolumeVerifier.cpp:798
 msgid ""
 "This disc image is too small and lacks some data. The problem is most likely "
 "that this is a dual-layer disc that has been dumped as a single-layer disc."
@@ -10895,7 +10895,7 @@ msgstr "Ce fichier ne contient pas de système de fichiers Wii valide."
 msgid "This file does not look like a BootMii NAND backup."
 msgstr "Ce fichier ne ressemble pas à une sauvegarde BootMii de la NAND."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:772
+#: Source/Core/DiscIO/VolumeVerifier.cpp:773
 msgid ""
 "This game has been hacked to fit on a single-layer DVD. Some content such as "
 "pre-rendered videos, extra languages or entire game modes will be broken. "
@@ -10917,11 +10917,11 @@ msgstr ""
 "en charge. Par conséquent, vous pourrez rencontrer des bugs ou blocages "
 "pendant l'émulation de ce jeu."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1407
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1408
 msgid "This is a bad dump."
 msgstr "Ceci est un dump incorrect."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1400
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1401
 msgid ""
 "This is a bad dump. This doesn't necessarily mean that the game won't run "
 "correctly."
@@ -10929,7 +10929,7 @@ msgstr ""
 "C'est un mauvais dump. Cela ne veut pas forcément dire que le jeu ne va pas "
 "fonctionner."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1367
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1368
 msgid ""
 "This is a good dump according to Redump.org, but Dolphin has found problems. "
 "This might be a bug in Dolphin."
@@ -10937,7 +10937,7 @@ msgstr ""
 "C'est un bon dump, d'après le site Redump.org ; mais Dolphin a repéré des "
 "problèmes. Ceci peut être un bug dans Dolphin."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1362
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1363
 msgid "This is a good dump."
 msgstr "Ceci est un dump correct."
 
@@ -10967,12 +10967,12 @@ msgstr ""
 msgid "This title cannot be booted."
 msgstr "Ce titre ne peut pas être démarré."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:948
+#: Source/Core/DiscIO/VolumeVerifier.cpp:949
 msgid "This title is set to use an invalid IOS."
 msgstr "Ce titre est réglé pour utiliser un IOS qui n'est pas valide."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:962
+#: Source/Core/DiscIO/VolumeVerifier.cpp:963
 msgid "This title is set to use an invalid common key."
 msgstr "Ce titre est réglé pour utiliser une clé partagée non valide."
 
@@ -11260,7 +11260,7 @@ msgstr "Déclencheurs"
 msgid "Type"
 msgstr "Type"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:198
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:201
 msgid "Type-based Alignment"
 msgstr "Alignement basé sur Type"
 
@@ -11332,7 +11332,7 @@ msgstr ""
 msgid "Unable to auto-detect RSO module"
 msgstr "Impossible de détecter automatiquement le module RSO"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:672
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
 msgid "Unable to open file."
 msgstr "Impossible d'ouvrir le fichier."
 
@@ -11360,7 +11360,7 @@ msgstr ""
 "\n"
 "Voulez-vous ignorer cette ligne et continuer le traitement ?"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:680
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
 msgid "Unable to read file."
 msgstr "Impossible de lire le fichier."
 
@@ -11455,7 +11455,7 @@ msgstr "Auteur inconnu"
 msgid "Unknown data type"
 msgstr "Type de données inconnu"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:356
+#: Source/Core/DiscIO/VolumeVerifier.cpp:357
 msgid "Unknown disc"
 msgstr "Disque inconnu"
 
@@ -11496,18 +11496,18 @@ msgstr "Débloquer le curseur"
 msgid "Unpacking"
 msgstr "Décompression"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:137
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:187
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:140
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:190
 msgid "Unsigned 16"
 msgstr "Non signé 16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:138
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:188
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:141
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:191
 msgid "Unsigned 32"
 msgstr "Non signé 32"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:136
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:186
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:139
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:189
 msgid "Unsigned 8"
 msgstr "Non signé 8"
 
@@ -11800,7 +11800,7 @@ msgstr "Utilitaires"
 msgid "V-Sync"
 msgstr "Synchro verticale"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:121
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:124
 msgid "Value"
 msgstr "Valeur"
 
@@ -12204,7 +12204,7 @@ msgstr "Wiimote"
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:26
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:31
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:36
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:420
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:427
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:132
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:43
 msgid "Wii Remote %1"
@@ -12238,7 +12238,7 @@ msgstr "Entrée TAS %1 pour Wii - Wiimote"
 msgid "Wii TAS Input %1 - Wii Remote + Nunchuk"
 msgstr "Entrée TAS %1 pour Wii - Wiimote + Nunchuk"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:443
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:450
 msgid "Wii and Wii Remote"
 msgstr "Wii et Wiimote"
 
@@ -12283,7 +12283,7 @@ msgstr "Écrire"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a write operation occurs.
 #. The string does not mean "write-only" in the sense that something cannot be read from.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:230
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:233
 msgid "Write only"
 msgstr "Uniquement écrit"
 
@@ -12561,7 +12561,7 @@ msgid "default"
 msgstr "par défaut"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:639
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:375
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:384
 msgid "disconnected"
 msgstr "déconnecté"
 
@@ -12662,7 +12662,7 @@ msgstr "non aligné"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:705
+#: Source/Core/DiscIO/VolumeVerifier.cpp:706
 msgid "{0} (Masterpiece)"
 msgstr "{0} (Chefs-d'œuvre)"
 
