@@ -41,14 +41,16 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   private static final String ARG_GAME_ID = "game_id";
   private static final String ARG_REVISION = "revision";
   private static final String ARG_IS_WII = "is_wii";
+  private static final String KEY_MAPPING_ALL_DEVICES = "all_devices";
   private static final String FRAGMENT_TAG = "settings";
+
   private SettingsActivityPresenter mPresenter;
-
   private AlertDialog dialog;
-
   private CollapsingToolbarLayout mToolbarLayout;
 
   private ActivitySettingsBinding mBinding;
+
+  private boolean mMappingAllDevices = false;
 
   public static void launch(Context context, MenuTag menuTag, String gameId, int revision,
           boolean isWii)
@@ -81,6 +83,10 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     if (savedInstanceState == null)
     {
       MainPresenter.skipRescanningLibrary();
+    }
+    else
+    {
+      mMappingAllDevices = savedInstanceState.getBoolean(KEY_MAPPING_ALL_DEVICES);
     }
 
     mBinding = ActivitySettingsBinding.inflate(getLayoutInflater());
@@ -125,7 +131,10 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   {
     // Critical: If super method is not called, rotations will be busted.
     super.onSaveInstanceState(outState);
+
     mPresenter.saveState(outState);
+
+    outState.putBoolean(KEY_MAPPING_ALL_DEVICES, mMappingAllDevices);
   }
 
   @Override
@@ -331,6 +340,18 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   public void setToolbarTitle(String title)
   {
     mToolbarLayout.setTitle(title);
+  }
+
+  @Override
+  public void setMappingAllDevices(boolean allDevices)
+  {
+    mMappingAllDevices = allDevices;
+  }
+
+  @Override
+  public boolean isMappingAllDevices()
+  {
+    return mMappingAllDevices;
   }
 
   private void setInsets()

@@ -312,7 +312,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   public void onInputMappingClick(final InputMappingControlSetting item, final int position)
   {
-    final MotionAlertDialog dialog = new MotionAlertDialog(mView.getActivity(), item);
+    final MotionAlertDialog dialog = new MotionAlertDialog(mView.getActivity(), item,
+            mView.isMappingAllDevices());
 
     Drawable background = ContextCompat.getDrawable(mContext, R.drawable.dialog_round);
     @ColorInt int color = new ElevationOverlayProvider(dialog.getContext()).compositeOverlay(

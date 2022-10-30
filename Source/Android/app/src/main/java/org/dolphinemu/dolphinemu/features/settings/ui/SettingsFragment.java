@@ -248,6 +248,18 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     return mActivity.hasMenuTagActionForValue(menuTag, value);
   }
 
+  @Override
+  public void setMappingAllDevices(boolean allDevices)
+  {
+    mActivity.setMappingAllDevices(allDevices);
+  }
+
+  @Override
+  public boolean isMappingAllDevices()
+  {
+    return mActivity.isMappingAllDevices();
+  }
+
   private void setInsets()
   {
     ViewCompat.setOnApplyWindowInsetsListener(mBinding.listSettings, (v, windowInsets) ->

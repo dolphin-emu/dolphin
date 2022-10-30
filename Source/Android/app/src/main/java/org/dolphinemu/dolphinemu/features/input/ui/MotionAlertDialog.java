@@ -22,20 +22,24 @@ public final class MotionAlertDialog extends AlertDialog
 {
   private final Activity mActivity;
   private final InputMappingControlSetting mSetting;
+  private final boolean mAllDevices;
   private boolean mRunning = false;
 
   /**
    * Constructor
    *
-   * @param activity The current {@link Activity}.
-   * @param setting  The setting to show this dialog for.
+   * @param activity   The current {@link Activity}.
+   * @param setting    The setting to show this dialog for.
+   * @param allDevices Whether to detect inputs from devices other than the configured one.
    */
-  public MotionAlertDialog(Activity activity, InputMappingControlSetting setting)
+  public MotionAlertDialog(Activity activity, InputMappingControlSetting setting,
+          boolean allDevices)
   {
     super(activity);
 
     mActivity = activity;
     mSetting = setting;
+    mAllDevices = allDevices;
   }
 
   @Override
@@ -46,7 +50,7 @@ public final class MotionAlertDialog extends AlertDialog
     mRunning = true;
     new Thread(() ->
     {
-      String result = MappingCommon.detectInput(mSetting.getController(), false);
+      String result = MappingCommon.detectInput(mSetting.getController(), mAllDevices);
       mActivity.runOnUiThread(() ->
       {
         if (mRunning)

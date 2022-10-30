@@ -28,6 +28,8 @@
     <string name="wiimote_extensions">Extension</string>
 
     <string name="input_device">Device</string>
+    <string name="input_device_all_devices">Create Mappings for Other Devices</string>
+    <string name="input_device_all_devices_description">Detects inputs from all devices, not just the selected device.</string>
 
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>

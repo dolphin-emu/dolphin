@@ -1179,6 +1179,40 @@ public final class SettingsFragmentPresenter
   private void addControllerMetaSettings(ArrayList<SettingsItem> sl, EmulatedController controller)
   {
     sl.add(new InputDeviceSetting(mContext, R.string.input_device, 0, controller));
+
+    sl.add(new SwitchSetting(mContext, new AbstractBooleanSetting()
+    {
+      @Override
+      public boolean isOverridden(Settings settings)
+      {
+        return false;
+      }
+
+      @Override
+      public boolean isRuntimeEditable()
+      {
+        return true;
+      }
+
+      @Override
+      public boolean delete(Settings settings)
+      {
+        mView.setMappingAllDevices(false);
+        return true;
+      }
+
+      @Override
+      public boolean getBoolean(Settings settings)
+      {
+        return mView.isMappingAllDevices();
+      }
+
+      @Override
+      public void setBoolean(Settings settings, boolean newValue)
+      {
+        mView.setMappingAllDevices(newValue);
+      }
+    }, R.string.input_device_all_devices, R.string.input_device_all_devices_description));
   }
 
   /**

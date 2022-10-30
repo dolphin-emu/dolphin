@@ -89,4 +89,16 @@ public interface SettingsFragmentView
    * @param value   The current value of the setting.
    */
   boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value);
+
+  /**
+   * Sets whether the input mapping dialog should detect inputs from all devices,
+   * not just the device configured for the controller.
+   */
+  void setMappingAllDevices(boolean allDevices);
+
+  /**
+   * Returns whether the input mapping dialog should detect inputs from all devices,
+   * not just the device configured for the controller.
+   */
+  boolean isMappingAllDevices();
 }

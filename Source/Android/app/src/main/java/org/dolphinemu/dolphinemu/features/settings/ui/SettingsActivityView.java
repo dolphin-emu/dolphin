@@ -97,4 +97,16 @@ public interface SettingsActivityView
    * Accesses the material toolbar layout and changes the title
    */
   void setToolbarTitle(String title);
+
+  /**
+   * Sets whether the input mapping dialog should detect inputs from all devices,
+   * not just the device configured for the controller.
+   */
+  void setMappingAllDevices(boolean allDevices);
+
+  /**
+   * Returns whether the input mapping dialog should detect inputs from all devices,
+   * not just the device configured for the controller.
+   */
+  boolean isMappingAllDevices();
 }
