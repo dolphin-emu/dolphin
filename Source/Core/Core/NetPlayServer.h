@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <queue>
 #include <sstream>
 #include <thread>
@@ -28,6 +29,7 @@
 namespace NetPlay
 {
 class NetPlayUI;
+struct SaveSyncInfo;
 
 class NetPlayServer : public TraversalClientClient
 {
@@ -120,7 +122,8 @@ private:
   };
 
   bool SetupNetSettings();
-  bool SyncSaveData();
+  std::optional<SaveSyncInfo> CollectSaveSyncInfo();
+  bool SyncSaveData(const SaveSyncInfo& sync_info);
   bool SyncCodes();
   void CheckSyncAndStartGame();
 
