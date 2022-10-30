@@ -304,7 +304,7 @@ void GCMemcard::UpdateBat(const BlockAlloc& bat)
 
 bool GCMemcard::IsShiftJIS() const
 {
-  return m_header_block.m_data.m_encoding != 0;
+  return m_header_block.IsShiftJIS();
 }
 
 bool GCMemcard::Save()
@@ -1274,15 +1274,6 @@ DEntry::DEntry()
   memset(reinterpret_cast<u8*>(this), 0xFF, DENTRY_SIZE);
 }
 
-std::string DEntry::GCI_FileName() const
-{
-  std::string filename =
-      std::string(reinterpret_cast<const char*>(m_makercode.data()), m_makercode.size()) + '-' +
-      std::string(reinterpret_cast<const char*>(m_gamecode.data()), m_gamecode.size()) + '-' +
-      reinterpret_cast<const char*>(m_filename.data()) + ".gci";
-  return Common::EscapeFileName(filename);
-}
-
 void Header::FixChecksums()
 {
   std::tie(m_checksum, m_checksum_inv) = CalculateChecksums();
@@ -1322,6 +1313,11 @@ GCMemcardErrorCode Header::CheckForErrors(u16 card_size_mbits) const
     error_code.Set(GCMemcardValidityIssues::INVALID_CHECKSUM);
 
   return error_code;
+}
+
+bool Header::IsShiftJIS() const
+{
+  return m_data.m_encoding != 0;
 }
 
 Directory::Directory()

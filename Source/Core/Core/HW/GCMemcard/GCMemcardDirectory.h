@@ -32,7 +32,8 @@ public:
   GCMemcardDirectory& operator=(GCMemcardDirectory&&) = delete;
 
   static std::vector<std::string> GetFileNamesForGameID(const std::string& directory,
-                                                        const std::string& game_id);
+                                                        const std::string& game_id,
+                                                        bool card_encoding_is_shift_jis);
   void FlushToFile();
   void FlushThread();
   s32 Read(u32 src_address, s32 length, u8* dest_address) override;

@@ -1686,7 +1686,8 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
     return true;
 
   const auto game_region = sync_info.game->GetRegion();
-  const std::string region = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(game_region));
+  const auto gamecube_region = Config::ToGameCubeRegion(game_region);
+  const std::string region = Config::GetDirectoryForRegion(gamecube_region);
 
   for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
@@ -1733,8 +1734,8 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
 
       if (File::IsDirectory(path))
       {
-        std::vector<std::string> files =
-            GCMemcardDirectory::GetFileNamesForGameID(path + DIR_SEP, sync_info.game->GetGameID());
+        std::vector<std::string> files = GCMemcardDirectory::GetFileNamesForGameID(
+            path + DIR_SEP, sync_info.game->GetGameID(), gamecube_region == DiscIO::Region::NTSC_J);
 
         pac << static_cast<u8>(files.size());
 

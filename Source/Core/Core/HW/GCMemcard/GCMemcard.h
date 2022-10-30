@@ -231,6 +231,8 @@ struct Header
   std::pair<u16, u16> CalculateChecksums() const;
 
   GCMemcardErrorCode CheckForErrors(u16 card_size_mbits) const;
+
+  bool IsShiftJIS() const;
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
 static_assert(std::is_trivially_copyable_v<Header>);
@@ -238,9 +240,6 @@ static_assert(std::is_trivially_copyable_v<Header>);
 struct DEntry
 {
   DEntry();
-
-  // TODO: This probably shouldn't be here at all?
-  std::string GCI_FileName() const;
 
   static constexpr std::array<u8, 4> UNINITIALIZED_GAMECODE{{0xFF, 0xFF, 0xFF, 0xFF}};
 
