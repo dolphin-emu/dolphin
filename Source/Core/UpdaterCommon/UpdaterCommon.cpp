@@ -34,50 +34,13 @@
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
-namespace
-{
 // Where to log updater output.
-FILE* log_fp = stderr;
+static FILE* log_fp = stderr;
 
 // Public key used to verify update manifests.
 const std::array<u8, 32> UPDATE_PUB_KEY = {
     0x2a, 0xb3, 0xd1, 0xdc, 0x6e, 0xf5, 0x07, 0xf6, 0xa0, 0x6c, 0x7c, 0x54, 0xdf, 0x54, 0xf4, 0x42,
     0x80, 0xa6, 0x28, 0x8b, 0x6d, 0x70, 0x14, 0xb5, 0x4c, 0x34, 0x95, 0x20, 0x4d, 0xd4, 0xd3, 0x5d};
-
-struct Manifest
-{
-  using Filename = std::string;
-  using Hash = std::array<u8, 16>;
-  std::map<Filename, Hash> entries;
-};
-
-// Represent the operations to be performed by the updater.
-struct TodoList
-{
-  struct DownloadOp
-  {
-    Manifest::Filename filename;
-    Manifest::Hash hash{};
-  };
-  std::vector<DownloadOp> to_download;
-
-  struct UpdateOp
-  {
-    Manifest::Filename filename;
-    std::optional<Manifest::Hash> old_hash;
-    Manifest::Hash new_hash{};
-  };
-  std::vector<UpdateOp> to_update;
-
-  struct DeleteOp
-  {
-    Manifest::Filename filename;
-    Manifest::Hash old_hash{};
-  };
-  std::vector<DeleteOp> to_delete;
-
-  void Log() const;
-};
 
 bool ProgressCallback(double total, double now, double, double)
 {
@@ -289,35 +252,7 @@ bool PlatformVersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
                           const std::string& install_base_path, const std::string& temp_dir)
 {
   UI::SetDescription("Checking platform...");
-
-  const auto op_it = std::find_if(to_update.cbegin(), to_update.cend(),
-                                  [&](const auto& op) { return op.filename == "build_info.txt"; });
-  if (op_it == to_update.cend())
-    return true;
-
-  const auto op = *op_it;
-  std::string build_info_path =
-      temp_dir + DIR_SEP + HexEncode(op.new_hash.data(), op.new_hash.size());
-  std::string build_info_content;
-  if (!File::ReadFileToString(build_info_path, build_info_content) ||
-      op.new_hash != ComputeHash(build_info_content))
-  {
-    fprintf(log_fp, "Failed to read %s\n.", build_info_path.c_str());
-    return false;
-  }
-  auto next_build_info = Platform::BuildInfo(build_info_content);
-
-  build_info_path = install_base_path + DIR_SEP + "build_info.txt";
-  auto this_build_info = Platform::BuildInfo();
-  if (File::ReadFileToString(build_info_path, build_info_content))
-  {
-    if (op.old_hash != ComputeHash(build_info_content))
-      fprintf(log_fp, "Using modified existing BuildInfo %s.\n", build_info_path.c_str());
-    this_build_info = Platform::BuildInfo(build_info_content);
-  }
-
-  // The existing BuildInfo may have been modified. Be careful not to overly trust its contents!
-  return Platform::VersionCheck(this_build_info, next_build_info);
+  return Platform::VersionCheck(to_update, install_base_path, temp_dir, log_fp);
 }
 
 TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
@@ -732,7 +667,6 @@ std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
 
   return opts;
 }
-};  // namespace
 
 bool RunUpdater(std::vector<std::string> args)
 {
