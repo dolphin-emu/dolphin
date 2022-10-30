@@ -44,7 +44,7 @@ bool GCMemcardDirectory::LoadGCI(Memcard::GCIFile gci)
   // check if any already loaded file has the same internal name as the new file
   for (const Memcard::GCIFile& already_loaded_gci : m_saves)
   {
-    if (gci.m_gci_header.GCI_FileName() == already_loaded_gci.m_gci_header.GCI_FileName())
+    if (HasSameIdentity(gci.m_gci_header, already_loaded_gci.m_gci_header))
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE,
                     "{}\nwas not loaded because it has the same internal filename as previously "
