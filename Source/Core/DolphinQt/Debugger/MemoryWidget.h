@@ -75,7 +75,7 @@ private:
 
   MemoryViewWidget* m_memory_view;
   QSplitter* m_splitter;
-  QLineEdit* m_search_address;
+  QComboBox* m_search_address;
   QLineEdit* m_search_offset;
   QLineEdit* m_data_edit;
   QCheckBox* m_base_check;
