@@ -312,6 +312,15 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   public void onInputMappingClick(final InputMappingControlSetting item, final int position)
   {
+    if (item.getController().getDefaultDevice().isEmpty() && !mView.isMappingAllDevices())
+    {
+      new MaterialAlertDialogBuilder(mView.getActivity())
+              .setMessage(R.string.input_binding_no_device)
+              .setPositiveButton(R.string.ok, this)
+              .show();
+      return;
+    }
+
     final MotionAlertDialog dialog = new MotionAlertDialog(mView.getActivity(), item,
             mView.isMappingAllDevices());
 

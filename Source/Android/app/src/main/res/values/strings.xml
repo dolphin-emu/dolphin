@@ -33,6 +33,7 @@
 
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>
+    <string name="input_binding_no_device">You need to select a device first!</string>
 
     <!-- Main Preference Fragment -->
     <string name="settings">Settings</string>
