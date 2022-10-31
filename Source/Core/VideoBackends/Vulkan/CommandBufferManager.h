@@ -161,7 +161,7 @@ private:
   Common::Flag m_last_present_failed;
   VkResult m_last_present_result = VK_SUCCESS;
   bool m_use_threaded_submission = false;
-  u32 m_descriptor_set_count = 0;
+  u32 m_descriptor_set_count = DESCRIPTOR_SETS_PER_POOL;
 };
 
 extern std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;
