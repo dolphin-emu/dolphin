@@ -881,12 +881,14 @@ bool JitArm64::MultiplyImmediate(u32 imm, int a, int d, bool rc)
 {
   if (imm == 0)
   {
+    // Multiplication by zero (0).
     gpr.SetImmediate(d, 0);
     if (rc)
       ComputeRC0(gpr.GetImm(d));
   }
   else if (imm == 1)
   {
+    // Multiplication by one (1).
     if (d != a)
     {
       gpr.BindToRegister(d, false);
@@ -897,6 +899,7 @@ bool JitArm64::MultiplyImmediate(u32 imm, int a, int d, bool rc)
   }
   else if (MathUtil::IsPow2(imm))
   {
+    // Multiplication by a power of two (2^n).
     const int shift = IntLog2(imm);
 
     gpr.BindToRegister(d, d == a);
@@ -906,6 +909,7 @@ bool JitArm64::MultiplyImmediate(u32 imm, int a, int d, bool rc)
   }
   else if (MathUtil::IsPow2(imm - 1))
   {
+    // Multiplication by a power of two plus one (2^n + 1).
     const int shift = IntLog2(imm - 1);
 
     gpr.BindToRegister(d, d == a);
