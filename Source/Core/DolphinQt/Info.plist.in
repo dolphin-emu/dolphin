@@ -53,7 +53,5 @@
     <true/>
     <key>CSResourcesFileMapped</key>
     <true/>
-    <key>UIUserInterfaceStyle</key>
-    <string>Automatic</string>
 </dict>
 </plist>
