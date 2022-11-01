@@ -332,6 +332,7 @@ protected:
                void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, u64,
                                          Arm64Gen::ARM64Reg),
                bool Rc = false);
+  bool MultiplyImmediate(u32 imm, int a, int d, bool rc);
 
   void SetFPRFIfNeeded(bool single, Arm64Gen::ARM64Reg reg);
   void Force25BitPrecision(Arm64Gen::ARM64Reg output, Arm64Gen::ARM64Reg input);

@@ -876,6 +876,11 @@ void JitArm64::addic(UGeckoInstruction inst)
   }
 }
 
+bool JitArm64::MultiplyImmediate(u32 imm, int a, int d, bool rc)
+{
+  return false;
+}
+
 void JitArm64::mulli(UGeckoInstruction inst)
 {
   INSTRUCTION_START
