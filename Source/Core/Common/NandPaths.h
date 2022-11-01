@@ -26,6 +26,7 @@ std::string RootUserPath(FromWhichRoot from);
 std::string GetImportTitlePath(u64 title_id, std::optional<FromWhichRoot> from = {});
 
 std::string GetTicketFileName(u64 title_id, std::optional<FromWhichRoot> from = {});
+std::string GetV1TicketFileName(u64 title_id, std::optional<FromWhichRoot> from = {});
 std::string GetTitlePath(u64 title_id, std::optional<FromWhichRoot> from = {});
 std::string GetTitleDataPath(u64 title_id, std::optional<FromWhichRoot> from = {});
 std::string GetTitleContentPath(u64 title_id, std::optional<FromWhichRoot> from = {});

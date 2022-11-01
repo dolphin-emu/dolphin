@@ -49,12 +49,24 @@ ES::TMDReader ESDevice::FindInstalledTMD(u64 title_id, Ticks ticks) const
   return FindTMD(*m_ios.GetFSDevice(), Common::GetTMDFileName(title_id), ticks);
 }
 
-ES::TicketReader ESDevice::FindSignedTicket(u64 title_id) const
+ES::TicketReader ESDevice::FindSignedTicket(u64 title_id, std::optional<u8> desired_version) const
 {
-  const std::string path = Common::GetTicketFileName(title_id);
-  const auto ticket_file = m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read);
+  std::string path = desired_version == 1 ? Common::GetV1TicketFileName(title_id) :
+                                            Common::GetTicketFileName(title_id);
+  auto ticket_file = m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read);
   if (!ticket_file)
-    return {};
+  {
+    if (desired_version)
+      // Desired ticket does not exist.
+      return {};
+
+    // Check if we are dealing with a v1 ticket
+    path = Common::GetV1TicketFileName(title_id);
+    ticket_file = m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read);
+
+    if (!ticket_file)
+      return {};
+  }
 
   std::vector<u8> signed_ticket(ticket_file->GetStatus()->size);
   if (!ticket_file->Read(signed_ticket.data(), signed_ticket.size()))
@@ -151,7 +163,8 @@ std::vector<u64> ESDevice::GetTitlesWithTickets() const
       const std::string name_without_ext = file_name.substr(0, 8);
       if (fs->ReadDirectory(PID_KERNEL, PID_KERNEL,
                             fmt::format("/ticket/{}/{}", title_type, file_name)) ||
-          !IsValidPartOfTitleID(name_without_ext) || name_without_ext + ".tik" != file_name)
+          !IsValidPartOfTitleID(name_without_ext) || name_without_ext + ".tik" != file_name ||
+          name_without_ext + ".tv1" != file_name)
       {
         continue;
       }
