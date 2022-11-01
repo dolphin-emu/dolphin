@@ -135,6 +135,13 @@ static_assert(sizeof(DTMHeader) == 256, "DTMHeader should be 256 bytes");
 
 #pragma pack(pop)
 
+static constexpr size_t DTMWiiFrameLength(size_t size)
+{
+  return size + sizeof(u64);
+}
+
+constexpr size_t DTMGCFrameLength = sizeof(ControllerState) + sizeof(u64);
+
 void FrameUpdate();
 void InputUpdate();
 void Init(const BootParameters& boot);

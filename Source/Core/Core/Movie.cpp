@@ -72,9 +72,6 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-// The chunk to allocate movie data in multiples of.
-#define DTM_BASE_LENGTH (1024)
-
 namespace Movie
 {
 using namespace WiimoteCommon;
@@ -98,6 +95,7 @@ static DTMHeader tmpHeader;
 static std::vector<u8> s_temp_input;
 static u64 s_currentByte = 0;
 static u64 s_currentFrame = 0, s_totalFrames = 0;  // VI
+static bool s_timebase_desync_occur = false;
 static u64 s_currentLagCount = 0;
 static u64 s_totalLagCount = 0;                               // just stats
 static u64 s_currentInputCount = 0, s_totalInputCount = 0;    // just stats
@@ -293,6 +291,11 @@ void InputUpdate()
     s_totalInputCount = s_currentInputCount;
     s_totalTickCount += CoreTiming::GetTicks() - s_tickCountAtLastInput;
     s_tickCountAtLastInput = CoreTiming::GetTicks();
+
+    u64 timebase = SystemTimers::GetFakeTimeBase();
+    s_temp_input.resize(s_currentByte + sizeof(u64));
+    memcpy(&s_temp_input[s_currentByte], &timebase, sizeof(u64));
+    s_currentByte += sizeof(u64);
   }
 }
 
@@ -964,6 +967,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   s_currentFrame = 0;
   s_currentLagCount = 0;
   s_currentInputCount = 0;
+  s_timebase_desync_occur = false;
 
   s_playMode = PlayMode::Playing;
 
@@ -1110,38 +1114,58 @@ void LoadInput(const std::string& movie_path)
         }
         else
         {
-          const ptrdiff_t frame = mismatch_index / sizeof(ControllerState);
+          const ptrdiff_t frame = mismatch_index / DTMGCFrameLength;
           ControllerState curPadState;
-          memcpy(&curPadState, &s_temp_input[frame * sizeof(ControllerState)],
-                 sizeof(ControllerState));
+          memcpy(&curPadState, &s_temp_input[frame * DTMGCFrameLength], sizeof(ControllerState));
+          u64 curTimebase;
+          memcpy(&curTimebase, &s_temp_input[(frame * DTMGCFrameLength) + sizeof(ControllerState)],
+                 sizeof(u64));
           ControllerState movPadState;
-          memcpy(&movPadState, &movInput[frame * sizeof(ControllerState)], sizeof(ControllerState));
-          PanicAlertFmtT(
-              "Warning: You loaded a save whose movie mismatches on frame {0}. You should load "
-              "another save before continuing, or load this state with read-only mode off. "
-              "Otherwise you'll probably get a desync.\n\n"
-              "More information: The current movie is {1} frames long and the savestate's movie "
-              "is {2} frames long.\n\n"
-              "On frame {3}, the current movie presses:\n"
-              "Start={4}, A={5}, B={6}, X={7}, Y={8}, Z={9}, DUp={10}, DDown={11}, DLeft={12}, "
-              "DRight={13}, L={14}, R={15}, LT={16}, RT={17}, AnalogX={18}, AnalogY={19}, CX={20}, "
-              "CY={21}, Connected={22}"
-              "\n\n"
-              "On frame {23}, the savestate's movie presses:\n"
-              "Start={24}, A={25}, B={26}, X={27}, Y={28}, Z={29}, DUp={30}, DDown={31}, "
-              "DLeft={32}, DRight={33}, L={34}, R={35}, LT={36}, RT={37}, AnalogX={38}, "
-              "AnalogY={39}, CX={40}, CY={41}, Connected={42}",
-              frame, s_totalFrames, tmpHeader.frameCount, frame, curPadState.Start, curPadState.A,
-              curPadState.B, curPadState.X, curPadState.Y, curPadState.Z, curPadState.DPadUp,
-              curPadState.DPadDown, curPadState.DPadLeft, curPadState.DPadRight, curPadState.L,
-              curPadState.R, curPadState.TriggerL, curPadState.TriggerR, curPadState.AnalogStickX,
-              curPadState.AnalogStickY, curPadState.CStickX, curPadState.CStickY,
-              curPadState.is_connected, frame, movPadState.Start, movPadState.A, movPadState.B,
-              movPadState.X, movPadState.Y, movPadState.Z, movPadState.DPadUp, movPadState.DPadDown,
-              movPadState.DPadLeft, movPadState.DPadRight, movPadState.L, movPadState.R,
-              movPadState.TriggerL, movPadState.TriggerR, movPadState.AnalogStickX,
-              movPadState.AnalogStickY, movPadState.CStickX, movPadState.CStickY,
-              curPadState.is_connected);
+          memcpy(&movPadState, &movInput[frame * DTMGCFrameLength], sizeof(ControllerState));
+          u64 movTimebase;
+          memcpy(&movTimebase, &movInput[(frame * DTMGCFrameLength) + sizeof(ControllerState)],
+                 sizeof(u64));
+
+          if (memcmp(&curPadState, &movPadState, sizeof(ControllerState)) != 0)
+          {
+            PanicAlertFmtT(
+                "Warning: You loaded a save whose movie mismatches on frame {0}. You should load "
+                "another save before continuing, or load this state with read-only mode off. "
+                "Otherwise you'll probably get a desync.\n\n"
+                "More information: The current movie is {1} frames long and the savestate's movie "
+                "is {2} frames long.\n\n"
+                "On frame {3}, the current movie presses:\n"
+                "Start={4}, A={5}, B={6}, X={7}, Y={8}, Z={9}, DUp={10}, DDown={11}, DLeft={12}, "
+                "DRight={13}, L={14}, R={15}, LT={16}, RT={17}, AnalogX={18}, AnalogY={19}, "
+                "CX={20}, "
+                "CY={21}, Connected={22}"
+                "\n\n"
+                "On frame {23}, the savestate's movie presses:\n"
+                "Start={24}, A={25}, B={26}, X={27}, Y={28}, Z={29}, DUp={30}, DDown={31}, "
+                "DLeft={32}, DRight={33}, L={34}, R={35}, LT={36}, RT={37}, AnalogX={38}, "
+                "AnalogY={39}, CX={40}, CY={41}, Connected={42}",
+                frame, s_totalFrames, tmpHeader.frameCount, frame, curPadState.Start, curPadState.A,
+                curPadState.B, curPadState.X, curPadState.Y, curPadState.Z, curPadState.DPadUp,
+                curPadState.DPadDown, curPadState.DPadLeft, curPadState.DPadRight, curPadState.L,
+                curPadState.R, curPadState.TriggerL, curPadState.TriggerR, curPadState.AnalogStickX,
+                curPadState.AnalogStickY, curPadState.CStickX, curPadState.CStickY,
+                curPadState.is_connected, frame, movPadState.Start, movPadState.A, movPadState.B,
+                movPadState.X, movPadState.Y, movPadState.Z, movPadState.DPadUp,
+                movPadState.DPadDown, movPadState.DPadLeft, movPadState.DPadRight, movPadState.L,
+                movPadState.R, movPadState.TriggerL, movPadState.TriggerR, movPadState.AnalogStickX,
+                movPadState.AnalogStickY, movPadState.CStickX, movPadState.CStickY,
+                curPadState.is_connected);
+          }
+          else if (curTimebase != movTimebase)
+          {
+            PanicAlertFmtT(
+                "Warning: You loaded a save whose movie's timebase mismatches on frame {0}. This "
+                "will more than likely cause a desync.\n\n"
+                "You should load another save before continuing.\n\n"
+                "On frame {1}, the current movie has timebase {2:#08x}.\n"
+                "On frame {3}, the savestate's movie has timebase {4:#08x}.",
+                frame, frame, curTimebase, frame, movTimebase);
+          }
         }
       }
     }
@@ -1205,6 +1229,22 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 
   memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
   s_currentByte += sizeof(ControllerState);
+  u64 movTimebase;
+  memcpy(&movTimebase, &s_temp_input[s_currentByte], sizeof(u64));
+  s_currentByte += sizeof(u64);
+  u64 curTimebase = SystemTimers::GetFakeTimeBase();
+
+  if (movTimebase != curTimebase && !s_timebase_desync_occur)
+  {
+    PanicAlertFmtT(
+        "Warning: On frame {0} of movie playback, the current timebase no longer matches the "
+        "movie's timebase. This is heavily indicative of a desync, and it is highly suggested you "
+        "do not record to this movie after this point.\n\n"
+        "On frame {1}, the current playback has timebase {2:#08x}.\n"
+        "On frame {3}, the current movie has timebase {4:#08x}.",
+        s_totalFrames, s_totalFrames, curTimebase, s_totalFrames, movTimebase);
+    s_timebase_desync_occur = true;
+  }
 
   PadStatus->isConnected = s_padState.is_connected;
 
@@ -1316,7 +1356,7 @@ bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
   }
 
   memcpy(rpt.GetDataPtr(), &s_temp_input[s_currentByte], size);
-  s_currentByte += size;
+  s_currentByte += DTMWiiFrameLength(size);
 
   s_currentInputCount++;
 
