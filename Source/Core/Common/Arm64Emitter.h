@@ -309,6 +309,18 @@ enum class ShiftType
   ROR = 3,
 };
 
+enum class ExtendSpecifier
+{
+  UXTB = 0x0,
+  UXTH = 0x1,
+  UXTW = 0x2, /* Also LSL on 32bit width */
+  UXTX = 0x3, /* Also LSL on 64bit width */
+  SXTB = 0x4,
+  SXTH = 0x5,
+  SXTW = 0x6,
+  SXTX = 0x7,
+};
+
 enum class IndexType
 {
   Unsigned,
@@ -405,18 +417,6 @@ private:
     Width64Bit,
   };
 
-  enum class ExtendSpecifier
-  {
-    UXTB = 0x0,
-    UXTH = 0x1,
-    UXTW = 0x2, /* Also LSL on 32bit width */
-    UXTX = 0x3, /* Also LSL on 64bit width */
-    SXTB = 0x4,
-    SXTH = 0x5,
-    SXTW = 0x6,
-    SXTX = 0x7,
-  };
-
   enum class TypeSpecifier
   {
     ExtendedReg,
@@ -462,6 +462,15 @@ public:
       m_extend = ExtendSpecifier::UXTW;
     }
     m_shifttype = ShiftType::LSL;
+  }
+  ArithOption(ARM64Reg Rd, ExtendSpecifier extend_type, u32 shift = 0)
+  {
+    m_destReg = Rd;
+    m_width = Is64Bit(Rd) ? WidthSpecifier::Width64Bit : WidthSpecifier::Width32Bit;
+    m_extend = extend_type;
+    m_type = TypeSpecifier::ExtendedReg;
+    m_shifttype = ShiftType::LSL;
+    m_shift = shift;
   }
   ArithOption(ARM64Reg Rd, ShiftType shift_type, u32 shift)
   {
