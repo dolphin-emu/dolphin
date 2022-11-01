@@ -120,7 +120,7 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
 
   if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
   {
-    glObjectLabel(GL_TEXTURE, m_texId, -1, m_name.c_str());
+    glObjectLabel(GL_TEXTURE, m_texId, (GLsizei)m_name.size(), m_name.c_str());
   }
 
   glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, m_config.levels - 1);
