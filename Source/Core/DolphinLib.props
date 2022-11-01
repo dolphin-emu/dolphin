@@ -404,6 +404,7 @@
     <ClInclude Include="Core\PowerPC\CachedInterpreter\InterpreterBlockCache.h" />
     <ClInclude Include="Core\PowerPC\ConditionRegister.h" />
     <ClInclude Include="Core\PowerPC\CPUCoreBase.h" />
+    <ClInclude Include="Core\PowerPC\BroadwayInstructions.h" />
     <ClInclude Include="Core\PowerPC\GDBStub.h" />
     <ClInclude Include="Core\PowerPC\Gekko.h" />
     <ClInclude Include="Core\PowerPC\Interpreter\ExceptionUtils.h" />

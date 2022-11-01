@@ -443,6 +443,7 @@ add_library(core
   PatchEngine.h
   PowerPC/BreakPoints.cpp
   PowerPC/BreakPoints.h
+  PowerPC/BroadwayInstructions.h
   PowerPC/CachedInterpreter/CachedInterpreter.cpp
   PowerPC/CachedInterpreter/CachedInterpreter.h
   PowerPC/CachedInterpreter/InterpreterBlockCache.cpp
