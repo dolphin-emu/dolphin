@@ -279,7 +279,15 @@ int main(int argc, char* argv[])
 
     if (!Settings::Instance().IsBatchModeEnabled())
     {
+      // TODO: Remove this "conversion" code when we can assume all users are up to date.
+      if (Settings::Instance().GetAutoUpdateTrack().isEmpty())
+      {
+        Settings::Instance().SetAutoUpdateTrack(QStringLiteral("dev"));
+        Settings::Instance().SetAutoUpdateEnabled(false);
+      }
+
       auto* updater = new Updater(&win, Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK),
+                                  Config::Get(Config::MAIN_AUTOUPDATE_ENABLE),
                                   Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
       updater->start();
     }

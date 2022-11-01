@@ -26,18 +26,17 @@
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
+#include "DolphinQt/Updater.h"
 
 #include "UICommon/AutoUpdate.h"
 #ifdef USE_DISCORD_PRESENCE
 #include "UICommon/DiscordPresence.h"
 #endif
 
-constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
-constexpr int AUTO_UPDATE_STABLE_INDEX = 1;
-constexpr int AUTO_UPDATE_BETA_INDEX = 2;
-constexpr int AUTO_UPDATE_DEV_INDEX = 3;
+constexpr int AUTO_UPDATE_STABLE_INDEX = 0;
+constexpr int AUTO_UPDATE_BETA_INDEX = 1;
+constexpr int AUTO_UPDATE_DEV_INDEX = 2;
 
-constexpr const char* AUTO_UPDATE_DISABLE_STRING = "";
 constexpr const char* AUTO_UPDATE_STABLE_STRING = "stable";
 constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
 constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
@@ -108,8 +107,12 @@ void GeneralPane::ConnectLayout()
   {
     connect(m_combobox_update_track, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &GeneralPane::OnSaveConfig);
+    connect(m_checkbox_update_enable, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+    connect(m_button_update_perform, &QPushButton::clicked, this,
+            &GeneralPane::InstallUpdateManually);
     connect(&Settings::Instance(), &Settings::AutoUpdateTrackChanged, this,
             &GeneralPane::LoadConfig);
+    connect(&Settings::Instance(), &Settings::AutoUpdateToggled, this, &GeneralPane::LoadConfig);
   }
 
   // Advanced
@@ -179,7 +182,7 @@ void GeneralPane::CreateBasic()
 
 void GeneralPane::CreateAutoUpdate()
 {
-  auto* auto_update_group = new QGroupBox(tr("Auto Update Settings"));
+  auto* auto_update_group = new QGroupBox(tr("Updater Settings"));
   auto* auto_update_group_layout = new QFormLayout;
   auto_update_group->setLayout(auto_update_group_layout);
   m_main_layout->addWidget(auto_update_group);
@@ -187,13 +190,21 @@ void GeneralPane::CreateAutoUpdate()
   auto_update_group_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
   auto_update_group_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
+  m_checkbox_update_enable = new QCheckBox(tr("Check for &Updates on Start"));
+
+  auto_update_group_layout->addRow(m_checkbox_update_enable);
+
   m_combobox_update_track = new QComboBox(this);
 
-  auto_update_group_layout->addRow(tr("&Auto Update:"), m_combobox_update_track);
+  auto_update_group_layout->addRow(tr("Update Track:"), m_combobox_update_track);
 
-  for (const QString& option : {tr("Don't Update"), tr("Stable (once a year)"),
-                                tr("Beta (once a month)"), tr("Dev (multiple times a day)")})
+  for (const QString& option :
+       {tr("Stable (once a year)"), tr("Beta (once a month)"), tr("Dev (multiple times a day)")})
     m_combobox_update_track->addItem(option);
+
+  m_button_update_perform = new NonDefaultQPushButton(tr("Manually Check for Updates"));
+
+  auto_update_group_layout->addRow(m_button_update_perform);
 }
 
 void GeneralPane::CreateFallbackRegion()
@@ -244,14 +255,14 @@ void GeneralPane::LoadConfig()
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
     const auto track = Settings::Instance().GetAutoUpdateTrack().toStdString();
-    if (track == AUTO_UPDATE_DISABLE_STRING)
-      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_DISABLE_INDEX);
-    else if (track == AUTO_UPDATE_STABLE_STRING)
+    if (track == AUTO_UPDATE_STABLE_STRING)
       SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_STABLE_INDEX);
     else if (track == AUTO_UPDATE_BETA_STRING)
       SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_BETA_INDEX);
     else
       SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_DEV_INDEX);
+
+    m_checkbox_update_enable->setChecked(Settings::Instance().GetAutoUpdateEnabled());
   }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -292,9 +303,6 @@ static QString UpdateTrackFromIndex(int index)
 
   switch (index)
   {
-  case AUTO_UPDATE_DISABLE_INDEX:
-    value = QString::fromStdString(AUTO_UPDATE_DISABLE_STRING);
-    break;
   case AUTO_UPDATE_STABLE_INDEX:
     value = QString::fromStdString(AUTO_UPDATE_STABLE_STRING);
     break;
@@ -343,6 +351,7 @@ void GeneralPane::OnSaveConfig()
   {
     Settings::Instance().SetAutoUpdateTrack(
         UpdateTrackFromIndex(m_combobox_update_track->currentIndex()));
+    Settings::Instance().SetAutoUpdateEnabled(m_checkbox_update_enable->isChecked());
   }
 
 #ifdef USE_DISCORD_PRESENCE
@@ -377,3 +386,17 @@ void GeneralPane::GenerateNewIdentity()
   message_box.exec();
 }
 #endif
+
+void GeneralPane::InstallUpdateManually()
+{
+  auto* const updater =
+      new Updater(this->parentWidget(), Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK), true,
+                  Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
+
+  if (!updater->CheckForUpdate())
+  {
+    ModalMessageBox::information(
+        this, tr("Update"),
+        tr("You are running the latest version available on this update track."));
+  }
+}

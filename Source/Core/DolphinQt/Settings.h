@@ -152,6 +152,8 @@ public:
   // Auto-Update
   QString GetAutoUpdateTrack() const;
   void SetAutoUpdateTrack(const QString& mode);
+  bool GetAutoUpdateEnabled() const;
+  void SetAutoUpdateEnabled(bool mode);
 
   // Fallback Region
   DiscIO::Region GetFallbackRegion() const;
@@ -196,6 +198,7 @@ signals:
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(QFont font);
   void AutoUpdateTrackChanged(const QString& mode);
+  void AutoUpdateToggled(bool enabled);
   void FallbackRegionChanged(const DiscIO::Region& region);
   void AnalyticsToggled(bool enabled);
   void ReleaseDevices();

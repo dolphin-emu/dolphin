@@ -47,8 +47,6 @@ public:
 
   QMenu* GetListColumnsMenu() const { return m_cols_menu; }
 
-  void InstallUpdateManually();
-
 signals:
   // File
   void Open();

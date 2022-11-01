@@ -17,7 +17,8 @@ class Updater : public QThread, public AutoUpdateChecker
 {
   Q_OBJECT
 public:
-  explicit Updater(QWidget* parent, std::string update_track, std::string hash_override);
+  explicit Updater(QWidget* parent, std::string update_track, bool update_enabled,
+                   std::string hash_override);
 
   void run() override;
   void OnUpdateAvailable(const NewVersionInformation& info) override;
@@ -26,6 +27,7 @@ public:
 private:
   QWidget* m_parent;
   std::string m_update_track;
+  bool m_update_enabled;
   std::string m_hash_override;
   bool m_update_available = false;
 };

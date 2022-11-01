@@ -631,6 +631,21 @@ QString Settings::GetAutoUpdateTrack() const
   return QString::fromStdString(Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 }
 
+void Settings::SetAutoUpdateEnabled(bool enabled)
+{
+  if (enabled == GetAutoUpdateEnabled())
+    return;
+
+  Config::SetBase(Config::MAIN_AUTOUPDATE_ENABLE, enabled);
+
+  emit AutoUpdateToggled(enabled);
+}
+
+bool Settings::GetAutoUpdateEnabled() const
+{
+  return Config::Get(Config::MAIN_AUTOUPDATE_ENABLE);
+}
+
 void Settings::SetFallbackRegion(const DiscIO::Region& region)
 {
   if (region == GetFallbackRegion())

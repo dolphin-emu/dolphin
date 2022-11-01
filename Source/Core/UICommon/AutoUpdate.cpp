@@ -158,11 +158,11 @@ static std::string GetPlatformID()
 #endif
 }
 
-void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
+void AutoUpdateChecker::CheckForUpdate(std::string_view update_track, bool update_enabled,
                                        std::string_view hash_override)
 {
   // Don't bother checking if updates are not supported or not enabled.
-  if (!SystemSupportsAutoUpdates() || update_track.empty())
+  if (!SystemSupportsAutoUpdates() || !update_enabled || update_track.empty())
     return;
 
 #ifdef __APPLE__
