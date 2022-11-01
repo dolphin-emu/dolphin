@@ -922,6 +922,11 @@ void JitArm64::mullwx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(d));
   }
+  else if ((gpr.IsImm(a) && MultiplyImmediate(gpr.GetImm(a), b, d, inst.Rc)) ||
+           (gpr.IsImm(b) && MultiplyImmediate(gpr.GetImm(b), a, d, inst.Rc)))
+  {
+    // Code is generated inside MultiplyImmediate, nothing to be done here.
+  }
   else
   {
     gpr.BindToRegister(d, d == a || d == b);
