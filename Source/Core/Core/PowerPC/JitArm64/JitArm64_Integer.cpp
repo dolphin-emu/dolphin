@@ -615,16 +615,19 @@ void JitArm64::cmpl(UGeckoInstruction inst)
     u64 A = gpr.GetImm(a);
     u64 B = gpr.GetImm(b);
     MOVI2R(CR, A - B);
-    return;
   }
-
-  if (gpr.IsImm(b) && !gpr.GetImm(b))
+  else if (gpr.IsImm(a) && !gpr.GetImm(a))
+  {
+    NEG(CR, EncodeRegTo64(gpr.R(b)));
+  }
+  else if (gpr.IsImm(b) && !gpr.GetImm(b))
   {
     MOV(EncodeRegTo32(CR), gpr.R(a));
-    return;
   }
-
-  SUB(gpr.CR(crf), EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(b)));
+  else
+  {
+    SUB(CR, EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(b)));
+  }
 }
 
 void JitArm64::cmpi(UGeckoInstruction inst)
