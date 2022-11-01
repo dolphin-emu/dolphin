@@ -5,19 +5,21 @@
 
 #include <vector>
 
-#include <QTableWidget>
+#include <QWidget>
 
 #include "Common/CommonTypes.h"
 
 class QKeyEvent;
 class QMouseEvent;
 class QResizeEvent;
+class QScrollBar;
 class QShowEvent;
 
 struct CodeViewBranch;
 class BranchDisplayDelegate;
+class CodeViewTable;
 
-class CodeViewWidget : public QTableWidget
+class CodeViewWidget final : public QWidget
 {
   Q_OBJECT
 public:
@@ -60,13 +62,10 @@ private:
 
   void ReplaceAddress(u32 address, ReplaceWith replace);
 
-  void resizeEvent(QResizeEvent*) override;
-  void keyPressEvent(QKeyEvent* event) override;
-  void mousePressEvent(QMouseEvent* event) override;
-  void wheelEvent(QWheelEvent* event) override;
-  void showEvent(QShowEvent* event) override;
-
   void OnContextMenu();
+
+  void keyPressEvent(QKeyEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
   void OnFollowBranch();
   void OnCopyAddress();
@@ -77,7 +76,6 @@ private:
   void OnCopyCode();
   void OnCopyHex();
   void OnRenameSymbol();
-  void OnSelectionChanged();
   void OnSetSymbolSize();
   void OnSetSymbolEndAddress();
   void OnRunToHere();
@@ -89,13 +87,20 @@ private:
   void OnRestoreInstruction();
 
   void CalculateBranchIndentation();
+  void ScrollbarActionTriggered(int action);
+  void ScrollbarSliderReleased();
+
+  CodeViewTable* m_table;
+  QScrollBar* m_scrollbar;
 
   bool m_updating = false;
 
   u32 m_address = 0;
   u32 m_context_address = 0;
+  u32 m_row_height = 0;
 
   std::vector<CodeViewBranch> m_branches;
 
   friend class BranchDisplayDelegate;
+  friend class CodeViewTable;
 };
