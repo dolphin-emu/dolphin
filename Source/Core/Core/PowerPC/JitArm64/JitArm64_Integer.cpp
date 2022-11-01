@@ -884,6 +884,16 @@ bool JitArm64::MultiplyImmediate(u32 imm, int a, int d, bool rc)
     if (rc)
       ComputeRC0(gpr.GetImm(d));
   }
+  else if (imm == 1)
+  {
+    if (d != a)
+    {
+      gpr.BindToRegister(d, false);
+      MOV(gpr.R(d), gpr.R(a));
+    }
+    if (rc)
+      ComputeRC0(gpr.R(d));
+  }
   else
   {
     // Immediate did not match any known special cases.
