@@ -7,6 +7,7 @@
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -891,6 +892,15 @@ bool JitArm64::MultiplyImmediate(u32 imm, int a, int d, bool rc)
       gpr.BindToRegister(d, false);
       MOV(gpr.R(d), gpr.R(a));
     }
+    if (rc)
+      ComputeRC0(gpr.R(d));
+  }
+  else if (MathUtil::IsPow2(imm))
+  {
+    const int shift = IntLog2(imm);
+
+    gpr.BindToRegister(d, d == a);
+    LSL(gpr.R(d), gpr.R(a), shift);
     if (rc)
       ComputeRC0(gpr.R(d));
   }
