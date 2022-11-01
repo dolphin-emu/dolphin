@@ -595,16 +595,11 @@ void JitArm64::cmp(UGeckoInstruction inst)
   }
   else
   {
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg XA = EncodeRegTo64(WA);
     ARM64Reg RA = gpr.R(a);
     ARM64Reg RB = gpr.R(b);
 
-    SXTW(XA, RA);
-    SXTW(CR, RB);
-    SUB(CR, XA, CR);
-
-    gpr.Unlock(WA);
+    SXTW(CR, RA);
+    SUB(CR, CR, RB, ArithOption(RB, ExtendSpecifier::SXTW));
   }
 }
 
