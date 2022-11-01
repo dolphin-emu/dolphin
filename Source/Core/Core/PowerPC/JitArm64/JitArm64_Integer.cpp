@@ -878,7 +878,19 @@ void JitArm64::addic(UGeckoInstruction inst)
 
 bool JitArm64::MultiplyImmediate(u32 imm, int a, int d, bool rc)
 {
-  return false;
+  if (imm == 0)
+  {
+    gpr.SetImmediate(d, 0);
+    if (rc)
+      ComputeRC0(gpr.GetImm(d));
+  }
+  else
+  {
+    // Immediate did not match any known special cases.
+    return false;
+  }
+
+  return true;
 }
 
 void JitArm64::mulli(UGeckoInstruction inst)
