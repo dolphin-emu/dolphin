@@ -21,7 +21,7 @@ public:
 
   void run() override;
   void OnUpdateAvailable(const NewVersionInformation& info) override;
-  bool CheckForUpdate();
+  void CheckForUpdate();
 
 private:
   QWidget* m_parent;

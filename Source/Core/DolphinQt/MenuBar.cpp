@@ -558,12 +558,7 @@ void MenuBar::InstallUpdateManually()
   auto* const updater = new Updater(this->parentWidget(), manual_track,
                                     Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
 
-  if (!updater->CheckForUpdate())
-  {
-    ModalMessageBox::information(
-        this, tr("Update"),
-        tr("You are running the latest version available on this update track."));
-  }
+  updater->CheckForUpdate();
 }
 
 void MenuBar::AddHelpMenu()
