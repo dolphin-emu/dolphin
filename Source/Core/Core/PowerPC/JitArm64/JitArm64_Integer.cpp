@@ -579,6 +579,11 @@ void JitArm64::cmp(UGeckoInstruction inst)
     s64 B = static_cast<s32>(gpr.GetImm(b));
     MOVI2R(CR, A - B);
   }
+  else if (gpr.IsImm(a) && !gpr.GetImm(a))
+  {
+    NEG(EncodeRegTo32(CR), gpr.R(b));
+    SXTW(CR, EncodeRegTo32(CR));
+  }
   else if (gpr.IsImm(b) && !gpr.GetImm(b))
   {
     SXTW(CR, gpr.R(a));
