@@ -893,6 +893,10 @@ void JitArm64::mulli(UGeckoInstruction inst)
     s32 i = (s32)gpr.GetImm(a);
     gpr.SetImmediate(d, i * inst.SIMM_16);
   }
+  else if (MultiplyImmediate((u32)(s32)inst.SIMM_16, a, d, false))
+  {
+    // Code is generated inside MultiplyImmediate, nothing to be done here.
+  }
   else
   {
     gpr.BindToRegister(d, d == a);
