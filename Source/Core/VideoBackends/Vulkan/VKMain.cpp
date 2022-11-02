@@ -15,6 +15,7 @@
 #include "VideoBackends/Vulkan/VKBoundingBox.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKPerfQuery.h"
+#include "VideoBackends/Vulkan/VKScheduler.h"
 #include "VideoBackends/Vulkan/VKSwapChain.h"
 #include "VideoBackends/Vulkan/VKVertexManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
@@ -197,23 +198,21 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   UpdateActiveConfig();
 
-  g_timeline_semaphore = std::make_unique<VKTimelineSemaphore>();
-
-  // Create command buffers. We do this separately because the other classes depend on it.
-  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_timeline_semaphore.get(),
-                                                                g_Config.bBackendMultithreading);
-  if (!g_command_buffer_mgr->Initialize())
-  {
-    PanicAlertFmt("Failed to create Vulkan command buffers");
-    Shutdown();
-    return false;
-  }
+  g_scheduler = std::make_unique<Scheduler>(g_Config.bBackendMultithreading);
 
   // Remaining classes are also dependent on object cache.
   g_object_cache = std::make_unique<ObjectCache>();
   if (!g_object_cache->Initialize())
   {
     PanicAlertFmt("Failed to initialize Vulkan object cache.");
+    Shutdown();
+    return false;
+  }
+
+  // Has to be initialized after the object cache
+  if (!g_scheduler->Initialize())
+  {
+    PanicAlertFmt("Failed to initialize Vulkan scheduler.");
     Shutdown();
     return false;
   }
@@ -231,13 +230,6 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     }
   }
 
-  if (!StateTracker::CreateInstance())
-  {
-    PanicAlertFmt("Failed to create state tracker");
-    Shutdown();
-    return false;
-  }
-
   auto gfx = std::make_unique<VKGfx>(std::move(swap_chain), wsi.render_surface_scale);
   auto vertex_manager = std::make_unique<VertexManager>();
   auto perf_query = std::make_unique<PerfQuery>();
@@ -249,8 +241,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
 void VideoBackend::Shutdown()
 {
-  if (g_command_buffer_mgr)
-    g_command_buffer_mgr->Shutdown();
+  if (g_scheduler)
+    g_scheduler->Shutdown();
 
   if (g_vulkan_context)
     vkDeviceWaitIdle(g_vulkan_context->GetDevice());
@@ -261,9 +253,7 @@ void VideoBackend::Shutdown()
   ShutdownShared();
 
   g_object_cache.reset();
-  StateTracker::DestroyInstance();
-  g_command_buffer_mgr.reset();
-  g_timeline_semaphore.reset();
+  g_scheduler.reset();
   g_vulkan_context.reset();
   UnloadVulkanLibrary();
 }

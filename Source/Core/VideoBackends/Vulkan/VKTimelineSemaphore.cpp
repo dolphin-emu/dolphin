@@ -68,6 +68,4 @@ void VKTimelineSemaphore::PushPendingFenceValue(VkFence fence, u64 fence_counter
   m_fence_loop->Wakeup();
 }
 
-std::unique_ptr<VKTimelineSemaphore> g_timeline_semaphore;
-
 }  // namespace Vulkan

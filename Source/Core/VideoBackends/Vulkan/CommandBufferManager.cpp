@@ -19,7 +19,9 @@ namespace Vulkan
 {
 CommandBufferManager::CommandBufferManager(VKTimelineSemaphore* semaphore,
                                            bool use_threaded_submission)
-    : m_use_threaded_submission(use_threaded_submission), m_semaphore(semaphore)
+    : m_use_threaded_submission(use_threaded_submission),
+      m_state_tracker(std::make_unique<StateTracker>(this)), m_last_present_done(true),
+      m_semaphore(semaphore)
 {
 }
 
@@ -43,7 +45,7 @@ bool CommandBufferManager::Initialize()
   if (m_use_threaded_submission && !CreateSubmitThread())
     return false;
 
-  return true;
+  return m_state_tracker->Initialize();
 }
 
 void CommandBufferManager::Shutdown()
@@ -99,13 +101,6 @@ bool CommandBufferManager::CreateCommandBuffers()
       LOG_VULKAN_ERROR(res, "vkCreateFence failed: ");
       return false;
     }
-
-    res = vkCreateSemaphore(device, &semaphore_create_info, nullptr, &resources.semaphore);
-    if (res != VK_SUCCESS)
-    {
-      LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
-      return false;
-    }
   }
 
   res = vkCreateSemaphore(device, &semaphore_create_info, nullptr, &m_present_semaphore);
@@ -137,9 +132,6 @@ void CommandBufferManager::DestroyCommandBuffers()
     // Destroy any pending objects.
     for (auto& it : resources.cleanup_resources)
       it();
-
-    if (resources.semaphore != VK_NULL_HANDLE)
-      vkDestroySemaphore(device, resources.semaphore, nullptr);
 
     if (resources.fence != VK_NULL_HANDLE)
       vkDestroyFence(device, resources.fence, nullptr);
@@ -237,7 +229,6 @@ bool CommandBufferManager::CreateSubmitThread()
   m_submit_thread.Reset("VK submission thread", [this](PendingCommandBufferSubmit submit) {
     SubmitCommandBuffer(submit.command_buffer_index, submit.present_swap_chain,
                         submit.present_image_index);
-    CmdBufferResources& resources = m_command_buffers[submit.command_buffer_index];
   });
 
   return true;
@@ -271,13 +262,14 @@ void CommandBufferManager::CleanupCompletedCommandBuffers()
   }
 }
 
-void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
+void CommandBufferManager::SubmitCommandBuffer(u64 fence_counter, bool submit_on_worker_thread,
                                                bool wait_for_completion,
                                                VkSwapchainKHR present_swap_chain,
                                                uint32_t present_image_index)
 {
   // End the current command buffer.
   CmdBufferResources& resources = GetCurrentCmdBufferResources();
+  resources.fence_counter = fence_counter;
   for (VkCommandBuffer command_buffer : resources.command_buffers)
   {
     VkResult res = vkEndCommandBuffer(command_buffer);
@@ -310,13 +302,15 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
   if (present_swap_chain != VK_NULL_HANDLE)
   {
     m_current_frame = (m_current_frame + 1) % NUM_FRAMES_IN_FLIGHT;
+    const u64 now_completed_counter = m_semaphore->GetCompletedFenceCounter();
 
     // Wait for all command buffers that used the descriptor pool to finish
     u32 cmd_buffer_index = (m_current_cmd_buffer + 1) % NUM_COMMAND_BUFFERS;
     while (cmd_buffer_index != m_current_cmd_buffer)
     {
       CmdBufferResources& cmd_buffer = m_command_buffers[cmd_buffer_index];
-      if (cmd_buffer.frame_index == m_current_frame)
+      if (cmd_buffer.frame_index == m_current_frame && cmd_buffer.fence_counter != 0 &&
+          cmd_buffer.fence_counter > now_completed_counter)
       {
         m_semaphore->WaitForFenceCounter(cmd_buffer.fence_counter);
       }
@@ -350,7 +344,7 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
 
   // Switch to next cmdbuffer.
   BeginCommandBuffer();
-  StateTracker::GetInstance()->InvalidateCachedState();
+  m_state_tracker->InvalidateCachedState();
 }
 
 void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
@@ -395,8 +389,9 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkQueueSubmit failed: ");
-    PanicAlertFmt("Failed to submit command buffer: {} ({})", VkResultToString(res),
-                  static_cast<int>(res));
+    PanicAlertFmt("Failed to submit command buffer: {} ({}), semaphore used: {}, has present sc {}",
+                  VkResultToString(res), static_cast<int>(res), resources.semaphore_used,
+                  present_swap_chain != VK_NULL_HANDLE);
   }
 
   m_semaphore->PushPendingFenceValue(resources.fence, resources.fence_counter);
@@ -413,28 +408,27 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
                                      &present_swap_chain,
                                      &present_image_index,
                                      nullptr};
-
-    m_last_present_result = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
-    m_last_present_done.Set();
-    if (m_last_present_result != VK_SUCCESS)
+    res = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
+    if (res != VK_SUCCESS)
     {
       // VK_ERROR_OUT_OF_DATE_KHR is not fatal, just means we need to recreate our swap chain.
-      if (m_last_present_result != VK_ERROR_OUT_OF_DATE_KHR &&
-          m_last_present_result != VK_SUBOPTIMAL_KHR &&
-          m_last_present_result != VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
+      if (res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR &&
+          res != VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
       {
-        LOG_VULKAN_ERROR(m_last_present_result, "vkQueuePresentKHR failed: ");
+        LOG_VULKAN_ERROR(res, "vkQueuePresentKHR failed: ");
       }
 
       // Don't treat VK_SUBOPTIMAL_KHR as fatal on Android. Android 10+ requires prerotation.
       // See https://twitter.com/Themaister/status/1207062674011574273
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
-      if (m_last_present_result != VK_SUBOPTIMAL_KHR)
+      if (res != VK_SUBOPTIMAL_KHR)
         m_last_present_failed.Set();
 #else
       m_last_present_failed.Set();
 #endif
     }
+    m_last_present_result.store(res);
+    m_last_present_done.Set();
   }
 }
 
@@ -447,7 +441,9 @@ void CommandBufferManager::BeginCommandBuffer()
   // Wait for the GPU to finish with all resources for this command buffer.
   if (resources.fence_counter > m_semaphore->GetCompletedFenceCounter() &&
       resources.fence_counter != 0)
+  {
     m_semaphore->WaitForFenceCounter(resources.fence_counter);
+  }
 
   CleanupCompletedCommandBuffers();
 
@@ -471,10 +467,9 @@ void CommandBufferManager::BeginCommandBuffer()
       LOG_VULKAN_ERROR(res, "vkBeginCommandBuffer failed: ");
   }
 
-  // Reset upload command buffer state
+  // Reset command buffer state
   resources.init_command_buffer_used = false;
   resources.semaphore_used = false;
-  resources.fence_counter = m_semaphore->BumpNextFenceCounter();
   resources.frame_index = m_current_frame;
   m_current_cmd_buffer = next_buffer_index;
 }
@@ -514,6 +509,4 @@ void CommandBufferManager::DeferImageViewDestruction(VkImageView object)
   cmd_buffer_resources.cleanup_resources.push_back(
       [object]() { vkDestroyImageView(g_vulkan_context->GetDevice(), object, nullptr); });
 }
-
-std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;
 }  // namespace Vulkan
