@@ -11,6 +11,7 @@
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 
+#include "VKTimelineSemaphore.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
@@ -193,7 +194,7 @@ void StreamBuffer::UpdateGPUPosition()
   auto start = m_tracked_fences.begin();
   auto end = start;
 
-  const u64 completed_counter = g_command_buffer_mgr->GetCompletedFenceCounter();
+  const u64 completed_counter = g_timeline_semaphore->GetCompletedFenceCounter();
   while (end != m_tracked_fences.end() && completed_counter >= end->first)
   {
     m_current_gpu_position = end->second;
@@ -273,7 +274,7 @@ bool StreamBuffer::WaitForClearSpace(u32 num_bytes)
   }
 
   // Wait until this fence is signaled. This will fire the callback, updating the GPU position.
-  g_command_buffer_mgr->WaitForFenceCounter(iter->first);
+  g_timeline_semaphore->WaitForFenceCounter(iter->first);
   m_tracked_fences.erase(m_tracked_fences.begin(),
                          m_current_offset == iter->second ? m_tracked_fences.end() : ++iter);
   m_current_offset = new_offset;
