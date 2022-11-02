@@ -917,6 +917,16 @@ bool JitArm64::MultiplyImmediate(u32 imm, int a, int d, bool rc)
     if (rc)
       ComputeRC0(gpr.R(d));
   }
+  else if (MathUtil::IsPow2(~imm + 1))
+  {
+    // Multiplication by a negative power of two (-(2^n)).
+    const int shift = IntLog2(~imm + 1);
+
+    gpr.BindToRegister(d, d == a);
+    NEG(gpr.R(d), gpr.R(a), ArithOption(gpr.R(a), ShiftType::LSL, shift));
+    if (rc)
+      ComputeRC0(gpr.R(d));
+  }
   else
   {
     // Immediate did not match any known special cases.
