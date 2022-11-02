@@ -23,6 +23,7 @@
 
 namespace Vulkan
 {
+class StateTracker;
 class VKTimelineSemaphore;
 
 class CommandBufferManager
@@ -61,23 +62,24 @@ public:
 
   // Returns the semaphore for the current command buffer, which can be used to ensure the
   // swap chain image is ready before the command buffer executes.
-  VkSemaphore GetCurrentCommandBufferSemaphore()
+  void SetWaitSemaphoreForCurrentCommandBuffer(VkSemaphore semaphore)
   {
     auto& resources = m_command_buffers[m_current_cmd_buffer];
     resources.semaphore_used = true;
-    return resources.semaphore;
+    resources.semaphore = semaphore;
   }
 
   // Ensure that the worker thread has submitted any previous command buffers and is idle.
   void WaitForSubmitWorkerThreadIdle();
 
-  void SubmitCommandBuffer(bool submit_on_worker_thread, bool wait_for_completion,
+  void SubmitCommandBuffer(u64 fence_counter, bool submit_on_worker_thread,
+                           bool wait_for_completion,
                            VkSwapchainKHR present_swap_chain = VK_NULL_HANDLE,
                            uint32_t present_image_index = 0xFFFFFFFF);
 
   // Was the last present submitted to the queue a failure? If so, we must recreate our swapchain.
   bool CheckLastPresentFail() { return m_last_present_failed.TestAndClear(); }
-  VkResult GetLastPresentResult() const { return m_last_present_result; }
+  VkResult GetLastPresentResult() const { return m_last_present_result.load(); }
   bool CheckLastPresentDone() { return m_last_present_done.TestAndClear(); }
 
   // Schedule a vulkan resource for destruction later on. This will occur when the command buffer
@@ -87,6 +89,8 @@ public:
   void DeferFramebufferDestruction(VkFramebuffer object);
   void DeferImageDestruction(VkImage object, VmaAllocation alloc);
   void DeferImageViewDestruction(VkImageView object);
+
+  StateTracker* GetStateTracker() { return m_state_tracker.get(); }
 
 private:
   bool CreateCommandBuffers();
@@ -137,6 +141,10 @@ private:
   u32 m_current_frame = 0;
   u32 m_current_cmd_buffer = 0;
 
+  bool m_use_threaded_submission = false;
+
+  std::unique_ptr<StateTracker> m_state_tracker;
+
   // Threaded command buffer execution
   struct PendingCommandBufferSubmit
   {
@@ -148,13 +156,10 @@ private:
   VkSemaphore m_present_semaphore = VK_NULL_HANDLE;
   Common::Flag m_last_present_failed;
   Common::Flag m_last_present_done;
-  VkResult m_last_present_result = VK_SUCCESS;
-  bool m_use_threaded_submission = false;
+  std::atomic<VkResult> m_last_present_result = VK_SUCCESS;
   u32 m_descriptor_set_count = DESCRIPTOR_SETS_PER_POOL;
 
   VKTimelineSemaphore* m_semaphore;
 };
-
-extern std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;
 
 }  // namespace Vulkan

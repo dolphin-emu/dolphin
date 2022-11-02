@@ -1285,6 +1285,7 @@
     <ClCompile Include="VideoBackends\Vulkan\VKPerfQuery.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKPipeline.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKGfx.cpp" />
+    <ClCompile Include="VideoBackends\Vulkan\VKScheduler.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKShader.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKStreamBuffer.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKSwapChain.cpp" />

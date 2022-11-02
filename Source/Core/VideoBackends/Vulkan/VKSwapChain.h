@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 #include <vector>
 
@@ -50,7 +51,7 @@ public:
   {
     return m_swap_chain_images[m_current_swap_chain_image_index].framebuffer.get();
   }
-  VkResult AcquireNextImage();
+  VkResult AcquireNextImage(VkSemaphore semaphore);
 
   bool RecreateSurface(void* native_handle);
   bool ResizeSwapChain();
@@ -70,9 +71,18 @@ public:
   // Updates the fullscreen state. Must call on-thread.
   bool SetFullscreenState(bool state);
 
+  VkSemaphore GetNextSemaphore()
+  {
+    m_semaphore_index = (m_semaphore_index + 1) % NUM_COMMAND_BUFFERS;
+    return m_semaphores[m_semaphore_index];
+  }
+
 private:
   bool SelectSurfaceFormat();
   bool SelectPresentMode();
+
+  bool CreateSemaphores();
+  void DestroySemaphores();
 
   bool CreateSwapChain();
   void DestroySwapChain();
@@ -102,6 +112,9 @@ private:
   VkSwapchainKHR m_swap_chain = VK_NULL_HANDLE;
   std::vector<SwapChainImage> m_swap_chain_images;
   u32 m_current_swap_chain_image_index = 0;
+
+  std::array<VkSemaphore, NUM_COMMAND_BUFFERS> m_semaphores = {};
+  u32 m_semaphore_index = 0;
 
   u32 m_width = 0;
   u32 m_height = 0;

@@ -65,7 +65,7 @@ public:
   void SetFullscreen(bool enable_fullscreen) override;
   bool IsFullscreen() const override;
 
-  void Flush() override;
+  void Flush(FlushType flushType) override;
   void WaitForGPUIdle() override;
 
   void OnConfigChanged(u32 bits) override;

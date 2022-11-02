@@ -23,6 +23,11 @@ public:
 
   ~VKTimelineSemaphore();
 
+  u64 GetCurrentFenceCounter() const
+  {
+    return m_current_fence_counter.load(std::memory_order_acquire);
+  }
+
   u64 GetCompletedFenceCounter() const
   {
     return m_completed_fence_counter.load(std::memory_order_acquire);
@@ -32,12 +37,12 @@ public:
 
   void PushPendingFenceValue(VkFence fence, u64 counter);
 
-  u64 BumpNextFenceCounter() { return m_next_fence_counter++; }
+  u64 BumpNextFenceCounter() { return m_current_fence_counter++; }
 
 private:
   void FenceThreadFunc();
 
-  u64 m_next_fence_counter = 1;
+  std::atomic<u64> m_current_fence_counter = 1;
   std::atomic<u64> m_completed_fence_counter = 0;
 
   std::thread m_fence_thread;
@@ -51,7 +56,5 @@ private:
   std::mutex m_pending_fences_lock;
   std::condition_variable m_fence_condvar;
 };
-
-extern std::unique_ptr<VKTimelineSemaphore> g_timeline_semaphore;
 
 }  // namespace Vulkan

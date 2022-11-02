@@ -8,6 +8,7 @@
 
 #include "Common/Assert.h"
 
+#include "VKScheduler.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/DriverDetails.h"
@@ -26,7 +27,10 @@ StagingBuffer::~StagingBuffer()
   if (m_map_pointer)
     Unmap();
 
-  g_command_buffer_mgr->DeferBufferDestruction(m_buffer, m_alloc);
+  g_scheduler->Record(
+      [c_alloc = m_alloc, c_buffer = m_buffer](CommandBufferManager* command_buffer_mgr) {
+        command_buffer_mgr->DeferBufferDestruction(c_buffer, c_alloc);
+      });
 }
 
 void StagingBuffer::BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer,

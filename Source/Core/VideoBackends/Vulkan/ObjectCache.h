@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -102,6 +103,9 @@ private:
   std::unique_ptr<VKTexture> m_dummy_texture;
 
   // Render pass cache
+  // it's the only part of the object cache that is written after initialization
+  // and accessed from multiple threads, so it has to be protected by a lock
+  std::mutex m_render_pass_mutex;
   using RenderPassCacheKey = std::tuple<VkFormat, VkFormat, u32, VkAttachmentLoadOp, std::size_t>;
   std::map<RenderPassCacheKey, VkRenderPass> m_render_pass_cache;
 

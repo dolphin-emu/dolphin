@@ -93,8 +93,11 @@ std::unique_ptr<AbstractPipeline> Gfx::CreatePipeline(const AbstractPipelineConf
   return DXPipeline::Create(config, cache_data, cache_data_length);
 }
 
-void Gfx::Flush()
+void Gfx::Flush(FlushType flushType)
 {
+  if (flushType == FlushType::FlushToWorker)
+    return;
+
   ExecuteCommandList(false);
 }
 

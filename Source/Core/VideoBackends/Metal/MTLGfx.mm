@@ -266,8 +266,11 @@ std::unique_ptr<AbstractPipeline> Metal::Gfx::CreatePipeline(const AbstractPipel
   return g_object_cache->CreatePipeline(config);
 }
 
-void Metal::Gfx::Flush()
+void Metal::Gfx::Flush(FlushType flushType)
 {
+  if (flushType == FlushType::FlushToWorker)
+    return;
+
   @autoreleasepool
   {
     g_state_tracker->FlushEncoders();

@@ -251,8 +251,11 @@ void Gfx::UnbindTexture(const AbstractTexture* texture)
     D3D::stateman->ApplyTextures();
 }
 
-void Gfx::Flush()
+void Gfx::Flush(FlushType flushType)
 {
+  if (flushType == FlushType::FlushToWorker)
+    return;
+
   D3D::context->Flush();
 }
 
