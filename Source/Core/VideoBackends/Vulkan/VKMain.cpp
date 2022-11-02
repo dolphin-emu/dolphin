@@ -19,6 +19,7 @@
 #include "VideoBackends/Vulkan/VKVertexManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
+#include "VKTimelineSemaphore.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -196,8 +197,11 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   UpdateActiveConfig();
 
+  g_timeline_semaphore = std::make_unique<VKTimelineSemaphore>();
+
   // Create command buffers. We do this separately because the other classes depend on it.
-  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
+  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_timeline_semaphore.get(),
+                                                                g_Config.bBackendMultithreading);
   if (!g_command_buffer_mgr->Initialize())
   {
     PanicAlertFmt("Failed to create Vulkan command buffers");
@@ -245,6 +249,9 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
 void VideoBackend::Shutdown()
 {
+  if (g_command_buffer_mgr)
+    g_command_buffer_mgr->Shutdown();
+
   if (g_vulkan_context)
     vkDeviceWaitIdle(g_vulkan_context->GetDevice());
 
@@ -256,6 +263,7 @@ void VideoBackend::Shutdown()
   g_object_cache.reset();
   StateTracker::DestroyInstance();
   g_command_buffer_mgr.reset();
+  g_timeline_semaphore.reset();
   g_vulkan_context.reset();
   UnloadVulkanLibrary();
 }

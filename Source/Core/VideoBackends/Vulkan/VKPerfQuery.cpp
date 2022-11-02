@@ -11,6 +11,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
+#include "VKTimelineSemaphore.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
@@ -162,7 +163,7 @@ bool PerfQuery::CreateQueryPool()
 
 void PerfQuery::ReadbackQueries()
 {
-  const u64 completed_fence_counter = g_command_buffer_mgr->GetCompletedFenceCounter();
+  const u64 completed_fence_counter = g_timeline_semaphore->GetCompletedFenceCounter();
 
   // Need to save these since ProcessResults will modify them.
   const u32 outstanding_queries = m_query_count.load(std::memory_order_relaxed);

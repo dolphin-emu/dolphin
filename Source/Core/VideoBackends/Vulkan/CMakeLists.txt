@@ -1,4 +1,6 @@
 add_library(videovulkan
+  VKTimelineSemaphore.cpp
+  VKTimelineSemaphore.h
   CommandBufferManager.cpp
   CommandBufferManager.h
   Constants.h

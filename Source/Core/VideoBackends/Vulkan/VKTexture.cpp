@@ -21,6 +21,7 @@
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
+#include "VKTimelineSemaphore.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -999,7 +1000,7 @@ void VKStagingTexture::Flush()
   else
   {
     // Wait for the GPU to finish with it.
-    g_command_buffer_mgr->WaitForFenceCounter(m_flush_fence_counter);
+    g_timeline_semaphore->WaitForFenceCounter(m_flush_fence_counter);
   }
 
   // For readback textures, invalidate the CPU cache as there is new data there.
