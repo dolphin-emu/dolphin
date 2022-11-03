@@ -25,6 +25,8 @@ public interface MainView
 
   void launchOpenFileActivity(int requestCode);
 
+  void launchCustomImagePicker(String gameId);
+
   /**
    * Shows or hides the loading indicator.
    */

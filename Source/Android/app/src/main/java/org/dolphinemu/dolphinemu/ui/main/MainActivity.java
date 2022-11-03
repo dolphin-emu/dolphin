@@ -10,11 +10,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
+import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.tabs.TabLayout;
@@ -53,6 +56,8 @@ public final class MainActivity extends AppCompatActivity
 
   private ActivityMainBinding mBinding;
 
+  private ActivityResultLauncher<String[]> mOpenCustomImageLauncher;
+
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
@@ -66,6 +71,8 @@ public final class MainActivity extends AppCompatActivity
 
     mBinding = ActivityMainBinding.inflate(getLayoutInflater());
     setContentView(mBinding.getRoot());
+
+    registerOpenImageContract();
 
     WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
     InsetsHelper.setUpMainLayout(this, mBinding.appbarMain, mBinding.buttonAddDirectory,
@@ -257,6 +264,34 @@ public final class MainActivity extends AppCompatActivity
     {
       MainPresenter.skipRescanningLibrary();
     }
+  }
+
+  public void registerOpenImageContract()
+  {
+    mOpenCustomImageLauncher = registerForActivityResult(new ActivityResultContracts.OpenDocument(),
+            result ->
+            {
+              if (result == null)
+              {
+                return;
+              }
+
+              // Makes URI persistent for reuse
+              getContentResolver().takePersistableUriPermission(result,
+                      Intent.FLAG_GRANT_READ_URI_PERMISSION);
+              PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
+                      .edit()
+                      .putString(MainPresenter.mCustomCoverGameId, result.toString())
+                      .apply();
+            });
+  }
+
+  @Override
+  public void launchCustomImagePicker(String gameId)
+  {
+    MainPresenter.mCustomCoverGameId = gameId;
+    String[] filter = {"image/*"};
+    mOpenCustomImageLauncher.launch(filter);
   }
 
   @Override

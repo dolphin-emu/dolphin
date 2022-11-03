@@ -50,6 +50,7 @@ public final class MainPresenter
   private final MainView mView;
   private final FragmentActivity mActivity;
   private String mDirToAdd;
+  public static String mCustomCoverGameId;
 
   public MainPresenter(MainView view, FragmentActivity activity)
   {

@@ -4,11 +4,13 @@ package org.dolphinemu.dolphinemu.dialogs;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
+import androidx.preference.PreferenceManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -23,6 +25,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.ui.main.MainView;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.AlertDialogItemsBuilder;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
@@ -101,6 +104,22 @@ public class GamePropertiesDialog extends DialogFragment
     {
       itemsBuilder.add(R.string.properties_convert, (dialog, i) ->
               ConvertActivity.launch(getContext(), path));
+    }
+
+    itemsBuilder.add(R.string.properties_set_custom_cover, (dialog, i) ->
+            ((MainView) requireActivity()).launchCustomImagePicker(gameId));
+
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+    String customCover = preferences.getString(gameId, null);
+    if (customCover != null)
+    {
+      itemsBuilder.add(R.string.properties_remove_custom_cover, (dialog, i) ->
+      {
+        preferences.edit()
+                .remove(gameId)
+                .apply();
+        ((MainView) requireActivity()).showGames();
+      });
     }
 
     if (isDisc && isWii)

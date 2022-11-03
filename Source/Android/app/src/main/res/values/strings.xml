@@ -462,6 +462,8 @@
     <string name="properties_details">Details</string>
     <string name="properties_start_with_riivolution">Start with Riivolution Patches</string>
     <string name="properties_set_default_iso">Set as Default ISO</string>
+    <string name="properties_set_custom_cover">Set Custom Cover</string>
+    <string name="properties_remove_custom_cover">Remove Custom Cover</string>
     <string name="properties_convert">Convert File</string>
     <string name="properties_system_update">Perform System Update</string>
     <string name="properties_edit_game_settings">Edit Game Settings</string>

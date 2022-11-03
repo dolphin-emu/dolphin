@@ -3,6 +3,7 @@
 package org.dolphinemu.dolphinemu.utils;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -12,6 +13,7 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -28,7 +30,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.model.GameFile;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -77,41 +79,48 @@ public class GlideUtils
       gameViewHolder.binding.textGameCaption.setVisibility(View.GONE);
     }
 
-    String customCoverPath = gameFile.getCustomCoverPath();
+    Context context = imageView.getContext();
+
+    SharedPreferences preferences =
+            PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+    String customCoverUriString = preferences.getString(gameFile.getGameId(), null);
+
+    File cover;
     Uri customCoverUri = null;
     boolean customCoverExists = false;
-    if (ContentHandler.isContentUri(customCoverPath))
+    if (customCoverUriString != null)
     {
-      try
-      {
-        customCoverUri = ContentHandler.unmangle(customCoverPath);
-        customCoverExists = true;
-      }
-      catch (FileNotFoundException | SecurityException ignored)
-      {
-        // Let customCoverExists remain false
-      }
-    }
-    else
-    {
-      customCoverUri = Uri.parse(customCoverPath);
-      customCoverExists = new File(customCoverPath).exists();
+      customCoverUri = Uri.parse(customCoverUriString);
     }
 
-    Context context = imageView.getContext();
-    File cover;
+    try
+    {
+      // Check if the custom cover URI is valid
+      InputStream stream = context.getContentResolver().openInputStream(customCoverUri);
+      stream.close();
+      customCoverExists = true;
+    }
+    catch (Exception e)
+    {
+      // Custom cover path is no longer valid
+      preferences.edit()
+              .remove(gameFile.getGameId())
+              .apply();
+    }
+
     if (customCoverExists)
     {
       Glide.with(context)
               .load(customCoverUri)
               .diskCacheStrategy(DiskCacheStrategy.NONE)
               .centerCrop()
+              .error(R.drawable.no_banner)
               .listener(new RequestListener<Drawable>()
               {
                 @Override public boolean onLoadFailed(@Nullable GlideException e, Object model,
                         Target<Drawable> target, boolean isFirstResource)
                 {
-                  GlideUtils.enableInnerTitle(gameViewHolder, imageView);
+                  GlideUtils.enableInnerTitle(gameViewHolder);
                   return false;
                 }
 
@@ -130,13 +139,14 @@ public class GlideUtils
               .load(cover)
               .diskCacheStrategy(DiskCacheStrategy.NONE)
               .centerCrop()
+              .error(R.drawable.no_banner)
               .listener(new RequestListener<Drawable>()
               {
                 @Override
                 public boolean onLoadFailed(@Nullable GlideException e, Object model,
                         Target<Drawable> target, boolean isFirstResource)
                 {
-                  GlideUtils.enableInnerTitle(gameViewHolder, imageView);
+                  GlideUtils.enableInnerTitle(gameViewHolder);
                   return false;
                 }
 
@@ -156,13 +166,14 @@ public class GlideUtils
               .load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile)))
               .diskCacheStrategy(DiskCacheStrategy.NONE)
               .centerCrop()
+              .error(R.drawable.no_banner)
               .listener(new RequestListener<Drawable>()
               {
                 @Override
                 public boolean onLoadFailed(@Nullable GlideException e, Object model,
                         Target<Drawable> target, boolean isFirstResource)
                 {
-                  GlideUtils.enableInnerTitle(gameViewHolder, imageView);
+                  GlideUtils.enableInnerTitle(gameViewHolder);
                   return false;
                 }
 
@@ -194,17 +205,15 @@ public class GlideUtils
     }
     else
     {
-      enableInnerTitle(gameViewHolder, imageView);
+      Glide.with(imageView.getContext())
+              .load(R.drawable.no_banner)
+              .into(imageView);
+      enableInnerTitle(gameViewHolder);
     }
   }
 
-  private static void enableInnerTitle(GameAdapter.GameViewHolder gameViewHolder,
-          ImageView imageView)
+  private static void enableInnerTitle(GameAdapter.GameViewHolder gameViewHolder)
   {
-    Glide.with(imageView.getContext())
-            .load(R.drawable.no_banner)
-            .into(imageView);
-
     if (gameViewHolder != null && !BooleanSetting.MAIN_SHOW_GAME_TITLES.getBooleanGlobal())
     {
       gameViewHolder.binding.textGameTitleInner.setVisibility(View.VISIBLE);
