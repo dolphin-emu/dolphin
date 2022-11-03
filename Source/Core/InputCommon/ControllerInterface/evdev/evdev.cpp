@@ -25,6 +25,43 @@
 
 namespace ciface::evdev
 {
+class InputBackend final : public ciface::InputBackend
+{
+public:
+  InputBackend(ControllerInterface* controller_interface);
+  ~InputBackend();
+  void PopulateDevices() override;
+
+  void RemoveDevnodeObject(const std::string&);
+
+private:
+  std::shared_ptr<evdevDevice>
+  FindDeviceWithUniqueIDAndPhysicalLocation(const char* unique_id, const char* physical_location);
+
+  void AddDeviceNode(const char* devnode);
+
+  void StartHotplugThread();
+  void StopHotplugThread();
+  void HotplugThreadFunc();
+
+  std::thread m_hotplug_thread;
+  Common::Flag m_hotplug_thread_running;
+  int m_wakeup_eventfd;
+
+  // There is no easy way to get the device name from only a dev node
+  // during a device removed event, since libevdev can't work on removed devices;
+  // sysfs is not stable, so this is probably the easiest way to get a name for a node.
+  // This can, and will be modified by different thread, possibly concurrently,
+  // as devices can be destroyed by any thread at any time. As of now it's protected
+  // by ControllerInterface::m_devices_population_mutex.
+  std::map<std::string, std::weak_ptr<evdevDevice>> m_devnode_objects;
+};
+
+std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
+{
+  return std::make_unique<InputBackend>(controller_interface);
+}
+
 class Input : public Core::Device::Input
 {
 public:
@@ -195,25 +232,14 @@ public:
   bool IsDetectable() const override { return false; }
 };
 
-static std::thread s_hotplug_thread;
-static Common::Flag s_hotplug_thread_running;
-static int s_wakeup_eventfd;
-
-// There is no easy way to get the device name from only a dev node
-// during a device removed event, since libevdev can't work on removed devices;
-// sysfs is not stable, so this is probably the easiest way to get a name for a node.
-// This can, and will be modified by different thread, possibly concurrently,
-// as devices can be destroyed by any thread at any time. As of now it's protected
-// by ControllerInterface::m_devices_population_mutex.
-static std::map<std::string, std::weak_ptr<evdevDevice>> s_devnode_objects;
-
-static std::shared_ptr<evdevDevice>
-FindDeviceWithUniqueIDAndPhysicalLocation(const char* unique_id, const char* physical_location)
+std::shared_ptr<evdevDevice>
+InputBackend::FindDeviceWithUniqueIDAndPhysicalLocation(const char* unique_id,
+                                                        const char* physical_location)
 {
   if (!unique_id || !physical_location)
     return nullptr;
 
-  for (auto& [node, dev] : s_devnode_objects)
+  for (auto& [node, dev] : m_devnode_objects)
   {
     if (const auto device = dev.lock())
     {
@@ -231,7 +257,7 @@ FindDeviceWithUniqueIDAndPhysicalLocation(const char* unique_id, const char* phy
   return nullptr;
 }
 
-static void AddDeviceNode(const char* devnode)
+void InputBackend::AddDeviceNode(const char* devnode)
 {
   // Unfortunately udev gives us no way to filter out the non event device interfaces.
   // So we open it and see if it works with evdev ioctls or not.
@@ -265,30 +291,30 @@ static void AddDeviceNode(const char* devnode)
     // This will also give it the correct index and invoke device change callbacks.
     // Make sure to force the device removal immediately (as they are shared ptrs and
     // they could be kept alive, preventing us from re-creating the device)
-    g_controller_interface.RemoveDevice(
+    GetControllerInterface().RemoveDevice(
         [&evdev_device](const auto* device) {
           return static_cast<const evdevDevice*>(device) == evdev_device.get();
         },
         true);
 
-    g_controller_interface.AddDevice(evdev_device);
+    GetControllerInterface().AddDevice(evdev_device);
   }
   else
   {
-    evdev_device = std::make_shared<evdevDevice>();
+    evdev_device = std::make_shared<evdevDevice>(this);
 
     const bool was_interesting = evdev_device->AddNode(devnode, fd, dev);
 
     if (was_interesting)
-      g_controller_interface.AddDevice(evdev_device);
+      GetControllerInterface().AddDevice(evdev_device);
   }
 
-  // If the devices failed to be added to g_controller_interface, it will be added here but then
+  // If the devices failed to be added to ControllerInterface, it will be added here but then
   // immediately removed in its destructor due to the shared ptr not having any references left
-  s_devnode_objects.emplace(devnode, std::move(evdev_device));
+  m_devnode_objects.emplace(devnode, std::move(evdev_device));
 }
 
-static void HotplugThreadFunc()
+void InputBackend::HotplugThreadFunc()
 {
   Common::SetCurrentThreadName("evdev Hotplug Thread");
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "evdev hotplug thread started");
@@ -306,16 +332,16 @@ static void HotplugThreadFunc()
   udev_monitor_enable_receiving(monitor);
   const int monitor_fd = udev_monitor_get_fd(monitor);
 
-  while (s_hotplug_thread_running.IsSet())
+  while (m_hotplug_thread_running.IsSet())
   {
     fd_set fds;
 
     FD_ZERO(&fds);
     FD_SET(monitor_fd, &fds);
-    FD_SET(s_wakeup_eventfd, &fds);
+    FD_SET(m_wakeup_eventfd, &fds);
 
     const int ret =
-        select(std::max(monitor_fd, s_wakeup_eventfd) + 1, &fds, nullptr, nullptr, nullptr);
+        select(std::max(monitor_fd, m_wakeup_eventfd) + 1, &fds, nullptr, nullptr, nullptr);
     if (ret < 1 || !FD_ISSET(monitor_fd, &fds))
       continue;
 
@@ -327,53 +353,54 @@ static void HotplugThreadFunc()
     if (!devnode)
       continue;
 
-    // Use g_controller_interface.PlatformPopulateDevices() to protect access around
-    // s_devnode_objects. Note that even if we get these events at the same time as a
+    // Use GetControllerInterface().PlatformPopulateDevices() to protect access around
+    // m_devnode_objects. Note that even if we get these events at the same time as a
     // a PopulateDevices() request (e.g. on start up, we might get all the add events
     // for connected devices), this won't ever cause duplicate devices as AddDeviceNode()
     // automatically removes the old one if it already existed
     if (strcmp(action, "remove") == 0)
     {
-      g_controller_interface.PlatformPopulateDevices([&devnode] {
+      GetControllerInterface().PlatformPopulateDevices([&devnode, this] {
         std::shared_ptr<evdevDevice> ptr;
 
-        const auto it = s_devnode_objects.find(devnode);
-        if (it != s_devnode_objects.end())
+        const auto it = m_devnode_objects.find(devnode);
+        if (it != m_devnode_objects.end())
           ptr = it->second.lock();
 
         // If we don't recognize this device, ptr will be null and no device will be removed.
 
-        g_controller_interface.RemoveDevice([&ptr](const auto* device) {
+        GetControllerInterface().RemoveDevice([&ptr](const auto* device) {
           return static_cast<const evdevDevice*>(device) == ptr.get();
         });
       });
     }
     else if (strcmp(action, "add") == 0)
     {
-      g_controller_interface.PlatformPopulateDevices([&devnode] { AddDeviceNode(devnode); });
+      GetControllerInterface().PlatformPopulateDevices(
+          [&devnode, this] { AddDeviceNode(devnode); });
     }
   }
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "evdev hotplug thread stopped");
 }
 
-static void StartHotplugThread()
+void InputBackend::StartHotplugThread()
 {
   // Mark the thread as running.
-  if (!s_hotplug_thread_running.TestAndSet())
+  if (!m_hotplug_thread_running.TestAndSet())
   {
     // It was already running.
     return;
   }
 
-  s_wakeup_eventfd = eventfd(0, 0);
-  ASSERT_MSG(CONTROLLERINTERFACE, s_wakeup_eventfd != -1, "Couldn't create eventfd.");
-  s_hotplug_thread = std::thread(HotplugThreadFunc);
+  m_wakeup_eventfd = eventfd(0, 0);
+  ASSERT_MSG(CONTROLLERINTERFACE, m_wakeup_eventfd != -1, "Couldn't create eventfd.");
+  m_hotplug_thread = std::thread(&InputBackend::HotplugThreadFunc, this);
 }
 
-static void StopHotplugThread()
+void InputBackend::StopHotplugThread()
 {
   // Tell the hotplug thread to stop.
-  if (!s_hotplug_thread_running.TestAndClear())
+  if (!m_hotplug_thread_running.TestAndClear())
   {
     // It wasn't running, we're done.
     return;
@@ -381,22 +408,23 @@ static void StopHotplugThread()
 
   // Write something to efd so that select() stops blocking.
   const uint64_t value = 1;
-  static_cast<void>(!write(s_wakeup_eventfd, &value, sizeof(uint64_t)));
+  static_cast<void>(!write(m_wakeup_eventfd, &value, sizeof(uint64_t)));
 
-  s_hotplug_thread.join();
-  close(s_wakeup_eventfd);
+  m_hotplug_thread.join();
+  close(m_wakeup_eventfd);
 }
 
-void Init()
+InputBackend::InputBackend(ControllerInterface* controller_interface)
+    : ciface::InputBackend(controller_interface)
 {
   StartHotplugThread();
 }
 
 // Only call this when ControllerInterface::m_devices_population_mutex is locked
-void PopulateDevices()
+void InputBackend::PopulateDevices()
 {
   // Don't run if we are not initialized
-  if (!s_hotplug_thread_running.IsSet())
+  if (!m_hotplug_thread_running.IsSet())
   {
     return;
   }
@@ -431,7 +459,7 @@ void PopulateDevices()
   udev_unref(udev);
 }
 
-void Shutdown()
+InputBackend::~InputBackend()
 {
   StopHotplugThread();
 }
@@ -627,14 +655,23 @@ const char* evdevDevice::GetPhysicalLocation() const
   return libevdev_get_phys(m_nodes.front().device);
 }
 
+evdevDevice::evdevDevice(InputBackend* input_backend) : m_input_backend(*input_backend)
+{
+}
+
 evdevDevice::~evdevDevice()
 {
   for (auto& node : m_nodes)
   {
-    s_devnode_objects.erase(node.devnode);
+    m_input_backend.RemoveDevnodeObject(node.devnode);
     libevdev_free(node.device);
     close(node.fd);
   }
+}
+
+void InputBackend::RemoveDevnodeObject(const std::string& node)
+{
+  m_devnode_objects.erase(node);
 }
 
 void evdevDevice::UpdateInput()

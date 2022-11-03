@@ -64,19 +64,19 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 // nothing needed for OSX and Quartz
 #endif
 #ifdef CIFACE_USE_SDL
-  ciface::SDL::Init();
+  m_input_backends.emplace_back(ciface::SDL::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_ANDROID
 // nothing needed
 #endif
 #ifdef CIFACE_USE_EVDEV
-  ciface::evdev::Init();
+  m_input_backends.emplace_back(ciface::evdev::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_PIPES
 // nothing needed
 #endif
 #ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
-  ciface::DualShockUDPClient::Init();
+  m_input_backends.emplace_back(ciface::DualShockUDPClient::CreateInputBackend(this));
 #endif
 
   // Don't allow backends to add devices before the first RefreshDevices() as they will be cleaned
@@ -181,21 +181,15 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
     ciface::Quartz::PopulateDevices(m_wsi.render_window);
   }
 #endif
-#ifdef CIFACE_USE_SDL
-  ciface::SDL::PopulateDevices();
-#endif
 #ifdef CIFACE_USE_ANDROID
   ciface::Android::PopulateDevices();
-#endif
-#ifdef CIFACE_USE_EVDEV
-  ciface::evdev::PopulateDevices();
 #endif
 #ifdef CIFACE_USE_PIPES
   ciface::Pipes::PopulateDevices();
 #endif
-#ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
-  ciface::DualShockUDPClient::PopulateDevices();
-#endif
+
+  for (auto& backend : m_input_backends)
+    backend->PopulateDevices();
 
   WiimoteReal::PopulateDevices();
 
@@ -242,18 +236,12 @@ void ControllerInterface::Shutdown()
   ciface::OSX::DeInit();
   ciface::Quartz::DeInit();
 #endif
-#ifdef CIFACE_USE_SDL
-  ciface::SDL::DeInit();
-#endif
 #ifdef CIFACE_USE_ANDROID
 // nothing needed
 #endif
-#ifdef CIFACE_USE_EVDEV
-  ciface::evdev::Shutdown();
-#endif
-#ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
-  ciface::DualShockUDPClient::DeInit();
-#endif
+
+  // Empty the container of input backends to deconstruct and deinitialize them.
+  m_input_backends.clear();
 
   // Make sure no devices had been added within Shutdown() in the time
   // between checking they checked atomic m_is_init bool and we changed it.
@@ -384,15 +372,19 @@ void ControllerInterface::UpdateInput()
 
   // TODO: if we are an emulation input channel, we should probably always lock
   // Prefer outdated values over blocking UI or CPU thread (avoids short but noticeable frame drop)
-  if (m_devices_mutex.try_lock())
+  if (!m_devices_mutex.try_lock())
+    return;
+
+  std::lock_guard lk(m_devices_mutex, std::adopt_lock);
+
+  for (auto& backend : m_input_backends)
+    backend->UpdateInput();
+
+  for (const auto& d : m_devices)
   {
-    std::lock_guard lk(m_devices_mutex, std::adopt_lock);
-    for (const auto& d : m_devices)
-    {
-      // Theoretically we could avoid updating input on devices that don't have any references to
-      // them, but in practice a few devices types could break in different ways, so we don't
-      d->UpdateInput();
-    }
+    // Theoretically we could avoid updating input on devices that don't have any references to
+    // them, but in practice a few devices types could break in different ways, so we don't
+    d->UpdateInput();
   }
 }
 

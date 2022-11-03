@@ -487,6 +487,7 @@
     <ClInclude Include="InputCommon\ControllerEmu\StickGate.h" />
     <ClInclude Include="InputCommon\ControllerInterface\ControllerInterface.h" />
     <ClInclude Include="InputCommon\ControllerInterface\CoreDevice.h" />
+    <ClInclude Include="InputCommon\ControllerInterface\InputBackend.h" />
     <ClInclude Include="InputCommon\ControllerInterface\DInput\DInput.h" />
     <ClInclude Include="InputCommon\ControllerInterface\DInput\DInput8.h" />
     <ClInclude Include="InputCommon\ControllerInterface\DInput\DInputJoystick.h" />
@@ -1111,6 +1112,7 @@
     <ClCompile Include="InputCommon\ControllerEmu\StickGate.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\ControllerInterface.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\CoreDevice.cpp" />
+    <ClCompile Include="InputCommon\ControllerInterface\InputBackend.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\DInput\DInput.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\DInput\DInputJoystick.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\DInput\DInputKeyboardMouse.cpp" />

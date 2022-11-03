@@ -11,9 +11,9 @@
 
 namespace ciface::evdev
 {
-void Init();
-void PopulateDevices();
-void Shutdown();
+class InputBackend;
+
+std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface);
 
 class evdevDevice : public Core::Device
 {
@@ -75,6 +75,7 @@ public:
   void UpdateInput() override;
   bool IsValid() const override;
 
+  evdevDevice(InputBackend* input_backend);
   ~evdevDevice();
 
   // Return true if node was "interesting".
@@ -97,5 +98,7 @@ private:
   };
 
   std::vector<Node> m_nodes;
+
+  InputBackend& m_input_backend;
 };
 }  // namespace ciface::evdev

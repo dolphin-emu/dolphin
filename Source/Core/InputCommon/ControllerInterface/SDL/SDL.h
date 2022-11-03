@@ -22,12 +22,11 @@
 #endif
 
 #include "InputCommon/ControllerInterface/CoreDevice.h"
+#include "InputCommon/ControllerInterface/InputBackend.h"
 
 namespace ciface::SDL
 {
-void Init();
-void DeInit();
-void PopulateDevices();
+std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface);
 
 class Joystick : public Core::Device
 {
@@ -182,8 +181,6 @@ private:
 #endif
 
 public:
-  void UpdateInput() override;
-
   Joystick(SDL_Joystick* const joystick, const int sdl_index);
   ~Joystick();
 
