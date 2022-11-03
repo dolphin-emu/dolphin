@@ -6,6 +6,8 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
@@ -83,6 +85,13 @@ public final class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameView
     }
 
     holder.gameFile = gameFile;
+
+    Animation animateIn = AnimationUtils.loadAnimation(context, R.anim.anim_card_game_in);
+    animateIn.setFillAfter(true);
+    Animation animateOut = AnimationUtils.loadAnimation(context, R.anim.anim_card_game_out);
+    animateOut.setFillAfter(true);
+    holder.binding.getRoot().setOnFocusChangeListener((v, hasFocus) ->
+            holder.binding.cardGameArt.startAnimation(hasFocus ? animateIn : animateOut));
   }
 
   public static class GameViewHolder extends RecyclerView.ViewHolder
