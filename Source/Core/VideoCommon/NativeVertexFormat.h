@@ -63,6 +63,9 @@ struct PortableVertexDeclaration
   std::array<AttributeFormat, 8> texcoords;
   AttributeFormat posmtx;
 
+  // Make sure we initialize padding to 0 since padding is included in the == memcmp
+  PortableVertexDeclaration() { memset(this, 0, sizeof(*this)); }
+
   inline bool operator<(const PortableVertexDeclaration& b) const
   {
     return memcmp(this, &b, sizeof(PortableVertexDeclaration)) < 0;
@@ -72,6 +75,9 @@ struct PortableVertexDeclaration
     return memcmp(this, &b, sizeof(PortableVertexDeclaration)) == 0;
   }
 };
+
+static_assert(std::is_trivially_copyable_v<PortableVertexDeclaration>,
+              "Make sure we can memset-initialize");
 
 namespace std
 {
