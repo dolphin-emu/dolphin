@@ -380,17 +380,16 @@ bool FramebufferManager::IsUsingTiledEFBCache() const
 bool FramebufferManager::IsEFBCacheTilePresent(bool depth, u32 x, u32 y, u32* tile_index) const
 {
   const EFBCacheData& data = depth ? m_efb_depth_cache : m_efb_color_cache;
-  if (m_efb_cache_tile_size == 0)
+  if (!IsUsingTiledEFBCache())
   {
     *tile_index = 0;
-    return data.valid;
   }
   else
   {
     *tile_index =
         ((y / m_efb_cache_tile_size) * m_efb_cache_tiles_wide) + (x / m_efb_cache_tile_size);
-    return data.valid && data.tiles[*tile_index].present;
   }
+  return data.tiles[*tile_index].present;
 }
 
 MathUtil::Rectangle<int> FramebufferManager::GetEFBCacheTileRect(u32 tile_index) const
@@ -417,8 +416,7 @@ u32 FramebufferManager::PeekEFBColor(u32 x, u32 y)
   if (!IsEFBCacheTilePresent(false, x, y, &tile_index))
     PopulateEFBCache(false, tile_index);
 
-  if (IsUsingTiledEFBCache())
-    m_efb_color_cache.tiles[tile_index].frame_access_mask |= 1;
+  m_efb_color_cache.tiles[tile_index].frame_access_mask |= 1;
 
   if (m_efb_color_cache.needs_flush)
   {
@@ -469,47 +467,29 @@ void FramebufferManager::SetEFBCacheTileSize(u32 size)
 
 void FramebufferManager::RefreshPeekCache()
 {
-  if (m_efb_color_cache.valid && m_efb_depth_cache.valid)
+  if (!m_efb_color_cache.needs_refresh && !m_efb_depth_cache.needs_refresh)
   {
+    // The cache has already been refreshed.
     return;
   }
 
   bool flush_command_buffer = false;
-
-  if (IsUsingTiledEFBCache())
+  for (u32 i = 0; i < m_efb_color_cache.tiles.size(); i++)
   {
-    for (u32 i = 0; i < m_efb_color_cache.tiles.size(); i++)
+    if (m_efb_color_cache.tiles[i].frame_access_mask != 0 && !m_efb_color_cache.tiles[i].present)
     {
-      if (m_efb_color_cache.tiles[i].frame_access_mask != 0 &&
-          (!m_efb_color_cache.valid || !m_efb_color_cache.tiles[i].present))
-      {
-        PopulateEFBCache(false, i, true);
-        flush_command_buffer = true;
-      }
-      if (m_efb_depth_cache.tiles[i].frame_access_mask != 0 &&
-          (!m_efb_depth_cache.valid || !m_efb_depth_cache.tiles[i].present))
-      {
-        PopulateEFBCache(true, i, true);
-        flush_command_buffer = true;
-      }
-    }
-
-    m_efb_depth_cache.valid = true;
-    m_efb_color_cache.valid = true;
-  }
-  else
-  {
-    if (!m_efb_color_cache.valid)
-    {
-      PopulateEFBCache(false, 0, true);
+      PopulateEFBCache(false, i, true);
       flush_command_buffer = true;
     }
-    if (!m_efb_depth_cache.valid)
+    if (m_efb_depth_cache.tiles[i].frame_access_mask != 0 && !m_efb_depth_cache.tiles[i].present)
     {
-      PopulateEFBCache(true, 0, true);
+      PopulateEFBCache(true, i, true);
       flush_command_buffer = true;
     }
   }
+
+  m_efb_depth_cache.needs_refresh = false;
+  m_efb_color_cache.needs_refresh = false;
 
   if (flush_command_buffer)
   {
@@ -521,39 +501,41 @@ void FramebufferManager::InvalidatePeekCache(bool forced)
 {
   if (forced || m_efb_color_cache.out_of_date)
   {
-    if (m_efb_color_cache.valid)
+    if (m_efb_color_cache.has_active_tiles)
     {
       for (u32 i = 0; i < m_efb_color_cache.tiles.size(); i++)
       {
         m_efb_color_cache.tiles[i].present = false;
       }
+
+      m_efb_color_cache.needs_refresh = true;
     }
 
-    m_efb_color_cache.valid = false;
+    m_efb_color_cache.has_active_tiles = false;
     m_efb_color_cache.out_of_date = false;
-    m_efb_color_cache.needs_flush = true;
   }
   if (forced || m_efb_depth_cache.out_of_date)
   {
-    if (m_efb_depth_cache.valid)
+    if (m_efb_depth_cache.has_active_tiles)
     {
       for (u32 i = 0; i < m_efb_depth_cache.tiles.size(); i++)
       {
         m_efb_depth_cache.tiles[i].present = false;
       }
+
+      m_efb_depth_cache.needs_refresh = true;
     }
 
-    m_efb_depth_cache.valid = false;
+    m_efb_depth_cache.has_active_tiles = false;
     m_efb_depth_cache.out_of_date = false;
-    m_efb_depth_cache.needs_flush = true;
   }
 }
 
 void FramebufferManager::FlagPeekCacheAsOutOfDate()
 {
-  if (m_efb_color_cache.valid)
+  if (m_efb_color_cache.has_active_tiles)
     m_efb_color_cache.out_of_date = true;
-  if (m_efb_depth_cache.valid)
+  if (m_efb_depth_cache.has_active_tiles)
     m_efb_depth_cache.out_of_date = true;
 
   if (!g_ActiveConfig.bEFBAccessDeferInvalidation)
@@ -562,9 +544,6 @@ void FramebufferManager::FlagPeekCacheAsOutOfDate()
 
 void FramebufferManager::EndOfFrame()
 {
-  if (!IsUsingTiledEFBCache())
-    return;
-
   for (u32 i = 0; i < m_efb_color_cache.tiles.size(); i++)
   {
     m_efb_color_cache.tiles[i].frame_access_mask <<= 1;
@@ -698,19 +677,19 @@ bool FramebufferManager::CreateReadbackFramebuffer()
   if (!m_efb_color_cache.readback_texture || !m_efb_depth_cache.readback_texture)
     return false;
 
+  u32 total_tiles = 1;
   if (IsUsingTiledEFBCache())
   {
     const u32 tiles_wide = ((EFB_WIDTH + (m_efb_cache_tile_size - 1)) / m_efb_cache_tile_size);
     const u32 tiles_high = ((EFB_HEIGHT + (m_efb_cache_tile_size - 1)) / m_efb_cache_tile_size);
-    const u32 total_tiles = tiles_wide * tiles_high;
-    m_efb_color_cache.tiles.resize(total_tiles);
-    std::fill(m_efb_color_cache.tiles.begin(), m_efb_color_cache.tiles.end(),
-              EFBCacheTile{false, 0});
-    m_efb_depth_cache.tiles.resize(total_tiles);
-    std::fill(m_efb_depth_cache.tiles.begin(), m_efb_depth_cache.tiles.end(),
-              EFBCacheTile{false, 0});
+    total_tiles = tiles_wide * tiles_high;
     m_efb_cache_tiles_wide = tiles_wide;
   }
+
+  m_efb_color_cache.tiles.resize(total_tiles);
+  std::fill(m_efb_color_cache.tiles.begin(), m_efb_color_cache.tiles.end(), EFBCacheTile{false, 0});
+  m_efb_depth_cache.tiles.resize(total_tiles);
+  std::fill(m_efb_depth_cache.tiles.begin(), m_efb_depth_cache.tiles.end(), EFBCacheTile{false, 0});
 
   return true;
 }
@@ -721,7 +700,8 @@ void FramebufferManager::DestroyReadbackFramebuffer()
     data.readback_texture.reset();
     data.framebuffer.reset();
     data.texture.reset();
-    data.valid = false;
+    data.needs_refresh = false;
+    data.has_active_tiles = false;
   };
   DestroyCache(m_efb_color_cache);
   DestroyCache(m_efb_depth_cache);
@@ -796,10 +776,9 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async
   {
     data.needs_flush = true;
   }
-  data.valid = true;
+  data.has_active_tiles = true;
   data.out_of_date = false;
-  if (IsUsingTiledEFBCache())
-    data.tiles[tile_index].present = true;
+  data.tiles[tile_index].present = true;
 }
 
 void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear_color,

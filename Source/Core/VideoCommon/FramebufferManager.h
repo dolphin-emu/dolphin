@@ -135,7 +135,8 @@ protected:
     std::unique_ptr<AbstractPipeline> copy_pipeline;
     std::vector<EFBCacheTile> tiles;
     bool out_of_date;
-    bool valid;
+    bool has_active_tiles;
+    bool needs_refresh;
     bool needs_flush;
   };
 
