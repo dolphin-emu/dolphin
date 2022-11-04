@@ -287,11 +287,11 @@ static void ClipLine(int* indices)
 
 void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2)
 {
-  INCSTAT(g_stats.this_frame.num_triangles_in)
+  INCSTAT(g_stats.this_frame.num_triangles_in);
 
   if (IsTriviallyRejected(v0, v1, v2))
   {
-    INCSTAT(g_stats.this_frame.num_triangles_rejected)
+    INCSTAT(g_stats.this_frame.num_triangles_rejected);
     // NOTE: The slope used by zfreeze shouldn't be updated if the triangle is
     // trivially rejected during clipping
     return;
@@ -308,7 +308,7 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
       PerspectiveDivide(v1);
       PerspectiveDivide(v2);
       Rasterizer::UpdateZSlope(v0, v1, v2, bpmem.scissorOffset.x * 2, bpmem.scissorOffset.y * 2);
-      INCSTAT(g_stats.this_frame.num_triangles_culled)
+      INCSTAT(g_stats.this_frame.num_triangles_culled);
       return;
     }
   }
@@ -321,7 +321,7 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
       PerspectiveDivide(v2);
       PerspectiveDivide(v1);
       Rasterizer::UpdateZSlope(v0, v2, v1, bpmem.scissorOffset.x * 2, bpmem.scissorOffset.y * 2);
-      INCSTAT(g_stats.this_frame.num_triangles_culled)
+      INCSTAT(g_stats.this_frame.num_triangles_culled);
       return;
     }
   }
