@@ -578,25 +578,29 @@ void JitArm64::cmp(UGeckoInstruction inst)
     s64 A = static_cast<s32>(gpr.GetImm(a));
     s64 B = static_cast<s32>(gpr.GetImm(b));
     MOVI2R(CR, A - B);
-    return;
   }
-
-  if (gpr.IsImm(b) && !gpr.GetImm(b))
+  else if (gpr.IsImm(a) && !gpr.GetImm(a))
+  {
+    NEG(EncodeRegTo32(CR), gpr.R(b));
+    SXTW(CR, EncodeRegTo32(CR));
+  }
+  else if (gpr.IsImm(a) && gpr.GetImm(a) == 0xFFFFFFFF)
+  {
+    MVN(EncodeRegTo32(CR), gpr.R(b));
+    SXTW(CR, EncodeRegTo32(CR));
+  }
+  else if (gpr.IsImm(b) && !gpr.GetImm(b))
   {
     SXTW(CR, gpr.R(a));
-    return;
   }
+  else
+  {
+    ARM64Reg RA = gpr.R(a);
+    ARM64Reg RB = gpr.R(b);
 
-  ARM64Reg WA = gpr.GetReg();
-  ARM64Reg XA = EncodeRegTo64(WA);
-  ARM64Reg RA = gpr.R(a);
-  ARM64Reg RB = gpr.R(b);
-
-  SXTW(XA, RA);
-  SXTW(CR, RB);
-  SUB(CR, XA, CR);
-
-  gpr.Unlock(WA);
+    SXTW(CR, RA);
+    SUB(CR, CR, RB, ArithOption(RB, ExtendSpecifier::SXTW));
+  }
 }
 
 void JitArm64::cmpl(UGeckoInstruction inst)
@@ -615,16 +619,19 @@ void JitArm64::cmpl(UGeckoInstruction inst)
     u64 A = gpr.GetImm(a);
     u64 B = gpr.GetImm(b);
     MOVI2R(CR, A - B);
-    return;
   }
-
-  if (gpr.IsImm(b) && !gpr.GetImm(b))
+  else if (gpr.IsImm(a) && !gpr.GetImm(a))
+  {
+    NEG(CR, EncodeRegTo64(gpr.R(b)));
+  }
+  else if (gpr.IsImm(b) && !gpr.GetImm(b))
   {
     MOV(EncodeRegTo32(CR), gpr.R(a));
-    return;
   }
-
-  SUB(gpr.CR(crf), EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(b)));
+  else
+  {
+    SUB(CR, EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(b)));
+  }
 }
 
 void JitArm64::cmpi(UGeckoInstruction inst)
