@@ -50,7 +50,7 @@ public final class GameRowPresenter extends Presenter
     GameFile gameFile = (GameFile) item;
 
     holder.imageScreenshot.setImageDrawable(null);
-    GlideUtils.loadGameCover(null, holder.imageScreenshot, gameFile);
+    GlideUtils.loadGameCover(null, holder.imageScreenshot, gameFile, null);
 
     holder.cardParent.setTitleText(gameFile.getTitle());
 
