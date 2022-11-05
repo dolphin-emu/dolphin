@@ -246,17 +246,18 @@ void MemoryWidget::CreateWidgets()
   // Sidebar top menu
   QMenuBar* menubar = new QMenuBar(sidebar);
   menubar->setNativeMenuBar(false);
-  QMenu* menu_actions = new QMenu(tr("&Actions"));
 
-  menu_actions->addAction(tr("&Load file to current address"), this,
-                          &MemoryWidget::OnSetValueFromFile);
-  menu_actions->addSeparator();
-  menu_actions->addAction(tr("Dump &MRAM"), this, &MemoryWidget::OnDumpMRAM);
-  menu_actions->addAction(tr("Dump &ExRAM"), this, &MemoryWidget::OnDumpExRAM);
-  menu_actions->addAction(tr("Dump &ARAM"), this, &MemoryWidget::OnDumpARAM);
-  menu_actions->addAction(tr("Dump &FakeVMEM"), this, &MemoryWidget::OnDumpFakeVMEM);
+  QMenu* menu_import = new QMenu(tr("&Import"));
+  menu_import->addAction(tr("&Load file to current address"), this,
+                         &MemoryWidget::OnSetValueFromFile);
+  menubar->addMenu(menu_import);
 
-  menubar->addMenu(menu_actions);
+  QMenu* menu_export = new QMenu(tr("&Export"));
+  menu_export->addAction(tr("Dump &MRAM"), this, &MemoryWidget::OnDumpMRAM);
+  menu_export->addAction(tr("Dump &ExRAM"), this, &MemoryWidget::OnDumpExRAM);
+  menu_export->addAction(tr("Dump &ARAM"), this, &MemoryWidget::OnDumpARAM);
+  menu_export->addAction(tr("Dump &FakeVMEM"), this, &MemoryWidget::OnDumpFakeVMEM);
+  menubar->addMenu(menu_export);
 
   sidebar_layout->setSpacing(1);
   sidebar->setLayout(sidebar_layout);
