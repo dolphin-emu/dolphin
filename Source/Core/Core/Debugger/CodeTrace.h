@@ -1,8 +1,9 @@
-// Copyright 2022 Dolphin Emulator Project
+// Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <array>
 #include <optional>
 #include <set>
 #include <string>
@@ -15,42 +16,61 @@ namespace Core
 class CPUThreadGuard;
 }
 
+struct RegisterData
+{
+  std::string reg;
+  double value;
+};
+
+// target_reg is first reg (lhs) and determines where things move to/from.
+// regs are all other registers in the instruction, and are a set because duplicates don't matter.
 struct InstructionAttributes
 {
   u32 address = 0;
   std::string instruction = "";
-  std::string reg0 = "";
-  std::string reg1 = "";
-  std::string reg2 = "";
-  std::string reg3 = "";
+  std::string target_reg;
+  std::set<std::string> regs;
   std::optional<u32> memory_target = std::nullopt;
   u32 memory_target_size = 4;
   bool is_store = false;
   bool is_load = false;
 };
 
+// regdata is only used for showing values in the UI. InstructionAttributes does register trace
+// logic.
 struct TraceOutput
 {
-  u32 address = 0;
+  u32 address;
   std::optional<u32> memory_target = std::nullopt;
   std::string instruction;
+  std::vector<RegisterData> regdata;
 };
 
 struct AutoStepResults
 {
-  std::vector<std::string> reg_tracked;
+  std::set<std::string> reg_tracked;
   std::set<u32> mem_tracked;
   u32 count = 0;
   bool timed_out = false;
   bool trackers_empty = false;
 };
 
+struct Matches
+{
+  std::set<std::string> regs;
+  bool target_reg = false;
+  bool passive_reg = false;
+  bool loadstore = false;
+  bool mem = false;
+};
+
 enum class HitType : u32
 {
+  STOP = 0,              // Nothing to trace
   SKIP = (1 << 0),       // Not a hit
   OVERWRITE = (1 << 1),  // Tracked value gets overwritten by untracked. Typically skipped.
   MOVED = (1 << 2),      // Target duplicated to another register, unchanged.
-  SAVELOAD = (1 << 3),   // Target saved or loaded. Priority over Pointer.
+  LOADSTORE = (1 << 3),  // Target saved or loaded. Priority over Pointer.
   POINTER = (1 << 4),    // Target used as pointer/offset for save or load
   PASSIVE = (1 << 5),    // Conditional, etc, but not pointer. Unchanged
   ACTIVE = (1 << 6),     // Math, etc. Changed.
@@ -68,15 +88,25 @@ public:
   };
 
   void SetRegTracked(const std::string& reg);
-  AutoStepResults AutoStepping(const Core::CPUThreadGuard& guard, bool continue_previous = false,
-                               AutoStop stop_on = AutoStop::Always);
+  void SetMemTracked(const u32 mem);
+  AutoStepResults AutoStepping(const Core::CPUThreadGuard& guard,
+                               std::vector<TraceOutput>* output_trace, bool continue_previous,
+                               AutoStop stop_on);
+  bool RecordTrace(const Core::CPUThreadGuard& guard, std::vector<TraceOutput>* output_trace,
+                   u32 time_limit, u32 end_bp, bool clear_on_loop);
+  HitType TraceLogic(const TraceOutput& current_instr, bool first_hit = false,
+                     std::set<std::string>* regs = nullptr, bool backtrace = false);
 
 private:
   InstructionAttributes GetInstructionAttributes(const TraceOutput& line) const;
   TraceOutput SaveCurrentInstruction(const Core::CPUThreadGuard& guard) const;
-  HitType TraceLogic(const TraceOutput& current_instr, bool first_hit = false);
+  std::optional<HitType> SpecialInstruction(const InstructionAttributes& instr,
+                                            const Matches& match) const;
+  HitType Backtrace(const InstructionAttributes& instr, const Matches& match);
+  HitType ForwardTrace(const InstructionAttributes& instr, const Matches& match,
+                       const bool& first_hit);
 
   bool m_recording = false;
-  std::vector<std::string> m_reg_autotrack;
-  std::set<u32> m_mem_autotrack;
+  std::set<std::string> m_reg_tracked;
+  std::set<u32> m_mem_tracked;
 };

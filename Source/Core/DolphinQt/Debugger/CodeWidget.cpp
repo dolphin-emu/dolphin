@@ -224,6 +224,7 @@ void CodeWidget::ConnectWidgets()
   connect(m_code_view, &CodeViewWidget::RequestPPCComparison, this,
           &CodeWidget::RequestPPCComparison);
   connect(m_code_view, &CodeViewWidget::ShowMemory, this, &CodeWidget::ShowMemory);
+  connect(m_code_view, &CodeViewWidget::DoAutoStep, this, &CodeWidget::DoAutoStep);
 }
 
 void CodeWidget::OnDiff()

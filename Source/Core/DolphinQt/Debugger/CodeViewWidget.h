@@ -59,6 +59,7 @@ signals:
   void NotesChanged();
   void BreakpointsChanged();
   void UpdateCodeWidget();
+  void DoAutoStep(CodeTrace::AutoStop option, std::string reg);
 
 private:
   enum class ReplaceWith

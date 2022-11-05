@@ -228,6 +228,8 @@ add_executable(dolphin-emu
   Debugger/RegisterWidget.h
   Debugger/ThreadWidget.cpp
   Debugger/ThreadWidget.h
+  Debugger/TraceWidget.cpp
+  Debugger/TraceWidget.h
   Debugger/WatchWidget.cpp
   Debugger/WatchWidget.h
   DiscordHandler.cpp
