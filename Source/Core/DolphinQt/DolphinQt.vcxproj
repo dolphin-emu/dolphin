@@ -148,6 +148,7 @@
     <ClCompile Include="Debugger\RegisterColumn.cpp" />
     <ClCompile Include="Debugger\RegisterWidget.cpp" />
     <ClCompile Include="Debugger\ThreadWidget.cpp" />
+    <ClCompile Include="Debugger\TraceWidget.cpp" />
     <ClCompile Include="Debugger\WatchWidget.cpp" />
     <ClCompile Include="DiscordHandler.cpp" />
     <ClCompile Include="DiscordJoinRequestDialog.cpp" />
@@ -352,6 +353,7 @@
     <QtMoc Include="Debugger\PatchInstructionDialog.h" />
     <QtMoc Include="Debugger\RegisterWidget.h" />
     <QtMoc Include="Debugger\ThreadWidget.h" />
+    <QtMoc Include="Debugger\TraceWidget.h" />
     <QtMoc Include="Debugger\WatchWidget.h" />
     <QtMoc Include="DiscordHandler.h" />
     <QtMoc Include="DiscordJoinRequestDialog.h" />

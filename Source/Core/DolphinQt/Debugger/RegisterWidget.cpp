@@ -173,10 +173,20 @@ void RegisterWidget::ShowContextMenu()
     {
       menu->addSeparator();
 
-      const std::string type_string =
+      const std::string register_str =
           fmt::format("{}{}", type == RegisterType::gpr ? "r" : "f", m_table->currentItem()->row());
-      menu->addAction(tr("Run until hit (ignoring breakpoints)"),
-                      [this, type_string]() { AutoStep(type_string); });
+      const QString target = QString::fromStdString(register_str);
+
+      auto* run_until_menu = menu->addMenu(tr("Run until (ignoring breakpoints)"));
+      run_until_menu->addAction(tr("%1's value is hit").arg(target), [this, register_str]() {
+        emit DoAutoStep(CodeTrace::AutoStop::Always, register_str);
+      });
+      run_until_menu->addAction(tr("%1's value is used").arg(target), this, [this, register_str]() {
+        emit DoAutoStep(CodeTrace::AutoStop::Used, register_str);
+      });
+      run_until_menu->addAction(tr("%1's value is changed").arg(target), [this, register_str]() {
+        emit DoAutoStep(CodeTrace::AutoStop::Changed, register_str);
+      });
     }
 
     for (auto* action : {view_hex, view_int, view_uint, view_float, view_double})
@@ -282,37 +292,6 @@ void RegisterWidget::ShowContextMenu()
   menu->addAction(tr("Update"), this, [this] { emit RequestTableUpdate(); });
 
   menu->exec(QCursor::pos());
-}
-
-void RegisterWidget::AutoStep(const std::string& reg) const
-{
-  CodeTrace trace;
-  trace.SetRegTracked(reg);
-
-  QMessageBox msgbox(
-      QMessageBox::NoIcon, tr("Timed Out"),
-      tr("<font color='#ff0000'>AutoStepping timed out. Current instruction is irrelevant."),
-      QMessageBox::Cancel);
-  QPushButton* run_button = msgbox.addButton(tr("Keep Running"), QMessageBox::AcceptRole);
-
-  while (true)
-  {
-    const AutoStepResults results = [this, &trace] {
-      Core::CPUThreadGuard guard(m_system);
-      return trace.AutoStepping(guard, true);
-    }();
-
-    emit Host::GetInstance()->UpdateDisasmDialog();
-
-    if (!results.timed_out)
-      break;
-
-    // Can keep running and try again after a time out.
-    SetQWidgetWindowDecorations(&msgbox);
-    msgbox.exec();
-    if (msgbox.clickedButton() != (QAbstractButton*)run_button)
-      break;
-  }
 }
 
 void RegisterWidget::PopulateTable()

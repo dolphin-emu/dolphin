@@ -600,9 +600,11 @@ void CodeViewWidget::OnContextMenu()
   auto* restore_action =
       menu->addAction(tr("Restore instruction"), this, &CodeViewWidget::OnRestoreInstruction);
 
-  QString target;
+  QString reg_qstr;
+  std::string reg_str;
   bool valid_load_store = false;
   bool follow_branch_enabled = false;
+
   if (paused)
   {
     Core::CPUThreadGuard guard(m_system);
@@ -615,7 +617,10 @@ void CodeViewWidget::OnContextMenu()
       const auto target_end = std::find(target_it, disasm.end(), ',');
 
       if (target_it != disasm.end() && target_end != disasm.end())
-        target = QString::fromStdString(std::string{target_it + 1, target_end});
+      {
+        reg_str = std::string{target_it + 1, target_end};
+        reg_qstr = QString::fromStdString(reg_str);
+      }
     }
 
     valid_load_store = IsInstructionLoadStore(disasm);
@@ -625,16 +630,19 @@ void CodeViewWidget::OnContextMenu()
 
   auto* run_until_menu = menu->addMenu(tr("Run until (ignoring breakpoints)"));
   // i18n: One of the options shown below "Run until (ignoring breakpoints)"
-  run_until_menu->addAction(tr("%1's value is hit").arg(target), this,
-                            [this] { AutoStep(CodeTrace::AutoStop::Always); });
+  run_until_menu->addAction(tr("%1's value is hit").arg(reg_qstr), this, [this, reg_str]() {
+    emit(DoAutoStep(CodeTrace::AutoStop::Always, reg_str));
+  });
   // i18n: One of the options shown below "Run until (ignoring breakpoints)"
-  run_until_menu->addAction(tr("%1's value is used").arg(target), this,
-                            [this] { AutoStep(CodeTrace::AutoStop::Used); });
+  run_until_menu->addAction(tr("%1's value is used").arg(reg_qstr), this, [this, reg_str]() {
+    emit(DoAutoStep(CodeTrace::AutoStop::Used, reg_str));
+  });
   // i18n: One of the options shown below "Run until (ignoring breakpoints)"
-  run_until_menu->addAction(tr("%1's value is changed").arg(target),
-                            [this] { AutoStep(CodeTrace::AutoStop::Changed); });
+  run_until_menu->addAction(tr("%1's value is changed").arg(reg_qstr), [this, reg_str]() {
+    emit(DoAutoStep(CodeTrace::AutoStop::Changed, reg_str));
+  });
 
-  run_until_menu->setEnabled(!target.isEmpty());
+  run_until_menu->setEnabled(!reg_qstr.isEmpty());
   follow_branch_action->setEnabled(follow_branch_enabled);
 
   for (auto* action : {copy_address_action, copy_line_action, copy_hex_action, function_action,
@@ -656,88 +664,6 @@ void CodeViewWidget::OnContextMenu()
 
   menu->exec(QCursor::pos());
   Update();
-}
-
-void CodeViewWidget::AutoStep(CodeTrace::AutoStop option)
-{
-  // Autosteps and follows value in the target (left-most) register. The Used and Changed options
-  // silently follows target through reshuffles in memory and registers and stops on use or update.
-
-  Core::CPUThreadGuard guard(m_system);
-
-  CodeTrace code_trace;
-  bool repeat = false;
-
-  QMessageBox msgbox(QMessageBox::NoIcon, tr("Run until"), {}, QMessageBox::Cancel);
-  QPushButton* run_button = msgbox.addButton(tr("Keep Running"), QMessageBox::AcceptRole);
-  // Not sure if we want default to be cancel. Spacebar can let you quickly continue autostepping if
-  // Yes.
-
-  do
-  {
-    // Run autostep then update codeview
-    const AutoStepResults results = code_trace.AutoStepping(guard, repeat, option);
-    emit Host::GetInstance()->UpdateDisasmDialog();
-    repeat = true;
-
-    // Invalid instruction, 0 means no step executed.
-    if (results.count == 0)
-      return;
-
-    // Status report
-    if (results.reg_tracked.empty() && results.mem_tracked.empty())
-    {
-      QMessageBox::warning(
-          this, tr("Overwritten"),
-          tr("Target value was overwritten by current instruction.\nInstructions executed:   %1")
-              .arg(QString::number(results.count)),
-          QMessageBox::Cancel);
-      return;
-    }
-    else if (results.timed_out)
-    {
-      // Can keep running and try again after a time out.
-      msgbox.setText(
-          tr("<font color='#ff0000'>AutoStepping timed out. Current instruction is irrelevant."));
-    }
-    else
-    {
-      msgbox.setText(tr("Value tracked to current instruction."));
-    }
-
-    // Mem_tracked needs to track each byte individually, so a tracked word-sized value would have
-    // four entries. The displayed memory list needs to be shortened so it's not a huge list of
-    // bytes. Assumes adjacent bytes represent a word or half-word and removes the redundant bytes.
-    std::set<u32> mem_out;
-    auto iter = results.mem_tracked.begin();
-
-    while (iter != results.mem_tracked.end())
-    {
-      const u32 address = *iter;
-      mem_out.insert(address);
-
-      for (u32 i = 1; i <= 3; i++)
-      {
-        if (results.mem_tracked.count(address + i))
-          iter++;
-        else
-          break;
-      }
-
-      iter++;
-    }
-
-    const QString msgtext =
-        tr("Instructions executed:   %1\nValue contained in:\nRegisters:   %2\nMemory:   %3")
-            .arg(QString::number(results.count))
-            .arg(QString::fromStdString(fmt::format("{}", fmt::join(results.reg_tracked, ", "))))
-            .arg(QString::fromStdString(fmt::format("{:#x}", fmt::join(mem_out, ", "))));
-
-    msgbox.setInformativeText(msgtext);
-    SetQWidgetWindowDecorations(&msgbox);
-    msgbox.exec();
-
-  } while (msgbox.clickedButton() == (QAbstractButton*)run_button);
 }
 
 void CodeViewWidget::OnCopyAddress()

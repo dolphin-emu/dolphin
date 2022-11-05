@@ -8,6 +8,7 @@
 #include <QDockWidget>
 
 #include "Common/CommonTypes.h"
+#include "Core/Debugger/CodeTrace.h"
 #include "DolphinQt/Debugger/RegisterColumn.h"
 
 class QTableWidget;
@@ -26,6 +27,7 @@ public:
   ~RegisterWidget();
 
 signals:
+  void DoAutoStep(CodeTrace::AutoStop option, std::string reg);
   void RequestTableUpdate();
   void RequestViewInCode(u32 addr);
   void RequestViewInMemory(u32 addr);
