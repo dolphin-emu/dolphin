@@ -540,12 +540,6 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (!executable.reader->IsValid())
         return false;
 
-      if (!executable.reader->LoadIntoMemory())
-      {
-        PanicAlertFmtT("Failed to load the executable to memory.");
-        return false;
-      }
-
       SetDefaultDisc();
 
       SetupMSR();
@@ -567,6 +561,12 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       else
       {
         SetupGCMemory();
+      }
+
+      if (!executable.reader->LoadIntoMemory())
+      {
+        PanicAlertFmtT("Failed to load the executable to memory.");
+        return false;
       }
 
       SConfig::OnNewTitleLoad();
