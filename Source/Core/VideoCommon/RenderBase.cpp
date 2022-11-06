@@ -1009,6 +1009,8 @@ void Renderer::RecordVideoMemory()
 
 bool Renderer::InitializeImGui()
 {
+  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
+
   if (!IMGUI_CHECKVERSION())
   {
     PanicAlertFmt("ImGui version check failed");
@@ -1068,7 +1070,7 @@ bool Renderer::InitializeImGui()
     return false;
 
   m_imgui_last_frame_time = Common::Timer::NowUs();
-  BeginImGuiFrame();
+  BeginImGuiFrameUnlocked();  // lock is already held
   return true;
 }
 
@@ -1129,6 +1131,8 @@ bool Renderer::RecompileImGuiPipeline()
 
 void Renderer::ShutdownImGui()
 {
+  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
+
   ImGui::EndFrame();
   ImGui::DestroyContext();
   m_imgui_pipeline.reset();
@@ -1139,7 +1143,11 @@ void Renderer::ShutdownImGui()
 void Renderer::BeginImGuiFrame()
 {
   std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
+  BeginImGuiFrameUnlocked();
+}
 
+void Renderer::BeginImGuiFrameUnlocked()
+{
   const u64 current_time_us = Common::Timer::NowUs();
   const u64 time_diff_us = current_time_us - m_imgui_last_frame_time;
   const float time_diff_secs = static_cast<float>(time_diff_us / 1000000.0);
