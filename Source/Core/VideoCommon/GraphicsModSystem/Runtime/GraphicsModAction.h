@@ -20,6 +20,6 @@ public:
   virtual void OnXFB() {}
   virtual void OnProjection(GraphicsModActionData::Projection*) {}
   virtual void OnProjectionAndTexture(GraphicsModActionData::Projection*) {}
-  virtual void OnTextureLoad() {}
+  virtual void OnTextureLoad(GraphicsModActionData::TextureLoad*) {}
   virtual void OnFrameEnd() {}
 };

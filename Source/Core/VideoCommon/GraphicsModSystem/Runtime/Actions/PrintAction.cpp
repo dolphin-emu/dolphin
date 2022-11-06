@@ -35,7 +35,10 @@ void PrintAction::OnProjectionAndTexture(GraphicsModActionData::Projection*)
   INFO_LOG_FMT(VIDEO, "OnProjectionAndTexture Called");
 }
 
-void PrintAction::OnTextureLoad()
+void PrintAction::OnTextureLoad(GraphicsModActionData::TextureLoad* texture_load)
 {
-  INFO_LOG_FMT(VIDEO, "OnTextureLoad Called");
+  if (!texture_load) [[unlikely]]
+    return;
+
+  INFO_LOG_FMT(VIDEO, "OnTextureLoad Called.  Texture: {}", texture_load->texture_name);
 }
