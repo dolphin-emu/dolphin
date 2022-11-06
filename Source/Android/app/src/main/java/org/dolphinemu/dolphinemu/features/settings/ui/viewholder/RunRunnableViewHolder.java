@@ -40,11 +40,19 @@ public final class RunRunnableViewHolder extends SettingViewHolder
 
     mBinding.textSettingName.setText(item.getName());
     mBinding.textSettingDescription.setText(item.getDescription());
+
+    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Override
   public void onClick(View clicked)
   {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return;
+    }
+
     int alertTextID = mItem.getAlertText();
 
     if (alertTextID > 0)

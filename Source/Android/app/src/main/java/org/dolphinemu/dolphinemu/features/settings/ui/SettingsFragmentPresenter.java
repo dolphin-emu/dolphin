@@ -270,7 +270,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(mContext, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
     sl.add(new SubmenuSetting(mContext, R.string.log_submenu, MenuTag.CONFIG_LOG));
     sl.add(new SubmenuSetting(mContext, R.string.debug_submenu, MenuTag.DEBUG));
-    sl.add(new RunRunnable(mContext, R.string.user_data_submenu, 0, 0, 0,
+    sl.add(new RunRunnable(mContext, R.string.user_data_submenu, 0, 0, 0, false,
             () -> UserDataActivity.launch(mContext)));
   }
 
@@ -291,7 +291,8 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_ANALYTICS_ENABLED, R.string.analytics,
             0));
     sl.add(new RunRunnable(mContext, R.string.analytics_new_id, 0,
-            R.string.analytics_new_id_confirmation, 0, NativeLibrary::GenerateNewStatisticsId));
+            R.string.analytics_new_id_confirmation, 0, true,
+            NativeLibrary::GenerateNewStatisticsId));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_ENABLE_SAVESTATES,
             R.string.enable_save_states, R.string.enable_save_states_description));
   }
@@ -520,10 +521,10 @@ public final class SettingsFragmentPresenter
     sl.add(new FilePicker(mContext, StringSetting.MAIN_WII_SD_CARD_SYNC_FOLDER_PATH,
             R.string.wii_sd_sync_folder, 0, MainPresenter.REQUEST_DIRECTORY, "/Load/WiiSDSync/"));
     sl.add(new RunRunnable(mContext, R.string.wii_sd_card_folder_to_file, 0,
-            R.string.wii_sd_card_folder_to_file_confirmation, 0,
+            R.string.wii_sd_card_folder_to_file_confirmation, 0, false,
             () -> convertOnThread(WiiUtils::syncSdFolderToSdImage)));
     sl.add(new RunRunnable(mContext, R.string.wii_sd_card_file_to_folder, 0,
-            R.string.wii_sd_card_file_to_folder_confirmation, 0,
+            R.string.wii_sd_card_file_to_folder_confirmation, 0, false,
             () -> convertOnThread(WiiUtils::syncSdImageToSdFolder)));
 
     sl.add(new HeaderSetting(mContext, R.string.wii_wiimote_settings, 0));
@@ -858,11 +859,11 @@ public final class SettingsFragmentPresenter
     sl.add(new SingleChoiceSetting(mContext, IntSetting.LOGGER_VERBOSITY, R.string.log_verbosity, 0,
             getLogVerbosityEntries(), getLogVerbosityValues()));
     sl.add(new RunRunnable(mContext, R.string.log_enable_all, 0,
-            R.string.log_enable_all_confirmation, 0, () -> setAllLogTypes(true)));
+            R.string.log_enable_all_confirmation, 0, true, () -> setAllLogTypes(true)));
     sl.add(new RunRunnable(mContext, R.string.log_disable_all, 0,
-            R.string.log_disable_all_confirmation, 0, () -> setAllLogTypes(false)));
+            R.string.log_disable_all_confirmation, 0, true, () -> setAllLogTypes(false)));
     sl.add(new RunRunnable(mContext, R.string.log_clear, 0, R.string.log_clear_confirmation, 0,
-            SettingsAdapter::clearLog));
+            true, SettingsAdapter::clearLog));
 
     sl.add(new HeaderSetting(mContext, R.string.log_types, 0));
     for (Map.Entry<String, String> entry : LOG_TYPE_NAMES.entrySet())
