@@ -216,9 +216,9 @@ void WiiPane::CreateSDCard()
     ++row;
   }
 
-  QPushButton* pack_now = new NonDefaultQPushButton(tr("Convert Folder to File Now"));
-  QPushButton* unpack_now = new NonDefaultQPushButton(tr("Convert File to Folder Now"));
-  connect(pack_now, &QPushButton::clicked, [this] {
+  m_sd_pack_button = new NonDefaultQPushButton(tr("Convert Folder to File Now"));
+  m_sd_unpack_button = new NonDefaultQPushButton(tr("Convert File to Folder Now"));
+  connect(m_sd_pack_button, &QPushButton::clicked, [this] {
     auto result = ModalMessageBox::warning(
         this, tr("Convert Folder to File Now"),
         tr("You are about to convert the content of the folder at %1 into the file at %2. All "
@@ -232,7 +232,7 @@ void WiiPane::CreateSDCard()
         ModalMessageBox::warning(this, tr("Convert Folder to File Now"), tr("Conversion failed."));
     }
   });
-  connect(unpack_now, &QPushButton::clicked, [this] {
+  connect(m_sd_unpack_button, &QPushButton::clicked, [this] {
     auto result = ModalMessageBox::warning(
         this, tr("Convert File to Folder Now"),
         tr("You are about to convert the content of the file at %2 into the folder at %1. All "
@@ -246,8 +246,8 @@ void WiiPane::CreateSDCard()
         ModalMessageBox::warning(this, tr("Convert File to Folder Now"), tr("Conversion failed."));
     }
   });
-  sd_settings_group_layout->addWidget(pack_now, row, 0, 1, 1);
-  sd_settings_group_layout->addWidget(unpack_now, row, 1, 1, 1);
+  sd_settings_group_layout->addWidget(m_sd_pack_button, row, 0, 1, 1);
+  sd_settings_group_layout->addWidget(m_sd_unpack_button, row, 1, 1, 1);
   ++row;
 }
 
@@ -316,6 +316,8 @@ void WiiPane::OnEmulationStateChanged(bool running)
   m_system_language_choice->setEnabled(!running);
   m_aspect_ratio_choice->setEnabled(!running);
   m_sound_mode_choice->setEnabled(!running);
+  m_sd_pack_button->setEnabled(!running);
+  m_sd_unpack_button->setEnabled(!running);
   m_wiimote_motor->setEnabled(!running);
   m_wiimote_speaker_volume->setEnabled(!running);
   m_wiimote_ir_sensitivity->setEnabled(!running);
