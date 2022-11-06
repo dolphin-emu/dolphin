@@ -32,4 +32,8 @@ struct TextureLoad
 {
   std::string_view texture_name;
 };
+struct TextureUnload
+{
+  std::string_view texture_name;
+};
 }  // namespace GraphicsModActionData

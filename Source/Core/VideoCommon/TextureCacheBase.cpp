@@ -128,6 +128,15 @@ void TextureCacheBase::Invalidate()
   bound_textures.fill(nullptr);
   for (auto& tex : textures_by_address)
   {
+    if (g_ActiveConfig.bGraphicMods)
+    {
+      GraphicsModActionData::TextureUnload texture_unload{tex.second->texture_info_name};
+      for (const auto action : g_renderer->GetGraphicsModManager().GetTextureUnloadActions(
+               tex.second->texture_info_name))
+      {
+        action->OnTextureUnload(&texture_unload);
+      }
+    }
     delete tex.second;
   }
   textures_by_address.clear();
@@ -2634,6 +2643,16 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
     return textures_by_address.end();
 
   TCacheEntry* entry = iter->second;
+
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    GraphicsModActionData::TextureUnload texture_unload{entry->texture_info_name};
+    for (const auto action :
+         g_renderer->GetGraphicsModManager().GetTextureUnloadActions(entry->texture_info_name))
+    {
+      action->OnTextureUnload(&texture_unload);
+    }
+  }
 
   if (entry->textures_by_hash_iter != textures_by_hash.end())
   {

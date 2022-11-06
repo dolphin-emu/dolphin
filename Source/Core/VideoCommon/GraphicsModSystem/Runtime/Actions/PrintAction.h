@@ -13,4 +13,5 @@ public:
   void OnProjection(GraphicsModActionData::Projection*) override;
   void OnProjectionAndTexture(GraphicsModActionData::Projection*) override;
   void OnTextureLoad(GraphicsModActionData::TextureLoad*) override;
+  void OnTextureUnload(GraphicsModActionData::TextureUnload*) override;
 };

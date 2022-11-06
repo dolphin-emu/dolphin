@@ -42,3 +42,11 @@ void PrintAction::OnTextureLoad(GraphicsModActionData::TextureLoad* texture_load
 
   INFO_LOG_FMT(VIDEO, "OnTextureLoad Called.  Texture: {}", texture_load->texture_name);
 }
+
+void PrintAction::OnTextureUnload(GraphicsModActionData::TextureUnload* texture_unload)
+{
+  if (!texture_unload) [[unlikely]]
+    return;
+
+  INFO_LOG_FMT(VIDEO, "OnTextureUnload Called.  Texture: {}", texture_unload->texture_name);
+}
