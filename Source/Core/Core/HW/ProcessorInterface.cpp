@@ -39,13 +39,13 @@ static u32 m_ResetCode;
 
 // ID and callback for scheduling reset button presses/releases
 static CoreTiming::EventType* toggleResetButton;
-static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate);
+static void ToggleResetButtonCallback(Core::System& system, u64 userdata, s64 cyclesLate);
 
 static CoreTiming::EventType* iosNotifyResetButton;
-static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate);
+static void IOSNotifyResetButtonCallback(Core::System& system, u64 userdata, s64 cyclesLate);
 
 static CoreTiming::EventType* iosNotifyPowerButton;
-static void IOSNotifyPowerButtonCallback(u64 userdata, s64 cyclesLate);
+static void IOSNotifyPowerButtonCallback(Core::System& system, u64 userdata, s64 cyclesLate);
 
 // Let the PPC know that an external exception is set/cleared
 void UpdateException();
@@ -230,12 +230,12 @@ static void SetResetButton(bool set)
   SetInterrupt(INT_CAUSE_RST_BUTTON, !set);
 }
 
-static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate)
+static void ToggleResetButtonCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   SetResetButton(!!userdata);
 }
 
-static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate)
+static void IOSNotifyResetButtonCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   const auto ios = IOS::HLE::GetIOS();
   if (!ios)
@@ -246,7 +246,7 @@ static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate)
     std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->ResetButton();
 }
 
-static void IOSNotifyPowerButtonCallback(u64 userdata, s64 cyclesLate)
+static void IOSNotifyPowerButtonCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   const auto ios = IOS::HLE::GetIOS();
   if (!ios)

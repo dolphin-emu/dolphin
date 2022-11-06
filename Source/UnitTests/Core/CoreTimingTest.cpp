@@ -25,7 +25,7 @@ static u64 s_expected_callback = 0;
 static s64 s_lateness = 0;
 
 template <unsigned int IDX>
-void CallbackTemplate(u64 userdata, s64 lateness)
+void CallbackTemplate(Core::System& system, u64 userdata, s64 lateness)
 {
   static_assert(IDX < CB_IDS.size(), "IDX out of range");
   s_callbacks_ran_flags.set(IDX);
@@ -121,7 +121,7 @@ namespace SharedSlotTest
 static unsigned int s_counter = 0;
 
 template <unsigned int ID>
-void FifoCallback(u64 userdata, s64 lateness)
+void FifoCallback(Core::System& system, u64 userdata, s64 lateness)
 {
   static_assert(ID < CB_IDS.size(), "ID out of range");
   s_callbacks_ran_flags.set(ID);
@@ -186,7 +186,7 @@ namespace ChainSchedulingTest
 {
 static int s_reschedules = 0;
 
-static void RescheduleCallback(u64 userdata, s64 lateness)
+static void RescheduleCallback(Core::System& system, u64 userdata, s64 lateness)
 {
   --s_reschedules;
   EXPECT_TRUE(s_reschedules >= 0);
@@ -241,7 +241,7 @@ namespace ScheduleIntoPastTest
 {
 static CoreTiming::EventType* s_cb_next = nullptr;
 
-static void ChainCallback(u64 userdata, s64 lateness)
+static void ChainCallback(Core::System& system, u64 userdata, s64 lateness)
 {
   EXPECT_EQ(CB_IDS[0] + 1, userdata);
   EXPECT_EQ(0, lateness);

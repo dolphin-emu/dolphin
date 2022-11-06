@@ -177,13 +177,13 @@ void DoState(PointerWrap& p)
 
 static void UpdateInterrupts();
 static void Do_ARAM_DMA();
-static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate = 0);
+static void GenerateDSPInterrupt(Core::System& system, u64 DSPIntType, s64 cyclesLate = 0);
 
-static void CompleteARAM(u64 userdata, s64 cyclesLate)
+static void CompleteARAM(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
+  auto& state = system.GetDSPState().GetData();
   state.dsp_control.DMAState = 0;
-  GenerateDSPInterrupt(INT_ARAM);
+  GenerateDSPInterrupt(system, INT_ARAM);
 }
 
 DSPEmulator* GetDSPEmulator()
@@ -471,9 +471,9 @@ static void UpdateInterrupts()
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
 }
 
-static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
+static void GenerateDSPInterrupt(Core::System& system, u64 DSPIntType, s64 cyclesLate)
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
+  auto& state = system.GetDSPState().GetData();
 
   // The INT_* enumeration members have values that reflect their bit positions in
   // DSP_CONTROL - we mask by (INT_DSP | INT_ARAM | INT_AID) just to ensure people
@@ -512,7 +512,8 @@ void UpdateDSPSlice(int cycles)
 // This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
 void UpdateAudioDMA()
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetDSPState().GetData();
 
   static short zero_samples[8 * 2] = {0};
   if (state.audio_dma.AudioDMAControl.Enable)
@@ -534,7 +535,7 @@ void UpdateAudioDMA()
       state.audio_dma.current_source_address = state.audio_dma.SourceAddress;
       state.audio_dma.remaining_blocks_count = state.audio_dma.AudioDMAControl.NumBlocks;
 
-      GenerateDSPInterrupt(DSP::INT_AID);
+      GenerateDSPInterrupt(system, DSP::INT_AID);
     }
   }
   else

@@ -112,7 +112,7 @@ Common::Flags<GPIO> g_gpio_out;
 static u32 resets;
 
 static CoreTiming::EventType* updateInterrupts;
-static void UpdateInterrupts(u64 = 0, s64 cyclesLate = 0);
+static void UpdateInterrupts(Core::System& system, u64 userdata, s64 cyclesLate);
 
 void DoState(PointerWrap& p)
 {
@@ -283,7 +283,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | UNK_1D0, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
 }
 
-static void UpdateInterrupts(u64 userdata, s64 cyclesLate)
+static void UpdateInterrupts(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   if ((ctrl.Y1 & ctrl.IY1) || (ctrl.Y2 & ctrl.IY2))
   {

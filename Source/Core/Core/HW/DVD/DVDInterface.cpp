@@ -188,10 +188,10 @@ DVDInterfaceState::DVDInterfaceState() : m_data(std::make_unique<Data>())
 
 DVDInterfaceState::~DVDInterfaceState() = default;
 
-static void AutoChangeDiscCallback(u64 userdata, s64 cyclesLate);
-static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
-static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
-static void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late);
+static void AutoChangeDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
+static void EjectDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
+static void InsertDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
+static void FinishExecutingCommandCallback(Core::System& system, u64 userdata, s64 cycles_late);
 
 static void SetLidOpen();
 
@@ -531,19 +531,19 @@ bool IsDiscInside()
   return DVDThread::HasDisc();
 }
 
-static void AutoChangeDiscCallback(u64 userdata, s64 cyclesLate)
+static void AutoChangeDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   AutoChangeDisc();
 }
 
-static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
+static void EjectDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   SetDisc(nullptr, {});
 }
 
-static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
+static void InsertDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
+  auto& state = system.GetDVDInterfaceState().GetData();
   std::unique_ptr<DiscIO::VolumeDisc> new_disc = DiscIO::CreateDisc(state.disc_path_to_insert);
 
   if (new_disc)
@@ -1370,7 +1370,7 @@ static u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptT
   return (static_cast<u64>(reply_type) << 32) + static_cast<u32>(interrupt_type);
 }
 
-void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late)
+void FinishExecutingCommandCallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   ReplyType reply_type = static_cast<ReplyType>(userdata >> 32);
   DIInterruptType interrupt_type = static_cast<DIInterruptType>(userdata & 0xFFFFFFFF);

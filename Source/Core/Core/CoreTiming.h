@@ -21,6 +21,11 @@
 
 class PointerWrap;
 
+namespace Core
+{
+class System;
+}
+
 namespace CoreTiming
 {
 // These really shouldn't be global, but jit64 accesses them directly
@@ -39,7 +44,7 @@ extern Globals g;
 void Init();
 void Shutdown();
 
-typedef void (*TimedCallback)(u64 userdata, s64 cyclesLate);
+typedef void (*TimedCallback)(Core::System& system, u64 userdata, s64 cyclesLate);
 
 // This should only be called from the CPU thread, if you are calling it any other thread, you are
 // doing something evil

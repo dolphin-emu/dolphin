@@ -68,7 +68,7 @@ void PairedSingle::SetPS1(double value)
   ps1 = Common::BitCast<u64>(value);
 }
 
-static void InvalidateCacheThreadSafe(u64 userdata, s64 cyclesLate)
+static void InvalidateCacheThreadSafe(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   ppcState.iCache.Invalidate(static_cast<u32>(userdata));
 }

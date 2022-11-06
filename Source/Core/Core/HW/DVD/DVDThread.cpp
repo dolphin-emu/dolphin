@@ -72,7 +72,7 @@ static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offs
                               const DiscIO::Partition& partition,
                               DVDInterface::ReplyType reply_type, s64 ticks_until_completion);
 
-static void FinishRead(u64 id, s64 cycles_late);
+static void FinishRead(Core::System& system, u64 id, s64 cycles_late);
 
 struct DVDThreadState::Data
 {
@@ -328,9 +328,9 @@ static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offs
   CoreTiming::ScheduleEvent(ticks_until_completion, state.finish_read, id);
 }
 
-static void FinishRead(u64 id, s64 cycles_late)
+static void FinishRead(Core::System& system, u64 id, s64 cycles_late)
 {
-  auto& state = Core::System::GetInstance().GetDVDThreadState().GetData();
+  auto& state = system.GetDVDThreadState().GetData();
 
   // We can't simply pop result_queue and always get the ReadResult
   // we want, because the DVD thread may add ReadResults to the queue

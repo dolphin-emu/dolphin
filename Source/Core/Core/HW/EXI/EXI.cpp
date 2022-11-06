@@ -43,8 +43,8 @@ ExpansionInterfaceState::ExpansionInterfaceState() : m_data(std::make_unique<Dat
 
 ExpansionInterfaceState::~ExpansionInterfaceState() = default;
 
-static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate);
-static void UpdateInterruptsCallback(u64 userdata, s64 cycles_late);
+static void ChangeDeviceCallback(Core::System& system, u64 userdata, s64 cyclesLate);
+static void UpdateInterruptsCallback(Core::System& system, u64 userdata, s64 cycles_late);
 
 namespace
 {
@@ -214,13 +214,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 }
 
-static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate)
+static void ChangeDeviceCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   u8 channel = (u8)(userdata >> 32);
   u8 type = (u8)(userdata >> 16);
   u8 num = (u8)userdata;
 
-  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
+  auto& state = system.GetExpansionInterfaceState().GetData();
   state.channels.at(channel)->AddDevice(static_cast<EXIDeviceType>(type), num);
 }
 
@@ -270,7 +270,7 @@ void UpdateInterrupts()
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
 }
 
-static void UpdateInterruptsCallback(u64 userdata, s64 cycles_late)
+static void UpdateInterruptsCallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   UpdateInterrupts();
 }

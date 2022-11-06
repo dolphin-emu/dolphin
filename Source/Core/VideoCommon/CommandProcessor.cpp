@@ -49,7 +49,7 @@ static bool IsOnThread()
   return Core::System::GetInstance().IsDualCoreMode();
 }
 
-static void UpdateInterrupts_Wrapper(u64 userdata, s64 cyclesLate)
+static void UpdateInterrupts_Wrapper(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   UpdateInterrupts(userdata);
 }

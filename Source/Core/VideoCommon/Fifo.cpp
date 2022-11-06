@@ -595,12 +595,12 @@ static int WaitForGpuThread(int ticks)
   return GPU_TIME_SLOT_SIZE;
 }
 
-static void SyncGPUCallback(u64 ticks, s64 cyclesLate)
+static void SyncGPUCallback(Core::System& system, u64 ticks, s64 cyclesLate)
 {
   ticks += cyclesLate;
   int next = -1;
 
-  if (!Core::System::GetInstance().IsDualCoreMode() || s_use_deterministic_gpu_thread)
+  if (!system.IsDualCoreMode() || s_use_deterministic_gpu_thread)
   {
     next = RunGpuOnCpu((int)ticks);
   }

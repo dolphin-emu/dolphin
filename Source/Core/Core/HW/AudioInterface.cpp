@@ -198,12 +198,12 @@ int GetAIPeriod()
   return static_cast<int>(std::min(period, s_period));
 }
 
-void Update(u64 userdata, s64 cycles_late)
+static void Update(Core::System& system, u64 userdata, s64 cycles_late)
 {
   if (!IsPlaying())
     return;
 
-  auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
+  auto& state = system.GetAudioInterfaceState().GetData();
 
   const u64 diff = CoreTiming::GetTicks() - state.last_cpu_time;
   if (diff > state.cpu_cycles_per_sample)

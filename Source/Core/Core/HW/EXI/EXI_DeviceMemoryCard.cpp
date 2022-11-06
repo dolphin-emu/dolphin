@@ -71,12 +71,12 @@ void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata,
   }
 }
 
-void CEXIMemoryCard::CmdDoneCallback(u64 userdata, s64)
+void CEXIMemoryCard::CmdDoneCallback(Core::System& system, u64 userdata, s64)
 {
   EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance) { instance->CmdDone(); });
 }
 
-void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, s64)
+void CEXIMemoryCard::TransferCompleteCallback(Core::System& system, u64 userdata, s64)
 {
   EventCompleteFindInstance(userdata,
                             [](CEXIMemoryCard* instance) { instance->TransferComplete(); });

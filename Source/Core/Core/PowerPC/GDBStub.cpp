@@ -124,7 +124,7 @@ static void Hex2mem(u8* dst, u8* src, u32 len)
   }
 }
 
-static void UpdateCallback(u64 userdata, s64 cycles_late)
+static void UpdateCallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   ProcessCommands(false);
   if (IsActive())

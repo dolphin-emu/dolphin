@@ -19,6 +19,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -82,7 +83,7 @@ static float s_config_OC_factor;
 static float s_config_OC_inv_factor;
 static bool s_config_sync_on_skip_idle;
 
-static void EmptyTimedCallback(u64 userdata, s64 cyclesLate)
+static void EmptyTimedCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
 }
 
@@ -345,7 +346,7 @@ void Advance()
     Event evt = std::move(s_event_queue.front());
     std::pop_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
     s_event_queue.pop_back();
-    evt.type->callback(evt.userdata, g.global_timer - evt.time);
+    evt.type->callback(Core::System::GetInstance(), evt.userdata, g.global_timer - evt.time);
   }
 
   s_is_global_timer_sane = false;
