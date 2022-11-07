@@ -1734,8 +1734,8 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
 
       if (File::IsDirectory(path))
       {
-        std::vector<std::string> files = GCMemcardDirectory::GetFileNamesForGameID(
-            path + DIR_SEP, sync_info.game->GetGameID(), gamecube_region == DiscIO::Region::NTSC_J);
+        std::vector<std::string> files =
+            GCMemcardDirectory::GetFileNamesForGameID(path + DIR_SEP, sync_info.game->GetGameID());
 
         pac << static_cast<u8>(files.size());
 

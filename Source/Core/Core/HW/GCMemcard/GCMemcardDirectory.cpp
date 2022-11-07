@@ -125,8 +125,7 @@ bool GCMemcardDirectory::LoadGCI(Memcard::GCIFile gci)
 
 // This is only used by NetPlay but it made sense to put it here to keep the relevant code together
 std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::string& directory,
-                                                                   const std::string& game_id,
-                                                                   bool card_encoding_is_shift_jis)
+                                                                   const std::string& game_id)
 {
   std::vector<std::string> filenames;
 
@@ -134,7 +133,7 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
   if (game_id.length() >= 4 && game_id != "00000000")
     game_code = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
 
-  std::vector<std::string> loaded_saves;
+  std::vector<Memcard::DEntry> loaded_saves;
   for (const std::string& file_name : Common::DoFileSearch({directory}, {".gci"}))
   {
     File::IOFile gci_file(file_name, "rb");
@@ -147,9 +146,11 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
     if (!gci_file.ReadBytes(&gci.m_gci_header, Memcard::DENTRY_SIZE))
       continue;
 
-    const std::string gci_filename =
-        GenerateDefaultGCIFilename(gci.m_gci_header, card_encoding_is_shift_jis);
-    if (std::find(loaded_saves.begin(), loaded_saves.end(), gci_filename) != loaded_saves.end())
+    const auto same_identity_save_it = std::find_if(
+        loaded_saves.begin(), loaded_saves.end(), [&gci](const Memcard::DEntry& entry) {
+          return Memcard::HasSameIdentity(gci.m_gci_header, entry);
+        });
+    if (same_identity_save_it != loaded_saves.end())
       continue;
 
     const u16 num_blocks = gci.m_gci_header.m_block_count;
@@ -169,7 +170,7 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
 
     if (game_code == Common::swap32(gci.m_gci_header.m_gamecode.data()))
     {
-      loaded_saves.push_back(gci_filename);
+      loaded_saves.push_back(gci.m_gci_header);
       filenames.push_back(file_name);
     }
   }
