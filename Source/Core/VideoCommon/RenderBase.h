@@ -303,6 +303,9 @@ protected:
   // This function itself acquires the ImGui lock, so it should not be held.
   void BeginImGuiFrame();
 
+  // Same as above but without locking the ImGui lock.
+  void BeginImGuiFrameUnlocked();
+
   // Destroys all ImGui GPU resources, must do before shutdown.
   void ShutdownImGui();
 
