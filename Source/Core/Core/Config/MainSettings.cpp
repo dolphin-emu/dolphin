@@ -692,7 +692,7 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
     configured_folder.pop_back();
 
   constexpr std::string_view us_region = "/" USA_DIR;
-  constexpr std::string_view jp_region = "/" JAP_DIR;
+  constexpr std::string_view jp_region = "/" JPN_DIR;
   constexpr std::string_view eu_region = "/" EUR_DIR;
   std::string_view base_path = configured_folder;
   std::optional<DiscIO::Region> path_region = std::nullopt;
@@ -715,7 +715,8 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
   const DiscIO::Region used_region =
       region ? *region : (path_region ? *path_region : Config::Get(Config::MAIN_FALLBACK_REGION));
   return fmt::format("{}/{}", base_path,
-                     Config::GetDirectoryForRegion(Config::ToGameCubeRegion(used_region)));
+                     Config::GetDirectoryForRegion(Config::ToGameCubeRegion(used_region),
+                                                   Config::RegionDirectoryStyle::Modern));
 }
 
 bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot)
