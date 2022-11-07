@@ -261,6 +261,9 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
 {
   StateTracker::GetInstance()->EndRenderPass();
 
+  if (!g_command_buffer_mgr->CheckLastPresentDone())
+    g_command_buffer_mgr->WaitForWorkerThreadIdle();
+
   // Handle host window resizes.
   CheckForSurfaceChange();
   CheckForSurfaceResize();
