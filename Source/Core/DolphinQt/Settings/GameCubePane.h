@@ -19,6 +19,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 class QString;
+class QVBoxLayout;
 
 class GameCubePane : public QWidget
 {
@@ -65,8 +66,9 @@ private:
   Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_agp_path_labels;
   Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_agp_paths;
 
-  Common::EnumMap<QHBoxLayout*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_path_layouts;
+  Common::EnumMap<QVBoxLayout*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_path_layouts;
   Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_path_labels;
+  Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_override_labels;
   Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_paths;
 
   QCheckBox* m_gba_threads;

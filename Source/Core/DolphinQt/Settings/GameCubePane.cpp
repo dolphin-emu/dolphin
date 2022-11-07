@@ -115,11 +115,19 @@ void GameCubePane::CreateWidgets()
     m_agp_path_layouts[slot]->addWidget(m_agp_path_labels[slot]);
     m_agp_path_layouts[slot]->addWidget(m_agp_paths[slot]);
 
-    m_gci_path_layouts[slot] = new QHBoxLayout();
+    m_gci_path_layouts[slot] = new QVBoxLayout();
     m_gci_path_labels[slot] = new QLabel(tr("GCI Folder Path:"));
+    m_gci_override_labels[slot] =
+        new QLabel(tr("Warning: A GCI folder override path is currently configured for this slot. "
+                      "Adjusting the GCI path here will have no effect."));
+    m_gci_override_labels[slot]->setHidden(true);
+    m_gci_override_labels[slot]->setWordWrap(true);
     m_gci_paths[slot] = new QLineEdit();
-    m_gci_path_layouts[slot]->addWidget(m_gci_path_labels[slot]);
-    m_gci_path_layouts[slot]->addWidget(m_gci_paths[slot]);
+    auto* hlayout = new QHBoxLayout();
+    hlayout->addWidget(m_gci_path_labels[slot]);
+    hlayout->addWidget(m_gci_paths[slot]);
+    m_gci_path_layouts[slot]->addWidget(m_gci_override_labels[slot]);
+    m_gci_path_layouts[slot]->addLayout(hlayout);
   }
 
   // Add slot devices
@@ -332,6 +340,15 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
     m_agp_paths[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::AGP);
     m_gci_path_labels[slot]->setHidden(hide_gci_path);
     m_gci_paths[slot]->setHidden(hide_gci_path);
+
+    // In the years before we introduced the GCI folder configuration paths it has become somewhat
+    // popular to use the GCI override path instead. Check if this is the case and display a warning
+    // if it is set, so users aren't confused why configuring the normal GCI path doesn't do
+    // anything.
+    m_gci_override_labels[slot]->setHidden(
+        device != ExpansionInterface::EXIDeviceType::MemoryCardFolder ||
+        Config::Get(Config::GetInfoForGCIPathOverride(slot)).empty());
+
     break;
   }
   case ExpansionInterface::Slot::SP1:
