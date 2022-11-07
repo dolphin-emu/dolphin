@@ -561,7 +561,7 @@ DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
   return DiscIO::Region::NTSC_J;
 }
 
-const char* GetDirectoryForRegion(DiscIO::Region region)
+const char* GetDirectoryForRegion(DiscIO::Region region, RegionDirectoryStyle style)
 {
   if (region == DiscIO::Region::Unknown)
     region = ToGameCubeRegion(Config::Get(Config::MAIN_FALLBACK_REGION));
@@ -569,7 +569,7 @@ const char* GetDirectoryForRegion(DiscIO::Region region)
   switch (region)
   {
   case DiscIO::Region::NTSC_J:
-    return JAP_DIR;
+    return style == RegionDirectoryStyle::Legacy ? JAP_DIR : JPN_DIR;
 
   case DiscIO::Region::NTSC_U:
     return USA_DIR;
@@ -578,8 +578,9 @@ const char* GetDirectoryForRegion(DiscIO::Region region)
     return EUR_DIR;
 
   case DiscIO::Region::NTSC_K:
+    // See ToGameCubeRegion
     ASSERT_MSG(BOOT, false, "NTSC-K is not a valid GameCube region");
-    return JAP_DIR;  // See ToGameCubeRegion
+    return style == RegionDirectoryStyle::Legacy ? JAP_DIR : JPN_DIR;
 
   default:
     ASSERT_MSG(BOOT, false, "Default case should not be reached");
