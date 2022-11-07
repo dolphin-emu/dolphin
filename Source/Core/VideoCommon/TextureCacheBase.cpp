@@ -1544,8 +1544,15 @@ TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize,
     }
   }
 
+#ifdef __APPLE__
+  const bool no_mips = g_ActiveConfig.bNoMipmapping;
+#else
+  const bool no_mips = false;
+#endif
   // how many levels the allocated texture shall have
-  const u32 texLevels = hires_tex ? (u32)hires_tex->m_levels.size() : texture_info.GetLevelCount();
+  const u32 texLevels = no_mips   ? 1 :
+                        hires_tex ? (u32)hires_tex->m_levels.size() :
+                                    texture_info.GetLevelCount();
 
   // We can decode on the GPU if it is a supported format and the flag is enabled.
   // Currently we don't decode RGBA8 textures from TMEM, as that would require copying from both
