@@ -10,7 +10,8 @@ class Metadata
 public:
   static std::string getJSONString();
   static void writeJSON(std::string jsonString, bool callBatch = true);
-  static void setMatchMetadata(tm* matchDateTimeParam);
+  static void setMatchMetadata(tm* matchDateTimeParam, float homeTeamPossesionFrames,
+                               float awayTeamPossesionFrames);
   static void setPlayerName(std::string playerNameParam);
   static void setPlayerArray(std::vector<const NetPlay::Player*>);
   static void setNetPlayControllers(NetPlay::PadMappingArray m_pad_map);

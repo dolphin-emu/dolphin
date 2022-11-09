@@ -8,6 +8,8 @@
 #include <Core/Core.h>
 #include <Core/Metadata.h>
 #include <ShlObj_core.h>
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
 
 static bool boolMatchStart = false;
 static bool boolMatchEnd = false;
@@ -98,7 +100,8 @@ void StateAuxillary::startRecording()
   t2.detach();
 }
 
-void StateAuxillary::stopRecording(const std::string replay_path, tm* matchDateTimeParam)
+void StateAuxillary::stopRecording(const std::string replay_path, tm* matchDateTimeParam,
+                                   float homeTeamPossesionFrames, float awayTeamPossesionFrames)
 {
   // not moving this to its own thread as of now
   if (Movie::IsRecordingInput())
@@ -109,9 +112,10 @@ void StateAuxillary::stopRecording(const std::string replay_path, tm* matchDateT
   {
     Movie::EndPlayInput(false);
   }
-  Metadata::setMatchMetadata(matchDateTimeParam);
+  Metadata::setMatchMetadata(matchDateTimeParam, homeTeamPossesionFrames, awayTeamPossesionFrames);
   std::string jsonString = Metadata::getJSONString();
-  Metadata::writeJSON(jsonString, true);
+  std::thread t3(&Metadata::writeJSON, jsonString, true);
+  t3.detach();
 }
 
 void StateAuxillary::endPlayback()
@@ -121,8 +125,11 @@ void StateAuxillary::endPlayback()
   std::wstring strpath(path);
   CoTaskMemFree(path);
   std::string documents_file_path(strpath.begin(), strpath.end());
+  /*
   std::string replays_path = documents_file_path;
   replays_path += "\\Citrus Replays\\";
+  */
+  std::string replays_path = File::GetUserPath(D_CITRUSREPLAYS_IDX);
   std::string fileArr[3] = {"output.dtm", "output.dtm.sav", "output.json"};
   for (int i = 0; i < 3; i++)
   {

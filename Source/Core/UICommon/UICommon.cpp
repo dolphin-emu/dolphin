@@ -203,6 +203,19 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + ANAGLYPH_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_CITRUSREPLAYS_IDX));
+  /*
+  // Create the Citrus Replays directory to ensure writing works (will not overwrite already created
+  // dir)
+  PWSTR path;
+  SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
+  std::wstring strpath(path);
+  CoTaskMemFree(path);
+  std::string documents_file_path(strpath.begin(), strpath.end());
+  std::string replays_path = "";
+  replays_path += (documents_file_path + "\\Citrus Replays");
+  std::filesystem::create_directory(replays_path);
+  */
 #ifndef ANDROID
   File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
   File::CreateFullPath(File::GetUserPath(D_STYLES_IDX));

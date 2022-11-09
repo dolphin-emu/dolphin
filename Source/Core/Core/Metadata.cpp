@@ -7,6 +7,12 @@
 #include <WinUser.h>
 #include <ShlObj_core.h>
 #include <Core/HW/AddressSpace.h>
+#include <../minizip/mz_compat.h>
+#include <codecvt>
+#include "zip.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include <Core/StateAuxillary.h>
 
 struct ItemStruct
 {
@@ -32,6 +38,8 @@ struct MissedShots
 // VARIABLES
 
 static tm* matchDateTime;
+static int homeTeamPossesionFrameCount;
+static int awayTeamPossesionFrameCount;
 static std::string playerName = "";
 std::vector<const NetPlay::Player*> playerArray;
 static NetPlay::PadMappingArray netplayGCMap;
@@ -324,7 +332,12 @@ std::string Metadata::getJSONString()
     }
   }
   // add a comma below if we add more stats
-  json_stream << "  ]" << std::endl;
+  json_stream << "  ]," << std::endl;
+
+  json_stream << "  \"Left Team Frames Possessed Ball\": \"" << homeTeamPossesionFrameCount << "\","
+              << std::endl;
+  json_stream << "  \"Right Team Frames Possessed Ball\": \"" << awayTeamPossesionFrameCount << "\""
+              << std::endl;
 
   json_stream << "}" << std::endl;
 
@@ -397,14 +410,15 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
   json_output_path += "\\output.json";
   replays_path += "\"";
   // "C://Users//Brian//Documents//Citrus Replays"
-
-  File::WriteStringToFile(json_output_path, jsonString);
+  std::string improvedReplayPath = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.json";
+  File::WriteStringToFile(improvedReplayPath, jsonString);
 
   if (callBatch)
   {
     char date_string[100];
     strftime(date_string, 50, "%B_%d_%Y_%OH_%OM_%OS", matchDateTime);
     std::string someDate(date_string);
+    std::string gameTime = "Game_" + someDate;
     std::string gameVar = " Game_";
     gameVar += someDate;
     // Game_May_05_2022_11_51_34
@@ -417,6 +431,7 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     std::string batchPath = "\"\"" + pathToBatch + "\"";
     //std::string batchPath("./createcit.bat");
     batchPath += gameVar + "\"";
+    /*
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
     memset(&si, 0, sizeof(si));
@@ -431,16 +446,92 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     // the task has ended so close the handle
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
+    */
     //WinExec(batchPath.c_str(), SW_HIDE);
+    // https://stackoverflow.com/questions/11370908/how-do-i-use-minizip-on-zlib
+    std::vector<std::wstring> paths;
+    std::string exampleFile1 = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.dtm.sav";
+    for (char& c : exampleFile1)
+    {
+      if (c == '/')
+        c = '\\';
+    }
+    std::string exampleFile2 = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.dtm";
+    for (char& c : exampleFile2)
+    {
+      if (c == '/')
+        c = '\\';
+    }
+    std::string exampleFile3 = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.json";
+    for (char& c : exampleFile3)
+    {
+      if (c == '/')
+        c = '\\';
+    }
+    paths.push_back(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(exampleFile1));
+    paths.push_back(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(exampleFile2));
+    paths.push_back(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(exampleFile3));
+    std::string zipName = File::GetUserPath(D_CITRUSREPLAYS_IDX) + gameTime + ".cit ";
+
+    zipFile zf = zipOpen(zipName.c_str(), APPEND_STATUS_CREATE);
+    if (zf == NULL)
+      return;
+    bool _return = true;
+    for (size_t i = 0; i < paths.size(); i++)
+    {
+      std::fstream file(paths[i].c_str(), std::ios::binary | std::ios::in);
+      if (file.is_open())
+      {
+        file.seekg(0, std::ios::end);
+        long size = file.tellg();
+        file.seekg(0, std::ios::beg);
+
+        std::vector<char> buffer(size);
+        if (size == 0 || file.read(&buffer[0], size))
+        {
+          zip_fileinfo zfi = {0};
+          std::wstring fileName = paths[i].substr(paths[i].rfind('\\') + 1);
+
+          if (ZIP_OK == zipOpenNewFileInZip(zf, std::string(fileName.begin(), fileName.end()).c_str(),
+                                          &zfi, NULL, 0, NULL, 0, NULL, Z_DEFLATED,
+                                          -1))
+          {
+            if (zipWriteInFileInZip(zf, size == 0 ? "" : &buffer[0], size))
+              _return = false;
+
+            if (zipCloseFileInZip(zf))
+              _return = false;
+
+            file.close();
+            continue;
+          }
+        }
+        file.close();
+      }
+      _return = false;
+    }
+
+    // common function to delete residual files
+    StateAuxillary::endPlayback();
+    if (zipClose(zf, NULL))
+      return;
+
+    if (!_return)
+      return;
+    return;
   }
 }
 
-void Metadata::setMatchMetadata(tm* matchDateTimeParam)
+void Metadata::setMatchMetadata(tm* matchDateTimeParam, float homeTeamPossesionFrames,
+                                float awayTeamPossesionFrames)
 {
   // have consistent time across the output file and the in-json time
   matchDateTime = matchDateTimeParam;
 
   // set match info vars
+
+  homeTeamPossesionFrameCount = homeTeamPossesionFrames;
+  awayTeamPossesionFrameCount = awayTeamPossesionFrames;
 
   const AddressSpace::Accessors* accessors =
       AddressSpace::GetAccessors(AddressSpace::Type::Effective);

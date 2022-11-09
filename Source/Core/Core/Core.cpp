@@ -107,6 +107,8 @@ namespace Core
 static bool boolMatchStart = false;
 static bool boolMatchEnd = false;
 static bool wroteCodes = false;
+static float homeTeamPossesionFrames = 0;
+static float awayTeamPossesionFrames = 0;
 static bool s_wants_determinism;
 
 // Declarations and definitions
@@ -202,9 +204,6 @@ void OnFrameEnd()
   static const u32 matchEnd = 0x80400001;
   static const u32 grudgeMatchBool = 0x80400003;
   // overtime is at 0x80400002 so don't use that for anything
-  // 81440ce0 is one of the two general scene IDs, but can always be used in-match to see if it's grudge or strikers 101
-  // if it's 60 in float (u32 42700000, dolphin 1114636288) we're in strikers 101
-  static const u32 matchSceneID = 0x81440ce0;
 
   // c2 gecko for hud (800f83bc) must be on to make this happen
   // movie cannot be playing input back since we do not want to record that
@@ -222,18 +221,25 @@ void OnFrameEnd()
     StateAuxillary::startRecording();
     StateAuxillary::setBoolMatchEnd(false);
     boolMatchEnd = false;
+    homeTeamPossesionFrames = 0;
+    awayTeamPossesionFrames = 0;
+    //direcotry gets created from UICommon.cpp now
+  }
 
-    // Create the Citrus Replays directory to ensure writing works (will not overwrite already created dir)
-    PWSTR path;
-    SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
-    std::wstring strpath(path);
-    CoTaskMemFree(path);
-    std::string documents_file_path(strpath.begin(), strpath.end());
-    std::string replays_path = "";
-    replays_path += documents_file_path;
-    replays_path += "\\Citrus Replays";
-    std::wstring wide_replays_path = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(replays_path);
-    CreateDirectory(wide_replays_path.c_str(), NULL);
+  // game can be checked to see if it's paused or not at 803725c1 (8 bit)
+  // 1 is paused, 0 is active
+  static const u32 pausedOrActive = 0x803725c1;
+  if (boolMatchStart && !boolMatchEnd && Memory::Read_U8(pausedOrActive) == 0)
+  {
+    int currentBallOwner = Memory::Read_U8(0x80311009);
+    if ((currentBallOwner >= 0 && currentBallOwner <= 3) || currentBallOwner == 8)
+    {
+      homeTeamPossesionFrames++;
+    }
+    else if ((currentBallOwner >= 4 && currentBallOwner <= 7) || currentBallOwner == 9)
+    {
+      awayTeamPossesionFrames++;
+    }
   }
 
   //match end
@@ -249,7 +255,7 @@ void OnFrameEnd()
     time(&curr_time);
     curr_tm = localtime(&curr_time);
     strftime(date_string, 50, "%B_%d_%Y_%OH_%OM_%OS", curr_tm);
-
+    /*
     PWSTR path;
     SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
     std::wstring strpath(path);
@@ -262,7 +268,10 @@ void OnFrameEnd()
 
     std::string fileName = "\\output.dtm";
     replays_path += fileName;
-    StateAuxillary::stopRecording(replays_path, curr_tm);
+    */
+    std::string uiFileName = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.dtm";
+
+    StateAuxillary::stopRecording(uiFileName, curr_tm, homeTeamPossesionFrames, awayTeamPossesionFrames);
     StateAuxillary::setBoolMatchStart(false);
     boolMatchStart = false;
   }
