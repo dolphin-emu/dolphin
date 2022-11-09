@@ -86,6 +86,12 @@ static void CreateResourcePackPath(std::string path)
     File::SetUserPath(D_RESOURCEPACK_IDX, std::move(path));
 }
 
+static void CreateCustomTexturesPath(std::string path)
+{
+  if (!path.empty())
+    File::SetUserPath(D_HIRESTEXTURES_IDX, std::move(path));
+}
+
 static void CreateWFSPath(const std::string& path)
 {
   if (!path.empty())
@@ -98,6 +104,7 @@ static void InitCustomPaths()
   CreateLoadPath(Config::Get(Config::MAIN_LOAD_PATH));
   CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
   CreateResourcePackPath(Config::Get(Config::MAIN_RESOURCEPACK_PATH));
+  CreateCustomTexturesPath(Config::Get(Config::MAIN_CUSTOMTEXTURES_PATH));
   CreateWFSPath(Config::Get(Config::MAIN_WFS_PATH));
   File::SetUserPath(F_WIISDCARDIMAGE_IDX, Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH));
   File::SetUserPath(D_WIISDCARDSYNCFOLDER_IDX,

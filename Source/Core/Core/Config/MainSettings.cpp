@@ -270,6 +270,7 @@ bool ShouldUseDPL2Decoder()
 const Info<std::string> MAIN_DUMP_PATH{{System::Main, "General", "DumpPath"}, ""};
 const Info<std::string> MAIN_LOAD_PATH{{System::Main, "General", "LoadPath"}, ""};
 const Info<std::string> MAIN_RESOURCEPACK_PATH{{System::Main, "General", "ResourcePackPath"}, ""};
+const Info<std::string> MAIN_CUSTOMTEXTURES_PATH{{System::Main, "General", "CustomTexturesPath"}, ""};
 const Info<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
 const Info<std::string> MAIN_WII_SD_CARD_IMAGE_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
 const Info<std::string> MAIN_WII_SD_CARD_SYNC_FOLDER_PATH{
