@@ -26,7 +26,7 @@ namespace
 {
 enum
 {
-  IOCTL_DOLPHIN_GET_SYSTEM_TIME = 0x01,
+  IOCTL_DOLPHIN_GET_ELAPSED_TIME = 0x01,
   IOCTL_DOLPHIN_GET_VERSION = 0x02,
   IOCTL_DOLPHIN_GET_SPEED_LIMIT = 0x03,
   IOCTL_DOLPHIN_SET_SPEED_LIMIT = 0x04,
@@ -34,7 +34,8 @@ enum
   IOCTL_DOLPHIN_GET_REAL_PRODUCTCODE = 0x06,
   IOCTL_DOLPHIN_DISCORD_SET_CLIENT = 0x07,
   IOCTL_DOLPHIN_DISCORD_SET_PRESENCE = 0x08,
-  IOCTL_DOLPHIN_DISCORD_RESET = 0x09
+  IOCTL_DOLPHIN_DISCORD_RESET = 0x09,
+  IOCTL_DOLPHIN_GET_SYSTEM_TIME = 0x0A,
 
 };
 
@@ -207,7 +208,7 @@ IPCReply ResetDiscord(const IOCtlVRequest& request)
 
 }  // namespace
 
-IPCReply DolphinDevice::GetSystemTime(const IOCtlVRequest& request) const
+IPCReply DolphinDevice::GetElapsedTime(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(0, 1))
   {
@@ -222,9 +223,26 @@ IPCReply DolphinDevice::GetSystemTime(const IOCtlVRequest& request) const
   // This ioctl is used by emulated software to judge if emulation is running too fast or slow.
   // By using Common::Timer, the same clock Dolphin uses internally for the same task is exposed.
   // Return elapsed time instead of current timestamp to make buggy emulated code less likely to
-  // have issuses.
+  // have issues.
   const u32 milliseconds = static_cast<u32>(m_timer.ElapsedMs());
   Memory::Write_U32(milliseconds, request.io_vectors[0].address);
+  return IPCReply(IPC_SUCCESS);
+}
+
+IPCReply DolphinDevice::GetSystemTime(const IOCtlVRequest& request) const
+{
+  if (!request.HasNumberOfValidVectors(0, 1))
+  {
+    return IPCReply(IPC_EINVAL);
+  }
+
+  if (request.io_vectors[0].size != 8)
+  {
+    return IPCReply(IPC_EINVAL);
+  }
+
+  const u64 milliseconds = std::time(nullptr);
+  Memory::Write_U64(milliseconds, request.io_vectors[0].address);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -240,8 +258,8 @@ std::optional<IPCReply> DolphinDevice::IOCtlV(const IOCtlVRequest& request)
 
   switch (request.request)
   {
-  case IOCTL_DOLPHIN_GET_SYSTEM_TIME:
-    return GetSystemTime(request);
+  case IOCTL_DOLPHIN_GET_ELAPSED_TIME:
+    return GetElapsedTime(request);
   case IOCTL_DOLPHIN_GET_VERSION:
     return GetVersion(request);
   case IOCTL_DOLPHIN_GET_SPEED_LIMIT:
@@ -258,6 +276,8 @@ std::optional<IPCReply> DolphinDevice::IOCtlV(const IOCtlVRequest& request)
     return SetDiscordPresence(request);
   case IOCTL_DOLPHIN_DISCORD_RESET:
     return ResetDiscord(request);
+  case IOCTL_DOLPHIN_GET_SYSTEM_TIME:
+    return GetSystemTime(request);
 
   default:
     return IPCReply(IPC_EINVAL);

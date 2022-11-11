@@ -15,6 +15,7 @@ public:
   std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
 private:
+  IPCReply GetElapsedTime(const IOCtlVRequest& request) const;
   IPCReply GetSystemTime(const IOCtlVRequest& request) const;
 
   Common::Timer m_timer;
