@@ -212,16 +212,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
 
       const auto internal_group = fmt::format("{}.{}", mod.m_title, feature.m_group);
 
-      const auto add_target = [&](const GraphicsTargetConfig& target,
-                                  GraphicsModConfig mod_config) {
-        auto action = create_action(feature.m_action, feature.m_action_data, std::move(mod_config));
-        if (action == nullptr)
-        {
-          WARN_LOG_FMT(VIDEO, "Failed to create action '{}' for group '{}'.", feature.m_action,
-                       feature.m_group);
-          return;
-        }
-        m_actions.push_back(std::move(action));
+      const auto add_target = [&](const GraphicsTargetConfig& target) {
         std::visit(
             overloaded{
                 [&](const DrawStartedTextureTarget& the_target) {
@@ -264,21 +255,34 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
             target);
       };
 
+      const auto add_action = [&](GraphicsModConfig mod_config) {
+        auto action = create_action(feature.m_action, feature.m_action_data, std::move(mod_config));
+        if (action == nullptr)
+        {
+          WARN_LOG_FMT(VIDEO, "Failed to create action '{}' for group '{}'.", feature.m_action,
+                       feature.m_group);
+          return;
+        }
+        m_actions.push_back(std::move(action));
+      };
+
       // Prefer groups in the pack over groups from another pack
       if (const auto local_it = group_to_targets.find(internal_group);
           local_it != group_to_targets.end())
       {
+        add_action(mod);
         for (const GraphicsTargetConfig& target : local_it->second)
         {
-          add_target(target, mod);
+          add_target(target);
         }
       }
       else if (const auto global_it = group_to_targets.find(feature.m_group);
                global_it != group_to_targets.end())
       {
+        add_action(mod);
         for (const GraphicsTargetConfig& target : global_it->second)
         {
-          add_target(target, mod);
+          add_target(target);
         }
       }
       else
