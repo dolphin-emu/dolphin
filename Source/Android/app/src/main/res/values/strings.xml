@@ -216,6 +216,7 @@
     <string name="download_failed">Could not download update files from Nintendo. Please check your Internet connection and try again.</string>
     <string name="import_failed">"Could not install an update to the Wii system memory. Please refer to logs for more information.</string>
     <string name="update_cancelled">The update has been cancelled. It is strongly recommended to finish it in order to avoid inconsistent system software versions.</string>
+    <string name="update_cancelling">Please wait for the update to cancel.</string>
     <string name="update_success_title">Update completed</string>
     <string name="update_failed_title">Update failed</string>
     <string name="update_cancelled_title">Update cancelled</string>
@@ -424,6 +425,7 @@
     <string name="ok">OK</string>
     <string name="off">Off</string>
     <string name="cancel">Cancel</string>
+    <string name="cancelling">Cancelling…</string>
     <string name="clear">Clear</string>
     <string name="disabled">Disabled</string>
     <string name="other">Other</string>

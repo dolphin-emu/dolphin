@@ -95,6 +95,11 @@ public class SystemUpdateProgressBarDialogFragment extends DialogFragment
     SystemUpdateViewModel viewModel =
             new ViewModelProvider(requireActivity()).get(SystemUpdateViewModel.class);
     Button negativeButton = alertDialog.getButton(Dialog.BUTTON_NEGATIVE);
-    negativeButton.setOnClickListener(v -> viewModel.setCanceled());
+    negativeButton.setOnClickListener(v ->
+    {
+      alertDialog.setTitle(getString(R.string.cancelling));
+      alertDialog.setMessage(getString(R.string.update_cancelling));
+      viewModel.setCanceled();
+    });
   }
 }
