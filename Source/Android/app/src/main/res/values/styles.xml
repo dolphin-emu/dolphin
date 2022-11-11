@@ -47,7 +47,7 @@
 
     <style name="DolphinButton" parent="Widget.Material3.Button.TextButton.Dialog">
         <item name="android:textColor">@color/dolphin_primary</item>
-        <item name="rippleColor">@color/dolphin_secondary</item>
+        <item name="rippleColor">@color/dolphin_secondaryContainer</item>
     </style>
 
     <style name="DolphinPopup" parent="ThemeOverlay.Material3">
