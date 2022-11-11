@@ -23,8 +23,6 @@ enum class KeyboardGroup
   Kb3x,
   Kb4x,
   Kb5x,
-
-  Options
 };
 
 class GCKeyboard : public ControllerEmu::EmulatedController
@@ -43,7 +41,6 @@ private:
   ControllerEmu::Buttons* m_keys3x;
   ControllerEmu::Buttons* m_keys4x;
   ControllerEmu::Buttons* m_keys5x;
-  ControllerEmu::ControlGroup* m_options;
 
   const unsigned int m_index;
 };
