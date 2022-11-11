@@ -695,6 +695,9 @@ endif()
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/glslang)
 add_subdirectory(Externals/spirv_cross)
+add_subdirectory(Externals/Lua)
+include_directories(Externals/Lua/src)
+
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="..\..\Source\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7f0ecaf4-474e-4e14-a667-570587197bab}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ClCompile Include="src\lapi.c" />
+    <ClCompile Include="src\lauxlib.c" />
+    <ClCompile Include="src\lbaselib.c" />
+    <ClCompile Include="src\lcode.c" />
+    <ClCompile Include="src\lcorolib.c" />
+    <ClCompile Include="src\lctype.c" />
+    <ClCompile Include="src\ldblib.c" />
+    <ClCompile Include="src\ldebug.c" />
+    <ClCompile Include="src\ldo.c" />
+    <ClCompile Include="src\ldump.c" />
+    <ClCompile Include="src\lfunc.c" />
+    <ClCompile Include="src\lgc.c" />
+    <ClCompile Include="src\linit.c" />
+    <ClCompile Include="src\liolib.c" />
+    <ClCompile Include="src\llex.c" />
+    <ClCompile Include="src\lmathlib.c" />
+    <ClCompile Include="src\lmem.c" />
+    <ClCompile Include="src\loadlib.c" />
+    <ClCompile Include="src\lobject.c" />
+    <ClCompile Include="src\lopcodes.c" />
+    <ClCompile Include="src\loslib.c" />
+    <ClCompile Include="src\lparser.c" />
+    <ClCompile Include="src\lstate.c" />
+    <ClCompile Include="src\lstring.c" />
+    <ClCompile Include="src\lstrlib.c" />
+    <ClCompile Include="src\ltable.c" />
+    <ClCompile Include="src\ltablib.c" />
+    <ClCompile Include="src\ltm.c" />
+    <ClCompile Include="src\lua.c" />
+    <ClCompile Include="src\luac.c" />
+    <ClCompile Include="src\lundump.c" />
+    <ClCompile Include="src\lutf8lib.c" />
+    <ClCompile Include="src\lvm.c" />
+    <ClCompile Include="src\lzio.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="srz\lapi.h.h" />
+    <ClInclude Include="srz\lauxlib.h" />
+    <ClInclude Include="srz\lcode.h" />
+    <ClInclude Include="srz\lctype.h" />
+    <ClInclude Include="srz\ldebug.h" />
+    <ClInclude Include="srz\ldo.h" />
+    <ClInclude Include="srz\lfunc.h" />
+    <ClInclude Include="srz\lgc.h" />
+    <ClInclude Include="srz\ljumptab.h" />
+    <ClInclude Include="srz\llex.h" />
+    <ClInclude Include="srz\llimits.h" />
+    <ClInclude Include="srz\lmem.h" />
+    <ClInclude Include="srz\lobject.h" />
+    <ClInclude Include="srz\lopcodes.h" />
+    <ClInclude Include="srz\lopnames.h" />
+    <ClInclude Include="srz\lparser.h" />
+    <ClInclude Include="srz\lprefix.h" />
+    <ClInclude Include="srz\lstate.h" />
+    <ClInclude Include="srz\lstring.h" />
+    <ClInclude Include="srz\ltable.h" />
+    <ClInclude Include="srz\ltm.h" />
+    <ClInclude Include="srz\lua.h" />
+    <ClInclude Include="srz\lua.hpp" />
+    <ClInclude Include="srz\luaconf.h" />
+    <ClInclude Include="srz\lualib.h" />
+    <ClInclude Include="srz\lundump.h" />
+    <ClInclude Include="srz\lvm.h" />
+    <ClInclude Include="srz\lzio.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

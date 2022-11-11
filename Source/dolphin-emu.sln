@@ -85,6 +85,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FatFs", "..\Externals\FatFs
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spng", "..\Externals\libspng\spng.vcxproj", "{447B7B1E-1D74-4AEF-B2B9-6EB41C5D5313}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lua", "..\Externals\Lua\Lua.vcxproj", "{7F0ECAF4-474E-4E14-A667-570587197BAB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -409,6 +411,14 @@ Global
 		{447B7B1E-1D74-4AEF-B2B9-6EB41C5D5313}.Release|ARM64.Build.0 = Release|ARM64
 		{447B7B1E-1D74-4AEF-B2B9-6EB41C5D5313}.Release|x64.ActiveCfg = Release|x64
 		{447B7B1E-1D74-4AEF-B2B9-6EB41C5D5313}.Release|x64.Build.0 = Release|x64
+		{7F0ECAF4-474E-4E14-A667-570587197BAB}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{7F0ECAF4-474E-4E14-A667-570587197BAB}.Debug|ARM64.Build.0 = Debug|ARM64
+		{7F0ECAF4-474E-4E14-A667-570587197BAB}.Debug|x64.ActiveCfg = Debug|x64
+		{7F0ECAF4-474E-4E14-A667-570587197BAB}.Debug|x64.Build.0 = Debug|x64
+		{7F0ECAF4-474E-4E14-A667-570587197BAB}.Release|ARM64.ActiveCfg = Release|ARM64
+		{7F0ECAF4-474E-4E14-A667-570587197BAB}.Release|ARM64.Build.0 = Release|ARM64
+		{7F0ECAF4-474E-4E14-A667-570587197BAB}.Release|x64.ActiveCfg = Release|x64
+		{7F0ECAF4-474E-4E14-A667-570587197BAB}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
