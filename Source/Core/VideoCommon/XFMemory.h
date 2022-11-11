@@ -423,7 +423,7 @@ struct Projection
   ProjectionType type;
 };
 
-struct XFMemory
+struct alignas(16) XFMemory
 {
   float posMatrices[256];                   // 0x0000 - 0x00ff
   u32 unk0[768];                            // 0x0100 - 0x03ff

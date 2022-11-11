@@ -17,7 +17,7 @@ enum class SrcBlendFactor : u32;
 enum class ZTexOp : u32;
 enum class LogicOp : u32;
 
-struct PixelShaderConstants
+struct alignas(16) PixelShaderConstants
 {
   std::array<int4, 4> colors;
   std::array<int4, 4> kcolors;
@@ -60,7 +60,7 @@ struct PixelShaderConstants
   LogicOp logic_op_mode;
 };
 
-struct VertexShaderConstants
+struct alignas(16) VertexShaderConstants
 {
   u32 components;           // .x
   u32 xfmem_dualTexInfo;    // .y
@@ -109,7 +109,7 @@ enum class VSExpand : u32
   Line,
 };
 
-struct GeometryShaderConstants
+struct alignas(16) GeometryShaderConstants
 {
   float4 stereoparams;
   float4 lineptparams;

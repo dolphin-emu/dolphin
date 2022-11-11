@@ -634,6 +634,8 @@
     <ClInclude Include="VideoCommon\CommandProcessor.h" />
     <ClInclude Include="VideoCommon\ConstantManager.h" />
     <ClInclude Include="VideoCommon\CPMemory.h" />
+    <ClInclude Include="VideoCommon\CPUCull.h" />
+    <ClInclude Include="VideoCommon\CPUCullImpl.h" />
     <ClInclude Include="VideoCommon\DataReader.h" />
     <ClInclude Include="VideoCommon\DriverDetails.h" />
     <ClInclude Include="VideoCommon\Fifo.h" />
@@ -1238,6 +1240,7 @@
     <ClCompile Include="VideoCommon\BPStructs.cpp" />
     <ClCompile Include="VideoCommon\CommandProcessor.cpp" />
     <ClCompile Include="VideoCommon\CPMemory.cpp" />
+    <ClCompile Include="VideoCommon\CPUCull.cpp" />
     <ClCompile Include="VideoCommon\DriverDetails.cpp" />
     <ClCompile Include="VideoCommon\Fifo.cpp" />
     <ClCompile Include="VideoCommon\FramebufferManager.cpp" />

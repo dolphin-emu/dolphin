@@ -23,6 +23,9 @@ add_library(videocommon
   ConstantManager.h
   CPMemory.cpp
   CPMemory.h
+  CPUCull.cpp
+  CPUCull.h
+  CPUCullImpl.h
   DriverDetails.cpp
   DriverDetails.h
   Fifo.cpp
