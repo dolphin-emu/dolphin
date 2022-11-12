@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="Theme.V27.Dolphin" parent="Theme.Dolphin">
-        <item name="android:windowLightNavigationBar">@bool/lightSystemBars</item>
-    </style>
-
-    <style name="Theme.Dolphin.Main" parent="Theme.V27.Dolphin" />
-</resources>

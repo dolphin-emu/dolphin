@@ -8,6 +8,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.UserDataActivity;
@@ -328,33 +330,37 @@ public final class SettingsFragmentPresenter
 
     AbstractIntSetting appTheme = new AbstractIntSetting()
     {
-      @Override public boolean isOverridden(Settings settings)
+      @Override
+      public boolean isOverridden(Settings settings)
       {
         return IntSetting.MAIN_INTERFACE_THEME.isOverridden(settings);
       }
 
-      @Override public boolean isRuntimeEditable()
+      @Override
+      public boolean isRuntimeEditable()
       {
         // This only affects app UI
         return true;
       }
 
-      @Override public boolean delete(Settings settings)
+      @Override
+      public boolean delete(Settings settings)
       {
-        ThemeHelper.deleteThemeKey(mView.getActivity());
+        ThemeHelper.deleteThemeKey((AppCompatActivity) mView.getActivity());
         return IntSetting.MAIN_INTERFACE_THEME.delete(settings);
       }
 
-      @Override public int getInt(Settings settings)
+      @Override
+      public int getInt(Settings settings)
       {
         return IntSetting.MAIN_INTERFACE_THEME.getInt(settings);
       }
 
-      @Override public void setInt(Settings settings, int newValue)
+      @Override
+      public void setInt(Settings settings, int newValue)
       {
-        ThemeHelper.saveTheme(mView.getActivity(), newValue);
         IntSetting.MAIN_INTERFACE_THEME.setInt(settings, newValue);
-        mView.getActivity().recreate();
+        ThemeHelper.saveTheme((AppCompatActivity) mView.getActivity(), newValue);
       }
     };
 
@@ -369,6 +375,45 @@ public final class SettingsFragmentPresenter
       sl.add(new SingleChoiceSetting(mContext, appTheme, R.string.change_theme, 0,
               R.array.themeEntries, R.array.themeValues));
     }
+
+    AbstractIntSetting themeMode = new AbstractIntSetting()
+    {
+      @Override
+      public boolean isOverridden(Settings settings)
+      {
+        return IntSetting.MAIN_INTERFACE_THEME_MODE.isOverridden(settings);
+      }
+
+      @Override
+      public boolean isRuntimeEditable()
+      {
+        // This only affects app UI
+        return true;
+      }
+
+      @Override
+      public boolean delete(Settings settings)
+      {
+        ThemeHelper.deleteThemeModeKey((AppCompatActivity) mView.getActivity());
+        return IntSetting.MAIN_INTERFACE_THEME_MODE.delete(settings);
+      }
+
+      @Override
+      public int getInt(Settings settings)
+      {
+        return IntSetting.MAIN_INTERFACE_THEME_MODE.getInt(settings);
+      }
+
+      @Override
+      public void setInt(Settings settings, int newValue)
+      {
+        IntSetting.MAIN_INTERFACE_THEME_MODE.setInt(settings, newValue);
+        ThemeHelper.saveThemeMode((AppCompatActivity) mView.getActivity(), newValue);
+      }
+    };
+
+    sl.add(new SingleChoiceSetting(mContext, themeMode, R.string.change_theme_mode, 0,
+            R.array.themeModeEntries, R.array.themeModeValues));
   }
 
   private void addAudioSettings(ArrayList<SettingsItem> sl)

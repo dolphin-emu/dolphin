@@ -196,6 +196,7 @@
     <string name="show_titles_in_game_list">Show Titles in Game List</string>
     <string name="show_titles_in_game_list_description">Show the title and creator below each game cover.</string>
     <string name="change_theme">Change App Theme</string>
+    <string name="change_theme_mode">Change Theme Mode</string>
 
     <!-- Online Update Region Select Fragment -->
     <string name="region_select_title">Please select a region</string>
