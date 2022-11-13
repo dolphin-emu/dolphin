@@ -14,6 +14,7 @@
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/Tev.h"
+#include "VideoBackends/Software/TextureSampler.h"
 #include "VideoBackends/Software/TransformUnit.h"
 
 #include "VideoCommon/CPMemory.h"
@@ -65,6 +66,12 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
 
   m_setup_unit.Init(primitive_type);
   Rasterizer::SetTevKonstColors();
+
+  for (int i = 0; i < 8; i++)
+  {
+    // TODO: We can probably skip texture units which aren't used, or haven't changed
+    TextureSampler::SetupSampler(i);
+  }
 
   for (u32 i = 0; i < m_index_generator.GetIndexLen(); i++)
   {

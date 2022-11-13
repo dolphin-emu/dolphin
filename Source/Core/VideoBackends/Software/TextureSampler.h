@@ -7,9 +7,10 @@
 
 namespace TextureSampler
 {
+void SetupSampler(u8 texmap);
 void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample);
 
-void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample);
+void SampleMip(s32 s, s32 t, u32 mip, bool linear, u8 texmap, u8* sample);
 
 enum
 {

@@ -112,63 +112,108 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
   }
 }
 
-void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
+constexpr u32 maxMips = 10;
+
+struct SamplerState
 {
-  auto texUnit = bpmem.tex.GetUnit(texmap);
+  u32 width;
+  u32 height;
+  u8* pointer;
+  u8* pointer_odd;
+  u8* pointer_tlut;
+  u32 mipOffsets[maxMips + 1];
+  TextureFormat texfmt;
+  TLUTFormat tlutfmt;
+  bool manually_managed;
+  WrapMode wrap_s;
+  WrapMode wrap_t;
+};
+
+static SamplerState Units[8];
+
+void SetupSampler(u8 texmap)
+{
+  auto& state = Units[texmap];
+  auto& texUnit = bpmem.tex.GetUnit(texmap);
 
   const TexMode0& tm0 = texUnit.texMode0;
   const TexImage0& ti0 = texUnit.texImage0;
   const TexTLUT& texTlut = texUnit.texTlut;
-  const TextureFormat texfmt = ti0.format;
-  const TLUTFormat tlutfmt = texTlut.tlut_format;
+  state.texfmt = ti0.format;
+  state.tlutfmt = texTlut.tlut_format;
 
-  const u8* imageSrc;
-  const u8* imageSrcOdd = nullptr;
   if (texUnit.texImage1.cache_manually_managed)
   {
-    imageSrc = &texMem[texUnit.texImage1.tmem_even * TMEM_LINE_SIZE];
-    if (texfmt == TextureFormat::RGBA8)
-      imageSrcOdd = &texMem[texUnit.texImage2.tmem_odd * TMEM_LINE_SIZE];
+    state.pointer = &texMem[texUnit.texImage1.tmem_even * TMEM_LINE_SIZE];
+    if (state.texfmt == TextureFormat::RGBA8)
+      state.pointer_odd = &texMem[texUnit.texImage2.tmem_odd * TMEM_LINE_SIZE];
   }
   else
   {
     const u32 imageBase = texUnit.texImage3.image_base << 5;
-    imageSrc = Memory::GetPointer(imageBase);
+    state.pointer = Memory::GetPointer(imageBase);
   }
 
-  int image_width_minus_1 = ti0.width;
-  int image_height_minus_1 = ti0.height;
+  state.width = ti0.width + 1;
+  state.height = ti0.height + 1;
 
   const int tlutAddress = texTlut.tmem_offset << 9;
-  const u8* tlut = &texMem[tlutAddress];
+  state.pointer_tlut = &texMem[tlutAddress];
 
-  // reduce sample location and texture size to mip level
-  // move texture pointer to mip location
-  if (mip)
+  // Precalculate mipmap offsets
+  if (tm0.mipmap_filter != MipMode::None)
   {
-    int mipWidth = image_width_minus_1 + 1;
-    int mipHeight = image_height_minus_1 + 1;
+    int mipWidth = state.width;
+    int mipHeight = state.height;
 
-    const int fmtWidth = TexDecoder_GetBlockWidthInTexels(texfmt);
-    const int fmtHeight = TexDecoder_GetBlockHeightInTexels(texfmt);
-    const int fmtDepth = TexDecoder_GetTexelSizeInNibbles(texfmt);
+    const int fmtWidth = TexDecoder_GetBlockWidthInTexels(state.texfmt);
+    const int fmtHeight = TexDecoder_GetBlockHeightInTexels(state.texfmt);
+    const int fmtDepth = TexDecoder_GetTexelSizeInNibbles(state.texfmt);
 
-    image_width_minus_1 >>= mip;
-    image_height_minus_1 >>= mip;
-    s >>= mip;
-    t >>= mip;
+    u32 mipIdx = 0;
+    u32 offset = 0;
 
-    while (mip)
+    while (mipIdx < maxMips)
     {
       mipWidth = std::max(mipWidth, fmtWidth);
       mipHeight = std::max(mipHeight, fmtHeight);
       const u32 size = (mipWidth * mipHeight * fmtDepth) >> 1;
 
-      imageSrc += size;
+      offset += size;
+      state.mipOffsets[mipIdx++] = offset;
       mipWidth >>= 1;
       mipHeight >>= 1;
-      mip--;
     }
+  }
+  else
+  {
+    memset(state.mipOffsets, 0, sizeof(state.mipOffsets));
+  }
+
+  state.manually_managed = texUnit.texImage1.cache_manually_managed;
+  state.wrap_s = tm0.wrap_s;
+  state.wrap_t = tm0.wrap_t;
+}
+void SampleMip(s32 s, s32 t, u32 mip, bool linear, u8 texmap, u8* sample)
+{
+  auto& state = Units[texmap];
+
+  int image_width_minus_1 = state.width - 1;
+  int image_height_minus_1 = state.height - 1;
+
+  u8* imageSrc = state.pointer;
+  u8* imageSrcOdd = state.pointer_odd;
+
+  // reduce sample location and texture size to mip level
+  // move texture pointer to mip location
+  if (mip)
+  {
+    image_width_minus_1 >>= mip;
+    image_height_minus_1 >>= mip;
+    s >>= mip;
+    t >>= mip;
+
+    imageSrc += state.mipOffsets[std::min(maxMips, mip) - 1];
   }
 
   if (linear)
@@ -188,31 +233,23 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     int imageTPlus1 = imageT + 1;
     const int fractT = t & 0x7f;
 
-    u8 sampledTex[4];
+    u8 sampledTex[16];
     u32 texel[4];
 
-    WrapCoord(&imageS, tm0.wrap_s, image_width_minus_1 + 1);
-    WrapCoord(&imageT, tm0.wrap_t, image_height_minus_1 + 1);
-    WrapCoord(&imageSPlus1, tm0.wrap_s, image_width_minus_1 + 1);
-    WrapCoord(&imageTPlus1, tm0.wrap_t, image_height_minus_1 + 1);
+    WrapCoord(&imageS, state.wrap_s, image_width_minus_1 + 1);
+    WrapCoord(&imageT, state.wrap_t, image_height_minus_1 + 1);
+    WrapCoord(&imageSPlus1, state.wrap_s, image_width_minus_1 + 1);
+    WrapCoord(&imageTPlus1, state.wrap_t, image_height_minus_1 + 1);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
+    if (!(state.texfmt == TextureFormat::RGBA8 && state.manually_managed))
     {
-      TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageT, image_width_minus_1, texfmt,
-                             tlut, tlutfmt);
+      TexDecoder_DecodeTexelQuad(sampledTex, imageSrc, imageS, imageT, imageSPlus1, imageTPlus1,
+                                 image_width_minus_1, state.texfmt, state.pointer_tlut,
+                                 state.tlutfmt);
       SetTexel(sampledTex, texel, (128 - fractS) * (128 - fractT));
-
-      TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageT, image_width_minus_1, texfmt,
-                             tlut, tlutfmt);
-      AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
-
-      TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageTPlus1, image_width_minus_1, texfmt,
-                             tlut, tlutfmt);
-      AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
-
-      TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageTPlus1, image_width_minus_1,
-                             texfmt, tlut, tlutfmt);
-      AddTexel(sampledTex, texel, (fractS) * (fractT));
+      AddTexel(sampledTex + 4, texel, (fractS) * (128 - fractT));
+      AddTexel(sampledTex + 8, texel, (128 - fractS) * (fractT));
+      AddTexel(sampledTex + 12, texel, (fractS) * (fractT));
     }
     else
     {
@@ -245,15 +282,16 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     int imageT = t >> 7;
 
     // nearest neighbor sampling
-    WrapCoord(&imageS, tm0.wrap_s, image_width_minus_1 + 1);
-    WrapCoord(&imageT, tm0.wrap_t, image_height_minus_1 + 1);
+    WrapCoord(&imageS, state.wrap_s, image_width_minus_1 + 1);
+    WrapCoord(&imageT, state.wrap_t, image_height_minus_1 + 1);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
-      TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, image_width_minus_1, texfmt, tlut,
-                             tlutfmt);
+    if (!(state.texfmt == TextureFormat::RGBA8 && state.manually_managed))
+      TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, image_width_minus_1, state.texfmt,
+                             state.pointer_tlut, state.tlutfmt);
     else
       TexDecoder_DecodeTexelRGBA8FromTmem(sample, imageSrc, imageSrcOdd, imageS, imageT,
                                           image_width_minus_1);
   }
 }
+
 }  // namespace TextureSampler
