@@ -65,7 +65,7 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 
     int columns = getResources().getInteger(R.integer.game_grid_columns);
     RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getActivity(), columns);
-    mAdapter = new GameAdapter();
+    mAdapter = new GameAdapter(requireActivity());
 
     // Set theme color to the refresh animation's background
     mSwipeRefresh.setProgressBackgroundColorSchemeColor(
