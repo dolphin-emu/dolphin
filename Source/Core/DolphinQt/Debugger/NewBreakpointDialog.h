@@ -29,11 +29,14 @@ private:
 
   void OnBPTypeChanged();
   void OnAddressTypeChanged();
+  void ShowConditionHelp();
 
   // Instruction BPs
   QRadioButton* m_instruction_bp;
   QGroupBox* m_instruction_box;
   QLineEdit* m_instruction_address;
+  QLineEdit* m_instruction_condition;
+  QPushButton* m_cond_help_btn;
 
   // Memory BPs
   QRadioButton* m_memory_bp;

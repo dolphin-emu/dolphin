@@ -4,10 +4,12 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/PowerPC/Expression.h"
 
 namespace Common
 {
@@ -21,6 +23,7 @@ struct TBreakPoint
   bool is_temporary = false;
   bool log_on_hit = false;
   bool break_on_hit = false;
+  std::optional<Expression> condition;
 };
 
 struct TMemCheck
@@ -59,13 +62,13 @@ public:
   bool IsAddressBreakPoint(u32 address) const;
   bool IsBreakPointEnable(u32 adresss) const;
   bool IsTempBreakPoint(u32 address) const;
-  bool IsBreakPointBreakOnHit(u32 address) const;
-  bool IsBreakPointLogOnHit(u32 address) const;
+  const TBreakPoint* GetBreakpoint(u32 address) const;
 
   // Add BreakPoint
-  void Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit);
+  void Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit,
+           std::optional<Expression> condition);
   void Add(u32 address, bool temp = false);
-  void Add(const TBreakPoint& bp);
+  void Add(TBreakPoint bp);
 
   // Modify Breakpoint
   bool ToggleBreakPoint(u32 address);
