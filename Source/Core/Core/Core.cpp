@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstring>
+#include <condition_variable>
 #include <mutex>
 #include <queue>
 #include <utility>
@@ -60,6 +61,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/IOS.h"
+#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/MemTools.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
@@ -885,6 +887,13 @@ void Callback_NewField()
       CPU::Break();
       CallOnStateChangedCallbacks(Core::GetState());
     }
+  }
+
+  if (Lua::Lua_emu::luaScriptActive) //notifies the Lua thread that the next frame has started for frame advance calls.
+  {
+    std::unique_lock lk(Lua::Lua_emu::frameAdvanceLock);
+    Lua::Lua_emu::frameAdvanceConditionalVariable.notify_all();
+    lk.unlock();
   }
 }
 

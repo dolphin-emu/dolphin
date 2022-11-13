@@ -26,6 +26,7 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
 #include "Core/IOS/IOS.h"
+#include "Core/Lua/Lua.h"
 #include "Core/State.h"
 
 namespace HW
@@ -58,10 +59,12 @@ void Init(const Sram* override_sram)
     IOS::Init();
     IOS::HLE::Init();  // Depends on Memory
   }
+  Lua::Init();
 }
 
 void Shutdown()
 {
+  Lua::Shutdown();
   // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown();  // Depends on Memory
   IOS::Shutdown();
