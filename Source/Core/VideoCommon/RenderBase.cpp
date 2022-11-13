@@ -400,7 +400,7 @@ bool Renderer::CalculateTargetSize()
     // Set a scale based on the window size
     int width = EFB_WIDTH * m_target_rectangle.GetWidth() / m_last_xfb_width;
     int height = EFB_HEIGHT * m_target_rectangle.GetHeight() / m_last_xfb_height;
-    m_efb_scale = std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
+    m_efb_scale = std::max((width - 1) / EFB_WIDTH, (height - 1) / EFB_HEIGHT + 1);
   }
   else
   {
