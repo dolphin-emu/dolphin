@@ -122,6 +122,9 @@ signals:
   // Synbols
   void NotifySymbolsUpdated();
 
+  // Stat Viewer
+  void ShowStatViewer();
+
 private:
   void OnEmulationStateChanged(Core::State state);
 

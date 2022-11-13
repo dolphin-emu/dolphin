@@ -522,16 +522,15 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
   }
 }
 
-void Metadata::setMatchMetadata(tm* matchDateTimeParam, float homeTeamPossesionFrames,
-                                float awayTeamPossesionFrames)
+void Metadata::setMatchMetadata(tm* matchDateTimeParam)
 {
   // have consistent time across the output file and the in-json time
   matchDateTime = matchDateTimeParam;
 
   // set match info vars
 
-  homeTeamPossesionFrameCount = homeTeamPossesionFrames;
-  awayTeamPossesionFrameCount = awayTeamPossesionFrames;
+  homeTeamPossesionFrameCount = Memory::Read_U32(addressLeftTeamBallOwnedFrames);
+  awayTeamPossesionFrameCount = Memory::Read_U32(addressRightTeamBallOwnedFrames);
 
   const AddressSpace::Accessors* accessors =
       AddressSpace::GetAccessors(AddressSpace::Type::Effective);

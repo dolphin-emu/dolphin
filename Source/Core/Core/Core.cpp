@@ -107,8 +107,6 @@ namespace Core
 static bool boolMatchStart = false;
 static bool boolMatchEnd = false;
 static bool wroteCodes = false;
-static float homeTeamPossesionFrames = 0;
-static float awayTeamPossesionFrames = 0;
 static bool s_wants_determinism;
 
 // Declarations and definitions
@@ -191,8 +189,9 @@ void OnFrameEnd()
   if (s_memory_watcher)
     s_memory_watcher->Step();
 #endif
-  // inject ALWAYS requried replay codes
-  if (!StateAuxillary::getBoolWroteCodes())
+  // inject ALWAYS requried replay codes if we're not playing back a recording
+  // we don't want to mess up past save states with current, possibly different, gecko codes
+  if (!StateAuxillary::getBoolWroteCodes() && !Movie::IsPlayingInput())
   {
     DefaultGeckoCodes codeWriter;
     codeWriter.RunCodeInject(false);
@@ -221,25 +220,8 @@ void OnFrameEnd()
     StateAuxillary::startRecording();
     StateAuxillary::setBoolMatchEnd(false);
     boolMatchEnd = false;
-    homeTeamPossesionFrames = 0;
-    awayTeamPossesionFrames = 0;
-    //direcotry gets created from UICommon.cpp now
-  }
 
-  // game can be checked to see if it's paused or not at 803725c1 (8 bit)
-  // 1 is paused, 0 is active
-  static const u32 pausedOrActive = 0x803725c1;
-  if (boolMatchStart && !boolMatchEnd && Memory::Read_U8(pausedOrActive) == 0)
-  {
-    int currentBallOwner = Memory::Read_U8(0x80311009);
-    if ((currentBallOwner >= 0 && currentBallOwner <= 3) || currentBallOwner == 8)
-    {
-      homeTeamPossesionFrames++;
-    }
-    else if ((currentBallOwner >= 4 && currentBallOwner <= 7) || currentBallOwner == 9)
-    {
-      awayTeamPossesionFrames++;
-    }
+    //direcotry gets created from UICommon.cpp now
   }
 
   //match end
@@ -271,7 +253,7 @@ void OnFrameEnd()
     */
     std::string uiFileName = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.dtm";
 
-    StateAuxillary::stopRecording(uiFileName, curr_tm, homeTeamPossesionFrames, awayTeamPossesionFrames);
+    StateAuxillary::stopRecording(uiFileName, curr_tm);
     StateAuxillary::setBoolMatchStart(false);
     boolMatchStart = false;
   }

@@ -103,6 +103,7 @@
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/ResourcePackManager.h"
+#include "DolphinQt/StatViewer.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/RiivolutionBootWidget.h"
 #include "DolphinQt/SearchBar.h"
@@ -528,6 +529,8 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
   connect(m_menu_bar, &MenuBar::ShowResourcePackManager, this,
           &MainWindow::ShowResourcePackManager);
+  connect(m_menu_bar, &MenuBar::ShowStatViewer, this,
+          &MainWindow::ShowStatViewer);
   connect(m_menu_bar, &MenuBar::ShowCheatsManager, this, &MainWindow::ShowCheatsManager);
   connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
@@ -1829,6 +1832,13 @@ void MainWindow::ShowMemcardManager()
 void MainWindow::ShowResourcePackManager()
 {
   ResourcePackManager manager(this);
+
+  manager.exec();
+}
+
+void MainWindow::ShowStatViewer()
+{
+  StatViewer manager(this);
 
   manager.exec();
 }

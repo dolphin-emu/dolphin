@@ -39,12 +39,10 @@ private:
        0x39e0012c, 0x91ee0004, 0x39e00001, 0x99ee0008, 0x39e00000, 0x99ee0009, 0x99ee000a}};
 
   const DefaultGeckoCode replayStart = {
-      0x800f83f8,
-      0, {0x38210010, 0x3DC08040, 0x89EE0000, 0x2C0F0000, 0x4082005C, 0x39E00001,
+      0x800f83f8, 0, {0x38210010, 0x3DC08040, 0x89EE0000, 0x2C0F0000, 0x40820040, 0x39E00001,
                       0x99EE0000, 0x39E00000, 0x99EE0001, 0x99EE0002, 0x3DC08043, 0x91EE0000,
-                      0x91EE0004, 0x91EE0008, 0x91EE000C, 0x91EE0010, 0x91EE0014, 0x91EE0018,
-                      0x91EE001C, 0x91EE0020, 0x91EE0024, 0x91EE0028, 0x91EE002C, 0x91EE0030,
-                      0x91EE0034, 0x91EE0038, 0x91EE003C}};
+                      0x91EE0004, 0x91EE0008, 0x91EE0010, 0x91EE0014, 0x91EE0018, 0x3DC08048,
+                      0x91EE0000, 0x91EE0004, 0x60000000}};
 
   const DefaultGeckoCode replayEnd = {0x80100e14,
                                       0,
@@ -103,12 +101,22 @@ private:
        0xB1EE001E, 0x3DC08031, 0x39CE2ADC, 0x81EE0000, 0x820E0004, 0x3DC08043, 0x91EE0030,
        0x920E0034, 0x3E208037, 0x3A313708, 0x82110000, 0x8210000C, 0x82100008, 0x920E0038}};
 
+  const DefaultGeckoCode recordBallOwnership = {0x800f90a8,
+                                                0,
+    {0x8B8404C1, 0x8063000C, 0x81E30008, 0x3DC08040, 0x820E0004, 0x7C0F8000,
+    0x41820050, 0x3DC08031, 0x39CE1009, 0x89EE0000, 0x2C0F0003, 0x3E008048,
+    0x41810014, 0x81F00000, 0x39EF0001, 0x91F00000, 0x48000028, 0x2C0F0008,
+    0x40820014, 0x81F00000, 0x39EF0001, 0x91F00000, 0x48000010, 0x81F00004,
+    0x39EF0001, 0x91F00004, 0x806DA6C8}};
+
   void WriteAsm(DefaultGeckoCode CodeBlock);
   u32 aWriteAddr;  // address where the first code gets written to
 
   std::vector<DefaultGeckoCode> sRequiredCodes = {
-      replayStart,       replayEnd,        replayQuit,           replayOvertime,        replayGrudgeFlag1, replayRecordTime,
-      replayTimeAllottedHUD, recordItemUse, recordGoalTimestamp, recordMissedShots};
+      replayStart,
+      replayEnd,        replayQuit,           replayOvertime,        replayGrudgeFlag1, replayRecordTime,
+      replayTimeAllottedHUD, recordItemUse,      recordGoalTimestamp,
+      recordMissedShots,     recordBallOwnership};
 
   /*
   std::vector<DefaultGeckoCode> sNetplayCodes = {

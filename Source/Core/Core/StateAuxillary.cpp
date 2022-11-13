@@ -100,8 +100,7 @@ void StateAuxillary::startRecording()
   t2.detach();
 }
 
-void StateAuxillary::stopRecording(const std::string replay_path, tm* matchDateTimeParam,
-                                   float homeTeamPossesionFrames, float awayTeamPossesionFrames)
+void StateAuxillary::stopRecording(const std::string replay_path, tm* matchDateTimeParam)
 {
   // not moving this to its own thread as of now
   if (Movie::IsRecordingInput())
@@ -112,7 +111,7 @@ void StateAuxillary::stopRecording(const std::string replay_path, tm* matchDateT
   {
     Movie::EndPlayInput(false);
   }
-  Metadata::setMatchMetadata(matchDateTimeParam, homeTeamPossesionFrames, awayTeamPossesionFrames);
+  Metadata::setMatchMetadata(matchDateTimeParam);
   std::string jsonString = Metadata::getJSONString();
   std::thread t3(&Metadata::writeJSON, jsonString, true);
   t3.detach();

@@ -157,6 +157,7 @@ private:
   void ShowFIFOPlayer();
   void ShowMemcardManager();
   void ShowResourcePackManager();
+  void ShowStatViewer();
   void ShowCheatsManager();
   void ShowRiivolutionBootWidget(const UICommon::GameFile& game);
 

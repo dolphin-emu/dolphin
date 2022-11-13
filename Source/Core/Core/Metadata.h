@@ -10,8 +10,7 @@ class Metadata
 public:
   static std::string getJSONString();
   static void writeJSON(std::string jsonString, bool callBatch = true);
-  static void setMatchMetadata(tm* matchDateTimeParam, float homeTeamPossesionFrames,
-                               float awayTeamPossesionFrames);
+  static void setMatchMetadata(tm* matchDateTimeParam);
   static void setPlayerName(std::string playerNameParam);
   static void setPlayerArray(std::vector<const NetPlay::Player*>);
   static void setNetPlayControllers(NetPlay::PadMappingArray m_pad_map);
@@ -114,4 +113,12 @@ public:
   static const u32 addressLeftTeamMissedShotsStart = 0x80460000;
   // right team missed shots
   static const u32 addressRightTeamMissedShotsStart = 0x80470000;
+
+  // i thought about putting these next 2 at 8040000c/e and making them half words
+  // but if a player got more than ffff, aka 18 minutes, we would experience disparity
+  // 
+  // left team ball possessed frames
+  static const u32 addressLeftTeamBallOwnedFrames = 0x80480000;
+  // right team ball possessed frames
+  static const u32 addressRightTeamBallOwnedFrames = 0x80480004;
 };
