@@ -27,5 +27,4 @@ private:
   QWidget* m_parent;
   std::string m_update_track;
   std::string m_hash_override;
-  bool m_update_available = false;
 };
