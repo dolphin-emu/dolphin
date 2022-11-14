@@ -23,6 +23,7 @@ class ControllersWindow;
 class DiscordHandler;
 class DragEnterEvent;
 class FIFOPlayerWindow;
+class StatViewer;
 class FreeLookWindow;
 class GameList;
 class GCTASInputWindow;
@@ -217,6 +218,7 @@ private:
   SettingsWindow* m_settings_window = nullptr;
   GraphicsWindow* m_graphics_window = nullptr;
   FIFOPlayerWindow* m_fifo_window = nullptr;
+  StatViewer* m_stat_viewer_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
 

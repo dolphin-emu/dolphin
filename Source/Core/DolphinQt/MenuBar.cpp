@@ -228,7 +228,7 @@ void MenuBar::AddToolsMenu()
   tools_menu->addAction(tr("&Resource Pack Manager"), this,
                         [this] { emit ShowResourcePackManager(); });
 
-  tools_menu->addAction(tr("&Stat Viewer"), this,
+  tools_menu->addAction(tr("&Live Stat Viewer"), this,
                         [this] { emit ShowStatViewer(); });
 
   tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });

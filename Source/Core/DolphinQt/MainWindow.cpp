@@ -1838,9 +1838,14 @@ void MainWindow::ShowResourcePackManager()
 
 void MainWindow::ShowStatViewer()
 {
-  StatViewer manager(this);
+  if (!m_stat_viewer_window)
+  {
+    m_stat_viewer_window = new StatViewer;
+  }
 
-  manager.exec();
+  m_stat_viewer_window->show();
+  m_stat_viewer_window->raise();
+  m_stat_viewer_window->activateWindow();
 }
 
 void MainWindow::ShowCheatsManager()
