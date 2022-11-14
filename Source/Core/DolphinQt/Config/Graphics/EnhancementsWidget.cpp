@@ -7,6 +7,7 @@
 
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -16,6 +17,7 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
+#include "DolphinQt/Config/Graphics/GraphicsRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
@@ -81,8 +83,19 @@ void EnhancementsWidget::CreateWidgets()
   m_scaled_efb_copy = new GraphicsBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
   m_per_pixel_lighting =
       new GraphicsBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);
-  m_force_texture_filtering =
-      new GraphicsBool(tr("Force Texture Filtering"), Config::GFX_ENHANCE_FORCE_FILTERING);
+
+  const std::array<const char*, 3> texture_filtering_modes = {{
+      QT_TR_NOOP("Default"),
+      QT_TR_NOOP("Force Nearest"),
+      QT_TR_NOOP("Force Linear"),
+  }};
+  for (size_t i = 0; i < texture_filtering_modes.size(); ++i)
+  {
+    m_force_texture_filtering[i] =
+        new GraphicsRadioInt(tr(texture_filtering_modes[i]),
+                             Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING, static_cast<int>(i));
+  }
+
   m_widescreen_hack = new GraphicsBool(tr("Widescreen Hack"), Config::GFX_WIDESCREEN_HACK);
   m_disable_fog = new GraphicsBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG);
   m_force_24bit_color =
@@ -92,25 +105,45 @@ void EnhancementsWidget::CreateWidgets()
   m_arbitrary_mipmap_detection = new GraphicsBool(tr("Arbitrary Mipmap Detection"),
                                                   Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
 
-  enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), 0, 0);
-  enhancements_layout->addWidget(m_ir_combo, 0, 1, 1, -1);
-  enhancements_layout->addWidget(new QLabel(tr("Anti-Aliasing:")), 1, 0);
-  enhancements_layout->addWidget(m_aa_combo, 1, 1, 1, -1);
-  enhancements_layout->addWidget(new QLabel(tr("Anisotropic Filtering:")), 2, 0);
-  enhancements_layout->addWidget(m_af_combo, 2, 1, 1, -1);
+  int row = 0;
+  enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), row, 0);
+  enhancements_layout->addWidget(m_ir_combo, row, 1, 1, -1);
+  ++row;
 
-  enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), 4, 0);
-  enhancements_layout->addWidget(m_pp_effect, 4, 1);
-  enhancements_layout->addWidget(m_configure_pp_effect, 4, 2);
+  enhancements_layout->addWidget(new QLabel(tr("Anti-Aliasing:")), row, 0);
+  enhancements_layout->addWidget(m_aa_combo, row, 1, 1, -1);
+  ++row;
 
-  enhancements_layout->addWidget(m_scaled_efb_copy, 5, 0);
-  enhancements_layout->addWidget(m_per_pixel_lighting, 5, 1);
-  enhancements_layout->addWidget(m_force_texture_filtering, 6, 0);
-  enhancements_layout->addWidget(m_widescreen_hack, 6, 1);
-  enhancements_layout->addWidget(m_disable_fog, 7, 0);
-  enhancements_layout->addWidget(m_force_24bit_color, 7, 1);
-  enhancements_layout->addWidget(m_disable_copy_filter, 8, 0);
-  enhancements_layout->addWidget(m_arbitrary_mipmap_detection, 8, 1);
+  enhancements_layout->addWidget(new QLabel(tr("Anisotropic Filtering:")), row, 0);
+  enhancements_layout->addWidget(m_af_combo, row, 1, 1, -1);
+  ++row;
+
+  enhancements_layout->addWidget(new QLabel(tr("Texture Filtering:")), row, 0);
+  auto* force_filtering_box = new QHBoxLayout();
+  for (size_t i = 0; i < texture_filtering_modes.size(); ++i)
+    force_filtering_box->addWidget(m_force_texture_filtering[i]);
+  enhancements_layout->addLayout(force_filtering_box, row, 1, 1, -1);
+  ++row;
+
+  enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), row, 0);
+  enhancements_layout->addWidget(m_pp_effect, row, 1);
+  enhancements_layout->addWidget(m_configure_pp_effect, row, 2);
+  ++row;
+
+  enhancements_layout->addWidget(m_scaled_efb_copy, row, 0);
+  enhancements_layout->addWidget(m_per_pixel_lighting, row, 1, 1, -1);
+  ++row;
+
+  enhancements_layout->addWidget(m_widescreen_hack, row, 0);
+  enhancements_layout->addWidget(m_force_24bit_color, row, 1, 1, -1);
+  ++row;
+
+  enhancements_layout->addWidget(m_disable_fog, row, 0);
+  enhancements_layout->addWidget(m_arbitrary_mipmap_detection, row, 1, 1, -1);
+  ++row;
+
+  enhancements_layout->addWidget(m_disable_copy_filter, row, 0);
+  ++row;
 
   // Stereoscopy
   auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
@@ -352,11 +385,10 @@ void EnhancementsWidget::AddDescriptions()
       "quality by reducing color banding.<br><br>Has no impact on performance and causes "
       "few graphical issues.<br><br><dolphin_emphasis>If unsure, leave this "
       "checked.</dolphin_emphasis>");
-  static const char TR_FORCE_TEXTURE_FILTERING_DESCRIPTION[] =
-      QT_TR_NOOP("Filters all textures, including any that the game explicitly set as "
-                 "unfiltered.<br><br>May improve quality of certain textures in some games, but "
-                 "will cause issues in others.<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
+  static const char TR_FORCE_TEXTURE_FILTERING_DESCRIPTION[] = QT_TR_NOOP(
+      "Override the texture scaling filter selected by the game.<br><br>Any option "
+      "except 'Default' will alter the look of the game's textures and may cause "
+      "issues.<br><br><dolphin_emphasis>If unsure, leave this on 'Default'.</dolphin_emphasis>");
   static const char TR_DISABLE_COPY_FILTER_DESCRIPTION[] = QT_TR_NOOP(
       "Disables the blending of adjacent rows when copying the EFB. This is known in "
       "some games as \"deflickering\" or \"smoothing\".<br><br>Disabling the filter has no "
@@ -394,7 +426,8 @@ void EnhancementsWidget::AddDescriptions()
 
   m_force_24bit_color->SetDescription(tr(TR_FORCE_24BIT_DESCRIPTION));
 
-  m_force_texture_filtering->SetDescription(tr(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
+  for (size_t i = 0; i < m_force_texture_filtering.size(); ++i)
+    m_force_texture_filtering[i]->SetDescription(tr(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
 
   m_disable_copy_filter->SetDescription(tr(TR_DISABLE_COPY_FILTER_DESCRIPTION));
 

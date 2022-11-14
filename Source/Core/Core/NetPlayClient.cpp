@@ -872,7 +872,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.fast_depth_calc;
     packet >> m_net_settings.enable_pixel_lighting;
     packet >> m_net_settings.widescreen_hack;
-    packet >> m_net_settings.force_filtering;
+    packet >> m_net_settings.force_texture_filtering;
     packet >> m_net_settings.max_anisotropy;
     packet >> m_net_settings.force_true_color;
     packet >> m_net_settings.disable_copy_filter;

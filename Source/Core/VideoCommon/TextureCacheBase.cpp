@@ -1001,7 +1001,13 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
   state.Generate(bpmem, index);
 
   // Force texture filtering config option.
-  if (g_ActiveConfig.bForceFiltering)
+  if (g_ActiveConfig.texture_filtering_mode == TextureFilteringMode::Nearest)
+  {
+    state.tm0.min_filter = FilterMode::Near;
+    state.tm0.mag_filter = FilterMode::Near;
+    state.tm0.mipmap_filter = FilterMode::Near;
+  }
+  else if (g_ActiveConfig.texture_filtering_mode == TextureFilteringMode::Linear)
   {
     state.tm0.min_filter = FilterMode::Linear;
     state.tm0.mag_filter = FilterMode::Linear;

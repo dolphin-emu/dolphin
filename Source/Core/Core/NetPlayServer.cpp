@@ -1336,7 +1336,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.fast_depth_calc = Config::Get(Config::GFX_FAST_DEPTH_CALC);
   settings.enable_pixel_lighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
   settings.widescreen_hack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  settings.force_filtering = Config::Get(Config::GFX_ENHANCE_FORCE_FILTERING);
+  settings.force_texture_filtering = Config::Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
   settings.max_anisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
   settings.force_true_color = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
   settings.disable_copy_filter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
@@ -1539,7 +1539,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.fast_depth_calc;
   spac << m_settings.enable_pixel_lighting;
   spac << m_settings.widescreen_hack;
-  spac << m_settings.force_filtering;
+  spac << m_settings.force_texture_filtering;
   spac << m_settings.max_anisotropy;
   spac << m_settings.force_true_color;
   spac << m_settings.disable_copy_filter;
