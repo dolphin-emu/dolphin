@@ -1304,15 +1304,70 @@ TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
     return nullptr;
 
   entry->frameCount = FRAMECOUNT_INVALID;
-  if (entry->texture_info_name.empty() && g_ActiveConfig.bGraphicMods)
+  if (g_ActiveConfig.bGraphicMods)
   {
-    entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
-
-    GraphicsModActionData::TextureLoad texture_load{entry->texture_info_name};
-    for (const auto action :
-         g_graphics_mod_manager->GetTextureLoadActions(entry->texture_info_name))
+    if (entry->texture_info_name.empty())
     {
-      action->OnTextureLoad(&texture_load);
+      entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
+      std::vector<VideoCommon::CustomTextureData*> textures;
+      GraphicsModActionData::TextureLoad texture_load{entry->texture_info_name, entry->GetWidth(),
+                                                      entry->GetHeight(), &textures};
+      for (const auto action :
+           g_graphics_mod_manager->GetTextureLoadActions(entry->texture_info_name))
+      {
+        action->OnTextureLoad(&texture_load);
+      }
+      if (textures.size())
+      {
+        // Modify the old texture config to add any new texture data
+        // as additional layers
+        auto config = entry->texture->GetConfig();
+        const u32 unmodified_layer_count = 1;
+        const u32 new_layer_count = unmodified_layer_count + static_cast<u32>(textures.size());
+        std::unique_ptr<AbstractTexture> old_texture;
+        if (config.layers != new_layer_count)
+        {
+          config.layers = new_layer_count;
+          auto new_texture = g_gfx->CreateTexture(config, entry->texture_info_name);
+          old_texture = std::move(entry->texture);
+          entry->texture = std::move(new_texture);
+        }
+
+        // Now load the new texture data
+        for (u32 layer = unmodified_layer_count; layer < config.layers; layer++)
+        {
+          auto& data = *textures[layer - unmodified_layer_count];
+          for (u32 level_index = 0; level_index != static_cast<u32>(data.m_levels.size());
+               ++level_index)
+          {
+            const auto& level = data.m_levels[level_index];
+            entry->texture->Load(level_index, level.width, level.height, level.row_length,
+                                 level.data.data(), level.data.size(), layer);
+          }
+        }
+
+        if (old_texture)
+        {
+          // Copy the old texture data
+          for (u32 layer = 0; layer < unmodified_layer_count; layer++)
+          {
+            for (u32 level = 0; level < config.levels; level++)
+            {
+              // Our rect size is the image at level 0
+              // for other levels we need to scale down
+              auto rect = entry->texture->GetRect();
+              if (level > 0)
+              {
+                rect.bottom = rect.bottom >> level;
+                rect.right = rect.right >> level;
+              }
+              entry->texture->CopyRectangleFromTexture(old_texture.get(), rect, layer, level, rect,
+                                                       layer, level);
+            }
+          }
+          entry->texture->FinishedRendering();
+        }
+      }
     }
   }
   bound_textures[texture_info.GetStage()] = entry;
