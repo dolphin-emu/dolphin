@@ -15,6 +15,20 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
+// We really want things like c.w * a.x - a.w * c.x to stay symmetric, so they cancel to zero on
+// degenerate triangles.  Make sure the compiler doesn't optimize in fmas where not requested.
+#ifdef _MSC_VER
+#pragma fp_contract(off)
+#else
+// GCC doesn't support any in-file way to turn off fp contract yet
+// Not ideal, but worst case scenario its cpu cull is worse at detecting degenerate triangles
+// (Most likely to happen on arm, as we don't compile the cull code for x86 fma)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma STDC FP_CONTRACT OFF
+#pragma GCC diagnostic pop
+#endif
+
 #if defined(_M_X86) || defined(_M_X86_64)
 #define USE_SSE
 #elif defined(_M_ARM_64)
