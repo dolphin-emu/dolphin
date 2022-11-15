@@ -69,6 +69,7 @@ class ProgramShaderCache
 {
 public:
   static void BindVertexFormat(const GLVertexFormat* vertex_format);
+  static void ReBindVertexFormat();
   static bool IsValidVertexFormatBound();
   static void InvalidateVertexFormat();
   static void InvalidateVertexFormatIfBound(GLuint vao);
