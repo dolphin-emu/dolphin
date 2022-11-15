@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
+#include <filesystem>
 #include <fstream>
 #include <limits.h>
 #include <string>
@@ -33,7 +34,6 @@
 #include <Shlwapi.h>
 #include <commdlg.h>  // for GetSaveFileName
 #include <direct.h>   // getcwd
-#include <filesystem>
 #include <io.h>
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
@@ -703,22 +703,19 @@ bool CopyDir(const std::string& source_path, const std::string& dest_path, const
 // Returns the current directory
 std::string GetCurrentDir()
 {
-  // Get the current working directory (getcwd uses malloc)
-  char* dir = __getcwd(nullptr, 0);
-  if (!dir)
-  {
-    ERROR_LOG_FMT(COMMON, "GetCurrentDirectory failed: {}", LastStrerrorString());
+  std::error_code ec;
+  auto path = std::filesystem::current_path(ec);
+  if (ec.value() != 0)
     return "";
-  }
-  std::string strDir = dir;
-  free(dir);
-  return strDir;
+  return PathToString(path);
 }
 
 // Sets the current directory to the given directory
-bool SetCurrentDir(const std::string& directory)
+bool SetCurrentDir(std::string_view directory)
 {
-  return __chdir(directory.c_str()) == 0;
+  std::error_code ec;
+  std::filesystem::current_path(StringToPath(directory));
+  return ec.value() == 0;
 }
 
 std::string CreateTempDir()
