@@ -13,6 +13,7 @@
 #include <wrl/client.h>
 
 #include "Common/Event.h"
+#include "Common/FileUtil.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
@@ -255,7 +256,9 @@ void LaunchApplication(std::string path)
 {
   // Indirectly start the application via explorer. This effectively drops admin priviliges because
   // explorer is running as current user.
-  ShellExecuteW(nullptr, nullptr, L"explorer.exe", UTF8ToWString(path).c_str(), nullptr, SW_SHOW);
+  const auto working_dir = UTF8ToWString(File::GetCurrentDir());
+  ShellExecuteW(nullptr, nullptr, L"explorer.exe", UTF8ToWString(path).c_str(), working_dir.c_str(),
+                SW_SHOW);
 }
 
 void Sleep(int sleep)
