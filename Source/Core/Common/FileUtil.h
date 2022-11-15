@@ -193,7 +193,7 @@ bool DeleteDirRecursively(const std::string& directory);
 std::string GetCurrentDir();
 
 // Create directory and copy contents (optionally overwrites existing files)
-void CopyDir(const std::string& source_path, const std::string& dest_path,
+bool CopyDir(const std::string& source_path, const std::string& dest_path,
              bool destructive = false);
 
 // Set the current directory to given directory
