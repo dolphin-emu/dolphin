@@ -439,8 +439,7 @@ float FramebufferManager::PeekEFBDepth(u32 x, u32 y)
   if (!IsEFBCacheTilePresent(true, x, y, &tile_index))
     PopulateEFBCache(true, tile_index);
 
-  if (IsUsingTiledEFBCache())
-    m_efb_depth_cache.tiles[tile_index].frame_access_mask |= 1;
+  m_efb_depth_cache.tiles[tile_index].frame_access_mask |= 1;
 
   if (m_efb_depth_cache.needs_flush)
   {
