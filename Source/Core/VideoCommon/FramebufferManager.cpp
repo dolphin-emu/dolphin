@@ -394,7 +394,7 @@ bool FramebufferManager::IsEFBCacheTilePresent(bool depth, u32 x, u32 y, u32* ti
 
 MathUtil::Rectangle<int> FramebufferManager::GetEFBCacheTileRect(u32 tile_index) const
 {
-  if (m_efb_cache_tile_size == 0)
+  if (!IsUsingTiledEFBCache())
     return MathUtil::Rectangle<int>(0, 0, EFB_WIDTH, EFB_HEIGHT);
 
   const u32 tile_y = tile_index / m_efb_cache_tiles_wide;
