@@ -290,7 +290,9 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
     discord_presence.smallImageText = "Dolphin is an emulator for the GameCube and the Wii.";
   }
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
-  discord_presence.startTimestamp = std::time(nullptr);
+  discord_presence.startTimestamp = std::chrono::duration_cast<std::chrono::seconds>(
+                                        std::chrono::system_clock::now().time_since_epoch())
+                                        .count();
 
   if (party_size > 0)
   {
