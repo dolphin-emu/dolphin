@@ -704,6 +704,30 @@ bool CopyDir(const std::string& source_path, const std::string& dest_path, const
 // Returns the current directory
 std::string GetCurrentDir()
 {
+#ifdef _WIN32
+  const DWORD required_length = GetCurrentDirectoryW(0, nullptr);
+  if (required_length == 0)
+  {
+    ERROR_LOG_FMT(COMMON, "GetCurrentDirectory failed: {}", GetLastErrorString());
+    return "";
+  }
+
+  std::vector<wchar_t> buffer(static_cast<size_t>(required_length));
+  const DWORD written_length = GetCurrentDirectoryW(required_length, buffer.data());
+  if (written_length == 0)
+  {
+    ERROR_LOG_FMT(COMMON, "GetCurrentDirectory failed: {}", GetLastErrorString());
+    return "";
+  }
+  if (written_length > required_length)
+  {
+    ERROR_LOG_FMT(COMMON, "GetCurrentDirectory inconsistency: {} != {}", written_length,
+                  required_length);
+    return "";
+  }
+
+  return WStringToUTF8(std::wstring_view(buffer.data(), static_cast<size_t>(written_length)));
+#else
   // Get the current working directory (getcwd uses malloc)
   char* dir = __getcwd(nullptr, 0);
   if (!dir)
@@ -714,12 +738,24 @@ std::string GetCurrentDir()
   std::string strDir = dir;
   free(dir);
   return strDir;
+#endif
 }
 
 // Sets the current directory to the given directory
-bool SetCurrentDir(const std::string& directory)
+bool SetCurrentDir(std::string_view directory)
 {
-  return __chdir(directory.c_str()) == 0;
+#ifdef _WIN32
+  const std::wstring wide = UTF8ToWString(directory);
+  if (SetCurrentDirectoryW(wide.c_str()) == 0)
+  {
+    ERROR_LOG_FMT(COMMON, "SetCurrentDirectory failed: {}", GetLastErrorString());
+    return false;
+  }
+  return true;
+#else
+  const std::string s(directory);
+  return __chdir(s.c_str()) == 0;
+#endif
 }
 
 std::string CreateTempDir()

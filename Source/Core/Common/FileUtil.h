@@ -197,7 +197,7 @@ bool CopyDir(const std::string& source_path, const std::string& dest_path,
              bool destructive = false);
 
 // Set the current directory to given directory
-bool SetCurrentDir(const std::string& directory);
+bool SetCurrentDir(std::string_view directory);
 
 // Creates and returns the path to a new temporary directory.
 std::string CreateTempDir();
