@@ -35,6 +35,9 @@ bool PerfQuery::Initialize()
     return false;
   }
 
+  // Vulkan requires query pools to be reset after creation
+  ResetQuery();
+
   return true;
 }
 
@@ -55,6 +58,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
     ActiveQuery& entry = m_query_buffer[m_query_next_pos];
     DEBUG_ASSERT(!entry.has_value);
     entry.has_value = true;
+    entry.query_type = type;
 
     // Use precise queries if supported, otherwise boolean (which will be incorrect).
     VkQueryControlFlags flags =
@@ -72,6 +76,9 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
   if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
   {
     vkCmdEndQuery(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, m_query_next_pos);
+    ActiveQuery& entry = m_query_buffer[m_query_next_pos];
+    entry.fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+
     m_query_next_pos = (m_query_next_pos + 1) % PERF_QUERY_BUFFER_SIZE;
     m_query_count.fetch_add(1, std::memory_order_relaxed);
   }
@@ -119,8 +126,10 @@ u32 PerfQuery::GetQueryResult(PerfQueryType type)
 
 void PerfQuery::FlushResults()
 {
-  while (!IsFlushed())
+  if (!IsFlushed())
     PartialFlush(true);
+
+  ASSERT(IsFlushed());
 }
 
 bool PerfQuery::IsFlushed() const
@@ -185,12 +194,16 @@ void PerfQuery::ReadbackQueries(u32 query_count)
          (m_query_readback_pos + query_count) <= PERF_QUERY_BUFFER_SIZE);
 
   // Read back from the GPU.
-  VkResult res =
-      vkGetQueryPoolResults(g_vulkan_context->GetDevice(), m_query_pool, m_query_readback_pos,
-                            query_count, query_count * sizeof(PerfQueryDataType),
-                            m_query_result_buffer.data(), sizeof(PerfQueryDataType), 0);
+  VkResult res = vkGetQueryPoolResults(
+      g_vulkan_context->GetDevice(), m_query_pool, m_query_readback_pos, query_count,
+      query_count * sizeof(PerfQueryDataType), m_query_result_buffer.data(),
+      sizeof(PerfQueryDataType), VK_QUERY_RESULT_WAIT_BIT);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkGetQueryPoolResults failed: ");
+
+  StateTracker::GetInstance()->EndRenderPass();
+  vkCmdResetQueryPool(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool,
+                      m_query_readback_pos, query_count);
 
   // Remove pending queries.
   for (u32 i = 0; i < query_count; i++)

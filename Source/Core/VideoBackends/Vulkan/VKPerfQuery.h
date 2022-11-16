@@ -40,7 +40,7 @@ private:
   struct ActiveQuery
   {
     u64 fence_counter;
-    PerfQueryType query_type;
+    PerfQueryGroup query_type;
     bool has_value;
   };
 
