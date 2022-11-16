@@ -96,7 +96,6 @@ bool GetRefs(MEGASignature* sig, std::istringstream* iss)
 
     ref_count += 1;
     num.clear();
-    ref.clear();
   }
   return true;
 }

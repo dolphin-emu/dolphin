@@ -393,7 +393,7 @@ std::string ESDevice::GetContentPath(const u64 title_id, const ES::Content& cont
 
 s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& data, Ticks ticks)
 {
-  auto& fs = *m_ios.GetFSDevice();
+  auto fs(std::move(*m_ios.GetFSDevice()));
   const std::string tmp_path = "/tmp/" + PathToFileName(path);
 
   auto result = fs.CreateFile(PID_KERNEL, PID_KERNEL, tmp_path, {},
