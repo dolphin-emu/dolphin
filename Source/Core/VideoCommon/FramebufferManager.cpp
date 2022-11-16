@@ -386,8 +386,9 @@ bool FramebufferManager::IsEFBCacheTilePresent(bool depth, u32 x, u32 y, u32* ti
   }
   else
   {
-    *tile_index =
-        ((y / m_efb_cache_tile_size) * m_efb_cache_tiles_wide) + (x / m_efb_cache_tile_size);
+    const u32 tile_x = x / m_efb_cache_tile_size;
+    const u32 tile_y = y / m_efb_cache_tile_size;
+    *tile_index = (tile_y * m_efb_cache_tile_row_stride) + tile_x;
   }
   return data.tiles[*tile_index].present;
 }
@@ -397,8 +398,8 @@ MathUtil::Rectangle<int> FramebufferManager::GetEFBCacheTileRect(u32 tile_index)
   if (!IsUsingTiledEFBCache())
     return MathUtil::Rectangle<int>(0, 0, EFB_WIDTH, EFB_HEIGHT);
 
-  const u32 tile_y = tile_index / m_efb_cache_tiles_wide;
-  const u32 tile_x = tile_index % m_efb_cache_tiles_wide;
+  const u32 tile_y = tile_index / m_efb_cache_tile_row_stride;
+  const u32 tile_x = tile_index % m_efb_cache_tile_row_stride;
   const u32 start_y = tile_y * m_efb_cache_tile_size;
   const u32 start_x = tile_x * m_efb_cache_tile_size;
   return MathUtil::Rectangle<int>(
@@ -682,7 +683,11 @@ bool FramebufferManager::CreateReadbackFramebuffer()
     const u32 tiles_wide = ((EFB_WIDTH + (m_efb_cache_tile_size - 1)) / m_efb_cache_tile_size);
     const u32 tiles_high = ((EFB_HEIGHT + (m_efb_cache_tile_size - 1)) / m_efb_cache_tile_size);
     total_tiles = tiles_wide * tiles_high;
-    m_efb_cache_tiles_wide = tiles_wide;
+    m_efb_cache_tile_row_stride = tiles_wide;
+  }
+  else
+  {
+    m_efb_cache_tile_row_stride = 1;
   }
 
   m_efb_color_cache.tiles.resize(total_tiles);
