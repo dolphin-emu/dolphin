@@ -71,6 +71,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
     ActiveQuery& entry = m_query_buffer[m_query_next_pos];
     ASSERT(!entry.has_value && !entry.resolved);
     entry.has_value = true;
+    entry.query_type = type;
 
     g_dx_context->GetCommandList()->BeginQuery(m_query_heap.Get(), D3D12_QUERY_TYPE_OCCLUSION,
                                                m_query_next_pos);
