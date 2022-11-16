@@ -56,18 +56,26 @@ public:
     if constexpr (!is_preprocess)
     {
       if (sub_command == MATINDEX_A)
+      {
+        VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
         VertexShaderManager::SetTexMatrixChangedA(value);
+      }
       else if (sub_command == MATINDEX_B)
+      {
+        VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
         VertexShaderManager::SetTexMatrixChangedB(value);
+      }
       else if (sub_command == VCD_LO || sub_command == VCD_HI)
       {
         VertexLoaderManager::g_main_vat_dirty = BitSet8::AllTrue(CP_NUM_VAT_REG);
         VertexLoaderManager::g_bases_dirty = true;
+        VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
       }
       else if (sub_command == CP_VAT_REG_A || sub_command == CP_VAT_REG_B ||
                sub_command == CP_VAT_REG_C)
       {
         VertexLoaderManager::g_main_vat_dirty[command & CP_VAT_MASK] = true;
+        VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
       }
       else if (sub_command == ARRAY_BASE)
       {

@@ -76,6 +76,7 @@ extern BitSet8 g_preprocess_vat_dirty;
 extern bool g_bases_dirty;  // Main only
 extern std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_main_vertex_loaders;
 extern std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_preprocess_vertex_loaders;
+extern bool g_needs_cp_xf_consistency_check;
 
 template <bool IsPreprocess = false>
 VertexLoaderBase* RefreshLoader(int vtx_attr_group)
