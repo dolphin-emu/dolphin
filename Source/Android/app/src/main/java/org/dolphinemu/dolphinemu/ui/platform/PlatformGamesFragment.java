@@ -6,12 +6,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.color.MaterialColors;
@@ -62,10 +62,32 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState)
   {
     mSwipeRefresh = mBinding.swipeRefresh;
-
-    int columns = getResources().getInteger(R.integer.game_grid_columns);
-    RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getActivity(), columns);
     mAdapter = new GameAdapter(requireActivity());
+
+    // Here we have to make sure the fragment is attached to an activity, wait for the layout
+    // to be drawn, and make sure it is drawn with a width > 0 before finding the correct
+    // span for our grid layout. Once drawn correctly, we can stop listening for layout changes.
+    if (isAdded())
+    {
+      view.getViewTreeObserver()
+              .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
+              {
+                @Override
+                public void onGlobalLayout()
+                {
+                  int columns = mBinding.getRoot().getMeasuredWidth() /
+                          requireContext().getResources().getDimensionPixelSize(R.dimen.card_width);
+                  if (columns == 0)
+                  {
+                    columns = 1;
+                  }
+                  view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                  GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), columns);
+                  mBinding.gridGames.setLayoutManager(layoutManager);
+                  mBinding.gridGames.setAdapter(mAdapter);
+                }
+              });
+    }
 
     // Set theme color to the refresh animation's background
     mSwipeRefresh.setProgressBackgroundColorSchemeColor(
@@ -74,9 +96,6 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
             MaterialColors.getColor(mSwipeRefresh, R.attr.colorOnPrimary));
 
     mSwipeRefresh.setOnRefreshListener(mOnRefreshListener);
-
-    mBinding.gridGames.setLayoutManager(layoutManager);
-    mBinding.gridGames.setAdapter(mAdapter);
 
     InsetsHelper.setUpList(getContext(), mBinding.gridGames);
 
