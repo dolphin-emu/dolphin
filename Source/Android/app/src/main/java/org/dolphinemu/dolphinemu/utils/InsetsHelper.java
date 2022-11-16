@@ -7,9 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsAnimationCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,6 +23,8 @@ import com.google.android.material.color.MaterialColors;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.dolphinemu.dolphinemu.R;
+
+import java.util.List;
 
 public class InsetsHelper
 {
@@ -128,14 +132,28 @@ public class InsetsHelper
 
       slidingPaneLayout.setPadding(barInsets.left, barInsets.top, barInsets.right, 0);
 
-      if (keyboardInsets.bottom > 0)
+      // Set keyboard insets if the system supports smooth keyboard animations
+      ViewGroup.MarginLayoutParams mlpDetails =
+              (ViewGroup.MarginLayoutParams) cheatDetails.getLayoutParams();
+      if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R)
       {
-        cheatDetails.setPadding(0, 0, 0, keyboardInsets.bottom);
+        if (keyboardInsets.bottom > 0)
+        {
+          mlpDetails.bottomMargin = keyboardInsets.bottom;
+        }
+        else
+        {
+          mlpDetails.bottomMargin = barInsets.bottom;
+        }
       }
       else
       {
-        cheatDetails.setPadding(0, 0, 0, barInsets.bottom);
+        if (mlpDetails.bottomMargin == 0)
+        {
+          mlpDetails.bottomMargin = barInsets.bottom;
+        }
       }
+      cheatDetails.setLayoutParams(mlpDetails);
 
       applyWorkaround(barInsets.bottom, workaroundView);
 
@@ -144,6 +162,32 @@ public class InsetsHelper
 
       return windowInsets;
     });
+
+    // Update the layout for every frame that the keyboard animates in
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R)
+    {
+      ViewCompat.setWindowInsetsAnimationCallback(cheatDetails,
+              new WindowInsetsAnimationCompat.Callback(
+                      WindowInsetsAnimationCompat.Callback.DISPATCH_MODE_STOP)
+              {
+                int keyboardInsets = 0;
+                int barInsets = 0;
+
+                @NonNull
+                @Override
+                public WindowInsetsCompat onProgress(@NonNull WindowInsetsCompat insets,
+                        @NonNull List<WindowInsetsAnimationCompat> runningAnimations)
+                {
+                  ViewGroup.MarginLayoutParams mlpDetails =
+                          (ViewGroup.MarginLayoutParams) cheatDetails.getLayoutParams();
+                  keyboardInsets = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+                  barInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+                  mlpDetails.bottomMargin = Math.max(keyboardInsets, barInsets);
+                  cheatDetails.setLayoutParams(mlpDetails);
+                  return insets;
+                }
+              });
+    }
   }
 
   private static void insetAppBar(Insets insets, AppBarLayout appBarLayout)
