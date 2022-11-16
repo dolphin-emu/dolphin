@@ -1667,6 +1667,8 @@ std::optional<SaveSyncInfo> NetPlayServer::CollectSaveSyncInfo()
 // called from ---GUI--- thread
 bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
 {
+  INFO_LOG_FMT(NETPLAY, "Sending {} savegame chunks to clients.", sync_info.save_count);
+
   // We're about to sync saves, so set m_saves_synced to false (waits to start game)
   m_saves_synced = false;
 
@@ -1708,12 +1710,16 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
 
       if (File::Exists(path))
       {
+        INFO_LOG_FMT(NETPLAY, "Sending data of raw memcard {} in slot {}.", path,
+                     is_slot_a ? 'A' : 'B');
         if (!CompressFileIntoPacket(path, pac))
           return false;
       }
       else
       {
         // No file, so we'll say the size is 0
+        INFO_LOG_FMT(NETPLAY, "Sending empty marker for raw memcard {} in slot {}.", path,
+                     is_slot_a ? 'A' : 'B');
         pac << sf::Uint64{0};
       }
 
@@ -1736,17 +1742,25 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
         std::vector<std::string> files =
             GCMemcardDirectory::GetFileNamesForGameID(path + DIR_SEP, sync_info.game->GetGameID());
 
+        INFO_LOG_FMT(NETPLAY, "Sending data of GCI memcard {} in slot {} ({} files).", path,
+                     is_slot_a ? 'A' : 'B', files.size());
+
         pac << static_cast<u8>(files.size());
 
         for (const std::string& file : files)
         {
-          pac << file.substr(file.find_last_of('/') + 1);
+          const std::string filename = file.substr(file.find_last_of('/') + 1);
+          INFO_LOG_FMT(NETPLAY, "Sending GCI {}.", filename);
+          pac << filename;
           if (!CompressFileIntoPacket(file, pac))
             return false;
         }
       }
       else
       {
+        INFO_LOG_FMT(NETPLAY, "Sending empty marker for GCI memcard {} in slot {}.", path,
+                     is_slot_a ? 'A' : 'B');
+
         pac << static_cast<u8>(0);
       }
 
@@ -1764,17 +1778,19 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
     // Shove the Mii data into the start the packet
     if (sync_info.mii_data)
     {
+      INFO_LOG_FMT(NETPLAY, "Sending Mii data.");
       pac << true;
-
       if (!CompressBufferIntoPacket(*sync_info.mii_data, pac))
         return false;
     }
     else
     {
+      INFO_LOG_FMT(NETPLAY, "Not sending Mii data.");
       pac << false;  // no mii data
     }
 
     // Carry on with the save files
+    INFO_LOG_FMT(NETPLAY, "Sending {} Wii saves.", sync_info.wii_saves.size());
     pac << static_cast<u32>(sync_info.wii_saves.size());
 
     for (const auto& [title_id, storage] : sync_info.wii_saves)
@@ -1787,8 +1803,12 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
         const std::optional<WiiSave::BkHeader> bk_header = storage->ReadBkHeader();
         const std::optional<std::vector<WiiSave::Storage::SaveFile>> files = storage->ReadFiles();
         if (!header || !bk_header || !files)
+        {
+          INFO_LOG_FMT(NETPLAY, "Wii save of title {:016x} is corrupted.", title_id);
           return false;
+        }
 
+        INFO_LOG_FMT(NETPLAY, "Sending Wii save of title {:016x}.", title_id);
         pac << true;  // save exists
 
         // Header
@@ -1813,6 +1833,9 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
         // Files
         for (const WiiSave::Storage::SaveFile& file : *files)
         {
+          INFO_LOG_FMT(NETPLAY, "Sending Wii save data of type {} at {}",
+                       static_cast<u8>(file.type), file.path);
+
           pac << file.mode << file.attributes << file.type << file.path;
 
           if (file.type == WiiSave::Storage::SaveFile::Type::File)
@@ -1825,18 +1848,22 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
       }
       else
       {
+        INFO_LOG_FMT(NETPLAY, "No data for Wii save of title {:016x}.", title_id);
         pac << false;  // save does not exist
       }
     }
 
     if (sync_info.redirected_save)
     {
+      INFO_LOG_FMT(NETPLAY, "Sending redirected save at {}.",
+                   sync_info.redirected_save->m_target_path);
       pac << true;
       if (!CompressFolderIntoPacket(sync_info.redirected_save->m_target_path, pac))
         return false;
     }
     else
     {
+      INFO_LOG_FMT(NETPLAY, "Not sending redirected save.");
       pac << false;  // no redirected save
     }
 
@@ -1859,12 +1886,14 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
 #endif
       if (File::Exists(path))
       {
+        INFO_LOG_FMT(NETPLAY, "Sending data of GBA save at {} for slot {}.", path, i);
         if (!CompressFileIntoPacket(path, pac))
           return false;
       }
       else
       {
         // No file, so we'll say the size is 0
+        INFO_LOG_FMT(NETPLAY, "Sending empty marker for GBA save at {} for slot {}.", path, i);
         pac << sf::Uint64{0};
       }
 
