@@ -47,6 +47,7 @@ enum class EBufferCommands : u8
   CMD_STATUS = 0x00,
   CMD_READ_GBA = 0x14,
   CMD_WRITE_GBA = 0x15,
+  CMD_SET_GAME_ID = 0x1d,
   CMD_DIRECT = 0x40,
   CMD_ORIGIN = 0x41,
   CMD_RECALIBRATE = 0x42,

@@ -105,6 +105,14 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
     return sizeof(SOrigin);
   }
 
+  // GameID packet, no response needed, nothing to do
+  // On real hardware, this is used to configure the BlueRetro controler
+  // adapter, while licensed accessories ignore this command.
+  case EBufferCommands::CMD_SET_GAME_ID:
+  {
+    return 0;
+  }
+
   // DEFAULT
   default:
   {
