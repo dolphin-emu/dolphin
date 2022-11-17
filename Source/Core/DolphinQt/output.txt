@@ -1,1 +1,59 @@
-Value was: 60.0
+Zeroing out address 84300 to start out with...
+Value of address 84300 after getting zeroed out: 0.0
+Byte value to write is: 230
+Testing out writing byte as ram.write_unsigned_8()
+Value of address 84300 now is 230
+Testing out writing byte as ram.write_signed_8()
+Value of address 84300 now is -26
+Testing out writing byte as ram.write_unsigned_byte()
+Value of address 84300 now is 230
+Testing out writing byte as ram.write_signed_byte()
+Value of address 84300 now is -26
+
+
+
+Short value to write is: 60000
+Testing out writing short as ram.write_unsigned_16()
+Value of address 84300 now is 60000
+Testing out writing short as ram.write_signed_16()
+Value of address 84300 now is -5536
+
+
+
+Int value to write is: 4000000000
+Testing out writing int as ram.write_unsigned_32()
+Value of address 84300 now is 4000000000
+Testing out writing int as ram.write_signed_32()
+Value of address 84300 now is -294967296
+Testing out writing int as ram.write_unsigned_int()
+Value of address 84300 now is 4000000000
+Testing out writing int as ram.write_signed_int()
+Value of address 84300 now is -294967296
+
+
+
+Long Long value to write is: 1.0123456789123e+19
+Testing out writing long long as ram.write_unsigned_64()
+Value of address 84300 now is 1.0123456789123e+19
+Testing out writing long long as ram.write_signed_64()
+Value of address 84300 now is -9.2233720368548e+18
+
+
+
+Float value to write is: 5e+20
+Testing out writing float as ram.write_float()
+Value of address 84300 now is 5.0000001002044e+20
+Double value to write is: 6.022e+23
+Testing out writing double as ram.write_double()
+Value of address 84300 now is 6.022e+23
+
+
+
+string to write out is: this_is_a_string
+Testing out writing string as write_fixed_length_string(6)
+Value of address 84300 now is this_i
+Testing out writing string as write_null_terminated_string()
+Value of address 84300 now is this_is_a_string8
+
+
+

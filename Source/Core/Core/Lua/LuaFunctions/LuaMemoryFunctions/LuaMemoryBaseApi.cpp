@@ -6,21 +6,21 @@ namespace Lua
 int LuaMemoryBaseApi::do_read_unsigned_8(lua_State* luaState, u8 (*read_u8_from_domain_function)(u32))
 {
   u32 address = luaL_checkinteger(luaState, 1);
-  lua_pushnumber(luaState, read_u8_from_domain_function(address));
+  lua_pushinteger(luaState, read_u8_from_domain_function(address));
   return 1;
 }
 
  int LuaMemoryBaseApi::do_read_unsigned_16(lua_State* luaState, u16 (*read_u16_from_domain_function)(u32))
 {
    u32 address = luaL_checkinteger(luaState, 1);
-   lua_pushnumber(luaState, read_u16_from_domain_function(address));
+   lua_pushinteger(luaState, read_u16_from_domain_function(address));
    return 1;
  }
 
 int LuaMemoryBaseApi::do_read_unsigned_32(lua_State* luaState, u32 (*read_u32_from_domain_function)(u32))
  {
   u32 address = luaL_checkinteger(luaState, 1);
-  lua_pushnumber(luaState, read_u32_from_domain_function(address));
+  lua_pushinteger(luaState, read_u32_from_domain_function(address));
   return 1;
  }
 
@@ -37,7 +37,7 @@ int LuaMemoryBaseApi::do_read_unsigned_32(lua_State* luaState, u32 (*read_u32_fr
    u8 rawVal = read_u8_from_domain_function(address);
    s8 signedByte = 0;
    memcpy(&signedByte, &rawVal, sizeof(s8));
-   lua_pushnumber(luaState, signedByte);
+   lua_pushinteger(luaState, signedByte);
    return 1;
  }
 
@@ -47,7 +47,7 @@ int LuaMemoryBaseApi::do_read_unsigned_32(lua_State* luaState, u32 (*read_u32_fr
    u16 rawVal = read_u16_from_domain_function(address);
    s16 signedShort = 0;
    memcpy(&signedShort, &rawVal, sizeof(s16));
-   lua_pushnumber(luaState, signedShort);
+   lua_pushinteger(luaState, signedShort);
    return 1;
  }
 
@@ -57,7 +57,7 @@ int LuaMemoryBaseApi::do_read_unsigned_32(lua_State* luaState, u32 (*read_u32_fr
    u32 rawVal = read_u32_from_domain_function(address);
    s32 signedInt = 0;
    memcpy(&signedInt, &rawVal, sizeof(s32));
-   lua_pushnumber(luaState, signedInt);
+   lua_pushinteger(luaState, signedInt);
    return 1;
  }
 
@@ -74,7 +74,7 @@ int LuaMemoryBaseApi::do_read_unsigned_32(lua_State* luaState, u32 (*read_u32_fr
  int LuaMemoryBaseApi::do_read_unsigned_byte(lua_State* luaState, u8 (*read_u8_from_domain_function)(u32))
  {
    u32 address = luaL_checkinteger(luaState, 1);
-   lua_pushnumber(luaState, read_u8_from_domain_function(address));
+   lua_pushinteger(luaState, read_u8_from_domain_function(address));
    return 1;
  }
 
@@ -84,14 +84,14 @@ int LuaMemoryBaseApi::do_read_unsigned_32(lua_State* luaState, u32 (*read_u32_fr
    u8 rawVal = read_u8_from_domain_function(address);
    s8 signedByte = 0;
    memcpy(&signedByte, &rawVal, sizeof(s8));
-   lua_pushnumber(luaState, signedByte);
+   lua_pushinteger(luaState, signedByte);
    return 1;
  }
 
  int LuaMemoryBaseApi::do_read_unsigned_int(lua_State* luaState, u32 (*read_u32_from_domain_function)(u32))
  {
    u32 address = luaL_checkinteger(luaState, 1);
-   lua_pushnumber(luaState, read_u32_from_domain_function(address));
+   lua_pushinteger(luaState, read_u32_from_domain_function(address));
    return 1;
  }
 
@@ -101,7 +101,7 @@ int LuaMemoryBaseApi::do_read_unsigned_32(lua_State* luaState, u32 (*read_u32_fr
    u32 rawVal = read_u32_from_domain_function(address);
    s32 signedInt = 0;
    memcpy(&signedInt, &rawVal, sizeof(s32));
-   lua_pushnumber(luaState, signedInt);
+   lua_pushinteger(luaState, signedInt);
    return 1;
  }
 
