@@ -98,17 +98,26 @@ IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-ReturnCode ESDevice::GetV0TicketFromView(const u8* ticket_view, u8* ticket) const
+ReturnCode ESDevice::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size,
+                                       std::optional<u8> desired_version) const
 {
   const u64 title_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, title_id)]);
   const u64 ticket_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, ticket_id)]);
+  const u8 view_version = ticket_view[offsetof(ES::TicketView, version)];
+  const u8 version = desired_version.value_or(view_version);
 
-  const auto installed_ticket = FindSignedTicket(title_id);
-  // TODO: when we get std::optional, check for presence instead of validity.
-  // This is close enough, though.
+  const auto installed_ticket = FindSignedTicket(title_id, version);
   if (!installed_ticket.IsValid())
     return ES_NO_TICKET;
 
+  // Handle GetTicketSizeFromView
+  if (ticket == nullptr)
+  {
+    *ticket_size = installed_ticket.GetTicketSize();
+    return IPC_SUCCESS;
+  }
+
+  // Handle GetTicketFromView or GetV0TicketFromView
   const std::vector<u8> ticket_bytes = installed_ticket.GetRawTicket(ticket_id);
   if (ticket_bytes.empty())
     return ES_NO_TICKET;
@@ -135,27 +144,6 @@ ReturnCode ESDevice::GetV0TicketFromView(const u8* ticket_view, u8* ticket) cons
   return IPC_SUCCESS;
 }
 
-ReturnCode ESDevice::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size) const
-{
-  const u8 version = ticket_view[offsetof(ES::TicketView, version)];
-  if (version == 1)
-  {
-    // Currently, we have no support for v1 tickets at all (unlike IOS), so we fake it
-    // and return that there is no ticket.
-    // TODO: implement GetV1TicketFromView when we gain v1 ticket support.
-    ERROR_LOG_FMT(IOS_ES, "GetV1TicketFromView: Unimplemented -- returning -1028");
-    return ES_NO_TICKET;
-  }
-  if (ticket != nullptr)
-  {
-    if (*ticket_size >= sizeof(ES::Ticket))
-      return GetV0TicketFromView(ticket_view, ticket);
-    return ES_EINVAL;
-  }
-  *ticket_size = sizeof(ES::Ticket);
-  return IPC_SUCCESS;
-}
-
 IPCReply ESDevice::GetV0TicketFromView(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) ||
@@ -164,8 +152,8 @@ IPCReply ESDevice::GetV0TicketFromView(const IOCtlVRequest& request)
   {
     return IPCReply(ES_EINVAL);
   }
-  return IPCReply(GetV0TicketFromView(Memory::GetPointer(request.in_vectors[0].address),
-                                      Memory::GetPointer(request.io_vectors[0].address)));
+  return IPCReply(GetTicketFromView(Memory::GetPointer(request.in_vectors[0].address),
+                                    Memory::GetPointer(request.io_vectors[0].address), nullptr, 0));
 }
 
 IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
@@ -177,8 +165,8 @@ IPCReply ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
   {
     return IPCReply(ES_EINVAL);
   }
-  const ReturnCode ret =
-      GetTicketFromView(Memory::GetPointer(request.in_vectors[0].address), nullptr, &ticket_size);
+  const ReturnCode ret = GetTicketFromView(Memory::GetPointer(request.in_vectors[0].address),
+                                           nullptr, &ticket_size, std::nullopt);
   Memory::Write_U32(ticket_size, request.io_vectors[0].address);
   return IPCReply(ret);
 }
@@ -197,8 +185,8 @@ IPCReply ESDevice::GetTicketFromView(const IOCtlVRequest& request)
     return IPCReply(ES_EINVAL);
 
   return IPCReply(GetTicketFromView(Memory::GetPointer(request.in_vectors[0].address),
-                                    Memory::GetPointer(request.io_vectors[0].address),
-                                    &ticket_size));
+                                    Memory::GetPointer(request.io_vectors[0].address), &ticket_size,
+                                    std::nullopt));
 }
 
 IPCReply ESDevice::GetTMDViewSize(const IOCtlVRequest& request)

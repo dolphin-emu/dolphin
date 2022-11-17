@@ -25,8 +25,9 @@ namespace IOS::HLE
 static ReturnCode WriteTicket(FS::FileSystem* fs, const ES::TicketReader& ticket)
 {
   const u64 title_id = ticket.GetTitleId();
+  const std::string path = ticket.IsV1Ticket() ? Common::GetV1TicketFileName(title_id) :
+                                                 Common::GetTicketFileName(title_id);
 
-  const std::string path = Common::GetTicketFileName(title_id);
   constexpr FS::Modes ticket_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None};
   fs->CreateFullPath(PID_KERNEL, PID_KERNEL, path, 0, ticket_modes);
   const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, path, ticket_modes);
@@ -561,7 +562,9 @@ ReturnCode ESDevice::DeleteTicket(const u8* ticket_view)
   ticket.DeleteTicket(ticket_id);
 
   const std::vector<u8>& new_ticket = ticket.GetBytes();
-  const std::string ticket_path = Common::GetTicketFileName(title_id);
+  const std::string ticket_path = ticket.IsV1Ticket() ? Common::GetV1TicketFileName(title_id) :
+                                                        Common::GetTicketFileName(title_id);
+
   if (!new_ticket.empty())
   {
     const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, ticket_path, FS::Mode::ReadWrite);
