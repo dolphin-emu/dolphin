@@ -79,7 +79,7 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
                           requireContext().getResources().getDimensionPixelSize(R.dimen.card_width);
                   if (columns == 0)
                   {
-                    columns = 1;
+                    return;
                   }
                   view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                   GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), columns);
