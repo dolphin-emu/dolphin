@@ -41,7 +41,7 @@ bool PerfQuery::Initialize()
   return true;
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup type)
+void PerfQuery::EnableQuery(PerfQueryGroup group)
 {
   // Block if there are no free slots.
   // Otherwise, try to keep half of them available.
@@ -53,12 +53,12 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
   // a buffer with open queries.
   StateTracker::GetInstance()->Bind();
 
-  if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
+  if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
     ActiveQuery& entry = m_query_buffer[m_query_next_pos];
     DEBUG_ASSERT(!entry.has_value);
     entry.has_value = true;
-    entry.query_type = type;
+    entry.query_group = group;
 
     // Use precise queries if supported, otherwise boolean (which will be incorrect).
     VkQueryControlFlags flags =
@@ -71,9 +71,9 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
   }
 }
 
-void PerfQuery::DisableQuery(PerfQueryGroup type)
+void PerfQuery::DisableQuery(PerfQueryGroup group)
 {
-  if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
+  if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
     vkCmdEndQuery(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, m_query_next_pos);
     ActiveQuery& entry = m_query_buffer[m_query_next_pos];
@@ -220,8 +220,8 @@ void PerfQuery::ReadbackQueries(u32 query_count)
     const u64 native_res_result = static_cast<u64>(m_query_result_buffer[i]) * EFB_WIDTH /
                                   g_renderer->GetTargetWidth() * EFB_HEIGHT /
                                   g_renderer->GetTargetHeight();
-    m_results[entry.query_type].fetch_add(static_cast<u32>(native_res_result),
-                                          std::memory_order_relaxed);
+    m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
+                                           std::memory_order_relaxed);
   }
 
   m_query_readback_pos = (m_query_readback_pos + query_count) % PERF_QUERY_BUFFER_SIZE;

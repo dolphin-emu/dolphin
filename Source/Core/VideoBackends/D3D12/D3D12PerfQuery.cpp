@@ -48,7 +48,7 @@ bool PerfQuery::Initialize()
   return true;
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup type)
+void PerfQuery::EnableQuery(PerfQueryGroup group)
 {
   // Block if there are no free slots.
   // Otherwise, try to keep half of them available.
@@ -66,21 +66,21 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
   // this assumes that the caller has bound all required state prior to enabling the query.
   Renderer::GetInstance()->ApplyState();
 
-  if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
+  if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
     ActiveQuery& entry = m_query_buffer[m_query_next_pos];
     ASSERT(!entry.has_value && !entry.resolved);
     entry.has_value = true;
-    entry.query_type = type;
+    entry.query_group = group;
 
     g_dx_context->GetCommandList()->BeginQuery(m_query_heap.Get(), D3D12_QUERY_TYPE_OCCLUSION,
                                                m_query_next_pos);
   }
 }
 
-void PerfQuery::DisableQuery(PerfQueryGroup type)
+void PerfQuery::DisableQuery(PerfQueryGroup group)
 {
-  if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
+  if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
     g_dx_context->GetCommandList()->EndQuery(m_query_heap.Get(), D3D12_QUERY_TYPE_OCCLUSION,
                                              m_query_next_pos);
@@ -246,8 +246,8 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
     const u64 native_res_result = static_cast<u64>(result) * EFB_WIDTH /
                                   g_renderer->GetTargetWidth() * EFB_HEIGHT /
                                   g_renderer->GetTargetHeight();
-    m_results[entry.query_type].fetch_add(static_cast<u32>(native_res_result),
-                                          std::memory_order_relaxed);
+    m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
+                                           std::memory_order_relaxed);
   }
 
   constexpr D3D12_RANGE write_range = {0, 0};
