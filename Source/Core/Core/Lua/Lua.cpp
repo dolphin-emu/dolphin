@@ -4,7 +4,7 @@
 #include <condition_variable>
 #include <thread>
 
-#include "LuaFunctions/LuaRamFunctions.h"
+#include "LuaFunctions/LuaMemoryFunctions/LuaRamFunctions.h"
 #include "LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Movie.h"
 #include <filesystem>

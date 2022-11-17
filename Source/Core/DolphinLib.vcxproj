@@ -70,11 +70,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Lua\LuaFunctions\LuaEmuFunctions.h" />
-    <ClInclude Include="Core\Lua\LuaFunctions\LuaRamFunctions.h" />
+    <ClInclude Include="Core\Lua\LuaFunctions\LuaMemoryFunctions\LuaMemoryBaseApi.h" />
+    <ClInclude Include="Core\Lua\LuaFunctions\LuaMemoryFunctions\LuaRamFunctions.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Lua\LuaFunctions\LuaEmuFunctions.cpp" />
-    <ClCompile Include="Core\Lua\LuaFunctions\LuaRamFunctions.cpp" />
+    <ClCompile Include="Core\Lua\LuaFunctions\LuaMemoryFunctions\LuaMemoryBaseApi.cpp" />
+    <ClCompile Include="Core\Lua\LuaFunctions\LuaMemoryFunctions\LuaRamFunctions.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
