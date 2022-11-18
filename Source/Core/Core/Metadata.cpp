@@ -1,11 +1,6 @@
 #include "Metadata.h"
 #include <Common/FileUtil.h>
 #include <Core/HW/Memmap.h>
-#include <processenv.h>
-#include <processthreadsapi.h>
-#include <WinBase.h>
-#include <WinUser.h>
-#include <ShlObj_core.h>
 #include <Core/HW/AddressSpace.h>
 #include <../minizip/mz_compat.h>
 #include <codecvt>
@@ -345,58 +340,12 @@ std::string Metadata::getJSONString()
   return json_stream.str();
 }
 
-std::wstring GetEnvString()
-{
-  wchar_t* env = GetEnvironmentStrings();
-  if (!env)
-    abort();
-  const wchar_t* var = env;
-  size_t totallen = 0;
-  size_t len;
-  while ((len = wcslen(var)) > 0)
-  {
-    totallen += len + 1;
-    var += len + 1;
-  }
-  std::wstring result(env, totallen);
-  FreeEnvironmentStrings(env);
-  return result;
-}
-
-std::string GetLastErrorAsString()
-{
-  // Get the error message ID, if any.
-  DWORD errorMessageID = ::GetLastError();
-  if (errorMessageID == 0)
-  {
-    return std::string();  // No error message has been recorded
-  }
-
-  LPSTR messageBuffer = nullptr;
-
-  // Ask Win32 to give us the string version of that message ID.
-  // The parameters we pass in, tell Win32 to create the buffer that holds the message for us
-  // (because we don't yet know how long the message string will be).
-  size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-                                   FORMAT_MESSAGE_IGNORE_INSERTS,
-                               NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                               (LPSTR)&messageBuffer, 0, NULL);
-
-  // Copy the error message into a std::string.
-  std::string message(messageBuffer, size);
-
-  // Free the Win32's string's buffer.
-  LocalFree(messageBuffer);
-
-  return message;
-}
-
 void Metadata::writeJSON(std::string jsonString, bool callBatch)
 {
   //std::string file_path = "C:\\Users\\Brian\\Desktop\\throw dtm here";
   //file_path += "\\output.json";
   //std::string file_path;
-
+  /*
   PWSTR path;
   SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
   std::wstring strpath(path);
@@ -410,6 +359,7 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
   json_output_path += "\\output.json";
   replays_path += "\"";
   // "C://Users//Brian//Documents//Citrus Replays"
+  */
   std::string improvedReplayPath = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.json";
   File::WriteStringToFile(improvedReplayPath, jsonString);
 
@@ -419,6 +369,7 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     strftime(date_string, 50, "%B_%d_%Y_%OH_%OM_%OS", matchDateTime);
     std::string someDate(date_string);
     std::string gameTime = "Game_" + someDate;
+    /*
     std::string gameVar = " Game_";
     gameVar += someDate;
     // Game_May_05_2022_11_51_34
@@ -431,6 +382,7 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     std::string batchPath = "\"\"" + pathToBatch + "\"";
     //std::string batchPath("./createcit.bat");
     batchPath += gameVar + "\"";
+    */
     /*
     STARTUPINFO si;
     PROCESS_INFORMATION pi;

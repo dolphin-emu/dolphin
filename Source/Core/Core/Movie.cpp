@@ -7,8 +7,6 @@
 #include <iostream>
 namespace fs = std::filesystem;
 #include "unzip.h"
-#define WINDOWS_LEAN_AND_MEAN
-#include <Windows.h>
 
 #include <algorithm>
 #include <array>

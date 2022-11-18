@@ -99,7 +99,6 @@
 #include "jni/AndroidCommon/IDCache.h"
 #endif
 #include <Core/HW/SI/SI_Device.h>
-#include <ShlObj_core.h>
 #include <codecvt>
 
 namespace Core

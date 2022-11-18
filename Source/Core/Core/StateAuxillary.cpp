@@ -7,7 +7,6 @@
 #include <Core/HW/Wiimote.h>
 #include <Core/Core.h>
 #include <Core/Metadata.h>
-#include <ShlObj_core.h>
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 
@@ -119,12 +118,13 @@ void StateAuxillary::stopRecording(const std::string replay_path, tm* matchDateT
 
 void StateAuxillary::endPlayback()
 {
+  /*
   PWSTR path;
   SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
   std::wstring strpath(path);
   CoTaskMemFree(path);
   std::string documents_file_path(strpath.begin(), strpath.end());
-  /*
+
   std::string replays_path = documents_file_path;
   replays_path += "\\Citrus Replays\\";
   */
