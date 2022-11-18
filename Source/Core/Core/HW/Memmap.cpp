@@ -246,13 +246,14 @@ void Init()
   s_exram_size = MathUtil::NextPowerOf2(GetExRamSizeReal());
   s_exram_mask = GetExRamSize() - 1;
 
-  s_physical_regions[0] = {&m_pRAM, 0x00000000, GetRamSize(), PhysicalMemoryRegion::ALWAYS, false};
-  s_physical_regions[1] = {&m_pL1Cache, 0xE0000000, GetL1CacheSize(), PhysicalMemoryRegion::ALWAYS,
-                           false};
-  s_physical_regions[2] = {&m_pFakeVMEM, 0x7E000000, GetFakeVMemSize(),
-                           PhysicalMemoryRegion::FAKE_VMEM, false};
-  s_physical_regions[3] = {&m_pEXRAM, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY,
-                           false};
+  s_physical_regions[0] = PhysicalMemoryRegion{
+      &m_pRAM, 0x00000000, GetRamSize(), PhysicalMemoryRegion::ALWAYS, 0, false};
+  s_physical_regions[1] = PhysicalMemoryRegion{
+      &m_pL1Cache, 0xE0000000, GetL1CacheSize(), PhysicalMemoryRegion::ALWAYS, 0, false};
+  s_physical_regions[2] = PhysicalMemoryRegion{
+      &m_pFakeVMEM, 0x7E000000, GetFakeVMemSize(), PhysicalMemoryRegion::FAKE_VMEM, 0, false};
+  s_physical_regions[3] = PhysicalMemoryRegion{
+      &m_pEXRAM, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY, 0, false};
 
   const bool wii = SConfig::GetInstance().bWii;
   const bool mmu = Core::System::GetInstance().IsMMUMode();
