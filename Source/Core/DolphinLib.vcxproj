@@ -75,8 +75,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Lua\LuaFunctions\LuaEmuFunctions.cpp" />
-    <ClCompile Include="Core\Lua\LuaFunctions\LuaMemoryFunctions\LuaMemoryBaseApi.cpp" />
-    <ClCompile Include="Core\Lua\LuaFunctions\LuaMemoryFunctions\LuaRamFunctions.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>

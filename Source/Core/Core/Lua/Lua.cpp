@@ -26,7 +26,7 @@ void Init()
   Lua_emu::luaScriptActive = true;
   mainLuaState = luaL_newstate();
   luaL_openlibs(mainLuaState);
-  Lua_RAM::InitLuaRAMFunctions(mainLuaState);
+  LuaRamFunctions::InitLuaRamFunctions(mainLuaState);
   Lua_emu::InitLuaEmuFunctions(mainLuaState);
   luaThread = std::thread(tempRunner);
 }
