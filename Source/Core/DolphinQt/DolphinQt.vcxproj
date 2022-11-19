@@ -201,6 +201,7 @@
     <ClCompile Include="Settings\USBDeviceAddToWhitelistDialog.cpp" />
     <ClCompile Include="Settings\WiiPane.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
+    <ClCompile Include="TAS\GBATASInputWindow.cpp" />
     <ClCompile Include="TAS\IRWidget.cpp" />
     <ClCompile Include="TAS\StickWidget.cpp" />
     <ClCompile Include="TAS\TASCheckBox.cpp" />
@@ -379,6 +380,7 @@
     <QtMoc Include="Settings\USBDeviceAddToWhitelistDialog.h" />
     <QtMoc Include="Settings\WiiPane.h" />
     <QtMoc Include="TAS\GCTASInputWindow.h" />
+    <QtMoc Include="TAS\GBATASInputWindow.h" />
     <QtMoc Include="TAS\IRWidget.h" />
     <QtMoc Include="TAS\StickWidget.h" />
     <QtMoc Include="TAS\TASCheckBox.h" />

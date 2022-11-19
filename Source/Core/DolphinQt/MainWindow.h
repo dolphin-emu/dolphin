@@ -26,6 +26,7 @@ class DragEnterEvent;
 class FIFOPlayerWindow;
 class FreeLookWindow;
 class GameList;
+class GBATASInputWindow;
 class GCTASInputWindow;
 class GraphicsWindow;
 class HotkeyScheduler;
@@ -228,6 +229,7 @@ private:
   NetPlaySetupDialog* m_netplay_setup_dialog;
   static constexpr int num_gc_controllers = 4;
   std::array<GCTASInputWindow*, num_gc_controllers> m_gc_tas_input_windows{};
+  std::array<GBATASInputWindow*, num_gc_controllers> m_gba_tas_input_windows{};
   static constexpr int num_wii_controllers = 4;
   std::array<WiiTASInputWindow*, num_wii_controllers> m_wii_tas_input_windows{};
 
