@@ -172,7 +172,8 @@ T MMU::ReadFromHardware(u32 em_address)
 
   bool wi = false;
 
-  if (!never_translate && m_ppc_state.msr.DR)
+  if (!never_translate &&
+      (IsOpcodeFlag(flag) ? m_ppc_state.msr.IR.Value() : m_ppc_state.msr.DR.Value()))
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
     if (!translated_addr.Success())
@@ -516,7 +517,7 @@ std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThread
   case RequestedAddressSpace::Effective:
   {
     const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
-    return ReadResult<u32>(!!mmu.m_ppc_state.msr.DR, value);
+    return ReadResult<u32>(!!mmu.m_ppc_state.msr.IR, value);
   }
   case RequestedAddressSpace::Physical:
   {
@@ -525,7 +526,7 @@ std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThread
   }
   case RequestedAddressSpace::Virtual:
   {
-    if (!mmu.m_ppc_state.msr.DR)
+    if (!mmu.m_ppc_state.msr.IR)
       return std::nullopt;
     const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
     return ReadResult<u32>(true, value);
