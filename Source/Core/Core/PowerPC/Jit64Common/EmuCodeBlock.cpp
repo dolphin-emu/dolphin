@@ -131,8 +131,8 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
   return J_CC(CC_Z, m_far_code.Enabled());
 }
 
-void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
-                                       bool swap, MovInfo* info)
+void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, bool swap,
+                                       MovInfo* info)
 {
   if (info)
   {
@@ -140,7 +140,8 @@ void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acc
     info->nonAtomicSwapStore = false;
   }
 
-  OpArg dest = MComplex(RMEM, reg_addr, SCALE_1, offset);
+  OpArg dest = MRegSum(RMEM, reg_addr);
+
   if (reg_value.IsImm())
   {
     if (swap)
@@ -158,9 +159,9 @@ void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acc
 }
 
 void EmuCodeBlock::UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
-                                       s32 offset, bool swap, Gen::MovInfo* info)
+                                       bool swap, Gen::MovInfo* info)
 {
-  UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, swap, info);
+  UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, swap, info);
 }
 
 bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset,
@@ -168,36 +169,22 @@ bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int access
 {
   bool offsetAddedToAddress = false;
   OpArg memOperand;
-  if (opAddress.IsSimpleReg())
+  if (opAddress.IsSimpleReg() && offset == 0)
   {
-    // Deal with potential wraparound.  (This is just a heuristic, and it would
-    // be more correct to actually mirror the first page at the end, but the
-    // only case where it probably actually matters is JitIL turning adds into
-    // offsets with the wrong sign, so whatever.  Since the original code
-    // *could* try to wrap an address around, however, this is the correct
-    // place to address the issue.)
-    if ((u32)offset >= 0x1000)
-    {
-      // This method can potentially clobber the address if it shares a register
-      // with the load target. In this case we can just subtract offset from the
-      // register (see Jit64 for this implementation).
-      offsetAddedToAddress = (reg_value == opAddress.GetSimpleReg());
-
-      LEA(32, reg_value, MDisp(opAddress.GetSimpleReg(), offset));
-      opAddress = R(reg_value);
-      offset = 0;
-    }
-    memOperand = MComplex(RMEM, opAddress.GetSimpleReg(), SCALE_1, offset);
-  }
-  else if (opAddress.IsImm())
-  {
-    MOV(32, R(reg_value), Imm32((u32)(opAddress.Imm32() + offset)));
-    memOperand = MRegSum(RMEM, reg_value);
+    memOperand = MRegSum(RMEM, opAddress.GetSimpleReg());
   }
   else
   {
-    MOV(32, R(reg_value), opAddress);
-    memOperand = MComplex(RMEM, reg_value, SCALE_1, offset);
+    if (opAddress.IsSimpleReg())
+    {
+      // This method can potentially clobber the address if it shares a register
+      // with the load target. If that happens, we can undo the clobbering by
+      // subtracting the offset from the register when backpatching.
+      offsetAddedToAddress = (reg_value == opAddress.GetSimpleReg());
+    }
+
+    MOV_sum(32, reg_value, opAddress, Imm32(offset));
+    memOperand = MRegSum(RMEM, reg_value);
   }
 
   LoadAndSwap(accessSize, reg_value, memOperand, signExtend, info);
@@ -483,7 +470,7 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
   }
 }
 
-void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
+void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize,
                                      BitSet32 registersInUse, int flags)
 {
   bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
@@ -498,7 +485,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
-    UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
+    UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, swap, &mov);
     TrampolineInfo& info = m_back_patch_info[mov.address];
     info.pc = js.compilerPC;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
@@ -508,7 +495,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     info.op_reg = reg_addr;
     info.offsetAddedToAddress = false;
     info.accessSize = accessSize >> 3;
-    info.offset = offset;
+    info.offset = 0;
     info.registersInUse = registersInUse;
     info.flags = flags;
     ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
@@ -523,26 +510,13 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     return;
   }
 
-  if (offset)
-  {
-    if (flags & SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR)
-    {
-      LEA(32, RSCRATCH, MDisp(reg_addr, (u32)offset));
-      reg_addr = RSCRATCH;
-    }
-    else
-    {
-      ADD(32, R(reg_addr), Imm32((u32)offset));
-    }
-  }
-
   FixupBranch exit;
   const bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || MSR.DR;
   const bool fast_check_address = !slowmem && dr_set && m_jit.jo.fastmem_arena;
   if (fast_check_address)
   {
     FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
-    UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
+    UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, swap);
     if (m_far_code.Enabled())
       SwitchToFarCode();
     else
@@ -603,9 +577,9 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 }
 
 void EmuCodeBlock::SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
-                                     s32 offset, BitSet32 registersInUse, int flags)
+                                     BitSet32 registersInUse, int flags)
 {
-  SafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, registersInUse, flags);
+  SafeWriteRegToReg(R(reg_value), reg_addr, accessSize, registersInUse, flags);
 }
 
 bool EmuCodeBlock::WriteClobbersRegValue(int accessSize, bool swap)

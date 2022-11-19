@@ -541,7 +541,7 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
   if (!single)
     flags |= SAFE_LOADSTORE_NO_SWAP;
 
-  SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, size, 0, QUANTIZED_REGS_TO_SAVE, flags);
+  SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, size, QUANTIZED_REGS_TO_SAVE, flags);
 }
 
 void QuantizedMemoryRoutines::GenQuantizedStoreFloat(bool single, bool isInline)

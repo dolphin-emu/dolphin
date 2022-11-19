@@ -153,7 +153,6 @@ void Jit64::stfXXX(UGeckoInstruction inst)
     return;
   }
 
-  s32 offset = 0;
   RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
   RegCache::Realize(Ra);
   if (indexed)
@@ -164,23 +163,15 @@ void Jit64::stfXXX(UGeckoInstruction inst)
   }
   else
   {
-    if (update)
-    {
-      MOV_sum(32, RSCRATCH2, Ra, Imm32(imm));
-    }
-    else
-    {
-      offset = imm;
-      MOV(32, R(RSCRATCH2), Ra);
-    }
+    MOV_sum(32, RSCRATCH2, Ra, Imm32(imm));
   }
 
   BitSet32 registersInUse = CallerSavedRegistersInUse();
-  // We need to save the (usually scratch) address register for the update.
+  // We need to save the address register for the update.
   if (update)
     registersInUse[RSCRATCH2] = true;
 
-  SafeWriteRegToReg(RSCRATCH, RSCRATCH2, accessSize, offset, registersInUse);
+  SafeWriteRegToReg(RSCRATCH, RSCRATCH2, accessSize, CallerSavedRegistersInUse());
 
   if (update)
     MOV(32, Ra, R(RSCRATCH2));
@@ -207,5 +198,5 @@ void Jit64::stfiwx(UGeckoInstruction inst)
     MOVD_xmm(R(RSCRATCH), Rs.GetSimpleReg());
   else
     MOV(32, R(RSCRATCH), Rs);
-  SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 32, 0, CallerSavedRegistersInUse());
+  SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 32, CallerSavedRegistersInUse());
 }

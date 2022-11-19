@@ -55,12 +55,13 @@ public:
 
   Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr,
                                       BitSet32 registers_in_use);
-  // these return the address of the MOV, for backpatching
-  void UnsafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize,
-                           s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr);
-  void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
-                           s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr);
 
+  void UnsafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize,
+                           bool swap = true, Gen::MovInfo* info = nullptr);
+  void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
+                           bool swap = true, Gen::MovInfo* info = nullptr);
+
+  // Returns whether the offset was added to the address register
   bool UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset,
                        bool signExtend, Gen::MovInfo* info = nullptr);
 
@@ -75,12 +76,11 @@ public:
     SAFE_LOADSTORE_NO_PROLOG = 2,
     // This indicates that the write being generated cannot be patched (and thus can't use fastmem)
     SAFE_LOADSTORE_NO_FASTMEM = 4,
-    SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR = 8,
     // Force slowmem (used when generating fallbacks in trampolines)
-    SAFE_LOADSTORE_FORCE_SLOWMEM = 16,
-    SAFE_LOADSTORE_DR_ON = 32,
+    SAFE_LOADSTORE_FORCE_SLOWMEM = 8,
+    SAFE_LOADSTORE_DR_ON = 16,
     // Generated from a context that doesn't have the PC of the instruction that caused it
-    SAFE_LOADSTORE_NO_UPDATE_PC = 64,
+    SAFE_LOADSTORE_NO_UPDATE_PC = 32,
   };
 
   void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize, s32 offset,
@@ -91,9 +91,9 @@ public:
   // Clobbers RSCRATCH or reg_addr depending on the relevant flag.  Preserves
   // reg_value if the load fails and js.memcheck is enabled.
   // Works with immediate inputs and simple registers only.
-  void SafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset,
+  void SafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize,
                          BitSet32 registersInUse, int flags = 0);
-  void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset,
+  void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
                          BitSet32 registersInUse, int flags = 0);
 
   // applies to safe and unsafe WriteRegToReg

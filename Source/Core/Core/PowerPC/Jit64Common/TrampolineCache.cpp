@@ -62,8 +62,8 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const TrampolineInfo& info)
   // Don't treat FIFO writes specially for now because they require a burst
   // check anyway.
 
-  SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.offset,
-                    info.registersInUse, info.flags | SAFE_LOADSTORE_FORCE_SLOWMEM);
+  SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.registersInUse,
+                    info.flags | SAFE_LOADSTORE_FORCE_SLOWMEM);
 
   JMP(info.start + info.len, true);
 

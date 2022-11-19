@@ -321,7 +321,7 @@ bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
   if (info.offsetAddedToAddress)
   {
     u64* ptr = ContextRN(ctx, info.op_arg.GetSimpleReg());
-    *ptr -= static_cast<u32>(info.offset);
+    *ptr = static_cast<u32>(static_cast<u32>(*ptr) - static_cast<u32>(info.offset));
   }
 
   ctx->CTX_PC = reinterpret_cast<u64>(trampoline);

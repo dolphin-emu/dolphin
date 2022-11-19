@@ -522,7 +522,7 @@ void Jit64::stX(UGeckoInstruction inst)
     {
       RCOpArg Rs = gpr.Use(s, RCMode::Read);
       RegCache::Realize(Rs);
-      reg_value = RCOpArg::R(RSCRATCH2);
+      reg_value = RCOpArg::R(RSCRATCH);
       MOV(32, reg_value, Rs);
     }
     else
@@ -530,11 +530,24 @@ void Jit64::stX(UGeckoInstruction inst)
       reg_value = gpr.BindOrImm(s, RCMode::Read);
     }
     RegCache::Realize(Ra, reg_value);
-    SafeWriteRegToReg(reg_value, Ra, accessSize, offset, CallerSavedRegistersInUse(),
-                      SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
+
+    BitSet32 registersInUse = CallerSavedRegistersInUse();
+
+    X64Reg addr = Ra;
+    if (offset != 0)
+    {
+      MOV_sum(32, RSCRATCH2, Ra, Imm32(offset));
+      addr = RSCRATCH2;
+
+      // We need to save the address register for the update.
+      if (update)
+        registersInUse[RSCRATCH2] = true;
+    }
+
+    SafeWriteRegToReg(reg_value, addr, accessSize, registersInUse);
 
     if (update)
-      ADD(32, Ra, Imm32((u32)offset));
+      MOV(32, Ra, R(addr));
   }
 }
 
@@ -585,7 +598,7 @@ void Jit64::stXx(UGeckoInstruction inst)
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   if (update)
     registersInUse[RSCRATCH2] = true;
-  SafeWriteRegToReg(Rs, RSCRATCH2, accessSize, 0, registersInUse,
+  SafeWriteRegToReg(Rs, RSCRATCH2, accessSize, registersInUse,
                     byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
 
   if (update)
@@ -630,17 +643,15 @@ void Jit64::stmw(UGeckoInstruction inst)
     RCOpArg Ri = gpr.Use(i, RCMode::Read);
     RegCache::Realize(Ra, Ri);
 
-    if (Ra.IsZero())
-      XOR(32, R(RSCRATCH), R(RSCRATCH));
-    else
-      MOV(32, R(RSCRATCH), Ra);
+    u32 offset = (i - d) * 4 + (u32)(s32)inst.SIMM_16;
+
+    MOV_sum(32, RSCRATCH, Ra.IsZero() ? Imm32(0) : Ra, Imm32(offset));
     if (!Ri.IsImm())
     {
       MOV(32, R(RSCRATCH2), Ri);
       Ri = RCOpArg::R(RSCRATCH2);
     }
-    SafeWriteRegToReg(Ri, RSCRATCH, 32, (i - d) * 4 + (u32)(s32)inst.SIMM_16,
-                      CallerSavedRegistersInUse());
+    SafeWriteRegToReg(Ri, RSCRATCH, 32, CallerSavedRegistersInUse());
   }
 }
 
