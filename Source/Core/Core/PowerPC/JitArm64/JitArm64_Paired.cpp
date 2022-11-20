@@ -85,6 +85,9 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
   const bool use_c = op5 == 25 || (op5 & ~0x13) == 12;  // mul, muls, and all kinds of maddXX
   const bool use_b = op5 != 25 && (op5 & ~0x1) != 12;   // mul and muls don't use B
+  const bool fma = use_b && use_c;
+  const bool negate_result = (op5 & ~0x1) == 30;
+  const bool msub = op5 == 28 || op5 == 30;
 
   const auto singles_func = [&] {
     return fpr.IsSingle(a) && (!use_b || fpr.IsSingle(b)) && (!use_c || fpr.IsSingle(c));
@@ -99,147 +102,108 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
   const ARM64Reg VA = reg_encoder(fpr.R(a, type));
   const ARM64Reg VB = use_b ? reg_encoder(fpr.R(b, type)) : ARM64Reg::INVALID_REG;
-  ARM64Reg VC = use_c ? reg_encoder(fpr.R(c, type)) : ARM64Reg::INVALID_REG;
+  const ARM64Reg VC = use_c ? reg_encoder(fpr.R(c, type)) : ARM64Reg::INVALID_REG;
   const ARM64Reg VD = reg_encoder(fpr.RW(d, type));
 
   ARM64Reg V0Q = ARM64Reg::INVALID_REG;
-  ARM64Reg V0 = ARM64Reg::INVALID_REG;
   ARM64Reg V1Q = ARM64Reg::INVALID_REG;
 
-  const auto allocate_v0_if_needed = [&] {
-    if (V0Q == ARM64Reg::INVALID_REG)
-    {
-      V0Q = fpr.GetReg();
-      V0 = reg_encoder(V0Q);
-    }
-  };
-
+  ARM64Reg rounded_c_reg = VC;
   if (round_c)
   {
     ASSERT_MSG(DYNA_REC, !singles, "Tried to apply 25-bit precision to single");
 
-    V1Q = fpr.GetReg();
-
-    Force25BitPrecision(reg_encoder(V1Q), VC);
-    VC = reg_encoder(V1Q);
+    V0Q = fpr.GetReg();
+    rounded_c_reg = reg_encoder(V0Q);
+    Force25BitPrecision(rounded_c_reg, VC);
   }
 
-  ARM64Reg inaccurate_fma_temp_reg = VD;
-  if (inaccurate_fma && d == b)
+  ARM64Reg inaccurate_fma_reg = VD;
+  if (fma && inaccurate_fma && VD == VB)
   {
-    allocate_v0_if_needed();
-    inaccurate_fma_temp_reg = V0;
+    if (V0Q == ARM64Reg::INVALID_REG)
+      V0Q = fpr.GetReg();
+    inaccurate_fma_reg = reg_encoder(V0Q);
   }
 
   ARM64Reg result_reg = VD;
+  if (fma && !inaccurate_fma && (msub || VD != VB) && (VD == VA || VD == rounded_c_reg))
+  {
+    V1Q = fpr.GetReg();
+    result_reg = reg_encoder(V1Q);
+  }
+
   switch (op5)
   {
   case 12:  // ps_muls0: d = a * c.ps0
-    m_float_emit.FMUL(size, VD, VA, VC, 0);
+    m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg, 0);
     break;
   case 13:  // ps_muls1: d = a * c.ps1
-    m_float_emit.FMUL(size, VD, VA, VC, 1);
+    m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg, 1);
     break;
   case 14:  // ps_madds0: d = a * c.ps0 + b
     if (inaccurate_fma)
     {
-      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC, 0);
-      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
-    }
-    else if (VD == VB)
-    {
-      m_float_emit.FMLA(size, VD, VA, VC, 0);
-    }
-    else if (VD != VA && VD != VC)
-    {
-      m_float_emit.MOV(VD, VB);
-      m_float_emit.FMLA(size, VD, VA, VC, 0);
+      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg, 0);
+      m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
     }
     else
     {
-      allocate_v0_if_needed();
-      m_float_emit.MOV(V0, VB);
-      m_float_emit.FMLA(size, V0, VA, VC, 0);
-      result_reg = V0;
+      if (result_reg != VB)
+        m_float_emit.MOV(result_reg, VB);
+      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg, 0);
     }
     break;
   case 15:  // ps_madds1: d = a * c.ps1 + b
     if (inaccurate_fma)
     {
-      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC, 1);
-      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
-    }
-    else if (VD == VB)
-    {
-      m_float_emit.FMLA(size, VD, VA, VC, 1);
-    }
-    else if (VD != VA && VD != VC)
-    {
-      m_float_emit.MOV(VD, VB);
-      m_float_emit.FMLA(size, VD, VA, VC, 1);
+      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg, 1);
+      m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
     }
     else
     {
-      allocate_v0_if_needed();
-      m_float_emit.MOV(V0, VB);
-      m_float_emit.FMLA(size, V0, VA, VC, 1);
-      result_reg = V0;
+      if (result_reg != VB)
+        m_float_emit.MOV(result_reg, VB);
+      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg, 1);
     }
     break;
   case 18:  // ps_div
-    m_float_emit.FDIV(size, VD, VA, VB);
+    m_float_emit.FDIV(size, result_reg, VA, VB);
     break;
   case 20:  // ps_sub
-    m_float_emit.FSUB(size, VD, VA, VB);
+    m_float_emit.FSUB(size, result_reg, VA, VB);
     break;
   case 21:  // ps_add
-    m_float_emit.FADD(size, VD, VA, VB);
+    m_float_emit.FADD(size, result_reg, VA, VB);
     break;
   case 25:  // ps_mul
-    m_float_emit.FMUL(size, VD, VA, VC);
+    m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg);
     break;
   case 28:  // ps_msub:  d = a * c - b
   case 30:  // ps_nmsub: d = -(a * c - b)
     if (inaccurate_fma)
     {
-      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC);
-      m_float_emit.FSUB(size, VD, inaccurate_fma_temp_reg, VB);
-    }
-    else if (VD != VA && VD != VC)
-    {
-      m_float_emit.FNEG(size, VD, VB);
-      m_float_emit.FMLA(size, VD, VA, VC);
+      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg);
+      m_float_emit.FSUB(size, result_reg, inaccurate_fma_reg, VB);
     }
     else
     {
-      allocate_v0_if_needed();
-      m_float_emit.FNEG(size, V0, VB);
-      m_float_emit.FMLA(size, V0, VA, VC);
-      result_reg = V0;
+      m_float_emit.FNEG(size, result_reg, VB);
+      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg);
     }
     break;
   case 29:  // ps_madd:  d = a * c + b
   case 31:  // ps_nmadd: d = -(a * c + b)
     if (inaccurate_fma)
     {
-      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC);
-      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
-    }
-    else if (VD == VB)
-    {
-      m_float_emit.FMLA(size, VD, VA, VC);
-    }
-    else if (VD != VA && VD != VC)
-    {
-      m_float_emit.MOV(VD, VB);
-      m_float_emit.FMLA(size, VD, VA, VC);
+      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg);
+      m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
     }
     else
     {
-      allocate_v0_if_needed();
-      m_float_emit.MOV(V0, VB);
-      m_float_emit.FMLA(size, V0, VA, VC);
-      result_reg = V0;
+      if (result_reg != VB)
+        m_float_emit.MOV(result_reg, VB);
+      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg);
     }
     break;
   default:
@@ -247,19 +211,12 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     break;
   }
 
-  switch (op5)
-  {
-  case 30:  // ps_nmsub
-  case 31:  // ps_nmadd
-    // PowerPC's nmadd/nmsub perform rounding before the final negation, which is not the case
-    // for any of AArch64's FMA instructions, so we negate using a separate instruction.
+  // PowerPC's nmadd/nmsub perform rounding before the final negation, which is not the case
+  // for any of AArch64's FMA instructions, so we negate using a separate instruction.
+  if (negate_result)
     m_float_emit.FNEG(size, VD, result_reg);
-    break;
-  default:
-    if (result_reg != VD)
-      m_float_emit.MOV(VD, result_reg);
-    break;
-  }
+  else if (result_reg != VD)
+    m_float_emit.MOV(VD, result_reg);
 
   if (V0Q != ARM64Reg::INVALID_REG)
     fpr.Unlock(V0Q);
