@@ -36,7 +36,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   FALLBACK_IF(!a);
 
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
-  RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
+  RCOpArg Ra = update ? gpr.UseNoImm(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
   RCOpArg Rb = indexed ? gpr.Use(b, RCMode::Read) : RCOpArg::Imm32((u32)offset);
   RCOpArg Rs = fpr.Use(s, RCMode::Read);
   RegCache::Realize(scratch_guard, Ra, Rb, Rs);
@@ -125,7 +125,7 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   FALLBACK_IF(!a);
 
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
-  RCX64Reg Ra = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
+  RCOpArg Ra = update ? gpr.UseNoImm(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
   RCOpArg Rb = indexed ? gpr.Use(b, RCMode::Read) : RCOpArg::Imm32((u32)offset);
   RCX64Reg Rs = fpr.Bind(s, RCMode::Write);
   RegCache::Realize(scratch_guard, Ra, Rb, Rs);

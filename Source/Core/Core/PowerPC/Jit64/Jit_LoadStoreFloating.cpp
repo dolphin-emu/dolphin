@@ -58,7 +58,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   }
   else
   {
-    RCOpArg Ra = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
+    RCOpArg Ra = update ? gpr.UseNoImm(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
     RegCache::Realize(Ra);
 
     if (indexed)
@@ -161,7 +161,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
     return;
   }
 
-  RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
+  RCOpArg Ra = update ? gpr.UseNoImm(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
   RegCache::Realize(Ra);
   if (indexed)
   {

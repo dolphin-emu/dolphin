@@ -175,7 +175,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     }
     else
     {
-      RCOpArg Ra = a ? gpr.Bind(a, RCMode::Read) : RCOpArg::Imm32(0);
+      RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
       RCOpArg Rb = use_constant_offset ? RCOpArg::Imm32(offset) : gpr.Use(b, RCMode::Read);
       RegCache::Realize(Ra, Rb, Rd);
 
@@ -192,7 +192,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
     if (update)
     {
-      RCOpArg Ra = gpr.Bind(a, RCMode::Write);
+      RCOpArg Ra = gpr.UseNoImm(a, RCMode::Write);
       RegCache::Realize(Ra);
       MOV(32, Ra, R(addr));
     }
@@ -492,7 +492,8 @@ void Jit64::stX(UGeckoInstruction inst)
   }
   else
   {
-    RCX64Reg Ra = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
+    RCMode Ra_mode = update ? RCMode::ReadWrite : RCMode::Read;
+    RCOpArg Ra = offset != 0 ? gpr.Use(a, Ra_mode) : gpr.Bind(a, Ra_mode);
     RCOpArg reg_value;
     if (!gpr.IsImm(s) && WriteClobbersRegValue(accessSize, /* swap */ true))
     {
@@ -509,8 +510,12 @@ void Jit64::stX(UGeckoInstruction inst)
 
     BitSet32 registersInUse = CallerSavedRegistersInUse();
 
-    X64Reg addr = Ra;
-    if (offset != 0)
+    X64Reg addr;
+    if (offset == 0)
+    {
+      addr = Ra.GetSimpleReg();
+    }
+    else
     {
       MOV_sum(32, RSCRATCH2, Ra, Imm32(offset));
       addr = RSCRATCH2;
@@ -559,7 +564,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 
   const bool does_clobber = WriteClobbersRegValue(accessSize, /* swap */ !byte_reverse);
 
-  RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
+  RCOpArg Ra = update ? gpr.UseNoImm(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
   RCOpArg Rb = gpr.Use(b, RCMode::Read);
   RCOpArg Rs = does_clobber ? gpr.Use(s, RCMode::Read) : gpr.BindOrImm(s, RCMode::Read);
   RegCache::Realize(Ra, Rb, Rs);
@@ -613,7 +618,7 @@ void Jit64::lmw(UGeckoInstruction inst)
       SafeLoadToReg(RSCRATCH, RSCRATCH2, 32, CallerSavedRegistersInUse(), false);
     }
 
-    RCOpArg Ri = gpr.Bind(i, RCMode::Write);
+    RCOpArg Ri = gpr.UseNoImm(i, RCMode::Write);
     RegCache::Realize(Ri);
     MOV(32, Ri, R(RSCRATCH));
   }
