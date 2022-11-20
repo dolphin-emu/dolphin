@@ -3,7 +3,7 @@
 
 namespace Lua
 {
-namespace Lua_emu
+namespace LuaEmu
 {
 emu* emuPointer = NULL;
 

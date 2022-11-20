@@ -6,6 +6,8 @@
 
 #include "LuaFunctions/LuaMemoryFunctions/LuaRamFunctions.h"
 #include "LuaFunctions/LuaEmuFunctions.h"
+#include "LuaFunctions/LuaBitFunctions.h"
+#include "LuaFunctions/LuaConverter.h"
 #include "Core/Movie.h"
 #include <filesystem>
 
@@ -23,11 +25,13 @@ void tempRunner()
 
 void Init()
 {
-  Lua_emu::luaScriptActive = true;
+  LuaEmu::luaScriptActive = true;
   mainLuaState = luaL_newstate();
   luaL_openlibs(mainLuaState);
   LuaRamFunctions::InitLuaRamFunctions(mainLuaState);
-  Lua_emu::InitLuaEmuFunctions(mainLuaState);
+  LuaEmu::InitLuaEmuFunctions(mainLuaState);
+  LuaBit::InitLuaBitFunctions(mainLuaState);
+  LuaConverter::InitLuaConverterFunctions(mainLuaState);
   luaThread = std::thread(tempRunner);
 }
 

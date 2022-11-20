@@ -9,7 +9,7 @@
 
 namespace Lua
 {
-  namespace Lua_emu
+  namespace LuaEmu
   {
   extern bool luaScriptActive;
   extern std::mutex frameAdvanceLock;

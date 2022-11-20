@@ -889,10 +889,10 @@ void Callback_NewField()
     }
   }
 
-  if (Lua::Lua_emu::luaScriptActive) //notifies the Lua thread that the next frame has started for frame advance calls.
+  if (Lua::LuaEmu::luaScriptActive) //notifies the Lua thread that the next frame has started for frame advance calls.
   {
-    std::unique_lock lk(Lua::Lua_emu::frameAdvanceLock);
-    Lua::Lua_emu::frameAdvanceConditionalVariable.notify_all();
+    std::unique_lock lk(Lua::LuaEmu::frameAdvanceLock);
+    Lua::LuaEmu::frameAdvanceConditionalVariable.notify_all();
     lk.unlock();
   }
 }
