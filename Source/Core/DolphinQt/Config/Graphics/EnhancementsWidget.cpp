@@ -7,7 +7,6 @@
 
 #include <QGridLayout>
 #include <QGroupBox>
-#include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -77,24 +76,15 @@ void EnhancementsWidget::CreateWidgets()
   m_aa_combo = new ToolTipComboBox();
   m_af_combo = new GraphicsChoice({tr("1x"), tr("2x"), tr("4x"), tr("8x"), tr("16x")},
                                   Config::GFX_ENHANCE_MAX_ANISOTROPY);
+  m_texture_filtering_combo =
+      new GraphicsChoice({tr("Default"), tr("Force Nearest"), tr("Force Linear")},
+                         Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
 
   m_pp_effect = new ToolTipComboBox();
   m_configure_pp_effect = new NonDefaultQPushButton(tr("Configure"));
   m_scaled_efb_copy = new GraphicsBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
   m_per_pixel_lighting =
       new GraphicsBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);
-
-  const std::array<const char*, 3> texture_filtering_modes = {{
-      QT_TR_NOOP("Default"),
-      QT_TR_NOOP("Force Nearest"),
-      QT_TR_NOOP("Force Linear"),
-  }};
-  for (size_t i = 0; i < texture_filtering_modes.size(); ++i)
-  {
-    m_force_texture_filtering[i] =
-        new GraphicsRadioInt(tr(texture_filtering_modes[i]),
-                             Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING, static_cast<int>(i));
-  }
 
   m_widescreen_hack = new GraphicsBool(tr("Widescreen Hack"), Config::GFX_WIDESCREEN_HACK);
   m_disable_fog = new GraphicsBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG);
@@ -119,10 +109,7 @@ void EnhancementsWidget::CreateWidgets()
   ++row;
 
   enhancements_layout->addWidget(new QLabel(tr("Texture Filtering:")), row, 0);
-  auto* force_filtering_box = new QHBoxLayout();
-  for (size_t i = 0; i < texture_filtering_modes.size(); ++i)
-    force_filtering_box->addWidget(m_force_texture_filtering[i]);
-  enhancements_layout->addLayout(force_filtering_box, row, 1, 1, -1);
+  enhancements_layout->addWidget(m_texture_filtering_combo, row, 1, 1, -1);
   ++row;
 
   enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), row, 0);
@@ -413,6 +400,9 @@ void EnhancementsWidget::AddDescriptions()
   m_af_combo->SetTitle(tr("Anisotropic Filtering"));
   m_af_combo->SetDescription(tr(TR_ANISOTROPIC_FILTERING_DESCRIPTION));
 
+  m_texture_filtering_combo->SetTitle(tr("Texture Filtering"));
+  m_texture_filtering_combo->SetDescription(tr(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
+
   m_pp_effect->SetTitle(tr("Post-Processing Effect"));
   m_pp_effect->SetDescription(tr(TR_POSTPROCESSING_DESCRIPTION));
 
@@ -425,9 +415,6 @@ void EnhancementsWidget::AddDescriptions()
   m_disable_fog->SetDescription(tr(TR_REMOVE_FOG_DESCRIPTION));
 
   m_force_24bit_color->SetDescription(tr(TR_FORCE_24BIT_DESCRIPTION));
-
-  for (size_t i = 0; i < m_force_texture_filtering.size(); ++i)
-    m_force_texture_filtering[i]->SetDescription(tr(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
 
   m_disable_copy_filter->SetDescription(tr(TR_DISABLE_COPY_FILTER_DESCRIPTION));
 
