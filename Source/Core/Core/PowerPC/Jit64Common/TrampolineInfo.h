@@ -28,9 +28,8 @@ struct TrampolineInfo final
   Gen::X64Reg nonAtomicSwapStoreSrc;
 
   // src/dest for load/store
-  s32 offset;
-  Gen::X64Reg op_reg;
-  Gen::OpArg op_arg;
+  Gen::OpArg op_value;
+  Gen::X64Reg reg_addr;
 
   // Original SafeLoadXXX/SafeStoreXXX flags
   u8 flags;
@@ -43,7 +42,4 @@ struct TrampolineInfo final
 
   // for read operations, true if needs sign-extension after load
   bool signExtend : 1;
-
-  // Set to true if we added the offset to the address and need to undo it
-  bool offsetAddedToAddress : 1;
 };

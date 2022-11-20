@@ -61,9 +61,8 @@ public:
   void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
                            bool swap = true, Gen::MovInfo* info = nullptr);
 
-  // Returns whether the offset was added to the address register
-  bool UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset,
-                       bool signExtend, Gen::MovInfo* info = nullptr);
+  void UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, bool signExtend,
+                       Gen::MovInfo* info = nullptr);
 
   // Generate a load/write from the MMIO handler for a given address. Only
   // call for known addresses in MMIO range (MMIO::IsMMIOAddress).
@@ -83,9 +82,11 @@ public:
     SAFE_LOADSTORE_NO_UPDATE_PC = 32,
   };
 
-  void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize, s32 offset,
+  void SafeLoadToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
                      BitSet32 registersInUse, bool signExtend, int flags = 0);
-  void SafeLoadToRegImmediate(Gen::X64Reg reg_value, u32 address, int accessSize,
+
+  // returns true if an exception could have been caused
+  bool SafeLoadToRegImmediate(Gen::X64Reg reg_value, u32 address, int accessSize,
                               BitSet32 registersInUse, bool signExtend);
 
   // Clobbers RSCRATCH or reg_addr depending on the relevant flag.  Preserves

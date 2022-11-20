@@ -596,7 +596,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
   int flags = isInline ? 0 :
                          SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
                              SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
-  SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
+  SafeLoadToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, size, regsToSave, extend, flags);
   if (!single && (type == QUANTIZE_U8 || type == QUANTIZE_S8))
   {
     // TODO: Support not swapping in safeLoadToReg to avoid bswapping twice
@@ -704,7 +704,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
   int flags = isInline ? 0 :
                          SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
                              SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
-  SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
+  SafeLoadToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, size, regsToSave, extend, flags);
 
   if (single)
   {

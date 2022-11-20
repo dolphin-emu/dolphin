@@ -164,31 +164,21 @@ void EmuCodeBlock::UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_ad
   UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, swap, info);
 }
 
-bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset,
+void EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize,
                                    bool signExtend, MovInfo* info)
 {
-  bool offsetAddedToAddress = false;
   OpArg memOperand;
-  if (opAddress.IsSimpleReg() && offset == 0)
+  if (opAddress.IsSimpleReg())
   {
     memOperand = MRegSum(RMEM, opAddress.GetSimpleReg());
   }
   else
   {
-    if (opAddress.IsSimpleReg())
-    {
-      // This method can potentially clobber the address if it shares a register
-      // with the load target. If that happens, we can undo the clobbering by
-      // subtracting the offset from the register when backpatching.
-      offsetAddedToAddress = (reg_value == opAddress.GetSimpleReg());
-    }
-
-    MOV_sum(32, reg_value, opAddress, Imm32(offset));
+    MOV(32, R(reg_value), opAddress);
     memOperand = MRegSum(RMEM, reg_value);
   }
 
   LoadAndSwap(accessSize, reg_value, memOperand, signExtend, info);
-  return offsetAddedToAddress;
 }
 
 // Visitor that generates code to read a MMIO value.
@@ -299,8 +289,8 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
   }
 }
 
-void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
-                                 s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
+void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize,
+                                 BitSet32 registersInUse, bool signExtend, int flags)
 {
   bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
 
@@ -311,18 +301,15 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
-    bool offsetAddedToAddress =
-        UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
+    UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, signExtend, &mov);
     TrampolineInfo& info = m_back_patch_info[mov.address];
     info.pc = js.compilerPC;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
     info.read = true;
-    info.op_reg = reg_value;
-    info.op_arg = opAddress;
-    info.offsetAddedToAddress = offsetAddedToAddress;
+    info.op_value = R(reg_value);
+    info.reg_addr = reg_addr;
     info.accessSize = accessSize >> 3;
-    info.offset = offset;
     info.registersInUse = registersInUse;
     info.flags = flags;
     info.signExtend = signExtend;
@@ -337,29 +324,13 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     return;
   }
 
-  if (opAddress.IsImm())
-  {
-    u32 address = opAddress.Imm32() + offset;
-    SafeLoadToRegImmediate(reg_value, address, accessSize, registersInUse, signExtend);
-    return;
-  }
-
-  ASSERT_MSG(DYNA_REC, opAddress.IsSimpleReg(),
-             "Incorrect use of SafeLoadToReg (address isn't register or immediate)");
-  X64Reg reg_addr = opAddress.GetSimpleReg();
-  if (offset)
-  {
-    reg_addr = RSCRATCH;
-    LEA(32, RSCRATCH, MDisp(opAddress.GetSimpleReg(), offset));
-  }
-
   FixupBranch exit;
   const bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || MSR.DR;
   const bool fast_check_address = !slowmem && dr_set && m_jit.jo.fastmem_arena;
   if (fast_check_address)
   {
     FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
-    UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
+    UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, signExtend);
     if (m_far_code.Enabled())
       SwitchToFarCode();
     else
@@ -415,14 +386,14 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   }
 }
 
-void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int accessSize,
+bool EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int accessSize,
                                           BitSet32 registersInUse, bool signExtend)
 {
   // If the address is known to be RAM, just load it directly.
   if (m_jit.jo.fastmem_arena && PowerPC::IsOptimizableRAMAddress(address))
   {
-    UnsafeLoadToReg(reg_value, Imm32(address), accessSize, 0, signExtend);
-    return;
+    UnsafeLoadToReg(reg_value, Imm32(address), accessSize, signExtend);
+    return false;
   }
 
   // If the address maps to an MMIO register, inline MMIO read code.
@@ -433,7 +404,7 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
     auto& memory = system.GetMemory();
     MMIOLoadToReg(memory.GetMMIOMapping(), reg_value, registersInUse, mmioAddress, accessSize,
                   signExtend);
-    return;
+    return false;
   }
 
   // Helps external systems know which instruction triggered the read.
@@ -468,6 +439,8 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
   {
     MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
   }
+
+  return true;
 }
 
 void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize,
@@ -491,11 +464,9 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
     info.read = false;
-    info.op_arg = reg_value;
-    info.op_reg = reg_addr;
-    info.offsetAddedToAddress = false;
+    info.op_value = reg_value;
+    info.reg_addr = reg_addr;
     info.accessSize = accessSize >> 3;
-    info.offset = 0;
     info.registersInUse = registersInUse;
     info.flags = flags;
     ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
