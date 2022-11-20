@@ -92,7 +92,7 @@ void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
   SetFPRFIfNeeded(input, false);
 }
 
-void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
+void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::vector<int> inputs)
 {
   //                      | PowerPC  | x86
   // ---------------------+----------+---------
@@ -107,14 +107,13 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
 
   ASSERT(xmm != clobber);
 
-  std::vector<u32> inputs;
-  u32 a = inst.FA, b = inst.FB, c = inst.FC;
-  for (u32 i : {a, b, c})
+  // Remove duplicates from inputs
+  for (auto it = inputs.begin(); it != inputs.end();)
   {
-    if (!js.op->fregsIn[i])
-      continue;
-    if (std::find(inputs.begin(), inputs.end(), i) == inputs.end())
-      inputs.push_back(i);
+    if (std::find(inputs.begin(), it, *it) != it)
+      it = inputs.erase(it);
+    else
+      ++it;
   }
 
   if (inst.OPCD != 4)
@@ -128,7 +127,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
 
     // If any inputs are NaNs, pick the first NaN of them
     std::vector<FixupBranch> fixups;
-    for (u32 x : inputs)
+    for (int x : inputs)
     {
       RCOpArg Rx = fpr.Use(x, RCMode::Read);
       RegCache::Realize(Rx);
@@ -168,7 +167,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
       BLENDVPD(xmm, MConst(psGeneratedQNaN));
 
       // If any inputs are NaNs, use those instead
-      for (u32 x : inputs)
+      for (int x : inputs)
       {
         RCOpArg Rx = fpr.Use(x, RCMode::Read);
         RegCache::Realize(Rx);
@@ -198,7 +197,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
       MOVAPD(xmm, tmp);
 
       // If any inputs are NaNs, use those instead
-      for (u32 x : inputs)
+      for (int x : inputs)
       {
         RCOpArg Rx = fpr.Use(x, RCMode::Read);
         RegCache::Realize(Rx);
@@ -277,7 +276,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
       avx_op(avxOp, sseOp, dest, Rop1, Rop2, packed, reversible);
     }
 
-    HandleNaNs(inst, dest, XMM0);
+    HandleNaNs(inst, dest, XMM0, {op1, op2});
     if (single)
       FinalizeSingleResult(Rd, R(dest), packed, true);
     else
@@ -500,7 +499,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     result_xmm = Rd;
   }
 
-  HandleNaNs(inst, result_xmm, XMM0);
+  HandleNaNs(inst, result_xmm, XMM0, {a, b, c});
 
   if (single)
     FinalizeSingleResult(Rd, R(result_xmm), packed, true);

@@ -126,7 +126,8 @@ public:
   void FinalizeSingleResult(Gen::X64Reg output, const Gen::OpArg& input, bool packed = true,
                             bool duplicate = false);
   void FinalizeDoubleResult(Gen::X64Reg output, const Gen::OpArg& input);
-  void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm, Gen::X64Reg clobber);
+  void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm, Gen::X64Reg clobber,
+                  std::vector<int> inputs);
 
   void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
