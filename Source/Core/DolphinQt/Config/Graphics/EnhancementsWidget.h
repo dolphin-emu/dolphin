@@ -36,8 +36,7 @@ private:
   // Enhancements
   GraphicsChoice* m_ir_combo;
   ToolTipComboBox* m_aa_combo;
-  GraphicsChoice* m_af_combo;
-  GraphicsChoice* m_texture_filtering_combo;
+  ToolTipComboBox* m_texture_filtering_combo;
   ToolTipComboBox* m_pp_effect;
   QPushButton* m_configure_pp_effect;
   GraphicsBool* m_scaled_efb_copy;
