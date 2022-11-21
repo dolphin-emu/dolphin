@@ -186,6 +186,8 @@ add_executable(dolphin-emu
   Config/WiimoteControllersWidget.h
   ConvertDialog.cpp
   ConvertDialog.h
+  Debugger/BreakpointDialog.cpp
+  Debugger/BreakpointDialog.h
   Debugger/BreakpointWidget.cpp
   Debugger/BreakpointWidget.h
   Debugger/CodeDiffDialog.cpp
@@ -202,8 +204,6 @@ add_executable(dolphin-emu
   Debugger/MemoryWidget.h
   Debugger/NetworkWidget.cpp
   Debugger/NetworkWidget.h
-  Debugger/NewBreakpointDialog.cpp
-  Debugger/NewBreakpointDialog.h
   Debugger/PatchInstructionDialog.cpp
   Debugger/PatchInstructionDialog.h
   Debugger/RegisterColumn.cpp
