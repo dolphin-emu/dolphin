@@ -1009,12 +1009,20 @@ public:
   void MOVP2R(ARM64Reg Rd, P* ptr)
   {
     ASSERT_MSG(DYNA_REC, Is64Bit(Rd), "Can't store pointers in 32-bit registers");
-    MOVI2R(Rd, (uintptr_t)ptr);
+    MOVI2R(Rd, reinterpret_cast<uintptr_t>(ptr));
+  }
+  template <class P>
+  // Given an address, stores the page address into a register and returns the page-relative offset
+  s32 MOVPage2R(ARM64Reg Rd, P* ptr)
+  {
+    ASSERT_MSG(DYNA_REC, Is64Bit(Rd), "Can't store pointers in 32-bit registers");
+    MOVI2R(Rd, reinterpret_cast<uintptr_t>(ptr) & ~0xFFFULL);
+    return static_cast<s32>(reinterpret_cast<uintptr_t>(ptr) & 0xFFFULL);
   }
 
-  // Wrapper around AND x, y, imm etc.
-  // If you are sure the imm will work, preferably construct a LogicalImm directly instead,
-  // since that is constexpr and thus can be done at compile-time for constant values.
+  // Wrappers around bitwise operations with an immediate. If you're sure an imm can be encoded
+  // without a scratch register, preferably construct a LogicalImm directly instead,
+  // since that is constexpr and thus can be done at compile time for constant values.
   void ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
   void ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
   void TSTI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch)
@@ -1024,6 +1032,7 @@ public:
   void ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
   void EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
 
+  // Wrappers around arithmetic operations with an immediate.
   void ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
                        ARM64Reg scratch);
   void ADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);

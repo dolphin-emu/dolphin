@@ -34,18 +34,18 @@ public:
   }
 
 private:
-  void StoreFromRegister(int sbits, ARM64Reg reg)
+  void StoreFromRegister(int sbits, ARM64Reg reg, s32 offset)
   {
     switch (sbits)
     {
     case 8:
-      m_emit->STRB(IndexType::Unsigned, reg, ARM64Reg::X0, 0);
+      m_emit->STRB(IndexType::Unsigned, reg, ARM64Reg::X0, offset);
       break;
     case 16:
-      m_emit->STRH(IndexType::Unsigned, reg, ARM64Reg::X0, 0);
+      m_emit->STRH(IndexType::Unsigned, reg, ARM64Reg::X0, offset);
       break;
     case 32:
-      m_emit->STR(IndexType::Unsigned, reg, ARM64Reg::X0, 0);
+      m_emit->STR(IndexType::Unsigned, reg, ARM64Reg::X0, offset);
       break;
     default:
       ASSERT_MSG(DYNA_REC, false, "Unknown size {} passed to MMIOWriteCodeGenerator!", sbits);
@@ -55,20 +55,20 @@ private:
 
   void WriteRegToAddr(int sbits, const void* ptr, u32 mask)
   {
-    m_emit->MOVP2R(ARM64Reg::X0, ptr);
+    const s32 offset = m_emit->MOVPage2R(ARM64Reg::X0, ptr);
 
     // If we do not need to mask, we can do the sign extend while loading
     // from memory. If masking is required, we have to first zero extend,
     // then mask, then sign extend if needed (1 instr vs. ~4).
-    u32 all_ones = (1ULL << sbits) - 1;
+    const u32 all_ones = (1ULL << sbits) - 1;
     if ((all_ones & mask) == all_ones)
     {
-      StoreFromRegister(sbits, m_src_reg);
+      StoreFromRegister(sbits, m_src_reg, offset);
     }
     else
     {
       m_emit->ANDI2R(ARM64Reg::W1, m_src_reg, mask, ARM64Reg::W1);
-      StoreFromRegister(sbits, ARM64Reg::W1);
+      StoreFromRegister(sbits, ARM64Reg::W1, offset);
     }
   }
 
@@ -123,24 +123,24 @@ private:
       m_emit->SBFM(m_dst_reg, m_dst_reg, 0, sbits - 1);
   }
 
-  void LoadToRegister(int sbits, bool dont_extend)
+  void LoadToRegister(int sbits, bool dont_extend, s32 offset)
   {
     switch (sbits)
     {
     case 8:
       if (m_sign_extend && !dont_extend)
-        m_emit->LDRSB(IndexType::Unsigned, m_dst_reg, ARM64Reg::X0, 0);
+        m_emit->LDRSB(IndexType::Unsigned, m_dst_reg, ARM64Reg::X0, offset);
       else
-        m_emit->LDRB(IndexType::Unsigned, m_dst_reg, ARM64Reg::X0, 0);
+        m_emit->LDRB(IndexType::Unsigned, m_dst_reg, ARM64Reg::X0, offset);
       break;
     case 16:
       if (m_sign_extend && !dont_extend)
-        m_emit->LDRSH(IndexType::Unsigned, m_dst_reg, ARM64Reg::X0, 0);
+        m_emit->LDRSH(IndexType::Unsigned, m_dst_reg, ARM64Reg::X0, offset);
       else
-        m_emit->LDRH(IndexType::Unsigned, m_dst_reg, ARM64Reg::X0, 0);
+        m_emit->LDRH(IndexType::Unsigned, m_dst_reg, ARM64Reg::X0, offset);
       break;
     case 32:
-      m_emit->LDR(IndexType::Unsigned, m_dst_reg, ARM64Reg::X0, 0);
+      m_emit->LDR(IndexType::Unsigned, m_dst_reg, ARM64Reg::X0, offset);
       break;
     default:
       ASSERT_MSG(DYNA_REC, false, "Unknown size {} passed to MMIOReadCodeGenerator!", sbits);
@@ -150,19 +150,19 @@ private:
 
   void LoadAddrMaskToReg(int sbits, const void* ptr, u32 mask)
   {
-    m_emit->MOVP2R(ARM64Reg::X0, ptr);
+    const s32 offset = m_emit->MOVPage2R(ARM64Reg::X0, ptr);
 
     // If we do not need to mask, we can do the sign extend while loading
     // from memory. If masking is required, we have to first zero extend,
     // then mask, then sign extend if needed (1 instr vs. ~4).
-    u32 all_ones = (1ULL << sbits) - 1;
+    const u32 all_ones = (1ULL << sbits) - 1;
     if ((all_ones & mask) == all_ones)
     {
-      LoadToRegister(sbits, false);
+      LoadToRegister(sbits, false, offset);
     }
     else
     {
-      LoadToRegister(sbits, true);
+      LoadToRegister(sbits, true, offset);
       m_emit->ANDI2R(m_dst_reg, m_dst_reg, mask, ARM64Reg::W0);
       if (m_sign_extend)
         m_emit->SBFM(m_dst_reg, m_dst_reg, 0, sbits - 1);
