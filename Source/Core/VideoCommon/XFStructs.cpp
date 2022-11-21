@@ -15,6 +15,7 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/XFMemory.h"
@@ -53,6 +54,7 @@ static void XFRegWritten(u32 address, u32 value)
     }
 
     case XFMEM_VTXSPECS:  //__GXXfVtxSpecs, wrote 0004
+      VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
       break;
 
     case XFMEM_SETNUMCHAN:
@@ -102,9 +104,11 @@ static void XFRegWritten(u32 address, u32 value)
 
     case XFMEM_SETMATRIXINDA:
       VertexShaderManager::SetTexMatrixChangedA(value);
+      VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
       break;
     case XFMEM_SETMATRIXINDB:
       VertexShaderManager::SetTexMatrixChangedB(value);
+      VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
       break;
 
     case XFMEM_SETVIEWPORT:

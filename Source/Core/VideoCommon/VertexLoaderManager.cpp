@@ -56,6 +56,7 @@ BitSet8 g_preprocess_vat_dirty;
 bool g_bases_dirty;  // Main only
 std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_main_vertex_loaders;
 std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_preprocess_vertex_loaders;
+bool g_needs_cp_xf_consistency_check;
 
 void Init()
 {
@@ -126,6 +127,7 @@ void MarkAllDirty()
   g_bases_dirty = true;
   g_main_vat_dirty = BitSet8::AllTrue(8);
   g_preprocess_vat_dirty = BitSet8::AllTrue(8);
+  g_needs_cp_xf_consistency_check = true;
 }
 
 NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& decl)
@@ -244,6 +246,11 @@ VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
 
 static void CheckCPConfiguration(int vtx_attr_group)
 {
+  if (!g_needs_cp_xf_consistency_check) [[likely]]
+    return;
+
+  g_needs_cp_xf_consistency_check = false;
+
   // Validate that the XF input configuration matches the CP configuration
   u32 num_cp_colors = std::count_if(
       g_main_cp_state.vtx_desc.low.Color.begin(), g_main_cp_state.vtx_desc.low.Color.end(),
@@ -276,7 +283,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
   }
 
   if (num_cp_colors != xfmem.invtxspec.numcolors || num_cp_normals != num_xf_normals ||
-      num_cp_tex_coords != xfmem.invtxspec.numtextures)
+      num_cp_tex_coords != xfmem.invtxspec.numtextures) [[unlikely]]
   {
     PanicAlertFmt("Mismatched configuration between CP and XF stages - {}/{} colors, {}/{} "
                   "normals, {}/{} texture coordinates. Please report on the issue tracker.\n\n"
@@ -291,17 +298,17 @@ static void CheckCPConfiguration(int vtx_attr_group)
 
     // Analytics reporting so we can discover which games have this problem, that way when we
     // eventually simulate the behavior we have test cases for it.
-    if (num_cp_colors != xfmem.invtxspec.numcolors)
+    if (num_cp_colors != xfmem.invtxspec.numcolors) [[unlikely]]
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_COLORS_BETWEEN_CP_AND_XF);
     }
-    if (num_cp_normals != num_xf_normals)
+    if (num_cp_normals != num_xf_normals) [[unlikely]]
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_NORMALS_BETWEEN_CP_AND_XF);
     }
-    if (num_cp_tex_coords != xfmem.invtxspec.numtextures)
+    if (num_cp_tex_coords != xfmem.invtxspec.numtextures) [[unlikely]]
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_TEX_COORDS_BETWEEN_CP_AND_XF);
@@ -312,7 +319,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
   }
 
   if (g_main_cp_state.matrix_index_a.Hex != xfmem.MatrixIndexA.Hex ||
-      g_main_cp_state.matrix_index_b.Hex != xfmem.MatrixIndexB.Hex)
+      g_main_cp_state.matrix_index_b.Hex != xfmem.MatrixIndexB.Hex) [[unlikely]]
   {
     WARN_LOG_FMT(VIDEO,
                  "Mismatched matrix index configuration between CP and XF stages - "
@@ -327,14 +334,14 @@ static void CheckCPConfiguration(int vtx_attr_group)
 template <bool IsPreprocess>
 int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, DataReader src)
 {
-  if (count == 0)
+  if (count == 0) [[unlikely]]
     return 0;
   ASSERT(count > 0);
 
   VertexLoaderBase* loader = RefreshLoader<IsPreprocess>(vtx_attr_group);
 
   int size = count * loader->m_vertex_size;
-  if ((int)src.size() < size)
+  if ((int)src.size() < size) [[unlikely]]
     return -1;
 
   if constexpr (!IsPreprocess)
@@ -346,7 +353,7 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
 
     // If the native vertex format changed, force a flush.
     if (loader->m_native_vertex_format != s_current_vtx_fmt ||
-        loader->m_native_components != g_current_components)
+        loader->m_native_components != g_current_components) [[unlikely]]
     {
       g_vertex_manager->Flush();
     }
