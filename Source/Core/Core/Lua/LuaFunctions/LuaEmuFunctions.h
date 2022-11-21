@@ -25,5 +25,6 @@ namespace Lua
     emu* GetEmuInstance();
     void InitLuaEmuFunctions(lua_State* luaState);
     int emu_frameAdvance(lua_State* luaState);
+    int emu_get_register(lua_State* luaState);
   }
 }
