@@ -327,6 +327,8 @@ add_executable(dolphin-emu
   Settings/WiiPane.h
   TAS/GCTASInputWindow.cpp
   TAS/GCTASInputWindow.h
+  TAS/GBATASInputWindow.cpp
+  TAS/GBATASInputWindow.h
   TAS/IRWidget.cpp
   TAS/IRWidget.h
   TAS/StickWidget.cpp
