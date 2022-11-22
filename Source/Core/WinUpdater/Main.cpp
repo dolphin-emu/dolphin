@@ -38,13 +38,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     return 1;
   }
 
-  FILE* test_fh =
-      _wfopen((std::filesystem::path(*path).parent_path() / "Updater.log").c_str(), L"w");
+  const auto test_fh = ::CreateFileW(
+      (std::filesystem::path(*path).parent_path() / "directory_writable_check.tmp").c_str(),
+      GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+      FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, nullptr);
 
-  if (test_fh == nullptr)
+  if (test_fh == INVALID_HANDLE_VALUE)
     need_admin = true;
   else
-    fclose(test_fh);
+    CloseHandle(test_fh);
 
   if (need_admin)
   {
