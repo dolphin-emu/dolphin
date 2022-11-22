@@ -75,6 +75,11 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
                 @Override
                 public void onGlobalLayout()
                 {
+                  if (mBinding.getRoot().getMeasuredWidth() == 0)
+                  {
+                    return;
+                  }
+
                   int columns = mBinding.getRoot().getMeasuredWidth() /
                           requireContext().getResources().getDimensionPixelSize(R.dimen.card_width);
                   if (columns == 0)
