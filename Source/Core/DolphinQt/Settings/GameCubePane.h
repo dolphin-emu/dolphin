@@ -19,6 +19,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 class QString;
+class QVBoxLayout;
 
 class GameCubePane : public QWidget
 {
@@ -42,6 +43,8 @@ private:
 
   void BrowseMemcard(ExpansionInterface::Slot slot);
   bool SetMemcard(ExpansionInterface::Slot slot, const QString& filename);
+  void BrowseGCIFolder(ExpansionInterface::Slot slot);
+  bool SetGCIFolder(ExpansionInterface::Slot slot, const QString& path);
   void BrowseAGPRom(ExpansionInterface::Slot slot);
   void SetAGPRom(ExpansionInterface::Slot slot, const QString& filename);
   void BrowseGBABios();
@@ -62,6 +65,11 @@ private:
   Common::EnumMap<QHBoxLayout*, ExpansionInterface::MAX_MEMCARD_SLOT> m_agp_path_layouts;
   Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_agp_path_labels;
   Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_agp_paths;
+
+  Common::EnumMap<QVBoxLayout*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_path_layouts;
+  Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_path_labels;
+  Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_override_labels;
+  Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_paths;
 
   QCheckBox* m_gba_threads;
   QCheckBox* m_gba_save_rom_path;

@@ -114,6 +114,20 @@ void GameCubePane::CreateWidgets()
     m_agp_paths[slot] = new QLineEdit();
     m_agp_path_layouts[slot]->addWidget(m_agp_path_labels[slot]);
     m_agp_path_layouts[slot]->addWidget(m_agp_paths[slot]);
+
+    m_gci_path_layouts[slot] = new QVBoxLayout();
+    m_gci_path_labels[slot] = new QLabel(tr("GCI Folder Path:"));
+    m_gci_override_labels[slot] =
+        new QLabel(tr("Warning: A GCI folder override path is currently configured for this slot. "
+                      "Adjusting the GCI path here will have no effect."));
+    m_gci_override_labels[slot]->setHidden(true);
+    m_gci_override_labels[slot]->setWordWrap(true);
+    m_gci_paths[slot] = new QLineEdit();
+    auto* hlayout = new QHBoxLayout();
+    hlayout->addWidget(m_gci_path_labels[slot]);
+    hlayout->addWidget(m_gci_paths[slot]);
+    m_gci_path_layouts[slot]->addWidget(m_gci_override_labels[slot]);
+    m_gci_path_layouts[slot]->addLayout(hlayout);
   }
 
   // Add slot devices
@@ -156,6 +170,9 @@ void GameCubePane::CreateWidgets()
     device_layout->addLayout(m_agp_path_layouts[ExpansionInterface::Slot::A], row, 0, 1, 3);
 
     ++row;
+    device_layout->addLayout(m_gci_path_layouts[ExpansionInterface::Slot::A], row, 0, 1, 3);
+
+    ++row;
     device_layout->addWidget(new QLabel(tr("Slot B:")), row, 0);
     device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::B], row, 1);
     device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::B], row, 2);
@@ -165,6 +182,9 @@ void GameCubePane::CreateWidgets()
 
     ++row;
     device_layout->addLayout(m_agp_path_layouts[ExpansionInterface::Slot::B], row, 0, 1, 3);
+
+    ++row;
+    device_layout->addLayout(m_gci_path_layouts[ExpansionInterface::Slot::B], row, 0, 1, 3);
 
     ++row;
     device_layout->addWidget(new QLabel(tr("SP1:")), row, 0);
@@ -249,6 +269,11 @@ void GameCubePane::ConnectWidgets()
     });
     connect(m_agp_paths[slot], &QLineEdit::editingFinished,
             [this, slot] { SetAGPRom(slot, m_agp_paths[slot]->text()); });
+    connect(m_gci_paths[slot], &QLineEdit::editingFinished, [this, slot] {
+      // revert path change on failure
+      if (!SetGCIFolder(slot, m_gci_paths[slot]->text()))
+        LoadSettings();
+    });
   }
 
 #ifdef HAS_LIBMGBA
@@ -302,14 +327,28 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
   case ExpansionInterface::Slot::B:
   {
     has_config = (device == ExpansionInterface::EXIDeviceType::MemoryCard ||
+                  device == ExpansionInterface::EXIDeviceType::MemoryCardFolder ||
                   device == ExpansionInterface::EXIDeviceType::AGP ||
                   device == ExpansionInterface::EXIDeviceType::Microphone);
     const bool hide_memory_card = device != ExpansionInterface::EXIDeviceType::MemoryCard ||
                                   Config::IsDefaultMemcardPathConfigured(slot);
+    const bool hide_gci_path = device != ExpansionInterface::EXIDeviceType::MemoryCardFolder ||
+                               Config::IsDefaultGCIFolderPathConfigured(slot);
     m_memcard_path_labels[slot]->setHidden(hide_memory_card);
     m_memcard_paths[slot]->setHidden(hide_memory_card);
     m_agp_path_labels[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::AGP);
     m_agp_paths[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::AGP);
+    m_gci_path_labels[slot]->setHidden(hide_gci_path);
+    m_gci_paths[slot]->setHidden(hide_gci_path);
+
+    // In the years before we introduced the GCI folder configuration paths it has become somewhat
+    // popular to use the GCI override path instead. Check if this is the case and display a warning
+    // if it is set, so users aren't confused why configuring the normal GCI path doesn't do
+    // anything.
+    m_gci_override_labels[slot]->setHidden(
+        device != ExpansionInterface::EXIDeviceType::MemoryCardFolder ||
+        Config::Get(Config::GetInfoForGCIPathOverride(slot)).empty());
+
     break;
   }
   case ExpansionInterface::Slot::SP1:
@@ -331,6 +370,9 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
   {
   case ExpansionInterface::EXIDeviceType::MemoryCard:
     BrowseMemcard(slot);
+    return;
+  case ExpansionInterface::EXIDeviceType::MemoryCardFolder:
+    BrowseGCIFolder(slot);
     return;
   case ExpansionInterface::EXIDeviceType::AGP:
     BrowseAGPRom(slot);
@@ -462,6 +504,111 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
   return true;
 }
 
+void GameCubePane::BrowseGCIFolder(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+
+  const QString path = DolphinFileDialog::getExistingDirectory(
+      this, tr("Choose the GCI base folder"),
+      QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)));
+
+  if (!path.isEmpty())
+    SetGCIFolder(slot, path);
+}
+
+bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& path)
+{
+  if (path.isEmpty())
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Cannot set GCI folder to an empty path."));
+    return false;
+  }
+
+  std::string raw_path =
+      WithUnifiedPathSeparators(QFileInfo(path).absoluteFilePath().toStdString());
+  while (StringEndsWith(raw_path, "/"))
+    raw_path.pop_back();
+
+  // The user might be attempting to reset this path to its default, check for this.
+  const std::string default_jp_path = Config::GetGCIFolderPath("", slot, DiscIO::Region::NTSC_J);
+  const std::string default_us_path = Config::GetGCIFolderPath("", slot, DiscIO::Region::NTSC_U);
+  const std::string default_eu_path = Config::GetGCIFolderPath("", slot, DiscIO::Region::PAL);
+  const bool is_default_path =
+      raw_path == default_jp_path || raw_path == default_us_path || raw_path == default_eu_path;
+
+  bool path_changed;
+  if (is_default_path)
+  {
+    // Reset to default.
+    // Note that this does not need to check if the same card is in the other slot, because that's
+    // impossible given our constraints for folder names.
+    raw_path = "";
+    path_changed = !Config::IsDefaultGCIFolderPathConfigured(slot);
+  }
+  else
+  {
+    // Figure out if the user selected a folder that ends in a valid region specifier.
+    const std::string jp_path = Config::GetGCIFolderPath(raw_path, slot, DiscIO::Region::NTSC_J);
+    const std::string us_path = Config::GetGCIFolderPath(raw_path, slot, DiscIO::Region::NTSC_U);
+    const std::string eu_path = Config::GetGCIFolderPath(raw_path, slot, DiscIO::Region::PAL);
+    const bool raw_path_valid = raw_path == jp_path || raw_path == us_path || raw_path == eu_path;
+
+    if (!raw_path_valid)
+    {
+      // TODO: We could try to autodetect the card region here and offer automatic renaming.
+      ModalMessageBox::critical(
+          this, tr("Error"),
+          tr("The folder %1 does not conform to Dolphin's region code format "
+             "for GCI folders. Please rename this folder to either %2, %3, or "
+             "%4, matching the region of the save files that are in it.")
+              .arg(QString::fromStdString(PathToFileName(raw_path)))
+              .arg(QString::fromStdString(PathToFileName(us_path)))
+              .arg(QString::fromStdString(PathToFileName(eu_path)))
+              .arg(QString::fromStdString(PathToFileName(jp_path))));
+      return false;
+    }
+
+    // Check if the other slot has the same folder configured and refuse to use this folder if so.
+    // The EU path is compared here, but it doesn't actually matter which one we compare since they
+    // follow a known pattern, so if the EU path matches the other match too and vice-versa.
+    for (ExpansionInterface::Slot other_slot : ExpansionInterface::MEMCARD_SLOTS)
+    {
+      if (other_slot == slot)
+        continue;
+
+      const std::string other_eu_path = Config::GetGCIFolderPath(other_slot, DiscIO::Region::PAL);
+      if (eu_path == other_eu_path)
+      {
+        ModalMessageBox::critical(
+            this, tr("Error"),
+            tr("The same folder can't be used in multiple slots; it is already used by %1.")
+                .arg(QString::fromStdString(fmt::to_string(other_slot))));
+        return false;
+      }
+    }
+
+    path_changed = eu_path != Config::GetGCIFolderPath(slot, DiscIO::Region::PAL);
+  }
+
+  Config::SetBase(Config::GetInfoForGCIPath(slot), raw_path);
+
+  if (Core::IsRunning())
+  {
+    // If emulation is running and the new card is different from the old one, notify the system to
+    // eject the old and insert the new card.
+    // TODO: This should probably be done by a config change callback instead.
+    if (path_changed)
+    {
+      // ChangeDevice unplugs the device for 1 second, which means that games should notice that
+      // the path has changed and thus the memory card contents have changed
+      ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::MemoryCardFolder);
+    }
+  }
+
+  LoadSettings();
+  return true;
+}
+
 void GameCubePane::BrowseAGPRom(ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
@@ -576,6 +723,8 @@ void GameCubePane::LoadSettings()
         ->setText(QString::fromStdString(Config::GetMemcardPath(slot, std::nullopt)));
     SignalBlocking(m_agp_paths[slot])
         ->setText(QString::fromStdString(Config::Get(Config::GetInfoForAGPCartPath(slot))));
+    SignalBlocking(m_gci_paths[slot])
+        ->setText(QString::fromStdString(Config::GetGCIFolderPath(slot, std::nullopt)));
   }
 
 #ifdef HAS_LIBMGBA

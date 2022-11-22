@@ -154,20 +154,20 @@ CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_fo
   if (!path_override.empty())
     return {std::move(path_override), false};
 
-  std::string path = File::GetUserPath(D_GCUSER_IDX);
-
   const bool use_movie_folder = allow_movie_folder == AllowMovieFolder::Yes &&
                                 Movie::IsPlayingInput() && Movie::IsConfigSaved() &&
                                 Movie::IsUsingMemcard(card_slot) &&
                                 Movie::IsStartingFromClearSave();
 
-  if (use_movie_folder)
-    path += "Movie" DIR_SEP;
-
   const DiscIO::Region region = Config::ToGameCubeRegion(SConfig::GetInstance().m_region);
-  path = path + Config::GetDirectoryForRegion(region) + DIR_SEP +
-         fmt::format("Card {}", s_card_short_names[card_slot]);
-  return {std::move(path), !use_movie_folder};
+  if (use_movie_folder)
+  {
+    return {fmt::format("{}{}/Movie/Card {}", File::GetUserPath(D_GCUSER_IDX),
+                        Config::GetDirectoryForRegion(region), s_card_short_names[card_slot]),
+            false};
+  }
+
+  return {Config::GetGCIFolderPath(card_slot, region), true};
 }
 
 void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
