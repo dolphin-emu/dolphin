@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <deque>
 #include <fstream>
 
 #include "Common/CommonTypes.h"
@@ -10,7 +11,7 @@
 class FPSCounter
 {
 public:
-  FPSCounter();
+  explicit FPSCounter(const char* log_name = "log.txt");
   ~FPSCounter();
   FPSCounter(const FPSCounter&) = delete;
   FPSCounter& operator=(const FPSCounter&) = delete;
@@ -20,20 +21,26 @@ public:
   // Called when a frame is rendered (updated every second).
   void Update();
 
-  float GetFPS() const { return m_fps; }
-  double GetDeltaTime() const { return m_time_diff_secs; }
+  double GetFPS() const { return m_avg_fps; }
+
+  double GetDeltaTime() const { return m_raw_dt; }
 
 private:
+  void LogRenderTimeToFile(s64 val);
   void SetPaused(bool paused);
 
-  u64 m_last_time = 0;
-  u64 m_time_since_update = 0;
-  u64 m_last_time_pause = 0;
-  u32 m_frame_counter = 0;
-  int m_on_state_changed_handle = -1;
-  float m_fps = 0.f;
+  const char* m_log_name;
   std::ofstream m_bench_file;
-  double m_time_diff_secs = 0.0;
 
-  void LogRenderTimeToFile(u64 val);
+  bool m_paused = false;
+  s64 m_last_time = 0;
+
+  double m_avg_fps = 0.0;
+  double m_raw_dt = 0.0;
+
+  s64 m_dt_total = 0;
+  std::deque<s64> m_dt_queue;
+
+  int m_on_state_changed_handle = -1;
+  s64 m_last_time_pause = 0;
 };

@@ -82,6 +82,10 @@ struct VideoConfig final
 
   // Information
   bool bShowFPS = false;
+  bool bShowVPS = false;
+  bool bShowSpeed = false;
+  bool bShowSpeedColors = false;
+  int iPerfSampleUSec = 0;
   bool bShowNetPlayPing = false;
   bool bShowNetPlayMessages = false;
   bool bOverlayStats = false;

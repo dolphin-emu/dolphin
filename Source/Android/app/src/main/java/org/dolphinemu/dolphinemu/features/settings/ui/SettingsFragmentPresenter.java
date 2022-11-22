@@ -690,6 +690,13 @@ public final class SettingsFragmentPresenter
             R.string.video_backend, 0, R.array.videoBackendEntries, R.array.videoBackendValues));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_SHOW_FPS, R.string.show_fps,
             R.string.show_fps_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_SHOW_VPS, R.string.show_vps,
+            R.string.show_vps_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_SHOW_SPEED, R.string.show_speed,
+            R.string.show_speed_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_SHOW_SPEED_COLORS,
+            R.string.show_speed_colors,
+            R.string.show_speed_colors_description));
     sl.add(new SingleChoiceSettingDynamicDescriptions(mContext,
             IntSetting.GFX_SHADER_COMPILATION_MODE, R.string.shader_compilation_mode, 0,
             R.array.shaderCompilationModeEntries, R.array.shaderCompilationModeValues,

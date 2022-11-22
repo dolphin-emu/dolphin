@@ -338,7 +338,8 @@ protected:
   MathUtil::Rectangle<int> m_target_rectangle = {};
   int m_frame_count = 0;
 
-  FPSCounter m_fps_counter;
+  FPSCounter m_fps_counter = FPSCounter("render_times.txt");
+  FPSCounter m_vps_counter = FPSCounter("v_blank_times.txt");
 
   std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
 
