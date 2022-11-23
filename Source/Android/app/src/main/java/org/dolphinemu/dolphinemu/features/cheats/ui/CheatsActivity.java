@@ -14,8 +14,11 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsAnimationCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.slidingpanelayout.widget.SlidingPaneLayout;
 
@@ -32,6 +35,8 @@ import org.dolphinemu.dolphinemu.ui.TwoPaneOnBackPressedCallback;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
+
+import java.util.List;
 
 public class CheatsActivity extends AppCompatActivity
         implements SlidingPaneLayout.PanelSlideListener
@@ -104,9 +109,7 @@ public class CheatsActivity extends AppCompatActivity
     setSupportActionBar(mBinding.toolbarCheats);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-    InsetsHelper.setUpCheatsLayout(this, mBinding.appbarCheats, mBinding.slidingPaneLayout,
-            mBinding.cheatDetails,
-            mBinding.workaroundView);
+    setInsets();
 
     @ColorInt int color =
             MaterialColors.getColor(mBinding.toolbarCheats, R.attr.colorSurfaceVariant);
@@ -262,6 +265,75 @@ public class CheatsActivity extends AppCompatActivity
         View child = viewGroup.getChildAt(i);
         setOnFocusChangeListenerRecursively(child, listener);
       }
+    }
+  }
+
+  private void setInsets()
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(mBinding.appbarCheats, (v, windowInsets) ->
+    {
+      Insets barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+      Insets keyboardInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
+
+      InsetsHelper.insetAppBar(barInsets, mBinding.appbarCheats);
+
+      mBinding.slidingPaneLayout.setPadding(barInsets.left, 0, barInsets.right, 0);
+
+      // Set keyboard insets if the system supports smooth keyboard animations
+      ViewGroup.MarginLayoutParams mlpDetails =
+              (ViewGroup.MarginLayoutParams) mBinding.cheatDetails.getLayoutParams();
+      if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R)
+      {
+        if (keyboardInsets.bottom > 0)
+        {
+          mlpDetails.bottomMargin = keyboardInsets.bottom;
+        }
+        else
+        {
+          mlpDetails.bottomMargin = barInsets.bottom;
+        }
+      }
+      else
+      {
+        if (mlpDetails.bottomMargin == 0)
+        {
+          mlpDetails.bottomMargin = barInsets.bottom;
+        }
+      }
+      mBinding.cheatDetails.setLayoutParams(mlpDetails);
+
+      InsetsHelper.applyNavbarWorkaround(barInsets.bottom, mBinding.workaroundView);
+
+      ThemeHelper.setNavigationBarColor(this,
+              MaterialColors.getColor(mBinding.appbarCheats, R.attr.colorSurface));
+
+      return windowInsets;
+    });
+
+    // Update the layout for every frame that the keyboard animates in
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R)
+    {
+      ViewCompat.setWindowInsetsAnimationCallback(mBinding.cheatDetails,
+              new WindowInsetsAnimationCompat.Callback(
+                      WindowInsetsAnimationCompat.Callback.DISPATCH_MODE_STOP)
+              {
+                int keyboardInsets = 0;
+                int barInsets = 0;
+
+                @NonNull
+                @Override
+                public WindowInsetsCompat onProgress(@NonNull WindowInsetsCompat insets,
+                        @NonNull List<WindowInsetsAnimationCompat> runningAnimations)
+                {
+                  ViewGroup.MarginLayoutParams mlpDetails =
+                          (ViewGroup.MarginLayoutParams) mBinding.cheatDetails.getLayoutParams();
+                  keyboardInsets = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+                  barInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+                  mlpDetails.bottomMargin = Math.max(keyboardInsets, barInsets);
+                  mBinding.cheatDetails.setLayoutParams(mlpDetails);
+                  return insets;
+                }
+              });
     }
   }
 }

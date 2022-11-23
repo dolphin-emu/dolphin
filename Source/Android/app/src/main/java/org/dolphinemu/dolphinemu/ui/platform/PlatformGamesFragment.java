@@ -10,6 +10,9 @@ import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -20,7 +23,6 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
 import org.dolphinemu.dolphinemu.databinding.FragmentGridBinding;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
-import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 
 public final class PlatformGamesFragment extends Fragment implements PlatformGamesView
 {
@@ -102,7 +104,7 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 
     mSwipeRefresh.setOnRefreshListener(mOnRefreshListener);
 
-    InsetsHelper.setUpList(getContext(), mBinding.gridGames);
+    setInsets();
 
     setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
 
@@ -157,5 +159,17 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
   public void setRefreshing(boolean refreshing)
   {
     mBinding.swipeRefresh.setRefreshing(refreshing);
+  }
+
+  private void setInsets()
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(mBinding.gridGames, (v, windowInsets) ->
+    {
+      Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+      v.setPadding(0, 0, 0,
+              insets.bottom + getResources().getDimensionPixelSize(R.dimen.spacing_list) +
+                      getResources().getDimensionPixelSize(R.dimen.spacing_fab));
+      return windowInsets;
+    });
   }
 }
