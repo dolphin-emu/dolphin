@@ -14,6 +14,8 @@
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "VideoCommon/FrameDump.h"
+#include "VideoCommon/RenderBase.h"
 
 static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
 {
@@ -275,6 +277,12 @@ void Mixer::PushSamples(const short* samples, unsigned int num_samples)
     m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate_divisor, volume.first,
                                          volume.second);
   }
+
+  if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
+  {
+    g_renderer->DumpAudioToFFMPEG({samples, num_samples, m_dma_mixer.GetInputSampleRateDivisor(),
+                                   m_dma_mixer.GetVolume(), false});
+  }
 }
 
 void Mixer::PushStreamingSamples(const short* samples, unsigned int num_samples)
@@ -286,6 +294,13 @@ void Mixer::PushStreamingSamples(const short* samples, unsigned int num_samples)
     auto volume = m_streaming_mixer.GetVolume();
     m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate_divisor, volume.first,
                                          volume.second);
+  }
+
+  if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
+  {
+    g_renderer->DumpAudioToFFMPEG({samples, num_samples,
+                                   m_streaming_mixer.GetInputSampleRateDivisor(),
+                                   m_streaming_mixer.GetVolume(), true});
   }
 }
 

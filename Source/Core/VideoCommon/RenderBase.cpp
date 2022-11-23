@@ -1795,6 +1795,11 @@ void Renderer::DumpFrameToFFMPEG(const FrameDump::FrameData& frame)
   m_frame_dump.AddFrame(frame);
 }
 
+void Renderer::DumpAudioToFFMPEG(const FrameDump::AudioData& audio)
+{
+  m_frame_dump.AddAudio(audio);
+}
+
 void Renderer::StopFrameDumpToFFMPEG()
 {
   m_frame_dump.Stop();
@@ -1808,6 +1813,10 @@ bool Renderer::StartFrameDumpToFFMPEG(const FrameDump::FrameData&)
 }
 
 void Renderer::DumpFrameToFFMPEG(const FrameDump::FrameData&)
+{
+}
+
+void Renderer::DumpAudioToFFMPEG(const FrameDump::AudioData&)
 {
 }
 

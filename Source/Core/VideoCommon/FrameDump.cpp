@@ -17,6 +17,7 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavutil/channel_layout.h>
 #include <libavutil/error.h>
 #include <libavutil/log.h>
 #include <libavutil/mathematics.h>
@@ -25,15 +26,19 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#include "AudioCommon/Mixer.h"
+
 #include "Common/ChunkFile.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 
@@ -43,11 +48,28 @@ extern "C" {
 struct FrameDumpContext
 {
   AVFormatContext* format = nullptr;
+
+  // struct VideoDumpContext
+  //{
   AVStream* stream = nullptr;
   AVCodecContext* codec = nullptr;
   AVFrame* src_frame = nullptr;
   AVFrame* scaled_frame = nullptr;
   SwsContext* sws = nullptr;
+  //} video;
+
+  struct AudioDumpContext
+  {
+    AVStream* stream = nullptr;
+    AVCodecContext* codec = nullptr;
+    AVFrame* frame = nullptr;
+    AVChannelLayout layout;
+
+    FrameDump::AudioState dma_state;
+    FrameDump::AudioState dtk_state;
+
+    u64 num_mixed_samples = 0;
+  } audio;
 
   s64 last_pts = AV_NOPTS_VALUE;
 
@@ -159,6 +181,8 @@ std::string AVErrorString(int error)
 
 bool FrameDump::Start(int w, int h, u64 start_ticks)
 {
+  std::unique_lock<std::mutex> lock(m_mutex);
+
   if (IsStarted())
     return true;
 
@@ -178,6 +202,21 @@ bool FrameDump::PrepareEncoding(int w, int h, u64 start_ticks, u32 savestate_ind
 
   m_context->start_ticks = start_ticks;
   m_context->savestate_index = savestate_index;
+
+  // this is a bit of a hack, if we're starting from the beginning, make sure num_mixed_samples represents current time
+  // just hope no games are playing sound before the first frame is rendered...
+  m_context->audio.num_mixed_samples =
+      start_ticks ? 0 :
+                    (static_cast<u64>(OUT_RESAMPLE_RATE) * CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond());
+  // resampling rate will probably change later
+  m_context->audio.dma_state.sample_rate_divisor =
+      Mixer::FIXED_SAMPLE_RATE_DIVIDEND / OUT_RESAMPLE_RATE;
+  m_context->audio.dma_state.speex_ctx = speex_resampler_init(
+      2, OUT_RESAMPLE_RATE, OUT_RESAMPLE_RATE, SPEEX_RESAMPLER_QUALITY_DESKTOP, nullptr);
+  m_context->audio.dtk_state.sample_rate_divisor =
+      Mixer::FIXED_SAMPLE_RATE_DIVIDEND / OUT_RESAMPLE_RATE;
+  m_context->audio.dtk_state.speex_ctx = speex_resampler_init(
+      2, OUT_RESAMPLE_RATE, OUT_RESAMPLE_RATE, SPEEX_RESAMPLER_QUALITY_DESKTOP, nullptr);
 
   InitAVCodec();
   const bool success = CreateVideoFile();
@@ -296,6 +335,32 @@ bool FrameDump::CreateVideoFile()
     return false;
   }
 
+  // we probably don't need any options here besides "audio or no audio?"
+  const AVCodec* audio_codec = avcodec_find_encoder(AV_CODEC_ID_PCM_S16LE);
+  m_context->audio.codec = avcodec_alloc_context3(audio_codec);
+  if (!audio_codec || !m_context->audio.codec)
+  {
+    ERROR_LOG_FMT(FRAMEDUMP, "Could not find encoder or allocate codec context");
+    return false;
+  }
+
+  m_context->audio.codec->codec_type = AVMEDIA_TYPE_AUDIO;
+  m_context->audio.codec->time_base = {1, OUT_RESAMPLE_RATE};  // we'll resample everything to 48KHz
+  m_context->audio.codec->sample_rate = OUT_RESAMPLE_RATE;
+  m_context->audio.codec->sample_fmt = AV_SAMPLE_FMT_S16;
+  m_context->audio.codec->level = 1;
+  m_context->audio.codec->frame_size = 0;
+  m_context->audio.codec->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
+
+  if (output_format->flags & AVFMT_GLOBALHEADER)
+    m_context->audio.codec->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+
+  if (avcodec_open2(m_context->audio.codec, audio_codec, nullptr) < 0)
+  {
+    ERROR_LOG_FMT(FRAMEDUMP, "Could not open codec");
+    return false;
+  }
+
   m_context->src_frame = av_frame_alloc();
   m_context->scaled_frame = av_frame_alloc();
 
@@ -304,6 +369,15 @@ bool FrameDump::CreateVideoFile()
   m_context->scaled_frame->height = m_context->height;
 
   if (av_frame_get_buffer(m_context->scaled_frame, 1))
+    return false;
+
+  m_context->audio.frame = av_frame_alloc();
+
+  m_context->audio.frame->format = AV_SAMPLE_FMT_S16;
+  m_context->audio.frame->nb_samples = OUT_RESAMPLE_RATE;
+  m_context->audio.frame->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
+
+  if (av_frame_get_buffer(m_context->audio.frame, 1))
     return false;
 
   m_context->stream = avformat_new_stream(m_context->format, codec);
@@ -315,6 +389,16 @@ bool FrameDump::CreateVideoFile()
   }
 
   m_context->stream->time_base = m_context->codec->time_base;
+
+  m_context->audio.stream = avformat_new_stream(m_context->format, audio_codec);
+  if (!m_context->audio.stream || avcodec_parameters_from_context(m_context->audio.stream->codecpar,
+                                                                  m_context->audio.codec) < 0)
+  {
+    ERROR_LOG_FMT(FRAMEDUMP, "Could not create stream");
+    return false;
+  }
+
+  m_context->audio.stream->time_base = m_context->audio.codec->time_base;
 
   NOTICE_LOG_FMT(FRAMEDUMP, "Opening file {} for dumping", dump_path);
   if (avio_open(&m_context->format->pb, dump_path.c_str(), AVIO_FLAG_WRITE) < 0 ||
@@ -330,6 +414,12 @@ bool FrameDump::CreateVideoFile()
                  m_context->stream->time_base.num);
   }
 
+  if (av_cmp_q(m_context->audio.stream->time_base, {1, OUT_RESAMPLE_RATE}) != 0)
+  {
+    WARN_LOG_FMT(FRAMEDUMP, "Stream time base differs at {}/{}",
+                 m_context->audio.stream->time_base.den, m_context->audio.stream->time_base.num);
+  }
+
   OSD::AddMessage(fmt::format("Dumping Frames to \"{}\" ({}x{})", dump_path, m_context->width,
                               m_context->height));
   return true;
@@ -342,6 +432,8 @@ bool FrameDump::IsFirstFrameInCurrentFile() const
 
 void FrameDump::AddFrame(const FrameData& frame)
 {
+  std::unique_lock<std::mutex> lock(m_mutex);
+
   // Are we even dumping?
   if (!IsStarted())
     return;
@@ -402,6 +494,100 @@ void FrameDump::AddFrame(const FrameData& frame)
   ProcessPackets();
 }
 
+void FrameDump::AddAudio(const AudioData& frame)
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  // Are we even dumping?
+  if (!IsStarted())
+    return;
+
+  AudioState& audio_state = frame.is_dtk ? m_context->audio.dtk_state : m_context->audio.dma_state;
+
+  if (frame.sample_rate_divisor != audio_state.sample_rate_divisor)
+  {
+    FlushAudio();
+    audio_state.sample_rate_divisor = frame.sample_rate_divisor;
+    speex_resampler_set_rate_frac(
+        audio_state.speex_ctx, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / OUT_RESAMPLE_RATE,
+        frame.sample_rate_divisor, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / frame.sample_rate_divisor,
+        OUT_RESAMPLE_RATE);
+  }
+
+  static s16 in_samples[OUT_RESAMPLE_RATE] = {0};
+  static s16 out_samples[OUT_RESAMPLE_RATE] = {0};
+
+  for (u32 i = 0; i < frame.num_samples; i++)
+  {
+    // Flip the audio channels from RL to LR
+    in_samples[2 * i] = Common::swap16(frame.data[2 * i + 1]);
+    in_samples[2 * i + 1] = Common::swap16(frame.data[2 * i]);
+
+    // Apply volume (volume ranges from 0 to 256)
+    in_samples[2 * i] = in_samples[2 * i] * frame.volume.first / 256;
+    in_samples[2 * i + 1] = in_samples[2 * i + 1] * frame.volume.second / 256;
+  }
+
+  u32 in_len = frame.num_samples;
+  u32 out_len = sizeof(out_samples) / sizeof(s16) / 2;
+  speex_resampler_process_interleaved_int(audio_state.speex_ctx, in_samples, &in_len, out_samples,
+                                          &out_len);
+
+  if (in_len != frame.num_samples)
+  {
+    ERROR_LOG_FMT(FRAMEDUMP, "FrameDumper - resampler didn't use all of the input buffer.");
+  }
+
+  for (u32 i = 0; i < out_len * 2; i++)
+  {
+    audio_state.sample_buffer.push(out_samples[i]);
+  }
+
+  if (std::min(m_context->audio.dma_state.sample_buffer.size(),
+               m_context->audio.dtk_state.sample_buffer.size()) > 800)
+  {
+    FlushAudio();
+  }
+}
+
+void FrameDump::FlushAudio()
+{
+  if (!m_context->audio.frame || !m_context->audio.codec)
+    return;
+
+  m_context->audio.frame->pts = m_context->audio.num_mixed_samples;
+  size_t out_stereo_samples = std::min(m_context->audio.dma_state.sample_buffer.size() / 2,
+                                       m_context->audio.dtk_state.sample_buffer.size() / 2);
+  m_context->audio.num_mixed_samples += out_stereo_samples;
+
+  std::vector<s16> mixed_samples = {};
+  for (u32 i = 0; i < out_stereo_samples; i++)
+  {
+    s16 sample = m_context->audio.dma_state.sample_buffer.front() / 2;
+    sample += m_context->audio.dtk_state.sample_buffer.front() / 2;
+    mixed_samples.push_back(sample);
+    m_context->audio.dma_state.sample_buffer.pop();
+    m_context->audio.dtk_state.sample_buffer.pop();
+
+    sample = m_context->audio.dma_state.sample_buffer.front() / 2;
+    sample += m_context->audio.dtk_state.sample_buffer.front() / 2;
+    mixed_samples.push_back(sample);
+    m_context->audio.dma_state.sample_buffer.pop();
+    m_context->audio.dtk_state.sample_buffer.pop();
+  }
+
+  m_context->audio.frame->data[0] = reinterpret_cast<u8*>(mixed_samples.data());
+  m_context->audio.frame->nb_samples = int(out_stereo_samples);
+
+  if (const int error = avcodec_send_frame(m_context->audio.codec, m_context->audio.frame))
+  {
+    ERROR_LOG_FMT(FRAMEDUMP, "Error while encoding audio: {}", AVErrorString(error));
+    return;
+  }
+
+  ProcessPackets();
+}
+
 void FrameDump::ProcessPackets()
 {
   auto pkt = std::unique_ptr<AVPacket, std::function<void(AVPacket*)>>(
@@ -438,6 +624,33 @@ void FrameDump::ProcessPackets()
       break;
     }
   }
+
+  while (true)
+  {
+    const int receive_error = avcodec_receive_packet(m_context->audio.codec, pkt.get());
+
+    if (receive_error == AVERROR(EAGAIN) || receive_error == AVERROR_EOF)
+    {
+      // We have processed all available packets.
+      break;
+    }
+
+    if (receive_error)
+    {
+      ERROR_LOG_FMT(FRAMEDUMP, "Error receiving packet: {}", AVErrorString(receive_error));
+      break;
+    }
+
+    av_packet_rescale_ts(pkt.get(), m_context->audio.codec->time_base,
+                         m_context->audio.stream->time_base);
+    pkt->stream_index = m_context->audio.stream->index;
+
+    if (const int write_error = av_interleaved_write_frame(m_context->format, pkt.get()))
+    {
+      ERROR_LOG_FMT(FRAMEDUMP, "Error writing packet: {}", AVErrorString(write_error));
+      break;
+    }
+  }
 }
 
 void FrameDump::Stop()
@@ -464,10 +677,14 @@ bool FrameDump::IsStarted() const
 
 void FrameDump::CloseVideoFile()
 {
+  FlushAudio();
+
   av_frame_free(&m_context->src_frame);
   av_frame_free(&m_context->scaled_frame);
+  av_frame_free(&m_context->audio.frame);
 
   avcodec_free_context(&m_context->codec);
+  avcodec_free_context(&m_context->audio.codec);
 
   if (m_context->format)
     avio_closep(&m_context->format->pb);
@@ -476,6 +693,11 @@ void FrameDump::CloseVideoFile()
 
   if (m_context->sws)
     sws_freeContext(m_context->sws);
+
+  if (m_context->audio.dma_state.speex_ctx)
+    speex_resampler_destroy(m_context->audio.dma_state.speex_ctx);
+  if (m_context->audio.dtk_state.speex_ctx)
+    speex_resampler_destroy(m_context->audio.dtk_state.speex_ctx);
 
   m_context.reset();
 }
