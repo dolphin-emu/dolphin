@@ -265,80 +265,103 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | PERF_SELECT, MMIO::InvalidRead<u16>(), MMIO::Nop<u16>());
 
   // Some MMIOs have different handlers for single core vs. dual core mode.
-  mmio->Register(
-      base | FIFO_RW_DISTANCE_LO,
-      IsOnThread() ? MMIO::ComplexRead<u16>([](Core::System&, u32) {
-        if (fifo.CPWritePointer.load(std::memory_order_relaxed) >=
-            fifo.SafeCPReadPointer.load(std::memory_order_relaxed))
-        {
-          return static_cast<u16>(fifo.CPWritePointer.load(std::memory_order_relaxed) -
-                                  fifo.SafeCPReadPointer.load(std::memory_order_relaxed));
-        }
-        else
-        {
-          return static_cast<u16>(fifo.CPEnd.load(std::memory_order_relaxed) -
-                                  fifo.SafeCPReadPointer.load(std::memory_order_relaxed) +
-                                  fifo.CPWritePointer.load(std::memory_order_relaxed) -
-                                  fifo.CPBase.load(std::memory_order_relaxed) + 32);
-        }
-      }) :
-                     MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&fifo.CPReadWriteDistance)),
-      MMIO::DirectWrite<u16>(MMIO::Utils::LowPart(&fifo.CPReadWriteDistance),
-                             WMASK_LO_ALIGN_32BIT));
-  mmio->Register(base | FIFO_RW_DISTANCE_HI,
-                 IsOnThread() ?
-                     MMIO::ComplexRead<u16>([](Core::System&, u32) {
-                       Fifo::SyncGPUForRegisterAccess();
-                       if (fifo.CPWritePointer.load(std::memory_order_relaxed) >=
-                           fifo.SafeCPReadPointer.load(std::memory_order_relaxed))
-                       {
-                         return (fifo.CPWritePointer.load(std::memory_order_relaxed) -
-                                 fifo.SafeCPReadPointer.load(std::memory_order_relaxed)) >>
-                                16;
-                       }
-                       else
-                       {
-                         return (fifo.CPEnd.load(std::memory_order_relaxed) -
-                                 fifo.SafeCPReadPointer.load(std::memory_order_relaxed) +
-                                 fifo.CPWritePointer.load(std::memory_order_relaxed) -
-                                 fifo.CPBase.load(std::memory_order_relaxed) + 32) >>
-                                16;
-                       }
-                     }) :
-                     MMIO::ComplexRead<u16>([](Core::System&, u32) {
-                       Fifo::SyncGPUForRegisterAccess();
-                       return fifo.CPReadWriteDistance.load(std::memory_order_relaxed) >> 16;
-                     }),
+  const bool is_on_thread = IsOnThread();
+  MMIO::ReadHandlingMethod<u16>* fifo_rw_distance_lo_r;
+  if (is_on_thread)
+  {
+    fifo_rw_distance_lo_r = MMIO::ComplexRead<u16>([](Core::System&, u32) {
+      if (fifo.CPWritePointer.load(std::memory_order_relaxed) >=
+          fifo.SafeCPReadPointer.load(std::memory_order_relaxed))
+      {
+        return static_cast<u16>(fifo.CPWritePointer.load(std::memory_order_relaxed) -
+                                fifo.SafeCPReadPointer.load(std::memory_order_relaxed));
+      }
+      else
+      {
+        return static_cast<u16>(fifo.CPEnd.load(std::memory_order_relaxed) -
+                                fifo.SafeCPReadPointer.load(std::memory_order_relaxed) +
+                                fifo.CPWritePointer.load(std::memory_order_relaxed) -
+                                fifo.CPBase.load(std::memory_order_relaxed) + 32);
+      }
+    });
+  }
+  else
+  {
+    fifo_rw_distance_lo_r = MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&fifo.CPReadWriteDistance));
+  }
+  mmio->Register(base | FIFO_RW_DISTANCE_LO, fifo_rw_distance_lo_r,
+                 MMIO::DirectWrite<u16>(MMIO::Utils::LowPart(&fifo.CPReadWriteDistance),
+                                        WMASK_LO_ALIGN_32BIT));
+
+  MMIO::ReadHandlingMethod<u16>* fifo_rw_distance_hi_r;
+  if (is_on_thread)
+  {
+    fifo_rw_distance_hi_r = MMIO::ComplexRead<u16>([](Core::System&, u32) {
+      Fifo::SyncGPUForRegisterAccess();
+      if (fifo.CPWritePointer.load(std::memory_order_relaxed) >=
+          fifo.SafeCPReadPointer.load(std::memory_order_relaxed))
+      {
+        return (fifo.CPWritePointer.load(std::memory_order_relaxed) -
+                fifo.SafeCPReadPointer.load(std::memory_order_relaxed)) >>
+               16;
+      }
+      else
+      {
+        return (fifo.CPEnd.load(std::memory_order_relaxed) -
+                fifo.SafeCPReadPointer.load(std::memory_order_relaxed) +
+                fifo.CPWritePointer.load(std::memory_order_relaxed) -
+                fifo.CPBase.load(std::memory_order_relaxed) + 32) >>
+               16;
+      }
+    });
+  }
+  else
+  {
+    fifo_rw_distance_hi_r = MMIO::ComplexRead<u16>([](Core::System&, u32) {
+      Fifo::SyncGPUForRegisterAccess();
+      return fifo.CPReadWriteDistance.load(std::memory_order_relaxed) >> 16;
+    });
+  }
+  mmio->Register(base | FIFO_RW_DISTANCE_HI, fifo_rw_distance_hi_r,
                  MMIO::ComplexWrite<u16>([WMASK_HI_RESTRICT](Core::System&, u32, u16 val) {
                    Fifo::SyncGPUForRegisterAccess();
                    WriteHigh(fifo.CPReadWriteDistance, val & WMASK_HI_RESTRICT);
                    Fifo::RunGpu();
                  }));
+
   mmio->Register(
       base | FIFO_READ_POINTER_LO,
-      IsOnThread() ? MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&fifo.SafeCPReadPointer)) :
+      is_on_thread ? MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&fifo.SafeCPReadPointer)) :
                      MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&fifo.CPReadPointer)),
       MMIO::DirectWrite<u16>(MMIO::Utils::LowPart(&fifo.CPReadPointer), WMASK_LO_ALIGN_32BIT));
-  mmio->Register(
-      base | FIFO_READ_POINTER_HI,
-      IsOnThread() ? MMIO::ComplexRead<u16>([](Core::System&, u32) {
-        Fifo::SyncGPUForRegisterAccess();
-        return fifo.SafeCPReadPointer.load(std::memory_order_relaxed) >> 16;
-      }) :
-                     MMIO::ComplexRead<u16>([](Core::System&, u32) {
-                       Fifo::SyncGPUForRegisterAccess();
-                       return fifo.CPReadPointer.load(std::memory_order_relaxed) >> 16;
-                     }),
-      IsOnThread() ? MMIO::ComplexWrite<u16>([WMASK_HI_RESTRICT](Core::System&, u32, u16 val) {
-        Fifo::SyncGPUForRegisterAccess();
-        WriteHigh(fifo.CPReadPointer, val & WMASK_HI_RESTRICT);
-        fifo.SafeCPReadPointer.store(fifo.CPReadPointer.load(std::memory_order_relaxed),
-                                     std::memory_order_relaxed);
-      }) :
-                     MMIO::ComplexWrite<u16>([WMASK_HI_RESTRICT](Core::System&, u32, u16 val) {
-                       Fifo::SyncGPUForRegisterAccess();
-                       WriteHigh(fifo.CPReadPointer, val & WMASK_HI_RESTRICT);
-                     }));
+
+  MMIO::ReadHandlingMethod<u16>* fifo_read_hi_r;
+  MMIO::WriteHandlingMethod<u16>* fifo_read_hi_w;
+  if (is_on_thread)
+  {
+    fifo_read_hi_r = MMIO::ComplexRead<u16>([](Core::System&, u32) {
+      Fifo::SyncGPUForRegisterAccess();
+      return fifo.SafeCPReadPointer.load(std::memory_order_relaxed) >> 16;
+    });
+    fifo_read_hi_w = MMIO::ComplexWrite<u16>([WMASK_HI_RESTRICT](Core::System&, u32, u16 val) {
+      Fifo::SyncGPUForRegisterAccess();
+      WriteHigh(fifo.CPReadPointer, val & WMASK_HI_RESTRICT);
+      fifo.SafeCPReadPointer.store(fifo.CPReadPointer.load(std::memory_order_relaxed),
+                                   std::memory_order_relaxed);
+    });
+  }
+  else
+  {
+    fifo_read_hi_r = MMIO::ComplexRead<u16>([](Core::System&, u32) {
+      Fifo::SyncGPUForRegisterAccess();
+      return fifo.CPReadPointer.load(std::memory_order_relaxed) >> 16;
+    });
+    fifo_read_hi_w = MMIO::ComplexWrite<u16>([WMASK_HI_RESTRICT](Core::System&, u32, u16 val) {
+      Fifo::SyncGPUForRegisterAccess();
+      WriteHigh(fifo.CPReadPointer, val & WMASK_HI_RESTRICT);
+    });
+  }
+  mmio->Register(base | FIFO_READ_POINTER_HI, fifo_read_hi_r, fifo_read_hi_w);
 }
 
 void GatherPipeBursted()
