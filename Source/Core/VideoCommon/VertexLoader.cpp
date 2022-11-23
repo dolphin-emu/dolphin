@@ -221,7 +221,7 @@ void VertexLoader::CompileVertexTranslator()
           WriteCall(VertexLoader_TextCoord::GetDummyFunction());  // important to get indices right!
           break;
         }
-        else if (m_VtxDesc.low.TexMatIdx[i])
+        else if (m_VtxDesc.low.TexMatIdx[j])
         {
           has_more = true;
         }
