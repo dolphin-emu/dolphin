@@ -505,10 +505,10 @@ void Jit64::stX(UGeckoInstruction inst)
       }
       else
       {
-        RCOpArg Ra = gpr.UseNoImm(a, RCMode::ReadWrite);
+        RCOpArg Ra = gpr.UseNoImm(a, RCMode::Write);
         RegCache::Realize(Ra);
         MemoryExceptionCheck();
-        ADD(32, Ra, Imm32((u32)offset));
+        MOV(32, Ra, Imm32(addr));
       }
     }
   }
