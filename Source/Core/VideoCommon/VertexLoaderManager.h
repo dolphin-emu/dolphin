@@ -12,7 +12,6 @@
 #include "Common/EnumMap.h"
 #include "VideoCommon/CPMemory.h"
 
-class DataReader;
 class NativeVertexFormat;
 struct PortableVertexDeclaration;
 
@@ -43,7 +42,7 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl);
 
 // Returns -1 if buf_size is insufficient, else the amount of bytes consumed
 template <bool IsPreprocess = false>
-int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, DataReader src);
+int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, const u8* src);
 
 namespace detail
 {

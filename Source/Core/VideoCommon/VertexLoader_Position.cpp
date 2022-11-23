@@ -10,7 +10,6 @@
 #include "Common/EnumMap.h"
 #include "Common/Swap.h"
 
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
@@ -35,19 +34,15 @@ void Pos_ReadDirect(VertexLoader* loader)
 {
   static_assert(N <= 3, "N > 3 is not sane!");
   const auto scale = loader->m_posScale;
-  DataReader dst(g_vertex_manager_write_ptr, nullptr);
-  DataReader src(g_video_buffer_read_ptr, nullptr);
 
   for (int i = 0; i < N; ++i)
   {
-    const float value = PosScale(src.Read<T>(), scale);
+    const float value = PosScale(DataRead<T>(), scale);
     if (loader->m_remaining < 3)
       VertexLoaderManager::position_cache[loader->m_remaining][i] = value;
-    dst.Write(value);
+    DataWrite(value);
   }
 
-  g_vertex_manager_write_ptr = dst.GetPointer();
-  g_video_buffer_read_ptr = src.GetPointer();
   LOG_VTX();
 }
 
@@ -63,17 +58,15 @@ void Pos_ReadIndex(VertexLoader* loader)
       reinterpret_cast<const T*>(VertexLoaderManager::cached_arraybases[CPArray::Position] +
                                  (index * g_main_cp_state.array_strides[CPArray::Position]));
   const auto scale = loader->m_posScale;
-  DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
   for (int i = 0; i < N; ++i)
   {
     const float value = PosScale(Common::FromBigEndian(data[i]), scale);
     if (loader->m_remaining < 3)
       VertexLoaderManager::position_cache[loader->m_remaining][i] = value;
-    dst.Write(value);
+    DataWrite(value);
   }
 
-  g_vertex_manager_write_ptr = dst.GetPointer();
   LOG_VTX();
 }
 
