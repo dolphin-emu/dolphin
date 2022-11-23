@@ -100,7 +100,7 @@ std::mutex s_emu_to_real_time_mutex;
 u64 s_time_spent_sleeping;
 
 // DSP/CPU timeslicing.
-void DSPCallback(u64 userdata, s64 cyclesLate)
+void DSPCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   // splits up the cycle budget in case lle is used
   // for hle, just gives all of the slice to hle
@@ -115,13 +115,13 @@ int GetAudioDMACallbackPeriod()
          (Mixer::FIXED_SAMPLE_RATE_DIVIDEND * 4 / 32);
 }
 
-void AudioDMACallback(u64 userdata, s64 cyclesLate)
+void AudioDMACallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   DSP::UpdateAudioDMA();  // Push audio to speakers.
   CoreTiming::ScheduleEvent(GetAudioDMACallbackPeriod() - cyclesLate, et_AudioDMA);
 }
 
-void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
+void IPC_HLE_UpdateCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   if (SConfig::GetInstance().bWii)
   {
@@ -130,19 +130,19 @@ void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
   }
 }
 
-void VICallback(u64 userdata, s64 cyclesLate)
+void VICallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   VideoInterface::Update(CoreTiming::GetTicks() - cyclesLate);
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
 }
 
-void DecrementerCallback(u64 userdata, s64 cyclesLate)
+void DecrementerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   PowerPC::ppcState.spr[SPR_DEC] = 0xFFFFFFFF;
   PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
 }
 
-void PatchEngineCallback(u64 userdata, s64 cycles_late)
+void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   // We have 2 periods, a 1000 cycle error period and the VI period.
   // We have to carefully combine these together so that we stay on the VI period without drifting.
@@ -167,7 +167,7 @@ void PatchEngineCallback(u64 userdata, s64 cycles_late)
   CoreTiming::ScheduleEvent(next_schedule, et_PatchEngine, cycles_pruned);
 }
 
-void ThrottleCallback(u64 deadline, s64 cyclesLate)
+void ThrottleCallback(Core::System& system, u64 deadline, s64 cyclesLate)
 {
   // Allow the GPU thread to sleep. Setting this flag here limits the wakeups to 1 kHz.
   Fifo::GpuMaySleep();

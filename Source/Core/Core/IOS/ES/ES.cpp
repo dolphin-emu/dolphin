@@ -115,13 +115,15 @@ ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, de
 void ESDevice::InitializeEmulationState()
 {
   s_finish_init_event = CoreTiming::RegisterEvent(
-      "IOS-ESFinishInit", [](u64, s64) { GetIOS()->GetES()->FinishInit(); });
-  s_reload_ios_for_ppc_launch_event =
-      CoreTiming::RegisterEvent("IOS-ESReloadIOSForPPCLaunch", [](u64 ios_id, s64) {
+      "IOS-ESFinishInit", [](Core::System& system, u64, s64) { GetIOS()->GetES()->FinishInit(); });
+  s_reload_ios_for_ppc_launch_event = CoreTiming::RegisterEvent(
+      "IOS-ESReloadIOSForPPCLaunch", [](Core::System& system, u64 ios_id, s64) {
         GetIOS()->GetES()->LaunchTitle(ios_id, HangPPC::Yes);
       });
-  s_bootstrap_ppc_for_launch_event = CoreTiming::RegisterEvent(
-      "IOS-ESBootstrapPPCForLaunch", [](u64, s64) { GetIOS()->GetES()->BootstrapPPC(); });
+  s_bootstrap_ppc_for_launch_event =
+      CoreTiming::RegisterEvent("IOS-ESBootstrapPPCForLaunch", [](Core::System& system, u64, s64) {
+        GetIOS()->GetES()->BootstrapPPC();
+      });
 }
 
 void ESDevice::FinalizeEmulationState()

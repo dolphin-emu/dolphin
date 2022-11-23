@@ -624,7 +624,7 @@ void DIDevice::InterruptFromDVDInterface(DVDInterface::DIInterruptType interrupt
   }
 }
 
-void DIDevice::FinishDICommandCallback(u64 userdata, s64 ticksbehind)
+void DIDevice::FinishDICommandCallback(Core::System& system, u64 userdata, s64 ticksbehind)
 {
   const DIResult result = static_cast<DIResult>(userdata);
 

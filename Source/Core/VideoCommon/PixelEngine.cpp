@@ -182,7 +182,7 @@ void DoState(PointerWrap& p)
 }
 
 static void UpdateInterrupts();
-static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate);
+static void SetTokenFinish_OnMainThread(Core::System& system, u64 userdata, s64 cyclesLate);
 
 void Init()
 {
@@ -297,7 +297,7 @@ static void UpdateInterrupts()
                                    s_signal_finish_interrupt && m_Control.pe_finish_enable);
 }
 
-static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate)
+static void SetTokenFinish_OnMainThread(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   std::unique_lock<std::mutex> lk(s_token_finish_mutex);
   s_event_raised = false;
