@@ -12,6 +12,10 @@ namespace AudioInterface
 {
 class AudioInterfaceState;
 };
+namespace CoreTiming
+{
+struct Globals;
+}
 namespace DSP
 {
 class DSPState;
@@ -76,6 +80,7 @@ public:
   void SetAudioDumpStarted(bool started);
 
   AudioInterface::AudioInterfaceState& GetAudioInterfaceState() const;
+  CoreTiming::Globals& GetCoreTimingGlobals() const;
   DSP::DSPState& GetDSPState() const;
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;

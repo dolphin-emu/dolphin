@@ -37,7 +37,6 @@ struct Globals
   u64 fake_TB_start_ticks;
   float last_OC_factor_inverted;
 };
-extern Globals g;
 
 // CoreTiming begins at the boundary of timing slice -1. An initial call to Advance() is
 // required to end slice -1 and start slice 0 before the first cycle of code is executed.
