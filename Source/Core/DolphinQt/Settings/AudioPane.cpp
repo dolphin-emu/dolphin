@@ -23,6 +23,7 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/SettingsWindow.h"
 #include "DolphinQt/Settings.h"
@@ -328,7 +329,7 @@ void AudioPane::SaveSettings()
   Config::SetBaseOrCurrent(Config::MAIN_WASAPI_DEVICE, device);
 #endif
 
-  AudioCommon::UpdateSoundStream();
+  AudioCommon::UpdateSoundStream(Core::System::GetInstance());
 }
 
 void AudioPane::OnDspChanged()

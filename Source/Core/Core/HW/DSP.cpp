@@ -414,7 +414,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(
       base | AUDIO_DMA_CONTROL_LEN, MMIO::DirectRead<u16>(&state.audio_dma.AudioDMAControl.Hex),
       MMIO::ComplexWrite<u16>([](u32, u16 val) {
-        auto& state = Core::System::GetInstance().GetDSPState().GetData();
+        auto& system = Core::System::GetInstance();
+        auto& state = system.GetDSPState().GetData();
         bool already_enabled = state.audio_dma.AudioDMAControl.Enable;
         state.audio_dma.AudioDMAControl.Hex = val;
 
@@ -522,7 +523,7 @@ void UpdateAudioDMA()
     // external audio fifo in the emulator, to be mixed with the disc
     // streaming output.
     void* address = Memory::GetPointer(state.audio_dma.current_source_address);
-    AudioCommon::SendAIBuffer(reinterpret_cast<short*>(address), 8);
+    AudioCommon::SendAIBuffer(system, reinterpret_cast<short*>(address), 8);
 
     if (state.audio_dma.remaining_blocks_count != 0)
     {
@@ -540,7 +541,7 @@ void UpdateAudioDMA()
   }
   else
   {
-    AudioCommon::SendAIBuffer(&zero_samples[0], 8);
+    AudioCommon::SendAIBuffer(system, &zero_samples[0], 8);
   }
 }
 
