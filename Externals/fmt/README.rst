@@ -12,9 +12,6 @@
 .. image:: https://github.com/fmtlib/fmt/workflows/windows/badge.svg
    :target: https://github.com/fmtlib/fmt/actions?query=workflow%3Awindows
 
-.. image:: https://ci.appveyor.com/api/projects/status/ehjkiefde6gucy1v?svg=true
-   :target: https://ci.appveyor.com/project/vitaut/fmt
-
 .. image:: https://oss-fuzz-build-logs.storage.googleapis.com/badges/fmt.svg
    :alt: fmt is continuously fuzzed at oss-fuzz
    :target: https://bugs.chromium.org/p/oss-fuzz/issues/list?\
@@ -32,6 +29,8 @@ If you like this project, please consider donating to one of the funds that
 help victims of the war in Ukraine: https://www.stopputin.net/.
 
 `Documentation <https://fmt.dev>`__
+
+`Cheat Sheets <https://hackingcpp.com/cpp/libs/fmt.html>`__
 
 Q&A: ask questions on `StackOverflow with the tag fmt
 <https://stackoverflow.com/questions/tagged/fmt>`_.
@@ -342,9 +341,12 @@ Projects using this library
 
 * `Folly <https://github.com/facebook/folly>`_: Facebook open-source library
 
+* `GemRB <https://gemrb.org/>`_: a portable open-source implementation of
+  Bioware’s Infinity Engine
+
 * `Grand Mountain Adventure
   <https://store.steampowered.com/app/1247360/Grand_Mountain_Adventure/>`_:
-  A beautiful open-world ski & snowboarding game
+  a beautiful open-world ski & snowboarding game
 
 * `HarpyWar/pvpgn <https://github.com/pvpgn/pvpgn-server>`_:
   Player vs Player Gaming Network with tweaks

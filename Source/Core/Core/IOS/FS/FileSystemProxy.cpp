@@ -109,7 +109,7 @@ static void LogResult(ResultCode code, fmt::format_string<Args...> format, Args&
       code == ResultCode::Success ? Common::Log::LogLevel::LINFO : Common::Log::LogLevel::LERROR;
 
   GENERIC_LOG_FMT(Common::Log::LogType::IOS_FS, type, "Command: {}: Result {}", command,
-                  ConvertResult(code));
+                  static_cast<s32>(ConvertResult(code)));
 }
 
 template <typename T, typename... Args>

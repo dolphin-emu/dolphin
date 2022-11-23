@@ -59,14 +59,14 @@ void DXVertexFormat::GetInputLayoutDesc(D3D12_INPUT_LAYOUT_DESC* desc) const
   desc->NumElements = m_num_attributes;
 }
 
-void DXVertexFormat::AddAttribute(const char* semantic_name, u32 semantic_index, u32 slot,
+void DXVertexFormat::AddAttribute(const char* semantic_name, ShaderAttrib semantic_index, u32 slot,
                                   DXGI_FORMAT format, u32 offset)
 {
   ASSERT(m_num_attributes < MAX_VERTEX_ATTRIBUTES);
 
   auto* attr_desc = &m_attribute_descriptions[m_num_attributes];
   attr_desc->SemanticName = semantic_name;
-  attr_desc->SemanticIndex = semantic_index;
+  attr_desc->SemanticIndex = static_cast<u32>(semantic_index);
   attr_desc->Format = format;
   attr_desc->InputSlot = slot;
   attr_desc->AlignedByteOffset = offset;
@@ -83,38 +83,38 @@ void DXVertexFormat::MapAttributes()
   if (m_decl.position.enable)
   {
     AddAttribute(
-        "TEXCOORD", SHADER_POSITION_ATTRIB, 0,
+        "TEXCOORD", ShaderAttrib::Position, 0,
         VarToDXGIFormat(m_decl.position.type, m_decl.position.components, m_decl.position.integer),
         m_decl.position.offset);
   }
 
-  for (uint32_t i = 0; i < 3; i++)
+  for (u32 i = 0; i < 3; i++)
   {
     if (m_decl.normals[i].enable)
     {
-      AddAttribute("TEXCOORD", SHADER_NORMAL_ATTRIB + i, 0,
+      AddAttribute("TEXCOORD", ShaderAttrib::Normal + i, 0,
                    VarToDXGIFormat(m_decl.normals[i].type, m_decl.normals[i].components,
                                    m_decl.normals[i].integer),
                    m_decl.normals[i].offset);
     }
   }
 
-  for (uint32_t i = 0; i < 2; i++)
+  for (u32 i = 0; i < 2; i++)
   {
     if (m_decl.colors[i].enable)
     {
-      AddAttribute("TEXCOORD", SHADER_COLOR0_ATTRIB + i, 0,
+      AddAttribute("TEXCOORD", ShaderAttrib::Color0 + i, 0,
                    VarToDXGIFormat(m_decl.colors[i].type, m_decl.colors[i].components,
                                    m_decl.colors[i].integer),
                    m_decl.colors[i].offset);
     }
   }
 
-  for (uint32_t i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; i++)
   {
     if (m_decl.texcoords[i].enable)
     {
-      AddAttribute("TEXCOORD", SHADER_TEXTURE0_ATTRIB + i, 0,
+      AddAttribute("TEXCOORD", ShaderAttrib::TexCoord0 + i, 0,
                    VarToDXGIFormat(m_decl.texcoords[i].type, m_decl.texcoords[i].components,
                                    m_decl.texcoords[i].integer),
                    m_decl.texcoords[i].offset);
@@ -124,7 +124,7 @@ void DXVertexFormat::MapAttributes()
   if (m_decl.posmtx.enable)
   {
     AddAttribute(
-        "TEXCOORD", SHADER_POSMTX_ATTRIB, 0,
+        "TEXCOORD", ShaderAttrib::PositionMatrix, 0,
         VarToDXGIFormat(m_decl.posmtx.type, m_decl.posmtx.components, m_decl.posmtx.integer),
         m_decl.posmtx.offset);
   }

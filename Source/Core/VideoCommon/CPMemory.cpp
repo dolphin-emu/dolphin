@@ -107,7 +107,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
       WARN_LOG_FMT(VIDEO,
                    "CP MATINDEX_A: an exact value of {:02x} was expected "
                    "but instead a value of {:02x} was seen",
-                   MATINDEX_A, sub_cmd);
+                   static_cast<u16>(MATINDEX_A), sub_cmd);
     }
 
     matrix_index_a.Hex = value;
@@ -120,7 +120,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
       WARN_LOG_FMT(VIDEO,
                    "CP MATINDEX_B: an exact value of {:02x} was expected "
                    "but instead a value of {:02x} was seen",
-                   MATINDEX_B, sub_cmd);
+                   static_cast<u16>(MATINDEX_B), sub_cmd);
     }
 
     matrix_index_b.Hex = value;
@@ -133,7 +133,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
       WARN_LOG_FMT(VIDEO,
                    "CP VCD_LO: an exact value of {:02x} was expected "
                    "but instead a value of {:02x} was seen",
-                   VCD_LO, sub_cmd);
+                   static_cast<u16>(VCD_LO), sub_cmd);
     }
 
     vtx_desc.low.Hex = value;
@@ -146,7 +146,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
       WARN_LOG_FMT(VIDEO,
                    "CP VCD_HI: an exact value of {:02x} was expected "
                    "but instead a value of {:02x} was seen",
-                   VCD_HI, sub_cmd);
+                   static_cast<u16>(VCD_HI), sub_cmd);
     }
 
     vtx_desc.high.Hex = value;

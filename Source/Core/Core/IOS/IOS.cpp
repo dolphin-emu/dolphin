@@ -616,7 +616,8 @@ std::shared_ptr<Device> EmulationKernel::GetDeviceByName(std::string_view device
 std::optional<IPCReply> Kernel::OpenDevice(OpenRequest& request)
 {
   const s32 new_fd = GetFreeDeviceID();
-  INFO_LOG_FMT(IOS, "Opening {} (mode {}, fd {})", request.path, request.flags, new_fd);
+  INFO_LOG_FMT(IOS, "Opening {} (mode {}, fd {})", request.path, static_cast<u32>(request.flags),
+               new_fd);
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
     ERROR_LOG_FMT(IOS, "Couldn't get a free fd, too many open files");
@@ -694,7 +695,7 @@ std::optional<IPCReply> Kernel::HandleIPCCommand(const Request& request)
     ret = device->IOCtlV(IOCtlVRequest{request.address});
     break;
   default:
-    ASSERT_MSG(IOS, false, "Unexpected command: {:#x}", request.command);
+    ASSERT_MSG(IOS, false, "Unexpected command: {:#x}", static_cast<u32>(request.command));
     ret = IPCReply{IPC_EINVAL, 978_tbticks};
     break;
   }

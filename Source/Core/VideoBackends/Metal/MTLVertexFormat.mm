@@ -113,18 +113,20 @@ static MTLVertexFormat ConvertFormat(ComponentFormat format, int count, bool int
   // clang-format on
 }
 
-static void SetAttribute(MTLVertexDescriptor* desc, u32 attribute, const AttributeFormat& format)
+static void SetAttribute(MTLVertexDescriptor* desc, ShaderAttrib attribute,
+                         const AttributeFormat& format)
 {
   if (!format.enable)
     return;
-  MTLVertexAttributeDescriptor* attr_desc = [[desc attributes] objectAtIndexedSubscript:attribute];
+  MTLVertexAttributeDescriptor* attr_desc =
+      [[desc attributes] objectAtIndexedSubscript:(u32)attribute];
   [attr_desc setFormat:ConvertFormat(format.type, format.components, format.integer)];
   [attr_desc setOffset:format.offset];
   [attr_desc setBufferIndex:0];
 }
 
 template <size_t N>
-static void SetAttributes(MTLVertexDescriptor* desc, u32 attribute,
+static void SetAttributes(MTLVertexDescriptor* desc, ShaderAttrib attribute,
                           const std::array<AttributeFormat, N>& format)
 {
   for (size_t i = 0; i < N; ++i)
@@ -135,9 +137,9 @@ Metal::VertexFormat::VertexFormat(const PortableVertexDeclaration& vtx_decl)
     : NativeVertexFormat(vtx_decl), m_desc(MRCTransfer([MTLVertexDescriptor new]))
 {
   [[[m_desc layouts] objectAtIndexedSubscript:0] setStride:vtx_decl.stride];
-  SetAttribute(m_desc, SHADER_POSITION_ATTRIB, vtx_decl.position);
-  SetAttributes(m_desc, SHADER_NORMAL_ATTRIB, vtx_decl.normals);
-  SetAttributes(m_desc, SHADER_COLOR0_ATTRIB, vtx_decl.colors);
-  SetAttributes(m_desc, SHADER_TEXTURE0_ATTRIB, vtx_decl.texcoords);
-  SetAttribute(m_desc, SHADER_POSMTX_ATTRIB, vtx_decl.posmtx);
+  SetAttribute(m_desc, ShaderAttrib::Position, vtx_decl.position);
+  SetAttributes(m_desc, ShaderAttrib::Normal, vtx_decl.normals);
+  SetAttributes(m_desc, ShaderAttrib::Color0, vtx_decl.colors);
+  SetAttributes(m_desc, ShaderAttrib::TexCoord0, vtx_decl.texcoords);
+  SetAttribute(m_desc, ShaderAttrib::PositionMatrix, vtx_decl.posmtx);
 }

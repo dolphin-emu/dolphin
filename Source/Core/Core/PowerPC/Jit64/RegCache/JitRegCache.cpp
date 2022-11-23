@@ -389,7 +389,7 @@ void RegCache::Discard(BitSet32 pregs)
   for (preg_t i : pregs)
   {
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg {} (X64 reg {}).",
-               i, RX(i));
+               i, static_cast<u32>(RX(i)));
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
                i);
 
@@ -413,7 +413,7 @@ void RegCache::Flush(BitSet32 pregs)
   for (preg_t i : pregs)
   {
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg {} (X64 reg {}).",
-               i, RX(i));
+               i, static_cast<u32>(RX(i)));
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
                i);
 
@@ -497,7 +497,7 @@ BitSet32 RegCache::RegistersInUse() const
 
 void RegCache::FlushX(X64Reg reg)
 {
-  ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg {}", reg);
+  ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg {}", static_cast<u32>(reg));
   ASSERT(!m_xregs[reg].IsLocked());
   if (!m_xregs[reg].IsFree())
   {
@@ -521,7 +521,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
   {
     X64Reg xr = GetFreeXReg();
 
-    ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsDirty(), "Xreg {} already dirty", xr);
+    ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsDirty(), "Xreg {} already dirty", static_cast<u32>(xr));
     ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsLocked(), "GetFreeXReg returned locked register");
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Invalid transaction state");
 
@@ -538,7 +538,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
                             [xr](const auto& r) {
                               return r.Location().has_value() && r.Location()->IsSimpleReg(xr);
                             }),
-               "Xreg {} already bound", xr);
+               "Xreg {} already bound", static_cast<u32>(xr));
 
     m_regs[i].SetBoundTo(xr);
   }
@@ -551,7 +551,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
   }
 
   ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(),
-             "WTF, this reg ({} -> {}) should have been flushed", i, RX(i));
+             "WTF, this reg ({} -> {}) should have been flushed", i, static_cast<u32>(RX(i)));
 }
 
 void RegCache::StoreFromRegister(preg_t i, FlushMode mode)

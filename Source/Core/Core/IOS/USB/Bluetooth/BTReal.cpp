@@ -666,7 +666,8 @@ void BluetoothRealDevice::HandleCtrlTransfer(libusb_transfer* tr)
 
   if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_NO_DEVICE)
   {
-    ERROR_LOG_FMT(IOS_WIIMOTE, "libusb command transfer failed, status: {:#04x}", tr->status);
+    ERROR_LOG_FMT(IOS_WIIMOTE, "libusb command transfer failed, status: {:#04x}",
+                  static_cast<u32>(tr->status));
     if (!m_showed_failed_transfer.IsSet())
     {
       Core::DisplayMessage("Failed to send a command to the Bluetooth adapter.", 10000);
@@ -693,7 +694,8 @@ void BluetoothRealDevice::HandleBulkOrIntrTransfer(libusb_transfer* tr)
   if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_TIMED_OUT &&
       tr->status != LIBUSB_TRANSFER_NO_DEVICE)
   {
-    ERROR_LOG_FMT(IOS_WIIMOTE, "libusb transfer failed, status: {:#04x}", tr->status);
+    ERROR_LOG_FMT(IOS_WIIMOTE, "libusb transfer failed, status: {:#04x}",
+                  static_cast<u32>(tr->status));
     if (!m_showed_failed_transfer.IsSet())
     {
       Core::DisplayMessage("Failed to transfer to or from to the Bluetooth adapter.", 10000);

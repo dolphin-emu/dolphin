@@ -284,7 +284,7 @@ public:
     if (socket_entry == WiiSockets.end())
     {
       ERROR_LOG_FMT(IOS_NET, "DoSock: Error, fd not found ({:08x}, {:08X}, {:08X})", sock,
-                    request.address, type);
+                    request.address, static_cast<u32>(type));
       GetIOS()->EnqueueIPCReply(request, -SO_EBADF);
     }
     else
