@@ -58,6 +58,12 @@ bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
 missing packages yourself. You may refer to the [wiki](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Linux) for more information.
 
+mac dependencies
+```sh
+brew install qt
+brew install cmake
+```
+
 Make sure to pull submodules before building:
 ```sh
 git submodule update --init
