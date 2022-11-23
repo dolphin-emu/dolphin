@@ -9,7 +9,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
@@ -43,7 +42,6 @@ template <typename T, u32 N>
 void ReadIndirect(VertexLoader* loader, const T* data)
 {
   static_assert(3 == N || 9 == N, "N is only sane as 3 or 9!");
-  DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
   for (u32 i = 0; i < N; ++i)
   {
@@ -55,10 +53,9 @@ void ReadIndirect(VertexLoader* loader, const T* data)
       else if (i >= 6 && i < 9)
         VertexLoaderManager::binormal_cache[i - 6] = value;
     }
-    dst.Write(value);
+    DataWrite(value);
   }
 
-  g_vertex_manager_write_ptr = dst.GetPointer();
   LOG_NORM();
 }
 

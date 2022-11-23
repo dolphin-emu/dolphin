@@ -127,10 +127,8 @@ public:
     // load vertices
     const u32 size = vertex_size * num_vertices;
 
-    // HACK
-    DataReader src{const_cast<u8*>(vertex_data), const_cast<u8*>(vertex_data) + size};
     const u32 bytes =
-        VertexLoaderManager::RunVertices<is_preprocess>(vat, primitive, num_vertices, src);
+        VertexLoaderManager::RunVertices<is_preprocess>(vat, primitive, num_vertices, vertex_data);
 
     ASSERT(bytes == size);
 

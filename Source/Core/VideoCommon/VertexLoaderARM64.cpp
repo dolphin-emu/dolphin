@@ -7,7 +7,6 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 
 using namespace Arm64Gen;
@@ -517,9 +516,8 @@ void VertexLoaderARM64::GenerateVertexLoader()
   m_native_vtx_decl.stride = m_dst_ofs;
 }
 
-int VertexLoaderARM64::RunVertices(DataReader src, DataReader dst, int count)
+int VertexLoaderARM64::RunVertices(const u8* src, u8* dst, int count)
 {
   m_numLoadedVertices += count;
-  return ((int (*)(u8 * src, u8 * dst, int count)) region)(src.GetPointer(), dst.GetPointer(),
-                                                           count - 1);
+  return ((int (*)(const u8* src, u8* dst, int count))region)(src, dst, count - 1);
 }

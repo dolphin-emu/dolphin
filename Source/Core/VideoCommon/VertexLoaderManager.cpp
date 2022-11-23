@@ -332,7 +332,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
 }
 
 template <bool IsPreprocess>
-int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, DataReader src)
+int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, const u8* src)
 {
   if (count == 0) [[unlikely]]
     return 0;
@@ -341,8 +341,6 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
   VertexLoaderBase* loader = RefreshLoader<IsPreprocess>(vtx_attr_group);
 
   int size = count * loader->m_vertex_size;
-  if ((int)src.size() < size) [[unlikely]]
-    return -1;
 
   if constexpr (!IsPreprocess)
   {
@@ -371,7 +369,7 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
     DataReader dst = g_vertex_manager->PrepareForAdditionalData(
         primitive, count, loader->m_native_vtx_decl.stride, cullall);
 
-    count = loader->RunVertices(src, dst, count);
+    count = loader->RunVertices(src, dst.GetPointer(), count);
 
     g_vertex_manager->AddIndices(primitive, count);
     g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
@@ -383,9 +381,9 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
 }
 
 template int RunVertices<false>(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count,
-                                DataReader src);
+                                const u8* src);
 template int RunVertices<true>(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count,
-                               DataReader src);
+                               const u8* src);
 
 NativeVertexFormat* GetCurrentVertexFormat()
 {

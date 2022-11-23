@@ -8,7 +8,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
@@ -36,14 +35,9 @@ template <typename T, int N>
 void TexCoord_ReadDirect(VertexLoader* loader)
 {
   const auto scale = loader->m_tcScale[loader->m_tcIndex];
-  DataReader dst(g_vertex_manager_write_ptr, nullptr);
-  DataReader src(g_video_buffer_read_ptr, nullptr);
 
   for (int i = 0; i != N; ++i)
-    dst.Write(TCScale(src.Read<T>(), scale));
-
-  g_vertex_manager_write_ptr = dst.GetPointer();
-  g_video_buffer_read_ptr = src.GetPointer();
+    DataWrite(TCScale(DataRead<T>(), scale));
 
   ++loader->m_tcIndex;
 }
@@ -58,12 +52,10 @@ void TexCoord_ReadIndex(VertexLoader* loader)
       VertexLoaderManager::cached_arraybases[CPArray::TexCoord0 + loader->m_tcIndex] +
       (index * g_main_cp_state.array_strides[CPArray::TexCoord0 + loader->m_tcIndex]));
   const auto scale = loader->m_tcScale[loader->m_tcIndex];
-  DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
   for (int i = 0; i != N; ++i)
-    dst.Write(TCScale(Common::FromBigEndian(data[i]), scale));
+    DataWrite(TCScale(Common::FromBigEndian(data[i]), scale));
 
-  g_vertex_manager_write_ptr = dst.GetPointer();
   ++loader->m_tcIndex;
 }
 
