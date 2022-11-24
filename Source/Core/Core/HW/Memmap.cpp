@@ -609,7 +609,7 @@ u8* GetPointer(u32 address)
 
   if (m_pEXRAM)
   {
-    if ((address >> 28) == 0x1 && (address & 0x0fffffff) < GetExRamSizeReal())
+    if ((address >> 28) == 0x1)
       return m_pEXRAM + (address & GetExRamMask());
   }
 
