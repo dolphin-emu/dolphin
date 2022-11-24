@@ -16,7 +16,9 @@
 // inside callback:
 //   ScheduleEvent(periodInCycles - cyclesLate, callback, "whatever")
 
+#include <memory>
 #include <string>
+
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -28,6 +30,23 @@ class System;
 
 namespace CoreTiming
 {
+class CoreTimingState
+{
+public:
+  CoreTimingState();
+  CoreTimingState(const CoreTimingState&) = delete;
+  CoreTimingState(CoreTimingState&&) = delete;
+  CoreTimingState& operator=(const CoreTimingState&) = delete;
+  CoreTimingState& operator=(CoreTimingState&&) = delete;
+  ~CoreTimingState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 // These really shouldn't be global, but jit64 accesses them directly
 struct Globals
 {

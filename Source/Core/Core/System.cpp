@@ -27,6 +27,7 @@ struct System::Impl
   bool m_audio_dump_started = false;
 
   AudioInterface::AudioInterfaceState m_audio_interface_state;
+  CoreTiming::CoreTimingState m_core_timing_state;
   CoreTiming::Globals m_core_timing_globals;
   DSP::DSPState m_dsp_state;
   DVDInterface::DVDInterfaceState m_dvd_interface_state;
@@ -84,6 +85,11 @@ void System::SetAudioDumpStarted(bool started)
 AudioInterface::AudioInterfaceState& System::GetAudioInterfaceState() const
 {
   return m_impl->m_audio_interface_state;
+}
+
+CoreTiming::CoreTimingState& System::GetCoreTimingState() const
+{
+  return m_impl->m_core_timing_state;
 }
 
 CoreTiming::Globals& System::GetCoreTimingGlobals() const
