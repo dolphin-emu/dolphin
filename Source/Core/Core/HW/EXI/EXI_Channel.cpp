@@ -47,7 +47,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // Warning: the base is not aligned on a page boundary here. We can't use |
   // to select a register address, instead we need to use +.
 
-  mmio->Register(base + EXI_STATUS, MMIO::ComplexRead<u32>([this](u32) {
+  mmio->Register(base + EXI_STATUS, MMIO::ComplexRead<u32>([this](Core::System&, u32) {
                    // check if external device is present
                    // pretty sure it is memcard only, not entirely sure
                    if (m_channel_id == 2)
@@ -61,7 +61,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
                    return m_status.Hex;
                  }),
-                 MMIO::ComplexWrite<u32>([this](u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([this](Core::System&, u32, u32 val) {
                    UEXI_STATUS new_status(val);
 
                    m_status.EXIINTMASK = new_status.EXIINTMASK;
@@ -98,7 +98,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base + EXI_DMA_LENGTH, MMIO::DirectRead<u32>(&m_dma_length),
                  MMIO::DirectWrite<u32>(&m_dma_length));
   mmio->Register(base + EXI_DMA_CONTROL, MMIO::DirectRead<u32>(&m_control.Hex),
-                 MMIO::ComplexWrite<u32>([this](u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([this](Core::System&, u32, u32 val) {
                    m_control.Hex = val;
 
                    if (m_control.TSTART)

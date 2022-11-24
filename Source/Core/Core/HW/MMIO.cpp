@@ -112,12 +112,12 @@ template <typename T>
 class ComplexHandlingMethod : public ReadHandlingMethod<T>, public WriteHandlingMethod<T>
 {
 public:
-  explicit ComplexHandlingMethod(std::function<T(u32)> read_lambda)
+  explicit ComplexHandlingMethod(std::function<T(Core::System&, u32)> read_lambda)
       : read_lambda_(read_lambda), write_lambda_(InvalidWriteLambda())
   {
   }
 
-  explicit ComplexHandlingMethod(std::function<void(u32, T)> write_lambda)
+  explicit ComplexHandlingMethod(std::function<void(Core::System&, u32, T)> write_lambda)
       : read_lambda_(InvalidReadLambda()), write_lambda_(write_lambda)
   {
   }
@@ -134,9 +134,9 @@ public:
   }
 
 private:
-  std::function<T(u32)> InvalidReadLambda() const
+  std::function<T(Core::System&, u32)> InvalidReadLambda() const
   {
-    return [](u32) {
+    return [](Core::System&, u32) {
       DEBUG_ASSERT_MSG(MEMMAP, 0,
                        "Called the read lambda on a write "
                        "complex handler.");
@@ -144,25 +144,25 @@ private:
     };
   }
 
-  std::function<void(u32, T)> InvalidWriteLambda() const
+  std::function<void(Core::System&, u32, T)> InvalidWriteLambda() const
   {
-    return [](u32, T) {
+    return [](Core::System&, u32, T) {
       DEBUG_ASSERT_MSG(MEMMAP, 0,
                        "Called the write lambda on a read "
                        "complex handler.");
     };
   }
 
-  std::function<T(u32)> read_lambda_;
-  std::function<void(u32, T)> write_lambda_;
+  std::function<T(Core::System&, u32)> read_lambda_;
+  std::function<void(Core::System&, u32, T)> write_lambda_;
 };
 template <typename T>
-ReadHandlingMethod<T>* ComplexRead(std::function<T(u32)> lambda)
+ReadHandlingMethod<T>* ComplexRead(std::function<T(Core::System&, u32)> lambda)
 {
   return new ComplexHandlingMethod<T>(lambda);
 }
 template <typename T>
-WriteHandlingMethod<T>* ComplexWrite(std::function<void(u32, T)> lambda)
+WriteHandlingMethod<T>* ComplexWrite(std::function<void(Core::System&, u32, T)> lambda)
 {
   return new ComplexHandlingMethod<T>(lambda);
 }
@@ -172,7 +172,7 @@ WriteHandlingMethod<T>* ComplexWrite(std::function<void(u32, T)> lambda)
 template <typename T>
 ReadHandlingMethod<T>* InvalidRead()
 {
-  return ComplexRead<T>([](u32 addr) {
+  return ComplexRead<T>([](Core::System&, u32 addr) {
     ERROR_LOG_FMT(MEMMAP, "Trying to read {} bits from an invalid MMIO (addr={:08x})",
                   8 * sizeof(T), addr);
     return -1;
@@ -181,7 +181,7 @@ ReadHandlingMethod<T>* InvalidRead()
 template <typename T>
 WriteHandlingMethod<T>* InvalidWrite()
 {
-  return ComplexWrite<T>([](u32 addr, T val) {
+  return ComplexWrite<T>([](Core::System&, u32 addr, T val) {
     ERROR_LOG_FMT(MEMMAP, "Trying to write {} bits to an invalid MMIO (addr={:08x}, val={:08x})",
                   8 * sizeof(T), addr, val);
   });
@@ -229,8 +229,9 @@ ReadHandlingMethod<T>* ReadToSmaller(Mapping* mmio, u32 high_part_addr, u32 low_
   ReadHandler<ST>* low_part = &mmio->GetHandlerForRead<ST>(low_part_addr);
 
   // TODO(delroth): optimize
-  return ComplexRead<T>([=](u32 addr) {
-    return ((T)high_part->Read(high_part_addr) << (8 * sizeof(ST))) | low_part->Read(low_part_addr);
+  return ComplexRead<T>([=](Core::System& system, u32 addr) {
+    return ((T)high_part->Read(system, high_part_addr) << (8 * sizeof(ST))) |
+           low_part->Read(system, low_part_addr);
   });
 }
 
@@ -243,9 +244,9 @@ WriteHandlingMethod<T>* WriteToSmaller(Mapping* mmio, u32 high_part_addr, u32 lo
   WriteHandler<ST>* low_part = &mmio->GetHandlerForWrite<ST>(low_part_addr);
 
   // TODO(delroth): optimize
-  return ComplexWrite<T>([=](u32 addr, T val) {
-    high_part->Write(high_part_addr, val >> (8 * sizeof(ST)));
-    low_part->Write(low_part_addr, (ST)val);
+  return ComplexWrite<T>([=](Core::System& system, u32 addr, T val) {
+    high_part->Write(system, high_part_addr, val >> (8 * sizeof(ST)));
+    low_part->Write(system, low_part_addr, (ST)val);
   });
 }
 
@@ -257,8 +258,9 @@ ReadHandlingMethod<T>* ReadToLarger(Mapping* mmio, u32 larger_addr, u32 shift)
   ReadHandler<LT>* large = &mmio->GetHandlerForRead<LT>(larger_addr);
 
   // TODO(delroth): optimize
-  return ComplexRead<T>(
-      [large, shift](u32 addr) { return large->Read(addr & ~(sizeof(LT) - 1)) >> shift; });
+  return ComplexRead<T>([large, shift](Core::System& system, u32 addr) {
+    return large->Read(system, addr & ~(sizeof(LT) - 1)) >> shift;
+  });
 }
 
 // Inplementation of the ReadHandler and WriteHandler class. There is a lot of
@@ -290,7 +292,7 @@ void ReadHandler<T>::Visit(ReadHandlingMethodVisitor<T>& visitor)
 }
 
 template <typename T>
-T ReadHandler<T>::Read(u32 addr)
+T ReadHandler<T>::Read(Core::System& system, u32 addr)
 {
   // Check if the handler has already been initialized. For real
   // handlers, this will always be the case, so this branch should be
@@ -298,7 +300,7 @@ T ReadHandler<T>::Read(u32 addr)
   if (!m_Method)
     InitializeInvalid();
 
-  return m_ReadFunc(addr);
+  return m_ReadFunc(system, addr);
 }
 
 template <typename T>
@@ -310,19 +312,22 @@ void ReadHandler<T>::ResetMethod(ReadHandlingMethod<T>* method)
   {
     virtual ~FuncCreatorVisitor() = default;
 
-    std::function<T(u32)> ret;
+    std::function<T(Core::System&, u32)> ret;
 
     void VisitConstant(T value) override
     {
-      ret = [value](u32) { return value; };
+      ret = [value](Core::System&, u32) { return value; };
     }
 
     void VisitDirect(const T* addr, u32 mask) override
     {
-      ret = [addr, mask](u32) { return *addr & mask; };
+      ret = [addr, mask](Core::System&, u32) { return *addr & mask; };
     }
 
-    void VisitComplex(const std::function<T(u32)>* lambda) override { ret = *lambda; }
+    void VisitComplex(const std::function<T(Core::System&, u32)>* lambda) override
+    {
+      ret = *lambda;
+    }
   };
 
   FuncCreatorVisitor v;
@@ -362,7 +367,7 @@ void WriteHandler<T>::Visit(WriteHandlingMethodVisitor<T>& visitor)
 }
 
 template <typename T>
-void WriteHandler<T>::Write(u32 addr, T val)
+void WriteHandler<T>::Write(Core::System& system, u32 addr, T val)
 {
   // Check if the handler has already been initialized. For real
   // handlers, this will always be the case, so this branch should be
@@ -370,7 +375,7 @@ void WriteHandler<T>::Write(u32 addr, T val)
   if (!m_Method)
     InitializeInvalid();
 
-  m_WriteFunc(addr, val);
+  m_WriteFunc(system, addr, val);
 }
 
 template <typename T>
@@ -382,19 +387,22 @@ void WriteHandler<T>::ResetMethod(WriteHandlingMethod<T>* method)
   {
     virtual ~FuncCreatorVisitor() = default;
 
-    std::function<void(u32, T)> ret;
+    std::function<void(Core::System&, u32, T)> ret;
 
     void VisitNop() override
     {
-      ret = [](u32, T) {};
+      ret = [](Core::System&, u32, T) {};
     }
 
     void VisitDirect(T* ptr, u32 mask) override
     {
-      ret = [ptr, mask](u32, T val) { *ptr = val & mask; };
+      ret = [ptr, mask](Core::System&, u32, T val) { *ptr = val & mask; };
     }
 
-    void VisitComplex(const std::function<void(u32, T)>* lambda) override { ret = *lambda; }
+    void VisitComplex(const std::function<void(Core::System&, u32, T)>* lambda) override
+    {
+      ret = *lambda;
+    }
   };
 
   FuncCreatorVisitor v;

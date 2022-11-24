@@ -640,8 +640,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
 {
   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
   mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&state.DISR.Hex),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                   auto& state = system.GetDVDInterfaceState().GetData();
                    const UDISR tmp_status_reg(val);
 
                    state.DISR.DEINTMASK = tmp_status_reg.DEINTMASK.Value();
@@ -667,8 +667,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
                  }));
 
   mmio->Register(base | DI_COVER_REGISTER, MMIO::DirectRead<u32>(&state.DICVR.Hex),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                   auto& state = system.GetDVDInterfaceState().GetData();
                    const UDICVR tmp_cover_reg(val);
 
                    state.DICVR.CVRINTMASK = tmp_cover_reg.CVRINTMASK.Value();
@@ -705,8 +705,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
   mmio->Register(base | DI_DMA_LENGTH_REGISTER, MMIO::DirectRead<u32>(&state.DILENGTH),
                  MMIO::DirectWrite<u32>(&state.DILENGTH, ~0x1F));
   mmio->Register(base | DI_DMA_CONTROL_REGISTER, MMIO::DirectRead<u32>(&state.DICR.Hex),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                   auto& state = system.GetDVDInterfaceState().GetData();
                    state.DICR.Hex = val & 7;
                    if (state.DICR.TSTART)
                    {

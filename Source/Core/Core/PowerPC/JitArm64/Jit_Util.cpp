@@ -7,8 +7,8 @@
 #include "Common/Common.h"
 
 #include "Core/HW/MMIO.h"
-
 #include "Core/PowerPC/JitArm64/Jit.h"
+#include "Core/System.h"
 
 using namespace Arm64Gen;
 
@@ -28,7 +28,7 @@ public:
     // Do nothing
   }
   void VisitDirect(T* addr, u32 mask) override { WriteRegToAddr(8 * sizeof(T), addr, mask); }
-  void VisitComplex(const std::function<void(u32, T)>* lambda) override
+  void VisitComplex(const std::function<void(Core::System&, u32, T)>* lambda) override
   {
     CallLambda(8 * sizeof(T), lambda);
   }
@@ -72,15 +72,15 @@ private:
     }
   }
 
-  void CallLambda(int sbits, const std::function<void(u32, T)>* lambda)
+  void CallLambda(int sbits, const std::function<void(Core::System&, u32, T)>* lambda)
   {
     ARM64FloatEmitter float_emit(m_emit);
 
     m_emit->ABI_PushRegisters(m_gprs_in_use);
     float_emit.ABI_PushRegisters(m_fprs_in_use, ARM64Reg::X1);
-
-    m_emit->MOVI2R(ARM64Reg::W1, m_address);
-    m_emit->MOV(ARM64Reg::W2, m_src_reg);
+    m_emit->MOVP2R(ARM64Reg::X1, &Core::System::GetInstance());
+    m_emit->MOVI2R(ARM64Reg::W2, m_address);
+    m_emit->MOV(ARM64Reg::W3, m_src_reg);
     m_emit->BLR(m_emit->ABI_SetupLambda(lambda));
 
     float_emit.ABI_PopRegisters(m_fprs_in_use, ARM64Reg::X1);
@@ -110,7 +110,7 @@ public:
   {
     LoadAddrMaskToReg(8 * sizeof(T), addr, mask);
   }
-  void VisitComplex(const std::function<T(u32)>* lambda) override
+  void VisitComplex(const std::function<T(Core::System&, u32)>* lambda) override
   {
     CallLambda(8 * sizeof(T), lambda);
   }
@@ -169,14 +169,14 @@ private:
     }
   }
 
-  void CallLambda(int sbits, const std::function<T(u32)>* lambda)
+  void CallLambda(int sbits, const std::function<T(Core::System&, u32)>* lambda)
   {
     ARM64FloatEmitter float_emit(m_emit);
 
     m_emit->ABI_PushRegisters(m_gprs_in_use);
     float_emit.ABI_PushRegisters(m_fprs_in_use, ARM64Reg::X1);
-
-    m_emit->MOVI2R(ARM64Reg::W1, m_address);
+    m_emit->MOVP2R(ARM64Reg::X1, &Core::System::GetInstance());
+    m_emit->MOVI2R(ARM64Reg::W2, m_address);
     m_emit->BLR(m_emit->ABI_SetupLambda(lambda));
     if (m_sign_extend)
       m_emit->SBFM(m_dst_reg, ARM64Reg::W0, 0, sbits - 1);
