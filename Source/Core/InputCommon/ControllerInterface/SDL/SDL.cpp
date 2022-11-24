@@ -294,6 +294,27 @@ void InputBackend::PopulateDevices()
 #endif
 }
 
+struct SDLMotionAxis
+{
+  std::string_view name;
+  int index;
+  ControlState scale;
+};
+using SDLMotionAxisList = std::array<SDLMotionAxis, 6>;
+
+// clang-format off
+static constexpr SDLMotionAxisList SDL_AXES_ACCELEROMETER = {{
+    {"Up",      1,  1}, {"Down",     1, -1},
+    {"Left",    0, -1}, {"Right",    0,  1},
+    {"Forward", 2, -1}, {"Backward", 2,  1},
+}};
+static constexpr SDLMotionAxisList SDL_AXES_GYRO = {{
+    {"Pitch Up",  0, 1}, {"Pitch Down", 0, -1},
+    {"Roll Left", 2, 1}, {"Roll Right", 2, -1},
+    {"Yaw Left",  1, 1}, {"Yaw Right",  1, -1},
+}};
+// clang-format on
+
 Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
     : m_joystick(joystick), m_name(StripWhitespace(GetJoystickName(sdl_index)))
 {
@@ -398,29 +419,26 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
     m_controller = SDL_GameControllerOpen(sdl_index);
     if (m_controller)
     {
-      if (SDL_GameControllerSetSensorEnabled(m_controller, SDL_SENSOR_ACCEL, SDL_TRUE) == 0)
-      {
-        AddInput(new MotionInput("Accel Up", m_controller, SDL_SENSOR_ACCEL, 1, 1));
-        AddInput(new MotionInput("Accel Down", m_controller, SDL_SENSOR_ACCEL, 1, -1));
+      auto AddSensor = [this](SDL_SensorType type, std::string_view name,
+                              const SDLMotionAxisList& axes) {
+        if (SDL_GameControllerSetSensorEnabled(m_controller, type, SDL_TRUE) == 0)
+        {
+          for (const SDLMotionAxis& axis : axes)
+          {
+            AddInput(new MotionInput(fmt::format("{} {}", name, axis.name), m_controller, type,
+                                     axis.index, axis.scale));
+          }
+        }
+      };
 
-        AddInput(new MotionInput("Accel Left", m_controller, SDL_SENSOR_ACCEL, 0, -1));
-        AddInput(new MotionInput("Accel Right", m_controller, SDL_SENSOR_ACCEL, 0, 1));
-
-        AddInput(new MotionInput("Accel Forward", m_controller, SDL_SENSOR_ACCEL, 2, -1));
-        AddInput(new MotionInput("Accel Backward", m_controller, SDL_SENSOR_ACCEL, 2, 1));
-      }
-
-      if (SDL_GameControllerSetSensorEnabled(m_controller, SDL_SENSOR_GYRO, SDL_TRUE) == 0)
-      {
-        AddInput(new MotionInput("Gyro Pitch Up", m_controller, SDL_SENSOR_GYRO, 0, 1));
-        AddInput(new MotionInput("Gyro Pitch Down", m_controller, SDL_SENSOR_GYRO, 0, -1));
-
-        AddInput(new MotionInput("Gyro Roll Left", m_controller, SDL_SENSOR_GYRO, 2, 1));
-        AddInput(new MotionInput("Gyro Roll Right", m_controller, SDL_SENSOR_GYRO, 2, -1));
-
-        AddInput(new MotionInput("Gyro Yaw Left", m_controller, SDL_SENSOR_GYRO, 1, 1));
-        AddInput(new MotionInput("Gyro Yaw Right", m_controller, SDL_SENSOR_GYRO, 1, -1));
-      }
+      AddSensor(SDL_SENSOR_ACCEL, "Accel", SDL_AXES_ACCELEROMETER);
+      AddSensor(SDL_SENSOR_GYRO, "Gyro", SDL_AXES_GYRO);
+#if SDL_VERSION_ATLEAST(2, 26, 0)
+      AddSensor(SDL_SENSOR_ACCEL_L, "Accel L", SDL_AXES_ACCELEROMETER);
+      AddSensor(SDL_SENSOR_GYRO_L, "Gyro L", SDL_AXES_GYRO);
+      AddSensor(SDL_SENSOR_ACCEL_R, "Accel R", SDL_AXES_ACCELEROMETER);
+      AddSensor(SDL_SENSOR_GYRO_R, "Gyro R", SDL_AXES_GYRO);
+#endif
     }
   }
 #endif
