@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <optional>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -92,7 +93,8 @@ void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
   SetFPRFIfNeeded(input, false);
 }
 
-void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::vector<int> inputs)
+void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::optional<OpArg> Ra,
+                       std::optional<OpArg> Rb, std::optional<OpArg> Rc)
 {
   //                      | PowerPC  | x86
   // ---------------------+----------+---------
@@ -107,15 +109,6 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
 
   ASSERT(xmm != clobber);
 
-  // Remove duplicates from inputs
-  for (auto it = inputs.begin(); it != inputs.end();)
-  {
-    if (std::find(inputs.begin(), it, *it) != it)
-      it = inputs.erase(it);
-    else
-      ++it;
-  }
-
   if (inst.OPCD != 4)
   {
     // not paired-single
@@ -127,14 +120,17 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
 
     // If any inputs are NaNs, pick the first NaN of them
     std::vector<FixupBranch> fixups;
-    for (int x : inputs)
-    {
-      RCOpArg Rx = fpr.Use(x, RCMode::Read);
-      RegCache::Realize(Rx);
+    const auto check_input = [&](const OpArg& Rx) {
       MOVDDUP(xmm, Rx);
       UCOMISD(xmm, R(xmm));
       fixups.push_back(J_CC(CC_P));
-    }
+    };
+    if (Ra)
+      check_input(*Ra);
+    if (Rb && Ra != Rb)
+      check_input(*Rb);
+    if (Rc && Ra != Rc && Rb != Rc)
+      check_input(*Rc);
 
     // Otherwise, pick the PPC default NaN (will be finished below)
     XORPD(xmm, R(xmm));
@@ -152,8 +148,6 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
   {
     // paired-single
 
-    std::reverse(inputs.begin(), inputs.end());
-
     if (cpu_info.bSSE4_1)
     {
       avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, R(xmm), R(xmm), CMP_UNORD);
@@ -167,13 +161,16 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
       BLENDVPD(xmm, MConst(psGeneratedQNaN));
 
       // If any inputs are NaNs, use those instead
-      for (int x : inputs)
-      {
-        RCOpArg Rx = fpr.Use(x, RCMode::Read);
-        RegCache::Realize(Rx);
+      const auto check_input = [&](const OpArg& Rx) {
         avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, Rx, Rx, CMP_UNORD);
         BLENDVPD(xmm, Rx);
-      }
+      };
+      if (Rc)
+        check_input(*Rc);
+      if (Rb && Rb != Rc)
+        check_input(*Rb);
+      if (Ra && Ra != Rb && Ra != Rc)
+        check_input(*Ra);
     }
     else
     {
@@ -197,17 +194,20 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
       MOVAPD(xmm, tmp);
 
       // If any inputs are NaNs, use those instead
-      for (int x : inputs)
-      {
-        RCOpArg Rx = fpr.Use(x, RCMode::Read);
-        RegCache::Realize(Rx);
+      const auto check_input = [&](const OpArg& Rx) {
         MOVAPD(clobber, Rx);
         CMPPD(clobber, R(clobber), CMP_ORD);
         MOVAPD(tmp, R(clobber));
         ANDNPD(clobber, Rx);
         ANDPD(xmm, tmp);
         ORPD(xmm, R(clobber));
-      }
+      };
+      if (Rc)
+        check_input(*Rc);
+      if (Rb && Rb != Rc)
+        check_input(*Rb);
+      if (Ra && Ra != Rb && Ra != Rc)
+        check_input(*Ra);
     }
 
     // Turn SNaNs into QNaNs
@@ -246,64 +246,69 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   if (inst.OPCD == 59 && (inst.SUBOP5 == 18 || cpu_info.bAtom))
     packed = false;
 
-  bool round_input = single && !js.op->fprIsSingle[inst.FC];
-  bool preserve_inputs = m_accurate_nans;
-
-  const auto fp_tri_op = [&](int op1, int op2, bool reversible,
-                             void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
-                             void (XEmitter::*sseOp)(X64Reg, const OpArg&), bool roundRHS = false) {
-    RCX64Reg Rd = fpr.Bind(d, !single ? RCMode::ReadWrite : RCMode::Write);
-    RCOpArg Rop1 = fpr.Use(op1, RCMode::Read);
-    RCOpArg Rop2 = fpr.Use(op2, RCMode::Read);
-    RegCache::Realize(Rd, Rop1, Rop2);
-
-    X64Reg dest = preserve_inputs ? XMM1 : static_cast<X64Reg>(Rd);
-    if (roundRHS)
-    {
-      if (d == op1 && !preserve_inputs)
-      {
-        Force25BitPrecision(XMM0, Rop2, XMM1);
-        (this->*sseOp)(Rd, R(XMM0));
-      }
-      else
-      {
-        Force25BitPrecision(dest, Rop2, XMM0);
-        (this->*sseOp)(dest, Rop1);
-      }
-    }
-    else
-    {
-      avx_op(avxOp, sseOp, dest, Rop1, Rop2, packed, reversible);
-    }
-
-    HandleNaNs(inst, dest, XMM0, {op1, op2});
-    if (single)
-      FinalizeSingleResult(Rd, R(dest), packed, true);
-    else
-      FinalizeDoubleResult(Rd, R(dest));
-  };
-
+  void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&) = nullptr;
+  void (XEmitter::*sseOp)(X64Reg, const OpArg&) = nullptr;
+  bool reversible = false;
+  bool roundRHS = false;
   switch (inst.SUBOP5)
   {
   case 18:
-    fp_tri_op(a, b, false, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
-              packed ? &XEmitter::DIVPD : &XEmitter::DIVSD);
+    avxOp = packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD;
+    sseOp = packed ? &XEmitter::DIVPD : &XEmitter::DIVSD;
     break;
   case 20:
-    fp_tri_op(a, b, false, packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD,
-              packed ? &XEmitter::SUBPD : &XEmitter::SUBSD);
+    avxOp = packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD;
+    sseOp = packed ? &XEmitter::SUBPD : &XEmitter::SUBSD;
     break;
   case 21:
-    fp_tri_op(a, b, true, packed ? &XEmitter::VADDPD : &XEmitter::VADDSD,
-              packed ? &XEmitter::ADDPD : &XEmitter::ADDSD);
+    reversible = true;
+    avxOp = packed ? &XEmitter::VADDPD : &XEmitter::VADDSD;
+    sseOp = packed ? &XEmitter::ADDPD : &XEmitter::ADDSD;
     break;
   case 25:
-    fp_tri_op(a, c, true, packed ? &XEmitter::VMULPD : &XEmitter::VMULSD,
-              packed ? &XEmitter::MULPD : &XEmitter::MULSD, round_input);
+    reversible = true;
+    roundRHS = single && !js.op->fprIsSingle[c];
+    avxOp = packed ? &XEmitter::VMULPD : &XEmitter::VMULSD;
+    sseOp = packed ? &XEmitter::MULPD : &XEmitter::MULSD;
     break;
   default:
     ASSERT_MSG(DYNA_REC, 0, "fp_arith WTF!!!");
   }
+
+  RCX64Reg Rd = fpr.Bind(d, !single ? RCMode::ReadWrite : RCMode::Write);
+  RCOpArg Ra = fpr.Use(a, RCMode::Read);
+  RCOpArg Rarg2 = fpr.Use(arg2, RCMode::Read);
+  RegCache::Realize(Rd, Ra, Rarg2);
+
+  bool preserve_inputs = m_accurate_nans;
+  X64Reg dest = preserve_inputs ? XMM1 : static_cast<X64Reg>(Rd);
+  if (roundRHS)
+  {
+    if (a == d && !preserve_inputs)
+    {
+      Force25BitPrecision(XMM0, Rarg2, XMM1);
+      (this->*sseOp)(Rd, R(XMM0));
+    }
+    else
+    {
+      Force25BitPrecision(dest, Rarg2, XMM0);
+      (this->*sseOp)(dest, Ra);
+    }
+  }
+  else
+  {
+    avx_op(avxOp, sseOp, dest, Ra, Rarg2, packed, reversible);
+  }
+
+  if (inst.SUBOP5 != 25)
+    HandleNaNs(inst, dest, XMM0, Ra, Rarg2, std::nullopt);
+  else
+    HandleNaNs(inst, dest, XMM0, Ra, std::nullopt, Rarg2);
+
+  if (single)
+    FinalizeSingleResult(Rd, R(dest), packed, true);
+  else
+    FinalizeDoubleResult(Rd, R(dest));
 }
 
 void Jit64::fmaddXX(UGeckoInstruction inst)
@@ -499,7 +504,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     result_xmm = Rd;
   }
 
-  HandleNaNs(inst, result_xmm, XMM0, {a, b, c});
+  HandleNaNs(inst, result_xmm, XMM0, Ra, Rb, Rc);
 
   if (single)
     FinalizeSingleResult(Rd, R(result_xmm), packed, true);

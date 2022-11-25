@@ -3,6 +3,8 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
+#include <optional>
+
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
@@ -77,7 +79,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   default:
     PanicAlertFmt("ps_sum WTF!!!");
   }
-  HandleNaNs(inst, tmp, tmp == XMM1 ? XMM0 : XMM1, {a, b, c});
+  HandleNaNs(inst, tmp, tmp == XMM1 ? XMM0 : XMM1, Ra, Rb, Rc);
   FinalizeSingleResult(Rd, R(tmp));
 }
 
@@ -112,7 +114,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   if (round_input)
     Force25BitPrecision(XMM1, R(XMM1), XMM0);
   MULPD(XMM1, Ra);
-  HandleNaNs(inst, XMM1, XMM0, {a, c});
+  HandleNaNs(inst, XMM1, XMM0, Ra, std::nullopt, Rc);
   FinalizeSingleResult(Rd, R(XMM1));
 }
 
