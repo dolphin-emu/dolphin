@@ -15,8 +15,7 @@ class AudioInterfaceState;
 namespace CoreTiming
 {
 class CoreTimingManager;
-struct Globals;
-}  // namespace CoreTiming
+}
 namespace DSP
 {
 class DSPState;
@@ -82,7 +81,6 @@ public:
 
   AudioInterface::AudioInterfaceState& GetAudioInterfaceState() const;
   CoreTiming::CoreTimingManager& GetCoreTiming() const;
-  CoreTiming::Globals& GetCoreTimingGlobals() const;
   DSP::DSPState& GetDSPState() const;
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;

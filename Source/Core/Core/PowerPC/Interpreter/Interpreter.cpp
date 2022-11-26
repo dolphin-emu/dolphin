@@ -212,10 +212,11 @@ int Interpreter::SingleStepInner()
 
 void Interpreter::SingleStep()
 {
-  auto& core_timing_globals = Core::System::GetInstance().GetCoreTimingGlobals();
+  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+  auto& core_timing_globals = core_timing.GetGlobals();
 
   // Declare start of new slice
-  Core::System::GetInstance().GetCoreTiming().Advance();
+  core_timing.Advance();
 
   SingleStepInner();
 

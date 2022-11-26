@@ -323,7 +323,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
     RCX64Reg rax = gpr.Scratch(RAX);
     RCX64Reg rcx = gpr.Scratch(RCX);
 
-    auto& core_timing_globals = Core::System::GetInstance().GetCoreTimingGlobals();
+    auto& core_timing_globals = Core::System::GetInstance().GetCoreTiming().GetGlobals();
     MOV(64, rcx, ImmPtr(&core_timing_globals));
 
     // An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the

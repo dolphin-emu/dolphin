@@ -49,9 +49,9 @@ static void EmptyTimedCallback(Core::System& system, u64 userdata, s64 cyclesLat
 //
 // Technically it might be more accurate to call this changing the IPC instead of the CPU speed,
 // but the effect is largely the same.
-static int DowncountToCycles(CoreTiming::Globals& g, int downcount)
+int CoreTimingManager::DowncountToCycles(int downcount) const
 {
-  return static_cast<int>(downcount * g.last_OC_factor_inverted);
+  return static_cast<int>(downcount * m_globals.last_OC_factor_inverted);
 }
 
 int CoreTimingManager::CyclesToDowncount(int cycles) const
@@ -82,18 +82,15 @@ void CoreTimingManager::UnregisterAllEvents()
 
 void CoreTimingManager::Init()
 {
-  auto& system = Core::System::GetInstance();
-  auto& g = system.GetCoreTimingGlobals();
-
   m_registered_config_callback_id = Config::AddConfigChangedCallback(
       [this]() { Core::RunAsCPUThread([this]() { RefreshConfig(); }); });
   RefreshConfig();
 
   m_last_oc_factor = m_config_oc_factor;
-  g.last_OC_factor_inverted = m_config_oc_inv_factor;
+  m_globals.last_OC_factor_inverted = m_config_oc_inv_factor;
   PowerPC::ppcState.downcount = CyclesToDowncount(MAX_SLICE_LENGTH);
-  g.slice_length = MAX_SLICE_LENGTH;
-  g.global_timer = 0;
+  m_globals.slice_length = MAX_SLICE_LENGTH;
+  m_globals.global_timer = 0;
   m_idled_cycles = 0;
 
   // The time between CoreTiming being intialized and the first call to Advance() is considered
@@ -125,19 +122,16 @@ void CoreTimingManager::RefreshConfig()
 
 void CoreTimingManager::DoState(PointerWrap& p)
 {
-  auto& system = Core::System::GetInstance();
-  auto& g = system.GetCoreTimingGlobals();
-
   std::lock_guard lk(m_ts_write_lock);
-  p.Do(g.slice_length);
-  p.Do(g.global_timer);
+  p.Do(m_globals.slice_length);
+  p.Do(m_globals.global_timer);
   p.Do(m_idled_cycles);
   p.Do(m_fake_dec_start_value);
   p.Do(m_fake_dec_start_ticks);
-  p.Do(g.fake_TB_start_value);
-  p.Do(g.fake_TB_start_ticks);
+  p.Do(m_globals.fake_TB_start_value);
+  p.Do(m_globals.fake_TB_start_ticks);
   p.Do(m_last_oc_factor);
-  g.last_OC_factor_inverted = 1.0f / m_last_oc_factor;
+  m_globals.last_OC_factor_inverted = 1.0f / m_last_oc_factor;
   p.Do(m_event_fifo_id);
 
   p.DoMarker("CoreTimingData");
@@ -187,14 +181,11 @@ void CoreTimingManager::DoState(PointerWrap& p)
 // it from any other thread, you are doing something evil
 u64 CoreTimingManager::GetTicks() const
 {
-  auto& system = Core::System::GetInstance();
-  auto& g = system.GetCoreTimingGlobals();
-
-  u64 ticks = static_cast<u64>(g.global_timer);
+  u64 ticks = static_cast<u64>(m_globals.global_timer);
   if (!m_is_global_timer_sane)
   {
-    int downcount = DowncountToCycles(g, PowerPC::ppcState.downcount);
-    ticks += g.slice_length - downcount;
+    int downcount = DowncountToCycles(PowerPC::ppcState.downcount);
+    ticks += m_globals.slice_length - downcount;
   }
   return ticks;
 }
@@ -213,9 +204,6 @@ void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_t
                                       FromThread from)
 {
   ASSERT_MSG(POWERPC, event_type, "Event type is nullptr, will crash now.");
-
-  auto& system = Core::System::GetInstance();
-  auto& g = system.GetCoreTimingGlobals();
 
   bool from_cpu_thread;
   if (from == FromThread::ANY)
@@ -252,7 +240,7 @@ void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_t
     }
 
     std::lock_guard lk(m_ts_write_lock);
-    m_ts_queue.Push(Event{g.global_timer + cycles_into_future, 0, userdata, event_type});
+    m_ts_queue.Push(Event{m_globals.global_timer + cycles_into_future, 0, userdata, event_type});
   }
 }
 
@@ -277,15 +265,13 @@ void CoreTimingManager::RemoveAllEvents(EventType* event_type)
 
 void CoreTimingManager::ForceExceptionCheck(s64 cycles)
 {
-  auto& system = Core::System::GetInstance();
-  auto& g = system.GetCoreTimingGlobals();
-
   cycles = std::max<s64>(0, cycles);
-  if (DowncountToCycles(g, PowerPC::ppcState.downcount) > cycles)
+  if (DowncountToCycles(PowerPC::ppcState.downcount) > cycles)
   {
     // downcount is always (much) smaller than MAX_INT so we can safely cast cycles to an int here.
-    // Account for cycles already executed by adjusting the g.slice_length
-    g.slice_length -= DowncountToCycles(g, PowerPC::ppcState.downcount) - static_cast<int>(cycles);
+    // Account for cycles already executed by adjusting the m_globals.slice_length
+    m_globals.slice_length -=
+        DowncountToCycles(PowerPC::ppcState.downcount) - static_cast<int>(cycles);
     PowerPC::ppcState.downcount = CyclesToDowncount(static_cast<int>(cycles));
   }
 }
@@ -303,24 +289,23 @@ void CoreTimingManager::MoveEvents()
 void CoreTimingManager::Advance()
 {
   auto& system = Core::System::GetInstance();
-  auto& g = system.GetCoreTimingGlobals();
 
   MoveEvents();
 
-  int cyclesExecuted = g.slice_length - DowncountToCycles(g, PowerPC::ppcState.downcount);
-  g.global_timer += cyclesExecuted;
+  int cyclesExecuted = m_globals.slice_length - DowncountToCycles(PowerPC::ppcState.downcount);
+  m_globals.global_timer += cyclesExecuted;
   m_last_oc_factor = m_config_oc_factor;
-  g.last_OC_factor_inverted = m_config_oc_inv_factor;
-  g.slice_length = MAX_SLICE_LENGTH;
+  m_globals.last_OC_factor_inverted = m_config_oc_inv_factor;
+  m_globals.slice_length = MAX_SLICE_LENGTH;
 
   m_is_global_timer_sane = true;
 
-  while (!m_event_queue.empty() && m_event_queue.front().time <= g.global_timer)
+  while (!m_event_queue.empty() && m_event_queue.front().time <= m_globals.global_timer)
   {
     Event evt = std::move(m_event_queue.front());
     std::pop_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
     m_event_queue.pop_back();
-    evt.type->callback(system, evt.userdata, g.global_timer - evt.time);
+    evt.type->callback(system, evt.userdata, m_globals.global_timer - evt.time);
   }
 
   m_is_global_timer_sane = false;
@@ -328,11 +313,11 @@ void CoreTimingManager::Advance()
   // Still events left (scheduled in the future)
   if (!m_event_queue.empty())
   {
-    g.slice_length = static_cast<int>(
-        std::min<s64>(m_event_queue.front().time - g.global_timer, MAX_SLICE_LENGTH));
+    m_globals.slice_length = static_cast<int>(
+        std::min<s64>(m_event_queue.front().time - m_globals.global_timer, MAX_SLICE_LENGTH));
   }
 
-  PowerPC::ppcState.downcount = CyclesToDowncount(g.slice_length);
+  PowerPC::ppcState.downcount = CyclesToDowncount(m_globals.slice_length);
 
   // Check for any external exceptions.
   // It's important to do this after processing events otherwise any exceptions will be delayed
@@ -343,14 +328,11 @@ void CoreTimingManager::Advance()
 
 void CoreTimingManager::LogPendingEvents() const
 {
-  auto& system = Core::System::GetInstance();
-  auto& g = system.GetCoreTimingGlobals();
-
   auto clone = m_event_queue;
   std::sort(clone.begin(), clone.end());
   for (const Event& ev : clone)
   {
-    INFO_LOG_FMT(POWERPC, "PENDING: Now: {} Pending: {} Type: {}", g.global_timer, ev.time,
+    INFO_LOG_FMT(POWERPC, "PENDING: Now: {} Pending: {} Type: {}", m_globals.global_timer, ev.time,
                  *ev.type->name);
   }
 }
@@ -358,21 +340,15 @@ void CoreTimingManager::LogPendingEvents() const
 // Should only be called from the CPU thread after the PPC clock has changed
 void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
 {
-  auto& system = Core::System::GetInstance();
-  auto& g = system.GetCoreTimingGlobals();
-
   for (Event& ev : m_event_queue)
   {
-    const s64 ticks = (ev.time - g.global_timer) * new_ppc_clock / old_ppc_clock;
-    ev.time = g.global_timer + ticks;
+    const s64 ticks = (ev.time - m_globals.global_timer) * new_ppc_clock / old_ppc_clock;
+    ev.time = m_globals.global_timer + ticks;
   }
 }
 
 void CoreTimingManager::Idle()
 {
-  auto& system = Core::System::GetInstance();
-  auto& g = system.GetCoreTimingGlobals();
-
   if (m_config_sync_on_skip_idle)
   {
     // When the FIFO is processing data we must not advance because in this way
@@ -382,7 +358,7 @@ void CoreTimingManager::Idle()
   }
 
   PowerPC::UpdatePerformanceMonitor(PowerPC::ppcState.downcount, 0, 0);
-  m_idled_cycles += DowncountToCycles(g, PowerPC::ppcState.downcount);
+  m_idled_cycles += DowncountToCycles(PowerPC::ppcState.downcount);
   PowerPC::ppcState.downcount = 0;
 }
 
@@ -422,26 +398,22 @@ void CoreTimingManager::SetFakeDecStartTicks(u64 val)
 
 u64 CoreTimingManager::GetFakeTBStartValue() const
 {
-  auto& g = Core::System::GetInstance().GetCoreTimingGlobals();
-  return g.fake_TB_start_value;
+  return m_globals.fake_TB_start_value;
 }
 
 void CoreTimingManager::SetFakeTBStartValue(u64 val)
 {
-  auto& g = Core::System::GetInstance().GetCoreTimingGlobals();
-  g.fake_TB_start_value = val;
+  m_globals.fake_TB_start_value = val;
 }
 
 u64 CoreTimingManager::GetFakeTBStartTicks() const
 {
-  auto& g = Core::System::GetInstance().GetCoreTimingGlobals();
-  return g.fake_TB_start_ticks;
+  return m_globals.fake_TB_start_ticks;
 }
 
 void CoreTimingManager::SetFakeTBStartTicks(u64 val)
 {
-  auto& g = Core::System::GetInstance().GetCoreTimingGlobals();
-  g.fake_TB_start_ticks = val;
+  m_globals.fake_TB_start_ticks = val;
 }
 
 void GlobalAdvance()

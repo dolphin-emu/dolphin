@@ -304,7 +304,7 @@ TEST(CoreTiming, ScheduleIntoPast)
   // the stale value, i.e. effectively half-way through the previous slice.
   // NOTE: We're only testing that the scheduler doesn't break, not whether this makes sense.
   Core::UndeclareAsCPUThread();
-  auto& core_timing_globals = Core::System::GetInstance().GetCoreTimingGlobals();
+  auto& core_timing_globals = core_timing.GetGlobals();
   core_timing_globals.global_timer -= 1000;
   core_timing.ScheduleEvent(0, cb_b, CB_IDS[1], CoreTiming::FromThread::NON_CPU);
   core_timing_globals.global_timer += 1000;

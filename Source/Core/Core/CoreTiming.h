@@ -137,7 +137,12 @@ public:
 
   void ForceExceptionCheck(s64 cycles);
 
+  // Directly accessed by the JIT.
+  Globals& GetGlobals() { return m_globals; }
+
 private:
+  Globals m_globals;
+
   // unordered_map stores each element separately as a linked list node so pointers to elements
   // remain stable regardless of rehashes/resizing.
   std::unordered_map<std::string, EventType> m_event_types;
@@ -168,6 +173,7 @@ private:
   float m_config_oc_inv_factor = 0.0f;
   bool m_config_sync_on_skip_idle = false;
 
+  int DowncountToCycles(int downcount) const;
   int CyclesToDowncount(int cycles) const;
 };
 
