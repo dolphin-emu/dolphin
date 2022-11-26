@@ -79,7 +79,8 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   default:
     PanicAlertFmt("ps_sum WTF!!!");
   }
-  HandleNaNs(inst, tmp, tmp == XMM1 ? XMM0 : XMM1, Ra, Rb, Rc);
+  // We're intentionally not calling HandleNaNs here.
+  // For addition and subtraction specifically, x86's NaN behavior matches PPC's.
   FinalizeSingleResult(Rd, R(tmp));
 }
 

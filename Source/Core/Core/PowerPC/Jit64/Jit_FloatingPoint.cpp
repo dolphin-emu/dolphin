@@ -236,8 +236,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 
   bool single = inst.OPCD == 4 || inst.OPCD == 59;
   // If both the inputs are known to have identical top and bottom halves, we can skip the MOVDDUP
-  // at the end by
-  // using packed arithmetic instead.
+  // at the end by using packed arithmetic instead.
   bool packed = inst.OPCD == 4 ||
                 (inst.OPCD == 59 && js.op->fprIsDuplicated[a] && js.op->fprIsDuplicated[arg2]);
   // Packed divides are slower than scalar divides on basically all x86, so this optimization isn't
@@ -249,10 +248,12 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&) = nullptr;
   void (XEmitter::*sseOp)(X64Reg, const OpArg&) = nullptr;
   bool reversible = false;
-  bool roundRHS = false;
+  bool round_rhs = false;
+  bool preserve_inputs = false;
   switch (inst.SUBOP5)
   {
   case 18:
+    preserve_inputs = m_accurate_nans;
     avxOp = packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD;
     sseOp = packed ? &XEmitter::DIVPD : &XEmitter::DIVSD;
     break;
@@ -261,13 +262,14 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     sseOp = packed ? &XEmitter::SUBPD : &XEmitter::SUBSD;
     break;
   case 21:
-    reversible = true;
+    reversible = !m_accurate_nans;
     avxOp = packed ? &XEmitter::VADDPD : &XEmitter::VADDSD;
     sseOp = packed ? &XEmitter::ADDPD : &XEmitter::ADDSD;
     break;
   case 25:
     reversible = true;
-    roundRHS = single && !js.op->fprIsSingle[c];
+    round_rhs = single && !js.op->fprIsSingle[c];
+    preserve_inputs = m_accurate_nans;
     avxOp = packed ? &XEmitter::VMULPD : &XEmitter::VMULSD;
     sseOp = packed ? &XEmitter::MULPD : &XEmitter::MULSD;
     break;
@@ -280,9 +282,8 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   RCOpArg Rarg2 = fpr.Use(arg2, RCMode::Read);
   RegCache::Realize(Rd, Ra, Rarg2);
 
-  bool preserve_inputs = m_accurate_nans;
   X64Reg dest = preserve_inputs ? XMM1 : static_cast<X64Reg>(Rd);
-  if (roundRHS)
+  if (round_rhs)
   {
     if (a == d && !preserve_inputs)
     {
@@ -300,10 +301,15 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     avx_op(avxOp, sseOp, dest, Ra, Rarg2, packed, reversible);
   }
 
-  if (inst.SUBOP5 != 25)
+  switch (inst.SUBOP5)
+  {
+  case 18:
     HandleNaNs(inst, dest, XMM0, Ra, Rarg2, std::nullopt);
-  else
+    break;
+  case 25:
     HandleNaNs(inst, dest, XMM0, Ra, std::nullopt, Rarg2);
+    break;
+  }
 
   if (single)
     FinalizeSingleResult(Rd, R(dest), packed, true);
