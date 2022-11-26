@@ -14,6 +14,7 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "UICommon/UICommon.h"
 
 // Numbers are chosen randomly to make sure the correct one is given.
@@ -279,9 +280,10 @@ TEST(CoreTiming, ScheduleIntoPast)
   // the stale value, i.e. effectively half-way through the previous slice.
   // NOTE: We're only testing that the scheduler doesn't break, not whether this makes sense.
   Core::UndeclareAsCPUThread();
-  CoreTiming::g.global_timer -= 1000;
+  auto& core_timing_globals = Core::System::GetInstance().GetCoreTimingGlobals();
+  core_timing_globals.global_timer -= 1000;
   CoreTiming::ScheduleEvent(0, cb_b, CB_IDS[1], CoreTiming::FromThread::NON_CPU);
-  CoreTiming::g.global_timer += 1000;
+  core_timing_globals.global_timer += 1000;
   Core::DeclareAsCPUThread();
   AdvanceAndCheck(1, MAX_SLICE_LENGTH, MAX_SLICE_LENGTH + 1000);
 

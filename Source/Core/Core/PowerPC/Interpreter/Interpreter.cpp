@@ -212,13 +212,15 @@ int Interpreter::SingleStepInner()
 
 void Interpreter::SingleStep()
 {
+  auto& core_timing_globals = Core::System::GetInstance().GetCoreTimingGlobals();
+
   // Declare start of new slice
   CoreTiming::Advance();
 
   SingleStepInner();
 
   // The interpreter ignores instruction timing information outside the 'fast runloop'.
-  CoreTiming::g.slice_length = 1;
+  core_timing_globals.slice_length = 1;
   PowerPC::ppcState.downcount = 0;
 
   if (PowerPC::ppcState.Exceptions != 0)
