@@ -25,6 +25,7 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/SysConf.h"
+#include "Core/System.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace IOS::HLE
@@ -339,7 +340,7 @@ void BluetoothEmuDevice::Update()
     wiimote->Update();
 
   const u64 interval = SystemTimers::GetTicksPerSecond() / Wiimote::UPDATE_FREQ;
-  const u64 now = CoreTiming::GetTicks();
+  const u64 now = Core::System::GetInstance().GetCoreTiming().GetTicks();
 
   if (now - m_last_ticks > interval)
   {

@@ -21,6 +21,7 @@
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/System.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
@@ -324,7 +325,8 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
       if (g_ActiveConfig.bImmediateXFB)
       {
         // below div two to convert from bytes to pixels - it expects width, not stride
-        g_renderer->Swap(destAddr, destStride / 2, destStride, height, CoreTiming::GetTicks());
+        g_renderer->Swap(destAddr, destStride / 2, destStride, height,
+                         Core::System::GetInstance().GetCoreTiming().GetTicks());
       }
       else
       {

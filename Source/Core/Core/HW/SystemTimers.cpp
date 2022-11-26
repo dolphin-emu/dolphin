@@ -65,6 +65,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include "Core/IOS/IOS.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "VideoCommon/Fifo.h"
 
 namespace SystemTimers
@@ -105,7 +106,8 @@ void DSPCallback(Core::System& system, u64 userdata, s64 cyclesLate)
   // splits up the cycle budget in case lle is used
   // for hle, just gives all of the slice to hle
   DSP::UpdateDSPSlice(static_cast<int>(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate));
-  CoreTiming::ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
+  system.GetCoreTiming().ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate,
+                                       et_DSP);
 }
 
 int GetAudioDMACallbackPeriod()
@@ -118,7 +120,7 @@ int GetAudioDMACallbackPeriod()
 void AudioDMACallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   DSP::UpdateAudioDMA();  // Push audio to speakers.
-  CoreTiming::ScheduleEvent(GetAudioDMACallbackPeriod() - cyclesLate, et_AudioDMA);
+  system.GetCoreTiming().ScheduleEvent(GetAudioDMACallbackPeriod() - cyclesLate, et_AudioDMA);
 }
 
 void IPC_HLE_UpdateCallback(Core::System& system, u64 userdata, s64 cyclesLate)
@@ -126,14 +128,15 @@ void IPC_HLE_UpdateCallback(Core::System& system, u64 userdata, s64 cyclesLate)
   if (SConfig::GetInstance().bWii)
   {
     IOS::HLE::GetIOS()->UpdateDevices();
-    CoreTiming::ScheduleEvent(s_ipc_hle_period - cyclesLate, et_IPC_HLE);
+    system.GetCoreTiming().ScheduleEvent(s_ipc_hle_period - cyclesLate, et_IPC_HLE);
   }
 }
 
 void VICallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  VideoInterface::Update(CoreTiming::GetTicks() - cyclesLate);
-  CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
+  auto& core_timing = system.GetCoreTiming();
+  VideoInterface::Update(core_timing.GetTicks() - cyclesLate);
+  core_timing.ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
 }
 
 void DecrementerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
@@ -164,7 +167,7 @@ void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late)
     cycles_pruned += next_schedule;
   }
 
-  CoreTiming::ScheduleEvent(next_schedule, et_PatchEngine, cycles_pruned);
+  system.GetCoreTiming().ScheduleEvent(next_schedule, et_PatchEngine, cycles_pruned);
 }
 
 void ThrottleCallback(Core::System& system, u64 deadline, s64 cyclesLate)
@@ -208,7 +211,7 @@ void ThrottleCallback(Core::System& system, u64 deadline, s64 cyclesLate)
   }
   // reschedule 1ms (possibly scaled by emulation_speed) into future on ppc
   // add 1ms to the deadline
-  CoreTiming::ScheduleEvent(next_event - cyclesLate, et_Throttle, deadline + 1000);
+  system.GetCoreTiming().ScheduleEvent(next_event - cyclesLate, et_Throttle, deadline + 1000);
 }
 }  // namespace
 
@@ -219,34 +222,43 @@ u32 GetTicksPerSecond()
 
 void DecrementerSet()
 {
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
   u32 decValue = PowerPC::ppcState.spr[SPR_DEC];
 
-  CoreTiming::RemoveEvent(et_Dec);
+  core_timing.RemoveEvent(et_Dec);
   if ((decValue & 0x80000000) == 0)
   {
-    CoreTiming::SetFakeDecStartTicks(CoreTiming::GetTicks());
-    CoreTiming::SetFakeDecStartValue(decValue);
+    core_timing.SetFakeDecStartTicks(core_timing.GetTicks());
+    core_timing.SetFakeDecStartValue(decValue);
 
-    CoreTiming::ScheduleEvent(decValue * TIMER_RATIO, et_Dec);
+    core_timing.ScheduleEvent(decValue * TIMER_RATIO, et_Dec);
   }
 }
 
 u32 GetFakeDecrementer()
 {
-  return (CoreTiming::GetFakeDecStartValue() -
-          (u32)((CoreTiming::GetTicks() - CoreTiming::GetFakeDecStartTicks()) / TIMER_RATIO));
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  return (core_timing.GetFakeDecStartValue() -
+          (u32)((core_timing.GetTicks() - core_timing.GetFakeDecStartTicks()) / TIMER_RATIO));
 }
 
 void TimeBaseSet()
 {
-  CoreTiming::SetFakeTBStartTicks(CoreTiming::GetTicks());
-  CoreTiming::SetFakeTBStartValue(PowerPC::ReadFullTimeBaseValue());
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  core_timing.SetFakeTBStartTicks(core_timing.GetTicks());
+  core_timing.SetFakeTBStartValue(PowerPC::ReadFullTimeBaseValue());
 }
 
 u64 GetFakeTimeBase()
 {
-  return CoreTiming::GetFakeTBStartValue() +
-         ((CoreTiming::GetTicks() - CoreTiming::GetFakeTBStartTicks()) / TIMER_RATIO);
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  return core_timing.GetFakeTBStartValue() +
+         ((core_timing.GetTicks() - core_timing.GetFakeTBStartTicks()) / TIMER_RATIO);
 }
 
 s64 GetLocalTimeRTCOffset()
@@ -293,7 +305,8 @@ void ChangePPCClock(Mode mode)
     s_cpu_core_clock = 729000000u;
   else
     s_cpu_core_clock = 486000000u;
-  CoreTiming::AdjustEventQueueTimes(s_cpu_core_clock, previous_clock);
+  Core::System::GetInstance().GetCoreTiming().AdjustEventQueueTimes(s_cpu_core_clock,
+                                                                    previous_clock);
 }
 
 void Init()
@@ -315,32 +328,35 @@ void Init()
         Common::Timer::GetLocalTimeSinceJan1970() - Config::Get(Config::MAIN_CUSTOM_RTC_VALUE);
   }
 
-  CoreTiming::SetFakeTBStartValue(static_cast<u64>(s_cpu_core_clock / TIMER_RATIO) *
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
+  core_timing.SetFakeTBStartValue(static_cast<u64>(s_cpu_core_clock / TIMER_RATIO) *
                                   static_cast<u64>(ExpansionInterface::CEXIIPL::GetEmulatedTime(
                                       ExpansionInterface::CEXIIPL::GC_EPOCH)));
 
-  CoreTiming::SetFakeTBStartTicks(CoreTiming::GetTicks());
+  core_timing.SetFakeTBStartTicks(core_timing.GetTicks());
 
-  CoreTiming::SetFakeDecStartValue(0xFFFFFFFF);
-  CoreTiming::SetFakeDecStartTicks(CoreTiming::GetTicks());
+  core_timing.SetFakeDecStartValue(0xFFFFFFFF);
+  core_timing.SetFakeDecStartTicks(core_timing.GetTicks());
 
-  et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
-  et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
-  et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
-  et_AudioDMA = CoreTiming::RegisterEvent("AudioDMACallback", AudioDMACallback);
-  et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
-  et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
-  et_Throttle = CoreTiming::RegisterEvent("Throttle", ThrottleCallback);
+  et_Dec = core_timing.RegisterEvent("DecCallback", DecrementerCallback);
+  et_VI = core_timing.RegisterEvent("VICallback", VICallback);
+  et_DSP = core_timing.RegisterEvent("DSPCallback", DSPCallback);
+  et_AudioDMA = core_timing.RegisterEvent("AudioDMACallback", AudioDMACallback);
+  et_IPC_HLE = core_timing.RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
+  et_PatchEngine = core_timing.RegisterEvent("PatchEngine", PatchEngineCallback);
+  et_Throttle = core_timing.RegisterEvent("Throttle", ThrottleCallback);
 
-  CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
-  CoreTiming::ScheduleEvent(0, et_DSP);
-  CoreTiming::ScheduleEvent(GetAudioDMACallbackPeriod(), et_AudioDMA);
-  CoreTiming::ScheduleEvent(0, et_Throttle, 0);
+  core_timing.ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
+  core_timing.ScheduleEvent(0, et_DSP);
+  core_timing.ScheduleEvent(GetAudioDMACallbackPeriod(), et_AudioDMA);
+  core_timing.ScheduleEvent(0, et_Throttle, 0);
 
-  CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
+  core_timing.ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
 
   if (SConfig::GetInstance().bWii)
-    CoreTiming::ScheduleEvent(s_ipc_hle_period, et_IPC_HLE);
+    core_timing.ScheduleEvent(s_ipc_hle_period, et_IPC_HLE);
 
   s_emu_to_real_time_ring_buffer.fill(0);
 }

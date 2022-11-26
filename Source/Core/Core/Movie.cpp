@@ -63,6 +63,7 @@
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
+#include "Core/System.h"
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/Enums.h"
@@ -290,9 +291,12 @@ void InputUpdate()
   s_currentInputCount++;
   if (IsRecordingInput())
   {
+    auto& system = Core::System::GetInstance();
+    auto& core_timing = system.GetCoreTiming();
+
     s_totalInputCount = s_currentInputCount;
-    s_totalTickCount += CoreTiming::GetTicks() - s_tickCountAtLastInput;
-    s_tickCountAtLastInput = CoreTiming::GetTicks();
+    s_totalTickCount += core_timing.GetTicks() - s_tickCountAtLastInput;
+    s_tickCountAtLastInput = core_timing.GetTicks();
   }
 }
 
@@ -1181,7 +1185,8 @@ void LoadInput(const std::string& movie_path)
 static void CheckInputEnd()
 {
   if (s_currentByte >= s_temp_input.size() ||
-      (CoreTiming::GetTicks() > s_totalTickCount && !IsRecordingInputFromSaveState()))
+      (Core::System::GetInstance().GetCoreTiming().GetTicks() > s_totalTickCount &&
+       !IsRecordingInputFromSaveState()))
   {
     EndPlayInput(!s_bReadOnly);
   }

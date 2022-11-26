@@ -42,10 +42,12 @@ static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_vi
           auto& info = Config::MAIN_GBA_ROM_PATHS[core_ptr->GetCoreInfo().device_number];
           core_ptr->Stop();
           Config::SetCurrent(info, rom_path);
-          if (core_ptr->Start(CoreTiming::GetTicks()))
+          auto& system = Core::System::GetInstance();
+          auto& core_timing = system.GetCoreTiming();
+          if (core_ptr->Start(core_timing.GetTicks()))
             return;
           Config::SetCurrent(info, Config::GetBase(info));
-          core_ptr->Start(CoreTiming::GetTicks());
+          core_ptr->Start(core_timing.GetTicks());
         }
       },
       false);

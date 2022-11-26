@@ -24,6 +24,7 @@
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Profiler.h"
+#include "Core/System.h"
 
 using namespace Arm64Gen;
 
@@ -120,7 +121,7 @@ bool JitArm64::HandleStackFault()
   Common::UnWriteProtectMemory(m_stack_base + GUARD_OFFSET, GUARD_SIZE);
 #endif
   GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
-  CoreTiming::ForceExceptionCheck(0);
+  Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(0);
   m_cleanup_after_stackfault = true;
 
   return true;

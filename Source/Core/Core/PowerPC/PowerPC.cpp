@@ -31,6 +31,7 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/System.h"
 
 namespace PowerPC
 {
@@ -258,8 +259,8 @@ CPUCore DefaultCPUCore()
 
 void Init(CPUCore cpu_core)
 {
-  s_invalidate_cache_thread_safe =
-      CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
+  s_invalidate_cache_thread_safe = Core::System::GetInstance().GetCoreTiming().RegisterEvent(
+      "invalidateEmulatedCache", InvalidateCacheThreadSafe);
 
   Reset();
 
@@ -284,8 +285,8 @@ void ScheduleInvalidateCacheThreadSafe(u32 address)
 {
   if (CPU::GetState() == CPU::State::Running)
   {
-    CoreTiming::ScheduleEvent(0, s_invalidate_cache_thread_safe, address,
-                              CoreTiming::FromThread::NON_CPU);
+    Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
+        0, s_invalidate_cache_thread_safe, address, CoreTiming::FromThread::NON_CPU);
   }
   else
   {

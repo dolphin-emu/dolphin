@@ -18,6 +18,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/System.h"
 
 namespace ExpansionInterface
 {
@@ -182,13 +183,13 @@ void CEXIMic::SetCS(int cs)
 void CEXIMic::UpdateNextInterruptTicks()
 {
   int diff = (SystemTimers::GetTicksPerSecond() / sample_rate) * buff_size_samples;
-  next_int_ticks = CoreTiming::GetTicks() + diff;
+  next_int_ticks = Core::System::GetInstance().GetCoreTiming().GetTicks() + diff;
   ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, diff);
 }
 
 bool CEXIMic::IsInterruptSet()
 {
-  if (next_int_ticks && CoreTiming::GetTicks() >= next_int_ticks)
+  if (next_int_ticks && Core::System::GetInstance().GetCoreTiming().GetTicks() >= next_int_ticks)
   {
     if (status.is_active)
       UpdateNextInterruptTicks();

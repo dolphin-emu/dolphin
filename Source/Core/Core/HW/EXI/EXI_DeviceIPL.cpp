@@ -405,14 +405,16 @@ u32 CEXIIPL::GetEmulatedTime(u32 epoch)
     ltime = Movie::GetRecordingStartTime();
 
     // let's keep time moving forward, regardless of what it starts at
-    ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
+    ltime +=
+        Core::System::GetInstance().GetCoreTiming().GetTicks() / SystemTimers::GetTicksPerSecond();
   }
   else if (NetPlay::IsNetPlayRunning())
   {
     ltime = NetPlay_GetEmulatedTime();
 
     // let's keep time moving forward, regardless of what it starts at
-    ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
+    ltime +=
+        Core::System::GetInstance().GetCoreTiming().GetTicks() / SystemTimers::GetTicksPerSecond();
   }
   else
   {

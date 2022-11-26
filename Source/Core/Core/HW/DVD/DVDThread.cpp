@@ -102,9 +102,10 @@ DVDThreadState::~DVDThreadState() = default;
 
 void Start()
 {
-  auto& state = Core::System::GetInstance().GetDVDThreadState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetDVDThreadState().GetData();
 
-  state.finish_read = CoreTiming::RegisterEvent("FinishReadDVDThread", FinishRead);
+  state.finish_read = system.GetCoreTiming().RegisterEvent("FinishReadDVDThread", FinishRead);
 
   state.request_queue_expanded.Reset();
   state.result_queue_expanded.Reset();
@@ -305,7 +306,9 @@ static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offs
 {
   ASSERT(Core::IsCPUThread());
 
-  auto& state = Core::System::GetInstance().GetDVDThreadState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  auto& state = system.GetDVDThreadState().GetData();
 
   ReadRequest request;
 
@@ -319,13 +322,13 @@ static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offs
   u64 id = state.next_id++;
   request.id = id;
 
-  request.time_started_ticks = CoreTiming::GetTicks();
+  request.time_started_ticks = core_timing.GetTicks();
   request.realtime_started_us = Common::Timer::NowUs();
 
   state.request_queue.Push(std::move(request));
   state.request_queue_expanded.Set();
 
-  CoreTiming::ScheduleEvent(ticks_until_completion, state.finish_read, id);
+  core_timing.ScheduleEvent(ticks_until_completion, state.finish_read, id);
 }
 
 static void FinishRead(Core::System& system, u64 id, s64 cycles_late)
@@ -373,7 +376,7 @@ static void FinishRead(Core::System& system, u64 id, s64 cycles_late)
                 "Emulated time including delay: {} us.",
                 request.realtime_done_us - request.realtime_started_us,
                 Common::Timer::NowUs() - request.realtime_started_us,
-                (CoreTiming::GetTicks() - request.time_started_ticks) /
+                (system.GetCoreTiming().GetTicks() - request.time_started_ticks) /
                     (SystemTimers::GetTicksPerSecond() / 1000000));
 
   DVDInterface::DIInterruptType interrupt;

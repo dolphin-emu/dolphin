@@ -39,6 +39,7 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -224,7 +225,7 @@ static void DoState(PointerWrap& p)
   p.DoMarker("PowerPC");
   // CoreTiming needs to be restored before restoring Hardware because
   // the controller code might need to schedule an event if the controller has changed.
-  CoreTiming::DoState(p);
+  Core::System::GetInstance().GetCoreTiming().DoState(p);
   p.DoMarker("CoreTiming");
   HW::DoState(p);
   p.DoMarker("HW");

@@ -27,12 +27,13 @@
 #include "Core/HW/WII_IPC.h"
 #include "Core/IOS/IOS.h"
 #include "Core/State.h"
+#include "Core/System.h"
 
 namespace HW
 {
 void Init(const Sram* override_sram)
 {
-  CoreTiming::Init();
+  Core::System::GetInstance().GetCoreTiming().Init();
   SystemTimers::PreInit();
 
   State::Init();
@@ -79,7 +80,7 @@ void Shutdown()
   AudioInterface::Shutdown();
 
   State::Shutdown();
-  CoreTiming::Shutdown();
+  Core::System::GetInstance().GetCoreTiming().Shutdown();
 }
 
 void DoState(PointerWrap& p)

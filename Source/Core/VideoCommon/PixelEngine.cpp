@@ -202,8 +202,8 @@ void Init()
   s_signal_token_interrupt = false;
   s_signal_finish_interrupt = false;
 
-  et_SetTokenFinishOnMainThread =
-      CoreTiming::RegisterEvent("SetTokenFinish", SetTokenFinish_OnMainThread);
+  et_SetTokenFinishOnMainThread = Core::System::GetInstance().GetCoreTiming().RegisterEvent(
+      "SetTokenFinish", SetTokenFinish_OnMainThread);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -341,7 +341,8 @@ static void RaiseEvent(int cycles_into_future)
     //       games time to setup any interrupt state
     cycles = std::max(500, cycles_into_future);
   }
-  CoreTiming::ScheduleEvent(cycles, et_SetTokenFinishOnMainThread, 0, from);
+  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(cycles, et_SetTokenFinishOnMainThread,
+                                                            0, from);
 }
 
 // SetToken

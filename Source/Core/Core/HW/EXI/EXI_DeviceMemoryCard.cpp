@@ -86,11 +86,13 @@ void CEXIMemoryCard::Init()
 {
   static_assert(s_et_cmd_done.size() == s_et_transfer_complete.size(), "Event array size differs");
   static_assert(s_et_cmd_done.size() == MEMCARD_SLOTS.size(), "Event array size differs");
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
   for (Slot slot : MEMCARD_SLOTS)
   {
-    s_et_cmd_done[slot] = CoreTiming::RegisterEvent(
+    s_et_cmd_done[slot] = core_timing.RegisterEvent(
         fmt::format("memcardDone{}", s_card_short_names[slot]), CmdDoneCallback);
-    s_et_transfer_complete[slot] = CoreTiming::RegisterEvent(
+    s_et_transfer_complete[slot] = core_timing.RegisterEvent(
         fmt::format("memcardTransferComplete{}", s_card_short_names[slot]),
         TransferCompleteCallback);
   }
@@ -233,8 +235,10 @@ void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
-  CoreTiming::RemoveEvent(s_et_cmd_done[m_card_slot]);
-  CoreTiming::RemoveEvent(s_et_transfer_complete[m_card_slot]);
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  core_timing.RemoveEvent(s_et_cmd_done[m_card_slot]);
+  core_timing.RemoveEvent(s_et_transfer_complete[m_card_slot]);
 }
 
 bool CEXIMemoryCard::UseDelayedTransferCompletion() const
@@ -265,8 +269,10 @@ void CEXIMemoryCard::TransferComplete()
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
-  CoreTiming::RemoveEvent(s_et_cmd_done[m_card_slot]);
-  CoreTiming::ScheduleEvent(cycles, s_et_cmd_done[m_card_slot], static_cast<u64>(m_card_slot));
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  core_timing.RemoveEvent(s_et_cmd_done[m_card_slot]);
+  core_timing.ScheduleEvent(cycles, s_et_cmd_done[m_card_slot], static_cast<u64>(m_card_slot));
 }
 
 void CEXIMemoryCard::SetCS(int cs)
@@ -525,8 +531,9 @@ void CEXIMemoryCard::DMARead(u32 addr, u32 size)
   }
 
   // Schedule transfer complete later based on read speed
-  CoreTiming::ScheduleEvent(size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
-                            s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
+  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
+      size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
+      s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -541,7 +548,8 @@ void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
   }
 
   // Schedule transfer complete later based on write speed
-  CoreTiming::ScheduleEvent(size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
-                            s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
+  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
+      size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
+      s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }
 }  // namespace ExpansionInterface
