@@ -125,7 +125,7 @@ if(NOT BUNDLE_SPEEX)
 endif()
 
 if(NOT TARGET speex)
-  add_library(speex STATIC cubeb/subprojects/speex/resample.c)
+  add_library(speex OBJECT cubeb/subprojects/speex/resample.c)
   dolphin_disable_warnings_msvc(speex)
   set_target_properties(speex PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
   target_include_directories(speex INTERFACE cubeb/subprojects)
@@ -273,9 +273,22 @@ if(HAVE_SYS_SOUNDCARD_H)
   try_compile(USE_OSS "${PROJECT_BINARY_DIR}/compile_tests"
     ${PROJECT_SOURCE_DIR}/cubeb/cmake/compile_tests/oss_is_v4.c)
   if(USE_OSS)
-    target_sources(cubeb PRIVATE
-      cubeb/src/cubeb_oss.c)
-    target_compile_definitions(cubeb PRIVATE USE_OSS)
+    # strlcpy is not available on BSD systems that use glibc,
+    # like Debian kfreebsd, so try using libbsd if available
+    include(CheckSymbolExists)
+    check_symbol_exists(strlcpy string.h HAVE_STRLCPY)
+    if(NOT HAVE_STRLCPY)
+      pkg_check_modules(libbsd-overlay IMPORTED_TARGET libbsd-overlay)
+      if(libbsd-overlay_FOUND)
+        target_link_libraries(cubeb PRIVATE PkgConfig::libbsd-overlay)
+        set(HAVE_STRLCPY true)
+      endif()
+    endif()
+    if (HAVE_STRLCPY)
+      target_sources(cubeb PRIVATE
+        cubeb/src/cubeb_oss.c)
+      target_compile_definitions(cubeb PRIVATE USE_OSS)
+    endif()
   endif()
 endif()
 
@@ -339,13 +352,3 @@ if(USE_AUDIOUNIT AND USE_AUDIOUNIT_RUST)
     debug "${PROJECT_SOURCE_DIR}/cubeb/src/cubeb-coreaudio-rs/target/debug/libcubeb_coreaudio.a"
     optimized "${PROJECT_SOURCE_DIR}/cubeb/src/cubeb-coreaudio-rs/target/release/libcubeb_coreaudio.a")
 endif()
-
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile @ONLY)
-  add_custom_target(doc ALL
-    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs
-    COMMENT "Generating API documentation with Doxygen" VERBATIM)
-endif()
-

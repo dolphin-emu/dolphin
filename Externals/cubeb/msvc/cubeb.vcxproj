@@ -40,13 +40,13 @@
     <ClInclude Include="..\cubeb\src\cubeb_ringbuffer.h" />
     <ClInclude Include="..\cubeb\src\cubeb_ring_array.h" />
     <ClInclude Include="..\cubeb\src\cubeb_strings.h" />
+    <ClInclude Include="..\cubeb\src\cubeb_tracing.h" />
     <ClInclude Include="..\cubeb\src\cubeb_utils.h" />
     <ClInclude Include="..\cubeb\src\cubeb_utils_unix.h" />
     <ClInclude Include="..\cubeb\src\cubeb_utils_win.h" />
     <ClInclude Include="..\cubeb\src\cubeb-internal.h" />
     <ClInclude Include="..\cubeb\src\cubeb-jni.h" />
     <ClInclude Include="..\cubeb\src\cubeb-jni-instances.h" />
-    <ClInclude Include="..\cubeb\src\cubeb-sles.h" />
     <ClInclude Include="..\cubeb\src\cubeb-speex-resampler.h" />
     <ClInclude Include="..\cubeb\subprojects\speex\arch.h" />
     <ClInclude Include="..\cubeb\subprojects\speex\fixed_generic.h" />
