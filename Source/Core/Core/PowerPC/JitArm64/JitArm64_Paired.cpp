@@ -33,9 +33,9 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
   const u8 size = singles ? 32 : 64;
   const auto reg_encoder = singles ? EncodeRegToDouble : EncodeRegToQuad;
 
-  const ARM64Reg VA = fpr.R(a, type);
-  const ARM64Reg VB = fpr.R(b, type);
-  const ARM64Reg VD = fpr.RW(d, type);
+  const ARM64Reg VA = reg_encoder(fpr.R(a, type));
+  const ARM64Reg VB = reg_encoder(fpr.R(b, type));
+  const ARM64Reg VD = reg_encoder(fpr.RW(d, type));
 
   switch (inst.SUBOP10)
   {
@@ -43,23 +43,20 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
     m_float_emit.TRN1(size, VD, VA, VB);
     break;
   case 560:  // 01
-    m_float_emit.INS(size, VD, 0, VA, 0);
-    m_float_emit.INS(size, VD, 1, VB, 1);
+    if (d != b)
+    {
+      if (d != a)
+        m_float_emit.MOV(VD, VA);
+      if (a != b)
+        m_float_emit.INS(size, VD, 1, VB, 1);
+    }
+    else if (d != a)
+    {
+      m_float_emit.INS(size, VD, 0, VA, 0);
+    }
     break;
   case 592:  // 10
-    if (d != a && d != b)
-    {
-      m_float_emit.INS(size, VD, 0, VA, 1);
-      m_float_emit.INS(size, VD, 1, VB, 0);
-    }
-    else
-    {
-      ARM64Reg V0 = fpr.GetReg();
-      m_float_emit.INS(size, V0, 0, VA, 1);
-      m_float_emit.INS(size, V0, 1, VB, 0);
-      m_float_emit.MOV(reg_encoder(VD), reg_encoder(V0));
-      fpr.Unlock(V0);
-    }
+    m_float_emit.EXT(VD, VA, VB, size >> 3);
     break;
   case 624:  // 11
     m_float_emit.TRN2(size, VD, VA, VB);
