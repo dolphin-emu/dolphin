@@ -44,6 +44,7 @@ private:
   void OnDelete();
   void OnClear();
   void OnNewBreakpoint();
+  void OnEditBreakpoint(u32 address, bool is_instruction_bp);
   void OnLoad();
   void OnSave();
   void OnContextMenu();

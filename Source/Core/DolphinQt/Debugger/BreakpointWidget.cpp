@@ -19,8 +19,8 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/Debugger/BreakpointDialog.h"
 #include "DolphinQt/Debugger/MemoryWidget.h"
-#include "DolphinQt/Debugger/NewBreakpointDialog.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -299,8 +299,25 @@ void BreakpointWidget::OnClear()
 
 void BreakpointWidget::OnNewBreakpoint()
 {
-  NewBreakpointDialog* dialog = new NewBreakpointDialog(this);
+  BreakpointDialog* dialog = new BreakpointDialog(this);
   dialog->exec();
+}
+
+void BreakpointWidget::OnEditBreakpoint(u32 address, bool is_instruction_bp)
+{
+  if (is_instruction_bp)
+  {
+    auto* dialog = new BreakpointDialog(this, PowerPC::breakpoints.GetBreakpoint(address));
+    dialog->exec();
+  }
+  else
+  {
+    auto* dialog = new BreakpointDialog(this, PowerPC::memchecks.GetMemCheck(address));
+    dialog->exec();
+  }
+
+  emit BreakpointsChanged();
+  Update();
 }
 
 void BreakpointWidget::OnLoad()
@@ -389,6 +406,9 @@ void BreakpointWidget::OnContextMenu()
       Update();
     });
   }
+  menu->addAction(tr("Edit..."), [this, bp_address, is_memory_breakpoint] {
+    OnEditBreakpoint(bp_address, !is_memory_breakpoint);
+  });
 
   menu->exec(QCursor::pos());
 }
