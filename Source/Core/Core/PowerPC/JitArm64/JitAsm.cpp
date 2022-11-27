@@ -172,7 +172,7 @@ void JitArm64::GenerateAsm()
   FixupBranch Exit = B(CC_NEQ);
 
   SetJumpTarget(to_start_of_timing_slice);
-  MOVP2R(ARM64Reg::X8, &CoreTiming::Advance);
+  MOVP2R(ARM64Reg::X8, &CoreTiming::GlobalAdvance);
   BLR(ARM64Reg::X8);
 
   // Load the PC back into DISPATCHER_PC (the exception handler might have changed it)

@@ -161,10 +161,11 @@ void Init(const Sram* override_sram)
                                                          SlotToEXIDevice(Slot::SP1));
   state.channels[2]->AddDevice(EXIDeviceType::AD16, 0);
 
+  auto& core_timing = system.GetCoreTiming();
   state.event_type_change_device =
-      CoreTiming::RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
+      core_timing.RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
   state.event_type_update_interrupts =
-      CoreTiming::RegisterEvent("EXIUpdateInterrupts", UpdateInterruptsCallback);
+      core_timing.RegisterEvent("EXIUpdateInterrupts", UpdateInterruptsCallback);
 }
 
 void Shutdown()
@@ -233,11 +234,13 @@ void ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
                   CoreTiming::FromThread from_thread)
 {
   // Let the hardware see no device for 1 second
-  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
-  CoreTiming::ScheduleEvent(0, state.event_type_change_device,
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  auto& state = system.GetExpansionInterfaceState().GetData();
+  core_timing.ScheduleEvent(0, state.event_type_change_device,
                             ((u64)channel << 32) | ((u64)EXIDeviceType::None << 16) | device_num,
                             from_thread);
-  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), state.event_type_change_device,
+  core_timing.ScheduleEvent(SystemTimers::GetTicksPerSecond(), state.event_type_change_device,
                             ((u64)channel << 32) | ((u64)device_type << 16) | device_num,
                             from_thread);
 }
@@ -277,8 +280,9 @@ static void UpdateInterruptsCallback(Core::System& system, u64 userdata, s64 cyc
 
 void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late)
 {
+  auto& system = Core::System::GetInstance();
   auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
-  CoreTiming::ScheduleEvent(cycles_late, state.event_type_update_interrupts, 0, from);
+  system.GetCoreTiming().ScheduleEvent(cycles_late, state.event_type_update_interrupts, 0, from);
 }
 
 }  // namespace ExpansionInterface

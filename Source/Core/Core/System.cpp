@@ -27,8 +27,7 @@ struct System::Impl
   bool m_audio_dump_started = false;
 
   AudioInterface::AudioInterfaceState m_audio_interface_state;
-  CoreTiming::CoreTimingState m_core_timing_state;
-  CoreTiming::Globals m_core_timing_globals;
+  CoreTiming::CoreTimingManager m_core_timing;
   DSP::DSPState m_dsp_state;
   DVDInterface::DVDInterfaceState m_dvd_interface_state;
   DVDThread::DVDThreadState m_dvd_thread_state;
@@ -87,14 +86,9 @@ AudioInterface::AudioInterfaceState& System::GetAudioInterfaceState() const
   return m_impl->m_audio_interface_state;
 }
 
-CoreTiming::CoreTimingState& System::GetCoreTimingState() const
+CoreTiming::CoreTimingManager& System::GetCoreTiming() const
 {
-  return m_impl->m_core_timing_state;
-}
-
-CoreTiming::Globals& System::GetCoreTimingGlobals() const
-{
-  return m_impl->m_core_timing_globals;
+  return m_impl->m_core_timing;
 }
 
 DSP::DSPState& System::GetDSPState() const

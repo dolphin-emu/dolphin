@@ -317,7 +317,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       base | VI_HORIZONTAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
         auto& state = system.GetVideoInterfaceState().GetData();
         u16 value = static_cast<u16>(
-            1 + state.h_timing_0.HLW * (CoreTiming::GetTicks() - state.ticks_last_line_start) /
+            1 + state.h_timing_0.HLW *
+                    (system.GetCoreTiming().GetTicks() - state.ticks_last_line_start) /
                     (GetTicksPerHalfLine()));
         return std::clamp<u16>(value, 1, state.h_timing_0.HLW * 2);
       }),
@@ -878,7 +879,8 @@ static void EndField(FieldType field, u64 ticks)
 // Run when: When a frame is scanned (progressive/interlace)
 void Update(u64 ticks)
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetVideoInterfaceState().GetData();
 
   // Movie's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
@@ -946,7 +948,7 @@ void Update(u64 ticks)
 
   if (!(state.half_line_count & 1))
   {
-    state.ticks_last_line_start = CoreTiming::GetTicks();
+    state.ticks_last_line_start = system.GetCoreTiming().GetTicks();
   }
 
   // Check if we need to assert IR_INT. Note that the granularity of our current horizontal

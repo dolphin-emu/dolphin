@@ -448,7 +448,8 @@ bool AtBreakpoint()
 
 void RunGpu()
 {
-  const bool is_dual_core = Core::System::GetInstance().IsDualCoreMode();
+  auto& system = Core::System::GetInstance();
+  const bool is_dual_core = system.IsDualCoreMode();
 
   // wake up GPU thread
   if (is_dual_core && !s_use_deterministic_gpu_thread)
@@ -462,7 +463,8 @@ void RunGpu()
     if (s_syncing_suspended)
     {
       s_syncing_suspended = false;
-      CoreTiming::ScheduleEvent(GPU_TIME_SLOT_SIZE, s_event_sync_gpu, GPU_TIME_SLOT_SIZE);
+      system.GetCoreTiming().ScheduleEvent(GPU_TIME_SLOT_SIZE, s_event_sync_gpu,
+                                           GPU_TIME_SLOT_SIZE);
     }
   }
 }
@@ -611,7 +613,7 @@ static void SyncGPUCallback(Core::System& system, u64 ticks, s64 cyclesLate)
 
   s_syncing_suspended = next < 0;
   if (!s_syncing_suspended)
-    CoreTiming::ScheduleEvent(next, s_event_sync_gpu, next);
+    system.GetCoreTiming().ScheduleEvent(next, s_event_sync_gpu, next);
 }
 
 void SyncGPUForRegisterAccess()
@@ -627,7 +629,8 @@ void SyncGPUForRegisterAccess()
 // Initialize GPU - CPU thread syncing, this gives us a deterministic way to start the GPU thread.
 void Prepare()
 {
-  s_event_sync_gpu = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
+  s_event_sync_gpu =
+      Core::System::GetInstance().GetCoreTiming().RegisterEvent("SyncGPUCallback", SyncGPUCallback);
   s_syncing_suspended = true;
 }
 }  // namespace Fifo

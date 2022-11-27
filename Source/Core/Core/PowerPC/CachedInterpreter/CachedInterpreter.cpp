@@ -13,6 +13,7 @@
 #include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 struct CachedInterpreter::Instruction
 {
@@ -109,12 +110,15 @@ void CachedInterpreter::ExecuteOneBlock()
 
 void CachedInterpreter::Run()
 {
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
   const CPU::State* state_ptr = CPU::GetStatePtr();
   while (CPU::GetState() == CPU::State::Running)
   {
     // Start new timing slice
     // NOTE: Exceptions may change PC
-    CoreTiming::Advance();
+    core_timing.Advance();
 
     do
     {
@@ -126,7 +130,7 @@ void CachedInterpreter::Run()
 void CachedInterpreter::SingleStep()
 {
   // Enter new timing slice
-  CoreTiming::Advance();
+  Core::System::GetInstance().GetCoreTiming().Advance();
   ExecuteOneBlock();
 }
 
@@ -207,7 +211,7 @@ static bool CheckIdle(u32 idle_pc)
 {
   if (PowerPC::ppcState.npc == idle_pc)
   {
-    CoreTiming::Idle();
+    Core::System::GetInstance().GetCoreTiming().Idle();
   }
   return false;
 }

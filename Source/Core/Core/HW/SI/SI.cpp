@@ -344,8 +344,8 @@ static void RunSIBuffer(Core::System& system, u64 user_data, s64 cycles_late)
     }
     else
     {
-      CoreTiming::ScheduleEvent(device->TransferInterval() - cycles_late,
-                                state.event_type_tranfer_pending);
+      system.GetCoreTiming().ScheduleEvent(device->TransferInterval() - cycles_late,
+                                           state.event_type_tranfer_pending);
     }
   }
 }
@@ -388,10 +388,12 @@ static void DeviceEventCallback(Core::System& system, u64 userdata, s64 cyclesLa
 
 static void RegisterEvents()
 {
-  auto& state = Core::System::GetInstance().GetSerialInterfaceState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  auto& state = system.GetSerialInterfaceState().GetData();
   state.event_type_change_device =
-      CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
-  state.event_type_tranfer_pending = CoreTiming::RegisterEvent("SITransferPending", RunSIBuffer);
+      core_timing.RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
+  state.event_type_tranfer_pending = core_timing.RegisterEvent("SITransferPending", RunSIBuffer);
 
   constexpr std::array<CoreTiming::TimedCallback, MAX_SI_CHANNELS> event_callbacks = {
       DeviceEventCallback<0>,
@@ -402,20 +404,24 @@ static void RegisterEvents()
   for (int i = 0; i < MAX_SI_CHANNELS; ++i)
   {
     state.event_types_device[i] =
-        CoreTiming::RegisterEvent(fmt::format("SIEventChannel{}", i), event_callbacks[i]);
+        core_timing.RegisterEvent(fmt::format("SIEventChannel{}", i), event_callbacks[i]);
   }
 }
 
 void ScheduleEvent(int device_number, s64 cycles_into_future, u64 userdata)
 {
-  auto& state = Core::System::GetInstance().GetSerialInterfaceState().GetData();
-  CoreTiming::ScheduleEvent(cycles_into_future, state.event_types_device[device_number], userdata);
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  auto& state = system.GetSerialInterfaceState().GetData();
+  core_timing.ScheduleEvent(cycles_into_future, state.event_types_device[device_number], userdata);
 }
 
 void RemoveEvent(int device_number)
 {
-  auto& state = Core::System::GetInstance().GetSerialInterfaceState().GetData();
-  CoreTiming::RemoveEvent(state.event_types_device[device_number]);
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  auto& state = system.GetSerialInterfaceState().GetData();
+  core_timing.RemoveEvent(state.event_types_device[device_number]);
 }
 
 void Init()
@@ -573,7 +579,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (tmp_com_csr.TSTART)
                    {
                      if (state.com_csr.TSTART)
-                       CoreTiming::RemoveEvent(state.event_type_tranfer_pending);
+                       system.GetCoreTiming().RemoveEvent(state.event_type_tranfer_pending);
                      state.com_csr.TSTART = 1;
                      RunSIBuffer(system, 0, 0);
                    }
@@ -676,7 +682,8 @@ void ChangeDevice(SIDevices device, int channel)
 
 static void ChangeDeviceDeterministic(SIDevices device, int channel)
 {
-  auto& state = Core::System::GetInstance().GetSerialInterfaceState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetSerialInterfaceState().GetData();
   if (state.channel[channel].has_recent_device_change)
     return;
 
@@ -696,8 +703,8 @@ static void ChangeDeviceDeterministic(SIDevices device, int channel)
 
   // Prevent additional device changes on this channel for one second.
   state.channel[channel].has_recent_device_change = true;
-  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), state.event_type_change_device,
-                            channel);
+  system.GetCoreTiming().ScheduleEvent(SystemTimers::GetTicksPerSecond(),
+                                       state.event_type_change_device, channel);
 }
 
 void UpdateDevices()

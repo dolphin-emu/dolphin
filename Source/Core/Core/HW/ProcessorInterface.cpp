@@ -72,11 +72,13 @@ void Init()
   m_ResetCode = 0;  // Cold reset
   m_InterruptCause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
 
-  toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  toggleResetButton = core_timing.RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);
   iosNotifyResetButton =
-      CoreTiming::RegisterEvent("IOSNotifyResetButton", IOSNotifyResetButtonCallback);
+      core_timing.RegisterEvent("IOSNotifyResetButton", IOSNotifyResetButtonCallback);
   iosNotifyPowerButton =
-      CoreTiming::RegisterEvent("IOSNotifyPowerButton", IOSNotifyPowerButtonCallback);
+      core_timing.RegisterEvent("IOSNotifyPowerButton", IOSNotifyPowerButtonCallback);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -261,9 +263,12 @@ void ResetButton_Tap()
 {
   if (!Core::IsRunning())
     return;
-  CoreTiming::ScheduleEvent(0, toggleResetButton, true, CoreTiming::FromThread::ANY);
-  CoreTiming::ScheduleEvent(0, iosNotifyResetButton, 0, CoreTiming::FromThread::ANY);
-  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond() / 2, toggleResetButton, false,
+
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  core_timing.ScheduleEvent(0, toggleResetButton, true, CoreTiming::FromThread::ANY);
+  core_timing.ScheduleEvent(0, iosNotifyResetButton, 0, CoreTiming::FromThread::ANY);
+  core_timing.ScheduleEvent(SystemTimers::GetTicksPerSecond() / 2, toggleResetButton, false,
                             CoreTiming::FromThread::ANY);
 }
 
@@ -271,7 +276,10 @@ void PowerButton_Tap()
 {
   if (!Core::IsRunning())
     return;
-  CoreTiming::ScheduleEvent(0, iosNotifyPowerButton, 0, CoreTiming::FromThread::ANY);
+
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  core_timing.ScheduleEvent(0, iosNotifyPowerButton, 0, CoreTiming::FromThread::ANY);
 }
 
 }  // namespace ProcessorInterface

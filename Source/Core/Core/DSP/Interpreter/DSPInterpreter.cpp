@@ -18,6 +18,7 @@
 #include "Core/DSP/Interpreter/DSPIntTables.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/System.h"
 
 namespace DSP::Interpreter
 {
@@ -271,7 +272,7 @@ u16 Interpreter::ReadControlRegister()
     if (SystemTimers::GetFakeTimeBase() >= state.control_reg_init_code_clear_time)
       state.control_reg &= ~CR_INIT_CODE;
     else
-      CoreTiming::ForceExceptionCheck(50);  // Keep checking
+      Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(50);  // Keep checking
   }
   return state.control_reg;
 }

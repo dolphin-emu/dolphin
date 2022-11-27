@@ -56,6 +56,7 @@
 #include "Core/IOS/WFS/WFSI.h"
 #include "Core/IOS/WFS/WFSSRV.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "Core/WiiRoot.h"
 
 namespace IOS::HLE
@@ -320,7 +321,7 @@ EmulationKernel::EmulationKernel(u64 title_id) : Kernel(title_id)
 
 EmulationKernel::~EmulationKernel()
 {
-  CoreTiming::RemoveAllEvents(s_event_enqueue);
+  Core::System::GetInstance().GetCoreTiming().RemoveAllEvents(s_event_enqueue);
 }
 
 // The title ID is a u64 where the first 32 bits are used for the title type.
@@ -410,7 +411,8 @@ bool Kernel::BootstrapPPC(const std::string& boot_content_path)
     return false;
 
   INFO_LOG_FMT(IOS, "BootstrapPPC: {}", boot_content_path);
-  CoreTiming::ScheduleEvent(ticks, s_event_finish_ppc_bootstrap, dol.IsAncast());
+  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(ticks, s_event_finish_ppc_bootstrap,
+                                                            dol.IsAncast());
   return true;
 }
 
@@ -485,9 +487,14 @@ bool Kernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc, const std::string
     ResetAndPausePPC();
 
   if (Core::IsRunningAndStarted())
-    CoreTiming::ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot, ios_title_id);
+  {
+    Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
+        GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot, ios_title_id);
+  }
   else
+  {
     FinishIOSBoot(ios_title_id);
+  }
 
   return true;
 }
@@ -720,10 +727,12 @@ void Kernel::ExecuteIPCCommand(const u32 address)
     return;
 
   // Ensure replies happen in order
-  const s64 ticks_until_last_reply = m_last_reply_time - CoreTiming::GetTicks();
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  const s64 ticks_until_last_reply = m_last_reply_time - core_timing.GetTicks();
   if (ticks_until_last_reply > 0)
     result->reply_delay_ticks += ticks_until_last_reply;
-  m_last_reply_time = CoreTiming::GetTicks() + result->reply_delay_ticks;
+  m_last_reply_time = core_timing.GetTicks() + result->reply_delay_ticks;
 
   EnqueueIPCReply(request, result->return_value, result->reply_delay_ticks);
 }
@@ -734,7 +743,8 @@ void Kernel::EnqueueIPCRequest(u32 address)
   // Based on hardware tests, IOS takes between 5µs and 10µs to acknowledge an IPC request.
   // Console 1: 456 TB ticks before ACK
   // Console 2: 658 TB ticks before ACK
-  CoreTiming::ScheduleEvent(500_tbticks, s_event_enqueue, address | ENQUEUE_REQUEST_FLAG);
+  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(500_tbticks, s_event_enqueue,
+                                                            address | ENQUEUE_REQUEST_FLAG);
 }
 
 // Called to send a reply to an IOS syscall
@@ -746,7 +756,8 @@ void Kernel::EnqueueIPCReply(const Request& request, const s32 return_value, s64
   Memory::Write_U32(request.command, request.address + 8);
   // IOS also overwrites the command type with the reply type.
   Memory::Write_U32(IPC_REPLY, request.address);
-  CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, request.address, from);
+  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(cycles_in_future, s_event_enqueue,
+                                                            request.address, from);
 }
 
 void Kernel::HandleIPCEvent(u64 userdata)
@@ -892,8 +903,11 @@ static void FinishPPCBootstrap(Core::System& system, u64 userdata, s64 cycles_la
 
 void Init()
 {
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
   s_event_enqueue =
-      CoreTiming::RegisterEvent("IPCEvent", [](Core::System& system, u64 userdata, s64) {
+      core_timing.RegisterEvent("IPCEvent", [](Core::System& system, u64 userdata, s64) {
         if (s_ios)
           s_ios->HandleIPCEvent(userdata);
       });
@@ -901,14 +915,14 @@ void Init()
   ESDevice::InitializeEmulationState();
 
   s_event_finish_ppc_bootstrap =
-      CoreTiming::RegisterEvent("IOSFinishPPCBootstrap", FinishPPCBootstrap);
+      core_timing.RegisterEvent("IOSFinishPPCBootstrap", FinishPPCBootstrap);
 
   s_event_finish_ios_boot =
-      CoreTiming::RegisterEvent("IOSFinishIOSBoot", [](Core::System& system, u64 ios_title_id,
+      core_timing.RegisterEvent("IOSFinishIOSBoot", [](Core::System& system, u64 ios_title_id,
                                                        s64) { FinishIOSBoot(ios_title_id); });
 
   DIDevice::s_finish_executing_di_command =
-      CoreTiming::RegisterEvent("FinishDICommand", DIDevice::FinishDICommandCallback);
+      core_timing.RegisterEvent("FinishDICommand", DIDevice::FinishDICommandCallback);
 
   // Start with IOS80 to simulate part of the Wii boot process.
   s_ios = std::make_unique<EmulationKernel>(Titles::SYSTEM_MENU_IOS);

@@ -65,7 +65,7 @@ void Jit64AsmRoutineManager::Generate()
 
   const u8* outerLoop = GetCodePtr();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunction(CoreTiming::Advance);
+  ABI_CallFunction(CoreTiming::GlobalAdvance);
   ABI_PopRegistersAndAdjustStack({}, 0);
   FixupBranch skipToRealDispatch = J(enable_debugging);  // skip the sync and compare first time
   dispatcher_mispredicted_blr = GetCodePtr();

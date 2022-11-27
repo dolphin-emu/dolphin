@@ -149,7 +149,8 @@ void Init()
   s_interrupt_set.Clear();
   s_interrupt_waiting.Clear();
 
-  et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
+  et_UpdateInterrupts = Core::System::GetInstance().GetCoreTiming().RegisterEvent(
+      "CPInterrupt", UpdateInterrupts_Wrapper);
 }
 
 u32 GetPhysicalAddressMask()
@@ -406,7 +407,7 @@ void GatherPipeBursted()
 
   // If the game is running close to overflowing, make the exception checking more frequent.
   if (fifo.bFF_HiWatermark.load(std::memory_order_relaxed) != 0)
-    CoreTiming::ForceExceptionCheck(0);
+    Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(0);
 
   fifo.CPReadWriteDistance.fetch_add(GPFifo::GATHER_PIPE_SIZE, std::memory_order_seq_cst);
 
@@ -445,7 +446,7 @@ void UpdateInterrupts(u64 userdata)
     DEBUG_LOG_FMT(COMMANDPROCESSOR, "Interrupt cleared");
     ProcessorInterface::SetInterrupt(INT_CAUSE_CP, false);
   }
-  CoreTiming::ForceExceptionCheck(0);
+  Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(0);
   s_interrupt_waiting.Clear();
   Fifo::RunGpu();
 }
@@ -453,7 +454,10 @@ void UpdateInterrupts(u64 userdata)
 void UpdateInterruptsFromVideoBackend(u64 userdata)
 {
   if (!Fifo::UseDeterministicGPUThread())
-    CoreTiming::ScheduleEvent(0, et_UpdateInterrupts, userdata, CoreTiming::FromThread::NON_CPU);
+  {
+    Core::System::GetInstance().GetCoreTiming().ScheduleEvent(0, et_UpdateInterrupts, userdata,
+                                                              CoreTiming::FromThread::NON_CPU);
+  }
 }
 
 bool IsInterruptWaiting()

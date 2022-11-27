@@ -26,6 +26,7 @@
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/IOS/VersionInfo.h"
+#include "Core/System.h"
 #include "DiscIO/Enums.h"
 
 namespace IOS::HLE
@@ -103,8 +104,10 @@ ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, de
 
   if (Core::IsRunningAndStarted())
   {
-    CoreTiming::RemoveEvent(s_finish_init_event);
-    CoreTiming::ScheduleEvent(GetESBootTicks(m_ios.GetVersion()), s_finish_init_event);
+    auto& system = Core::System::GetInstance();
+    auto& core_timing = system.GetCoreTiming();
+    core_timing.RemoveEvent(s_finish_init_event);
+    core_timing.ScheduleEvent(GetESBootTicks(m_ios.GetVersion()), s_finish_init_event);
   }
   else
   {
@@ -114,14 +117,16 @@ ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, de
 
 void ESDevice::InitializeEmulationState()
 {
-  s_finish_init_event = CoreTiming::RegisterEvent(
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  s_finish_init_event = core_timing.RegisterEvent(
       "IOS-ESFinishInit", [](Core::System& system, u64, s64) { GetIOS()->GetES()->FinishInit(); });
-  s_reload_ios_for_ppc_launch_event = CoreTiming::RegisterEvent(
+  s_reload_ios_for_ppc_launch_event = core_timing.RegisterEvent(
       "IOS-ESReloadIOSForPPCLaunch", [](Core::System& system, u64 ios_id, s64) {
         GetIOS()->GetES()->LaunchTitle(ios_id, HangPPC::Yes);
       });
   s_bootstrap_ppc_for_launch_event =
-      CoreTiming::RegisterEvent("IOS-ESBootstrapPPCForLaunch", [](Core::System& system, u64, s64) {
+      core_timing.RegisterEvent("IOS-ESBootstrapPPCForLaunch", [](Core::System& system, u64, s64) {
         GetIOS()->GetES()->BootstrapPPC();
       });
 }
@@ -397,6 +402,9 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
     return false;
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
   // Before launching a title, IOS first reads the TMD and reloads into the specified IOS version,
   // even when that version is already running. After it has reloaded, ES_Launch will be called
   // again and the PPC will be bootstrapped then.
@@ -417,8 +425,8 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
     const u64 required_ios = tmd.GetIOSId();
     if (!Core::IsRunningAndStarted())
       return LaunchTitle(required_ios, HangPPC::Yes);
-    CoreTiming::RemoveEvent(s_reload_ios_for_ppc_launch_event);
-    CoreTiming::ScheduleEvent(ticks, s_reload_ios_for_ppc_launch_event, required_ios);
+    core_timing.RemoveEvent(s_reload_ios_for_ppc_launch_event);
+    core_timing.ScheduleEvent(ticks, s_reload_ios_for_ppc_launch_event, required_ios);
     return true;
   }
 
@@ -446,8 +454,9 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
   m_pending_ppc_boot_content_path = GetContentPath(tmd.GetTitleId(), content);
   if (!Core::IsRunningAndStarted())
     return BootstrapPPC();
-  CoreTiming::RemoveEvent(s_bootstrap_ppc_for_launch_event);
-  CoreTiming::ScheduleEvent(ticks, s_bootstrap_ppc_for_launch_event);
+
+  core_timing.RemoveEvent(s_bootstrap_ppc_for_launch_event);
+  core_timing.ScheduleEvent(ticks, s_bootstrap_ppc_for_launch_event);
   return true;
 }
 

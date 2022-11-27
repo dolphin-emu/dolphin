@@ -194,11 +194,13 @@ DSPEmulator* GetDSPEmulator()
 
 void Init(bool hle)
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  auto& state = system.GetDSPState().GetData();
   Reinit(hle);
   state.event_type_generate_dsp_interrupt =
-      CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt);
-  state.event_type_complete_aram = CoreTiming::RegisterEvent("ARAMint", CompleteARAM);
+      core_timing.RegisterEvent("DSPint", GenerateDSPInterrupt);
+  state.event_type_complete_aram = core_timing.RegisterEvent("ARAMint", CompleteARAM);
 }
 
 void Reinit(bool hle)
@@ -432,7 +434,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           // TODO: need hardware tests for the timing of this interrupt.
           // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
           // Other Namco games crash too, see issue 9509. For now we will just push it to 200 cycles
-          CoreTiming::ScheduleEvent(200, state.event_type_generate_dsp_interrupt, INT_AID);
+          system.GetCoreTiming().ScheduleEvent(200, state.event_type_generate_dsp_interrupt,
+                                               INT_AID);
         }
       }));
 
@@ -486,8 +489,10 @@ static void GenerateDSPInterrupt(Core::System& system, u64 DSPIntType, s64 cycle
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
 void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, int cycles_into_future)
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
-  CoreTiming::ScheduleEvent(cycles_into_future, state.event_type_generate_dsp_interrupt, type,
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  auto& state = system.GetDSPState().GetData();
+  core_timing.ScheduleEvent(cycles_into_future, state.event_type_generate_dsp_interrupt, type,
                             CoreTiming::FromThread::ANY);
 }
 
@@ -547,13 +552,15 @@ void UpdateAudioDMA()
 
 static void Do_ARAM_DMA()
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  auto& state = system.GetDSPState().GetData();
 
   state.dsp_control.DMAState = 1;
 
   // ARAM DMA transfer rate has been measured on real hw
   int ticksToTransfer = (state.aram_dma.Cnt.count / 32) * 246;
-  CoreTiming::ScheduleEvent(ticksToTransfer, state.event_type_complete_aram);
+  core_timing.ScheduleEvent(ticksToTransfer, state.event_type_complete_aram);
 
   // Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
   if (state.aram_dma.Cnt.dir)
