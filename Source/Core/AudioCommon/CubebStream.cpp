@@ -46,6 +46,7 @@ CubebStream::CubebStream()
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
     auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
     m_coinit_success = result == S_OK;
+    m_should_couninit = result == S_OK || result == S_FALSE;
   });
   sync_event.Wait();
 }
@@ -137,11 +138,12 @@ CubebStream::~CubebStream()
     cubeb_stream_stop(m_stream);
     cubeb_stream_destroy(m_stream);
 #ifdef _WIN32
-    if (m_coinit_success)
+    if (m_should_couninit)
     {
-      m_coinit_success = false;
+      m_should_couninit = false;
       CoUninitialize();
     }
+    m_coinit_success = false;
   });
   sync_event.Wait();
 #endif

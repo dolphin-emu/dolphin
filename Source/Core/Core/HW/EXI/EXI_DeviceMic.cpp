@@ -221,6 +221,7 @@ CEXIMic::CEXIMic(int index)
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
     auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
     m_coinit_success = result == S_OK;
+    m_should_couninit = result == S_OK || result == S_FALSE;
   });
   sync_event.Wait();
 #endif
@@ -231,6 +232,20 @@ CEXIMic::CEXIMic(int index)
 CEXIMic::~CEXIMic()
 {
   StreamTerminate();
+
+#ifdef _WIN32
+  if (m_should_couninit)
+  {
+    Common::Event sync_event;
+    m_work_queue.EmplaceItem([this, &sync_event] {
+      Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+      m_should_couninit = false;
+      CoUninitialize();
+    });
+    sync_event.Wait();
+  }
+  m_coinit_success = false;
+#endif
 }
 
 bool CEXIMic::IsPresent() const
