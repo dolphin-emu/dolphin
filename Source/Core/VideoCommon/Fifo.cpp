@@ -163,8 +163,12 @@ void Shutdown()
 // Created to allow for self shutdown.
 void ExitGpuLoop()
 {
+  auto& system = Core::System::GetInstance();
+  auto& command_processor = system.GetCommandProcessor();
+  auto& fifo = command_processor.GetFifo();
+
   // This should break the wait loop in CPU thread
-  CommandProcessor::fifo.bFF_GPReadEnable.store(0, std::memory_order_relaxed);
+  fifo.bFF_GPReadEnable.store(0, std::memory_order_relaxed);
   FlushGpu();
 
   // Terminate GPU thread loop
@@ -347,11 +351,13 @@ void RunGpuLoop()
         }
         else
         {
-          CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
-          CommandProcessor::SetCPStatusFromGPU();
+          auto& system = Core::System::GetInstance();
+          auto& command_processor = system.GetCommandProcessor();
+          auto& fifo = command_processor.GetFifo();
+          command_processor.SetCPStatusFromGPU(system);
 
           // check if we are able to run this buffer
-          while (!CommandProcessor::IsInterruptWaiting() &&
+          while (!command_processor.IsInterruptWaiting() &&
                  fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) &&
                  fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint())
           {
@@ -387,7 +393,7 @@ void RunGpuLoop()
                                            std::memory_order_relaxed);
             }
 
-            CommandProcessor::SetCPStatusFromGPU();
+            command_processor.SetCPStatusFromGPU(system);
 
             if (s_config_sync_gpu)
             {
@@ -440,7 +446,9 @@ void GpuMaySleep()
 
 bool AtBreakpoint()
 {
-  CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
+  auto& system = Core::System::GetInstance();
+  auto& command_processor = system.GetCommandProcessor();
+  const auto& fifo = command_processor.GetFifo();
   return fifo.bFF_BPEnable.load(std::memory_order_relaxed) &&
          (fifo.CPReadPointer.load(std::memory_order_relaxed) ==
           fifo.CPBreakpoint.load(std::memory_order_relaxed));
@@ -471,7 +479,9 @@ void RunGpu()
 
 static int RunGpuOnCpu(int ticks)
 {
-  CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
+  auto& system = Core::System::GetInstance();
+  auto& command_processor = system.GetCommandProcessor();
+  auto& fifo = command_processor.GetFifo();
   bool reset_simd_state = false;
   int available_ticks = int(ticks * s_config_sync_gpu_overclock) + s_sync_ticks.load();
   while (fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) &&
@@ -512,7 +522,7 @@ static int RunGpuOnCpu(int ticks)
     fifo.CPReadWriteDistance.fetch_sub(GPFifo::GATHER_PIPE_SIZE, std::memory_order_relaxed);
   }
 
-  CommandProcessor::SetCPStatusFromGPU();
+  command_processor.SetCPStatusFromGPU(system);
 
   if (reset_simd_state)
   {

@@ -130,7 +130,8 @@ static void InitMMIO(bool is_wii)
 {
   mmio_mapping = std::make_unique<MMIO::Mapping>();
 
-  CommandProcessor::RegisterMMIO(mmio_mapping.get(), 0x0C000000);
+  auto& system = Core::System::GetInstance();
+  system.GetCommandProcessor().RegisterMMIO(system, mmio_mapping.get(), 0x0C000000);
   PixelEngine::RegisterMMIO(mmio_mapping.get(), 0x0C001000);
   VideoInterface::RegisterMMIO(mmio_mapping.get(), 0x0C002000);
   ProcessorInterface::RegisterMMIO(mmio_mapping.get(), 0x0C003000);

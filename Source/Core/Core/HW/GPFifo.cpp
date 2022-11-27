@@ -13,6 +13,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "VideoCommon/CommandProcessor.h"
 
 namespace GPFifo
@@ -103,7 +104,8 @@ void UpdateGatherPipe()
       ProcessorInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE;
     }
 
-    CommandProcessor::GatherPipeBursted();
+    auto& system = Core::System::GetInstance();
+    system.GetCommandProcessor().GatherPipeBursted(system);
   }
 
   // move back the spill bytes
