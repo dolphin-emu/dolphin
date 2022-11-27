@@ -71,7 +71,7 @@
     </ClCompile>
     <!--Link Base:Application-->
     <Link Condition="'$(ConfigurationType)'=='Application'">
-      <AdditionalDependencies>avrt.lib;comctl32.lib;iphlpapi.lib;setupapi.lib;shlwapi.lib;winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>avrt.lib;comctl32.lib;iphlpapi.lib;ksuser.lib;setupapi.lib;shlwapi.lib;winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Platform)'=='x64'">opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <!--FFmpeg and the libs it pulls in-->
       <AdditionalLibraryDirectories>$(ExternalsDir)FFmpeg-bin\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

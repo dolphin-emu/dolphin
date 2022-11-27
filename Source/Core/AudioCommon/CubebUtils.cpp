@@ -6,7 +6,9 @@
 #include <cstdarg>
 #include <cstddef>
 #include <cstring>
+#include <thread>
 
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
