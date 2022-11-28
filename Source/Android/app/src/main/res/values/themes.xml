@@ -16,8 +16,8 @@
     <style name="Theme.Dolphin" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/dolphin_primary</item>
         <item name="colorOnPrimary">@color/dolphin_onPrimary</item>
-        <item name="colorPrimaryContainer">@color/dolphin_primary</item>
-        <item name="colorOnPrimaryContainer">@color/dolphin_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/dolphin_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/dolphin_onPrimaryContainer</item>
         <item name="colorSecondary">@color/dolphin_secondary</item>
         <item name="colorOnSecondary">@color/dolphin_onSecondary</item>
         <item name="colorSecondaryContainer">@color/dolphin_secondaryContainer</item>
@@ -53,17 +53,17 @@
         <item name="popupTheme">@style/DolphinPopup</item>
         <item name="sliderStyle">@style/DolphinSlider</item>
         <item name="materialDividerStyle">@style/DolphinDivider</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Dolphin.BottomSheetDialog</item>
+        <item name="extendedFloatingActionButtonStyle">@style/Widget.Dolphin.ExtendedFloatingActionButton</item>
     </style>
 
     <!-- Trick for API >= 29 specific changes -->
     <style name="Theme.Dolphin.Main" parent="Theme.Dolphin" />
 
     <style name="Theme.Dolphin.Main.Material" parent="Theme.Dolphin.Main">
-        <item name="colorPrimaryContainer">@color/dolphin_primaryContainer</item>
-        <item name="colorOnPrimaryContainer">@color/dolphin_onPrimaryContainer</item>
-
         <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
+        <item name="extendedFloatingActionButtonStyle">@style/Widget.Material3.ExtendedFloatingActionButton.Primary</item>
     </style>
 
     <style name="Theme.Dolphin.Main.Green" parent="Theme.Dolphin.Main">
@@ -95,6 +95,7 @@
 
         <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
+        <item name="extendedFloatingActionButtonStyle">@style/Widget.Material3.ExtendedFloatingActionButton.Primary</item>
     </style>
 
     <style name="Theme.Dolphin.Main.Pink" parent="Theme.Dolphin.Main">
@@ -126,6 +127,7 @@
 
         <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
+        <item name="extendedFloatingActionButtonStyle">@style/Widget.Material3.ExtendedFloatingActionButton.Primary</item>
     </style>
 
     <!-- Inherit from a base file picker theme that handles day/night -->

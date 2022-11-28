@@ -19,6 +19,7 @@ import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import org.dolphinemu.dolphinemu.fragments.GridOptionDialogFragment;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
@@ -87,10 +88,6 @@ public final class TvMainActivity extends FragmentActivity
     }
 
     mPresenter.onResume();
-
-    // In case the user changed a setting that affects how games are displayed,
-    // such as system language, cover downloading...
-    refetchMetadata();
   }
 
   @Override
@@ -217,12 +214,19 @@ public final class TvMainActivity extends FragmentActivity
     buildRowsAdapter();
   }
 
-  private void refetchMetadata()
+  @Override
+  public void reloadGrid()
   {
     for (ArrayObjectAdapter row : mGameRows)
     {
       row.notifyArrayItemRangeChanged(0, row.size());
     }
+  }
+
+  @Override
+  public void showGridOptions()
+  {
+    new GridOptionDialogFragment().show(getSupportFragmentManager(), "gridOptions");
   }
 
   /**
@@ -369,6 +373,10 @@ public final class TvMainActivity extends FragmentActivity
     rowItems.add(new TvSettingsItem(R.id.button_add_directory,
             R.drawable.ic_add_tv,
             R.string.add_directory_title));
+
+    rowItems.add(new TvSettingsItem(R.id.menu_grid_options,
+            R.drawable.ic_list_tv,
+            R.string.grid_menu_grid_options));
 
     rowItems.add(new TvSettingsItem(R.id.menu_refresh,
             R.drawable.ic_refresh_tv,

@@ -193,8 +193,7 @@
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
     <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
-    <string name="show_titles_in_game_list">Show Titles in Game List</string>
-    <string name="show_titles_in_game_list_description">Show the title and creator below each game cover.</string>
+    <string name="show_titles_in_game_list">Show Titles</string>
     <string name="change_theme">Change App Theme</string>
     <string name="change_theme_mode">Change Theme Mode</string>
     <string name="use_black_backgrounds">Use Black Backgrounds</string>
@@ -442,6 +441,7 @@
     <string name="add_games">Add Games</string>
     <string name="add_directory_title">Add Folder to Library</string>
     <string name="grid_menu_settings">Settings</string>
+    <string name="grid_menu_grid_options">Grid Options</string>
     <string name="grid_menu_refresh">Refresh Library</string>
     <string name="grid_menu_open_file">Open File</string>
     <string name="grid_menu_install_wad">Install WAD</string>

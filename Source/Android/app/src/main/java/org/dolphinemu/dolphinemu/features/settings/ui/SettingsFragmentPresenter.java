@@ -324,10 +324,6 @@ public final class SettingsFragmentPresenter
             R.string.panic_handlers, R.string.panic_handlers_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_OSD_MESSAGES, R.string.osd_messages,
             R.string.osd_messages_description));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_USE_GAME_COVERS,
-            R.string.download_game_covers, 0));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_SHOW_GAME_TITLES,
-            R.string.show_titles_in_game_list, R.string.show_titles_in_game_list_description));
 
     AbstractIntSetting appTheme = new AbstractIntSetting()
     {

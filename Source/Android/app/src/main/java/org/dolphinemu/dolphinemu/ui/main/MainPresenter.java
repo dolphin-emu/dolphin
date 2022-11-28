@@ -94,6 +94,10 @@ public final class MainPresenter
         mView.launchSettingsActivity(MenuTag.SETTINGS);
         return true;
 
+      case R.id.menu_grid_options:
+        mView.showGridOptions();
+        return true;
+
       case R.id.menu_refresh:
         mView.setRefreshing(true);
         GameFileCacheManager.startRescan();
