@@ -76,10 +76,10 @@ void StatViewer::getNetPlayNamesHeadtoHead()
 
 }
 
-void StatViewer::getHeadToHeadJSON()
+void StatViewer::getHeadToHeadJSON(std::string p1Name, std::string p2Name)
 {
   // This url returns a json containing info with the players rated head to head results
-  std::string url = "https://api.mariostrikers.gg/ratings/h2h?gametype=2&p1=poolboi&p2=gucky";
+  std::string url = "https://api.mariostrikers.gg/ratings/h2h?gametype=2&p1=" + p1Name + "&p2=" + p2Name;
   Common::HttpRequest::Headers headers = {
       {"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like "
                      "Gecko) Chrome/97.0.4692.71 Safari/537.36"}};
@@ -219,7 +219,7 @@ void StatViewer::Refresh()
           break;
         }
       }
-      getHeadToHeadJSON();
+      getHeadToHeadJSON(leftTeamNetPlayName, rightTeamNetPlayName);
 
       picojson::array::iterator it;
       StatValue leftNetPlayNameWins;

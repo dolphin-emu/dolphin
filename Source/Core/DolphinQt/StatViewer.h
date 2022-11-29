@@ -19,7 +19,7 @@ public:
 private:
   void CreateWidgets();
   void getNetPlayNamesHeadtoHead();
-  void getHeadToHeadJSON();
+  void getHeadToHeadJSON(std::string p1Name, std::string p2Name);
   void Refresh();
 
   QPushButton* m_refresh_button;
