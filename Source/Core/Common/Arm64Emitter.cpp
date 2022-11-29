@@ -2334,6 +2334,16 @@ void ARM64FloatEmitter::EmitPermute(u32 size, u32 op, ARM64Reg Rd, ARM64Reg Rn, 
           (1 << 11) | (DecodeReg(Rn) << 5) | DecodeReg(Rd));
 }
 
+void ARM64FloatEmitter::EmitExtract(u32 imm4, u32 op, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  ASSERT_MSG(DYNA_REC, !IsSingle(Rd), "Singles are not supported!");
+
+  bool quad = IsQuad(Rd);
+
+  Write32((quad << 30) | (23 << 25) | (op << 22) | (DecodeReg(Rm) << 16) | (imm4 << 11) |
+          (DecodeReg(Rn) << 5) | DecodeReg(Rd));
+}
+
 void ARM64FloatEmitter::EmitScalarImm(bool M, bool S, u32 type, u32 imm5, ARM64Reg Rd, u32 imm8)
 {
   ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "Vector is not supported!");
@@ -3538,6 +3548,12 @@ void ARM64FloatEmitter::TRN2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 void ARM64FloatEmitter::ZIP2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
   EmitPermute(size, 0b111, Rd, Rn, Rm);
+}
+
+// Extract
+void ARM64FloatEmitter::EXT(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u32 index)
+{
+  EmitExtract(index, 0, Rd, Rn, Rm);
 }
 
 // Scalar shift by immediate
