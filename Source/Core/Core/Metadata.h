@@ -15,6 +15,8 @@ public:
   static void setPlayerArray(std::vector<const NetPlay::Player*>);
   static void setNetPlayControllers(NetPlay::PadMappingArray m_pad_map);
   static void setMD5(std::array<u8, 16> md5Param);
+  static std::vector<const NetPlay::Player*> getPlayerArray();
+  static NetPlay::PadMappingArray getControllers();
 
   // CONSTANTS
 

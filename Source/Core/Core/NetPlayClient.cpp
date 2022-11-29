@@ -1760,6 +1760,7 @@ bool NetPlayClient::StartGame(const std::string& path)
     StateAuxillary::setNetPlayControllers(m_pad_map, m_pid);
     Metadata::setPlayerArray(GetPlayers());
     Metadata::setNetPlayControllers(m_pad_map);
+    //StatViewer::setNetPlayControllersAndPlayers(m_pad_map, GetPlayers());
     //Metadata::setPlayerName(NetPlayClient::m_player_name);
   }
 

@@ -742,14 +742,26 @@ void Metadata::setPlayerName(std::string playerNameParam)
 void Metadata::setPlayerArray(std::vector<const NetPlay::Player*> playerArrayParam)
 {
   playerArray = playerArrayParam;
+  //statViewerPlayers = playerArrayParam;
 }
 
 void Metadata::setNetPlayControllers(NetPlay::PadMappingArray m_pad_map)
 {
   netplayGCMap = m_pad_map;
+  //statViewerControllers = m_pad_map;
 }
 
 void Metadata::setMD5(std::array<u8, 16> md5Param)
 {
   md5Hash = md5Param;
+}
+
+std::vector<const NetPlay::Player*> Metadata::getPlayerArray()
+{
+  return playerArray;
+}
+
+NetPlay::PadMappingArray Metadata::getControllers()
+{
+  return netplayGCMap;
 }
