@@ -496,6 +496,12 @@ void ProgramShaderCache::BindVertexFormat(const GLVertexFormat* vertex_format)
   s_last_VAO = new_VAO;
 }
 
+void ProgramShaderCache::ReBindVertexFormat()
+{
+  if (s_last_VAO)
+    glBindVertexArray(s_last_VAO);
+}
+
 bool ProgramShaderCache::IsValidVertexFormatBound()
 {
   return s_last_VAO != 0 && s_last_VAO != s_attributeless_VAO;

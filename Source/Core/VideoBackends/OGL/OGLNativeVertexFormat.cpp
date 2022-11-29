@@ -59,7 +59,6 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)
 
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
-  ProgramShaderCache::BindVertexFormat(this);
 
   // the element buffer is bound directly to the vao, so we must it set for every vao
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vm->GetIndexBufferHandle());
@@ -77,6 +76,9 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)
     SetPointer(ShaderAttrib::TexCoord0 + i, vertex_stride, vtx_decl.texcoords[i]);
 
   SetPointer(ShaderAttrib::PositionMatrix, vertex_stride, vtx_decl.posmtx);
+
+  // Other code shouldn't have to worry about its vertex formats being randomly unbound
+  ProgramShaderCache::ReBindVertexFormat();
 }
 
 GLVertexFormat::~GLVertexFormat()
