@@ -17,6 +17,8 @@
 // ----------
 #pragma once
 
+#include <optional>
+
 #include <rangeset/rangesizeset.h>
 
 #include "Common/CommonTypes.h"
@@ -127,7 +129,8 @@ public:
                             bool duplicate = false);
   void FinalizeDoubleResult(Gen::X64Reg output, const Gen::OpArg& input);
   void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm, Gen::X64Reg clobber,
-                  std::vector<int> inputs);
+                  std::optional<Gen::OpArg> Ra, std::optional<Gen::OpArg> Rb,
+                  std::optional<Gen::OpArg> Rc);
 
   void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
