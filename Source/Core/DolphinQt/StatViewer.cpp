@@ -226,9 +226,9 @@ void StatViewer::Refresh()
       StatValue rightNetPlayNameWins;
       if (jsonResult.empty())
       {
-        leftNetPlayNameWins = {leftTeamNetPlayName + " - " + "N/A", 0};
+        leftNetPlayNameWins = {leftTeamNetPlayName + " - " + "N/A Wins", 0};
         leftSideValues.push_back(leftNetPlayNameWins);
-        rightNetPlayNameWins = {rightTeamNetPlayName + " - " + "N/A", 0};
+        rightNetPlayNameWins = {rightTeamNetPlayName + " - " + "N/A Wins", 0};
         rightSideValues.push_back(rightNetPlayNameWins);
       }
       else
@@ -237,21 +237,23 @@ void StatViewer::Refresh()
         {
           picojson::object obj = it->get<picojson::object>();
           leftNetPlayNameWins = {"N/A", 0};
-          leftNetPlayNameWins.displayValue = leftTeamNetPlayName + " -" + obj["p1wins"].to_str();
+          leftNetPlayNameWins.displayValue =
+              leftTeamNetPlayName + " -" + obj["p1wins"].to_str() + " Wins";
           leftNetPlayNameWins.numericalValue = std::stoi(leftNetPlayNameWins.displayValue);
           leftSideValues.push_back(leftNetPlayNameWins);
           // we push these back so that the for loop at the bottom that iterates through all
           // the other rows is aligned correctly
 
           rightNetPlayNameWins = {"N/A", 0};
-          rightNetPlayNameWins.displayValue = rightTeamNetPlayName + " -" + obj["p2wins"].to_str();
+          rightNetPlayNameWins.displayValue =
+              rightTeamNetPlayName + " -" + obj["p2wins"].to_str() + " Wins";
           rightNetPlayNameWins.numericalValue = std::stoi(rightNetPlayNameWins.displayValue);
           rightSideValues.push_back(rightNetPlayNameWins);
         }
       }
       auto* leftSide =
           new QTableWidgetItem(QString::fromStdString(leftNetPlayNameWins.displayValue));
-      auto* prop = new QTableWidgetItem(QString::fromStdString("Rated Head-to-Head Wins"));
+      auto* prop = new QTableWidgetItem(QString::fromStdString("Name / Rated Head-to-Head Wins"));
       auto* rightSide =
           new QTableWidgetItem(QString::fromStdString(rightNetPlayNameWins.displayValue));
 
