@@ -17,6 +17,7 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/VideoInterface.h"
+#include "VideoCommon/CommandProcessor.h"
 
 namespace Core
 {
@@ -28,6 +29,7 @@ struct System::Impl
 
   AudioInterface::AudioInterfaceState m_audio_interface_state;
   CoreTiming::CoreTimingManager m_core_timing;
+  CommandProcessor::CommandProcessorManager m_command_processor;
   DSP::DSPState m_dsp_state;
   DVDInterface::DVDInterfaceState m_dvd_interface_state;
   DVDThread::DVDThreadState m_dvd_thread_state;
@@ -89,6 +91,11 @@ AudioInterface::AudioInterfaceState& System::GetAudioInterfaceState() const
 CoreTiming::CoreTimingManager& System::GetCoreTiming() const
 {
   return m_impl->m_core_timing;
+}
+
+CommandProcessor::CommandProcessorManager& System::GetCommandProcessor() const
+{
+  return m_impl->m_command_processor;
 }
 
 DSP::DSPState& System::GetDSPState() const

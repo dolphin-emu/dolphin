@@ -12,6 +12,10 @@ namespace AudioInterface
 {
 class AudioInterfaceState;
 };
+namespace CommandProcessor
+{
+class CommandProcessorManager;
+}
 namespace CoreTiming
 {
 class CoreTimingManager;
@@ -81,6 +85,7 @@ public:
 
   AudioInterface::AudioInterfaceState& GetAudioInterfaceState() const;
   CoreTiming::CoreTimingManager& GetCoreTiming() const;
+  CommandProcessor::CommandProcessorManager& GetCommandProcessor() const;
   DSP::DSPState& GetDSPState() const;
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;

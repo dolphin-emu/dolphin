@@ -18,6 +18,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -207,7 +208,8 @@ public:
     }
     else
     {
-      CommandProcessor::HandleUnknownOpcode(opcode, data, is_preprocess);
+      Core::System::GetInstance().GetCommandProcessor().HandleUnknownOpcode(opcode, data,
+                                                                            is_preprocess);
       m_cycles += 1;
     }
   }

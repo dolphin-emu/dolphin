@@ -51,6 +51,7 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -1007,9 +1008,11 @@ void Renderer::CheckFifoRecording()
     RecordVideoMemory();
   }
 
-  FifoRecorder::GetInstance().EndFrame(
-      CommandProcessor::fifo.CPBase.load(std::memory_order_relaxed),
-      CommandProcessor::fifo.CPEnd.load(std::memory_order_relaxed));
+  auto& system = Core::System::GetInstance();
+  auto& command_processor = system.GetCommandProcessor();
+  const auto& fifo = command_processor.GetFifo();
+  FifoRecorder::GetInstance().EndFrame(fifo.CPBase.load(std::memory_order_relaxed),
+                                       fifo.CPEnd.load(std::memory_order_relaxed));
 }
 
 void Renderer::RecordVideoMemory()

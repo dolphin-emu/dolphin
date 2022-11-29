@@ -316,7 +316,9 @@ void VideoBackendBase::InitializeShared()
   // do not initialize again for the config window
   m_initialized = true;
 
-  CommandProcessor::Init();
+  auto& system = Core::System::GetInstance();
+  auto& command_processor = system.GetCommandProcessor();
+  command_processor.Init(system);
   Fifo::Init();
   PixelEngine::Init();
   BPInit();
