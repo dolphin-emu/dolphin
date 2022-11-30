@@ -18,8 +18,8 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QMessageBox>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QScrollArea>
@@ -266,9 +266,17 @@ void MemoryWidget::CreateWidgets()
   QMenu* menu_views = new QMenu(tr("&View"), menubar);
   menubar->addMenu(menu_views);
 
+  QMenu* menu_view = new QMenu(tr("&View"), menubar);
+  auto* show_notes =
+      menu_view->addAction(tr("&Show symbols and notes"), this,
+                           [this](bool checked) { m_memory_view->ShowSymbols(checked); });
+  show_notes->setCheckable(true);
+  show_notes->setChecked(true);
+  menubar->addMenu(menu_view);
+
   QMenu* menu_import = new QMenu(tr("&Import"), menubar);
   menu_import->addAction(tr("&Load file to current address"), this,
-                          &MemoryWidget::OnSetValueFromFile);
+                         &MemoryWidget::OnSetValueFromFile);
   menubar->addMenu(menu_import);
 
   auto* auto_update_action =

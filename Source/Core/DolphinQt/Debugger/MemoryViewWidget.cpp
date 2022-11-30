@@ -26,8 +26,10 @@
 #include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
 #include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+#include "DolphinQt/Debugger/EditSymbolDialog.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -316,7 +318,7 @@ void MemoryViewWidget::CreateTable()
   // Span is the number of unique memory values covered in one row.
   const int data_span = m_bytes_per_row / GetTypeSize(m_type);
   m_data_columns = m_dual_view ? data_span * 2 : data_span;
-  const int total_columns = MISC_COLUMNS + m_data_columns;
+  const int total_columns = MISC_COLUMNS + m_data_columns + (m_show_symbols ? 1 : 0);
 
   const int rows =
       std::round((m_table->height() / static_cast<float>(m_table->rowHeight(0))) - 0.25);
@@ -385,6 +387,17 @@ void MemoryViewWidget::CreateTable()
 
       m_table->setItem(i, c + MISC_COLUMNS, item.clone());
     }
+
+    if (!m_show_symbols)
+      continue;
+
+    // Symbols
+    auto* description_item = new QTableWidgetItem(QStringLiteral("-"));
+    description_item->setBackground(QColor(0xFFFFFF));
+    description_item->setForeground(Qt::blue);
+    description_item->setFlags(Qt::ItemIsEnabled);
+
+    m_table->setItem(i, m_table->columnCount() - 1, description_item);
   }
 
   // Update column width
@@ -448,7 +461,26 @@ void MemoryViewWidget::Update()
       item->setBackground(Qt::transparent);
       item->setData(USER_ROLE_VALID_ADDRESS, false);
     }
+
+    if (!m_show_symbols)
+      continue;
+
+    // Fill symbols
+    auto* description_item = m_table->item(i, m_table->columnCount() - 1);
+    std::string desc;
+    const Common::Note* note = g_symbolDB.GetNoteFromAddr(row_address);
+
+    if (note == nullptr)
+      desc = debug_interface.GetDescription(row_address);
+    else
+      desc = note->name;
+
+    description_item->setText(QString::fromStdString(" " + desc));
+    description_item->setData(USER_ROLE_CELL_ADDRESS, row_address);
   }
+
+  if (m_show_symbols)
+    m_table->resizeColumnToContents(m_table->columnCount() - 1);
 
   UpdateColumns();
   UpdateBreakpointTags();
@@ -984,6 +1016,70 @@ void MemoryViewWidget::OnCopyHex(u32 addr)
       QStringLiteral("%1").arg(value, sizeof(u64) * 2, 16, QLatin1Char('0')).left(length * 2));
 }
 
+void MemoryViewWidget::OnAddNote(u32 addr)
+{
+  // addr = addr & 0xFFFFFFF0;
+  std::string name = "";
+  u32 size = 4;
+
+  EditSymbolDialog* dialog = new EditSymbolDialog(this, addr, size, name);
+
+  if (dialog->exec() != QDialog::Accepted)
+    return;
+
+  m_system.GetPowerPC().GetDebugInterface().UpdateNote(addr, size, name);
+
+  emit NotesChanged();
+  Update();
+}
+
+void MemoryViewWidget::OnEditNote(u32 addr)
+{
+  // addr = addr & 0xFFFFFFF0;
+  Common::Note* note = g_symbolDB.GetNoteFromAddr(addr);
+
+  std::string name = "";
+  u32 size = 4;
+  u32 note_address = addr;
+
+  if (note != nullptr)
+  {
+    name = note->name;
+    size = note->size;
+    note_address = note->address;
+  }
+
+  EditSymbolDialog* dialog = new EditSymbolDialog(this, note_address, size, name);
+
+  if (dialog->exec() != QDialog::Accepted)
+    return;
+
+  if (note == nullptr || note->name != name || note->size != size)
+    m_system.GetPowerPC().GetDebugInterface().UpdateNote(note_address, size, name);
+
+  emit NotesChanged();
+  Update();
+}
+
+void MemoryViewWidget::OnDeleteNote(u32 addr)
+{
+  // addr = addr & 0xFFFFFFF0;
+  Common::Note* note = g_symbolDB.GetNoteFromAddr(addr);
+
+  if (note == nullptr)
+    return;
+
+  g_symbolDB.DeleteNote(note->address);
+  emit NotesChanged();
+  Update();
+}
+
+void MemoryViewWidget::ShowSymbols(bool enable)
+{
+  m_show_symbols = enable;
+  CreateTable();
+}
+
 void MemoryViewWidget::OnContextMenu(const QPoint& pos)
 {
   auto* item_selected = m_table->itemAt(pos);
@@ -1014,6 +1110,12 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
     QApplication::clipboard()->setText(item_selected->text());
   });
   copy_value->setEnabled(item_has_value);
+
+  menu->addSeparator();
+
+  menu->addAction(tr("Add Note"), this, [this, addr] { OnAddNote(addr); });
+  menu->addAction(tr("Add or Edit Note"), this, [this, addr] { OnEditNote(addr); });
+  menu->addAction(tr("Delete Note"), this, [this, addr] { OnDeleteNote(addr); });
 
   menu->addSeparator();
 
