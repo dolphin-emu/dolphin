@@ -84,10 +84,13 @@ void StatViewer::getHeadToHeadJSON(std::string p1Name, std::string p2Name)
       {"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like "
                      "Gecko) Chrome/97.0.4692.71 Safari/537.36"}};
 
-  Common::HttpRequest req{std::chrono::seconds{10}};
+  Common::HttpRequest req{std::chrono::seconds{3}};
   auto resp = req.Get(url, headers);
   if (!resp)
   {
+    // null out the jsonResult in case we used to have something and now we don't
+    picojson::array tempArray;
+    jsonResult = tempArray;
     return;
   }
   const std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
@@ -96,6 +99,9 @@ void StatViewer::getHeadToHeadJSON(std::string p1Name, std::string p2Name)
   const std::string err = picojson::parse(json, contents);
   if (!err.empty())
   {
+    // null out the jsonResult in case we used to have something and now we don't
+    picojson::array tempArray;
+    jsonResult = tempArray;
     return;
   }
   jsonResult = json.get<picojson::array>();
@@ -111,11 +117,11 @@ void StatViewer::Refresh()
 
   // get stats
   m_table_widget->setColumnCount(3);
-  int rowcount = 9;
+  int rowcount = 10;
   bool markedNameandWinsRow = false;
   std::vector<StatValue> leftSideValues;
   std::vector<StatValue> rightSideValues;
-  std::vector<std::string> propArray = {"Name / Rated Wins Against Opp", "Goals",  "Shots", "Items", "Hits",
+  std::vector<std::string> propArray = {"Name / Rated Wins Against Opp", "Goals",  "Shots", "Goals to Shots Ratio", "Items", "Hits",
                                         "Steals", "Super Strikes", "Perfect Passes", "Time of Possession"};
   // determine if in netplay and other match props and set row count accordingly. should be one less
   // than norm
@@ -269,14 +275,14 @@ void StatViewer::Refresh()
     else
     {
       propArray.erase(propArray.begin());
-      rowcount = 8;
+      rowcount = 9;
       markedNameandWinsRow = false;
     }
   }
   else
   {
     propArray.erase(propArray.begin());
-    rowcount = 8;
+    rowcount = 9;
     markedNameandWinsRow = false;
   }
 
@@ -329,13 +335,28 @@ void StatViewer::Refresh()
 
 
   // ----- Left Values ----- //
-
-  StatValue ourValue = {std::to_string(Memory::Read_U16(Metadata::addressLeftSideScore)),
-                        Memory::Read_U16(Metadata::addressLeftSideScore)};
+  float leftSideScore = Memory::Read_U16(Metadata::addressLeftSideScore);
+  StatValue ourValue = {std::to_string((int)leftSideScore),
+                        (int)leftSideScore};
   leftSideValues.push_back(ourValue);
 
-  ourValue.displayValue = std::to_string(Memory::Read_U32(Metadata::addressLeftSideShots));
-  ourValue.numericalValue = Memory::Read_U32(Metadata::addressLeftSideShots);
+  float leftSideShots = Memory::Read_U32(Metadata::addressLeftSideShots);
+  ourValue.displayValue = std::to_string((int)leftSideShots);
+  ourValue.numericalValue = leftSideShots;
+  leftSideValues.push_back(ourValue);
+
+  if ((int)leftSideShots == 0)
+  {
+    ourValue.displayValue = "0/0 (0%)";
+    ourValue.numericalValue = 0;
+  }
+  else
+  {
+    float leftSideShotToGoalRatio = std::round((leftSideScore / leftSideShots) * 100);
+    ourValue.displayValue = std::to_string((int)leftSideScore) + "/" + std::to_string((int)leftSideShots) +
+                            " (" + std::to_string((int)leftSideShotToGoalRatio) + "%)";
+    ourValue.numericalValue = leftSideShotToGoalRatio;
+  }
   leftSideValues.push_back(ourValue);
 
   ourValue.displayValue = std::to_string(Memory::Read_U32(Metadata::addressLeftTeamItemCount));
@@ -366,13 +387,27 @@ void StatViewer::Refresh()
 
 
   // ------ Right Values ------ //
-
-  ourValue = {std::to_string(Memory::Read_U16(Metadata::addressRightSideScore)),
-                        Memory::Read_U16(Metadata::addressRightSideScore)};
+  float rightSideScore = Memory::Read_U16(Metadata::addressRightSideScore);
+  ourValue = {std::to_string((int)rightSideScore), (int)rightSideScore};
   rightSideValues.push_back(ourValue);
 
-  ourValue.displayValue = std::to_string(Memory::Read_U32(Metadata::addressRightSideShots));
-  ourValue.numericalValue = Memory::Read_U32(Metadata::addressRightSideShots);
+  float rightSideShots = Memory::Read_U32(Metadata::addressRightSideShots);
+  ourValue.displayValue = std::to_string((int)rightSideShots);
+  ourValue.numericalValue = rightSideShots;
+  rightSideValues.push_back(ourValue);
+
+  if ((int)rightSideShots == 0)
+  {
+    ourValue.displayValue = "0/0 (0%)";
+    ourValue.numericalValue = 0;
+  }
+  else
+  {
+    float rightSideShotToGoalRatio = std::round((rightSideScore / rightSideShots) * 100);
+    ourValue.displayValue = std::to_string((int)rightSideScore) + "/" + std::to_string((int)rightSideShots) +
+                            " (" + std::to_string((int)rightSideShotToGoalRatio) + "%)";
+    ourValue.numericalValue = rightSideShotToGoalRatio;
+  }
   rightSideValues.push_back(ourValue);
 
   ourValue.displayValue = std::to_string(Memory::Read_U32(Metadata::addressRightTeamItemCount));
