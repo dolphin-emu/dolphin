@@ -929,6 +929,7 @@
     <ClCompile Include="Core\HW\DSPHLE\UCodes\ROM.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\UCodes\UCodes.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\UCodes\Zelda.cpp" />
+    <ClCompile Include="Core\HW\DSPLLE\DSPDebugInterface.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPHost.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPLLE.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPSymbols.cpp" />
