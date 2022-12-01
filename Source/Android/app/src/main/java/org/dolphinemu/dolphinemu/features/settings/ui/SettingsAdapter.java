@@ -5,17 +5,23 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.provider.DocumentsContract;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.elevation.ElevationOverlayProvider;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -300,6 +306,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   public void onInputBindingClick(final InputBindingSetting item, final int position)
   {
     final MotionAlertDialog dialog = new MotionAlertDialog(mContext, item, this);
+
+    Drawable background = ContextCompat.getDrawable(mContext, R.drawable.dialog_round);
+    @ColorInt int color = new ElevationOverlayProvider(dialog.getContext()).compositeOverlay(
+            MaterialColors.getColor(dialog.getWindow().getDecorView(), R.attr.colorSurface),
+            dialog.getWindow().getDecorView().getElevation());
+    background.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+    dialog.getWindow().setBackgroundDrawable(background);
+
     dialog.setTitle(R.string.input_binding);
     dialog.setMessage(String.format(mContext.getString(
                     item instanceof RumbleBindingSetting ?
