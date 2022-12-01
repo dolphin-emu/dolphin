@@ -1736,7 +1736,11 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   m_first_pad_status_received.fill(false);
 
-  if (m_dialog->IsRecording())
+  // making this if statement false as an easy way to discard the true path and always get the else
+  // if someone checks on record inputs from the netplay tab, we aren't sending the necessary info
+  // i don't remember why i originally put it in the else statement, but this is a custom build so we can discard
+  // the typical record inputs route which iirc didn't even record inputs right for netplay
+  if (false && m_dialog->IsRecording())
   {
     if (Movie::IsReadOnly())
       Movie::SetReadOnly(false);

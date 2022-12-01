@@ -161,7 +161,7 @@ void StatViewer::Refresh()
     }
 
     // just check this to save read from mem time
-    if (!leftTeamNetPlayFound && !rightTeamNetPlayFound)
+    if (!leftTeamNetPlayFound || !rightTeamNetPlayFound)
     {
       currentPortValue = Memory::Read_U16(Metadata::addressControllerPort3);
       if (currentPortValue == 0)
@@ -177,7 +177,7 @@ void StatViewer::Refresh()
     }
 
     // just check this to save read from mem time
-    if (!leftTeamNetPlayFound && !rightTeamNetPlayFound)
+    if (!leftTeamNetPlayFound || !rightTeamNetPlayFound)
     {
       currentPortValue = Memory::Read_U16(Metadata::addressControllerPort4);
       if (currentPortValue == 0)
