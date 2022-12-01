@@ -809,8 +809,8 @@ void Metal::StateTracker::PrepareRender()
     m_dirty_samplers &= ~pipe->GetSamplers();
     NSRange range = RangeOfBits(dirty);
     [enc setFragmentSamplerStates:&m_state.samplers[range.location]
-                     lodMinClamps:m_state.sampler_min_lod.data()
-                     lodMaxClamps:m_state.sampler_max_lod.data()
+                     lodMinClamps:&m_state.sampler_min_lod[range.location]
+                     lodMaxClamps:&m_state.sampler_max_lod[range.location]
                         withRange:range];
   }
   if (m_state.perf_query_group != m_current.perf_query_group)
