@@ -10,20 +10,26 @@
 #include "Common/CommonTypes.h"
 #include "Common/Debug/MemoryPatches.h"
 #include "Common/Debug/Watches.h"
-#include "Common/DebugInterface.h"
+#include "Core/Debugger/DebugInterface.h"
 
 namespace DSP::LLE
 {
+class DSPLLE;
+
 class DSPPatches : public Common::Debug::MemoryPatches
 {
+public:
+  void ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index) override;
+
 private:
-  void Patch(std::size_t index) override;
+  void Patch(const Core::CPUThreadGuard& guard, std::size_t index) override;
+  void UnPatch(std::size_t index) override;
 };
 
-class DSPDebugInterface final : public Common::DebugInterface
+class DSPDebugInterface final : public Core::DebugInterface
 {
 public:
-  DSPDebugInterface();
+  DSPDebugInterface(DSPLLE* parent);
   ~DSPDebugInterface() override;
 
   // Watches
@@ -34,6 +40,7 @@ public:
   void UpdateWatch(std::size_t index, u32 address, std::string name) override;
   void UpdateWatchAddress(std::size_t index, u32 address) override;
   void UpdateWatchName(std::size_t index, std::string name) override;
+  void UpdateWatchLockedState(std::size_t index, bool locked) override;
   void EnableWatch(std::size_t index) override;
   void DisableWatch(std::size_t index) override;
   bool HasEnabledWatch(u32 address) const override;
@@ -43,21 +50,26 @@ public:
   void ClearWatches() override;
 
   // Memory Patches
-  void SetPatch(u32 address, u32 value) override;
-  void SetPatch(u32 address, std::vector<u8> value) override;
+  void SetPatch(const Core::CPUThreadGuard& guard, u32 address, u32 value) override;
+  void SetPatch(const Core::CPUThreadGuard& guard, u32 address, std::vector<u8> value) override;
+  void SetFramePatch(const Core::CPUThreadGuard& guard, u32 address, u32 value) override;
+  void SetFramePatch(const Core::CPUThreadGuard& guard, u32 address,
+                     std::vector<u8> value) override;
   const std::vector<Common::Debug::MemoryPatch>& GetPatches() const override;
-  void UnsetPatch(u32 address) override;
-  void EnablePatch(std::size_t index) override;
-  void DisablePatch(std::size_t index) override;
-  void RemovePatch(std::size_t index) override;
+  void UnsetPatch(const Core::CPUThreadGuard& guard, u32 address) override;
+  void EnablePatch(const Core::CPUThreadGuard& guard, std::size_t index) override;
+  void DisablePatch(const Core::CPUThreadGuard& guard, std::size_t index) override;
+  void RemovePatch(const Core::CPUThreadGuard& guard, std::size_t index) override;
   bool HasEnabledPatch(u32 address) const override;
-  void ClearPatches() override;
+  void ClearPatches(const Core::CPUThreadGuard& guard) override;
+  void ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index) override;
 
   // Threads
-  Common::Debug::Threads GetThreads() const override;
+  Common::Debug::Threads GetThreads(const Core::CPUThreadGuard& guard) const override;
 
-  std::string Disassemble(u32 address) const override;
-  std::string GetRawMemoryString(int memory, u32 address) const override;
+  std::string Disassemble(const Core::CPUThreadGuard* guard, u32 address) const override;
+  std::string GetRawMemoryString(const Core::CPUThreadGuard& guard, int memory,
+                                 u32 address) const override;
   bool IsAlive() const override;
   bool IsBreakpoint(u32 address) const override;
   void SetBreakpoint(u32 address) override;
@@ -67,19 +79,21 @@ public:
   void ClearAllMemChecks() override;
   bool IsMemCheck(u32 address, size_t size) const override;
   void ToggleMemCheck(u32 address, bool read = true, bool write = true, bool log = true) override;
-  u32 ReadMemory(u32 address) const override;
-  u32 ReadInstruction(u32 address) const override;
+  u32 ReadMemory(const Core::CPUThreadGuard& guard, u32 address) const override;
+  u32 ReadInstruction(const Core::CPUThreadGuard& guard, u32 address) const override;
   u32 GetPC() const override;
   void SetPC(u32 address) override;
   void Step() override {}
   void RunToBreakpoint() override;
-  u32 GetColor(u32 address) const override;
+  u32 GetColor(const Core::CPUThreadGuard* guard, u32 address) const override;
   std::string GetDescription(u32 address) const override;
 
-  void Clear() override;
+  void Clear(const Core::CPUThreadGuard& guard) override;
 
 private:
   Common::Debug::Watches m_watches;
   DSPPatches m_patches;
+
+  DSPLLE* const m_parent;
 };
 }  // namespace DSP::LLE
