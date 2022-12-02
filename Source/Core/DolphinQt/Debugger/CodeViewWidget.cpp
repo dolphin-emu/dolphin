@@ -29,6 +29,7 @@
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/Debugger/CodeTrace.h"
+#include "Core/Debugger/DebugInterface.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -41,6 +42,9 @@
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+
+#include "Core/HW/DSP.h"
+#include "Core/HW/DSPLLE/DSPLLE.h"
 
 struct CodeViewBranch
 {
@@ -138,7 +142,7 @@ constexpr int CODE_VIEW_COLUMN_DESCRIPTION = 4;
 constexpr int CODE_VIEW_COLUMN_BRANCH_ARROWS = 5;
 constexpr int CODE_VIEW_COLUMNCOUNT = 6;
 
-CodeViewWidget::CodeViewWidget()
+CodeViewWidget::CodeViewWidget(Core::DebugInterface* debug_interface)
     : m_system(Core::System::GetInstance()), m_ppc_symbol_db(m_system.GetPPCSymbolDB())
 {
   setColumnCount(CODE_VIEW_COLUMNCOUNT);
@@ -192,9 +196,9 @@ CodeViewWidget::CodeViewWidget()
 
 CodeViewWidget::~CodeViewWidget() = default;
 
-static u32 GetBranchFromAddress(const Core::CPUThreadGuard& guard, u32 addr)
+u32 CodeViewWidget::GetBranchFromAddress(const Core::CPUThreadGuard& guard, u32 addr)
 {
-  std::string disasm = guard.GetSystem().GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
+  std::string disasm = m_debug_interface->Disassemble(&guard, addr);
   size_t pos = disasm.find("->0x");
 
   if (pos == std::string::npos)
@@ -287,6 +291,16 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
   if (m_updating)
     return;
 
+  if (static_cast<DSP::LLE::DSPLLE*>(m_system.GetDSP().GetDSPEmulator()) != nullptr)
+  {
+    m_debug_interface =
+        &static_cast<DSP::LLE::DSPLLE*>(m_system.GetDSP().GetDSPEmulator())->m_debug_interface;
+  }
+  else
+  {
+    m_debug_interface = &m_system.GetPowerPC().GetDebugInterface();
+  }
+
   m_updating = true;
 
   clearSelection();
@@ -304,11 +318,8 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
   for (int i = 0; i < rows; i++)
     setRowHeight(i, rowh);
 
-  auto& power_pc = m_system.GetPowerPC();
-  auto& debug_interface = power_pc.GetDebugInterface();
-
   const std::optional<u32> pc =
-      guard ? std::make_optional(power_pc.GetPPCState().pc) : std::nullopt;
+      guard ? std::make_optional(m_debug_interface->GetPC()) : std::nullopt;
 
   const bool dark_theme = Settings::Instance().IsThemeDark();
 
@@ -317,16 +328,16 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
   for (int i = 0; i < rowCount(); i++)
   {
     const u32 addr = AddressForRow(i);
-    const u32 color = debug_interface.GetColor(guard, addr);
+    const u32 color = m_debug_interface->GetColor(guard, addr);
     auto* bp_item = new QTableWidgetItem;
     auto* addr_item = new QTableWidgetItem(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
 
-    std::string disas = debug_interface.Disassemble(guard, addr);
+    std::string disas = m_debug_interface->Disassemble(guard, addr);
     auto split = disas.find('\t');
 
     std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
     std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
-    std::string desc = debug_interface.GetDescription(addr);
+    std::string desc = m_debug_interface->GetDescription(addr);
 
     // Adds whitespace and a minimum size to ins and param. Helps to prevent frequent resizing while
     // scrolling.
@@ -374,17 +385,17 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
       branch.is_link = IsBranchInstructionWithLink(ins);
 
       description_item->setText(
-          tr("--> %1").arg(QString::fromStdString(debug_interface.GetDescription(branch_addr))));
+          tr("--> %1").arg(QString::fromStdString(m_debug_interface->GetDescription(branch_addr))));
       param_item->setForeground(dark_theme ? QColor(255, 135, 255) : Qt::magenta);
     }
 
     if (ins == "blr")
       ins_item->setForeground(dark_theme ? QColor(0xa0FFa0) : Qt::darkGreen);
 
-    if (debug_interface.IsBreakpoint(addr))
+    if (m_debug_interface->IsBreakpoint(addr))
     {
       auto icon = Resources::GetThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2));
-      if (!power_pc.GetBreakPoints().IsBreakPointEnable(addr))
+      if (!m_debug_interface->IsBreakpointEnabled(addr))
       {
         QPixmap disabled_icon(icon.size());
         disabled_icon.fill(Qt::transparent);
@@ -548,8 +559,8 @@ void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
 {
   Core::CPUThreadGuard guard(m_system);
 
-  m_system.GetPowerPC().GetDebugInterface().SetPatch(
-      guard, address, replace == ReplaceWith::BLR ? 0x4e800020 : 0x60000000);
+  m_debug_interface->SetPatch(guard, address,
+                              replace == ReplaceWith::BLR ? 0x4e800020 : 0x60000000);
 
   Update(&guard);
 }
@@ -611,10 +622,9 @@ void CodeViewWidget::OnContextMenu()
   if (paused)
   {
     Core::CPUThreadGuard guard(m_system);
-    const u32 pc = m_system.GetPPCState().pc;
-    const std::string disasm = m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, pc);
+    const std::string disasm = m_debug_interface->Disassemble(&guard, m_debug_interface->GetPC());
 
-    if (addr == pc)
+    if (addr == m_debug_interface->GetPC())
     {
       const auto target_it = std::find(disasm.begin(), disasm.end(), '\t');
       const auto target_end = std::find(target_it, disasm.end(), ',');
@@ -657,8 +667,7 @@ void CodeViewWidget::OnContextMenu()
     action->setEnabled(valid_load_store);
   }
 
-  restore_action->setEnabled(running &&
-                             m_system.GetPowerPC().GetDebugInterface().HasEnabledPatch(addr));
+  restore_action->setEnabled(running && m_debug_interface->HasEnabledPatch(addr));
 
   menu->exec(QCursor::pos());
   Update();
@@ -768,14 +777,14 @@ void CodeViewWidget::OnCopyTargetAddress()
 
   const std::string code_line = [this, addr] {
     Core::CPUThreadGuard guard(m_system);
-    return m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
+    return m_debug_interface->Disassemble(&guard, addr);
   }();
 
   if (!IsInstructionLoadStore(code_line))
     return;
 
   const std::optional<u32> target_addr =
-      m_system.GetPowerPC().GetDebugInterface().GetMemoryAddressFromInstruction(code_line);
+      m_debug_interface->GetMemoryAddressFromInstruction(code_line);
 
   if (target_addr)
   {
@@ -798,14 +807,14 @@ void CodeViewWidget::OnShowTargetInMemory()
 
   const std::string code_line = [this, addr] {
     Core::CPUThreadGuard guard(m_system);
-    return m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
+    return m_debug_interface->Disassemble(&guard, addr);
   }();
 
   if (!IsInstructionLoadStore(code_line))
     return;
 
   const std::optional<u32> target_addr =
-      m_system.GetPowerPC().GetDebugInterface().GetMemoryAddressFromInstruction(code_line);
+      m_debug_interface->GetMemoryAddressFromInstruction(code_line);
 
   if (target_addr)
     emit ShowMemory(*target_addr);
@@ -817,7 +826,7 @@ void CodeViewWidget::OnCopyCode()
 
   const std::string text = [this, addr] {
     Core::CPUThreadGuard guard(m_system);
-    return m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
+    return m_debug_interface->Disassemble(&guard, addr);
   }();
 
   QApplication::clipboard()->setText(QString::fromStdString(text));
@@ -841,8 +850,7 @@ void CodeViewWidget::OnCopyFunction()
     const u32 end = start + symbol->size;
     for (u32 addr = start; addr != end; addr += 4)
     {
-      const std::string disasm =
-          m_system.GetPowerPC().GetDebugInterface().Disassemble(&guard, addr);
+      const std::string disasm = m_debug_interface->Disassemble(&guard, addr);
       fmt::format_to(std::back_inserter(text), "{:08x}: {}\r\n", addr, disasm);
     }
   }
@@ -856,7 +864,7 @@ void CodeViewWidget::OnCopyHex()
 
   const u32 instruction = [this, addr] {
     Core::CPUThreadGuard guard(m_system);
-    return m_system.GetPowerPC().GetDebugInterface().ReadInstruction(guard, addr);
+    return m_debug_interface->ReadInstruction(guard, addr);
   }();
 
   QApplication::clipboard()->setText(
@@ -867,8 +875,8 @@ void CodeViewWidget::OnRunToHere()
 {
   const u32 addr = GetContextAddress();
 
-  m_system.GetPowerPC().GetDebugInterface().SetBreakpoint(addr);
-  m_system.GetPowerPC().GetDebugInterface().RunToBreakpoint();
+  m_debug_interface->SetBreakpoint(addr);
+  m_debug_interface->RunToBreakpoint();
   Update();
 }
 
@@ -941,7 +949,7 @@ void CodeViewWidget::OnRenameSymbol()
 
 void CodeViewWidget::OnSelectionChanged()
 {
-  if (m_address == m_system.GetPPCState().pc)
+  if (m_address == m_debug_interface->GetPC())
   {
     setStyleSheet(
         QStringLiteral("QTableView::item:selected {background-color: #00FF00; color: #000000;}"));
@@ -1018,6 +1026,8 @@ void CodeViewWidget::DoPatchInstruction(bool assemble)
   Core::CPUThreadGuard guard(m_system);
   const u32 addr = GetContextAddress();
 
+  // TODO: port this
+  /*
   if (!PowerPC::MMU::HostIsInstructionRAMAddress(guard, addr))
     return;
 
@@ -1025,26 +1035,25 @@ void CodeViewWidget::DoPatchInstruction(bool assemble)
       guard.GetSystem().GetMMU().TryReadInstruction(addr);
   if (!read_result.valid)
     return;
-
-  auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
+    */
 
   if (assemble)
   {
-    AssembleInstructionDialog dialog(this, addr, debug_interface.ReadInstruction(guard, addr));
+    AssembleInstructionDialog dialog(this, addr, m_debug_interface->ReadInstruction(guard, addr));
     SetQWidgetWindowDecorations(&dialog);
     if (dialog.exec() == QDialog::Accepted)
     {
-      debug_interface.SetPatch(guard, addr, dialog.GetCode());
+      m_debug_interface->SetPatch(guard, addr, dialog.GetCode());
       Update(&guard);
     }
   }
   else
   {
-    PatchInstructionDialog dialog(this, addr, debug_interface.ReadInstruction(guard, addr));
+    PatchInstructionDialog dialog(this, addr, m_debug_interface->ReadInstruction(guard, addr));
     SetQWidgetWindowDecorations(&dialog);
     if (dialog.exec() == QDialog::Accepted)
     {
-      debug_interface.SetPatch(guard, addr, dialog.GetCode());
+      m_debug_interface->SetPatch(guard, addr, dialog.GetCode());
       Update(&guard);
     }
   }
@@ -1056,7 +1065,7 @@ void CodeViewWidget::OnRestoreInstruction()
 
   const u32 addr = GetContextAddress();
 
-  m_system.GetPowerPC().GetDebugInterface().UnsetPatch(guard, addr);
+  m_debug_interface->UnsetPatch(guard, addr);
   Update(&guard);
 }
 
@@ -1135,11 +1144,7 @@ void CodeViewWidget::showEvent(QShowEvent* event)
 
 void CodeViewWidget::ToggleBreakpoint()
 {
-  auto& power_pc = m_system.GetPowerPC();
-  if (power_pc.GetDebugInterface().IsBreakpoint(GetContextAddress()))
-    power_pc.GetBreakPoints().Remove(GetContextAddress());
-  else
-    power_pc.GetBreakPoints().Add(GetContextAddress());
+  m_debug_interface->ToggleBreakpoint(GetContextAddress());
 
   emit BreakpointsChanged();
   Update();
@@ -1147,7 +1152,7 @@ void CodeViewWidget::ToggleBreakpoint()
 
 void CodeViewWidget::AddBreakpoint()
 {
-  m_system.GetPowerPC().GetBreakPoints().Add(GetContextAddress());
+  m_debug_interface->SetBreakpoint(GetContextAddress());
 
   emit BreakpointsChanged();
   Update();

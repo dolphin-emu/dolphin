@@ -19,6 +19,7 @@ class QShowEvent;
 namespace Core
 {
 class CPUThreadGuard;
+class DebugInterface;
 class System;
 }  // namespace Core
 
@@ -37,7 +38,7 @@ public:
     WithDetailedUpdate
   };
 
-  explicit CodeViewWidget();
+  explicit CodeViewWidget(Core::DebugInterface* debug_interface);
   ~CodeViewWidget() override;
 
   u32 GetAddress() const;
@@ -66,6 +67,8 @@ private:
     BLR,
     NOP
   };
+
+  u32 GetBranchFromAddress(const Core::CPUThreadGuard& guard, u32 addr);
 
   void ReplaceAddress(u32 address, ReplaceWith replace);
 
@@ -103,6 +106,7 @@ private:
 
   void CalculateBranchIndentation();
 
+  Core::DebugInterface* m_debug_interface;
   Core::System& m_system;
   PPCSymbolDB& m_ppc_symbol_db;
 

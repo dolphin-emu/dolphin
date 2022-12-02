@@ -84,6 +84,7 @@ public:
   void ClearBreakpoint(u32 address) override;
   void ClearAllBreakpoints() override;
   void ToggleBreakpoint(u32 address) override;
+  bool IsBreakpointEnabled(u32 address) const override;
   void ClearAllMemChecks() override;
   bool IsMemCheck(u32 address, size_t size = 1) const override;
   void ToggleMemCheck(u32 address, bool read = true, bool write = true, bool log = true) override;

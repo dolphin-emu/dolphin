@@ -107,7 +107,7 @@ void CodeWidget::CreateWidgets()
 
   m_search_address = new QLineEdit;
   m_branch_watch = new QPushButton(tr("Branch Watch"));
-  m_code_view = new CodeViewWidget;
+  m_code_view = new CodeViewWidget(&Core::System::GetInstance().GetPowerPC().GetDebugInterface());
 
   m_search_address->setPlaceholderText(tr("Search Address"));
 
