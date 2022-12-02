@@ -123,6 +123,11 @@ void JITWidget::ConnectWidgets()
 void JITWidget::Compare(u32 address)
 {
   m_address = address;
+
+  Settings::Instance().SetJITVisible(true);
+  raise();
+  m_host_asm_widget->setFocus();
+
   Update();
 }
 
