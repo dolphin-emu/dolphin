@@ -76,6 +76,7 @@ public:
   virtual void ClearBreakpoint(u32 /*address*/) {}
   virtual void ClearAllBreakpoints() {}
   virtual void ToggleBreakpoint(u32 /*address*/) {}
+  virtual bool IsBreakpointEnabled(u32 address) const { return IsBreakpoint(address); }
   virtual void ClearAllMemChecks() {}
   virtual bool IsMemCheck(u32 /*address*/, size_t /*size*/) const { return false; }
   virtual void ToggleMemCheck(u32 /*address*/, bool /*read*/, bool /*write*/, bool /*log*/) {}

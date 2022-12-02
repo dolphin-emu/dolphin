@@ -106,7 +106,8 @@ void CodeWidget::CreateWidgets()
 
   m_search_address = new QLineEdit;
   m_code_diff = new QPushButton(tr("Diff"));
-  m_code_view = new CodeViewWidget;
+  m_code_view = new CodeViewWidget(&Core::System::GetInstance().GetPowerPC().GetDebugInterface());
+  // m_code_view = new CodeViewWidget();
 
   m_search_address->setPlaceholderText(tr("Search Address"));
 
