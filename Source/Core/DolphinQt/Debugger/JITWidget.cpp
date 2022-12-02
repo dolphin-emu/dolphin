@@ -173,45 +173,37 @@ void JITWidget::Update()
 
   if (analyzer.Analyze(ppc_addr, &code_block, &code_buffer, code_buffer.size()) != 0xFFFFFFFF)
   {
-    std::ostringstream ppc_disasm;
+    std::string ppc_disasm_str;
+    auto ppc_disasm = std::back_inserter(ppc_disasm_str);
     for (u32 i = 0; i < code_block.m_num_instructions; i++)
     {
       const PPCAnalyst::CodeOp& op = code_buffer[i];
       const std::string opcode = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);
-      ppc_disasm << std::setfill('0') << std::setw(8) << std::hex << op.address;
-      ppc_disasm << " " << opcode << std::endl;
+      fmt::format_to(ppc_disasm, "{:08x} {}\n", op.address, opcode);
     }
 
     // Add stats to the end of the ppc box since it's generally the shortest.
-    ppc_disasm << std::dec << std::endl;
-
-    ppc_disasm << st.numCycles << " estimated cycles" << std::endl;
-
-    ppc_disasm << "Num instr: PPC: " << code_block.m_num_instructions
-               << " Host: " << host_instructions_disasm.instruction_count;
-    if (code_block.m_num_instructions != 0)
+    fmt::format_to(ppc_disasm, "\n{} estimated cycles", st.numCycles);
+    fmt::format_to(ppc_disasm, "\nNum instr: PPC: {} Host: {}", code_block.m_num_instructions,
+                   host_instructions_disasm.instruction_count);
+    if (code_block.m_num_instructions != 0 && host_instructions_disasm.instruction_count != 0)
     {
-      ppc_disasm << " (blowup: "
-                 << 100 * host_instructions_disasm.instruction_count /
-                            code_block.m_num_instructions -
-                        100
-                 << "%)";
+      fmt::format_to(
+          ppc_disasm, " (blowup: {}%)",
+          100 * host_instructions_disasm.instruction_count / code_block.m_num_instructions - 100);
     }
-    ppc_disasm << std::endl;
 
-    ppc_disasm << "Num bytes: PPC: " << code_block.m_num_instructions * 4
-               << " Host: " << host_instructions_disasm.code_size;
-    if (code_block.m_num_instructions != 0)
+    fmt::format_to(ppc_disasm, "\nNum bytes: PPC: {} Host: {}", code_block.m_num_instructions * 4,
+                   host_instructions_disasm.code_size);
+    if (code_block.m_num_instructions != 0 && host_instructions_disasm.code_size != 0)
     {
-      ppc_disasm << " (blowup: "
-                 << 100 * host_instructions_disasm.code_size / (4 * code_block.m_num_instructions) -
-                        100
-                 << "%)";
+      fmt::format_to(
+          ppc_disasm, " (blowup: {}%)",
+          100 * host_instructions_disasm.code_size / (4 * code_block.m_num_instructions) - 100);
     }
-    ppc_disasm << std::endl;
 
     m_ppc_asm_widget->setHtml(
-        QStringLiteral("<pre>%1</pre>").arg(QString::fromStdString(ppc_disasm.str())));
+        QStringLiteral("<pre>%1</pre>").arg(QString::fromStdString(ppc_disasm_str)));
   }
   else
   {
