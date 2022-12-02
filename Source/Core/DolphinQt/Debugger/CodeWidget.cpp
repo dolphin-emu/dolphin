@@ -291,8 +291,10 @@ void CodeWidget::SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update
 {
   m_code_view->SetAddress(address, update);
 
-  if (update == CodeViewWidget::SetAddressUpdate::WithUpdate)
+  if (update == CodeViewWidget::SetAddressUpdate::WithUpdate ||
+      update == CodeViewWidget::SetAddressUpdate::WithDetailedUpdate)
   {
+    Settings::Instance().SetCodeVisible(true);
     raise();
     m_code_view->setFocus();
   }

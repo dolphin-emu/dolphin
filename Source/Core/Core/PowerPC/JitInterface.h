@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string>
+#include <variant>
 
 #include "Common/CommonTypes.h"
 #include "Core/MachineContext.h"
@@ -43,10 +44,22 @@ enum class ProfilingState
   Disabled
 };
 
+enum class GetHostCodeError
+{
+  NoJitActive,
+  NoTranslation,
+};
+struct GetHostCodeResult
+{
+  const u8* code;
+  u32 code_size;
+  u32 entry_address;
+};
+
 void SetProfilingState(ProfilingState state);
 void WriteProfileResults(const std::string& filename);
 void GetProfileResults(Profiler::ProfileStats* prof_stats);
-int GetHostCode(u32* address, const u8** code, u32* code_size);
+std::variant<GetHostCodeError, GetHostCodeResult> GetHostCode(u32 address);
 
 // Memory Utilities
 bool HandleFault(uintptr_t access_address, SContext* ctx);
