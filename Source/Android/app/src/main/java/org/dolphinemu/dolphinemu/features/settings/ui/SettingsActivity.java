@@ -240,8 +240,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     {
       dialog = new MaterialAlertDialogBuilder(this)
               .setTitle(getString(R.string.load_settings))
-              .setView(getLayoutInflater().inflate(R.layout.dialog_indeterminate_progress, null,
-                      false))
+              .setView(R.layout.dialog_indeterminate_progress)
               .create();
     }
     dialog.show();
