@@ -146,14 +146,11 @@ void JITWidget::Update()
   // TODO: Actually do something with the table (Wx doesn't)
 
   // Get host side code disassembly
-  u32 host_instructions_count = 0;
-  u32 host_code_size = 0;
-  std::string host_instructions_disasm;
-  host_instructions_disasm =
-      DisassembleBlock(m_disassembler.get(), &m_address, &host_instructions_count, &host_code_size);
+  auto host_instructions_disasm = DisassembleBlock(m_disassembler.get(), m_address);
+  m_address = host_instructions_disasm.entry_address;
 
   m_host_asm_widget->setHtml(
-      QStringLiteral("<pre>%1</pre>").arg(QString::fromStdString(host_instructions_disasm)));
+      QStringLiteral("<pre>%1</pre>").arg(QString::fromStdString(host_instructions_disasm.text)));
 
   // == Fill in ppc box
   u32 ppc_addr = m_address;
@@ -191,19 +188,24 @@ void JITWidget::Update()
     ppc_disasm << st.numCycles << " estimated cycles" << std::endl;
 
     ppc_disasm << "Num instr: PPC: " << code_block.m_num_instructions
-               << " Host: " << host_instructions_count;
+               << " Host: " << host_instructions_disasm.instruction_count;
     if (code_block.m_num_instructions != 0)
     {
       ppc_disasm << " (blowup: "
-                 << 100 * host_instructions_count / code_block.m_num_instructions - 100 << "%)";
+                 << 100 * host_instructions_disasm.instruction_count /
+                            code_block.m_num_instructions -
+                        100
+                 << "%)";
     }
     ppc_disasm << std::endl;
 
     ppc_disasm << "Num bytes: PPC: " << code_block.m_num_instructions * 4
-               << " Host: " << host_code_size;
+               << " Host: " << host_instructions_disasm.code_size;
     if (code_block.m_num_instructions != 0)
     {
-      ppc_disasm << " (blowup: " << 100 * host_code_size / (4 * code_block.m_num_instructions) - 100
+      ppc_disasm << " (blowup: "
+                 << 100 * host_instructions_disasm.code_size / (4 * code_block.m_num_instructions) -
+                        100
                  << "%)";
     }
     ppc_disasm << std::endl;
