@@ -16,6 +16,7 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 using namespace Gen;
 
@@ -102,6 +103,9 @@ void Jit64AsmRoutineManager::Generate()
 
   dispatcher_no_check = GetCodePtr();
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   // The following is a translation of JitBaseBlockCache::Dispatch into assembly.
   const bool assembly_dispatcher = true;
   if (assembly_dispatcher)
@@ -141,10 +145,10 @@ void Jit64AsmRoutineManager::Generate()
     // Switch to the correct memory base, in case MSR.DR has changed.
     TEST(32, PPCSTATE(msr), Imm32(1 << (31 - 27)));
     FixupBranch physmem = J_CC(CC_Z);
-    MOV(64, R(RMEM), ImmPtr(Memory::logical_base));
+    MOV(64, R(RMEM), ImmPtr(memory.GetLogicalBase()));
     JMPptr(MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, normalEntry))));
     SetJumpTarget(physmem);
-    MOV(64, R(RMEM), ImmPtr(Memory::physical_base));
+    MOV(64, R(RMEM), ImmPtr(memory.GetPhysicalBase()));
     JMPptr(MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, normalEntry))));
 
     SetJumpTarget(not_found);
@@ -165,10 +169,10 @@ void Jit64AsmRoutineManager::Generate()
   // Switch to the correct memory base, in case MSR.DR has changed.
   TEST(32, PPCSTATE(msr), Imm32(1 << (31 - 27)));
   FixupBranch physmem = J_CC(CC_Z);
-  MOV(64, R(RMEM), ImmPtr(Memory::logical_base));
+  MOV(64, R(RMEM), ImmPtr(memory.GetLogicalBase()));
   JMPptr(R(ABI_RETURN));
   SetJumpTarget(physmem);
-  MOV(64, R(RMEM), ImmPtr(Memory::physical_base));
+  MOV(64, R(RMEM), ImmPtr(memory.GetPhysicalBase()));
   JMPptr(R(ABI_RETURN));
 
   SetJumpTarget(no_block_available);

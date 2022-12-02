@@ -194,17 +194,19 @@ static void DoState(PointerWrap& p)
   }
 
   // Check to make sure the emulated memory sizes are the same as the savestate
-  u32 state_mem1_size = Memory::GetRamSizeReal();
-  u32 state_mem2_size = Memory::GetExRamSizeReal();
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u32 state_mem1_size = memory.GetRamSizeReal();
+  u32 state_mem2_size = memory.GetExRamSizeReal();
   p.Do(state_mem1_size);
   p.Do(state_mem2_size);
-  if (state_mem1_size != Memory::GetRamSizeReal() || state_mem2_size != Memory::GetExRamSizeReal())
+  if (state_mem1_size != memory.GetRamSizeReal() || state_mem2_size != memory.GetExRamSizeReal())
   {
     OSD::AddMessage(fmt::format("Memory size mismatch!\n"
                                 "Current | MEM1 {:08X} ({:3}MB)    MEM2 {:08X} ({:3}MB)\n"
                                 "State   | MEM1 {:08X} ({:3}MB)    MEM2 {:08X} ({:3}MB)",
-                                Memory::GetRamSizeReal(), Memory::GetRamSizeReal() / 0x100000U,
-                                Memory::GetExRamSizeReal(), Memory::GetExRamSizeReal() / 0x100000U,
+                                memory.GetRamSizeReal(), memory.GetRamSizeReal() / 0x100000U,
+                                memory.GetExRamSizeReal(), memory.GetExRamSizeReal() / 0x100000U,
                                 state_mem1_size, state_mem1_size / 0x100000U, state_mem2_size,
                                 state_mem2_size / 0x100000U));
     p.SetMeasureMode();
@@ -225,7 +227,7 @@ static void DoState(PointerWrap& p)
   p.DoMarker("PowerPC");
   // CoreTiming needs to be restored before restoring Hardware because
   // the controller code might need to schedule an event if the controller has changed.
-  Core::System::GetInstance().GetCoreTiming().DoState(p);
+  system.GetCoreTiming().DoState(p);
   p.DoMarker("CoreTiming");
   HW::DoState(p);
   p.DoMarker("HW");

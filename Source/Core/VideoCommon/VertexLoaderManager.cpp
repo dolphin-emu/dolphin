@@ -18,6 +18,7 @@
 
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -81,6 +82,9 @@ void UpdateVertexArrayPointers()
   if (!g_bases_dirty) [[likely]]
     return;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   // Some games such as Burnout 2 can put invalid addresses into
   // the array base registers. (see issue 8591)
   // But the vertex arrays with invalid addresses aren't actually enabled.
@@ -89,24 +93,24 @@ void UpdateVertexArrayPointers()
   // We also only update the array base if the vertex description states we are going to use it.
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Position))
     cached_arraybases[CPArray::Position] =
-        Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Position]);
+        memory.GetPointer(g_main_cp_state.array_bases[CPArray::Position]);
 
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Normal))
     cached_arraybases[CPArray::Normal] =
-        Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Normal]);
+        memory.GetPointer(g_main_cp_state.array_bases[CPArray::Normal]);
 
   for (u8 i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.low.Color[i]))
       cached_arraybases[CPArray::Color0 + i] =
-          Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Color0 + i]);
+          memory.GetPointer(g_main_cp_state.array_bases[CPArray::Color0 + i]);
   }
 
   for (u8 i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.high.TexCoord[i]))
       cached_arraybases[CPArray::TexCoord0 + i] =
-          Memory::GetPointer(g_main_cp_state.array_bases[CPArray::TexCoord0 + i]);
+          memory.GetPointer(g_main_cp_state.array_bases[CPArray::TexCoord0 + i]);
   }
 
   g_bases_dirty = false;

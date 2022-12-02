@@ -523,7 +523,9 @@ void CEXIMemoryCard::DoState(PointerWrap& p)
 // read all at once instead of single byte at a time as done by IEXIDevice::DMARead
 void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 {
-  m_memory_card->Read(m_address, size, Memory::GetPointer(addr));
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  m_memory_card->Read(m_address, size, memory.GetPointer(addr));
 
   if ((m_address + size) % Memcard::BLOCK_SIZE == 0)
   {
@@ -531,7 +533,7 @@ void CEXIMemoryCard::DMARead(u32 addr, u32 size)
   }
 
   // Schedule transfer complete later based on read speed
-  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
+  system.GetCoreTiming().ScheduleEvent(
       size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
       s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }
@@ -540,7 +542,9 @@ void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 // write all at once instead of single byte at a time as done by IEXIDevice::DMAWrite
 void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
 {
-  m_memory_card->Write(m_address, size, Memory::GetPointer(addr));
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  m_memory_card->Write(m_address, size, memory.GetPointer(addr));
 
   if (((m_address + size) % Memcard::BLOCK_SIZE) == 0)
   {
@@ -548,7 +552,7 @@ void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
   }
 
   // Schedule transfer complete later based on write speed
-  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
+  system.GetCoreTiming().ScheduleEvent(
       size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
       s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }

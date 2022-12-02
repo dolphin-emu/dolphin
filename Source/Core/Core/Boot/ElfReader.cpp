@@ -14,6 +14,7 @@
 
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/System.h"
 
 static void bswap(u32& w)
 {
@@ -135,6 +136,9 @@ bool ElfReader::LoadIntoMemory(bool only_in_mem1) const
 
   INFO_LOG_FMT(BOOT, "{} segments:", header->e_phnum);
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   // Copy segments into ram.
   for (int i = 0; i < header->e_phnum; i++)
   {
@@ -150,12 +154,12 @@ bool ElfReader::LoadIntoMemory(bool only_in_mem1) const
       u32 srcSize = p->p_filesz;
       u32 dstSize = p->p_memsz;
 
-      if (only_in_mem1 && p->p_vaddr >= Memory::GetRamSizeReal())
+      if (only_in_mem1 && p->p_vaddr >= memory.GetRamSizeReal())
         continue;
 
-      Memory::CopyToEmu(writeAddr, src, srcSize);
+      memory.CopyToEmu(writeAddr, src, srcSize);
       if (srcSize < dstSize)
-        Memory::Memset(writeAddr + srcSize, 0, dstSize - srcSize);  // zero out bss
+        memory.Memset(writeAddr + srcSize, 0, dstSize - srcSize);  // zero out bss
 
       INFO_LOG_FMT(BOOT, "Loadable Segment Copied to {:08x}, size {:08x}", writeAddr, p->p_memsz);
     }

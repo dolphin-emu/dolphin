@@ -12,6 +12,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace PowerPC
 {
@@ -139,8 +140,11 @@ void InstructionCache::Invalidate(u32 addr)
 
 u32 InstructionCache::ReadInstruction(u32 addr)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   if (!HID0.ICE || m_disable_icache)  // instruction cache is disabled
-    return Memory::Read_U32(addr);
+    return memory.Read_U32(addr);
   u32 set = (addr >> 5) & 0x7f;
   u32 tag = addr >> 12;
 
@@ -161,14 +165,14 @@ u32 InstructionCache::ReadInstruction(u32 addr)
   if (t == 0xff)  // load to the cache
   {
     if (HID0.ILOCK)  // instruction cache is locked
-      return Memory::Read_U32(addr);
+      return memory.Read_U32(addr);
     // select a way
     if (valid[set] != 0xff)
       t = s_way_from_valid[valid[set]];
     else
       t = s_way_from_plru[plru[set]];
     // load
-    Memory::CopyFromEmu(reinterpret_cast<u8*>(data[set][t].data()), (addr & ~0x1f), 32);
+    memory.CopyFromEmu(reinterpret_cast<u8*>(data[set][t].data()), (addr & ~0x1f), 32);
     if (valid[set] & (1 << t))
     {
       if (tags[set][t] & (ICACHE_VMEM_BIT >> 12))
@@ -191,7 +195,7 @@ u32 InstructionCache::ReadInstruction(u32 addr)
   // update plru
   plru[set] = (plru[set] & ~s_plru_mask[t]) | s_plru_value[t];
   const u32 res = Common::swap32(data[set][t][(addr >> 2) & 7]);
-  const u32 inmem = Memory::Read_U32(addr);
+  const u32 inmem = memory.Read_U32(addr);
   if (res != inmem)
   {
     INFO_LOG_FMT(POWERPC,

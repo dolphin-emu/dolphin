@@ -12,6 +12,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/XFStructs.h"
@@ -229,8 +230,10 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
   //   - Global variables suck
   //   - Multithreading with the above two sucks
   //
-  m_Ram.resize(Memory::GetRamSize());
-  m_ExRam.resize(Memory::GetExRamSize());
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  m_Ram.resize(memory.GetRamSize());
+  m_ExRam.resize(memory.GetExRamSize());
 
   std::fill(m_Ram.begin(), m_Ram.end(), 0);
   std::fill(m_ExRam.begin(), m_ExRam.end(), 0);
@@ -310,17 +313,20 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
 
 void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, bool dynamicUpdate)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   u8* curData;
   u8* newData;
   if (address & 0x10000000)
   {
-    curData = &m_ExRam[address & Memory::GetExRamMask()];
-    newData = &Memory::m_pEXRAM[address & Memory::GetExRamMask()];
+    curData = &m_ExRam[address & memory.GetExRamMask()];
+    newData = &memory.GetEXRAM()[address & memory.GetExRamMask()];
   }
   else
   {
-    curData = &m_Ram[address & Memory::GetRamMask()];
-    newData = &Memory::m_pRAM[address & Memory::GetRamMask()];
+    curData = &m_Ram[address & memory.GetRamMask()];
+    newData = &memory.GetRAM()[address & memory.GetRamMask()];
   }
 
   if (!dynamicUpdate && memcmp(curData, newData, size) != 0)

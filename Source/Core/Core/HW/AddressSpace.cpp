@@ -10,6 +10,7 @@
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
+#include "Core/System.h"
 
 namespace AddressSpace
 {
@@ -92,6 +93,9 @@ struct EffectiveAddressSpaceAccessors : Accessors
 
   bool Matches(u32 haystack_start, const u8* needle_start, std::size_t needle_size) const
   {
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+
     u32 page_base = haystack_start & 0xfffff000;
     u32 offset = haystack_start & 0x0000fff;
     do
@@ -114,7 +118,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
         return false;
       }
 
-      u8* page_ptr = Memory::GetPointer(*page_physical_address);
+      u8* page_ptr = memory.GetPointer(*page_physical_address);
       if (page_ptr == nullptr)
       {
         return false;
@@ -417,9 +421,12 @@ Accessors* GetAccessors(Type address_space)
 
 void Init()
 {
-  s_mem1_address_space_accessors = {&Memory::m_pRAM, Memory::GetRamSizeReal()};
-  s_mem2_address_space_accessors = {&Memory::m_pEXRAM, Memory::GetExRamSizeReal()};
-  s_fake_address_space_accessors = {&Memory::m_pFakeVMEM, Memory::GetFakeVMemSize()};
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  s_mem1_address_space_accessors = {&memory.GetRAM(), memory.GetRamSizeReal()};
+  s_mem2_address_space_accessors = {&memory.GetEXRAM(), memory.GetExRamSizeReal()};
+  s_fake_address_space_accessors = {&memory.GetFakeVMEM(), memory.GetFakeVMemSize()};
   s_physical_address_space_accessors_gcn = {{0x00000000, &s_mem1_address_space_accessors}};
   s_physical_address_space_accessors_wii = {{0x00000000, &s_mem1_address_space_accessors},
                                             {0x10000000, &s_mem2_address_space_accessors}};

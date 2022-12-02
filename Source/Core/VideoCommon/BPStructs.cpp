@@ -357,7 +357,9 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     if (!SConfig::GetInstance().bWii)
       addr = addr & 0x01FFFFFF;
 
-    Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    memory.CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
 
     if (OpcodeDecoder::g_record_fifo_data)
       FifoRecorder::GetInstance().UseMemory(addr, tlutXferCount, MemoryUpdate::TMEM);
@@ -549,11 +551,15 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
         if (tmem_addr_even + bytes_read > TMEM_SIZE)
           bytes_read = TMEM_SIZE - tmem_addr_even;
 
-        Memory::CopyFromEmu(texMem + tmem_addr_even, src_addr, bytes_read);
+        auto& system = Core::System::GetInstance();
+        auto& memory = system.GetMemory();
+        memory.CopyFromEmu(texMem + tmem_addr_even, src_addr, bytes_read);
       }
       else  // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
       {
-        u8* src_ptr = Memory::GetPointer(src_addr);
+        auto& system = Core::System::GetInstance();
+        auto& memory = system.GetMemory();
+        u8* src_ptr = memory.GetPointer(src_addr);
 
         // AR and GB tiles are stored in separate TMEM banks => can't use a single memcpy for
         // everything

@@ -14,6 +14,7 @@
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/MACUtils.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -233,7 +234,9 @@ IPCReply NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
   if (!vector || vector->address == 0)
     return IPCReply(u32(ResultCode::IllegalParameter));
 
-  const u32 state = Memory::Read_U32(vector->address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  const u32 state = memory.Read_U32(vector->address);
   INFO_LOG_FMT(IOS_NET, "WD_SetLinkState called (state={}, mode={})", state, m_mode);
 
   if (state == 0)
@@ -279,8 +282,11 @@ IPCReply NetWDCommandDevice::Disassociate(const IOCtlVRequest& request)
   if (!vector || vector->address == 0)
     return IPCReply(u32(ResultCode::IllegalParameter));
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   Common::MACAddress mac;
-  Memory::CopyFromEmu(mac.data(), vector->address, mac.size());
+  memory.CopyFromEmu(mac.data(), vector->address, mac.size());
 
   INFO_LOG_FMT(IOS_NET, "WD_Disassociate: MAC {}", Common::MacAddressToString(mac));
 
@@ -309,7 +315,9 @@ IPCReply NetWDCommandDevice::GetInfo(const IOCtlVRequest& request) const
   if (!vector || vector->address == 0)
     return IPCReply(u32(ResultCode::IllegalParameter));
 
-  Memory::CopyToEmu(vector->address, &m_info, sizeof(m_info));
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.CopyToEmu(vector->address, &m_info, sizeof(m_info));
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -332,9 +340,11 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
   {
     // Gives parameters detailing type of scan and what to match
     // XXX - unused
-    // ScanInfo *scan = (ScanInfo *)Memory::GetPointer(request.in_vectors.at(0).m_Address);
+    // ScanInfo *scan = (ScanInfo *)memory.GetPointer(request.in_vectors.at(0).m_Address);
 
-    u16* results = (u16*)Memory::GetPointer(request.io_vectors.at(0).address);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    u16* results = (u16*)memory.GetPointer(request.io_vectors.at(0).address);
     // first u16 indicates number of BSSInfo following
     results[0] = Common::swap16(1);
 

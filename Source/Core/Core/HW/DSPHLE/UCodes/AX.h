@@ -19,6 +19,7 @@
 #include "Common/Swap.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 namespace DSP::HLE
 {
@@ -142,8 +143,10 @@ protected:
   template <int Millis, size_t BufCount>
   void InitMixingBuffers(u32 init_addr, const std::array<BufferDesc, BufCount>& buffers)
   {
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
     std::array<u16, 3 * BufCount> init_array;
-    Memory::CopyFromEmuSwapped(init_array.data(), init_addr, sizeof(init_array));
+    memory.CopyFromEmuSwapped(init_array.data(), init_addr, sizeof(init_array));
     for (size_t i = 0; i < BufCount; ++i)
     {
       const BufferDesc& buf = buffers[i];

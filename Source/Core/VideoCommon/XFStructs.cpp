@@ -10,6 +10,7 @@
 
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/Fifo.h"
@@ -262,8 +263,10 @@ void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
   }
   else
   {
-    newData = (u32*)Memory::GetPointer(g_main_cp_state.array_bases[array] +
-                                       g_main_cp_state.array_strides[array] * index);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    newData = (u32*)memory.GetPointer(g_main_cp_state.array_bases[array] +
+                                      g_main_cp_state.array_strides[array] * index);
   }
   bool changed = false;
   for (u32 i = 0; i < size; ++i)
@@ -284,8 +287,10 @@ void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
 
 void PreprocessIndexedXF(CPArray array, u32 index, u16 address, u8 size)
 {
-  const u8* new_data = Memory::GetPointer(g_preprocess_cp_state.array_bases[array] +
-                                          g_preprocess_cp_state.array_strides[array] * index);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  const u8* new_data = memory.GetPointer(g_preprocess_cp_state.array_bases[array] +
+                                         g_preprocess_cp_state.array_strides[array] * index);
 
   const size_t buf_size = size * sizeof(u32);
   Fifo::PushFifoAuxBuffer(new_data, buf_size);

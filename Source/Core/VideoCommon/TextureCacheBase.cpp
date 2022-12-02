@@ -31,6 +31,7 @@
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
@@ -1732,7 +1733,9 @@ TextureCacheBase::TCacheEntry*
 TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                                 MathUtil::Rectangle<int>* display_rect)
 {
-  const u8* src_data = Memory::GetPointer(address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  const u8* src_data = memory.GetPointer(address);
   if (!src_data)
   {
     ERROR_LOG_FMT(VIDEO, "Trying to load XFB texture from invalid address {:#010x}", address);
@@ -2107,7 +2110,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       !(is_xfb_copy ? g_ActiveConfig.bSkipXFBCopyToRam : g_ActiveConfig.bSkipEFBCopyToRam) ||
       !copy_to_vram;
 
-  u8* dst = Memory::GetPointer(dstAddr);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u8* dst = memory.GetPointer(dstAddr);
   if (dst == nullptr)
   {
     ERROR_LOG_FMT(VIDEO, "Trying to copy from EFB to invalid address {:#010x}", dstAddr);
@@ -2422,7 +2427,9 @@ void TextureCacheBase::WriteEFBCopyToRAM(u8* dst_ptr, u32 width, u32 height, u32
 void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
 {
   // Copy from texture -> guest memory.
-  u8* const dst = Memory::GetPointer(entry->addr);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u8* const dst = memory.GetPointer(entry->addr);
   WriteEFBCopyToRAM(dst, entry->pending_efb_copy_width, entry->pending_efb_copy_height,
                     entry->memory_stride, std::move(entry->pending_efb_copy));
 
@@ -3024,7 +3031,9 @@ u64 TextureCacheBase::TCacheEntry::CalculateHash() const
   const u32 hash_sample_size = HashSampleSize();
 
   // FIXME: textures from tmem won't get the correct hash.
-  u8* ptr = Memory::GetPointer(addr);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u8* ptr = memory.GetPointer(addr);
   if (memory_stride == bytes_per_row)
   {
     return Common::GetHash64(ptr, size_in_bytes, hash_sample_size);

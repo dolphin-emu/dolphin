@@ -224,12 +224,15 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
   // Only instructions that access I/O will get these, and there won't be that
   // many of them in a typical program/game.
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   // TODO: do we properly handle off-the-end?
-  const auto base_ptr = reinterpret_cast<uintptr_t>(Memory::physical_base);
+  const auto base_ptr = reinterpret_cast<uintptr_t>(memory.GetPhysicalBase());
   if (access_address >= base_ptr && access_address < base_ptr + 0x100010000)
     return BackPatch(static_cast<u32>(access_address - base_ptr), ctx);
 
-  const auto logical_base_ptr = reinterpret_cast<uintptr_t>(Memory::logical_base);
+  const auto logical_base_ptr = reinterpret_cast<uintptr_t>(memory.GetLogicalBase());
   if (access_address >= logical_base_ptr && access_address < logical_base_ptr + 0x100010000)
     return BackPatch(static_cast<u32>(access_address - logical_base_ptr), ctx);
 
@@ -330,7 +333,10 @@ void Jit64::Init()
 {
   EnableBlockLink();
 
-  jo.fastmem_arena = m_fastmem_enabled && Memory::InitFastmemArena();
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  jo.fastmem_arena = m_fastmem_enabled && memory.InitFastmemArena();
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
   UpdateMemoryAndExceptionOptions();
@@ -404,7 +410,9 @@ void Jit64::Shutdown()
   FreeStack();
   FreeCodeSpace();
 
-  Memory::ShutdownFastmemArena();
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.ShutdownFastmemArena();
 
   blocks.Shutdown();
   m_far_code.Shutdown();

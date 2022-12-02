@@ -18,6 +18,7 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV0.h"
 #include "Core/IOS/VersionInfo.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -92,9 +93,12 @@ IPCReply OH0::CancelInsertionHook(const IOCtlRequest& request)
   if (!request.buffer_in || request.buffer_in_size != 4)
     return IPCReply(IPC_EINVAL);
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   // IOS assigns random IDs, but ours are simply the VID + PID (see RegisterInsertionHookWithID)
   TriggerHook(m_insertion_hooks,
-              {Memory::Read_U16(request.buffer_in), Memory::Read_U16(request.buffer_in + 2)},
+              {memory.Read_U16(request.buffer_in), memory.Read_U16(request.buffer_in + 2)},
               USB_ECANCELED);
   return IPCReply(IPC_SUCCESS);
 }
@@ -104,11 +108,14 @@ IPCReply OH0::GetDeviceList(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(2, 2))
     return IPCReply(IPC_EINVAL);
 
-  const u8 max_entries_count = Memory::Read_U8(request.in_vectors[0].address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  const u8 max_entries_count = memory.Read_U8(request.in_vectors[0].address);
   if (request.io_vectors[1].size != max_entries_count * sizeof(DeviceEntry))
     return IPCReply(IPC_EINVAL);
 
-  const u8 interface_class = Memory::Read_U8(request.in_vectors[1].address);
+  const u8 interface_class = memory.Read_U8(request.in_vectors[1].address);
   u8 entries_count = 0;
   std::lock_guard lk(m_devices_mutex);
   for (const auto& device : m_devices)
@@ -122,9 +129,9 @@ IPCReply OH0::GetDeviceList(const IOCtlVRequest& request) const
     entry.unknown = 0;
     entry.vid = Common::swap16(device.second->GetVid());
     entry.pid = Common::swap16(device.second->GetPid());
-    Memory::CopyToEmu(request.io_vectors[1].address + 8 * entries_count++, &entry, 8);
+    memory.CopyToEmu(request.io_vectors[1].address + 8 * entries_count++, &entry, 8);
   }
-  Memory::Write_U8(entries_count, request.io_vectors[0].address);
+  memory.Write_U8(entries_count, request.io_vectors[0].address);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -133,8 +140,11 @@ IPCReply OH0::GetRhDesca(const IOCtlRequest& request) const
   if (!request.buffer_out || request.buffer_out_size != 4)
     return IPCReply(IPC_EINVAL);
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   // Based on a hardware test, this ioctl seems to return a constant value
-  Memory::Write_U32(0x02000302, request.buffer_out);
+  memory.Write_U32(0x02000302, request.buffer_out);
   request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LWARNING);
   return IPCReply(IPC_SUCCESS);
 }
@@ -174,8 +184,11 @@ std::optional<IPCReply> OH0::RegisterInsertionHook(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(2, 0))
     return IPCReply(IPC_EINVAL);
 
-  const u16 vid = Memory::Read_U16(request.in_vectors[0].address);
-  const u16 pid = Memory::Read_U16(request.in_vectors[1].address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  const u16 vid = memory.Read_U16(request.in_vectors[0].address);
+  const u16 pid = memory.Read_U16(request.in_vectors[1].address);
   if (HasDeviceWithVidPid(vid, pid))
     return IPCReply(IPC_SUCCESS);
 
@@ -190,16 +203,19 @@ std::optional<IPCReply> OH0::RegisterInsertionHookWithID(const IOCtlVRequest& re
   if (!request.HasNumberOfValidVectors(3, 1))
     return IPCReply(IPC_EINVAL);
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   std::lock_guard lock{m_hooks_mutex};
-  const u16 vid = Memory::Read_U16(request.in_vectors[0].address);
-  const u16 pid = Memory::Read_U16(request.in_vectors[1].address);
-  const bool trigger_only_for_new_device = Memory::Read_U8(request.in_vectors[2].address) == 1;
+  const u16 vid = memory.Read_U16(request.in_vectors[0].address);
+  const u16 pid = memory.Read_U16(request.in_vectors[1].address);
+  const bool trigger_only_for_new_device = memory.Read_U8(request.in_vectors[2].address) == 1;
   if (!trigger_only_for_new_device && HasDeviceWithVidPid(vid, pid))
     return IPCReply(IPC_SUCCESS);
   // TODO: figure out whether IOS allows more than one hook.
   m_insertion_hooks.insert({{vid, pid}, request.address});
   // The output vector is overwritten with an ID to use with ioctl 31 for cancelling the hook.
-  Memory::Write_U32(vid << 16 | pid, request.io_vectors[0].address);
+  memory.Write_U32(vid << 16 | pid, request.io_vectors[0].address);
   return std::nullopt;
 }
 
@@ -316,25 +332,28 @@ std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVReque
 
 s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   switch (ioctlv.request)
   {
   case USB::IOCTLV_USBV0_CTRLMSG:
     if (!ioctlv.HasNumberOfValidVectors(6, 1) ||
-        Common::swap16(Memory::Read_U16(ioctlv.in_vectors[4].address)) != ioctlv.io_vectors[0].size)
+        Common::swap16(memory.Read_U16(ioctlv.in_vectors[4].address)) != ioctlv.io_vectors[0].size)
       return IPC_EINVAL;
     return device.SubmitTransfer(std::make_unique<USB::V0CtrlMessage>(m_ios, ioctlv));
 
   case USB::IOCTLV_USBV0_BLKMSG:
   case USB::IOCTLV_USBV0_LBLKMSG:
     if (!ioctlv.HasNumberOfValidVectors(2, 1) ||
-        Memory::Read_U16(ioctlv.in_vectors[1].address) != ioctlv.io_vectors[0].size)
+        memory.Read_U16(ioctlv.in_vectors[1].address) != ioctlv.io_vectors[0].size)
       return IPC_EINVAL;
     return device.SubmitTransfer(std::make_unique<USB::V0BulkMessage>(
         m_ios, ioctlv, ioctlv.request == USB::IOCTLV_USBV0_LBLKMSG));
 
   case USB::IOCTLV_USBV0_INTRMSG:
     if (!ioctlv.HasNumberOfValidVectors(2, 1) ||
-        Memory::Read_U16(ioctlv.in_vectors[1].address) != ioctlv.io_vectors[0].size)
+        memory.Read_U16(ioctlv.in_vectors[1].address) != ioctlv.io_vectors[0].size)
       return IPC_EINVAL;
     return device.SubmitTransfer(std::make_unique<USB::V0IntrMessage>(m_ios, ioctlv));
 

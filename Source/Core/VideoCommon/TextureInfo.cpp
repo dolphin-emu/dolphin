@@ -8,6 +8,7 @@
 
 #include "Common/Align.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureDecoder.h"
 
@@ -44,7 +45,9 @@ TextureInfo TextureInfo::FromStage(u32 stage)
                        &texMem[tmem_address_even], mip_count);
   }
 
-  return TextureInfo(stage, Memory::GetPointer(address), tlut_ptr, address, texture_format,
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  return TextureInfo(stage, memory.GetPointer(address), tlut_ptr, address, texture_format,
                      tlut_format, width, height, false, nullptr, nullptr, mip_count);
 }
 
