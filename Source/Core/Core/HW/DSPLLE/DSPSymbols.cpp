@@ -71,8 +71,9 @@ Common::Symbol* DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 void AutoDisassembly(const SDSP& dsp, u16 start_addr, u16 end_addr)
 {
   AssemblerSettings settings;
-  settings.show_pc = true;
-  settings.show_hex = true;
+  settings.show_pc = false;
+  settings.show_hex = false;
+  settings.print_tabs = true;
   DSPDisassembler disasm(settings);
 
   u16 addr = start_addr;
