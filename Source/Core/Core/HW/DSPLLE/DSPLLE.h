@@ -11,6 +11,7 @@
 #include "Common/Flag.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSPEmulator.h"
+#include "Core/HW/DSPLLE/DSPDebugInterface.h"
 
 class PointerWrap;
 
@@ -39,7 +40,11 @@ public:
   u32 DSP_UpdateRate() override;
 
 private:
+  friend class DSPDebugInterface;
+
   static void DSPThread(DSPLLE* dsp_lle);
+
+  DSPDebugInterface m_debug_interface{this};
 
   DSPCore m_dsp_core;
   std::thread m_dsp_thread;

@@ -12,17 +12,29 @@
 
 #include "Common/MsgHandler.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/HW/DSPLLE/DSPLLE.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 
 namespace DSP::LLE
 {
-void DSPPatches::Patch(std::size_t index)
+void DSPPatches::ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
   PanicAlertFmt("Patch functionality not supported in DSP module.");
 }
 
-DSPDebugInterface::DSPDebugInterface() = default;
+void DSPPatches::Patch(const Core::CPUThreadGuard& guard, std::size_t index)
+{
+  PanicAlertFmt("Patch functionality not supported in DSP module.");
+}
+
+void DSPPatches::UnPatch(std::size_t index)
+{
+  PanicAlertFmt("Patch functionality not supported in DSP module.");
+}
+
+DSPDebugInterface::DSPDebugInterface(DSPLLE* parent) : m_parent(parent)
+{
+}
 DSPDebugInterface::~DSPDebugInterface() = default;
 
 std::size_t DSPDebugInterface::SetWatch(u32 address, std::string name)
@@ -60,6 +72,11 @@ void DSPDebugInterface::UpdateWatchName(std::size_t index, std::string name)
   return m_watches.UpdateWatchName(index, std::move(name));
 }
 
+void DSPDebugInterface::UpdateWatchLockedState(std::size_t index, bool locked)
+{
+  return m_watches.UpdateWatchLockedState(index, locked);
+}
+
 void DSPDebugInterface::EnableWatch(std::size_t index)
 {
   m_watches.EnableWatch(index);
@@ -95,14 +112,26 @@ void DSPDebugInterface::ClearWatches()
   m_watches.Clear();
 }
 
-void DSPDebugInterface::SetPatch(u32 address, u32 value)
+void DSPDebugInterface::SetPatch(const Core::CPUThreadGuard& guard, u32 address, u32 value)
 {
-  m_patches.SetPatch(address, value);
+  m_patches.SetPatch(guard, address, value);
 }
 
-void DSPDebugInterface::SetPatch(u32 address, std::vector<u8> value)
+void DSPDebugInterface::SetPatch(const Core::CPUThreadGuard& guard, u32 address,
+                                 std::vector<u8> value)
 {
-  m_patches.SetPatch(address, std::move(value));
+  m_patches.SetPatch(guard, address, std::move(value));
+}
+
+void DSPDebugInterface::SetFramePatch(const Core::CPUThreadGuard& guard, u32 address, u32 value)
+{
+  m_patches.SetFramePatch(guard, address, value);
+}
+
+void DSPDebugInterface::SetFramePatch(const Core::CPUThreadGuard& guard, u32 address,
+                                      std::vector<u8> value)
+{
+  m_patches.SetFramePatch(guard, address, std::move(value));
 }
 
 const std::vector<Common::Debug::MemoryPatch>& DSPDebugInterface::GetPatches() const
@@ -110,24 +139,24 @@ const std::vector<Common::Debug::MemoryPatch>& DSPDebugInterface::GetPatches() c
   return m_patches.GetPatches();
 }
 
-void DSPDebugInterface::UnsetPatch(u32 address)
+void DSPDebugInterface::UnsetPatch(const Core::CPUThreadGuard& guard, u32 address)
 {
-  m_patches.UnsetPatch(address);
+  m_patches.UnsetPatch(guard, address);
 }
 
-void DSPDebugInterface::EnablePatch(std::size_t index)
+void DSPDebugInterface::EnablePatch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
-  m_patches.EnablePatch(index);
+  m_patches.EnablePatch(guard, index);
 }
 
-void DSPDebugInterface::DisablePatch(std::size_t index)
+void DSPDebugInterface::DisablePatch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
-  m_patches.DisablePatch(index);
+  m_patches.DisablePatch(guard, index);
 }
 
-void DSPDebugInterface::RemovePatch(std::size_t index)
+void DSPDebugInterface::RemovePatch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
-  m_patches.RemovePatch(index);
+  m_patches.RemovePatch(guard, index);
 }
 
 bool DSPDebugInterface::HasEnabledPatch(u32 address) const
@@ -135,25 +164,31 @@ bool DSPDebugInterface::HasEnabledPatch(u32 address) const
   return m_patches.HasEnabledPatch(address);
 }
 
-void DSPDebugInterface::ClearPatches()
+void DSPDebugInterface::ClearPatches(const Core::CPUThreadGuard& guard)
 {
-  m_patches.ClearPatches();
+  m_patches.ClearPatches(guard);
 }
 
-Common::Debug::Threads DSPDebugInterface::GetThreads() const
+void DSPDebugInterface::ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index)
+{
+  m_patches.ApplyExistingPatch(guard, index);
+}
+
+Common::Debug::Threads DSPDebugInterface::GetThreads(const Core::CPUThreadGuard& guard) const
 {
   return {};
 }
 
-std::string DSPDebugInterface::Disassemble(u32 address) const
+std::string DSPDebugInterface::Disassemble(const Core::CPUThreadGuard* guard, u32 address) const
 {
   // we'll treat addresses as line numbers.
   return Symbols::GetLineText(address);
 }
 
-std::string DSPDebugInterface::GetRawMemoryString(int memory, u32 address) const
+std::string DSPDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& guard, int memory,
+                                                  u32 address) const
 {
-  if (DSPCore_GetState() == State::Stopped)
+  if (m_parent->m_dsp_core.GetState() == State::Stopped)
     return "";
 
   switch (memory)
@@ -163,7 +198,7 @@ std::string DSPDebugInterface::GetRawMemoryString(int memory, u32 address) const
     {
     case 0:
     case 0x8:
-      return fmt::format("{:04x}", dsp_imem_read(address));
+      return fmt::format("{:04x}", m_parent->m_dsp_core.DSPState().ReadIMEM(address));
     default:
       return "--IMEM--";
     }
@@ -173,9 +208,10 @@ std::string DSPDebugInterface::GetRawMemoryString(int memory, u32 address) const
     {
     case 0:
     case 1:
-      return fmt::format("{:04x} (DMEM)", dsp_dmem_read(address));
+      return fmt::format("{:04x} (DMEM)", m_parent->m_dsp_core.DSPState().ReadDMEM(address));
     case 0xf:
-      return fmt::format("{:04x} (MMIO)", g_dsp.ifx_regs[address & 0xFF]);
+      return fmt::format("{:04x} (MMIO)",
+                         m_parent->m_dsp_core.DSPState().m_ifx_regs[address & 0xFF]);
     default:
       return "--DMEM--";
     }
@@ -184,12 +220,12 @@ std::string DSPDebugInterface::GetRawMemoryString(int memory, u32 address) const
   return "";
 }
 
-u32 DSPDebugInterface::ReadMemory(u32 address) const
+u32 DSPDebugInterface::ReadMemory(const Core::CPUThreadGuard& guard, u32 address) const
 {
   return 0;
 }
 
-u32 DSPDebugInterface::ReadInstruction(u32 address) const
+u32 DSPDebugInterface::ReadInstruction(const Core::CPUThreadGuard& guard, u32 address) const
 {
   return 0;
 }
@@ -203,7 +239,7 @@ bool DSPDebugInterface::IsBreakpoint(u32 address) const
 {
   int real_addr = Symbols::Line2Addr(address);
   if (real_addr >= 0)
-    return g_dsp_breakpoints.IsAddressBreakPoint(real_addr);
+    return m_parent->m_dsp_core.BreakPoints().IsAddressBreakPoint(real_addr);
 
   return false;
 }
@@ -214,7 +250,7 @@ void DSPDebugInterface::SetBreakpoint(u32 address)
 
   if (real_addr >= 0)
   {
-    g_dsp_breakpoints.Add(real_addr);
+    m_parent->m_dsp_core.BreakPoints().Add(real_addr);
   }
 }
 
@@ -224,13 +260,13 @@ void DSPDebugInterface::ClearBreakpoint(u32 address)
 
   if (real_addr >= 0)
   {
-    g_dsp_breakpoints.Remove(real_addr);
+    m_parent->m_dsp_core.BreakPoints().Remove(real_addr);
   }
 }
 
 void DSPDebugInterface::ClearAllBreakpoints()
 {
-  g_dsp_breakpoints.Clear();
+  m_parent->m_dsp_core.BreakPoints().Clear();
 }
 
 void DSPDebugInterface::ToggleBreakpoint(u32 address)
@@ -238,10 +274,10 @@ void DSPDebugInterface::ToggleBreakpoint(u32 address)
   int real_addr = Symbols::Line2Addr(address);
   if (real_addr >= 0)
   {
-    if (g_dsp_breakpoints.IsAddressBreakPoint(real_addr))
-      g_dsp_breakpoints.Remove(real_addr);
+    if (m_parent->m_dsp_core.BreakPoints().IsAddressBreakPoint(real_addr))
+      m_parent->m_dsp_core.BreakPoints().Remove(real_addr);
     else
-      g_dsp_breakpoints.Add(real_addr);
+      m_parent->m_dsp_core.BreakPoints().Add(real_addr);
   }
 }
 
@@ -263,7 +299,7 @@ void DSPDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool 
 // =======================================================
 // Separate the blocks with colors.
 // -------------
-u32 DSPDebugInterface::GetColor(u32 address) const
+u32 DSPDebugInterface::GetColor(const Core::CPUThreadGuard* guard, u32 address) const
 {
   // Scan backwards so we don't miss it. Hm, actually, let's not - it looks pretty good.
   int addr = -1;
@@ -301,23 +337,23 @@ std::string DSPDebugInterface::GetDescription(u32 address) const
 
 u32 DSPDebugInterface::GetPC() const
 {
-  return Symbols::Addr2Line(DSP::g_dsp.pc);
+  return Symbols::Addr2Line(m_parent->m_dsp_core.DSPState().pc);
 }
 
 void DSPDebugInterface::SetPC(u32 address)
 {
   int new_pc = Symbols::Line2Addr(address);
   if (new_pc > 0)
-    g_dsp.pc = new_pc;
+    m_parent->m_dsp_core.DSPState().pc = new_pc;
 }
 
 void DSPDebugInterface::RunToBreakpoint()
 {
 }
 
-void DSPDebugInterface::Clear()
+void DSPDebugInterface::Clear(const Core::CPUThreadGuard& guard)
 {
-  ClearPatches();
+  ClearPatches(guard);
   ClearWatches();
 }
 }  // namespace DSP::LLE

@@ -32,6 +32,11 @@ namespace JIT
 class DSPEmitter;
 }
 
+namespace LLE
+{
+class DSPDebugInterface;
+}
+
 enum : u32
 {
   DSP_IRAM_BYTE_SIZE = 0x2000,
@@ -447,6 +452,8 @@ struct SDSP
   u16* coef = nullptr;
 
 private:
+  friend class LLE::DSPDebugInterface;
+
   auto& GetMailbox(Mailbox mailbox) { return m_mailbox[static_cast<u32>(mailbox)]; }
   const auto& GetMailbox(Mailbox mailbox) const { return m_mailbox[static_cast<u32>(mailbox)]; }
 
