@@ -69,14 +69,18 @@
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\Lua\LuaFunctions\ByteWrapper.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaBitFunctions.h" />
+    <ClInclude Include="Core\Lua\LuaFunctions\LuaByteWrapper.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaConverter.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaEmuFunctions.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaMemoryFunctions\LuaMemoryBaseApi.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaMemoryFunctions\LuaRamFunctions.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\Lua\LuaFunctions\ByteWrapper.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaBitFunctions.cpp" />
+    <ClCompile Include="Core\Lua\LuaFunctions\LuaByteWrapper.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaConverter.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaEmuFunctions.cpp" />
   </ItemGroup>

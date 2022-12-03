@@ -106,6 +106,10 @@ function MyLuaFunction()
 	ram.write_unsigned_64(address, 0)
 	io.write("\n\n\n")
 
+	local byteWrapperObj = ByteWrapper(42)
+	io.write(byteWrapperObj:with_type_signed_16():get_value())
+	io.write("\n\n")
+	io.write("FINISHED NEW SCRIPT!")
 	io.flush()
 	io.close()
 end

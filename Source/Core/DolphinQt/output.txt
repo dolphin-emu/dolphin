@@ -57,3 +57,6 @@ Value of address 84300 now is this_is_a_string8
 
 
 
+42
+
+FINISHED NEW SCRIPT!
