@@ -181,8 +181,11 @@ Common::Debug::Threads DSPDebugInterface::GetThreads(const Core::CPUThreadGuard&
 
 std::string DSPDebugInterface::Disassemble(const Core::CPUThreadGuard* guard, u32 address) const
 {
-  // we'll treat addresses as line numbers.
-  return Symbols::GetLineText(address);
+  int line = Symbols::Addr2Line(address);
+  if (line >= 0)
+    return Symbols::GetLineText(line);
+  else
+    return "<unknown>";
 }
 
 std::string DSPDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& guard, int memory,
@@ -237,31 +240,22 @@ bool DSPDebugInterface::IsAlive() const
 
 bool DSPDebugInterface::IsBreakpoint(u32 address) const
 {
-  int real_addr = Symbols::Line2Addr(address);
-  if (real_addr >= 0)
-    return m_parent->m_dsp_core.BreakPoints().IsAddressBreakPoint(real_addr);
-
-  return false;
+  if (Symbols::Addr2Line(address) >= 0)
+    return m_parent->m_dsp_core.BreakPoints().IsAddressBreakPoint(address);
+  else
+    return false;
 }
 
 void DSPDebugInterface::SetBreakpoint(u32 address)
 {
-  int real_addr = Symbols::Line2Addr(address);
-
-  if (real_addr >= 0)
-  {
-    m_parent->m_dsp_core.BreakPoints().Add(real_addr);
-  }
+  if (Symbols::Addr2Line(address) >= 0)
+    m_parent->m_dsp_core.BreakPoints().Add(address);
 }
 
 void DSPDebugInterface::ClearBreakpoint(u32 address)
 {
-  int real_addr = Symbols::Line2Addr(address);
-
-  if (real_addr >= 0)
-  {
-    m_parent->m_dsp_core.BreakPoints().Remove(real_addr);
-  }
+  if (Symbols::Addr2Line(address) >= 0)
+    m_parent->m_dsp_core.BreakPoints().Remove(address);
 }
 
 void DSPDebugInterface::ClearAllBreakpoints()
@@ -271,14 +265,10 @@ void DSPDebugInterface::ClearAllBreakpoints()
 
 void DSPDebugInterface::ToggleBreakpoint(u32 address)
 {
-  int real_addr = Symbols::Line2Addr(address);
-  if (real_addr >= 0)
-  {
-    if (m_parent->m_dsp_core.BreakPoints().IsAddressBreakPoint(real_addr))
-      m_parent->m_dsp_core.BreakPoints().Remove(real_addr);
-    else
-      m_parent->m_dsp_core.BreakPoints().Add(real_addr);
-  }
+  if (m_parent->m_dsp_core.BreakPoints().IsAddressBreakPoint(address))
+    m_parent->m_dsp_core.BreakPoints().Remove(address);
+  else
+    m_parent->m_dsp_core.BreakPoints().Add(address);
 }
 
 bool DSPDebugInterface::IsMemCheck(u32 address, size_t size) const
@@ -305,12 +295,12 @@ u32 DSPDebugInterface::GetColor(const Core::CPUThreadGuard* guard, u32 address) 
   int addr = -1;
   for (int i = 0; i < 1; i++)
   {
-    addr = Symbols::Line2Addr(address - i);
+    addr = Symbols::Line2Addr(Symbols::Addr2Line(address) - i);
     if (addr >= 0)
       break;
   }
   if (addr == -1)
-    return 0xFFFFFF;
+    return 0x808080;
 
   Common::Symbol* symbol = Symbols::g_dsp_symbol_db.GetSymbolFromAddr(addr);
   if (!symbol)
@@ -337,14 +327,12 @@ std::string DSPDebugInterface::GetDescription(u32 address) const
 
 u32 DSPDebugInterface::GetPC() const
 {
-  return Symbols::Addr2Line(m_parent->m_dsp_core.DSPState().pc);
+  return m_parent->m_dsp_core.DSPState().pc;
 }
 
 void DSPDebugInterface::SetPC(u32 address)
 {
-  int new_pc = Symbols::Line2Addr(address);
-  if (new_pc > 0)
-    m_parent->m_dsp_core.DSPState().pc = new_pc;
+  m_parent->m_dsp_core.DSPState().pc = address;
 }
 
 void DSPDebugInterface::Step()
