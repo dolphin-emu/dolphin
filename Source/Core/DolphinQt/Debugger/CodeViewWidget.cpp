@@ -180,11 +180,11 @@ CodeViewWidget::CodeViewWidget(Core::DebugInterface* debug_interface)
           &CodeViewWidget::OnDebugFontChanged);
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
-    m_address = m_system.GetPPCState().pc;
+    m_address = m_debug_interface->GetPC();
     Update();
   });
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    m_address = m_system.GetPPCState().pc;
+    m_address = m_debug_interface->GetPC();
     Update();
   });
   connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this,

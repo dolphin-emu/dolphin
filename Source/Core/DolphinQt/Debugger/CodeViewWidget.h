@@ -106,10 +106,12 @@ private:
 
   void CalculateBranchIndentation();
 
+public:
   Core::DebugInterface* m_debug_interface;
   Core::System& m_system;
   PPCSymbolDB& m_ppc_symbol_db;
 
+private:
   bool m_updating = false;
 
   u32 m_address = 0;
