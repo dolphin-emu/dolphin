@@ -21,6 +21,7 @@
 
 #include "Common/Event.h"
 #include "Core/Core.h"
+#include "Core/Debugger/DebugInterface.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/MMU.h"
@@ -58,7 +59,8 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent), m_system(Core::Sy
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
     if (Core::GetState() == Core::State::Paused)
-      SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
+      SetAddress(m_code_view->m_debug_interface->GetPC(),
+                 CodeViewWidget::SetAddressUpdate::WithoutUpdate);
     Update();
   });
 
@@ -579,7 +581,8 @@ void CodeWidget::Skip()
 
 void CodeWidget::ShowPC()
 {
-  m_code_view->SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithUpdate);
+  m_code_view->SetAddress(m_code_view->m_debug_interface->GetPC(),
+                          CodeViewWidget::SetAddressUpdate::WithUpdate);
   Update();
 }
 

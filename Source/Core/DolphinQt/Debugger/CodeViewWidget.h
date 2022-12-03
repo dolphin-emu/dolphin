@@ -102,9 +102,11 @@ private:
 
   void CalculateBranchIndentation();
 
+public:
   Core::DebugInterface* m_debug_interface;
   Core::System& m_system;
 
+private:
   bool m_updating = false;
 
   u32 m_address = 0;
