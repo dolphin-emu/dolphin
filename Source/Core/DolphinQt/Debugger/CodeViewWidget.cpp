@@ -55,6 +55,7 @@ struct CodeViewBranch
 };
 
 constexpr u32 WIDTH_PER_BRANCH_ARROW = 16;
+constexpr u32 INSTRUCTION_SIZE = 1;
 
 class BranchDisplayDelegate : public QStyledItemDelegate
 {
@@ -245,8 +246,8 @@ u32 CodeViewWidget::AddressForRow(int row) const
 {
   // m_address is defined as the center row of the table, so we have rowCount/2 instructions above
   // it; an instruction is 4 bytes long on GC/Wii so we increment 4 bytes per row
-  const u32 row_zero_address = m_address - ((rowCount() / 2) * 4);
-  return row_zero_address + row * 4;
+  const u32 row_zero_address = m_address - ((rowCount() / 2) * INSTRUCTION_SIZE);
+  return row_zero_address + row * INSTRUCTION_SIZE;
 }
 
 static bool IsBranchInstructionWithLink(std::string_view ins)
@@ -468,8 +469,10 @@ void CodeViewWidget::CalculateBranchIndentation()
 
     const u32 arrow_first_visible_addr = std::clamp(arrow_addr_lower, first_addr, last_addr);
     const u32 arrow_last_visible_addr = std::clamp(arrow_addr_higher, first_addr, last_addr);
-    const u32 arrow_first_visible_row = (arrow_first_visible_addr - first_addr) / 4 + first_row;
-    const u32 arrow_last_visible_row = (arrow_last_visible_addr - first_addr) / 4 + first_row;
+    const u32 arrow_first_visible_row =
+        (arrow_first_visible_addr - first_addr) / INSTRUCTION_SIZE + first_row;
+    const u32 arrow_last_visible_row =
+        (arrow_last_visible_addr - first_addr) / INSTRUCTION_SIZE  + first_row;
 
     const auto free_column = [&]() -> std::optional<u32> {
       for (u32 column = 0; column < columns; ++column)
@@ -841,14 +844,13 @@ void CodeViewWidget::OnCopyFunction()
     return;
 
   std::string text = symbol->name + "\r\n";
-
   {
     Core::CPUThreadGuard guard(m_system);
 
     // we got a function
     const u32 start = symbol->address;
     const u32 end = start + symbol->size;
-    for (u32 addr = start; addr != end; addr += 4)
+    for (u32 addr = start; addr != end; addr += INSTRUCTION_SIZE)
     {
       const std::string disasm = m_debug_interface->Disassemble(&guard, addr);
       fmt::format_to(std::back_inserter(text), "{:08x}: {}\r\n", addr, disasm);

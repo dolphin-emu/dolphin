@@ -479,8 +479,10 @@ int DSPCore::RunCycles(int cycles)
 
 void DSPCore::Step()
 {
-  if (m_core_state == State::Stepping)
-    m_step_event.Set();
+  // if (m_core_state == State::Stepping)
+  //   m_step_event.Set();
+  m_dsp_interpreter->Step();
+  Host::UpdateDebugger();
 }
 
 void DSPCore::Reset()
