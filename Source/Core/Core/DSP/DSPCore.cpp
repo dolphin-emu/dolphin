@@ -416,8 +416,6 @@ bool DSPCore::Initialize(const DSPInitOptions& opts)
   if (!m_dsp.Initialize(opts))
     return false;
 
-  m_init_hax = false;
-
   // Initialize JIT, if necessary
   if (opts.core_type == DSPInitOptions::CoreType::JIT64)
     m_dsp_jit = JIT::CreateDSPEmitter(*this);
@@ -593,7 +591,6 @@ bool DSPCore::IsJITCreated() const
 void DSPCore::DoState(PointerWrap& p)
 {
   m_dsp.DoState(p);
-  p.Do(m_init_hax);
 
   if (m_dsp_jit)
     m_dsp_jit->DoState(p);

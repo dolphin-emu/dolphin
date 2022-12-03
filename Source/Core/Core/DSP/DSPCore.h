@@ -589,7 +589,6 @@ private:
   SDSP m_dsp;
   DSPBreakpoints m_dsp_breakpoints;
   State m_core_state = State::Stopped;
-  bool m_init_hax = false;
   std::unique_ptr<Interpreter::Interpreter> m_dsp_interpreter;
   std::unique_ptr<JIT::DSPEmitter> m_dsp_jit;
   std::unique_ptr<DSPCaptureLogger> m_dsp_cap;
