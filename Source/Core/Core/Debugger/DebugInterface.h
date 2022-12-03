@@ -70,6 +70,7 @@ public:
   {
     return "NODEBUGGER";
   }
+  virtual int GetInstructionSize(int /*instruction*/) { return 1; }
   virtual bool IsAlive() const { return true; }
   virtual bool IsBreakpoint(u32 /*address*/) const { return false; }
   virtual void SetBreakpoint(u32 /*address*/) {}

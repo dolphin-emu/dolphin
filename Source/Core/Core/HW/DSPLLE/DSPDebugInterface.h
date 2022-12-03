@@ -70,6 +70,7 @@ public:
   std::string Disassemble(const Core::CPUThreadGuard* guard, u32 address) const override;
   std::string GetRawMemoryString(const Core::CPUThreadGuard& guard, int memory,
                                  u32 address) const override;
+  int GetInstructionSize(int instruction) override { return 1; }
   bool IsAlive() const override;
   bool IsBreakpoint(u32 address) const override;
   void SetBreakpoint(u32 address) override;
