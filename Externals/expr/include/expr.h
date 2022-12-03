@@ -99,15 +99,17 @@ enum expr_type {
 
   OP_CONST,
   OP_VAR,
+  OP_STRING,
   OP_FUNC,
 };
 
-static int prec[] = {0, 1, 1, 1, 2, 2, 2, 2, 3,  3,  4,  4, 5, 5,
-                     5, 5, 5, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 0};
+static int prec[] = {0, 1, 1, 1, 2, 2, 2, 2,  3,  3,  4, 4, 5, 5, 5,
+                     5, 5, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 0, 0};
 
 typedef vec(struct expr) vec_expr_t;
 typedef void (*exprfn_cleanup_t)(struct expr_func *f, void *context);
-typedef double (*exprfn_t)(struct expr_func *f, vec_expr_t *args, void *context);
+typedef double (*exprfn_t)(struct expr_func *f, vec_expr_t *args,
+                           void *context);
 
 struct expr {
   enum expr_type type;
@@ -121,6 +123,9 @@ struct expr {
     struct {
       vec_expr_t args;
     } op;
+    struct {
+      char *s;
+    } str;
     struct {
       struct expr_func *f;
       vec_expr_t args;
@@ -152,7 +157,7 @@ static int expr_is_unary(enum expr_type op) {
 
 static int expr_is_binary(enum expr_type op) {
   return !expr_is_unary(op) && op != OP_CONST && op != OP_VAR &&
-         op != OP_FUNC && op != OP_UNKNOWN;
+         op != OP_FUNC && op != OP_UNKNOWN && op != OP_STRING;
 }
 
 static int expr_prec(enum expr_type a, enum expr_type b) {
@@ -161,11 +166,11 @@ static int expr_prec(enum expr_type a, enum expr_type b) {
   return (left && prec[a] >= prec[b]) || (prec[a] > prec[b]);
 }
 
-#define isfirstvarchr(c)                                                        \
+#define isfirstvarchr(c)                                                       \
   (((unsigned char)c >= '@' && c != '^' && c != '|' && c != '~') || c == '$')
-#define isvarchr(c)                                                             \
-  (((unsigned char)c >= '@' && c != '^' && c != '|' && c != '~') || c == '$' || \
-   c == '#' || (c >= '0' && c <= '9'))
+#define isvarchr(c)                                                            \
+  (((unsigned char)c >= '@' && c != '^' && c != '|' && c != '~') ||            \
+   c == '$' || c == '#' || (c >= '0' && c <= '9'))
 
 static struct {
   const char *s;
@@ -213,13 +218,13 @@ static enum expr_type expr_op(const char *s, size_t len, int unary) {
   return OP_UNKNOWN;
 }
 
-static double expr_parse_number(const char* s, size_t len) {
+static double expr_parse_number(const char *s, size_t len) {
   double num = 0;
   char buf[32];
-  char* sz = buf;
-  char* end = NULL;
+  char *sz = buf;
+  char *end = NULL;
   if (len >= sizeof(buf)) {
-    sz = (char*)calloc(1, len + 1);
+    sz = (char *)calloc(1, len + 1);
     if (sz == NULL) {
       return NAN;
     }
@@ -297,6 +302,13 @@ static int64_t to_int(double x) {
   } else {
     return (int64_t)x;
   }
+}
+
+static const char *expr_get_str(struct expr *e) {
+  if (e->type != OP_STRING)
+    return NULL;
+
+  return e->param.str.s;
 }
 
 static double expr_eval(struct expr *e) {
@@ -403,9 +415,9 @@ static double expr_eval(struct expr *e) {
 #define EXPR_TOP (1 << 0)
 #define EXPR_TOPEN (1 << 1)
 #define EXPR_TCLOSE (1 << 2)
-#define EXPR_TNUMBER (1 << 3)
+#define EXPR_TLITERAL (1 << 3)
 #define EXPR_TWORD (1 << 4)
-#define EXPR_TDEFAULT (EXPR_TOPEN | EXPR_TNUMBER | EXPR_TWORD)
+#define EXPR_TDEFAULT (EXPR_TOPEN | EXPR_TLITERAL | EXPR_TWORD)
 
 #define EXPR_UNARY (1 << 5)
 #define EXPR_COMMA (1 << 6)
@@ -427,7 +439,7 @@ static int expr_next_token(const char *s, size_t len, int *flags) {
       if (i == len || s[i] == ')') {
         *flags = *flags & (~EXPR_COMMA);
       } else {
-        *flags = EXPR_TNUMBER | EXPR_TWORD | EXPR_TOPEN | EXPR_COMMA;
+        *flags = EXPR_TLITERAL | EXPR_TWORD | EXPR_TOPEN | EXPR_COMMA;
       }
     }
     return i;
@@ -437,7 +449,7 @@ static int expr_next_token(const char *s, size_t len, int *flags) {
     }
     return i;
   } else if (isdigit(c)) {
-    if ((*flags & EXPR_TNUMBER) == 0) {
+    if ((*flags & EXPR_TLITERAL) == 0) {
       return -1; // unexpected number
     }
     *flags = EXPR_TOP | EXPR_TCLOSE;
@@ -460,6 +472,19 @@ static int expr_next_token(const char *s, size_t len, int *flags) {
         ;
     }
     return i;
+  } else if (c == '"') {
+    if ((*flags & EXPR_TLITERAL) == 0) {
+      return -6; // unexpected string
+    }
+    *flags = EXPR_TOP | EXPR_TCLOSE;
+    i++;
+    for (; i < len && s[i] != '"'; i++)
+      ;
+    if (i >= len) {
+      return -7; // missing expected quote
+    }
+    i++;
+    return i;
   } else if (isfirstvarchr(c)) {
     if ((*flags & EXPR_TWORD) == 0) {
       return -2; // unexpected word
@@ -472,7 +497,7 @@ static int expr_next_token(const char *s, size_t len, int *flags) {
     return i;
   } else if (c == '(' || c == ')') {
     if (c == '(' && (*flags & EXPR_TOPEN) != 0) {
-      *flags = EXPR_TNUMBER | EXPR_TWORD | EXPR_TOPEN | EXPR_TCLOSE;
+      *flags = EXPR_TLITERAL | EXPR_TWORD | EXPR_TOPEN | EXPR_TCLOSE;
     } else if (c == ')' && (*flags & EXPR_TCLOSE) != 0) {
       *flags = EXPR_TOP | EXPR_TCLOSE;
     } else {
@@ -484,7 +509,7 @@ static int expr_next_token(const char *s, size_t len, int *flags) {
       if (expr_op(&c, 1, 1) == OP_UNKNOWN) {
         return -4; // missing expected operand
       }
-      *flags = EXPR_TNUMBER | EXPR_TWORD | EXPR_TOPEN | EXPR_UNARY;
+      *flags = EXPR_TLITERAL | EXPR_TWORD | EXPR_TOPEN | EXPR_UNARY;
       return 1;
     } else {
       int found = 0;
@@ -500,7 +525,7 @@ static int expr_next_token(const char *s, size_t len, int *flags) {
       if (!found) {
         return -5; // unknown operator
       }
-      *flags = EXPR_TNUMBER | EXPR_TWORD | EXPR_TOPEN;
+      *flags = EXPR_TLITERAL | EXPR_TWORD | EXPR_TOPEN;
       return i;
     }
   }
@@ -584,6 +609,12 @@ static inline void expr_copy(struct expr *dst, struct expr *src) {
     dst->param.num.value = src->param.num.value;
   } else if (src->type == OP_VAR) {
     dst->param.var.value = src->param.var.value;
+  } else if (src->type == OP_STRING) {
+    size_t len = strlen(src->param.str.s);
+    dst->param.str.s = (char *)calloc(1, len + 1);
+    if (dst->param.str.s != NULL) {
+      strncpy(dst->param.str.s, src->param.str.s, len);
+    }
   } else {
     vec_foreach(&src->param.op.args, arg, i) {
       struct expr tmp = expr_init();
@@ -794,6 +825,17 @@ static struct expr *expr_create(const char *s, size_t len,
     } else if (!isnan(num = expr_parse_number(tok, n))) {
       vec_push(&es, expr_const(num));
       paren_next = EXPR_PAREN_FORBIDDEN;
+    } else if (n > 1 && *tok == '"') {
+      char *s = (char *)calloc(1, n - 1);
+      if (s == NULL) {
+        goto cleanup; /* allocation failed */
+      }
+      strncpy(s, tok + 1, n - 2);
+      struct expr e = expr_init();
+      e.type = OP_STRING;
+      e.param.str.s = s;
+      vec_push(&es, e);
+      paren_next = EXPR_PAREN_FORBIDDEN;
     } else if (expr_op(tok, n, -1) != OP_UNKNOWN) {
       enum expr_type op = expr_op(tok, n, -1);
       struct expr_string o2 = {NULL, 0};
@@ -899,6 +941,8 @@ static void expr_destroy_args(struct expr *e) {
       }
       free(e->param.func.context);
     }
+  } else if (e->type == OP_STRING) {
+    free(e->param.str.s);
   } else if (e->type != OP_CONST && e->type != OP_VAR) {
     vec_foreach(&e->param.op.args, arg, i) { expr_destroy_args(&arg); }
     vec_free(&e->param.op.args);
