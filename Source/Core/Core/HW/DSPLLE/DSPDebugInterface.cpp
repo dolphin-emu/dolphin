@@ -240,22 +240,17 @@ bool DSPDebugInterface::IsAlive() const
 
 bool DSPDebugInterface::IsBreakpoint(u32 address) const
 {
-  if (Symbols::Addr2Line(address) >= 0)
-    return m_parent->m_dsp_core.BreakPoints().IsAddressBreakPoint(address);
-  else
-    return false;
+  return m_parent->m_dsp_core.BreakPoints().IsAddressBreakPoint(address);
 }
 
 void DSPDebugInterface::SetBreakpoint(u32 address)
 {
-  if (Symbols::Addr2Line(address) >= 0)
-    m_parent->m_dsp_core.BreakPoints().Add(address);
+  m_parent->m_dsp_core.BreakPoints().Add(address);
 }
 
 void DSPDebugInterface::ClearBreakpoint(u32 address)
 {
-  if (Symbols::Addr2Line(address) >= 0)
-    m_parent->m_dsp_core.BreakPoints().Remove(address);
+  m_parent->m_dsp_core.BreakPoints().Remove(address);
 }
 
 void DSPDebugInterface::ClearAllBreakpoints()
