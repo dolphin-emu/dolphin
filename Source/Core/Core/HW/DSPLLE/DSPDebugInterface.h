@@ -83,7 +83,7 @@ public:
   u32 ReadInstruction(const Core::CPUThreadGuard& guard, u32 address) const override;
   u32 GetPC() const override;
   void SetPC(u32 address) override;
-  void Step() override {}
+  void Step() override;
   void RunToBreakpoint() override;
   u32 GetColor(const Core::CPUThreadGuard* guard, u32 address) const override;
   std::string GetDescription(u32 address) const override;

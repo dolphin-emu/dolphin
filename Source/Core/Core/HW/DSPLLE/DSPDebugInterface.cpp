@@ -347,6 +347,11 @@ void DSPDebugInterface::SetPC(u32 address)
     m_parent->m_dsp_core.DSPState().pc = new_pc;
 }
 
+void DSPDebugInterface::Step()
+{
+  m_parent->m_dsp_core.Step();
+}
+
 void DSPDebugInterface::RunToBreakpoint()
 {
 }
