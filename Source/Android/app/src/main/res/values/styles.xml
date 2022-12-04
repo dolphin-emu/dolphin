@@ -42,7 +42,7 @@
 
     <style name="DolphinTVDialog" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="colorSurface">@color/dolphin_inverseOnSurface</item>
-        <item name="colorPrimary">@color/dolphin_primary</item>
+        <item name="colorPrimary">@color/dolphin_blue</item>
     </style>
 
     <style name="DolphinButton" parent="Widget.Material3.Button.TextButton.Dialog">

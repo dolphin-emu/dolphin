@@ -507,6 +507,17 @@
         <item>4</item>
     </integer-array>
 
+    <string-array name="themeModeEntries">
+        <item>Follow System</item>
+        <item>Light</item>
+        <item>Dark</item>
+    </string-array>
+    <integer-array name="themeModeValues">
+        <item>-1</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
     <string-array name="synchronizeGpuThreadEntries">
         <item>Never</item>
         <item>On Idle Skipping</item>

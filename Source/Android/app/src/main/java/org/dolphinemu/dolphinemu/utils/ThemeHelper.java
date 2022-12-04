@@ -10,7 +10,10 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.appbar.AppBarLayout;
@@ -23,6 +26,7 @@ import org.dolphinemu.dolphinemu.ui.main.ThemeProvider;
 public class ThemeHelper
 {
   public static final String CURRENT_THEME = "current_theme";
+  public static final String CURRENT_THEME_MODE = "current_theme_mode";
 
   public static final int DEFAULT = 0;
   public static final int MONET = 1;
@@ -38,6 +42,7 @@ public class ThemeHelper
     // requested theme id is ready before the onCreate method of any given Activity.
     SharedPreferences preferences =
             PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
+    setThemeMode(activity);
     switch (preferences.getInt(CURRENT_THEME, DEFAULT))
     {
       case DEFAULT:
@@ -70,20 +75,86 @@ public class ThemeHelper
     }
   }
 
-  public static void saveTheme(@NonNull Activity activity, int themeValue)
+  private static void setThemeMode(@NonNull AppCompatActivity activity)
   {
-    SharedPreferences preferences =
-            PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
-    preferences.edit().putInt(CURRENT_THEME, themeValue).apply();
+    int themeMode = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext())
+            .getInt(CURRENT_THEME_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+    activity.getDelegate().setLocalNightMode(themeMode);
+
+    WindowInsetsControllerCompat windowController =
+            WindowCompat.getInsetsController(activity.getWindow(),
+                    activity.getWindow().getDecorView());
+    int systemReportedThemeMode =
+            activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+
+    switch (themeMode)
+    {
+      case AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM:
+        switch (systemReportedThemeMode)
+        {
+          case Configuration.UI_MODE_NIGHT_NO:
+            setLightModeSystemBars(windowController);
+            break;
+          case Configuration.UI_MODE_NIGHT_YES:
+            setDarkModeSystemBars(windowController);
+            break;
+        }
+        break;
+      case AppCompatDelegate.MODE_NIGHT_NO:
+        setLightModeSystemBars(windowController);
+        break;
+      case AppCompatDelegate.MODE_NIGHT_YES:
+        setDarkModeSystemBars(windowController);
+        break;
+    }
   }
 
-  public static void deleteThemeKey(@NonNull Activity activity)
+  private static void setLightModeSystemBars(@NonNull WindowInsetsControllerCompat windowController)
   {
-    SharedPreferences preferences =
-            PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
-    preferences.edit().remove(CURRENT_THEME).apply();
-    activity.setTheme(R.style.Theme_Dolphin_Main);
+    windowController.setAppearanceLightStatusBars(true);
+    windowController.setAppearanceLightNavigationBars(true);
+  }
+
+  private static void setDarkModeSystemBars(@NonNull WindowInsetsControllerCompat windowController)
+  {
+    windowController.setAppearanceLightStatusBars(false);
+    windowController.setAppearanceLightNavigationBars(false);
+  }
+
+  public static void saveTheme(@NonNull AppCompatActivity activity, int themeValue)
+  {
+    PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext())
+            .edit()
+            .putInt(CURRENT_THEME, themeValue)
+            .apply();
     activity.recreate();
+  }
+
+  public static void deleteThemeKey(@NonNull AppCompatActivity activity)
+  {
+    PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext())
+            .edit()
+            .remove(CURRENT_THEME)
+            .apply();
+    activity.recreate();
+  }
+
+  public static void saveThemeMode(@NonNull AppCompatActivity activity, int themeModeValue)
+  {
+    PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext())
+            .edit()
+            .putInt(CURRENT_THEME_MODE, themeModeValue)
+            .apply();
+    setThemeMode(activity);
+  }
+
+  public static void deleteThemeModeKey(@NonNull AppCompatActivity activity)
+  {
+    PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext())
+            .edit()
+            .remove(CURRENT_THEME_MODE)
+            .apply();
+    setThemeMode(activity);
   }
 
   public static void setCorrectTheme(AppCompatActivity activity)
@@ -110,7 +181,7 @@ public class ThemeHelper
     }
   }
 
-  public static void setNavigationBarColor(Activity activity, @ColorInt int color)
+  public static void setNavigationBarColor(@NonNull Activity activity, @ColorInt int color)
   {
     int gestureType = InsetsHelper.getSystemGestureType(activity.getApplicationContext());
     int orientation = activity.getResources().getConfiguration().orientation;

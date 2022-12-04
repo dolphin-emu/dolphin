@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.preference.PreferenceManager;
@@ -84,6 +85,16 @@ public final class DirectoryInitialization
     {
       preferences.edit()
               .putInt(ThemeHelper.CURRENT_THEME, IntSetting.MAIN_INTERFACE_THEME.getIntGlobal())
+              .apply();
+    }
+
+    if (IntSetting.MAIN_INTERFACE_THEME_MODE.getIntGlobal() !=
+            preferences.getInt(ThemeHelper.CURRENT_THEME_MODE,
+                    AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM))
+    {
+      preferences.edit()
+              .putInt(ThemeHelper.CURRENT_THEME_MODE,
+                      IntSetting.MAIN_INTERFACE_THEME_MODE.getIntGlobal())
               .apply();
     }
 

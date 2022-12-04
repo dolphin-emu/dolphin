@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.V29.Dolphin" parent="Theme.V27.Dolphin">
+    <style name="Theme.V29.Dolphin" parent="Theme.Dolphin">
         <item name="android:enforceStatusBarContrast">false</item>
         <item name="android:enforceNavigationBarContrast">false</item>
     </style>
