@@ -180,14 +180,10 @@ CodeViewWidget::CodeViewWidget(Core::DebugInterface* debug_interface)
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
           &CodeViewWidget::FontBasedSizing);
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
-    m_address = m_debug_interface->GetPC();
-    Update();
-  });
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    m_address = m_debug_interface->GetPC();
-    Update();
-  });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          [this] { SetAddress(m_debug_interface->GetPC(), SetAddressUpdate::WithUpdate); });
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
+          [this] { SetAddress(m_debug_interface->GetPC(), SetAddressUpdate::WithUpdate); });
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this,
           qOverload<>(&CodeViewWidget::Update));
@@ -246,6 +242,11 @@ u32 CodeViewWidget::AddressForRow(int row) const
   // it; an instruction is 4 bytes long on GC/Wii so we increment 4 bytes per row
   int offset = row - (rowCount() / 2);
   return m_debug_interface->GetOffsetAddress(m_address, offset);
+}
+
+void CodeViewWidget::ChangeAddress(int num_rows)
+{
+  SetAddress(m_debug_interface->GetOffsetAddress(m_address, num_rows), SetAddressUpdate::WithUpdate);
 }
 
 static bool IsBranchInstructionWithLink(std::string_view ins)
@@ -1053,20 +1054,17 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
   switch (event->key())
   {
   case Qt::Key_Up:
-    m_address = m_debug_interface->GetOffsetAddress(m_address, -1);
-    Update();
+    ChangeAddress(-1);
     return;
   case Qt::Key_Down:
-    m_address = m_debug_interface->GetOffsetAddress(m_address, +1);
+    ChangeAddress(+1);
     Update();
     return;
   case Qt::Key_PageUp:
-    m_address = m_debug_interface->GetOffsetAddress(m_address, -rowCount());
-    Update();
+    ChangeAddress(-rowCount());
     return;
   case Qt::Key_PageDown:
-    m_address = m_debug_interface->GetOffsetAddress(m_address, +rowCount());
-    Update();
+    ChangeAddress(+rowCount());
     return;
   default:
     QWidget::keyPressEvent(event);
@@ -1079,11 +1077,7 @@ void CodeViewWidget::wheelEvent(QWheelEvent* event)
   auto delta =
       -static_cast<int>(std::round((event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8))));
 
-  if (delta == 0)
-    return;
-
-  m_address = m_debug_interface->GetOffsetAddress(m_address, delta);
-  Update();
+  ChangeAddress(delta);
 }
 
 void CodeViewWidget::mousePressEvent(QMouseEvent* event)

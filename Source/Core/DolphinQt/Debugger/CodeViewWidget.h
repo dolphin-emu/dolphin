@@ -52,6 +52,7 @@ public:
   void AddBreakpoint();
 
   u32 AddressForRow(int row) const;
+  void ChangeAddress(int num_rows);
 
 signals:
   void RequestPPCComparison(u32 addr);
