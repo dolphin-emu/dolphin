@@ -20,7 +20,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.color.MaterialColors;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import org.dolphinemu.dolphinemu.R;
 
@@ -73,7 +73,7 @@ public class InsetsHelper
   }
 
   public static void setUpMainLayout(AppCompatActivity activity, AppBarLayout appBarLayout,
-          FloatingActionButton fab, ViewPager viewPager, View workaroundView)
+          ExtendedFloatingActionButton fab, ViewPager viewPager, View workaroundView)
   {
     ViewCompat.setOnApplyWindowInsetsListener(appBarLayout, (v, windowInsets) ->
     {

@@ -76,6 +76,17 @@ public final class MainActivity extends AppCompatActivity
 
     // Set up the FAB.
     mBinding.buttonAddDirectory.setOnClickListener(view -> mPresenter.onFabClick());
+    mBinding.appbarMain.addOnOffsetChangedListener((appBarLayout, verticalOffset) ->
+    {
+      if (verticalOffset == 0)
+      {
+        mBinding.buttonAddDirectory.extend();
+      }
+      else if (appBarLayout.getTotalScrollRange() == -verticalOffset)
+      {
+        mBinding.buttonAddDirectory.shrink();
+      }
+    });
 
     mPresenter.onCreate();
 
