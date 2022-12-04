@@ -208,7 +208,8 @@ public class CheatsActivity extends AppCompatActivity
   public void downloadGeckoCodes()
   {
     AlertDialog progressDialog = new MaterialAlertDialogBuilder(this)
-            .setMessage(R.string.cheats_downloading)
+            .setTitle(R.string.cheats_downloading)
+            .setView(R.layout.dialog_indeterminate_progress)
             .setCancelable(false)
             .show();
 
