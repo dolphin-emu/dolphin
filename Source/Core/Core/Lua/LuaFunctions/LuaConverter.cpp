@@ -68,9 +68,9 @@ int conversion_helper_function(lua_State* luaState, T inputType, V outputType)
 {
   T inputValue = 0;
   if (std::is_integral<T>() && sizeof(inputType) < 8)
-    inputValue = luaL_checkinteger(luaState, 1);
+    inputValue = luaL_checkinteger(luaState, 2);
   else
-    inputValue = luaL_checknumber(luaState, 1);
+    inputValue = luaL_checknumber(luaState, 2);
   V outputValue = 0;
   memcpy(&outputValue, &inputValue, sizeof(outputValue));
   if (std::is_integral<V>() && sizeof(outputType) < 8)

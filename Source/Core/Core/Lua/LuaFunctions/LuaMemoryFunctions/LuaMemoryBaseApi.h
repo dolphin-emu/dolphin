@@ -102,7 +102,7 @@ void LuaMemoryBaseApi<T>::LuaMemoryBaseInit(lua_State* luaState, const char* dom
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_unsigned_8(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   lua_pushinteger(luaState, read_u8_from_domain_function(luaState, address));
   return 1;
 }
@@ -110,7 +110,7 @@ int LuaMemoryBaseApi<T>::do_read_unsigned_8(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_unsigned_16(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   lua_pushinteger(luaState, read_u16_from_domain_function(luaState, address));
   return 1;
 }
@@ -118,7 +118,7 @@ int LuaMemoryBaseApi<T>::do_read_unsigned_16(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_unsigned_32(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   lua_pushinteger(luaState, read_u32_from_domain_function(luaState, address));
   return 1;
 }
@@ -126,7 +126,7 @@ int LuaMemoryBaseApi<T>::do_read_unsigned_32(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_unsigned_64(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   lua_pushnumber(luaState, read_u64_from_domain_function(luaState, address));
   return 1;
 }
@@ -134,7 +134,7 @@ int LuaMemoryBaseApi<T>::do_read_unsigned_64(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_signed_8(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   u8 rawVal = read_u8_from_domain_function(luaState, address);
   s8 signedByte = 0;
   memcpy(&signedByte, &rawVal, sizeof(s8));
@@ -145,7 +145,7 @@ int LuaMemoryBaseApi<T>::do_read_signed_8(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_signed_16(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   u16 rawVal = read_u16_from_domain_function(luaState, address);
   s16 signedShort = 0;
   memcpy(&signedShort, &rawVal, sizeof(s16));
@@ -156,7 +156,7 @@ int LuaMemoryBaseApi<T>::do_read_signed_16(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_signed_32(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   u32 rawVal = read_u32_from_domain_function(luaState, address);
   s32 signedInt = 0;
   memcpy(&signedInt, &rawVal, sizeof(s32));
@@ -167,7 +167,7 @@ int LuaMemoryBaseApi<T>::do_read_signed_32(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_signed_64(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   u64 rawVal = read_u64_from_domain_function(luaState, address);
   s64 signedLongLong = 0;
   memcpy(&signedLongLong, &rawVal, sizeof(s64));
@@ -178,7 +178,7 @@ int LuaMemoryBaseApi<T>::do_read_signed_64(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_unsigned_byte(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   lua_pushinteger(luaState, read_u8_from_domain_function(luaState, address));
   return 1;
 }
@@ -186,7 +186,7 @@ int LuaMemoryBaseApi<T>::do_read_unsigned_byte(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_signed_byte(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   u8 rawVal = read_u8_from_domain_function(luaState, address);
   s8 signedByte = 0;
   memcpy(&signedByte, &rawVal, sizeof(s8));
@@ -197,7 +197,7 @@ int LuaMemoryBaseApi<T>::do_read_signed_byte(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_unsigned_int(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   lua_pushinteger(luaState, read_u32_from_domain_function(luaState, address));
   return 1;
 }
@@ -205,7 +205,7 @@ int LuaMemoryBaseApi<T>::do_read_unsigned_int(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_signed_int(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   u32 rawVal = read_u32_from_domain_function(luaState, address);
   s32 signedInt = 0;
   memcpy(&signedInt, &rawVal, sizeof(s32));
@@ -216,7 +216,7 @@ int LuaMemoryBaseApi<T>::do_read_signed_int(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_float(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   u32 rawVal = read_u32_from_domain_function(luaState, address);
   float myFloat = 0.0;
   memcpy(&myFloat, &rawVal, sizeof(float));
@@ -227,7 +227,7 @@ int LuaMemoryBaseApi<T>::do_read_float(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_double(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   u64 rawVal = read_u64_from_domain_function(luaState, address);
   double myDouble = 0.0;
   memcpy(&myDouble, &rawVal, sizeof(double));
@@ -238,8 +238,8 @@ int LuaMemoryBaseApi<T>::do_read_double(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_fixed_length_string(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  u32 stringLength = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  u32 stringLength = luaL_checkinteger(luaState, 3);
   std::string returnResult = get_string_from_domain_function(luaState, address, stringLength);
   lua_pushfstring(luaState, returnResult.c_str());
   return 1;
@@ -248,7 +248,7 @@ int LuaMemoryBaseApi<T>::do_read_fixed_length_string(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_null_terminated_string(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
+  u32 address = luaL_checkinteger(luaState, 2);
   u8* memPointerStart = get_pointer_to_domain_function(luaState, address);
   u8* memPointerCurrent = memPointerStart;
 
@@ -264,8 +264,8 @@ int LuaMemoryBaseApi<T>::do_read_null_terminated_string(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_unsigned_bytes(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  u32 numBytes = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  u32 numBytes = luaL_checkinteger(luaState, 3);
   u8* pointerToBaseAddress = get_pointer_to_domain_function(luaState, address);
   lua_createtable(luaState, numBytes, 0);
   for (size_t i = 0; i < numBytes; ++i)
@@ -280,8 +280,8 @@ int LuaMemoryBaseApi<T>::do_read_unsigned_bytes(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_read_signed_bytes(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  u32 numBytes = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  u32 numBytes = luaL_checkinteger(luaState, 3);
   u8* pointerToBaseAddress = get_pointer_to_domain_function(luaState, address);
   lua_createtable(luaState, numBytes, 0);
   for (size_t i = 0; i < numBytes; ++i)
@@ -297,8 +297,8 @@ int LuaMemoryBaseApi<T>::do_read_signed_bytes(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_unsigned_8(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  u8 writeVal = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  u8 writeVal = luaL_checkinteger(luaState, 3);
   write_u8_to_domain_function(luaState, address, writeVal);
   return 0;
 }
@@ -306,8 +306,8 @@ int LuaMemoryBaseApi<T>::do_write_unsigned_8(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_unsigned_16(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  u16 writeVal = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  u16 writeVal = luaL_checkinteger(luaState, 3);
   write_u16_to_domain_function(luaState, address, writeVal);
   return 0;
 }
@@ -315,8 +315,8 @@ int LuaMemoryBaseApi<T>::do_write_unsigned_16(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_unsigned_32(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  u32 writeVal = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  u32 writeVal = luaL_checkinteger(luaState, 3);
   write_u32_to_domain_function(luaState, address, writeVal);
   return 0;
 }
@@ -324,8 +324,8 @@ int LuaMemoryBaseApi<T>::do_write_unsigned_32(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_unsigned_64(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  u64 writeVal = luaL_checknumber(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  u64 writeVal = luaL_checknumber(luaState, 3);
   write_u64_to_domain_function(luaState, address, writeVal);
   return 0;
 }
@@ -333,8 +333,8 @@ int LuaMemoryBaseApi<T>::do_write_unsigned_64(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_signed_8(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  s8 rawVal = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  s8 rawVal = luaL_checkinteger(luaState, 3);
   u8 convertedByte = 0;
   memcpy(&convertedByte, &rawVal, sizeof(u8));
   write_u8_to_domain_function(luaState, address, convertedByte);
@@ -344,8 +344,8 @@ int LuaMemoryBaseApi<T>::do_write_signed_8(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_signed_16(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  s16 rawVal = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  s16 rawVal = luaL_checkinteger(luaState, 3);
   u16 convertedShort = 0;
   memcpy(&convertedShort, &rawVal, sizeof(u16));
   write_u16_to_domain_function(luaState, address, convertedShort);
@@ -355,8 +355,8 @@ int LuaMemoryBaseApi<T>::do_write_signed_16(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_signed_32(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  s32 rawVal = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  s32 rawVal = luaL_checkinteger(luaState, 3);
   u32 convertedInt = 0;
   memcpy(&convertedInt, &rawVal, sizeof(u32));
   write_u32_to_domain_function(luaState, address, convertedInt);
@@ -366,8 +366,8 @@ int LuaMemoryBaseApi<T>::do_write_signed_32(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_signed_64(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  s64 rawVal = luaL_checknumber(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  s64 rawVal = luaL_checknumber(luaState, 3);
   u64 convertedLongLong = 0;
   memcpy(&convertedLongLong, &rawVal, sizeof(u64));
   write_u64_to_domain_function(luaState, address, convertedLongLong);
@@ -377,8 +377,8 @@ int LuaMemoryBaseApi<T>::do_write_signed_64(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_unsigned_byte(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  u8 rawVal = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  u8 rawVal = luaL_checkinteger(luaState, 3);
   write_u8_to_domain_function(luaState, address, rawVal);
   return 0;
 }
@@ -386,8 +386,8 @@ int LuaMemoryBaseApi<T>::do_write_unsigned_byte(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_signed_byte(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  s8 rawVal = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  s8 rawVal = luaL_checkinteger(luaState, 3);
   u8 convertedByte = 0;
   memcpy(&convertedByte, &rawVal, sizeof(u8));
   write_u8_to_domain_function(luaState, address, convertedByte);
@@ -397,8 +397,8 @@ int LuaMemoryBaseApi<T>::do_write_signed_byte(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_unsigned_int(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  u32 rawVal = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  u32 rawVal = luaL_checkinteger(luaState, 3);
   write_u32_to_domain_function(luaState, address, rawVal);
   return 0;
 }
@@ -406,8 +406,8 @@ int LuaMemoryBaseApi<T>::do_write_unsigned_int(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_signed_int(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  s32 rawVal = luaL_checkinteger(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  s32 rawVal = luaL_checkinteger(luaState, 3);
   u32 convertedInt = 0;
   memcpy(&convertedInt, &rawVal, sizeof(u32));
   write_u32_to_domain_function(luaState, address, convertedInt);
@@ -417,8 +417,8 @@ int LuaMemoryBaseApi<T>::do_write_signed_int(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_float(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  float rawVal = luaL_checknumber(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  float rawVal = luaL_checknumber(luaState, 3);
   u32 convertedInt = 0;
   memcpy(&convertedInt, &rawVal, sizeof(u32));
   write_u32_to_domain_function(luaState, address, convertedInt);
@@ -428,8 +428,8 @@ int LuaMemoryBaseApi<T>::do_write_float(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_double(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  double rawVal = luaL_checknumber(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  double rawVal = luaL_checknumber(luaState, 3);
   u64 convertedLongLong = 0;
   memcpy(&convertedLongLong, &rawVal, sizeof(u64));
   write_u64_to_domain_function(luaState, address, convertedLongLong);
@@ -439,9 +439,9 @@ int LuaMemoryBaseApi<T>::do_write_double(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_fixed_length_string(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  const char* stringToWrite = luaL_checkstring(luaState, 2);
-  u32 stringSize = luaL_checkinteger(luaState, 3);
+  u32 address = luaL_checkinteger(luaState, 2);
+  const char* stringToWrite = luaL_checkstring(luaState, 3);
+  u32 stringSize = luaL_checkinteger(luaState, 4);
   copy_string_to_domain_function(luaState, address, stringToWrite, stringSize);
   return 0;
 }
@@ -449,8 +449,8 @@ int LuaMemoryBaseApi<T>::do_write_fixed_length_string(lua_State* luaState)
 template <typename T>
 int LuaMemoryBaseApi<T>::do_write_null_terminated_string(lua_State* luaState)
 {
-  u32 address = luaL_checkinteger(luaState, 1);
-  const char* stringToWrite = luaL_checkstring(luaState, 2);
+  u32 address = luaL_checkinteger(luaState, 2);
+  const char* stringToWrite = luaL_checkstring(luaState, 3);
   size_t stringSize = std::strlen(stringToWrite);
   copy_string_to_domain_function(luaState, address, stringToWrite, stringSize);
   return 0;

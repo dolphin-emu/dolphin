@@ -65,7 +65,7 @@ void convertToUpperCase(std::string& inputString)
 //Supports PC, the 32 general purpose registers, and the floating point registers.
 int emu_get_register(lua_State* luaState)
 {
-  std::string registerName = luaL_checkstring(luaState, 1);
+  std::string registerName = luaL_checkstring(luaState, 2);
   convertToUpperCase(registerName);
   if (registerName.length() < 2)
     luaL_error(luaState, "Error: getRegister() contained string with length less than 2");

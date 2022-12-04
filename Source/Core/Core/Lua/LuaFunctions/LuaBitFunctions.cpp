@@ -40,70 +40,70 @@ BitClass* GetBitInstance()
 
 int bitwise_and(lua_State* luaState)
 {
-  u32 firstVal = luaL_checknumber(luaState, 1);
-  u32 secondVal = luaL_checknumber(luaState, 2);
+  u32 firstVal = luaL_checknumber(luaState, 2);
+  u32 secondVal = luaL_checknumber(luaState, 3);
   lua_pushinteger(luaState, firstVal & secondVal);
   return 1;
 }
 
 int bitwise_or(lua_State* luaState)
 {
-  u32 firstVal = luaL_checknumber(luaState, 1);
-  u32 secondVal = luaL_checknumber(luaState, 2);
+  u32 firstVal = luaL_checknumber(luaState, 2);
+  u32 secondVal = luaL_checknumber(luaState, 3);
   lua_pushinteger(luaState, firstVal | secondVal);
   return 1;
 }
 
 int bitwise_not(lua_State* luaState)
 {
-  u32 inputVal = luaL_checknumber(luaState, 1);
+  u32 inputVal = luaL_checknumber(luaState, 2);
   lua_pushinteger(luaState, (u32) ~inputVal);
   return 1;
 }
 
 int bitwise_xor(lua_State* luaState)
 {
-  u32 firstVal = luaL_checknumber(luaState, 1);
-  u32 secondVal = luaL_checknumber(luaState, 2);
+  u32 firstVal = luaL_checknumber(luaState, 2);
+  u32 secondVal = luaL_checknumber(luaState, 3);
   lua_pushinteger(luaState, firstVal ^ secondVal);
   return 1;
 }
 
 int logical_and(lua_State* luaState)
 {
-  u32 firstVal = luaL_checknumber(luaState, 1);
-  u32 secondVal = luaL_checknumber(luaState, 2);
+  u32 firstVal = luaL_checknumber(luaState, 2);
+  u32 secondVal = luaL_checknumber(luaState, 3);
   lua_pushinteger(luaState, firstVal && secondVal);
   return 1;
 }
 
 int logical_or(lua_State* luaState)
 {
-  u32 firstVal = luaL_checknumber(luaState, 1);
-  u32 secondVal = luaL_checknumber(luaState, 2);
+  u32 firstVal = luaL_checknumber(luaState, 2);
+  u32 secondVal = luaL_checknumber(luaState, 3);
   lua_pushinteger(luaState, firstVal || secondVal);
   return 1;
 }
 
 int logical_not(lua_State* luaState)
 {
-  u32 inputVal = luaL_checknumber(luaState, 1);
+  u32 inputVal = luaL_checknumber(luaState, 2);
   lua_pushinteger(luaState, !inputVal);
   return 1;
 }
 
 int bit_shift_left(lua_State* luaState)
 {
-  u32 firstVal = luaL_checknumber(luaState, 1);
-  u32 secondVal = luaL_checknumber(luaState, 2);
+  u32 firstVal = luaL_checknumber(luaState, 2);
+  u32 secondVal = luaL_checknumber(luaState, 3);
   lua_pushinteger(luaState, firstVal << secondVal);
   return 1;
 }
 
 int bit_shift_right(lua_State* luaState)
 {
-  u32 firstVal = luaL_checknumber(luaState, 1);
-  u32 secondVal = luaL_checknumber(luaState, 2);
+  u32 firstVal = luaL_checknumber(luaState, 2);
+  u32 secondVal = luaL_checknumber(luaState, 3);
   lua_pushinteger(luaState, firstVal >> secondVal);
   return 1;
 }

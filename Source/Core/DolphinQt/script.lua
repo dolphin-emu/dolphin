@@ -114,5 +114,19 @@ function MyLuaFunction()
 	io.close()
 end
 
-MyLuaFunction()
+--MyLuaFunction()
+emu.frameAdvance()
+emu.frameAdvance()
+ram:write_unsigned_8(0X80044400, 1)
+ram:write_unsigned_8(0X80044401, 2)
+ram:write_unsigned_8(0X80044402, 3)
+ram:write_unsigned_8(0X80044403, 4)
+ram:write_unsigned_8(0X80044404, 5)
+ram:write_unsigned_8(0X80044405, 6)
+ram:write_unsigned_8(0X80044406, 7)
+ram:write_unsigned_8(0X80044407, 8)
+
+local byteWrap = ram:readFrom(0X80044400)
+
+
 
