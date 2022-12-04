@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-26 22:08+0100\n"
+"POT-Creation-Date: 2022-12-04 15:19+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: JosJuice, 2015-2022\n"
 "Language-Team: Swedish (http://www.transifex.com/delroth/dolphin-emu/"
@@ -229,15 +229,15 @@ msgstr "%1% (normal hastighet)"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:586
 msgid "%1's value is changed"
-msgstr ""
+msgstr "%1:s värde ändras"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:582
 msgid "%1's value is hit"
-msgstr ""
+msgstr "%1:s värde träffas"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:584
 msgid "%1's value is used"
-msgstr ""
+msgstr "%1:s värde används"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:170
 msgid "%1, %2, %3, %4"
@@ -286,19 +286,19 @@ msgstr "%n adress(er) togs bort."
 msgid "& And"
 msgstr "& Och"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:430
+#: Source/Core/DolphinQt/GBAWidget.cpp:432
 msgid "&1x"
 msgstr "&1x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:432
+#: Source/Core/DolphinQt/GBAWidget.cpp:434
 msgid "&2x"
 msgstr "&2x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:434
+#: Source/Core/DolphinQt/GBAWidget.cpp:436
 msgid "&3x"
 msgstr "&3x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:436
+#: Source/Core/DolphinQt/GBAWidget.cpp:438
 msgid "&4x"
 msgstr "&4x"
 
@@ -339,7 +339,7 @@ msgstr "&Automatisk start"
 msgid "&Boot from DVD Backup"
 msgstr "&Starta från bränd DVD"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:439
+#: Source/Core/DolphinQt/GBAWidget.cpp:441
 msgid "&Borderless Window"
 msgstr "&Kantlöst fönster"
 
@@ -375,7 +375,7 @@ msgstr "&Klona..."
 msgid "&Code"
 msgstr "&Kod"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:384
+#: Source/Core/DolphinQt/GBAWidget.cpp:386
 msgid "&Connected"
 msgstr "&Inkopplad"
 
@@ -422,13 +422,13 @@ msgstr "&Emulering"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:255
 msgid "&Export"
-msgstr ""
+msgstr "&Exportera"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:411
+#: Source/Core/DolphinQt/GBAWidget.cpp:413
 msgid "&Export Save Game..."
 msgstr "&Exportera sparfil..."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:419
+#: Source/Core/DolphinQt/GBAWidget.cpp:421
 msgid "&Export State..."
 msgstr "&Exportera snabbsparning..."
 
@@ -478,13 +478,13 @@ msgstr "&Kortkommandoinställningar"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:250
 msgid "&Import"
-msgstr ""
+msgstr "&Importera"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:408
+#: Source/Core/DolphinQt/GBAWidget.cpp:410
 msgid "&Import Save Game..."
 msgstr "&Importera sparfil..."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:416
+#: Source/Core/DolphinQt/GBAWidget.cpp:418
 msgid "&Import State..."
 msgstr "&Importera snabbsparning..."
 
@@ -496,7 +496,7 @@ msgstr "&Importera..."
 msgid "&Insert blr"
 msgstr "&Infoga blr"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:449
+#: Source/Core/DolphinQt/GBAWidget.cpp:451
 msgid "&Interframe Blending"
 msgstr "Tidsut&jämning"
 
@@ -518,7 +518,7 @@ msgstr "&Ladda symbol-map"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:251
 msgid "&Load file to current address"
-msgstr ""
+msgstr "&Ladda fil till nuvarande adress"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:420
 msgid "&Lock Widgets In Place"
@@ -532,7 +532,7 @@ msgstr "&Minne"
 msgid "&Movie"
 msgstr "&Inspelning"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:422
+#: Source/Core/DolphinQt/GBAWidget.cpp:424
 msgid "&Mute"
 msgstr "&Tyst"
 
@@ -594,7 +594,7 @@ msgstr "&Ta bort kod"
 msgid "&Rename symbol"
 msgstr "&Byt namn på symbol"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:402
+#: Source/Core/DolphinQt/GBAWidget.cpp:404
 #: Source/Core/DolphinQt/MenuBar.cpp:310
 msgid "&Reset"
 msgstr "&Återställ"
@@ -607,7 +607,7 @@ msgstr "&Resurspaketshanterare"
 msgid "&Save Symbol Map"
 msgstr "&Spara symbol-map"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:398
+#: Source/Core/DolphinQt/GBAWidget.cpp:400
 msgid "&Scan e-Reader Card(s)..."
 msgstr "&Skanna e-Readerkort..."
 
@@ -631,7 +631,7 @@ msgstr "&Trådar"
 msgid "&Tools"
 msgstr "&Verktyg"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:394
+#: Source/Core/DolphinQt/GBAWidget.cpp:396
 msgid "&Unload ROM"
 msgstr "Ladda &ur ROM"
 
@@ -669,7 +669,7 @@ msgstr "'%1' hittades inte, skannar efter vanliga funktioner istället"
 msgid "(None)"
 msgstr "(Ingen)"
 
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:136
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:142
 msgid "(host)"
 msgstr "(värd)"
 
@@ -677,7 +677,7 @@ msgstr "(värd)"
 msgid "(off)"
 msgstr "(av)"
 
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:135
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:141
 msgid "(ppc)"
 msgstr "(ppc)"
 
@@ -910,6 +910,8 @@ msgid ""
 "<font color='#ff0000'>AutoStepping timed out. Current instruction is "
 "irrelevant."
 msgstr ""
+"<font color='#ff0000'>Tiden tog slut för autostegning. Den nuvarande "
+"instruktionen är irrelevant."
 
 #: Source/Core/DolphinQt/Updater.cpp:52
 msgid ""
@@ -947,7 +949,7 @@ msgstr ""
 "Om du installerar denna WAD kommer titeln skrivas över. Detta går inte att "
 "ångra. Vill du fortsätta?"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:587
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:593
 msgid "A disc is already about to be inserted."
 msgstr "En skiva håller redan på att sättas in."
 
@@ -1197,7 +1199,7 @@ msgstr "Lägg till minnesbrytpunkt"
 msgid "Add to &watch"
 msgstr "Lägg till &bevakning"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:851
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:862
 msgid "Add to watch"
 msgstr "Lägg till bevakning"
 
@@ -1216,7 +1218,7 @@ msgstr "Lägg till..."
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:132
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:362
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:152
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:81
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:82
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:180
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:232
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:155
@@ -1412,11 +1414,11 @@ msgstr "Alltid"
 msgid "Always Connected"
 msgstr "Alltid ansluten"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:444
+#: Source/Core/DolphinQt/GBAWidget.cpp:446
 msgid "Always on &Top"
 msgstr "&Alltid längst upp"
 
-#: Source/Core/Core/HW/DVD/DVDThread.cpp:178
+#: Source/Core/Core/HW/DVD/DVDThread.cpp:179
 msgid "An inserted disc was expected but not found."
 msgstr "En inmatad skiva förväntades men hittades inte."
 
@@ -1848,7 +1850,7 @@ msgstr "Bryt"
 msgid "Breakpoint"
 msgstr "Brytpunkt"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:529
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:531
 msgid "Breakpoint encountered! Step out aborted."
 msgstr "Brytpunkt påträffades! Urstegning avbruten."
 
@@ -2045,7 +2047,7 @@ msgstr "Kamerans synfält (påverkar pekarens känslighet)."
 msgid "Can only generate AR code for values in virtual memory."
 msgstr "Det går bara att generera AR-koder för värden i virtuellt minne."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1814
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1815
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "Kan inte hitta Wii-fjärrkontrollen med anslutnings-handle {0:02x}"
 
@@ -2068,7 +2070,7 @@ msgstr "Avbryt"
 msgid "Cancel Calibration"
 msgstr "Avbryt kalibrering"
 
-#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:243
+#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:244
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr ""
 "Det går inte att stega igenom FIFO-loggar. Gå fram en bildruta i taget "
@@ -2099,11 +2101,11 @@ msgstr "Det går inte att uppdatera utan resultat."
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:523
 msgid "Cannot set GCI folder to an empty path."
-msgstr ""
+msgstr "GCI-mappen kan inte vara en tom sökväg."
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:422
 msgid "Cannot set memory card to an empty path."
-msgstr ""
+msgstr "Minneskortet kan inte vara en tom sökväg."
 
 #: Source/Core/Core/Boot/Boot.cpp:610
 msgid "Cannot start the game, because the GC IPL could not be found."
@@ -2143,7 +2145,7 @@ msgstr "Byt skiva"
 msgid "Change Discs Automatically"
 msgstr "Byt skivor automatiskt"
 
-#: Source/Core/Core/Movie.cpp:1265
+#: Source/Core/Core/Movie.cpp:1270
 msgid "Change the disc to {0}"
 msgstr "Byt skiva till {0}"
 
@@ -2243,7 +2245,7 @@ msgstr "Välj sekundär indatafil"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:512
 msgid "Choose the GCI base folder"
-msgstr ""
+msgstr "Välj GCI-basmapp"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:215
 msgid "Choose the folder to extract to"
@@ -2381,15 +2383,15 @@ msgstr "Villkor"
 
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:109
 msgid "Condition:"
-msgstr ""
+msgstr "Villkor:"
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:150
 msgid "Conditional"
 msgstr "Villkor"
 
-#: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:350
+#: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:353
 msgid "Conditional help"
-msgstr ""
+msgstr "Hjälp för villkor"
 
 #: Source/Core/DolphinQt/ToolBar.cpp:129
 msgid "Config"
@@ -2684,7 +2686,7 @@ msgstr "Kopiera &funktion"
 msgid "Copy &hex"
 msgstr "Kopiera &hex"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:835
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:846
 msgid "Copy Address"
 msgstr "Kopiera adress"
 
@@ -2692,11 +2694,11 @@ msgstr "Kopiera adress"
 msgid "Copy Failed"
 msgstr "Kopiering misslyckades"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:837
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:848
 msgid "Copy Hex"
 msgstr "Kopiera hex"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:840
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:851
 msgid "Copy Value"
 msgstr "Kopiera värde"
 
@@ -2723,7 +2725,7 @@ msgid "Core"
 msgstr "Kärna"
 
 #. i18n: Performance cost, not monetary cost
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:90
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:91
 msgid "Cost"
 msgstr "Kostnad"
 
@@ -2790,7 +2792,7 @@ msgstr ""
 "En uppdatering kunde inte installeras till Wii-systemminnet. Läs loggen för "
 "mer information."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:353
+#: Source/Core/Core/IOS/ES/ES.cpp:358
 msgid ""
 "Could not launch IOS {0:016x} because it is missing from the NAND.\n"
 "The emulated software will likely hang now."
@@ -2798,7 +2800,7 @@ msgstr ""
 "Kunde inte starta IOS {0:016x} eftersom den inte finns i NAND-minnet.\n"
 "Den emulerade mjukvaran kommer antagligen frysa nu."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:388
+#: Source/Core/Core/IOS/ES/ES.cpp:393
 msgid ""
 "Could not launch the Wii Menu because it is missing from the NAND.\n"
 "The emulated software will likely hang now."
@@ -2806,7 +2808,7 @@ msgstr ""
 "Kunde inte starta Wii-menyn eftersom den inte finns i NAND-minnet.\n"
 "Den emulerade mjukvaran kommer antagligen frysa nu."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:393
+#: Source/Core/Core/IOS/ES/ES.cpp:398
 msgid ""
 "Could not launch title {0:016x} because it is missing from the NAND.\n"
 "The emulated software will likely hang now."
@@ -2831,7 +2833,7 @@ msgstr "Kunde inte känna igen filen {0}"
 #: Source/Core/UICommon/AutoUpdate.cpp:280
 #: Source/Core/UICommon/AutoUpdate.cpp:286
 msgid "Could not start updater process: {0}"
-msgstr ""
+msgstr "Kunde inte starta uppdaterarprocessen: {0}"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:139
 msgid ""
@@ -3286,7 +3288,7 @@ msgstr ""
 "\n"
 "Vill du verkligen byta till Direct3D 11? Om du är osäker, välj 'Nej'."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:384
+#: Source/Core/DolphinQt/GBAWidget.cpp:386
 msgid "Dis&connected"
 msgstr "&Frånkopplad"
 
@@ -3767,11 +3769,11 @@ msgstr "Östasien"
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:40
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:60
 msgid "Edit Breakpoint"
-msgstr ""
+msgstr "Redigera brytpunkt"
 
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:409
 msgid "Edit..."
-msgstr ""
+msgstr "Redigera..."
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:200
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:196
@@ -3787,7 +3789,7 @@ msgstr "Effekt"
 #. translation via the MMU to physical addresses.
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:167
 msgid "Effective"
-msgstr "Effektiv"
+msgstr "Effektivt"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:184
 msgid "Effective priority"
@@ -3805,7 +3807,7 @@ msgstr "Mata ut skiva"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "Inbäddad bildrutebuffert (EFB)"
 
-#: Source/Core/Core/State.cpp:532
+#: Source/Core/Core/State.cpp:533
 msgid "Empty"
 msgstr "Tom"
 
@@ -4135,7 +4137,7 @@ msgstr "Ange RSO-moduladressen:"
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:378
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:241
-#: Source/Core/DolphinQt/GBAWidget.cpp:579
+#: Source/Core/DolphinQt/GBAWidget.cpp:581
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:346
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:376
 #: Source/Core/DolphinQt/Main.cpp:207 Source/Core/DolphinQt/Main.cpp:223
@@ -4701,7 +4703,7 @@ msgstr ""
 "Misslyckades att läsa in {0}. Om du använder Windows 7, prova att installera "
 "uppdateringspaketet KB4019990."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:579
+#: Source/Core/DolphinQt/GBAWidget.cpp:581
 #: Source/Core/DolphinQt/MainWindow.cpp:1596
 #: Source/Core/DolphinQt/RenderWidget.cpp:124
 msgid "Failed to open '%1'"
@@ -4781,7 +4783,7 @@ msgstr "Misslyckades att läsa från indatafilen \"{0}\"."
 msgid "Failed to read selected savefile(s) from memory card."
 msgstr "Kunde inte läsa vald(a) sparfil(er) från minneskort."
 
-#: Source/Core/Core/Movie.cpp:1021
+#: Source/Core/Core/Movie.cpp:1025
 msgid "Failed to read {0}"
 msgstr "Misslyckades att läsa {0}"
 
@@ -4845,7 +4847,7 @@ msgstr "Misslyckades att spara till signaturfilen \"%1\""
 msgid "Failed to uninstall pack: %1"
 msgstr "Misslyckades att avinstallera paket: %1"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:77
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:78
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Misslyckades att skriva BT.DINF till SYSCONF"
 
@@ -4912,7 +4914,7 @@ msgstr "Snabb"
 msgid "Fast Depth Calculation"
 msgstr "Snabb djupberäkning"
 
-#: Source/Core/Core/Movie.cpp:1298
+#: Source/Core/Core/Movie.cpp:1303
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte "
 "{2}.){3}"
@@ -5051,7 +5053,7 @@ msgstr ""
 #. i18n: These are the kinds of flags that a CPU uses (e.g. carry),
 #. not the kinds of flags that represent e.g. countries
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:164
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:86
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:87
 msgid "Flags"
 msgstr "Flaggor"
 
@@ -5198,7 +5200,7 @@ msgstr "Bildrutedumpning"
 msgid "Frame Range"
 msgstr "Räckvidd för bildrutor"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1837
+#: Source/Core/VideoCommon/RenderBase.cpp:1840
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "Bildrutedumpfilen \"{0}\" finns redan. Vill du skriva över?"
 
@@ -5319,7 +5321,7 @@ msgstr "GBA-inställningar"
 
 #: Source/Core/DolphinQt/TAS/GBATASInputWindow.cpp:27
 msgid "GBA TAS Input %1"
-msgstr ""
+msgstr "GBA-TAS-inmatning %1"
 
 #: Source/Core/Core/HotkeyManager.cpp:356
 msgid "GBA Volume"
@@ -5347,7 +5349,7 @@ msgstr "GCI-mapp"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:119
 msgid "GCI Folder Path:"
-msgstr ""
+msgstr "GCI-mappsökväg:"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:428
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
@@ -5357,7 +5359,7 @@ msgstr "GCMemcardDirectory: ClearBlock anropades med ogiltig blockadress"
 msgid "GCZ GC/Wii images (*.gcz)"
 msgstr "GCZ-GC/Wii-skivavbildningar (*.gcz)"
 
-#: Source/Core/VideoCommon/CommandProcessor.cpp:682
+#: Source/Core/VideoCommon/CommandProcessor.cpp:691
 msgid ""
 "GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
 "This means one of the following:\n"
@@ -5827,7 +5829,7 @@ msgstr "Värdkod:"
 msgid "Host Input Authority"
 msgstr "Värdauktoritet för indata"
 
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:81
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:82
 msgid "Host Size"
 msgstr "Värdstorlek"
 
@@ -6322,7 +6324,7 @@ msgid "Interface"
 msgstr "Gränssnitt"
 
 #: Source/Core/Core/NetPlayCommon.cpp:67 Source/Core/Core/NetPlayCommon.cpp:151
-#: Source/Core/Core/State.cpp:399
+#: Source/Core/Core/State.cpp:400
 msgid "Internal LZO Error - compression failed"
 msgstr "Internt LZO-fel - komprimering misslyckades"
 
@@ -6331,7 +6333,7 @@ msgstr "Internt LZO-fel - komprimering misslyckades"
 msgid "Internal LZO Error - decompression failed"
 msgstr "Internt LZO-fel - dekomprimering misslyckades"
 
-#: Source/Core/Core/State.cpp:608
+#: Source/Core/Core/State.cpp:609
 msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
 "Try loading the state again"
@@ -6339,7 +6341,7 @@ msgstr ""
 "Internt LZO-fel - avkomprimering misslyckades ({0}) ({1}, {2}) \n"
 "Försök att läsa in snabbsparningen igen"
 
-#: Source/Core/Core/State.cpp:714
+#: Source/Core/Core/State.cpp:715
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Internt LZO-fel - lzo_init() misslyckades"
 
@@ -6371,7 +6373,7 @@ msgstr "Ogiltigt uttryck."
 
 #: Source/Core/UICommon/AutoUpdate.cpp:195
 msgid "Invalid JSON received from auto-update service : {0}"
-msgstr ""
+msgstr "Tog emot ogiltig JSON från autouppdateringstjänsten: {0}"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:166
 msgid "Invalid Mixed Code"
@@ -6390,9 +6392,9 @@ msgstr "Ogiltigt spelar-ID"
 msgid "Invalid RSO module address: %1"
 msgstr "Ogiltig RSO-moduladress: %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:333
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:335
 msgid "Invalid callstack"
-msgstr "Ogiltig callstack"
+msgstr "Ogiltig anropsstack"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:839
 msgid "Invalid checksums."
@@ -6427,7 +6429,7 @@ msgstr "Ogiltiga sökparametrar."
 msgid "Invalid password provided."
 msgstr "Ogiltigt lösenord angivet."
 
-#: Source/Core/Core/Movie.cpp:955
+#: Source/Core/Core/Movie.cpp:959
 msgid "Invalid recording file"
 msgstr "Ogiltig inspelningsfil"
 
@@ -6469,7 +6471,7 @@ msgstr "JIT"
 msgid "JIT Block Linking Off"
 msgstr "JIT-blocklänkning av"
 
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:23
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:24
 msgid "JIT Blocks"
 msgstr "JIT-block"
 
@@ -6533,8 +6535,8 @@ msgstr "JIT Register Cache av"
 msgid "JIT SystemRegisters Off"
 msgstr "JIT SystemRegisters av"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:872
-#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:764
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:873
+#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:765
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -6562,7 +6564,7 @@ msgstr "Japansk (Shift-JIS)"
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:622
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:293
 msgid "Keep Running"
-msgstr ""
+msgstr "Fortsätt köra"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:167
 msgid "Keep Window on Top"
@@ -6615,7 +6617,7 @@ msgstr "Koreanska"
 msgid "L"
 msgstr "L"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:390
+#: Source/Core/DolphinQt/GBAWidget.cpp:392
 msgid "L&oad ROM..."
 msgstr "&Ladda in ROM..."
 
@@ -7257,7 +7259,7 @@ msgstr "Flytta"
 msgid "Movie"
 msgstr "Inspelning"
 
-#: Source/Core/Core/Movie.cpp:990
+#: Source/Core/Core/Movie.cpp:994
 msgid ""
 "Movie {0} indicates that it starts from a savestate, but {1} doesn't exist. "
 "The movie will likely not sync!"
@@ -7544,7 +7546,7 @@ msgstr "Ingen inspelning laddad."
 msgid "No save data found."
 msgstr "Ingen spardata hittades."
 
-#: Source/Core/Core/State.cpp:806
+#: Source/Core/Core/State.cpp:807
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
 "Ingen undo.dtm hittades, avbryter ångring av snabbsparningsinläsning för att "
@@ -7619,7 +7621,7 @@ msgid "Null"
 msgstr "Null"
 
 #. i18n: The number of times a code block has been executed
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:88
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:89
 msgid "NumExec"
 msgstr "NumExec"
 
@@ -7775,7 +7777,7 @@ msgstr "Operatörer"
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:37
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:70
 #: Source/Core/DolphinQt/ConvertDialog.cpp:81
-#: Source/Core/DolphinQt/GBAWidget.cpp:427
+#: Source/Core/DolphinQt/GBAWidget.cpp:429
 msgid "Options"
 msgstr "Alternativ"
 
@@ -7843,7 +7845,7 @@ msgstr "PNG-komprimeringsnivå:"
 msgid "PNG image file (*.png);; All Files (*)"
 msgstr "PNG-bildfil (*.png);; Alla filer (*)"
 
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:81
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:82
 msgid "PPC Size"
 msgstr "PPC-storlek"
 
@@ -8088,15 +8090,15 @@ msgstr "Föredra VS för att expandera punkter/linjer"
 msgid "Prefetch Custom Textures"
 msgstr "Läs in anpassade texturer i förhand"
 
-#: Source/Core/Core/Movie.cpp:1200
+#: Source/Core/Core/Movie.cpp:1205
 msgid "Premature movie end in PlayController. {0} + {1} > {2}"
 msgstr "Tidigt inspelningsslut i PlayController. {0} + {1} > {2}"
 
-#: Source/Core/Core/Movie.cpp:1312
+#: Source/Core/Core/Movie.cpp:1317
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
 msgstr "Tidigt inspelningsslut i PlayWiimote. {0} + {1} > {2}"
 
-#: Source/Core/Core/Movie.cpp:1286
+#: Source/Core/Core/Movie.cpp:1291
 msgid "Premature movie end in PlayWiimote. {0} > {1}"
 msgstr "Tidigt inspelningsslut i PlayWiimote. {0} > {1}"
 
@@ -8336,7 +8338,7 @@ msgstr "Riktig balansbräda"
 msgid "Real Wii Remote"
 msgstr "Riktig Wii-fjärrkontroll"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:379
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:380
 msgid "Received invalid Wii Remote data from Netplay."
 msgstr "Tog emot ogiltig Wii-fjärrkontrollsdata från nätspel."
 
@@ -8402,7 +8404,7 @@ msgstr "Redump.org-status:"
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:80
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:105
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:102
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:98
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:99
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:88
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:41
 #: Source/Core/DolphinQt/ToolBar.cpp:116
@@ -8698,15 +8700,15 @@ msgstr "Kör GBA-kärnor i dedikerade trådar"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:621
 msgid "Run until"
-msgstr ""
+msgstr "Kör tills"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:581
 msgid "Run until (ignoring breakpoints)"
-msgstr ""
+msgstr "Kör tills (och ignorera brytpunkter)"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:175
 msgid "Run until hit (ignoring breakpoints)"
-msgstr ""
+msgstr "Kör tills träff (och ignorera brytpunkter)"
 
 #: Source/Core/DiscIO/Enums.cpp:51
 msgid "Russia"
@@ -8803,11 +8805,11 @@ msgid "Save File to"
 msgstr "Spara fil till"
 
 #. i18n: Noun (i.e. the data saved by the game)
-#: Source/Core/DolphinQt/GBAWidget.cpp:407
+#: Source/Core/DolphinQt/GBAWidget.cpp:409
 msgid "Save Game"
 msgstr "Sparfil"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:243
+#: Source/Core/DolphinQt/GBAWidget.cpp:245
 msgid "Save Game Files (*.sav);;All Files (*)"
 msgstr "Sparfiler (*.sav);;Alla filer (*)"
 
@@ -8833,7 +8835,7 @@ msgstr "Spara inspelning som"
 
 #: Source/Core/Core/HotkeyManager.cpp:180
 #: Source/Core/Core/HotkeyManager.cpp:351
-#: Source/Core/DolphinQt/GBAWidget.cpp:415
+#: Source/Core/DolphinQt/GBAWidget.cpp:417
 msgid "Save State"
 msgstr "Spara snabbsparning"
 
@@ -8961,7 +8963,7 @@ msgstr ""
 msgid "Saves:"
 msgstr "Sparfiler:"
 
-#: Source/Core/Core/Movie.cpp:1030
+#: Source/Core/Core/Movie.cpp:1034
 msgid "Savestate movie {0} is corrupted, movie recording stopping..."
 msgstr "Snabbsparningsinspelningen {0} är korrupt. Inspelningen stoppas..."
 
@@ -9147,8 +9149,8 @@ msgid "Select a Directory"
 msgstr "Välj en mapp"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:194
-#: Source/Core/DolphinQt/GBAWidget.cpp:211
-#: Source/Core/DolphinQt/GBAWidget.cpp:242
+#: Source/Core/DolphinQt/GBAWidget.cpp:213
+#: Source/Core/DolphinQt/GBAWidget.cpp:244
 #: Source/Core/DolphinQt/MainWindow.cpp:724
 #: Source/Core/DolphinQt/MainWindow.cpp:1296
 #: Source/Core/DolphinQt/MainWindow.cpp:1304
@@ -9179,7 +9181,7 @@ msgstr "Välj ett spel"
 msgid "Select a title to install to NAND"
 msgstr "Välj en titel att installera till NAND-minnet"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:189
+#: Source/Core/DolphinQt/GBAWidget.cpp:191
 msgid "Select e-Reader Cards"
 msgstr "Välj e-Readerkort"
 
@@ -9448,7 +9450,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:55
 #, c-format
 msgid "Show % Speed"
-msgstr ""
+msgstr "Visa %-hastighet"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:395
 msgid "Show &Log"
@@ -9581,7 +9583,7 @@ msgstr "Visa Spanien"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:56
 msgid "Show Speed Colors"
-msgstr ""
+msgstr "Visa hastighetsfärger"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:75
 msgid "Show Statistics"
@@ -9605,7 +9607,7 @@ msgstr "Visa okänd"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:54
 msgid "Show VPS"
-msgstr ""
+msgstr "Visa VPS"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:659
 msgid "Show WAD"
@@ -9632,7 +9634,7 @@ msgstr "Visa i kod"
 msgid "Show in Memory"
 msgstr "Visa i minne"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:847
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:858
 msgid "Show in code"
 msgstr "Visa i kod"
 
@@ -10011,19 +10013,19 @@ msgstr "Stega ut"
 msgid "Step Over"
 msgstr "Stega över"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:533
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:535
 msgid "Step out successful!"
 msgstr "Urstegningen lyckades!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:531
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:533
 msgid "Step out timed out!"
 msgstr "Urstegningen gjorde timeout!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:458
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:460
 msgid "Step over in progress..."
 msgstr "Överstegning pågår..."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:443
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:445
 msgid "Step successful!"
 msgstr "Stegning lyckades!"
 
@@ -10252,7 +10254,7 @@ msgstr "Byt till B"
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:77
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:132
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:362
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:83
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:84
 msgid "Symbol"
 msgstr "Symbol"
 
@@ -10481,7 +10483,7 @@ msgstr ""
 msgid "The decryption keys need to be appended to the NAND backup file."
 msgstr "Avkrypteringsnycklarna måste bifogas till NAND-säkerhetskopian."
 
-#: Source/Core/Core/Movie.cpp:398
+#: Source/Core/Core/Movie.cpp:402
 msgid ""
 "The disc change to \"{0}\" could not be saved in the .dtm file.\n"
 "The filename of the disc image must not be longer than 40 characters."
@@ -10489,11 +10491,11 @@ msgstr ""
 "Skivbytet till \"{0}\" kunde inte sparas i .dtm-filen.\n"
 "Filnamnet för den nya skivavbildningen kan inte vara längre än 40 tecken."
 
-#: Source/Core/Core/HW/DVD/DVDThread.cpp:382
+#: Source/Core/Core/HW/DVD/DVDThread.cpp:385
 msgid "The disc could not be read (at {0:#x} - {1:#x})."
 msgstr "Skivan kunde inte läsas (vid {0:#} - {1:#x})."
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:552
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:555
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr "Skivan som skulle sättas in hittades inte."
 
@@ -10675,7 +10677,7 @@ msgstr ""
 msgid "The profile '%1' does not exist"
 msgstr "Profilen '%1' finns inte"
 
-#: Source/Core/Core/Movie.cpp:257
+#: Source/Core/Core/Movie.cpp:258
 msgid "The recorded game ({0}) is not the same as the selected game ({1})"
 msgstr "Det inspelade spelet ({0}) är inte samma som det valda spelet ({1})"
 
@@ -10696,12 +10698,13 @@ msgstr "Den resulterande dekrypterade AR-koden innehåller inga rader."
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:481
 msgid ""
 "The same file can't be used in multiple slots; it is already used by %1."
-msgstr "Samma fil för inte användas på flera platser; den används redan av %1."
+msgstr "Samma fil kan inte användas på flera platser; den används redan av %1."
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:584
 msgid ""
 "The same folder can't be used in multiple slots; it is already used by %1."
 msgstr ""
+"Samma mapp kan inte användas på flera platser; den används redan av %1."
 
 #: Source/Core/Core/NetPlayClient.cpp:274
 msgid "The server and client's NetPlay versions are incompatible."
@@ -10793,7 +10796,7 @@ msgstr "{0}-partitionen ligger inte på en giltig position."
 msgid "There are too many partitions in the first partition table."
 msgstr "Det finns för många partitioner i den första partitionstabellen."
 
-#: Source/Core/Core/State.cpp:816
+#: Source/Core/Core/State.cpp:817
 msgid "There is nothing to undo!"
 msgstr "Det finns inget att ångra!"
 
@@ -11097,7 +11100,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:290
 msgid "Timed Out"
-msgstr ""
+msgstr "Timeout"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:973
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:213
@@ -11141,7 +11144,7 @@ msgid "Toggle Aspect Ratio"
 msgstr "Växla bildförhållande"
 
 #: Source/Core/Core/HotkeyManager.cpp:76
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:856
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:867
 msgid "Toggle Breakpoint"
 msgstr "Slå på/av brytpunkt"
 
@@ -11365,11 +11368,11 @@ msgstr "Kunde inte upptäcka RSO-modul automatiskt"
 
 #: Source/Core/UICommon/AutoUpdate.cpp:185
 msgid "Unable to contact update server."
-msgstr ""
+msgstr "Kunde inte kontakta uppdateringsservern."
 
 #: Source/Core/UICommon/AutoUpdate.cpp:253
 msgid "Unable to create updater copy."
-msgstr ""
+msgstr "Kunde inte skapa en kopia av uppdateraren."
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:698
 msgid "Unable to open file."
@@ -11405,7 +11408,7 @@ msgstr "Misslyckades att läsa fil."
 
 #: Source/Core/UICommon/AutoUpdate.cpp:258
 msgid "Unable to set permissions on updater copy."
-msgstr ""
+msgstr "Kunde inte ställa in rättigheter för kopia av uppdateraren."
 
 #: Source/Core/DiscIO/NANDImporter.cpp:267
 msgid "Unable to write to file {0}"
@@ -11448,7 +11451,7 @@ msgstr ""
 msgid "United States"
 msgstr "USA"
 
-#: Source/Core/Core/State.cpp:536 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/Core/State.cpp:537 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:85
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:43
@@ -11459,7 +11462,7 @@ msgstr "USA"
 msgid "Unknown"
 msgstr "Okänd"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1300
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1308
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "Okänt DVD-kommando {0:08x} - katastrofalt fel"
 
@@ -11822,7 +11825,7 @@ msgstr "Värde"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:655
 msgid "Value tracked to current instruction."
-msgstr ""
+msgstr "Värde spårat till nuvarande instruktion."
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:157
 msgid "Value:"
@@ -12070,7 +12073,7 @@ msgstr ""
 "Varning: Antalet block indikerade i BAT ({0}) matchar inte den laddade "
 "filheadern ({1})"
 
-#: Source/Core/Core/Movie.cpp:1079
+#: Source/Core/Core/Movie.cpp:1083
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
 "{0} > {1}) (input {2} > {3}). You should load another save before "
@@ -12081,7 +12084,7 @@ msgstr ""
 "sparning innan du fortsätter, eller läsa in denna snabbsparning med "
 "skrivskyddat läge inaktiverat."
 
-#: Source/Core/Core/Movie.cpp:1054
+#: Source/Core/Core/Movie.cpp:1058
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
 "save (byte {0} < {1}) (frame {2} < {3}). You should load another save before "
@@ -12092,7 +12095,7 @@ msgstr ""
 "{1}) (bildruta {2} < {3}). Du bör läsa in en annan sparning innan du "
 "fortsätter."
 
-#: Source/Core/Core/Movie.cpp:1104
+#: Source/Core/Core/Movie.cpp:1108
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte {0} ({1:#x}). You "
 "should load another save before continuing, or load this state with read-"
@@ -12103,7 +12106,7 @@ msgstr ""
 "in denna snabbsparning med skrivskyddat läge inaktiverat. Annars kan du få "
 "en desynkronisering."
 
-#: Source/Core/Core/Movie.cpp:1120
+#: Source/Core/Core/Movie.cpp:1124
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame {0}. You should "
 "load another save before continuing, or load this state with read-only mode "
@@ -12275,7 +12278,7 @@ msgstr ""
 "fokus. Du kan ställa in ett tangentkommando för att låsa upp den."
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:25
-#: Source/Core/DolphinQt/GBAWidget.cpp:429
+#: Source/Core/DolphinQt/GBAWidget.cpp:431
 msgid "Window Size"
 msgstr "Fönsterstorlek"
 
@@ -12464,7 +12467,7 @@ msgstr ""
 "Vill du avbryta nu för att åtgärda problemet?\n"
 "Om du väljer \"Nej\" kan det uppstå problem med ljudet."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:310
+#: Source/Core/Core/IOS/ES/ES.cpp:315
 msgid ""
 "You cannot use the Wii Shop Channel without using your own device "
 "credentials.\n"
@@ -12575,7 +12578,7 @@ msgstr "förval"
 msgid "disconnected"
 msgstr "frånkopplad"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:189
+#: Source/Core/DolphinQt/GBAWidget.cpp:191
 msgid "e-Reader Cards (*.raw);;All Files (*)"
 msgstr "e-Readerkort (*.raw);;Alla filer (*)"
 
@@ -12621,7 +12624,7 @@ msgstr "föregående värde"
 msgid "m/s"
 msgstr "m/s"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:212
+#: Source/Core/DolphinQt/GBAWidget.cpp:214
 msgid ""
 "mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *.ss8 *."
 "ss9);;All Files (*)"
@@ -12694,7 +12697,7 @@ msgstr "{0} misslyckades att synkronisera koder."
 msgid "{0} failed to synchronize."
 msgstr "{0} misslyckades att synkronisera."
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:206
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:208
 msgid ""
 "{0} is not a directory, failed to move to *.original.\n"
 " Verify your write permissions or move the file outside of Dolphin"
@@ -12707,7 +12710,7 @@ msgstr ""
 msgid "{0} of {1} blocks. Compression ratio {2}%"
 msgstr "{0} av {1} block. Komprimeringsgrad {2}%"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:197
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:199
 msgid "{0} was not a directory, moved to *.original"
 msgstr "{0} var inte en mapp. Den har flyttats till *.original"
 

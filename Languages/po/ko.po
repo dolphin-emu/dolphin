@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-26 22:08+0100\n"
+"POT-Creation-Date: 2022-12-04 15:19+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Siegfried, 2013-2022\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -278,19 +278,19 @@ msgstr "%n 주소(들)이 지워졌습니다."
 msgid "& And"
 msgstr "& 그리고"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:430
+#: Source/Core/DolphinQt/GBAWidget.cpp:432
 msgid "&1x"
 msgstr "&1x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:432
+#: Source/Core/DolphinQt/GBAWidget.cpp:434
 msgid "&2x"
 msgstr "&2x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:434
+#: Source/Core/DolphinQt/GBAWidget.cpp:436
 msgid "&3x"
 msgstr "&3x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:436
+#: Source/Core/DolphinQt/GBAWidget.cpp:438
 msgid "&4x"
 msgstr "&4x"
 
@@ -331,7 +331,7 @@ msgstr "자동 시작 (&A)"
 msgid "&Boot from DVD Backup"
 msgstr "DVD 백업에서 부트(&B)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:439
+#: Source/Core/DolphinQt/GBAWidget.cpp:441
 msgid "&Borderless Window"
 msgstr "틀 없는 창(&B)"
 
@@ -367,7 +367,7 @@ msgstr "복제... (&C)"
 msgid "&Code"
 msgstr "코드 (&C)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:384
+#: Source/Core/DolphinQt/GBAWidget.cpp:386
 msgid "&Connected"
 msgstr "연결된(&C)"
 
@@ -416,11 +416,11 @@ msgstr "에뮬레이션(&E)"
 msgid "&Export"
 msgstr ""
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:411
+#: Source/Core/DolphinQt/GBAWidget.cpp:413
 msgid "&Export Save Game..."
 msgstr "게임 저장 내보내기...(&E)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:419
+#: Source/Core/DolphinQt/GBAWidget.cpp:421
 msgid "&Export State..."
 msgstr "상태 내보내기...(&E)"
 
@@ -472,11 +472,11 @@ msgstr "단축키 설정(&H)"
 msgid "&Import"
 msgstr ""
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:408
+#: Source/Core/DolphinQt/GBAWidget.cpp:410
 msgid "&Import Save Game..."
 msgstr "게임 저장 가져오기...(&I)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:416
+#: Source/Core/DolphinQt/GBAWidget.cpp:418
 msgid "&Import State..."
 msgstr "상태 가져오기...(&I)"
 
@@ -488,7 +488,7 @@ msgstr "가져오기... (&I)"
 msgid "&Insert blr"
 msgstr "blr 삽입 (&I)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:449
+#: Source/Core/DolphinQt/GBAWidget.cpp:451
 msgid "&Interframe Blending"
 msgstr "프레임간 혼합(&I)"
 
@@ -524,7 +524,7 @@ msgstr "메모리(&M)"
 msgid "&Movie"
 msgstr "무비(&M)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:422
+#: Source/Core/DolphinQt/GBAWidget.cpp:424
 msgid "&Mute"
 msgstr "음소거(&M)"
 
@@ -586,7 +586,7 @@ msgstr "코드 제거 (&R)"
 msgid "&Rename symbol"
 msgstr "부호 이름 바꾸기 (&R)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:402
+#: Source/Core/DolphinQt/GBAWidget.cpp:404
 #: Source/Core/DolphinQt/MenuBar.cpp:310
 msgid "&Reset"
 msgstr "리셋(&R)"
@@ -599,7 +599,7 @@ msgstr "리소스 팩 매니저(&R)"
 msgid "&Save Symbol Map"
 msgstr "부호 맵 저장 (&S)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:398
+#: Source/Core/DolphinQt/GBAWidget.cpp:400
 msgid "&Scan e-Reader Card(s)..."
 msgstr "e-Reader 카드 스캔...(&S)"
 
@@ -623,7 +623,7 @@ msgstr "쓰레드(&T)"
 msgid "&Tools"
 msgstr "도구(&T)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:394
+#: Source/Core/DolphinQt/GBAWidget.cpp:396
 msgid "&Unload ROM"
 msgstr "롬 언로드(&U)"
 
@@ -661,7 +661,7 @@ msgstr "'%1' 이 발견되지 않았습니다, 공통 함수들을 대신 스캔
 msgid "(None)"
 msgstr "(없음)"
 
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:136
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:142
 msgid "(host)"
 msgstr "(호스트)"
 
@@ -669,7 +669,7 @@ msgstr "(호스트)"
 msgid "(off)"
 msgstr "(꺼짐)"
 
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:135
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:141
 msgid "(ppc)"
 msgstr "(ppc)"
 
@@ -936,7 +936,7 @@ msgstr ""
 "\n"
 "이 WAD 를 설치하면 되돌릴 수 없게 바꾸게 됩니다. 계속합니까?"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:587
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:593
 msgid "A disc is already about to be inserted."
 msgstr "디스크가 이미 삽입되려는 중입니다."
 
@@ -1184,7 +1184,7 @@ msgstr "메모리 중단점 추가"
 msgid "Add to &watch"
 msgstr "관찰에 추가 (&w)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:851
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:862
 msgid "Add to watch"
 msgstr "관찰에 추가"
 
@@ -1203,7 +1203,7 @@ msgstr "추가..."
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:132
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:362
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:152
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:81
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:82
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:180
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:232
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:155
@@ -1398,11 +1398,11 @@ msgstr "항상"
 msgid "Always Connected"
 msgstr "항상 연결됨"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:444
+#: Source/Core/DolphinQt/GBAWidget.cpp:446
 msgid "Always on &Top"
 msgstr "항상 위에(&T)"
 
-#: Source/Core/Core/HW/DVD/DVDThread.cpp:178
+#: Source/Core/Core/HW/DVD/DVDThread.cpp:179
 msgid "An inserted disc was expected but not found."
 msgstr "삽입된 디스크가 예상되었지만 찾지 못했습니다."
 
@@ -1832,7 +1832,7 @@ msgstr "중단"
 msgid "Breakpoint"
 msgstr "중단점"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:529
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:531
 msgid "Breakpoint encountered! Step out aborted."
 msgstr "중단점을 만났습니다! 스텝 나가기가 중단되었습니다."
 
@@ -2027,7 +2027,7 @@ msgstr "카메라 시야 ( 포인팅 민감도에 영향을 줍니다)."
 msgid "Can only generate AR code for values in virtual memory."
 msgstr "가상 메모리 값용 AR 코드만 생성할 수 있습니다."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1814
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1815
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "{0:02x} 연결 핸들로 Wii 리모트를 찾을 수 없음"
 
@@ -2049,7 +2049,7 @@ msgstr "취소"
 msgid "Cancel Calibration"
 msgstr "측정 취소"
 
-#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:243
+#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:244
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr "FIFO 를 단일단계로 처리할 수 없습니다. 프레임 진행을 대신 사용하세요."
 
@@ -2119,7 +2119,7 @@ msgstr "디스크 변경"
 msgid "Change Discs Automatically"
 msgstr "디스크 자동 교환"
 
-#: Source/Core/Core/Movie.cpp:1265
+#: Source/Core/Core/Movie.cpp:1270
 msgid "Change the disc to {0}"
 msgstr "{0} 로 디스크를 변경합니다."
 
@@ -2363,7 +2363,7 @@ msgstr ""
 msgid "Conditional"
 msgstr "조건"
 
-#: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:350
+#: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:353
 msgid "Conditional help"
 msgstr ""
 
@@ -2656,7 +2656,7 @@ msgstr "함수 복사 (&f)"
 msgid "Copy &hex"
 msgstr "헥스 복사 (&h)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:835
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:846
 msgid "Copy Address"
 msgstr "주소 복사"
 
@@ -2664,11 +2664,11 @@ msgstr "주소 복사"
 msgid "Copy Failed"
 msgstr "복사가 실패했습니다"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:837
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:848
 msgid "Copy Hex"
 msgstr "헥스 복사"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:840
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:851
 msgid "Copy Value"
 msgstr "값 복사"
 
@@ -2695,7 +2695,7 @@ msgid "Core"
 msgstr "코어"
 
 #. i18n: Performance cost, not monetary cost
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:90
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:91
 msgid "Cost"
 msgstr "비용"
 
@@ -2760,7 +2760,7 @@ msgstr ""
 "Wii 시스템 메모리에 업데이트를 설치할 수 없었습니다. 더 많은 정보에 대해서는 "
 "로그를 참조하세요."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:353
+#: Source/Core/Core/IOS/ES/ES.cpp:358
 msgid ""
 "Could not launch IOS {0:016x} because it is missing from the NAND.\n"
 "The emulated software will likely hang now."
@@ -2768,7 +2768,7 @@ msgstr ""
 " NAND 에 없어서 IOS {0:016x} 를 런치할 수 없었습니다.\n"
 "에뮬된 소프트웨어가 지금 멈출 것 같습니다."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:388
+#: Source/Core/Core/IOS/ES/ES.cpp:393
 msgid ""
 "Could not launch the Wii Menu because it is missing from the NAND.\n"
 "The emulated software will likely hang now."
@@ -2776,7 +2776,7 @@ msgstr ""
 "NAND 에 없어서 Wii 메뉴를 시작할 수 없었습니다. \n"
 "에뮬된 소프트웨어가 지금 멈출 것 같습니다."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:393
+#: Source/Core/Core/IOS/ES/ES.cpp:398
 msgid ""
 "Could not launch title {0:016x} because it is missing from the NAND.\n"
 "The emulated software will likely hang now."
@@ -3251,7 +3251,7 @@ msgstr ""
 "\n"
 "정말 Direct3D 11로 전환하고 싶습니까? 잘 모르겠으면, '아니오'를 선택하세요."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:384
+#: Source/Core/DolphinQt/GBAWidget.cpp:386
 msgid "Dis&connected"
 msgstr "연결 끊어진(&c)"
 
@@ -3763,7 +3763,7 @@ msgstr "디스크 꺼내기"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "내장형 프레임 버퍼 (EFB)"
 
-#: Source/Core/Core/State.cpp:532
+#: Source/Core/Core/State.cpp:533
 msgid "Empty"
 msgstr "비어있음"
 
@@ -4088,7 +4088,7 @@ msgstr "RSO 모듈 주소를 입력:"
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:378
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:241
-#: Source/Core/DolphinQt/GBAWidget.cpp:579
+#: Source/Core/DolphinQt/GBAWidget.cpp:581
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:346
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:376
 #: Source/Core/DolphinQt/Main.cpp:207 Source/Core/DolphinQt/Main.cpp:223
@@ -4664,7 +4664,7 @@ msgstr ""
 "{0} 로드에 실패했습니다. 윈도우 7을 사용중이면, KB4019990 업데이트 패키지를 "
 "설치해보세요."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:579
+#: Source/Core/DolphinQt/GBAWidget.cpp:581
 #: Source/Core/DolphinQt/MainWindow.cpp:1596
 #: Source/Core/DolphinQt/RenderWidget.cpp:124
 msgid "Failed to open '%1'"
@@ -4744,7 +4744,7 @@ msgstr "입력 파일 \"{0}\" 로 부터 읽기에 실패했습니다."
 msgid "Failed to read selected savefile(s) from memory card."
 msgstr "메모리 카드에서 선택된 저장파일(들)을 읽기에 실패했습니다."
 
-#: Source/Core/Core/Movie.cpp:1021
+#: Source/Core/Core/Movie.cpp:1025
 msgid "Failed to read {0}"
 msgstr "{0} 을 읽을 수 없습니다."
 
@@ -4803,7 +4803,7 @@ msgstr "서명 파일 '%1' 에 저장에 실패했습니다."
 msgid "Failed to uninstall pack: %1"
 msgstr "팩 언인스톨에 실패했습니다: %1"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:77
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:78
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "BT.DINF를 SYSCONF로 쓰지 못했습니다."
 
@@ -4870,7 +4870,7 @@ msgstr "빠름"
 msgid "Fast Depth Calculation"
 msgstr "빠른 깊이 계산"
 
-#: Source/Core/Core/Movie.cpp:1298
+#: Source/Core/Core/Movie.cpp:1303
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte "
 "{2}.){3}"
@@ -5009,7 +5009,7 @@ msgstr "고정된 정돈"
 #. i18n: These are the kinds of flags that a CPU uses (e.g. carry),
 #. not the kinds of flags that represent e.g. countries
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:164
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:86
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:87
 msgid "Flags"
 msgstr "플래그"
 
@@ -5156,7 +5156,7 @@ msgstr "프레임 덤핑"
 msgid "Frame Range"
 msgstr "프레임 범위"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1837
+#: Source/Core/VideoCommon/RenderBase.cpp:1840
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "프레임 덤프 이미지(들) '{0}' 가 이미 존재합니다. 덮어쓰시겠습니까?"
 
@@ -5314,7 +5314,7 @@ msgstr "GCMemcardDirectory: 부적합한 블록 주소로 호출된 클리어블
 msgid "GCZ GC/Wii images (*.gcz)"
 msgstr "GCZ GC/Wii 이미지들 (*.gcz)"
 
-#: Source/Core/VideoCommon/CommandProcessor.cpp:682
+#: Source/Core/VideoCommon/CommandProcessor.cpp:691
 msgid ""
 "GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
 "This means one of the following:\n"
@@ -5772,7 +5772,7 @@ msgstr "호스트 코드:"
 msgid "Host Input Authority"
 msgstr "호스트 입력 권한"
 
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:81
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:82
 msgid "Host Size"
 msgstr "호스트 크기"
 
@@ -6256,7 +6256,7 @@ msgid "Interface"
 msgstr "인터페이스"
 
 #: Source/Core/Core/NetPlayCommon.cpp:67 Source/Core/Core/NetPlayCommon.cpp:151
-#: Source/Core/Core/State.cpp:399
+#: Source/Core/Core/State.cpp:400
 msgid "Internal LZO Error - compression failed"
 msgstr "내부 LZO 오류 - 압축 실패했습니다"
 
@@ -6265,7 +6265,7 @@ msgstr "내부 LZO 오류 - 압축 실패했습니다"
 msgid "Internal LZO Error - decompression failed"
 msgstr "내부 LZO 오류 - 압축해제를 실패했습니다"
 
-#: Source/Core/Core/State.cpp:608
+#: Source/Core/Core/State.cpp:609
 msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
 "Try loading the state again"
@@ -6273,7 +6273,7 @@ msgstr ""
 "내부 LZO 오류 - 압축풀기 실패했습니다({0}) ({1}, {2}) \n"
 "상태 로딩을 다시 해보세요"
 
-#: Source/Core/Core/State.cpp:714
+#: Source/Core/Core/State.cpp:715
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "내부 LZO 오류 -  lzo_init() 실패했습니다"
 
@@ -6324,7 +6324,7 @@ msgstr "부적합한 플레이어 아이디"
 msgid "Invalid RSO module address: %1"
 msgstr "부적합 RSO 모듈 주소: %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:333
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:335
 msgid "Invalid callstack"
 msgstr "부적합한 스텍호출"
 
@@ -6361,7 +6361,7 @@ msgstr "검색에 부적합 인자들."
 msgid "Invalid password provided."
 msgstr "부적합한 패스워드가 제공되었습니다."
 
-#: Source/Core/Core/Movie.cpp:955
+#: Source/Core/Core/Movie.cpp:959
 msgid "Invalid recording file"
 msgstr "부적합 기록 파일"
 
@@ -6403,7 +6403,7 @@ msgstr "JIT"
 msgid "JIT Block Linking Off"
 msgstr "JIT 블록 연결 끄기"
 
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:23
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:24
 msgid "JIT Blocks"
 msgstr "JIT 블록들"
 
@@ -6467,8 +6467,8 @@ msgstr "JIT 레지스터 캐시 끄기"
 msgid "JIT SystemRegisters Off"
 msgstr "JIT 시스템레지스터 끄기"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:872
-#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:764
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:873
+#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:765
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -6548,7 +6548,7 @@ msgstr "한국어"
 msgid "L"
 msgstr "L"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:390
+#: Source/Core/DolphinQt/GBAWidget.cpp:392
 msgid "L&oad ROM..."
 msgstr "롬 로드...(&L)"
 
@@ -7185,7 +7185,7 @@ msgstr "이동"
 msgid "Movie"
 msgstr "무비"
 
-#: Source/Core/Core/Movie.cpp:990
+#: Source/Core/Core/Movie.cpp:994
 msgid ""
 "Movie {0} indicates that it starts from a savestate, but {1} doesn't exist. "
 "The movie will likely not sync!"
@@ -7472,7 +7472,7 @@ msgstr "로드된 녹화가 없습니다."
 msgid "No save data found."
 msgstr "발견된 저장 데이터가 없습니다."
 
-#: Source/Core/Core/State.cpp:806
+#: Source/Core/Core/State.cpp:807
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
 "undo.dtm 이 없습니다, 무비 갈림을 막기위해서 상태로드 되돌리기를 취소합니다"
@@ -7546,7 +7546,7 @@ msgid "Null"
 msgstr "없음"
 
 #. i18n: The number of times a code block has been executed
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:88
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:89
 msgid "NumExec"
 msgstr "실행횟수"
 
@@ -7702,7 +7702,7 @@ msgstr "연산자들"
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:37
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:70
 #: Source/Core/DolphinQt/ConvertDialog.cpp:81
-#: Source/Core/DolphinQt/GBAWidget.cpp:427
+#: Source/Core/DolphinQt/GBAWidget.cpp:429
 msgid "Options"
 msgstr "옵션"
 
@@ -7770,7 +7770,7 @@ msgstr "PNG 압축 레블:"
 msgid "PNG image file (*.png);; All Files (*)"
 msgstr "PNG 이미지 파일 (*.png);; 모든 파일 (*)"
 
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:81
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:82
 msgid "PPC Size"
 msgstr "PPC 크기"
 
@@ -8008,15 +8008,15 @@ msgstr ""
 msgid "Prefetch Custom Textures"
 msgstr "커스텀 텍스처 프리패치"
 
-#: Source/Core/Core/Movie.cpp:1200
+#: Source/Core/Core/Movie.cpp:1205
 msgid "Premature movie end in PlayController. {0} + {1} > {2}"
 msgstr "PlayController에 무비 마무리가 미완성되었습니다. {0} + {1} > {2}"
 
-#: Source/Core/Core/Movie.cpp:1312
+#: Source/Core/Core/Movie.cpp:1317
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
 msgstr "PlayWiimote에 무비 마무리가 미완성되었습니다. {0} + {1} > {2}"
 
-#: Source/Core/Core/Movie.cpp:1286
+#: Source/Core/Core/Movie.cpp:1291
 msgid "Premature movie end in PlayWiimote. {0} > {1}"
 msgstr "PlayWiimote에 무비 마무리가 미완성되었습니다. {0} > {1}"
 
@@ -8254,7 +8254,7 @@ msgstr "실제 밸런스 보드"
 msgid "Real Wii Remote"
 msgstr "실제 Wii 리모트"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:379
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:380
 msgid "Received invalid Wii Remote data from Netplay."
 msgstr ""
 
@@ -8320,7 +8320,7 @@ msgstr "Redump.org 상태:"
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:80
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:105
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:102
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:98
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:99
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:88
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:41
 #: Source/Core/DolphinQt/ToolBar.cpp:116
@@ -8720,11 +8720,11 @@ msgid "Save File to"
 msgstr "에 파일 저장"
 
 #. i18n: Noun (i.e. the data saved by the game)
-#: Source/Core/DolphinQt/GBAWidget.cpp:407
+#: Source/Core/DolphinQt/GBAWidget.cpp:409
 msgid "Save Game"
 msgstr "게임 저장"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:243
+#: Source/Core/DolphinQt/GBAWidget.cpp:245
 msgid "Save Game Files (*.sav);;All Files (*)"
 msgstr "게임 저장 파일들 (*.sav);;모든 파일들 (*)"
 
@@ -8750,7 +8750,7 @@ msgstr "녹화 파일을 다른 이름으로 저장"
 
 #: Source/Core/Core/HotkeyManager.cpp:180
 #: Source/Core/Core/HotkeyManager.cpp:351
-#: Source/Core/DolphinQt/GBAWidget.cpp:415
+#: Source/Core/DolphinQt/GBAWidget.cpp:417
 msgid "Save State"
 msgstr "상태 저장"
 
@@ -8876,7 +8876,7 @@ msgstr "저장된 Wii 리모트 페어링은 게임이 구동 중일 때만 재�
 msgid "Saves:"
 msgstr "저장들:"
 
-#: Source/Core/Core/Movie.cpp:1030
+#: Source/Core/Core/Movie.cpp:1034
 msgid "Savestate movie {0} is corrupted, movie recording stopping..."
 msgstr "상태저장 무비 {0} 가 손상되었습니다, 무비 기록 중지 중..."
 
@@ -9062,8 +9062,8 @@ msgid "Select a Directory"
 msgstr "디렉토리 선택"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:194
-#: Source/Core/DolphinQt/GBAWidget.cpp:211
-#: Source/Core/DolphinQt/GBAWidget.cpp:242
+#: Source/Core/DolphinQt/GBAWidget.cpp:213
+#: Source/Core/DolphinQt/GBAWidget.cpp:244
 #: Source/Core/DolphinQt/MainWindow.cpp:724
 #: Source/Core/DolphinQt/MainWindow.cpp:1296
 #: Source/Core/DolphinQt/MainWindow.cpp:1304
@@ -9094,7 +9094,7 @@ msgstr "게임 선택"
 msgid "Select a title to install to NAND"
 msgstr "NAND 에 설치할 타이틀 선택"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:189
+#: Source/Core/DolphinQt/GBAWidget.cpp:191
 msgid "Select e-Reader Cards"
 msgstr "e-Reader 카드 선택"
 
@@ -9543,7 +9543,7 @@ msgstr "코드로 보기"
 msgid "Show in Memory"
 msgstr "메모리로 보기"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:847
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:858
 msgid "Show in code"
 msgstr "코드로 보기"
 
@@ -9920,19 +9920,19 @@ msgstr "스텝 나가기"
 msgid "Step Over"
 msgstr "스텝 넘어가기"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:533
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:535
 msgid "Step out successful!"
 msgstr "스텝 나가기 성공!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:531
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:533
 msgid "Step out timed out!"
 msgstr "스텝 나가기 시간 초과!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:458
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:460
 msgid "Step over in progress..."
 msgstr "스텝 넘어가기 진행 중..."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:443
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:445
 msgid "Step successful!"
 msgstr "스텝 성공!"
 
@@ -10159,7 +10159,7 @@ msgstr "B로 스위치"
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:77
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:132
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:362
-#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:83
+#: Source/Core/DolphinQt/Debugger/JITWidget.cpp:84
 msgid "Symbol"
 msgstr "부호"
 
@@ -10389,7 +10389,7 @@ msgstr ""
 msgid "The decryption keys need to be appended to the NAND backup file."
 msgstr "해독 키들은 NAND 백업 파일에 첨부될 필요가 있습니다."
 
-#: Source/Core/Core/Movie.cpp:398
+#: Source/Core/Core/Movie.cpp:402
 msgid ""
 "The disc change to \"{0}\" could not be saved in the .dtm file.\n"
 "The filename of the disc image must not be longer than 40 characters."
@@ -10397,11 +10397,11 @@ msgstr ""
 "\"{0}\" 로 변경한 디스크는 .dtm 파일로 저장될 수 없었습니다.\n"
 "디스크 이미지의 파일명은 40 글자보다 더 길어서는 안됩니다."
 
-#: Source/Core/Core/HW/DVD/DVDThread.cpp:382
+#: Source/Core/Core/HW/DVD/DVDThread.cpp:385
 msgid "The disc could not be read (at {0:#x} - {1:#x})."
 msgstr "디스크가 읽혀질 수 없었습니다 (위치 {0:#x} - {1:#x})."
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:552
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:555
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr "삽입되려 했던 디스크를 찾을 수 없습니다."
 
@@ -10580,7 +10580,7 @@ msgstr "%1 에 있는 패치들은 선택된 게임이나 게임 리비전 용�
 msgid "The profile '%1' does not exist"
 msgstr "프로파일 '%1' 이 존재하지 않습니다"
 
-#: Source/Core/Core/Movie.cpp:257
+#: Source/Core/Core/Movie.cpp:258
 msgid "The recorded game ({0}) is not the same as the selected game ({1})"
 msgstr "기록된 게임 ({0}) 은 선택된 게임 ({1}) 과 같지 않습니다"
 
@@ -10696,7 +10696,7 @@ msgstr "{0} 파티션은 올바르게 정렬되어 있지 않습니다."
 msgid "There are too many partitions in the first partition table."
 msgstr "첫 파티션 테이블에 너무 많은 파티션들이 있습니다."
 
-#: Source/Core/Core/State.cpp:816
+#: Source/Core/Core/State.cpp:817
 msgid "There is nothing to undo!"
 msgstr "되돌릴 것이 없습니다!"
 
@@ -11031,7 +11031,7 @@ msgid "Toggle Aspect Ratio"
 msgstr "종횡비 토글"
 
 #: Source/Core/Core/HotkeyManager.cpp:76
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:856
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:867
 msgid "Toggle Breakpoint"
 msgstr "중단점 토글"
 
@@ -11336,7 +11336,7 @@ msgstr ""
 msgid "United States"
 msgstr "미국"
 
-#: Source/Core/Core/State.cpp:536 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/Core/State.cpp:537 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:85
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:43
@@ -11347,7 +11347,7 @@ msgstr "미국"
 msgid "Unknown"
 msgstr "알려지지 않음"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1300
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1308
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "알려지지 않은 DVD 명령 {0:08x} - 치명적 오류"
 
@@ -11967,7 +11967,7 @@ msgstr ""
 "경고: BAT ({0}) 에 의해 나타난 블록수가 파일 헤더 ({1}) 의 수와 일치하지 않습"
 "니다"
 
-#: Source/Core/Core/Movie.cpp:1079
+#: Source/Core/Core/Movie.cpp:1083
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
 "{0} > {1}) (input {2} > {3}). You should load another save before "
@@ -11977,7 +11977,7 @@ msgstr ""
 "(입력 {2} > {3}). 계속하기전에 다른 저장을 로드해야합니다, 그렇지 않으면 읽"
 "기-전용 모드가 꺼진 상태로 이것을 로드합니다."
 
-#: Source/Core/Core/Movie.cpp:1054
+#: Source/Core/Core/Movie.cpp:1058
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
 "save (byte {0} < {1}) (frame {2} < {3}). You should load another save before "
@@ -11986,7 +11986,7 @@ msgstr ""
 "경고: 저장 (바이트 {0} < {1}) (프레임 {2} < {3})에서 현재 프레임 전에 무비가 "
 "끝나는 저장을 로드했습니다. 계속하기 전에 다른 저장을 로드해야합니다."
 
-#: Source/Core/Core/Movie.cpp:1104
+#: Source/Core/Core/Movie.cpp:1108
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte {0} ({1:#x}). You "
 "should load another save before continuing, or load this state with read-"
@@ -11996,7 +11996,7 @@ msgstr ""
 "전에 다른 저장을 로드해야 합니다, 혹은 읽기-전용 모드를 끄고 로드하세요. 그렇"
 "지 않으면 아마도 싱크 문제가 생길겁니다."
 
-#: Source/Core/Core/Movie.cpp:1120
+#: Source/Core/Core/Movie.cpp:1124
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame {0}. You should "
 "load another save before continuing, or load this state with read-only mode "
@@ -12166,7 +12166,7 @@ msgstr ""
 "키 설정을 할 수 있습니다."
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:25
-#: Source/Core/DolphinQt/GBAWidget.cpp:429
+#: Source/Core/DolphinQt/GBAWidget.cpp:431
 msgid "Window Size"
 msgstr "창 크기"
 
@@ -12351,7 +12351,7 @@ msgstr ""
 "문제를 고치기 위해 지금 멈추시겠습니까?\n"
 "\"아니오\" 를 선택하면, 오디오가 혼란스러울지도 모릅니다."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:310
+#: Source/Core/Core/IOS/ES/ES.cpp:315
 msgid ""
 "You cannot use the Wii Shop Channel without using your own device "
 "credentials.\n"
@@ -12462,7 +12462,7 @@ msgstr "기본값"
 msgid "disconnected"
 msgstr "연결이 끊겼습니다"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:189
+#: Source/Core/DolphinQt/GBAWidget.cpp:191
 msgid "e-Reader Cards (*.raw);;All Files (*)"
 msgstr "e-Reader 카드 (*.raw);;모든 파일 (*)"
 
@@ -12508,7 +12508,7 @@ msgstr "마지막 값"
 msgid "m/s"
 msgstr "m/s"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:212
+#: Source/Core/DolphinQt/GBAWidget.cpp:214
 msgid ""
 "mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *.ss8 *."
 "ss9);;All Files (*)"
@@ -12580,7 +12580,7 @@ msgstr " {0} 코드 동기화에 실패했습니다."
 msgid "{0} failed to synchronize."
 msgstr "{0} 동기화에 실패했습니다."
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:206
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:208
 msgid ""
 "{0} is not a directory, failed to move to *.original.\n"
 " Verify your write permissions or move the file outside of Dolphin"
@@ -12593,7 +12593,7 @@ msgstr ""
 msgid "{0} of {1} blocks. Compression ratio {2}%"
 msgstr "{1} 블락들의 {0}. 압축 비율 {2}%"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:197
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:199
 msgid "{0} was not a directory, moved to *.original"
 msgstr "{0} 는 디렉토리가 아닙니다, *.original 로 이동되었습니다."
 
