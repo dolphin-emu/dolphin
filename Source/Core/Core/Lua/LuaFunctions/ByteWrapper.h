@@ -54,14 +54,20 @@ public:
   ByteType byteType; // represents the type.
   s8 numBytesUsedByType;
   s8 totalBytesAllocated;
+  bool createdFromMemoryAddress;  // True if ByteWrapper was initialized from a memory address, and
+                                  // false otherwise. If the ByteWrapper was initialized from a memory address, then the most significant byte is read out as the first byte in read_u8() methods. Otherwise, the least significant byte is the first byte in read_u8() methods.
+  //To give a more concrete example, let's say that the ByteWrapper was initialized from memory addresses containing the value (in order) of 0X0102030405060708
+  //In this case, a call to get_value("u8") would return 0X01.
+  //Suppose that the ByteWrapper was initialized from the value 42. In this case, a call to get_value("u8") would return 42.
+
 
   ByteWrapper();
-  static ByteWrapper* CreateByteWrapperFromU8(u8);
-  static ByteWrapper* CreateByteWrapperFromU16(u16);
-  static ByteWrapper* CreateByteWrapperFromU32(u32);
-  static ByteWrapper* CreateByteWrapperFromU64(u64);
-  static ByteWrapper* CreateByteWrapperFromLongLong(long long);
-  static ByteWrapper* CreateBytewrapperFromDouble(double);
+  static ByteWrapper* CreateByteWrapperFromU8(u8, bool);
+  static ByteWrapper* CreateByteWrapperFromU16(u16, bool);
+  static ByteWrapper* CreateByteWrapperFromU32(u32, bool);
+  static ByteWrapper* CreateByteWrapperFromU64(u64, bool);
+  static ByteWrapper* CreateByteWrapperFromLongLong(long long, bool);
+  static ByteWrapper* CreateBytewrapperFromDouble(double, bool);
   static ByteWrapper* CreateByteWrapperFromCopy(ByteWrapper*);
 
   static std::string getByteTypeAsString(ByteType inputType);
@@ -102,23 +108,11 @@ public:
 
   private:
 
-    ByteWrapper(u8);
-    ByteWrapper(u16);
-    ByteWrapper(u32);
-    ByteWrapper(u64);
+    ByteWrapper(u8, bool);
+    ByteWrapper(u16, bool);
+    ByteWrapper(u32, bool);
+    ByteWrapper(u64, bool);
 
-    bool typeIsU8() const;
-    bool typeIsS8() const;
-    bool typeIsU16() const;
-    bool typeIsS16() const;
-    bool typeIsU32() const;
-    bool typeIsS32() const;
-    bool typeIsU64() const;
-    bool typeIsS64() const;
-    bool typeIsFloat() const;
-    bool typeIsDouble() const;
-
-    bool isIntegerType() const;
     template<typename T, typename V>
     OPERATIONS comparison_helper(T firstVal, V secondVal) const;
 

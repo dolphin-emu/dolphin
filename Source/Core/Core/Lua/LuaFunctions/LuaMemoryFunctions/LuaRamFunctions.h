@@ -90,7 +90,7 @@ public:
     if (readResultSize64.has_value())
     {
       u64 u64Result = readResultSize64.value().value;
-      byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU64(u64Result);
+      byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU64(u64Result, true);
     }
     else
     {
@@ -98,7 +98,7 @@ public:
       if (readResultSize32.has_value())
       {
         u32 u32Result = readResultSize32.value().value;
-        byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU32(u32Result);
+        byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU32(u32Result, true);
       }
       else
       {
@@ -106,7 +106,7 @@ public:
         if (readResultSize16.has_value())
         {
           u16 u16Result = readResultSize16.value().value;
-          byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU16(u16Result);
+          byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU16(u16Result, true);
         }
         else
         {
@@ -114,7 +114,7 @@ public:
           if (readResultSize8.has_value())
           {
             u8 u8Result = readResultSize8.value().value;
-            byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU8(u8Result);
+            byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU8(u8Result, true);
           }
           else
           {

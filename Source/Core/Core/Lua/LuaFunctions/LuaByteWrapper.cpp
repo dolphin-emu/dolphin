@@ -1,5 +1,6 @@
 #include "LuaByteWrapper.h"
 #include <format>
+#include "common/Swap.h"
 namespace Lua
 {
 namespace LuaByteWrapper
@@ -154,12 +155,16 @@ int newByteWrapper(lua_State* luaState)
   if (lua_isinteger(luaState, 1))
   {
     long long longLongInitialValue = luaL_checkinteger(luaState, 1);
-    *reinterpret_cast<ByteWrapper**>(lua_newuserdata(luaState, sizeof(ByteWrapper*))) = ByteWrapper::CreateByteWrapperFromLongLong(longLongInitialValue);
+    u64 convertedU64 = 0ULL;
+    memcpy(&convertedU64, &longLongInitialValue, sizeof(u64));
+    *reinterpret_cast<ByteWrapper**>(lua_newuserdata(luaState, sizeof(ByteWrapper*))) = ByteWrapper::CreateByteWrapperFromU64(convertedU64, false);
   }
   else if (lua_isnumber(luaState, 1))
   {
     double doubleInitialValue = luaL_checknumber(luaState, 1);
-    *reinterpret_cast<ByteWrapper**>(lua_newuserdata(luaState, sizeof(ByteWrapper*))) = ByteWrapper::CreateBytewrapperFromDouble(doubleInitialValue);
+    u64 doubleToU64 = 0ULL;
+    memcpy(&doubleToU64, &doubleInitialValue, sizeof(u64));
+    *reinterpret_cast<ByteWrapper**>(lua_newuserdata(luaState, sizeof(ByteWrapper*))) = ByteWrapper::CreateByteWrapperFromU64(doubleToU64, false);
   }
   else if (lua_isuserdata(luaState, 1))
   {
