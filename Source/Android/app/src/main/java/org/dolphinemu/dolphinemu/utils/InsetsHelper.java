@@ -130,7 +130,7 @@ public class InsetsHelper
 
       insetAppBar(barInsets, appBarLayout);
 
-      slidingPaneLayout.setPadding(barInsets.left, barInsets.top, barInsets.right, 0);
+      slidingPaneLayout.setPadding(barInsets.left, 0, barInsets.right, 0);
 
       // Set keyboard insets if the system supports smooth keyboard animations
       ViewGroup.MarginLayoutParams mlpDetails =
