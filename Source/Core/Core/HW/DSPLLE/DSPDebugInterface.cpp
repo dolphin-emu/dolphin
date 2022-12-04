@@ -223,6 +223,49 @@ std::string DSPDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& gu
   return "";
 }
 
+u32 DSPDebugInterface::GetOffsetAddress(u32 address, s32 offset) const
+{
+  int line = Symbols::Addr2Line(address);
+  if (line < 0 && offset != 0) [[unlikely]]
+  {
+    while (line < 0 && offset != 0)
+    {
+      // address DOES NOT correspond to an instruction we statically found. Scan 1 word at a time
+      // either forward or backward until an instruction is found.
+      if (offset > 0)
+      {
+        address++;
+        offset--;
+      }
+      else if (offset < 0)
+      {
+        address--;
+        offset++;
+      }
+      line = Symbols::Addr2Line(address);
+    }
+  }
+  if (line >= 0) [[likely]]
+  {
+    int new_addr = Symbols::Line2Addr(line + offset);
+    if (new_addr != -1)
+    {
+      return new_addr;
+    }
+    else
+    {
+      // TODO - this could give duplicate/confusing values
+      return address + offset;
+    }
+  }
+  else
+  {
+    // Even after the above, we failed to find a matching instruction.
+    // offset should be 0 at this point.
+    return address + offset;
+  }
+}
+
 u32 DSPDebugInterface::ReadMemory(const Core::CPUThreadGuard& guard, u32 address) const
 {
   return 0;

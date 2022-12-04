@@ -246,8 +246,8 @@ u32 CodeViewWidget::AddressForRow(int row) const
 {
   // m_address is defined as the center row of the table, so we have rowCount/2 instructions above
   // it; an instruction is 4 bytes long on GC/Wii so we increment 4 bytes per row
-  const u32 row_zero_address = m_address - ((rowCount() / 2) * INSTRUCTION_SIZE);
-  return row_zero_address + row * INSTRUCTION_SIZE;
+  int offset = row - (rowCount() / 2);
+  return m_debug_interface->GetOffsetAddress(m_address, offset);
 }
 
 static bool IsBranchInstructionWithLink(std::string_view ins)
@@ -472,7 +472,7 @@ void CodeViewWidget::CalculateBranchIndentation()
     const u32 arrow_first_visible_row =
         (arrow_first_visible_addr - first_addr) / INSTRUCTION_SIZE + first_row;
     const u32 arrow_last_visible_row =
-        (arrow_last_visible_addr - first_addr) / INSTRUCTION_SIZE  + first_row;
+        (arrow_last_visible_addr - first_addr) / INSTRUCTION_SIZE + first_row;
 
     const auto free_column = [&]() -> std::optional<u32> {
       for (u32 column = 0; column < columns; ++column)
@@ -1081,19 +1081,19 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
   switch (event->key())
   {
   case Qt::Key_Up:
-    m_address -= sizeof(u32);
+    m_address = m_debug_interface->GetOffsetAddress(m_address, -1);
     Update();
     return;
   case Qt::Key_Down:
-    m_address += sizeof(u32);
+    m_address = m_debug_interface->GetOffsetAddress(m_address, +1);
     Update();
     return;
   case Qt::Key_PageUp:
-    m_address -= rowCount() * sizeof(u32);
+    m_address = m_debug_interface->GetOffsetAddress(m_address, -rowCount());
     Update();
     return;
   case Qt::Key_PageDown:
-    m_address += rowCount() * sizeof(u32);
+    m_address = m_debug_interface->GetOffsetAddress(m_address, +rowCount());
     Update();
     return;
   default:
@@ -1110,7 +1110,7 @@ void CodeViewWidget::wheelEvent(QWheelEvent* event)
   if (delta == 0)
     return;
 
-  m_address += delta * sizeof(u32);
+  m_address = m_debug_interface->GetOffsetAddress(m_address, delta);
   Update();
 }
 
