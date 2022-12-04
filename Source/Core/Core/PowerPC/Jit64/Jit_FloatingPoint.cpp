@@ -350,11 +350,19 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       inst.OPCD == 4 || (!cpu_info.bAtom && !software_fma && single && js.op->fprIsDuplicated[a] &&
                          js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
 
+  const bool subtract = inst.SUBOP5 == 28 || inst.SUBOP5 == 30;  // msub, nmsub
+  const bool negate = inst.SUBOP5 == 30 || inst.SUBOP5 == 31;    // nmsub, nmadd
+  const bool madds0 = inst.SUBOP5 == 14;
+  const bool madds1 = inst.SUBOP5 == 15;
+  const bool madds_accurate_nans = m_accurate_nans && (madds0 || madds1);
+
   RCOpArg Ra;
   RCOpArg Rb;
   RCOpArg Rc;
   RCX64Reg Rd;
   RCX64Reg scratch_guard;
+  RCX64Reg Rc_duplicated_guard;
+  X64Reg Rc_duplicated = XMM2;
   if (software_fma)
   {
     scratch_guard = fpr.Scratch(XMM2);
@@ -374,12 +382,14 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     Rc = fpr.Use(c, RCMode::Read);
     Rd = fpr.Bind(d, single ? RCMode::Write : RCMode::ReadWrite);
     RegCache::Realize(Ra, Rb, Rc, Rd);
-  }
 
-  const bool subtract = inst.SUBOP5 == 28 || inst.SUBOP5 == 30;  // msub, nmsub
-  const bool negate = inst.SUBOP5 == 30 || inst.SUBOP5 == 31;    // nmsub, nmadd
-  const bool madds0 = inst.SUBOP5 == 14;
-  const bool madds1 = inst.SUBOP5 == 15;
+    if (madds_accurate_nans)
+    {
+      Rc_duplicated_guard = fpr.Scratch();
+      RegCache::Realize(Rc_duplicated_guard);
+      Rc_duplicated = Rc_duplicated_guard;
+    }
+  }
 
   X64Reg scratch_xmm = XMM0;
   X64Reg result_xmm = XMM1;
@@ -435,18 +445,30 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     {
       result_xmm = XMM0;
     }
+
+    if (madds_accurate_nans)
+    {
+      if (madds0)
+        MOVDDUP(Rc_duplicated, Rc);
+      else
+        avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rc_duplicated, Rc, Rc, 3);
+    }
   }
   else
   {
     if (madds0)
     {
       MOVDDUP(result_xmm, Rc);
+      if (madds_accurate_nans)
+        MOVAPD(R(Rc_duplicated), result_xmm);
       if (round_input)
         Force25BitPrecision(result_xmm, R(result_xmm), scratch_xmm);
     }
     else if (madds1)
     {
       avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, result_xmm, Rc, Rc, 3);
+      if (madds_accurate_nans)
+        MOVAPD(R(Rc_duplicated), result_xmm);
       if (round_input)
         Force25BitPrecision(result_xmm, R(result_xmm), scratch_xmm);
     }
@@ -510,7 +532,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     result_xmm = Rd;
   }
 
-  HandleNaNs(inst, result_xmm, XMM0, Ra, Rb, Rc);
+  // If packed, the clobber register must be XMM0. If not packed, the clobber register is unused.
+  HandleNaNs(inst, result_xmm, XMM0, Ra, Rb, madds_accurate_nans ? R(Rc_duplicated) : Rc);
 
   if (single)
     FinalizeSingleResult(Rd, R(result_xmm), packed, true);
