@@ -17,6 +17,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -102,7 +103,35 @@ static double CastFunc(expr_func* f, vec_expr_t* args, void* c)
   return Common::BitCast<T>(static_cast<U>(expr_eval(&vec_nth(args, 0))));
 }
 
-static std::array<expr_func, 21> g_expr_funcs{{
+static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
+{
+  if (vec_len(args) != 1)
+    return 0;
+
+  std::vector<Dolphin_Debugger::CallstackEntry> stack;
+  bool success = Dolphin_Debugger::GetCallstack(stack);
+  if (!success)
+    return 0;
+
+  double num = expr_eval(&vec_nth(args, 0));
+  if (!std::isnan(num))
+  {
+    u32 address = static_cast<u32>(num);
+    return std::any_of(stack.begin(), stack.end(),
+                       [address](const auto& s) { return s.vAddress == address; });
+  }
+
+  const char* cstr = expr_get_str(&vec_nth(args, 0));
+  if (cstr != nullptr)
+  {
+    return std::any_of(stack.begin(), stack.end(),
+                       [cstr](const auto& s) { return s.Name.find(cstr) != std::string::npos; });
+  }
+
+  return 0;
+}
+
+static std::array<expr_func, 22> g_expr_funcs{{
     // For internal storage and comparisons, everything is auto-converted to Double.
     // If u64 ints are added, this could produce incorrect results.
     {"read_u8", HostReadFunc<u8>},
@@ -124,6 +153,7 @@ static std::array<expr_func, 21> g_expr_funcs{{
     {"s16", CastFunc<s16, u16>},
     {"u32", CastFunc<u32>},
     {"s32", CastFunc<s32, u32>},
+    {"callstack", CallstackFunc},
     {},
 }};
 
