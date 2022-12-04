@@ -75,9 +75,6 @@ GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
   groups.emplace_back(m_keys5x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys5)
     m_keys5x->AddInput(ControllerEmu::DoNotTranslate, key);
-
-  // options
-  groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
 }
 
 std::string GCKeyboard::GetName() const
@@ -101,8 +98,6 @@ ControllerEmu::ControlGroup* GCKeyboard::GetGroup(KeyboardGroup group)
     return m_keys4x;
   case KeyboardGroup::Kb5x:
     return m_keys5x;
-  case KeyboardGroup::Options:
-    return m_options;
   default:
     return nullptr;
   }
