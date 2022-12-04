@@ -9,15 +9,18 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.material.divider.MaterialDividerItemDecoration;
 
+import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.databinding.FragmentCheatListBinding;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
-import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 
 public class CheatListFragment extends Fragment
 {
@@ -46,7 +49,7 @@ public class CheatListFragment extends Fragment
     divider.setLastItemDecorated(false);
     mBinding.cheatList.addItemDecoration(divider);
 
-    InsetsHelper.setUpList(getContext(), mBinding.cheatList);
+    setInsets();
   }
 
   @Override
@@ -54,5 +57,16 @@ public class CheatListFragment extends Fragment
   {
     super.onDestroyView();
     mBinding = null;
+  }
+
+  private void setInsets()
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(mBinding.cheatList, (v, windowInsets) ->
+    {
+      Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+      v.setPadding(0, 0, 0,
+              insets.bottom + getResources().getDimensionPixelSize(R.dimen.spacing_xtralarge));
+      return windowInsets;
+    });
   }
 }

@@ -7,8 +7,13 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
+
+import com.google.android.material.color.MaterialColors;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -81,12 +86,11 @@ public class RiivolutionBootActivity extends AppCompatActivity
       runOnUiThread(() -> populateList(patches));
     }).start();
 
-    mBinding.toolbarRiivolutionLayout.setTitle(getString(R.string.riivolution_riivolution));
+    mBinding.toolbarRiivolution.setTitle(getString(R.string.riivolution_riivolution));
     setSupportActionBar(mBinding.toolbarRiivolution);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-    InsetsHelper.setUpAppBarWithScrollView(this, mBinding.appbarRiivolution,
-            mBinding.scrollViewRiivolution, mBinding.workaroundView);
+    setInsets();
     ThemeHelper.enableScrollTint(this, mBinding.toolbarRiivolution, mBinding.appbarRiivolution);
   }
 
@@ -112,5 +116,23 @@ public class RiivolutionBootActivity extends AppCompatActivity
 
     mBinding.recyclerView.setAdapter(new RiivolutionAdapter(this, patches));
     mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
+  }
+
+  private void setInsets()
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(mBinding.appbarRiivolution, (v, windowInsets) ->
+    {
+      Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+      InsetsHelper.insetAppBar(insets, mBinding.appbarRiivolution);
+
+      mBinding.scrollViewRiivolution.setPadding(insets.left, 0, insets.right, insets.bottom);
+
+      InsetsHelper.applyNavbarWorkaround(insets.bottom, mBinding.workaroundView);
+      ThemeHelper.setNavigationBarColor(this,
+              MaterialColors.getColor(mBinding.appbarRiivolution, R.attr.colorSurface));
+
+      return windowInsets;
+    });
   }
 }

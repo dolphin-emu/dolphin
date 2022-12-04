@@ -13,8 +13,12 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.R;
@@ -44,6 +48,8 @@ public class UserDataActivity extends AppCompatActivity
 
   private boolean sMustRestartApp = false;
 
+  private ActivityUserDataBinding mBinding;
+
   public static void launch(Context context)
   {
     Intent launcher = new Intent(context, UserDataActivity.class);
@@ -57,8 +63,8 @@ public class UserDataActivity extends AppCompatActivity
 
     super.onCreate(savedInstanceState);
 
-    ActivityUserDataBinding binding = ActivityUserDataBinding.inflate(getLayoutInflater());
-    setContentView(binding.getRoot());
+    mBinding = ActivityUserDataBinding.inflate(getLayoutInflater());
+    setContentView(mBinding.getRoot());
 
     WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
@@ -68,25 +74,24 @@ public class UserDataActivity extends AppCompatActivity
 
     int user_data_new_location = android_10 ?
             R.string.user_data_new_location_android_10 : R.string.user_data_new_location;
-    binding.textType.setText(legacy ? R.string.user_data_old_location : user_data_new_location);
+    mBinding.textType.setText(legacy ? R.string.user_data_old_location : user_data_new_location);
 
-    binding.textPath.setText(DirectoryInitialization.getUserDirectory());
+    mBinding.textPath.setText(DirectoryInitialization.getUserDirectory());
 
-    binding.textAndroid11.setVisibility(android_11 && !legacy ? View.VISIBLE : View.GONE);
+    mBinding.textAndroid11.setVisibility(android_11 && !legacy ? View.VISIBLE : View.GONE);
 
-    binding.buttonOpenSystemFileManager.setVisibility(android_11 ? View.VISIBLE : View.GONE);
-    binding.buttonOpenSystemFileManager.setOnClickListener(view -> openFileManager());
+    mBinding.buttonOpenSystemFileManager.setVisibility(android_11 ? View.VISIBLE : View.GONE);
+    mBinding.buttonOpenSystemFileManager.setOnClickListener(view -> openFileManager());
 
-    binding.buttonImportUserData.setOnClickListener(view -> importUserData());
+    mBinding.buttonImportUserData.setOnClickListener(view -> importUserData());
 
-    binding.buttonExportUserData.setOnClickListener(view -> exportUserData());
+    mBinding.buttonExportUserData.setOnClickListener(view -> exportUserData());
 
-    setSupportActionBar(binding.toolbarUserData);
+    setSupportActionBar(mBinding.toolbarUserData);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-    InsetsHelper.setUpAppBarWithScrollView(this, binding.appbarUserData,
-            binding.scrollViewUserData, binding.workaroundView);
-    ThemeHelper.enableScrollTint(this, binding.toolbarUserData, binding.appbarUserData);
+    setInsets();
+    ThemeHelper.enableScrollTint(this, mBinding.toolbarUserData, mBinding.appbarUserData);
   }
 
   @Override
@@ -352,5 +357,23 @@ public class UserDataActivity extends AppCompatActivity
         }
       }
     }
+  }
+
+  private void setInsets()
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(mBinding.appbarUserData, (v, windowInsets) ->
+    {
+      Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+      InsetsHelper.insetAppBar(insets, mBinding.appbarUserData);
+
+      mBinding.scrollViewUserData.setPadding(insets.left, 0, insets.right, insets.bottom);
+
+      InsetsHelper.applyNavbarWorkaround(insets.bottom, mBinding.workaroundView);
+      ThemeHelper.setNavigationBarColor(this,
+              MaterialColors.getColor(mBinding.appbarUserData, R.attr.colorSurface));
+
+      return windowInsets;
+    });
   }
 }

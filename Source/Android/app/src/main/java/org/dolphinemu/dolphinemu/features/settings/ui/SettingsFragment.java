@@ -10,6 +10,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,8 +23,6 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.databinding.FragmentSettingsBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
-import org.dolphinemu.dolphinemu.utils.InsetsHelper;
-import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -149,7 +150,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     divider.setLastItemDecorated(false);
     recyclerView.addItemDecoration(divider);
 
-    InsetsHelper.setUpList(getContext(), recyclerView);
+    setInsets();
 
     SettingsActivityView activity = (SettingsActivityView) getActivity();
     mPresenter.onViewCreated(menuTag, activity.getSettings());
@@ -245,5 +246,16 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   public void onExtensionSettingChanged(MenuTag menuTag, int value)
   {
     mActivity.onExtensionSettingChanged(menuTag, value);
+  }
+
+  private void setInsets()
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(mBinding.listSettings, (v, windowInsets) ->
+    {
+      Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+      v.setPadding(0, 0, 0,
+              insets.bottom + getResources().getDimensionPixelSize(R.dimen.spacing_list));
+      return windowInsets;
+    });
   }
 }
