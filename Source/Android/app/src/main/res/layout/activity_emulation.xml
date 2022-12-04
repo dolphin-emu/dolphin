@@ -22,7 +22,7 @@
 
         <FrameLayout
             android:id="@+id/frame_menu"
-            android:layout_width="260dp"
+            android:layout_width="@dimen/menu_width"
             android:layout_height="match_parent"
             tools:layout="@layout/fragment_ingame_menu"/>
 

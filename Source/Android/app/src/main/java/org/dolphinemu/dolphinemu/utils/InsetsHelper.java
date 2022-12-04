@@ -1,7 +1,9 @@
 package org.dolphinemu.dolphinemu.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Rect;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
@@ -221,5 +223,25 @@ public class InsetsHelper
       return resources.getInteger(resourceId);
     }
     return 0;
+  }
+
+  public static int getNavigationBarHeight(Context context)
+  {
+    Resources resources = context.getResources();
+    int resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
+    if (resourceId > 0)
+    {
+      return resources.getDimensionPixelSize(resourceId);
+    }
+    return 0;
+  }
+
+  // This is primarily intended to account for any navigation bar at the bottom of the screen
+  public static int getBottomPaddingRequired(Activity activity)
+  {
+    Rect visibleFrame = new Rect();
+    activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(visibleFrame);
+    return visibleFrame.bottom - visibleFrame.top -
+            activity.getResources().getDisplayMetrics().heightPixels;
   }
 }

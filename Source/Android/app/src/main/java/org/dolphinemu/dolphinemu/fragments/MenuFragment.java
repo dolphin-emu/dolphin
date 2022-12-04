@@ -3,7 +3,6 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.content.pm.PackageManager;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -14,6 +13,9 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -21,12 +23,15 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.databinding.FragmentIngameMenuBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.utils.InsetsHelper;
 
 public final class MenuFragment extends Fragment implements View.OnClickListener
 {
   private static final String KEY_TITLE = "title";
   private static final String KEY_WII = "wii";
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
+
+  private int mCutInset = 0;
 
   static
   {
@@ -68,14 +73,6 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     return fragment;
   }
 
-  // This is primarily intended to account for any navigation bar at the bottom of the screen
-  private int getBottomPaddingRequired()
-  {
-    Rect visibleFrame = new Rect();
-    requireActivity().getWindow().getDecorView().getWindowVisibleDisplayFrame(visibleFrame);
-    return visibleFrame.bottom - visibleFrame.top - getResources().getDisplayMetrics().heightPixels;
-  }
-
   @NonNull
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -88,6 +85,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
   {
+    setInsets();
     updatePauseUnpauseVisibility();
 
     if (!requireActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN))
@@ -98,21 +96,6 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     if (!getArguments().getBoolean(KEY_WII, true))
     {
       mBinding.menuRefreshWiimotes.setVisibility(View.GONE);
-    }
-
-    int bottomPaddingRequired = getBottomPaddingRequired();
-
-    // Provide a safe zone between the navigation bar and Exit Emulation to avoid accidental touches
-    float density = getResources().getDisplayMetrics().density;
-    if (bottomPaddingRequired >= 32 * density)
-    {
-      bottomPaddingRequired += 32 * density;
-    }
-
-    if (bottomPaddingRequired > view.getPaddingBottom())
-    {
-      view.setPadding(view.getPaddingLeft(), view.getPaddingTop(),
-              view.getPaddingRight(), bottomPaddingRequired);
     }
 
     LinearLayout options = mBinding.layoutOptions;
@@ -130,11 +113,41 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     {
       mBinding.textGameTitle.setText(title);
     }
+  }
 
-    if (getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_LTR)
+  private void setInsets()
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(mBinding.getRoot(), (v, windowInsets) ->
     {
-      view.post(() -> NativeLibrary.SetObscuredPixelsLeft(view.getWidth()));
-    }
+      Insets cutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
+      mCutInset = cutInsets.left;
+
+      int left = 0;
+      int right = 0;
+      if (ViewCompat.getLayoutDirection(v) == ViewCompat.LAYOUT_DIRECTION_LTR)
+      {
+        left = cutInsets.left;
+      }
+      else
+      {
+        right = cutInsets.right;
+      }
+
+      v.post(() -> NativeLibrary.SetObscuredPixelsLeft(v.getWidth()));
+
+      // Don't use padding if the navigation bar isn't in the way
+      if (InsetsHelper.getBottomPaddingRequired(requireActivity()) > 0)
+      {
+        v.setPadding(left, cutInsets.top, right,
+                cutInsets.bottom + InsetsHelper.getNavigationBarHeight(requireContext()));
+      }
+      else
+      {
+        v.setPadding(left, cutInsets.top, right,
+                cutInsets.bottom + getResources().getDimensionPixelSize(R.dimen.spacing_large));
+      }
+      return windowInsets;
+    });
   }
 
   @Override
@@ -155,7 +168,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
   {
     super.onDestroyView();
 
-    NativeLibrary.SetObscuredPixelsLeft(0);
+    NativeLibrary.SetObscuredPixelsLeft(mCutInset);
     mBinding = null;
   }
 

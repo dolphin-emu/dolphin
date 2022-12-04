@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +26,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -342,6 +346,8 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     ActivityEmulationBinding binding = ActivityEmulationBinding.inflate(getLayoutInflater());
     setContentView(binding.getRoot());
 
+    setInsets(binding.frameMenu);
+
     // Find or create the EmulationFragment
     mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
             .findFragmentById(R.id.frame_emulation_fragment);
@@ -536,6 +542,28 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
               .commit();
       mMenuVisible = true;
     }
+  }
+
+  private void setInsets(View view)
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(view, (v, windowInsets) ->
+    {
+      Insets cutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
+      ViewGroup.MarginLayoutParams mlpMenu =
+              (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+      int menuWidth = getResources().getDimensionPixelSize(R.dimen.menu_width);
+      if (ViewCompat.getLayoutDirection(v) == ViewCompat.LAYOUT_DIRECTION_LTR)
+      {
+        mlpMenu.width = cutInsets.left + menuWidth;
+      }
+      else
+      {
+        mlpMenu.width = cutInsets.right + menuWidth;
+      }
+      NativeLibrary.SetObscuredPixelsTop(cutInsets.top);
+      NativeLibrary.SetObscuredPixelsLeft(cutInsets.left);
+      return windowInsets;
+    });
   }
 
   public void showOverlayControlsMenu(@NonNull View anchor)
