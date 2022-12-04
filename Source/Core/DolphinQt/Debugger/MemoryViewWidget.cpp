@@ -56,8 +56,17 @@ public:
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setShowGrid(false);
     setContextMenuPolicy(Qt::CustomContextMenu);
-    setSelectionMode(SingleSelection);
+    // Selection will be set programmatically. User will still get an outline on clicked items.
+    setSelectionMode(NoSelection);
     setTextElideMode(Qt::TextElideMode::ElideNone);
+
+    // Prevent colors from changing based on focus.
+    QPalette palette(m_view->palette());
+    palette.setBrush(QPalette::Inactive, QPalette::Highlight, palette.brush(QPalette::Highlight));
+    palette.setBrush(QPalette::Inactive, QPalette::HighlightedText,
+                     palette.brush(QPalette::HighlightedText));
+    setPalette(palette);
+
     setRowCount(30);
     setColumnCount(8);
 
@@ -398,9 +407,6 @@ void MemoryViewWidget::Update()
     row_item->setText(QStringLiteral("%1").arg(row_address, 8, 16, QLatin1Char('0')));
     row_item->setData(USER_ROLE_CELL_ADDRESS, row_address);
 
-    if (row_address == address)
-      row_item->setSelected(true);
-
     for (int c = 0; c < m_data_columns; c++)
     {
       auto* item = m_table->item(i, c + MISC_COLUMNS);
@@ -440,6 +446,10 @@ void MemoryViewWidget::UpdateColumns()
       const Type type = static_cast<Type>(cell_item->data(USER_ROLE_VALUE_TYPE).toInt());
 
       cell_item->setText(ValueToString(cell_address, type));
+
+      // Set search address to selected / colored
+      if (cell_address == m_address_highlight)
+        cell_item->setSelected(true);
     }
   }
 }
@@ -743,6 +753,7 @@ void MemoryViewWidget::SetBPType(BPType type)
 
 void MemoryViewWidget::SetAddress(u32 address)
 {
+  m_address_highlight = address;
   if (m_address == address)
     return;
 
@@ -868,21 +879,23 @@ void MemoryViewWidget::ScrollbarActionTriggered(int action)
   {
     // User is currently dragging the scrollbar.
     // Adjust the memory view by the exact drag difference.
-    SetAddress(m_address + difference * m_bytes_per_row);
+    m_address += difference * m_bytes_per_row;
+    Update();
   }
   else
   {
     if (std::abs(difference) == 1)
     {
       // User clicked the arrows at the top or bottom, go up/down one row.
-      SetAddress(m_address + difference * m_bytes_per_row);
+      m_address += difference * m_bytes_per_row;
     }
     else
     {
       // User clicked the free part of the scrollbar, go up/down one page.
-      SetAddress(m_address + (difference < 0 ? -1 : 1) * m_bytes_per_row * m_table->rowCount());
+      m_address += (difference < 0 ? -1 : 1) * m_bytes_per_row * m_table->rowCount();
     }
 
+    Update();
     // Manually reset the draggable part of the bar back to the center.
     m_scrollbar->setSliderPosition(SCROLLBAR_CENTER);
   }
@@ -892,4 +905,9 @@ void MemoryViewWidget::ScrollbarSliderReleased()
 {
   // Reset the draggable part of the bar back to the center.
   m_scrollbar->setValue(SCROLLBAR_CENTER);
+}
+
+void MemoryViewWidget::SetFocus() const
+{
+  m_table->setFocus();
 }

@@ -60,6 +60,7 @@ public:
   void SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view);
   void SetBPType(BPType type);
   void SetAddress(u32 address);
+  void SetFocus() const;
 
   void SetBPLoggingEnabled(bool enabled);
 
@@ -85,6 +86,7 @@ private:
   BPType m_bp_type = BPType::ReadWrite;
   bool m_do_log = true;
   u32 m_address = 0x80000000;
+  u32 m_address_highlight = 0;
   int m_font_width = 0;
   int m_font_vspace = 0;
   int m_bytes_per_row = 16;
