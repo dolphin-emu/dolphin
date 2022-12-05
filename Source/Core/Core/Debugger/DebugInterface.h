@@ -92,8 +92,24 @@ public:
     return 0;
   }
   virtual u32 ReadInstruction(const CPUThreadGuard& /*guard*/, u32 /*address*/) const { return 0; }
-  virtual std::optional<u32>
-  GetMemoryAddressFromInstruction(const std::string& /*instruction*/) const
+  virtual std::optional<u32> GetBranchTarget(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  {
+    return std::nullopt;
+  }
+  virtual bool IsCallInstruction(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  {
+    return false;
+  }
+  virtual bool IsReturnInstruction(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  {
+    return false;
+  }
+  virtual bool IsLoadStoreInstruction(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  {
+    return false;
+  }
+  virtual std::optional<u32> GetMemoryAddressFromInstruction(const CPUThreadGuard* /*guard*/,
+                                                             u32 /* address */) const
   {
     return std::nullopt;
   }
