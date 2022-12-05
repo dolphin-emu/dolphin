@@ -134,7 +134,7 @@ TraceOutput CodeTrace::SaveCurrentInstruction(const Core::CPUThreadGuard& guard)
   output.address = ppc_state.pc;
 
   if (IsInstructionLoadStore(output.instruction))
-    output.memory_target = debug_interface.GetMemoryAddressFromInstruction(instr);
+    output.memory_target = debug_interface.GetMemoryAddressFromInstruction(&guard, ppc_state.pc);
 
   return output;
 }

@@ -88,6 +88,12 @@ public:
   void RunToBreakpoint() override;
   u32 GetColor(const Core::CPUThreadGuard* guard, u32 address) const override;
   std::string GetDescription(u32 address) const override;
+  bool IsCallInstruction(const Core::CPUThreadGuard* guard, u32 address) const override;
+  std::optional<u32> GetBranchTarget(const Core::CPUThreadGuard* guard, u32 address) const override;
+  bool IsReturnInstruction(const Core::CPUThreadGuard* guard, u32 address) const override;
+  bool IsLoadStoreInstruction(const Core::CPUThreadGuard* guard, u32 address) const override;
+  std::optional<u32> GetMemoryAddressFromInstruction(const Core::CPUThreadGuard* guard,
+                                                     u32 address) const override;
 
   void Clear(const Core::CPUThreadGuard& guard) override;
 

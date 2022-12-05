@@ -69,8 +69,6 @@ private:
     NOP
   };
 
-  u32 GetBranchFromAddress(const Core::CPUThreadGuard& guard, u32 addr);
-
   void ReplaceAddress(u32 address, ReplaceWith replace);
 
   void resizeEvent(QResizeEvent*) override;

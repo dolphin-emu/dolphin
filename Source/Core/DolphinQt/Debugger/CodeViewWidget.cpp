@@ -133,8 +133,6 @@ private:
 // 120; i.e., 120 units * 1/8 = 15 degrees." (http://doc.qt.io/qt-5/qwheelevent.html#angleDelta)
 constexpr double SCROLL_FRACTION_DEGREES = 15.;
 
-constexpr size_t VALID_BRANCH_LENGTH = 10;
-
 constexpr int CODE_VIEW_COLUMN_BREAKPOINT = 0;
 constexpr int CODE_VIEW_COLUMN_ADDRESS = 1;
 constexpr int CODE_VIEW_COLUMN_INSTRUCTION = 2;
@@ -193,18 +191,6 @@ CodeViewWidget::CodeViewWidget(Core::DebugInterface* debug_interface)
 
 CodeViewWidget::~CodeViewWidget() = default;
 
-u32 CodeViewWidget::GetBranchFromAddress(const Core::CPUThreadGuard& guard, u32 addr)
-{
-  std::string disasm = m_debug_interface->Disassemble(&guard, addr);
-  size_t pos = disasm.find("->0x");
-
-  if (pos == std::string::npos)
-    return 0;
-
-  std::string hex = disasm.substr(pos + 2);
-  return std::stoul(hex, nullptr, 16);
-}
-
 void CodeViewWidget::FontBasedSizing()
 {
   // just text width is too small with some fonts, so increase by a bit
@@ -248,21 +234,8 @@ u32 CodeViewWidget::AddressForRow(int row) const
 
 void CodeViewWidget::ChangeAddress(int num_rows)
 {
-  SetAddress(m_debug_interface->GetOffsetAddress(m_address, num_rows), SetAddressUpdate::WithUpdate);
-}
-
-static bool IsBranchInstructionWithLink(std::string_view ins)
-{
-  return ins.ends_with('l') || ins.ends_with("la") || ins.ends_with("l+") || ins.ends_with("la+") ||
-         ins.ends_with("l-") || ins.ends_with("la-");
-}
-
-static bool IsInstructionLoadStore(std::string_view ins)
-{
-  // Could add check for context address being near PC, because we need gprs to be correct for the
-  // load/store.
-  return (ins.starts_with('l') && !ins.starts_with("li")) || ins.starts_with("st") ||
-         ins.starts_with("psq_l") || ins.starts_with("psq_s");
+  SetAddress(m_debug_interface->GetOffsetAddress(m_address, num_rows),
+             SetAddressUpdate::WithUpdate);
 }
 
 void CodeViewWidget::Update()
@@ -371,27 +344,20 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
     }
 
     // look for hex strings to decode branches
-    std::string hex_str;
-    size_t pos = param.find("0x");
-    if (pos != std::string::npos)
+    if (const auto branch_addr = m_debug_interface->GetBranchTarget(guard, addr);
+        branch_addr.has_value())
     {
-      hex_str = param.substr(pos);
-    }
-
-    if (guard && hex_str.length() == VALID_BRANCH_LENGTH && desc != "---")
-    {
-      u32 branch_addr = GetBranchFromAddress(*guard, addr);
       CodeViewBranch& branch = m_branches.emplace_back();
       branch.src_addr = addr;
-      branch.dst_addr = branch_addr;
-      branch.is_link = IsBranchInstructionWithLink(ins);
+      branch.dst_addr = *branch_addr;
+      branch.is_link = m_debug_interface->IsCallInstruction(guard, addr);
 
-      description_item->setText(
-          tr("--> %1").arg(QString::fromStdString(m_debug_interface->GetDescription(branch_addr))));
+      description_item->setText(tr("--> %1").arg(
+          QString::fromStdString(m_debug_interface->GetDescription(*branch_addr))));
       param_item->setForeground(dark_theme ? QColor(255, 135, 255) : Qt::magenta);
     }
 
-    if (ins == "blr")
+    if (m_debug_interface->IsReturnInstruction(guard, addr))
       ins_item->setForeground(dark_theme ? QColor(0xa0FFa0) : Qt::darkGreen);
 
     if (m_debug_interface->IsBreakpoint(addr))
@@ -637,9 +603,9 @@ void CodeViewWidget::OnContextMenu()
         target = QString::fromStdString(std::string{target_it + 1, target_end});
     }
 
-    valid_load_store = IsInstructionLoadStore(disasm);
+    valid_load_store = m_debug_interface->IsLoadStoreInstruction(&guard, addr);
 
-    follow_branch_enabled = GetBranchFromAddress(guard, addr);
+    follow_branch_enabled = m_debug_interface->GetBranchTarget(&guard, addr).has_value();
   }
 
   auto* run_until_menu = menu->addMenu(tr("Run until (ignoring breakpoints)"));
@@ -778,17 +744,12 @@ void CodeViewWidget::OnCopyTargetAddress()
     return;
 
   const u32 addr = GetContextAddress();
-
-  const std::string code_line = [this, addr] {
+  const auto target_addr = [this, addr]() -> std::optional<u32> {
     Core::CPUThreadGuard guard(m_system);
-    return m_debug_interface->Disassemble(&guard, addr);
+    if (!m_debug_interface->IsLoadStoreInstruction(&guard, addr))
+      return std::nullopt;
+    return m_debug_interface->GetMemoryAddressFromInstruction(&guard, addr);
   }();
-
-  if (!IsInstructionLoadStore(code_line))
-    return;
-
-  const std::optional<u32> target_addr =
-      m_debug_interface->GetMemoryAddressFromInstruction(code_line);
 
   if (target_addr)
   {
@@ -809,16 +770,12 @@ void CodeViewWidget::OnShowTargetInMemory()
 
   const u32 addr = GetContextAddress();
 
-  const std::string code_line = [this, addr] {
+  const auto target_addr = [this, addr]() -> std::optional<u32> {
     Core::CPUThreadGuard guard(m_system);
-    return m_debug_interface->Disassemble(&guard, addr);
+    if (!m_debug_interface->IsLoadStoreInstruction(&guard, addr))
+      return std::nullopt;
+    return m_debug_interface->GetMemoryAddressFromInstruction(&guard, addr);
   }();
-
-  if (!IsInstructionLoadStore(code_line))
-    return;
-
-  const std::optional<u32> target_addr =
-      m_debug_interface->GetMemoryAddressFromInstruction(code_line);
 
   if (target_addr)
     emit ShowMemory(*target_addr);
@@ -918,15 +875,15 @@ void CodeViewWidget::OnFollowBranch()
 {
   const u32 addr = GetContextAddress();
 
-  const u32 branch_addr = [this, addr] {
+  const std::optional<u32> branch_addr = [this, addr] {
     Core::CPUThreadGuard guard(m_system);
-    return GetBranchFromAddress(guard, addr);
+    return m_debug_interface->GetBranchTarget(&guard, addr);
   }();
 
-  if (!branch_addr)
+  if (!branch_addr.has_value())
     return;
 
-  SetAddress(branch_addr, SetAddressUpdate::WithDetailedUpdate);
+  SetAddress(branch_addr.value(), SetAddressUpdate::WithDetailedUpdate);
 }
 
 void CodeViewWidget::OnRenameSymbol()

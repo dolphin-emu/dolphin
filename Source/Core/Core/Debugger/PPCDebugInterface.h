@@ -98,7 +98,12 @@ public:
 
   u32 ReadExtraMemory(const Core::CPUThreadGuard& guard, int memory, u32 address) const override;
   u32 ReadInstruction(const Core::CPUThreadGuard& guard, u32 address) const override;
-  std::optional<u32> GetMemoryAddressFromInstruction(const std::string& instruction) const override;
+  std::optional<u32> GetBranchTarget(const Core::CPUThreadGuard* guard, u32 address) const override;
+  bool IsCallInstruction(const Core::CPUThreadGuard* guard, u32 address) const override;
+  bool IsReturnInstruction(const Core::CPUThreadGuard* guard, u32 address) const override;
+  bool IsLoadStoreInstruction(const Core::CPUThreadGuard* guard, u32 address) const override;
+  std::optional<u32> GetMemoryAddressFromInstruction(const Core::CPUThreadGuard* guard,
+                                                     u32 address) const override;
   u32 GetPC() const override;
   void SetPC(u32 address) override;
   void Step() override {}

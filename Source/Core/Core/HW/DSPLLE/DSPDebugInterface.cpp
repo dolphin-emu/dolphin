@@ -363,6 +363,45 @@ std::string DSPDebugInterface::GetDescription(u32 address) const
   return "";  // g_symbolDB.GetDescription(address);
 }
 
+bool DSPDebugInterface::IsCallInstruction(const Core::CPUThreadGuard* guard, u32 address) const
+{
+  const std::string disas = Disassemble(guard, address);
+  return disas.starts_with("call") && !disas.starts_with("callr");
+}
+
+std::optional<u32> DSPDebugInterface::GetBranchTarget(const Core::CPUThreadGuard* guard,
+                                                      u32 address) const
+{
+  const std::string disas = Disassemble(guard, address);
+  const bool is_direct_branch =
+      (disas.starts_with("call") && !disas.starts_with("callr")) ||
+      (disas.starts_with("j") && !disas.starts_with("jr") && !disas.starts_with("jmpr"));
+  if (is_direct_branch)
+    return m_parent->m_dsp_core.DSPState().ReadIMEM(address + 1);
+  else
+    return std::nullopt;
+}
+
+bool DSPDebugInterface::IsReturnInstruction(const Core::CPUThreadGuard* guard, u32 address) const
+{
+  const std::string disas = Disassemble(guard, address);
+  return disas.starts_with("ret");
+}
+
+bool DSPDebugInterface::IsLoadStoreInstruction(const Core::CPUThreadGuard* guard, u32 address) const
+{
+  // TODO
+  return false;
+}
+
+std::optional<u32>
+DSPDebugInterface::GetMemoryAddressFromInstruction(const Core::CPUThreadGuard* guard,
+                                                   u32 address) const
+{
+  // TODO
+  return std::nullopt;
+}
+
 u32 DSPDebugInterface::GetPC() const
 {
   return m_parent->m_dsp_core.DSPState().pc;
