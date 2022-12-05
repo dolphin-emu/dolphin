@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.UserDataActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
@@ -414,6 +415,44 @@ public final class SettingsFragmentPresenter
 
     sl.add(new SingleChoiceSetting(mContext, themeMode, R.string.change_theme_mode, 0,
             R.array.themeModeEntries, R.array.themeModeValues));
+
+    AbstractBooleanSetting blackBackgrounds = new AbstractBooleanSetting()
+    {
+      @Override
+      public boolean isOverridden(Settings settings)
+      {
+        return BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.isOverridden(settings);
+      }
+
+      @Override
+      public boolean isRuntimeEditable()
+      {
+        return true;
+      }
+
+      @Override
+      public boolean delete(Settings settings)
+      {
+        ThemeHelper.deleteBackgroundSetting((AppCompatActivity) mView.getActivity());
+        return BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.delete(settings);
+      }
+
+      @Override
+      public boolean getBoolean(Settings settings)
+      {
+        return BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBoolean(settings);
+      }
+
+      @Override
+      public void setBoolean(Settings settings, boolean newValue)
+      {
+        BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.setBoolean(settings, newValue);
+        ThemeHelper.saveBackgroundSetting((AppCompatActivity) mView.getActivity(), newValue);
+      }
+    };
+
+    sl.add(new CheckBoxSetting(mContext, blackBackgrounds, R.string.use_black_backgrounds,
+            R.string.use_black_backgrounds_description));
   }
 
   private void addAudioSettings(ArrayList<SettingsItem> sl)

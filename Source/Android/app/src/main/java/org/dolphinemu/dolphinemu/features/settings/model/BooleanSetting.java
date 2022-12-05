@@ -81,6 +81,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
 
   MAIN_SHOW_GAME_TITLES(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "ShowGameTitles", true),
+  MAIN_USE_BLACK_BACKGROUNDS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "UseBlackBackgrounds", false),
   MAIN_JOYSTICK_REL_CENTER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "JoystickRelCenter", true),
   MAIN_PHONE_RUMBLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
