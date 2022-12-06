@@ -805,7 +805,7 @@ void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
   u16 sky_id = 0;
   u16 sky_var = 0;
 
-  u8 portal_slot  = IOS::HLE::USB::g_skyportal.load_skylander(data.data(), std::move(sky_file));
+  u8 portal_slot = IOS::HLE::USB::g_skyportal.load_skylander(data.data(), std::move(sky_file));
   sky_slots[slot] = std::tuple(portal_slot, sky_id, sky_var);
 
   UpdateEdits();

@@ -97,7 +97,7 @@ int SkylanderUsb::CancelTransfer(u8 endpoint)
 int SkylanderUsb::ChangeInterface(const u8 interface)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Changing interface to {}", m_vid, m_pid,
-                 m_active_interface, interface);
+                m_active_interface, interface);
   m_active_interface = interface;
   return 0;
 }
@@ -115,10 +115,10 @@ int SkylanderUsb::SetAltSetting(u8 alt_setting)
 int SkylanderUsb::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB,
-                 "[{:04x}:{:04x} {}] Control: bRequestType={:02x} bRequest={} wValue={:04x}"
-                 " wIndex={:04x} wLength={:04x}",
-                 m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value,
-                 cmd->index, cmd->length);
+                "[{:04x}:{:04x} {}] Control: bRequestType={:02x} bRequest={} wValue={:04x}"
+                " wIndex={:04x} wLength={:04x}",
+                m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value,
+                cmd->index, cmd->length);
 
   cmd->expected_time = Common::Timer::NowUs() + 100;
   std::unique_ptr<u8[]> returnBuf;
@@ -359,13 +359,13 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
 int SkylanderUsb::SubmitTransfer(std::unique_ptr<BulkMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Bulk: length={} endpoint={}", m_vid, m_pid,
-                 m_active_interface, cmd->length, cmd->endpoint);
+                m_active_interface, cmd->length, cmd->endpoint);
   return 0;
 }
 int SkylanderUsb::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Interrupt: length={} endpoint={}", m_vid, m_pid,
-                 m_active_interface, cmd->length, cmd->endpoint);
+                m_active_interface, cmd->length, cmd->endpoint);
 
   u8* buf = Memory::GetPointerForRange(cmd->data_address, cmd->length);
   std::array<u8, 32> q_result = {};
@@ -388,7 +388,7 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
 int SkylanderUsb::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Isochronous: length={} endpoint={} num_packets={}",
-                 m_vid, m_pid, m_active_interface, cmd->length, cmd->endpoint, cmd->num_packets);
+                m_vid, m_pid, m_active_interface, cmd->length, cmd->endpoint, cmd->num_packets);
   return 0;
 }
 

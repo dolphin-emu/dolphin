@@ -112,7 +112,7 @@ struct TransferCommand
   std::unique_ptr<u8[]> MakeBuffer(size_t size) const;
   void FillBuffer(const u8* src, size_t size) const;
 
-  //Fake Transfers
+  // Fake Transfers
   u64 expected_time;
   u32 expected_count;
 
