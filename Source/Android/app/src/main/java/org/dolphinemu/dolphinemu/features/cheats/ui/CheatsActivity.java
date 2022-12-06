@@ -24,6 +24,7 @@ import androidx.slidingpanelayout.widget.SlidingPaneLayout;
 
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.elevation.ElevationOverlayProvider;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.databinding.ActivityCheatsBinding;
@@ -112,7 +113,9 @@ public class CheatsActivity extends AppCompatActivity
     setInsets();
 
     @ColorInt int color =
-            MaterialColors.getColor(mBinding.toolbarCheats, R.attr.colorSurfaceVariant);
+            new ElevationOverlayProvider(mBinding.toolbarCheats.getContext()).compositeOverlay(
+                    MaterialColors.getColor(mBinding.toolbarCheats, R.attr.colorSurface),
+                    getResources().getDimensionPixelSize(R.dimen.elevated_app_bar));
     mBinding.toolbarCheats.setBackgroundColor(color);
     ThemeHelper.setStatusBarColor(this, color);
   }

@@ -19,6 +19,7 @@ import androidx.preference.PreferenceManager;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.color.MaterialColors;
+import com.google.android.material.elevation.ElevationOverlayProvider;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider;
@@ -222,7 +223,10 @@ public class ThemeHelper
     {
       if (-verticalOffset >= (layout.getTotalScrollRange() / 2))
       {
-        @ColorInt int color = MaterialColors.getColor(toolbar, R.attr.colorSurfaceVariant);
+        @ColorInt int color =
+                new ElevationOverlayProvider(appBarLayout.getContext()).compositeOverlay(
+                        MaterialColors.getColor(appBarLayout, R.attr.colorSurface),
+                        activity.getResources().getDimensionPixelSize(R.dimen.elevated_app_bar));
         toolbar.setBackgroundColor(color);
         setStatusBarColor(activity, color);
       }
