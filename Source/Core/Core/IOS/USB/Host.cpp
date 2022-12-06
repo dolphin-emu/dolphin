@@ -22,6 +22,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/IOS/USB/Common.h"
+#include "Core/IOS/USB/Emulated/Skylander.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 
 namespace IOS::HLE
@@ -115,6 +116,12 @@ bool USBHost::UpdateDevices(const bool always_add_hooks)
 bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
                             const bool always_add_hooks)
 {
+  emulate_skylander_portal = true;
+  auto skylanderportal = std::make_unique<USB::SkylanderUsb>(m_ios, "Skylander Portal");
+  const u64 skyid = skylanderportal->GetId();
+  new_devices.insert(skyid);
+  if (AddDevice(std::move(skylanderportal)))
+    hooks.emplace(GetDeviceById(skyid), ChangeEvent::Inserted);
 #ifdef __LIBUSB__
   auto whitelist = Config::GetUSBDeviceWhitelist();
   if (whitelist.empty())

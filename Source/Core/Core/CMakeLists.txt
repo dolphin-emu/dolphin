@@ -399,6 +399,10 @@ add_library(core
   IOS/USB/Bluetooth/WiimoteHIDAttr.h
   IOS/USB/Common.cpp
   IOS/USB/Common.h
+  IOS/USB/EmulatedUsbDevice.cpp
+  IOS/USB/EmulatedUsbDevice.h  
+  IOS/USB/Emulated/Skylander.cpp
+  IOS/USB/Emulated/Skylander.h
   IOS/USB/Host.cpp
   IOS/USB/Host.h
   IOS/USB/OH0/OH0.cpp

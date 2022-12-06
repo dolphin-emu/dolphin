@@ -46,6 +46,7 @@
 #include "Core/IOS/STM/STM.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
+#include "Core/IOS/USB/Emulated/Skylander.h"
 #include "Core/IOS/USB/OH0/OH0.h"
 #include "Core/IOS/USB/OH0/OH0Device.h"
 #include "Core/IOS/USB/USB_HID/HIDv4.h"
