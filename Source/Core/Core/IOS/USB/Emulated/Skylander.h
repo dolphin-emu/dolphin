@@ -76,7 +76,7 @@ private:
   FakeTransferThread& GetTransferThread() { return m_transfer_thread; }
 };
 
-struct skylander
+struct Skylander final
 {
   File::IOFile sky_file;
   u8 status = 0;
@@ -86,20 +86,20 @@ struct skylander
   void save();
 };
 
-class sky_portal
+class SkylanderPortal final
 {
 public:
-  void activate();
-  void deactivate();
+  void Activate();
+  void Deactivate();
   void UpdateStatus();
-  void set_leds(u8 r, u8 g, u8 b);
+  void SetLEDs(u8 r, u8 g, u8 b);
 
-  std::array<u8, 32> get_status(u8* buf);
-  void query_block(u8 sky_num, u8 block, u8* reply_buf);
-  void write_block(u8 sky_num, u8 block, const u8* to_write_buf, u8* reply_buf);
+  std::array<u8, 32> GetStatus(u8* buf);
+  void QueryBlock(u8 sky_num, u8 block, u8* reply_buf);
+  void WriteBlock(u8 sky_num, u8 block, const u8* to_write_buf, u8* reply_buf);
 
-  bool remove_skylander(u8 sky_num);
-  u8 load_skylander(u8* buf, File::IOFile in_file);
+  bool RemoveSkylander(u8 sky_num);
+  u8 LoadSkylander(u8* buf, File::IOFile in_file);
 
 protected:
   std::mutex sky_mutex;
@@ -109,9 +109,9 @@ protected:
   u8 interrupt_counter = 0;
   u8 r = 0, g = 0, b = 0;
 
-  skylander skylanders[8];
+  Skylander skylanders[8];
 };
 
-extern sky_portal g_skyportal;
+extern SkylanderPortal g_skyportal;
 
 }  // namespace IOS::HLE::USB

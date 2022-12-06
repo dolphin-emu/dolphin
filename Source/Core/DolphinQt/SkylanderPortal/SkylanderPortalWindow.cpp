@@ -729,15 +729,15 @@ CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
       return;
     }
 
-    // std::array<u8, 0x40 * 0x10> buf{};
-    // const auto data = buf.data();
+    std::array<u8, 0x40 * 0x10> buf{};
+    const auto data = buf.data();
     // Set the block permissions
     // *utils::bless<le_t<u32>>(&data[0x36]) = 0x690F0F0F;
-    // for (u32 index = 1; index < 0x10; index++)
-    // {
+    for (u32 index = 1; index < 0x10; index++)
+    {
     //   *utils::bless<le_t<u32>>(&data[(index * 0x40) + 0x36]) = 0x69080F7F;
-    // }
-    // // Set the skylander info
+    }
+    // Set the skylander info
     // *utils::bless<le_t<u16>>(&data[0]) = (sky_id | sky_var) + 1;
     // *utils::bless<le_t<u16>>(&data[0x10]) = sky_id;
     // *utils::bless<le_t<u16>>(&data[0x1C]) = sky_var;
@@ -745,6 +745,7 @@ CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
     // *utils::bless<le_t<u16>>(&data[0x1E]) = skylander_crc16(0xFFFF, data, 0x1E);
 
     // sky_file.write(buf.data(), buf.size());
+    sky_file.WriteBytes(buf.data(), buf.size());
     sky_file.Close();
 
     last_skylander_path = QFileInfo(file_path).absolutePath();
@@ -805,7 +806,7 @@ void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
   u16 sky_id = 0;
   u16 sky_var = 0;
 
-  u8 portal_slot = IOS::HLE::USB::g_skyportal.load_skylander(data.data(), std::move(sky_file));
+  u8 portal_slot = IOS::HLE::USB::g_skyportal.LoadSkylander(data.data(), std::move(sky_file));
   sky_slots[slot] = std::tuple(portal_slot, sky_id, sky_var);
 
   UpdateEdits();
@@ -816,7 +817,7 @@ void SkylanderPortalWindow::ClearSkylander(u8 slot)
   if (auto slot_infos = sky_slots[slot])
   {
     auto [cur_slot, id, var] = slot_infos.value();
-    IOS::HLE::USB::g_skyportal.remove_skylander(cur_slot);
+    IOS::HLE::USB::g_skyportal.RemoveSkylander(cur_slot);
     sky_slots[slot] = {};
     UpdateEdits();
   }

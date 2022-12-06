@@ -30,7 +30,7 @@
 namespace IOS::HLE::USB
 {
 
-sky_portal g_skyportal;
+SkylanderPortal g_skyportal;
 
 SkylanderUsb::SkylanderUsb(Kernel& ios, const std::string& device_name)
     : EmulatedUsbDevice(ios, device_name)
@@ -158,7 +158,7 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
                       0x00, 0x00,   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           q_queries.push(q_result);
           cmd->expected_count = 10;
-          g_skyportal.activate();
+          g_skyportal.Activate();
         }
         break;
       }
@@ -175,7 +175,7 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
         // is silently ignored and do not require a response.
         if (cmd->length == 4 || cmd->length == 32)
         {
-          g_skyportal.set_leds(buf[1], buf[2], buf[3]);
+          g_skyportal.SetLEDs(buf[1], buf[2], buf[3]);
           q_data = {0x43, buf[1], buf[2], buf[3]};
           cmd->expected_count = 12;
         }
@@ -235,7 +235,7 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
         // Queries a block
         const u8 sky_num = buf[1] & 0xF;
         const u8 block = buf[2];
-        g_skyportal.query_block(sky_num, block, q_result.data());
+        g_skyportal.QueryBlock(sky_num, block, q_result.data());
         q_queries.push(q_result);
         q_data = {buf[0], buf[1], buf[2]};
         cmd->expected_count = 11;
@@ -321,7 +321,7 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
       {
         const u8 sky_num = buf[1] & 0xF;
         const u8 block = buf[2];
-        g_skyportal.write_block(sky_num, block, &buf[3], q_result.data());
+        g_skyportal.WriteBlock(sky_num, block, &buf[3], q_result.data());
         q_queries.push(q_result);
         q_data = {buf[0],  buf[1],  buf[2],  buf[3],  buf[4],  buf[5],  buf[6],
                   buf[7],  buf[8],  buf[9],  buf[10], buf[11], buf[12], buf[13],
@@ -378,7 +378,7 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   }
   else
   {
-    q_result = g_skyportal.get_status(buf);
+    q_result = g_skyportal.GetStatus(buf);
     cmd->expected_time = Common::Timer::NowUs() + 2000;
   }
   cmd->expected_count = 32;
@@ -443,7 +443,7 @@ void SkylanderUsb::FakeTransferThread::AddTransfer(std::unique_ptr<TransferComma
   m_transfers.emplace(data, std::move(command));
 }
 
-void skylander::save()
+void Skylander::save()
 {
   if (!sky_file)
   {
@@ -456,7 +456,7 @@ void skylander::save()
   }
 }
 
-void sky_portal::activate()
+void SkylanderPortal::Activate()
 {
   std::lock_guard lock(sky_mutex);
   if (activated)
@@ -478,7 +478,7 @@ void sky_portal::activate()
   activated = true;
 }
 
-void sky_portal::deactivate()
+void SkylanderPortal::Deactivate()
 {
   std::lock_guard lock(sky_mutex);
 
@@ -497,7 +497,7 @@ void sky_portal::deactivate()
   activated = false;
 }
 
-void sky_portal::UpdateStatus()
+void SkylanderPortal::UpdateStatus()
 {
   std::lock_guard lock(sky_mutex);
 
@@ -516,7 +516,7 @@ void sky_portal::UpdateStatus()
   }
 }
 
-void sky_portal::set_leds(u8 red, u8 green, u8 blue)
+void SkylanderPortal::SetLEDs(u8 red, u8 green, u8 blue)
 {
   std::lock_guard lock(sky_mutex);
   this->r = red;
@@ -524,7 +524,7 @@ void sky_portal::set_leds(u8 red, u8 green, u8 blue)
   this->b = blue;
 }
 
-std::array<u8, 32> sky_portal::get_status(u8* reply_buf)
+std::array<u8, 32> SkylanderPortal::GetStatus(u8* reply_buf)
 {
   std::lock_guard lock(sky_mutex);
 
@@ -562,18 +562,18 @@ std::array<u8, 32> sky_portal::get_status(u8* reply_buf)
   return q_result;
 }
 
-void sky_portal::query_block(u8 sky_num, u8 block, u8* reply_buf)
+void SkylanderPortal::QueryBlock(u8 sky_num, u8 block, u8* reply_buf)
 {
   std::lock_guard lock(sky_mutex);
 
-  const auto& thesky = skylanders[sky_num];
+  const auto& skylander = skylanders[sky_num];
 
   reply_buf[0] = 'Q';
   reply_buf[2] = block;
-  if (thesky.status & 1)
+  if (skylander.status & 1)
   {
     reply_buf[1] = (0x10 | sky_num);
-    memcpy(reply_buf + 3, thesky.data.data() + (16 * block), 16);
+    memcpy(reply_buf + 3, skylander.data.data() + (16 * block), 16);
   }
   else
   {
@@ -581,20 +581,20 @@ void sky_portal::query_block(u8 sky_num, u8 block, u8* reply_buf)
   }
 }
 
-void sky_portal::write_block(u8 sky_num, u8 block, const u8* to_write_buf, u8* reply_buf)
+void SkylanderPortal::WriteBlock(u8 sky_num, u8 block, const u8* to_write_buf, u8* reply_buf)
 {
   std::lock_guard lock(sky_mutex);
 
-  auto& thesky = skylanders[sky_num];
+  auto& skylander = skylanders[sky_num];
 
   reply_buf[0] = 'W';
   reply_buf[2] = block;
 
-  if (thesky.status & 1)
+  if (skylander.status & 1)
   {
     reply_buf[1] = (0x10 | sky_num);
-    memcpy(thesky.data.data() + (block * 16), to_write_buf, 16);
-    thesky.save();
+    memcpy(skylander.data.data() + (block * 16), to_write_buf, 16);
+    skylander.save();
   }
   else
   {
@@ -602,25 +602,25 @@ void sky_portal::write_block(u8 sky_num, u8 block, const u8* to_write_buf, u8* r
   }
 }
 
-bool sky_portal::remove_skylander(u8 sky_num)
+bool SkylanderPortal::RemoveSkylander(u8 sky_num)
 {
   DEBUG_LOG_FMT(IOS_USB, "Cleared Skylander from slot {}", sky_num);
   std::lock_guard lock(sky_mutex);
-  auto& thesky = skylanders[sky_num];
+  auto& skylander = skylanders[sky_num];
 
-  if (thesky.status & 1)
+  if (skylander.status & 1)
   {
-    thesky.status = 2;
-    thesky.queued_status.push(2);
-    thesky.queued_status.push(0);
-    thesky.sky_file.Close();
+    skylander.status = 2;
+    skylander.queued_status.push(2);
+    skylander.queued_status.push(0);
+    skylander.sky_file.Close();
     return true;
   }
 
   return false;
 }
 
-u8 sky_portal::load_skylander(u8* buf, File::IOFile in_file)
+u8 SkylanderPortal::LoadSkylander(u8* buf, File::IOFile in_file)
 {
   std::lock_guard lock(sky_mutex);
 
@@ -651,14 +651,14 @@ u8 sky_portal::load_skylander(u8* buf, File::IOFile in_file)
 
   if (found_slot != 0xFF)
   {
-    auto& thesky = skylanders[found_slot];
-    memcpy(thesky.data.data(), buf, thesky.data.size());
-    DEBUG_LOG_FMT(IOS_USB, "Skylander Data: \n{}", HexDump(thesky.data.data(), thesky.data.size()));
-    thesky.sky_file = std::move(in_file);
-    thesky.status = 3;
-    thesky.queued_status.push(3);
-    thesky.queued_status.push(1);
-    thesky.last_id = sky_serial;
+    auto& skylander = skylanders[found_slot];
+    memcpy(skylander.data.data(), buf, skylander.data.size());
+    DEBUG_LOG_FMT(IOS_USB, "Skylander Data: \n{}", HexDump(skylander.data.data(), skylander.data.size()));
+    skylander.sky_file = std::move(in_file);
+    skylander.status = 3;
+    skylander.queued_status.push(3);
+    skylander.queued_status.push(1);
+    skylander.last_id = sky_serial;
   }
   return found_slot;
 }
