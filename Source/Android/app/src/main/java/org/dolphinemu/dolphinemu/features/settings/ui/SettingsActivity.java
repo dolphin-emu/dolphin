@@ -167,10 +167,10 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
       if (areSystemAnimationsEnabled())
       {
         transaction.setCustomAnimations(
-                R.animator.settings_enter,
-                R.animator.settings_exit,
-                R.animator.settings_pop_enter,
-                R.animator.setttings_pop_exit);
+                R.anim.anim_settings_fragment_in,
+                R.anim.anim_settings_fragment_out,
+                0,
+                R.anim.anim_pop_settings_fragment_out);
       }
 
       transaction.addToBackStack(null);
