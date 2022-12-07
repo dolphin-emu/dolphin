@@ -116,13 +116,20 @@ bool USBHost::UpdateDevices(const bool always_add_hooks)
 bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
                             const bool always_add_hooks)
 {
-  emulate_skylander_portal = true;
-  auto skylanderportal = std::make_unique<USB::SkylanderUsb>(m_ios, "Skylander Portal");
-  const u64 skyid = skylanderportal->GetId();
-  new_devices.insert(skyid);
-  if (AddDevice(std::move(skylanderportal)))
-    hooks.emplace(GetDeviceById(skyid), ChangeEvent::Inserted);
 #ifdef __LIBUSB__
+  if (m_context.CheckDevice(0x1430, 0x0150, 0x0150))
+  {
+    NOTICE_LOG_FMT(IOS_USB, "Found Device");
+    emulate_skylander_portal = false;
+  }
+  if (emulate_skylander_portal)
+  {
+    auto skylanderportal = std::make_unique<USB::SkylanderUsb>(m_ios, "Skylander Portal");
+    const u64 skyid = skylanderportal->GetId();
+    new_devices.insert(skyid);
+    if (AddDevice(std::move(skylanderportal)))
+      hooks.emplace(GetDeviceById(skyid), ChangeEvent::Inserted);
+  }
   auto whitelist = Config::GetUSBDeviceWhitelist();
   if (whitelist.empty())
     return true;

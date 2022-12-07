@@ -33,6 +33,7 @@ public:
 
   // Only valid if the context is valid.
   int GetDeviceList(GetDeviceListCallback callback) const;
+  bool CheckDevice(u16 id_vendor, u16 id_product_min, u16 id_product_max) const;
 
 private:
   class Impl;

@@ -13,6 +13,7 @@
 #include "Common/Assert.h"
 #include "Common/Flag.h"
 #include "Common/Thread.h"
+#include "LibusbUtils.h"
 
 namespace LibusbUtils
 {
@@ -67,6 +68,33 @@ public:
     return LIBUSB_SUCCESS;
   }
 
+  bool CheckDevice(u16 id_vendor, u16 id_product_min, u16 id_product_max) const
+  {
+    std::lock_guard lock{m_device_list_mutex};
+
+    libusb_device** list;
+    ssize_t count = libusb_get_device_list(m_context, &list);
+    if (count < 0)
+      return false;
+
+    for (ssize_t i = 0; i < count; ++i)
+    {
+      libusb_device_descriptor desc;
+      if (int res = libusb_get_device_descriptor(list[i], &desc); res < 0)
+      {
+        continue;
+      }
+      if (desc.idVendor == id_vendor && desc.idProduct >= id_product_min &&
+          desc.idProduct <= id_product_max)
+      {
+        libusb_free_device_list(list, 1);
+        return true;
+      }
+    }
+    libusb_free_device_list(list, 1);
+    return false;
+  }
+
 private:
   void EventThread()
   {
@@ -115,6 +143,10 @@ int Context::GetDeviceList(GetDeviceListCallback callback) const
   return m_impl->GetDeviceList(std::move(callback));
 }
 
+bool Context::CheckDevice(u16 id_vendor, u16 id_product_min, u16 id_product_max) const
+{
+  return m_impl->CheckDevice(id_vendor, id_product_min, id_product_max);
+}
 std::pair<int, ConfigDescriptor> MakeConfigDescriptor(libusb_device* device, u8 config_num)
 {
 #if defined(__LIBUSB__)
