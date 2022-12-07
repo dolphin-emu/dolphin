@@ -376,6 +376,8 @@
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteDevice.h" />
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.h" />
     <ClInclude Include="Core\IOS\USB\Common.h" />
+    <ClInclude Include="Core\IOS\USB\EmulatedUsbDevice.h" />
+    <ClInclude Include="Core\IOS\USB\Emulated\Skylander.h" />
     <ClInclude Include="Core\IOS\USB\Host.h" />
     <ClInclude Include="Core\IOS\USB\LibusbDevice.h" />
     <ClInclude Include="Core\IOS\USB\OH0\OH0.h" />
@@ -1004,6 +1006,8 @@
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteDevice.cpp" />
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.cpp" />
     <ClCompile Include="Core\IOS\USB\Common.cpp" />
+    <ClCompile Include="Core\IOS\USB\EmulatedUsbDevice.cpp" />
+    <ClCompile Include="Core\IOS\USB\Emulated\Skylander.cpp" />
     <ClCompile Include="Core\IOS\USB\Host.cpp" />
     <ClCompile Include="Core\IOS\USB\LibusbDevice.cpp" />
     <ClCompile Include="Core\IOS\USB\OH0\OH0.cpp" />

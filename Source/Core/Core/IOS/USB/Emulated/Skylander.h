@@ -17,7 +17,6 @@
 #include "Common/IOFile.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/EmulatedUsbDevice.h"
-#include "Core/LibusbUtils.h"
 
 namespace IOS::HLE::USB
 {

@@ -15,8 +15,6 @@
 #include <utility>
 #include <vector>
 
-#include <libusb.h>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
@@ -374,7 +372,7 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   auto& memory = system.GetMemory();
   u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
   std::array<u8, 64> q_result = {};
-  if(cmd->length > 32)
+  if (cmd->length > 32)
   {
     std::array<u8, 64> q_audio_result = {};
     u8* audio_buf = q_audio_result.data();
@@ -639,7 +637,6 @@ u8 SkylanderPortal::LoadSkylander(u8* buf, File::IOFile in_file)
 {
   std::lock_guard lock(sky_mutex);
 
-
   // u32 sky_serial = *utils::bless<le_t<u32>>(buf);
   u32 sky_serial = 0;
   for (int i = 3; i > -1; i--)
@@ -674,7 +671,8 @@ u8 SkylanderPortal::LoadSkylander(u8* buf, File::IOFile in_file)
   {
     auto& skylander = skylanders[found_slot];
     memcpy(skylander.data.data(), buf, skylander.data.size());
-    DEBUG_LOG_FMT(IOS_USB, "Skylander Data: \n{}", HexDump(skylander.data.data(), skylander.data.size()));
+    DEBUG_LOG_FMT(IOS_USB, "Skylander Data: \n{}",
+                  HexDump(skylander.data.data(), skylander.data.size()));
     skylander.sky_file = std::move(in_file);
     skylander.status = 3;
     skylander.queued_status.push(3);

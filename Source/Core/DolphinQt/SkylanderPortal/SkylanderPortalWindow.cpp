@@ -731,46 +731,45 @@ CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
     }
 
     std::array<u8, 0x40 * 0x10> buf{};
-    const auto data = buf.data();
+    const auto file_data = buf.data();
     // Set the block permissions
-    // *utils::bless<le_t<u32>>(&data[0x36]) = 0x690F0F0F;
+    // *utils::bless<le_t<u32>>(&file_data[0x36]) = 0x690F0F0F;
     u32 first_block = 0x690F0F0F;
     u32 other_blocks = 0x69080F7F;
-    memcpy(&data[0x36], &first_block, sizeof(first_block));
+    memcpy(&file_data[0x36], &first_block, sizeof(first_block));
     for (u32 index = 1; index < 0x10; index++)
     {
-    //   *utils::bless<le_t<u32>>(&data[(index * 0x40) + 0x36]) = 0x69080F7F;
-        memcpy(&data[(index * 0x40) + 0x36], &other_blocks, sizeof(other_blocks));
+      //   *utils::bless<le_t<u32>>(&file_data[(index * 0x40) + 0x36]) = 0x69080F7F;
+      memcpy(&file_data[(index * 0x40) + 0x36], &other_blocks, sizeof(other_blocks));
     }
     // Set the skylander info
-    // *utils::bless<le_t<u16>>(&data[0]) = (sky_id | sky_var) + 1;
+    // *utils::bless<le_t<u16>>(&file_data[0]) = (sky_id | sky_var) + 1;
     u16 sky_info = (sky_id | sky_var) + 1;
-    memcpy(&data[0], &sky_info, sizeof(sky_info));
-    // *utils::bless<le_t<u16>>(&data[0x10]) = sky_id;
-    memcpy(&data[0x10], &sky_id, sizeof(sky_id));
-    // *utils::bless<le_t<u16>>(&data[0x1C]) = sky_var;
-    memcpy(&data[0x1C], &sky_var, sizeof(sky_var));
+    memcpy(&file_data[0], &sky_info, sizeof(sky_info));
+    // *utils::bless<le_t<u16>>(&file_data[0x10]) = sky_id;
+    memcpy(&file_data[0x10], &sky_id, sizeof(sky_id));
+    // *utils::bless<le_t<u16>>(&file_data[0x1C]) = sky_var;
+    memcpy(&file_data[0x1C], &sky_var, sizeof(sky_var));
     // // Set checksum
-    // *utils::bless<le_t<u16>>(&data[0x1E]) = skylander_crc16(0xFFFF, data, 0x1E);
-    u16 checksum = skylander_crc16(0xFFFF, data, 0x1E);    
-    memcpy(&data[0x1E], &checksum, sizeof(checksum));
+    // *utils::bless<le_t<u16>>(&file_data[0x1E]) = skylander_crc16(0xFFFF, file_data, 0x1E);
+    u16 checksum = skylander_crc16(0xFFFF, file_data, 0x1E);
+    memcpy(&file_data[0x1E], &checksum, sizeof(checksum));
 
     // sky_file.write(buf.data(), buf.size());
     sky_file.WriteBytes(buf.data(), buf.size());
     sky_file.Close();
 
-		last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
+    last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
     accept();
   });
 
   connect(btn_cancel, &QAbstractButton::clicked, this, &QDialog::reject);
 
-	connect(co_compl, QOverload<const QString&>::of(&QCompleter::activated),[=](const QString& text)
-	{
-		combo_skylist->setCurrentText(text);
-		combo_skylist->setCurrentIndex(combo_skylist->findText(text));
-	});
-  
+  connect(co_compl, QOverload<const QString&>::of(&QCompleter::activated),
+          [=](const QString& text) {
+            combo_skylist->setCurrentText(text);
+            combo_skylist->setCurrentIndex(combo_skylist->findText(text));
+          });
 }
 
 QString CreateSkylanderDialog::GetFilePath() const
@@ -782,9 +781,9 @@ void SkylanderPortalWindow::CreateSkylander(u8 slot)
 {
   CreateSkylanderDialog create_dlg(this);
   if (create_dlg.exec() == CreateSkylanderDialog::Accepted)
-	{
-		LoadSkylanderPath(slot, create_dlg.GetFilePath());
-	}
+  {
+    LoadSkylanderPath(slot, create_dlg.GetFilePath());
+  }
 }
 
 void SkylanderPortalWindow::LoadSkylander(u8 slot)
@@ -795,7 +794,7 @@ void SkylanderPortalWindow::LoadSkylander(u8 slot)
   {
     return;
   }
-	last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
+  last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
 
   LoadSkylanderPath(slot, file_path);
 }
@@ -812,8 +811,8 @@ void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
         QMessageBox::Ok);
     return;
   }
-  std::array<u8, 0x40 * 0x10> data;
-  if (!sky_file.ReadBytes(data.data(), data.size()))
+  std::array<u8, 0x40 * 0x10> file_data;
+  if (!sky_file.ReadBytes(file_data.data(), file_data.size()))
   {
     QMessageBox::warning(
         this, tr("Failed to read the skylander file!"),
@@ -824,17 +823,18 @@ void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
 
   ClearSkylander(slot);
 
-  u16 sky_id = data[0x11];
-  u16 sky_var = data[0x1D];
+  u16 sky_id = file_data[0x11];
+  u16 sky_var = file_data[0x1D];
   sky_id <<= 8;
   sky_var <<= 8;
-  sky_id |= data[0x10];
-  sky_var |= data[0x1C];
+  sky_id |= file_data[0x10];
+  sky_var |= file_data[0x1C];
 
-  DEBUG_LOG_FMT(IOS_USB, "Sky Id: {}, 0x10: {} 0x11: {}", sky_id, data[0x10],data[0x11]);
-  DEBUG_LOG_FMT(IOS_USB, "Sky Var: {}, 0x1D: {} 0x1C: {}", sky_var, data[0x1D],data[0x1C]);
+  DEBUG_LOG_FMT(IOS_USB, "Sky Id: {}, 0x10: {} 0x11: {}", sky_id, file_data[0x10], file_data[0x11]);
+  DEBUG_LOG_FMT(IOS_USB, "Sky Var: {}, 0x1D: {} 0x1C: {}", sky_var, file_data[0x1D],
+                file_data[0x1C]);
 
-  u8 portal_slot = IOS::HLE::USB::g_skyportal.LoadSkylander(data.data(), std::move(sky_file));
+  u8 portal_slot = IOS::HLE::USB::g_skyportal.LoadSkylander(file_data.data(), std::move(sky_file));
   sky_slots[slot] = std::tuple(portal_slot, sky_id, sky_var);
 
   UpdateEdits();
