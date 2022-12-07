@@ -42,7 +42,7 @@ public:
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
 
 protected:
-  std::queue<std::array<u8, 32>> q_queries;
+  std::queue<std::array<u8, 64>> q_queries;
 
   class FakeTransferThread final
   {
@@ -51,14 +51,14 @@ protected:
     ~FakeTransferThread();
     void Start();
     void Stop();
-    void AddTransfer(std::unique_ptr<TransferCommand> command, std::array<u8, 32> data);
+    void AddTransfer(std::unique_ptr<TransferCommand> command, std::array<u8, 64> data);
 
   private:
     SkylanderUsb* m_portal = nullptr;
     Common::Flag m_thread_running;
     std::thread m_thread;
     Common::Flag m_is_initialized;
-    std::map<std::array<u8, 32>, std::unique_ptr<TransferCommand>> m_transfers;
+    std::map<std::array<u8, 64>, std::unique_ptr<TransferCommand>> m_transfers;
     std::mutex m_transfers_mutex;
   };
 
@@ -94,7 +94,7 @@ public:
   void UpdateStatus();
   void SetLEDs(u8 r, u8 g, u8 b);
 
-  std::array<u8, 32> GetStatus(u8* buf);
+  std::array<u8, 64> GetStatus(u8* buf);
   void QueryBlock(u8 sky_num, u8 block, u8* reply_buf);
   void WriteBlock(u8 sky_num, u8 block, const u8* to_write_buf, u8* reply_buf);
 

@@ -125,8 +125,8 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
-  std::array<u8, 32> q_result = {};
-  std::array<u8, 32> q_data = {};
+  std::array<u8, 64> q_result = {};
+  std::array<u8, 64> q_data = {};
   // Control transfers are instantaneous
   switch (cmd->request_type)
   {
@@ -214,8 +214,7 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
         {
           q_data = {buf[0], buf[1]};
           cmd->expected_count = 10;
-          q_result[0] = 0x4D;
-          q_result[1] = buf[1];
+          q_result = {buf[0], buf[1], 0x00, 0x19};
           q_queries.push(q_result);
         }
         break;
@@ -374,7 +373,17 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
-  std::array<u8, 32> q_result = {};
+  std::array<u8, 64> q_result = {};
+  if(cmd->length > 32)
+  {
+    std::array<u8, 64> q_audio_result = {};
+    u8* audio_buf = q_audio_result.data();
+    memcpy(audio_buf, buf, cmd->length);
+    cmd->expected_time = Common::Timer::NowUs() + 1000;
+    cmd->expected_count = cmd->length;
+    GetTransferThread().AddTransfer(std::move(cmd), q_audio_result);
+    return 0;
+  }
   if (!q_queries.empty())
   {
     q_result = q_queries.front();
@@ -443,7 +452,7 @@ void SkylanderUsb::FakeTransferThread::Stop()
 }
 
 void SkylanderUsb::FakeTransferThread::AddTransfer(std::unique_ptr<TransferCommand> command,
-                                                   std::array<u8, 32> data)
+                                                   std::array<u8, 64> data)
 {
   std::lock_guard lk{m_transfers_mutex};
   m_transfers.emplace(data, std::move(command));
@@ -530,7 +539,7 @@ void SkylanderPortal::SetLEDs(u8 red, u8 green, u8 blue)
   this->b = blue;
 }
 
-std::array<u8, 32> SkylanderPortal::GetStatus(u8* reply_buf)
+std::array<u8, 64> SkylanderPortal::GetStatus(u8* reply_buf)
 {
   std::lock_guard lock(sky_mutex);
 
@@ -558,7 +567,7 @@ std::array<u8, 32> SkylanderPortal::GetStatus(u8* reply_buf)
   std::memset(reply_buf, 0, 0x20);
   // write_to_ptr<le_t<u16>>(reply_buf, 1, status);
 
-  std::array<u8, 32> q_result = {0x53,   0x00, 0x00, 0x00, 0x00, interrupt_counter++,
+  std::array<u8, 64> q_result = {0x53,   0x00, 0x00, 0x00, 0x00, interrupt_counter++,
                                  active, 0x00, 0x00, 0x00, 0x00, 0x00,
                                  0x00,   0x00, 0x00, 0x00, 0x00, 0x00,
                                  0x00,   0x00, 0x00, 0x00, 0x00, 0x00,
