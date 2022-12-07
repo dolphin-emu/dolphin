@@ -494,12 +494,14 @@ void FifoPlayer::WriteAllMemoryUpdates()
 
 void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
   u8* mem = nullptr;
 
   if (memUpdate.address & 0x10000000)
-    mem = &Memory::m_pEXRAM[memUpdate.address & Memory::GetExRamMask()];
+    mem = &memory.GetEXRAM()[memUpdate.address & memory.GetExRamMask()];
   else
-    mem = &Memory::m_pRAM[memUpdate.address & Memory::GetRamMask()];
+    mem = &memory.GetRAM()[memUpdate.address & memory.GetRamMask()];
 
   std::copy(memUpdate.data.begin(), memUpdate.data.end(), mem);
 }

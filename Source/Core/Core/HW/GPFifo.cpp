@@ -83,9 +83,12 @@ void ResetGatherPipe()
 
 void UpdateGatherPipe()
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   size_t pipe_count = GetGatherPipeCount();
   size_t processed;
-  u8* cur_mem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
+  u8* cur_mem = memory.GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
   for (processed = 0; pipe_count >= GATHER_PIPE_SIZE; processed += GATHER_PIPE_SIZE)
   {
     // copy the GatherPipe
@@ -96,7 +99,7 @@ void UpdateGatherPipe()
     if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)
     {
       ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
-      cur_mem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
+      cur_mem = memory.GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
     }
     else
     {
@@ -104,7 +107,6 @@ void UpdateGatherPipe()
       ProcessorInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE;
     }
 
-    auto& system = Core::System::GetInstance();
     system.GetCommandProcessor().GatherPipeBursted(system);
   }
 

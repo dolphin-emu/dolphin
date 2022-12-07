@@ -19,6 +19,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace ExpansionInterface
 {
@@ -233,7 +234,9 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
   if (transfer.region == transfer.MX && transfer.direction == transfer.WRITE &&
       transfer.address == BBA_WRTXFIFOD)
   {
-    DirectFIFOWrite(Memory::GetPointer(addr), size);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    DirectFIFOWrite(memory.GetPointer(addr), size);
   }
   else
   {
@@ -246,7 +249,9 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
 void CEXIETHERNET::DMARead(u32 addr, u32 size)
 {
   DEBUG_LOG_FMT(SP1, "DMA read: {:08x} {:x}", addr, size);
-  Memory::CopyToEmu(addr, &mBbaMem[transfer.address], size);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.CopyToEmu(addr, &mBbaMem[transfer.address], size);
   transfer.address += size;
 }
 

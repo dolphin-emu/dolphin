@@ -809,7 +809,10 @@ static void ReadMemory()
 
   if (!PowerPC::HostIsRAMAddress(addr))
     return SendReply("E00");
-  u8* data = Memory::GetPointer(addr);
+
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u8* data = memory.GetPointer(addr);
   Mem2hex(reply, data, len);
   reply[len * 2] = '\0';
   SendReply((char*)reply);
@@ -833,7 +836,10 @@ static void WriteMemory()
 
   if (!PowerPC::HostIsRAMAddress(addr))
     return SendReply("E00");
-  u8* dst = Memory::GetPointer(addr);
+
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u8* dst = memory.GetPointer(addr);
   Hex2mem(dst, s_cmd_bfr + i + 1, len);
   SendReply("OK");
 }

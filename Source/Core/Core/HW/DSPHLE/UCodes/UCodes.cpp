@@ -30,6 +30,7 @@
 #include "Core/HW/DSPHLE/UCodes/ROM.h"
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 namespace DSP::HLE
 {
@@ -40,28 +41,37 @@ constexpr bool ExramRead(u32 address)
 
 u8 HLEMemory_Read_U8(u32 address)
 {
-  if (ExramRead(address))
-    return Memory::m_pEXRAM[address & Memory::GetExRamMask()];
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
 
-  return Memory::m_pRAM[address & Memory::GetRamMask()];
+  if (ExramRead(address))
+    return memory.GetEXRAM()[address & memory.GetExRamMask()];
+
+  return memory.GetRAM()[address & memory.GetRamMask()];
 }
 
 void HLEMemory_Write_U8(u32 address, u8 value)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   if (ExramRead(address))
-    Memory::m_pEXRAM[address & Memory::GetExRamMask()] = value;
+    memory.GetEXRAM()[address & memory.GetExRamMask()] = value;
   else
-    Memory::m_pRAM[address & Memory::GetRamMask()] = value;
+    memory.GetRAM()[address & memory.GetRamMask()] = value;
 }
 
 u16 HLEMemory_Read_U16LE(u32 address)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   u16 value;
 
   if (ExramRead(address))
-    std::memcpy(&value, &Memory::m_pEXRAM[address & Memory::GetExRamMask()], sizeof(u16));
+    std::memcpy(&value, &memory.GetEXRAM()[address & memory.GetExRamMask()], sizeof(u16));
   else
-    std::memcpy(&value, &Memory::m_pRAM[address & Memory::GetRamMask()], sizeof(u16));
+    std::memcpy(&value, &memory.GetRAM()[address & memory.GetRamMask()], sizeof(u16));
 
   return value;
 }
@@ -73,10 +83,13 @@ u16 HLEMemory_Read_U16(u32 address)
 
 void HLEMemory_Write_U16LE(u32 address, u16 value)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   if (ExramRead(address))
-    std::memcpy(&Memory::m_pEXRAM[address & Memory::GetExRamMask()], &value, sizeof(u16));
+    std::memcpy(&memory.GetEXRAM()[address & memory.GetExRamMask()], &value, sizeof(u16));
   else
-    std::memcpy(&Memory::m_pRAM[address & Memory::GetRamMask()], &value, sizeof(u16));
+    std::memcpy(&memory.GetRAM()[address & memory.GetRamMask()], &value, sizeof(u16));
 }
 
 void HLEMemory_Write_U16(u32 address, u16 value)
@@ -86,12 +99,15 @@ void HLEMemory_Write_U16(u32 address, u16 value)
 
 u32 HLEMemory_Read_U32LE(u32 address)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   u32 value;
 
   if (ExramRead(address))
-    std::memcpy(&value, &Memory::m_pEXRAM[address & Memory::GetExRamMask()], sizeof(u32));
+    std::memcpy(&value, &memory.GetEXRAM()[address & memory.GetExRamMask()], sizeof(u32));
   else
-    std::memcpy(&value, &Memory::m_pRAM[address & Memory::GetRamMask()], sizeof(u32));
+    std::memcpy(&value, &memory.GetRAM()[address & memory.GetRamMask()], sizeof(u32));
 
   return value;
 }
@@ -103,10 +119,13 @@ u32 HLEMemory_Read_U32(u32 address)
 
 void HLEMemory_Write_U32LE(u32 address, u32 value)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   if (ExramRead(address))
-    std::memcpy(&Memory::m_pEXRAM[address & Memory::GetExRamMask()], &value, sizeof(u32));
+    std::memcpy(&memory.GetEXRAM()[address & memory.GetExRamMask()], &value, sizeof(u32));
   else
-    std::memcpy(&Memory::m_pRAM[address & Memory::GetRamMask()], &value, sizeof(u32));
+    std::memcpy(&memory.GetRAM()[address & memory.GetRamMask()], &value, sizeof(u32));
 }
 
 void HLEMemory_Write_U32(u32 address, u32 value)
@@ -116,10 +135,13 @@ void HLEMemory_Write_U32(u32 address, u32 value)
 
 void* HLEMemory_Get_Pointer(u32 address)
 {
-  if (ExramRead(address))
-    return &Memory::m_pEXRAM[address & Memory::GetExRamMask()];
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
 
-  return &Memory::m_pRAM[address & Memory::GetRamMask()];
+  if (ExramRead(address))
+    return &memory.GetEXRAM()[address & memory.GetExRamMask()];
+
+  return &memory.GetRAM()[address & memory.GetRamMask()];
 }
 
 UCodeInterface::UCodeInterface(DSPHLE* dsphle, u32 crc)
@@ -188,7 +210,9 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
 
     if (Config::Get(Config::MAIN_DUMP_UCODE))
     {
-      DSP::DumpDSPCode(Memory::GetPointer(m_next_ucode.iram_mram_addr), m_next_ucode.iram_size,
+      auto& system = Core::System::GetInstance();
+      auto& memory = system.GetMemory();
+      DSP::DumpDSPCode(memory.GetPointer(m_next_ucode.iram_mram_addr), m_next_ucode.iram_size,
                        ector_crc);
     }
 

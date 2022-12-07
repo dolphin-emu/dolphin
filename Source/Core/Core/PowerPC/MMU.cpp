@@ -171,7 +171,7 @@ BatTable dbat_table;
 static void GenerateDSIException(u32 effective_address, bool write);
 
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-static T ReadFromHardware(u32 em_address)
+static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
 {
   const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
   const u32 em_address_end_page = (em_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
@@ -183,7 +183,7 @@ static T ReadFromHardware(u32 em_address)
     // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
     u64 var = 0;
     for (u32 i = 0; i < sizeof(T); ++i)
-      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(em_address + i);
+      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(memory, em_address + i);
     return static_cast<T>(var);
   }
 
@@ -204,42 +204,42 @@ static T ReadFromHardware(u32 em_address)
     if (em_address < 0x0c000000)
       return EFB_Read(em_address);
     else
-      return static_cast<T>(Memory::mmio_mapping->Read<std::make_unsigned_t<T>>(em_address));
+      return static_cast<T>(memory.GetMMIOMapping()->Read<std::make_unsigned_t<T>>(em_address));
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (Memory::m_pL1Cache && (em_address >> 28) == 0xE &&
-      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
+  if (memory.GetL1Cache() && (em_address >> 28) == 0xE &&
+      (em_address < (0xE0000000 + memory.GetL1CacheSize())))
   {
     T value;
-    std::memcpy(&value, &Memory::m_pL1Cache[em_address & 0x0FFFFFFF], sizeof(T));
+    std::memcpy(&value, &memory.GetL1Cache()[em_address & 0x0FFFFFFF], sizeof(T));
     return bswap(value);
   }
 
-  if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
+  if (memory.GetRAM() && (em_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
     T value;
-    std::memcpy(&value, &Memory::m_pRAM[em_address & Memory::GetRamMask()], sizeof(T));
+    std::memcpy(&value, &memory.GetRAM()[em_address & memory.GetRamMask()], sizeof(T));
     return bswap(value);
   }
 
-  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
+  if (memory.GetEXRAM() && (em_address >> 28) == 0x1 &&
+      (em_address & 0x0FFFFFFF) < memory.GetExRamSizeReal())
   {
     T value;
-    std::memcpy(&value, &Memory::m_pEXRAM[em_address & 0x0FFFFFFF], sizeof(T));
+    std::memcpy(&value, &memory.GetEXRAM()[em_address & 0x0FFFFFFF], sizeof(T));
     return bswap(value);
   }
 
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
-  if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
+  if (memory.GetFakeVMEM() && ((em_address & 0xFE000000) == 0x7E000000))
   {
     T value;
-    std::memcpy(&value, &Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], sizeof(T));
+    std::memcpy(&value, &memory.GetFakeVMEM()[em_address & memory.GetFakeVMemMask()], sizeof(T));
     return bswap(value);
   }
 
@@ -253,7 +253,8 @@ static T ReadFromHardware(u32 em_address)
 }
 
 template <XCheckTLBFlag flag, bool never_translate = false>
-static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
+static void WriteToHardware(Memory::MemoryManager& memory, u32 em_address, const u32 data,
+                            const u32 size)
 {
   DEBUG_ASSERT(size <= 4);
 
@@ -267,8 +268,8 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
     const u32 first_half_size = em_address_end_page - em_address;
     const u32 second_half_size = size - first_half_size;
     WriteToHardware<flag, never_translate>(
-        em_address, Common::RotateRight(data, second_half_size * 8), first_half_size);
-    WriteToHardware<flag, never_translate>(em_address_end_page, data, second_half_size);
+        memory, em_address, Common::RotateRight(data, second_half_size * 8), first_half_size);
+    WriteToHardware<flag, never_translate>(memory, em_address_end_page, data, second_half_size);
     return;
   }
 
@@ -333,20 +334,20 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
     switch (size)
     {
     case 1:
-      Memory::mmio_mapping->Write<u8>(em_address, static_cast<u8>(data));
+      memory.GetMMIOMapping()->Write<u8>(em_address, static_cast<u8>(data));
       return;
     case 2:
-      Memory::mmio_mapping->Write<u16>(em_address, static_cast<u16>(data));
+      memory.GetMMIOMapping()->Write<u16>(em_address, static_cast<u16>(data));
       return;
     case 4:
-      Memory::mmio_mapping->Write<u32>(em_address, data);
+      memory.GetMMIOMapping()->Write<u32>(em_address, data);
       return;
     default:
       // Some kind of misaligned write. TODO: Does this match how the actual hardware handles it?
       for (size_t i = size * 8; i > 0; em_address++)
       {
         i -= 8;
-        Memory::mmio_mapping->Write<u8>(em_address, static_cast<u8>(data >> i));
+        memory.GetMMIOMapping()->Write<u8>(em_address, static_cast<u8>(data >> i));
       }
       return;
     }
@@ -355,10 +356,10 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
   const u32 swapped_data = Common::swap32(Common::RotateRight(data, size * 8));
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (Memory::m_pL1Cache && (em_address >> 28 == 0xE) &&
-      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
+  if (memory.GetL1Cache() && (em_address >> 28 == 0xE) &&
+      (em_address < (0xE0000000 + memory.GetL1CacheSize())))
   {
-    std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, size);
+    std::memcpy(&memory.GetL1Cache()[em_address & 0x0FFFFFFF], &swapped_data, size);
     return;
   }
 
@@ -379,34 +380,34 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
 
     for (u32 addr = em_address & ~0x7; addr < em_address + size; addr += 8)
     {
-      WriteToHardware<flag, true>(addr, rotated_data, 4);
-      WriteToHardware<flag, true>(addr + 4, rotated_data, 4);
+      WriteToHardware<flag, true>(memory, addr, rotated_data, 4);
+      WriteToHardware<flag, true>(memory, addr + 4, rotated_data, 4);
     }
 
     return;
   }
 
-  if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
+  if (memory.GetRAM() && (em_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
-    std::memcpy(&Memory::m_pRAM[em_address & Memory::GetRamMask()], &swapped_data, size);
+    std::memcpy(&memory.GetRAM()[em_address & memory.GetRamMask()], &swapped_data, size);
     return;
   }
 
-  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
+  if (memory.GetEXRAM() && (em_address >> 28) == 0x1 &&
+      (em_address & 0x0FFFFFFF) < memory.GetExRamSizeReal())
   {
-    std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, size);
+    std::memcpy(&memory.GetEXRAM()[em_address & 0x0FFFFFFF], &swapped_data, size);
     return;
   }
 
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
-  if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
+  if (memory.GetFakeVMEM() && ((em_address & 0xFE000000) == 0x7E000000))
   {
-    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], &swapped_data, size);
+    std::memcpy(&memory.GetFakeVMEM()[em_address & memory.GetFakeVMemMask()], &swapped_data, size);
     return;
   }
 
@@ -454,11 +455,14 @@ TryReadInstResult TryReadInstruction(u32 address)
     }
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   u32 hex;
   // TODO: Refactor this. This icache implementation is totally wrong if used with the fake vmem.
-  if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
+  if (memory.GetFakeVMEM() && ((address & 0xFE000000) == 0x7E000000))
   {
-    hex = Common::swap32(&Memory::m_pFakeVMEM[address & Memory::GetFakeVMemMask()]);
+    hex = Common::swap32(&memory.GetFakeVMEM()[address & memory.GetFakeVMemMask()]);
   }
   else
   {
@@ -469,7 +473,9 @@ TryReadInstResult TryReadInstruction(u32 address)
 
 u32 HostRead_Instruction(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  return ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(memory, address);
 }
 
 std::optional<ReadResult<u32>> HostTryReadInstruction(const u32 address,
@@ -478,23 +484,27 @@ std::optional<ReadResult<u32>> HostTryReadInstruction(const u32 address,
   if (!HostIsInstructionRAMAddress(address, space))
     return std::nullopt;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   switch (space)
   {
   case RequestedAddressSpace::Effective:
   {
-    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
+    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(memory, address);
     return ReadResult<u32>(!!MSR.DR, value);
   }
   case RequestedAddressSpace::Physical:
   {
-    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(address);
+    const u32 value =
+        ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(memory, address);
     return ReadResult<u32>(false, value);
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!MSR.DR)
       return std::nullopt;
-    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
+    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(memory, address);
     return ReadResult<u32>(true, value);
   }
   }
@@ -541,28 +551,36 @@ static void Memcheck(u32 address, u64 var, bool write, size_t size)
 
 u8 Read_U8(const u32 address)
 {
-  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(memory, address);
   Memcheck(address, var, false, 1);
   return var;
 }
 
 u16 Read_U16(const u32 address)
 {
-  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(memory, address);
   Memcheck(address, var, false, 2);
   return var;
 }
 
 u32 Read_U32(const u32 address)
 {
-  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(memory, address);
   Memcheck(address, var, false, 4);
   return var;
 }
 
 u64 Read_U64(const u32 address)
 {
-  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(memory, address);
   Memcheck(address, var, false, 8);
   return var;
 }
@@ -587,23 +605,26 @@ static std::optional<ReadResult<T>> HostTryReadUX(const u32 address, RequestedAd
   if (!HostIsRAMAddress(address, space))
     return std::nullopt;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   switch (space)
   {
   case RequestedAddressSpace::Effective:
   {
-    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
+    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(memory, address);
     return ReadResult<T>(!!MSR.DR, std::move(value));
   }
   case RequestedAddressSpace::Physical:
   {
-    T value = ReadFromHardware<XCheckTLBFlag::NoException, T, true>(address);
+    T value = ReadFromHardware<XCheckTLBFlag::NoException, T, true>(memory, address);
     return ReadResult<T>(false, std::move(value));
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!MSR.DR)
       return std::nullopt;
-    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
+    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(memory, address);
     return ReadResult<T>(true, std::move(value));
   }
   }
@@ -661,13 +682,17 @@ u32 Read_U16_ZX(const u32 address)
 void Write_U8(const u32 var, const u32 address)
 {
   Memcheck(address, var, true, 1);
-  WriteToHardware<XCheckTLBFlag::Write>(address, var, 1);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  WriteToHardware<XCheckTLBFlag::Write>(memory, address, var, 1);
 }
 
 void Write_U16(const u32 var, const u32 address)
 {
   Memcheck(address, var, true, 2);
-  WriteToHardware<XCheckTLBFlag::Write>(address, var, 2);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  WriteToHardware<XCheckTLBFlag::Write>(memory, address, var, 2);
 }
 void Write_U16_Swap(const u32 var, const u32 address)
 {
@@ -677,7 +702,9 @@ void Write_U16_Swap(const u32 var, const u32 address)
 void Write_U32(const u32 var, const u32 address)
 {
   Memcheck(address, var, true, 4);
-  WriteToHardware<XCheckTLBFlag::Write>(address, var, 4);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  WriteToHardware<XCheckTLBFlag::Write>(memory, address, var, 4);
 }
 void Write_U32_Swap(const u32 var, const u32 address)
 {
@@ -687,8 +714,10 @@ void Write_U32_Swap(const u32 var, const u32 address)
 void Write_U64(const u64 var, const u32 address)
 {
   Memcheck(address, var, true, 8);
-  WriteToHardware<XCheckTLBFlag::Write>(address, static_cast<u32>(var >> 32), 4);
-  WriteToHardware<XCheckTLBFlag::Write>(address + sizeof(u32), static_cast<u32>(var), 4);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  WriteToHardware<XCheckTLBFlag::Write>(memory, address, static_cast<u32>(var >> 32), 4);
+  WriteToHardware<XCheckTLBFlag::Write>(memory, address + sizeof(u32), static_cast<u32>(var), 4);
 }
 void Write_U64_Swap(const u64 var, const u32 address)
 {
@@ -704,22 +733,30 @@ void Write_F64(const double var, const u32 address)
 
 u8 HostRead_U8(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(memory, address);
 }
 
 u16 HostRead_U16(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(memory, address);
 }
 
 u32 HostRead_U32(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(memory, address);
 }
 
 u64 HostRead_U64(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(memory, address);
 }
 
 float HostRead_F32(const u32 address)
@@ -738,23 +775,32 @@ double HostRead_F64(const u32 address)
 
 void HostWrite_U8(const u32 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException>(address, var, 1);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  WriteToHardware<XCheckTLBFlag::NoException>(memory, address, var, 1);
 }
 
 void HostWrite_U16(const u32 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException>(address, var, 2);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  WriteToHardware<XCheckTLBFlag::NoException>(memory, address, var, 2);
 }
 
 void HostWrite_U32(const u32 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException>(address, var, 4);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  WriteToHardware<XCheckTLBFlag::NoException>(memory, address, var, 4);
 }
 
 void HostWrite_U64(const u64 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException>(address, static_cast<u32>(var >> 32), 4);
-  WriteToHardware<XCheckTLBFlag::NoException>(address + sizeof(u32), static_cast<u32>(var), 4);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  WriteToHardware<XCheckTLBFlag::NoException>(memory, address, static_cast<u32>(var >> 32), 4);
+  WriteToHardware<XCheckTLBFlag::NoException>(memory, address + sizeof(u32), static_cast<u32>(var),
+                                              4);
 }
 
 void HostWrite_F32(const float var, const u32 address)
@@ -777,18 +823,21 @@ static std::optional<WriteResult> HostTryWriteUX(const u32 var, const u32 addres
   if (!HostIsRAMAddress(address, space))
     return std::nullopt;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
+    WriteToHardware<XCheckTLBFlag::NoException>(memory, address, var, size);
     return WriteResult(!!MSR.DR);
   case RequestedAddressSpace::Physical:
-    WriteToHardware<XCheckTLBFlag::NoException, true>(address, var, size);
+    WriteToHardware<XCheckTLBFlag::NoException, true>(memory, address, var, size);
     return WriteResult(false);
   case RequestedAddressSpace::Virtual:
     if (!MSR.DR)
       return std::nullopt;
-    WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
+    WriteToHardware<XCheckTLBFlag::NoException>(memory, address, var, size);
     return WriteResult(true);
   }
 
@@ -893,7 +942,7 @@ bool IsOptimizableRAMAddress(const u32 address)
 }
 
 template <XCheckTLBFlag flag>
-static bool IsRAMAddress(u32 address, bool translate)
+static bool IsRAMAddress(Memory::MemoryManager& memory, u32 address, bool translate)
 {
   if (translate)
   {
@@ -904,21 +953,21 @@ static bool IsRAMAddress(u32 address, bool translate)
   }
 
   u32 segment = address >> 28;
-  if (Memory::m_pRAM && segment == 0x0 && (address & 0x0FFFFFFF) < Memory::GetRamSizeReal())
+  if (memory.GetRAM() && segment == 0x0 && (address & 0x0FFFFFFF) < memory.GetRamSizeReal())
   {
     return true;
   }
-  else if (Memory::m_pEXRAM && segment == 0x1 &&
-           (address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
+  else if (memory.GetEXRAM() && segment == 0x1 &&
+           (address & 0x0FFFFFFF) < memory.GetExRamSizeReal())
   {
     return true;
   }
-  else if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
+  else if (memory.GetFakeVMEM() && ((address & 0xFE000000) == 0x7E000000))
   {
     return true;
   }
-  else if (Memory::m_pL1Cache && segment == 0xE &&
-           (address < (0xE0000000 + Memory::GetL1CacheSize())))
+  else if (memory.GetL1Cache() && segment == 0xE &&
+           (address < (0xE0000000 + memory.GetL1CacheSize())))
   {
     return true;
   }
@@ -927,16 +976,19 @@ static bool IsRAMAddress(u32 address, bool translate)
 
 bool HostIsRAMAddress(u32 address, RequestedAddressSpace space)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    return IsRAMAddress<XCheckTLBFlag::NoException>(address, MSR.DR);
+    return IsRAMAddress<XCheckTLBFlag::NoException>(memory, address, MSR.DR);
   case RequestedAddressSpace::Physical:
-    return IsRAMAddress<XCheckTLBFlag::NoException>(address, false);
+    return IsRAMAddress<XCheckTLBFlag::NoException>(memory, address, false);
   case RequestedAddressSpace::Virtual:
     if (!MSR.DR)
       return false;
-    return IsRAMAddress<XCheckTLBFlag::NoException>(address, true);
+    return IsRAMAddress<XCheckTLBFlag::NoException>(memory, address, true);
   }
 
   ASSERT(0);
@@ -949,16 +1001,19 @@ bool HostIsInstructionRAMAddress(u32 address, RequestedAddressSpace space)
   if (address & 3)
     return false;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, MSR.IR);
+    return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(memory, address, MSR.IR);
   case RequestedAddressSpace::Physical:
-    return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, false);
+    return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(memory, address, false);
   case RequestedAddressSpace::Virtual:
     if (!MSR.IR)
       return false;
-    return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, true);
+    return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(memory, address, true);
   }
 
   ASSERT(0);
@@ -967,6 +1022,9 @@ bool HostIsInstructionRAMAddress(u32 address, RequestedAddressSpace space)
 
 void DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 num_blocks)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   // TODO: It's not completely clear this is the right spot for this code;
   // what would happen if, for example, the DVD drive tried to write to the EFB?
   // TODO: This is terribly slow.
@@ -976,7 +1034,7 @@ void DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 nu
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
-      const u32 data = Common::swap32(Memory::m_pL1Cache + ((cache_address + i) & 0x3FFFF));
+      const u32 data = Common::swap32(memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF));
       EFB_Write(data, mem_address + i);
     }
     return;
@@ -988,14 +1046,14 @@ void DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 nu
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
-      const u32 data = Common::swap32(Memory::m_pL1Cache + ((cache_address + i) & 0x3FFFF));
-      Memory::mmio_mapping->Write(mem_address + i, data);
+      const u32 data = Common::swap32(memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF));
+      memory.GetMMIOMapping()->Write(mem_address + i, data);
     }
     return;
   }
 
-  const u8* src = Memory::m_pL1Cache + (cache_address & 0x3FFFF);
-  u8* dst = Memory::GetPointer(mem_address);
+  const u8* src = memory.GetL1Cache() + (cache_address & 0x3FFFF);
+  u8* dst = memory.GetPointer(mem_address);
   if (dst == nullptr)
     return;
 
@@ -1004,8 +1062,11 @@ void DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 nu
 
 void DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 num_blocks)
 {
-  const u8* src = Memory::GetPointer(mem_address);
-  u8* dst = Memory::m_pL1Cache + (cache_address & 0x3FFFF);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  const u8* src = memory.GetPointer(mem_address);
+  u8* dst = memory.GetL1Cache() + (cache_address & 0x3FFFF);
 
   // No known game uses this; here for completeness.
   // TODO: Refactor.
@@ -1014,7 +1075,7 @@ void DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 nu
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
       const u32 data = Common::swap32(EFB_Read(mem_address + i));
-      std::memcpy(Memory::m_pL1Cache + ((cache_address + i) & 0x3FFFF), &data, sizeof(u32));
+      std::memcpy(memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF), &data, sizeof(u32));
     }
     return;
   }
@@ -1025,8 +1086,8 @@ void DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 nu
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
-      const u32 data = Common::swap32(Memory::mmio_mapping->Read<u32>(mem_address + i));
-      std::memcpy(Memory::m_pL1Cache + ((cache_address + i) & 0x3FFFF), &data, sizeof(u32));
+      const u32 data = Common::swap32(memory.GetMMIOMapping()->Read<u32>(mem_address + i));
+      std::memcpy(memory.GetL1Cache() + ((cache_address + i) & 0x3FFFF), &data, sizeof(u32));
     }
     return;
   }
@@ -1059,10 +1120,13 @@ void ClearCacheLine(u32 address)
     address = translated_address.address;
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   // TODO: This isn't precisely correct for non-RAM regions, but the difference
   // is unlikely to matter.
   for (u32 i = 0; i < 32; i += 4)
-    WriteToHardware<XCheckTLBFlag::Write, true>(address + i, 0, 4);
+    WriteToHardware<XCheckTLBFlag::Write, true>(memory, address + i, 0, 4);
 }
 
 u32 IsOptimizableMMIOAccess(u32 address, u32 access_size)
@@ -1346,6 +1410,9 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
   pte1.API = api;
   pte1.V = 1;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   for (int hash_func = 0; hash_func < 2; hash_func++)
   {
     // hash function no 2 "not" .360
@@ -1360,11 +1427,11 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
 
     for (int i = 0; i < 8; i++, pteg_addr += 8)
     {
-      const u32 pteg = Memory::Read_U32(pteg_addr);
+      const u32 pteg = memory.Read_U32(pteg_addr);
 
       if (pte1.Hex == pteg)
       {
-        UPTE_Hi pte2(Memory::Read_U32(pteg_addr + 4));
+        UPTE_Hi pte2(memory.Read_U32(pteg_addr + 4));
 
         // set the access bits
         switch (flag)
@@ -1386,7 +1453,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
 
         if (!IsNoExceptionFlag(flag))
         {
-          Memory::Write_U32(pte2.Hex, pteg_addr + 4);
+          memory.Write_U32(pte2.Hex, pteg_addr + 4);
         }
 
         // We already updated the TLB entry if this was caused by a C bit.
@@ -1405,6 +1472,9 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
 
 static void UpdateBATs(BatTable& bat_table, u32 base_spr)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   // TODO: Separate BATs for MSR.PR==0 and MSR.PR==1
   // TODO: Handle PP settings.
   // TODO: Check how hardware reacts to overlapping BATs (including
@@ -1464,21 +1534,21 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
         // that fastmem doesn't emulate properly (though no normal games are known to rely on them).
         if (!wi)
         {
-          if (Memory::m_pFakeVMEM && (physical_address & 0xFE000000) == 0x7E000000)
+          if (memory.GetFakeVMEM() && (physical_address & 0xFE000000) == 0x7E000000)
           {
             valid_bit |= BAT_PHYSICAL_BIT;
           }
-          else if (physical_address < Memory::GetRamSizeReal())
+          else if (physical_address < memory.GetRamSizeReal())
           {
             valid_bit |= BAT_PHYSICAL_BIT;
           }
-          else if (Memory::m_pEXRAM && physical_address >> 28 == 0x1 &&
-                   (physical_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
+          else if (memory.GetEXRAM() && physical_address >> 28 == 0x1 &&
+                   (physical_address & 0x0FFFFFFF) < memory.GetExRamSizeReal())
           {
             valid_bit |= BAT_PHYSICAL_BIT;
           }
           else if (physical_address >> 28 == 0xE &&
-                   physical_address < 0xE0000000 + Memory::GetL1CacheSize())
+                   physical_address < 0xE0000000 + memory.GetL1CacheSize())
           {
             valid_bit |= BAT_PHYSICAL_BIT;
           }
@@ -1497,12 +1567,15 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
 
 static void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   for (u32 i = 0; i < (0x10000000 >> BAT_INDEX_SHIFT); ++i)
   {
     // Map from 0x4XXXXXXX or 0x7XXXXXXX to the range
     // [0x7E000000,0x80000000).
     u32 e_address = i + (start_addr >> BAT_INDEX_SHIFT);
-    u32 p_address = 0x7E000000 | (i << BAT_INDEX_SHIFT & Memory::GetFakeVMemMask());
+    u32 p_address = 0x7E000000 | (i << BAT_INDEX_SHIFT & memory.GetFakeVMemMask());
     u32 flags = BAT_MAPPED_BIT | BAT_PHYSICAL_BIT;
 
     if (PowerPC::memchecks.OverlapsMemcheck(e_address << BAT_INDEX_SHIFT, BAT_PAGE_SIZE))
@@ -1514,12 +1587,15 @@ static void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr)
 
 void DBATUpdated()
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   dbat_table = {};
   UpdateBATs(dbat_table, SPR_DBAT0U);
   bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
   if (extended_bats)
     UpdateBATs(dbat_table, SPR_DBAT4U);
-  if (Memory::m_pFakeVMEM)
+  if (memory.GetFakeVMEM())
   {
     // In Fake-MMU mode, insert some extra entries into the BAT tables.
     UpdateFakeMMUBat(dbat_table, 0x40000000);
@@ -1527,7 +1603,7 @@ void DBATUpdated()
   }
 
 #ifndef _ARCH_32
-  Memory::UpdateLogicalMemory(dbat_table);
+  memory.UpdateLogicalMemory(dbat_table);
 #endif
 
   // IsOptimizable*Address and dcbz depends on the BAT mapping, so we need a flush here.
@@ -1536,12 +1612,15 @@ void DBATUpdated()
 
 void IBATUpdated()
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   ibat_table = {};
   UpdateBATs(ibat_table, SPR_IBAT0U);
   bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
   if (extended_bats)
     UpdateBATs(ibat_table, SPR_IBAT4U);
-  if (Memory::m_pFakeVMEM)
+  if (memory.GetFakeVMEM())
   {
     // In Fake-MMU mode, insert some extra entries into the BAT tables.
     UpdateFakeMMUBat(ibat_table, 0x40000000);

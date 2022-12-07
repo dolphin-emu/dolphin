@@ -33,7 +33,8 @@ namespace HW
 {
 void Init(const Sram* override_sram)
 {
-  Core::System::GetInstance().GetCoreTiming().Init();
+  auto& system = Core::System::GetInstance();
+  system.GetCoreTiming().Init();
   SystemTimers::PreInit();
 
   State::Init();
@@ -45,7 +46,7 @@ void Init(const Sram* override_sram)
   ProcessorInterface::Init();
   ExpansionInterface::Init(override_sram);  // Needs to be initialized before Memory
   HSP::Init();
-  Memory::Init();  // Needs to be initialized before AddressSpace
+  system.GetMemory().Init();  // Needs to be initialized before AddressSpace
   AddressSpace::Init();
   MemoryInterface::Init();
   DSP::Init(Config::Get(Config::MAIN_DSP_HLE));
@@ -63,6 +64,8 @@ void Init(const Sram* override_sram)
 
 void Shutdown()
 {
+  auto& system = Core::System::GetInstance();
+
   // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown();  // Depends on Memory
   IOS::Shutdown();
@@ -73,19 +76,20 @@ void Shutdown()
   DSP::Shutdown();
   MemoryInterface::Shutdown();
   AddressSpace::Shutdown();
-  Memory::Shutdown();
+  system.GetMemory().Shutdown();
   HSP::Shutdown();
   ExpansionInterface::Shutdown();
   SerialInterface::Shutdown();
   AudioInterface::Shutdown();
 
   State::Shutdown();
-  Core::System::GetInstance().GetCoreTiming().Shutdown();
+  system.GetCoreTiming().Shutdown();
 }
 
 void DoState(PointerWrap& p)
 {
-  Memory::DoState(p);
+  auto& system = Core::System::GetInstance();
+  system.GetMemory().DoState(p);
   p.DoMarker("Memory");
   MemoryInterface::DoState(p);
   p.DoMarker("MemoryInterface");

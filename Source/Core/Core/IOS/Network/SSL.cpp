@@ -20,6 +20,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/Socket.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -225,12 +226,15 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
   if (Core::WantsDeterminism())
     return IPCReply(IPC_EACCES);
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   switch (request.request)
   {
   case IOCTLV_NET_SSL_NEW:
   {
-    int verifyOption = Memory::Read_U32(BufferOut);
-    std::string hostname = Memory::GetString(BufferOut2, BufferOutSize2);
+    int verifyOption = memory.Read_U32(BufferOut);
+    std::string hostname = memory.GetString(BufferOut2, BufferOutSize2);
 
     int freeSSL = GetSSLFreeID();
     if (freeSSL)
@@ -290,7 +294,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
   }
   case IOCTLV_NET_SSL_SHUTDOWN:
   {
-    int sslID = Memory::Read_U32(BufferOut) - 1;
+    int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
@@ -335,17 +339,17 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
                  BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3,
                  BufferOut, BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
-    int sslID = Memory::Read_U32(BufferOut) - 1;
+    int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
       int ret =
-          mbedtls_x509_crt_parse_der(&ssl->cacert, Memory::GetPointer(BufferOut2), BufferOutSize2);
+          mbedtls_x509_crt_parse_der(&ssl->cacert, memory.GetPointer(BufferOut2), BufferOutSize2);
 
       if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA))
       {
         std::string filename = File::GetUserPath(D_DUMPSSL_IDX) + ssl->hostname + "_rootca.der";
-        File::IOFile(filename, "wb").WriteBytes(Memory::GetPointer(BufferOut2), BufferOutSize2);
+        File::IOFile(filename, "wb").WriteBytes(memory.GetPointer(BufferOut2), BufferOutSize2);
       }
 
       if (ret)
@@ -376,7 +380,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
                  BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3,
                  BufferOut, BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
-    int sslID = Memory::Read_U32(BufferOut) - 1;
+    int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
@@ -423,7 +427,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
                  BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3,
                  BufferOut, BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
-    int sslID = Memory::Read_U32(BufferOut) - 1;
+    int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
@@ -442,7 +446,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
   }
   case IOCTLV_NET_SSL_SETBUILTINROOTCA:
   {
-    int sslID = Memory::Read_U32(BufferOut) - 1;
+    int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
@@ -480,12 +484,12 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
   }
   case IOCTLV_NET_SSL_CONNECT:
   {
-    int sslID = Memory::Read_U32(BufferOut) - 1;
+    int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
       mbedtls_ssl_setup(&ssl->ctx, &ssl->config);
-      ssl->sockfd = Memory::Read_U32(BufferOut2);
+      ssl->sockfd = memory.Read_U32(BufferOut2);
       WiiSockMan& sm = WiiSockMan::GetInstance();
       ssl->hostfd = sm.GetHostSocket(ssl->sockfd);
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_CONNECT socket = {}", ssl->sockfd);
@@ -507,7 +511,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
   }
   case IOCTLV_NET_SSL_DOHANDSHAKE:
   {
-    int sslID = Memory::Read_U32(BufferOut) - 1;
+    int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
       WiiSockMan& sm = WiiSockMan::GetInstance();
@@ -522,7 +526,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
   }
   case IOCTLV_NET_SSL_WRITE:
   {
-    const int sslID = Memory::Read_U32(BufferOut) - 1;
+    const int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
       WiiSockMan& sm = WiiSockMan::GetInstance();
@@ -540,13 +544,13 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
                  "BufferOut2: ({:08x}, {}), BufferOut3: ({:08x}, {})",
                  BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3,
                  BufferOut, BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
-    INFO_LOG_FMT(IOS_SSL, "{}", Memory::GetString(BufferOut2));
+    INFO_LOG_FMT(IOS_SSL, "{}", memory.GetString(BufferOut2));
     break;
   }
   case IOCTLV_NET_SSL_READ:
   {
     int ret = 0;
-    int sslID = Memory::Read_U32(BufferOut) - 1;
+    int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
       WiiSockMan& sm = WiiSockMan::GetInstance();
@@ -569,7 +573,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
   }
   case IOCTLV_NET_SSL_SETROOTCADEFAULT:
   {
-    int sslID = Memory::Read_U32(BufferOut) - 1;
+    int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
       WriteReturnValue(SSL_OK, BufferIn);
@@ -597,7 +601,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
                  BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3,
                  BufferOut, BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
-    int sslID = Memory::Read_U32(BufferOut) - 1;
+    int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
       WriteReturnValue(SSL_OK, BufferIn);

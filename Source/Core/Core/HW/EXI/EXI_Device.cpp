@@ -15,6 +15,7 @@
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/EXI/EXI_DeviceMic.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 namespace ExpansionInterface
 {
@@ -47,20 +48,24 @@ void IEXIDevice::ImmReadWrite(u32& data, u32 size)
 
 void IEXIDevice::DMAWrite(u32 address, u32 size)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
   while (size--)
   {
-    u8 byte = Memory::Read_U8(address++);
+    u8 byte = memory.Read_U8(address++);
     TransferByte(byte);
   }
 }
 
 void IEXIDevice::DMARead(u32 address, u32 size)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
   while (size--)
   {
     u8 byte = 0;
     TransferByte(byte);
-    Memory::Write_U8(byte, address++);
+    memory.Write_U8(byte, address++);
   }
 }
 

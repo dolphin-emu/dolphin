@@ -55,6 +55,7 @@ namespace fs = std::filesystem;
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/GameModDescriptor.h"
@@ -348,7 +349,10 @@ bool CBoot::DVDRead(const DiscIO::VolumeDisc& disc, u64 dvd_offset, u32 output_a
   std::vector<u8> buffer(length);
   if (!disc.Read(dvd_offset, length, buffer.data(), partition))
     return false;
-  Memory::CopyToEmu(output_address, buffer.data(), length);
+
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.CopyToEmu(output_address, buffer.data(), length);
   return true;
 }
 
@@ -357,7 +361,11 @@ bool CBoot::DVDReadDiscID(const DiscIO::VolumeDisc& disc, u32 output_address)
   std::array<u8, 0x20> buffer;
   if (!disc.Read(0, buffer.size(), buffer.data(), DiscIO::PARTITION_NONE))
     return false;
-  Memory::CopyToEmu(output_address, buffer.data(), buffer.size());
+
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.CopyToEmu(output_address, buffer.data(), buffer.size());
+
   // Transition out of the DiscIdNotRead state (which the drive should be in at this point,
   // on the assumption that this is only used for the first read)
   DVDInterface::SetDriveState(DVDInterface::DriveState::ReadyNoReadsMade);
@@ -455,8 +463,10 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   // copying the initial boot code to 0x81200000 is a hack.
   // For now, HLE the first few instructions and start at 0x81200150
   // to work around this.
-  Memory::CopyToEmu(0x01200000, data.data() + 0x100, 0x700);
-  Memory::CopyToEmu(0x01300000, data.data() + 0x820, 0x1AFE00);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.CopyToEmu(0x01200000, data.data() + 0x100, 0x700);
+  memory.CopyToEmu(0x01300000, data.data() + 0x820, 0x1AFE00);
 
   PowerPC::ppcState.gpr[3] = 0xfff0001f;
   PowerPC::ppcState.gpr[4] = 0x00002030;
@@ -491,9 +501,11 @@ static void CopyDefaultExceptionHandlers()
                                                  0x00000900, 0x00000C00, 0x00000D00, 0x00000F00,
                                                  0x00001300, 0x00001400, 0x00001700};
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
   constexpr u32 RFI_INSTRUCTION = 0x4C000064;
   for (const u32 address : EXCEPTION_HANDLER_ADDRESSES)
-    Memory::Write_U32(RFI_INSTRUCTION, address);
+    memory.Write_U32(RFI_INSTRUCTION, address);
 }
 
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp

@@ -18,6 +18,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/PowerPC/MMU.h"
+#include "Core/System.h"
 #include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/RiivolutionParser.h"
 
@@ -582,6 +583,9 @@ static void ApplyOcarinaMemoryPatch(const Patch& patch, const Memory& memory_pat
 
 void ApplyGeneralMemoryPatches(const std::vector<Patch>& patches)
 {
+  auto& system = Core::System::GetInstance();
+  auto& system_memory = system.GetMemory();
+
   for (const auto& patch : patches)
   {
     for (const auto& memory : patch.m_memory_patches)
@@ -590,7 +594,7 @@ void ApplyGeneralMemoryPatches(const std::vector<Patch>& patches)
         continue;
 
       if (memory.m_search)
-        ApplySearchMemoryPatch(patch, memory, 0x80000000, ::Memory::GetRamSize());
+        ApplySearchMemoryPatch(patch, memory, 0x80000000, system_memory.GetRamSize());
       else
         ApplyMemoryPatch(patch, memory);
     }

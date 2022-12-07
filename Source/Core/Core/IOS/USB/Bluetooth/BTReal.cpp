@@ -28,6 +28,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
+#include "Core/System.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 namespace IOS::HLE
@@ -213,9 +214,12 @@ std::optional<IPCReply> BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request
   // HCI commands to the Bluetooth adapter
   case USB::IOCTLV_USBV0_CTRLMSG:
   {
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+
     std::lock_guard lk(m_transfers_mutex);
     auto cmd = std::make_unique<USB::V0CtrlMessage>(m_ios, request);
-    const u16 opcode = Common::swap16(Memory::Read_U16(cmd->data_address));
+    const u16 opcode = Common::swap16(memory.Read_U16(cmd->data_address));
     if (opcode == HCI_CMD_READ_BUFFER_SIZE)
     {
       m_fake_read_buffer_size_reply.Set();
@@ -231,7 +235,7 @@ std::optional<IPCReply> BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request
     {
       // Delete link key(s) from our own link key storage when the game tells the adapter to
       hci_delete_stored_link_key_cp delete_cmd;
-      Memory::CopyFromEmu(&delete_cmd, cmd->data_address, sizeof(delete_cmd));
+      memory.CopyFromEmu(&delete_cmd, cmd->data_address, sizeof(delete_cmd));
       if (delete_cmd.delete_all)
         m_link_keys.clear();
       else
@@ -240,7 +244,7 @@ std::optional<IPCReply> BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request
     auto buffer = std::make_unique<u8[]>(cmd->length + LIBUSB_CONTROL_SETUP_SIZE);
     libusb_fill_control_setup(buffer.get(), cmd->request_type, cmd->request, cmd->value, cmd->index,
                               cmd->length);
-    Memory::CopyFromEmu(buffer.get() + LIBUSB_CONTROL_SETUP_SIZE, cmd->data_address, cmd->length);
+    memory.CopyFromEmu(buffer.get() + LIBUSB_CONTROL_SETUP_SIZE, cmd->data_address, cmd->length);
     libusb_transfer* transfer = libusb_alloc_transfer(0);
     transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
     libusb_fill_control_transfer(transfer, m_handle, buffer.get(), nullptr, this, 0);
@@ -490,13 +494,16 @@ bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand()
 
 void BluetoothRealDevice::FakeVendorCommandReply(USB::V0IntrMessage& ctrl)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   SHCIEventCommand hci_event;
-  Memory::CopyFromEmu(&hci_event, ctrl.data_address, sizeof(hci_event));
+  memory.CopyFromEmu(&hci_event, ctrl.data_address, sizeof(hci_event));
   hci_event.EventType = HCI_EVENT_COMMAND_COMPL;
   hci_event.PayloadLength = sizeof(SHCIEventCommand) - 2;
   hci_event.PacketIndicator = 0x01;
   hci_event.Opcode = m_fake_vendor_command_reply_opcode;
-  Memory::CopyToEmu(ctrl.data_address, &hci_event, sizeof(hci_event));
+  memory.CopyToEmu(ctrl.data_address, &hci_event, sizeof(hci_event));
   m_ios.EnqueueIPCReply(ctrl.ios_request, static_cast<s32>(sizeof(hci_event)));
 }
 
@@ -507,13 +514,16 @@ void BluetoothRealDevice::FakeVendorCommandReply(USB::V0IntrMessage& ctrl)
 // (including Wiimote disconnects and "event mismatch" warning messages).
 void BluetoothRealDevice::FakeReadBufferSizeReply(USB::V0IntrMessage& ctrl)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   SHCIEventCommand hci_event;
-  Memory::CopyFromEmu(&hci_event, ctrl.data_address, sizeof(hci_event));
+  memory.CopyFromEmu(&hci_event, ctrl.data_address, sizeof(hci_event));
   hci_event.EventType = HCI_EVENT_COMMAND_COMPL;
   hci_event.PayloadLength = sizeof(SHCIEventCommand) - 2 + sizeof(hci_read_buffer_size_rp);
   hci_event.PacketIndicator = 0x01;
   hci_event.Opcode = HCI_CMD_READ_BUFFER_SIZE;
-  Memory::CopyToEmu(ctrl.data_address, &hci_event, sizeof(hci_event));
+  memory.CopyToEmu(ctrl.data_address, &hci_event, sizeof(hci_event));
 
   hci_read_buffer_size_rp reply;
   reply.status = 0x00;
@@ -521,19 +531,22 @@ void BluetoothRealDevice::FakeReadBufferSizeReply(USB::V0IntrMessage& ctrl)
   reply.num_acl_pkts = ACL_PKT_NUM;
   reply.max_sco_size = SCO_PKT_SIZE;
   reply.num_sco_pkts = SCO_PKT_NUM;
-  Memory::CopyToEmu(ctrl.data_address + sizeof(hci_event), &reply, sizeof(reply));
+  memory.CopyToEmu(ctrl.data_address + sizeof(hci_event), &reply, sizeof(reply));
   m_ios.EnqueueIPCReply(ctrl.ios_request, static_cast<s32>(sizeof(hci_event) + sizeof(reply)));
 }
 
 void BluetoothRealDevice::FakeSyncButtonEvent(USB::V0IntrMessage& ctrl, const u8* payload,
                                               const u8 size)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   hci_event_hdr_t hci_event;
-  Memory::CopyFromEmu(&hci_event, ctrl.data_address, sizeof(hci_event));
+  memory.CopyFromEmu(&hci_event, ctrl.data_address, sizeof(hci_event));
   hci_event.event = HCI_EVENT_VENDOR;
   hci_event.length = size;
-  Memory::CopyToEmu(ctrl.data_address, &hci_event, sizeof(hci_event));
-  Memory::CopyToEmu(ctrl.data_address + sizeof(hci_event), payload, size);
+  memory.CopyToEmu(ctrl.data_address, &hci_event, sizeof(hci_event));
+  memory.CopyToEmu(ctrl.data_address + sizeof(hci_event), payload, size);
   m_ios.EnqueueIPCReply(ctrl.ios_request, static_cast<s32>(sizeof(hci_event) + size));
 }
 
