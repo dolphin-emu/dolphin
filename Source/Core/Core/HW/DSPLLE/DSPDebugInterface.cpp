@@ -223,8 +223,13 @@ std::string DSPDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& gu
   return "";
 }
 
-u32 DSPDebugInterface::GetOffsetAddress(u32 address, s32 offset) const
+std::optional<u32> DSPDebugInterface::GetOffsetAddress(u32 address, s32 offset) const
 {
+  if (address + offset < 0 || address + offset >= 0x10000)  // TODO: undefined behavior?
+  {
+    return std::nullopt;
+  }
+
   int line = Symbols::Addr2Line(address);
   if (line < 0 && offset != 0) [[unlikely]]
   {
@@ -260,10 +265,21 @@ u32 DSPDebugInterface::GetOffsetAddress(u32 address, s32 offset) const
   }
   else
   {
-    // Even after the above, we failed to find a matching instruction.
+    // Even after the above, we failed to find a matching instruction. This might mean that we're
+    // between two valid instructions but offset isn't big enough to hit either, or it might mean
+    // we're out of bounds entirely.
     // offset should be 0 at this point.
     return address + offset;
   }
+}
+
+std::optional<s32> DSPDebugInterface::GetOffsetBetween(u32 cur_address, u32 other_address) const
+{
+  int cur_line = Symbols::Line2Addr(cur_address);
+  int new_line = Symbols::Line2Addr(other_address);
+  if (new_line == -1 || cur_line == -1)
+    return std::nullopt;
+  return new_line - cur_line;
 }
 
 u32 DSPDebugInterface::ReadMemory(const Core::CPUThreadGuard& guard, u32 address) const
