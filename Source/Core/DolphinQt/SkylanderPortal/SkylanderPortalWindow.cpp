@@ -781,8 +781,10 @@ QString CreateSkylanderDialog::GetFilePath() const
 void SkylanderPortalWindow::CreateSkylander(u8 slot)
 {
   CreateSkylanderDialog create_dlg(this);
-  create_dlg.exec();
-  LoadSkylanderPath(slot, create_dlg.GetFilePath());
+  if (create_dlg.exec() == CreateSkylanderDialog::Accepted)
+	{
+		LoadSkylanderPath(slot, create_dlg.GetFilePath());
+	}
 }
 
 void SkylanderPortalWindow::LoadSkylander(u8 slot)
