@@ -205,16 +205,18 @@ void Init(bool hle)
 
 void Reinit(bool hle)
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetDSPState().GetData();
   state.dsp_emulator = CreateDSPEmulator(hle);
   state.is_lle = state.dsp_emulator->IsLLE();
 
   if (SConfig::GetInstance().bWii)
   {
+    auto& memory = system.GetMemory();
     state.aram.wii_mode = true;
-    state.aram.size = Memory::GetExRamSizeReal();
-    state.aram.mask = Memory::GetExRamMask();
-    state.aram.ptr = Memory::m_pEXRAM;
+    state.aram.size = memory.GetExRamSizeReal();
+    state.aram.mask = memory.GetExRamMask();
+    state.aram.ptr = memory.GetEXRAM();
   }
   else
   {
@@ -527,7 +529,8 @@ void UpdateAudioDMA()
     // Read audio at g_audioDMA.current_source_address in RAM and push onto an
     // external audio fifo in the emulator, to be mixed with the disc
     // streaming output.
-    void* address = Memory::GetPointer(state.audio_dma.current_source_address);
+    auto& memory = system.GetMemory();
+    void* address = memory.GetPointer(state.audio_dma.current_source_address);
     AudioCommon::SendAIBuffer(system, reinterpret_cast<short*>(address), 8);
 
     if (state.audio_dma.remaining_blocks_count != 0)
@@ -554,6 +557,7 @@ static void Do_ARAM_DMA()
 {
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
+  auto& memory = system.GetMemory();
   auto& state = system.GetDSPState().GetData();
 
   state.dsp_control.DMAState = 1;
@@ -581,18 +585,18 @@ static void Do_ARAM_DMA()
         // See below in the write section for more information
         if ((state.aram_info.Hex & 0xf) == 3)
         {
-          Memory::Write_U64_Swap(*(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask],
-                                 state.aram_dma.MMAddr);
+          memory.Write_U64_Swap(*(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask],
+                                state.aram_dma.MMAddr);
         }
         else if ((state.aram_info.Hex & 0xf) == 4)
         {
-          Memory::Write_U64_Swap(*(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask],
-                                 state.aram_dma.MMAddr);
+          memory.Write_U64_Swap(*(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask],
+                                state.aram_dma.MMAddr);
         }
         else
         {
-          Memory::Write_U64_Swap(*(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask],
-                                 state.aram_dma.MMAddr);
+          memory.Write_U64_Swap(*(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask],
+                                state.aram_dma.MMAddr);
         }
 
         state.aram_dma.MMAddr += 8;
@@ -604,7 +608,7 @@ static void Do_ARAM_DMA()
     {
       while (state.aram_dma.Cnt.count)
       {
-        Memory::Write_U64(HSP::Read(state.aram_dma.ARAddr), state.aram_dma.MMAddr);
+        memory.Write_U64(HSP::Read(state.aram_dma.ARAddr), state.aram_dma.MMAddr);
         state.aram_dma.MMAddr += 8;
         state.aram_dma.ARAddr += 8;
         state.aram_dma.Cnt.count -= 8;
@@ -628,22 +632,22 @@ static void Do_ARAM_DMA()
         if ((state.aram_info.Hex & 0xf) == 3)
         {
           *(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask] =
-              Common::swap64(Memory::Read_U64(state.aram_dma.MMAddr));
+              Common::swap64(memory.Read_U64(state.aram_dma.MMAddr));
         }
         else if ((state.aram_info.Hex & 0xf) == 4)
         {
           if (state.aram_dma.ARAddr < 0x400000)
           {
             *(u64*)&state.aram.ptr[(state.aram_dma.ARAddr + 0x400000) & state.aram.mask] =
-                Common::swap64(Memory::Read_U64(state.aram_dma.MMAddr));
+                Common::swap64(memory.Read_U64(state.aram_dma.MMAddr));
           }
           *(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask] =
-              Common::swap64(Memory::Read_U64(state.aram_dma.MMAddr));
+              Common::swap64(memory.Read_U64(state.aram_dma.MMAddr));
         }
         else
         {
           *(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask] =
-              Common::swap64(Memory::Read_U64(state.aram_dma.MMAddr));
+              Common::swap64(memory.Read_U64(state.aram_dma.MMAddr));
         }
 
         state.aram_dma.MMAddr += 8;
@@ -655,7 +659,7 @@ static void Do_ARAM_DMA()
     {
       while (state.aram_dma.Cnt.count)
       {
-        HSP::Write(state.aram_dma.ARAddr, Memory::Read_U64(state.aram_dma.MMAddr));
+        HSP::Write(state.aram_dma.ARAddr, memory.Read_U64(state.aram_dma.MMAddr));
 
         state.aram_dma.MMAddr += 8;
         state.aram_dma.ARAddr += 8;
@@ -670,14 +674,20 @@ static void Do_ARAM_DMA()
 // (LM) It just means that DSP reads via '0xffdd' on Wii can end up in EXRAM or main RAM
 u8 ReadARAM(u32 address)
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetDSPState().GetData();
 
   if (state.aram.wii_mode)
   {
     if (address & 0x10000000)
+    {
       return state.aram.ptr[address & state.aram.mask];
+    }
     else
-      return Memory::Read_U8(address & Memory::GetRamMask());
+    {
+      auto& memory = system.GetMemory();
+      return memory.Read_U8(address & memory.GetRamMask());
+    }
   }
   else
   {

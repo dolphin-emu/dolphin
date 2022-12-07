@@ -13,6 +13,7 @@
 #include "Common/Swap.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -21,37 +22,45 @@ namespace USB
 V5CtrlMessage::V5CtrlMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
     : CtrlMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  request_type = Memory::Read_U8(ioctlv.in_vectors[0].address + 8);
-  request = Memory::Read_U8(ioctlv.in_vectors[0].address + 9);
-  value = Memory::Read_U16(ioctlv.in_vectors[0].address + 10);
-  index = Memory::Read_U16(ioctlv.in_vectors[0].address + 12);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  request_type = memory.Read_U8(ioctlv.in_vectors[0].address + 8);
+  request = memory.Read_U8(ioctlv.in_vectors[0].address + 9);
+  value = memory.Read_U16(ioctlv.in_vectors[0].address + 10);
+  index = memory.Read_U16(ioctlv.in_vectors[0].address + 12);
   length = static_cast<u16>(ioctlv.GetVector(1)->size);
 }
 
 V5BulkMessage::V5BulkMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
     : BulkMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
   length = ioctlv.GetVector(1)->size;
-  endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address + 18);
+  endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 18);
 }
 
 V5IntrMessage::V5IntrMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
     : IntrMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
   length = ioctlv.GetVector(1)->size;
-  endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address + 14);
+  endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 14);
 }
 
 V5IsoMessage::V5IsoMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
     : IsoMessage(ios, ioctlv, ioctlv.GetVector(2)->address)
 {
-  num_packets = Memory::Read_U8(ioctlv.in_vectors[0].address + 16);
-  endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address + 17);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  num_packets = memory.Read_U8(ioctlv.in_vectors[0].address + 16);
+  endpoint = memory.Read_U8(ioctlv.in_vectors[0].address + 17);
   packet_sizes_addr = ioctlv.GetVector(1)->address;
   u32 total_packet_size = 0;
   for (size_t i = 0; i < num_packets; ++i)
   {
-    const u32 packet_size = Memory::Read_U16(static_cast<u32>(packet_sizes_addr + i * sizeof(u16)));
+    const u32 packet_size = memory.Read_U16(static_cast<u32>(packet_sizes_addr + i * sizeof(u16)));
     packet_sizes.push_back(packet_size);
     total_packet_size += packet_size;
   }
@@ -99,8 +108,10 @@ void USBV5ResourceManager::DoState(PointerWrap& p)
 
 USBV5ResourceManager::USBV5Device* USBV5ResourceManager::GetUSBV5Device(u32 in_buffer)
 {
-  const u8 index = Memory::Read_U8(in_buffer + offsetof(DeviceID, index));
-  const u16 number = Memory::Read_U16(in_buffer + offsetof(DeviceID, number));
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  const u8 index = memory.Read_U8(in_buffer + offsetof(DeviceID, index));
+  const u16 number = memory.Read_U16(in_buffer + offsetof(DeviceID, number));
 
   if (index >= m_usbv5_devices.size())
     return nullptr;
@@ -135,7 +146,9 @@ IPCReply USBV5ResourceManager::SetAlternateSetting(USBV5Device& device, const IO
   if (!host_device->AttachAndChangeInterface(device.interface_number))
     return IPCReply(-1);
 
-  const u8 alt_setting = Memory::Read_U8(request.buffer_in + 2 * sizeof(s32));
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  const u8 alt_setting = memory.Read_U8(request.buffer_in + 2 * sizeof(s32));
 
   const bool success = host_device->SetAltSetting(alt_setting) == 0;
   return IPCReply(success ? IPC_SUCCESS : IPC_EINVAL);
@@ -160,8 +173,11 @@ IPCReply USBV5ResourceManager::Shutdown(const IOCtlRequest& request)
 
 IPCReply USBV5ResourceManager::SuspendResume(USBV5Device& device, const IOCtlRequest& request)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   const auto host_device = GetDeviceById(device.host_id);
-  const s32 resumed = Memory::Read_U32(request.buffer_in + 8);
+  const s32 resumed = memory.Read_U32(request.buffer_in + 8);
 
   // Note: this is unimplemented because there's no easy way to do this in a
   // platform-independant way (libusb does not support power management).
@@ -232,6 +248,9 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
     return;
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   std::lock_guard lock{m_usbv5_devices_mutex};
   u8 num_devices = 0;
   for (auto it = m_usbv5_devices.crbegin(); it != m_usbv5_devices.crend(); ++it)
@@ -264,8 +283,8 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
     entry.interface_number = usbv5_device.interface_number;
     entry.num_altsettings = device->GetNumberOfAltSettings(entry.interface_number);
 
-    Memory::CopyToEmu(m_devicechange_hook_request->buffer_out + sizeof(entry) * num_devices, &entry,
-                      sizeof(entry));
+    memory.CopyToEmu(m_devicechange_hook_request->buffer_out + sizeof(entry) * num_devices, &entry,
+                     sizeof(entry));
     ++num_devices;
   }
 

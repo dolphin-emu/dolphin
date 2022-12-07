@@ -16,6 +16,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -312,7 +313,9 @@ bool FSDevice::HasCacheForFile(u64 fd, u32 offset) const
 std::optional<IPCReply> FSDevice::Read(const ReadWriteRequest& request)
 {
   return MakeIPCReply([&](Ticks t) {
-    return Read(request.fd, Memory::GetPointer(request.buffer), request.size, request.buffer, t);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    return Read(request.fd, memory.GetPointer(request.buffer), request.size, request.buffer, t);
   });
 }
 
@@ -340,7 +343,9 @@ s32 FSDevice::Read(u64 fd, u8* data, u32 size, std::optional<u32> ipc_buffer_add
 std::optional<IPCReply> FSDevice::Write(const ReadWriteRequest& request)
 {
   return MakeIPCReply([&](Ticks t) {
-    return Write(request.fd, Memory::GetPointer(request.buffer), request.size, request.buffer, t);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    return Write(request.fd, memory.GetPointer(request.buffer), request.size, request.buffer, t);
   });
 }
 
@@ -422,8 +427,11 @@ static Result<T> GetParams(const IOCtlRequest& request)
   if (request.buffer_in_size < sizeof(T))
     return ResultCode::Invalid;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   T params;
-  Memory::CopyFromEmu(&params, request.buffer_in, sizeof(params));
+  memory.CopyFromEmu(&params, request.buffer_in, sizeof(params));
   return params;
 }
 
@@ -498,6 +506,9 @@ IPCReply FSDevice::GetStats(const Handle& handle, const IOCtlRequest& request)
   if (!stats)
     return IPCReply(ConvertResult(stats.Error()));
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   ISFSNandStats out;
   out.cluster_size = stats->cluster_size;
   out.free_clusters = stats->free_clusters;
@@ -506,7 +517,7 @@ IPCReply FSDevice::GetStats(const Handle& handle, const IOCtlRequest& request)
   out.reserved_clusters = stats->reserved_clusters;
   out.free_inodes = stats->free_inodes;
   out.used_inodes = stats->used_inodes;
-  Memory::CopyToEmu(request.buffer_out, &out, sizeof(out));
+  memory.CopyToEmu(request.buffer_out, &out, sizeof(out));
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -530,28 +541,31 @@ IPCReply FSDevice::ReadDirectory(const Handle& handle, const IOCtlVRequest& requ
     return GetFSReply(ConvertResult(ResultCode::Invalid));
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   u32 file_list_address, file_count_address, max_count;
   if (request.in_vectors.size() == 2)
   {
     if (request.in_vectors[1].size != 4 || request.io_vectors[1].size != 4)
       return GetFSReply(ConvertResult(ResultCode::Invalid));
-    max_count = Memory::Read_U32(request.in_vectors[1].address);
+    max_count = memory.Read_U32(request.in_vectors[1].address);
     file_count_address = request.io_vectors[1].address;
     file_list_address = request.io_vectors[0].address;
     if (request.io_vectors[0].size != 13 * max_count)
       return GetFSReply(ConvertResult(ResultCode::Invalid));
-    Memory::Write_U32(max_count, file_count_address);
+    memory.Write_U32(max_count, file_count_address);
   }
   else
   {
     if (request.io_vectors[0].size != 4)
       return GetFSReply(ConvertResult(ResultCode::Invalid));
-    max_count = Memory::Read_U32(request.io_vectors[0].address);
+    max_count = memory.Read_U32(request.io_vectors[0].address);
     file_count_address = request.io_vectors[0].address;
     file_list_address = 0;
   }
 
-  const std::string directory = Memory::GetString(request.in_vectors[0].address, 64);
+  const std::string directory = memory.GetString(request.in_vectors[0].address, 64);
   const Result<std::vector<std::string>> list =
       m_ios.GetFS()->ReadDirectory(handle.uid, handle.gid, directory);
   LogResult(list, "ReadDirectory({})", directory);
@@ -560,19 +574,19 @@ IPCReply FSDevice::ReadDirectory(const Handle& handle, const IOCtlVRequest& requ
 
   if (!file_list_address)
   {
-    Memory::Write_U32(static_cast<u32>(list->size()), file_count_address);
+    memory.Write_U32(static_cast<u32>(list->size()), file_count_address);
     return GetFSReply(IPC_SUCCESS);
   }
 
   for (size_t i = 0; i < list->size() && i < max_count; ++i)
   {
-    Memory::Memset(file_list_address, 0, 13);
-    Memory::CopyToEmu(file_list_address, (*list)[i].data(), (*list)[i].size());
-    Memory::Write_U8(0, file_list_address + 12);
+    memory.Memset(file_list_address, 0, 13);
+    memory.CopyToEmu(file_list_address, (*list)[i].data(), (*list)[i].size());
+    memory.Write_U8(0, file_list_address + 12);
     file_list_address += static_cast<u32>((*list)[i].size()) + 1;
   }
   // Write the actual number of entries in the buffer.
-  Memory::Write_U32(std::min(max_count, static_cast<u32>(list->size())), file_count_address);
+  memory.Write_U32(std::min(max_count, static_cast<u32>(list->size())), file_count_address);
   return GetFSReply(IPC_SUCCESS);
 }
 
@@ -593,7 +607,10 @@ IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& reques
   if (request.buffer_in_size < 64 || request.buffer_out_size < sizeof(ISFSParams))
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
-  const std::string path = Memory::GetString(request.buffer_in, 64);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  const std::string path = memory.GetString(request.buffer_in, 64);
   const auto ticks = EstimateFileLookupTicks(path, FileLookupMode::Split);
   const Result<Metadata> metadata = m_ios.GetFS()->GetMetadata(handle.uid, handle.gid, path);
   LogResult(metadata, "GetMetadata({})", path);
@@ -608,7 +625,7 @@ IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& reques
   out.gid = metadata->gid;
   out.attribute = metadata->attribute;
   out.modes = metadata->modes;
-  Memory::CopyToEmu(request.buffer_out, &out, sizeof(out));
+  memory.CopyToEmu(request.buffer_out, &out, sizeof(out));
   return GetFSReply(IPC_SUCCESS, ticks);
 }
 
@@ -627,7 +644,10 @@ IPCReply FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request)
   if (request.buffer_in_size < 64)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
-  const std::string path = Memory::GetString(request.buffer_in, 64);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  const std::string path = memory.GetString(request.buffer_in, 64);
   return MakeIPCReply(
       [&](Ticks ticks) { return ConvertResult(DeleteFile(handle.uid, handle.gid, path, ticks)); });
 }
@@ -648,8 +668,11 @@ IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
   if (request.buffer_in_size < 64 * 2)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
-  const std::string old_path = Memory::GetString(request.buffer_in, 64);
-  const std::string new_path = Memory::GetString(request.buffer_in + 64, 64);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  const std::string old_path = memory.GetString(request.buffer_in, 64);
+  const std::string new_path = memory.GetString(request.buffer_in + 64, 64);
   return MakeIPCReply([&](Ticks ticks) {
     return ConvertResult(RenameFile(handle.uid, handle.gid, old_path, new_path, ticks));
   });
@@ -699,10 +722,13 @@ IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& reques
     if (!status)
       return ConvertResult(status.Error());
 
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+
     ISFSFileStats out;
     out.size = status->size;
     out.seek_position = status->offset;
-    Memory::CopyToEmu(request.buffer_out, &out, sizeof(out));
+    memory.CopyToEmu(request.buffer_out, &out, sizeof(out));
     return IPC_SUCCESS;
   });
 }
@@ -727,14 +753,17 @@ IPCReply FSDevice::GetUsage(const Handle& handle, const IOCtlVRequest& request)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
   }
 
-  const std::string directory = Memory::GetString(request.in_vectors[0].address, 64);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  const std::string directory = memory.GetString(request.in_vectors[0].address, 64);
   const Result<DirectoryStats> stats = m_ios.GetFS()->GetDirectoryStats(directory);
   LogResult(stats, "GetDirectoryStats({})", directory);
   if (!stats)
     return GetFSReply(ConvertResult(stats.Error()));
 
-  Memory::Write_U32(stats->used_clusters, request.io_vectors[0].address);
-  Memory::Write_U32(stats->used_inodes, request.io_vectors[1].address);
+  memory.Write_U32(stats->used_clusters, request.io_vectors[0].address);
+  memory.Write_U32(stats->used_inodes, request.io_vectors[1].address);
   return GetFSReply(IPC_SUCCESS);
 }
 

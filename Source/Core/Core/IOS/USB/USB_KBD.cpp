@@ -13,6 +13,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"  // Local core functions
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 #include "InputCommon/ControlReference/ControlReference.h"  // For background input check
 
 #ifdef _WIN32
@@ -213,7 +214,9 @@ std::optional<IPCReply> USB_KBD::IOCtl(const IOCtlRequest& request)
   if (Config::Get(Config::MAIN_WII_KEYBOARD) && !Core::WantsDeterminism() &&
       ControlReference::GetInputGate() && !m_message_queue.empty())
   {
-    Memory::CopyToEmu(request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    memory.CopyToEmu(request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
     m_message_queue.pop();
   }
   return IPCReply(IPC_SUCCESS);

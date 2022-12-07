@@ -8,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -34,36 +35,39 @@ std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
   // TODO Writes stuff to /shared2/nwc24/misc.bin
   u32 update_misc = 0;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   switch (request.request)
   {
   case IOCTL_NW24_GET_UNIVERSAL_TIME:
   {
     const u64 adjusted_utc = GetAdjustedUTC();
-    Memory::Write_U64(adjusted_utc, request.buffer_out + 4);
+    memory.Write_U64(adjusted_utc, request.buffer_out + 4);
     INFO_LOG_FMT(IOS_WC24, "IOCTL_NW24_GET_UNIVERSAL_TIME = {}, time = {}", result, adjusted_utc);
   }
   break;
 
   case IOCTL_NW24_SET_UNIVERSAL_TIME:
   {
-    const u64 adjusted_utc = Memory::Read_U64(request.buffer_in);
+    const u64 adjusted_utc = memory.Read_U64(request.buffer_in);
     SetAdjustedUTC(adjusted_utc);
-    update_misc = Memory::Read_U32(request.buffer_in + 8);
+    update_misc = memory.Read_U32(request.buffer_in + 8);
     INFO_LOG_FMT(IOS_WC24, "IOCTL_NW24_SET_UNIVERSAL_TIME ({}, {}) = {}", adjusted_utc, update_misc,
                  result);
   }
   break;
 
   case IOCTL_NW24_SET_RTC_COUNTER:
-    rtc = Memory::Read_U32(request.buffer_in);
-    update_misc = Memory::Read_U32(request.buffer_in + 4);
+    rtc = memory.Read_U32(request.buffer_in);
+    update_misc = memory.Read_U32(request.buffer_in + 4);
     INFO_LOG_FMT(IOS_WC24, "IOCTL_NW24_SET_RTC_COUNTER ({}, {}) = {}", rtc, update_misc, result);
     break;
 
   case IOCTL_NW24_GET_TIME_DIFF:
   {
     const u64 time_diff = GetAdjustedUTC() - rtc;
-    Memory::Write_U64(time_diff, request.buffer_out + 4);
+    memory.Write_U64(time_diff, request.buffer_out + 4);
     INFO_LOG_FMT(IOS_WC24, "IOCTL_NW24_GET_TIME_DIFF = {}, time_diff = {}", result, time_diff);
   }
   break;
@@ -79,7 +83,7 @@ std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
   }
 
   // write return values
-  Memory::Write_U32(common_result, request.buffer_out);
+  memory.Write_U32(common_result, request.buffer_out);
   return IPCReply(result);
 }
 

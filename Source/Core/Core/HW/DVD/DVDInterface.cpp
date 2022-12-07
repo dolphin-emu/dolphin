@@ -896,15 +896,17 @@ void ExecuteCommand(ReplyType reply_type)
   {
   // Used by both GC and Wii
   case DICommand::Inquiry:
+  {
     // (shuffle2) Taken from my Wii
-    Memory::Write_U32(0x00000002, state.DIMAR);      // Revision level, device code
-    Memory::Write_U32(0x20060526, state.DIMAR + 4);  // Release date
-    Memory::Write_U32(0x41000000, state.DIMAR + 8);  // Version
+    auto& memory = system.GetMemory();
+    memory.Write_U32(0x00000002, state.DIMAR);      // Revision level, device code
+    memory.Write_U32(0x20060526, state.DIMAR + 4);  // Release date
+    memory.Write_U32(0x41000000, state.DIMAR + 8);  // Version
 
     INFO_LOG_FMT(DVDINTERFACE, "DVDLowInquiry (Buffer {:#010x}, {:#x})", state.DIMAR,
                  state.DILENGTH);
     break;
-
+  }
   // GC-only patched drive firmware command, used by libogc
   case DICommand::Unknown55:
     INFO_LOG_FMT(DVDINTERFACE, "SetExtension");
@@ -1024,17 +1026,20 @@ void ExecuteCommand(ReplyType reply_type)
     break;
   // Wii-exclusive
   case DICommand::ReadBCA:
+  {
     WARN_LOG_FMT(DVDINTERFACE, "DVDLowReadDiskBca - supplying dummy data to appease NSMBW");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_READ_DISK_BCA);
     // NSMBW checks that the first 0x33 bytes of the BCA are 0, then it expects a 1.
     // Most (all?) other games have 0x34 0's at the start of the BCA, but don't actually
     // read it.  NSMBW doesn't care about the other 12 bytes (which contain manufacturing data?)
 
+    auto& memory = system.GetMemory();
     // TODO: Read the .bca file that cleanrip generates, if it exists
-    // Memory::CopyToEmu(output_address, bca_data, 0x40);
-    Memory::Memset(state.DIMAR, 0, 0x40);
-    Memory::Write_U8(1, state.DIMAR + 0x33);
+    // memory.CopyToEmu(output_address, bca_data, 0x40);
+    memory.Memset(state.DIMAR, 0, 0x40);
+    memory.Write_U8(1, state.DIMAR + 0x33);
     break;
+  }
   // Wii-exclusive
   case DICommand::RequestDiscStatus:
     ERROR_LOG_FMT(DVDINTERFACE, "DVDLowRequestDiscStatus");

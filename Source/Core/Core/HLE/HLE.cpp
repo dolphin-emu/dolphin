@@ -19,6 +19,7 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace HLE
 {
@@ -90,7 +91,9 @@ void PatchFixedFunctions()
   if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
   {
     Patch(0x80001800, "HBReload");
-    Memory::CopyToEmu(0x00001804, "STUBHAXX", 8);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    memory.CopyToEmu(0x00001804, "STUBHAXX", 8);
   }
 
   // Not part of the binary itself, but either we or Gecko OS might insert

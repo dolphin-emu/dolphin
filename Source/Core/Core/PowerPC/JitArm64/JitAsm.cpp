@@ -20,6 +20,7 @@
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 using namespace Arm64Gen;
 
@@ -88,15 +89,20 @@ void JitArm64::GenerateAsm()
 
   bool assembly_dispatcher = true;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   if (assembly_dispatcher)
   {
     // set the mem_base based on MSR flags
     LDR(IndexType::Unsigned, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
     FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
-    MOVP2R(MEM_REG, jo.fastmem_arena ? Memory::physical_base : Memory::physical_page_mappings_base);
+    MOVP2R(MEM_REG,
+           jo.fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
     FixupBranch membaseend = B();
     SetJumpTarget(physmem);
-    MOVP2R(MEM_REG, jo.fastmem_arena ? Memory::logical_base : Memory::logical_page_mappings_base);
+    MOVP2R(MEM_REG,
+           jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
     SetJumpTarget(membaseend);
 
     // iCache[(address >> 2) & iCache_Mask];
@@ -141,10 +147,11 @@ void JitArm64::GenerateAsm()
   // set the mem_base based on MSR flags and jump to next block.
   LDR(IndexType::Unsigned, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
   FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
-  MOVP2R(MEM_REG, jo.fastmem_arena ? Memory::physical_base : Memory::physical_page_mappings_base);
+  MOVP2R(MEM_REG,
+         jo.fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
   BR(ARM64Reg::X0);
   SetJumpTarget(physmem);
-  MOVP2R(MEM_REG, jo.fastmem_arena ? Memory::logical_base : Memory::logical_page_mappings_base);
+  MOVP2R(MEM_REG, jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
   BR(ARM64Reg::X0);
 
   // Call JIT

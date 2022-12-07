@@ -391,7 +391,10 @@ static void FinishRead(Core::System& system, u64 id, s64 cycles_late)
   else
   {
     if (request.copy_to_ram)
-      Memory::CopyToEmu(request.output_address, buffer.data(), request.length);
+    {
+      auto& memory = system.GetMemory();
+      memory.CopyToEmu(request.output_address, buffer.data(), request.length);
+    }
 
     interrupt = DVDInterface::DIInterruptType::TCINT;
   }

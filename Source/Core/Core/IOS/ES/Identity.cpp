@@ -15,6 +15,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -34,7 +35,10 @@ IPCReply ESDevice::GetDeviceId(const IOCtlVRequest& request)
   const ReturnCode ret = GetDeviceId(&device_id);
   if (ret != IPC_SUCCESS)
     return IPCReply(ret);
-  Memory::Write_U32(device_id, request.io_vectors[0].address);
+
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.Write_U32(device_id, request.io_vectors[0].address);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -43,11 +47,13 @@ IPCReply ESDevice::Encrypt(u32 uid, const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(3, 2))
     return IPCReply(ES_EINVAL);
 
-  u32 keyIndex = Memory::Read_U32(request.in_vectors[0].address);
-  u8* source = Memory::GetPointer(request.in_vectors[2].address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u32 keyIndex = memory.Read_U32(request.in_vectors[0].address);
+  u8* source = memory.GetPointer(request.in_vectors[2].address);
   u32 size = request.in_vectors[2].size;
-  u8* iv = Memory::GetPointer(request.io_vectors[0].address);
-  u8* destination = Memory::GetPointer(request.io_vectors[1].address);
+  u8* iv = memory.GetPointer(request.io_vectors[0].address);
+  u8* destination = memory.GetPointer(request.io_vectors[1].address);
 
   // TODO: Check whether the active title is allowed to encrypt.
 
@@ -60,11 +66,13 @@ IPCReply ESDevice::Decrypt(u32 uid, const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(3, 2))
     return IPCReply(ES_EINVAL);
 
-  u32 keyIndex = Memory::Read_U32(request.in_vectors[0].address);
-  u8* source = Memory::GetPointer(request.in_vectors[2].address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u32 keyIndex = memory.Read_U32(request.in_vectors[0].address);
+  u8* source = memory.GetPointer(request.in_vectors[2].address);
   u32 size = request.in_vectors[2].size;
-  u8* iv = Memory::GetPointer(request.io_vectors[0].address);
-  u8* destination = Memory::GetPointer(request.io_vectors[1].address);
+  u8* iv = memory.GetPointer(request.io_vectors[0].address);
+  u8* destination = memory.GetPointer(request.io_vectors[1].address);
 
   // TODO: Check whether the active title is allowed to decrypt.
 
@@ -92,8 +100,10 @@ IPCReply ESDevice::GetDeviceCertificate(const IOCtlVRequest& request)
 
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETDEVICECERT");
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
   const IOS::CertECC cert = m_ios.GetIOSC().GetDeviceCertificate();
-  Memory::CopyToEmu(request.io_vectors[0].address, &cert, sizeof(cert));
+  memory.CopyToEmu(request.io_vectors[0].address, &cert, sizeof(cert));
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -103,10 +113,12 @@ IPCReply ESDevice::Sign(const IOCtlVRequest& request)
     return IPCReply(ES_EINVAL);
 
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_SIGN");
-  u8* ap_cert_out = Memory::GetPointer(request.io_vectors[1].address);
-  u8* data = Memory::GetPointer(request.in_vectors[0].address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u8* ap_cert_out = memory.GetPointer(request.io_vectors[1].address);
+  u8* data = memory.GetPointer(request.in_vectors[0].address);
   u32 data_size = request.in_vectors[0].size;
-  u8* sig_out = Memory::GetPointer(request.io_vectors[0].address);
+  u8* sig_out = memory.GetPointer(request.io_vectors[0].address);
 
   if (!m_title_context.active)
     return IPCReply(ES_EINVAL);
@@ -193,14 +205,17 @@ IPCReply ESDevice::VerifySign(const IOCtlVRequest& request)
   if (request.in_vectors[1].size != sizeof(Common::ec::Signature))
     return IPCReply(ES_EINVAL);
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   std::vector<u8> hash(request.in_vectors[0].size);
-  Memory::CopyFromEmu(hash.data(), request.in_vectors[0].address, hash.size());
+  memory.CopyFromEmu(hash.data(), request.in_vectors[0].address, hash.size());
 
   std::vector<u8> ecc_signature(request.in_vectors[1].size);
-  Memory::CopyFromEmu(ecc_signature.data(), request.in_vectors[1].address, ecc_signature.size());
+  memory.CopyFromEmu(ecc_signature.data(), request.in_vectors[1].address, ecc_signature.size());
 
   std::vector<u8> certs(request.in_vectors[2].size);
-  Memory::CopyFromEmu(certs.data(), request.in_vectors[2].address, certs.size());
+  memory.CopyFromEmu(certs.data(), request.in_vectors[2].address, certs.size());
 
   return IPCReply(VerifySign(hash, ecc_signature, certs));
 }
