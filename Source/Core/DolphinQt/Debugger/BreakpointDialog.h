@@ -16,6 +16,7 @@ class QGroupBox;
 class QLabel;
 class QLineEdit;
 class QRadioButton;
+class QPushButton;
 
 class BreakpointDialog : public QDialog
 {
@@ -46,8 +47,6 @@ private:
   QRadioButton* m_instruction_bp;
   QGroupBox* m_instruction_box;
   QLineEdit* m_instruction_address;
-  QLineEdit* m_instruction_condition;
-  QPushButton* m_cond_help_btn;
 
   // Memory BPs
   QRadioButton* m_memory_bp;
@@ -66,6 +65,9 @@ private:
   QRadioButton* m_do_log;
   QRadioButton* m_do_break;
   QRadioButton* m_do_log_and_break;
+
+  QLineEdit* m_conditional;
+  QPushButton* m_cond_help_btn;
 
   QDialogButtonBox* m_buttons;
   BreakpointWidget* m_parent;

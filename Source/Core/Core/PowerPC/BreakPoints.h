@@ -42,6 +42,8 @@ struct TMemCheck
 
   u32 num_hits = 0;
 
+  std::optional<Expression> condition;
+
   // returns whether to break
   bool Action(Common::DebugInterface* debug_interface, u64 value, u32 addr, bool write, size_t size,
               u32 pc);
@@ -93,7 +95,7 @@ public:
   TMemChecksStr GetStrings() const;
   void AddFromStrings(const TMemChecksStr& mc_strings);
 
-  void Add(const TMemCheck& memory_check);
+  void Add(TMemCheck memory_check);
 
   bool ToggleBreakPoint(u32 address);
 

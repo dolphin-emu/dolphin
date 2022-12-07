@@ -871,7 +871,7 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
     new_memcheck.break_on_hit = true;
     new_memcheck.log_on_hit = false;
     new_memcheck.is_enabled = true;
-    PowerPC::memchecks.Add(new_memcheck);
+    PowerPC::memchecks.Add(std::move(new_memcheck));
     INFO_LOG_FMT(GDB_STUB, "gdb: added {} memcheck: {:08x} bytes at {:08x}", static_cast<int>(type),
                  len, addr);
   }
