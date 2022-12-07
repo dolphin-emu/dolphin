@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include <QTableWidget>
@@ -53,7 +54,8 @@ public:
   void ToggleBreakpoint();
   void AddBreakpoint();
 
-  u32 AddressForRow(int row) const;
+  std::optional<u32> AddressForRow(int row) const;
+  std::optional<int> RowForAddress(u32 address) const;
   void ChangeAddress(int num_rows);
 
 signals:

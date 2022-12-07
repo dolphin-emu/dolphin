@@ -78,7 +78,16 @@ public:
   std::string Disassemble(const Core::CPUThreadGuard* guard, u32 address) const override;
   std::string GetRawMemoryString(const Core::CPUThreadGuard& guard, int memory,
                                  u32 address) const override;
-  u32 GetOffsetAddress(u32 address, s32 offset) const override { return address + offset * 4; }
+  std::optional<u32> GetOffsetAddress(u32 address, s32 offset) const override
+  {
+    return address + offset * 4;
+  }
+  std::optional<s32> GetOffsetBetween(u32 cur_address, u32 other_address) const override
+  {
+    if ((cur_address & 3) != (other_address & 3))
+      return std::nullopt;
+    return static_cast<s32>(other_address - cur_address) / 4;
+  }
   bool IsAlive() const override;
   bool IsBreakpoint(u32 address) const override;
   void SetBreakpoint(u32 address) override;

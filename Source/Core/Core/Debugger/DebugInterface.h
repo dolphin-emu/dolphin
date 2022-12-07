@@ -70,7 +70,14 @@ public:
   {
     return "NODEBUGGER";
   }
-  virtual u32 GetOffsetAddress(u32 address, s32 offset) const { return address + offset; }
+  virtual std::optional<u32> GetOffsetAddress(u32 address, s32 offset) const
+  {
+    return address + offset;
+  }
+  virtual std::optional<s32> GetOffsetBetween(u32 cur_address, u32 other_address) const
+  {
+    return static_cast<s32>(other_address - cur_address);
+  }
   virtual bool IsAlive() const { return true; }
   virtual bool IsBreakpoint(u32 /*address*/) const { return false; }
   virtual void SetBreakpoint(u32 /*address*/) {}

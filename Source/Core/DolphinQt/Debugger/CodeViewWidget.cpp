@@ -75,7 +75,16 @@ private:
     painter->setPen(m_parent->palette().text().color());
 
     constexpr u32 x_offset_in_branch_for_vertical_line = 10;
-    const u32 addr = m_parent->AddressForRow(index.row());
+    const std::optional<u32> opt_addr = m_parent->AddressForRow(index.row());
+
+    if (!opt_addr.has_value())
+    {
+      painter->restore();
+      return;
+    }
+
+    const u32 addr = *opt_addr;
+
     for (const CodeViewBranch& branch : m_parent->m_branches)
     {
       const int y_center = option.rect.top() + option.rect.height() / 2;
@@ -224,7 +233,7 @@ void CodeViewWidget::FontBasedSizing()
   Update();
 }
 
-u32 CodeViewWidget::AddressForRow(int row) const
+std::optional<u32> CodeViewWidget::AddressForRow(int row) const
 {
   // m_address is defined as the center row of the table, so we have rowCount/2 instructions above
   // it; an instruction is 4 bytes long on GC/Wii so we increment 4 bytes per row
@@ -232,10 +241,28 @@ u32 CodeViewWidget::AddressForRow(int row) const
   return m_debug_interface->GetOffsetAddress(m_address, offset);
 }
 
+std::optional<int> CodeViewWidget::RowForAddress(u32 address) const
+{
+  std::optional<int> offset = m_debug_interface->GetOffsetBetween(m_address, address);
+  if (!offset.has_value())
+    return std::nullopt;
+
+  const int cur_row = (rowCount() / 2);  // row where m_address is
+  int new_row = cur_row + *offset;
+
+  if (new_row < 0 || new_row >= rowCount())
+    return std::nullopt;
+
+  return new_row;
+}
+
 void CodeViewWidget::ChangeAddress(int num_rows)
 {
-  SetAddress(m_debug_interface->GetOffsetAddress(m_address, num_rows),
-             SetAddressUpdate::WithUpdate);
+  std::optional<u32> new_address = m_debug_interface->GetOffsetAddress(m_address, num_rows);
+  if (new_address.has_value())
+  {
+    SetAddress(*new_address, SetAddressUpdate::WithUpdate);
+  }
 }
 
 void CodeViewWidget::Update()
@@ -302,7 +329,11 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
 
   for (int i = 0; i < rowCount(); i++)
   {
-    const u32 addr = AddressForRow(i);
+    const std::optional<u32> opt_addr = AddressForRow(i);
+    if (!opt_addr.has_value())
+      continue;
+    const u32 addr = *opt_addr;
+
     const u32 color = m_debug_interface->GetColor(guard, addr);
     auto* bp_item = new QTableWidgetItem;
     auto* addr_item = new QTableWidgetItem(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
@@ -423,23 +454,23 @@ void CodeViewWidget::CalculateBranchIndentation()
     return column * rows + row;
   };
 
-  const auto add_branch_arrow = [&](CodeViewBranch& branch, u32 first_addr, u32 first_row,
-                                    u32 last_addr) {
+  for (CodeViewBranch& branch : m_branches)
+  {
     const u32 arrow_src_addr = branch.src_addr;
     const u32 arrow_dst_addr = branch.is_link ? branch.src_addr : branch.dst_addr;
     const auto [arrow_addr_lower, arrow_addr_higher] = std::minmax(arrow_src_addr, arrow_dst_addr);
+    const std::optional<int> lower_row = RowForAddress(arrow_addr_lower);
+    const std::optional<int> higher_row = RowForAddress(arrow_addr_higher);
 
-    const bool is_visible =
-        std::max(arrow_addr_lower, first_addr) <= std::min(arrow_addr_higher, last_addr);
+    const bool is_visible = lower_row.has_value() || higher_row.has_value();
     if (!is_visible)
-      return;
+    {
+      branch.indentation = 0;
+      continue;
+    }
 
-    const u32 arrow_first_visible_addr = std::clamp(arrow_addr_lower, first_addr, last_addr);
-    const u32 arrow_last_visible_addr = std::clamp(arrow_addr_higher, first_addr, last_addr);
-    const u32 arrow_first_visible_row =
-        (arrow_first_visible_addr - first_addr) / INSTRUCTION_SIZE + first_row;
-    const u32 arrow_last_visible_row =
-        (arrow_last_visible_addr - first_addr) / INSTRUCTION_SIZE + first_row;
+    const u32 arrow_first_visible_row = lower_row.value_or(0);
+    const u32 arrow_last_visible_row = higher_row.value_or(rowCount() - 1);
 
     const auto free_column = [&]() -> std::optional<u32> {
       for (u32 column = 0; column < columns; ++column)
@@ -464,38 +495,6 @@ void CodeViewWidget::CalculateBranchIndentation()
     branch.indentation = *free_column;
     for (u32 row = arrow_first_visible_row; row <= arrow_last_visible_row; ++row)
       arrow_space_used[index(*free_column, row)] = true;
-  };
-
-  const u32 first_visible_addr = AddressForRow(0);
-  const u32 last_visible_addr = AddressForRow(rows - 1);
-
-  if (first_visible_addr <= last_visible_addr)
-  {
-    for (CodeViewBranch& branch : m_branches)
-      add_branch_arrow(branch, first_visible_addr, 0, last_visible_addr);
-  }
-  else
-  {
-    // Scrolling defaults to being centered around address 00000000, which means addresses before
-    // the start are visible (e.g. ffffffa8 - 00000050).  We need to do this in two parts, one for
-    // first_visible_addr to fffffffc, and the second for 00000000 to last_visible_addr.
-    // That means we need to find the row corresponding to 00000000.
-    int addr_zero_row = -1;
-    for (u32 row = 0; row < rows; row++)
-    {
-      if (AddressForRow(row) == 0)
-      {
-        addr_zero_row = row;
-        break;
-      }
-    }
-    ASSERT(addr_zero_row != -1);
-
-    for (CodeViewBranch& branch : m_branches)
-    {
-      add_branch_arrow(branch, first_visible_addr, 0, 0xfffffffc);
-      add_branch_arrow(branch, 0x00000000, addr_zero_row, last_visible_addr);
-    }
   }
 }
 
