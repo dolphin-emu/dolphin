@@ -762,6 +762,15 @@ CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
 		last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
     accept();
   });
+
+  connect(btn_cancel, &QAbstractButton::clicked, this, &QDialog::reject);
+
+	connect(co_compl, QOverload<const QString&>::of(&QCompleter::activated),[=](const QString& text)
+	{
+		combo_skylist->setCurrentText(text);
+		combo_skylist->setCurrentIndex(combo_skylist->findText(text));
+	});
+  
 }
 
 QString CreateSkylanderDialog::GetFilePath() const

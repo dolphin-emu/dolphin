@@ -26,6 +26,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+#include "Core/System.h"
 
 namespace IOS::HLE::USB
 {
@@ -121,8 +122,9 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
                 cmd->index, cmd->length);
 
   cmd->expected_time = Common::Timer::NowUs() + 100;
-  std::unique_ptr<u8[]> returnBuf;
-  u8* buf = Memory::GetPointerForRange(cmd->data_address, cmd->length);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
   std::array<u8, 32> q_result = {};
   std::array<u8, 32> q_data = {};
   // Control transfers are instantaneous
@@ -369,7 +371,9 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Interrupt: length={} endpoint={}", m_vid, m_pid,
                 m_active_interface, cmd->length, cmd->endpoint);
 
-  u8* buf = Memory::GetPointerForRange(cmd->data_address, cmd->length);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
   std::array<u8, 32> q_result = {};
   if (!q_queries.empty())
   {
@@ -634,7 +638,6 @@ u8 SkylanderPortal::LoadSkylander(u8* buf, File::IOFile in_file)
     sky_serial <<= 8;
     sky_serial |= buf[i];
   }
-  NOTICE_LOG_FMT(IOS_USB, "Serial: {}", sky_serial);
   u8 found_slot = 0xFF;
 
   // mimics spot retaining on the portal
