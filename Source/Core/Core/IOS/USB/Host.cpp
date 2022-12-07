@@ -119,7 +119,7 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
 #ifdef __LIBUSB__
   if (m_context.CheckDevice(0x1430, 0x0150, 0x0150))
   {
-    NOTICE_LOG_FMT(IOS_USB, "Found Device");
+    INFO_LOG_FMT(IOS_USB, "Found Skylander Portal");
     emulate_skylander_portal = false;
   }
   if (emulate_skylander_portal)
