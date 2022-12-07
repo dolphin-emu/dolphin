@@ -210,6 +210,8 @@ int SkylanderUsb::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
         // play audio on the portal
         if (cmd->length == 2)
         {
+          q_data = {buf[0], buf[1]};
+          cmd->expected_count = 10;
           q_result[0] = 0x4D;
           q_result[1] = buf[1];
           q_queries.push(q_result);
@@ -624,8 +626,15 @@ u8 SkylanderPortal::LoadSkylander(u8* buf, File::IOFile in_file)
 {
   std::lock_guard lock(sky_mutex);
 
+
   // u32 sky_serial = *utils::bless<le_t<u32>>(buf);
   u32 sky_serial = 0;
+  for (int i = 3; i > -1; i--)
+  {
+    sky_serial <<= 8;
+    sky_serial |= buf[i];
+  }
+  NOTICE_LOG_FMT(IOS_USB, "Serial: {}", sky_serial);
   u8 found_slot = 0xFF;
 
   // mimics spot retaining on the portal
