@@ -28,7 +28,6 @@
 
 namespace IOS::HLE::USB
 {
-
 SkylanderPortal g_skyportal;
 
 SkylanderUsb::SkylanderUsb(Kernel& ios, const std::string& device_name)
