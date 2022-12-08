@@ -24,6 +24,10 @@ struct MemoryBreakpoint
   u32 addr;
   u64 value;
 };
+struct CodeBreakpoint
+{
+  u32 addr;
+};
 struct SetInterrupt
 {
   u32 cause_mask;
@@ -96,7 +100,7 @@ public:
 
   void TickListeners()
   {
-      std::lock_guard lock{m_listeners_iterate_mutex};
+    std::lock_guard lock{m_listeners_iterate_mutex};
   }
 private:
   std::mutex m_listeners_iterate_mutex{};
@@ -159,7 +163,7 @@ private:
 
 // all existing events need to be listed here, otherwise there will be spooky templating errors
 using EventHub = GenericEventHub<Events::FrameAdvance, Events::SetInterrupt, Events::ClearInterrupt,
-                                 Events::MemoryBreakpoint>;
+                                 Events::MemoryBreakpoint, Events::CodeBreakpoint>;
 
 // global event hub
 EventHub& GetEventHub();

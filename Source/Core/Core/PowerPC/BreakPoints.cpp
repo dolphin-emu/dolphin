@@ -38,6 +38,7 @@ bool BreakPoints::IsTempBreakPoint(u32 address) const
 
 bool BreakPoints::IsBreakPointBreakOnHit(u32 address) const
 {
+  API::GetEventHub().EmitEvent(API::Events::CodeBreakpoint{address});
   return std::any_of(m_breakpoints.begin(), m_breakpoints.end(), [address](const auto& bp) {
     return bp.address == address && bp.break_on_hit;
   });

@@ -147,7 +147,7 @@ public:
         s_pyevents);
     state->cleanup_listeners.emplace([=]() {
       std::apply([&](const auto&... listener_id) { (state->event_hub->UnlistenEvent(listener_id), ...); },
-                 listener_ids);
+          listener_ids);
     });
   }
   static void UnregisterListeners(EventModuleState* state)
@@ -175,18 +175,24 @@ static const std::tuple<bool, u32, u64> PyMemoryBreakpoint(const API::Events::Me
 {
   return std::make_tuple(evt.write, evt.addr, evt.value);
 }
-
+static const std::tuple<u32> PyCodeBreakpoint(const API::Events::CodeBreakpoint& evt)
+{
+  return std::make_tuple(evt.addr);
+}
 // EVENT DEFINITIONS
 // Creates a PyEvent class from the signature.
 using PyFrameAdvanceEvent = PyEventFromMappingFunc<PyFrameAdvance>;
 using PyMemoryBreakpointEvent = PyEventFromMappingFunc<PyMemoryBreakpoint>;
+using PyCodeBreakpointEvent = PyEventFromMappingFunc<PyCodeBreakpoint>;
 
 // HOOKING UP PY EVENTS TO DOLPHIN EVENTS
 // For all python events listed here, listens to the respective API::Events event
 // deduced from the PyEvent signature's input argument.
-using EventContainer = PythonEventContainer<PyFrameAdvanceEvent, PyMemoryBreakpointEvent>;
+using EventContainer =
+    PythonEventContainer<PyFrameAdvanceEvent, PyMemoryBreakpointEvent, PyCodeBreakpointEvent>;
 template <>
-const std::tuple<PyFrameAdvanceEvent, PyMemoryBreakpointEvent> EventContainer::s_pyevents = {};
+const std::tuple<PyFrameAdvanceEvent, PyMemoryBreakpointEvent, PyCodeBreakpointEvent>
+    EventContainer::s_pyevents = {};
 
 std::optional<CoroutineScheduler> GetCoroutineScheduler(std::string aeventname)
 {
@@ -196,6 +202,7 @@ std::optional<CoroutineScheduler> GetCoroutineScheduler(std::string aeventname)
       // Here, and under the same name in the setup python code
       {"frameadvance", PyFrameAdvanceEvent::ScheduleCoroutine},
       {"memorybreakpoint", PyMemoryBreakpointEvent::ScheduleCoroutine},
+      {"codebreakpoint", PyCodeBreakpointEvent::ScheduleCoroutine},
   };
   auto iter = lookup.find(aeventname);
   if (iter == lookup.end())
@@ -219,6 +226,9 @@ async def frameadvance():
 
 async def memorybreakpoint():
     return (await _DolphinAsyncEvent("memorybreakpoint"))
+
+async def codebreakpoint():
+    return (await _DolphinAsyncEvent("codebreakpoint"))
 )";
   Py::Object result = Py::LoadPyCodeIntoModule(module, pycode);
   if (result.IsNull())
@@ -247,6 +257,7 @@ PyMODINIT_FUNC PyInit_event()
       // Has "on_"-prefix, let's python code register a callback
       Py::MakeMethodDef<PyFrameAdvanceEvent::SetCallback>("on_frameadvance"),
       Py::MakeMethodDef<PyMemoryBreakpointEvent::SetCallback>("on_memorybreakpoint"),
+      Py::MakeMethodDef<PyCodeBreakpointEvent::SetCallback>("on_codebreakpoint"),
       Py::MakeMethodDef<Reset>("_dolphin_reset"),
 
       {nullptr, nullptr, 0, nullptr}  // Sentinel
