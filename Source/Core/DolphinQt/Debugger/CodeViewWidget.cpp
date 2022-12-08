@@ -490,7 +490,10 @@ void CodeViewWidget::CalculateBranchIndentation()
     }();
 
     if (!free_column)
-      return;
+    {
+      branch.indentation = 0;
+      continue;
+    }
 
     branch.indentation = *free_column;
     for (u32 row = arrow_first_visible_row; row <= arrow_last_visible_row; ++row)
