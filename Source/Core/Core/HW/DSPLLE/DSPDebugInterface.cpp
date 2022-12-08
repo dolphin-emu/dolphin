@@ -275,8 +275,8 @@ std::optional<u32> DSPDebugInterface::GetOffsetAddress(u32 address, s32 offset) 
 
 std::optional<s32> DSPDebugInterface::GetOffsetBetween(u32 cur_address, u32 other_address) const
 {
-  int cur_line = Symbols::Line2Addr(cur_address);
-  int new_line = Symbols::Line2Addr(other_address);
+  int cur_line = Symbols::Addr2Line(cur_address);
+  int new_line = Symbols::Addr2Line(other_address);
   if (new_line == -1 || cur_line == -1)
     return std::nullopt;
   return new_line - cur_line;
