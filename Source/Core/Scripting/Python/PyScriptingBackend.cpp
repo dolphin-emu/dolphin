@@ -11,8 +11,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
-#include "DiscIO/Filesystem.h"
-
 #include "Scripting/Python/coroutine.h"
 #include "Scripting/Python/Modules/controllermodule.h"
 #include "Scripting/Python/Modules/doliomodule.h"
@@ -21,6 +19,7 @@
 #include "Scripting/Python/Modules/guimodule.h"
 #include "Scripting/Python/Modules/memorymodule.h"
 #include "Scripting/Python/Modules/savestatemodule.h"
+#include "Scripting/ScriptingEngine.h"
 
 namespace PyScripting
 {
@@ -120,8 +119,17 @@ PyScriptingBackend::PyScriptingBackend(std::filesystem::path script_filepath,
     s_main_threadstate = InitMainPythonInterpreter();
   }
   PyEval_RestoreThread(s_main_threadstate);
-  m_interp_threadstate = Py_NewInterpreter();
-  PyThreadState_Swap(m_interp_threadstate);
+
+  const bool no_subinterpreters = Scripting::ScriptingBackend::PythonSubinterpretersDisabled();
+  if (no_subinterpreters)
+  {
+    m_interp_threadstate = s_main_threadstate;
+  }
+  else
+  {
+    m_interp_threadstate = Py_NewInterpreter();
+    PyThreadState_Swap(m_interp_threadstate);
+  }
   u64 interp_id = PyInterpreterState_GetID(m_interp_threadstate->interp);
   s_instances[interp_id] = this;
 
@@ -154,9 +162,41 @@ PyScriptingBackend::~PyScriptingBackend()
     return;  // we've been moved from (if moving was implemented)
   PyEval_RestoreThread(m_interp_threadstate);
   u64 interp_id = PyInterpreterState_GetID(m_interp_threadstate->interp);
-  s_instances.erase(interp_id);
-  for (const auto& cleanup_func : m_cleanups)
-    cleanup_func();
+
+  if (Scripting::ScriptingBackend::PythonSubinterpretersDisabled())
+  {
+    // cleanup in subinterpreter-less mode is a bit more complicated:
+    // We cannot simply shut down the interpreter, so the modules will stay alive.
+    // But we _do_ want to "stop" the modules, or else removing or reloading the script won't work.
+    // We let modules define custom reset behaviour in a magic method "_dolphin_reset".
+    // Right now all we need to do is reset the event module, which just unregisters all events.
+    const char* modules_with_resets[] = {"dolphin_event"};
+    for (const auto& module_name : modules_with_resets)
+    {
+      Py::Object module = Py::Wrap(PyImport_ImportModule(module_name));
+      if (module.IsNull())
+      {
+        ERROR_LOG_FMT(SCRIPTING, "Error importing {}", module_name);
+        PyErr_Print();
+      }
+      Py::Object reset_func = Py::Wrap(PyObject_GetAttrString(module.Lend(), "_dolphin_reset"));
+      if (reset_func.IsNull()) {
+        WARN_LOG_FMT(SCRIPTING, "Expected a method called _dolphin_reset in {}, but was not found", module_name);
+        continue;
+      }
+      Py::Object call_result = Py::Wrap(PyObject_Call(reset_func.Lend(), Py_BuildValue("()"), nullptr));
+      if (call_result.IsNull())
+      {
+        ERROR_LOG_FMT(SCRIPTING, "Error calling _dolphin_reset for {}", module_name);
+        PyErr_Print();
+      }
+    }
+  }
+  else
+  {
+    for (const auto& cleanup_func : m_cleanups)
+      cleanup_func();
+  }
 
   // Cleanup did remove listeners, but there may still be a concurrent iteration over the listeners happening.
   // We need to wait for all concurrent events to finish first (without holding the GIL to avoid deadlocks),
@@ -165,7 +205,16 @@ PyScriptingBackend::~PyScriptingBackend()
   GetEventHub()->TickAllListeners();
   PyEval_RestoreThread(m_interp_threadstate);
 
-  Py_EndInterpreter(m_interp_threadstate);
+  // We are typically running without subinterpreters if we're using a python library that doesn't
+  // support it. Some of those libraries, e.g. numpy, also break if their initialization routines
+  // run more than once. So it's best to go full conservative and keep the interpreter alive for the
+  // application's entire lifetime. See also https://stackoverflow.com/a/7676916
+  if (!Scripting::ScriptingBackend::PythonSubinterpretersDisabled())
+  {
+    s_instances.erase(interp_id);
+    Py_EndInterpreter(m_interp_threadstate);
+  }
+
   PyThreadState_Swap(s_main_threadstate);
   if (s_instances.empty())
   {

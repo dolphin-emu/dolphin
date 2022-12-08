@@ -220,6 +220,10 @@ int main(int argc, char* argv[])
   {
     script_filepath = static_cast<const char*>(options.get("script"));
   }
+  if (options.get("no_python_subinterpreters"))
+  {
+    Scripting::ScriptingBackend::DisablePythonSubinterpreters();
+  }
 
   int retval;
 

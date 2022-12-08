@@ -68,7 +68,12 @@ void ScriptsListModel::Add(std::string filename)
 void ScriptsListModel::Reload(int index)
 {
   std::string filename = m_scripts.at(index).filename;
-  m_scripts.at(index) = Script{filename, Scripting::ScriptingBackend(filename)};
+  // need to first explicitly erase instead of simply replacing the existing backend,
+  // because otherwise there would be 2 backends for a short period of time,
+  // which is not supported when running in subinterpreter-less mode.
+  m_scripts.erase(m_scripts.begin() + index);
+  m_scripts.insert(m_scripts.begin() + index,
+                   Script{filename, Scripting::ScriptingBackend(filename)});
 }
 
 void ScriptsListModel::Remove(int index)

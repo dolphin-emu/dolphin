@@ -16,8 +16,8 @@
 #include <QPushButton>
 #include <QFileDialog>
 
+#include "Common/MsgHandler.h"
 #include "DolphinQt/Scripting/ScriptingWidget.h"
-
 #include "DolphinQt/Settings.h"
 
 ScriptingWidget::ScriptingWidget(QWidget* parent)
@@ -70,6 +70,12 @@ ScriptingWidget::ScriptingWidget(QWidget* parent)
 
 void ScriptingWidget::AddNewScript()
 {
+  if (Scripting::ScriptingBackend::PythonSubinterpretersDisabled() && m_scripts_model->rowCount() == 1)
+  {
+    CriticalAlertFmt("Can run at most one script at a time because Python subinterpreters are disabled");
+    return;
+  }
+
   QString filename = QFileDialog::getOpenFileName(
       this, tr("Add script"), QString(),
       tr("Python scripts (*.py *.py3)"));

@@ -31,6 +31,16 @@ ScriptingBackend::~ScriptingBackend() {
   }
 }
 
+bool ScriptingBackend::s_disable_python_subinterpreters = false;
+void ScriptingBackend::DisablePythonSubinterpreters()
+{
+  s_disable_python_subinterpreters = true;
+}
+bool ScriptingBackend::PythonSubinterpretersDisabled()
+{
+  return s_disable_python_subinterpreters;
+}
+
 ScriptingBackend::ScriptingBackend(ScriptingBackend&& other)
 {
   m_state = other.m_state;
