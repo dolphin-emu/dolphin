@@ -4,7 +4,7 @@
 #include <condition_variable>
 #include <thread>
 
-#include "LuaFunctions/LuaMemoryFunctions/LuaRamFunctions.h"
+#include "LuaFunctions/LuaMemoryApi.h"
 #include "LuaFunctions/LuaEmuFunctions.h"
 #include "LuaFunctions/LuaBitFunctions.h"
 #include "LuaFunctions/LuaConverter.h"
@@ -33,7 +33,7 @@ void Init()
   LuaEmu::luaScriptActive = true;
   mainLuaState = luaL_newstate();
   luaL_openlibs(mainLuaState);
-  LuaRamFunctions::InitLuaRamFunctions(mainLuaState);
+  LuaMemoryApi::InitLuaMemoryApi(mainLuaState);
   LuaEmu::InitLuaEmuFunctions(mainLuaState);
   LuaBit::InitLuaBitFunctions(mainLuaState);
   LuaConverter::InitLuaConverterFunctions(mainLuaState);

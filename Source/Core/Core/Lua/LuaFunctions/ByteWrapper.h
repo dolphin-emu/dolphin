@@ -27,7 +27,8 @@ public:
     UNSIGNED_64,
     SIGNED_64,
     FLOAT,
-    DOUBLE
+    DOUBLE,
+    WRAPPER //This type is just included in the enum to make it clear in the parseType() function when the user wants a ByteWrapper type object - no actual ByteWrapper object should have this as a type value.
   };
 
   enum OPERATIONS
