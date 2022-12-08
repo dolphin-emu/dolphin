@@ -115,8 +115,9 @@ Please open an issue describing your needs and I will try to add it!
 
 > **Why does the emulator crash or hang?**
 
-It shouldn't, this is a bug. But given the immaturity of this project these things will likely happen occasionally.
-Please file an issue!
+You may be using a library in your script that does not support python subinterpreters (e.g. SciPy or NumPy, see https://github.com/Felk/dolphin/issues/9).
+Please try running dolphin with the `--no-python-subinterpreters` command-line option.
+If that does not help, please file an issue!
 
 > **Why does it only exist for the x86-64 architecture?**
 
