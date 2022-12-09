@@ -10,6 +10,7 @@
 enum class AspectMode : int;
 enum class ShaderCompilationMode : int;
 enum class StereoMode : int;
+enum class TextureFilteringMode : int;
 enum class TriState : int;
 
 namespace Config
@@ -92,7 +93,7 @@ extern const Info<bool> GFX_MODS_ENABLE;
 
 // Graphics.Enhancements
 
-extern const Info<bool> GFX_ENHANCE_FORCE_FILTERING;
+extern const Info<TextureFilteringMode> GFX_ENHANCE_FORCE_TEXTURE_FILTERING;
 extern const Info<int> GFX_ENHANCE_MAX_ANISOTROPY;  // NOTE - this is x in (1 << x)
 extern const Info<std::string> GFX_ENHANCE_POST_SHADER;
 extern const Info<bool> GFX_ENHANCE_FORCE_TRUE_COLOR;

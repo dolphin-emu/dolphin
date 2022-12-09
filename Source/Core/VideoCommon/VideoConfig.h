@@ -45,6 +45,13 @@ enum class ShaderCompilationMode : int
   AsynchronousSkipRendering
 };
 
+enum class TextureFilteringMode : int
+{
+  Default,
+  Nearest,
+  Linear,
+};
+
 enum class TriState : int
 {
   Off,
@@ -72,7 +79,7 @@ struct VideoConfig final
   u32 iMultisamples = 0;
   bool bSSAA = false;
   int iEFBScale = 0;
-  bool bForceFiltering = false;
+  TextureFilteringMode texture_filtering_mode = TextureFilteringMode::Default;
   int iMaxAnisotropy = 0;
   std::string sPostProcessingShader;
   bool bForceTrueColor = false;

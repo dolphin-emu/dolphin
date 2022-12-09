@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "DolphinQt/Config/Graphics/GraphicsWidget.h"
 
 class GraphicsBool;
@@ -34,12 +36,11 @@ private:
   // Enhancements
   GraphicsChoice* m_ir_combo;
   ToolTipComboBox* m_aa_combo;
-  GraphicsChoice* m_af_combo;
+  ToolTipComboBox* m_texture_filtering_combo;
   ToolTipComboBox* m_pp_effect;
   QPushButton* m_configure_pp_effect;
   GraphicsBool* m_scaled_efb_copy;
   GraphicsBool* m_per_pixel_lighting;
-  GraphicsBool* m_force_texture_filtering;
   GraphicsBool* m_widescreen_hack;
   GraphicsBool* m_disable_fog;
   GraphicsBool* m_force_24bit_color;

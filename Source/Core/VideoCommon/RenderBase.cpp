@@ -480,7 +480,7 @@ void Renderer::CheckForConfigChanges()
   const u32 old_multisamples = g_ActiveConfig.iMultisamples;
   const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
   const int old_efb_access_tile_size = g_ActiveConfig.iEFBAccessTileSize;
-  const bool old_force_filtering = g_ActiveConfig.bForceFiltering;
+  const auto old_texture_filtering_mode = g_ActiveConfig.texture_filtering_mode;
   const bool old_vsync = g_ActiveConfig.bVSyncActive;
   const bool old_bbox = g_ActiveConfig.bBBoxEnable;
   const u32 old_game_mod_changes =
@@ -533,7 +533,7 @@ void Renderer::CheckForConfigChanges()
     changed_bits |= CONFIG_CHANGE_BIT_MULTISAMPLES;
   if (old_anisotropy != g_ActiveConfig.iMaxAnisotropy)
     changed_bits |= CONFIG_CHANGE_BIT_ANISOTROPY;
-  if (old_force_filtering != g_ActiveConfig.bForceFiltering)
+  if (old_texture_filtering_mode != g_ActiveConfig.texture_filtering_mode)
     changed_bits |= CONFIG_CHANGE_BIT_FORCE_TEXTURE_FILTERING;
   if (old_vsync != g_ActiveConfig.bVSyncActive)
     changed_bits |= CONFIG_CHANGE_BIT_VSYNC;
