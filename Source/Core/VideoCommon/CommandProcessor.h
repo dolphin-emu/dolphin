@@ -174,8 +174,8 @@ public:
   bool IsInterruptWaiting() const;
 
   void SetCpClearRegister();
-  void SetCpControlRegister();
-  void SetCpStatusRegister();
+  void SetCpControlRegister(Core::System& system);
+  void SetCpStatusRegister(Core::System& system);
 
   void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess);
 

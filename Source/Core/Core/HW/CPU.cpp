@@ -191,7 +191,8 @@ void Run()
 static void RunAdjacentSystems(bool running)
 {
   // NOTE: We're assuming these will not try to call Break or EnableStepping.
-  Fifo::EmulatorState(running);
+  auto& system = Core::System::GetInstance();
+  system.GetFifo().EmulatorState(running);
   // Core is responsible for shutting down the sound stream.
   if (s_state != State::PowerDown)
     AudioCommon::SetSoundStreamRunning(Core::System::GetInstance(), running);

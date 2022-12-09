@@ -36,6 +36,10 @@ namespace ExpansionInterface
 {
 class ExpansionInterfaceState;
 };
+namespace Fifo
+{
+class FifoManager;
+}
 namespace Memory
 {
 class MemoryManager;
@@ -94,6 +98,7 @@ public:
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;
   ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;
+  Fifo::FifoManager& GetFifo() const;
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
   SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;

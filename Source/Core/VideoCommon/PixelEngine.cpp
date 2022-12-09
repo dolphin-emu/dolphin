@@ -333,7 +333,8 @@ static void RaiseEvent(int cycles_into_future)
 
   CoreTiming::FromThread from = CoreTiming::FromThread::NON_CPU;
   s64 cycles = 0;  // we don't care about timings for dual core mode.
-  if (!Core::System::GetInstance().IsDualCoreMode() || Fifo::UseDeterministicGPUThread())
+  auto& system = Core::System::GetInstance();
+  if (!system.IsDualCoreMode() || system.GetFifo().UseDeterministicGPUThread())
   {
     from = CoreTiming::FromThread::CPU;
 

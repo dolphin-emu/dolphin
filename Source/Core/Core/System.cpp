@@ -19,6 +19,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/VideoInterface.h"
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/Fifo.h"
 
 namespace Core
 {
@@ -35,6 +36,7 @@ struct System::Impl
   DVDInterface::DVDInterfaceState m_dvd_interface_state;
   DVDThread::DVDThreadState m_dvd_thread_state;
   ExpansionInterface::ExpansionInterfaceState m_expansion_interface_state;
+  Fifo::FifoManager m_fifo;
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceState m_memory_interface_state;
   SerialInterface::SerialInterfaceState m_serial_interface_state;
@@ -118,6 +120,11 @@ DVDThread::DVDThreadState& System::GetDVDThreadState() const
 ExpansionInterface::ExpansionInterfaceState& System::GetExpansionInterfaceState() const
 {
   return m_impl->m_expansion_interface_state;
+}
+
+Fifo::FifoManager& System::GetFifo() const
+{
+  return m_impl->m_fifo;
 }
 
 Memory::MemoryManager& System::GetMemory() const
