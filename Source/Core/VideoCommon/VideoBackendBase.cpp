@@ -84,7 +84,7 @@ std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int co
 void VideoBackendBase::Video_ExitLoop()
 {
   auto& system = Core::System::GetInstance();
-  system.GetFifo().ExitGpuLoop();
+  system.GetFifo().ExitGpuLoop(system);
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
@@ -324,7 +324,7 @@ void VideoBackendBase::InitializeShared()
   auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
   command_processor.Init(system);
-  system.GetFifo().Init();
+  system.GetFifo().Init(system);
   PixelEngine::Init();
   BPInit();
   VertexLoaderManager::Init();

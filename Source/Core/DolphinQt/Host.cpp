@@ -114,10 +114,11 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
     // the CPU and GPU threads are the same thread, and we already checked for the GPU thread.)
 
     const bool was_running = Core::GetState() == Core::State::Running;
-    auto& fifo = Core::System::GetInstance().GetFifo();
-    fifo.PauseAndLock(true, was_running);
+    auto& system = Core::System::GetInstance();
+    auto& fifo = system.GetFifo();
+    fifo.PauseAndLock(system, true, was_running);
     f();
-    fifo.PauseAndLock(false, was_running);
+    fifo.PauseAndLock(system, false, was_running);
   }
   else
   {

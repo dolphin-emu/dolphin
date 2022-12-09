@@ -47,12 +47,12 @@ public:
   FifoManager& operator=(FifoManager&& other) = delete;
   ~FifoManager();
 
-  void Init();
+  void Init(Core::System& system);
   void Shutdown();
-  void Prepare();  // Must be called from the CPU thread.
+  void Prepare(Core::System& system);  // Must be called from the CPU thread.
   void DoState(PointerWrap& f);
-  void PauseAndLock(bool doLock, bool unpauseOnUnlock);
-  void UpdateWantDeterminism(bool want);
+  void PauseAndLock(Core::System& system, bool doLock, bool unpauseOnUnlock);
+  void UpdateWantDeterminism(Core::System& system, bool want);
   bool UseDeterministicGPUThread() const { return m_use_deterministic_gpu_thread; }
 
   // In deterministic GPU thread mode this waits for the GPU to be done with pending work.
@@ -60,26 +60,25 @@ public:
 
   // In single core mode, this runs the GPU for a single slice.
   // In dual core mode, this synchronizes with the GPU thread.
-  void SyncGPUForRegisterAccess();
+  void SyncGPUForRegisterAccess(Core::System& system);
 
   void PushFifoAuxBuffer(const void* ptr, size_t size);
   void* PopFifoAuxBuffer(size_t size);
 
-  void FlushGpu();
-  void RunGpu();
+  void FlushGpu(Core::System& system);
+  void RunGpu(Core::System& system);
   void GpuMaySleep();
-  void RunGpuLoop();
-  void ExitGpuLoop();
+  void RunGpuLoop(Core::System& system);
+  void ExitGpuLoop(Core::System& system);
   void EmulatorState(bool running);
-  bool AtBreakpoint() const;
   void ResetVideoBuffer();
 
 private:
   void RefreshConfig();
-  void ReadDataFromFifo(u32 readPtr);
-  void ReadDataFromFifoOnCPU(u32 readPtr);
-  int RunGpuOnCpu(int ticks);
-  int WaitForGpuThread(int ticks);
+  void ReadDataFromFifo(Core::System& system, u32 readPtr);
+  void ReadDataFromFifoOnCPU(Core::System& system, u32 readPtr);
+  int RunGpuOnCpu(Core::System& system, int ticks);
+  int WaitForGpuThread(Core::System& system, int ticks);
   static void SyncGPUCallback(Core::System& system, u64 ticks, s64 cyclesLate);
 
   static constexpr u32 FIFO_SIZE = 2 * 1024 * 1024;
@@ -127,4 +126,6 @@ private:
   int m_config_sync_gpu_min_distance = 0;
   float m_config_sync_gpu_overclock = 0.0f;
 };
+
+bool AtBreakpoint(Core::System& system);
 }  // namespace Fifo

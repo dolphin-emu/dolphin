@@ -64,14 +64,14 @@ void FifoManager::DoState(PointerWrap& p)
   p.Do(m_syncing_suspended);
 }
 
-void FifoManager::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+void FifoManager::PauseAndLock(Core::System& system, bool doLock, bool unpauseOnUnlock)
 {
   if (doLock)
   {
     SyncGPU(SyncGPUReason::Other);
     EmulatorState(false);
 
-    if (!Core::System::GetInstance().IsDualCoreMode() || m_use_deterministic_gpu_thread)
+    if (!system.IsDualCoreMode() || m_use_deterministic_gpu_thread)
       return;
 
     m_gpu_mainloop.WaitYield(std::chrono::milliseconds(100), Host_YieldToUI);
@@ -83,7 +83,7 @@ void FifoManager::PauseAndLock(bool doLock, bool unpauseOnUnlock)
   }
 }
 
-void FifoManager::Init()
+void FifoManager::Init(Core::System& system)
 {
   if (!m_config_callback_id)
     m_config_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
@@ -92,7 +92,7 @@ void FifoManager::Init()
   // Padded so that SIMD overreads in the vertex loader are safe
   m_video_buffer = static_cast<u8*>(Common::AllocateMemoryPages(FIFO_SIZE + 4));
   ResetVideoBuffer();
-  if (Core::System::GetInstance().IsDualCoreMode())
+  if (system.IsDualCoreMode())
     m_gpu_mainloop.Prepare();
   m_sync_ticks.store(0);
 }
@@ -120,15 +120,14 @@ void FifoManager::Shutdown()
 
 // May be executed from any thread, even the graphics thread.
 // Created to allow for self shutdown.
-void FifoManager::ExitGpuLoop()
+void FifoManager::ExitGpuLoop(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
   auto& fifo = command_processor.GetFifo();
 
   // This should break the wait loop in CPU thread
   fifo.bFF_GPReadEnable.store(0, std::memory_order_relaxed);
-  FlushGpu();
+  FlushGpu(system);
 
   // Terminate GPU thread loop
   m_emu_running_state.Set();
@@ -212,7 +211,7 @@ void* FifoManager::PopFifoAuxBuffer(size_t size)
 }
 
 // Description: RunGpuLoop() sends data through this function.
-void FifoManager::ReadDataFromFifo(u32 readPtr)
+void FifoManager::ReadDataFromFifo(Core::System& system, u32 readPtr)
 {
   if (GPFifo::GATHER_PIPE_SIZE >
       static_cast<size_t>(m_video_buffer + FIFO_SIZE - m_video_buffer_write_ptr))
@@ -229,14 +228,13 @@ void FifoManager::ReadDataFromFifo(u32 readPtr)
     m_video_buffer_read_ptr = m_video_buffer;
   }
   // Copy new video instructions to m_video_buffer for future use in rendering the new picture
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.CopyFromEmu(m_video_buffer_write_ptr, readPtr, GPFifo::GATHER_PIPE_SIZE);
   m_video_buffer_write_ptr += GPFifo::GATHER_PIPE_SIZE;
 }
 
 // The deterministic_gpu_thread version.
-void FifoManager::ReadDataFromFifoOnCPU(u32 readPtr)
+void FifoManager::ReadDataFromFifoOnCPU(Core::System& system, u32 readPtr)
 {
   u8* write_ptr = m_video_buffer_write_ptr;
   if (GPFifo::GATHER_PIPE_SIZE > static_cast<size_t>(m_video_buffer + FIFO_SIZE - write_ptr))
@@ -264,7 +262,6 @@ void FifoManager::ReadDataFromFifoOnCPU(u32 readPtr)
       return;
     }
   }
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.CopyFromEmu(m_video_buffer_write_ptr, readPtr, GPFifo::GATHER_PIPE_SIZE);
   m_video_buffer_pp_read_ptr = OpcodeDecoder::RunFifo<true>(
@@ -285,13 +282,13 @@ void FifoManager::ResetVideoBuffer()
 
 // Description: Main FIFO update loop
 // Purpose: Keep the Core HW updated about the CPU-GPU distance
-void FifoManager::RunGpuLoop()
+void FifoManager::RunGpuLoop(Core::System& system)
 {
   AsyncRequests::GetInstance()->SetEnable(true);
   AsyncRequests::GetInstance()->SetPassthrough(false);
 
   m_gpu_mainloop.Run(
-      [this] {
+      [this, &system] {
         // Run events from the CPU thread.
         AsyncRequests::GetInstance()->PullEvents();
 
@@ -314,7 +311,6 @@ void FifoManager::RunGpuLoop()
         }
         else
         {
-          auto& system = Core::System::GetInstance();
           auto& command_processor = system.GetCommandProcessor();
           auto& fifo = command_processor.GetFifo();
           command_processor.SetCPStatusFromGPU(system);
@@ -322,14 +318,14 @@ void FifoManager::RunGpuLoop()
           // check if we are able to run this buffer
           while (!command_processor.IsInterruptWaiting() &&
                  fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) &&
-                 fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint())
+                 fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint(system))
           {
             if (m_config_sync_gpu && m_sync_ticks.load() < m_config_sync_gpu_min_distance)
               break;
 
             u32 cyclesExecuted = 0;
             u32 readPtr = fifo.CPReadPointer.load(std::memory_order_relaxed);
-            ReadDataFromFifo(readPtr);
+            ReadDataFromFifo(system, readPtr);
 
             if (readPtr == fifo.CPEnd.load(std::memory_order_relaxed))
               readPtr = fifo.CPBase.load(std::memory_order_relaxed);
@@ -396,9 +392,9 @@ void FifoManager::RunGpuLoop()
   AsyncRequests::GetInstance()->SetPassthrough(true);
 }
 
-void FifoManager::FlushGpu()
+void FifoManager::FlushGpu(Core::System& system)
 {
-  if (!Core::System::GetInstance().IsDualCoreMode() || m_use_deterministic_gpu_thread)
+  if (!system.IsDualCoreMode() || m_use_deterministic_gpu_thread)
     return;
 
   m_gpu_mainloop.Wait();
@@ -409,9 +405,8 @@ void FifoManager::GpuMaySleep()
   m_gpu_mainloop.AllowSleep();
 }
 
-bool FifoManager::AtBreakpoint() const
+bool AtBreakpoint(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
   const auto& fifo = command_processor.GetFifo();
   return fifo.bFF_BPEnable.load(std::memory_order_relaxed) &&
@@ -419,9 +414,8 @@ bool FifoManager::AtBreakpoint() const
           fifo.CPBreakpoint.load(std::memory_order_relaxed));
 }
 
-void FifoManager::RunGpu()
+void FifoManager::RunGpu(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
   const bool is_dual_core = system.IsDualCoreMode();
 
   // wake up GPU thread
@@ -442,20 +436,19 @@ void FifoManager::RunGpu()
   }
 }
 
-int FifoManager::RunGpuOnCpu(int ticks)
+int FifoManager::RunGpuOnCpu(Core::System& system, int ticks)
 {
-  auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
   auto& fifo = command_processor.GetFifo();
   bool reset_simd_state = false;
   int available_ticks = int(ticks * m_config_sync_gpu_overclock) + m_sync_ticks.load();
   while (fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) &&
-         fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint() &&
+         fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint(system) &&
          available_ticks >= 0)
   {
     if (m_use_deterministic_gpu_thread)
     {
-      ReadDataFromFifoOnCPU(fifo.CPReadPointer.load(std::memory_order_relaxed));
+      ReadDataFromFifoOnCPU(system, fifo.CPReadPointer.load(std::memory_order_relaxed));
       m_gpu_mainloop.Wakeup();
     }
     else
@@ -466,7 +459,7 @@ int FifoManager::RunGpuOnCpu(int ticks)
         FPURoundMode::LoadDefaultSIMDState();
         reset_simd_state = true;
       }
-      ReadDataFromFifo(fifo.CPReadPointer.load(std::memory_order_relaxed));
+      ReadDataFromFifo(system, fifo.CPReadPointer.load(std::memory_order_relaxed));
       u32 cycles = 0;
       m_video_buffer_read_ptr = OpcodeDecoder::RunFifo(
           DataReader(m_video_buffer_read_ptr, m_video_buffer_write_ptr), &cycles);
@@ -505,7 +498,7 @@ int FifoManager::RunGpuOnCpu(int ticks)
   return -available_ticks + GPU_TIME_SLOT_SIZE;
 }
 
-void FifoManager::UpdateWantDeterminism(bool want)
+void FifoManager::UpdateWantDeterminism(Core::System& system, bool want)
 {
   // We are paused (or not running at all yet), so
   // it should be safe to change this.
@@ -523,7 +516,7 @@ void FifoManager::UpdateWantDeterminism(bool want)
     break;
   }
 
-  gpu_thread = gpu_thread && Core::System::GetInstance().IsDualCoreMode();
+  gpu_thread = gpu_thread && system.IsDualCoreMode();
 
   if (m_use_deterministic_gpu_thread != gpu_thread)
   {
@@ -543,7 +536,7 @@ void FifoManager::UpdateWantDeterminism(bool want)
  * @ticks The gone emulated CPU time.
  * @return A good time to call WaitForGpuThread() next.
  */
-int FifoManager::WaitForGpuThread(int ticks)
+int FifoManager::WaitForGpuThread(Core::System& system, int ticks)
 {
   int old = m_sync_ticks.fetch_add(ticks);
   int now = old + ticks;
@@ -554,7 +547,7 @@ int FifoManager::WaitForGpuThread(int ticks)
 
   // Wakeup GPU
   if (old < m_config_sync_gpu_min_distance && now >= m_config_sync_gpu_min_distance)
-    RunGpu();
+    RunGpu(system);
 
   // If the GPU is still sleeping, wait for a longer time
   if (now < m_config_sync_gpu_min_distance)
@@ -575,11 +568,11 @@ void FifoManager::SyncGPUCallback(Core::System& system, u64 ticks, s64 cyclesLat
   auto& fifo = system.GetFifo();
   if (!system.IsDualCoreMode() || fifo.m_use_deterministic_gpu_thread)
   {
-    next = fifo.RunGpuOnCpu((int)ticks);
+    next = fifo.RunGpuOnCpu(system, (int)ticks);
   }
   else if (fifo.m_config_sync_gpu)
   {
-    next = fifo.WaitForGpuThread((int)ticks);
+    next = fifo.WaitForGpuThread(system, (int)ticks);
   }
 
   fifo.m_syncing_suspended = next < 0;
@@ -587,21 +580,20 @@ void FifoManager::SyncGPUCallback(Core::System& system, u64 ticks, s64 cyclesLat
     system.GetCoreTiming().ScheduleEvent(next, fifo.m_event_sync_gpu, next);
 }
 
-void FifoManager::SyncGPUForRegisterAccess()
+void FifoManager::SyncGPUForRegisterAccess(Core::System& system)
 {
   SyncGPU(SyncGPUReason::Other);
 
-  if (!Core::System::GetInstance().IsDualCoreMode() || m_use_deterministic_gpu_thread)
-    RunGpuOnCpu(GPU_TIME_SLOT_SIZE);
+  if (!system.IsDualCoreMode() || m_use_deterministic_gpu_thread)
+    RunGpuOnCpu(system, GPU_TIME_SLOT_SIZE);
   else if (m_config_sync_gpu)
-    WaitForGpuThread(GPU_TIME_SLOT_SIZE);
+    WaitForGpuThread(system, GPU_TIME_SLOT_SIZE);
 }
 
 // Initialize GPU - CPU thread syncing, this gives us a deterministic way to start the GPU thread.
-void FifoManager::Prepare()
+void FifoManager::Prepare(Core::System& system)
 {
-  m_event_sync_gpu =
-      Core::System::GetInstance().GetCoreTiming().RegisterEvent("SyncGPUCallback", SyncGPUCallback);
+  m_event_sync_gpu = system.GetCoreTiming().RegisterEvent("SyncGPUCallback", SyncGPUCallback);
   m_syncing_suspended = true;
 }
 }  // namespace Fifo
