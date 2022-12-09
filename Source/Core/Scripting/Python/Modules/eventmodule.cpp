@@ -23,13 +23,42 @@ namespace PyScripting
 // If you are looking for where the actual events are defined,
 // scroll to the bottom of this file.
 
-struct EventModuleState
+// We just want one Py::Object and one std::deque per event,
+// but unpacking the template parameters seem to require them to be used.
+// So let's just wrap them in a custom templated struct without actually using T.
+template <typename T>
+struct EventState
 {
-  API::EventHub* event_hub;
-  std::optional<std::function<void()>> cleanup_listeners;
   Py::Object callback;
   std::deque<Py::Object> awaiting_coroutines;
 };
+template <typename... TsEvents>
+struct GenericEventModuleState
+{
+  API::EventHub* event_hub;
+  std::optional<std::function<void()>> cleanup_listeners;
+  std::tuple<EventState<TsEvents>...> event_state;
+
+  template <typename TEvent>
+  Py::Object& GetCallback()
+  {
+    return std::get<EventState<TEvent>>(event_state).callback;
+  }
+
+  template <typename TEvent>
+  std::deque<Py::Object>& GetAwaitingCoroutines()
+  {
+    return std::get<EventState<TEvent>>(event_state).awaiting_coroutines;
+  }
+
+  void Reset()
+  {
+    std::apply([](auto&&... s) { ((s.callback = Py::Null(), s.awaiting_coroutines.clear()), ...); },
+        event_state);
+  }
+};
+using EventModuleState = GenericEventModuleState<
+  API::Events::FrameAdvance, API::Events::MemoryBreakpoint, API::Events::CodeBreakpoint>;
 
 // These template shenanigans are all required for PyEventFromMappingFunc
 // to be able to infer all of the mapping function signature's parts
@@ -68,11 +97,11 @@ struct PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>
     // b) concurrent events be processed concurrently.
     EventModuleState* state = Py::GetState<EventModuleState>(module.Lend());
     NotifyAwaitingCoroutines(module, event);
-    if (state->callback.IsNull())
+    if (state->GetCallback<TEvent>().IsNull())
       return;
     const std::tuple<TsArgs...> args = TFunc(event);
     PyObject* result =
-        std::apply([&](auto&&... arg) { return Py::CallFunction(state->callback, arg...); }, args);
+        std::apply([&](auto&&... arg) { return Py::CallFunction(state->GetCallback<TEvent>(), arg...); }, args);
     if (result == nullptr)
     {
       PyErr_Print();
@@ -86,7 +115,7 @@ struct PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>
     EventModuleState* state = Py::GetState<EventModuleState>(module);
     if (newCallback == Py_None)
     {
-      state->callback = Py::Null();
+      state->GetCallback<TEvent>() = Py::Null();
       Py_RETURN_NONE;
     }
     if (!PyCallable_Check(newCallback))
@@ -94,19 +123,19 @@ struct PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>
       PyErr_SetString(PyExc_TypeError, "event callback must be callable");
       return nullptr;
     }
-    state->callback = Py::Take(newCallback);
+    state->GetCallback<TEvent>() = Py::Take(newCallback);
     Py_RETURN_NONE;
   }
   static void ScheduleCoroutine(Py::Object module, const Py::Object coro)
   {
     EventModuleState* state = Py::GetState<EventModuleState>(module.Lend());
-    state->awaiting_coroutines.emplace_back(coro);
+    state->GetAwaitingCoroutines<TEvent>().emplace_back(coro);
   }
   static void NotifyAwaitingCoroutines(const Py::Object module, const TEvent& event)
   {
     EventModuleState* state = Py::GetState<EventModuleState>(module.Lend());
     std::deque<Py::Object> awaiting_coroutines;
-    std::swap(state->awaiting_coroutines, awaiting_coroutines);
+    std::swap(state->GetAwaitingCoroutines<TEvent>(), awaiting_coroutines);
     while (!awaiting_coroutines.empty())
     {
       const Py::Object coro = awaiting_coroutines.front();
@@ -123,8 +152,8 @@ struct PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>
   }
   static void Clear(EventModuleState* state)
   {
-    state->callback = Py::Null();
-    state->awaiting_coroutines.clear();
+    state->GetCallback<TEvent>() = Py::Null();
+    state->GetAwaitingCoroutines<TEvent>().clear();
   }
 };
 
@@ -245,8 +274,7 @@ async def codebreakpoint():
 static PyObject* Reset(PyObject* module)
 {
   EventModuleState* state = Py::GetState<EventModuleState>(module);
-  state->callback = Py::Null();
-  state->awaiting_coroutines.clear();
+  state->Reset();
   Py_RETURN_NONE;
 }
 
