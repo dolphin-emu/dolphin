@@ -6,18 +6,18 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
-import org.dolphinemu.dolphinemu.databinding.ListItemSettingCheckboxBinding;
-import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingSwitchBinding;
+import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
-public final class CheckBoxSettingViewHolder extends SettingViewHolder
+public final class SwitchSettingViewHolder extends SettingViewHolder
 {
-  private CheckBoxSetting mItem;
+  private SwitchSetting mItem;
 
-  private final ListItemSettingCheckboxBinding mBinding;
+  private final ListItemSettingSwitchBinding mBinding;
 
-  public CheckBoxSettingViewHolder(ListItemSettingCheckboxBinding binding, SettingsAdapter adapter)
+  public SwitchSettingViewHolder(ListItemSettingSwitchBinding binding, SettingsAdapter adapter)
   {
     super(binding.getRoot(), adapter);
     mBinding = binding;
@@ -26,12 +26,12 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
   @Override
   public void bind(SettingsItem item)
   {
-    mItem = (CheckBoxSetting) item;
+    mItem = (SwitchSetting) item;
 
     mBinding.textSettingName.setText(item.getName());
     mBinding.textSettingDescription.setText(item.getDescription());
 
-    mBinding.checkbox.setChecked(mItem.isChecked(getAdapter().getSettings()));
+    mBinding.settingSwitch.setChecked(mItem.isChecked(getAdapter().getSettings()));
 
     setStyle(mBinding.textSettingName, mItem);
   }
@@ -45,9 +45,9 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
       return;
     }
 
-    mBinding.checkbox.toggle();
+    mBinding.settingSwitch.toggle();
 
-    getAdapter().onBooleanClick(mItem, getBindingAdapterPosition(), mBinding.checkbox.isChecked());
+    getAdapter().onBooleanClick(mItem, mBinding.settingSwitch.isChecked());
 
     setStyle(mBinding.textSettingName, mItem);
   }

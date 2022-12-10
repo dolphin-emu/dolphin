@@ -24,15 +24,15 @@ import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.WiimoteProfileStringSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HyperLinkHeaderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.IntSliderSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.InvertedCheckBoxSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.LogCheckBoxSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.InvertedSwitchSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.LogSwitchSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.PercentSliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.RunRunnable;
@@ -278,24 +278,24 @@ public final class SettingsFragmentPresenter
 
   private void addGeneralSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_CPU_THREAD, R.string.dual_core,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_CPU_THREAD, R.string.dual_core,
             R.string.dual_core_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_ENABLE_CHEATS, R.string.enable_cheats,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_ENABLE_CHEATS, R.string.enable_cheats,
             0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_OVERRIDE_REGION_SETTINGS,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_OVERRIDE_REGION_SETTINGS,
             R.string.override_region_settings, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_AUTO_DISC_CHANGE,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_AUTO_DISC_CHANGE,
             R.string.auto_disc_change, 0));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_EMULATION_SPEED,
             R.string.speed_limit, 0, 0, 200, "%"));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_FALLBACK_REGION,
             R.string.fallback_region, 0, R.array.regionEntries, R.array.regionValues));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_ANALYTICS_ENABLED, R.string.analytics,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_ANALYTICS_ENABLED, R.string.analytics,
             0));
     sl.add(new RunRunnable(mContext, R.string.analytics_new_id, 0,
             R.string.analytics_new_id_confirmation, 0, true,
             NativeLibrary::GenerateNewStatisticsId));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_ENABLE_SAVESTATES,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_ENABLE_SAVESTATES,
             R.string.enable_save_states, R.string.enable_save_states_description));
   }
 
@@ -315,17 +315,17 @@ public final class SettingsFragmentPresenter
     // Only android 9+ supports this feature.
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
     {
-      sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_EXPAND_TO_CUTOUT_AREA,
+      sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_EXPAND_TO_CUTOUT_AREA,
               R.string.expand_to_cutout_area, R.string.expand_to_cutout_area_description));
     }
 
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_USE_PANIC_HANDLERS,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_USE_PANIC_HANDLERS,
             R.string.panic_handlers, R.string.panic_handlers_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_OSD_MESSAGES, R.string.osd_messages,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_OSD_MESSAGES, R.string.osd_messages,
             R.string.osd_messages_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_USE_GAME_COVERS,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_USE_GAME_COVERS,
             R.string.download_game_covers, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_SHOW_GAME_TITLES,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_SHOW_GAME_TITLES,
             R.string.show_titles_in_game_list, R.string.show_titles_in_game_list_description));
 
     AbstractIntSetting appTheme = new AbstractIntSetting()
@@ -499,7 +499,7 @@ public final class SettingsFragmentPresenter
     }
     sl.add(new SingleChoiceSetting(mContext, dspEmulationEngine, R.string.dsp_emulation_engine, 0,
             dspEngineEntries, dspEngineValues));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_AUDIO_STRETCH, R.string.audio_stretch,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_AUDIO_STRETCH, R.string.audio_stretch,
             R.string.audio_stretch_description));
     sl.add(new IntSliderSetting(mContext, IntSetting.MAIN_AUDIO_VOLUME, R.string.audio_volume, 0,
             0, 100, "%"));
@@ -507,7 +507,7 @@ public final class SettingsFragmentPresenter
 
   private void addPathsSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_RECURSIVE_ISO_PATHS,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_RECURSIVE_ISO_PATHS,
             R.string.search_subfolders, 0));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_DEFAULT_ISO, R.string.default_ISO, 0,
             MainPresenter.REQUEST_GAME_FILE, null));
@@ -542,21 +542,21 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(mContext, R.string.wii_misc_settings, 0));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.SYSCONF_LANGUAGE, R.string.system_language,
             0, R.array.wiiSystemLanguageEntries, R.array.wiiSystemLanguageValues));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_WIDESCREEN, R.string.wii_widescreen,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.SYSCONF_WIDESCREEN, R.string.wii_widescreen,
             R.string.wii_widescreen_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_PAL60, R.string.wii_pal60,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.SYSCONF_PAL60, R.string.wii_pal60,
             R.string.wii_pal60_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_SCREENSAVER,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.SYSCONF_SCREENSAVER,
             R.string.wii_screensaver, R.string.wii_screensaver_description));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.SYSCONF_SOUND_MODE, R.string.sound_mode, 0,
             R.array.soundModeEntries, R.array.soundModeValues));
 
     sl.add(new HeaderSetting(mContext, R.string.wii_sd_card_settings, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_WII_SD_CARD, R.string.insert_sd_card,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_WII_SD_CARD, R.string.insert_sd_card,
             R.string.insert_sd_card_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_ALLOW_SD_WRITES,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_ALLOW_SD_WRITES,
             R.string.wii_sd_card_allow_writes, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC,
             R.string.wii_sd_card_sync, R.string.wii_sd_card_sync_description));
     // TODO: Hardcoding "Load" here is wrong, because the user may have changed the Load path.
     // The code structure makes this hard to fix, and with scoped storage active the Load path
@@ -573,7 +573,7 @@ public final class SettingsFragmentPresenter
             () -> convertOnThread(WiiUtils::syncSdImageToSdFolder)));
 
     sl.add(new HeaderSetting(mContext, R.string.wii_wiimote_settings, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_WIIMOTE_MOTOR,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.SYSCONF_WIIMOTE_MOTOR,
             R.string.wiimote_rumble, 0));
     sl.add(new IntSliderSetting(mContext, IntSetting.SYSCONF_SPEAKER_VOLUME,
             R.string.wiimote_volume, 0, 0, 127, ""));
@@ -582,9 +582,9 @@ public final class SettingsFragmentPresenter
     sl.add(new SingleChoiceSetting(mContext, IntSetting.SYSCONF_SENSOR_BAR_POSITION,
             R.string.sensor_bar_position, 0, R.array.sensorBarPositionEntries,
             R.array.sensorBarPositionValues));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_WIIMOTE_CONTINUOUS_SCANNING,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_WIIMOTE_CONTINUOUS_SCANNING,
             R.string.wiimote_scanning, R.string.wiimote_scanning_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_WIIMOTE_ENABLE_SPEAKER,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_WIIMOTE_ENABLE_SPEAKER,
             R.string.wiimote_speaker, R.string.wiimote_speaker_description));
   }
 
@@ -678,9 +678,9 @@ public final class SettingsFragmentPresenter
     }
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_CPU_CORE, R.string.cpu_core, 0,
             emuCoresEntries, emuCoresValues));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_MMU, R.string.mmu_enable,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_MMU, R.string.mmu_enable,
             R.string.mmu_enable_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_OVERCLOCK_ENABLE,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_OVERCLOCK_ENABLE,
             R.string.overclock_enable, R.string.overclock_enable_description));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
             R.string.overclock_title_description, 0, 400, "%"));
@@ -733,13 +733,13 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(mContext, R.string.graphics_general, 0));
     sl.add(new StringSingleChoiceSetting(mContext, StringSetting.MAIN_GFX_BACKEND,
             R.string.video_backend, 0, R.array.videoBackendEntries, R.array.videoBackendValues));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_SHOW_FPS, R.string.show_fps,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_FPS, R.string.show_fps,
             R.string.show_fps_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_SHOW_VPS, R.string.show_vps,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_VPS, R.string.show_vps,
             R.string.show_vps_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_SHOW_SPEED, R.string.show_speed,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_SPEED, R.string.show_speed,
             R.string.show_speed_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_SHOW_SPEED_COLORS,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_SPEED_COLORS,
             R.string.show_speed_colors,
             R.string.show_speed_colors_description));
     sl.add(new SingleChoiceSettingDynamicDescriptions(mContext,
@@ -747,7 +747,7 @@ public final class SettingsFragmentPresenter
             R.array.shaderCompilationModeEntries, R.array.shaderCompilationModeValues,
             R.array.shaderCompilationDescriptionEntries,
             R.array.shaderCompilationDescriptionValues));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_WAIT_FOR_SHADERS_BEFORE_STARTING,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_WAIT_FOR_SHADERS_BEFORE_STARTING,
             R.string.wait_for_shaders, R.string.wait_for_shaders_description));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.GFX_ASPECT_RATIO, R.string.aspect_ratio, 0,
             R.array.aspectRatioEntries, R.array.aspectRatioValues));
@@ -786,21 +786,21 @@ public final class SettingsFragmentPresenter
     sl.add(new StringSingleChoiceSetting(mContext, StringSetting.GFX_ENHANCE_POST_SHADER,
             R.string.post_processing_shader, 0, shaderListEntries, shaderListValues));
 
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_COPY_EFB_SCALED,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HACK_COPY_EFB_SCALED,
             R.string.scaled_efb_copy, R.string.scaled_efb_copy_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_ENABLE_PIXEL_LIGHTING,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENABLE_PIXEL_LIGHTING,
             R.string.per_pixel_lighting, R.string.per_pixel_lighting_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_ENHANCE_FORCE_FILTERING,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENHANCE_FORCE_FILTERING,
             R.string.force_texture_filtering, R.string.force_texture_filtering_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_ENHANCE_FORCE_TRUE_COLOR,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENHANCE_FORCE_TRUE_COLOR,
             R.string.force_24bit_color, R.string.force_24bit_color_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_DISABLE_FOG, R.string.disable_fog,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_DISABLE_FOG, R.string.disable_fog,
             R.string.disable_fog_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_ENHANCE_DISABLE_COPY_FILTER,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENHANCE_DISABLE_COPY_FILTER,
             R.string.disable_copy_filter, R.string.disable_copy_filter_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION,
             R.string.arbitrary_mipmap_detection, R.string.arbitrary_mipmap_detection_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_WIDESCREEN_HACK,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_WIDESCREEN_HACK,
             R.string.wide_screen_hack, R.string.wide_screen_hack_description));
 
     // Check if we support stereo
@@ -819,94 +819,94 @@ public final class SettingsFragmentPresenter
   private void addHackSettings(ArrayList<SettingsItem> sl)
   {
     sl.add(new HeaderSetting(mContext, R.string.embedded_frame_buffer, 0));
-    sl.add(new InvertedCheckBoxSetting(mContext, BooleanSetting.GFX_HACK_EFB_ACCESS_ENABLE,
+    sl.add(new InvertedSwitchSetting(mContext, BooleanSetting.GFX_HACK_EFB_ACCESS_ENABLE,
             R.string.skip_efb_access, R.string.skip_efb_access_description));
-    sl.add(new InvertedCheckBoxSetting(mContext, BooleanSetting.GFX_HACK_EFB_EMULATE_FORMAT_CHANGES,
+    sl.add(new InvertedSwitchSetting(mContext, BooleanSetting.GFX_HACK_EFB_EMULATE_FORMAT_CHANGES,
             R.string.ignore_format_changes, R.string.ignore_format_changes_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_SKIP_EFB_COPY_TO_RAM,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HACK_SKIP_EFB_COPY_TO_RAM,
             R.string.efb_copy_method, R.string.efb_copy_method_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_DEFER_EFB_COPIES,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HACK_DEFER_EFB_COPIES,
             R.string.defer_efb_copies, R.string.defer_efb_copies_description));
 
     sl.add(new HeaderSetting(mContext, R.string.texture_cache, 0));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES,
             R.string.texture_cache_accuracy, R.string.texture_cache_accuracy_description,
             R.array.textureCacheAccuracyEntries, R.array.textureCacheAccuracyValues));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_ENABLE_GPU_TEXTURE_DECODING,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENABLE_GPU_TEXTURE_DECODING,
             R.string.gpu_texture_decoding, R.string.gpu_texture_decoding_description));
 
     sl.add(new HeaderSetting(mContext, R.string.external_frame_buffer, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_SKIP_XFB_COPY_TO_RAM,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HACK_SKIP_XFB_COPY_TO_RAM,
             R.string.xfb_copy_method, R.string.xfb_copy_method_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_IMMEDIATE_XFB,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HACK_IMMEDIATE_XFB,
             R.string.immediate_xfb, R.string.immediate_xfb_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_SKIP_DUPLICATE_XFBS,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HACK_SKIP_DUPLICATE_XFBS,
             R.string.skip_duplicate_xfbs, R.string.skip_duplicate_xfbs_description));
 
     sl.add(new HeaderSetting(mContext, R.string.other, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_FAST_DEPTH_CALC,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_FAST_DEPTH_CALC,
             R.string.fast_depth_calculation, R.string.fast_depth_calculation_description));
-    sl.add(new InvertedCheckBoxSetting(mContext, BooleanSetting.GFX_HACK_BBOX_ENABLE,
+    sl.add(new InvertedSwitchSetting(mContext, BooleanSetting.GFX_HACK_BBOX_ENABLE,
             R.string.disable_bbox, R.string.disable_bbox_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_VERTEX_ROUNDING,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HACK_VERTEX_ROUNDING,
             R.string.vertex_rounding, R.string.vertex_rounding_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_SAVE_TEXTURE_CACHE_TO_STATE,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SAVE_TEXTURE_CACHE_TO_STATE,
             R.string.texture_cache_to_state, R.string.texture_cache_to_state_description));
   }
 
   private void addAdvancedGraphicsSettings(ArrayList<SettingsItem> sl)
   {
     sl.add(new HeaderSetting(mContext, R.string.gfx_mods_and_custom_textures, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_MODS_ENABLE,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_MODS_ENABLE,
             R.string.gfx_mods, R.string.gfx_mods_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HIRES_TEXTURES,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HIRES_TEXTURES,
             R.string.load_custom_texture, R.string.load_custom_texture_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_CACHE_HIRES_TEXTURES,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_CACHE_HIRES_TEXTURES,
             R.string.cache_custom_texture, R.string.cache_custom_texture_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_DUMP_TEXTURES,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_DUMP_TEXTURES,
             R.string.dump_texture, R.string.dump_texture_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_DUMP_BASE_TEXTURES,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_DUMP_BASE_TEXTURES,
             R.string.dump_base_texture, R.string.dump_base_texture_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_DUMP_MIP_TEXTURES,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_DUMP_MIP_TEXTURES,
             R.string.dump_mip_texture, R.string.dump_mip_texture_description));
 
     sl.add(new HeaderSetting(mContext, R.string.misc, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_CROP, R.string.crop,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_CROP, R.string.crop,
             R.string.crop_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_PROGRESSIVE_SCAN,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.SYSCONF_PROGRESSIVE_SCAN,
             R.string.progressive_scan, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_BACKEND_MULTITHREADING,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_BACKEND_MULTITHREADING,
             R.string.backend_multithreading, R.string.backend_multithreading_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION,
             R.string.prefer_vs_for_point_line_expansion,
             R.string.prefer_vs_for_point_line_expansion_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_EFB_DEFER_INVALIDATION,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HACK_EFB_DEFER_INVALIDATION,
             R.string.defer_efb_invalidation, R.string.defer_efb_invalidation_description));
-    sl.add(new InvertedCheckBoxSetting(mContext, BooleanSetting.GFX_HACK_FAST_TEXTURE_SAMPLING,
+    sl.add(new InvertedSwitchSetting(mContext, BooleanSetting.GFX_HACK_FAST_TEXTURE_SAMPLING,
             R.string.manual_texture_sampling, R.string.manual_texture_sampling_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_INTERNAL_RESOLUTION_FRAME_DUMPS,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_INTERNAL_RESOLUTION_FRAME_DUMPS,
             R.string.internal_resolution_dumps, R.string.internal_resolution_dumps_description));
 
     sl.add(new HeaderSetting(mContext, R.string.debugging, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_ENABLE_WIREFRAME,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENABLE_WIREFRAME,
             R.string.wireframe, R.string.leave_this_unchecked));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_OVERLAY_STATS,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_OVERLAY_STATS,
             R.string.show_stats, R.string.leave_this_unchecked));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_TEXFMT_OVERLAY_ENABLE,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_TEXFMT_OVERLAY_ENABLE,
             R.string.texture_format, R.string.leave_this_unchecked));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_ENABLE_VALIDATION_LAYER,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENABLE_VALIDATION_LAYER,
             R.string.validation_layer, R.string.leave_this_unchecked));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_DUMP_EFB_TARGET,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_DUMP_EFB_TARGET,
             R.string.dump_efb, R.string.leave_this_unchecked));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_DUMP_XFB_TARGET,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_DUMP_XFB_TARGET,
             R.string.dump_xfb, R.string.leave_this_unchecked));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_DISABLE_COPY_TO_VRAM,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HACK_DISABLE_COPY_TO_VRAM,
             R.string.disable_vram_copies, R.string.leave_this_unchecked));
   }
 
   private void addLogConfigurationSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.LOGGER_WRITE_TO_FILE, R.string.log_to_file,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.LOGGER_WRITE_TO_FILE, R.string.log_to_file,
             R.string.log_to_file_description));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.LOGGER_VERBOSITY, R.string.log_verbosity, 0,
             getLogVerbosityEntries(), getLogVerbosityValues()));
@@ -920,36 +920,36 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(mContext, R.string.log_types, 0));
     for (Map.Entry<String, String> entry : LOG_TYPE_NAMES.entrySet())
     {
-      sl.add(new LogCheckBoxSetting(entry.getKey(), entry.getValue(), ""));
+      sl.add(new LogSwitchSetting(entry.getKey(), entry.getValue(), ""));
     }
   }
 
   private void addDebugSettings(ArrayList<SettingsItem> sl)
   {
     sl.add(new HeaderSetting(mContext, R.string.debug_warning, 0));
-    sl.add(new InvertedCheckBoxSetting(mContext, BooleanSetting.MAIN_FASTMEM,
+    sl.add(new InvertedSwitchSetting(mContext, BooleanSetting.MAIN_FASTMEM,
             R.string.debug_fastmem, 0));
 
     sl.add(new HeaderSetting(mContext, R.string.debug_jit_header, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_OFF, R.string.debug_jitoff,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_OFF, R.string.debug_jitoff,
             0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_OFF,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_OFF,
             R.string.debug_jitloadstoreoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF,
             R.string.debug_jitloadstorefloatingoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF,
             R.string.debug_jitloadstorepairedoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_FLOATING_POINT_OFF,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_FLOATING_POINT_OFF,
             R.string.debug_jitfloatingpointoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_INTEGER_OFF,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_INTEGER_OFF,
             R.string.debug_jitintegeroff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_PAIRED_OFF,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_PAIRED_OFF,
             R.string.debug_jitpairedoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF,
             R.string.debug_jitsystemregistersoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_BRANCH_OFF,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_BRANCH_OFF,
             R.string.debug_jitbranchoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_REGISTER_CACHE_OFF,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_REGISTER_CACHE_OFF,
             R.string.debug_jitregistercacheoff, 0));
   }
 
@@ -962,7 +962,7 @@ public final class SettingsFragmentPresenter
     sl.add(new IntSliderSetting(mContext, IntSetting.GFX_STEREO_CONVERGENCE_PERCENTAGE,
             R.string.stereoscopy_convergence, R.string.stereoscopy_convergence_description, 0, 200,
             "%"));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_STEREO_SWAP_EYES,
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_STEREO_SWAP_EYES,
             R.string.stereoscopy_swap_eyes, R.string.stereoscopy_swap_eyes_description));
   }
 
@@ -1029,9 +1029,9 @@ public final class SettingsFragmentPresenter
     }
     else if (gcPadType == 12) // Adapter
     {
-      sl.add(new CheckBoxSetting(mContext, BooleanSetting.getSettingForAdapterRumble(gcPadNumber),
+      sl.add(new SwitchSetting(mContext, BooleanSetting.getSettingForAdapterRumble(gcPadNumber),
               R.string.gc_adapter_rumble, R.string.gc_adapter_rumble_description));
-      sl.add(new CheckBoxSetting(mContext, BooleanSetting.getSettingForSimulateKonga(gcPadNumber),
+      sl.add(new SwitchSetting(mContext, BooleanSetting.getSettingForSimulateKonga(gcPadNumber),
               R.string.gc_adapter_bongos, R.string.gc_adapter_bongos_description));
     }
   }

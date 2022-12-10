@@ -30,11 +30,11 @@ import org.dolphinemu.dolphinemu.databinding.DialogInputStringBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogSliderBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemHeaderBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
-import org.dolphinemu.dolphinemu.databinding.ListItemSettingCheckboxBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingSwitchBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSubmenuBinding;
 import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FloatSliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
@@ -47,7 +47,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
-import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.CheckBoxSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.FilePickerViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderHyperLinkViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderViewHolder;
@@ -59,6 +58,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHold
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SingleChoiceViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SliderViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SubmenuViewHolder;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SwitchSettingViewHolder;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
@@ -100,8 +100,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       case SettingsItem.TYPE_HEADER:
         return new HeaderViewHolder(ListItemHeaderBinding.inflate(inflater), this);
 
-      case SettingsItem.TYPE_CHECKBOX:
-        return new CheckBoxSettingViewHolder(ListItemSettingCheckboxBinding.inflate(inflater),
+      case SettingsItem.TYPE_SWITCH:
+        return new SwitchSettingViewHolder(ListItemSettingSwitchBinding.inflate(inflater),
                 this);
 
       case SettingsItem.TYPE_STRING_SINGLE_CHOICE:
@@ -181,10 +181,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     notifyDataSetChanged();
   }
 
-  public void clearSetting(SettingsItem item, int position)
+  public void clearSetting(SettingsItem item)
   {
     item.clear(getSettings());
-    notifyItemChanged(position);
 
     mView.onSettingChanged();
   }
@@ -196,10 +195,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mView.onSettingChanged();
   }
 
-  public void onBooleanClick(CheckBoxSetting item, int position, boolean checked)
+  public void onBooleanClick(SwitchSetting item, boolean checked)
   {
     item.setChecked(getSettings(), checked);
-    notifyItemChanged(position);
 
     mView.onSettingChanged();
   }
