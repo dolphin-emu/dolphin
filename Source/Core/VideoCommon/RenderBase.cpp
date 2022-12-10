@@ -278,7 +278,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     }
 
     // check what to do with the alpha channel (GX_PokeAlphaRead)
-    PixelEngine::AlphaReadMode alpha_read_mode = PixelEngine::GetAlphaReadMode();
+    PixelEngine::AlphaReadMode alpha_read_mode =
+        Core::System::GetInstance().GetPixelEngine().GetAlphaReadMode();
 
     if (alpha_read_mode == PixelEngine::AlphaReadMode::ReadNone)
     {

@@ -325,7 +325,7 @@ void VideoBackendBase::InitializeShared()
   auto& command_processor = system.GetCommandProcessor();
   command_processor.Init(system);
   system.GetFifo().Init(system);
-  PixelEngine::Init();
+  system.GetPixelEngine().Init();
   BPInit();
   VertexLoaderManager::Init();
   VertexShaderManager::Init();

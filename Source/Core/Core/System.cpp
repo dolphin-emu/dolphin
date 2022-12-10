@@ -20,6 +20,7 @@
 #include "Core/HW/VideoInterface.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/PixelEngine.h"
 
 namespace Core
 {
@@ -39,6 +40,7 @@ struct System::Impl
   Fifo::FifoManager m_fifo;
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceState m_memory_interface_state;
+  PixelEngine::PixelEngineManager m_pixel_engine;
   SerialInterface::SerialInterfaceState m_serial_interface_state;
   Sram m_sram;
   VideoInterface::VideoInterfaceState m_video_interface_state;
@@ -135,6 +137,11 @@ Memory::MemoryManager& System::GetMemory() const
 MemoryInterface::MemoryInterfaceState& System::GetMemoryInterfaceState() const
 {
   return m_impl->m_memory_interface_state;
+}
+
+PixelEngine::PixelEngineManager& System::GetPixelEngine() const
+{
+  return m_impl->m_pixel_engine;
 }
 
 SerialInterface::SerialInterfaceState& System::GetSerialInterfaceState() const
