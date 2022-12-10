@@ -179,18 +179,18 @@ union UPECtrlReg
 class PixelEngineManager
 {
 public:
-  void Init();
+  void Init(Core::System& system);
   void DoState(PointerWrap& p);
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
   // gfx backend support
-  void SetToken(const u16 token, const bool interrupt, int cycle_delay);
-  void SetFinish(int cycle_delay);
+  void SetToken(Core::System& system, const u16 token, const bool interrupt, int cycle_delay);
+  void SetFinish(Core::System& system, int cycle_delay);
   AlphaReadMode GetAlphaReadMode() const { return m_alpha_read.read_mode; }
 
 private:
-  void RaiseEvent(int cycles_into_future);
+  void RaiseEvent(Core::System& system, int cycles_into_future);
   void UpdateInterrupts();
   void SetTokenFinish_OnMainThread(Core::System& system, u64 userdata, s64 cycles_late);
 
