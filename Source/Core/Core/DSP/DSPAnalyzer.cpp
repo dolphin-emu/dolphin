@@ -133,8 +133,10 @@ void Analyzer::FindInstructionStarts(const SDSP& dsp, u16 start_addr, u16 end_ad
     }
 #endif
 
-    // If an instruction potentially raises exceptions, mark the following
-    // instruction as needing to check for exceptions
+    // If an instruction potentially raises exceptions, mark the following instruction as needing to
+    // check for exceptions. This code is only looking for the accelerator address overflow
+    // exception, so the following instructions are checked: LR, LRR/LRRD/LRRI/LRRN, LRS, and
+    // extended opcodes.
     if (opcode->opcode == 0x00c0 || opcode->opcode == 0x1800 || opcode->opcode == 0x1880 ||
         opcode->opcode == 0x1900 || opcode->opcode == 0x1980 || opcode->opcode == 0x2000 ||
         opcode->extended)
