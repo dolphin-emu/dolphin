@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.graphics.Insets;
@@ -16,7 +17,9 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.divider.MaterialDividerItemDecoration;
+import com.google.android.material.elevation.ElevationOverlayProvider;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.databinding.FragmentCheatListBinding;
@@ -48,6 +51,13 @@ public class CheatListFragment extends Fragment
             new MaterialDividerItemDecoration(requireActivity(), LinearLayoutManager.VERTICAL);
     divider.setLastItemDecorated(false);
     mBinding.cheatList.addItemDecoration(divider);
+
+    @ColorInt int color =
+            new ElevationOverlayProvider(mBinding.cheatsWarning.getContext()).compositeOverlay(
+                    MaterialColors.getColor(mBinding.cheatsWarning, R.attr.colorSurface),
+                    getResources().getDimensionPixelSize(R.dimen.elevated_app_bar));
+    mBinding.cheatsWarning.setBackgroundColor(color);
+    mBinding.gfxModsWarning.setBackgroundColor(color);
 
     setInsets();
   }

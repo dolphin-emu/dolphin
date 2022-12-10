@@ -7,4 +7,6 @@
     <dimen name="spacing_fab">72dp</dimen>
     <dimen name="menu_width">256dp</dimen>
     <dimen name="card_width">135dp</dimen>
+
+    <dimen name="elevated_app_bar">3dp</dimen>
 </resources>
