@@ -3589,7 +3589,7 @@ void ARM64FloatEmitter::SHL(ARM64Reg Rd, ARM64Reg Rn, u32 shift)
 {
   constexpr size_t src_size = 64;
   ASSERT_MSG(DYNA_REC, IsDouble(Rd), "Only double registers are supported!");
-  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must less than the element size! {} {}",
+  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must be less than the element size! {} {}",
              shift, src_size);
   EmitScalarShiftImm(0, src_size | shift, 0b01010, Rd, Rn);
 }
@@ -3598,7 +3598,7 @@ void ARM64FloatEmitter::URSHR(ARM64Reg Rd, ARM64Reg Rn, u32 shift)
 {
   constexpr size_t src_size = 64;
   ASSERT_MSG(DYNA_REC, IsDouble(Rd), "Only double registers are supported!");
-  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must less than the element size! {} {}",
+  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must be less than the element size! {} {}",
              shift, src_size);
   EmitScalarShiftImm(1, src_size * 2 - shift, 0b00100, Rd, Rn);
 }
@@ -3647,7 +3647,7 @@ void ARM64FloatEmitter::UXTL2(u8 src_size, ARM64Reg Rd, ARM64Reg Rn)
 
 void ARM64FloatEmitter::SHL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift)
 {
-  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must less than the element size! {} {}",
+  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must be less than the element size! {} {}",
              shift, src_size);
   EmitShiftImm(1, 0, src_size | shift, 0b01010, Rd, Rn);
 }
@@ -3661,7 +3661,7 @@ void ARM64FloatEmitter::SSHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, 
 
 void ARM64FloatEmitter::URSHR(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift)
 {
-  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must less than the element size! {} {}",
+  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must be less than the element size! {} {}",
              shift, src_size);
   EmitShiftImm(1, 1, src_size * 2 - shift, 0b00100, Rd, Rn);
 }
@@ -3677,7 +3677,7 @@ void ARM64FloatEmitter::SHRN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, 
 {
   ASSERT_MSG(DYNA_REC, shift < dest_size, "Shift amount must be less than the element size! {} {}",
              shift, dest_size);
-  EmitShiftImm(upper, 1, dest_size | shift, 0b10000, Rd, Rn);
+  EmitShiftImm(upper, 1, dest_size * 2 - shift, 0b10000, Rd, Rn);
 }
 
 void ARM64FloatEmitter::SXTL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, bool upper)
