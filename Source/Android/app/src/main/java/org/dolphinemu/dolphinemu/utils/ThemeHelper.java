@@ -28,6 +28,7 @@ public class ThemeHelper
 {
   public static final String CURRENT_THEME = "current_theme";
   public static final String CURRENT_THEME_MODE = "current_theme_mode";
+  public static final String USE_BLACK_BACKGROUNDS = "use_black_backgrounds";
 
   public static final int DEFAULT = 0;
   public static final int MONET = 1;
@@ -65,6 +66,11 @@ public class ThemeHelper
       case PINK:
         activity.setTheme(R.style.Theme_Dolphin_Main_Pink);
         break;
+    }
+
+    if (preferences.getBoolean(USE_BLACK_BACKGROUNDS, false))
+    {
+      activity.setTheme(R.style.ThemeOverlay_Dolphin_Dark);
     }
 
     // Since the top app bar matches the color of the status bar, devices below API 23 have to get a
@@ -156,6 +162,24 @@ public class ThemeHelper
             .remove(CURRENT_THEME_MODE)
             .apply();
     setThemeMode(activity);
+  }
+
+  public static void saveBackgroundSetting(AppCompatActivity activity, boolean backgroundValue)
+  {
+    PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext())
+            .edit()
+            .putBoolean(USE_BLACK_BACKGROUNDS, backgroundValue)
+            .apply();
+    activity.recreate();
+  }
+
+  public static void deleteBackgroundSetting(AppCompatActivity activity)
+  {
+    PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext())
+            .edit()
+            .remove(USE_BLACK_BACKGROUNDS)
+            .apply();
+    activity.recreate();
   }
 
   public static void setCorrectTheme(AppCompatActivity activity)
