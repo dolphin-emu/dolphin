@@ -257,13 +257,14 @@ void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
 
   u32* currData = (u32*)(&xfmem) + address;
   u32* newData;
-  if (Fifo::UseDeterministicGPUThread())
+  auto& system = Core::System::GetInstance();
+  auto& fifo = system.GetFifo();
+  if (fifo.UseDeterministicGPUThread())
   {
-    newData = (u32*)Fifo::PopFifoAuxBuffer(size * sizeof(u32));
+    newData = (u32*)fifo.PopFifoAuxBuffer(size * sizeof(u32));
   }
   else
   {
-    auto& system = Core::System::GetInstance();
     auto& memory = system.GetMemory();
     newData = (u32*)memory.GetPointer(g_main_cp_state.array_bases[array] +
                                       g_main_cp_state.array_strides[array] * index);
@@ -293,7 +294,7 @@ void PreprocessIndexedXF(CPArray array, u32 index, u16 address, u8 size)
                                          g_preprocess_cp_state.array_strides[array] * index);
 
   const size_t buf_size = size * sizeof(u32);
-  Fifo::PushFifoAuxBuffer(new_data, buf_size);
+  system.GetFifo().PushFifoAuxBuffer(new_data, buf_size);
 }
 
 std::pair<std::string, std::string> GetXFRegInfo(u32 address, u32 value)

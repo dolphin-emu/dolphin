@@ -83,7 +83,8 @@ std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int co
 
 void VideoBackendBase::Video_ExitLoop()
 {
-  Fifo::ExitGpuLoop();
+  auto& system = Core::System::GetInstance();
+  system.GetFifo().ExitGpuLoop(system);
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
@@ -92,7 +93,8 @@ void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride
 {
   if (m_initialized && g_renderer && !g_ActiveConfig.bImmediateXFB)
   {
-    Fifo::SyncGPU(Fifo::SyncGPUReason::Swap);
+    auto& system = Core::System::GetInstance();
+    system.GetFifo().SyncGPU(Fifo::SyncGPUReason::Swap);
 
     AsyncRequests::Event e;
     e.time = ticks;
@@ -147,7 +149,8 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
     return 0;
   }
 
-  Fifo::SyncGPU(Fifo::SyncGPUReason::PerfQuery);
+  auto& system = Core::System::GetInstance();
+  system.GetFifo().SyncGPU(Fifo::SyncGPUReason::PerfQuery);
 
   AsyncRequests::Event e;
   e.time = 0;
@@ -185,7 +188,8 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
     warn_once = false;
   }
 
-  Fifo::SyncGPU(Fifo::SyncGPUReason::BBox);
+  auto& system = Core::System::GetInstance();
+  system.GetFifo().SyncGPU(Fifo::SyncGPUReason::BBox);
 
   AsyncRequests::Event e;
   u16 result;
@@ -291,7 +295,8 @@ void VideoBackendBase::PopulateBackendInfoFromUI()
 
 void VideoBackendBase::DoState(PointerWrap& p)
 {
-  if (!Core::System::GetInstance().IsDualCoreMode())
+  auto& system = Core::System::GetInstance();
+  if (!system.IsDualCoreMode())
   {
     VideoCommon_DoState(p);
     return;
@@ -304,7 +309,7 @@ void VideoBackendBase::DoState(PointerWrap& p)
 
   // Let the GPU thread sleep after loading the state, so we're not spinning if paused after loading
   // a state. The next GP burst will wake it up again.
-  Fifo::GpuMaySleep();
+  system.GetFifo().GpuMaySleep();
 }
 
 void VideoBackendBase::InitializeShared()
@@ -319,7 +324,7 @@ void VideoBackendBase::InitializeShared()
   auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
   command_processor.Init(system);
-  Fifo::Init();
+  system.GetFifo().Init(system);
   PixelEngine::Init();
   BPInit();
   VertexLoaderManager::Init();
@@ -336,6 +341,7 @@ void VideoBackendBase::ShutdownShared()
 {
   m_initialized = false;
 
+  auto& system = Core::System::GetInstance();
   VertexLoaderManager::Clear();
-  Fifo::Shutdown();
+  system.GetFifo().Shutdown();
 }

@@ -60,10 +60,10 @@ void VideoCommon_DoState(PointerWrap& p)
   p.DoMarker("TMEM");
 
   // FIFO
-  Fifo::DoState(p);
+  auto& system = Core::System::GetInstance();
+  system.GetFifo().DoState(p);
   p.DoMarker("Fifo");
 
-  auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
   command_processor.DoState(p);
   p.DoMarker("CommandProcessor");

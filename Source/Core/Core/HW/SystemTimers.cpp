@@ -173,7 +173,7 @@ void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late)
 void ThrottleCallback(Core::System& system, u64 deadline, s64 cyclesLate)
 {
   // Allow the GPU thread to sleep. Setting this flag here limits the wakeups to 1 kHz.
-  Fifo::GpuMaySleep();
+  system.GetFifo().GpuMaySleep();
 
   const u64 time = Common::Timer::NowUs();
 
