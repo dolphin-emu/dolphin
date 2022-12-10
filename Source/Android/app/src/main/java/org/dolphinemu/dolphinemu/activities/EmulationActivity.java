@@ -575,7 +575,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     int id = wii ? R.menu.menu_overlay_controls_wii : R.menu.menu_overlay_controls_gc;
     popup.getMenuInflater().inflate(id, menu);
 
-    // Populate the checkbox value for joystick center on touch
+    // Populate the switch value for joystick center on touch
     menu.findItem(R.id.menu_emulation_joystick_rel_center)
             .setChecked(BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBoolean(mSettings));
     menu.findItem(R.id.menu_emulation_rumble)
@@ -599,7 +599,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     {
       if (item.isCheckable())
       {
-        // Need to pass a reference to the item to set the checkbox state, since it is not done automatically
+        // Need to pass a reference to the item to set the switch state, since it is not done automatically
         handleCheckableMenuAction(action, item);
       }
       else

@@ -17,7 +17,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 public abstract class SettingsItem
 {
   public static final int TYPE_HEADER = 0;
-  public static final int TYPE_CHECKBOX = 1;
+  public static final int TYPE_SWITCH = 1;
   public static final int TYPE_SINGLE_CHOICE = 2;
   public static final int TYPE_SLIDER = 3;
   public static final int TYPE_SUBMENU = 4;

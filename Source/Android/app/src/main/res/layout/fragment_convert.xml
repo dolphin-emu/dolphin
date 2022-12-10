@@ -77,20 +77,23 @@
 
     <TextView
         android:id="@+id/label_remove_junk_data"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginStart="@dimen/spacing_small"
+        android:layout_marginEnd="@dimen/spacing_large"
         android:gravity="center_vertical"
         android:text="@string/convert_remove_junk_data"
-        android:layout_marginStart="@dimen/spacing_small"
-        app:layout_constraintTop_toTopOf="@id/checkbox_remove_junk_data"
-        app:layout_constraintBottom_toBottomOf="@id/checkbox_remove_junk_data"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintBottom_toBottomOf="@id/switch_remove_junk_data"
+        app:layout_constraintEnd_toStartOf="@+id/switch_remove_junk_data"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/switch_remove_junk_data" />
 
-    <CheckBox
-        android:id="@+id/checkbox_remove_junk_data"
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/switch_remove_junk_data"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintTop_toBottomOf="@id/compression_level" />

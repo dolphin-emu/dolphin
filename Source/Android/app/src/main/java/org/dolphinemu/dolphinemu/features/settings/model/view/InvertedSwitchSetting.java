@@ -8,9 +8,9 @@ import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
-public final class InvertedCheckBoxSetting extends CheckBoxSetting
+public final class InvertedSwitchSetting extends SwitchSetting
 {
-  public InvertedCheckBoxSetting(Context context, AbstractBooleanSetting setting, int titleId,
+  public InvertedSwitchSetting(Context context, AbstractBooleanSetting setting, int titleId,
           int descriptionId)
   {
     super(context, setting, titleId, descriptionId);

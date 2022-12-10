@@ -3,9 +3,7 @@
 package org.dolphinemu.dolphinemu.features.cheats.ui;
 
 import android.view.View;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProvider;
@@ -31,17 +29,17 @@ public class CheatViewHolder extends CheatItemViewHolder
 
   public void bind(CheatsActivity activity, CheatItem item, int position)
   {
-    mBinding.checkbox.setOnCheckedChangeListener(null);
+    mBinding.cheatSwitch.setOnCheckedChangeListener(null);
 
     mViewModel = new ViewModelProvider(activity).get(CheatsViewModel.class);
     mCheat = item.getCheat();
     mPosition = position;
 
     mBinding.textName.setText(mCheat.getName());
-    mBinding.checkbox.setChecked(mCheat.getEnabled());
+    mBinding.cheatSwitch.setChecked(mCheat.getEnabled());
 
     mBinding.root.setOnClickListener(this);
-    mBinding.checkbox.setOnCheckedChangeListener(this);
+    mBinding.cheatSwitch.setOnCheckedChangeListener(this);
   }
 
   public void onClick(View root)
@@ -53,6 +51,5 @@ public class CheatViewHolder extends CheatItemViewHolder
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
   {
     mCheat.setEnabled(isChecked);
-    mViewModel.notifyCheatChanged(mPosition);
   }
 }

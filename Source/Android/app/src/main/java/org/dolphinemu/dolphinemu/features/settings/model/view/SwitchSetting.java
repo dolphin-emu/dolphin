@@ -8,18 +8,18 @@ import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
-public class CheckBoxSetting extends SettingsItem
+public class SwitchSetting extends SettingsItem
 {
   protected AbstractBooleanSetting mSetting;
 
-  public CheckBoxSetting(Context context, AbstractBooleanSetting setting, int titleId,
+  public SwitchSetting(Context context, AbstractBooleanSetting setting, int titleId,
           int descriptionId)
   {
     super(context, titleId, descriptionId);
     mSetting = setting;
   }
 
-  public CheckBoxSetting(AbstractBooleanSetting setting, CharSequence title,
+  public SwitchSetting(AbstractBooleanSetting setting, CharSequence title,
           CharSequence description)
   {
     super(title, description);
@@ -39,7 +39,7 @@ public class CheckBoxSetting extends SettingsItem
   @Override
   public int getType()
   {
-    return TYPE_CHECKBOX;
+    return TYPE_SWITCH;
   }
 
   @Override

@@ -92,7 +92,7 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
             .setMessage(R.string.setting_clear_confirm)
             .setPositiveButton(R.string.ok, (dialog, whichButton) ->
             {
-              getAdapter().clearSetting(item, getBindingAdapterPosition());
+              getAdapter().clearSetting(item);
               bind(item);
               Toast.makeText(context, R.string.setting_cleared, Toast.LENGTH_SHORT).show();
               dialog.dismiss();
