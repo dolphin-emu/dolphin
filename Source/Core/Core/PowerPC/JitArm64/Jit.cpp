@@ -350,9 +350,8 @@ void JitArm64::IntializeSpeculativeConstants()
         STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
         MOVP2R(ARM64Reg::X8, &JitInterface::CompileExceptionCheck);
         MOVI2R(ARM64Reg::W0, static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
-        // Write dispatcher_no_check to LR for tail call
-        MOVP2R(ARM64Reg::X30, dispatcher_no_check);
-        BR(ARM64Reg::X8);
+        BLR(ARM64Reg::X8);
+        B(dispatcher_no_check);
         SwitchToNearCode();
       }
 
@@ -844,11 +843,10 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(fail);
       MOVI2R(DISPATCHER_PC, js.blockStart);
       STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-      MOVP2R(ARM64Reg::X8, &JitInterface::CompileExceptionCheck);
       MOVI2R(ARM64Reg::W0, static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
-      // Write dispatcher_no_check to LR for tail call
-      MOVP2R(ARM64Reg::X30, dispatcher_no_check);
-      BR(ARM64Reg::X8);
+      MOVP2R(ARM64Reg::X1, &JitInterface::CompileExceptionCheck);
+      BLR(ARM64Reg::X1);
+      B(dispatcher_no_check);
       SwitchToNearCode();
       SetJumpTarget(no_fail);
       js.assumeNoPairedQuantize = true;
