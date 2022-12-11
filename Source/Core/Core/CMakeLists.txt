@@ -9,6 +9,8 @@ add_library(core
   API/Memory.h
   API/Gui.cpp
   API/Gui.h
+  API/Registers.cpp
+  API/Registers.h
   ARDecrypt.cpp
   ARDecrypt.h
   Boot/Boot_BS2Emu.cpp

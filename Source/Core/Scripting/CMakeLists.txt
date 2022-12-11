@@ -17,6 +17,8 @@ add_library(scripting
   Python/Modules/guimodule.h
   Python/Modules/memorymodule.cpp
   Python/Modules/memorymodule.h
+  Python/Modules/registersmodule.cpp
+  Python/Modules/registersmodule.h
   Python/Modules/savestatemodule.cpp
   Python/Modules/savestatemodule.h
   Python/Utils/as_py_func.h

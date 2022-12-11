@@ -12,27 +12,14 @@ namespace API::Registers
 
 // Register reading
 
-inline u32 Read_GPR(u32 index)
-{
-  return GPR(index);
-}
+u32 Read_GPR(u32 index);
 
-inline double Read_FPR(u32 index)
-{
-  return rPS(index).PS0AsDouble();
-}
+double Read_FPR(u32 index);
 
 // register writing
 
-inline void Write_GPR(u32 index, u32 value)
-{
-  GPR(index) = value;
-}
+void Write_GPR(u32 index, u32 value);
 
-inline void Write_FPR(u32 index, double value)
-{
-  rPS(index).SetPS0(value);
-}
+void Write_FPR(u32 index, double value);
 
 }  // namespace API::Registers
-#pragma once
