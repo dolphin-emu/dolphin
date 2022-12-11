@@ -68,7 +68,7 @@ void VideoCommon_DoState(PointerWrap& p)
   command_processor.DoState(p);
   p.DoMarker("CommandProcessor");
 
-  PixelEngine::DoState(p);
+  system.GetPixelEngine().DoState(p);
   p.DoMarker("PixelEngine");
 
   // the old way of replaying current bpmem as writes to push side effects to pixel shader manager

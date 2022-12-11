@@ -48,6 +48,10 @@ namespace MemoryInterface
 {
 class MemoryInterfaceState;
 };
+namespace PixelEngine
+{
+class PixelEngineManager;
+};
 namespace SerialInterface
 {
 class SerialInterfaceState;
@@ -101,6 +105,7 @@ public:
   Fifo::FifoManager& GetFifo() const;
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
+  PixelEngine::PixelEngineManager& GetPixelEngine() const;
   SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;
   Sram& GetSRAM() const;
   VideoInterface::VideoInterfaceState& GetVideoInterfaceState() const;
