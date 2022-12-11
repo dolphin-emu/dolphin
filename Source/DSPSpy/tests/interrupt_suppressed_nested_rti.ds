@@ -1,0 +1,73 @@
+; This test needs to manually specify IRQs
+	jmp		irq0
+	jmp		irq1
+	jmp		irq2
+	jmp		irq3
+	jmp		irq4
+	jmp		accov_irq
+	jmp		irq6
+	jmp		irq7
+
+incdir  "tests"
+include "dsp_base_noirq.inc"
+
+test_main:
+	; Use the accelerator to generate an IRQ by setting the start and end address to 0
+	; This will result in an interrupt on every read
+	SI @0xffda, #0 ; pred_scale
+	SI @0xffdb, #0 ; yn1
+	SI @0xffdc, #0 ; yn2
+	SI @0xffd1, #0 ; SampleFormat
+	SI @ACSAH, #0
+	SI @ACCAH, #0
+	SI @ACSAL, #0
+	SI @ACCAL, #0
+	SI @ACEAH, #0
+	SI @ACEAL, #0
+
+	CLR $ACC0
+	CLR $ACC1
+	LRIS $AX0.H, #1
+	LRIS $AX1.H, #0
+	CALL send_back
+
+	LRS $AX0.L, @ARAM ; Trigger interrupt
+	LRIS $AX1.H, #1
+
+	LRIS $AX0.H, #2
+	CALL send_back
+
+	jmp end_of_test
+
+accov_irq:
+	; Disable interrupts
+	SBCLR #3
+
+	; Restore registers, otherwise no new interrupt will be generated
+	SI @0xffda, #0 ; pred_scale
+	SI @0xffdb, #0 ; yn1
+	SI @0xffdc, #0 ; yn2
+
+	INCM $AC0.M
+	INCM $AC1.M
+
+	LRIS $AX0.H, #3
+	CALL send_back
+
+	; Trigger second interrupt, which will be ignored(!)
+	LRS $AX0.L, @ARAM
+	LRIS $AX1.H, #2
+
+	LRIS $AX0.H, #4
+	CALL send_back
+
+	DECM $AC1.M
+
+	RTI
+
+; Expected output ($AX0.H (send_back number), $AX1.H (changed on lines after an exception fires,
+; to make sure it happens immediately), $AC0.M (interrupt count), $AC1.M (interrupt depth), and $SR):
+; 1, 0, 0, 0, 2224 (first line)
+; 3, 0, 1, 1, 2020 (start of interrupt handler)
+; 4, 2, 1, 1, 2020 (end of interrupt handler)
+; 2, 1, 1, 0, 2224 (before end_of_test)

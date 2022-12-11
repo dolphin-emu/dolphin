@@ -1,0 +1,74 @@
+; This test needs to manually specify IRQs
+	jmp		irq0
+	jmp		irq1
+	jmp		irq2
+	jmp		irq3
+	jmp		irq4
+	jmp		accov_irq
+	jmp		irq6
+	jmp		irq7
+
+incdir  "tests"
+include "dsp_base_noirq.inc"
+
+test_main:
+	; Use the accelerator to generate an IRQ by setting the start and end address to 0
+	; This will result in an interrupt on every read
+	SI @0xffda, #0 ; pred_scale
+	SI @0xffdb, #0 ; yn1
+	SI @0xffdc, #0 ; yn2
+	SI @0xffd1, #0 ; SampleFormat
+	SI @ACSAH, #0
+	SI @ACCAH, #0
+	SI @ACSAL, #0
+	SI @ACCAL, #0
+	SI @ACEAH, #0
+	SI @ACEAL, #0
+
+	CLR $ACC0
+	CLR $ACC1
+
+	LRIS $AC1.M, #1
+	CALL send_back
+
+	LRS $AX0.L, @ARAM ; Trigger interrupt
+
+	LRIS $AC1.M, #2
+	CALL send_back
+
+	SBCLR #3 ; Disable interrupts
+
+	LRIS $AC1.M, #3
+	CALL send_back
+
+	LRS $AX0.L, @ARAM ; Trigger interrupt while disabled
+
+	LRIS $AC1.M, #4
+	CALL send_back
+
+	SBSET #3 ; Re-enable interrupts
+
+	LRIS $AC1.M, #5
+	CALL send_back
+
+	jmp end_of_test
+
+accov_irq:
+	; Restore registers, otherwise no new interrupt will be generated
+	SI @0xffda, #0 ; pred_scale
+	SI @0xffdb, #0 ; yn1
+	SI @0xffdc, #0 ; yn2
+
+	INCM $AC0.M
+	LRIS $AC1.M, #6
+	CALL send_back
+
+	RTI
+
+; Expected output ($AC0.M (num interrupts), $AC1.M (send_back number), and $SR):
+; 0, 1, 2224 (start)
+; 1, 6, 2220 (in interrupt handler)
+; 1, 2, 2224 (out of interrupt handler)
+; 1, 3, 2024 (interrupts disabled)
+; 1, 4, 2024 (no interrupt triggered)
+; 1, 5, 2224 (interrupts enabled, still no interrupt triggered)
