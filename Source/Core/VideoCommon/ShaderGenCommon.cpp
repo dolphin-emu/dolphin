@@ -46,6 +46,7 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.backend_sampler_lod_bias = g_ActiveConfig.backend_info.bSupportsLodBiasInSampler;
   bits.backend_dynamic_vertex_loader = g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader;
   bits.backend_vs_point_line_expand = g_ActiveConfig.UseVSForLinePointExpand();
+  bits.backend_gl_layer_in_fs = g_ActiveConfig.backend_info.bSupportsGLLayerInFS;
   return bits;
 }
 
