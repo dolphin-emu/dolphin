@@ -4,7 +4,9 @@
 #include "Common/Hash.h"
 
 #include <algorithm>
+#include <bit>
 #include <cstring>
+
 #include <zlib.h>
 
 #include "Common/BitUtils.h"
@@ -60,15 +62,15 @@ static u64 getblock(const u64* p, int i)
 static void bmix64(u64& h1, u64& h2, u64& k1, u64& k2, u64& c1, u64& c2)
 {
   k1 *= c1;
-  k1 = Common::RotateLeft(k1, 23);
+  k1 = std::rotl(k1, 23);
   k1 *= c2;
   h1 ^= k1;
   h1 += h2;
 
-  h2 = Common::RotateLeft(h2, 41);
+  h2 = std::rotl(h2, 41);
 
   k2 *= c2;
-  k2 = Common::RotateLeft(k2, 23);
+  k2 = std::rotl(k2, 23);
   k2 *= c1;
   h2 ^= k2;
   h2 += h1;

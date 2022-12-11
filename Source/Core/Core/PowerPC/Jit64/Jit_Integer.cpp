@@ -4,6 +4,7 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 
 #include <array>
+#include <bit>
 #include <limits>
 #include <vector>
 
@@ -2005,7 +2006,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
   {
     u32 result = gpr.Imm32(s);
     if (inst.SH != 0)
-      result = Common::RotateLeft(result, inst.SH);
+      result = std::rotl(result, inst.SH);
     result &= MakeRotationMask(inst.MB, inst.ME);
     gpr.SetImmediate32(a, result);
     if (inst.Rc)
@@ -2017,7 +2018,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
     const bool right_shift = inst.SH && inst.ME == 31 && inst.MB == 32 - inst.SH;
     const bool field_extract = inst.SH && inst.ME == 31 && inst.MB > 32 - inst.SH;
     const u32 mask = MakeRotationMask(inst.MB, inst.ME);
-    const u32 prerotate_mask = Common::RotateRight(mask, inst.SH);
+    const u32 prerotate_mask = std::rotr(mask, inst.SH);
     const bool simple_mask = mask == 0xff || mask == 0xffff;
     const bool simple_prerotate_mask = prerotate_mask == 0xff || prerotate_mask == 0xffff;
     // In case of a merged branch, track whether or not we've set flags.
@@ -2106,14 +2107,13 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 
   if (gpr.IsImm(a, s))
   {
-    gpr.SetImmediate32(a,
-                       (gpr.Imm32(a) & ~mask) | (Common::RotateLeft(gpr.Imm32(s), inst.SH) & mask));
+    gpr.SetImmediate32(a, (gpr.Imm32(a) & ~mask) | (std::rotl(gpr.Imm32(s), inst.SH) & mask));
     if (inst.Rc)
       ComputeRC(a);
   }
   else if (gpr.IsImm(s) && mask == 0xFFFFFFFF)
   {
-    gpr.SetImmediate32(a, Common::RotateLeft(gpr.Imm32(s), inst.SH));
+    gpr.SetImmediate32(a, std::rotl(gpr.Imm32(s), inst.SH));
 
     if (inst.Rc)
       ComputeRC(a);
@@ -2141,7 +2141,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
       RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
       RegCache::Realize(Ra);
       AndWithMask(Ra, ~mask);
-      OR(32, Ra, Imm32(Common::RotateLeft(gpr.Imm32(s), inst.SH) & mask));
+      OR(32, Ra, Imm32(std::rotl(gpr.Imm32(s), inst.SH) & mask));
     }
     else if (gpr.IsImm(a))
     {
@@ -2244,7 +2244,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   if (gpr.IsImm(b, s))
   {
-    gpr.SetImmediate32(a, Common::RotateLeft(gpr.Imm32(s), gpr.Imm32(b) & 0x1F) & mask);
+    gpr.SetImmediate32(a, std::rotl(gpr.Imm32(s), gpr.Imm32(b) & 0x1F) & mask);
   }
   else if (gpr.IsImm(b))
   {
