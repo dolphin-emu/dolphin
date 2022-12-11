@@ -451,7 +451,7 @@ public final class SettingsFragmentPresenter
       }
     };
 
-    sl.add(new CheckBoxSetting(mContext, blackBackgrounds, R.string.use_black_backgrounds,
+    sl.add(new SwitchSetting(mContext, blackBackgrounds, R.string.use_black_backgrounds,
             R.string.use_black_backgrounds_description));
   }
 
