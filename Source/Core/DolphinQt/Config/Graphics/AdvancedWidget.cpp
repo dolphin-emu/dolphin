@@ -158,16 +158,18 @@ void AdvancedWidget::CreateWidgets()
   m_prefer_vs_for_point_line_expansion = new GraphicsBool(
       // i18n: VS is short for vertex shaders.
       tr("Prefer VS for Point/Line Expansion"), Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION);
+  m_cpu_cull = new GraphicsBool(tr("Cull Vertices on the CPU"), Config::GFX_CPU_CULL);
 
   misc_layout->addWidget(m_enable_cropping, 0, 0);
   misc_layout->addWidget(m_enable_prog_scan, 0, 1);
   misc_layout->addWidget(m_backend_multithreading, 1, 0);
   misc_layout->addWidget(m_prefer_vs_for_point_line_expansion, 1, 1);
+  misc_layout->addWidget(m_cpu_cull, 2, 0);
 #ifdef _WIN32
   m_borderless_fullscreen =
       new GraphicsBool(tr("Borderless Fullscreen"), Config::GFX_BORDERLESS_FULLSCREEN);
 
-  misc_layout->addWidget(m_borderless_fullscreen, 2, 0);
+  misc_layout->addWidget(m_borderless_fullscreen, 2, 1);
 #endif
 
   // Experimental.
@@ -368,6 +370,10 @@ void AdvancedWidget::AddDescriptions()
                  "for expanding points and lines, selects the vertex shader for the job.  May "
                  "affect performance."
                  "<br><br>%1");
+  static const char TR_CPU_CULL_DESCRIPTION[] =
+      QT_TR_NOOP("Cull vertices on the CPU to reduce the number of draw calls required.  "
+                 "May affect performance and draw statistics.<br><br>"
+                 "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] = QT_TR_NOOP(
       "Defers invalidation of the EFB access cache until a GPU synchronization command "
       "is executed. If disabled, the cache will be invalidated with every draw call. "
@@ -440,6 +446,7 @@ void AdvancedWidget::AddDescriptions()
     vsexpand_extra = tr(IF_UNSURE_UNCHECKED);
   m_prefer_vs_for_point_line_expansion->SetDescription(
       tr(TR_PREFER_VS_FOR_POINT_LINE_EXPANSION_DESCRIPTION).arg(vsexpand_extra));
+  m_cpu_cull->SetDescription(tr(TR_CPU_CULL_DESCRIPTION));
 #ifdef _WIN32
   m_borderless_fullscreen->SetDescription(tr(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
 #endif
