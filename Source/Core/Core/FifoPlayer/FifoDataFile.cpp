@@ -13,16 +13,14 @@
 #include "Common/MsgHandler.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
-enum
-{
-  FILE_ID = 0x0d01f1f0,
-  VERSION_NUMBER = 5,
-  MIN_LOADER_VERSION = 1,
-  // This value is only used if the DFF file was created with overridden RAM sizes.
-  // If the MIN_LOADER_VERSION ever exceeds this, it's alright to remove it.
-  MIN_LOADER_VERSION_FOR_RAM_OVERRIDE = 5,
-};
+constexpr u32 FILE_ID = 0x0d01f1f0;
+constexpr u32 VERSION_NUMBER = 5;
+constexpr u32 MIN_LOADER_VERSION = 1;
+// This value is only used if the DFF file was created with overridden RAM sizes.
+// If the MIN_LOADER_VERSION ever exceeds this, it's alright to remove it.
+constexpr u32 MIN_LOADER_VERSION_FOR_RAM_OVERRIDE = 5;
 
 #pragma pack(push, 1)
 
@@ -164,8 +162,10 @@ bool FifoDataFile::Save(const std::string& filename)
 
   header.flags = m_Flags;
 
-  header.mem1_size = Memory::GetRamSizeReal();
-  header.mem2_size = Memory::GetExRamSizeReal();
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  header.mem1_size = memory.GetRamSizeReal();
+  header.mem2_size = memory.GetExRamSizeReal();
 
   file.Seek(0, File::SeekOrigin::Begin);
   file.WriteBytes(&header, sizeof(FileHeader));
@@ -270,14 +270,15 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
   // It should be noted, however, that Dolphin *will still crash* from the nullptr being returned
   // in a non-flagsOnly context, so if this code becomes necessary, it should be moved above the
   // prior conditional.
-  if (header.mem1_size != Memory::GetRamSizeReal() ||
-      header.mem2_size != Memory::GetExRamSizeReal())
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  if (header.mem1_size != memory.GetRamSizeReal() || header.mem2_size != memory.GetExRamSizeReal())
   {
     CriticalAlertFmtT("Emulated memory size mismatch!\n"
                       "Current: MEM1 {0:08X} ({1} MiB), MEM2 {2:08X} ({3} MiB)\n"
                       "DFF: MEM1 {4:08X} ({5} MiB), MEM2 {6:08X} ({7} MiB)",
-                      Memory::GetRamSizeReal(), Memory::GetRamSizeReal() / 0x100000,
-                      Memory::GetExRamSizeReal(), Memory::GetExRamSizeReal() / 0x100000,
+                      memory.GetRamSizeReal(), memory.GetRamSizeReal() / 0x100000,
+                      memory.GetExRamSizeReal(), memory.GetExRamSizeReal() / 0x100000,
                       header.mem1_size, header.mem1_size / 0x100000, header.mem2_size,
                       header.mem2_size / 0x100000);
     return nullptr;

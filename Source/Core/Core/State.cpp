@@ -39,6 +39,7 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -94,7 +95,7 @@ static size_t s_state_writes_in_queue;
 static std::condition_variable s_state_write_queue_is_empty;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 155;  // Last changed in PR 10890
+constexpr u32 STATE_VERSION = 156;  // Last changed in PR 11184
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -193,17 +194,19 @@ static void DoState(PointerWrap& p)
   }
 
   // Check to make sure the emulated memory sizes are the same as the savestate
-  u32 state_mem1_size = Memory::GetRamSizeReal();
-  u32 state_mem2_size = Memory::GetExRamSizeReal();
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u32 state_mem1_size = memory.GetRamSizeReal();
+  u32 state_mem2_size = memory.GetExRamSizeReal();
   p.Do(state_mem1_size);
   p.Do(state_mem2_size);
-  if (state_mem1_size != Memory::GetRamSizeReal() || state_mem2_size != Memory::GetExRamSizeReal())
+  if (state_mem1_size != memory.GetRamSizeReal() || state_mem2_size != memory.GetExRamSizeReal())
   {
     OSD::AddMessage(fmt::format("Memory size mismatch!\n"
                                 "Current | MEM1 {:08X} ({:3}MB)    MEM2 {:08X} ({:3}MB)\n"
                                 "State   | MEM1 {:08X} ({:3}MB)    MEM2 {:08X} ({:3}MB)",
-                                Memory::GetRamSizeReal(), Memory::GetRamSizeReal() / 0x100000U,
-                                Memory::GetExRamSizeReal(), Memory::GetExRamSizeReal() / 0x100000U,
+                                memory.GetRamSizeReal(), memory.GetRamSizeReal() / 0x100000U,
+                                memory.GetExRamSizeReal(), memory.GetExRamSizeReal() / 0x100000U,
                                 state_mem1_size, state_mem1_size / 0x100000U, state_mem2_size,
                                 state_mem2_size / 0x100000U));
     p.SetMeasureMode();
@@ -224,7 +227,7 @@ static void DoState(PointerWrap& p)
   p.DoMarker("PowerPC");
   // CoreTiming needs to be restored before restoring Hardware because
   // the controller code might need to schedule an event if the controller has changed.
-  CoreTiming::DoState(p);
+  system.GetCoreTiming().DoState(p);
   p.DoMarker("CoreTiming");
   HW::DoState(p);
   p.DoMarker("HW");

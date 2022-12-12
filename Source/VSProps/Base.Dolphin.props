@@ -12,6 +12,7 @@
       <!--For now, header-only libs don't have their own vcxproj/exports, so just supply their include paths to all Dolphin code-->
       <AdditionalIncludeDirectories>$(ExternalsDir)FFmpeg-bin\$(Platform)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)OpenAL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)expr\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)rangeset\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)Vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)VulkanMemoryAllocator\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -70,7 +71,7 @@
     </ClCompile>
     <!--Link Base:Application-->
     <Link Condition="'$(ConfigurationType)'=='Application'">
-      <AdditionalDependencies>avrt.lib;comctl32.lib;iphlpapi.lib;setupapi.lib;shlwapi.lib;winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>avrt.lib;comctl32.lib;iphlpapi.lib;ksuser.lib;setupapi.lib;shlwapi.lib;winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Platform)'=='x64'">opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <!--FFmpeg and the libs it pulls in-->
       <AdditionalLibraryDirectories>$(ExternalsDir)FFmpeg-bin\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

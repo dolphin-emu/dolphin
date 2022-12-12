@@ -104,7 +104,7 @@ public:
       layer->Set(Config::GFX_FAST_DEPTH_CALC, m_settings.fast_depth_calc);
       layer->Set(Config::GFX_ENABLE_PIXEL_LIGHTING, m_settings.enable_pixel_lighting);
       layer->Set(Config::GFX_WIDESCREEN_HACK, m_settings.widescreen_hack);
-      layer->Set(Config::GFX_ENHANCE_FORCE_FILTERING, m_settings.force_filtering);
+      layer->Set(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING, m_settings.force_texture_filtering);
       layer->Set(Config::GFX_ENHANCE_MAX_ANISOTROPY, m_settings.max_anisotropy);
       layer->Set(Config::GFX_ENHANCE_FORCE_TRUE_COLOR, m_settings.force_true_color);
       layer->Set(Config::GFX_ENHANCE_DISABLE_COPY_FILTER, m_settings.disable_copy_filter);

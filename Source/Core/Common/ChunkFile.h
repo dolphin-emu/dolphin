@@ -229,6 +229,22 @@ public:
     return current;
   }
 
+  // The reserved u32 is set to 0, and a pointer to it is returned.
+  // The caller needs to fill in the reserved u32 with the appropriate value later on, if they
+  // want a non-zero value there.
+  [[nodiscard]] u8* ReserveU32()
+  {
+    u32 temp = 0;
+    u8* previous_pointer = *m_ptr_current;
+    Do(temp);
+    return previous_pointer;
+  }
+
+  u32 GetOffsetFromPreviousPosition(u8* previous_pointer)
+  {
+    return static_cast<u32>((*m_ptr_current) - previous_pointer);
+  }
+
   void Do(Common::Flag& flag)
   {
     bool s = flag.IsSet();

@@ -18,6 +18,13 @@ public:
   }
 };
 
+struct DisassembleResult
+{
+  std::string text;
+  u32 entry_address;
+  u32 instruction_count;
+  u32 code_size;
+};
+
 std::unique_ptr<HostDisassembler> GetNewDisassembler(const std::string& arch);
-std::string DisassembleBlock(HostDisassembler* disasm, u32* address, u32* host_instructions_count,
-                             u32* code_size);
+DisassembleResult DisassembleBlock(HostDisassembler* disasm, u32 address);

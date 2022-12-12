@@ -21,6 +21,7 @@
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/System.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
@@ -178,14 +179,17 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     switch (bp.newvalue & 0xFF)
     {
     case 0x02:
+    {
       INCSTAT(g_stats.this_frame.num_draw_done);
       g_texture_cache->FlushEFBCopies();
       g_framebuffer_manager->InvalidatePeekCache(false);
       g_framebuffer_manager->RefreshPeekCache();
-      if (!Fifo::UseDeterministicGPUThread())
-        PixelEngine::SetFinish(cycles_into_future);  // may generate interrupt
+      auto& system = Core::System::GetInstance();
+      if (!system.GetFifo().UseDeterministicGPUThread())
+        system.GetPixelEngine().SetFinish(system, cycles_into_future);  // may generate interrupt
       DEBUG_LOG_FMT(VIDEO, "GXSetDrawDone SetPEFinish (value: {:#04X})", bp.newvalue & 0xFFFF);
       return;
+    }
 
     default:
       WARN_LOG_FMT(VIDEO, "GXSetDrawDone ??? (value {:#04X})", bp.newvalue & 0xFFFF);
@@ -193,23 +197,35 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     }
     return;
   case BPMEM_PE_TOKEN_ID:  // Pixel Engine Token ID
+  {
     INCSTAT(g_stats.this_frame.num_token);
     g_texture_cache->FlushEFBCopies();
     g_framebuffer_manager->InvalidatePeekCache(false);
     g_framebuffer_manager->RefreshPeekCache();
-    if (!Fifo::UseDeterministicGPUThread())
-      PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false, cycles_into_future);
+    auto& system = Core::System::GetInstance();
+    if (!system.GetFifo().UseDeterministicGPUThread())
+    {
+      system.GetPixelEngine().SetToken(system, static_cast<u16>(bp.newvalue & 0xFFFF), false,
+                                       cycles_into_future);
+    }
     DEBUG_LOG_FMT(VIDEO, "SetPEToken {:#06X}", bp.newvalue & 0xFFFF);
     return;
+  }
   case BPMEM_PE_TOKEN_INT_ID:  // Pixel Engine Interrupt Token ID
+  {
     INCSTAT(g_stats.this_frame.num_token_int);
     g_texture_cache->FlushEFBCopies();
     g_framebuffer_manager->InvalidatePeekCache(false);
     g_framebuffer_manager->RefreshPeekCache();
-    if (!Fifo::UseDeterministicGPUThread())
-      PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true, cycles_into_future);
+    auto& system = Core::System::GetInstance();
+    if (!system.GetFifo().UseDeterministicGPUThread())
+    {
+      system.GetPixelEngine().SetToken(system, static_cast<u16>(bp.newvalue & 0xFFFF), true,
+                                       cycles_into_future);
+    }
     DEBUG_LOG_FMT(VIDEO, "SetPEToken + INT {:#06X}", bp.newvalue & 0xFFFF);
     return;
+  }
 
   // ------------------------
   // EFB copy command. This copies a rectangle from the EFB to either RAM in a texture format or to
@@ -324,7 +340,8 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
       if (g_ActiveConfig.bImmediateXFB)
       {
         // below div two to convert from bytes to pixels - it expects width, not stride
-        g_renderer->Swap(destAddr, destStride / 2, destStride, height, CoreTiming::GetTicks());
+        g_renderer->Swap(destAddr, destStride / 2, destStride, height,
+                         Core::System::GetInstance().GetCoreTiming().GetTicks());
       }
       else
       {
@@ -355,7 +372,9 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     if (!SConfig::GetInstance().bWii)
       addr = addr & 0x01FFFFFF;
 
-    Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    memory.CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
 
     if (OpcodeDecoder::g_record_fifo_data)
       FifoRecorder::GetInstance().UseMemory(addr, tlutXferCount, MemoryUpdate::TMEM);
@@ -547,11 +566,15 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
         if (tmem_addr_even + bytes_read > TMEM_SIZE)
           bytes_read = TMEM_SIZE - tmem_addr_even;
 
-        Memory::CopyFromEmu(texMem + tmem_addr_even, src_addr, bytes_read);
+        auto& system = Core::System::GetInstance();
+        auto& memory = system.GetMemory();
+        memory.CopyFromEmu(texMem + tmem_addr_even, src_addr, bytes_read);
       }
       else  // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
       {
-        u8* src_ptr = Memory::GetPointer(src_addr);
+        auto& system = Core::System::GetInstance();
+        auto& memory = system.GetMemory();
+        u8* src_ptr = memory.GetPointer(src_addr);
 
         // AR and GB tiles are stored in separate TMEM banks => can't use a single memcpy for
         // everything
@@ -741,19 +764,21 @@ void LoadBPReg(u8 reg, u32 value, int cycles_into_future)
 
 void LoadBPRegPreprocess(u8 reg, u32 value, int cycles_into_future)
 {
+  auto& system = Core::System::GetInstance();
+
   // masking via BPMEM_BP_MASK could hypothetically be a problem
   u32 newval = value & 0xffffff;
   switch (reg)
   {
   case BPMEM_SETDRAWDONE:
     if ((newval & 0xff) == 0x02)
-      PixelEngine::SetFinish(cycles_into_future);
+      system.GetPixelEngine().SetFinish(system, cycles_into_future);
     break;
   case BPMEM_PE_TOKEN_ID:
-    PixelEngine::SetToken(newval & 0xffff, false, cycles_into_future);
+    system.GetPixelEngine().SetToken(system, newval & 0xffff, false, cycles_into_future);
     break;
   case BPMEM_PE_TOKEN_INT_ID:  // Pixel Engine Interrupt Token ID
-    PixelEngine::SetToken(newval & 0xffff, true, cycles_into_future);
+    system.GetPixelEngine().SetToken(system, newval & 0xffff, true, cycles_into_future);
     break;
   }
 }

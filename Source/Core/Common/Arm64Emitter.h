@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <bit>
 #include <cstring>
 #include <functional>
 #include <optional>
@@ -558,15 +559,15 @@ struct LogicalImm
     // pick the next sequence of ones. This ensures we get a complete element
     // that has not been cut-in-half due to rotation across the word boundary.
 
-    const size_t rotation = Common::CountTrailingZeros(value & (value + 1));
-    const u64 normalized = Common::RotateRight(value, rotation);
+    const int rotation = Common::CountTrailingZeros(value & (value + 1));
+    const u64 normalized = std::rotr(value, rotation);
 
-    const size_t element_size = Common::CountTrailingZeros(normalized & (normalized + 1));
-    const size_t ones = Common::CountTrailingZeros(~normalized);
+    const int element_size = Common::CountTrailingZeros(normalized & (normalized + 1));
+    const int ones = Common::CountTrailingZeros(~normalized);
 
     // Check the value is repeating; also ensures element size is a power of two.
 
-    if (Common::RotateRight(value, element_size) != value)
+    if (std::rotr(value, element_size) != value)
     {
       valid = false;
       return;
@@ -1009,12 +1010,20 @@ public:
   void MOVP2R(ARM64Reg Rd, P* ptr)
   {
     ASSERT_MSG(DYNA_REC, Is64Bit(Rd), "Can't store pointers in 32-bit registers");
-    MOVI2R(Rd, (uintptr_t)ptr);
+    MOVI2R(Rd, reinterpret_cast<uintptr_t>(ptr));
+  }
+  template <class P>
+  // Given an address, stores the page address into a register and returns the page-relative offset
+  s32 MOVPage2R(ARM64Reg Rd, P* ptr)
+  {
+    ASSERT_MSG(DYNA_REC, Is64Bit(Rd), "Can't store pointers in 32-bit registers");
+    MOVI2R(Rd, reinterpret_cast<uintptr_t>(ptr) & ~0xFFFULL);
+    return static_cast<s32>(reinterpret_cast<uintptr_t>(ptr) & 0xFFFULL);
   }
 
-  // Wrapper around AND x, y, imm etc.
-  // If you are sure the imm will work, preferably construct a LogicalImm directly instead,
-  // since that is constexpr and thus can be done at compile-time for constant values.
+  // Wrappers around bitwise operations with an immediate. If you're sure an imm can be encoded
+  // without a scratch register, preferably construct a LogicalImm directly instead,
+  // since that is constexpr and thus can be done at compile time for constant values.
   void ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
   void ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
   void TSTI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch)
@@ -1024,6 +1033,7 @@ public:
   void ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
   void EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
 
+  // Wrappers around arithmetic operations with an immediate.
   void ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
                        ARM64Reg scratch);
   void ADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
@@ -1120,6 +1130,13 @@ public:
   void FMOV(ARM64Reg Rd, ARM64Reg Rn, bool top = false);  // Also generalized move between GPR/FP
   void FRECPE(ARM64Reg Rd, ARM64Reg Rn);
   void FRSQRTE(ARM64Reg Rd, ARM64Reg Rn);
+
+  // Scalar - pairwise
+  void FADDP(ARM64Reg Rd, ARM64Reg Rn);
+  void FMAXP(ARM64Reg Rd, ARM64Reg Rn);
+  void FMINP(ARM64Reg Rd, ARM64Reg Rn);
+  void FMAXNMP(ARM64Reg Rd, ARM64Reg Rn);
+  void FMINNMP(ARM64Reg Rd, ARM64Reg Rn);
 
   // Scalar - 2 Source
   void ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
@@ -1238,6 +1255,9 @@ public:
   void TRN2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void ZIP2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 
+  // Extract
+  void EXT(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u32 index);
+
   // Scalar shift by immediate
   void SHL(ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void URSHR(ARM64Reg Rd, ARM64Reg Rn, u32 shift);
@@ -1284,6 +1304,7 @@ private:
   void EmitThreeSame(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitCopy(bool Q, u32 op, u32 imm5, u32 imm4, ARM64Reg Rd, ARM64Reg Rn);
   void EmitScalar2RegMisc(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
+  void EmitScalarPairwise(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
   void Emit2RegMisc(bool Q, bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
   void EmitLoadStoreSingleStructure(bool L, bool R, u32 opcode, bool S, u32 size, ARM64Reg Rt,
                                     ARM64Reg Rn);
@@ -1296,6 +1317,7 @@ private:
   void EmitCompare(bool M, bool S, u32 op, u32 opcode2, ARM64Reg Rn, ARM64Reg Rm);
   void EmitCondSelect(bool M, bool S, CCFlags cond, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitPermute(u32 size, u32 op, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void EmitExtract(u32 imm4, u32 op, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitScalarImm(bool M, bool S, u32 type, u32 imm5, ARM64Reg Rd, u32 imm8);
   void EmitShiftImm(bool Q, bool U, u32 imm, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
   void EmitScalarShiftImm(bool U, u32 imm, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);

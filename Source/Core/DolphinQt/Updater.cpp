@@ -29,21 +29,19 @@ Updater::Updater(QWidget* parent, std::string update_track, std::string hash_ove
 
 void Updater::run()
 {
-  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override);
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override,
+                                    AutoUpdateChecker::CheckType::Automatic);
 }
 
-bool Updater::CheckForUpdate()
+void Updater::CheckForUpdate()
 {
-  m_update_available = false;
-  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override);
-
-  return m_update_available;
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override,
+                                    AutoUpdateChecker::CheckType::Manual);
 }
 
 void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 {
   bool later = false;
-  m_update_available = true;
 
   std::optional<int> choice = RunOnObject(m_parent, [&] {
     QDialog* dialog = new QDialog(m_parent);

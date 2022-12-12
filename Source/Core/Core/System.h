@@ -12,6 +12,14 @@ namespace AudioInterface
 {
 class AudioInterfaceState;
 };
+namespace CommandProcessor
+{
+class CommandProcessorManager;
+}
+namespace CoreTiming
+{
+class CoreTimingManager;
+}
 namespace DSP
 {
 class DSPState;
@@ -28,9 +36,21 @@ namespace ExpansionInterface
 {
 class ExpansionInterfaceState;
 };
+namespace Fifo
+{
+class FifoManager;
+}
+namespace Memory
+{
+class MemoryManager;
+};
 namespace MemoryInterface
 {
 class MemoryInterfaceState;
+};
+namespace PixelEngine
+{
+class PixelEngineManager;
 };
 namespace SerialInterface
 {
@@ -76,11 +96,16 @@ public:
   void SetAudioDumpStarted(bool started);
 
   AudioInterface::AudioInterfaceState& GetAudioInterfaceState() const;
+  CoreTiming::CoreTimingManager& GetCoreTiming() const;
+  CommandProcessor::CommandProcessorManager& GetCommandProcessor() const;
   DSP::DSPState& GetDSPState() const;
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;
   ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;
+  Fifo::FifoManager& GetFifo() const;
+  Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
+  PixelEngine::PixelEngineManager& GetPixelEngine() const;
   SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;
   Sram& GetSRAM() const;
   VideoInterface::VideoInterfaceState& GetVideoInterfaceState() const;

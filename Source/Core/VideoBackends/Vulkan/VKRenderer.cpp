@@ -261,6 +261,9 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
 {
   StateTracker::GetInstance()->EndRenderPass();
 
+  if (!g_command_buffer_mgr->CheckLastPresentDone())
+    g_command_buffer_mgr->WaitForWorkerThreadIdle();
+
   // Handle host window resizes.
   CheckForSurfaceChange();
   CheckForSurfaceResize();
@@ -310,13 +313,15 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
     }
     else
     {
-      ERROR_LOG_FMT(VIDEO, "Unknown present error {:#010X}, please report.", res);
+      ERROR_LOG_FMT(VIDEO, "Unknown present error {:#010X} {}, please report.",
+                    static_cast<u32>(res), VkResultToString(res));
       m_swap_chain->RecreateSwapChain();
     }
 
     res = m_swap_chain->AcquireNextImage();
     if (res != VK_SUCCESS)
-      PanicAlertFmt("Failed to grab image from swap chain: {:#010X}", res);
+      PanicAlertFmt("Failed to grab image from swap chain: {:#010X} {}", static_cast<u32>(res),
+                    VkResultToString(res));
   }
 
   // Transition from undefined (or present src, but it can be substituted) to

@@ -24,6 +24,7 @@
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Profiler.h"
+#include "Core/System.h"
 
 using namespace Arm64Gen;
 
@@ -52,7 +53,10 @@ void JitArm64::Init()
   AllocCodeSpace(CODE_SIZE + child_code_size);
   AddChildCodeSpace(&m_far_code, child_code_size);
 
-  jo.fastmem_arena = m_fastmem_enabled && Memory::InitFastmemArena();
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  jo.fastmem_arena = m_fastmem_enabled && memory.InitFastmemArena();
   jo.enableBlocklink = true;
   jo.optimizeGatherPipe = true;
   UpdateMemoryAndExceptionOptions();
@@ -120,7 +124,7 @@ bool JitArm64::HandleStackFault()
   Common::UnWriteProtectMemory(m_stack_base + GUARD_OFFSET, GUARD_SIZE);
 #endif
   GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
-  CoreTiming::ForceExceptionCheck(0);
+  Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(0);
   m_cleanup_after_stackfault = true;
 
   return true;
@@ -153,7 +157,9 @@ void JitArm64::ResetFreeMemoryRanges()
 
 void JitArm64::Shutdown()
 {
-  Memory::ShutdownFastmemArena();
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.ShutdownFastmemArena();
   FreeCodeSpace();
   blocks.Shutdown();
   FreeStack();
@@ -344,9 +350,8 @@ void JitArm64::IntializeSpeculativeConstants()
         STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
         MOVP2R(ARM64Reg::X8, &JitInterface::CompileExceptionCheck);
         MOVI2R(ARM64Reg::W0, static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
-        // Write dispatcher_no_check to LR for tail call
-        MOVP2R(ARM64Reg::X30, dispatcher_no_check);
-        BR(ARM64Reg::X8);
+        BLR(ARM64Reg::X8);
+        B(dispatcher_no_check);
         SwitchToNearCode();
       }
 
@@ -838,11 +843,10 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(fail);
       MOVI2R(DISPATCHER_PC, js.blockStart);
       STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-      MOVP2R(ARM64Reg::X8, &JitInterface::CompileExceptionCheck);
       MOVI2R(ARM64Reg::W0, static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
-      // Write dispatcher_no_check to LR for tail call
-      MOVP2R(ARM64Reg::X30, dispatcher_no_check);
-      BR(ARM64Reg::X8);
+      MOVP2R(ARM64Reg::X1, &JitInterface::CompileExceptionCheck);
+      BLR(ARM64Reg::X1);
+      B(dispatcher_no_check);
       SwitchToNearCode();
       SetJumpTarget(no_fail);
       js.assumeNoPairedQuantize = true;
@@ -915,8 +919,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(exception);
       LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(msr));
       TBZ(ARM64Reg::W30, 15, done_here);  // MSR.EE
-      MOVP2R(ARM64Reg::X30, &ProcessorInterface::m_InterruptCause);
-      LDR(IndexType::Unsigned, ARM64Reg::W30, ARM64Reg::X30, 0);
+      LDR(IndexType::Unsigned, ARM64Reg::W30, ARM64Reg::X30,
+          MOVPage2R(ARM64Reg::X30, &ProcessorInterface::m_InterruptCause));
       constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
                                  ProcessorInterface::INT_CAUSE_PE_TOKEN |
                                  ProcessorInterface::INT_CAUSE_PE_FINISH;
@@ -951,8 +955,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(exception);
       LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
       TBZ(WA, 15, done_here);  // MSR.EE
-      MOVP2R(XA, &ProcessorInterface::m_InterruptCause);
-      LDR(IndexType::Unsigned, WA, XA, 0);
+      LDR(IndexType::Unsigned, WA, XA, MOVPage2R(XA, &ProcessorInterface::m_InterruptCause));
       constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
                                  ProcessorInterface::INT_CAUSE_PE_TOKEN |
                                  ProcessorInterface::INT_CAUSE_PE_FINISH;

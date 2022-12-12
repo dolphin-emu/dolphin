@@ -181,7 +181,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
       setDropdownSelection(mBinding.dropdownCompressionLevel, mCompressionLevel,
               savedInstanceState.getInt(KEY_COMPRESSION_LEVEL));
 
-      mBinding.checkboxRemoveJunkData.setChecked(
+      mBinding.switchRemoveJunkData.setChecked(
               savedInstanceState.getBoolean(KEY_REMOVE_JUNK_DATA));
     }
   }
@@ -194,7 +194,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
     outState.putInt(KEY_COMPRESSION, mCompression.getPosition());
     outState.putInt(KEY_COMPRESSION_LEVEL, mCompressionLevel.getPosition());
 
-    outState.putBoolean(KEY_REMOVE_JUNK_DATA, mBinding.checkboxRemoveJunkData.isChecked());
+    outState.putBoolean(KEY_REMOVE_JUNK_DATA, mBinding.switchRemoveJunkData.isChecked());
   }
 
   private void setDropdownSelection(MaterialAutoCompleteTextView dropdown,
@@ -365,15 +365,15 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
     boolean scrubbingAllowed = mFormat.getValue(requireContext()) != BLOB_TYPE_RVZ &&
             !gameFile.isDatelDisc();
 
-    mBinding.checkboxRemoveJunkData.setEnabled(scrubbingAllowed);
+    mBinding.switchRemoveJunkData.setEnabled(scrubbingAllowed);
     if (!scrubbingAllowed)
-      mBinding.checkboxRemoveJunkData.setChecked(false);
+      mBinding.switchRemoveJunkData.setChecked(false);
   }
 
   @Override
   public void onClick(View view)
   {
-    boolean scrub = mBinding.checkboxRemoveJunkData.isChecked();
+    boolean scrub = mBinding.switchRemoveJunkData.isChecked();
     int format = mFormat.getValue(requireContext());
 
     Runnable action = this::showSavePrompt;
@@ -478,7 +478,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
       boolean success = NativeLibrary.ConvertDiscImage(gameFile.getPath(), outPath,
               gameFile.getPlatform(), mFormat.getValue(context), mBlockSize.getValueOr(context, 0),
               mCompression.getValueOr(context, 0), mCompressionLevel.getValueOr(context, 0),
-              mBinding.checkboxRemoveJunkData.isChecked(), (text, completion) ->
+              mBinding.switchRemoveJunkData.isChecked(), (text, completion) ->
               {
                 requireActivity().runOnUiThread(() ->
                 {

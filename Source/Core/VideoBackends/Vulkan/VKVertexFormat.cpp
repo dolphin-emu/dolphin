@@ -66,14 +66,14 @@ void VertexFormat::MapAttributes()
 
   if (m_decl.position.enable)
     AddAttribute(
-        SHADER_POSITION_ATTRIB, 0,
+        ShaderAttrib::Position, 0,
         VarToVkFormat(m_decl.position.type, m_decl.position.components, m_decl.position.integer),
         m_decl.position.offset);
 
   for (uint32_t i = 0; i < 3; i++)
   {
     if (m_decl.normals[i].enable)
-      AddAttribute(SHADER_NORMAL_ATTRIB + i, 0,
+      AddAttribute(ShaderAttrib::Normal + i, 0,
                    VarToVkFormat(m_decl.normals[i].type, m_decl.normals[i].components,
                                  m_decl.normals[i].integer),
                    m_decl.normals[i].offset);
@@ -82,7 +82,7 @@ void VertexFormat::MapAttributes()
   for (uint32_t i = 0; i < 2; i++)
   {
     if (m_decl.colors[i].enable)
-      AddAttribute(SHADER_COLOR0_ATTRIB + i, 0,
+      AddAttribute(ShaderAttrib::Color0 + i, 0,
                    VarToVkFormat(m_decl.colors[i].type, m_decl.colors[i].components,
                                  m_decl.colors[i].integer),
                    m_decl.colors[i].offset);
@@ -91,14 +91,14 @@ void VertexFormat::MapAttributes()
   for (uint32_t i = 0; i < 8; i++)
   {
     if (m_decl.texcoords[i].enable)
-      AddAttribute(SHADER_TEXTURE0_ATTRIB + i, 0,
+      AddAttribute(ShaderAttrib::TexCoord0 + i, 0,
                    VarToVkFormat(m_decl.texcoords[i].type, m_decl.texcoords[i].components,
                                  m_decl.texcoords[i].integer),
                    m_decl.texcoords[i].offset);
   }
 
   if (m_decl.posmtx.enable)
-    AddAttribute(SHADER_POSMTX_ATTRIB, 0,
+    AddAttribute(ShaderAttrib::PositionMatrix, 0,
                  VarToVkFormat(m_decl.posmtx.type, m_decl.posmtx.components, m_decl.posmtx.integer),
                  m_decl.posmtx.offset);
 }
@@ -118,12 +118,12 @@ void VertexFormat::SetupInputState()
   m_input_state_info.pVertexAttributeDescriptions = m_attribute_descriptions.data();
 }
 
-void VertexFormat::AddAttribute(uint32_t location, uint32_t binding, VkFormat format,
+void VertexFormat::AddAttribute(ShaderAttrib location, uint32_t binding, VkFormat format,
                                 uint32_t offset)
 {
   ASSERT(m_num_attributes < MAX_VERTEX_ATTRIBUTES);
 
-  m_attribute_descriptions[m_num_attributes].location = location;
+  m_attribute_descriptions[m_num_attributes].location = static_cast<uint32_t>(location);
   m_attribute_descriptions[m_num_attributes].binding = binding;
   m_attribute_descriptions[m_num_attributes].format = format;
   m_attribute_descriptions[m_num_attributes].offset = offset;

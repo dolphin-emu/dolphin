@@ -20,8 +20,9 @@ public class OnlineUpdateRegionSelectDialogFragment extends DialogFragment
   @Override
   public Dialog onCreateDialog(@Nullable Bundle savedInstanceState)
   {
-    String[] items = {getString(R.string.europe), getString(
-            R.string.japan), getString(R.string.korea), getString(R.string.united_states)};
+    String[] items =
+            {getString(R.string.country_europe), getString(R.string.country_japan), getString(
+                    R.string.country_korea), getString(R.string.country_usa)};
     int checkedItem = -1;
 
     return new MaterialAlertDialogBuilder(requireContext())

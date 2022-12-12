@@ -2,10 +2,13 @@
 
 package org.dolphinemu.dolphinemu.adapters;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
@@ -27,14 +30,16 @@ public final class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameView
         View.OnLongClickListener
 {
   private List<GameFile> mGameFiles;
+  private Activity mActivity;
 
   /**
    * Initializes the adapter's observer, which watches for changes to the dataset. The adapter will
    * display no data until swapDataSet is called.
    */
-  public GameAdapter()
+  public GameAdapter(Activity activity)
   {
     mGameFiles = new ArrayList<>();
+    mActivity = activity;
   }
 
   /**
@@ -70,7 +75,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameView
   {
     Context context = holder.itemView.getContext();
     GameFile gameFile = mGameFiles.get(position);
-    GlideUtils.loadGameCover(holder, holder.binding.imageGameScreen, gameFile);
+    GlideUtils.loadGameCover(holder, holder.binding.imageGameScreen, gameFile, mActivity);
 
     if (GameFileCacheManager.findSecondDisc(gameFile) != null)
     {
@@ -83,6 +88,13 @@ public final class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameView
     }
 
     holder.gameFile = gameFile;
+
+    Animation animateIn = AnimationUtils.loadAnimation(context, R.anim.anim_card_game_in);
+    animateIn.setFillAfter(true);
+    Animation animateOut = AnimationUtils.loadAnimation(context, R.anim.anim_card_game_out);
+    animateOut.setFillAfter(true);
+    holder.binding.getRoot().setOnFocusChangeListener((v, hasFocus) ->
+            holder.binding.cardGameArt.startAnimation(hasFocus ? animateIn : animateOut));
   }
 
   public static class GameViewHolder extends RecyclerView.ViewHolder

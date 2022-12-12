@@ -32,11 +32,11 @@
     <ClInclude Include="include/fmt/core.h" />
     <ClInclude Include="include/fmt/format-inl.h" />
     <ClInclude Include="include/fmt/format.h" />
-    <ClInclude Include="include/fmt/locale.h" />
     <ClInclude Include="include/fmt/os.h" />
     <ClInclude Include="include/fmt/ostream.h" />
     <ClInclude Include="include/fmt/printf.h" />
     <ClInclude Include="include/fmt/ranges.h" />
+    <ClInclude Include="include/fmt/std.h" />
     <ClInclude Include="include/fmt/xchar.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

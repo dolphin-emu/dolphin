@@ -8,6 +8,8 @@
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/NativeVertexFormat.h"
 
+enum class ShaderAttrib : u32;
+
 namespace Vulkan
 {
 class VertexFormat : public ::NativeVertexFormat
@@ -23,7 +25,7 @@ public:
   void SetupInputState();
 
 private:
-  void AddAttribute(uint32_t location, uint32_t binding, VkFormat format, uint32_t offset);
+  void AddAttribute(ShaderAttrib location, uint32_t binding, VkFormat format, uint32_t offset);
 
   VkVertexInputBindingDescription m_binding_description = {};
 

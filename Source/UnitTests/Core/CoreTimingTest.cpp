@@ -14,6 +14,7 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "UICommon/UICommon.h"
 
 // Numbers are chosen randomly to make sure the correct one is given.
@@ -25,7 +26,7 @@ static u64 s_expected_callback = 0;
 static s64 s_lateness = 0;
 
 template <unsigned int IDX>
-void CallbackTemplate(u64 userdata, s64 lateness)
+void CallbackTemplate(Core::System& system, u64 userdata, s64 lateness)
 {
   static_assert(IDX < CB_IDS.size(), "IDX out of range");
   s_callbacks_ran_flags.set(IDX);
@@ -48,7 +49,9 @@ public:
     Config::Init();
     SConfig::Init();
     PowerPC::Init(PowerPC::CPUCore::Interpreter);
-    CoreTiming::Init();
+    auto& system = Core::System::GetInstance();
+    auto& core_timing = system.GetCoreTiming();
+    core_timing.Init();
   }
   ~ScopeInit()
   {
@@ -56,7 +59,9 @@ public:
     {
       return;
     }
-    CoreTiming::Shutdown();
+    auto& system = Core::System::GetInstance();
+    auto& core_timing = system.GetCoreTiming();
+    core_timing.Shutdown();
     PowerPC::Shutdown();
     SConfig::Shutdown();
     Config::Shutdown();
@@ -77,7 +82,9 @@ static void AdvanceAndCheck(u32 idx, int downcount, int expected_lateness = 0,
   s_lateness = expected_lateness;
 
   PowerPC::ppcState.downcount = cpu_downcount;  // Pretend we executed X cycles of instructions.
-  CoreTiming::Advance();
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  core_timing.Advance();
 
   EXPECT_EQ(decltype(s_callbacks_ran_flags)().set(idx), s_callbacks_ran_flags);
   EXPECT_EQ(downcount, PowerPC::ppcState.downcount);
@@ -88,25 +95,28 @@ TEST(CoreTiming, BasicOrder)
   ScopeInit guard;
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  CoreTiming::EventType* cb_a = CoreTiming::RegisterEvent("callbackA", CallbackTemplate<0>);
-  CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", CallbackTemplate<1>);
-  CoreTiming::EventType* cb_c = CoreTiming::RegisterEvent("callbackC", CallbackTemplate<2>);
-  CoreTiming::EventType* cb_d = CoreTiming::RegisterEvent("callbackD", CallbackTemplate<3>);
-  CoreTiming::EventType* cb_e = CoreTiming::RegisterEvent("callbackE", CallbackTemplate<4>);
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
+  CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
+  CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);
+  CoreTiming::EventType* cb_c = core_timing.RegisterEvent("callbackC", CallbackTemplate<2>);
+  CoreTiming::EventType* cb_d = core_timing.RegisterEvent("callbackD", CallbackTemplate<3>);
+  CoreTiming::EventType* cb_e = core_timing.RegisterEvent("callbackE", CallbackTemplate<4>);
 
   // Enter slice 0
-  CoreTiming::Advance();
+  core_timing.Advance();
 
   // D -> B -> C -> A -> E
-  CoreTiming::ScheduleEvent(1000, cb_a, CB_IDS[0]);
+  core_timing.ScheduleEvent(1000, cb_a, CB_IDS[0]);
   EXPECT_EQ(1000, PowerPC::ppcState.downcount);
-  CoreTiming::ScheduleEvent(500, cb_b, CB_IDS[1]);
+  core_timing.ScheduleEvent(500, cb_b, CB_IDS[1]);
   EXPECT_EQ(500, PowerPC::ppcState.downcount);
-  CoreTiming::ScheduleEvent(800, cb_c, CB_IDS[2]);
+  core_timing.ScheduleEvent(800, cb_c, CB_IDS[2]);
   EXPECT_EQ(500, PowerPC::ppcState.downcount);
-  CoreTiming::ScheduleEvent(100, cb_d, CB_IDS[3]);
+  core_timing.ScheduleEvent(100, cb_d, CB_IDS[3]);
   EXPECT_EQ(100, PowerPC::ppcState.downcount);
-  CoreTiming::ScheduleEvent(1200, cb_e, CB_IDS[4]);
+  core_timing.ScheduleEvent(1200, cb_e, CB_IDS[4]);
   EXPECT_EQ(100, PowerPC::ppcState.downcount);
 
   AdvanceAndCheck(3, 400);
@@ -121,7 +131,7 @@ namespace SharedSlotTest
 static unsigned int s_counter = 0;
 
 template <unsigned int ID>
-void FifoCallback(u64 userdata, s64 lateness)
+void FifoCallback(Core::System& system, u64 userdata, s64 lateness)
 {
   static_assert(ID < CB_IDS.size(), "ID out of range");
   s_callbacks_ran_flags.set(ID);
@@ -139,27 +149,30 @@ TEST(CoreTiming, SharedSlot)
   ScopeInit guard;
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  CoreTiming::EventType* cb_a = CoreTiming::RegisterEvent("callbackA", FifoCallback<0>);
-  CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", FifoCallback<1>);
-  CoreTiming::EventType* cb_c = CoreTiming::RegisterEvent("callbackC", FifoCallback<2>);
-  CoreTiming::EventType* cb_d = CoreTiming::RegisterEvent("callbackD", FifoCallback<3>);
-  CoreTiming::EventType* cb_e = CoreTiming::RegisterEvent("callbackE", FifoCallback<4>);
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
 
-  CoreTiming::ScheduleEvent(1000, cb_a, CB_IDS[0]);
-  CoreTiming::ScheduleEvent(1000, cb_b, CB_IDS[1]);
-  CoreTiming::ScheduleEvent(1000, cb_c, CB_IDS[2]);
-  CoreTiming::ScheduleEvent(1000, cb_d, CB_IDS[3]);
-  CoreTiming::ScheduleEvent(1000, cb_e, CB_IDS[4]);
+  CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", FifoCallback<0>);
+  CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", FifoCallback<1>);
+  CoreTiming::EventType* cb_c = core_timing.RegisterEvent("callbackC", FifoCallback<2>);
+  CoreTiming::EventType* cb_d = core_timing.RegisterEvent("callbackD", FifoCallback<3>);
+  CoreTiming::EventType* cb_e = core_timing.RegisterEvent("callbackE", FifoCallback<4>);
+
+  core_timing.ScheduleEvent(1000, cb_a, CB_IDS[0]);
+  core_timing.ScheduleEvent(1000, cb_b, CB_IDS[1]);
+  core_timing.ScheduleEvent(1000, cb_c, CB_IDS[2]);
+  core_timing.ScheduleEvent(1000, cb_d, CB_IDS[3]);
+  core_timing.ScheduleEvent(1000, cb_e, CB_IDS[4]);
 
   // Enter slice 0
-  CoreTiming::Advance();
+  core_timing.Advance();
   EXPECT_EQ(1000, PowerPC::ppcState.downcount);
 
   s_callbacks_ran_flags = 0;
   s_counter = 0;
   s_lateness = 0;
   PowerPC::ppcState.downcount = 0;
-  CoreTiming::Advance();
+  core_timing.Advance();
   EXPECT_EQ(MAX_SLICE_LENGTH, PowerPC::ppcState.downcount);
   EXPECT_EQ(0x1FULL, s_callbacks_ran_flags.to_ullong());
 }
@@ -169,14 +182,17 @@ TEST(CoreTiming, PredictableLateness)
   ScopeInit guard;
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  CoreTiming::EventType* cb_a = CoreTiming::RegisterEvent("callbackA", CallbackTemplate<0>);
-  CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", CallbackTemplate<1>);
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
+  CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
+  CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);
 
   // Enter slice 0
-  CoreTiming::Advance();
+  core_timing.Advance();
 
-  CoreTiming::ScheduleEvent(100, cb_a, CB_IDS[0]);
-  CoreTiming::ScheduleEvent(200, cb_b, CB_IDS[1]);
+  core_timing.ScheduleEvent(100, cb_a, CB_IDS[0]);
+  core_timing.ScheduleEvent(200, cb_b, CB_IDS[1]);
 
   AdvanceAndCheck(0, 90, 10, -10);  // (100 - 10)
   AdvanceAndCheck(1, MAX_SLICE_LENGTH, 50, -50);
@@ -186,14 +202,17 @@ namespace ChainSchedulingTest
 {
 static int s_reschedules = 0;
 
-static void RescheduleCallback(u64 userdata, s64 lateness)
+static void RescheduleCallback(Core::System& system, u64 userdata, s64 lateness)
 {
   --s_reschedules;
   EXPECT_TRUE(s_reschedules >= 0);
   EXPECT_EQ(s_lateness, lateness);
 
   if (s_reschedules > 0)
-    CoreTiming::ScheduleEvent(1000, reinterpret_cast<CoreTiming::EventType*>(userdata), userdata);
+  {
+    system.GetCoreTiming().ScheduleEvent(1000, reinterpret_cast<CoreTiming::EventType*>(userdata),
+                                         userdata);
+  }
 }
 }  // namespace ChainSchedulingTest
 
@@ -204,19 +223,22 @@ TEST(CoreTiming, ChainScheduling)
   ScopeInit guard;
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  CoreTiming::EventType* cb_a = CoreTiming::RegisterEvent("callbackA", CallbackTemplate<0>);
-  CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", CallbackTemplate<1>);
-  CoreTiming::EventType* cb_c = CoreTiming::RegisterEvent("callbackC", CallbackTemplate<2>);
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
+  CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
+  CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);
+  CoreTiming::EventType* cb_c = core_timing.RegisterEvent("callbackC", CallbackTemplate<2>);
   CoreTiming::EventType* cb_rs =
-      CoreTiming::RegisterEvent("callbackReschedule", RescheduleCallback);
+      core_timing.RegisterEvent("callbackReschedule", RescheduleCallback);
 
   // Enter slice 0
-  CoreTiming::Advance();
+  core_timing.Advance();
 
-  CoreTiming::ScheduleEvent(800, cb_a, CB_IDS[0]);
-  CoreTiming::ScheduleEvent(1000, cb_b, CB_IDS[1]);
-  CoreTiming::ScheduleEvent(2200, cb_c, CB_IDS[2]);
-  CoreTiming::ScheduleEvent(1000, cb_rs, reinterpret_cast<u64>(cb_rs));
+  core_timing.ScheduleEvent(800, cb_a, CB_IDS[0]);
+  core_timing.ScheduleEvent(1000, cb_b, CB_IDS[1]);
+  core_timing.ScheduleEvent(2200, cb_c, CB_IDS[2]);
+  core_timing.ScheduleEvent(1000, cb_rs, reinterpret_cast<u64>(cb_rs));
   EXPECT_EQ(800, PowerPC::ppcState.downcount);
 
   s_reschedules = 3;
@@ -225,14 +247,14 @@ TEST(CoreTiming, ChainScheduling)
   EXPECT_EQ(2, s_reschedules);
 
   PowerPC::ppcState.downcount = 0;
-  CoreTiming::Advance();  // cb_rs
+  core_timing.Advance();  // cb_rs
   EXPECT_EQ(1, s_reschedules);
   EXPECT_EQ(200, PowerPC::ppcState.downcount);
 
   AdvanceAndCheck(2, 800);  // cb_c
 
   PowerPC::ppcState.downcount = 0;
-  CoreTiming::Advance();  // cb_rs
+  core_timing.Advance();  // cb_rs
   EXPECT_EQ(0, s_reschedules);
   EXPECT_EQ(MAX_SLICE_LENGTH, PowerPC::ppcState.downcount);
 }
@@ -241,12 +263,12 @@ namespace ScheduleIntoPastTest
 {
 static CoreTiming::EventType* s_cb_next = nullptr;
 
-static void ChainCallback(u64 userdata, s64 lateness)
+static void ChainCallback(Core::System& system, u64 userdata, s64 lateness)
 {
   EXPECT_EQ(CB_IDS[0] + 1, userdata);
   EXPECT_EQ(0, lateness);
 
-  CoreTiming::ScheduleEvent(-1000, s_cb_next, userdata - 1);
+  system.GetCoreTiming().ScheduleEvent(-1000, s_cb_next, userdata - 1);
 }
 }  // namespace ScheduleIntoPastTest
 
@@ -260,14 +282,17 @@ TEST(CoreTiming, ScheduleIntoPast)
   ScopeInit guard;
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  s_cb_next = CoreTiming::RegisterEvent("callbackA", CallbackTemplate<0>);
-  CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", CallbackTemplate<1>);
-  CoreTiming::EventType* cb_chain = CoreTiming::RegisterEvent("callbackChain", ChainCallback);
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
+  s_cb_next = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
+  CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);
+  CoreTiming::EventType* cb_chain = core_timing.RegisterEvent("callbackChain", ChainCallback);
 
   // Enter slice 0
-  CoreTiming::Advance();
+  core_timing.Advance();
 
-  CoreTiming::ScheduleEvent(1000, cb_chain, CB_IDS[0] + 1);
+  core_timing.ScheduleEvent(1000, cb_chain, CB_IDS[0] + 1);
   EXPECT_EQ(1000, PowerPC::ppcState.downcount);
 
   AdvanceAndCheck(0, MAX_SLICE_LENGTH, 1000);  // Run cb_chain into late cb_a
@@ -279,16 +304,17 @@ TEST(CoreTiming, ScheduleIntoPast)
   // the stale value, i.e. effectively half-way through the previous slice.
   // NOTE: We're only testing that the scheduler doesn't break, not whether this makes sense.
   Core::UndeclareAsCPUThread();
-  CoreTiming::g.global_timer -= 1000;
-  CoreTiming::ScheduleEvent(0, cb_b, CB_IDS[1], CoreTiming::FromThread::NON_CPU);
-  CoreTiming::g.global_timer += 1000;
+  auto& core_timing_globals = core_timing.GetGlobals();
+  core_timing_globals.global_timer -= 1000;
+  core_timing.ScheduleEvent(0, cb_b, CB_IDS[1], CoreTiming::FromThread::NON_CPU);
+  core_timing_globals.global_timer += 1000;
   Core::DeclareAsCPUThread();
   AdvanceAndCheck(1, MAX_SLICE_LENGTH, MAX_SLICE_LENGTH + 1000);
 
   // Schedule directly into the past from the CPU.
   // This shouldn't happen in practice, but it's best if we don't mess up the slice length and
   // downcount if we do.
-  CoreTiming::ScheduleEvent(-1000, s_cb_next, CB_IDS[0]);
+  core_timing.ScheduleEvent(-1000, s_cb_next, CB_IDS[0]);
   EXPECT_EQ(0, PowerPC::ppcState.downcount);
   AdvanceAndCheck(0, MAX_SLICE_LENGTH, 1000);
 }
@@ -298,11 +324,14 @@ TEST(CoreTiming, Overclocking)
   ScopeInit guard;
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  CoreTiming::EventType* cb_a = CoreTiming::RegisterEvent("callbackA", CallbackTemplate<0>);
-  CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", CallbackTemplate<1>);
-  CoreTiming::EventType* cb_c = CoreTiming::RegisterEvent("callbackC", CallbackTemplate<2>);
-  CoreTiming::EventType* cb_d = CoreTiming::RegisterEvent("callbackD", CallbackTemplate<3>);
-  CoreTiming::EventType* cb_e = CoreTiming::RegisterEvent("callbackE", CallbackTemplate<4>);
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
+  CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
+  CoreTiming::EventType* cb_b = core_timing.RegisterEvent("callbackB", CallbackTemplate<1>);
+  CoreTiming::EventType* cb_c = core_timing.RegisterEvent("callbackC", CallbackTemplate<2>);
+  CoreTiming::EventType* cb_d = core_timing.RegisterEvent("callbackD", CallbackTemplate<3>);
+  CoreTiming::EventType* cb_e = core_timing.RegisterEvent("callbackE", CallbackTemplate<4>);
 
   // Overclock
   Config::SetCurrent(Config::MAIN_OVERCLOCK_ENABLE, true);
@@ -310,13 +339,13 @@ TEST(CoreTiming, Overclocking)
 
   // Enter slice 0
   // Updates s_last_OC_factor.
-  CoreTiming::Advance();
+  core_timing.Advance();
 
-  CoreTiming::ScheduleEvent(100, cb_a, CB_IDS[0]);
-  CoreTiming::ScheduleEvent(200, cb_b, CB_IDS[1]);
-  CoreTiming::ScheduleEvent(400, cb_c, CB_IDS[2]);
-  CoreTiming::ScheduleEvent(800, cb_d, CB_IDS[3]);
-  CoreTiming::ScheduleEvent(1600, cb_e, CB_IDS[4]);
+  core_timing.ScheduleEvent(100, cb_a, CB_IDS[0]);
+  core_timing.ScheduleEvent(200, cb_b, CB_IDS[1]);
+  core_timing.ScheduleEvent(400, cb_c, CB_IDS[2]);
+  core_timing.ScheduleEvent(800, cb_d, CB_IDS[3]);
+  core_timing.ScheduleEvent(1600, cb_e, CB_IDS[4]);
   EXPECT_EQ(200, PowerPC::ppcState.downcount);
 
   AdvanceAndCheck(0, 200);   // (200 - 100) * 2
@@ -327,13 +356,13 @@ TEST(CoreTiming, Overclocking)
 
   // Underclock
   Config::SetCurrent(Config::MAIN_OVERCLOCK, 0.5f);
-  CoreTiming::Advance();
+  core_timing.Advance();
 
-  CoreTiming::ScheduleEvent(100, cb_a, CB_IDS[0]);
-  CoreTiming::ScheduleEvent(200, cb_b, CB_IDS[1]);
-  CoreTiming::ScheduleEvent(400, cb_c, CB_IDS[2]);
-  CoreTiming::ScheduleEvent(800, cb_d, CB_IDS[3]);
-  CoreTiming::ScheduleEvent(1600, cb_e, CB_IDS[4]);
+  core_timing.ScheduleEvent(100, cb_a, CB_IDS[0]);
+  core_timing.ScheduleEvent(200, cb_b, CB_IDS[1]);
+  core_timing.ScheduleEvent(400, cb_c, CB_IDS[2]);
+  core_timing.ScheduleEvent(800, cb_d, CB_IDS[3]);
+  core_timing.ScheduleEvent(1600, cb_e, CB_IDS[4]);
   EXPECT_EQ(50, PowerPC::ppcState.downcount);
 
   AdvanceAndCheck(0, 50);   // (200 - 100) / 2
@@ -344,13 +373,13 @@ TEST(CoreTiming, Overclocking)
 
   // Try switching the clock mid-emulation
   Config::SetCurrent(Config::MAIN_OVERCLOCK, 1.0f);
-  CoreTiming::Advance();
+  core_timing.Advance();
 
-  CoreTiming::ScheduleEvent(100, cb_a, CB_IDS[0]);
-  CoreTiming::ScheduleEvent(200, cb_b, CB_IDS[1]);
-  CoreTiming::ScheduleEvent(400, cb_c, CB_IDS[2]);
-  CoreTiming::ScheduleEvent(800, cb_d, CB_IDS[3]);
-  CoreTiming::ScheduleEvent(1600, cb_e, CB_IDS[4]);
+  core_timing.ScheduleEvent(100, cb_a, CB_IDS[0]);
+  core_timing.ScheduleEvent(200, cb_b, CB_IDS[1]);
+  core_timing.ScheduleEvent(400, cb_c, CB_IDS[2]);
+  core_timing.ScheduleEvent(800, cb_d, CB_IDS[3]);
+  core_timing.ScheduleEvent(1600, cb_e, CB_IDS[4]);
   EXPECT_EQ(100, PowerPC::ppcState.downcount);
 
   AdvanceAndCheck(0, 100);  // (200 - 100)

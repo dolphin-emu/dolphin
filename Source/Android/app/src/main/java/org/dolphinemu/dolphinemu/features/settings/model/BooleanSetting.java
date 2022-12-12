@@ -81,6 +81,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
 
   MAIN_SHOW_GAME_TITLES(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "ShowGameTitles", true),
+  MAIN_USE_BLACK_BACKGROUNDS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "UseBlackBackgrounds", false),
   MAIN_JOYSTICK_REL_CENTER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "JoystickRelCenter", true),
   MAIN_PHONE_RUMBLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
@@ -173,6 +175,9 @@ public enum BooleanSetting implements AbstractBooleanSetting
   GFX_WIDESCREEN_HACK(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "wideScreenHack", false),
   GFX_CROP(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "Crop", false),
   GFX_SHOW_FPS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "ShowFPS", false),
+  GFX_SHOW_VPS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "ShowVPS", false),
+  GFX_SHOW_SPEED(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "ShowSpeed", false),
+  GFX_SHOW_SPEED_COLORS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "ShowSpeedColors", true),
   GFX_OVERLAY_STATS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "OverlayStats", false),
   GFX_DUMP_TEXTURES(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "DumpTextures", false),
   GFX_DUMP_MIP_TEXTURES(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "DumpMipTextures", false),

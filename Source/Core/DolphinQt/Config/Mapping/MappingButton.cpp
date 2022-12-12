@@ -75,14 +75,6 @@ bool MappingButton::IsInput() const
 MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool indicator)
     : ElidedButton(RefToDisplayString(ref)), m_parent(parent), m_reference(ref)
 {
-  // Force all mapping buttons to stay at a minimal height.
-  setFixedHeight(minimumSizeHint().height());
-
-  // Make sure that long entries don't throw our layout out of whack.
-  setFixedWidth(WIDGET_MAX_WIDTH);
-
-  setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-
   if (IsInput())
   {
     setToolTip(

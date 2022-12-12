@@ -18,6 +18,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV4.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -32,6 +33,9 @@ USB_HIDv4::~USB_HIDv4()
 
 std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   request.Log(GetDeviceName(), Common::Log::LogType::IOS_USB);
   switch (request.request)
   {
@@ -53,7 +57,7 @@ std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
   {
     if (request.buffer_in == 0 || request.buffer_in_size != 32)
       return IPCReply(IPC_EINVAL);
-    const auto device = GetDeviceByIOSID(Memory::Read_U32(request.buffer_in + 16));
+    const auto device = GetDeviceByIOSID(memory.Read_U32(request.buffer_in + 16));
     if (!device->Attach())
       return IPCReply(IPC_EINVAL);
     return HandleTransfer(device, request.request,
@@ -70,10 +74,13 @@ IPCReply USB_HIDv4::CancelInterrupt(const IOCtlRequest& request)
   if (request.buffer_in == 0 || request.buffer_in_size != 8)
     return IPCReply(IPC_EINVAL);
 
-  auto device = GetDeviceByIOSID(Memory::Read_U32(request.buffer_in));
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  auto device = GetDeviceByIOSID(memory.Read_U32(request.buffer_in));
   if (!device)
     return IPCReply(IPC_ENOENT);
-  device->CancelTransfer(Memory::Read_U8(request.buffer_in + 4));
+  device->CancelTransfer(memory.Read_U8(request.buffer_in + 4));
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -98,7 +105,9 @@ IPCReply USB_HIDv4::Shutdown(const IOCtlRequest& request)
   std::lock_guard lk{m_devicechange_hook_address_mutex};
   if (m_devicechange_hook_request != 0)
   {
-    Memory::Write_U32(0xffffffff, m_devicechange_hook_request->buffer_out);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    memory.Write_U32(0xffffffff, m_devicechange_hook_request->buffer_out);
     m_ios.EnqueueIPCReply(*m_devicechange_hook_request, -1);
     m_devicechange_hook_request.reset();
   }
@@ -182,6 +191,9 @@ void USB_HIDv4::TriggerDeviceChangeReply()
   if (!m_devicechange_hook_request)
     return;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   {
     std::lock_guard lk(m_devices_mutex);
     const u32 dest = m_devicechange_hook_request->buffer_out;
@@ -194,11 +206,11 @@ void USB_HIDv4::TriggerDeviceChangeReply()
         WARN_LOG_FMT(IOS_USB, "Too many devices connected, skipping");
         break;
       }
-      Memory::CopyToEmu(dest + offset, device_section.data(), device_section.size());
+      memory.CopyToEmu(dest + offset, device_section.data(), device_section.size());
       offset += Common::AlignUp(static_cast<u32>(device_section.size()), 4);
     }
     // IOS writes 0xffffffff to the buffer when there are no more devices
-    Memory::Write_U32(0xffffffff, dest + offset);
+    memory.Write_U32(0xffffffff, dest + offset);
   }
 
   m_ios.EnqueueIPCReply(*m_devicechange_hook_request, IPC_SUCCESS, 0, CoreTiming::FromThread::ANY);

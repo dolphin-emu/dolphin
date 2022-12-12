@@ -135,7 +135,8 @@ protected:
     std::unique_ptr<AbstractPipeline> copy_pipeline;
     std::vector<EFBCacheTile> tiles;
     bool out_of_date;
-    bool valid;
+    bool has_active_tiles;
+    bool needs_refresh;
     bool needs_flush;
   };
 
@@ -190,9 +191,14 @@ protected:
   // Format conversion shaders
   std::array<std::unique_ptr<AbstractPipeline>, 6> m_format_conversion_pipelines;
 
-  // EFB cache - for CPU EFB access
+  // EFB cache - for CPU EFB access (EFB peeks/pokes), not for EFB copies
+
+  // Width and height of a tile in pixels at 1x IR. 0 indicates non-tiled, in which case a single
+  // tile is used for the entire EFB.
+  // Note that as EFB peeks and pokes are a CPU feature, they always operate at 1x IR.
   u32 m_efb_cache_tile_size = 0;
-  u32 m_efb_cache_tiles_wide = 0;
+  // Number of tiles that make up a row in m_efb_color_cache.tiles / m_efb_depth_cache.tiles.
+  u32 m_efb_cache_tile_row_stride = 1;
   EFBCacheData m_efb_color_cache = {};
   EFBCacheData m_efb_depth_cache = {};
 

@@ -10,11 +10,13 @@
 
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/XFMemory.h"
@@ -53,6 +55,7 @@ static void XFRegWritten(u32 address, u32 value)
     }
 
     case XFMEM_VTXSPECS:  //__GXXfVtxSpecs, wrote 0004
+      VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
       break;
 
     case XFMEM_SETNUMCHAN:
@@ -102,9 +105,11 @@ static void XFRegWritten(u32 address, u32 value)
 
     case XFMEM_SETMATRIXINDA:
       VertexShaderManager::SetTexMatrixChangedA(value);
+      VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
       break;
     case XFMEM_SETMATRIXINDB:
       VertexShaderManager::SetTexMatrixChangedB(value);
+      VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
       break;
 
     case XFMEM_SETVIEWPORT:
@@ -252,14 +257,17 @@ void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
 
   u32* currData = (u32*)(&xfmem) + address;
   u32* newData;
-  if (Fifo::UseDeterministicGPUThread())
+  auto& system = Core::System::GetInstance();
+  auto& fifo = system.GetFifo();
+  if (fifo.UseDeterministicGPUThread())
   {
-    newData = (u32*)Fifo::PopFifoAuxBuffer(size * sizeof(u32));
+    newData = (u32*)fifo.PopFifoAuxBuffer(size * sizeof(u32));
   }
   else
   {
-    newData = (u32*)Memory::GetPointer(g_main_cp_state.array_bases[array] +
-                                       g_main_cp_state.array_strides[array] * index);
+    auto& memory = system.GetMemory();
+    newData = (u32*)memory.GetPointer(g_main_cp_state.array_bases[array] +
+                                      g_main_cp_state.array_strides[array] * index);
   }
   bool changed = false;
   for (u32 i = 0; i < size; ++i)
@@ -280,11 +288,13 @@ void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
 
 void PreprocessIndexedXF(CPArray array, u32 index, u16 address, u8 size)
 {
-  const u8* new_data = Memory::GetPointer(g_preprocess_cp_state.array_bases[array] +
-                                          g_preprocess_cp_state.array_strides[array] * index);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  const u8* new_data = memory.GetPointer(g_preprocess_cp_state.array_bases[array] +
+                                         g_preprocess_cp_state.array_strides[array] * index);
 
   const size_t buf_size = size * sizeof(u32);
-  Fifo::PushFifoAuxBuffer(new_data, buf_size);
+  system.GetFifo().PushFifoAuxBuffer(new_data, buf_size);
 }
 
 std::pair<std::string, std::string> GetXFRegInfo(u32 address, u32 value)

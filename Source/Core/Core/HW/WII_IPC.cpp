@@ -112,7 +112,7 @@ Common::Flags<GPIO> g_gpio_out;
 static u32 resets;
 
 static CoreTiming::EventType* updateInterrupts;
-static void UpdateInterrupts(u64 = 0, s64 cyclesLate = 0);
+static void UpdateInterrupts(Core::System& system, u64 userdata, s64 cyclesLate);
 
 void DoState(PointerWrap& p)
 {
@@ -157,7 +157,8 @@ static void InitState()
 void Init()
 {
   InitState();
-  updateInterrupts = CoreTiming::RegisterEvent("IPCInterrupt", UpdateInterrupts);
+  updateInterrupts =
+      Core::System::GetInstance().GetCoreTiming().RegisterEvent("IPCInterrupt", UpdateInterrupts);
 }
 
 void Reset()
@@ -174,8 +175,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   mmio->Register(base | IPC_PPCMSG, MMIO::InvalidRead<u32>(), MMIO::DirectWrite<u32>(&ppc_msg));
 
-  mmio->Register(base | IPC_PPCCTRL, MMIO::ComplexRead<u32>([](u32) { return ctrl.ppc(); }),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+  mmio->Register(base | IPC_PPCCTRL,
+                 MMIO::ComplexRead<u32>([](Core::System&, u32) { return ctrl.ppc(); }),
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    ctrl.ppc(val);
                    // The IPC interrupt is triggered when IY1/IY2 is set and
                    // Y1/Y2 is written to -- even when this results in clearing the bit.
@@ -184,29 +186,29 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (ctrl.X1)
                      HLE::GetIOS()->EnqueueIPCRequest(ppc_msg);
                    HLE::GetIOS()->UpdateIPC();
-                   CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
+                   system.GetCoreTiming().ScheduleEvent(0, updateInterrupts, 0);
                  }));
 
   mmio->Register(base | IPC_ARMMSG, MMIO::DirectRead<u32>(&arm_msg), MMIO::InvalidWrite<u32>());
 
   mmio->Register(base | PPC_IRQFLAG, MMIO::InvalidRead<u32>(),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    ppc_irq_flags &= ~val;
                    HLE::GetIOS()->UpdateIPC();
-                   CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
+                   system.GetCoreTiming().ScheduleEvent(0, updateInterrupts, 0);
                  }));
 
   mmio->Register(base | PPC_IRQMASK, MMIO::InvalidRead<u32>(),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    ppc_irq_masks = val;
                    if (ppc_irq_masks & INT_CAUSE_IPC_BROADWAY)  // wtf?
                      Reset();
                    HLE::GetIOS()->UpdateIPC();
-                   CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
+                   system.GetCoreTiming().ScheduleEvent(0, updateInterrupts, 0);
                  }));
 
   mmio->Register(base | GPIOB_OUT, MMIO::DirectRead<u32>(&g_gpio_out.m_hex),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
                    g_gpio_out.m_hex =
                        (val & gpio_owner.m_hex) | (g_gpio_out.m_hex & ~gpio_owner.m_hex);
                    if (g_gpio_out[GPIO::DO_EJECT])
@@ -218,10 +220,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    // TODO: AVE, SLOT_LED
                  }));
   mmio->Register(base | GPIOB_DIR, MMIO::DirectRead<u32>(&gpio_dir.m_hex),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
                    gpio_dir.m_hex = (val & gpio_owner.m_hex) | (gpio_dir.m_hex & ~gpio_owner.m_hex);
                  }));
-  mmio->Register(base | GPIOB_IN, MMIO::ComplexRead<u32>([](u32) {
+  mmio->Register(base | GPIOB_IN, MMIO::ComplexRead<u32>([](Core::System&, u32) {
                    Common::Flags<GPIO> gpio_in;
                    gpio_in[GPIO::SLOT_IN] = DVDInterface::IsDiscInside();
                    return gpio_in.m_hex;
@@ -239,7 +241,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // go through the HW_GPIOB registers if the corresponding bit is set in the HW_GPIO_OWNER
   // register.
   mmio->Register(base | GPIO_OUT, MMIO::DirectRead<u32>(&g_gpio_out.m_hex),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
                    g_gpio_out.m_hex =
                        (g_gpio_out.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
                    if (g_gpio_out[GPIO::DO_EJECT])
@@ -251,10 +253,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    // TODO: AVE, SLOT_LED
                  }));
   mmio->Register(base | GPIO_DIR, MMIO::DirectRead<u32>(&gpio_dir.m_hex),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
                    gpio_dir.m_hex = (gpio_dir.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
                  }));
-  mmio->Register(base | GPIO_IN, MMIO::ComplexRead<u32>([](u32) {
+  mmio->Register(base | GPIO_IN, MMIO::ComplexRead<u32>([](Core::System&, u32) {
                    Common::Flags<GPIO> gpio_in;
                    gpio_in[GPIO::SLOT_IN] = DVDInterface::IsDiscInside();
                    return gpio_in.m_hex;
@@ -262,7 +264,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::Nop<u32>());
 
   mmio->Register(base | HW_RESETS, MMIO::DirectRead<u32>(&resets),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
                    // A reset occurs when the corresponding bit is cleared
                    const bool di_reset_triggered = (resets & 0x400) && !(val & 0x400);
                    resets = val;
@@ -283,7 +285,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | UNK_1D0, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
 }
 
-static void UpdateInterrupts(u64 userdata, s64 cyclesLate)
+static void UpdateInterrupts(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   if ((ctrl.Y1 & ctrl.IY1) || (ctrl.Y2 & ctrl.IY2))
   {
@@ -312,7 +314,8 @@ void GenerateAck(u32 address)
                 ctrl.Y2, ctrl.X1);
   // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
   // after Y2 is seen in the control register.
-  CoreTiming::ScheduleEvent(100 * SystemTimers::TIMER_RATIO, updateInterrupts);
+  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(100 * SystemTimers::TIMER_RATIO,
+                                                            updateInterrupts);
 }
 
 void GenerateReply(u32 address)
@@ -323,7 +326,8 @@ void GenerateReply(u32 address)
                 ctrl.Y1, ctrl.Y2, ctrl.X1);
   // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
   // after Y1 is seen in the control register.
-  CoreTiming::ScheduleEvent(100 * SystemTimers::TIMER_RATIO, updateInterrupts);
+  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(100 * SystemTimers::TIMER_RATIO,
+                                                            updateInterrupts);
 }
 
 bool IsReady()

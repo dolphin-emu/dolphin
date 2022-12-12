@@ -20,9 +20,13 @@
 #include "Common/Swap.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
+#include "Core/Movie.h"
+#include "Core/WiiRoot.h"
 
 namespace IOS::HLE::FS
 {
+constexpr u32 BUFFER_CHUNK_SIZE = 65536;
+
 HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wii_path) const
 {
   for (const auto& redirect : m_nand_redirects)
@@ -252,99 +256,151 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
   return entry;
 }
 
+void HostFileSystem::DoStateRead(PointerWrap& p, std::string start_directory_path)
+{
+  std::string path = BuildFilename(start_directory_path).host_path;
+  File::DeleteDirRecursively(path);
+  File::CreateDir(path);
+
+  // now restore from the stream
+  while (1)
+  {
+    char type = 0;
+    p.Do(type);
+    if (!type)
+      break;
+    std::string file_name;
+    p.Do(file_name);
+    std::string name = path + "/" + file_name;
+    switch (type)
+    {
+    case 'd':
+    {
+      File::CreateDir(name);
+      break;
+    }
+    case 'f':
+    {
+      u32 size = 0;
+      p.Do(size);
+
+      File::IOFile handle(name, "wb");
+      char buf[BUFFER_CHUNK_SIZE];
+      u32 count = size;
+      while (count > BUFFER_CHUNK_SIZE)
+      {
+        p.DoArray(buf);
+        handle.WriteArray(&buf[0], BUFFER_CHUNK_SIZE);
+        count -= BUFFER_CHUNK_SIZE;
+      }
+      p.DoArray(&buf[0], count);
+      handle.WriteArray(&buf[0], count);
+      break;
+    }
+    }
+  }
+}
+
+void HostFileSystem::DoStateWriteOrMeasure(PointerWrap& p, std::string start_directory_path)
+{
+  std::string path = BuildFilename(start_directory_path).host_path;
+  File::FSTEntry parent_entry = File::ScanDirectoryTree(path, true);
+  std::deque<File::FSTEntry> todo;
+  todo.insert(todo.end(), parent_entry.children.begin(), parent_entry.children.end());
+
+  while (!todo.empty())
+  {
+    File::FSTEntry& entry = todo.front();
+    std::string name = entry.physicalName;
+    name.erase(0, path.length() + 1);
+    char type = entry.isDirectory ? 'd' : 'f';
+    p.Do(type);
+    p.Do(name);
+    if (entry.isDirectory)
+    {
+      todo.insert(todo.end(), entry.children.begin(), entry.children.end());
+    }
+    else
+    {
+      u32 size = (u32)entry.size;
+      p.Do(size);
+
+      File::IOFile handle(entry.physicalName, "rb");
+      char buf[BUFFER_CHUNK_SIZE];
+      u32 count = size;
+      while (count > BUFFER_CHUNK_SIZE)
+      {
+        handle.ReadArray(&buf[0], BUFFER_CHUNK_SIZE);
+        p.DoArray(buf);
+        count -= BUFFER_CHUNK_SIZE;
+      }
+      handle.ReadArray(&buf[0], count);
+      p.DoArray(&buf[0], count);
+    }
+    todo.pop_front();
+  }
+
+  char type = 0;
+  p.Do(type);
+}
+
 void HostFileSystem::DoState(PointerWrap& p)
 {
-  // Temporarily close the file, to prevent any issues with the savestating of /tmp
+  // Temporarily close the file, to prevent any issues with the savestating of files/folders.
   for (Handle& handle : m_handles)
     handle.host_file.reset();
 
-  // handle /tmp
-  std::string Path = BuildFilename("/tmp").host_path;
-  if (p.IsReadMode())
+  // The format for the next part of the save state is follows:
+  // 1. bool Movie::WasMovieActiveWhenStateSaved() &&
+  // WiiRoot::WasWiiRootTemporaryDirectoryWhenStateSaved()
+  // 2. Contents of the "/tmp" directory recursively.
+  // 3. u32 size_of_nand_folder_saved_below (or 0, if the root
+  // of the NAND folder is not savestated below).
+  // 4. Contents of the "/" directory recursively (or nothing, if the
+  // root of the NAND folder is not save stated).
+
+  // The "/" directory is only saved when a savestate is made during a movie recording
+  // and when the directory root is temporary (i.e. WiiSession).
+  // If a save state is made during a movie recording and is loaded when no movie is active,
+  // then a call to p.DoExternal() will be used to skip over reading the contents of the "/"
+  // directory (it skips over the number of bytes specified by size_of_nand_folder_saved)
+
+  bool original_save_state_made_during_movie_recording =
+      Movie::IsMovieActive() && Core::WiiRootIsTemporary();
+  p.Do(original_save_state_made_during_movie_recording);
+
+  u32 temp_val = 0;
+
+  if (!p.IsReadMode())
   {
-    File::DeleteDirRecursively(Path);
-    File::CreateDir(Path);
-
-    // now restore from the stream
-    while (1)
+    DoStateWriteOrMeasure(p, "/tmp");
+    u8* previous_position = p.ReserveU32();
+    if (original_save_state_made_during_movie_recording)
     {
-      char type = 0;
-      p.Do(type);
-      if (!type)
-        break;
-      std::string file_name;
-      p.Do(file_name);
-      std::string name = Path + "/" + file_name;
-      switch (type)
+      DoStateWriteOrMeasure(p, "/");
+      if (p.IsWriteMode())
       {
-      case 'd':
-      {
-        File::CreateDir(name);
-        break;
-      }
-      case 'f':
-      {
-        u32 size = 0;
-        p.Do(size);
-
-        File::IOFile handle(name, "wb");
-        char buf[65536];
-        u32 count = size;
-        while (count > 65536)
-        {
-          p.DoArray(buf);
-          handle.WriteArray(&buf[0], 65536);
-          count -= 65536;
-        }
-        p.DoArray(&buf[0], count);
-        handle.WriteArray(&buf[0], count);
-        break;
-      }
+        u32 size_of_nand = p.GetOffsetFromPreviousPosition(previous_position) - sizeof(u32);
+        memcpy(previous_position, &size_of_nand, sizeof(u32));
       }
     }
   }
-  else
+  else  // case where we're in read mode.
   {
-    // recurse through tmp and save dirs and files
-
-    File::FSTEntry parent_entry = File::ScanDirectoryTree(Path, true);
-    std::deque<File::FSTEntry> todo;
-    todo.insert(todo.end(), parent_entry.children.begin(), parent_entry.children.end());
-
-    while (!todo.empty())
+    DoStateRead(p, "/tmp");
+    if (!Movie::IsMovieActive() || !original_save_state_made_during_movie_recording ||
+        !Core::WiiRootIsTemporary() ||
+        (original_save_state_made_during_movie_recording !=
+         (Movie::IsMovieActive() && Core::WiiRootIsTemporary())))
     {
-      File::FSTEntry& entry = todo.front();
-      std::string name = entry.physicalName;
-      name.erase(0, Path.length() + 1);
-      char type = entry.isDirectory ? 'd' : 'f';
-      p.Do(type);
-      p.Do(name);
-      if (entry.isDirectory)
-      {
-        todo.insert(todo.end(), entry.children.begin(), entry.children.end());
-      }
-      else
-      {
-        u32 size = (u32)entry.size;
-        p.Do(size);
-
-        File::IOFile handle(entry.physicalName, "rb");
-        char buf[65536];
-        u32 count = size;
-        while (count > 65536)
-        {
-          handle.ReadArray(&buf[0], 65536);
-          p.DoArray(buf);
-          count -= 65536;
-        }
-        handle.ReadArray(&buf[0], count);
-        p.DoArray(&buf[0], count);
-      }
-      todo.pop_front();
+      (void)p.DoExternal(temp_val);
     }
-
-    char type = 0;
-    p.Do(type);
+    else
+    {
+      p.Do(temp_val);
+      if (Movie::IsMovieActive() && Core::WiiRootIsTemporary())
+        DoStateRead(p, "/");
+    }
   }
 
   for (Handle& handle : m_handles)

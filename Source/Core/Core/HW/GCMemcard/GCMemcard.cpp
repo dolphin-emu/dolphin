@@ -304,7 +304,7 @@ void GCMemcard::UpdateBat(const BlockAlloc& bat)
 
 bool GCMemcard::IsShiftJIS() const
 {
-  return m_header_block.m_data.m_encoding != 0;
+  return m_header_block.IsShiftJIS();
 }
 
 bool GCMemcard::Save()
@@ -420,51 +420,6 @@ std::optional<u8> GCMemcard::TitlePresent(const DEntry& d) const
   return std::nullopt;
 }
 
-bool GCMemcard::GCI_FileName(u8 index, std::string& filename) const
-{
-  if (!m_valid || index >= DIRLEN ||
-      GetActiveDirectory().m_dir_entries[index].m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
-    return false;
-
-  filename = GetActiveDirectory().m_dir_entries[index].GCI_FileName();
-  return true;
-}
-
-std::string GCMemcard::DEntry_GameCode(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return "";
-
-  return std::string(
-      reinterpret_cast<const char*>(GetActiveDirectory().m_dir_entries[index].m_gamecode.data()),
-      GetActiveDirectory().m_dir_entries[index].m_gamecode.size());
-}
-
-std::string GCMemcard::DEntry_Makercode(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return "";
-
-  return std::string(
-      reinterpret_cast<const char*>(GetActiveDirectory().m_dir_entries[index].m_makercode.data()),
-      GetActiveDirectory().m_dir_entries[index].m_makercode.size());
-}
-
-std::string GCMemcard::DEntry_BIFlags(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return "";
-
-  std::string flags;
-  int x = GetActiveDirectory().m_dir_entries[index].m_banner_and_icon_flags;
-  for (int i = 0; i < 8; i++)
-  {
-    flags.push_back((x & 0x80) ? '1' : '0');
-    x = x << 1;
-  }
-  return flags;
-}
-
 bool GCMemcard::DEntry_IsPingPong(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
@@ -472,81 +427,6 @@ bool GCMemcard::DEntry_IsPingPong(u8 index) const
 
   const int flags = GetActiveDirectory().m_dir_entries[index].m_banner_and_icon_flags;
   return (flags & 0b0000'0100) != 0;
-}
-
-std::string GCMemcard::DEntry_FileName(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return "";
-
-  return std::string(
-      reinterpret_cast<const char*>(GetActiveDirectory().m_dir_entries[index].m_filename.data()),
-      GetActiveDirectory().m_dir_entries[index].m_filename.size());
-}
-
-u32 GCMemcard::DEntry_ModTime(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return 0xFFFFFFFF;
-
-  return GetActiveDirectory().m_dir_entries[index].m_modification_time;
-}
-
-u32 GCMemcard::DEntry_ImageOffset(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return 0xFFFFFFFF;
-
-  return GetActiveDirectory().m_dir_entries[index].m_image_offset;
-}
-
-std::string GCMemcard::DEntry_IconFmt(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return "";
-
-  u16 x = GetActiveDirectory().m_dir_entries[index].m_icon_format;
-  std::string format;
-  for (size_t i = 0; i < 16; ++i)
-  {
-    format.push_back(Common::ExtractBit(x, 15 - i) ? '1' : '0');
-  }
-  return format;
-}
-
-std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return "";
-
-  u16 x = GetActiveDirectory().m_dir_entries[index].m_animation_speed;
-  std::string speed;
-  for (size_t i = 0; i < 16; ++i)
-  {
-    speed.push_back(Common::ExtractBit(x, 15 - i) ? '1' : '0');
-  }
-  return speed;
-}
-
-std::string GCMemcard::DEntry_Permissions(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return "";
-
-  u8 Permissions = GetActiveDirectory().m_dir_entries[index].m_file_permissions;
-  std::string permissionsString;
-  permissionsString.push_back((Permissions & 16) ? 'x' : 'M');
-  permissionsString.push_back((Permissions & 8) ? 'x' : 'C');
-  permissionsString.push_back((Permissions & 4) ? 'P' : 'x');
-  return permissionsString;
-}
-
-u8 GCMemcard::DEntry_CopyCounter(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return 0xFF;
-
-  return GetActiveDirectory().m_dir_entries[index].m_copy_counter;
 }
 
 u16 GCMemcard::DEntry_FirstBlock(u8 index) const
@@ -1394,15 +1274,6 @@ DEntry::DEntry()
   memset(reinterpret_cast<u8*>(this), 0xFF, DENTRY_SIZE);
 }
 
-std::string DEntry::GCI_FileName() const
-{
-  std::string filename =
-      std::string(reinterpret_cast<const char*>(m_makercode.data()), m_makercode.size()) + '-' +
-      std::string(reinterpret_cast<const char*>(m_gamecode.data()), m_gamecode.size()) + '-' +
-      reinterpret_cast<const char*>(m_filename.data()) + ".gci";
-  return Common::EscapeFileName(filename);
-}
-
 void Header::FixChecksums()
 {
   std::tie(m_checksum, m_checksum_inv) = CalculateChecksums();
@@ -1442,6 +1313,11 @@ GCMemcardErrorCode Header::CheckForErrors(u16 card_size_mbits) const
     error_code.Set(GCMemcardValidityIssues::INVALID_CHECKSUM);
 
   return error_code;
+}
+
+bool Header::IsShiftJIS() const
+{
+  return m_data.m_encoding != 0;
 }
 
 Directory::Directory()

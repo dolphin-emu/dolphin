@@ -24,6 +24,7 @@
 #include "Core/Host.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace IOS::HLE::MIOS
 {
@@ -32,7 +33,9 @@ static void ReinitHardware()
   SConfig::GetInstance().bWii = false;
 
   // IOS clears mem2 and overwrites it with pseudo-random data (for security).
-  std::memset(Memory::m_pEXRAM, 0, Memory::GetExRamSizeReal());
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  std::memset(memory.GetEXRAM(), 0, memory.GetExRamSizeReal());
   // MIOS appears to only reset the DI and the PPC.
   // HACK However, resetting DI will reset the DTK config, which is set by the system menu
   // (and not by MIOS), causing games that use DTK to break.  Perhaps MIOS doesn't actually
@@ -52,8 +55,10 @@ constexpr u32 ADDRESS_INIT_SEMAPHORE = 0x30f8;
 
 bool Load()
 {
-  Memory::Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
-  Memory::Write_U32(0x09142001, 0x3180);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
+  memory.Write_U32(0x09142001, 0x3180);
 
   ReinitHardware();
   NOTICE_LOG_FMT(IOS, "Reinitialised hardware.");
@@ -79,11 +84,11 @@ bool Load()
 
   // IOS writes 0 to 0x30f8 before bootstrapping the PPC. Once started, the IPL eventually writes
   // 0xdeadbeef there, then waits for it to be cleared by IOS before continuing.
-  while (Memory::Read_U32(ADDRESS_INIT_SEMAPHORE) != 0xdeadbeef)
+  while (memory.Read_U32(ADDRESS_INIT_SEMAPHORE) != 0xdeadbeef)
     PowerPC::SingleStep();
   PowerPC::SetMode(core_mode);
 
-  Memory::Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
+  memory.Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   NOTICE_LOG_FMT(IOS, "IPL ready.");
   SConfig::GetInstance().m_is_mios = true;
   DVDInterface::UpdateRunningGameMetadata();

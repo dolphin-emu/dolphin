@@ -9,7 +9,6 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VertexLoaderBase.h"
 
-class DataReader;
 enum class VertexComponentFormat;
 enum class ComponentFormat;
 enum class ColorFormat;
@@ -21,7 +20,7 @@ public:
   VertexLoaderARM64(const TVtxDesc& vtx_desc, const VAT& vtx_att);
 
 protected:
-  int RunVertices(DataReader src, DataReader dst, int count) override;
+  int RunVertices(const u8* src, u8* dst, int count) override;
 
 private:
   u32 m_src_ofs = 0;

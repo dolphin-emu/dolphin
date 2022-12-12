@@ -15,24 +15,21 @@ static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_L
 static const u16 button_bitmasks[] = {PAD_BUTTON_B,  PAD_BUTTON_A,  PAD_TRIGGER_L,
                                       PAD_TRIGGER_R, PAD_TRIGGER_Z, PAD_BUTTON_START};
 
-static const char* const named_buttons[] = {"B", "A", "L", "R", _trans("SELECT"), _trans("START")};
-
 GBAPad::GBAPad(const unsigned int index) : m_reset_pending(false), m_index(index)
 {
   // Buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  for (const char* named_button : named_buttons)
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
+  for (const char* named_button : {B_BUTTON, A_BUTTON, L_BUTTON, R_BUTTON})
   {
-    const ControllerEmu::Translatability translate =
-        (named_button == std::string(_trans("SELECT")) ||
-         named_button == std::string(_trans("START"))) ?
-            ControllerEmu::Translate :
-            ControllerEmu::DoNotTranslate;
-    m_buttons->AddInput(translate, named_button);
+    m_buttons->AddInput(ControllerEmu::DoNotTranslate, named_button);
+  }
+  for (const char* named_button : {SELECT_BUTTON, START_BUTTON})
+  {
+    m_buttons->AddInput(ControllerEmu::Translate, named_button);
   }
 
   // DPad
-  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
     m_dpad->AddInput(ControllerEmu::Translate, named_direction);
@@ -63,10 +60,10 @@ GCPadStatus GBAPad::GetInput()
   GCPadStatus pad = {};
 
   // Buttons
-  m_buttons->GetState(&pad.button, button_bitmasks);
+  m_buttons->GetState(&pad.button, button_bitmasks, m_input_override_function);
 
   // DPad
-  m_dpad->GetState(&pad.button, dpad_bitmasks);
+  m_dpad->GetState(&pad.button, dpad_bitmasks, m_input_override_function);
 
   // Use X button as a reset signal
   if (m_reset_pending)

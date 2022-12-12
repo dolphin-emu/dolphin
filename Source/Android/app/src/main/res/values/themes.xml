@@ -47,9 +47,7 @@
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
 
-        <item name="homeAsUpIndicator">@drawable/ic_back</item>
-
-        <item name="android:windowLightStatusBar" tools:targetApi="m">@bool/lightSystemBars</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">default</item>
 
         <item name="materialAlertDialogTheme">@style/DolphinMaterialDialog</item>
         <item name="popupTheme">@style/DolphinPopup</item>
@@ -57,7 +55,7 @@
         <item name="materialDividerStyle">@style/DolphinDivider</item>
     </style>
 
-    <!-- Trick for API >= 27 specific changes -->
+    <!-- Trick for API >= 29 specific changes -->
     <style name="Theme.Dolphin.Main" parent="Theme.Dolphin" />
 
     <style name="Theme.Dolphin.Main.Material" parent="Theme.Dolphin.Main">

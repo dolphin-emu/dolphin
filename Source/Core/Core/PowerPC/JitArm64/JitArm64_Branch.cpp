@@ -105,7 +105,7 @@ void JitArm64::bx(UGeckoInstruction inst)
     ARM64Reg WA = gpr.GetReg();
     ARM64Reg XA = EncodeRegTo64(WA);
 
-    MOVP2R(XA, &CoreTiming::Idle);
+    MOVP2R(XA, &CoreTiming::GlobalIdle);
     BLR(XA);
     gpr.Unlock(WA);
 
@@ -161,7 +161,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
     // make idle loops go faster
     ARM64Reg XA = EncodeRegTo64(WA);
 
-    MOVP2R(XA, &CoreTiming::Idle);
+    MOVP2R(XA, &CoreTiming::GlobalIdle);
     BLR(XA);
 
     WriteExceptionExit(js.op->branchTo);
@@ -281,7 +281,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
     // make idle loops go faster
     ARM64Reg XA = EncodeRegTo64(WA);
 
-    MOVP2R(XA, &CoreTiming::Idle);
+    MOVP2R(XA, &CoreTiming::GlobalIdle);
     BLR(XA);
 
     WriteExceptionExit(js.op->branchTo);

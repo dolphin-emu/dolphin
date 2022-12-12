@@ -103,69 +103,18 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
     : NativeVertexFormat(vtx_decl)
 
 {
-  const AttributeFormat* format = &vtx_decl.position;
-  if (format->enable)
-  {
-    m_elems[m_num_elems].SemanticName = "TEXCOORD";
-    m_elems[m_num_elems].SemanticIndex = SHADER_POSITION_ATTRIB;
-    m_elems[m_num_elems].AlignedByteOffset = format->offset;
-    m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
-    m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-    ++m_num_elems;
-  }
+  AddAttribute(vtx_decl.position, ShaderAttrib::Position);
 
-  for (int i = 0; i < 3; i++)
-  {
-    format = &vtx_decl.normals[i];
-    if (format->enable)
-    {
-      m_elems[m_num_elems].SemanticName = "TEXCOORD";
-      m_elems[m_num_elems].SemanticIndex = SHADER_NORMAL_ATTRIB + i;
-      m_elems[m_num_elems].AlignedByteOffset = format->offset;
-      m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
-      m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-      ++m_num_elems;
-    }
-  }
+  for (u32 i = 0; i < 3; i++)
+    AddAttribute(vtx_decl.normals[i], ShaderAttrib::Normal + i);
 
-  for (int i = 0; i < 2; i++)
-  {
-    format = &vtx_decl.colors[i];
-    if (format->enable)
-    {
-      m_elems[m_num_elems].SemanticName = "TEXCOORD";
-      m_elems[m_num_elems].SemanticIndex = SHADER_COLOR0_ATTRIB + i;
-      m_elems[m_num_elems].AlignedByteOffset = format->offset;
-      m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
-      m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-      ++m_num_elems;
-    }
-  }
+  for (u32 i = 0; i < 2; i++)
+    AddAttribute(vtx_decl.colors[i], ShaderAttrib::Color0 + i);
 
-  for (int i = 0; i < 8; i++)
-  {
-    format = &vtx_decl.texcoords[i];
-    if (format->enable)
-    {
-      m_elems[m_num_elems].SemanticName = "TEXCOORD";
-      m_elems[m_num_elems].SemanticIndex = SHADER_TEXTURE0_ATTRIB + i;
-      m_elems[m_num_elems].AlignedByteOffset = format->offset;
-      m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
-      m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-      ++m_num_elems;
-    }
-  }
+  for (u32 i = 0; i < 8; i++)
+    AddAttribute(vtx_decl.texcoords[i], ShaderAttrib::TexCoord0 + i);
 
-  format = &vtx_decl.posmtx;
-  if (format->enable)
-  {
-    m_elems[m_num_elems].SemanticName = "TEXCOORD";
-    m_elems[m_num_elems].SemanticIndex = SHADER_POSMTX_ATTRIB;
-    m_elems[m_num_elems].AlignedByteOffset = format->offset;
-    m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
-    m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-    ++m_num_elems;
-  }
+  AddAttribute(vtx_decl.posmtx, ShaderAttrib::PositionMatrix);
 }
 
 D3DVertexFormat::~D3DVertexFormat()
@@ -199,6 +148,19 @@ ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, size
   }
 
   return layout;
+}
+
+void D3DVertexFormat::AddAttribute(const AttributeFormat& format, ShaderAttrib semantic_index)
+{
+  if (format.enable)
+  {
+    m_elems[m_num_elems].SemanticName = "TEXCOORD";
+    m_elems[m_num_elems].SemanticIndex = static_cast<u32>(semantic_index);
+    m_elems[m_num_elems].AlignedByteOffset = format.offset;
+    m_elems[m_num_elems].Format = VarToD3D(format.type, format.components, format.integer);
+    m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    ++m_num_elems;
+  }
 }
 
 }  // namespace DX11

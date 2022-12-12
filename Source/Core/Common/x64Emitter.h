@@ -1168,10 +1168,10 @@ public:
   }
 
   template <typename T, typename... Args>
-  void ABI_CallLambdaC(const std::function<T(Args...)>* f, u32 p1)
+  void ABI_CallLambdaPC(const std::function<T(Args...)>* f, void* p1, u32 p2)
   {
     auto trampoline = &XEmitter::CallLambdaTrampoline<T, Args...>;
-    ABI_CallFunctionPC(trampoline, reinterpret_cast<const void*>(f), p1);
+    ABI_CallFunctionPPC(trampoline, reinterpret_cast<const void*>(f), p1, p2);
   }
 };  // class XEmitter
 

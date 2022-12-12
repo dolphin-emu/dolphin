@@ -146,43 +146,42 @@ void GetProfileResults(Profiler::ProfileStats* prof_stats)
   });
 }
 
-int GetHostCode(u32* address, const u8** code, u32* code_size)
+std::variant<GetHostCodeError, GetHostCodeResult> GetHostCode(u32 address)
 {
   if (!g_jit)
   {
-    *code_size = 0;
-    return 1;
+    return GetHostCodeError::NoJitActive;
   }
 
-  JitBlock* block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address, MSR.Hex);
+  JitBlock* block = g_jit->GetBlockCache()->GetBlockFromStartAddress(address, MSR.Hex);
   if (!block)
   {
     for (int i = 0; i < 500; i++)
     {
-      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address - 4 * i, MSR.Hex);
+      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i, MSR.Hex);
       if (block)
         break;
     }
 
     if (block)
     {
-      if (!(block->effectiveAddress <= *address &&
-            block->originalSize + block->effectiveAddress >= *address))
+      if (!(block->effectiveAddress <= address &&
+            block->originalSize + block->effectiveAddress >= address))
         block = nullptr;
     }
 
-    // Do not merge this "if" with the above - block_num changes inside it.
+    // Do not merge this "if" with the above - block changes inside it.
     if (!block)
     {
-      *code_size = 0;
-      return 2;
+      return GetHostCodeError::NoTranslation;
     }
   }
 
-  *code = block->checkedEntry;
-  *code_size = block->codeSize;
-  *address = block->effectiveAddress;
-  return 0;
+  GetHostCodeResult result;
+  result.code = block->checkedEntry;
+  result.code_size = block->codeSize;
+  result.entry_address = block->effectiveAddress;
+  return result;
 }
 
 bool HandleFault(uintptr_t access_address, SContext* ctx)

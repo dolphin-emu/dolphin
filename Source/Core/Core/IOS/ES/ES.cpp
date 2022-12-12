@@ -26,6 +26,7 @@
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/IOS/VersionInfo.h"
+#include "Core/System.h"
 #include "DiscIO/Enums.h"
 
 namespace IOS::HLE
@@ -91,7 +92,7 @@ ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, de
     if (result != FS::ResultCode::Success && result != FS::ResultCode::AlreadyExists)
     {
       ERROR_LOG_FMT(IOS_ES, "Failed to create {}: error {}", directory.path,
-                    FS::ConvertResult(result));
+                    static_cast<s32>(FS::ConvertResult(result)));
     }
 
     // Now update the UID/GID and other attributes.
@@ -103,8 +104,10 @@ ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, de
 
   if (Core::IsRunningAndStarted())
   {
-    CoreTiming::RemoveEvent(s_finish_init_event);
-    CoreTiming::ScheduleEvent(GetESBootTicks(m_ios.GetVersion()), s_finish_init_event);
+    auto& system = Core::System::GetInstance();
+    auto& core_timing = system.GetCoreTiming();
+    core_timing.RemoveEvent(s_finish_init_event);
+    core_timing.ScheduleEvent(GetESBootTicks(m_ios.GetVersion()), s_finish_init_event);
   }
   else
   {
@@ -114,14 +117,18 @@ ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, de
 
 void ESDevice::InitializeEmulationState()
 {
-  s_finish_init_event = CoreTiming::RegisterEvent(
-      "IOS-ESFinishInit", [](u64, s64) { GetIOS()->GetES()->FinishInit(); });
-  s_reload_ios_for_ppc_launch_event =
-      CoreTiming::RegisterEvent("IOS-ESReloadIOSForPPCLaunch", [](u64 ios_id, s64) {
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  s_finish_init_event = core_timing.RegisterEvent(
+      "IOS-ESFinishInit", [](Core::System& system, u64, s64) { GetIOS()->GetES()->FinishInit(); });
+  s_reload_ios_for_ppc_launch_event = core_timing.RegisterEvent(
+      "IOS-ESReloadIOSForPPCLaunch", [](Core::System& system, u64 ios_id, s64) {
         GetIOS()->GetES()->LaunchTitle(ios_id, HangPPC::Yes);
       });
-  s_bootstrap_ppc_for_launch_event = CoreTiming::RegisterEvent(
-      "IOS-ESBootstrapPPCForLaunch", [](u64, s64) { GetIOS()->GetES()->BootstrapPPC(); });
+  s_bootstrap_ppc_for_launch_event =
+      core_timing.RegisterEvent("IOS-ESBootstrapPPCForLaunch", [](Core::System& system, u64, s64) {
+        GetIOS()->GetES()->BootstrapPPC();
+      });
 }
 
 void ESDevice::FinalizeEmulationState()
@@ -195,9 +202,12 @@ IPCReply ESDevice::GetTitleDirectory(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
 
-  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
 
-  char* path = reinterpret_cast<char*>(Memory::GetPointer(request.io_vectors[0].address));
+  const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
+
+  char* path = reinterpret_cast<char*>(memory.GetPointer(request.io_vectors[0].address));
   sprintf(path, "/title/%08x/%08x/data", static_cast<u32>(title_id >> 32),
           static_cast<u32>(title_id));
 
@@ -223,7 +233,10 @@ IPCReply ESDevice::GetTitleId(const IOCtlVRequest& request)
   if (ret != IPC_SUCCESS)
     return IPCReply(ret);
 
-  Memory::Write_U64(title_id, request.io_vectors[0].address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  memory.Write_U64(title_id, request.io_vectors[0].address);
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETTITLEID: {:08x}/{:08x}", static_cast<u32>(title_id >> 32),
                static_cast<u32>(title_id));
   return IPCReply(IPC_SUCCESS);
@@ -271,7 +284,10 @@ IPCReply ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
     return IPCReply(ES_EINVAL);
 
-  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
 
   const s32 ret = CheckIsAllowedToSetUID(m_ios, uid, m_title_context.tmd);
   if (ret < 0)
@@ -395,6 +411,9 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
     return false;
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
   // Before launching a title, IOS first reads the TMD and reloads into the specified IOS version,
   // even when that version is already running. After it has reloaded, ES_Launch will be called
   // again and the PPC will be bootstrapped then.
@@ -415,8 +434,8 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
     const u64 required_ios = tmd.GetIOSId();
     if (!Core::IsRunningAndStarted())
       return LaunchTitle(required_ios, HangPPC::Yes);
-    CoreTiming::RemoveEvent(s_reload_ios_for_ppc_launch_event);
-    CoreTiming::ScheduleEvent(ticks, s_reload_ios_for_ppc_launch_event, required_ios);
+    core_timing.RemoveEvent(s_reload_ios_for_ppc_launch_event);
+    core_timing.ScheduleEvent(ticks, s_reload_ios_for_ppc_launch_event, required_ios);
     return true;
   }
 
@@ -444,8 +463,9 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
   m_pending_ppc_boot_content_path = GetContentPath(tmd.GetTitleId(), content);
   if (!Core::IsRunningAndStarted())
     return BootstrapPPC();
-  CoreTiming::RemoveEvent(s_bootstrap_ppc_for_launch_event);
-  CoreTiming::ScheduleEvent(ticks, s_bootstrap_ppc_for_launch_event);
+
+  core_timing.RemoveEvent(s_bootstrap_ppc_for_launch_event);
+  core_timing.ScheduleEvent(ticks, s_bootstrap_ppc_for_launch_event);
   return true;
 }
 
@@ -696,7 +716,9 @@ IPCReply ESDevice::GetConsumption(const IOCtlVRequest& request)
     return IPCReply(ES_EINVAL);
 
   // This is at least what crediar's ES module does
-  Memory::Write_U32(0, request.io_vectors[1].address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.Write_U32(0, request.io_vectors[1].address);
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETCONSUMPTION");
   return IPCReply(IPC_SUCCESS);
 }
@@ -706,12 +728,15 @@ std::optional<IPCReply> ESDevice::Launch(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(2, 0))
     return IPCReply(ES_EINVAL);
 
-  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-  const u32 view = Memory::Read_U32(request.in_vectors[1].address);
-  const u64 ticketid = Memory::Read_U64(request.in_vectors[1].address + 4);
-  const u32 devicetype = Memory::Read_U32(request.in_vectors[1].address + 12);
-  const u64 titleid = Memory::Read_U64(request.in_vectors[1].address + 16);
-  const u16 access = Memory::Read_U16(request.in_vectors[1].address + 24);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
+  const u32 view = memory.Read_U32(request.in_vectors[1].address);
+  const u64 ticketid = memory.Read_U64(request.in_vectors[1].address + 4);
+  const u32 devicetype = memory.Read_U32(request.in_vectors[1].address + 12);
+  const u64 titleid = memory.Read_U64(request.in_vectors[1].address + 16);
+  const u16 access = memory.Read_U16(request.in_vectors[1].address + 24);
 
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_LAUNCH {:016x} {:08x} {:016x} {:08x} {:016x} {:04x}", title_id,
                view, ticketid, devicetype, titleid, access);
@@ -925,8 +950,11 @@ IPCReply ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRequest& r
     return IPCReply(ES_EINVAL);
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   std::vector<u8> tmd_bytes(request.in_vectors[1].size);
-  Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[1].address, tmd_bytes.size());
+  memory.CopyFromEmu(tmd_bytes.data(), request.in_vectors[1].address, tmd_bytes.size());
   const ES::TMDReader tmd{std::move(tmd_bytes)};
 
   if (!tmd.IsValid())
@@ -934,8 +962,8 @@ IPCReply ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRequest& r
 
   u32 handle;
   const ReturnCode ret =
-      SetUpStreamKey(context.uid, Memory::GetPointer(request.in_vectors[0].address), tmd, &handle);
-  Memory::Write_U32(handle, request.io_vectors[0].address);
+      SetUpStreamKey(context.uid, memory.GetPointer(request.in_vectors[0].address), tmd, &handle);
+  memory.Write_U32(handle, request.io_vectors[0].address);
   return IPCReply(ret);
 }
 
@@ -944,7 +972,9 @@ IPCReply ESDevice::DeleteStreamKey(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
     return IPCReply(ES_EINVAL);
 
-  const u32 handle = Memory::Read_U32(request.in_vectors[0].address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  const u32 handle = memory.Read_U32(request.in_vectors[0].address);
   return IPCReply(m_ios.GetIOSC().DeleteObject(handle, PID_ES));
 }
 
@@ -1058,7 +1088,8 @@ ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   ret = iosc.ImportCertificate(ca_cert, IOSC::HANDLE_ROOT_KEY, ca_handle, PID_ES);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(ca) failed with error {}", ret);
+    ERROR_LOG_FMT(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(ca) failed with error {}",
+                  static_cast<s32>(ret));
     return ret;
   }
 
@@ -1073,7 +1104,7 @@ ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(issuer) failed with error {}",
-                  ret);
+                  static_cast<s32>(ret));
     return ret;
   }
 
@@ -1082,7 +1113,8 @@ ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   ret = iosc.VerifyPublicKeySign(signed_blob.GetSha1(), issuer_handle, signature, PID_ES);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "VerifyContainer: IOSC_VerifyPublicKeySign failed with error {}", ret);
+    ERROR_LOG_FMT(IOS_ES, "VerifyContainer: IOSC_VerifyPublicKeySign failed with error {}",
+                  static_cast<s32>(ret));
     return ret;
   }
 
@@ -1092,12 +1124,13 @@ ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
     if (ret != IPC_SUCCESS)
     {
       ERROR_LOG_FMT(IOS_ES, "VerifyContainer: Writing the issuer cert failed with return code {}",
-                    ret);
+                    static_cast<s32>(ret));
     }
 
     ret = WriteNewCertToStore(ca_cert);
     if (ret != IPC_SUCCESS)
-      ERROR_LOG_FMT(IOS_ES, "VerifyContainer: Writing the CA cert failed with return code {}", ret);
+      ERROR_LOG_FMT(IOS_ES, "VerifyContainer: Writing the CA cert failed with return code {}",
+                    static_cast<s32>(ret));
   }
 
   if (ret == IPC_SUCCESS && issuer_handle_out)

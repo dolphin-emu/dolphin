@@ -13,6 +13,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/Sram.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace DiscIO
 {
@@ -82,7 +83,7 @@ struct NetSettings
   bool fast_depth_calc = false;
   bool enable_pixel_lighting = false;
   bool widescreen_hack = false;
-  bool force_filtering = false;
+  TextureFilteringMode force_texture_filtering = TextureFilteringMode::Default;
   int max_anisotropy = 0;
   bool force_true_color = false;
   bool disable_copy_filter = false;

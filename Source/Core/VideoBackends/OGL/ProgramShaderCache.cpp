@@ -133,23 +133,24 @@ void SHADER::SetProgramBindings(bool is_compute)
       glBindFragDataLocationIndexed(glprogid, 0, 1, "ocol1");
     }
     // Need to set some attribute locations
-    glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Position), "rawpos");
 
-    glBindAttribLocation(glprogid, SHADER_POSMTX_ATTRIB, "posmtx");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::PositionMatrix), "posmtx");
 
-    glBindAttribLocation(glprogid, SHADER_COLOR0_ATTRIB, "rawcolor0");
-    glBindAttribLocation(glprogid, SHADER_COLOR1_ATTRIB, "rawcolor1");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Color0), "rawcolor0");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Color1), "rawcolor1");
 
-    glBindAttribLocation(glprogid, SHADER_NORMAL_ATTRIB, "rawnormal");
-    glBindAttribLocation(glprogid, SHADER_TANGENT_ATTRIB, "rawtangent");
-    glBindAttribLocation(glprogid, SHADER_BINORMAL_ATTRIB, "rawbinormal");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Normal), "rawnormal");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Tangent), "rawtangent");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Binormal), "rawbinormal");
   }
 
   for (int i = 0; i < 8; i++)
   {
     // Per documentation: OpenGL copies the name string when glBindAttribLocation is called, so an
     // application may free its copy of the name string immediately after the function returns.
-    glBindAttribLocation(glprogid, SHADER_TEXTURE0_ATTRIB + i, fmt::format("rawtex{}", i).c_str());
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::TexCoord0 + i),
+                         fmt::format("rawtex{}", i).c_str());
   }
 }
 
@@ -493,6 +494,12 @@ void ProgramShaderCache::BindVertexFormat(const GLVertexFormat* vertex_format)
 
   glBindVertexArray(new_VAO);
   s_last_VAO = new_VAO;
+}
+
+void ProgramShaderCache::ReBindVertexFormat()
+{
+  if (s_last_VAO)
+    glBindVertexArray(s_last_VAO);
 }
 
 bool ProgramShaderCache::IsValidVertexFormatBound()

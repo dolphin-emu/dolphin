@@ -9,14 +9,19 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
 import androidx.core.splashscreen.SplashScreen;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.tabs.TabLayout;
 
 import org.dolphinemu.dolphinemu.R;
@@ -68,14 +73,24 @@ public final class MainActivity extends AppCompatActivity
     setContentView(mBinding.getRoot());
 
     WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-    InsetsHelper.setUpMainLayout(this, mBinding.appbarMain, mBinding.buttonAddDirectory,
-            mBinding.pagerPlatforms, mBinding.workaroundView);
+    setInsets();
     ThemeHelper.enableStatusBarScrollTint(this, mBinding.appbarMain);
 
     setSupportActionBar(mBinding.toolbarMain);
 
     // Set up the FAB.
     mBinding.buttonAddDirectory.setOnClickListener(view -> mPresenter.onFabClick());
+    mBinding.appbarMain.addOnOffsetChangedListener((appBarLayout, verticalOffset) ->
+    {
+      if (verticalOffset == 0)
+      {
+        mBinding.buttonAddDirectory.extend();
+      }
+      else if (appBarLayout.getTotalScrollRange() == -verticalOffset)
+      {
+        mBinding.buttonAddDirectory.shrink();
+      }
+    });
 
     mPresenter.onCreate();
 
@@ -386,5 +401,31 @@ public final class MainActivity extends AppCompatActivity
   private void checkTheme()
   {
     ThemeHelper.setCorrectTheme(this);
+  }
+
+  private void setInsets()
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(mBinding.appbarMain, (v, windowInsets) ->
+    {
+      Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+      InsetsHelper.insetAppBar(insets, mBinding.appbarMain);
+
+      ViewGroup.MarginLayoutParams mlpFab =
+              (ViewGroup.MarginLayoutParams) mBinding.buttonAddDirectory.getLayoutParams();
+      int fabPadding = getResources().getDimensionPixelSize(R.dimen.spacing_large);
+      mlpFab.leftMargin = insets.left + fabPadding;
+      mlpFab.bottomMargin = insets.bottom + fabPadding;
+      mlpFab.rightMargin = insets.right + fabPadding;
+      mBinding.buttonAddDirectory.setLayoutParams(mlpFab);
+
+      mBinding.pagerPlatforms.setPadding(insets.left, 0, insets.right, 0);
+
+      InsetsHelper.applyNavbarWorkaround(insets.bottom, mBinding.workaroundView);
+      ThemeHelper.setNavigationBarColor(this,
+              MaterialColors.getColor(mBinding.appbarMain, R.attr.colorSurface));
+
+      return windowInsets;
+    });
   }
 }

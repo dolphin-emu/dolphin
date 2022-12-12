@@ -35,6 +35,12 @@ private:
   GraphicsBool* m_show_statistics;
   GraphicsBool* m_enable_format_overlay;
   GraphicsBool* m_enable_api_validation;
+  GraphicsBool* m_show_fps;
+  GraphicsBool* m_show_vps;
+  GraphicsBool* m_show_speed;
+  GraphicsBool* m_show_speed_colors;
+  GraphicsInteger* m_perf_samp_window;
+  GraphicsBool* m_log_render_time;
 
   // Utility
   GraphicsBool* m_prefetch_custom_textures;

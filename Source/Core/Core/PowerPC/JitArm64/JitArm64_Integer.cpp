@@ -3,10 +3,13 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
+#include <bit>
+
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -699,7 +702,7 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   if (gpr.IsImm(inst.RS))
   {
-    gpr.SetImmediate(a, Common::RotateLeft(gpr.GetImm(s), inst.SH) & mask);
+    gpr.SetImmediate(a, std::rotl(gpr.GetImm(s), inst.SH) & mask);
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(a));
     return;
@@ -748,7 +751,7 @@ void JitArm64::rlwnmx(UGeckoInstruction inst)
 
   if (gpr.IsImm(b) && gpr.IsImm(s))
   {
-    gpr.SetImmediate(a, Common::RotateLeft(gpr.GetImm(s), gpr.GetImm(b) & 0x1F) & mask);
+    gpr.SetImmediate(a, std::rotl(gpr.GetImm(s), gpr.GetImm(b) & 0x1F) & mask);
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(a));
   }
@@ -883,6 +886,75 @@ void JitArm64::addic(UGeckoInstruction inst)
   }
 }
 
+bool JitArm64::MultiplyImmediate(u32 imm, int a, int d, bool rc)
+{
+  if (imm == 0)
+  {
+    // Multiplication by zero (0).
+    gpr.SetImmediate(d, 0);
+    if (rc)
+      ComputeRC0(gpr.GetImm(d));
+  }
+  else if (imm == 1)
+  {
+    // Multiplication by one (1).
+    if (d != a)
+    {
+      gpr.BindToRegister(d, false);
+      MOV(gpr.R(d), gpr.R(a));
+    }
+    if (rc)
+      ComputeRC0(gpr.R(d));
+  }
+  else if (MathUtil::IsPow2(imm))
+  {
+    // Multiplication by a power of two (2^n).
+    const int shift = IntLog2(imm);
+
+    gpr.BindToRegister(d, d == a);
+    LSL(gpr.R(d), gpr.R(a), shift);
+    if (rc)
+      ComputeRC0(gpr.R(d));
+  }
+  else if (MathUtil::IsPow2(imm - 1))
+  {
+    // Multiplication by a power of two plus one (2^n + 1).
+    const int shift = IntLog2(imm - 1);
+
+    gpr.BindToRegister(d, d == a);
+    ADD(gpr.R(d), gpr.R(a), gpr.R(a), ArithOption(gpr.R(a), ShiftType::LSL, shift));
+    if (rc)
+      ComputeRC0(gpr.R(d));
+  }
+  else if (MathUtil::IsPow2(~imm + 1))
+  {
+    // Multiplication by a negative power of two (-(2^n)).
+    const int shift = IntLog2(~imm + 1);
+
+    gpr.BindToRegister(d, d == a);
+    NEG(gpr.R(d), gpr.R(a), ArithOption(gpr.R(a), ShiftType::LSL, shift));
+    if (rc)
+      ComputeRC0(gpr.R(d));
+  }
+  else if (MathUtil::IsPow2(~imm + 2))
+  {
+    // Multiplication by a negative power of two plus one (-(2^n) + 1).
+    const int shift = IntLog2(~imm + 2);
+
+    gpr.BindToRegister(d, d == a);
+    SUB(gpr.R(d), gpr.R(a), gpr.R(a), ArithOption(gpr.R(a), ShiftType::LSL, shift));
+    if (rc)
+      ComputeRC0(gpr.R(d));
+  }
+  else
+  {
+    // Immediate did not match any known special cases.
+    return false;
+  }
+
+  return true;
+}
+
 void JitArm64::mulli(UGeckoInstruction inst)
 {
   INSTRUCTION_START
@@ -895,13 +967,22 @@ void JitArm64::mulli(UGeckoInstruction inst)
     s32 i = (s32)gpr.GetImm(a);
     gpr.SetImmediate(d, i * inst.SIMM_16);
   }
+  else if (MultiplyImmediate((u32)(s32)inst.SIMM_16, a, d, false))
+  {
+    // Code is generated inside MultiplyImmediate, nothing to be done here.
+  }
   else
   {
-    gpr.BindToRegister(d, d == a);
-    ARM64Reg WA = gpr.GetReg();
+    const bool allocate_reg = d == a;
+    gpr.BindToRegister(d, allocate_reg);
+
+    // Reuse d to hold the immediate if possible, allocate a register otherwise.
+    ARM64Reg WA = allocate_reg ? gpr.GetReg() : gpr.R(d);
+
     MOVI2R(WA, (u32)(s32)inst.SIMM_16);
     MUL(gpr.R(d), gpr.R(a), WA);
-    gpr.Unlock(WA);
+    if (allocate_reg)
+      gpr.Unlock(WA);
   }
 }
 
@@ -919,6 +1000,11 @@ void JitArm64::mullwx(UGeckoInstruction inst)
     gpr.SetImmediate(d, i * j);
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(d));
+  }
+  else if ((gpr.IsImm(a) && MultiplyImmediate(gpr.GetImm(a), b, d, inst.Rc)) ||
+           (gpr.IsImm(b) && MultiplyImmediate(gpr.GetImm(b), a, d, inst.Rc)))
+  {
+    // Code is generated inside MultiplyImmediate, nothing to be done here.
   }
   else
   {
@@ -1840,7 +1926,7 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
 
   if (gpr.IsImm(a) && gpr.IsImm(s))
   {
-    u32 res = (gpr.GetImm(a) & ~mask) | (Common::RotateLeft(gpr.GetImm(s), inst.SH) & mask);
+    u32 res = (gpr.GetImm(a) & ~mask) | (std::rotl(gpr.GetImm(s), inst.SH) & mask);
     gpr.SetImmediate(a, res);
     if (inst.Rc)
       ComputeRC0(res);

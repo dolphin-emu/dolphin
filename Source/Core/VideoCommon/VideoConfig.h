@@ -45,6 +45,13 @@ enum class ShaderCompilationMode : int
   AsynchronousSkipRendering
 };
 
+enum class TextureFilteringMode : int
+{
+  Default,
+  Nearest,
+  Linear,
+};
+
 enum class TriState : int
 {
   Off,
@@ -72,7 +79,7 @@ struct VideoConfig final
   u32 iMultisamples = 0;
   bool bSSAA = false;
   int iEFBScale = 0;
-  bool bForceFiltering = false;
+  TextureFilteringMode texture_filtering_mode = TextureFilteringMode::Default;
   int iMaxAnisotropy = 0;
   std::string sPostProcessingShader;
   bool bForceTrueColor = false;
@@ -82,6 +89,10 @@ struct VideoConfig final
 
   // Information
   bool bShowFPS = false;
+  bool bShowVPS = false;
+  bool bShowSpeed = false;
+  bool bShowSpeedColors = false;
+  int iPerfSampleUSec = 0;
   bool bShowNetPlayPing = false;
   bool bShowNetPlayMessages = false;
   bool bOverlayStats = false;
@@ -143,6 +154,9 @@ struct VideoConfig final
   int iSaveTargetId = 0;  // TODO: Should be dropped
   u32 iMissingColorValue = 0;
   bool bFastTextureSampling = false;
+#ifdef __APPLE__
+  bool bNoMipmapping = false;  // Used by macOS fifoci to work around an M1 bug
+#endif
 
   // Stereoscopy
   StereoMode stereo_mode{};

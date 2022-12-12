@@ -2173,6 +2173,12 @@ void ARM64FloatEmitter::EmitScalar2RegMisc(bool U, u32 size, u32 opcode, ARM64Re
           (DecodeReg(Rn) << 5) | DecodeReg(Rd));
 }
 
+void ARM64FloatEmitter::EmitScalarPairwise(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn)
+{
+  Write32((1 << 30) | (U << 29) | (0b111100011 << 20) | (size << 22) | (opcode << 12) | (1 << 11) |
+          (DecodeReg(Rn) << 5) | DecodeReg(Rd));
+}
+
 void ARM64FloatEmitter::Emit2RegMisc(bool Q, bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn)
 {
   ASSERT_MSG(DYNA_REC, !IsSingle(Rd), "Singles are not supported!");
@@ -2332,6 +2338,16 @@ void ARM64FloatEmitter::EmitPermute(u32 size, u32 op, ARM64Reg Rd, ARM64Reg Rn, 
 
   Write32((quad << 30) | (7 << 25) | (encoded_size << 22) | (DecodeReg(Rm) << 16) | (op << 12) |
           (1 << 11) | (DecodeReg(Rn) << 5) | DecodeReg(Rd));
+}
+
+void ARM64FloatEmitter::EmitExtract(u32 imm4, u32 op, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  ASSERT_MSG(DYNA_REC, !IsSingle(Rd), "Singles are not supported!");
+
+  bool quad = IsQuad(Rd);
+
+  Write32((quad << 30) | (23 << 25) | (op << 22) | (DecodeReg(Rm) << 16) | (imm4 << 11) |
+          (DecodeReg(Rn) << 5) | DecodeReg(Rd));
 }
 
 void ARM64FloatEmitter::EmitScalarImm(bool M, bool S, u32 type, u32 imm5, ARM64Reg Rd, u32 imm8)
@@ -2975,6 +2991,28 @@ void ARM64FloatEmitter::FRSQRTE(ARM64Reg Rd, ARM64Reg Rn)
   EmitScalar2RegMisc(1, IsDouble(Rd) ? 3 : 2, 0x1D, Rd, Rn);
 }
 
+// Scalar - pairwise
+void ARM64FloatEmitter::FADDP(ARM64Reg Rd, ARM64Reg Rn)
+{
+  EmitScalarPairwise(1, IsDouble(Rd), 0b01101, Rd, Rn);
+}
+void ARM64FloatEmitter::FMAXP(ARM64Reg Rd, ARM64Reg Rn)
+{
+  EmitScalarPairwise(1, IsDouble(Rd), 0b01111, Rd, Rn);
+}
+void ARM64FloatEmitter::FMINP(ARM64Reg Rd, ARM64Reg Rn)
+{
+  EmitScalarPairwise(1, IsDouble(Rd) ? 3 : 2, 0b01111, Rd, Rn);
+}
+void ARM64FloatEmitter::FMAXNMP(ARM64Reg Rd, ARM64Reg Rn)
+{
+  EmitScalarPairwise(1, IsDouble(Rd), 0b01100, Rd, Rn);
+}
+void ARM64FloatEmitter::FMINNMP(ARM64Reg Rd, ARM64Reg Rn)
+{
+  EmitScalarPairwise(1, IsDouble(Rd) ? 3 : 2, 0b01100, Rd, Rn);
+}
+
 // Scalar - 2 Source
 void ARM64FloatEmitter::ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
@@ -3540,12 +3578,18 @@ void ARM64FloatEmitter::ZIP2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
   EmitPermute(size, 0b111, Rd, Rn, Rm);
 }
 
+// Extract
+void ARM64FloatEmitter::EXT(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u32 index)
+{
+  EmitExtract(index, 0, Rd, Rn, Rm);
+}
+
 // Scalar shift by immediate
 void ARM64FloatEmitter::SHL(ARM64Reg Rd, ARM64Reg Rn, u32 shift)
 {
   constexpr size_t src_size = 64;
   ASSERT_MSG(DYNA_REC, IsDouble(Rd), "Only double registers are supported!");
-  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must less than the element size! {} {}",
+  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must be less than the element size! {} {}",
              shift, src_size);
   EmitScalarShiftImm(0, src_size | shift, 0b01010, Rd, Rn);
 }
@@ -3554,7 +3598,7 @@ void ARM64FloatEmitter::URSHR(ARM64Reg Rd, ARM64Reg Rn, u32 shift)
 {
   constexpr size_t src_size = 64;
   ASSERT_MSG(DYNA_REC, IsDouble(Rd), "Only double registers are supported!");
-  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must less than the element size! {} {}",
+  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must be less than the element size! {} {}",
              shift, src_size);
   EmitScalarShiftImm(1, src_size * 2 - shift, 0b00100, Rd, Rn);
 }
@@ -3603,7 +3647,7 @@ void ARM64FloatEmitter::UXTL2(u8 src_size, ARM64Reg Rd, ARM64Reg Rn)
 
 void ARM64FloatEmitter::SHL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift)
 {
-  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must less than the element size! {} {}",
+  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must be less than the element size! {} {}",
              shift, src_size);
   EmitShiftImm(1, 0, src_size | shift, 0b01010, Rd, Rn);
 }
@@ -3617,7 +3661,7 @@ void ARM64FloatEmitter::SSHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, 
 
 void ARM64FloatEmitter::URSHR(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift)
 {
-  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must less than the element size! {} {}",
+  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must be less than the element size! {} {}",
              shift, src_size);
   EmitShiftImm(1, 1, src_size * 2 - shift, 0b00100, Rd, Rn);
 }
@@ -3633,7 +3677,7 @@ void ARM64FloatEmitter::SHRN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, 
 {
   ASSERT_MSG(DYNA_REC, shift < dest_size, "Shift amount must be less than the element size! {} {}",
              shift, dest_size);
-  EmitShiftImm(upper, 1, dest_size | shift, 0b10000, Rd, Rn);
+  EmitShiftImm(upper, 1, dest_size * 2 - shift, 0b10000, Rd, Rn);
 }
 
 void ARM64FloatEmitter::SXTL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, bool upper)

@@ -4,6 +4,8 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumFormatter.h"
+
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
 
@@ -14,25 +16,39 @@ enum class SourceRow : u32;
 enum class VSExpand : u32;
 
 // TODO should be reordered
-enum : int
+enum class ShaderAttrib : u32
 {
-  SHADER_POSITION_ATTRIB = 0,
-  SHADER_POSMTX_ATTRIB = 1,
-  SHADER_NORMAL_ATTRIB = 2,
-  SHADER_TANGENT_ATTRIB = 3,
-  SHADER_BINORMAL_ATTRIB = 4,
-  SHADER_COLOR0_ATTRIB = 5,
-  SHADER_COLOR1_ATTRIB = 6,
+  Position = 0,
+  PositionMatrix = 1,
+  Normal = 2,
+  Tangent = 3,
+  Binormal = 4,
+  Color0 = 5,
+  Color1 = 6,
 
-  SHADER_TEXTURE0_ATTRIB = 8,
-  SHADER_TEXTURE1_ATTRIB = 9,
-  SHADER_TEXTURE2_ATTRIB = 10,
-  SHADER_TEXTURE3_ATTRIB = 11,
-  SHADER_TEXTURE4_ATTRIB = 12,
-  SHADER_TEXTURE5_ATTRIB = 13,
-  SHADER_TEXTURE6_ATTRIB = 14,
-  SHADER_TEXTURE7_ATTRIB = 15
+  TexCoord0 = 8,
+  TexCoord1 = 9,
+  TexCoord2 = 10,
+  TexCoord3 = 11,
+  TexCoord4 = 12,
+  TexCoord5 = 13,
+  TexCoord6 = 14,
+  TexCoord7 = 15
 };
+template <>
+struct fmt::formatter<ShaderAttrib> : EnumFormatter<ShaderAttrib::TexCoord7>
+{
+  static constexpr array_type names = {
+      "Position",    "Position Matrix", "Normal",      "Tangent",     "Binormal",    "Color 0",
+      "Color 1",     nullptr,           "Tex Coord 0", "Tex Coord 1", "Tex Coord 2", "Tex Coord 3",
+      "Tex Coord 4", "Tex Coord 5",     "Tex Coord 6", "Tex Coord 7"};
+  constexpr formatter() : EnumFormatter(names) {}
+};
+// Intended for offsetting from Color0/TexCoord0
+constexpr ShaderAttrib operator+(ShaderAttrib attrib, int offset)
+{
+  return static_cast<ShaderAttrib>(static_cast<u8>(attrib) + offset);
+}
 
 #pragma pack(1)
 

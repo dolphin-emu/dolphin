@@ -31,6 +31,7 @@ public class ThreadUtil
     Resources resources = activity.getResources();
     AlertDialog progressDialog = new MaterialAlertDialogBuilder(activity)
             .setTitle(progressTitle)
+            .setView(R.layout.dialog_indeterminate_progress)
             .setCancelable(false)
             .create();
 

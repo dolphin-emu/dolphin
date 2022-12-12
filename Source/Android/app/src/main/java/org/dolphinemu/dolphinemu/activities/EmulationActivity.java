@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +26,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -342,6 +346,8 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     ActivityEmulationBinding binding = ActivityEmulationBinding.inflate(getLayoutInflater());
     setContentView(binding.getRoot());
 
+    setInsets(binding.frameMenu);
+
     // Find or create the EmulationFragment
     mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
             .findFragmentById(R.id.frame_emulation_fragment);
@@ -538,6 +544,28 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     }
   }
 
+  private void setInsets(View view)
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(view, (v, windowInsets) ->
+    {
+      Insets cutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
+      ViewGroup.MarginLayoutParams mlpMenu =
+              (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+      int menuWidth = getResources().getDimensionPixelSize(R.dimen.menu_width);
+      if (ViewCompat.getLayoutDirection(v) == ViewCompat.LAYOUT_DIRECTION_LTR)
+      {
+        mlpMenu.width = cutInsets.left + menuWidth;
+      }
+      else
+      {
+        mlpMenu.width = cutInsets.right + menuWidth;
+      }
+      NativeLibrary.SetObscuredPixelsTop(cutInsets.top);
+      NativeLibrary.SetObscuredPixelsLeft(cutInsets.left);
+      return windowInsets;
+    });
+  }
+
   public void showOverlayControlsMenu(@NonNull View anchor)
   {
     PopupMenu popup = new PopupMenu(this, anchor);
@@ -547,7 +575,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     int id = wii ? R.menu.menu_overlay_controls_wii : R.menu.menu_overlay_controls_gc;
     popup.getMenuInflater().inflate(id, menu);
 
-    // Populate the checkbox value for joystick center on touch
+    // Populate the switch value for joystick center on touch
     menu.findItem(R.id.menu_emulation_joystick_rel_center)
             .setChecked(BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBoolean(mSettings));
     menu.findItem(R.id.menu_emulation_rumble)
@@ -571,7 +599,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     {
       if (item.isCheckable())
       {
-        // Need to pass a reference to the item to set the checkbox state, since it is not done automatically
+        // Need to pass a reference to the item to set the switch state, since it is not done automatically
         handleCheckableMenuAction(action, item);
       }
       else

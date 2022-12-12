@@ -10,6 +10,7 @@
 enum class AspectMode : int;
 enum class ShaderCompilationMode : int;
 enum class StereoMode : int;
+enum class TextureFilteringMode : int;
 enum class TriState : int;
 
 namespace Config
@@ -29,6 +30,10 @@ extern const Info<AspectMode> GFX_SUGGESTED_ASPECT_RATIO;
 extern const Info<bool> GFX_CROP;
 extern const Info<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES;
 extern const Info<bool> GFX_SHOW_FPS;
+extern const Info<bool> GFX_SHOW_VPS;
+extern const Info<bool> GFX_SHOW_SPEED;
+extern const Info<bool> GFX_SHOW_SPEED_COLORS;
+extern const Info<int> GFX_PERF_SAMP_WINDOW;
 extern const Info<bool> GFX_SHOW_NETPLAY_PING;
 extern const Info<bool> GFX_SHOW_NETPLAY_MESSAGES;
 extern const Info<bool> GFX_LOG_RENDER_TIME_TO_FILE;
@@ -88,7 +93,7 @@ extern const Info<bool> GFX_MODS_ENABLE;
 
 // Graphics.Enhancements
 
-extern const Info<bool> GFX_ENHANCE_FORCE_FILTERING;
+extern const Info<TextureFilteringMode> GFX_ENHANCE_FORCE_TEXTURE_FILTERING;
 extern const Info<int> GFX_ENHANCE_MAX_ANISOTROPY;  // NOTE - this is x in (1 << x)
 extern const Info<std::string> GFX_ENHANCE_POST_SHADER;
 extern const Info<bool> GFX_ENHANCE_FORCE_TRUE_COLOR;
@@ -129,6 +134,9 @@ extern const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES;
 extern const Info<bool> GFX_HACK_VERTEX_ROUNDING;
 extern const Info<u32> GFX_HACK_MISSING_COLOR_VALUE;
 extern const Info<bool> GFX_HACK_FAST_TEXTURE_SAMPLING;
+#ifdef __APPLE__
+extern const Info<bool> GFX_HACK_NO_MIPMAPPING;
+#endif
 
 // Graphics.GameSpecific
 

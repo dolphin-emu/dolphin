@@ -3,6 +3,7 @@
 #include "Core/PowerPC/mmu.h"
 #include "Core/HW/Memmap.h"
 #include "LuaByteWrapper.h"
+#include "Core/System.h"
 
 namespace Lua
 {
@@ -102,7 +103,7 @@ std::string get_string_from_domain_function(lua_State* luaState, u32 address, u3
 
 u8* get_pointer_to_domain_function(lua_State* luaState, u32 address)
 {
-  return Memory::GetPointer(address);
+  return Core::System::GetInstance().GetMemory().GetPointer(address);
 }
 
 void write_u8_to_domain_function(lua_State* luaState, u32 address, u8 val)
@@ -135,7 +136,7 @@ void write_u64_to_domain_function(lua_State* luaState, u32 address, u64 val)
 
 void copy_string_to_domain_function(lua_State* luaState, u32 address, const char* stringToWrite, size_t stringLength)
 {
-  Memory::CopyToEmu(address, stringToWrite, stringLength + 1);
+  Core::System::GetInstance().GetMemory().CopyToEmu(address, stringToWrite, stringLength + 1);
 }
 
 u8 read_u8(lua_State* luaState, u32 address)

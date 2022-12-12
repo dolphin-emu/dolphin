@@ -64,6 +64,8 @@ private:
   QCheckBox* m_sync_sd_folder_checkbox;
   QLineEdit* m_sd_raw_edit;
   QLineEdit* m_sd_sync_folder_edit;
+  QPushButton* m_sd_pack_button;
+  QPushButton* m_sd_unpack_button;
 
   // Whitelisted USB Passthrough Devices
   QListWidget* m_whitelist_usb_list;

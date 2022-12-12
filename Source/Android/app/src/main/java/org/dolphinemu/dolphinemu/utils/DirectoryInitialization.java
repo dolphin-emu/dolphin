@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.preference.PreferenceManager;
@@ -20,6 +21,7 @@ import androidx.preference.PreferenceManager;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 
 import java.io.File;
@@ -78,14 +80,7 @@ public final class DirectoryInitialization
 
     areDirectoriesAvailable = true;
 
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    if (IntSetting.MAIN_INTERFACE_THEME.getIntGlobal() !=
-            preferences.getInt(ThemeHelper.CURRENT_THEME, ThemeHelper.DEFAULT))
-    {
-      preferences.edit()
-              .putInt(ThemeHelper.CURRENT_THEME, IntSetting.MAIN_INTERFACE_THEME.getIntGlobal())
-              .apply();
-    }
+    checkThemeSettings(context);
 
     if (wiimoteIniWritten)
     {
@@ -405,6 +400,37 @@ public final class DirectoryInitialization
       return false;
 
     return preferLegacyUserDirectory(context) && !PermissionsHandler.hasWriteAccess(context);
+  }
+
+  private static void checkThemeSettings(Context context)
+  {
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    if (IntSetting.MAIN_INTERFACE_THEME.getIntGlobal() !=
+            preferences.getInt(ThemeHelper.CURRENT_THEME, ThemeHelper.DEFAULT))
+    {
+      preferences.edit()
+              .putInt(ThemeHelper.CURRENT_THEME, IntSetting.MAIN_INTERFACE_THEME.getIntGlobal())
+              .apply();
+    }
+
+    if (IntSetting.MAIN_INTERFACE_THEME_MODE.getIntGlobal() !=
+            preferences.getInt(ThemeHelper.CURRENT_THEME_MODE,
+                    AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM))
+    {
+      preferences.edit()
+              .putInt(ThemeHelper.CURRENT_THEME_MODE,
+                      IntSetting.MAIN_INTERFACE_THEME_MODE.getIntGlobal())
+              .apply();
+    }
+
+    if (BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBooleanGlobal() !=
+            preferences.getBoolean(ThemeHelper.USE_BLACK_BACKGROUNDS, false))
+    {
+      preferences.edit()
+              .putBoolean(ThemeHelper.USE_BLACK_BACKGROUNDS,
+                      BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBooleanGlobal())
+              .apply();
+    }
   }
 
   private static native void CreateUserDirectories();

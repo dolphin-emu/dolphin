@@ -635,15 +635,19 @@ bool DeleteDirRecursively(const std::string& directory)
   return success;
 }
 
-// Create directory and copy contents (does not overwrite existing files)
-void CopyDir(const std::string& source_path, const std::string& dest_path, bool destructive)
+// Create directory and copy contents (optionally overwrites existing files)
+bool CopyDir(const std::string& source_path, const std::string& dest_path, const bool destructive)
 {
   if (source_path == dest_path)
-    return;
+    return true;
   if (!Exists(source_path))
-    return;
+    return false;
+
+  // Shouldn't be used to short circuit operations after an earlier failure
+  bool everything_copied = true;
+
   if (!Exists(dest_path))
-    File::CreateFullPath(dest_path);
+    everything_copied = File::CreateFullPath(dest_path) && everything_copied;
 
 #ifdef _WIN32
   WIN32_FIND_DATA ffd;
@@ -652,7 +656,7 @@ void CopyDir(const std::string& source_path, const std::string& dest_path, bool 
   if (hFind == INVALID_HANDLE_VALUE)
   {
     FindClose(hFind);
-    return;
+    return false;
   }
 
   do
@@ -661,7 +665,7 @@ void CopyDir(const std::string& source_path, const std::string& dest_path, bool 
 #else
   DIR* dirp = opendir(source_path.c_str());
   if (!dirp)
-    return;
+    return false;
 
   while (dirent* result = readdir(dirp))
   {
@@ -671,21 +675,21 @@ void CopyDir(const std::string& source_path, const std::string& dest_path, bool 
     if (virtualName == "." || virtualName == "..")
       continue;
 
-    std::string source = source_path + DIR_SEP + virtualName;
-    std::string dest = dest_path + DIR_SEP + virtualName;
+    const std::string source = source_path + DIR_SEP + virtualName;
+    const std::string dest = dest_path + DIR_SEP + virtualName;
     if (IsDirectory(source))
     {
       if (!Exists(dest))
         File::CreateFullPath(dest + DIR_SEP);
-      CopyDir(source, dest, destructive);
+      everything_copied = CopyDir(source, dest, destructive) && everything_copied;
     }
     else if (!destructive && !Exists(dest))
     {
-      Copy(source, dest);
+      everything_copied = Copy(source, dest) && everything_copied;
     }
     else if (destructive)
     {
-      Rename(source, dest);
+      everything_copied = Rename(source, dest) && everything_copied;
     }
 #ifdef _WIN32
   } while (FindNextFile(hFind, &ffd) != 0);
@@ -694,6 +698,7 @@ void CopyDir(const std::string& source_path, const std::string& dest_path, bool 
   }
   closedir(dirp);
 #endif
+  return everything_copied;
 }
 
 // Returns the current directory

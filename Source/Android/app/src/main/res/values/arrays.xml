@@ -16,65 +16,65 @@
     </integer-array>
 
     <!-- UI CPU Core selection -->
-    <string-array name="emuCoresEntriesX86_64" translatable="false">
-        <item>JIT Recompiler for x86-64 (recommended)</item>
-        <item>Cached Interpreter (slower)</item>
-        <item>Interpreter (slowest)</item>
+    <string-array name="emuCoresEntriesX86_64">
+        <item>@string/jit_recompiler_x86</item>
+        <item>@string/cached_interpreter_slower</item>
+        <item>@string/interpreter_slowest</item>
     </string-array>
-    <integer-array name="emuCoresValuesX86_64" translatable="false">
+    <integer-array name="emuCoresValuesX86_64">
         <item>1</item>
         <item>5</item>
         <item>0</item>
     </integer-array>
-    <string-array name="emuCoresEntriesARM64" translatable="false">
-        <item>JIT Recompiler for ARM64 (recommended)</item>
-        <item>Cached Interpreter (slower)</item>
-        <item>Interpreter (slowest)</item>
+    <string-array name="emuCoresEntriesARM64">
+        <item>@string/jit_recompiler_arm64</item>
+        <item>@string/cached_interpreter_slower</item>
+        <item>@string/interpreter_slowest</item>
     </string-array>
-    <integer-array name="emuCoresValuesARM64" translatable="false">
+    <integer-array name="emuCoresValuesARM64">
         <item>4</item>
         <item>5</item>
         <item>0</item>
     </integer-array>
-    <string-array name="emuCoresEntriesGeneric" translatable="false">
-        <item>Cached Interpreter</item>
-        <item>Interpreter</item>
+    <string-array name="emuCoresEntriesGeneric">
+        <item>@string/cached_interpreter</item>
+        <item>@string/interpreter</item>
     </string-array>
-    <integer-array name="emuCoresValuesGeneric" translatable="false">
+    <integer-array name="emuCoresValuesGeneric">
         <item>5</item>
         <item>0</item>
     </integer-array>
 
     <!-- DSP Emulation Engine -->
-    <string-array name="dspEngineEntriesX86_64" translatable="false">
-        <item>DSP HLE (recommended)</item>
-        <item>DSP LLE Recompiler (slow)</item>
-        <item>DSP LLE Interpreter (very slow)</item>
+    <string-array name="dspEngineEntriesX86_64">
+        <item>@string/dsp_hle</item>
+        <item>@string/dsp_lle_recompiler</item>
+        <item>@string/dsp_lle_interpreter</item>
     </string-array>
-    <integer-array name="dspEngineValuesX86_64" translatable="false">
+    <integer-array name="dspEngineValuesX86_64">
         <item>0</item>
         <item>1</item>
         <item>2</item>
     </integer-array>
-    <string-array name="dspEngineEntriesGeneric" translatable="false">
-        <item>DSP HLE (recommended)</item>
-        <item>DSP LLE Interpreter (very slow)</item>
+    <string-array name="dspEngineEntriesGeneric">
+        <item>@string/dsp_hle</item>
+        <item>@string/dsp_lle_interpreter</item>
     </string-array>
-    <integer-array name="dspEngineValuesGeneric" translatable="false">
+    <integer-array name="dspEngineValuesGeneric">
         <item>0</item>
         <item>2</item>
     </integer-array>
 
     <!-- GameCube System Languages -->
-    <string-array name="gameCubeSystemLanguageEntries" translatable="false">
-        <item>English</item>
-        <item>German</item>
-        <item>French</item>
-        <item>Spanish</item>
-        <item>Italian</item>
-        <item>Dutch</item>
+    <string-array name="gameCubeSystemLanguageEntries">
+        <item>@string/language_english</item>
+        <item>@string/language_german</item>
+        <item>@string/language_french</item>
+        <item>@string/language_spanish</item>
+        <item>@string/language_italian</item>
+        <item>@string/language_dutch</item>
     </string-array>
-    <integer-array name="gameCubeSystemLanguageValues" translatable="false">
+    <integer-array name="gameCubeSystemLanguageValues">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -84,13 +84,13 @@
     </integer-array>
 
     <!-- Slot A & B Device selection -->
-    <string-array name="slotDeviceEntries" translatable="false">
-        <item>Nothing</item>
-        <item>Dummy</item>
-        <item>Memory Card</item>
-        <item>GCI Folder</item>
+    <string-array name="slotDeviceEntries">
+        <item>@string/device_nothing</item>
+        <item>@string/device_dummy</item>
+        <item>@string/device_memory_card</item>
+        <item>@string/device_gci_folder</item>
     </string-array>
-    <integer-array name="slotDeviceValues" translatable="false">
+    <integer-array name="slotDeviceValues">
         <item>255</item>
         <item>0</item>
         <item>1</item>
@@ -98,33 +98,33 @@
     </integer-array>
 
     <!-- Slot SP1 Device selection -->
-    <string-array name="serialPort1DeviceEntries" translatable="false">
-        <item>Nothing</item>
-        <item>Dummy</item>
-        <item>Broadband Adapter (XLink Kai)</item>
-        <item>Broadband Adapter (HLE)</item>
+    <string-array name="serialPort1DeviceEntries">
+        <item>@string/device_nothing</item>
+        <item>@string/device_dummy</item>
+        <item>@string/broadband_adapter_xlink</item>
+        <item>@string/broadband_adapter_hle</item>
     </string-array>
-    <integer-array name="serialPort1DeviceValues" translatable="false">
+    <integer-array name="serialPort1DeviceValues">
         <item>255</item>
         <item>0</item>
         <item>10</item>
         <item>12</item>
     </integer-array>
 
-    <!-- GameCube System Languages -->
+    <!-- Wii System Languages -->
     <string-array name="wiiSystemLanguageEntries">
-        <item>Japanese</item>
-        <item>English</item>
-        <item>German</item>
-        <item>French</item>
-        <item>Spanish</item>
-        <item>Italian</item>
-        <item>Dutch</item>
-        <item>Simplified Chinese</item>
-        <item>Traditional Chinese</item>
-        <item>Korean</item>
+        <item>@string/language_japanese</item>
+        <item>@string/language_english</item>
+        <item>@string/language_german</item>
+        <item>@string/language_french</item>
+        <item>@string/language_spanish</item>
+        <item>@string/language_italian</item>
+        <item>@string/language_dutch</item>
+        <item>@string/language_simplified_chinese</item>
+        <item>@string/language_traditional_chinese</item>
+        <item>@string/language_korean</item>
     </string-array>
-    <integer-array name="wiiSystemLanguageValues" translatable="false">
+    <integer-array name="wiiSystemLanguageValues">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -139,11 +139,11 @@
 
     <!-- Sound Mode -->
     <string-array name="soundModeEntries">
-        <item>Mono</item>
-        <item>Stereo</item>
-        <item>Surround</item>
+        <item>@string/sound_mode_mono</item>
+        <item>@string/sound_mode_stereo</item>
+        <item>@string/sound_mode_surround</item>
     </string-array>
-    <integer-array name="soundModeValues" translatable="false">
+    <integer-array name="soundModeValues">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -151,35 +151,35 @@
 
     <!-- Sensor Bar Position -->
     <string-array name="sensorBarPositionEntries">
-        <item>Top</item>
-        <item>Bottom</item>
+        <item>@string/sensor_position_top</item>
+        <item>@string/sensor_position_bottom</item>
     </string-array>
-    <integer-array name="sensorBarPositionValues" translatable="false">
+    <integer-array name="sensorBarPositionValues">
         <item>1</item>
         <item>0</item>
     </integer-array>
 
     <!-- Log Verbosity selection based on LogLevel in Common/Logging/Log.h -->
-    <string-array name="logVerbosityEntriesMaxLevelInfo" translatable="false">
-        <item>Notice</item>
-        <item>Error</item>
-        <item>Warning</item>
-        <item>Info</item>
+    <string-array name="logVerbosityEntriesMaxLevelInfo">
+        <item>@string/log_notice</item>
+        <item>@string/log_error</item>
+        <item>@string/log_warning</item>
+        <item>@string/log_info</item>
     </string-array>
-    <integer-array name="logVerbosityValuesMaxLevelInfo" translatable="false">
+    <integer-array name="logVerbosityValuesMaxLevelInfo">
         <item>1</item>
         <item>2</item>
         <item>3</item>
         <item>4</item>
     </integer-array>
-    <string-array name="logVerbosityEntriesMaxLevelDebug" translatable="false">
-        <item>Notice</item>
-        <item>Error</item>
-        <item>Warning</item>
-        <item>Info</item>
-        <item>Debug</item>
+    <string-array name="logVerbosityEntriesMaxLevelDebug">
+        <item>@string/log_notice</item>
+        <item>@string/log_error</item>
+        <item>@string/log_warning</item>
+        <item>@string/log_info</item>
+        <item>@string/log_debug</item>
     </string-array>
-    <integer-array name="logVerbosityValuesMaxLevelDebug" translatable="false">
+    <integer-array name="logVerbosityValuesMaxLevelDebug">
         <item>1</item>
         <item>2</item>
         <item>3</item>
@@ -189,12 +189,12 @@
 
     <!-- Video backend selection -->
     <string-array name="videoBackendEntries">
-        <item>OpenGL</item>
-        <item>Vulkan</item>
-        <item>Software</item>
-        <item>Null</item>
+        <item>@string/backend_opengl</item>
+        <item>@string/backend_vulkan</item>
+        <item>@string/backend_software</item>
+        <item>@string/backend_null</item>
     </string-array>
-    <string-array name="videoBackendValues" translatable="false">
+    <string-array name="videoBackendValues">
         <item>OGL</item>
         <item>Vulkan</item>
         <item>Software Renderer</item>
@@ -203,14 +203,14 @@
 
     <!-- Wii Remote extensions -->
     <string-array name="wiimoteExtensionsEntries">
-        <item>None</item>
-        <item>Nunchuk</item>
-        <item>Classic</item>
-        <item>Guitar</item>
-        <item>Drums</item>
-        <item>Turntable</item>
+        <item>@string/extension_none</item>
+        <item>@string/extension_nunchuk</item>
+        <item>@string/extension_classic</item>
+        <item>@string/extension_guitar</item>
+        <item>@string/extension_drums</item>
+        <item>@string/extension_turntable</item>
     </string-array>
-    <string-array name="wiimoteExtensionsValues" translatable="false">
+    <string-array name="wiimoteExtensionsValues">
         <item>None</item>
         <item>Nunchuk</item>
         <item>Classic</item>
@@ -220,25 +220,25 @@
     </string-array>
 
     <!-- Texture Cache Accuracy Preference -->
-    <string-array name="textureCacheAccuracyEntries" translatable="false">
-        <item>Fast</item>
-        <item>Medium</item>
-        <item>Safe</item>
+    <string-array name="textureCacheAccuracyEntries">
+        <item>@string/accuracy_fast</item>
+        <item>@string/accuracy_medium</item>
+        <item>@string/accuracy_safe</item>
     </string-array>
-    <integer-array name="textureCacheAccuracyValues" translatable="false">
+    <integer-array name="textureCacheAccuracyValues">
         <item>128</item>
         <item>512</item>
         <item>0</item>
     </integer-array>
 
     <!-- Shader Compilation Mode Preference -->
-    <string-array name="shaderCompilationModeEntries" translatable="false">
-        <item>Specialized (Default)</item>
-        <item>Exclusive Ubershaders</item>
-        <item>Hybrid Ubershaders</item>
-        <item>Skip Drawing</item>
+    <string-array name="shaderCompilationModeEntries">
+        <item>@string/shader_compilation_specialized</item>
+        <item>@string/shader_compilation_exclusive_ubershaders</item>
+        <item>@string/shader_compilation_hybrid_ubershaders</item>
+        <item>@string/shader_compilation_skip_drawing</item>
     </string-array>
-    <integer-array name="shaderCompilationModeValues" translatable="false">
+    <integer-array name="shaderCompilationModeValues">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -246,13 +246,13 @@
     </integer-array>
 
     <!-- Shader Compilation Mode Dynamic Descriptions -->
-    <string-array name="shaderCompilationDescriptionEntries" translatable="false">
-        <item>Specialized (Default): Ubershaders are never used. Stuttering will occur during shader compilation, but GPU demands are low. Recommended for low-end hardware. If unsure, select this mode.</item>
-        <item>Exclusive Ubershaders: Ubershaders will always be used. Provides a near stutter-free experience at the cost of very high GPU performance requirements. Don\'t use this unless you encountered stuttering with Hybrid Ubershaders and have a very powerful GPU.</item>
-        <item>Hybrid Ubershaders: Ubershaders will be used to prevent stuttering during shader compilation, but specialized shaders will be used when they will not cause stuttering. In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior.</item>
-        <item>Skip Drawing: Prevents shader compilation stuttering by not rendering waiting objects. Can work in scenarios where Ubershaders doesn\'t, at the cost of introducing visual glitches and broken effects. Not recommended, only use if the other options give poor results on your system.</item>
+    <string-array name="shaderCompilationDescriptionEntries">
+        <item>@string/shader_compilation_specialized_description</item>
+        <item>@string/shader_compilation_exclusive_ubershaders_description</item>
+        <item>@string/shader_compilation_hybrid_ubershaders_description</item>
+        <item>@string/shader_compilation_skip_drawing_description</item>
     </string-array>
-    <integer-array name="shaderCompilationDescriptionValues" translatable="false">
+    <integer-array name="shaderCompilationDescriptionValues">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -260,15 +260,15 @@
     </integer-array>
 
     <!-- Internal Resolution Preference -->
-    <string-array name="internalResolutionEntries" translatable="false">
-        <item>1x Native (640x528)</item>
-        <item>2x Native (1280x1056) for 720p</item>
-        <item>3x Native (1920x1584) for 1080p</item>
-        <item>4x Native (2560x2112)</item>
-        <item>5x Native (3200x2640)</item>
-        <item>6x Native (3840x3168) for 4K</item>
+    <string-array name="internalResolutionEntries">
+        <item>@string/resolution_one_native</item>
+        <item>@string/resolution_two_native</item>
+        <item>@string/resolution_three_native</item>
+        <item>@string/resolution_four_native</item>
+        <item>@string/resolution_five_native</item>
+        <item>@string/resolution_six_native</item>
     </string-array>
-    <integer-array name="internalResolutionValues" translatable="false">
+    <integer-array name="internalResolutionValues">
         <item>1</item>
         <item>2</item>
         <item>3</item>
@@ -279,10 +279,10 @@
 
     <!-- FSAA Preference -->
     <string-array name="FSAAEntries" translatable="false">
-        <item>Off</item>
-        <item>2x</item>
-        <item>4x</item>
-        <item>8x</item>
+        <item>@string/multiple_off</item>
+        <item>@string/multiple_two</item>
+        <item>@string/multiple_four</item>
+        <item>@string/multiple_eight</item>
     </string-array>
     <integer-array name="FSAAValues" translatable="false">
         <item>1</item>
@@ -292,14 +292,14 @@
     </integer-array>
 
     <!-- Anisotropic Filtering Preference -->
-    <string-array name="anisotropicFilteringEntries" translatable="false">
-        <item>1x</item>
-        <item>2x</item>
-        <item>4x</item>
-        <item>8x</item>
-        <item>16x</item>
+    <string-array name="anisotropicFilteringEntries">
+        <item>@string/multiple_one</item>
+        <item>@string/multiple_two</item>
+        <item>@string/multiple_four</item>
+        <item>@string/multiple_eight</item>
+        <item>@string/multiple_sixteen</item>
     </string-array>
-    <integer-array name="anisotropicFilteringValues" translatable="false">
+    <integer-array name="anisotropicFilteringValues">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -308,13 +308,13 @@
     </integer-array>
 
     <!-- Stereoscopy Preference -->
-    <string-array name="stereoscopyEntries" translatable="false">
-        <item>Off</item>
-        <item>Side-by-Side</item>
-        <item>Top-and-Bottom</item>
-        <item>Anaglyph</item>
+    <string-array name="stereoscopyEntries">
+        <item>@string/stereoscopy_off</item>
+        <item>@string/stereoscopy_side_by_side</item>
+        <item>@string/stereoscopy_top_and_bottom</item>
+        <item>@string/stereoscopy_anaglyph</item>
     </string-array>
-    <integer-array name="stereoscopyValues" translatable="false">
+    <integer-array name="stereoscopyValues">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -322,13 +322,13 @@
     </integer-array>
 
     <!-- Aspect Ratio Preference -->
-    <string-array name="aspectRatioEntries" translatable="false">
-        <item>Auto</item>
-        <item>Force 16:9</item>
-        <item>Force 4:3</item>
-        <item>Stretch To Window</item>
+    <string-array name="aspectRatioEntries">
+        <item>@string/aspect_ratio_auto</item>
+        <item>@string/aspect_ratio_force_sixteen_by_nine</item>
+        <item>@string/aspect_ratio_force_four_by_three</item>
+        <item>@string/aspect_ratio_stretch</item>
     </string-array>
-    <integer-array name="aspectRatioValues" translatable="false">
+    <integer-array name="aspectRatioValues">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -336,26 +336,26 @@
     </integer-array>
 
     <string-array name="countryNames">
-        <item>Europe</item>
-        <item>Japan</item>
-        <item>USA</item>
-        <item>Australia</item>
-        <item>France</item>
-        <item>Germany</item>
-        <item>Italy</item>
-        <item>Korea</item>
-        <item>Netherlands</item>
-        <item>Russia</item>
-        <item>Spain</item>
-        <item>Taiwan</item>
-        <item>World</item>
-        <item>Unknown</item>
+        <item>@string/country_europe</item>
+        <item>@string/country_japan</item>
+        <item>@string/country_usa</item>
+        <item>@string/country_australia</item>
+        <item>@string/country_france</item>
+        <item>@string/country_germany</item>
+        <item>@string/country_italy</item>
+        <item>@string/country_korea</item>
+        <item>@string/country_netherlands</item>
+        <item>@string/country_russia</item>
+        <item>@string/country_spain</item>
+        <item>@string/country_taiwan</item>
+        <item>@string/country_world</item>
+        <item>@string/country_unknown</item>
     </string-array>
 
     <string-array name="gcpadTypeEntries">
-        <item>Disabled</item>
-        <item>Emulated</item>
-        <item>GameCube Adapter</item>
+        <item>@string/gcpad_disabled</item>
+        <item>@string/gcpad_emulated</item>
+        <item>@string/gcpad_gc_adapter</item>
     </string-array>
     <integer-array name="gcpadTypeValues">
         <item>0</item>
@@ -364,9 +364,9 @@
     </integer-array>
 
     <string-array name="wiimoteTypeEntries">
-        <item>Disabled</item>
-        <item>Emulated</item>
-        <item>Real Wii Remote (DolphinBar required)</item>
+        <item>@string/wiimote_disabled</item>
+        <item>@string/wiimote_emulated</item>
+        <item>@string/wiimote_real</item>
     </string-array>
     <integer-array name="wiimoteTypeValues">
         <item>0</item>
@@ -375,12 +375,12 @@
     </integer-array>
 
     <string-array name="controllersEntries">
-        <item>GameCube Controller</item>
-        <item>Wii Remote</item>
-        <item>Horizontal Wii Remote</item>
-        <item>Wii Remote + Nunchuk</item>
-        <item>Classic Controller</item>
-        <item>None</item>
+        <item>@string/controller_gc</item>
+        <item>@string/controller_wiimote</item>
+        <item>@string/controller_horizontal_wiimote</item>
+        <item>@string/controller_wiimote_plus_nunchuk</item>
+        <item>@string/controller_classic</item>
+        <item>@string/controller_none</item>
     </string-array>
     <string-array name="controllersValues">
         <item>None</item>
@@ -397,12 +397,12 @@
         <item>X</item>
         <item>Y</item>
         <item>Z</item>
-        <item>Start</item>
+        <item>@string/gamepad_start</item>
         <item>L</item>
         <item>R</item>
-        <item>D-Pad</item>
-        <item>Main Stick</item>
-        <item>C Stick</item>
+        <item>@string/gamepad_d_pad</item>
+        <item>@string/gamepad_main_stick</item>
+        <item>@string/gamepad_c_stick</item>
     </string-array>
 
     <string-array name="wiimoteButtons">
@@ -412,8 +412,8 @@
         <item>2</item>
         <item>+</item>
         <item>-</item>
-        <item>Home</item>
-        <item>D-Pad</item>
+        <item>@string/gamepad_home</item>
+        <item>@string/gamepad_d_pad</item>
     </string-array>
 
     <string-array name="nunchukButtons">
@@ -423,11 +423,11 @@
         <item>2</item>
         <item>+</item>
         <item>-</item>
-        <item>Home</item>
-        <item>D-Pad</item>
+        <item>@string/gamepad_home</item>
+        <item>@string/gamepad_d_pad</item>
         <item>C</item>
         <item>Z</item>
-        <item>Nunchuk Stick</item>
+        <item>@string/gamepad_nunchuk_stick</item>
     </string-array>
 
     <string-array name="classicButtons">
@@ -437,40 +437,40 @@
         <item>y</item>
         <item>+</item>
         <item>-</item>
-        <item>Home</item>
+        <item>@string/gamepad_home</item>
         <item>L</item>
         <item>R</item>
         <item>ZL</item>
         <item>ZR</item>
-        <item>D-Pad</item>
-        <item>Left Stick</item>
-        <item>Right Stick</item>
+        <item>@string/gamepad_d_pad</item>
+        <item>@string/gamepad_left_stick</item>
+        <item>@string/gamepad_right_stick</item>
     </string-array>
 
     <string-array name="irModeEntries">
-        <item>Disabled</item>
-        <item>Follow</item>
-        <item>Drag</item>
+        <item>@string/ir_disabled</item>
+        <item>@string/ir_follow</item>
+        <item>@string/ir_drag</item>
     </string-array>
 
     <string-array name="doubleTap">
-        <item>Button A</item>
-        <item>Button B</item>
-        <item>Button 2</item>
+        <item>@string/double_tap_a</item>
+        <item>@string/double_tap_b</item>
+        <item>@string/double_tap_2</item>
     </string-array>
 
     <string-array name="doubleTapWithClassic">
-        <item>Button A</item>
-        <item>Button B</item>
-        <item>Button 2</item>
-        <item>Classic A</item>
+        <item>@string/double_tap_a</item>
+        <item>@string/double_tap_b</item>
+        <item>@string/double_tap_2</item>
+        <item>@string/double_tap_classic_a</item>
     </string-array>
 
     <string-array name="orientationEntries">
-        <item>Landscape</item>
-        <item>Landscape (reverse)</item>
-        <item>Portrait</item>
-        <item>Auto</item>
+        <item>@string/orientation_landscape</item>
+        <item>@string/orientation_landscape_reverse</item>
+        <item>@string/orientation_portrait</item>
+        <item>@string/orientation_auto</item>
     </string-array>
     <integer-array name="orientationValues">
         <item>0</item>
@@ -481,10 +481,10 @@
 
     <!-- Monet must always have a value exclusive to >= API 31 -->
     <string-array name="themeEntries">
-        <item>Default</item>
-        <item>Material Default</item>
-        <item>Green</item>
-        <item>Pink</item>
+        <item>@string/theme_default</item>
+        <item>@string/theme_material_default</item>
+        <item>@string/theme_green</item>
+        <item>@string/theme_pink</item>
     </string-array>
     <integer-array name="themeValues">
         <item>0</item>
@@ -493,11 +493,11 @@
         <item>4</item>
     </integer-array>
     <string-array name="themeEntriesA12">
-        <item>Default</item>
-        <item>Material You</item>
-        <item>Material Default</item>
-        <item>Green</item>
-        <item>Pink</item>
+        <item>@string/theme_default</item>
+        <item>@string/theme_material_you</item>
+        <item>@string/theme_material_default</item>
+        <item>@string/theme_green</item>
+        <item>@string/theme_pink</item>
     </string-array>
     <integer-array name="themeValuesA12">
         <item>0</item>
@@ -507,10 +507,21 @@
         <item>4</item>
     </integer-array>
 
+    <string-array name="themeModeEntries">
+        <item>@string/theme_mode_follow_system</item>
+        <item>@string/theme_mode_light</item>
+        <item>@string/theme_mode_dark</item>
+    </string-array>
+    <integer-array name="themeModeValues">
+        <item>-1</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
     <string-array name="synchronizeGpuThreadEntries">
-        <item>Never</item>
-        <item>On Idle Skipping</item>
-        <item>Always</item>
+        <item>@string/sync_gpu_never</item>
+        <item>@string/sync_gpu_idle</item>
+        <item>@string/sync_gpu_always</item>
     </string-array>
     <integer-array name="synchronizeGpuThreadValues">
         <item>0</item>
@@ -519,9 +530,9 @@
     </integer-array>
 
     <string-array name="motionControlsEntries">
-        <item>Use Device Sensors (With Pointer Emulation)</item>
-        <item>Use Device Sensors (Without Pointer Emulation)</item>
-        <item>Don\'t Use Device Sensors</item>
+        <item>@string/motion_device_with_pointer</item>
+        <item>@string/motion_device_without_pointer</item>
+        <item>@string/motion_no_device</item>
     </string-array>
 
     <string-array name="convertFormatEntries" translatable="false">
@@ -538,27 +549,27 @@
     </integer-array>
 
     <string-array name="convertBlockSizeGczEntries">
-        <item>32 KiB</item>
+        <item>@string/block_size_32_kib</item>
     </string-array>
     <integer-array name="convertBlockSizeGczValues">
         <item>32768</item>
     </integer-array>
 
     <string-array name="convertBlockSizeWiaEntries">
-        <item>2 MiB</item>
+        <item>@string/block_size_2_mib</item>
     </string-array>
     <integer-array name="convertBlockSizeWiaValues">
         <item>2097152</item>
     </integer-array>
 
     <string-array name="convertBlockSizeRvzEntries">
-        <item>32 KiB</item>
-        <item>64 KiB</item>
-        <item>128 KiB</item>
-        <item>256 KiB</item>
-        <item>512 KiB</item>
-        <item>1 MiB</item>
-        <item>2 MiB</item>
+        <item>@string/block_size_32_kib</item>
+        <item>@string/block_size_64_kib</item>
+        <item>@string/block_size_128_kib</item>
+        <item>@string/block_size_256_kib</item>
+        <item>@string/block_size_512_kib</item>
+        <item>@string/block_size_1_mib</item>
+        <item>@string/block_size_2_mib</item>
     </string-array>
     <integer-array name="convertBlockSizeRvzValues">
         <item>32768</item>
@@ -570,19 +581,19 @@
         <item>2097152</item>
     </integer-array>
 
-    <string-array name="convertCompressionGczEntries" translatable="false">
-        <item>Deflate</item>
+    <string-array name="convertCompressionGczEntries">
+        <item>@string/compression_deflate</item>
     </string-array>
     <integer-array name="convertCompressionGczValues">
         <item>0</item>
     </integer-array>
 
     <string-array name="convertCompressionWiaEntries">
-        <item>No Compression</item>
-        <item>Purge</item>
-        <item>bzip2 (slow)</item>
-        <item>LZMA (slow)</item>
-        <item>LZMA2 (slow)</item>
+        <item>@string/compression_none</item>
+        <item>@string/compression_purge</item>
+        <item>@string/compression_bzip2</item>
+        <item>@string/compression_lzma</item>
+        <item>@string/compression_lzma2</item>
     </string-array>
     <integer-array name="convertCompressionWiaValues">
         <item>0</item>
@@ -593,11 +604,11 @@
     </integer-array>
 
     <string-array name="convertCompressionRvzEntries">
-        <item>No Compression</item>
-        <item>bzip2 (slow)</item>
-        <item>LZMA (slow)</item>
-        <item>LZMA2 (slow)</item>
-        <item>Zstandard (recommended)</item>
+        <item>@string/compression_none</item>
+        <item>@string/compression_bzip2</item>
+        <item>@string/compression_lzma</item>
+        <item>@string/compression_lzma2</item>
+        <item>@string/compression_zstandard</item>
     </string-array>
     <integer-array name="convertCompressionRvzValues">
         <item>0</item>

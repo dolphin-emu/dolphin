@@ -28,9 +28,11 @@
 #endif
 
 // Dirs in both User and Sys
+// Legacy setups used /JAP/ while newer setups use /JPN/ by default.
 #define EUR_DIR "EUR"
 #define USA_DIR "USA"
 #define JAP_DIR "JAP"
+#define JPN_DIR "JPN"
 
 // Subdirs in the User dir returned by GetUserPath(D_USER_IDX)
 #define GC_USER_DIR "GC"

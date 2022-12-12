@@ -14,6 +14,10 @@
 class MemoryCardBase;
 class PointerWrap;
 
+namespace Core
+{
+class System;
+}
 namespace Memcard
 {
 struct HeaderData;
@@ -58,10 +62,10 @@ private:
                                         std::function<void(CEXIMemoryCard*)> callback);
 
   // Scheduled when a command that required delayed end signaling is done.
-  static void CmdDoneCallback(u64 userdata, s64 cyclesLate);
+  static void CmdDoneCallback(Core::System& system, u64 userdata, s64 cyclesLate);
 
   // Scheduled when memory card is done transferring data
-  static void TransferCompleteCallback(u64 userdata, s64 cyclesLate);
+  static void TransferCompleteCallback(Core::System& system, u64 userdata, s64 cyclesLate);
 
   // Signals that the command that was previously executed is now done.
   void CmdDone();

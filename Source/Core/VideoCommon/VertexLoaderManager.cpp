@@ -18,6 +18,7 @@
 
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -56,6 +57,7 @@ BitSet8 g_preprocess_vat_dirty;
 bool g_bases_dirty;  // Main only
 std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_main_vertex_loaders;
 std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_preprocess_vertex_loaders;
+bool g_needs_cp_xf_consistency_check;
 
 void Init()
 {
@@ -80,6 +82,9 @@ void UpdateVertexArrayPointers()
   if (!g_bases_dirty) [[likely]]
     return;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   // Some games such as Burnout 2 can put invalid addresses into
   // the array base registers. (see issue 8591)
   // But the vertex arrays with invalid addresses aren't actually enabled.
@@ -88,24 +93,24 @@ void UpdateVertexArrayPointers()
   // We also only update the array base if the vertex description states we are going to use it.
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Position))
     cached_arraybases[CPArray::Position] =
-        Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Position]);
+        memory.GetPointer(g_main_cp_state.array_bases[CPArray::Position]);
 
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Normal))
     cached_arraybases[CPArray::Normal] =
-        Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Normal]);
+        memory.GetPointer(g_main_cp_state.array_bases[CPArray::Normal]);
 
   for (u8 i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.low.Color[i]))
       cached_arraybases[CPArray::Color0 + i] =
-          Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Color0 + i]);
+          memory.GetPointer(g_main_cp_state.array_bases[CPArray::Color0 + i]);
   }
 
   for (u8 i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.high.TexCoord[i]))
       cached_arraybases[CPArray::TexCoord0 + i] =
-          Memory::GetPointer(g_main_cp_state.array_bases[CPArray::TexCoord0 + i]);
+          memory.GetPointer(g_main_cp_state.array_bases[CPArray::TexCoord0 + i]);
   }
 
   g_bases_dirty = false;
@@ -126,6 +131,7 @@ void MarkAllDirty()
   g_bases_dirty = true;
   g_main_vat_dirty = BitSet8::AllTrue(8);
   g_preprocess_vat_dirty = BitSet8::AllTrue(8);
+  g_needs_cp_xf_consistency_check = true;
 }
 
 NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& decl)
@@ -244,6 +250,11 @@ VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
 
 static void CheckCPConfiguration(int vtx_attr_group)
 {
+  if (!g_needs_cp_xf_consistency_check) [[likely]]
+    return;
+
+  g_needs_cp_xf_consistency_check = false;
+
   // Validate that the XF input configuration matches the CP configuration
   u32 num_cp_colors = std::count_if(
       g_main_cp_state.vtx_desc.low.Color.begin(), g_main_cp_state.vtx_desc.low.Color.end(),
@@ -276,7 +287,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
   }
 
   if (num_cp_colors != xfmem.invtxspec.numcolors || num_cp_normals != num_xf_normals ||
-      num_cp_tex_coords != xfmem.invtxspec.numtextures)
+      num_cp_tex_coords != xfmem.invtxspec.numtextures) [[unlikely]]
   {
     PanicAlertFmt("Mismatched configuration between CP and XF stages - {}/{} colors, {}/{} "
                   "normals, {}/{} texture coordinates. Please report on the issue tracker.\n\n"
@@ -291,17 +302,17 @@ static void CheckCPConfiguration(int vtx_attr_group)
 
     // Analytics reporting so we can discover which games have this problem, that way when we
     // eventually simulate the behavior we have test cases for it.
-    if (num_cp_colors != xfmem.invtxspec.numcolors)
+    if (num_cp_colors != xfmem.invtxspec.numcolors) [[unlikely]]
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_COLORS_BETWEEN_CP_AND_XF);
     }
-    if (num_cp_normals != num_xf_normals)
+    if (num_cp_normals != num_xf_normals) [[unlikely]]
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_NORMALS_BETWEEN_CP_AND_XF);
     }
-    if (num_cp_tex_coords != xfmem.invtxspec.numtextures)
+    if (num_cp_tex_coords != xfmem.invtxspec.numtextures) [[unlikely]]
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::MISMATCHED_GPU_TEX_COORDS_BETWEEN_CP_AND_XF);
@@ -312,7 +323,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
   }
 
   if (g_main_cp_state.matrix_index_a.Hex != xfmem.MatrixIndexA.Hex ||
-      g_main_cp_state.matrix_index_b.Hex != xfmem.MatrixIndexB.Hex)
+      g_main_cp_state.matrix_index_b.Hex != xfmem.MatrixIndexB.Hex) [[unlikely]]
   {
     WARN_LOG_FMT(VIDEO,
                  "Mismatched matrix index configuration between CP and XF stages - "
@@ -325,17 +336,15 @@ static void CheckCPConfiguration(int vtx_attr_group)
 }
 
 template <bool IsPreprocess>
-int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, DataReader src)
+int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, const u8* src)
 {
-  if (count == 0)
+  if (count == 0) [[unlikely]]
     return 0;
   ASSERT(count > 0);
 
   VertexLoaderBase* loader = RefreshLoader<IsPreprocess>(vtx_attr_group);
 
   int size = count * loader->m_vertex_size;
-  if ((int)src.size() < size)
-    return -1;
 
   if constexpr (!IsPreprocess)
   {
@@ -346,7 +355,7 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
 
     // If the native vertex format changed, force a flush.
     if (loader->m_native_vertex_format != s_current_vtx_fmt ||
-        loader->m_native_components != g_current_components)
+        loader->m_native_components != g_current_components) [[unlikely]]
     {
       g_vertex_manager->Flush();
     }
@@ -364,7 +373,7 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
     DataReader dst = g_vertex_manager->PrepareForAdditionalData(
         primitive, count, loader->m_native_vtx_decl.stride, cullall);
 
-    count = loader->RunVertices(src, dst, count);
+    count = loader->RunVertices(src, dst.GetPointer(), count);
 
     g_vertex_manager->AddIndices(primitive, count);
     g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
@@ -376,9 +385,9 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
 }
 
 template int RunVertices<false>(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count,
-                                DataReader src);
+                                const u8* src);
 template int RunVertices<true>(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count,
-                               DataReader src);
+                               const u8* src);
 
 NativeVertexFormat* GetCurrentVertexFormat()
 {

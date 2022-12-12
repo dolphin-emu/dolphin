@@ -23,6 +23,7 @@
 #include "Core/Host.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/VideoCommon.h"
@@ -493,12 +494,14 @@ void FifoPlayer::WriteAllMemoryUpdates()
 
 void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
   u8* mem = nullptr;
 
   if (memUpdate.address & 0x10000000)
-    mem = &Memory::m_pEXRAM[memUpdate.address & Memory::GetExRamMask()];
+    mem = &memory.GetEXRAM()[memUpdate.address & memory.GetExRamMask()];
   else
-    mem = &Memory::m_pRAM[memUpdate.address & Memory::GetRamMask()];
+    mem = &memory.GetRAM()[memUpdate.address & memory.GetRamMask()];
 
   std::copy(memUpdate.data.begin(), memUpdate.data.end(), mem);
 }
@@ -508,6 +511,8 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
   u32 written = start;
   u32 lastBurstEnd = end - 1;
 
+  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+
   // Write up to 256 bytes at a time
   while (written < end)
   {
@@ -515,8 +520,8 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
     {
       if (CPU::GetState() != CPU::State::Running)
         break;
-      CoreTiming::Idle();
-      CoreTiming::Advance();
+      core_timing.Idle();
+      core_timing.Advance();
     }
 
     u32 burstEnd = std::min(written + 255, lastBurstEnd);
@@ -533,7 +538,7 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
     m_ElapsedCycles = elapsedCycles;
 
     PowerPC::ppcState.downcount -= cyclesUsed;
-    CoreTiming::Advance();
+    core_timing.Advance();
   }
 }
 
@@ -712,11 +717,13 @@ void FifoPlayer::FlushWGP()
 
 void FifoPlayer::WaitForGPUInactive()
 {
+  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+
   // Sleep while the GPU is active
   while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
   {
-    CoreTiming::Idle();
-    CoreTiming::Advance();
+    core_timing.Idle();
+    core_timing.Advance();
   }
 }
 

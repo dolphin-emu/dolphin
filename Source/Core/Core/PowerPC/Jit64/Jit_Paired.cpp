@@ -3,6 +3,8 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
+#include <optional>
+
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
@@ -77,7 +79,8 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   default:
     PanicAlertFmt("ps_sum WTF!!!");
   }
-  HandleNaNs(inst, tmp, tmp == XMM1 ? XMM0 : XMM1);
+  // We're intentionally not calling HandleNaNs here.
+  // For addition and subtraction specifically, x86's NaN behavior matches PPC's.
   FinalizeSingleResult(Rd, R(tmp));
 }
 
@@ -96,23 +99,26 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   RCOpArg Ra = fpr.Use(a, RCMode::Read);
   RCOpArg Rc = fpr.Use(c, RCMode::Read);
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
-  RegCache::Realize(Ra, Rc, Rd);
+  RCX64Reg Rc_duplicated = m_accurate_nans ? fpr.Scratch() : fpr.Scratch(XMM1);
+  RegCache::Realize(Ra, Rc, Rd, Rc_duplicated);
 
   switch (inst.SUBOP5)
   {
   case 12:  // ps_muls0
-    MOVDDUP(XMM1, Rc);
+    MOVDDUP(Rc_duplicated, Rc);
     break;
   case 13:  // ps_muls1
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
+    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rc_duplicated, Rc, Rc, 3);
     break;
   default:
     PanicAlertFmt("ps_muls WTF!!!");
   }
   if (round_input)
-    Force25BitPrecision(XMM1, R(XMM1), XMM0);
+    Force25BitPrecision(XMM1, R(Rc_duplicated), XMM0);
+  else if (XMM1 != Rc_duplicated)
+    MOVAPD(XMM1, Rc_duplicated);
   MULPD(XMM1, Ra);
-  HandleNaNs(inst, XMM1, XMM0);
+  HandleNaNs(inst, XMM1, XMM0, Ra, std::nullopt, Rc_duplicated);
   FinalizeSingleResult(Rd, R(XMM1));
 }
 

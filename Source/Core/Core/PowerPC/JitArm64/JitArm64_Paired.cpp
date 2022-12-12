@@ -33,9 +33,9 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
   const u8 size = singles ? 32 : 64;
   const auto reg_encoder = singles ? EncodeRegToDouble : EncodeRegToQuad;
 
-  const ARM64Reg VA = fpr.R(a, type);
-  const ARM64Reg VB = fpr.R(b, type);
-  const ARM64Reg VD = fpr.RW(d, type);
+  const ARM64Reg VA = reg_encoder(fpr.R(a, type));
+  const ARM64Reg VB = reg_encoder(fpr.R(b, type));
+  const ARM64Reg VD = reg_encoder(fpr.RW(d, type));
 
   switch (inst.SUBOP10)
   {
@@ -43,23 +43,20 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
     m_float_emit.TRN1(size, VD, VA, VB);
     break;
   case 560:  // 01
-    m_float_emit.INS(size, VD, 0, VA, 0);
-    m_float_emit.INS(size, VD, 1, VB, 1);
+    if (d != b)
+    {
+      if (d != a)
+        m_float_emit.MOV(VD, VA);
+      if (a != b)
+        m_float_emit.INS(size, VD, 1, VB, 1);
+    }
+    else if (d != a)
+    {
+      m_float_emit.INS(size, VD, 0, VA, 0);
+    }
     break;
   case 592:  // 10
-    if (d != a && d != b)
-    {
-      m_float_emit.INS(size, VD, 0, VA, 1);
-      m_float_emit.INS(size, VD, 1, VB, 0);
-    }
-    else
-    {
-      ARM64Reg V0 = fpr.GetReg();
-      m_float_emit.INS(size, V0, 0, VA, 1);
-      m_float_emit.INS(size, V0, 1, VB, 0);
-      m_float_emit.MOV(reg_encoder(VD), reg_encoder(V0));
-      fpr.Unlock(V0);
-    }
+    m_float_emit.EXT(VD, VA, VB, size >> 3);
     break;
   case 624:  // 11
     m_float_emit.TRN2(size, VD, VA, VB);
@@ -86,8 +83,14 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
   const u32 d = inst.FD;
   const u32 op5 = inst.SUBOP5;
 
+  const bool muls = (op5 & ~0x1) == 12;
+  const bool madds = (op5 & ~0x1) == 14;
   const bool use_c = op5 == 25 || (op5 & ~0x13) == 12;  // mul, muls, and all kinds of maddXX
-  const bool use_b = op5 != 25 && (op5 & ~0x1) != 12;   // mul and muls don't use B
+  const bool use_b = op5 != 25 && !muls;                // mul and muls don't use B
+  const bool duplicated_c = muls || madds;
+  const bool fma = use_b && use_c;
+  const bool negate_result = (op5 & ~0x1) == 30;
+  const bool msub = op5 == 28 || op5 == 30;
 
   const auto singles_func = [&] {
     return fpr.IsSingle(a) && (!use_b || fpr.IsSingle(b)) && (!use_c || fpr.IsSingle(c));
@@ -102,147 +105,127 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
   const ARM64Reg VA = reg_encoder(fpr.R(a, type));
   const ARM64Reg VB = use_b ? reg_encoder(fpr.R(b, type)) : ARM64Reg::INVALID_REG;
-  ARM64Reg VC = use_c ? reg_encoder(fpr.R(c, type)) : ARM64Reg::INVALID_REG;
+  const ARM64Reg VC = use_c ? reg_encoder(fpr.R(c, type)) : ARM64Reg::INVALID_REG;
   const ARM64Reg VD = reg_encoder(fpr.RW(d, type));
 
   ARM64Reg V0Q = ARM64Reg::INVALID_REG;
-  ARM64Reg V0 = ARM64Reg::INVALID_REG;
   ARM64Reg V1Q = ARM64Reg::INVALID_REG;
+  ARM64Reg V2Q = ARM64Reg::INVALID_REG;
+  ARM64Reg V3Q = ARM64Reg::INVALID_REG;
 
-  const auto allocate_v0_if_needed = [&] {
-    if (V0Q == ARM64Reg::INVALID_REG)
-    {
-      V0Q = fpr.GetReg();
-      V0 = reg_encoder(V0Q);
-    }
-  };
-
+  ARM64Reg rounded_c_reg = VC;
   if (round_c)
   {
     ASSERT_MSG(DYNA_REC, !singles, "Tried to apply 25-bit precision to single");
 
-    V1Q = fpr.GetReg();
-
-    Force25BitPrecision(reg_encoder(V1Q), VC);
-    VC = reg_encoder(V1Q);
+    V0Q = fpr.GetReg();
+    rounded_c_reg = reg_encoder(V0Q);
+    Force25BitPrecision(rounded_c_reg, VC);
   }
 
-  ARM64Reg inaccurate_fma_temp_reg = VD;
-  if (inaccurate_fma && d == b)
+  ARM64Reg inaccurate_fma_reg = VD;
+  if (fma && inaccurate_fma && VD == VB)
   {
-    allocate_v0_if_needed();
-    inaccurate_fma_temp_reg = V0;
+    if (V0Q == ARM64Reg::INVALID_REG)
+      V0Q = fpr.GetReg();
+    inaccurate_fma_reg = reg_encoder(V0Q);
   }
 
   ARM64Reg result_reg = VD;
+  const bool need_accurate_fma_reg =
+      fma && !inaccurate_fma && (msub || VD != VB) && (VD == VA || VD == rounded_c_reg);
+  const bool preserve_d =
+      m_accurate_nans && (VD == VA || (use_b && VD == VB) || (use_c && VD == VC));
+  if (need_accurate_fma_reg || preserve_d)
+  {
+    V1Q = fpr.GetReg();
+    result_reg = reg_encoder(V1Q);
+  }
+
+  const ARM64Reg temp_gpr = m_accurate_nans && !singles ? gpr.GetReg() : ARM64Reg::INVALID_REG;
+
+  if (m_accurate_nans)
+  {
+    if (V0Q == ARM64Reg::INVALID_REG)
+      V0Q = fpr.GetReg();
+
+    V2Q = fpr.GetReg();
+
+    if (duplicated_c || VD == result_reg)
+      V3Q = fpr.GetReg();
+  }
+
   switch (op5)
   {
   case 12:  // ps_muls0: d = a * c.ps0
-    m_float_emit.FMUL(size, VD, VA, VC, 0);
+    m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg, 0);
     break;
   case 13:  // ps_muls1: d = a * c.ps1
-    m_float_emit.FMUL(size, VD, VA, VC, 1);
+    m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg, 1);
     break;
   case 14:  // ps_madds0: d = a * c.ps0 + b
     if (inaccurate_fma)
     {
-      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC, 0);
-      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
-    }
-    else if (VD == VB)
-    {
-      m_float_emit.FMLA(size, VD, VA, VC, 0);
-    }
-    else if (VD != VA && VD != VC)
-    {
-      m_float_emit.MOV(VD, VB);
-      m_float_emit.FMLA(size, VD, VA, VC, 0);
+      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg, 0);
+      m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
     }
     else
     {
-      allocate_v0_if_needed();
-      m_float_emit.MOV(V0, VB);
-      m_float_emit.FMLA(size, V0, VA, VC, 0);
-      result_reg = V0;
+      if (result_reg != VB)
+        m_float_emit.MOV(result_reg, VB);
+      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg, 0);
     }
     break;
   case 15:  // ps_madds1: d = a * c.ps1 + b
     if (inaccurate_fma)
     {
-      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC, 1);
-      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
-    }
-    else if (VD == VB)
-    {
-      m_float_emit.FMLA(size, VD, VA, VC, 1);
-    }
-    else if (VD != VA && VD != VC)
-    {
-      m_float_emit.MOV(VD, VB);
-      m_float_emit.FMLA(size, VD, VA, VC, 1);
+      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg, 1);
+      m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
     }
     else
     {
-      allocate_v0_if_needed();
-      m_float_emit.MOV(V0, VB);
-      m_float_emit.FMLA(size, V0, VA, VC, 1);
-      result_reg = V0;
+      if (result_reg != VB)
+        m_float_emit.MOV(result_reg, VB);
+      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg, 1);
     }
     break;
   case 18:  // ps_div
-    m_float_emit.FDIV(size, VD, VA, VB);
+    m_float_emit.FDIV(size, result_reg, VA, VB);
     break;
   case 20:  // ps_sub
-    m_float_emit.FSUB(size, VD, VA, VB);
+    m_float_emit.FSUB(size, result_reg, VA, VB);
     break;
   case 21:  // ps_add
-    m_float_emit.FADD(size, VD, VA, VB);
+    m_float_emit.FADD(size, result_reg, VA, VB);
     break;
   case 25:  // ps_mul
-    m_float_emit.FMUL(size, VD, VA, VC);
+    m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg);
     break;
   case 28:  // ps_msub:  d = a * c - b
   case 30:  // ps_nmsub: d = -(a * c - b)
     if (inaccurate_fma)
     {
-      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC);
-      m_float_emit.FSUB(size, VD, inaccurate_fma_temp_reg, VB);
-    }
-    else if (VD != VA && VD != VC)
-    {
-      m_float_emit.FNEG(size, VD, VB);
-      m_float_emit.FMLA(size, VD, VA, VC);
+      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg);
+      m_float_emit.FSUB(size, result_reg, inaccurate_fma_reg, VB);
     }
     else
     {
-      allocate_v0_if_needed();
-      m_float_emit.FNEG(size, V0, VB);
-      m_float_emit.FMLA(size, V0, VA, VC);
-      result_reg = V0;
+      m_float_emit.FNEG(size, result_reg, VB);
+      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg);
     }
     break;
   case 29:  // ps_madd:  d = a * c + b
   case 31:  // ps_nmadd: d = -(a * c + b)
     if (inaccurate_fma)
     {
-      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC);
-      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
-    }
-    else if (VD == VB)
-    {
-      m_float_emit.FMLA(size, VD, VA, VC);
-    }
-    else if (VD != VA && VD != VC)
-    {
-      m_float_emit.MOV(VD, VB);
-      m_float_emit.FMLA(size, VD, VA, VC);
+      m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg);
+      m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
     }
     else
     {
-      allocate_v0_if_needed();
-      m_float_emit.MOV(V0, VB);
-      m_float_emit.FMLA(size, V0, VA, VC);
-      result_reg = V0;
+      if (result_reg != VB)
+        m_float_emit.MOV(result_reg, VB);
+      m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg);
     }
     break;
   default:
@@ -250,24 +233,89 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     break;
   }
 
-  switch (op5)
+  FixupBranch nan_fixup;
+  if (m_accurate_nans)
   {
-  case 30:  // ps_nmsub
-  case 31:  // ps_nmadd
-    // PowerPC's nmadd/nmsub perform rounding before the final negation, which is not the case
-    // for any of AArch64's FMA instructions, so we negate using a separate instruction.
-    m_float_emit.FNEG(size, VD, result_reg);
-    break;
-  default:
-    if (result_reg != VD)
-      m_float_emit.MOV(VD, result_reg);
-    break;
+    const ARM64Reg nan_temp_reg = singles ? EncodeRegToSingle(V0Q) : EncodeRegToDouble(V0Q);
+    const ARM64Reg nan_temp_reg_paired = reg_encoder(V0Q);
+
+    const ARM64Reg zero_reg = reg_encoder(V2Q);
+
+    // Check if we need to handle NaNs
+
+    m_float_emit.FMAXP(nan_temp_reg, result_reg);
+    m_float_emit.FCMP(nan_temp_reg);
+    FixupBranch no_nan = B(CCFlags::CC_VC);
+    FixupBranch nan = B();
+    SetJumpTarget(no_nan);
+
+    SwitchToFarCode();
+    SetJumpTarget(nan);
+
+    // Pick the right NaNs
+
+    m_float_emit.MOVI(8, zero_reg, 0);
+
+    const auto check_input = [&](ARM64Reg input) {
+      m_float_emit.FACGE(size, nan_temp_reg_paired, input, zero_reg);
+      m_float_emit.BIF(result_reg, input, nan_temp_reg_paired);
+    };
+
+    ARM64Reg c_reg_for_nan_purposes = VC;
+    if (duplicated_c)
+    {
+      c_reg_for_nan_purposes = reg_encoder(V3Q);
+      m_float_emit.DUP(size, c_reg_for_nan_purposes, VC, op5 & 0x1);
+    }
+
+    if (use_c)
+      check_input(c_reg_for_nan_purposes);
+
+    if (use_b && (!use_c || VB != c_reg_for_nan_purposes))
+      check_input(VB);
+
+    if ((!use_b || VA != VB) && (!use_c || VA != c_reg_for_nan_purposes))
+      check_input(VA);
+
+    // Make the NaNs quiet
+
+    const ARM64Reg quiet_bit_reg = VD == result_reg ? reg_encoder(V3Q) : VD;
+    EmitQuietNaNBitConstant(quiet_bit_reg, singles, temp_gpr);
+
+    m_float_emit.FACGE(size, nan_temp_reg_paired, result_reg, zero_reg);
+    m_float_emit.ORR(quiet_bit_reg, quiet_bit_reg, result_reg);
+    if (negate_result)
+      m_float_emit.FNEG(size, result_reg, result_reg);
+    if (VD == result_reg)
+      m_float_emit.BIF(VD, quiet_bit_reg, nan_temp_reg_paired);
+    else  // quiet_bit_reg == VD
+      m_float_emit.BIT(VD, result_reg, nan_temp_reg_paired);
+
+    nan_fixup = B();
+
+    SwitchToNearCode();
   }
+
+  // PowerPC's nmadd/nmsub perform rounding before the final negation, which is not the case
+  // for any of AArch64's FMA instructions, so we negate using a separate instruction.
+  if (negate_result)
+    m_float_emit.FNEG(size, VD, result_reg);
+  else if (result_reg != VD)
+    m_float_emit.MOV(VD, result_reg);
+
+  if (m_accurate_nans)
+    SetJumpTarget(nan_fixup);
 
   if (V0Q != ARM64Reg::INVALID_REG)
     fpr.Unlock(V0Q);
   if (V1Q != ARM64Reg::INVALID_REG)
     fpr.Unlock(V1Q);
+  if (V2Q != ARM64Reg::INVALID_REG)
+    fpr.Unlock(V2Q);
+  if (V3Q != ARM64Reg::INVALID_REG)
+    fpr.Unlock(V3Q);
+  if (temp_gpr != ARM64Reg::INVALID_REG)
+    gpr.Unlock(temp_gpr);
 
   ASSERT_MSG(DYNA_REC, singles == singles_func(),
              "Register allocation turned singles into doubles in the middle of ps_arith");
@@ -329,32 +377,91 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
   const u32 c = inst.FC;
   const u32 d = inst.FD;
 
-  const bool upper = inst.SUBOP5 == 11;
+  const bool upper = inst.SUBOP5 & 0x1;
 
   const bool singles = fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c);
   const RegType type = singles ? RegType::Single : RegType::Register;
   const u8 size = singles ? 32 : 64;
   const auto reg_encoder = singles ? EncodeRegToDouble : EncodeRegToQuad;
+  const auto scalar_reg_encoder = singles ? EncodeRegToSingle : EncodeRegToDouble;
 
   const ARM64Reg VA = fpr.R(a, type);
   const ARM64Reg VB = fpr.R(b, type);
   const ARM64Reg VC = fpr.R(c, type);
   const ARM64Reg VD = fpr.RW(d, type);
   const ARM64Reg V0 = fpr.GetReg();
+  const ARM64Reg V1 = m_accurate_nans ? fpr.GetReg() : ARM64Reg::INVALID_REG;
+  const ARM64Reg temp_gpr = m_accurate_nans && !singles ? gpr.GetReg() : ARM64Reg::INVALID_REG;
 
-  m_float_emit.DUP(size, reg_encoder(V0), reg_encoder(upper ? VA : VB), upper ? 0 : 1);
-  if (d != c)
+  m_float_emit.DUP(size, reg_encoder(V0), reg_encoder(VB), 1);
+
+  FixupBranch a_nan_done, b_nan_done;
+  if (m_accurate_nans)
   {
-    m_float_emit.FADD(size, reg_encoder(VD), reg_encoder(V0), reg_encoder(upper ? VB : VA));
-    m_float_emit.INS(size, VD, upper ? 0 : 1, VC, upper ? 0 : 1);
+    const auto check_nan = [&](ARM64Reg input) {
+      m_float_emit.FCMP(scalar_reg_encoder(input));
+      FixupBranch not_nan = B(CCFlags::CC_VC);
+      FixupBranch nan = B();
+      SetJumpTarget(not_nan);
+
+      SwitchToFarCode();
+      SetJumpTarget(nan);
+
+      EmitQuietNaNBitConstant(scalar_reg_encoder(V1), singles, temp_gpr);
+
+      if (upper)
+      {
+        m_float_emit.ORR(EncodeRegToDouble(V1), EncodeRegToDouble(V1), EncodeRegToDouble(input));
+        m_float_emit.TRN1(size, reg_encoder(VD), reg_encoder(VC), reg_encoder(V1));
+      }
+      else if (d != c)
+      {
+        m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(V1), EncodeRegToDouble(input));
+        m_float_emit.INS(size, VD, 1, VC, 1);
+      }
+      else
+      {
+        m_float_emit.ORR(EncodeRegToDouble(V1), EncodeRegToDouble(V1), EncodeRegToDouble(input));
+        m_float_emit.INS(size, VD, 0, V1, 0);
+      }
+
+      FixupBranch nan_done = B();
+      SwitchToNearCode();
+
+      return nan_done;
+    };
+
+    a_nan_done = check_nan(VA);
+    b_nan_done = check_nan(V0);
+  }
+
+  if (upper)
+  {
+    m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(V0), scalar_reg_encoder(VA));
+    m_float_emit.TRN1(size, reg_encoder(VD), reg_encoder(VC), reg_encoder(V0));
+  }
+  else if (d != c)
+  {
+    m_float_emit.FADD(scalar_reg_encoder(VD), scalar_reg_encoder(V0), scalar_reg_encoder(VA));
+    m_float_emit.INS(size, VD, 1, VC, 1);
   }
   else
   {
-    m_float_emit.FADD(size, reg_encoder(V0), reg_encoder(V0), reg_encoder(upper ? VB : VA));
-    m_float_emit.INS(size, VD, upper ? 1 : 0, V0, upper ? 1 : 0);
+    m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(V0), scalar_reg_encoder(VA));
+    m_float_emit.INS(size, VD, 0, V0, 0);
+  }
+
+  if (m_accurate_nans)
+  {
+    SetJumpTarget(a_nan_done);
+    SetJumpTarget(b_nan_done);
   }
 
   fpr.Unlock(V0);
+  if (m_accurate_nans)
+    fpr.Unlock(V1);
+  if (temp_gpr != ARM64Reg::INVALID_REG)
+    gpr.Unlock(temp_gpr);
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
              "Register allocation turned singles into doubles in the middle of ps_sumX");

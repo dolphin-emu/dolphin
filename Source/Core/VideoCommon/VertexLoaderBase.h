@@ -12,8 +12,6 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/NativeVertexFormat.h"
 
-class DataReader;
-
 class VertexLoaderUID
 {
   std::array<u32, 5> vid{};
@@ -65,7 +63,7 @@ public:
   static std::unique_ptr<VertexLoaderBase> CreateVertexLoader(const TVtxDesc& vtx_desc,
                                                               const VAT& vtx_attr);
   virtual ~VertexLoaderBase() {}
-  virtual int RunVertices(DataReader src, DataReader dst, int count) = 0;
+  virtual int RunVertices(const u8* src, u8* dst, int count) = 0;
 
   // per loader public state
   PortableVertexDeclaration m_native_vtx_decl{};

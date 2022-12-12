@@ -16,7 +16,6 @@
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "VideoCommon/CPMemory.h"
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 
 using namespace Gen;
@@ -582,9 +581,9 @@ void VertexLoaderX64::GenerateVertexLoader()
   m_native_vtx_decl.stride = m_dst_ofs;
 }
 
-int VertexLoaderX64::RunVertices(DataReader src, DataReader dst, int count)
+int VertexLoaderX64::RunVertices(const u8* src, u8* dst, int count)
 {
   m_numLoadedVertices += count;
-  return ((int (*)(u8*, u8*, int, const void*))region)(src.GetPointer(), dst.GetPointer(), count,
-                                                       memory_base_ptr);
+  return ((int (*)(const u8* src, u8* dst, int count, const void* base))region)(src, dst, count,
+                                                                                memory_base_ptr);
 }

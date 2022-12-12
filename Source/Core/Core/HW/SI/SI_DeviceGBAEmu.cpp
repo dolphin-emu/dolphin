@@ -18,6 +18,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 
 namespace SerialInterface
 {
@@ -30,7 +31,7 @@ CSIDevice_GBAEmu::CSIDevice_GBAEmu(SIDevices device, int device_number)
     : ISIDevice(device, device_number)
 {
   m_core = std::make_shared<HW::GBA::Core>(m_device_number);
-  m_core->Start(CoreTiming::GetTicks());
+  m_core->Start(Core::System::GetInstance().GetCoreTiming().GetTicks());
   m_gbahost = Host_CreateGBAHost(m_core);
   m_core->SetHost(m_gbahost);
   ScheduleEvent(m_device_number, GetSyncInterval());
@@ -55,7 +56,7 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
                    buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
 #endif
     m_last_cmd = static_cast<EBufferCommands>(buffer[0]);
-    m_timestamp_sent = CoreTiming::GetTicks();
+    m_timestamp_sent = Core::System::GetInstance().GetCoreTiming().GetTicks();
     m_core->SendJoybusCommand(m_timestamp_sent, TransferInterval(), buffer, m_keys);
 
     RemoveEvent(m_device_number);
@@ -74,7 +75,8 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
 
   case NextAction::WaitTransferTime:
   {
-    int elapsed_time = static_cast<int>(CoreTiming::GetTicks() - m_timestamp_sent);
+    int elapsed_time =
+        static_cast<int>(Core::System::GetInstance().GetCoreTiming().GetTicks() - m_timestamp_sent);
     // Tell SI to ask again after TransferInterval() cycles
     if (TransferInterval() > elapsed_time)
       return 0;
@@ -162,7 +164,8 @@ void CSIDevice_GBAEmu::DoState(PointerWrap& p)
 
 void CSIDevice_GBAEmu::OnEvent(u64 userdata, s64 cycles_late)
 {
-  m_core->SendJoybusCommand(CoreTiming::GetTicks() + userdata, 0, nullptr, m_keys);
+  m_core->SendJoybusCommand(Core::System::GetInstance().GetCoreTiming().GetTicks() + userdata, 0,
+                            nullptr, m_keys);
   ScheduleEvent(m_device_number, userdata + GetSyncInterval());
 }
 }  // namespace SerialInterface

@@ -14,6 +14,7 @@
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 using namespace Gen;
 
@@ -322,7 +323,8 @@ void Jit64::mfspr(UGeckoInstruction inst)
     RCX64Reg rax = gpr.Scratch(RAX);
     RCX64Reg rcx = gpr.Scratch(RCX);
 
-    MOV(64, rcx, ImmPtr(&CoreTiming::g));
+    auto& core_timing_globals = Core::System::GetInstance().GetCoreTiming().GetGlobals();
+    MOV(64, rcx, ImmPtr(&core_timing_globals));
 
     // An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
     // cost of calling out to C for this is actually significant.

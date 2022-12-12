@@ -98,16 +98,16 @@ void EmitVertexMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_col
   {
     for (u32 i = 0; i < num_tex_inputs; i++)
     {
-      const auto attribute = SHADER_TEXTURE0_ATTRIB + i;
-      code.Write("ATTRIBUTE_LOCATION({}) in float3 rawtex{};\n", attribute, i);
+      const auto attribute = ShaderAttrib::TexCoord0 + i;
+      code.Write("ATTRIBUTE_LOCATION({:s}) in float3 rawtex{};\n", attribute, i);
     }
     for (u32 i = 0; i < num_color_inputs; i++)
     {
-      const auto attribute = SHADER_COLOR0_ATTRIB + i;
-      code.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor{};\n", attribute, i);
+      const auto attribute = ShaderAttrib::Color0 + i;
+      code.Write("ATTRIBUTE_LOCATION({:s}) in float4 rawcolor{};\n", attribute, i);
     }
     if (position_input)
-      code.Write("ATTRIBUTE_LOCATION({}) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
+      code.Write("ATTRIBUTE_LOCATION({:s}) in float4 rawpos;\n", ShaderAttrib::Position);
 
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {

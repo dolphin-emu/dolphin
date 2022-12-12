@@ -50,11 +50,12 @@
         android:clickable="true"
         android:background="@android:color/transparent" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/button_add_directory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_add"
+        android:text="@string/add_games"
+        app:icon="@drawable/ic_add"
         app:layout_anchor="@+id/pager_platforms"
         app:layout_anchorGravity="bottom|right|end" />
 

@@ -23,6 +23,7 @@
 #include "Core/IOS/Network/KD/VFF/VFFUtil.h"
 #include "Core/IOS/Network/Socket.h"
 #include "Core/IOS/Uids.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -232,12 +233,14 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
 
 IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& request)
 {
-  const u32 flags = Memory::Read_U32(request.buffer_in);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  const u32 flags = memory.Read_U32(request.buffer_in);
   // Nintendo converts the entry ID between a u32 and u16
   // several times, presumably for alignment purposes.
   // We'll skip past buffer_in+4 and keep the entry index as a u16.
-  const u16 entry_index = Memory::Read_U16(request.buffer_in + 6);
-  const u32 subtask_bitmask = Memory::Read_U32(request.buffer_in + 8);
+  const u16 entry_index = memory.Read_U16(request.buffer_in + 6);
+  const u32 subtask_bitmask = memory.Read_U32(request.buffer_in + 8);
 
   INFO_LOG_FMT(IOS_WC24,
                "NET_KD_REQ: IOCTL_NWC24_DOWNLOAD_NOW_EX - NI - flags: {}, index: {}, bitmask: {}",
@@ -315,6 +318,8 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     IOCTL_NWC24_REQUEST_SHUTDOWN = 0x28,
   };
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
   s32 return_value = 0;
   switch (request.request)
   {
@@ -335,7 +340,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_NWC24_STARTUP_SOCKET:  // NWC24iStartupSocket
     WriteReturnValue(0, request.buffer_out);
-    Memory::Write_U32(0, request.buffer_out + 4);
+    memory.Write_U32(0, request.buffer_out + 4);
     return_value = 0;
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_STARTUP_SOCKET - NI");
     break;
@@ -356,7 +361,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_NWC24_REQUEST_REGISTER_USER_ID:
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID");
     WriteReturnValue(0, request.buffer_out);
-    Memory::Write_U32(0, request.buffer_out + 4);
+    memory.Write_U32(0, request.buffer_out + 4);
     break;
 
   case IOCTL_NWC24_REQUEST_GENERATED_USER_ID:  // (Input: none, Output: 32 bytes)
@@ -409,8 +414,8 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     {
       WriteReturnValue(NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
     }
-    Memory::Write_U64(config.Id(), request.buffer_out + 4);
-    Memory::Write_U32(u32(config.CreationStage()), request.buffer_out + 0xC);
+    memory.Write_U64(config.Id(), request.buffer_out + 4);
+    memory.Write_U32(u32(config.CreationStage()), request.buffer_out + 0xC);
     break;
 
   case IOCTL_NWC24_GET_SCHEDULER_STAT:
@@ -435,7 +440,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     }
 
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_SHUTDOWN");
-    [[maybe_unused]] const u32 event = Memory::Read_U32(request.buffer_in);
+    [[maybe_unused]] const u32 event = memory.Read_U32(request.buffer_in);
     // TODO: Advertise shutdown event
     // TODO: Shutdown USB keyboard LEDs if event == 3
     // TODO: IOCTLV_NCD_SETCONFIG

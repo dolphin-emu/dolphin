@@ -10,6 +10,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystemProxy.h"
 #include "Core/IOS/Uids.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -56,8 +57,10 @@ IPCReply ESDevice::OpenContent(u32 uid, const IOCtlVRequest& request)
       return ES_EINVAL;
     }
 
-    const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-    const u32 content_index = Memory::Read_U32(request.in_vectors[2].address);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
+    const u32 content_index = memory.Read_U32(request.in_vectors[2].address);
     // TODO: check the ticket view, check permissions.
 
     const auto tmd = FindInstalledTMD(title_id, ticks);
@@ -74,7 +77,9 @@ IPCReply ESDevice::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest& r
     if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
       return ES_EINVAL;
 
-    const u32 content_index = Memory::Read_U32(request.in_vectors[0].address);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    const u32 content_index = memory.Read_U32(request.in_vectors[0].address);
 
     if (!m_title_context.active)
       return ES_EINVAL;
@@ -109,13 +114,15 @@ IPCReply ESDevice::ReadContent(u32 uid, const IOCtlVRequest& request)
     if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
       return ES_EINVAL;
 
-    const u32 cfd = Memory::Read_U32(request.in_vectors[0].address);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    const u32 cfd = memory.Read_U32(request.in_vectors[0].address);
     const u32 size = request.io_vectors[0].size;
     const u32 addr = request.io_vectors[0].address;
 
     INFO_LOG_FMT(IOS_ES, "ReadContent(uid={:#x}, cfd={}, size={}, addr={:08x})", uid, cfd, size,
                  addr);
-    return ReadContent(cfd, Memory::GetPointer(addr), size, uid, ticks);
+    return ReadContent(cfd, memory.GetPointer(addr), size, uid, ticks);
   });
 }
 
@@ -142,7 +149,9 @@ IPCReply ESDevice::CloseContent(u32 uid, const IOCtlVRequest& request)
     if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
       return ES_EINVAL;
 
-    const u32 cfd = Memory::Read_U32(request.in_vectors[0].address);
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    const u32 cfd = memory.Read_U32(request.in_vectors[0].address);
     return CloseContent(cfd, uid, ticks);
   });
 }
@@ -167,9 +176,11 @@ IPCReply ESDevice::SeekContent(u32 uid, const IOCtlVRequest& request)
     if (!request.HasNumberOfValidVectors(3, 0))
       return ES_EINVAL;
 
-    const u32 cfd = Memory::Read_U32(request.in_vectors[0].address);
-    const u32 offset = Memory::Read_U32(request.in_vectors[1].address);
-    const auto mode = static_cast<SeekMode>(Memory::Read_U32(request.in_vectors[2].address));
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    const u32 cfd = memory.Read_U32(request.in_vectors[0].address);
+    const u32 offset = memory.Read_U32(request.in_vectors[1].address);
+    const auto mode = static_cast<SeekMode>(memory.Read_U32(request.in_vectors[2].address));
 
     return SeekContent(cfd, offset, mode, uid, ticks);
   });

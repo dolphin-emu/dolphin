@@ -198,21 +198,22 @@ int GetAIPeriod()
   return static_cast<int>(std::min(period, s_period));
 }
 
-void Update(u64 userdata, s64 cycles_late)
+static void Update(Core::System& system, u64 userdata, s64 cycles_late)
 {
   if (!IsPlaying())
     return;
 
-  auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
+  auto& state = system.GetAudioInterfaceState().GetData();
+  auto& core_timing = system.GetCoreTiming();
 
-  const u64 diff = CoreTiming::GetTicks() - state.last_cpu_time;
+  const u64 diff = core_timing.GetTicks() - state.last_cpu_time;
   if (diff > state.cpu_cycles_per_sample)
   {
     const u32 samples = static_cast<u32>(diff / state.cpu_cycles_per_sample);
     state.last_cpu_time += samples * state.cpu_cycles_per_sample;
     IncreaseSampleCount(samples);
   }
-  CoreTiming::ScheduleEvent(GetAIPeriod() - cycles_late, state.event_type_ai);
+  core_timing.ScheduleEvent(GetAIPeriod() - cycles_late, state.event_type_ai);
 }
 
 void SetAIDSampleRate(SampleRate sample_rate)
@@ -258,7 +259,9 @@ void SetAISSampleRate(SampleRate sample_rate)
 
 void Init()
 {
-  auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  auto& state = system.GetAudioInterfaceState().GetData();
 
   state.control.hex = 0;
   SetAISSampleRate(SampleRate::AI48KHz);
@@ -269,7 +272,7 @@ void Init()
 
   state.last_cpu_time = 0;
 
-  state.event_type_ai = CoreTiming::RegisterEvent("AICallback", Update);
+  state.event_type_ai = core_timing.RegisterEvent("AICallback", Update);
 }
 
 void Shutdown()
@@ -282,10 +285,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(
       base | AI_CONTROL_REGISTER, MMIO::DirectRead<u32>(&state.control.hex),
-      MMIO::ComplexWrite<u32>([](u32, u32 val) {
+      MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
         const AICR tmp_ai_ctrl(val);
 
-        auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
+        auto& core_timing = system.GetCoreTiming();
+        auto& state = system.GetAudioInterfaceState().GetData();
         if (state.control.AIINTMSK != tmp_ai_ctrl.AIINTMSK)
         {
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIINTMSK to {}", tmp_ai_ctrl.AIINTMSK);
@@ -321,10 +325,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "{} streaming audio",
                         tmp_ai_ctrl.PSTAT ? "start" : "stop");
           state.control.PSTAT = tmp_ai_ctrl.PSTAT;
-          state.last_cpu_time = CoreTiming::GetTicks();
+          state.last_cpu_time = core_timing.GetTicks();
 
-          CoreTiming::RemoveEvent(state.event_type_ai);
-          CoreTiming::ScheduleEvent(GetAIPeriod(), state.event_type_ai);
+          core_timing.RemoveEvent(state.event_type_ai);
+          core_timing.ScheduleEvent(GetAIPeriod(), state.event_type_ai);
         }
 
         // AI Interrupt
@@ -340,46 +344,47 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Reset AIS sample counter");
           state.sample_counter = 0;
 
-          state.last_cpu_time = CoreTiming::GetTicks();
+          state.last_cpu_time = core_timing.GetTicks();
         }
 
         UpdateInterrupts();
       }));
 
   mmio->Register(base | AI_VOLUME_REGISTER, MMIO::DirectRead<u32>(&state.volume.hex),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                   auto& state = system.GetAudioInterfaceState().GetData();
                    state.volume.hex = val;
-                   auto& system = Core::System::GetInstance();
                    SoundStream* sound_stream = system.GetSoundStream();
                    sound_stream->GetMixer()->SetStreamingVolume(state.volume.left,
                                                                 state.volume.right);
                  }));
 
-  mmio->Register(base | AI_SAMPLE_COUNTER, MMIO::ComplexRead<u32>([](u32) {
-                   auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
-                   const u64 cycles_streamed = IsPlaying() ?
-                                                   (CoreTiming::GetTicks() - state.last_cpu_time) :
-                                                   state.last_cpu_time;
+  mmio->Register(base | AI_SAMPLE_COUNTER, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
+                   auto& state = system.GetAudioInterfaceState().GetData();
+                   const u64 cycles_streamed =
+                       IsPlaying() ? (system.GetCoreTiming().GetTicks() - state.last_cpu_time) :
+                                     state.last_cpu_time;
                    return state.sample_counter +
                           static_cast<u32>(cycles_streamed / state.cpu_cycles_per_sample);
                  }),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                   auto& core_timing = system.GetCoreTiming();
+                   auto& state = system.GetAudioInterfaceState().GetData();
                    state.sample_counter = val;
-                   state.last_cpu_time = CoreTiming::GetTicks();
-                   CoreTiming::RemoveEvent(state.event_type_ai);
-                   CoreTiming::ScheduleEvent(GetAIPeriod(), state.event_type_ai);
+                   state.last_cpu_time = core_timing.GetTicks();
+                   core_timing.RemoveEvent(state.event_type_ai);
+                   core_timing.ScheduleEvent(GetAIPeriod(), state.event_type_ai);
                  }));
 
   mmio->Register(base | AI_INTERRUPT_TIMING, MMIO::DirectRead<u32>(&state.interrupt_timing),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+                   auto& core_timing = system.GetCoreTiming();
+                   auto& state = system.GetAudioInterfaceState().GetData();
                    DEBUG_LOG_FMT(AUDIO_INTERFACE, "AI_INTERRUPT_TIMING={:08x} at PC: {:08x}", val,
                                  PowerPC::ppcState.pc);
                    state.interrupt_timing = val;
-                   CoreTiming::RemoveEvent(state.event_type_ai);
-                   CoreTiming::ScheduleEvent(GetAIPeriod(), state.event_type_ai);
+                   core_timing.RemoveEvent(state.event_type_ai);
+                   core_timing.ScheduleEvent(GetAIPeriod(), state.event_type_ai);
                  }));
 }
 

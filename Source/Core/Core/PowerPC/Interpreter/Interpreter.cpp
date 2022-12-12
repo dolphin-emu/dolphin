@@ -212,13 +212,16 @@ int Interpreter::SingleStepInner()
 
 void Interpreter::SingleStep()
 {
+  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+  auto& core_timing_globals = core_timing.GetGlobals();
+
   // Declare start of new slice
-  CoreTiming::Advance();
+  core_timing.Advance();
 
   SingleStepInner();
 
   // The interpreter ignores instruction timing information outside the 'fast runloop'.
-  CoreTiming::g.slice_length = 1;
+  core_timing_globals.slice_length = 1;
   PowerPC::ppcState.downcount = 0;
 
   if (PowerPC::ppcState.Exceptions != 0)
@@ -239,12 +242,14 @@ constexpr u32 s_show_steps = 300;
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
 void Interpreter::Run()
 {
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
   while (CPU::GetState() == CPU::State::Running)
   {
     // CoreTiming Advance() ends the previous slice and declares the start of the next
     // one so it must always be called at the start. At boot, we are in slice -1 and must
     // advance into slice 0 to get a correct slice length before executing any cycles.
-    CoreTiming::Advance();
+    core_timing.Advance();
 
     // we have to check exceptions at branches apparently (or maybe just rfi?)
     if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))

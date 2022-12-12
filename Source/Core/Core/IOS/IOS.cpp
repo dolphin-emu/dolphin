@@ -56,6 +56,7 @@
 #include "Core/IOS/WFS/WFSI.h"
 #include "Core/IOS/WFS/WFSSRV.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "Core/WiiRoot.h"
 
 namespace IOS::HLE
@@ -103,6 +104,9 @@ constexpr u32 PLACEHOLDER = 0xDEADBEEF;
 
 static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   auto target_imv = std::find_if(
       GetMemoryValues().begin(), GetMemoryValues().end(),
       [&](const MemoryValues& imv) { return imv.ios_number == (ios_title_id & 0xffff); });
@@ -115,7 +119,7 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
 
   if (setup_type == MemorySetupType::IOSReload)
   {
-    Memory::Write_U32(target_imv->ios_version, ADDR_IOS_VERSION);
+    memory.Write_U32(target_imv->ios_version, ADDR_IOS_VERSION);
 
     // These values are written by the IOS kernel as part of its boot process (for IOS28 and newer).
     //
@@ -126,15 +130,15 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
     // the new IOS either updates the range (>= IOS28) or inherits it (< IOS28).
     //
     // We can skip this convoluted process and just write the correct range directly.
-    Memory::Write_U32(target_imv->mem2_physical_size, ADDR_MEM2_SIZE);
-    Memory::Write_U32(target_imv->mem2_simulated_size, ADDR_MEM2_SIM_SIZE);
-    Memory::Write_U32(target_imv->mem2_end, ADDR_MEM2_END);
-    Memory::Write_U32(target_imv->mem2_arena_begin, ADDR_MEM2_ARENA_BEGIN);
-    Memory::Write_U32(target_imv->mem2_arena_end, ADDR_MEM2_ARENA_END);
-    Memory::Write_U32(target_imv->ipc_buffer_begin, ADDR_IPC_BUFFER_BEGIN);
-    Memory::Write_U32(target_imv->ipc_buffer_end, ADDR_IPC_BUFFER_END);
-    Memory::Write_U32(target_imv->ios_reserved_begin, ADDR_IOS_RESERVED_BEGIN);
-    Memory::Write_U32(target_imv->ios_reserved_end, ADDR_IOS_RESERVED_END);
+    memory.Write_U32(target_imv->mem2_physical_size, ADDR_MEM2_SIZE);
+    memory.Write_U32(target_imv->mem2_simulated_size, ADDR_MEM2_SIM_SIZE);
+    memory.Write_U32(target_imv->mem2_end, ADDR_MEM2_END);
+    memory.Write_U32(target_imv->mem2_arena_begin, ADDR_MEM2_ARENA_BEGIN);
+    memory.Write_U32(target_imv->mem2_arena_end, ADDR_MEM2_ARENA_END);
+    memory.Write_U32(target_imv->ipc_buffer_begin, ADDR_IPC_BUFFER_BEGIN);
+    memory.Write_U32(target_imv->ipc_buffer_end, ADDR_IPC_BUFFER_END);
+    memory.Write_U32(target_imv->ios_reserved_begin, ADDR_IOS_RESERVED_BEGIN);
+    memory.Write_U32(target_imv->ios_reserved_end, ADDR_IOS_RESERVED_END);
 
     RAMOverrideForIOSMemoryValues(setup_type);
 
@@ -145,40 +149,40 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
   // and system information (see below).
   constexpr u32 LOW_MEM1_REGION_START = 0;
   constexpr u32 LOW_MEM1_REGION_SIZE = 0x3fff;
-  Memory::Memset(LOW_MEM1_REGION_START, 0, LOW_MEM1_REGION_SIZE);
+  memory.Memset(LOW_MEM1_REGION_START, 0, LOW_MEM1_REGION_SIZE);
 
-  Memory::Write_U32(target_imv->mem1_physical_size, ADDR_MEM1_SIZE);
-  Memory::Write_U32(target_imv->mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
-  Memory::Write_U32(target_imv->mem1_end, ADDR_MEM1_END);
-  Memory::Write_U32(target_imv->mem1_arena_begin, ADDR_MEM1_ARENA_BEGIN);
-  Memory::Write_U32(target_imv->mem1_arena_end, ADDR_MEM1_ARENA_END);
-  Memory::Write_U32(PLACEHOLDER, ADDR_PH1);
-  Memory::Write_U32(target_imv->mem2_physical_size, ADDR_MEM2_SIZE);
-  Memory::Write_U32(target_imv->mem2_simulated_size, ADDR_MEM2_SIM_SIZE);
-  Memory::Write_U32(target_imv->mem2_end, ADDR_MEM2_END);
-  Memory::Write_U32(target_imv->mem2_arena_begin, ADDR_MEM2_ARENA_BEGIN);
-  Memory::Write_U32(target_imv->mem2_arena_end, ADDR_MEM2_ARENA_END);
-  Memory::Write_U32(PLACEHOLDER, ADDR_PH2);
-  Memory::Write_U32(target_imv->ipc_buffer_begin, ADDR_IPC_BUFFER_BEGIN);
-  Memory::Write_U32(target_imv->ipc_buffer_end, ADDR_IPC_BUFFER_END);
-  Memory::Write_U32(target_imv->hollywood_revision, ADDR_HOLLYWOOD_REVISION);
-  Memory::Write_U32(PLACEHOLDER, ADDR_PH3);
-  Memory::Write_U32(target_imv->ios_version, ADDR_IOS_VERSION);
-  Memory::Write_U32(target_imv->ios_date, ADDR_IOS_DATE);
-  Memory::Write_U32(target_imv->ios_reserved_begin, ADDR_IOS_RESERVED_BEGIN);
-  Memory::Write_U32(target_imv->ios_reserved_end, ADDR_IOS_RESERVED_END);
-  Memory::Write_U32(PLACEHOLDER, ADDR_PH4);
-  Memory::Write_U32(PLACEHOLDER, ADDR_PH5);
-  Memory::Write_U32(target_imv->ram_vendor, ADDR_RAM_VENDOR);
-  Memory::Write_U8(0xDE, ADDR_BOOT_FLAG);
-  Memory::Write_U8(0xAD, ADDR_APPLOADER_FLAG);
-  Memory::Write_U16(0xBEEF, ADDR_DEVKIT_BOOT_PROGRAM_VERSION);
-  Memory::Write_U32(target_imv->sysmenu_sync, ADDR_SYSMENU_SYNC);
+  memory.Write_U32(target_imv->mem1_physical_size, ADDR_MEM1_SIZE);
+  memory.Write_U32(target_imv->mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
+  memory.Write_U32(target_imv->mem1_end, ADDR_MEM1_END);
+  memory.Write_U32(target_imv->mem1_arena_begin, ADDR_MEM1_ARENA_BEGIN);
+  memory.Write_U32(target_imv->mem1_arena_end, ADDR_MEM1_ARENA_END);
+  memory.Write_U32(PLACEHOLDER, ADDR_PH1);
+  memory.Write_U32(target_imv->mem2_physical_size, ADDR_MEM2_SIZE);
+  memory.Write_U32(target_imv->mem2_simulated_size, ADDR_MEM2_SIM_SIZE);
+  memory.Write_U32(target_imv->mem2_end, ADDR_MEM2_END);
+  memory.Write_U32(target_imv->mem2_arena_begin, ADDR_MEM2_ARENA_BEGIN);
+  memory.Write_U32(target_imv->mem2_arena_end, ADDR_MEM2_ARENA_END);
+  memory.Write_U32(PLACEHOLDER, ADDR_PH2);
+  memory.Write_U32(target_imv->ipc_buffer_begin, ADDR_IPC_BUFFER_BEGIN);
+  memory.Write_U32(target_imv->ipc_buffer_end, ADDR_IPC_BUFFER_END);
+  memory.Write_U32(target_imv->hollywood_revision, ADDR_HOLLYWOOD_REVISION);
+  memory.Write_U32(PLACEHOLDER, ADDR_PH3);
+  memory.Write_U32(target_imv->ios_version, ADDR_IOS_VERSION);
+  memory.Write_U32(target_imv->ios_date, ADDR_IOS_DATE);
+  memory.Write_U32(target_imv->ios_reserved_begin, ADDR_IOS_RESERVED_BEGIN);
+  memory.Write_U32(target_imv->ios_reserved_end, ADDR_IOS_RESERVED_END);
+  memory.Write_U32(PLACEHOLDER, ADDR_PH4);
+  memory.Write_U32(PLACEHOLDER, ADDR_PH5);
+  memory.Write_U32(target_imv->ram_vendor, ADDR_RAM_VENDOR);
+  memory.Write_U8(0xDE, ADDR_BOOT_FLAG);
+  memory.Write_U8(0xAD, ADDR_APPLOADER_FLAG);
+  memory.Write_U16(0xBEEF, ADDR_DEVKIT_BOOT_PROGRAM_VERSION);
+  memory.Write_U32(target_imv->sysmenu_sync, ADDR_SYSMENU_SYNC);
 
-  Memory::Write_U32(target_imv->mem1_physical_size, ADDR_LEGACY_MEM_SIZE);
-  Memory::Write_U32(target_imv->mem1_arena_begin, ADDR_LEGACY_ARENA_LOW);
-  Memory::Write_U32(target_imv->mem1_arena_end, ADDR_LEGACY_ARENA_HIGH);
-  Memory::Write_U32(target_imv->mem1_simulated_size, ADDR_LEGACY_MEM_SIM_SIZE);
+  memory.Write_U32(target_imv->mem1_physical_size, ADDR_LEGACY_MEM_SIZE);
+  memory.Write_U32(target_imv->mem1_arena_begin, ADDR_LEGACY_ARENA_LOW);
+  memory.Write_U32(target_imv->mem1_arena_end, ADDR_LEGACY_ARENA_HIGH);
+  memory.Write_U32(target_imv->mem1_simulated_size, ADDR_LEGACY_MEM_SIM_SIZE);
 
   RAMOverrideForIOSMemoryValues(setup_type);
 
@@ -192,14 +196,18 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
 static void ResetAndPausePPC()
 {
   // This should be cleared when the PPC is released so that the write is not observable.
-  Memory::Write_U32(0x48000000, 0x00000000);  // b 0x0
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.Write_U32(0x48000000, 0x00000000);  // b 0x0
   PowerPC::Reset();
   PC = 0;
 }
 
 static void ReleasePPC()
 {
-  Memory::Write_U32(0, 0);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.Write_U32(0, 0);
   // HLE the bootstub that jumps to 0x3400.
   // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
   // The state of other CPU registers (like the BAT registers) doesn't matter much
@@ -209,7 +217,9 @@ static void ReleasePPC()
 
 static void ReleasePPCAncast()
 {
-  Memory::Write_U32(0, 0);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.Write_U32(0, 0);
   // On a real console the Espresso verifies and decrypts the Ancast image,
   // then jumps to the decrypted ancast body.
   // The Ancast loader already did this, so just jump to the decrypted body.
@@ -222,19 +232,22 @@ void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type)
   if (!Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
     return;
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   // Some unstated constants that can be inferred.
   const u32 ipc_buffer_size =
-      Memory::Read_U32(ADDR_IPC_BUFFER_END) - Memory::Read_U32(ADDR_IPC_BUFFER_BEGIN);
+      memory.Read_U32(ADDR_IPC_BUFFER_END) - memory.Read_U32(ADDR_IPC_BUFFER_BEGIN);
   const u32 ios_reserved_size =
-      Memory::Read_U32(ADDR_IOS_RESERVED_END) - Memory::Read_U32(ADDR_IOS_RESERVED_BEGIN);
+      memory.Read_U32(ADDR_IOS_RESERVED_END) - memory.Read_U32(ADDR_IOS_RESERVED_BEGIN);
 
-  const u32 mem1_physical_size = Memory::GetRamSizeReal();
-  const u32 mem1_simulated_size = Memory::GetRamSizeReal();
+  const u32 mem1_physical_size = memory.GetRamSizeReal();
+  const u32 mem1_simulated_size = memory.GetRamSizeReal();
   const u32 mem1_end = Memory::MEM1_BASE_ADDR + mem1_simulated_size;
   const u32 mem1_arena_begin = 0;
   const u32 mem1_arena_end = mem1_end;
-  const u32 mem2_physical_size = Memory::GetExRamSizeReal();
-  const u32 mem2_simulated_size = Memory::GetExRamSizeReal();
+  const u32 mem2_physical_size = memory.GetExRamSizeReal();
+  const u32 mem2_simulated_size = memory.GetExRamSizeReal();
   const u32 mem2_end = Memory::MEM2_BASE_ADDR + mem2_simulated_size - ios_reserved_size;
   const u32 mem2_arena_begin = Memory::MEM2_BASE_ADDR + 0x800U;
   const u32 mem2_arena_end = mem2_end - ipc_buffer_size;
@@ -246,31 +259,33 @@ void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type)
   if (setup_type == MemorySetupType::Full)
   {
     // Overwriting these after the game's apploader sets them would be bad
-    Memory::Write_U32(mem1_physical_size, ADDR_MEM1_SIZE);
-    Memory::Write_U32(mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
-    Memory::Write_U32(mem1_end, ADDR_MEM1_END);
-    Memory::Write_U32(mem1_arena_begin, ADDR_MEM1_ARENA_BEGIN);
-    Memory::Write_U32(mem1_arena_end, ADDR_MEM1_ARENA_END);
+    memory.Write_U32(mem1_physical_size, ADDR_MEM1_SIZE);
+    memory.Write_U32(mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
+    memory.Write_U32(mem1_end, ADDR_MEM1_END);
+    memory.Write_U32(mem1_arena_begin, ADDR_MEM1_ARENA_BEGIN);
+    memory.Write_U32(mem1_arena_end, ADDR_MEM1_ARENA_END);
 
-    Memory::Write_U32(mem1_physical_size, ADDR_LEGACY_MEM_SIZE);
-    Memory::Write_U32(mem1_arena_begin, ADDR_LEGACY_ARENA_LOW);
-    Memory::Write_U32(mem1_arena_end, ADDR_LEGACY_ARENA_HIGH);
-    Memory::Write_U32(mem1_simulated_size, ADDR_LEGACY_MEM_SIM_SIZE);
+    memory.Write_U32(mem1_physical_size, ADDR_LEGACY_MEM_SIZE);
+    memory.Write_U32(mem1_arena_begin, ADDR_LEGACY_ARENA_LOW);
+    memory.Write_U32(mem1_arena_end, ADDR_LEGACY_ARENA_HIGH);
+    memory.Write_U32(mem1_simulated_size, ADDR_LEGACY_MEM_SIM_SIZE);
   }
-  Memory::Write_U32(mem2_physical_size, ADDR_MEM2_SIZE);
-  Memory::Write_U32(mem2_simulated_size, ADDR_MEM2_SIM_SIZE);
-  Memory::Write_U32(mem2_end, ADDR_MEM2_END);
-  Memory::Write_U32(mem2_arena_begin, ADDR_MEM2_ARENA_BEGIN);
-  Memory::Write_U32(mem2_arena_end, ADDR_MEM2_ARENA_END);
-  Memory::Write_U32(ipc_buffer_begin, ADDR_IPC_BUFFER_BEGIN);
-  Memory::Write_U32(ipc_buffer_end, ADDR_IPC_BUFFER_END);
-  Memory::Write_U32(ios_reserved_begin, ADDR_IOS_RESERVED_BEGIN);
-  Memory::Write_U32(ios_reserved_end, ADDR_IOS_RESERVED_END);
+  memory.Write_U32(mem2_physical_size, ADDR_MEM2_SIZE);
+  memory.Write_U32(mem2_simulated_size, ADDR_MEM2_SIM_SIZE);
+  memory.Write_U32(mem2_end, ADDR_MEM2_END);
+  memory.Write_U32(mem2_arena_begin, ADDR_MEM2_ARENA_BEGIN);
+  memory.Write_U32(mem2_arena_end, ADDR_MEM2_ARENA_END);
+  memory.Write_U32(ipc_buffer_begin, ADDR_IPC_BUFFER_BEGIN);
+  memory.Write_U32(ipc_buffer_end, ADDR_IPC_BUFFER_END);
+  memory.Write_U32(ios_reserved_begin, ADDR_IOS_RESERVED_BEGIN);
+  memory.Write_U32(ios_reserved_end, ADDR_IOS_RESERVED_END);
 }
 
 void WriteReturnValue(s32 value, u32 address)
 {
-  Memory::Write_U32(static_cast<u32>(value), address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.Write_U32(static_cast<u32>(value), address);
 }
 
 Kernel::Kernel(IOSC::ConsoleType console_type) : m_iosc(console_type)
@@ -320,7 +335,7 @@ EmulationKernel::EmulationKernel(u64 title_id) : Kernel(title_id)
 
 EmulationKernel::~EmulationKernel()
 {
-  CoreTiming::RemoveAllEvents(s_event_enqueue);
+  Core::System::GetInstance().GetCoreTiming().RemoveAllEvents(s_event_enqueue);
 }
 
 // The title ID is a u64 where the first 32 bits are used for the title type.
@@ -410,7 +425,8 @@ bool Kernel::BootstrapPPC(const std::string& boot_content_path)
     return false;
 
   INFO_LOG_FMT(IOS, "BootstrapPPC: {}", boot_content_path);
-  CoreTiming::ScheduleEvent(ticks, s_event_finish_ppc_bootstrap, dol.IsAncast());
+  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(ticks, s_event_finish_ppc_bootstrap,
+                                                            dol.IsAncast());
   return true;
 }
 
@@ -485,9 +501,14 @@ bool Kernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc, const std::string
     ResetAndPausePPC();
 
   if (Core::IsRunningAndStarted())
-    CoreTiming::ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot, ios_title_id);
+  {
+    Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
+        GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot, ios_title_id);
+  }
   else
+  {
     FinishIOSBoot(ios_title_id);
+  }
 
   return true;
 }
@@ -616,7 +637,8 @@ std::shared_ptr<Device> EmulationKernel::GetDeviceByName(std::string_view device
 std::optional<IPCReply> Kernel::OpenDevice(OpenRequest& request)
 {
   const s32 new_fd = GetFreeDeviceID();
-  INFO_LOG_FMT(IOS, "Opening {} (mode {}, fd {})", request.path, request.flags, new_fd);
+  INFO_LOG_FMT(IOS, "Opening {} (mode {}, fd {})", request.path, static_cast<u32>(request.flags),
+               new_fd);
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
     ERROR_LOG_FMT(IOS, "Couldn't get a free fd, too many open files");
@@ -694,7 +716,7 @@ std::optional<IPCReply> Kernel::HandleIPCCommand(const Request& request)
     ret = device->IOCtlV(IOCtlVRequest{request.address});
     break;
   default:
-    ASSERT_MSG(IOS, false, "Unexpected command: {:#x}", request.command);
+    ASSERT_MSG(IOS, false, "Unexpected command: {:#x}", static_cast<u32>(request.command));
     ret = IPCReply{IPC_EINVAL, 978_tbticks};
     break;
   }
@@ -719,10 +741,12 @@ void Kernel::ExecuteIPCCommand(const u32 address)
     return;
 
   // Ensure replies happen in order
-  const s64 ticks_until_last_reply = m_last_reply_time - CoreTiming::GetTicks();
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  const s64 ticks_until_last_reply = m_last_reply_time - core_timing.GetTicks();
   if (ticks_until_last_reply > 0)
     result->reply_delay_ticks += ticks_until_last_reply;
-  m_last_reply_time = CoreTiming::GetTicks() + result->reply_delay_ticks;
+  m_last_reply_time = core_timing.GetTicks() + result->reply_delay_ticks;
 
   EnqueueIPCReply(request, result->return_value, result->reply_delay_ticks);
 }
@@ -733,19 +757,22 @@ void Kernel::EnqueueIPCRequest(u32 address)
   // Based on hardware tests, IOS takes between 5µs and 10µs to acknowledge an IPC request.
   // Console 1: 456 TB ticks before ACK
   // Console 2: 658 TB ticks before ACK
-  CoreTiming::ScheduleEvent(500_tbticks, s_event_enqueue, address | ENQUEUE_REQUEST_FLAG);
+  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(500_tbticks, s_event_enqueue,
+                                                            address | ENQUEUE_REQUEST_FLAG);
 }
 
 // Called to send a reply to an IOS syscall
 void Kernel::EnqueueIPCReply(const Request& request, const s32 return_value, s64 cycles_in_future,
                              CoreTiming::FromThread from)
 {
-  Memory::Write_U32(static_cast<u32>(return_value), request.address + 4);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.Write_U32(static_cast<u32>(return_value), request.address + 4);
   // IOS writes back the command that was responded to in the FD field.
-  Memory::Write_U32(request.command, request.address + 8);
+  memory.Write_U32(request.command, request.address + 8);
   // IOS also overwrites the command type with the reply type.
-  Memory::Write_U32(IPC_REPLY, request.address);
-  CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, request.address, from);
+  memory.Write_U32(IPC_REPLY, request.address);
+  system.GetCoreTiming().ScheduleEvent(cycles_in_future, s_event_enqueue, request.address, from);
 }
 
 void Kernel::HandleIPCEvent(u64 userdata)
@@ -876,7 +903,7 @@ IOSC& Kernel::GetIOSC()
   return m_iosc;
 }
 
-static void FinishPPCBootstrap(u64 userdata, s64 cycles_late)
+static void FinishPPCBootstrap(Core::System& system, u64 userdata, s64 cycles_late)
 {
   // See Kernel::BootstrapPPC
   const bool is_ancast = userdata == 1;
@@ -891,21 +918,26 @@ static void FinishPPCBootstrap(u64 userdata, s64 cycles_late)
 
 void Init()
 {
-  s_event_enqueue = CoreTiming::RegisterEvent("IPCEvent", [](u64 userdata, s64) {
-    if (s_ios)
-      s_ios->HandleIPCEvent(userdata);
-  });
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
+  s_event_enqueue =
+      core_timing.RegisterEvent("IPCEvent", [](Core::System& system, u64 userdata, s64) {
+        if (s_ios)
+          s_ios->HandleIPCEvent(userdata);
+      });
 
   ESDevice::InitializeEmulationState();
 
   s_event_finish_ppc_bootstrap =
-      CoreTiming::RegisterEvent("IOSFinishPPCBootstrap", FinishPPCBootstrap);
+      core_timing.RegisterEvent("IOSFinishPPCBootstrap", FinishPPCBootstrap);
 
-  s_event_finish_ios_boot = CoreTiming::RegisterEvent(
-      "IOSFinishIOSBoot", [](u64 ios_title_id, s64) { FinishIOSBoot(ios_title_id); });
+  s_event_finish_ios_boot =
+      core_timing.RegisterEvent("IOSFinishIOSBoot", [](Core::System& system, u64 ios_title_id,
+                                                       s64) { FinishIOSBoot(ios_title_id); });
 
   DIDevice::s_finish_executing_di_command =
-      CoreTiming::RegisterEvent("FinishDICommand", DIDevice::FinishDICommandCallback);
+      core_timing.RegisterEvent("FinishDICommand", DIDevice::FinishDICommandCallback);
 
   // Start with IOS80 to simulate part of the Wii boot process.
   s_ios = std::make_unique<EmulationKernel>(Titles::SYSTEM_MENU_IOS);

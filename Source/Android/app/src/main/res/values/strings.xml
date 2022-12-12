@@ -154,7 +154,7 @@
     <string name="wii_sd_card_folder_to_file_confirmation">You are about to convert the content of the SD sync folder into the SD card file. All current content of the file will be deleted. Are you sure you want to continue?</string>
     <string name="wii_sd_card_file_to_folder">Convert File to Folder Now</string>
     <string name="wii_sd_card_file_to_folder_confirmation">You are about to convert the content of the SD card file into the SD sync folder. All current content of the folder will be deleted. Are you sure you want to continue?</string>
-    <string name="wii_converting">Converting...</string>
+    <string name="wii_converting">Converting…</string>
     <string name="wii_convert_success">Conversion done.</string>
     <string name="wii_convert_failure">Conversion failed.</string>
     <string name="wiimote_rumble">Wii Remote Rumble</string>
@@ -196,17 +196,16 @@
     <string name="show_titles_in_game_list">Show Titles in Game List</string>
     <string name="show_titles_in_game_list_description">Show the title and creator below each game cover.</string>
     <string name="change_theme">Change App Theme</string>
+    <string name="change_theme_mode">Change Theme Mode</string>
+    <string name="use_black_backgrounds">Use Black Backgrounds</string>
+    <string name="use_black_backgrounds_description">When using the dark theme, apply black backgrounds.</string>
 
     <!-- Online Update Region Select Fragment -->
     <string name="region_select_title">Please select a region</string>
-    <string name="europe">Europe</string>
-    <string name="japan">Japan</string>
-    <string name="korea">Korea</string>
-    <string name="united_states">United States</string>
 
     <!-- Online Update Progress Bar Fragment -->
     <string name="updating">Updating</string>
-    <string name="updating_message">Updating title %016x...\nThis can take a while.</string>
+    <string name="updating_message">Updating title %016x…\nThis can take a while.</string>
     <string name="update_success">The emulated Wii console has been updated.</string>
     <string name="already_up_to_date">The emulated Wii console is already up-to-date.</string>
     <string name="region_mismatch">The game\'s region does not match your console\'s. To avoid issues with the system menu, it is not possible to update the emulated console using this disc.</string>
@@ -216,6 +215,7 @@
     <string name="download_failed">Could not download update files from Nintendo. Please check your Internet connection and try again.</string>
     <string name="import_failed">"Could not install an update to the Wii system memory. Please refer to logs for more information.</string>
     <string name="update_cancelled">The update has been cancelled. It is strongly recommended to finish it in order to avoid inconsistent system software versions.</string>
+    <string name="update_cancelling">Please wait for the update to cancel.</string>
     <string name="update_success_title">Update completed</string>
     <string name="update_failed_title">Update failed</string>
     <string name="update_cancelled_title">Update cancelled</string>
@@ -245,8 +245,13 @@
     <string name="video_backend">Video Backend</string>
     <string name="video_backend_description">Select the API used for graphics rendering.</string>
     <string name="show_fps">Show FPS</string>
-    <string name="show_fps_description">Show the number of frames rendered per second as a measure of emulation speed.</string>
-
+    <string name="show_fps_description">Shows the number of distinct frames rendered per second as a measure of visual smoothness.</string>
+    <string name="show_vps">Show VPS</string>
+    <string name="show_vps_description">Show the number of frames rendered per second as a measure of emulation speed.</string>
+    <string name="show_speed">Show % Speed</string>
+    <string name="show_speed_description">Shows the % speed of emulation compared to full speed.</string>
+    <string name="show_speed_colors">Show Speed Color</string>
+    <string name="show_speed_colors_description">Changes the color of the FPS counter depending on emulation speed.</string>
     <string name="enhancements_submenu">Enhancements</string>
     <string name="internal_resolution">Internal Resolution</string>
     <string name="internal_resolution_description">Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.</string>
@@ -424,6 +429,7 @@
     <string name="ok">OK</string>
     <string name="off">Off</string>
     <string name="cancel">Cancel</string>
+    <string name="cancelling">Cancelling…</string>
     <string name="clear">Clear</string>
     <string name="disabled">Disabled</string>
     <string name="other">Other</string>
@@ -433,6 +439,7 @@
     <string name="platform_gamecube">GameCube Games</string>
     <string name="platform_wii">Wii Games</string>
     <string name="platform_wiiware">WiiWare Games</string>
+    <string name="add_games">Add Games</string>
     <string name="add_directory_title">Add Folder to Library</string>
     <string name="grid_menu_settings">Settings</string>
     <string name="grid_menu_refresh">Refresh Library</string>
@@ -444,8 +451,8 @@
     <string name="grid_menu_load_wii_system_menu">Load Wii System Menu</string>
     <string name="grid_menu_load_wii_system_menu_installed">Load Wii System Menu (%s)</string>
     <string name="grid_menu_load_vwii_system_menu_installed">Load vWii System Menu (%s)</string>
-    <string name="import_in_progress">Importing...</string>
-    <string name="export_in_progress">Exporting...</string>
+    <string name="import_in_progress">Importing…</string>
+    <string name="export_in_progress">Exporting…</string>
     <string name="do_not_close_app">Do not close the app!</string>
     <string name="wad_install_success">Successfully installed this title to the NAND.</string>
     <string name="wad_install_failure">Failed to install this title to the NAND.</string>
@@ -512,7 +519,7 @@
     <string name="cheats_error_no_code_lines">Code can\'t be empty</string>
     <string name="cheats_error_on_line">Error on line %1$d</string>
     <string name="cheats_error_mixed_encryption">Lines must either be all encrypted or all decrypted</string>
-    <string name="cheats_downloading">Downloading...</string>
+    <string name="cheats_downloading">Downloading…</string>
     <string name="cheats_download_failed">Failed to download codes.</string>
     <string name="cheats_download_empty">File contained no codes.</string>
     <string name="cheats_download_succeeded">Downloaded %1$d codes. (added %2$d)</string>
@@ -597,7 +604,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="rumble_not_found">Device rumble not found</string>
 
     <string name="path_not_changeable_scoped_storage">Due to the Scoped Storage policy in Android 11 and newer, you can\'t change this path.</string>
-    <string name="load_settings">Loading Settings...</string>
+    <string name="load_settings">Loading Settings…</string>
     <string name="setting_not_runtime_editable">This setting can\'t be changed while a game is running.</string>
     <string name="setting_clear_info">Long press a setting to clear it.</string>
     <string name="setting_clear_confirm">Do you want to restore this setting to its default value?</string>
@@ -629,5 +636,216 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
     <string name="ignore_warning_alert_messages">Ignore for this session</string>
     <string name="make_sure_continuous_scan_enabled">Please make sure Continuous Scanning is enabled in Core Settings.</string>
+
+    <!-- UI CPU Core selection -->
+    <string name="jit_recompiler_x86">JIT Recompiler for x86–64 (recommended)</string>
+    <string name="jit_recompiler_arm64">JIT Recompiler for ARM64 (recommended)</string>
+    <string name="cached_interpreter_slower">Cached Interpreter (slower)</string>
+    <string name="cached_interpreter">Cached Interpreter</string>
+    <string name="interpreter_slowest">Interpreter (slowest)</string>
+    <string name="interpreter">Interpreter</string>
+
+    <!-- DSP Emulation Engine -->
+    <string name="dsp_hle">DSP HLE (recommended)</string>
+    <string name="dsp_lle_recompiler">DSP LLE Recompiler (slow)</string>
+    <string name="dsp_lle_interpreter">DSP LLE Interpreter (very slow)</string>
+
+    <!-- System Languages -->
+    <string name="language_english">English</string>
+    <string name="language_german">German</string>
+    <string name="language_french">French</string>
+    <string name="language_spanish">Spanish</string>
+    <string name="language_italian">Italian</string>
+    <string name="language_dutch">Dutch</string>
+    <string name="language_japanese">Japanese</string>
+    <string name="language_simplified_chinese">Simplified Chinese</string>
+    <string name="language_traditional_chinese">Traditional Chinese</string>
+    <string name="language_korean">Korean</string>
+
+    <!-- Device selection -->
+    <string name="device_nothing">Nothing</string>
+    <string name="device_dummy">Dummy</string>
+    <string name="device_memory_card">Memory Card</string>
+    <string name="device_gci_folder">GCI Folder</string>
+
+    <!-- Slot SP1 Device selection -->
+    <string name="broadband_adapter_xlink">Broadband Adapter (XLink Kai)</string>
+    <string name="broadband_adapter_hle">Broadband Adapter (HLE)</string>
+
+    <!-- Sound Mode -->
+    <string name="sound_mode_mono">Mono</string>
+    <string name="sound_mode_stereo">Stereo</string>
+    <string name="sound_mode_surround">Surround</string>
+
+    <!-- Sensor Bar Position -->
+    <string name="sensor_position_top">Top</string>
+    <string name="sensor_position_bottom">Bottom</string>
+
+    <!-- Log Verbosity selection based on LogLevel in Common/Logging/Log.h -->
+    <string name="log_notice">Notice</string>
+    <string name="log_error">Error</string>
+    <string name="log_warning">Warning</string>
+    <string name="log_info">Info</string>
+    <string name="log_debug">Debug</string>
+
+    <!-- Video backend selection -->
+    <string name="backend_opengl">OpenGL</string>
+    <string name="backend_vulkan">Vulkan</string>
+    <string name="backend_software">Software</string>
+    <string name="backend_null">Null</string>
+
+    <!-- Wii Remote extensions -->
+    <string name="extension_none">None</string>
+    <string name="extension_nunchuk">Nunchuk</string>
+    <string name="extension_classic">Classic</string>
+    <string name="extension_guitar">Guitar</string>
+    <string name="extension_drums">Drums</string>
+    <string name="extension_turntable">Turntable</string>
+
+    <!-- Accuracy Preference -->
+    <string name="accuracy_fast">Fast</string>
+    <string name="accuracy_medium">Medium</string>
+    <string name="accuracy_safe">Safe</string>
+
+    <!-- Shader Compilation Mode Preference -->
+    <string name="shader_compilation_specialized">Specialized (Default)</string>
+    <string name="shader_compilation_exclusive_ubershaders">Exclusive Ubershaders</string>
+    <string name="shader_compilation_hybrid_ubershaders">Hybrid Ubershaders</string>
+    <string name="shader_compilation_skip_drawing">Skip Drawing</string>
+
+    <!-- Shader Compilation Mode Dynamic Descriptions -->
+    <string name="shader_compilation_specialized_description">Specialized (Default): Ubershaders are never used. Stuttering will occur during shader compilation, but GPU demands are low. Recommended for low-end hardware. If unsure, select this mode.</string>
+    <string name="shader_compilation_exclusive_ubershaders_description">Exclusive Ubershaders: Ubershaders will always be used. Provides a near stutter-free experience at the cost of very high GPU performance requirements. Don\'t use this unless you encountered stuttering with Hybrid Ubershaders and have a very powerful GPU.</string>
+    <string name="shader_compilation_hybrid_ubershaders_description">Hybrid Ubershaders: Ubershaders will be used to prevent stuttering during shader compilation, but specialized shaders will be used when they will not cause stuttering. In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior.</string>
+    <string name="shader_compilation_skip_drawing_description">Skip Drawing: Prevents shader compilation stuttering by not rendering waiting objects. Can work in scenarios where Ubershaders doesn\'t, at the cost of introducing visual glitches and broken effects. Not recommended, only use if the other options give poor results on your system.</string>
+
+    <!-- Internal Resolution Preference -->
+    <string name="resolution_one_native">1x Native (640x528)</string>
+    <string name="resolution_two_native">2x Native (1280x1056) for 720p</string>
+    <string name="resolution_three_native">3x Native (1920x1584) for 1080p</string>
+    <string name="resolution_four_native">4x Native (2560x2112)</string>
+    <string name="resolution_five_native">5x Native (3200x2640)</string>
+    <string name="resolution_six_native">6x Native (3840x3168) for 4K</string>
+
+    <!-- Multiple preference -->
+    <string name="multiple_off">Off</string>
+    <string name="multiple_one">1x</string>
+    <string name="multiple_two">2x</string>
+    <string name="multiple_four">4x</string>
+    <string name="multiple_eight">8x</string>
+    <string name="multiple_sixteen">16x</string>
+
+    <!-- Stereoscopy Preference -->
+    <string name="stereoscopy_off">Off</string>
+    <string name="stereoscopy_side_by_side">Side-by-Side</string>
+    <string name="stereoscopy_top_and_bottom">Top-and-Bottom</string>
+    <string name="stereoscopy_anaglyph">Anaglyph</string>
+
+    <!-- Aspect Ratio Preference -->
+    <string name="aspect_ratio_auto">Auto</string>
+    <string name="aspect_ratio_force_sixteen_by_nine">Force 16:9</string>
+    <string name="aspect_ratio_force_four_by_three">Force 4:3</string>
+    <string name="aspect_ratio_stretch">Stretch to Window</string>
+
+    <!-- Country Names -->
+    <string name="country_europe">Europe</string>
+    <string name="country_japan">Japan</string>
+    <string name="country_usa">USA</string>
+    <string name="country_australia">Australia</string>
+    <string name="country_france">France</string>
+    <string name="country_germany">Germany</string>
+    <string name="country_italy">Italy</string>
+    <string name="country_korea">Korea</string>
+    <string name="country_netherlands">Netherlands</string>
+    <string name="country_russia">Russia</string>
+    <string name="country_spain">Spain</string>
+    <string name="country_taiwan">Taiwan</string>
+    <string name="country_world">World</string>
+    <string name="country_unknown">Unknown</string>
+
+    <!-- GameCube Gamepad Types -->
+    <string name="gcpad_disabled">Disabled</string>
+    <string name="gcpad_emulated">Emulated</string>
+    <string name="gcpad_gc_adapter">GameCube Adapter</string>
+
+    <!-- Wiimote Types -->
+    <string name="wiimote_disabled">Disabled</string>
+    <string name="wiimote_emulated">Emulated</string>
+    <string name="wiimote_real">Real Wii Remote (DolphinBar required)</string>
+
+    <!-- Controller Types -->
+    <string name="controller_gc">GameCube Controller</string>
+    <string name="controller_wiimote">Wii Remote</string>
+    <string name="controller_horizontal_wiimote">Horizontal Wii Remote</string>
+    <string name="controller_wiimote_plus_nunchuk">Wii Remote + Nunchuk</string>
+    <string name="controller_classic">Classic Controller</string>
+    <string name="controller_none">None</string>
+
+    <!-- Gamepad Controls -->
+    <string name="gamepad_start">Start</string>
+    <string name="gamepad_d_pad">D-Pad</string>
+    <string name="gamepad_main_stick">Main Stick</string>
+    <string name="gamepad_c_stick">C Stick</string>
+    <string name="gamepad_home">Home</string>
+    <string name="gamepad_nunchuk_stick">Nunchuk Stick</string>
+    <string name="gamepad_left_stick">Left Stick</string>
+    <string name="gamepad_right_stick">Right Stick</string>
+
+    <!-- IR Modes -->
+    <string name="ir_disabled">Disabled</string>
+    <string name="ir_follow">Follow</string>
+    <string name="ir_drag">Drag</string>
+
+    <!-- Double Tap Buttons -->
+    <string name="double_tap_a">Button A</string>
+    <string name="double_tap_b">Button B</string>
+    <string name="double_tap_2">Button 2</string>
+    <string name="double_tap_classic_a">Classic A</string>
+
+    <!-- Orientations -->
+    <string name="orientation_landscape">Landscape</string>
+    <string name="orientation_landscape_reverse">Landscape (reverse)</string>
+    <string name="orientation_portrait">Portrait</string>
+    <string name="orientation_auto">Auto</string>
+
+    <!-- Themes -->
+    <string name="theme_default">Default</string>
+    <string name="theme_material_you">Material You</string>
+    <string name="theme_material_default">Material Default</string>
+    <string name="theme_green">Green</string>
+    <string name="theme_pink">Pink</string>
+
+    <!-- Theme Modes -->
+    <string name="theme_mode_follow_system">Follow System</string>
+    <string name="theme_mode_light">Light</string>
+    <string name="theme_mode_dark">Dark</string>
+
+    <!-- Synchronize GPU Thread Options -->
+    <string name="sync_gpu_never">Never</string>
+    <string name="sync_gpu_idle">On Idle Skipping</string>
+    <string name="sync_gpu_always">Always</string>
+
+    <!-- Motion Control Options -->
+    <string name="motion_device_with_pointer">Use Device Sensors (With Pointer Emulation)</string>
+    <string name="motion_device_without_pointer">Use Device Sensors (Without Pointer Emulation)</string>
+    <string name="motion_no_device">Don\'t Use Device Sensors</string>
+
+    <!-- Block sizes -->
+    <string name="block_size_32_kib">32 KiB</string>
+    <string name="block_size_64_kib">64 KiB</string>
+    <string name="block_size_128_kib">128 KiB</string>
+    <string name="block_size_256_kib">256 KiB</string>
+    <string name="block_size_512_kib">512 KiB</string>
+    <string name="block_size_1_mib">1 MiB</string>
+    <string name="block_size_2_mib">2 MiB</string>
+
+    <!-- Compression Options -->
+    <string name="compression_none">No Compression</string>
+    <string name="compression_purge">Purge</string>
+    <string name="compression_deflate">Deflate</string>
+    <string name="compression_bzip2">bzip2 (slow)</string>
+    <string name="compression_lzma">LZMA (slow)</string>
+    <string name="compression_lzma2">LZMA2 (slow)</string>
+    <string name="compression_zstandard">Zstandard (recommended)</string>
 
 </resources>

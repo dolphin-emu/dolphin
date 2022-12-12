@@ -12,7 +12,6 @@
 #include "Common/EnumMap.h"
 #include "VideoCommon/CPMemory.h"
 
-class DataReader;
 class NativeVertexFormat;
 struct PortableVertexDeclaration;
 
@@ -43,7 +42,7 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl);
 
 // Returns -1 if buf_size is insufficient, else the amount of bytes consumed
 template <bool IsPreprocess = false>
-int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, DataReader src);
+int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, const u8* src);
 
 namespace detail
 {
@@ -76,6 +75,7 @@ extern BitSet8 g_preprocess_vat_dirty;
 extern bool g_bases_dirty;  // Main only
 extern std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_main_vertex_loaders;
 extern std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_preprocess_vertex_loaders;
+extern bool g_needs_cp_xf_consistency_check;
 
 template <bool IsPreprocess = false>
 VertexLoaderBase* RefreshLoader(int vtx_attr_group)

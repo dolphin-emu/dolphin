@@ -91,7 +91,8 @@ public:
 
   ES::TMDReader FindImportTMD(u64 title_id, Ticks ticks = {}) const;
   ES::TMDReader FindInstalledTMD(u64 title_id, Ticks ticks = {}) const;
-  ES::TicketReader FindSignedTicket(u64 title_id) const;
+  ES::TicketReader FindSignedTicket(u64 title_id,
+                                    std::optional<u8> desired_version = std::nullopt) const;
 
   // Get installed titles (in /title) without checking for TMDs at all.
   std::vector<u64> GetInstalledTitles() const;
@@ -157,8 +158,8 @@ public:
                         const std::vector<u8>& certs);
 
   // Views
-  ReturnCode GetV0TicketFromView(const u8* ticket_view, u8* ticket) const;
-  ReturnCode GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size) const;
+  ReturnCode GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size,
+                               std::optional<u8> desired_version) const;
 
   ReturnCode SetUpStreamKey(u32 uid, const u8* ticket_view, const ES::TMDReader& tmd, u32* handle);
 

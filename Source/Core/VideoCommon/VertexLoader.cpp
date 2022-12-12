@@ -6,7 +6,6 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
 #include "VideoCommon/VertexLoader_Color.h"
@@ -16,7 +15,7 @@
 #include "VideoCommon/VideoCommon.h"
 
 // This pointer is used as the source/dst for all fixed function loader calls
-u8* g_video_buffer_read_ptr;
+const u8* g_video_buffer_read_ptr;
 u8* g_vertex_manager_write_ptr;
 
 static void PosMtx_ReadDirect_UByte(VertexLoader* loader)
@@ -222,7 +221,7 @@ void VertexLoader::CompileVertexTranslator()
           WriteCall(VertexLoader_TextCoord::GetDummyFunction());  // important to get indices right!
           break;
         }
-        else if (m_VtxDesc.low.TexMatIdx[i])
+        else if (m_VtxDesc.low.TexMatIdx[j])
         {
           has_more = true;
         }
@@ -249,10 +248,10 @@ void VertexLoader::WriteCall(TPipelineFunction func)
   m_PipelineStages[m_numPipelineStages++] = func;
 }
 
-int VertexLoader::RunVertices(DataReader src, DataReader dst, int count)
+int VertexLoader::RunVertices(const u8* src, u8* dst, int count)
 {
-  g_vertex_manager_write_ptr = dst.GetPointer();
-  g_video_buffer_read_ptr = src.GetPointer();
+  g_vertex_manager_write_ptr = dst;
+  g_video_buffer_read_ptr = src;
 
   m_numLoadedVertices += count;
   m_skippedVertices = 0;
