@@ -25,6 +25,9 @@
 #include <ogc/consol.h>
 #include <unistd.h>
 
+// From libogc's timesupp.c (not in the header :|)
+extern "C" u32 gettick(void);
+
 #ifdef _MSC_VER
 // Just for easy looking :)
 #define HW_RVL  // HW_DOL
@@ -418,6 +421,35 @@ void handle_dsp_mail(void)
 
       // Now we can do something useful with the buffer :)
       DumpDSP_ROMs(dspbufP, &dspbufP[0x1000]);
+    }
+
+    // Request for an interrupt
+    else if (mail == 0x88881111)
+    {
+      if (real_dsp.CheckInterrupt())
+      {
+        CON_PrintRow(4, 25, "Already has interrupt?");
+      }
+      else
+      {
+        const u32 now = gettick();
+        real_dsp.SetInterrupt();
+        u32 end = gettick();
+        u32 tries = 0;
+        while (real_dsp.CheckInterrupt() && end - now < 1000000)
+        {
+          end = gettick();
+          tries++;
+        }
+        if (end - now < 1000000)
+        {
+          CON_PrintRow(4, 25, "Interrupt after %d ticks / %d tries", end - now, tries);
+        }
+        else
+        {
+          CON_PrintRow(4, 25, "No interrupt after %d ticks / %d tries", end - now, tries);
+        }
+      }
     }
 
     // SDK status mails
