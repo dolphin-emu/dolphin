@@ -133,10 +133,9 @@ void write_u64_to_domain_function(lua_State* luaState, u32 address, u64 val)
     luaL_error(luaState, "Error: Attempt to write_u64 to memory failed!");
 }
 
-void copy_string_to_domain_function(lua_State* luaState, u32 address, const char* stringToWrite,
-                                    size_t numBytes)
+void copy_string_to_domain_function(lua_State* luaState, u32 address, const char* stringToWrite, size_t stringLength)
 {
-  Memory::CopyToEmu(address, stringToWrite, numBytes);
+  Memory::CopyToEmu(address, stringToWrite, stringLength + 1);
 }
 
 u8 read_u8(lua_State* luaState, u32 address)
@@ -430,7 +429,7 @@ int do_general_read(lua_State* luaState) // format is: 1st argument after object
 
     case ByteWrapper::ByteType::SIGNED_64:
       s64Val = read_s64(luaState, address);
-      lua_pushinteger(luaState, static_cast<lua_Integer>(s64Val));
+      lua_pushnumber(luaState, static_cast<lua_Number>(s64Val));
       return 1;
 
     case ByteWrapper::ByteType::FLOAT:
@@ -467,7 +466,7 @@ int do_read_unsigned_bytes(lua_State* luaState)
   {
     u8 currByte = pointerToBaseAddress[i];
     lua_pushinteger(luaState, static_cast<lua_Integer>(currByte));
-    lua_rawseti(luaState, -2, i + 1);
+    lua_rawseti(luaState, -2, address + i);
   }
   return 1;
 }
@@ -484,7 +483,7 @@ int do_read_signed_bytes(lua_State* luaState)
     s8 currByteSigned = 0;
     memcpy(&currByteSigned, pointerToBaseAddress + i, sizeof(s8));
     lua_pushinteger(luaState, static_cast<lua_Integer>(currByteSigned));
-    lua_rawseti(luaState, -2, i + 1);
+    lua_rawseti(luaState, -2, address + i);
   }
   return 1;
 }
@@ -576,7 +575,7 @@ int do_general_write(lua_State* luaState)
     return 0;
 
   case ByteWrapper::ByteWrapper::SIGNED_64:
-    s64Val = luaL_checkinteger(luaState, 4);
+    s64Val = luaL_checknumber(luaState, 4);
     write_s64(luaState, address, s64Val);
     return 0;
 
@@ -599,7 +598,7 @@ int do_general_write(lua_State* luaState)
 
 int do_write_bytes(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "write_bytes", "memory:write_bytes(0X80000043, arrayName)");
+  luaColonOperatorTypeCheck(luaState, "write_bytes", "memory:write_bytes(arrayName)");
   lua_pushnil(luaState); /* first key */
   while (lua_next(luaState, 2) != 0)
   {
@@ -633,7 +632,7 @@ int do_write_string(lua_State* luaState)
   luaColonOperatorTypeCheck(luaState, "write_string", "memory:write_fixed_length_string(0X80000043, \"exampleString\")");
   u32 address = luaL_checkinteger(luaState, 2);
   const char* stringToWrite = luaL_checkstring(luaState, 3);
-  u32 stringSize = luaL_checkinteger(luaState, 4);
+  size_t stringSize = strlen(stringToWrite);
   copy_string_to_domain_function(luaState, address, stringToWrite, stringSize);
   return 0;
 }

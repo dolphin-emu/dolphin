@@ -21,7 +21,7 @@ void tempRunner()
   std::filesystem::path p = std::filesystem::current_path().filename();
   while (Movie::GetCurrentFrame() < 5)
     ;
-  if (luaL_dofile(mainLuaState, "script.lua") != LUA_OK)
+  if (luaL_dofile(mainLuaState, "LuaExamplesAndTests/LuaMemoryApiFunctionsTest.lua") != LUA_OK)
   {
     const char* tempString = lua_tostring(mainLuaState, -1);
     fprintf(stderr, "%s\n", tempString);

@@ -1,12 +1,54 @@
-Wrote to consecutive addresses the value 0X01, 0X02, 0X03, 0X04, 0X05, 0X06, 0X07, and 0X08. Then read the base address into a ByteWrapper...
-The above ByteWrapper as a u64 is 7.2623859790383e+16
-The above ByteWrapper as a u32 is 16909060
-The above ByteWrapper as a u16 is 258
-The above ByteWrapper as a u8 is 1
+After writing 1.0123456789123e+19 to address 2147483939, value as a Signed Long Long is: -9.2233720368548e+18
+After writing 230 to address 2147483939, value as a u8 is: 230
+After writing 4000000000 to address 2147483939, value as a signed int is: -294967296
+After writing 60000 to address 2147483939, value as a S16 is: -5536
+After writing 1.0123456789123e+19 to address 2147483939, value as a signed_64 is: -9.2233720368548e+18
+After writing 230 to address 2147483939, value as a s8 is: -26
+After writing 230 to address 2147483939, value as a unsigned_byte is: 230
+After writing 4000000000 to address 2147483939, value as a unsigned_32 is: 4000000000
+After writing 60000 to address 2147483939, value as a u16 is: 60000
+After writing 5e+20 to address 2147483939, value as a float is: 5.0000001002044e+20
+After writing 1.0123456789123e+19 to address 2147483939, value as a UNSIGNED_64 is: 1.0123456789123e+19
+After writing 4000000000 to address 2147483939, value as a UNSIGNED_INT is: 4000000000
+After writing 230 to address 2147483939, value as a signed ByTE is: -26
+After writing 1.0123456789123e+19 to address 2147483939, value as a u64 is: 1.0123456789123e+19
+After writing 60000 to address 2147483939, value as a SIGNED 16 is: -5536
+After writing 60000 to address 2147483939, value as a Unsigned_16 is: 60000
+After writing 6.022e+23 to address 2147483939, value as a DoUBle is: 6.022e+23
+After writing 1.0123456789123e+19 to address 2147483939, value as a s64 is: -9.2233720368548e+18
+After writing 4000000000 to address 2147483939, value as a signed 32 is: -294967296
+After writing 4000000000 to address 2147483939, value as a s32 is: -294967296
+After writing 1.0123456789123e+19 to address 2147483939, value as a Unsigned LONG_LONG is: 1.0123456789123e+19
+After writing 4000000000 to address 2147483939, value as a u32 is: 4000000000
+After writing 230 to address 2147483939, value as a SIGNED_8 is: -26
+After writing 230 to address 2147483939, value as a UNSIGNED 8 is: 230
 
 
-5000000001 was written directly into a ByteWrapper. Now listing the value after converting it to a u64, a u32, a u16, and a u8 respectively:
-5000000001
-705032705
-61953
-1
+string to write out is: this_is_a_string
+Testing out writing string as memory:write_string()
+Value of address 2147483939 now is this_is_a_string
+Testing out reading only 6 chars of string:
+Value of address 2147483939 now is this_i
+
+
+Initial byte table that is written:
+Address: 2147483940, value: 254
+Address: 2147483941, value: 100
+Address: 2147483942, value: -127
+Address: 2147483943, value: -128
+Address: 2147483939, value: 255
+
+Byte table read as 5 unsigned bytes:
+Address: 2147483940, value: 254
+Address: 2147483941, value: 100
+Address: 2147483942, value: 129
+Address: 2147483943, value: 128
+Address: 2147483939, value: 255
+
+Byte table read as 5 signed bytes:
+Address: 2147483940, value: -2
+Address: 2147483941, value: 100
+Address: 2147483942, value: -127
+Address: 2147483943, value: -128
+Address: 2147483939, value: -1
+
