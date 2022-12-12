@@ -88,6 +88,8 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
+#include <Core/API/Events.h>
+
 std::unique_ptr<Renderer> g_renderer;
 
 static float AspectToWidescreen(float aspect)
@@ -1464,6 +1466,9 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
 
 bool Renderer::IsFrameDumping() const
 {
+  if (API::GetEventHub().HasListeners<API::Events::FrameDrawn>())
+    return true;
+
   if (m_screenshot_request.IsSet())
     return true;
 
@@ -1663,16 +1668,22 @@ void Renderer::FrameDumpThreadFunc()
     auto frame = m_frame_dump_data;
 
     // Save screenshot
-    if (m_screenshot_request.TestAndClear())
+    const bool wants_screenshot = m_screenshot_request.TestAndClear();
+    const bool wants_frame_drawn_event = API::GetEventHub().HasListeners<API::Events::FrameDrawn>();
+    if (wants_screenshot || wants_frame_drawn_event)
     {
       std::lock_guard<std::mutex> lk(m_screenshot_lock);
+      API::GetEventHub().EmitEvent(API::Events::FrameDrawn{frame.width, frame.height, frame.data});
 
-      if (DumpFrameToPNG(frame, m_screenshot_name))
-        OSD::AddMessage("Screenshot saved to " + m_screenshot_name);
+      if (wants_screenshot)
+      {
+        if (DumpFrameToPNG(frame, m_screenshot_name))
+          OSD::AddMessage("Screenshot saved to " + m_screenshot_name);
 
-      // Reset settings
-      m_screenshot_name.clear();
-      m_screenshot_completed.Set();
+        // Reset settings
+        m_screenshot_name.clear();
+        m_screenshot_completed.Set();
+      }
     }
 
     if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))

@@ -18,6 +18,12 @@ namespace Events
 struct FrameAdvance
 {
 };
+struct FrameDrawn
+{
+  int width;
+  int height;
+  const u8* data;
+};
 struct MemoryBreakpoint
 {
   bool write;
@@ -58,6 +64,11 @@ template <typename T>
 class EventContainer final
 {
 public:
+  bool HasListeners()
+  {
+    return !m_listener_pairs.empty() || !m_one_time_listeners.empty();
+  }
+
   void EmitEvent(T evt)
   {
     std::lock_guard lock{m_listeners_iterate_mutex};
@@ -116,6 +127,12 @@ class GenericEventHub final
 {
 public:
   template <typename T>
+  bool HasListeners()
+  {
+    return GetEventContainer<T>().HasListeners();
+  }
+
+  template <typename T>
   void EmitEvent(T evt)
   {
     GetEventContainer<T>().EmitEvent(evt);
@@ -162,7 +179,7 @@ private:
 };
 
 // all existing events need to be listed here, otherwise there will be spooky templating errors
-using EventHub = GenericEventHub<Events::FrameAdvance, Events::SetInterrupt, Events::ClearInterrupt,
+using EventHub = GenericEventHub<Events::FrameAdvance, Events::FrameDrawn, Events::SetInterrupt, Events::ClearInterrupt,
                                  Events::MemoryBreakpoint, Events::CodeBreakpoint>;
 
 // global event hub
