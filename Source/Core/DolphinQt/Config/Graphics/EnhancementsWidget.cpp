@@ -143,7 +143,6 @@ void EnhancementsWidget::CreateWidgets()
   enhancements_layout->addWidget(m_pp_configure, row, 1, 1, -1);
   ++row;
 
-
   enhancements_layout->addWidget(m_scaled_efb_copy, row, 0);
   enhancements_layout->addWidget(m_per_pixel_lighting, row, 1, 1, -1);
   ++row;
