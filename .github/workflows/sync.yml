@@ -10,3 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: tgymnich/fork-sync@v1.6.3
+        with:
+          owner: JaredWhiteOne
+
