@@ -13,38 +13,23 @@ include "dsp_base_noirq.inc"
 
 test_main:
 	CLR $ACC0
+	CLR $ACC1
 	SBCLR #2
 	SBCLR #3
 	SBCLR #4
-	SBCLR #5
-	SBCLR #6
-
-	LRI $AR0, #0
+	SBSET #5
+	SBSET #6
 
 	LRIS $AX0.H, #1
 	CALL send_back
 
 	SI @DMBH, #0x8888
-	SI @DMBL, #0x1111
+	SI @DMBL, #0x5371
 
-wait_cpu_read:
-	LRS $AC1.M, @DMBH
-	ANDCF $AC1.M, #0x8000
-	JLZ wait_cpu_read
-
-	CLR $ACC1
-second_loop:
+wait_external_irq:
 	INC $ACC1
-	CMPIS $AC1.M, #1
-	JNZ second_loop
-
-	SBSET #6
-	SBSET #5
-	LRI $AR0, #2
-	LRI $AR0, #3
-	LRI $AR0, #4
-	LRI $AR0, #5
-	LRI $AR0, #6
+	TST $ACC0
+	JZ wait_external_irq
 
 	LRIS $AX0.H, #2
 	CALL send_back
@@ -52,6 +37,14 @@ second_loop:
 	JMP end_of_test
 
 external_irq:
+	INC $ACC0
 	LRIS $AX0.H, #3
 	CALL send_back
 	RTI
+
+; Expected output ($AX0.H (send_back num), $AC0.L (interrupt count), and $SR):
+; 1, 0, 3824 (start)
+; 3, 1, 2820 (in interrupt handler)
+; 2, 1, 3820 (back out of interrupt handler)
+; DSPSpy shows "interrupt after 20 ticks / 0 tries" (exact number of ticks varies)
+; ACC1 is 7bb40 or so (also varies, and can vary between steps 2 and 3 if the interrupt happens on the JZ)

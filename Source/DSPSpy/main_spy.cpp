@@ -424,7 +424,7 @@ void handle_dsp_mail(void)
     }
 
     // Request for an interrupt
-    else if (mail == 0x88881111)
+    else if (mail == 0x88885371)
     {
       if (real_dsp.CheckInterrupt())
       {

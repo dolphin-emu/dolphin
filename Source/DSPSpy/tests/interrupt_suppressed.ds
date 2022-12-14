@@ -25,6 +25,12 @@ test_main:
 	SI @ACEAH, #0
 	SI @ACEAL, #0
 
+	SBSET #2
+	SBSET #3
+	SBCLR #4
+	SBSET #5
+	SBSET #6
+
 	CLR $ACC0
 	CLR $ACC1
 
@@ -66,9 +72,9 @@ accov_irq:
 	RTI
 
 ; Expected output ($AC0.M (num interrupts), $AC1.M (send_back number), and $SR):
-; 0, 1, 2224 (start)
-; 1, 6, 2220 (in interrupt handler)
-; 1, 2, 2224 (out of interrupt handler)
-; 1, 3, 2024 (interrupts disabled)
-; 1, 4, 2024 (no interrupt triggered)
-; 1, 5, 2224 (interrupts enabled, still no interrupt triggered)
+; 0, 1, 3a24 (start)
+; 1, 6, 2a20 (in interrupt handler)
+; 1, 2, 3a24 (out of interrupt handler)
+; 1, 3, 3824 (interrupts disabled)
+; 1, 4, 3824 (no interrupt triggered)
+; 1, 5, 3a24 (interrupts enabled, still no interrupt triggered)

@@ -33,17 +33,14 @@ wait_cpu_read:
 	ANDCF $AC1.M, #0x8000
 	JLZ wait_cpu_read
 
-	; Wait a while (0x10000 increments)
 	CLR $ACC1
-
-	SBSET #6
-	SBSET #5
-
 second_loop:
 	INC $ACC1
 	CMPIS $AC1.M, #1
 	JNZ second_loop
 
+	SBSET #5
+	SBSET #6
 	LRI $AR0, #2
 	LRI $AR0, #3
 	LRI $AR0, #4
@@ -56,14 +53,37 @@ second_loop:
 	JMP end_of_test
 
 external_irq:
+	INC $ACC0
+	INCM $AC0.M
 	LRIS $AX0.H, #3
 	CALL send_back
+
+	; Only trigger a nested interrupt the first time through.
+	CMPIS $AC0.M, #2
+	JGE exit_irq
+
+	SI @DMBH, #0x8888
+	SI @DMBL, #0x5371
+
+wait_cpu_read_irq:
+	LRS $AC1.M, @DMBH
+	ANDCF $AC1.M, #0x8000
+	JLZ wait_cpu_read_irq
+
+	CLR $ACC1
+	SBSET #6
+
+second_loop_irq:
+	INC $ACC1
+	CMPIS $AC1.M, #1
+	JNZ second_loop_irq
+
+exit_irq:
+	DEC $ACC0
 	RTI
 
-; Expected result ($AX0.H (send_back num), $AR0, and $SR):
-; 1, 0, 2024 (start)
-; 3, 0, 2020 (in interrupt handler)
-; 2, 6, 3825 (end)
-; DSPSpy shows "interrupt after 21 ticks / 0 tries" (exact numbers vary)
-; $ACC1 in the interrupt handler is approximately 15 (so it loops 15 times
-; after the CPU receives the mail before the interrupt fires)
+; Expected result ($AX0.H (send_back num), $AC0.L (interrupt depth), $AC0.M (interrupt count), $AR0, and $SR):
+; 1, 0, 0, 0, 2024
+; 3, 1, 1, 2, 2020
+; 3, 2, 2, 2, 2020
+; 2, 0, 2, 6, 3825

@@ -38,7 +38,7 @@ test_main:
 	CALL send_back
 
 	SI @DMBH, #0x8888
-	SI @DMBL, #0x1111
+	SI @DMBL, #0x5371
 
 wait_cpu_read:
 	LRS $AC1.M, @DMBH
@@ -66,6 +66,7 @@ second_loop:
 	JMP end_of_test
 
 accov_irq:
+	INC $ACC0
 	INCM $AC0.M
 
 	; Restore registers, otherwise no new interrupt will be generated
@@ -76,10 +77,21 @@ accov_irq:
 	LRIS $AX0.H, #3
 	CALL send_back
 
+	DECM $AC0.M
 	RTI
 
 external_irq:
+	INC $ACC0
 	INCM $AC0.M
+
 	LRIS $AX0.H, #4
 	CALL send_back
+
+	DECM $AC0.M
 	RTI
+
+; Expected result ($AX0.H (send_back num), $AC0.L (interrupt count), $AC0.M (interrupt depth), $AR0, and $SR):
+; 1, 0, 0, 0, 2224 (start)
+; 3, 1, 1, 0, 2a20 (overflow interrupt)
+; 4, 2, 1, 3, 2a20 (external interrupt
+; 2, 2, 0, 6, 3a25 (end)

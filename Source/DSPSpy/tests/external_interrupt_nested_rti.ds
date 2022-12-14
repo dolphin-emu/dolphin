@@ -13,6 +13,7 @@ include "dsp_base_noirq.inc"
 
 test_main:
 	CLR $ACC0
+	CLR $ACC1
 	SBCLR #2
 	SBCLR #3
 	SBCLR #4
@@ -25,7 +26,7 @@ test_main:
 	CALL send_back
 
 	SI @DMBH, #0x8888
-	SI @DMBL, #0x1111
+	SI @DMBL, #0x5371
 
 wait_cpu_read:
 	LRS $AC1.M, @DMBH
@@ -38,8 +39,8 @@ second_loop:
 	CMPIS $AC1.M, #1
 	JNZ second_loop
 
-	SBSET #6
 	SBSET #5
+	SBSET #6
 	LRI $AR0, #2
 	LRI $AR0, #3
 	LRI $AR0, #4
@@ -52,16 +53,17 @@ second_loop:
 	JMP end_of_test
 
 external_irq:
+	INC $ACC0
 	INCM $AC0.M
 	LRIS $AX0.H, #3
 	CALL send_back
 
-	; Only trigger a nested interrupt the first time through
-	CMPIS $AC0.M, #1
-	RTINZ
+	; Only trigger a nested interrupt the first time through.
+	CMPIS $AC0.M, #2
+	JGE exit_irq
 
 	SI @DMBH, #0x8888
-	SI @DMBL, #0x1111
+	SI @DMBL, #0x5371
 
 wait_cpu_read_irq:
 	LRS $AC1.M, @DMBH
@@ -74,4 +76,12 @@ second_loop_irq:
 	CMPIS $AC1.M, #1
 	JNZ second_loop_irq
 
+exit_irq:
+	DEC $ACC0
 	RTI
+
+; Expected result ($AX0.H (send_back num), $AC0.L (interrupt depth), $AC0.M (interrupt count), $AR0, and $SR):
+; 1, 0, 0, 0, 2024
+; 3, 1, 1, 2, 2020
+; 3, 1, 2, 3, 2020
+; 2, 0, 2, 6, 3825

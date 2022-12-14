@@ -25,6 +25,12 @@ test_main:
 	SI @ACEAH, #0
 	SI @ACEAL, #0
 
+	SBSET #2
+	SBSET #3
+	SBCLR #4
+	SBSET #5
+	SBSET #6
+
 	CLR $ACC0
 	CLR $ACC1
 	LRIS $AX0.H, #1
@@ -67,7 +73,7 @@ accov_irq:
 
 ; Expected output ($AX0.H (send_back number), $AX1.H (changed on lines after an exception fires,
 ; to make sure it happens immediately), $AC0.M (interrupt count), $AC1.M (interrupt depth), and $SR):
-; 1, 0, 0, 0, 2224 (first line)
-; 3, 0, 1, 1, 2020 (start of interrupt handler)
-; 4, 2, 1, 1, 2020 (end of interrupt handler)
-; 2, 1, 1, 0, 2224 (before end_of_test)
+; 1, 0, 0, 0, 3a24 (first line)
+; 3, 0, 1, 1, 2820 (start of interrupt handler)
+; 4, 2, 1, 1, 2820 (end of interrupt handler)
+; 2, 1, 1, 0, 3a24 (before end_of_test)

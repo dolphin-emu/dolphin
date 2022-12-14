@@ -13,6 +13,7 @@ include "dsp_base_noirq.inc"
 
 test_main:
 	CLR $ACC0
+	CLR $ACC1
 	SBCLR #5
 	SBCLR #6
 
@@ -22,7 +23,7 @@ test_main:
 	CALL send_back
 
 	SI @DMBH, #0x8888
-	SI @DMBL, #0x1111
+	SI @DMBL, #0x5371
 
 wait_cpu_read:
 	LRS $AC1.M, @DMBH
@@ -62,3 +63,8 @@ external_irq:
 	LRIS $AX0.H, #3
 	CALL send_back
 	RTI
+
+; Expected result ($AX0.H (send_back num), $AR0, and $SR):
+; 1, 0, 2224
+; 3, 6, 2a25
+; 2, 7, 3a25
