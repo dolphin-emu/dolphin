@@ -14,13 +14,10 @@ include "dsp_base_noirq.inc"
 test_main:
 	CLR $ACC0
 	CLR $ACC1
-	SBCLR #2
-	SBCLR #3
-	SBCLR #4
 	SBCLR #5
 	SBCLR #6
 
-	LRI $AX1.H, #1
+	LRIS $AX1.H, #0
 
 	LRIS $AX0.H, #1
 	CALL send_back
@@ -35,20 +32,33 @@ wait_cpu_read:
 
 	; Wait a while (0x10000 increments)
 	CLR $ACC1
-
-	SBSET #6
-	SBSET #5
-
 second_loop:
 	INC $ACC1
 	CMPIS $AC1.M, #1
 	JNZ second_loop
 
+	SBSET #6
+	SBSET #5
+	SBCLR #5
 	LRIS $AX1.H, #2
 	LRIS $AX1.H, #3
+	SBSET #5
+	SBCLR #5
 	LRIS $AX1.H, #4
 	LRIS $AX1.H, #5
+	SBSET #5
+	SBCLR #5
 	LRIS $AX1.H, #6
+	LRIS $AX1.H, #7
+	SBSET #5
+	SBCLR #5
+	LRIS $AX1.H, #8
+	LRIS $AX1.H, #9
+	SBSET #5
+	LRIS $AX1.H, #10
+	LRIS $AX1.H, #11
+	LRIS $AX1.H, #12
+	LRIS $AX1.H, #13
 
 	LRIS $AX0.H, #2
 	CALL send_back
@@ -60,10 +70,7 @@ external_irq:
 	CALL send_back
 	RTI
 
-; Expected result ($AX0.H (send_back num), $AR0, and $SR):
-; 1, 1, 2024 (start)
-; 3, 1, 2020 (in interrupt handler)
-; 2, 6, 3825 (end)
-; DSPSpy shows "interrupt after 21 ticks / 0 tries" (exact numbers vary)
-; $ACC1 in the interrupt handler is approximately 15 (so it loops 15 times
-; after the CPU receives the mail before the interrupt fires)
+; Expected result ($AX0.H (send_back num), $AX1.H, and $SR):
+; 1, 0, 2224
+; 3, b, 2a25
+; 2, d, 3a25

@@ -26,13 +26,14 @@ test_main:
 	SI @ACEAL, #0
 
 	CLR $ACC0
+	CLR $ACC1
 	SBCLR #2
 	SBSET #3
 	SBCLR #4
 	SBCLR #5
 	SBCLR #6
 
-	LRI $AR0, #0
+	LRIS $AX1.H, #1
 
 	LRIS $AX0.H, #1
 	CALL send_back
@@ -53,12 +54,13 @@ second_loop:
 
 	SBSET #6
 	SBSET #5
-	; Trigger an interrupt at the same time as external interrupts become enabled
+	; Trigger an interrupt 1 instruction after external interrupts become enabled
+	LRIS $AX1.H, #2
 	LRS $AX0.L, @ARAM
-	LRI $AR0, #3
-	LRI $AR0, #4
-	LRI $AR0, #5
-	LRI $AR0, #6
+	LRIS $AX1.H, #3
+	LRIS $AX1.H, #4
+	LRIS $AX1.H, #5
+	LRIS $AX1.H, #6
 
 	LRIS $AX0.H, #2
 	CALL send_back
@@ -90,8 +92,8 @@ external_irq:
 	DECM $AC0.M
 	RTI
 
-; Expected result ($AX0.H (send_back num), $AC0.L (interrupt count), $AC0.M (interrupt depth), $AR0, and $SR):
-; 1, 0, 0, 0, 2224 (start)
-; 3, 1, 1, 0, 2a20 (overflow interrupt)
-; 4, 2, 1, 3, 2a20 (external interrupt
-; 2, 2, 0, 6, 3a25 (end)
+; Expected result ($AX0.H (send_back num), $AX1.H, $AC0.L (interrupt count), $AC0.M (interrupt depth), and $SR):
+; 1, 1, 0, 0, 2224 (start)
+; 3, 2, 1, 1, 2a20 (overflow interrupt - still comes first)
+; 4, 3, 2, 1, 2a20 (external interrupt - 1 ins executed after rti)
+; 2, 6, 2, 0, 3a25 (end)

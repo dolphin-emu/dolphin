@@ -14,10 +14,13 @@ include "dsp_base_noirq.inc"
 test_main:
 	CLR $ACC0
 	CLR $ACC1
+	SBCLR #2
+	SBCLR #3
+	SBCLR #4
 	SBCLR #5
 	SBCLR #6
 
-	LRI $AR0, #0
+	LRIS $AX1.H, #1
 
 	LRIS $AX0.H, #1
 	CALL send_back
@@ -39,20 +42,11 @@ second_loop:
 
 	SBSET #6
 	SBSET #5
-	SBCLR #5
-	LRI $AR0, #2
-	SBSET #5
-	SBCLR #5
-	LRI $AR0, #3
-	SBSET #5
-	SBCLR #5
-	LRI $AR0, #4
-	SBSET #5
-	SBCLR #5
-	LRI $AR0, #5
-	SBSET #5
-	LRI $AR0, #6
-	LRI $AR0, #7
+	LRIS $AX1.H, #2
+	LRI $AX1.H, #3
+	LRIS $AX1.H, #4
+	LRIS $AX1.H, #5
+	LRIS $AX1.H, #6
 
 	LRIS $AX0.H, #2
 	CALL send_back
@@ -65,6 +59,7 @@ external_irq:
 	RTI
 
 ; Expected result ($AX0.H (send_back num), $AR0, and $SR):
-; 1, 0, 2224
-; 3, 6, 2a25
-; 2, 7, 3a25
+; 1, 1, 2024 (start)
+; 3, 3, 2025 (in interrupt handler - note that the interrupt happens after both the LRIS and LRI instructions)
+; 2, 6, 3825 (the remaining LRIS instructions execute)
+; DSPSpy shows "interrupt after 131054 ticks / 37414 tries" (exact numbers vary but are close)

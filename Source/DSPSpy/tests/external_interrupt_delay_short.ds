@@ -20,7 +20,7 @@ test_main:
 	SBCLR #5
 	SBCLR #6
 
-	LRI $AX1.H, #1
+	LRIS $AX1.H, #1
 
 	LRIS $AX0.H, #1
 	CALL send_back
@@ -35,15 +35,13 @@ wait_cpu_read:
 
 	; Wait a while (0x10000 increments)
 	CLR $ACC1
-
-	SBSET #6
-	SBSET #5
-
 second_loop:
 	INC $ACC1
 	CMPIS $AC1.M, #1
 	JNZ second_loop
 
+	SBSET #6
+	SBSET #5
 	LRIS $AX1.H, #2
 	LRIS $AX1.H, #3
 	LRIS $AX1.H, #4
@@ -62,8 +60,6 @@ external_irq:
 
 ; Expected result ($AX0.H (send_back num), $AR0, and $SR):
 ; 1, 1, 2024 (start)
-; 3, 1, 2020 (in interrupt handler)
-; 2, 6, 3825 (end)
-; DSPSpy shows "interrupt after 21 ticks / 0 tries" (exact numbers vary)
-; $ACC1 in the interrupt handler is approximately 15 (so it loops 15 times
-; after the CPU receives the mail before the interrupt fires)
+; 3, 3, 2025 (in interrupt handler - note that the interrupt happens after two LRIS instructions)
+; 2, 6, 3825 (the remaining LRIS instructions execute)
+; DSPSpy shows "interrupt after 131054 ticks / 37414 tries" (exact numbers vary but are close)

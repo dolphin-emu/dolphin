@@ -17,7 +17,7 @@ test_main:
 	SBCLR #5
 	SBCLR #6
 
-	LRI $AR0, #0
+	LRIS $AX1.H, #0
 
 	LRIS $AX0.H, #1
 	CALL send_back
@@ -47,9 +47,11 @@ second_loop:
 	SBSET #5
 	SBCLR #5
 	SBSET #5
-	LRI $AR0, #2
-	LRI $AR0, #3
-	LRI $AR0, #4
+	LRIS $AX1.H, #2
+	LRIS $AX1.H, #3
+	LRIS $AX1.H, #4
+	LRIS $AX1.H, #5
+	LRIS $AX1.H, #6
 
 	LRIS $AX0.H, #2
 	CALL send_back
@@ -61,7 +63,7 @@ external_irq:
 	CALL send_back
 	RTI
 
-; Expected result ($AX0.H (send_back num), $AR0, and $SR):
+; Expected result ($AX0.H (send_back num), $AX1.H, and $SR):
 ; 1, 0, 2224
-; 3, 2, 2a25
-; 2, 4, 3a25
+; 3, 3, 2a25
+; 2, 6, 3a25
