@@ -13,7 +13,7 @@
     bytes = 0ULL;
   }
 
-  ByteWrapper* ByteWrapper::CreateByteWrapperFromU8(u8 value, bool fromMemoryAddr)
+  ByteWrapper* ByteWrapper::CreateByteWrapperFromU8(u8 value)
   {
     ByteWrapper* returnResult = new ByteWrapper();
     returnResult->bytes = 0;
@@ -21,11 +21,10 @@
     returnResult->totalBytesAllocated = 1;
     returnResult->numBytesUsedByType = -1;
     returnResult->byteType = UNDEFINED;
-    returnResult->createdFromMemoryAddress = fromMemoryAddr;
     return returnResult;
   }
 
-  ByteWrapper* ByteWrapper::CreateByteWrapperFromU16(u16 value, bool fromMemoryAddr)
+  ByteWrapper* ByteWrapper::CreateByteWrapperFromU16(u16 value)
   {
     ByteWrapper* returnResult = new ByteWrapper();
     returnResult->bytes = 0;
@@ -33,11 +32,10 @@
     returnResult->totalBytesAllocated = 2;
     returnResult->numBytesUsedByType = -1;
     returnResult->byteType = UNDEFINED;
-    returnResult->createdFromMemoryAddress = fromMemoryAddr;
     return returnResult;
   }
 
-  ByteWrapper* ByteWrapper::CreateByteWrapperFromU32(u32 value, bool fromMemoryAddr)
+  ByteWrapper* ByteWrapper::CreateByteWrapperFromU32(u32 value)
   {
     ByteWrapper* returnResult = new ByteWrapper();
     returnResult->bytes = 0ULL;
@@ -45,11 +43,10 @@
     returnResult->totalBytesAllocated = 4;
     returnResult->numBytesUsedByType = -1;
     returnResult->byteType = UNDEFINED;
-    returnResult->createdFromMemoryAddress = fromMemoryAddr;
     return returnResult;
   }
 
-  ByteWrapper* ByteWrapper::CreateByteWrapperFromU64(u64 value, bool fromMemoryAddr)
+  ByteWrapper* ByteWrapper::CreateByteWrapperFromU64(u64 value)
   {
     ByteWrapper* returnResult = new ByteWrapper();
     returnResult->bytes = 0ULL;
@@ -57,31 +54,29 @@
     returnResult->totalBytesAllocated = 8;
     returnResult->numBytesUsedByType = -1;
     returnResult->byteType = UNDEFINED;
-    returnResult->createdFromMemoryAddress = fromMemoryAddr;
     return returnResult;
   }
 
-  ByteWrapper* ByteWrapper::CreateByteWrapperFromLongLong(long long value, bool fromMemoryAddr)
+  ByteWrapper* ByteWrapper::CreateByteWrapperFromLongLong(long long value)
   {
     ByteWrapper* returnResult = new ByteWrapper();
-    returnResult->bytes = 0ULL;
-    memcpy(&returnResult->bytes, &value, sizeof(returnResult->bytes));
+    u64 unsignedLongLong = 0ULL;
+    memcpy(&unsignedLongLong, &value, sizeof(u64));
+    returnResult->bytes = unsignedLongLong;
     returnResult->totalBytesAllocated = 8;
     returnResult->numBytesUsedByType = -1;
     returnResult->byteType = UNDEFINED;
-    returnResult->createdFromMemoryAddress = fromMemoryAddr;
     return returnResult;
   }
 
-  ByteWrapper* ByteWrapper::CreateBytewrapperFromDouble(double value, bool fromMemoryAddr)
+  ByteWrapper* ByteWrapper::CreateByteWrapperFromDouble(double value)
   {
     ByteWrapper* returnResult = new ByteWrapper();
-    returnResult->bytes = 0ULL;
-    memcpy(&returnResult->bytes, &value, sizeof(returnResult->bytes));
+    u64 unsignedLongLong = 0ULL;
+    memcpy(&unsignedLongLong, &value, sizeof(u64));
     returnResult->totalBytesAllocated = 8;
-    returnResult->numBytesUsedByType = 1;
+    returnResult->numBytesUsedByType = -1;
     returnResult->byteType = UNDEFINED;
-    returnResult->createdFromMemoryAddress = fromMemoryAddr;
     return returnResult;
   }
 
@@ -92,7 +87,6 @@
     returnResult->totalBytesAllocated = value->totalBytesAllocated;
     returnResult->numBytesUsedByType = value->numBytesUsedByType;
     returnResult->byteType = value->byteType;
-    returnResult->createdFromMemoryAddress = value->createdFromMemoryAddress;
     return returnResult;
   }
 
@@ -316,111 +310,47 @@
   }
 
   // returns true if wrapper is big enough to accomodate type, and false otherwise.
-  bool ByteWrapper::typeSizeCheck(lua_State* luaState, ByteWrapper* byteWrapperPointer,
-                     ByteWrapper::ByteType parsedType, const char* errorMessage)
+  bool ByteWrapper::typeSizeCheck(lua_State* luaState, ByteWrapper* byteWrapperPointer, u8 numBytesRequired)
   {
-    switch (parsedType)
-    {
-    case ByteWrapper::ByteType::UNSIGNED_8:
-    case ByteWrapper::ByteType::SIGNED_8:
-      if (byteWrapperPointer->totalBytesAllocated < 1)
-      {
-        luaL_error(
-            luaState,
-            std::vformat(errorMessage, std::make_format_args(
-                                           ByteWrapper::getByteTypeAsString(parsedType).c_str(), 1))
-                .c_str());
-        return false;
-      }
-      break;
-
-    case ByteWrapper::ByteType::UNSIGNED_16:
-    case ByteWrapper::ByteType::SIGNED_16:
-      if (byteWrapperPointer->totalBytesAllocated < 2)
-      {
-        luaL_error(
-            luaState,
-            std::vformat(errorMessage, std::make_format_args(
-                                           ByteWrapper::getByteTypeAsString(parsedType).c_str(), 2))
-                .c_str());
-        return false;
-      }
-      break;
-
-    case ByteWrapper::ByteType::UNSIGNED_32:
-    case ByteWrapper::ByteType::SIGNED_32:
-    case ByteWrapper::ByteType::FLOAT:
-      if (byteWrapperPointer->totalBytesAllocated < 4)
-      {
-        luaL_error(
-            luaState,
-            std::vformat(errorMessage, std::make_format_args(
-                                           ByteWrapper::getByteTypeAsString(parsedType).c_str(), 4))
-                .c_str());
-        return false;
-      }
-      break;
-
-    case ByteWrapper::ByteType::UNSIGNED_64:
-    case ByteWrapper::ByteType::SIGNED_64:
-    case ByteWrapper::ByteType::DOUBLE:
-      if (byteWrapperPointer->totalBytesAllocated < 8)
-      {
-        luaL_error(
-            luaState,
-            std::vformat(errorMessage, std::make_format_args(
-                                           ByteWrapper::getByteTypeAsString(parsedType).c_str(), 8))
-                .c_str());
-        return false;
-      }
-      break;
-
-    default:
-      luaL_error(luaState, "Error: invalid type in typeSizeCheck()");
+    if (byteWrapperPointer->numBytesUsedByType < numBytesRequired)
       return false;
-      break;
-    }
     return true;
   }
 
-  ByteWrapper::ByteWrapper(u8 initialValue, bool fromMemoryAddr)
+  ByteWrapper::ByteWrapper(u8 initialValue)
   {
     byteType = UNSIGNED_8;
     numBytesUsedByType = 1;
     totalBytesAllocated = 1;
     bytes = 0ULL;
     bytes = initialValue;
-    createdFromMemoryAddress = fromMemoryAddr;
   }
 
-  ByteWrapper::ByteWrapper(u16 initialValue, bool fromMemoryAddr)
+  ByteWrapper::ByteWrapper(u16 initialValue)
   {
     byteType = UNSIGNED_16;
     numBytesUsedByType = 2;
     totalBytesAllocated = 2;
     bytes = 0ULL;
     bytes = initialValue;
-    createdFromMemoryAddress = fromMemoryAddr;
   }
 
-  ByteWrapper::ByteWrapper(u32 initialValue, bool fromMemoryAddr)
+  ByteWrapper::ByteWrapper(u32 initialValue)
   {
     byteType = UNSIGNED_32;
     numBytesUsedByType = 4;
     totalBytesAllocated = 4;
     bytes = 0ULL;
     bytes = initialValue;
-    createdFromMemoryAddress = fromMemoryAddr;
   }
 
-  ByteWrapper::ByteWrapper(u64 initialValue, bool fromMemoryAddr)
+  ByteWrapper::ByteWrapper(u64 initialValue)
   {
     byteType = UNSIGNED_64;
     numBytesUsedByType = 8;
     totalBytesAllocated = 8;
     bytes = 0ULL;
     bytes = initialValue;
-    createdFromMemoryAddress = fromMemoryAddr;
   }
 
   void ByteWrapper::setType(ByteType newType)
@@ -1209,22 +1139,22 @@
         case 1:
           secondValU8 = otherByteWrapper.getValueAsU8();
           resultU8 = non_comparison_helper(firstValU8, secondValU8, operation);
-          return ByteWrapper(resultU8, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+          return ByteWrapper(resultU8);
         case 2:
           secondValU16 = otherByteWrapper.getValueAsU16();
           convertedU16 = static_cast<u16>(firstValU8);
           resultU16 = non_comparison_helper(convertedU16, secondValU16, operation);
-          return ByteWrapper(resultU16, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+          return ByteWrapper(resultU16);
         case 4:
           secondValU32 = otherByteWrapper.getValueAsU32();
           convertedU32 = static_cast<u32>(firstValU8);
           resultU32 = non_comparison_helper(convertedU32, secondValU32, operation);
-          return ByteWrapper(resultU32, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+          return ByteWrapper(resultU32);
         case 8:
           secondValU64 = otherByteWrapper.getValueAsU64();
           convertedU64 = static_cast<u64>(firstValU8);
           resultU64 = non_comparison_helper(convertedU64, secondValU64, operation);
-          return ByteWrapper(resultU64, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+          return ByteWrapper(resultU64);
           break;
       }
       break;
@@ -1236,21 +1166,21 @@
         secondValU8 = otherByteWrapper.getValueAsU8();
         convertedU16 = static_cast<u16>(secondValU8);
         resultU16 = non_comparison_helper(firstValU16, convertedU16, operation);
-        return ByteWrapper(resultU16, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU16);
       case 2:
         secondValU16 = otherByteWrapper.getValueAsU16();
         resultU16 = non_comparison_helper(firstValU16, secondValU16, operation);
-        return ByteWrapper(resultU16, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU16);
       case 4:
         secondValU32 = otherByteWrapper.getValueAsU32();
         convertedU32 = static_cast<u32>(firstValU16);
         resultU32 = non_comparison_helper(convertedU32, secondValU32, operation);
-        return ByteWrapper(resultU32, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU32);
       case 8:
         secondValU64 = otherByteWrapper.getValueAsU64();
         convertedU64 = static_cast<u64>(firstValU16);
         resultU64 = non_comparison_helper(convertedU64, secondValU64, operation);
-        return ByteWrapper(resultU64, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU64);
         break;
       }
       break;
@@ -1262,21 +1192,21 @@
         secondValU8 = otherByteWrapper.getValueAsU8();
         convertedU32 = static_cast<u32>(secondValU8);
         resultU32 = non_comparison_helper(firstValU32, convertedU32, operation);
-        return ByteWrapper(resultU32, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU32);
       case 2:
         secondValU16 = otherByteWrapper.getValueAsU16();
         convertedU32 = static_cast<u32>(secondValU16);
         resultU32 = non_comparison_helper(firstValU32, convertedU32, operation);
-        return ByteWrapper(resultU32, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU32);
       case 4:
         secondValU32 = otherByteWrapper.getValueAsU32();
         resultU32 = non_comparison_helper(firstValU32, secondValU32, operation);
-        return ByteWrapper(resultU32, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU32);
       case 8:
         secondValU64 = otherByteWrapper.getValueAsU64();
         convertedU64 = static_cast<u64>(firstValU32);
         resultU64 = non_comparison_helper(convertedU64, secondValU64, operation);
-        return ByteWrapper(resultU64, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU64);
         break;
       }
       break;
@@ -1288,21 +1218,21 @@
         secondValU8 = otherByteWrapper.getValueAsU8();
         convertedU64 = static_cast<u64>(secondValU8);
         resultU64 = non_comparison_helper(firstValU64, convertedU64, operation);
-        return ByteWrapper(resultU64, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU64);
       case 2:
         secondValU16 = otherByteWrapper.getValueAsU16();
         convertedU64 = static_cast<u64>(secondValU16);
         resultU64 = non_comparison_helper(firstValU64, convertedU64, operation);
-        return ByteWrapper(resultU64, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU64);
       case 4:
         secondValU32 = otherByteWrapper.getValueAsU32();
         convertedU64 = static_cast<u64>(secondValU32);
         resultU64 = non_comparison_helper(firstValU64, convertedU64, operation);
-        return ByteWrapper(resultU64, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU64);
       case 8:
         secondValU64 = otherByteWrapper.getValueAsU64();
         resultU64 = non_comparison_helper(firstValU64, secondValU64, operation);
-        return ByteWrapper(resultU64, createdFromMemoryAddress || otherByteWrapper.createdFromMemoryAddress);
+        return ByteWrapper(resultU64);
         break;
       }
       break;
@@ -1327,19 +1257,19 @@
     case 1:
       inputAsU8 = getValueAsU8();
       outputValueAsU8 = unary_operation_helper(inputAsU8, operation);
-      return ByteWrapper(outputValueAsU8, createdFromMemoryAddress);
+      return ByteWrapper(outputValueAsU8);
     case 2:
       inputAsU16 = getValueAsU16();
       outputValueAsU16 = unary_operation_helper(inputAsU16, operation);
-      return ByteWrapper(outputValueAsU16, createdFromMemoryAddress);
+      return ByteWrapper(outputValueAsU16);
     case 4:
       inputAsU32 = getValueAsU32();
       outputValueAsU32 = unary_operation_helper(inputAsU32, operation);
-      return ByteWrapper(outputValueAsU32, createdFromMemoryAddress);
+      return ByteWrapper(outputValueAsU32);
     case 8:
       inputAsU64 = getValueAsU64();
       outputValueAsU64 = unary_operation_helper(inputAsU64, operation);
-      return ByteWrapper(outputValueAsU64, createdFromMemoryAddress);
+      return ByteWrapper(outputValueAsU64);
     break;
     }
     return ByteWrapper();
@@ -1363,19 +1293,14 @@
   {
     if (totalBytesAllocated < 1)
       throw std::overflow_error("Error: Cannot call getValueAsU8() on ByteWrapper with a size of 0");
-    if (createdFromMemoryAddress)
-      return static_cast<u8>(bytes >> 56);
-    else
-      return static_cast<u8>(bytes & 0Xff);
+    return static_cast<u8>(bytes & 0XffULL);
   }
 
   s8 ByteWrapper::getValueAsS8() const
   {
     if (totalBytesAllocated < 1)
       throw std::overflow_error("Error: Cannot call getValueAsS8() on ByteWrapper with a size of 0");
-    u8 unsignedByte = static_cast<u8>(bytes >> 56);
-    if (!createdFromMemoryAddress)
-      unsignedByte = static_cast<u8>(bytes & 0Xff);
+    u8 unsignedByte = static_cast<u8>(bytes & 0XffULL);
     s8 signedByte = 0;
     memcpy(&signedByte, &unsignedByte, sizeof(s8));
     return signedByte;
@@ -1385,19 +1310,14 @@
   {
     if (totalBytesAllocated < 2)
       throw std::overflow_error("Error: Cannot call getValueAsU16() on ByteWrapper with a size less than 2");
-    if (createdFromMemoryAddress)
-      return static_cast<u16>(bytes >> 48);
-    else
-      return static_cast<u16>(bytes & 0Xffff);
+      return static_cast<u16>(bytes & 0XffffULL);
   }
 
   s16 ByteWrapper::getValueAsS16() const
   {
     if (totalBytesAllocated < 2)
       throw std::overflow_error("Error: Cannot call getValueAsS16() on ByteWrapper with a size less than 2");
-    u16 unsignedShort = static_cast<u16>(bytes >> 48);
-    if (!createdFromMemoryAddress)
-      unsignedShort = static_cast<u16>(bytes & 0Xffff);
+    u16 unsignedShort = static_cast<u16>(bytes & 0XffffULL);
     s16 signedShort = 0;
     memcpy(&signedShort, &unsignedShort, sizeof(s16));
     return signedShort;
@@ -1407,19 +1327,14 @@
   {
     if (totalBytesAllocated < 4)
       throw std::overflow_error("Error: Cannot call getValueAsU32() on ByteWrapper with a size less than 4");
-    if (createdFromMemoryAddress)
-      return static_cast<u32>(bytes >> 32);
-    else
-      return static_cast<u32>(bytes & 0Xffffffff);
+    return static_cast<u32>(bytes & 0XffffffffULL);
   }
 
   s32 ByteWrapper::getValueAsS32() const
   {
     if (totalBytesAllocated < 4)
       throw std::overflow_error("Error: Cannot call getValueAsS32() on ByteWrapper with a size less than 4");
-    u32 unsignedInt = static_cast<u32>(bytes >> 32);
-    if (!createdFromMemoryAddress)
-      unsignedInt = static_cast<u32>(bytes & 0Xffffffff);
+    u32 unsignedInt = static_cast<u32>(bytes & 0XffffffffULL);
     s32 signedInt = 0;
     memcpy(&signedInt, &unsignedInt, sizeof(s32));
     return signedInt;
@@ -1429,14 +1344,14 @@
   {
     if (totalBytesAllocated < 8)
       throw std::overflow_error("Error: Cannot call getValueAsU64() on ByteWrapper with a size less than 8");
-    return static_cast<u64>(bytes & 0XffffffffffffffffULL);
+    return bytes;
   }
 
   s64 ByteWrapper::getValueAsS64() const
   {
     if (totalBytesAllocated < 8)
       throw std::overflow_error("Error: Cannot call getValueAsS64() on ByteWrapper with a size less than 8");
-    u64 unsignedLongLong = static_cast<u64>(bytes & 0XffffffffffffffffULL);
+    u64 unsignedLongLong = bytes;
     s64 signedLongLong = 0;
     memcpy(&signedLongLong, &unsignedLongLong, sizeof(s64));
     return signedLongLong;
@@ -1446,9 +1361,7 @@
   {
     if (totalBytesAllocated < 4)
       throw std::overflow_error("Error: Cannot call getValueAsFloat() on ByteWrapper with a size less than 4");
-    u32 unsignedInt = static_cast<u32>(bytes >> 32);
-    if (!createdFromMemoryAddress)
-      unsignedInt = static_cast<u32>(bytes & 0Xffffffff);
+    u32 unsignedInt = static_cast<u32>(bytes & 0XffffffffULL);
     float floatResult = 0.0f;
     memcpy(&floatResult, &unsignedInt, sizeof(float));
     return floatResult;
@@ -1458,7 +1371,7 @@
   {
     if (totalBytesAllocated < 8)
       throw std::overflow_error("Error: Cannot call getValueAsDouble() on ByteWrapper with a size less than 8");
-    u64 unsignedLongLong = static_cast<u64>(bytes & 0xffffffffffffffffULL);
+    u64 unsignedLongLong = bytes;
     double doubleResult = 0.0;
     memcpy(&doubleResult, &unsignedLongLong, sizeof(double));
     return doubleResult;

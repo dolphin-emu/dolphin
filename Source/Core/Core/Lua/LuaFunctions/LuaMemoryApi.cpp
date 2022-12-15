@@ -207,46 +207,57 @@ double read_double(lua_State* luaState, u32 address)
   return myDouble;
 }
 
-int do_read_into_byte_wrapper(lua_State* luaState, u32 address)
+int do_read_into_byte_wrapper(lua_State* luaState, u32 address, u8 byteWrapperSize)
 {
+  std::optional<PowerPC::ReadResult<u64>> readResultSize64;
+  std::optional<PowerPC::ReadResult<u32>> readResultSize32;
+  std::optional<PowerPC::ReadResult<u16>> readResultSize16;
+  std::optional<PowerPC::ReadResult<u8>> readResultSize8; 
   ByteWrapper* byteWrapperReturnResult = NULL;
-  std::optional<PowerPC::ReadResult<u64>> readResultSize64 = PowerPC::HostTryReadU64(address);
-  if (readResultSize64.has_value())
+  switch (byteWrapperSize)
   {
-    u64 u64Result = readResultSize64.value().value;
-    byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU64(u64Result, true);
-  }
-  else
-  {
-    std::optional<PowerPC::ReadResult<u32>> readResultSize32 = PowerPC::HostTryReadU32(address);
+  case 8:
+    readResultSize64 = PowerPC::HostTryReadU64(address);
+    if (readResultSize64.has_value())
+    {
+      u64 u64Result = readResultSize64.value().value;
+      byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU64(u64Result);
+    }
+    break;
+
+  case 4:
+    readResultSize32 = PowerPC::HostTryReadU32(address);
     if (readResultSize32.has_value())
     {
       u32 u32Result = readResultSize32.value().value;
-      byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU32(u32Result, true);
+      byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU32(u32Result);
     }
-    else
+    break;
+
+  case 2:
+    readResultSize16 = PowerPC::HostTryReadU16(address);
+    if (readResultSize16.has_value())
     {
-      std::optional<PowerPC::ReadResult<u16>> readResultSize16 = PowerPC::HostTryReadU16(address);
-      if (readResultSize16.has_value())
-      {
-        u16 u16Result = readResultSize16.value().value;
-        byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU16(u16Result, true);
-      }
-      else
-      {
-        std::optional<PowerPC::ReadResult<u8>> readResultSize8 = PowerPC::HostTryReadU8(address);
-        if (readResultSize8.has_value())
-        {
-          u8 u8Result = readResultSize8.value().value;
-          byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU8(u8Result, true);
-        }
-        else
-        {
-          luaL_error(luaState, "Error: Could not read result in readFrom() function.");
-          return 0;
-        }
-      }
+      u16 u16Result = readResultSize16.value().value;
+      byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU16(u16Result);
     }
+    break;
+
+  case 1:
+    readResultSize8 = PowerPC::HostTryReadU8(address);
+    if (readResultSize8.has_value())
+    {
+      u8 u8Result = readResultSize8.value().value;
+      byteWrapperReturnResult = ByteWrapper::CreateByteWrapperFromU8(u8Result);
+    }
+  default:
+    luaL_error(luaState, "Error: Invalid ByteWrapper size passed into memory:readFrom()");
+  }
+
+  if (byteWrapperReturnResult == NULL)
+  {
+    luaL_error(luaState, "Error: Failed to read bytes into ByteWrapper in memory:readFrom()");
+    return 0;
   }
 
   *reinterpret_cast<ByteWrapper**>(lua_newuserdata(luaState, sizeof(ByteWrapper*))) = byteWrapperReturnResult;
@@ -316,13 +327,11 @@ void write_double(lua_State* luaState, u32 address, double value)
   write_u64_to_domain_function(luaState, address, unsignedLongLong);
 }
 
-int do_write_from_byte_wrapper(lua_State* luaState, u32 address, ByteWrapper* byteWrapperPointer)
+int do_write_from_byte_wrapper(lua_State* luaState, u32 address, ByteWrapper* byteWrapperPointer, u8 numBytesRequired)
 {
-  ByteWrapper::ByteType byteType = byteWrapperPointer->byteType;
-
-  if (!ByteWrapper::typeSizeCheck(luaState, byteWrapperPointer, byteType, "Error: invalid/undefined type in Memory:writeTo() method"))
+  if (!ByteWrapper::typeSizeCheck(luaState, byteWrapperPointer, numBytesRequired))
   {
-    luaL_error(luaState, "Error: ByteWrapper was not big enough to write the specified type to memory in Memory:writeTo()");
+    luaL_error(luaState, "Error: ByteWrapper was not big enough to write the specified number of bytes to memory in Memory:writeTo()");
     return 0;
   }
   u8 u8Val = 0;
@@ -330,36 +339,30 @@ int do_write_from_byte_wrapper(lua_State* luaState, u32 address, ByteWrapper* by
   u32 u32Val = 0;
   u64 u64Val = 0ULL;
 
-  switch (byteType)
+  switch (numBytesRequired)
   {
-  case ByteWrapper::ByteType::UNSIGNED_8:
-  case ByteWrapper::ByteType::SIGNED_8:
+  case 1:
     u8Val = byteWrapperPointer->getValueAsU8();
     write_u8(luaState, address, u8Val);
     return 0;
 
-  case ByteWrapper::ByteType::UNSIGNED_16:
-  case ByteWrapper::ByteType::SIGNED_16:
+  case 2:
     u16Val = byteWrapperPointer->getValueAsU16();
     write_u16(luaState, address, u16Val);
     return 0;
 
-  case ByteWrapper::ByteType::UNSIGNED_32:
-  case ByteWrapper::ByteType::SIGNED_32:
-  case ByteWrapper::ByteType::FLOAT:
+  case 4:
     u32Val = byteWrapperPointer->getValueAsU32();
     write_u32(luaState, address, u32Val);
     return 0;
 
-  case ByteWrapper::ByteType::UNSIGNED_64:
-  case ByteWrapper::ByteType::SIGNED_64:
-  case ByteWrapper::ByteType::DOUBLE:
+  case 8:
     u64Val = byteWrapperPointer->getValueAsU64();
     write_u64(luaState, address, u64Val);
     return 0;
 
   default:
-    luaL_error(luaState, "Error: invalid type specified for ByteWrapper for Memory:writeTo() method.");
+    luaL_error(luaState, "Error: invalid size specified for number of bytes to write for ByteWrapper in Memory:writeTo() method. Valid sizes are 1, 2, 4 and 8");
     return 0;
   }
 }
@@ -373,8 +376,9 @@ void luaColonOperatorTypeCheck(lua_State* luaState, const char* functionName, co
 }
 // End of helper functions block.
 
-int do_general_read(lua_State* luaState) // format is: 1st argument after object is type string, 2nd argument after object is address.
+int do_general_read(lua_State* luaState) // format is: 1st argument after object is type string, 2nd argument after object is address. 3rd argument is number of bytes to include IF first argument was ByteWrapper. Otherwise, this argument is ignored.
 {
+  u8 byteWrapperSize = 255;
   u8 u8Val = 0;
   u16 u16Val = 0;
   u32 u32Val = 0LL;
@@ -444,7 +448,13 @@ int do_general_read(lua_State* luaState) // format is: 1st argument after object
       return 1;
 
     case ByteWrapper::ByteType::WRAPPER:
-      return do_read_into_byte_wrapper(luaState, address);
+      byteWrapperSize = luaL_checkinteger(luaState, 4);
+      if (byteWrapperSize != 8 && byteWrapperSize != 4 && byteWrapperSize != 2 && byteWrapperSize != 1)
+      {
+        luaL_error(luaState, "Error: size of ByteWrapper passed into memory:readFrom() function must be either 1, 2, 4 or 8.");
+        return 0;
+      }
+      return do_read_into_byte_wrapper(luaState, address, byteWrapperSize);
 
     default:
       luaL_error(luaState, "Error: Undefined type encountered in Memory:readFrom() function. Valid types are "
@@ -517,6 +527,7 @@ int do_read_null_terminated_string(lua_State* luaState)
 
 int do_general_write(lua_State* luaState)
 {
+  u8 numBytesToWrite = 0;
   u8 u8Val = 0;
   s8 s8Val = 0;
   u16 u16Val = 0;
@@ -586,13 +597,18 @@ int do_general_write(lua_State* luaState)
     return 0;
 
   case ByteWrapper::ByteType::WRAPPER:
-    byteWrapperPointer = (*reinterpret_cast<ByteWrapper**>(
-        luaL_checkudata(luaState, 4, LuaByteWrapper::LUA_BYTE_WRAPPER)));
-    return do_write_from_byte_wrapper(luaState, address, byteWrapperPointer);
+    byteWrapperPointer = (*reinterpret_cast<ByteWrapper**>(luaL_checkudata(luaState, 4, LuaByteWrapper::LUA_BYTE_WRAPPER)));
+    // If the 5th argument is present, then we use this integer as the number of bytes to write from the ByteWrapper.
+    // Otherwise, we write out the full number of bytes stored in the ByteWrapper.
+    if (lua_gettop(luaState) >= 5)
+      numBytesToWrite = luaL_checkinteger(luaState, 5);
+    else
+      numBytesToWrite = byteWrapperPointer->getByteSize();
+    return do_write_from_byte_wrapper(luaState, address, byteWrapperPointer, numBytesToWrite);
 
   default:
     luaL_error(luaState, "Error: undefined type passed into Memory:writeTo() method. Valid types "
-                         "include u8, u16, u32, u64, s8, s16, s32, s64, float and double.");
+                         "include u8, u16, u32, u64, s8, s16, s32, s64, float, double and ByteWrapper");
     return 0;
   }
 }
