@@ -125,6 +125,7 @@ public:
   void mtfsb1x(UGeckoInstruction inst);
   void mtfsfix(UGeckoInstruction inst);
   void mtfsfx(UGeckoInstruction inst);
+  void isync(UGeckoInstruction inst);
 
   // LoadStore
   void lXX(UGeckoInstruction inst);
