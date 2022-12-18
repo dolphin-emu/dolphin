@@ -36,6 +36,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+#include "DolphinQt/Debugger/AssembleInstructionDialog.h"
 #include "DolphinQt/Debugger/EditSymbolDialog.h"
 #include "DolphinQt/Debugger/PatchInstructionDialog.h"
 #include "DolphinQt/Host.h"
@@ -654,6 +655,8 @@ void CodeViewWidget::OnContextMenu()
   auto* insert_nop_action = menu->addAction(tr("Insert &nop"), this, &CodeViewWidget::OnInsertNOP);
   auto* replace_action =
       menu->addAction(tr("Re&place instruction"), this, &CodeViewWidget::OnReplaceInstruction);
+  auto* assemble_action =
+      menu->addAction(tr("Assemble instruction"), this, &CodeViewWidget::OnAssembleInstruction);
   auto* restore_action =
       menu->addAction(tr("Restore instruction"), this, &CodeViewWidget::OnRestoreInstruction);
 
@@ -702,8 +705,9 @@ void CodeViewWidget::OnContextMenu()
   run_until_menu->setEnabled(!reg_qstr.isEmpty());
   follow_branch_action->setEnabled(follow_branch_enabled);
 
-  for (auto* action : {copy_address_action, copy_line_action, copy_hex_action, function_action,
-                       ppc_action, insert_blr_action, insert_nop_action, replace_action})
+  for (auto* action :
+       {copy_address_action, copy_line_action, copy_hex_action, function_action, ppc_action,
+        insert_blr_action, insert_nop_action, replace_action, assemble_action})
   {
     action->setEnabled(playing);
   }
@@ -1036,6 +1040,16 @@ void CodeViewWidget::OnDeleteNote()
 
 void CodeViewWidget::OnReplaceInstruction()
 {
+  DoPatchInstruction(false);
+}
+
+void CodeViewWidget::OnAssembleInstruction()
+{
+  DoPatchInstruction(true);
+}
+
+void CodeViewWidget::DoPatchInstruction(bool assemble)
+{
   auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
   const u32 addr = GetContextAddress();
   u32 mem_val = 0;
@@ -1045,7 +1059,6 @@ void CodeViewWidget::OnReplaceInstruction()
 
     if (!PowerPC::MMU::HostIsInstructionRAMAddress(guard, addr))
       return;
-
     const PowerPC::TryReadInstResult read_result =
         guard.GetSystem().GetMMU().TryReadInstruction(addr);
     if (!read_result.valid)
@@ -1055,14 +1068,27 @@ void CodeViewWidget::OnReplaceInstruction()
   }
 
   // Don't think dialogs should be in a guard.
-  PatchInstructionDialog dialog(this, addr, mem_val);
-  SetQWidgetWindowDecorations(&dialog);
-
-  if (dialog.exec() == QDialog::Accepted)
+  if (assemble)
   {
-    Core::CPUThreadGuard guard(m_system);
-    debug_interface.SetPatch(guard, addr, dialog.GetCode());
-    Update(&guard);
+    AssembleInstructionDialog dialog(this, addr, mem_val);
+    SetQWidgetWindowDecorations(&dialog);
+    if (dialog.exec() == QDialog::Accepted)
+    {
+      Core::CPUThreadGuard guard(m_system);
+      debug_interface.SetPatch(guard, addr, dialog.GetCode());
+      Update(&guard);
+    }
+  }
+  else
+  {
+    PatchInstructionDialog dialog(this, addr, mem_val);
+    SetQWidgetWindowDecorations(&dialog);
+    if (dialog.exec() == QDialog::Accepted)
+    {
+      Core::CPUThreadGuard guard(m_system);
+      debug_interface.SetPatch(guard, addr, dialog.GetCode());
+      Update(&guard);
+    }
   }
 }
 

@@ -18,6 +18,7 @@ class QStackedWidget;
 class QString;
 
 class AchievementsWindow;
+class AssemblerWidget;
 class BreakpointWidget;
 struct BootParameters;
 class CheatsManager;
@@ -262,6 +263,7 @@ private:
   AchievementsWindow* m_achievements_window = nullptr;
 #endif  // USE_RETRO_ACHIEVEMENTS
 
+  AssemblerWidget* m_assembler_widget;
   BreakpointWidget* m_breakpoint_widget;
   CodeWidget* m_code_widget;
   JITWidget* m_jit_widget;
