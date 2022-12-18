@@ -693,6 +693,20 @@ bool Settings::IsJITVisible() const
   return QSettings().value(QStringLiteral("debugger/showjit")).toBool();
 }
 
+void Settings::SetAssemblerVisible(bool enabled)
+{
+  if (IsAssemblerVisible() == enabled)
+    return;
+  QSettings().setValue(QStringLiteral("debugger/showassembler"), enabled);
+
+  emit AssemblerVisibilityChanged(enabled);
+}
+
+bool Settings::IsAssemblerVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showassembler")).toBool();
+}
+
 void Settings::RefreshWidgetVisibility()
 {
   emit DebugModeToggled(IsDebugModeEnabled());

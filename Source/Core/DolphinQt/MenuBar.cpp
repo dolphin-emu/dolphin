@@ -494,6 +494,14 @@ void MenuBar::AddViewMenu()
   connect(m_show_jit, &QAction::toggled, &Settings::Instance(), &Settings::SetJITVisible);
   connect(&Settings::Instance(), &Settings::JITVisibilityChanged, m_show_jit, &QAction::setChecked);
 
+  m_show_assembler = view_menu->addAction(tr("&Assembler"));
+  m_show_assembler->setCheckable(true);
+  m_show_assembler->setChecked(Settings::Instance().IsAssemblerVisible());
+  connect(m_show_assembler, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetAssemblerVisible);
+  connect(&Settings::Instance(), &Settings::AssemblerVisibilityChanged, m_show_assembler,
+          &QAction::setChecked);
+
   view_menu->addSeparator();
 
   AddGameListTypeSection(view_menu);

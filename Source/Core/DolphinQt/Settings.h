@@ -166,6 +166,8 @@ public:
   bool IsNetworkVisible() const;
   void SetJITVisible(bool enabled);
   bool IsJITVisible() const;
+  void SetAssemblerVisible(bool enabled);
+  bool IsAssemblerVisible() const;
   QFont GetDebugFont() const;
   void SetDebugFont(QFont font);
 
@@ -213,6 +215,7 @@ signals:
   void MemoryVisibilityChanged(bool visible);
   void NetworkVisibilityChanged(bool visible);
   void JITVisibilityChanged(bool visible);
+  void AssemblerVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(QFont font);
   void AutoUpdateTrackChanged(const QString& mode);
