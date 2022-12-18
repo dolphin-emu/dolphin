@@ -15,6 +15,7 @@
 #include "Scripting/Python/Utils/convert.h"
 #include "Scripting/Python/Utils/invoke.h"
 #include "Scripting/Python/Utils/module.h"
+#include "Scripting/Python/Utils/object_wrapper.h"
 #include "Scripting/Python/PyScriptingBackend.h"
 
 namespace PyScripting
@@ -85,6 +86,24 @@ struct PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>
       PyEval_SaveThread();
     };
   }
+
+  static void DecrefPyObjectsInArgs(const std::tuple<TsArgs...> args) {
+    std::apply(
+        [&](auto&&... arg) {
+          // ad-hoc immediately executed lambda because this must be an expression
+          (([&] {
+             if constexpr (std::is_same_v<
+                               std::remove_const_t<std::remove_reference_t<decltype(arg)>>,
+                               PyObject*>)
+             {
+               Py_XDECREF(arg);
+             }
+           }()),
+           ...);
+        },
+        args);
+  }
+
   static void Listener(const Py::Object module, const TEvent& event)
   {
     // We make the following assumption here:
@@ -109,6 +128,7 @@ struct PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>
     }
     if (PyCoro_CheckExact(result))
       HandleNewCoroutine(module, Py::Wrap(result));
+    DecrefPyObjectsInArgs(args);
   }
   static PyObject* SetCallback(PyObject* module, PyObject* newCallback)
   {
@@ -141,13 +161,14 @@ struct PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>
       const Py::Object coro = awaiting_coroutines.front();
       awaiting_coroutines.pop_front();
       const std::tuple<TsArgs...> args = TFunc(event);
-      PyObject* args_tuple = Py::BuildValueTuple(args);
-      PyObject* newAsyncEventTuple = Py::CallMethod(coro, "send", args_tuple);
+      Py::Object args_tuple = Py::Wrap(Py::BuildValueTuple(args));
+      PyObject* newAsyncEventTuple = Py::CallMethod(coro, "send", args_tuple.Lend());
       if (newAsyncEventTuple != nullptr)
         HandleCoroutine(module, coro, Py::Wrap(newAsyncEventTuple));
       else if (!PyErr_ExceptionMatches(PyExc_StopIteration))
         // coroutines signal completion by raising StopIteration
         PyErr_Print();
+      DecrefPyObjectsInArgs(args);
     }
   }
   static void Clear(EventModuleState* state)
