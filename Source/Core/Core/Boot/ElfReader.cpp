@@ -228,28 +228,5 @@ bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard) const
 
 bool ElfReader::IsWii() const
 {
-  // Use the same method as the DOL loader uses: search for mfspr from HID4,
-  // which should only be used in Wii ELFs.
-  //
-  // Likely to have some false positives/negatives, patches implementing a
-  // better heuristic are welcome.
-
-  // Swap these once, instead of swapping every word in the file.
-  u32 HID4_pattern = Common::swap32(0x7c13fba6);
-  u32 HID4_mask = Common::swap32(0xfc1fffff);
-
-  for (int i = 0; i < GetNumSegments(); ++i)
-  {
-    if (IsCodeSegment(i))
-    {
-      u32* code = (u32*)GetSegmentPtr(i);
-      for (u32 j = 0; j < GetSegmentSize(i) / sizeof(u32); ++j)
-      {
-        if ((code[j] & HID4_mask) == HID4_pattern)
-          return true;
-      }
-    }
-  }
-
-  return false;
+  return true;
 }
