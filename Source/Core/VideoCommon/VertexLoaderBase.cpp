@@ -4,6 +4,7 @@
 #include "VideoCommon/VertexLoaderBase.h"
 
 #include <array>
+#include <bit>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -12,7 +13,6 @@
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
-#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -99,7 +99,7 @@ u32 VertexLoaderBase::GetVertexSize(const TVtxDesc& vtx_desc, const VAT& vtx_att
   u32 size = 0;
 
   // Each enabled TexMatIdx adds one byte, as does PosMatIdx
-  size += Common::CountSetBits(vtx_desc.low.Hex & 0x1FF);
+  size += std::popcount(vtx_desc.low.Hex & 0x1FF);
 
   const u32 pos_size = VertexLoader_Position::GetSize(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
                                                       vtx_attr.g0.PosElements);

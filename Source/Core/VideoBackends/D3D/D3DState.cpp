@@ -5,9 +5,9 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 
 #include "Common/Assert.h"
-#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -163,8 +163,8 @@ void StateManager::Apply()
 
 void StateManager::ApplyTextures()
 {
-  const int textureMaskShift = Common::LeastSignificantSetBit((u32)DirtyFlag_Texture0);
-  const int samplerMaskShift = Common::LeastSignificantSetBit((u32)DirtyFlag_Sampler0);
+  const int textureMaskShift = std::countr_zero((u32)DirtyFlag_Texture0);
+  const int samplerMaskShift = std::countr_zero((u32)DirtyFlag_Sampler0);
 
   u32 dirtyTextures =
       (m_dirtyFlags &
@@ -178,7 +178,7 @@ void StateManager::ApplyTextures()
       samplerMaskShift;
   while (dirtyTextures)
   {
-    const int index = Common::LeastSignificantSetBit(dirtyTextures);
+    const int index = std::countr_zero(dirtyTextures);
     if (m_current.textures[index] != m_pending.textures[index])
     {
       D3D::context->PSSetShaderResources(index, 1, &m_pending.textures[index]);
@@ -190,7 +190,7 @@ void StateManager::ApplyTextures()
 
   while (dirtySamplers)
   {
-    const int index = Common::LeastSignificantSetBit(dirtySamplers);
+    const int index = std::countr_zero(dirtySamplers);
     if (m_current.samplers[index] != m_pending.samplers[index])
     {
       D3D::context->PSSetSamplers(index, 1, &m_pending.samplers[index]);
@@ -221,7 +221,7 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
 {
   while (textureSlotMask)
   {
-    const int index = Common::LeastSignificantSetBit(textureSlotMask);
+    const int index = std::countr_zero(textureSlotMask);
     SetTexture(index, srv);
     textureSlotMask &= ~(1 << index);
   }
