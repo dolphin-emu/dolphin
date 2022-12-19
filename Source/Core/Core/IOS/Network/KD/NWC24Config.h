@@ -46,6 +46,7 @@ public:
   explicit NWC24Config(std::shared_ptr<FS::FileSystem> fs);
 
   void ReadConfig();
+  void WriteCBK() const;
   void WriteConfig() const;
   void ResetConfig();
 

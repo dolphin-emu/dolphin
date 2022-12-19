@@ -15,6 +15,7 @@
 namespace IOS::HLE::NWC24
 {
 constexpr const char CONFIG_PATH[] = "/" WII_WC24CONF_DIR "/nwc24msg.cfg";
+constexpr const char CBK_PATH[] = "/" WII_WC24CONF_DIR "/nwc24msg.cbk";
 
 NWC24Config::NWC24Config(std::shared_ptr<FS::FileSystem> fs) : m_fs{std::move(fs)}
 {
@@ -35,6 +36,15 @@ void NWC24Config::ReadConfig()
     }
   }
   ResetConfig();
+}
+
+void NWC24Config::WriteCBK() const
+{
+  constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
+  m_fs->CreateFullPath(PID_KD, PID_KD, CBK_PATH, 0, public_modes);
+  const auto file = m_fs->CreateAndOpenFile(PID_KD, PID_KD, CBK_PATH, public_modes);
+  if (!file || !file->Write(&m_data, 1))
+    ERROR_LOG_FMT(IOS_WC24, "Failed to open or write WC24 config file");
 }
 
 void NWC24Config::WriteConfig() const
