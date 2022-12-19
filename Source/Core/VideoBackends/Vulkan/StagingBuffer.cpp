@@ -73,11 +73,6 @@ void StagingBuffer::InvalidateGPUCache(VkCommandBuffer command_buffer,
                                        VkPipelineStageFlagBits dest_pipeline_stage,
                                        VkDeviceSize offset, VkDeviceSize size)
 {
-  VkMemoryPropertyFlags flags = 0;
-  vmaGetAllocationMemoryProperties(g_vulkan_context->GetMemoryAllocator(), m_alloc, &flags);
-  if (flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) [[likely]]
-    return;
-
   ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   BufferMemoryBarrier(command_buffer, m_buffer, VK_ACCESS_HOST_WRITE_BIT, dest_access_flags, offset,
                       size, VK_PIPELINE_STAGE_HOST_BIT, dest_pipeline_stage);
@@ -88,25 +83,15 @@ void StagingBuffer::PrepareForGPUWrite(VkCommandBuffer command_buffer,
                                        VkPipelineStageFlagBits dst_pipeline_stage,
                                        VkDeviceSize offset, VkDeviceSize size)
 {
-  VkMemoryPropertyFlags flags = 0;
-  vmaGetAllocationMemoryProperties(g_vulkan_context->GetMemoryAllocator(), m_alloc, &flags);
-  if (flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) [[likely]]
-    return;
-
   ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
-  BufferMemoryBarrier(command_buffer, m_buffer, 0, dst_access_flags, offset, size,
-                      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, dst_pipeline_stage);
+  BufferMemoryBarrier(command_buffer, m_buffer, VK_ACCESS_MEMORY_WRITE_BIT, dst_access_flags,
+                      offset, size, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, dst_pipeline_stage);
 }
 
 void StagingBuffer::FlushGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBits src_access_flags,
                                   VkPipelineStageFlagBits src_pipeline_stage, VkDeviceSize offset,
                                   VkDeviceSize size)
 {
-  VkMemoryPropertyFlags flags = 0;
-  vmaGetAllocationMemoryProperties(g_vulkan_context->GetMemoryAllocator(), m_alloc, &flags);
-  if (flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) [[likely]]
-    return;
-
   ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   BufferMemoryBarrier(command_buffer, m_buffer, src_access_flags, VK_ACCESS_HOST_READ_BIT, offset,
                       size, src_pipeline_stage, VK_PIPELINE_STAGE_HOST_BIT);

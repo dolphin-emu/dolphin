@@ -15,8 +15,8 @@ public:
   PerfQuery();
   ~PerfQuery();
 
-  void EnableQuery(PerfQueryGroup type) override;
-  void DisableQuery(PerfQueryGroup type) override;
+  void EnableQuery(PerfQueryGroup group) override;
+  void DisableQuery(PerfQueryGroup group) override;
   void ResetQuery() override;
   u32 GetQueryResult(PerfQueryType type) override;
   void FlushResults() override;
@@ -26,7 +26,7 @@ private:
   struct ActiveQuery
   {
     ComPtr<ID3D11Query> query;
-    PerfQueryGroup query_type{};
+    PerfQueryGroup query_group{};
   };
 
   void WeakFlush();
