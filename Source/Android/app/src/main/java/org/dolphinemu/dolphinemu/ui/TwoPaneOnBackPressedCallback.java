@@ -2,7 +2,9 @@
 
 package org.dolphinemu.dolphinemu.ui;
 
+import android.content.Context;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -40,7 +42,15 @@ public class TwoPaneOnBackPressedCallback extends OnBackPressedCallback
   @Override
   public void onPanelClosed(@NonNull View panel)
   {
+    closeKeyboard();
     setEnabled(false);
+  }
+
+  private void closeKeyboard()
+  {
+    InputMethodManager manager = (InputMethodManager) mSlidingPaneLayout.getContext()
+            .getSystemService(Context.INPUT_METHOD_SERVICE);
+    manager.hideSoftInputFromWindow(mSlidingPaneLayout.getRootView().getWindowToken(), 0);
   }
 }
 
