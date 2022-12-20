@@ -51,6 +51,14 @@ public:
   // https://github.com/extremscorner/libogc2/commit/0b64f879808953d80ba06501a1c079b0fbf017d2
   // https://github.com/extremscorner/libogc-rice/commit/ce22c3269699fdbd474f2f28ca2ffca211954659
   static constexpr u32 HASH_2020_PAD = 0xbad876ef;
+  // Variant used in Desert Bus v1.04 - this is based off of the code in libogc (as it existed in
+  // 2011, even though that code only became used in 2020), but the left and right channels are
+  // swapped. Padded to 0x0620 bytes.
+  static constexpr u32 HASH_DESERT_BUS_2011 = 0xfa9c576f;
+  // Variant used in Desert Bus v1.05 - this is the same as the previous version, except 4 junk
+  // instructions were added to the start, which do not change behavior in any way. Padded to 0x0620
+  // bytes.
+  static constexpr u32 HASH_DESERT_BUS_2012 = 0x614dd145;
 
 private:
   void DMAInVoiceData();
@@ -60,6 +68,7 @@ private:
   void ChangeBuffer();
   void DoMixing(u32 return_mail);
 
+  bool SwapLeftRight() const;
   bool UseNewFlagMasks() const;
 
   std::pair<s16, s16> ReadSampleMono8Bits() const;
