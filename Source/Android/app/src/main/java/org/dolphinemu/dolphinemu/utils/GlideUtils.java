@@ -5,7 +5,6 @@ package org.dolphinemu.dolphinemu.utils;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
@@ -13,7 +12,6 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.ImageView;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
@@ -21,9 +19,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.target.Target;
-import com.bumptech.glide.request.transition.Transition;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
@@ -37,7 +33,6 @@ import java.util.concurrent.Executors;
 
 public class GlideUtils
 {
-  private static final ExecutorService saveCoverExecutor = Executors.newSingleThreadExecutor();
   private static final ExecutorService unmangleExecutor = Executors.newSingleThreadExecutor();
   private static final Handler unmangleHandler = new Handler(Looper.getMainLooper());
 
@@ -53,7 +48,7 @@ public class GlideUtils
       bitmap.setPixels(vector, 0, width, 0, 0, width, height);
       Glide.with(context)
               .load(bitmap)
-              .diskCacheStrategy(DiskCacheStrategy.NONE)
+              .diskCacheStrategy(DiskCacheStrategy.ALL)
               .centerCrop()
               .into(imageView);
     }
@@ -109,8 +104,6 @@ public class GlideUtils
       boolean finalCustomCoverExists = customCoverExists;
       Uri finalCustomCoverUri = customCoverUri;
 
-      File cover = new File(gameFile.getCoverPath(context));
-      boolean cachedCoverExists = cover.exists();
       unmangleHandler.post(() ->
       {
         // We can't get a reference to the current activity in the TV version.
@@ -128,7 +121,7 @@ public class GlideUtils
         {
           Glide.with(imageView)
                   .load(finalCustomCoverUri)
-                  .diskCacheStrategy(DiskCacheStrategy.NONE)
+                  .diskCacheStrategy(DiskCacheStrategy.ALL)
                   .centerCrop()
                   .error(R.drawable.no_banner)
                   .listener(new RequestListener<Drawable>()
@@ -149,11 +142,11 @@ public class GlideUtils
                   })
                   .into(imageView);
         }
-        else if (cachedCoverExists)
+        else if (BooleanSetting.MAIN_USE_GAME_COVERS.getBooleanGlobal())
         {
-          Glide.with(imageView)
-                  .load(cover)
-                  .diskCacheStrategy(DiskCacheStrategy.NONE)
+          Glide.with(context)
+                  .load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile)))
+                  .diskCacheStrategy(DiskCacheStrategy.ALL)
                   .centerCrop()
                   .error(R.drawable.no_banner)
                   .listener(new RequestListener<Drawable>()
@@ -175,49 +168,6 @@ public class GlideUtils
                     }
                   })
                   .into(imageView);
-        }
-        else if (BooleanSetting.MAIN_USE_GAME_COVERS.getBooleanGlobal())
-        {
-          Glide.with(context)
-                  .load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile)))
-                  .diskCacheStrategy(DiskCacheStrategy.NONE)
-                  .centerCrop()
-                  .error(R.drawable.no_banner)
-                  .listener(new RequestListener<Drawable>()
-                  {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, Object model,
-                            Target<Drawable> target, boolean isFirstResource)
-                    {
-                      GlideUtils.enableInnerTitle(gameViewHolder);
-                      return false;
-                    }
-
-                    @Override
-                    public boolean onResourceReady(Drawable resource, Object model,
-                            Target<Drawable> target, DataSource dataSource, boolean isFirstResource)
-                    {
-                      GlideUtils.disableInnerTitle(gameViewHolder);
-                      return false;
-                    }
-                  })
-                  .into(new CustomTarget<Drawable>()
-                  {
-                    @Override
-                    public void onResourceReady(@NonNull Drawable resource,
-                            @Nullable Transition<? super Drawable> transition)
-                    {
-                      Bitmap cover = ((BitmapDrawable) resource).getBitmap();
-                      saveCoverExecutor.execute(
-                              () -> CoverHelper.saveCover(cover, gameFile.getCoverPath(context)));
-                      imageView.setImageBitmap(cover);
-                    }
-
-                    @Override
-                    public void onLoadCleared(@Nullable Drawable placeholder)
-                    {
-                    }
-                  });
         }
         else
         {

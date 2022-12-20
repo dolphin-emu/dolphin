@@ -2,11 +2,7 @@
 
 package org.dolphinemu.dolphinemu.utils;
 
-import android.graphics.Bitmap;
-
 import org.dolphinemu.dolphinemu.model.GameFile;
-
-import java.io.FileOutputStream;
 
 public final class CoverHelper
 {
@@ -66,18 +62,5 @@ public final class CoverHelper
         break;
     }
     return region;
-  }
-
-  public static void saveCover(Bitmap cover, String path)
-  {
-    try
-    {
-      FileOutputStream out = new FileOutputStream(path);
-      cover.compress(Bitmap.CompressFormat.PNG, 100, out);
-      out.close();
-    }
-    catch (Exception ignored)
-    {
-    }
   }
 }
