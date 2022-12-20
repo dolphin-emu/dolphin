@@ -34,4 +34,8 @@ public interface MainView
    * To be called when the game file cache is updated.
    */
   void showGames();
+
+  void reloadGrid();
+
+  void showGridOptions();
 }
