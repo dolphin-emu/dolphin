@@ -48,5 +48,6 @@ private:
 
   std::vector<PatchEngine::Patch> m_patches;
   std::string m_game_id;
+  std::string m_local_config;
   u16 m_game_revision;
 };

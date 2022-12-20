@@ -19,10 +19,11 @@
 #include "UICommon/GameFile.h"
 
 PatchesWidget::PatchesWidget(const UICommon::GameFile& game)
-    : m_game_id(game.GetGameID()), m_game_revision(game.GetRevision())
+    : m_game_id(game.GetGameID()), m_local_config(game.GetLocalConfig()),
+      m_game_revision(game.GetRevision())
 {
   IniFile game_ini_local;
-  game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+  game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_local_config + ".ini");
 
   IniFile game_ini_default = SConfig::GetInstance().LoadDefaultGameIni(m_game_id, m_game_revision);
 
@@ -126,7 +127,7 @@ void PatchesWidget::OnRemove()
 
 void PatchesWidget::SavePatches()
 {
-  const std::string ini_path = File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini";
+  const std::string ini_path = File::GetUserPath(D_GAMESETTINGS_IDX) + m_local_config + ".ini";
 
   IniFile game_ini_local;
   game_ini_local.Load(ini_path);

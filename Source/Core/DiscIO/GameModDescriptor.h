@@ -39,6 +39,7 @@ struct GameModDescriptor
   std::string maker;
   std::string banner;
   std::optional<GameModDescriptorRiivolution> riivolution = std::nullopt;
+  std::optional<std::string> config_ini_override = std::nullopt;
 };
 
 std::optional<GameModDescriptor> ParseGameModDescriptorFile(const std::string& filename);

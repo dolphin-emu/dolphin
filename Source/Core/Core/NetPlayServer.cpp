@@ -1258,7 +1258,7 @@ bool NetPlayServer::SetupNetSettings()
   Config::AddLayer(
       ConfigLoaders::GenerateGlobalGameConfigLoader(game->GetGameID(), game->GetRevision()));
   Config::AddLayer(
-      ConfigLoaders::GenerateLocalGameConfigLoader(game->GetGameID(), game->GetRevision()));
+      ConfigLoaders::GenerateLocalGameConfigLoader(game->GetLocalConfig(), game->GetRevision()));
 
   // Copy all relevant settings
   settings.cpu_thread = Config::Get(Config::MAIN_CPU_THREAD);
@@ -1920,12 +1920,13 @@ bool NetPlayServer::SyncCodes()
 
   // Find all INI files
   const auto game_id = game->GetGameID();
+  const auto local_config = game->GetLocalConfig();
   const auto revision = game->GetRevision();
   IniFile globalIni;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
     globalIni.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
   IniFile localIni;
-  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(local_config, revision))
     localIni.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
 
   // Initialize Number of Synced Players

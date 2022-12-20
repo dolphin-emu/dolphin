@@ -304,6 +304,8 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
         return nullptr;
       }
 
+      AddConfigOverride(boot_params.get(), path, descriptor->config_ini_override);
+
       if (descriptor->riivolution && std::holds_alternative<Disc>(boot_params->parameters))
       {
         const auto& volume = *std::get<Disc>(boot_params->parameters).volume;
@@ -732,4 +734,11 @@ void AddRiivolutionPatches(BootParameters* boot_params,
             riivolution_patches, DiscIO::Riivolution::PatchIndex::FileSystem, fst, dol_node);
       }));
   boot_params->riivolution_patches = std::move(riivolution_patches);
+}
+
+void AddConfigOverride(BootParameters* boot_params, std::string path,
+                       std::optional<std::string> config_override)
+{
+  boot_params->config_override =
+      SConfig::MakeGameID(config_override ? config_override.value() : PathToFileName(path));
 }

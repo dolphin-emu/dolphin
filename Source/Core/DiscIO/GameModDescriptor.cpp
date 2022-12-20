@@ -148,6 +148,10 @@ std::optional<GameModDescriptor> ParseGameModDescriptorString(std::string_view j
       descriptor.riivolution =
           ParseRiivolutionObject(json_directory, value.get<picojson::object>());
     }
+    else if (key == "config-ini-override" && value.is<std::string>())
+    {
+      descriptor.config_ini_override = value.get<std::string>();
+    }
   }
   if (!is_game_mod_descriptor || !is_valid_version)
     return std::nullopt;

@@ -56,6 +56,10 @@ struct SConfig
   // TODO: remove this as soon as the ticket view hack in IOS/ES/Views is dropped.
   bool m_disc_booted_from_game_list = false;
 
+  const std::string& GetLocalConfig() const
+  {
+    return !m_local_config_override.empty() ? m_local_config_override : m_game_id;
+  }
   const std::string& GetGameID() const { return m_game_id; }
   const std::string& GetGameTDBID() const { return m_gametdb_id; }
   const std::string& GetTitleName() const { return m_title_name; }
@@ -82,7 +86,8 @@ struct SConfig
 
   static IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
-  static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
+  static IniFile LoadGameIni(const std::string& id, const std::string& local_config,
+                             std::optional<u16> revision);
 
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
@@ -110,6 +115,7 @@ private:
   static SConfig* m_Instance;
 
   std::string m_game_id;
+  std::string m_local_config_override;
   std::string m_gametdb_id;
   std::string m_title_name;
   std::string m_title_description;

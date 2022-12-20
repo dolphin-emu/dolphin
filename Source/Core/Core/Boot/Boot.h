@@ -136,6 +136,7 @@ struct BootParameters
   BootParameters(Parameters&& parameters_, BootSessionData boot_session_data_ = BootSessionData());
 
   Parameters parameters;
+  std::string config_override;
   std::vector<DiscIO::Riivolution::Patch> riivolution_patches;
   BootSessionData boot_session_data;
 };
@@ -227,3 +228,6 @@ void CreateSystemMenuTitleDirs();
 
 void AddRiivolutionPatches(BootParameters* boot_params,
                            std::vector<DiscIO::Riivolution::Patch> riivolution_patches);
+
+void AddConfigOverride(BootParameters* boot_params, std::string path,
+                       std::optional<std::string> config_override);

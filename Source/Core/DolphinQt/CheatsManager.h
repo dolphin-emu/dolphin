@@ -47,6 +47,7 @@ private:
   void RefreshCodeTabs(Core::State state, bool force);
 
   std::string m_game_id;
+  std::string m_local_config;
   std::string m_game_tdb_id;
   u16 m_revision = 0;
 
