@@ -39,3 +39,14 @@ CMakeLists.txt.user
 /.idea/
 # Ignore Visual Studio Code's working dir
 /.vscode/
+
+# Ignore UWP generated content and packages
+/Source/x64/Release/DolphinUWP
+/Source/packages/
+/Source/Core/DolphinUWP/x64/Release
+/Source/Core/DolphinUWP/Generated Files/winrt
+/Source/AppPackages/DolphinUWP
+/Source/Core/DolphinUWP/BundleArtifacts
+/Source/Core/DolphinUWP/DolphinUWP_TemporaryKey.pfx
+/Source/Core/DolphinNoGUI/DolphinNoGUI.aps
+/Source/Core/DolphinUWP/Generated Files

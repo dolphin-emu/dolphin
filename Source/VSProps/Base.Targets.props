@@ -17,6 +17,14 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+	<ProjectConfiguration Include="Release UWP|x64">
+      <Configuration>Release UWP</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+	<ProjectConfiguration Include="Release UWP|x64">
+      <Configuration>Release UWP</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>

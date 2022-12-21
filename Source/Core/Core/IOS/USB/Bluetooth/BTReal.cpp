@@ -1,6 +1,7 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#if defined(__LIBUSB__)
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 
 #include <algorithm>
@@ -732,3 +733,4 @@ void BluetoothRealDevice::HandleBulkOrIntrTransfer(libusb_transfer* tr)
   m_current_transfers.erase(tr);
 }
 }  // namespace IOS::HLE
+#endif

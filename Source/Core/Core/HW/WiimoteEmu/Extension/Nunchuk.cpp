@@ -198,17 +198,27 @@ void Nunchuk::DoState(PointerWrap& p)
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 {
+#if UWP_XBOX
   // Stick
-  m_stick->SetControlExpression(0, "W");  // up
-  m_stick->SetControlExpression(1, "S");  // down
-  m_stick->SetControlExpression(2, "A");  // left
-  m_stick->SetControlExpression(3, "D");  // right
+  m_stick->SetControlExpression(0, "`WGInput/0/Xbox One Game Controller:Left Y+`");  // up
+  m_stick->SetControlExpression(1, "`WGInput/0/Xbox One Game Controller:Left Y-`");  // down
+  m_stick->SetControlExpression(2, "`WGInput/0/Xbox One Game Controller:Left X-`");  // left
+  m_stick->SetControlExpression(3, "`WGInput/0/Xbox One Game Controller:Left X+`");  // right
+#else
+  m_stick->SetControlExpression(0, "W"); // up
+  m_stick->SetControlExpression(1, "S"); // down
+  m_stick->SetControlExpression(2, "A"); // left
+  m_stick->SetControlExpression(3, "D"); // right
+#endif
 
   // Because our defaults use keyboard input, set calibration shape to a square.
   m_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
 
 // Buttons
-#ifdef _WIN32
+#if UWP_XBOX
+  m_buttons->SetControlExpression(0, "`WGInput/0/Xbox One Game Controller:Trigger L`");  // C
+  m_buttons->SetControlExpression(1, "`WGInput/0/Xbox One Game Controller:Trigger R`");  // Z
+#elif _WIN32
   m_buttons->SetControlExpression(0, "LCONTROL");  // C
   m_buttons->SetControlExpression(1, "LSHIFT");    // Z
 #elif __APPLE__
