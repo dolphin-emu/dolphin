@@ -270,7 +270,7 @@ void CachedInterpreter::Jit(u32 address)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
-    js.downcountAmount += op.opinfo->numCycles;
+    js.downcountAmount += op.opinfo->num_cycles;
     if (op.opinfo->flags & FL_LOADSTORE)
       ++js.numLoadStoreInst;
     if (op.opinfo->flags & FL_USE_FPU)
@@ -301,7 +301,7 @@ void CachedInterpreter::Jit(u32 address)
         js.firstFPInstructionFound = true;
       }
 
-      m_code.emplace_back(PPCTables::GetInterpreterOp(op.inst), op.inst);
+      m_code.emplace_back(Interpreter::GetInterpreterOp(op.inst), op.inst);
       if (memcheck)
         m_code.emplace_back(CheckDSI, js.downcountAmount);
       if (check_program_exception)

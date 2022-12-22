@@ -34,14 +34,6 @@ u32 last_pc;
 
 bool Interpreter::m_end_block;
 
-// function tables
-std::array<Interpreter::Instruction, 64> Interpreter::m_op_table;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table4;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table19;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table31;
-std::array<Interpreter::Instruction, 32> Interpreter::m_op_table59;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table63;
-
 namespace
 {
 // Determines whether or not the given instruction is one where its execution
@@ -79,30 +71,8 @@ void UpdatePC()
 }
 }  // Anonymous namespace
 
-void Interpreter::RunTable4(UGeckoInstruction inst)
-{
-  m_op_table4[inst.SUBOP10](inst);
-}
-void Interpreter::RunTable19(UGeckoInstruction inst)
-{
-  m_op_table19[inst.SUBOP10](inst);
-}
-void Interpreter::RunTable31(UGeckoInstruction inst)
-{
-  m_op_table31[inst.SUBOP10](inst);
-}
-void Interpreter::RunTable59(UGeckoInstruction inst)
-{
-  m_op_table59[inst.SUBOP5](inst);
-}
-void Interpreter::RunTable63(UGeckoInstruction inst)
-{
-  m_op_table63[inst.SUBOP10](inst);
-}
-
 void Interpreter::Init()
 {
-  InitializeInstructionTables();
   m_end_block = false;
 }
 
@@ -150,7 +120,7 @@ int Interpreter::SingleStepInner()
   if (HandleFunctionHooking(PowerPC::ppcState.pc))
   {
     UpdatePC();
-    return PPCTables::GetOpInfo(m_prev_inst)->numCycles;
+    return PPCTables::GetOpInfo(m_prev_inst)->num_cycles;
   }
 
   PowerPC::ppcState.npc = PowerPC::ppcState.pc + sizeof(UGeckoInstruction);
@@ -181,7 +151,7 @@ int Interpreter::SingleStepInner()
     }
     else if (PowerPC::ppcState.msr.FP)
     {
-      m_op_table[m_prev_inst.OPCD](m_prev_inst);
+      RunInterpreterOp(m_prev_inst);
       if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
       {
         CheckExceptions();
@@ -197,7 +167,7 @@ int Interpreter::SingleStepInner()
       }
       else
       {
-        m_op_table[m_prev_inst.OPCD](m_prev_inst);
+        RunInterpreterOp(m_prev_inst);
         if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
         {
           CheckExceptions();
@@ -214,9 +184,9 @@ int Interpreter::SingleStepInner()
   UpdatePC();
 
   const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst);
-  PowerPC::UpdatePerformanceMonitor(opinfo->numCycles, (opinfo->flags & FL_LOADSTORE) != 0,
+  PowerPC::UpdatePerformanceMonitor(opinfo->num_cycles, (opinfo->flags & FL_LOADSTORE) != 0,
                                     (opinfo->flags & FL_USE_FPU) != 0, PowerPC::ppcState);
-  return opinfo->numCycles;
+  return opinfo->num_cycles;
 }
 
 void Interpreter::SingleStep()
