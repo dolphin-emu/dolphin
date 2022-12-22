@@ -23,9 +23,8 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
-void PPCPatches::Patch(std::size_t index)
+void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch)
 {
-  auto& patch = m_patches[index];
   if (patch.value.empty())
     return;
 
@@ -48,6 +47,18 @@ void PPCPatches::Patch(std::size_t index)
     PowerPC::ScheduleInvalidateCacheThreadSafe(
         Common::AlignDown(address + static_cast<u32>(size), 4));
   }
+}
+
+void PPCPatches::ApplyExistingPatch(std::size_t index)
+{
+  auto& patch = m_patches[index];
+  ApplyMemoryPatch(patch);
+}
+
+void PPCPatches::Patch(std::size_t index)
+{
+  auto& patch = m_patches[index];
+  ApplyMemoryPatch(patch);
 }
 
 PPCDebugInterface::PPCDebugInterface() = default;
@@ -166,6 +177,11 @@ void PPCDebugInterface::RemovePatch(std::size_t index)
 void PPCDebugInterface::ClearPatches()
 {
   m_patches.ClearPatches();
+}
+
+void PPCDebugInterface::ApplyExistingPatch(std::size_t index)
+{
+  m_patches.ApplyExistingPatch(index);
 }
 
 Common::Debug::Threads PPCDebugInterface::GetThreads() const

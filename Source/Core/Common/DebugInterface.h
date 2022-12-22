@@ -50,6 +50,7 @@ public:
   virtual bool HasEnabledPatch(u32 address) const = 0;
   virtual void RemovePatch(std::size_t index) = 0;
   virtual void ClearPatches() = 0;
+  virtual void ApplyExistingPatch(std::size_t index) = 0;
 
   // Threads
   virtual Debug::Threads GetThreads() const = 0;

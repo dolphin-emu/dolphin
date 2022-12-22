@@ -42,6 +42,7 @@ public:
   bool HasEnabledPatch(u32 address) const;
   void RemovePatch(std::size_t index);
   void ClearPatches();
+  virtual void ApplyExistingPatch(std::size_t index) = 0;
 
 protected:
   virtual void Patch(std::size_t index) = 0;

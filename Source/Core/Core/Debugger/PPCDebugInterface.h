@@ -12,8 +12,13 @@
 #include "Common/DebugInterface.h"
 #include "Core/NetworkCaptureLogger.h"
 
-class PPCPatches : public Common::Debug::MemoryPatches
+void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch);
+
+class PPCPatches final : public Common::Debug::MemoryPatches
 {
+public:
+  void ApplyExistingPatch(std::size_t index) override;
+
 private:
   void Patch(std::size_t index) override;
 };
@@ -52,6 +57,7 @@ public:
   bool HasEnabledPatch(u32 address) const override;
   void RemovePatch(std::size_t index) override;
   void ClearPatches() override;
+  void ApplyExistingPatch(std::size_t index) override;
 
   // Threads
   Common::Debug::Threads GetThreads() const override;
