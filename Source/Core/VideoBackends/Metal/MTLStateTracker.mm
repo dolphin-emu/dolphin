@@ -4,10 +4,10 @@
 #include "VideoBackends/Metal/MTLStateTracker.h"
 
 #include <algorithm>
+#include <bit>
 #include <mutex>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 
 #include "VideoBackends/Metal/MTLObjectCache.h"
 #include "VideoBackends/Metal/MTLPerfQuery.h"
@@ -713,8 +713,8 @@ static constexpr NSString* LABEL_UTIL = @"Utility Draw";
 static NSRange RangeOfBits(u32 value)
 {
   ASSERT(value && "Value must be nonzero");
-  u32 low = Common::CountTrailingZeros(value);
-  u32 high = 31 - Common::CountLeadingZeros(value);
+  int low = std::countr_zero(value);
+  int high = 31 - std::countl_zero(value);
   return NSMakeRange(low, high + 1 - low);
 }
 
