@@ -45,3 +45,6 @@
 	url = https://github.com/mozilla/cubeb.git
 	branch = master
 	shallow = true
+[submodule "Externals/implot/implot"]
+	path = Externals/implot/implot
+	url = https://github.com/epezent/implot.git
