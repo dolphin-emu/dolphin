@@ -49,6 +49,13 @@
 // more responsive. This might be useful as a user-customizable option.
 #define MOUSE_AXIS_SMOOTHING 1.5f
 
+// The scroll axis value should decay a lot faster than the mouse axes since
+// it should ideally register each click of the scroll wheel. Decreasing this
+// value makes it more likely that a scroll wheel input is registered, but less
+// likely to differentiate between different inputs, while increasing it will
+// more cleanly separate each scroll wheel click, but risks dropping some inputs
+#define SCROLL_AXIS_DECAY 1.1f
+
 namespace ciface::XInput2
 {
 // This function will add zero or more KeyboardMouse objects to devices.
@@ -74,6 +81,7 @@ void PopulateDevices(void* const hwnd)
 
   XIDeviceInfo* all_masters;
   XIDeviceInfo* current_master;
+  double scroll_increment = 1.0f;
   int num_masters;
 
   all_masters = XIQueryDevice(dpy, XIAllMasterDevices, &num_masters);
@@ -81,12 +89,24 @@ void PopulateDevices(void* const hwnd)
   for (int i = 0; i < num_masters; i++)
   {
     current_master = &all_masters[i];
+
     if (current_master->use == XIMasterPointer)
     {
+      // We need to query the master for the scroll wheel's increment, since the increment used varies
+      // depending on what input driver is being used. For example, xf86-libinput uses 120.0.
+      for (int j = 0; j < current_master->num_classes; j++)
+      {
+        if (current_master->classes[j]->type == XIScrollClass)
+        {
+          XIScrollClassInfo* scroll_event =
+              reinterpret_cast<XIScrollClassInfo*>(current_master->classes[j]);
+          scroll_increment = scroll_event->increment;
+        }
+      }
       // Since current_master is a master pointer, its attachment must
       // be a master keyboard.
       g_controller_interface.AddDevice(std::make_shared<KeyboardMouse>(
-          (Window)hwnd, xi_opcode, current_master->deviceid, current_master->attachment));
+          (Window)hwnd, xi_opcode, current_master->deviceid, current_master->attachment, scroll_increment));
     }
   }
 
@@ -128,8 +148,8 @@ void KeyboardMouse::SelectEventsForDevice(XIEventMask* mask, int deviceid)
   XIFreeDeviceInfo(all_slaves);
 }
 
-KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard)
-    : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard)
+KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard, double scroll_increment)
+    : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard), scroll_increment(scroll_increment)
 {
   // The cool thing about each KeyboardMouse object having its own Display
   // is that each one gets its own separate copy of the X11 event stream,
@@ -196,13 +216,18 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
     AddInput(new Cursor(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.cursor.y : &m_state.cursor.x));
 
   // Mouse Axis, X-/+ and Y-/+
-  for (int i = 0; i != 4; ++i)
-    AddInput(new Axis(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.axis.y : &m_state.axis.x));
+  for (int i = 0; i != 6; ++i)
+    AddInput(new Axis(i / 2, !!(i & 1),
+                      (i & 4) ? &m_state.axis.z :
+                      (i & 2) ? &m_state.axis.y :
+                                &m_state.axis.x));
 
   // Relative Mouse, X-/+ and Y-/+
   for (int i = 0; i != 4; ++i)
-    AddInput(new RelativeMouse(!!(i & 2), !!(i & 1),
-                               (i & 2) ? &m_state.relative_mouse.y : &m_state.relative_mouse.x));
+    AddInput(new RelativeMouse(i / 2, !!(i & 1),
+                               (i & 4) ? &m_state.relative_mouse.z :
+                               (i & 2) ? &m_state.relative_mouse.y :
+                                         &m_state.relative_mouse.x));
 }
 
 KeyboardMouse::~KeyboardMouse()
@@ -256,7 +281,7 @@ void KeyboardMouse::UpdateInput()
   XFlush(m_display);
 
   // for the axis controls
-  float delta_x = 0.0f, delta_y = 0.0f;
+  float delta_x = 0.0f, delta_y = 0.0f, delta_z = 0.0f;
   double delta_delta;
   bool mouse_moved = false;
 
@@ -312,6 +337,14 @@ void KeyboardMouse::UpdateInput()
         if (delta_delta == delta_delta && 1 + delta_delta != delta_delta)
           delta_y += delta_delta;
       }
+      if (XIMaskIsSet(raw_event->valuators.mask, 3))
+      {
+        // Scroll wheel input gets scaled to be similar to the mouse axes
+        delta_delta = raw_event->raw_values[0] * 8.0 / scroll_increment;
+        // test for inf and nan
+        if (delta_delta == delta_delta && 1 + delta_delta != delta_delta)
+          delta_z += delta_delta;
+      }
       break;
     case XI_FocusOut:
       // Clear keyboard state on FocusOut as we will not be receiving KeyRelease events.
@@ -324,6 +357,7 @@ void KeyboardMouse::UpdateInput()
 
   m_state.relative_mouse.x = delta_x;
   m_state.relative_mouse.y = delta_y;
+  m_state.relative_mouse.z = delta_z;
 
   // apply axis smoothing
   m_state.axis.x *= MOUSE_AXIS_SMOOTHING;
@@ -332,6 +366,8 @@ void KeyboardMouse::UpdateInput()
   m_state.axis.y *= MOUSE_AXIS_SMOOTHING;
   m_state.axis.y += delta_y;
   m_state.axis.y /= MOUSE_AXIS_SMOOTHING + 1.0f;
+  m_state.axis.z += delta_z;
+  m_state.axis.z /= SCROLL_AXIS_DECAY;
 
   // Get the absolute position of the mouse pointer
   const bool should_center_mouse =
