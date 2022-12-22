@@ -11,6 +11,7 @@
 #include <array>
 #include <iterator>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <vector>
@@ -18,6 +19,7 @@
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
+#include "Common/Debug/MemoryPatches.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
@@ -25,6 +27,7 @@
 #include "Core/CheatCodes.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PowerPC/MMU.h"
@@ -39,6 +42,8 @@ constexpr std::array<const char*, 3> s_patch_type_strings{{
 }};
 
 static std::vector<Patch> s_on_frame;
+static std::vector<std::size_t> s_on_frame_memory;
+static std::mutex s_on_frame_memory_mutex;
 static std::map<u32, int> s_speed_hacks;
 
 const char* PatchTypeAsString(PatchType type)
@@ -257,6 +262,15 @@ static void ApplyPatches(const std::vector<Patch>& patches)
   }
 }
 
+static void ApplyMemoryPatches(const std::vector<std::size_t>& memory_patch_indices)
+{
+  std::lock_guard lock(s_on_frame_memory_mutex);
+  for (std::size_t index : memory_patch_indices)
+  {
+    PowerPC::debug_interface.ApplyExistingPatch(index);
+  }
+}
+
 // Requires MSR.DR, MSR.IR
 // There's no perfect way to do this, it's just a heuristic.
 // We require at least 2 stack frames, if the stack is shallower than that then it won't work.
@@ -281,6 +295,19 @@ static bool IsStackSane()
          0 != PowerPC::HostRead_Instruction(address);
 }
 
+void AddMemoryPatch(std::size_t index)
+{
+  std::lock_guard lock(s_on_frame_memory_mutex);
+  s_on_frame_memory.push_back(index);
+}
+
+void RemoveMemoryPatch(std::size_t index)
+{
+  std::lock_guard lock(s_on_frame_memory_mutex);
+  s_on_frame_memory.erase(std::remove(s_on_frame_memory.begin(), s_on_frame_memory.end(), index),
+                          s_on_frame_memory.end());
+}
+
 bool ApplyFramePatches()
 {
   // Because we're using the VI Interrupt to time this instead of patching the game with a
@@ -297,6 +324,7 @@ bool ApplyFramePatches()
   }
 
   ApplyPatches(s_on_frame);
+  ApplyMemoryPatches(s_on_frame_memory);
 
   // Run the Gecko code handler
   Gecko::RunCodeHandler();
