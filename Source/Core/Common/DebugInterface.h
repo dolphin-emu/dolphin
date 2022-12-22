@@ -43,6 +43,8 @@ public:
   // Memory Patches
   virtual void SetPatch(u32 address, u32 value) = 0;
   virtual void SetPatch(u32 address, std::vector<u8> value) = 0;
+  virtual void SetFramePatch(u32 address, u32 value) = 0;
+  virtual void SetFramePatch(u32 address, std::vector<u8> value) = 0;
   virtual const std::vector<Debug::MemoryPatch>& GetPatches() const = 0;
   virtual void UnsetPatch(u32 address) = 0;
   virtual void EnablePatch(std::size_t index) = 0;

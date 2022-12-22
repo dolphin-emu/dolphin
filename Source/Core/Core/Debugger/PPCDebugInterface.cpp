@@ -19,6 +19,7 @@
 #include "Core/Core.h"
 #include "Core/Debugger/OSThread.h"
 #include "Core/HW/DSP.h"
+#include "Core/PatchEngine.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -58,7 +59,19 @@ void PPCPatches::ApplyExistingPatch(std::size_t index)
 void PPCPatches::Patch(std::size_t index)
 {
   auto& patch = m_patches[index];
-  ApplyMemoryPatch(patch);
+  if (patch.type == Common::Debug::MemoryPatch::ApplyType::Once)
+    ApplyMemoryPatch(patch);
+  else
+    PatchEngine::AddMemoryPatch(index);
+}
+
+void PPCPatches::UnPatch(std::size_t index)
+{
+  auto& patch = m_patches[index];
+  if (patch.type == Common::Debug::MemoryPatch::ApplyType::Once)
+    return;
+
+  PatchEngine::RemoveMemoryPatch(index);
 }
 
 PPCDebugInterface::PPCDebugInterface() = default;
@@ -142,6 +155,16 @@ void PPCDebugInterface::SetPatch(u32 address, u32 value)
 void PPCDebugInterface::SetPatch(u32 address, std::vector<u8> value)
 {
   m_patches.SetPatch(address, std::move(value));
+}
+
+void PPCDebugInterface::SetFramePatch(u32 address, u32 value)
+{
+  m_patches.SetFramePatch(address, value);
+}
+
+void PPCDebugInterface::SetFramePatch(u32 address, std::vector<u8> value)
+{
+  m_patches.SetFramePatch(address, std::move(value));
 }
 
 const std::vector<Common::Debug::MemoryPatch>& PPCDebugInterface::GetPatches() const

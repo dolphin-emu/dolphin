@@ -21,6 +21,7 @@ public:
 
 private:
   void Patch(std::size_t index) override;
+  void UnPatch(std::size_t index) override;
 };
 
 // wrapper between disasm control and Dolphin debugger
@@ -50,6 +51,8 @@ public:
   // Memory Patches
   void SetPatch(u32 address, u32 value) override;
   void SetPatch(u32 address, std::vector<u8> value) override;
+  void SetFramePatch(u32 address, u32 value) override;
+  void SetFramePatch(u32 address, std::vector<u8> value) override;
   const std::vector<Common::Debug::MemoryPatch>& GetPatches() const override;
   void UnsetPatch(u32 address) override;
   void EnablePatch(std::size_t index) override;
