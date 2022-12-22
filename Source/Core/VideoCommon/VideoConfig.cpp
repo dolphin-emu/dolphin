@@ -11,7 +11,9 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoCommon.h"
@@ -22,9 +24,23 @@ static bool s_has_registered_callback = false;
 
 static bool IsVSyncActive(bool enabled)
 {
-  // Vsync is disabled when the throttler is disabled by the tab key.
-  return enabled && !Core::GetIsThrottlerTempDisabled() &&
-         Config::Get(Config::MAIN_EMULATION_SPEED) == 1.0;
+  // If VSync is disabled in settings, then VSync should not be enabled.
+  // This is at the top of the function to potentially skip the calls below.
+  if (!enabled)
+    return false;
+
+  // If the throttler is disabled or the game is running faster than VSync
+  // would allow, then disable VSync in order to prevent weird behavior
+  if (Core::GetIsThrottlerTempDisabled() || 1.0 < Config::Get(Config::MAIN_EMULATION_SPEED))
+    return false;
+
+  // If the CoreTimingManager determines the game is running too slow
+  // to enable VSync, than it should be disabled until the lag is resolved
+  if (Core::System::GetInstance().GetCoreTiming().GetVSyncDisabled())
+    return false;
+
+  // If we reach this part of the code, than VSync should be enabled
+  return true;
 }
 
 void UpdateActiveConfig()

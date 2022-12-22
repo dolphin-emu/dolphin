@@ -78,6 +78,7 @@ struct NetSettings
   bool skip_ipl = false;
   bool load_ipl_dump = false;
   bool vertex_rounding = false;
+  bool framerate_rounding = false;
   int internal_resolution = 0;
   bool efb_scaled_copy = false;
   bool fast_depth_calc = false;

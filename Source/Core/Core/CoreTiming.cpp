@@ -16,13 +16,16 @@
 #include "Common/Logging/Log.h"
 #include "Common/SPSCQueue.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace CoreTiming
 {
@@ -49,14 +52,14 @@ static void EmptyTimedCallback(Core::System& system, u64 userdata, s64 cyclesLat
 //
 // Technically it might be more accurate to call this changing the IPC instead of the CPU speed,
 // but the effect is largely the same.
-int CoreTimingManager::DowncountToCycles(int downcount) const
+s64 CoreTimingManager::DowncountToCycles(s64 downcount) const
 {
-  return static_cast<int>(downcount * m_globals.last_OC_factor_inverted);
+  return downcount * m_globals.last_OC_factor_inverted;
 }
 
-int CoreTimingManager::CyclesToDowncount(int cycles) const
+s64 CoreTimingManager::CyclesToDowncount(s64 cycles) const
 {
-  return static_cast<int>(cycles * m_last_oc_factor);
+  return cycles * m_last_oc_factor;
 }
 
 EventType* CoreTimingManager::RegisterEvent(const std::string& name, TimedCallback callback)
@@ -184,7 +187,7 @@ u64 CoreTimingManager::GetTicks() const
   u64 ticks = static_cast<u64>(m_globals.global_timer);
   if (!m_is_global_timer_sane)
   {
-    int downcount = DowncountToCycles(PowerPC::ppcState.downcount);
+    s64 downcount = DowncountToCycles(PowerPC::ppcState.downcount);
     ticks += m_globals.slice_length - downcount;
   }
   return ticks;
@@ -292,7 +295,16 @@ void CoreTimingManager::Advance()
 
   MoveEvents();
 
-  int cyclesExecuted = m_globals.slice_length - DowncountToCycles(PowerPC::ppcState.downcount);
+  double emulation_speed =
+      Core::GetIsThrottlerTempDisabled() ? 0.f : Config::Get(Config::MAIN_EMULATION_SPEED);
+
+  if (Config::Get(Config::GFX_HACK_FRAMERATE_ROUNDING))
+  {
+    const double framerate = VideoInterface::GetTargetRefreshRate();
+    emulation_speed *= std::lround(framerate) / framerate;
+  }
+
+  s64 cyclesExecuted = m_globals.slice_length - DowncountToCycles(PowerPC::ppcState.downcount);
   m_globals.global_timer += cyclesExecuted;
   m_last_oc_factor = m_config_oc_factor;
   m_globals.last_OC_factor_inverted = m_config_oc_inv_factor;
@@ -305,6 +317,8 @@ void CoreTimingManager::Advance()
     Event evt = std::move(m_event_queue.front());
     std::pop_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
     m_event_queue.pop_back();
+
+    Throttle(evt.time, emulation_speed);
     evt.type->callback(system, evt.userdata, m_globals.global_timer - evt.time);
   }
 
@@ -313,8 +327,8 @@ void CoreTimingManager::Advance()
   // Still events left (scheduled in the future)
   if (!m_event_queue.empty())
   {
-    m_globals.slice_length = static_cast<int>(
-        std::min<s64>(m_event_queue.front().time - m_globals.global_timer, MAX_SLICE_LENGTH));
+    m_globals.slice_length =
+        std::min<s64>(m_event_queue.front().time - m_globals.global_timer, MAX_SLICE_LENGTH);
   }
 
   PowerPC::ppcState.downcount = CyclesToDowncount(m_globals.slice_length);
@@ -324,6 +338,78 @@ void CoreTimingManager::Advance()
   // until the next slice:
   //        Pokemon Box refuses to boot if the first exception from the audio DMA is received late
   PowerPC::CheckExternalExceptions();
+}
+
+void CoreTimingManager::Throttle(const s64 target_cycle, const double speed)
+{
+  // Calculate number of cycles since last throttle
+  const s64 cycles = target_cycle - m_throttle_last_cycle;
+  m_throttle_last_cycle = target_cycle;
+
+  // Based on number of cycles and emulation speed,
+  // increase the target deadline that we should throttle too
+  if (0.0 <= speed)
+    m_throttle_deadline += std::chrono::duration_cast<DT>((m_throttle_per_clock * cycles) / speed);
+
+  // Unless a maximum fallback is inplace, if the game runs at say 95% speed
+  // for 10s during a challenging section, as soon as a less challenging section
+  // comes up, it will run uncapped for a couple seconds. The max variance
+  // prevents this, while still allowing the throttler to maintain an average speed.
+  const DT max_fallback =
+      std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
+
+  const TimePoint time = Clock::now();
+  const TimePoint min_deadline = time - max_fallback;
+
+  if (m_throttle_deadline < min_deadline)
+  {
+    DEBUG_LOG_FMT(COMMON, "System can not to keep up with timings! [relaxing timings by {} us]",
+                  DT_us(min_deadline - m_throttle_deadline).count());
+    m_throttle_deadline = min_deadline;
+
+    // If system is unable to maintain timings, vsync will prevent us from catching up.
+    // This limits the CPU timings to the GPU's timings / causes vsyncs.
+    if (!m_throttle_disable_vsync)
+    {
+      WARN_LOG_FMT(COMMON, "System Lag Detected! VSync Capability Disabled!");
+      m_throttle_disable_vsync = true;
+    }
+  }
+
+  // If the deadline has already passed there is no point in sleeping or recording
+  // performance data. The next time it sleeps, it will be able to assume that it
+  // did not sleep before and record accurate emulation performance data.
+  if (m_throttle_deadline < time)
+    return;
+
+  // If we are now behind the deadline, it means that the CPU is maintaining its
+  // timings on its own and we are safe to engage in VSync if we want.
+  if (m_throttle_disable_vsync)
+  {
+    WARN_LOG_FMT(COMMON, "System Lag Resolved! VSync Capability Reenabled!");
+    m_throttle_disable_vsync = false;
+  }
+
+  std::this_thread::sleep_until(m_throttle_deadline);
+
+  // Count amount of time sleeping vs time working
+  const TimePoint throttled_time = Clock::now();
+  const DT_us time_total = throttled_time - m_throttle_time;
+  const DT_us time_working = time - m_throttle_time;
+  m_throttle_time = throttled_time;
+
+  const double cpu_usage = time_working / time_total;
+  const double a = 1.0 - std::exp(-DT_s(time_total) / DT_s(2.5));
+
+  if (std::isfinite(m_throttle_cpu_usage))
+    m_throttle_cpu_usage += a * (cpu_usage - m_throttle_cpu_usage);
+  else
+    m_throttle_cpu_usage = cpu_usage;
+}
+
+double CoreTimingManager::GetCPUUsage() const
+{
+  return m_throttle_cpu_usage;
 }
 
 void CoreTimingManager::LogPendingEvents() const
@@ -340,6 +426,8 @@ void CoreTimingManager::LogPendingEvents() const
 // Should only be called from the CPU thread after the PPC clock has changed
 void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
 {
+  m_throttle_per_clock = DT_s(1.0) / new_ppc_clock;
+
   for (Event& ev : m_event_queue)
   {
     const s64 ticks = (ev.time - m_globals.global_timer) * new_ppc_clock / old_ppc_clock;

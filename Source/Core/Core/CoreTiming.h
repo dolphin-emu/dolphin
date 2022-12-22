@@ -37,7 +37,7 @@ namespace CoreTiming
 struct Globals
 {
   s64 global_timer = 0;
-  int slice_length = 0;
+  s64 slice_length = 0;
   u64 fake_TB_start_value = 0;
   u64 fake_TB_start_ticks = 0;
   float last_OC_factor_inverted = 0.0f;
@@ -135,10 +135,15 @@ public:
   u64 GetFakeTBStartTicks() const;
   void SetFakeTBStartTicks(u64 val);
 
+  double GetCPUUsage() const;
+
   void ForceExceptionCheck(s64 cycles);
 
   // Directly accessed by the JIT.
   Globals& GetGlobals() { return m_globals; }
+
+  // Directly accessed by VideoConfig
+  bool GetVSyncDisabled() const { return m_throttle_disable_vsync; }
 
 private:
   Globals m_globals;
@@ -166,6 +171,13 @@ private:
   // Are we in a function that has been called from Advance()
   bool m_is_global_timer_sane = false;
 
+  s64 m_throttle_last_cycle = 0;
+  DT_s m_throttle_per_clock = DT_s();
+  TimePoint m_throttle_time = Clock::now();
+  TimePoint m_throttle_deadline = Clock::now();
+  float m_throttle_cpu_usage = 0.0;
+  bool m_throttle_disable_vsync = false;
+
   EventType* m_ev_lost = nullptr;
 
   size_t m_registered_config_callback_id = 0;
@@ -173,8 +185,9 @@ private:
   float m_config_oc_inv_factor = 0.0f;
   bool m_config_sync_on_skip_idle = false;
 
-  int DowncountToCycles(int downcount) const;
-  int CyclesToDowncount(int cycles) const;
+  void Throttle(const s64 target_cycle, const double speed = 1.0);
+  s64 DowncountToCycles(s64 downcount) const;
+  s64 CyclesToDowncount(s64 cycles) const;
 };
 
 }  // namespace CoreTiming

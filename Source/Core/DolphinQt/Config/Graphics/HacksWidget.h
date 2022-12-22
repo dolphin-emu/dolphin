@@ -42,6 +42,7 @@ private:
   GraphicsBool* m_fast_depth_calculation;
   GraphicsBool* m_disable_bounding_box;
   GraphicsBool* m_vertex_rounding;
+  GraphicsBool* m_framerate_rounding;
   GraphicsBool* m_save_texture_cache_state;
 
   void CreateWidgets();

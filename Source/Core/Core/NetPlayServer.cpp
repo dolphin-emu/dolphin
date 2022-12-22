@@ -1331,6 +1331,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.skip_ipl = Config::Get(Config::MAIN_SKIP_IPL) || !DoAllPlayersHaveIPLDump();
   settings.load_ipl_dump = Config::Get(Config::SESSION_LOAD_IPL_DUMP) && DoAllPlayersHaveIPLDump();
   settings.vertex_rounding = Config::Get(Config::GFX_HACK_VERTEX_ROUNDING);
+  settings.framerate_rounding = Config::Get(Config::GFX_HACK_FRAMERATE_ROUNDING);
   settings.internal_resolution = Config::Get(Config::GFX_EFB_SCALE);
   settings.efb_scaled_copy = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
   settings.fast_depth_calc = Config::Get(Config::GFX_FAST_DEPTH_CALC);
@@ -1534,6 +1535,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.skip_ipl;
   spac << m_settings.load_ipl_dump;
   spac << m_settings.vertex_rounding;
+  spac << m_settings.framerate_rounding;
   spac << m_settings.internal_resolution;
   spac << m_settings.efb_scaled_copy;
   spac << m_settings.fast_depth_calc;

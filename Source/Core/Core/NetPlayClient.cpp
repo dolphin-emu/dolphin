@@ -867,6 +867,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.skip_ipl;
     packet >> m_net_settings.load_ipl_dump;
     packet >> m_net_settings.vertex_rounding;
+    packet >> m_net_settings.framerate_rounding;
     packet >> m_net_settings.internal_resolution;
     packet >> m_net_settings.efb_scaled_copy;
     packet >> m_net_settings.fast_depth_calc;

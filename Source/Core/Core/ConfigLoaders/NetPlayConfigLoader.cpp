@@ -99,6 +99,7 @@ public:
     if (m_settings.strict_settings_sync)
     {
       layer->Set(Config::GFX_HACK_VERTEX_ROUNDING, m_settings.vertex_rounding);
+      layer->Set(Config::GFX_HACK_FRAMERATE_ROUNDING, m_settings.framerate_rounding);
       layer->Set(Config::GFX_EFB_SCALE, m_settings.internal_resolution);
       layer->Set(Config::GFX_HACK_COPY_EFB_SCALED, m_settings.efb_scaled_copy);
       layer->Set(Config::GFX_FAST_DEPTH_CALC, m_settings.fast_depth_calc);

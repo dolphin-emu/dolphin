@@ -104,13 +104,16 @@ void HacksWidget::CreateWidgets()
   m_disable_bounding_box =
       new GraphicsBool(tr("Disable Bounding Box"), Config::GFX_HACK_BBOX_ENABLE, true);
   m_vertex_rounding = new GraphicsBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUNDING);
+  m_framerate_rounding =
+      new GraphicsBool(tr("Framerate Rounding"), Config::GFX_HACK_FRAMERATE_ROUNDING);
   m_save_texture_cache_state =
       new GraphicsBool(tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
 
   other_layout->addWidget(m_fast_depth_calculation, 0, 0);
   other_layout->addWidget(m_disable_bounding_box, 0, 1);
   other_layout->addWidget(m_vertex_rounding, 1, 0);
-  other_layout->addWidget(m_save_texture_cache_state, 1, 1);
+  other_layout->addWidget(m_framerate_rounding, 1, 1);
+  other_layout->addWidget(m_save_texture_cache_state, 2, 0);
 
   main_layout->addWidget(efb_box);
   main_layout->addWidget(texture_cache_box);
@@ -280,6 +283,10 @@ void HacksWidget::AddDescriptions()
       "Fixes graphical problems in some games at higher internal resolutions. This setting has no "
       "effect when native internal resolution is used.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_FRAMERATE_ROUNDING_DESCRIPTION[] = QT_TR_NOOP(
+      "Rounds the game's specified framerate to a whole number. (eg. 59.94 -> 60)<br><br>"
+      "May improve frame pacing on modern displays.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_skip_efb_cpu->SetDescription(tr(TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION));
   m_ignore_format_changes->SetDescription(tr(TR_IGNORE_FORMAT_CHANGE_DESCRIPTION));
@@ -295,6 +302,7 @@ void HacksWidget::AddDescriptions()
   m_disable_bounding_box->SetDescription(tr(TR_DISABLE_BOUNDINGBOX_DESCRIPTION));
   m_save_texture_cache_state->SetDescription(tr(TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION));
   m_vertex_rounding->SetDescription(tr(TR_VERTEX_ROUNDING_DESCRIPTION));
+  m_framerate_rounding->SetDescription(tr(TR_FRAMERATE_ROUNDING_DESCRIPTION));
 }
 
 void HacksWidget::UpdateDeferEFBCopiesEnabled()
