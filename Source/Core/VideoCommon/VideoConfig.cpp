@@ -64,7 +64,10 @@ void VideoConfig::Refresh()
   bCrop = Config::Get(Config::GFX_CROP);
   iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
   bShowFPS = Config::Get(Config::GFX_SHOW_FPS);
+  bShowFTimes = Config::Get(Config::GFX_SHOW_FTIMES);
   bShowVPS = Config::Get(Config::GFX_SHOW_VPS);
+  bShowVTimes = Config::Get(Config::GFX_SHOW_VTIMES);
+  bShowGraphs = Config::Get(Config::GFX_SHOW_GRAPHS);
   bShowSpeed = Config::Get(Config::GFX_SHOW_SPEED);
   bShowSpeedColors = Config::Get(Config::GFX_SHOW_SPEED_COLORS);
   iPerfSampleUSec = Config::Get(Config::GFX_PERF_SAMP_WINDOW) * 1000;
