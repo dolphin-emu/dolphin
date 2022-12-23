@@ -83,7 +83,8 @@ void WatchWidget::CreateWidgets()
   m_table->setColumnCount(NUM_COLUMNS);
   m_table->verticalHeader()->setHidden(true);
   m_table->setContextMenuPolicy(Qt::CustomContextMenu);
-  m_table->setSelectionMode(QAbstractItemView::SingleSelection);
+  m_table->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 
   m_new = m_toolbar->addAction(tr("New"), this, &WatchWidget::OnNewWatch);
   m_delete = m_toolbar->addAction(tr("Delete"), this, &WatchWidget::OnDelete);
@@ -239,11 +240,7 @@ void WatchWidget::OnDelete()
   if (m_table->selectedItems().empty())
     return;
 
-  auto row_variant = m_table->selectedItems()[0]->data(Qt::UserRole);
-  if (row_variant.isNull())
-    return;
-
-  DeleteWatch(row_variant.toInt());
+  DeleteSelectedWatches();
 }
 
 void WatchWidget::OnClear()
@@ -310,20 +307,30 @@ void WatchWidget::ShowContextMenu()
 
   if (!m_table->selectedItems().empty())
   {
-    auto row_variant = m_table->selectedItems()[0]->data(Qt::UserRole);
-
-    if (!row_variant.isNull())
+    const std::size_t count = m_table->selectionModel()->selectedRows().count();
+    if (count > 1)
     {
-      int row = row_variant.toInt();
+      menu->addAction(tr("&Delete Watches"), this, [this] { DeleteSelectedWatches(); });
+      menu->addAction(tr("&Lock Watches"), this, [this] { LockSelectedWatches(); });
+      menu->addAction(tr("&Unlock Watches"), this, [this] { UnlockSelectedWatches(); });
+    }
+    else if (count == 1)
+    {
+      auto row_variant = m_table->selectedItems()[0]->data(Qt::UserRole);
 
-      if (row >= 0)
+      if (!row_variant.isNull())
       {
-        menu->addAction(tr("Show in Memory"), this, [this, row] { ShowInMemory(row); });
-        // i18n: This kind of "watch" is used for watching emulated memory.
-        // It's not related to timekeeping devices.
-        menu->addAction(tr("&Delete Watch"), this, [this, row] { DeleteWatch(row); });
-        menu->addAction(tr("&Add Memory Breakpoint"), this,
-                        [this, row] { AddWatchBreakpoint(row); });
+        int row = row_variant.toInt();
+
+        if (row >= 0)
+        {
+          menu->addAction(tr("Show in Memory"), this, [this, row] { ShowInMemory(row); });
+          // i18n: This kind of "watch" is used for watching emulated memory.
+          // It's not related to timekeeping devices.
+          menu->addAction(tr("&Delete Watch"), this, [this, row] { DeleteWatchAndUpdate(row); });
+          menu->addAction(tr("&Add Memory Breakpoint"), this,
+                          [this, row] { AddWatchBreakpoint(row); });
+        }
       }
     }
   }
@@ -359,7 +366,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
     {
     case COLUMN_INDEX_LABEL:
       if (item->text().isEmpty())
-        DeleteWatch(row);
+        DeleteWatchAndUpdate(row);
       else
         PowerPC::debug_interface.UpdateWatchName(row, item->text().toStdString());
       break;
@@ -422,10 +429,39 @@ void WatchWidget::LockWatchAddress(u32 address)
   PowerPC::debug_interface.SetFramePatch(address, bytes);
 }
 
+void WatchWidget::DeleteSelectedWatches()
+{
+  std::vector<int> row_indices;
+  for (const auto& index : m_table->selectionModel()->selectedRows())
+  {
+    const auto* item = m_table->item(index.row(), index.column());
+    const auto row_variant = item->data(Qt::UserRole);
+    if (row_variant.isNull())
+      continue;
+
+    row_indices.push_back(row_variant.toInt());
+  }
+
+  // Sort greatest to smallest, so we
+  // don't stomp on existing indices
+  std::sort(row_indices.begin(), row_indices.end(), std::greater{});
+  for (const int row : row_indices)
+  {
+    DeleteWatch(row);
+  }
+
+  Update();
+}
+
 void WatchWidget::DeleteWatch(int row)
 {
   PowerPC::debug_interface.UnsetPatch(PowerPC::debug_interface.GetWatch(row).address);
   PowerPC::debug_interface.RemoveWatch(row);
+}
+
+void WatchWidget::DeleteWatchAndUpdate(int row)
+{
+  DeleteWatch(row);
   Update();
 }
 
@@ -442,5 +478,43 @@ void WatchWidget::ShowInMemory(int row)
 void WatchWidget::AddWatch(QString name, u32 addr)
 {
   PowerPC::debug_interface.SetWatch(addr, name.toStdString());
+  Update();
+}
+
+void WatchWidget::LockSelectedWatches()
+{
+  for (const auto& index : m_table->selectionModel()->selectedRows())
+  {
+    const auto* item = m_table->item(index.row(), index.column());
+    const auto row_variant = item->data(Qt::UserRole);
+    if (row_variant.isNull())
+      continue;
+    const int row = row_variant.toInt();
+    const auto& watch = PowerPC::debug_interface.GetWatch(row);
+    if (watch.locked)
+      continue;
+    PowerPC::debug_interface.UpdateWatchLockedState(row, true);
+    LockWatchAddress(watch.address);
+  }
+
+  Update();
+}
+
+void WatchWidget::UnlockSelectedWatches()
+{
+  for (const auto& index : m_table->selectionModel()->selectedRows())
+  {
+    const auto* item = m_table->item(index.row(), index.column());
+    const auto row_variant = item->data(Qt::UserRole);
+    if (row_variant.isNull())
+      continue;
+    const int row = row_variant.toInt();
+    const auto& watch = PowerPC::debug_interface.GetWatch(row);
+    if (!watch.locked)
+      continue;
+    PowerPC::debug_interface.UpdateWatchLockedState(row, false);
+    PowerPC::debug_interface.UnsetPatch(watch.address);
+  }
+
   Update();
 }

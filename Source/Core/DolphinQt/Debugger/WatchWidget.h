@@ -47,10 +47,14 @@ private:
   void ShowContextMenu();
   void OnItemChanged(QTableWidgetItem* item);
   void LockWatchAddress(u32 address);
+  void DeleteSelectedWatches();
   void DeleteWatch(int row);
+  void DeleteWatchAndUpdate(int row);
   void AddWatchBreakpoint(int row);
   void ShowInMemory(int row);
   void UpdateIcons();
+  void LockSelectedWatches();
+  void UnlockSelectedWatches();
 
   QAction* m_new;
   QAction* m_delete;
