@@ -32,6 +32,7 @@ public:
   virtual void UpdateWatch(std::size_t index, u32 address, std::string name) = 0;
   virtual void UpdateWatchAddress(std::size_t index, u32 address) = 0;
   virtual void UpdateWatchName(std::size_t index, std::string name) = 0;
+  virtual void UpdateWatchLockedState(std::size_t index, bool locked) = 0;
   virtual void EnableWatch(std::size_t index) = 0;
   virtual void DisableWatch(std::size_t index) = 0;
   virtual bool HasEnabledWatch(u32 address) const = 0;

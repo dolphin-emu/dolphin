@@ -112,6 +112,11 @@ void PPCDebugInterface::UpdateWatchName(std::size_t index, std::string name)
   return m_watches.UpdateWatchName(index, std::move(name));
 }
 
+void PPCDebugInterface::UpdateWatchLockedState(std::size_t index, bool locked)
+{
+  return m_watches.UpdateWatchLockedState(index, locked);
+}
+
 void PPCDebugInterface::EnableWatch(std::size_t index)
 {
   m_watches.EnableWatch(index);

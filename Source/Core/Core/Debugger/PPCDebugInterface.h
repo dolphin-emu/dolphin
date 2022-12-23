@@ -40,6 +40,7 @@ public:
   void UpdateWatch(std::size_t index, u32 address, std::string name) override;
   void UpdateWatchAddress(std::size_t index, u32 address) override;
   void UpdateWatchName(std::size_t index, std::string name) override;
+  void UpdateWatchLockedState(std::size_t index, bool locked) override;
   void EnableWatch(std::size_t index) override;
   void DisableWatch(std::size_t index) override;
   bool HasEnabledWatch(u32 address) const override;
