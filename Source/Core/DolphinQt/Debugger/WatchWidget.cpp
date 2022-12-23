@@ -349,26 +349,24 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
   {
     switch (column)
     {
-    // Label
-    case 0:
+    case COLUMN_INDEX_LABEL:
       if (item->text().isEmpty())
         DeleteWatch(row);
       else
         PowerPC::debug_interface.UpdateWatchName(row, item->text().toStdString());
       break;
-    // Address
-    // Hexadecimal
-    // Decimal
-    case 1:
-    case 2:
-    case 3:
+    case COLUMN_INDEX_ADDRESS:
+    case COLUMN_INDEX_HEX:
+    case COLUMN_INDEX_DECIMAL:
     {
       bool good;
-      quint32 value = item->text().toUInt(&good, column < 3 ? 16 : 10);
+      const bool column_uses_hex_formatting =
+          column == COLUMN_INDEX_ADDRESS || column == COLUMN_INDEX_HEX;
+      quint32 value = item->text().toUInt(&good, column_uses_hex_formatting ? 16 : 10);
 
       if (good)
       {
-        if (column == 1)
+        if (column == COLUMN_INDEX_ADDRESS)
           PowerPC::debug_interface.UpdateWatchAddress(row, value);
         else
           PowerPC::HostWrite_U32(value, PowerPC::debug_interface.GetWatch(row).address);

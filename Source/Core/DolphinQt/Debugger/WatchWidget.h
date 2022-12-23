@@ -62,4 +62,10 @@ private:
   bool m_updating = false;
 
   static constexpr int NUM_COLUMNS = 6;
+  static constexpr int COLUMN_INDEX_LABEL = 0;
+  static constexpr int COLUMN_INDEX_ADDRESS = 1;
+  static constexpr int COLUMN_INDEX_HEX = 2;
+  static constexpr int COLUMN_INDEX_DECIMAL = 3;
+  static constexpr int COLUMN_INDEX_STRING = 4;
+  static constexpr int COLUMN_INDEX_FLOAT = 5;
 };
