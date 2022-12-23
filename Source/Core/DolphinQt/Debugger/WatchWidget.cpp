@@ -158,11 +158,11 @@ void WatchWidget::Update()
        // i18n: Data type used in computing
        tr("String"),
        // i18n: Floating-point (non-integer) number
-       tr("Float")});
+       tr("Float"), tr("Locked")});
 
   for (int i = 0; i < size; i++)
   {
-    auto entry = PowerPC::debug_interface.GetWatch(i);
+    const auto& entry = PowerPC::debug_interface.GetWatch(i);
 
     auto* label = new QTableWidgetItem(QString::fromStdString(entry.name));
     auto* address =
@@ -172,8 +172,11 @@ void WatchWidget::Update()
     auto* string = new QTableWidgetItem;
     auto* floatValue = new QTableWidgetItem;
 
-    std::array<QTableWidgetItem*, NUM_COLUMNS> items = {label,   address, hex,
-                                                        decimal, string,  floatValue};
+    auto* lockValue = new QTableWidgetItem;
+    lockValue->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
+
+    std::array<QTableWidgetItem*, NUM_COLUMNS> items = {label,  address,    hex,      decimal,
+                                                        string, floatValue, lockValue};
 
     QBrush brush = QPalette().brush(QPalette::Text);
 
@@ -189,6 +192,7 @@ void WatchWidget::Update()
         decimal->setText(QString::number(PowerPC::HostRead_U32(entry.address)));
         string->setText(QString::fromStdString(PowerPC::HostGetString(entry.address, 32)));
         floatValue->setText(QString::number(PowerPC::HostRead_F32(entry.address)));
+        lockValue->setCheckState(entry.locked ? Qt::Checked : Qt::Unchecked);
       }
     }
 
@@ -280,6 +284,10 @@ void WatchWidget::OnLoad()
 
   if (ini.GetLines("Watches", &watches, false))
   {
+    for (const auto& watch : PowerPC::debug_interface.GetWatches())
+    {
+      PowerPC::debug_interface.UnsetPatch(watch.address);
+    }
     PowerPC::debug_interface.ClearWatches();
     PowerPC::debug_interface.LoadWatchesFromStrings(watches);
   }
@@ -367,14 +375,32 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
       if (good)
       {
         if (column == COLUMN_INDEX_ADDRESS)
+        {
+          const auto& watch = PowerPC::debug_interface.GetWatch(row);
+          PowerPC::debug_interface.UnsetPatch(watch.address);
           PowerPC::debug_interface.UpdateWatchAddress(row, value);
+          if (watch.locked)
+            LockWatchAddress(value);
+        }
         else
+        {
           PowerPC::HostWrite_U32(value, PowerPC::debug_interface.GetWatch(row).address);
+        }
       }
       else
       {
         ModalMessageBox::critical(this, tr("Error"), tr("Invalid input provided"));
       }
+      break;
+    }
+    case COLUMN_INDEX_LOCK:
+    {
+      PowerPC::debug_interface.UpdateWatchLockedState(row, item->checkState() == Qt::Checked);
+      const auto& watch = PowerPC::debug_interface.GetWatch(row);
+      if (watch.locked)
+        LockWatchAddress(watch.address);
+      else
+        PowerPC::debug_interface.UnsetPatch(watch.address);
       break;
     }
     }
@@ -383,8 +409,22 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
   }
 }
 
+void WatchWidget::LockWatchAddress(u32 address)
+{
+  const std::string memory_data_as_string = PowerPC::HostGetString(address, 4);
+
+  std::vector<u8> bytes;
+  for (const char c : memory_data_as_string)
+  {
+    bytes.push_back(static_cast<u8>(c));
+  }
+
+  PowerPC::debug_interface.SetFramePatch(address, bytes);
+}
+
 void WatchWidget::DeleteWatch(int row)
 {
+  PowerPC::debug_interface.UnsetPatch(PowerPC::debug_interface.GetWatch(row).address);
   PowerPC::debug_interface.RemoveWatch(row);
   Update();
 }
