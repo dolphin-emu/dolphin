@@ -466,6 +466,7 @@ void MainWindow::CreateComponents()
   connect(m_breakpoint_widget, &BreakpointWidget::ShowMemory, m_memory_widget,
           &MemoryWidget::SetAddress);
   connect(m_cheats_manager, &CheatsManager::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
+  connect(m_cheats_manager, &CheatsManager::RequestWatch, request_watch);
 }
 
 void MainWindow::ConnectMenuBar()
