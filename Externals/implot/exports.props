@@ -3,7 +3,7 @@
     <ItemDefinitionGroup>
         <ClCompile>
             <AdditionalIncludeDirectories>$(ExternalsDir)imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <AdditionalIncludeDirectories>$(ExternalsDir)implot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(ExternalsDir)implot/implot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
         </ClCompile>
     </ItemDefinitionGroup>
     <ItemGroup>
