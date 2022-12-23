@@ -12,7 +12,7 @@
 #include "Common/DebugInterface.h"
 #include "Core/NetworkCaptureLogger.h"
 
-void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch);
+void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch, bool store_existing_value = true);
 
 class PPCPatches final : public Common::Debug::MemoryPatches
 {

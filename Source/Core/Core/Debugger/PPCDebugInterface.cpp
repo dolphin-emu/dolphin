@@ -24,7 +24,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
-void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch)
+void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch, bool store_existing_value)
 {
   if (patch.value.empty())
     return;
@@ -36,9 +36,16 @@ void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch)
 
   for (u32 offset = 0; offset < size; ++offset)
   {
-    const u8 value = PowerPC::HostRead_U8(address + offset);
-    PowerPC::HostWrite_U8(patch.value[offset], address + offset);
-    patch.value[offset] = value;
+    if (store_existing_value)
+    {
+      const u8 value = PowerPC::HostRead_U8(address + offset);
+      PowerPC::HostWrite_U8(patch.value[offset], address + offset);
+      patch.value[offset] = value;
+    }
+    else
+    {
+      PowerPC::HostWrite_U8(patch.value[offset], address + offset);
+    }
 
     if (((address + offset) % 4) == 3)
       PowerPC::ScheduleInvalidateCacheThreadSafe(Common::AlignDown(address + offset, 4));
@@ -53,7 +60,7 @@ void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch)
 void PPCPatches::ApplyExistingPatch(std::size_t index)
 {
   auto& patch = m_patches[index];
-  ApplyMemoryPatch(patch);
+  ApplyMemoryPatch(patch, false);
 }
 
 void PPCPatches::Patch(std::size_t index)
