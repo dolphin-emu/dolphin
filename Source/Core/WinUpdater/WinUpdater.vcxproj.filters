@@ -3,6 +3,7 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="WinUI.cpp" />
+    <ClCompile Include="..\UpdaterCommon\UpdaterCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Updater.exe.manifest" />

@@ -50,6 +50,11 @@
   <ImportGroup Label="ExtensionTargets">
     <Import Project="po.targets" />
   </ImportGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <PoFiles Include="$(OutDir)\**\*.*" />
   </ItemGroup>
