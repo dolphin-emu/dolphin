@@ -183,7 +183,7 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
     ++points;
   }
 
-  ImPlot::PlotLine(label, x.data(), y.data(), points);
+  ImPlot::PlotLine(label, x.data(), y.data(), static_cast<int>(points));
 }
 
 void PerformanceTracker::QueueClear()
