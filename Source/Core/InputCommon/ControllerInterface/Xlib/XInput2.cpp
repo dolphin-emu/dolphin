@@ -101,6 +101,7 @@ void PopulateDevices(void* const hwnd)
           XIScrollClassInfo* scroll_event =
               reinterpret_cast<XIScrollClassInfo*>(current_master->classes[j]);
           scroll_increment = scroll_event->increment;
+          break;
         }
       }
       // Since current_master is a master pointer, its attachment must
@@ -215,19 +216,21 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   for (int i = 0; i != 4; ++i)
     AddInput(new Cursor(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.cursor.y : &m_state.cursor.x));
 
-  // Mouse Axis, X-/+ and Y-/+
-  for (int i = 0; i != 6; ++i)
-    AddInput(new Axis(i / 2, !!(i & 1),
-                      (i & 4) ? &m_state.axis.z :
-                      (i & 2) ? &m_state.axis.y :
-                                &m_state.axis.x));
+  // Mouse Axis, X-/+, Y-/+ and Z-/+
+  AddInput(new Axis(0, false, &m_state.axis.x));
+  AddInput(new Axis(0, true, &m_state.axis.x));
+  AddInput(new Axis(1, false, &m_state.axis.y));
+  AddInput(new Axis(1, true, &m_state.axis.y));
+  AddInput(new Axis(2, false, &m_state.axis.z));
+  AddInput(new Axis(2, true, &m_state.axis.z));
 
-  // Relative Mouse, X-/+ and Y-/+
-  for (int i = 0; i != 4; ++i)
-    AddInput(new RelativeMouse(i / 2, !!(i & 1),
-                               (i & 4) ? &m_state.relative_mouse.z :
-                               (i & 2) ? &m_state.relative_mouse.y :
-                                         &m_state.relative_mouse.x));
+  // Relative Mouse, X-/+, Y-/+ and Z-/+
+  AddInput(new RelativeMouse(0, false, &m_state.relative_mouse.x));
+  AddInput(new RelativeMouse(0, true, &m_state.relative_mouse.x));
+  AddInput(new RelativeMouse(1, false, &m_state.relative_mouse.y));
+  AddInput(new RelativeMouse(1, true, &m_state.relative_mouse.y));
+  AddInput(new RelativeMouse(2, false, &m_state.relative_mouse.z));
+  AddInput(new RelativeMouse(2, true, &m_state.relative_mouse.z));
 }
 
 KeyboardMouse::~KeyboardMouse()
