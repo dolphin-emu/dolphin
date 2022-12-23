@@ -24,6 +24,7 @@
 #include "Core/System.h"
 
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -396,25 +397,20 @@ void CoreTimingManager::Throttle(const s64 target_cycle, const double speed)
   std::this_thread::sleep_until(m_throttle_deadline);
 
   // Count amount of time sleeping vs time working
-  const TimePoint throttled_time = Clock::now();
-  const DT_us time_total = throttled_time - m_throttle_time;
-  const DT_us time_working = time - m_throttle_time;
-  m_throttle_time = throttled_time;
-
-  const double cpu_usage = time_working / time_total;
-  const double a = 1.0 - std::exp(-DT_s(time_total) / DT_s(2.5));
-
-  if (std::isfinite(m_throttle_cpu_usage))
-    m_throttle_cpu_usage += a * (cpu_usage - m_throttle_cpu_usage);
-  else
-    m_throttle_cpu_usage = cpu_usage;
+  const TimePoint time_after_sleep = Clock::now();
+  g_perf_metrics.CountThrottleSleep(time_after_sleep - time);
 }
 
-double CoreTimingManager::GetCPUUsage() const
+TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
 {
-  return m_throttle_cpu_usage;
+  return TimePoint(
+      std::chrono::duration_cast<DT>(m_throttle_per_clock * (m_globals.global_timer - cyclesLate)));
 }
 
+bool CoreTimingManager::GetVSyncDisabled() const
+{
+  return m_throttle_disable_vsync;
+}
 void CoreTimingManager::LogPendingEvents() const
 {
   auto clone = m_event_queue;

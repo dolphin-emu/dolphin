@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Core/System.h"
 #include "VideoCommon/PerformanceTracker.h"
 
 class PerformanceMetrics
@@ -21,6 +22,9 @@ public:  // Count Functions
   void CountFrame();
   void CountVBlank();
 
+  void CountThrottleSleep(DT sleep);
+  void CountPerformanceMarker(Core::System& system, s64 cyclesLate);
+
 public:  // Getter Functions
   double GetFPS() const;
   double GetVPS() const;
@@ -28,13 +32,19 @@ public:  // Getter Functions
 
   double GetLastSpeedDenominator() const;
 
+  double GetEstimatedEmulationSpeed() const;
+
 public:  // ImGui Functions
   void DrawImGuiStats(const float backbuffer_scale) const;
 
 private:  // Member Variables
   PerformanceTracker m_fps_counter{"render_times.txt"};
   PerformanceTracker m_vps_counter{"vblank_times.txt"};
-  PerformanceTracker m_speed_counter{nullptr, 6000000};
+  PerformanceTracker m_speed_counter{nullptr, 500000};
+
+  double m_emulation_speed = 0;
+  TimePoint m_real_time, m_cpu_time;
+  DT m_real_dt, m_cpu_dt;
 };
 
 extern PerformanceMetrics g_perf_metrics;

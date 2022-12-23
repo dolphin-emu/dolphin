@@ -135,15 +135,13 @@ public:
   u64 GetFakeTBStartTicks() const;
   void SetFakeTBStartTicks(u64 val);
 
-  double GetCPUUsage() const;
-
   void ForceExceptionCheck(s64 cycles);
 
   // Directly accessed by the JIT.
   Globals& GetGlobals() { return m_globals; }
 
-  // Directly accessed by VideoConfig
-  bool GetVSyncDisabled() const { return m_throttle_disable_vsync; }
+  TimePoint GetCPUTimePoint(s64 cyclesLate) const;  // Used by Dolphin Analytics
+  bool GetVSyncDisabled() const;                    // Used by VideoConfig
 
 private:
   Globals m_globals;
@@ -173,9 +171,7 @@ private:
 
   s64 m_throttle_last_cycle = 0;
   DT_s m_throttle_per_clock = DT_s();
-  TimePoint m_throttle_time = Clock::now();
   TimePoint m_throttle_deadline = Clock::now();
-  float m_throttle_cpu_usage = 0.0;
   bool m_throttle_disable_vsync = false;
 
   EventType* m_ev_lost = nullptr;

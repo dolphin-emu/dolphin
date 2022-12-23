@@ -6,6 +6,7 @@
 #include <imgui.h>
 #include <implot.h>
 
+#include "Core/CoreTiming.h"
 #include "Core/HW/VideoInterface.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -29,6 +30,30 @@ void PerformanceMetrics::CountVBlank()
   m_speed_counter.Count();
 }
 
+void PerformanceMetrics::CountThrottleSleep(DT sleep)
+{
+  m_real_time += sleep;
+}
+
+void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cyclesLate)
+{
+  const TimePoint real_now = Clock::now();
+  m_real_dt = std::max(real_now - m_real_time, DT::zero());
+  m_real_time = real_now;
+
+  const TimePoint cpu_now = system.GetCoreTiming().GetCPUTimePoint(cyclesLate);
+  m_cpu_dt = std::max(cpu_now - m_cpu_time, DT::zero());
+  m_cpu_time = cpu_now;
+
+  const double speed = DT_s(m_cpu_dt) / DT_s(m_real_dt);
+  const double a = 1.0 - std::exp(-(std::max(m_cpu_dt, m_real_dt) / DT_s(2.0)));
+
+  if (std::isfinite(m_emulation_speed))
+    m_emulation_speed += a * (speed - m_emulation_speed);
+  else
+    m_emulation_speed = speed;
+}
+
 double PerformanceMetrics::GetFPS() const
 {
   return m_fps_counter.GetHzAvg();
@@ -47,6 +72,11 @@ double PerformanceMetrics::GetSpeed() const
 double PerformanceMetrics::GetLastSpeedDenominator() const
 {
   return DT_s(m_speed_counter.GetLastRawDt()).count() * VideoInterface::GetTargetRefreshRate();
+}
+
+double PerformanceMetrics::GetEstimatedEmulationSpeed() const
+{
+  return m_emulation_speed;
 }
 
 void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
@@ -155,6 +185,23 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
     }
   }
 
+  if (g_ActiveConfig.bShowSpeed)
+  {
+    // Position in the top-right corner of the screen.
+    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(window_width, 47.f * backbuffer_scale));
+    ImGui::SetNextWindowBgAlpha(bg_alpha);
+    window_x -= window_width + window_padding;
+
+    if (ImGui::Begin("SpeedStats", nullptr, imgui_flags))
+    {
+      ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Speed:%4.0lf%%", speed);
+      ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Max:%6.0lf%%",
+                         100.0 * GetEstimatedEmulationSpeed());
+      ImGui::End();
+    }
+  }
+
   if (g_ActiveConfig.bShowFPS || g_ActiveConfig.bShowFTimes)
   {
     // Position in the top-right corner of the screen.
@@ -199,20 +246,6 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
         ImGui::TextColored(ImVec4(r, g, b, 1.0f), " ±:%6.2lfms",
                            DT_ms(m_vps_counter.GetDtStd()).count());
       }
-      ImGui::End();
-    }
-  }
-
-  if (g_ActiveConfig.bShowSpeed)
-  {
-    // Position in the top-right corner of the screen.
-    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSize(ImVec2(window_width, 29.f * backbuffer_scale));
-    ImGui::SetNextWindowBgAlpha(bg_alpha);
-
-    if (ImGui::Begin("SpeedStats", nullptr, imgui_flags))
-    {
-      ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Speed:%4.0lf%%", speed);
       ImGui::End();
     }
   }

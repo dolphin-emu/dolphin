@@ -68,6 +68,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/PerformanceMetrics.h"
 
 namespace SystemTimers
 {
@@ -79,6 +80,7 @@ CoreTiming::EventType* et_AudioDMA;
 CoreTiming::EventType* et_DSP;
 CoreTiming::EventType* et_IPC_HLE;
 CoreTiming::EventType* et_GPU_sleeper;
+CoreTiming::EventType* et_perf_tracker;
 // PatchEngine updates every 1/60th of a second by default
 CoreTiming::EventType* et_PatchEngine;
 
@@ -130,11 +132,18 @@ void GPUSleepCallback(Core::System& system, u64 userdata, s64 cyclesLate)
   core_timing.ScheduleEvent(VideoInterface::GetTicksPerField() / 8 - cyclesLate, et_GPU_sleeper);
 }
 
+void PerfTrackerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
+{
+  auto& core_timing = system.GetCoreTiming();
+  g_perf_metrics.CountPerformanceMarker(system, cyclesLate);
+  core_timing.ScheduleEvent(GetTicksPerSecond() / 5 - cyclesLate, et_perf_tracker);
+}
+
 void VICallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   auto& core_timing = system.GetCoreTiming();
-  VideoInterface::Update(core_timing.GetTicks() - cyclesLate);
   core_timing.ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
+  VideoInterface::Update(core_timing.GetTicks() - cyclesLate);
 }
 
 void DecrementerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
@@ -222,7 +231,7 @@ s64 GetLocalTimeRTCOffset()
 
 double GetEstimatedEmulationPerformance()
 {
-  return 1.0 / Core::System::GetInstance().GetCoreTiming().GetCPUUsage();
+  return g_perf_metrics.GetEstimatedEmulationSpeed();
 }
 
 // split from Init to break a circular dependency between VideoInterface::Init and
@@ -280,8 +289,10 @@ void Init()
   et_AudioDMA = core_timing.RegisterEvent("AudioDMACallback", AudioDMACallback);
   et_IPC_HLE = core_timing.RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
   et_GPU_sleeper = core_timing.RegisterEvent("GPUSleeper", GPUSleepCallback);
+  et_perf_tracker = core_timing.RegisterEvent("PerfTracker", PerfTrackerCallback);
   et_PatchEngine = core_timing.RegisterEvent("PatchEngine", PatchEngineCallback);
 
+  core_timing.ScheduleEvent(0, et_perf_tracker);
   core_timing.ScheduleEvent(0, et_GPU_sleeper);
   core_timing.ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
   core_timing.ScheduleEvent(0, et_DSP);
