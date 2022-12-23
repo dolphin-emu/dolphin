@@ -360,6 +360,7 @@ void CoreTimingManager::Throttle(const s64 target_cycle, const double speed)
 
   const TimePoint time = Clock::now();
   const TimePoint min_deadline = time - max_fallback;
+  const TimePoint max_deadline = time + max_fallback;
 
   if (m_throttle_deadline < min_deadline)
   {
@@ -375,6 +376,8 @@ void CoreTimingManager::Throttle(const s64 target_cycle, const double speed)
       m_throttle_disable_vsync = true;
     }
   }
+  else if (m_throttle_deadline > max_deadline)
+    m_throttle_deadline = max_deadline;
 
   // If the deadline has already passed there is no point in sleeping or recording
   // performance data. The next time it sleeps, it will be able to assume that it
