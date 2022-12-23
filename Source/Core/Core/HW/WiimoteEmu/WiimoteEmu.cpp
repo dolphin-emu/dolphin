@@ -666,18 +666,32 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(0, "`Left Click`");
   // B
   m_buttons->SetControlExpression(1, "`Right Click`");
+#elif UWP_XBOX
+  // If we're running on UWP, we're likely on an Xbox. These defaults work for Xbox One & Series.  
+  m_buttons->SetControlExpression(0, "`WGInput/0/Xbox One Game Controller:Button A`"); // A
+  m_buttons->SetControlExpression(1, "`WGInput/0/Xbox One Game Controller:Button B`"); // B
 #else
   // A
   m_buttons->SetControlExpression(0, "`Click 0`");
   // B
   m_buttons->SetControlExpression(1, "`Click 1`");
 #endif
+
+#if UWP_XBOX
+  m_buttons->SetControlExpression(2, "`WGInput/0/Xbox One Game Controller:Button X`");
+  m_buttons->SetControlExpression(3, "`WGInput/0/Xbox One Game Controller:Button Y`");
+  m_buttons->SetControlExpression(4, "WGInput/0/Xbox One Game Controller:View");
+  m_buttons->SetControlExpression(5, "WGInput/0/Xbox One Game Controller:Menu");
+#else
   m_buttons->SetControlExpression(2, "`1`");  // 1
   m_buttons->SetControlExpression(3, "`2`");  // 2
   m_buttons->SetControlExpression(4, "Q");    // -
   m_buttons->SetControlExpression(5, "E");    // +
+#endif
 
-#ifdef _WIN32
+#if UWP_XBOX
+  m_buttons->SetControlExpression(6, "WGInput/0/Xbox One Game Controller:Menu & View");  // Home
+#elif _WIN32
   m_buttons->SetControlExpression(6, "RETURN");  // Home
 #else
   // Home
@@ -692,14 +706,26 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
     m_shake->SetControlExpression(i, "`Click 2`");
 #endif
 
+#if UWP_XBOX
   // Pointing (IR)
+  m_ir->SetControlExpression(0, "`WGInput/0/Xbox One Game Controller:Right Y+`");
+  m_ir->SetControlExpression(1, "`WGInput/0/Xbox One Game Controller:Right Y-`");
+  m_ir->SetControlExpression(2, "`WGInput/0/Xbox One Game Controller:Right X-`");
+  m_ir->SetControlExpression(3, "`WGInput/0/Xbox One Game Controller:Right X+`");
+#else
   m_ir->SetControlExpression(0, "`Cursor Y-`");
   m_ir->SetControlExpression(1, "`Cursor Y+`");
   m_ir->SetControlExpression(2, "`Cursor X-`");
   m_ir->SetControlExpression(3, "`Cursor X+`");
+#endif
 
 // DPad
-#ifdef _WIN32
+#if UWP_XBOX
+  m_dpad->SetControlExpression(0, "WGInput/0/Xbox One Game Controller:Pad N");  // Up
+  m_dpad->SetControlExpression(1, "WGInput/0/Xbox One Game Controller:Pad S");  // Down
+  m_dpad->SetControlExpression(2, "WGInput/0/Xbox One Game Controller:Pad W");  // Left
+  m_dpad->SetControlExpression(3, "WGInput/0/Xbox One Game Controller:Pad E");  // Right
+#elif _WIN32
   m_dpad->SetControlExpression(0, "UP");     // Up
   m_dpad->SetControlExpression(1, "DOWN");   // Down
   m_dpad->SetControlExpression(2, "LEFT");   // Left
@@ -729,6 +755,10 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_imu_gyroscope->SetControlExpression(3, "`Gyro Roll Right`");
   m_imu_gyroscope->SetControlExpression(4, "`Gyro Yaw Left`");
   m_imu_gyroscope->SetControlExpression(5, "`Gyro Yaw Right`");
+
+#if UWP_XBOX
+  m_rumble->SetControlExpression(0, "`WGInput/0/Xbox One Game Controller:Rumble 0`");
+#endif
 
   // Enable Nunchuk:
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;

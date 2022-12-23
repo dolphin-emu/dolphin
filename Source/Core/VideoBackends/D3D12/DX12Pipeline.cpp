@@ -224,6 +224,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
 
 AbstractPipeline::CacheData DXPipeline::GetCacheData() const
 {
+#if !UWP_XBOX
   ComPtr<ID3DBlob> blob;
   HRESULT hr = m_pipeline->GetCachedBlob(&blob);
   if (FAILED(hr))
@@ -235,5 +236,9 @@ AbstractPipeline::CacheData DXPipeline::GetCacheData() const
   CacheData data(blob->GetBufferSize());
   std::memcpy(data.data(), blob->GetBufferPointer(), blob->GetBufferSize());
   return data;
+#else
+  // Xbox's graphics driver under UWP does not support this feature.
+  return {};
+#endif
 }
 }  // namespace DX12

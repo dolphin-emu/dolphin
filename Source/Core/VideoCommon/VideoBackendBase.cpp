@@ -228,7 +228,12 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
 #endif
 #ifdef _WIN32
     backends.push_back(std::make_unique<DX11::VideoBackend>());
+#if UWP_XBOX
+    // If on UWP, give D3D12 precedence as on the S/X, D3D11 is just a 'less supported' and wrapped version of D3D12.
+    backends.emplace(backends.begin(), std::make_unique<DX12::VideoBackend>());
+#else
     backends.push_back(std::make_unique<DX12::VideoBackend>());
+#endif
 #endif
 #ifdef __APPLE__
     backends.push_back(std::make_unique<Metal::VideoBackend>());

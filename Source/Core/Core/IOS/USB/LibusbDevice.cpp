@@ -1,6 +1,7 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#if defined(__LIBUSB__)
 #include "Core/IOS/USB/LibusbDevice.h"
 
 #include <algorithm>
@@ -479,3 +480,4 @@ int LibusbDevice::ReleaseAllInterfacesForCurrentConfig() const
   return ReleaseAllInterfaces(config_num);
 }
 }  // namespace IOS::HLE::USB
+#endif
