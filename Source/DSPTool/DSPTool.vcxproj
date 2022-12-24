@@ -20,9 +20,6 @@
       <AdditionalDependencies>winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
-    <ClCompile>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="Testdata\dsp_test.bin" />
