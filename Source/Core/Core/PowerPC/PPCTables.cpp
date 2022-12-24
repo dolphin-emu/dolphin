@@ -110,8 +110,8 @@ bool UsesFPU(UGeckoInstruction inst)
   return (info->flags & FL_USE_FPU) != 0;
 }
 
-#define OPLOG
-#define OP_TO_LOG "mtfsb0x"
+// #define OPLOG
+// #define OP_TO_LOG "mtfsb0x"
 
 #ifdef OPLOG
 namespace
@@ -139,6 +139,19 @@ void CountInstruction(UGeckoInstruction inst)
   {
     info->runCount++;
   }
+}
+
+void CountInstructionCompile(GekkoOPInfo* info, u32 pc)
+{
+  info->compileCount++;
+  info->lastUse = pc;
+
+#ifdef OPLOG
+  if (!strcmp(info->opname, OP_TO_LOG))
+  {
+    rsplocations.push_back(pc);
+  }
+#endif
 }
 
 void PrintInstructionRunCounts()

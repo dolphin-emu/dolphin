@@ -491,16 +491,5 @@ void JitArm64::CompileInstruction(PPCAnalyst::CodeOp& op)
 {
   (this->*s_dyna_op_table[op.inst.OPCD])(op.inst);
 
-  GekkoOPInfo* info = op.opinfo;
-  if (info)
-  {
-#ifdef OPLOG
-    if (!strcmp(info->opname, OP_TO_LOG))
-    {  ///"mcrfs"
-      rsplocations.push_back(js.compilerPC);
-    }
-#endif
-    info->compileCount++;
-    info->lastUse = js.compilerPC;
-  }
+  PPCTables::CountInstructionCompile(op.opinfo, js.compilerPC);
 }

@@ -127,6 +127,7 @@ bool IsValidInstruction(UGeckoInstruction inst);
 bool UsesFPU(UGeckoInstruction inst);
 
 void CountInstruction(UGeckoInstruction inst);
+void CountInstructionCompile(GekkoOPInfo* info, u32 pc);
 void PrintInstructionRunCounts();
 void LogCompiledInstructions();
 const char* GetInstructionName(UGeckoInstruction inst);
