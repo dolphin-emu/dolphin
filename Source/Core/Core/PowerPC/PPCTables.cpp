@@ -648,13 +648,6 @@ const GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
   }
 }
 
-bool UsesFPU(UGeckoInstruction inst)
-{
-  const GekkoOPInfo* const info = GetOpInfo(inst);
-
-  return (info->flags & FL_USE_FPU) != 0;
-}
-
 // #define OPLOG
 // #define OP_TO_LOG "mtfsb0x"
 

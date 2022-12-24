@@ -120,11 +120,16 @@ int Interpreter::SingleStepInner()
   if (HandleFunctionHooking(PowerPC::ppcState.pc))
   {
     UpdatePC();
+    // TODO: Does it make sense to use m_prev_inst here?
+    // It seems like we should use the num_cycles for the instruction at PC instead
+    // (m_prev_inst has not yet been updated)
     return PPCTables::GetOpInfo(m_prev_inst)->num_cycles;
   }
 
   PowerPC::ppcState.npc = PowerPC::ppcState.pc + sizeof(UGeckoInstruction);
   m_prev_inst.hex = PowerPC::Read_Opcode(PowerPC::ppcState.pc);
+
+  const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst);
 
   // Uncomment to trace the interpreter
   // if ((PowerPC::ppcState.pc & 0x00FFFFFF) >= 0x000AB54C &&
@@ -160,7 +165,7 @@ int Interpreter::SingleStepInner()
     else
     {
       // check if we have to generate a FPU unavailable exception or a program exception.
-      if (PPCTables::UsesFPU(m_prev_inst))
+      if ((opinfo->flags & FL_USE_FPU) != 0)
       {
         PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
         CheckExceptions();
@@ -183,7 +188,6 @@ int Interpreter::SingleStepInner()
 
   UpdatePC();
 
-  const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst);
   PowerPC::UpdatePerformanceMonitor(opinfo->num_cycles, (opinfo->flags & FL_LOADSTORE) != 0,
                                     (opinfo->flags & FL_USE_FPU) != 0, PowerPC::ppcState);
   return opinfo->num_cycles;

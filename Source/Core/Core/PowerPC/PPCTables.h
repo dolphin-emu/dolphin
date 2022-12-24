@@ -121,7 +121,6 @@ namespace PPCTables
 const GekkoOPInfo* GetOpInfo(UGeckoInstruction inst);
 
 bool IsValidInstruction(UGeckoInstruction inst);
-bool UsesFPU(UGeckoInstruction inst);
 
 void CountInstruction(UGeckoInstruction inst);
 void CountInstructionCompile(const GekkoOPInfo* info, u32 pc);
