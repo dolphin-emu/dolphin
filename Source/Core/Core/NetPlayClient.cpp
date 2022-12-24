@@ -474,6 +474,7 @@ void NetPlayClient::OnData(sf::Packet& packet)
       packet >> coinFlip;
       m_dialog->OnCoinFlipResult(coinFlip);
     }
+    break;
 
   default:
     PanicAlertFmtT("Unknown message received with id : {0}", static_cast<u8>(mid));

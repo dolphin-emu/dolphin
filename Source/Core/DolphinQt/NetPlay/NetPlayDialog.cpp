@@ -115,6 +115,8 @@ NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model,
 
   restoreGeometry(settings.value(QStringLiteral("netplaydialog/geometry")).toByteArray());
   m_splitter->restoreState(settings.value(QStringLiteral("netplaydialog/splitter")).toByteArray());
+
+  srand(time(0));
 }
 
 NetPlayDialog::~NetPlayDialog()
@@ -461,7 +463,7 @@ void NetPlayDialog::OnCoinFlipResult(int coinVal)
   }
   else
   {
-    DisplayMessage(tr("Tails"), "orange");
+    DisplayMessage(tr("Tails"), "darkblue");
   }
 }
 
@@ -573,8 +575,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_hostcode_action_button->setHidden(!is_hosting);
   m_game_button->setEnabled(is_hosting);
   m_kick_button->setEnabled(false);
-  m_coin_flipper->setHidden(!is_hosting);
-  m_coin_flipper->setEnabled(is_hosting);
+  m_coin_flipper->setEnabled(true);
 
   SetOptionsEnabled(true);
 
