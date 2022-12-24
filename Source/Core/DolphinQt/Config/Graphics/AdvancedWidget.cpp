@@ -156,6 +156,7 @@ void AdvancedWidget::CreateWidgets()
   m_backend_multithreading =
       new GraphicsBool(tr("Backend Multithreading"), Config::GFX_BACKEND_MULTITHREADING);
   m_prefer_vs_for_point_line_expansion = new GraphicsBool(
+      // i18n: VS is short for vertex shaders.
       tr("Prefer VS for Point/Line Expansion"), Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION);
 
   misc_layout->addWidget(m_enable_cropping, 0, 0);
