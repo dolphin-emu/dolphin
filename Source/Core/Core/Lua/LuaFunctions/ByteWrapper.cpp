@@ -309,12 +309,34 @@
     }
   }
 
-  // returns true if wrapper is big enough to accomodate type, and false otherwise.
-  bool ByteWrapper::typeSizeCheck(lua_State* luaState, ByteWrapper* byteWrapperPointer, u8 numBytesRequired)
+  // returns true if wrapper is big enough to accomodate desired type, and false otherwise.
+  bool ByteWrapper::typeSizeCheck(ByteWrapper* byteWrapperPointer, ByteType desiredType)
   {
-    if (byteWrapperPointer->numBytesUsedByType < numBytesRequired)
+    switch (desiredType)
+    {
+    case UNSIGNED_8:
+    case SIGNED_8:
+      return byteWrapperPointer->totalBytesAllocated >= 1;
+
+    case UNSIGNED_16:
+    case SIGNED_16:
+      return byteWrapperPointer->totalBytesAllocated >= 2;
+
+    case UNSIGNED_32:
+    case SIGNED_32:
+    case FLOAT:
+      return byteWrapperPointer->totalBytesAllocated >= 4;
+
+    case UNSIGNED_64:
+    case SIGNED_64:
+    case DOUBLE:
+      return byteWrapperPointer->totalBytesAllocated >= 8;
+
+    default:
       return false;
-    return true;
+    }
+
+    
   }
 
   ByteWrapper::ByteWrapper(u8 initialValue)

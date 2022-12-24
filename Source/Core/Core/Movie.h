@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -132,6 +133,10 @@ struct DTMHeader
   std::array<u8, 11> reserved2;  // Make heading 256 bytes, just because we can
 };
 static_assert(sizeof(DTMHeader) == 256, "DTMHeader should be 256 bytes");
+
+extern std::vector<u8> s_temp_input;
+extern ControllerState s_padState;
+extern u64 s_currentByte;
 
 #pragma pack(pop)
 

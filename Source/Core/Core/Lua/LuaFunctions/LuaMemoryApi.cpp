@@ -329,7 +329,7 @@ void write_double(lua_State* luaState, u32 address, double value)
 
 int do_write_from_byte_wrapper(lua_State* luaState, u32 address, ByteWrapper* byteWrapperPointer, u8 numBytesRequired)
 {
-  if (!ByteWrapper::typeSizeCheck(luaState, byteWrapperPointer, numBytesRequired))
+  if (byteWrapperPointer->totalBytesAllocated < numBytesRequired)
   {
     luaL_error(luaState, "Error: ByteWrapper was not big enough to write the specified number of bytes to memory in Memory:writeTo()");
     return 0;

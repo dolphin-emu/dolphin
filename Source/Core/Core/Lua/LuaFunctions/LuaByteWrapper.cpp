@@ -88,7 +88,7 @@ int newByteWrapper(lua_State* luaState)
 
 int deleteByteWrapper(lua_State* luaState)
 {
-  delete *reinterpret_cast<ByteWrapper**>(lua_touserdata(luaState, 1));
+  //delete *reinterpret_cast<ByteWrapper**>(lua_touserdata(luaState, 1));
   return 0;
 }
 
@@ -104,7 +104,7 @@ int withType(lua_State* luaState)
                          "u16, s16, u32, s32, float, u64, s64, or double.");
     return 0;
   }
-  else if (!ByteWrapper::typeSizeCheck(luaState, byteWrapperPointer, parsedType))
+  else if (!ByteWrapper::typeSizeCheck(byteWrapperPointer, parsedType))
   {
     return 0;
   }

@@ -68,7 +68,7 @@ public:
 
   static std::string getByteTypeAsString(ByteType inputType);
   static ByteType parseType(const char*);
-  static bool typeSizeCheck(lua_State* luaState, ByteWrapper* byteWrapperPointer, u8 numBytesRequired);
+  static bool typeSizeCheck(ByteWrapper* byteWrapperPointer, ByteType desiredType);
   // If the number represented by the first wrapper equals the number represented by the 2nd wrapper, then true is returned.
   // Otherwise, false is returned.
   bool operator==(const ByteWrapper& otherByteWrapper) const;
