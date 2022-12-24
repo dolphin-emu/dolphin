@@ -394,7 +394,15 @@ void CoreTimingManager::Throttle(const s64 target_cycle, const double speed)
     m_throttle_disable_vsync = false;
   }
 
-  std::this_thread::sleep_until(m_throttle_deadline);
+  TimePoint now;
+  while ((now = Clock::now()) < m_throttle_deadline)
+  {
+    // Random stuff to keep the compiler from optimizing out the sleep
+    volatile auto t = now.time_since_epoch().count();
+    volatile auto t2 = t / 2;
+    if ((t - t2 != t2) && (t2 + t2 != t - 1))
+      break;
+  }
 
   // Count amount of time sleeping vs time working
   const TimePoint time_after_sleep = Clock::now();
