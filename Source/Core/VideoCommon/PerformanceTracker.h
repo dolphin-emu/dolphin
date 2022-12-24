@@ -43,10 +43,11 @@ public:
   PerformanceTracker(PerformanceTracker&&) = delete;
   PerformanceTracker& operator=(PerformanceTracker&&) = delete;
 
-public:  // Functions for recording and accessing information
+  // Functions for recording performance information
   void Reset();
   void Count();
 
+  // Functions for reading performance information
   DT GetSampleWindow() const;
 
   double GetHzAvg() const;
@@ -68,12 +69,10 @@ private:  // Functions for managing dt queue
   std::size_t inline QueueSize() const;
   bool inline QueueEmpty() const;
 
-private:  // Handle pausing and logging
+  // Handle pausing and logging
   void LogRenderTimeToFile(DT val);
   void SetPaused(bool paused);
 
-private:
-  // Handle not counting time during pauses
   bool m_paused = false;
   int m_on_state_changed_handle;
 

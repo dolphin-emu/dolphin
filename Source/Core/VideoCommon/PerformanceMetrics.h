@@ -16,22 +16,22 @@ public:
   PerformanceMetrics(PerformanceMetrics&&) = delete;
   PerformanceMetrics& operator=(PerformanceMetrics&&) = delete;
 
-public:  // Count Functions
+  // Count Functions
   void Reset();
   void CountFrame();
   void CountVBlank();
 
-public:  // Getter Functions
+  // Getter Functions
   double GetFPS() const;
   double GetVPS() const;
   double GetSpeed() const;
 
   double GetLastSpeedDenominator() const;
 
-public:  // ImGui Functions
+  // ImGui Functions
   void DrawImGuiStats(const float backbuffer_scale) const;
 
-private:  // Member Variables
+private:
   PerformanceTracker m_fps_counter{"render_times.txt"};
   PerformanceTracker m_vps_counter{"vblank_times.txt"};
   PerformanceTracker m_speed_counter{nullptr, 6000000};
