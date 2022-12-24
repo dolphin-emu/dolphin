@@ -69,6 +69,8 @@ public:
 
   virtual void OnRankedEnabled(bool is_ranked) = 0;
 
+  virtual void OnCoinFlipResult(int coinFlip) = 0;
+
   virtual bool IsRecording() = 0;
   virtual std::shared_ptr<const UICommon::GameFile>
   FindGameFile(const SyncIdentifier& sync_identifier,
@@ -124,6 +126,7 @@ public:
   void Stop();
   bool ChangeGame(const std::string& game);
   void SendChatMessage(const std::string& msg);
+  void SendCoinFlip(int coinVal);
   void RequestStopGame();
   void SendPowerButtonEvent();
   void RequestGolfControl(PlayerId pid);

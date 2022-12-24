@@ -468,6 +468,13 @@ void NetPlayClient::OnData(sf::Packet& packet)
     OnRankedBoxMsg(packet);
     break;
 
+    case MessageID::CoinFlip:
+    {
+      int coinFlip;
+      packet >> coinFlip;
+      m_dialog->OnCoinFlipResult(coinFlip);
+    }
+
   default:
     PanicAlertFmtT("Unknown message received with id : {0}", static_cast<u8>(mid));
     break;
@@ -1665,6 +1672,15 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
   sf::Packet packet;
   packet << MessageID::ChatMessage;
   packet << msg;
+
+  SendAsync(std::move(packet));
+}
+
+void NetPlayClient::SendCoinFlip(int coinVal)
+{
+  sf::Packet packet;
+  packet << MessageID::CoinFlip;
+  packet << coinVal;
 
   SendAsync(std::move(packet));
 }

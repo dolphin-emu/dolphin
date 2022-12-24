@@ -1207,6 +1207,20 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case MessageID::CoinFlip:
+  {
+    int coinVal;
+    packet >> coinVal;
+
+    // Send result to other clients
+    sf::Packet spac;
+    spac << MessageID::CoinFlip;
+    spac << coinVal;
+
+    SendToClients(spac);
+  }
+  break;
+
   default:
     PanicAlertFmtT("Unknown message with id:{0} received from player:{1} Kicking player!",
                    static_cast<u8>(mid), player.pid);
