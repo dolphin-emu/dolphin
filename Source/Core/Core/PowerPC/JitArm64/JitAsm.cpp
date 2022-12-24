@@ -8,10 +8,12 @@
 #include "Common/Arm64Emitter.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FloatUtils.h"
 #include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
@@ -27,6 +29,8 @@ using namespace Arm64Gen;
 void JitArm64::GenerateAsm()
 {
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
+
+  const bool enable_debugging = Config::Get(Config::MAIN_ENABLE_DEBUGGING);
 
   // This value is all of the callee saved registers that we are required to save.
   // According to the AACPS64 we need to save R19 ~ R30 and Q8 ~ Q15.
@@ -85,6 +89,15 @@ void JitArm64::GenerateAsm()
   FixupBranch bail = B(CC_LE);
 
   dispatcher_no_timing_check = GetCodePtr();
+
+  FixupBranch debug_exit;
+  if (enable_debugging)
+  {
+    LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
+        MOVPage2R(ARM64Reg::X0, CPU::GetStatePtr()));
+    debug_exit = CBNZ(ARM64Reg::W0);
+  }
+
   dispatcher_no_check = GetCodePtr();
 
   bool assembly_dispatcher = true;
@@ -174,9 +187,7 @@ void JitArm64::GenerateAsm()
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
   LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0, MOVPage2R(ARM64Reg::X0, CPU::GetStatePtr()));
-
-  CMP(ARM64Reg::W0, 0);
-  FixupBranch Exit = B(CC_NEQ);
+  FixupBranch exit = CBNZ(ARM64Reg::W0);
 
   SetJumpTarget(to_start_of_timing_slice);
   MOVP2R(ARM64Reg::X8, &CoreTiming::GlobalAdvance);
@@ -188,7 +199,10 @@ void JitArm64::GenerateAsm()
   // We can safely assume that downcount >= 1
   B(dispatcher_no_check);
 
-  SetJumpTarget(Exit);
+  dispatcher_exit = GetCodePtr();
+  SetJumpTarget(exit);
+  if (enable_debugging)
+    SetJumpTarget(debug_exit);
 
   // Reset the stack pointer, as the BLR optimization have touched it.
   LDR(IndexType::Unsigned, ARM64Reg::X0, ARM64Reg::X1,

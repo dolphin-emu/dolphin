@@ -190,6 +190,9 @@ protected:
     const u8* slowmem_code;
   };
 
+  void SetBlockLinkingEnabled(bool enabled);
+  void SetOptimizationEnabled(bool enabled);
+
   void CompileInstruction(PPCAnalyst::CodeOp& op);
 
   bool HandleFunctionHooking(u32 address);
@@ -275,6 +278,8 @@ protected:
                                            Arm64Gen::ARM64Reg tmp2);
 
   bool DoJit(u32 em_address, JitBlock* b, u32 nextPC);
+
+  void Trace();
 
   // Finds a free memory region and sets the near and far code emitters to point at that region.
   // Returns false if no free memory region can be found for either of the two.

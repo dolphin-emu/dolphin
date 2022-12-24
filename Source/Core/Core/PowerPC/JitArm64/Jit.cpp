@@ -17,12 +17,14 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/System.h"
 
@@ -57,9 +59,10 @@ void JitArm64::Init()
   auto& memory = system.GetMemory();
 
   jo.fastmem_arena = m_fastmem_enabled && memory.InitFastmemArena();
-  jo.enableBlocklink = true;
   jo.optimizeGatherPipe = true;
   UpdateMemoryAndExceptionOptions();
+  SetBlockLinkingEnabled(true);
+  SetOptimizationEnabled(true);
   gpr.Init(this);
   fpr.Init(this);
   blocks.Init();
@@ -67,9 +70,6 @@ void JitArm64::Init()
   code_block.m_stats = &js.st;
   code_block.m_gpa = &js.gpa;
   code_block.m_fpa = &js.fpa;
-  analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
-  analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
-  analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
 
   m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
   m_cleanup_after_stackfault = false;
@@ -78,6 +78,27 @@ void JitArm64::Init()
   GenerateAsm();
 
   ResetFreeMemoryRanges();
+}
+
+void JitArm64::SetBlockLinkingEnabled(bool enabled)
+{
+  jo.enableBlocklink = enabled && !SConfig::GetInstance().bJITNoBlockLinking;
+}
+
+void JitArm64::SetOptimizationEnabled(bool enabled)
+{
+  if (enabled)
+  {
+    analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+    analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
+    analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
+  }
+  else
+  {
+    analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+    analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
+    analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
+  }
 }
 
 bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
@@ -661,6 +682,31 @@ void JitArm64::SingleStep()
   pExecAddr();
 }
 
+void JitArm64::Trace()
+{
+  std::string regs;
+  std::string fregs;
+
+#ifdef JIT_LOG_GPR
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
+  {
+    regs += fmt::format("r{:02d}: {:08x} ", i, PowerPC::ppcState.gpr[i]);
+  }
+#endif
+
+#ifdef JIT_LOG_FPR
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.ps); i++)
+  {
+    fregs += fmt::format("f{:02d}: {:016x} ", i, PowerPC::ppcState.ps[i].PS0AsU64());
+  }
+#endif
+
+  DEBUG_LOG_FMT(DYNA_REC,
+                "JitArm64 PC: {:08x} SRR0: {:08x} SRR1: {:08x} FPSCR: {:08x} "
+                "MSR: {:08x} LR: {:08x} {} {}",
+                PC, SRR0, SRR1, FPSCR.Hex, MSR.Hex, PowerPC::ppcState.spr[8], regs, fregs);
+}
+
 void JitArm64::Jit(u32 em_address)
 {
   Jit(em_address, true);
@@ -706,8 +752,22 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   if (m_enable_debugging)
   {
-    // Comment out the following to disable breakpoints (speed-up)
-    block_size = 1;
+    // We can link blocks as long as we are not single stepping
+    SetBlockLinkingEnabled(true);
+    SetOptimizationEnabled(true);
+
+    if (!jo.profile_blocks)
+    {
+      if (CPU::IsStepping())
+      {
+        block_size = 1;
+
+        // Do not link this block to other blocks while single stepping
+        SetBlockLinkingEnabled(false);
+        SetOptimizationEnabled(false);
+      }
+      Trace();
+    }
   }
 
   // Analyze the block, collect all instructions it is made of (including inlining,
@@ -1006,11 +1066,38 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      if (bJITRegisterCacheOff)
+      if (m_enable_debugging && PowerPC::breakpoints.IsAddressBreakPoint(op.address) &&
+          !CPU::IsStepping())
       {
+        FlushCarry();
         gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
         fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+
+        static_assert(PPCSTATE_OFF(pc) <= 252);
+        static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
+
+        MOVI2R(DISPATCHER_PC, op.address);
+        STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+        MOVP2R(ARM64Reg::X0, &PowerPC::CheckBreakPoints);
+        BLR(ARM64Reg::X0);
+
+        LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
+            MOVPage2R(ARM64Reg::X0, CPU::GetStatePtr()));
+        FixupBranch no_breakpoint = CBZ(ARM64Reg::W0);
+
+        Cleanup();
+        EndTimeProfile(js.curBlock);
+        DoDownCount();
+        B(dispatcher_exit);
+
+        SetJumpTarget(no_breakpoint);
+      }
+
+      if (bJITRegisterCacheOff)
+      {
         FlushCarry();
+        gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+        fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
       }
 
       CompileInstruction(op);
