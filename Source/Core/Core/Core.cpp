@@ -86,6 +86,7 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -100,8 +101,6 @@ static bool s_wants_determinism;
 // Declarations and definitions
 static Common::Timer s_timer;
 static u64 s_timer_offset;
-static std::atomic<u32> s_drawn_frame;
-static std::atomic<u32> s_drawn_video;
 
 static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
@@ -346,6 +345,9 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   // This needs to be delayed until after the video backend is ready.
   DolphinAnalytics::Instance().ReportGameStart();
+
+  // Clear performance data collected from previous threads.
+  g_perf_metrics.Reset();
 
 #ifdef ANDROID
   // For some reason, calling the JNI function AttachCurrentThread from the CPU thread after a
@@ -843,19 +845,15 @@ void RunOnCPUThread(std::function<void()> function, bool wait_for_completion)
 // This should only be called from VI
 void VideoThrottle()
 {
+  g_perf_metrics.CountVBlank();
+
   // Update info per second
   u64 elapsed_ms = s_timer.ElapsedMs();
-  if ((elapsed_ms >= 1000 && s_drawn_video.load() > 0) || s_frame_step)
+  if ((elapsed_ms >= 500) || s_frame_step)
   {
     s_timer.Start();
-
-    UpdateTitle(elapsed_ms);
-
-    s_drawn_frame.store(0);
-    s_drawn_video.store(0);
+    UpdateTitle();
   }
-
-  s_drawn_video++;
 }
 
 // --- Callbacks for backends / engine ---
@@ -864,9 +862,9 @@ void VideoThrottle()
 // frame is presented to the host screen
 void Callback_FramePresented(double actual_emulation_speed)
 {
-  s_last_actual_emulation_speed = actual_emulation_speed;
+  g_perf_metrics.CountFrame();
 
-  s_drawn_frame++;
+  s_last_actual_emulation_speed = actual_emulation_speed;
   s_stop_frame_step.store(true);
 }
 
@@ -891,15 +889,11 @@ void Callback_NewField()
   }
 }
 
-void UpdateTitle(u64 elapsed_ms)
+void UpdateTitle()
 {
-  if (elapsed_ms == 0)
-    elapsed_ms = 1;
-
-  float FPS = (float)(s_drawn_frame.load() * 1000.0 / elapsed_ms);
-  float VPS = (float)(s_drawn_video.load() * 1000.0 / elapsed_ms);
-  float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) /
-                        (VideoInterface::GetTargetRefreshRate() * elapsed_ms));
+  float FPS = g_perf_metrics.GetFPS();
+  float VPS = g_perf_metrics.GetVPS();
+  float Speed = g_perf_metrics.GetSpeed();
 
   // Settings are shown the same for both extended and summary info
   const std::string SSettings = fmt::format(
@@ -954,15 +948,6 @@ void UpdateTitle(u64 elapsed_ms)
     const std::string& title = SConfig::GetInstance().GetTitleDescription();
     if (!title.empty())
       message += " | " + title;
-  }
-
-  // Update the audio timestretcher with the current speed
-  auto& system = Core::System::GetInstance();
-  SoundStream* sound_stream = system.GetSoundStream();
-  if (sound_stream)
-  {
-    Mixer* mixer = sound_stream->GetMixer();
-    mixer->UpdateSpeed((float)Speed / 100);
   }
 
   Host_UpdateTitle(message);

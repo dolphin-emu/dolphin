@@ -23,6 +23,7 @@
 
 #include <fmt/format.h>
 #include <imgui.h>
+#include <implot.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -63,7 +64,6 @@
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
@@ -592,46 +592,6 @@ void Renderer::CheckForConfigChanges()
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
-  if (g_ActiveConfig.bShowFPS || g_ActiveConfig.bShowVPS || g_ActiveConfig.bShowSpeed)
-  {
-    // Position in the top-right corner of the screen.
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - (10.0f * m_backbuffer_scale),
-                                   10.f * m_backbuffer_scale),
-                            ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-
-    int count = g_ActiveConfig.bShowFPS + g_ActiveConfig.bShowVPS + g_ActiveConfig.bShowSpeed;
-    ImGui::SetNextWindowSize(
-        ImVec2(94.f * m_backbuffer_scale, (12.f + 17.f * count) * m_backbuffer_scale));
-
-    if (ImGui::Begin("Performance", nullptr,
-                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
-                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
-                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
-    {
-      const double fps = m_fps_counter.GetFPS();
-      const double vps = m_vps_counter.GetFPS();
-      const double speed = 100.0 * vps / VideoInterface::GetTargetRefreshRate();
-
-      // Change Color based on % Speed
-      float r = 0.0f, g = 1.0f, b = 1.0f;
-      if (g_ActiveConfig.bShowSpeedColors)
-      {
-        r = 1.0 - (speed - 80.0) / 20.0;
-        g = speed / 80.0;
-        b = (speed - 90.0) / 10.0;
-      }
-
-      if (g_ActiveConfig.bShowFPS)
-        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "FPS:%7.2lf", fps);
-      if (g_ActiveConfig.bShowVPS)
-        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "VPS:%7.2lf", vps);
-      if (g_ActiveConfig.bShowSpeed)
-        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Speed:%4.0lf%%", speed);
-    }
-    ImGui::End();
-  }
-
   const bool show_movie_window =
       Config::Get(Config::MAIN_SHOW_FRAME_COUNT) || Config::Get(Config::MAIN_SHOW_LAG) ||
       Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY) ||
@@ -1046,6 +1006,11 @@ bool Renderer::InitializeImGui()
     PanicAlertFmt("Creating ImGui context failed");
     return false;
   }
+  if (!ImPlot::CreateContext())
+  {
+    PanicAlertFmt("Creating ImPlot context failed");
+    return false;
+  }
 
   // Don't create an ini file. TODO: Do we want this in the future?
   ImGui::GetIO().IniFilename = nullptr;
@@ -1159,6 +1124,7 @@ void Renderer::ShutdownImGui()
   std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
 
   ImGui::EndFrame();
+  ImPlot::DestroyContext();
   ImGui::DestroyContext();
   m_imgui_pipeline.reset();
   m_imgui_vertex_format.reset();
@@ -1390,10 +1356,6 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
         g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &xfb_rect);
     const bool is_duplicate_frame = xfb_entry->id == m_last_xfb_id;
 
-    m_vps_counter.Update();
-    if (!is_duplicate_frame)
-      m_fps_counter.Update();
-
     if (xfb_entry && (!g_ActiveConfig.bSkipPresentingDuplicateXFBs || !is_duplicate_frame))
     {
       m_last_xfb_id = xfb_entry->id;
@@ -1407,6 +1369,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       {
         auto lock = GetImGuiLock();
 
+        g_perf_metrics.DrawImGuiStats(m_backbuffer_scale);
         DrawDebugText();
         OSD::DrawMessages();
         ImGui::Render();
@@ -1485,8 +1448,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       {
         // Remove stale EFB/XFB copies.
         g_texture_cache->Cleanup(m_frame_count);
-        const double last_speed_denominator =
-            m_fps_counter.GetDeltaTime() * VideoInterface::GetTargetRefreshRate();
+        const double last_speed_denominator = g_perf_metrics.GetLastSpeedDenominator();
         // The denominator should always be > 0 but if it's not, just return 1
         const double last_speed =
             last_speed_denominator > 0.0 ? (1.0 / last_speed_denominator) : 1.0;
