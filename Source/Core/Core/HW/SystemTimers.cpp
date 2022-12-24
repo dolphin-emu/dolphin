@@ -127,9 +127,9 @@ void IPC_HLE_UpdateCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 
 void GPUSleepCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  auto& core_timing = system.GetCoreTiming();
-  system.GetFifo().GpuMaySleep();
-  core_timing.ScheduleEvent(VideoInterface::GetTicksPerField() / 8 - cyclesLate, et_GPU_sleeper);
+  // auto& core_timing = system.GetCoreTiming();
+  // system.GetFifo().GpuMaySleep();
+  // core_timing.ScheduleEvent(VideoInterface::GetTicksPerField() / 8 - cyclesLate, et_GPU_sleeper);
 }
 
 void PerfTrackerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
@@ -293,7 +293,7 @@ void Init()
   et_PatchEngine = core_timing.RegisterEvent("PatchEngine", PatchEngineCallback);
 
   core_timing.ScheduleEvent(0, et_perf_tracker);
-  core_timing.ScheduleEvent(0, et_GPU_sleeper);
+  // core_timing.ScheduleEvent(0, et_GPU_sleeper);
   core_timing.ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
   core_timing.ScheduleEvent(0, et_DSP);
   core_timing.ScheduleEvent(GetAudioDMACallbackPeriod(), et_AudioDMA);
