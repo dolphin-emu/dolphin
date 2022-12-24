@@ -36,7 +36,10 @@ private:
   GraphicsBool* m_enable_format_overlay;
   GraphicsBool* m_enable_api_validation;
   GraphicsBool* m_show_fps;
+  GraphicsBool* m_show_ftimes;
   GraphicsBool* m_show_vps;
+  GraphicsBool* m_show_vtimes;
+  GraphicsBool* m_show_graphs;
   GraphicsBool* m_show_speed;
   GraphicsBool* m_show_speed_colors;
   GraphicsInteger* m_perf_samp_window;

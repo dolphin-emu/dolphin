@@ -28,9 +28,9 @@
 #include "Common/MathUtil.h"
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
+#include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 
@@ -337,9 +337,6 @@ protected:
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
   MathUtil::Rectangle<int> m_target_rectangle = {};
   int m_frame_count = 0;
-
-  FPSCounter m_fps_counter = FPSCounter("render_times.txt");
-  FPSCounter m_vps_counter = FPSCounter("v_blank_times.txt");
 
   std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
 

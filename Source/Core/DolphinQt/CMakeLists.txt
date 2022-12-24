@@ -377,6 +377,7 @@ PRIVATE
   Qt${QT_VERSION_MAJOR}::Widgets
   uicommon
   imgui
+  implot
 )
 
 if (WIN32)

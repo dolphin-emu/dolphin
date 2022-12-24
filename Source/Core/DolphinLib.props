@@ -637,7 +637,6 @@
     <ClInclude Include="VideoCommon\DataReader.h" />
     <ClInclude Include="VideoCommon\DriverDetails.h" />
     <ClInclude Include="VideoCommon\Fifo.h" />
-    <ClInclude Include="VideoCommon\FPSCounter.h" />
     <ClInclude Include="VideoCommon\FramebufferManager.h" />
     <ClInclude Include="VideoCommon\FramebufferShaderGen.h" />
     <ClInclude Include="VideoCommon\FrameDump.h" />
@@ -672,6 +671,8 @@
     <ClInclude Include="VideoCommon\OnScreenDisplay.h" />
     <ClInclude Include="VideoCommon\OpcodeDecoding.h" />
     <ClInclude Include="VideoCommon\PerfQueryBase.h" />
+    <ClInclude Include="VideoCommon\PerformanceMetrics.h" />
+    <ClInclude Include="VideoCommon\PerformanceTracker.h" />
     <ClInclude Include="VideoCommon\PixelEngine.h" />
     <ClInclude Include="VideoCommon\PixelShaderGen.h" />
     <ClInclude Include="VideoCommon\PixelShaderManager.h" />
@@ -1244,7 +1245,6 @@
     <ClCompile Include="VideoCommon\CPMemory.cpp" />
     <ClCompile Include="VideoCommon\DriverDetails.cpp" />
     <ClCompile Include="VideoCommon\Fifo.cpp" />
-    <ClCompile Include="VideoCommon\FPSCounter.cpp" />
     <ClCompile Include="VideoCommon\FramebufferManager.cpp" />
     <ClCompile Include="VideoCommon\FramebufferShaderGen.cpp" />
     <ClCompile Include="VideoCommon\FrameDump.cpp" />
@@ -1272,6 +1272,8 @@
     <ClCompile Include="VideoCommon\OnScreenDisplay.cpp" />
     <ClCompile Include="VideoCommon\OpcodeDecoding.cpp" />
     <ClCompile Include="VideoCommon\PerfQueryBase.cpp" />
+    <ClCompile Include="VideoCommon\PerformanceMetrics.cpp" />
+    <ClCompile Include="VideoCommon\PerformanceTracker.cpp" />
     <ClCompile Include="VideoCommon\PixelEngine.cpp" />
     <ClCompile Include="VideoCommon\PixelShaderGen.cpp" />
     <ClCompile Include="VideoCommon\PixelShaderManager.cpp" />

@@ -51,7 +51,10 @@ void AdvancedWidget::CreateWidgets()
   performance_box->setLayout(performance_layout);
 
   m_show_fps = new GraphicsBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
+  m_show_ftimes = new GraphicsBool(tr("Show Frame Times"), Config::GFX_SHOW_FTIMES);
   m_show_vps = new GraphicsBool(tr("Show VPS"), Config::GFX_SHOW_VPS);
+  m_show_vtimes = new GraphicsBool(tr("Show VBlank Times"), Config::GFX_SHOW_VTIMES);
+  m_show_graphs = new GraphicsBool(tr("Show Performance Graphs"), Config::GFX_SHOW_GRAPHS);
   m_show_speed = new GraphicsBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED);
   m_show_speed_colors = new GraphicsBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
   m_perf_samp_window = new GraphicsInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, 100);
@@ -59,12 +62,15 @@ void AdvancedWidget::CreateWidgets()
       new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
 
   performance_layout->addWidget(m_show_fps, 0, 0);
+  performance_layout->addWidget(m_show_ftimes, 0, 1);
   performance_layout->addWidget(m_show_vps, 1, 0);
-  performance_layout->addWidget(m_show_speed, 0, 1);
-  performance_layout->addWidget(new QLabel(tr("Performance Sample Window (ms):")), 2, 0);
-  performance_layout->addWidget(m_perf_samp_window, 2, 1);
-  performance_layout->addWidget(m_log_render_time, 3, 0);
-  performance_layout->addWidget(m_show_speed_colors, 3, 1);
+  performance_layout->addWidget(m_show_vtimes, 1, 1);
+  performance_layout->addWidget(m_show_speed, 2, 0);
+  performance_layout->addWidget(m_show_graphs, 2, 1);
+  performance_layout->addWidget(new QLabel(tr("Performance Sample Window (ms):")), 3, 0);
+  performance_layout->addWidget(m_perf_samp_window, 3, 1);
+  performance_layout->addWidget(m_log_render_time, 4, 0);
+  performance_layout->addWidget(m_show_speed_colors, 4, 1);
 
   // Debugging
   auto* debugging_box = new QGroupBox(tr("Debugging"));
@@ -240,9 +246,21 @@ void AdvancedWidget::AddDescriptions()
       QT_TR_NOOP("Shows the number of distinct frames rendered per second as a measure of "
                  "visual smoothness.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_FTIMES_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the average time in ms between each distinct rendered frame alongside "
+                 "the standard deviation.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
   static const char TR_SHOW_VPS_DESCRIPTION[] =
       QT_TR_NOOP("Shows the number of frames rendered per second as a measure of "
                  "emulation speed.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_VTIMES_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the average time in ms between each rendered frame alongside "
+                 "the standard deviation.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_GRAPHS_DESCRIPTION[] =
+      QT_TR_NOOP("Shows frametime graph along with statistics as a representation of "
+                 "emulation performance.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
   static const char TR_SHOW_SPEED_DESCRIPTION[] =
       QT_TR_NOOP("Shows the % speed of emulation compared to full speed."
@@ -380,7 +398,10 @@ void AdvancedWidget::AddDescriptions()
       QT_TR_NOOP("<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));
+  m_show_ftimes->SetDescription(tr(TR_SHOW_FTIMES_DESCRIPTION));
   m_show_vps->SetDescription(tr(TR_SHOW_VPS_DESCRIPTION));
+  m_show_vtimes->SetDescription(tr(TR_SHOW_VTIMES_DESCRIPTION));
+  m_show_graphs->SetDescription(tr(TR_SHOW_GRAPHS_DESCRIPTION));
   m_show_speed->SetDescription(tr(TR_SHOW_SPEED_DESCRIPTION));
   m_log_render_time->SetDescription(tr(TR_LOG_RENDERTIME_DESCRIPTION));
   m_show_speed_colors->SetDescription(tr(TR_SHOW_SPEED_COLORS_DESCRIPTION));
