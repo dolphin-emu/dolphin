@@ -33,6 +33,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)Settings;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)TAS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
