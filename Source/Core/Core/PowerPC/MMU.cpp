@@ -8,6 +8,7 @@
 #include <cstring>
 #include <string>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
@@ -379,7 +380,9 @@ static void WriteToHardware(Memory::MemoryManager& memory, u32 em_address, const
 
     const u32 rotated_data = std::rotr(data, ((em_address & 0x3) + size) * 8);
 
-    for (u32 addr = em_address & ~0x7; addr < em_address + size; addr += 8)
+    const u32 start_addr = Common::AlignDown(em_address, 8);
+    const u32 end_addr = Common::AlignUp(em_address + size, 8);
+    for (u32 addr = start_addr; addr != end_addr; addr += 8)
     {
       WriteToHardware<flag, true>(memory, addr, rotated_data, 4);
       WriteToHardware<flag, true>(memory, addr + 4, rotated_data, 4);
