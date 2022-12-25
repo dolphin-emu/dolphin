@@ -204,11 +204,16 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   std::thread([&] {
     JNIEnv* env = IDCache::GetEnvForThread();
 
+    jstring j_caption = ToJString(env, caption);
+    jstring j_text = ToJString(env, text);
+
     // Execute the Java method.
     result = env->CallStaticBooleanMethod(
-        IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(), ToJString(env, caption),
-        ToJString(env, text), yes_no, style == Common::MsgType::Warning,
-        s_need_nonblocking_alert_msg);
+        IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(), j_caption, j_text, yes_no,
+        style == Common::MsgType::Warning, s_need_nonblocking_alert_msg);
+
+    env->DeleteLocalRef(j_caption);
+    env->DeleteLocalRef(j_text);
   }).join();
 
   return result != JNI_FALSE;
@@ -222,20 +227,29 @@ static void ReportSend(const std::string& endpoint, const std::string& report)
   jbyte* output = env->GetByteArrayElements(output_array, nullptr);
   memcpy(output, report.data(), report.size());
   env->ReleaseByteArrayElements(output_array, output, 0);
+
+  jstring j_endpoint = ToJString(env, endpoint);
+
   env->CallStaticVoidMethod(IDCache::GetAnalyticsClass(), IDCache::GetSendAnalyticsReport(),
-                            ToJString(env, endpoint), output_array);
+                            j_endpoint, output_array);
+
+  env->DeleteLocalRef(output_array);
+  env->DeleteLocalRef(j_endpoint);
 }
 
 static std::string GetAnalyticValue(const std::string& key)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
-  auto value = reinterpret_cast<jstring>(env->CallStaticObjectMethod(
-      IDCache::GetAnalyticsClass(), IDCache::GetAnalyticsValue(), ToJString(env, key)));
+  jstring j_key = ToJString(env, key);
+  auto j_value = reinterpret_cast<jstring>(env->CallStaticObjectMethod(
+      IDCache::GetAnalyticsClass(), IDCache::GetAnalyticsValue(), j_key));
+  env->DeleteLocalRef(j_key);
 
-  std::string stdvalue = GetJString(env, value);
+  std::string value = GetJString(env, j_value);
+  env->DeleteLocalRef(j_value);
 
-  return stdvalue;
+  return value;
 }
 
 extern "C" {
@@ -655,8 +669,15 @@ JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetLogTyp
       env->NewObject(IDCache::GetLinkedHashMapClass(), IDCache::GetLinkedHashMapInit(), map_size);
   for (const auto& entry : map)
   {
-    env->CallObjectMethod(linked_hash_map, IDCache::GetLinkedHashMapPut(),
-                          ToJString(env, entry.first), ToJString(env, entry.second));
+    jstring key = ToJString(env, entry.first);
+    jstring value = ToJString(env, entry.second);
+
+    jobject result =
+        env->CallObjectMethod(linked_hash_map, IDCache::GetLinkedHashMapPut(), key, value);
+
+    env->DeleteLocalRef(key);
+    env->DeleteLocalRef(value);
+    env->DeleteLocalRef(result);
   }
   return linked_hash_map;
 }
@@ -693,8 +714,13 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ConvertD
 
   const auto callback = [&jCallbackGlobal](const std::string& text, float completion) {
     JNIEnv* env = IDCache::GetEnvForThread();
-    return static_cast<bool>(env->CallBooleanMethod(
-        jCallbackGlobal, IDCache::GetCompressCallbackRun(), ToJString(env, text), completion));
+
+    jstring j_text = ToJString(env, text);
+    jboolean result = env->CallBooleanMethod(jCallbackGlobal, IDCache::GetCompressCallbackRun(),
+                                             j_text, completion);
+    env->DeleteLocalRef(j_text);
+
+    return static_cast<bool>(result);
   };
 
   bool success = false;
