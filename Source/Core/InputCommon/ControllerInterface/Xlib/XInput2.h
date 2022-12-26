@@ -113,7 +113,8 @@ private:
 public:
   void UpdateInput() override;
 
-  KeyboardMouse(Window window, int opcode, int pointer_deviceid, int keyboard_deviceid, double scroll_increment);
+  KeyboardMouse(Window window, int opcode, int pointer_deviceid, int keyboard_deviceid,
+                double scroll_increment);
   ~KeyboardMouse();
 
   std::string GetName() const override;

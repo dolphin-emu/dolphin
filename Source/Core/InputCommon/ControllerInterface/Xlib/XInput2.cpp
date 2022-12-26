@@ -92,8 +92,8 @@ void PopulateDevices(void* const hwnd)
 
     if (current_master->use == XIMasterPointer)
     {
-      // We need to query the master for the scroll wheel's increment, since the increment used varies
-      // depending on what input driver is being used. For example, xf86-libinput uses 120.0.
+      // We need to query the master for the scroll wheel's increment, since the increment used
+      // varies depending on what input driver is being used. For example, xf86-libinput uses 120.0.
       for (int j = 0; j < current_master->num_classes; j++)
       {
         if (current_master->classes[j]->type == XIScrollClass)
@@ -106,8 +106,9 @@ void PopulateDevices(void* const hwnd)
       }
       // Since current_master is a master pointer, its attachment must
       // be a master keyboard.
-      g_controller_interface.AddDevice(std::make_shared<KeyboardMouse>(
-          (Window)hwnd, xi_opcode, current_master->deviceid, current_master->attachment, scroll_increment));
+      g_controller_interface.AddDevice(
+          std::make_shared<KeyboardMouse>((Window)hwnd, xi_opcode, current_master->deviceid,
+                                          current_master->attachment, scroll_increment));
     }
   }
 
@@ -149,8 +150,10 @@ void KeyboardMouse::SelectEventsForDevice(XIEventMask* mask, int deviceid)
   XIFreeDeviceInfo(all_slaves);
 }
 
-KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard, double scroll_increment)
-    : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard), scroll_increment(scroll_increment)
+KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard,
+                             double scroll_increment)
+    : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard),
+      scroll_increment(scroll_increment)
 {
   // The cool thing about each KeyboardMouse object having its own Display
   // is that each one gets its own separate copy of the X11 event stream,
@@ -321,34 +324,39 @@ void KeyboardMouse::UpdateInput()
       m_state.keyboard[dev_event->detail / 8] &= ~(1 << (dev_event->detail % 8));
       break;
     case XI_RawMotion:
+    {
       mouse_moved = true;
 
-      // always safe because there is always at least one byte in
-      // raw_event->valuators.mask, and if a bit is set in the mask,
-      // then the value in raw_values is also available.
-      if (XIMaskIsSet(raw_event->valuators.mask, 0))
+      float values[4] = {};
+      size_t value_idx = 0;
+
+      // We only care about the first 4 axes, which should always be available at minimum
+      for (int i = 0; i < 4; ++i)
       {
-        delta_delta = raw_event->raw_values[0];
-        // test for inf and nan
-        if (delta_delta == delta_delta && 1 + delta_delta != delta_delta)
-          delta_x += delta_delta;
+        if (XIMaskIsSet(raw_event->valuators.mask, i))
+        {
+          values[i] = raw_event->raw_values[value_idx++];
+        }
       }
-      if (XIMaskIsSet(raw_event->valuators.mask, 1))
-      {
-        delta_delta = raw_event->raw_values[1];
-        // test for inf and nan
-        if (delta_delta == delta_delta && 1 + delta_delta != delta_delta)
-          delta_y += delta_delta;
-      }
-      if (XIMaskIsSet(raw_event->valuators.mask, 3))
-      {
-        // Scroll wheel input gets scaled to be similar to the mouse axes
-        delta_delta = raw_event->raw_values[0] * 8.0 / scroll_increment;
-        // test for inf and nan
-        if (delta_delta == delta_delta && 1 + delta_delta != delta_delta)
-          delta_z += delta_delta;
-      }
+
+      delta_delta = values[0];
+      // test for inf and nan
+      if (delta_delta == delta_delta && 1 + delta_delta != delta_delta)
+        delta_x += delta_delta;
+
+      delta_delta = values[1];
+      // test for inf and nan
+      if (delta_delta == delta_delta && 1 + delta_delta != delta_delta)
+        delta_y += delta_delta;
+
+      // Scroll wheel input gets scaled to be similar to the mouse axes
+      delta_delta = values[3] * 8.0 / scroll_increment;
+      // test for inf and nan
+      if (delta_delta == delta_delta && 1 + delta_delta != delta_delta)
+        delta_z += delta_delta;
+
       break;
+    }
     case XI_FocusOut:
       // Clear keyboard state on FocusOut as we will not be receiving KeyRelease events.
       m_state.keyboard.fill(0);
