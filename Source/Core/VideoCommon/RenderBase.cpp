@@ -481,6 +481,7 @@ void Renderer::CheckForConfigChanges()
   const u32 old_multisamples = g_ActiveConfig.iMultisamples;
   const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
   const int old_efb_access_tile_size = g_ActiveConfig.iEFBAccessTileSize;
+  const int old_adapter = g_ActiveConfig.iAdapter;
   const auto old_texture_filtering_mode = g_ActiveConfig.texture_filtering_mode;
   const bool old_vsync = g_ActiveConfig.bVSyncActive;
   const bool old_bbox = g_ActiveConfig.bBBoxEnable;
@@ -491,6 +492,9 @@ void Renderer::CheckForConfigChanges()
   UpdateActiveConfig();
   FreeLook::UpdateActiveConfig();
   g_vertex_manager->OnConfigChange();
+
+  if (old_adapter != g_ActiveConfig.iAdapter)
+    VideoBackendBase::RequestBackendReload();
 
   g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
 

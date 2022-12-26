@@ -362,6 +362,22 @@ static void FullBackendReloadDoState(PointerWrap& p)
   g_renderer->DoState(p);
 }
 
+static bool s_reload_requested;
+
+void VideoBackendBase::RequestBackendReload()
+{
+  s_reload_requested = true;
+}
+
+void VideoBackendBase::BackendReloadIfRequested()
+{
+  if (s_reload_requested)
+  {
+    s_reload_requested = false;
+    FullBackendReload();
+  }
+}
+
 void VideoBackendBase::FullBackendReload(void (*run)(void* ctx), void* run_ctx)
 {
   // Save state the backend

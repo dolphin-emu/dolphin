@@ -342,6 +342,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
         // below div two to convert from bytes to pixels - it expects width, not stride
         g_renderer->Swap(destAddr, destStride / 2, destStride, height,
                          Core::System::GetInstance().GetCoreTiming().GetTicks());
+        VideoBackendBase::BackendReloadIfRequested();
       }
       else
       {

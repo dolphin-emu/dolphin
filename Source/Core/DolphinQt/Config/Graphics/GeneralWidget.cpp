@@ -185,7 +185,7 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
   m_enable_fullscreen->setEnabled(!running);
 
   const bool supports_adapters = !g_Config.backend_info.Adapters.empty();
-  m_adapter_combo->setEnabled(!running && supports_adapters);
+  m_adapter_combo->setEnabled(supports_adapters);
 }
 
 void GeneralWidget::AddDescriptions()
@@ -301,7 +301,7 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   const bool supports_adapters = !adapters.empty();
 
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
-  m_adapter_combo->setEnabled(supports_adapters && !Core::IsRunning());
+  m_adapter_combo->setEnabled(supports_adapters);
 
   static constexpr char TR_ADAPTER_AVAILABLE_DESCRIPTION[] =
       QT_TR_NOOP("Selects a hardware adapter to use.<br><br>"

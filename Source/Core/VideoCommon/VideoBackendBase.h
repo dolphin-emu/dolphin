@@ -69,6 +69,10 @@ public:
   static void PopulateBackendInfo();
   // Called by the UI thread when the graphics config is opened.
   static void PopulateBackendInfoFromUI();
+  // Request a backend reload at the next call to BackendReloadIfRequested
+  static void RequestBackendReload();
+  // Does a full backend reload if previously requested
+  static void BackendReloadIfRequested();
   // Fully reloads the backend, allowing for any graphics config to be changed
   // If run is non-null, it will be run while the backend is shut down
   static void FullBackendReload(void (*run)(void* ctx) = nullptr, void* run_ctx = nullptr);
