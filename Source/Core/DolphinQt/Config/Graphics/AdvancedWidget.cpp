@@ -58,6 +58,7 @@ void AdvancedWidget::CreateWidgets()
   m_show_speed = new GraphicsBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED);
   m_show_speed_colors = new GraphicsBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
   m_perf_samp_window = new GraphicsInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, 100);
+  m_perf_samp_window->SetTitle(tr("Performance Sample Window (ms)"));
   m_log_render_time =
       new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
 
