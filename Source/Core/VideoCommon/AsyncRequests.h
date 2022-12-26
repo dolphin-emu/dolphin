@@ -30,6 +30,7 @@ public:
       FIFO_RESET,
       PERF_QUERY,
       DO_SAVE_STATE,
+      BACKEND_RELOAD,
     } type;
     u64 time;
 
@@ -75,6 +76,12 @@ public:
       {
         PointerWrap* p;
       } do_save_state;
+
+      struct
+      {
+        void (*run)(void* ctx);
+        void* ctx;
+      } backend_reload;
     };
   };
 

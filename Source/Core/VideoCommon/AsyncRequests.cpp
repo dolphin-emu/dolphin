@@ -171,6 +171,10 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
   case Event::DO_SAVE_STATE:
     VideoCommon_DoState(*e.do_save_state.p);
     break;
+
+  case Event::BACKEND_RELOAD:
+    VideoBackendBase::FullBackendReload(e.backend_reload.run, e.backend_reload.ctx);
+    break;
   }
 }
 

@@ -44,6 +44,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -59,6 +60,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
 
+WindowSystemInfo g_video_wsi;
 VideoBackendBase* g_video_backend = nullptr;
 
 #ifdef _WIN32
@@ -305,7 +307,111 @@ void VideoBackendBase::PopulateBackendInfoFromUI()
   // If the core is running, the backend info will have been populated already.
   // If we did it here, the UI thread can race with the with the GPU thread.
   if (!Core::IsRunning())
+  {
     PopulateBackendInfo();
+  }
+  else
+  {
+    std::string name = Config::Get(Config::MAIN_GFX_BACKEND);
+    if (name.empty())
+      name = GetDefaultVideoBackend()->GetName();
+    if (name != g_video_backend->GetName())
+    {
+      // Lots of things require specific threads
+      // Required steps:
+      // GPU Thread:  Shutdown old backend
+      // Main Thread: Unprepare WSI with old backend
+      // Any Thread:  PopulateBackendInfo
+      // Main Thread: Prepare WSI with new backend
+      // GPU Thread:  Initialize new backend
+
+      static std::condition_variable s_condvar;
+      static std::mutex s_mutex;
+      static enum class State { WaitingForVideoShutdown, WaitingForNewBackend, Done } s_state;
+      s_state = State::WaitingForVideoShutdown;
+
+      Core::RunOnCPUThread(
+          [] {
+            FullBackendReloadFromCPU([](void* _) {
+              s_state = State::WaitingForNewBackend;
+              std::unique_lock<std::mutex> lock(s_mutex);
+              s_condvar.notify_all();
+              s_condvar.wait(lock, [] { return s_state == State::Done; });
+            });
+          },
+          false);
+
+      {
+        std::unique_lock<std::mutex> lock(s_mutex);
+        s_condvar.wait(lock, [] { return s_state == State::WaitingForNewBackend; });
+        g_video_backend->UnPrepareWindow(g_video_wsi);
+        PopulateBackendInfo();
+        g_video_backend->PrepareWindow(g_video_wsi);
+        s_state = State::Done;
+      }
+      s_condvar.notify_all();
+    }
+  }
+}
+
+static void FullBackendReloadDoState(PointerWrap& p)
+{
+  g_texture_cache->DoState(p);
+  g_framebuffer_manager->DoState(p);
+  g_vertex_manager->DoState(p);
+  g_renderer->DoState(p);
+}
+
+void VideoBackendBase::FullBackendReload(void (*run)(void* ctx), void* run_ctx)
+{
+  // Save state the backend
+  u8* ptr = nullptr;
+  PointerWrap p(&ptr, 0, PointerWrap::Mode::Measure);
+
+  FullBackendReloadDoState(p);
+  const size_t buffer_size = reinterpret_cast<size_t>(ptr);
+  std::unique_ptr<u8[]> buffer = std::make_unique<u8[]>(buffer_size);
+
+  ptr = buffer.get();
+  p = PointerWrap(&ptr, buffer_size, PointerWrap::Mode::Write);
+  FullBackendReloadDoState(p);
+
+  std::string old_backend = g_video_backend->GetName();
+  VertexLoaderManager::Clear();
+  g_video_backend->ShutdownBackend();
+
+  if (run)
+    run(run_ctx);
+
+  if (!g_video_backend->InitializeBackend(g_video_wsi))
+  {
+    // Hopefully this won't happen...
+    PanicAlertFmt("Failed to reload video backend {}, things will probably break!",
+                  g_video_backend->GetDisplayName());
+    return;
+  }
+
+  // Reload from the save state
+  VertexLoaderManager::Init();
+  ptr = buffer.get();
+  p = PointerWrap(&ptr, buffer_size, PointerWrap::Mode::Read);
+  FullBackendReloadDoState(p);
+}
+
+void VideoBackendBase::FullBackendReloadFromCPU(void (*run)(void* ctx), void* run_ctx)
+{
+  if (Core::System::GetInstance().IsDualCoreMode())
+  {
+    AsyncRequests::Event ev = {};
+    ev.backend_reload.run = run;
+    ev.backend_reload.ctx = run_ctx;
+    ev.type = AsyncRequests::Event::BACKEND_RELOAD;
+    AsyncRequests::GetInstance()->PushEvent(ev, true);
+  }
+  else
+  {
+    FullBackendReload(run);
+  }
 }
 
 void VideoBackendBase::DoState(PointerWrap& p)

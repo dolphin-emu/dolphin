@@ -69,6 +69,11 @@ public:
   static void PopulateBackendInfo();
   // Called by the UI thread when the graphics config is opened.
   static void PopulateBackendInfoFromUI();
+  // Fully reloads the backend, allowing for any graphics config to be changed
+  // If run is non-null, it will be run while the backend is shut down
+  static void FullBackendReload(void (*run)(void* ctx) = nullptr, void* run_ctx = nullptr);
+  // FullBackendReload for being called by the CPU thread
+  static void FullBackendReloadFromCPU(void (*run)(void* ctx) = nullptr, void* run_ctx = nullptr);
 
   // Wrapper function which pushes the event to the GPU thread.
   void DoState(PointerWrap& p);
@@ -84,4 +89,5 @@ protected:
   bool m_initialized = false;
 };
 
+extern WindowSystemInfo g_video_wsi;
 extern VideoBackendBase* g_video_backend;

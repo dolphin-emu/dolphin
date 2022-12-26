@@ -181,7 +181,6 @@ void GeneralWidget::SaveSettings()
 
 void GeneralWidget::OnEmulationStateChanged(bool running)
 {
-  m_backend_combo->setEnabled(!running);
   m_render_main_window->setEnabled(!running);
   m_enable_fullscreen->setEnabled(!running);
 
