@@ -69,6 +69,7 @@ GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
 
   auto* layout = new QVBoxLayout;
   layout->addWidget(buttons_box);
+  layout->addWidget(m_settings_box);
 
   setLayout(layout);
 }
