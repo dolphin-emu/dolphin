@@ -21,6 +21,7 @@ public:
   void InitBackendInfo() override;
 
   void PrepareWindow(WindowSystemInfo& wsi) override;
+  void UnPrepareWindow(WindowSystemInfo& wsi) override;
 
   static constexpr const char* NAME = "Metal";
 };

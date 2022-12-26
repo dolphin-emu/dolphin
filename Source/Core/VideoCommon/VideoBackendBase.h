@@ -45,6 +45,8 @@ public:
   // Prepares a native window for rendering. This is called on the main thread, or the
   // thread which owns the window.
   virtual void PrepareWindow(WindowSystemInfo& wsi) {}
+  // Undoes PrepareWindow
+  virtual void UnPrepareWindow(WindowSystemInfo& wsi) {}
 
   bool Initialize(const WindowSystemInfo& wsi);
   void Shutdown();

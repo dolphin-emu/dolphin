@@ -282,11 +282,20 @@ void VideoBackend::ShutdownBackend()
   UnloadVulkanLibrary();
 }
 
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+template <typename Ret, typename Self, typename... Args>
+static Ret msgsend(Self self, const char* sel, Args... args)
+{
+  return reinterpret_cast<Ret (*)(Self, SEL, Args...)>(objc_msgSend)(self, sel_getUid(sel),
+                                                                     args...);
+}
+#endif
+
 void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
 {
 #if defined(VK_USE_PLATFORM_METAL_EXT)
   // This is kinda messy, but it avoids having to write Objective C++ just to create a metal layer.
-  id view = reinterpret_cast<id>(wsi.render_surface);
+  id view = reinterpret_cast<id>(wsi.render_window);
   Class clsCAMetalLayer = objc_getClass("CAMetalLayer");
   if (!clsCAMetalLayer)
   {
@@ -295,8 +304,7 @@ void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
   }
 
   // [CAMetalLayer layer]
-  id layer = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(objc_getClass("CAMetalLayer"),
-                                                                sel_getUid("layer"));
+  id layer = msgsend<id, Class>(clsCAMetalLayer, "layer");
   if (!layer)
   {
     ERROR_LOG_FMT(VIDEO, "Failed to create Metal layer.");
@@ -304,25 +312,41 @@ void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
   }
 
   // [view setWantsLayer:YES]
-  reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(view, sel_getUid("setWantsLayer:"), YES);
+  msgsend<void, id, BOOL>(view, "setWantsLayer:", YES);
 
   // [view setLayer:layer]
-  reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(view, sel_getUid("setLayer:"), layer);
+  msgsend<void, id, id>(view, "setLayer:", layer);
 
   // NSScreen* screen = [NSScreen mainScreen]
-  id screen = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(objc_getClass("NSScreen"),
-                                                                 sel_getUid("mainScreen"));
+  id screen = msgsend<id, Class>(objc_getClass("NSScreen"), "mainScreen");
 
   // CGFloat factor = [screen backingScaleFactor]
-  double factor =
-      reinterpret_cast<double (*)(id, SEL)>(objc_msgSend)(screen, sel_getUid("backingScaleFactor"));
+  double factor = msgsend<double, id>(screen, "backingScaleFactor");
 
   // layer.contentsScale = factor
-  reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(layer, sel_getUid("setContentsScale:"),
-                                                            factor);
+  msgsend<void, id, double>(layer, "setContentsScale:", factor);
 
   // Store the layer pointer, that way MoltenVK doesn't call [NSView layer] outside the main thread.
   wsi.render_surface = layer;
+#endif
+}
+
+void VideoBackend::UnPrepareWindow(WindowSystemInfo& wsi)
+{
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+  id view = reinterpret_cast<id>(wsi.render_window);
+  id layer = reinterpret_cast<id>(wsi.render_surface);
+
+  // [view setLayer:nullptr]
+  msgsend<void, id, id>(view, "setLayer:", nullptr);
+
+  // [view setWantsLayer:NO]
+  msgsend<void, id, BOOL>(view, "setWantsLayer:", NO);
+
+  // [layer release]
+  msgsend<void, id>(layer, "release");
+
+  wsi.render_surface = view;
 #endif
 }
 }  // namespace Vulkan

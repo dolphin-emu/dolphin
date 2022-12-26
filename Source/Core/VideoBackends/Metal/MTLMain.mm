@@ -168,10 +168,23 @@ void Metal::VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
 #if TARGET_OS_OSX
   if (wsi.type != WindowSystemType::MacOS)
     return;
-  NSView* view = static_cast<NSView*>(wsi.render_surface);
+  NSView* view = static_cast<NSView*>(wsi.render_window);
   CAMetalLayer* layer = [CAMetalLayer layer];
   [view setWantsLayer:YES];
   [view setLayer:layer];
   wsi.render_surface = layer;
+#endif
+}
+
+void Metal::VideoBackend::UnPrepareWindow(WindowSystemInfo& wsi)
+{
+#if TARGET_OS_OSX
+  if (wsi.type != WindowSystemType::MacOS)
+    return;
+  NSView* view = static_cast<NSView*>(wsi.render_window);
+  [view setLayer:nullptr];
+  [view setWantsLayer:NO];
+  [static_cast<CAMetalLayer*>(wsi.render_surface) release];
+  wsi.render_surface = wsi.render_window;
 #endif
 }
