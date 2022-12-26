@@ -172,7 +172,7 @@ bool VideoBackend::FillBackendInfo()
   return true;
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool VideoBackend::InitializeBackend(const WindowSystemInfo& wsi)
 {
   std::unique_ptr<GLContext> main_gl_context =
       GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
@@ -183,7 +183,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
     return false;
 
-  InitializeShared();
+  InitializeConfig();
   g_renderer = std::make_unique<Renderer>(std::move(main_gl_context), wsi.render_surface_scale);
   ProgramShaderCache::Init();
   g_vertex_manager = std::make_unique<VertexManager>();
@@ -206,7 +206,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   return true;
 }
 
-void VideoBackend::Shutdown()
+void VideoBackend::ShutdownBackend()
 {
   g_shader_cache->Shutdown();
   g_renderer->Shutdown();
@@ -218,6 +218,5 @@ void VideoBackend::Shutdown()
   g_shader_cache.reset();
   ProgramShaderCache::Shutdown();
   g_renderer.reset();
-  ShutdownShared();
 }
 }  // namespace OGL

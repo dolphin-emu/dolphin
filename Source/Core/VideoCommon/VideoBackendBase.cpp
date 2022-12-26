@@ -75,6 +75,21 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
 
+bool VideoBackendBase::Initialize(const WindowSystemInfo& wsi)
+{
+  InitializeShared();
+  bool ok = InitializeBackend(wsi);
+  if (!ok)
+    ShutdownShared();
+  return ok;
+}
+
+void VideoBackendBase::Shutdown()
+{
+  ShutdownBackend();
+  ShutdownShared();
+}
+
 std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int counter)
 {
   return fmt::format("{}bad_{}_{}_{}.txt", File::GetUserPath(D_DUMP_IDX), shader_stage,
@@ -332,7 +347,10 @@ void VideoBackendBase::InitializeShared()
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
   TMEM::Init();
+}
 
+void VideoBackendBase::InitializeConfig()
+{
   g_Config.VerifyValidity();
   UpdateActiveConfig();
 }

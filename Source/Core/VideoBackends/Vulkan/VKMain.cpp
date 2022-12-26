@@ -95,7 +95,7 @@ static bool ShouldEnableDebugReports(bool enable_validation_layers)
   return enable_validation_layers || IsHostGPULoggingEnabled();
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool VideoBackend::InitializeBackend(const WindowSystemInfo& wsi)
 {
   if (!LoadVulkanLibrary())
   {
@@ -163,7 +163,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     }
   }
 
-  // Since we haven't called InitializeShared yet, iAdapter may be out of range,
+  // Since we haven't called InitializeConfig yet, iAdapter may be out of range,
   // so we have to check it ourselves.
   size_t selected_adapter_index = static_cast<size_t>(g_Config.iAdapter);
   if (selected_adapter_index >= gpu_list.size())
@@ -194,7 +194,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
       enable_surface && g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface);
 
   // With the backend information populated, we can now initialize videocommon.
-  InitializeShared();
+  InitializeConfig();
 
   // Create command buffers. We do this separately because the other classes depend on it.
   g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
@@ -255,7 +255,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   return true;
 }
 
-void VideoBackend::Shutdown()
+void VideoBackend::ShutdownBackend()
 {
   if (g_vulkan_context)
     vkDeviceWaitIdle(g_vulkan_context->GetDevice());
@@ -279,7 +279,6 @@ void VideoBackend::Shutdown()
   StateTracker::DestroyInstance();
   g_command_buffer_mgr.reset();
   g_vulkan_context.reset();
-  ShutdownShared();
   UnloadVulkanLibrary();
 }
 

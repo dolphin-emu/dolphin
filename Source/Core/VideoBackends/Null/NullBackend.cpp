@@ -67,9 +67,9 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.AAModes = {1};
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool VideoBackend::InitializeBackend(const WindowSystemInfo& wsi)
 {
-  InitializeShared();
+  InitializeConfig();
 
   g_renderer = std::make_unique<Renderer>();
   g_vertex_manager = std::make_unique<VertexManager>();
@@ -91,7 +91,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   return true;
 }
 
-void VideoBackend::Shutdown()
+void VideoBackend::ShutdownBackend()
 {
   g_shader_cache->Shutdown();
   g_renderer->Shutdown();
@@ -101,8 +101,6 @@ void VideoBackend::Shutdown()
   g_vertex_manager.reset();
   g_framebuffer_manager.reset();
   g_renderer.reset();
-
-  ShutdownShared();
 }
 
 std::string VideoBackend::GetDisplayName() const

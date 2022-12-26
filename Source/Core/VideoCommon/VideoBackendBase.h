@@ -36,8 +36,6 @@ class VideoBackendBase
 {
 public:
   virtual ~VideoBackendBase() {}
-  virtual bool Initialize(const WindowSystemInfo& wsi) = 0;
-  virtual void Shutdown() = 0;
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
@@ -47,6 +45,9 @@ public:
   // Prepares a native window for rendering. This is called on the main thread, or the
   // thread which owns the window.
   virtual void PrepareWindow(WindowSystemInfo& wsi) {}
+
+  bool Initialize(const WindowSystemInfo& wsi);
+  void Shutdown();
 
   static std::string BadShaderFilename(const char* shader_stage, int counter);
 
@@ -71,7 +72,11 @@ public:
   void DoState(PointerWrap& p);
 
 protected:
+  virtual bool InitializeBackend(const WindowSystemInfo& wsi) = 0;
+  virtual void ShutdownBackend() = 0;
+
   void InitializeShared();
+  void InitializeConfig();
   void ShutdownShared();
 
   bool m_initialized = false;
