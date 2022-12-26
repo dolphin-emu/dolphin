@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -222,6 +223,12 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
+  public void showDialogFragment(DialogFragment fragment)
+  {
+    mActivity.showDialogFragment(fragment);
+  }
+
+  @Override
   public void showToastMessage(String message)
   {
     mActivity.showToastMessage(message);
@@ -237,6 +244,13 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   public void onSettingChanged()
   {
     mActivity.onSettingChanged();
+  }
+
+  @Override
+  public void onControllerSettingsChanged()
+  {
+    mAdapter.notifyAllSettingsChanged();
+    mPresenter.updateOldControllerSettingsWarningVisibility();
   }
 
   @Override

@@ -19,6 +19,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -44,6 +45,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   private static final String ARG_IS_WII = "is_wii";
   private static final String KEY_MAPPING_ALL_DEVICES = "all_devices";
   private static final String FRAGMENT_TAG = "settings";
+  private static final String FRAGMENT_DIALOG_TAG = "settings_dialog";
 
   private SettingsActivityPresenter mPresenter;
   private AlertDialog dialog;
@@ -191,6 +193,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     transaction.commit();
   }
 
+  @Override
+  public void showDialogFragment(DialogFragment fragment)
+  {
+    fragment.show(getSupportFragmentManager(), FRAGMENT_DIALOG_TAG);
+  }
+
   private boolean areSystemAnimationsEnabled()
   {
     float duration = Settings.Global.getFloat(
@@ -312,6 +320,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   public void onSettingChanged()
   {
     mPresenter.onSettingChanged();
+  }
+
+  @Override
+  public void onControllerSettingsChanged()
+  {
+    getFragment().onControllerSettingsChanged();
   }
 
   @Override

@@ -24,6 +24,7 @@ import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedCont
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting;
 import org.dolphinemu.dolphinemu.features.input.model.view.InputDeviceSetting;
 import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
+import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialog;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
@@ -1223,6 +1224,9 @@ public final class SettingsFragmentPresenter
     sl.add(new RunRunnable(mContext, R.string.input_clear, R.string.input_clear_description,
             R.string.input_reset_warning, 0, true, () -> clearControllerSettings(controller)));
 
+    sl.add(new RunRunnable(mContext, R.string.input_profiles, 0, 0, 0, true,
+            () -> mView.showDialogFragment(ProfileDialog.create(mMenuTag))));
+
     updateOldControllerSettingsWarningVisibility(controller);
   }
 
@@ -1293,6 +1297,11 @@ public final class SettingsFragmentPresenter
     }
   }
 
+  public void updateOldControllerSettingsWarningVisibility()
+  {
+    updateOldControllerSettingsWarningVisibility(mMenuTag.getCorrespondingEmulatedController());
+  }
+
   private void updateOldControllerSettingsWarningVisibility(EmulatedController controller)
   {
     String defaultDevice = controller.getDefaultDevice();
@@ -1306,15 +1315,13 @@ public final class SettingsFragmentPresenter
   private void loadDefaultControllerSettings(EmulatedController controller)
   {
     controller.loadDefaultSettings();
-    mView.getAdapter().notifyAllSettingsChanged();
-    updateOldControllerSettingsWarningVisibility(controller);
+    mView.onControllerSettingsChanged();
   }
 
   private void clearControllerSettings(EmulatedController controller)
   {
     controller.clearSettings();
-    mView.getAdapter().notifyAllSettingsChanged();
-    updateOldControllerSettingsWarningVisibility(controller);
+    mView.onControllerSettingsChanged();
   }
 
   private static int getLogVerbosityEntries()

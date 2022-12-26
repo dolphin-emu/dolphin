@@ -30,6 +30,14 @@
     <string name="input_device">Device</string>
     <string name="input_device_all_devices">Create Mappings for Other Devices</string>
     <string name="input_device_all_devices_description">Detects inputs from all devices, not just the selected device.</string>
+    <string name="input_profiles">Profiles</string>
+    <string name="input_profile_new">(New Profile)</string>
+    <string name="input_profile_load">Load</string>
+    <string name="input_profile_save">Save</string>
+    <string name="input_profile_delete">Delete</string>
+    <string name="input_profile_confirm_load">Do you want to discard your current controller settings and load the profile \"%1$s\"?</string>
+    <string name="input_profile_confirm_save">Do you want to overwrite the profile \"%1$s\"?</string>
+    <string name="input_profile_confirm_delete">Do you want to delete the profile \"%1$s\"?</string>
     <string name="input_reset_to_default">Default</string>
     <string name="input_reset_to_default_description">Reset settings for this controller to the default.</string>
     <string name="input_clear">Clear</string>

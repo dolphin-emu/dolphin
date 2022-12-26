@@ -3,6 +3,7 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -55,6 +56,8 @@ public interface SettingsFragmentView
    */
   void loadSubMenu(MenuTag menuKey);
 
+  void showDialogFragment(DialogFragment fragment);
+
   /**
    * Tell the Fragment to tell the containing activity to display a toast message.
    *
@@ -71,6 +74,14 @@ public interface SettingsFragmentView
    * Have the fragment tell the containing Activity that a setting was modified.
    */
   void onSettingChanged();
+
+  /**
+   * Refetches the values of all controller settings.
+   *
+   * To be used when loading an input profile or performing some other action that changes all
+   * controller settings at once.
+   */
+  void onControllerSettingsChanged();
 
   /**
    * Have the fragment tell the containing Activity that the user wants to open the MenuTag

@@ -4,6 +4,8 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import androidx.annotation.NonNull;
 
+import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController;
+
 public enum MenuTag
 {
   SETTINGS("settings"),
@@ -88,6 +90,16 @@ public enum MenuTag
     return subType;
   }
 
+  public EmulatedController getCorrespondingEmulatedController()
+  {
+    if (isGCPadMenu())
+      return EmulatedController.getGcPad(getSubType());
+    else if (isWiimoteMenu())
+      return EmulatedController.getWiimote(getSubType());
+    else
+      throw new UnsupportedOperationException();
+  }
+
   public boolean isSerialPort1Menu()
   {
     return this == CONFIG_SERIALPORT1;
@@ -143,7 +155,8 @@ public enum MenuTag
   {
     for (MenuTag menuTag : MenuTag.values())
     {
-      if (menuTag.tag.equals(tag) && menuTag.subType == subtype) return menuTag;
+      if (menuTag.tag.equals(tag) && menuTag.subType == subtype)
+        return menuTag;
     }
 
     throw new IllegalArgumentException("You are asking for a menu that is not available or " +

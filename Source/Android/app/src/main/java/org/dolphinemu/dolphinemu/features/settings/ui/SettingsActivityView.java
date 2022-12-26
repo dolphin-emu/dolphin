@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
 
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
@@ -20,6 +21,13 @@ public interface SettingsActivityView
    * @param addToStack Whether or not this fragment should replace a previous one.
    */
   void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack, String gameId);
+
+  /**
+   * Shows a DialogFragment.
+   *
+   * Only one can be shown at a time.
+   */
+  void showDialogFragment(DialogFragment fragment);
 
   /**
    * Called by a contained Fragment to get access to the Setting HashMap
@@ -59,6 +67,14 @@ public interface SettingsActivityView
    * unless this has been called, the Activity will not save to disk.
    */
   void onSettingChanged();
+
+  /**
+   * Refetches the values of all controller settings.
+   *
+   * To be used when loading an input profile or performing some other action that changes all
+   * controller settings at once.
+   */
+  void onControllerSettingsChanged();
 
   /**
    * Called by a containing Fragment to tell the containing Activity that the user wants to open the

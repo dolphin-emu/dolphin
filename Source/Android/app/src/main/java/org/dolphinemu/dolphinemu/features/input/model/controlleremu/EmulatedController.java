@@ -35,6 +35,10 @@ public class EmulatedController
 
   public native void clearSettings();
 
+  public native void loadProfile(String path);
+
+  public native void saveProfile(String path);
+
   public static native EmulatedController getGcPad(int controllerIndex);
 
   public static native EmulatedController getWiimote(int controllerIndex);

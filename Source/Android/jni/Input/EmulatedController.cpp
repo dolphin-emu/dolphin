@@ -3,6 +3,7 @@
 
 #include <jni.h>
 
+#include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
@@ -93,6 +94,33 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 
   controller->LoadConfig(&section);
   controller->UpdateReferences(g_controller_interface);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_loadProfile(
+    JNIEnv* env, jobject obj, jstring j_path)
+{
+  ControllerEmu::EmulatedController* controller = EmulatedControllerFromJava(env, obj);
+
+  IniFile ini;
+  ini.Load(GetJString(env, j_path));
+
+  controller->LoadConfig(ini.GetOrCreateSection("Profile"));
+  controller->UpdateReferences(g_controller_interface);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_saveProfile(
+    JNIEnv* env, jobject obj, jstring j_path)
+{
+  const std::string path = GetJString(env, j_path);
+
+  File::CreateFullPath(path);
+
+  IniFile ini;
+
+  EmulatedControllerFromJava(env, obj)->SaveConfig(ini.GetOrCreateSection("Profile"));
+  ini.Save(path);
 }
 
 JNIEXPORT jobject JNICALL

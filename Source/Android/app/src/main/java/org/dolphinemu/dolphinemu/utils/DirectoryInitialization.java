@@ -45,6 +45,7 @@ public final class DirectoryInitialization
           new MutableLiveData<>(DirectoryInitializationState.NOT_YET_INITIALIZED);
   private static volatile boolean areDirectoriesAvailable = false;
   private static String userPath;
+  private static String sysPath;
   private static boolean isUsingLegacyUserDirectory = false;
 
   public enum DirectoryInitializationState
@@ -153,7 +154,8 @@ public final class DirectoryInitialization
     }
 
     // Let the native code know where the Sys directory is.
-    SetSysDirectory(sysDirectory.getPath());
+    sysPath = sysDirectory.getPath();
+    SetSysDirectory(sysPath);
   }
 
   private static void deleteDirectoryRecursively(@NonNull final File file)
@@ -202,6 +204,16 @@ public final class DirectoryInitialization
               "DirectoryInitialization must run before accessing the user directory!");
     }
     return userPath;
+  }
+
+  public static String getSysDirectory()
+  {
+    if (!areDirectoriesAvailable)
+    {
+      throw new IllegalStateException(
+              "DirectoryInitialization must run before accessing the Sys directory!");
+    }
+    return sysPath;
   }
 
   public static File getGameListCache(Context context)
