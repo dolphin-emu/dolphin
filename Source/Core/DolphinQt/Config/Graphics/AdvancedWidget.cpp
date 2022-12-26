@@ -275,7 +275,7 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_PERF_SAMP_WINDOW_DESCRIPTION[] =
       QT_TR_NOOP("The amount of time the FPS and VPS counters will sample over."
                  "<br><br>The higher the value, the more stable the FPS/VPS counter will be, "
-                 "but the slower it will be slower to update."
+                 "but the slower it will be to update."
                  "<br><br><dolphin_emphasis>If unsure, leave this "
                  "at 1000ms.</dolphin_emphasis>");
   static const char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
