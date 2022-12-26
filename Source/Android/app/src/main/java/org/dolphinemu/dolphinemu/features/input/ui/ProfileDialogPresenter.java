@@ -29,6 +29,13 @@ public final class ProfileDialogPresenter
   private final DialogFragment mDialog;
   private final MenuTag mMenuTag;
 
+  public ProfileDialogPresenter(MenuTag menuTag)
+  {
+    mContext = null;
+    mDialog = null;
+    mMenuTag = menuTag;
+  }
+
   public ProfileDialogPresenter(DialogFragment dialog, MenuTag menuTag)
   {
     mContext = dialog.getContext();

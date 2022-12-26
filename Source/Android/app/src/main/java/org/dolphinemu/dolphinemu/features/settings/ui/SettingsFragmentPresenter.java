@@ -25,12 +25,14 @@ import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetti
 import org.dolphinemu.dolphinemu.features.input.model.view.InputDeviceSetting;
 import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
 import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialog;
+import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialogPresenter;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing;
 import org.dolphinemu.dolphinemu.features.settings.model.ScaledIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -1113,8 +1115,15 @@ public final class SettingsFragmentPresenter
     {
       EmulatedController gcPad = EmulatedController.getGcPad(gcPadNumber);
 
-      addControllerMetaSettings(sl, gcPad);
-      addControllerMappingSettings(sl, gcPad, null);
+      if (!TextUtils.isEmpty(mGameID))
+      {
+        addControllerPerGameSettings(sl, "Pad", gcPadNumber);
+      }
+      else
+      {
+        addControllerMetaSettings(sl, gcPad);
+        addControllerMappingSettings(sl, gcPad, null);
+      }
     }
     else if (gcPadType == 12) // Adapter
     {
@@ -1129,20 +1138,27 @@ public final class SettingsFragmentPresenter
   {
     EmulatedController wiimote = EmulatedController.getWiimote(wiimoteNumber);
 
-    addControllerMetaSettings(sl, wiimote);
+    if (!TextUtils.isEmpty(mGameID))
+    {
+      addControllerPerGameSettings(sl, "Wiimote", wiimoteNumber);
+    }
+    else
+    {
+      addControllerMetaSettings(sl, wiimote);
 
-    sl.add(new HeaderSetting(mContext, R.string.wiimote, 0));
-    sl.add(new SubmenuSetting(mContext, R.string.wiimote_general,
-            MenuTag.getWiimoteGeneralMenuTag(wiimoteNumber)));
-    sl.add(new SubmenuSetting(mContext, R.string.wiimote_motion_simulation,
-            MenuTag.getWiimoteMotionSimulationMenuTag(wiimoteNumber)));
-    sl.add(new SubmenuSetting(mContext, R.string.wiimote_motion_input,
-            MenuTag.getWiimoteMotionInputMenuTag(wiimoteNumber)));
+      sl.add(new HeaderSetting(mContext, R.string.wiimote, 0));
+      sl.add(new SubmenuSetting(mContext, R.string.wiimote_general,
+              MenuTag.getWiimoteGeneralMenuTag(wiimoteNumber)));
+      sl.add(new SubmenuSetting(mContext, R.string.wiimote_motion_simulation,
+              MenuTag.getWiimoteMotionSimulationMenuTag(wiimoteNumber)));
+      sl.add(new SubmenuSetting(mContext, R.string.wiimote_motion_input,
+              MenuTag.getWiimoteMotionInputMenuTag(wiimoteNumber)));
 
-    // TYPE_OTHER is included here instead of in addWiimoteGeneralSubSettings so that touchscreen
-    // users won't have to dig into a submenu to find the Sideways Wii Remote setting
-    addControllerMappingSettings(sl, wiimote,
-            new ArraySet<>(Arrays.asList(ControlGroup.TYPE_ATTACHMENTS, ControlGroup.TYPE_OTHER)));
+      // TYPE_OTHER is included here instead of in addWiimoteGeneralSubSettings so that touchscreen
+      // users won't have to dig into a submenu to find the Sideways Wii Remote setting
+      addControllerMappingSettings(sl, wiimote, new ArraySet<>(
+              Arrays.asList(ControlGroup.TYPE_ATTACHMENTS, ControlGroup.TYPE_OTHER)));
+    }
   }
 
   private void addExtensionTypeSettings(ArrayList<SettingsItem> sl, int wiimoteNumber,
@@ -1170,6 +1186,23 @@ public final class SettingsFragmentPresenter
     addControllerMappingSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
             new ArraySet<>(Arrays.asList(ControlGroup.TYPE_IMU_ACCELEROMETER,
                     ControlGroup.TYPE_IMU_GYROSCOPE, ControlGroup.TYPE_IMU_CURSOR)));
+  }
+
+  /**
+   * Adds controller settings that can be set on a per-game basis.
+   *
+   * @param sl               The list to place controller settings into.
+   * @param profileString    The prefix used for the profile setting in game INI files.
+   * @param controllerNumber The index of the controller, 0-3.
+   */
+  private void addControllerPerGameSettings(ArrayList<SettingsItem> sl, String profileString,
+          int controllerNumber)
+  {
+    String[] profiles = new ProfileDialogPresenter(mMenuTag).getProfileNames(false);
+    String profileKey = profileString + "Profile" + controllerNumber;
+    sl.add(new StringSingleChoiceSetting(mContext,
+            new LegacyStringSetting("", "Controls", profileKey, ""),
+            R.string.input_profile, 0, profiles, profiles, R.string.input_profiles_empty));
   }
 
   /**

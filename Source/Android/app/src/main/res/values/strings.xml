@@ -30,6 +30,8 @@
     <string name="input_device">Device</string>
     <string name="input_device_all_devices">Create Mappings for Other Devices</string>
     <string name="input_device_all_devices_description">Detects inputs from all devices, not just the selected device.</string>
+    <string name="input_profile">Profile</string>
+    <string name="input_profiles_empty">You haven\'t created any profiles yet.</string>
     <string name="input_profiles">Profiles</string>
     <string name="input_profile_new">(New Profile)</string>
     <string name="input_profile_load">Load</string>

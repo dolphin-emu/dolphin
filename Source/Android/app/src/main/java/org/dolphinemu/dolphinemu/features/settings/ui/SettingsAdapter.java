@@ -255,11 +255,24 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     item.refreshChoicesAndValues();
 
-    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
-            .setTitle(item.getName())
-            .setSingleChoiceItems(item.getChoices(), item.getSelectedValueIndex(getSettings()),
-                    this)
-            .show();
+    String[] choices = item.getChoices();
+    int noChoicesAvailableString = item.getNoChoicesAvailableString();
+    if (noChoicesAvailableString != 0 && choices.length == 0)
+    {
+      mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+              .setTitle(item.getName())
+              .setMessage(noChoicesAvailableString)
+              .setPositiveButton(R.string.ok, null)
+              .show();
+    }
+    else
+    {
+      mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+              .setTitle(item.getName())
+              .setSingleChoiceItems(item.getChoices(), item.getSelectedValueIndex(getSettings()),
+                      this)
+              .show();
+    }
   }
 
   public void onSingleChoiceDynamicDescriptionsClick(SingleChoiceSettingDynamicDescriptions item,

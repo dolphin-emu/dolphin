@@ -12,11 +12,12 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public class StringSingleChoiceSetting extends SettingsItem
 {
-  private AbstractStringSetting mSetting;
+  private final AbstractStringSetting mSetting;
 
   protected String[] mChoices;
   protected String[] mValues;
-  private MenuTag mMenuTag;
+  private final MenuTag mMenuTag;
+  private int mNoChoicesAvailableString = 0;
 
   public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
           int descriptionId, String[] choices, String[] values, MenuTag menuTag)
@@ -32,6 +33,13 @@ public class StringSingleChoiceSetting extends SettingsItem
           int descriptionId, String[] choices, String[] values)
   {
     this(context, setting, titleId, descriptionId, choices, values, null);
+  }
+
+  public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
+          int descriptionId, String[] choices, String[] values, int noChoicesAvailableString)
+  {
+    this(context, setting, titleId, descriptionId, choices, values, null);
+    mNoChoicesAvailableString = noChoicesAvailableString;
   }
 
   public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
@@ -113,6 +121,11 @@ public class StringSingleChoiceSetting extends SettingsItem
   public MenuTag getMenuTag()
   {
     return mMenuTag;
+  }
+
+  public int getNoChoicesAvailableString()
+  {
+    return mNoChoicesAvailableString;
   }
 
   public void setSelectedValue(Settings settings, String selection)
