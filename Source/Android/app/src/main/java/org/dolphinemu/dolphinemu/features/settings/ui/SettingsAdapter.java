@@ -31,12 +31,15 @@ import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.DialogAdvancedMappingBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogInputStringBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogSliderBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemHeaderBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemMappingBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSettingSwitchBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSubmenuBinding;
+import org.dolphinemu.dolphinemu.features.input.ui.AdvancedMappingDialog;
 import org.dolphinemu.dolphinemu.features.input.ui.MotionAlertDialog;
 import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
 import org.dolphinemu.dolphinemu.features.input.ui.viewholder.InputMappingControlSettingViewHolder;
@@ -123,7 +126,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         return new SubmenuViewHolder(ListItemSubmenuBinding.inflate(inflater), this);
 
       case SettingsItem.TYPE_INPUT_MAPPING_CONTROL:
-        return new InputMappingControlSettingViewHolder(ListItemSettingBinding.inflate(inflater),
+        return new InputMappingControlSettingViewHolder(ListItemMappingBinding.inflate(inflater),
                 this);
 
       case SettingsItem.TYPE_FILE_PICKER:
@@ -355,6 +358,44 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       notifyItemChanged(position);
       mView.onSettingChanged();
     });
+    dialog.setCanceledOnTouchOutside(false);
+    dialog.show();
+  }
+
+  public void onAdvancedInputMappingClick(final InputMappingControlSetting item, final int position)
+  {
+    LayoutInflater inflater = LayoutInflater.from(mContext);
+
+    DialogAdvancedMappingBinding binding = DialogAdvancedMappingBinding.inflate(inflater);
+
+    final AdvancedMappingDialog dialog = new AdvancedMappingDialog(mContext, binding,
+            item.getControlReference(), item.getController());
+
+    Drawable background = ContextCompat.getDrawable(mContext, R.drawable.dialog_round);
+    @ColorInt int color = new ElevationOverlayProvider(dialog.getContext()).compositeOverlay(
+            MaterialColors.getColor(dialog.getWindow().getDecorView(), R.attr.colorSurface),
+            dialog.getWindow().getDecorView().getElevation());
+    background.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+    dialog.getWindow().setBackgroundDrawable(background);
+
+    dialog.setTitle(item.isInput() ?
+            R.string.input_configure_input : R.string.input_configure_output);
+    dialog.setView(binding.getRoot());
+    dialog.setButton(AlertDialog.BUTTON_POSITIVE, mContext.getString(R.string.ok),
+            (dialogInterface, i) ->
+            {
+              item.setValue(dialog.getExpression());
+              notifyItemChanged(position);
+              mView.onSettingChanged();
+            });
+    dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
+    dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear),
+            (dialogInterface, i) ->
+            {
+              item.clearValue();
+              notifyItemChanged(position);
+              mView.onSettingChanged();
+            });
     dialog.setCanceledOnTouchOutside(false);
     dialog.show();
   }

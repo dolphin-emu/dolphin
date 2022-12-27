@@ -97,6 +97,9 @@ public final class ControllerInterface
 
   public static native String[] getAllDeviceStrings();
 
+  @Nullable
+  public static native CoreDevice getDevice(String deviceString);
+
   @Keep
   private static void registerInputDeviceListener()
   {

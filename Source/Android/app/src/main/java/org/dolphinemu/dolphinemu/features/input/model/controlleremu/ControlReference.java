@@ -34,4 +34,6 @@ public class ControlReference
    */
   @Nullable
   public native String setExpression(String expr);
+
+  public native boolean isInput();
 }

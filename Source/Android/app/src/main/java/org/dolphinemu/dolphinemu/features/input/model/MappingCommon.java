@@ -27,5 +27,8 @@ public final class MappingCommon
   public static native String detectInput(@NonNull EmulatedController controller,
           boolean allDevices);
 
+  public static native String getExpressionForControl(String control, String device,
+          String defaultDevice);
+
   public static native void save();
 }

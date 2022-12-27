@@ -7,7 +7,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemMappingBinding;
 import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
@@ -17,9 +17,9 @@ public final class InputMappingControlSettingViewHolder extends SettingViewHolde
 {
   private InputMappingControlSetting mItem;
 
-  private final ListItemSettingBinding mBinding;
+  private final ListItemMappingBinding mBinding;
 
-  public InputMappingControlSettingViewHolder(@NonNull ListItemSettingBinding binding,
+  public InputMappingControlSettingViewHolder(@NonNull ListItemMappingBinding binding,
           SettingsAdapter adapter)
   {
     super(binding.getRoot(), adapter);
@@ -33,6 +33,7 @@ public final class InputMappingControlSettingViewHolder extends SettingViewHolde
 
     mBinding.textSettingName.setText(mItem.getName());
     mBinding.textSettingDescription.setText(mItem.getValue());
+    mBinding.buttonAdvancedSettings.setOnClickListener(this::onLongClick);
 
     setStyle(mBinding.textSettingName, mItem);
   }
@@ -46,9 +47,26 @@ public final class InputMappingControlSettingViewHolder extends SettingViewHolde
       return;
     }
 
-    getAdapter().onInputMappingClick(mItem, getBindingAdapterPosition());
+    if (mItem.isInput())
+      getAdapter().onInputMappingClick(mItem, getBindingAdapterPosition());
+    else
+      getAdapter().onAdvancedInputMappingClick(mItem, getBindingAdapterPosition());
 
     setStyle(mBinding.textSettingName, mItem);
+  }
+
+  @Override
+  public boolean onLongClick(View clicked)
+  {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return true;
+    }
+
+    getAdapter().onAdvancedInputMappingClick(mItem, getBindingAdapterPosition());
+
+    return true;
   }
 
   @Nullable @Override

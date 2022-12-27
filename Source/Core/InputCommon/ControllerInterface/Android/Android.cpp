@@ -25,6 +25,7 @@
 
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+#include "jni/Input/CoreDevice.h"
 
 namespace
 {
@@ -1128,5 +1129,14 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_getAllDe
     JNIEnv* env, jclass)
 {
   return VectorToJStringArray(env, g_controller_interface.GetAllDeviceStrings());
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_getDevice(
+    JNIEnv* env, jclass, jstring j_device_string)
+{
+  ciface::Core::DeviceQualifier qualifier;
+  qualifier.FromString(GetJString(env, j_device_string));
+  return CoreDeviceToJava(env, g_controller_interface.FindDevice(qualifier));
 }
 }

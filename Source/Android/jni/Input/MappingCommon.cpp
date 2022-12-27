@@ -53,6 +53,19 @@ Java_org_dolphinemu_dolphinemu_features_input_model_MappingCommon_detectInput(
                                                                ciface::MappingCommon::Quote::On));
 }
 
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_MappingCommon_getExpressionForControl(
+    JNIEnv* env, jclass, jstring j_control, jstring j_device, jstring j_default_device)
+{
+  ciface::Core::DeviceQualifier device_qualifier, default_device_qualifier;
+  device_qualifier.FromString(GetJString(env, j_device));
+  default_device_qualifier.FromString(GetJString(env, j_default_device));
+
+  return ToJString(env, ciface::MappingCommon::GetExpressionForControl(GetJString(env, j_control),
+                                                                       device_qualifier,
+                                                                       default_device_qualifier));
+}
+
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_MappingCommon_save(JNIEnv* env, jclass)
 {

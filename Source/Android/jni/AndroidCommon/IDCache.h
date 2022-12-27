@@ -102,4 +102,12 @@ jclass GetNumericSettingClass();
 jfieldID GetNumericSettingPointer();
 jmethodID GetNumericSettingConstructor();
 
+jclass GetCoreDeviceClass();
+jfieldID GetCoreDevicePointer();
+jmethodID GetCoreDeviceConstructor();
+
+jclass GetCoreDeviceControlClass();
+jfieldID GetCoreDeviceControlPointer();
+jmethodID GetCoreDeviceControlConstructor();
+
 }  // namespace IDCache

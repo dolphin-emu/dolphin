@@ -16,6 +16,8 @@ add_library(main SHARED
   Input/ControlGroup.h
   Input/ControlReference.cpp
   Input/ControlReference.h
+  Input/CoreDevice.cpp
+  Input/CoreDevice.h
   Input/EmulatedController.cpp
   Input/EmulatedController.h
   Input/InputOverrider.cpp

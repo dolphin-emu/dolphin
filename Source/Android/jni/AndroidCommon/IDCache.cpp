@@ -103,6 +103,14 @@ static jclass s_emulated_controller_class;
 static jfieldID s_emulated_controller_pointer;
 static jmethodID s_emulated_controller_constructor;
 
+static jclass s_core_device_class;
+static jfieldID s_core_device_pointer;
+static jmethodID s_core_device_constructor;
+
+static jclass s_core_device_control_class;
+static jfieldID s_core_device_control_pointer;
+static jmethodID s_core_device_control_constructor;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -478,6 +486,36 @@ jmethodID GetNumericSettingConstructor()
   return s_numeric_setting_constructor;
 }
 
+jclass GetCoreDeviceClass()
+{
+  return s_core_device_class;
+}
+
+jfieldID GetCoreDevicePointer()
+{
+  return s_core_device_pointer;
+}
+
+jmethodID GetCoreDeviceConstructor()
+{
+  return s_core_device_constructor;
+}
+
+jclass GetCoreDeviceControlClass()
+{
+  return s_core_device_control_class;
+}
+
+jfieldID GetCoreDeviceControlPointer()
+{
+  return s_core_device_control_pointer;
+}
+
+jmethodID GetCoreDeviceControlConstructor()
+{
+  return s_core_device_control_constructor;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -672,6 +710,23 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_numeric_setting_constructor = env->GetMethodID(numeric_setting_class, "<init>", "(J)V");
   env->DeleteLocalRef(numeric_setting_class);
 
+  const jclass core_device_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/CoreDevice");
+  s_core_device_class = reinterpret_cast<jclass>(env->NewGlobalRef(core_device_class));
+  s_core_device_pointer = env->GetFieldID(core_device_class, "mPointer", "J");
+  s_core_device_constructor = env->GetMethodID(core_device_class, "<init>", "(J)V");
+  env->DeleteLocalRef(core_device_class);
+
+  const jclass core_device_control_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/CoreDevice$Control");
+  s_core_device_control_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(core_device_control_class));
+  s_core_device_control_pointer = env->GetFieldID(core_device_control_class, "mPointer", "J");
+  s_core_device_control_constructor =
+      env->GetMethodID(core_device_control_class, "<init>",
+                       "(Lorg/dolphinemu/dolphinemu/features/input/model/CoreDevice;J)V");
+  env->DeleteLocalRef(core_device_control_class);
+
   return JNI_VERSION;
 }
 
@@ -704,5 +759,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_control_reference_class);
   env->DeleteGlobalRef(s_emulated_controller_class);
   env->DeleteGlobalRef(s_numeric_setting_class);
+  env->DeleteGlobalRef(s_core_device_class);
+  env->DeleteGlobalRef(s_core_device_control_class);
 }
 }

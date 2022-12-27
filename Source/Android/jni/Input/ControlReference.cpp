@@ -51,4 +51,11 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlReferen
       ControlReferenceFromJava(env, obj)->SetExpression(GetJString(env, expr));
   return result ? ToJString(env, *result) : nullptr;
 }
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlReference_isInput(
+    JNIEnv* env, jobject obj)
+{
+  return static_cast<jboolean>(ControlReferenceFromJava(env, obj)->IsInput());
+}
 }

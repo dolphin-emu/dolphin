@@ -52,4 +52,14 @@ public final class InputMappingControlSetting extends SettingsItem
   {
     return mController;
   }
+
+  public ControlReference getControlReference()
+  {
+    return mControlReference;
+  }
+
+  public boolean isInput()
+  {
+    return mControlReference.isInput();
+  }
 }
