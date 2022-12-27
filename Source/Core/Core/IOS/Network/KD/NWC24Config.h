@@ -48,6 +48,7 @@ public:
   void ReadConfig();
   void WriteCBK() const;
   void WriteConfig() const;
+  void WriteConfigToPath(const std::string& path) const;
   void ResetConfig();
 
   u32 CalculateNwc24ConfigChecksum() const;

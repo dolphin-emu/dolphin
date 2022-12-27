@@ -40,20 +40,21 @@ void NWC24Config::ReadConfig()
 
 void NWC24Config::WriteCBK() const
 {
-  constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
-  m_fs->CreateFullPath(PID_KD, PID_KD, CBK_PATH, 0, public_modes);
-  const auto file = m_fs->CreateAndOpenFile(PID_KD, PID_KD, CBK_PATH, public_modes);
-  if (!file || !file->Write(&m_data, 1))
-    ERROR_LOG_FMT(IOS_WC24, "Failed to open or write WC24 config file");
+  WriteConfigToPath(CBK_PATH);
 }
 
 void NWC24Config::WriteConfig() const
 {
+  WriteConfigToPath(CONFIG_PATH);
+}
+
+void NWC24Config::WriteConfigToPath(const std::string& path) const
+{
   constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
-  m_fs->CreateFullPath(PID_KD, PID_KD, CONFIG_PATH, 0, public_modes);
-  const auto file = m_fs->CreateAndOpenFile(PID_KD, PID_KD, CONFIG_PATH, public_modes);
+  m_fs->CreateFullPath(PID_KD, PID_KD, path, 0, public_modes);
+  const auto file = m_fs->CreateAndOpenFile(PID_KD, PID_KD, path, public_modes);
   if (!file || !file->Write(&m_data, 1))
-    ERROR_LOG_FMT(IOS_WC24, "Failed to open or write WC24 config file");
+    ERROR_LOG_FMT(IOS_WC24, "Failed to open or write WC24 config file at {}", path);
 }
 
 void NWC24Config::ResetConfig()
