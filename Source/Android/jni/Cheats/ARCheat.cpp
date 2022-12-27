@@ -147,14 +147,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_loadCodes(JNIEnv* e
   const std::vector<ActionReplay::ARCode> codes =
       ActionReplay::LoadCodes(game_ini_default, game_ini_local);
 
-  const jobjectArray array =
-      env->NewObjectArray(static_cast<jsize>(codes.size()), IDCache::GetARCheatClass(), nullptr);
-
-  jsize i = 0;
-  for (const ActionReplay::ARCode& code : codes)
-    env->SetObjectArrayElement(array, i++, ARCheatToJava(env, code));
-
-  return array;
+  return VectorToJObjectArray(env, codes, IDCache::GetARCheatClass(), ARCheatToJava);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_saveCodes(

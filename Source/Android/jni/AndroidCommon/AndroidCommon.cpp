@@ -20,7 +20,7 @@ std::string GetJString(JNIEnv* env, jstring jstr)
   const jchar* jchars = env->GetStringChars(jstr, nullptr);
   const jsize length = env->GetStringLength(jstr);
   const std::u16string_view string_view(reinterpret_cast<const char16_t*>(jchars), length);
-  const std::string converted_string = UTF16ToUTF8(string_view);
+  std::string converted_string = UTF16ToUTF8(string_view);
   env->ReleaseStringChars(jstr, jchars);
   return converted_string;
 }
@@ -48,16 +48,9 @@ std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
   return result;
 }
 
-jobjectArray VectorToJStringArray(JNIEnv* env, std::vector<std::string> vector)
+jobjectArray VectorToJStringArray(JNIEnv* env, const std::vector<std::string>& vector)
 {
-  jobjectArray result = env->NewObjectArray(vector.size(), IDCache::GetStringClass(), nullptr);
-  for (jsize i = 0; i < vector.size(); ++i)
-  {
-    jstring str = ToJString(env, vector[i]);
-    env->SetObjectArrayElement(result, i, str);
-    env->DeleteLocalRef(str);
-  }
-  return result;
+  return VectorToJObjectArray(env, vector, IDCache::GetStringClass(), ToJString);
 }
 
 bool IsPathAndroidContent(const std::string& uri)
