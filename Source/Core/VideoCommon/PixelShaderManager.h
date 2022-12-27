@@ -52,8 +52,9 @@ public:
   PixelShaderConstants constants{};
   bool dirty = false;
 
-  bool s_bFogRangeAdjustChanged = false;
-  bool s_bViewPortChanged = false;
-  bool s_bIndirectDirty = false;
-  bool s_bDestAlphaDirty = false;
+private:
+  bool m_fog_range_adjusted_changed = false;
+  bool m_viewport_changed = false;
+  bool m_indirect_dirty = false;
+  bool m_dest_alpha_dirty = false;
 };

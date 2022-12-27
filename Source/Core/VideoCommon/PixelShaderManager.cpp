@@ -17,8 +17,8 @@ void PixelShaderManager::Init()
   constants = {};
 
   // Init any intial constants which aren't zero when bpmem is zero.
-  s_bFogRangeAdjustChanged = true;
-  s_bViewPortChanged = false;
+  m_fog_range_adjusted_changed = true;
+  m_viewport_changed = false;
 
   SetIndMatrixChanged(0);
   SetIndMatrixChanged(1);
@@ -72,7 +72,7 @@ void PixelShaderManager::Dirty()
 {
   // This function is called after a savestate is loaded.
   // Any constants that can changed based on settings should be re-calculated
-  s_bFogRangeAdjustChanged = true;
+  m_fog_range_adjusted_changed = true;
 
   SetEfbScaleChanged(g_renderer->EFBToScaledXf(1), g_renderer->EFBToScaledYf(1));
   SetFogParamChanged();
@@ -82,7 +82,7 @@ void PixelShaderManager::Dirty()
 
 void PixelShaderManager::SetConstants()
 {
-  if (s_bFogRangeAdjustChanged)
+  if (m_fog_range_adjusted_changed)
   {
     // set by two components, so keep changed flag here
     // TODO: try to split both registers and move this logic to the shader
@@ -121,18 +121,18 @@ void PixelShaderManager::SetConstants()
     }
     dirty = true;
 
-    s_bFogRangeAdjustChanged = false;
+    m_fog_range_adjusted_changed = false;
   }
 
-  if (s_bViewPortChanged)
+  if (m_viewport_changed)
   {
     constants.zbias[1][0] = (s32)xfmem.viewport.farZ;
     constants.zbias[1][1] = (s32)xfmem.viewport.zRange;
     dirty = true;
-    s_bViewPortChanged = false;
+    m_viewport_changed = false;
   }
 
-  if (s_bIndirectDirty)
+  if (m_indirect_dirty)
   {
     for (int i = 0; i < 4; i++)
       constants.pack1[i][3] = 0;
@@ -154,10 +154,10 @@ void PixelShaderManager::SetConstants()
     }
 
     dirty = true;
-    s_bIndirectDirty = false;
+    m_indirect_dirty = false;
   }
 
-  if (s_bDestAlphaDirty)
+  if (m_dest_alpha_dirty)
   {
     // Destination alpha is only enabled if alpha writes are enabled. Force entire uniform to zero
     // when disabled.
@@ -232,7 +232,7 @@ void PixelShaderManager::SetTevCombiner(int index, int alpha, u32 combiner)
 
 void PixelShaderManager::SetTevIndirectChanged()
 {
-  s_bIndirectDirty = true;
+  m_indirect_dirty = true;
 }
 
 void PixelShaderManager::SetAlpha()
@@ -260,7 +260,7 @@ void PixelShaderManager::SetAlphaTestChanged()
 
 void PixelShaderManager::SetDestAlphaChanged()
 {
-  s_bDestAlphaDirty = true;
+  m_dest_alpha_dirty = true;
 }
 
 void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
@@ -291,8 +291,8 @@ void PixelShaderManager::SetZTextureBias()
 
 void PixelShaderManager::SetViewportChanged()
 {
-  s_bViewPortChanged = true;
-  s_bFogRangeAdjustChanged =
+  m_viewport_changed = true;
+  m_fog_range_adjusted_changed =
       true;  // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
 }
 
@@ -422,7 +422,7 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
   if (g_ActiveConfig.bDisableFog)
     return;
 
-  s_bFogRangeAdjustChanged = true;
+  m_fog_range_adjusted_changed = true;
 
   if (constants.fogRangeBase != bpmem.fogRange.Base.hex)
   {
@@ -434,7 +434,7 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
 void PixelShaderManager::SetGenModeChanged()
 {
   constants.genmode = bpmem.genMode.hex;
-  s_bIndirectDirty = true;
+  m_indirect_dirty = true;
   dirty = true;
 }
 
@@ -454,7 +454,7 @@ void PixelShaderManager::SetZModeControl()
     constants.dither = dither;
     dirty = true;
   }
-  s_bDestAlphaDirty = true;
+  m_dest_alpha_dirty = true;
 }
 
 void PixelShaderManager::SetBlendModeChanged()
@@ -512,7 +512,7 @@ void PixelShaderManager::SetBlendModeChanged()
     constants.logic_op_mode = state.logicmode;
     dirty = true;
   }
-  s_bDestAlphaDirty = true;
+  m_dest_alpha_dirty = true;
 }
 
 void PixelShaderManager::SetBoundingBoxActive(bool active)
@@ -527,10 +527,10 @@ void PixelShaderManager::SetBoundingBoxActive(bool active)
 
 void PixelShaderManager::DoState(PointerWrap& p)
 {
-  p.Do(s_bFogRangeAdjustChanged);
-  p.Do(s_bViewPortChanged);
-  p.Do(s_bIndirectDirty);
-  p.Do(s_bDestAlphaDirty);
+  p.Do(m_fog_range_adjusted_changed);
+  p.Do(m_viewport_changed);
+  p.Do(m_indirect_dirty);
+  p.Do(m_dest_alpha_dirty);
 
   p.Do(constants);
 
