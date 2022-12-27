@@ -146,8 +146,9 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // BBOX registers, readonly and need to update a flag.
   for (int i = 0; i < 4; ++i)
   {
-    mmio->Register(base | (PE_BBOX_LEFT + 2 * i), MMIO::ComplexRead<u16>([i](Core::System&, u32) {
-                     g_renderer->BBoxDisable();
+    mmio->Register(base | (PE_BBOX_LEFT + 2 * i),
+                   MMIO::ComplexRead<u16>([i](Core::System& system, u32) {
+                     g_renderer->BBoxDisable(system.GetPixelShaderManager());
                      return g_video_backend->Video_GetBoundingBox(i);
                    }),
                    MMIO::InvalidWrite<u16>());

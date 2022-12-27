@@ -15,6 +15,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/DolphinAnalytics.h"
+#include "Core/System.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
@@ -317,9 +318,11 @@ void VertexManagerBase::UploadUniforms()
 
 void VertexManagerBase::InvalidateConstants()
 {
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
   VertexShaderManager::dirty = true;
   GeometryShaderManager::dirty = true;
-  PixelShaderManager::dirty = true;
+  pixel_shader_manager.dirty = true;
 }
 
 void VertexManagerBase::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
@@ -481,6 +484,9 @@ void VertexManagerBase::Flush()
     }
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+
   CalculateBinormals(VertexLoaderManager::GetCurrentVertexFormat());
   // Calculate ZSlope for zfreeze
   const auto used_textures = UsedTextures();
@@ -514,7 +520,7 @@ void VertexManagerBase::Flush()
   }
   else if (m_zslope.dirty && !m_cull_all)  // or apply any dirty ZSlopes
   {
-    PixelShaderManager::SetZSlope(m_zslope.dfdx, m_zslope.dfdy, m_zslope.f0);
+    pixel_shader_manager.SetZSlope(m_zslope.dfdx, m_zslope.dfdy, m_zslope.f0);
     m_zslope.dirty = false;
   }
 
@@ -559,7 +565,7 @@ void VertexManagerBase::Flush()
 
     // Now we can upload uniforms, as nothing else will override them.
     GeometryShaderManager::SetConstants(m_current_primitive_type);
-    PixelShaderManager::SetConstants();
+    pixel_shader_manager.SetConstants();
     UploadUniforms();
 
     // Update the pipeline, or compile one if needed.

@@ -9,6 +9,8 @@
 
 #include "Common/Assert.h"
 
+#include "Core/System.h"
+
 #include "VideoBackends/Metal/MTLObjectCache.h"
 #include "VideoBackends/Metal/MTLPerfQuery.h"
 #include "VideoBackends/Metal/MTLPipeline.h"
@@ -853,7 +855,9 @@ void Metal::StateTracker::PrepareRender()
     {
       m_flags.has_gx_ps_uniform = true;
       Map map = Allocate(UploadBuffer::Uniform, sizeof(PixelShaderConstants), AlignMask::Uniform);
-      memcpy(map.cpu_buffer, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+      auto& system = Core::System::GetInstance();
+      auto& pixel_shader_manager = system.GetPixelShaderManager();
+      memcpy(map.cpu_buffer, &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
       SetFragmentBufferNow(0, map.gpu_buffer, map.gpu_offset);
       ADDSTAT(g_stats.this_frame.bytes_uniform_streamed,
               Align(sizeof(PixelShaderConstants), AlignMask::Uniform));

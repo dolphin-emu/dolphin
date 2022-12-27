@@ -42,6 +42,7 @@ class AbstractStagingTexture;
 class BoundingBox;
 class NativeVertexFormat;
 class NetPlayChatUI;
+class PixelShaderManager;
 class PointerWrap;
 struct TextureConfig;
 struct ComputePipelineConfig;
@@ -216,8 +217,8 @@ public:
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
 
   bool IsBBoxEnabled() const;
-  void BBoxEnable();
-  void BBoxDisable();
+  void BBoxEnable(PixelShaderManager& pixel_shader_manager);
+  void BBoxDisable(PixelShaderManager& pixel_shader_manager);
   u16 BBoxRead(u32 index);
   void BBoxWrite(u32 index, u16 value);
   void BBoxFlush();

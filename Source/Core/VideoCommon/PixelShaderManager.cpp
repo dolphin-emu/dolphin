@@ -12,14 +12,6 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-bool PixelShaderManager::s_bFogRangeAdjustChanged;
-bool PixelShaderManager::s_bViewPortChanged;
-bool PixelShaderManager::s_bIndirectDirty;
-bool PixelShaderManager::s_bDestAlphaDirty;
-
-PixelShaderConstants PixelShaderManager::constants;
-bool PixelShaderManager::dirty;
-
 void PixelShaderManager::Init()
 {
   constants = {};
