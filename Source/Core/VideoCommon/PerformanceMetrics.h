@@ -34,7 +34,7 @@ public:
 private:
   PerformanceTracker m_fps_counter{"render_times.txt"};
   PerformanceTracker m_vps_counter{"vblank_times.txt"};
-  PerformanceTracker m_speed_counter{nullptr, 6000000};
+  PerformanceTracker m_speed_counter{nullptr, 500000};
 };
 
 extern PerformanceMetrics g_perf_metrics;
