@@ -615,6 +615,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   int3 size = textureSize(tex, 0);
   int size_s = size.x;
   int size_t = size.y;
+  int num_layers = size.z;
 )");
       if (g_ActiveConfig.backend_info.bSupportsTextureQueryLevels)
       {
@@ -633,6 +634,8 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   // Rescale uv to account for the new texture size
   uv.x = (uv.x * size_s) / native_size_s;
   uv.y = (uv.y * size_t) / native_size_t;
+  // Clamp layer as well (texture() automatically clamps, but texelFetch() doesn't)
+  layer = clamp(layer, 0, num_layers - 1);
 )");
     }
     else
