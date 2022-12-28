@@ -93,6 +93,12 @@ public:
   static const u32 addressLeftTeamMissedShotsBallXPos = 0x80430020;
   static const u32 addressLeftTeamMissedShotsBallYPos = 0x80430024;
   static const u32 addressLeftTeamMissedShotsTimestamp = 0x80430028;
+  // to add extra info like ball x/y/z velocity and ball z position
+  static const u32 addressLeftTeamMissedShotsVelocityFlag = 0x8043003c;
+  static const u32 addressLeftTeamMissedShotsBallZPos = 0x80430040;
+  static const u32 addressLeftTeamMissedShotsBallXVel = 0x80430044;
+  static const u32 addressLeftTeamMissedShotsBallYVel = 0x80430048;
+  static const u32 addressLeftTeamMissedShotsBallZVel = 0x8043004c;
 
   // right team item
   static const u32 addressRightTeamItemStart = 0x80420000;
@@ -105,6 +111,12 @@ public:
   static const u32 addressRightTeamMissedShotsBallXPos = 0x80430030;
   static const u32 addressRightTeamMissedShotsBallYPos = 0x80430034;
   static const u32 addressRightTeamMissedShotsTimestamp = 0x80430038;
+  // to add extra info like ball x/y/z velocity and ball z position
+  static const u32 addressRightTeamMissedShotsVelocityFlag = 0x8043003e;
+  static const u32 addressRightTeamMissedShotsBallZPos = 0x80430050;
+  static const u32 addressRightTeamMissedShotsBallXVel = 0x80430054;
+  static const u32 addressRightTeamMissedShotsBallYVel = 0x80430058;
+  static const u32 addressRightTeamMissedShotsBallZVel = 0x8043005c;
 
   // left team goal
   static const u32 addressLeftTeamGoalStart = 0x80440000;
