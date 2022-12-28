@@ -602,8 +602,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     }
     else
     {
-      INFO_LOG_FMT(VIDEO, "Not supported, pretending it is");
-      g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchExt;
+      INFO_LOG_FMT(VIDEO, "Not supported");
+      g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchNone;
     }
     g_Config.backend_info.bSupportsFramebufferFetch =
         g_ogl_config.SupportedFramebufferFetch != EsFbFetchType::FbFetchNone;
