@@ -25,7 +25,7 @@ public:
   static bool CheckValidationLayerAvailablility();
 
   // Helper method to create a Vulkan instance.
-  static VkInstance CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_report,
+  static VkInstance CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_utils,
                                          bool enable_validation_layer, u32* out_vk_api_version);
 
   // Returns a list of Vulkan-compatible GPUs.
@@ -46,12 +46,12 @@ public:
   // This assumes that PopulateBackendInfo and PopulateBackendInfoAdapters has already
   // been called for the specified VideoConfig.
   static std::unique_ptr<VulkanContext> Create(VkInstance instance, VkPhysicalDevice gpu,
-                                               VkSurfaceKHR surface, bool enable_debug_reports,
+                                               VkSurfaceKHR surface, bool enable_debug_utils,
                                                bool enable_validation_layer, u32 api_version);
 
   // Enable/disable debug message runtime.
-  bool EnableDebugReports();
-  void DisableDebugReports();
+  bool EnableDebugUtils();
+  void DisableDebugUtils();
 
   // Global state accessors
   VkInstance GetVulkanInstance() const { return m_instance; }
@@ -115,7 +115,8 @@ public:
 
 private:
   static bool SelectInstanceExtensions(std::vector<const char*>* extension_list,
-                                       WindowSystemType wstype, bool enable_debug_report);
+                                       WindowSystemType wstype, bool enable_debug_utils,
+                                       bool validation_layer_enabled);
   bool SelectDeviceExtensions(bool enable_surface);
   bool SelectDeviceFeatures();
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
@@ -134,7 +135,7 @@ private:
   u32 m_present_queue_family_index = 0;
   VkQueueFamilyProperties m_graphics_queue_properties = {};
 
-  VkDebugReportCallbackEXT m_debug_report_callback = VK_NULL_HANDLE;
+  VkDebugUtilsMessengerEXT m_debug_utils_messenger = VK_NULL_HANDLE;
 
   VkPhysicalDeviceFeatures m_device_features = {};
   VkPhysicalDeviceProperties m_device_properties = {};
