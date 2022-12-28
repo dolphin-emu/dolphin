@@ -10,6 +10,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/System.h"
+
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKRenderer.h"
@@ -232,17 +234,20 @@ void VertexManager::UpdateGeometryShaderConstants()
 
 void VertexManager::UpdatePixelShaderConstants()
 {
-  if (!PixelShaderManager::dirty || !ReserveConstantStorage())
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+
+  if (!pixel_shader_manager.dirty || !ReserveConstantStorage())
     return;
 
   StateTracker::GetInstance()->SetGXUniformBuffer(
       UBO_DESCRIPTOR_SET_BINDING_PS, m_uniform_stream_buffer->GetBuffer(),
       m_uniform_stream_buffer->GetCurrentOffset(), sizeof(PixelShaderConstants));
-  std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &PixelShaderManager::constants,
+  std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &pixel_shader_manager.constants,
               sizeof(PixelShaderConstants));
   m_uniform_stream_buffer->CommitMemory(sizeof(PixelShaderConstants));
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, sizeof(PixelShaderConstants));
-  PixelShaderManager::dirty = false;
+  pixel_shader_manager.dirty = false;
 }
 
 bool VertexManager::ReserveConstantStorage()
@@ -282,6 +287,9 @@ void VertexManager::UploadAllConstants()
     return;
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+
   // Update bindings
   StateTracker::GetInstance()->SetGXUniformBuffer(
       UBO_DESCRIPTOR_SET_BINDING_PS, m_uniform_stream_buffer->GetBuffer(),
@@ -298,7 +306,7 @@ void VertexManager::UploadAllConstants()
 
   // Copy the actual data in
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer() + pixel_constants_offset,
-              &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+              &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer() + vertex_constants_offset,
               &VertexShaderManager::constants, sizeof(VertexShaderConstants));
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer() + geometry_constants_offset,
@@ -311,7 +319,7 @@ void VertexManager::UploadAllConstants()
   // Clear dirty flags
   VertexShaderManager::dirty = false;
   GeometryShaderManager::dirty = false;
-  PixelShaderManager::dirty = false;
+  pixel_shader_manager.dirty = false;
 }
 
 void VertexManager::UploadUtilityUniforms(const void* data, u32 data_size)

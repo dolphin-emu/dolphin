@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 
+class PixelShaderManager;
 class PointerWrap;
 
 using BBoxType = s32;
@@ -20,8 +21,8 @@ public:
   virtual ~BoundingBox() = default;
 
   bool IsEnabled() const { return m_is_active; }
-  void Enable();
-  void Disable();
+  void Enable(PixelShaderManager& pixel_shader_manager);
+  void Disable(PixelShaderManager& pixel_shader_manager);
 
   void Flush();
 

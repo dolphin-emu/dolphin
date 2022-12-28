@@ -21,6 +21,7 @@
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PixelShaderManager.h"
 
 namespace Core
 {
@@ -41,6 +42,7 @@ struct System::Impl
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceState m_memory_interface_state;
   PixelEngine::PixelEngineManager m_pixel_engine;
+  PixelShaderManager m_pixel_shader_manager;
   SerialInterface::SerialInterfaceState m_serial_interface_state;
   Sram m_sram;
   VideoInterface::VideoInterfaceState m_video_interface_state;
@@ -142,6 +144,11 @@ MemoryInterface::MemoryInterfaceState& System::GetMemoryInterfaceState() const
 PixelEngine::PixelEngineManager& System::GetPixelEngine() const
 {
   return m_impl->m_pixel_engine;
+}
+
+PixelShaderManager& System::GetPixelShaderManager() const
+{
+  return m_impl->m_pixel_shader_manager;
 }
 
 SerialInterface::SerialInterfaceState& System::GetSerialInterfaceState() const

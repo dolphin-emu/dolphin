@@ -20,6 +20,7 @@
 #include "Common/Version.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/System.h"
 
 #include "VideoBackends/OGL/OGLRender.h"
 #include "VideoBackends/OGL/OGLShader.h"
@@ -220,11 +221,13 @@ u32 ProgramShaderCache::GetUniformBufferAlignment()
 
 void ProgramShaderCache::UploadConstants()
 {
-  if (PixelShaderManager::dirty || VertexShaderManager::dirty || GeometryShaderManager::dirty)
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  if (pixel_shader_manager.dirty || VertexShaderManager::dirty || GeometryShaderManager::dirty)
   {
     auto buffer = s_buffer->Map(s_ubo_buffer_size, s_ubo_align);
 
-    memcpy(buffer.first, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+    memcpy(buffer.first, &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
 
     memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align),
            &VertexShaderManager::constants, sizeof(VertexShaderConstants));
@@ -244,7 +247,7 @@ void ProgramShaderCache::UploadConstants()
                           Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align),
                       sizeof(GeometryShaderConstants));
 
-    PixelShaderManager::dirty = false;
+    pixel_shader_manager.dirty = false;
     VertexShaderManager::dirty = false;
     GeometryShaderManager::dirty = false;
 

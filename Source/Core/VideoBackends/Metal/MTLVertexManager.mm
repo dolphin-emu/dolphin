@@ -3,6 +3,8 @@
 
 #include "VideoBackends/Metal/MTLVertexManager.h"
 
+#include "Core/System.h"
+
 #include "VideoBackends/Metal/MTLStateTracker.h"
 
 #include "VideoCommon/GeometryShaderManager.h"
@@ -89,9 +91,11 @@ void Metal::VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32
 
 void Metal::VertexManager::UploadUniforms()
 {
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
   g_state_tracker->InvalidateUniforms(VertexShaderManager::dirty, GeometryShaderManager::dirty,
-                                      PixelShaderManager::dirty);
+                                      pixel_shader_manager.dirty);
   VertexShaderManager::dirty = false;
   GeometryShaderManager::dirty = false;
-  PixelShaderManager::dirty = false;
+  pixel_shader_manager.dirty = false;
 }

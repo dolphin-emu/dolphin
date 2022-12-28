@@ -118,11 +118,14 @@ static void XFRegWritten(u32 address, u32 value)
     case XFMEM_SETVIEWPORT + 3:
     case XFMEM_SETVIEWPORT + 4:
     case XFMEM_SETVIEWPORT + 5:
+    {
+      auto& system = Core::System::GetInstance();
       g_vertex_manager->Flush();
       VertexShaderManager::SetViewportChanged();
-      PixelShaderManager::SetViewportChanged();
+      system.GetPixelShaderManager().SetViewportChanged();
       GeometryShaderManager::SetViewportChanged();
       break;
+    }
 
     case XFMEM_SETPROJECTION:
     case XFMEM_SETPROJECTION + 1:
