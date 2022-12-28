@@ -39,7 +39,7 @@ public:
 
   // data: 3 floats representing the X, Y and Z vertex model coordinates and the posmatrix index.
   // out:  4 floats which will be initialized with the corresponding clip space coordinates
-  // NOTE: g_fProjectionMatrix must be up to date when this is called
+  // NOTE: m_projection_matrix must be up to date when this is called
   //       (i.e. VertexShaderManager::SetConstants needs to be called before using this!)
   void TransformToClipSpace(const float* data, float* out, u32 mtxIdx);
 
@@ -47,21 +47,21 @@ public:
   bool dirty = false;
 
 private:
-  alignas(16) std::array<float, 16> g_fProjectionMatrix;
+  alignas(16) std::array<float, 16> m_projection_matrix;
 
   // track changes
-  std::array<bool, 2> bTexMatricesChanged{};
-  bool bPosNormalMatrixChanged = false;
-  bool bProjectionChanged = false;
-  bool bViewportChanged = false;
-  bool bTexMtxInfoChanged = false;
-  bool bLightingConfigChanged = false;
-  bool bProjectionGraphicsModChange = false;
-  BitSet32 nMaterialsChanged;
-  std::array<int, 2> nTransformMatricesChanged{};      // min,max
-  std::array<int, 2> nNormalMatricesChanged{};         // min,max
-  std::array<int, 2> nPostTransformMatricesChanged{};  // min,max
-  std::array<int, 2> nLightsChanged{};                 // min,max
+  std::array<bool, 2> m_tex_matrices_changed{};
+  bool m_pos_normal_matrix_changed = false;
+  bool m_projection_changed = false;
+  bool m_viewport_changed = false;
+  bool m_tex_mtx_info_changed = false;
+  bool m_lighting_config_changed = false;
+  bool m_projection_graphics_mod_change = false;
+  BitSet32 m_materials_changed;
+  std::array<int, 2> m_minmax_transform_matrices_changed{};
+  std::array<int, 2> m_minmax_normal_matrices_changed{};
+  std::array<int, 2> m_minmax_post_transform_matrices_changed{};
+  std::array<int, 2> m_minmax_lights_changed{};
 
-  Common::Matrix44 s_viewportCorrection{};
+  Common::Matrix44 m_viewport_correction{};
 };
