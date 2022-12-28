@@ -1844,53 +1844,53 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   {
     using Common::EnumMap;
     static constexpr EnumMap<const char*, SrcBlendFactor::InvDstAlpha> blend_src_factor{
-        "float3(0,0,0);",                      // ZERO
-        "float3(1,1,1);",                      // ONE
-        "initial_ocol0.rgb;",                  // DSTCLR
-        "float3(1,1,1) - initial_ocol0.rgb;",  // INVDSTCLR
-        "src_color.aaa;",                      // SRCALPHA
-        "float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
-        "initial_ocol0.aaa;",                  // DSTALPHA
-        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
+        "float3(0,0,0)",                      // ZERO
+        "float3(1,1,1)",                      // ONE
+        "initial_ocol0.rgb",                  // DSTCLR
+        "float3(1,1,1) - initial_ocol0.rgb",  // INVDSTCLR
+        "src_color.aaa",                      // SRCALPHA
+        "float3(1,1,1) - src_color.aaa",      // INVSRCALPHA
+        "initial_ocol0.aaa",                  // DSTALPHA
+        "float3(1,1,1) - initial_ocol0.aaa",  // INVDSTALPHA
     };
     static constexpr EnumMap<const char*, SrcBlendFactor::InvDstAlpha> blend_src_factor_alpha{
-        "0.0;",                    // ZERO
-        "1.0;",                    // ONE
-        "initial_ocol0.a;",        // DSTCLR
-        "1.0 - initial_ocol0.a;",  // INVDSTCLR
-        "src_color.a;",            // SRCALPHA
-        "1.0 - src_color.a;",      // INVSRCALPHA
-        "initial_ocol0.a;",        // DSTALPHA
-        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
+        "0.0",                    // ZERO
+        "1.0",                    // ONE
+        "initial_ocol0.a",        // DSTCLR
+        "1.0 - initial_ocol0.a",  // INVDSTCLR
+        "src_color.a",            // SRCALPHA
+        "1.0 - src_color.a",      // INVSRCALPHA
+        "initial_ocol0.a",        // DSTALPHA
+        "1.0 - initial_ocol0.a",  // INVDSTALPHA
     };
     static constexpr EnumMap<const char*, DstBlendFactor::InvDstAlpha> blend_dst_factor{
-        "float3(0,0,0);",                      // ZERO
-        "float3(1,1,1);",                      // ONE
-        "ocol0.rgb;",                          // SRCCLR
-        "float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
-        "src_color.aaa;",                      // SRCALHA
-        "float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
-        "initial_ocol0.aaa;",                  // DSTALPHA
-        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
+        "float3(0,0,0)",                      // ZERO
+        "float3(1,1,1)",                      // ONE
+        "ocol0.rgb",                          // SRCCLR
+        "float3(1,1,1) - ocol0.rgb",          // INVSRCCLR
+        "src_color.aaa",                      // SRCALPHA
+        "float3(1,1,1) - src_color.aaa",      // INVSRCALPHA
+        "initial_ocol0.aaa",                  // DSTALPHA
+        "float3(1,1,1) - initial_ocol0.aaa",  // INVDSTALPHA
     };
     static constexpr EnumMap<const char*, DstBlendFactor::InvDstAlpha> blend_dst_factor_alpha{
-        "0.0;",                    // ZERO
-        "1.0;",                    // ONE
-        "ocol0.a;",                // SRCCLR
-        "1.0 - ocol0.a;",          // INVSRCCLR
-        "src_color.a;",            // SRCALPHA
-        "1.0 - src_color.a;",      // INVSRCALPHA
-        "initial_ocol0.a;",        // DSTALPHA
-        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
+        "0.0",                    // ZERO
+        "1.0",                    // ONE
+        "ocol0.a",                // SRCCLR
+        "1.0 - ocol0.a",          // INVSRCCLR
+        "src_color.a",            // SRCALPHA
+        "1.0 - src_color.a",      // INVSRCALPHA
+        "initial_ocol0.a",        // DSTALPHA
+        "1.0 - initial_ocol0.a",  // INVDSTALPHA
     };
     out.Write("\tfloat4 src_color = {};\n"
               "\tfloat4 blend_src;",
               uid_data->useDstAlpha ? "ocol1" : "ocol0");
-    out.Write("\tblend_src.rgb = {}\n", blend_src_factor[uid_data->blend_src_factor]);
-    out.Write("\tblend_src.a = {}\n", blend_src_factor_alpha[uid_data->blend_src_factor_alpha]);
+    out.Write("\tblend_src.rgb = {};\n", blend_src_factor[uid_data->blend_src_factor]);
+    out.Write("\tblend_src.a = {};\n", blend_src_factor_alpha[uid_data->blend_src_factor_alpha]);
     out.Write("\tfloat4 blend_dst;\n");
-    out.Write("\tblend_dst.rgb = {}\n", blend_dst_factor[uid_data->blend_dst_factor]);
-    out.Write("\tblend_dst.a = {}\n", blend_dst_factor_alpha[uid_data->blend_dst_factor_alpha]);
+    out.Write("\tblend_dst.rgb = {};\n", blend_dst_factor[uid_data->blend_dst_factor]);
+    out.Write("\tblend_dst.a = {};\n", blend_dst_factor_alpha[uid_data->blend_dst_factor_alpha]);
 
     out.Write("\tfloat4 blend_result;\n");
     if (uid_data->blend_subtract)
