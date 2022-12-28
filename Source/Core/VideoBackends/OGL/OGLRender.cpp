@@ -592,15 +592,18 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
   {
     if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
     {
+      INFO_LOG_FMT(VIDEO, "GL_EXT_shader_framebuffer_fetch");
       g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchExt;
     }
     else if (GLExtensions::Supports("GL_ARM_shader_framebuffer_fetch"))
     {
+      INFO_LOG_FMT(VIDEO, "GL_ARM_shader_framebuffer_fetch");
       g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchArm;
     }
     else
     {
-      g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchNone;
+      INFO_LOG_FMT(VIDEO, "Not supported, pretending it is");
+      g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchExt;
     }
     g_Config.backend_info.bSupportsFramebufferFetch =
         g_ogl_config.SupportedFramebufferFetch != EsFbFetchType::FbFetchNone;

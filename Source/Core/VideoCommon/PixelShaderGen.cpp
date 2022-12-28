@@ -1884,7 +1884,7 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
         "1.0 - initial_ocol0.a",  // INVDSTALPHA
     };
     out.Write("\tfloat4 src_color = {};\n"
-              "\tint4 blend_src;",
+              "\tint4 blend_src;\n",
               uid_data->useDstAlpha ? "ocol1" : "ocol0");
     out.Write("\tblend_src.rgb = int3({} * 255.0);\n",
               blend_src_factor[uid_data->blend_src_factor]);

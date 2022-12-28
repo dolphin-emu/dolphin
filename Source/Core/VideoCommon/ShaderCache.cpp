@@ -673,6 +673,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
         blend.hex = 0;
         blend.colorupdate = in.blending_state.colorupdate.Value();
         blend.alphaupdate = in.blending_state.alphaupdate.Value();
+        blend.usedualsrc = false;
       }
     }
   }
