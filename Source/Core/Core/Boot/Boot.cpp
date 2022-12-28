@@ -413,7 +413,7 @@ bool CBoot::LoadMapFromFilename()
 // If ipl.bin is not found, this function does *some* of what BS1 does:
 // loading IPL(BS2) and jumping to it.
 // It does not initialize the hardware or anything else like BS1 does.
-bool CBoot::Load_BS2(const std::string& boot_rom_filename)
+bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
 {
   // CRC32 hashes of the IPL file, obtained from Redump
   constexpr u32 NTSC_v1_0 = 0x6DAC1F2A;
@@ -463,7 +463,6 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   // copying the initial boot code to 0x81200000 is a hack.
   // For now, HLE the first few instructions and start at 0x81200150
   // to work around this.
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.CopyToEmu(0x01200000, data.data() + 0x100, 0x700);
   memory.CopyToEmu(0x01300000, data.data() + 0x820, 0x1AFE00);
@@ -494,14 +493,13 @@ static void SetDefaultDisc()
     SetDisc(DiscIO::CreateDisc(default_iso));
 }
 
-static void CopyDefaultExceptionHandlers()
+static void CopyDefaultExceptionHandlers(Core::System& system)
 {
   constexpr u32 EXCEPTION_HANDLER_ADDRESSES[] = {0x00000100, 0x00000200, 0x00000300, 0x00000400,
                                                  0x00000500, 0x00000600, 0x00000700, 0x00000800,
                                                  0x00000900, 0x00000C00, 0x00000D00, 0x00000F00,
                                                  0x00001300, 0x00001400, 0x00001700};
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   constexpr u32 RFI_INSTRUCTION = 0x4C000064;
   for (const u32 address : EXCEPTION_HANDLER_ADDRESSES)
@@ -509,7 +507,7 @@ static void CopyDefaultExceptionHandlers()
 }
 
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
-bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
+bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
 {
   SConfig& config = SConfig::GetInstance();
 
@@ -525,8 +523,8 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
   struct BootTitle
   {
-    BootTitle(const std::vector<DiscIO::Riivolution::Patch>& patches)
-        : config(SConfig::GetInstance()), riivolution_patches(patches)
+    BootTitle(Core::System& system, const std::vector<DiscIO::Riivolution::Patch>& patches)
+        : system(system), config(SConfig::GetInstance()), riivolution_patches(patches)
     {
     }
     bool operator()(BootParameters::Disc& disc) const
@@ -538,7 +536,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (!volume)
         return false;
 
-      if (!EmulatedBS2(config.bWii, *volume, riivolution_patches))
+      if (!EmulatedBS2(system, config.bWii, *volume, riivolution_patches))
         return false;
 
       SConfig::OnNewTitleLoad();
@@ -557,7 +555,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       SetupMSR();
       SetupHID(config.bWii);
       SetupBAT(config.bWii);
-      CopyDefaultExceptionHandlers();
+      CopyDefaultExceptionHandlers(system);
 
       if (config.bWii)
       {
@@ -567,12 +565,12 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
-        SetupWiiMemory(IOS::HLE::IOSC::ConsoleType::Retail);
+        SetupWiiMemory(system, IOS::HLE::IOSC::ConsoleType::Retail);
         IOS::HLE::GetIOS()->BootIOS(Titles::IOS(58));
       }
       else
       {
-        SetupGCMemory();
+        SetupGCMemory(system);
       }
 
       if (!executable.reader->LoadIntoMemory())
@@ -596,7 +594,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
     bool operator()(const DiscIO::VolumeWAD& wad) const
     {
       SetDefaultDisc();
-      if (!Boot_WiiWAD(wad))
+      if (!Boot_WiiWAD(system, wad))
         return false;
 
       SConfig::OnNewTitleLoad();
@@ -606,7 +604,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
     bool operator()(const BootParameters::NANDTitle& nand_title) const
     {
       SetDefaultDisc();
-      if (!BootNANDTitle(nand_title.id))
+      if (!BootNANDTitle(system, nand_title.id))
         return false;
 
       SConfig::OnNewTitleLoad();
@@ -625,7 +623,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
         return false;
       }
 
-      if (!Load_BS2(ipl.path))
+      if (!Load_BS2(system, ipl.path))
         return false;
 
       if (ipl.disc)
@@ -645,11 +643,12 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
     }
 
   private:
+    Core::System& system;
     const SConfig& config;
     const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches;
   };
 
-  if (!std::visit(BootTitle(boot->riivolution_patches), boot->parameters))
+  if (!std::visit(BootTitle(system, boot->riivolution_patches), boot->parameters))
     return false;
 
   DiscIO::Riivolution::ApplyGeneralMemoryPatches(boot->riivolution_patches);
