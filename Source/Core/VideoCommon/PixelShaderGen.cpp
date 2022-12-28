@@ -1886,14 +1886,14 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
     out.Write("\tfloat4 src_color = {};\n"
               "\tint4 blend_src;\n",
               uid_data->useDstAlpha ? "ocol1" : "ocol0");
-    out.Write("\tblend_src.rgb = int3({} * 255.0);\n",
+    out.Write("\tblend_src.rgb = int3(({}) * 255.0);\n",
               blend_src_factor[uid_data->blend_src_factor]);
-    out.Write("\tblend_src.a = int({} * 255.0);\n",
+    out.Write("\tblend_src.a = int(({}) * 255.0);\n",
               blend_src_factor_alpha[uid_data->blend_src_factor_alpha]);
     out.Write("\tint4 blend_dst;\n");
-    out.Write("\tblend_dst.rgb = int3({} * 255.0);\n",
+    out.Write("\tblend_dst.rgb = int3(({}) * 255.0);\n",
               blend_dst_factor[uid_data->blend_dst_factor]);
-    out.Write("\tblend_dst.a = int({} * 255.0);\n",
+    out.Write("\tblend_dst.a = int(({}) * 255.0);\n",
               blend_dst_factor_alpha[uid_data->blend_dst_factor_alpha]);
 
     // add MSB of factors to make their range 0 -> 256
