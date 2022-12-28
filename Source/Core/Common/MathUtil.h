@@ -4,12 +4,12 @@
 #pragma once
 
 #include <algorithm>
+#include <bit>
 #include <cmath>
 #include <limits>
 #include <type_traits>
 #include <vector>
 
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
 namespace MathUtil
@@ -193,5 +193,5 @@ float MathFloatVectorSum(const std::vector<float>&);
 // Rounds down. 0 -> undefined
 constexpr int IntLog2(u64 val)
 {
-  return 63 - Common::CountLeadingZeros(val);
+  return 63 - std::countl_zero(val);
 }

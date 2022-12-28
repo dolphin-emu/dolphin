@@ -163,8 +163,8 @@ std::vector<u64> ESDevice::GetTitlesWithTickets() const
       const std::string name_without_ext = file_name.substr(0, 8);
       if (fs->ReadDirectory(PID_KERNEL, PID_KERNEL,
                             fmt::format("/ticket/{}/{}", title_type, file_name)) ||
-          !IsValidPartOfTitleID(name_without_ext) || name_without_ext + ".tik" != file_name ||
-          name_without_ext + ".tv1" != file_name)
+          !IsValidPartOfTitleID(name_without_ext) ||
+          (name_without_ext + ".tik" != file_name && name_without_ext + ".tv1" != file_name))
       {
         continue;
       }

@@ -60,4 +60,17 @@
     <style name="DolphinDivider" parent="Widget.Material3.MaterialDivider">
         <item name="dividerColor">?attr/colorSurfaceVariant</item>
     </style>
+
+    <style name="ThemeOverlay.Dolphin.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="Widget.Dolphin.ExtendedFloatingActionButton" parent="Widget.Material3.ExtendedFloatingActionButton.Primary">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Dolphin.ExtendedFloatingActionButton</item>
+    </style>
+
+    <style name="ThemeOverlay.Dolphin.ExtendedFloatingActionButton" parent="">
+        <item name="colorContainer">@color/dolphin_primary</item>
+        <item name="colorOnContainer">@color/dolphin_onPrimary</item>
+    </style>
 </resources>

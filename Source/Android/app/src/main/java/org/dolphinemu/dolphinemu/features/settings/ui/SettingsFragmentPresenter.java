@@ -324,10 +324,6 @@ public final class SettingsFragmentPresenter
             R.string.panic_handlers, R.string.panic_handlers_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_OSD_MESSAGES, R.string.osd_messages,
             R.string.osd_messages_description));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_USE_GAME_COVERS,
-            R.string.download_game_covers, 0));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_SHOW_GAME_TITLES,
-            R.string.show_titles_in_game_list, R.string.show_titles_in_game_list_description));
 
     AbstractIntSetting appTheme = new AbstractIntSetting()
     {
@@ -774,8 +770,14 @@ public final class SettingsFragmentPresenter
             R.string.video_backend, 0, R.array.videoBackendEntries, R.array.videoBackendValues));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_FPS, R.string.show_fps,
             R.string.show_fps_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_FTIMES, R.string.show_ftimes,
+            R.string.show_ftimes_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_VPS, R.string.show_vps,
             R.string.show_vps_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_VTIMES, R.string.show_vtimes,
+            R.string.show_vtimes_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_GRAPHS, R.string.show_graphs,
+            R.string.show_graphs_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_SPEED, R.string.show_speed,
             R.string.show_speed_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_SPEED_COLORS,

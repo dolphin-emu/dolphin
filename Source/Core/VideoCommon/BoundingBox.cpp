@@ -13,16 +13,16 @@
 
 #include <algorithm>
 
-void BoundingBox::Enable()
+void BoundingBox::Enable(PixelShaderManager& pixel_shader_manager)
 {
   m_is_active = true;
-  PixelShaderManager::SetBoundingBoxActive(m_is_active);
+  pixel_shader_manager.SetBoundingBoxActive(m_is_active);
 }
 
-void BoundingBox::Disable()
+void BoundingBox::Disable(PixelShaderManager& pixel_shader_manager)
 {
   m_is_active = false;
-  PixelShaderManager::SetBoundingBoxActive(m_is_active);
+  pixel_shader_manager.SetBoundingBoxActive(m_is_active);
 }
 
 void BoundingBox::Flush()

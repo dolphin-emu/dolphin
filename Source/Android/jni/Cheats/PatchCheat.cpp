@@ -134,14 +134,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_loadCodes(JNIEnv
   std::vector<PatchEngine::Patch> patches;
   PatchEngine::LoadPatchSection("OnFrame", &patches, game_ini_default, game_ini_local);
 
-  const jobjectArray array = env->NewObjectArray(static_cast<jsize>(patches.size()),
-                                                 IDCache::GetPatchCheatClass(), nullptr);
-
-  jsize i = 0;
-  for (const PatchEngine::Patch& patch : patches)
-    env->SetObjectArrayElement(array, i++, PatchCheatToJava(env, patch));
-
-  return array;
+  return VectorToJObjectArray(env, patches, IDCache::GetPatchCheatClass(), PatchCheatToJava);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_saveCodes(

@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.graphics.Insets;
@@ -18,12 +19,17 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.color.MaterialColors;
+import com.google.android.material.elevation.ElevationOverlayProvider;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.databinding.FragmentIngameMenuBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.utils.InsetsHelper;
+import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
 public final class MenuFragment extends Fragment implements View.OnClickListener
 {
@@ -85,6 +91,14 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
   {
+    if (IntSetting.MAIN_INTERFACE_THEME.getIntGlobal() != ThemeHelper.DEFAULT)
+    {
+      @ColorInt int color = new ElevationOverlayProvider(view.getContext()).compositeOverlay(
+              MaterialColors.getColor(view, R.attr.colorSurface),
+              view.getElevation());
+      view.setBackgroundColor(color);
+    }
+
     setInsets();
     updatePauseUnpauseVisibility();
 

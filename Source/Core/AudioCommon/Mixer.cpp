@@ -14,6 +14,7 @@
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "VideoCommon/PerformanceMetrics.h"
 
 static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
 {
@@ -160,6 +161,8 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
 
   memset(samples, 0, num_samples * 2 * sizeof(short));
 
+  // TODO: Determine how emulation speed will be used in audio
+  // const float emulation_speed = std::roundf(g_perf_metrics.GetSpeed()) / 100.f;
   const float emulation_speed = m_config_emulation_speed;
   const int timing_variance = m_config_timing_variance;
   if (m_config_audio_stretch)

@@ -20,8 +20,8 @@ public:
   bool Initialize();
   void ResolveQueries();
 
-  void EnableQuery(PerfQueryGroup type) override;
-  void DisableQuery(PerfQueryGroup type) override;
+  void EnableQuery(PerfQueryGroup group) override;
+  void DisableQuery(PerfQueryGroup group) override;
   void ResetQuery() override;
   u32 GetQueryResult(PerfQueryType type) override;
   void FlushResults() override;
@@ -31,7 +31,7 @@ private:
   struct ActiveQuery
   {
     u64 fence_value;
-    PerfQueryType query_type;
+    PerfQueryGroup query_group;
     bool has_value;
     bool resolved;
   };

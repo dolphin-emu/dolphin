@@ -73,7 +73,7 @@ void VideoCommon_DoState(PointerWrap& p)
 
   // the old way of replaying current bpmem as writes to push side effects to pixel shader manager
   // doesn't really work.
-  PixelShaderManager::DoState(p);
+  system.GetPixelShaderManager().DoState(p);
   p.DoMarker("PixelShaderManager");
 
   VertexShaderManager::DoState(p);

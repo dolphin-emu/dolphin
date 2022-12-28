@@ -162,13 +162,14 @@ void MemoryWidget::CreateWidgets()
   auto* address_space_layout = new QVBoxLayout;
   address_space_group->setLayout(address_space_layout);
 
-  // i18n: "Effective" addresses are the addresses used directly by the CPU and may be subject to
-  // translation via the MMU to physical addresses.
+  // i18n: One of the options shown below "Address Space". "Effective" addresses are the addresses
+  // used directly by the CPU and may be subject to translation via the MMU to physical addresses.
   m_address_space_effective = new QRadioButton(tr("Effective"));
-  // i18n: The "Auxiliary" address space is the address space of ARAM (Auxiliary RAM).
+  // i18n: One of the options shown below "Address Space". "Auxiliary" is the address space of ARAM
+  // (Auxiliary RAM).
   m_address_space_auxiliary = new QRadioButton(tr("Auxiliary"));
-  // i18n: The "Physical" address space is the address space that reflects how devices (e.g. RAM) is
-  // physically wired up.
+  // i18n: One of the options shown below "Address Space". "Physical" is the address space that
+  // reflects how devices (e.g. RAM) is physically wired up.
   m_address_space_physical = new QRadioButton(tr("Physical"));
 
   address_space_layout->addWidget(m_address_space_effective);

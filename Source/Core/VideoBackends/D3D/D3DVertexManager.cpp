@@ -9,6 +9,8 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/System.h"
+
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBoundingBox.h"
 #include "VideoBackends/D3D/D3DRender.h"
@@ -260,6 +262,8 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
 
 void VertexManager::UploadUniforms()
 {
+  auto& system = Core::System::GetInstance();
+
   if (VertexShaderManager::dirty)
   {
     UpdateConstantBuffer(m_vertex_constant_buffer.Get(), &VertexShaderManager::constants,
@@ -272,11 +276,13 @@ void VertexManager::UploadUniforms()
                          sizeof(GeometryShaderConstants));
     GeometryShaderManager::dirty = false;
   }
-  if (PixelShaderManager::dirty)
+
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  if (pixel_shader_manager.dirty)
   {
-    UpdateConstantBuffer(m_pixel_constant_buffer.Get(), &PixelShaderManager::constants,
+    UpdateConstantBuffer(m_pixel_constant_buffer.Get(), &pixel_shader_manager.constants,
                          sizeof(PixelShaderConstants));
-    PixelShaderManager::dirty = false;
+    pixel_shader_manager.dirty = false;
   }
 
   D3D::stateman->SetPixelConstants(

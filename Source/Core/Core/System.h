@@ -5,6 +5,7 @@
 
 #include <memory>
 
+class PixelShaderManager;
 class SoundStream;
 struct Sram;
 
@@ -106,6 +107,7 @@ public:
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
   PixelEngine::PixelEngineManager& GetPixelEngine() const;
+  PixelShaderManager& GetPixelShaderManager() const;
   SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;
   Sram& GetSRAM() const;
   VideoInterface::VideoInterfaceState& GetVideoInterfaceState() const;

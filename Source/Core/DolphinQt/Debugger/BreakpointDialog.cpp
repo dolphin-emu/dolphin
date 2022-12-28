@@ -154,6 +154,8 @@ void BreakpointDialog::CreateWidgets()
   memory_data_layout->addWidget(m_memory_address_to_label, 1, 2);
   memory_data_layout->addWidget(m_memory_address_to, 1, 3);
 
+  // i18n: If a condition is set for a breakpoint, the condition becoming true is a prerequisite for
+  // triggering the breakpoint.
   QGroupBox* condition_box = new QGroupBox(tr("Condition"));
   auto* condition_layout = new QHBoxLayout;
   condition_box->setLayout(condition_layout);
@@ -171,6 +173,8 @@ void BreakpointDialog::CreateWidgets()
 
   QHBoxLayout* conditional_layout = new QHBoxLayout;
   m_conditional = new QLineEdit();
+  // i18n: If a condition is set for a breakpoint, the condition becoming true is a prerequisite for
+  // triggering the breakpoint.
   conditional_layout->addWidget(new QLabel(tr("Condition:")));
   conditional_layout->addWidget(m_conditional);
 
@@ -269,6 +273,8 @@ void BreakpointDialog::accept()
 
   if (!condition.isEmpty() && !Expression::TryParse(condition.toUtf8().constData()))
   {
+    // i18n: If a condition is set for a breakpoint, the condition becoming true is a prerequisite
+    // for triggering the breakpoint.
     invalid_input(tr("Condition"));
     return;
   }
@@ -356,5 +362,7 @@ void BreakpointDialog::ShowConditionHelp()
       "Note: All values are internally converted to Doubles for calculations. It's possible for "
       "them to go out of range or to become NaN. A warning will be given if NaN is returned, and "
       "the var that became NaN will be logged.");
+  // i18n: The title for a dialog that shows help for how to use conditions. If a condition is set
+  // for a breakpoint, the condition becoming true is a prerequisite for triggering the breakpoint.
   ModalMessageBox::information(this, tr("Conditional help"), message);
 }

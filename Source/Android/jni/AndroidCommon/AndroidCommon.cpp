@@ -20,7 +20,7 @@ std::string GetJString(JNIEnv* env, jstring jstr)
   const jchar* jchars = env->GetStringChars(jstr, nullptr);
   const jsize length = env->GetStringLength(jstr);
   const std::u16string_view string_view(reinterpret_cast<const char16_t*>(jchars), length);
-  const std::string converted_string = UTF16ToUTF8(string_view);
+  std::string converted_string = UTF16ToUTF8(string_view);
   env->ReleaseStringChars(jstr, jchars);
   return converted_string;
 }
@@ -48,16 +48,9 @@ std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
   return result;
 }
 
-jobjectArray VectorToJStringArray(JNIEnv* env, std::vector<std::string> vector)
+jobjectArray VectorToJStringArray(JNIEnv* env, const std::vector<std::string>& vector)
 {
-  jobjectArray result = env->NewObjectArray(vector.size(), IDCache::GetStringClass(), nullptr);
-  for (jsize i = 0; i < vector.size(); ++i)
-  {
-    jstring str = ToJString(env, vector[i]);
-    env->SetObjectArrayElement(result, i, str);
-    env->DeleteLocalRef(str);
-  }
-  return result;
+  return VectorToJObjectArray(env, vector, IDCache::GetStringClass(), ToJString);
 }
 
 bool IsPathAndroidContent(const std::string& uri)
@@ -107,40 +100,64 @@ std::string OpenModeToAndroid(std::ios_base::openmode mode)
 int OpenAndroidContent(const std::string& uri, const std::string& mode)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  return env->CallStaticIntMethod(IDCache::GetContentHandlerClass(),
-                                  IDCache::GetContentHandlerOpenFd(), ToJString(env, uri),
-                                  ToJString(env, mode));
+
+  jstring j_uri = ToJString(env, uri);
+  jstring j_mode = ToJString(env, mode);
+
+  jint result = env->CallStaticIntMethod(IDCache::GetContentHandlerClass(),
+                                         IDCache::GetContentHandlerOpenFd(), j_uri, j_mode);
+
+  env->DeleteLocalRef(j_uri);
+  env->DeleteLocalRef(j_mode);
+
+  return result;
 }
 
 bool DeleteAndroidContent(const std::string& uri)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  return env->CallStaticBooleanMethod(IDCache::GetContentHandlerClass(),
-                                      IDCache::GetContentHandlerDelete(), ToJString(env, uri));
+
+  jstring j_uri = ToJString(env, uri);
+
+  jboolean result = env->CallStaticBooleanMethod(IDCache::GetContentHandlerClass(),
+                                                 IDCache::GetContentHandlerDelete(), j_uri);
+
+  env->DeleteLocalRef(j_uri);
+
+  return static_cast<bool>(result);
 }
 
 jlong GetAndroidContentSizeAndIsDirectory(const std::string& uri)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  return env->CallStaticLongMethod(IDCache::GetContentHandlerClass(),
-                                   IDCache::GetContentHandlerGetSizeAndIsDirectory(),
-                                   ToJString(env, uri));
+
+  jstring j_uri = ToJString(env, uri);
+
+  jlong result = env->CallStaticLongMethod(
+      IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerGetSizeAndIsDirectory(), j_uri);
+
+  env->DeleteLocalRef(j_uri);
+
+  return result;
 }
 
 std::string GetAndroidContentDisplayName(const std::string& uri)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
-  jstring jresult = reinterpret_cast<jstring>(
-      env->CallStaticObjectMethod(IDCache::GetContentHandlerClass(),
-                                  IDCache::GetContentHandlerGetDisplayName(), ToJString(env, uri)));
+  jstring j_uri = ToJString(env, uri);
 
-  if (!jresult)
+  jstring j_result = reinterpret_cast<jstring>(env->CallStaticObjectMethod(
+      IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerGetDisplayName(), j_uri));
+
+  env->DeleteLocalRef(j_uri);
+
+  if (!j_result)
     return "";
 
-  std::string result = GetJString(env, jresult);
+  std::string result = GetJString(env, j_result);
 
-  env->DeleteLocalRef(jresult);
+  env->DeleteLocalRef(j_result);
 
   return result;
 }
@@ -149,13 +166,15 @@ std::vector<std::string> GetAndroidContentChildNames(const std::string& uri)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
-  jobjectArray jresult = reinterpret_cast<jobjectArray>(env->CallStaticObjectMethod(
-      IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerGetChildNames(),
-      ToJString(env, uri), false));
+  jstring j_uri = ToJString(env, uri);
 
-  std::vector<std::string> result = JStringArrayToVector(env, jresult);
+  jobjectArray j_result = reinterpret_cast<jobjectArray>(env->CallStaticObjectMethod(
+      IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerGetChildNames(), j_uri, false));
 
-  env->DeleteLocalRef(jresult);
+  std::vector<std::string> result = JStringArrayToVector(env, j_result);
+
+  env->DeleteLocalRef(j_uri);
+  env->DeleteLocalRef(j_result);
 
   return result;
 }
@@ -166,13 +185,18 @@ std::vector<std::string> DoFileSearchAndroidContent(const std::string& directory
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
-  jobjectArray jresult = reinterpret_cast<jobjectArray>(env->CallStaticObjectMethod(
-      IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerDoFileSearch(),
-      ToJString(env, directory), VectorToJStringArray(env, extensions), recursive));
+  jstring j_directory = ToJString(env, directory);
+  jobjectArray j_extensions = VectorToJStringArray(env, extensions);
 
-  std::vector<std::string> result = JStringArrayToVector(env, jresult);
+  jobjectArray j_result = reinterpret_cast<jobjectArray>(env->CallStaticObjectMethod(
+      IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerDoFileSearch(), j_directory,
+      j_extensions, recursive));
 
-  env->DeleteLocalRef(jresult);
+  std::vector<std::string> result = JStringArrayToVector(env, j_result);
+
+  env->DeleteLocalRef(j_directory);
+  env->DeleteLocalRef(j_extensions);
+  env->DeleteLocalRef(j_result);
 
   return result;
 }

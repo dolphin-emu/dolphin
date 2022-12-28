@@ -4,6 +4,7 @@
 #pragma once
 
 #include <algorithm>
+#include <bit>
 
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
@@ -82,7 +83,7 @@ inline u32 CompressZ16(u32 z24depth, DepthFormat format)
   // If exponent is at the MAX (3, 7, or 12) then the next bit might still be a one, and can't
   // be skipped, so the mantissa simply contains the next 14/13/12 bits
 
-  u32 leading_ones = Common::CountLeadingZeros((~z24depth) << 8);
+  u32 leading_ones = static_cast<u32>(std::countl_one(z24depth << 8));
   bool next_bit_is_one = false;  // AKA: Did we clamp leading_ones?
   u32 exp_bits;
 
