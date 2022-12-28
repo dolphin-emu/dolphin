@@ -263,6 +263,12 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
     return false;
   }
 
+  std::string SMSGameID = "G4QE01";
+  if (game.GetGameID() != SMSGameID)
+  {
+    return false;
+  }
+
   const bool show_platform = [&game] {
     switch (game.GetPlatform())
     {
