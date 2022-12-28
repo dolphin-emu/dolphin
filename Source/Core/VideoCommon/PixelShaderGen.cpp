@@ -1884,35 +1884,51 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
         "1.0 - initial_ocol0.a",  // INVDSTALPHA
     };
     out.Write("\tfloat4 src_color = {};\n"
-              "\tfloat4 blend_src;",
+              "\tint4 blend_src;\n",
               uid_data->useDstAlpha ? "ocol1" : "ocol0");
-    out.Write("\tblend_src.rgb = {};\n", blend_src_factor[uid_data->blend_src_factor]);
-    out.Write("\tblend_src.a = {};\n", blend_src_factor_alpha[uid_data->blend_src_factor_alpha]);
-    out.Write("\tfloat4 blend_dst;\n");
-    out.Write("\tblend_dst.rgb = {};\n", blend_dst_factor[uid_data->blend_dst_factor]);
-    out.Write("\tblend_dst.a = {};\n", blend_dst_factor_alpha[uid_data->blend_dst_factor_alpha]);
+    out.Write("\tblend_src.rgb = int3({} * 255.0);\n",
+              blend_src_factor[uid_data->blend_src_factor]);
+    out.Write("\tblend_src.a = int({} * 255.0);\n",
+              blend_src_factor_alpha[uid_data->blend_src_factor_alpha]);
+    out.Write("\tint4 blend_dst;\n");
+    out.Write("\tblend_dst.rgb = int3({} * 255.0);\n",
+              blend_dst_factor[uid_data->blend_dst_factor]);
+    out.Write("\tblend_dst.a = int({} * 255.0);\n",
+              blend_dst_factor_alpha[uid_data->blend_dst_factor_alpha]);
 
-    out.Write("\tfloat4 blend_result;\n");
+    // add MSB of factors to make their range 0 -> 256
+    out.Write("\tblend_src += blend_src >> 7;\n"
+              "\tblend_dst += blend_dst >> 7;\n");
+
+    out.Write("\tint4 blend_result;\n");
     if (uid_data->blend_subtract)
     {
-      out.Write("\tblend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * "
-                "blend_src.rgb;\n");
+      // TODO: libogc docs say src/dest factor are ignored in subtract mode
+      // (we may be handling this elsewhere?)
+      out.Write("\tblend_result.rgb = int3(initial_ocol0.rgb * 255.0) * blend_dst.rgb "
+                "- int3(ocol0.rgb * 255.0) * blend_src.rgb;\n");
     }
     else
     {
-      out.Write(
-          "\tblend_result.rgb = initial_ocol0.rgb * blend_dst.rgb + ocol0.rgb * blend_src.rgb;\n");
+      out.Write("\tblend_result.rgb = int3(initial_ocol0.rgb * 255.0) * blend_dst.rgb "
+                "+ int3(ocol0.rgb * 255.0) * blend_src.rgb;\n");
     }
 
     if (uid_data->blend_subtract_alpha)
-      out.Write("\tblend_result.a = initial_ocol0.a * blend_dst.a - ocol0.a * blend_src.a;\n");
+    {
+      out.Write("\tblend_result.a = int(initial_ocol0.a * 255.0) * blend_dst.a "
+                "- int(ocol0.a * 255.0) * blend_src.a;\n");
+    }
     else
-      out.Write("\tblend_result.a = initial_ocol0.a * blend_dst.a + ocol0.a * blend_src.a;\n");
+    {
+      out.Write("\tblend_result.a = int(initial_ocol0.a * 255.0) * blend_dst.a "
+                "+ int(ocol0.a * 255.0) * blend_src.a;\n");
+    }
   }
   else
   {
-    out.Write("\tfloat4 blend_result = ocol0;\n");
+    out.Write("\tint4 blend_result = int4(ocol0 * 255.0) * 256;\n");
   }
 
-  out.Write("\treal_ocol0 = blend_result;\n");
+  out.Write("\treal_ocol0 = float4(clamp(blend_result >> 8, 0, 255)) / 255.0;\n");
 }
