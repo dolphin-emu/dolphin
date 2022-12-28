@@ -204,17 +204,20 @@ void VertexManager::UploadUniforms()
 
 void VertexManager::UpdateVertexShaderConstants()
 {
-  if (!VertexShaderManager::dirty || !ReserveConstantStorage())
+  auto& system = Core::System::GetInstance();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+
+  if (!vertex_shader_manager.dirty || !ReserveConstantStorage())
     return;
 
   StateTracker::GetInstance()->SetGXUniformBuffer(
       UBO_DESCRIPTOR_SET_BINDING_VS, m_uniform_stream_buffer->GetBuffer(),
       m_uniform_stream_buffer->GetCurrentOffset(), sizeof(VertexShaderConstants));
-  std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &VertexShaderManager::constants,
+  std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &vertex_shader_manager.constants,
               sizeof(VertexShaderConstants));
   m_uniform_stream_buffer->CommitMemory(sizeof(VertexShaderConstants));
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, sizeof(VertexShaderConstants));
-  VertexShaderManager::dirty = false;
+  vertex_shader_manager.dirty = false;
 }
 
 void VertexManager::UpdateGeometryShaderConstants()
@@ -289,6 +292,7 @@ void VertexManager::UploadAllConstants()
 
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
 
   // Update bindings
   StateTracker::GetInstance()->SetGXUniformBuffer(
@@ -308,7 +312,7 @@ void VertexManager::UploadAllConstants()
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer() + pixel_constants_offset,
               &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer() + vertex_constants_offset,
-              &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+              &vertex_shader_manager.constants, sizeof(VertexShaderConstants));
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer() + geometry_constants_offset,
               &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
 
@@ -317,7 +321,7 @@ void VertexManager::UploadAllConstants()
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, allocation_size);
 
   // Clear dirty flags
-  VertexShaderManager::dirty = false;
+  vertex_shader_manager.dirty = false;
   GeometryShaderManager::dirty = false;
   pixel_shader_manager.dirty = false;
 }

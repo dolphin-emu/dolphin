@@ -836,7 +836,9 @@ void Metal::StateTracker::PrepareRender()
     {
       m_flags.has_gx_vs_uniform = true;
       Map map = Allocate(UploadBuffer::Uniform, sizeof(VertexShaderConstants), AlignMask::Uniform);
-      memcpy(map.cpu_buffer, &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+      auto& system = Core::System::GetInstance();
+      auto& vertex_shader_manager = system.GetVertexShaderManager();
+      memcpy(map.cpu_buffer, &vertex_shader_manager.constants, sizeof(VertexShaderConstants));
       SetVertexBufferNow(1, map.gpu_buffer, map.gpu_offset);
       if (pipe->UsesFragmentBuffer(1))
         SetFragmentBufferNow(1, map.gpu_buffer, map.gpu_offset);

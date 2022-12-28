@@ -30,27 +30,6 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-alignas(16) static std::array<float, 16> g_fProjectionMatrix;
-
-// track changes
-static std::array<bool, 2> bTexMatricesChanged;
-static bool bPosNormalMatrixChanged;
-static bool bProjectionChanged;
-static bool bViewportChanged;
-static bool bTexMtxInfoChanged;
-static bool bLightingConfigChanged;
-static bool bProjectionGraphicsModChange;
-static BitSet32 nMaterialsChanged;
-static std::array<int, 2> nTransformMatricesChanged;      // min,max
-static std::array<int, 2> nNormalMatricesChanged;         // min,max
-static std::array<int, 2> nPostTransformMatricesChanged;  // min,max
-static std::array<int, 2> nLightsChanged;                 // min,max
-
-static Common::Matrix44 s_viewportCorrection;
-
-VertexShaderConstants VertexShaderManager::constants;
-bool VertexShaderManager::dirty;
-
 void VertexShaderManager::Init()
 {
   // Initialize state tracking variables

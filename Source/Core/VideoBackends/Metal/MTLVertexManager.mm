@@ -93,9 +93,10 @@ void Metal::VertexManager::UploadUniforms()
 {
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
-  g_state_tracker->InvalidateUniforms(VertexShaderManager::dirty, GeometryShaderManager::dirty,
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  g_state_tracker->InvalidateUniforms(vertex_shader_manager.dirty, GeometryShaderManager::dirty,
                                       pixel_shader_manager.dirty);
-  VertexShaderManager::dirty = false;
+  vertex_shader_manager.dirty = false;
   GeometryShaderManager::dirty = false;
   pixel_shader_manager.dirty = false;
 }

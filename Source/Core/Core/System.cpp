@@ -22,6 +22,7 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VertexShaderManager.h"
 
 namespace Core
 {
@@ -45,6 +46,7 @@ struct System::Impl
   PixelShaderManager m_pixel_shader_manager;
   SerialInterface::SerialInterfaceState m_serial_interface_state;
   Sram m_sram;
+  VertexShaderManager m_vertex_shader_manager;
   VideoInterface::VideoInterfaceState m_video_interface_state;
 };
 
@@ -159,6 +161,11 @@ SerialInterface::SerialInterfaceState& System::GetSerialInterfaceState() const
 Sram& System::GetSRAM() const
 {
   return m_impl->m_sram;
+}
+
+VertexShaderManager& System::GetVertexShaderManager() const
+{
+  return m_impl->m_vertex_shader_manager;
 }
 
 VideoInterface::VideoInterfaceState& System::GetVideoInterfaceState() const

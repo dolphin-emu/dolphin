@@ -319,8 +319,9 @@ void VertexManagerBase::UploadUniforms()
 void VertexManagerBase::InvalidateConstants()
 {
   auto& system = Core::System::GetInstance();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
-  VertexShaderManager::dirty = true;
+  vertex_shader_manager.dirty = true;
   GeometryShaderManager::dirty = true;
   pixel_shader_manager.dirty = true;
 }
@@ -486,6 +487,7 @@ void VertexManagerBase::Flush()
 
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
 
   CalculateBinormals(VertexLoaderManager::GetCurrentVertexFormat());
   // Calculate ZSlope for zfreeze
@@ -512,7 +514,7 @@ void VertexManagerBase::Flush()
       }
     }
   }
-  VertexShaderManager::SetConstants(texture_names);
+  vertex_shader_manager.SetConstants(texture_names);
   if (!bpmem.genMode.zfreeze)
   {
     // Must be done after VertexShaderManager::SetConstants()
@@ -634,6 +636,8 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   // Lookup vertices of the last rendered triangle and software-transform them
   // This allows us to determine the depth slope, which will be used if z-freeze
   // is enabled in the following flush.
+  auto& system = Core::System::GetInstance();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
   for (unsigned int i = 0; i < 3; ++i)
   {
     // If this vertex format has per-vertex position matrix IDs, look it up.
@@ -643,8 +647,8 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
     if (vert_decl.position.components == 2)
       VertexLoaderManager::position_cache[2 - i][2] = 0;
 
-    VertexShaderManager::TransformToClipSpace(&VertexLoaderManager::position_cache[2 - i][0],
-                                              &out[i * 4], mtxIdx);
+    vertex_shader_manager.TransformToClipSpace(&VertexLoaderManager::position_cache[2 - i][0],
+                                               &out[i * 4], mtxIdx);
 
     // Transform to Screenspace
     float inv_w = 1.0f / out[3 + i * 4];
@@ -688,15 +692,17 @@ void VertexManagerBase::CalculateBinormals(NativeVertexFormat* format)
   VertexLoaderManager::tangent_cache[3] = 0;
   VertexLoaderManager::binormal_cache[3] = 0;
 
-  if (VertexShaderManager::constants.cached_tangent != VertexLoaderManager::tangent_cache)
+  auto& system = Core::System::GetInstance();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  if (vertex_shader_manager.constants.cached_tangent != VertexLoaderManager::tangent_cache)
   {
-    VertexShaderManager::constants.cached_tangent = VertexLoaderManager::tangent_cache;
-    VertexShaderManager::dirty = true;
+    vertex_shader_manager.constants.cached_tangent = VertexLoaderManager::tangent_cache;
+    vertex_shader_manager.dirty = true;
   }
-  if (VertexShaderManager::constants.cached_binormal != VertexLoaderManager::binormal_cache)
+  if (vertex_shader_manager.constants.cached_binormal != VertexLoaderManager::binormal_cache)
   {
-    VertexShaderManager::constants.cached_binormal = VertexLoaderManager::binormal_cache;
-    VertexShaderManager::dirty = true;
+    vertex_shader_manager.constants.cached_binormal = VertexLoaderManager::binormal_cache;
+    vertex_shader_manager.dirty = true;
   }
 }
 

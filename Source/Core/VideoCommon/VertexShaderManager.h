@@ -3,43 +3,65 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 #include <vector>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
+#include "Common/Matrix.h"
 #include "VideoCommon/ConstantManager.h"
 
 class PointerWrap;
 struct PortableVertexDeclaration;
 
 // The non-API dependent parts.
-class VertexShaderManager
+class alignas(16) VertexShaderManager
 {
 public:
-  static void Init();
-  static void Dirty();
-  static void DoState(PointerWrap& p);
+  void Init();
+  void Dirty();
+  void DoState(PointerWrap& p);
 
   // constant management
-  static void SetConstants(const std::vector<std::string>& textures);
+  void SetConstants(const std::vector<std::string>& textures);
 
-  static void InvalidateXFRange(int start, int end);
-  static void SetTexMatrixChangedA(u32 value);
-  static void SetTexMatrixChangedB(u32 value);
-  static void SetViewportChanged();
-  static void SetProjectionChanged();
-  static void SetMaterialColorChanged(int index);
+  void InvalidateXFRange(int start, int end);
+  void SetTexMatrixChangedA(u32 value);
+  void SetTexMatrixChangedB(u32 value);
+  void SetViewportChanged();
+  void SetProjectionChanged();
+  void SetMaterialColorChanged(int index);
 
-  static void SetVertexFormat(u32 components, const PortableVertexDeclaration& format);
-  static void SetTexMatrixInfoChanged(int index);
-  static void SetLightingConfigChanged();
+  void SetVertexFormat(u32 components, const PortableVertexDeclaration& format);
+  void SetTexMatrixInfoChanged(int index);
+  void SetLightingConfigChanged();
 
   // data: 3 floats representing the X, Y and Z vertex model coordinates and the posmatrix index.
   // out:  4 floats which will be initialized with the corresponding clip space coordinates
   // NOTE: g_fProjectionMatrix must be up to date when this is called
   //       (i.e. VertexShaderManager::SetConstants needs to be called before using this!)
-  static void TransformToClipSpace(const float* data, float* out, u32 mtxIdx);
+  void TransformToClipSpace(const float* data, float* out, u32 mtxIdx);
 
-  static VertexShaderConstants constants;
-  static bool dirty;
+  VertexShaderConstants constants{};
+  bool dirty = false;
+
+private:
+  alignas(16) std::array<float, 16> g_fProjectionMatrix;
+
+  // track changes
+  std::array<bool, 2> bTexMatricesChanged{};
+  bool bPosNormalMatrixChanged = false;
+  bool bProjectionChanged = false;
+  bool bViewportChanged = false;
+  bool bTexMtxInfoChanged = false;
+  bool bLightingConfigChanged = false;
+  bool bProjectionGraphicsModChange = false;
+  BitSet32 nMaterialsChanged;
+  std::array<int, 2> nTransformMatricesChanged{};      // min,max
+  std::array<int, 2> nNormalMatricesChanged{};         // min,max
+  std::array<int, 2> nPostTransformMatricesChanged{};  // min,max
+  std::array<int, 2> nLightsChanged{};                 // min,max
+
+  Common::Matrix44 s_viewportCorrection{};
 };
