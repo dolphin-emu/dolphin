@@ -1868,7 +1868,7 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
         "float3(1,1,1);",                      // ONE
         "ocol0.rgb;",                          // SRCCLR
         "float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
-        "src_color.aaa;",                      // SRCALHA
+        "src_color.aaa;",                      // SRCALPHA
         "float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
         "initial_ocol0.aaa;",                  // DSTALPHA
         "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
