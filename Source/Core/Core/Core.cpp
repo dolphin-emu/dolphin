@@ -61,7 +61,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/IOS.h"
-#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
+#include "Core/Lua/Lua.h"
 #include "Core/MemTools.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
@@ -875,6 +875,19 @@ void Callback_FramePresented(double actual_emulation_speed)
 // Called from VideoInterface::Update (CPU thread) at emulated field boundaries
 void Callback_NewField()
 {
+
+  if (!Lua::luaInitialized)
+  {
+    Lua::Init();
+  }
+
+
+  if (Lua::luaScriptActive)
+  {
+    if (lua_resume(Lua::mainLuaThreadState, NULL, 0, Lua::x) != LUA_YIELD)
+      Lua::luaScriptActive = false;
+  }
+
   if (s_frame_step)
   {
     // To ensure that s_stop_frame_step is up to date, wait for the GPU thread queue to empty,
@@ -890,13 +903,6 @@ void Callback_NewField()
       CPU::Break();
       CallOnStateChangedCallbacks(Core::GetState());
     }
-  }
-
-  if (Lua::LuaEmu::luaScriptActive) //notifies the Lua thread that the next frame has started for frame advance calls.
-  {
-    std::unique_lock lk(Lua::LuaEmu::frameAdvanceLock);
-    Lua::LuaEmu::frameAdvanceConditionalVariable.notify_all();
-    lk.unlock();
   }
 }
 

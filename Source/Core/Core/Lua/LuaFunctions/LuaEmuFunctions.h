@@ -11,7 +11,6 @@ namespace Lua
 {
   namespace LuaEmu
   {
-  extern bool luaScriptActive;
   extern std::mutex frameAdvanceLock;
   extern std::condition_variable frameAdvanceConditionalVariable;
     class emu

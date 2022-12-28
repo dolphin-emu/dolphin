@@ -19,6 +19,12 @@ function ByteWrapperFunctionsTest()
 
 	emu.frameAdvance()
 	emu.frameAdvance()
+	emu.frameAdvance()
+	emu.frameAdvance()
+	emu.frameAdvance()
+	emu.frameAdvance()
+	emu.frameAdvance()
+	emu.frameAdvance()
 	
 	file = io.open("ByteWrapperTestsOutput.txt", "w")
 

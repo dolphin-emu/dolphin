@@ -8,9 +8,12 @@
 namespace Lua
 {
 
-static lua_State* mainLuaState;
+extern lua_State* mainLuaState;
+extern lua_State* mainLuaThreadState;
 extern std::thread luaThread;
-
+extern int* x;
+extern bool luaScriptActive;
+extern bool luaInitialized;
 
 void tempRunner();
 

@@ -61,7 +61,6 @@ void Init(const Sram* override_sram)
     IOS::Init();
     IOS::HLE::Init();  // Depends on Memory
   }
-  Lua::Init();
 }
 
 void Shutdown()

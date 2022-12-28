@@ -8,7 +8,6 @@ namespace LuaEmu
 {
 emu* emuPointer = NULL;
 
-bool luaScriptActive = false;
 std::mutex frameAdvanceLock;
 std::condition_variable frameAdvanceConditionalVariable;
 
@@ -41,14 +40,7 @@ void StatePauseFunction()
 
 int emu_frameAdvance(lua_State* luaState)
 {
-  //(emu**)luaL_checkudata(luaState, 1, "LuaEmuMetaTable");
-  std::unique_lock<std::mutex> lk(frameAdvanceLock);
-  if (Core::GetState() != Core::State::Paused)
-    Core::QueueHostJob(StatePauseFunction);
-  Core::QueueHostJob(Core::DoFrameStep);
-  frameAdvanceConditionalVariable.wait_until(
-      lk, std::chrono::time_point(std::chrono::system_clock::now() + std::chrono::hours(10000)));
-  frameAdvanceConditionalVariable.notify_all();
+  lua_yield(luaState, 0);
   return 0;
 }
 

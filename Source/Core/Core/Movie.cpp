@@ -16,6 +16,7 @@
 #include <thread>
 #include <utility>
 #include <variant>
+#include <vector>
 
 #include <fmt/format.h>
 
@@ -87,17 +88,16 @@ enum class PlayMode
   Playing,
 };
 
-std::vector<u8> s_temp_input = std::vector<u8>();
-ControllerState s_padState = ControllerState();
-u64 s_currentByte = 0;
-
 static bool s_bReadOnly = true;
 static u32 s_rerecords = 0;
 static PlayMode s_playMode = PlayMode::None;
 
 static std::array<ControllerType, 4> s_controllers{};
 static std::array<bool, 4> s_wiimotes{};
+static ControllerState s_padState;
 static DTMHeader tmpHeader;
+static std::vector<u8> s_temp_input;
+static u64 s_currentByte = 0;
 static u64 s_currentFrame = 0, s_totalFrames = 0;  // VI
 static u64 s_currentLagCount = 0;
 static u64 s_totalLagCount = 0;                               // just stats

@@ -159,6 +159,8 @@ gc_controller_lua* getControllerInstance()
       return UNKNOWN;
     }
   }
+
+  //NOTE: In SI.cpp, UpdateDevices() is called to update each device, which moves exactly 8 bytes forward for each controller. Also, it moves in order from controllers 1 to 4.
   int setInputs(lua_State* luaState)
   {
     Movie::ControllerState controllerState = Movie::ControllerState();
@@ -169,7 +171,9 @@ gc_controller_lua* getControllerInstance()
 
     if (Movie::IsPlayingInput())
     {
-      memcpy(&controllerState, &Movie::s_temp_input[Movie::s_currentByte], sizeof(Movie::ControllerState));
+      ;
+      //memcpy(&controllerState, &Movie::s_temp_input[Movie::s_currentByte],
+           //  sizeof(Movie::ControllerState));
     }
 
     lua_pushnil(luaState); /* first key */
@@ -275,9 +279,10 @@ gc_controller_lua* getControllerInstance()
     }
 
     //Now writing the controller state back out (and checking if we are recording or playing back input).
-    memcpy(&Movie::s_padState, &controllerState, sizeof(Movie::ControllerState));
+    //memcpy(&Movie::s_padState, &controllerState, sizeof(Movie::ControllerState));
     if (Movie::IsPlayingInput())
-      memcpy(&Movie::s_temp_input[Movie::s_currentByte], &Movie::s_padState, sizeof(Movie::ControllerState));
+      return 1;  // memcpy(&Movie::s_temp_input[Movie::s_currentByte], &Movie::s_padState,
+         // sizeof(Movie::ControllerState));
     return 0;
   }
   }
