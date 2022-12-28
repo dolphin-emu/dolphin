@@ -62,14 +62,9 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GraphicsModGroup_getMods(JN
     mods.push_back(&mod);
   }
 
-  const jobjectArray array =
-      env->NewObjectArray(static_cast<jsize>(mods.size()), IDCache::GetGraphicsModClass(), nullptr);
-
-  jsize i = 0;
-  for (GraphicsModConfig* mod : mods)
-    env->SetObjectArrayElement(array, i++, GraphicsModToJava(env, mod, obj));
-
-  return array;
+  return VectorToJObjectArray(
+      env, mods, IDCache::GetGraphicsModClass(),
+      [obj](JNIEnv* env, GraphicsModConfig* mod) { return GraphicsModToJava(env, mod, obj); });
 }
 
 JNIEXPORT void JNICALL

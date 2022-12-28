@@ -52,7 +52,9 @@ Java_org_dolphinemu_dolphinemu_model_GameFileCache_getAllGames(JNIEnv* env, jobj
       env->NewObjectArray(static_cast<jsize>(ptr->GetSize()), IDCache::GetGameFileClass(), nullptr);
   jsize i = 0;
   GetPointer(env, obj)->ForEach([env, array, &i](const auto& game_file) {
-    env->SetObjectArrayElement(array, i++, GameFileToJava(env, game_file));
+    jobject j_game_file = GameFileToJava(env, game_file);
+    env->SetObjectArrayElement(array, i++, j_game_file);
+    env->DeleteLocalRef(j_game_file);
   });
   return array;
 }

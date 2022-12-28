@@ -13,7 +13,20 @@ std::string GetJString(JNIEnv* env, jstring jstr);
 jstring ToJString(JNIEnv* env, const std::string& str);
 
 std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array);
-jobjectArray VectorToJStringArray(JNIEnv* env, std::vector<std::string> vector);
+jobjectArray VectorToJStringArray(JNIEnv* env, const std::vector<std::string>& vector);
+
+template <typename T, typename F>
+jobjectArray VectorToJObjectArray(JNIEnv* env, const std::vector<T>& vector, jclass clazz, F f)
+{
+  jobjectArray result = env->NewObjectArray(vector.size(), clazz, nullptr);
+  for (jsize i = 0; i < vector.size(); ++i)
+  {
+    jobject obj = f(env, vector[i]);
+    env->SetObjectArrayElement(result, i, obj);
+    env->DeleteLocalRef(obj);
+  }
+  return result;
+}
 
 // Returns true if the given path should be opened as Android content instead of a normal file.
 bool IsPathAndroidContent(const std::string& uri);
