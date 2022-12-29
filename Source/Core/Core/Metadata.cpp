@@ -19,15 +19,25 @@ struct ItemStruct
 struct GoalStruct
 {
   float goalTime;
-  float ballX;
-  float ballY;
+  float ballXPos;
+  float ballYPos;
+  float ballZPos;
+  float ballXVel;
+  float ballYVel;
+  float ballZVel;
+  float ballChargeAmount;
 };
 
 struct MissedShots
 {
   float goalTime;
-  float ballX;
-  float ballY;
+  float ballXPos;
+  float ballYPos;
+  float ballZPos;
+  float ballXVel;
+  float ballYVel;
+  float ballZVel;
+  float ballChargeAmount;
 };
 
 // VARIABLES
@@ -252,16 +262,26 @@ std::string Metadata::getJSONString()
     if (i != leftTeamGoalVector.size() - 1)
     {
       json_stream << "    [" << std::to_string(leftTeamGoalVector.at(i).goalTime) << ","
-                  << std::to_string(leftTeamGoalVector.at(i).ballX) << ","
-                  << std::to_string(leftTeamGoalVector.at(i).ballY)
+                  << std::to_string(leftTeamGoalVector.at(i).ballXPos) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballYPos) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballZPos) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballXVel) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballYVel) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballZVel) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballChargeAmount)
                   << "],"
                   << std::endl;
     }
     else
     {
       json_stream << "    [" << std::to_string(leftTeamGoalVector.at(i).goalTime) << ","
-                  << std::to_string(leftTeamGoalVector.at(i).ballX) << ","
-                  << std::to_string(leftTeamGoalVector.at(i).ballY)
+                  << std::to_string(leftTeamGoalVector.at(i).ballXPos) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballYPos) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballZPos) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballXVel) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballYVel) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballZVel) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballChargeAmount)
                   << "]"
                   << std::endl;
     }
@@ -275,16 +295,25 @@ std::string Metadata::getJSONString()
     if (i != rightTeamGoalVector.size() - 1)
     {
       json_stream << "    [" << std::to_string(rightTeamGoalVector.at(i).goalTime) << ","
-                  << std::to_string(rightTeamGoalVector.at(i).ballX) << ","
-                  << std::to_string(rightTeamGoalVector.at(i).ballY)
+                  << std::to_string(rightTeamGoalVector.at(i).ballXPos) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballYPos) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballZPos) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballXVel) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballYVel) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballZVel) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballChargeAmount)
                   << "],"
                   << std::endl;
     }
     else
     {
       json_stream << "    [" << std::to_string(rightTeamGoalVector.at(i).goalTime) << ","
-                  << std::to_string(rightTeamGoalVector.at(i).ballX) << ","
-                  << std::to_string(rightTeamGoalVector.at(i).ballY)
+                  << std::to_string(rightTeamGoalVector.at(i).ballXPos) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballYPos) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballZPos) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballXVel) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballZVel) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballChargeAmount)
                   << "]"
                   << std::endl;
     }
@@ -297,14 +326,26 @@ std::string Metadata::getJSONString()
     if (i != leftTeamMissedShotsVector.size() - 1)
     {
       json_stream << "    [" << std::to_string(leftTeamMissedShotsVector.at(i).goalTime) << ","
-                  << std::to_string(leftTeamMissedShotsVector.at(i).ballX) << ","
-                  << std::to_string(leftTeamMissedShotsVector.at(i).ballY) << "]," << std::endl;
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballXPos) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballYPos) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballZPos) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballXVel) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballYVel) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballZVel) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballChargeAmount)
+                  << "]," << std::endl;
     }
     else
     {
       json_stream << "    [" << std::to_string(leftTeamMissedShotsVector.at(i).goalTime) << ","
-                  << std::to_string(leftTeamMissedShotsVector.at(i).ballX) << ","
-                  << std::to_string(leftTeamMissedShotsVector.at(i).ballY) << "]" << std::endl;
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballXPos) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballYPos) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballZPos) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballXVel) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballYVel) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballZVel) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballChargeAmount)
+                  << "]" << std::endl;
     }
   }
   // add a comma once we add right team goals to line below
@@ -316,14 +357,26 @@ std::string Metadata::getJSONString()
     if (i != rightTeamMissedShotsVector.size() - 1)
     {
       json_stream << "    [" << std::to_string(rightTeamMissedShotsVector.at(i).goalTime) << ","
-                  << std::to_string(rightTeamMissedShotsVector.at(i).ballX) << ","
-                  << std::to_string(rightTeamMissedShotsVector.at(i).ballY) << "]," << std::endl;
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballXPos) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballYPos) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballZPos) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballXVel) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballYVel) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballZVel) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballChargeAmount)
+                  << "]," << std::endl;
     }
     else
     {
       json_stream << "    [" << std::to_string(rightTeamMissedShotsVector.at(i).goalTime) << ","
-                  << std::to_string(rightTeamMissedShotsVector.at(i).ballX) << ","
-                  << std::to_string(rightTeamMissedShotsVector.at(i).ballY) << "]" << std::endl;
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballXPos) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballYPos) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballZPos) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballXVel) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballYVel) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballZVel) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballChargeAmount)
+                  << "]" << std::endl;
     }
   }
   // add a comma below if we add more stats
@@ -579,13 +632,20 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
     leftTeamGoalVector.clear();
   }
 
-  for (int i = 0; i < (int)leftTeamGoalOffset; i += 12)
+  for (int i = 0; i < (int)leftTeamGoalOffset; i += 32)
   {
     // we add i to each one as that is the incremented offset
     float leftTeamGoalTime = accessors->ReadF32(addressLeftTeamGoalStart + i);
-    float leftTeamBallX = accessors->ReadF32(addressLeftTeamGoalStart + i + 4);
-    float leftTeamBallY = accessors->ReadF32(addressLeftTeamGoalStart + i + 8);
-    GoalStruct leftTeamGoalStruct = {leftTeamGoalTime, leftTeamBallX, leftTeamBallY};
+    float leftTeamBallXPos = accessors->ReadF32(addressLeftTeamGoalStart + i + 4);
+    float leftTeamBallYPos = accessors->ReadF32(addressLeftTeamGoalStart + i + 8);
+    float leftTeamBallZPos = accessors->ReadF32(addressLeftTeamGoalStart + i + 12);
+    float leftTeamBallXVel = accessors->ReadF32(addressLeftTeamGoalStart + i + 16);
+    float leftTeamBallYVel = accessors->ReadF32(addressLeftTeamGoalStart + i + 20);
+    float leftTeamBallZVel = accessors->ReadF32(addressLeftTeamGoalStart + i + 24);
+    float leftTeamBallChargeAmount = Memory::Read_U32(addressLeftTeamGoalStart + i + 28);
+    GoalStruct leftTeamGoalStruct = {leftTeamGoalTime, leftTeamBallXPos,        leftTeamBallYPos,
+                                     leftTeamBallZPos, leftTeamBallXVel,        leftTeamBallYVel,
+                                     leftTeamBallZVel, leftTeamBallChargeAmount};
     leftTeamGoalVector.push_back(leftTeamGoalStruct);
   }
 
@@ -594,47 +654,77 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
     rightTeamGoalVector.clear();
   }
 
-  for (int i = 0; i < (int)rightTeamGoalOffset; i += 12)
+  for (int i = 0; i < (int)rightTeamGoalOffset; i += 32)
   {
     // we add i to each one as that is the incremented offset
     float rightTeamGoalTime = accessors->ReadF32(addressRightTeamGoalStart + i);
-    float rightTeamBallX = accessors->ReadF32(addressRightTeamGoalStart + i + 4);
-    float rightTeamBallY = accessors->ReadF32(addressRightTeamGoalStart + i + 8);
-    GoalStruct rightTeamGoalStruct = {rightTeamGoalTime, rightTeamBallX, rightTeamBallY};
+    float rightTeamBallXPos = accessors->ReadF32(addressRightTeamGoalStart + i + 4);
+    float rightTeamBallYPos = accessors->ReadF32(addressRightTeamGoalStart + i + 8);
+    float rightTeamBallZPos = accessors->ReadF32(addressRightTeamGoalStart + i + 12);
+    float rightTeamBallXVel = accessors->ReadF32(addressRightTeamGoalStart + i + 16);
+    float rightTeamBallYVel = accessors->ReadF32(addressRightTeamGoalStart + i + 20);
+    float rightTeamBallZVel = accessors->ReadF32(addressRightTeamGoalStart + i + 24);
+    float rightTeamBallChargeAmount = Memory::Read_U32(addressRightTeamGoalStart + i + 28);
+    GoalStruct rightTeamGoalStruct = {rightTeamGoalTime, rightTeamBallXPos, rightTeamBallYPos,
+                                      rightTeamBallZPos, rightTeamBallXVel, rightTeamBallYVel, rightTeamBallZVel, rightTeamBallChargeAmount};
     rightTeamGoalVector.push_back(rightTeamGoalStruct);
   }
 
   leftTeamMissedShotsVector.clear();
 
-  for (int i = 0; i < (int)leftTeamMissedShotsOffset; i += 12)
+  for (int i = 0; i < (int)leftTeamMissedShotsOffset; i += 32)
   {
     float leftTeamMissedShotTime = accessors->ReadF32(addressLeftTeamMissedShotsStart + i);
-    float leftTeamMissedShotBallX = accessors->ReadF32(addressLeftTeamMissedShotsStart + i + 4);
-    float leftTeamMissedShotBallY = accessors->ReadF32(addressLeftTeamMissedShotsStart + i + 8);
-    MissedShots leftTeamMissedShotsStruct = {leftTeamMissedShotTime, leftTeamMissedShotBallX,
-                                             leftTeamMissedShotBallY};
+    float leftTeamMissedShotBallXPos = accessors->ReadF32(addressLeftTeamMissedShotsStart + i + 4);
+    float leftTeamMissedShotBallYPos = accessors->ReadF32(addressLeftTeamMissedShotsStart + i + 8);
+    float leftTeamMissedShotBallZPos = accessors->ReadF32(addressLeftTeamMissedShotsStart + i + 12);
+    float leftTeamMissedShotBallXVel = accessors->ReadF32(addressLeftTeamMissedShotsStart + i + 16);
+    float leftTeamMissedShotBallYVel = accessors->ReadF32(addressLeftTeamMissedShotsStart + i + 20);
+    float leftTeamMissedShotBallZVel = accessors->ReadF32(addressLeftTeamMissedShotsStart + i + 24);
+    float leftTeamMissedShotBallChargeAmount =
+        Memory::Read_U32(addressLeftTeamMissedShotsStart + i + 28);
+    MissedShots leftTeamMissedShotsStruct = {leftTeamMissedShotTime, leftTeamMissedShotBallXPos,
+                                             leftTeamMissedShotBallYPos, leftTeamMissedShotBallZPos,
+                                             leftTeamMissedShotBallXVel, leftTeamMissedShotBallYVel,
+        leftTeamMissedShotBallZVel, leftTeamMissedShotBallChargeAmount};
     leftTeamMissedShotsVector.push_back(leftTeamMissedShotsStruct);
   }
   if (leftTeamMissedShotsFlag == 1)
   {
     // this means we left off on a missed shot that we weren't able to record so we need to record it now
     float leftTeamMissedShotTime = accessors->ReadF32(addressLeftTeamMissedShotsTimestamp);
-    float leftTeamMissedShotBallX = accessors->ReadF32(addressLeftTeamMissedShotsBallXPos);
-    float leftTeamMissedShotBallY = accessors->ReadF32(addressLeftTeamMissedShotsBallYPos);
-    MissedShots leftTeamMissedShotsStruct = {leftTeamMissedShotTime, leftTeamMissedShotBallX,
-                                             leftTeamMissedShotBallY};
+    float leftTeamMissedShotBallXPos = accessors->ReadF32(addressLeftTeamMissedShotsBallXPos);
+    float leftTeamMissedShotBallYPos = accessors->ReadF32(addressLeftTeamMissedShotsBallYPos);
+    float leftTeamMissedShotBallZPos = accessors->ReadF32(addressLeftTeamMissedShotsBallZPos);
+    float leftTeamMissedShotBallXVel = accessors->ReadF32(addressLeftTeamMissedShotsBallXVel);
+    float leftTeamMissedShotBallYVel = accessors->ReadF32(addressLeftTeamMissedShotsBallYVel);
+    float leftTeamMissedShotBallZVel = accessors->ReadF32(addressLeftTeamMissedShotsBallZVel);
+    float leftTeamMissedShotBallChargeAmount =
+        Memory::Read_U32(addressLeftTeamMissedShotsBallChargeAmount);
+    MissedShots leftTeamMissedShotsStruct = {leftTeamMissedShotTime, leftTeamMissedShotBallXPos,
+                                             leftTeamMissedShotBallYPos, leftTeamMissedShotBallZPos,
+                                             leftTeamMissedShotBallXVel, leftTeamMissedShotBallYVel,
+        leftTeamMissedShotBallZVel, leftTeamMissedShotBallChargeAmount};
     leftTeamMissedShotsVector.push_back(leftTeamMissedShotsStruct);
   }
 
   rightTeamMissedShotsVector.clear();
 
-  for (int i = 0; i < (int)rightTeamMissedShotsOffset; i += 12)
+  for (int i = 0; i < (int)rightTeamMissedShotsOffset; i += 32)
   {
     float rightTeamMissedShotTime = accessors->ReadF32(addressRightTeamMissedShotsStart + i );
-    float rightTeamMissedShotBallX = accessors->ReadF32(addressRightTeamMissedShotsStart + i + 4);
-    float rightTeamMissedShotBallY = accessors->ReadF32(addressRightTeamMissedShotsStart + i + 8);
-    MissedShots rightTeamMissedShotsStruct = {rightTeamMissedShotTime, rightTeamMissedShotBallX,
-                                             rightTeamMissedShotBallY};
+    float rightTeamMissedShotBallXPos = accessors->ReadF32(addressRightTeamMissedShotsStart + i + 4);
+    float rightTeamMissedShotBallYPos = accessors->ReadF32(addressRightTeamMissedShotsStart + i + 8);
+    float rightTeamMissedShotBallZPos = accessors->ReadF32(addressRightTeamMissedShotsStart + i + 12);
+    float rightTeamMissedShotBallXVel = accessors->ReadF32(addressRightTeamMissedShotsStart + i + 16);
+    float rightTeamMissedShotBallYVel = accessors->ReadF32(addressRightTeamMissedShotsStart + i + 20);
+    float rightTeamMissedShotBallZVel = accessors->ReadF32(addressRightTeamMissedShotsStart + i + 24);
+    float rightTeamMissedShotBallChargeAmount =
+        Memory::Read_U32(addressRightTeamMissedShotsStart + i + 28);
+    MissedShots rightTeamMissedShotsStruct = {rightTeamMissedShotTime, rightTeamMissedShotBallXPos,
+                                              rightTeamMissedShotBallYPos,
+                                              rightTeamMissedShotBallZPos, rightTeamMissedShotBallXVel, rightTeamMissedShotBallYVel,
+        rightTeamMissedShotBallZVel, rightTeamMissedShotBallChargeAmount};
     rightTeamMissedShotsVector.push_back(rightTeamMissedShotsStruct);
   }
   if (rightTeamMissedShotsFlag == 1)
@@ -642,10 +732,18 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
     // this means we left off on a missed shot that we weren't able to record so we need to record
     // it now
     float rightTeamMissedShotTime = accessors->ReadF32(addressRightTeamMissedShotsTimestamp);
-    float rightTeamMissedShotBallX = accessors->ReadF32(addressRightTeamMissedShotsBallXPos);
-    float rightTeamMissedShotBallY = accessors->ReadF32(addressRightTeamMissedShotsBallYPos);
-    MissedShots rightTeamMissedShotsStruct = {rightTeamMissedShotTime, rightTeamMissedShotBallX,
-                                             rightTeamMissedShotBallY};
+    float rightTeamMissedShotBallXPos = accessors->ReadF32(addressRightTeamMissedShotsBallXPos);
+    float rightTeamMissedShotBallYPos = accessors->ReadF32(addressRightTeamMissedShotsBallYPos);
+    float rightTeamMissedShotBallZPos = accessors->ReadF32(addressRightTeamMissedShotsBallZPos);
+    float rightTeamMissedShotBallXVel = accessors->ReadF32(addressRightTeamMissedShotsBallXVel);
+    float rightTeamMissedShotBallYVel = accessors->ReadF32(addressRightTeamMissedShotsBallYVel);
+    float rightTeamMissedShotBallZVel = accessors->ReadF32(addressRightTeamMissedShotsBallZVel);
+    float rightTeamMissedShotBallChargeAmount =
+        Memory::Read_U32(addressRightTeamMissedShotsBallChargeAmount);
+    MissedShots rightTeamMissedShotsStruct = {rightTeamMissedShotTime, rightTeamMissedShotBallXPos,
+                                              rightTeamMissedShotBallYPos,
+        rightTeamMissedShotBallZPos, rightTeamMissedShotBallXVel, rightTeamMissedShotBallYVel,
+        rightTeamMissedShotBallZVel, rightTeamMissedShotBallChargeAmount};
     rightTeamMissedShotsVector.push_back(rightTeamMissedShotsStruct);
   }
 

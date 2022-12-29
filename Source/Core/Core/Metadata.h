@@ -18,6 +18,18 @@ public:
   static std::vector<const NetPlay::Player*> getPlayerArray();
   static NetPlay::PadMappingArray getControllers();
 
+  /*
+  Game Derived Locations (we do not mark these as variables because we do not directly use them here, just in gecko codes)
+
+  80312adc - ball x position
+  80312ae0 - ball y position
+  80312ae4 - ball z position
+
+  80311010 - ball x velocity
+  80311014 - ball y velocity
+  80311018 - ball z velocity
+  */ 
+
   // CONSTANTS
 
   static const u32 addressControllerPort1 = 0x81536A04;
@@ -99,6 +111,7 @@ public:
   static const u32 addressLeftTeamMissedShotsBallXVel = 0x80430044;
   static const u32 addressLeftTeamMissedShotsBallYVel = 0x80430048;
   static const u32 addressLeftTeamMissedShotsBallZVel = 0x8043004c;
+  static const u32 addressLeftTeamMissedShotsBallChargeAmount = 0x80430060;
 
   // right team item
   static const u32 addressRightTeamItemStart = 0x80420000;
@@ -117,6 +130,10 @@ public:
   static const u32 addressRightTeamMissedShotsBallXVel = 0x80430054;
   static const u32 addressRightTeamMissedShotsBallYVel = 0x80430058;
   static const u32 addressRightTeamMissedShotsBallZVel = 0x8043005c;
+  static const u32 addressRightTeamMissedShotsBallChargeAmount = 0x80430064;
+
+  // charged amount -- shared by left and right
+  static const u32 addressChargedBallAmount = 0x80430068;
 
   // left team goal
   static const u32 addressLeftTeamGoalStart = 0x80440000;
