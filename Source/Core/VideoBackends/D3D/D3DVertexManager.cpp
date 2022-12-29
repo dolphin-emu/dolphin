@@ -272,11 +272,12 @@ void VertexManager::UploadUniforms()
     vertex_shader_manager.dirty = false;
   }
 
-  if (GeometryShaderManager::dirty)
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+  if (geometry_shader_manager.dirty)
   {
-    UpdateConstantBuffer(m_geometry_constant_buffer.Get(), &GeometryShaderManager::constants,
+    UpdateConstantBuffer(m_geometry_constant_buffer.Get(), &geometry_shader_manager.constants,
                          sizeof(GeometryShaderConstants));
-    GeometryShaderManager::dirty = false;
+    geometry_shader_manager.dirty = false;
   }
 
   auto& pixel_shader_manager = system.GetPixelShaderManager();

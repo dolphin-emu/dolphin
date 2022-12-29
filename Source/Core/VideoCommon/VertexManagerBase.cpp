@@ -320,9 +320,10 @@ void VertexManagerBase::InvalidateConstants()
 {
   auto& system = Core::System::GetInstance();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
   vertex_shader_manager.dirty = true;
-  GeometryShaderManager::dirty = true;
+  geometry_shader_manager.dirty = true;
   pixel_shader_manager.dirty = true;
 }
 
@@ -487,6 +488,7 @@ void VertexManagerBase::Flush()
 
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
 
   CalculateBinormals(VertexLoaderManager::GetCurrentVertexFormat());
@@ -566,7 +568,7 @@ void VertexManagerBase::Flush()
     g_texture_cache->BindTextures(used_textures);
 
     // Now we can upload uniforms, as nothing else will override them.
-    GeometryShaderManager::SetConstants(m_current_primitive_type);
+    geometry_shader_manager.SetConstants(m_current_primitive_type);
     pixel_shader_manager.SetConstants();
     UploadUniforms();
 

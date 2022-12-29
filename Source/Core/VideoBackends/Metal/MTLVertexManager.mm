@@ -92,11 +92,12 @@ void Metal::VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32
 void Metal::VertexManager::UploadUniforms()
 {
   auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
-  g_state_tracker->InvalidateUniforms(vertex_shader_manager.dirty, GeometryShaderManager::dirty,
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  g_state_tracker->InvalidateUniforms(vertex_shader_manager.dirty, geometry_shader_manager.dirty,
                                       pixel_shader_manager.dirty);
   vertex_shader_manager.dirty = false;
-  GeometryShaderManager::dirty = false;
+  geometry_shader_manager.dirty = false;
   pixel_shader_manager.dirty = false;
 }

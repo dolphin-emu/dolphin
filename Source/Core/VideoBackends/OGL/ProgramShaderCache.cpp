@@ -224,7 +224,8 @@ void ProgramShaderCache::UploadConstants()
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
-  if (pixel_shader_manager.dirty || vertex_shader_manager.dirty || GeometryShaderManager::dirty)
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+  if (pixel_shader_manager.dirty || vertex_shader_manager.dirty || geometry_shader_manager.dirty)
   {
     auto buffer = s_buffer->Map(s_ubo_buffer_size, s_ubo_align);
 
@@ -235,7 +236,7 @@ void ProgramShaderCache::UploadConstants()
 
     memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align) +
                Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align),
-           &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
+           &geometry_shader_manager.constants, sizeof(GeometryShaderConstants));
 
     s_buffer->Unmap(s_ubo_buffer_size);
     glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second,
@@ -250,7 +251,7 @@ void ProgramShaderCache::UploadConstants()
 
     pixel_shader_manager.dirty = false;
     vertex_shader_manager.dirty = false;
-    GeometryShaderManager::dirty = false;
+    geometry_shader_manager.dirty = false;
 
     ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, s_ubo_buffer_size);
   }

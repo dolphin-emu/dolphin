@@ -55,7 +55,8 @@ void BPInit()
 }
 
 static void BPWritten(PixelShaderManager& pixel_shader_manager,
-                      VertexShaderManager& vertex_shader_manager, const BPCmd& bp,
+                      VertexShaderManager& vertex_shader_manager,
+                      GeometryShaderManager& geometry_shader_manager, const BPCmd& bp,
                       int cycles_into_future)
 {
   /*
@@ -138,10 +139,10 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
   case BPMEM_SCISSORBR:      // Scissor Rectable Bottom, Right
   case BPMEM_SCISSOROFFSET:  // Scissor Offset
     vertex_shader_manager.SetViewportChanged();
-    GeometryShaderManager::SetViewportChanged();
+    geometry_shader_manager.SetViewportChanged();
     return;
   case BPMEM_LINEPTWIDTH:  // Line Width
-    GeometryShaderManager::SetLinePtWidthChanged();
+    geometry_shader_manager.SetLinePtWidthChanged();
     return;
   case BPMEM_ZMODE:  // Depth Control
     PRIM_LOG("zmode: test={}, func={}, upd={}", bpmem.zmode.testenable, bpmem.zmode.func,
@@ -674,7 +675,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
     if (bp.changes)
     {
       pixel_shader_manager.SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
-      GeometryShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
+      geometry_shader_manager.SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
     }
     return;
   }
@@ -763,8 +764,8 @@ void LoadBPReg(u8 reg, u32 value, int cycles_into_future)
   if (reg != BPMEM_BP_MASK)
     bpmem.bpMask = 0xFFFFFF;
 
-  BPWritten(system.GetPixelShaderManager(), system.GetVertexShaderManager(), bp,
-            cycles_into_future);
+  BPWritten(system.GetPixelShaderManager(), system.GetVertexShaderManager(),
+            system.GetGeometryShaderManager(), bp, cycles_into_future);
 }
 
 void LoadBPRegPreprocess(u8 reg, u32 value, int cycles_into_future)
