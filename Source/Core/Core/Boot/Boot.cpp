@@ -205,6 +205,9 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 {
   ASSERT(!paths.empty());
 
+  for (std::string& path : paths)
+    UnifyPathSeparators(path);
+
   const bool is_drive = Common::IsCDROMDevice(paths.front());
   // Check if the file exist, we may have gotten it from a --elf command line
   // that gave an incorrect file name
@@ -224,6 +227,9 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
     paths = ReadM3UFile(paths.front(), folder_path);
     if (paths.empty())
       return {};
+
+    for (std::string& path : paths)
+      UnifyPathSeparators(path);
 
     SplitPath(paths.front(), nullptr, nullptr, &extension);
     Common::ToLower(&extension);
