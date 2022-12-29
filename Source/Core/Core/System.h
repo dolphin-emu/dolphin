@@ -5,6 +5,7 @@
 
 #include <memory>
 
+class GeometryShaderManager;
 class PixelShaderManager;
 class SoundStream;
 struct Sram;
@@ -105,6 +106,7 @@ public:
   DVDThread::DVDThreadState& GetDVDThreadState() const;
   ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;
   Fifo::FifoManager& GetFifo() const;
+  GeometryShaderManager& GetGeometryShaderManager() const;
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
   PixelEngine::PixelEngineManager& GetPixelEngine() const;

@@ -28,7 +28,8 @@ static void XFMemWritten(VertexShaderManager& vertex_shader_manager, u32 transfe
   vertex_shader_manager.InvalidateXFRange(baseAddress, baseAddress + transferSize);
 }
 
-static void XFRegWritten(VertexShaderManager& vertex_shader_manager, u32 address, u32 value)
+static void XFRegWritten(Core::System& system, VertexShaderManager& vertex_shader_manager,
+                         u32 address, u32 value)
 {
   if (address >= XFMEM_REGISTERS_START && address < XFMEM_REGISTERS_END)
   {
@@ -119,14 +120,11 @@ static void XFRegWritten(VertexShaderManager& vertex_shader_manager, u32 address
     case XFMEM_SETVIEWPORT + 3:
     case XFMEM_SETVIEWPORT + 4:
     case XFMEM_SETVIEWPORT + 5:
-    {
-      auto& system = Core::System::GetInstance();
       g_vertex_manager->Flush();
       vertex_shader_manager.SetViewportChanged();
       system.GetPixelShaderManager().SetViewportChanged();
-      GeometryShaderManager::SetViewportChanged();
+      system.GetGeometryShaderManager().SetViewportChanged();
       break;
-    }
 
     case XFMEM_SETPROJECTION:
     case XFMEM_SETPROJECTION + 1:
@@ -137,7 +135,7 @@ static void XFRegWritten(VertexShaderManager& vertex_shader_manager, u32 address
     case XFMEM_SETPROJECTION + 6:
       g_vertex_manager->Flush();
       vertex_shader_manager.SetProjectionChanged();
-      GeometryShaderManager::SetProjectionChanged();
+      system.GetGeometryShaderManager().SetProjectionChanged();
       break;
 
     case XFMEM_SETNUMTEXGENS:  // GXSetNumTexGens
@@ -249,7 +247,7 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
     {
       const u32 value = Common::swap32(data);
 
-      XFRegWritten(vertex_shader_manager, address, value);
+      XFRegWritten(system, vertex_shader_manager, address, value);
       ((u32*)&xfmem)[address] = value;
 
       data += 4;

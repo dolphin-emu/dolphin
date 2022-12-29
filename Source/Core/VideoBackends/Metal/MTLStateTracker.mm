@@ -848,7 +848,9 @@ void Metal::StateTracker::PrepareRender()
     if (!m_flags.has_gx_gs_uniform && pipe->UsesVertexBuffer(2))
     {
       m_flags.has_gx_gs_uniform = true;
-      [m_current_render_encoder setVertexBytes:&GeometryShaderManager::constants
+      auto& system = Core::System::GetInstance();
+      auto& geometry_shader_manager = system.GetGeometryShaderManager();
+      [m_current_render_encoder setVertexBytes:&geometry_shader_manager.constants
                                         length:sizeof(GeometryShaderConstants)
                                        atIndex:2];
       ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, sizeof(GeometryShaderConstants));
