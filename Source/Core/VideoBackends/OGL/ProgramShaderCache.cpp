@@ -223,14 +223,15 @@ void ProgramShaderCache::UploadConstants()
 {
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
-  if (pixel_shader_manager.dirty || VertexShaderManager::dirty || GeometryShaderManager::dirty)
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  if (pixel_shader_manager.dirty || vertex_shader_manager.dirty || GeometryShaderManager::dirty)
   {
     auto buffer = s_buffer->Map(s_ubo_buffer_size, s_ubo_align);
 
     memcpy(buffer.first, &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
 
     memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align),
-           &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+           &vertex_shader_manager.constants, sizeof(VertexShaderConstants));
 
     memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align) +
                Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align),
@@ -248,7 +249,7 @@ void ProgramShaderCache::UploadConstants()
                       sizeof(GeometryShaderConstants));
 
     pixel_shader_manager.dirty = false;
-    VertexShaderManager::dirty = false;
+    vertex_shader_manager.dirty = false;
     GeometryShaderManager::dirty = false;
 
     ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, s_ubo_buffer_size);

@@ -8,6 +8,7 @@
 class PixelShaderManager;
 class SoundStream;
 struct Sram;
+class VertexShaderManager;
 
 namespace AudioInterface
 {
@@ -110,6 +111,7 @@ public:
   PixelShaderManager& GetPixelShaderManager() const;
   SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;
   Sram& GetSRAM() const;
+  VertexShaderManager& GetVertexShaderManager() const;
   VideoInterface::VideoInterfaceState& GetVideoInterfaceState() const;
 
 private:

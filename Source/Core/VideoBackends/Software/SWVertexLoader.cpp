@@ -10,6 +10,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/System.h"
+
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWRenderer.h"
@@ -205,15 +207,19 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int inde
   }
   if (!vdec.normals[1].enable)
   {
-    m_vertex.normal[1][0] = VertexShaderManager::constants.cached_tangent[0];
-    m_vertex.normal[1][1] = VertexShaderManager::constants.cached_tangent[1];
-    m_vertex.normal[1][2] = VertexShaderManager::constants.cached_tangent[2];
+    auto& system = Core::System::GetInstance();
+    auto& vertex_shader_manager = system.GetVertexShaderManager();
+    m_vertex.normal[1][0] = vertex_shader_manager.constants.cached_tangent[0];
+    m_vertex.normal[1][1] = vertex_shader_manager.constants.cached_tangent[1];
+    m_vertex.normal[1][2] = vertex_shader_manager.constants.cached_tangent[2];
   }
   if (!vdec.normals[2].enable)
   {
-    m_vertex.normal[2][0] = VertexShaderManager::constants.cached_binormal[0];
-    m_vertex.normal[2][1] = VertexShaderManager::constants.cached_binormal[1];
-    m_vertex.normal[2][2] = VertexShaderManager::constants.cached_binormal[2];
+    auto& system = Core::System::GetInstance();
+    auto& vertex_shader_manager = system.GetVertexShaderManager();
+    m_vertex.normal[2][0] = vertex_shader_manager.constants.cached_binormal[0];
+    m_vertex.normal[2][1] = vertex_shader_manager.constants.cached_binormal[1];
+    m_vertex.normal[2][2] = vertex_shader_manager.constants.cached_binormal[2];
   }
 
   ParseColorAttributes(&m_vertex, src, vdec);

@@ -256,6 +256,8 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
 {
   INFO_LOG_FMT(BOOT, "Faking GC BS2...");
 
+  auto& system = Core::System::GetInstance();
+
   SetupMSR();
   SetupHID(/*is_wii*/ false);
   SetupBAT(/*is_wii*/ false);
@@ -271,11 +273,11 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
   xfmem.postMatrices[0x3e * 4 + 1] = 1.0f;
   xfmem.postMatrices[0x3f * 4 + 2] = 1.0f;
   g_vertex_manager->Flush();
-  VertexShaderManager::InvalidateXFRange(XFMEM_POSTMATRICES + 0x3d * 4, XFMEM_POSTMATRICES_END);
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  vertex_shader_manager.InvalidateXFRange(XFMEM_POSTMATRICES + 0x3d * 4, XFMEM_POSTMATRICES_END);
 
   DVDReadDiscID(volume, 0x00000000);
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   bool streaming = memory.Read_U8(0x80000008);
   if (streaming)

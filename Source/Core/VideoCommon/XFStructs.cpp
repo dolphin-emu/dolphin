@@ -21,13 +21,14 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/XFMemory.h"
 
-static void XFMemWritten(u32 transferSize, u32 baseAddress)
+static void XFMemWritten(VertexShaderManager& vertex_shader_manager, u32 transferSize,
+                         u32 baseAddress)
 {
   g_vertex_manager->Flush();
-  VertexShaderManager::InvalidateXFRange(baseAddress, baseAddress + transferSize);
+  vertex_shader_manager.InvalidateXFRange(baseAddress, baseAddress + transferSize);
 }
 
-static void XFRegWritten(u32 address, u32 value)
+static void XFRegWritten(VertexShaderManager& vertex_shader_manager, u32 address, u32 value)
 {
   if (address >= XFMEM_REGISTERS_START && address < XFMEM_REGISTERS_END)
   {
@@ -61,7 +62,7 @@ static void XFRegWritten(u32 address, u32 value)
     case XFMEM_SETNUMCHAN:
       if (xfmem.numChan.numColorChans != (value & 3))
         g_vertex_manager->Flush();
-      VertexShaderManager::SetLightingConfigChanged();
+      vertex_shader_manager.SetLightingConfigChanged();
       break;
 
     case XFMEM_SETCHAN0_AMBCOLOR:  // Channel Ambient Color
@@ -71,7 +72,7 @@ static void XFRegWritten(u32 address, u32 value)
       if (xfmem.ambColor[chan] != value)
       {
         g_vertex_manager->Flush();
-        VertexShaderManager::SetMaterialColorChanged(chan);
+        vertex_shader_manager.SetMaterialColorChanged(chan);
       }
       break;
     }
@@ -83,7 +84,7 @@ static void XFRegWritten(u32 address, u32 value)
       if (xfmem.matColor[chan] != value)
       {
         g_vertex_manager->Flush();
-        VertexShaderManager::SetMaterialColorChanged(chan + 2);
+        vertex_shader_manager.SetMaterialColorChanged(chan + 2);
       }
       break;
     }
@@ -94,21 +95,21 @@ static void XFRegWritten(u32 address, u32 value)
     case XFMEM_SETCHAN1_ALPHA:
       if (((u32*)&xfmem)[address] != (value & 0x7fff))
         g_vertex_manager->Flush();
-      VertexShaderManager::SetLightingConfigChanged();
+      vertex_shader_manager.SetLightingConfigChanged();
       break;
 
     case XFMEM_DUALTEX:
       if (xfmem.dualTexTrans.enabled != bool(value & 1))
         g_vertex_manager->Flush();
-      VertexShaderManager::SetTexMatrixInfoChanged(-1);
+      vertex_shader_manager.SetTexMatrixInfoChanged(-1);
       break;
 
     case XFMEM_SETMATRIXINDA:
-      VertexShaderManager::SetTexMatrixChangedA(value);
+      vertex_shader_manager.SetTexMatrixChangedA(value);
       VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
       break;
     case XFMEM_SETMATRIXINDB:
-      VertexShaderManager::SetTexMatrixChangedB(value);
+      vertex_shader_manager.SetTexMatrixChangedB(value);
       VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
       break;
 
@@ -121,7 +122,7 @@ static void XFRegWritten(u32 address, u32 value)
     {
       auto& system = Core::System::GetInstance();
       g_vertex_manager->Flush();
-      VertexShaderManager::SetViewportChanged();
+      vertex_shader_manager.SetViewportChanged();
       system.GetPixelShaderManager().SetViewportChanged();
       GeometryShaderManager::SetViewportChanged();
       break;
@@ -135,7 +136,7 @@ static void XFRegWritten(u32 address, u32 value)
     case XFMEM_SETPROJECTION + 5:
     case XFMEM_SETPROJECTION + 6:
       g_vertex_manager->Flush();
-      VertexShaderManager::SetProjectionChanged();
+      vertex_shader_manager.SetProjectionChanged();
       GeometryShaderManager::SetProjectionChanged();
       break;
 
@@ -153,7 +154,7 @@ static void XFRegWritten(u32 address, u32 value)
     case XFMEM_SETTEXMTXINFO + 6:
     case XFMEM_SETTEXMTXINFO + 7:
       g_vertex_manager->Flush();
-      VertexShaderManager::SetTexMatrixInfoChanged(address - XFMEM_SETTEXMTXINFO);
+      vertex_shader_manager.SetTexMatrixInfoChanged(address - XFMEM_SETTEXMTXINFO);
       break;
 
     case XFMEM_SETPOSTMTXINFO:
@@ -165,7 +166,7 @@ static void XFRegWritten(u32 address, u32 value)
     case XFMEM_SETPOSTMTXINFO + 6:
     case XFMEM_SETPOSTMTXINFO + 7:
       g_vertex_manager->Flush();
-      VertexShaderManager::SetTexMatrixInfoChanged(address - XFMEM_SETPOSTMTXINFO);
+      vertex_shader_manager.SetTexMatrixInfoChanged(address - XFMEM_SETPOSTMTXINFO);
       break;
 
     // --------------
@@ -218,6 +219,9 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
     end_address = XFMEM_REGISTERS_END;
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+
   // write to XF mem
   if (base_address < XFMEM_REGISTERS_START)
   {
@@ -230,7 +234,7 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
       base_address = XFMEM_REGISTERS_START;
     }
 
-    XFMemWritten(xf_mem_transfer_size, xf_mem_base);
+    XFMemWritten(vertex_shader_manager, xf_mem_transfer_size, xf_mem_base);
     for (u32 i = 0; i < xf_mem_transfer_size; i++)
     {
       ((u32*)&xfmem)[xf_mem_base + i] = Common::swap32(data);
@@ -245,7 +249,7 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
     {
       const u32 value = Common::swap32(data);
 
-      XFRegWritten(address, value);
+      XFRegWritten(vertex_shader_manager, address, value);
       ((u32*)&xfmem)[address] = value;
 
       data += 4;
@@ -272,13 +276,15 @@ void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size)
     newData = (u32*)memory.GetPointer(g_main_cp_state.array_bases[array] +
                                       g_main_cp_state.array_strides[array] * index);
   }
+
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
   bool changed = false;
   for (u32 i = 0; i < size; ++i)
   {
     if (currData[i] != Common::swap32(newData[i]))
     {
       changed = true;
-      XFMemWritten(size, address);
+      XFMemWritten(vertex_shader_manager, size, address);
       break;
     }
   }
