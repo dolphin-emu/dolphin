@@ -585,7 +585,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   if (SConfig::GetInstance().bWii)
     savegame_redirect = DiscIO::Riivolution::ExtractSavegameRedirect(boot->riivolution_patches);
 
-  if (!CBoot::BootUp(std::move(boot)))
+  if (!CBoot::BootUp(system, std::move(boot)))
     return;
 
   // Initialise Wii filesystem contents.

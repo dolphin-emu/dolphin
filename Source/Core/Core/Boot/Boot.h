@@ -19,6 +19,11 @@
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace File
 {
 class IOFile;
@@ -143,7 +148,7 @@ struct BootParameters
 class CBoot
 {
 public:
-  static bool BootUp(std::unique_ptr<BootParameters> boot);
+  static bool BootUp(Core::System& system, std::unique_ptr<BootParameters> boot);
 
   // Tries to find a map file for the current game by looking first in the
   // local user directory, then in the shared user directory.
@@ -166,24 +171,24 @@ private:
 
   static void UpdateDebugger_MapLoaded();
 
-  static bool Boot_WiiWAD(const DiscIO::VolumeWAD& wad);
-  static bool BootNANDTitle(u64 title_id);
+  static bool Boot_WiiWAD(Core::System& system, const DiscIO::VolumeWAD& wad);
+  static bool BootNANDTitle(Core::System& system, u64 title_id);
 
   static void SetupMSR();
   static void SetupHID(bool is_wii);
   static void SetupBAT(bool is_wii);
   static bool RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
                            const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
-  static bool EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
+  static bool EmulatedBS2_GC(Core::System& system, const DiscIO::VolumeDisc& volume,
                              const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
-  static bool EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume,
+  static bool EmulatedBS2_Wii(Core::System& system, const DiscIO::VolumeDisc& volume,
                               const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
-  static bool EmulatedBS2(bool is_wii, const DiscIO::VolumeDisc& volume,
+  static bool EmulatedBS2(Core::System& system, bool is_wii, const DiscIO::VolumeDisc& volume,
                           const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
-  static bool Load_BS2(const std::string& boot_rom_filename);
+  static bool Load_BS2(Core::System& system, const std::string& boot_rom_filename);
 
-  static void SetupGCMemory();
-  static bool SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type);
+  static void SetupGCMemory(Core::System& system);
+  static bool SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType console_type);
 };
 
 class BootExecutableReader
