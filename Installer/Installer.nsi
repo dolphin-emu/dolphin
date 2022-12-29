@@ -1,7 +1,7 @@
 !define DOLPHIN_ARCH x64
 !define BASE_INSTALL_DIR "$PROGRAMFILES64"
-!define PRODUCT_NAME "Dolphin"
-!define PRODUCT_VERSION 5.0
+!define PRODUCT_NAME "Project Citrus"
+!define PRODUCT_VERSION 0.1.4
 
 !define BASE_DIR "..\Binary\${DOLPHIN_ARCH}"
 
@@ -29,8 +29,6 @@ SetCompressor /SOLID lzma
 !define MUI_LANGDLL_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "NSIS:Language"
 
-; License page
-!insertmacro MUI_PAGE_LICENSE "..\license.txt"
 ; Components page
 !insertmacro MUI_PAGE_COMPONENTS
 ; Directory page
@@ -109,7 +107,7 @@ SetCompressor /SOLID lzma
 
 Name "${PRODUCT_NAME}"
 !define UN_NAME "Uninstall $(^Name)"
-OutFile "dolphin-${DOLPHIN_ARCH}-${PRODUCT_VERSION}.exe"
+OutFile "Project Citrus Installer.exe"
 InstallDir "${BASE_INSTALL_DIR}\$(^Name)"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
@@ -130,27 +128,26 @@ Section "Base" SEC01
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\license.txt"
   Delete "$INSTDIR\*.dll"
-  Delete "$INSTDIR\Dolphin.exe"
+  Delete "$INSTDIR\Project Citrus.exe"
   Delete "$INSTDIR\DSPTool.exe"
   Delete "$INSTDIR\cpack_package_description.txt"
   Delete "$INSTDIR\qt.conf"
   RMDir /r "$INSTDIR\Sys"
   RMDir /r "$INSTDIR\Languages"
 
-  File "${BASE_DIR}\Dolphin.exe"
+  File "${BASE_DIR}\Project Citrus.exe"
   File "${BASE_DIR}\license.txt"
   File "${BASE_DIR}\*.dll"
   File "${BASE_DIR}\DSPTool.exe"
-  File "${BASE_DIR}\Updater.exe"
   File "${BASE_DIR}\qt.conf"
   File /r "${BASE_DIR}\QtPlugins"
-  File /r "${BASE_DIR}\Languages"
+  ; File /r "${BASE_DIR}\Languages"
   File /r "${BASE_DIR}\Sys"
   
   ; This needs to be done after Dolphin.exe is copied
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
-  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTDIR\Dolphin.exe"
-  CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\Dolphin.exe"
+  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTDIR\Project Citrus.exe"
+  CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\Project Citrus.exe"
   
   SetOutPath "$TEMP"
   SetOverwrite on
@@ -176,10 +173,10 @@ SectionEnd
 
 Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
-  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\Dolphin.exe"
+  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\Project Citrus.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\Dolphin.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\Project Citrus.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
@@ -203,7 +200,7 @@ Section Uninstall
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\license.txt"
   Delete "$INSTDIR\*.dll"
-  Delete "$INSTDIR\Dolphin.exe"
+  Delete "$INSTDIR\Project Citrus.exe"
   Delete "$INSTDIR\qt.conf"
   Delete "$INSTDIR\DSPTool.exe"
   Delete "$INSTDIR\Updater.exe"
