@@ -22,6 +22,7 @@ public enum MenuTag
   ENHANCEMENTS("enhancements"),
   STEREOSCOPY("stereoscopy"),
   HACKS("hacks"),
+  STATISTICS("statistics"),
   ADVANCED_GRAPHICS("advanced_graphics"),
   GCPAD_TYPE("gc_pad_type"),
   WIIMOTE("wiimote"),

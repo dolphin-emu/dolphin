@@ -243,20 +243,6 @@
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>
     <string name="video_backend_description">Select the API used for graphics rendering.</string>
-    <string name="show_fps">Show FPS</string>
-    <string name="show_fps_description">Shows the number of distinct frames rendered per second as a measure of visual smoothness.</string>
-    <string name="show_ftimes">Show Frame Times</string>
-    <string name="show_ftimes_description">Shows the average time in ms between each distinct rendered frame alongside the standard deviation.</string>
-    <string name="show_vps">Show VPS</string>
-    <string name="show_vps_description">Show the number of frames rendered per second as a measure of emulation speed.</string>
-    <string name="show_vtimes">Show VBlank Times</string>
-    <string name="show_vtimes_description">Shows the average time in ms between each rendered frame alongside the standard deviation.</string>
-    <string name="show_graphs">Show Performance Graphs</string>
-    <string name="show_graphs_description">Shows frametime graph along with statistics as a representation of emulation performance.</string>
-    <string name="show_speed">Show % Speed</string>
-    <string name="show_speed_description">Shows the % speed of emulation compared to full speed.</string>
-    <string name="show_speed_colors">Show Speed Color</string>
-    <string name="show_speed_colors_description">Changes the color of the FPS counter depending on emulation speed.</string>
     <string name="enhancements_submenu">Enhancements</string>
     <string name="internal_resolution">Internal Resolution</string>
     <string name="internal_resolution_description">Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.</string>
@@ -330,6 +316,22 @@
     <string name="shader_compilation_mode">Shader Compilation Mode</string>
     <string name="wait_for_shaders">Compile Shaders Before Starting</string>
     <string name="wait_for_shaders_description">This causes a delay when launching games, but will reduce stuttering early on.</string>
+
+    <string name="statistics_submenu">Statistics</string>
+    <string name="show_fps">Show FPS</string>
+    <string name="show_fps_description">Shows the number of distinct frames rendered per second as a measure of visual smoothness.</string>
+    <string name="show_ftimes">Show Frame Times</string>
+    <string name="show_ftimes_description">Shows the average time in ms between each distinct rendered frame alongside the standard deviation.</string>
+    <string name="show_vps">Show VPS</string>
+    <string name="show_vps_description">Show the number of frames rendered per second as a measure of emulation speed.</string>
+    <string name="show_vtimes">Show VBlank Times</string>
+    <string name="show_vtimes_description">Shows the average time in ms between each rendered frame alongside the standard deviation.</string>
+    <string name="show_graphs">Show Performance Graphs</string>
+    <string name="show_graphs_description">Shows frametime graph along with statistics as a representation of emulation performance.</string>
+    <string name="show_speed">Show % Speed</string>
+    <string name="show_speed_description">Shows the % speed of emulation compared to full speed.</string>
+    <string name="show_speed_colors">Show Speed Color</string>
+    <string name="show_speed_colors_description">Changes the color of the FPS counter depending on emulation speed.</string>
 
     <string name="advanced_graphics_submenu">Advanced</string>
     <string name="gfx_mods_and_custom_textures">Graphics Mods and Custom Textures</string>
