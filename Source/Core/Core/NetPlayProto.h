@@ -186,6 +186,8 @@ enum class MessageID : u8
   SyncGCSRAM = 0xF0,
   SyncSaveData = 0xF1,
   SyncCodes = 0xF2,
+
+  CoinFlip = 0xF4
 };
 
 enum class ConnectionError : u8

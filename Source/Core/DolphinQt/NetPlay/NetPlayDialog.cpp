@@ -115,6 +115,8 @@ NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model,
 
   restoreGeometry(settings.value(QStringLiteral("netplaydialog/geometry")).toByteArray());
   m_splitter->restoreState(settings.value(QStringLiteral("netplaydialog/splitter")).toByteArray());
+
+  srand(time(0));
 }
 
 NetPlayDialog::~NetPlayDialog()
@@ -140,6 +142,7 @@ void NetPlayDialog::CreateMainLayout()
       tr("Enabling Ranked Mode will report your games to the ranked bot,\n"
          "turn competetive gameplay settings on, and disable any extra gecko codes.\n"));
 
+  m_coin_flipper = new QPushButton(tr("Coin flip"));
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
   m_data_menu->setToolTipsVisible(true);
   m_write_save_data_action = m_data_menu->addAction(tr("Write Save Data"));
@@ -231,9 +234,10 @@ void NetPlayDialog::CreateMainLayout()
   options_widget->addWidget(m_start_button, 0, 0, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_label, 0, 1, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_size_box, 0, 2, Qt::AlignVCenter);
-  options_widget->addWidget(m_quit_button, 0, 7, Qt::AlignVCenter | Qt::AlignRight);
-  options_widget->setColumnStretch(6, 1000);
+  options_widget->addWidget(m_quit_button, 0, 5, Qt::AlignVCenter | Qt::AlignRight);
+  options_widget->setColumnStretch(5, 1000);
   //options_widget->addWidget(m_ranked_box, 0, 3, Qt::AlignVCenter);
+  options_widget->addWidget(m_coin_flipper, 0, 4, Qt::AlignVCenter);
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);
@@ -350,6 +354,8 @@ void NetPlayDialog::ConnectWidgets()
       server->AdjustRankedBox(is_ranked);
   });
 
+  connect(m_coin_flipper, &QPushButton::clicked, this, &NetPlayDialog::OnCoinFlip);
+
   const auto hia_function = [this](bool enable) {
     if (m_host_input_authority != enable)
     {
@@ -438,6 +444,27 @@ void NetPlayDialog::OnChat()
 
     SendMessage(msg);
   });
+}
+
+void NetPlayDialog::OnCoinFlip()
+{
+  if (!IsHosting())
+    return;
+
+  int flip = rand() % 2;
+  Settings::Instance().GetNetPlayClient()->SendCoinFlip(flip);
+}
+
+void NetPlayDialog::OnCoinFlipResult(int coinVal)
+{
+  if (coinVal == 1)
+  {
+    DisplayMessage(tr("Heads"), "darkorange");
+  }
+  else
+  {
+    DisplayMessage(tr("Tails"), "darkblue");
+  }
 }
 
 void NetPlayDialog::OnRankedEnabled(bool is_ranked)
@@ -548,6 +575,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_hostcode_action_button->setHidden(!is_hosting);
   m_game_button->setEnabled(is_hosting);
   m_kick_button->setEnabled(false);
+  m_coin_flipper->setEnabled(true);
 
   SetOptionsEnabled(true);
 
