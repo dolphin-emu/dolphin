@@ -5,8 +5,10 @@
 
 #include <algorithm>
 #include <cmath>
-#include <implot.h>
 #include <iomanip>
+#include <mutex>
+
+#include <implot.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -36,7 +38,7 @@ PerformanceTracker::~PerformanceTracker()
 
 void PerformanceTracker::Reset()
 {
-  std::lock_guard lock{m_mutex};
+  std::unique_lock lock{m_mutex};
 
   QueueClear();
   m_last_time = Clock::now();
@@ -47,7 +49,7 @@ void PerformanceTracker::Reset()
 
 void PerformanceTracker::Count()
 {
-  std::lock_guard lock{m_mutex};
+  std::unique_lock lock{m_mutex};
 
   if (m_paused)
     return;
@@ -97,19 +99,19 @@ DT PerformanceTracker::GetSampleWindow() const
 
 double PerformanceTracker::GetHzAvg() const
 {
-  std::lock_guard lock{m_mutex};
+  std::shared_lock lock{m_mutex};
   return m_hz_avg;
 }
 
 DT PerformanceTracker::GetDtAvg() const
 {
-  std::lock_guard lock{m_mutex};
+  std::shared_lock lock{m_mutex};
   return m_dt_avg;
 }
 
 DT PerformanceTracker::GetDtStd() const
 {
-  std::lock_guard lock{m_mutex};
+  std::unique_lock lock{m_mutex};
 
   if (m_dt_std)
     return *m_dt_std;
@@ -130,7 +132,7 @@ DT PerformanceTracker::GetDtStd() const
 
 DT PerformanceTracker::GetLastRawDt() const
 {
-  std::lock_guard lock{m_mutex};
+  std::shared_lock lock{m_mutex};
 
   if (QueueEmpty())
     return DT::zero();
@@ -142,7 +144,7 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
 {
   static std::array<float, MAX_DT_QUEUE_SIZE + 2> x, y;
 
-  std::lock_guard lock{m_mutex};
+  std::shared_lock lock{m_mutex};
 
   if (QueueEmpty())
     return;
@@ -238,7 +240,7 @@ void PerformanceTracker::LogRenderTimeToFile(DT val)
 
 void PerformanceTracker::SetPaused(bool paused)
 {
-  std::lock_guard lock{m_mutex};
+  std::unique_lock lock{m_mutex};
 
   m_paused = paused;
   if (m_paused)

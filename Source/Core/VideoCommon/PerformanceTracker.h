@@ -6,8 +6,8 @@
 #include <array>
 #include <chrono>
 #include <fstream>
-#include <mutex>
 #include <optional>
+#include <shared_mutex>
 
 #include "Common/CommonTypes.h"
 
@@ -100,5 +100,5 @@ private:  // Functions for managing dt queue
   mutable std::optional<DT> m_dt_std = std::nullopt;
 
   // Used to enable thread safety with the performance tracker
-  mutable std::mutex m_mutex;
+  mutable std::shared_mutex m_mutex;
 };
