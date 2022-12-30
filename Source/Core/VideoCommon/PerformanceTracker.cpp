@@ -18,7 +18,7 @@
 
 static constexpr double SAMPLE_RC_RATIO = 0.25;
 
-PerformanceTracker::PerformanceTracker(const char* log_name,
+PerformanceTracker::PerformanceTracker(const std::optional<std::string> log_name,
                                        const std::optional<s64> sample_window_us)
     : m_on_state_changed_handle{Core::AddOnStateChangedCallback([this](Core::State state) {
         if (state == Core::State::Paused)
@@ -86,8 +86,7 @@ void PerformanceTracker::Count()
 
   m_dt_std = std::nullopt;
 
-  if (m_log_name && g_ActiveConfig.bLogRenderTimeToFile)
-    LogRenderTimeToFile(diff);
+  LogRenderTimeToFile(diff);
 }
 
 DT PerformanceTracker::GetSampleWindow() const
@@ -230,9 +229,13 @@ bool PerformanceTracker::QueueEmpty() const
 
 void PerformanceTracker::LogRenderTimeToFile(DT val)
 {
+  if (!m_log_name || !g_ActiveConfig.bLogRenderTimeToFile)
+    return;
+
   if (!m_bench_file.is_open())
   {
-    File::OpenFStream(m_bench_file, File::GetUserPath(D_LOGS_IDX) + m_log_name, std::ios_base::out);
+    File::OpenFStream(m_bench_file, File::GetUserPath(D_LOGS_IDX) + *m_log_name,
+                      std::ios_base::out);
   }
 
   m_bench_file << std::fixed << std::setprecision(8) << DT_ms(val).count() << std::endl;
