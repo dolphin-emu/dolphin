@@ -1,4 +1,4 @@
-// Copyright 2016 Dolphin Emulator Project
+  // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/ConfigLoaders/NetPlayConfigLoader.h"
@@ -146,8 +146,8 @@ public:
     }
 #endif
 
-    // Check To Override Client's Cheat Codes
-    if (m_settings.m_SyncCodes && !m_settings.m_IsHosting)
+    // Always sync gecko codes to avoid desyncs
+    if (!m_settings.m_IsHosting)
     {
       // Raise flag to use host's codes
       layer->Set(Config::SESSION_CODE_SYNC_OVERRIDE, true);

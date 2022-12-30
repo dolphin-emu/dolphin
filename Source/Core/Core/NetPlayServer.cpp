@@ -1459,8 +1459,8 @@ bool NetPlayServer::RequestStartGame()
     }
   }
 
-  // Check To Send Codes to Clients
-  if (m_settings.m_SyncCodes && m_players.size() > 1)
+  // Always send gecko codes to clients.
+  if (m_players.size() > 1)
   {
     start_now = false;
     m_start_pending = true;
