@@ -264,17 +264,20 @@ void VertexManager::UploadUniforms()
 {
   auto& system = Core::System::GetInstance();
 
-  if (VertexShaderManager::dirty)
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  if (vertex_shader_manager.dirty)
   {
-    UpdateConstantBuffer(m_vertex_constant_buffer.Get(), &VertexShaderManager::constants,
+    UpdateConstantBuffer(m_vertex_constant_buffer.Get(), &vertex_shader_manager.constants,
                          sizeof(VertexShaderConstants));
-    VertexShaderManager::dirty = false;
+    vertex_shader_manager.dirty = false;
   }
-  if (GeometryShaderManager::dirty)
+
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+  if (geometry_shader_manager.dirty)
   {
-    UpdateConstantBuffer(m_geometry_constant_buffer.Get(), &GeometryShaderManager::constants,
+    UpdateConstantBuffer(m_geometry_constant_buffer.Get(), &geometry_shader_manager.constants,
                          sizeof(GeometryShaderConstants));
-    GeometryShaderManager::dirty = false;
+    geometry_shader_manager.dirty = false;
   }
 
   auto& pixel_shader_manager = system.GetPixelShaderManager();

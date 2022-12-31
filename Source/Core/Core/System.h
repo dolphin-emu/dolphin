@@ -5,9 +5,11 @@
 
 #include <memory>
 
+class GeometryShaderManager;
 class PixelShaderManager;
 class SoundStream;
 struct Sram;
+class VertexShaderManager;
 
 namespace AudioInterface
 {
@@ -104,12 +106,14 @@ public:
   DVDThread::DVDThreadState& GetDVDThreadState() const;
   ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;
   Fifo::FifoManager& GetFifo() const;
+  GeometryShaderManager& GetGeometryShaderManager() const;
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
   PixelEngine::PixelEngineManager& GetPixelEngine() const;
   PixelShaderManager& GetPixelShaderManager() const;
   SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;
   Sram& GetSRAM() const;
+  VertexShaderManager& GetVertexShaderManager() const;
   VideoInterface::VideoInterfaceState& GetVideoInterfaceState() const;
 
 private:

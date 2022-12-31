@@ -211,9 +211,8 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
   return true;
 }
 
-void CBoot::SetupGCMemory()
+void CBoot::SetupGCMemory(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   // Booted from bootrom. 0xE5207C22 = booted from jtag
@@ -251,7 +250,7 @@ void CBoot::SetupGCMemory()
 // GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
+bool CBoot::EmulatedBS2_GC(Core::System& system, const DiscIO::VolumeDisc& volume,
                            const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
   INFO_LOG_FMT(BOOT, "Faking GC BS2...");
@@ -260,7 +259,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
   SetupHID(/*is_wii*/ false);
   SetupBAT(/*is_wii*/ false);
 
-  SetupGCMemory();
+  SetupGCMemory(system);
 
   // Datel titles don't initialize the postMatrices, but they have dual-texture coordinate
   // transformation enabled. We initialize all of xfmem to 0, which results in everything using
@@ -271,11 +270,11 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
   xfmem.postMatrices[0x3e * 4 + 1] = 1.0f;
   xfmem.postMatrices[0x3f * 4 + 2] = 1.0f;
   g_vertex_manager->Flush();
-  VertexShaderManager::InvalidateXFRange(XFMEM_POSTMATRICES + 0x3d * 4, XFMEM_POSTMATRICES_END);
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  vertex_shader_manager.InvalidateXFRange(XFMEM_POSTMATRICES + 0x3d * 4, XFMEM_POSTMATRICES_END);
 
   DVDReadDiscID(volume, 0x00000000);
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   bool streaming = memory.Read_U8(0x80000008);
   if (streaming)
@@ -330,7 +329,7 @@ static DiscIO::Region CodeRegion(char c)
   }
 }
 
-bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
+bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType console_type)
 {
   static const std::map<DiscIO::Region, const RegionSetting> region_settings = {
       {DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJH"}},
@@ -418,7 +417,6 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
     return false;
   }
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   // Write the 256 byte setting.txt to memory.
@@ -502,7 +500,7 @@ static void WriteEmptyPlayRecord()
 // Wii Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader
-bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume,
+bool CBoot::EmulatedBS2_Wii(Core::System& system, const DiscIO::VolumeDisc& volume,
                             const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
   INFO_LOG_FMT(BOOT, "Faking Wii BS2...");
@@ -522,7 +520,6 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume,
     state->discstate = 0x01;
   });
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   // The system menu clears the RTC flags.
@@ -545,7 +542,7 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume,
   const u64 ios = ios_override >= 0 ? Titles::IOS(static_cast<u32>(ios_override)) : tmd.GetIOSId();
 
   const auto console_type = volume.GetTicket(data_partition).GetConsoleType();
-  if (!SetupWiiMemory(console_type) || !IOS::HLE::GetIOS()->BootIOS(ios))
+  if (!SetupWiiMemory(system, console_type) || !IOS::HLE::GetIOS()->BootIOS(ios))
     return false;
 
   auto di =
@@ -587,9 +584,9 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume,
 
 // Returns true if apploader has run successfully. If is_wii is true, the disc
 // that volume refers to must currently be inserted into the emulated disc drive.
-bool CBoot::EmulatedBS2(bool is_wii, const DiscIO::VolumeDisc& volume,
+bool CBoot::EmulatedBS2(Core::System& system, bool is_wii, const DiscIO::VolumeDisc& volume,
                         const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
-  return is_wii ? EmulatedBS2_Wii(volume, riivolution_patches) :
-                  EmulatedBS2_GC(volume, riivolution_patches);
+  return is_wii ? EmulatedBS2_Wii(system, volume, riivolution_patches) :
+                  EmulatedBS2_GC(system, volume, riivolution_patches);
 }

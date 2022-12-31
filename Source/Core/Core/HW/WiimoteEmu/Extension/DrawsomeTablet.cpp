@@ -31,6 +31,7 @@ DrawsomeTablet::DrawsomeTablet() : Extension3rdParty("Drawsome", _trans("Drawsom
   // Touch
   groups.emplace_back(m_touch = new ControllerEmu::Triggers(_trans("Touch")));
   m_touch->AddInput(ControllerEmu::Translate, _trans("Pressure"));
+  m_touch->AddInput(ControllerEmu::Translate, _trans("Lift"));
 }
 
 void DrawsomeTablet::BuildDesiredExtensionState(DesiredExtensionState* target_state)
@@ -57,9 +58,10 @@ void DrawsomeTablet::BuildDesiredExtensionState(DesiredExtensionState* target_st
   tablet_data.stylus_y1 = u8(stylus_y);
   tablet_data.stylus_y2 = u8(stylus_y >> 8);
 
-  // TODO: Expose the lifted stylus state in the UI.
+  const auto touch_state = m_touch->GetState(m_input_override_function);
+
   // Note: Pen X/Y holds the last value when the pen is lifted.
-  const bool is_stylus_lifted = false;
+  const bool is_stylus_lifted = std::lround(touch_state.data[1]) != 0;
 
   constexpr u8 NEUTRAL_STATUS = 0x8;
   constexpr u8 PEN_LIFTED_BIT = 0x10;
@@ -74,7 +76,6 @@ void DrawsomeTablet::BuildDesiredExtensionState(DesiredExtensionState* target_st
   // Pressure (0 - 0x7ff):
   constexpr u16 MAX_PRESSURE = 0x7ff;
 
-  const auto touch_state = m_touch->GetState(m_input_override_function);
   const u16 pressure = MapFloat<u16>(touch_state.data[0], 0, 0, MAX_PRESSURE);
 
   tablet_data.pressure1 = u8(pressure);

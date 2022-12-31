@@ -206,6 +206,10 @@ public final class SettingsFragmentPresenter
         addHackSettings(sl);
         break;
 
+      case STATISTICS:
+        addStatisticsSettings(sl);
+        break;
+
       case ADVANCED_GRAPHICS:
         addAdvancedGraphicsSettings(sl);
         break;
@@ -768,21 +772,6 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(mContext, R.string.graphics_general, 0));
     sl.add(new StringSingleChoiceSetting(mContext, StringSetting.MAIN_GFX_BACKEND,
             R.string.video_backend, 0, R.array.videoBackendEntries, R.array.videoBackendValues));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_FPS, R.string.show_fps,
-            R.string.show_fps_description));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_FTIMES, R.string.show_ftimes,
-            R.string.show_ftimes_description));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_VPS, R.string.show_vps,
-            R.string.show_vps_description));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_VTIMES, R.string.show_vtimes,
-            R.string.show_vtimes_description));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_GRAPHS, R.string.show_graphs,
-            R.string.show_graphs_description));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_SPEED, R.string.show_speed,
-            R.string.show_speed_description));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_SPEED_COLORS,
-            R.string.show_speed_colors,
-            R.string.show_speed_colors_description));
     sl.add(new SingleChoiceSettingDynamicDescriptions(mContext,
             IntSetting.GFX_SHADER_COMPILATION_MODE, R.string.shader_compilation_mode, 0,
             R.array.shaderCompilationModeEntries, R.array.shaderCompilationModeValues,
@@ -796,6 +785,7 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(mContext, R.string.graphics_more_settings, 0));
     sl.add(new SubmenuSetting(mContext, R.string.enhancements_submenu, MenuTag.ENHANCEMENTS));
     sl.add(new SubmenuSetting(mContext, R.string.hacks_submenu, MenuTag.HACKS));
+    sl.add(new SubmenuSetting(mContext, R.string.statistics_submenu, MenuTag.STATISTICS));
     sl.add(new SubmenuSetting(mContext, R.string.advanced_graphics_submenu,
             MenuTag.ADVANCED_GRAPHICS));
   }
@@ -893,6 +883,25 @@ public final class SettingsFragmentPresenter
             R.string.vertex_rounding, R.string.vertex_rounding_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SAVE_TEXTURE_CACHE_TO_STATE,
             R.string.texture_cache_to_state, R.string.texture_cache_to_state_description));
+  }
+
+  private void addStatisticsSettings(ArrayList<SettingsItem> sl)
+  {
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_FPS, R.string.show_fps,
+            R.string.show_fps_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_FTIMES, R.string.show_ftimes,
+            R.string.show_ftimes_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_VPS, R.string.show_vps,
+            R.string.show_vps_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_VTIMES, R.string.show_vtimes,
+            R.string.show_vtimes_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_GRAPHS, R.string.show_graphs,
+            R.string.show_graphs_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_SPEED, R.string.show_speed,
+            R.string.show_speed_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_SPEED_COLORS,
+            R.string.show_speed_colors,
+            R.string.show_speed_colors_description));
   }
 
   private void addAdvancedGraphicsSettings(ArrayList<SettingsItem> sl)

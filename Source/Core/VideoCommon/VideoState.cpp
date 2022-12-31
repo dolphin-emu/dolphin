@@ -76,10 +76,10 @@ void VideoCommon_DoState(PointerWrap& p)
   system.GetPixelShaderManager().DoState(p);
   p.DoMarker("PixelShaderManager");
 
-  VertexShaderManager::DoState(p);
+  system.GetVertexShaderManager().DoState(p);
   p.DoMarker("VertexShaderManager");
 
-  GeometryShaderManager::DoState(p);
+  system.GetGeometryShaderManager().DoState(p);
   p.DoMarker("GeometryShaderManager");
 
   g_vertex_manager->DoState(p);

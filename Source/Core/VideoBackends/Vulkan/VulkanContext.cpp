@@ -18,6 +18,8 @@
 
 namespace Vulkan
 {
+static constexpr const char* VALIDATION_LAYER_NAME = "VK_LAYER_KHRONOS_validation";
+
 std::unique_ptr<VulkanContext> g_vulkan_context;
 
 VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device)
@@ -45,8 +47,8 @@ VulkanContext::~VulkanContext()
   if (m_device != VK_NULL_HANDLE)
     vkDestroyDevice(m_device, nullptr);
 
-  if (m_debug_report_callback != VK_NULL_HANDLE)
-    DisableDebugReports();
+  if (m_debug_utils_messenger != VK_NULL_HANDLE)
+    DisableDebugUtils();
 
   vkDestroyInstance(m_instance, nullptr);
 }
@@ -77,22 +79,49 @@ bool VulkanContext::CheckValidationLayerAvailablility()
   res = vkEnumerateInstanceLayerProperties(&layer_count, layer_list.data());
   ASSERT(res == VK_SUCCESS);
 
-  // Check for both VK_EXT_debug_report and VK_LAYER_LUNARG_standard_validation
-  return (std::find_if(extension_list.begin(), extension_list.end(),
-                       [](const auto& it) {
-                         return strcmp(it.extensionName, VK_EXT_DEBUG_REPORT_EXTENSION_NAME) == 0;
-                       }) != extension_list.end() &&
-          std::find_if(layer_list.begin(), layer_list.end(), [](const auto& it) {
-            return strcmp(it.layerName, "VK_LAYER_KHRONOS_validation") == 0;
-          }) != layer_list.end());
+  bool supports_validation_layers =
+      std::find_if(layer_list.begin(), layer_list.end(), [](const auto& it) {
+        return strcmp(it.layerName, VALIDATION_LAYER_NAME) == 0;
+      }) != layer_list.end();
+
+  bool supports_debug_utils =
+      std::find_if(extension_list.begin(), extension_list.end(), [](const auto& it) {
+        return strcmp(it.extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0;
+      }) != extension_list.end();
+
+  if (!supports_debug_utils && supports_validation_layers)
+  {
+    // If the instance doesn't support debug utils but we're using validation layers,
+    // try to use the implementation of the extension provided by the validation layers.
+    extension_count = 0;
+    res = vkEnumerateInstanceExtensionProperties(VALIDATION_LAYER_NAME, &extension_count, nullptr);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkEnumerateInstanceExtensionProperties failed: ");
+      return false;
+    }
+
+    extension_list.resize(extension_count);
+    res = vkEnumerateInstanceExtensionProperties(VALIDATION_LAYER_NAME, &extension_count,
+                                                 extension_list.data());
+    ASSERT(res == VK_SUCCESS);
+    supports_debug_utils =
+        std::find_if(extension_list.begin(), extension_list.end(), [](const auto& it) {
+          return strcmp(it.extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0;
+        }) != extension_list.end();
+  }
+
+  // Check for both VK_EXT_debug_utils and VK_LAYER_KHRONOS_validation
+  return supports_debug_utils && supports_validation_layers;
 }
 
-VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_report,
+VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_utils,
                                                bool enable_validation_layer,
                                                u32* out_vk_api_version)
 {
   std::vector<const char*> enabled_extensions;
-  if (!SelectInstanceExtensions(&enabled_extensions, wstype, enable_debug_report))
+  if (!SelectInstanceExtensions(&enabled_extensions, wstype, enable_debug_utils,
+                                enable_validation_layer))
     return VK_NULL_HANDLE;
 
   VkApplicationInfo app_info = {};
@@ -129,12 +158,11 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
   instance_create_info.enabledLayerCount = 0;
   instance_create_info.ppEnabledLayerNames = nullptr;
 
-  // Enable debug layer on debug builds
+  // Enable validation layer if the user enabled them in the settings
   if (enable_validation_layer)
   {
-    static const char* layer_names[] = {"VK_LAYER_KHRONOS_validation"};
     instance_create_info.enabledLayerCount = 1;
-    instance_create_info.ppEnabledLayerNames = layer_names;
+    instance_create_info.ppEnabledLayerNames = &VALIDATION_LAYER_NAME;
   }
 
   VkInstance instance;
@@ -149,7 +177,8 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
 }
 
 bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension_list,
-                                             WindowSystemType wstype, bool enable_debug_report)
+                                             WindowSystemType wstype, bool enable_debug_utils,
+                                             bool validation_layer_enabled)
 {
   u32 extension_count = 0;
   VkResult res = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
@@ -170,14 +199,50 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
                                                available_extension_list.data());
   ASSERT(res == VK_SUCCESS);
 
+  u32 validation_layer_extension_count = 0;
+  std::vector<VkExtensionProperties> validation_layer_extension_list;
+  if (validation_layer_enabled)
+  {
+    res = vkEnumerateInstanceExtensionProperties(VALIDATION_LAYER_NAME,
+                                                 &validation_layer_extension_count, nullptr);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res,
+                       "vkEnumerateInstanceExtensionProperties failed for validation layers: ");
+    }
+    else
+    {
+      validation_layer_extension_list.resize(validation_layer_extension_count);
+      res = vkEnumerateInstanceExtensionProperties(VALIDATION_LAYER_NAME,
+                                                   &validation_layer_extension_count,
+                                                   validation_layer_extension_list.data());
+      ASSERT(res == VK_SUCCESS);
+    }
+  }
+
   for (const auto& extension_properties : available_extension_list)
     INFO_LOG_FMT(VIDEO, "Available extension: {}", extension_properties.extensionName);
 
+  for (const auto& extension_properties : validation_layer_extension_list)
+  {
+    INFO_LOG_FMT(VIDEO, "Available extension in validation layer: {}",
+                 extension_properties.extensionName);
+  }
+
   auto AddExtension = [&](const char* name, bool required) {
-    if (std::find_if(available_extension_list.begin(), available_extension_list.end(),
+    bool extension_supported =
+        std::find_if(available_extension_list.begin(), available_extension_list.end(),
                      [&](const VkExtensionProperties& properties) {
                        return !strcmp(name, properties.extensionName);
-                     }) != available_extension_list.end())
+                     }) != available_extension_list.end();
+    extension_supported =
+        extension_supported ||
+        std::find_if(validation_layer_extension_list.begin(), validation_layer_extension_list.end(),
+                     [&](const VkExtensionProperties& properties) {
+                       return !strcmp(name, properties.extensionName);
+                     }) != validation_layer_extension_list.end();
+
+    if (extension_supported)
     {
       INFO_LOG_FMT(VIDEO, "Enabling extension: {}", name);
       extension_list->push_back(name);
@@ -223,19 +288,20 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
   }
 #endif
 
-  // VK_EXT_debug_report
-  if (enable_debug_report && !AddExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, false))
-    WARN_LOG_FMT(VIDEO, "Vulkan: Debug report requested, but extension is not available.");
-
   AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
   if (wstype != WindowSystemType::Headless)
   {
     AddExtension(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, false);
   }
 
+  // VK_EXT_debug_utils
   if (AddExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, false))
   {
     g_Config.backend_info.bSupportsSettingObjectNames = true;
+  }
+  else if (enable_debug_utils)
+  {
+    WARN_LOG_FMT(VIDEO, "Vulkan: Debug utils requested, but extension is not available.");
   }
 
   return true;
@@ -435,9 +501,10 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(
     config->backend_info.AAModes.emplace_back(64);
 }
 
-std::unique_ptr<VulkanContext>
-VulkanContext::Create(VkInstance instance, VkPhysicalDevice gpu, VkSurfaceKHR surface,
-                      bool enable_debug_reports, bool enable_validation_layer, u32 vk_api_version)
+std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhysicalDevice gpu,
+                                                     VkSurfaceKHR surface, bool enable_debug_utils,
+                                                     bool enable_validation_layer,
+                                                     u32 vk_api_version)
 {
   std::unique_ptr<VulkanContext> context = std::make_unique<VulkanContext>(instance, gpu);
 
@@ -445,9 +512,9 @@ VulkanContext::Create(VkInstance instance, VkPhysicalDevice gpu, VkSurfaceKHR su
   context->InitDriverDetails();
   context->PopulateShaderSubgroupSupport();
 
-  // Enable debug reports if the "Host GPU" log category is enabled.
-  if (enable_debug_reports)
-    context->EnableDebugReports();
+  // Enable debug messages if the "Host GPU" log category is enabled.
+  if (enable_debug_utils)
+    context->EnableDebugUtils();
 
   // Attempt to create the device.
   if (!context->CreateDevice(surface, enable_validation_layer) ||
@@ -679,9 +746,8 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   // Enable debug layer on debug builds
   if (enable_validation_layer)
   {
-    static const char* layer_names[] = {"VK_LAYER_LUNARG_standard_validation"};
     device_info.enabledLayerCount = 1;
-    device_info.ppEnabledLayerNames = layer_names;
+    device_info.ppEnabledLayerNames = &VALIDATION_LAYER_NAME;
   }
 
   VkResult res = vkCreateDevice(m_physical_device, &device_info, nullptr, &m_device);
@@ -732,20 +798,17 @@ bool VulkanContext::CreateAllocator(u32 vk_api_version)
   return true;
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT flags,
-                                                          VkDebugReportObjectTypeEXT objectType,
-                                                          uint64_t object, size_t location,
-                                                          int32_t messageCode,
-                                                          const char* pLayerPrefix,
-                                                          const char* pMessage, void* pUserData)
+static VKAPI_ATTR VkBool32 VKAPI_CALL
+DebugUtilsCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                   VkDebugUtilsMessageTypeFlagsEXT messageTypes,
+                   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
 {
-  const std::string log_message =
-      fmt::format("Vulkan debug report: ({}) {}", pLayerPrefix ? pLayerPrefix : "", pMessage);
-  if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+  const std::string log_message = fmt::format("Vulkan debug message: {}", pCallbackData->pMessage);
+  if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
     ERROR_LOG_FMT(HOST_GPU, "{}", log_message);
-  else if (flags & (VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT))
+  else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     WARN_LOG_FMT(HOST_GPU, "{}", log_message);
-  else if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
+  else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
     INFO_LOG_FMT(HOST_GPU, "{}", log_message);
   else
     DEBUG_LOG_FMT(HOST_GPU, "{}", log_message);
@@ -753,43 +816,50 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT 
   return VK_FALSE;
 }
 
-bool VulkanContext::EnableDebugReports()
+bool VulkanContext::EnableDebugUtils()
 {
   // Already enabled?
-  if (m_debug_report_callback != VK_NULL_HANDLE)
+  if (m_debug_utils_messenger != VK_NULL_HANDLE)
     return true;
 
   // Check for presence of the functions before calling
-  if (!vkCreateDebugReportCallbackEXT || !vkDestroyDebugReportCallbackEXT ||
-      !vkDebugReportMessageEXT)
+  if (!vkCreateDebugUtilsMessengerEXT || !vkDestroyDebugUtilsMessengerEXT ||
+      !vkSubmitDebugUtilsMessageEXT)
   {
     return false;
   }
 
-  VkDebugReportCallbackCreateInfoEXT callback_info = {
-      VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT, nullptr,
-      VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT |
-          VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
-          VK_DEBUG_REPORT_DEBUG_BIT_EXT,
-      DebugReportCallback, nullptr};
+  VkDebugUtilsMessengerCreateInfoEXT messenger_info = {
+      VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+      nullptr,
+      0,
+      VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
+          VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+          VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+          VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT,
+      VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT |
+          VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+          VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+      DebugUtilsCallback,
+      nullptr};
 
-  VkResult res =
-      vkCreateDebugReportCallbackEXT(m_instance, &callback_info, nullptr, &m_debug_report_callback);
+  VkResult res = vkCreateDebugUtilsMessengerEXT(m_instance, &messenger_info, nullptr,
+                                                &m_debug_utils_messenger);
   if (res != VK_SUCCESS)
   {
-    LOG_VULKAN_ERROR(res, "vkCreateDebugReportCallbackEXT failed: ");
+    LOG_VULKAN_ERROR(res, "vkCreateDebugUtilsMessengerEXT failed: ");
     return false;
   }
 
   return true;
 }
 
-void VulkanContext::DisableDebugReports()
+void VulkanContext::DisableDebugUtils()
 {
-  if (m_debug_report_callback != VK_NULL_HANDLE)
+  if (m_debug_utils_messenger != VK_NULL_HANDLE)
   {
-    vkDestroyDebugReportCallbackEXT(m_instance, m_debug_report_callback, nullptr);
-    m_debug_report_callback = VK_NULL_HANDLE;
+    vkDestroyDebugUtilsMessengerEXT(m_instance, m_debug_utils_messenger, nullptr);
+    m_debug_utils_messenger = VK_NULL_HANDLE;
   }
 }
 

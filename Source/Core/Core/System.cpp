@@ -20,8 +20,10 @@
 #include "Core/HW/VideoInterface.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VertexShaderManager.h"
 
 namespace Core
 {
@@ -39,12 +41,14 @@ struct System::Impl
   DVDThread::DVDThreadState m_dvd_thread_state;
   ExpansionInterface::ExpansionInterfaceState m_expansion_interface_state;
   Fifo::FifoManager m_fifo;
+  GeometryShaderManager m_geometry_shader_manager;
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceState m_memory_interface_state;
   PixelEngine::PixelEngineManager m_pixel_engine;
   PixelShaderManager m_pixel_shader_manager;
   SerialInterface::SerialInterfaceState m_serial_interface_state;
   Sram m_sram;
+  VertexShaderManager m_vertex_shader_manager;
   VideoInterface::VideoInterfaceState m_video_interface_state;
 };
 
@@ -131,6 +135,11 @@ Fifo::FifoManager& System::GetFifo() const
   return m_impl->m_fifo;
 }
 
+GeometryShaderManager& System::GetGeometryShaderManager() const
+{
+  return m_impl->m_geometry_shader_manager;
+}
+
 Memory::MemoryManager& System::GetMemory() const
 {
   return m_impl->m_memory;
@@ -159,6 +168,11 @@ SerialInterface::SerialInterfaceState& System::GetSerialInterfaceState() const
 Sram& System::GetSRAM() const
 {
   return m_impl->m_sram;
+}
+
+VertexShaderManager& System::GetVertexShaderManager() const
+{
+  return m_impl->m_vertex_shader_manager;
 }
 
 VideoInterface::VideoInterfaceState& System::GetVideoInterfaceState() const
