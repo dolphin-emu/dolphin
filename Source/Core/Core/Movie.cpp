@@ -61,6 +61,8 @@
 
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
+#include "Core/Lua/Lua.h"
+#include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
 #include "Core/System.h"
@@ -1192,7 +1194,78 @@ static void CheckInputEnd()
   }
 }
 
-// NOTE: CPU Thread
+
+void addControllerInputs(ControllerState& startingState, ControllerState newControllerValues,
+                         std::vector<GC_BUTTON_NAME> buttonsToAdd)
+{
+  for (int i = 0; i < buttonsToAdd.size(); ++i)
+  {
+    switch (buttonsToAdd[i])
+    {
+      case A:
+        startingState.A = newControllerValues.A;
+        break;
+      case B:
+        startingState.B = newControllerValues.B;
+        break;
+      case X:
+        startingState.X = newControllerValues.X;
+        break;
+      case Y:
+        startingState.Y = newControllerValues.Y;
+        break;
+      case Z:
+        startingState.Z = newControllerValues.Z;
+        break;
+      case L:
+        startingState.L = newControllerValues.L;
+        break;
+      case R:
+        startingState.R = newControllerValues.R;
+        break;
+      case START:
+        startingState.Start = newControllerValues.Start;
+        break;
+      case RESET:
+        startingState.reset = newControllerValues.reset;
+        break;
+      case dPadUp:
+        startingState.DPadUp = newControllerValues.DPadUp;
+        break;
+      case dPadDown:
+        startingState.DPadDown = newControllerValues.DPadDown;
+        break;
+      case dPadLeft:
+        startingState.DPadLeft = newControllerValues.DPadLeft;
+        break;
+      case dPadRight:
+        startingState.DPadRight = newControllerValues.DPadRight;
+        break;
+      case triggerL:
+        startingState.TriggerL = newControllerValues.TriggerL;
+        break;
+      case triggerR:
+        startingState.TriggerR = newControllerValues.TriggerR;
+        break;
+      case analogStickX:
+        startingState.AnalogStickX = newControllerValues.AnalogStickX;
+        break;
+      case analogStickY:
+        startingState.AnalogStickY = newControllerValues.AnalogStickY;
+        break;
+      case cStickX:
+        startingState.CStickX = newControllerValues.CStickX;
+        break;
+      case cStickY:
+        startingState.CStickY = newControllerValues.CStickY;
+        break;
+      default:
+        break;
+    }
+  }
+
+}
+    // NOTE: CPU Thread
 void PlayController(GCPadStatus* PadStatus, int controllerID)
 {
   // Correct playback is entirely dependent on the emulator polling the controllers
@@ -1206,6 +1279,30 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
                    sizeof(ControllerState), s_temp_input.size());
     EndPlayInput(!s_bReadOnly);
     return;
+  }
+  if (Lua::luaScriptActive)
+  {
+    if (Lua::LuaGameCubeController::overwriteControllerAtSpecifiedPort[controllerID])
+    {
+      memcpy(&s_temp_input[s_currentByte], &Lua::LuaGameCubeController::newOverwriteControllerInputs[controllerID], sizeof(ControllerState));
+    }
+
+    if (Lua::LuaGameCubeController::addToControllerAtSpecifiedPort[controllerID])
+    {
+      memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
+      addControllerInputs(
+          s_padState, Lua::LuaGameCubeController::addToControllerInputs[controllerID],
+          Lua::LuaGameCubeController::buttonListsForAddToControllerInputs[controllerID]);
+      memcpy(&s_temp_input[s_currentByte], &s_padState, sizeof(ControllerState));
+    }
+
+    if (Lua::LuaGameCubeController::doRandomInputEventsAtSpecifiedPort[controllerID])
+    {
+      memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
+      for (int i = 0; i < Lua::LuaGameCubeController::randomButtonEvents[controllerID].size(); ++i)
+        Lua::LuaGameCubeController::randomButtonEvents[controllerID][i]->applyProbability(s_padState);
+      memcpy(&s_temp_input[s_currentByte], &s_padState, sizeof(ControllerState));
+    }
   }
 
   memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));

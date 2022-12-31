@@ -34,6 +34,7 @@ void tempRunner()
 
 void Init()
 {
+  std::srand(time(NULL));
   x = new int;
   *x = 0;
   luaScriptActive = true;

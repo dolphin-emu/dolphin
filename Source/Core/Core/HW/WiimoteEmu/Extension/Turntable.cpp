@@ -37,7 +37,7 @@ constexpr std::array<u16, 9> turntable_button_bitmasks{{
     Turntable::BUTTON_EUPHORIA,
 }};
 
-constexpr std::array<const char*, 6> turntable_button_names{{
+constexpr std::array<const char*, 6> turntable_BUTTON_NAMES{{
     _trans("Green Left"),
     _trans("Red Left"),
     _trans("Blue Left"),
@@ -50,7 +50,7 @@ Turntable::Turntable() : Extension1stParty("Turntable", _trans("DJ Turntable"))
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  for (auto& turntable_button_name : turntable_button_names)
+  for (auto& turntable_button_name : turntable_BUTTON_NAMES)
   {
     m_buttons->AddInput(ControllerEmu::Translate, turntable_button_name);
   }

@@ -62,6 +62,7 @@
 #include "Core/Host.h"
 #include "Core/IOS/IOS.h"
 #include "Core/Lua/Lua.h"
+#include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
 #include "Core/MemTools.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
@@ -884,6 +885,17 @@ void Callback_NewField()
 
   if (Lua::luaScriptActive)
   {
+    for (int i = 0; i < 4; ++i)
+    {
+      Lua::LuaGameCubeController::overwriteControllerAtSpecifiedPort[i] = false;
+      Lua::LuaGameCubeController::addToControllerAtSpecifiedPort[i] = false;
+      Lua::LuaGameCubeController::doRandomInputEventsAtSpecifiedPort[i] = false;
+      Lua::LuaGameCubeController::randomButtonEvents[i].clear();
+      Lua::LuaGameCubeController::buttonListsForAddToControllerInputs[i].clear();
+      memset(&Lua::LuaGameCubeController::newOverwriteControllerInputs[i], 0, sizeof(Movie::ControllerState));
+      memset(&Lua::LuaGameCubeController::addToControllerInputs[i], 0, sizeof(Movie::ControllerState)); 
+    }
+
     if (lua_resume(Lua::mainLuaThreadState, NULL, 0, Lua::x) != LUA_YIELD)
       Lua::luaScriptActive = false;
   }

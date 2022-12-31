@@ -263,13 +263,13 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
       Classic::BUTTON_MINUS, Classic::BUTTON_PLUS, Classic::BUTTON_HOME,
   };
 
-  static constexpr const char* const classic_button_names[] = {
+  static constexpr const char* const classic_BUTTON_NAMES[] = {
       "A", "B", "X", "Y", "L", "R", "ZL", "ZR", "-", "+", "HOME",
   };
 
   for (std::size_t i = 0; i != std::size(classic_button_masks); ++i)
     AddInput(new Button<u16>(&m_classic_state.buttons, classic_button_masks[i],
-                             classic_prefix + classic_button_names[i]));
+                             classic_prefix + classic_BUTTON_NAMES[i]));
 
   // Sticks.
   static constexpr const char* const classic_stick_names[][2] = {{"Left X", "Left Y"},

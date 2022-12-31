@@ -71,6 +71,8 @@
   <ItemGroup>
     <ClInclude Include="Core\Lua\LuaFunctions\ByteWrapper.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaBitFunctions.h" />
+    <ClInclude Include="Core\Lua\LuaFunctions\LuaGameCubeButtonProbabilityClasses.h" />
+    <ClInclude Include="Core\Lua\LuaFunctions\LuaGCButtons.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaByteWrapper.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaConverter.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaEmuFunctions.h" />
@@ -84,6 +86,7 @@
     <ClCompile Include="Core\Lua\LuaFunctions\LuaConverter.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaEmuFunctions.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaGameCubeController.cpp" />
+    <ClCompile Include="Core\Lua\LuaFunctions\LuaGCButtons.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaMemoryApi.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">

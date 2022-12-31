@@ -40,7 +40,7 @@ static constexpr std::string_view SOURCE_NAME = "WGInput";
 // There are some overlapping names assuming no device exposes both
 // GameControllerButtonLabel::XboxLeftBumper and GameControllerButtonLabel::LeftBumper.
 // If needed we can prepend "Xbox" to relevant input names on conflict in the future.
-static constexpr std::array wgi_button_names = {
+static constexpr std::array wgi_BUTTON_NAMES = {
     "None",      "Back",     "Start",      "Menu",     "View",     "Pad N",
     "Pad S",     "Pad W",    "Pad E",      "Button A", "Button B", "Button X",
     "Button Y",  "Bumper L", "Trigger L",  "Thumb L",  "Bumper R", "Trigger R",
@@ -432,8 +432,8 @@ private:
 
         const int32_t button_name_idx = static_cast<int32_t>(lbl);
         if (lbl != WGI::GameControllerButtonLabel::None &&
-            button_name_idx < wgi_button_names.size())
-          AddInput(new NamedButton(&button, wgi_button_names[button_name_idx]));
+            button_name_idx < wgi_BUTTON_NAMES.size())
+          AddInput(new NamedButton(&button, wgi_BUTTON_NAMES[button_name_idx]));
         else
           AddInput(new IndexedButton(&button, i));
 
