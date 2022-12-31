@@ -205,8 +205,10 @@ void Jit64AsmRoutineManager::Generate()
   J_CC(CC_Z, outerLoop);
 
   // Landing pad for drec space
+  dispatcher_exit = GetCodePtr();
   if (enable_debugging)
     SetJumpTarget(dbg_exit);
+
   ResetStack(*this);
   if (m_stack_top)
   {
