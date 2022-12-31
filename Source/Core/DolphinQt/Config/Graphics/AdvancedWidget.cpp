@@ -58,6 +58,7 @@ void AdvancedWidget::CreateWidgets()
   m_show_speed = new GraphicsBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED);
   m_show_speed_colors = new GraphicsBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
   m_perf_samp_window = new GraphicsInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, 100);
+  m_perf_samp_window->SetTitle(tr("Performance Sample Window (ms)"));
   m_log_render_time =
       new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
 
@@ -274,7 +275,7 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_PERF_SAMP_WINDOW_DESCRIPTION[] =
       QT_TR_NOOP("The amount of time the FPS and VPS counters will sample over."
                  "<br><br>The higher the value, the more stable the FPS/VPS counter will be, "
-                 "but the slower it will be slower to update."
+                 "but the slower it will be to update."
                  "<br><br><dolphin_emphasis>If unsure, leave this "
                  "at 1000ms.</dolphin_emphasis>");
   static const char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
