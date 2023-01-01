@@ -489,6 +489,21 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
   g_Config.backend_info.bSupportsTextureQueryLevels =
       GLExtensions::Supports("GL_ARB_texture_query_levels") || GLExtensions::Version() >= 430;
 
+  if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
+  {
+    g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchExt;
+  }
+  else if (GLExtensions::Supports("GL_ARM_shader_framebuffer_fetch"))
+  {
+    g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchArm;
+  }
+  else
+  {
+    g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchNone;
+  }
+  g_Config.backend_info.bSupportsFramebufferFetch =
+      g_ogl_config.SupportedFramebufferFetch != EsFbFetchType::FbFetchNone;
+
   if (m_main_gl_context->IsGLES())
   {
     g_ogl_config.SupportedESPointSize = GLExtensions::Supports("GL_OES_geometry_point_size") ? 1 :
@@ -516,21 +531,6 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
 
     // GL_TEXTURE_LOD_BIAS is not supported on GLES.
     g_Config.backend_info.bSupportsLodBiasInSampler = false;
-
-    if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
-    {
-      g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchExt;
-    }
-    else if (GLExtensions::Supports("GL_ARM_shader_framebuffer_fetch"))
-    {
-      g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchArm;
-    }
-    else
-    {
-      g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchNone;
-    }
-    g_Config.backend_info.bSupportsFramebufferFetch =
-        g_ogl_config.SupportedFramebufferFetch != EsFbFetchType::FbFetchNone;
 
     if (GLExtensions::Version() == 300)
     {
