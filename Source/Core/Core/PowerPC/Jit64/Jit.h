@@ -255,8 +255,8 @@ private:
 
   bool HandleFunctionHooking(u32 address);
 
-  void AllocStack();
-  void FreeStack();
+  void ProtectStack();
+  void UnprotectStack();
 
   void ResetFreeMemoryRanges();
 
@@ -270,7 +270,7 @@ private:
 
   bool m_enable_blr_optimization = false;
   bool m_cleanup_after_stackfault = false;
-  u8* m_stack = nullptr;
+  u8* m_stack_guard = nullptr;
 
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near;
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far;

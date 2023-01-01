@@ -10,11 +10,14 @@
 #include <disasm.h>
 #include <fmt/format.h>
 
-// for the PROFILER stuff
 #ifdef _WIN32
 #include <windows.h>
+#include <processthreadsapi.h>
+#else
+#include <unistd.h>
 #endif
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/IOFile.h"
@@ -23,6 +26,7 @@
 #include "Common/PerformanceCounter.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
+#include "Common/Thread.h"
 #include "Common/x64ABI.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -140,15 +144,16 @@ using namespace PowerPC;
 // But when windows reaches the last guard page, it raises a "Stack Overflow"
 // exception which we can hook into, however by default it leaves you with less
 // than 4kb of stack. So we use SetThreadStackGuarantee to trigger the Stack
-// Overflow early while we still have 512kb of stack remaining.
+// Overflow early while we still have 256kb of stack remaining.
 // After resetting the stack to the top, we call _resetstkoflw() to restore
-// the guard page at the 512kb mark.
+// the guard page at the 256kb mark.
 
 enum
 {
-  STACK_SIZE = 2 * 1024 * 1024,
-  SAFE_STACK_SIZE = 512 * 1024,
-  GUARD_SIZE = 0x10000,  // two guards - bottom (permanent) and middle (see above)
+  SAFE_STACK_SIZE = 256 * 1024,
+  MIN_UNSAFE_STACK_SIZE = 192 * 1024,
+  MIN_STACK_SIZE = SAFE_STACK_SIZE + MIN_UNSAFE_STACK_SIZE,
+  GUARD_SIZE = 64 * 1024,
   GUARD_OFFSET = SAFE_STACK_SIZE - GUARD_SIZE,
 };
 
@@ -158,27 +163,57 @@ Jit64::Jit64() : QuantizedMemoryRoutines(*this)
 
 Jit64::~Jit64() = default;
 
-void Jit64::AllocStack()
+void Jit64::ProtectStack()
 {
-#ifndef _WIN32
-  m_stack = static_cast<u8*>(Common::AllocateMemoryPages(STACK_SIZE));
-  Common::ReadProtectMemory(m_stack, GUARD_SIZE);
-  Common::ReadProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
-#else
-  // For windows we just keep using the system stack and reserve a large amount of memory at the end
-  // of the stack.
+  if (!m_enable_blr_optimization)
+    return;
+
+#ifdef _WIN32
   ULONG reserveSize = SAFE_STACK_SIZE;
   SetThreadStackGuarantee(&reserveSize);
+#else
+  auto [stack_addr, stack_size] = Common::GetCurrentThreadStack();
+
+  const uintptr_t stack_base_addr = reinterpret_cast<uintptr_t>(stack_addr);
+  const uintptr_t stack_middle_addr = reinterpret_cast<uintptr_t>(&stack_addr);
+  if (stack_middle_addr < stack_base_addr || stack_middle_addr >= stack_base_addr + stack_size)
+  {
+    PanicAlertFmt("Failed to get correct stack base");
+    m_enable_blr_optimization = false;
+    return;
+  }
+
+  const long page_size = sysconf(_SC_PAGESIZE);
+  if (page_size <= 0)
+  {
+    PanicAlertFmt("Failed to get page size");
+    m_enable_blr_optimization = false;
+    return;
+  }
+
+  const uintptr_t stack_guard_addr = Common::AlignUp(stack_base_addr + GUARD_OFFSET, page_size);
+  if (stack_guard_addr >= stack_middle_addr ||
+      stack_middle_addr - stack_guard_addr < GUARD_SIZE + MIN_UNSAFE_STACK_SIZE)
+  {
+    PanicAlertFmt("Stack is too small for BLR optimization (size {:x}, base {:x}, current stack "
+                  "pointer {:x}, alignment {:x})",
+                  stack_size, stack_base_addr, stack_middle_addr, page_size);
+    m_enable_blr_optimization = false;
+    return;
+  }
+
+  m_stack_guard = reinterpret_cast<u8*>(stack_guard_addr);
+  Common::ReadProtectMemory(m_stack_guard, GUARD_SIZE);
 #endif
 }
 
-void Jit64::FreeStack()
+void Jit64::UnprotectStack()
 {
 #ifndef _WIN32
-  if (m_stack)
+  if (m_stack_guard)
   {
-    Common::FreeMemoryPages(m_stack, STACK_SIZE);
-    m_stack = nullptr;
+    Common::UnWriteProtectMemory(m_stack_guard, GUARD_SIZE);
+    m_stack_guard = nullptr;
   }
 #endif
 }
@@ -194,11 +229,9 @@ bool Jit64::HandleStackFault()
 
   WARN_LOG_FMT(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
 
+  UnprotectStack();
   m_enable_blr_optimization = false;
-#ifndef _WIN32
-  // Windows does this automatically.
-  Common::UnWriteProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
-#endif
+
   // We're going to need to clear the whole cache to get rid of the bad
   // CALLs, but we can't yet.  Fake the downcount so we're forced to the
   // dispatcher (no block linking), and clear the cache so we're sent to
@@ -214,11 +247,13 @@ bool Jit64::HandleStackFault()
 
 bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 {
-  uintptr_t stack = (uintptr_t)m_stack;
-  uintptr_t diff = access_address - stack;
+  const uintptr_t stack_guard = reinterpret_cast<uintptr_t>(m_stack_guard);
   // In the trap region?
-  if (m_enable_blr_optimization && diff >= GUARD_OFFSET && diff < GUARD_OFFSET + GUARD_SIZE)
+  if (m_enable_blr_optimization && access_address >= stack_guard &&
+      access_address < stack_guard + GUARD_SIZE)
+  {
     return HandleStackFault();
+  }
 
   // This generates some fairly heavy trampolines, but it doesn't really hurt.
   // Only instructions that access I/O will get these, and there won't be that
@@ -370,12 +405,10 @@ void Jit64::Init()
   m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
   m_cleanup_after_stackfault = false;
 
-  m_stack = nullptr;
-  if (m_enable_blr_optimization)
-    AllocStack();
+  m_stack_guard = nullptr;
 
   blocks.Init();
-  asm_routines.Init(m_stack ? (m_stack + STACK_SIZE) : nullptr);
+  asm_routines.Init();
 
   // important: do this *after* generating the global asm routines, because we can't use farcode in
   // them.
@@ -415,7 +448,6 @@ void Jit64::ResetFreeMemoryRanges()
 
 void Jit64::Shutdown()
 {
-  FreeStack();
   FreeCodeSpace();
 
   auto& system = Core::System::GetInstance();
@@ -735,14 +767,22 @@ void Jit64::WriteExternalExceptionExit()
 
 void Jit64::Run()
 {
+  ProtectStack();
+
   CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
+
+  UnprotectStack();
 }
 
 void Jit64::SingleStep()
 {
+  ProtectStack();
+
   CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
+
+  UnprotectStack();
 }
 
 void Jit64::Trace()

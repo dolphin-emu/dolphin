@@ -5,6 +5,13 @@
 
 #include <cstdio>
 
+#ifdef _WIN32
+#include <processthreadsapi.h>
+#else
+#include <unistd.h>
+#endif
+
+#include "Common/Align.h"
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -12,6 +19,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/PerformanceCounter.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -38,9 +46,10 @@ constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
 constexpr size_t FARCODE_SIZE = 1024 * 1024 * 64;
 constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 64;
 
-constexpr size_t STACK_SIZE = 2 * 1024 * 1024;
-constexpr size_t SAFE_STACK_SIZE = 512 * 1024;
-constexpr size_t GUARD_SIZE = 64 * 1024;  // two guards - bottom (permanent) and middle (see above)
+constexpr size_t SAFE_STACK_SIZE = 256 * 1024;
+constexpr size_t MIN_UNSAFE_STACK_SIZE = 192 * 1024;
+constexpr size_t MIN_STACK_SIZE = SAFE_STACK_SIZE + MIN_UNSAFE_STACK_SIZE;
+constexpr size_t GUARD_SIZE = 64 * 1024;
 constexpr size_t GUARD_OFFSET = SAFE_STACK_SIZE - GUARD_SIZE;
 
 JitArm64::JitArm64() : m_float_emit(this)
@@ -74,7 +83,6 @@ void JitArm64::Init()
   m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
   m_cleanup_after_stackfault = false;
 
-  AllocStack();
   GenerateAsm();
 
   ResetFreeMemoryRanges();
@@ -117,9 +125,8 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
   bool success = false;
 
   // Handle BLR stack faults, may happen in C++ code.
-  uintptr_t stack = (uintptr_t)m_stack_base;
-  uintptr_t diff = access_address - stack;
-  if (diff >= GUARD_OFFSET && diff < GUARD_OFFSET + GUARD_SIZE)
+  const uintptr_t stack_guard = reinterpret_cast<uintptr_t>(m_stack_guard);
+  if (access_address >= stack_guard && access_address < stack_guard + GUARD_SIZE)
     success = HandleStackFault();
 
   // If the fault is in JIT code space, look for fastmem areas.
@@ -162,10 +169,10 @@ bool JitArm64::HandleStackFault()
     return false;
 
   ERROR_LOG_FMT(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
+
+  UnprotectStack();
   m_enable_blr_optimization = false;
-#ifndef _WIN32
-  Common::UnWriteProtectMemory(m_stack_base + GUARD_OFFSET, GUARD_SIZE);
-#endif
+
   GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
   Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(0);
   m_cleanup_after_stackfault = true;
@@ -205,7 +212,6 @@ void JitArm64::Shutdown()
   memory.ShutdownFastmemArena();
   FreeCodeSpace();
   blocks.Shutdown();
-  FreeStack();
 }
 
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
@@ -337,37 +343,56 @@ void JitArm64::ResetStack()
   ADD(ARM64Reg::SP, ARM64Reg::X0, 0);
 }
 
-void JitArm64::AllocStack()
+void JitArm64::ProtectStack()
 {
   if (!m_enable_blr_optimization)
     return;
 
-#ifndef _WIN32
-  m_stack_base = static_cast<u8*>(Common::AllocateMemoryPages(STACK_SIZE));
-  if (!m_stack_base)
+#ifdef _WIN32
+  ULONG reserveSize = SAFE_STACK_SIZE;
+  SetThreadStackGuarantee(&reserveSize);
+#else
+  auto [stack_addr, stack_size] = Common::GetCurrentThreadStack();
+
+  const uintptr_t stack_base_addr = reinterpret_cast<uintptr_t>(stack_addr);
+  const uintptr_t stack_middle_addr = reinterpret_cast<uintptr_t>(&stack_addr);
+  if (stack_middle_addr < stack_base_addr || stack_middle_addr >= stack_base_addr + stack_size)
   {
+    PanicAlertFmt("Failed to get correct stack base");
     m_enable_blr_optimization = false;
     return;
   }
 
-  m_stack_pointer = m_stack_base + STACK_SIZE;
-  Common::ReadProtectMemory(m_stack_base, GUARD_SIZE);
-  Common::ReadProtectMemory(m_stack_base + GUARD_OFFSET, GUARD_SIZE);
-#else
-  // For windows we just keep using the system stack and reserve a large amount of memory at the end
-  // of the stack.
-  ULONG reserveSize = SAFE_STACK_SIZE;
-  SetThreadStackGuarantee(&reserveSize);
+  const long page_size = sysconf(_SC_PAGESIZE);
+  if (page_size <= 0)
+  {
+    PanicAlertFmt("Failed to get page size");
+    m_enable_blr_optimization = false;
+    return;
+  }
+
+  const uintptr_t stack_guard_addr = Common::AlignUp(stack_base_addr + GUARD_OFFSET, page_size);
+  if (stack_guard_addr >= stack_middle_addr ||
+      stack_middle_addr - stack_guard_addr < GUARD_SIZE + MIN_UNSAFE_STACK_SIZE)
+  {
+    PanicAlertFmt("Stack is too small for BLR optimization (size {:x}, base {:x}, current stack "
+                  "pointer {:x}, alignment {:x})",
+                  stack_size, stack_base_addr, stack_middle_addr, page_size);
+    m_enable_blr_optimization = false;
+    return;
+  }
+
+  m_stack_guard = reinterpret_cast<u8*>(stack_guard_addr);
+  Common::ReadProtectMemory(m_stack_guard, GUARD_SIZE);
 #endif
 }
 
-void JitArm64::FreeStack()
+void JitArm64::UnprotectStack()
 {
 #ifndef _WIN32
-  if (m_stack_base)
-    Common::FreeMemoryPages(m_stack_base, STACK_SIZE);
-  m_stack_base = nullptr;
-  m_stack_pointer = nullptr;
+  if (m_stack_guard)
+    Common::UnWriteProtectMemory(m_stack_guard, GUARD_SIZE);
+  m_stack_guard = nullptr;
 #endif
 }
 
@@ -696,14 +721,22 @@ void JitArm64::EndTimeProfile(JitBlock* b)
 
 void JitArm64::Run()
 {
+  ProtectStack();
+
   CompiledCode pExecAddr = (CompiledCode)enter_code;
   pExecAddr();
+
+  UnprotectStack();
 }
 
 void JitArm64::SingleStep()
 {
+  ProtectStack();
+
   CompiledCode pExecAddr = (CompiledCode)enter_code;
   pExecAddr();
+
+  UnprotectStack();
 }
 
 void JitArm64::Trace()

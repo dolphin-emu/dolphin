@@ -195,26 +195,18 @@ std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core
 
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType style)
 {
-  // If a panic alert happens very early in the execution of a game, we can crash here with
-  // the error "JNI NewString called with pending exception java.lang.StackOverflowError".
-  // As a workaround, let's put the call on a new thread with a brand new stack.
+  JNIEnv* env = IDCache::GetEnvForThread();
 
-  jboolean result;
+  jstring j_caption = ToJString(env, caption);
+  jstring j_text = ToJString(env, text);
 
-  std::thread([&] {
-    JNIEnv* env = IDCache::GetEnvForThread();
+  // Execute the Java method.
+  jboolean result = env->CallStaticBooleanMethod(
+      IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(), j_caption, j_text, yes_no,
+      style == Common::MsgType::Warning, s_need_nonblocking_alert_msg);
 
-    jstring j_caption = ToJString(env, caption);
-    jstring j_text = ToJString(env, text);
-
-    // Execute the Java method.
-    result = env->CallStaticBooleanMethod(
-        IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(), j_caption, j_text, yes_no,
-        style == Common::MsgType::Warning, s_need_nonblocking_alert_msg);
-
-    env->DeleteLocalRef(j_caption);
-    env->DeleteLocalRef(j_text);
-  }).join();
+  env->DeleteLocalRef(j_caption);
+  env->DeleteLocalRef(j_text);
 
   return result != JNI_FALSE;
 }
