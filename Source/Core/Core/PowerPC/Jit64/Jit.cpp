@@ -149,7 +149,7 @@ enum
   STACK_SIZE = 2 * 1024 * 1024,
   SAFE_STACK_SIZE = 512 * 1024,
   GUARD_SIZE = 0x10000,  // two guards - bottom (permanent) and middle (see above)
-  GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE,
+  GUARD_OFFSET = SAFE_STACK_SIZE - GUARD_SIZE,
 };
 
 Jit64::Jit64() : QuantizedMemoryRoutines(*this)
