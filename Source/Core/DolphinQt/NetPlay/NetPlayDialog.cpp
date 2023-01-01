@@ -151,8 +151,8 @@ void NetPlayDialog::CreateMainLayout()
   m_load_wii_action->setCheckable(true);
   m_sync_save_data_action = m_data_menu->addAction(tr("Sync Saves"));
   m_sync_save_data_action->setCheckable(true);
-  m_sync_codes_action = m_data_menu->addAction(tr("Sync AR/Gecko Codes"));
-  m_sync_codes_action->setCheckable(true);
+  // m_sync_codes_action = m_data_menu->addAction(tr("Sync AR/Gecko Codes"));
+  // m_sync_codes_action->setCheckable(true);
   m_sync_all_wii_saves_action = m_data_menu->addAction(tr("Sync All Wii Saves"));
   m_sync_all_wii_saves_action->setCheckable(true);
   m_strict_settings_sync_action = m_data_menu->addAction(tr("Strict Settings Sync"));
@@ -170,24 +170,24 @@ void NetPlayDialog::CreateMainLayout()
          "configured by the host.\nSuitable for competitive games where fairness and minimal "
          "latency are most important."));
   m_fixed_delay_action->setCheckable(true);
-  m_host_input_authority_action = m_network_menu->addAction(tr("Host Input Authority"));
-  m_host_input_authority_action->setToolTip(
-      tr("Host has control of sending all inputs to the game, as received from other players, "
-         "giving the host zero latency but increasing latency for others.\nSuitable for casual "
-         "games with 3+ players, possibly on unstable or high latency connections."));
-  m_host_input_authority_action->setCheckable(true);
-  m_golf_mode_action = m_network_menu->addAction(tr("Golf Mode"));
-  m_golf_mode_action->setToolTip(
-      tr("Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be "
-         "switched at any time.\nSuitable for turn-based games with timing-sensitive controls, "
-         "such as golf."));
-  m_golf_mode_action->setCheckable(true);
+  //m_host_input_authority_action = m_network_menu->addAction(tr("Host Input Authority"));
+  //m_host_input_authority_action->setToolTip(
+  //    tr("Host has control of sending all inputs to the game, as received from other players, "
+  //       "giving the host zero latency but increasing latency for others.\nSuitable for casual "
+  //       "games with 3+ players, possibly on unstable or high latency connections."));
+  //m_host_input_authority_action->setCheckable(true);
+  //m_golf_mode_action = m_network_menu->addAction(tr("Golf Mode"));
+  //m_golf_mode_action->setToolTip(
+  //    tr("Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be "
+  //       "switched at any time.\nSuitable for turn-based games with timing-sensitive controls, "
+  //       "such as golf."));
+  //m_golf_mode_action->setCheckable(true);
 
   m_network_mode_group = new QActionGroup(this);
   m_network_mode_group->setExclusive(true);
   m_network_mode_group->addAction(m_fixed_delay_action);
-  m_network_mode_group->addAction(m_host_input_authority_action);
-  m_network_mode_group->addAction(m_golf_mode_action);
+  //m_network_mode_group->addAction(m_host_input_authority_action);
+  //m_network_mode_group->addAction(m_golf_mode_action);
   m_fixed_delay_action->setChecked(true);
   m_ranked_box->setChecked(false);
 
@@ -219,7 +219,7 @@ void NetPlayDialog::CreateMainLayout()
   m_game_button->setAutoDefault(false);
 
   m_sync_save_data_action->setChecked(true);
-  m_sync_codes_action->setChecked(true);
+  // m_sync_codes_action->setChecked(true);
 
   m_main_layout->setMenuBar(m_menu_bar);
 
@@ -365,9 +365,9 @@ void NetPlayDialog::ConnectWidgets()
     }
   };
 
-  connect(m_host_input_authority_action, &QAction::toggled, this,
-          [hia_function] { hia_function(true); });
-  connect(m_golf_mode_action, &QAction::toggled, this, [hia_function] { hia_function(true); });
+  /*connect(m_host_input_authority_action, &QAction::toggled, this,
+          [hia_function] { hia_function(true); });*/
+  //connect(m_golf_mode_action, &QAction::toggled, this, [hia_function] { hia_function(true); });
   connect(m_fixed_delay_action, &QAction::toggled, this, [hia_function] { hia_function(false); });
 
   connect(m_start_button, &QPushButton::clicked, this, &NetPlayDialog::OnStart);
@@ -412,12 +412,12 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_write_save_data_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_load_wii_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_sync_save_data_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
-  connect(m_sync_codes_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
+  // connect(m_sync_codes_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_record_input_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_strict_settings_sync_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
-  connect(m_host_input_authority_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
+  // connect(m_host_input_authority_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_sync_all_wii_saves_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
-  connect(m_golf_mode_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
+  // connect(m_golf_mode_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_golf_mode_overlay_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_fixed_delay_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_hide_remote_gbas_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
@@ -869,13 +869,15 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_load_wii_action->setEnabled(enabled);
     m_write_save_data_action->setEnabled(enabled);
     m_sync_save_data_action->setEnabled(enabled);
-    m_sync_codes_action->setEnabled(enabled);
+    // m_sync_codes_action->setEnabled(enabled);
     m_assign_ports_button->setEnabled(enabled);
     m_strict_settings_sync_action->setEnabled(enabled);
-    m_host_input_authority_action->setEnabled(enabled);
     m_sync_all_wii_saves_action->setEnabled(enabled && m_sync_save_data_action->isChecked());
-    m_golf_mode_action->setEnabled(enabled);
+
+    // Only show fair input delay on the network menu
     m_fixed_delay_action->setEnabled(enabled);
+    // m_host_input_authority_action->setEnabled(enabled);
+    // m_golf_mode_action->setEnabled(enabled);
   }
 
   m_record_input_action->setEnabled(enabled);
@@ -1159,7 +1161,7 @@ void NetPlayDialog::LoadSettings()
   const bool write_save_data = Config::Get(Config::NETPLAY_WRITE_SAVE_DATA);
   const bool load_wii_save = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
   const bool sync_saves = Config::Get(Config::NETPLAY_SYNC_SAVES);
-  const bool sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
+  // const bool sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
   const bool record_inputs = Config::Get(Config::NETPLAY_RECORD_INPUTS);
   const bool strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
   const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
@@ -1170,32 +1172,34 @@ void NetPlayDialog::LoadSettings()
   m_write_save_data_action->setChecked(write_save_data);
   m_load_wii_action->setChecked(load_wii_save);
   m_sync_save_data_action->setChecked(sync_saves);
-  m_sync_codes_action->setChecked(sync_codes);
+  // m_sync_codes_action->setChecked(sync_codes);
   m_record_input_action->setChecked(record_inputs);
   m_strict_settings_sync_action->setChecked(strict_settings_sync);
   m_sync_all_wii_saves_action->setChecked(sync_all_wii_saves);
   m_golf_mode_overlay_action->setChecked(golf_mode_overlay);
   m_hide_remote_gbas_action->setChecked(hide_remote_gbas);
 
-  const std::string network_mode = Config::Get(Config::NETPLAY_NETWORK_MODE);
+  // const std::string network_mode = Config::Get(Config::NETPLAY_NETWORK_MODE);
 
-  if (network_mode == "fixeddelay")
-  {
-    m_fixed_delay_action->setChecked(true);
-  }
-  else if (network_mode == "hostinputauthority")
-  {
-    m_host_input_authority_action->setChecked(true);
-  }
-  else if (network_mode == "golf")
-  {
-    m_golf_mode_action->setChecked(true);
-  }
-  else
-  {
-    WARN_LOG_FMT(NETPLAY, "Unknown network mode '{}', using 'fixeddelay'", network_mode);
-    m_fixed_delay_action->setChecked(true);
-  }
+  // if (network_mode == "fixeddelay")
+  // {
+  //   m_fixed_delay_action->setChecked(true);
+  // }
+  // else if (network_mode == "hostinputauthority")
+  // {
+  //   m_host_input_authority_action->setChecked(true);
+  // }
+  // else if (network_mode == "golf")
+  // {
+  //   m_golf_mode_action->setChecked(true);
+  // }
+  // else
+  // {
+  //   WARN_LOG_FMT(NETPLAY, "Unknown network mode '{}', using 'fixeddelay'", network_mode);
+  //   m_fixed_delay_action->setChecked(true);
+  // }
+
+  m_fixed_delay_action->setChecked(true);
 }
 
 void NetPlayDialog::SaveSettings()
@@ -1210,28 +1214,30 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_WRITE_SAVE_DATA, m_write_save_data_action->isChecked());
   Config::SetBase(Config::NETPLAY_LOAD_WII_SAVE, m_load_wii_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_SAVES, m_sync_save_data_action->isChecked());
-  Config::SetBase(Config::NETPLAY_SYNC_CODES, m_sync_codes_action->isChecked());
+  // Config::SetBase(Config::NETPLAY_SYNC_CODES, m_sync_codes_action->isChecked());
   Config::SetBase(Config::NETPLAY_RECORD_INPUTS, m_record_input_action->isChecked());
   Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
   Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
   Config::SetBase(Config::NETPLAY_HIDE_REMOTE_GBAS, m_hide_remote_gbas_action->isChecked());
 
-  std::string network_mode;
-  if (m_fixed_delay_action->isChecked())
-  {
-    network_mode = "fixeddelay";
-  }
-  else if (m_host_input_authority_action->isChecked())
-  {
-    network_mode = "hostinputauthority";
-  }
-  else if (m_golf_mode_action->isChecked())
-  {
-    network_mode = "golf";
-  }
+  // std::string network_mode;
+  // if (m_fixed_delay_action->isChecked())
+  // {
+  //   network_mode = "fixeddelay";
+  // }
+  // else if (m_host_input_authority_action->isChecked())
+  // {
+  //   network_mode = "hostinputauthority";
+  // }
+  // else if (m_golf_mode_action->isChecked())
+  // {
+  //   network_mode = "golf";
+  // }
 
-  Config::SetBase(Config::NETPLAY_NETWORK_MODE, network_mode);
+  // Config::SetBase(Config::NETPLAY_NETWORK_MODE, network_mode);
+
+  Config::SetBase(Config::NETPLAY_NETWORK_MODE, "fixeddelay");
 }
 
 void NetPlayDialog::ShowMD5Dialog(const std::string& title)
