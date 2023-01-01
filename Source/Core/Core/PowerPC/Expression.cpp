@@ -135,7 +135,44 @@ static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
   return 0;
 }
 
-static std::array<expr_func, 22> g_expr_funcs{{
+static std::optional<std::string> ReadStringArg(const Core::CPUThreadGuard& guard, expr* e)
+{
+  double num = expr_eval(e);
+  if (!std::isnan(num))
+  {
+    u32 address = static_cast<u32>(num);
+    return PowerPC::HostGetString(guard, address);
+  }
+
+  const char* cstr = expr_get_str(e);
+  if (cstr != nullptr)
+  {
+    return std::string(cstr);
+  }
+
+  return std::nullopt;
+}
+
+static double StreqFunc(expr_func* f, vec_expr_t* args, void* c)
+{
+  if (vec_len(args) != 2)
+    return 0;
+
+  const auto* guard = reinterpret_cast<const Core::CPUThreadGuard*>(c);
+  std::array<std::string, 2> strs;
+  for (int i = 0; i < 2; i++)
+  {
+    std::optional<std::string> arg = ReadStringArg(*guard, &vec_nth(args, i));
+    if (arg == std::nullopt)
+      return 0;
+
+    strs[i] = std::move(*arg);
+  }
+
+  return strs[0] == strs[1];
+}
+
+static std::array<expr_func, 23> g_expr_funcs{{
     // For internal storage and comparisons, everything is auto-converted to Double.
     // If u64 ints are added, this could produce incorrect results.
     {"read_u8", HostReadFunc<u8>},
@@ -158,6 +195,7 @@ static std::array<expr_func, 22> g_expr_funcs{{
     {"u32", CastFunc<u32>},
     {"s32", CastFunc<s32, u32>},
     {"callstack", CallstackFunc},
+    {"streq", StreqFunc},
     {},
 }};
 
