@@ -29,7 +29,8 @@ public:
 protected:
   bool Initialize(const WindowSystemInfo& wsi, bool stereo, bool core) override;
 
-  static HGLRC CreateCoreContext(HDC dc, HGLRC share_context);
+  static bool CheckForGLES(HDC dc);
+  static HGLRC CreateCoreContext(HDC dc, HGLRC share_context, Mode* mode);
   static bool CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE* pbuffer_handle,
                             HDC* pbuffer_dc);
 
