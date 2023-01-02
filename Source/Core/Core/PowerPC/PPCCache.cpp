@@ -98,7 +98,7 @@ void Cache::Reset()
 {
   valid.fill(0);
   plru.fill(0);
-  wrote.fill(0);
+  modified.fill(0);
   lookup_table.fill(0xFF);
   lookup_table_ex.fill(0xFF);
   lookup_table_vmem.fill(0xFF);
@@ -113,7 +113,6 @@ void InstructionCache::Reset()
 void Cache::Init()
 {
   data.fill({});
-  tags.fill({});
   addrs.fill({});
   Reset();
 }
@@ -137,9 +136,9 @@ void Cache::Store(u32 addr)
   if (way == 0xff)
     return;
 
-  if (valid[set] & (1U << way) && wrote[set] & (1U << way))
+  if (valid[set] & (1U << way) && modified[set] & (1U << way))
     memory.CopyToEmu((addr & ~0x1f), reinterpret_cast<u8*>(data[set][way].data()), 32);
-  wrote[set] &= ~(1U << way);
+  modified[set] &= ~(1U << way);
 }
 
 void Cache::FlushAll()
@@ -151,7 +150,7 @@ void Cache::FlushAll()
   {
     for (size_t way = 0; way < CACHE_WAYS; way++)
     {
-      if (valid[set] & (1U << way) && wrote[set] & (1U << way))
+      if (valid[set] & (1U << way) && modified[set] & (1U << way))
         memory.CopyToEmu(addrs[set][way], reinterpret_cast<u8*>(data[set][way].data()), 32);
     }
   }
@@ -168,15 +167,15 @@ void Cache::Invalidate(u32 addr)
 
   if (valid[set] & (1U << way))
   {
-    if (tags[set][way] & (CACHE_VMEM_BIT >> 12))
-      lookup_table_vmem[((tags[set][way] << 7) | set) & 0xfffff] = 0xff;
-    else if (tags[set][way] & (CACHE_EXRAM_BIT >> 12))
-      lookup_table_ex[((tags[set][way] << 7) | set) & 0x1fffff] = 0xff;
+    if (addrs[set][way] & CACHE_VMEM_BIT)
+      lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+    else if (addrs[set][way] & CACHE_EXRAM_BIT)
+      lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
     else
-      lookup_table[((tags[set][way] << 7) | set) & 0xfffff] = 0xff;
+      lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
 
     valid[set] &= ~(1U << way);
-    wrote[set] &= ~(1U << way);
+    modified[set] &= ~(1U << way);
   }
 }
 
@@ -192,18 +191,18 @@ void Cache::Flush(u32 addr)
 
   if (valid[set] & (1U << way))
   {
-    if (wrote[set] & (1U << way))
+    if (modified[set] & (1U << way))
       memory.CopyToEmu((addr & ~0x1f), reinterpret_cast<u8*>(data[set][way].data()), 32);
 
-    if (tags[set][way] & (CACHE_VMEM_BIT >> 12))
-      lookup_table_vmem[((tags[set][way] << 7) | set) & 0xfffff] = 0xff;
-    else if (tags[set][way] & (CACHE_EXRAM_BIT >> 12))
-      lookup_table_ex[((tags[set][way] << 7) | set) & 0x1fffff] = 0xff;
+    if (addrs[set][way] & CACHE_VMEM_BIT)
+      lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+    else if (addrs[set][way] & CACHE_EXRAM_BIT)
+      lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
     else
-      lookup_table[((tags[set][way] << 7) | set) & 0xfffff] = 0xff;
+      lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
 
     valid[set] &= ~(1U << way);
-    wrote[set] &= ~(1U << way);
+    modified[set] &= ~(1U << way);
   }
 }
 
@@ -237,8 +236,6 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
   // load to the cache
   if (!locked && way == 0xff)
   {
-    u32 tag = addr >> 12;
-
     // select a way
     if (valid[set] != 0xff)
       way = s_way_from_valid[valid[set]];
@@ -248,15 +245,15 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
     if (valid[set] & (1 << way))
     {
       // store the cache back to main memory
-      if (wrote[set] & (1 << way))
+      if (modified[set] & (1 << way))
         memory.CopyToEmu(addrs[set][way], reinterpret_cast<u8*>(data[set][way].data()), 32);
 
-      if (tags[set][way] & (CACHE_VMEM_BIT >> 12))
-        lookup_table_vmem[((tags[set][way] << 7) | set) & 0xfffff] = 0xff;
-      else if (tags[set][way] & (CACHE_EXRAM_BIT >> 12))
-        lookup_table_ex[((tags[set][way] << 7) | set) & 0x1fffff] = 0xff;
+      if (addrs[set][way] & CACHE_VMEM_BIT)
+        lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+      else if (addrs[set][way] & CACHE_EXRAM_BIT)
+        lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
       else
-        lookup_table[((tags[set][way] << 7) | set) & 0xfffff] = 0xff;
+        lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
     }
 
     // load
@@ -268,15 +265,14 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
       lookup_table_ex[(addr >> 5) & 0x1fffff] = way;
     else
       lookup_table[(addr >> 5) & 0xfffff] = way;
-    tags[set][way] = tag;
     addrs[set][way] = addr;
     valid[set] |= (1 << way);
-    wrote[set] &= ~(1 << way);
-  }
+    modified[set] &= ~(1 << way);
 
-  // update plru
-  if (way != 0xff)
-    plru[set] = (plru[set] & ~s_plru_mask[way]) | s_plru_value[way];
+    // update plru
+    if (way != 0xff)
+      plru[set] = (plru[set] & ~s_plru_mask[way]) | s_plru_value[way];
+  }
 
   return {set, way};
 }
@@ -329,7 +325,7 @@ void Cache::Write(u32 addr, const void* buffer, u32 len, bool locked)
     {
       std::memcpy(reinterpret_cast<u8*>(data[set][way].data()) + offset_in_block, value,
                   len_in_block);
-      wrote[set] |= (1 << way);
+      modified[set] |= (1 << way);
     }
     else
     {
@@ -354,24 +350,22 @@ void Cache::DoState(PointerWrap& p)
       {
         if ((valid[set] & (1 << way)) != 0)
         {
-          const u32 addr = (tags[set][way] << 12) | (set << 5);
-          if (addr & CACHE_VMEM_BIT)
-            lookup_table_vmem[(addr >> 5) & 0xfffff] = 0xff;
-          else if (addr & CACHE_EXRAM_BIT)
-            lookup_table_ex[(addr >> 5) & 0x1fffff] = 0xff;
+          if (addrs[set][way] & CACHE_VMEM_BIT)
+            lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+          else if (addrs[set][way] & CACHE_EXRAM_BIT)
+            lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
           else
-            lookup_table[(addr >> 5) & 0xfffff] = 0xff;
+            lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
         }
       }
     }
   }
 
   p.DoArray(data);
-  p.DoArray(tags);
   p.DoArray(plru);
   p.DoArray(valid);
   p.DoArray(addrs);
-  p.DoArray(wrote);
+  p.DoArray(modified);
 
   if (p.IsReadMode())
   {
@@ -382,13 +376,12 @@ void Cache::DoState(PointerWrap& p)
       {
         if ((valid[set] & (1 << way)) != 0)
         {
-          const u32 addr = (tags[set][way] << 12) | (set << 5);
-          if (addr & CACHE_VMEM_BIT)
-            lookup_table_vmem[(addr >> 5) & 0xfffff] = way;
-          else if (addr & CACHE_EXRAM_BIT)
-            lookup_table_ex[(addr >> 5) & 0x1fffff] = way;
+          if (addrs[set][way] & CACHE_VMEM_BIT)
+            lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+          else if (addrs[set][way] & CACHE_EXRAM_BIT)
+            lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
           else
-            lookup_table[(addr >> 5) & 0xfffff] = way;
+            lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
         }
       }
     }
@@ -413,7 +406,22 @@ void InstructionCache::Invalidate(u32 addr)
   if (!HID0.ICE || m_disable_icache)
     return;
 
-  Cache::Invalidate(addr);
+  // Invalidates the whole set
+  const u32 set = (addr >> 5) & 0x7f;
+  for (size_t way = 0; way < 8; way++)
+  {
+    if (valid[set] & (1U << way))
+    {
+      if (addrs[set][way] & CACHE_VMEM_BIT)
+        lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+      else if (addrs[set][way] & CACHE_EXRAM_BIT)
+        lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
+      else
+        lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+    }
+  }
+  valid[set] = 0;
+  modified[set] = 0;
 
   JitInterface::InvalidateICacheLine(addr);
 }

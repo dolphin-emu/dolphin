@@ -1137,7 +1137,7 @@ void DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 nu
   memcpy(dst, src, 32 * num_blocks);
 }
 
-void ClearCacheLine(u32 address)
+void ClearDCacheLine(u32 address)
 {
   DEBUG_ASSERT((address & 0x1F) == 0);
   if (MSR.DR)
@@ -1168,7 +1168,7 @@ void ClearCacheLine(u32 address)
     WriteToHardware<XCheckTLBFlag::Write, true>(memory, address + i, 0, 4);
 }
 
-void StoreCacheLine(u32 address)
+void StoreDCacheLine(u32 address)
 {
   address &= ~0x1F;
 
@@ -1192,7 +1192,7 @@ void StoreCacheLine(u32 address)
     ppcState.dCache.Store(address);
 }
 
-void InvalidateCacheLine(u32 address)
+void InvalidateDCacheLine(u32 address)
 {
   address &= ~0x1F;
 
@@ -1214,7 +1214,7 @@ void InvalidateCacheLine(u32 address)
     ppcState.dCache.Invalidate(address);
 }
 
-void FlushCacheLine(u32 address)
+void FlushDCacheLine(u32 address)
 {
   address &= ~0x1F;
 
@@ -1238,7 +1238,7 @@ void FlushCacheLine(u32 address)
     ppcState.dCache.Flush(address);
 }
 
-void TouchCacheLine(u32 address, bool store)
+void TouchDCacheLine(u32 address, bool store)
 {
   address &= ~0x1F;
 

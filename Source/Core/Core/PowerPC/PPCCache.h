@@ -23,11 +23,10 @@ constexpr u32 CACHE_VMEM_BIT = 0x20000000;
 struct Cache
 {
   std::array<std::array<std::array<u32, CACHE_BLOCK_SIZE>, CACHE_WAYS>, CACHE_SETS> data{};
-  std::array<std::array<u32, CACHE_WAYS>, CACHE_SETS> tags{};
+  std::array<std::array<u32, CACHE_WAYS>, CACHE_SETS> addrs{};
   std::array<u32, CACHE_SETS> plru{};
   std::array<u32, CACHE_SETS> valid{};
-  std::array<std::array<u32, CACHE_WAYS>, CACHE_SETS> addrs{};
-  std::array<u32, CACHE_SETS> wrote{};
+  std::array<u32, CACHE_SETS> modified{};
 
   // Note: This is only for performance purposes; this same data could be computed at runtime
   // from the tags and valid fields (and that's how it's done on the actual cache)

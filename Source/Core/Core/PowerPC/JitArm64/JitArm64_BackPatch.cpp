@@ -231,7 +231,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
     {
-      MOVP2R(ARM64Reg::X8, &PowerPC::ClearCacheLine);
+      MOVP2R(ARM64Reg::X8, &PowerPC::ClearDCacheLine);
       BLR(ARM64Reg::X8);
     }
     else

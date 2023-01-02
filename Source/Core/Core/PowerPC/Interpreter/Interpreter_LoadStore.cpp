@@ -448,7 +448,7 @@ void Interpreter::dcbf(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::FlushCacheLine(address);
+  PowerPC::FlushDCacheLine(address);
 }
 
 void Interpreter::dcbi(UGeckoInstruction inst)
@@ -469,7 +469,7 @@ void Interpreter::dcbi(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::InvalidateCacheLine(address);
+  PowerPC::InvalidateDCacheLine(address);
 }
 
 void Interpreter::dcbst(UGeckoInstruction inst)
@@ -484,7 +484,7 @@ void Interpreter::dcbst(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::StoreCacheLine(address);
+  PowerPC::StoreDCacheLine(address);
 }
 
 // These instructions hint that it might be optimal to prefetch the specified cache line into the
@@ -520,7 +520,7 @@ void Interpreter::dcbz(UGeckoInstruction inst)
     }
   }
 
-  PowerPC::ClearCacheLine(dcbz_addr & (~31));
+  PowerPC::ClearDCacheLine(dcbz_addr & (~31));
 }
 
 void Interpreter::dcbz_l(UGeckoInstruction inst)
@@ -539,7 +539,7 @@ void Interpreter::dcbz_l(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::ClearCacheLine(address & (~31));
+  PowerPC::ClearDCacheLine(address & (~31));
 }
 
 // eciwx/ecowx technically should access the specified device
@@ -594,7 +594,6 @@ void Interpreter::icbi(UGeckoInstruction inst)
 {
   // TODO: Raise DSI if translation fails (except for direct-store segments).
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
-  JitInterface::InvalidateICacheLine(address);
   PowerPC::ppcState.iCache.Invalidate(address);
 }
 

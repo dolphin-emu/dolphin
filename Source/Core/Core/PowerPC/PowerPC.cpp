@@ -141,6 +141,10 @@ void DoState(PointerWrap& p)
       INFO_LOG_FMT(POWERPC, "Flushing data cache");
       ppcState.dCache.FlushAll();
     }
+    else
+    {
+      ppcState.dCache.Reset();
+    }
 
     RoundingModeUpdated();
     IBATUpdated();
@@ -275,14 +279,7 @@ void Init(CPUCore cpu_core)
   ppcState.iCache.Init();
   ppcState.dCache.Init();
 
-  if (Config::Get(Config::MAIN_ACCURATE_CPU_CACHE))
-  {
-    ppcState.m_enable_dcache = true;
-  }
-  else
-  {
-    ppcState.m_enable_dcache = false;
-  }
+  ppcState.m_enable_dcache = Config::Get(Config::MAIN_ACCURATE_CPU_CACHE);
 
   if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
     breakpoints.ClearAllTemporary();

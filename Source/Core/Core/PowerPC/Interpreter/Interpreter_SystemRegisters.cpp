@@ -272,8 +272,9 @@ void Interpreter::mfspr(UGeckoInstruction inst)
     break;
 
   case SPR_IABR:
-    // A strange quirk: reading back this register on hardware will always have this bit set to 0
-    // (despite the bit appearing to function normally when set). This does not apply to the DABR.
+    // A strange quirk: reading back this register on hardware will always have the TE (Translation
+    // enabled) bit set to 0 (despite the bit appearing to function normally when set). This does
+    // not apply to the DABR.
     rGPR[inst.RD] = rSPR(index) & ~1;
     return;
   }
