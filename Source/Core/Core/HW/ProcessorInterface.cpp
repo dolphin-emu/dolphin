@@ -17,6 +17,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
+#include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "VideoCommon/AsyncRequests.h"
@@ -264,6 +265,14 @@ void ProcessorInterfaceManager::ResetButton_Tap()
                             CoreTiming::FromThread::ANY);
   core_timing.ScheduleEvent(SystemTimers::GetTicksPerSecond() / 2, m_event_type_toggle_reset_button,
                             false, CoreTiming::FromThread::ANY);
+}
+
+void ProcessorInterfaceManager::ResetButton_Tap_FromUser()
+{
+  if (NetPlay::IsNetPlayRunning())
+    NetPlay::ScheduleResetButtonTap();
+  else
+    ResetButton_Tap();
 }
 
 void ProcessorInterfaceManager::PowerButton_Tap()

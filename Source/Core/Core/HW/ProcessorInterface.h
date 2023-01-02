@@ -82,6 +82,7 @@ public:
 
   // Thread-safe func which sets and clears reset button state automagically
   void ResetButton_Tap();
+  void ResetButton_Tap_FromUser();
   void PowerButton_Tap();
 
   u32 m_interrupt_cause = 0;
