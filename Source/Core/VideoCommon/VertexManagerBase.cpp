@@ -140,26 +140,11 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   }
 
   // Check for size in buffer, if the buffer gets full, call Flush()
-  if (!m_is_flushed &&
-      (count > m_index_generator.GetRemainingIndices(primitive) ||
-       count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize()))
+  if (!m_is_flushed && (count > m_index_generator.GetRemainingIndices(primitive) ||
+                        count > GetRemainingIndices(primitive) ||
+                        needed_vertex_bytes > GetRemainingSize())) [[unlikely]]
   {
     Flush();
-
-    if (count > m_index_generator.GetRemainingIndices(primitive))
-    {
-      ERROR_LOG_FMT(VIDEO, "Too little remaining index values. Use 32-bit or reset them on flush.");
-    }
-    if (count > GetRemainingIndices(primitive))
-    {
-      ERROR_LOG_FMT(VIDEO, "VertexManager: Buffer not large enough for all indices! "
-                           "Increase MAXIBUFFERSIZE or we need primitive breaking after all.");
-    }
-    if (needed_vertex_bytes > GetRemainingSize())
-    {
-      ERROR_LOG_FMT(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
-                           "Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
-    }
   }
 
   m_cull_all = cullall;
@@ -181,6 +166,23 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
 
     m_is_flushed = false;
   }
+
+  // Now that we've reset the buffer, there should be enough space. It's possible that we still
+  // won't have enough space in a few rare cases, such as vertex shader line/point expansion with a
+  // ton of lines in one draw command, in which case we will either need to add support for
+  // splitting a single draw command into multiple draws or using bigger indices.
+  ASSERT_MSG(VIDEO, count <= m_index_generator.GetRemainingIndices(primitive),
+             "VertexManager: Too few remaining index values ({} > {}). "
+             "32-bit indices or primitive breaking needed.",
+             count, m_index_generator.GetRemainingIndices(primitive));
+  ASSERT_MSG(VIDEO, count <= GetRemainingIndices(primitive),
+             "VertexManager: Buffer not large enough for all indices! ({} > {}) "
+             "Increase MAXIBUFFERSIZE or we need primitive breaking after all.",
+             count, GetRemainingIndices(primitive));
+  ASSERT_MSG(VIDEO, needed_vertex_bytes <= GetRemainingSize(),
+             "VertexManager: Buffer not large enough for all vertices! ({} > {}) "
+             "Increase MAXVBUFFERSIZE or we need primitive breaking after all.",
+             needed_vertex_bytes, GetRemainingSize());
 
   return DataReader(m_cur_buffer_pointer, m_end_buffer_pointer);
 }
