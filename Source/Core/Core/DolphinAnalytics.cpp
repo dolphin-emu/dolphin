@@ -421,6 +421,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("gpu-has-palette-conversion", g_Config.backend_info.bSupportsPaletteConversion);
   builder.AddData("gpu-has-clip-control", g_Config.backend_info.bSupportsClipControl);
   builder.AddData("gpu-has-ssaa", g_Config.backend_info.bSupportsSSAA);
+  builder.AddData("gpu-has-logic-ops", g_Config.backend_info.bSupportsLogicOp);
 
   // NetPlay / recording.
   builder.AddData("netplay", NetPlay::IsNetPlayRunning());
