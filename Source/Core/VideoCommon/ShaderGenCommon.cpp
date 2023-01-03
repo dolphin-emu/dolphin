@@ -42,7 +42,7 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.enable_validation_layer = g_ActiveConfig.bEnableValidationLayer;
   bits.manual_texture_sampling = !g_ActiveConfig.bFastTextureSampling;
   bits.manual_texture_sampling_custom_texture_sizes =
-      g_ActiveConfig.ManualTextureSamplingWithHiResTextures();
+      g_ActiveConfig.ManualTextureSamplingWithCustomTextureSizes();
   bits.backend_sampler_lod_bias = g_ActiveConfig.backend_info.bSupportsLodBiasInSampler;
   bits.backend_dynamic_vertex_loader = g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader;
   bits.backend_vs_point_line_expand = g_ActiveConfig.UseVSForLinePointExpand();
