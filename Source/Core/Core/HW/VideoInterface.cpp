@@ -107,7 +107,7 @@ void Preset(bool _bNTSC)
   state.vertical_timing_register.EQU = 6;
   state.vertical_timing_register.ACV = 0;
 
-  state.display_control_register.ENB = 1;
+  state.display_control_register.ENB = _bNTSC ? 0 : 1;
   state.display_control_register.RST = 0;
   state.display_control_register.NIN = 0;
   state.display_control_register.DLR = 0;
