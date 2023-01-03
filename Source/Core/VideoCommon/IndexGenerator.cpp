@@ -334,6 +334,15 @@ u32 IndexGenerator::GetRemainingIndices(OpcodeDecoder::Primitive primitive) cons
     max_index >>= 2;
 
   // -1 is reserved for primitive restart
+  max_index = max_index - 1;
 
-  return max_index - m_base_index - 1;
+  if (m_base_index > max_index) [[unlikely]]
+  {
+    PanicAlertFmt("GetRemainingIndices would overflow; we've already written too many indices? "
+                  "base index {} > max index {}",
+                  m_base_index, max_index);
+    return 0;
+  }
+
+  return max_index - m_base_index;
 }
