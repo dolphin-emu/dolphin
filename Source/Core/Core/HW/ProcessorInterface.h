@@ -68,8 +68,8 @@ public:
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-  u32 GetMask() const { return m_InterruptMask; }
-  u32 GetCause() const { return m_InterruptCause; }
+  u32 GetMask() const { return m_interrupt_mask; }
+  u32 GetCause() const { return m_interrupt_cause; }
 
   void SetInterrupt(u32 cause_mask, bool set = true);
 
@@ -77,13 +77,13 @@ public:
   void ResetButton_Tap();
   void PowerButton_Tap();
 
-  u32 m_InterruptCause = 0;
-  u32 m_InterruptMask = 0;
+  u32 m_interrupt_cause = 0;
+  u32 m_interrupt_mask = 0;
 
   // addresses for CPU fifo accesses
-  u32 Fifo_CPUBase = 0;
-  u32 Fifo_CPUEnd = 0;
-  u32 Fifo_CPUWritePointer = 0;
+  u32 m_fifo_cpu_base = 0;
+  u32 m_fifo_cpu_end = 0;
+  u32 m_fifo_cpu_write_pointer = 0;
 
 private:
   // Let the PPC know that an external exception is set/cleared
@@ -96,10 +96,10 @@ private:
   static void IOSNotifyResetButtonCallback(Core::System& system, u64 userdata, s64 cyclesLate);
   static void IOSNotifyPowerButtonCallback(Core::System& system, u64 userdata, s64 cyclesLate);
 
-  CoreTiming::EventType* toggleResetButton = nullptr;
-  CoreTiming::EventType* iosNotifyResetButton = nullptr;
-  CoreTiming::EventType* iosNotifyPowerButton = nullptr;
+  CoreTiming::EventType* m_event_type_toggle_reset_button = nullptr;
+  CoreTiming::EventType* m_event_type_ios_notify_reset_button = nullptr;
+  CoreTiming::EventType* m_event_type_ios_notify_power_button = nullptr;
 
-  u32 m_ResetCode = 0;
+  u32 m_reset_code = 0;
 };
 }  // namespace ProcessorInterface

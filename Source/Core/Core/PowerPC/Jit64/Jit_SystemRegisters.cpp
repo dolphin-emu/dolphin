@@ -453,7 +453,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 
   // Check if a CP interrupt is waiting and keep the GPU emulation in sync (issue 4336)
   auto& system = Core::System::GetInstance();
-  MOV(64, R(RSCRATCH), ImmPtr(&system.GetProcessorInterface().m_InterruptCause));
+  MOV(64, R(RSCRATCH), ImmPtr(&system.GetProcessorInterface().m_interrupt_cause));
   TEST(32, MatR(RSCRATCH), Imm32(ProcessorInterface::INT_CAUSE_CP));
   FixupBranch cpInt = J_CC(CC_NZ);
 

@@ -29,59 +29,60 @@ constexpr u32 FLIPPER_REV_C = 0x246500B1;
 
 void ProcessorInterfaceManager::DoState(PointerWrap& p)
 {
-  p.Do(m_InterruptMask);
-  p.Do(m_InterruptCause);
-  p.Do(Fifo_CPUBase);
-  p.Do(Fifo_CPUEnd);
-  p.Do(Fifo_CPUWritePointer);
-  p.Do(m_ResetCode);
+  p.Do(m_interrupt_mask);
+  p.Do(m_interrupt_cause);
+  p.Do(m_fifo_cpu_base);
+  p.Do(m_fifo_cpu_end);
+  p.Do(m_fifo_cpu_write_pointer);
+  p.Do(m_reset_code);
 }
 
 void ProcessorInterfaceManager::Init()
 {
-  m_InterruptMask = 0;
-  m_InterruptCause = 0;
+  m_interrupt_mask = 0;
+  m_interrupt_cause = 0;
 
-  Fifo_CPUBase = 0;
-  Fifo_CPUEnd = 0;
-  Fifo_CPUWritePointer = 0;
+  m_fifo_cpu_base = 0;
+  m_fifo_cpu_end = 0;
+  m_fifo_cpu_write_pointer = 0;
 
-  m_ResetCode = 0;  // Cold reset
-  m_InterruptCause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
+  m_reset_code = 0;  // Cold reset
+  m_interrupt_cause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
 
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
-  toggleResetButton = core_timing.RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);
-  iosNotifyResetButton =
+  m_event_type_toggle_reset_button =
+      core_timing.RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);
+  m_event_type_ios_notify_reset_button =
       core_timing.RegisterEvent("IOSNotifyResetButton", IOSNotifyResetButtonCallback);
-  iosNotifyPowerButton =
+  m_event_type_ios_notify_power_button =
       core_timing.RegisterEvent("IOSNotifyPowerButton", IOSNotifyPowerButtonCallback);
 }
 
 void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-  mmio->Register(base | PI_INTERRUPT_CAUSE, MMIO::DirectRead<u32>(&m_InterruptCause),
+  mmio->Register(base | PI_INTERRUPT_CAUSE, MMIO::DirectRead<u32>(&m_interrupt_cause),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& processor_interface = system.GetProcessorInterface();
-                   processor_interface.m_InterruptCause &= ~val;
+                   processor_interface.m_interrupt_cause &= ~val;
                    processor_interface.UpdateException();
                  }));
 
-  mmio->Register(base | PI_INTERRUPT_MASK, MMIO::DirectRead<u32>(&m_InterruptMask),
+  mmio->Register(base | PI_INTERRUPT_MASK, MMIO::DirectRead<u32>(&m_interrupt_mask),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& processor_interface = system.GetProcessorInterface();
-                   processor_interface.m_InterruptMask = val;
+                   processor_interface.m_interrupt_mask = val;
                    processor_interface.UpdateException();
                  }));
 
-  mmio->Register(base | PI_FIFO_BASE, MMIO::DirectRead<u32>(&Fifo_CPUBase),
-                 MMIO::DirectWrite<u32>(&Fifo_CPUBase, 0xFFFFFFE0));
+  mmio->Register(base | PI_FIFO_BASE, MMIO::DirectRead<u32>(&m_fifo_cpu_base),
+                 MMIO::DirectWrite<u32>(&m_fifo_cpu_base, 0xFFFFFFE0));
 
-  mmio->Register(base | PI_FIFO_END, MMIO::DirectRead<u32>(&Fifo_CPUEnd),
-                 MMIO::DirectWrite<u32>(&Fifo_CPUEnd, 0xFFFFFFE0));
+  mmio->Register(base | PI_FIFO_END, MMIO::DirectRead<u32>(&m_fifo_cpu_end),
+                 MMIO::DirectWrite<u32>(&m_fifo_cpu_end, 0xFFFFFFE0));
 
-  mmio->Register(base | PI_FIFO_WPTR, MMIO::DirectRead<u32>(&Fifo_CPUWritePointer),
-                 MMIO::DirectWrite<u32>(&Fifo_CPUWritePointer, 0xFFFFFFE0));
+  mmio->Register(base | PI_FIFO_WPTR, MMIO::DirectRead<u32>(&m_fifo_cpu_write_pointer),
+                 MMIO::DirectWrite<u32>(&m_fifo_cpu_write_pointer, 0xFFFFFFE0));
 
   mmio->Register(base | PI_FIFO_RESET, MMIO::InvalidRead<u32>(),
                  MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
@@ -109,15 +110,15 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | PI_RESET_CODE, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
                    auto& processor_interface = system.GetProcessorInterface();
                    DEBUG_LOG_FMT(PROCESSORINTERFACE, "Read PI_RESET_CODE: {:08x}",
-                                 processor_interface.m_ResetCode);
-                   return processor_interface.m_ResetCode;
+                                 processor_interface.m_reset_code);
+                   return processor_interface.m_reset_code;
                  }),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& processor_interface = system.GetProcessorInterface();
-                   processor_interface.m_ResetCode = val;
+                   processor_interface.m_reset_code = val;
                    INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_RESET_CODE: {:08x}",
-                                processor_interface.m_ResetCode);
-                   if (!SConfig::GetInstance().bWii && ~processor_interface.m_ResetCode & 0x4)
+                                processor_interface.m_reset_code);
+                   if (!SConfig::GetInstance().bWii && ~processor_interface.m_reset_code & 0x4)
                    {
                      DVDInterface::ResetDrive(true);
                    }
@@ -138,7 +139,7 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void ProcessorInterfaceManager::UpdateException()
 {
-  if ((m_InterruptCause & m_InterruptMask) != 0)
+  if ((m_interrupt_cause & m_interrupt_mask) != 0)
     PowerPC::ppcState.Exceptions |= EXCEPTION_EXTERNAL_INT;
   else
     PowerPC::ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
@@ -189,22 +190,22 @@ void ProcessorInterfaceManager::SetInterrupt(u32 cause_mask, bool set)
 {
   DEBUG_ASSERT_MSG(POWERPC, Core::IsCPUThread(), "SetInterrupt from wrong thread");
 
-  if (set && !(m_InterruptCause & cause_mask))
+  if (set && !(m_interrupt_cause & cause_mask))
   {
     DEBUG_LOG_FMT(PROCESSORINTERFACE, "Setting Interrupt {} (set)",
                   Debug_GetInterruptName(cause_mask));
   }
 
-  if (!set && (m_InterruptCause & cause_mask))
+  if (!set && (m_interrupt_cause & cause_mask))
   {
     DEBUG_LOG_FMT(PROCESSORINTERFACE, "Setting Interrupt {} (clear)",
                   Debug_GetInterruptName(cause_mask));
   }
 
   if (set)
-    m_InterruptCause |= cause_mask;
+    m_interrupt_cause |= cause_mask;
   else
-    m_InterruptCause &= ~cause_mask;  // is there any reason to have this possibility?
+    m_interrupt_cause &= ~cause_mask;  // is there any reason to have this possibility?
   // F|RES: i think the hw devices reset the interrupt in the PI to 0
   // if the interrupt cause is eliminated. that isn't done by software (afaik)
   UpdateException();
@@ -252,10 +253,11 @@ void ProcessorInterfaceManager::ResetButton_Tap()
 
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
-  core_timing.ScheduleEvent(0, toggleResetButton, true, CoreTiming::FromThread::ANY);
-  core_timing.ScheduleEvent(0, iosNotifyResetButton, 0, CoreTiming::FromThread::ANY);
-  core_timing.ScheduleEvent(SystemTimers::GetTicksPerSecond() / 2, toggleResetButton, false,
+  core_timing.ScheduleEvent(0, m_event_type_toggle_reset_button, true, CoreTiming::FromThread::ANY);
+  core_timing.ScheduleEvent(0, m_event_type_ios_notify_reset_button, 0,
                             CoreTiming::FromThread::ANY);
+  core_timing.ScheduleEvent(SystemTimers::GetTicksPerSecond() / 2, m_event_type_toggle_reset_button,
+                            false, CoreTiming::FromThread::ANY);
 }
 
 void ProcessorInterfaceManager::PowerButton_Tap()
@@ -265,7 +267,8 @@ void ProcessorInterfaceManager::PowerButton_Tap()
 
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
-  core_timing.ScheduleEvent(0, iosNotifyPowerButton, 0, CoreTiming::FromThread::ANY);
+  core_timing.ScheduleEvent(0, m_event_type_ios_notify_power_button, 0,
+                            CoreTiming::FromThread::ANY);
 }
 
 }  // namespace ProcessorInterface

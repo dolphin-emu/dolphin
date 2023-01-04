@@ -372,8 +372,8 @@ void CommandProcessorManager::GatherPipeBursted(Core::System& system)
     {
       // In multibuffer mode is not allowed write in the same FIFO attached to the GPU.
       // Fix Pokemon XD in DC mode.
-      if ((processor_interface.Fifo_CPUEnd == fifo.CPEnd.load(std::memory_order_relaxed)) &&
-          (processor_interface.Fifo_CPUBase == fifo.CPBase.load(std::memory_order_relaxed)) &&
+      if ((processor_interface.m_fifo_cpu_end == fifo.CPEnd.load(std::memory_order_relaxed)) &&
+          (processor_interface.m_fifo_cpu_base == fifo.CPBase.load(std::memory_order_relaxed)) &&
           fifo.CPReadWriteDistance.load(std::memory_order_relaxed) > 0)
       {
         system.GetFifo().FlushGpu(system);
@@ -396,9 +396,10 @@ void CommandProcessorManager::GatherPipeBursted(Core::System& system)
 
   if (m_cp_ctrl_reg.GPReadEnable && m_cp_ctrl_reg.GPLinkEnable)
   {
-    processor_interface.Fifo_CPUWritePointer = fifo.CPWritePointer.load(std::memory_order_relaxed);
-    processor_interface.Fifo_CPUBase = fifo.CPBase.load(std::memory_order_relaxed);
-    processor_interface.Fifo_CPUEnd = fifo.CPEnd.load(std::memory_order_relaxed);
+    processor_interface.m_fifo_cpu_write_pointer =
+        fifo.CPWritePointer.load(std::memory_order_relaxed);
+    processor_interface.m_fifo_cpu_base = fifo.CPBase.load(std::memory_order_relaxed);
+    processor_interface.m_fifo_cpu_end = fifo.CPEnd.load(std::memory_order_relaxed);
   }
 
   // If the game is running close to overflowing, make the exception checking more frequent.
@@ -418,13 +419,13 @@ void CommandProcessorManager::GatherPipeBursted(Core::System& system)
   // check if we are in sync
   ASSERT_MSG(COMMANDPROCESSOR,
              fifo.CPWritePointer.load(std::memory_order_relaxed) ==
-                 processor_interface.Fifo_CPUWritePointer,
+                 processor_interface.m_fifo_cpu_write_pointer,
              "FIFOs linked but out of sync");
   ASSERT_MSG(COMMANDPROCESSOR,
-             fifo.CPBase.load(std::memory_order_relaxed) == processor_interface.Fifo_CPUBase,
+             fifo.CPBase.load(std::memory_order_relaxed) == processor_interface.m_fifo_cpu_base,
              "FIFOs linked but out of sync");
   ASSERT_MSG(COMMANDPROCESSOR,
-             fifo.CPEnd.load(std::memory_order_relaxed) == processor_interface.Fifo_CPUEnd,
+             fifo.CPEnd.load(std::memory_order_relaxed) == processor_interface.m_fifo_cpu_end,
              "FIFOs linked but out of sync");
 }
 
