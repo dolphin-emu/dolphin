@@ -37,6 +37,7 @@
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
+#include "Core/System.h"
 #include "Core/WiiRoot.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -433,7 +434,8 @@ bool TriggerSTMPowerEvent()
     return false;
 
   Core::DisplayMessage("Shutting down", 30000);
-  ProcessorInterface::PowerButton_Tap();
+  auto& system = Core::System::GetInstance();
+  system.GetProcessorInterface().PowerButton_Tap();
 
   return true;
 }

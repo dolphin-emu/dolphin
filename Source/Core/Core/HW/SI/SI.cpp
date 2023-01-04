@@ -253,7 +253,8 @@ static void ChangeDeviceCallback(Core::System& system, u64 user_data, s64 cycles
 static void UpdateInterrupts()
 {
   // check if we have to update the RDSTINT flag
-  auto& state = Core::System::GetInstance().GetSerialInterfaceState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetSerialInterfaceState().GetData();
   if (state.status_reg.RDST0 || state.status_reg.RDST1 || state.status_reg.RDST2 ||
       state.status_reg.RDST3)
   {
@@ -268,7 +269,7 @@ static void UpdateInterrupts()
   const bool generate_interrupt = (state.com_csr.RDSTINT & state.com_csr.RDSTINTMSK) != 0 ||
                                   (state.com_csr.TCINT & state.com_csr.TCINTMSK) != 0;
 
-  ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, generate_interrupt);
+  system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_SI, generate_interrupt);
 }
 
 static void GenerateSIInterrupt(SIInterruptType type)

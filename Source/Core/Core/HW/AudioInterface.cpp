@@ -155,9 +155,10 @@ namespace
 {
 void UpdateInterrupts()
 {
-  auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
-  ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_AI,
-                                   state.control.AIINT & state.control.AIINTMSK);
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetAudioInterfaceState().GetData();
+  system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_AI,
+                                              state.control.AIINT & state.control.AIINTMSK);
 }
 
 void GenerateAudioInterrupt()

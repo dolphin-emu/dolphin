@@ -269,13 +269,14 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
 
   if (m_last_button_combo != COMBO_NONE)
   {
-    const u64 current_time = Core::System::GetInstance().GetCoreTiming().GetTicks();
+    auto& system = Core::System::GetInstance();
+    const u64 current_time = system.GetCoreTiming().GetTicks();
     if (u32(current_time - m_timer_button_combo_start) > SystemTimers::GetTicksPerSecond() * 3)
     {
       if (m_last_button_combo == COMBO_RESET)
       {
         INFO_LOG_FMT(SERIALINTERFACE, "PAD - COMBO_RESET");
-        ProcessorInterface::ResetButton_Tap();
+        system.GetProcessorInterface().ResetButton_Tap();
       }
       else if (m_last_button_combo == COMBO_ORIGIN)
       {
