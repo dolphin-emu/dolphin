@@ -1273,7 +1273,10 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
   }
 
   if (s_padState.reset)
-    ProcessorInterface::ResetButton_Tap();
+  {
+    auto& system = Core::System::GetInstance();
+    system.GetProcessorInterface().ResetButton_Tap();
+  }
 
   SetInputDisplayString(s_padState, controllerID);
   CheckInputEnd();

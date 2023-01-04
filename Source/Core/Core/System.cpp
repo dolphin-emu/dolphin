@@ -15,6 +15,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MemoryInterface.h"
+#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/VideoInterface.h"
@@ -46,6 +47,7 @@ struct System::Impl
   MemoryInterface::MemoryInterfaceState m_memory_interface_state;
   PixelEngine::PixelEngineManager m_pixel_engine;
   PixelShaderManager m_pixel_shader_manager;
+  ProcessorInterface::ProcessorInterfaceManager m_processor_interface;
   SerialInterface::SerialInterfaceState m_serial_interface_state;
   Sram m_sram;
   VertexShaderManager m_vertex_shader_manager;
@@ -158,6 +160,11 @@ PixelEngine::PixelEngineManager& System::GetPixelEngine() const
 PixelShaderManager& System::GetPixelShaderManager() const
 {
   return m_impl->m_pixel_shader_manager;
+}
+
+ProcessorInterface::ProcessorInterfaceManager& System::GetProcessorInterface() const
+{
+  return m_impl->m_processor_interface;
 }
 
 SerialInterface::SerialInterfaceState& System::GetSerialInterfaceState() const

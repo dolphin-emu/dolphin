@@ -263,14 +263,15 @@ void UpdateInterrupts()
   // Channel 0 Device 0 generates interrupt on channel 0
   // Channel 0 Device 2 generates interrupt on channel 2
   // Channel 1 Device 0 generates interrupt on channel 1
-  auto& state = Core::System::GetInstance().GetExpansionInterfaceState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetExpansionInterfaceState().GetData();
   state.channels[2]->SetEXIINT(state.channels[0]->GetDevice(4)->IsInterruptSet());
 
   bool causeInt = false;
   for (auto& channel : state.channels)
     causeInt |= channel->IsCausingInterrupt();
 
-  ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
+  system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
 }
 
 static void UpdateInterruptsCallback(Core::System& system, u64 userdata, s64 cycles_late)

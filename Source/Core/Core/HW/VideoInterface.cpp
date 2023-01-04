@@ -424,17 +424,18 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void UpdateInterrupts()
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetVideoInterfaceState().GetData();
   if ((state.interrupt_register[0].IR_INT && state.interrupt_register[0].IR_MASK) ||
       (state.interrupt_register[1].IR_INT && state.interrupt_register[1].IR_MASK) ||
       (state.interrupt_register[2].IR_INT && state.interrupt_register[2].IR_MASK) ||
       (state.interrupt_register[3].IR_INT && state.interrupt_register[3].IR_MASK))
   {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_VI, true);
+    system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_VI, true);
   }
   else
   {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_VI, false);
+    system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_VI, false);
   }
 }
 

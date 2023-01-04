@@ -43,7 +43,7 @@ void Init(const Sram* override_sram)
   AudioInterface::Init();
   VideoInterface::Init();
   SerialInterface::Init();
-  ProcessorInterface::Init();
+  system.GetProcessorInterface().Init();
   ExpansionInterface::Init(override_sram);  // Needs to be initialized before Memory
   HSP::Init();
   system.GetMemory().Init();  // Needs to be initialized before AddressSpace
@@ -97,7 +97,7 @@ void DoState(PointerWrap& p)
   p.DoMarker("VideoInterface");
   SerialInterface::DoState(p);
   p.DoMarker("SerialInterface");
-  ProcessorInterface::DoState(p);
+  system.GetProcessorInterface().DoState(p);
   p.DoMarker("ProcessorInterface");
   DSP::DoState(p);
   p.DoMarker("DSP");

@@ -55,6 +55,10 @@ namespace PixelEngine
 {
 class PixelEngineManager;
 };
+namespace ProcessorInterface
+{
+class ProcessorInterfaceManager;
+}
 namespace SerialInterface
 {
 class SerialInterfaceState;
@@ -111,6 +115,7 @@ public:
   MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
   PixelEngine::PixelEngineManager& GetPixelEngine() const;
   PixelShaderManager& GetPixelShaderManager() const;
+  ProcessorInterface::ProcessorInterfaceManager& GetProcessorInterface() const;
   SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;
   Sram& GetSRAM() const;
   VertexShaderManager& GetVertexShaderManager() const;

@@ -298,8 +298,8 @@ static void UpdateInterrupts(Core::System& system, u64 userdata, s64 cyclesLate)
   }
 
   // Generate interrupt on PI if any of the devices behind starlet have an interrupt and mask is set
-  ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_WII_IPC,
-                                   !!(ppc_irq_flags & ppc_irq_masks));
+  system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_WII_IPC,
+                                              !!(ppc_irq_flags & ppc_irq_masks));
 }
 
 void ClearX1()

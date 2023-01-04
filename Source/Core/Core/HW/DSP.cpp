@@ -465,7 +465,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 // UpdateInterrupts
 static void UpdateInterrupts()
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetDSPState().GetData();
 
   // For each interrupt bit in DSP_CONTROL, the interrupt enablemask is the bit directly
   // to the left of it. By doing:
@@ -474,7 +475,7 @@ static void UpdateInterrupts()
   bool ints_set = (((state.dsp_control.Hex >> 1) & state.dsp_control.Hex &
                     (INT_DSP | INT_ARAM | INT_AID)) != 0);
 
-  ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
+  system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
 }
 
 static void GenerateDSPInterrupt(Core::System& system, u64 DSPIntType, s64 cyclesLate)
