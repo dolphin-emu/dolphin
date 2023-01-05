@@ -281,8 +281,9 @@ void JitArm64::Cleanup()
     SUB(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1);
     CMP(ARM64Reg::X0, GPFifo::GATHER_PIPE_SIZE);
     FixupBranch exit = B(CC_LT);
-    MOVP2R(ARM64Reg::X0, &GPFifo::UpdateGatherPipe);
-    BLR(ARM64Reg::X0);
+    MOVP2R(ARM64Reg::X1, &GPFifo::UpdateGatherPipe);
+    MOVP2R(ARM64Reg::X0, &Core::System::GetInstance().GetGPFifo());
+    BLR(ARM64Reg::X1);
     SetJumpTarget(exit);
   }
 
@@ -965,6 +966,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       ABI_PushRegisters(regs_in_use);
       m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
       MOVP2R(ARM64Reg::X8, &GPFifo::FastCheckGatherPipe);
+      MOVP2R(ARM64Reg::X0, &Core::System::GetInstance().GetGPFifo());
       BLR(ARM64Reg::X8);
       m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
       ABI_PopRegisters(regs_in_use);

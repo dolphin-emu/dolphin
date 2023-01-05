@@ -307,20 +307,21 @@ static void WriteToHardware(Core::System& system, Memory::MemoryManager& memory,
     switch (size)
     {
     case 1:
-      GPFifo::Write8(static_cast<u8>(data));
+      system.GetGPFifo().Write8(static_cast<u8>(data));
       return;
     case 2:
-      GPFifo::Write16(static_cast<u16>(data));
+      system.GetGPFifo().Write16(static_cast<u16>(data));
       return;
     case 4:
-      GPFifo::Write32(data);
+      system.GetGPFifo().Write32(data);
       return;
     default:
       // Some kind of misaligned write. TODO: Does this match how the actual hardware handles it?
+      auto& gpfifo = system.GetGPFifo();
       for (size_t i = size * 8; i > 0;)
       {
         i -= 8;
-        GPFifo::Write8(static_cast<u8>(data >> i));
+        gpfifo.Write8(static_cast<u8>(data >> i));
       }
       return;
     }
