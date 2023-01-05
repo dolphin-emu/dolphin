@@ -1,24 +1,24 @@
-After creating a ByteWrapper with value 4000000000, value as a u32 is: 4000000000
-After creating a ByteWrapper with value 230, value as a u8 is: 230
-After creating a ByteWrapper with value 60000, value as a u16 is: 60000
-After creating a ByteWrapper with value 60000, value as a S16 is: -5536
+After creating a ByteWrapper with value 230, value as a unsigned_byte is: 230
 After creating a ByteWrapper with value 230, value as a s8 is: -26
-After creating a ByteWrapper with value 4000000000, value as a signed int is: -294967296
-After creating a ByteWrapper with value 1.0123456789123e+19, value as a Unsigned LONG_LONG is: 4.8913486898323e+18
-After creating a ByteWrapper with value 1.0123456789123e+19, value as a Signed Long Long is: 4891348689832302348
+After creating a ByteWrapper with value 230, value as a u8 is: 230
+After creating a ByteWrapper with value 4000000000, value as a signed 32 is: -294967296
 After creating a ByteWrapper with value 6.022e+23, value as a DoUBle is: 6.022e+23
 After creating a ByteWrapper with value 1.0123456789123e+19, value as a u64 is: 4.8913486898323e+18
-After creating a ByteWrapper with value 4000000000, value as a unsigned_32 is: 4000000000
 After creating a ByteWrapper with value 5e+20, value as a float is: -1.247587336192e+14
-After creating a ByteWrapper with value 1.0123456789123e+19, value as a signed_64 is: 4891348689832302348
-After creating a ByteWrapper with value 4000000000, value as a signed 32 is: -294967296
 After creating a ByteWrapper with value 1.0123456789123e+19, value as a s64 is: 4891348689832302348
-After creating a ByteWrapper with value 60000, value as a SIGNED 16 is: -5536
 After creating a ByteWrapper with value 230, value as a SIGNED_8 is: -26
-After creating a ByteWrapper with value 4000000000, value as a s32 is: -294967296
-After creating a ByteWrapper with value 60000, value as a Unsigned_16 is: 60000
-After creating a ByteWrapper with value 230, value as a UNSIGNED 8 is: 230
-After creating a ByteWrapper with value 4000000000, value as a UNSIGNED_INT is: 4000000000
-After creating a ByteWrapper with value 230, value as a signed ByTE is: -26
 After creating a ByteWrapper with value 1.0123456789123e+19, value as a UNSIGNED_64 is: 4.8913486898323e+18
-After creating a ByteWrapper with value 230, value as a unsigned_byte is: 230
+After creating a ByteWrapper with value 60000, value as a u16 is: 60000
+After creating a ByteWrapper with value 1.0123456789123e+19, value as a signed_64 is: 4891348689832302348
+After creating a ByteWrapper with value 1.0123456789123e+19, value as a Signed Long Long is: 4891348689832302348
+After creating a ByteWrapper with value 60000, value as a S16 is: -5536
+After creating a ByteWrapper with value 4000000000, value as a s32 is: -294967296
+After creating a ByteWrapper with value 1.0123456789123e+19, value as a Unsigned LONG_LONG is: 4.8913486898323e+18
+After creating a ByteWrapper with value 4000000000, value as a UNSIGNED_INT is: 4000000000
+After creating a ByteWrapper with value 230, value as a UNSIGNED 8 is: 230
+After creating a ByteWrapper with value 60000, value as a Unsigned_16 is: 60000
+After creating a ByteWrapper with value 4000000000, value as a unsigned_32 is: 4000000000
+After creating a ByteWrapper with value 4000000000, value as a u32 is: 4000000000
+After creating a ByteWrapper with value 230, value as a signed ByTE is: -26
+After creating a ByteWrapper with value 60000, value as a SIGNED 16 is: -5536
+After creating a ByteWrapper with value 4000000000, value as a signed int is: -294967296

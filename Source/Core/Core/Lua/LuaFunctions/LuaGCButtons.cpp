@@ -134,3 +134,50 @@ GC_BUTTON_NAME parseGCButton(const char* buttonName)
     return UNKNOWN;
   }
 }
+
+  const char* convertButtonEnumToString(GC_BUTTON_NAME button)
+  {
+    switch (button)
+    {
+    case A:
+      return "A";
+    case B:
+      return "B";
+    case X:
+      return "X";
+    case Y:
+      return "Y";
+    case Z:
+      return "Z";
+    case L:
+      return "L";
+    case R:
+      return "R";
+    case START:
+      return "START";
+    case RESET:
+      return "RESET";
+    case dPadUp:
+      return "dPadUp";
+    case dPadDown:
+      return "dPadDown";
+    case dPadLeft:
+      return "dPadLeft";
+    case dPadRight:
+      return "dPadRight";
+    case triggerL:
+      return "triggerL";
+    case triggerR:
+      return "triggerR";
+    case analogStickX:
+      return "analogStickX";
+    case analogStickY:
+      return "analogStickY";
+    case cStickX:
+      return "cStickX";
+    case cStickY:
+      return "cStickY";
+    default:
+      return "";
+    }
+  }

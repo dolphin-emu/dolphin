@@ -29,3 +29,4 @@ extern bool isBinaryButton(GC_BUTTON_NAME button);
 extern bool isAnalogButton(GC_BUTTON_NAME button);
 extern bool isEqualIgnoreCase(const char* string1, const char* string2);
 extern GC_BUTTON_NAME parseGCButton(const char* buttonName);
+extern const char* convertButtonEnumToString(GC_BUTTON_NAME button);

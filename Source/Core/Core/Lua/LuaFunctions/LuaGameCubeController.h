@@ -6,6 +6,10 @@ extern "C" {
 #include "src/lua.hpp"
 #include "src/luaconf.h"
 }
+
+#include "Core/HW/GCPad.h"
+#include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
 #include "Core/Movie.h"
 #include "LuaGameCubeButtonProbabilityClasses.h"
 #include <Array>
@@ -48,5 +52,6 @@ namespace LuaGameCubeController
   int addOrSubtractFromSpecificAnalogValueChance(lua_State* luaState);
   int addButtonComboChance(lua_State* luaState);
   int addControllerClearChance(lua_State* luaState);
+  int getControllerInputs(lua_State* luaState);
   }
 }

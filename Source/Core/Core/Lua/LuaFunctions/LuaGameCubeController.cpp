@@ -40,6 +40,7 @@ gc_controller_lua* getControllerInstance()
       {"addOrSubtractFromSpecificAnalogValueChance", addOrSubtractFromSpecificAnalogValueChance},
       {"addButtonComboChance", addButtonComboChance},
       {"addControllerClearChance", addControllerClearChance},
+      {"getControllerInputs", getControllerInputs},
       {nullptr, nullptr}
     };
 
@@ -704,6 +705,117 @@ gc_controller_lua* getControllerInstance()
     randomButtonEvents[controllerPortNumber - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCClearControllerEvent(probability)));
     return 0;
 
+  }
+
+  int getControllerInputs(lua_State* luaState)
+  {
+    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "getControllerInputs");
+    if (controllerPortNumber > Pad::GetConfig()->GetControllerCount())
+    {
+      luaL_error(luaState, "Error: in getControllerInputs(), attempt was made to access a port "
+                           "which did not have a GameCube controller plugged into it!");
+    }
+
+    GCPadStatus controllerInputs = Pad::GetStatus(controllerPortNumber  - 1);
+
+    lua_newtable(luaState);
+
+    bool buttonPressed = false;
+    s64 magnitude = 0;
+    for (int buttonCode = A; buttonCode != UNKNOWN; ++buttonCode)
+    {
+      lua_newtable(luaState);
+      const char* buttonNameString = convertButtonEnumToString(static_cast<GC_BUTTON_NAME>(buttonCode));
+      lua_pushlstring(luaState, buttonNameString, std::strlen(buttonNameString));
+      lua_rawseti(luaState, -2, 1);
+
+      switch (static_cast<GC_BUTTON_NAME>(buttonCode))
+      {
+      case A:
+        buttonPressed = ((controllerInputs.button & PAD_BUTTON_A) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case B:
+        buttonPressed = ((controllerInputs.button & PAD_BUTTON_B) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case X:
+        buttonPressed = ((controllerInputs.button & PAD_BUTTON_X) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case Y:
+        buttonPressed = ((controllerInputs.button & PAD_BUTTON_Y) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case Z:
+        buttonPressed = ((controllerInputs.button & PAD_TRIGGER_Z) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case L:
+        buttonPressed = ((controllerInputs.button & PAD_TRIGGER_L) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case R:
+        buttonPressed = ((controllerInputs.button & PAD_TRIGGER_R) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case START:
+        buttonPressed = ((controllerInputs.button & PAD_BUTTON_START) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case RESET:
+        break;
+      case dPadUp:
+        buttonPressed = ((controllerInputs.button & PAD_BUTTON_UP) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case dPadDown:
+        buttonPressed = ((controllerInputs.button & PAD_BUTTON_DOWN) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case dPadLeft:
+        buttonPressed = ((controllerInputs.button & PAD_BUTTON_LEFT) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case dPadRight:
+        buttonPressed = ((controllerInputs.button & PAD_BUTTON_RIGHT) != 0);
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case analogStickX:
+        magnitude = controllerInputs.stickX;
+        lua_pushinteger(luaState, magnitude);
+        break;
+      case analogStickY:
+        magnitude = controllerInputs.stickY;
+        lua_pushinteger(luaState, magnitude);
+        break;
+      case cStickX:
+        magnitude = controllerInputs.substickX;
+        lua_pushinteger(luaState, magnitude);
+        break;
+      case cStickY:
+        magnitude = controllerInputs.substickY;
+        lua_pushinteger(luaState, magnitude);
+        break;
+      case triggerL:
+        magnitude = controllerInputs.triggerLeft;
+        lua_pushinteger(luaState, magnitude);
+        break;
+      case triggerR:
+        magnitude = controllerInputs.triggerRight;
+        lua_pushinteger(luaState, magnitude);
+        break;
+      default:
+        luaL_error(
+            luaState,
+            "An unexpected implementation error occured in gc_controller:getControllerInputs(). "
+            "Did you modify the order of the enums in LuaGCButtons.h?");
+        break;
+      }
+      lua_rawseti(luaState, -2, 2);
+      lua_rawseti(luaState, -2, buttonCode + 1);
+    }
+    return 1;
   }
   }
   }
