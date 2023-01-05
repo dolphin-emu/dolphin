@@ -7,8 +7,10 @@ set -euo pipefail
 # use Windows' git when working under path mounted from host on wsl2
 # inspired by https://markentier.tech/posts/2020/10/faster-git-under-wsl2/#solution
 GIT=git
-if [ "$(stat --file-system --format=%T `pwd -P`)" == "v9fs" ]; then
-  GIT=git.exe
+if [ "$(uname -s)" == "Linux" ]; then
+  if [ "$(stat --file-system --format=%T `pwd -P`)" == "v9fs" ]; then
+    GIT=git.exe
+  fi
 fi
 
 if ! [ -x "$(command -v $GIT)" ]; then
