@@ -180,6 +180,22 @@ void BlendingState::Generate(const BPMemory& bp)
       }
     }
   }
+
+  // If we aren't writing color or alpha, don't blend it.
+  // Intel GPUs on D3D12 seem to have issues with dual-source blend if the second source is used in
+  // the blend state but not actually written (i.e. the alpha src or dst factor is src alpha, but
+  // alpha update is disabled). So, change the blending configuration to not use a dual-source
+  // factor. Note that in theory, disabling writing should render these irrelevant.
+  if (!colorupdate)
+  {
+    srcfactor = SrcBlendFactor::Zero;
+    dstfactor = DstBlendFactor::One;
+  }
+  if (!alphaupdate)
+  {
+    srcfactoralpha = SrcBlendFactor::Zero;
+    dstfactoralpha = DstBlendFactor::One;
+  }
 }
 
 void BlendingState::ApproximateLogicOpWithBlending()
