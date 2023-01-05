@@ -328,12 +328,29 @@ void IndexGenerator::AddExternalIndices(const u16* indices, u32 num_indices, u32
 
 u32 IndexGenerator::GetRemainingIndices(OpcodeDecoder::Primitive primitive) const
 {
-  u32 max_index = USHRT_MAX;
+  u32 max_index = UINT16_MAX;
 
   if (g_Config.UseVSForLinePointExpand() && primitive >= OpcodeDecoder::Primitive::GX_DRAW_LINES)
     max_index >>= 2;
 
-  // -1 is reserved for primitive restart
+  // Although we reserve UINT16_MAX for primitive restart, we aren't allowed to use that as an
+  // actual index. But, the maximum number of vertices a game can send is UINT16_MAX, so up to
+  // 0xffff indices will be used by the game. These indices would be 0x0000 through 0xfffe,
+  // and since m_base_index gets incremented for each index used, after that m_base_index
+  // would be 0xffff and no indices remain. If a game uses 0xfffe vertices, assuming m_base_index
+  // started at 0 it would end at 0xfffe and one more index could be used. So, we do not need to
+  // subtract 1 from max_index to correctly reserve one index for primitive restart.
+  //
+  // Pocoyo Racing uses a draw command with 0xffff vertices, which previously caused issues; see
+  // https://bugs.dolphin-emu.org/issues/13136 for details.
 
-  return max_index - m_base_index - 1;
+  if (m_base_index > max_index) [[unlikely]]
+  {
+    PanicAlertFmt("GetRemainingIndices would overflow; we've already written too many indices? "
+                  "base index {} > max index {}",
+                  m_base_index, max_index);
+    return 0;
+  }
+
+  return max_index - m_base_index;
 }
