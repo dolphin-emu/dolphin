@@ -6,8 +6,8 @@
 #include <array>
 #include <chrono>
 #include <fstream>
-#include <mutex>
 #include <optional>
+#include <shared_mutex>
 
 #include "Common/CommonTypes.h"
 
@@ -34,8 +34,8 @@ private:
   }
 
 public:
-  PerformanceTracker(const char* log_name = nullptr,
-                     const std::optional<s64> sample_window_us = {});
+  PerformanceTracker(const std::optional<std::string> log_name = std::nullopt,
+                     const std::optional<s64> sample_window_us = std::nullopt);
   ~PerformanceTracker();
 
   PerformanceTracker(const PerformanceTracker&) = delete;
@@ -77,7 +77,7 @@ private:  // Functions for managing dt queue
   int m_on_state_changed_handle;
 
   // Name of log file and file stream
-  const char* m_log_name;
+  std::optional<std::string> m_log_name;
   std::ofstream m_bench_file;
 
   // Last time Count() was called
@@ -100,5 +100,5 @@ private:  // Functions for managing dt queue
   mutable std::optional<DT> m_dt_std = std::nullopt;
 
   // Used to enable thread safety with the performance tracker
-  mutable std::mutex m_mutex;
+  mutable std::shared_mutex m_mutex;
 };

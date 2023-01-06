@@ -134,7 +134,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
         ImPlot::PushStyleColor(ImPlotCol_PlotBg, {0, 0, 0, 0});
         ImPlot::PushStyleColor(ImPlotCol_LegendBg, {0, 0, 0, 0.2f});
         ImPlot::PushStyleVar(ImPlotStyleVar_FitPadding, ImVec2(0.f, 0.f));
-        ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 3.f);
+        ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 1.5f * backbuffer_scale);
         ImPlot::SetupAxes(nullptr, nullptr,
                           ImPlotAxisFlags_Lock | ImPlotAxisFlags_Invert |
                               ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_NoHighlight,

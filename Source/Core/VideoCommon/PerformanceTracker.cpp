@@ -5,8 +5,10 @@
 
 #include <algorithm>
 #include <cmath>
-#include <implot.h>
 #include <iomanip>
+#include <mutex>
+
+#include <implot.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -16,7 +18,7 @@
 
 static constexpr double SAMPLE_RC_RATIO = 0.25;
 
-PerformanceTracker::PerformanceTracker(const char* log_name,
+PerformanceTracker::PerformanceTracker(const std::optional<std::string> log_name,
                                        const std::optional<s64> sample_window_us)
     : m_on_state_changed_handle{Core::AddOnStateChangedCallback([this](Core::State state) {
         if (state == Core::State::Paused)
@@ -36,7 +38,7 @@ PerformanceTracker::~PerformanceTracker()
 
 void PerformanceTracker::Reset()
 {
-  std::lock_guard lock{m_mutex};
+  std::unique_lock lock{m_mutex};
 
   QueueClear();
   m_last_time = Clock::now();
@@ -47,7 +49,7 @@ void PerformanceTracker::Reset()
 
 void PerformanceTracker::Count()
 {
-  std::lock_guard lock{m_mutex};
+  std::unique_lock lock{m_mutex};
 
   if (m_paused)
     return;
@@ -84,8 +86,7 @@ void PerformanceTracker::Count()
 
   m_dt_std = std::nullopt;
 
-  if (m_log_name && g_ActiveConfig.bLogRenderTimeToFile)
-    LogRenderTimeToFile(diff);
+  LogRenderTimeToFile(diff);
 }
 
 DT PerformanceTracker::GetSampleWindow() const
@@ -97,19 +98,19 @@ DT PerformanceTracker::GetSampleWindow() const
 
 double PerformanceTracker::GetHzAvg() const
 {
-  std::lock_guard lock{m_mutex};
+  std::shared_lock lock{m_mutex};
   return m_hz_avg;
 }
 
 DT PerformanceTracker::GetDtAvg() const
 {
-  std::lock_guard lock{m_mutex};
+  std::shared_lock lock{m_mutex};
   return m_dt_avg;
 }
 
 DT PerformanceTracker::GetDtStd() const
 {
-  std::lock_guard lock{m_mutex};
+  std::unique_lock lock{m_mutex};
 
   if (m_dt_std)
     return *m_dt_std;
@@ -130,7 +131,7 @@ DT PerformanceTracker::GetDtStd() const
 
 DT PerformanceTracker::GetLastRawDt() const
 {
-  std::lock_guard lock{m_mutex};
+  std::shared_lock lock{m_mutex};
 
   if (QueueEmpty())
     return DT::zero();
@@ -142,7 +143,7 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
 {
   static std::array<float, MAX_DT_QUEUE_SIZE + 2> x, y;
 
-  std::lock_guard lock{m_mutex};
+  std::shared_lock lock{m_mutex};
 
   if (QueueEmpty())
     return;
@@ -228,9 +229,13 @@ bool PerformanceTracker::QueueEmpty() const
 
 void PerformanceTracker::LogRenderTimeToFile(DT val)
 {
+  if (!m_log_name || !g_ActiveConfig.bLogRenderTimeToFile)
+    return;
+
   if (!m_bench_file.is_open())
   {
-    File::OpenFStream(m_bench_file, File::GetUserPath(D_LOGS_IDX) + m_log_name, std::ios_base::out);
+    File::OpenFStream(m_bench_file, File::GetUserPath(D_LOGS_IDX) + *m_log_name,
+                      std::ios_base::out);
   }
 
   m_bench_file << std::fixed << std::setprecision(8) << DT_ms(val).count() << std::endl;
@@ -238,7 +243,7 @@ void PerformanceTracker::LogRenderTimeToFile(DT val)
 
 void PerformanceTracker::SetPaused(bool paused)
 {
-  std::lock_guard lock{m_mutex};
+  std::unique_lock lock{m_mutex};
 
   m_paused = paused;
   if (m_paused)
