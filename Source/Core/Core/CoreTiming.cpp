@@ -22,6 +22,7 @@
 #include "Core/System.h"
 
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace CoreTiming
@@ -305,6 +306,8 @@ void CoreTimingManager::Advance()
     Event evt = std::move(m_event_queue.front());
     std::pop_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
     m_event_queue.pop_back();
+
+    Throttle(evt.time);
     evt.type->callback(system, evt.userdata, m_globals.global_timer - evt.time);
   }
 
@@ -326,6 +329,58 @@ void CoreTimingManager::Advance()
   PowerPC::CheckExternalExceptions();
 }
 
+void CoreTimingManager::Throttle(const s64 target_cycle)
+{
+  if (target_cycle <= m_throttle_last_cycle)
+    return;
+
+  const double speed =
+      Core::GetIsThrottlerTempDisabled() ? 0.0 : Config::Get(Config::MAIN_EMULATION_SPEED);
+
+  // Based on number of cycles and emulation speed, increase the target deadline
+  const s64 cycles = target_cycle - m_throttle_last_cycle;
+  m_throttle_last_cycle = target_cycle;
+
+  if (0.0 < speed)
+    m_throttle_deadline += std::chrono::duration_cast<DT>((m_throttle_per_clock * cycles) / speed);
+
+  // A maximum fallback is used to prevent the system from sleeping for
+  // too long or going full speed in an attempt to catch up to timings.
+  const DT max_fallback =
+      std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
+
+  const TimePoint time = Clock::now();
+  const TimePoint min_deadline = time - max_fallback;
+  const TimePoint max_deadline = time + max_fallback;
+
+  if (m_throttle_deadline > max_deadline)
+  {
+    m_throttle_deadline = max_deadline;
+  }
+  else if (m_throttle_deadline < min_deadline)
+  {
+    DEBUG_LOG_FMT(COMMON, "System can not to keep up with timings! [relaxing timings by {} us]",
+                  DT_us(min_deadline - m_throttle_deadline).count());
+    m_throttle_deadline = min_deadline;
+  }
+
+  // Only sleep if we are behind the deadline
+  if (time < m_throttle_deadline)
+  {
+    std::this_thread::sleep_until(m_throttle_deadline);
+
+    // Count amount of time sleeping for analytics
+    const TimePoint time_after_sleep = Clock::now();
+    g_perf_metrics.CountThrottleSleep(time_after_sleep - time);
+  }
+}
+
+TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
+{
+  return TimePoint(
+      std::chrono::duration_cast<DT>(m_throttle_per_clock * (m_globals.global_timer - cyclesLate)));
+}
+
 void CoreTimingManager::LogPendingEvents() const
 {
   auto clone = m_event_queue;
@@ -340,6 +395,8 @@ void CoreTimingManager::LogPendingEvents() const
 // Should only be called from the CPU thread after the PPC clock has changed
 void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
 {
+  m_throttle_per_clock = DT_s(1.0) / new_ppc_clock;
+
   for (Event& ev : m_event_queue)
   {
     const s64 ticks = (ev.time - m_globals.global_timer) * new_ppc_clock / old_ppc_clock;

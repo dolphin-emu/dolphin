@@ -140,6 +140,8 @@ public:
   // Directly accessed by the JIT.
   Globals& GetGlobals() { return m_globals; }
 
+  TimePoint GetCPUTimePoint(s64 cyclesLate) const;  // Used by Dolphin Analytics
+
 private:
   Globals m_globals;
 
@@ -172,6 +174,12 @@ private:
   float m_config_oc_factor = 0.0f;
   float m_config_oc_inv_factor = 0.0f;
   bool m_config_sync_on_skip_idle = false;
+
+  s64 m_throttle_last_cycle = 0;
+  TimePoint m_throttle_deadline = Clock::now();
+  DT_s m_throttle_per_clock = DT_s();
+
+  void Throttle(const s64 target_cycle);
 
   int DowncountToCycles(int downcount) const;
   int CyclesToDowncount(int cycles) const;

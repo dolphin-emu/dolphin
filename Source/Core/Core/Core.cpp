@@ -891,9 +891,9 @@ void Callback_NewField()
 
 void UpdateTitle()
 {
-  float FPS = g_perf_metrics.GetFPS();
-  float VPS = g_perf_metrics.GetVPS();
-  float Speed = g_perf_metrics.GetSpeed();
+  const double FPS = g_perf_metrics.GetFPS();
+  const double VPS = g_perf_metrics.GetVPS();
+  const double Speed = 100.0 * g_perf_metrics.GetSpeed();
 
   // Settings are shown the same for both extended and summary info
   const std::string SSettings = fmt::format(

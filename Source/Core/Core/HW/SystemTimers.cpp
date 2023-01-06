@@ -67,6 +67,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/PerformanceMetrics.h"
 
 namespace SystemTimers
 {
@@ -77,9 +78,10 @@ CoreTiming::EventType* et_VI;
 CoreTiming::EventType* et_AudioDMA;
 CoreTiming::EventType* et_DSP;
 CoreTiming::EventType* et_IPC_HLE;
+CoreTiming::EventType* et_GPU_sleeper;
+CoreTiming::EventType* et_perf_tracker;
 // PatchEngine updates every 1/60th of a second by default
 CoreTiming::EventType* et_PatchEngine;
-CoreTiming::EventType* et_Throttle;
 
 u32 s_cpu_core_clock = 486000000u;  // 486 mhz (its not 485, stop bugging me!)
 
@@ -89,16 +91,6 @@ int s_ipc_hle_period;
 
 // Custom RTC
 s64 s_localtime_rtc_offset = 0;
-
-// For each emulated milliseconds, what was the real time timestamp (excluding sleep time). This is
-// a "special" ring buffer where we only need to read the first and last value.
-std::array<u64, 1000> s_emu_to_real_time_ring_buffer;
-size_t s_emu_to_real_time_index;
-std::mutex s_emu_to_real_time_mutex;
-
-// How much time was spent sleeping since the emulator started. Note: this does not need to be reset
-// at initialization (or ever), since only the "derivative" of that value really matters.
-u64 s_time_spent_sleeping;
 
 // DSP/CPU timeslicing.
 void DSPCallback(Core::System& system, u64 userdata, s64 cyclesLate)
@@ -130,6 +122,26 @@ void IPC_HLE_UpdateCallback(Core::System& system, u64 userdata, s64 cyclesLate)
     IOS::HLE::GetIOS()->UpdateDevices();
     system.GetCoreTiming().ScheduleEvent(s_ipc_hle_period - cyclesLate, et_IPC_HLE);
   }
+}
+
+void GPUSleepCallback(Core::System& system, u64 userdata, s64 cyclesLate)
+{
+  auto& core_timing = system.GetCoreTiming();
+  system.GetFifo().GpuMaySleep();
+
+  // We want to call GpuMaySleep at about 1000hz so
+  // that the thread can sleep while not doing anything.
+  core_timing.ScheduleEvent(GetTicksPerSecond() / 1000 - cyclesLate, et_GPU_sleeper);
+}
+
+void PerfTrackerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
+{
+  auto& core_timing = system.GetCoreTiming();
+  g_perf_metrics.CountPerformanceMarker(system, cyclesLate);
+
+  // Call this performance tracker again in 1/64th of a second.
+  // The tracker stores 256 values so this will let us summarize the last 4 seconds.
+  core_timing.ScheduleEvent(GetTicksPerSecond() / 64 - cyclesLate, et_perf_tracker);
 }
 
 void VICallback(Core::System& system, u64 userdata, s64 cyclesLate)
@@ -168,50 +180,6 @@ void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late)
   }
 
   system.GetCoreTiming().ScheduleEvent(next_schedule, et_PatchEngine, cycles_pruned);
-}
-
-void ThrottleCallback(Core::System& system, u64 deadline, s64 cyclesLate)
-{
-  // Allow the GPU thread to sleep. Setting this flag here limits the wakeups to 1 kHz.
-  system.GetFifo().GpuMaySleep();
-
-  const u64 time = Common::Timer::NowUs();
-
-  if (deadline == 0)
-    deadline = time;
-
-  const s64 diff = deadline - time;
-  const float emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
-  const bool frame_limiter = emulation_speed > 0.0f && !Core::GetIsThrottlerTempDisabled();
-  u32 next_event = GetTicksPerSecond() / 1000;
-
-  {
-    std::lock_guard lk(s_emu_to_real_time_mutex);
-    s_emu_to_real_time_ring_buffer[s_emu_to_real_time_index] = time - s_time_spent_sleeping;
-    s_emu_to_real_time_index =
-        (s_emu_to_real_time_index + 1) % s_emu_to_real_time_ring_buffer.size();
-  }
-
-  if (frame_limiter)
-  {
-    if (emulation_speed != 1.0f)
-      next_event = u32(next_event * emulation_speed);
-    const s64 max_fallback = Config::Get(Config::MAIN_TIMING_VARIANCE) * 1000;
-    if (std::abs(diff) > max_fallback)
-    {
-      DEBUG_LOG_FMT(COMMON, "system too {}, {} us skipped", diff < 0 ? "slow" : "fast",
-                    std::abs(diff) - max_fallback);
-      deadline = time - max_fallback;
-    }
-    else if (diff > 1000)
-    {
-      Common::SleepCurrentThread(diff / 1000);
-      s_time_spent_sleeping += Common::Timer::NowUs() - time;
-    }
-  }
-  // reschedule 1ms (possibly scaled by emulation_speed) into future on ppc
-  // add 1ms to the deadline
-  system.GetCoreTiming().ScheduleEvent(next_event - cyclesLate, et_Throttle, deadline + 1000);
 }
 }  // namespace
 
@@ -268,27 +236,7 @@ s64 GetLocalTimeRTCOffset()
 
 double GetEstimatedEmulationPerformance()
 {
-  u64 ts_now, ts_before;  // In microseconds
-  {
-    std::lock_guard lk(s_emu_to_real_time_mutex);
-    size_t index_now = s_emu_to_real_time_index == 0 ? s_emu_to_real_time_ring_buffer.size() - 1 :
-                                                       s_emu_to_real_time_index - 1;
-    size_t index_before = s_emu_to_real_time_index;
-
-    ts_now = s_emu_to_real_time_ring_buffer[index_now];
-    ts_before = s_emu_to_real_time_ring_buffer[index_before];
-  }
-
-  if (ts_before == 0)
-  {
-    // Not enough data yet to estimate. We could technically provide an estimate based on a shorter
-    // time horizon, but it's not really worth it.
-    return 1.0;
-  }
-
-  u64 delta_us = ts_now - ts_before;
-  double emulated_us = s_emu_to_real_time_ring_buffer.size() * 1000.0;  // For each emulated ms.
-  return delta_us == 0 ? DBL_MAX : emulated_us / delta_us;
+  return g_perf_metrics.GetMaxSpeed();
 }
 
 // split from Init to break a circular dependency between VideoInterface::Init and
@@ -345,20 +293,20 @@ void Init()
   et_DSP = core_timing.RegisterEvent("DSPCallback", DSPCallback);
   et_AudioDMA = core_timing.RegisterEvent("AudioDMACallback", AudioDMACallback);
   et_IPC_HLE = core_timing.RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
+  et_GPU_sleeper = core_timing.RegisterEvent("GPUSleeper", GPUSleepCallback);
+  et_perf_tracker = core_timing.RegisterEvent("PerfTracker", PerfTrackerCallback);
   et_PatchEngine = core_timing.RegisterEvent("PatchEngine", PatchEngineCallback);
-  et_Throttle = core_timing.RegisterEvent("Throttle", ThrottleCallback);
 
+  core_timing.ScheduleEvent(0, et_perf_tracker);
+  core_timing.ScheduleEvent(0, et_GPU_sleeper);
   core_timing.ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
   core_timing.ScheduleEvent(0, et_DSP);
   core_timing.ScheduleEvent(GetAudioDMACallbackPeriod(), et_AudioDMA);
-  core_timing.ScheduleEvent(0, et_Throttle, 0);
 
   core_timing.ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
 
   if (SConfig::GetInstance().bWii)
     core_timing.ScheduleEvent(s_ipc_hle_period, et_IPC_HLE);
-
-  s_emu_to_real_time_ring_buffer.fill(0);
 }
 
 void Shutdown()
