@@ -3,7 +3,6 @@
 package org.dolphinemu.dolphinemu.adapters
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import androidx.recyclerview.widget.RecyclerView
 import org.dolphinemu.dolphinemu.adapters.GameAdapter.GameViewHolder
 import android.view.View.OnLongClickListener
@@ -11,29 +10,23 @@ import org.dolphinemu.dolphinemu.model.GameFile
 import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.view.View
-import org.dolphinemu.dolphinemu.utils.GlideUtils
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 import org.dolphinemu.dolphinemu.R
 import android.view.animation.AnimationUtils
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.databinding.CardGameBinding
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
+import org.dolphinemu.dolphinemu.utils.CoilUtils
 import java.util.ArrayList
 
-class GameAdapter(activity: Activity) : RecyclerView.Adapter<GameViewHolder>(),
+class GameAdapter(private val mActivity: FragmentActivity) : RecyclerView.Adapter<GameViewHolder>(),
     View.OnClickListener, OnLongClickListener {
-    private var mGameFiles: List<GameFile>
-    private val mActivity: Activity
-
-    /**
-     * Initializes the adapter's observer, which watches for changes to the dataset. The adapter will
-     * display no data until swapDataSet is called.
-     */
-    init {
-        mGameFiles = ArrayList()
-        mActivity = activity
-    }
+    private var mGameFiles: List<GameFile> = ArrayList()
 
     /**
      * Called by the LayoutManager when it is necessary to create a new view.
@@ -65,7 +58,33 @@ class GameAdapter(activity: Activity) : RecyclerView.Adapter<GameViewHolder>(),
         val context = holder.itemView.context
         val gameFile = mGameFiles[position]
 
-        GlideUtils.loadGameCover(holder, holder.binding.imageGameScreen, gameFile, mActivity)
+        holder.apply {
+            if (BooleanSetting.MAIN_SHOW_GAME_TITLES.booleanGlobal) {
+                binding.textGameTitle.text = gameFile.title
+                binding.textGameTitle.visibility = View.VISIBLE
+                binding.textGameTitleInner.visibility = View.GONE
+                binding.textGameCaption.visibility = View.VISIBLE
+            } else {
+                binding.textGameTitleInner.text = gameFile.title
+                binding.textGameTitleInner.visibility = View.VISIBLE
+                binding.textGameTitle.visibility = View.GONE
+                binding.textGameCaption.visibility = View.GONE
+            }
+        }
+
+        mActivity.lifecycleScope.launchWhenStarted {
+            withContext(Dispatchers.IO) {
+                val customCoverUri = CoilUtils.findCustomCover(gameFile)
+                withContext(Dispatchers.Main) {
+                    CoilUtils.loadGameCover(
+                        holder,
+                        holder.binding.imageGameScreen,
+                        gameFile,
+                        customCoverUri
+                    )
+                }
+            }
+        }
 
         val animateIn = AnimationUtils.loadAnimation(context, R.anim.anim_card_game_in)
         animateIn.fillAfter = true
@@ -86,15 +105,11 @@ class GameAdapter(activity: Activity) : RecyclerView.Adapter<GameViewHolder>(),
         }
     }
 
-    class GameViewHolder(binding: CardGameBinding) : RecyclerView.ViewHolder(binding.root) {
+    class GameViewHolder(var binding: CardGameBinding) : RecyclerView.ViewHolder(binding.root) {
         var gameFile: GameFile? = null
-
-        @JvmField
-        var binding: CardGameBinding
 
         init {
             binding.root.tag = this
-            this.binding = binding
         }
     }
 

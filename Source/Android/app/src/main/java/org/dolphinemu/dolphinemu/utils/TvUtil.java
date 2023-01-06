@@ -186,9 +186,9 @@ public class TvUtil
         }
       }
 
-      if (contentUri == null && (cover = new File(game.getCoverPath(context))).exists())
+      if (contentUri == null)
       {
-        contentUri = getUriForFile(context, getFileProvider(context), cover);
+        contentUri = Uri.parse(CoverHelper.buildGameTDBUrl(game, CoverHelper.getRegion(game)));
       }
 
       context.grantUriPermission(LEANBACK_PACKAGE, contentUri, FLAG_GRANT_READ_URI_PERMISSION);

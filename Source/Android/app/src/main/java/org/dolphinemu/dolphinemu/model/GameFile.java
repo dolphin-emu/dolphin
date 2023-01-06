@@ -2,12 +2,15 @@
 
 package org.dolphinemu.dolphinemu.model;
 
-import android.content.Context;
-
 import androidx.annotation.Keep;
 
 public class GameFile
 {
+  public static int REGION_NTSC_J = 0;
+  public static int REGION_NTSC_U = 1;
+  public static int REGION_PAL = 2;
+  public static int REGION_NTSC_K = 4;
+
   @Keep
   private long mPointer;
 
@@ -67,11 +70,6 @@ public class GameFile
   public native int getBannerWidth();
 
   public native int getBannerHeight();
-
-  public String getCoverPath(Context context)
-  {
-    return context.getExternalCacheDir().getPath() + "/GameCovers/" + getGameTdbId() + ".png";
-  }
 
   public String getCustomCoverPath()
   {

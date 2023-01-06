@@ -155,7 +155,7 @@ dependencies {
     implementation 'com.android.volley:volley:1.2.1'
 
     // For loading game covers from disk and GameTDB
-    implementation 'com.github.bumptech.glide:glide:4.13.2'
+    implementation 'io.coil-kt:coil:2.2.2'
 
     implementation 'com.nononsenseapps:filepicker:4.2.1'
 }

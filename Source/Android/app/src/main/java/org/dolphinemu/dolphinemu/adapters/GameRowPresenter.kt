@@ -7,20 +7,24 @@ import android.view.ViewGroup
 import androidx.leanback.widget.ImageCardView
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder
 import org.dolphinemu.dolphinemu.model.GameFile
-import org.dolphinemu.dolphinemu.utils.GlideUtils
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 import org.dolphinemu.dolphinemu.R
 import android.view.View
 import androidx.core.content.ContextCompat
 import android.widget.ImageView
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog
+import org.dolphinemu.dolphinemu.utils.CoilUtils
 
 /**
  * The Leanback library / docs call this a Presenter, but it works very
  * similarly to a RecyclerView.Adapter.
  */
-class GameRowPresenter : Presenter() {
+class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
+
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
         // Create a new view.
         val gameCard = ImageCardView(parent.context)
@@ -63,7 +67,20 @@ class GameRowPresenter : Presenter() {
                 holder.cardParent.contentText = gameFile.company
             }
         }
-        GlideUtils.loadGameCover(null, holder.imageScreenshot, gameFile, null)
+
+        mActivity.lifecycleScope.launchWhenStarted {
+            withContext(Dispatchers.IO) {
+                val customCoverUri = CoilUtils.findCustomCover(gameFile)
+                withContext(Dispatchers.Main) {
+                    CoilUtils.loadGameCover(
+                        null,
+                        holder.imageScreenshot,
+                        gameFile,
+                        customCoverUri
+                    )
+                }
+            }
+        }
     }
 
     override fun onUnbindViewHolder(viewHolder: ViewHolder) {

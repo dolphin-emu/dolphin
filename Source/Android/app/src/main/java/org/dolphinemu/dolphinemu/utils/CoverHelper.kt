@@ -3,44 +3,34 @@
 package org.dolphinemu.dolphinemu.utils
 
 import org.dolphinemu.dolphinemu.model.GameFile
-import android.graphics.Bitmap
-import java.io.FileOutputStream
-import java.lang.Exception
 
 object CoverHelper {
+    @JvmStatic
     fun buildGameTDBUrl(game: GameFile, region: String?): String {
         val baseUrl = "https://art.gametdb.com/wii/cover/%s/%s.png"
         return String.format(baseUrl, region, game.gameTdbId)
     }
 
+    @JvmStatic
     fun getRegion(game: GameFile): String {
         val region: String = when (game.region) {
-            0 -> "JA"
-            1 -> "US"
-            4 -> "KO"
-            2 -> when (game.country) {
-                3 -> "AU"
-                4 -> "FR"
-                5 -> "DE"
-                6 -> "IT"
-                8 -> "NL"
-                9 -> "RU"
-                10 -> "ES"
-                0 -> "EN"
+            GameFile.REGION_NTSC_J -> "JA"
+            GameFile.REGION_NTSC_U -> "US"
+            GameFile.REGION_NTSC_K -> "KO"
+            GameFile.REGION_PAL -> when (game.country) {
+                3 -> "AU" // Australia
+                4 -> "FR" // France
+                5 -> "DE" // Germany
+                6 -> "IT" // Italy
+                8 -> "NL" // Netherlands
+                9 -> "RU" // Russia
+                10 -> "ES" // Spain
+                0 -> "EN" // Europe
                 else -> "EN"
             }
-            3 -> "EN"
+            3 -> "EN" // Unknown
             else -> "EN"
         }
         return region
-    }
-
-    fun saveCover(cover: Bitmap, path: String?) {
-        try {
-            val out = FileOutputStream(path)
-            cover.compress(Bitmap.CompressFormat.PNG, 100, out)
-            out.close()
-        } catch (ignored: Exception) {
-        }
     }
 }

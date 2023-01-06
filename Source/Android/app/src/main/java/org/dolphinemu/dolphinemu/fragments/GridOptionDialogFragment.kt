@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.fragments
 
+import android.app.Activity
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -88,7 +89,7 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
                 NativeConfig.LAYER_BASE,
                 mBindingMobile.switchDownloadCovers.isChecked
             )
-            mView.reloadGrid()
+            (mView as Activity).recreate()
         }
     }
 
@@ -118,7 +119,7 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
                 NativeConfig.LAYER_BASE,
                 mBindingTv.switchDownloadCovers.isChecked
             )
-            mView.reloadGrid()
+            (mView as Activity).recreate()
         }
     }
 }
