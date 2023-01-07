@@ -231,6 +231,8 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
+  tools_menu->addAction(tr("&Skylanders Portal"), this, [this] { emit ShowSkylanderPortal(); });
+
   tools_menu->addSeparator();
 
   tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
