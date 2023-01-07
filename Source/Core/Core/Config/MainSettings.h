@@ -342,6 +342,11 @@ extern const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES;
 std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist();
 void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices);
 
+// Main.EmulatedUSBDevices
+
+extern const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL;
+bool EmulateSkylanderPortal();
+
 // GameCube path utility functions
 
 // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
