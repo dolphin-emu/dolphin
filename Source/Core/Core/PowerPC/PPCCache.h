@@ -23,7 +23,13 @@ constexpr u32 CACHE_VMEM_BIT = 0x20000000;
 struct Cache
 {
   std::array<std::array<std::array<u32, CACHE_BLOCK_SIZE>, CACHE_WAYS>, CACHE_SETS> data{};
+
+  // Stores the 32-byte aligned address of the start of each cache block. This consists of the cache
+  // set and tag. Real hardware only needs to store the tag, but also including the set simplifies
+  // debugging and getting the actual address in the cache, without changing behavior (as the set
+  // portion of the address is by definition the same for all addresses in a set).
   std::array<std::array<u32, CACHE_WAYS>, CACHE_SETS> addrs{};
+
   std::array<u32, CACHE_SETS> plru{};
   std::array<u32, CACHE_SETS> valid{};
   std::array<u32, CACHE_SETS> modified{};

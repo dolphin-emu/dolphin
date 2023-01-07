@@ -168,11 +168,11 @@ void Cache::Invalidate(u32 addr)
   if (valid[set] & (1U << way))
   {
     if (addrs[set][way] & CACHE_VMEM_BIT)
-      lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+      lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
     else if (addrs[set][way] & CACHE_EXRAM_BIT)
-      lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
+      lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
     else
-      lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+      lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
 
     valid[set] &= ~(1U << way);
     modified[set] &= ~(1U << way);
@@ -195,11 +195,11 @@ void Cache::Flush(u32 addr)
       memory.CopyToEmu((addr & ~0x1f), reinterpret_cast<u8*>(data[set][way].data()), 32);
 
     if (addrs[set][way] & CACHE_VMEM_BIT)
-      lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+      lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
     else if (addrs[set][way] & CACHE_EXRAM_BIT)
-      lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
+      lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
     else
-      lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+      lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
 
     valid[set] &= ~(1U << way);
     modified[set] &= ~(1U << way);
@@ -249,11 +249,11 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
         memory.CopyToEmu(addrs[set][way], reinterpret_cast<u8*>(data[set][way].data()), 32);
 
       if (addrs[set][way] & CACHE_VMEM_BIT)
-        lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+        lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
       else if (addrs[set][way] & CACHE_EXRAM_BIT)
-        lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
+        lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
       else
-        lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+        lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
     }
 
     // load
@@ -265,6 +265,7 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
       lookup_table_ex[(addr >> 5) & 0x1fffff] = way;
     else
       lookup_table[(addr >> 5) & 0xfffff] = way;
+
     addrs[set][way] = addr;
     valid[set] |= (1 << way);
     modified[set] &= ~(1 << way);
@@ -351,11 +352,11 @@ void Cache::DoState(PointerWrap& p)
         if ((valid[set] & (1 << way)) != 0)
         {
           if (addrs[set][way] & CACHE_VMEM_BIT)
-            lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+            lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
           else if (addrs[set][way] & CACHE_EXRAM_BIT)
-            lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
+            lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
           else
-            lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+            lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
         }
       }
     }
@@ -377,11 +378,11 @@ void Cache::DoState(PointerWrap& p)
         if ((valid[set] & (1 << way)) != 0)
         {
           if (addrs[set][way] & CACHE_VMEM_BIT)
-            lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+            lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
           else if (addrs[set][way] & CACHE_EXRAM_BIT)
-            lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
+            lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
           else
-            lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+            lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
         }
       }
     }
@@ -413,11 +414,11 @@ void InstructionCache::Invalidate(u32 addr)
     if (valid[set] & (1U << way))
     {
       if (addrs[set][way] & CACHE_VMEM_BIT)
-        lookup_table_vmem[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+        lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
       else if (addrs[set][way] & CACHE_EXRAM_BIT)
-        lookup_table_ex[((addrs[set][way] >> 5) & 0x1fff80) | set] = 0xff;
+        lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
       else
-        lookup_table[((addrs[set][way] >> 5) & 0xfff80) | set] = 0xff;
+        lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
     }
   }
   valid[set] = 0;
