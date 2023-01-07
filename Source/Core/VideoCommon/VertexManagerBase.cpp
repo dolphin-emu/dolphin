@@ -15,6 +15,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/DolphinAnalytics.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
 
 #include "VideoCommon/AbstractGfx.h"
@@ -107,6 +108,8 @@ VertexManagerBase::~VertexManagerBase() = default;
 bool VertexManagerBase::Initialize()
 {
   m_frame_end_event = AfterFrameEvent::Register([this] { OnEndFrame(); }, "VertexManagerBase");
+  m_after_present_event = AfterPresentEvent::Register(
+      [this](PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; }, "VertexManagerBase");
   m_index_generator.Init();
   m_custom_shader_cache = std::make_unique<CustomShaderCache>();
   m_cpu_cull.Init();
@@ -525,6 +528,13 @@ void VertexManagerBase::Flush()
   auto& pixel_shader_manager = system.GetPixelShaderManager();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
+
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    const double seconds_elapsed =
+        static_cast<double>(m_ticks_elapsed) / SystemTimers::GetTicksPerSecond();
+    pixel_shader_manager.constants.time_ms = seconds_elapsed * 1000;
+  }
 
   CalculateBinormals(VertexLoaderManager::GetCurrentVertexFormat());
   // Calculate ZSlope for zfreeze
