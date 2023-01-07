@@ -157,8 +157,6 @@ private:
   VkSemaphore m_present_semaphore = VK_NULL_HANDLE;
   std::deque<PendingCommandBufferSubmit> m_pending_submits;
   std::mutex m_pending_submit_lock;
-  std::condition_variable m_submit_worker_condvar;
-  bool m_submit_worker_idle = true;
   Common::Flag m_last_present_failed;
   Common::Flag m_last_present_done;
   VkResult m_last_present_result = VK_SUCCESS;
