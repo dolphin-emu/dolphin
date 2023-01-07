@@ -155,6 +155,7 @@ u64 GetTotalFrames();
 u64 GetCurrentInputCount();
 u64 GetTotalInputCount();
 u64 GetCurrentLagCount();
+u32 GetRerecordCount();
 u64 GetTotalLagCount();
 
 void SetClearSave(bool enabled);
@@ -170,6 +171,7 @@ bool IsNetPlayRecording();
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);
 bool IsUsingBongo(int controller);
+bool IsUsingGCController(int controller);
 bool IsUsingGBA(int controller);
 void ChangePads();
 void ChangeWiiPads(bool instantly = false);

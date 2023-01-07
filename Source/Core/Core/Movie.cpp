@@ -382,6 +382,11 @@ u64 GetCurrentLagCount()
   return s_currentLagCount;
 }
 
+u32 GetRerecordCount()
+{
+  return s_rerecords;
+}
+
 u64 GetTotalLagCount()
 {
   return s_totalLagCount;
@@ -423,6 +428,11 @@ bool IsUsingPad(int controller)
 bool IsUsingBongo(int controller)
 {
   return ((s_bongos & (1 << controller)) != 0);
+}
+
+bool IsUsingGCController(int controller)
+{
+  return s_controllers[controller] == ControllerType::GC;
 }
 
 bool IsUsingGBA(int controller)

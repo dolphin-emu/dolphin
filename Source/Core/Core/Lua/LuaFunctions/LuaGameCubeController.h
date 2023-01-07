@@ -21,14 +21,6 @@ namespace Lua
 namespace LuaGameCubeController
 {
 
-  class gc_controller_lua
-  {
-  public:
-    inline gc_controller_lua(){};
-  };
-
-  extern gc_controller_lua* gc_controller_pointer;
-
   extern std::array<bool, 4> overwriteControllerAtSpecifiedPort;
   extern std::array<bool, 4> addToControllerAtSpecifiedPort;
   extern std::array<bool, 4> doRandomInputEventsAtSpecifiedPort;
@@ -39,8 +31,6 @@ namespace LuaGameCubeController
   extern std::array<std::vector<GC_BUTTON_NAME>, 4> buttonListsForAddToControllerInputs;
   extern std::array<std::vector<std::unique_ptr<LuaGameCubeButtonProbabilityEvent>>, 4> randomButtonEvents;
   
-
-  gc_controller_lua* getControllerInstance();
   void InitLuaGameCubeControllerFunctions(lua_State* luaState);
 
   int setInputs(lua_State* luaState);

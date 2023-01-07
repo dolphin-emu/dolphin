@@ -4,6 +4,11 @@ namespace Lua
 {
 namespace LuaGameCubeController
 {
+class gc_controller_lua
+{
+public:
+  inline gc_controller_lua(){};
+};
 
   gc_controller_lua* gc_controller_pointer = NULL;
   std::array<bool, 4> overwriteControllerAtSpecifiedPort = {};
