@@ -199,6 +199,7 @@ bool TestShader(
   out.Write("layout(location = 0) out vec4 FragColor;\n\n");
   out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
   out.Write("int4 " I_MATERIALS "[4];\n");
+  out.Write("uint time_ms;\n");
   WriteCustomShaderStructDef(&out, 0);
 
   ShaderCode intermediate;

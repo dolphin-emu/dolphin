@@ -446,5 +446,6 @@ void WriteCustomShaderStructDef(ShaderCode* out, u32 numtexgens)
   out->Write("\tCustomShaderTevStage[16] tev_stages;\n");
   out->Write("\tuint tev_stage_count;\n");
   out->Write("\tfloat4 final_color;\n");
+  out->Write("\tuint time_ms;\n");
   out->Write("}};\n\n");
 }

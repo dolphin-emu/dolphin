@@ -406,6 +406,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "\tbool  blend_subtract_alpha;\n"
             "\tbool  logic_op_enable;\n"
             "\tuint  logic_op_mode;\n"
+            "\tuint  time_ms;\n"
             "}};\n\n");
   out.Write("#define bpmem_combiners(i) (bpmem_pack1[(i)].xy)\n"
             "#define bpmem_tevind(i) (bpmem_pack1[(i)].z)\n"
@@ -873,6 +874,9 @@ void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_stages, bool per_pixel
   // Actual data will be filled out in the tev stage code, just set the
   // stage count for now
   out->Write("\tcustom_data.tev_stage_count = {};\n", num_stages);
+
+  // Time
+  out->Write("\tcustom_data.time_ms = time_ms;\n");
 }
 
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,

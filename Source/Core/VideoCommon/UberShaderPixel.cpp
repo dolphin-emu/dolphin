@@ -224,6 +224,9 @@ void WriteCustomShaderStructImpl(ShaderCode* out, u32 num_texgen, bool per_pixel
   // Actual data will be filled out in the tev stage code, just set the
   // stage count for now
   out->Write("\tcustom_data.tev_stage_count = num_stages;\n");
+
+  // Time
+  out->Write("\tcustom_data.time_ms = time_ms;\n");
 }
 }  // namespace
 PixelShaderUid GetPixelShaderUid()
