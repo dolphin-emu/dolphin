@@ -21,12 +21,9 @@
 
 enum class GameQuirk
 {
-  // Sometimes code run from ICache is different from its mirror in RAM.
-  ICACHE_MATTERS = 0,
-
   // The Wii remote hardware makes it possible to bypass normal data reporting and directly
   // "read" extension or IR data. This would break our current TAS/NetPlay implementation.
-  DIRECTLY_READS_WIIMOTE_INPUT,
+  DIRECTLY_READS_WIIMOTE_INPUT = 0,
 
   // Several Wii DI commands that are rarely/never used and not implemented by Dolphin
   USES_DVD_LOW_STOP_LASER,
