@@ -36,6 +36,8 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
+#include "Core/Lua/Lua.h"
+#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -515,6 +517,8 @@ void SaveAs(const std::string& filename, bool wait)
           }
           Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
         }
+        if (Lua::luaScriptActive)
+          Lua::LuaEmu::waitingForSaveStateSave = false;
       },
       true);
 }
@@ -702,6 +706,9 @@ void LoadAs(const std::string& filename)
 
         if (s_on_after_load_callback)
           s_on_after_load_callback();
+        if (Lua::luaScriptActive)
+          Lua::LuaEmu::waitingForSaveStateLoad = false;
+
       },
       true);
 }

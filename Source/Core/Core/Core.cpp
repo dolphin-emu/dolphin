@@ -63,6 +63,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/Lua/Lua.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
+#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/MemTools.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
@@ -883,7 +884,7 @@ void Callback_NewField()
   }
 
 
-  if (Lua::luaScriptActive)
+  if (Lua::luaScriptActive && !Lua::LuaEmu::waitingForSaveStateLoad && !Lua::LuaEmu::waitingForSaveStateSave && !Lua::LuaEmu::waitingToStartPlayingMovie && !Lua::LuaEmu::waitingToSaveMovie)
   {
     for (int i = 0; i < 4; ++i)
     {

@@ -62,6 +62,7 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Lua/Lua.h"
+#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
@@ -1012,6 +1013,9 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
     Movie::LoadInput(movie_path);
   }
 
+  if (Lua::luaScriptActive)
+    Lua::LuaEmu::waitingToStartPlayingMovie = false;
+
   return true;
 }
 
@@ -1533,6 +1537,9 @@ void SaveRecording(const std::string& filename)
     Core::DisplayMessage(fmt::format("DTM {} saved", filename), 2000);
   else
     Core::DisplayMessage(fmt::format("Failed to save {}", filename), 2000);
+
+  if (Lua::luaScriptActive)
+    Lua::LuaEmu::waitingToSaveMovie = false;
 }
 
 // NOTE: GPU Thread

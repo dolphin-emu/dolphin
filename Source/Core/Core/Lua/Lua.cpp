@@ -10,6 +10,7 @@
 #include "LuaFunctions/LuaConverter.h"
 #include "LuaFunctions/LuaByteWrapper.h"
 #include "LuaFunctions/LuaGameCubeController.h"
+#include "LuaFunctions/LuaRegisters.h"
 #include "LuaFunctions/LuaStatistics.h"
 #include "Core/Movie.h"
 #include <filesystem>
@@ -49,6 +50,7 @@ void Init()
   LuaByteWrapper::InitLuaByteWrapperClass(mainLuaState);
   LuaGameCubeController::InitLuaGameCubeControllerFunctions(mainLuaState);
   LuaStatistics::InitLuaStatisticsFunctions(mainLuaState);
+  LuaRegisters::InitLuaRegistersFunctions(mainLuaState);
   lua_gc(mainLuaState, LUA_GCSTOP);
   mainLuaThreadState = lua_newthread(mainLuaState);
   if (luaL_loadfile(mainLuaThreadState, "LuaExamplesAndTests/LuaByteWrapperFunctionsTest.lua") != LUA_OK)

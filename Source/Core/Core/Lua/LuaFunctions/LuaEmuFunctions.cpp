@@ -1,15 +1,26 @@
 #include "LuaEmuFunctions.h"
+#include "Core/State.h"
 #include "Core/Core.h"
+#include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
+#include <optional>
 
 namespace Lua
 {
 namespace LuaEmu
 {
-emu* emuPointer = NULL;
+  bool waitingForSaveStateLoad = false;
+  bool waitingForSaveStateSave = false;
+  bool waitingToStartPlayingMovie = false;
+  bool waitingToSaveMovie = false;
 
-std::mutex frameAdvanceLock;
-std::condition_variable frameAdvanceConditionalVariable;
+class emu
+{
+public:
+  inline emu() {}
+};
+
+emu* emuPointer = NULL;
 
 emu* GetEmuInstance()
 {
@@ -26,7 +37,13 @@ void InitLuaEmuFunctions(lua_State* luaState)
   lua_pushvalue(luaState, -1);
   lua_setfield(luaState, -2, "__index");
 
-  luaL_Reg luaEmuFunctions[] = {{"frameAdvance", emu_frameAdvance}, {"getRegister", emu_get_register}, {nullptr, nullptr}};
+  luaL_Reg luaEmuFunctions[] = {
+    {"frameAdvance", emu_frameAdvance},
+    {"loadState", emu_loadState},
+    {"saveState", emu_saveState},
+    {"playMovie", emu_playMovie},
+    {"saveMovie", emu_saveMovie},
+    {nullptr, nullptr}};
 
   luaL_setfuncs(luaState, luaEmuFunctions, 0);
   lua_setmetatable(luaState, -2);
@@ -52,27 +69,53 @@ void convertToUpperCase(std::string& inputString)
   }
 }
 
-//Returns the specified register (passed as a string in argument 1 ex. "PC"). All regular 32 bit registers are returned as an unsigned int.
-//All floating point registers are returned as doubles.
-//Supports PC, the 32 general purpose registers, and the floating point registers.
-int emu_get_register(lua_State* luaState)
+std::string checkIfFileExistsAndGetFileName(lua_State* luaState, const char* funcName)
 {
-  std::string registerName = luaL_checkstring(luaState, 2);
-  convertToUpperCase(registerName);
-  if (registerName.length() < 2)
-    luaL_error(luaState, "Error: getRegister() contained string with length less than 2");
-  if (registerName[0] == 'R')
-  {
-    u32 registerArrayIndex = std::stoi(registerName.substr(1));
-    if (registerArrayIndex > 31)
-      luaL_error(luaState, (std::string("Error: register ") + registerName + " is outside the range of general purpose registers (which go from R0 to R31)").c_str());
-    lua_pushinteger(luaState, PowerPC::ppcState.gpr[registerArrayIndex]);
-  }
-  else if (registerName == "PC")
-    lua_pushinteger(luaState, PowerPC::ppcState.pc);
+  const std::string fileName = luaL_checkstring(luaState, 2);
+  if (FILE* file = fopen(fileName.c_str(), "r"))
+    fclose(file);
   else
-    luaL_error(luaState, "Error: So far, only R0...R31 and PC are supported in getRegister()");
-  return 1;
+    luaL_error(luaState, (std::string("Error: Filename passed into emu:") + funcName +
+                             "() did not represent a file which exists.").c_str());
+  return fileName;
+}
+int emu_loadState(lua_State* luaState)
+{
+  std::string stateName = checkIfFileExistsAndGetFileName(luaState, "loadState");
+  waitingForSaveStateLoad = true;
+  Core::QueueHostJob([=]() { State::LoadAs(stateName); });
+  lua_yield(luaState, 0);
+  return 0;
+}
+
+int emu_saveState(lua_State* luaState)
+{
+  std::string stateName = checkIfFileExistsAndGetFileName(luaState, "saveState");
+  waitingForSaveStateSave = true;
+  Core::QueueHostJob([=]() { State::SaveAs(stateName); });
+  lua_yield(luaState, 0);
+  return 0;
+}
+
+int emu_playMovie(lua_State* luaState)
+{
+  const std::string movieName = checkIfFileExistsAndGetFileName(luaState, "playMovie");
+  waitingToStartPlayingMovie = true;
+  Core::QueueHostJob([=]() {
+    std::optional<std::string> saveStatePath;
+    Movie::PlayInput(movieName, &saveStatePath);
+  });
+  lua_yield(luaState, 0);
+  return 0;
+}
+
+int emu_saveMovie(lua_State* luaState)
+{
+  const std::string moviePath = luaL_checkstring(luaState, 2);
+  waitingToSaveMovie = true;
+  Core::QueueHostJob([=]() { Movie::SaveRecording(moviePath); });
+  lua_yield(luaState, 0);
+  return 0;
 }
 
 }  // namespace Lua_emu
