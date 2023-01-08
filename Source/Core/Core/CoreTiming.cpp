@@ -331,9 +331,6 @@ void CoreTimingManager::Advance()
 
 void CoreTimingManager::Throttle(const s64 target_cycle)
 {
-  if (target_cycle <= m_throttle_last_cycle)
-    return;
-
   const double speed =
       Core::GetIsThrottlerTempDisabled() ? 0.0 : Config::Get(Config::MAIN_EMULATION_SPEED);
 
