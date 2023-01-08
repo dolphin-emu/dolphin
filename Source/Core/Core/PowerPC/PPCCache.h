@@ -30,9 +30,9 @@ struct Cache
   // portion of the address is by definition the same for all addresses in a set).
   std::array<std::array<u32, CACHE_WAYS>, CACHE_SETS> addrs{};
 
-  std::array<u32, CACHE_SETS> plru{};
-  std::array<u32, CACHE_SETS> valid{};
-  std::array<u32, CACHE_SETS> modified{};
+  std::array<u8, CACHE_SETS> plru{};
+  std::array<u8, CACHE_SETS> valid{};
+  std::array<u8, CACHE_SETS> modified{};
 
   // Note: This is only for performance purposes; this same data could be computed at runtime
   // from the tags and valid fields (and that's how it's done on the actual cache)
