@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.ui.main;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
+import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
 import androidx.fragment.app.FragmentActivity;
@@ -134,6 +135,10 @@ public final class MainPresenter
       case R.id.menu_import_nand_backup:
         new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 () -> mView.launchOpenFileActivity(REQUEST_NAND_BIN_FILE));
+        return true;
+
+      case R.id.menu_show_git_hash:
+        Toast.makeText(activity, BuildConfig.GIT_HASH, Toast.LENGTH_SHORT).show();
         return true;
     }
 

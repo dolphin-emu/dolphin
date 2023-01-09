@@ -406,6 +406,10 @@ public final class TvMainActivity extends FragmentActivity
             R.drawable.ic_folder_tv,
             R.string.grid_menu_online_system_update));
 
+    rowItems.add(new TvSettingsItem(R.id.menu_show_git_hash,
+            R.drawable.ic_folder_tv,
+            R.string.grid_menu_show_git_hash));
+
     // Create a header for this row.
     HeaderItem header = new HeaderItem(R.string.settings, getString(R.string.settings));
 
