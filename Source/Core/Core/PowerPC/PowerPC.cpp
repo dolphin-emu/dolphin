@@ -659,12 +659,12 @@ void PowerPCState::SetSR(u32 index, u32 value)
 
 void UpdateFPRFDouble(double dvalue)
 {
-  FPSCR.FPRF = Common::ClassifyDouble(dvalue);
+  PowerPC::ppcState.fpscr.FPRF = Common::ClassifyDouble(dvalue);
 }
 
 void UpdateFPRFSingle(float fvalue)
 {
-  FPSCR.FPRF = Common::ClassifyFloat(fvalue);
+  PowerPC::ppcState.fpscr.FPRF = Common::ClassifyFloat(fvalue);
 }
 
 void RoundingModeUpdated()
@@ -672,7 +672,7 @@ void RoundingModeUpdated()
   // The rounding mode is separate for each thread, so this must run on the CPU thread
   ASSERT(Core::IsCPUThread());
 
-  FPURoundMode::SetSIMDMode(FPSCR.RN, FPSCR.NI);
+  FPURoundMode::SetSIMDMode(PowerPC::ppcState.fpscr.RN, PowerPC::ppcState.fpscr.NI);
 }
 
 }  // namespace PowerPC

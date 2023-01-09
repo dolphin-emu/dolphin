@@ -447,7 +447,7 @@ static void ReadRegister()
       wbe32hex(reply, PowerPC::ppcState.spr[SPR_XER]);
       break;
     case 70:
-      wbe32hex(reply, FPSCR.Hex);
+      wbe32hex(reply, PowerPC::ppcState.fpscr.Hex);
       break;
     case 87:
       wbe32hex(reply, PowerPC::ppcState.spr[SPR_PVR]);
@@ -659,7 +659,7 @@ static void WriteRegister()
       PowerPC::ppcState.spr[SPR_XER] = re32hex(bufptr);
       break;
     case 70:
-      FPSCR.Hex = re32hex(bufptr);
+      PowerPC::ppcState.fpscr.Hex = re32hex(bufptr);
       break;
     case 87:
       PowerPC::ppcState.spr[SPR_PVR] = re32hex(bufptr);
