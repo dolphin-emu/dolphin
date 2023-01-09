@@ -349,8 +349,9 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
       inst.hex, PowerPC::ppcState.pc, last_pc, LR);
   for (int i = 0; i < 32; i += 4)
   {
-    NOTICE_LOG_FMT(POWERPC, "r{}: {:#010x} r{}: {:#010x} r{}: {:#010x} r{}: {:#010x}", i, rGPR[i],
-                   i + 1, rGPR[i + 1], i + 2, rGPR[i + 2], i + 3, rGPR[i + 3]);
+    NOTICE_LOG_FMT(POWERPC, "r{}: {:#010x} r{}: {:#010x} r{}: {:#010x} r{}: {:#010x}", i,
+                   PowerPC::ppcState.gpr[i], i + 1, PowerPC::ppcState.gpr[i + 1], i + 2,
+                   PowerPC::ppcState.gpr[i + 2], i + 3, PowerPC::ppcState.gpr[i + 3]);
   }
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",

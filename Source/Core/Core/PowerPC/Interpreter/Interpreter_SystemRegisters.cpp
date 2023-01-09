@@ -102,7 +102,7 @@ void Interpreter::mcrxr(UGeckoInstruction inst)
 
 void Interpreter::mfcr(UGeckoInstruction inst)
 {
-  rGPR[inst.RD] = PowerPC::ppcState.cr.Get();
+  PowerPC::ppcState.gpr[inst.RD] = PowerPC::ppcState.cr.Get();
 }
 
 void Interpreter::mtcrf(UGeckoInstruction inst)
@@ -110,7 +110,7 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
   const u32 crm = inst.CRM;
   if (crm == 0xFF)
   {
-    PowerPC::ppcState.cr.Set(rGPR[inst.RS]);
+    PowerPC::ppcState.cr.Set(PowerPC::ppcState.gpr[inst.RS]);
   }
   else
   {
@@ -122,7 +122,8 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
         mask |= 0xFU << (i * 4);
     }
 
-    PowerPC::ppcState.cr.Set((PowerPC::ppcState.cr.Get() & ~mask) | (rGPR[inst.RS] & mask));
+    PowerPC::ppcState.cr.Set((PowerPC::ppcState.cr.Get() & ~mask) |
+                             (PowerPC::ppcState.gpr[inst.RS] & mask));
   }
 }
 
@@ -134,7 +135,7 @@ void Interpreter::mfmsr(UGeckoInstruction inst)
     return;
   }
 
-  rGPR[inst.RD] = PowerPC::ppcState.msr.Hex;
+  PowerPC::ppcState.gpr[inst.RD] = PowerPC::ppcState.msr.Hex;
 }
 
 void Interpreter::mfsr(UGeckoInstruction inst)
@@ -145,7 +146,7 @@ void Interpreter::mfsr(UGeckoInstruction inst)
     return;
   }
 
-  rGPR[inst.RD] = PowerPC::ppcState.sr[inst.SR];
+  PowerPC::ppcState.gpr[inst.RD] = PowerPC::ppcState.sr[inst.SR];
 }
 
 void Interpreter::mfsrin(UGeckoInstruction inst)
@@ -156,8 +157,8 @@ void Interpreter::mfsrin(UGeckoInstruction inst)
     return;
   }
 
-  const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
-  rGPR[inst.RD] = PowerPC::ppcState.sr[index];
+  const u32 index = (PowerPC::ppcState.gpr[inst.RB] >> 28) & 0xF;
+  PowerPC::ppcState.gpr[inst.RD] = PowerPC::ppcState.sr[index];
 }
 
 void Interpreter::mtmsr(UGeckoInstruction inst)
@@ -168,7 +169,7 @@ void Interpreter::mtmsr(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::ppcState.msr.Hex = rGPR[inst.RS];
+  PowerPC::ppcState.msr.Hex = PowerPC::ppcState.gpr[inst.RS];
 
   // FE0/FE1 may have been set
   CheckFPExceptions(PowerPC::ppcState.fpscr);
@@ -188,7 +189,7 @@ void Interpreter::mtsr(UGeckoInstruction inst)
   }
 
   const u32 index = inst.SR;
-  const u32 value = rGPR[inst.RS];
+  const u32 value = PowerPC::ppcState.gpr[inst.RS];
   PowerPC::ppcState.SetSR(index, value);
 }
 
@@ -200,8 +201,8 @@ void Interpreter::mtsrin(UGeckoInstruction inst)
     return;
   }
 
-  const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
-  const u32 value = rGPR[inst.RS];
+  const u32 index = (PowerPC::ppcState.gpr[inst.RB] >> 28) & 0xF;
+  const u32 value = PowerPC::ppcState.gpr[inst.RS];
   PowerPC::ppcState.SetSR(index, value);
 }
 
@@ -277,10 +278,10 @@ void Interpreter::mfspr(UGeckoInstruction inst)
     // A strange quirk: reading back this register on hardware will always have the TE (Translation
     // enabled) bit set to 0 (despite the bit appearing to function normally when set). This does
     // not apply to the DABR.
-    rGPR[inst.RD] = rSPR(index) & ~1;
+    PowerPC::ppcState.gpr[inst.RD] = rSPR(index) & ~1;
     return;
   }
-  rGPR[inst.RD] = rSPR(index);
+  PowerPC::ppcState.gpr[inst.RD] = rSPR(index);
 }
 
 void Interpreter::mtspr(UGeckoInstruction inst)
@@ -295,7 +296,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   }
 
   const u32 old_value = rSPR(index);
-  rSPR(index) = rGPR[inst.RD];
+  rSPR(index) = PowerPC::ppcState.gpr[inst.RD];
 
   // Our DMA emulation is highly inaccurate - instead of properly emulating the queue
   // and so on, we simply make all DMA:s complete instantaneously.
@@ -308,12 +309,12 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_TL_W:
-    TL = rGPR[inst.RD];
+    TL = PowerPC::ppcState.gpr[inst.RD];
     SystemTimers::TimeBaseSet();
     break;
 
   case SPR_TU_W:
-    TU = rGPR[inst.RD];
+    TU = PowerPC::ppcState.gpr[inst.RD];
     SystemTimers::TimeBaseSet();
     break;
 
@@ -413,7 +414,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
 
   case SPR_DEC:
     // Top bit from 0 to 1
-    if ((old_value >> 31) == 0 && (rGPR[inst.RD] >> 31) != 0)
+    if ((old_value >> 31) == 0 && (PowerPC::ppcState.gpr[inst.RD] >> 31) != 0)
     {
       INFO_LOG_FMT(POWERPC, "Software triggered Decrementer exception");
       PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
