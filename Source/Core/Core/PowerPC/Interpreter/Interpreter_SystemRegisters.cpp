@@ -390,20 +390,20 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_DMAL:
     // Locked cache<->Memory DMA
     // Total fake, we ignore that DMAs take time.
-    if (DMAL.DMA_T)
+    if (DMAL(PowerPC::ppcState).DMA_T)
     {
       const u32 mem_address = DMAU(PowerPC::ppcState).MEM_ADDR << 5;
-      const u32 cache_address = DMAL.LC_ADDR << 5;
-      u32 length = ((DMAU(PowerPC::ppcState).DMA_LEN_U << 2) | DMAL.DMA_LEN_L);
+      const u32 cache_address = DMAL(PowerPC::ppcState).LC_ADDR << 5;
+      u32 length = ((DMAU(PowerPC::ppcState).DMA_LEN_U << 2) | DMAL(PowerPC::ppcState).DMA_LEN_L);
 
       if (length == 0)
         length = 128;
-      if (DMAL.DMA_LD)
+      if (DMAL(PowerPC::ppcState).DMA_LD)
         PowerPC::DMA_MemoryToLC(cache_address, mem_address, length);
       else
         PowerPC::DMA_LCToMemory(mem_address, cache_address, length);
     }
-    DMAL.DMA_T = 0;
+    DMAL(PowerPC::ppcState).DMA_T = 0;
     break;
 
   case SPR_L2CR:
