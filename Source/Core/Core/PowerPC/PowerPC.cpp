@@ -430,7 +430,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  switch (MMCR1.PMC3SELECT)
+  switch (MMCR1(PowerPC::ppcState).PMC3SELECT)
   {
   case 0:  // No change
     break;
@@ -444,7 +444,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  switch (MMCR1.PMC4SELECT)
+  switch (MMCR1(PowerPC::ppcState).PMC4SELECT)
   {
   case 0:  // No change
     break;
