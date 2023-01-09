@@ -85,12 +85,12 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&m_fifo_cpu_write_pointer, 0xFFFFFFE0));
 
   mmio->Register(base | PI_FIFO_RESET, MMIO::InvalidRead<u32>(),
-                 MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    // Used by GXAbortFrame
                    INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_FIFO_RESET: {:08x}", val);
                    if ((val & 1) != 0)
                    {
-                     GPFifo::ResetGatherPipe();
+                     system.GetGPFifo().ResetGatherPipe();
 
                      // Call Fifo::ResetVideoBuffer() from the video thread. Since that function
                      // resets various pointers used by the video thread, we can't call it directly

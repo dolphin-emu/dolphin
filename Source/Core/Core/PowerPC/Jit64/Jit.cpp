@@ -527,7 +527,7 @@ bool Jit64::Cleanup()
     CMP(64, R(RSCRATCH), Imm32(GPFifo::GATHER_PIPE_SIZE));
     FixupBranch exit = J_CC(CC_L);
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunction(GPFifo::UpdateGatherPipe);
+    ABI_CallFunctionP(GPFifo::UpdateGatherPipe, &Core::System::GetInstance().GetGPFifo());
     ABI_PopRegistersAndAdjustStack({}, 0);
     SetJumpTarget(exit);
     did_something = true;
@@ -1027,7 +1027,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       js.mustCheckFifo = false;
       BitSet32 registersInUse = CallerSavedRegistersInUse();
       ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-      ABI_CallFunction(GPFifo::FastCheckGatherPipe);
+      ABI_CallFunctionP(GPFifo::FastCheckGatherPipe, &Core::System::GetInstance().GetGPFifo());
       ABI_PopRegistersAndAdjustStack(registersInUse, 0);
       gatherPipeIntCheck = true;
     }

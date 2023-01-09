@@ -12,6 +12,7 @@
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 /*
 
@@ -244,7 +245,7 @@ void Interpreter::mfspr(UGeckoInstruction inst)
     // GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)).
     // Currently, we always treat the buffer as not empty, as the exact behavior is unclear
     // (and games that use display lists will hang if the bit doesn't eventually become zero).
-    if (GPFifo::IsBNE())
+    if (Core::System::GetInstance().GetGPFifo().IsBNE())
       rSPR(index) |= 1;
     else
       rSPR(index) &= ~1;
@@ -370,7 +371,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_WPAR:
     ASSERT_MSG(POWERPC, rSPR(SPR_WPAR) == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS,
                "Gather pipe changed to unexpected address {:08x} @ PC {:08x}", rSPR(SPR_WPAR), PC);
-    GPFifo::ResetGatherPipe();
+    Core::System::GetInstance().GetGPFifo().ResetGatherPipe();
     break;
 
   // Graphics Quantization Registers
