@@ -392,9 +392,9 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     // Total fake, we ignore that DMAs take time.
     if (DMAL.DMA_T)
     {
-      const u32 mem_address = DMAU.MEM_ADDR << 5;
+      const u32 mem_address = DMAU(PowerPC::ppcState).MEM_ADDR << 5;
       const u32 cache_address = DMAL.LC_ADDR << 5;
-      u32 length = ((DMAU.DMA_LEN_U << 2) | DMAL.DMA_LEN_L);
+      u32 length = ((DMAU(PowerPC::ppcState).DMA_LEN_U << 2) | DMAL.DMA_LEN_L);
 
       if (length == 0)
         length = 128;
