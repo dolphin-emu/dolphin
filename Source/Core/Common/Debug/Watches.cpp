@@ -62,6 +62,11 @@ void Watches::UpdateWatchName(std::size_t index, std::string name)
   m_watches[index].name = std::move(name);
 }
 
+void Watches::UpdateWatchLockedState(std::size_t index, bool locked)
+{
+  m_watches[index].locked = locked;
+}
+
 void Watches::EnableWatch(std::size_t index)
 {
   m_watches[index].is_enabled = Watch::State::Enabled;

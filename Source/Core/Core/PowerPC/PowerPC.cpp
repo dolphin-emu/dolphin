@@ -298,7 +298,7 @@ void Reset()
 
 void ScheduleInvalidateCacheThreadSafe(u32 address)
 {
-  if (CPU::GetState() == CPU::State::Running)
+  if (CPU::GetState() == CPU::State::Running && !Core::IsCPUThread())
   {
     Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
         0, s_invalidate_cache_thread_safe, address, CoreTiming::FromThread::NON_CPU);

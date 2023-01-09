@@ -19,13 +19,13 @@
 #include "Core/Core.h"
 #include "Core/Debugger/OSThread.h"
 #include "Core/HW/DSP.h"
+#include "Core/PatchEngine.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
-void PPCPatches::Patch(std::size_t index)
+void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch, bool store_existing_value)
 {
-  auto& patch = m_patches[index];
   if (patch.value.empty())
     return;
 
@@ -36,9 +36,16 @@ void PPCPatches::Patch(std::size_t index)
 
   for (u32 offset = 0; offset < size; ++offset)
   {
-    const u8 value = PowerPC::HostRead_U8(address + offset);
-    PowerPC::HostWrite_U8(patch.value[offset], address + offset);
-    patch.value[offset] = value;
+    if (store_existing_value)
+    {
+      const u8 value = PowerPC::HostRead_U8(address + offset);
+      PowerPC::HostWrite_U8(patch.value[offset], address + offset);
+      patch.value[offset] = value;
+    }
+    else
+    {
+      PowerPC::HostWrite_U8(patch.value[offset], address + offset);
+    }
 
     if (((address + offset) % 4) == 3)
       PowerPC::ScheduleInvalidateCacheThreadSafe(Common::AlignDown(address + offset, 4));
@@ -48,6 +55,30 @@ void PPCPatches::Patch(std::size_t index)
     PowerPC::ScheduleInvalidateCacheThreadSafe(
         Common::AlignDown(address + static_cast<u32>(size), 4));
   }
+}
+
+void PPCPatches::ApplyExistingPatch(std::size_t index)
+{
+  auto& patch = m_patches[index];
+  ApplyMemoryPatch(patch, false);
+}
+
+void PPCPatches::Patch(std::size_t index)
+{
+  auto& patch = m_patches[index];
+  if (patch.type == Common::Debug::MemoryPatch::ApplyType::Once)
+    ApplyMemoryPatch(patch);
+  else
+    PatchEngine::AddMemoryPatch(index);
+}
+
+void PPCPatches::UnPatch(std::size_t index)
+{
+  auto& patch = m_patches[index];
+  if (patch.type == Common::Debug::MemoryPatch::ApplyType::Once)
+    return;
+
+  PatchEngine::RemoveMemoryPatch(index);
 }
 
 PPCDebugInterface::PPCDebugInterface() = default;
@@ -86,6 +117,11 @@ void PPCDebugInterface::UpdateWatchAddress(std::size_t index, u32 address)
 void PPCDebugInterface::UpdateWatchName(std::size_t index, std::string name)
 {
   return m_watches.UpdateWatchName(index, std::move(name));
+}
+
+void PPCDebugInterface::UpdateWatchLockedState(std::size_t index, bool locked)
+{
+  return m_watches.UpdateWatchLockedState(index, locked);
 }
 
 void PPCDebugInterface::EnableWatch(std::size_t index)
@@ -133,6 +169,16 @@ void PPCDebugInterface::SetPatch(u32 address, std::vector<u8> value)
   m_patches.SetPatch(address, std::move(value));
 }
 
+void PPCDebugInterface::SetFramePatch(u32 address, u32 value)
+{
+  m_patches.SetFramePatch(address, value);
+}
+
+void PPCDebugInterface::SetFramePatch(u32 address, std::vector<u8> value)
+{
+  m_patches.SetFramePatch(address, std::move(value));
+}
+
 const std::vector<Common::Debug::MemoryPatch>& PPCDebugInterface::GetPatches() const
 {
   return m_patches.GetPatches();
@@ -166,6 +212,11 @@ void PPCDebugInterface::RemovePatch(std::size_t index)
 void PPCDebugInterface::ClearPatches()
 {
   m_patches.ClearPatches();
+}
+
+void PPCDebugInterface::ApplyExistingPatch(std::size_t index)
+{
+  m_patches.ApplyExistingPatch(index);
 }
 
 Common::Debug::Threads PPCDebugInterface::GetThreads() const

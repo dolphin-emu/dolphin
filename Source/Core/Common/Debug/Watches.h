@@ -22,6 +22,7 @@ struct Watch
   u32 address;
   std::string name;
   State is_enabled;
+  bool locked = false;
 
   Watch(u32 address, std::string name, State is_enabled);
 };
@@ -36,6 +37,7 @@ public:
   void UpdateWatch(std::size_t index, u32 address, std::string name);
   void UpdateWatchAddress(std::size_t index, u32 address);
   void UpdateWatchName(std::size_t index, std::string name);
+  void UpdateWatchLockedState(std::size_t index, bool locked);
   void EnableWatch(std::size_t index);
   void DisableWatch(std::size_t index);
   bool HasEnabledWatch(u32 address) const;

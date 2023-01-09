@@ -46,10 +46,15 @@ private:
 
   void ShowContextMenu();
   void OnItemChanged(QTableWidgetItem* item);
+  void LockWatchAddress(u32 address);
+  void DeleteSelectedWatches();
   void DeleteWatch(int row);
+  void DeleteWatchAndUpdate(int row);
   void AddWatchBreakpoint(int row);
   void ShowInMemory(int row);
   void UpdateIcons();
+  void LockSelectedWatches();
+  void UnlockSelectedWatches();
 
   QAction* m_new;
   QAction* m_delete;
@@ -61,5 +66,12 @@ private:
 
   bool m_updating = false;
 
-  static constexpr int NUM_COLUMNS = 6;
+  static constexpr int NUM_COLUMNS = 7;
+  static constexpr int COLUMN_INDEX_LABEL = 0;
+  static constexpr int COLUMN_INDEX_ADDRESS = 1;
+  static constexpr int COLUMN_INDEX_HEX = 2;
+  static constexpr int COLUMN_INDEX_DECIMAL = 3;
+  static constexpr int COLUMN_INDEX_STRING = 4;
+  static constexpr int COLUMN_INDEX_FLOAT = 5;
+  static constexpr int COLUMN_INDEX_LOCK = 6;
 };

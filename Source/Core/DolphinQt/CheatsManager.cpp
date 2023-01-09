@@ -123,6 +123,8 @@ void CheatsManager::OnNewSessionCreated(const Cheats::CheatSearchSessionBase& se
                  m_ar_code->AddCode(ar_code);
              });
   w->connect(w, &CheatSearchWidget::ShowMemory, [this](u32 address) { emit ShowMemory(address); });
+  w->connect(w, &CheatSearchWidget::RequestWatch,
+             [this](QString name, u32 address) { emit RequestWatch(name, address); });
   m_tab_widget->setCurrentIndex(tab_index);
 }
 

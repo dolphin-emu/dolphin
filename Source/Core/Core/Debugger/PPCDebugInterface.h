@@ -12,10 +12,16 @@
 #include "Common/DebugInterface.h"
 #include "Core/NetworkCaptureLogger.h"
 
-class PPCPatches : public Common::Debug::MemoryPatches
+void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch, bool store_existing_value = true);
+
+class PPCPatches final : public Common::Debug::MemoryPatches
 {
+public:
+  void ApplyExistingPatch(std::size_t index) override;
+
 private:
   void Patch(std::size_t index) override;
+  void UnPatch(std::size_t index) override;
 };
 
 // wrapper between disasm control and Dolphin debugger
@@ -34,6 +40,7 @@ public:
   void UpdateWatch(std::size_t index, u32 address, std::string name) override;
   void UpdateWatchAddress(std::size_t index, u32 address) override;
   void UpdateWatchName(std::size_t index, std::string name) override;
+  void UpdateWatchLockedState(std::size_t index, bool locked) override;
   void EnableWatch(std::size_t index) override;
   void DisableWatch(std::size_t index) override;
   bool HasEnabledWatch(u32 address) const override;
@@ -45,6 +52,8 @@ public:
   // Memory Patches
   void SetPatch(u32 address, u32 value) override;
   void SetPatch(u32 address, std::vector<u8> value) override;
+  void SetFramePatch(u32 address, u32 value) override;
+  void SetFramePatch(u32 address, std::vector<u8> value) override;
   const std::vector<Common::Debug::MemoryPatch>& GetPatches() const override;
   void UnsetPatch(u32 address) override;
   void EnablePatch(std::size_t index) override;
@@ -52,6 +61,7 @@ public:
   bool HasEnabledPatch(u32 address) const override;
   void RemovePatch(std::size_t index) override;
   void ClearPatches() override;
+  void ApplyExistingPatch(std::size_t index) override;
 
   // Threads
   Common::Debug::Threads GetThreads() const override;

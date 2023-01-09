@@ -32,6 +32,7 @@ public:
   virtual void UpdateWatch(std::size_t index, u32 address, std::string name) = 0;
   virtual void UpdateWatchAddress(std::size_t index, u32 address) = 0;
   virtual void UpdateWatchName(std::size_t index, std::string name) = 0;
+  virtual void UpdateWatchLockedState(std::size_t index, bool locked) = 0;
   virtual void EnableWatch(std::size_t index) = 0;
   virtual void DisableWatch(std::size_t index) = 0;
   virtual bool HasEnabledWatch(u32 address) const = 0;
@@ -43,6 +44,8 @@ public:
   // Memory Patches
   virtual void SetPatch(u32 address, u32 value) = 0;
   virtual void SetPatch(u32 address, std::vector<u8> value) = 0;
+  virtual void SetFramePatch(u32 address, u32 value) = 0;
+  virtual void SetFramePatch(u32 address, std::vector<u8> value) = 0;
   virtual const std::vector<Debug::MemoryPatch>& GetPatches() const = 0;
   virtual void UnsetPatch(u32 address) = 0;
   virtual void EnablePatch(std::size_t index) = 0;
@@ -50,6 +53,7 @@ public:
   virtual bool HasEnabledPatch(u32 address) const = 0;
   virtual void RemovePatch(std::size_t index) = 0;
   virtual void ClearPatches() = 0;
+  virtual void ApplyExistingPatch(std::size_t index) = 0;
 
   // Threads
   virtual Debug::Threads GetThreads() const = 0;
