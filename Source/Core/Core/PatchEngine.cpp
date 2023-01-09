@@ -13,6 +13,7 @@
 #include <map>
 #include <mutex>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -262,7 +263,7 @@ static void ApplyPatches(const std::vector<Patch>& patches)
   }
 }
 
-static void ApplyMemoryPatches(const std::vector<std::size_t>& memory_patch_indices)
+static void ApplyMemoryPatches(std::span<const std::size_t> memory_patch_indices)
 {
   std::lock_guard lock(s_on_frame_memory_mutex);
   for (std::size_t index : memory_patch_indices)
