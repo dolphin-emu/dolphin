@@ -320,7 +320,7 @@ bool ApplyFramePatches()
     DEBUG_LOG_FMT(ACTIONREPLAY,
                   "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
                   "MSR = {:#010x}",
-                  PC, MSR.Hex);
+                  PowerPC::ppcState.pc, MSR.Hex);
     return false;
   }
 

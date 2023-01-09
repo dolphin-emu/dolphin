@@ -81,7 +81,7 @@ void CachedInterpreter::ExecuteOneBlock()
   const u8* normal_entry = m_block_cache.Dispatch();
   if (!normal_entry)
   {
-    Jit(PC);
+    Jit(PowerPC::ppcState.pc);
     return;
   }
 
@@ -136,7 +136,7 @@ void CachedInterpreter::SingleStep()
 
 static void EndBlock(UGeckoInstruction data)
 {
-  PC = NPC;
+  PowerPC::ppcState.pc = NPC;
   PowerPC::ppcState.downcount -= data.hex;
   PowerPC::UpdatePerformanceMonitor(data.hex, 0, 0);
 }
@@ -153,7 +153,7 @@ static void UpdateNumFloatingPointInstructions(UGeckoInstruction data)
 
 static void WritePC(UGeckoInstruction data)
 {
-  PC = data.hex;
+  PowerPC::ppcState.pc = data.hex;
   NPC = data.hex + 4;
 }
 
@@ -239,7 +239,8 @@ void CachedInterpreter::Jit(u32 address)
     ClearCache();
   }
 
-  const u32 nextPC = analyzer.Analyze(PC, &code_block, &m_code_buffer, m_code_buffer.size());
+  const u32 nextPC =
+      analyzer.Analyze(PowerPC::ppcState.pc, &code_block, &m_code_buffer, m_code_buffer.size());
   if (code_block.m_memory_exception)
   {
     // Address of instruction could not be translated
@@ -250,9 +251,9 @@ void CachedInterpreter::Jit(u32 address)
     return;
   }
 
-  JitBlock* b = m_block_cache.AllocateBlock(PC);
+  JitBlock* b = m_block_cache.AllocateBlock(PowerPC::ppcState.pc);
 
-  js.blockStart = PC;
+  js.blockStart = PowerPC::ppcState.pc;
   js.firstFPInstructionFound = false;
   js.fifoBytesSinceCheck = 0;
   js.downcountAmount = 0;

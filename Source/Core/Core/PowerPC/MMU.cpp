@@ -270,7 +270,7 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
     return bswap(value);
   }
 
-  PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, PC);
+  PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, PowerPC::ppcState.pc);
   if (Core::System::GetInstance().IsPauseOnPanicMode())
   {
     CPU::Break();
@@ -459,7 +459,7 @@ static void WriteToHardware(Core::System& system, Memory::MemoryManager& memory,
     return;
   }
 
-  PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, PC);
+  PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, PowerPC::ppcState.pc);
   if (Core::System::GetInstance().IsPauseOnPanicMode())
   {
     CPU::Break();
@@ -578,7 +578,7 @@ static void Memcheck(u32 address, u64 var, bool write, size_t size)
 
   mc->num_hits++;
 
-  const bool pause = mc->Action(&debug_interface, var, address, write, size, PC);
+  const bool pause = mc->Action(&debug_interface, var, address, write, size, PowerPC::ppcState.pc);
   if (!pause)
     return;
 
@@ -1365,7 +1365,7 @@ static void GenerateDSIException(u32 effective_address, bool write)
   if (!Core::System::GetInstance().IsMMUMode())
   {
     PanicAlertFmt("Invalid {} {:#010x}, PC = {:#010x}", write ? "write to" : "read from",
-                  effective_address, PC);
+                  effective_address, PowerPC::ppcState.pc);
     if (Core::System::GetInstance().IsPauseOnPanicMode())
     {
       CPU::Break();
@@ -1393,7 +1393,7 @@ static void GenerateISIException(u32 effective_address)
   NPC = effective_address;
 
   PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
-  WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", PC);
+  WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", PowerPC::ppcState.pc);
 }
 
 void SDRUpdated()

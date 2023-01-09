@@ -167,11 +167,11 @@ CodeViewWidget::CodeViewWidget()
           &CodeViewWidget::FontBasedSizing);
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
-    m_address = PC;
+    m_address = PowerPC::ppcState.pc;
     Update();
   });
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    m_address = PC;
+    m_address = PowerPC::ppcState.pc;
     Update();
   });
 
@@ -567,9 +567,9 @@ void CodeViewWidget::OnContextMenu()
       menu->addAction(tr("Restore instruction"), this, &CodeViewWidget::OnRestoreInstruction);
 
   QString target;
-  if (addr == PC && running && Core::GetState() == Core::State::Paused)
+  if (addr == PowerPC::ppcState.pc && running && Core::GetState() == Core::State::Paused)
   {
-    const std::string line = PowerPC::debug_interface.Disassemble(PC);
+    const std::string line = PowerPC::debug_interface.Disassemble(PowerPC::ppcState.pc);
     const auto target_it = std::find(line.begin(), line.end(), '\t');
     const auto target_end = std::find(target_it, line.end(), ',');
 

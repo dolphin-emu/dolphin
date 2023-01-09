@@ -504,16 +504,16 @@ static void ImHere()
     if (!f)
       f.Open("log64.txt", "w");
 
-    f.WriteString(fmt::format("{0:08x}\n", PC));
+    f.WriteString(fmt::format("{0:08x}\n", PowerPC::ppcState.pc));
   }
-  if (been_here.find(PC) != been_here.end())
+  if (been_here.find(PowerPC::ppcState.pc) != been_here.end())
   {
-    been_here.find(PC)->second++;
-    if ((been_here.find(PC)->second) & 1023)
+    been_here.find(PowerPC::ppcState.pc)->second++;
+    if ((been_here.find(PowerPC::ppcState.pc)->second) & 1023)
       return;
   }
-  INFO_LOG_FMT(DYNA_REC, "I'm here - PC = {:08x} , LR = {:08x}", PC, LR);
-  been_here[PC] = 1;
+  INFO_LOG_FMT(DYNA_REC, "I'm here - PC = {:08x} , LR = {:08x}", PowerPC::ppcState.pc, LR);
+  been_here[PowerPC::ppcState.pc] = 1;
 }
 
 bool Jit64::Cleanup()
@@ -758,7 +758,8 @@ void Jit64::Trace()
   DEBUG_LOG_FMT(DYNA_REC,
                 "JIT64 PC: {:08x} SRR0: {:08x} SRR1: {:08x} FPSCR: {:08x} "
                 "MSR: {:08x} LR: {:08x} {} {}",
-                PC, SRR0, SRR1, FPSCR.Hex, MSR.Hex, PowerPC::ppcState.spr[8], regs, fregs);
+                PowerPC::ppcState.pc, SRR0, SRR1, FPSCR.Hex, MSR.Hex, PowerPC::ppcState.spr[8],
+                regs, fregs);
 }
 
 void Jit64::Jit(u32 em_address)

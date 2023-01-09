@@ -57,10 +57,10 @@ void PresetTimeBaseTicks()
 
 void CBoot::RunFunction(u32 address)
 {
-  PC = address;
+  PowerPC::ppcState.pc = address;
   LR = 0x00;
 
-  while (PC != 0x00)
+  while (PowerPC::ppcState.pc != 0x00)
     PowerPC::SingleStep();
 }
 
@@ -206,7 +206,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
   HLE::UnPatch("AppLoaderReport");
 
   // return
-  PC = PowerPC::ppcState.gpr[3];
+  PowerPC::ppcState.pc = PowerPC::ppcState.gpr[3];
 
   return true;
 }

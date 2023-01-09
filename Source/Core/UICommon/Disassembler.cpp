@@ -6,9 +6,6 @@
 #include <sstream>
 
 #if defined(HAVE_LLVM)
-// PowerPC.h defines PC.
-// This conflicts with a function that has an argument named PC
-#undef PC
 #include <fmt/format.h>
 #include <llvm-c/Disassembler.h>
 #include <llvm-c/Target.h>

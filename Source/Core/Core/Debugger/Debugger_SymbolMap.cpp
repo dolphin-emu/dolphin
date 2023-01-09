@@ -106,7 +106,7 @@ void PrintCallstack(Common::Log::LogType type, Common::Log::LogLevel level)
     GENERIC_LOG_FMT(type, level, " LR = 0 - this is bad");
   }
 
-  if (g_symbolDB.GetDescription(PC) != g_symbolDB.GetDescription(LR))
+  if (g_symbolDB.GetDescription(PowerPC::ppcState.pc) != g_symbolDB.GetDescription(LR))
   {
     GENERIC_LOG_FMT(type, level, " * {}  [ LR = {:08x} ]", g_symbolDB.GetDescription(LR), LR);
   }

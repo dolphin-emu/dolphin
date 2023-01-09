@@ -73,8 +73,8 @@ bool IsInvalidPairedSingleExecution(UGeckoInstruction inst)
 
 void UpdatePC()
 {
-  last_pc = PC;
-  PC = NPC;
+  last_pc = PowerPC::ppcState.pc;
+  PowerPC::ppcState.pc = NPC;
 }
 }  // Anonymous namespace
 
@@ -126,12 +126,13 @@ static void Trace(const UGeckoInstruction& inst)
     fregs += fmt::format("f{:02d}: {:08x} {:08x} ", i, ps.PS0AsU64(), ps.PS1AsU64());
   }
 
-  const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, PC);
+  const std::string ppc_inst =
+      Common::GekkoDisassembler::Disassemble(inst.hex, PowerPC::ppcState.pc);
   DEBUG_LOG_FMT(POWERPC,
                 "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
                 "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
-                PC, SRR0, SRR1, PowerPC::ppcState.cr.fields[0], FPSCR.Hex, MSR.Hex,
-                PowerPC::ppcState.spr[8], regs, inst.hex, ppc_inst);
+                PowerPC::ppcState.pc, SRR0, SRR1, PowerPC::ppcState.cr.fields[0], FPSCR.Hex,
+                MSR.Hex, PowerPC::ppcState.spr[8], regs, inst.hex, ppc_inst);
 }
 
 bool Interpreter::HandleFunctionHooking(u32 address)
@@ -144,20 +145,25 @@ bool Interpreter::HandleFunctionHooking(u32 address)
 
 int Interpreter::SingleStepInner()
 {
-  if (HandleFunctionHooking(PC))
+  if (HandleFunctionHooking(PowerPC::ppcState.pc))
   {
     UpdatePC();
     return PPCTables::GetOpInfo(m_prev_inst)->numCycles;
   }
 
-  NPC = PC + sizeof(UGeckoInstruction);
-  m_prev_inst.hex = PowerPC::Read_Opcode(PC);
+  NPC = PowerPC::ppcState.pc + sizeof(UGeckoInstruction);
+  m_prev_inst.hex = PowerPC::Read_Opcode(PowerPC::ppcState.pc);
 
   // Uncomment to trace the interpreter
-  // if ((PC & 0x00FFFFFF) >= 0x000AB54C && (PC & 0x00FFFFFF) <= 0x000AB624)
+  // if ((PowerPC::ppcState.pc & 0x00FFFFFF) >= 0x000AB54C &&
+  //     (PowerPC::ppcState.pc & 0x00FFFFFF) <= 0x000AB624)
+  // {
   //   s_start_trace = true;
+  // }
   // else
+  // {
   //   s_start_trace = false;
+  // }
 
   if (s_start_trace)
   {
@@ -228,7 +234,7 @@ void Interpreter::SingleStep()
   if (PowerPC::ppcState.Exceptions != 0)
   {
     PowerPC::CheckExceptions();
-    PC = NPC;
+    PowerPC::ppcState.pc = NPC;
   }
 }
 
@@ -256,7 +262,7 @@ void Interpreter::Run()
     if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
     {
 #ifdef SHOW_HISTORY
-      s_pc_block_vec.push_back(PC);
+      s_pc_block_vec.push_back(PowerPC::ppcState.pc);
       if (s_pc_block_vec.size() > s_show_blocks)
         s_pc_block_vec.erase(s_pc_block_vec.begin());
 #endif
@@ -270,13 +276,13 @@ void Interpreter::Run()
         while (!m_end_block)
         {
 #ifdef SHOW_HISTORY
-          s_pc_vec.push_back(PC);
+          s_pc_vec.push_back(PowerPC::ppcState.pc);
           if (s_pc_vec.size() > s_show_steps)
             s_pc_vec.erase(s_pc_vec.begin());
 #endif
 
           // 2: check for breakpoint
-          if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+          if (PowerPC::breakpoints.IsAddressBreakPoint(PowerPC::ppcState.pc))
           {
 #ifdef SHOW_HISTORY
             NOTICE_LOG_FMT(POWERPC, "----------------------------");
@@ -297,12 +303,12 @@ void Interpreter::Run()
               NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", s_pc_vec[j]);
             }
 #endif
-            INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", PC);
+            INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", PowerPC::ppcState.pc);
             CPU::Break();
             if (GDBStub::IsActive())
               GDBStub::TakeControl();
-            if (PowerPC::breakpoints.IsTempBreakPoint(PC))
-              PowerPC::breakpoints.Remove(PC);
+            if (PowerPC::breakpoints.IsTempBreakPoint(PowerPC::ppcState.pc))
+              PowerPC::breakpoints.Remove(PowerPC::ppcState.pc);
 
             Host_UpdateDisasmDialog();
             return;
@@ -339,7 +345,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   NOTICE_LOG_FMT(
       POWERPC,
       "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
-      inst.hex, PC, last_pc, LR);
+      inst.hex, PowerPC::ppcState.pc, last_pc, LR);
   for (int i = 0; i < 32; i += 4)
   {
     NOTICE_LOG_FMT(POWERPC, "r{}: {:#010x} r{}: {:#010x} r{}: {:#010x} r{}: {:#010x}", i, rGPR[i],
@@ -347,7 +353,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   }
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
-             inst.hex, PC, last_pc, LR);
+             inst.hex, PowerPC::ppcState.pc, last_pc, LR);
   if (Core::System::GetInstance().IsPauseOnPanicMode())
     CPU::Break();
 }

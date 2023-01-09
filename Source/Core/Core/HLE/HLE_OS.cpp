@@ -37,7 +37,8 @@ void HLE_OSPanic()
   StringPopBackIf(&msg, '\n');
 
   PanicAlertFmt("OSPanic: {}: {}", error, msg);
-  ERROR_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| OSPanic: {}: {}", LR, PC, error, msg);
+  ERROR_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| OSPanic: {}: {}", LR, PowerPC::ppcState.pc, error,
+                msg);
 
   NPC = LR;
 }
@@ -79,7 +80,8 @@ void HLE_GeneralDebugPrint(ParameterType parameter_type)
 
   StringPopBackIf(&report_message, '\n');
 
-  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
+  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PowerPC::ppcState.pc,
+                 SHIFTJISToUTF8(report_message));
 }
 
 // Generalized function for printing formatted string using parameter list.
@@ -115,7 +117,8 @@ void HLE_write_console()
 
   StringPopBackIf(&report_message, '\n');
 
-  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
+  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PowerPC::ppcState.pc,
+                 SHIFTJISToUTF8(report_message));
 }
 
 // Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
@@ -126,7 +129,8 @@ void HLE_LogDPrint(ParameterType parameter_type)
 
   std::string report_message = GetStringVA(4, parameter_type);
   StringPopBackIf(&report_message, '\n');
-  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
+  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PowerPC::ppcState.pc,
+                 SHIFTJISToUTF8(report_message));
 }
 
 // Log dprintf message
@@ -164,7 +168,8 @@ void HLE_LogFPrint(ParameterType parameter_type)
 
   std::string report_message = GetStringVA(4, parameter_type);
   StringPopBackIf(&report_message, '\n');
-  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
+  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PowerPC::ppcState.pc,
+                 SHIFTJISToUTF8(report_message));
 }
 
 // Log fprintf message

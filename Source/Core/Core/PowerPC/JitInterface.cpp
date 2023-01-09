@@ -264,20 +264,21 @@ void CompileExceptionCheck(ExceptionType type)
     break;
   }
 
-  if (PC != 0 && (exception_addresses->find(PC)) == (exception_addresses->end()))
+  if (PowerPC::ppcState.pc != 0 &&
+      (exception_addresses->find(PowerPC::ppcState.pc)) == (exception_addresses->end()))
   {
     if (type == ExceptionType::FIFOWrite)
     {
       // Check in case the code has been replaced since: do we need to do this?
-      const OpType optype = PPCTables::GetOpInfo(PowerPC::HostRead_U32(PC))->type;
+      const OpType optype = PPCTables::GetOpInfo(PowerPC::HostRead_U32(PowerPC::ppcState.pc))->type;
       if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }
-    exception_addresses->insert(PC);
+    exception_addresses->insert(PowerPC::ppcState.pc);
 
     // Invalidate the JIT block so that it gets recompiled with the external exception check
     // included.
-    g_jit->GetBlockCache()->InvalidateICache(PC, 4, true);
+    g_jit->GetBlockCache()->InvalidateICache(PowerPC::ppcState.pc, 4, true);
   }
 }
 

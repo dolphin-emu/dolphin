@@ -168,10 +168,13 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
 
 const u8* JitBaseBlockCache::Dispatch()
 {
-  JitBlock* block = fast_block_map[FastLookupIndexForAddress(PC)];
+  JitBlock* block = fast_block_map[FastLookupIndexForAddress(PowerPC::ppcState.pc)];
 
-  if (!block || block->effectiveAddress != PC || block->msrBits != (MSR.Hex & JIT_CACHE_MSR_MASK))
-    block = MoveBlockIntoFastCache(PC, MSR.Hex & JIT_CACHE_MSR_MASK);
+  if (!block || block->effectiveAddress != PowerPC::ppcState.pc ||
+      block->msrBits != (MSR.Hex & JIT_CACHE_MSR_MASK))
+  {
+    block = MoveBlockIntoFastCache(PowerPC::ppcState.pc, MSR.Hex & JIT_CACHE_MSR_MASK);
+  }
 
   if (!block)
     return nullptr;

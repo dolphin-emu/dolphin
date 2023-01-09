@@ -264,7 +264,7 @@ void Expression::SynchronizeBindings(SynchronizeDirection dir) const
       break;
     case VarBindingType::PCtr:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(PC);
+        v->value = static_cast<double>(PowerPC::ppcState.pc);
       break;
     }
   }

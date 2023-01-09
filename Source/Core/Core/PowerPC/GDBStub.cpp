@@ -429,7 +429,7 @@ static void ReadRegister()
     switch (id)
     {
     case 64:
-      wbe32hex(reply, PC);
+      wbe32hex(reply, PowerPC::ppcState.pc);
       break;
     case 65:
       wbe32hex(reply, MSR.Hex);
@@ -641,7 +641,7 @@ static void WriteRegister()
     switch (id)
     {
     case 64:
-      PC = re32hex(bufptr);
+      PowerPC::ppcState.pc = re32hex(bufptr);
       break;
     case 65:
       MSR.Hex = re32hex(bufptr);
@@ -1122,8 +1122,8 @@ bool JustConnected()
 void SendSignal(Signal signal)
 {
   char bfr[128] = {};
-  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64, PC, 1,
-                 GPR(1));
+  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64,
+                 PowerPC::ppcState.pc, 1, GPR(1));
   SendReply(bfr);
 }
 }  // namespace GDBStub

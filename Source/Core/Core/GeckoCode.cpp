@@ -268,7 +268,7 @@ void RunCodeHandler()
   PowerPC::HostWrite_U32(SP + 8, SP);
   // SP + 4 is reserved for the codehandler to save LR to the stack.
   PowerPC::HostWrite_U32(SFP, SP + 8);  // Real stack frame
-  PowerPC::HostWrite_U32(PC, SP + 12);
+  PowerPC::HostWrite_U32(PowerPC::ppcState.pc, SP + 12);
   PowerPC::HostWrite_U32(LR, SP + 16);
   PowerPC::HostWrite_U32(PowerPC::ppcState.cr.Get(), SP + 20);
   // Registers FPR0->13 are volatile
@@ -280,9 +280,9 @@ void RunCodeHandler()
   DEBUG_LOG_FMT(ACTIONREPLAY,
                 "GeckoCodes: Initiating phantom branch-and-link. "
                 "PC = {:#010x}, SP = {:#010x}, SFP = {:#010x}",
-                PC, SP, SFP);
+                PowerPC::ppcState.pc, SP, SFP);
   LR = HLE_TRAMPOLINE_ADDRESS;
-  PC = NPC = ENTRY_POINT;
+  PowerPC::ppcState.pc = NPC = ENTRY_POINT;
 }
 
 }  // namespace Gecko

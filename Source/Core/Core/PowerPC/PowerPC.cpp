@@ -494,19 +494,19 @@ void CheckExceptions()
     SRR1 = (MSR.Hex & 0x87C0FFFF) | (1 << 30);
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PC = NPC = 0x00000400;
+    PowerPC::ppcState.pc = NPC = 0x00000400;
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_ISI");
     ppcState.Exceptions &= ~EXCEPTION_ISI;
   }
   else if (exceptions & EXCEPTION_PROGRAM)
   {
-    SRR0 = PC;
+    SRR0 = PowerPC::ppcState.pc;
     // SRR1 was partially set by GenerateProgramException, so bitwise or is used here
     SRR1 |= MSR.Hex & 0x87C0FFFF;
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PC = NPC = 0x00000700;
+    PowerPC::ppcState.pc = NPC = 0x00000700;
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_PROGRAM");
     ppcState.Exceptions &= ~EXCEPTION_PROGRAM;
@@ -517,19 +517,19 @@ void CheckExceptions()
     SRR1 = MSR.Hex & 0x87C0FFFF;
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PC = NPC = 0x00000C00;
+    PowerPC::ppcState.pc = NPC = 0x00000C00;
 
-    DEBUG_LOG_FMT(POWERPC, "EXCEPTION_SYSCALL (PC={:08x})", PC);
+    DEBUG_LOG_FMT(POWERPC, "EXCEPTION_SYSCALL (PC={:08x})", PowerPC::ppcState.pc);
     ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
   }
   else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
   {
     // This happens a lot - GameCube OS uses deferred FPU context switching
-    SRR0 = PC;  // re-execute the instruction
+    SRR0 = PowerPC::ppcState.pc;  // re-execute the instruction
     SRR1 = MSR.Hex & 0x87C0FFFF;
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PC = NPC = 0x00000800;
+    PowerPC::ppcState.pc = NPC = 0x00000800;
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
     ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
@@ -540,11 +540,11 @@ void CheckExceptions()
   }
   else if (exceptions & EXCEPTION_DSI)
   {
-    SRR0 = PC;
+    SRR0 = PowerPC::ppcState.pc;
     SRR1 = MSR.Hex & 0x87C0FFFF;
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PC = NPC = 0x00000300;
+    PowerPC::ppcState.pc = NPC = 0x00000300;
     // DSISR and DAR regs are changed in GenerateDSIException()
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_DSI");
@@ -552,11 +552,11 @@ void CheckExceptions()
   }
   else if (exceptions & EXCEPTION_ALIGNMENT)
   {
-    SRR0 = PC;
+    SRR0 = PowerPC::ppcState.pc;
     SRR1 = MSR.Hex & 0x87C0FFFF;
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PC = NPC = 0x00000600;
+    PowerPC::ppcState.pc = NPC = 0x00000600;
 
     // TODO crazy amount of DSISR options to check out
 
@@ -586,7 +586,7 @@ void CheckExternalExceptions()
       SRR1 = MSR.Hex & 0x87C0FFFF;
       MSR.LE = MSR.ILE;
       MSR.Hex &= ~0x04EF36;
-      PC = NPC = 0x00000500;
+      PowerPC::ppcState.pc = NPC = 0x00000500;
 
       DEBUG_LOG_FMT(POWERPC, "EXCEPTION_EXTERNAL_INT");
       ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
@@ -599,7 +599,7 @@ void CheckExternalExceptions()
       SRR1 = MSR.Hex & 0x87C0FFFF;
       MSR.LE = MSR.ILE;
       MSR.Hex &= ~0x04EF36;
-      PC = NPC = 0x00000F00;
+      PowerPC::ppcState.pc = NPC = 0x00000F00;
 
       DEBUG_LOG_FMT(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
       ppcState.Exceptions &= ~EXCEPTION_PERFORMANCE_MONITOR;
@@ -610,7 +610,7 @@ void CheckExternalExceptions()
       SRR1 = MSR.Hex & 0x87C0FFFF;
       MSR.LE = MSR.ILE;
       MSR.Hex &= ~0x04EF36;
-      PC = NPC = 0x00000900;
+      PowerPC::ppcState.pc = NPC = 0x00000900;
 
       DEBUG_LOG_FMT(POWERPC, "EXCEPTION_DECREMENTER");
       ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
@@ -626,7 +626,7 @@ void CheckExternalExceptions()
 
 void CheckBreakPoints()
 {
-  const TBreakPoint* bp = PowerPC::breakpoints.GetBreakpoint(PC);
+  const TBreakPoint* bp = PowerPC::breakpoints.GetBreakpoint(PowerPC::ppcState.pc);
 
   if (!bp || !bp->is_enabled || !EvaluateCondition(bp->condition))
     return;
@@ -642,11 +642,11 @@ void CheckBreakPoints()
     NOTICE_LOG_FMT(MEMMAP,
                    "BP {:08x} {}({:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} "
                    "{:08x}) LR={:08x}",
-                   PC, g_symbolDB.GetDescription(PC), GPR(3), GPR(4), GPR(5), GPR(6), GPR(7),
-                   GPR(8), GPR(9), GPR(10), GPR(11), GPR(12), LR);
+                   PowerPC::ppcState.pc, g_symbolDB.GetDescription(PowerPC::ppcState.pc), GPR(3),
+                   GPR(4), GPR(5), GPR(6), GPR(7), GPR(8), GPR(9), GPR(10), GPR(11), GPR(12), LR);
   }
-  if (PowerPC::breakpoints.IsTempBreakPoint(PC))
-    PowerPC::breakpoints.Remove(PC);
+  if (PowerPC::breakpoints.IsTempBreakPoint(PowerPC::ppcState.pc))
+    PowerPC::breakpoints.Remove(PowerPC::ppcState.pc);
 }
 
 void PowerPCState::SetSR(u32 index, u32 value)

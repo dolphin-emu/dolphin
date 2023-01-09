@@ -60,7 +60,7 @@ InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& ins
   // decision has to be made, otherwise used afterwards on a log file.
   InstructionAttributes tmp_attributes;
   tmp_attributes.instruction = instruction.instruction;
-  tmp_attributes.address = PC;
+  tmp_attributes.address = PowerPC::ppcState.pc;
   std::string instr = instruction.instruction;
   std::smatch match;
 
@@ -108,9 +108,9 @@ TraceOutput CodeTrace::SaveCurrentInstruction() const
 {
   // Quickly save instruction and memory target for fast logging.
   TraceOutput output;
-  const std::string instr = PowerPC::debug_interface.Disassemble(PC);
+  const std::string instr = PowerPC::debug_interface.Disassemble(PowerPC::ppcState.pc);
   output.instruction = instr;
-  output.address = PC;
+  output.address = PowerPC::ppcState.pc;
 
   if (IsInstructionLoadStore(output.instruction))
     output.memory_target = PowerPC::debug_interface.GetMemoryAddressFromInstruction(instr);
