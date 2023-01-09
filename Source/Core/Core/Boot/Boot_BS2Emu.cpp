@@ -91,9 +91,9 @@ void CBoot::SetupHID(bool is_wii)
 
   // HID1 is initialized in PowerPC.cpp to 0x80000000
   // HID2 is 0xe0000000
-  HID2.PSE = 1;
-  HID2.WPE = 1;
-  HID2.LSQE = 1;
+  HID2(PowerPC::ppcState).PSE = 1;
+  HID2(PowerPC::ppcState).WPE = 1;
+  HID2(PowerPC::ppcState).LSQE = 1;
 
   // HID4 is 0 on GC and 0x83900000 on Wii
   if (is_wii)

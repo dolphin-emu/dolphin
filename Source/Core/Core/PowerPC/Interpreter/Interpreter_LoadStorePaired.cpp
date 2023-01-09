@@ -310,7 +310,7 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
 
 void Interpreter::psq_l(UGeckoInstruction inst)
 {
-  if (HID2.LSQE == 0)
+  if (HID2(PowerPC::ppcState).LSQE == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
@@ -322,7 +322,7 @@ void Interpreter::psq_l(UGeckoInstruction inst)
 
 void Interpreter::psq_lu(UGeckoInstruction inst)
 {
-  if (HID2.LSQE == 0)
+  if (HID2(PowerPC::ppcState).LSQE == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
@@ -341,7 +341,7 @@ void Interpreter::psq_lu(UGeckoInstruction inst)
 
 void Interpreter::psq_st(UGeckoInstruction inst)
 {
-  if (HID2.LSQE == 0)
+  if (HID2(PowerPC::ppcState).LSQE == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
@@ -353,7 +353,7 @@ void Interpreter::psq_st(UGeckoInstruction inst)
 
 void Interpreter::psq_stu(UGeckoInstruction inst)
 {
-  if (HID2.LSQE == 0)
+  if (HID2(PowerPC::ppcState).LSQE == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;

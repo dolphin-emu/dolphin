@@ -525,7 +525,7 @@ void Interpreter::dcbz(UGeckoInstruction inst)
 
 void Interpreter::dcbz_l(UGeckoInstruction inst)
 {
-  if (!HID2.LCE)
+  if (!HID2(PowerPC::ppcState).LCE)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;

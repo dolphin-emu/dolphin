@@ -64,10 +64,11 @@ bool IsPairedSingleInstruction(UGeckoInstruction inst)
 // but HID2.LSQE is not set.
 bool IsInvalidPairedSingleExecution(UGeckoInstruction inst)
 {
-  if (!HID2.PSE && IsPairedSingleInstruction(inst))
+  if (!HID2(PowerPC::ppcState).PSE && IsPairedSingleInstruction(inst))
     return true;
 
-  return HID2.PSE && !HID2.LSQE && IsPairedSingleQuantizedNonIndexedInstruction(inst);
+  return HID2(PowerPC::ppcState).PSE && !HID2(PowerPC::ppcState).LSQE &&
+         IsPairedSingleQuantizedNonIndexedInstruction(inst);
 }
 
 void UpdatePC()
