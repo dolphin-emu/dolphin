@@ -394,17 +394,17 @@ u32 InstructionCache::ReadInstruction(u32 addr)
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
-  if (!HID0.ICE || m_disable_icache)  // instruction cache is disabled
+  if (!HID0(PowerPC::ppcState).ICE || m_disable_icache)  // instruction cache is disabled
     return memory.Read_U32(addr);
 
   u32 value;
-  Read(addr, &value, sizeof(value), HID0.ILOCK);
+  Read(addr, &value, sizeof(value), HID0(PowerPC::ppcState).ILOCK);
   return Common::swap32(value);
 }
 
 void InstructionCache::Invalidate(u32 addr)
 {
-  if (!HID0.ICE || m_disable_icache)
+  if (!HID0(PowerPC::ppcState).ICE || m_disable_icache)
     return;
 
   // Invalidates the whole set

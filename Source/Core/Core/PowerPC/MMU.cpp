@@ -235,7 +235,7 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
     else
     {
       ppcState.dCache.Read(em_address, &value, sizeof(T),
-                           HID0.DLOCK || flag != XCheckTLBFlag::Read);
+                           HID0(PowerPC::ppcState).DLOCK || flag != XCheckTLBFlag::Read);
     }
 
     return bswap(value);
@@ -254,7 +254,7 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
     else
     {
       ppcState.dCache.Read(em_address + 0x10000000, &value, sizeof(T),
-                           HID0.DLOCK || flag != XCheckTLBFlag::Read);
+                           HID0(PowerPC::ppcState).DLOCK || flag != XCheckTLBFlag::Read);
     }
 
     return bswap(value);
@@ -425,7 +425,7 @@ static void WriteToHardware(Core::System& system, Memory::MemoryManager& memory,
     em_address &= memory.GetRamMask();
 
     if (ppcState.m_enable_dcache && !wi)
-      ppcState.dCache.Write(em_address, &swapped_data, size, HID0.DLOCK);
+      ppcState.dCache.Write(em_address, &swapped_data, size, HID0(PowerPC::ppcState).DLOCK);
 
     if (!ppcState.m_enable_dcache || wi || flag != XCheckTLBFlag::Write)
       std::memcpy(&memory.GetRAM()[em_address], &swapped_data, size);
@@ -439,7 +439,10 @@ static void WriteToHardware(Core::System& system, Memory::MemoryManager& memory,
     em_address &= 0x0FFFFFFF;
 
     if (ppcState.m_enable_dcache && !wi)
-      ppcState.dCache.Write(em_address + 0x10000000, &swapped_data, size, HID0.DLOCK);
+    {
+      ppcState.dCache.Write(em_address + 0x10000000, &swapped_data, size,
+                            HID0(PowerPC::ppcState).DLOCK);
+    }
 
     if (!ppcState.m_enable_dcache || wi || flag != XCheckTLBFlag::Write)
       std::memcpy(&memory.GetEXRAM()[em_address], &swapped_data, size);

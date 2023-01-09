@@ -325,18 +325,20 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   {
     UReg_HID0 old_hid0;
     old_hid0.Hex = old_value;
-    if (HID0.ICE != old_hid0.ICE)
+    if (HID0(PowerPC::ppcState).ICE != old_hid0.ICE)
     {
-      INFO_LOG_FMT(POWERPC, "Instruction Cache Enable (HID0.ICE) = {}", HID0.ICE);
+      INFO_LOG_FMT(POWERPC, "Instruction Cache Enable (HID0.ICE) = {}",
+                   HID0(PowerPC::ppcState).ICE);
     }
-    if (HID0.ILOCK != old_hid0.ILOCK)
+    if (HID0(PowerPC::ppcState).ILOCK != old_hid0.ILOCK)
     {
-      INFO_LOG_FMT(POWERPC, "Instruction Cache Lock (HID0.ILOCK) = {}", HID0.ILOCK);
+      INFO_LOG_FMT(POWERPC, "Instruction Cache Lock (HID0.ILOCK) = {}",
+                   HID0(PowerPC::ppcState).ILOCK);
     }
-    if (HID0.ICFI)
+    if (HID0(PowerPC::ppcState).ICFI)
     {
-      HID0.ICFI = 0;
-      INFO_LOG_FMT(POWERPC, "Flush Instruction Cache! ICE={}", HID0.ICE);
+      HID0(PowerPC::ppcState).ICFI = 0;
+      INFO_LOG_FMT(POWERPC, "Flush Instruction Cache! ICE={}", HID0(PowerPC::ppcState).ICE);
       // this is rather slow
       // most games do it only once during initialization
       PowerPC::ppcState.iCache.Reset();

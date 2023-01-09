@@ -235,7 +235,7 @@ void WriteFullTimeBaseValue(u64 value);
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 
 // Easy register access macros.
-#define HID0 ((UReg_HID0&)PowerPC::ppcState.spr[SPR_HID0])
+#define HID0(ppc_state) ((UReg_HID0&)(ppc_state).spr[SPR_HID0])
 #define HID2 ((UReg_HID2&)PowerPC::ppcState.spr[SPR_HID2])
 #define HID4 ((UReg_HID4&)PowerPC::ppcState.spr[SPR_HID4])
 #define DMAU (*(UReg_DMAU*)&PowerPC::ppcState.spr[SPR_DMAU])

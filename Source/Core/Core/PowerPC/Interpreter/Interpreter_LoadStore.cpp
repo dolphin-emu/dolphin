@@ -503,7 +503,7 @@ void Interpreter::dcbz(UGeckoInstruction inst)
 {
   const u32 dcbz_addr = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if (!HID0.DCE)
+  if (!HID0(PowerPC::ppcState).DCE)
   {
     GenerateAlignmentException(dcbz_addr);
     return;
@@ -533,7 +533,7 @@ void Interpreter::dcbz_l(UGeckoInstruction inst)
 
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if (!HID0.DCE)
+  if (!HID0(PowerPC::ppcState).DCE)
   {
     GenerateAlignmentException(address);
     return;
