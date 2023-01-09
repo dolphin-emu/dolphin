@@ -395,59 +395,59 @@ int do_general_read(lua_State* luaState) // format is: 1st argument after object
   const char* typeString = luaL_checkstring(luaState, 2);
   u32 address = luaL_checkinteger(luaState, 3);
 
-  switch (ByteWrapper::parseType(typeString))
+  switch (parseType(typeString))
   {
-    case ByteWrapper::ByteType::UNSIGNED_8:
+  case NumberType::UNSIGNED_8:
       u8Val = read_u8(luaState, address);
       lua_pushinteger(luaState, static_cast<lua_Integer>(u8Val));
       return 1;
 
-    case ByteWrapper::ByteType::UNSIGNED_16:
+    case NumberType::UNSIGNED_16:
       u16Val = read_u16(luaState, address);
       lua_pushinteger(luaState, static_cast<lua_Integer>(u16Val));
       return 1;
 
-    case ByteWrapper::ByteType::UNSIGNED_32:
+    case NumberType::UNSIGNED_32:
       u32Val = read_u32(luaState, address);
       lua_pushinteger(luaState, static_cast<lua_Integer>(u32Val));
       return 1;
 
-    case ByteWrapper::ByteType::UNSIGNED_64:
+    case NumberType::UNSIGNED_64:
       u64Val = read_u64(luaState, address);
       lua_pushnumber(luaState, static_cast<lua_Number>(u64Val));
       return 1;
 
-    case ByteWrapper::ByteType::SIGNED_8:
+    case NumberType::SIGNED_8:
       s8Val = read_s8(luaState, address);
       lua_pushinteger(luaState, static_cast<lua_Integer>(s8Val));
       return 1;
 
-    case ByteWrapper::ByteType::SIGNED_16:
+    case NumberType::SIGNED_16:
       s16Val = read_s16(luaState, address);
       lua_pushinteger(luaState, static_cast<lua_Integer>(s16Val));
       return 1;
 
-    case ByteWrapper::ByteType::SIGNED_32:
+    case NumberType::SIGNED_32:
       s32Val = read_s32(luaState, address);
       lua_pushinteger(luaState, static_cast<lua_Integer>(s32Val));
       return 1;
 
-    case ByteWrapper::ByteType::SIGNED_64:
+    case NumberType::SIGNED_64:
       s64Val = read_s64(luaState, address);
       lua_pushnumber(luaState, static_cast<lua_Number>(s64Val));
       return 1;
 
-    case ByteWrapper::ByteType::FLOAT:
+    case NumberType::FLOAT:
       floatVal = read_float(luaState, address);
       lua_pushnumber(luaState, static_cast<lua_Number>(floatVal));
       return 1;
 
-    case ByteWrapper::ByteType::DOUBLE:
+    case NumberType::DOUBLE:
       doubleVal = read_double(luaState, address);
       lua_pushnumber(luaState, static_cast<lua_Number>(doubleVal));
       return 1;
 
-    case ByteWrapper::ByteType::WRAPPER:
+    case NumberType::WRAPPER:
       byteWrapperSize = luaL_checkinteger(luaState, 4);
       if (byteWrapperSize != 8 && byteWrapperSize != 4 && byteWrapperSize != 2 && byteWrapperSize != 1)
       {
@@ -544,59 +544,59 @@ int do_general_write(lua_State* luaState)
   const char* typeString = luaL_checkstring(luaState, 2);
   u32 address = luaL_checkinteger(luaState, 3);
 
-  switch (ByteWrapper::parseType(typeString))
+  switch (parseType(typeString))
   {
-  case ByteWrapper::ByteType::UNSIGNED_8:
+  case NumberType::UNSIGNED_8:
     u8Val = luaL_checkinteger(luaState, 4);
     write_u8(luaState, address, u8Val);
     return 0;
 
-  case ByteWrapper::ByteType::SIGNED_8:
+  case NumberType::SIGNED_8:
     s8Val = luaL_checkinteger(luaState, 4);
     write_s8(luaState, address, s8Val);
     return 0;
 
-  case ByteWrapper::ByteType::UNSIGNED_16:
+  case NumberType::UNSIGNED_16:
     u16Val = luaL_checkinteger(luaState, 4);
     write_u16(luaState, address, u16Val);
     return 0;
 
-  case ByteWrapper::ByteType::SIGNED_16:
+  case NumberType::SIGNED_16:
     s16Val = luaL_checkinteger(luaState, 4);
     write_s16(luaState, address, s16Val);
     return 0;
 
-  case ByteWrapper::ByteType::UNSIGNED_32:
+  case NumberType::UNSIGNED_32:
     u32Val = luaL_checkinteger(luaState, 4);
     write_u32(luaState, address, u32Val);
     return 0;
 
-  case ByteWrapper::ByteType::SIGNED_32:
+  case NumberType::SIGNED_32:
     s32Val = luaL_checkinteger(luaState, 4);
     write_s32(luaState, address, s32Val);
     return 0;
 
-  case ByteWrapper::ByteType::FLOAT:
+  case NumberType::FLOAT:
     floatVal = luaL_checknumber(luaState, 4);
     write_float(luaState, address, floatVal);
     return 0;
 
-  case ByteWrapper::ByteType::UNSIGNED_64:
+  case NumberType::UNSIGNED_64:
     u64Val = luaL_checknumber(luaState, 4);
     write_u64(luaState, address, u64Val);
     return 0;
 
-  case ByteWrapper::ByteWrapper::SIGNED_64:
+  case NumberType::SIGNED_64:
     s64Val = luaL_checknumber(luaState, 4);
     write_s64(luaState, address, s64Val);
     return 0;
 
-  case ByteWrapper::ByteType::DOUBLE:
+  case NumberType::DOUBLE:
     doubleVal = luaL_checknumber(luaState, 4);
     write_double(luaState, address, doubleVal);
     return 0;
 
-  case ByteWrapper::ByteType::WRAPPER:
+  case NumberType::WRAPPER:
     byteWrapperPointer = (*reinterpret_cast<ByteWrapper**>(luaL_checkudata(luaState, 4, LuaByteWrapper::LUA_BYTE_WRAPPER)));
     // If the 5th argument is present, then we use this integer as the number of bytes to write from the ByteWrapper.
     // Otherwise, we write out the full number of bytes stored in the ByteWrapper.

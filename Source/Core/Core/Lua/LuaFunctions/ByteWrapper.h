@@ -3,6 +3,7 @@
 #include "common/CommonTypes.h"
 #include <stdexcept>
 #include <format>
+#include "NumberType.h"
 
 extern "C" {
 #include "src/lapi.h"
@@ -14,22 +15,6 @@ extern "C" {
 class ByteWrapper
 {
 public:
-
-  enum ByteType
-  {
-    UNDEFINED,
-    UNSIGNED_8,
-    SIGNED_8,
-    UNSIGNED_16,
-    SIGNED_16,
-    UNSIGNED_32,
-    SIGNED_32,
-    UNSIGNED_64,
-    SIGNED_64,
-    FLOAT,
-    DOUBLE,
-    WRAPPER //This type is just included in the enum to make it clear in the parseType() function when the user wants a ByteWrapper type object - no actual ByteWrapper object should have this as a type value.
-  };
 
   enum OPERATIONS
   {
@@ -52,7 +37,7 @@ public:
   };
 
   u64 bytes;
-  ByteType byteType; // represents the type.
+  NumberType byteType; // represents the type.
   s8 numBytesUsedByType;
   s8 totalBytesAllocated;
 
@@ -66,9 +51,7 @@ public:
   static ByteWrapper* CreateByteWrapperFromDouble(double);
   static ByteWrapper* CreateByteWrapperFromCopy(ByteWrapper*);
 
-  static std::string getByteTypeAsString(ByteType inputType);
-  static ByteType parseType(const char*);
-  static bool typeSizeCheck(ByteWrapper* byteWrapperPointer, ByteType desiredType);
+  static bool typeSizeCheck(ByteWrapper* byteWrapperPointer, NumberType desiredType);
   // If the number represented by the first wrapper equals the number represented by the 2nd wrapper, then true is returned.
   // Otherwise, false is returned.
   bool operator==(const ByteWrapper& otherByteWrapper) const;
@@ -100,7 +83,7 @@ public:
   s64 getValueAsS64() const;
   float getValueAsFloat() const;
   double getValueAsDouble() const;
-  void setType(ByteType);
+  void setType(NumberType);
 
   bool doComparisonOperation(const ByteWrapper& otherByteWrapper, OPERATIONS operation) const;
   ByteWrapper doNonComparisonOperation(const ByteWrapper& otherByteWrapper, OPERATIONS operation) const;

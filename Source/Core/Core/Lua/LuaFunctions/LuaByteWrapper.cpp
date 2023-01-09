@@ -97,8 +97,8 @@ int withType(lua_State* luaState)
   ByteWrapper* byteWrapperPointer =
       (*reinterpret_cast<ByteWrapper**>(luaL_checkudata(luaState, 1, LUA_BYTE_WRAPPER)));
   const char* typeString = luaL_checkstring(luaState, 2);
-  ByteWrapper::ByteType parsedType = ByteWrapper::parseType(typeString);
-  if (parsedType == ByteWrapper::ByteType::UNDEFINED)
+  NumberType parsedType = parseType(typeString);
+  if (parsedType == NumberType::UNDEFINED)
   {
     luaL_error(luaState, "Error: Argument to withType() must be a string which such as u8, s8, "
                          "u16, s16, u32, s32, float, u64, s64, or double.");
@@ -121,7 +121,7 @@ int getValue(lua_State* luaState)
   bool noStringArgument = false;
   ByteWrapper* byteWrapperPointer =
       (*reinterpret_cast<ByteWrapper**>(luaL_checkudata(luaState, 1, LUA_BYTE_WRAPPER)));
-  ByteWrapper::ByteType typeArgument = ByteWrapper::ByteType::UNDEFINED;
+  NumberType typeArgument = NumberType::UNDEFINED;
   u8 u8Val = 0;
   u16 u16Val = 0;
   u32 u32Val = 0;
@@ -148,10 +148,10 @@ int getValue(lua_State* luaState)
                            "u16, u32, u64, s8, s16, s32, s64, float or double.");
       return 0;
     }
-    typeArgument = ByteWrapper::parseType(typeString);
+    typeArgument = parseType(typeString);
   }
 
-  if (typeArgument == ByteWrapper::ByteType::UNDEFINED)
+  if (typeArgument == NumberType::UNDEFINED)
   {
     if (noStringArgument)
     {
@@ -168,43 +168,43 @@ int getValue(lua_State* luaState)
 
   switch (typeArgument)
   {
-  case ByteWrapper::ByteType::UNSIGNED_8:
+  case NumberType::UNSIGNED_8:
     u8Val = byteWrapperPointer->getValueAsU8();
     lua_pushinteger(luaState, static_cast<lua_Integer>(u8Val));
     return 1;
-  case ByteWrapper::ByteType::SIGNED_8:
+  case NumberType::SIGNED_8:
     s8Val = byteWrapperPointer->getValueAsS8();
     lua_pushinteger(luaState, static_cast<lua_Integer>(s8Val));
     return 1;
-  case ByteWrapper::ByteType::UNSIGNED_16:
+  case NumberType::UNSIGNED_16:
     u16Val = byteWrapperPointer->getValueAsU16();
     lua_pushinteger(luaState, static_cast<lua_Integer>(u16Val));
     return 1;
-  case ByteWrapper::ByteType::SIGNED_16:
+  case NumberType::SIGNED_16:
     s16Val = byteWrapperPointer->getValueAsS16();
     lua_pushinteger(luaState, static_cast<lua_Integer>(s16Val));
     return 1;
-  case ByteWrapper::ByteType::UNSIGNED_32:
+  case NumberType::UNSIGNED_32:
     u32Val = byteWrapperPointer->getValueAsU32();
     lua_pushinteger(luaState, static_cast<lua_Integer>(u32Val));
     return 1;
-  case ByteWrapper::ByteType::SIGNED_32:
+  case NumberType::SIGNED_32:
     s32Val = byteWrapperPointer->getValueAsS32();
     lua_pushinteger(luaState, static_cast<lua_Integer>(s32Val));
     return 1;
-  case ByteWrapper::ByteType::UNSIGNED_64:
+  case NumberType::UNSIGNED_64:
     u64Val = byteWrapperPointer->getValueAsU64();
     lua_pushnumber(luaState, static_cast<lua_Number>(u64Val));
     return 1;
-  case ByteWrapper::ByteType::SIGNED_64:
+  case NumberType::SIGNED_64:
     s64Val = byteWrapperPointer->getValueAsS64();
     lua_pushinteger(luaState, static_cast<lua_Integer>(s64Val));
     return 1;
-  case ByteWrapper::ByteType::FLOAT:
+  case NumberType::FLOAT:
     floatVal = byteWrapperPointer->getValueAsFloat();
     lua_pushnumber(luaState, static_cast<lua_Number>(floatVal));
     return 1;
-  case ByteWrapper::ByteType::DOUBLE:
+  case NumberType::DOUBLE:
     doubleVal = byteWrapperPointer->getValueAsDouble();
     lua_pushnumber(luaState, static_cast<lua_Number>(doubleVal));
     return 1;
