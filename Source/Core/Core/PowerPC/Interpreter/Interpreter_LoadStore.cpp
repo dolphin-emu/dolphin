@@ -438,14 +438,17 @@ void Interpreter::dcba(UGeckoInstruction inst)
 
 void Interpreter::dcbf(UGeckoInstruction inst)
 {
-  // TODO: Implement some sort of L2 emulation.
-  // TODO: Raise DSI if translation fails (except for direct-store segments).
-
-  // Invalidate the JIT cache here as a heuristic to compensate for
-  // the lack of precise L1 icache emulation in the JIT. (Portable software
-  // should use icbi consistently, but games aren't portable.)
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
-  JitInterface::InvalidateICacheLine(address);
+  if (!PowerPC::ppcState.m_enable_dcache)
+  {
+    // Invalidate the JIT cache here as a heuristic to compensate for
+    // the lack of precise L1 icache emulation in the JIT. (Portable software
+    // should use icbi consistently, but games aren't portable.)
+    JitInterface::InvalidateICacheLine(address);
+    return;
+  }
+
+  PowerPC::FlushDCacheLine(address);
 }
 
 void Interpreter::dcbi(UGeckoInstruction inst)
@@ -456,42 +459,44 @@ void Interpreter::dcbi(UGeckoInstruction inst)
     return;
   }
 
-  // TODO: Implement some sort of L2 emulation.
-  // TODO: Raise DSI if translation fails (except for direct-store segments).
-
-  // Invalidate the JIT cache here as a heuristic to compensate for
-  // the lack of precise L1 icache emulation in the JIT. (Portable software
-  // should use icbi consistently, but games aren't portable.)
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
-  JitInterface::InvalidateICacheLine(address);
+  if (!PowerPC::ppcState.m_enable_dcache)
+  {
+    // Invalidate the JIT cache here as a heuristic to compensate for
+    // the lack of precise L1 icache emulation in the JIT. (Portable software
+    // should use icbi consistently, but games aren't portable.)
+    JitInterface::InvalidateICacheLine(address);
+    return;
+  }
+
+  PowerPC::InvalidateDCacheLine(address);
 }
 
 void Interpreter::dcbst(UGeckoInstruction inst)
 {
-  // TODO: Implement some sort of L2 emulation.
-  // TODO: Raise DSI if translation fails (except for direct-store segments).
-
-  // Invalidate the JIT cache here as a heuristic to compensate for
-  // the lack of precise L1 icache emulation in the JIT. (Portable software
-  // should use icbi consistently, but games aren't portable.)
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
-  JitInterface::InvalidateICacheLine(address);
+  if (!PowerPC::ppcState.m_enable_dcache)
+  {
+    // Invalidate the JIT cache here as a heuristic to compensate for
+    // the lack of precise L1 icache emulation in the JIT. (Portable software
+    // should use icbi consistently, but games aren't portable.)
+    JitInterface::InvalidateICacheLine(address);
+    return;
+  }
+
+  PowerPC::StoreDCacheLine(address);
 }
+
+// These instructions hint that it might be optimal to prefetch the specified cache line into the
+// data cache. But the CPU is never guaranteed to do this fetch, and in practice it's not more
+// performant to emulate it.
 
 void Interpreter::dcbt(UGeckoInstruction inst)
 {
-  if (HID0.NOOPTI)
-    return;
-
-  // TODO: Implement some sort of L2 emulation.
 }
 
 void Interpreter::dcbtst(UGeckoInstruction inst)
 {
-  if (HID0.NOOPTI)
-    return;
-
-  // TODO: Implement some sort of L2 emulation.
 }
 
 void Interpreter::dcbz(UGeckoInstruction inst)
@@ -504,15 +509,18 @@ void Interpreter::dcbz(UGeckoInstruction inst)
     return;
   }
 
-  // Hack to stop dcbz/dcbi over low MEM1 trashing memory.
-  if ((dcbz_addr < 0x80008000) && (dcbz_addr >= 0x80000000) &&
-      Config::Get(Config::MAIN_LOW_DCBZ_HACK))
+  if (!PowerPC::ppcState.m_enable_dcache)
   {
-    return;
+    // Hack to stop dcbz/dcbi over low MEM1 trashing memory. This is not needed if data cache
+    // emulation is enabled.
+    if ((dcbz_addr < 0x80008000) && (dcbz_addr >= 0x80000000) &&
+        Config::Get(Config::MAIN_LOW_DCBZ_HACK))
+    {
+      return;
+    }
   }
 
-  // TODO: Implement some sort of L2 emulation.
-  PowerPC::ClearCacheLine(dcbz_addr & (~31));
+  PowerPC::ClearDCacheLine(dcbz_addr & (~31));
 }
 
 void Interpreter::dcbz_l(UGeckoInstruction inst)
@@ -531,8 +539,7 @@ void Interpreter::dcbz_l(UGeckoInstruction inst)
     return;
   }
 
-  // FAKE: clear memory instead of clearing the cache block
-  PowerPC::ClearCacheLine(address & (~31));
+  PowerPC::ClearDCacheLine(address & (~31));
 }
 
 // eciwx/ecowx technically should access the specified device

@@ -250,9 +250,33 @@ void Interpreter::mfspr(UGeckoInstruction inst)
       rSPR(index) &= ~1;
   }
   break;
+
   case SPR_XER:
     rSPR(index) = PowerPC::GetXER().Hex;
     break;
+
+  case SPR_UPMC1:
+    rSPR(index) = rSPR(SPR_PMC1);
+    break;
+
+  case SPR_UPMC2:
+    rSPR(index) = rSPR(SPR_PMC2);
+    break;
+
+  case SPR_UPMC3:
+    rSPR(index) = rSPR(SPR_PMC3);
+    break;
+
+  case SPR_UPMC4:
+    rSPR(index) = rSPR(SPR_PMC4);
+    break;
+
+  case SPR_IABR:
+    // A strange quirk: reading back this register on hardware will always have the TE (Translation
+    // enabled) bit set to 0 (despite the bit appearing to function normally when set). This does
+    // not apply to the DABR.
+    rGPR[inst.RD] = rSPR(index) & ~1;
+    return;
   }
   rGPR[inst.RD] = rSPR(index);
 }

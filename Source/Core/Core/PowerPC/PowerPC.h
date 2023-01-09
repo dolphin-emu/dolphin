@@ -172,6 +172,8 @@ struct PowerPCState
   u32 pagetable_hashmask = 0;
 
   InstructionCache iCache;
+  bool m_enable_dcache = false;
+  Cache dCache;
 
   // Reservation monitor for lwarx and its friend stwcxd.
   bool reserve;
