@@ -9,6 +9,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.provider.DocumentsContract;
+import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -78,7 +79,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   private SettingsItem mClickedItem;
   private int mClickedPosition;
-  private int mSeekbarProgress;
+  private int mSliderProgress;
 
   private AlertDialog mDialog;
   private TextView mTextSliderValue;
@@ -272,20 +273,20 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     mClickedItem = item;
     mClickedPosition = position;
-    mSeekbarProgress = item.getSelectedValue(getSettings());
+    mSliderProgress = item.getSelectedValue(getSettings());
 
     LayoutInflater inflater = LayoutInflater.from(mView.getActivity());
     DialogSliderBinding binding = DialogSliderBinding.inflate(inflater);
 
     mTextSliderValue = binding.textValue;
-    mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
+    mTextSliderValue.setText(String.valueOf(mSliderProgress));
 
     binding.textUnits.setText(item.getUnits());
 
     Slider slider = binding.slider;
     slider.setValueFrom(item.getMin());
     slider.setValueTo(item.getMax());
-    slider.setValue(mSeekbarProgress);
+    slider.setValue(mSliderProgress);
     slider.setStepSize(1);
     slider.addOnChangeListener(this);
 
@@ -469,26 +470,26 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     else if (mClickedItem instanceof IntSliderSetting)
     {
       IntSliderSetting sliderSetting = (IntSliderSetting) mClickedItem;
-      if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
+      if (sliderSetting.getSelectedValue(getSettings()) != mSliderProgress)
         mView.onSettingChanged();
 
-      sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
+      sliderSetting.setSelectedValue(getSettings(), mSliderProgress);
 
       closeDialog();
     }
     else if (mClickedItem instanceof FloatSliderSetting)
     {
       FloatSliderSetting sliderSetting = (FloatSliderSetting) mClickedItem;
-      if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
+      if (sliderSetting.getSelectedValue(getSettings()) != mSliderProgress)
         mView.onSettingChanged();
 
-      sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
+      sliderSetting.setSelectedValue(getSettings(), mSliderProgress);
 
       closeDialog();
     }
 
     mClickedItem = null;
-    mSeekbarProgress = -1;
+    mSliderProgress = -1;
   }
 
   public void closeDialog()
@@ -508,8 +509,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   @Override
   public void onValueChange(@NonNull Slider slider, float progress, boolean fromUser)
   {
-    mSeekbarProgress = (int) progress;
-    mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
+    slider.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+
+    mSliderProgress = (int) progress;
+    mTextSliderValue.setText(String.valueOf(mSliderProgress));
   }
 
   private int getValueForSingleChoiceSelection(SingleChoiceSetting item, int which)
