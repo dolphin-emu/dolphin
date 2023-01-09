@@ -69,6 +69,7 @@
         android:layout_gravity="bottom"
         android:background="@android:color/transparent"
         android:clickable="true"
+        android:focusable="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

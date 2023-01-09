@@ -48,6 +48,7 @@
         android:layout_height="0dp"
         android:layout_gravity="bottom"
         android:clickable="true"
+        android:focusable="false"
         android:background="@android:color/transparent" />
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
