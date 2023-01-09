@@ -486,7 +486,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     constexpr u32 SIMULATED_TEMP = 42;  // °C
 
     auto UpdateThermalReg = [](UReg_THRM12* reg) {
-      if (!THRM3.E || !reg->V)
+      if (!THRM3(PowerPC::ppcState).E || !reg->V)
       {
         reg->TIV = 0;
       }
@@ -500,8 +500,8 @@ void Interpreter::mtspr(UGeckoInstruction inst)
       }
     };
 
-    UpdateThermalReg(&THRM1);
-    UpdateThermalReg(&THRM2);
+    UpdateThermalReg(&THRM1(PowerPC::ppcState));
+    UpdateThermalReg(&THRM2(PowerPC::ppcState));
     break;
   }
   }
