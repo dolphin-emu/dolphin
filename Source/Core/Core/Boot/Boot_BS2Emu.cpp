@@ -98,11 +98,11 @@ void CBoot::SetupHID(bool is_wii)
   // HID4 is 0 on GC and 0x83900000 on Wii
   if (is_wii)
   {
-    HID4.L2CFI = 1;
-    HID4.LPE = 1;
-    HID4.ST0 = 1;
-    HID4.SBE = 1;
-    HID4.reserved_3 = 1;
+    HID4(PowerPC::ppcState).L2CFI = 1;
+    HID4(PowerPC::ppcState).LPE = 1;
+    HID4(PowerPC::ppcState).ST0 = 1;
+    HID4(PowerPC::ppcState).SBE = 1;
+    HID4(PowerPC::ppcState).reserved_3 = 1;
   }
 }
 
@@ -122,7 +122,7 @@ void CBoot::SetupBAT(bool is_wii)
     PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
     PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
     PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
-    HID4.SBE = 1;
+    HID4(PowerPC::ppcState).SBE = 1;
   }
   PowerPC::DBATUpdated();
   PowerPC::IBATUpdated();
