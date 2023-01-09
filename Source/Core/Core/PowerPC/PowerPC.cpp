@@ -405,7 +405,7 @@ void WriteFullTimeBaseValue(u64 value)
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
 {
-  switch (MMCR0.PMC1SELECT)
+  switch (MMCR0(PowerPC::ppcState).PMC1SELECT)
   {
   case 0:  // No change
     break;
@@ -416,7 +416,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  switch (MMCR0.PMC2SELECT)
+  switch (MMCR0(PowerPC::ppcState).PMC2SELECT)
   {
   case 0:  // No change
     break;
@@ -455,10 +455,10 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  if ((MMCR0.PMC1INTCONTROL && (PowerPC::ppcState.spr[SPR_PMC1] & 0x80000000) != 0) ||
-      (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC2] & 0x80000000) != 0) ||
-      (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC3] & 0x80000000) != 0) ||
-      (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC4] & 0x80000000) != 0))
+  if ((MMCR0(PowerPC::ppcState).PMC1INTCONTROL && (PowerPC::ppcState.spr[SPR_PMC1] & 0x80000000) != 0) ||
+      (MMCR0(PowerPC::ppcState).PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC2] & 0x80000000) != 0) ||
+      (MMCR0(PowerPC::ppcState).PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC3] & 0x80000000) != 0) ||
+      (MMCR0(PowerPC::ppcState).PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC4] & 0x80000000) != 0))
     PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
 }
 
