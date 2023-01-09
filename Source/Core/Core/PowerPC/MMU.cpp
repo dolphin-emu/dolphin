@@ -1390,7 +1390,7 @@ static void GenerateDSIException(u32 effective_address, bool write)
 static void GenerateISIException(u32 effective_address)
 {
   // Address of instruction could not be translated
-  NPC = effective_address;
+  PowerPC::ppcState.npc = effective_address;
 
   PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
   WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", PowerPC::ppcState.pc);

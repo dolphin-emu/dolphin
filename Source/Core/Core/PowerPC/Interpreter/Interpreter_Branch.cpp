@@ -18,9 +18,9 @@ void Interpreter::bx(UGeckoInstruction inst)
   const auto address = u32(SignExt26(inst.LI << 2));
 
   if (inst.AA)
-    NPC = address;
+    PowerPC::ppcState.npc = address;
   else
-    NPC = PowerPC::ppcState.pc + address;
+    PowerPC::ppcState.npc = PowerPC::ppcState.pc + address;
 
   m_end_block = true;
 }
@@ -47,9 +47,9 @@ void Interpreter::bcx(UGeckoInstruction inst)
     const auto address = u32(SignExt16(s16(inst.BD << 2)));
 
     if (inst.AA)
-      NPC = address;
+      PowerPC::ppcState.npc = address;
     else
-      NPC = PowerPC::ppcState.pc + address;
+      PowerPC::ppcState.npc = PowerPC::ppcState.pc + address;
   }
 
   m_end_block = true;
@@ -65,7 +65,7 @@ void Interpreter::bcctrx(UGeckoInstruction inst)
 
   if (condition != 0)
   {
-    NPC = CTR & (~3);
+    PowerPC::ppcState.npc = CTR & (~3);
     if (inst.LK_3)
       LR = PowerPC::ppcState.pc + 4;
   }
@@ -84,7 +84,7 @@ void Interpreter::bclrx(UGeckoInstruction inst)
 
   if ((counter & condition) != 0)
   {
-    NPC = LR & (~3);
+    PowerPC::ppcState.npc = LR & (~3);
     if (inst.LK_3)
       LR = PowerPC::ppcState.pc + 4;
   }
@@ -118,7 +118,7 @@ void Interpreter::rfi(UGeckoInstruction inst)
   // PowerPC::CheckExceptions();
   // else
   // set NPC to saved offset and resume
-  NPC = SRR0;
+  PowerPC::ppcState.npc = SRR0;
   m_end_block = true;
 }
 

@@ -17,7 +17,7 @@ namespace HLE_Misc
 // According to the PPC ABI, the return value is always in r3.
 void UnimplementedFunction()
 {
-  NPC = LR;
+  PowerPC::ppcState.npc = LR;
 }
 
 void HBReload()
@@ -58,7 +58,7 @@ void GeckoReturnTrampoline()
   // Stack frame is built in GeckoCode.cpp, Gecko::RunCodeHandler.
   u32 SP = GPR(1);
   GPR(1) = PowerPC::HostRead_U32(SP + 8);
-  NPC = PowerPC::HostRead_U32(SP + 12);
+  PowerPC::ppcState.npc = PowerPC::HostRead_U32(SP + 12);
   LR = PowerPC::HostRead_U32(SP + 16);
   PowerPC::ppcState.cr.Set(PowerPC::HostRead_U32(SP + 20));
   for (int i = 0; i < 14; ++i)

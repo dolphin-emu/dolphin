@@ -74,7 +74,7 @@ bool IsInvalidPairedSingleExecution(UGeckoInstruction inst)
 void UpdatePC()
 {
   last_pc = PowerPC::ppcState.pc;
-  PowerPC::ppcState.pc = NPC;
+  PowerPC::ppcState.pc = PowerPC::ppcState.npc;
 }
 }  // Anonymous namespace
 
@@ -151,7 +151,7 @@ int Interpreter::SingleStepInner()
     return PPCTables::GetOpInfo(m_prev_inst)->numCycles;
   }
 
-  NPC = PowerPC::ppcState.pc + sizeof(UGeckoInstruction);
+  PowerPC::ppcState.npc = PowerPC::ppcState.pc + sizeof(UGeckoInstruction);
   m_prev_inst.hex = PowerPC::Read_Opcode(PowerPC::ppcState.pc);
 
   // Uncomment to trace the interpreter
@@ -234,7 +234,7 @@ void Interpreter::SingleStep()
   if (PowerPC::ppcState.Exceptions != 0)
   {
     PowerPC::CheckExceptions();
-    PowerPC::ppcState.pc = NPC;
+    PowerPC::ppcState.pc = PowerPC::ppcState.npc;
   }
 }
 

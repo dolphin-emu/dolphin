@@ -40,7 +40,7 @@ void HLE_OSPanic()
   ERROR_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| OSPanic: {}: {}", LR, PowerPC::ppcState.pc, error,
                 msg);
 
-  NPC = LR;
+  PowerPC::ppcState.npc = LR;
 }
 
 // Generalized function for printing formatted string.

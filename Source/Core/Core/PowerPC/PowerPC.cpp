@@ -489,12 +489,12 @@ void CheckExceptions()
 
   if (exceptions & EXCEPTION_ISI)
   {
-    SRR0 = NPC;
+    SRR0 = PowerPC::ppcState.npc;
     // Page fault occurred
     SRR1 = (MSR.Hex & 0x87C0FFFF) | (1 << 30);
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PowerPC::ppcState.pc = NPC = 0x00000400;
+    PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000400;
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_ISI");
     ppcState.Exceptions &= ~EXCEPTION_ISI;
@@ -506,18 +506,18 @@ void CheckExceptions()
     SRR1 |= MSR.Hex & 0x87C0FFFF;
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PowerPC::ppcState.pc = NPC = 0x00000700;
+    PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000700;
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_PROGRAM");
     ppcState.Exceptions &= ~EXCEPTION_PROGRAM;
   }
   else if (exceptions & EXCEPTION_SYSCALL)
   {
-    SRR0 = NPC;
+    SRR0 = PowerPC::ppcState.npc;
     SRR1 = MSR.Hex & 0x87C0FFFF;
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PowerPC::ppcState.pc = NPC = 0x00000C00;
+    PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000C00;
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_SYSCALL (PC={:08x})", PowerPC::ppcState.pc);
     ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
@@ -529,7 +529,7 @@ void CheckExceptions()
     SRR1 = MSR.Hex & 0x87C0FFFF;
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PowerPC::ppcState.pc = NPC = 0x00000800;
+    PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000800;
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
     ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
@@ -544,7 +544,7 @@ void CheckExceptions()
     SRR1 = MSR.Hex & 0x87C0FFFF;
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PowerPC::ppcState.pc = NPC = 0x00000300;
+    PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000300;
     // DSISR and DAR regs are changed in GenerateDSIException()
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_DSI");
@@ -556,7 +556,7 @@ void CheckExceptions()
     SRR1 = MSR.Hex & 0x87C0FFFF;
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
-    PowerPC::ppcState.pc = NPC = 0x00000600;
+    PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000600;
 
     // TODO crazy amount of DSISR options to check out
 
@@ -582,11 +582,11 @@ void CheckExternalExceptions()
     if (exceptions & EXCEPTION_EXTERNAL_INT)
     {
       // Pokemon gets this "too early", it hasn't a handler yet
-      SRR0 = NPC;
+      SRR0 = PowerPC::ppcState.npc;
       SRR1 = MSR.Hex & 0x87C0FFFF;
       MSR.LE = MSR.ILE;
       MSR.Hex &= ~0x04EF36;
-      PowerPC::ppcState.pc = NPC = 0x00000500;
+      PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000500;
 
       DEBUG_LOG_FMT(POWERPC, "EXCEPTION_EXTERNAL_INT");
       ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
@@ -595,22 +595,22 @@ void CheckExternalExceptions()
     }
     else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
     {
-      SRR0 = NPC;
+      SRR0 = PowerPC::ppcState.npc;
       SRR1 = MSR.Hex & 0x87C0FFFF;
       MSR.LE = MSR.ILE;
       MSR.Hex &= ~0x04EF36;
-      PowerPC::ppcState.pc = NPC = 0x00000F00;
+      PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000F00;
 
       DEBUG_LOG_FMT(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
       ppcState.Exceptions &= ~EXCEPTION_PERFORMANCE_MONITOR;
     }
     else if (exceptions & EXCEPTION_DECREMENTER)
     {
-      SRR0 = NPC;
+      SRR0 = PowerPC::ppcState.npc;
       SRR1 = MSR.Hex & 0x87C0FFFF;
       MSR.LE = MSR.ILE;
       MSR.Hex &= ~0x04EF36;
-      PowerPC::ppcState.pc = NPC = 0x00000900;
+      PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000900;
 
       DEBUG_LOG_FMT(POWERPC, "EXCEPTION_DECREMENTER");
       ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;

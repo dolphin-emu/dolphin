@@ -136,7 +136,7 @@ void CachedInterpreter::SingleStep()
 
 static void EndBlock(UGeckoInstruction data)
 {
-  PowerPC::ppcState.pc = NPC;
+  PowerPC::ppcState.pc = PowerPC::ppcState.npc;
   PowerPC::ppcState.downcount -= data.hex;
   PowerPC::UpdatePerformanceMonitor(data.hex, 0, 0);
 }
@@ -154,12 +154,12 @@ static void UpdateNumFloatingPointInstructions(UGeckoInstruction data)
 static void WritePC(UGeckoInstruction data)
 {
   PowerPC::ppcState.pc = data.hex;
-  NPC = data.hex + 4;
+  PowerPC::ppcState.npc = data.hex + 4;
 }
 
 static void WriteBrokenBlockNPC(UGeckoInstruction data)
 {
-  NPC = data.hex;
+  PowerPC::ppcState.npc = data.hex;
 }
 
 static bool CheckFPU(u32 data)
@@ -244,7 +244,7 @@ void CachedInterpreter::Jit(u32 address)
   if (code_block.m_memory_exception)
   {
     // Address of instruction could not be translated
-    NPC = nextPC;
+    PowerPC::ppcState.npc = nextPC;
     PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
     PowerPC::CheckExceptions();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);

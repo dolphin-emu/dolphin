@@ -282,7 +282,7 @@ void RunCodeHandler()
                 "PC = {:#010x}, SP = {:#010x}, SFP = {:#010x}",
                 PowerPC::ppcState.pc, SP, SFP);
   LR = HLE_TRAMPOLINE_ADDRESS;
-  PowerPC::ppcState.pc = NPC = ENTRY_POINT;
+  PowerPC::ppcState.pc = PowerPC::ppcState.npc = ENTRY_POINT;
 }
 
 }  // namespace Gecko
