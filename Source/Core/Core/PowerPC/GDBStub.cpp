@@ -432,7 +432,7 @@ static void ReadRegister()
       wbe32hex(reply, PowerPC::ppcState.pc);
       break;
     case 65:
-      wbe32hex(reply, MSR.Hex);
+      wbe32hex(reply, PowerPC::ppcState.msr.Hex);
       break;
     case 66:
       wbe32hex(reply, PowerPC::ppcState.cr.Get());
@@ -644,7 +644,7 @@ static void WriteRegister()
       PowerPC::ppcState.pc = re32hex(bufptr);
       break;
     case 65:
-      MSR.Hex = re32hex(bufptr);
+      PowerPC::ppcState.msr.Hex = re32hex(bufptr);
       break;
     case 66:
       PowerPC::ppcState.cr.Set(re32hex(bufptr));

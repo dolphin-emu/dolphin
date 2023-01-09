@@ -191,7 +191,7 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
 
   bool wi = false;
 
-  if (!never_translate && MSR.DR)
+  if (!never_translate && PowerPC::ppcState.msr.DR)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
     if (!translated_addr.Success())
@@ -303,7 +303,7 @@ static void WriteToHardware(Core::System& system, Memory::MemoryManager& memory,
 
   bool wi = false;
 
-  if (!never_translate && MSR.DR)
+  if (!never_translate && PowerPC::ppcState.msr.DR)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
     if (!translated_addr.Success())
@@ -489,7 +489,7 @@ u32 Read_Opcode(u32 address)
 TryReadInstResult TryReadInstruction(u32 address)
 {
   bool from_bat = true;
-  if (MSR.IR)
+  if (PowerPC::ppcState.msr.IR)
   {
     auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
     if (!tlb_addr.Success())
@@ -540,7 +540,7 @@ std::optional<ReadResult<u32>> HostTryReadInstruction(const u32 address,
   case RequestedAddressSpace::Effective:
   {
     const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(memory, address);
-    return ReadResult<u32>(!!MSR.DR, value);
+    return ReadResult<u32>(!!PowerPC::ppcState.msr.DR, value);
   }
   case RequestedAddressSpace::Physical:
   {
@@ -550,7 +550,7 @@ std::optional<ReadResult<u32>> HostTryReadInstruction(const u32 address,
   }
   case RequestedAddressSpace::Virtual:
   {
-    if (!MSR.DR)
+    if (!PowerPC::ppcState.msr.DR)
       return std::nullopt;
     const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(memory, address);
     return ReadResult<u32>(true, value);
@@ -661,7 +661,7 @@ static std::optional<ReadResult<T>> HostTryReadUX(const u32 address, RequestedAd
   case RequestedAddressSpace::Effective:
   {
     T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(memory, address);
-    return ReadResult<T>(!!MSR.DR, std::move(value));
+    return ReadResult<T>(!!PowerPC::ppcState.msr.DR, std::move(value));
   }
   case RequestedAddressSpace::Physical:
   {
@@ -670,7 +670,7 @@ static std::optional<ReadResult<T>> HostTryReadUX(const u32 address, RequestedAd
   }
   case RequestedAddressSpace::Virtual:
   {
-    if (!MSR.DR)
+    if (!PowerPC::ppcState.msr.DR)
       return std::nullopt;
     T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(memory, address);
     return ReadResult<T>(true, std::move(value));
@@ -880,12 +880,12 @@ static std::optional<WriteResult> HostTryWriteUX(const u32 var, const u32 addres
   {
   case RequestedAddressSpace::Effective:
     WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, size);
-    return WriteResult(!!MSR.DR);
+    return WriteResult(!!PowerPC::ppcState.msr.DR);
   case RequestedAddressSpace::Physical:
     WriteToHardware<XCheckTLBFlag::NoException, true>(system, memory, address, var, size);
     return WriteResult(false);
   case RequestedAddressSpace::Virtual:
-    if (!MSR.DR)
+    if (!PowerPC::ppcState.msr.DR)
       return std::nullopt;
     WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, size);
     return WriteResult(true);
@@ -980,7 +980,7 @@ bool IsOptimizableRAMAddress(const u32 address)
   if (PowerPC::memchecks.HasAny())
     return false;
 
-  if (!MSR.DR)
+  if (!PowerPC::ppcState.msr.DR)
     return false;
 
   // TODO: This API needs to take an access size
@@ -1032,11 +1032,11 @@ bool HostIsRAMAddress(u32 address, RequestedAddressSpace space)
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    return IsRAMAddress<XCheckTLBFlag::NoException>(memory, address, MSR.DR);
+    return IsRAMAddress<XCheckTLBFlag::NoException>(memory, address, PowerPC::ppcState.msr.DR);
   case RequestedAddressSpace::Physical:
     return IsRAMAddress<XCheckTLBFlag::NoException>(memory, address, false);
   case RequestedAddressSpace::Virtual:
-    if (!MSR.DR)
+    if (!PowerPC::ppcState.msr.DR)
       return false;
     return IsRAMAddress<XCheckTLBFlag::NoException>(memory, address, true);
   }
@@ -1057,11 +1057,12 @@ bool HostIsInstructionRAMAddress(u32 address, RequestedAddressSpace space)
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(memory, address, MSR.IR);
+    return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(memory, address,
+                                                          PowerPC::ppcState.msr.IR);
   case RequestedAddressSpace::Physical:
     return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(memory, address, false);
   case RequestedAddressSpace::Virtual:
-    if (!MSR.IR)
+    if (!PowerPC::ppcState.msr.IR)
       return false;
     return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(memory, address, true);
   }
@@ -1151,7 +1152,7 @@ void DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 nu
 void ClearDCacheLine(u32 address)
 {
   DEBUG_ASSERT((address & 0x1F) == 0);
-  if (MSR.DR)
+  if (PowerPC::ppcState.msr.DR)
   {
     auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
@@ -1183,7 +1184,7 @@ void StoreDCacheLine(u32 address)
 {
   address &= ~0x1F;
 
-  if (MSR.DR)
+  if (PowerPC::ppcState.msr.DR)
   {
     auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
@@ -1207,7 +1208,7 @@ void InvalidateDCacheLine(u32 address)
 {
   address &= ~0x1F;
 
-  if (MSR.DR)
+  if (PowerPC::ppcState.msr.DR)
   {
     auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
@@ -1229,7 +1230,7 @@ void FlushDCacheLine(u32 address)
 {
   address &= ~0x1F;
 
-  if (MSR.DR)
+  if (PowerPC::ppcState.msr.DR)
   {
     auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
@@ -1253,7 +1254,7 @@ void TouchDCacheLine(u32 address, bool store)
 {
   address &= ~0x1F;
 
-  if (MSR.DR)
+  if (PowerPC::ppcState.msr.DR)
   {
     auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
@@ -1278,7 +1279,7 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 access_size)
   if (PowerPC::memchecks.HasAny())
     return 0;
 
-  if (!MSR.DR)
+  if (!PowerPC::ppcState.msr.DR)
     return 0;
 
   // Translate address
@@ -1301,7 +1302,7 @@ bool IsOptimizableGatherPipeWrite(u32 address)
   if (PowerPC::memchecks.HasAny())
     return false;
 
-  if (!MSR.DR)
+  if (!PowerPC::ppcState.msr.DR)
     return false;
 
   // Translate address, only check BAT mapping.
@@ -1317,7 +1318,7 @@ bool IsOptimizableGatherPipeWrite(u32 address)
 
 TranslateResult JitCache_TranslateAddress(u32 address)
 {
-  if (!MSR.IR)
+  if (!PowerPC::ppcState.msr.IR)
     return TranslateResult{address};
 
   // TODO: We shouldn't use FLAG_OPCODE if the caller is the debugger.

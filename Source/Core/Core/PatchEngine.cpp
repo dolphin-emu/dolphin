@@ -277,7 +277,7 @@ static void ApplyMemoryPatches(std::span<const std::size_t> memory_patch_indices
 // We require at least 2 stack frames, if the stack is shallower than that then it won't work.
 static bool IsStackSane()
 {
-  DEBUG_ASSERT(MSR.DR && MSR.IR);
+  DEBUG_ASSERT(PowerPC::ppcState.msr.DR && PowerPC::ppcState.msr.IR);
 
   // Check the stack pointer
   u32 SP = GPR(1);
@@ -315,12 +315,12 @@ bool ApplyFramePatches()
   // callback hook we can end up catching the game in an exception vector.
   // We deal with this by returning false so that SystemTimers will reschedule us in a few cycles
   // where we can try again after the CPU hopefully returns back to the normal instruction flow.
-  if (!MSR.DR || !MSR.IR || !IsStackSane())
+  if (!PowerPC::ppcState.msr.DR || !PowerPC::ppcState.msr.IR || !IsStackSane())
   {
     DEBUG_LOG_FMT(ACTIONREPLAY,
                   "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
                   "MSR = {:#010x}",
-                  PowerPC::ppcState.pc, MSR.Hex);
+                  PowerPC::ppcState.pc, PowerPC::ppcState.msr.Hex);
     return false;
   }
 

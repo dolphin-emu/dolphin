@@ -164,7 +164,7 @@ static void WriteBrokenBlockNPC(UGeckoInstruction data)
 
 static bool CheckFPU(u32 data)
 {
-  if (!MSR.FP)
+  if (!PowerPC::ppcState.msr.FP)
   {
     PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
     PowerPC::CheckExceptions();

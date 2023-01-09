@@ -153,12 +153,14 @@ std::variant<GetHostCodeError, GetHostCodeResult> GetHostCode(u32 address)
     return GetHostCodeError::NoJitActive;
   }
 
-  JitBlock* block = g_jit->GetBlockCache()->GetBlockFromStartAddress(address, MSR.Hex);
+  JitBlock* block =
+      g_jit->GetBlockCache()->GetBlockFromStartAddress(address, PowerPC::ppcState.msr.Hex);
   if (!block)
   {
     for (int i = 0; i < 500; i++)
     {
-      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i, MSR.Hex);
+      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i,
+                                                               PowerPC::ppcState.msr.Hex);
       if (block)
         break;
     }

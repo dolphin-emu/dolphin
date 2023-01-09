@@ -632,7 +632,7 @@ void FifoPlayer::LoadMemory()
   UReg_MSR newMSR;
   newMSR.DR = 1;
   newMSR.IR = 1;
-  MSR.Hex = newMSR.Hex;
+  PowerPC::ppcState.msr.Hex = newMSR.Hex;
   PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
   PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
   PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;

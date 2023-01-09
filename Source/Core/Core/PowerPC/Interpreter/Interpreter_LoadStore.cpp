@@ -254,7 +254,7 @@ void Interpreter::lmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0 || MSR.LE)
+  if ((address & 0b11) != 0 || PowerPC::ppcState.msr.LE)
   {
     GenerateAlignmentException(address);
     return;
@@ -282,7 +282,7 @@ void Interpreter::stmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0 || MSR.LE)
+  if ((address & 0b11) != 0 || PowerPC::ppcState.msr.LE)
   {
     GenerateAlignmentException(address);
     return;
@@ -453,7 +453,7 @@ void Interpreter::dcbf(UGeckoInstruction inst)
 
 void Interpreter::dcbi(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (PowerPC::ppcState.msr.PR)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -678,7 +678,7 @@ void Interpreter::lswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if (MSR.LE)
+  if (PowerPC::ppcState.msr.LE)
   {
     GenerateAlignmentException(EA);
     return;
@@ -858,7 +858,7 @@ void Interpreter::lswi(UGeckoInstruction inst)
   if (inst.RA != 0)
     EA = rGPR[inst.RA];
 
-  if (MSR.LE)
+  if (PowerPC::ppcState.msr.LE)
   {
     GenerateAlignmentException(EA);
     return;
@@ -905,7 +905,7 @@ void Interpreter::stswi(UGeckoInstruction inst)
   if (inst.RA != 0)
     EA = rGPR[inst.RA];
 
-  if (MSR.LE)
+  if (PowerPC::ppcState.msr.LE)
   {
     GenerateAlignmentException(EA);
     return;
@@ -943,7 +943,7 @@ void Interpreter::stswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if (MSR.LE)
+  if (PowerPC::ppcState.msr.LE)
   {
     GenerateAlignmentException(EA);
     return;
@@ -1051,7 +1051,7 @@ void Interpreter::sync(UGeckoInstruction inst)
 
 void Interpreter::tlbie(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (PowerPC::ppcState.msr.PR)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -1065,7 +1065,7 @@ void Interpreter::tlbie(UGeckoInstruction inst)
 
 void Interpreter::tlbsync(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (PowerPC::ppcState.msr.PR)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
   }

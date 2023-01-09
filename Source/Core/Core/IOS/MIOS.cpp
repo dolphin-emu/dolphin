@@ -78,7 +78,7 @@ bool Load()
 
   const PowerPC::CoreMode core_mode = PowerPC::GetMode();
   PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
-  MSR.Hex = 0;
+  PowerPC::ppcState.msr.Hex = 0;
   PowerPC::ppcState.pc = 0x3400;
   NOTICE_LOG_FMT(IOS, "Loaded MIOS and bootstrapped PPC.");
 

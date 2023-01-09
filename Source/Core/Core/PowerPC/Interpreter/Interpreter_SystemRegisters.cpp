@@ -128,18 +128,18 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
 
 void Interpreter::mfmsr(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (PowerPC::ppcState.msr.PR)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
-  rGPR[inst.RD] = MSR.Hex;
+  rGPR[inst.RD] = PowerPC::ppcState.msr.Hex;
 }
 
 void Interpreter::mfsr(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (PowerPC::ppcState.msr.PR)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -150,7 +150,7 @@ void Interpreter::mfsr(UGeckoInstruction inst)
 
 void Interpreter::mfsrin(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (PowerPC::ppcState.msr.PR)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -162,13 +162,13 @@ void Interpreter::mfsrin(UGeckoInstruction inst)
 
 void Interpreter::mtmsr(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (PowerPC::ppcState.msr.PR)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
-  MSR.Hex = rGPR[inst.RS];
+  PowerPC::ppcState.msr.Hex = rGPR[inst.RS];
 
   // FE0/FE1 may have been set
   CheckFPExceptions(PowerPC::ppcState.fpscr);
@@ -181,7 +181,7 @@ void Interpreter::mtmsr(UGeckoInstruction inst)
 
 void Interpreter::mtsr(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (PowerPC::ppcState.msr.PR)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -194,7 +194,7 @@ void Interpreter::mtsr(UGeckoInstruction inst)
 
 void Interpreter::mtsrin(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (PowerPC::ppcState.msr.PR)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -217,8 +217,8 @@ void Interpreter::mfspr(UGeckoInstruction inst)
   const u32 index = ((inst.SPR & 0x1F) << 5) + ((inst.SPR >> 5) & 0x1F);
 
   // XER, LR, CTR, and timebase halves are the only ones available in user mode.
-  if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR && index != SPR_TL &&
-      index != SPR_TU)
+  if (PowerPC::ppcState.msr.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR &&
+      index != SPR_TL && index != SPR_TU)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -288,7 +288,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 
   // XER, LR, and CTR are the only ones available to be written to in user mode
-  if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR)
+  if (PowerPC::ppcState.msr.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;

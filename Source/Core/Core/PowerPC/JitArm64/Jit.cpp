@@ -705,8 +705,8 @@ void JitArm64::Trace()
   DEBUG_LOG_FMT(DYNA_REC,
                 "JitArm64 PC: {:08x} SRR0: {:08x} SRR1: {:08x} FPSCR: {:08x} "
                 "MSR: {:08x} LR: {:08x} {} {}",
-                PowerPC::ppcState.pc, SRR0, SRR1, PowerPC::ppcState.fpscr.Hex, MSR.Hex,
-                PowerPC::ppcState.spr[8], regs, fregs);
+                PowerPC::ppcState.pc, SRR0, SRR1, PowerPC::ppcState.fpscr.Hex,
+                PowerPC::ppcState.msr.Hex, PowerPC::ppcState.spr[8], regs, fregs);
 }
 
 void JitArm64::Jit(u32 em_address)

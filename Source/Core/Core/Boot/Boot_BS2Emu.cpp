@@ -67,10 +67,10 @@ void CBoot::RunFunction(u32 address)
 void CBoot::SetupMSR()
 {
   // 0x0002032
-  MSR.RI = 1;
-  MSR.DR = 1;
-  MSR.IR = 1;
-  MSR.FP = 1;
+  PowerPC::ppcState.msr.RI = 1;
+  PowerPC::ppcState.msr.DR = 1;
+  PowerPC::ppcState.msr.IR = 1;
+  PowerPC::ppcState.msr.FP = 1;
 }
 
 void CBoot::SetupHID(bool is_wii)

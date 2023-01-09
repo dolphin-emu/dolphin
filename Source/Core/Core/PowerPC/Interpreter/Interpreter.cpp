@@ -132,8 +132,8 @@ static void Trace(const UGeckoInstruction& inst)
                 "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
                 "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
                 PowerPC::ppcState.pc, SRR0, SRR1, PowerPC::ppcState.cr.fields[0],
-                PowerPC::ppcState.fpscr.Hex, MSR.Hex, PowerPC::ppcState.spr[8], regs, inst.hex,
-                ppc_inst);
+                PowerPC::ppcState.fpscr.Hex, PowerPC::ppcState.msr.Hex, PowerPC::ppcState.spr[8],
+                regs, inst.hex, ppc_inst);
 }
 
 bool Interpreter::HandleFunctionHooking(u32 address)
@@ -178,7 +178,7 @@ int Interpreter::SingleStepInner()
       GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
       CheckExceptions();
     }
-    else if (MSR.FP)
+    else if (PowerPC::ppcState.msr.FP)
     {
       m_op_table[m_prev_inst.OPCD](m_prev_inst);
       if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
