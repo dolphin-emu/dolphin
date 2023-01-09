@@ -100,6 +100,10 @@ void CoreTimingManager::Init()
   // that slice.
   m_is_global_timer_sane = true;
 
+  // Reset data used by the throttling system
+  m_throttle_last_cycle = 0;
+  m_throttle_deadline = Clock::now();
+
   m_event_fifo_id = 0;
   m_ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
 }
@@ -339,7 +343,8 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   m_throttle_last_cycle = target_cycle;
 
   if (0.0 < speed)
-    m_throttle_deadline += std::chrono::duration_cast<DT>((m_throttle_per_clock * cycles) / speed);
+    m_throttle_deadline +=
+        std::chrono::duration_cast<DT>(DT_s(cycles) / (speed * m_throttle_clock_per_sec));
 
   // A maximum fallback is used to prevent the system from sleeping for
   // too long or going full speed in an attempt to catch up to timings.
@@ -374,8 +379,8 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
 
 TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
 {
-  return TimePoint(
-      std::chrono::duration_cast<DT>(m_throttle_per_clock * (m_globals.global_timer - cyclesLate)));
+  return TimePoint(std::chrono::duration_cast<DT>(DT_s(m_globals.global_timer - cyclesLate) /
+                                                  m_throttle_clock_per_sec));
 }
 
 void CoreTimingManager::LogPendingEvents() const
@@ -392,7 +397,7 @@ void CoreTimingManager::LogPendingEvents() const
 // Should only be called from the CPU thread after the PPC clock has changed
 void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
 {
-  m_throttle_per_clock = DT_s(1.0) / new_ppc_clock;
+  m_throttle_clock_per_sec = new_ppc_clock;
 
   for (Event& ev : m_event_queue)
   {

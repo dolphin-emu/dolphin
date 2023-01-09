@@ -177,7 +177,7 @@ private:
 
   s64 m_throttle_last_cycle = 0;
   TimePoint m_throttle_deadline = Clock::now();
-  DT_s m_throttle_per_clock = DT_s();
+  s64 m_throttle_clock_per_sec;
 
   void Throttle(const s64 target_cycle);
 
