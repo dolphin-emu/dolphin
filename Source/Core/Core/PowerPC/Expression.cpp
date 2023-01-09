@@ -258,9 +258,9 @@ void Expression::SynchronizeBindings(SynchronizeDirection dir) const
       break;
     case VarBindingType::SPR:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(rSPR(bind->index));
+        v->value = static_cast<double>(PowerPC::ppcState.spr[bind->index]);
       else
-        rSPR(bind->index) = static_cast<u32>(static_cast<s64>(v->value));
+        PowerPC::ppcState.spr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
       break;
     case VarBindingType::PCtr:
       if (dir == SynchronizeDirection::From)

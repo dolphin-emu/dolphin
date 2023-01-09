@@ -228,9 +228,9 @@ void Interpreter::mfspr(UGeckoInstruction inst)
   switch (index)
   {
   case SPR_DEC:
-    if ((rSPR(index) & 0x80000000) == 0)  // We are still decrementing
+    if ((PowerPC::ppcState.spr[index] & 0x80000000) == 0)  // We are still decrementing
     {
-      rSPR(index) = SystemTimers::GetFakeDecrementer();
+      PowerPC::ppcState.spr[index] = SystemTimers::GetFakeDecrementer();
     }
     break;
 
@@ -248,40 +248,40 @@ void Interpreter::mfspr(UGeckoInstruction inst)
     // Currently, we always treat the buffer as not empty, as the exact behavior is unclear
     // (and games that use display lists will hang if the bit doesn't eventually become zero).
     if (Core::System::GetInstance().GetGPFifo().IsBNE())
-      rSPR(index) |= 1;
+      PowerPC::ppcState.spr[index] |= 1;
     else
-      rSPR(index) &= ~1;
+      PowerPC::ppcState.spr[index] &= ~1;
   }
   break;
 
   case SPR_XER:
-    rSPR(index) = PowerPC::GetXER().Hex;
+    PowerPC::ppcState.spr[index] = PowerPC::GetXER().Hex;
     break;
 
   case SPR_UPMC1:
-    rSPR(index) = rSPR(SPR_PMC1);
+    PowerPC::ppcState.spr[index] = PowerPC::ppcState.spr[SPR_PMC1];
     break;
 
   case SPR_UPMC2:
-    rSPR(index) = rSPR(SPR_PMC2);
+    PowerPC::ppcState.spr[index] = PowerPC::ppcState.spr[SPR_PMC2];
     break;
 
   case SPR_UPMC3:
-    rSPR(index) = rSPR(SPR_PMC3);
+    PowerPC::ppcState.spr[index] = PowerPC::ppcState.spr[SPR_PMC3];
     break;
 
   case SPR_UPMC4:
-    rSPR(index) = rSPR(SPR_PMC4);
+    PowerPC::ppcState.spr[index] = PowerPC::ppcState.spr[SPR_PMC4];
     break;
 
   case SPR_IABR:
     // A strange quirk: reading back this register on hardware will always have the TE (Translation
     // enabled) bit set to 0 (despite the bit appearing to function normally when set). This does
     // not apply to the DABR.
-    PowerPC::ppcState.gpr[inst.RD] = rSPR(index) & ~1;
+    PowerPC::ppcState.gpr[inst.RD] = PowerPC::ppcState.spr[index] & ~1;
     return;
   }
-  PowerPC::ppcState.gpr[inst.RD] = rSPR(index);
+  PowerPC::ppcState.gpr[inst.RD] = PowerPC::ppcState.spr[index];
 }
 
 void Interpreter::mtspr(UGeckoInstruction inst)
@@ -295,8 +295,8 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     return;
   }
 
-  const u32 old_value = rSPR(index);
-  rSPR(index) = PowerPC::ppcState.gpr[inst.RD];
+  const u32 old_value = PowerPC::ppcState.spr[index];
+  PowerPC::ppcState.spr[index] = PowerPC::ppcState.gpr[inst.RD];
 
   // Our DMA emulation is highly inaccurate - instead of properly emulating the queue
   // and so on, we simply make all DMA:s complete instantaneously.
@@ -320,7 +320,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
 
   case SPR_PVR:
     // PVR is a read-only register so maintain its value.
-    rSPR(index) = old_value;
+    PowerPC::ppcState.spr[index] = old_value;
     break;
 
   case SPR_HID0:  // HID0
@@ -352,7 +352,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     // Despite being documented as a read-only register, it actually isn't. Bits
     // 0-4 (27-31 from a little endian perspective) are modifiable. The rest are not
     // affected, as those bits are reserved and ignore writes to them.
-    rSPR(index) &= 0xF8000000;
+    PowerPC::ppcState.spr[index] &= 0xF8000000;
     break;
 
   case SPR_HID2:
@@ -360,22 +360,23 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     // TODO: emulate locked cache and DMA bits.
     // Only the lower half of the register (upper half from a little endian perspective)
     // is modifiable, except for the DMAQL field.
-    rSPR(index) = (rSPR(index) & 0xF0FF0000) | (old_value & 0x0F000000);
+    PowerPC::ppcState.spr[index] =
+        (PowerPC::ppcState.spr[index] & 0xF0FF0000) | (old_value & 0x0F000000);
     break;
 
   case SPR_HID4:
-    if (old_value != rSPR(index))
+    if (old_value != PowerPC::ppcState.spr[index])
     {
-      INFO_LOG_FMT(POWERPC, "HID4 updated {:x} {:x}", old_value, rSPR(index));
+      INFO_LOG_FMT(POWERPC, "HID4 updated {:x} {:x}", old_value, PowerPC::ppcState.spr[index]);
       PowerPC::IBATUpdated();
       PowerPC::DBATUpdated();
     }
     break;
 
   case SPR_WPAR:
-    ASSERT_MSG(POWERPC, rSPR(SPR_WPAR) == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS,
-               "Gather pipe changed to unexpected address {:08x} @ PC {:08x}", rSPR(SPR_WPAR),
-               PowerPC::ppcState.pc);
+    ASSERT_MSG(POWERPC, PowerPC::ppcState.spr[SPR_WPAR] == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS,
+               "Gather pipe changed to unexpected address {:08x} @ PC {:08x}",
+               PowerPC::ppcState.spr[SPR_WPAR], PowerPC::ppcState.pc);
     Core::System::GetInstance().GetGPFifo().ResetGatherPipe();
     break;
 
@@ -428,7 +429,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_XER:
-    PowerPC::SetXER(UReg_XER{rSPR(index)});
+    PowerPC::SetXER(UReg_XER{PowerPC::ppcState.spr[index]});
     break;
 
   case SPR_DBAT0L:
@@ -447,9 +448,10 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_DBAT6U:
   case SPR_DBAT7L:
   case SPR_DBAT7U:
-    if (old_value != rSPR(index))
+    if (old_value != PowerPC::ppcState.spr[index])
     {
-      INFO_LOG_FMT(POWERPC, "DBAT updated {} {:x} {:x}", index, old_value, rSPR(index));
+      INFO_LOG_FMT(POWERPC, "DBAT updated {} {:x} {:x}", index, old_value,
+                   PowerPC::ppcState.spr[index]);
       PowerPC::DBATUpdated();
     }
     break;
@@ -470,9 +472,10 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_IBAT6U:
   case SPR_IBAT7L:
   case SPR_IBAT7U:
-    if (old_value != rSPR(index))
+    if (old_value != PowerPC::ppcState.spr[index])
     {
-      INFO_LOG_FMT(POWERPC, "IBAT updated {} {:x} {:x}", index, old_value, rSPR(index));
+      INFO_LOG_FMT(POWERPC, "IBAT updated {} {:x} {:x}", index, old_value,
+                   PowerPC::ppcState.spr[index]);
       PowerPC::IBATUpdated();
     }
     break;
