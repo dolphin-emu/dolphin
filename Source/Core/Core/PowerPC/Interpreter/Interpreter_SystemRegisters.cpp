@@ -85,8 +85,8 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
       m |= (0xFU << (i * 4));
   }
 
-  PowerPC::ppcState.fpscr =
-      (PowerPC::ppcState.fpscr.Hex & ~m) | (static_cast<u32>(rPS(inst.FB).PS0AsU64()) & m);
+  PowerPC::ppcState.fpscr = (PowerPC::ppcState.fpscr.Hex & ~m) |
+                            (static_cast<u32>(PowerPC::ppcState.ps[inst.FB].PS0AsU64()) & m);
   FPSCRUpdated(&PowerPC::ppcState.fpscr);
 
   if (inst.Rc)
@@ -604,7 +604,7 @@ void Interpreter::mcrfs(UGeckoInstruction inst)
 
 void Interpreter::mffsx(UGeckoInstruction inst)
 {
-  rPS(inst.FD).SetPS0(UINT64_C(0xFFF8000000000000) | PowerPC::ppcState.fpscr.Hex);
+  PowerPC::ppcState.ps[inst.FD].SetPS0(UINT64_C(0xFFF8000000000000) | PowerPC::ppcState.fpscr.Hex);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();

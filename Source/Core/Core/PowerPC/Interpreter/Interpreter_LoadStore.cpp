@@ -70,7 +70,7 @@ void Interpreter::lfd(UGeckoInstruction inst)
   const u64 temp = PowerPC::Read_U64(address);
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
-    rPS(inst.FD).SetPS0(temp);
+    PowerPC::ppcState.ps[inst.FD].SetPS0(temp);
 }
 
 void Interpreter::lfdu(UGeckoInstruction inst)
@@ -87,7 +87,7 @@ void Interpreter::lfdu(UGeckoInstruction inst)
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rPS(inst.FD).SetPS0(temp);
+    PowerPC::ppcState.ps[inst.FD].SetPS0(temp);
     PowerPC::ppcState.gpr[inst.RA] = address;
   }
 }
@@ -106,7 +106,7 @@ void Interpreter::lfdux(UGeckoInstruction inst)
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rPS(inst.FD).SetPS0(temp);
+    PowerPC::ppcState.ps[inst.FD].SetPS0(temp);
     PowerPC::ppcState.gpr[inst.RA] = address;
   }
 }
@@ -124,7 +124,7 @@ void Interpreter::lfdx(UGeckoInstruction inst)
   const u64 temp = PowerPC::Read_U64(address);
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
-    rPS(inst.FD).SetPS0(temp);
+    PowerPC::ppcState.ps[inst.FD].SetPS0(temp);
 }
 
 void Interpreter::lfs(UGeckoInstruction inst)
@@ -142,7 +142,7 @@ void Interpreter::lfs(UGeckoInstruction inst)
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     const u64 value = ConvertToDouble(temp);
-    rPS(inst.FD).Fill(value);
+    PowerPC::ppcState.ps[inst.FD].Fill(value);
   }
 }
 
@@ -161,7 +161,7 @@ void Interpreter::lfsu(UGeckoInstruction inst)
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     const u64 value = ConvertToDouble(temp);
-    rPS(inst.FD).Fill(value);
+    PowerPC::ppcState.ps[inst.FD].Fill(value);
     PowerPC::ppcState.gpr[inst.RA] = address;
   }
 }
@@ -181,7 +181,7 @@ void Interpreter::lfsux(UGeckoInstruction inst)
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     const u64 value = ConvertToDouble(temp);
-    rPS(inst.FD).Fill(value);
+    PowerPC::ppcState.ps[inst.FD].Fill(value);
     PowerPC::ppcState.gpr[inst.RA] = address;
   }
 }
@@ -201,7 +201,7 @@ void Interpreter::lfsx(UGeckoInstruction inst)
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     const u64 value = ConvertToDouble(temp);
-    rPS(inst.FD).Fill(value);
+    PowerPC::ppcState.ps[inst.FD].Fill(value);
   }
 }
 
@@ -349,7 +349,7 @@ void Interpreter::stfd(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address);
+  PowerPC::Write_U64(PowerPC::ppcState.ps[inst.FS].PS0AsU64(), address);
 }
 
 void Interpreter::stfdu(UGeckoInstruction inst)
@@ -362,7 +362,7 @@ void Interpreter::stfdu(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address);
+  PowerPC::Write_U64(PowerPC::ppcState.ps[inst.FS].PS0AsU64(), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     PowerPC::ppcState.gpr[inst.RA] = address;
@@ -379,7 +379,7 @@ void Interpreter::stfs(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address);
+  PowerPC::Write_U32(ConvertToSingle(PowerPC::ppcState.ps[inst.FS].PS0AsU64()), address);
 }
 
 void Interpreter::stfsu(UGeckoInstruction inst)
@@ -392,7 +392,7 @@ void Interpreter::stfsu(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address);
+  PowerPC::Write_U32(ConvertToSingle(PowerPC::ppcState.ps[inst.FS].PS0AsU64()), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     PowerPC::ppcState.gpr[inst.RA] = address;
@@ -765,7 +765,7 @@ void Interpreter::stfdux(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address);
+  PowerPC::Write_U64(PowerPC::ppcState.ps[inst.FS].PS0AsU64(), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     PowerPC::ppcState.gpr[inst.RA] = address;
@@ -782,7 +782,7 @@ void Interpreter::stfdx(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address);
+  PowerPC::Write_U64(PowerPC::ppcState.ps[inst.FS].PS0AsU64(), address);
 }
 
 // Stores Floating points into Integers indeXed
@@ -796,7 +796,7 @@ void Interpreter::stfiwx(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::Write_U32(rPS(inst.FS).PS0AsU32(), address);
+  PowerPC::Write_U32(PowerPC::ppcState.ps[inst.FS].PS0AsU32(), address);
 }
 
 void Interpreter::stfsux(UGeckoInstruction inst)
@@ -809,7 +809,7 @@ void Interpreter::stfsux(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address);
+  PowerPC::Write_U32(ConvertToSingle(PowerPC::ppcState.ps[inst.FS].PS0AsU64()), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     PowerPC::ppcState.gpr[inst.RA] = address;
@@ -826,7 +826,7 @@ void Interpreter::stfsx(UGeckoInstruction inst)
     return;
   }
 
-  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address);
+  PowerPC::Write_U32(ConvertToSingle(PowerPC::ppcState.ps[inst.FS].PS0AsU64()), address);
 }
 
 void Interpreter::sthbrx(UGeckoInstruction inst)

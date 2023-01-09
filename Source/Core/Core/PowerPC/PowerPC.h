@@ -259,8 +259,6 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define TL PowerPC::ppcState.spr[SPR_TL]
 #define TU PowerPC::ppcState.spr[SPR_TU]
 
-#define rPS(i) (PowerPC::ppcState.ps[(i)])
-
 inline void SetCarry(u32 ca)
 {
   PowerPC::ppcState.xer_ca = ca;

@@ -14,7 +14,7 @@ u32 HLE::SystemVABI::VAList::GetGPR(u32 gpr) const
 
 double HLE::SystemVABI::VAList::GetFPR(u32 fpr) const
 {
-  return rPS(fpr).PS0AsDouble();
+  return PowerPC::ppcState.ps[fpr].PS0AsDouble();
 }
 
 HLE::SystemVABI::VAListStruct::VAListStruct(u32 address)

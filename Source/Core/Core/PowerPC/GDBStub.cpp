@@ -414,7 +414,7 @@ static void ReadRegister()
   }
   else if (id >= 32 && id < 64)
   {
-    wbe64hex(reply, rPS(id - 32).PS0AsU64());
+    wbe64hex(reply, PowerPC::ppcState.ps[id - 32].PS0AsU64());
   }
   else if (id >= 71 && id < 87)
   {
@@ -626,7 +626,7 @@ static void WriteRegister()
   }
   else if (id >= 32 && id < 64)
   {
-    rPS(id - 32).SetPS0(re64hex(bufptr));
+    PowerPC::ppcState.ps[id - 32].SetPS0(re64hex(bufptr));
   }
   else if (id >= 71 && id < 87)
   {

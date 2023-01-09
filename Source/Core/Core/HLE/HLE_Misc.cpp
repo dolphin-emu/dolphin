@@ -63,8 +63,8 @@ void GeckoReturnTrampoline()
   PowerPC::ppcState.cr.Set(PowerPC::HostRead_U32(SP + 20));
   for (int i = 0; i < 14; ++i)
   {
-    rPS(i).SetBoth(PowerPC::HostRead_U64(SP + 24 + 2 * i * sizeof(u64)),
-                   PowerPC::HostRead_U64(SP + 24 + (2 * i + 1) * sizeof(u64)));
+    PowerPC::ppcState.ps[i].SetBoth(PowerPC::HostRead_U64(SP + 24 + 2 * i * sizeof(u64)),
+                                    PowerPC::HostRead_U64(SP + 24 + (2 * i + 1) * sizeof(u64)));
   }
 }
 }  // namespace HLE_Misc

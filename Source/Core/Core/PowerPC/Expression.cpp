@@ -252,9 +252,9 @@ void Expression::SynchronizeBindings(SynchronizeDirection dir) const
       break;
     case VarBindingType::FPR:
       if (dir == SynchronizeDirection::From)
-        v->value = rPS(bind->index).PS0AsDouble();
+        v->value = PowerPC::ppcState.ps[bind->index].PS0AsDouble();
       else
-        rPS(bind->index).SetPS0(v->value);
+        PowerPC::ppcState.ps[bind->index].SetPS0(v->value);
       break;
     case VarBindingType::SPR:
       if (dir == SynchronizeDirection::From)

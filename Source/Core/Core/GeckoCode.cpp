@@ -275,8 +275,8 @@ void RunCodeHandler()
   // Registers FPR0->13 are volatile
   for (int i = 0; i < 14; ++i)
   {
-    PowerPC::HostWrite_U64(rPS(i).PS0AsU64(), SP + 24 + 2 * i * sizeof(u64));
-    PowerPC::HostWrite_U64(rPS(i).PS1AsU64(), SP + 24 + (2 * i + 1) * sizeof(u64));
+    PowerPC::HostWrite_U64(PowerPC::ppcState.ps[i].PS0AsU64(), SP + 24 + 2 * i * sizeof(u64));
+    PowerPC::HostWrite_U64(PowerPC::ppcState.ps[i].PS1AsU64(), SP + 24 + (2 * i + 1) * sizeof(u64));
   }
   DEBUG_LOG_FMT(ACTIONREPLAY,
                 "GeckoCodes: Initiating phantom branch-and-link. "
