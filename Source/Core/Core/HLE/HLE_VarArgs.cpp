@@ -9,7 +9,7 @@ HLE::SystemVABI::VAList::~VAList() = default;
 
 u32 HLE::SystemVABI::VAList::GetGPR(u32 gpr) const
 {
-  return GPR(gpr);
+  return PowerPC::ppcState.gpr[gpr];
 }
 
 double HLE::SystemVABI::VAList::GetFPR(u32 fpr) const

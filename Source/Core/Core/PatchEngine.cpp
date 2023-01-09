@@ -280,7 +280,7 @@ static bool IsStackSane()
   DEBUG_ASSERT(PowerPC::ppcState.msr.DR && PowerPC::ppcState.msr.IR);
 
   // Check the stack pointer
-  u32 SP = GPR(1);
+  u32 SP = PowerPC::ppcState.gpr[1];
   if (!PowerPC::HostIsRAMAddress(SP))
     return false;
 

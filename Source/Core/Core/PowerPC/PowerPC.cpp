@@ -642,8 +642,11 @@ void CheckBreakPoints()
     NOTICE_LOG_FMT(MEMMAP,
                    "BP {:08x} {}({:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} "
                    "{:08x}) LR={:08x}",
-                   PowerPC::ppcState.pc, g_symbolDB.GetDescription(PowerPC::ppcState.pc), GPR(3),
-                   GPR(4), GPR(5), GPR(6), GPR(7), GPR(8), GPR(9), GPR(10), GPR(11), GPR(12), LR);
+                   PowerPC::ppcState.pc, g_symbolDB.GetDescription(PowerPC::ppcState.pc),
+                   PowerPC::ppcState.gpr[3], PowerPC::ppcState.gpr[4], PowerPC::ppcState.gpr[5],
+                   PowerPC::ppcState.gpr[6], PowerPC::ppcState.gpr[7], PowerPC::ppcState.gpr[8],
+                   PowerPC::ppcState.gpr[9], PowerPC::ppcState.gpr[10], PowerPC::ppcState.gpr[11],
+                   PowerPC::ppcState.gpr[12], LR);
   }
   if (PowerPC::breakpoints.IsTempBreakPoint(PowerPC::ppcState.pc))
     PowerPC::breakpoints.Remove(PowerPC::ppcState.pc);

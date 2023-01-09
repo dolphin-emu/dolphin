@@ -259,12 +259,13 @@ void RunCodeHandler()
   // The codehandler will STMW all of the GPR registers, but we need to fix the Stack's Red
   // Zone, the LR, PC (return address) and the volatile floating point registers.
   // Build a function call stack frame.
-  u32 SFP = GPR(1);                     // Stack Frame Pointer
-  GPR(1) -= 256;                        // Stack's Red Zone
-  GPR(1) -= 16 + 2 * 14 * sizeof(u64);  // Our stack frame (HLE_Misc::GeckoReturnTrampoline)
-  GPR(1) -= 8;                          // Fake stack frame for codehandler
-  GPR(1) &= 0xFFFFFFF0;                 // Align stack to 16bytes
-  u32 SP = GPR(1);                      // Stack Pointer
+  u32 SFP = PowerPC::ppcState.gpr[1];                     // Stack Frame Pointer
+  PowerPC::ppcState.gpr[1] -= 256;                        // Stack's Red Zone
+  PowerPC::ppcState.gpr[1] -= 16 + 2 * 14 * sizeof(u64);  // Our stack frame
+                                                          // (HLE_Misc::GeckoReturnTrampoline)
+  PowerPC::ppcState.gpr[1] -= 8;                          // Fake stack frame for codehandler
+  PowerPC::ppcState.gpr[1] &= 0xFFFFFFF0;                 // Align stack to 16bytes
+  u32 SP = PowerPC::ppcState.gpr[1];                      // Stack Pointer
   PowerPC::HostWrite_U32(SP + 8, SP);
   // SP + 4 is reserved for the codehandler to save LR to the stack.
   PowerPC::HostWrite_U32(SFP, SP + 8);  // Real stack frame

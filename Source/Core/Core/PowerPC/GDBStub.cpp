@@ -410,7 +410,7 @@ static void ReadRegister()
 
   if (id < 32)
   {
-    wbe32hex(reply, GPR(id));
+    wbe32hex(reply, PowerPC::ppcState.gpr[id]);
   }
   else if (id >= 32 && id < 64)
   {
@@ -585,7 +585,7 @@ static void ReadRegisters()
 
   for (i = 0; i < 32; i++)
   {
-    wbe32hex(bufptr + i * 8, GPR(i));
+    wbe32hex(bufptr + i * 8, PowerPC::ppcState.gpr[i]);
   }
   bufptr += 32 * 8;
 
@@ -599,7 +599,7 @@ static void WriteRegisters()
 
   for (i = 0; i < 32; i++)
   {
-    GPR(i) = re32hex(bufptr + i * 8);
+    PowerPC::ppcState.gpr[i] = re32hex(bufptr + i * 8);
   }
   bufptr += 32 * 8;
 
@@ -622,7 +622,7 @@ static void WriteRegister()
 
   if (id < 32)
   {
-    GPR(id) = re32hex(bufptr);
+    PowerPC::ppcState.gpr[id] = re32hex(bufptr);
   }
   else if (id >= 32 && id < 64)
   {
@@ -1123,7 +1123,7 @@ void SendSignal(Signal signal)
 {
   char bfr[128] = {};
   fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64,
-                 PowerPC::ppcState.pc, 1, GPR(1));
+                 PowerPC::ppcState.pc, 1, PowerPC::ppcState.gpr[1]);
   SendReply(bfr);
 }
 }  // namespace GDBStub

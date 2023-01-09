@@ -56,8 +56,8 @@ void GeckoCodeHandlerICacheFlush()
 void GeckoReturnTrampoline()
 {
   // Stack frame is built in GeckoCode.cpp, Gecko::RunCodeHandler.
-  u32 SP = GPR(1);
-  GPR(1) = PowerPC::HostRead_U32(SP + 8);
+  u32 SP = PowerPC::ppcState.gpr[1];
+  PowerPC::ppcState.gpr[1] = PowerPC::HostRead_U32(SP + 8);
   PowerPC::ppcState.npc = PowerPC::HostRead_U32(SP + 12);
   LR = PowerPC::HostRead_U32(SP + 16);
   PowerPC::ppcState.cr.Set(PowerPC::HostRead_U32(SP + 20));

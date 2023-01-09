@@ -49,11 +49,11 @@ void HLE_GeneralDebugPrint(ParameterType parameter_type)
   std::string report_message;
 
   // Is gpr3 pointing to a pointer (including nullptr) rather than an ASCII string
-  if (PowerPC::HostIsRAMAddress(GPR(3)) &&
-      (PowerPC::HostIsRAMAddress(PowerPC::HostRead_U32(GPR(3))) ||
-       PowerPC::HostRead_U32(GPR(3)) == 0))
+  if (PowerPC::HostIsRAMAddress(PowerPC::ppcState.gpr[3]) &&
+      (PowerPC::HostIsRAMAddress(PowerPC::HostRead_U32(PowerPC::ppcState.gpr[3])) ||
+       PowerPC::HostRead_U32(PowerPC::ppcState.gpr[3]) == 0))
   {
-    if (PowerPC::HostIsRAMAddress(GPR(4)))
+    if (PowerPC::HostIsRAMAddress(PowerPC::ppcState.gpr[4]))
     {
       // ___blank(void* this, const char* fmt, ...);
       report_message = GetStringVA(4, parameter_type);
@@ -66,7 +66,7 @@ void HLE_GeneralDebugPrint(ParameterType parameter_type)
   }
   else
   {
-    if (PowerPC::HostIsRAMAddress(GPR(3)))
+    if (PowerPC::HostIsRAMAddress(PowerPC::ppcState.gpr[3]))
     {
       // ___blank(const char* fmt, ...);
       report_message = GetStringVA(3, parameter_type);
@@ -100,9 +100,9 @@ void HLE_GeneralDebugVPrint()
 void HLE_write_console()
 {
   std::string report_message = GetStringVA(4);
-  if (PowerPC::HostIsRAMAddress(GPR(5)))
+  if (PowerPC::HostIsRAMAddress(PowerPC::ppcState.gpr[5]))
   {
-    const u32 size = PowerPC::Read_U32(GPR(5));
+    const u32 size = PowerPC::Read_U32(PowerPC::ppcState.gpr[5]);
     if (size > report_message.size())
       WARN_LOG_FMT(OSREPORT_HLE, "__write_console uses an invalid size of {:#010x}", size);
     else if (size == 0)
@@ -124,7 +124,7 @@ void HLE_write_console()
 // Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
 void HLE_LogDPrint(ParameterType parameter_type)
 {
-  if (GPR(3) != 1 && GPR(3) != 2)
+  if (PowerPC::ppcState.gpr[3] != 1 && PowerPC::ppcState.gpr[3] != 2)
     return;
 
   std::string report_message = GetStringVA(4, parameter_type);
@@ -153,15 +153,16 @@ void HLE_LogFPrint(ParameterType parameter_type)
   // The structure FILE is implementation defined.
   // Both libogc and Dolphin SDK seem to store the fd at the same address.
   int fd = -1;
-  if (PowerPC::HostIsRAMAddress(GPR(3)) && PowerPC::HostIsRAMAddress(GPR(3) + 0xF))
+  if (PowerPC::HostIsRAMAddress(PowerPC::ppcState.gpr[3]) &&
+      PowerPC::HostIsRAMAddress(PowerPC::ppcState.gpr[3] + 0xF))
   {
     // The fd is stored as a short at FILE+0xE.
-    fd = static_cast<short>(PowerPC::HostRead_U16(GPR(3) + 0xE));
+    fd = static_cast<short>(PowerPC::HostRead_U16(PowerPC::ppcState.gpr[3] + 0xE));
   }
   if (fd != 1 && fd != 2)
   {
     // On RVL SDK it seems stored at FILE+0x2.
-    fd = static_cast<short>(PowerPC::HostRead_U16(GPR(3) + 0x2));
+    fd = static_cast<short>(PowerPC::HostRead_U16(PowerPC::ppcState.gpr[3] + 0x2));
   }
   if (fd != 1 && fd != 2)
     return;
@@ -190,10 +191,11 @@ std::string GetStringVA(u32 str_reg, ParameterType parameter_type)
 {
   std::string ArgumentBuffer;
   std::string result;
-  std::string string = PowerPC::HostGetString(GPR(str_reg));
-  auto ap = parameter_type == ParameterType::VariableArgumentList ?
-                std::make_unique<HLE::SystemVABI::VAListStruct>(GPR(str_reg + 1)) :
-                std::make_unique<HLE::SystemVABI::VAList>(GPR(1) + 0x8, str_reg + 1);
+  std::string string = PowerPC::HostGetString(PowerPC::ppcState.gpr[str_reg]);
+  auto ap =
+      parameter_type == ParameterType::VariableArgumentList ?
+          std::make_unique<HLE::SystemVABI::VAListStruct>(PowerPC::ppcState.gpr[str_reg + 1]) :
+          std::make_unique<HLE::SystemVABI::VAList>(PowerPC::ppcState.gpr[1] + 0x8, str_reg + 1);
 
   for (size_t i = 0; i < string.size(); i++)
   {

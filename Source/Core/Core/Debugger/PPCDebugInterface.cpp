@@ -449,7 +449,7 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
   if (is_reg == offset_match[0])
   {
     const int register_index = std::stoi(offset_match.substr(1), nullptr, 10);
-    offset = (register_index == 0 ? 0 : GPR(register_index));
+    offset = (register_index == 0 ? 0 : PowerPC::ppcState.gpr[register_index]);
   }
   else
   {
@@ -468,7 +468,7 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
   else
     i = std::stoi(register_match, nullptr, 10);
 
-  const u32 base_address = GPR(i);
+  const u32 base_address = PowerPC::ppcState.gpr[i];
 
   if (!match.str(1).empty())
     return base_address - offset;

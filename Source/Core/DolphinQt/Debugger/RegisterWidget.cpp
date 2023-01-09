@@ -314,8 +314,8 @@ void RegisterWidget::PopulateTable()
   {
     // General purpose registers (int)
     AddRegister(
-        i, 0, RegisterType::gpr, "r" + std::to_string(i), [i] { return GPR(i); },
-        [i](u64 value) { GPR(i) = value; });
+        i, 0, RegisterType::gpr, "r" + std::to_string(i), [i] { return PowerPC::ppcState.gpr[i]; },
+        [i](u64 value) { PowerPC::ppcState.gpr[i] = value; });
 
     // Floating point registers (double)
     AddRegister(
