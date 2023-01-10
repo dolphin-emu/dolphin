@@ -981,7 +981,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       // the start of the block in case our guess turns out wrong.
       for (int gqr : gqr_static)
       {
-        u32 value = GQR(gqr);
+        u32 value = GQR(PowerPC::ppcState, gqr);
         js.constantGqr[gqr] = value;
         CMP_or_TEST(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm32(value));
         J_CC(CC_NZ, target);

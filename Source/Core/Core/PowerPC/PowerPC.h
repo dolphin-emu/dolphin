@@ -250,7 +250,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define CTR(ppc_state) (ppc_state).spr[SPR_CTR]
 #define SRR0(ppc_state) (ppc_state).spr[SPR_SRR0]
 #define SRR1(ppc_state) (ppc_state).spr[SPR_SRR1]
-#define GQR(x) PowerPC::ppcState.spr[SPR_GQR0 + (x)]
+#define GQR(ppc_state, x) (ppc_state).spr[SPR_GQR0 + (x)]
 #define TL PowerPC::ppcState.spr[SPR_TL]
 #define TU PowerPC::ppcState.spr[SPR_TU]
 
