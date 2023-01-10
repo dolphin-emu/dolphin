@@ -33,10 +33,20 @@ constexpr unsigned long long UNSIGNED_16_HASH = hashFunc("UNSIGNED_16");
 constexpr unsigned long long UNSIGNED_32_HASH = hashFunc("UNSIGNED_32");
 constexpr unsigned long long UNSIGNED_64_HASH = hashFunc("UNSIGNED_64");
 
+constexpr unsigned long long UNSIGNED_8_ALT_HASH = hashFunc("unsigned8");
+constexpr unsigned long long UNSIGNED_16_ALT_HASH = hashFunc("unsigned16");
+constexpr unsigned long long UNSIGNED_32_ALT_HASH = hashFunc("unsigned32");
+constexpr unsigned long long UNSIGNED_64_ALT_HASH = hashFunc("unsigned64");
+
 constexpr unsigned long long SIGNED_8_HASH = hashFunc("SIGNED_8");
 constexpr unsigned long long SIGNED_16_HASH = hashFunc("SIGNED_16");
 constexpr unsigned long long SIGNED_32_HASH = hashFunc("SIGNED_32");
 constexpr unsigned long long SIGNED_64_HASH = hashFunc("SIGNED_64");
+
+constexpr unsigned long long SIGNED_8_ALT_HASH = hashFunc("signed8");
+constexpr unsigned long long SIGNED_16_ALT_HASH = hashFunc("signed16");
+constexpr unsigned long long SIGNED_32_ALT_HASH = hashFunc("signed32");
+constexpr unsigned long long SIGNED_64_ALT_HASH = hashFunc("signed64");
 
 constexpr unsigned long long UNSIGNED_BYTE_HASH = hashFunc("UNSIGNED BYTE");
 constexpr unsigned long long SIGNED_BYTE_HASH = hashFunc("SIGNED BYTE");
@@ -45,8 +55,18 @@ constexpr unsigned long long SIGNED_INT_HASH = hashFunc("SIGNED INT");
 constexpr unsigned long long UNSIGNED_LONG_LONG_HASH = hashFunc("UNSIGNED LONG LONG");
 constexpr unsigned long long SIGNED_LONG_LONG_HASH = hashFunc("SIGNED LONG LONG");
 
-constexpr unsigned long long BYTE_WRAPPER_HASH = hashFunc("BYTE_WRAPPER");
-constexpr unsigned long long WRAPPER_HASH = hashFunc("WRAPPER");
+constexpr unsigned long long UNSIGNED_BYTE_ALT_HASH = hashFunc("UnsignedByte");
+constexpr unsigned long long SIGNED_BYTE_ALT_HASH = hashFunc("SignedByte");
+constexpr unsigned long long UNSIGNED_INT_ALT_HASH = hashFunc("UnsignedInt");
+constexpr unsigned long long SIGNED_INT_ALT_HASH = hashFunc("SignedInt");
+constexpr unsigned long long UNSIGNED_LONG_LONG_ALT_HASH = hashFunc("UnsignedLongLong");
+constexpr unsigned long long SIGNED_LONG_LONG_ALT_HASH = hashFunc("SignedLongLong");
+
+constexpr unsigned long long UNSIGNED_BYTE_ARRAY_HASH = hashFunc("UNSIGNED_BYTE_ARRAY");
+constexpr unsigned long long SIGNED_BYTE_ARRAY_HASH = hashFunc("SIGNED_BYTE_ARRAY");
+
+constexpr unsigned long long UNSIGNED_BYTE_ARRAY_ALT_HASH = hashFunc("UnsignedByteArray");
+constexpr unsigned long long SIGNED_BYTE_ARRAY_ALT_HASH = hashFunc("SignedByteArray");
 
 // Checks if 2 strings are equal, but the function is case insensitive and treats '_' and ' ' as
 // the same character.
@@ -90,12 +110,14 @@ NumberType returnTypeIfEqual(const char* firstString, const char* secondString, 
 // vice versa
 //
 // Valid type strings that the user can pass in are listed below. Note that each string is case
-// insensitive, and spaces can be replaced with underscores and vice versa:
+// insensitive, and spaces can be replaced with underscores and vice versa. Also, any string which
+// is 2 or more words can be written as one word, a series of words seperated by underscores, or a series
+// of words seperated by spaces:
 //
 // "u8", "u16", "u32", "u64", "s8", "s16", "s32", "s64", "float", "double"
 // "unsigned_8", "unsigned_16", "unsigned_32", "unsigned_64", "signed_8", "signed_16",
 // "signed_32", "signed_64", "unsigned byte", "signed byte", "unsigned int", "signed int",
-// "unsigned long long", "signed long long", "ByteWrapper" and "wrapper"
+// "unsigned long long", "signed long long", "UnsignedByteArray", "SignedByteArray"
 
 // Checks if 2 strings are equal, but the function is case insensitive and treats '_' and ' ' as
 // the same character. In other words, isEqualSpecial("ABe 0", "aBE_0") would return true.
@@ -103,86 +125,110 @@ NumberType returnTypeIfEqual(const char* firstString, const char* secondString, 
 NumberType parseType(const char* inputString)
 {
   unsigned long long inputStringHash = hashFunc(inputString);
-
+  // There are 42 cases below.
   switch (inputStringHash)
   {
+
   case U8_HASH:
     return returnTypeIfEqual(inputString, "u8", NumberType::UNSIGNED_8);
-
   case U16_HASH:
     return returnTypeIfEqual(inputString, "u16", NumberType::UNSIGNED_16);
-
   case U32_HASH:
     return returnTypeIfEqual(inputString, "u32", NumberType::UNSIGNED_32);
-
   case U64_HASH:
     return returnTypeIfEqual(inputString, "u64", NumberType::UNSIGNED_64);
 
+
   case S8_HASH:
     return returnTypeIfEqual(inputString, "s8", NumberType::SIGNED_8);
-
   case S16_HASH:
     return returnTypeIfEqual(inputString, "s16", NumberType::SIGNED_16);
-
   case S32_HASH:
     return returnTypeIfEqual(inputString, "s32", NumberType::SIGNED_32);
-
   case S64_HASH:
     return returnTypeIfEqual(inputString, "s64", NumberType::SIGNED_64);
 
+
   case FLOAT_HASH:
     return returnTypeIfEqual(inputString, "float", NumberType::FLOAT);
-
   case DOUBLE_HASH:
     return returnTypeIfEqual(inputString, "double", NumberType::DOUBLE);
 
+
   case UNSIGNED_8_HASH:
     return returnTypeIfEqual(inputString, "unsigned_8", NumberType::UNSIGNED_8);
-
   case UNSIGNED_16_HASH:
     return returnTypeIfEqual(inputString, "unsigned_16", NumberType::UNSIGNED_16);
-
   case UNSIGNED_32_HASH:
     return returnTypeIfEqual(inputString, "unsigned_32", NumberType::UNSIGNED_32);
-
   case UNSIGNED_64_HASH:
     return returnTypeIfEqual(inputString, "unsigned_64", NumberType::UNSIGNED_64);
 
+
+  case UNSIGNED_8_ALT_HASH:
+    return returnTypeIfEqual(inputString, "unsigned8", NumberType::UNSIGNED_8);
+  case UNSIGNED_16_ALT_HASH:
+    return returnTypeIfEqual(inputString, "unsigned16", NumberType::UNSIGNED_16);
+  case UNSIGNED_32_ALT_HASH:
+    return returnTypeIfEqual(inputString, "unsigned32", NumberType::UNSIGNED_32);
+  case UNSIGNED_64_ALT_HASH:
+    return returnTypeIfEqual(inputString, "unsigned64", NumberType::UNSIGNED_64);
+
   case SIGNED_8_HASH:
     return returnTypeIfEqual(inputString, "signed_8", NumberType::SIGNED_8);
-
   case SIGNED_16_HASH:
     return returnTypeIfEqual(inputString, "signed_16", NumberType::SIGNED_16);
-
   case SIGNED_32_HASH:
     return returnTypeIfEqual(inputString, "signed_32", NumberType::SIGNED_32);
-
   case SIGNED_64_HASH:
     return returnTypeIfEqual(inputString, "signed_64", NumberType::SIGNED_64);
 
+
+  case SIGNED_8_ALT_HASH:
+    return returnTypeIfEqual(inputString, "signed8", NumberType::SIGNED_8);
+  case SIGNED_16_ALT_HASH:
+    return returnTypeIfEqual(inputString, "signed16", NumberType::SIGNED_16);
+  case SIGNED_32_ALT_HASH:
+    return returnTypeIfEqual(inputString, "signed32", NumberType::SIGNED_32);
+  case SIGNED_64_ALT_HASH:
+    return returnTypeIfEqual(inputString, "signed64", NumberType::SIGNED_64);
+
+
   case UNSIGNED_BYTE_HASH:
     return returnTypeIfEqual(inputString, "unsigned byte", NumberType::UNSIGNED_8);
-
   case SIGNED_BYTE_HASH:
     return returnTypeIfEqual(inputString, "signed byte", NumberType::SIGNED_8);
-
   case UNSIGNED_INT_HASH:
     return returnTypeIfEqual(inputString, "unsigned int", NumberType::UNSIGNED_32);
-
   case SIGNED_INT_HASH:
     return returnTypeIfEqual(inputString, "signed int", NumberType::SIGNED_32);
-
   case UNSIGNED_LONG_LONG_HASH:
     return returnTypeIfEqual(inputString, "unsigned long long", NumberType::UNSIGNED_64);
-
   case SIGNED_LONG_LONG_HASH:
     return returnTypeIfEqual(inputString, "signed long long", NumberType::SIGNED_64);
 
-  case BYTE_WRAPPER_HASH:
-    return returnTypeIfEqual(inputString, "ByteWrapper", NumberType::WRAPPER);
+  case UNSIGNED_BYTE_ALT_HASH:
+    return returnTypeIfEqual(inputString, "UnsignedByte", NumberType::UNSIGNED_8);
+  case SIGNED_BYTE_ALT_HASH:
+    return returnTypeIfEqual(inputString, "SignedByte", NumberType::SIGNED_8);
+  case UNSIGNED_INT_ALT_HASH:
+    return returnTypeIfEqual(inputString, "UnsignedInt", NumberType::UNSIGNED_32);
+  case SIGNED_INT_ALT_HASH:
+    return returnTypeIfEqual(inputString, "SignedInt", NumberType::SIGNED_32);
+  case UNSIGNED_LONG_LONG_ALT_HASH:
+    return returnTypeIfEqual(inputString, "UnsignedLongLong", NumberType::UNSIGNED_64);
+  case SIGNED_LONG_LONG_ALT_HASH:
+    return returnTypeIfEqual(inputString, "SignedLongLong", NumberType::SIGNED_64);
 
-  case WRAPPER_HASH:
-    return returnTypeIfEqual(inputString, "wrapper", NumberType::WRAPPER);
+  case UNSIGNED_BYTE_ARRAY_HASH:
+    return returnTypeIfEqual(inputString, "UNSIGNED_BYTE_ARRAY", NumberType::UNSIGNED_BYTE_ARRAY);
+  case SIGNED_BYTE_ARRAY_HASH:
+    return returnTypeIfEqual(inputString, "SIGNED_BYTE_ARRAY", NumberType::SIGNED_BYTE_ARRAY);
+
+  case UNSIGNED_BYTE_ARRAY_ALT_HASH:
+    return returnTypeIfEqual(inputString, "UnsignedByteArray", NumberType::UNSIGNED_BYTE_ARRAY);
+  case SIGNED_BYTE_ARRAY_ALT_HASH:
+    return returnTypeIfEqual(inputString, "SignedByteArray", NumberType::SIGNED_BYTE_ARRAY);
 
   default:
     return NumberType::UNDEFINED;
@@ -213,6 +259,10 @@ std::string getNumberTypeAsString(NumberType inputType)
       return "FLOAT";
     case NumberType::DOUBLE:
       return "DOUBLE";
+    case NumberType::UNSIGNED_BYTE_ARRAY:
+      return "UNSIGNED_BYTE_ARRAY";
+    case NumberType::SIGNED_BYTE_ARRAY:
+      return "SIGNED_BYTE_ARRAY";
     default:
       return "UNDEFINED";
     }

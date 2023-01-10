@@ -15,9 +15,8 @@ enum class NumberType
   SIGNED_64,
   FLOAT,
   DOUBLE,
-  WRAPPER  // This type is just included in the enum to make it clear in the parseType() function
-           // when the user wants a ByteWrapper type object - no actual ByteWrapper object should
-           // have this as a type value.
+  UNSIGNED_BYTE_ARRAY,
+  SIGNED_BYTE_ARRAY
 };
 
 NumberType parseType(const char* inputString);
