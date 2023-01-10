@@ -580,7 +580,7 @@ bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
       if (executable.reader->LoadSymbols())
       {
         UpdateDebugger_MapLoaded();
-        HLE::PatchFunctions();
+        HLE::PatchFunctions(system);
       }
       return true;
     }

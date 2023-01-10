@@ -166,8 +166,8 @@ bool CBoot::RunApploader(Core::System& system, bool is_wii, const DiscIO::Volume
 
   // iAppLoaderInit
   DEBUG_LOG_FMT(BOOT, "Call iAppLoaderInit");
-  PowerPC::HostWrite_U32(0x4E800020, 0x81300000);  // Write BLR
-  HLE::Patch(0x81300000, "AppLoaderReport");       // HLE OSReport for Apploader
+  PowerPC::HostWrite_U32(0x4E800020, 0x81300000);     // Write BLR
+  HLE::Patch(system, 0x81300000, "AppLoaderReport");  // HLE OSReport for Apploader
   ppc_state.gpr[3] = 0x81300000;
   RunFunction(system, iAppLoaderInit);
 
@@ -208,7 +208,7 @@ bool CBoot::RunApploader(Core::System& system, bool is_wii, const DiscIO::Volume
   // iAppLoaderClose
   DEBUG_LOG_FMT(BOOT, "call iAppLoaderClose");
   RunFunction(system, iAppLoaderClose);
-  HLE::UnPatch("AppLoaderReport");
+  HLE::UnPatch(system, "AppLoaderReport");
 
   // return
   ppc_state.pc = ppc_state.gpr[3];

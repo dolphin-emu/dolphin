@@ -51,6 +51,7 @@
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "Core/TitleDatabase.h"
 #include "VideoCommon/HiresTextures.h"
 
@@ -202,7 +203,8 @@ void SConfig::OnNewTitleLoad()
     Host_NotifyMapLoaded();
   }
   CBoot::LoadMapFromFilename();
-  HLE::Reload();
+  auto& system = Core::System::GetInstance();
+  HLE::Reload(system);
   PatchEngine::Reload();
   HiresTexture::Update();
 }

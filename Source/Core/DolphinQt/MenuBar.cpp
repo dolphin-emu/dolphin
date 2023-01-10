@@ -1438,7 +1438,7 @@ void MenuBar::LoadSymbolMap()
                                  tr("Loaded symbols from '%1'").arg(existing_map_file_path));
   }
 
-  HLE::PatchFunctions();
+  HLE::PatchFunctions(system);
   emit NotifySymbolsUpdated();
 }
 
@@ -1462,7 +1462,8 @@ void MenuBar::LoadOtherSymbolMap()
   if (!TryLoadMapFile(file))
     return;
 
-  HLE::PatchFunctions();
+  auto& system = Core::System::GetInstance();
+  HLE::PatchFunctions(system);
   emit NotifySymbolsUpdated();
 }
 
@@ -1478,7 +1479,8 @@ void MenuBar::LoadBadSymbolMap()
   if (!TryLoadMapFile(file, true))
     return;
 
-  HLE::PatchFunctions();
+  auto& system = Core::System::GetInstance();
+  HLE::PatchFunctions(system);
   emit NotifySymbolsUpdated();
 }
 
@@ -1597,7 +1599,8 @@ void MenuBar::ApplySignatureFile()
   db.Load(load_path);
   db.Apply(&g_symbolDB);
   db.List();
-  HLE::PatchFunctions();
+  auto& system = Core::System::GetInstance();
+  HLE::PatchFunctions(system);
   emit NotifySymbolsUpdated();
 }
 
@@ -1636,7 +1639,8 @@ void MenuBar::CombineSignatureFiles()
 
 void MenuBar::PatchHLEFunctions()
 {
-  HLE::PatchFunctions();
+  auto& system = Core::System::GetInstance();
+  HLE::PatchFunctions(system);
 }
 
 void MenuBar::ClearCache()
