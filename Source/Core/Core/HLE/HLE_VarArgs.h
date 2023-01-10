@@ -11,6 +11,11 @@
 
 #include <type_traits>
 
+namespace Core
+{
+class System;
+}
+
 namespace HLE::SystemVABI
 {
 // SFINAE
@@ -32,8 +37,10 @@ constexpr bool IS_ARG_REAL = std::is_floating_point<T>();
 class VAList
 {
 public:
-  explicit VAList(u32 stack, u32 gpr = 3, u32 fpr = 1, u32 gpr_max = 10, u32 fpr_max = 8)
-      : m_gpr(gpr), m_fpr(fpr), m_gpr_max(gpr_max), m_fpr_max(fpr_max), m_stack(stack)
+  explicit VAList(Core::System& system, u32 stack, u32 gpr = 3, u32 fpr = 1, u32 gpr_max = 10,
+                  u32 fpr_max = 8)
+      : m_system(system), m_gpr(gpr), m_fpr(fpr), m_gpr_max(gpr_max), m_fpr_max(fpr_max),
+        m_stack(stack)
   {
   }
   virtual ~VAList();
@@ -127,6 +134,7 @@ public:
   }
 
 protected:
+  Core::System& m_system;
   u32 m_gpr = 3;
   u32 m_fpr = 1;
   const u32 m_gpr_max = 10;
@@ -147,7 +155,7 @@ private:
 class VAListStruct : public VAList
 {
 public:
-  explicit VAListStruct(u32 address);
+  explicit VAListStruct(Core::System& system, u32 address);
   ~VAListStruct() = default;
 
 private:
