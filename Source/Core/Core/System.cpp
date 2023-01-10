@@ -33,7 +33,10 @@ namespace Core
 {
 struct System::Impl
 {
-  explicit Impl(System& system) : m_gp_fifo(system), m_ppc_state(PowerPC::ppcState) {}
+  explicit Impl(System& system)
+      : m_core_timing(system), m_gp_fifo(system), m_ppc_state(PowerPC::ppcState)
+  {
+  }
 
   std::unique_ptr<SoundStream> m_sound_stream;
   bool m_sound_stream_running = false;

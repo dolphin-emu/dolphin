@@ -75,6 +75,8 @@ void GlobalIdle();
 class CoreTimingManager
 {
 public:
+  explicit CoreTimingManager(Core::System& system);
+
   // CoreTiming begins at the boundary of timing slice -1. An initial call to Advance() is
   // required to end slice -1 and start slice 0 before the first cycle of code is executed.
   void Init();
@@ -150,6 +152,8 @@ public:
 
 private:
   Globals m_globals;
+
+  Core::System& m_system;
 
   // unordered_map stores each element separately as a linked list node so pointers to elements
   // remain stable regardless of rehashes/resizing.
