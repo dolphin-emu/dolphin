@@ -512,7 +512,8 @@ static void ImHere()
     if ((been_here.find(PowerPC::ppcState.pc)->second) & 1023)
       return;
   }
-  INFO_LOG_FMT(DYNA_REC, "I'm here - PC = {:08x} , LR = {:08x}", PowerPC::ppcState.pc, LR);
+  INFO_LOG_FMT(DYNA_REC, "I'm here - PC = {:08x} , LR = {:08x}", PowerPC::ppcState.pc,
+               LR(PowerPC::ppcState));
   been_here[PowerPC::ppcState.pc] = 1;
 }
 

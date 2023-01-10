@@ -246,7 +246,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define THRM2(ppc_state) ((UReg_THRM12&)(ppc_state).spr[SPR_THRM2])
 #define THRM3(ppc_state) ((UReg_THRM3&)(ppc_state).spr[SPR_THRM3])
 
-#define LR PowerPC::ppcState.spr[SPR_LR]
+#define LR(ppc_state) (ppc_state).spr[SPR_LR]
 #define CTR PowerPC::ppcState.spr[SPR_CTR]
 #define rDEC PowerPC::ppcState.spr[SPR_DEC]
 #define SRR0 PowerPC::ppcState.spr[SPR_SRR0]

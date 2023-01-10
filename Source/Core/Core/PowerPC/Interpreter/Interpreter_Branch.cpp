@@ -13,7 +13,7 @@
 void Interpreter::bx(UGeckoInstruction inst)
 {
   if (inst.LK)
-    LR = PowerPC::ppcState.pc + 4;
+    LR(PowerPC::ppcState) = PowerPC::ppcState.pc + 4;
 
   const auto address = u32(SignExt26(inst.LI << 2));
 
@@ -42,7 +42,7 @@ void Interpreter::bcx(UGeckoInstruction inst)
   if (counter && condition)
   {
     if (inst.LK)
-      LR = PowerPC::ppcState.pc + 4;
+      LR(PowerPC::ppcState) = PowerPC::ppcState.pc + 4;
 
     const auto address = u32(SignExt16(s16(inst.BD << 2)));
 
@@ -67,7 +67,7 @@ void Interpreter::bcctrx(UGeckoInstruction inst)
   {
     PowerPC::ppcState.npc = CTR & (~3);
     if (inst.LK_3)
-      LR = PowerPC::ppcState.pc + 4;
+      LR(PowerPC::ppcState) = PowerPC::ppcState.pc + 4;
   }
 
   m_end_block = true;
@@ -84,9 +84,9 @@ void Interpreter::bclrx(UGeckoInstruction inst)
 
   if ((counter & condition) != 0)
   {
-    PowerPC::ppcState.npc = LR & (~3);
+    PowerPC::ppcState.npc = LR(PowerPC::ppcState) & (~3);
     if (inst.LK_3)
-      LR = PowerPC::ppcState.pc + 4;
+      LR(PowerPC::ppcState) = PowerPC::ppcState.pc + 4;
   }
 
   m_end_block = true;

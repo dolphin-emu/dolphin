@@ -346,7 +346,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   NOTICE_LOG_FMT(
       POWERPC,
       "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
-      inst.hex, PowerPC::ppcState.pc, last_pc, LR);
+      inst.hex, PowerPC::ppcState.pc, last_pc, LR(PowerPC::ppcState));
   for (int i = 0; i < 32; i += 4)
   {
     NOTICE_LOG_FMT(POWERPC, "r{}: {:#010x} r{}: {:#010x} r{}: {:#010x} r{}: {:#010x}", i,
@@ -355,7 +355,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   }
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
-             inst.hex, PowerPC::ppcState.pc, last_pc, LR);
+             inst.hex, PowerPC::ppcState.pc, last_pc, LR(PowerPC::ppcState));
   if (Core::System::GetInstance().IsPauseOnPanicMode())
     CPU::Break();
 }

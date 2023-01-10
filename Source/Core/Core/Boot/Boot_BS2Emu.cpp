@@ -58,7 +58,7 @@ void PresetTimeBaseTicks()
 void CBoot::RunFunction(u32 address)
 {
   PowerPC::ppcState.pc = address;
-  LR = 0x00;
+  LR(PowerPC::ppcState) = 0x00;
 
   while (PowerPC::ppcState.pc != 0x00)
     PowerPC::SingleStep();

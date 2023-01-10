@@ -17,7 +17,7 @@ namespace HLE_Misc
 // According to the PPC ABI, the return value is always in r3.
 void UnimplementedFunction()
 {
-  PowerPC::ppcState.npc = LR;
+  PowerPC::ppcState.npc = LR(PowerPC::ppcState);
 }
 
 void HBReload()
@@ -59,7 +59,7 @@ void GeckoReturnTrampoline()
   u32 SP = PowerPC::ppcState.gpr[1];
   PowerPC::ppcState.gpr[1] = PowerPC::HostRead_U32(SP + 8);
   PowerPC::ppcState.npc = PowerPC::HostRead_U32(SP + 12);
-  LR = PowerPC::HostRead_U32(SP + 16);
+  LR(PowerPC::ppcState) = PowerPC::HostRead_U32(SP + 16);
   PowerPC::ppcState.cr.Set(PowerPC::HostRead_U32(SP + 20));
   for (int i = 0; i < 14; ++i)
   {

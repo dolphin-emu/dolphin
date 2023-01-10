@@ -483,7 +483,7 @@ u8* MemoryManager::GetPointer(u32 address) const
   }
 
   PanicAlertFmt("Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, PowerPC::ppcState.pc,
-                LR);
+                LR(PowerPC::ppcState));
   return nullptr;
 }
 

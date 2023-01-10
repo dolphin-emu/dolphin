@@ -71,7 +71,7 @@ bool GetCallstack(std::vector<CallstackEntry>& output)
   if (!Core::IsRunning() || !PowerPC::HostIsRAMAddress(PowerPC::ppcState.gpr[1]))
     return false;
 
-  if (LR == 0)
+  if (LR(PowerPC::ppcState) == 0)
   {
     CallstackEntry entry;
     entry.Name = "(error: LR=0)";
@@ -81,8 +81,10 @@ bool GetCallstack(std::vector<CallstackEntry>& output)
   }
 
   CallstackEntry entry;
-  entry.Name = fmt::format(" * {} [ LR = {:08x} ]\n", g_symbolDB.GetDescription(LR), LR - 4);
-  entry.vAddress = LR - 4;
+  entry.Name =
+      fmt::format(" * {} [ LR = {:08x} ]\n", g_symbolDB.GetDescription(LR(PowerPC::ppcState)),
+                  LR(PowerPC::ppcState) - 4);
+  entry.vAddress = LR(PowerPC::ppcState) - 4;
   output.push_back(entry);
 
   WalkTheStack([&entry, &output](u32 func_addr) {
@@ -101,14 +103,16 @@ void PrintCallstack(Common::Log::LogType type, Common::Log::LogLevel level)
 {
   GENERIC_LOG_FMT(type, level, "== STACK TRACE - SP = {:08x} ==", PowerPC::ppcState.gpr[1]);
 
-  if (LR == 0)
+  if (LR(PowerPC::ppcState) == 0)
   {
     GENERIC_LOG_FMT(type, level, " LR = 0 - this is bad");
   }
 
-  if (g_symbolDB.GetDescription(PowerPC::ppcState.pc) != g_symbolDB.GetDescription(LR))
+  if (g_symbolDB.GetDescription(PowerPC::ppcState.pc) !=
+      g_symbolDB.GetDescription(LR(PowerPC::ppcState)))
   {
-    GENERIC_LOG_FMT(type, level, " * {}  [ LR = {:08x} ]", g_symbolDB.GetDescription(LR), LR);
+    GENERIC_LOG_FMT(type, level, " * {}  [ LR = {:08x} ]",
+                    g_symbolDB.GetDescription(LR(PowerPC::ppcState)), LR(PowerPC::ppcState));
   }
 
   WalkTheStack([type, level](u32 func_addr) {

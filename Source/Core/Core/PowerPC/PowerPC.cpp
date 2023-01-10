@@ -646,7 +646,7 @@ void CheckBreakPoints()
                    PowerPC::ppcState.gpr[3], PowerPC::ppcState.gpr[4], PowerPC::ppcState.gpr[5],
                    PowerPC::ppcState.gpr[6], PowerPC::ppcState.gpr[7], PowerPC::ppcState.gpr[8],
                    PowerPC::ppcState.gpr[9], PowerPC::ppcState.gpr[10], PowerPC::ppcState.gpr[11],
-                   PowerPC::ppcState.gpr[12], LR);
+                   PowerPC::ppcState.gpr[12], LR(PowerPC::ppcState));
   }
   if (PowerPC::breakpoints.IsTempBreakPoint(PowerPC::ppcState.pc))
     PowerPC::breakpoints.Remove(PowerPC::ppcState.pc);
