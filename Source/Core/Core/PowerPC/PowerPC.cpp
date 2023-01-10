@@ -491,7 +491,7 @@ void CheckExceptions()
   {
     SRR0(PowerPC::ppcState) = PowerPC::ppcState.npc;
     // Page fault occurred
-    SRR1 = (PowerPC::ppcState.msr.Hex & 0x87C0FFFF) | (1 << 30);
+    SRR1(PowerPC::ppcState) = (PowerPC::ppcState.msr.Hex & 0x87C0FFFF) | (1 << 30);
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
     PowerPC::ppcState.msr.Hex &= ~0x04EF36;
     PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000400;
@@ -503,7 +503,7 @@ void CheckExceptions()
   {
     SRR0(PowerPC::ppcState) = PowerPC::ppcState.pc;
     // SRR1 was partially set by GenerateProgramException, so bitwise or is used here
-    SRR1 |= PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
+    SRR1(PowerPC::ppcState) |= PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
     PowerPC::ppcState.msr.Hex &= ~0x04EF36;
     PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000700;
@@ -514,7 +514,7 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_SYSCALL)
   {
     SRR0(PowerPC::ppcState) = PowerPC::ppcState.npc;
-    SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
+    SRR1(PowerPC::ppcState) = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
     PowerPC::ppcState.msr.Hex &= ~0x04EF36;
     PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000C00;
@@ -526,7 +526,7 @@ void CheckExceptions()
   {
     // This happens a lot - GameCube OS uses deferred FPU context switching
     SRR0(PowerPC::ppcState) = PowerPC::ppcState.pc;  // re-execute the instruction
-    SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
+    SRR1(PowerPC::ppcState) = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
     PowerPC::ppcState.msr.Hex &= ~0x04EF36;
     PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000800;
@@ -541,7 +541,7 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_DSI)
   {
     SRR0(PowerPC::ppcState) = PowerPC::ppcState.pc;
-    SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
+    SRR1(PowerPC::ppcState) = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
     PowerPC::ppcState.msr.Hex &= ~0x04EF36;
     PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000300;
@@ -553,7 +553,7 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_ALIGNMENT)
   {
     SRR0(PowerPC::ppcState) = PowerPC::ppcState.pc;
-    SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
+    SRR1(PowerPC::ppcState) = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
     PowerPC::ppcState.msr.Hex &= ~0x04EF36;
     PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000600;
@@ -583,7 +583,7 @@ void CheckExternalExceptions()
     {
       // Pokemon gets this "too early", it hasn't a handler yet
       SRR0(PowerPC::ppcState) = PowerPC::ppcState.npc;
-      SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
+      SRR1(PowerPC::ppcState) = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
       PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
       PowerPC::ppcState.msr.Hex &= ~0x04EF36;
       PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000500;
@@ -591,12 +591,13 @@ void CheckExternalExceptions()
       DEBUG_LOG_FMT(POWERPC, "EXCEPTION_EXTERNAL_INT");
       ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 
-      DEBUG_ASSERT_MSG(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
+      DEBUG_ASSERT_MSG(POWERPC, (SRR1(PowerPC::ppcState) & 0x02) != 0,
+                       "EXTERNAL_INT unrecoverable???");
     }
     else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
     {
       SRR0(PowerPC::ppcState) = PowerPC::ppcState.npc;
-      SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
+      SRR1(PowerPC::ppcState) = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
       PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
       PowerPC::ppcState.msr.Hex &= ~0x04EF36;
       PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000F00;
@@ -607,7 +608,7 @@ void CheckExternalExceptions()
     else if (exceptions & EXCEPTION_DECREMENTER)
     {
       SRR0(PowerPC::ppcState) = PowerPC::ppcState.npc;
-      SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
+      SRR1(PowerPC::ppcState) = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
       PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
       PowerPC::ppcState.msr.Hex &= ~0x04EF36;
       PowerPC::ppcState.pc = PowerPC::ppcState.npc = 0x00000900;

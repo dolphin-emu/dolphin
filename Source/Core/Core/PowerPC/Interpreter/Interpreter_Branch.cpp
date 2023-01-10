@@ -109,7 +109,8 @@ void Interpreter::rfi(UGeckoInstruction inst)
   // Restore saved bits from SRR1 to MSR.
   // Gecko/Broadway can save more bits than explicitly defined in ppc spec
   const u32 mask = 0x87C0FFFF;
-  PowerPC::ppcState.msr.Hex = (PowerPC::ppcState.msr.Hex & ~mask) | (SRR1 & mask);
+  PowerPC::ppcState.msr.Hex =
+      (PowerPC::ppcState.msr.Hex & ~mask) | (SRR1(PowerPC::ppcState) & mask);
   // MSR[13] is set to 0.
   PowerPC::ppcState.msr.Hex &= 0xFFFBFFFF;
   // Here we should check if there are pending exceptions, and if their corresponding enable bits
