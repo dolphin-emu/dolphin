@@ -47,6 +47,8 @@
     <string>${DOLPHIN_VERSION_MAJOR}.${DOLPHIN_VERSION_MINOR}</string>
     <key>NSHumanReadableCopyright</key>
     <string>Licensed under GPL version 2 or later (GPLv2+)</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.games</string>
     <key>LSMinimumSystemVersion</key>
     <string>${CMAKE_OSX_DEPLOYMENT_TARGET}</string>
     <key>NSHighResolutionCapable</key>
