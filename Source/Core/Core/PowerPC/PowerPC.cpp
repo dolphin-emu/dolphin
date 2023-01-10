@@ -107,8 +107,8 @@ void DoState(PointerWrap& p)
   // conflict to mess with them here.
 
   // PowerPC::ppcState.spr[SPR_DEC] = SystemTimers::GetFakeDecrementer();
-  // *((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL
-  // comes first :)
+  // *((u64 *)&TL(PowerPC::ppcState)) = SystemTimers::GetFakeTimeBase(); //works since we are little
+  // endian and TL comes first :)
 
   p.DoArray(ppcState.gpr);
   p.Do(ppcState.pc);
@@ -206,7 +206,7 @@ static void ResetRegisters()
   DBATUpdated();
   IBATUpdated();
 
-  TL = 0;
+  TL(PowerPC::ppcState) = 0;
   TU = 0;
   SystemTimers::TimeBaseSet();
 
@@ -394,13 +394,13 @@ void RunLoop()
 u64 ReadFullTimeBaseValue()
 {
   u64 value;
-  std::memcpy(&value, &TL, sizeof(value));
+  std::memcpy(&value, &TL(PowerPC::ppcState), sizeof(value));
   return value;
 }
 
 void WriteFullTimeBaseValue(u64 value)
 {
-  std::memcpy(&TL, &value, sizeof(value));
+  std::memcpy(&TL(PowerPC::ppcState), &value, sizeof(value));
 }
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
