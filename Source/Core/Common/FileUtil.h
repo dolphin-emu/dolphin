@@ -120,12 +120,8 @@ public:
   u64 GetSize() const;
 
 private:
-#ifdef ANDROID
-  void AndroidContentInit(const std::string& path);
-#endif
-
-  std::filesystem::path m_path;
   std::filesystem::file_status m_status;
+  std::uintmax_t m_size;
   bool m_exists;
 };
 

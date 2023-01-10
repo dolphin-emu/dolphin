@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <fstream>
 #include <limits.h>
+#include <stack>
 #include <string>
 #include <sys/stat.h>
 #include <system_error>
@@ -87,26 +88,24 @@ FileInfo::FileInfo(const char* path)
 {
 #ifdef ANDROID
   if (IsPathAndroidContent(path))
-    AndroidContentInit(path);
+  {
+    const jlong result = GetAndroidContentSizeAndIsDirectory(path);
+    m_status.type((result == -2) ? fs::file_type::directory : fs::file_type::regular);
+    m_size = (result >= 0) ? result : 0;
+    m_exists = result != -1;
+  }
   else
 #endif
   {
-    m_path = StringToPath(path);
+    const auto fs_path = StringToPath(path);
     std::error_code error;
-    m_status = fs::status(m_path, error);
+    m_status = fs::status(fs_path, error);
+    m_size = fs::file_size(fs_path, error);
+    if (error)
+      m_size = 0;
     m_exists = fs::exists(m_status);
   }
 }
-
-#ifdef ANDROID
-void FileInfo::AndroidContentInit(const std::string& path)
-{
-  const jlong result = GetAndroidContentSizeAndIsDirectory(path);
-  m_exists = result != -1;
-  m_stat.st_mode = result == -2 ? S_IFDIR : S_IFREG;
-  m_stat.st_size = result >= 0 ? result : 0;
-}
-#endif
 
 bool FileInfo::Exists() const
 {
@@ -127,11 +126,7 @@ u64 FileInfo::GetSize() const
 {
   if (!IsFile())
     return 0;
-  std::error_code error;
-  std::uintmax_t size = fs::file_size(m_path, error);
-  if (error)
-    return 0;
-  return size;
+  return m_size;
 }
 
 // Returns true if the path exists
@@ -376,89 +371,25 @@ bool CreateEmptyFile(const std::string& filename)
   return true;
 }
 
-// Recursive or non-recursive list of files and directories under directory.
-FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
+#ifdef ANDROID
+static FSTEntry ScanDirectoryTreeAndroidContent(std::string directory, bool recursive)
 {
-#ifdef _WIN32
-  if (!directory.empty() && (directory.back() == '/' || directory.back() == '\\'))
-    directory.pop_back();
-#else
-  if (!directory.empty() && directory.back() == '/')
-    directory.pop_back();
-#endif
-
-  DEBUG_LOG_FMT(COMMON, "ScanDirectoryTree: directory {}", directory);
   FSTEntry parent_entry;
   parent_entry.physicalName = directory;
   parent_entry.isDirectory = true;
   parent_entry.size = 0;
-#ifdef _WIN32
-  // Find the first file in the directory.
-  WIN32_FIND_DATA ffd;
 
-  HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
-  if (hFind == INVALID_HANDLE_VALUE)
+  for (const auto& child_name : GetAndroidContentChildNames(directory))
   {
-    FindClose(hFind);
-    return parent_entry;
-  }
-  // Windows loop
-  do
-  {
-    const std::string virtual_name(TStrToUTF8(ffd.cFileName));
-#else
-  DIR* dirp = nullptr;
-
-#ifdef ANDROID
-  std::vector<std::string> child_names;
-  if (IsPathAndroidContent(directory))
-  {
-    child_names = GetAndroidContentChildNames(directory);
-  }
-  else
-#endif
-  {
-    dirp = opendir(directory.c_str());
-    if (!dirp)
-      return parent_entry;
-  }
-
-#ifdef ANDROID
-  auto it = child_names.cbegin();
-#endif
-
-  // non Windows loop
-  while (true)
-  {
-    std::string virtual_name;
-
-#ifdef ANDROID
-    if (!dirp)
-    {
-      if (it == child_names.cend())
-        break;
-      virtual_name = *it;
-      ++it;
-    }
-    else
-#endif
-    {
-      dirent* result = readdir(dirp);
-      if (!result)
-        break;
-      virtual_name = result->d_name;
-    }
-#endif
-    if (virtual_name == "." || virtual_name == "..")
-      continue;
-    auto physical_name = directory + DIR_SEP + virtual_name;
-    FSTEntry entry;
+    const auto physical_name = directory + DIR_SEP + child_name;
     const FileInfo file_info(physical_name);
+    FSTEntry entry;
+
     entry.isDirectory = file_info.IsDirectory();
     if (entry.isDirectory)
     {
       if (recursive)
-        entry = ScanDirectoryTree(physical_name, true);
+        entry = ScanDirectoryTreeAndroidContent(physical_name, true);
       else
         entry.size = 0;
       parent_entry.size += entry.size;
@@ -467,20 +398,109 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
     {
       entry.size = file_info.GetSize();
     }
-    entry.virtualName = virtual_name;
+    entry.virtualName = child_name;
     entry.physicalName = physical_name;
 
     ++parent_entry.size;
-    // Push into the tree
     parent_entry.children.push_back(entry);
-#ifdef _WIN32
-  } while (FindNextFile(hFind, &ffd) != 0);
-  FindClose(hFind);
-#else
   }
-  if (dirp)
-    closedir(dirp);
+
+  return parent_entry;
+}
 #endif
+
+// Recursive or non-recursive list of files and directories under directory.
+FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
+{
+  DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, directory);
+
+#ifdef ANDROID
+  if (IsPathAndroidContent(directory))
+    return ScanDirectoryTreeAndroidContent(directory, recursive);
+#endif
+
+  auto path_to_physical_name = [](const fs::path& path) {
+#ifdef _WIN32
+    // TODO Ideally this would not be needed - dolphin really should not have code directly mucking
+    // about with directory separators (for host paths - emulated paths may require it) and instead
+    // use fs::path to interact with them.
+    auto wpath = path.wstring();
+    std::replace(wpath.begin(), wpath.end(), L'\\', L'/');
+    return WStringToUTF8(wpath);
+#else
+    return PathToString(path);
+#endif
+  };
+
+  auto dirent_to_fstent = [&](const fs::directory_entry& entry) {
+    return FSTEntry{
+        .isDirectory = entry.is_directory(),
+        .size = entry.is_directory() ? 0 : entry.file_size(),
+        .physicalName = path_to_physical_name(entry.path()),
+        .virtualName = PathToString(entry.path().filename()),
+    };
+  };
+
+  auto calc_dir_size = [](FSTEntry* dir) {
+    dir->size += dir->children.size();
+    for (auto& child : dir->children)
+      if (child.isDirectory)
+        dir->size += child.size;
+  };
+
+  const auto directory_path = StringToPath(directory);
+
+  FSTEntry parent_entry;
+  parent_entry.physicalName = path_to_physical_name(directory_path);
+  parent_entry.isDirectory = fs::is_directory(directory_path);
+  parent_entry.size = 0;
+
+  std::error_code error;
+  if (recursive)
+  {
+    int prev_depth = 0;
+    std::stack<FSTEntry*> dir_fsts;
+    dir_fsts.push(&parent_entry);
+    for (auto it = fs::recursive_directory_iterator(directory_path, error);
+         it != fs::recursive_directory_iterator(); it.increment(error))
+    {
+      const int cur_depth = it.depth();
+      if (cur_depth > prev_depth)
+      {
+        dir_fsts.push(&dir_fsts.top()->children.back());
+      }
+      else if (cur_depth < prev_depth)
+      {
+        while (dir_fsts.size() - 1 != cur_depth)
+        {
+          calc_dir_size(dir_fsts.top());
+          dir_fsts.pop();
+        }
+      }
+      dir_fsts.top()->children.emplace_back(dirent_to_fstent(*it));
+      prev_depth = cur_depth;
+    }
+    while (dir_fsts.size())
+    {
+      calc_dir_size(dir_fsts.top());
+      dir_fsts.pop();
+    }
+  }
+  else
+  {
+    for (auto it = fs::directory_iterator(directory_path, error); it != fs::directory_iterator();
+         it.increment(error))
+    {
+      parent_entry.children.emplace_back(dirent_to_fstent(*it));
+    }
+    calc_dir_size(&parent_entry);
+  }
+
+  if (error)
+  {
+    // NOTE Possibly partial file list still returned
+    ERROR_LOG_FMT(COMMON, "{} error on {}: {}", __func__, directory, error.message());
+  }
 
   return parent_entry;
 }
