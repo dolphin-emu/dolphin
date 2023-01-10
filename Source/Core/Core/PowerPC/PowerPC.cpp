@@ -489,7 +489,7 @@ void CheckExceptions()
 
   if (exceptions & EXCEPTION_ISI)
   {
-    SRR0 = PowerPC::ppcState.npc;
+    SRR0(PowerPC::ppcState) = PowerPC::ppcState.npc;
     // Page fault occurred
     SRR1 = (PowerPC::ppcState.msr.Hex & 0x87C0FFFF) | (1 << 30);
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
@@ -501,7 +501,7 @@ void CheckExceptions()
   }
   else if (exceptions & EXCEPTION_PROGRAM)
   {
-    SRR0 = PowerPC::ppcState.pc;
+    SRR0(PowerPC::ppcState) = PowerPC::ppcState.pc;
     // SRR1 was partially set by GenerateProgramException, so bitwise or is used here
     SRR1 |= PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
@@ -513,7 +513,7 @@ void CheckExceptions()
   }
   else if (exceptions & EXCEPTION_SYSCALL)
   {
-    SRR0 = PowerPC::ppcState.npc;
+    SRR0(PowerPC::ppcState) = PowerPC::ppcState.npc;
     SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
     PowerPC::ppcState.msr.Hex &= ~0x04EF36;
@@ -525,7 +525,7 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
   {
     // This happens a lot - GameCube OS uses deferred FPU context switching
-    SRR0 = PowerPC::ppcState.pc;  // re-execute the instruction
+    SRR0(PowerPC::ppcState) = PowerPC::ppcState.pc;  // re-execute the instruction
     SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
     PowerPC::ppcState.msr.Hex &= ~0x04EF36;
@@ -540,7 +540,7 @@ void CheckExceptions()
   }
   else if (exceptions & EXCEPTION_DSI)
   {
-    SRR0 = PowerPC::ppcState.pc;
+    SRR0(PowerPC::ppcState) = PowerPC::ppcState.pc;
     SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
     PowerPC::ppcState.msr.Hex &= ~0x04EF36;
@@ -552,7 +552,7 @@ void CheckExceptions()
   }
   else if (exceptions & EXCEPTION_ALIGNMENT)
   {
-    SRR0 = PowerPC::ppcState.pc;
+    SRR0(PowerPC::ppcState) = PowerPC::ppcState.pc;
     SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
     PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
     PowerPC::ppcState.msr.Hex &= ~0x04EF36;
@@ -582,7 +582,7 @@ void CheckExternalExceptions()
     if (exceptions & EXCEPTION_EXTERNAL_INT)
     {
       // Pokemon gets this "too early", it hasn't a handler yet
-      SRR0 = PowerPC::ppcState.npc;
+      SRR0(PowerPC::ppcState) = PowerPC::ppcState.npc;
       SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
       PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
       PowerPC::ppcState.msr.Hex &= ~0x04EF36;
@@ -595,7 +595,7 @@ void CheckExternalExceptions()
     }
     else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
     {
-      SRR0 = PowerPC::ppcState.npc;
+      SRR0(PowerPC::ppcState) = PowerPC::ppcState.npc;
       SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
       PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
       PowerPC::ppcState.msr.Hex &= ~0x04EF36;
@@ -606,7 +606,7 @@ void CheckExternalExceptions()
     }
     else if (exceptions & EXCEPTION_DECREMENTER)
     {
-      SRR0 = PowerPC::ppcState.npc;
+      SRR0(PowerPC::ppcState) = PowerPC::ppcState.npc;
       SRR1 = PowerPC::ppcState.msr.Hex & 0x87C0FFFF;
       PowerPC::ppcState.msr.LE = PowerPC::ppcState.msr.ILE;
       PowerPC::ppcState.msr.Hex &= ~0x04EF36;

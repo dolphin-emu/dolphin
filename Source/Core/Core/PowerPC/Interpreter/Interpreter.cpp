@@ -131,7 +131,7 @@ static void Trace(const UGeckoInstruction& inst)
   DEBUG_LOG_FMT(POWERPC,
                 "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
                 "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
-                PowerPC::ppcState.pc, SRR0, SRR1, PowerPC::ppcState.cr.fields[0],
+                PowerPC::ppcState.pc, SRR0(PowerPC::ppcState), SRR1, PowerPC::ppcState.cr.fields[0],
                 PowerPC::ppcState.fpscr.Hex, PowerPC::ppcState.msr.Hex, PowerPC::ppcState.spr[8],
                 regs, inst.hex, ppc_inst);
 }

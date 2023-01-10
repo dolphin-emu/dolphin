@@ -118,7 +118,7 @@ void Interpreter::rfi(UGeckoInstruction inst)
   // PowerPC::CheckExceptions();
   // else
   // set NPC to saved offset and resume
-  PowerPC::ppcState.npc = SRR0;
+  PowerPC::ppcState.npc = SRR0(PowerPC::ppcState);
   m_end_block = true;
 }
 
