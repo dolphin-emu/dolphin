@@ -214,7 +214,7 @@ int Interpreter::SingleStepInner()
 
   const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst);
   PowerPC::UpdatePerformanceMonitor(opinfo->numCycles, (opinfo->flags & FL_LOADSTORE) != 0,
-                                    (opinfo->flags & FL_USE_FPU) != 0);
+                                    (opinfo->flags & FL_USE_FPU) != 0, PowerPC::ppcState);
   return opinfo->numCycles;
 }
 

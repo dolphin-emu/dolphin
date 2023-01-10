@@ -403,63 +403,66 @@ void WriteFullTimeBaseValue(u64 value)
   std::memcpy(&TL(PowerPC::ppcState), &value, sizeof(value));
 }
 
-void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
+void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst,
+                              PowerPCState& ppc_state)
 {
-  switch (MMCR0(PowerPC::ppcState).PMC1SELECT)
+  switch (MMCR0(ppc_state).PMC1SELECT)
   {
   case 0:  // No change
     break;
   case 1:  // Processor cycles
-    PowerPC::ppcState.spr[SPR_PMC1] += cycles;
+    ppc_state.spr[SPR_PMC1] += cycles;
     break;
   default:
     break;
   }
 
-  switch (MMCR0(PowerPC::ppcState).PMC2SELECT)
+  switch (MMCR0(ppc_state).PMC2SELECT)
   {
   case 0:  // No change
     break;
   case 1:  // Processor cycles
-    PowerPC::ppcState.spr[SPR_PMC2] += cycles;
+    ppc_state.spr[SPR_PMC2] += cycles;
     break;
   case 11:  // Number of loads and stores completed
-    PowerPC::ppcState.spr[SPR_PMC2] += num_load_stores;
+    ppc_state.spr[SPR_PMC2] += num_load_stores;
     break;
   default:
     break;
   }
 
-  switch (MMCR1(PowerPC::ppcState).PMC3SELECT)
+  switch (MMCR1(ppc_state).PMC3SELECT)
   {
   case 0:  // No change
     break;
   case 1:  // Processor cycles
-    PowerPC::ppcState.spr[SPR_PMC3] += cycles;
+    ppc_state.spr[SPR_PMC3] += cycles;
     break;
   case 11:  // Number of FPU instructions completed
-    PowerPC::ppcState.spr[SPR_PMC3] += num_fp_inst;
+    ppc_state.spr[SPR_PMC3] += num_fp_inst;
     break;
   default:
     break;
   }
 
-  switch (MMCR1(PowerPC::ppcState).PMC4SELECT)
+  switch (MMCR1(ppc_state).PMC4SELECT)
   {
   case 0:  // No change
     break;
   case 1:  // Processor cycles
-    PowerPC::ppcState.spr[SPR_PMC4] += cycles;
+    ppc_state.spr[SPR_PMC4] += cycles;
     break;
   default:
     break;
   }
 
-  if ((MMCR0(PowerPC::ppcState).PMC1INTCONTROL && (PowerPC::ppcState.spr[SPR_PMC1] & 0x80000000) != 0) ||
-      (MMCR0(PowerPC::ppcState).PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC2] & 0x80000000) != 0) ||
-      (MMCR0(PowerPC::ppcState).PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC3] & 0x80000000) != 0) ||
-      (MMCR0(PowerPC::ppcState).PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC4] & 0x80000000) != 0))
-    PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
+  if ((MMCR0(ppc_state).PMC1INTCONTROL && (ppc_state.spr[SPR_PMC1] & 0x80000000) != 0) ||
+      (MMCR0(ppc_state).PMCINTCONTROL && (ppc_state.spr[SPR_PMC2] & 0x80000000) != 0) ||
+      (MMCR0(ppc_state).PMCINTCONTROL && (ppc_state.spr[SPR_PMC3] & 0x80000000) != 0) ||
+      (MMCR0(ppc_state).PMCINTCONTROL && (ppc_state.spr[SPR_PMC4] & 0x80000000) != 0))
+  {
+    ppc_state.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
+  }
 }
 
 void CheckExceptions()

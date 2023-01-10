@@ -294,6 +294,7 @@ void JitArm64::Cleanup()
     MOVI2R(ARM64Reg::X0, js.downcountAmount);
     MOVI2R(ARM64Reg::X1, js.numLoadStoreInst);
     MOVI2R(ARM64Reg::X2, js.numFloatingPointInst);
+    MOVP2R(ARM64Reg::X3, &PowerPC::ppcState);
     BLR(ARM64Reg::X8);
   }
 }

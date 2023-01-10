@@ -538,8 +538,8 @@ bool Jit64::Cleanup()
   if (MMCR0(PowerPC::ppcState).Hex || MMCR1(PowerPC::ppcState).Hex)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunctionCCC(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
-                        js.numFloatingPointInst);
+    ABI_CallFunctionCCCP(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
+                         js.numFloatingPointInst, &PowerPC::ppcState);
     ABI_PopRegistersAndAdjustStack({}, 0);
     did_something = true;
   }

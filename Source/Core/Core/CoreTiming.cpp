@@ -447,7 +447,7 @@ void CoreTimingManager::Idle()
     system.GetFifo().FlushGpu(system);
   }
 
-  PowerPC::UpdatePerformanceMonitor(PowerPC::ppcState.downcount, 0, 0);
+  PowerPC::UpdatePerformanceMonitor(PowerPC::ppcState.downcount, 0, 0, PowerPC::ppcState);
   m_idled_cycles += DowncountToCycles(PowerPC::ppcState.downcount);
   PowerPC::ppcState.downcount = 0;
 }

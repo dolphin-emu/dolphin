@@ -138,17 +138,17 @@ static void EndBlock(UGeckoInstruction data)
 {
   PowerPC::ppcState.pc = PowerPC::ppcState.npc;
   PowerPC::ppcState.downcount -= data.hex;
-  PowerPC::UpdatePerformanceMonitor(data.hex, 0, 0);
+  PowerPC::UpdatePerformanceMonitor(data.hex, 0, 0, PowerPC::ppcState);
 }
 
 static void UpdateNumLoadStoreInstructions(UGeckoInstruction data)
 {
-  PowerPC::UpdatePerformanceMonitor(0, data.hex, 0);
+  PowerPC::UpdatePerformanceMonitor(0, data.hex, 0, PowerPC::ppcState);
 }
 
 static void UpdateNumFloatingPointInstructions(UGeckoInstruction data)
 {
-  PowerPC::UpdatePerformanceMonitor(0, 0, data.hex);
+  PowerPC::UpdatePerformanceMonitor(0, 0, data.hex, PowerPC::ppcState);
 }
 
 static void WritePC(UGeckoInstruction data)
