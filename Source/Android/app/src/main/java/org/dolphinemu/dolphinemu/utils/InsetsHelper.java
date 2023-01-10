@@ -31,9 +31,12 @@ public class InsetsHelper
   // navigation bar https://issuetracker.google.com/issues/248761842
   public static void applyNavbarWorkaround(int bottomInset, View workaroundView)
   {
-    ViewGroup.LayoutParams lpWorkaround = workaroundView.getLayoutParams();
-    lpWorkaround.height = bottomInset;
-    workaroundView.setLayoutParams(lpWorkaround);
+    if (bottomInset > 0)
+    {
+      ViewGroup.LayoutParams lpWorkaround = workaroundView.getLayoutParams();
+      lpWorkaround.height = bottomInset;
+      workaroundView.setLayoutParams(lpWorkaround);
+    }
   }
 
   public static int getSystemGestureType(Context context)
