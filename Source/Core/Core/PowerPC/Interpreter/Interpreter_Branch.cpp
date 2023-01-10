@@ -29,12 +29,12 @@ void Interpreter::bx(UGeckoInstruction inst)
 void Interpreter::bcx(UGeckoInstruction inst)
 {
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
-    CTR--;
+    CTR(PowerPC::ppcState)--;
 
   const bool true_false = ((inst.BO >> 3) & 1) != 0;
   const bool only_counter_check = ((inst.BO >> 4) & 1) != 0;
   const bool only_condition_check = ((inst.BO >> 2) & 1) != 0;
-  const u32 ctr_check = ((CTR != 0) ^ (inst.BO >> 1)) & 1;
+  const u32 ctr_check = ((CTR(PowerPC::ppcState) != 0) ^ (inst.BO >> 1)) & 1;
   const bool counter = only_condition_check || ctr_check != 0;
   const bool condition =
       only_counter_check || (PowerPC::ppcState.cr.GetBit(inst.BI) == u32(true_false));
@@ -65,7 +65,7 @@ void Interpreter::bcctrx(UGeckoInstruction inst)
 
   if (condition != 0)
   {
-    PowerPC::ppcState.npc = CTR & (~3);
+    PowerPC::ppcState.npc = CTR(PowerPC::ppcState) & (~3);
     if (inst.LK_3)
       LR(PowerPC::ppcState) = PowerPC::ppcState.pc + 4;
   }
@@ -76,9 +76,9 @@ void Interpreter::bcctrx(UGeckoInstruction inst)
 void Interpreter::bclrx(UGeckoInstruction inst)
 {
   if ((inst.BO_2 & BO_DONT_DECREMENT_FLAG) == 0)
-    CTR--;
+    CTR(PowerPC::ppcState)--;
 
-  const u32 counter = ((inst.BO_2 >> 2) | ((CTR != 0) ^ (inst.BO_2 >> 1))) & 1;
+  const u32 counter = ((inst.BO_2 >> 2) | ((CTR(PowerPC::ppcState) != 0) ^ (inst.BO_2 >> 1))) & 1;
   const u32 condition =
       ((inst.BO_2 >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
 

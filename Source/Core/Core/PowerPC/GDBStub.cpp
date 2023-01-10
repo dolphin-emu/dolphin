@@ -441,7 +441,7 @@ static void ReadRegister()
       wbe32hex(reply, LR(PowerPC::ppcState));
       break;
     case 68:
-      wbe32hex(reply, CTR);
+      wbe32hex(reply, CTR(PowerPC::ppcState));
       break;
     case 69:
       wbe32hex(reply, PowerPC::ppcState.spr[SPR_XER]);
@@ -653,7 +653,7 @@ static void WriteRegister()
       LR(PowerPC::ppcState) = re32hex(bufptr);
       break;
     case 68:
-      CTR = re32hex(bufptr);
+      CTR(PowerPC::ppcState) = re32hex(bufptr);
       break;
     case 69:
       PowerPC::ppcState.spr[SPR_XER] = re32hex(bufptr);
