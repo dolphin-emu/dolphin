@@ -314,7 +314,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_TU_W:
-    TU = PowerPC::ppcState.gpr[inst.RD];
+    TU(PowerPC::ppcState) = PowerPC::ppcState.gpr[inst.RD];
     SystemTimers::TimeBaseSet();
     break;
 

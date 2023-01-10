@@ -207,7 +207,7 @@ static void ResetRegisters()
   IBATUpdated();
 
   TL(PowerPC::ppcState) = 0;
-  TU = 0;
+  TU(PowerPC::ppcState) = 0;
   SystemTimers::TimeBaseSet();
 
   // MSR should be 0x40, but we don't emulate BS1, so it would never be turned off :}

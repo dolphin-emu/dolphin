@@ -252,7 +252,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define SRR1(ppc_state) (ppc_state).spr[SPR_SRR1]
 #define GQR(ppc_state, x) (ppc_state).spr[SPR_GQR0 + (x)]
 #define TL(ppc_state) (ppc_state).spr[SPR_TL]
-#define TU PowerPC::ppcState.spr[SPR_TU]
+#define TU(ppc_state) (ppc_state).spr[SPR_TU]
 
 inline void SetCarry(u32 ca)
 {
