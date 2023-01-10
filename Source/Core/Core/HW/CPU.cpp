@@ -88,6 +88,8 @@ static void ExecutePendingJobs(std::unique_lock<std::mutex>& state_lock)
 
 void Run()
 {
+  auto& system = Core::System::GetInstance();
+
   // Updating the host CPU's rounding mode must be done on the CPU thread.
   // We can't rely on PowerPC::Init doing it, since it's called from EmuThread.
   PowerPC::RoundingModeUpdated();
@@ -111,7 +113,7 @@ void Run()
       // If watchpoints are enabled, any instruction could be a breakpoint.
       if (PowerPC::GetMode() != PowerPC::CoreMode::Interpreter)
       {
-        if (PowerPC::breakpoints.IsAddressBreakPoint(PowerPC::ppcState.pc) ||
+        if (PowerPC::breakpoints.IsAddressBreakPoint(system.GetPPCState().pc) ||
             PowerPC::memchecks.HasAny())
         {
           s_state = State::Stepping;
