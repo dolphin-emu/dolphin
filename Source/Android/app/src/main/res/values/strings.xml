@@ -332,6 +332,8 @@
     <string name="show_speed_description">Shows the % speed of emulation compared to full speed.</string>
     <string name="show_speed_colors">Show Speed Color</string>
     <string name="show_speed_colors_description">Changes the color of the FPS counter depending on emulation speed.</string>
+    <string name="log_render_time_to_file">Log Render Time to File</string>
+    <string name="log_render_time_to_file_description">Logs the render time of every frame to User/Logs/render_time.txt. Use this feature to measure Dolphin\'s performance.</string>
 
     <string name="advanced_graphics_submenu">Advanced</string>
     <string name="gfx_mods_and_custom_textures">Graphics Mods and Custom Textures</string>
