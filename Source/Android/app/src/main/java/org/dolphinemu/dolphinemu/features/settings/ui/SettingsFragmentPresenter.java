@@ -902,6 +902,9 @@ public final class SettingsFragmentPresenter
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_SHOW_SPEED_COLORS,
             R.string.show_speed_colors,
             R.string.show_speed_colors_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_LOG_RENDER_TIME_TO_FILE,
+            R.string.log_render_time_to_file,
+            R.string.log_render_time_to_file_description));
   }
 
   private void addAdvancedGraphicsSettings(ArrayList<SettingsItem> sl)
