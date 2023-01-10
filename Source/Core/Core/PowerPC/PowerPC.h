@@ -185,6 +185,41 @@ struct PowerPCState
   }
 
   void SetSR(u32 index, u32 value);
+
+  void SetCarry(u32 ca) { xer_ca = ca; }
+
+  u32 GetCarry() const { return xer_ca; }
+
+  UReg_XER GetXER() const
+  {
+    u32 xer = 0;
+    xer |= xer_stringctrl;
+    xer |= xer_ca << XER_CA_SHIFT;
+    xer |= xer_so_ov << XER_OV_SHIFT;
+    return UReg_XER{xer};
+  }
+
+  void SetXER(UReg_XER new_xer)
+  {
+    xer_stringctrl = new_xer.BYTE_COUNT + (new_xer.BYTE_CMP << 8);
+    xer_ca = new_xer.CA;
+    xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
+  }
+
+  u32 GetXER_SO() const { return xer_so_ov >> 1; }
+
+  void SetXER_SO(bool value) { xer_so_ov |= static_cast<u32>(value) << 1; }
+
+  u32 GetXER_OV() const { return xer_so_ov & 1; }
+
+  void SetXER_OV(bool value)
+  {
+    xer_so_ov = (xer_so_ov & 0xFE) | static_cast<u32>(value);
+    SetXER_SO(value);
+  }
+
+  void UpdateFPRFDouble(double dvalue);
+  void UpdateFPRFSingle(float fvalue);
 };
 
 #if _M_X86_64
@@ -253,56 +288,6 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define GQR(ppc_state, x) (ppc_state).spr[SPR_GQR0 + (x)]
 #define TL(ppc_state) (ppc_state).spr[SPR_TL]
 #define TU(ppc_state) (ppc_state).spr[SPR_TU]
-
-inline void SetCarry(u32 ca)
-{
-  PowerPC::ppcState.xer_ca = ca;
-}
-
-inline u32 GetCarry()
-{
-  return PowerPC::ppcState.xer_ca;
-}
-
-inline UReg_XER GetXER()
-{
-  u32 xer = 0;
-  xer |= PowerPC::ppcState.xer_stringctrl;
-  xer |= PowerPC::ppcState.xer_ca << XER_CA_SHIFT;
-  xer |= PowerPC::ppcState.xer_so_ov << XER_OV_SHIFT;
-  return UReg_XER{xer};
-}
-
-inline void SetXER(UReg_XER new_xer)
-{
-  PowerPC::ppcState.xer_stringctrl = new_xer.BYTE_COUNT + (new_xer.BYTE_CMP << 8);
-  PowerPC::ppcState.xer_ca = new_xer.CA;
-  PowerPC::ppcState.xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
-}
-
-inline u32 GetXER_SO()
-{
-  return PowerPC::ppcState.xer_so_ov >> 1;
-}
-
-inline void SetXER_SO(bool value)
-{
-  PowerPC::ppcState.xer_so_ov |= static_cast<u32>(value) << 1;
-}
-
-inline u32 GetXER_OV()
-{
-  return PowerPC::ppcState.xer_so_ov & 1;
-}
-
-inline void SetXER_OV(bool value)
-{
-  PowerPC::ppcState.xer_so_ov = (PowerPC::ppcState.xer_so_ov & 0xFE) | static_cast<u32>(value);
-  SetXER_SO(value);
-}
-
-void UpdateFPRFDouble(double dvalue);
-void UpdateFPRFSingle(float fvalue);
 
 void RoundingModeUpdated();
 

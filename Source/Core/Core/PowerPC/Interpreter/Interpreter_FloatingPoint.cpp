@@ -305,7 +305,7 @@ void Interpreter::frspx(UGeckoInstruction inst)  // round to single
     if (!is_snan || PowerPC::ppcState.fpscr.VE == 0)
     {
       PowerPC::ppcState.ps[inst.FD].Fill(rounded);
-      PowerPC::UpdateFPRFSingle(rounded);
+      PowerPC::ppcState.UpdateFPRFSingle(rounded);
     }
 
     PowerPC::ppcState.fpscr.ClearFIFR();
@@ -314,7 +314,7 @@ void Interpreter::frspx(UGeckoInstruction inst)  // round to single
   {
     SetFI(&PowerPC::ppcState.fpscr, b != rounded);
     PowerPC::ppcState.fpscr.FR = fabs(rounded) > fabs(b);
-    PowerPC::UpdateFPRFSingle(rounded);
+    PowerPC::ppcState.UpdateFPRFSingle(rounded);
     PowerPC::ppcState.ps[inst.FD].Fill(rounded);
   }
 
@@ -336,7 +336,7 @@ void Interpreter::fmulx(UGeckoInstruction inst)
     PowerPC::ppcState.ps[inst.FD].SetPS0(result);
     PowerPC::ppcState.fpscr.FI = 0;  // are these flags important?
     PowerPC::ppcState.fpscr.FR = 0;
-    PowerPC::UpdateFPRFDouble(result);
+    PowerPC::ppcState.UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -357,7 +357,7 @@ void Interpreter::fmulsx(UGeckoInstruction inst)
     PowerPC::ppcState.ps[inst.FD].Fill(result);
     PowerPC::ppcState.fpscr.FI = 0;
     PowerPC::ppcState.fpscr.FR = 0;
-    PowerPC::UpdateFPRFSingle(result);
+    PowerPC::ppcState.UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -376,7 +376,7 @@ void Interpreter::fmaddx(UGeckoInstruction inst)
   {
     const double result = ForceDouble(PowerPC::ppcState.fpscr, product.value);
     PowerPC::ppcState.ps[inst.FD].SetPS0(result);
-    PowerPC::UpdateFPRFDouble(result);
+    PowerPC::ppcState.UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -400,7 +400,7 @@ void Interpreter::fmaddsx(UGeckoInstruction inst)
     PowerPC::ppcState.ps[inst.FD].Fill(result);
     PowerPC::ppcState.fpscr.FI = d_value.value != result;
     PowerPC::ppcState.fpscr.FR = 0;
-    PowerPC::UpdateFPRFSingle(result);
+    PowerPC::ppcState.UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -418,7 +418,7 @@ void Interpreter::faddx(UGeckoInstruction inst)
   {
     const double result = ForceDouble(PowerPC::ppcState.fpscr, sum.value);
     PowerPC::ppcState.ps[inst.FD].SetPS0(result);
-    PowerPC::UpdateFPRFDouble(result);
+    PowerPC::ppcState.UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -435,7 +435,7 @@ void Interpreter::faddsx(UGeckoInstruction inst)
   {
     const float result = ForceSingle(PowerPC::ppcState.fpscr, sum.value);
     PowerPC::ppcState.ps[inst.FD].Fill(result);
-    PowerPC::UpdateFPRFSingle(result);
+    PowerPC::ppcState.UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -455,7 +455,7 @@ void Interpreter::fdivx(UGeckoInstruction inst)
   {
     const double result = ForceDouble(PowerPC::ppcState.fpscr, quotient.value);
     PowerPC::ppcState.ps[inst.FD].SetPS0(result);
-    PowerPC::UpdateFPRFDouble(result);
+    PowerPC::ppcState.UpdateFPRFDouble(result);
   }
 
   // FR,FI,OX,UX???
@@ -475,7 +475,7 @@ void Interpreter::fdivsx(UGeckoInstruction inst)
   {
     const float result = ForceSingle(PowerPC::ppcState.fpscr, quotient.value);
     PowerPC::ppcState.ps[inst.FD].Fill(result);
-    PowerPC::UpdateFPRFSingle(result);
+    PowerPC::ppcState.UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -490,7 +490,7 @@ void Interpreter::fresx(UGeckoInstruction inst)
   const auto compute_result = [inst](double value) {
     const double result = Common::ApproximateReciprocal(value);
     PowerPC::ppcState.ps[inst.FD].Fill(result);
-    PowerPC::UpdateFPRFSingle(float(result));
+    PowerPC::ppcState.UpdateFPRFSingle(float(result));
   };
 
   if (b == 0.0)
@@ -528,7 +528,7 @@ void Interpreter::frsqrtex(UGeckoInstruction inst)
   const auto compute_result = [inst](double value) {
     const double result = Common::ApproximateReciprocalSquareRoot(value);
     PowerPC::ppcState.ps[inst.FD].SetPS0(result);
-    PowerPC::UpdateFPRFDouble(result);
+    PowerPC::ppcState.UpdateFPRFDouble(result);
   };
 
   if (b < 0.0)
@@ -580,7 +580,7 @@ void Interpreter::fmsubx(UGeckoInstruction inst)
   {
     const double result = ForceDouble(PowerPC::ppcState.fpscr, product.value);
     PowerPC::ppcState.ps[inst.FD].SetPS0(result);
-    PowerPC::UpdateFPRFDouble(result);
+    PowerPC::ppcState.UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -601,7 +601,7 @@ void Interpreter::fmsubsx(UGeckoInstruction inst)
   {
     const float result = ForceSingle(PowerPC::ppcState.fpscr, product.value);
     PowerPC::ppcState.ps[inst.FD].Fill(result);
-    PowerPC::UpdateFPRFSingle(result);
+    PowerPC::ppcState.UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -623,7 +623,7 @@ void Interpreter::fnmaddx(UGeckoInstruction inst)
     const double result = std::isnan(tmp) ? tmp : -tmp;
 
     PowerPC::ppcState.ps[inst.FD].SetPS0(result);
-    PowerPC::UpdateFPRFDouble(result);
+    PowerPC::ppcState.UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -646,7 +646,7 @@ void Interpreter::fnmaddsx(UGeckoInstruction inst)
     const float result = std::isnan(tmp) ? tmp : -tmp;
 
     PowerPC::ppcState.ps[inst.FD].Fill(result);
-    PowerPC::UpdateFPRFSingle(result);
+    PowerPC::ppcState.UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -668,7 +668,7 @@ void Interpreter::fnmsubx(UGeckoInstruction inst)
     const double result = std::isnan(tmp) ? tmp : -tmp;
 
     PowerPC::ppcState.ps[inst.FD].SetPS0(result);
-    PowerPC::UpdateFPRFDouble(result);
+    PowerPC::ppcState.UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -691,7 +691,7 @@ void Interpreter::fnmsubsx(UGeckoInstruction inst)
     const float result = std::isnan(tmp) ? tmp : -tmp;
 
     PowerPC::ppcState.ps[inst.FD].Fill(result);
-    PowerPC::UpdateFPRFSingle(result);
+    PowerPC::ppcState.UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -709,7 +709,7 @@ void Interpreter::fsubx(UGeckoInstruction inst)
   {
     const double result = ForceDouble(PowerPC::ppcState.fpscr, difference.value);
     PowerPC::ppcState.ps[inst.FD].SetPS0(result);
-    PowerPC::UpdateFPRFDouble(result);
+    PowerPC::ppcState.UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -727,7 +727,7 @@ void Interpreter::fsubsx(UGeckoInstruction inst)
   {
     const float result = ForceSingle(PowerPC::ppcState.fpscr, difference.value);
     PowerPC::ppcState.ps[inst.FD].Fill(result);
-    PowerPC::UpdateFPRFSingle(result);
+    PowerPC::ppcState.UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)

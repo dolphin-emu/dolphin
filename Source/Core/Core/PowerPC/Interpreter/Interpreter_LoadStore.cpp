@@ -1017,13 +1017,13 @@ void Interpreter::stwcxd(UGeckoInstruction inst)
       if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
       {
         PowerPC::ppcState.reserve = false;
-        PowerPC::ppcState.cr.SetField(0, 2 | PowerPC::GetXER_SO());
+        PowerPC::ppcState.cr.SetField(0, 2 | PowerPC::ppcState.GetXER_SO());
         return;
       }
     }
   }
 
-  PowerPC::ppcState.cr.SetField(0, PowerPC::GetXER_SO());
+  PowerPC::ppcState.cr.SetField(0, PowerPC::ppcState.GetXER_SO());
 }
 
 void Interpreter::stwux(UGeckoInstruction inst)

@@ -125,7 +125,7 @@ void Interpreter::ps_div(UGeckoInstruction inst)
                   NI_div(&PowerPC::ppcState.fpscr, a.PS1AsDouble(), b.PS1AsDouble()).value);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -153,7 +153,7 @@ void Interpreter::ps_res(UGeckoInstruction inst)
   const double ps1 = Common::ApproximateReciprocal(b);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(float(ps0));
+  PowerPC::ppcState.UpdateFPRFSingle(float(ps0));
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -188,7 +188,7 @@ void Interpreter::ps_rsqrte(UGeckoInstruction inst)
       ForceSingle(PowerPC::ppcState.fpscr, Common::ApproximateReciprocalSquareRoot(ps1));
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(dst_ps0, dst_ps1);
-  PowerPC::UpdateFPRFSingle(dst_ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(dst_ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -207,7 +207,7 @@ void Interpreter::ps_sub(UGeckoInstruction inst)
                   NI_sub(&PowerPC::ppcState.fpscr, a.PS1AsDouble(), b.PS1AsDouble()).value);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -226,7 +226,7 @@ void Interpreter::ps_add(UGeckoInstruction inst)
                   NI_add(&PowerPC::ppcState.fpscr, a.PS1AsDouble(), b.PS1AsDouble()).value);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -246,7 +246,7 @@ void Interpreter::ps_mul(UGeckoInstruction inst)
                                 NI_mul(&PowerPC::ppcState.fpscr, a.PS1AsDouble(), c1).value);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -269,7 +269,7 @@ void Interpreter::ps_msub(UGeckoInstruction inst)
                   NI_msub(&PowerPC::ppcState.fpscr, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -292,7 +292,7 @@ void Interpreter::ps_madd(UGeckoInstruction inst)
                   NI_madd(&PowerPC::ppcState.fpscr, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -318,7 +318,7 @@ void Interpreter::ps_nmsub(UGeckoInstruction inst)
   const float ps1 = std::isnan(tmp1) ? tmp1 : -tmp1;
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -344,7 +344,7 @@ void Interpreter::ps_nmadd(UGeckoInstruction inst)
   const float ps1 = std::isnan(tmp1) ? tmp1 : -tmp1;
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -362,7 +362,7 @@ void Interpreter::ps_sum0(UGeckoInstruction inst)
   const float ps1 = ForceSingle(PowerPC::ppcState.fpscr, c.PS1AsDouble());
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -380,7 +380,7 @@ void Interpreter::ps_sum1(UGeckoInstruction inst)
                   NI_add(&PowerPC::ppcState.fpscr, a.PS0AsDouble(), b.PS1AsDouble()).value);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps1);
+  PowerPC::ppcState.UpdateFPRFSingle(ps1);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -398,7 +398,7 @@ void Interpreter::ps_muls0(UGeckoInstruction inst)
                                 NI_mul(&PowerPC::ppcState.fpscr, a.PS1AsDouble(), c0).value);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -416,7 +416,7 @@ void Interpreter::ps_muls1(UGeckoInstruction inst)
                                 NI_mul(&PowerPC::ppcState.fpscr, a.PS1AsDouble(), c1).value);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -437,7 +437,7 @@ void Interpreter::ps_madds0(UGeckoInstruction inst)
                   NI_madd(&PowerPC::ppcState.fpscr, a.PS1AsDouble(), c0, b.PS1AsDouble()).value);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -458,7 +458,7 @@ void Interpreter::ps_madds1(UGeckoInstruction inst)
                   NI_madd(&PowerPC::ppcState.fpscr, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
 
   PowerPC::ppcState.ps[inst.FD].SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::ppcState.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();

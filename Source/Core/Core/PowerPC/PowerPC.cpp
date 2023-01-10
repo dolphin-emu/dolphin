@@ -200,7 +200,7 @@ static void ResetRegisters()
   {
     v = 0x8000000000000001;
   }
-  SetXER({});
+  ppcState.SetXER({});
 
   RoundingModeUpdated();
   DBATUpdated();
@@ -661,14 +661,14 @@ void PowerPCState::SetSR(u32 index, u32 value)
 
 // FPSCR update functions
 
-void UpdateFPRFDouble(double dvalue)
+void PowerPCState::UpdateFPRFDouble(double dvalue)
 {
-  PowerPC::ppcState.fpscr.FPRF = Common::ClassifyDouble(dvalue);
+  fpscr.FPRF = Common::ClassifyDouble(dvalue);
 }
 
-void UpdateFPRFSingle(float fvalue)
+void PowerPCState::UpdateFPRFSingle(float fvalue)
 {
-  PowerPC::ppcState.fpscr.FPRF = Common::ClassifyFloat(fvalue);
+  fpscr.FPRF = Common::ClassifyFloat(fvalue);
 }
 
 void RoundingModeUpdated()

@@ -95,7 +95,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
 
 void Interpreter::mcrxr(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetField(inst.CRFD, PowerPC::GetXER().Hex >> 28);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, PowerPC::ppcState.GetXER().Hex >> 28);
   PowerPC::ppcState.xer_ca = 0;
   PowerPC::ppcState.xer_so_ov = 0;
 }
@@ -255,7 +255,7 @@ void Interpreter::mfspr(UGeckoInstruction inst)
   break;
 
   case SPR_XER:
-    PowerPC::ppcState.spr[index] = PowerPC::GetXER().Hex;
+    PowerPC::ppcState.spr[index] = PowerPC::ppcState.GetXER().Hex;
     break;
 
   case SPR_UPMC1:
@@ -429,7 +429,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_XER:
-    PowerPC::SetXER(UReg_XER{PowerPC::ppcState.spr[index]});
+    PowerPC::ppcState.SetXER(UReg_XER{PowerPC::ppcState.spr[index]});
     break;
 
   case SPR_DBAT0L:

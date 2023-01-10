@@ -422,8 +422,8 @@ void RegisterWidget::PopulateTable()
 
   // XER
   AddRegister(
-      21, 5, RegisterType::xer, "XER", [] { return PowerPC::GetXER().Hex; },
-      [](u64 value) { PowerPC::SetXER(UReg_XER(value)); });
+      21, 5, RegisterType::xer, "XER", [] { return PowerPC::ppcState.GetXER().Hex; },
+      [](u64 value) { PowerPC::ppcState.SetXER(UReg_XER(value)); });
 
   // FPSCR
   AddRegister(
