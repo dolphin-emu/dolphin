@@ -45,7 +45,7 @@ static CoreMode s_mode = CoreMode::Interpreter;
 
 BreakPoints breakpoints;
 MemChecks memchecks;
-PPCDebugInterface debug_interface;
+PPCDebugInterface debug_interface(Core::System::GetInstance());
 
 static CoreTiming::EventType* s_invalidate_cache_thread_safe;
 

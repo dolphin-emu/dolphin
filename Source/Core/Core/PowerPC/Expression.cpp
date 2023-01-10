@@ -20,6 +20,7 @@
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 template <typename T>
 static T HostRead(u32 address);
@@ -109,7 +110,7 @@ static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
     return 0;
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
-  bool success = Dolphin_Debugger::GetCallstack(stack);
+  bool success = Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), stack);
   if (!success)
     return 0;
 

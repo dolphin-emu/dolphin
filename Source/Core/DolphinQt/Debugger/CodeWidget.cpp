@@ -24,6 +24,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Settings.h"
 
@@ -328,7 +329,7 @@ void CodeWidget::UpdateCallstack()
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
 
-  bool success = Dolphin_Debugger::GetCallstack(stack);
+  bool success = Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), stack);
 
   if (!success)
   {

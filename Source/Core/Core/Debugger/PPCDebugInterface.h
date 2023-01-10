@@ -12,6 +12,11 @@
 #include "Common/DebugInterface.h"
 #include "Core/NetworkCaptureLogger.h"
 
+namespace Core
+{
+class System;
+}
+
 void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch, bool store_existing_value = true);
 
 class PPCPatches final : public Common::Debug::MemoryPatches
@@ -29,7 +34,7 @@ private:
 class PPCDebugInterface final : public Common::DebugInterface
 {
 public:
-  PPCDebugInterface();
+  explicit PPCDebugInterface(Core::System& system);
   ~PPCDebugInterface() override;
 
   // Watches
@@ -102,4 +107,5 @@ private:
   Common::Debug::Watches m_watches;
   PPCPatches m_patches;
   std::shared_ptr<Core::NetworkCaptureLogger> m_network_logger;
+  Core::System& m_system;
 };
