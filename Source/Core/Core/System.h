@@ -63,6 +63,10 @@ namespace PixelEngine
 {
 class PixelEngineManager;
 };
+namespace PowerPC
+{
+struct PowerPCState;
+}
 namespace ProcessorInterface
 {
 class ProcessorInterfaceManager;
@@ -125,6 +129,7 @@ public:
   MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
   PixelEngine::PixelEngineManager& GetPixelEngine() const;
   PixelShaderManager& GetPixelShaderManager() const;
+  PowerPC::PowerPCState& GetPPCState() const;
   ProcessorInterface::ProcessorInterfaceManager& GetProcessorInterface() const;
   SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;
   Sram& GetSRAM() const;
