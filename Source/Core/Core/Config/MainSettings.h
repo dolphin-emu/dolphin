@@ -345,7 +345,6 @@ void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices);
 // Main.EmulatedUSBDevices
 
 extern const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL;
-bool EmulateSkylanderPortal();
 
 // GameCube path utility functions
 

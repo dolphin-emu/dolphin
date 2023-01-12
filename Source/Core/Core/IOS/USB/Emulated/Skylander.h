@@ -8,8 +8,9 @@
 #include <queue>
 #include <vector>
 
+#include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
-#include "Core/IOS/USB/EmulatedUSBDevice.h"
+#include "Core/IOS/USB/Common.h"
 
 // The maximum possible characters the portal can handle.
 // The status array is 32 bits and every character takes 2 bits.
@@ -18,7 +19,7 @@ constexpr u8 MAX_SKYLANDERS = 16;
 
 namespace IOS::HLE::USB
 {
-class SkylanderUSB final : public EmulatedUSBDevice
+class SkylanderUSB final : public Device
 {
 public:
   SkylanderUSB(Kernel& ios, const std::string& device_name);
@@ -37,20 +38,20 @@ public:
   int SubmitTransfer(std::unique_ptr<BulkMessage> message) override;
   int SubmitTransfer(std::unique_ptr<IntrMessage> message) override;
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
-
-protected:
-  std::queue<std::array<u8, 64>> q_queries;
+  void ScheduleTransfer(std::unique_ptr<TransferCommand> command, const std::array<u8, 64>& data,
+                        s32 expected_count, u64 expected_time_us);
 
 private:
+  Kernel& m_ios;
   u16 m_vid = 0;
   u16 m_pid = 0;
   u8 m_active_interface = 0;
   bool m_device_attached = false;
-  DeviceDescriptor deviceDesc;
-  std::vector<ConfigDescriptor> configDesc;
-  std::vector<InterfaceDescriptor> interfaceDesc;
-  std::vector<EndpointDescriptor> endpointDesc;
-  bool m_has_initialised = false;
+  DeviceDescriptor m_device_descriptor;
+  std::vector<ConfigDescriptor> m_config_descriptor;
+  std::vector<InterfaceDescriptor> m_interface_descriptor;
+  std::vector<EndpointDescriptor> m_endpoint_descriptor;
+  std::queue<std::array<u8, 64>> m_queries;
 };
 
 struct Skylander final
@@ -60,12 +61,22 @@ struct Skylander final
   std::queue<u8> queued_status;
   std::array<u8, 0x40 * 0x10> data{};
   u32 last_id = 0;
-  void save();
+  void Save();
+
+  enum : u8
+  {
+    REMOVED = 0,
+    READY = 1,
+    REMOVING = 2,
+    ADDED = 3
+  };
 };
 
-struct LedColor final
+struct SkylanderLEDColor final
 {
-  u8 r = 0, g = 0, b = 0;
+  u8 red = 0;
+  u8 green = 0;
+  u8 blue = 0;
 };
 
 class SkylanderPortal final
@@ -81,22 +92,21 @@ public:
   void QueryBlock(u8 sky_num, u8 block, u8* reply_buf);
   void WriteBlock(u8 sky_num, u8 block, const u8* to_write_buf, u8* reply_buf);
 
+  bool CreateSkylander(const std::string& file_path, u16 sky_id, u16 sky_var);
   bool RemoveSkylander(u8 sky_num);
   u8 LoadSkylander(u8* buf, File::IOFile in_file);
 
 protected:
   std::mutex sky_mutex;
 
-  bool activated = true;
-  bool status_updated = false;
-  u8 interrupt_counter = 0;
-  LedColor color_right = {};
-  LedColor color_left = {};
-  LedColor color_trap = {};
+  bool m_activated = true;
+  bool m_status_updated = false;
+  u8 m_interrupt_counter = 0;
+  SkylanderLEDColor m_color_right = {};
+  SkylanderLEDColor m_color_left = {};
+  SkylanderLEDColor m_color_trap = {};
 
-  Skylander skylanders[MAX_SKYLANDERS];
+  std::array<Skylander, MAX_SKYLANDERS> skylanders;
 };
-
-extern SkylanderPortal g_skyportal;
 
 }  // namespace IOS::HLE::USB

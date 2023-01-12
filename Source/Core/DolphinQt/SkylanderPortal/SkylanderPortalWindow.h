@@ -1,32 +1,39 @@
+// Copyright 2022 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #pragma once
 
+#include <array>
 #include <optional>
 
-#include <QCheckBox>
 #include <QDialog>
-#include <QGroupBox>
-#include <QLineEdit>
+#include <QString>
 #include <QWidget>
 
 #include "Core/Core.h"
 #include "Core/IOS/USB/Emulated/Skylander.h"
 
-class QDialogButtonBox;
-class QLabel;
-class QPushButton;
-class QSpinBox;
-class QTabWidget;
+class QCheckBox;
+class QGroupBox;
+class QLineEdit;
+
+struct Skylander
+{
+  u8 portal_slot;
+  u16 sky_id;
+  u16 sky_var;
+};
 
 class SkylanderPortalWindow : public QWidget
 {
   Q_OBJECT
 public:
   explicit SkylanderPortalWindow(QWidget* parent = nullptr);
-  ~SkylanderPortalWindow();
+  ~SkylanderPortalWindow() override;
 
 protected:
-  QLineEdit* edit_skylanders[MAX_SKYLANDERS]{};
-  static std::optional<std::tuple<u8, u16, u16>> sky_slots[MAX_SKYLANDERS];
+  std::array<QLineEdit*, MAX_SKYLANDERS> m_edit_skylanders;
+  std::array<std::optional<Skylander>, MAX_SKYLANDERS> m_sky_slots;
 
 private:
   void CreateMainWindow();
@@ -38,13 +45,10 @@ private:
   void LoadSkylanderPath(u8 slot, const QString& path);
   void UpdateEdits();
   void closeEvent(QCloseEvent* bar) override;
-
-  static SkylanderPortalWindow* inst;
-
-  QCheckBox* checkbox;
-  QGroupBox* group_skylanders;
-
   bool eventFilter(QObject* object, QEvent* event) final override;
+
+  QCheckBox* m_checkbox;
+  QGroupBox* m_group_skylanders;
 };
 
 class CreateSkylanderDialog : public QDialog
@@ -56,5 +60,5 @@ public:
   QString GetFilePath() const;
 
 protected:
-  QString file_path;
+  QString m_file_path;
 };

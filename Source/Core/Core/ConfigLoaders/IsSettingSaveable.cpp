@@ -29,7 +29,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
     for (const std::string_view section :
          {"NetPlay", "General", "GBA", "Display", "Network", "Analytics", "AndroidOverlayButtons",
           "DSP", "GameList", "FifoPlayer", "AutoUpdate", "Movie", "Input", "Debug",
-          "BluetoothPassthrough", "USBPassthrough", "Interface"})
+          "BluetoothPassthrough", "USBPassthrough", "Interface", "EmulatedUSBDevices"})
     {
       if (config_location.section == section)
         return true;
