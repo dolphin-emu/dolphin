@@ -133,7 +133,8 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
   if (traversal_config.use_traversal)
   {
     if (!Common::EnsureTraversalClient(traversal_config.traversal_host,
-                                       traversal_config.traversal_port, port))
+                                       traversal_config.traversal_port,
+                                       traversal_config.traversal_port_alt, port))
     {
       return;
     }
