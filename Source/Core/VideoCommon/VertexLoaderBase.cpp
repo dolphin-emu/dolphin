@@ -64,22 +64,16 @@ public:
     int count_a = a->RunVertices(src, buffer_a.data(), count);
     int count_b = b->RunVertices(src, buffer_b.data(), count);
 
-    if (count_a != count_b)
-    {
-      ERROR_LOG_FMT(
-          VIDEO,
-          "The two vertex loaders have loaded a different amount of vertices (a: {}, b: {}).",
-          count_a, count_b);
-    }
+    ASSERT_MSG(VIDEO, count_a == count_b,
+               "The two vertex loaders have loaded a different amount of vertices (a: {}, b: {}).",
+               count_a, count_b);
 
-    if (memcmp(buffer_a.data(), buffer_b.data(),
-               std::min(count_a, count_b) * m_native_vtx_decl.stride))
-    {
-      ERROR_LOG_FMT(VIDEO,
-                    "The two vertex loaders have loaded different data.  Configuration:"
-                    "\nVertex desc:\n{}\n\nVertex attr:\n{}",
-                    m_VtxDesc, m_VtxAttr);
-    }
+    ASSERT_MSG(VIDEO,
+               memcmp(buffer_a.data(), buffer_b.data(),
+                      std::min(count_a, count_b) * m_native_vtx_decl.stride) == 0,
+               "The two vertex loaders have loaded different data.  Configuration:"
+               "\nVertex desc:\n{}\n\nVertex attr:\n{}",
+               m_VtxDesc, m_VtxAttr);
 
     memcpy(dst, buffer_a.data(), count_a * m_native_vtx_decl.stride);
     m_numLoadedVertices += count;
