@@ -24,6 +24,7 @@ public:
   virtual void OnTraversalStateChanged() = 0;
   virtual void OnConnectReady(ENetAddress addr) = 0;
   virtual void OnConnectFailed(TraversalConnectFailedReason reason) = 0;
+  virtual void OnTtlDetermined(u8 ttl) = 0;
 };
 
 class TraversalClient

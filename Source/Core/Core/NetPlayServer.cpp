@@ -1265,6 +1265,11 @@ void NetPlayServer::OnTraversalStateChanged()
   m_dialog->OnTraversalStateChanged(state);
 }
 
+void NetPlayServer::OnTtlDetermined(u8 ttl)
+{
+  m_dialog->OnTtlDetermined(ttl);
+}
+
 // called from ---GUI--- thread
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {

@@ -388,6 +388,7 @@ void TraversalClient::HandleTraversalTest()
     {
       // success, we can stop now
       m_ttlReady = true;
+      m_Client->OnTtlDetermined(m_ttl);
     }
     else
     {
