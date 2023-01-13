@@ -62,7 +62,7 @@ void Pos_ReadIndex(VertexLoader* loader)
   for (int i = 0; i < N; ++i)
   {
     const float value = PosScale(Common::FromBigEndian(data[i]), scale);
-    if (loader->m_remaining < 3)
+    if (loader->m_remaining < 3 && !loader->m_vertexSkip)
       VertexLoaderManager::position_cache[loader->m_remaining][i] = value;
     DataWrite(value);
   }
