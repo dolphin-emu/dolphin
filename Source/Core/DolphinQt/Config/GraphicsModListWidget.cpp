@@ -4,15 +4,18 @@
 #include "DolphinQt/Config/GraphicsModListWidget.h"
 
 #include <QCheckBox>
+#include <QDesktopServices>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
+#include <QUrl>
 #include <QVBoxLayout>
 #include <QWidget>
 
 #include <set>
 
+#include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinQt/Config/GraphicsModWarningWidget.h"
@@ -59,9 +62,10 @@ void GraphicsModListWidget::CreateWidgets()
   m_mod_list->setSelectionRectVisible(true);
   m_mod_list->setDragDropMode(QAbstractItemView::InternalMove);
 
+  m_open_directory_button = new QPushButton(tr("Open Directory..."));
   m_refresh = new QPushButton(tr("&Refresh List"));
   QHBoxLayout* hlayout = new QHBoxLayout;
-  hlayout->addStretch();
+  hlayout->addWidget(m_open_directory_button);
   hlayout->addWidget(m_refresh);
 
   left_v_layout->addWidget(m_mod_list);
@@ -98,6 +102,9 @@ void GraphicsModListWidget::ConnectWidgets()
 
   connect(m_mod_list->model(), &QAbstractItemModel::rowsMoved, this,
           &GraphicsModListWidget::SaveModList);
+
+  connect(m_open_directory_button, &QPushButton::clicked, this,
+          &GraphicsModListWidget::OpenGraphicsModDir);
 
   connect(m_refresh, &QPushButton::clicked, this, &GraphicsModListWidget::RefreshModList);
 
@@ -273,4 +280,10 @@ void GraphicsModListWidget::CalculateGameRunning(Core::State state)
 {
   m_loaded_game_is_running =
       state == Core::State::Running ? m_game_id == SConfig::GetInstance().GetGameID() : false;
+}
+
+void GraphicsModListWidget::OpenGraphicsModDir()
+{
+  QDesktopServices::openUrl(
+      QUrl::fromLocalFile(QString::fromStdString(File::GetUserPath(D_GRAPHICSMOD_IDX))));
 }
