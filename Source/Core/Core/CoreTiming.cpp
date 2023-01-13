@@ -335,12 +335,17 @@ void CoreTimingManager::Advance()
 
 void CoreTimingManager::Throttle(const s64 target_cycle)
 {
-  const double speed =
-      Core::GetIsThrottlerTempDisabled() ? 0.0 : Config::Get(Config::MAIN_EMULATION_SPEED);
-
   // Based on number of cycles and emulation speed, increase the target deadline
   const s64 cycles = target_cycle - m_throttle_last_cycle;
+
+  // Prevent any throttling code if the amount of time passed is < ~0.122ms
+  if (cycles < (m_throttle_clock_per_sec >> 13))
+    return;
+
   m_throttle_last_cycle = target_cycle;
+
+  const double speed =
+      Core::GetIsThrottlerTempDisabled() ? 0.0 : Config::Get(Config::MAIN_EMULATION_SPEED);
 
   if (0.0 < speed)
     m_throttle_deadline +=
