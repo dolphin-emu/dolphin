@@ -952,6 +952,10 @@ void Update(u64 ticks)
     state.ticks_last_line_start = system.GetCoreTiming().GetTicks();
   }
 
+  // TODO: Findout why skipping interrupts acts as a frameskip
+  if (system.GetCoreTiming().GetVISkip())
+    return;
+
   // Check if we need to assert IR_INT. Note that the granularity of our current horizontal
   // position is limited to half-lines.
 

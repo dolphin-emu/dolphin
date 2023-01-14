@@ -153,6 +153,7 @@ struct VideoConfig final
   bool bEnablePixelLighting = false;
   bool bFastDepthCalc = false;
   bool bVertexRounding = false;
+  bool bVISkip = false;
   int iEFBAccessTileSize = 0;
   int iSaveTargetId = 0;  // TODO: Should be dropped
   u32 iMissingColorValue = 0;

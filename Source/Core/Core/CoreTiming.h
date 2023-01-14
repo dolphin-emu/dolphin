@@ -146,6 +146,7 @@ public:
   void Throttle(const s64 target_cycle);
 
   TimePoint GetCPUTimePoint(s64 cyclesLate) const;  // Used by Dolphin Analytics
+  bool GetVISkip() const;                           // Used By VideoInterface
 
 private:
   Globals m_globals;
@@ -184,6 +185,7 @@ private:
   TimePoint m_throttle_deadline = Clock::now();
   s64 m_throttle_clock_per_sec;
   s64 m_throttle_min_clock_per_sleep;
+  bool m_throttle_disable_vi_int = false;
 
   int DowncountToCycles(int downcount) const;
   int CyclesToDowncount(int cycles) const;
