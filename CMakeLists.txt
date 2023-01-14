@@ -790,7 +790,7 @@ endif()
 
 add_subdirectory(Externals/zlib-ng)
 
-pkg_check_modules(MINIZIP minizip-ng>=3.0.0)
+pkg_check_modules(MINIZIP minizip>=3.0.0)
 if(MINIZIP_FOUND)
   message(STATUS "Using shared minizip")
   include_directories(${MINIZIP_INCLUDE_DIRS})
