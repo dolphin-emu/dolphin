@@ -104,13 +104,8 @@ void MemoryManager::Init()
   const bool wii = SConfig::GetInstance().bWii;
   const bool mmu = Core::System::GetInstance().IsMMUMode();
 
-  bool fake_vmem = false;
-#ifndef _ARCH_32
   // If MMU is turned off in GameCube mode, turn on fake VMEM hack.
-  // The fake VMEM hack's address space is above the memory space that we
-  // allocate on 32bit targets, so disable it there.
-  fake_vmem = !wii && !mmu;
-#endif
+  const bool fake_vmem = !wii && !mmu;
 
   u32 mem_size = 0;
   for (PhysicalMemoryRegion& region : m_physical_regions)
@@ -164,11 +159,7 @@ void MemoryManager::Init()
 
 bool MemoryManager::InitFastmemArena()
 {
-#if _ARCH_32
-  const size_t memory_size = 0x31000000;
-#else
-  const size_t memory_size = 0x400000000;
-#endif
+  constexpr size_t memory_size = 0x400000000;
   m_physical_base = m_arena.ReserveMemoryRegion(memory_size);
 
   if (!m_physical_base)
@@ -194,9 +185,7 @@ bool MemoryManager::InitFastmemArena()
     }
   }
 
-#ifndef _ARCH_32
   m_logical_base = m_physical_base + 0x200000000;
-#endif
 
   m_is_fastmem_arena_initialized = true;
   return true;
