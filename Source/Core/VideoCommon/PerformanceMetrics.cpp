@@ -3,10 +3,14 @@
 
 #include "VideoCommon/PerformanceMetrics.h"
 
+#include <mutex>
+
 #include <imgui.h>
 #include <implot.h>
 
+#include "Core/CoreTiming.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/System.h"
 #include "VideoCommon/VideoConfig.h"
 
 PerformanceMetrics g_perf_metrics;
@@ -16,6 +20,10 @@ void PerformanceMetrics::Reset()
   m_fps_counter.Reset();
   m_vps_counter.Reset();
   m_speed_counter.Reset();
+
+  m_time_sleeping = DT::zero();
+  m_real_times.fill(Clock::now());
+  m_cpu_times.fill(Core::System::GetInstance().GetCoreTiming().GetCPUTimePoint(0));
 }
 
 void PerformanceMetrics::CountFrame()
@@ -27,6 +35,20 @@ void PerformanceMetrics::CountVBlank()
 {
   m_vps_counter.Count();
   m_speed_counter.Count();
+}
+
+void PerformanceMetrics::CountThrottleSleep(DT sleep)
+{
+  std::unique_lock lock(m_time_lock);
+  m_time_sleeping += sleep;
+}
+
+void PerformanceMetrics::CountPerformanceMarker(Core::System& system, s64 cyclesLate)
+{
+  std::unique_lock lock(m_time_lock);
+  m_real_times[m_time_index] = Clock::now() - m_time_sleeping;
+  m_cpu_times[m_time_index] = system.GetCoreTiming().GetCPUTimePoint(cyclesLate);
+  m_time_index += 1;
 }
 
 double PerformanceMetrics::GetFPS() const
@@ -41,7 +63,14 @@ double PerformanceMetrics::GetVPS() const
 
 double PerformanceMetrics::GetSpeed() const
 {
-  return 100.0 * m_speed_counter.GetHzAvg() / VideoInterface::GetTargetRefreshRate();
+  return m_speed_counter.GetHzAvg() / VideoInterface::GetTargetRefreshRate();
+}
+
+double PerformanceMetrics::GetMaxSpeed() const
+{
+  std::shared_lock lock(m_time_lock);
+  return DT_s(m_cpu_times[u8(m_time_index - 1)] - m_cpu_times[m_time_index]) /
+         DT_s(m_real_times[u8(m_time_index - 1)] - m_real_times[m_time_index]);
 }
 
 double PerformanceMetrics::GetLastSpeedDenominator() const
@@ -49,7 +78,7 @@ double PerformanceMetrics::GetLastSpeedDenominator() const
   return DT_s(m_speed_counter.GetLastRawDt()).count() * VideoInterface::GetTargetRefreshRate();
 }
 
-void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
+void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
 {
   const float bg_alpha = 0.7f;
   const auto imgui_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
@@ -65,9 +94,9 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
   float r = 0.0f, g = 1.0f, b = 1.0f;
   if (g_ActiveConfig.bShowSpeedColors)
   {
-    r = 1.0 - (speed - 80.0) / 20.0;
-    g = speed / 80.0;
-    b = (speed - 90.0) / 10.0;
+    r = 1.0 - (speed - 0.8) / 0.2;
+    g = speed / 0.8;
+    b = (speed - 0.9) / 0.1;
   }
 
   const float window_padding = 8.f * backbuffer_scale;
@@ -78,6 +107,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
   const float graph_width = 50.f * backbuffer_scale + 3.f * window_width + 2.f * window_padding;
   const float graph_height =
       std::min(200.f * backbuffer_scale, ImGui::GetIO().DisplaySize.y - 85.f * backbuffer_scale);
+
+  const bool stack_vertically = !g_ActiveConfig.bShowGraphs;
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 14.f * backbuffer_scale);
@@ -93,40 +124,39 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
 
     if (ImGui::Begin("PerformanceGraphs", nullptr, imgui_flags))
     {
-      const static int num_ticks = 17;
-      const static double tick_marks[num_ticks] = {0.0,
-                                                   1000.0 / 360.0,
-                                                   1000.0 / 240.0,
-                                                   1000.0 / 180.0,
-                                                   1000.0 / 120.0,
-                                                   1000.0 / 90.00,
-                                                   1000.0 / 59.94,
-                                                   1000.0 / 40.00,
-                                                   1000.0 / 29.97,
-                                                   1000.0 / 24.00,
-                                                   1000.0 / 20.00,
-                                                   1000.0 / 15.00,
-                                                   1000.0 / 10.00,
-                                                   1000.0 / 5.000,
-                                                   1000.0 / 2.000,
-                                                   1000.0,
-                                                   2000.0};
+      static constexpr std::size_t num_ticks = 17;
+      static constexpr std::array<double, num_ticks> tick_marks = {0.0,
+                                                                   1000.0 / 360.0,
+                                                                   1000.0 / 240.0,
+                                                                   1000.0 / 180.0,
+                                                                   1000.0 / 120.0,
+                                                                   1000.0 / 90.00,
+                                                                   1000.0 / 59.94,
+                                                                   1000.0 / 40.00,
+                                                                   1000.0 / 29.97,
+                                                                   1000.0 / 24.00,
+                                                                   1000.0 / 20.00,
+                                                                   1000.0 / 15.00,
+                                                                   1000.0 / 10.00,
+                                                                   1000.0 / 5.000,
+                                                                   1000.0 / 2.000,
+                                                                   1000.0,
+                                                                   2000.0};
 
-      const DT vblank_time = m_vps_counter.GetDtAvg() + m_vps_counter.GetDtStd();
-      const DT frame_time = m_fps_counter.GetDtAvg() + m_fps_counter.GetDtStd();
+      const DT vblank_time = m_vps_counter.GetDtAvg() + 2 * m_vps_counter.GetDtStd();
+      const DT frame_time = m_fps_counter.GetDtAvg() + 2 * m_fps_counter.GetDtStd();
       const double target_max_time = DT_ms(vblank_time + frame_time).count();
       const double a =
-          std::max(0.0, 1.0 - std::exp(-4000.0 * m_vps_counter.GetLastRawDt().count() /
-                                       DT_ms(m_vps_counter.GetSampleWindow()).count()));
+          std::max(0.0, 1.0 - std::exp(-4.0 * (DT_s(m_vps_counter.GetLastRawDt()) /
+                                               DT_s(m_vps_counter.GetSampleWindow()))));
 
-      static double max_time = 0.0;
-      if (std::isfinite(max_time))
-        max_time += a * (target_max_time - max_time);
+      if (std::isfinite(m_graph_max_time))
+        m_graph_max_time += a * (target_max_time - m_graph_max_time);
       else
-        max_time = target_max_time;
+        m_graph_max_time = target_max_time;
 
-      const double total_frame_time = std::max(DT_ms(m_fps_counter.GetSampleWindow()).count(),
-                                               DT_ms(m_vps_counter.GetSampleWindow()).count());
+      const double total_frame_time =
+          DT_ms(std::max(m_fps_counter.GetSampleWindow(), m_vps_counter.GetSampleWindow())).count();
 
       if (ImPlot::BeginPlot("PerformanceGraphs", ImVec2(-1.0, -1.0),
                             ImPlotFlags_NoFrame | ImPlotFlags_NoTitle | ImPlotFlags_NoMenus))
@@ -141,8 +171,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
                           ImPlotAxisFlags_Lock | ImPlotAxisFlags_Invert | ImPlotAxisFlags_NoLabel |
                               ImPlotAxisFlags_NoHighlight);
         ImPlot::SetupAxisFormat(ImAxis_Y1, "%.1f");
-        ImPlot::SetupAxisTicks(ImAxis_Y1, tick_marks, num_ticks);
-        ImPlot::SetupAxesLimits(0, total_frame_time, 0, max_time, ImGuiCond_Always);
+        ImPlot::SetupAxisTicks(ImAxis_Y1, tick_marks.data(), num_ticks);
+        ImPlot::SetupAxesLimits(0, total_frame_time, 0, m_graph_max_time, ImGuiCond_Always);
         ImPlot::SetupLegend(ImPlotLocation_SouthEast, ImPlotLegendFlags_None);
         m_vps_counter.ImPlotPlotLines("V-Blank (ms)");
         m_fps_counter.ImPlotPlotLines("Frame (ms)");
@@ -155,14 +185,42 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
     }
   }
 
-  if (g_ActiveConfig.bShowFPS || g_ActiveConfig.bShowFTimes)
+  if (g_ActiveConfig.bShowSpeed)
   {
     // Position in the top-right corner of the screen.
-    int count = g_ActiveConfig.bShowFPS + 2 * g_ActiveConfig.bShowFTimes;
+    float window_height = 47.f * backbuffer_scale;
+
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSize(ImVec2(window_width, (12.f + 17.f * count) * backbuffer_scale));
+    ImGui::SetNextWindowSize(ImVec2(window_width, window_height));
     ImGui::SetNextWindowBgAlpha(bg_alpha);
-    window_x -= window_width + window_padding;
+
+    if (stack_vertically)
+      window_y += window_height + window_padding;
+    else
+      window_x -= window_width + window_padding;
+
+    if (ImGui::Begin("SpeedStats", nullptr, imgui_flags))
+    {
+      ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Speed:%4.0lf%%", 100.0 * speed);
+      ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Max:%6.0lf%%", 100.0 * GetMaxSpeed());
+      ImGui::End();
+    }
+  }
+
+  if (g_ActiveConfig.bShowFPS || g_ActiveConfig.bShowFTimes)
+  {
+    int count = g_ActiveConfig.bShowFPS + 2 * g_ActiveConfig.bShowFTimes;
+    float window_height = (12.f + 17.f * count) * backbuffer_scale;
+
+    // Position in the top-right corner of the screen.
+    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(window_width, window_height));
+    ImGui::SetNextWindowBgAlpha(bg_alpha);
+
+    if (stack_vertically)
+      window_y += window_height + window_padding;
+    else
+      window_x -= window_width + window_padding;
 
     if (ImGui::Begin("FPSStats", nullptr, imgui_flags))
     {
@@ -181,12 +239,18 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
 
   if (g_ActiveConfig.bShowVPS || g_ActiveConfig.bShowVTimes)
   {
-    // Position in the top-right corner of the screen.
     int count = g_ActiveConfig.bShowVPS + 2 * g_ActiveConfig.bShowVTimes;
+    float window_height = (12.f + 17.f * count) * backbuffer_scale;
+
+    // Position in the top-right corner of the screen.
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowSize(ImVec2(window_width, (12.f + 17.f * count) * backbuffer_scale));
     ImGui::SetNextWindowBgAlpha(bg_alpha);
-    window_x -= window_width + window_padding;
+
+    if (stack_vertically)
+      window_y += window_height + window_padding;
+    else
+      window_x -= window_width + window_padding;
 
     if (ImGui::Begin("VPSStats", nullptr, imgui_flags))
     {
@@ -199,20 +263,6 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale) const
         ImGui::TextColored(ImVec4(r, g, b, 1.0f), " ±:%6.2lfms",
                            DT_ms(m_vps_counter.GetDtStd()).count());
       }
-      ImGui::End();
-    }
-  }
-
-  if (g_ActiveConfig.bShowSpeed)
-  {
-    // Position in the top-right corner of the screen.
-    ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSize(ImVec2(window_width, 29.f * backbuffer_scale));
-    ImGui::SetNextWindowBgAlpha(bg_alpha);
-
-    if (ImGui::Begin("SpeedStats", nullptr, imgui_flags))
-    {
-      ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Speed:%4.0lf%%", speed);
       ImGui::End();
     }
   }

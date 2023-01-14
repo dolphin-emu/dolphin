@@ -3,7 +3,16 @@
 
 #pragma once
 
+#include <array>
+#include <shared_mutex>
+
+#include "Common/CommonTypes.h"
 #include "VideoCommon/PerformanceTracker.h"
+
+namespace Core
+{
+class System;
+}
 
 class PerformanceMetrics
 {
@@ -21,20 +30,33 @@ public:
   void CountFrame();
   void CountVBlank();
 
+  void CountThrottleSleep(DT sleep);
+  void CountPerformanceMarker(Core::System& system, s64 cyclesLate);
+
   // Getter Functions
   double GetFPS() const;
   double GetVPS() const;
   double GetSpeed() const;
+  double GetMaxSpeed() const;
 
   double GetLastSpeedDenominator() const;
 
   // ImGui Functions
-  void DrawImGuiStats(const float backbuffer_scale) const;
+  void DrawImGuiStats(const float backbuffer_scale);
 
 private:
   PerformanceTracker m_fps_counter{"render_times.txt"};
   PerformanceTracker m_vps_counter{"vblank_times.txt"};
   PerformanceTracker m_speed_counter{std::nullopt, 500000};
+
+  double m_graph_max_time = 0.0;
+
+  mutable std::shared_mutex m_time_lock;
+
+  u8 m_time_index = 0;
+  std::array<TimePoint, 256> m_real_times;
+  std::array<TimePoint, 256> m_cpu_times;
+  DT m_time_sleeping;
 };
 
 extern PerformanceMetrics g_perf_metrics;
