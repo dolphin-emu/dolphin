@@ -159,14 +159,50 @@ void MemoryManager::Init()
 
 bool MemoryManager::InitFastmemArena()
 {
-  constexpr size_t memory_size = 0x400000000;
-  m_physical_base = m_arena.ReserveMemoryRegion(memory_size);
+  // Here we set up memory mappings for fastmem. The basic idea of fastmem is that we reserve 4 GiB
+  // of virtual memory and lay out the addresses within that 4 GiB range just like the memory map of
+  // the emulated system. This lets the JIT emulate PPC load/store instructions by translating a PPC
+  // address to a host address as follows and then using a regular load/store instruction:
+  //
+  // RMEM = ppcState.msr.DR ? m_logical_base : m_physical_base
+  // host_address = RMEM + u32(ppc_address_base + ppc_address_offset)
+  //
+  // If the resulting host address is backed by real memory, the memory access will simply work.
+  // If not, a segfault handler will backpatch the JIT code to instead call functions in MMU.cpp.
+  // This way, most memory accesses will be super fast. We do pay a performance penalty for memory
+  // accesses that need special handling, but they're rare enough that it's very beneficial overall.
+  //
+  // Note: Jit64 (but not JitArm64) sometimes takes a shortcut when computing addresses and skips
+  // the cast to u32 that you see in the pseudocode above. When this happens, ppc_address_base
+  // is a 32-bit value stored in a 64-bit register (which effectively makes it behave like an
+  // unsigned 32-bit value), and ppc_address_offset is a signed 32-bit integer encoded directly
+  // into the load/store instruction. This can cause us to undershoot or overshoot the intended
+  // 4 GiB range by at most 2 GiB in either direction. So, make sure we have 2 GiB of guard pages
+  // on each side of each 4 GiB range.
+  //
+  // We need two 4 GiB ranges, one for PPC addresses with address translation disabled
+  // (m_physical_base) and one for PPC addresses with address translation enabled (m_logical_base),
+  // so our memory map ends up looking like this:
+  //
+  // 2 GiB guard
+  // 4 GiB view for disabled address translation
+  // 2 GiB guard
+  // 4 GiB view for enabled address translation
+  // 2 GiB guard
 
-  if (!m_physical_base)
+  constexpr size_t ppc_view_size = 0x1'0000'0000;
+  constexpr size_t guard_size = 0x8000'0000;
+  constexpr size_t memory_size = ppc_view_size * 2 + guard_size * 3;
+
+  u8* fastmem_arena = m_arena.ReserveMemoryRegion(memory_size);
+  if (!fastmem_arena)
   {
     PanicAlertFmt("Memory::InitFastmemArena(): Failed finding a memory base.");
     return false;
   }
+
+  m_physical_base = fastmem_arena + guard_size;
+  m_logical_base = fastmem_arena + ppc_view_size + guard_size * 2;
 
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
@@ -184,8 +220,6 @@ bool MemoryManager::InitFastmemArena()
       return false;
     }
   }
-
-  m_logical_base = m_physical_base + 0x200000000;
 
   m_is_fastmem_arena_initialized = true;
   return true;
