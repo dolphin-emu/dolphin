@@ -8,6 +8,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include <Core/StateAuxillary.h>
+#include <Common/Version.h>
 
 struct ItemStruct
 {
@@ -48,6 +49,7 @@ static int awayTeamPossesionFrameCount;
 static std::string playerName = "";
 std::vector<const NetPlay::Player*> playerArray;
 static NetPlay::PadMappingArray netplayGCMap;
+std::string roomID = "Empty";
 
 static u16 controllerPort1;
 static u16 controllerPort2;
@@ -128,6 +130,8 @@ std::string Metadata::getJSONString()
   json_stream << "{" << std::endl;
   json_stream << "  \"File Name\": \"" << file_name_string << "\"," << std::endl;
   json_stream << "  \"Date\": \"" << date_string << "\"," << std::endl;
+  json_stream << "  \"Version\": \"" << Common::GetScmDescStr() << "\"," << std::endl;
+  json_stream << "  \"Room ID\": \"" << roomID << "\"," << std::endl;
   std::string md5String = "";
   for (int i = 0; i < md5Hash.size(); i++)
   {
@@ -862,4 +866,9 @@ std::vector<const NetPlay::Player*> Metadata::getPlayerArray()
 NetPlay::PadMappingArray Metadata::getControllers()
 {
   return netplayGCMap;
+}
+
+void Metadata::setNetPlayRoomCode(std::string roomIDParam)
+{
+  roomID = roomIDParam;
 }

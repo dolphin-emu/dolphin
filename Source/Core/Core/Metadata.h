@@ -17,6 +17,7 @@ public:
   static void setMD5(std::array<u8, 16> md5Param);
   static std::vector<const NetPlay::Player*> getPlayerArray();
   static NetPlay::PadMappingArray getControllers();
+  static void setNetPlayRoomCode(std::string roomIDParam);
 
   /*
   Game Derived Locations (we do not mark these as variables because we do not directly use them here, just in gecko codes)

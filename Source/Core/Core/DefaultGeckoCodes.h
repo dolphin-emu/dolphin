@@ -121,6 +121,18 @@ private:
     0x40820014, 0x81F00000, 0x39EF0001, 0x91F00000, 0x48000010, 0x81F00004,
     0x39EF0001, 0x91F00004, 0x806DA6C8}};
 
+  // used by the missed shots code. we mark the velocities down when they become available to us
+  // and then the missed shots code adds them to the missed shots struct with the other info
+  // the next time we shoot
+  const DefaultGeckoCode recordVelocities = {
+      0x8011E600, 0, {0x981F0004, 0x3DC08043, 0x39CE003C, 0xA1EE0000, 0x2C0F0001, 0x40820040,
+                      0x3DC08031, 0x39CE1010, 0x81EE0000, 0x820E0004, 0x7E2F8214, 0x2C110000,
+                      0x822E0008, 0x41820020, 0x3DC08043, 0x39CE0044, 0x91EE0000, 0x920E0004,
+                      0x922E0008, 0x39E00000, 0xB1EEFFF8, 0x3DC08043, 0x39CE003E, 0xA1EE0000,
+                      0x2C0F0001, 0x40820040, 0x3DC08031, 0x39CE1010, 0x81EE0000, 0x820E0004,
+                      0x7E2F8214, 0x2C110000, 0x822E0008, 0x41820020, 0x3DC08043, 0x39CE0054,
+                      0x91EE0000, 0x920E0004, 0x922E0008, 0x39E00000, 0xB1EEFFEA}};
+
   const DefaultGeckoCode recordBallCharge = {
       0x8002ead8,
       0,
@@ -137,6 +149,7 @@ private:
       recordGoalTimestamp,
       recordMissedShots,
       recordBallOwnership,
+      recordVelocities,
       recordBallCharge};
 
   /*
