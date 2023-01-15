@@ -243,6 +243,8 @@ void DSPEmitter::Compile(u16 start_addr)
   auto& analyzer = m_dsp_core.DSPState().GetAnalyzer();
   while (m_compile_pc < start_addr + MAX_BLOCK_SIZE)
   {
+    m_block_size[start_addr]++;
+
     if (analyzer.IsCheckExceptions(m_compile_pc))
       checkExceptions(m_block_size[start_addr]);
 
@@ -251,7 +253,6 @@ void DSPEmitter::Compile(u16 start_addr)
 
     EmitInstruction(inst);
 
-    m_block_size[start_addr]++;
     m_compile_pc += opcode->size;
 
     // If the block was trying to link into itself, remove the link
