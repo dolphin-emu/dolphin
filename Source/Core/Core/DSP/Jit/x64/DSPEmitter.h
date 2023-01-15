@@ -263,7 +263,7 @@ private:
   // Register helpers
   void setCompileSR(u16 bit);
   void clrCompileSR(u16 bit);
-  void checkExceptions(u32 retval);
+  void checkExceptions(u16 retval);
 
   // Memory helper functions
   void increment_addr_reg(int reg);
