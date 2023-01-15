@@ -64,7 +64,8 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
     return std::nullopt;
 #endif
 
-  std::string result = external_relative_path.starts_with('/') ? m_sd_root : m_patch_root;
+  const std::string& root = external_relative_path.starts_with('/') ? m_sd_root : m_patch_root;
+  std::string result = root;
   std::string_view work = external_relative_path;
 
   // Strip away all leading and trailing path separators.
@@ -116,6 +117,33 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
       // Append path element to result string.
       result += '/';
       result += element;
+
+      // Riivolution assumes a case-insensitive file system, which means it's possible that an XML
+      // file references a 'file.bin' but the actual file is named 'File.bin' or 'FILE.BIN'. To
+      // preserve this behavior, we modify the file path to match any existing file in the file
+      // system, if one exists.
+      if (!::File::Exists(result))
+      {
+        // Drop path element again so we can search in the directory.
+        result.erase(result.size() - element.size(), element.size());
+
+        // Re-attach an element that actually matches the capitalization in the host filesystem.
+        auto possible_files = ::File::ScanDirectoryTree(result, false);
+        bool found = false;
+        for (auto& f : possible_files.children)
+        {
+          if (Common::CaseInsensitiveEquals(element, f.virtualName))
+          {
+            result += f.virtualName;
+            found = true;
+            break;
+          }
+        }
+
+        // If there isn't any file that matches just use the given element.
+        if (!found)
+          result += element;
+      }
     }
 
     // If this was the last path element, we're done.
