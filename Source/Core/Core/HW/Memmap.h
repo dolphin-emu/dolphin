@@ -72,6 +72,7 @@ public:
   u32 GetExRamSize() const { return m_exram_size; }
   u32 GetExRamMask() const { return m_exram_mask; }
 
+  bool IsAddressInFastmemArea(const u8* address) const;
   u8* GetPhysicalBase() const { return m_physical_base; }
   u8* GetLogicalBase() const { return m_logical_base; }
   u8* GetPhysicalPageMappingsBase() const { return m_physical_page_mappings_base; }
@@ -146,6 +147,8 @@ private:
   // are used to set up a full GC or Wii memory map in process memory.
   // In 64-bit, this might point to "high memory" (above the 32-bit limit),
   // so be sure to load it into a 64-bit register.
+  u8* m_fastmem_arena = nullptr;
+  size_t m_fastmem_arena_size = 0;
   u8* m_physical_base = nullptr;
   u8* m_logical_base = nullptr;
 

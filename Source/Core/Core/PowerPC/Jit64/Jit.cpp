@@ -227,19 +227,27 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
-  // TODO: do we properly handle off-the-end?
-  const auto base_ptr = reinterpret_cast<uintptr_t>(memory.GetPhysicalBase());
-  if (access_address >= base_ptr && access_address < base_ptr + 0x100010000)
-    return BackPatch(static_cast<u32>(access_address - base_ptr), ctx);
+  if (memory.IsAddressInFastmemArea(reinterpret_cast<u8*>(access_address)))
+  {
+    auto& ppc_state = system.GetPPCState();
+    const uintptr_t memory_base = reinterpret_cast<uintptr_t>(
+        ppc_state.msr.DR ? memory.GetLogicalBase() : memory.GetPhysicalBase());
 
-  const auto logical_base_ptr = reinterpret_cast<uintptr_t>(memory.GetLogicalBase());
-  if (access_address >= logical_base_ptr && access_address < logical_base_ptr + 0x100010000)
-    return BackPatch(static_cast<u32>(access_address - logical_base_ptr), ctx);
+    if (access_address < memory_base || access_address >= memory_base + 0x1'0000'0000)
+    {
+      WARN_LOG_FMT(DYNA_REC,
+                   "Jit64 address calculation overflowed! Please report if this happens a lot. "
+                   "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}",
+                   ctx->CTX_PC, access_address, memory_base, ppc_state.msr.DR);
+    }
+
+    return BackPatch(ctx);
+  }
 
   return false;
 }
 
-bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
+bool Jit64::BackPatch(SContext* ctx)
 {
   u8* codePtr = reinterpret_cast<u8*>(ctx->CTX_PC);
 
