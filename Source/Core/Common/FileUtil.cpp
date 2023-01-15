@@ -1004,6 +1004,20 @@ std::string GetThemeDir(const std::string& theme_name)
   return GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
 }
 
+std::optional<std::string> GetStylesDir(const std::string& style_name)
+{
+  std::string dir = File::GetUserPath(D_STYLES_IDX) + style_name + "/";
+  if (Exists(dir))
+    return dir;
+
+  // If the style doesn't exist in the user dir, load from shared directory
+  dir = GetSysDirectory() + STYLES_DIR "/" + style_name + "/";
+  if (Exists(dir))
+    return dir;
+
+  return std::nullopt;
+}
+
 bool WriteStringToFile(const std::string& filename, std::string_view str)
 {
   return File::IOFile(filename, "wb").WriteBytes(str.data(), str.size());

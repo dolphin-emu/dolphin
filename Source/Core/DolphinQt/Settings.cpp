@@ -11,6 +11,7 @@
 #include <QFileInfo>
 #include <QFontDatabase>
 #include <QRadioButton>
+#include <QResource>
 #include <QSize>
 #include <QWidget>
 
@@ -131,14 +132,23 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
   QString stylesheet_contents;
 
   // If we haven't found one, we continue with an empty (default) style
-  if (!stylesheet_name.isEmpty() && AreUserStylesEnabled())
+  if (!stylesheet_name.isEmpty())
   {
-    // Load custom user stylesheet
-    QDir directory = QDir(QString::fromStdString(File::GetUserPath(D_STYLES_IDX)));
-    QFile stylesheet(directory.filePath(stylesheet_name));
+    const auto& stylesheet_path = File::GetStylesDir(stylesheet_name.toStdString());
+    if (stylesheet_path)
+    {
+      // Load stylesheet
+      QDir directory = QDir(QString::fromStdString(stylesheet_path.value()));
+      QFile stylesheet(directory.filePath(QStringLiteral("style.qss")));
+      QString resource_path = directory.filePath(QStringLiteral("style.rcc"));
 
-    if (stylesheet.open(QFile::ReadOnly))
-      stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
+      if (stylesheet.open(QFile::ReadOnly))
+        stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
+
+      // Register QResource file if it exists
+      if (QFile(resource_path).exists())
+        QResource::registerResource(resource_path);
+    }
   }
 
   // Define tooltips style if not already defined
@@ -164,16 +174,6 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
   qApp->setStyleSheet(stylesheet_contents);
 
   GetQSettings().setValue(QStringLiteral("userstyle/name"), stylesheet_name);
-}
-
-bool Settings::AreUserStylesEnabled() const
-{
-  return GetQSettings().value(QStringLiteral("userstyle/enabled"), false).toBool();
-}
-
-void Settings::SetUserStylesEnabled(bool enabled)
-{
-  GetQSettings().setValue(QStringLiteral("userstyle/enabled"), enabled);
 }
 
 void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,
