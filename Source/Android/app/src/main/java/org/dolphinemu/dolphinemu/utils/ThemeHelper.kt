@@ -81,7 +81,11 @@ object ThemeHelper {
 
     private fun setLightModeSystemBars(windowController: WindowInsetsControllerCompat) {
         windowController.isAppearanceLightStatusBars = true
-        windowController.isAppearanceLightNavigationBars = true
+
+        // Fix for an API 26 specific bug where the navigation bar buttons would appear invisible
+        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
+            windowController.isAppearanceLightNavigationBars = true
+        }
     }
 
     private fun setDarkModeSystemBars(windowController: WindowInsetsControllerCompat) {
