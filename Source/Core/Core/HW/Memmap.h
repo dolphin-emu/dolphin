@@ -218,16 +218,14 @@ private:
   // with address translation turned on.  This mapping is computed based
   // on the BAT registers.
   //
-  // Each of these 4GB regions is followed by 4GB of empty space so overflows
-  // in address computation in the JIT don't access the wrong memory.
+  // Each of these 4GB regions is surrounded by 2GB of empty space so overflows
+  // in address computation in the JIT don't access unrelated memory.
   //
   // The neighboring mirrors of RAM ([0x02000000, 0x08000000), etc.) exist because
   // the bus masks off the bits in question for RAM accesses; using them is a
   // terrible idea because the CPU cache won't handle them correctly, but a
   // few buggy games (notably Rogue Squadron 2) use them by accident. They
   // aren't backed by memory mappings because they are used very rarely.
-  //
-  // Dolphin doesn't emulate the difference between cached and uncached access.
   //
   // TODO: The actual size of RAM is 24MB; the other 8MB shouldn't be backed by actual memory.
   // TODO: Do we want to handle the mirrors of the GC RAM?
