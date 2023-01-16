@@ -50,6 +50,10 @@
         android:id="@+id/menu_online_system_update"
         android:title="@string/grid_menu_online_system_update"
         app:showAsAction="never"/>
-    <group />
+
+    <item
+        android:id="@+id/menu_about"
+        android:title="@string/grid_menu_about"
+        app:showAsAction="never"/>
 
 </menu>

@@ -41,6 +41,9 @@ android {
 
         versionName "${getVersion()}"
 
+        buildConfigField "String", "GIT_HASH", "\"${getGitHash()}\""
+        buildConfigField "String", "BRANCH", "\"${getBranch()}\""
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -162,7 +165,6 @@ def getVersion() {
     return versionNumber
 }
 
-
 def getBuildVersionCode() {
     try {
         def versionNumber = 'git rev-list --first-parent --count HEAD'.execute([], project.rootDir).text
@@ -173,4 +175,26 @@ def getBuildVersionCode() {
     }
 
     return 1
+}
+
+def getGitHash() {
+    try {
+        def gitHash = 'git rev-parse HEAD'.execute([], project.rootDir).text.trim()
+        return gitHash
+    } catch (Exception e) {
+        logger.error(e + ': Cannot find git, defaulting to dummy build hash')
+    }
+
+    return 0
+}
+
+def getBranch() {
+    try {
+        def branch = 'git rev-parse --abbrev-ref HEAD'.execute([], project.rootDir).text.trim()
+        return branch
+    } catch (Exception e) {
+        logger.error(e + ': Cannot find git, defaulting to dummy build hash')
+    }
+
+    return 'master'
 }
