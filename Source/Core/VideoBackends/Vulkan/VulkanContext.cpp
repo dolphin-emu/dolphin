@@ -131,33 +131,27 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
   app_info.applicationVersion = VK_MAKE_VERSION(5, 0, 0);
   app_info.pEngineName = "Dolphin Emulator";
   app_info.engineVersion = VK_MAKE_VERSION(5, 0, 0);
-  app_info.apiVersion = VK_MAKE_VERSION(1, 0, 0);
 
-  // Try for Vulkan 1.1 if the loader supports it.
+  // The semantics of app_info.apiVersion changed between Vulkan 1.0 and 1.1,
+  // Early implementations of vulkan will error if we don't report exactly 1.0
+  app_info.apiVersion = VK_API_VERSION_1_0;
+
+  u32 supported_api_version = VK_API_VERSION_1_0;
+
+  // If the loader only supports 1.0, it won't have vkEnumerateInstanceVersion.
   if (vkEnumerateInstanceVersion)
   {
-    u32 supported_api_version = 0;
     VkResult res = vkEnumerateInstanceVersion(&supported_api_version);
-    if (res == VK_SUCCESS && (VK_VERSION_MAJOR(supported_api_version) > 1 ||
-                              VK_VERSION_MINOR(supported_api_version) >= 1))
+    if (res == VK_SUCCESS && supported_api_version >= VK_API_VERSION_1_1)
     {
-      // The device itself may not support 1.1, so we check that before using any 1.1 functionality.
-      app_info.apiVersion = VK_MAKE_VERSION(1, 1, 0);
-      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.1, supported: {}.{}",
-                   VK_VERSION_MAJOR(supported_api_version),
-                   VK_VERSION_MINOR(supported_api_version));
+      // For Vulkan 1.1 and greater instances, we are required to specify the maximum api version
+      // we support, which is currently 1.2
+      app_info.apiVersion = VK_API_VERSION_1_2;
     }
-    else
-    {
-      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
-    }
-  }
-  else
-  {
-    WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
   }
 
-  *out_vk_api_version = app_info.apiVersion;
+  // But we should only use the minimum of what we support and what the loader supports
+  *out_vk_api_version = std::min(app_info.apiVersion, supported_api_version);
 
   VkInstanceCreateInfo instance_create_info = {};
   instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;

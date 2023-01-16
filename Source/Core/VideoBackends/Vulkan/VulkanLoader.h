@@ -60,7 +60,7 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #endif  // #ifdef __GNUC__
 
-#define VMA_VULKAN_VERSION 1001000
+#define VMA_VULKAN_VERSION 1002000
 #define VMA_STATIC_VULKAN_FUNCTIONS 1
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 0
 #undef VK_NO_PROTOTYPES
