@@ -15,6 +15,33 @@
 
 namespace Vulkan
 {
+
+// Small wrapper to make it easier to deal with VkPhysicalDeviceFeatures2 and it's pNext chain
+struct DolphinFeatures : public VkPhysicalDeviceFeatures2
+{
+  VkPhysicalDeviceVulkan12Features features12 = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
+  VkPhysicalDeviceVulkan11Features features11 = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES};
+
+  DolphinFeatures() : VkPhysicalDeviceFeatures2(), m_tail(&pNext) {}
+
+  void PopulateNextChain(uint64_t device_api_version, std::vector<std::string>& enabled_extentions);
+
+private:
+  void** m_tail;
+
+  template <typename T>
+  void AppendIf(T* feature, bool cond)
+  {
+    if (cond)
+    {
+      *m_tail = feature;
+      m_tail = &feature->pNext;
+    }
+  }
+};
+
 class VulkanContext
 {
 public:
@@ -70,16 +97,16 @@ public:
     return m_device_memory_properties;
   }
   const VkPhysicalDeviceProperties& GetDeviceProperties() const { return m_device_properties; }
-  const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_device_features; }
+  const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_device_features.features; }
   const VkPhysicalDeviceLimits& GetDeviceLimits() const { return m_device_properties.limits; }
   // Support bits
   bool SupportsAnisotropicFiltering() const
   {
-    return m_device_features.samplerAnisotropy == VK_TRUE;
+    return m_device_features.features.samplerAnisotropy == VK_TRUE;
   }
   bool SupportsPreciseOcclusionQueries() const
   {
-    return m_device_features.occlusionQueryPrecise == VK_TRUE;
+    return m_device_features.features.occlusionQueryPrecise == VK_TRUE;
   }
   u32 GetShaderSubgroupSize() const { return m_shader_subgroup_size; }
   bool SupportsShaderSubgroupOperations() const { return m_supports_shader_subgroup_operations; }
@@ -138,7 +165,7 @@ private:
 
   VkDebugUtilsMessengerEXT m_debug_utils_messenger = VK_NULL_HANDLE;
 
-  VkPhysicalDeviceFeatures m_device_features = {};
+  DolphinFeatures m_device_features = {};
   VkPhysicalDeviceProperties m_device_properties = {};
   VkPhysicalDeviceMemoryProperties m_device_memory_properties = {};
 
