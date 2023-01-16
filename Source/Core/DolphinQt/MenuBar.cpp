@@ -216,6 +216,11 @@ void MenuBar::AddFileMenu()
 
   file_menu->addSeparator();
 
+  m_open_user_folder =
+      file_menu->addAction(tr("Open &User Folder"), this, &MenuBar::OpenUserFolder);
+
+  file_menu->addSeparator();
+
   m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
   m_exit_action->setShortcuts({QKeySequence::Quit, QKeySequence(Qt::ALT | Qt::Key_F4)});
 }
