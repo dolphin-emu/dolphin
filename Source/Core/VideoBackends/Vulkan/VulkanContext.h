@@ -24,6 +24,11 @@ struct DolphinFeatures : public VkPhysicalDeviceFeatures2
   VkPhysicalDeviceVulkan11Features features11 = {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES};
 
+  VkPhysicalDevicePresentIdFeaturesKHR present_id = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_ID_FEATURES_KHR};
+  VkPhysicalDevicePresentWaitFeaturesKHR present_wait = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_WAIT_FEATURES_KHR};
+
   DolphinFeatures() : VkPhysicalDeviceFeatures2(), m_tail(&pNext) {}
 
   void PopulateNextChain(uint64_t device_api_version, std::vector<std::string>& enabled_extentions);
@@ -131,6 +136,8 @@ public:
 
   // Returns true if exclusive fullscreen is supported for the given surface.
   bool SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkSurfaceKHR surface);
+
+  bool SupportsPresentWait() const { return m_device_features.present_wait.presentWait; }
 
   VmaAllocator GetMemoryAllocator() const { return m_allocator; }
 
