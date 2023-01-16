@@ -122,9 +122,10 @@ private:
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
   void InitDriverDetails();
   void PopulateShaderSubgroupSupport();
-  bool CreateAllocator(u32 vk_api_version);
+  bool CreateAllocator();
 
   VkInstance m_instance = VK_NULL_HANDLE;
+  u32 m_instance_api_version = 0;
   VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
   VkDevice m_device = VK_NULL_HANDLE;
   VmaAllocator m_allocator = VK_NULL_HANDLE;
