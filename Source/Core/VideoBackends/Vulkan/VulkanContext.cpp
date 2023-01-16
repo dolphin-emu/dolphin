@@ -22,6 +22,26 @@ static constexpr const char* VALIDATION_LAYER_NAME = "VK_LAYER_KHRONOS_validatio
 
 std::unique_ptr<VulkanContext> g_vulkan_context;
 
+void DolphinFeatures::PopulateNextChain(uint64_t device_api_version,
+                                        std::vector<std::string>& enabled_extentions)
+{
+  // While the vulkan spec does require implementations to ignore entries in the pNext chain that
+  // don't know about, it also requires clients to only attach structures that they have enabled.
+  // So, we have to selectively build the pNext chain.
+
+  sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+  // NOTE: This does introduce a limitation that we can't enable 1.1 features unless the device
+  //       supports 1.2. We could support the old method, but I'm not sure it's worth the effort
+  AppendIf(&features11, device_api_version >= VK_API_VERSION_1_2);
+  AppendIf(&features12, device_api_version >= VK_API_VERSION_1_2);
+
+  auto have_extension = [&enabled_extentions](const char* name) {
+    return std::find(enabled_extentions.begin(), enabled_extentions.end(), name) !=
+           enabled_extentions.end();
+  };
+}
+
 VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device)
     : m_instance(instance), m_physical_device(physical_device)
 {
@@ -599,35 +619,49 @@ bool VulkanContext::SelectDeviceFeatures()
   VkPhysicalDeviceProperties properties;
   vkGetPhysicalDeviceProperties(m_physical_device, &properties);
 
-  VkPhysicalDeviceFeatures available_features;
-  vkGetPhysicalDeviceFeatures(m_physical_device, &available_features);
+  DolphinFeatures available = {};
+
+  // To use vkGetPhysicalDeviceFeatures2, we need to make sure the device api version is at
+  // least 1.1
+  if (!vkGetPhysicalDeviceFeatures2 || properties.apiVersion == VK_API_VERSION_1_0)
+  {
+    // But we can fallback to the old vkGetPhysicalDeviceFeatures.
+    vkGetPhysicalDeviceFeatures(m_physical_device, &available.features);
+  }
+  else
+  {
+    available.PopulateNextChain(properties.apiVersion, m_device_extensions);
+    m_device_features.PopulateNextChain(properties.apiVersion, m_device_extensions);
+
+    vkGetPhysicalDeviceFeatures2(m_physical_device, &available);
+  }
 
   // Not having geometry shaders or wide lines will cause issues with rendering.
-  if (!available_features.geometryShader && !available_features.wideLines)
+  if (!available.features.geometryShader && !available.features.wideLines)
     WARN_LOG_FMT(VIDEO, "Vulkan: Missing both geometryShader and wideLines features.");
-  if (!available_features.largePoints)
+  if (!available.features.largePoints)
     WARN_LOG_FMT(VIDEO, "Vulkan: Missing large points feature. CPU EFB writes will be slower.");
-  if (!available_features.occlusionQueryPrecise)
+  if (!available.features.occlusionQueryPrecise)
   {
     WARN_LOG_FMT(VIDEO,
                  "Vulkan: Missing precise occlusion queries. Perf queries will be inaccurate.");
   }
   // Enable the features we use.
-  m_device_features.dualSrcBlend = available_features.dualSrcBlend;
-  m_device_features.geometryShader = available_features.geometryShader;
-  m_device_features.samplerAnisotropy = available_features.samplerAnisotropy;
-  m_device_features.logicOp = available_features.logicOp;
-  m_device_features.fragmentStoresAndAtomics = available_features.fragmentStoresAndAtomics;
-  m_device_features.sampleRateShading = available_features.sampleRateShading;
-  m_device_features.largePoints = available_features.largePoints;
-  m_device_features.shaderStorageImageMultisample =
-      available_features.shaderStorageImageMultisample;
-  m_device_features.shaderTessellationAndGeometryPointSize =
-      available_features.shaderTessellationAndGeometryPointSize;
-  m_device_features.occlusionQueryPrecise = available_features.occlusionQueryPrecise;
-  m_device_features.shaderClipDistance = available_features.shaderClipDistance;
-  m_device_features.depthClamp = available_features.depthClamp;
-  m_device_features.textureCompressionBC = available_features.textureCompressionBC;
+  m_device_features.features.dualSrcBlend = available.features.dualSrcBlend;
+  m_device_features.features.geometryShader = available.features.geometryShader;
+  m_device_features.features.samplerAnisotropy = available.features.samplerAnisotropy;
+  m_device_features.features.logicOp = available.features.logicOp;
+  m_device_features.features.fragmentStoresAndAtomics = available.features.fragmentStoresAndAtomics;
+  m_device_features.features.sampleRateShading = available.features.sampleRateShading;
+  m_device_features.features.largePoints = available.features.largePoints;
+  m_device_features.features.shaderStorageImageMultisample =
+      available.features.shaderStorageImageMultisample;
+  m_device_features.features.shaderTessellationAndGeometryPointSize =
+      available.features.shaderTessellationAndGeometryPointSize;
+  m_device_features.features.occlusionQueryPrecise = available.features.occlusionQueryPrecise;
+  m_device_features.features.shaderClipDistance = available.features.shaderClipDistance;
+  m_device_features.features.depthClamp = available.features.depthClamp;
+  m_device_features.features.textureCompressionBC = available.features.textureCompressionBC;
   return true;
 }
 
@@ -748,7 +782,15 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   if (!SelectDeviceFeatures())
     return false;
 
-  device_info.pEnabledFeatures = &m_device_features;
+  if (m_device_properties.apiVersion < VK_API_VERSION_1_1)
+  {
+    device_info.pEnabledFeatures = &m_device_features.features;
+  }
+  else
+  {
+    device_info.pEnabledFeatures = nullptr;
+    device_info.pNext = &m_device_features;
+  }
 
   // Enable debug layer on debug builds
   if (enable_validation_layer)
