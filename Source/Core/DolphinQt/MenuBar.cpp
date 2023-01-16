@@ -217,7 +217,7 @@ void MenuBar::AddFileMenu()
   file_menu->addSeparator();
 
   m_open_user_folder =
-      file_menu->addAction(tr("Open Global &User Directory"), this, &MenuBar::OpenUserFolder);
+      file_menu->addAction(tr("Open &User Folder"), this, &MenuBar::OpenUserFolder);
 
   file_menu->addSeparator();
 
