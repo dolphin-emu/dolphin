@@ -134,13 +134,65 @@ void Analyzer::FindInstructionStarts(const SDSP& dsp, u16 start_addr, u16 end_ad
 #endif
 
     // If an instruction potentially raises exceptions, mark the following instruction as needing to
-    // check for exceptions. This code is only looking for the accelerator address overflow
-    // exception, so the following instructions are checked: LR, LRR/LRRD/LRRI/LRRN, LRS, and
-    // extended opcodes.
-    if (opcode->opcode == 0x00c0 || opcode->opcode == 0x1800 || opcode->opcode == 0x1880 ||
-        opcode->opcode == 0x1900 || opcode->opcode == 0x1980 || opcode->opcode == 0x2000 ||
-        opcode->extended)
+    // check for exceptions.
+    // Reads could trigger an accelerator address overflow exception
+    const bool is_read = opcode->opcode == 0x00c0 ||  // LR
+                         opcode->opcode == 0x1800 ||  // LRR
+                         opcode->opcode == 0x1880 ||  // LRRD
+                         opcode->opcode == 0x1900 ||  // LRRI
+                         opcode->opcode == 0x1980 ||  // LRRN
+                         opcode->opcode == 0x2000 ||  // LRS
+                         opcode->extended;
+    // Writes could also trigger an accelerator address overflow exception
+    // (but we don't implement this currently)
+    const bool is_write = opcode->opcode == 0x1600 ||  // SI
+                          opcode->opcode == 0x00e0 ||  // SR
+                          opcode->opcode == 0x1a00 ||  // SRR
+                          opcode->opcode == 0x1a80 ||  // SRRD
+                          opcode->opcode == 0x1b00 ||  // SRRI
+                          opcode->opcode == 0x1b80 ||  // SRRN
+                          opcode->opcode == 0x2800 ||  // SRS
+                          opcode->opcode == 0x2c00 ||  // SRSH
+                          opcode->extended;
+    // Stack overflows trigger an exception (not emulated currently).
+    // TODO: What happens if an exception saving to the stack overflows the stack?
+    // I assume also that LOOP and LOOPI don't directly use the stack since they only run one
+    // instruction.
+    const bool pushes_stack = (opcode->opcode & 0xfff0) == 0x02b0 ||  // CALLcc
+                              (opcode->opcode & 0xfff0) == 0x1710 ||  // CALLRcc
+                              opcode->opcode == 0x0060 ||             // BLOOP
+                              opcode->opcode == 0x1100;               // BLOOPI
+    // Writes to one of the stack registers also pushes to the stack.
+    // Instructions for is_read are not listed here.
+    // $st0 through $st3 are 0x0c through 0x0f, so we can ignore the bottom 2 bits.
+    const bool pushes_stack_directly = (inst & 0xfffc) == 0x008c ||  // LRI
+                                       (inst & 0xff80) == 0x1d80;    // MRR
+    // Stack underflows trigger an exception (not emulated currently).
+    // Note that the end of a loop doesn't need to be counted here (if the stack's empty, there is
+    // no end of the loop).
+    const bool pops_stack = (opcode->opcode & 0xfff0) == 0x02d0 ||  // RETcc
+                            (opcode->opcode & 0xfff0) == 0x02f0;    // RTIcc
+    // Reads from one of the stack registers also pops the stack.
+    // Instructions for is_write are not listed here.
+    // The loop instructions can also read an arbitrary register (both BLOOP and LOOP),
+    // including the stacks, though I don't know what happens on real hardware in that case.
+    const bool pops_stack_directly = (opcode->opcode & 0xfc1c) == 0x1c0c ||  // MRR
+                                     (opcode->opcode & 0xfffc) == 0x004c ||  // LOOP
+                                     (opcode->opcode & 0xfffc) == 0x006c;    // BLOOP
+    // If an instruction can change one of the interrupt enable bits in $sr, this can cause
+    // a pending interrupt to fire. This only applies for direct loads/stores of $sr, and
+    // some of the $sr bit instructions.
+    // Instructions for is_read are not listed here, nor is RTI.
+    // $sr is register 0x13.
+    // SBSET and SBCLR add 6 to their bit, so 3 through 6 correspond to bits 9 through 12 of $sr
+    // (IE, ?, EIE, ?).
+    const bool updates_sr_exception = (inst & 0xffe0) == 0x1e60 ||           // MRR
+                                      (inst >= 0x1203 && inst <= 0x1206) ||  // SBSET
+                                      (inst >= 0x1303 && inst <= 0x1306);    // SBCLR
+    if (is_read || is_write || pushes_stack || pushes_stack_directly || pops_stack ||
+        pops_stack_directly || updates_sr_exception)
     {
+      // TODO: Is this appropriate for CALL and RET?
       m_code_flags[static_cast<u16>(addr + opcode->size)] |= CODE_CHECK_EXC;
     }
 
