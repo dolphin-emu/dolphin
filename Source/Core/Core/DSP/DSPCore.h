@@ -382,8 +382,9 @@ struct SDSP
   // and sets a flag in the pending exception register.
   void SetException(ExceptionType exception);
 
-  // Checks if any exceptions occurred an updates the DSP state as appropriate.
-  void CheckExceptions();
+  // Checks if any exceptions occurred and updates the DSP state as appropriate.
+  // Returns true if PC changed.
+  bool CheckExceptions();
 
   // Notify that an external interrupt is pending (used by thread mode)
   void SetExternalInterrupt(bool val);
@@ -529,8 +530,9 @@ public:
   // Coming from the CPU
   void CheckExternalInterrupt();
 
-  // Checks if any exceptions occurred an updates the DSP state as appropriate.
-  void CheckExceptions();
+  // Checks if any exceptions occurred and updates the DSP state as appropriate.
+  // Returns true if PC changed.
+  bool CheckExceptions();
 
   // Reads the current value from a particular register.
   u16 ReadRegister(size_t reg) const;

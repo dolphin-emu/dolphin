@@ -99,13 +99,13 @@ void DSPEmitter::ClearIRAMandDSPJITCodespaceReset()
   m_dsp_core.DSPState().reset_dspjit_codespace = false;
 }
 
-static void CheckExceptionsThunk(DSPCore& dsp)
+static bool CheckExceptionsThunk(DSPCore& dsp)
 {
-  dsp.CheckExceptions();
+  return dsp.CheckExceptions();
 }
 
 // Must go out of block if exception is detected
-void DSPEmitter::checkExceptions(u32 retval)
+void DSPEmitter::checkExceptions(u16 retval)
 {
   // Check for interrupts and exceptions
   TEST(8, M_SDSP_exceptions(), Imm8(0xff));
@@ -116,9 +116,10 @@ void DSPEmitter::checkExceptions(u32 retval)
   DSPJitRegCache c(m_gpr);
   m_gpr.SaveRegs();
   ABI_CallFunctionP(CheckExceptionsThunk, &m_dsp_core);
-  MOV(32, R(EAX), Imm32(retval));
-  JMP(m_return_dispatcher, Jump::Near);
-  m_gpr.LoadRegs(false);
+  TEST(8, R(ABI_RETURN), R(ABI_RETURN));
+  MOV(16, R(EAX), Imm16(retval));
+  J_CC(CC_NZ, m_return_dispatcher);
+  m_gpr.LoadRegs(false);  // TODO: Does this still make sense?
   m_gpr.FlushRegs(c, false);
 
   SetJumpTarget(skipCheck);
