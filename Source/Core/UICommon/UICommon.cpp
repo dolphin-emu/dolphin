@@ -289,9 +289,11 @@ void SetUserDirectory(std::string custom_path)
   //    -> Use GetExeDirectory()\User
   // 3. HKCU\Software\Dolphin Emulator\UserConfigPath exists
   //    -> Use this as the user directory path
-  // 4. My Documents exists
-  //    -> Use My Documents\Dolphin Emulator as the User directory path
-  // 5. Default
+  // 4. My Documents\Dolphin Emulator exists (default user folder before PR 10708)
+  //    -> Use this as the user directory path
+  // 5. AppData\Roaming exists
+  //    -> Use AppData\Roaming\Dolphin Emulator as the User directory path
+  // 6. Default
   //    -> Use GetExeDirectory()\User
 
   // Check our registry keys
@@ -323,22 +325,56 @@ void SetUserDirectory(std::string custom_path)
 
   local = local != 0 || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt");
 
-  // Get Documents path in case we need it.
+  // Get AppData path in case we need it.
   // TODO: Maybe use WIL when it's available?
-  PWSTR my_documents = nullptr;
-  bool my_documents_found =
-      SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, nullptr, &my_documents));
+  PWSTR appdata = nullptr;
+  bool appdata_found =
+      SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &appdata));
+
+  // Attempt to check if the old User directory exists in My Documents.
+  // TODO: Maybe use WIL when it's available?
+  PWSTR documents = nullptr;
+  bool documents_found =
+      SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, nullptr, &documents));
+
+  std::optional<std::string> old_user_folder;
+  if (documents_found)
+  {
+    old_user_folder = TStrToUTF8(documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
+  }
 
   if (local)  // Case 1-2
+  {
     user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+  }
   else if (configPath)  // Case 3
+  {
     user_path = TStrToUTF8(configPath.get());
-  else if (my_documents_found)  // Case 4
-    user_path = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
-  else  // Case 5
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+  }
+  else if (old_user_folder && File::Exists(old_user_folder.value()))  // Case 4
+  {
+    user_path = old_user_folder.value();
+  }
+  else if (appdata_found)  // Case 5
+  {
+    user_path = TStrToUTF8(appdata) + DIR_SEP "Dolphin Emulator" DIR_SEP;
 
-  CoTaskMemFree(my_documents);
+    // Set the UserConfigPath value in the registry for backwards compatibility with older Dolphin
+    // builds, which will look for the default User directory in Documents. If we set this key,
+    // they will use this as the User directory instead.
+    // (If we're in this case, then this key doesn't exist, so it's OK to set it.)
+    std::wstring wstr_path = UTF8ToWString(user_path);
+    RegSetKeyValueW(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), TEXT("UserConfigPath"),
+                    REG_SZ, wstr_path.c_str(),
+                    static_cast<DWORD>((wstr_path.size() + 1) * sizeof(wchar_t)));
+  }
+  else  // Case 6
+  {
+    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+  }
+
+  CoTaskMemFree(appdata);
+  CoTaskMemFree(documents);
 #else
   if (File::IsDirectory(ROOT_DIR DIR_SEP USERDATA_DIR))
   {
