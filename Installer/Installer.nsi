@@ -137,7 +137,7 @@ Function .onInit
   !insertmacro MULTIUSER_INIT
 
   ; Keep in sync with build_info.txt
-  !define MIN_WIN10_VERSION 1703
+  !define MIN_WIN10_VERSION 1903
   ${IfNot} ${AtLeastwin10}
   ${OrIfNot} ${AtLeastWaaS} ${MIN_WIN10_VERSION}
     MessageBox MB_OK "At least Windows 10 version ${MIN_WIN10_VERSION} is required."
