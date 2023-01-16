@@ -514,6 +514,8 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
 {
   std::unique_ptr<VulkanContext> context = std::make_unique<VulkanContext>(instance, gpu);
 
+  context->m_instance_api_version = vk_api_version;
+
   // Initialize DriverDetails so that we can check for bugs to disable features if needed.
   context->InitDriverDetails();
   context->PopulateShaderSubgroupSupport();
@@ -523,8 +525,7 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
     context->EnableDebugUtils();
 
   // Attempt to create the device.
-  if (!context->CreateDevice(surface, enable_validation_layer) ||
-      !context->CreateAllocator(vk_api_version))
+  if (!context->CreateDevice(surface, enable_validation_layer) || !context->CreateAllocator())
   {
     // Since we are destroying the instance, we're also responsible for destroying the surface.
     if (surface != VK_NULL_HANDLE)
@@ -776,7 +777,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   return true;
 }
 
-bool VulkanContext::CreateAllocator(u32 vk_api_version)
+bool VulkanContext::CreateAllocator()
 {
   VmaAllocatorCreateInfo allocator_info = {};
   allocator_info.flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT;
@@ -788,7 +789,7 @@ bool VulkanContext::CreateAllocator(u32 vk_api_version)
   allocator_info.pHeapSizeLimit = nullptr;
   allocator_info.pVulkanFunctions = nullptr;
   allocator_info.instance = m_instance;
-  allocator_info.vulkanApiVersion = vk_api_version;
+  allocator_info.vulkanApiVersion = m_instance_api_version;
   allocator_info.pTypeExternalMemoryHandleTypes = nullptr;
 
   if (SupportsDeviceExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME))
