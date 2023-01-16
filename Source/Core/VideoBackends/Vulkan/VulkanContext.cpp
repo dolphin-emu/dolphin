@@ -40,6 +40,9 @@ void DolphinFeatures::PopulateNextChain(uint64_t device_api_version,
     return std::find(enabled_extentions.begin(), enabled_extentions.end(), name) !=
            enabled_extentions.end();
   };
+
+  AppendIf(&present_id, have_extension(VK_KHR_PRESENT_ID_EXTENSION_NAME));
+  AppendIf(&present_wait, have_extension(VK_KHR_PRESENT_WAIT_EXTENSION_NAME));
 }
 
 VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device)
@@ -610,6 +613,12 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
   AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
   AddExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME, false);
 
+  if (enable_surface)
+  {
+    AddExtension(VK_KHR_PRESENT_ID_EXTENSION_NAME, false);
+    AddExtension(VK_KHR_PRESENT_WAIT_EXTENSION_NAME, false);
+  }
+
   return true;
 }
 
@@ -661,6 +670,10 @@ bool VulkanContext::SelectDeviceFeatures()
   m_device_features.features.shaderClipDistance = available.features.shaderClipDistance;
   m_device_features.features.depthClamp = available.features.depthClamp;
   m_device_features.features.textureCompressionBC = available.features.textureCompressionBC;
+
+  m_device_features.present_id.presentId = available.present_id.presentId;
+  m_device_features.present_wait.presentWait = available.present_wait.presentWait;
+
   return true;
 }
 
