@@ -13,24 +13,7 @@
 
 namespace ExpansionInterface
 {
-CEXIBaseboard::CEXIBaseboard()
-{
-  EEPROM_filename = File::GetUserPath(D_TRIUSER_IDX) + "EEPROM.raw";
-  if (File::Exists(EEPROM_filename))
-  {
-    m_EEPROM = std::make_unique<File::IOFile>(EEPROM_filename, "rb+");
-  }
-  else
-  {
-    m_EEPROM = std::make_unique<File::IOFile>(EEPROM_filename, "wb+");
-  }
-}
-
-CEXIBaseboard::~CEXIBaseboard()
-{
-  m_EEPROM->Close();
-  File::Delete(EEPROM_filename);
-}
+CEXIBaseboard::CEXIBaseboard() = default;
 
 void CEXIBaseboard::SetCS(int cs)
 {
@@ -59,6 +42,7 @@ void CEXIBaseboard::TransferByte(u8& byte)
       byte = ID[(m_position - 2) & 3];
       break;
     }
+    // Stub of backup emulation.
     case 0x01:
       byte = 0x01;
       break;
