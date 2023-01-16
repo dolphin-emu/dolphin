@@ -101,8 +101,7 @@ void CoreTimingManager::Init()
   m_is_global_timer_sane = true;
 
   // Reset data used by the throttling system
-  m_throttle_last_cycle = 0;
-  m_throttle_deadline = Clock::now();
+  ResetThrottle(0);
 
   m_event_fifo_id = 0;
   m_ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
@@ -175,11 +174,17 @@ void CoreTimingManager::DoState(PointerWrap& p)
   });
   p.DoMarker("CoreTimingEvents");
 
-  // When loading from a save state, we must assume the Event order is random and meaningless.
-  // The exact layout of the heap in memory is implementation defined, therefore it is platform
-  // and library version specific.
   if (p.IsReadMode())
+  {
+    // When loading from a save state, we must assume the Event order is random and meaningless.
+    // The exact layout of the heap in memory is implementation defined, therefore it is platform
+    // and library version specific.
     std::make_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+
+    // The stave state has changed the time, so our previous Throttle targets are invalid.
+    // Especially when global_time goes down; So we create a fake throttle update.
+    ResetThrottle(m_globals.global_timer);
+  }
 }
 
 // This should only be called from the CPU thread. If you are calling
@@ -380,6 +385,12 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     const TimePoint time_after_sleep = Clock::now();
     g_perf_metrics.CountThrottleSleep(time_after_sleep - time);
   }
+}
+
+void CoreTimingManager::ResetThrottle(s64 cycle)
+{
+  m_throttle_last_cycle = cycle;
+  m_throttle_deadline = Clock::now();
 }
 
 TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
