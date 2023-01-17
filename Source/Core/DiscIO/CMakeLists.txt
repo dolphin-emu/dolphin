@@ -13,8 +13,6 @@ add_library(discio
   DiscScrubber.h
   DiscUtils.cpp
   DiscUtils.h
-  DriveBlob.cpp
-  DriveBlob.h
   Enums.cpp
   Enums.h
   FileBlob.cpp
