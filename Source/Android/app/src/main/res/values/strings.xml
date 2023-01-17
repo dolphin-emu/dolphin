@@ -128,6 +128,8 @@
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="gamecube_submenu">GameCube</string>
+    <string name="skip_main_menu">Skip Main Menu</string>
+    <string name="skip_main_menu_description">Put IPL ROMs in User/GC/&lt;region&gt;</string>
     <string name="system_language">System Language</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>

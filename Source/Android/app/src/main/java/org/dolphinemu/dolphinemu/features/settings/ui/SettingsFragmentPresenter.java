@@ -564,6 +564,8 @@ public final class SettingsFragmentPresenter
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
   {
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_SKIP_IPL, R.string.skip_main_menu,
+            R.string.skip_main_menu_description));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_GC_LANGUAGE, R.string.system_language,
             0, R.array.gameCubeSystemLanguageEntries, R.array.gameCubeSystemLanguageValues));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_SLOT_A, R.string.slot_a_device, 0,
