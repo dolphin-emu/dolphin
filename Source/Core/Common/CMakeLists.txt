@@ -270,6 +270,7 @@ if(WIN32)
     CompatPatches.cpp
     GL/GLInterface/WGL.cpp
     GL/GLInterface/WGL.h
+    WindowsRegistry.cpp
   )
 elseif(APPLE)
   target_sources(common PRIVATE
