@@ -38,12 +38,13 @@ constexpr float FracAdjust(float val)
   return val;
 }
 
-template <typename T, u32 N>
+template <typename T, u32 N, u32 Offset>
 void ReadIndirect(VertexLoader* loader, const T* data)
 {
   static_assert(3 == N || 9 == N, "N is only sane as 3 or 9!");
+  static_assert(!(Offset != 0 && 9 == N), "N == 9 only makes sense if offset == 0");
 
-  for (u32 i = 0; i < N; ++i)
+  for (u32 i = Offset; i < N + Offset; ++i)
   {
     const float value = FracAdjust(Common::FromBigEndian(data[i]));
     if (loader->m_remaining == 0)
@@ -63,7 +64,7 @@ template <typename T, u32 N>
 void Normal_ReadDirect(VertexLoader* loader)
 {
   const auto source = reinterpret_cast<const T*>(DataGetPosition());
-  ReadIndirect<T, N * 3>(loader, source);
+  ReadIndirect<T, N * 3, 0>(loader, source);
   DataSkip<N * 3 * sizeof(T)>();
 }
 
@@ -73,10 +74,10 @@ void Normal_ReadIndex_Offset(VertexLoader* loader)
   static_assert(std::is_unsigned_v<I>, "Only unsigned I is sane!");
 
   const auto index = DataRead<I>();
-  const auto data = reinterpret_cast<const T*>(
-      VertexLoaderManager::cached_arraybases[CPArray::Normal] +
-      (index * g_main_cp_state.array_strides[CPArray::Normal]) + sizeof(T) * 3 * Offset);
-  ReadIndirect<T, N * 3>(loader, data);
+  const auto data =
+      reinterpret_cast<const T*>(VertexLoaderManager::cached_arraybases[CPArray::Normal] +
+                                 (index * g_main_cp_state.array_strides[CPArray::Normal]));
+  ReadIndirect<T, N * 3, Offset * 3>(loader, data);
 }
 
 template <typename I, typename T, u32 N>

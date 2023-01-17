@@ -36,8 +36,8 @@
   <ItemGroup>
     <!--gtest is rather small, so just include it into the build here-->
     <ClCompile Include="$(ExternalsDir)gtest\src\gtest-all.cc" />
-    <ClCompile Include="$(ExternalsDir)gtest\src\gtest_main.cc" />
     <!--Lump all of the tests (and supporting code) into one binary-->
+    <ClCompile Include="UnitTestsMain.cpp" />
     <ClCompile Include="Common\BitFieldTest.cpp" />
     <ClCompile Include="Common\BitSetTest.cpp" />
     <ClCompile Include="Common\BitUtilsTest.cpp" />
