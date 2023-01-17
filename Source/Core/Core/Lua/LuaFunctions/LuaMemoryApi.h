@@ -5,7 +5,7 @@
 #include "src/luaconf.h"
 #include "src/lapi.h"
 #include "common/CommonTypes.h"
-#include "../CommonLuaHelpers.h"
+#include "../LuaHelperClasses/LuaColonCheck.h"
 
 namespace Lua
 {

@@ -1,5 +1,5 @@
 #include "LuaMemoryApi.h"
-#include "NumberType.h"
+#include "../LuaHelperClasses/NumberType.h"
 #include <optional>
 #include "Core/PowerPC/mmu.h"
 #include "Core/HW/Memmap.h"

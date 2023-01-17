@@ -6,6 +6,7 @@ extern "C" {
 #include "src/luaconf.h"
 }
 
+#include "../LuaHelperClasses/LuaColonCheck.h"
 #include "Core/Movie.h"
 
 namespace Lua

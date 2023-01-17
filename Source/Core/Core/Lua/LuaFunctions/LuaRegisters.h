@@ -5,6 +5,7 @@ extern "C" {
 #include "src/lua.hpp"
 #include "src/luaconf.h"
 }
+#include "../LuaHelperClasses/LuaColonCheck.h"
 
 namespace Lua
 {

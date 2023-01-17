@@ -1,5 +1,5 @@
 #include "LuaRegisters.h"
-#include "NumberType.h"
+#include "../LuaHelperClasses/NumberType.h"
 #include "common/CommonTypes.h"
 #include "Core/PowerPC/PowerPC.h"
 #include <string>
@@ -212,12 +212,15 @@ void pushValueFromAddress(lua_State* luaState, u8* memoryLocation, NumberType re
 
 int getRegister(lua_State* luaState)
 {
-  const char* returnTypeString = luaL_checkstring(luaState, 2);
+  luaColonOperatorTypeCheck(luaState, "getRegister", "registers:getRegister(\"r4\", \"u32\", 4)");
+  const char* registerString = luaL_checkstring(luaState, 2);
+  RegisterObject registerObject = parseRegister(registerString);
+
+  const char* returnTypeString = luaL_checkstring(luaState, 3);
   NumberType returnType = parseType(returnTypeString);
+
   if (returnType == NumberType::UNDEFINED)
     luaL_error(luaState, "Error: undefined type string was passed as an argument to getRegister()");
-  const char* registerString = luaL_checkstring(luaState, 3);
-  RegisterObject registerObject = parseRegister(registerString);
   s64 offsetBytes = 0;
   u8 registerSize = 4;
   if (registerObject.regType == RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER)
@@ -265,11 +268,13 @@ int pushByteArrayFromAddressHelperFunction(lua_State* luaState, bool isUnsigned,
 
 int getRegisterAsUnsignedByteArray(lua_State* luaState)
 {
+  luaColonOperatorTypeCheck(luaState, "getRegisterAsUnsignedByteArray", "registers:getRegisterAsUnsignedByteArray(\"r4\", 2, 6)");
   return pushByteArrayFromAddressHelperFunction(luaState, true, "getRegisterAsUnsignedByteArray()");
 }
 
 int getRegisterAsSignedByteArray(lua_State* luaState)
 {
+  luaColonOperatorTypeCheck(luaState, "getRegisterAsSignedByteArray", "registers:getRegisterAsSignedByteArray(\"r4\", 2, 6)");
   return pushByteArrayFromAddressHelperFunction(luaState, false, "getRegisterAsSignedByteArray()");
 }
 
@@ -343,12 +348,13 @@ void writeValueToAddress(lua_State* luaState, u8* memoryLocation, NumberType val
 
 int setRegister(lua_State* luaState)
 {
-  const char* typeString = luaL_checkstring(luaState, 2);
+  luaColonOperatorTypeCheck(luaState, "setRegister", "registers:setRegister(\"r4\", \"u32\", 45, 4)");
+  const char* registerString = luaL_checkstring(luaState, 2);
+  RegisterObject registerObject = parseRegister(registerString);
+  const char* typeString = luaL_checkstring(luaState, 3);
   NumberType valueType = parseType(typeString);
   if (valueType == NumberType::UNDEFINED)
     luaL_error(luaState, "Error: undefined type string was passed as an argument to setRegister()");
-  const char* registerString = luaL_checkstring(luaState, 3);
-  RegisterObject registerObject = parseRegister(registerString);
   u8 registerSize = 4;
   if (registerObject.regType == RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER)
     registerSize = 8;
@@ -366,6 +372,7 @@ int setRegister(lua_State* luaState)
 
 int setRegisterFromByteArray(lua_State* luaState)
 {
+  luaColonOperatorTypeCheck(luaState, "setRegisterFromByteArray", "registers:setRegisterFromByteArray(\"r4\", byteTable, 2)");
   const char* registerString = luaL_checkstring(luaState, 2);
   RegisterObject registerObject = parseRegister(registerString);
   u8 registerSize = 4;

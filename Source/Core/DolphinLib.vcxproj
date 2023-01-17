@@ -69,29 +69,29 @@
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Core\Lua\CommonLuaHelpers.h" />
+    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaColonCheck.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaBitFunctions.h" />
-    <ClInclude Include="Core\Lua\LuaFunctions\LuaGameCubeButtonProbabilityClasses.h" />
-    <ClInclude Include="Core\Lua\LuaFunctions\LuaGCButtons.h" />
+    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaGameCubeButtonProbabilityClasses.h" />
+    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaGCButtons.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaConverter.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaEmuFunctions.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaMemoryApi.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaGameCubeController.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaRegisters.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaStatistics.h" />
-    <ClInclude Include="Core\Lua\LuaFunctions\NumberType.h" />
+    <ClInclude Include="Core\Lua\LuaHelperClasses\NumberType.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core\Lua\CommonLuaHelpers.cpp" />
+    <ClCompile Include="Core\Lua\LuaHelperClasses\LuaColonCheck.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaBitFunctions.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaConverter.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaEmuFunctions.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaGameCubeController.cpp" />
-    <ClCompile Include="Core\Lua\LuaFunctions\LuaGCButtons.cpp" />
+    <ClCompile Include="Core\Lua\LuaHelperClasses\LuaGCButtons.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaMemoryApi.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaRegisters.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaStatistics.cpp" />
-    <ClCompile Include="Core\Lua\LuaFunctions\NumberType.cpp" />
+    <ClCompile Include="Core\Lua\LuaHelperClasses\NumberType.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
