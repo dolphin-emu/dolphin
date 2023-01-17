@@ -295,7 +295,22 @@ void SetUserDirectory(std::string custom_path)
   //    -> Use AppData\Roaming\Dolphin Emulator as the User directory path
   // 6. Default
   //    -> Use GetExeDirectory()\User
+  //
+  // On Steam builds, we take a simplified approach:
+  // 1. GetExeDirectory()\portable.txt exists
+  //    -> Use GetExeDirectory()\User
+  // 2. AppData\Roaming exists
+  //    -> Use AppData\Roaming\Dolphin Emulator (Steam) as the User directory path
+  // 3. Default
+  //    -> Use GetExeDirectory()\User
 
+  // Get AppData path in case we need it.
+  // TODO: Maybe use WIL when it's available?
+  PWSTR appdata = nullptr;
+  bool appdata_found =
+      SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &appdata));
+
+#ifndef STEAM
   // Check our registry keys
   // TODO: Maybe use WIL when it's available?
   HKEY hkey;
@@ -324,12 +339,6 @@ void SetUserDirectory(std::string custom_path)
   }
 
   local = local != 0 || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt");
-
-  // Get AppData path in case we need it.
-  // TODO: Maybe use WIL when it's available?
-  PWSTR appdata = nullptr;
-  bool appdata_found =
-      SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &appdata));
 
   // Attempt to check if the old User directory exists in My Documents.
   // TODO: Maybe use WIL when it's available?
@@ -373,8 +382,23 @@ void SetUserDirectory(std::string custom_path)
     user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
   }
 
-  CoTaskMemFree(appdata);
   CoTaskMemFree(documents);
+#else  // ifndef STEAM
+  if (File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt"))  // Case 1
+  {
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
+  }
+  else if (appdata_found)  // Case 2
+  {
+    user_path = TStrToUTF8(appdata) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
+  }
+  else  // Case 3
+  {
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
+  }
+#endif
+
+  CoTaskMemFree(appdata);
 #else
   if (File::IsDirectory(ROOT_DIR DIR_SEP EMBEDDED_USER_DIR))
   {
