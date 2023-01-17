@@ -54,7 +54,6 @@ signals:
   void Open();
   void Exit();
   void ChangeDisc();
-  void BootDVDBackup(const QString& backup);
   void EjectDisc();
   void OpenUserFolder();
 
@@ -127,7 +126,6 @@ private:
   void OnEmulationStateChanged(Core::State state);
 
   void AddFileMenu();
-  void AddDVDBackupMenu(QMenu* file_menu);
 
   void AddEmulationMenu();
   void AddStateLoadMenu(QMenu* emu_menu);

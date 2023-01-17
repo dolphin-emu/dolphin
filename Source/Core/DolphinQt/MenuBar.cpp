@@ -189,19 +189,6 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   }
 }
 
-void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
-{
-  m_backup_menu = file_menu->addMenu(tr("&Boot from DVD Backup"));
-
-  const std::vector<std::string> drives = Common::GetCDDevices();
-  // Windows Limitation of 24 character drives
-  for (size_t i = 0; i < drives.size() && i < 24; i++)
-  {
-    auto drive = QString::fromStdString(drives[i]);
-    m_backup_menu->addAction(drive, this, [this, drive] { emit BootDVDBackup(drive); });
-  }
-}
-
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
@@ -211,8 +198,6 @@ void MenuBar::AddFileMenu()
 
   m_change_disc = file_menu->addAction(tr("Change &Disc..."), this, &MenuBar::ChangeDisc);
   m_eject_disc = file_menu->addAction(tr("&Eject Disc"), this, &MenuBar::EjectDisc);
-
-  AddDVDBackupMenu(file_menu);
 
   file_menu->addSeparator();
 
