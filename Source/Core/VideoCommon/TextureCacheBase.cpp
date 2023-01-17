@@ -1054,18 +1054,22 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
   }
 
   g_renderer->SetSamplerState(index, state);
-  PixelShaderManager::SetSamplerState(index, state.tm0.hex, state.tm1.hex);
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  pixel_shader_manager.SetSamplerState(index, state.tm0.hex, state.tm1.hex);
 }
 
 void TextureCacheBase::BindTextures(BitSet32 used_textures)
 {
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
   for (u32 i = 0; i < bound_textures.size(); i++)
   {
     const TCacheEntry* tentry = bound_textures[i];
     if (used_textures[i] && tentry)
     {
       g_renderer->SetTexture(i, tentry->texture.get());
-      PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
+      pixel_shader_manager.SetTexDims(i, tentry->native_width, tentry->native_height);
 
       const float custom_tex_scale = tentry->GetWidth() / float(tentry->native_width);
       SetSamplerState(i, custom_tex_scale, tentry->is_custom_tex, tentry->has_arbitrary_mips);

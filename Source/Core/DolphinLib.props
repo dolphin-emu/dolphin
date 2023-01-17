@@ -214,9 +214,6 @@
     <ClInclude Include="Core\DSP\Interpreter\DSPIntTables.h" />
     <ClInclude Include="Core\DSP\Interpreter\DSPIntUtil.h" />
     <ClInclude Include="Core\DSP\Jit\DSPEmitterBase.h" />
-    <ClInclude Include="Core\DSP\Jit\x64\DSPEmitter.h" />
-    <ClInclude Include="Core\DSP\Jit\x64\DSPJitRegCache.h" />
-    <ClInclude Include="Core\DSP\Jit\x64\DSPJitTables.h" />
     <ClInclude Include="Core\DSP\LabelMap.h" />
     <ClInclude Include="Core\DSPEmulator.h" />
     <ClInclude Include="Core\FifoPlayer\FifoDataFile.h" />
@@ -638,7 +635,6 @@
     <ClInclude Include="VideoCommon\DataReader.h" />
     <ClInclude Include="VideoCommon\DriverDetails.h" />
     <ClInclude Include="VideoCommon\Fifo.h" />
-    <ClInclude Include="VideoCommon\FPSCounter.h" />
     <ClInclude Include="VideoCommon\FramebufferManager.h" />
     <ClInclude Include="VideoCommon\FramebufferShaderGen.h" />
     <ClInclude Include="VideoCommon\FrameDump.h" />
@@ -673,6 +669,8 @@
     <ClInclude Include="VideoCommon\OnScreenDisplay.h" />
     <ClInclude Include="VideoCommon\OpcodeDecoding.h" />
     <ClInclude Include="VideoCommon\PerfQueryBase.h" />
+    <ClInclude Include="VideoCommon\PerformanceMetrics.h" />
+    <ClInclude Include="VideoCommon\PerformanceTracker.h" />
     <ClInclude Include="VideoCommon\PixelEngine.h" />
     <ClInclude Include="VideoCommon\PixelShaderGen.h" />
     <ClInclude Include="VideoCommon\PixelShaderManager.h" />
@@ -734,12 +732,7 @@
     <ClCompile Include="Common\Crypto\AES.cpp" />
     <ClCompile Include="Common\Crypto\bn.cpp" />
     <ClCompile Include="Common\Crypto\ec.cpp" />
-    <ClCompile Include="Common\Crypto\SHA1.cpp">
-      <!--Workaround msvc arm64 optimizer bug
-      TODO remove after updating to VS 17.4
-      -->
-      <AdditionalOptions Condition="'$(Platform)'=='ARM64'">/d2ssa-peeps-post-color- %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
+    <ClCompile Include="Common\Crypto\SHA1.cpp" />
     <ClCompile Include="Common\Debug\CodeTrace.cpp" />
     <ClCompile Include="Common\Debug\MemoryPatches.cpp" />
     <ClCompile Include="Common\Debug\Watches.cpp" />
@@ -840,17 +833,6 @@
     <ClCompile Include="Core\DSP\Interpreter\DSPIntMultiplier.cpp" />
     <ClCompile Include="Core\DSP\Interpreter\DSPIntTables.cpp" />
     <ClCompile Include="Core\DSP\Jit\DSPEmitterBase.cpp" />
-    <ClCompile Include="Core\DSP\Jit\x64\DSPEmitter.cpp" />
-    <ClCompile Include="Core\DSP\Jit\x64\DSPJitArithmetic.cpp" />
-    <ClCompile Include="Core\DSP\Jit\x64\DSPJitBranch.cpp" />
-    <ClCompile Include="Core\DSP\Jit\x64\DSPJitCCUtil.cpp" />
-    <ClCompile Include="Core\DSP\Jit\x64\DSPJitExtOps.cpp" />
-    <ClCompile Include="Core\DSP\Jit\x64\DSPJitLoadStore.cpp" />
-    <ClCompile Include="Core\DSP\Jit\x64\DSPJitMisc.cpp" />
-    <ClCompile Include="Core\DSP\Jit\x64\DSPJitMultiplier.cpp" />
-    <ClCompile Include="Core\DSP\Jit\x64\DSPJitRegCache.cpp" />
-    <ClCompile Include="Core\DSP\Jit\x64\DSPJitTables.cpp" />
-    <ClCompile Include="Core\DSP\Jit\x64\DSPJitUtil.cpp" />
     <ClCompile Include="Core\DSP\LabelMap.cpp" />
     <ClCompile Include="Core\DSPEmulator.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoDataFile.cpp" />
@@ -1246,7 +1228,6 @@
     <ClCompile Include="VideoCommon\CPMemory.cpp" />
     <ClCompile Include="VideoCommon\DriverDetails.cpp" />
     <ClCompile Include="VideoCommon\Fifo.cpp" />
-    <ClCompile Include="VideoCommon\FPSCounter.cpp" />
     <ClCompile Include="VideoCommon\FramebufferManager.cpp" />
     <ClCompile Include="VideoCommon\FramebufferShaderGen.cpp" />
     <ClCompile Include="VideoCommon\FrameDump.cpp" />
@@ -1274,6 +1255,8 @@
     <ClCompile Include="VideoCommon\OnScreenDisplay.cpp" />
     <ClCompile Include="VideoCommon\OpcodeDecoding.cpp" />
     <ClCompile Include="VideoCommon\PerfQueryBase.cpp" />
+    <ClCompile Include="VideoCommon\PerformanceMetrics.cpp" />
+    <ClCompile Include="VideoCommon\PerformanceTracker.cpp" />
     <ClCompile Include="VideoCommon\PixelEngine.cpp" />
     <ClCompile Include="VideoCommon\PixelShaderGen.cpp" />
     <ClCompile Include="VideoCommon\PixelShaderManager.cpp" />

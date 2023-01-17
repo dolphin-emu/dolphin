@@ -357,9 +357,6 @@
     <ClInclude Include="lib\wildcard.h" />
     <ClInclude Include="lib\x509asn1.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="lib\libcurl.rc" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -12,6 +12,7 @@
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 /*
 
@@ -244,15 +245,39 @@ void Interpreter::mfspr(UGeckoInstruction inst)
     // GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)).
     // Currently, we always treat the buffer as not empty, as the exact behavior is unclear
     // (and games that use display lists will hang if the bit doesn't eventually become zero).
-    if (GPFifo::IsBNE())
+    if (Core::System::GetInstance().GetGPFifo().IsBNE())
       rSPR(index) |= 1;
     else
       rSPR(index) &= ~1;
   }
   break;
+
   case SPR_XER:
     rSPR(index) = PowerPC::GetXER().Hex;
     break;
+
+  case SPR_UPMC1:
+    rSPR(index) = rSPR(SPR_PMC1);
+    break;
+
+  case SPR_UPMC2:
+    rSPR(index) = rSPR(SPR_PMC2);
+    break;
+
+  case SPR_UPMC3:
+    rSPR(index) = rSPR(SPR_PMC3);
+    break;
+
+  case SPR_UPMC4:
+    rSPR(index) = rSPR(SPR_PMC4);
+    break;
+
+  case SPR_IABR:
+    // A strange quirk: reading back this register on hardware will always have the TE (Translation
+    // enabled) bit set to 0 (despite the bit appearing to function normally when set). This does
+    // not apply to the DABR.
+    rGPR[inst.RD] = rSPR(index) & ~1;
+    return;
   }
   rGPR[inst.RD] = rSPR(index);
 }
@@ -346,7 +371,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_WPAR:
     ASSERT_MSG(POWERPC, rSPR(SPR_WPAR) == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS,
                "Gather pipe changed to unexpected address {:08x} @ PC {:08x}", rSPR(SPR_WPAR), PC);
-    GPFifo::ResetGatherPipe();
+    Core::System::GetInstance().GetGPFifo().ResetGatherPipe();
     break;
 
   // Graphics Quantization Registers

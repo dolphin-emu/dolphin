@@ -397,7 +397,9 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
         config.SetId(user_id);
         config.IncrementIdGen();
         config.SetCreationStage(NWC24::NWC24CreationStage::Generated);
+        config.SetChecksum(config.CalculateNwc24ConfigChecksum());
         config.WriteConfig();
+        config.WriteCBK();
 
         WriteReturnValue(ret, request.buffer_out);
       }

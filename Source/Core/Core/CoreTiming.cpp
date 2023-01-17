@@ -22,6 +22,7 @@
 #include "Core/System.h"
 
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace CoreTiming
@@ -99,6 +100,9 @@ void CoreTimingManager::Init()
   // that slice.
   m_is_global_timer_sane = true;
 
+  // Reset data used by the throttling system
+  ResetThrottle(0);
+
   m_event_fifo_id = 0;
   m_ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
 }
@@ -170,11 +174,17 @@ void CoreTimingManager::DoState(PointerWrap& p)
   });
   p.DoMarker("CoreTimingEvents");
 
-  // When loading from a save state, we must assume the Event order is random and meaningless.
-  // The exact layout of the heap in memory is implementation defined, therefore it is platform
-  // and library version specific.
   if (p.IsReadMode())
+  {
+    // When loading from a save state, we must assume the Event order is random and meaningless.
+    // The exact layout of the heap in memory is implementation defined, therefore it is platform
+    // and library version specific.
     std::make_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
+
+    // The stave state has changed the time, so our previous Throttle targets are invalid.
+    // Especially when global_time goes down; So we create a fake throttle update.
+    ResetThrottle(m_globals.global_timer);
+  }
 }
 
 // This should only be called from the CPU thread. If you are calling
@@ -305,6 +315,8 @@ void CoreTimingManager::Advance()
     Event evt = std::move(m_event_queue.front());
     std::pop_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
     m_event_queue.pop_back();
+
+    Throttle(evt.time);
     evt.type->callback(system, evt.userdata, m_globals.global_timer - evt.time);
   }
 
@@ -326,6 +338,67 @@ void CoreTimingManager::Advance()
   PowerPC::CheckExternalExceptions();
 }
 
+void CoreTimingManager::Throttle(const s64 target_cycle)
+{
+  // Based on number of cycles and emulation speed, increase the target deadline
+  const s64 cycles = target_cycle - m_throttle_last_cycle;
+
+  // Prevent any throttling code if the amount of time passed is < ~0.122ms
+  if (cycles < m_throttle_min_clock_per_sleep)
+    return;
+
+  m_throttle_last_cycle = target_cycle;
+
+  const double speed =
+      Core::GetIsThrottlerTempDisabled() ? 0.0 : Config::Get(Config::MAIN_EMULATION_SPEED);
+
+  if (0.0 < speed)
+    m_throttle_deadline +=
+        std::chrono::duration_cast<DT>(DT_s(cycles) / (speed * m_throttle_clock_per_sec));
+
+  // A maximum fallback is used to prevent the system from sleeping for
+  // too long or going full speed in an attempt to catch up to timings.
+  const DT max_fallback =
+      std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
+
+  const TimePoint time = Clock::now();
+  const TimePoint min_deadline = time - max_fallback;
+  const TimePoint max_deadline = time + max_fallback;
+
+  if (m_throttle_deadline > max_deadline)
+  {
+    m_throttle_deadline = max_deadline;
+  }
+  else if (m_throttle_deadline < min_deadline)
+  {
+    DEBUG_LOG_FMT(COMMON, "System can not to keep up with timings! [relaxing timings by {} us]",
+                  DT_us(min_deadline - m_throttle_deadline).count());
+    m_throttle_deadline = min_deadline;
+  }
+
+  // Only sleep if we are behind the deadline
+  if (time < m_throttle_deadline)
+  {
+    std::this_thread::sleep_until(m_throttle_deadline);
+
+    // Count amount of time sleeping for analytics
+    const TimePoint time_after_sleep = Clock::now();
+    g_perf_metrics.CountThrottleSleep(time_after_sleep - time);
+  }
+}
+
+void CoreTimingManager::ResetThrottle(s64 cycle)
+{
+  m_throttle_last_cycle = cycle;
+  m_throttle_deadline = Clock::now();
+}
+
+TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
+{
+  return TimePoint(std::chrono::duration_cast<DT>(DT_s(m_globals.global_timer - cyclesLate) /
+                                                  m_throttle_clock_per_sec));
+}
+
 void CoreTimingManager::LogPendingEvents() const
 {
   auto clone = m_event_queue;
@@ -340,6 +413,9 @@ void CoreTimingManager::LogPendingEvents() const
 // Should only be called from the CPU thread after the PPC clock has changed
 void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
 {
+  m_throttle_clock_per_sec = new_ppc_clock;
+  m_throttle_min_clock_per_sleep = new_ppc_clock / 1200;
+
   for (Event& ev : m_event_queue)
   {
     const s64 ticks = (ev.time - m_globals.global_timer) * new_ppc_clock / old_ppc_clock;

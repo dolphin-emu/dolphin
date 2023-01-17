@@ -28,8 +28,8 @@ private:
     std::array<char, 32> keyboard;
     unsigned int buttons;
     Common::Vec2 cursor;
-    Common::Vec2 axis;
-    Common::Vec2 relative_mouse;
+    Common::Vec3 axis;
+    Common::Vec3 relative_mouse;
   };
 
   class Key : public Input
@@ -113,7 +113,8 @@ private:
 public:
   void UpdateInput() override;
 
-  KeyboardMouse(Window window, int opcode, int pointer_deviceid, int keyboard_deviceid);
+  KeyboardMouse(Window window, int opcode, int pointer_deviceid, int keyboard_deviceid,
+                double scroll_increment);
   ~KeyboardMouse();
 
   std::string GetName() const override;
@@ -126,6 +127,7 @@ private:
   const int xi_opcode;
   const int pointer_deviceid;
   const int keyboard_deviceid;
+  const double scroll_increment;
   std::string name;
 };
 }  // namespace ciface::XInput2

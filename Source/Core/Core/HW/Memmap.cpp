@@ -52,7 +52,7 @@ void MemoryManager::InitMMIO(bool is_wii)
   system.GetCommandProcessor().RegisterMMIO(system, m_mmio_mapping.get(), 0x0C000000);
   system.GetPixelEngine().RegisterMMIO(m_mmio_mapping.get(), 0x0C001000);
   VideoInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
-  ProcessorInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
+  system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
   MemoryInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
   DSP::RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
   DVDInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
@@ -104,13 +104,8 @@ void MemoryManager::Init()
   const bool wii = SConfig::GetInstance().bWii;
   const bool mmu = Core::System::GetInstance().IsMMUMode();
 
-  bool fake_vmem = false;
-#ifndef _ARCH_32
   // If MMU is turned off in GameCube mode, turn on fake VMEM hack.
-  // The fake VMEM hack's address space is above the memory space that we
-  // allocate on 32bit targets, so disable it there.
-  fake_vmem = !wii && !mmu;
-#endif
+  const bool fake_vmem = !wii && !mmu;
 
   u32 mem_size = 0;
   for (PhysicalMemoryRegion& region : m_physical_regions)
@@ -164,18 +159,50 @@ void MemoryManager::Init()
 
 bool MemoryManager::InitFastmemArena()
 {
-#if _ARCH_32
-  const size_t memory_size = 0x31000000;
-#else
-  const size_t memory_size = 0x400000000;
-#endif
-  m_physical_base = m_arena.ReserveMemoryRegion(memory_size);
+  // Here we set up memory mappings for fastmem. The basic idea of fastmem is that we reserve 4 GiB
+  // of virtual memory and lay out the addresses within that 4 GiB range just like the memory map of
+  // the emulated system. This lets the JIT emulate PPC load/store instructions by translating a PPC
+  // address to a host address as follows and then using a regular load/store instruction:
+  //
+  // RMEM = ppcState.msr.DR ? m_logical_base : m_physical_base
+  // host_address = RMEM + u32(ppc_address_base + ppc_address_offset)
+  //
+  // If the resulting host address is backed by real memory, the memory access will simply work.
+  // If not, a segfault handler will backpatch the JIT code to instead call functions in MMU.cpp.
+  // This way, most memory accesses will be super fast. We do pay a performance penalty for memory
+  // accesses that need special handling, but they're rare enough that it's very beneficial overall.
+  //
+  // Note: Jit64 (but not JitArm64) sometimes takes a shortcut when computing addresses and skips
+  // the cast to u32 that you see in the pseudocode above. When this happens, ppc_address_base
+  // is a 32-bit value stored in a 64-bit register (which effectively makes it behave like an
+  // unsigned 32-bit value), and ppc_address_offset is a signed 32-bit integer encoded directly
+  // into the load/store instruction. This can cause us to undershoot or overshoot the intended
+  // 4 GiB range by at most 2 GiB in either direction. So, make sure we have 2 GiB of guard pages
+  // on each side of each 4 GiB range.
+  //
+  // We need two 4 GiB ranges, one for PPC addresses with address translation disabled
+  // (m_physical_base) and one for PPC addresses with address translation enabled (m_logical_base),
+  // so our memory map ends up looking like this:
+  //
+  // 2 GiB guard
+  // 4 GiB view for disabled address translation
+  // 2 GiB guard
+  // 4 GiB view for enabled address translation
+  // 2 GiB guard
 
-  if (!m_physical_base)
+  constexpr size_t ppc_view_size = 0x1'0000'0000;
+  constexpr size_t guard_size = 0x8000'0000;
+  constexpr size_t memory_size = ppc_view_size * 2 + guard_size * 3;
+
+  u8* fastmem_arena = m_arena.ReserveMemoryRegion(memory_size);
+  if (!fastmem_arena)
   {
     PanicAlertFmt("Memory::InitFastmemArena(): Failed finding a memory base.");
     return false;
   }
+
+  m_physical_base = fastmem_arena + guard_size;
+  m_logical_base = fastmem_arena + ppc_view_size + guard_size * 2;
 
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
@@ -193,10 +220,6 @@ bool MemoryManager::InitFastmemArena()
       return false;
     }
   }
-
-#ifndef _ARCH_32
-  m_logical_base = m_physical_base + 0x200000000;
-#endif
 
   m_is_fastmem_arena_initialized = true;
   return true;

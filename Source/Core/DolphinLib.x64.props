@@ -4,6 +4,9 @@
     <ClInclude Include="Common\x64ABI.h" />
     <ClInclude Include="Common\x64Emitter.h" />
     <ClInclude Include="Common\x64Reg.h" />
+    <ClInclude Include="Core\DSP\Jit\x64\DSPEmitter.h" />
+    <ClInclude Include="Core\DSP\Jit\x64\DSPJitRegCache.h" />
+    <ClInclude Include="Core\DSP\Jit\x64\DSPJitTables.h" />
     <ClInclude Include="Core\PowerPC\Jit64\Jit.h" />
     <ClInclude Include="Core\PowerPC\Jit64\JitAsm.h" />
     <ClInclude Include="Core\PowerPC\Jit64\RegCache\CachedReg.h" />
@@ -27,6 +30,17 @@
     <ClCompile Include="Common\x64CPUDetect.cpp" />
     <ClCompile Include="Common\x64Emitter.cpp" />
     <ClCompile Include="Common\x64FPURoundMode.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPEmitter.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitArithmetic.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitBranch.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitCCUtil.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitExtOps.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitLoadStore.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitMisc.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitMultiplier.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitRegCache.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitTables.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitUtil.cpp" />
     <ClCompile Include="Core\PowerPC\Jit64\Jit_Branch.cpp" />
     <ClCompile Include="Core\PowerPC\Jit64\Jit_FloatingPoint.cpp" />
     <ClCompile Include="Core\PowerPC\Jit64\Jit_Integer.cpp" />

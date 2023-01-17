@@ -36,8 +36,8 @@ GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
       CreateButton(QStringLiteral("&R"), GBAPad::BUTTONS_GROUP, GBAPad::R_BUTTON, &m_overrider);
   m_select_button = CreateButton(QStringLiteral("SELE&CT"), GBAPad::BUTTONS_GROUP,
                                  GBAPad::SELECT_BUTTON, &m_overrider);
-  m_start_button = m_start_button = CreateButton(QStringLiteral("&START"), GBAPad::BUTTONS_GROUP,
-                                                 GBAPad::START_BUTTON, &m_overrider);
+  m_start_button = CreateButton(QStringLiteral("&START"), GBAPad::BUTTONS_GROUP,
+                                GBAPad::START_BUTTON, &m_overrider);
 
   m_left_button =
       CreateButton(QStringLiteral("L&eft"), GBAPad::DPAD_GROUP, DIRECTION_LEFT, &m_overrider);
@@ -69,6 +69,7 @@ GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
 
   auto* layout = new QVBoxLayout;
   layout->addWidget(buttons_box);
+  layout->addWidget(m_settings_box);
 
   setLayout(layout);
 }

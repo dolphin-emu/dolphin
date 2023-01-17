@@ -28,8 +28,8 @@ android {
     testOptions {
         managedDevices {
             devices {
-                pixel2Api31 (ManagedVirtualDevice) {
-                    device = "Pixel 2"
+                pixel6Api31 (ManagedVirtualDevice) {
+                    device = "Pixel 6"
                     apiLevel = 31
                     systemImageSource = "aosp"
                 }

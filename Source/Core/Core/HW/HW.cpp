@@ -44,7 +44,7 @@ void Init(const Sram* override_sram)
   AudioInterface::Init();
   VideoInterface::Init();
   SerialInterface::Init();
-  ProcessorInterface::Init();
+  system.GetProcessorInterface().Init();
   ExpansionInterface::Init(override_sram);  // Needs to be initialized before Memory
   HSP::Init();
   system.GetMemory().Init();  // Needs to be initialized before AddressSpace
@@ -52,7 +52,7 @@ void Init(const Sram* override_sram)
   MemoryInterface::Init();
   DSP::Init(Config::Get(Config::MAIN_DSP_HLE));
   DVDInterface::Init();
-  GPFifo::Init();
+  system.GetGPFifo().Init();
   CPU::Init(Config::Get(Config::MAIN_CPU_CORE));
   SystemTimers::Init();
 
@@ -98,13 +98,13 @@ void DoState(PointerWrap& p)
   p.DoMarker("VideoInterface");
   SerialInterface::DoState(p);
   p.DoMarker("SerialInterface");
-  ProcessorInterface::DoState(p);
+  system.GetProcessorInterface().DoState(p);
   p.DoMarker("ProcessorInterface");
   DSP::DoState(p);
   p.DoMarker("DSP");
   DVDInterface::DoState(p);
   p.DoMarker("DVDInterface");
-  GPFifo::DoState(p);
+  system.GetGPFifo().DoState(p);
   p.DoMarker("GPFifo");
   ExpansionInterface::DoState(p);
   p.DoMarker("ExpansionInterface");

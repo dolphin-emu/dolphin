@@ -193,8 +193,7 @@
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
     <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
-    <string name="show_titles_in_game_list">Show Titles in Game List</string>
-    <string name="show_titles_in_game_list_description">Show the title and creator below each game cover.</string>
+    <string name="show_titles_in_game_list">Show Titles</string>
     <string name="change_theme">Change App Theme</string>
     <string name="change_theme_mode">Change Theme Mode</string>
     <string name="use_black_backgrounds">Use Black Backgrounds</string>
@@ -244,14 +243,6 @@
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>
     <string name="video_backend_description">Select the API used for graphics rendering.</string>
-    <string name="show_fps">Show FPS</string>
-    <string name="show_fps_description">Shows the number of distinct frames rendered per second as a measure of visual smoothness.</string>
-    <string name="show_vps">Show VPS</string>
-    <string name="show_vps_description">Show the number of frames rendered per second as a measure of emulation speed.</string>
-    <string name="show_speed">Show % Speed</string>
-    <string name="show_speed_description">Shows the % speed of emulation compared to full speed.</string>
-    <string name="show_speed_colors">Show Speed Color</string>
-    <string name="show_speed_colors_description">Changes the color of the FPS counter depending on emulation speed.</string>
     <string name="enhancements_submenu">Enhancements</string>
     <string name="internal_resolution">Internal Resolution</string>
     <string name="internal_resolution_description">Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.</string>
@@ -325,6 +316,24 @@
     <string name="shader_compilation_mode">Shader Compilation Mode</string>
     <string name="wait_for_shaders">Compile Shaders Before Starting</string>
     <string name="wait_for_shaders_description">This causes a delay when launching games, but will reduce stuttering early on.</string>
+
+    <string name="statistics_submenu">Statistics</string>
+    <string name="show_fps">Show FPS</string>
+    <string name="show_fps_description">Shows the number of distinct frames rendered per second as a measure of visual smoothness.</string>
+    <string name="show_ftimes">Show Frame Times</string>
+    <string name="show_ftimes_description">Shows the average time in ms between each distinct rendered frame alongside the standard deviation.</string>
+    <string name="show_vps">Show VPS</string>
+    <string name="show_vps_description">Show the number of frames rendered per second as a measure of emulation speed.</string>
+    <string name="show_vtimes">Show VBlank Times</string>
+    <string name="show_vtimes_description">Shows the average time in ms between each rendered frame alongside the standard deviation.</string>
+    <string name="show_graphs">Show Performance Graphs</string>
+    <string name="show_graphs_description">Shows frametime graph along with statistics as a representation of emulation performance.</string>
+    <string name="show_speed">Show % Speed</string>
+    <string name="show_speed_description">Shows the % speed of emulation compared to full speed.</string>
+    <string name="show_speed_colors">Show Speed Color</string>
+    <string name="show_speed_colors_description">Changes the color of the FPS counter depending on emulation speed.</string>
+    <string name="log_render_time_to_file">Log Render Time to File</string>
+    <string name="log_render_time_to_file_description">Logs the render time of every frame to User/Logs/render_time.txt. Use this feature to measure Dolphin\'s performance.</string>
 
     <string name="advanced_graphics_submenu">Advanced</string>
     <string name="gfx_mods_and_custom_textures">Graphics Mods and Custom Textures</string>
@@ -442,6 +451,7 @@
     <string name="add_games">Add Games</string>
     <string name="add_directory_title">Add Folder to Library</string>
     <string name="grid_menu_settings">Settings</string>
+    <string name="grid_menu_grid_options">Grid Options</string>
     <string name="grid_menu_refresh">Refresh Library</string>
     <string name="grid_menu_open_file">Open File</string>
     <string name="grid_menu_install_wad">Install WAD</string>

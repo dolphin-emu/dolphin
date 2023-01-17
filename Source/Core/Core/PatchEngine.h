@@ -51,6 +51,9 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
 void SavePatchSection(IniFile* local_ini, const std::vector<Patch>& patches);
 void LoadPatches();
 
+void AddMemoryPatch(std::size_t index);
+void RemoveMemoryPatch(std::size_t index);
+
 bool ApplyFramePatches();
 void Shutdown();
 void Reload();

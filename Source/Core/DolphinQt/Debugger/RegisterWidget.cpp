@@ -16,6 +16,7 @@
 #include "Core/Core.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Settings.h"
 
@@ -448,12 +449,20 @@ void RegisterWidget::PopulateTable()
 
   // Int Mask
   AddRegister(
-      27, 5, RegisterType::int_mask, "Int Mask", [] { return ProcessorInterface::GetMask(); },
+      27, 5, RegisterType::int_mask, "Int Mask",
+      [] {
+        auto& system = Core::System::GetInstance();
+        return system.GetProcessorInterface().GetMask();
+      },
       nullptr);
 
   // Int Cause
   AddRegister(
-      28, 5, RegisterType::int_cause, "Int Cause", [] { return ProcessorInterface::GetCause(); },
+      28, 5, RegisterType::int_cause, "Int Cause",
+      [] {
+        auto& system = Core::System::GetInstance();
+        return system.GetProcessorInterface().GetCause();
+      },
       nullptr);
 
   // DSISR

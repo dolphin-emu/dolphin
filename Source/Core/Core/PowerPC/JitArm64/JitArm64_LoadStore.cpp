@@ -527,19 +527,21 @@ void JitArm64::lmw(UGeckoInstruction inst)
     gpr.Lock(ARM64Reg::W2);
 
   // MMU games make use of a >= d despite this being invalid according to the PEM.
-  // Because of this, make sure to not re-read rA after starting doing the loads.
+  // If a >= d occurs, we must make sure to not re-read rA after starting doing the loads.
   ARM64Reg addr_reg = ARM64Reg::W0;
-  if (a)
-  {
-    if (gpr.IsImm(a))
-      MOVI2R(addr_reg, gpr.GetImm(a) + offset);
-    else
-      ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
-  }
-  else
-  {
+  bool a_is_addr_base_reg = false;
+  if (!a)
     MOVI2R(addr_reg, offset);
-  }
+  else if (gpr.IsImm(a))
+    MOVI2R(addr_reg, gpr.GetImm(a) + offset);
+  else if (a < d && offset + (31 - d) * 4 < 0x1000)
+    a_is_addr_base_reg = true;
+  else
+    ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
+
+  ARM64Reg addr_base_reg = a_is_addr_base_reg ? ARM64Reg::INVALID_REG : gpr.GetReg();
+  if (!a_is_addr_base_reg)
+    MOV(addr_base_reg, addr_reg);
 
   // TODO: This doesn't handle rollback on DSI correctly
   constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_SIZE_32;
@@ -548,12 +550,16 @@ void JitArm64::lmw(UGeckoInstruction inst)
     gpr.BindToRegister(i, false, false);
     ARM64Reg dest_reg = gpr.R(i);
 
+    if (a_is_addr_base_reg)
+      ADDI2R(addr_reg, gpr.R(a), offset + (i - d) * 4);
+    else if (i != d)
+      ADDI2R(addr_reg, addr_base_reg, (i - d) * 4);
+
     BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
     BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+    regs_in_use[DecodeReg(addr_reg)] = 0;
     if (!jo.fastmem_arena)
       regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
-    if (i == 31)
-      regs_in_use[DecodeReg(addr_reg)] = 0;
     if (!jo.memcheck)
       regs_in_use[DecodeReg(dest_reg)] = 0;
 
@@ -562,14 +568,13 @@ void JitArm64::lmw(UGeckoInstruction inst)
 
     gpr.BindToRegister(i, false, true);
     ASSERT(dest_reg == gpr.R(i));
-
-    if (i != 31)
-      ADD(addr_reg, addr_reg, 4);
   }
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
   if (!jo.fastmem_arena)
     gpr.Unlock(ARM64Reg::W2);
+  if (!a_is_addr_base_reg)
+    gpr.Unlock(addr_base_reg);
 }
 
 void JitArm64::stmw(UGeckoInstruction inst)
@@ -585,17 +590,19 @@ void JitArm64::stmw(UGeckoInstruction inst)
     gpr.Lock(ARM64Reg::W2);
 
   ARM64Reg addr_reg = ARM64Reg::W1;
-  if (a)
-  {
-    if (gpr.IsImm(a))
-      MOVI2R(addr_reg, gpr.GetImm(a) + offset);
-    else
-      ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
-  }
-  else
-  {
+  bool a_is_addr_base_reg = false;
+  if (!a)
     MOVI2R(addr_reg, offset);
-  }
+  else if (gpr.IsImm(a))
+    MOVI2R(addr_reg, gpr.GetImm(a) + offset);
+  else if (offset + (31 - s) * 4 < 0x1000)
+    a_is_addr_base_reg = true;
+  else
+    ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
+
+  ARM64Reg addr_base_reg = a_is_addr_base_reg ? ARM64Reg::INVALID_REG : gpr.GetReg();
+  if (!a_is_addr_base_reg)
+    MOV(addr_base_reg, addr_reg);
 
   // TODO: This doesn't handle rollback on DSI correctly
   constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_SIZE_32;
@@ -603,28 +610,33 @@ void JitArm64::stmw(UGeckoInstruction inst)
   {
     ARM64Reg src_reg = gpr.R(i);
 
+    if (a_is_addr_base_reg)
+      ADDI2R(addr_reg, gpr.R(a), offset + (i - s) * 4);
+    else if (i != s)
+      ADDI2R(addr_reg, addr_base_reg, (i - s) * 4);
+
     BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
     BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
     regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+    regs_in_use[DecodeReg(addr_reg)] = 0;
     if (!jo.fastmem_arena)
       regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
-    if (i == 31)
-      regs_in_use[DecodeReg(addr_reg)] = 0;
 
     EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, EncodeRegTo64(addr_reg), regs_in_use,
                          fprs_in_use);
-
-    if (i != 31)
-      ADD(addr_reg, addr_reg, 4);
   }
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
   if (!jo.fastmem_arena)
     gpr.Unlock(ARM64Reg::W2);
+  if (!a_is_addr_base_reg)
+    gpr.Unlock(addr_base_reg);
 }
 
 void JitArm64::dcbx(UGeckoInstruction inst)
 {
+  FALLBACK_IF(m_accurate_cpu_cache_enabled);
+
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 

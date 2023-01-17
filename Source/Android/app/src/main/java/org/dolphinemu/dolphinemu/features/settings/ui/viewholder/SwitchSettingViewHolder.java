@@ -33,6 +33,15 @@ public final class SwitchSettingViewHolder extends SettingViewHolder
 
     mBinding.settingSwitch.setChecked(mItem.isChecked(getAdapter().getSettings()));
 
+    mBinding.settingSwitch.setEnabled(mItem.isEditable());
+
+    mBinding.settingSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+    {
+      getAdapter().onBooleanClick(mItem, mBinding.settingSwitch.isChecked());
+
+      setStyle(mBinding.textSettingName, mItem);
+    });
+
     setStyle(mBinding.textSettingName, mItem);
   }
 
@@ -46,10 +55,6 @@ public final class SwitchSettingViewHolder extends SettingViewHolder
     }
 
     mBinding.settingSwitch.toggle();
-
-    getAdapter().onBooleanClick(mItem, mBinding.settingSwitch.isChecked());
-
-    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Nullable @Override

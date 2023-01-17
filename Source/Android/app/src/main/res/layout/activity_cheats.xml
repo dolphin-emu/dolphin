@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -35,6 +36,7 @@
         android:id="@+id/sliding_pane_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:background="?attr/colorSurface"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -44,23 +46,30 @@
             android:id="@+id/cheat_list"
             android:name="org.dolphinemu.dolphinemu.features.cheats.ui.CheatListFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_cheat_list" />
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/cheat_details"
             android:name="org.dolphinemu.dolphinemu.features.cheats.ui.CheatDetailsFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_cheat_details" />
 
     </androidx.slidingpanelayout.widget.SlidingPaneLayout>
 
+    <!-- We have to set the layout height at 1px because when a device forces fullscreen mode,
+         inset callbacks are not triggered and using 0dp will make this view cover the entire
+         display since this activity uses a constraint layout. Now, even if the callback isn't
+         triggered, this view will remain at 1px height. -->
     <View
         android:id="@+id/workaround_view"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="1px"
         android:layout_gravity="bottom"
         android:background="@android:color/transparent"
         android:clickable="true"
+        android:focusable="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

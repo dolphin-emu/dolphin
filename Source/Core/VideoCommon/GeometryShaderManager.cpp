@@ -12,13 +12,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-static const int LINE_PT_TEX_OFFSETS[8] = {0, 16, 8, 4, 2, 1, 1, 1};
-
-GeometryShaderConstants GeometryShaderManager::constants;
-bool GeometryShaderManager::dirty;
-
-static bool s_projection_changed;
-static bool s_viewport_changed;
+static constexpr int LINE_PT_TEX_OFFSETS[8] = {0, 16, 8, 4, 2, 1, 1, 1};
 
 void GeometryShaderManager::Init()
 {
@@ -35,7 +29,7 @@ void GeometryShaderManager::Dirty()
 {
   // This function is called after a savestate is loaded.
   // Any constants that can changed based on settings should be re-calculated
-  s_projection_changed = true;
+  m_projection_changed = true;
 
   // Uses EFB scale config
   SetLinePtWidthChanged();
@@ -43,20 +37,20 @@ void GeometryShaderManager::Dirty()
   dirty = true;
 }
 
-static void SetVSExpand(VSExpand expand)
+void GeometryShaderManager::SetVSExpand(VSExpand expand)
 {
-  if (GeometryShaderManager::constants.vs_expand != expand)
+  if (constants.vs_expand != expand)
   {
-    GeometryShaderManager::constants.vs_expand = expand;
-    GeometryShaderManager::dirty = true;
+    constants.vs_expand = expand;
+    dirty = true;
   }
 }
 
 void GeometryShaderManager::SetConstants(PrimitiveType prim)
 {
-  if (s_projection_changed && g_ActiveConfig.stereo_mode != StereoMode::Off)
+  if (m_projection_changed && g_ActiveConfig.stereo_mode != StereoMode::Off)
   {
-    s_projection_changed = false;
+    m_projection_changed = false;
 
     if (xfmem.projection.type == ProjectionType::Perspective)
     {
@@ -86,9 +80,9 @@ void GeometryShaderManager::SetConstants(PrimitiveType prim)
       SetVSExpand(VSExpand::None);
   }
 
-  if (s_viewport_changed)
+  if (m_viewport_changed)
   {
-    s_viewport_changed = false;
+    m_viewport_changed = false;
 
     constants.lineptparams[0] = 2.0f * xfmem.viewport.wd;
     constants.lineptparams[1] = -2.0f * xfmem.viewport.ht;
@@ -99,12 +93,12 @@ void GeometryShaderManager::SetConstants(PrimitiveType prim)
 
 void GeometryShaderManager::SetViewportChanged()
 {
-  s_viewport_changed = true;
+  m_viewport_changed = true;
 }
 
 void GeometryShaderManager::SetProjectionChanged()
 {
-  s_projection_changed = true;
+  m_projection_changed = true;
 }
 
 void GeometryShaderManager::SetLinePtWidthChanged()
@@ -129,8 +123,8 @@ void GeometryShaderManager::SetTexCoordChanged(u8 texmapid)
 
 void GeometryShaderManager::DoState(PointerWrap& p)
 {
-  p.Do(s_projection_changed);
-  p.Do(s_viewport_changed);
+  p.Do(m_projection_changed);
+  p.Do(m_viewport_changed);
 
   p.Do(constants);
 

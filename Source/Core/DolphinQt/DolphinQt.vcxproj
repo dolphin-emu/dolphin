@@ -425,6 +425,7 @@
   <Import Project="$(ExternalsDir)enet\exports.props" />
   <Import Project="$(ExternalsDir)fmt\exports.props" />
   <Import Project="$(ExternalsDir)imgui\exports.props" />
+  <Import Project="$(ExternalsDir)implot\exports.props" />
   <Import Project="$(ExternalsDir)liblzma\exports.props" />
   <Import Project="$(ExternalsDir)mbedtls\exports.props" />
   <Import Project="$(ExternalsDir)mGBA\exports.props" />

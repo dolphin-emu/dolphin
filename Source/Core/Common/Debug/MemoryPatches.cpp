@@ -38,6 +38,23 @@ void MemoryPatches::SetPatch(u32 address, std::vector<u8> value)
   Patch(index);
 }
 
+void MemoryPatches::SetFramePatch(u32 address, u32 value)
+{
+  const std::size_t index = m_patches.size();
+  m_patches.emplace_back(address, value);
+  m_patches.back().type = MemoryPatch::ApplyType::EachFrame;
+  Patch(index);
+}
+
+void MemoryPatches::SetFramePatch(u32 address, std::vector<u8> value)
+{
+  UnsetPatch(address);
+  const std::size_t index = m_patches.size();
+  m_patches.emplace_back(address, std::move(value));
+  m_patches.back().type = MemoryPatch::ApplyType::EachFrame;
+  Patch(index);
+}
+
 const std::vector<MemoryPatch>& MemoryPatches::GetPatches() const
 {
   return m_patches;
@@ -81,6 +98,7 @@ bool MemoryPatches::HasEnabledPatch(u32 address) const
 void MemoryPatches::RemovePatch(std::size_t index)
 {
   DisablePatch(index);
+  UnPatch(index);
   m_patches.erase(m_patches.begin() + index);
 }
 
@@ -88,7 +106,10 @@ void MemoryPatches::ClearPatches()
 {
   const std::size_t size = m_patches.size();
   for (std::size_t index = 0; index < size; ++index)
+  {
     DisablePatch(index);
+    UnPatch(index);
+  }
   m_patches.clear();
 }
 }  // namespace Common::Debug

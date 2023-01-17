@@ -328,9 +328,9 @@ void VideoBackendBase::InitializeShared()
   system.GetPixelEngine().Init(system);
   BPInit();
   VertexLoaderManager::Init();
-  VertexShaderManager::Init();
-  GeometryShaderManager::Init();
-  PixelShaderManager::Init();
+  system.GetVertexShaderManager().Init();
+  system.GetGeometryShaderManager().Init();
+  system.GetPixelShaderManager().Init();
   TMEM::Init();
 
   g_Config.VerifyValidity();

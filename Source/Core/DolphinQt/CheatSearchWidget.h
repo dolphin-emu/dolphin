@@ -41,6 +41,7 @@ public:
 
 signals:
   void ActionReplayCodeGenerated(const ActionReplay::ARCode& ar_code);
+  void RequestWatch(QString name, u32 address);
   void ShowMemory(const u32 address);
 
 private:

@@ -737,7 +737,7 @@ static void UpdateInterrupts()
                         (state.DISR.BRKINT & state.DISR.BRKINTMASK) != 0 ||
                         (state.DICVR.CVRINT & state.DICVR.CVRINTMASK) != 0;
 
-  ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, set_mask);
+  system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_DI, set_mask);
 
   // Required for Summoner: A Goddess Reborn
   system.GetCoreTiming().ForceExceptionCheck(50);

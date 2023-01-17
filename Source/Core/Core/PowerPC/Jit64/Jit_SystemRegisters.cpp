@@ -412,6 +412,11 @@ void Jit64::mfspr(UGeckoInstruction inst)
   case SPR_PMC2:
   case SPR_PMC3:
   case SPR_PMC4:
+  case SPR_UPMC1:
+  case SPR_UPMC2:
+  case SPR_UPMC3:
+  case SPR_UPMC4:
+  case SPR_IABR:
     FALLBACK_IF(true);
   default:
   {
@@ -452,7 +457,8 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   FixupBranch noExceptionsPending = J_CC(CC_Z, true);
 
   // Check if a CP interrupt is waiting and keep the GPU emulation in sync (issue 4336)
-  MOV(64, R(RSCRATCH), ImmPtr(&ProcessorInterface::m_InterruptCause));
+  auto& system = Core::System::GetInstance();
+  MOV(64, R(RSCRATCH), ImmPtr(&system.GetProcessorInterface().m_interrupt_cause));
   TEST(32, MatR(RSCRATCH), Imm32(ProcessorInterface::INT_CAUSE_CP));
   FixupBranch cpInt = J_CC(CC_NZ);
 

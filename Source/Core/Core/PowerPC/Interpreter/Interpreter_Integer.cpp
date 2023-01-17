@@ -209,7 +209,7 @@ void Interpreter::cmpl(UGeckoInstruction inst)
 
 void Interpreter::cntlzwx(UGeckoInstruction inst)
 {
-  rGPR[inst.RA] = u32(Common::CountLeadingZeros(rGPR[inst.RS]));
+  rGPR[inst.RA] = u32(std::countl_zero(rGPR[inst.RS]));
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);

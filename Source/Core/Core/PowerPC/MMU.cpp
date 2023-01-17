@@ -8,6 +8,7 @@
 #include <cstring>
 #include <string>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
@@ -188,6 +189,8 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
     return static_cast<T>(var);
   }
 
+  bool wi = false;
+
   if (!never_translate && MSR.DR)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
@@ -198,6 +201,7 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
       return 0;
     }
     em_address = translated_addr.address;
+    wi = translated_addr.wi;
   }
 
   if (flag == XCheckTLBFlag::Read && (em_address & 0xF8000000) == 0x08000000)
@@ -222,7 +226,18 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
     T value;
-    std::memcpy(&value, &memory.GetRAM()[em_address & memory.GetRamMask()], sizeof(T));
+    em_address &= memory.GetRamMask();
+
+    if (!ppcState.m_enable_dcache || wi)
+    {
+      std::memcpy(&value, &memory.GetRAM()[em_address], sizeof(T));
+    }
+    else
+    {
+      ppcState.dCache.Read(em_address, &value, sizeof(T),
+                           HID0.DLOCK || flag != XCheckTLBFlag::Read);
+    }
+
     return bswap(value);
   }
 
@@ -230,7 +245,18 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
       (em_address & 0x0FFFFFFF) < memory.GetExRamSizeReal())
   {
     T value;
-    std::memcpy(&value, &memory.GetEXRAM()[em_address & 0x0FFFFFFF], sizeof(T));
+    em_address &= 0x0FFFFFFF;
+
+    if (!ppcState.m_enable_dcache || wi)
+    {
+      std::memcpy(&value, &memory.GetEXRAM()[em_address], sizeof(T));
+    }
+    else
+    {
+      ppcState.dCache.Read(em_address + 0x10000000, &value, sizeof(T),
+                           HID0.DLOCK || flag != XCheckTLBFlag::Read);
+    }
+
     return bswap(value);
   }
 
@@ -254,8 +280,8 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
 }
 
 template <XCheckTLBFlag flag, bool never_translate = false>
-static void WriteToHardware(Memory::MemoryManager& memory, u32 em_address, const u32 data,
-                            const u32 size)
+static void WriteToHardware(Core::System& system, Memory::MemoryManager& memory, u32 em_address,
+                            const u32 data, const u32 size)
 {
   DEBUG_ASSERT(size <= 4);
 
@@ -268,9 +294,10 @@ static void WriteToHardware(Memory::MemoryManager& memory, u32 em_address, const
     // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
     const u32 first_half_size = em_address_end_page - em_address;
     const u32 second_half_size = size - first_half_size;
-    WriteToHardware<flag, never_translate>(memory, em_address,
+    WriteToHardware<flag, never_translate>(system, memory, em_address,
                                            std::rotr(data, second_half_size * 8), first_half_size);
-    WriteToHardware<flag, never_translate>(memory, em_address_end_page, data, second_half_size);
+    WriteToHardware<flag, never_translate>(system, memory, em_address_end_page, data,
+                                           second_half_size);
     return;
   }
 
@@ -305,20 +332,21 @@ static void WriteToHardware(Memory::MemoryManager& memory, u32 em_address, const
     switch (size)
     {
     case 1:
-      GPFifo::Write8(static_cast<u8>(data));
+      system.GetGPFifo().Write8(static_cast<u8>(data));
       return;
     case 2:
-      GPFifo::Write16(static_cast<u16>(data));
+      system.GetGPFifo().Write16(static_cast<u16>(data));
       return;
     case 4:
-      GPFifo::Write32(data);
+      system.GetGPFifo().Write32(data);
       return;
     default:
       // Some kind of misaligned write. TODO: Does this match how the actual hardware handles it?
+      auto& gpfifo = system.GetGPFifo();
       for (size_t i = size * 8; i > 0;)
       {
         i -= 8;
-        GPFifo::Write8(static_cast<u8>(data >> i));
+        gpfifo.Write8(static_cast<u8>(data >> i));
       }
       return;
     }
@@ -375,14 +403,16 @@ static void WriteToHardware(Memory::MemoryManager& memory, u32 em_address, const
     // TODO: This interrupt is supposed to have associated cause and address registers
     // TODO: This should trigger the hwtest's interrupt handling, but it does not seem to
     //       (https://github.com/dolphin-emu/hwtests/pull/42)
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_PI);
+    system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_PI);
 
     const u32 rotated_data = std::rotr(data, ((em_address & 0x3) + size) * 8);
 
-    for (u32 addr = em_address & ~0x7; addr < em_address + size; addr += 8)
+    const u32 start_addr = Common::AlignDown(em_address, 8);
+    const u32 end_addr = Common::AlignUp(em_address + size, 8);
+    for (u32 addr = start_addr; addr != end_addr; addr += 8)
     {
-      WriteToHardware<flag, true>(memory, addr, rotated_data, 4);
-      WriteToHardware<flag, true>(memory, addr + 4, rotated_data, 4);
+      WriteToHardware<flag, true>(system, memory, addr, rotated_data, 4);
+      WriteToHardware<flag, true>(system, memory, addr + 4, rotated_data, 4);
     }
 
     return;
@@ -392,14 +422,28 @@ static void WriteToHardware(Memory::MemoryManager& memory, u32 em_address, const
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
-    std::memcpy(&memory.GetRAM()[em_address & memory.GetRamMask()], &swapped_data, size);
+    em_address &= memory.GetRamMask();
+
+    if (ppcState.m_enable_dcache && !wi)
+      ppcState.dCache.Write(em_address, &swapped_data, size, HID0.DLOCK);
+
+    if (!ppcState.m_enable_dcache || wi || flag != XCheckTLBFlag::Write)
+      std::memcpy(&memory.GetRAM()[em_address], &swapped_data, size);
+
     return;
   }
 
   if (memory.GetEXRAM() && (em_address >> 28) == 0x1 &&
       (em_address & 0x0FFFFFFF) < memory.GetExRamSizeReal())
   {
-    std::memcpy(&memory.GetEXRAM()[em_address & 0x0FFFFFFF], &swapped_data, size);
+    em_address &= 0x0FFFFFFF;
+
+    if (ppcState.m_enable_dcache && !wi)
+      ppcState.dCache.Write(em_address + 0x10000000, &swapped_data, size, HID0.DLOCK);
+
+    if (!ppcState.m_enable_dcache || wi || flag != XCheckTLBFlag::Write)
+      std::memcpy(&memory.GetEXRAM()[em_address], &swapped_data, size);
+
     return;
   }
 
@@ -685,7 +729,7 @@ void Write_U8(const u32 var, const u32 address)
   Memcheck(address, var, true, 1);
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  WriteToHardware<XCheckTLBFlag::Write>(memory, address, var, 1);
+  WriteToHardware<XCheckTLBFlag::Write>(system, memory, address, var, 1);
 }
 
 void Write_U16(const u32 var, const u32 address)
@@ -693,7 +737,7 @@ void Write_U16(const u32 var, const u32 address)
   Memcheck(address, var, true, 2);
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  WriteToHardware<XCheckTLBFlag::Write>(memory, address, var, 2);
+  WriteToHardware<XCheckTLBFlag::Write>(system, memory, address, var, 2);
 }
 void Write_U16_Swap(const u32 var, const u32 address)
 {
@@ -705,7 +749,7 @@ void Write_U32(const u32 var, const u32 address)
   Memcheck(address, var, true, 4);
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  WriteToHardware<XCheckTLBFlag::Write>(memory, address, var, 4);
+  WriteToHardware<XCheckTLBFlag::Write>(system, memory, address, var, 4);
 }
 void Write_U32_Swap(const u32 var, const u32 address)
 {
@@ -717,8 +761,9 @@ void Write_U64(const u64 var, const u32 address)
   Memcheck(address, var, true, 8);
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  WriteToHardware<XCheckTLBFlag::Write>(memory, address, static_cast<u32>(var >> 32), 4);
-  WriteToHardware<XCheckTLBFlag::Write>(memory, address + sizeof(u32), static_cast<u32>(var), 4);
+  WriteToHardware<XCheckTLBFlag::Write>(system, memory, address, static_cast<u32>(var >> 32), 4);
+  WriteToHardware<XCheckTLBFlag::Write>(system, memory, address + sizeof(u32),
+                                        static_cast<u32>(var), 4);
 }
 void Write_U64_Swap(const u64 var, const u32 address)
 {
@@ -778,30 +823,31 @@ void HostWrite_U8(const u32 var, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  WriteToHardware<XCheckTLBFlag::NoException>(memory, address, var, 1);
+  WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, 1);
 }
 
 void HostWrite_U16(const u32 var, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  WriteToHardware<XCheckTLBFlag::NoException>(memory, address, var, 2);
+  WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, 2);
 }
 
 void HostWrite_U32(const u32 var, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  WriteToHardware<XCheckTLBFlag::NoException>(memory, address, var, 4);
+  WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, 4);
 }
 
 void HostWrite_U64(const u64 var, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  WriteToHardware<XCheckTLBFlag::NoException>(memory, address, static_cast<u32>(var >> 32), 4);
-  WriteToHardware<XCheckTLBFlag::NoException>(memory, address + sizeof(u32), static_cast<u32>(var),
+  WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, static_cast<u32>(var >> 32),
                                               4);
+  WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address + sizeof(u32),
+                                              static_cast<u32>(var), 4);
 }
 
 void HostWrite_F32(const float var, const u32 address)
@@ -830,15 +876,15 @@ static std::optional<WriteResult> HostTryWriteUX(const u32 var, const u32 addres
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    WriteToHardware<XCheckTLBFlag::NoException>(memory, address, var, size);
+    WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, size);
     return WriteResult(!!MSR.DR);
   case RequestedAddressSpace::Physical:
-    WriteToHardware<XCheckTLBFlag::NoException, true>(memory, address, var, size);
+    WriteToHardware<XCheckTLBFlag::NoException, true>(system, memory, address, var, size);
     return WriteResult(false);
   case RequestedAddressSpace::Virtual:
     if (!MSR.DR)
       return std::nullopt;
-    WriteToHardware<XCheckTLBFlag::NoException>(memory, address, var, size);
+    WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, size);
     return WriteResult(true);
   }
 
@@ -1099,7 +1145,7 @@ void DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 nu
   memcpy(dst, src, 32 * num_blocks);
 }
 
-void ClearCacheLine(u32 address)
+void ClearDCacheLine(u32 address)
 {
   DEBUG_ASSERT((address & 0x1F) == 0);
   if (MSR.DR)
@@ -1127,7 +1173,101 @@ void ClearCacheLine(u32 address)
   // TODO: This isn't precisely correct for non-RAM regions, but the difference
   // is unlikely to matter.
   for (u32 i = 0; i < 32; i += 4)
-    WriteToHardware<XCheckTLBFlag::Write, true>(memory, address + i, 0, 4);
+    WriteToHardware<XCheckTLBFlag::Write, true>(system, memory, address + i, 0, 4);
+}
+
+void StoreDCacheLine(u32 address)
+{
+  address &= ~0x1F;
+
+  if (MSR.DR)
+  {
+    auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
+    if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
+    {
+      return;
+    }
+    if (translated_address.result == TranslateAddressResultEnum::PAGE_FAULT)
+    {
+      // If translation fails, generate a DSI.
+      GenerateDSIException(address, true);
+      return;
+    }
+    address = translated_address.address;
+  }
+
+  if (ppcState.m_enable_dcache)
+    ppcState.dCache.Store(address);
+}
+
+void InvalidateDCacheLine(u32 address)
+{
+  address &= ~0x1F;
+
+  if (MSR.DR)
+  {
+    auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
+    if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
+    {
+      return;
+    }
+    if (translated_address.result == TranslateAddressResultEnum::PAGE_FAULT)
+    {
+      return;
+    }
+    address = translated_address.address;
+  }
+
+  if (ppcState.m_enable_dcache)
+    ppcState.dCache.Invalidate(address);
+}
+
+void FlushDCacheLine(u32 address)
+{
+  address &= ~0x1F;
+
+  if (MSR.DR)
+  {
+    auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
+    if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
+    {
+      return;
+    }
+    if (translated_address.result == TranslateAddressResultEnum::PAGE_FAULT)
+    {
+      // If translation fails, generate a DSI.
+      GenerateDSIException(address, true);
+      return;
+    }
+    address = translated_address.address;
+  }
+
+  if (ppcState.m_enable_dcache)
+    ppcState.dCache.Flush(address);
+}
+
+void TouchDCacheLine(u32 address, bool store)
+{
+  address &= ~0x1F;
+
+  if (MSR.DR)
+  {
+    auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
+    if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
+    {
+      return;
+    }
+    if (translated_address.result == TranslateAddressResultEnum::PAGE_FAULT)
+    {
+      // If translation fails, generate a DSI.
+      GenerateDSIException(address, true);
+      return;
+    }
+    address = translated_address.address;
+  }
+
+  if (ppcState.m_enable_dcache)
+    ppcState.dCache.Touch(address, store);
 }
 
 u32 IsOptimizableMMIOAccess(u32 address, u32 access_size)

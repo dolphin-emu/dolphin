@@ -44,7 +44,6 @@
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="24dp"
-        android:clickable="false"
         android:focusable="false"
         android:minHeight="0dp"
         android:minWidth="0dp" />

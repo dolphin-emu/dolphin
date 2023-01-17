@@ -164,7 +164,12 @@ void Write_F64(double var, u32 address);
 
 void DMA_LCToMemory(u32 mem_address, u32 cache_address, u32 num_blocks);
 void DMA_MemoryToLC(u32 cache_address, u32 mem_address, u32 num_blocks);
-void ClearCacheLine(u32 address);  // Zeroes 32 bytes; address should be 32-byte-aligned
+
+void ClearDCacheLine(u32 address);  // Zeroes 32 bytes; address should be 32-byte-aligned
+void StoreDCacheLine(u32 address);
+void InvalidateDCacheLine(u32 address);
+void FlushDCacheLine(u32 address);
+void TouchDCacheLine(u32 address, bool store);
 
 // TLB functions
 void SDRUpdated();

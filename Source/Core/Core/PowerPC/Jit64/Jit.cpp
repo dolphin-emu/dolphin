@@ -527,7 +527,7 @@ bool Jit64::Cleanup()
     CMP(64, R(RSCRATCH), Imm32(GPFifo::GATHER_PIPE_SIZE));
     FixupBranch exit = J_CC(CC_L);
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunction(GPFifo::UpdateGatherPipe);
+    ABI_CallFunctionP(GPFifo::UpdateGatherPipe, &Core::System::GetInstance().GetGPFifo());
     ABI_PopRegistersAndAdjustStack({}, 0);
     SetJumpTarget(exit);
     did_something = true;
@@ -799,11 +799,10 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   if (m_enable_debugging)
   {
-    // We can link blocks as long as we are not single stepping and there are no breakpoints here
+    // We can link blocks as long as we are not single stepping
     EnableBlockLink();
     EnableOptimization();
 
-    // Comment out the following to disable breakpoints (speed-up)
     if (!jo.profile_blocks)
     {
       if (CPU::IsStepping())
@@ -1028,7 +1027,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       js.mustCheckFifo = false;
       BitSet32 registersInUse = CallerSavedRegistersInUse();
       ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-      ABI_CallFunction(GPFifo::FastCheckGatherPipe);
+      ABI_CallFunctionP(GPFifo::FastCheckGatherPipe, &Core::System::GetInstance().GetGPFifo());
       ABI_PopRegistersAndAdjustStack(registersInUse, 0);
       gatherPipeIntCheck = true;
     }
@@ -1045,7 +1044,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(extException);
       TEST(32, PPCSTATE(msr), Imm32(0x0008000));
       FixupBranch noExtIntEnable = J_CC(CC_Z, true);
-      MOV(64, R(RSCRATCH), ImmPtr(&ProcessorInterface::m_InterruptCause));
+      auto& system = Core::System::GetInstance();
+      MOV(64, R(RSCRATCH), ImmPtr(&system.GetProcessorInterface().m_interrupt_cause));
       TEST(32, MatR(RSCRATCH),
            Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN |
                  ProcessorInterface::INT_CAUSE_PE_FINISH));
@@ -1099,10 +1099,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
       if (m_enable_debugging && breakpoints.IsAddressBreakPoint(op.address) && !CPU::IsStepping())
       {
-        // Turn off block linking if there are breakpoints so that the Step Over command does not
-        // link this block.
-        jo.enableBlocklink = false;
-
         gpr.Flush();
         fpr.Flush();
 
@@ -1114,7 +1110,11 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
         FixupBranch noBreakpoint = J_CC(CC_Z);
 
-        WriteExit(op.address);
+        Cleanup();
+        MOV(32, PPCSTATE(npc), Imm32(op.address));
+        SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
+        JMP(asm_routines.dispatcher_exit, true);
+
         SetJumpTarget(noBreakpoint);
       }
 

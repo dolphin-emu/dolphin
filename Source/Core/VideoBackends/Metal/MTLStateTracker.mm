@@ -4,10 +4,12 @@
 #include "VideoBackends/Metal/MTLStateTracker.h"
 
 #include <algorithm>
+#include <bit>
 #include <mutex>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
+
+#include "Core/System.h"
 
 #include "VideoBackends/Metal/MTLObjectCache.h"
 #include "VideoBackends/Metal/MTLPerfQuery.h"
@@ -713,8 +715,8 @@ static constexpr NSString* LABEL_UTIL = @"Utility Draw";
 static NSRange RangeOfBits(u32 value)
 {
   ASSERT(value && "Value must be nonzero");
-  u32 low = Common::CountTrailingZeros(value);
-  u32 high = 31 - Common::CountLeadingZeros(value);
+  int low = std::countr_zero(value);
+  int high = 31 - std::countl_zero(value);
   return NSMakeRange(low, high + 1 - low);
 }
 
@@ -834,7 +836,9 @@ void Metal::StateTracker::PrepareRender()
     {
       m_flags.has_gx_vs_uniform = true;
       Map map = Allocate(UploadBuffer::Uniform, sizeof(VertexShaderConstants), AlignMask::Uniform);
-      memcpy(map.cpu_buffer, &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+      auto& system = Core::System::GetInstance();
+      auto& vertex_shader_manager = system.GetVertexShaderManager();
+      memcpy(map.cpu_buffer, &vertex_shader_manager.constants, sizeof(VertexShaderConstants));
       SetVertexBufferNow(1, map.gpu_buffer, map.gpu_offset);
       if (pipe->UsesFragmentBuffer(1))
         SetFragmentBufferNow(1, map.gpu_buffer, map.gpu_offset);
@@ -844,7 +848,9 @@ void Metal::StateTracker::PrepareRender()
     if (!m_flags.has_gx_gs_uniform && pipe->UsesVertexBuffer(2))
     {
       m_flags.has_gx_gs_uniform = true;
-      [m_current_render_encoder setVertexBytes:&GeometryShaderManager::constants
+      auto& system = Core::System::GetInstance();
+      auto& geometry_shader_manager = system.GetGeometryShaderManager();
+      [m_current_render_encoder setVertexBytes:&geometry_shader_manager.constants
                                         length:sizeof(GeometryShaderConstants)
                                        atIndex:2];
       ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, sizeof(GeometryShaderConstants));
@@ -853,7 +859,9 @@ void Metal::StateTracker::PrepareRender()
     {
       m_flags.has_gx_ps_uniform = true;
       Map map = Allocate(UploadBuffer::Uniform, sizeof(PixelShaderConstants), AlignMask::Uniform);
-      memcpy(map.cpu_buffer, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+      auto& system = Core::System::GetInstance();
+      auto& pixel_shader_manager = system.GetPixelShaderManager();
+      memcpy(map.cpu_buffer, &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
       SetFragmentBufferNow(0, map.gpu_buffer, map.gpu_offset);
       ADDSTAT(g_stats.this_frame.bytes_uniform_streamed,
               Align(sizeof(PixelShaderConstants), AlignMask::Uniform));

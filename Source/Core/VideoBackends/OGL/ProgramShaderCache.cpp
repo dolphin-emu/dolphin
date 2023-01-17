@@ -20,6 +20,7 @@
 #include "Common/Version.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/System.h"
 
 #include "VideoBackends/OGL/OGLRender.h"
 #include "VideoBackends/OGL/OGLShader.h"
@@ -220,18 +221,22 @@ u32 ProgramShaderCache::GetUniformBufferAlignment()
 
 void ProgramShaderCache::UploadConstants()
 {
-  if (PixelShaderManager::dirty || VertexShaderManager::dirty || GeometryShaderManager::dirty)
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+  if (pixel_shader_manager.dirty || vertex_shader_manager.dirty || geometry_shader_manager.dirty)
   {
     auto buffer = s_buffer->Map(s_ubo_buffer_size, s_ubo_align);
 
-    memcpy(buffer.first, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+    memcpy(buffer.first, &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
 
     memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align),
-           &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+           &vertex_shader_manager.constants, sizeof(VertexShaderConstants));
 
     memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align) +
                Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align),
-           &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
+           &geometry_shader_manager.constants, sizeof(GeometryShaderConstants));
 
     s_buffer->Unmap(s_ubo_buffer_size);
     glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second,
@@ -244,9 +249,9 @@ void ProgramShaderCache::UploadConstants()
                           Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align),
                       sizeof(GeometryShaderConstants));
 
-    PixelShaderManager::dirty = false;
-    VertexShaderManager::dirty = false;
-    GeometryShaderManager::dirty = false;
+    pixel_shader_manager.dirty = false;
+    vertex_shader_manager.dirty = false;
+    geometry_shader_manager.dirty = false;
 
     ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, s_ubo_buffer_size);
   }

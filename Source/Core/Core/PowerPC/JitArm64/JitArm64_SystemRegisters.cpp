@@ -395,6 +395,15 @@ void JitArm64::mfspr(UGeckoInstruction inst)
   break;
   case SPR_WPAR:
   case SPR_DEC:
+  case SPR_PMC1:
+  case SPR_PMC2:
+  case SPR_PMC3:
+  case SPR_PMC4:
+  case SPR_UPMC1:
+  case SPR_UPMC2:
+  case SPR_UPMC3:
+  case SPR_UPMC4:
+  case SPR_IABR:
     FALLBACK_IF(true);
   default:
     gpr.BindToRegister(d, false);

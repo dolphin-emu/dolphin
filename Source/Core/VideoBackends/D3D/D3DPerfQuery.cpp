@@ -24,7 +24,7 @@ PerfQuery::PerfQuery() : m_query_read_pos()
 
 PerfQuery::~PerfQuery() = default;
 
-void PerfQuery::EnableQuery(PerfQueryGroup type)
+void PerfQuery::EnableQuery(PerfQueryGroup group)
 {
   u32 query_count = m_query_count.load(std::memory_order_relaxed);
 
@@ -44,21 +44,21 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
   }
 
   // start query
-  if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
+  if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
     auto& entry = m_query_buffer[(m_query_read_pos + query_count) % m_query_buffer.size()];
 
     D3D::context->Begin(entry.query.Get());
-    entry.query_type = type;
+    entry.query_group = group;
 
     m_query_count.fetch_add(1, std::memory_order_relaxed);
   }
 }
 
-void PerfQuery::DisableQuery(PerfQueryGroup type)
+void PerfQuery::DisableQuery(PerfQueryGroup group)
 {
   // stop query
-  if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
+  if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
     auto& entry = m_query_buffer[(m_query_read_pos + m_query_count.load(std::memory_order_relaxed) +
                                   m_query_buffer.size() - 1) %
@@ -116,8 +116,8 @@ void PerfQuery::FlushOne()
   // hardware behavior when drawing triangles.
   const u64 native_res_result = result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT /
                                 g_renderer->GetTargetHeight();
-  m_results[entry.query_type].fetch_add(static_cast<u32>(native_res_result),
-                                        std::memory_order_relaxed);
+  m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
+                                         std::memory_order_relaxed);
 
   m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
   m_query_count.fetch_sub(1, std::memory_order_relaxed);
@@ -145,8 +145,8 @@ void PerfQuery::WeakFlush()
       // NOTE: Reported pixel metrics should be referenced to native resolution
       const u64 native_res_result = result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT /
                                     g_renderer->GetTargetHeight();
-      m_results[entry.query_type].store(static_cast<u32>(native_res_result),
-                                        std::memory_order_relaxed);
+      m_results[entry.query_group].store(static_cast<u32>(native_res_result),
+                                         std::memory_order_relaxed);
 
       m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
       m_query_count.fetch_sub(1, std::memory_order_relaxed);

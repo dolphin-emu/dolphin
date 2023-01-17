@@ -135,8 +135,7 @@ void DolphinAnalytics::ReportGameStart()
 }
 
 // Keep in sync with enum class GameQuirk definition.
-constexpr std::array<const char*, 28> GAME_QUIRKS_NAMES{
-    "icache-matters",
+constexpr std::array<const char*, 27> GAME_QUIRKS_NAMES{
     "directly-reads-wiimote-input",
     "uses-DVDLowStopLaser",
     "uses-DVDLowOffset",
@@ -421,6 +420,8 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("gpu-has-palette-conversion", g_Config.backend_info.bSupportsPaletteConversion);
   builder.AddData("gpu-has-clip-control", g_Config.backend_info.bSupportsClipControl);
   builder.AddData("gpu-has-ssaa", g_Config.backend_info.bSupportsSSAA);
+  builder.AddData("gpu-has-logic-ops", g_Config.backend_info.bSupportsLogicOp);
+  builder.AddData("gpu-has-framebuffer-fetch", g_Config.backend_info.bSupportsFramebufferFetch);
 
   // NetPlay / recording.
   builder.AddData("netplay", NetPlay::IsNetPlayRunning());
@@ -428,8 +429,7 @@ void DolphinAnalytics::MakePerGameBuilder()
 
   // Controller information
   // We grab enough to tell what percentage of our users are playing with keyboard/mouse, some kind
-  // of gamepad
-  // or the official GameCube adapter.
+  // of gamepad, or the official GameCube adapter.
   builder.AddData("gcadapter-detected", GCAdapter::IsDetected(nullptr));
   builder.AddData("has-controller", Pad::GetConfig()->IsControllerControlledByGamepadDevice(0) ||
                                         GCAdapter::IsDetected(nullptr));

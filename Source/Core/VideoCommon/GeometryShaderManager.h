@@ -13,16 +13,22 @@ enum class PrimitiveType : u32;
 class GeometryShaderManager
 {
 public:
-  static void Init();
-  static void Dirty();
-  static void DoState(PointerWrap& p);
+  void Init();
+  void Dirty();
+  void DoState(PointerWrap& p);
 
-  static void SetConstants(PrimitiveType prim);
-  static void SetViewportChanged();
-  static void SetProjectionChanged();
-  static void SetLinePtWidthChanged();
-  static void SetTexCoordChanged(u8 texmapid);
+  void SetConstants(PrimitiveType prim);
+  void SetViewportChanged();
+  void SetProjectionChanged();
+  void SetLinePtWidthChanged();
+  void SetTexCoordChanged(u8 texmapid);
 
-  static GeometryShaderConstants constants;
-  static bool dirty;
+  GeometryShaderConstants constants{};
+  bool dirty = false;
+
+private:
+  void SetVSExpand(VSExpand expand);
+
+  bool m_projection_changed = false;
+  bool m_viewport_changed = false;
 };

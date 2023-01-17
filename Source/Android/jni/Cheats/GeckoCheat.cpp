@@ -155,14 +155,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_loadCodes(JNIEnv
 
   const std::vector<Gecko::GeckoCode> codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
 
-  const jobjectArray array =
-      env->NewObjectArray(static_cast<jsize>(codes.size()), IDCache::GetGeckoCheatClass(), nullptr);
-
-  jsize i = 0;
-  for (const Gecko::GeckoCode& code : codes)
-    env->SetObjectArrayElement(array, i++, GeckoCheatToJava(env, code));
-
-  return array;
+  return VectorToJObjectArray(env, codes, IDCache::GetGeckoCheatClass(), GeckoCheatToJava);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_saveCodes(

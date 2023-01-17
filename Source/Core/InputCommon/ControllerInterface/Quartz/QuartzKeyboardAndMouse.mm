@@ -259,16 +259,14 @@ void KeyboardAndMouse::UpdateInput()
   }
   else
   {
-    CGEventRef event = CGEventCreate(nil);
-    CGPoint loc = CGEventGetLocation(event);
-    CFRelease(event);
+    NSPoint loc = [NSEvent mouseLocation];
 
     const auto window_scale = g_controller_interface.GetWindowInputScale();
 
     loc.x -= bounds.origin.x;
     loc.y -= bounds.origin.y;
     m_cursor.x = (loc.x / window_width * 2 - 1.0) * window_scale.x;
-    m_cursor.y = (loc.y / window_height * 2 - 1.0) * window_scale.y;
+    m_cursor.y = (loc.y / window_height * 2 - 1.0) * -window_scale.y;
   }
 }
 

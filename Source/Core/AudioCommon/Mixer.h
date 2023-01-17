@@ -48,9 +48,6 @@ public:
   void StartLogDSPAudio(const std::string& filename);
   void StopLogDSPAudio();
 
-  float GetCurrentSpeed() const { return m_speed.load(); }
-  void UpdateSpeed(float val) { m_speed.store(val); }
-
   // 54000000 doesn't work here as it doesn't evenly divide with 32000, but 108000000 does
   static constexpr u64 FIXED_SAMPLE_RATE_DIVIDEND = 54000000 * 2;
 
@@ -116,9 +113,6 @@ private:
 
   bool m_log_dtk_audio = false;
   bool m_log_dsp_audio = false;
-
-  // Current rate of emulation (1.0 = 100% speed)
-  std::atomic<float> m_speed{0.0f};
 
   float m_config_emulation_speed;
   int m_config_timing_variance;

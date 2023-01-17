@@ -2660,7 +2660,7 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
 
   if (gpr.IsImm(s))
   {
-    gpr.SetImmediate32(a, Common::CountLeadingZeros(gpr.Imm32(s)));
+    gpr.SetImmediate32(a, static_cast<u32>(std::countl_zero(gpr.Imm32(s))));
   }
   else
   {

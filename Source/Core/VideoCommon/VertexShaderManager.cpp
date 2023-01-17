@@ -30,49 +30,28 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-alignas(16) static std::array<float, 16> g_fProjectionMatrix;
-
-// track changes
-static std::array<bool, 2> bTexMatricesChanged;
-static bool bPosNormalMatrixChanged;
-static bool bProjectionChanged;
-static bool bViewportChanged;
-static bool bTexMtxInfoChanged;
-static bool bLightingConfigChanged;
-static bool bProjectionGraphicsModChange;
-static BitSet32 nMaterialsChanged;
-static std::array<int, 2> nTransformMatricesChanged;      // min,max
-static std::array<int, 2> nNormalMatricesChanged;         // min,max
-static std::array<int, 2> nPostTransformMatricesChanged;  // min,max
-static std::array<int, 2> nLightsChanged;                 // min,max
-
-static Common::Matrix44 s_viewportCorrection;
-
-VertexShaderConstants VertexShaderManager::constants;
-bool VertexShaderManager::dirty;
-
 void VertexShaderManager::Init()
 {
   // Initialize state tracking variables
-  nTransformMatricesChanged.fill(-1);
-  nNormalMatricesChanged.fill(-1);
-  nPostTransformMatricesChanged.fill(-1);
-  nLightsChanged.fill(-1);
-  nMaterialsChanged = BitSet32(0);
-  bTexMatricesChanged.fill(false);
-  bPosNormalMatrixChanged = false;
-  bProjectionChanged = true;
-  bViewportChanged = false;
-  bTexMtxInfoChanged = false;
-  bLightingConfigChanged = false;
-  bProjectionGraphicsModChange = false;
+  m_minmax_transform_matrices_changed.fill(-1);
+  m_minmax_normal_matrices_changed.fill(-1);
+  m_minmax_post_transform_matrices_changed.fill(-1);
+  m_minmax_lights_changed.fill(-1);
+  m_materials_changed = BitSet32(0);
+  m_tex_matrices_changed.fill(false);
+  m_pos_normal_matrix_changed = false;
+  m_projection_changed = true;
+  m_viewport_changed = false;
+  m_tex_mtx_info_changed = false;
+  m_lighting_config_changed = false;
+  m_projection_graphics_mod_change = false;
 
   std::memset(static_cast<void*>(&xfmem), 0, sizeof(xfmem));
   constants = {};
 
   // TODO: should these go inside ResetView()?
-  s_viewportCorrection = Common::Matrix44::Identity();
-  g_fProjectionMatrix = Common::Matrix44::Identity().data;
+  m_viewport_correction = Common::Matrix44::Identity();
+  m_projection_matrix = Common::Matrix44::Identity().data;
 
   dirty = true;
 }
@@ -81,7 +60,7 @@ void VertexShaderManager::Dirty()
 {
   // This function is called after a savestate is loaded.
   // Any constants that can changed based on settings should be re-calculated
-  bProjectionChanged = true;
+  m_projection_changed = true;
 
   dirty = true;
 }
@@ -102,44 +81,44 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     dirty = true;
   }
 
-  if (nTransformMatricesChanged[0] >= 0)
+  if (m_minmax_transform_matrices_changed[0] >= 0)
   {
-    int startn = nTransformMatricesChanged[0] / 4;
-    int endn = (nTransformMatricesChanged[1] + 3) / 4;
+    int startn = m_minmax_transform_matrices_changed[0] / 4;
+    int endn = (m_minmax_transform_matrices_changed[1] + 3) / 4;
     memcpy(constants.transformmatrices[startn].data(), &xfmem.posMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
-    nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
+    m_minmax_transform_matrices_changed[0] = m_minmax_transform_matrices_changed[1] = -1;
   }
 
-  if (nNormalMatricesChanged[0] >= 0)
+  if (m_minmax_normal_matrices_changed[0] >= 0)
   {
-    int startn = nNormalMatricesChanged[0] / 3;
-    int endn = (nNormalMatricesChanged[1] + 2) / 3;
+    int startn = m_minmax_normal_matrices_changed[0] / 3;
+    int endn = (m_minmax_normal_matrices_changed[1] + 2) / 3;
     for (int i = startn; i < endn; i++)
     {
       memcpy(constants.normalmatrices[i].data(), &xfmem.normalMatrices[3 * i], 12);
     }
     dirty = true;
-    nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
+    m_minmax_normal_matrices_changed[0] = m_minmax_normal_matrices_changed[1] = -1;
   }
 
-  if (nPostTransformMatricesChanged[0] >= 0)
+  if (m_minmax_post_transform_matrices_changed[0] >= 0)
   {
-    int startn = nPostTransformMatricesChanged[0] / 4;
-    int endn = (nPostTransformMatricesChanged[1] + 3) / 4;
+    int startn = m_minmax_post_transform_matrices_changed[0] / 4;
+    int endn = (m_minmax_post_transform_matrices_changed[1] + 3) / 4;
     memcpy(constants.posttransformmatrices[startn].data(), &xfmem.postMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
-    nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
+    m_minmax_post_transform_matrices_changed[0] = m_minmax_post_transform_matrices_changed[1] = -1;
   }
 
-  if (nLightsChanged[0] >= 0)
+  if (m_minmax_lights_changed[0] >= 0)
   {
     // TODO: Outdated comment
     // lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
-    int istart = nLightsChanged[0] / 0x10;
-    int iend = (nLightsChanged[1] + 15) / 0x10;
+    int istart = m_minmax_lights_changed[0] / 0x10;
+    int iend = (m_minmax_lights_changed[1] + 15) / 0x10;
 
     for (int i = istart; i < iend; ++i)
     {
@@ -192,10 +171,10 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     }
     dirty = true;
 
-    nLightsChanged[0] = nLightsChanged[1] = -1;
+    m_minmax_lights_changed[0] = m_minmax_lights_changed[1] = -1;
   }
 
-  for (int i : nMaterialsChanged)
+  for (int i : m_materials_changed)
   {
     u32 data = i >= 2 ? xfmem.matColor[i - 2] : xfmem.ambColor[i];
     constants.materials[i][0] = (data >> 24) & 0xFF;
@@ -204,11 +183,11 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     constants.materials[i][3] = data & 0xFF;
     dirty = true;
   }
-  nMaterialsChanged = BitSet32(0);
+  m_materials_changed = BitSet32(0);
 
-  if (bPosNormalMatrixChanged)
+  if (m_pos_normal_matrix_changed)
   {
-    bPosNormalMatrixChanged = false;
+    m_pos_normal_matrix_changed = false;
 
     const float* pos = &xfmem.posMatrices[g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4];
     const float* norm =
@@ -221,9 +200,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     dirty = true;
   }
 
-  if (bTexMatricesChanged[0])
+  if (m_tex_matrices_changed[0])
   {
-    bTexMatricesChanged[0] = false;
+    m_tex_matrices_changed[0] = false;
     const std::array<const float*, 4> pos_matrix_ptrs{
         &xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4],
         &xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4],
@@ -238,9 +217,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     dirty = true;
   }
 
-  if (bTexMatricesChanged[1])
+  if (m_tex_matrices_changed[1])
   {
-    bTexMatricesChanged[1] = false;
+    m_tex_matrices_changed[1] = false;
     const std::array<const float*, 4> pos_matrix_ptrs{
         &xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4],
         &xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4],
@@ -255,9 +234,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     dirty = true;
   }
 
-  if (bViewportChanged)
+  if (m_viewport_changed)
   {
-    bViewportChanged = false;
+    m_viewport_changed = false;
 
     // The console GPU places the pixel center at 7/12 unless antialiasing
     // is enabled, while D3D and OpenGL place it at 0.5. See the comment
@@ -332,11 +311,11 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     }
   }
 
-  if (bProjectionChanged || g_freelook_camera.GetController()->IsDirty() ||
-      !projection_actions.empty() || bProjectionGraphicsModChange)
+  if (m_projection_changed || g_freelook_camera.GetController()->IsDirty() ||
+      !projection_actions.empty() || m_projection_graphics_mod_change)
   {
-    bProjectionChanged = false;
-    bProjectionGraphicsModChange = !projection_actions.empty();
+    m_projection_changed = false;
+    m_projection_graphics_mod_change = !projection_actions.empty();
 
     const auto& rawProjection = xfmem.projection.rawProjection;
 
@@ -347,59 +326,59 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
       const Common::Vec2 fov_multiplier = g_freelook_camera.IsActive() ?
                                               g_freelook_camera.GetFieldOfViewMultiplier() :
                                               Common::Vec2{1, 1};
-      g_fProjectionMatrix[0] =
+      m_projection_matrix[0] =
           rawProjection[0] * g_ActiveConfig.fAspectRatioHackW * fov_multiplier.x;
-      g_fProjectionMatrix[1] = 0.0f;
-      g_fProjectionMatrix[2] =
+      m_projection_matrix[1] = 0.0f;
+      m_projection_matrix[2] =
           rawProjection[1] * g_ActiveConfig.fAspectRatioHackW * fov_multiplier.x;
-      g_fProjectionMatrix[3] = 0.0f;
+      m_projection_matrix[3] = 0.0f;
 
-      g_fProjectionMatrix[4] = 0.0f;
-      g_fProjectionMatrix[5] =
+      m_projection_matrix[4] = 0.0f;
+      m_projection_matrix[5] =
           rawProjection[2] * g_ActiveConfig.fAspectRatioHackH * fov_multiplier.y;
-      g_fProjectionMatrix[6] =
+      m_projection_matrix[6] =
           rawProjection[3] * g_ActiveConfig.fAspectRatioHackH * fov_multiplier.y;
-      g_fProjectionMatrix[7] = 0.0f;
+      m_projection_matrix[7] = 0.0f;
 
-      g_fProjectionMatrix[8] = 0.0f;
-      g_fProjectionMatrix[9] = 0.0f;
-      g_fProjectionMatrix[10] = rawProjection[4];
-      g_fProjectionMatrix[11] = rawProjection[5];
+      m_projection_matrix[8] = 0.0f;
+      m_projection_matrix[9] = 0.0f;
+      m_projection_matrix[10] = rawProjection[4];
+      m_projection_matrix[11] = rawProjection[5];
 
-      g_fProjectionMatrix[12] = 0.0f;
-      g_fProjectionMatrix[13] = 0.0f;
+      m_projection_matrix[12] = 0.0f;
+      m_projection_matrix[13] = 0.0f;
 
-      g_fProjectionMatrix[14] = -1.0f;
-      g_fProjectionMatrix[15] = 0.0f;
+      m_projection_matrix[14] = -1.0f;
+      m_projection_matrix[15] = 0.0f;
 
-      g_stats.gproj = g_fProjectionMatrix;
+      g_stats.gproj = m_projection_matrix;
     }
     break;
 
     case ProjectionType::Orthographic:
     {
-      g_fProjectionMatrix[0] = rawProjection[0];
-      g_fProjectionMatrix[1] = 0.0f;
-      g_fProjectionMatrix[2] = 0.0f;
-      g_fProjectionMatrix[3] = rawProjection[1];
+      m_projection_matrix[0] = rawProjection[0];
+      m_projection_matrix[1] = 0.0f;
+      m_projection_matrix[2] = 0.0f;
+      m_projection_matrix[3] = rawProjection[1];
 
-      g_fProjectionMatrix[4] = 0.0f;
-      g_fProjectionMatrix[5] = rawProjection[2];
-      g_fProjectionMatrix[6] = 0.0f;
-      g_fProjectionMatrix[7] = rawProjection[3];
+      m_projection_matrix[4] = 0.0f;
+      m_projection_matrix[5] = rawProjection[2];
+      m_projection_matrix[6] = 0.0f;
+      m_projection_matrix[7] = rawProjection[3];
 
-      g_fProjectionMatrix[8] = 0.0f;
-      g_fProjectionMatrix[9] = 0.0f;
-      g_fProjectionMatrix[10] = rawProjection[4];
-      g_fProjectionMatrix[11] = rawProjection[5];
+      m_projection_matrix[8] = 0.0f;
+      m_projection_matrix[9] = 0.0f;
+      m_projection_matrix[10] = rawProjection[4];
+      m_projection_matrix[11] = rawProjection[5];
 
-      g_fProjectionMatrix[12] = 0.0f;
-      g_fProjectionMatrix[13] = 0.0f;
+      m_projection_matrix[12] = 0.0f;
+      m_projection_matrix[13] = 0.0f;
 
-      g_fProjectionMatrix[14] = 0.0f;
-      g_fProjectionMatrix[15] = 1.0f;
+      m_projection_matrix[14] = 0.0f;
+      m_projection_matrix[15] = 1.0f;
 
-      g_stats.g2proj = g_fProjectionMatrix;
+      g_stats.g2proj = m_projection_matrix;
       g_stats.proj = rawProjection;
     }
     break;
@@ -411,7 +390,8 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     PRIM_LOG("Projection: {} {} {} {} {} {}", rawProjection[0], rawProjection[1], rawProjection[2],
              rawProjection[3], rawProjection[4], rawProjection[5]);
 
-    auto corrected_matrix = s_viewportCorrection * Common::Matrix44::FromArray(g_fProjectionMatrix);
+    auto corrected_matrix =
+        m_viewport_correction * Common::Matrix44::FromArray(m_projection_matrix);
 
     if (g_freelook_camera.IsActive() && xfmem.projection.type == ProjectionType::Perspective)
       corrected_matrix *= g_freelook_camera.GetView();
@@ -429,9 +409,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     dirty = true;
   }
 
-  if (bTexMtxInfoChanged)
+  if (m_tex_mtx_info_changed)
   {
-    bTexMtxInfoChanged = false;
+    m_tex_mtx_info_changed = false;
     constants.xfmem_dualTexInfo = xfmem.dualTexTrans.enabled;
     for (size_t i = 0; i < std::size(xfmem.texMtxInfo); i++)
       constants.xfmem_pack1[i][0] = xfmem.texMtxInfo[i].hex;
@@ -441,9 +421,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     dirty = true;
   }
 
-  if (bLightingConfigChanged)
+  if (m_lighting_config_changed)
   {
-    bLightingConfigChanged = false;
+    m_lighting_config_changed = false;
 
     for (size_t i = 0; i < 2; i++)
     {
@@ -464,7 +444,7 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
        (u32)start < XFMEM_NORMALMATRICES +
                         ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 + 9))
   {
-    bPosNormalMatrixChanged = true;
+    m_pos_normal_matrix_changed = true;
   }
 
   if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4 &&
@@ -476,7 +456,7 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
       ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4 &&
        (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4 + 12))
   {
-    bTexMatricesChanged[0] = true;
+    m_tex_matrices_changed[0] = true;
   }
 
   if (((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4 &&
@@ -488,23 +468,25 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
       ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4 &&
        (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4 + 12))
   {
-    bTexMatricesChanged[1] = true;
+    m_tex_matrices_changed[1] = true;
   }
 
   if (start < XFMEM_POSMATRICES_END)
   {
-    if (nTransformMatricesChanged[0] == -1)
+    if (m_minmax_transform_matrices_changed[0] == -1)
     {
-      nTransformMatricesChanged[0] = start;
-      nTransformMatricesChanged[1] = end > XFMEM_POSMATRICES_END ? XFMEM_POSMATRICES_END : end;
+      m_minmax_transform_matrices_changed[0] = start;
+      m_minmax_transform_matrices_changed[1] =
+          end > XFMEM_POSMATRICES_END ? XFMEM_POSMATRICES_END : end;
     }
     else
     {
-      if (nTransformMatricesChanged[0] > start)
-        nTransformMatricesChanged[0] = start;
+      if (m_minmax_transform_matrices_changed[0] > start)
+        m_minmax_transform_matrices_changed[0] = start;
 
-      if (nTransformMatricesChanged[1] < end)
-        nTransformMatricesChanged[1] = end > XFMEM_POSMATRICES_END ? XFMEM_POSMATRICES_END : end;
+      if (m_minmax_transform_matrices_changed[1] < end)
+        m_minmax_transform_matrices_changed[1] =
+            end > XFMEM_POSMATRICES_END ? XFMEM_POSMATRICES_END : end;
     }
   }
 
@@ -514,18 +496,18 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
     int _end = end < XFMEM_NORMALMATRICES_END ? end - XFMEM_NORMALMATRICES :
                                                 XFMEM_NORMALMATRICES_END - XFMEM_NORMALMATRICES;
 
-    if (nNormalMatricesChanged[0] == -1)
+    if (m_minmax_normal_matrices_changed[0] == -1)
     {
-      nNormalMatricesChanged[0] = _start;
-      nNormalMatricesChanged[1] = _end;
+      m_minmax_normal_matrices_changed[0] = _start;
+      m_minmax_normal_matrices_changed[1] = _end;
     }
     else
     {
-      if (nNormalMatricesChanged[0] > _start)
-        nNormalMatricesChanged[0] = _start;
+      if (m_minmax_normal_matrices_changed[0] > _start)
+        m_minmax_normal_matrices_changed[0] = _start;
 
-      if (nNormalMatricesChanged[1] < _end)
-        nNormalMatricesChanged[1] = _end;
+      if (m_minmax_normal_matrices_changed[1] < _end)
+        m_minmax_normal_matrices_changed[1] = _end;
     }
   }
 
@@ -535,18 +517,18 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
     int _end = end < XFMEM_POSTMATRICES_END ? end - XFMEM_POSTMATRICES :
                                               XFMEM_POSTMATRICES_END - XFMEM_POSTMATRICES;
 
-    if (nPostTransformMatricesChanged[0] == -1)
+    if (m_minmax_post_transform_matrices_changed[0] == -1)
     {
-      nPostTransformMatricesChanged[0] = _start;
-      nPostTransformMatricesChanged[1] = _end;
+      m_minmax_post_transform_matrices_changed[0] = _start;
+      m_minmax_post_transform_matrices_changed[1] = _end;
     }
     else
     {
-      if (nPostTransformMatricesChanged[0] > _start)
-        nPostTransformMatricesChanged[0] = _start;
+      if (m_minmax_post_transform_matrices_changed[0] > _start)
+        m_minmax_post_transform_matrices_changed[0] = _start;
 
-      if (nPostTransformMatricesChanged[1] < _end)
-        nPostTransformMatricesChanged[1] = _end;
+      if (m_minmax_post_transform_matrices_changed[1] < _end)
+        m_minmax_post_transform_matrices_changed[1] = _end;
     }
   }
 
@@ -555,18 +537,18 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
     int _start = start < XFMEM_LIGHTS ? XFMEM_LIGHTS : start - XFMEM_LIGHTS;
     int _end = end < XFMEM_LIGHTS_END ? end - XFMEM_LIGHTS : XFMEM_LIGHTS_END - XFMEM_LIGHTS;
 
-    if (nLightsChanged[0] == -1)
+    if (m_minmax_lights_changed[0] == -1)
     {
-      nLightsChanged[0] = _start;
-      nLightsChanged[1] = _end;
+      m_minmax_lights_changed[0] = _start;
+      m_minmax_lights_changed[1] = _end;
     }
     else
     {
-      if (nLightsChanged[0] > _start)
-        nLightsChanged[0] = _start;
+      if (m_minmax_lights_changed[0] > _start)
+        m_minmax_lights_changed[0] = _start;
 
-      if (nLightsChanged[1] < _end)
-        nLightsChanged[1] = _end;
+      if (m_minmax_lights_changed[1] < _end)
+        m_minmax_lights_changed[1] = _end;
     }
   }
 }
@@ -577,8 +559,8 @@ void VertexShaderManager::SetTexMatrixChangedA(u32 Value)
   {
     g_vertex_manager->Flush();
     if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value & 0x3f))
-      bPosNormalMatrixChanged = true;
-    bTexMatricesChanged[0] = true;
+      m_pos_normal_matrix_changed = true;
+    m_tex_matrices_changed[0] = true;
     g_main_cp_state.matrix_index_a.Hex = Value;
   }
 }
@@ -588,24 +570,24 @@ void VertexShaderManager::SetTexMatrixChangedB(u32 Value)
   if (g_main_cp_state.matrix_index_b.Hex != Value)
   {
     g_vertex_manager->Flush();
-    bTexMatricesChanged[1] = true;
+    m_tex_matrices_changed[1] = true;
     g_main_cp_state.matrix_index_b.Hex = Value;
   }
 }
 
 void VertexShaderManager::SetViewportChanged()
 {
-  bViewportChanged = true;
+  m_viewport_changed = true;
 }
 
 void VertexShaderManager::SetProjectionChanged()
 {
-  bProjectionChanged = true;
+  m_projection_changed = true;
 }
 
 void VertexShaderManager::SetMaterialColorChanged(int index)
 {
-  nMaterialsChanged[index] = true;
+  m_materials_changed[index] = true;
 }
 
 static void UpdateValue(bool* dirty, u32* old_value, u32 new_value)
@@ -650,12 +632,12 @@ void VertexShaderManager::SetTexMatrixInfoChanged(int index)
 {
   // TODO: Should we track this with more precision, like which indices changed?
   // The whole vertex constants are probably going to be uploaded regardless.
-  bTexMtxInfoChanged = true;
+  m_tex_mtx_info_changed = true;
 }
 
 void VertexShaderManager::SetLightingConfigChanged()
 {
-  bLightingConfigChanged = true;
+  m_lighting_config_changed = true;
 }
 
 void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u32 MtxIdx)
@@ -665,7 +647,7 @@ void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u3
   // We use the projection matrix calculated by VertexShaderManager, because it
   // includes any free look transformations.
   // Make sure VertexShaderManager::SetConstants() has been called first.
-  const float* proj_matrix = &g_fProjectionMatrix[0];
+  const float* proj_matrix = &m_projection_matrix[0];
 
   const float t[3] = {data[0] * world_matrix[0] + data[1] * world_matrix[1] +
                           data[2] * world_matrix[2] + world_matrix[3],
@@ -683,22 +665,22 @@ void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u3
 
 void VertexShaderManager::DoState(PointerWrap& p)
 {
-  p.DoArray(g_fProjectionMatrix);
-  p.Do(s_viewportCorrection);
+  p.DoArray(m_projection_matrix);
+  p.Do(m_viewport_correction);
   g_freelook_camera.DoState(p);
 
-  p.DoArray(nTransformMatricesChanged);
-  p.DoArray(nNormalMatricesChanged);
-  p.DoArray(nPostTransformMatricesChanged);
-  p.DoArray(nLightsChanged);
+  p.DoArray(m_minmax_transform_matrices_changed);
+  p.DoArray(m_minmax_normal_matrices_changed);
+  p.DoArray(m_minmax_post_transform_matrices_changed);
+  p.DoArray(m_minmax_lights_changed);
 
-  p.Do(nMaterialsChanged);
-  p.DoArray(bTexMatricesChanged);
-  p.Do(bPosNormalMatrixChanged);
-  p.Do(bProjectionChanged);
-  p.Do(bViewportChanged);
-  p.Do(bTexMtxInfoChanged);
-  p.Do(bLightingConfigChanged);
+  p.Do(m_materials_changed);
+  p.DoArray(m_tex_matrices_changed);
+  p.Do(m_pos_normal_matrix_changed);
+  p.Do(m_projection_changed);
+  p.Do(m_viewport_changed);
+  p.Do(m_tex_mtx_info_changed);
+  p.Do(m_lighting_config_changed);
 
   p.Do(constants);
 

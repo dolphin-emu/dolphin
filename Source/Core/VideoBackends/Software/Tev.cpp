@@ -9,6 +9,9 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/System.h"
+
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/SWBoundingBox.h"
 #include "VideoBackends/Software/TextureSampler.h"
@@ -396,13 +399,16 @@ void Tev::Draw()
 
   INCSTAT(g_stats.this_frame.tev_pixels_in);
 
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+
   // initial color values
   for (int i = 0; i < 4; i++)
   {
-    Reg[static_cast<TevOutput>(i)].r = PixelShaderManager::constants.colors[i][0];
-    Reg[static_cast<TevOutput>(i)].g = PixelShaderManager::constants.colors[i][1];
-    Reg[static_cast<TevOutput>(i)].b = PixelShaderManager::constants.colors[i][2];
-    Reg[static_cast<TevOutput>(i)].a = PixelShaderManager::constants.colors[i][3];
+    Reg[static_cast<TevOutput>(i)].r = pixel_shader_manager.constants.colors[i][0];
+    Reg[static_cast<TevOutput>(i)].g = pixel_shader_manager.constants.colors[i][1];
+    Reg[static_cast<TevOutput>(i)].b = pixel_shader_manager.constants.colors[i][2];
+    Reg[static_cast<TevOutput>(i)].a = pixel_shader_manager.constants.colors[i][3];
   }
 
   for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
@@ -544,19 +550,6 @@ void Tev::Draw()
   if (!TevAlphaTest(output[ALP_C]))
     return;
 
-  // Hardware testing indicates that an alpha of 1 can pass an alpha test,
-  // but doesn't do anything in blending
-  // This situation is important for Mario Kart Wii's menus (they will render incorrectly if the
-  // alpha test for the FMV in the background fails, since they depend on depth for drawing a yellow
-  // border) and Fortune Street's gameplay (where a rectangle with an alpha value of 1 is drawn over
-  // the center of the screen several times, but those rectangles shouldn't be visible).
-  // Blending seems to result in no changes to the output with an alpha of 1, even if the input
-  // color is white.
-  // TODO: Investigate this further: we might be handling blending incorrectly in general (though
-  // there might not be any good way of changing blending behavior)
-  if (output[ALP_C] == 1)
-    output[ALP_C] = 0;
-
   // z texture
   if (bpmem.ztex2.op != ZTexOp::Disabled)
   {
@@ -694,11 +687,14 @@ void Tev::Draw()
 
 void Tev::SetKonstColors()
 {
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+
   for (int i = 0; i < 4; i++)
   {
-    KonstantColors[i].r = PixelShaderManager::constants.kcolors[i][0];
-    KonstantColors[i].g = PixelShaderManager::constants.kcolors[i][1];
-    KonstantColors[i].b = PixelShaderManager::constants.kcolors[i][2];
-    KonstantColors[i].a = PixelShaderManager::constants.kcolors[i][3];
+    KonstantColors[i].r = pixel_shader_manager.constants.kcolors[i][0];
+    KonstantColors[i].g = pixel_shader_manager.constants.kcolors[i][1];
+    KonstantColors[i].b = pixel_shader_manager.constants.kcolors[i][2];
+    KonstantColors[i].a = pixel_shader_manager.constants.kcolors[i][3];
   }
 }

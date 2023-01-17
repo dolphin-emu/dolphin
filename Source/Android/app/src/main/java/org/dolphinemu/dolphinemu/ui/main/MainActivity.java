@@ -24,6 +24,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.tabs.TabLayout;
 
+import org.dolphinemu.dolphinemu.fragments.GridOptionDialogFragment;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
@@ -123,10 +124,6 @@ public final class MainActivity extends AppCompatActivity
     }
 
     mPresenter.onResume();
-
-    // In case the user changed a setting that affects how games are displayed,
-    // such as system language, cover downloading...
-    forEachPlatformGamesView(PlatformGamesView::refetchMetadata);
   }
 
   @Override
@@ -331,6 +328,18 @@ public final class MainActivity extends AppCompatActivity
   public void showGames()
   {
     forEachPlatformGamesView(PlatformGamesView::showGames);
+  }
+
+  @Override
+  public void reloadGrid()
+  {
+    forEachPlatformGamesView(PlatformGamesView::refetchMetadata);
+  }
+
+  @Override
+  public void showGridOptions()
+  {
+    new GridOptionDialogFragment().show(getSupportFragmentManager(), "gridOptions");
   }
 
   private void forEachPlatformGamesView(Action1<PlatformGamesView> action)
