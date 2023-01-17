@@ -3,6 +3,14 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+task copyProfile (type: Copy) {
+    description('Copies a generated baseline profile text file from managed device to src/main in the app module.')
+    from(project(':benchmark').file('build/outputs/managed_device_android_test_additional_output/pixel6Api31'))
+    into('src/main')
+    include('BaselineProfileGenerator_generate-baseline-prof.txt')
+    rename('BaselineProfileGenerator_generate-baseline-prof', 'baseline-prof')
+}
+
 android {
     compileSdkVersion 33
     ndkVersion "25.1.8937393"
@@ -68,6 +76,8 @@ android {
             proguardFiles getDefaultProguardFile(
                 'proguard-android-optimize.txt'),
                 'proguard-rules.pro'
+
+            preBuild.dependsOn copyProfile
         }
 
         // Signed by debug key disallowing distribution on Play Store.
