@@ -364,7 +364,9 @@
     <string name="manual_texture_sampling">Manual Texture Sampling</string>
     <string name="manual_texture_sampling_description">Use a manual implementation of texture sampling instead of the graphics backend\'s built-in functionality.</string>
     <string name="internal_resolution_dumps">Dump Frames at Internal Resolution</string>
+    <string name="frame_dumping">Frame Dumping</string>
     <string name="internal_resolution_dumps_description">Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within. If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.</string>
+    <string name="png_compression_level">PNG Compression Level</string>
     <string name="debugging">Debugging</string>
     <string name="wireframe">Enable Wireframe</string>
     <string name="show_stats">Show Statistics</string>

@@ -943,8 +943,12 @@ public final class SettingsFragmentPresenter
             R.string.defer_efb_invalidation, R.string.defer_efb_invalidation_description));
     sl.add(new InvertedSwitchSetting(mContext, BooleanSetting.GFX_HACK_FAST_TEXTURE_SAMPLING,
             R.string.manual_texture_sampling, R.string.manual_texture_sampling_description));
+
+    sl.add(new HeaderSetting(mContext, R.string.frame_dumping, 0));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_INTERNAL_RESOLUTION_FRAME_DUMPS,
             R.string.internal_resolution_dumps, R.string.internal_resolution_dumps_description));
+    sl.add(new IntSliderSetting(mContext, IntSetting.GFX_PNG_COMPRESSION_LEVEL,
+            R.string.png_compression_level, 0, 0, 9, ""));
 
     sl.add(new HeaderSetting(mContext, R.string.debugging, 0));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENABLE_WIREFRAME,
