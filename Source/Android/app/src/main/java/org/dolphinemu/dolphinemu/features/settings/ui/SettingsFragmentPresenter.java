@@ -721,6 +721,8 @@ public final class SettingsFragmentPresenter
             emuCoresEntries, emuCoresValues));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_MMU, R.string.mmu_enable,
             R.string.mmu_enable_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_PAUSE_ON_PANIC, R.string.pause_on_panic,
+            R.string.pause_on_panic_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_OVERCLOCK_ENABLE,
             R.string.overclock_enable, R.string.overclock_enable_description));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
