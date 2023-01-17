@@ -7,24 +7,33 @@
 #define DIR_SEP "/"
 #define DIR_SEP_CHR '/'
 
+// The current working directory
 #define ROOT_DIR "."
+
+// The normal user directory
+#ifdef _WIN32
+#define NORMAL_USER_DIR "Dolphin Emulator"
+#elif defined(__APPLE__)
+#define NORMAL_USER_DIR "Library/Application Support/Dolphin"
+#elif defined(ANDROID)
+#define NORMAL_USER_DIR "/sdcard/dolphin-emu"
+#else
+#define NORMAL_USER_DIR "dolphin-emu"
+#endif
+
+// The portable user directory
 #ifdef _WIN32
 #define PORTABLE_USER_DIR "User"
-#define NORMAL_USER_DIR "Dolphin Emulator"
-#elif defined __APPLE__
+#elif defined(__APPLE__)
 #define PORTABLE_USER_DIR "User"
 #define EMBEDDED_USER_DIR "Contents/Resources/User"
-#define NORMAL_USER_DIR "Library/Application Support/Dolphin"
-#elif defined ANDROID
-#define PORTABLE_USER_DIR "user"
-#define EMBEDDED_USER_DIR PORTABLE_USER_DIR
-#define NORMAL_USER_DIR "/sdcard/dolphin-emu"
-#define NOMEDIA_FILE ".nomedia"
 #else
 #define PORTABLE_USER_DIR "user"
 #define EMBEDDED_USER_DIR PORTABLE_USER_DIR
-#define NORMAL_USER_DIR "dolphin-emu"
 #endif
+
+// Flag file to prevent media scanning from indexing a directory
+#define NOMEDIA_FILE ".nomedia"
 
 // Dirs in both User and Sys
 // Legacy setups used /JAP/ while newer setups use /JPN/ by default.
