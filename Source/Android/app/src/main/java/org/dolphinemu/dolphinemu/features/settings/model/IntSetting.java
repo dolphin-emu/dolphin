@@ -61,6 +61,9 @@ public enum IntSetting implements AbstractIntSetting
   GFX_SHADER_COMPILATION_MODE(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "ShaderCompilationMode", 0),
 
+  GFX_ENHANCE_FORCE_TEXTURE_FILTERING(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,
+          "ForceTextureFiltering", 0),
+
   GFX_ENHANCE_MAX_ANISOTROPY(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS, "MaxAnisotropy",
           0),
 

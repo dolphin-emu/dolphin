@@ -806,6 +806,37 @@ public final class SettingsFragmentPresenter
     sl.add(new SingleChoiceSetting(mContext, IntSetting.GFX_ENHANCE_MAX_ANISOTROPY,
             R.string.anisotropic_filtering, R.string.anisotropic_filtering_description,
             R.array.anisotropicFilteringEntries, R.array.anisotropicFilteringValues));
+    AbstractIntSetting filteringSetting = new AbstractIntSetting()
+    {
+      @Override public int getInt(Settings settings)
+      {
+        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.getInt(settings);
+      }
+
+      @Override public void setInt(Settings settings, int newValue)
+      {
+        BooleanSetting.GFX_ENHANCE_FORCE_FILTERING.setBoolean(settings, (newValue > 0));
+        IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.setInt(settings, newValue);
+      }
+
+      @Override public boolean isOverridden(Settings settings)
+      {
+        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.isOverridden(settings);
+      }
+
+      @Override public boolean isRuntimeEditable()
+      {
+        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.isRuntimeEditable();
+      }
+
+      @Override public boolean delete(Settings settings)
+      {
+        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.delete(settings);
+      }
+    };
+    sl.add(new SingleChoiceSetting(mContext, filteringSetting, R.string.texture_filtering,
+            R.string.texture_filtering_description, R.array.textureFilteringEntries,
+            R.array.textureFilteringValues));
 
     int stereoModeValue = IntSetting.GFX_STEREO_MODE.getInt(mSettings);
     final int anaglyphMode = 3;
@@ -827,8 +858,6 @@ public final class SettingsFragmentPresenter
             R.string.scaled_efb_copy, R.string.scaled_efb_copy_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENABLE_PIXEL_LIGHTING,
             R.string.per_pixel_lighting, R.string.per_pixel_lighting_description));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENHANCE_FORCE_FILTERING,
-            R.string.force_texture_filtering, R.string.force_texture_filtering_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENHANCE_FORCE_TRUE_COLOR,
             R.string.force_24bit_color, R.string.force_24bit_color_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_DISABLE_FOG, R.string.disable_fog,

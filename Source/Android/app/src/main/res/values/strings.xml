@@ -252,6 +252,8 @@
     <string name="FSAA_description">Reduces the amount of aliasing caused by rasterizing 3D graphics. This makes the rendered picture look less blocky. Heavily decreases emulation speed and sometimes causes issues.</string>
     <string name="anisotropic_filtering">Anisotropic Filtering</string>
     <string name="anisotropic_filtering_description">Enhances visual quality of textures that are at oblique viewing angles. Might cause issues in a small number of games.</string>
+    <string name="texture_filtering">Texture Filtering</string>
+    <string name="texture_filtering_description">Overrides the texture scaling filter selected by the game. Any option except \'Default\' will alter the look of the game\'s textures and might cause issues in a small number of games.</string>
     <string name="post_processing_shader">Post-Processing Effect</string>
     <string name="post_processing_shader_description">Apply a post-processing effect after finishing a frame</string>
     <string name="postprocessing_shader">Post Processing Shader</string>
@@ -752,6 +754,11 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="multiple_four">4x</string>
     <string name="multiple_eight">8x</string>
     <string name="multiple_sixteen">16x</string>
+
+    <!-- Texture Filtering Preference -->
+    <string name="filtering_default">Default</string>
+    <string name="filtering_nearest">Force Nearest</string>
+    <string name="filtering_linear">Force Linear</string>
 
     <!-- Stereoscopy Preference -->
     <string name="stereoscopy_off">Off</string>
