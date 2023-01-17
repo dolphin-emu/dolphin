@@ -11,6 +11,7 @@
 #define ROOT_DIR "."
 
 // The normal user directory
+#ifndef STEAM
 #ifdef _WIN32
 #define NORMAL_USER_DIR "Dolphin Emulator"
 #elif defined(__APPLE__)
@@ -19,6 +20,15 @@
 #define NORMAL_USER_DIR "/sdcard/dolphin-emu"
 #else
 #define NORMAL_USER_DIR "dolphin-emu"
+#endif
+#else  // ifndef STEAM
+#ifdef _WIN32
+#define NORMAL_USER_DIR "Dolphin Emulator (Steam)"
+#elif defined(__APPLE__)
+#define NORMAL_USER_DIR "Library/Application Support/Dolphin (Steam)"
+#else
+#define NORMAL_USER_DIR "dolphin-emu-steam"
+#endif
 #endif
 
 // The portable user directory
