@@ -219,17 +219,6 @@ NumberType parseType(const char* inputString)
     return returnTypeIfEqual(inputString, "UnsignedLongLong", NumberType::UNSIGNED_64);
   case SIGNED_LONG_LONG_ALT_HASH:
     return returnTypeIfEqual(inputString, "SignedLongLong", NumberType::SIGNED_64);
-
-  case UNSIGNED_BYTE_ARRAY_HASH:
-    return returnTypeIfEqual(inputString, "UNSIGNED_BYTE_ARRAY", NumberType::UNSIGNED_BYTE_ARRAY);
-  case SIGNED_BYTE_ARRAY_HASH:
-    return returnTypeIfEqual(inputString, "SIGNED_BYTE_ARRAY", NumberType::SIGNED_BYTE_ARRAY);
-
-  case UNSIGNED_BYTE_ARRAY_ALT_HASH:
-    return returnTypeIfEqual(inputString, "UnsignedByteArray", NumberType::UNSIGNED_BYTE_ARRAY);
-  case SIGNED_BYTE_ARRAY_ALT_HASH:
-    return returnTypeIfEqual(inputString, "SignedByteArray", NumberType::SIGNED_BYTE_ARRAY);
-
   default:
     return NumberType::UNDEFINED;
   }
@@ -259,10 +248,6 @@ std::string getNumberTypeAsString(NumberType inputType)
       return "FLOAT";
     case NumberType::DOUBLE:
       return "DOUBLE";
-    case NumberType::UNSIGNED_BYTE_ARRAY:
-      return "UNSIGNED_BYTE_ARRAY";
-    case NumberType::SIGNED_BYTE_ARRAY:
-      return "SIGNED_BYTE_ARRAY";
     default:
       return "UNDEFINED";
     }

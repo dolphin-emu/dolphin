@@ -5,6 +5,7 @@
 #include "src/luaconf.h"
 #include "src/lapi.h"
 #include "common/CommonTypes.h"
+#include "../CommonLuaHelpers.h"
 
 namespace Lua
 {

@@ -14,9 +14,7 @@ enum class NumberType
   UNSIGNED_64,
   SIGNED_64,
   FLOAT,
-  DOUBLE,
-  UNSIGNED_BYTE_ARRAY,
-  SIGNED_BYTE_ARRAY
+  DOUBLE
 };
 
 NumberType parseType(const char* inputString);

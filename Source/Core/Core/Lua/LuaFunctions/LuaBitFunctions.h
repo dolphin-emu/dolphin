@@ -3,6 +3,7 @@
 #include "src/lua.h"
 #include "src/luaconf.h"
 #include "src/lapi.h"
+#include "../CommonLuaHelpers.h"
 
 namespace Lua
 {

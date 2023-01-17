@@ -69,6 +69,7 @@
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\Lua\CommonLuaHelpers.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaBitFunctions.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaGameCubeButtonProbabilityClasses.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaGCButtons.h" />
@@ -81,6 +82,7 @@
     <ClInclude Include="Core\Lua\LuaFunctions\NumberType.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\Lua\CommonLuaHelpers.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaBitFunctions.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaConverter.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaEmuFunctions.cpp" />

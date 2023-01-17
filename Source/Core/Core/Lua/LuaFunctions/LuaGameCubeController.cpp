@@ -71,6 +71,13 @@ gc_controller_lua* getControllerInstance()
     {
       luaL_error(luaState, (std::string("Error: In function gc_controller:") + funcName + ", controller port number wasn't between 1 and 4!").c_str());
     }
+
+    if (controllerPortNumber > Pad::GetConfig()->GetControllerCount())
+    {
+      luaL_error(luaState, (std::string("Error: in ") + funcName + "(), attempt was made to access a port which did not have a GameCube controller plugged into it!").c_str());
+    }
+
+
     return controllerPortNumber;
   }
 
@@ -90,6 +97,7 @@ gc_controller_lua* getControllerInstance()
   //NOTE: In SI.cpp, UpdateDevices() is called to update each device, which moves exactly 8 bytes forward for each controller. Also, it moves in order from controllers 1 to 4.
   int setInputs(lua_State* luaState)
   {
+    luaColonOperatorTypeCheck(luaState, "setInputs", "gc_controller:setInputs(1, controllerValuesTable)");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "setInputs");
 
     overwriteControllerAtSpecifiedPort[controllerPortNumber - 1] = true;
@@ -223,6 +231,7 @@ gc_controller_lua* getControllerInstance()
 
   int addInputs(lua_State* luaState)
   {
+    luaColonOperatorTypeCheck(luaState, "addInputs", "gc_controller:addInputs(1, controllerValuesTable)");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addInputs");
 
     addToControllerAtSpecifiedPort[controllerPortNumber - 1] = true;
@@ -374,6 +383,7 @@ gc_controller_lua* getControllerInstance()
 
   int addButtonFlipChance(lua_State* luaState)
   {
+    luaColonOperatorTypeCheck(luaState, "addButtonFlipChance", "gc_controller:addButtonFlipChance(1, 0.32, \"A\")");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonFlipChance");
     double probability = getProbabilityHelperFunction(luaState, "addButtonFlipChance");
     GC_BUTTON_NAME buttonName = parseGCButton(luaL_checkstring(luaState, 4));
@@ -396,6 +406,7 @@ gc_controller_lua* getControllerInstance()
 
   int addButtonPressChance(lua_State* luaState)
   {
+    luaColonOperatorTypeCheck(luaState, "addButtonPressChance", "gc_controller:addButtonPressChance(1, 0.32, \"A\")");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonPressChance");
     double probability = getProbabilityHelperFunction(luaState, "addButtonPressChance");
     GC_BUTTON_NAME buttonName = parseGCButton(luaL_checkstring(luaState, 4));
@@ -416,6 +427,7 @@ gc_controller_lua* getControllerInstance()
 
   int addButtonReleaseChance(lua_State* luaState)
   {
+    luaColonOperatorTypeCheck(luaState, "addButtonReleaseChance", "gc_controller:addButtonReleaseChance(1, 0.32, \"A\")");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonReleaseChance");
     double probability = getProbabilityHelperFunction(luaState, "addButtonReleaseChance");
     GC_BUTTON_NAME buttonName = parseGCButton(luaL_checkstring(luaState, 4));
@@ -448,6 +460,7 @@ gc_controller_lua* getControllerInstance()
   // 6. Upper Magnitude difference (added to current value)
   int addOrSubtractFromCurrentAnalogValueChance(lua_State* luaState)
   {
+    luaColonOperatorTypeCheck(luaState, "addOrSubtractFromCurrentAnalogValueChance", "gc_controller:addOrSubtractFromCurrentAnalogValueChance(1, 0.32, \"cStickX\", 14, 9)");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addOrSubtractFromCurrentAnalogValueChance");
     double probability = getProbabilityHelperFunction(luaState, "addOrSubtractFromCurrentAnalogValueChance");
     GC_BUTTON_NAME buttonName = parseGCButton(luaL_checkstring(luaState, 4));
@@ -508,6 +521,7 @@ gc_controller_lua* getControllerInstance()
   // 7. Upper magnitude difference (added to base value)
   int addOrSubtractFromSpecificAnalogValueChance(lua_State* luaState)
   {
+    luaColonOperatorTypeCheck(luaState, "addOrSubtractFromSpecificAnalogValueChance", "gc_controller:addOrSubtractFromSpecificAnalogValueChance(1, 0.32, \"cStickX\", 184, 5, 13)");
     s64 controllerPortNumber =
         getPortNumberHelperFunction(luaState, "addOrSubtractFromSpecificAnalogValueChance");
     double probability =
@@ -553,8 +567,9 @@ gc_controller_lua* getControllerInstance()
 
   int addButtonComboChance(lua_State* luaState)
   {
-    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addOrSubtractFromSpecificAnalogValueChance");
-    double probability = getProbabilityHelperFunction(luaState, "addOrSubtractFromSpecificAnalogValueChance");
+    luaColonOperatorTypeCheck(luaState, "addButtonComboChance", "gc_controller:AddButtonComboChance(1, 0.44, true, buttonTable)");
+    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonComboChance");
+    double probability = getProbabilityHelperFunction(luaState, "addButtonComboChance");
     bool setOtherButtonsToBlank = lua_toboolean(luaState, 4);
     Movie::ControllerState controllerState;
     memset(&controllerState, 0, sizeof(controllerState));
@@ -703,6 +718,8 @@ gc_controller_lua* getControllerInstance()
 
   int addControllerClearChance(lua_State* luaState)
   {
+    luaColonOperatorTypeCheck(luaState, "addControllerClearChance",
+                              "gc_controller:addControllerClearChance(1, 0.56)");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addControllerClearChance");
     double probability = getProbabilityHelperFunction(luaState, "addControllerClearChance");
 
@@ -714,12 +731,8 @@ gc_controller_lua* getControllerInstance()
 
   int getControllerInputs(lua_State* luaState)
   {
+    luaColonOperatorTypeCheck(luaState, "getControllerInputs","gc_controller:getControllerInputs(1)");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "getControllerInputs");
-    if (controllerPortNumber > Pad::GetConfig()->GetControllerCount())
-    {
-      luaL_error(luaState, "Error: in getControllerInputs(), attempt was made to access a port "
-                           "which did not have a GameCube controller plugged into it!");
-    }
 
     GCPadStatus controllerInputs = Pad::GetStatus(controllerPortNumber  - 1);
 

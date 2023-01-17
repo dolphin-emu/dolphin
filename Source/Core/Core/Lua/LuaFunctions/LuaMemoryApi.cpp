@@ -28,14 +28,14 @@ void InitLuaMemoryApi(lua_State* luaState)
   luaL_Reg* luaMemoryFunctionsList = new luaL_Reg[]{
 
       {"readFrom", do_general_read},
-      {"read_unsigned_bytes", do_read_unsigned_bytes},
-      {"read_signed_bytes", do_read_signed_bytes},
-      {"read_fixed_length_string", do_read_fixed_length_string},
-      {"read_null_terminated_string", do_read_null_terminated_string},
+      {"readUnsignedBytes", do_read_unsigned_bytes},
+      {"readSignedBytes", do_read_signed_bytes},
+      {"readFixedLengthString", do_read_fixed_length_string},
+      {"readNullTerminatedString", do_read_null_terminated_string},
 
       {"writeTo", do_general_write},
-      {"write_bytes", do_write_bytes},
-      {"write_string", do_write_string},
+      {"writeBytes", do_write_bytes},
+      {"writeString", do_write_string},
 
       {nullptr, nullptr}};
 
@@ -269,21 +269,13 @@ void write_double(lua_State* luaState, u32 address, double value)
   write_u64_to_domain_function(luaState, address, unsignedLongLong);
 }
 
-void luaColonOperatorTypeCheck(lua_State* luaState, const char* functionName, const char* exampleCall)
-{
-  if (lua_type(luaState, 1) != LUA_TUSERDATA)
-  {
-    luaL_error(luaState, (std::string("Error: User attempted to call ") + functionName + " function using the dot operator. Please use the colon operator instead like this: '" + exampleCall + "'").c_str());
-  }
-}
 // End of helper functions block.
 
-int do_general_read(lua_State* luaState) // format is: 1st argument after object is type string, 2nd argument after object is address. 3rd argument is number of bytes to include IF first argument was ByteWrapper. Otherwise, this argument is ignored.
+int do_general_read(lua_State* luaState) // format is: 1st argument after object is address, 2nd argument after object is type string.
 {
   u8 u8Val = 0;
   u16 u16Val = 0;
   u32 u32Val = 0LL;
-  u64 u64Val = 0ULL;
   s8 s8Val = 0;
   s16 s16Val = 0;
   s32 s32Val = 0;
@@ -291,10 +283,11 @@ int do_general_read(lua_State* luaState) // format is: 1st argument after object
   float floatVal = 0.0;
   double doubleVal = 0.0;
 
-  luaColonOperatorTypeCheck(luaState, "readFrom", "memory:readFrom(\"u32\", 0X80000043");
+  luaColonOperatorTypeCheck(luaState, "readFrom", "memory:readFrom(0X80000043, \"u32\")");
 
-  const char* typeString = luaL_checkstring(luaState, 2);
-  u32 address = luaL_checkinteger(luaState, 3);
+  u32 address = luaL_checkinteger(luaState, 2);
+  const char* typeString = luaL_checkstring(luaState, 3);
+
 
   switch (parseType(typeString))
   {
@@ -314,8 +307,10 @@ int do_general_read(lua_State* luaState) // format is: 1st argument after object
       return 1;
 
     case NumberType::UNSIGNED_64:
-      u64Val = read_u64(luaState, address);
-      lua_pushnumber(luaState, static_cast<lua_Number>(u64Val));
+      luaL_error(
+          luaState,
+          "Error: in memory:readFrom(), attempted to read from address as UNSIGNED_64. The largest "
+          "Lua type is SIGNED_64. As such, this should be used for 64 bit integers instead.");
       return 1;
 
     case NumberType::SIGNED_8:
@@ -350,17 +345,17 @@ int do_general_read(lua_State* luaState) // format is: 1st argument after object
 
     default:
       luaL_error(luaState, "Error: Undefined type encountered in Memory:readFrom() function. Valid types are "
-                 "u8, u16, u32, u64, s8, s16, s32, s64, float, double, unsigned_8, unsigned_16, "
-                 "unsigned_32, unsigned_64, signed_8, signed_16, signed_32, signed_64, unsigned "
-                 "byte, signed byte, unsigned int, signed int, unsigned long long, signed long "
-                 "long, ByteWrapper and wrapper");
+                 "u8, u16, u32, s8, s16, s32, s64, float, double, unsigned_8, unsigned_16, "
+                 "unsigned_32, signed_8, signed_16, signed_32, signed_64, unsigned "
+                 "byte, signed byte, unsigned int, signed int, signed long "
+                 "long");
       return 0;
   }
 }
 
 int do_read_unsigned_bytes(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "read_unsigned_bytes", "memory:read_unsigned_bytes(0X80000456, 44)");
+  luaColonOperatorTypeCheck(luaState, "readUnsignedBytes", "memory:readUnsignedBytes(0X80000456, 44)");
   u32 address = luaL_checkinteger(luaState, 2);
   u32 numBytes = luaL_checkinteger(luaState, 3);
   u8* pointerToBaseAddress = get_pointer_to_domain_function(luaState, address);
@@ -376,7 +371,7 @@ int do_read_unsigned_bytes(lua_State* luaState)
 
 int do_read_signed_bytes(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "read_signed_bytes", "memory:read_signed_bytes(0X800000065, 44)");
+  luaColonOperatorTypeCheck(luaState, "readSignedBytes", "memory:readSignedBytes(0X800000065, 44)");
   u32 address = luaL_checkinteger(luaState, 2);
   u32 numBytes = luaL_checkinteger(luaState, 3);
   u8* pointerToBaseAddress = get_pointer_to_domain_function(luaState, address);
@@ -393,7 +388,7 @@ int do_read_signed_bytes(lua_State* luaState)
 
 int do_read_fixed_length_string(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "read_fixed_length_string", "memory:read_fixed_length_string(0X8000043, 52)");
+  luaColonOperatorTypeCheck(luaState, "readFixedLengthString", "memory:readFixedLengthString(0X8000043, 52)");
   u32 address = luaL_checkinteger(luaState, 2);
   u32 stringLength = luaL_checkinteger(luaState, 3);
   std::string returnResult = get_string_from_domain_function(luaState, address, stringLength);
@@ -403,7 +398,7 @@ int do_read_fixed_length_string(lua_State* luaState)
 
 int do_read_null_terminated_string(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "read_null_termianted_string", "memory:read_null_terminated_string(0X80000043)");
+  luaColonOperatorTypeCheck(luaState, "readNullTermiantedString", "memory:readNullTerminatedString(0X80000043)");
   u32 address = luaL_checkinteger(luaState, 2);
   u8* memPointerStart = get_pointer_to_domain_function(luaState, address);
   u8* memPointerCurrent = memPointerStart;
@@ -426,13 +421,13 @@ int do_general_write(lua_State* luaState)
   u32 u32Val = 0;
   s32 s32Val = 0;
   float floatVal = 0.0;
-  u64 u64Val = 0ULL;
   s64 s64Val;
   double doubleVal = 0;
 
-  luaColonOperatorTypeCheck(luaState, "writeTo", "memory:writeTo(\"u32\", 0X8000045, 34000)");
-  const char* typeString = luaL_checkstring(luaState, 2);
-  u32 address = luaL_checkinteger(luaState, 3);
+  luaColonOperatorTypeCheck(luaState, "writeTo", "memory:writeTo(0X8000045, \"u32\", 34000)");
+
+  u32 address = luaL_checkinteger(luaState, 2);
+  const char* typeString = luaL_checkstring(luaState, 3);
 
   switch (parseType(typeString))
   {
@@ -472,8 +467,9 @@ int do_general_write(lua_State* luaState)
     return 0;
 
   case NumberType::UNSIGNED_64:
-    u64Val = luaL_checknumber(luaState, 4);
-    write_u64(luaState, address, u64Val);
+    luaL_error(luaState, "Error: in memory:writeTo(), attempted to write to address an "
+                         "UNSIGNED_64. However, SIGNED_64 is the largest type Lua supports. This "
+                         "should be used whenever you want to represent a 64 bit integer.");
     return 0;
 
   case NumberType::SIGNED_64:
@@ -488,14 +484,14 @@ int do_general_write(lua_State* luaState)
 
   default:
     luaL_error(luaState, "Error: undefined type passed into Memory:writeTo() method. Valid types "
-                         "include u8, u16, u32, u64, s8, s16, s32, s64, float, double and ByteWrapper");
+                         "include u8, u16, u32, s8, s16, s32, s64, float, double.");
     return 0;
   }
 }
 
 int do_write_bytes(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "write_bytes", "memory:write_bytes(arrayName)");
+  luaColonOperatorTypeCheck(luaState, "writeBytes", "memory:writeBytes(arrayName)");
   lua_pushnil(luaState); /* first key */
   while (lua_next(luaState, 2) != 0)
   {
@@ -505,7 +501,7 @@ int do_write_bytes(lua_State* luaState)
 
     if (value < -128 || value > 255)
     {
-      luaL_error(luaState, (std::string("Error: Invalid number passed into memory:write_bytes() function. In order to be representable as a byte, the value must be between -128 and 255. However, the number which was supposed to be written to address " + std::to_string(address) + " was " + std::to_string(value)).c_str()));
+      luaL_error(luaState, (std::string("Error: Invalid number passed into memory:writeBytes() function. In order to be representable as a byte, the value must be between -128 and 255. However, the number which was supposed to be written to address " + std::to_string(address) + " was " + std::to_string(value)).c_str()));
       return 0;
     }
     if (value < 0)
@@ -526,7 +522,7 @@ int do_write_bytes(lua_State* luaState)
 
 int do_write_string(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "write_string", "memory:write_fixed_length_string(0X80000043, \"exampleString\")");
+  luaColonOperatorTypeCheck(luaState, "writeString", "memory:writeString(0X80000043, \"exampleString\")");
   u32 address = luaL_checkinteger(luaState, 2);
   const char* stringToWrite = luaL_checkstring(luaState, 3);
   size_t stringSize = strlen(stringToWrite);

@@ -12,6 +12,7 @@ extern "C" {
 #include "InputCommon/InputConfig.h"
 #include "Core/Movie.h"
 #include "LuaGameCubeButtonProbabilityClasses.h"
+#include "../CommonLuaHelpers.h"
 #include <Array>
 #include <memory>
 #include <vector>

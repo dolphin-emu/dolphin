@@ -36,7 +36,10 @@ void InitLuaRegistersFunctions(lua_State* luaState)
 
   luaL_Reg luaRegistersFunctions[] = {
     {"getRegister", getRegister},
+    {"getRegisterAsUnsignedByteArray", getRegisterAsUnsignedByteArray},
+    {"getRegisterAsSignedByteArray", getRegisterAsSignedByteArray},
     {"setRegister",  setRegister},
+    {"setRegisterFromByteArray", setRegisterFromByteArray},
     {nullptr, nullptr}
   };
   luaL_setfuncs(luaState, luaRegistersFunctions, 0);
@@ -110,11 +113,39 @@ RegisterObject parseRegister(const char* registerString)
   }
 }
 
-void pushValueFromAddress(lua_State* luaState, u8* memoryLocation, NumberType returnType, u8 registerSize, u8 offsetBytes, u8 arraySize)
+u8* getAddressForRegister(RegisterObject registerObject, lua_State* luaState, const char* funcName)
+{
+  u8 regNum = 0;
+  u8* address = NULL;
+  switch (registerObject.regType)
+  {
+  case RegisterObject::REGISTER_TYPE::GENERAL_PURPOSE_REGISTER:
+    regNum = registerObject.registerNum;
+    address = (u8*)(rGPR + regNum);
+    return address;
+  case RegisterObject::REGISTER_TYPE::PC_REGISTER:
+    address = ((u8*)&PC);
+    return address;
+  case RegisterObject::REGISTER_TYPE::RETURN_REGISTER:
+    address = ((u8*)&LR);
+    return address;
+  case RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER:
+    address = (u8*)(PowerPC::ppcState.ps + regNum);
+    return address;
+
+  default:
+    luaL_error(luaState,
+               (std::string("Error: Invalid string passed in for register name in ") + funcName +
+                " function. Currently, R0-R31, F0-F31, PC, and LR are the only registers which are "
+                "supported.")
+                   .c_str());
+    return NULL;
+  }
+}
+
+void pushValueFromAddress(lua_State* luaState, u8* memoryLocation, NumberType returnType, u8 registerSize, u8 offsetBytes)
 {
   u8 returnTypeSize = getMaxSize(returnType);
-  if (returnType == NumberType::UNSIGNED_BYTE_ARRAY || returnType == NumberType::SIGNED_BYTE_ARRAY)
-    returnTypeSize = arraySize;
   if (returnTypeSize > registerSize)
     luaL_error(luaState, "Error: in getRegister(), user requested a return type that was larger than the register!");
   else if (returnTypeSize + offsetBytes > registerSize)
@@ -174,27 +205,6 @@ void pushValueFromAddress(lua_State* luaState, u8* memoryLocation, NumberType re
     memcpy(&doubleVal, memoryLocation + offsetBytes, returnTypeSize);
     lua_pushnumber(luaState, doubleVal);
     return;
-  case NumberType::UNSIGNED_BYTE_ARRAY:
-    lua_createtable(luaState, arraySize, 0);
-    for (int i = 1; i <= arraySize; ++i)
-    {
-      memcpy(&unsigned8, memoryLocation + offsetBytes + i - 1, 1);
-      lua_pushinteger(luaState, static_cast<lua_Integer>(unsigned8));
-      lua_rawseti(luaState, -2, i);
-
-    }
-    return;
-
-  case NumberType::SIGNED_BYTE_ARRAY:
-    lua_createtable(luaState, arraySize, 0);
-    for (int i = 1; i <= arraySize; ++i)
-    {
-      memcpy(&signed8, memoryLocation + offsetBytes + i - 1, 1);
-      lua_pushinteger(luaState, static_cast<lua_Integer>(signed8));
-      lua_rawseti(luaState, -2, i);
-    }
-    return;
-
   default:
     luaL_error(luaState, "Error: Unknown type string passed in to getRegister() function");
   }
@@ -208,58 +218,70 @@ int getRegister(lua_State* luaState)
     luaL_error(luaState, "Error: undefined type string was passed as an argument to getRegister()");
   const char* registerString = luaL_checkstring(luaState, 3);
   RegisterObject registerObject = parseRegister(registerString);
-  u8 regNum = 0;
-  u64 arraySize = 0;
   s64 offsetBytes = 0;
-  if (returnType == NumberType::UNSIGNED_BYTE_ARRAY || returnType == NumberType::SIGNED_BYTE_ARRAY)
-  {
-    arraySize = luaL_checkinteger(luaState, 4);
-    if (lua_gettop(luaState) >= 5)
-      offsetBytes = luaL_checkinteger(luaState, 5);
-  }
-  else if (lua_gettop(luaState) >= 4)
+  u8 registerSize = 4;
+  if (registerObject.regType == RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER)
+    registerSize = 8;
+  if (lua_gettop(luaState) >= 4)
     offsetBytes = luaL_checkinteger(luaState, 4);
   if (offsetBytes < 0 || offsetBytes > 7)
     luaL_error(luaState, "Error: in getRegister(), number of bytes to offset from left was either less than 0 or more than 7");
-  u8* address = NULL;
-  switch (registerObject.regType)
-  {
-  case RegisterObject::REGISTER_TYPE::GENERAL_PURPOSE_REGISTER :
-    regNum = registerObject.registerNum;
-    address =(u8*) (rGPR + regNum);
-    pushValueFromAddress(luaState, address, returnType, 4, offsetBytes, arraySize);
-    break;
-  case RegisterObject::REGISTER_TYPE::PC_REGISTER:
-    address = ((u8*) &PC);
-    pushValueFromAddress(luaState, address, returnType, 4, offsetBytes, arraySize);
-    break;
-  case RegisterObject::REGISTER_TYPE::RETURN_REGISTER:
-    address = ((u8*) &LR);
-    pushValueFromAddress(luaState, address, returnType, 4, offsetBytes, arraySize);
-    break;
-  case RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER:
-    address = (u8*) (PowerPC::ppcState.ps + regNum);
-    pushValueFromAddress(luaState, address, returnType, 8, offsetBytes, arraySize);
-    break;
+  u8* address = getAddressForRegister(registerObject, luaState, "getRegister()");
+  pushValueFromAddress(luaState, address, returnType, registerSize, offsetBytes);
 
-  default:
-    luaL_error(luaState,
-               "Error: Invalid string passed in for register name in getRegister(). Currently, "
-               "R0-R31, F0-F31, PC, and LR are the only registers which are supported");
-  }
   return 1;
 }
 
-void writeValueToAddress(lua_State* luaState, u8* memoryLocation, NumberType valueType, u8 registerSize, u8 offsetBytes)
+int pushByteArrayFromAddressHelperFunction(lua_State* luaState, bool isUnsigned, const char* funcName)
+{
+  const char* registerString = luaL_checkstring(luaState, 2);
+  RegisterObject registerObject = parseRegister(registerString);
+  u8* address = getAddressForRegister(registerObject, luaState, funcName);
+  s64 arraySize = luaL_checkinteger(luaState, 3);
+  s64 offsetBytes = 0;
+  if (lua_gettop(luaState) >= 4)
+    offsetBytes = luaL_checkinteger(luaState, 4);
+  lua_createtable(luaState, arraySize, 0);
+  s8 signed8 = 0;
+  u8 unsigned8 = 0;
+  for (int i = 1; i <= arraySize; ++i)
+  {
+    if (isUnsigned)
+    {
+      memcpy(&unsigned8, address + offsetBytes + i - 1, 1);
+      lua_pushinteger(luaState, static_cast<lua_Integer>(unsigned8));
+    }
+
+    else
+    {
+      memcpy(&signed8, address + offsetBytes + i - 1, 1);
+      lua_pushinteger(luaState, static_cast<lua_Integer>(signed8));
+    }
+
+    lua_rawseti(luaState, -2, i);
+  }
+  return 0;
+}
+
+int getRegisterAsUnsignedByteArray(lua_State* luaState)
+{
+  return pushByteArrayFromAddressHelperFunction(luaState, true, "getRegisterAsUnsignedByteArray()");
+}
+
+int getRegisterAsSignedByteArray(lua_State* luaState)
+{
+  return pushByteArrayFromAddressHelperFunction(luaState, false, "getRegisterAsSignedByteArray()");
+}
+
+void writeValueToAddress(lua_State* luaState, u8* memoryLocation, NumberType valueType,
+                         u8 registerSize, u8 offsetBytes)
 {
   u8 valueTypeSize = getMaxSize(valueType);
-  if (valueType != NumberType::UNSIGNED_BYTE_ARRAY && valueType != NumberType::SIGNED_BYTE_ARRAY)
-  {
-    if (valueTypeSize > registerSize)
-      luaL_error(luaState, "Error: in setRegister(), user tried to write a number that was larger than the register!");
-    else if (valueTypeSize + offsetBytes > registerSize)
-      luaL_error(luaState, "Error: in setRegister(), there was not enough room after offsetting the specified number of bytes in order to write the specified value.");
-  }
+  if (valueTypeSize > registerSize)
+    luaL_error(luaState, "Error: in setRegister(), user tried to write a number that was larger than the register!");
+  else if (valueTypeSize + offsetBytes > registerSize)
+    luaL_error(luaState, "Error: in setRegister(), there was not enough room after offsetting the specified number of bytes in order to write the specified value.");
+  
 
   u8 unsigned8 = 0;
   s8 signed8 = 0;
@@ -271,7 +293,6 @@ void writeValueToAddress(lua_State* luaState, u8* memoryLocation, NumberType val
   s64 signed64 = 0;
   double doubleVal = 0.0;
 
-  size_t tempOffset = 0;
   switch (valueType)
   {
   case NumberType::UNSIGNED_8:
@@ -314,30 +335,6 @@ void writeValueToAddress(lua_State* luaState, u8* memoryLocation, NumberType val
     doubleVal = luaL_checknumber(luaState, 4);
     memcpy(memoryLocation + offsetBytes, &doubleVal, 8);
     return;
-  case NumberType::UNSIGNED_BYTE_ARRAY:
-  case NumberType::SIGNED_BYTE_ARRAY:
-    lua_pushnil(luaState);
-    while (lua_next(luaState, 4) != 0)
-    {
-      if (tempOffset + offsetBytes > registerSize)
-        luaL_error(luaState, "Error: in setRegister(), attempt to write byte array past the end of the register occured!");
-      signed64 = lua_tointeger(luaState, -1);
-      if (signed64 < -128 || signed64 > 255)
-        luaL_error(luaState, "Error: in setRegister(), attempted to write value from byte array which could not be represented with 1 byte (either less than -128 or greater than 255).");
-      if (signed64 < 0)
-      {
-        signed8 = static_cast<s8>(signed64);
-        memcpy(memoryLocation + offsetBytes + tempOffset, &signed8, 1);
-      }
-      else
-      {
-        unsigned8 = static_cast<u8>(signed64);
-        memcpy(memoryLocation + offsetBytes + tempOffset, &unsigned8, 1);
-      }
-      ++tempOffset;
-      lua_pop(luaState, 1);
-    }
-
    default:
     luaL_error(luaState, "Error: Undefined type encountered in setRegister() function");
   }
@@ -352,40 +349,60 @@ int setRegister(lua_State* luaState)
     luaL_error(luaState, "Error: undefined type string was passed as an argument to setRegister()");
   const char* registerString = luaL_checkstring(luaState, 3);
   RegisterObject registerObject = parseRegister(registerString);
-  u8 regNum = 0;
-  u8* address = NULL;
+  u8 registerSize = 4;
+  if (registerObject.regType == RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER)
+    registerSize = 8;
+  u8* address = getAddressForRegister(registerObject, luaState, "setRegister()");
   u8 offsetBytes = 0;
   if (lua_gettop(luaState) >= 5)
     offsetBytes = luaL_checkinteger(luaState, 5);
   if (offsetBytes < 0 || offsetBytes > 7)
     luaL_error(luaState, "Error: in setRegister(), number of bytes to offset from left was either less than 0 or more than 7");
- 
-  switch (registerObject.regType)
+
+  writeValueToAddress(luaState, address, valueType, registerSize, offsetBytes);
+
+  return 0;
+}
+
+int setRegisterFromByteArray(lua_State* luaState)
+{
+  const char* registerString = luaL_checkstring(luaState, 2);
+  RegisterObject registerObject = parseRegister(registerString);
+  u8 registerSize = 4;
+  if (registerObject.regType == RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER)
+    registerSize = 8;
+  s64 offsetBytes = 0;
+  if (lua_gettop(luaState) >= 4)
+    offsetBytes = luaL_checkinteger(luaState, 4);
+  u8* address = getAddressForRegister(registerObject, luaState, "setRegisterFromByteArray()");
+
+  u8 tempOffset = 0;
+  s64 signed64 = 0;
+  s8 signed8 = 0;
+  u8 unsigned8 = 0;
+  lua_pushnil(luaState);
+  while (lua_next(luaState, 3) != 0)
   {
-  case RegisterObject::REGISTER_TYPE::GENERAL_PURPOSE_REGISTER:
-    regNum = registerObject.registerNum;
-    address = (u8*)(rGPR + regNum);
-    writeValueToAddress(luaState, address, valueType, 4, offsetBytes);
-    break;
-  case RegisterObject::REGISTER_TYPE::PC_REGISTER:
-    address = ((u8*)&PC);
-    writeValueToAddress(luaState, address, valueType, 4, offsetBytes);
-    break;
-  case RegisterObject::REGISTER_TYPE::RETURN_REGISTER:
-    address = ((u8*)&LR);
-    writeValueToAddress(luaState, address, valueType, 4, offsetBytes);
-    break;
-  case RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER:
-    address = (u8*)(PowerPC::ppcState.ps + regNum);
-    writeValueToAddress(luaState, address, valueType, 8, offsetBytes);
-    break;
-
-  default:
-    luaL_error(luaState,
-               "Error: Invalid string passed in for register name in setRegister(). Currently, "
-               "R0-R31, F0-F31, PC, and LR are the only registers which are supported");
+    if (tempOffset + offsetBytes > registerSize)
+      luaL_error(luaState, "Error: in setRegisterFromByteArray(), attempt to write byte array past the end of the register occured!");
+    signed64 = lua_tointeger(luaState, -1);
+    if (signed64 < -128)
+      luaL_error(luaState, "Error: in setRegisterFromByteArray(), attempted to write value from byte array which could not be represented with 1 byte (value was less than -128)");
+    else if (signed64 > 255)
+      luaL_error(luaState, "Error: in setRegisterFromByteArray(), attempted to write value from byte array which could not be represented with 1 byte (value was greater than 255)");
+    if (signed64 < 0)
+    {
+      signed8 = static_cast<s8>(signed64);
+      memcpy(address + offsetBytes + tempOffset, &signed8, 1);
+    }
+    else
+    {
+      unsigned8 = static_cast<u8>(signed64);
+      memcpy(address + offsetBytes + tempOffset, &unsigned8, 1);
+    }
+    ++tempOffset;
+    lua_pop(luaState, 1);
   }
-
   return 0;
 }
 
