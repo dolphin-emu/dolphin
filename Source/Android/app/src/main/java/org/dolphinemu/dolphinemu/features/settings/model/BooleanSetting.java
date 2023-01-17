@@ -38,6 +38,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
           "WiimoteEnableSpeaker", false),
   MAIN_MMU(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "MMU", false),
   MAIN_PAUSE_ON_PANIC(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "PauseOnPanic", false),
+  MAIN_ACCURATE_CPU_CACHE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AccurateCPUCache",
+          false),
   MAIN_SYNC_GPU(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SyncGPU", false),
   MAIN_OVERCLOCK_ENABLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "OverclockEnable", false),
   MAIN_AUTO_DISC_CHANGE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AutoDiscChange", false),
@@ -261,6 +263,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
           MAIN_OVERRIDE_REGION_SETTINGS,
           MAIN_MMU,
           MAIN_PAUSE_ON_PANIC,
+          MAIN_ACCURATE_CPU_CACHE,
           MAIN_DSP_JIT,
   };
 

@@ -382,6 +382,8 @@
     <string name="mmu_enable_description">Enables the Memory Management Unit. Needed for some games, but may reduce performance.</string>
     <string name="pause_on_panic">Pause on Panic</string>
     <string name="pause_on_panic_description">Pauses the emulation if a Read/Write or Unknown Instruction panic occurs. The performance impact is the same as having Enable MMU on.</string>
+    <string name="enable_cpu_cache">Enable Write-Back Cache (slow)</string>
+    <string name="enable_cpu_cache_description">Enables emulation of the CPU write-back cache. Enabling will have a significant impact on performance. This should be left disabled unless absolutely needed.</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
