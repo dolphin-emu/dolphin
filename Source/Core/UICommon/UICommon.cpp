@@ -376,9 +376,9 @@ void SetUserDirectory(std::string custom_path)
   CoTaskMemFree(appdata);
   CoTaskMemFree(documents);
 #else
-  if (File::IsDirectory(ROOT_DIR DIR_SEP PORTABLE_USER_DIR))
+  if (File::IsDirectory(ROOT_DIR DIR_SEP EMBEDDED_USER_DIR))
   {
-    user_path = ROOT_DIR DIR_SEP PORTABLE_USER_DIR DIR_SEP;
+    user_path = ROOT_DIR DIR_SEP EMBEDDED_USER_DIR DIR_SEP;
   }
   else
   {
@@ -412,7 +412,7 @@ void SetUserDirectory(std::string custom_path)
     std::string exe_path = File::GetExeDirectory();
     if (File::Exists(exe_path + DIR_SEP "portable.txt"))
     {
-      user_path = exe_path + DIR_SEP "User" DIR_SEP;
+      user_path = exe_path + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
     }
     else if (env_path)
     {

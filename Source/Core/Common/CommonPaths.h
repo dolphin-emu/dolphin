@@ -7,23 +7,22 @@
 #define DIR_SEP "/"
 #define DIR_SEP_CHR '/'
 
-// The user data dir
 #define ROOT_DIR "."
 #ifdef _WIN32
 #define PORTABLE_USER_DIR "User"
 #define NORMAL_USER_DIR "Dolphin Emulator"
 #elif defined __APPLE__
-// On OS X, PORTABLE_USER_DIR exists within the .app, but *always* reference
-// the copy in Application Support instead! (Copied on first run)
-// You can use the File::GetUserPath() util for this
-#define PORTABLE_USER_DIR "Contents/Resources/User"
+#define PORTABLE_USER_DIR "User"
+#define EMBEDDED_USER_DIR "Contents/Resources/User"
 #define NORMAL_USER_DIR "Library/Application Support/Dolphin"
 #elif defined ANDROID
 #define PORTABLE_USER_DIR "user"
+#define EMBEDDED_USER_DIR PORTABLE_USER_DIR
 #define NORMAL_USER_DIR "/sdcard/dolphin-emu"
 #define NOMEDIA_FILE ".nomedia"
 #else
 #define PORTABLE_USER_DIR "user"
+#define EMBEDDED_USER_DIR PORTABLE_USER_DIR
 #define NORMAL_USER_DIR "dolphin-emu"
 #endif
 
