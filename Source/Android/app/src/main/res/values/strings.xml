@@ -128,8 +128,10 @@
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="gamecube_submenu">GameCube</string>
+    <string name="ipl_settings">IPL Settings</string>
     <string name="skip_main_menu">Skip Main Menu</string>
     <string name="skip_main_menu_description">Put IPL ROMs in User/GC/&lt;region&gt;</string>
+    <string name="device_settings">Device Settings</string>
     <string name="system_language">System Language</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
@@ -381,6 +383,7 @@
 
     <!-- Advanced Settings -->
     <string name="advanced_submenu">Advanced</string>
+    <string name="cpu_options">CPU Options</string>
     <string name="cpu_core">CPU Core</string>
     <string name="mmu_enable">Enable MMU</string>
     <string name="mmu_enable_description">Enables the Memory Management Unit. Needed for some games, but may reduce performance.</string>
@@ -388,6 +391,7 @@
     <string name="pause_on_panic_description">Pauses the emulation if a Read/Write or Unknown Instruction panic occurs. The performance impact is the same as having Enable MMU on.</string>
     <string name="enable_cpu_cache">Enable Write-Back Cache (slow)</string>
     <string name="enable_cpu_cache_description">Enables emulation of the CPU write-back cache. Enabling will have a significant impact on performance. This should be left disabled unless absolutely needed.</string>
+    <string name="clock_override">Clock Override</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
@@ -397,6 +401,7 @@
     <string name="enable_memory_size_override_description">Adjusts the amount of RAM in the emulated console.\n\nWARNING: Enabling this will completely break many games. Only a small number of games can benefit from this.</string>
     <string name="main_mem1_size">MEM1 Size</string>
     <string name="main_mem2_size">MEM2 Size</string>
+    <string name="gpu_options">GPU Options</string>
     <string name="synchronize_gpu_thread">Synchronize GPU Thread</string>
     <string name="synchronize_gpu_thread_description">Synchronizing the GPU thread reduces the risk of games crashing or becoming unstable with dual core enabled, but can also reduce the performance gain of dual core. If unsure, select \"On Idle Skipping\". Selecting \"Never\" is risky and not recommended!</string>
 

@@ -564,10 +564,13 @@ public final class SettingsFragmentPresenter
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
   {
+    sl.add(new HeaderSetting(mContext, R.string.ipl_settings, 0));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_SKIP_IPL, R.string.skip_main_menu,
             R.string.skip_main_menu_description));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_GC_LANGUAGE, R.string.system_language,
             0, R.array.gameCubeSystemLanguageEntries, R.array.gameCubeSystemLanguageValues));
+
+    sl.add(new HeaderSetting(mContext, R.string.device_settings, 0));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_SLOT_A, R.string.slot_a_device, 0,
             R.array.slotDeviceEntries, R.array.slotDeviceValues));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_SLOT_B, R.string.slot_b_device, 0,
@@ -717,6 +720,7 @@ public final class SettingsFragmentPresenter
       emuCoresEntries = R.array.emuCoresEntriesGeneric;
       emuCoresValues = R.array.emuCoresValuesGeneric;
     }
+    sl.add(new HeaderSetting(mContext, R.string.cpu_options, 0));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_CPU_CORE, R.string.cpu_core, 0,
             emuCoresEntries, emuCoresValues));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_MMU, R.string.mmu_enable,
@@ -725,6 +729,8 @@ public final class SettingsFragmentPresenter
             R.string.pause_on_panic_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_ACCURATE_CPU_CACHE,
             R.string.enable_cpu_cache, R.string.enable_cpu_cache_description));
+
+    sl.add(new HeaderSetting(mContext, R.string.clock_override, 0));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_OVERCLOCK_ENABLE,
             R.string.overclock_enable, R.string.overclock_enable_description));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
@@ -801,6 +807,7 @@ public final class SettingsFragmentPresenter
     sl.add(new IntSliderSetting(mContext, mem1Setting, R.string.main_mem1_size, 0, 24, 64, "MB"));
     sl.add(new IntSliderSetting(mContext, mem2Setting, R.string.main_mem2_size, 0, 64, 128, "MB"));
 
+    sl.add(new HeaderSetting(mContext, R.string.gpu_options, 0));
     sl.add(new SingleChoiceSetting(mContext, synchronizeGpuThread, R.string.synchronize_gpu_thread,
             R.string.synchronize_gpu_thread_description, R.array.synchronizeGpuThreadEntries,
             R.array.synchronizeGpuThreadValues));
