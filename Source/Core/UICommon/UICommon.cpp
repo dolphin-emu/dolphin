@@ -340,7 +340,7 @@ void SetUserDirectory(std::string custom_path)
   std::optional<std::string> old_user_folder;
   if (documents_found)
   {
-    old_user_folder = TStrToUTF8(documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
+    old_user_folder = TStrToUTF8(documents) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
   }
 
   if (local)  // Case 1-2
@@ -357,7 +357,7 @@ void SetUserDirectory(std::string custom_path)
   }
   else if (appdata_found)  // Case 5
   {
-    user_path = TStrToUTF8(appdata) + DIR_SEP "Dolphin Emulator" DIR_SEP;
+    user_path = TStrToUTF8(appdata) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
     // Set the UserConfigPath value in the registry for backwards compatibility with older Dolphin
     // builds, which will look for the default User directory in Documents. If we set this key,

@@ -11,7 +11,7 @@
 #define ROOT_DIR "."
 #ifdef _WIN32
 #define PORTABLE_USER_DIR "User"
-#define NORMAL_USER_DIR "Dolphin"
+#define NORMAL_USER_DIR "Dolphin Emulator"
 #elif defined __APPLE__
 // On OS X, PORTABLE_USER_DIR exists within the .app, but *always* reference
 // the copy in Application Support instead! (Copied on first run)
