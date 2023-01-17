@@ -345,7 +345,7 @@ void SetUserDirectory(std::string custom_path)
 
   if (local)  // Case 1-2
   {
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
   }
   else if (configPath)  // Case 3
   {
@@ -370,15 +370,15 @@ void SetUserDirectory(std::string custom_path)
   }
   else  // Case 6
   {
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
   }
 
   CoTaskMemFree(appdata);
   CoTaskMemFree(documents);
 #else
-  if (File::IsDirectory(ROOT_DIR DIR_SEP USERDATA_DIR))
+  if (File::IsDirectory(ROOT_DIR DIR_SEP PORTABLE_USER_DIR))
   {
-    user_path = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
+    user_path = ROOT_DIR DIR_SEP PORTABLE_USER_DIR DIR_SEP;
   }
   else
   {
