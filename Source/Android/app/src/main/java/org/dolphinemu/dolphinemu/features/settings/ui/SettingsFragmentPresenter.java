@@ -729,6 +729,78 @@ public final class SettingsFragmentPresenter
             R.string.overclock_enable, R.string.overclock_enable_description));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
             R.string.overclock_title_description, 0, 400, "%"));
+
+    AbstractIntSetting mem1Setting = new AbstractIntSetting()
+    {
+      @Override
+      public int getInt(Settings settings)
+      {
+        return IntSetting.MAIN_MEM1_SIZE.getInt(settings) / 1024 / 1024;
+      }
+
+      @Override
+      public void setInt(Settings settings, int newValue)
+      {
+        IntSetting.MAIN_MEM1_SIZE.setInt(settings, newValue * 1024 * 1024);
+      }
+
+      @Override
+      public boolean isOverridden(Settings settings)
+      {
+        return IntSetting.MAIN_MEM1_SIZE.isOverridden(settings);
+      }
+
+      @Override
+      public boolean isRuntimeEditable()
+      {
+        return IntSetting.MAIN_MEM1_SIZE.isRuntimeEditable();
+      }
+
+      @Override
+      public boolean delete(Settings settings)
+      {
+        return IntSetting.MAIN_MEM1_SIZE.delete(settings);
+      }
+    };
+    AbstractIntSetting mem2Setting = new AbstractIntSetting()
+    {
+      @Override
+      public int getInt(Settings settings)
+      {
+        return IntSetting.MAIN_MEM2_SIZE.getInt(settings) / 1024 / 1024;
+      }
+
+      @Override
+      public void setInt(Settings settings, int newValue)
+      {
+        IntSetting.MAIN_MEM2_SIZE.setInt(settings, newValue * 1024 * 1024);
+      }
+
+      @Override
+      public boolean isOverridden(Settings settings)
+      {
+        return IntSetting.MAIN_MEM2_SIZE.isOverridden(settings);
+      }
+
+      @Override
+      public boolean isRuntimeEditable()
+      {
+        return IntSetting.MAIN_MEM2_SIZE.isRuntimeEditable();
+      }
+
+      @Override
+      public boolean delete(Settings settings)
+      {
+        return IntSetting.MAIN_MEM2_SIZE.delete(settings);
+      }
+    };
+    sl.add(new HeaderSetting(mContext, R.string.memory_override, 0));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_RAM_OVERRIDE_ENABLE,
+            R.string.enable_memory_size_override,
+            R.string.enable_memory_size_override_description));
+    sl.add(new IntSliderSetting(mContext, mem1Setting, R.string.main_mem1_size, 0, 24, 64, "MB"));
+    sl.add(new IntSliderSetting(mContext, mem2Setting, R.string.main_mem2_size, 0, 64, 128, "MB"));
+
     sl.add(new SingleChoiceSetting(mContext, synchronizeGpuThread, R.string.synchronize_gpu_thread,
             R.string.synchronize_gpu_thread_description, R.array.synchronizeGpuThreadEntries,
             R.array.synchronizeGpuThreadValues));

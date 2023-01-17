@@ -18,6 +18,8 @@ public enum IntSetting implements AbstractIntSetting
   MAIN_CPU_CORE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "CPUCore",
           NativeLibrary.DefaultCPUCore()),
   MAIN_GC_LANGUAGE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SelectedLanguage", 0),
+  MAIN_MEM1_SIZE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "MEM1Size", 0x01800000),
+  MAIN_MEM2_SIZE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "MEM2Size", 0x04000000),
   MAIN_SLOT_A(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SlotA", 8),
   MAIN_SLOT_B(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SlotB", 255),
   MAIN_SERIAL_PORT_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SerialPort1", 255),
@@ -83,6 +85,8 @@ public enum IntSetting implements AbstractIntSetting
   private static final IntSetting[] NOT_RUNTIME_EDITABLE_ARRAY = new IntSetting[]{
           MAIN_CPU_CORE,
           MAIN_GC_LANGUAGE,
+          MAIN_MEM1_SIZE,
+          MAIN_MEM2_SIZE,
           MAIN_SLOT_A,  // Can actually be changed, but specific code is required
           MAIN_SLOT_B,  // Can actually be changed, but specific code is required
           MAIN_SERIAL_PORT_1,
