@@ -29,6 +29,7 @@ public abstract class SettingsItem
   public static final int TYPE_RUN_RUNNABLE = 10;
   public static final int TYPE_STRING = 11;
   public static final int TYPE_HYPERLINK_HEADER = 12;
+  public static final int TYPE_DATETIME_CHOICE = 13;
 
   private final CharSequence mName;
   private final CharSequence mDescription;

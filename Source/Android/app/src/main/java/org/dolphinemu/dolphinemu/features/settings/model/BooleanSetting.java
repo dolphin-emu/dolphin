@@ -44,6 +44,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
   MAIN_OVERCLOCK_ENABLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "OverclockEnable", false),
   MAIN_RAM_OVERRIDE_ENABLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "RAMOverrideEnable",
           false),
+  MAIN_CUSTOM_RTC_ENABLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "EnableCustomRTC",
+          false),
   MAIN_AUTO_DISC_CHANGE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AutoDiscChange", false),
   MAIN_ALLOW_SD_WRITES(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "WiiSDCardAllowWrites",
           true),
@@ -267,6 +269,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
           MAIN_PAUSE_ON_PANIC,
           MAIN_ACCURATE_CPU_CACHE,
           MAIN_RAM_OVERRIDE_ENABLE,
+          MAIN_CUSTOM_RTC_ENABLE,
           MAIN_DSP_JIT,
   };
 

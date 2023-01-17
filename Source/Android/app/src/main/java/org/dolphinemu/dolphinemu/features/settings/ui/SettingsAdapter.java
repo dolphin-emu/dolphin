@@ -9,6 +9,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.provider.DocumentsContract;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -20,10 +21,14 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.color.MaterialColors;
+import com.google.android.material.datepicker.CalendarConstraints;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.elevation.ElevationOverlayProvider;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.timepicker.MaterialTimePicker;
+import com.google.android.material.timepicker.TimeFormat;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.databinding.DialogInputStringBinding;
@@ -34,6 +39,7 @@ import org.dolphinemu.dolphinemu.databinding.ListItemSettingSwitchBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSubmenuBinding;
 import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.model.view.DateTimeChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FloatSliderSetting;
@@ -47,6 +53,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.DateTimeSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.FilePickerViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderHyperLinkViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderViewHolder;
@@ -68,6 +75,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
         implements DialogInterface.OnClickListener, Slider.OnChangeListener
@@ -134,6 +143,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
       case SettingsItem.TYPE_HYPERLINK_HEADER:
         return new HeaderHyperLinkViewHolder(ListItemHeaderBinding.inflate(inflater), this);
+
+      case SettingsItem.TYPE_DATETIME_CHOICE:
+        return new DateTimeSettingViewHolder(ListItemSettingBinding.inflate(inflater), this);
 
       default:
         throw new IllegalArgumentException("Invalid view type: " + viewType);
@@ -364,6 +376,63 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     }
 
     mView.getActivity().startActivityForResult(intent, filePicker.getRequestType());
+  }
+
+  public void onDateTimeClick(DateTimeChoiceSetting item, int position)
+  {
+    mClickedItem = item;
+    mClickedPosition = position;
+    long storedTime = Long.decode(item.getSelectedValue(mView.getSettings())) * 1000;
+
+    // Helper to extract hour and minute from epoch time
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(storedTime);
+    calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+    // Start and end epoch times available for the Wii's date picker
+    CalendarConstraints calendarConstraints = new CalendarConstraints.Builder()
+            .setStart(946684800000L)
+            .setEnd(2082672000000L)
+            .build();
+
+    int timeFormat = TimeFormat.CLOCK_12H;
+    if (DateFormat.is24HourFormat(mView.getActivity()))
+    {
+      timeFormat = TimeFormat.CLOCK_24H;
+    }
+
+    MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
+            .setSelection(storedTime)
+            .setTitleText(R.string.select_rtc_date)
+            .setCalendarConstraints(calendarConstraints)
+            .build();
+    MaterialTimePicker timePicker = new MaterialTimePicker.Builder()
+            .setTimeFormat(timeFormat)
+            .setHour(calendar.get(Calendar.HOUR_OF_DAY))
+            .setMinute(calendar.get(Calendar.MINUTE))
+            .setTitleText(R.string.select_rtc_time)
+            .build();
+
+    datePicker.addOnPositiveButtonClickListener(
+            selection -> timePicker.show(mView.getActivity().getSupportFragmentManager(),
+                    "TimePicker"));
+    timePicker.addOnPositiveButtonClickListener(selection ->
+    {
+      long epochTime = datePicker.getSelection() / 1000;
+      epochTime += (long) timePicker.getHour() * 60 * 60;
+      epochTime += (long) timePicker.getMinute() * 60;
+      String rtcString = "0x" + Long.toHexString(epochTime);
+      if (!item.getSelectedValue(mView.getSettings()).equals(rtcString))
+      {
+        notifyItemChanged(mClickedPosition);
+        mView.onSettingChanged();
+      }
+
+      item.setSelectedValue(mView.getSettings(), rtcString);
+
+      mClickedItem = null;
+    });
+    datePicker.show(mView.getActivity().getSupportFragmentManager(), "DatePicker");
   }
 
   public void onFilePickerConfirmation(String selectedFile)

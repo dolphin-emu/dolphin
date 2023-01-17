@@ -404,6 +404,12 @@
     <string name="gpu_options">GPU Options</string>
     <string name="synchronize_gpu_thread">Synchronize GPU Thread</string>
     <string name="synchronize_gpu_thread_description">Synchronizing the GPU thread reduces the risk of games crashing or becoming unstable with dual core enabled, but can also reduce the performance gain of dual core. If unsure, select \"On Idle Skipping\". Selecting \"Never\" is risky and not recommended!</string>
+    <string name="custom_rtc_options">Custom RTC Options</string>
+    <string name="custom_rtc_enable">Enable Custom RTC</string>
+    <string name="custom_rtc_description">This settings allows you to set a custom real time clock (RTC) separate from your current system time.</string>
+    <string name="set_custom_rtc">Set Custom RTC</string>
+    <string name="select_rtc_date">Select RTC Date</string>
+    <string name="select_rtc_time">Select RTC Time</string>
 
     <!-- Log Configuration -->
     <string name="log_submenu">Log</string>
