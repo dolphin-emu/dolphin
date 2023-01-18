@@ -163,6 +163,16 @@ void Host::SetRenderFullFocus(bool focus)
   m_render_full_focus = focus;
 }
 
+bool Host::GetTASInputFullFocus()
+{
+  return m_tas_input_full_focus;
+}
+
+void Host::SetTASInputFullFocus(bool focus)
+{
+  m_tas_input_full_focus = focus;
+}
+
 bool Host::GetGBAFocus()
 {
 #ifdef HAS_LIBMGBA
@@ -232,6 +242,11 @@ bool Host_RendererHasFocus()
 bool Host_RendererHasFullFocus()
 {
   return Host::GetInstance()->GetRenderFullFocus();
+}
+
+bool Host_TASInputHasFullFocus()
+{
+  return Host::GetInstance()->GetTASInputFullFocus();
 }
 
 bool Host_RendererIsFullscreen()

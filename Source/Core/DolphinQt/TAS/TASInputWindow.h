@@ -72,6 +72,9 @@ protected:
   QSpinBox* m_turbo_press_frames;
   QSpinBox* m_turbo_release_frames;
 
+  void focusOutEvent(QFocusEvent* event);
+  void focusInEvent(QFocusEvent* event);
+
 private:
   std::optional<ControlState> GetButton(TASCheckBox* checkbox, ControlState controller_state);
   std::optional<ControlState> GetSpinBox(QSpinBox* spin, u16 zero, u16 min, u16 max,

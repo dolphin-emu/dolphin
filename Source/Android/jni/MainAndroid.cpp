@@ -171,6 +171,11 @@ bool Host_RendererHasFullFocus()
   return true;
 }
 
+bool Host_TASInputHasFullFocus()
+{
+  return false;
+}
+
 bool Host_RendererIsFullscreen()
 {
   return false;
