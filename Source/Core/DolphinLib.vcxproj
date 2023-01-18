@@ -74,7 +74,6 @@
     <ClInclude Include="Core\Lua\LuaFunctions\LuaBitFunctions.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaGameCubeButtonProbabilityClasses.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaGCButtons.h" />
-    <ClInclude Include="Core\Lua\LuaFunctions\LuaConverter.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaEmuFunctions.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaMemoryApi.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaGameCubeController.h" />
@@ -85,7 +84,6 @@
   <ItemGroup>
     <ClCompile Include="Core\Lua\LuaHelperClasses\LuaColonCheck.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaBitFunctions.cpp" />
-    <ClCompile Include="Core\Lua\LuaFunctions\LuaConverter.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaEmuFunctions.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaGameCubeController.cpp" />
     <ClCompile Include="Core\Lua\LuaHelperClasses\LuaGCButtons.cpp" />

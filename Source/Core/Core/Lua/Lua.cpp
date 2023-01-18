@@ -7,7 +7,6 @@
 #include "LuaFunctions/LuaMemoryApi.h"
 #include "LuaFunctions/LuaEmuFunctions.h"
 #include "LuaFunctions/LuaBitFunctions.h"
-#include "LuaFunctions/LuaConverter.h"
 #include "LuaFunctions/LuaGameCubeController.h"
 #include "LuaFunctions/LuaRegisters.h"
 #include "LuaFunctions/LuaStatistics.h"
@@ -45,7 +44,6 @@ void Init()
   LuaMemoryApi::InitLuaMemoryApi(mainLuaState);
   LuaEmu::InitLuaEmuFunctions(mainLuaState);
   LuaBit::InitLuaBitFunctions(mainLuaState);
-  LuaConverter::InitLuaConverterFunctions(mainLuaState);
   LuaGameCubeController::InitLuaGameCubeControllerFunctions(mainLuaState);
   LuaStatistics::InitLuaStatisticsFunctions(mainLuaState);
   LuaRegisters::InitLuaRegistersFunctions(mainLuaState);
