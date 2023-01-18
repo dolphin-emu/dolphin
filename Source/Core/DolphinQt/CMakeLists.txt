@@ -667,6 +667,12 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND STEAM)
   add_custom_command(TARGET dolphin-emu POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Data/Sys" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys"
   )
+
+  # Copy run_dolphin_steamrt.sh
+  target_sources(dolphin-emu PRIVATE "${CMAKE_SOURCE_DIR}/Data/run_dolphin_steamrt.sh")
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/Data/run_dolphin_steamrt.sh" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/run_dolphin_steamrt.sh"
+  )
 endif()
 
 if(USE_MGBA)
