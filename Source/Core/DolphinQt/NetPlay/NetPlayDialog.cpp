@@ -521,7 +521,10 @@ void NetPlayDialog::OnStart()
   }
 
   if (Settings::Instance().GetNetPlayServer()->RequestStartGame())
+  {
     SetOptionsEnabled(false);
+    DisplayActiveGeckoCodes();
+  }
 }
 
 void NetPlayDialog::reject()
@@ -827,6 +830,15 @@ void NetPlayDialog::AppendChat(const std::string& msg)
   DisplayMessage(QString::fromStdString(msg), "");
   QApplication::alert(this);
 }
+
+void NetPlayDialog::DisplayActiveGeckoCodes()
+{
+  if (!IsHosting())
+  {
+    return;
+  }
+  Settings::Instance().GetNetPlayClient()->GetActiveGeckoCodes();
+} 
 
 void NetPlayDialog::OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifier,
                                     const std::string& netplay_name)

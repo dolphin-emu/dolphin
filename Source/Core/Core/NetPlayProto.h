@@ -187,6 +187,7 @@ enum class MessageID : u8
   SyncSaveData = 0xF1,
   SyncCodes = 0xF2,
 
+  GeckoCodes = 0xF3,
   CoinFlip = 0xF4
 };
 

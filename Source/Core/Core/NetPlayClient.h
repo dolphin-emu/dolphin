@@ -127,11 +127,14 @@ public:
   bool ChangeGame(const std::string& game);
   void SendChatMessage(const std::string& msg);
   void SendCoinFlip(int coinVal);
+  void SendActiveGeckoCodes();
+  void GetActiveGeckoCodes();
   void RequestStopGame();
   void SendPowerButtonEvent();
   void RequestGolfControl(PlayerId pid);
   void RequestGolfControl();
   std::string GetCurrentGolfer();
+  std::vector<std::string> v_ActiveGeckoCodes;
 
   // Send and receive pads values
   bool WiimoteUpdate(int _number, u8* data, std::size_t size, u8 reporting_mode);
