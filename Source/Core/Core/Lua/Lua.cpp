@@ -26,7 +26,7 @@ bool luaInitialized = false;
 void tempRunner()
 {
   std::filesystem::path p = std::filesystem::current_path().filename();
-  if (luaL_dofile(mainLuaState, "LuaExamplesAndTests/LuaByteWrapperFunctionsTest.lua") != LUA_OK)
+  if (luaL_dofile(mainLuaState, "LuaExamplesAndTests/LuaMemoryApiFunctionsTest.lua") != LUA_OK)
   {
     const char* tempString = lua_tostring(mainLuaState, -1);
     fprintf(stderr, "%s\n", tempString);
@@ -51,7 +51,7 @@ void Init()
   LuaRegisters::InitLuaRegistersFunctions(mainLuaState);
   lua_gc(mainLuaState, LUA_GCSTOP);
   mainLuaThreadState = lua_newthread(mainLuaState);
-  if (luaL_loadfile(mainLuaThreadState, "LuaExamplesAndTests/LuaByteWrapperFunctionsTest.lua") != LUA_OK)
+  if (luaL_loadfile(mainLuaThreadState, "LuaExamplesAndTests/LuaMemoryApiFunctionsTest.lua") != LUA_OK)
   {
     const char* tempString = lua_tostring(mainLuaThreadState, -1);
     fprintf(stderr, "%s\n", tempString);

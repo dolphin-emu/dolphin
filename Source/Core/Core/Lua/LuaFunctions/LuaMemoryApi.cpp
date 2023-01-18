@@ -178,11 +178,6 @@ s32 read_s32(lua_State* luaState, u32 address)
   return signedInt;
 }
 
-u64 read_u64(lua_State* luaState, u32 address)
-{
-  return read_u64_from_domain_function(luaState, address);
-}
-
 s64 read_s64(lua_State* luaState, u32 address)
 {
   u64 rawVal = read_u64_from_domain_function(luaState, address);
@@ -241,11 +236,6 @@ void write_s32(lua_State* luaState, u32 address, s32 value)
   u32 unsignedInt = 0;
   memcpy(&unsignedInt, &value, sizeof(s32));
   write_u32_to_domain_function(luaState, address, unsignedInt);
-}
-
-void write_u64(lua_State* luaState, u32 address, u64 value)
-{
-  write_u64_to_domain_function(luaState, address, value);
 }
 
 void write_s64(lua_State* luaState, u32 address, s64 value)
@@ -391,8 +381,15 @@ int do_read_fixed_length_string(lua_State* luaState)
   luaColonOperatorTypeCheck(luaState, "readFixedLengthString", "memory:readFixedLengthString(0X8000043, 52)");
   u32 address = luaL_checkinteger(luaState, 2);
   u32 stringLength = luaL_checkinteger(luaState, 3);
-  std::string returnResult = get_string_from_domain_function(luaState, address, stringLength);
-  lua_pushfstring(luaState, returnResult.c_str());
+  if (stringLength == 0)
+  {
+    lua_pushfstring(luaState, "");
+  }
+  else
+  {
+    std::string returnResult = get_string_from_domain_function(luaState, address, stringLength);
+    lua_pushfstring(luaState, returnResult.c_str());
+  }
   return 1;
 }
 
@@ -406,9 +403,15 @@ int do_read_null_terminated_string(lua_State* luaState)
   while (*memPointerCurrent != '\0')
     memPointerCurrent++;
 
-  std::string returnResult = get_string_from_domain_function(
-      luaState, address, (u32)(memPointerCurrent - memPointerStart));
-  lua_pushfstring(luaState, returnResult.c_str());
+  if (memPointerCurrent == memPointerStart)
+  {
+    lua_pushfstring(luaState, "");
+  }
+  else
+  {
+    std::string returnResult = get_string_from_domain_function(luaState, address, (u32)(memPointerCurrent - memPointerStart));
+    lua_pushfstring(luaState, returnResult.c_str());
+  }
   return 1;
 }
 
@@ -462,7 +465,7 @@ int do_general_write(lua_State* luaState)
     return 0;
 
   case NumberType::FLOAT:
-    floatVal = luaL_checknumber(luaState, 4);
+    floatVal = static_cast<float>(luaL_checknumber(luaState, 4));
     write_float(luaState, address, floatVal);
     return 0;
 

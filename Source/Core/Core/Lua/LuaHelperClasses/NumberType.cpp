@@ -62,12 +62,6 @@ constexpr unsigned long long SIGNED_INT_ALT_HASH = hashFunc("SignedInt");
 constexpr unsigned long long UNSIGNED_LONG_LONG_ALT_HASH = hashFunc("UnsignedLongLong");
 constexpr unsigned long long SIGNED_LONG_LONG_ALT_HASH = hashFunc("SignedLongLong");
 
-constexpr unsigned long long UNSIGNED_BYTE_ARRAY_HASH = hashFunc("UNSIGNED_BYTE_ARRAY");
-constexpr unsigned long long SIGNED_BYTE_ARRAY_HASH = hashFunc("SIGNED_BYTE_ARRAY");
-
-constexpr unsigned long long UNSIGNED_BYTE_ARRAY_ALT_HASH = hashFunc("UnsignedByteArray");
-constexpr unsigned long long SIGNED_BYTE_ARRAY_ALT_HASH = hashFunc("SignedByteArray");
-
 // Checks if 2 strings are equal, but the function is case insensitive and treats '_' and ' ' as
 // the same character.
 // In other words, isEqualSpecial("ABe 0", "aBE_0") would return true.
