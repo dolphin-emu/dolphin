@@ -74,6 +74,8 @@
 #include "VideoCommon/VideoConfig.h"
 #include <Core/StateAuxillary.h>
 #include "Core/Metadata.h"
+#include <Core/ConfigLoaders/GameConfigLoader.h>
+#include <Core/GeckoCodeConfig.h>
 
 namespace NetPlay
 {
@@ -468,13 +470,30 @@ void NetPlayClient::OnData(sf::Packet& packet)
     OnRankedBoxMsg(packet);
     break;
 
-    case MessageID::CoinFlip:
-    {
-      int coinFlip;
-      packet >> coinFlip;
-      m_dialog->OnCoinFlipResult(coinFlip);
-    }
-    break;
+  case MessageID::CoinFlip:
+  {
+    int coinFlip;
+    packet >> coinFlip;
+    m_dialog->OnCoinFlipResult(coinFlip);
+  }
+  break;
+
+  case MessageID::GeckoCodes:
+  {
+    std::string codeStr;
+    packet >> codeStr;
+    auto ss = std::stringstream{codeStr};
+
+    v_ActiveGeckoCodes = {};
+    for (std::string line; std::getline(ss, line, '\n');)
+      v_ActiveGeckoCodes.push_back(line);
+
+    // add to chat
+    m_dialog->AppendChat("Active Gecko Codes:");
+    for (const std::string code : v_ActiveGeckoCodes)
+      m_dialog->AppendChat(code);
+  }
+  break;
 
   default:
     PanicAlertFmtT("Unknown message received with id : {0}", static_cast<u8>(mid));
@@ -1684,6 +1703,43 @@ void NetPlayClient::SendCoinFlip(int coinVal)
   packet << coinVal;
 
   SendAsync(std::move(packet));
+}
+
+void NetPlayClient::SendActiveGeckoCodes()
+{
+  sf::Packet packet;
+  packet << MessageID::GeckoCodes;
+  std::string codeStr = "";
+
+  for (const std::string code : v_ActiveGeckoCodes)
+    codeStr += code + "\n";
+  packet << codeStr;
+
+  SendAsync(std::move(packet));
+}
+
+void NetPlayClient::GetActiveGeckoCodes()
+{
+  // Find all INI files
+  const auto game_id = "G4QE01";
+  const auto revision = 0;
+  IniFile globalIni;
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+    globalIni.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+  IniFile localIni;
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+    localIni.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+
+  // Create a Gecko Code Vector with just the active codes
+  std::vector<Gecko::GeckoCode> s_active_codes =
+      Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+
+  v_ActiveGeckoCodes = {};
+  for (const Gecko::GeckoCode& active_code : s_active_codes)
+  {
+    v_ActiveGeckoCodes.push_back(active_code.name);
+  }
+  SendActiveGeckoCodes();
 }
 
 // called from ---CPU--- thread

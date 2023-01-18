@@ -772,6 +772,20 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case MessageID::GeckoCodes:
+  {
+    std::string codes;
+    packet >> codes;
+
+    //Send codes to other clients
+    sf::Packet spac;
+    spac << MessageID::GeckoCodes;
+    spac << codes;
+
+    SendToClients(spac);
+  }
+  break;
+
   case MessageID::ChunkedDataProgress:
   {
     u32 cid;
