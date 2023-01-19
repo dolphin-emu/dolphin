@@ -29,6 +29,7 @@ public:
   void Reset();
   void CountFrame();
   void CountVBlank();
+  void CountPresent();
 
   void CountThrottleSleep(DT sleep);
   void CountPerformanceMarker(Core::System& system, s64 cyclesLate);
@@ -47,6 +48,7 @@ public:
 private:
   PerformanceTracker m_fps_counter{"render_times.txt"};
   PerformanceTracker m_vps_counter{"vblank_times.txt"};
+  PerformanceTracker m_present_counter{std::nullopt};
   PerformanceTracker m_speed_counter{std::nullopt, 1000000};
 
   double m_graph_max_time = 0.0;
