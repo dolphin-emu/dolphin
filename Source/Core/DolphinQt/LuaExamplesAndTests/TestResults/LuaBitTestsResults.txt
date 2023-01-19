@@ -1,0 +1,53 @@
+Test 1:
+	Testing if bit:bitwise_and(113, 546) == 113 & 546:
+	32 == 32
+PASS!
+
+Test 2:
+	Testing if bit:bitwise_or(113, 546) == 113 | 546:
+	627 == 627
+PASS!
+
+Test 3:
+	Testing if bit:bitwise_xor(113, 546) == 113 ^ 546:
+	595 == 595
+PASS!
+
+Test 4:
+	Testing if bit:logical_and(113, 546) == 113 && 546:
+	true == true
+PASS!
+
+Test 5:
+	Testing if bit:logical_or(113, 546) == 113 || 546:
+	true == true
+PASS!
+
+Test 6:
+	Testing if bit:logical_xor(113, 546) == 113 XOR 546:
+	false == false
+PASS!
+
+Test 7:
+	Testing if bit:bit_shift_left(13, 2) == 13 << 2:
+	52 == 52
+PASS!
+
+Test 8:
+	Testing if bit:bit_shift_right(13, 2) == 13 >> 2:
+	3 == 3
+PASS!
+
+Test 9:
+	Testing if bit:bitwise_not(113) == ~113:
+	-114 == -114
+PASS!
+
+Test 10:
+	Testing if bit:logical_not(113) == !113:
+	false == false
+PASS!
+
+Total Tests: 10
+	Tests Passed: 10
+	Tests Failed: 0

@@ -28,6 +28,7 @@ BitClass* GetBitInstance()
       {"bitwise_xor", bitwise_xor},
       {"logical_and", logical_and},
       {"logical_or", logical_or},
+      {"logical_xor", logical_xor},
       {"logical_not", logical_not},
       {"bit_shift_left", bit_shift_left},
       {"bit_shift_right", bit_shift_right},
@@ -60,7 +61,7 @@ int bitwise_not(lua_State* luaState)
 {
   luaColonOperatorTypeCheck(luaState, "bitwise_not", "bitwise_not(exampleInteger)");
   s64 inputVal = luaL_checkinteger(luaState, 2);
-  lua_pushinteger(luaState, (u32) ~inputVal);
+  lua_pushinteger(luaState, ~inputVal);
   return 1;
 }
 
@@ -116,7 +117,7 @@ int bit_shift_left(lua_State* luaState)
   s64 secondVal = luaL_checkinteger(luaState, 3);
   if (firstVal < 0 || secondVal < 0)
     luaL_error(luaState, "Error: in bit:bit_shift_left() function, an argument passed into the function was negative. Both arguments to the function must be positive!");
-  lua_pushinteger(luaState, static_cast<u64>(firstVal) << static_cast<u64>(secondVal));
+  lua_pushinteger(luaState, static_cast<s64>(static_cast<u64>(firstVal) << static_cast<u64>(secondVal)));
   return 1;
 }
 
@@ -127,7 +128,7 @@ int bit_shift_right(lua_State* luaState)
   s64 secondVal = luaL_checkinteger(luaState, 3);
   if (firstVal < 0 || secondVal < 0)
     luaL_error(luaState, "Error: in bit:bit_shift_right() function, an argument passed into the function was negative. Both arguments to the function must be positive!");
-  lua_pushinteger(luaState, static_cast<u64>(firstVal) >> static_cast<u64>(secondVal));
+  lua_pushinteger(luaState, static_cast<s64>(static_cast<u64>(firstVal) >> static_cast<u64>(secondVal)));
   return 1;
 }
 }
