@@ -139,6 +139,9 @@ public:
 
   bool SupportsPresentWait() const { return m_device_features.present_wait.presentWait; }
 
+  // Present Count is required to be non-zero and always increasing.
+  uint64_t NextPresentCount() { return ++m_present_count; }
+
   VmaAllocator GetMemoryAllocator() const { return m_allocator; }
 
 #ifdef WIN32
@@ -180,6 +183,8 @@ private:
   bool m_supports_shader_subgroup_operations = false;
 
   std::vector<std::string> m_device_extensions;
+
+  uint64_t m_present_count = 0;
 };
 
 extern std::unique_ptr<VulkanContext> g_vulkan_context;

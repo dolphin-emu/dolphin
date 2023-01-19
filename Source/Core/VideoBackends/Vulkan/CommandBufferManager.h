@@ -101,7 +101,7 @@ private:
 
   void WaitForCommandBufferCompletion(u32 command_buffer_index);
   void SubmitCommandBuffer(u32 command_buffer_index, VkSwapchainKHR present_swap_chain,
-                           u32 present_image_index);
+                           u32 present_image_index, u64 frame_id);
   void BeginCommandBuffer();
 
   VkDescriptorPool CreateDescriptorPool(u32 descriptor_sizes);
@@ -153,6 +153,7 @@ private:
     VkSwapchainKHR present_swap_chain;
     u32 present_image_index;
     u32 command_buffer_index;
+    u64 frame_id;
   };
   VkSemaphore m_present_semaphore = VK_NULL_HANDLE;
   std::deque<PendingCommandBufferSubmit> m_pending_submits;

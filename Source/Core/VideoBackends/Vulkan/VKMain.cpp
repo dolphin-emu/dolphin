@@ -11,6 +11,7 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/PresentWait.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKPerfQuery.h"
 #include "VideoBackends/Vulkan/VKRenderer.h"
@@ -224,6 +225,11 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
       PanicAlertFmt("Failed to create Vulkan swap chain.");
       Shutdown();
       return false;
+    }
+
+    if (g_vulkan_context->SupportsPresentWait())
+    {
+      StartPresentWaitThread();
     }
   }
 
