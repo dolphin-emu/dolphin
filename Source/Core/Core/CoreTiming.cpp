@@ -24,6 +24,7 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace CoreTiming
 {
@@ -359,7 +360,7 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   // A maximum fallback is used to prevent the system from sleeping for
   // too long or going full speed in an attempt to catch up to timings.
   const DT max_fallback =
-      std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
+      std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_MAX_FALLBACK)));
 
   const TimePoint time = Clock::now();
   const TimePoint min_deadline = time - max_fallback;
@@ -375,6 +376,13 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
                   DT_us(min_deadline - m_throttle_deadline).count());
     m_throttle_deadline = min_deadline;
   }
+
+  // Skip the VI interrupt if the CPU is lagging by a certain amount.
+  // It doesn't matter what amount of lag we skip VI at, as long as it's constant.
+  const DT max_variance =
+      std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
+  const TimePoint vi_deadline = time - max_variance;
+  m_throttle_disable_vi_int = 0.0 < speed && m_throttle_deadline < vi_deadline;
 
   // Only sleep if we are behind the deadline
   if (time < m_throttle_deadline)
@@ -397,6 +405,11 @@ TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
 {
   return TimePoint(std::chrono::duration_cast<DT>(DT_s(m_globals.global_timer - cyclesLate) /
                                                   m_throttle_clock_per_sec));
+}
+
+bool CoreTimingManager::GetVISkip() const
+{
+  return m_throttle_disable_vi_int && g_ActiveConfig.bVISkip && !Core::WantsDeterminism();
 }
 
 void CoreTimingManager::LogPendingEvents() const

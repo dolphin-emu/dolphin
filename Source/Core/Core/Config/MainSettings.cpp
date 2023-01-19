@@ -39,6 +39,7 @@ const Info<bool> MAIN_JIT_FOLLOW_BRANCH{{System::Main, "Core", "JITFollowBranch"
 const Info<bool> MAIN_FASTMEM{{System::Main, "Core", "Fastmem"}, true};
 const Info<bool> MAIN_ACCURATE_CPU_CACHE{{System::Main, "Core", "AccurateCPUCache"}, false};
 const Info<bool> MAIN_DSP_HLE{{System::Main, "Core", "DSPHLE"}, true};
+const Info<int> MAIN_MAX_FALLBACK{{System::Main, "Core", "MaxFallback"}, 100};
 const Info<int> MAIN_TIMING_VARIANCE{{System::Main, "Core", "TimingVariance"}, 40};
 const Info<bool> MAIN_CPU_THREAD{{System::Main, "Core", "CPUThread"}, true};
 const Info<bool> MAIN_SYNC_ON_SKIP_IDLE{{System::Main, "Core", "SyncOnSkipIdle"}, true};
