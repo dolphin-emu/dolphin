@@ -254,6 +254,11 @@ void JitArm64::HLEFunction(u32 hook_index)
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
 
+  // If the function used any registers which were marked
+  // as discarded, we must mark them as no longer discarded.
+  gpr.ResetRegisters(BitSet32::AllTrue(32));
+  fpr.ResetRegisters(BitSet32::AllTrue(32));
+
   MOVP2R(ARM64Reg::X8, &HLE::Execute);
   MOVI2R(ARM64Reg::W0, js.compilerPC);
   MOVI2R(ARM64Reg::W1, hook_index);
