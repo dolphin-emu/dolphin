@@ -642,6 +642,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="path_not_changeable_scoped_storage">Due to the Scoped Storage policy in Android 11 and newer, you can\'t change this path.</string>
     <string name="load_settings">Loading Settings…</string>
     <string name="setting_not_runtime_editable">This setting can\'t be changed while a game is running.</string>
+    <string name="ipl_not_found">IPL not found</string>
     <string name="setting_clear_info">Long press a setting to clear it.</string>
     <string name="setting_clear_confirm">Do you want to restore this setting to its default value?</string>
     <string name="setting_cleared">Setting cleared</string>
