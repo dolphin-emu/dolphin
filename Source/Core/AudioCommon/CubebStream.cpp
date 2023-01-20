@@ -17,8 +17,13 @@
 #include <Objbase.h>
 #endif
 
-// ~10 ms - needs to be at least 240 for surround
-constexpr u32 BUFFER_SAMPLES = 512;
+// 10 ms (at 48000Hz)
+// This needs to be <= 10ms or WASAPI IAudioClient3 might not initialize.
+constexpr u32 BUFFER_SAMPLES_STEREO = 480;
+// 10.0666 ms (at 48000Hz)
+// Surround/DPLII latency currently needs to be a multiple of 512.
+// TODO: review what happens if this is not respected (it's usually not)
+constexpr u32 BUFFER_SAMPLES_SURROUND = 512;
 
 long CubebStream::DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
                                void* output_buffer, long num_frames)
@@ -73,6 +78,9 @@ bool CubebStream::Init()
 
       cubeb_stream_params params{};
       params.rate = m_mixer->GetSampleRate();
+      // cubeb doesn't necessarily follow this latency,
+      // and requires it to be between 1 and 96000.
+      u32 latency_frames = m_stereo ? BUFFER_SAMPLES_STEREO : BUFFER_SAMPLES_SURROUND;
       if (m_stereo)
       {
         params.channels = 2;
@@ -86,15 +94,9 @@ bool CubebStream::Init()
         params.layout = CUBEB_LAYOUT_3F2_LFE;
       }
 
-      u32 minimum_latency = 0;
-      if (cubeb_get_min_latency(m_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
-        ERROR_LOG_FMT(AUDIO, "Error getting minimum latency");
-      INFO_LOG_FMT(AUDIO, "Minimum latency: {} frames", minimum_latency);
-
-      return_value =
-          cubeb_stream_init(m_ctx.get(), &m_stream, "Dolphin Audio Output", nullptr, nullptr,
-                            nullptr, &params, std::max(BUFFER_SAMPLES, minimum_latency),
-                            DataCallback, StateCallback, this) == CUBEB_OK;
+      return_value = cubeb_stream_init(m_ctx.get(), &m_stream, "Dolphin Audio Output", nullptr,
+                                       nullptr, nullptr, &params, latency_frames, DataCallback,
+                                       StateCallback, this) == CUBEB_OK;
     }
 
 #ifdef _WIN32
