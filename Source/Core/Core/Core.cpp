@@ -99,9 +99,6 @@ namespace Core
 static bool s_wants_determinism;
 
 // Declarations and definitions
-static Common::Timer s_timer;
-static u64 s_timer_offset;
-
 static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
 static bool s_is_started = false;
@@ -612,6 +609,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
   }
 
+  UpdateTitle();
+
   // ENTER THE VIDEO THREAD LOOP
   if (system.IsDualCoreMode())
   {
@@ -661,16 +660,11 @@ void SetState(State state)
     CPU::EnableStepping(true);  // Break
     Wiimote::Pause();
     ResetRumble();
-    s_timer_offset = s_timer.ElapsedMs();
     break;
   case State::Running:
   {
     CPU::EnableStepping(false);
     Wiimote::Resume();
-    // Restart timer, accounting for time that had elapsed between previous s_timer.Start() and
-    // emulator pause
-    s_timer.StartWithOffset(s_timer_offset);
-    s_timer_offset = 0;
     break;
   }
   default:
@@ -840,21 +834,6 @@ void RunOnCPUThread(std::function<void()> function, bool wait_for_completion)
   }
 }
 
-// Display FPS info
-// This should only be called from VI
-void VideoThrottle()
-{
-  g_perf_metrics.CountVBlank();
-
-  // Update info per second
-  u64 elapsed_ms = s_timer.ElapsedMs();
-  if ((elapsed_ms >= 500) || s_frame_step)
-  {
-    s_timer.Start();
-    UpdateTitle();
-  }
-}
-
 // --- Callbacks for backends / engine ---
 
 // Called from Renderer::Swap (GPU thread) when a new (non-duplicate)
@@ -890,58 +869,13 @@ void Callback_NewField()
 
 void UpdateTitle()
 {
-  const double FPS = g_perf_metrics.GetFPS();
-  const double VPS = g_perf_metrics.GetVPS();
-  const double Speed = 100.0 * g_perf_metrics.GetSpeed();
-
   // Settings are shown the same for both extended and summary info
   const std::string SSettings = fmt::format(
       "{} {} | {} | {}", PowerPC::GetCPUName(),
       Core::System::GetInstance().IsDualCoreMode() ? "DC" : "SC", g_video_backend->GetDisplayName(),
       Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
 
-  std::string SFPS;
-  if (Movie::IsPlayingInput())
-  {
-    SFPS = fmt::format("Input: {}/{} - VI: {}/{} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
-                       Movie::GetCurrentInputCount(), Movie::GetTotalInputCount(),
-                       Movie::GetCurrentFrame(), Movie::GetTotalFrames(), FPS, VPS, Speed);
-  }
-  else if (Movie::IsRecordingInput())
-  {
-    SFPS = fmt::format("Input: {} - VI: {} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
-                       Movie::GetCurrentInputCount(), Movie::GetCurrentFrame(), FPS, VPS, Speed);
-  }
-  else
-  {
-    SFPS = fmt::format("FPS: {:.0f} - VPS: {:.0f} - {:.0f}%", FPS, VPS, Speed);
-    if (Config::Get(Config::MAIN_EXTENDED_FPS_INFO))
-    {
-      // Use extended or summary information. The summary information does not print the ticks data,
-      // that's more of a debugging interest, it can always be optional of course if someone is
-      // interested.
-      static u64 ticks = 0;
-      static u64 idleTicks = 0;
-      auto& core_timing = Core::System::GetInstance().GetCoreTiming();
-      u64 newTicks = core_timing.GetTicks();
-      u64 newIdleTicks = core_timing.GetIdleTicks();
-
-      u64 diff = (newTicks - ticks) / 1000000;
-      u64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
-
-      ticks = newTicks;
-      idleTicks = newIdleTicks;
-
-      float TicksPercentage =
-          (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
-
-      SFPS += fmt::format(" | CPU: ~{} MHz [Real: {} + IdleSkip: {}] / {} MHz (~{:3.0f}%)", diff,
-                          diff - idleDiff, idleDiff, SystemTimers::GetTicksPerSecond() / 1000000,
-                          TicksPercentage);
-    }
-  }
-
-  std::string message = fmt::format("{} | {} | {}", Common::GetScmRevStr(), SSettings, SFPS);
+  std::string message = fmt::format("{} | {}", Common::GetScmRevStr(), SSettings);
   if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))
   {
     const std::string& title = SConfig::GetInstance().GetTitleDescription();

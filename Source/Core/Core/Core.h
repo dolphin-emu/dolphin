@@ -124,10 +124,6 @@ void DisplayMessage(std::string message, int time_in_ms);
 void FrameUpdateOnCPUThread();
 void OnFrameEnd();
 
-void VideoThrottle();
-
-void UpdateTitle();
-
 // Run a function as the CPU thread.
 //
 // If called from the Host thread, the CPU thread is paused and the current thread temporarily
@@ -170,5 +166,7 @@ void HostDispatchJobs();
 void DoFrameStep();
 
 void UpdateInputGate(bool require_focus, bool require_full_focus = false);
+
+void UpdateTitle();
 
 }  // namespace Core
