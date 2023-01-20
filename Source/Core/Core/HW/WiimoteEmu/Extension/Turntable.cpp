@@ -96,7 +96,7 @@ void Turntable::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   // left table
   {
     const ControllerEmu::Slider::StateData lt = m_left_table->GetState(m_input_override_function);
-    const s8 tt = MapFloat<u8>(lt.value, 0, 0, TABLE_RANGE);
+    const s8 tt = MapFloat<s8>(lt.value, 0, -TABLE_RANGE, TABLE_RANGE);
 
     tt_data.ltable1 = tt;
     tt_data.ltable2 = tt >> 5;
@@ -105,7 +105,7 @@ void Turntable::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   // right table
   {
     const ControllerEmu::Slider::StateData rt = m_right_table->GetState(m_input_override_function);
-    const s8 tt = MapFloat<u8>(rt.value, 0, 0, TABLE_RANGE);
+    const s8 tt = MapFloat<s8>(rt.value, 0, -TABLE_RANGE, TABLE_RANGE);
 
     tt_data.rtable1 = tt;
     tt_data.rtable2 = tt >> 1;

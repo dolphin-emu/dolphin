@@ -83,7 +83,7 @@ public:
   static constexpr u8 STICK_GATE_RADIUS = 0x16;
 
   static constexpr int TABLE_BIT_COUNT = 6;
-  static constexpr u8 TABLE_RANGE = (1 << STICK_BIT_COUNT) / 2 - 1;
+  static constexpr u8 TABLE_RANGE = (1 << TABLE_BIT_COUNT) / 2 - 1;
 
   static constexpr int EFFECT_DIAL_BIT_COUNT = 5;
   static constexpr u8 EFFECT_DIAL_CENTER = (1 << EFFECT_DIAL_BIT_COUNT) / 2;
