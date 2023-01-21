@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 // DolphinQt code copied and modified for Dolphin from the RPCS3 Qt utility for Creating, Loading
-// and Clearing skylanders
+// and Clearing Skylanders
 
 #include "DolphinQt/SkylanderPortal/SkylanderPortalWindow.h"
 
@@ -11,7 +11,6 @@
 #include <QCompleter>
 #include <QDialogButtonBox>
 #include <QEvent>
-#include <QFileDialog>
 #include <QGroupBox>
 #include <QKeyEvent>
 #include <QKeySequence>
@@ -522,7 +521,7 @@ const std::map<const std::pair<const u16, const u16>, const char*> list_skylande
 SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(tr("Skylanders Manager"));
-  setObjectName(tr("skylanders_manager"));
+  setObjectName(QString::fromStdString("skylanders_manager"));
   setMinimumSize(QSize(700, 200));
 
   CreateMainWindow();
@@ -611,7 +610,7 @@ void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state)
 CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Skylander Creator"));
-  setObjectName(tr("skylanders_creator"));
+  setObjectName(QString::fromStdString("skylanders_creator"));
   setMinimumSize(QSize(500, 150));
   auto* layout = new QVBoxLayout;
 
@@ -620,8 +619,8 @@ CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
   for (const auto& entry : list_skylanders)
   {
     const uint qvar = (entry.first.first << 16) | entry.first.second;
-    combo_skylist->addItem(tr(entry.second), QVariant(qvar));
-    filterlist << tr(entry.second);
+    combo_skylist->addItem(QString::fromStdString(entry.second), QVariant(qvar));
+    filterlist << QString::fromStdString(entry.second);
   }
   combo_skylist->addItem(tr("--Unknown--"), QVariant(0xFFFFFFFF));
   combo_skylist->setEditable(true);
@@ -645,7 +644,8 @@ CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
   auto* label_var = new QLabel(tr("Variant:"));
   auto* edit_id = new QLineEdit(tr("0"));
   auto* edit_var = new QLineEdit(tr("0"));
-  auto* rxv = new QRegularExpressionValidator(QRegularExpression(tr("\\d*")), this);
+  auto* rxv =
+      new QRegularExpressionValidator(QRegularExpression(QString::fromStdString("\\d*")), this);
   edit_id->setValidator(rxv);
   edit_var->setValidator(rxv);
   hbox_idvar->addWidget(label_id);
@@ -693,8 +693,7 @@ CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
     const auto found_sky = list_skylanders.find(std::make_pair(sky_id, sky_var));
     if (found_sky != list_skylanders.end())
     {
-      std::string name = std::string(found_sky->second) + ".sky";
-      predef_name += tr(name.c_str());
+      predef_name += QString::fromStdString(std::string(found_sky->second) + ".sky");
     }
     else
     {
@@ -702,8 +701,8 @@ CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
       predef_name += str.arg(sky_id, sky_var);
     }
 
-    m_file_path = QFileDialog::getSaveFileName(this, tr("Create Skylander File"), predef_name,
-                                               tr("Skylander Object (*.sky);;"));
+    m_file_path = DolphinFileDialog::getSaveFileName(this, tr("Create Skylander File"), predef_name,
+                                                     tr("Skylander Object (*.sky);;"));
     if (m_file_path.isEmpty())
     {
       return;
@@ -713,12 +712,12 @@ CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
 
     if (!system.GetSkylanderPortal().CreateSkylander(m_file_path.toStdString(), sky_id, sky_var))
     {
-      QMessageBox::warning(this, tr("Failed to create skylander file!"),
-                           tr("Failed to create skylander file:\n%1").arg(m_file_path),
+      QMessageBox::warning(this, tr("Failed to create Skylander file!"),
+                           tr("Failed to create Skylander file:\n%1").arg(m_file_path),
                            QMessageBox::Ok);
       return;
     }
-    s_last_skylander_path = QFileInfo(m_file_path).absolutePath() + tr("/");
+    s_last_skylander_path = QFileInfo(m_file_path).absolutePath() + QString::fromStdString("/");
     accept();
   });
 
@@ -753,13 +752,14 @@ void SkylanderPortalWindow::CreateSkylander(u8 slot)
 
 void SkylanderPortalWindow::LoadSkylander(u8 slot)
 {
-  const QString file_path = DolphinFileDialog::getOpenFileName(
-      this, tr("Select Skylander File"), s_last_skylander_path, tr("Skylander (*.sky);;"));
+  const QString file_path =
+      DolphinFileDialog::getOpenFileName(this, tr("Select Skylander File"), s_last_skylander_path,
+                                         QString::fromStdString("Skylander (*.sky);;"));
   if (file_path.isEmpty())
   {
     return;
   }
-  s_last_skylander_path = QFileInfo(file_path).absolutePath() + tr("/");
+  s_last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
 
   LoadSkylanderPath(slot, file_path);
 }
@@ -770,8 +770,8 @@ void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
   if (!sky_file)
   {
     QMessageBox::warning(
-        this, tr("Failed to open the skylander file!"),
-        tr("Failed to open the skylander file(%1)!\nFile may already be in use on the portal.")
+        this, tr("Failed to open the Skylander file!"),
+        tr("Failed to open the Skylander file(%1)!\nFile may already be in use on the portal.")
             .arg(path),
         QMessageBox::Ok);
     return;
@@ -780,8 +780,8 @@ void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
   if (!sky_file.ReadBytes(file_data.data(), file_data.size()))
   {
     QMessageBox::warning(
-        this, tr("Failed to read the skylander file!"),
-        tr("Failed to read the skylander file(%1)!\nFile was too small.").arg(path),
+        this, tr("Failed to read the Skylander file!"),
+        tr("Failed to read the Skylander file(%1)!\nFile was too small.").arg(path),
         QMessageBox::Ok);
     return;
   }
@@ -804,8 +804,8 @@ void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
   u8 portal_slot = system.GetSkylanderPortal().LoadSkylander(file_data.data(), std::move(sky_file));
   if (portal_slot == 0xFF)
   {
-    QMessageBox::warning(this, tr("Failed to load the skylander file!"),
-                         tr("Failed to load the skylander file(%1)!\n").arg(path), QMessageBox::Ok);
+    QMessageBox::warning(this, tr("Failed to load the Skylander file!"),
+                         tr("Failed to load the Skylander file(%1)!\n").arg(path), QMessageBox::Ok);
     return;
   }
   m_sky_slots[slot] = {portal_slot, sky_id, sky_var};
@@ -817,6 +817,13 @@ void SkylanderPortalWindow::ClearSkylander(u8 slot)
   auto& system = Core::System::GetInstance();
   if (auto slot_infos = m_sky_slots[slot])
   {
+    if (!system.GetSkylanderPortal().RemoveSkylander(slot_infos->portal_slot))
+    {
+      QMessageBox::warning(this, tr("Failed to clear Skylander!"),
+                           tr("Failed to clear the Skylander from slot(%1)!\n").arg(slot),
+                           QMessageBox::Ok);
+      return;
+    }
     system.GetSkylanderPortal().RemoveSkylander(slot_infos->portal_slot);
     m_sky_slots[slot].reset();
     UpdateEdits();
@@ -833,7 +840,7 @@ void SkylanderPortalWindow::UpdateEdits()
       auto found_sky = list_skylanders.find(std::make_pair(sd->sky_id, sd->sky_var));
       if (found_sky != list_skylanders.end())
       {
-        display_string = tr(found_sky->second);
+        display_string = QString::fromStdString(found_sky->second);
       }
       else
       {

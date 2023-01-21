@@ -107,6 +107,10 @@ protected:
   SkylanderLEDColor m_color_trap = {};
 
   std::array<Skylander, MAX_SKYLANDERS> skylanders;
+
+private:
+  static bool IsSkylanderNumberValid(u8 sky_num);
+  static bool IsBlockNumberValid(u8 block);
 };
 
 }  // namespace IOS::HLE::USB
