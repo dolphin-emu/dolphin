@@ -34,7 +34,7 @@ void InitLuaStatisticsFunctions(lua_State* luaState)
     {"isPlayingInput", isPlayingInput},
     {"isMovieActive", isMovieActive},
     {"getCurrentFrame", getCurrentFrame},
-    {"getMovieLegnth", getMovieLength},
+    {"getMovieLength", getMovieLength},
     {"getRerecordCount", getRerecordCount},
     {"getCurrentInputCount", getCurrentInputCount},
     {"getTotalInputCount", getTotalInputCount},

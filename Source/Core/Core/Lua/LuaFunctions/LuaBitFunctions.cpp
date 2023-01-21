@@ -5,6 +5,13 @@ namespace Lua
 {
 namespace LuaBit
 {
+class BitClass
+{
+public:
+  BitClass() {}
+};
+
+BitClass* bitInstance;
 
 BitClass* GetBitInstance()
 {

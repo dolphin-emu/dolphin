@@ -10,16 +10,6 @@ namespace Lua
 namespace LuaBit
 {
 
-class BitClass
-{
-public:
-  BitClass() {}
-};
-
-static BitClass* bitInstance;
-
-BitClass* GetInstance();
-
 void InitLuaBitFunctions(lua_State* luaState);
 int bitwise_and(lua_State* luaState);
 int bitwise_or(lua_State* luaState);

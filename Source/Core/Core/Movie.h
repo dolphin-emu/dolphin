@@ -201,4 +201,6 @@ std::string GetInputDisplay();
 std::string GetRTCDisplay();
 std::string GetRerecords();
 
+ControllerState GetLuaGCInputsForPort(int portNum);
+
 }  // namespace Movie

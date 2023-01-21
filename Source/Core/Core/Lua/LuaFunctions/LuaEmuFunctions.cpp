@@ -76,7 +76,7 @@ std::string checkIfFileExistsAndGetFileName(lua_State* luaState, const char* fun
   if (FILE* file = fopen(fileName.c_str(), "r"))
     fclose(file);
   else
-    luaL_error(luaState, (std::string("Error: Filename passed into emu:") + funcName +
+    luaL_error(luaState, (std::string("Error: Filename ") + fileName + " passed into emu:" + funcName +
                              "() did not represent a file which exists.").c_str());
   return fileName;
 }

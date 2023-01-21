@@ -96,6 +96,7 @@ static u32 s_rerecords = 0;
 static PlayMode s_playMode = PlayMode::None;
 
 static std::array<ControllerType, 4> s_controllers{};
+static std::array<ControllerState, 4> luaGameCubeInputs{};
 static std::array<bool, 4> s_wiimotes{};
 static ControllerState s_padState;
 static DTMHeader tmpHeader;
@@ -664,6 +665,8 @@ static std::string Analog1DToString(u32 v, const std::string& prefix, u32 range 
 // NOTE: CPU Thread
 static void SetInputDisplayString(ControllerState padState, int controllerID)
 {
+  luaGameCubeInputs[controllerID] = padState;
+
   std::string display_str = fmt::format("P{}:", controllerID + 1);
 
   if (padState.is_connected)
@@ -1676,4 +1679,10 @@ void Shutdown()
   s_currentInputCount = s_totalInputCount = s_totalFrames = s_tickCountAtLastInput = 0;
   s_temp_input.clear();
 }
+
+ControllerState GetLuaGCInputsForPort(int portNum)
+{
+  return luaGameCubeInputs[portNum];
+}
+
 }  // namespace Movie

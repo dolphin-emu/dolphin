@@ -49,7 +49,7 @@ void Init()
   LuaRegisters::InitLuaRegistersFunctions(mainLuaState);
   lua_gc(mainLuaState, LUA_GCSTOP);
   mainLuaThreadState = lua_newthread(mainLuaState);
-  if (luaL_loadfile(mainLuaThreadState, "LuaExamplesAndTests/LuaBitFunctionsTest.lua") != LUA_OK)
+  if (luaL_loadfile(mainLuaThreadState, "LuaExamplesAndTests/LuaGameCubeControllerFunctionsTest.lua") != LUA_OK)
   {
     const char* tempString = lua_tostring(mainLuaThreadState, -1);
     fprintf(stderr, "%s\n", tempString);
