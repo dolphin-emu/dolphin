@@ -34,7 +34,9 @@ public:
   GLuint GetGLTextureId() const { return m_texId; }
   GLenum GetGLTarget() const
   {
-    return IsMultisampled() ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY : GL_TEXTURE_2D_ARRAY;
+    return IsMultisampled()     ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY :
+           m_config.IsCubeMap() ? GL_TEXTURE_CUBE_MAP :
+                                  GL_TEXTURE_2D_ARRAY;
   }
   GLenum GetGLFormatForImageTexture() const;
 

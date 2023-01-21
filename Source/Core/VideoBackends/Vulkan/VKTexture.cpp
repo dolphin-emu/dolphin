@@ -70,7 +70,8 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
 
   VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
                                   nullptr,
-                                  0,
+                                  tex_config.IsCubeMap() ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT :
+                                                           static_cast<VkImageCreateFlags>(0),
                                   VK_IMAGE_TYPE_2D,
                                   GetVkFormatForHostTextureFormat(tex_config.format),
                                   {tex_config.width, tex_config.height, 1},
@@ -106,7 +107,8 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
 
   std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
       tex_config, alloc, image, name, VK_IMAGE_LAYOUT_UNDEFINED, ComputeImageLayout::Undefined);
-  if (!texture->CreateView(VK_IMAGE_VIEW_TYPE_2D_ARRAY))
+  if (!texture->CreateView(tex_config.IsCubeMap() ? VK_IMAGE_VIEW_TYPE_CUBE :
+                                                    VK_IMAGE_VIEW_TYPE_2D_ARRAY))
     return nullptr;
 
   return texture;
