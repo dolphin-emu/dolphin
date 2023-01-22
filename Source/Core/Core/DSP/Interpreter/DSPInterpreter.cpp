@@ -90,11 +90,6 @@ int Interpreter::RunCyclesThread(int cycles)
     if ((state.control_reg & CR_HALT) != 0)
       return 0;
 
-    if (state.external_interrupt_waiting.exchange(false, std::memory_order_acquire))
-    {
-      m_dsp_core.CheckExternalInterrupt();
-    }
-
     Step();
     cycles--;
     if (cycles <= 0)
