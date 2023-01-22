@@ -203,21 +203,35 @@ enum : u16
   SR_OVERFLOW = 0x0002,
   SR_ARITH_ZERO = 0x0004,
   SR_SIGN = 0x0008,
-  SR_OVER_S32 = 0x0010,  // Set when there was mod/tst/cmp on accu and result is over s32
-  SR_TOP2BITS = 0x0020,  // If the upper (ac?.m/ax?.h) 2 bits are equal
+  // Set when there was mod/tst/cmp on accu and result is over s32, i.e. the value can't fit in a
+  // s32 (the value doesn't match the sign extension from 32 bits to 40 bits, and saturation would
+  // occur on a store if enabled).
+  SR_OVER_S32 = 0x0010,
+  // If the upper (ac?.m/ax?.h) 2 bits are equal
+  SR_TOP2BITS = 0x0020,
+  // Used by ANDF/ANDCF (and also SBSET #0)
   SR_LOGIC_ZERO = 0x0040,
-  SR_OVERFLOW_STICKY =
-      0x0080,  // Set at the same time as 0x2 (under same conditions) - but not cleared the same
-  SR_100 = 0x0100,         // Unknown, always reads back as 0
-  SR_INT_ENABLE = 0x0200,  // Not 100% sure but duddie says so. This should replace the hack, if so.
-  SR_400 = 0x0400,         // Unknown
-  SR_EXT_INT_ENABLE = 0x0800,  // Appears in zelda - seems to disable external interrupts
-  SR_1000 = 0x1000,            // Unknown
-  SR_MUL_MODIFY = 0x2000,      // 1 = normal. 0 = x2   (M0, M2) (Free mul by 2)
-  SR_40_MODE_BIT = 0x4000,     // 0 = "16", 1 = "40"  (SET16, SET40)  Controls sign extension when
-                               // loading mid accums and data saturation for stores from mid accums.
-  SR_MUL_UNSIGNED = 0x8000,    // 0 = normal. 1 = unsigned  (CLR15, SET15) If set, treats ax?.l as
-                               // unsigned (MULX family only).
+  // Set at the same time as 0x2 (under same conditions) - but not cleared the same. SBSET #1.
+  SR_OVERFLOW_STICKY = 0x0080,
+  // Unknown, always reads back as 0
+  SR_100 = 0x0100,
+  // Must be set to receive exceptions other than the external interrupt. Disabled exceptions are
+  // lost (not queued). SBSET #3.
+  SR_INT_ENABLE = 0x0200,
+  // Unknown
+  SR_400 = 0x0400,
+  // Appears in zelda uCode - must be set to enable external interrupts. SBSET #5.
+  SR_EXT_INT_ENABLE = 0x0800,
+  // Also enables external interrupts, and automatically cleared after any exception (unlike the
+  // other one). SBSET #6.
+  SR_EXT_INT_ENABLE_2 = 0x1000,
+  // 1 = normal. 0 = x2 (M0, M2) (Free mul by 2)
+  SR_MUL_MODIFY = 0x2000,
+  // 0 = "16", 1 = "40" (SET16, SET40). Controls sign extension when loading mid accums and data
+  // saturation for stores from mid accums.
+  SR_40_MODE_BIT = 0x4000,
+  // 0 = normal. 1 = unsigned (CLR15, SET15). If set, treats ax?.l as unsigned (MULX family only).
+  SR_MUL_UNSIGNED = 0x8000,
 
   // This should be the bits affected by CMP. Does not include logic zero.
   SR_CMP_MASK = 0x3f
