@@ -156,9 +156,8 @@ void MemoryCard::FlushThread()
     if (do_exit)
       return;
 
-    Core::DisplayMessage(fmt::format("Wrote memory card {} contents to {}",
-                                     m_card_slot == ExpansionInterface::Slot::A ? 'A' : 'B',
-                                     m_filename),
+    Core::DisplayMessage(fmt::format("Wrote to Memory Card {}",
+                                     m_card_slot == ExpansionInterface::Slot::A ? 'A' : 'B'),
                          4000);
   }
 }
