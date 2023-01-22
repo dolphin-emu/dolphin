@@ -121,8 +121,8 @@ void DSPEmitter::checkExceptions(u16 retval)
   JMP(m_return_dispatcher, Jump::Near);
   SetJumpTarget(skip_return);
 
-  m_gpr.LoadRegs(false);
-  m_gpr.FlushRegs(c, false);
+  m_gpr.LoadRegs(true);
+  m_gpr.FlushRegs(c, true);
 
   SetJumpTarget(has_neither_exception_nor_external_interrupt);
 }
