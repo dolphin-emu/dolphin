@@ -400,12 +400,6 @@ struct SDSP
   // Returns true if PC changed.
   bool CheckExceptions();
 
-  // Notify that an external interrupt is pending (used by thread mode)
-  void SetExternalInterrupt(bool val);
-
-  // Coming from the CPU
-  void CheckExternalInterrupt();
-
   // Stores a value into the specified stack
   void StoreStack(StackRegister stack_reg, u16 val);
 
@@ -443,7 +437,6 @@ struct SDSP
 
   u8 reg_stack_ptrs[4]{};
   u8 exceptions = 0;  // pending exceptions
-  std::atomic<bool> external_interrupt_waiting = false;
   bool reset_dspjit_codespace = false;
 
   // DSP hardware stacks. They're mapped to a bunch of registers, such that writes
@@ -537,12 +530,6 @@ public:
   // Indicates that a particular exception has occurred
   // and sets a flag in the pending exception register.
   void SetException(ExceptionType exception);
-
-  // Notify that an external interrupt is pending (used by thread mode)
-  void SetExternalInterrupt(bool val);
-
-  // Coming from the CPU
-  void CheckExternalInterrupt();
 
   // Checks if any exceptions occurred and updates the DSP state as appropriate.
   // Returns true if PC changed.

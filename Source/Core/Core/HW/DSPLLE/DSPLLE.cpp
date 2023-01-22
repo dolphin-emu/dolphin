@@ -192,13 +192,6 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 value)
       // External interrupt pending: this is the zelda ucode.
       // Disable the DSP thread because there is no performance gain.
       m_request_disable_thread = true;
-
-      m_dsp_core.SetExternalInterrupt(true);
-    }
-    else
-    {
-      m_dsp_core.CheckExternalInterrupt();
-      m_dsp_core.CheckExceptions();
     }
   }
 

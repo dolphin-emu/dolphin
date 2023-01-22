@@ -50,12 +50,6 @@ DSPEmitter::~DSPEmitter()
 
 u16 DSPEmitter::RunCycles(u16 cycles)
 {
-  if (m_dsp_core.DSPState().external_interrupt_waiting.exchange(false, std::memory_order_acquire))
-  {
-    m_dsp_core.CheckExternalInterrupt();
-    m_dsp_core.CheckExceptions();
-  }
-
   m_cycles_left = cycles;
   auto exec_addr = (DSPCompiledCode)m_enter_dispatcher;
   exec_addr();
@@ -109,7 +103,12 @@ void DSPEmitter::checkExceptions(u16 retval)
 {
   // Check for interrupts and exceptions
   TEST(8, M_SDSP_exceptions(), Imm8(0xff));
-  FixupBranch skipCheck = J_CC(CC_Z, Jump::Near);
+  FixupBranch skipCheck = J_CC(CC_NZ, Jump::Near);
+
+  TEST(16, M_SDSP_control_reg(), Imm16(CR_EXTERNAL_INT));
+  FixupBranch skipCheck2 = J_CC(CC_Z, Jump::Near);
+
+  SetJumpTarget(skipCheck);
 
   MOV(16, M_SDSP_pc(), Imm16(m_compile_pc));
 
@@ -122,7 +121,7 @@ void DSPEmitter::checkExceptions(u16 retval)
   m_gpr.LoadRegs(false);  // TODO: Does this still make sense?
   m_gpr.FlushRegs(c, false);
 
-  SetJumpTarget(skipCheck);
+  SetJumpTarget(skipCheck2);
 }
 
 bool DSPEmitter::FlagsNeeded() const
@@ -437,13 +436,6 @@ void DSPEmitter::CompileDispatcher()
 
   const u8* dispatcherLoop = GetCodePtr();
 
-  FixupBranch exceptionExit;
-  if (Host::OnThread())
-  {
-    CMP(8, M_SDSP_external_interrupt_waiting(), Imm8(0));
-    exceptionExit = J_CC(CC_NE);
-  }
-
   // Check for DSP halt
   TEST(8, M_SDSP_control_reg(), Imm8(CR_HALT));
   FixupBranch _halt = J_CC(CC_NE);
@@ -463,10 +455,6 @@ void DSPEmitter::CompileDispatcher()
 
   // DSP gave up the remaining cycles.
   SetJumpTarget(_halt);
-  if (Host::OnThread())
-  {
-    SetJumpTarget(exceptionExit);
-  }
   // MOV(32, M(&cyclesLeft), Imm32(0));
   ABI_PopRegistersAndAdjustStack(registers_used, 8);
   RET();
@@ -489,14 +477,6 @@ Gen::OpArg DSPEmitter::M_SDSP_exceptions()
 Gen::OpArg DSPEmitter::M_SDSP_control_reg()
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, control_reg)));
-}
-
-Gen::OpArg DSPEmitter::M_SDSP_external_interrupt_waiting()
-{
-  static_assert(decltype(SDSP::external_interrupt_waiting)::is_always_lock_free &&
-                sizeof(SDSP::external_interrupt_waiting) == sizeof(u8));
-
-  return MDisp(R15, static_cast<int>(offsetof(SDSP, external_interrupt_waiting)));
 }
 
 Gen::OpArg DSPEmitter::M_SDSP_r_st(size_t index)
