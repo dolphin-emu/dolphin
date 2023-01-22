@@ -102,6 +102,8 @@ static bool CheckExceptionsThunk(DSPCore& dsp)
 void DSPEmitter::checkExceptions(u16 retval)
 {
   // Check for interrupts and exceptions
+  // TODO: Maybe we can use CL/CH registers to merge together these checks (with a 16-bit test
+  // afterwards)?
   TEST(8, M_SDSP_exceptions(), Imm8(0xff));
   FixupBranch skipCheck = J_CC(CC_NZ, Jump::Near);
 
