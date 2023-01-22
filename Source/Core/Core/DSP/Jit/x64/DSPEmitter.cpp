@@ -120,8 +120,8 @@ void DSPEmitter::checkExceptions(u16 retval)
   TEST(8, R(ABI_RETURN), R(ABI_RETURN));
   MOV(16, R(EAX), Imm16(retval));
   J_CC(CC_NZ, m_return_dispatcher);
-  m_gpr.LoadRegs(false);  // TODO: Does this still make sense?
-  m_gpr.FlushRegs(c, false);
+  m_gpr.LoadRegs(true);
+  m_gpr.FlushRegs(c, true);
 
   SetJumpTarget(skipCheck2);
 }
