@@ -407,6 +407,7 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   constexpr u32 PAL_v1_0 = 0x4F319F43;
   // DOL-101(EUR) (PAL Revision 1.2)
   constexpr u32 PAL_v1_2 = 0xAD1B7F16;
+  constexpr u32 Triforce = 0xD1883221;  // The Triforce's special IPL
 
   // Load the IPL ROM dump, limited to 2MiB which is the size of the official IPLs.
   constexpr size_t max_ipl_size = 2 * 1024 * 1024;
@@ -424,6 +425,7 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   const u32 ipl_hash = Common::ComputeCRC32(data.data(), data.size());
   bool known_ipl = false;
   bool pal_ipl = false;
+  bool triforce_ipl = false;
   switch (ipl_hash)
   {
   case NTSC_v1_0:
@@ -438,6 +440,9 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
     pal_ipl = true;
     known_ipl = true;
     break;
+  case Triforce:
+    known_ipl = true;
+    triforce_ipl = true;
   default:
     PanicAlertFmtT("The IPL file is not a known good dump. (CRC32: {0:x})", ipl_hash);
     break;
