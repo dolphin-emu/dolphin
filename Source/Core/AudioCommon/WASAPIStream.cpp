@@ -7,7 +7,6 @@
 
 // clang-format off
 #include <Audioclient.h>
-#include <comdef.h>
 #include <mmdeviceapi.h>
 #include <devpkey.h>
 #include <functiondiscoverykeys_devpkey.h>
