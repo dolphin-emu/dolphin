@@ -10,6 +10,9 @@ namespace Vulkan
 {
 
 void StartPresentWaitThread();
+void StopPresentWaitThread();
+
 void PresentQueued(u64 present_id, VkSwapchainKHR swapchain);
+void FlushPresentWaitQueue();
 
 }  // namespace Vulkan

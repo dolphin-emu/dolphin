@@ -228,9 +228,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     }
 
     if (g_vulkan_context->SupportsPresentWait())
-    {
       StartPresentWaitThread();
-    }
   }
 
   if (!StateTracker::CreateInstance())
@@ -251,6 +249,9 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
 void VideoBackend::Shutdown()
 {
+  if (g_vulkan_context->SupportsPresentWait())
+    StopPresentWaitThread();
+
   if (g_vulkan_context)
     vkDeviceWaitIdle(g_vulkan_context->GetDevice());
 

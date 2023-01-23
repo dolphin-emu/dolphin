@@ -7,48 +7,37 @@
 #include <thread>
 #include <tuple>
 
-#include "Common/BlockingLoop.h"
+#include "Common/WorkQueueThread.h"
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 
 #include "VideoCommon/PerformanceMetrics.h"
 
-#include <chrono>
-
 namespace Vulkan
 {
+static VkDevice s_device;
 
-static std::thread s_present_wait_thread;
-static Common::BlockingLoop s_present_wait_loop;
-
-static std::deque<std::tuple<u64, VkSwapchainKHR>> s_present_wait_queue;
-
-static void PresentWaitThreadFunc()
+struct Wait
 {
-  VkDevice device = g_vulkan_context->GetDevice();
+  u64 present_id;
+  VkSwapchainKHR swapchain;
+};
 
-  s_present_wait_loop.Run([device]() {
-    if (s_present_wait_queue.empty())
-    {
-      s_present_wait_loop.AllowSleep();
-      return;
-    }
-    u64 present_id;
-    VkSwapchainKHR swapchain;
-    std::tie(present_id, swapchain) = s_present_wait_queue.back();
+static Common::WorkQueueThread<Wait> s_present_wait_thread;
 
-    auto start = std::chrono::high_resolution_clock::now();
-
-    VkResult res = vkWaitForPresentKHR(device, swapchain, present_id, 100'000'000);  // 100ms
+void WaitFunction(Wait wait)
+{
+  do
+  {
+    // We choose a timeout of 20ms so can poll for IsFlushing
+    VkResult res = vkWaitForPresentKHR(s_device, wait.swapchain, wait.present_id, 20'000'000);
 
     if (res == VK_TIMEOUT)
     {
-      WARN_LOG_FMT(VIDEO, "vkWaitForPresentKHR timed out, retrying {}", present_id);
-      return;
+      WARN_LOG_FMT(VIDEO, "vkWaitForPresentKHR timed out, retrying {}", wait.present_id);
+      continue;
     }
-
-    s_present_wait_queue.pop_back();
 
     if (res != VK_SUCCESS)
     {
@@ -56,26 +45,32 @@ static void PresentWaitThreadFunc()
     }
 
     if (res == VK_SUCCESS)
-    {
-      auto end = std::chrono::high_resolution_clock::now();
-      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-      fmt::print("vkWaitForPresentKHR took {}us\n", duration.count());
-
       g_perf_metrics.CountPresent();
-    }
-  });
+
+    return;
+  } while (!s_present_wait_thread.IsCancelling());
 }
 
 void StartPresentWaitThread()
 {
-  fmt::print("Starting PresentWaitThread");
-  s_present_wait_thread = std::thread(PresentWaitThreadFunc);
+  s_device = g_vulkan_context->GetDevice();
+  s_present_wait_thread.Reset("PresentWait", WaitFunction);
+}
+
+void StopPresentWaitThread()
+{
+  s_present_wait_thread.Shutdown();
 }
 
 void PresentQueued(u64 present_id, VkSwapchainKHR swapchain)
 {
-  s_present_wait_queue.emplace_front(std::make_tuple(present_id, swapchain));
-  s_present_wait_loop.Wakeup();
+  s_present_wait_thread.EmplaceItem(Wait{present_id, swapchain});
+}
+
+void FlushPresentWaitQueue()
+{
+  s_present_wait_thread.Cancel();
+  s_present_wait_thread.WaitForCompletion();
 }
 
 }  // namespace Vulkan
