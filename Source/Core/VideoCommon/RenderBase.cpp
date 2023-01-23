@@ -1150,6 +1150,10 @@ void Renderer::BeginImGuiFrameUnlocked()
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize =
       ImVec2(static_cast<float>(m_backbuffer_width), static_cast<float>(m_backbuffer_height));
+  //set font and display framebuffer scale to scale relative to a 1920x1080 display based on display res 
+  io.DisplayFramebufferScale =
+      ImVec2((m_backbuffer_width/1920.f), (m_backbuffer_height/1080.f));
+  io.FontGlobalScale = (m_backbuffer_width / 1920.f);
   io.DeltaTime = time_diff_secs;
 
   ImGui::NewFrame();
