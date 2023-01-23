@@ -6,8 +6,6 @@ add_library(common
   BitSet.h
   BitUtils.h
   BlockingLoop.h
-  CDUtils.cpp
-  CDUtils.h
   ChunkFile.h
   CodeBlock.h
   ColorUtil.cpp
