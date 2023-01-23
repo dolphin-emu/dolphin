@@ -180,7 +180,6 @@ void DisplayMessage(std::string message, int time_in_ms)
   if (!std::all_of(message.begin(), message.end(), IsPrintableCharacter))
     return;
 
-  Host_UpdateTitle(message);
   OSD::AddMessage(std::move(message), time_in_ms);
 }
 
