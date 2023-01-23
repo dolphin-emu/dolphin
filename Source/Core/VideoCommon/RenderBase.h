@@ -31,8 +31,8 @@
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/PerformanceMetrics.h"
-#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConfig.h"
 
 class AbstractFramebuffer;

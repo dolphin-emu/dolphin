@@ -1352,8 +1352,8 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   if (xfb_addr && fb_width && fb_stride && fb_height)
   {
     // Get the current XFB from texture cache
-    
-    if(m_xfb_entry)
+
+    if (m_xfb_entry)
     {
       m_xfb_entry->ReleaseContentLock();
     }
@@ -1487,83 +1487,83 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
 void Renderer::UISwap()
 {
-    if (m_xfb_entry)
+  if (m_xfb_entry)
+  {
+    // Since we use the common pipelines here and draw vertices if a batch is currently being
+    // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
+    // with the loader, and it has not been unmapped yet. Force a pipeline flush to avoid this.
+    g_vertex_manager->Flush();
+
+    // Render any UI elements to the draw list.
     {
-      // Since we use the common pipelines here and draw vertices if a batch is currently being
-      // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
-      // with the loader, and it has not been unmapped yet. Force a pipeline flush to avoid this.
-      g_vertex_manager->Flush();
+      auto lock = GetImGuiLock();
 
-      // Render any UI elements to the draw list.
+      g_perf_metrics.DrawImGuiStats(m_backbuffer_scale);
+      DrawDebugText();
+      OSD::DrawMessages();
+      ImGui::Render();
+    }
+
+    // Render the XFB to the screen.
+    BeginUtilityDrawing();
+    if (!IsHeadless())
+    {
+      BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
+
+      UpdateDrawRectangle();
+
+      // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
+      auto render_target_rc = GetTargetRectangle();
+      auto render_source_rc = m_xfb_rect;
+      AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
+                                  m_backbuffer_height);
+      RenderXFBToScreen(render_target_rc, m_xfb_entry->texture.get(), render_source_rc);
+
+      DrawImGui();
+
+      // Present to the window system.
       {
-        auto lock = GetImGuiLock();
-
-        g_perf_metrics.DrawImGuiStats(m_backbuffer_scale);
-        DrawDebugText();
-        OSD::DrawMessages();
-        ImGui::Render();
+        std::lock_guard<std::mutex> guard(m_swap_mutex);
+        PresentBackbuffer();
       }
 
-      // Render the XFB to the screen.
-      BeginUtilityDrawing();
-      if (!IsHeadless())
-      {
-        BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
+      // Update the window size based on the frame that was just rendered.
+      // Due to depending on guest state, we need to call this every frame.
+      SetWindowSize(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
+    }
 
-        UpdateDrawRectangle();
+    g_shader_cache->RetrieveAsyncShaders();
+    g_vertex_manager->OnEndFrame();
+    BeginImGuiFrame();
 
-        // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
-        auto render_target_rc = GetTargetRectangle();
-        auto render_source_rc = m_xfb_rect;
-        AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
-                                    m_backbuffer_height);
-        RenderXFBToScreen(render_target_rc, m_xfb_entry->texture.get(), render_source_rc);
+    // We invalidate the pipeline object at the start of the frame.
+    // This is for the rare case where only a single pipeline configuration is used,
+    // and hybrid ubershaders have compiled the specialized shader, but without any
+    // state changes the specialized shader will not take over.
+    g_vertex_manager->InvalidatePipelineObject();
 
-        DrawImGui();
-
-        // Present to the window system.
-        {
-          std::lock_guard<std::mutex> guard(m_swap_mutex);
-          PresentBackbuffer();
-        }
-
-        // Update the window size based on the frame that was just rendered.
-        // Due to depending on guest state, we need to call this every frame.
-        SetWindowSize(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
-      }
-
-      g_shader_cache->RetrieveAsyncShaders();
-      g_vertex_manager->OnEndFrame();
-      BeginImGuiFrame();
-
-      // We invalidate the pipeline object at the start of the frame.
-      // This is for the rare case where only a single pipeline configuration is used,
-      // and hybrid ubershaders have compiled the specialized shader, but without any
-      // state changes the specialized shader will not take over.
-      g_vertex_manager->InvalidatePipelineObject();
-
-      if (m_force_reload_textures.TestAndClear())
-      {
-        g_texture_cache->ForceReload();
-      }
-      else
-      {
-        // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
-        // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
-        // copies.
-        g_texture_cache->FlushEFBCopies();
-      }
-
-      // Handle any config changes, this gets propagated to the backend.
-      CheckForConfigChanges();
-      g_Config.iSaveTargetId = 0;
-
-      EndUtilityDrawing();
+    if (m_force_reload_textures.TestAndClear())
+    {
+      g_texture_cache->ForceReload();
     }
     else
     {
-      Flush();
+      // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
+      // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
+      // copies.
+      g_texture_cache->FlushEFBCopies();
     }
+
+    // Handle any config changes, this gets propagated to the backend.
+    CheckForConfigChanges();
+    g_Config.iSaveTargetId = 0;
+
+    EndUtilityDrawing();
+  }
+  else
+  {
+    Flush();
+  }
 }
 
 void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,

@@ -128,7 +128,7 @@ bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
 void VideoSoftware::Shutdown()
 {
   if (g_shader_cache)
-  g_shader_cache->Shutdown();
+    g_shader_cache->Shutdown();
 
   if (g_renderer)
     g_renderer->Shutdown();

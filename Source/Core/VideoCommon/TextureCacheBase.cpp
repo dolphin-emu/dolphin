@@ -700,7 +700,8 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
     // Even if the texture isn't valid, we still need to create the cache entry object
     // to update the point in the state state. We'll just throw it away if it's invalid.
     auto tex = DeserializeTexture(p);
-    auto entry = std::make_shared<TCacheEntry>(std::move(tex->texture), std::move(tex->framebuffer));
+    auto entry =
+        std::make_shared<TCacheEntry>(std::move(tex->texture), std::move(tex->framebuffer));
     entry->textures_by_hash_iter = textures_by_hash.end();
     entry->DoState(p);
     if (entry->texture && commit_state)

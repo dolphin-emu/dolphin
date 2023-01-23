@@ -126,7 +126,7 @@ struct TCacheEntry
   bool is_xfb_copy = false;
   bool is_xfb_container = false;
   u64 id = 0;
-  u32 content_semaphore = 0; // Counts up
+  u32 content_semaphore = 0;  // Counts up
 
   // Indicates that this TCacheEntry has been invalided from textures_by_address
   bool invalidated = false;
