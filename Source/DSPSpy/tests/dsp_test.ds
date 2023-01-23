@@ -1,25 +1,19 @@
-incdir  "tests"
+incdir "tests"
 include "dsp_base.inc"
 
+;  Right here we are at a specific predetermined state.
+;  Ideal environment to try instructions.
+        
+;  We can call send_back at any time to send data back to the PowerPC.
+
 test_main:
-	CLR $ACC0
-	CLR $ACC1
+  lri $AC0.M, #0x1000
+  call send_back
 
-	LRIS $AX0.H, #1
-	CALL send_back
+  set40
+  lri $AC0.M, #0x1000
+  set16
+  call send_back
 
-
-	JMP end_of_test
-
-external_irq:
-	INC $ACC0
-	; LRIS $AX0.H, #3
-	; CALL send_back
-	RTI
-
-; Expected output ($AX0.H (send_back num), $AC0.L (interrupt count), and $SR):
-; 1, 0, 3824 (start)
-; 3, 1, 2820 (in interrupt handler)
-; 2, 1, 3820 (back out of interrupt handler)
-; DSPSpy shows "interrupt after 20 ticks / 0 tries" (exact number of ticks varies)
-; ACC1 is 7bb40 or so (also varies, and can vary between steps 2 and 3 if the interrupt happens on the JZ)
+; We're done, DO NOT DELETE THIS LINE
+  jmp end_of_test
