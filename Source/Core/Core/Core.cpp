@@ -162,6 +162,12 @@ void OnFrameEnd()
 #endif
 }
 
+void UpdateUI()
+{
+  if(GetState() == State::Paused)
+    g_video_backend->Video_UpdateUI();
+}
+
 // Display messages and return values
 
 // Formatted stop message

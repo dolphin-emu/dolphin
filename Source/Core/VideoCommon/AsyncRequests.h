@@ -26,6 +26,7 @@ public:
       EFB_PEEK_COLOR,
       EFB_PEEK_Z,
       SWAP_EVENT,
+      UI_SWAP_EVENT,
       BBOX_READ,
       FIFO_RESET,
       PERF_QUERY,

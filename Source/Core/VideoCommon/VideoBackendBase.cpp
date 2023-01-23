@@ -108,6 +108,13 @@ void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride
   }
 }
 
+void VideoBackendBase::Video_UpdateUI()
+{
+  AsyncRequests::Event e;
+  e.type = AsyncRequests::Event::UI_SWAP_EVENT;
+  AsyncRequests::GetInstance()->PushEvent(e, false);
+}
+
 u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data)
 {
   if (!g_ActiveConfig.bEFBAccessEnable || x >= EFB_WIDTH || y >= EFB_HEIGHT)

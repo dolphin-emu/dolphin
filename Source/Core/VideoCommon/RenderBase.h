@@ -229,6 +229,9 @@ public:
   // Finish up the current frame, print some stats
   void Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
+  // Keep UI Elements rendering
+  void UISwap();
+
   void UpdateWidescreenHeuristic();
 
   // Draws the specified XFB buffer to the screen, performing any post-processing.

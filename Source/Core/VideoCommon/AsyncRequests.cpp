@@ -156,6 +156,10 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
                      e.swap_event.fbHeight, e.time);
     break;
 
+  case Event::UI_SWAP_EVENT:
+    g_renderer->UISwap();
+    break;
+
   case Event::BBOX_READ:
     *e.bbox.data = g_renderer->BBoxRead(e.bbox.index);
     break;

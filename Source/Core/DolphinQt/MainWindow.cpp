@@ -11,6 +11,7 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QFileInfo>
+#include <QTimer>
 #include <QIcon>
 #include <QMimeData>
 #include <QStackedWidget>
@@ -290,6 +291,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
       return;
     }
   }
+
+  QTimer *timer = new QTimer(this);
+  QObject::connect(timer, &QTimer::timeout, this, &Core::UpdateUI);
+  timer->start(32);
 
   Host::GetInstance()->SetMainWindowHandle(reinterpret_cast<void*>(winId()));
 }
