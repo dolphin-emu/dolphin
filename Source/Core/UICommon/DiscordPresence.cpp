@@ -258,6 +258,8 @@ bool UpdateDiscordPresenceRaw(const std::string& details, const std::string& sta
   Discord_UpdatePresence(&discord_presence);
 
   return true;
+#else
+  return false;
 #endif
 }
 
