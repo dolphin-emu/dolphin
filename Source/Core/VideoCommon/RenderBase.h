@@ -31,6 +31,7 @@
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/PerformanceMetrics.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 
@@ -397,6 +398,9 @@ private:
 
   // Used to generate screenshot names.
   u32 m_frame_dump_image_counter = 0;
+
+  RcTcacheEntry m_xfb_entry;
+  MathUtil::Rectangle<int> m_xfb_rect;
 
   // Tracking of XFB textures so we don't render duplicate frames.
   u64 m_last_xfb_id = std::numeric_limits<u64>::max();

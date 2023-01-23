@@ -79,7 +79,6 @@
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -1353,14 +1352,19 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   if (xfb_addr && fb_width && fb_stride && fb_height)
   {
     // Get the current XFB from texture cache
-    MathUtil::Rectangle<int> xfb_rect;
-    const auto xfb_entry =
-        g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &xfb_rect);
-    const bool is_duplicate_frame = xfb_entry->id == m_last_xfb_id;
-
-    if (xfb_entry && (!g_ActiveConfig.bSkipPresentingDuplicateXFBs || !is_duplicate_frame))
+    
+    if(m_xfb_entry)
     {
-      m_last_xfb_id = xfb_entry->id;
+      m_xfb_entry->ReleaseContentLock();
+    }
+    m_xfb_entry =
+        g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &m_xfb_rect);
+    const bool is_duplicate_frame = m_xfb_entry->id == m_last_xfb_id;
+    m_xfb_entry->AcquireContentLock();
+
+    if (m_xfb_entry && (!g_ActiveConfig.bSkipPresentingDuplicateXFBs || !is_duplicate_frame))
+    {
+      m_last_xfb_id = m_xfb_entry->id;
 
       // Since we use the common pipelines here and draw vertices if a batch is currently being
       // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
@@ -1390,10 +1394,10 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
         // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
         auto render_target_rc = GetTargetRectangle();
-        auto render_source_rc = xfb_rect;
+        auto render_source_rc = m_xfb_rect;
         AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
                                     m_backbuffer_height);
-        RenderXFBToScreen(render_target_rc, xfb_entry->texture.get(), render_source_rc);
+        RenderXFBToScreen(render_target_rc, m_xfb_entry->texture.get(), render_source_rc);
 
         DrawImGui();
 
@@ -1405,7 +1409,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
         // Update the window size based on the frame that was just rendered.
         // Due to depending on guest state, we need to call this every frame.
-        SetWindowSize(xfb_rect.GetWidth(), xfb_rect.GetHeight());
+        SetWindowSize(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
       }
 
       if (!is_duplicate_frame)
@@ -1417,7 +1421,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
         DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
 
         if (IsFrameDumping())
-          DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks, m_frame_count);
+          DumpCurrentFrame(m_xfb_entry->texture.get(), m_xfb_rect, ticks, m_frame_count);
 
         // Begin new frame
         m_frame_count++;
@@ -1483,12 +1487,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
 void Renderer::UISwap()
 {
-    // Get the current XFB from texture cache
-    MathUtil::Rectangle<int> xfb_rect;
-    const auto* xfb_entry =
-        g_texture_cache->GetXFBTexture(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_height, m_last_xfb_stride, &xfb_rect);
-
-    if (xfb_entry)
+    if (m_xfb_entry)
     {
       // Since we use the common pipelines here and draw vertices if a batch is currently being
       // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
@@ -1515,10 +1514,10 @@ void Renderer::UISwap()
 
         // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
         auto render_target_rc = GetTargetRectangle();
-        auto render_source_rc = xfb_rect;
+        auto render_source_rc = m_xfb_rect;
         AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
                                     m_backbuffer_height);
-        RenderXFBToScreen(render_target_rc, xfb_entry->texture.get(), render_source_rc);
+        RenderXFBToScreen(render_target_rc, m_xfb_entry->texture.get(), render_source_rc);
 
         DrawImGui();
 
@@ -1530,7 +1529,7 @@ void Renderer::UISwap()
 
         // Update the window size based on the frame that was just rendered.
         // Due to depending on guest state, we need to call this every frame.
-        SetWindowSize(xfb_rect.GetWidth(), xfb_rect.GetHeight());
+        SetWindowSize(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
       }
 
       g_shader_cache->RetrieveAsyncShaders();
