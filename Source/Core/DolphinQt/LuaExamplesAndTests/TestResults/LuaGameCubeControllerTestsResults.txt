@@ -1,1 +1,189 @@
-true
+Test 1:
+	Running through 1000 frames of calling addButtonFlipChance() on controller 1 with 13% chance of flipping button B...
+	Impacted frames made up 13.586413586414% of all frames, which was in the acceptable range of +- 8% of the selected probability of 13%
+PASS!
+
+Test: 2
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button A...
+PASS!
+
+Test: 3
+	Calling addButtonFlipChance() on controller 2 with 100% probability of flipping button A...
+PASS!
+
+Test: 4
+	Calling addButtonFlipChance() on controller 3 with 100% probability of flipping button A...
+PASS!
+
+Test: 5
+	Calling addButtonFlipChance() on controller 4 with 100% probability of flipping button A...
+PASS!
+
+Test: 6
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button B...
+PASS!
+
+Test: 7
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button X...
+PASS!
+
+Test: 8
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button Y...
+PASS!
+
+Test: 9
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button Z...
+PASS!
+
+Test: 10
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button L...
+PASS!
+
+Test: 11
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button R...
+PASS!
+
+Test: 12
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button START...
+PASS!
+
+Test: 13
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button RESET...
+PASS!
+
+Test: 14
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button dPadUp...
+PASS!
+
+Test: 15
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button dPadDown...
+PASS!
+
+Test: 16
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button dPadLeft...
+PASS!
+
+Test: 17
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button dPadRight...
+PASS!
+
+Test: 18
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button B (but after setting button B to pressed)...
+PASS!
+
+Test: 19
+	Calling addButtonFlipChance() on controller 1 twice in a row with 100% probability of flipping button X...
+PASS!
+
+Test: 20
+	Calling addButtonFlipChance() on controller 1 three times in a row with 100% probability of flipping button Y...
+PASS!
+
+Test: 21
+	Calling addButtonFlipChance() on controller 1 with 0% probability of flipping button A to pressed...
+PASS!
+
+----------------------------------------------------------------------------------
+
+Test: 22
+	Calling setInput() on controller 1 with just setting A button...
+PASS!
+
+Test: 23
+	Calling setInput() on controller 1 with just setting B button...
+PASS!
+
+Test: 24
+	Calling setInput() on controller 1 with just setting X button...
+PASS!
+
+Test: 25
+	Calling setInput() on controller 1 with just setting Y button...
+PASS!
+
+Test: 26
+	Calling setInput() on controller 1 with just setting Z button...
+PASS!
+
+Test: 27
+	Calling setInput() on controller 1 with just setting L button...
+PASS!
+
+Test: 28
+	Calling setInput() on controller 1 with just setting R button...
+PASS!
+
+Test: 29
+	Calling setInput() on controller 1 with just setting START button...
+PASS!
+
+Test: 30
+	Calling setInput() on controller 1 with just setting RESET button...
+PASS!
+
+Test: 31
+	Calling setInput() on controller 1 with just setting triggerL to 183...
+PASS!
+
+Test: 32
+	Calling setInput() on controller 1 with just setting triggerR to 112...
+PASS!
+
+Test: 33
+	Calling setInput() on controller 1 with just setting dPadUp...
+PASS!
+
+Test: 34
+	Calling setInput() on controller 1 with just setting dPadDown button...
+PASS!
+
+Test: 35
+	Calling setInput() on controller 1 with just setting dPadLeft button...
+PASS!
+
+Test: 36
+	Calling setInput() on controller 1 with just setting dPadRight button...
+PASS!
+
+Test: 37
+	Calling setInput() on controller 1 with just setting analogStickX to 31...
+PASS!
+
+Test: 38
+	Calling setInput() on controller 1 with just setting analogStickY to 90...
+PASS!
+
+Test: 39
+	Calling setInput() on controller 1 with just setting cStickX to 201...
+PASS!
+
+Test: 40
+	Calling setInput() on controller 1 with just setting cStickY button to 64...
+PASS!
+
+Test: 41
+	Calling setInput() on controller 1 with setting A to pressed and cStickX to 232...
+PASS!
+
+Test: 42
+	Calling setInputs() on controller  1 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test: 43
+	Calling setInput() on controller 2 with just setting A button...
+PASS!
+
+Test: 44
+	Calling setInput() on controller 2 with just setting B button...
+PASS!
+
+Test: 45
+	Calling setInput() on controller 2 with just setting X button...
+PASS!
+
+Test: 46
+	Calling setInput() on controller 2 with just setting Y button...
+PASS!
+
+Test: 47
+	Calling setInput() on controller 2 with just setting Z button...

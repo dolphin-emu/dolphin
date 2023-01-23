@@ -312,6 +312,7 @@ gc_controller_lua* getControllerInstance()
 
       case RESET:
         addToControllerInputs[controllerPortNumber - 1].reset = lua_toboolean(luaState, -1);
+        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(RESET);
         break;
 
       case analogStickX:
@@ -743,8 +744,6 @@ gc_controller_lua* getControllerInstance()
     for (int buttonCode = A; buttonCode != UNKNOWN; ++buttonCode)
     {
       const char* buttonNameString = convertButtonEnumToString(static_cast<GC_BUTTON_NAME>(buttonCode));
-      if (static_cast<GC_BUTTON_NAME>(buttonCode) == RESET)
-        continue;
       lua_pushlstring(luaState, buttonNameString, std::strlen(buttonNameString));
 
       switch (static_cast<GC_BUTTON_NAME>(buttonCode))
@@ -779,6 +778,10 @@ gc_controller_lua* getControllerInstance()
         break;
       case START:
         buttonPressed = controllerInputs.Start;
+        lua_pushboolean(luaState, buttonPressed);
+        break;
+      case RESET:
+        buttonPressed = controllerInputs.reset;
         lua_pushboolean(luaState, buttonPressed);
         break;
       case dPadUp:

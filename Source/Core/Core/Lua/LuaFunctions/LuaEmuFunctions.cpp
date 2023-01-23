@@ -14,7 +14,14 @@ namespace LuaEmu
   bool waitingToStartPlayingMovie = false;
   bool waitingToSaveMovie = false;
 
-class emu
+  std::string loadStateName;
+  std::string saveStateName;
+  std::string moviePathName;
+  std::string playMovieName;
+  std::optional<std::string> blankString;
+  std::string saveMovieName;
+
+  class emu
 {
 public:
   inline emu() {}
@@ -58,8 +65,7 @@ void StatePauseFunction()
 int emu_frameAdvance(lua_State* luaState)
 {
   luaColonOperatorTypeCheck(luaState, "frameAdvance", "emu:frameAdvance()");
-  lua_yield(luaState, 0);
-  return 0;
+  return lua_yield(luaState, 0);
 }
 
 void convertToUpperCase(std::string& inputString)
@@ -84,44 +90,42 @@ std::string checkIfFileExistsAndGetFileName(lua_State* luaState, const char* fun
 int emu_loadState(lua_State* luaState)
 {
   luaColonOperatorTypeCheck(luaState, "loadState", "emu:loadState(stateFileName)");
-  std::string stateName = checkIfFileExistsAndGetFileName(luaState, "loadState");
+  loadStateName = checkIfFileExistsAndGetFileName(luaState, "loadState");
   waitingForSaveStateLoad = true;
-  Core::QueueHostJob([=]() { State::LoadAs(stateName); });
-  lua_yield(luaState, 0);
-  return 0;
+  Core::QueueHostJob([=]() { State::LoadAs(loadStateName); });
+  return lua_yield(luaState, 0);
 }
 
 int emu_saveState(lua_State* luaState)
 {
   luaColonOperatorTypeCheck(luaState, "saveState", "emu:saveState(stateFileName)");
-  std::string stateName = checkIfFileExistsAndGetFileName(luaState, "saveState");
+  saveStateName = checkIfFileExistsAndGetFileName(luaState, "saveState");
   waitingForSaveStateSave = true;
-  Core::QueueHostJob([=]() { State::SaveAs(stateName); });
-  lua_yield(luaState, 0);
-  return 0;
+  Core::QueueHostJob([=]() { State::SaveAs(saveStateName); });
+  return lua_yield(luaState, 0);
 }
 
 int emu_playMovie(lua_State* luaState)
 {
   luaColonOperatorTypeCheck(luaState, "playMovie", "emu:playMovie(movieFileName)");
-  const std::string movieName = checkIfFileExistsAndGetFileName(luaState, "playMovie");
+  playMovieName = checkIfFileExistsAndGetFileName(luaState, "playMovie");
   waitingToStartPlayingMovie = true;
   Core::QueueHostJob([=]() {
-    std::optional<std::string> saveStatePath;
-    Movie::PlayInput(movieName, &saveStatePath);
+    Movie::EndPlayInput(false);
+    Movie::PlayInput(playMovieName, &blankString);
   });
-  lua_yield(luaState, 0);
-  return 0;
+  return lua_yield(luaState, 0);
 }
 
 int emu_saveMovie(lua_State* luaState)
 {
   luaColonOperatorTypeCheck(luaState, "saveMovie", "emu:saveMovie(movieFileName)");
-  const std::string moviePath = luaL_checkstring(luaState, 2);
+  saveMovieName = luaL_checkstring(luaState, 2);
   waitingToSaveMovie = true;
-  Core::QueueHostJob([=]() { Movie::SaveRecording(moviePath); });
-  lua_yield(luaState, 0);
-  return 0;
+  Core::QueueHostJob([=]() {
+    Movie::SaveRecording(saveMovieName);
+  });
+  return lua_yield(luaState, 0);
 }
 
 }  // namespace Lua_emu
