@@ -70,6 +70,19 @@ public:
     }
   }
 
+  // Doesn't return until the most recent function invocation has finished.
+  void Flush()
+  {
+    if (m_thread.joinable())
+    {
+      m_flush.Set();
+      Clear();
+      m_flushed.Wait();
+    }
+  }
+
+  bool IsFlushing() const { return m_flush.IsSet() || m_shutdown.IsSet(); }
+
 private:
   void ThreadLoop()
   {
@@ -83,7 +96,14 @@ private:
       {
         std::unique_lock lg(m_lock);
         if (m_items.empty())
+        {
+          if (m_flush.IsSet())
+          {
+            m_flush.Clear();
+            m_flushed.Set();
+          }
           break;
+        }
         T item{std::move(m_items.front())};
         m_items.pop();
         lg.unlock();
@@ -101,6 +121,8 @@ private:
   Common::Event m_wakeup;
   Common::Flag m_shutdown;
   Common::Flag m_cancelled;
+  Common::Flag m_flush;
+  Common::Event m_flushed;
   std::mutex m_lock;
   std::queue<T> m_items;
 };
