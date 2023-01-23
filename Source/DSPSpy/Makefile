@@ -31,10 +31,10 @@ INCLUDES	:=	include ../Core/Common .
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS	= -save-temps -O2 -Wall --no-strict-aliasing $(MACHDEP) $(INCLUDE)
+CFLAGS	= -gdwarf-4 -save-temps -O0 -Wall --no-strict-aliasing $(MACHDEP) $(INCLUDE)
 CXXFLAGS	=	-std=c++17 -Wno-register $(CFLAGS)
 
-LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
+LDFLAGS	=	-g $(MACHDEP) -gdwarf-4 -Wl,-Map,$(notdir $@).map
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project

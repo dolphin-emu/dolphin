@@ -52,11 +52,11 @@ void RealDSP::SendMailTo(u32 mail)
   DSP_SendMailTo(mail);
 }
 
-void RealDSP::SetInterrupt()
+void RealDSP::SetInterrupt(bool value)
 {
   u32 level;
   _CPU_ISR_Disable(level);
-  _dspReg[5] = (_dspReg[5] & ~(DSPCR_AIINT | DSPCR_ARINT | DSPCR_DSPINT)) | DSPCR_PIINT;
+  _dspReg[5] = (_dspReg[5] & ~(DSPCR_AIINT | DSPCR_ARINT | DSPCR_DSPINT | DSPCR_PIINT)) | (value ? DSPCR_PIINT : 0);
   _CPU_ISR_Restore(level);
 }
 

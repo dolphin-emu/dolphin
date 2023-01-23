@@ -12,6 +12,6 @@ public:
   void Reset() override;
   u32 CheckMailTo() override;
   void SendMailTo(u32 mail) override;
-  void SetInterrupt() override;
+  void SetInterrupt(bool value) override;
   bool CheckInterrupt() override;
 };

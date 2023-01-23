@@ -26,7 +26,7 @@ public:
   virtual void Reset() = 0;
   virtual u32 CheckMailTo() = 0;
   virtual void SendMailTo(u32 mail) = 0;
-  virtual void SetInterrupt() = 0;
+  virtual void SetInterrupt(bool value) = 0;
   virtual bool CheckInterrupt() = 0;
 
   // Yeah, yeah, having a method here makes this not a pure interface - but

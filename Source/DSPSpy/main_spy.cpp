@@ -433,7 +433,7 @@ void handle_dsp_mail(void)
       else
       {
         const u32 now = gettick();
-        real_dsp.SetInterrupt();
+        real_dsp.SetInterrupt(true);
         u32 end = gettick();
         u32 tries = 0;
         while (real_dsp.CheckInterrupt() && end - now < 1000000)
@@ -450,6 +450,20 @@ void handle_dsp_mail(void)
           CON_PrintRow(4, 25, "No interrupt after %d ticks / %d tries", end - now, tries);
         }
       }
+    }
+    else if (mail == 0x88885370)
+    {
+      real_dsp.SetInterrupt(false);
+      real_dsp.SendMailTo(real_dsp.CheckInterrupt() ? 0x99995372 : 0x99995370);
+      while (real_dsp.CheckMailTo())
+        ;
+    }
+    else if (mail == 0x88885372)
+    {
+      real_dsp.SetInterrupt(true);
+      real_dsp.SendMailTo(real_dsp.CheckInterrupt() ? 0x99995372 : 0x99995370);
+      //while (real_dsp.CheckMailTo())
+      //  ;
     }
 
     // SDK status mails
