@@ -73,11 +73,11 @@ void AsyncRequests::PullEventsInternal()
   }
 }
 
-void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
+void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking, bool no_passthrough)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
-  if (m_passthrough)
+  if (m_passthrough && !no_passthrough)
   {
     HandleEvent(event);
     return;

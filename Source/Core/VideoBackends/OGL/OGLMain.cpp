@@ -208,9 +208,9 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
 void VideoBackend::Shutdown()
 {
+  ShutdownShared();
+
   ProgramShaderCache::Shutdown();
   g_sampler_cache.reset();
-
-  ShutdownShared();
 }
 }  // namespace OGL

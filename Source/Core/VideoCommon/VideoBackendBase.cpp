@@ -113,7 +113,7 @@ void VideoBackendBase::Video_UpdateUI()
 {
   AsyncRequests::Event e;
   e.type = AsyncRequests::Event::UI_SWAP_EVENT;
-  AsyncRequests::GetInstance()->PushEvent(e, false);
+  AsyncRequests::GetInstance()->PushEvent(e, false, true);
 }
 
 u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data)

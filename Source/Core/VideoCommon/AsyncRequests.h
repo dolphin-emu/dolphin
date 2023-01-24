@@ -86,7 +86,7 @@ public:
     if (!m_empty.IsSet())
       PullEventsInternal();
   }
-  void PushEvent(const Event& event, bool blocking = false);
+  void PushEvent(const Event& event, bool blocking = false, bool no_passthrough = false);
   void WaitForEmptyQueue();
   void SetEnable(bool enable);
   void SetPassthrough(bool enable);
