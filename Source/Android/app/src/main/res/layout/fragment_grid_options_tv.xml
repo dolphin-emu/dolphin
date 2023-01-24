@@ -24,11 +24,14 @@
 
             <TextView
                 android:id="@+id/text_download_covers"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
                 android:text="@string/download_game_covers"
+                android:textAlignment="viewStart"
                 app:layout_constraintBottom_toBottomOf="@+id/switch_download_covers"
+                app:layout_constraintEnd_toStartOf="@+id/switch_download_covers"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/switch_download_covers" />
 
