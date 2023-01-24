@@ -236,7 +236,7 @@ bool SDSP::CheckExceptions()
 
         pc = static_cast<u16>(i * 2);
         exceptions &= ~(1 << i);
-        r.sr &= ~SR_EXT_INT_ENABLE;
+        r.sr &= ~SR_EXT_INT_ENABLE_2;
         return true;
       }
       else
