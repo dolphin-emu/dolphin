@@ -71,6 +71,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="@string/convert_format_info"
+                android:textAlignment="viewStart"
                 app:layout_constraintWidth_max="400dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
