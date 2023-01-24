@@ -385,7 +385,7 @@
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
     <string name="vi_overclock_enable">Override VI Clock Speed</string>
-    <string name="vi_overclock_enable_description">Higher values may make games run at a higher framerate without changing audio, which MAY impact game speed. Lower values MAY activate a game's internal frameskip, potentially improving performance.</string>
+    <string name="vi_overclock_enable_description">Higher values may make games run at a higher framerate without changing audio, which MAY impact game speed. Lower values MAY activate a game\'s internal frameskip, potentially improving performance.</string>
     <string name="vi_overclock_title">Emulated VI Clock Speed</string>
     <string name="vi_overclock_title_description">Adjusts the emulated VI clock rate if \"Override VI Clock Speed\" is enabled.</string>
     <string name="synchronize_gpu_thread">Synchronize GPU Thread</string>
