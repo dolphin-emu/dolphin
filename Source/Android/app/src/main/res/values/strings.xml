@@ -463,6 +463,7 @@
     <string name="grid_menu_load_wii_system_menu">Load Wii System Menu</string>
     <string name="grid_menu_load_wii_system_menu_installed">Load Wii System Menu (%s)</string>
     <string name="grid_menu_load_vwii_system_menu_installed">Load vWii System Menu (%s)</string>
+    <string name="grid_menu_about">About</string>
     <string name="import_in_progress">Importing…</string>
     <string name="export_in_progress">Exporting…</string>
     <string name="do_not_close_app">Do not close the app!</string>
@@ -859,5 +860,17 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="compression_lzma">LZMA (slow)</string>
     <string name="compression_lzma2">LZMA2 (slow)</string>
     <string name="compression_zstandard">Zstandard (recommended)</string>
+
+    <!-- About dialog -->
+    <string name="about_dolphin">Dolphin</string>
+    <string name="wark">WARK WARK WARK</string>
+    <string name="about_dolphin_image">Dolphin logo</string>
+    <string name="about_branch">Branch:\n%s</string>
+    <string name="about_revision">Revision:\n%s</string>
+    <string name="about_dolphin_description">Dolphin is a free and open-source GameCube and Wii emulator.\n\nThis software should not be used to play games you do not legally own.</string>
+    <string name="about_website"><a href="https://dolphin-emu.org/">Website</a></string>
+    <string name="about_github"><a href="https://github.com/dolphin-emu/dolphin">GitHub</a></string>
+    <string name="about_support"><a href="https://forums.dolphin-emu.org/">Support</a></string>
+    <string name="about_copyright_warning">\u00A9 2003–2015+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.</string>
 
 </resources>

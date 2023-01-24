@@ -2,13 +2,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Theme.Dolphin.Splash.Main" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/dolphin_surface</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_dolphin</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_dolphin_launcher</item>
         <item name="postSplashScreenTheme">@style/Theme.Dolphin.Main</item>
     </style>
 
     <style name="Theme.Dolphin.Splash.TV" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/dolphin_surface</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_dolphin</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_dolphin_launcher</item>
         <item name="postSplashScreenTheme">@style/Theme.Dolphin.TV</item>
     </style>
 

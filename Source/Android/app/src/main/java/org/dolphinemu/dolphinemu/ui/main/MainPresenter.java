@@ -21,6 +21,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateProgressBarDialogFragment;
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemMenuNotInstalledDialogFragment;
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateViewModel;
+import org.dolphinemu.dolphinemu.fragments.AboutDialogFragment;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
@@ -135,6 +136,9 @@ public final class MainPresenter
         new AfterDirectoryInitializationRunner().runWithLifecycle(activity,
                 () -> mView.launchOpenFileActivity(REQUEST_NAND_BIN_FILE));
         return true;
+
+      case R.id.menu_about:
+        showAboutDialog();
     }
 
     return false;
@@ -336,5 +340,10 @@ public final class MainPresenter
                         "SystemMenuNotInstalledDialogFragment");
       }
     });
+  }
+
+  private void showAboutDialog()
+  {
+    new AboutDialogFragment().show(mActivity.getSupportFragmentManager(), AboutDialogFragment.TAG);
   }
 }
