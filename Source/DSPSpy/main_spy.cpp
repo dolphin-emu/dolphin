@@ -454,6 +454,7 @@ void handle_dsp_mail(void)
     else if (mail == 0x88885370)
     {
       real_dsp.SetInterrupt(false);
+      CON_PrintRow(4, 25, "Test %d", real_dsp.CheckInterrupt());
       //real_dsp.SendMailTo(real_dsp.CheckInterrupt() ? 0x99995372 : 0x99995370);
       //while (real_dsp.CheckMailTo())
       //  ;
