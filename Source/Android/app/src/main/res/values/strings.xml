@@ -330,6 +330,8 @@
     <string name="show_vtimes_description">Shows the average time in ms between each rendered frame alongside the standard deviation.</string>
     <string name="show_graphs">Show Performance Graphs</string>
     <string name="show_graphs_description">Shows frametime graph along with statistics as a representation of emulation performance.</string>
+    <string name="performance_sample_window">Performance Sample Window</string>
+    <string name="performance_sample_window_description">The amount of time the FPS and VPS counters will sample over. The higher the value, the more stable the FPS/VPS counter will be, but the slower it will be to update.</string>
     <string name="show_speed">Show % Speed</string>
     <string name="show_speed_description">Shows the % speed of emulation compared to full speed.</string>
     <string name="show_speed_colors">Show Speed Color</string>

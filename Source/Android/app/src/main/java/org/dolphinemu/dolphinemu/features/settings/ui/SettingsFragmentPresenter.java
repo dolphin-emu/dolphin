@@ -907,6 +907,9 @@ public final class SettingsFragmentPresenter
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_LOG_RENDER_TIME_TO_FILE,
             R.string.log_render_time_to_file,
             R.string.log_render_time_to_file_description));
+    sl.add(new IntSliderSetting(mContext, IntSetting.GFX_PERF_SAMP_WINDOW,
+            R.string.performance_sample_window, R.string.performance_sample_window_description, 0,
+            10000, "ms"));
   }
 
   private void addAdvancedGraphicsSettings(ArrayList<SettingsItem> sl)

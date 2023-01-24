@@ -67,6 +67,8 @@ public enum IntSetting implements AbstractIntSetting
   GFX_STEREO_CONVERGENCE_PERCENTAGE(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY,
           "StereoConvergencePercentage", 100),
 
+  GFX_PERF_SAMP_WINDOW(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "PerfSampWindowMS", 1000),
+
   LOGGER_VERBOSITY(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "Verbosity", 1),
 
   WIIMOTE_1_SOURCE(Settings.FILE_WIIMOTE, "Wiimote1", "Source", 1),
