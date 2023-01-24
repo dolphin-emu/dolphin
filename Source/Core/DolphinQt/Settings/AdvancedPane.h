@@ -34,10 +34,16 @@ private:
   QCheckBox* m_enable_mmu_checkbox;
   QCheckBox* m_pause_on_panic_checkbox;
   QCheckBox* m_accurate_cpu_cache_checkbox;
+  
   QCheckBox* m_cpu_clock_override_checkbox;
   QSlider* m_cpu_clock_override_slider;
   QLabel* m_cpu_clock_override_slider_label;
   QLabel* m_cpu_clock_override_description;
+
+  QCheckBox* m_vi_clock_override_checkbox;
+  QSlider* m_vi_clock_override_slider;
+  QLabel* m_vi_clock_override_slider_label;
+  QLabel* m_vi_clock_override_description;
 
   QCheckBox* m_custom_rtc_checkbox;
   QDateTimeEdit* m_custom_rtc_datetime;

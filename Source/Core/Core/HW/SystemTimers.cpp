@@ -148,7 +148,20 @@ void VICallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   auto& core_timing = system.GetCoreTiming();
   VideoInterface::Update(core_timing.GetTicks() - cyclesLate);
-  core_timing.ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
+
+  const u32 ticks_per_halfline = VideoInterface::GetTicksPerHalfLine();
+
+  if (Config::Get(Config::MAIN_VI_OVERCLOCK_ENABLE))
+  {
+    const float overclock = Config::Get(Config::MAIN_VI_OVERCLOCK);
+    const u32 ticks_per_halfline_overclocked =
+        static_cast<u32>(0.5f + (ticks_per_halfline / overclock));
+    core_timing.ScheduleEvent(ticks_per_halfline_overclocked - cyclesLate, et_VI);
+  }
+  else
+  {
+    core_timing.ScheduleEvent(ticks_per_halfline - cyclesLate, et_VI);
+  }
 }
 
 void DecrementerCallback(Core::System& system, u64 userdata, s64 cyclesLate)

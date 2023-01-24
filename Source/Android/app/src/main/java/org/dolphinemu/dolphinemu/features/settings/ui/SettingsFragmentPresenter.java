@@ -723,6 +723,10 @@ public final class SettingsFragmentPresenter
             R.string.overclock_enable, R.string.overclock_enable_description));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
             R.string.overclock_title_description, 0, 400, "%"));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_VI_OVERCLOCK_ENABLE,
+            R.string.vi_overclock_enable, R.string.vi_overclock_enable_description));
+    sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_VI_OVERCLOCK,
+            R.string.vi_overclock_title, R.string.vi_overclock_title_description, 0, 400, "%"));
     sl.add(new SingleChoiceSetting(mContext, synchronizeGpuThread, R.string.synchronize_gpu_thread,
             R.string.synchronize_gpu_thread_description, R.array.synchronizeGpuThreadEntries,
             R.array.synchronizeGpuThreadValues));

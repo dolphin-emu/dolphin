@@ -8,6 +8,7 @@ public enum FloatSetting implements AbstractFloatSetting
 
   MAIN_EMULATION_SPEED(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "EmulationSpeed", 1.0f),
   MAIN_OVERCLOCK(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "Overclock", 1.0f);
+  MAIN_VI_OVERCLOCK(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "VIOverclock", 1.0f);
 
   private final String mFile;
   private final String mSection;
