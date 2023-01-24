@@ -224,7 +224,10 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
-  tools_menu->addAction(tr("&Skylanders Portal"), this, &MenuBar::ShowSkylanderPortal);
+  auto* usb_device_menu = new QMenu(tr("Emulated USB Devices"), tools_menu);
+  usb_device_menu->addAction(tr("&Skylanders Portal"), this, &MenuBar::ShowSkylanderPortal);
+  usb_device_menu->addAction(tr("&Infinity Base"), this, &MenuBar::ShowInfinityBase);
+  tools_menu->addMenu(usb_device_menu);
 
   tools_menu->addSeparator();
 

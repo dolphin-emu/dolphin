@@ -155,6 +155,7 @@
     <ClCompile Include="GCMemcardManager.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="HotkeyScheduler.cpp" />
+    <ClCompile Include="InfinityBase/InfinityBaseWindow.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
@@ -350,6 +351,7 @@
     <QtMoc Include="GCMemcardManager.h" />
     <QtMoc Include="Host.h" />
     <QtMoc Include="HotkeyScheduler.h" />
+    <QtMoc Include="InfinityBase/InfinityBaseWindow.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="NetPlay\ChunkedProgressDialog.h" />
