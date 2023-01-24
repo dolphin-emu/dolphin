@@ -437,7 +437,7 @@ void StringPopBackIf(std::string* s, char c)
     s->pop_back();
 }
 
-size_t StringUTF8CodePointCount(const std::string& str)
+size_t StringUTF8CodePointCount(std::string_view str)
 {
   return str.size() -
          std::count_if(str.begin(), str.end(), [](char c) -> bool { return (c & 0xC0) == 0x80; });
