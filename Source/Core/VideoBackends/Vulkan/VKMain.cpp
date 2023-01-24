@@ -260,26 +260,15 @@ void VideoBackend::Shutdown()
   if (g_vulkan_context)
     vkDeviceWaitIdle(g_vulkan_context->GetDevice());
 
-  if (g_shader_cache)
-    g_shader_cache->Shutdown();
-
   if (g_object_cache)
     g_object_cache->Shutdown();
 
-  if (g_renderer)
-    g_renderer->Shutdown();
+  ShutdownShared();
 
-  g_perf_query.reset();
-  g_texture_cache.reset();
-  g_framebuffer_manager.reset();
-  g_shader_cache.reset();
-  g_vertex_manager.reset();
-  g_renderer.reset();
   g_object_cache.reset();
   StateTracker::DestroyInstance();
   g_command_buffer_mgr.reset();
   g_vulkan_context.reset();
-  ShutdownShared();
   UnloadVulkanLibrary();
 }
 
