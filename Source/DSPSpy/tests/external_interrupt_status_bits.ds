@@ -98,9 +98,15 @@ external_irq:
 	CALL send_back
 	RTI
 
-; Expected output ($AX0.H (send_back num), $AC0.L (interrupt count), and $SR):
-; 1, 0, 3824 (start)
-; 3, 1, 2820 (in interrupt handler)
-; 2, 1, 3820 (back out of interrupt handler)
-; DSPSpy shows "interrupt after 20 ticks / 0 tries" (exact number of ticks varies)
-; ACC1 is 7bb40 or so (also varies, and can vary between steps 2 and 3 if the interrupt happens on the JZ)
+; Expected output:
+; ar0  st1  sr   st3 ac0.l
+; 1f24 0966 2024 b88 0
+; 3824 3824 2820 8   1 - this one is weird (maybe you can't unrequest an interrupt, and it's happening twice); it doesn't happen in dolphin yet
+; 3824 3864 2860 8   2
+; 3924 3864 2860 7   1
+; 3a24 3a64 2a60 6   1
+; 3b24 3a64 2a60 5   1
+; 3c24 3c64 2c60 4   1
+; 3d24 3c64 2c60 3   1
+; 3e24 3e64 2e60 2   1
+; 3f24 3e64 2e60 1   1
