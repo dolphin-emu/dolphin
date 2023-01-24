@@ -55,7 +55,7 @@ jobjectArray VectorToJStringArray(JNIEnv* env, const std::vector<std::string>& v
 
 bool IsPathAndroidContent(const std::string& uri)
 {
-  return StringBeginsWith(uri, "content://");
+  return uri.starts_with("content://");
 }
 
 std::string OpenModeToAndroid(std::string mode)

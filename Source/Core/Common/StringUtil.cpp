@@ -431,16 +431,6 @@ std::string ReplaceAll(std::string result, std::string_view src, std::string_vie
   return result;
 }
 
-bool StringBeginsWith(std::string_view str, std::string_view begin)
-{
-  return str.size() >= begin.size() && std::equal(begin.begin(), begin.end(), str.begin());
-}
-
-bool StringEndsWith(std::string_view str, std::string_view end)
-{
-  return str.size() >= end.size() && std::equal(end.rbegin(), end.rend(), str.rbegin());
-}
-
 void StringPopBackIf(std::string* s, char c)
 {
   if (!s->empty() && s->back() == c)

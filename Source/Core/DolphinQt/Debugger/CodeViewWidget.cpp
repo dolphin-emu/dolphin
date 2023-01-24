@@ -235,17 +235,16 @@ u32 CodeViewWidget::AddressForRow(int row) const
 
 static bool IsBranchInstructionWithLink(std::string_view ins)
 {
-  return StringEndsWith(ins, "l") || StringEndsWith(ins, "la") || StringEndsWith(ins, "l+") ||
-         StringEndsWith(ins, "la+") || StringEndsWith(ins, "l-") || StringEndsWith(ins, "la-");
+  return ins.ends_with('l') || ins.ends_with("la") || ins.ends_with("l+") || ins.ends_with("la+") ||
+         ins.ends_with("l-") || ins.ends_with("la-");
 }
 
 static bool IsInstructionLoadStore(std::string_view ins)
 {
   // Could add check for context address being near PC, because we need gprs to be correct for the
   // load/store.
-  return (StringBeginsWith(ins, "l") && !StringBeginsWith(ins, "li")) ||
-         StringBeginsWith(ins, "st") || StringBeginsWith(ins, "psq_l") ||
-         StringBeginsWith(ins, "psq_s");
+  return (ins.starts_with('l') && !ins.starts_with("li")) || ins.starts_with("st") ||
+         ins.starts_with("psq_l") || ins.starts_with("psq_s");
 }
 
 void CodeViewWidget::Update()
