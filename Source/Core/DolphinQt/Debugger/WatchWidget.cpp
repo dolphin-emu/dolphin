@@ -310,8 +310,14 @@ void WatchWidget::ShowContextMenu()
     const std::size_t count = m_table->selectionModel()->selectedRows().count();
     if (count > 1)
     {
+      // i18n: This kind of "watch" is used for watching emulated memory.
+      // It's not related to timekeeping devices.
       menu->addAction(tr("&Delete Watches"), this, [this] { DeleteSelectedWatches(); });
+      // i18n: This kind of "watch" is used for watching emulated memory.
+      // It's not related to timekeeping devices.
       menu->addAction(tr("&Lock Watches"), this, [this] { LockSelectedWatches(); });
+      // i18n: This kind of "watch" is used for watching emulated memory.
+      // It's not related to timekeeping devices.
       menu->addAction(tr("&Unlock Watches"), this, [this] { UnlockSelectedWatches(); });
     }
     else if (count == 1)
