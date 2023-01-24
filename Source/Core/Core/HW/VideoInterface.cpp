@@ -13,6 +13,8 @@
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
+#include "VideoCommon/PerformanceMetrics.h"
+
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -872,7 +874,7 @@ static void EndField(FieldType field, u64 ticks)
   if (!Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
     OutputField(field, ticks);
 
-  Core::VideoThrottle();
+  g_perf_metrics.CountVBlank();
   Core::OnFrameEnd();
 }
 
