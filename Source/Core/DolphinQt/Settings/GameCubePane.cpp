@@ -526,7 +526,7 @@ bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& pa
 
   std::string raw_path =
       WithUnifiedPathSeparators(QFileInfo(path).absoluteFilePath().toStdString());
-  while (StringEndsWith(raw_path, "/"))
+  while (raw_path.ends_with('/'))
     raw_path.pop_back();
 
   // The user might be attempting to reset this path to its default, check for this.

@@ -53,7 +53,7 @@ static std::vector<u8> ReadHexString(std::string_view sv)
 {
   if ((sv.size() % 2) == 1)
     return {};
-  if (StringBeginsWith(sv, "0x") || StringBeginsWith(sv, "0X"))
+  if (sv.starts_with("0x") || sv.starts_with("0X"))
     sv = sv.substr(2);
 
   std::vector<u8> result;
@@ -245,7 +245,7 @@ bool Disc::IsValidForGame(const std::string& game_id, std::optional<u16> revisio
   const int disc_number_int = std::optional<int>(disc_number).value_or(-1);
   const int revision_int = std::optional<int>(revision).value_or(-1);
 
-  if (m_game_filter.m_game && !StringBeginsWith(game_id_full, *m_game_filter.m_game))
+  if (m_game_filter.m_game && !game_id_full.starts_with(*m_game_filter.m_game))
     return false;
   if (m_game_filter.m_developer && game_developer != *m_game_filter.m_developer)
     return false;
@@ -276,7 +276,7 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
           bool replaced = false;
           for (const auto& r : replacements)
           {
-            if (StringBeginsWith(sv, r.first))
+            if (sv.starts_with(r.first))
             {
               for (char c : r.second)
                 result.push_back(c);

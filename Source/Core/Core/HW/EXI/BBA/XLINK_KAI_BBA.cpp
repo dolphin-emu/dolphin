@@ -197,7 +197,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
       INFO_LOG_FMT(SP1, "Received XLink Kai control data: {}", control_msg);
 
       // connected;identifier;
-      if (StringBeginsWith(control_msg, "connected"))
+      if (control_msg.starts_with("connected"))
       {
         NOTICE_LOG_FMT(SP1, "XLink Kai BBA connected");
         OSD::AddMessage("XLink Kai BBA connected", 4500);
@@ -226,7 +226,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
         }
       }
       // disconnected;optional_identifier;optional_message;
-      else if (StringBeginsWith(control_msg, "disconnected"))
+      else if (control_msg.starts_with("disconnected"))
       {
         NOTICE_LOG_FMT(SP1, "XLink Kai BBA disconnected");
         // Show OSD message for 15 seconds to make sure the user sees it
@@ -247,7 +247,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
         break;
       }
       // keepalive;
-      else if (StringBeginsWith(control_msg, "keepalive"))
+      else if (control_msg.starts_with("keepalive"))
       {
         DEBUG_LOG_FMT(SP1, "XLink Kai BBA keepalive");
 
@@ -262,7 +262,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
         }
       }
       // message;message_text;
-      else if (StringBeginsWith(control_msg, "message"))
+      else if (control_msg.starts_with("message"))
       {
         std::string msg = control_msg.substr(8, control_msg.length() - 1);
 
@@ -271,7 +271,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
         OSD::AddMessage(std::move(msg), 15000);
       }
       // chat;message_text;
-      else if (StringBeginsWith(control_msg, "chat"))
+      else if (control_msg.starts_with("chat"))
       {
         std::string msg = control_msg.substr(5, control_msg.length() - 1);
 
@@ -279,7 +279,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
         OSD::AddMessage(std::move(msg), 5000);
       }
       // directmessage;message_text;
-      else if (StringBeginsWith(control_msg, "directmessage"))
+      else if (control_msg.starts_with("directmessage"))
       {
         std::string msg = control_msg.substr(14, control_msg.length() - 1);
 

@@ -76,7 +76,7 @@ std::string GetMiiDatabasePath(std::optional<FromWhichRoot> from)
 bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from, u64* title_id)
 {
   std::string expected_prefix = RootUserPath(from) + "/title/";
-  if (!StringBeginsWith(path, expected_prefix))
+  if (!path.starts_with(expected_prefix))
   {
     return false;
   }
