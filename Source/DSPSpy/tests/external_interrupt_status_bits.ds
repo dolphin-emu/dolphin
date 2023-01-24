@@ -30,11 +30,10 @@ test_main:
 	; We store a copy of $SR in $AR0.
 	MRR $AR0, $SR
 	; $IX0 is set to SR_100, so we can add it to $AR0 repeatedly to cycle through $SR bits.
+	LRI $IX0, #0x0100
 	; Subtract $IX0 from $AR0, so that we can add it the first time to get $SR
 	; (and have $AR0 always match $SR instead of overflowing)
-	LRI $IX0, #0x2000
-	ADDARN $AR0, $IX0
-	LRI $IX0, #0x0100
+	SUBARN $AR0
 
 	LRIS $AX0.H, #1
 	CALL send_back
@@ -42,7 +41,7 @@ test_main:
 	; We're checking 5 bits in $sr, so 1 << 5 or 0x20 times.
 	BLOOPI #0x20, main_loop_last_ins
 		CLR $ACC0
-		SUBARN $AR0
+		ADDARN $AR0, $IX0
 		MRR $SR, $AR0
 
 		; Tell the CPU to set the external interrupt
