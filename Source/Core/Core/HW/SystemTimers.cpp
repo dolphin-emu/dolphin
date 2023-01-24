@@ -140,7 +140,7 @@ void SystemTimersManager::VICallback(Core::System& system, u64 userdata, s64 cyc
   auto& core_timing = system.GetCoreTiming();
   auto& vi = system.GetVideoInterface();
   vi.Update(core_timing.GetTicks() - cycles_late);
-  core_timing.ScheduleEvent(vi.GetTicksPerHalfLine() - cycles_late,
+  core_timing.ScheduleEvent(vi.GetTicksPerViCallback() - cycles_late,
                             system.GetSystemTimers().m_event_type_vi);
 }
 
@@ -296,7 +296,7 @@ void SystemTimersManager::Init()
 
   core_timing.ScheduleEvent(0, m_event_type_perf_tracker);
   core_timing.ScheduleEvent(0, m_event_type_gpu_sleeper);
-  core_timing.ScheduleEvent(vi.GetTicksPerHalfLine(), m_event_type_vi);
+  core_timing.ScheduleEvent(vi.GetTicksPerViCallback(), m_event_type_vi);
   core_timing.ScheduleEvent(0, m_event_type_dsp);
 
   const int audio_dma_callback_period = GetAudioDMACallbackPeriod(
