@@ -20,6 +20,7 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/VideoInterface.h"
+#include "IOS/USB/Emulated/Skylander.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -47,6 +48,7 @@ struct System::Impl
   Fifo::FifoManager m_fifo;
   GeometryShaderManager m_geometry_shader_manager;
   GPFifo::GPFifoManager m_gp_fifo;
+  IOS::HLE::USB::SkylanderPortal m_skylander_portal;
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceState m_memory_interface_state;
   PixelEngine::PixelEngineManager m_pixel_engine;
@@ -149,6 +151,11 @@ GeometryShaderManager& System::GetGeometryShaderManager() const
 GPFifo::GPFifoManager& System::GetGPFifo() const
 {
   return m_impl->m_gp_fifo;
+}
+
+IOS::HLE::USB::SkylanderPortal& System::GetSkylanderPortal() const
+{
+  return m_impl->m_skylander_portal;
 }
 
 Memory::MemoryManager& System::GetMemory() const

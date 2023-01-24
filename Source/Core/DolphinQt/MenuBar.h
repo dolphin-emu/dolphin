@@ -89,6 +89,7 @@ signals:
   void ShowAboutDialog();
   void ShowCheatsManager();
   void ShowResourcePackManager();
+  void ShowSkylanderPortal();
   void ConnectWiiRemote(int id);
 
   // Options

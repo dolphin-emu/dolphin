@@ -551,6 +551,11 @@ void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices)
   Config::SetBase(Config::MAIN_USB_PASSTHROUGH_DEVICES, SaveUSBWhitelistToString(devices));
 }
 
+// Main.EmulatedUSBDevices
+
+const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL{
+    {System::Main, "EmulatedUSBDevices", "EmulateSkylanderPortal"}, false};
+
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
 DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
