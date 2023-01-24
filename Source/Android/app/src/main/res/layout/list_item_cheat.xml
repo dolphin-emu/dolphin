@@ -22,6 +22,7 @@
         android:layout_toStartOf="@id/cheat_switch"
         android:gravity="center_vertical|start"
         android:textSize="16sp"
+        android:textAlignment="viewStart"
         tools:text="Hyrule Field Speed Hack" />
 
     <com.google.android.material.materialswitch.MaterialSwitch
