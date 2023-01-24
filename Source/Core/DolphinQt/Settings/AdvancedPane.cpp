@@ -354,10 +354,10 @@ void AdvancedPane::Update()
 
   m_vi_clock_override_slider_label->setText([] {
     int percent = static_cast<int>(std::round(Config::Get(Config::MAIN_VI_OVERCLOCK) * 100.f));
-    float core_vps = VideoInterface::GetTargetRefreshRate();
-    if (!core_vps)
-      core_vps = 59.94;
-    float vps = core_vps * Config::Get(Config::MAIN_VI_OVERCLOCK);
+    float core_vps = static_cast<float>(VideoInterface::GetTargetRefreshRate());
+    if (core_vps == 0.0f)
+      core_vps = 59.94f;
+    float vps = static_cast<float>(core_vps * Config::Get(Config::MAIN_VI_OVERCLOCK));
     return tr("%1% (%2 VPS)").arg(QString::number(percent), QString::number(vps, 'f', 2));
   }());
 
