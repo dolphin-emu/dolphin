@@ -20,6 +20,7 @@
         android:maxLines="@integer/game_title_lines"
         android:textSize="20sp"
         android:textColor="?attr/colorOnSurface"
+        android:textAlignment="viewStart"
         tools:text="The Legend of Zelda: The Wind Waker" />
 
     <com.google.android.material.divider.MaterialDivider

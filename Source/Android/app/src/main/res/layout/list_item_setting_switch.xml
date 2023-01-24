@@ -21,6 +21,7 @@
         android:layout_marginTop="@dimen/spacing_large"
         android:layout_toStartOf="@+id/setting_switch"
         android:textSize="16sp"
+        android:textAlignment="viewStart"
         tools:text="@string/overclock_enable"/>
 
     <TextView
@@ -35,6 +36,7 @@
         android:layout_marginStart="@dimen/spacing_large"
         android:layout_marginTop="@dimen/spacing_small"
         android:layout_toStartOf="@+id/setting_switch"
+        android:textAlignment="viewStart"
         tools:text="@string/overclock_enable_description"/>
 
     <com.google.android.material.materialswitch.MaterialSwitch

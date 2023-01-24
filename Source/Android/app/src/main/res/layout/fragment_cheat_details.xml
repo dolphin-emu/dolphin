@@ -24,24 +24,25 @@
                 android:id="@+id/edit_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/cheats_name"
-                android:paddingTop="@dimen/spacing_medlarge"
                 android:layout_marginHorizontal="@dimen/spacing_large"
                 android:layout_marginVertical="@dimen/spacing_small"
+                android:hint="@string/cheats_name"
+                android:paddingTop="@dimen/spacing_medlarge"
                 app:errorEnabled="true"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/edit_creator"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/edit_creator">
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edit_name_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="48dp"
                     android:importantForAutofill="no"
                     android:inputType="text"
-                    tools:text="Hyrule Field Speed Hack"/>
+                    android:minHeight="48dp"
+                    android:textAlignment="viewStart"
+                    tools:text="Hyrule Field Speed Hack" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -63,7 +64,8 @@
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
                     android:importantForAutofill="no"
-                    android:inputType="text"/>
+                    android:inputType="text"
+                    android:textAlignment="viewStart" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -85,7 +87,8 @@
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
                     android:importantForAutofill="no"
-                    android:inputType="textMultiLine" />
+                    android:inputType="textMultiLine"
+                    android:textAlignment="viewStart" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -107,10 +110,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:minHeight="108sp"
-                    android:gravity="start"
                     android:importantForAutofill="no"
                     android:inputType="textMultiLine"
                     android:typeface="monospace"
+                    android:gravity="start"
+                    android:textAlignment="viewStart"
                     tools:text="0x8003d63c:dword:0x60000000\n0x8003d658:dword:0x60000000" />
 
             </com.google.android.material.textfield.TextInputLayout>

@@ -56,48 +56,53 @@
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/name_text"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/about_dolphin"
                         android:textAppearance="@style/TextAppearance.AppCompat.Display3"
-                        android:textColor="?attr/colorOnSurface" />
+                        android:textColor="?attr/colorOnSurface"
+                        android:textAlignment="viewStart" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/version_text"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_large"
                         android:textAppearance="@style/TextAppearance.AppCompat.Large"
                         android:textColor="?attr/colorOnSurface"
                         android:textIsSelectable="true"
+                        android:textAlignment="viewStart"
                         tools:text="5.0-XXXXX" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/branch_text"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_large"
                         android:textColor="?attr/colorOnSurface"
                         android:textIsSelectable="true"
+                        android:textAlignment="viewStart"
                         tools:text="Branch:\nmaster" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/revision_text"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_large"
                         android:textColor="?attr/colorOnSurface"
                         android:textIsSelectable="true"
+                        android:textAlignment="viewStart"
                         tools:text="Revision:\nf4f94396e94dad9cd4d7d7fb6defa096966a4ab8" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/about_dolphin_text"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_large"
                         android:focusable="false"
                         android:text="@string/about_dolphin_description"
-                        android:textColor="?attr/colorOnSurface" />
+                        android:textColor="?attr/colorOnSurface"
+                        android:textAlignment="viewStart" />
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"

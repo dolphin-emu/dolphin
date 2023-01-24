@@ -21,7 +21,8 @@
         android:layout_marginEnd="@dimen/spacing_large"
         android:layout_marginStart="@dimen/spacing_large"
         android:layout_toStartOf="@+id/cheat_switch"
-        android:gravity="center_vertical|end"
+        android:gravity="center_vertical|start"
+        android:textAlignment="viewStart"
         android:textSize="16sp"
         tools:text="Hyrule Field Speed Hack" />
 
