@@ -10,12 +10,12 @@ android {
     compileSdk 33
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
     defaultConfig {
@@ -60,8 +60,8 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.test.ext:junit:1.1.4'
-    implementation 'androidx.test.espresso:espresso-core:3.5.0'
+    implementation 'androidx.test.ext:junit:1.1.5'
+    implementation 'androidx.test.espresso:espresso-core:3.5.1'
     implementation 'androidx.test.uiautomator:uiautomator:2.2.0'
     implementation 'androidx.benchmark:benchmark-macro-junit4:1.1.1'
 }
