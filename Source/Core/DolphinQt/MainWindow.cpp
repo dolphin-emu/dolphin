@@ -11,10 +11,10 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QFileInfo>
-#include <QTimer>
 #include <QIcon>
 #include <QMimeData>
 #include <QStackedWidget>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QWindow>
 

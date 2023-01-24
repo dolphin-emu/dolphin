@@ -349,10 +349,10 @@ void VideoBackendBase::ShutdownShared()
 {
   if (g_shader_cache)
     g_shader_cache->Shutdown();
-  if (g_texture_cache)
-    g_texture_cache->Shutdown();
   if (g_renderer)
     g_renderer->Shutdown();
+  if (g_texture_cache)
+    g_texture_cache->Shutdown();
 
   g_perf_query.reset();
   g_texture_cache.reset();

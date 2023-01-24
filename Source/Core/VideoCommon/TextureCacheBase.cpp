@@ -73,7 +73,7 @@ TCacheEntry::~TCacheEntry()
   for (auto& reference : references)
     reference->references.erase(this);
   ASSERT_MSG(VIDEO, g_texture_cache, "Texture cache destroyed before TCacheEntry was destroyed");
-  g_texture_cache->ReleaseToPool(this);
+    g_texture_cache->ReleaseToPool(this);
 }
 
 void TextureCacheBase::CheckTempSize(size_t required_size)

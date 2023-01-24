@@ -164,7 +164,7 @@ void OnFrameEnd()
 
 void UpdateUI()
 {
-  if(GetState() == State::Paused)
+  if (GetState() == State::Paused)
     g_video_backend->Video_UpdateUI();
 }
 
