@@ -153,7 +153,7 @@ void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_
     for (int i = 0; i < 8; i++)
     {
       const int reg = j * 8 + i;
-      u8 color1 = regs[reg] == compare_regs[reg] ? CON_BRIGHT_WHITE : CON_BRIGHT_RED;
+      u8 color1 = regs[reg] == compare_regs[reg] ? CON_BRIGHT_WHITE : CON_BRIGHT_CYAN;
       CON_SetColor(sel == reg ? CON_BRIGHT_YELLOW : CON_GREEN);
       CON_Printf(x + j * 9, i + y, "%s ", reg_names[reg]);
       for (int k = 0; k < 4; k++)
@@ -454,14 +454,15 @@ void handle_dsp_mail(void)
     else if (mail == 0x88885370)
     {
       real_dsp.SetInterrupt(false);
-      real_dsp.SendMailTo(real_dsp.CheckInterrupt() ? 0x99995372 : 0x99995370);
+      //real_dsp.SendMailTo(real_dsp.CheckInterrupt() ? 0x99995372 : 0x99995370);
       //while (real_dsp.CheckMailTo())
       //  ;
     }
     else if (mail == 0x88885372)
     {
       real_dsp.SetInterrupt(true);
-      real_dsp.SendMailTo(real_dsp.CheckInterrupt() ? 0x99995372 : 0x99995370);
+      //real_dsp.SendMailTo(real_dsp.CheckInterrupt() ? 0x99995372 : 0x99995370);
+      // CON_PrintRow(4, 25, "Bep %d %d", real_dsp.CheckInterrupt(), real_dsp.CheckMailTo());
       //while (real_dsp.CheckMailTo())
       //  ;
     }

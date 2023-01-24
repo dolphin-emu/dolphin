@@ -15,25 +15,31 @@ test_main:
 	CLR $ACC0
 	CLR $ACC1
 
-	;SBCLR #2
-	;SBCLR #3
-	;SBCLR #4
-	;SBCLR #5
-	;SBCLR #6
+	; Pop stacks to avoid issues
+	;MRR $AR0, $ST0
+	;MRR $AR1, $ST1
+	;MRR $AR2, $ST2
+	;MRR $AR3, $ST3
+
+	SBCLR #2
+	SBCLR #3
+	SBCLR #4
+	SBCLR #5
+	SBCLR #6
 
 	; We store a copy of $SR in $AR0.
-	;MRR $AR0, $SR
+	MRR $AR0, $SR
 	; $IX0 is set to SR_100, so we can add it to $AR0 repeatedly to cycle through $SR bits.
-	;LRI $IX0, #0x0100
+	LRI $IX0, #0x0100
 	; Subtract $IX0 from $AR0, so that we can add it the first time to get $SR
 	; (and have $AR0 always match $SR instead of overflowing)
-	;SUBARN $AR0
+	SUBARN $AR0
 
 	LRIS $AX0.H, #1
 	CALL send_back
 
 	; We're checking 5 bits in $sr, so 1 << 5 or 0x20 times.
-	;BLOOPI #0x20, main_loop_last_ins
+	BLOOPI #0x20, main_loop_last_ins
 		CLR $ACC0
 		ADDARN $AR0, $IX0
 		MRR $SR, $AR0
@@ -48,12 +54,19 @@ wait_cpu_read_1a:
 		LRS $AC1.M, @DMBH
 		ANDCF $AC1.M, #0x8000
 		JLZ wait_cpu_read_1a
-wait_cpu_read_1b:
-		LRS $AC1.M, @CMBH
-		ANDCF $AC1.M, #0x8000
-		JLZ wait_cpu_read_1b
+;wait_cpu_read_1b:
+;		LRS $AC1.M, @CMBH
+;		ANDCF $AC1.M, #0x8000
+;		JLZ wait_cpu_read_1b
 
-		LRIS $AX0.H, #2
+		NOP
+		NOP
+		NOP
+		NOP
+		NOP
+		NOP
+
+		;LRIS $AX0.H, #2
 		;CALL send_back
 
 		; Tell the CPU to un-set the external interrupt
@@ -65,12 +78,12 @@ wait_cpu_read_2a:
 		LRS $AC1.M, @DMBH
 		ANDCF $AC1.M, #0x8000
 		JLZ wait_cpu_read_2a
-wait_cpu_read_2b:
-		LRS $AC1.M, @CMBH
-		ANDCF $AC1.M, #0x8000
-		JLZ wait_cpu_read_2b
+;wait_cpu_read_2b:
+;		LRS $AC1.M, @CMBH
+;		ANDCF $AC1.M, #0x8000
+;		JLZ wait_cpu_read_2b
 
-		LRIS $AX0.H, #3
+		;LRIS $AX0.H, #3
 		;CALL send_back
 
 		NOP
@@ -81,8 +94,8 @@ main_loop_last_ins:
 
 external_irq:
 	INC $ACC0
-	; LRIS $AX0.H, #4
-	; CALL send_back
+	LRIS $AX0.H, #4
+	CALL send_back
 	RTI
 
 ; Expected output ($AX0.H (send_back num), $AC0.L (interrupt count), and $SR):
