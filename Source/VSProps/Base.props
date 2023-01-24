@@ -33,7 +33,8 @@
       <!--Enable Standard Conformance-->
       <ConformanceMode>true</ConformanceMode>
       <!--Enforce some behaviors as standards-conformant when they don't default as such.-->
-      <AdditionalOptions>/Zc:__cplusplus,externConstexpr,lambda,preprocessor,throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
+      <!--TODO on VS 17.5: templateScope-->
+      <AdditionalOptions>/Zc:__cplusplus,enumTypes,externConstexpr,preprocessor,throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
       <!--Enable detailed debug info-->
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
       <!--Treat sources as utf-8-->
@@ -73,6 +74,7 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <!--TODO on VS 17.5: /Zc:checkGwOdr-->
       <AdditionalOptions>/Gw %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization Condition="'$(DolphinRelease)'=='true'">true</WholeProgramOptimization>
     </ClCompile>
