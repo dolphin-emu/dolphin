@@ -1786,9 +1786,9 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height
 
   // Do we currently have a mutable version of this XFB copy in VRAM?
   RcTcacheEntry entry = GetXFBFromCache(address, width, height, stride);
-  if (entry)
+  if (entry && !entry->IsLocked())
   {
-    if (entry->is_xfb_container && !entry->IsLocked())
+    if (entry->is_xfb_container)
     {
       StitchXFBCopy(entry);
       entry->texture->FinishedRendering();
