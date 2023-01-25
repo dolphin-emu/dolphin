@@ -170,7 +170,7 @@ std::string WithUnifiedPathSeparators(std::string path);
 std::string PathToFileName(std::string_view path);
 
 void StringPopBackIf(std::string* s, char c);
-size_t StringUTF8CodePointCount(const std::string& str);
+size_t StringUTF8CodePointCount(std::string_view str);
 
 std::string CP1252ToUTF8(std::string_view str);
 std::string SHIFTJISToUTF8(std::string_view str);
