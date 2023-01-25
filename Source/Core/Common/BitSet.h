@@ -95,7 +95,7 @@ public:
 
   constexpr BitSet() : m_val(0) {}
   constexpr explicit BitSet(IntTy val) : m_val(val) {}
-  BitSet(std::initializer_list<int> init)
+  constexpr BitSet(std::initializer_list<int> init)
   {
     m_val = 0;
     for (int bit : init)
