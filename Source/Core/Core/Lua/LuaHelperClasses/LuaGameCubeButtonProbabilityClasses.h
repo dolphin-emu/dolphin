@@ -10,7 +10,12 @@ public:
   virtual void applyProbability(Movie::ControllerState& controllerState) = 0;
   virtual ~LuaGameCubeButtonProbabilityEvent() {}
   void checkIfEventHappened(double probability) {
-    eventHappened = (probability >= (static_cast<double>(rand()) / (static_cast<double>(RAND_MAX / (100.0)))));
+    if (probability >= 100.0)
+      eventHappened = true;
+    else if (probability <= 0.0)
+      eventHappened = false;
+    else
+    eventHappened = ((probability/100.0) >= (static_cast<double>(rand()) / (static_cast<double>(RAND_MAX))));
   }
 
   bool eventHappened;
@@ -204,13 +209,12 @@ class LuaGCAlterAnalogInputFromCurrentValue : public LuaGameCubeButtonProbabilit
 
 public:
 
-  LuaGCAlterAnalogInputFromCurrentValue(double probability, GC_BUTTON_NAME newButtonName, u8 newMaxLowerDifference, u8 newMaxUpperDifference)
+  LuaGCAlterAnalogInputFromCurrentValue(double probability, GC_BUTTON_NAME newButtonName, u32 newMaxLowerDifference, u32 newMaxUpperDifference)
   {
     buttonEffected = newButtonName;
     maxLowerDifference = newMaxLowerDifference;
     checkIfEventHappened(probability);
     calculateOffsetFromLowerBound(newMaxLowerDifference, newMaxUpperDifference);
-    
   }
 
   void applyProbability(Movie::ControllerState& controllerState)
@@ -245,10 +249,10 @@ public:
   }
 
   private:
-    u8 offsetFromLowerBound;
+    u32 offsetFromLowerBound;
     u8 maxLowerDifference;
 
-    void calculateOffsetFromLowerBound(u8 upperDifference, u8 lowerDifference)
+    void calculateOffsetFromLowerBound(u32 lowerDifference, u32 upperDifference)
     {
       if (upperDifference == 0 && lowerDifference == 0)
       {
@@ -256,16 +260,16 @@ public:
         return;
       }
 
-      offsetFromLowerBound = (rand() % ((upperDifference + lowerDifference) + 1));
+      offsetFromLowerBound = (rand() % (lowerDifference + upperDifference + 1));
     }
 
     u8 getNewValue(u8 currentValue)
     {
       int lowerBound = static_cast<int>(currentValue) - static_cast<int>(maxLowerDifference);
-      if (lowerBound < 0)
-        lowerBound = 0;
       int returnValue = lowerBound + static_cast<int>(offsetFromLowerBound);
-      if (returnValue > 255)
+      if (returnValue < 0)
+        returnValue = 0;
+      else if (returnValue > 255)
         returnValue = 255;
       return static_cast<u8>(returnValue);
     }
@@ -274,21 +278,21 @@ public:
 class LuaGCAlterAnalogInputFromFixedValue : public LuaGameCubeButtonProbabilityEvent
 {
 public:
-  LuaGCAlterAnalogInputFromFixedValue(double probability, GC_BUTTON_NAME newButtonName, u8 value, u8 maxLowerDifference, u8 maxUpperDifference)
+  LuaGCAlterAnalogInputFromFixedValue(double probability, GC_BUTTON_NAME newButtonName, u32 value, u32 maxLowerDifference, u32 maxUpperDifference)
   {
     checkIfEventHappened(probability);
     buttonEffected = newButtonName;
     if (maxLowerDifference == 0 && maxUpperDifference == 0)
-      alteredButtonValue = value;
+      alteredButtonValue = static_cast<u8>(value);
     else
     {
       int lowerBound = static_cast<int>(value) - static_cast<int>(maxLowerDifference);
-      if (lowerBound < 0)
-        lowerBound = 0;
-      int upperBound = static_cast<int>(value) + static_cast<int>(maxUpperDifference);
-      if (upperBound > 255)
-        upperBound = 255;
-      alteredButtonValue = static_cast<u8>(lowerBound + (rand() % ((upperBound - lowerBound) + 1)));
+      int tempResult = lowerBound + static_cast<int>((rand() % (maxLowerDifference + maxUpperDifference + 1)));
+      if (tempResult < 0)
+        tempResult = 0;
+      if (tempResult > 255)
+        tempResult = 255;
+      alteredButtonValue = static_cast<u8>(tempResult);
     }
   }
 
