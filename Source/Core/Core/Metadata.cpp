@@ -9,6 +9,7 @@
 #include "Common/FileUtil.h"
 #include <Core/StateAuxillary.h>
 #include <Common/Version.h>
+#include <Common/Timer.h>
 
 struct ItemStruct
 {
@@ -127,9 +128,12 @@ std::string Metadata::getJSONString()
   std::string file_name_string = "Game_" + convertedDate + ".cit";
 
   std::stringstream json_stream;
+  std::locale::global(std::locale("en_US.UTF-8"));
+  json_stream.imbue(std::locale("en_US.UTF-8"));
   json_stream << "{" << std::endl;
   json_stream << "  \"File Name\": \"" << file_name_string << "\"," << std::endl;
   json_stream << "  \"Date\": \"" << date_string << "\"," << std::endl;
+  json_stream << "  \"Epoch\": \"" << Common::Timer::GetTimeSinceJan1970() << "\"," << std::endl;
   json_stream << "  \"Version\": \"" << Common::GetScmDescStr() << "\"," << std::endl;
   json_stream << "  \"Room ID\": \"" << roomID << "\"," << std::endl;
   std::string md5String = "";
