@@ -3,7 +3,6 @@
 package org.dolphinemu.dolphinemu.features.sysupdate.ui
 
 import android.app.Dialog
-import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -15,11 +14,13 @@ import org.dolphinemu.dolphinemu.databinding.DialogProgressBinding
 import org.dolphinemu.dolphinemu.databinding.DialogProgressTvBinding
 
 class SystemUpdateProgressBarDialogFragment : DialogFragment() {
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val viewModel = ViewModelProvider(requireActivity())[SystemUpdateViewModel::class.java]
+    private lateinit var viewModel: SystemUpdateViewModel
 
-        val dialogProgressBinding: DialogProgressBinding
-        val dialogProgressTvBinding: DialogProgressTvBinding
+    private lateinit var binding: DialogProgressBinding
+    private lateinit var bindingTv: DialogProgressTvBinding
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        viewModel = ViewModelProvider(requireActivity())[SystemUpdateViewModel::class.java]
 
         // We need to set the message to something here, otherwise the text will not appear when we set it later.
         val progressDialogBuilder = MaterialAlertDialogBuilder(requireContext())
@@ -30,36 +31,36 @@ class SystemUpdateProgressBarDialogFragment : DialogFragment() {
 
         // TODO: Remove dialog_progress_tv if we switch to an AppCompatActivity for leanback
         if (activity is AppCompatActivity) {
-            dialogProgressBinding = DialogProgressBinding.inflate(layoutInflater)
-            progressDialogBuilder.setView(dialogProgressBinding.root)
+            binding = DialogProgressBinding.inflate(layoutInflater)
+            progressDialogBuilder.setView(binding.root)
 
             viewModel.progressData.observe(
                 this
             ) { progress: Int ->
-                dialogProgressBinding.updateProgress.progress = progress
+                binding.updateProgress.progress = progress
             }
 
             viewModel.totalData.observe(this) { total: Int ->
                 if (total == 0) {
                     return@observe
                 }
-                dialogProgressBinding.updateProgress.max = total
+                binding.updateProgress.max = total
             }
         } else {
-            dialogProgressTvBinding = DialogProgressTvBinding.inflate(layoutInflater)
-            progressDialogBuilder.setView(dialogProgressTvBinding.root)
+            bindingTv = DialogProgressTvBinding.inflate(layoutInflater)
+            progressDialogBuilder.setView(bindingTv.root)
 
             viewModel.progressData.observe(
                 this
             ) { progress: Int ->
-                dialogProgressTvBinding.updateProgress.progress = progress
+                bindingTv.updateProgress.progress = progress
             }
 
             viewModel.totalData.observe(this) { total: Int ->
                 if (total == 0) {
                     return@observe
                 }
-                dialogProgressTvBinding.updateProgress.max = total
+                bindingTv.updateProgress.max = total
             }
         }
 
@@ -91,13 +92,17 @@ class SystemUpdateProgressBarDialogFragment : DialogFragment() {
     // Setting the OnClickListener again after the dialog is shown overrides this behavior.
     override fun onResume() {
         super.onResume()
-        val alertDialog = dialog as AlertDialog?
-        val viewModel = ViewModelProvider(requireActivity())[SystemUpdateViewModel::class.java]
-        val negativeButton = alertDialog!!.getButton(Dialog.BUTTON_NEGATIVE)
+        val alertDialog = dialog as AlertDialog
+        val negativeButton = alertDialog.getButton(Dialog.BUTTON_NEGATIVE)
         negativeButton.setOnClickListener {
             alertDialog.setTitle(getString(R.string.cancelling))
             alertDialog.setMessage(getString(R.string.update_cancelling))
             viewModel.setCanceled()
+
+            if (activity is AppCompatActivity)
+                binding.updateProgress.isIndeterminate = true
+            else
+                bindingTv.updateProgress.isIndeterminate = true
         }
     }
 
