@@ -17,11 +17,15 @@ class SystemMenuNotInstalledDialogFragment : DialogFragment() {
             .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int ->
                 OnlineUpdateRegionSelectDialogFragment().show(
                     parentFragmentManager,
-                    "OnlineUpdateRegionSelectDialogFragment"
+                    OnlineUpdateRegionSelectDialogFragment.TAG
                 )
                 dismiss()
             }
             .setNegativeButton(R.string.no) { _: DialogInterface?, _: Int -> dismiss() }
             .create()
+    }
+
+    companion object {
+        const val TAG = "SystemMenuNotInstalledDialogFragment"
     }
 }

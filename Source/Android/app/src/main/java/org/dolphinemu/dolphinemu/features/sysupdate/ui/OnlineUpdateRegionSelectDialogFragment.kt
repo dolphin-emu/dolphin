@@ -27,10 +27,14 @@ class OnlineUpdateRegionSelectDialogFragment : DialogFragment() {
                 viewModel.region = which
                 SystemUpdateProgressBarDialogFragment().show(
                     parentFragmentManager,
-                    "OnlineUpdateProgressBarDialogFragment"
+                    SystemUpdateProgressBarDialogFragment.TAG
                 )
                 dismiss()
             }
             .create()
+    }
+
+    companion object {
+        const val TAG = "OnlineUpdateRegionSelectDialogFragment"
     }
 }

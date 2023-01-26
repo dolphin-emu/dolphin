@@ -76,7 +76,7 @@ class SystemUpdateProgressBarDialogFragment : DialogFragment() {
             }
 
             val progressBarFragment = SystemUpdateResultFragment()
-            progressBarFragment.show(parentFragmentManager, "OnlineUpdateResultFragment")
+            progressBarFragment.show(parentFragmentManager, SystemUpdateResultFragment.TAG)
 
             dismiss()
         }
@@ -99,5 +99,9 @@ class SystemUpdateProgressBarDialogFragment : DialogFragment() {
             alertDialog.setMessage(getString(R.string.update_cancelling))
             viewModel.setCanceled()
         }
+    }
+
+    companion object {
+        const val TAG = "SystemUpdateProgressBarDialogFragment"
     }
 }

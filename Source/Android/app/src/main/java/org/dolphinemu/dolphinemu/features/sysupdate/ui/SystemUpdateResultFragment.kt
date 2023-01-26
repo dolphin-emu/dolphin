@@ -12,6 +12,8 @@ import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.utils.WiiUtils
 
 class SystemUpdateResultFragment : DialogFragment() {
+    private val resultKey = "result"
+
     private var mResult = 0
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -20,7 +22,7 @@ class SystemUpdateResultFragment : DialogFragment() {
             mResult = viewModel.resultData.value!!.toInt()
             viewModel.clear()
         } else {
-            mResult = savedInstanceState.getInt("result")
+            mResult = savedInstanceState.getInt(resultKey)
         }
         val message: String = when (mResult) {
             WiiUtils.UPDATE_RESULT_SUCCESS -> getString(R.string.update_success)
@@ -56,6 +58,10 @@ class SystemUpdateResultFragment : DialogFragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt("result", mResult)
+        outState.putInt(resultKey, mResult)
+    }
+
+    companion object {
+        const val TAG = "SystemUpdateResultFragment"
     }
 }
