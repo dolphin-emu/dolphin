@@ -68,7 +68,7 @@ static std::string CodeToHeader(const std::vector<u16>& code, const std::string&
   SplitPath(filename, nullptr, &filename_without_extension, nullptr);
   header.append(fmt::format("const char* UCODE_NAMES[NUM_UCODES] = {{\"{}\"}};\n\n",
                             filename_without_extension));
-  header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
+  header.append("alignas(0x20) const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
   header.append("\t{\n\t\t");
   for (u32 j = 0; j < code_padded.size(); j++)
