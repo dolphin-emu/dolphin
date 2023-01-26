@@ -4,9 +4,12 @@ package org.dolphinemu.dolphinemu.features.sysupdate.ui
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.utils.WiiUpdateCallback
 import org.dolphinemu.dolphinemu.utils.WiiUtils
-import java.util.concurrent.Executors
 
 class SystemUpdateViewModel : ViewModel() {
     val progressData = MutableLiveData<Int>()
@@ -14,6 +17,7 @@ class SystemUpdateViewModel : ViewModel() {
     val titleIdData = MutableLiveData<Long>()
     val resultData = MutableLiveData<Int>()
 
+    private var isRunning = false
     private var canceled = false
     var region = -1
     var discPath: String = ""
@@ -27,34 +31,38 @@ class SystemUpdateViewModel : ViewModel() {
     }
 
     fun startUpdate() {
-        if (discPath.isNotEmpty()) {
-            startDiscUpdate(discPath)
-        } else {
-            val region: String = when (this.region) {
-                0 -> "EUR"
-                1 -> "JPN"
-                2 -> "KOR"
-                3 -> "USA"
-                else -> ""
+        if (isRunning) return
+        isRunning = true
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                if (discPath.isNotEmpty()) {
+                    startDiscUpdate(discPath)
+                } else {
+                    val region: String = when (region) {
+                        0 -> "EUR"
+                        1 -> "JPN"
+                        2 -> "KOR"
+                        3 -> "USA"
+                        else -> ""
+                    }
+                    startOnlineUpdate(region)
+                }
+                isRunning = false
             }
-            startOnlineUpdate(region)
         }
     }
 
-    private fun startOnlineUpdate(region: String?) {
+    private fun startOnlineUpdate(region: String) {
         canceled = false
-        executor.execute {
-            val result = WiiUtils.doOnlineUpdate(region, constructCallback())
-            resultData.postValue(result)
-        }
+        val result = WiiUtils.doOnlineUpdate(region, constructCallback())
+        resultData.postValue(result)
     }
 
-    private fun startDiscUpdate(path: String?) {
+    private fun startDiscUpdate(path: String) {
         canceled = false
-        executor.execute {
-            val result = WiiUtils.doDiscUpdate(path, constructCallback())
-            resultData.postValue(result)
-        }
+        val result = WiiUtils.doDiscUpdate(path, constructCallback())
+        resultData.postValue(result)
     }
 
     fun clear() {
@@ -71,9 +79,5 @@ class SystemUpdateViewModel : ViewModel() {
             titleIdData.postValue(titleId)
             !canceled
         }
-    }
-
-    companion object {
-        private val executor = Executors.newFixedThreadPool(1)
     }
 }
