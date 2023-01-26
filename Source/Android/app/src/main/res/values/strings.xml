@@ -909,4 +909,18 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="about_support"><a href="https://forums.dolphin-emu.org/">Support</a></string>
     <string name="about_copyright_warning">\u00A9 2003–2015+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.</string>
 
+    <!-- Emulated USB Devices -->
+    <string name="emulated_usb_devices">Emulated USB Devices</string>
+    <string name="emulate_skylander_portal">Skylanders Portal</string>
+    <string name="skylanders_manager">Skylanders Manager</string>
+    <string name="load_skylander">Load</string>
+    <string name="remove_skylander">Remove</string>
+    <string name="create_skylander">Create</string>
+    <string name="create_skylander_title">Create Skylander</string>
+    <string name="skylander_label">Skylander</string>
+    <string name="skylander_slot">Slot %1$d</string>
+    <string name="skylander_id">ID</string>
+    <string name="skylander_variant">Variant</string>
+    <string name="invalid_skylander">Invalid Skylander Selection</string>
+
 </resources>

@@ -60,6 +60,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
     buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
     buttonsActionsMap.append(R.id.menu_settings, EmulationActivity.MENU_ACTION_SETTINGS);
+    buttonsActionsMap.append(R.id.menu_skylanders, EmulationActivity.MENU_ACTION_SKYLANDERS);
   }
 
   private FragmentIngameMenuBinding mBinding;
@@ -110,6 +111,12 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     if (!getArguments().getBoolean(KEY_WII, true))
     {
       mBinding.menuRefreshWiimotes.setVisibility(View.GONE);
+      mBinding.menuSkylanders.setVisibility(View.GONE);
+    }
+
+    if (!BooleanSetting.MAIN_EMULATE_SKYLANDER_PORTAL.getBooleanGlobal())
+    {
+      mBinding.menuSkylanders.setVisibility(View.GONE);
     }
 
     LinearLayout options = mBinding.layoutOptions;

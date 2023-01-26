@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Pair;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -33,12 +34,14 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogIrSensitivityBinding;
+import org.dolphinemu.dolphinemu.databinding.DialogSkylandersManagerBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -46,6 +49,10 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.features.skylanders.SkylanderConfig;
+import org.dolphinemu.dolphinemu.features.skylanders.model.Skylander;
+import org.dolphinemu.dolphinemu.features.skylanders.ui.SkylanderSlot;
+import org.dolphinemu.dolphinemu.features.skylanders.ui.SkylanderSlotAdapter;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
@@ -63,6 +70,7 @@ import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
 import java.io.File;
 import java.lang.annotation.Retention;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
@@ -75,6 +83,8 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   private static final String BACKSTACK_NAME_MENU = "menu";
   private static final String BACKSTACK_NAME_SUBMENU = "submenu";
   public static final int REQUEST_CHANGE_DISC = 1;
+  public static final int REQUEST_SKYLANDER_FILE = 2;
+  public static final int REQUEST_CREATE_SKYLANDER = 3;
 
   private EmulationFragment mEmulationFragment;
 
@@ -101,6 +111,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public static final String EXTRA_SYSTEM_MENU = "SystemMenu";
   public static final String EXTRA_USER_PAUSED_EMULATION = "sUserPausedEmulation";
   public static final String EXTRA_MENU_TOAST_SHOWN = "MenuToastShown";
+  public static final String EXTRA_SKYLANDER_SLOT = "SkylanderSlot";
+  public static final String EXTRA_SKYLANDER_ID = "SkylanderId";
+  public static final String EXTRA_SKYLANDER_VAR = "SkylanderVar";
+  public static final String EXTRA_SKYLANDER_NAME = "SkylanderName";
 
   @Retention(SOURCE)
   @IntDef(
@@ -115,7 +129,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
                   MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_RECENTER, MENU_SET_IR_MODE,
                   MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP, MENU_ACTION_MOTION_CONTROLS,
                   MENU_ACTION_PAUSE_EMULATION, MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS,
-                  MENU_ACTION_SETTINGS})
+                  MENU_ACTION_SETTINGS, MENU_ACTION_SKYLANDERS})
   public @interface MenuAction
   {
   }
@@ -156,6 +170,15 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public static final int MENU_ACTION_UNPAUSE_EMULATION = 33;
   public static final int MENU_ACTION_OVERLAY_CONTROLS = 34;
   public static final int MENU_ACTION_SETTINGS = 35;
+  public static final int MENU_ACTION_SKYLANDERS = 36;
+
+  private Skylander mSkylanderData = new Skylander(-1, -1, "Slot");
+
+  private int mSkylanderSlot = -1;
+
+  private DialogSkylandersManagerBinding mSkylandersBinding;
+
+  private static List<SkylanderSlot> sSkylanderSlots = new ArrayList<>();
 
   private static final SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -361,6 +384,14 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     if (NativeLibrary.IsGameMetadataValid())
       setTitle(NativeLibrary.GetCurrentTitleDescription());
+
+    if (sSkylanderSlots.isEmpty())
+    {
+      for (int i = 0; i < 8; i++)
+      {
+        sSkylanderSlots.add(new SkylanderSlot(getString(R.string.skylander_slot, i + 1), i));
+      }
+    }
   }
 
   @Override
@@ -373,6 +404,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     outState.putStringArray(EXTRA_SELECTED_GAMES, mPaths);
     outState.putBoolean(EXTRA_USER_PAUSED_EMULATION, sUserPausedEmulation);
     outState.putBoolean(EXTRA_MENU_TOAST_SHOWN, mMenuToastShown);
+    outState.putInt(EXTRA_SKYLANDER_SLOT, mSkylanderSlot);
+    outState.putInt(EXTRA_SKYLANDER_ID, mSkylanderData.getId());
+    outState.putInt(EXTRA_SKYLANDER_VAR, mSkylanderData.getVar());
+    outState.putString(EXTRA_SKYLANDER_NAME, mSkylanderData.getName());
     super.onSaveInstanceState(outState);
   }
 
@@ -381,6 +416,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     mPaths = savedInstanceState.getStringArray(EXTRA_SELECTED_GAMES);
     sUserPausedEmulation = savedInstanceState.getBoolean(EXTRA_USER_PAUSED_EMULATION);
     mMenuToastShown = savedInstanceState.getBoolean(EXTRA_MENU_TOAST_SHOWN);
+    mSkylanderSlot = savedInstanceState.getInt(EXTRA_SKYLANDER_SLOT);
+    mSkylanderData = new Skylander(savedInstanceState.getInt(EXTRA_SKYLANDER_ID),
+            savedInstanceState.getInt(EXTRA_SKYLANDER_VAR),
+            savedInstanceState.getString(EXTRA_SKYLANDER_NAME));
   }
 
   @Override
@@ -486,12 +525,39 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
     super.onActivityResult(requestCode, resultCode, result);
-    if (requestCode == REQUEST_CHANGE_DISC)
+    // If the user picked a file, as opposed to just backing out.
+    if (resultCode == RESULT_OK)
     {
-      // If the user picked a file, as opposed to just backing out.
-      if (resultCode == RESULT_OK)
+      if (requestCode == REQUEST_CHANGE_DISC)
       {
         NativeLibrary.ChangeDisc(result.getData().toString());
+      }
+      else if (requestCode == REQUEST_SKYLANDER_FILE)
+      {
+        Pair<Integer, String> slot =
+                SkylanderConfig.loadSkylander(sSkylanderSlots.get(mSkylanderSlot).getPortalSlot(),
+                        result.getData().toString());
+        clearSkylander(mSkylanderSlot);
+        sSkylanderSlots.get(mSkylanderSlot).setPortalSlot(slot.first);
+        sSkylanderSlots.get(mSkylanderSlot).setLabel(slot.second);
+        mSkylandersBinding.skylandersManager.getAdapter().notifyItemChanged(mSkylanderSlot);
+        mSkylanderSlot = -1;
+        mSkylanderData = Skylander.BLANK_SKYLANDER;
+      }
+      else if (requestCode == REQUEST_CREATE_SKYLANDER)
+      {
+        if (!(mSkylanderData.getId() == -1) && !(mSkylanderData.getVar() == -1))
+        {
+          Pair<Integer, String> slot = SkylanderConfig.createSkylander(mSkylanderData.getId(),
+                  mSkylanderData.getVar(),
+                  result.getData().toString(), sSkylanderSlots.get(mSkylanderSlot).getPortalSlot());
+          clearSkylander(mSkylanderSlot);
+          sSkylanderSlots.get(mSkylanderSlot).setPortalSlot(slot.first);
+          sSkylanderSlots.get(mSkylanderSlot).setLabel(slot.second);
+          mSkylandersBinding.skylandersManager.getAdapter().notifyItemChanged(mSkylanderSlot);
+          mSkylanderSlot = -1;
+          mSkylanderData = Skylander.BLANK_SKYLANDER;
+        }
       }
     }
   }
@@ -771,6 +837,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
       case MENU_ACTION_SETTINGS:
         SettingsActivity.launch(this, MenuTag.SETTINGS);
+        break;
+
+      case MENU_ACTION_SKYLANDERS:
+        showSkylanderPortalSettings();
         break;
 
       case MENU_ACTION_EXIT:
@@ -1108,6 +1178,33 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
               NativeLibrary.ReloadWiimoteConfig();
             })
             .show();
+  }
+
+  private void showSkylanderPortalSettings()
+  {
+    mSkylandersBinding =
+            DialogSkylandersManagerBinding.inflate(getLayoutInflater());
+    mSkylandersBinding.skylandersManager.setLayoutManager(new LinearLayoutManager(this));
+
+    mSkylandersBinding.skylandersManager.setAdapter(
+            new SkylanderSlotAdapter(sSkylanderSlots, this));
+
+    new MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.skylanders_manager)
+            .setView(mSkylandersBinding.getRoot())
+            .show();
+  }
+
+  public void setSkylanderData(int id, int var, String name, int slot)
+  {
+    mSkylanderData = new Skylander(id, var, name);
+    mSkylanderSlot = slot;
+  }
+
+  public void clearSkylander(int slot)
+  {
+    sSkylanderSlots.get(slot).setLabel(getString(R.string.skylander_slot, slot + 1));
+    mSkylandersBinding.skylandersManager.getAdapter().notifyItemChanged(slot);
   }
 
   private void resetOverlay()

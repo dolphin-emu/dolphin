@@ -14,6 +14,7 @@ add_library(main SHARED
   IniFile.cpp
   MainAndroid.cpp
   RiivolutionPatches.cpp
+  SkylanderConfig.cpp
   WiiUtils.cpp
 )
 
