@@ -17,6 +17,7 @@
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DataReader.h"
@@ -329,7 +330,7 @@ void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 ba
     g_renderer->BBoxFlush();
   }
 
-  g_renderer->DrawIndexed(base_index, num_indices, base_vertex);
+  g_gfx->DrawIndexed(base_index, num_indices, base_vertex);
 }
 
 void VertexManagerBase::UploadUniforms()
@@ -599,7 +600,7 @@ void VertexManagerBase::Flush()
     UpdatePipelineObject();
     if (m_current_pipeline_object)
     {
-      g_renderer->SetPipeline(m_current_pipeline_object);
+      g_gfx->SetPipeline(m_current_pipeline_object);
       if (PerfQueryBase::ShouldEmulate())
         g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
@@ -877,7 +878,7 @@ void VertexManagerBase::OnDraw()
   u32 diff = m_draw_counter - m_last_efb_copy_draw_counter;
   if (m_unflushed_efb_copy && diff > MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK)
   {
-    g_renderer->Flush();
+    g_gfx->Flush();
     m_unflushed_efb_copy = false;
     m_last_efb_copy_draw_counter = m_draw_counter;
   }
@@ -892,7 +893,7 @@ void VertexManagerBase::OnDraw()
                          m_scheduled_command_buffer_kicks.end(), m_draw_counter))
   {
     // Kick a command buffer on the background thread.
-    g_renderer->Flush();
+    g_gfx->Flush();
     m_unflushed_efb_copy = false;
     m_last_efb_copy_draw_counter = m_draw_counter;
   }
@@ -927,7 +928,7 @@ void VertexManagerBase::OnEFBCopyToRAM()
   }
 
   m_unflushed_efb_copy = false;
-  g_renderer->Flush();
+  g_gfx->Flush();
 }
 
 void VertexManagerBase::OnEndFrame()

@@ -8,6 +8,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/OnScreenUI.h"
 #include "VideoCommon/PostProcessing.h"
@@ -47,6 +48,9 @@ bool Presenter::Initialize()
   if (!m_onscreen_ui->Initialize(m_backbuffer_width, m_backbuffer_height, m_backbuffer_scale))
     return false;
 
+  if (!g_gfx->IsHeadless())
+    SetBackbuffer(g_gfx->GetSurfaceInfo());
+
   return true;
 }
 
@@ -57,13 +61,12 @@ void Presenter::SetBackbuffer(int backbuffer_width, int backbuffer_height)
   UpdateDrawRectangle();
 }
 
-void Presenter::SetBackbuffer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,
-                              AbstractTextureFormat backbuffer_format)
+void Presenter::SetBackbuffer(SurfaceInfo info)
 {
-  m_backbuffer_width = backbuffer_width;
-  m_backbuffer_height = backbuffer_height;
-  m_backbuffer_scale = backbuffer_scale;
-  m_backbuffer_format = backbuffer_format;
+  m_backbuffer_width = info.width;
+  m_backbuffer_height = info.height;
+  m_backbuffer_scale = info.scale;
+  m_backbuffer_format = info.format;
   UpdateDrawRectangle();
 }
 
@@ -74,14 +77,14 @@ void Presenter::CheckForConfigChanges(u32 changed_bits)
   if (m_post_processor->GetConfig()->GetShader() != g_ActiveConfig.sPostProcessingShader)
   {
     // The existing shader must not be in use when it's destroyed
-    g_renderer->WaitForGPUIdle();
+    g_gfx->WaitForGPUIdle();
 
     m_post_processor->RecompileShader();
   }
 
   // Stereo mode change requires recompiling our post processing pipeline and imgui pipelines for
   // rendering the UI.
-  if (changed_bits & Renderer::ConfigChangeBits::CONFIG_CHANGE_BIT_STEREO_MODE)
+  if (changed_bits & ConfigChangeBits::CONFIG_CHANGE_BIT_STEREO_MODE)
   {
     m_onscreen_ui->RecompileImGuiPipeline();
     m_post_processor->RecompilePipeline();
@@ -90,24 +93,24 @@ void Presenter::CheckForConfigChanges(u32 changed_bits)
 
 void Presenter::BeginUIFrame()
 {
-  if (g_renderer->IsHeadless())
+  if (g_gfx->IsHeadless())
     return;
 
-  g_renderer->BeginUtilityDrawing();
-  g_renderer->BindBackbuffer({0.0f, 0.0f, 0.0f, 1.0f});
+  g_gfx->BeginUtilityDrawing();
+  g_gfx->BindBackbuffer({0.0f, 0.0f, 0.0f, 1.0f});
 }
 
 void Presenter::EndUIFrame()
 {
   m_onscreen_ui->Finalize();
 
-  if (g_renderer->IsHeadless())
+  if (g_gfx->IsHeadless())
   {
     m_onscreen_ui->DrawImGui();
 
     std::lock_guard<std::mutex> guard(m_swap_mutex);
-    g_renderer->PresentBackbuffer();
-    g_renderer->EndUtilityDrawing();
+    g_gfx->PresentBackbuffer();
+    g_gfx->EndUtilityDrawing();
   }
 
   m_onscreen_ui->BeginImGuiFrame(m_backbuffer_width, m_backbuffer_height);
@@ -392,7 +395,7 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
 {
   if (!g_ActiveConfig.backend_info.bSupportsPostProcessing)
   {
-    g_renderer->ShowImage(source_texture, source_rc);
+    g_gfx->ShowImage(source_texture, source_rc);
     return;
   }
 
@@ -400,13 +403,13 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
       g_ActiveConfig.backend_info.bUsesExplictQuadBuffering)
   {
     // Quad-buffered stereo is annoying on GL.
-    g_renderer->SelectLeftBuffer();
+    g_gfx->SelectLeftBuffer();
     m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
 
-    g_renderer->SelectRightBuffer();
+    g_gfx->SelectRightBuffer();
     m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 1);
 
-    g_renderer->SelectMainBuffer();
+    g_gfx->SelectMainBuffer();
   }
   else if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
            g_ActiveConfig.stereo_mode == StereoMode::TAB)
@@ -436,7 +439,7 @@ bool Presenter::SubmitXFB(RcTcacheEntry xfb_entry, MathUtil::Rectangle<int>& xfb
     if (g_frame_dumper->IsFrameDumping())
     {
       MathUtil::Rectangle<int> target_rect;
-      if (!g_ActiveConfig.bInternalResolutionFrameDumps && !g_renderer->IsHeadless())
+      if (!g_ActiveConfig.bInternalResolutionFrameDumps && !g_gfx->IsHeadless())
       {
         target_rect = GetTargetRectangle();
       }
@@ -469,10 +472,10 @@ void Presenter::Present()
   m_onscreen_ui->Finalize();
 
   // Render the XFB to the screen.
-  g_renderer->BeginUtilityDrawing();
-  if (!g_renderer->IsHeadless())
+  g_gfx->BeginUtilityDrawing();
+  if (!g_gfx->IsHeadless())
   {
-    g_renderer->BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
+    g_gfx->BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
 
     UpdateDrawRectangle();
 
@@ -488,7 +491,7 @@ void Presenter::Present()
     // Present to the window system.
     {
       std::lock_guard<std::mutex> guard(m_swap_mutex);
-      g_renderer->PresentBackbuffer();
+      g_gfx->PresentBackbuffer();
     }
 
     // Update the window size based on the frame that was just rendered.
@@ -498,7 +501,7 @@ void Presenter::Present()
 
   m_onscreen_ui->BeginImGuiFrame(m_backbuffer_width, m_backbuffer_height);
 
-  g_renderer->EndUtilityDrawing();
+  g_gfx->EndUtilityDrawing();
 }
 
 void Presenter::SetKeyMap(std::span<std::array<int, 2>> key_map)

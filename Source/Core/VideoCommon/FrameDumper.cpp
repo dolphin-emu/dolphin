@@ -11,6 +11,7 @@
 #include "Core/Config/MainSettings.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -51,8 +52,8 @@ void FrameDumper::DumpCurrentFrame(const AbstractTexture* src_texture,
     if (!CheckFrameDumpRenderTexture(target_width, target_height))
       return;
 
-    g_renderer->ScaleTexture(m_frame_dump_render_framebuffer.get(),
-                             m_frame_dump_render_framebuffer->GetRect(), src_texture, src_rect);
+    g_gfx->ScaleTexture(m_frame_dump_render_framebuffer.get(),
+                        m_frame_dump_render_framebuffer->GetRect(), src_texture, src_rect);
     src_texture = m_frame_dump_render_texture.get();
     copy_rect = src_texture->GetRect();
   }
@@ -79,7 +80,7 @@ bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_heigh
   // Recreate texture, but release before creating so we don't temporarily use twice the RAM.
   m_frame_dump_render_framebuffer.reset();
   m_frame_dump_render_texture.reset();
-  m_frame_dump_render_texture = g_renderer->CreateTexture(
+  m_frame_dump_render_texture = g_gfx->CreateTexture(
       TextureConfig(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8,
                     AbstractTextureFlag_RenderTarget),
       "Frame dump render texture");
@@ -89,7 +90,7 @@ bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_heigh
     return false;
   }
   m_frame_dump_render_framebuffer =
-      g_renderer->CreateFramebuffer(m_frame_dump_render_texture.get(), nullptr);
+      g_gfx->CreateFramebuffer(m_frame_dump_render_texture.get(), nullptr);
   ASSERT(m_frame_dump_render_framebuffer);
   return true;
 }
@@ -101,7 +102,7 @@ bool FrameDumper::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_hei
     return true;
 
   rbtex.reset();
-  rbtex = g_renderer->CreateStagingTexture(
+  rbtex = g_gfx->CreateStagingTexture(
       StagingTextureType::Readback,
       TextureConfig(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0));
   if (!rbtex)

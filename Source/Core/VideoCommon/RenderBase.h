@@ -64,99 +64,17 @@ struct EfbPokeData
 class Renderer
 {
 public:
-  Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,
-           AbstractTextureFormat backbuffer_format);
+  Renderer();
   virtual ~Renderer();
-
-  using ClearColor = std::array<float, 4>;
-
-  virtual bool IsHeadless() const = 0;
 
   virtual bool Initialize();
   virtual void Shutdown();
 
-  virtual void SetPipeline(const AbstractPipeline* pipeline) {}
-  virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
-  virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
-  virtual void SetSamplerState(u32 index, const SamplerState& state) {}
-  virtual void SetComputeImageTexture(AbstractTexture* texture, bool read, bool write) {}
-  virtual void UnbindTexture(const AbstractTexture* texture) {}
-  virtual void SetViewport(float x, float y, float width, float height, float near_depth,
-                           float far_depth)
-  {
-  }
-  virtual void SetFullscreen(bool enable_fullscreen) {}
-  virtual bool IsFullscreen() const { return false; }
-  virtual void BeginUtilityDrawing();
-  virtual void EndUtilityDrawing();
-  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
-                                                         std::string_view name = "") = 0;
-  virtual std::unique_ptr<AbstractStagingTexture>
-  CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
-  virtual std::unique_ptr<AbstractFramebuffer>
-  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) = 0;
-
-  // Framebuffer operations.
-  virtual void SetFramebuffer(AbstractFramebuffer* framebuffer);
-  virtual void SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer);
-  virtual void SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
-                                      const ClearColor& color_value = {}, float depth_value = 0.0f);
-
-  // Drawing with currently-bound pipeline state.
-  virtual void Draw(u32 base_vertex, u32 num_vertices) {}
-  virtual void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) {}
-
-  // Dispatching compute shaders with currently-bound state.
-  virtual void DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
-                                     u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
-  {
-  }
-
-  // Binds the backbuffer for rendering. The buffer will be cleared immediately after binding.
-  // This is where any window size changes are detected, therefore m_backbuffer_width and/or
-  // m_backbuffer_height may change after this function returns.
-  virtual void BindBackbuffer(const ClearColor& clear_color = {}) {}
-
-  // Presents the backbuffer to the window system, or "swaps buffers".
-  virtual void PresentBackbuffer() {}
-
-  // Shader modules/objects.
-  virtual std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
-                                                                 std::string_view source,
-                                                                 std::string_view name = "") = 0;
-  virtual std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage,
-                                                                 const void* data, size_t length,
-                                                                 std::string_view name = "") = 0;
-  virtual std::unique_ptr<NativeVertexFormat>
-  CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
-  virtual std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
-                                                           const void* cache_data = nullptr,
-                                                           size_t cache_data_length = 0) = 0;
-
-  AbstractFramebuffer* GetCurrentFramebuffer() const { return m_current_framebuffer; }
-
+  void BeginUtilityDrawing();
+  void EndUtilityDrawing();
   // Ideal internal resolution - multiple of the native EFB resolution
   int GetTargetWidth() const { return m_target_width; }
   int GetTargetHeight() const { return m_target_height; }
-
-  // Sets viewport and scissor to the specified rectangle. rect is assumed to be in framebuffer
-  // coordinates, i.e. lower-left origin in OpenGL.
-  void SetViewportAndScissor(const MathUtil::Rectangle<int>& rect, float min_depth = 0.0f,
-                             float max_depth = 1.0f);
-
-  // Scales a GPU texture using a copy shader.
-  virtual void ScaleTexture(AbstractFramebuffer* dst_framebuffer,
-                            const MathUtil::Rectangle<int>& dst_rect,
-                            const AbstractTexture* src_texture,
-                            const MathUtil::Rectangle<int>& src_rect);
-
-  // Converts an upper-left to lower-left if required by the backend, optionally
-  // clamping to the framebuffer size.
-  MathUtil::Rectangle<int> ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
-                                                       u32 fb_width, u32 fb_height) const;
-  MathUtil::Rectangle<int>
-  ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
-                              const AbstractFramebuffer* framebuffer) const;
 
   // EFB coordinate conversion functions
   // Use this to convert a whole native EFB rect to backbuffer coordinates
@@ -188,28 +106,11 @@ public:
   void BBoxWrite(u32 index, u16 value);
   void BBoxFlush();
 
-  virtual void Flush() {}
-  virtual void WaitForGPUIdle() {}
-
   // Finish up the current frame, print some stats
   void Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
   void UpdateWidescreenHeuristic();
   bool IsGameWidescreen() const { return m_is_game_widescreen; }
-
-  // A simple presentation fallback, only used by video software
-  virtual void ShowImage(const AbstractTexture* source_texture,
-                         const MathUtil::Rectangle<int>& source_rc)
-  {
-  }
-
-  // For opengl's glDrawBuffer
-  virtual void SelectLeftBuffer() {}
-  virtual void SelectRightBuffer() {}
-  virtual void SelectMainBuffer() {}
-
-  // Called when the configuration changes, and backend structures need to be updated.
-  virtual void OnConfigChanged(u32 bits) {}
 
   PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PixelFormat new_format) { m_prev_efb_format = new_format; }
@@ -218,29 +119,10 @@ public:
   bool UseVertexDepthRange() const;
   void DoState(PointerWrap& p);
 
-  virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
-
-  // Returns true if a layer-expanding geometry shader should be used when rendering the user
-  // interface and final XFB.
-  bool UseGeometryShaderForUI() const;
-
   // Will forcibly reload all textures on the next swap
   void ForceReloadTextures();
 
   const GraphicsModManager& GetGraphicsModManager() const;
-
-  // Bitmask containing information about which configuration has changed for the backend.
-  enum ConfigChangeBits : u32
-  {
-    CONFIG_CHANGE_BIT_HOST_CONFIG = (1 << 0),
-    CONFIG_CHANGE_BIT_MULTISAMPLES = (1 << 1),
-    CONFIG_CHANGE_BIT_STEREO_MODE = (1 << 2),
-    CONFIG_CHANGE_BIT_TARGET_SIZE = (1 << 3),
-    CONFIG_CHANGE_BIT_ANISOTROPY = (1 << 4),
-    CONFIG_CHANGE_BIT_FORCE_TEXTURE_FILTERING = (1 << 5),
-    CONFIG_CHANGE_BIT_VSYNC = (1 << 6),
-    CONFIG_CHANGE_BIT_BBOX = (1 << 7)
-  };
 
 protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
@@ -250,11 +132,6 @@ protected:
 
   void CheckFifoRecording();
   void RecordVideoMemory();
-
-  virtual std::unique_ptr<BoundingBox> CreateBoundingBox() const = 0;
-
-  AbstractFramebuffer* m_current_framebuffer = nullptr;
-  const AbstractPipeline* m_current_pipeline = nullptr;
 
   bool m_is_game_widescreen = false;
   bool m_was_orthographically_anamorphic = false;

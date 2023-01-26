@@ -36,9 +36,9 @@
 
 #include "UICommon/DiscordPresence.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Fifo.cpp"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 static thread_local bool tls_is_host_thread = false;
@@ -150,11 +150,11 @@ bool Host::GetRenderFullFocus()
 void Host::SetRenderFocus(bool focus)
 {
   m_render_focus = focus;
-  if (g_renderer && m_render_fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
+  if (g_gfx && m_render_fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
   {
     RunWithGPUThreadInactive([focus] {
       if (!Config::Get(Config::MAIN_RENDER_TO_MAIN))
-        g_renderer->SetFullscreen(focus);
+        g_gfx->SetFullscreen(focus);
     });
   }
 }
@@ -182,10 +182,9 @@ void Host::SetRenderFullscreen(bool fullscreen)
 {
   m_render_fullscreen = fullscreen;
 
-  if (g_renderer && g_renderer->IsFullscreen() != fullscreen &&
-      g_ActiveConfig.ExclusiveFullscreenEnabled())
+  if (g_gfx && g_gfx->IsFullscreen() != fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
   {
-    RunWithGPUThreadInactive([fullscreen] { g_renderer->SetFullscreen(fullscreen); });
+    RunWithGPUThreadInactive([fullscreen] { g_gfx->SetFullscreen(fullscreen); });
   }
 }
 

@@ -324,7 +324,9 @@ void VideoBackendBase::InitializeShared()
   // do not initialize again for the config window
   m_initialized = true;
 
+  g_renderer = std::make_unique<Renderer>();
   g_presenter = std::make_unique<VideoCommon::Presenter>();
+  g_frame_dumper = std::make_unique<FrameDumper>();
 
   auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
@@ -337,7 +339,13 @@ void VideoBackendBase::InitializeShared()
   system.GetGeometryShaderManager().Init();
   system.GetPixelShaderManager().Init();
   TMEM::Init();
-  g_frame_dumper = std::make_unique<FrameDumper>();
+
+  if (!g_renderer->Initialize() || !g_presenter->Initialize())
+  {
+    PanicAlertFmtT("Failed to initialize renderer classes");
+    Shutdown();
+    return;
+  }
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();

@@ -10,6 +10,7 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Movie.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/FramebufferShaderGen.h"
@@ -18,7 +19,6 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -61,7 +61,7 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
   vdecl.texcoords[0] = {ComponentFormat::Float, 2, offsetof(ImDrawVert, uv), true, false};
   vdecl.colors[0] = {ComponentFormat::UByte, 4, offsetof(ImDrawVert, col), true, false};
   vdecl.stride = sizeof(ImDrawVert);
-  m_imgui_vertex_format = g_renderer->CreateNativeVertexFormat(vdecl);
+  m_imgui_vertex_format = g_gfx->CreateNativeVertexFormat(vdecl);
   if (!m_imgui_vertex_format)
   {
     PanicAlertFmt("Failed to create ImGui vertex format");
@@ -78,7 +78,7 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
     TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
                                   AbstractTextureFormat::RGBA8, 0);
     std::unique_ptr<AbstractTexture> font_tex =
-        g_renderer->CreateTexture(font_tex_config, "ImGui font texture");
+        g_gfx->CreateTexture(font_tex_config, "ImGui font texture");
     if (!font_tex)
     {
       PanicAlertFmt("Failed to create ImGui texture");
@@ -120,10 +120,10 @@ bool OnScreenUI::RecompileImGuiPipeline()
     return true;
   }
 
-  std::unique_ptr<AbstractShader> vertex_shader = g_renderer->CreateShaderFromSource(
+  std::unique_ptr<AbstractShader> vertex_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader(),
       "ImGui vertex shader");
-  std::unique_ptr<AbstractShader> pixel_shader = g_renderer->CreateShaderFromSource(
+  std::unique_ptr<AbstractShader> pixel_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader(), "ImGui pixel shader");
   if (!vertex_shader || !pixel_shader)
   {
@@ -133,9 +133,9 @@ bool OnScreenUI::RecompileImGuiPipeline()
 
   // GS is used to render the UI to both eyes in stereo modes.
   std::unique_ptr<AbstractShader> geometry_shader;
-  if (g_renderer->UseGeometryShaderForUI())
+  if (g_gfx->UseGeometryShaderForUI())
   {
-    geometry_shader = g_renderer->CreateShaderFromSource(
+    geometry_shader = g_gfx->CreateShaderFromSource(
         ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1),
         "ImGui passthrough geometry shader");
     if (!geometry_shader)
@@ -163,7 +163,7 @@ bool OnScreenUI::RecompileImGuiPipeline()
   pconfig.framebuffer_state.samples = 1;
   pconfig.framebuffer_state.per_sample_shading = false;
   pconfig.usage = AbstractPipelineUsage::Utility;
-  m_imgui_pipeline = g_renderer->CreatePipeline(pconfig);
+  m_imgui_pipeline = g_gfx->CreatePipeline(pconfig);
   if (!m_imgui_pipeline)
   {
     PanicAlertFmt("Failed to create imgui pipeline");
@@ -204,8 +204,8 @@ void OnScreenUI::DrawImGui()
   if (!draw_data)
     return;
 
-  g_renderer->SetViewport(0.0f, 0.0f, static_cast<float>(m_backbuffer_width),
-                          static_cast<float>(m_backbuffer_height), 0.0f, 1.0f);
+  g_gfx->SetViewport(0.0f, 0.0f, static_cast<float>(m_backbuffer_width),
+                     static_cast<float>(m_backbuffer_height), 0.0f, 1.0f);
 
   // Uniform buffer for draws.
   struct ImGuiUbo
@@ -216,8 +216,8 @@ void OnScreenUI::DrawImGui()
   ImGuiUbo ubo = {{1.0f / m_backbuffer_width * 2.0f, 1.0f / m_backbuffer_height * 2.0f}};
 
   // Set up common state for drawing.
-  g_renderer->SetPipeline(m_imgui_pipeline.get());
-  g_renderer->SetSamplerState(0, RenderState::GetPointSamplerState());
+  g_gfx->SetPipeline(m_imgui_pipeline.get());
+  g_gfx->SetSamplerState(0, RenderState::GetPointSamplerState());
   g_vertex_manager->UploadUtilityUniforms(&ubo, sizeof(ubo));
 
   for (int i = 0; i < draw_data->CmdListsCount; i++)
@@ -239,13 +239,13 @@ void OnScreenUI::DrawImGui()
         continue;
       }
 
-      g_renderer->SetScissorRect(g_renderer->ConvertFramebufferRectangle(
+      g_gfx->SetScissorRect(g_gfx->ConvertFramebufferRectangle(
           MathUtil::Rectangle<int>(
               static_cast<int>(cmd.ClipRect.x), static_cast<int>(cmd.ClipRect.y),
               static_cast<int>(cmd.ClipRect.z), static_cast<int>(cmd.ClipRect.w)),
-          g_renderer->GetCurrentFramebuffer()));
-      g_renderer->SetTexture(0, reinterpret_cast<const AbstractTexture*>(cmd.TextureId));
-      g_renderer->DrawIndexed(base_index, cmd.ElemCount, base_vertex);
+          g_gfx->GetCurrentFramebuffer()));
+      g_gfx->SetTexture(0, reinterpret_cast<const AbstractTexture*>(cmd.TextureId));
+      g_gfx->DrawIndexed(base_index, cmd.ElemCount, base_vertex);
       base_index += cmd.ElemCount;
     }
   }
@@ -255,9 +255,9 @@ void OnScreenUI::DrawImGui()
   // itself will be clipped to whatever bounds were last set by ImGui, resulting in a rather useless
   // capture whenever any ImGui windows are open. We'll reset the scissor rectangle to the entire
   // viewport here to avoid this problem.
-  g_renderer->SetScissorRect(g_renderer->ConvertFramebufferRectangle(
+  g_gfx->SetScissorRect(g_gfx->ConvertFramebufferRectangle(
       MathUtil::Rectangle<int>(0, 0, m_backbuffer_width, m_backbuffer_height),
-      g_renderer->GetCurrentFramebuffer()));
+      g_gfx->GetCurrentFramebuffer()));
 }
 
 // Create On-Screen-Messages

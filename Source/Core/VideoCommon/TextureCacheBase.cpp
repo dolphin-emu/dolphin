@@ -34,6 +34,7 @@
 #include "Core/System.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
@@ -298,7 +299,7 @@ RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const 
   decoded_entry->SetNotCopy();
   decoded_entry->may_have_overlapping_textures = entry->may_have_overlapping_textures;
 
-  g_renderer->BeginUtilityDrawing();
+  g_gfx->BeginUtilityDrawing();
 
   const u32 palette_size = entry->format == TextureFormat::I4 ? 32 : 512;
   u32 texel_buffer_offset;
@@ -318,19 +319,19 @@ RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const 
     uniforms.texel_buffer_offset = texel_buffer_offset;
     g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 
-    g_renderer->SetAndDiscardFramebuffer(decoded_entry->framebuffer.get());
-    g_renderer->SetViewportAndScissor(decoded_entry->texture->GetRect());
-    g_renderer->SetPipeline(pipeline);
-    g_renderer->SetTexture(1, entry->texture.get());
-    g_renderer->SetSamplerState(1, RenderState::GetPointSamplerState());
-    g_renderer->Draw(0, 3);
-    g_renderer->EndUtilityDrawing();
+    g_gfx->SetAndDiscardFramebuffer(decoded_entry->framebuffer.get());
+    g_gfx->SetViewportAndScissor(decoded_entry->texture->GetRect());
+    g_gfx->SetPipeline(pipeline);
+    g_gfx->SetTexture(1, entry->texture.get());
+    g_gfx->SetSamplerState(1, RenderState::GetPointSamplerState());
+    g_gfx->Draw(0, 3);
+    g_gfx->EndUtilityDrawing();
     decoded_entry->texture->FinishedRendering();
   }
   else
   {
     ERROR_LOG_FMT(VIDEO, "Texel buffer upload of {} bytes failed", palette_size);
-    g_renderer->EndUtilityDrawing();
+    g_gfx->EndUtilityDrawing();
   }
 
   textures_by_address.emplace(decoded_entry->addr, decoded_entry);
@@ -369,14 +370,14 @@ RcTcacheEntry TextureCacheBase::ReinterpretEntry(const RcTcacheEntry& existing_e
   reinterpreted_entry->may_have_overlapping_textures =
       existing_entry->may_have_overlapping_textures;
 
-  g_renderer->BeginUtilityDrawing();
-  g_renderer->SetAndDiscardFramebuffer(reinterpreted_entry->framebuffer.get());
-  g_renderer->SetViewportAndScissor(reinterpreted_entry->texture->GetRect());
-  g_renderer->SetPipeline(pipeline);
-  g_renderer->SetTexture(0, existing_entry->texture.get());
-  g_renderer->SetSamplerState(1, RenderState::GetPointSamplerState());
-  g_renderer->Draw(0, 3);
-  g_renderer->EndUtilityDrawing();
+  g_gfx->BeginUtilityDrawing();
+  g_gfx->SetAndDiscardFramebuffer(reinterpreted_entry->framebuffer.get());
+  g_gfx->SetViewportAndScissor(reinterpreted_entry->texture->GetRect());
+  g_gfx->SetPipeline(pipeline);
+  g_gfx->SetTexture(0, existing_entry->texture.get());
+  g_gfx->SetSamplerState(1, RenderState::GetPointSamplerState());
+  g_gfx->Draw(0, 3);
+  g_gfx->EndUtilityDrawing();
   reinterpreted_entry->texture->FinishedRendering();
 
   textures_by_address.emplace(reinterpreted_entry->addr, reinterpreted_entry);
@@ -408,9 +409,8 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(RcTcacheEntry& entry, u32 new_wi
   }
 
   // No need to convert the coordinates here since they'll be the same.
-  g_renderer->ScaleTexture(new_texture->framebuffer.get(),
-                           new_texture->texture->GetConfig().GetRect(), entry->texture.get(),
-                           entry->texture->GetConfig().GetRect());
+  g_gfx->ScaleTexture(new_texture->framebuffer.get(), new_texture->texture->GetConfig().GetRect(),
+                      entry->texture.get(), entry->texture->GetConfig().GetRect());
   entry->texture.swap(new_texture->texture);
   entry->framebuffer.swap(new_texture->framebuffer);
 
@@ -432,8 +432,7 @@ bool TextureCacheBase::CheckReadbackTexture(u32 width, u32 height, AbstractTextu
 
   TextureConfig staging_config(std::max(width, 128u), std::max(height, 128u), 1, 1, 1, format, 0);
   m_readback_texture.reset();
-  m_readback_texture =
-      g_renderer->CreateStagingTexture(StagingTextureType::Readback, staging_config);
+  m_readback_texture = g_gfx->CreateStagingTexture(StagingTextureType::Readback, staging_config);
   return m_readback_texture != nullptr;
 }
 
@@ -1081,7 +1080,7 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     state.tm0.anisotropic_filtering = false;
   }
 
-  g_renderer->SetSamplerState(index, state);
+  g_gfx->SetSamplerState(index, state);
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
   pixel_shader_manager.SetSamplerState(index, state.tm0.hex, state.tm1.hex);
@@ -1096,7 +1095,7 @@ void TextureCacheBase::BindTextures(BitSet32 used_textures)
     const RcTcacheEntry& tentry = bound_textures[i];
     if (used_textures[i] && tentry)
     {
-      g_renderer->SetTexture(i, tentry->texture.get());
+      g_gfx->SetTexture(i, tentry->texture.get());
       pixel_shader_manager.SetTexDims(i, tentry->native_width, tentry->native_height);
 
       const float custom_tex_scale = tentry->GetWidth() / float(tentry->native_width);
@@ -2013,8 +2012,8 @@ void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
     // We may have to scale if one of the copies is not internal resolution.
     if (srcrect.GetWidth() != dstrect.GetWidth() || srcrect.GetHeight() != dstrect.GetHeight())
     {
-      g_renderer->ScaleTexture(stitched_entry->framebuffer.get(), dstrect, entry->texture.get(),
-                               srcrect);
+      g_gfx->ScaleTexture(stitched_entry->framebuffer.get(), dstrect, entry->texture.get(),
+                          srcrect);
     }
     else
     {
@@ -2521,7 +2520,7 @@ std::unique_ptr<AbstractStagingTexture> TextureCacheBase::GetEFBCopyStagingTextu
     return ptr;
   }
 
-  std::unique_ptr<AbstractStagingTexture> tex = g_renderer->CreateStagingTexture(
+  std::unique_ptr<AbstractStagingTexture> tex = g_gfx->CreateStagingTexture(
       StagingTextureType::Readback, m_efb_encoding_texture->GetConfig());
   if (!tex)
     WARN_LOG_FMT(VIDEO, "Failed to create EFB copy staging texture");
@@ -2614,7 +2613,7 @@ TextureCacheBase::AllocateTexture(const TextureConfig& config)
     return std::move(entry);
   }
 
-  std::unique_ptr<AbstractTexture> texture = g_renderer->CreateTexture(config);
+  std::unique_ptr<AbstractTexture> texture = g_gfx->CreateTexture(config);
   if (!texture)
   {
     WARN_LOG_FMT(VIDEO, "Failed to allocate a {}x{}x{} texture", config.width, config.height,
@@ -2625,7 +2624,7 @@ TextureCacheBase::AllocateTexture(const TextureConfig& config)
   std::unique_ptr<AbstractFramebuffer> framebuffer;
   if (config.IsRenderTarget())
   {
-    framebuffer = g_renderer->CreateFramebuffer(texture.get(), nullptr);
+    framebuffer = g_gfx->CreateFramebuffer(texture.get(), nullptr);
     if (!framebuffer)
     {
       WARN_LOG_FMT(VIDEO, "Failed to allocate a {}x{}x{} framebuffer", config.width, config.height,
@@ -2745,12 +2744,11 @@ bool TextureCacheBase::CreateUtilityTextures()
 {
   constexpr TextureConfig encoding_texture_config(
       EFB_WIDTH * 4, 1024, 1, 1, 1, AbstractTextureFormat::BGRA8, AbstractTextureFlag_RenderTarget);
-  m_efb_encoding_texture =
-      g_renderer->CreateTexture(encoding_texture_config, "EFB encoding texture");
+  m_efb_encoding_texture = g_gfx->CreateTexture(encoding_texture_config, "EFB encoding texture");
   if (!m_efb_encoding_texture)
     return false;
 
-  m_efb_encoding_framebuffer = g_renderer->CreateFramebuffer(m_efb_encoding_texture.get(), nullptr);
+  m_efb_encoding_framebuffer = g_gfx->CreateFramebuffer(m_efb_encoding_texture.get(), nullptr);
   if (!m_efb_encoding_framebuffer)
     return false;
 
@@ -2759,7 +2757,7 @@ bool TextureCacheBase::CreateUtilityTextures()
     constexpr TextureConfig decoding_texture_config(
         1024, 1024, 1, 1, 1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_ComputeImage);
     m_decoding_texture =
-        g_renderer->CreateTexture(decoding_texture_config, "GPU texture decoding texture");
+        g_gfx->CreateTexture(decoding_texture_config, "GPU texture decoding texture");
     if (!m_decoding_texture)
       return false;
   }
@@ -2788,14 +2786,14 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
   }
 
   const auto scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
-  const auto framebuffer_rect = g_renderer->ConvertFramebufferRectangle(
+  const auto framebuffer_rect = g_gfx->ConvertFramebufferRectangle(
       scaled_src_rect, g_framebuffer_manager->GetEFBFramebuffer());
   AbstractTexture* src_texture =
       is_depth_copy ? g_framebuffer_manager->ResolveEFBDepthTexture(framebuffer_rect) :
                       g_framebuffer_manager->ResolveEFBColorTexture(framebuffer_rect);
 
   src_texture->FinishedRendering();
-  g_renderer->BeginUtilityDrawing();
+  g_gfx->BeginUtilityDrawing();
 
   // Fill uniform buffer.
   struct Uniforms
@@ -2832,14 +2830,14 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 
   // Use the copy pipeline to render the VRAM copy.
-  g_renderer->SetAndDiscardFramebuffer(entry->framebuffer.get());
-  g_renderer->SetViewportAndScissor(entry->framebuffer->GetRect());
-  g_renderer->SetPipeline(copy_pipeline);
-  g_renderer->SetTexture(0, src_texture);
-  g_renderer->SetSamplerState(0, linear_filter ? RenderState::GetLinearSamplerState() :
-                                                 RenderState::GetPointSamplerState());
-  g_renderer->Draw(0, 3);
-  g_renderer->EndUtilityDrawing();
+  g_gfx->SetAndDiscardFramebuffer(entry->framebuffer.get());
+  g_gfx->SetViewportAndScissor(entry->framebuffer->GetRect());
+  g_gfx->SetPipeline(copy_pipeline);
+  g_gfx->SetTexture(0, src_texture);
+  g_gfx->SetSamplerState(0, linear_filter ? RenderState::GetLinearSamplerState() :
+                                            RenderState::GetPointSamplerState());
+  g_gfx->Draw(0, 3);
+  g_gfx->EndUtilityDrawing();
   entry->texture->FinishedRendering();
 }
 
@@ -2862,14 +2860,14 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   }
 
   const auto scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
-  const auto framebuffer_rect = g_renderer->ConvertFramebufferRectangle(
+  const auto framebuffer_rect = g_gfx->ConvertFramebufferRectangle(
       scaled_src_rect, g_framebuffer_manager->GetEFBFramebuffer());
   AbstractTexture* src_texture =
       params.depth ? g_framebuffer_manager->ResolveEFBDepthTexture(framebuffer_rect) :
                      g_framebuffer_manager->ResolveEFBColorTexture(framebuffer_rect);
 
   src_texture->FinishedRendering();
-  g_renderer->BeginUtilityDrawing();
+  g_gfx->BeginUtilityDrawing();
 
   // Fill uniform buffer.
   struct Uniforms
@@ -2909,15 +2907,15 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   const auto encode_rect = MathUtil::Rectangle<int>(0, 0, render_width, render_height);
 
   // Render to GPU texture, and then copy to CPU-accessible texture.
-  g_renderer->SetAndDiscardFramebuffer(m_efb_encoding_framebuffer.get());
-  g_renderer->SetViewportAndScissor(encode_rect);
-  g_renderer->SetPipeline(copy_pipeline);
-  g_renderer->SetTexture(0, src_texture);
-  g_renderer->SetSamplerState(0, linear_filter ? RenderState::GetLinearSamplerState() :
-                                                 RenderState::GetPointSamplerState());
-  g_renderer->Draw(0, 3);
+  g_gfx->SetAndDiscardFramebuffer(m_efb_encoding_framebuffer.get());
+  g_gfx->SetViewportAndScissor(encode_rect);
+  g_gfx->SetPipeline(copy_pipeline);
+  g_gfx->SetTexture(0, src_texture);
+  g_gfx->SetSamplerState(0, linear_filter ? RenderState::GetLinearSamplerState() :
+                                            RenderState::GetPointSamplerState());
+  g_gfx->Draw(0, 3);
   dst->CopyFromTexture(m_efb_encoding_texture.get(), encode_rect, 0, 0, encode_rect);
-  g_renderer->EndUtilityDrawing();
+  g_gfx->EndUtilityDrawing();
 
   // Flush if there's sufficient draws between this copy and the last.
   g_vertex_manager->OnEFBCopyToRAM();
@@ -2970,12 +2968,12 @@ bool TextureCacheBase::DecodeTextureOnGPU(RcTcacheEntry& entry, u32 dst_level, c
                 aligned_height, src_offset, row_stride / bytes_per_buffer_elem,
                 palette_offset};
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
-  g_renderer->SetComputeImageTexture(m_decoding_texture.get(), false, true);
+  g_gfx->SetComputeImageTexture(m_decoding_texture.get(), false, true);
 
   auto dispatch_groups =
       TextureConversionShaderTiled::GetDispatchCount(info, aligned_width, aligned_height);
-  g_renderer->DispatchComputeShader(shader, info->group_size_x, info->group_size_y, 1,
-                                    dispatch_groups.first, dispatch_groups.second, 1);
+  g_gfx->DispatchComputeShader(shader, info->group_size_x, info->group_size_y, 1,
+                               dispatch_groups.first, dispatch_groups.second, 1);
 
   // Copy from decoding texture -> final texture
   // This is because we don't want to have to create compute view for every layer

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -49,3 +50,5 @@ private:
   std::array<bool, NUM_BBOX_VALUES> m_dirty = {};
   bool m_is_valid = true;
 };
+
+extern std::unique_ptr<BoundingBox> g_bounding_box;

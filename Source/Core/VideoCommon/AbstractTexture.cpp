@@ -8,8 +8,8 @@
 #include "Common/Assert.h"
 #include "Common/Image.h"
 #include "Common/MsgHandler.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
-#include "VideoCommon/RenderBase.h"
 
 AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c)
 {
@@ -36,7 +36,7 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level)
   TextureConfig readback_texture_config(level_width, level_height, 1, 1, 1,
                                         AbstractTextureFormat::RGBA8, 0);
   auto readback_texture =
-      g_renderer->CreateStagingTexture(StagingTextureType::Readback, readback_texture_config);
+      g_gfx->CreateStagingTexture(StagingTextureType::Readback, readback_texture_config);
   if (!readback_texture)
     return false;
 

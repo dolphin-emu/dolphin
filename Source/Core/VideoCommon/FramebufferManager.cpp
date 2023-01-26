@@ -11,6 +11,7 @@
 #include "Common/MsgHandler.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "VideoCommon/AbstractFramebuffer.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractStagingTexture.h"
@@ -171,17 +172,17 @@ bool FramebufferManager::CreateEFBFramebuffer()
   const TextureConfig efb_depth_texture_config = GetEFBDepthTextureConfig();
 
   // We need a second texture to swap with for changing pixel formats
-  m_efb_color_texture = g_renderer->CreateTexture(efb_color_texture_config, "EFB color texture");
-  m_efb_depth_texture = g_renderer->CreateTexture(efb_depth_texture_config, "EFB depth texture");
+  m_efb_color_texture = g_gfx->CreateTexture(efb_color_texture_config, "EFB color texture");
+  m_efb_depth_texture = g_gfx->CreateTexture(efb_depth_texture_config, "EFB depth texture");
   m_efb_convert_color_texture =
-      g_renderer->CreateTexture(efb_color_texture_config, "EFB convert color texture");
+      g_gfx->CreateTexture(efb_color_texture_config, "EFB convert color texture");
   if (!m_efb_color_texture || !m_efb_depth_texture || !m_efb_convert_color_texture)
     return false;
 
   m_efb_framebuffer =
-      g_renderer->CreateFramebuffer(m_efb_color_texture.get(), m_efb_depth_texture.get());
+      g_gfx->CreateFramebuffer(m_efb_color_texture.get(), m_efb_depth_texture.get());
   m_efb_convert_framebuffer =
-      g_renderer->CreateFramebuffer(m_efb_convert_color_texture.get(), m_efb_depth_texture.get());
+      g_gfx->CreateFramebuffer(m_efb_convert_color_texture.get(), m_efb_depth_texture.get());
   if (!m_efb_framebuffer || !m_efb_convert_framebuffer)
     return false;
 
@@ -191,7 +192,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
     u32 flags = 0;
     if (!g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
       flags |= AbstractTextureFlag_RenderTarget;
-    m_efb_resolve_color_texture = g_renderer->CreateTexture(
+    m_efb_resolve_color_texture = g_gfx->CreateTexture(
         TextureConfig(efb_color_texture_config.width, efb_color_texture_config.height, 1,
                       efb_color_texture_config.layers, 1, efb_color_texture_config.format, flags),
         "EFB color resolve texture");
@@ -201,7 +202,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
     if (!g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
     {
       m_efb_color_resolve_framebuffer =
-          g_renderer->CreateFramebuffer(m_efb_resolve_color_texture.get(), nullptr);
+          g_gfx->CreateFramebuffer(m_efb_resolve_color_texture.get(), nullptr);
       if (!m_efb_color_resolve_framebuffer)
         return false;
     }
@@ -210,7 +211,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
   // We also need one to convert the D24S8 to R32F if that is being used (Adreno).
   if (g_ActiveConfig.MultisamplingEnabled() || GetEFBDepthFormat() != AbstractTextureFormat::R32F)
   {
-    m_efb_depth_resolve_texture = g_renderer->CreateTexture(
+    m_efb_depth_resolve_texture = g_gfx->CreateTexture(
         TextureConfig(efb_depth_texture_config.width, efb_depth_texture_config.height, 1,
                       efb_depth_texture_config.layers, 1, GetEFBDepthCopyFormat(),
                       AbstractTextureFlag_RenderTarget),
@@ -219,15 +220,15 @@ bool FramebufferManager::CreateEFBFramebuffer()
       return false;
 
     m_efb_depth_resolve_framebuffer =
-        g_renderer->CreateFramebuffer(m_efb_depth_resolve_texture.get(), nullptr);
+        g_gfx->CreateFramebuffer(m_efb_depth_resolve_texture.get(), nullptr);
     if (!m_efb_depth_resolve_framebuffer)
       return false;
   }
 
   // Clear the renderable textures out.
-  g_renderer->SetAndClearFramebuffer(
-      m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
-      g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f : 0.0f);
+  g_gfx->SetAndClearFramebuffer(m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
+                                g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f :
+                                                                                          0.0f);
   return true;
 }
 
@@ -245,7 +246,7 @@ void FramebufferManager::DestroyEFBFramebuffer()
 
 void FramebufferManager::BindEFBFramebuffer()
 {
-  g_renderer->SetFramebuffer(m_efb_framebuffer.get());
+  g_gfx->SetFramebuffer(m_efb_framebuffer.get());
 }
 
 AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rectangle<int>& region)
@@ -270,15 +271,15 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
   else
   {
     m_efb_color_texture->FinishedRendering();
-    g_renderer->BeginUtilityDrawing();
-    g_renderer->SetAndDiscardFramebuffer(m_efb_color_resolve_framebuffer.get());
-    g_renderer->SetPipeline(m_efb_color_resolve_pipeline.get());
-    g_renderer->SetTexture(0, m_efb_color_texture.get());
-    g_renderer->SetSamplerState(0, RenderState::GetPointSamplerState());
-    g_renderer->SetViewportAndScissor(clamped_region);
-    g_renderer->Draw(0, 3);
+    g_gfx->BeginUtilityDrawing();
+    g_gfx->SetAndDiscardFramebuffer(m_efb_color_resolve_framebuffer.get());
+    g_gfx->SetPipeline(m_efb_color_resolve_pipeline.get());
+    g_gfx->SetTexture(0, m_efb_color_texture.get());
+    g_gfx->SetSamplerState(0, RenderState::GetPointSamplerState());
+    g_gfx->SetViewportAndScissor(clamped_region);
+    g_gfx->Draw(0, 3);
     m_efb_resolve_color_texture->FinishedRendering();
-    g_renderer->EndUtilityDrawing();
+    g_gfx->EndUtilityDrawing();
   }
   m_efb_resolve_color_texture->FinishedRendering();
   return m_efb_resolve_color_texture.get();
@@ -298,16 +299,16 @@ AbstractTexture* FramebufferManager::ResolveEFBDepthTexture(const MathUtil::Rect
   clamped_region.ClampUL(0, 0, GetEFBWidth(), GetEFBHeight());
 
   m_efb_depth_texture->FinishedRendering();
-  g_renderer->BeginUtilityDrawing();
-  g_renderer->SetAndDiscardFramebuffer(m_efb_depth_resolve_framebuffer.get());
-  g_renderer->SetPipeline(IsEFBMultisampled() ? m_efb_depth_resolve_pipeline.get() :
-                                                m_efb_depth_cache.copy_pipeline.get());
-  g_renderer->SetTexture(0, m_efb_depth_texture.get());
-  g_renderer->SetSamplerState(0, RenderState::GetPointSamplerState());
-  g_renderer->SetViewportAndScissor(clamped_region);
-  g_renderer->Draw(0, 3);
+  g_gfx->BeginUtilityDrawing();
+  g_gfx->SetAndDiscardFramebuffer(m_efb_depth_resolve_framebuffer.get());
+  g_gfx->SetPipeline(IsEFBMultisampled() ? m_efb_depth_resolve_pipeline.get() :
+                                           m_efb_depth_cache.copy_pipeline.get());
+  g_gfx->SetTexture(0, m_efb_depth_texture.get());
+  g_gfx->SetSamplerState(0, RenderState::GetPointSamplerState());
+  g_gfx->SetViewportAndScissor(clamped_region);
+  g_gfx->Draw(0, 3);
   m_efb_depth_resolve_texture->FinishedRendering();
-  g_renderer->EndUtilityDrawing();
+  g_gfx->EndUtilityDrawing();
 
   return m_efb_depth_resolve_texture.get();
 }
@@ -322,17 +323,17 @@ bool FramebufferManager::ReinterpretPixelData(EFBReinterpretType convtype)
   // buffer, which we want to preserve. If we find this to be hindering performance in the
   // future (e.g. on mobile/tilers), it may be worth discarding only the color buffer.
   m_efb_color_texture->FinishedRendering();
-  g_renderer->BeginUtilityDrawing();
-  g_renderer->SetFramebuffer(m_efb_convert_framebuffer.get());
-  g_renderer->SetViewportAndScissor(m_efb_framebuffer->GetRect());
-  g_renderer->SetPipeline(m_format_conversion_pipelines[static_cast<u32>(convtype)].get());
-  g_renderer->SetTexture(0, m_efb_color_texture.get());
-  g_renderer->Draw(0, 3);
+  g_gfx->BeginUtilityDrawing();
+  g_gfx->SetFramebuffer(m_efb_convert_framebuffer.get());
+  g_gfx->SetViewportAndScissor(m_efb_framebuffer->GetRect());
+  g_gfx->SetPipeline(m_format_conversion_pipelines[static_cast<u32>(convtype)].get());
+  g_gfx->SetTexture(0, m_efb_color_texture.get());
+  g_gfx->Draw(0, 3);
 
   // And swap the framebuffers around, so we do new drawing to the converted framebuffer.
   std::swap(m_efb_color_texture, m_efb_convert_color_texture);
   std::swap(m_efb_framebuffer, m_efb_convert_framebuffer);
-  g_renderer->EndUtilityDrawing();
+  g_gfx->EndUtilityDrawing();
   InvalidatePeekCache(true);
   return true;
 }
@@ -342,7 +343,7 @@ bool FramebufferManager::CompileConversionPipelines()
   for (u32 i = 0; i < NUM_EFB_REINTERPRET_TYPES; i++)
   {
     EFBReinterpretType convtype = static_cast<EFBReinterpretType>(i);
-    std::unique_ptr<AbstractShader> pixel_shader = g_renderer->CreateShaderFromSource(
+    std::unique_ptr<AbstractShader> pixel_shader = g_gfx->CreateShaderFromSource(
         ShaderStage::Pixel,
         FramebufferShaderGen::GenerateFormatConversionShader(convtype, GetEFBSamples()),
         fmt::format("Framebuffer conversion pixel shader {}", convtype));
@@ -358,7 +359,7 @@ bool FramebufferManager::CompileConversionPipelines()
     config.blending_state = RenderState::GetNoBlendingBlendState();
     config.framebuffer_state = GetEFBFramebufferState();
     config.usage = AbstractPipelineUsage::Utility;
-    m_format_conversion_pipelines[i] = g_renderer->CreatePipeline(config);
+    m_format_conversion_pipelines[i] = g_gfx->CreatePipeline(config);
     if (!m_format_conversion_pipelines[i])
       return false;
   }
@@ -493,7 +494,7 @@ void FramebufferManager::RefreshPeekCache()
 
   if (flush_command_buffer)
   {
-    g_renderer->Flush();
+    g_gfx->Flush();
   }
 }
 
@@ -562,33 +563,33 @@ bool FramebufferManager::CompileReadbackPipelines()
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetColorFramebufferState(GetEFBColorFormat());
   config.usage = AbstractPipelineUsage::Utility;
-  m_efb_color_cache.copy_pipeline = g_renderer->CreatePipeline(config);
+  m_efb_color_cache.copy_pipeline = g_gfx->CreatePipeline(config);
   if (!m_efb_color_cache.copy_pipeline)
     return false;
 
   // same for depth, except different format
   config.framebuffer_state.color_texture_format = GetEFBDepthCopyFormat();
-  m_efb_depth_cache.copy_pipeline = g_renderer->CreatePipeline(config);
+  m_efb_depth_cache.copy_pipeline = g_gfx->CreatePipeline(config);
   if (!m_efb_depth_cache.copy_pipeline)
     return false;
 
   if (IsEFBMultisampled())
   {
-    auto depth_resolve_shader = g_renderer->CreateShaderFromSource(
+    auto depth_resolve_shader = g_gfx->CreateShaderFromSource(
         ShaderStage::Pixel, FramebufferShaderGen::GenerateResolveDepthPixelShader(GetEFBSamples()),
         "Depth resolve pixel shader");
     if (!depth_resolve_shader)
       return false;
 
     config.pixel_shader = depth_resolve_shader.get();
-    m_efb_depth_resolve_pipeline = g_renderer->CreatePipeline(config);
+    m_efb_depth_resolve_pipeline = g_gfx->CreatePipeline(config);
     if (!m_efb_depth_resolve_pipeline)
       return false;
 
     if (!g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
     {
       config.framebuffer_state.color_texture_format = GetEFBColorFormat();
-      auto color_resolve_shader = g_renderer->CreateShaderFromSource(
+      auto color_resolve_shader = g_gfx->CreateShaderFromSource(
           ShaderStage::Pixel,
           FramebufferShaderGen::GenerateResolveColorPixelShader(GetEFBSamples()),
           "Color resolve pixel shader");
@@ -596,14 +597,14 @@ bool FramebufferManager::CompileReadbackPipelines()
         return false;
 
       config.pixel_shader = color_resolve_shader.get();
-      m_efb_color_resolve_pipeline = g_renderer->CreatePipeline(config);
+      m_efb_color_resolve_pipeline = g_gfx->CreatePipeline(config);
       if (!m_efb_color_resolve_pipeline)
         return false;
     }
   }
 
   // EFB restore pipeline
-  auto restore_shader = g_renderer->CreateShaderFromSource(
+  auto restore_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Pixel, FramebufferShaderGen::GenerateEFBRestorePixelShader(),
       "EFB restore pixel shader");
   if (!restore_shader)
@@ -614,7 +615,7 @@ bool FramebufferManager::CompileReadbackPipelines()
   config.framebuffer_state.per_sample_shading = false;
   config.vertex_shader = g_shader_cache->GetScreenQuadVertexShader();
   config.pixel_shader = restore_shader.get();
-  m_efb_restore_pipeline = g_renderer->CreatePipeline(config);
+  m_efb_restore_pipeline = g_gfx->CreatePipeline(config);
   if (!m_efb_restore_pipeline)
     return false;
 
@@ -635,12 +636,12 @@ bool FramebufferManager::CreateReadbackFramebuffer()
     const TextureConfig color_config(IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_WIDTH,
                                      IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_HEIGHT, 1,
                                      1, 1, GetEFBColorFormat(), AbstractTextureFlag_RenderTarget);
-    m_efb_color_cache.texture = g_renderer->CreateTexture(color_config, "EFB color cache");
+    m_efb_color_cache.texture = g_gfx->CreateTexture(color_config, "EFB color cache");
     if (!m_efb_color_cache.texture)
       return false;
 
     m_efb_color_cache.framebuffer =
-        g_renderer->CreateFramebuffer(m_efb_color_cache.texture.get(), nullptr);
+        g_gfx->CreateFramebuffer(m_efb_color_cache.texture.get(), nullptr);
     if (!m_efb_color_cache.framebuffer)
       return false;
   }
@@ -657,21 +658,21 @@ bool FramebufferManager::CreateReadbackFramebuffer()
                                      IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_HEIGHT, 1,
                                      1, 1, GetEFBDepthCopyFormat(),
                                      AbstractTextureFlag_RenderTarget);
-    m_efb_depth_cache.texture = g_renderer->CreateTexture(depth_config, "EFB depth cache");
+    m_efb_depth_cache.texture = g_gfx->CreateTexture(depth_config, "EFB depth cache");
     if (!m_efb_depth_cache.texture)
       return false;
 
     m_efb_depth_cache.framebuffer =
-        g_renderer->CreateFramebuffer(m_efb_depth_cache.texture.get(), nullptr);
+        g_gfx->CreateFramebuffer(m_efb_depth_cache.texture.get(), nullptr);
     if (!m_efb_depth_cache.framebuffer)
       return false;
   }
 
   // Staging texture use the full EFB dimensions, as this is the buffer for the whole cache.
-  m_efb_color_cache.readback_texture = g_renderer->CreateStagingTexture(
+  m_efb_color_cache.readback_texture = g_gfx->CreateStagingTexture(
       StagingTextureType::Mutable,
       TextureConfig(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1, GetEFBColorFormat(), 0));
-  m_efb_depth_cache.readback_texture = g_renderer->CreateStagingTexture(
+  m_efb_depth_cache.readback_texture = g_gfx->CreateStagingTexture(
       StagingTextureType::Mutable,
       TextureConfig(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1, GetEFBDepthCopyFormat(), 0));
   if (!m_efb_color_cache.readback_texture || !m_efb_depth_cache.readback_texture)
@@ -737,7 +738,7 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async
     // TODO: This won't produce correct results at IRs above 2x. More samples are required.
     // This is the same issue as with EFB copies.
     src_texture->FinishedRendering();
-    g_renderer->BeginUtilityDrawing();
+    g_gfx->BeginUtilityDrawing();
 
     const float rcp_src_width = 1.0f / m_efb_framebuffer->GetWidth();
     const float rcp_src_height = 1.0f / m_efb_framebuffer->GetHeight();
@@ -748,14 +749,13 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async
 
     // Viewport will not be TILE_SIZExTILE_SIZE for the last row of tiles, assuming a tile size of
     // 64, because 528 is not evenly divisible by 64.
-    g_renderer->SetAndDiscardFramebuffer(data.framebuffer.get());
-    g_renderer->SetViewportAndScissor(
-        MathUtil::Rectangle<int>(0, 0, rect.GetWidth(), rect.GetHeight()));
-    g_renderer->SetPipeline(data.copy_pipeline.get());
-    g_renderer->SetTexture(0, src_texture);
-    g_renderer->SetSamplerState(0, depth ? RenderState::GetPointSamplerState() :
-                                           RenderState::GetLinearSamplerState());
-    g_renderer->Draw(0, 3);
+    g_gfx->SetAndDiscardFramebuffer(data.framebuffer.get());
+    g_gfx->SetViewportAndScissor(MathUtil::Rectangle<int>(0, 0, rect.GetWidth(), rect.GetHeight()));
+    g_gfx->SetPipeline(data.copy_pipeline.get());
+    g_gfx->SetTexture(0, src_texture);
+    g_gfx->SetSamplerState(0, depth ? RenderState::GetPointSamplerState() :
+                                      RenderState::GetLinearSamplerState());
+    g_gfx->Draw(0, 3);
 
     // Copy from EFB or copy texture to staging texture.
     // No need to call FinishedRendering() here because CopyFromTexture() transitions.
@@ -763,7 +763,7 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async
         data.texture.get(), MathUtil::Rectangle<int>(0, 0, rect.GetWidth(), rect.GetHeight()), 0, 0,
         rect);
 
-    g_renderer->EndUtilityDrawing();
+    g_gfx->EndUtilityDrawing();
   }
   else
   {
@@ -790,7 +790,7 @@ void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear
 {
   FlushEFBPokes();
   FlagPeekCacheAsOutOfDate();
-  g_renderer->BeginUtilityDrawing();
+  g_gfx->BeginUtilityDrawing();
 
   // Set up uniforms.
   struct Uniforms
@@ -809,17 +809,17 @@ void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear
     uniforms.clear_depth = 1.0f - uniforms.clear_depth;
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 
-  const auto target_rc = g_renderer->ConvertFramebufferRectangle(
-      g_renderer->ConvertEFBRectangle(rc), m_efb_framebuffer.get());
-  g_renderer->SetPipeline(m_efb_clear_pipelines[clear_color][clear_alpha][clear_z].get());
-  g_renderer->SetViewportAndScissor(target_rc);
-  g_renderer->Draw(0, 3);
-  g_renderer->EndUtilityDrawing();
+  const auto target_rc = g_gfx->ConvertFramebufferRectangle(g_renderer->ConvertEFBRectangle(rc),
+                                                            m_efb_framebuffer.get());
+  g_gfx->SetPipeline(m_efb_clear_pipelines[clear_color][clear_alpha][clear_z].get());
+  g_gfx->SetViewportAndScissor(target_rc);
+  g_gfx->Draw(0, 3);
+  g_gfx->EndUtilityDrawing();
 }
 
 bool FramebufferManager::CompileClearPipelines()
 {
-  auto vertex_shader = g_renderer->CreateShaderFromSource(
+  auto vertex_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Vertex, FramebufferShaderGen::GenerateClearVertexShader(),
       "Clear vertex shader");
   if (!vertex_shader)
@@ -848,7 +848,7 @@ bool FramebufferManager::CompileClearPipelines()
         config.depth_state.updateenable = depth_enable != 0;
 
         m_efb_clear_pipelines[color_enable][alpha_enable][depth_enable] =
-            g_renderer->CreatePipeline(config);
+            g_gfx->CreatePipeline(config);
         if (!m_efb_clear_pipelines[color_enable][alpha_enable][depth_enable])
           return false;
       }
@@ -957,17 +957,17 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, u32 ver
                                           const AbstractPipeline* pipeline)
 {
   // Copy to vertex buffer.
-  g_renderer->BeginUtilityDrawing();
+  g_gfx->BeginUtilityDrawing();
   u32 base_vertex, base_index;
   g_vertex_manager->UploadUtilityVertices(vertices, sizeof(EFBPokeVertex),
                                           static_cast<u32>(vertex_count), nullptr, 0, &base_vertex,
                                           &base_index);
 
   // Now we can draw.
-  g_renderer->SetViewportAndScissor(m_efb_framebuffer->GetRect());
-  g_renderer->SetPipeline(pipeline);
-  g_renderer->Draw(base_vertex, vertex_count);
-  g_renderer->EndUtilityDrawing();
+  g_gfx->SetViewportAndScissor(m_efb_framebuffer->GetRect());
+  g_gfx->SetPipeline(pipeline);
+  g_gfx->Draw(base_vertex, vertex_count);
+  g_gfx->EndUtilityDrawing();
 }
 
 bool FramebufferManager::CompilePokePipelines()
@@ -985,11 +985,11 @@ bool FramebufferManager::CompilePokePipelines()
   vtx_decl.colors[0].offset = offsetof(EFBPokeVertex, color);
   vtx_decl.stride = sizeof(EFBPokeVertex);
 
-  m_poke_vertex_format = g_renderer->CreateNativeVertexFormat(vtx_decl);
+  m_poke_vertex_format = g_gfx->CreateNativeVertexFormat(vtx_decl);
   if (!m_poke_vertex_format)
     return false;
 
-  auto poke_vertex_shader = g_renderer->CreateShaderFromSource(
+  auto poke_vertex_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Vertex, FramebufferShaderGen::GenerateEFBPokeVertexShader(),
       "EFB poke vertex shader");
   if (!poke_vertex_shader)
@@ -1007,14 +1007,14 @@ bool FramebufferManager::CompilePokePipelines()
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = GetEFBFramebufferState();
   config.usage = AbstractPipelineUsage::Utility;
-  m_color_poke_pipeline = g_renderer->CreatePipeline(config);
+  m_color_poke_pipeline = g_gfx->CreatePipeline(config);
   if (!m_color_poke_pipeline)
     return false;
 
   // Turn off color writes, depth writes on for depth pokes.
   config.depth_state = RenderState::GetAlwaysWriteDepthState();
   config.blending_state = RenderState::GetNoColorWriteBlendState();
-  m_depth_poke_pipeline = g_renderer->CreatePipeline(config);
+  m_depth_poke_pipeline = g_gfx->CreatePipeline(config);
   if (!m_depth_poke_pipeline)
     return false;
 
@@ -1077,9 +1077,9 @@ void FramebufferManager::DoLoadState(PointerWrap& p)
       color_tex->texture->GetLayers() != m_efb_color_texture->GetLayers())
   {
     WARN_LOG_FMT(VIDEO, "Failed to deserialize EFB contents. Clearing instead.");
-    g_renderer->SetAndClearFramebuffer(
-        m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
-        g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f : 0.0f);
+    g_gfx->SetAndClearFramebuffer(m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
+                                  g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f :
+                                                                                            0.0f);
     return;
   }
 
@@ -1089,15 +1089,15 @@ void FramebufferManager::DoLoadState(PointerWrap& p)
                        color_tex->texture->GetHeight() != m_efb_color_texture->GetHeight();
 
   // Draw the deserialized textures over the EFB.
-  g_renderer->BeginUtilityDrawing();
-  g_renderer->SetAndDiscardFramebuffer(m_efb_framebuffer.get());
-  g_renderer->SetViewportAndScissor(m_efb_framebuffer->GetRect());
-  g_renderer->SetPipeline(m_efb_restore_pipeline.get());
-  g_renderer->SetTexture(0, color_tex->texture.get());
-  g_renderer->SetTexture(1, depth_tex->texture.get());
-  g_renderer->SetSamplerState(0, rescale ? RenderState::GetLinearSamplerState() :
-                                           RenderState::GetPointSamplerState());
-  g_renderer->SetSamplerState(1, RenderState::GetPointSamplerState());
-  g_renderer->Draw(0, 3);
-  g_renderer->EndUtilityDrawing();
+  g_gfx->BeginUtilityDrawing();
+  g_gfx->SetAndDiscardFramebuffer(m_efb_framebuffer.get());
+  g_gfx->SetViewportAndScissor(m_efb_framebuffer->GetRect());
+  g_gfx->SetPipeline(m_efb_restore_pipeline.get());
+  g_gfx->SetTexture(0, color_tex->texture.get());
+  g_gfx->SetTexture(1, depth_tex->texture.get());
+  g_gfx->SetSamplerState(0, rescale ? RenderState::GetLinearSamplerState() :
+                                      RenderState::GetPointSamplerState());
+  g_gfx->SetSamplerState(1, RenderState::GetPointSamplerState());
+  g_gfx->Draw(0, 3);
+  g_gfx->EndUtilityDrawing();
 }

@@ -20,12 +20,12 @@
 #include "Common/StringUtil.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
@@ -417,9 +417,9 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
                                      const MathUtil::Rectangle<int>& src,
                                      const AbstractTexture* src_tex, int src_layer)
 {
-  if (g_renderer->GetCurrentFramebuffer()->GetColorFormat() != m_framebuffer_format)
+  if (g_gfx->GetCurrentFramebuffer()->GetColorFormat() != m_framebuffer_format)
   {
-    m_framebuffer_format = g_renderer->GetCurrentFramebuffer()->GetColorFormat();
+    m_framebuffer_format = g_gfx->GetCurrentFramebuffer()->GetColorFormat();
     RecompilePipeline();
   }
 
@@ -430,12 +430,12 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
   g_vertex_manager->UploadUtilityUniforms(m_uniform_staging_buffer.data(),
                                           static_cast<u32>(m_uniform_staging_buffer.size()));
 
-  g_renderer->SetViewportAndScissor(
-      g_renderer->ConvertFramebufferRectangle(dst, g_renderer->GetCurrentFramebuffer()));
-  g_renderer->SetPipeline(m_pipeline.get());
-  g_renderer->SetTexture(0, src_tex);
-  g_renderer->SetSamplerState(0, RenderState::GetLinearSamplerState());
-  g_renderer->Draw(0, 3);
+  g_gfx->SetViewportAndScissor(
+      g_gfx->ConvertFramebufferRectangle(dst, g_gfx->GetCurrentFramebuffer()));
+  g_gfx->SetPipeline(m_pipeline.get());
+  g_gfx->SetTexture(0, src_tex);
+  g_gfx->SetSamplerState(0, RenderState::GetLinearSamplerState());
+  g_gfx->Draw(0, 3);
 }
 
 std::string PostProcessing::GetUniformBufferHeader() const
@@ -598,8 +598,8 @@ bool PostProcessing::CompileVertexShader()
 
   ss << "}\n";
 
-  m_vertex_shader = g_renderer->CreateShaderFromSource(ShaderStage::Vertex, ss.str(),
-                                                       "Post-processing vertex shader");
+  m_vertex_shader =
+      g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss.str(), "Post-processing vertex shader");
   if (!m_vertex_shader)
   {
     PanicAlertFmt("Failed to compile post-processing vertex shader");
@@ -688,7 +688,7 @@ bool PostProcessing::CompilePixelShader()
 
   // Generate GLSL and compile the new shader.
   m_config.LoadShader(g_ActiveConfig.sPostProcessingShader);
-  m_pixel_shader = g_renderer->CreateShaderFromSource(
+  m_pixel_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Pixel, GetHeader() + m_config.GetShaderCode() + GetFooter(),
       fmt::format("Post-processing pixel shader: {}", m_config.GetShader()));
   if (!m_pixel_shader)
@@ -697,7 +697,7 @@ bool PostProcessing::CompilePixelShader()
 
     // Use default shader.
     m_config.LoadDefaultShader();
-    m_pixel_shader = g_renderer->CreateShaderFromSource(
+    m_pixel_shader = g_gfx->CreateShaderFromSource(
         ShaderStage::Pixel, GetHeader() + m_config.GetShaderCode() + GetFooter(),
         "Default post-processing pixel shader");
     if (!m_pixel_shader)
@@ -716,14 +716,14 @@ bool PostProcessing::CompilePipeline()
   AbstractPipelineConfig config = {};
   config.vertex_shader = m_vertex_shader.get();
   config.geometry_shader =
-      g_renderer->UseGeometryShaderForUI() ? g_shader_cache->GetTexcoordGeometryShader() : nullptr;
+      g_gfx->UseGeometryShaderForUI() ? g_shader_cache->GetTexcoordGeometryShader() : nullptr;
   config.pixel_shader = m_pixel_shader.get();
   config.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
   config.depth_state = RenderState::GetNoDepthTestingDepthState();
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetColorFramebufferState(m_framebuffer_format);
   config.usage = AbstractPipelineUsage::Utility;
-  m_pipeline = g_renderer->CreatePipeline(config);
+  m_pipeline = g_gfx->CreatePipeline(config);
   if (!m_pipeline)
     return false;
 

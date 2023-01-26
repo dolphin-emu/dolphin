@@ -1,6 +1,8 @@
 add_library(videocommon
   AbstractFramebuffer.cpp
   AbstractFramebuffer.h
+  AbstractGfx.cpp
+  AbstractGfx.h
   AbstractShader.h
   AbstractStagingTexture.cpp
   AbstractStagingTexture.h

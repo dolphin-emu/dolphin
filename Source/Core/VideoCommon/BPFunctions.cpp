@@ -12,6 +12,7 @@
 #include "Common/Logging/Log.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/RenderBase.h"
@@ -198,9 +199,8 @@ void SetScissorAndViewport()
   auto native_rc = ComputeScissorRects().Best();
 
   auto target_rc = g_renderer->ConvertEFBRectangle(native_rc.rect);
-  auto converted_rc =
-      g_renderer->ConvertFramebufferRectangle(target_rc, g_renderer->GetCurrentFramebuffer());
-  g_renderer->SetScissorRect(converted_rc);
+  auto converted_rc = g_gfx->ConvertFramebufferRectangle(target_rc, g_gfx->GetCurrentFramebuffer());
+  g_gfx->SetScissorRect(converted_rc);
 
   float raw_x = (xfmem.viewport.xOrig - native_rc.x_off) - xfmem.viewport.wd;
   float raw_y = (xfmem.viewport.yOrig - native_rc.y_off) + xfmem.viewport.ht;
@@ -280,9 +280,9 @@ void SetScissorAndViewport()
 
   // Lower-left flip.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
-    y = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetHeight()) - y - height;
+    y = static_cast<float>(g_gfx->GetCurrentFramebuffer()->GetHeight()) - y - height;
 
-  g_renderer->SetViewport(x, y, width, height, near_depth, far_depth);
+  g_gfx->SetViewport(x, y, width, height, near_depth, far_depth);
 }
 
 void SetDepthMode()

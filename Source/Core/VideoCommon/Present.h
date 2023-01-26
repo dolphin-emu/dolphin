@@ -16,6 +16,7 @@
 #include <tuple>
 
 class AbstractTexture;
+struct SurfaceInfo;
 
 namespace VideoCommon
 {
@@ -51,8 +52,7 @@ public:
   AbstractTextureFormat GetBackbufferFormat() const { return m_backbuffer_format; }
   void SetWindowSize(int width, int height);
   void SetBackbuffer(int backbuffer_width, int backbuffer_height);
-  void SetBackbuffer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,
-                     AbstractTextureFormat backbuffer_format);
+  void SetBackbuffer(SurfaceInfo info);
 
   void UpdateDrawRectangle();
 

@@ -618,6 +618,7 @@
     <ClInclude Include="VideoBackends\Vulkan\VulkanContext.h" />
     <ClInclude Include="VideoBackends\Vulkan\VulkanLoader.h" />
     <ClInclude Include="VideoCommon\AbstractFramebuffer.h" />
+    <ClInclude Include="VideoCommon\AbstractGfx.h" />
     <ClInclude Include="VideoCommon\AbstractPipeline.h" />
     <ClInclude Include="VideoCommon\AbstractShader.h" />
     <ClInclude Include="VideoCommon\AbstractStagingTexture.h" />
@@ -1219,6 +1220,7 @@
     <ClCompile Include="VideoBackends\Vulkan\VulkanContext.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VulkanLoader.cpp" />
     <ClCompile Include="VideoCommon\AbstractFramebuffer.cpp" />
+    <ClCompile Include="VideoCommon\AbstractGfx.cpp" />
     <ClCompile Include="VideoCommon\AbstractStagingTexture.cpp" />
     <ClCompile Include="VideoCommon\AbstractTexture.cpp" />
     <ClCompile Include="VideoCommon\AsyncRequests.cpp" />
