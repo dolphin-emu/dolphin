@@ -48,6 +48,7 @@ private:
   void DownloadCodes();
   void SaveCodes();
   void SortAlphabetically();
+  void SaveGameConfig();
 
   std::string m_game_id;
   std::string m_gametdb_id;
@@ -59,10 +60,12 @@ private:
   QLabel* m_creator_label;
   QTextEdit* m_code_description;
   QTextEdit* m_code_view;
+  QTextEdit* m_gameconfig;
   QPushButton* m_add_code;
   QPushButton* m_edit_code;
   QPushButton* m_remove_code;
   QPushButton* m_download_codes;
   std::vector<Gecko::GeckoCode> m_gecko_codes;
+  std::vector<std::string> m_gecko_gameconfig;
   bool m_restart_required;
 };

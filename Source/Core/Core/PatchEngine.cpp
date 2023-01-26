@@ -222,6 +222,8 @@ void LoadPatches()
   }
   else
   {
+    Gecko::GeckoGameConfig s_active_gameconfig = Gecko::LoadGameConfig(globalIni, localIni);
+    Gecko::SetGameConfig(s_active_gameconfig);
     Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
     ActionReplay::LoadAndApplyCodes(globalIni, localIni);
   }

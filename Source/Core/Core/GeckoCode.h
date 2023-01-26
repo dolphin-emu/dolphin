@@ -44,9 +44,22 @@ bool operator!=(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs);
 constexpr u32 INSTALLER_BASE_ADDRESS = 0x80001800;
 constexpr u32 INSTALLER_END_ADDRESS = 0x80003000;
 constexpr u32 ENTRY_POINT = INSTALLER_BASE_ADDRESS + 0xA8;
-// If the GCT is max-length then this is the second word of the End code (0xF0000000 0x00000000)
-// If the table is shorter than the max-length then this address is unused / contains trash.
-constexpr u32 HLE_TRAMPOLINE_ADDRESS = INSTALLER_END_ADDRESS - 4;
+constexpr u32 CODELISTSTART = 0x80002338;
+constexpr u32 CODELISTEND = INSTALLER_END_ADDRESS;
+constexpr u32 CODELIST_PTR_HIGH = INSTALLER_BASE_ADDRESS + 0x106;
+constexpr u32 CODELIST_PTR_LOW = INSTALLER_BASE_ADDRESS + 0x10A;
+
+class GeckoGameConfig
+{
+public:
+  GeckoGameConfig() = default;
+
+  std::vector<u32> pokevalues;
+  u32 codelist_start = CODELISTSTART;
+  u32 codelist_end = CODELISTEND;
+
+  u32 GetHLETrampolineAddress();
+};
 
 // This forms part of a communication protocol with HLE_Misc::GeckoCodeHandlerICacheFlush.
 // Basically, codehandleronly.s doesn't use ICBI like it's supposed to when patching the
@@ -58,8 +71,11 @@ constexpr u32 HLE_TRAMPOLINE_ADDRESS = INSTALLER_END_ADDRESS - 4;
 // preserve the emulation performance.
 constexpr u32 MAGIC_GAMEID = 0xD01F1BAD;
 
+u32 GetHLETrampolineAddress();
+void SetGameConfig(const GeckoGameConfig& ggameconfig);
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes);
 void SetSyncedCodesAsActive();
+void UpdateSyncedGameConfig(const GeckoGameConfig& ggameconfig);
 void UpdateSyncedCodes(const std::vector<GeckoCode>& gcodes);
 std::vector<GeckoCode> SetAndReturnActiveCodes(const std::vector<GeckoCode>& gcodes);
 void RunCodeHandler();

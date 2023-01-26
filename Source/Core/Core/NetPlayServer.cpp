@@ -1940,10 +1940,12 @@ bool NetPlayServer::SyncCodes()
   }
   // Sync Gecko Codes
   {
+    Gecko::GeckoGameConfig s_active_gameconfig = Gecko::LoadGameConfig(globalIni, localIni);
+    Gecko::SetGameConfig(s_active_gameconfig);
+
     // Create a Gecko Code Vector with just the active codes
     std::vector<Gecko::GeckoCode> s_active_codes =
         Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
-
     // Determine Codelist Size
     u16 codelines = 0;
     for (const Gecko::GeckoCode& active_code : s_active_codes)
@@ -1964,6 +1966,7 @@ bool NetPlayServer::SyncCodes()
       sf::Packet pac;
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::NotifyGecko;
+      pac << static_cast<u16>(s_active_gameconfig.pokevalues.size());
       pac << codelines;
       SendAsyncToClients(std::move(pac));
     }
@@ -1973,6 +1976,13 @@ bool NetPlayServer::SyncCodes()
       sf::Packet pac;
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::GeckoData;
+      // sync gameconfig
+      pac << s_active_gameconfig.codelist_start;
+      pac << s_active_gameconfig.codelist_end;
+      for (const u32 pokevalue : s_active_gameconfig.pokevalues)
+      {
+        pac << pokevalue;
+      }
       // Iterate through the active code vector and send each codeline
       for (const Gecko::GeckoCode& active_code : s_active_codes)
       {

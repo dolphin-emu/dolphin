@@ -48,6 +48,7 @@ GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u1
 
     const IniFile game_ini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
     m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
+    m_gecko_gameconfig = Gecko::LoadGameConfigTxt(game_ini_default, game_ini_local);
   }
 
   UpdateList();
@@ -57,6 +58,7 @@ GeckoCodeWidget::~GeckoCodeWidget() = default;
 
 void GeckoCodeWidget::CreateWidgets()
 {
+  // General
   m_warning = new CheatWarningWidget(m_game_id, m_restart_required, this);
   m_code_list = new QListWidget;
   m_name_label = new QLabel;
@@ -96,10 +98,10 @@ void GeckoCodeWidget::CreateWidgets()
   m_remove_code->setEnabled(false);
   m_download_codes->setEnabled(!m_game_id.empty());
 
-  auto* layout = new QVBoxLayout;
+  auto* general_layout = new QVBoxLayout;
 
-  layout->addWidget(m_warning);
-  layout->addWidget(m_code_list);
+  general_layout->addWidget(m_warning);
+  general_layout->addWidget(m_code_list);
 
   auto* info_layout = new QFormLayout;
 
@@ -115,9 +117,9 @@ void GeckoCodeWidget::CreateWidgets()
     label->setCursor(Qt::IBeamCursor);
   }
 
-  layout->addLayout(info_layout);
-  layout->addWidget(m_code_description);
-  layout->addWidget(m_code_view);
+  general_layout->addLayout(info_layout);
+  general_layout->addWidget(m_code_description);
+  general_layout->addWidget(m_code_view);
 
   QHBoxLayout* btn_layout = new QHBoxLayout;
 
@@ -126,7 +128,34 @@ void GeckoCodeWidget::CreateWidgets()
   btn_layout->addWidget(m_remove_code);
   btn_layout->addWidget(m_download_codes);
 
-  layout->addLayout(btn_layout);
+  general_layout->addLayout(btn_layout);
+
+  auto* general_widget = new QWidget;
+  general_widget->setLayout(general_layout);
+
+  // GameConfig
+  auto* gameconfig_layout = new QVBoxLayout;
+
+  m_gameconfig = new QTextEdit;
+  m_gameconfig->setFont(monospace);
+  m_gameconfig->setReadOnly(false);
+  m_gameconfig->setAcceptRichText(false);
+
+  m_gameconfig->setEnabled(!m_game_id.empty());
+
+  gameconfig_layout->addWidget(m_gameconfig);
+
+  auto* gameconfig_widget = new QWidget;
+
+  gameconfig_widget->setLayout(gameconfig_layout);
+
+  auto* layout = new QVBoxLayout;
+  auto* tab_widget = new QTabWidget;
+
+  tab_widget->addTab(general_widget, tr("General"));
+  tab_widget->addTab(gameconfig_widget, tr("GameConfig"));
+
+  layout->addWidget(tab_widget);
 
   setLayout(layout);
 }
@@ -147,6 +176,8 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_download_codes, &QPushButton::clicked, this, &GeckoCodeWidget::DownloadCodes);
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &GeckoCodeWidget::OpenGeneralSettings);
+
+  connect(m_gameconfig, &QTextEdit::textChanged, this, &GeckoCodeWidget::SaveGameConfig);
 }
 
 void GeckoCodeWidget::OnSelectionChanged()
@@ -247,7 +278,7 @@ void GeckoCodeWidget::SaveCodes()
 
   IniFile game_ini_local;
   game_ini_local.Load(ini_path);
-  Gecko::SaveCodes(game_ini_local, m_gecko_codes);
+  Gecko::SaveCodes(game_ini_local, m_gecko_codes, m_gecko_gameconfig);
   game_ini_local.Save(ini_path);
 }
 
@@ -264,6 +295,21 @@ void GeckoCodeWidget::SortAlphabetically()
 {
   m_code_list->sortItems();
   OnListReordered();
+}
+
+void GeckoCodeWidget::SaveGameConfig()
+{
+  std::string gameconfig = m_gameconfig->toPlainText().toStdString();
+
+  m_gecko_gameconfig.clear();
+  std::istringstream buffer(gameconfig);
+  std::string line;
+
+  while (std::getline(buffer, line, '\n'))
+  {
+    m_gecko_gameconfig.push_back(line);
+  }
+  SaveCodes();
 }
 
 void GeckoCodeWidget::OnListReordered()
@@ -306,6 +352,16 @@ void GeckoCodeWidget::UpdateList()
   }
 
   m_code_list->setDragDropMode(QAbstractItemView::InternalMove);
+
+  QString gameconfigtxt;
+
+  for (auto& line : m_gecko_gameconfig)
+  {
+    gameconfigtxt += QString::fromStdString(line + '\n');
+  }
+
+  m_gameconfig->clear();
+  m_gameconfig->insertPlainText(gameconfigtxt);
 }
 
 void GeckoCodeWidget::DownloadCodes()

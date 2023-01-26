@@ -101,7 +101,7 @@ void PatchFixedFunctions()
   Patch(Gecko::ENTRY_POINT, "GeckoCodehandler");
   // This has to always be installed even if cheats are not enabled because of the possiblity of
   // loading a savestate where PC is inside the code handler while cheats are disabled.
-  Patch(Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
+  Patch(Gecko::GetHLETrampolineAddress(), "GeckoHandlerReturnTrampoline");
 }
 
 void PatchFunctions()

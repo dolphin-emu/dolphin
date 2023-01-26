@@ -177,7 +177,11 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_Geck
 
   IniFile game_ini_local;
   game_ini_local.Load(ini_path);
-  Gecko::SaveCodes(game_ini_local, vector);
+
+  std::vector<std::string> gameconfig_vector;
+  game_ini_local.GetLines("Gecko_GameConfig", &gameconfig_vector, false);
+
+  Gecko::SaveCodes(game_ini_local, vector, gameconfig_vector);
   game_ini_local.Save(ini_path);
 }
 
