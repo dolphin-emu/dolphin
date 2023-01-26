@@ -1492,8 +1492,26 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
                                  const AbstractTexture* source_texture,
                                  const MathUtil::Rectangle<int>& source_rc)
 {
-  if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
-      g_ActiveConfig.stereo_mode == StereoMode::TAB)
+  if (!g_ActiveConfig.backend_info.bSupportsPostProcessing)
+  {
+    ShowImage(source_texture, source_rc);
+    return
+  }
+
+  if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer &&
+      g_ActiveConfig.backend_info.bUsesExplictQuadBuffering)
+  {
+    // Quad-buffered stereo is annoying on GL.
+    SelectLeftBuffer();
+    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
+
+    SelectRightBuffer();
+    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 1);
+
+    SelectMainBuffer();
+  }
+  else if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
+           g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     const auto [left_rc, right_rc] = ConvertStereoRectangle(target_rc);
 

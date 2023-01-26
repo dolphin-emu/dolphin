@@ -135,9 +135,6 @@ public:
 
   void Flush() override;
   void WaitForGPUIdle() override;
-  void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
-                         const AbstractTexture* source_texture,
-                         const MathUtil::Rectangle<int>& source_rc) override;
   void OnConfigChanged(u32 bits) override;
 
   void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
@@ -164,6 +161,10 @@ public:
 
 protected:
   std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
+
+  virtual void SelectLeftBuffer() override;
+  virtual void SelectRightBuffer() override;
+  virtual void SelectMainBuffer() override;
 
 private:
   void CheckForSurfaceChange();

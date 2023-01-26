@@ -115,6 +115,8 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsTextureQueryLevels = false;
   g_Config.backend_info.bSupportsSettingObjectNames = false;
 
+  g_Config.backend_info.bUsesExplictQuadBuffering = true;
+
   g_Config.backend_info.Adapters.clear();
 
   // aamodes - 1 is to stay consistent with D3D (means no AA)

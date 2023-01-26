@@ -110,9 +110,8 @@ std::unique_ptr<AbstractPipeline> SWRenderer::CreatePipeline(const AbstractPipel
 }
 
 // Called on the GPU thread
-void SWRenderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
-                                   const AbstractTexture* source_texture,
-                                   const MathUtil::Rectangle<int>& source_rc)
+void SWRenderer::ShowImage(const AbstractTexture* source_texture,
+                           const MathUtil::Rectangle<int>& source_rc)
 {
   if (!IsHeadless())
     m_window->ShowImage(source_texture, source_rc);

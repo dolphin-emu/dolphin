@@ -45,9 +45,8 @@ public:
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override {}
 
-  void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
-                         const AbstractTexture* source_texture,
-                         const MathUtil::Rectangle<int>& source_rc) override;
+  void ShowImage(const AbstractTexture* source_texture,
+                 const MathUtil::Rectangle<int>& source_rc) override;
 
   void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
                    bool zEnable, u32 color, u32 z) override;
