@@ -16,11 +16,6 @@ import org.dolphinemu.dolphinemu.databinding.DialogProgressTvBinding
 
 class SystemUpdateProgressBarDialogFragment : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        // Store the current orientation to be restored later
-        val orientation = requireActivity().requestedOrientation
-        // Rotating the device while the update is running can result in a title failing to import.
-        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
-
         val viewModel = ViewModelProvider(requireActivity())[SystemUpdateViewModel::class.java]
 
         val dialogProgressBinding: DialogProgressBinding
@@ -82,8 +77,6 @@ class SystemUpdateProgressBarDialogFragment : DialogFragment() {
 
             val progressBarFragment = SystemUpdateResultFragment()
             progressBarFragment.show(parentFragmentManager, "OnlineUpdateResultFragment")
-
-            requireActivity().requestedOrientation = orientation
 
             dismiss()
         }
