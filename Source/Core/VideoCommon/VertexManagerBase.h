@@ -9,6 +9,7 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "VideoCommon/CPUCull.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderCache.h"
@@ -100,11 +101,18 @@ public:
 
   PrimitiveType GetCurrentPrimitiveType() const { return m_current_primitive_type; }
   void AddIndices(OpcodeDecoder::Primitive primitive, u32 num_vertices);
+  bool AreAllVerticesCulled(VertexLoaderBase* loader, OpcodeDecoder::Primitive primitive,
+                            const u8* src, u32 count);
   virtual DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count,
                                               u32 stride, bool cullall);
+  /// Switch cullall off after a call to PrepareForAdditionalData with cullall true
+  /// Expects that you will add a nonzero number of primitives before the next flush
+  /// Returns whether cullall was changed (false if cullall was already off)
+  DataReader DisableCullAll(u32 stride);
   void FlushData(u32 count, u32 stride);
 
   void Flush();
+  bool HasSendableVertices() const { return !m_is_flushed && !m_cull_all; }
 
   void DoState(PointerWrap& p);
 
@@ -201,6 +209,7 @@ protected:
   bool m_cull_all = false;
 
   IndexGenerator m_index_generator;
+  CPUCull m_cpu_cull;
 
 private:
   // Minimum number of draws per command buffer when attempting to preempt a readback operation.

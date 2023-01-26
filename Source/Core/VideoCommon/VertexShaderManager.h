@@ -24,6 +24,7 @@ public:
   void DoState(PointerWrap& p);
 
   // constant management
+  void SetProjectionMatrix();
   void SetConstants(const std::vector<std::string>& textures);
 
   void InvalidateXFRange(int start, int end);
@@ -64,4 +65,6 @@ private:
   std::array<int, 2> m_minmax_lights_changed{};
 
   Common::Matrix44 m_viewport_correction{};
+
+  Common::Matrix44 LoadProjectionMatrix();
 };

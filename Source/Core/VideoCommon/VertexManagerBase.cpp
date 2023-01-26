@@ -104,6 +104,7 @@ VertexManagerBase::~VertexManagerBase() = default;
 bool VertexManagerBase::Initialize()
 {
   m_index_generator.Init();
+  m_cpu_cull.Init();
   return true;
 }
 
@@ -115,6 +116,13 @@ u32 VertexManagerBase::GetRemainingSize() const
 void VertexManagerBase::AddIndices(OpcodeDecoder::Primitive primitive, u32 num_vertices)
 {
   m_index_generator.AddIndices(primitive, num_vertices);
+}
+
+bool VertexManagerBase::AreAllVerticesCulled(VertexLoaderBase* loader,
+                                             OpcodeDecoder::Primitive primitive, const u8* src,
+                                             u32 count)
+{
+  return m_cpu_cull.AreAllVerticesCulled(loader, primitive, src, count);
 }
 
 DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive primitive,
@@ -184,6 +192,16 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
              "Increase MAXVBUFFERSIZE or we need primitive breaking after all.",
              needed_vertex_bytes, GetRemainingSize());
 
+  return DataReader(m_cur_buffer_pointer, m_end_buffer_pointer);
+}
+
+DataReader VertexManagerBase::DisableCullAll(u32 stride)
+{
+  if (m_cull_all)
+  {
+    m_cull_all = false;
+    ResetBuffer(stride);
+  }
   return DataReader(m_cur_buffer_pointer, m_end_buffer_pointer);
 }
 
@@ -548,6 +566,8 @@ void VertexManagerBase::Flush()
     // Now the vertices can be flushed to the GPU. Everything following the CommitBuffer() call
     // must be careful to not upload any utility vertices, as the binding will be lost otherwise.
     const u32 num_indices = m_index_generator.GetIndexLen();
+    if (num_indices == 0)
+      return;
     u32 base_vertex, base_index;
     CommitBuffer(m_index_generator.GetNumVerts(),
                  VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(), num_indices,
