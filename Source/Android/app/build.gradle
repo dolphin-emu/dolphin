@@ -144,8 +144,10 @@ dependencies {
     implementation 'androidx.preference:preference:1.2.0'
     implementation 'androidx.profileinstaller:profileinstaller:1.2.2'
 
-    // Force dependency version to solve build conflict with androidx preferences
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
+    // Kotlin extensions for lifecycle components
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
 
     // Android TV UI libraries.
     implementation 'androidx.leanback:leanback:1.0.0'
