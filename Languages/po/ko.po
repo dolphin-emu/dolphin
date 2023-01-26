@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
-# Siegfried, 2013-2022
+# Siegfried, 2013-2023
 # its take <bexco2010@gmail.com>, 2016
 # its take <bexco2010@gmail.com>, 2015
 # Siegfried, 2011
@@ -11,9 +11,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-24 08:59+0100\n"
+"POT-Creation-Date: 2023-01-26 20:55+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Siegfried, 2013-2022\n"
+"Last-Translator: Siegfried, 2013-2023\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
 "Language: ko\n"
@@ -54,7 +54,7 @@ msgstr " (디스크 %1)"
 msgid "! Not"
 msgstr "! 아님"
 
-#: Source/Core/Core/Boot/Boot.cpp:280
+#: Source/Core/Core/Boot/Boot.cpp:271
 msgid "\"{0}\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"{0}\"는 부적합한 GCM/ISO 파일이거나, GC/Wii ISO 파일이 아닙니다."
 
@@ -152,15 +152,15 @@ msgstr ""
 msgid "%1 Graphics Configuration"
 msgstr "%1 그래픽 환경설정"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:296
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:308
 msgid "%1 MB (MEM1)"
 msgstr "%1 MB (MEM1)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:310
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:322
 msgid "%1 MB (MEM2)"
 msgstr "%1 MB (MEM2)"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:135
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:137
 msgid "%1 doesn't support this feature on your system."
 msgstr "%1 는 당신의 시스템에서 이 특성을 지원하지 않습니다."
 
@@ -215,26 +215,26 @@ msgstr "%1 세션들이 발견되었습니다"
 msgid "%1%"
 msgstr "%1%"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:280
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:292
 msgid "%1% (%2 MHz)"
 msgstr "%1% (%2 MHz)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:172
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:170
 msgid "%1% (Normal Speed)"
 msgstr "%1% (보통 속도)"
 
 #. i18n: One of the options shown below "Run until (ignoring breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:589
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:588
 msgid "%1's value is changed"
 msgstr "%1 의 값이 변경되었습니다"
 
 #. i18n: One of the options shown below "Run until (ignoring breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:583
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:582
 msgid "%1's value is hit"
 msgstr "%1 의 값이 일치합니다"
 
 #. i18n: One of the options shown below "Run until (ignoring breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:586
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:585
 msgid "%1's value is used"
 msgstr "%1 의 값이 사용됩니다"
 
@@ -301,11 +301,11 @@ msgstr "&3x"
 msgid "&4x"
 msgstr "&4x"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:597
+#: Source/Core/DolphinQt/MenuBar.cpp:589
 msgid "&About"
 msgstr "돌핀 정보(&A)"
 
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:317
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:337
 msgid "&Add Memory Breakpoint"
 msgstr "메모리 중단점 추가 (&A)"
 
@@ -314,7 +314,7 @@ msgstr "메모리 중단점 추가 (&A)"
 msgid "&Add New Code..."
 msgstr "새로운 코드 추가... (&A)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:561
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:560
 msgid "&Add function"
 msgstr "함수 추가 (&A)"
 
@@ -322,31 +322,27 @@ msgstr "함수 추가 (&A)"
 msgid "&Add..."
 msgstr "추가... (&A)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:523
+#: Source/Core/DolphinQt/MenuBar.cpp:515
 msgid "&Audio Settings"
 msgstr "오디오 설정(&A)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:192
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:190
 msgid "&Auto Update:"
 msgstr "자동 업데이트(&A):"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:539
+#: Source/Core/DolphinQt/MenuBar.cpp:531
 msgid "&Automatic Start"
 msgstr "자동 시작 (&A)"
-
-#: Source/Core/DolphinQt/MenuBar.cpp:194
-msgid "&Boot from DVD Backup"
-msgstr "DVD 백업에서 부트(&B)"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:441
 msgid "&Borderless Window"
 msgstr "틀 없는 창(&B)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:464
+#: Source/Core/DolphinQt/MenuBar.cpp:456
 msgid "&Breakpoints"
 msgstr "중단점 (&B)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:580
+#: Source/Core/DolphinQt/MenuBar.cpp:572
 msgid "&Bug Tracker"
 msgstr "버그 추적자(&B)"
 
@@ -354,15 +350,15 @@ msgstr "버그 추적자(&B)"
 msgid "&Cancel"
 msgstr "취소(&C)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:230
+#: Source/Core/DolphinQt/MenuBar.cpp:220
 msgid "&Cheats Manager"
 msgstr "치트 매니저(&C)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:590
+#: Source/Core/DolphinQt/MenuBar.cpp:582
 msgid "&Check for Updates..."
 msgstr "업데이트 확인(&C)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:962
+#: Source/Core/DolphinQt/MenuBar.cpp:954
 msgid "&Clear Symbols"
 msgstr "부호 지우기 (& C)"
 
@@ -370,7 +366,7 @@ msgstr "부호 지우기 (& C)"
 msgid "&Clone..."
 msgstr "복제... (&C)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:429
+#: Source/Core/DolphinQt/MenuBar.cpp:421
 msgid "&Code"
 msgstr "코드 (&C)"
 
@@ -378,11 +374,11 @@ msgstr "코드 (&C)"
 msgid "&Connected"
 msgstr "연결된(&C)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:525
+#: Source/Core/DolphinQt/MenuBar.cpp:517
 msgid "&Controller Settings"
 msgstr "컨트롤러 설정(&C)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:537
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:536
 msgid "&Copy address"
 msgstr "주소 복사 (&C)"
 
@@ -397,9 +393,15 @@ msgstr "삭제 (&)"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:316
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:336
 msgid "&Delete Watch"
 msgstr "관찰 삭제 (&D)"
+
+#. i18n: This kind of "watch" is used for watching emulated memory.
+#. It's not related to timekeeping devices.
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:315
+msgid "&Delete Watches"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:57
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:155
@@ -411,11 +413,11 @@ msgstr "코드 수정... (&E)"
 msgid "&Edit..."
 msgstr "편집... (&E)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:213
+#: Source/Core/DolphinQt/MenuBar.cpp:200
 msgid "&Eject Disc"
 msgstr "디스크 꺼내기(&E)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:307
+#: Source/Core/DolphinQt/MenuBar.cpp:299
 msgid "&Emulation"
 msgstr "에뮬레이션(&E)"
 
@@ -435,27 +437,27 @@ msgstr "상태 내보내기...(&E)"
 msgid "&Export as .gci..."
 msgstr ".gci 로 내보내기... (&E)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:207
+#: Source/Core/DolphinQt/MenuBar.cpp:194
 msgid "&File"
 msgstr "파일(&F)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:552
+#: Source/Core/DolphinQt/MenuBar.cpp:544
 msgid "&Font..."
 msgstr "폰트 (&F)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:313
+#: Source/Core/DolphinQt/MenuBar.cpp:305
 msgid "&Frame Advance"
 msgstr "프레임 진행(&F)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:527
+#: Source/Core/DolphinQt/MenuBar.cpp:519
 msgid "&Free Look Settings"
 msgstr "자유 보기 설정(&F)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:964
+#: Source/Core/DolphinQt/MenuBar.cpp:956
 msgid "&Generate Symbols From"
 msgstr "부호 생성 (&G)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:576
+#: Source/Core/DolphinQt/MenuBar.cpp:568
 msgid "&GitHub Repository"
 msgstr "GitHub 저장소(&G)"
 
@@ -463,15 +465,15 @@ msgstr "GitHub 저장소(&G)"
 msgid "&Go to start of function"
 msgstr "함수의 시작으로 가기(&G)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:522
+#: Source/Core/DolphinQt/MenuBar.cpp:514
 msgid "&Graphics Settings"
 msgstr "그래픽 설정(&G)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:567
+#: Source/Core/DolphinQt/MenuBar.cpp:559
 msgid "&Help"
 msgstr "도움말(&H)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:526
+#: Source/Core/DolphinQt/MenuBar.cpp:518
 msgid "&Hotkey Settings"
 msgstr "단축키 설정(&H)"
 
@@ -491,7 +493,7 @@ msgstr "상태 가져오기...(&I)"
 msgid "&Import..."
 msgstr "가져오기... (&I)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:563
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:562
 msgid "&Insert blr"
 msgstr "blr 삽입 (&I)"
 
@@ -499,7 +501,7 @@ msgstr "blr 삽입 (&I)"
 msgid "&Interframe Blending"
 msgstr "프레임간 혼합(&I)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:489
+#: Source/Core/DolphinQt/MenuBar.cpp:481
 msgid "&JIT"
 msgstr "JIT(&J)"
 
@@ -507,11 +509,11 @@ msgstr "JIT(&J)"
 msgid "&Language:"
 msgstr "언어(&L):"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:330
+#: Source/Core/DolphinQt/MenuBar.cpp:322
 msgid "&Load State"
 msgstr "상태 로드(&L)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:970
+#: Source/Core/DolphinQt/MenuBar.cpp:962
 msgid "&Load Symbol Map"
 msgstr "로드 부호 맵 (&L)"
 
@@ -519,15 +521,21 @@ msgstr "로드 부호 맵 (&L)"
 msgid "&Load file to current address"
 msgstr "파일을 현재 주소로 로드합니다 (&L)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:421
+#. i18n: This kind of "watch" is used for watching emulated memory.
+#. It's not related to timekeeping devices.
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:318
+msgid "&Lock Watches"
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:413
 msgid "&Lock Widgets In Place"
 msgstr "위젯 고정(&L)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:473
+#: Source/Core/DolphinQt/MenuBar.cpp:465
 msgid "&Memory"
 msgstr "메모리(&M)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:726
+#: Source/Core/DolphinQt/MenuBar.cpp:718
 msgid "&Movie"
 msgstr "무비(&M)"
 
@@ -535,7 +543,7 @@ msgstr "무비(&M)"
 msgid "&Mute"
 msgstr "음소거(&M)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:481
+#: Source/Core/DolphinQt/MenuBar.cpp:473
 msgid "&Network"
 msgstr "네트워크(&N)"
 
@@ -544,23 +552,23 @@ msgid "&No"
 msgstr "아니요(&N)"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:135
-#: Source/Core/DolphinQt/MenuBar.cpp:208
+#: Source/Core/DolphinQt/MenuBar.cpp:195
 msgid "&Open..."
 msgstr "열기...(&O)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:518
+#: Source/Core/DolphinQt/MenuBar.cpp:510
 msgid "&Options"
 msgstr "옵션(&O)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:990
+#: Source/Core/DolphinQt/MenuBar.cpp:982
 msgid "&Patch HLE Functions"
 msgstr "HLE 함수 패치 (&P)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:309
+#: Source/Core/DolphinQt/MenuBar.cpp:301
 msgid "&Pause"
 msgstr "일시정지(&P)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:308
+#: Source/Core/DolphinQt/MenuBar.cpp:300
 msgid "&Play"
 msgstr "실행(&P)"
 
@@ -568,7 +576,7 @@ msgstr "실행(&P)"
 msgid "&Properties"
 msgstr "속성(&P)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:741
+#: Source/Core/DolphinQt/MenuBar.cpp:733
 msgid "&Read-Only Mode"
 msgstr "읽기 전용 모드(&R)"
 
@@ -576,7 +584,7 @@ msgstr "읽기 전용 모드(&R)"
 msgid "&Refresh List"
 msgstr "목록 새로고침(&R)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:437
+#: Source/Core/DolphinQt/MenuBar.cpp:429
 msgid "&Registers"
 msgstr "레지스터 (&R)"
 
@@ -589,20 +597,20 @@ msgstr "제거 (&R)"
 msgid "&Remove Code"
 msgstr "코드 제거 (&R)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:552
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:551
 msgid "&Rename symbol"
 msgstr "부호 이름 바꾸기 (&R)"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:404
-#: Source/Core/DolphinQt/MenuBar.cpp:311
+#: Source/Core/DolphinQt/MenuBar.cpp:303
 msgid "&Reset"
 msgstr "리셋(&R)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:227
+#: Source/Core/DolphinQt/MenuBar.cpp:217
 msgid "&Resource Pack Manager"
 msgstr "리소스 팩 매니저(&R)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:971
+#: Source/Core/DolphinQt/MenuBar.cpp:963
 msgid "&Save Symbol Map"
 msgstr "부호 맵 저장 (&S)"
 
@@ -610,11 +618,15 @@ msgstr "부호 맵 저장 (&S)"
 msgid "&Scan e-Reader Card(s)..."
 msgstr "e-Reader 카드 스캔...(&S)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:177
+#: Source/Core/DolphinQt/MenuBar.cpp:224
+msgid "&Skylanders Portal"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:175
 msgid "&Speed Limit:"
 msgstr "속도 제한(&S):"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:310
+#: Source/Core/DolphinQt/MenuBar.cpp:302
 msgid "&Stop"
 msgstr "중지(&S)"
 
@@ -622,11 +634,11 @@ msgstr "중지(&S)"
 msgid "&Theme:"
 msgstr "테마(&T):"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:446
+#: Source/Core/DolphinQt/MenuBar.cpp:438
 msgid "&Threads"
 msgstr "쓰레드(&T)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:225
+#: Source/Core/DolphinQt/MenuBar.cpp:215
 msgid "&Tools"
 msgstr "도구(&T)"
 
@@ -634,17 +646,23 @@ msgstr "도구(&T)"
 msgid "&Unload ROM"
 msgstr "롬 언로드(&U)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:395
+#. i18n: This kind of "watch" is used for watching emulated memory.
+#. It's not related to timekeeping devices.
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:321
+msgid "&Unlock Watches"
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:387
 msgid "&View"
 msgstr "보기(&V)"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinQt/MenuBar.cpp:456
+#: Source/Core/DolphinQt/MenuBar.cpp:448
 msgid "&Watch"
 msgstr "관찰(&W)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:569
+#: Source/Core/DolphinQt/MenuBar.cpp:561
 msgid "&Website"
 msgstr "웹사이트(&W)"
 
@@ -656,11 +674,11 @@ msgstr "위키(&W)"
 msgid "&Yes"
 msgstr "예(&Y)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1226
+#: Source/Core/DolphinQt/MenuBar.cpp:1218
 msgid "'%1' not found, no symbol names generated"
 msgstr "'%1' 이 발견되지 않았습니다, 생성된 부호 이름이 없습니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1435
+#: Source/Core/DolphinQt/MenuBar.cpp:1427
 msgid "'%1' not found, scanning for common functions instead"
 msgstr "'%1' 이 발견되지 않았습니다, 공통 함수들을 대신 스캔합니다"
 
@@ -696,9 +714,13 @@ msgstr ", 쉼표"
 msgid "- Subtract"
 msgstr "- 빼기"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:344
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:343
 msgid "--> %1"
 msgstr "--> %1"
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:625
+msgid "--Unknown--"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:298
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:715
@@ -710,6 +732,11 @@ msgstr "..."
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:266
 msgid "/ Divide"
 msgstr "/ 나누기"
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:645
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:646
+msgid "0"
+msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:31
 msgid "128 Mbit (2043 blocks)"
@@ -743,7 +770,7 @@ msgstr "16:9"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:95
 msgid "16x Anisotropic"
-msgstr ""
+msgstr "16x 비등방성"
 
 #: Source/Core/Core/HotkeyManager.cpp:193
 msgid "1x"
@@ -755,7 +782,7 @@ msgstr "2x"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:92
 msgid "2x Anisotropic"
-msgstr ""
+msgstr "2x 비등방성"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:67
 msgid "2x Native (1280x1056) for 720p"
@@ -823,7 +850,7 @@ msgstr "4x"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:93
 msgid "4x Anisotropic"
-msgstr ""
+msgstr "4x 비등방성"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:68
 msgid "4x Native (2560x2112) for 1440p"
@@ -884,7 +911,7 @@ msgstr "8-비트 비부호화 정수"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:94
 msgid "8x Anisotropic"
-msgstr ""
+msgstr "8x 비등방성"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:70
 msgid "8x Native (5120x4224) for 5K"
@@ -902,13 +929,13 @@ msgstr "<없음>"
 msgid "<System Language>"
 msgstr "<시스템 언어>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:399
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:400
 msgid "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "<dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:654
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:291
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:653
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:292
 msgid ""
 "<font color='#ff0000'>AutoStepping timed out. Current instruction is "
 "irrelevant."
@@ -930,8 +957,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr "> 보다-큰"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1428
-#: Source/Core/DolphinQt/MainWindow.cpp:1495
+#: Source/Core/DolphinQt/MainWindow.cpp:1453
+#: Source/Core/DolphinQt/MainWindow.cpp:1520
 msgid "A NetPlay Session is already in progress!"
 msgstr "넷플레이 세션이 이미 진행 중입니다!"
 
@@ -955,11 +982,11 @@ msgstr ""
 msgid "A disc is already about to be inserted."
 msgstr "디스크가 이미 삽입되려는 중입니다."
 
-#: Source/Core/DolphinQt/Main.cpp:224
+#: Source/Core/DolphinQt/Main.cpp:238
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr "저장 상태는 시작할 게임 명시 없이는 로드될 수 없습니다."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:881
+#: Source/Core/DolphinQt/MainWindow.cpp:893
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1133,6 +1160,10 @@ msgstr "넷플레이 채팅 활성"
 msgid "Active"
 msgstr "액티브"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:560
+msgid "Active Portal Skylanders:"
+msgstr ""
+
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:160
 msgid "Active thread queue"
 msgstr "활성 쓰레드 큐"
@@ -1184,7 +1215,7 @@ msgstr "중단점 추가"
 msgid "Add a Memory Breakpoint"
 msgstr "메모리 중단점 추가"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:134
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:135
 msgid "Add memory &breakpoint"
 msgstr "메모리 중단점 추가 (&b)"
 
@@ -1194,11 +1225,12 @@ msgstr "메모리 중단점 추가"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:129
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:130
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:124
 msgid "Add to &watch"
 msgstr "관찰에 추가 (&w)"
 
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:457
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:862
 msgid "Add to watch"
 msgstr "관찰에 추가"
@@ -1209,7 +1241,7 @@ msgstr "관찰에 추가"
 msgid "Add..."
 msgstr "추가..."
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:519
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:523
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:123
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:288
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:300
@@ -1221,8 +1253,8 @@ msgstr "추가..."
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:82
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:180
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:232
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:155
-#: Source/Core/DolphinQt/MenuBar.cpp:965
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:156
+#: Source/Core/DolphinQt/MenuBar.cpp:957
 msgid "Address"
 msgstr "주소"
 
@@ -1250,13 +1282,19 @@ msgid ""
 "textures and might cause issues in a small number of games."
 "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>"
 msgstr ""
+"텍스처 필터링을 조정합니다. 비등방성 필터링은 비스듬한 시야각에 있는 텍스처들"
+"의 보이는 품질을 향상시킵니다. 강제 Nearest 와 강제 Linear 는 게임에 의해 선"
+"택된 텍스처 스캐일링 필터를 무시합니다.<br><br>'기본'을 제외한 옵션은 게임의 "
+"외형을 바꿀 것이고 소수의 게임에서 이슈들을 일으킬 지도 모릅니다."
+"<br><br><dolphin_emphasis>잘 모르겠으면, '기본'을 선택하세요.</"
+"dolphin_emphasis>"
 
 #. i18n: Refers to plastic shell of game controller (stick gate) that limits stick movements.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:107
 msgid "Adjusts target radius of simulated stick gate."
 msgstr "시뮬레이트된 스틱 게이트의 대상 반지름을 조정합니다."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:238
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:242
 msgid ""
 "Adjusts the accuracy at which the GPU receives texture updates from RAM."
 "<br><br>The \"Safe\" setting eliminates the likelihood of the GPU missing "
@@ -1270,7 +1308,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>잘 모르겠으면, 가장 오른쪽 값을 선택하세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:138
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:144
 msgid ""
 "Adjusts the amount of RAM in the emulated console.\n"
 "\n"
@@ -1282,7 +1320,7 @@ msgstr ""
 "경고: 이것을 활성화하면 많은 게임을 완전히 망가트릴 것입니다. 단지 소수 게임"
 "만 이것으로 이득을 얻을 수 있습니다."
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:97
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:103
 msgid ""
 "Adjusts the emulated CPU's clock rate.\n"
 "\n"
@@ -1327,14 +1365,14 @@ msgid "Aligned to data type length"
 msgstr "데이터 타입 길이로 정렬됨"
 
 #. i18n: A double precision floating point number
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:166
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:167
 msgid "All Double"
 msgstr "모든 더블"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:362
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:439
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:590
-#: Source/Core/DolphinQt/MainWindow.cpp:729
+#: Source/Core/DolphinQt/MainWindow.cpp:733
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:121
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:328
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:51
@@ -1347,29 +1385,29 @@ msgid "All Files (*)"
 msgstr "모든 파일 (*)"
 
 #. i18n: A floating point number
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:163
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:164
 msgid "All Float"
 msgstr "모든 실수"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:728
+#: Source/Core/DolphinQt/MainWindow.cpp:732
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:50
 msgid "All GC/Wii files"
 msgstr "모든 GC/Wii 파일들"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:156
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:157
 msgid "All Hexadecimal"
 msgstr "모든 16진수"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1297
-#: Source/Core/DolphinQt/MainWindow.cpp:1305
+#: Source/Core/DolphinQt/MainWindow.cpp:1322
+#: Source/Core/DolphinQt/MainWindow.cpp:1330
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "모든 저장 상태 (*.sav *.s##);; 모든 파일 (*)"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:158
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:159
 msgid "All Signed Integer"
 msgstr "모든 부호화 정수"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:160
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:161
 msgid "All Unsigned Integer"
 msgstr "모든 비부호화 정수"
 
@@ -1385,11 +1423,11 @@ msgstr "모든 플레이어의 코드가 동기화되었습니다."
 msgid "All players' saves synchronized."
 msgstr "모든 플레이어의 저장이 동기화되었습니다."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:147
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:145
 msgid "Allow Mismatched Region Settings"
 msgstr "맞지 않는 지역 설정 허락"
 
-#: Source/Core/DolphinQt/Main.cpp:257
+#: Source/Core/DolphinQt/Main.cpp:271
 msgid "Allow Usage Statistics Reporting"
 msgstr "사용 통계 보고 허용"
 
@@ -1461,15 +1499,15 @@ msgstr "안티-앨리어싱:"
 msgid "Any Region"
 msgstr "아무 지역"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1574
+#: Source/Core/DolphinQt/MenuBar.cpp:1566
 msgid "Append signature to"
 msgstr "서명 덧붙이기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:983
+#: Source/Core/DolphinQt/MenuBar.cpp:975
 msgid "Append to &Existing Signature File..."
 msgstr "존재하는 서명 파일에 덧붙이기... (&E)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:987
+#: Source/Core/DolphinQt/MenuBar.cpp:979
 msgid "Appl&y Signature File..."
 msgstr "서명 파일 적용... (&y)"
 
@@ -1489,7 +1527,7 @@ msgstr "앱로더 날짜:"
 msgid "Apply"
 msgstr "적용"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1597
+#: Source/Core/DolphinQt/MenuBar.cpp:1589
 msgid "Apply signature file"
 msgstr "서명 파일 적용"
 
@@ -1575,7 +1613,7 @@ msgstr "자동"
 msgid "Auto (Multiple of 640x528)"
 msgstr "자동 (640x528의 배수)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:182
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:180
 msgid "Auto Update Settings"
 msgstr "설정 자동 업데이트"
 
@@ -1599,7 +1637,7 @@ msgstr "창 크기 자동 조정"
 msgid "Auto-Hide"
 msgstr "자동-숨기기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1236
+#: Source/Core/DolphinQt/MenuBar.cpp:1228
 msgid "Auto-detect RSO modules?"
 msgstr "RSO 모듈을 자동-감지할까요?"
 
@@ -1622,7 +1660,7 @@ msgid "Auxiliary"
 msgstr "보조"
 
 #. i18n: The symbol for the unit "bytes"
-#: Source/Core/UICommon/UICommon.cpp:486
+#: Source/Core/UICommon/UICommon.cpp:524
 msgid "B"
 msgstr "B"
 
@@ -1630,7 +1668,7 @@ msgstr "B"
 msgid "BAT incorrect. Dolphin will now exit"
 msgstr "BAT가 올바르지 않습니다. 돌핀이 종료됩니다."
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceEthernet.cpp:74
+#: Source/Core/Core/HW/EXI/EXI_DeviceEthernet.cpp:73
 msgid ""
 "BBA MAC address {0} invalid for XLink Kai. A valid Nintendo GameCube MAC "
 "address must be used. Generate a new MAC address starting with 00:09:bf or "
@@ -1656,7 +1694,7 @@ msgstr "백 체인"
 msgid "Backend"
 msgstr "백엔드"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:157
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:158
 msgid "Backend Multithreading"
 msgstr "백엔드 멀티쓰레딩"
 
@@ -1707,7 +1745,7 @@ msgstr "안 좋은 값이 제공되었습니다."
 #: Source/Core/DolphinQt/GameList/GameList.cpp:972
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:217
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:151
-#: Source/Core/DolphinQt/MenuBar.cpp:624
+#: Source/Core/DolphinQt/MenuBar.cpp:616
 msgid "Banner"
 msgstr "배너"
 
@@ -1731,7 +1769,7 @@ msgstr "기본 우선순위"
 msgid "Basic"
 msgstr "기본"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:136
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:134
 msgid "Basic Settings"
 msgstr "기본 설정"
 
@@ -1739,7 +1777,7 @@ msgstr "기본 설정"
 msgid "Bass"
 msgstr "베이스"
 
-#: Source/Core/DolphinQt/Main.cpp:231
+#: Source/Core/DolphinQt/Main.cpp:245
 msgid "Batch mode cannot be used without specifying a game to launch."
 msgstr "배치 모드는 시작할 게임 명시 없이는 사용될 수 없습니다."
 
@@ -1747,7 +1785,7 @@ msgstr "배치 모드는 시작할 게임 명시 없이는 사용될 수 없습�
 msgid "Battery"
 msgstr "배터리"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:195
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:193
 msgid "Beta (once a month)"
 msgstr "베타 (한 달에 한 번)"
 
@@ -1767,13 +1805,13 @@ msgstr "바이너리 SSL (읽기)"
 msgid "Binary SSL (write)"
 msgstr "바이너리 SSL (쓰기)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:142
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:143
 msgid "Bitrate (kbps):"
 msgstr "비트레이트 (kbps):"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:982
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:231
-#: Source/Core/DolphinQt/MenuBar.cpp:634
+#: Source/Core/DolphinQt/MenuBar.cpp:626
 msgid "Block Size"
 msgstr "블락 크기"
 
@@ -1811,19 +1849,19 @@ msgstr ""
 "블루투스 패스쓰루 모드가 켜졌습니다, 하지만 돌핀이 libusb 없이 빌드되었습니"
 "다. 패스쓰루 모드를 사용할 수 없습니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:532
+#: Source/Core/DolphinQt/MenuBar.cpp:524
 msgid "Boot to Pause"
 msgstr "부팅하고 멈추기"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1651
+#: Source/Core/DolphinQt/MainWindow.cpp:1676
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMii NAND 백업 파일 (*.bin);;모든 파일 (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1677
+#: Source/Core/DolphinQt/MainWindow.cpp:1702
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMii 키 파일 (*.bin);;모든 파일 (*)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:168
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:169
 msgid "Borderless Fullscreen"
 msgstr "틀 없는 전체화면"
 
@@ -1888,7 +1926,7 @@ msgstr "광대역 어댑터 에러"
 msgid "Broadband Adapter MAC Address"
 msgstr "광대역 어댑터 맥 어드레스"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:237
+#: Source/Core/DolphinQt/MenuBar.cpp:229
 msgid "Browse &NetPlay Sessions...."
 msgstr "넷플레이 세션들 둘러보기...(&N)"
 
@@ -1952,7 +1990,7 @@ msgstr "만든이:"
 msgid "C Stick"
 msgstr "C 스틱"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:982
+#: Source/Core/DolphinQt/MenuBar.cpp:974
 msgid "C&reate Signature File..."
 msgstr "서명 파일 생성... (&C)"
 
@@ -1976,7 +2014,7 @@ msgstr "CRC32:"
 msgid "Cached Interpreter (slower)"
 msgstr "캐시된 인터프리터 (더 느림)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:318
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:319
 msgid ""
 "Caches custom textures to system RAM on startup.<br><br>This can require "
 "exponentially more RAM but fixes possible stuttering."
@@ -2041,7 +2079,7 @@ msgstr "카메라 1"
 msgid "Camera field of view (affects sensitivity of pointing)."
 msgstr "카메라 시야 ( 포인팅 민감도에 영향을 줍니다)."
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:500
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:504
 msgid "Can only generate AR code for values in virtual memory."
 msgstr "가상 메모리 값용 AR 코드만 생성할 수 있습니다."
 
@@ -2049,14 +2087,14 @@ msgstr "가상 메모리 값용 AR 코드만 생성할 수 있습니다."
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "{0:02x} 연결 핸들로 Wii 리모트를 찾을 수 없음"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1421
-#: Source/Core/DolphinQt/MainWindow.cpp:1488
+#: Source/Core/DolphinQt/MainWindow.cpp:1446
+#: Source/Core/DolphinQt/MainWindow.cpp:1513
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "게임이 여전히 구동되는 동안에 넷플레이 세션을 시작할 수 없습니다!"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:57
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:157
-#: Source/Core/DolphinQt/MenuBar.cpp:1266
+#: Source/Core/DolphinQt/MenuBar.cpp:1258
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:59
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:732
@@ -2079,11 +2117,11 @@ msgstr "NAND 에 설치될 수 없기 때문에 이 WAD 를 부팅할 수 없습
 msgid "Cannot compare against last value on first search."
 msgstr "첫 검색의 마지막 값과 비교할 수 없습니다."
 
-#: Source/Core/Core/Boot/Boot.cpp:624
+#: Source/Core/Core/Boot/Boot.cpp:613
 msgid "Cannot find the GC IPL."
 msgstr "GC IPL 을 찾을 수 없습니다."
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:503
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:507
 msgid "Cannot generate AR code for this address."
 msgstr "이 주소에 대한 AR 코드를 생성할 수 없습니다."
 
@@ -2099,7 +2137,7 @@ msgstr "GCI 폴더를 빈 경로로 설정할 수 없습니다."
 msgid "Cannot set memory card to an empty path."
 msgstr "메모리 카드를 빈 경로로 설정할 수 없습니다."
 
-#: Source/Core/Core/Boot/Boot.cpp:622
+#: Source/Core/Core/Boot/Boot.cpp:611
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr "GC IPL 을 찾을 수 없어서, 게임을 시작할 수 없습니다."
 
@@ -2125,7 +2163,7 @@ msgstr "중앙과 측정"
 msgid "Change &Disc"
 msgstr "디스크 변경(&D)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:212
+#: Source/Core/DolphinQt/MenuBar.cpp:199
 msgid "Change &Disc..."
 msgstr "디스크 변경...(&D)"
 
@@ -2133,7 +2171,7 @@ msgstr "디스크 변경...(&D)"
 msgid "Change Disc"
 msgstr "디스크 변경"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:150
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:148
 msgid "Change Discs Automatically"
 msgstr "디스크 자동 교환"
 
@@ -2141,7 +2179,7 @@ msgstr "디스크 자동 교환"
 msgid "Change the disc to {0}"
 msgstr "{0} 로 디스크를 변경합니다."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:271
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:272
 msgid ""
 "Changes the color of the FPS counter depending on emulation speed."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
@@ -2193,7 +2231,7 @@ msgstr "치트 찾기"
 msgid "Cheats Manager"
 msgstr "치트 관리자"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:260
+#: Source/Core/DolphinQt/MenuBar.cpp:252
 msgid "Check NAND..."
 msgstr "NAND 체크..."
 
@@ -2229,11 +2267,11 @@ msgstr "열 파일 선택하기"
 msgid "Choose a file to open or create"
 msgstr "열거나 만들 파일 선택"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1615
+#: Source/Core/DolphinQt/MenuBar.cpp:1607
 msgid "Choose priority input file"
 msgstr "우선 입력 파일 선택"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1620
+#: Source/Core/DolphinQt/MenuBar.cpp:1612
 msgid "Choose secondary input file"
 msgstr "차선 입력 파일 선택"
 
@@ -2263,15 +2301,16 @@ msgstr "클래식 컨트롤러"
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:246
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:152
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:110
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:90
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:91
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:576
 msgid "Clear"
 msgstr "지움"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:841
+#: Source/Core/DolphinQt/MenuBar.cpp:833
 msgid "Clear Cache"
 msgstr "캐시 청소"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:77
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:83
 msgid "Clock Override"
 msgstr "클럭 오버라이드"
 
@@ -2284,7 +2323,7 @@ msgstr "복제하고 코드 수정... (&E)"
 msgid "Close"
 msgstr "닫기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:519
+#: Source/Core/DolphinQt/MenuBar.cpp:511
 msgid "Co&nfiguration"
 msgstr "환경설정(&n)"
 
@@ -2315,11 +2354,11 @@ msgstr "코드가 실행되었습니다"
 msgid "Code:"
 msgstr "코드:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1809
+#: Source/Core/Core/NetPlayClient.cpp:1814
 msgid "Codes received!"
 msgstr "코드들을 받았습니다!"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:985
+#: Source/Core/DolphinQt/MenuBar.cpp:977
 msgid "Combine &Two Signature Files..."
 msgstr "두 서명 파일을 합치기... (&T)"
 
@@ -2362,7 +2401,7 @@ msgstr "쉐이더들 컴파일하기"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:983
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:233
-#: Source/Core/DolphinQt/MenuBar.cpp:635
+#: Source/Core/DolphinQt/MenuBar.cpp:627
 msgid "Compression"
 msgstr "압축"
 
@@ -2433,8 +2472,8 @@ msgstr "출력 설정"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:402
 #: Source/Core/DolphinQt/GameList/GameList.cpp:631
 #: Source/Core/DolphinQt/GameList/GameList.cpp:808
-#: Source/Core/DolphinQt/MainWindow.cpp:880
-#: Source/Core/DolphinQt/MainWindow.cpp:1617
+#: Source/Core/DolphinQt/MainWindow.cpp:892
+#: Source/Core/DolphinQt/MainWindow.cpp:1642
 #: Source/Core/DolphinQt/WiiUpdate.cpp:140
 msgid "Confirm"
 msgstr "확정"
@@ -2447,7 +2486,7 @@ msgstr "백엔드 변경 확정"
 msgid "Confirm on Stop"
 msgstr "멈출 때 확인"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1185
+#: Source/Core/DolphinQt/MenuBar.cpp:1177
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:497
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:239
 msgid "Confirmation"
@@ -2458,7 +2497,7 @@ msgstr "확정"
 msgid "Connect"
 msgstr "연결"
 
-#: Source/Core/Core/HotkeyManager.cpp:85 Source/Core/DolphinQt/MenuBar.cpp:301
+#: Source/Core/Core/HotkeyManager.cpp:85 Source/Core/DolphinQt/MenuBar.cpp:293
 msgid "Connect Balance Board"
 msgstr "밸런스 보드 연결"
 
@@ -2466,7 +2505,7 @@ msgstr "밸런스 보드 연결"
 msgid "Connect USB Keyboard"
 msgstr "USB 키보드 연결"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:293
+#: Source/Core/DolphinQt/MenuBar.cpp:285
 msgid "Connect Wii Remote %1"
 msgstr "Wii 리모트 %1 연결"
 
@@ -2486,7 +2525,7 @@ msgstr "Wii 리모트 3 연결"
 msgid "Connect Wii Remote 4"
 msgstr "Wii 리모트 4 연결"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:286
+#: Source/Core/DolphinQt/MenuBar.cpp:278
 msgid "Connect Wii Remotes"
 msgstr "Wii 리모트 연결"
 
@@ -2682,11 +2721,11 @@ msgstr ""
 msgid "Copy"
 msgstr "복사"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:539
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:538
 msgid "Copy &function"
 msgstr "함수 복사 (&f)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:542
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:541
 msgid "Copy &hex"
 msgstr "헥스 복사 (&h)"
 
@@ -2706,11 +2745,11 @@ msgstr "헥스 복사"
 msgid "Copy Value"
 msgstr "값 복사"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:541
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:540
 msgid "Copy code &line"
 msgstr "코드 줄 복사 (&l)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:548
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:547
 msgid "Copy tar&get address"
 msgstr "대상 주소 복사(&g)"
 
@@ -2818,7 +2857,7 @@ msgstr ""
 "NAND 에 없어서 {0:016x} 타이틀을 시작할 수 없었습니다. \n"
 "에뮬된 소프트웨어가 지금 멈출 것 같습니다."
 
-#: Source/Core/Core/Boot/Boot.cpp:272
+#: Source/Core/Core/Boot/Boot.cpp:263
 msgid ""
 "Could not read \"{0}\". There is no disc in the drive or it is not a "
 "GameCube/Wii backup. Please note that Dolphin cannot play games directly "
@@ -2828,7 +2867,7 @@ msgstr ""
 "아닙니다. 돌핀은 오리지널 게임큐브와 Wii 디스크로 직접 게임을 플레이할 수 없"
 "다는 것을 알아두세요."
 
-#: Source/Core/Core/Boot/Boot.cpp:303 Source/Core/Core/Boot/Boot.cpp:320
+#: Source/Core/Core/Boot/Boot.cpp:294 Source/Core/Core/Boot/Boot.cpp:311
 msgid "Could not recognize file {0}"
 msgstr "{0} 파일을 인식할 수 없습니다."
 
@@ -2871,10 +2910,19 @@ msgstr "파일을 읽을 수 없습니다."
 msgid "Country:"
 msgstr "국가:"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:577
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:658
+msgid "Create"
+msgstr ""
+
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:62
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:74
 msgid "Create New Memory Card"
 msgstr "새로운 메모리 카트 생성"
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:704
+msgid "Create Skylander File"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:108
 msgid "Create mappings for other devices"
@@ -2884,7 +2932,7 @@ msgstr "다른 디바이스들을 위한 매핑을 생성합니다"
 msgid "Create..."
 msgstr "생성..."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:335
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:336
 msgid ""
 "Creates frame dumps and screenshots at the internal resolution of the "
 "renderer, rather than the size of the window it is displayed within."
@@ -2907,11 +2955,11 @@ msgstr "만든이:"
 msgid "Critical"
 msgstr "치명적"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:154
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:155
 msgid "Crop"
 msgstr "자르기"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:355
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:356
 msgid ""
 "Crops the picture from its native aspect ratio to 4:3 or 16:9."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -2924,11 +2972,11 @@ msgstr ""
 msgid "Crossfade"
 msgstr "크로스페이드"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:270
+#: Source/Core/DolphinQt/MenuBar.cpp:262
 msgid "Current Region"
 msgstr "현재 지역"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:519
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:523
 msgid "Current Value"
 msgstr "현재 값"
 
@@ -2948,7 +2996,7 @@ msgstr "현재 쓰레드"
 msgid "Custom Address Space"
 msgstr "커스텀 주소 공간"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:145
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:151
 msgid "Custom RTC Options"
 msgstr "사용자 지정 RTC 옵션"
 
@@ -3047,7 +3095,7 @@ msgstr "데이터가 인식불가 형식이거나 오염되었습니다."
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr "GC메모리메니저에서 데이터 비일관성, 액션을 중단함."
 
-#: Source/Core/Core/NetPlayClient.cpp:1767
+#: Source/Core/Core/NetPlayClient.cpp:1772
 msgid "Data received!"
 msgstr "데이터를 받았습니다!"
 
@@ -3064,13 +3112,13 @@ msgstr "데드 존"
 msgid "Debug"
 msgstr "디버그"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:76
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:77
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:448
 msgid "Debugging"
 msgstr "디버깅"
 
 #. i18n: The base 10 numeral system. Not related to non-integer numbers
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:157
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:158
 msgid "Decimal"
 msgstr "10 진수"
 
@@ -3136,7 +3184,7 @@ msgstr "기본 ISO:"
 msgid "Default thread"
 msgstr "기본 쓰레드"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:179
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:180
 msgid "Defer EFB Cache Invalidation"
 msgstr "EFB 캐시 무효화를 연기"
 
@@ -3144,7 +3192,7 @@ msgstr "EFB 캐시 무효화를 연기"
 msgid "Defer EFB Copies to RAM"
 msgstr "EFB 램에 복사 연기"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:372
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:373
 msgid ""
 "Defers invalidation of the EFB access cache until a GPU synchronization "
 "command is executed. If disabled, the cache will be invalidated with every "
@@ -3160,7 +3208,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:131
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:109
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:89
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:90
 msgid "Delete"
 msgstr "삭제"
 
@@ -3189,12 +3237,12 @@ msgstr "깊이 퍼센트:"
 msgid "Depth:"
 msgstr "깊이:"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:519
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:523
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:48
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:232
 #: Source/Core/DolphinQt/GameList/GameList.cpp:974
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:219
-#: Source/Core/DolphinQt/MenuBar.cpp:626
+#: Source/Core/DolphinQt/MenuBar.cpp:618
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
 msgid "Description"
 msgstr "설명"
@@ -3216,7 +3264,7 @@ msgstr "떨어진"
 msgid "Detect"
 msgstr "감지"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1267
+#: Source/Core/DolphinQt/MenuBar.cpp:1259
 msgid "Detecting RSO Modules"
 msgstr "RSO 모듈 감지하기"
 
@@ -3224,7 +3272,7 @@ msgstr "RSO 모듈 감지하기"
 msgid "Deterministic dual core:"
 msgstr "결정론적 듀얼 코어:"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:195
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:193
 msgid "Dev (multiple times a day)"
 msgstr "개발 (하루에 여러 번)"
 
@@ -3303,7 +3351,7 @@ msgstr "바운딩 박스 끄기"
 msgid "Disable Copy Filter"
 msgstr "복사 필터 비활성"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:103
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:104
 msgid "Disable EFB VRAM Copies"
 msgstr "EFB 비디오램 복사 비활성"
 
@@ -3311,7 +3359,7 @@ msgstr "EFB 비디오램 복사 비활성"
 msgid "Disable Emulation Speed Limit"
 msgstr "에뮬레이션 속도 제한 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:833
+#: Source/Core/DolphinQt/MenuBar.cpp:825
 msgid "Disable Fastmem"
 msgstr "Fastmem 비활성"
 
@@ -3319,7 +3367,7 @@ msgstr "Fastmem 비활성"
 msgid "Disable Fog"
 msgstr "안개 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:825
+#: Source/Core/DolphinQt/MenuBar.cpp:817
 msgid "Disable JIT Cache"
 msgstr "JIT 캐시 비활성"
 
@@ -3327,7 +3375,7 @@ msgstr "JIT 캐시 비활성"
 msgid "Disabled"
 msgstr "비활성화됨"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:270
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:274
 msgid ""
 "Disables bounding box emulation.<br><br>This may improve GPU performance "
 "significantly, but some games will break.<br><br><dolphin_emphasis>If "
@@ -3337,7 +3385,7 @@ msgstr ""
 "도 모릅니다, 하지만 일부 게임은 깨질 것입니다.<br><br><dolphin_emphasis>잘 모"
 "르겠으면, 체크해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:328
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:329
 msgid ""
 "Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
 "upscaling.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -3377,7 +3425,7 @@ msgstr "디스플레이 타입"
 msgid "Display values in Hex"
 msgstr "값들을 Hex 로 보여주기"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:249
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:253
 msgid ""
 "Displays XFB copies as soon as they are created, instead of waiting for "
 "scanout.<br><br>Can cause graphical defects in some games if the game "
@@ -3400,15 +3448,15 @@ msgstr "거리"
 msgid "Distance of travel from neutral position."
 msgstr "중립 위치에서 이동 거리"
 
-#: Source/Core/DolphinQt/Main.cpp:259
+#: Source/Core/DolphinQt/Main.cpp:273
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "돌핀이 정보를 돌핀 개발자들에게 보고하도록 허가하시겠습니까?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1618
+#: Source/Core/DolphinQt/MainWindow.cpp:1643
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "\"%1\" 를 게임 경로들의 목록에 추가하고 싶습니까?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1186
+#: Source/Core/DolphinQt/MenuBar.cpp:1178
 msgid "Do you want to clear the list of symbol names?"
 msgstr "부호 이름 목록을 청소할까요?"
 
@@ -3418,7 +3466,7 @@ msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
 msgstr "선택된 저장 파일 %n 을 삭제하고 싶습니까?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:884
+#: Source/Core/DolphinQt/MainWindow.cpp:896
 msgid "Do you want to stop the current emulation?"
 msgstr "에뮬레이션을 중단하고 싶습니까?"
 
@@ -3439,9 +3487,9 @@ msgstr "돌핀 FIFO 로그 (*.dff)"
 msgid "Dolphin Game Mod Preset"
 msgstr "돌핀 게임 모드 프리셋"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1465
-#: Source/Core/DolphinQt/MenuBar.cpp:1481
-#: Source/Core/DolphinQt/MenuBar.cpp:1499
+#: Source/Core/DolphinQt/MenuBar.cpp:1457
+#: Source/Core/DolphinQt/MenuBar.cpp:1473
+#: Source/Core/DolphinQt/MenuBar.cpp:1491
 msgid "Dolphin Map File (*.map)"
 msgstr "돌핀 맵 파일 (*.map)"
 
@@ -3453,8 +3501,8 @@ msgstr "돌핀 서명 CSV 파일"
 msgid "Dolphin Signature File"
 msgstr "돌핀 서명 파일"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1698
-#: Source/Core/DolphinQt/MainWindow.cpp:1769
+#: Source/Core/DolphinQt/MainWindow.cpp:1723
+#: Source/Core/DolphinQt/MainWindow.cpp:1794
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "돌핀 TAS 무비 (*.dtm)"
 
@@ -3512,7 +3560,7 @@ msgstr ""
 msgid "Dolphin is unable to verify unlicensed discs."
 msgstr "돌핀은 라이슨스되지 않은 디스크들을 검증할 수 없습니다."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:218
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:216
 msgid ""
 "Dolphin will use this for titles whose region cannot be determined "
 "automatically."
@@ -3528,7 +3576,7 @@ msgstr "돌핀의 치트 시스템이 현재 꺼졌습니다."
 msgid "Domain"
 msgstr "도메인"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:194
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:193
 msgid "Don't Update"
 msgstr "업데이트 안함"
 
@@ -3549,7 +3597,7 @@ msgstr "문들이 잠겼습니다"
 #. i18n: A double precision floating point number
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:138
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:198
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:152
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:153
 msgid "Double"
 msgstr "더블"
 
@@ -3622,19 +3670,19 @@ msgstr "가짜가상메모리 덤프(&F)"
 msgid "Dump &MRAM"
 msgstr "MRAM 덤프(&M)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:795
+#: Source/Core/DolphinQt/MenuBar.cpp:787
 msgid "Dump Audio"
 msgstr "오디오 덤프"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:120
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:121
 msgid "Dump Base Textures"
 msgstr "기반 텍스처 덤프"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:100
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:101
 msgid "Dump EFB Target"
 msgstr "EFB 타겟 덤프"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:789
+#: Source/Core/DolphinQt/MenuBar.cpp:781
 msgid "Dump Frames"
 msgstr "프레임들 덤프"
 
@@ -3642,7 +3690,7 @@ msgstr "프레임들 덤프"
 msgid "Dump GameCube BBA traffic"
 msgstr "게임큐브 BBA 트래픽을 덤프"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:121
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:122
 msgid "Dump Mip Maps"
 msgstr "밉맵 덤프"
 
@@ -3650,11 +3698,11 @@ msgstr "밉맵 덤프"
 msgid "Dump Path:"
 msgstr "덤프 경로:"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:101
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:102
 msgid "Dump XFB Target"
 msgstr "XFB 타겟 덤프"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:133
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:134
 msgid "Dump at Internal Resolution"
 msgstr "내부 해상도에서 덤프"
 
@@ -3679,7 +3727,7 @@ msgstr "피어 증명서 덤프"
 msgid "Dump root CA certificates"
 msgstr "루트 CA 증명서 덤프"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:300
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:301
 msgid ""
 "Dumps decoded game textures based on the other flags to User/Dump/Textures/"
 "&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -3689,7 +3737,7 @@ msgstr ""
 "game_id&gt;/ 에 덤프합니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제"
 "해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:322
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:323
 msgid ""
 "Dumps the contents of EFB copies to User/Dump/Textures/."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -3697,7 +3745,7 @@ msgstr ""
 "User/Dump/Textures/로 EFB 복사의 내용을 덤프합니다.<br><br><dolphin_emphasis>"
 "잘 모르겠으면, 체크 해제해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:325
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:326
 msgid ""
 "Dumps the contents of XFB copies to User/Dump/Textures/."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -3719,7 +3767,7 @@ msgstr "터보 버튼 떼기의 기간 (프레임)"
 msgid "Dutch"
 msgstr "네덜란드어"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:219
+#: Source/Core/DolphinQt/MenuBar.cpp:209
 msgid "E&xit"
 msgstr "종료(&x)"
 
@@ -3786,7 +3834,7 @@ msgstr "효과적인"
 msgid "Effective priority"
 msgstr "효율 우선순위"
 
-#: Source/Core/UICommon/UICommon.cpp:487
+#: Source/Core/UICommon/UICommon.cpp:525
 msgid "EiB"
 msgstr "EiB"
 
@@ -3798,13 +3846,17 @@ msgstr "디스크 꺼내기"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "내장형 프레임 버퍼 (EFB)"
 
-#: Source/Core/Core/State.cpp:535
+#: Source/Core/Core/State.cpp:541
 msgid "Empty"
 msgstr "비어있음"
 
-#: Source/Core/Core/Core.cpp:225
+#: Source/Core/Core/Core.cpp:221
 msgid "Emu Thread already running"
 msgstr "에뮬 쓰레드가 이미 구동중임"
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:546
+msgid "Emulate Skylander Portal"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:105
 msgid "Emulate the Wii's Bluetooth adapter"
@@ -3835,14 +3887,14 @@ msgstr "녹화하려면 에뮬레이션이 시작되어야 합니다"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:29
 #: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:33
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:119
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:120
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:129
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:392
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:409
 msgid "Enable"
 msgstr "활성"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:85
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:86
 msgid "Enable API Validation Layers"
 msgstr "API 검증 레이어 활성화"
 
@@ -3850,11 +3902,11 @@ msgstr "API 검증 레이어 활성화"
 msgid "Enable Audio Stretching"
 msgstr "오디오 늘림 활성"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:144
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:142
 msgid "Enable Cheats"
 msgstr "치트 활성화"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:149
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:155
 msgid "Enable Custom RTC"
 msgstr "사용자 지정 RTC 켜기"
 
@@ -3862,15 +3914,15 @@ msgstr "사용자 지정 RTC 켜기"
 msgid "Enable Dual Core"
 msgstr "듀얼 코어 활성화"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:141
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:139
 msgid "Enable Dual Core (speedup)"
 msgstr "듀얼 코어 활성화 (속도 상승)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:82
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:88
 msgid "Enable Emulated CPU Clock Override"
 msgstr "에뮬된 CPU 클럭 오버라이드 활성화"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:112
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:118
 msgid "Enable Emulated Memory Size Override"
 msgstr "에뮬된 메모리 크기 오버라이드 활성화"
 
@@ -3878,7 +3930,7 @@ msgstr "에뮬된 메모리 크기 오버라이드 활성화"
 msgid "Enable FPRF"
 msgstr "FPRF 활성화"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:104
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:105
 msgid "Enable Graphics Mods"
 msgstr "그래픽 모드 활성화"
 
@@ -3887,7 +3939,7 @@ msgstr "그래픽 모드 활성화"
 msgid "Enable MMU"
 msgstr "MMU 활성화"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:155
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:156
 msgid "Enable Progressive Scan"
 msgstr "프로그레시브 스캔 활성화"
 
@@ -3904,13 +3956,17 @@ msgstr "화면 보호기 활성화"
 msgid "Enable Speaker Data"
 msgstr "스피커 데이터 활성화"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:232
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
 msgid "Enable Usage Statistics Reporting"
 msgstr "사용 통계 보고 활성화"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:80
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:81
 msgid "Enable Wireframe"
 msgstr "와이어프레임 활성화"
+
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:77
+msgid "Enable Write-Back Cache (slow)"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:105
 msgid ""
@@ -3953,7 +4009,14 @@ msgstr ""
 "일 수도 있습니다. 이 특성은 GPU 텍스처 디코딩과는 호환되지 않습니다."
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:362
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:79
+msgid ""
+"Enables emulation of the CPU write-back cache.\n"
+"Enabling will have a significant impact on performance.\n"
+"This should be left disabled unless absolutely needed."
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:363
 msgid ""
 "Enables multithreaded command submission in backends where supported. "
 "Enabling this option may result in a performance improvement on systems with "
@@ -3965,7 +4028,7 @@ msgstr ""
 "것은 Vulkan 백엔드 한정입니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체크"
 "해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:358
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:359
 msgid ""
 "Enables progressive scan if supported by the emulated software. Most games "
 "don't have any issue with this.<br><br><dolphin_emphasis>If unsure, leave "
@@ -3979,7 +4042,7 @@ msgstr ""
 msgid "Enables stretching of the audio to match emulation speed."
 msgstr "에뮬레이션 스피드와 맞도록 오디오 늘리기를 활성화합니다."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:261
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:265
 msgid ""
 "Enables texture decoding using the GPU instead of the CPU.<br><br>This may "
 "result in performance gains in some scenarios, or on systems where the CPU "
@@ -4000,7 +4063,7 @@ msgstr ""
 "일부 게임들에 필요한 메모리 관리 유닛을 활성화 합니다. (켬 = 호환성, 끔 = 빠"
 "름)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:295
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:296
 msgid ""
 "Enables validation of API calls made by the video backend, which may assist "
 "in debugging graphical issues. On the Vulkan and D3D backends, this also "
@@ -4012,7 +4075,7 @@ msgstr ""
 "쉐이더용 디버그 부호를 활성화합니다.<br><br><dolphin_emphasis>잘 모르겠으면, "
 "체크 해제해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:341
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:342
 msgid ""
 "Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
@@ -4060,7 +4123,7 @@ msgstr "XLink Kai 클라이언트를 구동할 장치의 IP 주소 입력 :"
 msgid "Enter USB device ID"
 msgstr "USB 장치 ID 를 입력하세요"
 
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:254
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:255
 msgid "Enter address to watch:"
 msgstr "관찰할 주소 입력:"
 
@@ -4078,7 +4141,7 @@ msgstr "패스워드 입력"
 msgid "Enter the DNS server to use:"
 msgstr "사용할 DNS 서버를 입력:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1241
+#: Source/Core/DolphinQt/MenuBar.cpp:1233
 msgid "Enter the RSO module address:"
 msgstr "RSO 모듈 주소를 입력:"
 
@@ -4109,33 +4172,33 @@ msgstr "RSO 모듈 주소를 입력:"
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:729
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:736
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:378
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:262
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:405
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:241
 #: Source/Core/DolphinQt/GBAWidget.cpp:581
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:346
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:376
-#: Source/Core/DolphinQt/Main.cpp:207 Source/Core/DolphinQt/Main.cpp:223
-#: Source/Core/DolphinQt/Main.cpp:230 Source/Core/DolphinQt/MainWindow.cpp:276
-#: Source/Core/DolphinQt/MainWindow.cpp:284
-#: Source/Core/DolphinQt/MainWindow.cpp:1058
-#: Source/Core/DolphinQt/MainWindow.cpp:1420
-#: Source/Core/DolphinQt/MainWindow.cpp:1427
-#: Source/Core/DolphinQt/MainWindow.cpp:1487
-#: Source/Core/DolphinQt/MainWindow.cpp:1494
-#: Source/Core/DolphinQt/MainWindow.cpp:1596
-#: Source/Core/DolphinQt/MenuBar.cpp:1149
-#: Source/Core/DolphinQt/MenuBar.cpp:1225
-#: Source/Core/DolphinQt/MenuBar.cpp:1248
-#: Source/Core/DolphinQt/MenuBar.cpp:1260
-#: Source/Core/DolphinQt/MenuBar.cpp:1291
-#: Source/Core/DolphinQt/MenuBar.cpp:1312
-#: Source/Core/DolphinQt/MenuBar.cpp:1518
-#: Source/Core/DolphinQt/MenuBar.cpp:1527
-#: Source/Core/DolphinQt/MenuBar.cpp:1539
-#: Source/Core/DolphinQt/MenuBar.cpp:1561
-#: Source/Core/DolphinQt/MenuBar.cpp:1587
-#: Source/Core/DolphinQt/MenuBar.cpp:1637
+#: Source/Core/DolphinQt/Main.cpp:221 Source/Core/DolphinQt/Main.cpp:237
+#: Source/Core/DolphinQt/Main.cpp:244 Source/Core/DolphinQt/MainWindow.cpp:279
+#: Source/Core/DolphinQt/MainWindow.cpp:287
+#: Source/Core/DolphinQt/MainWindow.cpp:1071
+#: Source/Core/DolphinQt/MainWindow.cpp:1445
+#: Source/Core/DolphinQt/MainWindow.cpp:1452
+#: Source/Core/DolphinQt/MainWindow.cpp:1512
+#: Source/Core/DolphinQt/MainWindow.cpp:1519
+#: Source/Core/DolphinQt/MainWindow.cpp:1621
+#: Source/Core/DolphinQt/MenuBar.cpp:1141
+#: Source/Core/DolphinQt/MenuBar.cpp:1217
+#: Source/Core/DolphinQt/MenuBar.cpp:1240
+#: Source/Core/DolphinQt/MenuBar.cpp:1252
+#: Source/Core/DolphinQt/MenuBar.cpp:1283
+#: Source/Core/DolphinQt/MenuBar.cpp:1304
+#: Source/Core/DolphinQt/MenuBar.cpp:1510
+#: Source/Core/DolphinQt/MenuBar.cpp:1519
+#: Source/Core/DolphinQt/MenuBar.cpp:1531
+#: Source/Core/DolphinQt/MenuBar.cpp:1553
+#: Source/Core/DolphinQt/MenuBar.cpp:1579
+#: Source/Core/DolphinQt/MenuBar.cpp:1629
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:315
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:478
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:738
@@ -4167,6 +4230,11 @@ msgstr "어댑터 열기 에러: %1"
 msgid "Error collecting save data!"
 msgstr "저장 데이터 수집 에러!"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:680
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:687
+msgid "Error converting value"
+msgstr ""
+
 #: Source/Core/DolphinQt/Translation.cpp:323
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
@@ -4176,15 +4244,15 @@ msgstr ""
 msgid "Error obtaining session list: %1"
 msgstr "에러가 있는 세션 목록: %1"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:277
+#: Source/Core/DolphinQt/MainWindow.cpp:280
 msgid "Error occurred while loading some texture packs"
 msgstr "일부 텍스처 팩을 로딩하는 중에 에러가 발생했습니다"
 
-#: Source/Core/Core/NetPlayClient.cpp:1796
+#: Source/Core/Core/NetPlayClient.cpp:1801
 msgid "Error processing codes."
 msgstr "코드들 처리 에러."
 
-#: Source/Core/Core/NetPlayClient.cpp:1768
+#: Source/Core/Core/NetPlayClient.cpp:1773
 msgid "Error processing data."
 msgstr "데이터 처리 에러."
 
@@ -4273,7 +4341,7 @@ msgstr "{1} 파티션에 {0} 사용되지 않은 블락들에서 에러들이 �
 msgid "Euphoria"
 msgstr "유포리아"
 
-#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:272
+#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:264
 #: Source/Core/UICommon/NetPlayIndex.cpp:249
 msgid "Europe"
 msgstr "유럽"
@@ -4364,11 +4432,11 @@ msgstr "표현식의 시작을 예상했습니다."
 msgid "Expected variable name."
 msgstr "변수 이름을 예상했습니다."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:174
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:175
 msgid "Experimental"
 msgstr "실험적"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:284
+#: Source/Core/DolphinQt/MenuBar.cpp:276
 msgid "Export All Wii Saves"
 msgstr "모든 Wii 저장을 내보내기"
 
@@ -4383,7 +4451,7 @@ msgstr "내보내기를 실패했습니다"
 msgid "Export Recording"
 msgstr "입력 기록 내보내기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:734
+#: Source/Core/DolphinQt/MenuBar.cpp:726
 msgid "Export Recording..."
 msgstr "입력 기록 내보내기..."
 
@@ -4411,7 +4479,7 @@ msgstr ".gcs 로 내보내기... (&g)"
 msgid "Export as .&sav..."
 msgstr ".sav 로 내보내기... (&s)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1113
+#: Source/Core/DolphinQt/MenuBar.cpp:1105
 #, c-format
 msgctxt ""
 msgid "Exported %n save(s)"
@@ -4439,7 +4507,7 @@ msgstr "외부의"
 msgid "External Frame Buffer (XFB)"
 msgstr "외부 프레임 버퍼 (XFB)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:261
+#: Source/Core/DolphinQt/MenuBar.cpp:253
 msgid "Extract Certificates from NAND"
 msgstr "NAND 에서 증명서 추출"
 
@@ -4477,7 +4545,7 @@ msgid "FD"
 msgstr "FD"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:37
-#: Source/Core/DolphinQt/MenuBar.cpp:232
+#: Source/Core/DolphinQt/MenuBar.cpp:222
 msgid "FIFO Player"
 msgstr "FIFO 플레이어"
 
@@ -4497,13 +4565,21 @@ msgstr ""
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr "넷플레이 목록 : %1 에 이 세션을 추가하는데에 실패했습니다"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1588
+#: Source/Core/DolphinQt/MenuBar.cpp:1580
 msgid "Failed to append to signature file '%1'"
 msgstr "서명 파일 '%1' 에 덧붙이기에 실패했습니다."
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:665
 msgid "Failed to claim interface for BT passthrough: {0}"
 msgstr "블투 패스쓰루용 인터페이스 요청에 실패했습니다: {0}"
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:822
+msgid "Failed to clear Skylander!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:823
+msgid "Failed to clear the Skylander from slot(%1)!\n"
+msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:108
 msgid "Failed to connect to Redump.org"
@@ -4530,12 +4606,22 @@ msgstr "D3D12 글로벌 리소스 생성에 실패했습니다"
 msgid "Failed to create DXGI factory"
 msgstr "DXGI 팩토리 생성에 실패했습니다"
 
-#: Source/Core/Core/NetPlayClient.cpp:1265
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:715
+msgid "Failed to create Skylander file!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:716
+msgid ""
+"Failed to create Skylander file:\n"
+"%1"
+msgstr ""
+
+#: Source/Core/Core/NetPlayClient.cpp:1270
 msgid ""
 "Failed to delete NetPlay GBA{0} save file. Verify your write permissions."
 msgstr "넷플레이 GBA{0} 저장 파일 삭제에 실패했습니다. 쓰기 권한을 검증하세요."
 
-#: Source/Core/Core/NetPlayClient.cpp:1055
+#: Source/Core/Core/NetPlayClient.cpp:1060
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr "넷플레이 메모리 카드를 삭제에 실패했습니다. 쓰기 권한을 검증하세요."
 
@@ -4568,7 +4654,7 @@ msgstr "%1 저장 파일(들)로부터 %n 를 내보내기에 실패했습니다
 msgid "Failed to export the following save files:"
 msgstr "다음 저장 파일들을 내보내기에 실패했습니다:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1149
+#: Source/Core/DolphinQt/MenuBar.cpp:1141
 msgid "Failed to extract certificates from NAND"
 msgstr "NAND 에서 증명서 추출에 실패했습니다"
 
@@ -4598,14 +4684,14 @@ msgstr "하나 이상의 D3D 부호 찾기에 실패했습니다"
 msgid "Failed to import \"%1\"."
 msgstr "\"%1\" 가져오기에 실패했습니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1089
+#: Source/Core/DolphinQt/MenuBar.cpp:1081
 msgid ""
 "Failed to import save file. Please launch the game once, then try again."
 msgstr ""
 "저장 파일을 가져오기에 실패했습니다. 해당 게임을 한번 띄워주세요, 그리고 다"
 "시 시도하세요."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1083
+#: Source/Core/DolphinQt/MenuBar.cpp:1075
 msgid ""
 "Failed to import save file. The given file appears to be corrupted or is not "
 "a valid Wii save."
@@ -4613,7 +4699,7 @@ msgstr ""
 "저장 파일 가져오기에 실패했습니다. 주어진 파일은 오염되었거나 적합한 Wii 저장"
 "이 아닙니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1096
+#: Source/Core/DolphinQt/MenuBar.cpp:1088
 msgid ""
 "Failed to import save file. Your NAND may be corrupt, or something is "
 "preventing access to files within it. Try repairing your NAND (Tools -> "
@@ -4623,7 +4709,7 @@ msgstr ""
 "것이 그 안에 파일들에 액세스를 막고 있습니다. NAND (도구 -> NAND 관리 -> "
 "NAND 체크...) 를 고쳐 보세요, 그런 후 저장을 다시 가져오세요."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1058
+#: Source/Core/DolphinQt/MainWindow.cpp:1071
 msgid "Failed to init core"
 msgstr "코어 인식에 실패했습니다"
 
@@ -4647,11 +4733,11 @@ msgid "Failed to install pack: %1"
 msgstr "팩 설치에 실패했습니다: %1"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:618
-#: Source/Core/DolphinQt/MenuBar.cpp:1054
+#: Source/Core/DolphinQt/MenuBar.cpp:1046
 msgid "Failed to install this title to the NAND."
 msgstr "NAND 에 이 타이틀 설치에 실패했습니다."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1520
+#: Source/Core/DolphinQt/MainWindow.cpp:1545
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -4659,8 +4745,8 @@ msgstr ""
 "포트 %1 듣기에 실패했습니다. 구동 중인 다른 넷플레이 서버 인스턴스가 있습니"
 "까?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1260
-#: Source/Core/DolphinQt/MenuBar.cpp:1312
+#: Source/Core/DolphinQt/MenuBar.cpp:1252
+#: Source/Core/DolphinQt/MenuBar.cpp:1304
 msgid "Failed to load RSO module at %1"
 msgstr "%1 에서 RSO 모듈 로드에 실패했습니다"
 
@@ -4672,11 +4758,19 @@ msgstr "d3d11.dll 로드에 실패했습니다"
 msgid "Failed to load dxgi.dll"
 msgstr "dxgi.dll 로드에 실패했습니다"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1527
+#: Source/Core/DolphinQt/MenuBar.cpp:1519
 msgid "Failed to load map file '%1'"
 msgstr "맵 파일 '%1' 을 로드에 실패했습니다."
 
-#: Source/Core/Core/Boot/Boot.cpp:580
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:807
+msgid "Failed to load the Skylander file!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:808
+msgid "Failed to load the Skylander file(%1)!\n"
+msgstr ""
+
+#: Source/Core/Core/Boot/Boot.cpp:569
 msgid "Failed to load the executable to memory."
 msgstr "실행 가능한 것을 메모리에 로드하는데 실패했습니다."
 
@@ -4689,7 +4783,7 @@ msgstr ""
 "설치해보세요."
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:581
-#: Source/Core/DolphinQt/MainWindow.cpp:1596
+#: Source/Core/DolphinQt/MainWindow.cpp:1621
 #: Source/Core/DolphinQt/RenderWidget.cpp:124
 msgid "Failed to open '%1'"
 msgstr "'%1' 를 열기에 실패했습니다"
@@ -4722,9 +4816,19 @@ msgstr ""
 msgid "Failed to open file."
 msgstr "파일 열기에 실패했습니다."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1519
+#: Source/Core/DolphinQt/MainWindow.cpp:1544
 msgid "Failed to open server"
 msgstr "서버 열기에 실패했습니다"
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:773
+msgid "Failed to open the Skylander file!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:774
+msgid ""
+"Failed to open the Skylander file(%1)!\n"
+"File may already be in use on the portal."
+msgstr ""
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:453
 msgid "Failed to open the input file \"%1\"."
@@ -4768,6 +4872,16 @@ msgstr "입력 파일 \"{0}\" 로 부터 읽기에 실패했습니다."
 msgid "Failed to read selected savefile(s) from memory card."
 msgstr "메모리 카드에서 선택된 저장파일(들)을 읽기에 실패했습니다."
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:783
+msgid "Failed to read the Skylander file!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:784
+msgid ""
+"Failed to read the Skylander file(%1)!\n"
+"File was too small."
+msgstr ""
+
 #: Source/Core/Core/Movie.cpp:1025
 msgid "Failed to read {0}"
 msgstr "{0} 을 읽을 수 없습니다."
@@ -4790,15 +4904,15 @@ msgstr ""
 msgid "Failed to remove this title from the NAND."
 msgstr "NAND 에서 이 타이틀 제거에 실패했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1079
+#: Source/Core/Core/NetPlayClient.cpp:1084
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
 msgstr "넷플레이 GCI 폴더 재설정에 실패했습니다. 쓰기 권한을 검증하세요."
 
-#: Source/Core/Core/NetPlayClient.cpp:1110
+#: Source/Core/Core/NetPlayClient.cpp:1115
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr "넷플레이 NAND 폴더 재설정에 실패했습니다. 쓰기 권한을 검증하세요."
 
-#: Source/Core/Core/NetPlayClient.cpp:1116
+#: Source/Core/Core/NetPlayClient.cpp:1121
 msgid "Failed to reset NetPlay redirect folder. Verify your write permissions."
 msgstr ""
 "넷플레이 리다이렉트 폴더 재설정에 실패했습니다. 쓰기 권한을 검증하세요."
@@ -4807,19 +4921,19 @@ msgstr ""
 msgid "Failed to save FIFO log."
 msgstr "FIFO 로그 저장에 실패했습니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1519
+#: Source/Core/DolphinQt/MenuBar.cpp:1511
 msgid "Failed to save code map to path '%1'"
 msgstr "경로 '%1' 에 코드 맵 저장을 실패했습니다"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1561
+#: Source/Core/DolphinQt/MenuBar.cpp:1553
 msgid "Failed to save signature file '%1'"
 msgstr "서명 파일 '%1' 을 저장에 실패했습니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1540
+#: Source/Core/DolphinQt/MenuBar.cpp:1532
 msgid "Failed to save symbol map to path '%1'"
 msgstr "경로 '%1' 에 심볼 맵 저장을 실패했습니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1638
+#: Source/Core/DolphinQt/MenuBar.cpp:1630
 msgid "Failed to save to signature file '%1'"
 msgstr "서명 파일 '%1' 에 저장에 실패했습니다."
 
@@ -4831,11 +4945,11 @@ msgstr "팩 언인스톨에 실패했습니다: %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "BT.DINF를 SYSCONF로 쓰지 못했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1146
+#: Source/Core/Core/NetPlayClient.cpp:1151
 msgid "Failed to write Mii data."
 msgstr "Mii 데이터 쓰기에 실패했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1231
+#: Source/Core/Core/NetPlayClient.cpp:1236
 msgid "Failed to write Wii save."
 msgstr "Wii 저장 쓰기에 실패했습니다."
 
@@ -4849,7 +4963,7 @@ msgstr "환경 파일 쓰기에 실패했습니다!"
 msgid "Failed to write modified memory card to disk."
 msgstr "수정된 메모리 카드를 디스크에 쓰기를 실패했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1244
+#: Source/Core/Core/NetPlayClient.cpp:1249
 msgid "Failed to write redirected save."
 msgstr "리다이렉트된 저장 쓰기에 실패했습니다."
 
@@ -4869,7 +4983,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GameList/GameList.cpp:616
 #: Source/Core/DolphinQt/GameList/GameList.cpp:644
 #: Source/Core/DolphinQt/GameList/GameList.cpp:832
-#: Source/Core/DolphinQt/MenuBar.cpp:1054
+#: Source/Core/DolphinQt/MenuBar.cpp:1046
 msgid "Failure"
 msgstr "실패"
 
@@ -4877,11 +4991,11 @@ msgstr "실패"
 msgid "Fair Input Delay"
 msgstr "공정한 입력 지연"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:201
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:199
 msgid "Fallback Region"
 msgstr "대비책 지역"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:212
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:210
 msgid "Fallback Region:"
 msgstr "대비책 지역:"
 
@@ -4894,7 +5008,7 @@ msgstr "빠름"
 msgid "Fast Depth Calculation"
 msgstr "빠른 깊이 계산"
 
-#: Source/Core/Core/Movie.cpp:1303
+#: Source/Core/Core/Movie.cpp:1306
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte "
 "{2}.){3}"
@@ -4913,7 +5027,7 @@ msgstr "파일 세부사항"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:981
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:229
-#: Source/Core/DolphinQt/MenuBar.cpp:633
+#: Source/Core/DolphinQt/MenuBar.cpp:625
 msgid "File Format"
 msgstr "파일 형식"
 
@@ -4927,18 +5041,18 @@ msgstr "파일 정보"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:976
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:223
-#: Source/Core/DolphinQt/MenuBar.cpp:628
+#: Source/Core/DolphinQt/MenuBar.cpp:620
 msgid "File Name"
 msgstr "파일 이름"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:977
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:225
-#: Source/Core/DolphinQt/MenuBar.cpp:629
+#: Source/Core/DolphinQt/MenuBar.cpp:621
 msgid "File Path"
 msgstr "파일 경로"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:980
-#: Source/Core/DolphinQt/MenuBar.cpp:632
+#: Source/Core/DolphinQt/MenuBar.cpp:624
 msgid "File Size"
 msgstr "파일 크기"
 
@@ -4958,7 +5072,7 @@ msgstr "파일명"
 msgid "Files opened, ready to compress."
 msgstr "파일이 열렸습니다, 압축할 준비가 되었습니다."
 
-#: Source/Core/Core/Boot/Boot.cpp:106
+#: Source/Core/Core/Boot/Boot.cpp:91
 msgid ""
 "Files specified in the M3U file \"{0}\" were not found:\n"
 "{1}"
@@ -5029,12 +5143,12 @@ msgstr "플래그"
 #. i18n: Floating-point (non-integer) number
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:137
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:197
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:150
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:161
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:151
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:162
 msgid "Float"
 msgstr "플로우트"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:533
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:532
 msgid "Follow &branch"
 msgstr "분기 따라가기 (&b)"
 
@@ -5073,23 +5187,23 @@ msgstr "강제 4:3"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:97
 msgid "Force Linear"
-msgstr ""
+msgstr "강제 Linear"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:104
 msgid "Force Linear and 16x Anisotropic"
-msgstr ""
+msgstr "강제 Linear 와 16x 비등방성"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:98
 msgid "Force Linear and 2x Anisotropic"
-msgstr ""
+msgstr "강제 Linear 와 2x 비등방성"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:100
 msgid "Force Linear and 4x Anisotropic"
-msgstr ""
+msgstr "강제 Linear 와 4x 비등방성"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:102
 msgid "Force Linear and 8x Anisotropic"
-msgstr ""
+msgstr "강제 Linear 와 8x 비등방성"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:135
 msgid "Force Listen Port:"
@@ -5097,13 +5211,13 @@ msgstr "강제 듣기 포트: "
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:96
 msgid "Force Nearest"
-msgstr ""
+msgstr "강제 Nearest"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:437
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:438
 msgid "Forced off because %1 doesn't support VS expansion."
 msgstr "%1 가 VS 확장을 지원하지 않기 때문에 강제로 꺼졌습니다."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:434
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:435
 msgid "Forced on because %1 doesn't support geometry shaders."
 msgstr "%1 가 기하학 쉐이더를 지원하지 않기 때문에 강제로 켜졌습니다."
 
@@ -5180,7 +5294,7 @@ msgstr "프레임 진행 속도 증가"
 msgid "Frame Advance Reset Speed"
 msgstr "프레임 진행 속도 리셋"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:129
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:130
 msgid "Frame Dumping"
 msgstr "프레임 덤핑"
 
@@ -5188,7 +5302,7 @@ msgstr "프레임 덤핑"
 msgid "Frame Range"
 msgstr "프레임 범위"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1803
+#: Source/Core/VideoCommon/RenderBase.cpp:1805
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "프레임 덤프 이미지(들) '{0}' 가 이미 존재합니다. 덮어쓰시겠습니까?"
 
@@ -5346,7 +5460,7 @@ msgstr "GCMemcardDirectory: 부적합한 블록 주소로 호출된 클리어블
 msgid "GCZ GC/Wii images (*.gcz)"
 msgstr "GCZ GC/Wii 이미지들 (*.gcz)"
 
-#: Source/Core/VideoCommon/CommandProcessor.cpp:691
+#: Source/Core/VideoCommon/CommandProcessor.cpp:694
 msgid ""
 "GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
 "This means one of the following:\n"
@@ -5484,7 +5598,7 @@ msgid "Game Folders"
 msgstr "게임 폴더들"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:978
-#: Source/Core/DolphinQt/MenuBar.cpp:630
+#: Source/Core/DolphinQt/MenuBar.cpp:622
 msgid "Game ID"
 msgstr "게임 ID"
 
@@ -5517,7 +5631,7 @@ msgstr "게임이 다른 디스크 넘버를 가지고 있습니다"
 msgid "Game has a different revision"
 msgstr "게임이 다른 개정을 가지고 있습니다"
 
-#: Source/Core/Core/NetPlayClient.cpp:1694
+#: Source/Core/Core/NetPlayClient.cpp:1699
 msgid "Game is already running!"
 msgstr "게임이 이미 구동중입니다!"
 
@@ -5612,19 +5726,19 @@ msgstr "일반"
 msgid "General and Options"
 msgstr "일반 옵션"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:457
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:461
 msgid "Generate Action Replay Code"
 msgstr "액션 리플레이 코드 생성"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:234
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:232
 msgid "Generate a New Statistics Identity"
 msgstr "새로운 통계 식별자 생성"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:493
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:497
 msgid "Generated AR code."
 msgstr "AR 코드를 생성했습니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1219
+#: Source/Core/DolphinQt/MenuBar.cpp:1211
 msgid "Generated symbol names from '%1'"
 msgstr "'%1' 에서 부호 이름들을 생성했습니다"
 
@@ -5642,7 +5756,7 @@ msgstr "독일"
 msgid "GetDeviceList failed: {0}"
 msgstr "디바이스목록얻기 실패했음: {0}"
 
-#: Source/Core/UICommon/UICommon.cpp:486
+#: Source/Core/UICommon/UICommon.cpp:524
 msgid "GiB"
 msgstr "GiB"
 
@@ -5699,7 +5813,7 @@ msgstr "초록 왼쪽"
 msgid "Green Right"
 msgstr "초록 오른쪽"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:605
+#: Source/Core/DolphinQt/MenuBar.cpp:597
 msgid "Grid View"
 msgstr "격자 보기"
 
@@ -5749,8 +5863,8 @@ msgstr "헥스 8"
 msgid "Hex Byte String"
 msgstr "헥스 바이트 스트링"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:146
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:155
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:147
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:156
 msgid "Hexadecimal"
 msgstr "16진수"
 
@@ -5758,7 +5872,7 @@ msgstr "16진수"
 msgid "Hide"
 msgstr "숨기기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:700
+#: Source/Core/DolphinQt/MenuBar.cpp:692
 msgid "Hide All"
 msgstr "모두 숨기기"
 
@@ -5877,6 +5991,14 @@ msgstr "나는 위험성을 알고 있고 계속하겠습니다"
 msgid "ID"
 msgstr "아이디"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:680
+msgid "ID entered is invalid!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:643
+msgid "ID:"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:136
 msgid "IOS Version:"
 msgstr "IOS 버전:"
@@ -5964,11 +6086,11 @@ msgstr ""
 "\n"
 "타이밍-민감한 컨트롤을 지진 턴-기반 게임에 알맞음, 골프 같은."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:375
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:371
 msgid "Identity Generation"
 msgstr "식별자 생성"
 
-#: Source/Core/DolphinQt/Main.cpp:261
+#: Source/Core/DolphinQt/Main.cpp:275
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -6039,11 +6161,11 @@ msgstr "무시"
 msgid "Ignore Format Changes"
 msgstr "포맷 변경들을 무시"
 
-#: Source/Core/DolphinQt/Main.cpp:71
+#: Source/Core/DolphinQt/Main.cpp:75
 msgid "Ignore for this session"
 msgstr "이 세션을 무시"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:220
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:224
 msgid ""
 "Ignores any changes to the EFB format.<br><br>Improves performance in many "
 "games without any negative effect. Causes graphical defects in a small "
@@ -6054,7 +6176,7 @@ msgstr ""
 "서 성능을 향상시킵니다. 소수 다른 게임들에서 그래픽 결함을 유발합니다."
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:215
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:219
 msgid ""
 "Ignores any requests from the CPU to read from or write to the EFB. "
 "<br><br>Improves performance in some games, but will disable all EFB-based "
@@ -6070,7 +6192,7 @@ msgstr ""
 msgid "Immediately Present XFB"
 msgstr "XFB 를 즉시 표시합니다"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:391
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:392
 msgid ""
 "Implements fullscreen mode with a borderless window spanning the whole "
 "screen instead of using exclusive mode. Allows for faster transitions "
@@ -6084,7 +6206,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:258
+#: Source/Core/DolphinQt/MenuBar.cpp:250
 msgid "Import BootMii NAND Backup..."
 msgstr "BootMii NAND 백업 가져오기..."
 
@@ -6099,15 +6221,15 @@ msgstr "가져오기를 실패했습니다"
 msgid "Import Save File(s)"
 msgstr "저장 파일(들)을 가져오기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:283
+#: Source/Core/DolphinQt/MenuBar.cpp:275
 msgid "Import Wii Save..."
 msgstr "Wii 저장 가져오기"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1660
+#: Source/Core/DolphinQt/MainWindow.cpp:1685
 msgid "Importing NAND backup"
 msgstr "NAND 백업 가져오기"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1670
+#: Source/Core/DolphinQt/MainWindow.cpp:1695
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -6129,7 +6251,7 @@ msgstr "포함됨: %1"
 msgid "Included: 0"
 msgstr "포함됨: 0"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:274
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:278
 msgid ""
 "Includes the contents of the embedded frame buffer (EFB) and upscaled EFB "
 "copies in save states. Fixes missing and/or non-upscaled textures/objects "
@@ -6199,8 +6321,8 @@ msgstr "정보"
 
 #: Source/Core/Common/MsgHandler.cpp:59
 #: Source/Core/DolphinQt/GameList/GameList.cpp:754
-#: Source/Core/DolphinQt/MenuBar.cpp:1218
-#: Source/Core/DolphinQt/MenuBar.cpp:1445
+#: Source/Core/DolphinQt/MenuBar.cpp:1210
+#: Source/Core/DolphinQt/MenuBar.cpp:1437
 msgid "Information"
 msgstr "정보"
 
@@ -6208,11 +6330,11 @@ msgstr "정보"
 msgid "Inhibit Screensaver During Emulation"
 msgstr "에뮬하는 동안 화면보호기를 감춥니다"
 
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:254
-#: Source/Core/DolphinQt/MenuBar.cpp:1241
-#: Source/Core/DolphinQt/MenuBar.cpp:1297
-#: Source/Core/DolphinQt/MenuBar.cpp:1546
-#: Source/Core/DolphinQt/MenuBar.cpp:1571
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:255
+#: Source/Core/DolphinQt/MenuBar.cpp:1233
+#: Source/Core/DolphinQt/MenuBar.cpp:1289
+#: Source/Core/DolphinQt/MenuBar.cpp:1538
+#: Source/Core/DolphinQt/MenuBar.cpp:1563
 msgid "Input"
 msgstr "입력"
 
@@ -6226,7 +6348,7 @@ msgstr "활성에 필요한 힘을 입력하세요."
 msgid "Input strength to ignore and remap."
 msgstr "무시하고 리매핑할 힘을 입력하세요."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:564
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:563
 msgid "Insert &nop"
 msgstr "nop 삽입 (&n)"
 
@@ -6253,7 +6375,7 @@ msgstr "파티션 (%1) 설치"
 msgid "Install Update"
 msgstr "업데이트 설치"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:256
+#: Source/Core/DolphinQt/MenuBar.cpp:248
 msgid "Install WAD..."
 msgstr "WAD 설치..."
 
@@ -6273,7 +6395,7 @@ msgstr "명령"
 msgid "Instruction Breakpoint"
 msgstr "명령 중단점"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1664
+#: Source/Core/DolphinQt/MenuBar.cpp:1656
 msgid "Instruction:"
 msgstr "명령:"
 
@@ -6281,7 +6403,7 @@ msgstr "명령:"
 msgid "Instruction: %1"
 msgstr "명령: %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:684
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:683
 msgid ""
 "Instructions executed:   %1\n"
 "Value contained in:\n"
@@ -6303,7 +6425,7 @@ msgid "Interface"
 msgstr "인터페이스"
 
 #: Source/Core/Core/NetPlayCommon.cpp:67 Source/Core/Core/NetPlayCommon.cpp:151
-#: Source/Core/Core/State.cpp:402
+#: Source/Core/Core/State.cpp:407
 msgid "Internal LZO Error - compression failed"
 msgstr "내부 LZO 오류 - 압축 실패했습니다"
 
@@ -6312,7 +6434,7 @@ msgstr "내부 LZO 오류 - 압축 실패했습니다"
 msgid "Internal LZO Error - decompression failed"
 msgstr "내부 LZO 오류 - 압축해제를 실패했습니다"
 
-#: Source/Core/Core/State.cpp:611
+#: Source/Core/Core/State.cpp:617
 msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
 "Try loading the state again"
@@ -6320,7 +6442,7 @@ msgstr ""
 "내부 LZO 오류 - 압축풀기 실패했습니다({0}) ({1}, {2}) \n"
 "상태 로딩을 다시 해보세요"
 
-#: Source/Core/Core/State.cpp:717
+#: Source/Core/Core/State.cpp:725
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "내부 LZO 오류 -  lzo_init() 실패했습니다"
 
@@ -6334,7 +6456,7 @@ msgstr "내부 해상도"
 msgid "Internal Resolution:"
 msgstr "내부 해상도:"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:506
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:510
 msgid "Internal error while generating AR code."
 msgstr "AR 코드를 생성하는 동안 내부 에러."
 
@@ -6342,7 +6464,7 @@ msgstr "AR 코드를 생성하는 동안 내부 에러."
 msgid "Interpreter (slowest)"
 msgstr "인터프리터 (가장 느림)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:806
+#: Source/Core/DolphinQt/MenuBar.cpp:798
 msgid "Interpreter Core"
 msgstr "인터프리터 코어"
 
@@ -6358,7 +6480,7 @@ msgstr "자동-업데이트 서비스에서 부적합한 JSON 을 받았습니�
 msgid "Invalid Mixed Code"
 msgstr "부적합 복합 코드"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:285
+#: Source/Core/DolphinQt/MainWindow.cpp:288
 msgid "Invalid Pack %1 provided: %2"
 msgstr "부적합한 %1 이 제공됨: %2"
 
@@ -6367,7 +6489,7 @@ msgstr "부적합한 %1 이 제공됨: %2"
 msgid "Invalid Player ID"
 msgstr "부적합한 플레이어 아이디"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1248
+#: Source/Core/DolphinQt/MenuBar.cpp:1240
 msgid "Invalid RSO module address: %1"
 msgstr "부적합 RSO 모듈 주소: %1"
 
@@ -6383,7 +6505,7 @@ msgstr "부적합 체크섬"
 msgid "Invalid game."
 msgstr "부적합한 게임."
 
-#: Source/Core/Core/NetPlayClient.cpp:1927
+#: Source/Core/Core/NetPlayClient.cpp:1932
 msgid "Invalid host"
 msgstr "부적합 호스트"
 
@@ -6392,7 +6514,7 @@ msgid "Invalid input for the field \"%1\""
 msgstr "필드 \"%1\" 에 부적합한 입력"
 
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:378
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:405
 msgid "Invalid input provided"
 msgstr "부적합한 입력이 제공됨"
 
@@ -6424,11 +6546,11 @@ msgstr "부적합한 찾기 스트링 (숫자로 변환될 수 없었습니다)"
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "부적합한 찾기 스트링 (짝수 길이 스트링만 지원됩니다)"
 
-#: Source/Core/DolphinQt/Main.cpp:207
+#: Source/Core/DolphinQt/Main.cpp:221
 msgid "Invalid title ID."
 msgstr "부적합한 타이틀 ID."
 
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:262
 msgid "Invalid watch address: %1"
 msgstr "부적합한 관찰 주소: %1"
 
@@ -6442,11 +6564,11 @@ msgstr "이탈리아어"
 msgid "Italy"
 msgstr "이탈리아"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:804
+#: Source/Core/DolphinQt/MenuBar.cpp:796
 msgid "JIT"
 msgstr "JIT"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:817
+#: Source/Core/DolphinQt/MenuBar.cpp:809
 msgid "JIT Block Linking Off"
 msgstr "JIT 블록 연결 끄기"
 
@@ -6454,47 +6576,47 @@ msgstr "JIT 블록 연결 끄기"
 msgid "JIT Blocks"
 msgstr "JIT 블록들"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:941
+#: Source/Core/DolphinQt/MenuBar.cpp:933
 msgid "JIT Branch Off"
 msgstr "JIT 분기 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:909
+#: Source/Core/DolphinQt/MenuBar.cpp:901
 msgid "JIT FloatingPoint Off"
 msgstr "JIT 소수점 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:917
+#: Source/Core/DolphinQt/MenuBar.cpp:909
 msgid "JIT Integer Off"
 msgstr "JIT 정수 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:892
+#: Source/Core/DolphinQt/MenuBar.cpp:884
 msgid "JIT LoadStore Floating Off"
 msgstr "JIT 로드스토어 부동 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:860
+#: Source/Core/DolphinQt/MenuBar.cpp:852
 msgid "JIT LoadStore Off"
 msgstr "JIT 로드스토어 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:901
+#: Source/Core/DolphinQt/MenuBar.cpp:893
 msgid "JIT LoadStore Paired Off"
 msgstr "JIT 로드스토어 짝짓기 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:876
+#: Source/Core/DolphinQt/MenuBar.cpp:868
 msgid "JIT LoadStore lXz Off"
 msgstr "JIT 로드스토어 lXz 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:868
+#: Source/Core/DolphinQt/MenuBar.cpp:860
 msgid "JIT LoadStore lbzx Off"
 msgstr "JIT 로드스토어 lbzx 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:884
+#: Source/Core/DolphinQt/MenuBar.cpp:876
 msgid "JIT LoadStore lwz Off"
 msgstr "JIT 로드스토어 lwz 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:852
+#: Source/Core/DolphinQt/MenuBar.cpp:844
 msgid "JIT Off (JIT Core)"
 msgstr "JIT 끄기 (JIT 코어)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:925
+#: Source/Core/DolphinQt/MenuBar.cpp:917
 msgid "JIT Paired Off"
 msgstr "JIT 짝짓기 끄기"
 
@@ -6506,16 +6628,16 @@ msgstr "ARM64 용 JIT 리컴파일러 (권장)"
 msgid "JIT Recompiler for x86-64 (recommended)"
 msgstr "x86-64 용 JIT 리컴파일러 (권장)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:949
+#: Source/Core/DolphinQt/MenuBar.cpp:941
 msgid "JIT Register Cache Off"
 msgstr "JIT 레지스터 캐시 끄기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:933
+#: Source/Core/DolphinQt/MenuBar.cpp:925
 msgid "JIT SystemRegisters Off"
 msgstr "JIT 시스템레지스터 끄기"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:881
-#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:769
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:880
+#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:830
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -6523,7 +6645,7 @@ msgstr ""
 "JIT 이 캐시 청소후에 코드 공간 찾기에 실패했습니다. 이것은 절대 일어나서는 안"
 "됩니다. 버그 트랙커에 이 사고를 보고해주세요. 돌핀은 지금 나갈 것입니다."
 
-#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:274
+#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:266
 msgid "Japan"
 msgstr "일본"
 
@@ -6539,8 +6661,8 @@ msgstr "일본어"
 msgid "Japanese (Shift-JIS)"
 msgstr "일본어 (쉬프트-JIS)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:625
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:293
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:624
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:294
 msgid "Keep Running"
 msgstr "계속 구동하기"
 
@@ -6563,7 +6685,7 @@ msgstr "키보드"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:43
 msgid "Keyboard Controller"
-msgstr ""
+msgstr "키보드 컨트롤러"
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:55
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:59
@@ -6574,7 +6696,7 @@ msgstr ""
 msgid "Keys"
 msgstr "키"
 
-#: Source/Core/UICommon/UICommon.cpp:486
+#: Source/Core/UICommon/UICommon.cpp:524
 msgid "KiB"
 msgstr "KiB"
 
@@ -6582,7 +6704,7 @@ msgstr "KiB"
 msgid "Kick Player"
 msgstr "플레이어 차기"
 
-#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:276
+#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:268
 msgid "Korea"
 msgstr "한국"
 
@@ -6612,11 +6734,11 @@ msgstr "L-아날로그"
 msgid "LR Save"
 msgstr "LR 세이브"
 
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:155
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:156
 msgid "Label"
 msgstr "레이블"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:519
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:523
 msgid "Last Value"
 msgstr "마지막 값"
 
@@ -6712,6 +6834,11 @@ msgstr "레버들"
 msgid "License"
 msgstr "라이슨스"
 
+#: Source/Core/Core/HW/WiimoteEmu/Extension/DrawsomeTablet.cpp:34
+#: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:51
+msgid "Lift"
+msgstr ""
+
 #. i18n: Noun. This is used as a label for a control group that represents lights on controllers.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Shinkansen.cpp:50
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:239
@@ -6722,11 +6849,11 @@ msgstr "왼쪽"
 msgid "Limit Chunked Upload Speed:"
 msgstr "덩어리된 업로드 스피드 제한:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:639
+#: Source/Core/DolphinQt/MenuBar.cpp:631
 msgid "List Columns"
 msgstr "목록 세로줄"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:602
+#: Source/Core/DolphinQt/MenuBar.cpp:594
 msgid "List View"
 msgstr "목록 보기"
 
@@ -6737,23 +6864,24 @@ msgstr "듣기"
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:23
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:129
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:112
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:91
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:92
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:578
 msgid "Load"
 msgstr "로드"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:975
+#: Source/Core/DolphinQt/MenuBar.cpp:967
 msgid "Load &Bad Map File..."
 msgstr "배드 맵 파일 로드... (&B)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:974
+#: Source/Core/DolphinQt/MenuBar.cpp:966
 msgid "Load &Other Map File..."
 msgstr "다른 맵 파일 로드... (&O)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:97
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:98
 msgid "Load Custom Textures"
 msgstr "커스텀 텍스처 로드"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:241
+#: Source/Core/DolphinQt/MenuBar.cpp:233
 msgid "Load GameCube Main Menu"
 msgstr "게임큐브 메인 메뉴 로드"
 
@@ -6859,19 +6987,19 @@ msgstr "슬롯 8 상태 로드"
 msgid "Load State Slot 9"
 msgstr "슬롯 9 상태 로드"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:331
+#: Source/Core/DolphinQt/MenuBar.cpp:323
 msgid "Load State from File"
 msgstr "파일에서 상태 로드"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:332
+#: Source/Core/DolphinQt/MenuBar.cpp:324
 msgid "Load State from Selected Slot"
 msgstr "선택된 슬롯에서 상태를 로드합니다"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:333
+#: Source/Core/DolphinQt/MenuBar.cpp:325
 msgid "Load State from Slot"
 msgstr "슬롯에서 상태 로드"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1014
+#: Source/Core/DolphinQt/MenuBar.cpp:1006
 msgid "Load Wii System Menu %1"
 msgstr "Wii 시스템 메뉴 %1 로드"
 
@@ -6883,16 +7011,16 @@ msgstr "호스트의 저장 데이터 로드하고 쓰기"
 msgid "Load from Selected Slot"
 msgstr "선택된 슬롯에서 로드"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:387
+#: Source/Core/DolphinQt/MenuBar.cpp:379
 msgid "Load from Slot %1 - %2"
 msgstr "슬롯 %1 - %2 로부터 로드"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1464
-#: Source/Core/DolphinQt/MenuBar.cpp:1480
+#: Source/Core/DolphinQt/MenuBar.cpp:1456
+#: Source/Core/DolphinQt/MenuBar.cpp:1472
 msgid "Load map file"
 msgstr "맵 파일 로드"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1013
+#: Source/Core/DolphinQt/MenuBar.cpp:1005
 msgid "Load vWii System Menu %1"
 msgstr "vWii 시스템 메뉴 %1 로드"
 
@@ -6900,11 +7028,11 @@ msgstr "vWii 시스템 메뉴 %1 로드"
 msgid "Load..."
 msgstr "로드..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1446
+#: Source/Core/DolphinQt/MenuBar.cpp:1438
 msgid "Loaded symbols from '%1'"
 msgstr "'%1' 에서 부호들이 로드되었습니다"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:314
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:315
 msgid ""
 "Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and User/Load/"
 "DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, "
@@ -6914,7 +7042,7 @@ msgstr ""
 "game_id&gt;/ 에서 커스텀 텍스처를 로드합니다.<br><br><dolphin_emphasis>잘 모"
 "르겠으면, 체크 해제해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:332
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:333
 msgid ""
 "Loads graphics mods from User/Load/GraphicsMods/."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -6931,6 +7059,10 @@ msgstr "지역"
 msgid "Lock Mouse Cursor"
 msgstr "마우스 커서 가두기"
 
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:162
+msgid "Locked"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:34
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:235
 msgid "Log"
@@ -6940,11 +7072,11 @@ msgstr "로그"
 msgid "Log Configuration"
 msgstr "로그 환경설정"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:846
+#: Source/Core/DolphinQt/MenuBar.cpp:838
 msgid "Log JIT Instruction Coverage"
 msgstr "JIT 명령 커버리지 로그"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:62
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:63
 msgid "Log Render Time to File"
 msgstr "렌더 타임을 파일에 로그"
 
@@ -6956,7 +7088,7 @@ msgstr "로그 타입"
 msgid "Logger Outputs"
 msgstr "로거 출력"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:281
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:282
 msgid ""
 "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use "
 "this feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
@@ -7005,7 +7137,7 @@ msgstr "메인 스틱"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:975
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:221
-#: Source/Core/DolphinQt/MenuBar.cpp:627
+#: Source/Core/DolphinQt/MenuBar.cpp:619
 msgid "Maker"
 msgstr "제작사"
 
@@ -7026,11 +7158,11 @@ msgstr ""
 "게임들을 망가뜨릴 것입니다.<br><br><dolphin_emphasis>잘 모르겠으면, 이것을 체"
 "크 해제해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:257
+#: Source/Core/DolphinQt/MenuBar.cpp:249
 msgid "Manage NAND"
 msgstr "NAND 관리"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:181
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:182
 msgid "Manual Texture Sampling"
 msgstr "수동 텍스처 샘플링"
 
@@ -7080,7 +7212,7 @@ msgstr "메모리 중단점"
 msgid "Memory Card"
 msgstr "메모리 카드"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:250
+#: Source/Core/DolphinQt/MenuBar.cpp:242
 msgid "Memory Card Manager"
 msgstr "메모리 카드 관리자"
 
@@ -7088,7 +7220,7 @@ msgstr "메모리 카드 관리자"
 msgid "Memory Card Path:"
 msgstr "메모리 카드 경로:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:107
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:113
 msgid "Memory Override"
 msgstr "메모리 오버라이드"
 
@@ -7096,19 +7228,19 @@ msgstr "메모리 오버라이드"
 msgid "Memory breakpoint options"
 msgstr "메모리 중단점 옵션"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:204
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:203
 msgid "MemoryCard: ClearBlock called on invalid address ({0:#x})"
 msgstr "메모리카드: 부적합한 주소 ({0:#x}) 상에서 호출된 클리어블록"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:175
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:174
 msgid "MemoryCard: Read called with invalid source address ({0:#x})"
 msgstr "메모리카드: 부적합 소스 주소로 호출된 읽기 ({0:#x})"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:187
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:186
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr "메모리카드: 부적합 목적지 주소로 호출된 쓰기 ({0:#x})"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1641
+#: Source/Core/DolphinQt/MainWindow.cpp:1666
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -7119,7 +7251,7 @@ msgstr ""
 "장들을 덮어쓰게 됩니다. 이 처리는 되돌릴 수 없습니다, 따라서 두 NAND 를 계속 "
 "백업할 것을 권장합니다. 정말 계속합니까?"
 
-#: Source/Core/UICommon/UICommon.cpp:486
+#: Source/Core/UICommon/UICommon.cpp:524
 msgid "MiB"
 msgstr "MiB"
 
@@ -7129,7 +7261,7 @@ msgstr "MiB"
 msgid "Microphone"
 msgstr "마이크"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:150
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:151
 msgid "Misc"
 msgstr "기타"
 
@@ -7168,7 +7300,7 @@ msgstr ""
 msgid "Modifier"
 msgstr "수정자"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:291
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:292
 msgid ""
 "Modifies textures to show the format they're encoded in.<br><br>May require "
 "an emulation reset to apply.<br><br><dolphin_emphasis>If unsure, leave this "
@@ -7178,8 +7310,8 @@ msgstr ""
 "션 리셋이 필요할 수도 있습니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체크 "
 "해제해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1266
-#: Source/Core/DolphinQt/MenuBar.cpp:1410
+#: Source/Core/DolphinQt/MenuBar.cpp:1258
+#: Source/Core/DolphinQt/MenuBar.cpp:1402
 msgid "Modules found: %1"
 msgstr "발견된 모듈: %1"
 
@@ -7252,9 +7384,9 @@ msgstr "곱하는 수"
 msgid "N&o to All"
 msgstr "모두 아니오(&o)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1122
-#: Source/Core/DolphinQt/MenuBar.cpp:1131
-#: Source/Core/DolphinQt/MenuBar.cpp:1135
+#: Source/Core/DolphinQt/MenuBar.cpp:1114
+#: Source/Core/DolphinQt/MenuBar.cpp:1123
+#: Source/Core/DolphinQt/MenuBar.cpp:1127
 #: Source/Core/DolphinQt/NANDRepairDialog.cpp:29
 msgid "NAND Check"
 msgstr "NAND 체크"
@@ -7263,17 +7395,17 @@ msgstr "NAND 체크"
 msgid "NKit Warning"
 msgstr "NKit 경고"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:243
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:214
+#: Source/Core/DolphinQt/MenuBar.cpp:235
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:212
 msgid "NTSC-J"
 msgstr "NTSC-J"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:214
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:212
 msgid "NTSC-K"
 msgstr "NTSC-K"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:245
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:214
+#: Source/Core/DolphinQt/MenuBar.cpp:237
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:212
 msgid "NTSC-U"
 msgstr "NTSC-U"
 
@@ -7377,7 +7509,7 @@ msgid "Never Auto-Update"
 msgstr "자동-업데이트 절대 안함"
 
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:108
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:88
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:89
 msgid "New"
 msgstr "새로운"
 
@@ -7393,7 +7525,7 @@ msgstr "새로운 찾기"
 msgid "New Tag..."
 msgstr "새로운 태그..."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:376
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:372
 msgid "New identity generated."
 msgstr "새로운 식별자가 생성되었습니다."
 
@@ -7419,7 +7551,7 @@ msgstr "다음 일치"
 msgid "Next Profile"
 msgstr "다음 프로파일"
 
-#: Source/Core/Core/NetPlayClient.cpp:280
+#: Source/Core/Core/NetPlayClient.cpp:285
 msgid "Nickname is too long."
 msgstr "별명이 너무 깁니다."
 
@@ -7488,7 +7620,7 @@ msgstr "구동중인 게임이 없습니다."
 msgid "No game running."
 msgstr "구동중인 게임이 없습니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1122
+#: Source/Core/DolphinQt/MenuBar.cpp:1114
 msgid "No issues have been detected."
 msgstr "이슈가 감지되지 않았습니다."
 
@@ -7496,7 +7628,7 @@ msgstr "이슈가 감지되지 않았습니다."
 msgid "No matching game was found"
 msgstr "매칭하는 게임을 찾지 못했습니다"
 
-#: Source/Core/Core/Boot/Boot.cpp:112
+#: Source/Core/Core/Boot/Boot.cpp:97
 msgid "No paths found in the M3U file \"{0}\""
 msgstr "M3U 파일 \"{0}\" 에 경로가 없습니다"
 
@@ -7530,7 +7662,7 @@ msgstr "로드된 녹화가 없습니다."
 msgid "No save data found."
 msgstr "발견된 저장 데이터가 없습니다."
 
-#: Source/Core/Core/State.cpp:809
+#: Source/Core/Core/State.cpp:817
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
 "undo.dtm 이 없습니다, 무비 갈림을 막기위해서 상태로드 되돌리기를 취소합니다"
@@ -7540,6 +7672,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:136
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:401
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:82
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:852
 msgid "None"
 msgstr "없음"
 
@@ -7667,7 +7800,7 @@ msgstr "켜기"
 msgid "On Movement"
 msgstr "움직일 때"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:367
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:368
 msgid ""
 "On backends that support both using the geometry shader and the vertex "
 "shader for expanding points and lines, selects the vertex shader for the "
@@ -7677,11 +7810,11 @@ msgstr ""
 "합니다, 작업을 위해서는 꼭지점 쉐이더를 선택하세요. 성능 효과가 있을 수도."
 "<br><br>%1"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:572
+#: Source/Core/DolphinQt/MenuBar.cpp:564
 msgid "Online &Documentation"
 msgstr "온라인 문서(&D)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1571
+#: Source/Core/DolphinQt/MenuBar.cpp:1563
 msgid ""
 "Only append symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -7689,7 +7822,7 @@ msgstr ""
 "접두사를 가진 부호들만 덧붙입니다:\n"
 "(모든 부호들은 빈칸)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1546
+#: Source/Core/DolphinQt/MenuBar.cpp:1538
 msgid ""
 "Only export symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -7705,6 +7838,10 @@ msgstr "열기"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:479
 msgid "Open &Containing Folder"
 msgstr "담고 있는 폴더 열기(&C)"
+
+#: Source/Core/DolphinQt/MenuBar.cpp:205
+msgid "Open &User Folder"
+msgstr ""
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:38
 msgid "Open Directory..."
@@ -7801,16 +7938,16 @@ msgstr "다른 상태 관리"
 msgid "Other game..."
 msgstr "다른 게임..."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:644
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:643
 msgid "Overwritten"
 msgstr "덮어 쓰여진"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:730
+#: Source/Core/DolphinQt/MenuBar.cpp:722
 msgid "P&lay Input Recording..."
 msgstr "입력 기록 플레이...(&l)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:248
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:214
+#: Source/Core/DolphinQt/MenuBar.cpp:240
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:212
 msgid "PAL"
 msgstr "PAL"
 
@@ -7819,11 +7956,11 @@ msgstr "PAL"
 msgid "PCAP"
 msgstr "PCAP"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:146
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:147
 msgid "PNG Compression Level"
 msgstr "PNG 압축 레블"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:145
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:146
 msgid "PNG Compression Level:"
 msgstr "PNG 압축 레블:"
 
@@ -7835,7 +7972,7 @@ msgstr "PNG 이미지 파일 (*.png);; 모든 파일 (*)"
 msgid "PPC Size"
 msgstr "PPC 크기"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:562
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:561
 msgid "PPC vs Host"
 msgstr "PPC 대 호스트"
 
@@ -7906,7 +8043,7 @@ msgstr "경로"
 msgid "Pause"
 msgstr "일시정지"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:750
+#: Source/Core/DolphinQt/MenuBar.cpp:742
 msgid "Pause at End of Movie"
 msgstr "무비의 끝에서 일시정지"
 
@@ -7947,7 +8084,7 @@ msgstr "바깥쪽 스윙 이동의 피크 가속도"
 msgid "Per-Pixel Lighting"
 msgstr "픽셀단위 광원"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:268
+#: Source/Core/DolphinQt/MenuBar.cpp:260
 msgid "Perform Online System Update"
 msgstr "온라인 시스템 업데이트 하기"
 
@@ -7955,7 +8092,11 @@ msgstr "온라인 시스템 업데이트 하기"
 msgid "Perform System Update"
 msgstr "시스텝 업데이트 하기"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:70
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:61
+msgid "Performance Sample Window (ms)"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:71
 msgid "Performance Sample Window (ms):"
 msgstr "샘플 윈도우 성능 (ms):"
 
@@ -7973,11 +8114,11 @@ msgstr "피지컬"
 msgid "Physical address space"
 msgstr "물리적 주소 공간"
 
-#: Source/Core/UICommon/UICommon.cpp:487
+#: Source/Core/UICommon/UICommon.cpp:525
 msgid "PiB"
 msgstr "PiB"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1177
+#: Source/Core/DolphinQt/MenuBar.cpp:1169
 msgid "Pick a debug font"
 msgstr "디버그 폰트 고르기"
 
@@ -7994,7 +8135,7 @@ msgid "Pitch Up"
 msgstr "피치 올리기"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:971
-#: Source/Core/DolphinQt/MenuBar.cpp:623
+#: Source/Core/DolphinQt/MenuBar.cpp:615
 msgid "Platform"
 msgstr "플랫폼"
 
@@ -8065,11 +8206,11 @@ msgid "Post-Processing Shader Configuration"
 msgstr "후-처리 쉐이더 환경설정"
 
 #. i18n: VS is short for vertex shaders.
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:160
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:161
 msgid "Prefer VS for Point/Line Expansion"
 msgstr "점/선 확장용 선호 VS"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:99
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:100
 msgid "Prefetch Custom Textures"
 msgstr "커스텀 텍스처 프리패치"
 
@@ -8077,11 +8218,11 @@ msgstr "커스텀 텍스처 프리패치"
 msgid "Premature movie end in PlayController. {0} + {1} > {2}"
 msgstr "PlayController에 무비 마무리가 미완성되었습니다. {0} + {1} > {2}"
 
-#: Source/Core/Core/Movie.cpp:1317
+#: Source/Core/Core/Movie.cpp:1320
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
 msgstr "PlayWiimote에 무비 마무리가 미완성되었습니다. {0} + {1} > {2}"
 
-#: Source/Core/Core/Movie.cpp:1291
+#: Source/Core/Core/Movie.cpp:1294
 msgid "Premature movie end in PlayWiimote. {0} > {1}"
 msgstr "PlayWiimote에 무비 마무리가 미완성되었습니다. {0} > {1}"
 
@@ -8194,7 +8335,7 @@ msgstr "진행"
 msgid "Public"
 msgstr "공공"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:506
+#: Source/Core/DolphinQt/MenuBar.cpp:498
 msgid "Purge Game List Cache"
 msgstr "게임 목록 캐시 제거"
 
@@ -8210,11 +8351,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr "QT_레이아웃_방향"
 
-#: Source/Core/Core/NetPlayClient.cpp:1569
+#: Source/Core/Core/NetPlayClient.cpp:1574
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "서비스의 품질 (QoS) 이 활성화될 수 없었습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1565
+#: Source/Core/Core/NetPlayClient.cpp:1570
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "서비스의 품질 (QoS) 이 성공적으로 활성화되었습니다."
 
@@ -8225,7 +8366,7 @@ msgstr "DPLII 디코더의 품질. 오디오 지연이 품질로 증가합니다
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:433
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:660
-#: Source/Core/DolphinQt/MainWindow.cpp:1640
+#: Source/Core/DolphinQt/MainWindow.cpp:1665
 msgid "Question"
 msgstr "질문"
 
@@ -8250,11 +8391,11 @@ msgstr "R-아날로그"
 msgid "READY"
 msgstr "준비"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:967
+#: Source/Core/DolphinQt/MenuBar.cpp:959
 msgid "RSO Modules"
 msgstr "RSO 모듈"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1236
+#: Source/Core/DolphinQt/MenuBar.cpp:1228
 msgid "RSO auto-detection"
 msgstr "RSO 자동-감지"
 
@@ -8279,7 +8420,7 @@ msgstr "범위 끝: "
 msgid "Range Start: "
 msgstr "범위 시작: "
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:566
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:565
 msgid "Re&place instruction"
 msgstr "명령 바꾸기 (&p)"
 
@@ -8414,7 +8555,7 @@ msgid "Refreshing..."
 msgstr "새로고침..."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:979
-#: Source/Core/DolphinQt/MenuBar.cpp:631
+#: Source/Core/DolphinQt/MenuBar.cpp:623
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:223
 msgid "Region"
 msgstr "지역"
@@ -8423,7 +8564,7 @@ msgstr "지역"
 msgid "Region:"
 msgstr "지역:"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:24
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:25
 msgid "Registers"
 msgstr "레지스터"
 
@@ -8474,8 +8615,8 @@ msgstr ""
 "으로 담지 않는다면) 압축공간을 조금도 절약하지 않습니다. 아무튼 계속 하시겠습"
 "니까?"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:841
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:876
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:840
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:875
 msgid "Rename symbol"
 msgstr "부호 이름 바꾸기"
 
@@ -8487,7 +8628,7 @@ msgstr "렌더 창"
 msgid "Render to Main Window"
 msgstr "메인 창에 렌더"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:285
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:286
 msgid ""
 "Renders the scene as a wireframe.<br><br><dolphin_emphasis>If unsure, leave "
 "this unchecked.</dolphin_emphasis>"
@@ -8517,7 +8658,7 @@ msgstr "리셋"
 msgid "Reset All"
 msgstr "모두 리셋"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:546
+#: Source/Core/DolphinQt/MenuBar.cpp:538
 msgid "Reset Ignore Panic Handler"
 msgstr "패닉 핸들러 무시를 리셋"
 
@@ -8565,7 +8706,7 @@ msgstr "재시작이 요구됩니다"
 msgid "Restore Defaults"
 msgstr "기본값 복원"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:568
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:567
 msgid "Restore instruction"
 msgstr "명령 복구"
 
@@ -8650,7 +8791,7 @@ msgstr "회전"
 msgid "Rotation applied at extremities of swing."
 msgstr "손발 스윙에 적용된 회전."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:279
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:283
 msgid ""
 "Rounds 2D vertices to whole pixels and rounds the viewport size to a whole "
 "number.<br><br>Fixes graphical problems in some games at higher internal "
@@ -8670,7 +8811,7 @@ msgstr ""
 msgid "Rumble"
 msgstr "진동"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:559
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:558
 msgid "Run &To Here"
 msgstr "여기까지 실행 (&T)"
 
@@ -8678,15 +8819,15 @@ msgstr "여기까지 실행 (&T)"
 msgid "Run GBA Cores in Dedicated Threads"
 msgstr "GBA 코어들을 전용 쓰레드로 구동합니다"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:624
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:623
 msgid "Run until"
 msgstr "때까지 구동"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:581
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:580
 msgid "Run until (ignoring breakpoints)"
 msgstr "때까지 구동 (중단점들을 무시)"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:175
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:176
 msgid "Run until hit (ignoring breakpoints)"
 msgstr "일치할 때까지 구동 (중단점들 무시)"
 
@@ -8745,11 +8886,11 @@ msgstr "SSL 맥락"
 msgid "START"
 msgstr "시작"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:979
+#: Source/Core/DolphinQt/MenuBar.cpp:971
 msgid "Sa&ve Code"
 msgstr "코드 저장 (&v)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:346
+#: Source/Core/DolphinQt/MenuBar.cpp:338
 msgid "Sa&ve State"
 msgstr "상태 저장(&v) "
 
@@ -8761,7 +8902,7 @@ msgstr "안전"
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:21
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:130
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:113
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:92
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:93
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:710
 msgid "Save"
 msgstr "저장"
@@ -8772,7 +8913,7 @@ msgstr "모두 저장"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:574
 #: Source/Core/DolphinQt/GameList/GameList.cpp:579
-#: Source/Core/DolphinQt/MenuBar.cpp:1112
+#: Source/Core/DolphinQt/MenuBar.cpp:1104
 msgid "Save Export"
 msgstr "저장 내보내기"
 
@@ -8793,11 +8934,11 @@ msgstr "게임 저장"
 msgid "Save Game Files (*.sav);;All Files (*)"
 msgstr "게임 저장 파일들 (*.sav);;모든 파일들 (*)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1070
-#: Source/Core/DolphinQt/MenuBar.cpp:1079
-#: Source/Core/DolphinQt/MenuBar.cpp:1082
-#: Source/Core/DolphinQt/MenuBar.cpp:1088
-#: Source/Core/DolphinQt/MenuBar.cpp:1095
+#: Source/Core/DolphinQt/MenuBar.cpp:1062
+#: Source/Core/DolphinQt/MenuBar.cpp:1071
+#: Source/Core/DolphinQt/MenuBar.cpp:1074
+#: Source/Core/DolphinQt/MenuBar.cpp:1080
+#: Source/Core/DolphinQt/MenuBar.cpp:1087
 msgid "Save Import"
 msgstr "저장 가져오기"
 
@@ -8809,7 +8950,7 @@ msgstr "가장 오래된 상태 저장"
 msgid "Save Preset"
 msgstr "프리셋 저장"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1769
+#: Source/Core/DolphinQt/MainWindow.cpp:1794
 msgid "Save Recording File As"
 msgstr "녹화 파일을 다른 이름으로 저장"
 
@@ -8859,23 +9000,23 @@ msgstr "슬롯 8 상태 저장"
 msgid "Save State Slot 9"
 msgstr "슬롯 9 상태 저장"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:347
+#: Source/Core/DolphinQt/MenuBar.cpp:339
 msgid "Save State to File"
 msgstr "파일에 상태 저장"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:349
+#: Source/Core/DolphinQt/MenuBar.cpp:341
 msgid "Save State to Oldest Slot"
 msgstr "가장 오래된 슬롯에 상태 저장"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:348
+#: Source/Core/DolphinQt/MenuBar.cpp:340
 msgid "Save State to Selected Slot"
 msgstr "선택된 슬롯에 상태를 저장합니다"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:350
+#: Source/Core/DolphinQt/MenuBar.cpp:342
 msgid "Save State to Slot"
 msgstr "슬롯에 상태 저장"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:976
+#: Source/Core/DolphinQt/MenuBar.cpp:968
 msgid "Save Symbol Map &As..."
 msgstr "심볼 맵 다른 이름으로 저장... (&A)"
 
@@ -8895,11 +9036,11 @@ msgstr "프리셋 다른 이름으로 저장..."
 msgid "Save as..."
 msgstr "다른 이름으로 저장..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1625
+#: Source/Core/DolphinQt/MenuBar.cpp:1617
 msgid "Save combined output file as"
 msgstr "합쳐진 출력 파일 다른 이름으로 저장"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1071
+#: Source/Core/DolphinQt/MenuBar.cpp:1063
 msgid ""
 "Save data for this title already exists in the NAND. Consider backing up the "
 "current data before overwriting.\n"
@@ -8913,11 +9054,11 @@ msgstr ""
 msgid "Save in Same Directory as the ROM"
 msgstr "롬과 같은 디렉토리에 저장"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1497
+#: Source/Core/DolphinQt/MenuBar.cpp:1489
 msgid "Save map file"
 msgstr "맵 파일 저장"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1549
+#: Source/Core/DolphinQt/MenuBar.cpp:1541
 msgid "Save signature file"
 msgstr "서명 파일 저장"
 
@@ -8925,7 +9066,7 @@ msgstr "서명 파일 저장"
 msgid "Save to Selected Slot"
 msgstr "선택된 슬롯에 저장"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:388
+#: Source/Core/DolphinQt/MenuBar.cpp:380
 msgid "Save to Slot %1 - %2"
 msgstr "슬롯 %1 - %2 에 저장"
 
@@ -8959,7 +9100,7 @@ msgstr "스크린샷"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:86
-#: Source/Core/DolphinQt/MenuBar.cpp:513
+#: Source/Core/DolphinQt/MenuBar.cpp:505
 msgid "Search"
 msgstr "찾기"
 
@@ -8988,7 +9129,7 @@ msgstr ""
 "가상 주소 공간에서는 현재 검색할 수 없습니다. 게임을 잠시 구동하신 후에 다시 "
 "시도하세요."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:848
+#: Source/Core/DolphinQt/MenuBar.cpp:840
 msgid "Search for an Instruction"
 msgstr "명령에 대한 찾기"
 
@@ -8996,7 +9137,7 @@ msgstr "명령에 대한 찾기"
 msgid "Search games..."
 msgstr "게임들 검색..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1664
+#: Source/Core/DolphinQt/MenuBar.cpp:1656
 msgid "Search instruction"
 msgstr "명령 찾기"
 
@@ -9029,7 +9170,7 @@ msgid "Select Dump Path"
 msgstr "덤프 경로 선택"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:554
-#: Source/Core/DolphinQt/MenuBar.cpp:1106
+#: Source/Core/DolphinQt/MenuBar.cpp:1098
 msgid "Select Export Directory"
 msgstr "내보내기 디렉토리 선택"
 
@@ -9061,7 +9202,11 @@ msgstr "리소스 팩 경로 선택"
 msgid "Select Riivolution XML file"
 msgstr "Riivolution XML 파일 선택"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:389
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:756
+msgid "Select Skylander File"
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:381
 msgid "Select Slot %1 - %2"
 msgstr "슬롯 %1 - %2 선택"
 
@@ -9069,7 +9214,7 @@ msgstr "슬롯 %1 - %2 선택"
 msgid "Select State"
 msgstr "상태 선택"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:363
+#: Source/Core/DolphinQt/MenuBar.cpp:355
 msgid "Select State Slot"
 msgstr "상태 슬롯 선택"
 
@@ -9129,9 +9274,9 @@ msgstr "디렉토리 선택"
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:194
 #: Source/Core/DolphinQt/GBAWidget.cpp:213
 #: Source/Core/DolphinQt/GBAWidget.cpp:244
-#: Source/Core/DolphinQt/MainWindow.cpp:724
-#: Source/Core/DolphinQt/MainWindow.cpp:1296
-#: Source/Core/DolphinQt/MainWindow.cpp:1304
+#: Source/Core/DolphinQt/MainWindow.cpp:728
+#: Source/Core/DolphinQt/MainWindow.cpp:1321
+#: Source/Core/DolphinQt/MainWindow.cpp:1329
 msgid "Select a File"
 msgstr "파일 선택"
 
@@ -9155,7 +9300,7 @@ msgstr "파일 선택"
 msgid "Select a game"
 msgstr "게임 선택"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1041
+#: Source/Core/DolphinQt/MenuBar.cpp:1033
 msgid "Select a title to install to NAND"
 msgstr "NAND 에 설치할 타이틀 선택"
 
@@ -9163,11 +9308,11 @@ msgstr "NAND 에 설치할 타이틀 선택"
 msgid "Select e-Reader Cards"
 msgstr "e-Reader 카드 선택"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1297
+#: Source/Core/DolphinQt/MenuBar.cpp:1289
 msgid "Select the RSO module address:"
 msgstr "RSO 모듈 주소 선택:"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1698
+#: Source/Core/DolphinQt/MainWindow.cpp:1723
 msgid "Select the Recording File to Play"
 msgstr "플레이할 녹화 파일 선택"
 
@@ -9175,12 +9320,12 @@ msgstr "플레이할 녹화 파일 선택"
 msgid "Select the Virtual SD Card Root"
 msgstr "가상 SD 카드 루트 선택"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1676
+#: Source/Core/DolphinQt/MainWindow.cpp:1701
 msgid "Select the keys file (OTP/SEEPROM dump)"
 msgstr "키 파일 선택 (OTP/SEEPROM 덤프)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1650
-#: Source/Core/DolphinQt/MenuBar.cpp:1061
+#: Source/Core/DolphinQt/MainWindow.cpp:1675
+#: Source/Core/DolphinQt/MenuBar.cpp:1053
 msgid "Select the save file"
 msgstr "저장 파일을 선택"
 
@@ -9307,7 +9452,7 @@ msgstr "서버 IP 주소"
 msgid "Server Port"
 msgstr "서버 포트"
 
-#: Source/Core/Core/NetPlayClient.cpp:1924
+#: Source/Core/Core/NetPlayClient.cpp:1929
 msgid "Server rejected traversal attempt"
 msgstr "서버가 횡단 시도를 거절했습니다"
 
@@ -9336,19 +9481,19 @@ msgstr "슬롯 A 용 메모리 카드 파일 설정"
 msgid "Set memory card file for Slot B"
 msgstr "슬롯 B 용 메모리 카드 파일 설정"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:556
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:555
 msgid "Set symbol &end address"
 msgstr "부호 끝 주소 설정 (&e)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:554
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:553
 msgid "Set symbol &size"
 msgstr "부호 크기 설정 (&s)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:899
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:898
 msgid "Set symbol end address"
 msgstr "부호 끝 주소 설정"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:877
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:876
 msgid "Set symbol size (%1):"
 msgstr "부호 크기 (%1) 설정:"
 
@@ -9387,7 +9532,7 @@ msgstr ""
 msgid "Settings"
 msgstr "설정"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:417
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:416
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "Wii메모리설정: setting.txt 파일을 생성할 수 없음"
 
@@ -9426,11 +9571,11 @@ msgstr ""
 msgid "Show % Speed"
 msgstr "% 속도 보여주기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:396
+#: Source/Core/DolphinQt/MenuBar.cpp:388
 msgid "Show &Log"
 msgstr "로그 보기(&L)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:409
+#: Source/Core/DolphinQt/MenuBar.cpp:401
 msgid "Show &Toolbar"
 msgstr "툴바 표시(&T)"
 
@@ -9438,15 +9583,15 @@ msgstr "툴바 표시(&T)"
 msgid "Show Active Title in Window Title"
 msgstr "창 제목에 활성 타이틀 보여주기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:699
+#: Source/Core/DolphinQt/MenuBar.cpp:691
 msgid "Show All"
 msgstr "모두 보여주기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:686
+#: Source/Core/DolphinQt/MenuBar.cpp:678
 msgid "Show Australia"
 msgstr "오스트레일리아"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:154
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:152
 msgid "Show Current Game on Discord"
 msgstr "디스코드에 현재 게임을 보여주기"
 
@@ -9454,7 +9599,7 @@ msgstr "디스코드에 현재 게임을 보여주기"
 msgid "Show Debugging UI"
 msgstr "UI 디버깅 표시"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:661
+#: Source/Core/DolphinQt/MenuBar.cpp:653
 msgid "Show ELF/DOL"
 msgstr "ELF/DOL"
 
@@ -9462,23 +9607,23 @@ msgstr "ELF/DOL"
 msgid "Show FPS"
 msgstr "FPS 보기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:768
+#: Source/Core/DolphinQt/MenuBar.cpp:760
 msgid "Show Frame Counter"
 msgstr "프레임 카운터 보기"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:54
 msgid "Show Frame Times"
-msgstr ""
+msgstr "프레임 타임 보기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:687
+#: Source/Core/DolphinQt/MenuBar.cpp:679
 msgid "Show France"
 msgstr "프랑스"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:659
+#: Source/Core/DolphinQt/MenuBar.cpp:651
 msgid "Show GameCube"
 msgstr "게임큐브"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:688
+#: Source/Core/DolphinQt/MenuBar.cpp:680
 msgid "Show Germany"
 msgstr "독일"
 
@@ -9486,23 +9631,23 @@ msgstr "독일"
 msgid "Show Golf Mode Overlay"
 msgstr "골프 모드 오버레이 보기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:774
+#: Source/Core/DolphinQt/MenuBar.cpp:766
 msgid "Show Input Display"
 msgstr "입력 표시 보기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:689
+#: Source/Core/DolphinQt/MenuBar.cpp:681
 msgid "Show Italy"
 msgstr "이탈리아"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:683
+#: Source/Core/DolphinQt/MenuBar.cpp:675
 msgid "Show JPN"
 msgstr "일본 보기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:690
+#: Source/Core/DolphinQt/MenuBar.cpp:682
 msgid "Show Korea"
 msgstr "한국"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:762
+#: Source/Core/DolphinQt/MenuBar.cpp:754
 msgid "Show Lag Counter"
 msgstr "랙 카운터 보기"
 
@@ -9510,7 +9655,7 @@ msgstr "랙 카운터 보기"
 msgid "Show Language:"
 msgstr "언어 보기:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:402
+#: Source/Core/DolphinQt/MenuBar.cpp:394
 msgid "Show Log &Configuration"
 msgstr "로그 환경설정(&C)"
 
@@ -9522,7 +9667,7 @@ msgstr "넷플레이 메시지 보기"
 msgid "Show NetPlay Ping"
 msgstr "넷플레이 핑 보기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:691
+#: Source/Core/DolphinQt/MenuBar.cpp:683
 msgid "Show Netherlands"
 msgstr "네덜란드"
 
@@ -9530,7 +9675,7 @@ msgstr "네덜란드"
 msgid "Show On-Screen Display Messages"
 msgstr "온-스크린 메시지 보여주기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:684
+#: Source/Core/DolphinQt/MenuBar.cpp:676
 msgid "Show PAL"
 msgstr "PAL (유럽 방식)"
 
@@ -9541,25 +9686,25 @@ msgstr "PC 보기"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:57
 msgid "Show Performance Graphs"
-msgstr ""
+msgstr "성능 그래프 보기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:664
+#: Source/Core/DolphinQt/MenuBar.cpp:656
 msgid "Show Platforms"
 msgstr "플랫폼 표시"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:698
+#: Source/Core/DolphinQt/MenuBar.cpp:690
 msgid "Show Regions"
 msgstr "지역 표시"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:756
+#: Source/Core/DolphinQt/MenuBar.cpp:748
 msgid "Show Rerecord Counter"
 msgstr "재녹화 횟수 보이기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:692
+#: Source/Core/DolphinQt/MenuBar.cpp:684
 msgid "Show Russia"
 msgstr "러시아"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:693
+#: Source/Core/DolphinQt/MenuBar.cpp:685
 msgid "Show Spain"
 msgstr "스페인"
 
@@ -9567,47 +9712,47 @@ msgstr "스페인"
 msgid "Show Speed Colors"
 msgstr "속도 색 보여주기"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:81
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:82
 msgid "Show Statistics"
 msgstr "통계 보기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:781
+#: Source/Core/DolphinQt/MenuBar.cpp:773
 msgid "Show System Clock"
 msgstr "시스템 클럭 보기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:694
+#: Source/Core/DolphinQt/MenuBar.cpp:686
 msgid "Show Taiwan"
 msgstr "타이완"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:685
+#: Source/Core/DolphinQt/MenuBar.cpp:677
 msgid "Show USA"
 msgstr "USA (미국 방식)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:696
+#: Source/Core/DolphinQt/MenuBar.cpp:688
 msgid "Show Unknown"
 msgstr "알려지지 않음"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:56
 msgid "Show VBlank Times"
-msgstr ""
+msgstr "VBlank 타임 보기"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:55
 msgid "Show VPS"
 msgstr "VPS 보여주기"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:660
+#: Source/Core/DolphinQt/MenuBar.cpp:652
 msgid "Show WAD"
 msgstr "WAD"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:658
+#: Source/Core/DolphinQt/MenuBar.cpp:650
 msgid "Show Wii"
 msgstr "Wii"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:695
+#: Source/Core/DolphinQt/MenuBar.cpp:687
 msgid "Show World"
 msgstr "세계"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:544
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:543
 msgid "Show in &memory"
 msgstr "메모리로 보기 (&m)"
 
@@ -9616,7 +9761,7 @@ msgid "Show in Code"
 msgstr "코드로 보기"
 
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:408
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:313
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:333
 msgid "Show in Memory"
 msgstr "메모리로 보기"
 
@@ -9632,7 +9777,7 @@ msgstr "메모리로 보기"
 msgid "Show in server browser"
 msgstr "서버 브라우저에서 보기"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:546
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:545
 msgid "Show target in memor&y"
 msgstr "메모리에서 대상을 보여주기(&y)"
 
@@ -9645,14 +9790,17 @@ msgstr ""
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:263
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:264
 msgid ""
 "Shows frametime graph along with statistics as a representation of emulation "
 "performance.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
+"에뮬레이션 성능으로 통계에 따른 프레임타임 그래프를 보여줍니다."
+"<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
+"dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:267
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:268
 #, c-format
 msgid ""
 "Shows the % speed of emulation compared to full speed."
@@ -9661,21 +9809,27 @@ msgstr ""
 "풀스피드와 비교해 에뮬레이션의 % 속도를 보여줍니다.<br><br><dolphin_emphasis>"
 "잘 모르겠으면, 체크 해제해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:251
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:252
 msgid ""
 "Shows the average time in ms between each distinct rendered frame alongside "
 "the standard deviation.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"표준 편차에 따른 각각의 구별되는 렌더된 프레임 사이의 ms 평균을 보여줍니다."
+"<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
+"dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:259
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:260
 msgid ""
 "Shows the average time in ms between each rendered frame alongside the "
 "standard deviation.<br><br><dolphin_emphasis>If unsure, leave this unchecked."
 "</dolphin_emphasis>"
 msgstr ""
+"표준 편차에 따른 각각의 렌더된 프레임 사이의 ms 평균을 보여줍니다."
+"<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
+"dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:247
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:248
 msgid ""
 "Shows the number of distinct frames rendered per second as a measure of "
 "visual smoothness.<br><br><dolphin_emphasis>If unsure, leave this unchecked."
@@ -9685,7 +9839,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:255
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:256
 msgid ""
 "Shows the number of frames rendered per second as a measure of emulation "
 "speed.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -9704,7 +9858,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:288
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:289
 msgid ""
 "Shows various rendering statistics.<br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
@@ -9728,7 +9882,7 @@ msgstr "옆방향 토글"
 msgid "Sideways Wii Remote"
 msgstr "Wii 리모트 옆으로"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:966
+#: Source/Core/DolphinQt/MenuBar.cpp:958
 msgid "Signature Database"
 msgstr "서명 데이터베이스"
 
@@ -9747,7 +9901,7 @@ msgstr "부호화 32"
 msgid "Signed 8"
 msgstr "부호화 8"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:147
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:148
 msgid "Signed Integer"
 msgstr "부호화 정수"
 
@@ -9797,7 +9951,15 @@ msgstr "메인 메뉴 스킵"
 msgid "Skip Presenting Duplicate Frames"
 msgstr "반복 프레임들 제출 스킵"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:254
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:288
+msgid ""
+"Skips VI interrupts when lag is detected, allowing for smooth audio playback "
+"when emulation speed is not 100%. <br><br><dolphin_emphasis>WARNING: Can "
+"cause freezes and compatibility issues.</dolphin_emphasis> "
+"<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:258
 msgid ""
 "Skips presentation of duplicate frames (XFB copies) in 25fps/30fps games. "
 "This may improve performance on low-end devices, while making frame pacing "
@@ -9810,6 +9972,22 @@ msgstr ""
 "정적이게 됩니다.<br><br />최적 프레임 패이싱을 위해서는 수직-동기를 키고 이 "
 "옵션은 끄세요.<br><br><dolphin_emphasis>잘 모르겠으면, 체크해 두세요.</"
 "dolphin_emphasis>"
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:572
+msgid "Skylander %1"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:612
+msgid "Skylander Creator"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:705
+msgid "Skylander Object (*.sky);;"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:523
+msgid "Skylanders Manager"
+msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:95
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:140
@@ -9903,7 +10081,7 @@ msgstr "전문화된 (기본값)"
 msgid "Specific"
 msgstr "상세"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:345
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:346
 msgid ""
 "Specifies the zlib compression level to use when saving PNG images (both for "
 "screenshots and framedumping).<br><br>Since PNG uses lossless compression, "
@@ -9933,10 +10111,6 @@ msgstr "속도"
 msgid "Speed up Disc Transfer Rate"
 msgstr "디스크 전송율 속도 상승"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:194
-msgid "Stable (once a year)"
-msgstr "안정적 (일년에 한 번)"
-
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:185
 msgid "Stack end"
 msgstr "스택 끝"
@@ -9954,7 +10128,7 @@ msgstr "표준 컨트롤러"
 msgid "Start"
 msgstr "시작"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:236
+#: Source/Core/DolphinQt/MenuBar.cpp:228
 msgid "Start &NetPlay..."
 msgstr "넷플레이 시작(&N)"
 
@@ -9962,7 +10136,7 @@ msgstr "넷플레이 시작(&N)"
 msgid "Start New Cheat Search"
 msgstr "새로운 치트 검색 시작"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:728
+#: Source/Core/DolphinQt/MenuBar.cpp:720
 msgid "Start Re&cording Input"
 msgstr "입력 기록 시작(&c)"
 
@@ -10078,7 +10252,7 @@ msgstr "스틱"
 msgid "Stop"
 msgstr "중지"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:731
+#: Source/Core/DolphinQt/MenuBar.cpp:723
 msgid "Stop Playing/Recording Input"
 msgstr "입력 재생/기록 중지"
 
@@ -10100,7 +10274,7 @@ msgstr "EFB 복사를 텍스처에만 담기"
 msgid "Store XFB Copies to Texture Only"
 msgstr "XFB 복사를 텍스처에만 담기"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:225
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:229
 msgid ""
 "Stores EFB copies exclusively on the GPU, bypassing system memory. Causes "
 "graphical defects in a small number of games.<br><br>Enabled = EFB Copies to "
@@ -10113,7 +10287,7 @@ msgstr ""
 "EFB 복사를 램(과 텍스처)에<br><br><dolphin_emphasis>잘 모르겠으면, 체크해 두"
 "세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:244
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:248
 msgid ""
 "Stores XFB copies exclusively on the GPU, bypassing system memory. Causes "
 "graphical defects in a small number of games.<br><br>Enabled = XFB Copies to "
@@ -10135,7 +10309,7 @@ msgid "Strict Settings Sync"
 msgstr "엄격한 설정 동기화"
 
 #. i18n: Data type used in computing
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:159
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:160
 msgid "String"
 msgstr "스트링"
 
@@ -10157,8 +10331,8 @@ msgstr "스타일러스"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:513
 #: Source/Core/DolphinQt/GameList/GameList.cpp:616
 #: Source/Core/DolphinQt/GameList/GameList.cpp:644
-#: Source/Core/DolphinQt/MenuBar.cpp:1049
-#: Source/Core/DolphinQt/MenuBar.cpp:1144
+#: Source/Core/DolphinQt/MenuBar.cpp:1041
+#: Source/Core/DolphinQt/MenuBar.cpp:1136
 msgid "Success"
 msgstr "성공"
 
@@ -10185,7 +10359,7 @@ msgstr "%1 저장 파일(들)로부터 %n 를 성공적으로 내보냈습니다
 msgid "Successfully exported save files"
 msgstr "저장 파일들을 성공적으로 내보냈습니다"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1145
+#: Source/Core/DolphinQt/MenuBar.cpp:1137
 msgid "Successfully extracted certificates from NAND"
 msgstr "NAND 에서 증명서를 성공적으로 추출했습니다"
 
@@ -10197,12 +10371,12 @@ msgstr "성공적으로 파일 압축을 풀었습니다."
 msgid "Successfully extracted system data."
 msgstr "성공적으로 시스템 데이터 압축을 풀었습니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1079
+#: Source/Core/DolphinQt/MenuBar.cpp:1071
 msgid "Successfully imported save file."
 msgstr "저장 파일을 성공적으로 내보냈습니다."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:617
-#: Source/Core/DolphinQt/MenuBar.cpp:1050
+#: Source/Core/DolphinQt/MenuBar.cpp:1042
 msgid "Successfully installed this title to the NAND."
 msgstr "NAND 에 이 타이틀을 성공적으로 설치했습니다."
 
@@ -10266,7 +10440,7 @@ msgstr "B로 스위치"
 msgid "Symbol"
 msgstr "부호"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:900
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:899
 msgid "Symbol (%1) end address:"
 msgstr "부호 (%1) 끝 주소:"
 
@@ -10284,13 +10458,13 @@ msgstr ""
 "부호 -> 로 부터 부호 생성 ->\n"
 "\t주소 | 서명 데이터베이스 | RSO 모듈"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:841
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:840
 msgid "Symbol name:"
 msgstr "부호 이름:"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:155
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:130
-#: Source/Core/DolphinQt/MenuBar.cpp:960
+#: Source/Core/DolphinQt/MenuBar.cpp:952
 msgid "Symbols"
 msgstr "부호들"
 
@@ -10324,15 +10498,15 @@ msgid ""
 "emulation."
 msgstr "시작과 끝내기 에뮬레이션 때 SD 동기화 폴더와 SD 카드를 동기화합니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1405
+#: Source/Core/Core/NetPlayClient.cpp:1410
 msgid "Synchronizing AR codes..."
 msgstr "AR 코드들을 동기화합니다..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1338
+#: Source/Core/Core/NetPlayClient.cpp:1343
 msgid "Synchronizing Gecko codes..."
 msgstr "Gecko 코드들을 동기화합니다..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1023
+#: Source/Core/Core/NetPlayClient.cpp:1028
 msgid "Synchronizing save data..."
 msgstr "저장 데이터를 동기화합니다..."
 
@@ -10341,7 +10515,7 @@ msgstr "저장 데이터를 동기화합니다..."
 msgid "System Language:"
 msgstr "시스템 언어:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:746
+#: Source/Core/DolphinQt/MenuBar.cpp:738
 msgid "TAS Input"
 msgstr "TAS 입력"
 
@@ -10354,7 +10528,7 @@ msgstr "TAS 도구"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:493
 #: Source/Core/DolphinQt/GameList/GameList.cpp:984
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:235
-#: Source/Core/DolphinQt/MenuBar.cpp:636
+#: Source/Core/DolphinQt/MenuBar.cpp:628
 msgid "Tags"
 msgstr "태그"
 
@@ -10372,7 +10546,7 @@ msgstr "꼬리"
 msgid "Taiwan"
 msgstr "타이완"
 
-#: Source/Core/Core/HotkeyManager.cpp:35 Source/Core/DolphinQt/MenuBar.cpp:315
+#: Source/Core/Core/HotkeyManager.cpp:35 Source/Core/DolphinQt/MenuBar.cpp:307
 msgid "Take Screenshot"
 msgstr "스크린샷 찍기"
 
@@ -10380,7 +10554,7 @@ msgstr "스크린샷 찍기"
 msgid "Target address range is invalid."
 msgstr "대상 주소 범위가 부적합합니다."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:645
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:644
 msgid ""
 "Target value was overwritten by current instruction.\n"
 "Instructions executed:   %1"
@@ -10397,23 +10571,23 @@ msgstr "테스트"
 msgid "Texture Cache"
 msgstr "텍스처 캐시"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:288
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:298
 msgid "Texture Cache Accuracy"
 msgstr "텍스처 캐시 정확도"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:116
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:117
 msgid "Texture Dumping"
 msgstr "텍스처 덤핑"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:502
 msgid "Texture Filtering"
-msgstr ""
+msgstr "텍스처 필터링"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:131
 msgid "Texture Filtering:"
-msgstr ""
+msgstr "텍스처 필터링:"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:83
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:84
 msgid "Texture Format Overlay"
 msgstr "텍스처 포맷 오버레이"
 
@@ -10428,7 +10602,7 @@ msgstr ""
 msgid "The H3 hash table for the {0} partition is not correct."
 msgstr "{0} 파티션에 대한 H3 해쉬 테이블이 올바르지 않습니다."
 
-#: Source/Core/Core/Boot/Boot.cpp:448
+#: Source/Core/Core/Boot/Boot.cpp:439
 msgid "The IPL file is not a known good dump. (CRC32: {0:x})"
 msgstr "IPL 파일이 알려진 좋은 덤프가 아닙니다. (CRC32: {0:x})"
 
@@ -10442,7 +10616,7 @@ msgstr "IPL 파일이 알려진 좋은 덤프가 아닙니다. (CRC32: {0:x})"
 msgid "The Masterpiece partitions are missing."
 msgstr "명작 파티션들이 빠져있습니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1136
+#: Source/Core/DolphinQt/MenuBar.cpp:1128
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
@@ -10450,7 +10624,7 @@ msgstr ""
 "NAND 는 고쳐질 수 없었습니다. 현재 데이터 백업이 권장됩니다 그리고 생생한 "
 "NAND 로 다시 시작하세요."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1131
+#: Source/Core/DolphinQt/MenuBar.cpp:1123
 msgid "The NAND has been repaired."
 msgstr "NAND 가 고쳐졌습니다."
 
@@ -10464,17 +10638,13 @@ msgstr ""
 "면, Wii 시스템 메뉴는 더이상 그것을 시작하지 않고 NAND 로 다시 복사나 이동도 "
 "거부할 것입니다."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:275
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:276
 msgid ""
 "The amount of time the FPS and VPS counters will sample over.<br><br>The "
 "higher the value, the more stable the FPS/VPS counter will be, but the "
-"slower it will be slower to update.<br><br><dolphin_emphasis>If unsure, "
-"leave this at 1000ms.</dolphin_emphasis>"
+"slower it will be to update.<br><br><dolphin_emphasis>If unsure, leave this "
+"at 1000ms.</dolphin_emphasis>"
 msgstr ""
-"FPS 와 VPS 카운터가 샘플로 뽑을 총 시간.<br><br>값이 클수록, FPS/VPS 카운터"
-"가 더 안정적이 될 것입니다, 하지만 더 느리게 할 수록 업데이트가 느려질 것입니"
-"다.<br><br><dolphin_emphasis>잘 모르겠으면 이것을 1000ms 로 두세요.</"
-"dolphin_emphasis>"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:467
 msgid "The channel partition is missing."
@@ -10635,7 +10805,7 @@ msgstr "게임 ID 가 {0} 이지만 {1} 이어야 합니다."
 msgid "The game disc does not contain any usable update information."
 msgstr "게임 디스크가 사용가능한 업데이트 정보를 가지고 있지 않습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:277
+#: Source/Core/Core/NetPlayClient.cpp:282
 msgid "The game is currently running."
 msgstr "게임이 현재 구동중입니다."
 
@@ -10733,15 +10903,15 @@ msgstr ""
 "같은 폴더가 멀티 슬롯들에서 사용될 수 없습니다; %1 에 의해 이미 사용되었습니"
 "다."
 
-#: Source/Core/Core/NetPlayClient.cpp:274
+#: Source/Core/Core/NetPlayClient.cpp:279
 msgid "The server and client's NetPlay versions are incompatible."
 msgstr "서버와 클리이언트의 넷플레이 버전이 호환되지 않습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:270
+#: Source/Core/Core/NetPlayClient.cpp:275
 msgid "The server is full."
 msgstr "서버가 가득 찼습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:283
+#: Source/Core/Core/NetPlayClient.cpp:288
 msgid "The server sent an unknown error message."
 msgstr "서버가 알려지지 않은 오류 메시지를 보냈습니다."
 
@@ -10763,7 +10933,7 @@ msgstr ""
 msgid "The specified common key index is {0} but should be {1}."
 msgstr "명시된 공통 키 인덱스는 {0} 입니다 하지만 {1} 이어야 합니다."
 
-#: Source/Core/Core/Boot/Boot.cpp:213
+#: Source/Core/Core/Boot/Boot.cpp:201
 msgid "The specified file \"{0}\" does not exist"
 msgstr "기술된 \"{0}\" 파일은 존재하지 않습니다"
 
@@ -10820,7 +10990,7 @@ msgstr "{0} 파티션은 올바르게 정렬되어 있지 않습니다."
 msgid "There are too many partitions in the first partition table."
 msgstr "첫 파티션 테이블에 너무 많은 파티션들이 있습니다."
 
-#: Source/Core/Core/State.cpp:819
+#: Source/Core/Core/State.cpp:827
 msgid "There is nothing to undo!"
 msgstr "되돌릴 것이 없습니다!"
 
@@ -10866,11 +11036,11 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "이 USB 장치는 이미 와이트리스트되어 있습니다."
 
-#: Source/Core/Core/ConfigManager.cpp:267
+#: Source/Core/Core/ConfigManager.cpp:273
 msgid "This WAD is not bootable."
 msgstr "이 WAD 는 부팅이 가능하지 않습니다."
 
-#: Source/Core/Core/ConfigManager.cpp:262
+#: Source/Core/Core/ConfigManager.cpp:268
 msgid "This WAD is not valid."
 msgstr "이 WAD 는 적합하지 않습니다."
 
@@ -10997,7 +11167,7 @@ msgstr "이것은 좋은 덤프입니다."
 msgid "This session requires a password:"
 msgstr "이 세션은 패스워드가 필요합니다:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:171
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:177
 msgid ""
 "This setting allows you to set a custom real time clock (RTC) separate from "
 "your current system time.\n"
@@ -11014,7 +11184,7 @@ msgid "This software should not be used to play games you do not legally own."
 msgstr ""
 "이 소프트웨어는 합법적 소유가 아닌 게임을 플레이하기 위해 쓰여서는 안됩니다."
 
-#: Source/Core/Core/ConfigManager.cpp:285
+#: Source/Core/Core/ConfigManager.cpp:291
 msgid "This title cannot be booted."
 msgstr "이 타이틀은 부팅될 수 없습니다."
 
@@ -11094,7 +11264,7 @@ msgstr "쓰레드"
 msgid "Threshold"
 msgstr "한계점"
 
-#: Source/Core/UICommon/UICommon.cpp:487
+#: Source/Core/UICommon/UICommon.cpp:525
 msgid "TiB"
 msgstr "TiB"
 
@@ -11109,14 +11279,14 @@ msgstr "기울기"
 msgid "Time period of stable input to trigger calibration. (zero to disable)"
 msgstr "측정을 작동시키기 위한 안정적 입력 기간. (제로는 비활성)"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:290
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:291
 msgid "Timed Out"
 msgstr "시간 초과"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:973
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:213
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:153
-#: Source/Core/DolphinQt/MenuBar.cpp:625
+#: Source/Core/DolphinQt/MenuBar.cpp:617
 msgid "Title"
 msgstr "타이틀"
 
@@ -11130,7 +11300,7 @@ msgstr "To"
 msgid "To:"
 msgstr "까지:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:312
+#: Source/Core/DolphinQt/MenuBar.cpp:304
 msgid "Toggle &Fullscreen"
 msgstr "전체화면 토글(&F)"
 
@@ -11276,7 +11446,7 @@ msgstr "횡단 에러"
 msgid "Traversal Server"
 msgstr "횡단 서버"
 
-#: Source/Core/Core/NetPlayClient.cpp:1921
+#: Source/Core/Core/NetPlayClient.cpp:1926
 msgid "Traversal server timed out connecting to the host"
 msgstr "횡단 서버가 호스트에 연결중 시간이 초과되었습니다."
 
@@ -11372,7 +11542,7 @@ msgstr ""
 "의 경우 미약한 성능 타격을 얻는 반면 쉐이더 컴파일 버벅임을 완전제거합니다, "
 "하지만 결과는 비디오 드라이버 행동에 달려있습니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1291
+#: Source/Core/DolphinQt/MenuBar.cpp:1283
 msgid "Unable to auto-detect RSO module"
 msgstr "RSO 모듈을 자동-감지할 수 없습니다"
 
@@ -11432,11 +11602,11 @@ msgstr "풀림"
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr "압축풀린 GC/Wii 이미지들 (*.iso *.gcm)"
 
-#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:334
+#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:326
 msgid "Undo Load State"
 msgstr "상태 로드 되돌리기"
 
-#: Source/Core/Core/HotkeyManager.cpp:179 Source/Core/DolphinQt/MenuBar.cpp:351
+#: Source/Core/Core/HotkeyManager.cpp:179 Source/Core/DolphinQt/MenuBar.cpp:343
 msgid "Undo Save State"
 msgstr "상태 저장 되돌리기"
 
@@ -11456,11 +11626,11 @@ msgstr ""
 "WAD 를 언인스톨하면 NAND 에서 현재 설치된 이 타이틀 버전을 저장 데이터를 지우"
 "지 않고 제거하게 됩니다."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:278
+#: Source/Core/DolphinQt/MenuBar.cpp:270
 msgid "United States"
 msgstr "미국"
 
-#: Source/Core/Core/State.cpp:539 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/Core/State.cpp:545 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:85
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:43
@@ -11471,11 +11641,15 @@ msgstr "미국"
 msgid "Unknown"
 msgstr "알려지지 않음"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:847
+msgid "Unknown (Id:%1 Var:%2)"
+msgstr ""
+
 #: Source/Core/Core/HW/DVD/DVDInterface.cpp:1313
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "알려지지 않은 DVD 명령 {0:08x} - 치명적 오류"
 
-#: Source/Core/Core/NetPlayClient.cpp:1305
+#: Source/Core/Core/NetPlayClient.cpp:1310
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr "알려지지 않은 SYNC_CODES 메시지를 받았습니다 id: {0}"
 
@@ -11487,7 +11661,7 @@ msgstr ""
 "알려지지 않은 SYNC_GECKO_CODES 메시지 id:{0} 를 플레이어:{1} 로 부터 받았습니"
 "다 플레이어 퇴장시키기!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1008
+#: Source/Core/Core/NetPlayClient.cpp:1013
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "알려지지 않은 SYNC_SAVE_DATA 메시지를 받았습니다 id: {0}"
 
@@ -11519,7 +11693,7 @@ msgstr "알려지지 않은 디스크"
 msgid "Unknown error occurred."
 msgstr "알려지지 않은 에러가 발생했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1930
+#: Source/Core/Core/NetPlayClient.cpp:1935
 msgid "Unknown error {0:x}"
 msgstr "알려지지 않은 오류 {0:x}"
 
@@ -11527,7 +11701,7 @@ msgstr "알려지지 않은 오류 {0:x}"
 msgid "Unknown error."
 msgstr "알려지지 않은 오류."
 
-#: Source/Core/Core/NetPlayClient.cpp:467
+#: Source/Core/Core/NetPlayClient.cpp:472
 msgid "Unknown message received with id : {0}"
 msgstr "id : {0} 의 알려지지 않은 메시지를 받았습니다"
 
@@ -11536,7 +11710,11 @@ msgid "Unknown message with id:{0} received from player:{1} Kicking player!"
 msgstr ""
 "알려지지 않은 메시지 id:{0} 를 플레이어:{1} 로부터 받았습니다 플레이어 강퇴!"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:165
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:700
+msgid "Unknown(%1 %2).sky"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:163
 msgid "Unlimited"
 msgstr "무제한"
 
@@ -11567,7 +11745,7 @@ msgstr "비부호화 32"
 msgid "Unsigned 8"
 msgstr "비부호화 8"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:148
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:149
 msgid "Unsigned Integer"
 msgstr "부호 없는 정수"
 
@@ -11581,8 +11759,8 @@ msgstr "부호 없는 정수"
 msgid "Up"
 msgstr "위쪽"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:279
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:325
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:280
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:346
 msgid "Update"
 msgstr "업데이트"
 
@@ -11639,7 +11817,7 @@ msgstr "똑바로 토글"
 msgid "Upright Wii Remote"
 msgstr "Wii 리모트 똑바로"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:227
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:225
 msgid "Usage Statistics Reporting Settings"
 msgstr "사용 통계 보고 설정"
 
@@ -11659,7 +11837,7 @@ msgstr "내장된 데이터 베이스의 게임 이름 사용"
 msgid "Use Custom User Style"
 msgstr "맞춤형 사용자 스타일 사용"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:135
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:136
 msgid "Use Lossless Codec (FFV1)"
 msgstr "비손실 코덱 (FFV1) 사용"
 
@@ -11671,7 +11849,7 @@ msgstr "PAL60 모드 (EuRGB60) 사용"
 msgid "Use Panic Handlers"
 msgstr "패닉 핸들러 사용"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:378
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:379
 msgid ""
 "Use a manual implementation of texture sampling instead of the graphics "
 "backend's built-in functionality.<br><br>This setting can fix graphical "
@@ -11776,7 +11954,7 @@ msgstr ""
 "같은 부모 컨트롤러의 입력들과 출력들 사이에서\n"
 "저장하거나 값들을 찾기위해 사용할 수 있습니다."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:266
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:270
 msgid ""
 "Uses a less accurate algorithm to calculate depth values.<br><br>Causes "
 "issues in a few games, but can result in a decent speed increase depending "
@@ -11832,7 +12010,7 @@ msgstr "위치 메이트릭스들에 쓰입니다"
 msgid "Usually used for tex coord matrices"
 msgstr "보통 텍스처 좌표 메이트릭스들에 쓰입니다"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:93
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:94
 msgid "Utility"
 msgstr "유틸리티"
 
@@ -11840,17 +12018,29 @@ msgstr "유틸리티"
 msgid "V-Sync"
 msgstr "수직-동기화"
 
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:109
+msgid "VI Skip"
+msgstr ""
+
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:124
 msgid "Value"
 msgstr "값"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:658
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:657
 msgid "Value tracked to current instruction."
 msgstr "현재 명령으로 추적된 값."
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:157
 msgid "Value:"
 msgstr "값:"
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:687
+msgid "Variant entered is invalid!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:644
+msgid "Variant:"
+msgstr ""
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:36
 msgid "Velocity"
@@ -11900,12 +12090,12 @@ msgstr "수직 오프셋"
 msgid "Video"
 msgstr "비디오"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:138
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:139
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:127
 msgid "View &code"
 msgstr "코드 보기 (&c)"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:136
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:137
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:126
 msgid "View &memory"
 msgstr "메모리 보기 (&m)"
@@ -11941,7 +12131,7 @@ msgstr "볼륨 증가"
 msgid "Vulkan"
 msgstr "Vulkan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1041
+#: Source/Core/DolphinQt/MenuBar.cpp:1033
 msgid "WAD files (*.wad)"
 msgstr "WAD 파일 (*.wad)"
 
@@ -12047,7 +12237,7 @@ msgstr ""
 "하라면 성능을 저하시킵니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제"
 "해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:231
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:235
 msgid ""
 "Waits until the game synchronizes with the emulated GPU before writing the "
 "contents of EFB copies to RAM.<br><br>Reduces the overhead of EFB RAM "
@@ -12067,7 +12257,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:47
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:206
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:222
-#: Source/Core/DolphinQt/MenuBar.cpp:1434
+#: Source/Core/DolphinQt/MenuBar.cpp:1426
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:470
 msgid "Warning"
 msgstr "경고"
@@ -12180,7 +12370,7 @@ msgstr "웨스턴 (윈도우즈-1252)"
 msgid "Whammy"
 msgstr "훼미"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:309
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:310
 msgid ""
 "Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.  "
 "This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is "
@@ -12192,7 +12382,7 @@ msgstr ""
 "를 포함합니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체크해 두세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:304
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:305
 msgid ""
 "Whether to dump mipmapped game textures to User/Dump/Textures/&lt;"
 "game_id&gt;/.  This includes arbitrary mipmapped textures if 'Arbitrary "
@@ -12278,7 +12468,7 @@ msgstr "Wii 와 Wii 리모트"
 msgid "Wii data is not public yet"
 msgstr "Wii 데이터는 아직 공개가 아닙니다"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1062
+#: Source/Core/DolphinQt/MenuBar.cpp:1054
 msgid "Wii save files (*.bin);;All Files (*)"
 msgstr "Wii 저장 파일 (*.bin);;모든 파일 (*)"
 
@@ -12459,6 +12649,9 @@ msgid ""
 "for \"Phantasy Star Online Episode I & II\". If you are unsure, turn back "
 "now and configure a \"Standard Controller\"."
 msgstr ""
+"당신은 \"키보드 컨트롤러\"를 설정하고 있습니다. 이 장치는 \"Phantasy Star "
+"Online Episode I & II\" 전용입니다. 잘 모르겠으면, 지금 뒤로 돌아가서 \"표준 "
+"컨트롤러\"를 설정하세요."
 
 #: Source/Core/UICommon/AutoUpdate.cpp:203
 msgid "You are running the latest version available on this update track."
@@ -12703,7 +12896,7 @@ msgstr "{0} (명작)"
 msgid "{0} (NKit)"
 msgstr "{0} (NKit)"
 
-#: Source/Core/Core/Boot/Boot.cpp:455
+#: Source/Core/Core/Boot/Boot.cpp:446
 msgid "{0} IPL found in {1} directory. The disc might not be recognized"
 msgstr ""
 "{1} 디렉토리에서 {0} IPL이 발견되었습니다. 디스크가 인식되지 않은 것 같습니다"
