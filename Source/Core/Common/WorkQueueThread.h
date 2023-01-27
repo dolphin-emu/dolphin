@@ -42,6 +42,26 @@ public:
     m_wakeup.Set();
   }
 
+  void Push(T&& item)
+  {
+    if (!m_cancelled.IsSet())
+    {
+      std::lock_guard lg(m_lock);
+      m_items.push(item);
+    }
+    m_wakeup.Set();
+  }
+
+  void Push(const T& item)
+  {
+    if (!m_cancelled.IsSet())
+    {
+      std::lock_guard lg(m_lock);
+      m_items.push(item);
+    }
+    m_wakeup.Set();
+  }
+
   void Clear()
   {
     {
