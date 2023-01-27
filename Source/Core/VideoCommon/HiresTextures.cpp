@@ -185,8 +185,14 @@ void HiresTexture::Prefetch()
       }
       if (iter != s_textureCache.end())
       {
-        for (const VideoCommon::CustomTextureData::Level& l : iter->second->m_data.m_levels)
-          size_sum += l.data.size();
+        for (const VideoCommon::CustomTextureData::ArraySlice& slice :
+             iter->second->m_data.m_slices)
+        {
+          for (const VideoCommon::CustomTextureData::ArraySlice::Level& l : slice.m_levels)
+          {
+            size_sum += l.data.size();
+          }
+        }
       }
     }
 
@@ -285,8 +291,16 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   ret->m_has_arbitrary_mipmaps = first_mip_file.has_arbitrary_mipmaps;
   VideoCommon::LoadDDSTexture(&ret->m_data, first_mip_file.path);
 
+  if (ret->m_data.m_slices.empty())
+  {
+    ret->m_data.m_slices.push_back({});
+  }
+
+  // Custom textures always have one slice
+  auto& slice = ret->m_data.m_slices[0];
+
   // Load remaining mip levels, or from the start if it's not a DDS texture.
-  for (u32 mip_level = static_cast<u32>(ret->m_data.m_levels.size());; mip_level++)
+  for (u32 mip_level = static_cast<u32>(slice.m_levels.size());; mip_level++)
   {
     std::string filename = base_filename;
     if (mip_level != 0)
@@ -298,7 +312,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
     // Try loading DDS textures first, that way we maintain compression of DXT formats.
     // TODO: Reduce the number of open() calls here. We could use one fd.
-    VideoCommon::CustomTextureData::Level level;
+    VideoCommon::CustomTextureData::ArraySlice::Level level;
     if (!LoadDDSTexture(&level, filename_iter->second.path, mip_level))
     {
       if (!LoadPNGTexture(&level, filename_iter->second.path))
@@ -308,15 +322,15 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
       }
     }
 
-    ret->m_data.m_levels.push_back(std::move(level));
+    slice.m_levels.push_back(std::move(level));
   }
 
   // If we failed to load any mip levels, we can't use this texture at all.
-  if (ret->m_data.m_levels.empty())
+  if (slice.m_levels.empty())
     return nullptr;
 
   // Verify that the aspect ratio of the texture hasn't changed, as this could have side-effects.
-  const VideoCommon::CustomTextureData::Level& first_mip = ret->m_data.m_levels[0];
+  const VideoCommon::CustomTextureData::ArraySlice::Level& first_mip = slice.m_levels[0];
   if (first_mip.width * height != first_mip.height * width)
   {
     ERROR_LOG_FMT(VIDEO,
@@ -337,14 +351,14 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   // Verify that each mip level is the correct size (divide by 2 each time).
   u32 current_mip_width = first_mip.width;
   u32 current_mip_height = first_mip.height;
-  for (u32 mip_level = 1; mip_level < static_cast<u32>(ret->m_data.m_levels.size()); mip_level++)
+  for (u32 mip_level = 1; mip_level < static_cast<u32>(slice.m_levels.size()); mip_level++)
   {
     if (current_mip_width != 1 || current_mip_height != 1)
     {
       current_mip_width = std::max(current_mip_width / 2, 1u);
       current_mip_height = std::max(current_mip_height / 2, 1u);
 
-      const VideoCommon::CustomTextureData::Level& level = ret->m_data.m_levels[mip_level];
+      const VideoCommon::CustomTextureData::ArraySlice::Level& level = slice.m_levels[mip_level];
       if (current_mip_width == level.width && current_mip_height == level.height)
         continue;
 
@@ -361,14 +375,14 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
     }
 
     // Drop this mip level and any others after it.
-    while (ret->m_data.m_levels.size() > mip_level)
-      ret->m_data.m_levels.pop_back();
+    while (slice.m_levels.size() > mip_level)
+      slice.m_levels.pop_back();
   }
 
   // All levels have to have the same format.
-  if (std::any_of(ret->m_data.m_levels.begin(), ret->m_data.m_levels.end(),
-                  [&ret](const VideoCommon::CustomTextureData::Level& l) {
-                    return l.format != ret->m_data.m_levels[0].format;
+  if (std::any_of(slice.m_levels.begin(), slice.m_levels.end(),
+                  [&ret, &slice](const VideoCommon::CustomTextureData::ArraySlice::Level& l) {
+                    return l.format != slice.m_levels[0].format;
                   }))
   {
     ERROR_LOG_FMT(VIDEO, "Custom texture {} has inconsistent formats across mip levels.",
@@ -432,7 +446,7 @@ HiresTexture::~HiresTexture()
 
 AbstractTextureFormat HiresTexture::GetFormat() const
 {
-  return m_data.m_levels.at(0).format;
+  return m_data.m_slices.at(0).m_levels.at(0).format;
 }
 
 bool HiresTexture::HasArbitraryMipmaps() const

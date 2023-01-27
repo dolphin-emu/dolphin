@@ -306,7 +306,8 @@ CustomPixelShaderAction::Create(const picojson::value& json_data, std::string_vi
       const std::string full_texture_path = fmt::format("{}/{}", path, texture_path);
       TextureAllocationData data;
       SplitPath(full_texture_path, nullptr, &data.file_name, nullptr);
-      data.raw_data.m_levels.emplace_back();
+      auto& slice = data.raw_data.m_slices.emplace_back();
+      slice.m_levels.emplace_back();
       if (!VideoCommon::LoadPNGTexture(&data.raw_data, full_texture_path))
       {
         ERROR_LOG_FMT(
@@ -402,14 +403,16 @@ void CustomPixelShaderAction::OnTextureLoad(GraphicsModActionData::TextureLoad* 
 {
   for (auto& data : m_texture_data)
   {
-    if (load->texture_width != data.raw_data.m_levels[0].width ||
-        load->texture_height != data.raw_data.m_levels[0].height)
+
+    if (load->texture_width != data.raw_data.m_slices[0].m_levels[0].width ||
+        load->texture_height != data.raw_data.m_slices[0].m_levels[0].height)
     {
       ERROR_LOG_FMT(VIDEO,
                     "Custom pixel shader for texture '{}' has additional inputs that do not match "
                     "the width/height of the texture loaded.  Width [{} vs {}], Height [{} vs {}]",
-                    load->texture_name, load->texture_width, data.raw_data.m_levels[0].width,
-                    load->texture_height, data.raw_data.m_levels[0].height);
+                    load->texture_name, load->texture_width,
+                    data.raw_data.m_slices[0].m_levels[0].width, load->texture_height,
+                    data.raw_data.m_slices[0].m_levels[0].height);
       m_valid = false;
       return;
     }

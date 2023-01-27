@@ -1337,10 +1337,10 @@ TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
         for (u32 layer = unmodified_layer_count; layer < config.layers; layer++)
         {
           auto& data = *textures[layer - unmodified_layer_count];
-          for (u32 level_index = 0; level_index != static_cast<u32>(data.m_levels.size());
-               ++level_index)
+          for (u32 level_index = 0;
+               level_index != static_cast<u32>(data.m_slices[0].m_levels.size()); ++level_index)
           {
-            const auto& level = data.m_levels[level_index];
+            const auto& level = data.m_slices[0].m_levels[level_index];
             entry->texture->Load(level_index, level.width, level.height, level.row_length,
                                  level.data.data(), level.data.size(), layer);
           }
@@ -1667,10 +1667,10 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
 #endif
 
   RcTcacheEntry entry;
-  if (custom_texture_data && custom_texture_data->m_levels.size() >= 1)
+  if (custom_texture_data && custom_texture_data->m_slices.size() >= 1)
   {
-    const u32 texLevels = no_mips ? 1 : (u32)custom_texture_data->m_levels.size();
-    const auto& first_level = custom_texture_data->m_levels[0];
+    const u32 texLevels = no_mips ? 1 : (u32)custom_texture_data->m_slices[0].m_levels.size();
+    const auto& first_level = custom_texture_data->m_slices[0].m_levels[0];
     const TextureConfig config(first_level.width, first_level.height, texLevels, 1, 1,
                                first_level.format, 0);
     entry = AllocateCacheEntry(config);
@@ -1678,7 +1678,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
       return entry;
     for (u32 level_index = 0; level_index != texLevels; ++level_index)
     {
-      const auto& level = custom_texture_data->m_levels[level_index];
+      const auto& level = custom_texture_data->m_slices[0].m_levels[level_index];
       entry->texture->Load(level_index, level.width, level.height, level.row_length,
                            level.data.data(), level.data.size());
     }
