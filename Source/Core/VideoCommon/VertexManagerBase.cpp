@@ -584,12 +584,18 @@ void VertexManagerBase::Flush()
     CustomPixelShaderContents custom_pixel_shader_contents;
     std::optional<CustomPixelShader> custom_pixel_shader;
     std::vector<std::string> custom_pixel_texture_names;
+    // Start at texture sampler index 8 to not
+    // clash with Dolphin base textures
+    // TODO: make this more flexible by introducing
+    // some sort of sampler manager
+    u32 custom_sampler_index = 8;
     for (int i = 0; i < texture_names.size(); i++)
     {
       const std::string& texture_name = texture_names[i];
       const u32 texture_unit = texture_units[i];
       bool skip = false;
-      GraphicsModActionData::DrawStarted draw_started{texture_unit, &skip, &custom_pixel_shader};
+      GraphicsModActionData::DrawStarted draw_started{texture_unit, &skip, &custom_pixel_shader,
+                                                      &custom_sampler_index};
       for (const auto action : g_graphics_mod_manager->GetDrawStartedActions(texture_name))
       {
         action->OnDrawStarted(&draw_started);

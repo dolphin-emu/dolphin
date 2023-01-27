@@ -19,6 +19,7 @@ struct DrawStarted
   u32 texture_unit;
   bool* skip;
   std::optional<CustomPixelShader>* custom_pixel_shader;
+  u32* sampler_index;
 };
 
 struct EFB

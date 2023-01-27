@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -22,6 +23,7 @@ public:
     std::string file_name;
     std::string code_name;
     VideoCommon::CustomTextureData raw_data;
+    std::optional<TextureConfig> config;
   };
 
   static std::unique_ptr<CustomPixelShaderAction> Create(const picojson::value& json_data,

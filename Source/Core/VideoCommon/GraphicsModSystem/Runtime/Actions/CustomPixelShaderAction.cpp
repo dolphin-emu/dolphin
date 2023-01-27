@@ -173,6 +173,20 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
   return global_result;
 }
 
+void WriteCustomTexture(ShaderCode* out, u32* next_sampler_index,
+                        const CustomPixelShaderAction::TextureAllocationData& texture_allocation)
+{
+  if (texture_allocation.config)
+  {
+    if (texture_allocation.config->IsCubeMap())
+    {
+      out->Write("SAMPLER_BINDING({}) uniform samplerCube samp_{};\n", *next_sampler_index,
+                 texture_allocation.code_name);
+    }
+    (*next_sampler_index)++;
+  }
+}
+
 void WriteDefines(
     ShaderCode* out,
     const std::vector<CustomPixelShaderAction::TextureAllocationData>& texture_allocations,
@@ -181,11 +195,18 @@ void WriteDefines(
   for (int i = 0; i < texture_allocations.size(); i++)
   {
     const auto& texture_data = texture_allocations[i];
-    out->Write("#define {}_UNIT_{{0}} {}\n", texture_data.code_name, texture_unit);
-    out->Write(
-        "#define {0}_COORD_{{0}} float3(data.texcoord[data.texmap_to_texcoord_index[{1}]].xy, "
-        "{2})\n",
-        texture_data.code_name, texture_unit, i + 1);
+    if (texture_data.config)
+    {
+      out->Write("#define {0}_SAMP_{{0}} samp_{0}\n", texture_data.code_name);
+    }
+    else
+    {
+      out->Write("#define {}_UNIT_{{0}} {}\n", texture_data.code_name, texture_unit);
+      out->Write(
+          "#define {0}_COORD_{{0}} float3(data.texcoord[data.texmap_to_texcoord_index[{1}]].xy, "
+          "{2})\n",
+          texture_data.code_name, texture_unit, i + 1);
+    }
   }
 }
 
@@ -203,6 +224,12 @@ bool TestShader(
   WriteCustomShaderStructDef(&out, 0);
 
   ShaderCode intermediate;
+
+  u32 index = 8;
+  for (const auto& texture_data : texture_allocations)
+  {
+    WriteCustomTexture(&intermediate, &index, texture_data);
+  }
   WriteDefines(&intermediate, texture_allocations, 0);
   intermediate.Write("{}", source);
 
@@ -294,6 +321,43 @@ CustomPixelShaderAction::Create(const picojson::value& json_data, std::string_vi
         return nullptr;
       }
 
+      enum class TextureType
+      {
+        GameTextureLayer,
+        CustomTextureCube
+      };
+      auto texture_type = TextureType::GameTextureLayer;
+
+      if (input.contains("texture_type"))
+      {
+        auto texture_type_json = input["texture_type"];
+        if (!texture_type_json.is<std::string>())
+        {
+          ERROR_LOG_FMT(VIDEO, "Failed to load custom shader action, 'inputs' field 'texture_type' "
+                               "is not a string!");
+          return nullptr;
+        }
+        std::string texture_type_str = texture_type_json.to_str();
+        Common::ToLower(&texture_type_str);
+        constexpr std::array<std::string_view, 2> valid_types = {"game_layer", "cube"};
+        if (texture_type_str == valid_types[0])
+        {
+          texture_type = TextureType::GameTextureLayer;
+        }
+        else if (texture_type_str == valid_types[1])
+        {
+          texture_type = TextureType::CustomTextureCube;
+        }
+        else
+        {
+          ERROR_LOG_FMT(VIDEO,
+                        "Failed to load custom shader action, 'inputs' field 'texture_type' "
+                        "is not not valid.  Valid types are {}",
+                        fmt::join(valid_types, ","));
+          return nullptr;
+        }
+      }
+
       auto texture_path_json = input["texture_path"];
       if (!texture_path_json.is<std::string>())
       {
@@ -306,15 +370,45 @@ CustomPixelShaderAction::Create(const picojson::value& json_data, std::string_vi
       const std::string full_texture_path = fmt::format("{}/{}", path, texture_path);
       TextureAllocationData data;
       SplitPath(full_texture_path, nullptr, &data.file_name, nullptr);
-      auto& slice = data.raw_data.m_slices.emplace_back();
-      slice.m_levels.emplace_back();
-      if (!VideoCommon::LoadPNGTexture(&data.raw_data, full_texture_path))
+
+      if (texture_type == TextureType::GameTextureLayer)
       {
-        ERROR_LOG_FMT(
-            VIDEO,
-            "Failed to load custom shader action, 'inputs' field texture '{}' failed to be loaded",
-            texture_path);
-        return nullptr;
+        data.raw_data.m_slices.emplace_back().m_levels.emplace_back();
+        if (!VideoCommon::LoadPNGTexture(&data.raw_data, full_texture_path))
+        {
+          ERROR_LOG_FMT(VIDEO,
+                        "Failed to load custom shader action, 'inputs' field texture '{}' failed "
+                        "to be loaded",
+                        texture_path);
+          return nullptr;
+        }
+      }
+      else
+      {
+        if (!VideoCommon::LoadDDSTexture(&data.raw_data, full_texture_path))
+        {
+          ERROR_LOG_FMT(VIDEO,
+                        "Failed to load custom shader action, 'inputs' field texture '{}' failed "
+                        "to be loaded.  DDS is currently required for cube maps!",
+                        texture_path);
+          return nullptr;
+        }
+
+        if (data.raw_data.m_slices.size() != 6)
+        {
+          ERROR_LOG_FMT(VIDEO,
+                        "Failed to load custom shader action, 'inputs' field texture '{}' failed "
+                        "to be loaded.  Cube maps expected to have 6 faces.  Total faces: {}",
+                        texture_path, data.raw_data.m_slices.size());
+          return nullptr;
+        }
+
+        data.config = TextureConfig(data.raw_data.m_slices[0].m_levels[0].width,
+                                    data.raw_data.m_slices[0].m_levels[0].height,
+                                    static_cast<u32>(data.raw_data.m_slices[0].m_levels.size()),
+                                    static_cast<u32>(data.raw_data.m_slices.size()), 1,
+                                    data.raw_data.m_slices[0].m_levels[0].format,
+                                    AbstractTextureFlag_CubeMap);
       }
 
       auto code_name_json = input["code_name"];
@@ -330,10 +424,18 @@ CustomPixelShaderAction::Create(const picojson::value& json_data, std::string_vi
 
       if (!color_shader_data.empty())
       {
-        color_shader_data = ReplaceAll(color_shader_data, fmt::format("{}_COORD", data.code_name),
-                                       fmt::format("{}_COORD_{{0}}", data.code_name));
-        color_shader_data = ReplaceAll(color_shader_data, fmt::format("{}_UNIT", data.code_name),
-                                       fmt::format("{}_UNIT_{{0}}", data.code_name));
+        if (texture_type == TextureType::GameTextureLayer)
+        {
+          color_shader_data = ReplaceAll(color_shader_data, fmt::format("{}_COORD", data.code_name),
+                                         fmt::format("{}_COORD_{{0}}", data.code_name));
+          color_shader_data = ReplaceAll(color_shader_data, fmt::format("{}_UNIT", data.code_name),
+                                         fmt::format("{}_UNIT_{{0}}", data.code_name));
+        }
+        else
+        {
+          color_shader_data = ReplaceAll(color_shader_data, fmt::format("{}_SAMP", data.code_name),
+                                         fmt::format("{}_SAMP_{{0}}", data.code_name));
+        }
       }
 
       texture_allocations.push_back(std::move(data));
@@ -361,6 +463,7 @@ CustomPixelShaderAction::CustomPixelShaderAction(
     : m_color_shader_data(std::move(color_shader_data)),
       m_texture_data(std::move(texture_allocations))
 {
+  m_textures.resize(m_texture_data.size());
 }
 
 CustomPixelShaderAction::~CustomPixelShaderAction() = default;
@@ -373,10 +476,24 @@ void CustomPixelShaderAction::OnDrawStarted(GraphicsModActionData::DrawStarted* 
   if (!draw_started->custom_pixel_shader) [[unlikely]]
     return;
 
+  if (!draw_started->sampler_index) [[unlikely]]
+    return;
+
   if (!m_valid) [[unlikely]]
     return;
 
   m_last_generated_shader_code = ShaderCode{};
+
+  for (std::size_t i = 0; i < m_texture_data.size(); i++)
+  {
+    const auto& texture_data = m_texture_data[i];
+    if (texture_data.config)
+    {
+      g_gfx->SetTexture(*draw_started->sampler_index, m_textures[i].get());
+      g_gfx->SetSamplerState(*draw_started->sampler_index, RenderState::GetLinearSamplerState());
+      WriteCustomTexture(&m_last_generated_shader_code, draw_started->sampler_index, texture_data);
+    }
+  }
   WriteDefines(&m_last_generated_shader_code, m_texture_data, draw_started->texture_unit);
 
   if (!m_color_shader_data.empty())
@@ -403,6 +520,8 @@ void CustomPixelShaderAction::OnTextureLoad(GraphicsModActionData::TextureLoad* 
 {
   for (auto& data : m_texture_data)
   {
+    if (data.config)
+      continue;
 
     if (load->texture_width != data.raw_data.m_slices[0].m_levels[0].width ||
         load->texture_height != data.raw_data.m_slices[0].m_levels[0].height)
@@ -418,8 +537,35 @@ void CustomPixelShaderAction::OnTextureLoad(GraphicsModActionData::TextureLoad* 
     }
   }
 
-  for (auto& data : m_texture_data)
+  for (std::size_t i = 0; i < m_texture_data.size(); i++)
   {
-    load->custom_textures->push_back(&data.raw_data);
+    auto& texture_data = m_texture_data[i];
+    if (texture_data.config)
+    {
+      if (!m_textures[i])
+      {
+        m_textures[i] =
+            g_gfx->CreateTexture(*texture_data.config,
+                                 fmt::format("Custom shader texture '{}'", texture_data.code_name));
+
+        auto& raw_data = texture_data.raw_data;
+        for (u32 slice_index = 0; slice_index < static_cast<u32>(raw_data.m_slices.size());
+             slice_index++)
+        {
+          for (u32 level_index = 0;
+               level_index < static_cast<u32>(raw_data.m_slices[slice_index].m_levels.size());
+               ++level_index)
+          {
+            auto& level = raw_data.m_slices[slice_index].m_levels[level_index];
+            m_textures[i]->Load(level_index, level.width, level.height, level.row_length,
+                                level.data.data(), level.data.size(), slice_index);
+          }
+        }
+      }
+    }
+    else
+    {
+      load->custom_textures->push_back(&texture_data.raw_data);
+    }
   }
 }
