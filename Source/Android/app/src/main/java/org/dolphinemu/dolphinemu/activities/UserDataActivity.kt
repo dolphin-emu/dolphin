@@ -4,7 +4,6 @@ package org.dolphinemu.dolphinemu.activities
 
 import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -14,10 +13,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.color.MaterialColors
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityUserDataBinding
+import org.dolphinemu.dolphinemu.dialogs.NotificationDialog
+import org.dolphinemu.dolphinemu.dialogs.TaskDialog
+import org.dolphinemu.dolphinemu.dialogs.UserDataImportWarningDialog
+import org.dolphinemu.dolphinemu.model.TaskViewModel
 import org.dolphinemu.dolphinemu.utils.*
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.enableScrollTint
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.setNavigationBarColor
@@ -28,10 +31,9 @@ import java.io.IOException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
-import kotlin.system.exitProcess
 
 class UserDataActivity : AppCompatActivity() {
-    private var sMustRestartApp = false
+    private lateinit var taskViewModel: TaskViewModel
 
     private lateinit var mBinding: ActivityUserDataBinding
 
@@ -79,31 +81,32 @@ class UserDataActivity : AppCompatActivity() {
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
+        taskViewModel = ViewModelProvider(this)[TaskViewModel::class.java]
         if (requestCode == REQUEST_CODE_IMPORT && resultCode == RESULT_OK) {
+            val arguments = Bundle()
+            arguments.putString(
+                UserDataImportWarningDialog.KEY_URI_RESULT,
+                data!!.data!!.toString()
+            )
 
-            MaterialAlertDialogBuilder(this)
-                .setMessage(R.string.user_data_import_warning)
-                .setNegativeButton(R.string.no) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
-                .setPositiveButton(R.string.yes) { dialog: DialogInterface, _: Int ->
-                    dialog.dismiss()
-
-                    ThreadUtil.runOnThreadAndShowResult(
-                        this,
-                        R.string.import_in_progress,
-                        R.string.do_not_close_app,
-                        { resources.getString(importUserData(data!!.data!!)) }) {
-                        if (sMustRestartApp) {
-                            exitProcess(0)
-                        }
-                    }
-                }
-                .show()
+            val dialog = UserDataImportWarningDialog()
+            dialog.arguments = arguments
+            dialog.show(supportFragmentManager, UserDataImportWarningDialog.TAG)
         } else if (requestCode == REQUEST_CODE_EXPORT && resultCode == RESULT_OK) {
-            ThreadUtil.runOnThreadAndShowResult(
-                this,
-                R.string.export_in_progress,
-                0
-            ) { resources.getString(exportUserData(data!!.data!!)) }
+            taskViewModel.clear()
+            taskViewModel.task = {
+                val resultResource = exportUserData(data!!.data!!)
+                taskViewModel.setResult(resultResource)
+            }
+
+            val arguments = Bundle()
+            arguments.putInt(TaskDialog.KEY_TITLE, R.string.export_in_progress)
+            arguments.putInt(TaskDialog.KEY_MESSAGE, 0)
+            arguments.putBoolean(TaskDialog.KEY_CANCELLABLE, true)
+
+            val dialog = TaskDialog()
+            dialog.arguments = arguments
+            dialog.show(supportFragmentManager, TaskDialog.TAG)
         }
     }
 
@@ -118,10 +121,15 @@ class UserDataActivity : AppCompatActivity() {
             } catch (e2: ActivityNotFoundException) {
                 // Activity not found. Perhaps it was removed by the OEM, or by some new Android version
                 // that didn't exist at the time of writing. Not much we can do other than tell the user.
-                MaterialAlertDialogBuilder(this)
-                    .setMessage(R.string.user_data_open_system_file_manager_failed)
-                    .setPositiveButton(R.string.ok, null)
-                    .show()
+                val arguments = Bundle()
+                arguments.putInt(
+                    NotificationDialog.KEY_MESSAGE,
+                    R.string.user_data_open_system_file_manager_failed
+                )
+
+                val dialog = NotificationDialog()
+                dialog.arguments = arguments
+                dialog.show(supportFragmentManager, NotificationDialog.TAG)
             }
         }
     }
@@ -140,17 +148,18 @@ class UserDataActivity : AppCompatActivity() {
         startActivityForResult(intent, REQUEST_CODE_IMPORT)
     }
 
-    private fun importUserData(source: Uri): Int {
+    fun importUserData(source: Uri): Int {
         try {
             if (!isDolphinUserDataBackup(source))
                 return R.string.user_data_import_invalid_file
+
+            taskViewModel.mustRestartApp = true
 
             contentResolver.openInputStream(source).use { `is` ->
                 ZipInputStream(`is`).use { zis ->
                     val userDirectory = File(DirectoryInitialization.getUserDirectory())
                     val userDirectoryCanonicalized = userDirectory.canonicalPath + '/'
 
-                    sMustRestartApp = true
                     deleteChildrenRecursively(userDirectory)
 
                     DirectoryInitialization.getGameListCache(this).delete()
@@ -262,8 +271,12 @@ class UserDataActivity : AppCompatActivity() {
     private fun exportUserData(zos: ZipOutputStream, input: File, pathRelativeToRoot: File?) {
         if (input.isDirectory) {
             val children = input.listFiles() ?: throw IOException("Could not find directory $input")
-            for (child in children) {
-                exportUserData(zos, child, File(pathRelativeToRoot, child.name))
+
+            // Check if the coroutine was cancelled
+            if (!taskViewModel.cancelled) {
+                for (child in children) {
+                    exportUserData(zos, child, File(pathRelativeToRoot, child.name))
+                }
             }
             if (children.isEmpty() && pathRelativeToRoot != null) {
                 zos.putNextEntry(ZipEntry(pathRelativeToRoot.path + '/'))
