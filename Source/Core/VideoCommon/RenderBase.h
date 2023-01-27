@@ -90,8 +90,8 @@ public:
   float EFBToScaledXf(float x) const;
   float EFBToScaledYf(float y) const;
 
-  virtual void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
-                           bool zEnable, u32 color, u32 z);
+  void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
+                   bool zEnable, u32 color, u32 z);
   virtual void ReinterpretPixelData(EFBReinterpretType convtype);
   void RenderToXFB(u32 xfbAddr, const MathUtil::Rectangle<int>& sourceRc, u32 fbStride,
                    u32 fbHeight, float Gamma = 1.0f);

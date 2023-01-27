@@ -1,8 +1,8 @@
 add_library(videonull
   NullBackend.cpp
   NullBoundingBox.h
-  NullRender.cpp
-  NullRender.h
+  NullGfx.cpp
+  NullGfx.h
   NullTexture.cpp
   NullTexture.h
   NullVertexManager.cpp

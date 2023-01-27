@@ -55,6 +55,8 @@ using ClearColor = std::array<float, 4>;
 class AbstractGfx
 {
 public:
+  virtual ~AbstractGfx() = default;
+
   virtual bool IsHeadless() const = 0;
 
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
