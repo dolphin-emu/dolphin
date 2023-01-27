@@ -982,6 +982,7 @@ void MainWindow::FullScreen()
   }
   else
   {
+    AdoptAllTASInputWindows(m_render_widget);
     m_render_widget->showFullScreen();
   }
 }
@@ -1134,11 +1135,16 @@ void MainWindow::ShowRenderWidget()
 
     m_render_widget->showNormal();
     m_render_widget->restoreGeometry(m_render_widget_geometry);
+
+    AdoptAllTASInputWindows(m_render_widget);
   }
 }
 
 void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
 {
+  // Swap the TAS Input window parent so it is not abandoned after render widget close
+  AdoptAllTASInputWindows(this);
+
   if (m_rendering_to_main)
   {
     // Remove the widget from the stack and reparent it to nullptr, so that it can draw
@@ -1177,6 +1183,32 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
     g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window,
                                         is_exit ? ControllerInterface::WindowChangeReason::Exit :
                                                   ControllerInterface::WindowChangeReason::Other);
+  }
+}
+
+void MainWindow::AdoptAllTASInputWindows(QWidget* parent)
+{
+  for (int i = 0; i < num_gc_controllers; i++)
+  {
+    AdoptTASInputWindow(parent, m_gc_tas_input_windows[i]);
+  }
+  for (int i = 0; i < num_wii_controllers; i++)
+  {
+    AdoptTASInputWindow(parent, m_wii_tas_input_windows[i]);
+  }
+}
+
+void MainWindow::AdoptTASInputWindow(QWidget* parent, QWidget* tas_input_window)
+{
+  bool m_tas_input_window_visible = tas_input_window->isVisible();
+  QByteArray tas_input_window_geometry = tas_input_window->saveGeometry();
+  tas_input_window->setParent(parent, windowFlags() & ~Qt::WindowContextHelpButtonHint &
+                                          ~Qt::WindowMinMaxButtonsHint);
+  tas_input_window->restoreGeometry(tas_input_window_geometry);
+
+  if (m_tas_input_window_visible)
+  {
+    tas_input_window->show();
   }
 }
 
@@ -1824,6 +1856,17 @@ void MainWindow::ShowTASInput()
     else if (si_device != SerialInterface::SIDEVICE_NONE &&
              si_device != SerialInterface::SIDEVICE_GC_GBA)
     {
+      // If the game is already running and not rendering to main window,
+      // assign render widget as parent to tas input windows
+      if (!m_rendering_to_main && Core::GetState() != Core::State::Uninitialized)
+      {
+        AdoptTASInputWindow(m_render_widget, m_gc_tas_input_windows[i]);
+      }
+      else
+      {
+        AdoptTASInputWindow(this, m_gc_tas_input_windows[i]);
+      }
+
       m_gc_tas_input_windows[i]->show();
       m_gc_tas_input_windows[i]->raise();
       m_gc_tas_input_windows[i]->activateWindow();
@@ -1835,9 +1878,18 @@ void MainWindow::ShowTASInput()
     if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
         (!Core::IsRunning() || SConfig::GetInstance().bWii))
     {
+      // If the game is already running and not rendering to main window,
+      // assign render widget as parent to tas input windows
+      if (!m_rendering_to_main && Core::GetState() != Core::State::Uninitialized)
+      {
+        AdoptTASInputWindow(m_render_widget, m_wii_tas_input_windows[i]);
+      }
+      else
+      {
+        AdoptTASInputWindow(this, m_wii_tas_input_windows[i]);
+      }
+
       m_wii_tas_input_windows[i]->show();
-      m_wii_tas_input_windows[i]->raise();
-      m_wii_tas_input_windows[i]->activateWindow();
     }
   }
 }

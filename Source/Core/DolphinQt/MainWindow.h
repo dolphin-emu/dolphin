@@ -148,6 +148,8 @@ private:
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
   void HideRenderWidget(bool reinit = true, bool is_exit = false);
+  void AdoptAllTASInputWindows(QWidget* parent);
+  void AdoptTASInputWindow(QWidget* parent, QWidget* tas_input_window);
 
   void ShowSettingsWindow();
   void ShowGeneralWindow();

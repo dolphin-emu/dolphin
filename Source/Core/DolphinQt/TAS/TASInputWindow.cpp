@@ -46,6 +46,7 @@ TASInputWindow::TASInputWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowIcon(Resources::GetAppIcon());
+  setFixedSize(sizeHint());
 
   QGridLayout* settings_layout = new QGridLayout;
 
