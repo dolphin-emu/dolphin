@@ -639,6 +639,7 @@
     <ClInclude Include="VideoCommon\FramebufferManager.h" />
     <ClInclude Include="VideoCommon\FramebufferShaderGen.h" />
     <ClInclude Include="VideoCommon\FrameDump.h" />
+    <ClInclude Include="VideoCommon\FrameDumper.h" />
     <ClInclude Include="VideoCommon\FreeLookCamera.h" />
     <ClInclude Include="VideoCommon\GeometryShaderGen.h" />
     <ClInclude Include="VideoCommon\GeometryShaderManager.h" />
@@ -668,6 +669,7 @@
     <ClInclude Include="VideoCommon\NetPlayChatUI.h" />
     <ClInclude Include="VideoCommon\NetPlayGolfUI.h" />
     <ClInclude Include="VideoCommon\OnScreenDisplay.h" />
+    <ClInclude Include="VideoCommon\OnScreenUI.h" />
     <ClInclude Include="VideoCommon\OpcodeDecoding.h" />
     <ClInclude Include="VideoCommon\PerfQueryBase.h" />
     <ClInclude Include="VideoCommon\PerformanceMetrics.h" />
@@ -676,6 +678,7 @@
     <ClInclude Include="VideoCommon\PixelShaderGen.h" />
     <ClInclude Include="VideoCommon\PixelShaderManager.h" />
     <ClInclude Include="VideoCommon\PostProcessing.h" />
+    <ClInclude Include="VideoCommon\Present.h" />
     <ClInclude Include="VideoCommon\RenderBase.h" />
     <ClInclude Include="VideoCommon\RenderState.h" />
     <ClInclude Include="VideoCommon\ShaderCache.h" />
@@ -1232,6 +1235,7 @@
     <ClCompile Include="VideoCommon\FramebufferManager.cpp" />
     <ClCompile Include="VideoCommon\FramebufferShaderGen.cpp" />
     <ClCompile Include="VideoCommon\FrameDump.cpp" />
+    <ClCompile Include="VideoCommon\FrameDumper.cpp" />
     <ClCompile Include="VideoCommon\FreeLookCamera.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderGen.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderManager.cpp" />
@@ -1254,6 +1258,7 @@
     <ClCompile Include="VideoCommon\NetPlayChatUI.cpp" />
     <ClCompile Include="VideoCommon\NetPlayGolfUI.cpp" />
     <ClCompile Include="VideoCommon\OnScreenDisplay.cpp" />
+    <ClCompile Include="VideoCommon\OnScreenUI.cpp" />
     <ClCompile Include="VideoCommon\OpcodeDecoding.cpp" />
     <ClCompile Include="VideoCommon\PerfQueryBase.cpp" />
     <ClCompile Include="VideoCommon\PerformanceMetrics.cpp" />
@@ -1262,6 +1267,7 @@
     <ClCompile Include="VideoCommon\PixelShaderGen.cpp" />
     <ClCompile Include="VideoCommon\PixelShaderManager.cpp" />
     <ClCompile Include="VideoCommon\PostProcessing.cpp" />
+    <ClCompile Include="VideoCommon\Present.cpp" />
     <ClCompile Include="VideoCommon\RenderBase.cpp" />
     <ClCompile Include="VideoCommon\RenderState.cpp" />
     <ClCompile Include="VideoCommon\ShaderCache.cpp" />

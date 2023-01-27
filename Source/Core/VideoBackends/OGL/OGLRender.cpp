@@ -32,6 +32,7 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -973,7 +974,7 @@ void Renderer::SelectRightBuffer()
   glDrawBuffer(GL_BACK_RIGHT);
 }
 
- void Renderer::SelectMainBuffer()
+void Renderer::SelectMainBuffer()
 {
   glDrawBuffer(GL_BACK);
 }
@@ -1074,27 +1075,29 @@ void Renderer::WaitForGPUIdle()
 
 void Renderer::CheckForSurfaceChange()
 {
-  if (!m_surface_changed.TestAndClear())
+  if (!g_presenter->SurfaceChangedTestAndClear())
     return;
 
-  m_main_gl_context->UpdateSurface(m_new_surface_handle);
-  m_new_surface_handle = nullptr;
+  m_main_gl_context->UpdateSurface(g_presenter->GetNewSurfaceHandle());
+
+  u32 width = m_main_gl_context->GetBackBufferWidth();
+  u32 height = m_main_gl_context->GetBackBufferHeight();
 
   // With a surface change, the window likely has new dimensions.
-  m_backbuffer_width = m_main_gl_context->GetBackBufferWidth();
-  m_backbuffer_height = m_main_gl_context->GetBackBufferHeight();
-  m_system_framebuffer->UpdateDimensions(m_backbuffer_width, m_backbuffer_height);
+  g_presenter->SetBackbuffer(width, height);
+  m_system_framebuffer->UpdateDimensions(width, height);
 }
 
 void Renderer::CheckForSurfaceResize()
 {
-  if (!m_surface_resized.TestAndClear())
+  if (!g_presenter->SurfaceResizedTestAndClear())
     return;
 
   m_main_gl_context->Update();
-  m_backbuffer_width = m_main_gl_context->GetBackBufferWidth();
-  m_backbuffer_height = m_main_gl_context->GetBackBufferHeight();
-  m_system_framebuffer->UpdateDimensions(m_backbuffer_width, m_backbuffer_height);
+  u32 width = m_main_gl_context->GetBackBufferWidth();
+  u32 height = m_main_gl_context->GetBackBufferHeight();
+  g_presenter->SetBackbuffer(width, height);
+  m_system_framebuffer->UpdateDimensions(width, height);
 }
 
 void Renderer::BeginUtilityDrawing()

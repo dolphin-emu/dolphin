@@ -14,34 +14,20 @@
 #include "VideoCommon/RenderBase.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cmath>
 #include <memory>
-#include <mutex>
-#include <string>
 #include <tuple>
 
 #include <fmt/format.h>
-#include <imgui.h>
-#include <implot.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-#include "Common/FileUtil.h"
-#include "Common/Flag.h"
-#include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/Profiler.h"
-#include "Common/StringUtil.h"
-#include "Common/Thread.h"
-#include "Common/Timer.h"
 
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -49,71 +35,40 @@
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/FreeLookConfig.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/HW/VideoInterface.h"
-#include "Core/Host.h"
-#include "Core/Movie.h"
 #include "Core/System.h"
 
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-
 #include "VideoCommon/AbstractFramebuffer.h"
-#include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/BPFunctions.h"
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
-#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/FrameDump.h"
+#include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
-#include "VideoCommon/NetPlayChatUI.h"
-#include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/XFMemory.h"
 
 std::unique_ptr<Renderer> g_renderer;
 
-static float AspectToWidescreen(float aspect)
-{
-  return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
-}
-
-static bool DumpFrameToPNG(const FrameDump::FrameData& frame, const std::string& file_name)
-{
-  return Common::ConvertRGBAToRGBAndSavePNG(file_name, frame.data, frame.width, frame.height,
-                                            frame.stride,
-                                            Config::Get(Config::GFX_PNG_COMPRESSION_LEVEL));
-}
-
 Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,
                    AbstractTextureFormat backbuffer_format)
-    : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height),
-      m_backbuffer_scale(backbuffer_scale),
-      m_backbuffer_format(backbuffer_format), m_last_xfb_width{MAX_XFB_WIDTH}, m_last_xfb_height{
-                                                                                   MAX_XFB_HEIGHT}
+    : m_last_xfb_width{MAX_XFB_WIDTH}, m_last_xfb_height{MAX_XFB_HEIGHT}
 {
   UpdateActiveConfig();
   FreeLook::UpdateActiveConfig();
-  UpdateDrawRectangle();
   CalculateTargetSize();
+
+  g_presenter->SetBackbuffer(backbuffer_width, backbuffer_height, backbuffer_scale,
+                             backbuffer_format);
 
   m_is_game_widescreen = SConfig::GetInstance().bWii && Config::Get(Config::SYSCONF_WIDESCREEN);
   g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
@@ -123,13 +78,6 @@ Renderer::~Renderer() = default;
 
 bool Renderer::Initialize()
 {
-  if (!InitializeImGui())
-    return false;
-
-  m_post_processor = std::make_unique<VideoCommon::PostProcessing>();
-  if (!m_post_processor->Initialize(m_backbuffer_format))
-    return false;
-
   m_bounding_box = CreateBoundingBox();
   if (g_ActiveConfig.backend_info.bSupportsBBox && !m_bounding_box->Initialize())
   {
@@ -153,19 +101,11 @@ bool Renderer::Initialize()
     m_graphics_mod_manager.Load(*g_ActiveConfig.graphics_mod_config);
   }
 
-  return true;
+  return g_presenter->Initialize();
 }
 
 void Renderer::Shutdown()
 {
-  // Disable ControllerInterface's aspect ratio adjustments so mapping dialog behaves normally.
-  g_controller_interface.SetAspectRatioAdjustment(1);
-
-  // First stop any framedumping, which might need to dump the last xfb frame. This process
-  // can require additional graphics sub-systems so it needs to be done first
-  ShutdownFrameDumping();
-  ShutdownImGui();
-  m_post_processor.reset();
   m_bounding_box.reset();
 }
 
@@ -399,9 +339,10 @@ bool Renderer::CalculateTargetSize()
 {
   if (g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL)
   {
+    auto target_rectangle = g_presenter->GetTargetRectangle();
     // Set a scale based on the window size
-    int width = EFB_WIDTH * m_target_rectangle.GetWidth() / m_last_xfb_width;
-    int height = EFB_HEIGHT * m_target_rectangle.GetHeight() / m_last_xfb_height;
+    int width = EFB_WIDTH * target_rectangle.GetWidth() / m_last_xfb_width;
+    int height = EFB_HEIGHT * target_rectangle.GetHeight() / m_last_xfb_height;
     m_efb_scale = std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
   }
   else
@@ -427,53 +368,6 @@ bool Renderer::CalculateTargetSize()
     return true;
   }
   return false;
-}
-
-std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>>
-Renderer::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
-{
-  // Resize target to half its original size
-  auto draw_rc = rc;
-  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
-  {
-    // The height may be negative due to flipped rectangles
-    int height = rc.bottom - rc.top;
-    draw_rc.top += height / 4;
-    draw_rc.bottom -= height / 4;
-  }
-  else
-  {
-    int width = rc.right - rc.left;
-    draw_rc.left += width / 4;
-    draw_rc.right -= width / 4;
-  }
-
-  // Create two target rectangle offset to the sides of the backbuffer
-  auto left_rc = draw_rc;
-  auto right_rc = draw_rc;
-  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
-  {
-    left_rc.top -= m_backbuffer_height / 4;
-    left_rc.bottom -= m_backbuffer_height / 4;
-    right_rc.top += m_backbuffer_height / 4;
-    right_rc.bottom += m_backbuffer_height / 4;
-  }
-  else
-  {
-    left_rc.left -= m_backbuffer_width / 4;
-    left_rc.right -= m_backbuffer_width / 4;
-    right_rc.left += m_backbuffer_width / 4;
-    right_rc.right += m_backbuffer_width / 4;
-  }
-
-  return std::make_tuple(left_rc, right_rc);
-}
-
-void Renderer::SaveScreenshot(std::string filename)
-{
-  std::lock_guard<std::mutex> lk(m_screenshot_lock);
-  m_screenshot_name = std::move(filename);
-  m_screenshot_request.Set();
 }
 
 void Renderer::CheckForConfigChanges()
@@ -515,16 +409,6 @@ void Renderer::CheckForConfigChanges()
   if (old_efb_access_tile_size != g_ActiveConfig.iEFBAccessTileSize)
     g_framebuffer_manager->SetEFBCacheTileSize(std::max(g_ActiveConfig.iEFBAccessTileSize, 0));
 
-  // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
-  // the post-processor. Note that options are applied every frame, so no need to check those.
-  if (m_post_processor->GetConfig()->GetShader() != g_ActiveConfig.sPostProcessingShader)
-  {
-    // The existing shader must not be in use when it's destroyed
-    WaitForGPUIdle();
-
-    m_post_processor->RecompileShader();
-  }
-
   // Determine which (if any) settings have changed.
   ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
   u32 changed_bits = 0;
@@ -544,6 +428,8 @@ void Renderer::CheckForConfigChanges()
     changed_bits |= CONFIG_CHANGE_BIT_BBOX;
   if (CalculateTargetSize())
     changed_bits |= CONFIG_CHANGE_BIT_TARGET_SIZE;
+
+  g_presenter->CheckForConfigChanges(changed_bits);
 
   // No changes?
   if (changed_bits == 0)
@@ -581,147 +467,11 @@ void Renderer::CheckForConfigChanges()
   {
     BPFunctions::SetScissorAndViewport();
   }
-
-  // Stereo mode change requires recompiling our post processing pipeline and imgui pipelines for
-  // rendering the UI.
-  if (changed_bits & CONFIG_CHANGE_BIT_STEREO_MODE)
-  {
-    RecompileImGuiPipeline();
-    m_post_processor->RecompilePipeline();
-  }
-}
-
-// Create On-Screen-Messages
-void Renderer::DrawDebugText()
-{
-  const bool show_movie_window =
-      Config::Get(Config::MAIN_SHOW_FRAME_COUNT) || Config::Get(Config::MAIN_SHOW_LAG) ||
-      Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY) ||
-      Config::Get(Config::MAIN_MOVIE_SHOW_RTC) || Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD);
-  if (show_movie_window)
-  {
-    // Position under the FPS display.
-    ImGui::SetNextWindowPos(
-        ImVec2(ImGui::GetIO().DisplaySize.x - 10.f * m_backbuffer_scale, 80.f * m_backbuffer_scale),
-        ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSizeConstraints(
-        ImVec2(150.0f * m_backbuffer_scale, 20.0f * m_backbuffer_scale),
-        ImGui::GetIO().DisplaySize);
-    if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
-    {
-      if (Movie::IsPlayingInput())
-      {
-        ImGui::Text("Frame: %" PRIu64 " / %" PRIu64, Movie::GetCurrentFrame(),
-                    Movie::GetTotalFrames());
-        ImGui::Text("Input: %" PRIu64 " / %" PRIu64, Movie::GetCurrentInputCount(),
-                    Movie::GetTotalInputCount());
-      }
-      else if (Config::Get(Config::MAIN_SHOW_FRAME_COUNT))
-      {
-        ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
-        ImGui::Text("Input: %" PRIu64, Movie::GetCurrentInputCount());
-      }
-      if (Config::Get(Config::MAIN_SHOW_LAG))
-        ImGui::Text("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
-      if (Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY))
-        ImGui::TextUnformatted(Movie::GetInputDisplay().c_str());
-      if (Config::Get(Config::MAIN_MOVIE_SHOW_RTC))
-        ImGui::TextUnformatted(Movie::GetRTCDisplay().c_str());
-      if (Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD))
-        ImGui::TextUnformatted(Movie::GetRerecords().c_str());
-    }
-    ImGui::End();
-  }
-
-  if (g_ActiveConfig.bOverlayStats)
-    g_stats.Display();
-
-  if (g_ActiveConfig.bShowNetPlayMessages && g_netplay_chat_ui)
-    g_netplay_chat_ui->Display();
-
-  if (Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY) && g_netplay_golf_ui)
-    g_netplay_golf_ui->Display();
-
-  if (g_ActiveConfig.bOverlayProjStats)
-    g_stats.DisplayProj();
-
-  if (g_ActiveConfig.bOverlayScissorStats)
-    g_stats.DisplayScissor();
-
-  const std::string profile_output = Common::Profiler::ToString();
-  if (!profile_output.empty())
-    ImGui::TextUnformatted(profile_output.c_str());
-}
-
-float Renderer::CalculateDrawAspectRatio() const
-{
-  const auto aspect_mode = g_ActiveConfig.aspect_mode;
-
-  // If stretch is enabled, we prefer the aspect ratio of the window.
-  if (aspect_mode == AspectMode::Stretch)
-    return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
-
-  const float aspect_ratio = VideoInterface::GetAspectRatio();
-
-  if (aspect_mode == AspectMode::AnalogWide ||
-      (aspect_mode == AspectMode::Auto && m_is_game_widescreen))
-  {
-    return AspectToWidescreen(aspect_ratio);
-  }
-
-  return aspect_ratio;
-}
-
-void Renderer::AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
-                                           MathUtil::Rectangle<int>* source_rect, int fb_width,
-                                           int fb_height)
-{
-  const int orig_target_width = target_rect->GetWidth();
-  const int orig_target_height = target_rect->GetHeight();
-  const int orig_source_width = source_rect->GetWidth();
-  const int orig_source_height = source_rect->GetHeight();
-  if (target_rect->left < 0)
-  {
-    const int offset = -target_rect->left;
-    target_rect->left = 0;
-    source_rect->left += offset * orig_source_width / orig_target_width;
-  }
-  if (target_rect->right > fb_width)
-  {
-    const int offset = target_rect->right - fb_width;
-    target_rect->right -= offset;
-    source_rect->right -= offset * orig_source_width / orig_target_width;
-  }
-  if (target_rect->top < 0)
-  {
-    const int offset = -target_rect->top;
-    target_rect->top = 0;
-    source_rect->top += offset * orig_source_height / orig_target_height;
-  }
-  if (target_rect->bottom > fb_height)
-  {
-    const int offset = target_rect->bottom - fb_height;
-    target_rect->bottom -= offset;
-    source_rect->bottom -= offset * orig_source_height / orig_target_height;
-  }
 }
 
 bool Renderer::IsHeadless() const
 {
   return true;
-}
-
-void Renderer::ChangeSurface(void* new_surface_handle)
-{
-  std::lock_guard<std::mutex> lock(m_swap_mutex);
-  m_new_surface_handle = new_surface_handle;
-  m_surface_changed.Set();
-}
-
-void Renderer::ResizeSurface()
-{
-  std::lock_guard<std::mutex> lock(m_swap_mutex);
-  m_surface_resized.Set();
 }
 
 void Renderer::SetViewportAndScissor(const MathUtil::Rectangle<int>& rect, float min_depth,
@@ -804,160 +554,6 @@ MathUtil::Rectangle<int> Renderer::ConvertEFBRectangle(const MathUtil::Rectangle
   return result;
 }
 
-std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width,
-                                                             const int height) const
-{
-  // Scale either the width or height depending the content aspect ratio.
-  // This way we preserve as much resolution as possible when scaling.
-  float scaled_width = static_cast<float>(width);
-  float scaled_height = static_cast<float>(height);
-  const float draw_aspect = CalculateDrawAspectRatio();
-  if (scaled_width / scaled_height >= draw_aspect)
-    scaled_height = scaled_width / draw_aspect;
-  else
-    scaled_width = scaled_height * draw_aspect;
-  return std::make_tuple(scaled_width, scaled_height);
-}
-
-void Renderer::UpdateDrawRectangle()
-{
-  const float draw_aspect_ratio = CalculateDrawAspectRatio();
-
-  // Update aspect ratio hack values
-  // Won't take effect until next frame
-  // Don't know if there is a better place for this code so there isn't a 1 frame delay
-  if (g_ActiveConfig.bWidescreenHack)
-  {
-    float source_aspect = VideoInterface::GetAspectRatio();
-    if (m_is_game_widescreen)
-      source_aspect = AspectToWidescreen(source_aspect);
-
-    const float adjust = source_aspect / draw_aspect_ratio;
-    if (adjust > 1)
-    {
-      // Vert+
-      g_Config.fAspectRatioHackW = 1;
-      g_Config.fAspectRatioHackH = 1 / adjust;
-    }
-    else
-    {
-      // Hor+
-      g_Config.fAspectRatioHackW = adjust;
-      g_Config.fAspectRatioHackH = 1;
-    }
-  }
-  else
-  {
-    // Hack is disabled.
-    g_Config.fAspectRatioHackW = 1;
-    g_Config.fAspectRatioHackH = 1;
-  }
-
-  // The rendering window size
-  const float win_width = static_cast<float>(m_backbuffer_width);
-  const float win_height = static_cast<float>(m_backbuffer_height);
-
-  // FIXME: this breaks at very low widget sizes
-  // Make ControllerInterface aware of the render window region actually being used
-  // to adjust mouse cursor inputs.
-  g_controller_interface.SetAspectRatioAdjustment(draw_aspect_ratio / (win_width / win_height));
-
-  float draw_width = draw_aspect_ratio;
-  float draw_height = 1;
-
-  // Crop the picture to a standard aspect ratio. (if enabled)
-  auto [crop_width, crop_height] = ApplyStandardAspectCrop(draw_width, draw_height);
-
-  // scale the picture to fit the rendering window
-  if (win_width / win_height >= crop_width / crop_height)
-  {
-    // the window is flatter than the picture
-    draw_width *= win_height / crop_height;
-    crop_width *= win_height / crop_height;
-    draw_height *= win_height / crop_height;
-    crop_height = win_height;
-  }
-  else
-  {
-    // the window is skinnier than the picture
-    draw_width *= win_width / crop_width;
-    draw_height *= win_width / crop_width;
-    crop_height *= win_width / crop_width;
-    crop_width = win_width;
-  }
-
-  // ensure divisibility by 4 to make it compatible with all the video encoders
-  draw_width = std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % 4;
-  draw_height = std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % 4;
-
-  m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - draw_width / 2.0));
-  m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - draw_height / 2.0));
-  m_target_rectangle.right = m_target_rectangle.left + static_cast<int>(draw_width);
-  m_target_rectangle.bottom = m_target_rectangle.top + static_cast<int>(draw_height);
-}
-
-void Renderer::SetWindowSize(int width, int height)
-{
-  const auto [out_width, out_height] = CalculateOutputDimensions(width, height);
-
-  // Track the last values of width/height to avoid sending a window resize event every frame.
-  if (out_width == m_last_window_request_width && out_height == m_last_window_request_height)
-    return;
-
-  m_last_window_request_width = out_width;
-  m_last_window_request_height = out_height;
-  Host_RequestRenderWindowSize(out_width, out_height);
-}
-
-// Crop to exactly 16:9 or 4:3 if enabled and not AspectMode::Stretch.
-std::tuple<float, float> Renderer::ApplyStandardAspectCrop(float width, float height) const
-{
-  const auto aspect_mode = g_ActiveConfig.aspect_mode;
-
-  if (!g_ActiveConfig.bCrop || aspect_mode == AspectMode::Stretch)
-    return {width, height};
-
-  // Force 4:3 or 16:9 by cropping the image.
-  const float current_aspect = width / height;
-  const float expected_aspect = (aspect_mode == AspectMode::AnalogWide ||
-                                 (aspect_mode == AspectMode::Auto && m_is_game_widescreen)) ?
-                                    (16.0f / 9.0f) :
-                                    (4.0f / 3.0f);
-  if (current_aspect > expected_aspect)
-  {
-    // keep height, crop width
-    width = height * expected_aspect;
-  }
-  else
-  {
-    // keep width, crop height
-    height = width / expected_aspect;
-  }
-
-  return {width, height};
-}
-
-std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height) const
-{
-  width = std::max(width, 1);
-  height = std::max(height, 1);
-
-  auto [scaled_width, scaled_height] = ScaleToDisplayAspectRatio(width, height);
-
-  // Apply crop if enabled.
-  std::tie(scaled_width, scaled_height) = ApplyStandardAspectCrop(scaled_width, scaled_height);
-
-  width = static_cast<int>(std::ceil(scaled_width));
-  height = static_cast<int>(std::ceil(scaled_height));
-
-  // UpdateDrawRectangle() makes sure that the rendered image is divisible by four for video
-  // encoders, so do that here too to match it
-  width -= width % 4;
-  height -= height % 4;
-
-  return std::make_tuple(width, height);
-}
-
 void Renderer::CheckFifoRecording()
 {
   const bool was_recording = OpcodeDecoder::g_record_fifo_data;
@@ -994,276 +590,12 @@ void Renderer::RecordVideoMemory()
                                              texMem);
 }
 
-bool Renderer::InitializeImGui()
-{
-  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
-
-  if (!IMGUI_CHECKVERSION())
-  {
-    PanicAlertFmt("ImGui version check failed");
-    return false;
-  }
-  if (!ImGui::CreateContext())
-  {
-    PanicAlertFmt("Creating ImGui context failed");
-    return false;
-  }
-  if (!ImPlot::CreateContext())
-  {
-    PanicAlertFmt("Creating ImPlot context failed");
-    return false;
-  }
-
-  // Don't create an ini file. TODO: Do we want this in the future?
-  ImGui::GetIO().IniFilename = nullptr;
-  ImGui::GetIO().DisplayFramebufferScale.x = m_backbuffer_scale;
-  ImGui::GetIO().DisplayFramebufferScale.y = m_backbuffer_scale;
-  ImGui::GetIO().FontGlobalScale = m_backbuffer_scale;
-  ImGui::GetStyle().ScaleAllSizes(m_backbuffer_scale);
-  ImGui::GetStyle().WindowRounding = 7.0f;
-
-  PortableVertexDeclaration vdecl = {};
-  vdecl.position = {ComponentFormat::Float, 2, offsetof(ImDrawVert, pos), true, false};
-  vdecl.texcoords[0] = {ComponentFormat::Float, 2, offsetof(ImDrawVert, uv), true, false};
-  vdecl.colors[0] = {ComponentFormat::UByte, 4, offsetof(ImDrawVert, col), true, false};
-  vdecl.stride = sizeof(ImDrawVert);
-  m_imgui_vertex_format = CreateNativeVertexFormat(vdecl);
-  if (!m_imgui_vertex_format)
-  {
-    PanicAlertFmt("Failed to create ImGui vertex format");
-    return false;
-  }
-
-  // Font texture(s).
-  {
-    ImGuiIO& io = ImGui::GetIO();
-    u8* font_tex_pixels;
-    int font_tex_width, font_tex_height;
-    io.Fonts->GetTexDataAsRGBA32(&font_tex_pixels, &font_tex_width, &font_tex_height);
-
-    TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
-                                  AbstractTextureFormat::RGBA8, 0);
-    std::unique_ptr<AbstractTexture> font_tex =
-        CreateTexture(font_tex_config, "ImGui font texture");
-    if (!font_tex)
-    {
-      PanicAlertFmt("Failed to create ImGui texture");
-      return false;
-    }
-    font_tex->Load(0, font_tex_width, font_tex_height, font_tex_width, font_tex_pixels,
-                   sizeof(u32) * font_tex_width * font_tex_height);
-
-    io.Fonts->TexID = font_tex.get();
-
-    m_imgui_textures.push_back(std::move(font_tex));
-  }
-
-  if (!RecompileImGuiPipeline())
-    return false;
-
-  m_imgui_last_frame_time = Common::Timer::NowUs();
-  BeginImGuiFrameUnlocked();  // lock is already held
-  return true;
-}
-
-bool Renderer::RecompileImGuiPipeline()
-{
-  if (m_backbuffer_format == AbstractTextureFormat::Undefined)
-  {
-    // No backbuffer (nogui) means no imgui rendering will happen
-    // Some backends don't like making pipelines with no render targets
-    return true;
-  }
-
-  std::unique_ptr<AbstractShader> vertex_shader =
-      CreateShaderFromSource(ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader(),
-                             "ImGui vertex shader");
-  std::unique_ptr<AbstractShader> pixel_shader = CreateShaderFromSource(
-      ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader(), "ImGui pixel shader");
-  if (!vertex_shader || !pixel_shader)
-  {
-    PanicAlertFmt("Failed to compile ImGui shaders");
-    return false;
-  }
-
-  // GS is used to render the UI to both eyes in stereo modes.
-  std::unique_ptr<AbstractShader> geometry_shader;
-  if (UseGeometryShaderForUI())
-  {
-    geometry_shader = CreateShaderFromSource(
-        ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1),
-        "ImGui passthrough geometry shader");
-    if (!geometry_shader)
-    {
-      PanicAlertFmt("Failed to compile ImGui geometry shader");
-      return false;
-    }
-  }
-
-  AbstractPipelineConfig pconfig = {};
-  pconfig.vertex_format = m_imgui_vertex_format.get();
-  pconfig.vertex_shader = vertex_shader.get();
-  pconfig.geometry_shader = geometry_shader.get();
-  pconfig.pixel_shader = pixel_shader.get();
-  pconfig.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
-  pconfig.depth_state = RenderState::GetNoDepthTestingDepthState();
-  pconfig.blending_state = RenderState::GetNoBlendingBlendState();
-  pconfig.blending_state.blendenable = true;
-  pconfig.blending_state.srcfactor = SrcBlendFactor::SrcAlpha;
-  pconfig.blending_state.dstfactor = DstBlendFactor::InvSrcAlpha;
-  pconfig.blending_state.srcfactoralpha = SrcBlendFactor::Zero;
-  pconfig.blending_state.dstfactoralpha = DstBlendFactor::One;
-  pconfig.framebuffer_state.color_texture_format = m_backbuffer_format;
-  pconfig.framebuffer_state.depth_texture_format = AbstractTextureFormat::Undefined;
-  pconfig.framebuffer_state.samples = 1;
-  pconfig.framebuffer_state.per_sample_shading = false;
-  pconfig.usage = AbstractPipelineUsage::Utility;
-  m_imgui_pipeline = CreatePipeline(pconfig);
-  if (!m_imgui_pipeline)
-  {
-    PanicAlertFmt("Failed to create imgui pipeline");
-    return false;
-  }
-
-  return true;
-}
-
-void Renderer::ShutdownImGui()
-{
-  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
-
-  ImGui::EndFrame();
-  ImPlot::DestroyContext();
-  ImGui::DestroyContext();
-  m_imgui_pipeline.reset();
-  m_imgui_vertex_format.reset();
-  m_imgui_textures.clear();
-}
-
-void Renderer::BeginImGuiFrame()
-{
-  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
-  BeginImGuiFrameUnlocked();
-}
-
-void Renderer::BeginImGuiFrameUnlocked()
-{
-  const u64 current_time_us = Common::Timer::NowUs();
-  const u64 time_diff_us = current_time_us - m_imgui_last_frame_time;
-  const float time_diff_secs = static_cast<float>(time_diff_us / 1000000.0);
-  m_imgui_last_frame_time = current_time_us;
-
-  // Update I/O with window dimensions.
-  ImGuiIO& io = ImGui::GetIO();
-  io.DisplaySize =
-      ImVec2(static_cast<float>(m_backbuffer_width), static_cast<float>(m_backbuffer_height));
-  io.DeltaTime = time_diff_secs;
-
-  ImGui::NewFrame();
-}
-
-void Renderer::DrawImGui()
-{
-  ImDrawData* draw_data = ImGui::GetDrawData();
-  if (!draw_data)
-    return;
-
-  SetViewport(0.0f, 0.0f, static_cast<float>(m_backbuffer_width),
-              static_cast<float>(m_backbuffer_height), 0.0f, 1.0f);
-
-  // Uniform buffer for draws.
-  struct ImGuiUbo
-  {
-    float u_rcp_viewport_size_mul2[2];
-    float padding[2];
-  };
-  ImGuiUbo ubo = {{1.0f / m_backbuffer_width * 2.0f, 1.0f / m_backbuffer_height * 2.0f}};
-
-  // Set up common state for drawing.
-  SetPipeline(m_imgui_pipeline.get());
-  SetSamplerState(0, RenderState::GetPointSamplerState());
-  g_vertex_manager->UploadUtilityUniforms(&ubo, sizeof(ubo));
-
-  for (int i = 0; i < draw_data->CmdListsCount; i++)
-  {
-    const ImDrawList* cmdlist = draw_data->CmdLists[i];
-    if (cmdlist->VtxBuffer.empty() || cmdlist->IdxBuffer.empty())
-      return;
-
-    u32 base_vertex, base_index;
-    g_vertex_manager->UploadUtilityVertices(cmdlist->VtxBuffer.Data, sizeof(ImDrawVert),
-                                            cmdlist->VtxBuffer.Size, cmdlist->IdxBuffer.Data,
-                                            cmdlist->IdxBuffer.Size, &base_vertex, &base_index);
-
-    for (const ImDrawCmd& cmd : cmdlist->CmdBuffer)
-    {
-      if (cmd.UserCallback)
-      {
-        cmd.UserCallback(cmdlist, &cmd);
-        continue;
-      }
-
-      SetScissorRect(ConvertFramebufferRectangle(
-          MathUtil::Rectangle<int>(
-              static_cast<int>(cmd.ClipRect.x), static_cast<int>(cmd.ClipRect.y),
-              static_cast<int>(cmd.ClipRect.z), static_cast<int>(cmd.ClipRect.w)),
-          m_current_framebuffer));
-      SetTexture(0, reinterpret_cast<const AbstractTexture*>(cmd.TextureId));
-      DrawIndexed(base_index, cmd.ElemCount, base_vertex);
-      base_index += cmd.ElemCount;
-    }
-  }
-
-  // Some capture software (such as OBS) hooks SwapBuffers and uses glBlitFramebuffer to copy our
-  // back buffer just before swap. Because glBlitFramebuffer honors the scissor test, the capture
-  // itself will be clipped to whatever bounds were last set by ImGui, resulting in a rather useless
-  // capture whenever any ImGui windows are open. We'll reset the scissor rectangle to the entire
-  // viewport here to avoid this problem.
-  SetScissorRect(ConvertFramebufferRectangle(
-      MathUtil::Rectangle<int>(0, 0, m_backbuffer_width, m_backbuffer_height),
-      m_current_framebuffer));
-}
-
 bool Renderer::UseGeometryShaderForUI() const
 {
   // OpenGL doesn't render to a 2-layer backbuffer like D3D/Vulkan for quad-buffered stereo,
-  // instead drawing twice and the eye selected by glDrawBuffer() (see
-  // OGL::Renderer::RenderXFBToScreen).
+  // instead drawing twice and the eye selected by glDrawBuffer() (see Presenter::RenderXFBToScreen)
   return g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer &&
          g_ActiveConfig.backend_info.api_type != APIType::OpenGL;
-}
-
-std::unique_lock<std::mutex> Renderer::GetImGuiLock()
-{
-  return std::unique_lock<std::mutex>(m_imgui_mutex);
-}
-
-void Renderer::BeginUIFrame()
-{
-  if (IsHeadless())
-    return;
-
-  BeginUtilityDrawing();
-  BindBackbuffer({0.0f, 0.0f, 0.0f, 1.0f});
-}
-
-void Renderer::EndUIFrame()
-{
-  {
-    auto lock = GetImGuiLock();
-    ImGui::Render();
-  }
-
-  if (!IsHeadless())
-  {
-    DrawImGui();
-
-    std::lock_guard<std::mutex> guard(m_swap_mutex);
-    PresentBackbuffer();
-    EndUtilityDrawing();
-  }
-
-  BeginImGuiFrame();
 }
 
 void Renderer::ForceReloadTextures()
@@ -1344,11 +676,12 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
     else if (aspect_mode == AspectMode::AnalogWide)
       m_is_game_widescreen = true;
   }
+  UpdateWidescreenHeuristic();
 
   // Ensure the last frame was written to the dump.
   // This is required even if frame dumping has stopped, since the frame dump is one frame
   // behind the renderer.
-  FlushFrameDump();
+  g_frame_dumper->FlushFrameDump();
 
   if (g_ActiveConfig.bGraphicMods)
   {
@@ -1360,61 +693,18 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   if (xfb_addr && fb_width && fb_stride && fb_height)
   {
     // Get the current XFB from texture cache
+
+    g_presenter->ReleaseXFBContentLock();
+
     MathUtil::Rectangle<int> xfb_rect;
-    const auto xfb_entry =
+    RcTcacheEntry xfb_entry =
         g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &xfb_rect);
-    const bool is_duplicate_frame = xfb_entry->id == m_last_xfb_id;
 
-    if (xfb_entry && (!g_ActiveConfig.bSkipPresentingDuplicateXFBs || !is_duplicate_frame))
+    bool is_duplicate_frame =
+        g_presenter->SubmitXFB(std::move(xfb_entry), xfb_rect, ticks, m_frame_count);
+
+    if (!g_ActiveConfig.bSkipPresentingDuplicateXFBs || !is_duplicate_frame)
     {
-      m_last_xfb_id = xfb_entry->id;
-
-      // Since we use the common pipelines here and draw vertices if a batch is currently being
-      // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
-      // with the loader, and it has not been unmapped yet. Force a pipeline flush to avoid this.
-      g_vertex_manager->Flush();
-
-      // Render any UI elements to the draw list.
-      {
-        auto lock = GetImGuiLock();
-
-        g_perf_metrics.DrawImGuiStats(m_backbuffer_scale);
-        DrawDebugText();
-        OSD::DrawMessages();
-        ImGui::Render();
-      }
-
-      // Render the XFB to the screen.
-      BeginUtilityDrawing();
-      if (!IsHeadless())
-      {
-        BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
-
-        if (!is_duplicate_frame)
-          UpdateWidescreenHeuristic();
-
-        UpdateDrawRectangle();
-
-        // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
-        auto render_target_rc = GetTargetRectangle();
-        auto render_source_rc = xfb_rect;
-        AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
-                                    m_backbuffer_height);
-        RenderXFBToScreen(render_target_rc, xfb_entry->texture.get(), render_source_rc);
-
-        DrawImGui();
-
-        // Present to the window system.
-        {
-          std::lock_guard<std::mutex> guard(m_swap_mutex);
-          PresentBackbuffer();
-        }
-
-        // Update the window size based on the frame that was just rendered.
-        // Due to depending on guest state, we need to call this every frame.
-        SetWindowSize(xfb_rect.GetWidth(), xfb_rect.GetHeight());
-      }
-
       if (!is_duplicate_frame)
       {
         DolphinAnalytics::PerformanceSample perf_sample;
@@ -1423,9 +713,6 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
         perf_sample.num_draw_calls = g_stats.this_frame.num_draw_calls;
         DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
 
-        if (IsFrameDumping())
-          DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks, m_frame_count);
-
         // Begin new frame
         m_frame_count++;
         g_stats.ResetFrame();
@@ -1433,7 +720,6 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
       g_shader_cache->RetrieveAsyncShaders();
       g_vertex_manager->OnEndFrame();
-      BeginImGuiFrame();
 
       // We invalidate the pipeline object at the start of the frame.
       // This is for the rare case where only a single pipeline configuration is used,
@@ -1467,8 +753,6 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       // Handle any config changes, this gets propagated to the backend.
       CheckForConfigChanges();
       g_Config.iSaveTargetId = 0;
-
-      EndUtilityDrawing();
     }
     else
     {
@@ -1486,359 +770,6 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   {
     Flush();
   }
-}
-
-void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
-                                 const AbstractTexture* source_texture,
-                                 const MathUtil::Rectangle<int>& source_rc)
-{
-  if (!g_ActiveConfig.backend_info.bSupportsPostProcessing)
-  {
-    ShowImage(source_texture, source_rc);
-    return
-  }
-
-  if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer &&
-      g_ActiveConfig.backend_info.bUsesExplictQuadBuffering)
-  {
-    // Quad-buffered stereo is annoying on GL.
-    SelectLeftBuffer();
-    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
-
-    SelectRightBuffer();
-    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 1);
-
-    SelectMainBuffer();
-  }
-  else if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
-           g_ActiveConfig.stereo_mode == StereoMode::TAB)
-  {
-    const auto [left_rc, right_rc] = ConvertStereoRectangle(target_rc);
-
-    m_post_processor->BlitFromTexture(left_rc, source_rc, source_texture, 0);
-    m_post_processor->BlitFromTexture(right_rc, source_rc, source_texture, 1);
-  }
-  else
-  {
-    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
-  }
-}
-
-bool Renderer::IsFrameDumping() const
-{
-  if (m_screenshot_request.IsSet())
-    return true;
-
-  if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
-    return true;
-
-  return false;
-}
-
-void Renderer::DumpCurrentFrame(const AbstractTexture* src_texture,
-                                const MathUtil::Rectangle<int>& src_rect, u64 ticks,
-                                int frame_number)
-{
-  int source_width = src_rect.GetWidth();
-  int source_height = src_rect.GetHeight();
-  int target_width, target_height;
-  if (!g_ActiveConfig.bInternalResolutionFrameDumps && !IsHeadless())
-  {
-    auto target_rect = GetTargetRectangle();
-    target_width = target_rect.GetWidth();
-    target_height = target_rect.GetHeight();
-  }
-  else
-  {
-    std::tie(target_width, target_height) = CalculateOutputDimensions(source_width, source_height);
-  }
-
-  // We only need to render a copy if we need to stretch/scale the XFB copy.
-  MathUtil::Rectangle<int> copy_rect = src_rect;
-  if (source_width != target_width || source_height != target_height)
-  {
-    if (!CheckFrameDumpRenderTexture(target_width, target_height))
-      return;
-
-    ScaleTexture(m_frame_dump_render_framebuffer.get(), m_frame_dump_render_framebuffer->GetRect(),
-                 src_texture, src_rect);
-    src_texture = m_frame_dump_render_texture.get();
-    copy_rect = src_texture->GetRect();
-  }
-
-  if (!CheckFrameDumpReadbackTexture(target_width, target_height))
-    return;
-
-  m_frame_dump_readback_texture->CopyFromTexture(src_texture, copy_rect, 0, 0,
-                                                 m_frame_dump_readback_texture->GetRect());
-  m_last_frame_state = m_frame_dump.FetchState(ticks, frame_number);
-  m_frame_dump_needs_flush = true;
-}
-
-bool Renderer::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height)
-{
-  // Ensure framebuffer exists (we lazily allocate it in case frame dumping isn't used).
-  // Or, resize texture if it isn't large enough to accommodate the current frame.
-  if (m_frame_dump_render_texture && m_frame_dump_render_texture->GetWidth() == target_width &&
-      m_frame_dump_render_texture->GetHeight() == target_height)
-  {
-    return true;
-  }
-
-  // Recreate texture, but release before creating so we don't temporarily use twice the RAM.
-  m_frame_dump_render_framebuffer.reset();
-  m_frame_dump_render_texture.reset();
-  m_frame_dump_render_texture =
-      CreateTexture(TextureConfig(target_width, target_height, 1, 1, 1,
-                                  AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget),
-                    "Frame dump render texture");
-  if (!m_frame_dump_render_texture)
-  {
-    PanicAlertFmt("Failed to allocate frame dump render texture");
-    return false;
-  }
-  m_frame_dump_render_framebuffer = CreateFramebuffer(m_frame_dump_render_texture.get(), nullptr);
-  ASSERT(m_frame_dump_render_framebuffer);
-  return true;
-}
-
-bool Renderer::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_height)
-{
-  std::unique_ptr<AbstractStagingTexture>& rbtex = m_frame_dump_readback_texture;
-  if (rbtex && rbtex->GetWidth() == target_width && rbtex->GetHeight() == target_height)
-    return true;
-
-  rbtex.reset();
-  rbtex = CreateStagingTexture(
-      StagingTextureType::Readback,
-      TextureConfig(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0));
-  if (!rbtex)
-    return false;
-
-  return true;
-}
-
-void Renderer::FlushFrameDump()
-{
-  if (!m_frame_dump_needs_flush)
-    return;
-
-  // Ensure dumping thread is done with output texture before swapping.
-  FinishFrameData();
-
-  std::swap(m_frame_dump_output_texture, m_frame_dump_readback_texture);
-
-  // Queue encoding of the last frame dumped.
-  auto& output = m_frame_dump_output_texture;
-  output->Flush();
-  if (output->Map())
-  {
-    DumpFrameData(reinterpret_cast<u8*>(output->GetMappedPointer()), output->GetConfig().width,
-                  output->GetConfig().height, static_cast<int>(output->GetMappedStride()));
-  }
-  else
-  {
-    ERROR_LOG_FMT(VIDEO, "Failed to map texture for dumping.");
-  }
-
-  m_frame_dump_needs_flush = false;
-
-  // Shutdown frame dumping if it is no longer active.
-  if (!IsFrameDumping())
-    ShutdownFrameDumping();
-}
-
-void Renderer::ShutdownFrameDumping()
-{
-  // Ensure the last queued readback has been sent to the encoder.
-  FlushFrameDump();
-
-  if (!m_frame_dump_thread_running.IsSet())
-    return;
-
-  // Ensure previous frame has been encoded.
-  FinishFrameData();
-
-  // Wake thread up, and wait for it to exit.
-  m_frame_dump_thread_running.Clear();
-  m_frame_dump_start.Set();
-  if (m_frame_dump_thread.joinable())
-    m_frame_dump_thread.join();
-  m_frame_dump_render_framebuffer.reset();
-  m_frame_dump_render_texture.reset();
-
-  m_frame_dump_readback_texture.reset();
-  m_frame_dump_output_texture.reset();
-}
-
-void Renderer::DumpFrameData(const u8* data, int w, int h, int stride)
-{
-  m_frame_dump_data = FrameDump::FrameData{data, w, h, stride, m_last_frame_state};
-
-  if (!m_frame_dump_thread_running.IsSet())
-  {
-    if (m_frame_dump_thread.joinable())
-      m_frame_dump_thread.join();
-    m_frame_dump_thread_running.Set();
-    m_frame_dump_thread = std::thread(&Renderer::FrameDumpThreadFunc, this);
-  }
-
-  // Wake worker thread up.
-  m_frame_dump_start.Set();
-  m_frame_dump_frame_running = true;
-}
-
-void Renderer::FinishFrameData()
-{
-  if (!m_frame_dump_frame_running)
-    return;
-
-  m_frame_dump_done.Wait();
-  m_frame_dump_frame_running = false;
-
-  m_frame_dump_output_texture->Unmap();
-}
-
-void Renderer::FrameDumpThreadFunc()
-{
-  Common::SetCurrentThreadName("FrameDumping");
-
-  bool dump_to_ffmpeg = !g_ActiveConfig.bDumpFramesAsImages;
-  bool frame_dump_started = false;
-
-// If Dolphin was compiled without ffmpeg, we only support dumping to images.
-#if !defined(HAVE_FFMPEG)
-  if (dump_to_ffmpeg)
-  {
-    WARN_LOG_FMT(VIDEO, "FrameDump: Dolphin was not compiled with FFmpeg, using fallback option. "
-                        "Frames will be saved as PNG images instead.");
-    dump_to_ffmpeg = false;
-  }
-#endif
-
-  while (true)
-  {
-    m_frame_dump_start.Wait();
-    if (!m_frame_dump_thread_running.IsSet())
-      break;
-
-    auto frame = m_frame_dump_data;
-
-    // Save screenshot
-    if (m_screenshot_request.TestAndClear())
-    {
-      std::lock_guard<std::mutex> lk(m_screenshot_lock);
-
-      if (DumpFrameToPNG(frame, m_screenshot_name))
-        OSD::AddMessage("Screenshot saved to " + m_screenshot_name);
-
-      // Reset settings
-      m_screenshot_name.clear();
-      m_screenshot_completed.Set();
-    }
-
-    if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
-    {
-      if (!frame_dump_started)
-      {
-        if (dump_to_ffmpeg)
-          frame_dump_started = StartFrameDumpToFFMPEG(frame);
-        else
-          frame_dump_started = StartFrameDumpToImage(frame);
-
-        // Stop frame dumping if we fail to start.
-        if (!frame_dump_started)
-          Config::SetCurrent(Config::MAIN_MOVIE_DUMP_FRAMES, false);
-      }
-
-      // If we failed to start frame dumping, don't write a frame.
-      if (frame_dump_started)
-      {
-        if (dump_to_ffmpeg)
-          DumpFrameToFFMPEG(frame);
-        else
-          DumpFrameToImage(frame);
-      }
-    }
-
-    m_frame_dump_done.Set();
-  }
-
-  if (frame_dump_started)
-  {
-    // No additional cleanup is needed when dumping to images.
-    if (dump_to_ffmpeg)
-      StopFrameDumpToFFMPEG();
-  }
-}
-
-#if defined(HAVE_FFMPEG)
-
-bool Renderer::StartFrameDumpToFFMPEG(const FrameDump::FrameData& frame)
-{
-  // If dumping started at boot, the start time must be set to the boot time to maintain audio sync.
-  // TODO: Perhaps we should care about this when starting dumping in the middle of emulation too,
-  // but it's less important there since the first frame to dump usually gets delivered quickly.
-  const u64 start_ticks = frame.state.frame_number == 0 ? 0 : frame.state.ticks;
-  return m_frame_dump.Start(frame.width, frame.height, start_ticks);
-}
-
-void Renderer::DumpFrameToFFMPEG(const FrameDump::FrameData& frame)
-{
-  m_frame_dump.AddFrame(frame);
-}
-
-void Renderer::StopFrameDumpToFFMPEG()
-{
-  m_frame_dump.Stop();
-}
-
-#else
-
-bool Renderer::StartFrameDumpToFFMPEG(const FrameDump::FrameData&)
-{
-  return false;
-}
-
-void Renderer::DumpFrameToFFMPEG(const FrameDump::FrameData&)
-{
-}
-
-void Renderer::StopFrameDumpToFFMPEG()
-{
-}
-
-#endif  // defined(HAVE_FFMPEG)
-
-std::string Renderer::GetFrameDumpNextImageFileName() const
-{
-  return fmt::format("{}framedump_{}.png", File::GetUserPath(D_DUMPFRAMES_IDX),
-                     m_frame_dump_image_counter);
-}
-
-bool Renderer::StartFrameDumpToImage(const FrameDump::FrameData&)
-{
-  m_frame_dump_image_counter = 1;
-  if (!Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT))
-  {
-    // Only check for the presence of the first image to confirm overwriting.
-    // A previous run will always have at least one image, and it's safe to assume that if the user
-    // has allowed the first image to be overwritten, this will apply any remaining images as well.
-    std::string filename = GetFrameDumpNextImageFileName();
-    if (File::Exists(filename))
-    {
-      if (!AskYesNoFmtT("Frame dump image(s) '{0}' already exists. Overwrite?", filename))
-        return false;
-    }
-  }
-
-  return true;
-}
-
-void Renderer::DumpFrameToImage(const FrameDump::FrameData& frame)
-{
-  DumpFrameToPNG(frame, GetFrameDumpNextImageFileName());
-  m_frame_dump_image_counter++;
 }
 
 bool Renderer::UseVertexDepthRange() const
@@ -1877,7 +808,7 @@ void Renderer::DoState(PointerWrap& p)
   if (p.IsReadMode())
   {
     // Force the next xfb to be displayed.
-    m_last_xfb_id = std::numeric_limits<u64>::max();
+    g_presenter->ClearLastXfbId();
 
     m_was_orthographically_anamorphic = false;
 
@@ -1886,7 +817,7 @@ void Renderer::DoState(PointerWrap& p)
   }
 
 #if defined(HAVE_FFMPEG)
-  m_frame_dump.DoState(p);
+  g_frame_dumper->DoState(p);
 #endif
 }
 

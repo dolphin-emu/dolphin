@@ -37,6 +37,7 @@
 #include "UICommon/DiscordPresence.h"
 
 #include "VideoCommon/Fifo.cpp"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -76,9 +77,9 @@ void Host::SetRenderHandle(void* handle)
     return;
 
   m_render_handle = handle;
-  if (g_renderer)
+  if (g_presenter)
   {
-    g_renderer->ChangeSurface(handle);
+    g_presenter->ChangeSurface(handle);
     g_controller_interface.ChangeWindow(handle);
   }
 }
@@ -190,8 +191,8 @@ void Host::SetRenderFullscreen(bool fullscreen)
 
 void Host::ResizeSurface(int new_width, int new_height)
 {
-  if (g_renderer)
-    g_renderer->ResizeSurface();
+  if (g_presenter)
+    g_presenter->ResizeSurface();
 }
 
 std::vector<std::string> Host_GetPreferredLocales()

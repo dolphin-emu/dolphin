@@ -23,6 +23,7 @@
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -63,13 +64,12 @@ SWRenderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture
 void SWRenderer::BindBackbuffer(const ClearColor& clear_color)
 {
   // Look for framebuffer resizes
-  if (!m_surface_resized.TestAndClear())
+  if (!g_presenter->SurfaceResizedTestAndClear())
     return;
 
   GLContext* context = m_window->GetContext();
   context->Update();
-  m_backbuffer_width = context->GetBackBufferWidth();
-  m_backbuffer_height = context->GetBackBufferHeight();
+  g_presenter->SetBackbuffer(context->GetBackBufferWidth(), context->GetBackBufferHeight());
 }
 
 class SWShader final : public AbstractShader

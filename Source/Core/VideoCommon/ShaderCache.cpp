@@ -14,6 +14,7 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -162,7 +163,7 @@ void ShaderCache::WaitForAsyncCompiler()
   bool running = true;
 
   constexpr auto update_ui_progress = [](size_t completed, size_t total) {
-    g_renderer->BeginUIFrame();
+    g_presenter->BeginUIFrame();
 
     const float center_x = ImGui::GetIO().DisplaySize.x * 0.5f;
     const float center_y = ImGui::GetIO().DisplaySize.y * 0.5f;
@@ -183,7 +184,7 @@ void ShaderCache::WaitForAsyncCompiler()
     }
     ImGui::End();
 
-    g_renderer->EndUIFrame();
+    g_presenter->EndUIFrame();
   };
 
   while (running &&
@@ -195,8 +196,8 @@ void ShaderCache::WaitForAsyncCompiler()
   }
 
   // Just render nothing to clear the screen
-  g_renderer->BeginUIFrame();
-  g_renderer->EndUIFrame();
+  g_presenter->BeginUIFrame();
+  g_presenter->EndUIFrame();
 }
 
 template <typename SerializedUidType, typename UidType>

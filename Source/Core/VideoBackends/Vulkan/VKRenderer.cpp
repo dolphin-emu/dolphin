@@ -33,6 +33,7 @@
 
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -379,7 +380,7 @@ void Renderer::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_comple
 
 void Renderer::CheckForSurfaceChange()
 {
-  if (!m_surface_changed.TestAndClear() || !m_swap_chain)
+  if (!g_presenter->SurfaceChangedTestAndClear() || !m_swap_chain)
     return;
 
   // Submit the current draws up until rendering the XFB.
@@ -389,9 +390,8 @@ void Renderer::CheckForSurfaceChange()
   g_command_buffer_mgr->CheckLastPresentFail();
 
   // Recreate the surface. If this fails we're in trouble.
-  if (!m_swap_chain->RecreateSurface(m_new_surface_handle))
+  if (!m_swap_chain->RecreateSurface(g_presenter->GetNewSurfaceHandle()))
     PanicAlertFmt("Failed to recreate Vulkan surface. Cannot continue.");
-  m_new_surface_handle = nullptr;
 
   // Handle case where the dimensions are now different.
   OnSwapChainResized();
@@ -399,7 +399,7 @@ void Renderer::CheckForSurfaceChange()
 
 void Renderer::CheckForSurfaceResize()
 {
-  if (!m_surface_resized.TestAndClear())
+  if (!g_presenter->SurfaceResizedTestAndClear())
     return;
 
   // If we don't have a surface, how can we resize the swap chain?
@@ -450,8 +450,7 @@ void Renderer::OnConfigChanged(u32 bits)
 
 void Renderer::OnSwapChainResized()
 {
-  m_backbuffer_width = m_swap_chain->GetWidth();
-  m_backbuffer_height = m_swap_chain->GetHeight();
+  g_presenter->SetBackbuffer(m_swap_chain->GetWidth(), m_swap_chain->GetHeight());
 }
 
 void Renderer::BindFramebuffer(VKFramebuffer* fb)

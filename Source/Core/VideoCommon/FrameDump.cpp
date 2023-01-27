@@ -37,6 +37,7 @@ extern "C" {
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 
+#include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -157,7 +158,7 @@ std::string AVErrorString(int error)
 
 }  // namespace
 
-bool FrameDump::Start(int w, int h, u64 start_ticks)
+bool FFMpegFrameDump::Start(int w, int h, u64 start_ticks)
 {
   if (IsStarted())
     return true;
@@ -169,7 +170,7 @@ bool FrameDump::Start(int w, int h, u64 start_ticks)
   return PrepareEncoding(w, h, start_ticks, m_savestate_index);
 }
 
-bool FrameDump::PrepareEncoding(int w, int h, u64 start_ticks, u32 savestate_index)
+bool FFMpegFrameDump::PrepareEncoding(int w, int h, u64 start_ticks, u32 savestate_index)
 {
   m_context = std::make_unique<FrameDumpContext>();
 
@@ -189,7 +190,7 @@ bool FrameDump::PrepareEncoding(int w, int h, u64 start_ticks, u32 savestate_ind
   return success;
 }
 
-bool FrameDump::CreateVideoFile()
+bool FFMpegFrameDump::CreateVideoFile()
 {
   const std::string& format = g_Config.sDumpFormat;
 
@@ -335,12 +336,12 @@ bool FrameDump::CreateVideoFile()
   return true;
 }
 
-bool FrameDump::IsFirstFrameInCurrentFile() const
+bool FFMpegFrameDump::IsFirstFrameInCurrentFile() const
 {
   return m_context->last_pts == AV_NOPTS_VALUE;
 }
 
-void FrameDump::AddFrame(const FrameData& frame)
+void FFMpegFrameDump::AddFrame(const FrameData& frame)
 {
   // Are we even dumping?
   if (!IsStarted())
@@ -402,7 +403,7 @@ void FrameDump::AddFrame(const FrameData& frame)
   ProcessPackets();
 }
 
-void FrameDump::ProcessPackets()
+void FFMpegFrameDump::ProcessPackets()
 {
   auto pkt = std::unique_ptr<AVPacket, std::function<void(AVPacket*)>>(
       av_packet_alloc(), [](AVPacket* packet) { av_packet_free(&packet); });
@@ -440,7 +441,7 @@ void FrameDump::ProcessPackets()
   }
 }
 
-void FrameDump::Stop()
+void FFMpegFrameDump::Stop()
 {
   if (!IsStarted())
     return;
@@ -457,12 +458,12 @@ void FrameDump::Stop()
   OSD::AddMessage("Stopped dumping frames");
 }
 
-bool FrameDump::IsStarted() const
+bool FFMpegFrameDump::IsStarted() const
 {
   return m_context != nullptr;
 }
 
-void FrameDump::CloseVideoFile()
+void FFMpegFrameDump::CloseVideoFile()
 {
   av_frame_free(&m_context->src_frame);
   av_frame_free(&m_context->scaled_frame);
@@ -480,13 +481,13 @@ void FrameDump::CloseVideoFile()
   m_context.reset();
 }
 
-void FrameDump::DoState(PointerWrap& p)
+void FFMpegFrameDump::DoState(PointerWrap& p)
 {
   if (p.IsReadMode())
     ++m_savestate_index;
 }
 
-void FrameDump::CheckForConfigChange(const FrameData& frame)
+void FFMpegFrameDump::CheckForConfigChange(const FrameData& frame)
 {
   bool restart_dump = false;
 
@@ -524,7 +525,7 @@ void FrameDump::CheckForConfigChange(const FrameData& frame)
   }
 }
 
-FrameDump::FrameState FrameDump::FetchState(u64 ticks, int frame_number) const
+FrameState FFMpegFrameDump::FetchState(u64 ticks, int frame_number) const
 {
   FrameState state;
   state.ticks = ticks;
@@ -537,9 +538,9 @@ FrameDump::FrameState FrameDump::FetchState(u64 ticks, int frame_number) const
   return state;
 }
 
-FrameDump::FrameDump() = default;
+FFMpegFrameDump::FFMpegFrameDump() = default;
 
-FrameDump::~FrameDump()
+FFMpegFrameDump::~FFMpegFrameDump()
 {
   Stop();
 }

@@ -32,7 +32,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/VideoConfig.h"
 
 #ifdef _WIN32
@@ -487,38 +487,40 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
     const QKeyEvent* key_event = static_cast<const QKeyEvent*>(event);
     const bool is_down = event->type() == QEvent::KeyPress;
     const u32 key = static_cast<u32>(key_event->key() & 0x1FF);
-    auto lock = g_renderer->GetImGuiLock();
-    if (key < std::size(ImGui::GetIO().KeysDown))
-      ImGui::GetIO().KeysDown[key] = is_down;
+
+    const char* chars = nullptr;
 
     if (is_down)
     {
       auto utf8 = key_event->text().toUtf8();
-      ImGui::GetIO().AddInputCharactersUTF8(utf8.constData());
+
+      if (utf8.size())
+        chars = utf8.constData();
     }
+
+    // Pass the key onto ImGui
+    g_presenter->SetKey(key, is_down, chars);
   }
   break;
 
   case QEvent::MouseMove:
   {
-    auto lock = g_renderer->GetImGuiLock();
-
     // Qt multiplies all coordinates by the scaling factor in highdpi mode, giving us "scaled" mouse
     // coordinates (as if the screen was standard dpi). We need to update the mouse position in
     // native coordinates, as the UI (and game) is rendered at native resolution.
     const float scale = devicePixelRatio();
-    ImGui::GetIO().MousePos.x = static_cast<const QMouseEvent*>(event)->pos().x() * scale;
-    ImGui::GetIO().MousePos.y = static_cast<const QMouseEvent*>(event)->pos().y() * scale;
+    float x = static_cast<const QMouseEvent*>(event)->pos().x() * scale;
+    float y = static_cast<const QMouseEvent*>(event)->pos().y() * scale;
+
+    g_presenter->SetMousePos(x, y);
   }
   break;
 
   case QEvent::MouseButtonPress:
   case QEvent::MouseButtonRelease:
   {
-    auto lock = g_renderer->GetImGuiLock();
     const u32 button_mask = static_cast<u32>(static_cast<const QMouseEvent*>(event)->buttons());
-    for (size_t i = 0; i < std::size(ImGui::GetIO().MouseDown); i++)
-      ImGui::GetIO().MouseDown[i] = (button_mask & (1u << i)) != 0;
+    g_presenter->SetMousePress(button_mask);
   }
   break;
 
@@ -529,7 +531,7 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
 
 void RenderWidget::SetImGuiKeyMap()
 {
-  static constexpr std::array<std::array<int, 2>, 21> key_map{{
+  static std::array<std::array<int, 2>, 21> key_map{{
       {ImGuiKey_Tab, Qt::Key_Tab},
       {ImGuiKey_LeftArrow, Qt::Key_Left},
       {ImGuiKey_RightArrow, Qt::Key_Right},
@@ -552,11 +554,6 @@ void RenderWidget::SetImGuiKeyMap()
       {ImGuiKey_Y, Qt::Key_Y},
       {ImGuiKey_Z, Qt::Key_Z},
   }};
-  auto lock = g_renderer->GetImGuiLock();
 
-  if (!ImGui::GetCurrentContext())
-    return;
-
-  for (auto [imgui_key, qt_key] : key_map)
-    ImGui::GetIO().KeyMap[imgui_key] = (qt_key & 0x1FF);
+  g_presenter->SetKeyMap(key_map);
 }

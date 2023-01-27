@@ -13,6 +13,7 @@
 #include "VideoBackends/Metal/MTLVertexManager.h"
 
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 Metal::Renderer::Renderer(MRCOwned<CAMetalLayer*> layer, int width, int height, float layer_scale)
@@ -480,16 +481,15 @@ std::unique_ptr<::BoundingBox> Metal::Renderer::CreateBoundingBox() const
 
 void Metal::Renderer::CheckForSurfaceChange()
 {
-  if (!m_surface_changed.TestAndClear())
+  if (!g_presenter->SurfaceChangedTestAndClear())
     return;
-  m_layer = MRCRetain(static_cast<CAMetalLayer*>(m_new_surface_handle));
-  m_new_surface_handle = nullptr;
+  m_layer = MRCRetain(static_cast<CAMetalLayer*>(g_presenter->GetNewSurfaceHandle()));
   SetupSurface();
 }
 
 void Metal::Renderer::CheckForSurfaceResize()
 {
-  if (!m_surface_resized.TestAndClear())
+  if (!g_presenter->SurfaceResizedTestAndClear())
     return;
   SetupSurface();
 }

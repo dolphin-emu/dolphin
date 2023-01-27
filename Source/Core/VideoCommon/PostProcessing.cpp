@@ -24,6 +24,7 @@
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -627,7 +628,7 @@ size_t PostProcessing::CalculateUniformsSize() const
 void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
                                        const AbstractTexture* src_tex, int src_layer)
 {
-  const auto& window_rect = g_renderer->GetTargetRectangle();
+  const auto& window_rect = g_presenter->GetTargetRectangle();
   const float rcp_src_width = 1.0f / src_tex->GetWidth();
   const float rcp_src_height = 1.0f / src_tex->GetHeight();
   BuiltinUniforms builtin_uniforms = {

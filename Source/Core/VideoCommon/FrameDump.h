@@ -10,32 +10,14 @@
 
 struct FrameDumpContext;
 class PointerWrap;
+struct FrameData;
+struct FrameState;
 
-class FrameDump
+class FFMpegFrameDump
 {
 public:
-  FrameDump();
-  ~FrameDump();
-
-  // Holds relevant emulation state during a rendered frame for
-  // when it is later asynchronously written.
-  struct FrameState
-  {
-    u64 ticks = 0;
-    int frame_number = 0;
-    u32 savestate_index = 0;
-    int refresh_rate_num = 0;
-    int refresh_rate_den = 0;
-  };
-
-  struct FrameData
-  {
-    const u8* data = nullptr;
-    int width = 0;
-    int height = 0;
-    int stride = 0;
-    FrameState state;
-  };
+  FFMpegFrameDump();
+  ~FFMpegFrameDump();
 
   bool Start(int w, int h, u64 start_ticks);
   void AddFrame(const FrameData&);
@@ -68,7 +50,7 @@ private:
 inline FrameDump::FrameDump() = default;
 inline FrameDump::~FrameDump() = default;
 
-inline FrameDump::FrameState FrameDump::FetchState(u64 ticks, int frame_number) const
+inline FrameState FrameDump::FetchState(u64 ticks, int frame_number) const
 {
   return {};
 }

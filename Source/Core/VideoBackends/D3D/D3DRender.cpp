@@ -30,6 +30,7 @@
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
@@ -178,16 +179,15 @@ void Renderer::OnConfigChanged(u32 bits)
 
 void Renderer::CheckForSwapChainChanges()
 {
-  const bool surface_changed = m_surface_changed.TestAndClear();
+  const bool surface_changed = g_presenter->SurfaceChangedTestAndClear();
   const bool surface_resized =
-      m_surface_resized.TestAndClear() || m_swap_chain->CheckForFullscreenChange();
+      g_presenter->SurfaceResizedTestAndClear() || m_swap_chain->CheckForFullscreenChange();
   if (!surface_changed && !surface_resized)
     return;
 
   if (surface_changed)
   {
-    m_swap_chain->ChangeSurface(m_new_surface_handle);
-    m_new_surface_handle = nullptr;
+    m_swap_chain->ChangeSurface(g_presenter->GetNewSurfaceHandle());
   }
   else
   {

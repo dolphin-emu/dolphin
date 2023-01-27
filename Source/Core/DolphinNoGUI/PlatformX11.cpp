@@ -25,7 +25,7 @@ static constexpr auto X_None = None;
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include "UICommon/X11Utils.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Present.h"
 
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX _POSIX_HOST_NAME_MAX
@@ -263,8 +263,8 @@ void PlatformX11::ProcessEvents()
     break;
     case ConfigureNotify:
     {
-      if (g_renderer)
-        g_renderer->ResizeSurface();
+      if (g_presenter)
+        g_presenter->ResizeSurface();
     }
     break;
     }

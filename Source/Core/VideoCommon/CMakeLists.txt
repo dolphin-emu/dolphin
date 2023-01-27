@@ -34,6 +34,8 @@ add_library(videocommon
   FramebufferManager.h
   FramebufferShaderGen.cpp
   FramebufferShaderGen.h
+  FrameDumper.cpp
+  FrameDumper.h
   FreeLookCamera.cpp
   FreeLookCamera.h
   GeometryShaderGen.cpp
@@ -82,6 +84,8 @@ add_library(videocommon
   NetPlayGolfUI.h
   OnScreenDisplay.cpp
   OnScreenDisplay.h
+  OnScreenUI.cpp
+  OnScreenUI.h
   OpcodeDecoding.cpp
   OpcodeDecoding.h
   PerfQueryBase.cpp
@@ -98,6 +102,8 @@ add_library(videocommon
   PixelShaderManager.h
   PostProcessing.cpp
   PostProcessing.h
+  Present.cpp
+  Present.h
   RenderBase.cpp
   RenderBase.h
   RenderState.cpp
