@@ -20,6 +20,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 Cheats::DataType Cheats::GetDataType(const Cheats::SearchValue& value)
 {
@@ -204,7 +205,9 @@ Cheats::NewSearch(const std::vector<Cheats::MemoryRange>& memory_ranges,
       return;
     }
 
-    if (address_space == PowerPC::RequestedAddressSpace::Virtual && !MSR.DR)
+    auto& system = Core::System::GetInstance();
+    auto& ppc_state = system.GetPPCState();
+    if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
     {
       error_code = Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
       return;
@@ -263,7 +266,9 @@ Cheats::NextSearch(const std::vector<Cheats::SearchResult<T>>& previous_results,
       return;
     }
 
-    if (address_space == PowerPC::RequestedAddressSpace::Virtual && !MSR.DR)
+    auto& system = Core::System::GetInstance();
+    auto& ppc_state = system.GetPPCState();
+    if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
     {
       error_code = Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
       return;

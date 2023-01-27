@@ -72,14 +72,15 @@ bool Load()
   if (g_symbolDB.LoadMap(File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
   {
     ::HLE::Clear();
-    ::HLE::PatchFunctions();
+    ::HLE::PatchFunctions(system);
     Host_NotifyMapLoaded();
   }
 
+  auto& ppc_state = system.GetPPCState();
   const PowerPC::CoreMode core_mode = PowerPC::GetMode();
   PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
-  MSR.Hex = 0;
-  PC = 0x3400;
+  ppc_state.msr.Hex = 0;
+  ppc_state.pc = 0x3400;
   NOTICE_LOG_FMT(IOS, "Loaded MIOS and bootstrapped PPC.");
 
   // IOS writes 0 to 0x30f8 before bootstrapping the PPC. Once started, the IPL eventually writes

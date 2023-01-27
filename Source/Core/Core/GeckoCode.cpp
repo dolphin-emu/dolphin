@@ -19,6 +19,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace Gecko
 {
@@ -204,10 +205,13 @@ static Installation InstallCodeHandlerLocked()
   // Turn on codes
   PowerPC::HostWrite_U8(1, INSTALLER_BASE_ADDRESS + 7);
 
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   // Invalidate the icache and any asm codes
   for (unsigned int j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
   {
-    PowerPC::ppcState.iCache.Invalidate(INSTALLER_BASE_ADDRESS + j);
+    ppc_state.iCache.Invalidate(INSTALLER_BASE_ADDRESS + j);
   }
   return Installation::Installed;
 }
@@ -253,36 +257,40 @@ void RunCodeHandler()
     }
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   // We always do this to avoid problems with the stack since we're branching in random locations.
   // Even with function call return hooks (PC == LR), hand coded assembler won't necessarily
   // follow the ABI. [Volatile FPR, GPR, CR may not be volatile]
   // The codehandler will STMW all of the GPR registers, but we need to fix the Stack's Red
   // Zone, the LR, PC (return address) and the volatile floating point registers.
   // Build a function call stack frame.
-  u32 SFP = GPR(1);                     // Stack Frame Pointer
-  GPR(1) -= 256;                        // Stack's Red Zone
-  GPR(1) -= 16 + 2 * 14 * sizeof(u64);  // Our stack frame (HLE_Misc::GeckoReturnTrampoline)
-  GPR(1) -= 8;                          // Fake stack frame for codehandler
-  GPR(1) &= 0xFFFFFFF0;                 // Align stack to 16bytes
-  u32 SP = GPR(1);                      // Stack Pointer
+  u32 SFP = ppc_state.gpr[1];                     // Stack Frame Pointer
+  ppc_state.gpr[1] -= 256;                        // Stack's Red Zone
+  ppc_state.gpr[1] -= 16 + 2 * 14 * sizeof(u64);  // Our stack frame
+                                                  // (HLE_Misc::GeckoReturnTrampoline)
+  ppc_state.gpr[1] -= 8;                          // Fake stack frame for codehandler
+  ppc_state.gpr[1] &= 0xFFFFFFF0;                 // Align stack to 16bytes
+  u32 SP = ppc_state.gpr[1];                      // Stack Pointer
   PowerPC::HostWrite_U32(SP + 8, SP);
   // SP + 4 is reserved for the codehandler to save LR to the stack.
   PowerPC::HostWrite_U32(SFP, SP + 8);  // Real stack frame
-  PowerPC::HostWrite_U32(PC, SP + 12);
-  PowerPC::HostWrite_U32(LR, SP + 16);
-  PowerPC::HostWrite_U32(PowerPC::ppcState.cr.Get(), SP + 20);
+  PowerPC::HostWrite_U32(ppc_state.pc, SP + 12);
+  PowerPC::HostWrite_U32(LR(ppc_state), SP + 16);
+  PowerPC::HostWrite_U32(ppc_state.cr.Get(), SP + 20);
   // Registers FPR0->13 are volatile
   for (int i = 0; i < 14; ++i)
   {
-    PowerPC::HostWrite_U64(rPS(i).PS0AsU64(), SP + 24 + 2 * i * sizeof(u64));
-    PowerPC::HostWrite_U64(rPS(i).PS1AsU64(), SP + 24 + (2 * i + 1) * sizeof(u64));
+    PowerPC::HostWrite_U64(ppc_state.ps[i].PS0AsU64(), SP + 24 + 2 * i * sizeof(u64));
+    PowerPC::HostWrite_U64(ppc_state.ps[i].PS1AsU64(), SP + 24 + (2 * i + 1) * sizeof(u64));
   }
   DEBUG_LOG_FMT(ACTIONREPLAY,
                 "GeckoCodes: Initiating phantom branch-and-link. "
                 "PC = {:#010x}, SP = {:#010x}, SFP = {:#010x}",
-                PC, SP, SFP);
-  LR = HLE_TRAMPOLINE_ADDRESS;
-  PC = NPC = ENTRY_POINT;
+                ppc_state.pc, SP, SFP);
+  LR(ppc_state) = HLE_TRAMPOLINE_ADDRESS;
+  ppc_state.pc = ppc_state.npc = ENTRY_POINT;
 }
 
 }  // namespace Gecko

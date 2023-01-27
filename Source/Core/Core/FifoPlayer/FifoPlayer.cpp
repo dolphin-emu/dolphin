@@ -514,6 +514,7 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
   auto& gpfifo = system.GetGPFifo();
+  auto& ppc_state = system.GetPPCState();
 
   // Write up to 256 bytes at a time
   while (written < end)
@@ -528,8 +529,8 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
 
     u32 burstEnd = std::min(written + 255, lastBurstEnd);
 
-    std::copy(data + written, data + burstEnd, PowerPC::ppcState.gather_pipe_ptr);
-    PowerPC::ppcState.gather_pipe_ptr += burstEnd - written;
+    std::copy(data + written, data + burstEnd, ppc_state.gather_pipe_ptr);
+    ppc_state.gather_pipe_ptr += burstEnd - written;
     written = burstEnd;
 
     gpfifo.Write8(data[written++]);
@@ -539,7 +540,7 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
     u32 cyclesUsed = elapsedCycles - m_ElapsedCycles;
     m_ElapsedCycles = elapsedCycles;
 
-    PowerPC::ppcState.downcount -= cyclesUsed;
+    ppc_state.downcount -= cyclesUsed;
     core_timing.Advance();
   }
 }
@@ -629,16 +630,19 @@ void FifoPlayer::ClearEfb()
 
 void FifoPlayer::LoadMemory()
 {
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   UReg_MSR newMSR;
   newMSR.DR = 1;
   newMSR.IR = 1;
-  MSR.Hex = newMSR.Hex;
-  PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
-  PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
-  PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
-  PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+  ppc_state.msr.Hex = newMSR.Hex;
+  ppc_state.spr[SPR_IBAT0U] = 0x80001fff;
+  ppc_state.spr[SPR_IBAT0L] = 0x00000002;
+  ppc_state.spr[SPR_DBAT0U] = 0x80001fff;
+  ppc_state.spr[SPR_DBAT0L] = 0x00000002;
+  ppc_state.spr[SPR_DBAT1U] = 0xc0001fff;
+  ppc_state.spr[SPR_DBAT1L] = 0x0000002a;
   PowerPC::DBATUpdated();
   PowerPC::IBATUpdated();
 

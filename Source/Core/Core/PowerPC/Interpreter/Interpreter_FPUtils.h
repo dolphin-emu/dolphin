@@ -27,7 +27,7 @@ enum class FPCC
 
 inline void CheckFPExceptions(UReg_FPSCR fpscr)
 {
-  if (fpscr.FEX && (MSR.FE0 || MSR.FE1))
+  if (fpscr.FEX && (PowerPC::ppcState.msr.FE0 || PowerPC::ppcState.msr.FE1))
     GenerateProgramException(ProgramExceptionCause::FloatingPoint);
 }
 

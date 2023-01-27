@@ -11,6 +11,7 @@
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace
 {
@@ -56,11 +57,13 @@ void CodeTrace::SetRegTracked(const std::string& reg)
 
 InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& instruction) const
 {
+  auto& system = Core::System::GetInstance();
+
   // Slower process of breaking down saved instruction. Only used when stepping through code if a
   // decision has to be made, otherwise used afterwards on a log file.
   InstructionAttributes tmp_attributes;
   tmp_attributes.instruction = instruction.instruction;
-  tmp_attributes.address = PC;
+  tmp_attributes.address = system.GetPPCState().pc;
   std::string instr = instruction.instruction;
   std::smatch match;
 
@@ -106,11 +109,14 @@ InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& ins
 
 TraceOutput CodeTrace::SaveCurrentInstruction() const
 {
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   // Quickly save instruction and memory target for fast logging.
   TraceOutput output;
-  const std::string instr = PowerPC::debug_interface.Disassemble(PC);
+  const std::string instr = PowerPC::debug_interface.Disassemble(ppc_state.pc);
   output.instruction = instr;
-  output.address = PC;
+  output.address = ppc_state.pc;
 
   if (IsInstructionLoadStore(output.instruction))
     output.memory_target = PowerPC::debug_interface.GetMemoryAddressFromInstruction(instr);

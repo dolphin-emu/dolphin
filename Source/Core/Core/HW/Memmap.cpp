@@ -482,7 +482,9 @@ u8* MemoryManager::GetPointer(u32 address) const
       return m_exram + (address & GetExRamMask());
   }
 
-  PanicAlertFmt("Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, PC, LR);
+  auto& ppc_state = Core::System::GetInstance().GetPPCState();
+  PanicAlertFmt("Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, ppc_state.pc,
+                LR(ppc_state));
   return nullptr;
 }
 

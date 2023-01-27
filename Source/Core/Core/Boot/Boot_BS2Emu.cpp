@@ -55,80 +55,83 @@ void PresetTimeBaseTicks()
 }
 }  // Anonymous namespace
 
-void CBoot::RunFunction(u32 address)
+void CBoot::RunFunction(Core::System& system, u32 address)
 {
-  PC = address;
-  LR = 0x00;
+  auto& ppc_state = system.GetPPCState();
 
-  while (PC != 0x00)
+  ppc_state.pc = address;
+  LR(ppc_state) = 0x00;
+
+  while (ppc_state.pc != 0x00)
     PowerPC::SingleStep();
 }
 
-void CBoot::SetupMSR()
+void CBoot::SetupMSR(PowerPC::PowerPCState& ppc_state)
 {
   // 0x0002032
-  MSR.RI = 1;
-  MSR.DR = 1;
-  MSR.IR = 1;
-  MSR.FP = 1;
+  ppc_state.msr.RI = 1;
+  ppc_state.msr.DR = 1;
+  ppc_state.msr.IR = 1;
+  ppc_state.msr.FP = 1;
 }
 
-void CBoot::SetupHID(bool is_wii)
+void CBoot::SetupHID(PowerPC::PowerPCState& ppc_state, bool is_wii)
 {
   // HID0 is 0x0011c464 on GC, 0x0011c664 on Wii
-  HID0.BHT = 1;
-  HID0.BTIC = 1;
-  HID0.DCFA = 1;
+  HID0(ppc_state).BHT = 1;
+  HID0(ppc_state).BTIC = 1;
+  HID0(ppc_state).DCFA = 1;
   if (is_wii)
-    HID0.SPD = 1;
-  HID0.DCFI = 1;
-  HID0.DCE = 1;
+    HID0(ppc_state).SPD = 1;
+  HID0(ppc_state).DCFI = 1;
+  HID0(ppc_state).DCE = 1;
   // Note that Datel titles will fail to boot if the instruction cache is not enabled; see
   // https://bugs.dolphin-emu.org/issues/8223
-  HID0.ICE = 1;
-  HID0.NHR = 1;
-  HID0.DPM = 1;
+  HID0(ppc_state).ICE = 1;
+  HID0(ppc_state).NHR = 1;
+  HID0(ppc_state).DPM = 1;
 
   // HID1 is initialized in PowerPC.cpp to 0x80000000
   // HID2 is 0xe0000000
-  HID2.PSE = 1;
-  HID2.WPE = 1;
-  HID2.LSQE = 1;
+  HID2(ppc_state).PSE = 1;
+  HID2(ppc_state).WPE = 1;
+  HID2(ppc_state).LSQE = 1;
 
   // HID4 is 0 on GC and 0x83900000 on Wii
   if (is_wii)
   {
-    HID4.L2CFI = 1;
-    HID4.LPE = 1;
-    HID4.ST0 = 1;
-    HID4.SBE = 1;
-    HID4.reserved_3 = 1;
+    HID4(ppc_state).L2CFI = 1;
+    HID4(ppc_state).LPE = 1;
+    HID4(ppc_state).ST0 = 1;
+    HID4(ppc_state).SBE = 1;
+    HID4(ppc_state).reserved_3 = 1;
   }
 }
 
-void CBoot::SetupBAT(bool is_wii)
+void CBoot::SetupBAT(Core::System& system, bool is_wii)
 {
-  PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
-  PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
-  PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
-  PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+  auto& ppc_state = system.GetPPCState();
+  ppc_state.spr[SPR_IBAT0U] = 0x80001fff;
+  ppc_state.spr[SPR_IBAT0L] = 0x00000002;
+  ppc_state.spr[SPR_DBAT0U] = 0x80001fff;
+  ppc_state.spr[SPR_DBAT0L] = 0x00000002;
+  ppc_state.spr[SPR_DBAT1U] = 0xc0001fff;
+  ppc_state.spr[SPR_DBAT1L] = 0x0000002a;
   if (is_wii)
   {
-    PowerPC::ppcState.spr[SPR_IBAT4U] = 0x90001fff;
-    PowerPC::ppcState.spr[SPR_IBAT4L] = 0x10000002;
-    PowerPC::ppcState.spr[SPR_DBAT4U] = 0x90001fff;
-    PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
-    PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
-    PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
-    HID4.SBE = 1;
+    ppc_state.spr[SPR_IBAT4U] = 0x90001fff;
+    ppc_state.spr[SPR_IBAT4L] = 0x10000002;
+    ppc_state.spr[SPR_DBAT4U] = 0x90001fff;
+    ppc_state.spr[SPR_DBAT4L] = 0x10000002;
+    ppc_state.spr[SPR_DBAT5U] = 0xd0001fff;
+    ppc_state.spr[SPR_DBAT5L] = 0x1000002a;
+    HID4(ppc_state).SBE = 1;
   }
   PowerPC::DBATUpdated();
   PowerPC::IBATUpdated();
 }
 
-bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
+bool CBoot::RunApploader(Core::System& system, bool is_wii, const DiscIO::VolumeDisc& volume,
                          const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
   const DiscIO::Partition partition = volume.GetGamePartition();
@@ -148,40 +151,42 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
 
   // TODO - Make Apploader(or just RunFunction()) debuggable!!!
 
+  auto& ppc_state = system.GetPPCState();
+
   // Call iAppLoaderEntry.
   DEBUG_LOG_FMT(BOOT, "Call iAppLoaderEntry");
   const u32 iAppLoaderFuncAddr = is_wii ? 0x80004000 : 0x80003100;
-  PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
-  PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
-  PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
-  RunFunction(*entry);
+  ppc_state.gpr[3] = iAppLoaderFuncAddr + 0;
+  ppc_state.gpr[4] = iAppLoaderFuncAddr + 4;
+  ppc_state.gpr[5] = iAppLoaderFuncAddr + 8;
+  RunFunction(system, *entry);
   const u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0);
   const u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4);
   const u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
 
   // iAppLoaderInit
   DEBUG_LOG_FMT(BOOT, "Call iAppLoaderInit");
-  PowerPC::HostWrite_U32(0x4E800020, 0x81300000);  // Write BLR
-  HLE::Patch(0x81300000, "AppLoaderReport");       // HLE OSReport for Apploader
-  PowerPC::ppcState.gpr[3] = 0x81300000;
-  RunFunction(iAppLoaderInit);
+  PowerPC::HostWrite_U32(0x4E800020, 0x81300000);     // Write BLR
+  HLE::Patch(system, 0x81300000, "AppLoaderReport");  // HLE OSReport for Apploader
+  ppc_state.gpr[3] = 0x81300000;
+  RunFunction(system, iAppLoaderInit);
 
   // iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
   // To give you an idea about where the stuff is located on the disc take a look at yagcd
   // ch 13.
   DEBUG_LOG_FMT(BOOT, "Call iAppLoaderMain");
 
-  PowerPC::ppcState.gpr[3] = 0x81300004;
-  PowerPC::ppcState.gpr[4] = 0x81300008;
-  PowerPC::ppcState.gpr[5] = 0x8130000c;
+  ppc_state.gpr[3] = 0x81300004;
+  ppc_state.gpr[4] = 0x81300008;
+  ppc_state.gpr[5] = 0x8130000c;
 
-  RunFunction(iAppLoaderMain);
+  RunFunction(system, iAppLoaderMain);
 
   // iAppLoaderMain returns 1 if the pointers in R3/R4/R5 were filled with values for DVD copy
   // Typical behaviour is doing it once for each section defined in the DOL header. Some unlicensed
   // titles don't have a properly constructed DOL and maintain a table of these values in apploader.
   // iAppLoaderMain returns 0 when there are no more sections to copy.
-  while (PowerPC::ppcState.gpr[3] != 0x00)
+  while (ppc_state.gpr[3] != 0x00)
   {
     const u32 ram_address = PowerPC::Read_U32(0x81300004);
     const u32 length = PowerPC::Read_U32(0x81300008);
@@ -193,20 +198,20 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
 
     DiscIO::Riivolution::ApplyApploaderMemoryPatches(riivolution_patches, ram_address, length);
 
-    PowerPC::ppcState.gpr[3] = 0x81300004;
-    PowerPC::ppcState.gpr[4] = 0x81300008;
-    PowerPC::ppcState.gpr[5] = 0x8130000c;
+    ppc_state.gpr[3] = 0x81300004;
+    ppc_state.gpr[4] = 0x81300008;
+    ppc_state.gpr[5] = 0x8130000c;
 
-    RunFunction(iAppLoaderMain);
+    RunFunction(system, iAppLoaderMain);
   }
 
   // iAppLoaderClose
   DEBUG_LOG_FMT(BOOT, "call iAppLoaderClose");
-  RunFunction(iAppLoaderClose);
-  HLE::UnPatch("AppLoaderReport");
+  RunFunction(system, iAppLoaderClose);
+  HLE::UnPatch(system, "AppLoaderReport");
 
   // return
-  PC = PowerPC::ppcState.gpr[3];
+  ppc_state.pc = ppc_state.gpr[3];
 
   return true;
 }
@@ -255,9 +260,11 @@ bool CBoot::EmulatedBS2_GC(Core::System& system, const DiscIO::VolumeDisc& volum
 {
   INFO_LOG_FMT(BOOT, "Faking GC BS2...");
 
-  SetupMSR();
-  SetupHID(/*is_wii*/ false);
-  SetupBAT(/*is_wii*/ false);
+  auto& ppc_state = system.GetPPCState();
+
+  SetupMSR(ppc_state);
+  SetupHID(ppc_state, /*is_wii*/ false);
+  SetupBAT(system, /*is_wii*/ false);
 
   SetupGCMemory(system);
 
@@ -296,13 +303,13 @@ bool CBoot::EmulatedBS2_GC(Core::System& system, const DiscIO::VolumeDisc& volum
   // Setup pointers like real BS2 does
 
   // StackPointer, used to be set to 0x816ffff0
-  PowerPC::ppcState.gpr[1] = ntsc ? 0x81566550 : 0x815edca8;
+  ppc_state.gpr[1] = ntsc ? 0x81566550 : 0x815edca8;
   // Global pointer to Small Data Area 2 Base (haven't seen anything use it...meh)
-  PowerPC::ppcState.gpr[2] = ntsc ? 0x81465cc0 : 0x814b5b20;
+  ppc_state.gpr[2] = ntsc ? 0x81465cc0 : 0x814b5b20;
   // Global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
-  PowerPC::ppcState.gpr[13] = ntsc ? 0x81465320 : 0x814b4fc0;
+  ppc_state.gpr[13] = ntsc ? 0x81465320 : 0x814b4fc0;
 
-  return RunApploader(/*is_wii*/ false, volume, riivolution_patches);
+  return RunApploader(system, /*is_wii*/ false, volume, riivolution_patches);
 }
 
 static DiscIO::Region CodeRegion(char c)
@@ -559,17 +566,19 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const DiscIO::VolumeDisc& volu
   // after this check during booting.
   DVDRead(volume, 0, 0x3180, 4, partition);
 
-  SetupMSR();
-  SetupHID(/*is_wii*/ true);
-  SetupBAT(/*is_wii*/ true);
+  auto& ppc_state = system.GetPPCState();
+
+  SetupMSR(ppc_state);
+  SetupHID(ppc_state, /*is_wii*/ true);
+  SetupBAT(system, /*is_wii*/ true);
 
   memory.Write_U32(0x4c000064, 0x00000300);  // Write default DSI Handler:   rfi
   memory.Write_U32(0x4c000064, 0x00000800);  // Write default FPU Handler:   rfi
   memory.Write_U32(0x4c000064, 0x00000C00);  // Write default Syscall Handler: rfi
 
-  PowerPC::ppcState.gpr[1] = 0x816ffff0;  // StackPointer
+  ppc_state.gpr[1] = 0x816ffff0;  // StackPointer
 
-  if (!RunApploader(/*is_wii*/ true, volume, riivolution_patches))
+  if (!RunApploader(system, /*is_wii*/ true, volume, riivolution_patches))
     return false;
 
   // The Apploader probably just overwrote values needed for RAM Override.  Run this again!

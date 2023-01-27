@@ -288,12 +288,13 @@ void JitArm64::Cleanup()
   }
 
   // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
-  if (MMCR0.Hex || MMCR1.Hex)
+  if (MMCR0(PowerPC::ppcState).Hex || MMCR1(PowerPC::ppcState).Hex)
   {
     MOVP2R(ARM64Reg::X8, &PowerPC::UpdatePerformanceMonitor);
     MOVI2R(ARM64Reg::X0, js.downcountAmount);
     MOVI2R(ARM64Reg::X1, js.numLoadStoreInst);
     MOVI2R(ARM64Reg::X2, js.numFloatingPointInst);
+    MOVP2R(ARM64Reg::X3, &PowerPC::ppcState);
     BLR(ARM64Reg::X8);
   }
 }
@@ -705,7 +706,9 @@ void JitArm64::Trace()
   DEBUG_LOG_FMT(DYNA_REC,
                 "JitArm64 PC: {:08x} SRR0: {:08x} SRR1: {:08x} FPSCR: {:08x} "
                 "MSR: {:08x} LR: {:08x} {} {}",
-                PC, SRR0, SRR1, FPSCR.Hex, MSR.Hex, PowerPC::ppcState.spr[8], regs, fregs);
+                PowerPC::ppcState.pc, SRR0(PowerPC::ppcState), SRR1(PowerPC::ppcState),
+                PowerPC::ppcState.fpscr.Hex, PowerPC::ppcState.msr.Hex, PowerPC::ppcState.spr[8],
+                regs, fregs);
 }
 
 void JitArm64::Jit(u32 em_address)
@@ -779,7 +782,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   if (code_block.m_memory_exception)
   {
     // Address of instruction could not be translated
-    NPC = nextPC;
+    PowerPC::ppcState.npc = nextPC;
     PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
     PowerPC::CheckExceptions();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
@@ -895,7 +898,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
   {
     int gqr = *code_block.m_gqr_used.begin();
-    if (!code_block.m_gqr_modified[gqr] && !GQR(gqr))
+    if (!code_block.m_gqr_modified[gqr] && !GQR(PowerPC::ppcState, gqr))
     {
       LDR(IndexType::Unsigned, ARM64Reg::W0, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + gqr));
       FixupBranch no_fail = CBZ(ARM64Reg::W0);

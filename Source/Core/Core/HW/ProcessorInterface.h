@@ -87,7 +87,7 @@ public:
 
 private:
   // Let the PPC know that an external exception is set/cleared
-  void UpdateException();
+  void UpdateException(Core::System& system);
 
   void SetResetButton(bool set);
 

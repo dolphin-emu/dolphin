@@ -173,16 +173,18 @@ void IncreaseSampleCount(const u32 amount)
   if (!IsPlaying())
     return;
 
-  auto& state = Core::System::GetInstance().GetAudioInterfaceState().GetData();
+  auto& system = Core::System::GetInstance();
+  auto& state = system.GetAudioInterfaceState().GetData();
 
   const u32 old_sample_counter = state.sample_counter + 1;
   state.sample_counter += amount;
 
   if ((state.interrupt_timing - old_sample_counter) <= (state.sample_counter - old_sample_counter))
   {
-    DEBUG_LOG_FMT(
-        AUDIO_INTERFACE, "GenerateAudioInterrupt {:08x}:{:08x} at PC {:08x} control.AIINTVLD={}",
-        state.sample_counter, state.interrupt_timing, PowerPC::ppcState.pc, state.control.AIINTVLD);
+    DEBUG_LOG_FMT(AUDIO_INTERFACE,
+                  "GenerateAudioInterrupt {:08x}:{:08x} at PC {:08x} control.AIINTVLD={}",
+                  state.sample_counter, state.interrupt_timing, system.GetPPCState().pc,
+                  state.control.AIINTVLD);
     GenerateAudioInterrupt();
   }
 }
@@ -382,7 +384,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    auto& core_timing = system.GetCoreTiming();
                    auto& state = system.GetAudioInterfaceState().GetData();
                    DEBUG_LOG_FMT(AUDIO_INTERFACE, "AI_INTERRUPT_TIMING={:08x} at PC: {:08x}", val,
-                                 PowerPC::ppcState.pc);
+                                 system.GetPPCState().pc);
                    state.interrupt_timing = val;
                    core_timing.RemoveEvent(state.event_type_ai);
                    core_timing.ScheduleEvent(GetAIPeriod(), state.event_type_ai);

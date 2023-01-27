@@ -153,8 +153,9 @@ void VICallback(Core::System& system, u64 userdata, s64 cyclesLate)
 
 void DecrementerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  PowerPC::ppcState.spr[SPR_DEC] = 0xFFFFFFFF;
-  PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
+  auto& ppc_state = system.GetPPCState();
+  ppc_state.spr[SPR_DEC] = 0xFFFFFFFF;
+  ppc_state.Exceptions |= EXCEPTION_DECREMENTER;
 }
 
 void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late)
@@ -192,8 +193,9 @@ void DecrementerSet()
 {
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
+  auto& ppc_state = system.GetPPCState();
 
-  u32 decValue = PowerPC::ppcState.spr[SPR_DEC];
+  u32 decValue = ppc_state.spr[SPR_DEC];
 
   core_timing.RemoveEvent(et_Dec);
   if ((decValue & 0x80000000) == 0)

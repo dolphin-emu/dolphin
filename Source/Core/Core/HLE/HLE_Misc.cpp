@@ -10,6 +10,7 @@
 #include "Core/Host.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace HLE_Misc
 {
@@ -17,7 +18,9 @@ namespace HLE_Misc
 // According to the PPC ABI, the return value is always in r3.
 void UnimplementedFunction()
 {
-  NPC = LR;
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+  ppc_state.npc = LR(ppc_state);
 }
 
 void HBReload()
@@ -29,6 +32,9 @@ void HBReload()
 
 void GeckoCodeHandlerICacheFlush()
 {
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   // Work around the codehandler not properly invalidating the icache, but
   // only the first few frames.
   // (Project M uses a conditional to only apply patches after something has
@@ -46,7 +52,7 @@ void GeckoCodeHandlerICacheFlush()
   }
   PowerPC::HostWrite_U32(gch_gameid + 1, Gecko::INSTALLER_BASE_ADDRESS);
 
-  PowerPC::ppcState.iCache.Reset();
+  ppc_state.iCache.Reset();
 }
 
 // Because Dolphin messes around with the CPU state instead of patching the game binary, we
@@ -55,16 +61,19 @@ void GeckoCodeHandlerICacheFlush()
 // and PC before the magic, invisible BL instruction happened.
 void GeckoReturnTrampoline()
 {
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   // Stack frame is built in GeckoCode.cpp, Gecko::RunCodeHandler.
-  u32 SP = GPR(1);
-  GPR(1) = PowerPC::HostRead_U32(SP + 8);
-  NPC = PowerPC::HostRead_U32(SP + 12);
-  LR = PowerPC::HostRead_U32(SP + 16);
-  PowerPC::ppcState.cr.Set(PowerPC::HostRead_U32(SP + 20));
+  u32 SP = ppc_state.gpr[1];
+  ppc_state.gpr[1] = PowerPC::HostRead_U32(SP + 8);
+  ppc_state.npc = PowerPC::HostRead_U32(SP + 12);
+  LR(ppc_state) = PowerPC::HostRead_U32(SP + 16);
+  ppc_state.cr.Set(PowerPC::HostRead_U32(SP + 20));
   for (int i = 0; i < 14; ++i)
   {
-    rPS(i).SetBoth(PowerPC::HostRead_U64(SP + 24 + 2 * i * sizeof(u64)),
-                   PowerPC::HostRead_U64(SP + 24 + (2 * i + 1) * sizeof(u64)));
+    ppc_state.ps[i].SetBoth(PowerPC::HostRead_U64(SP + 24 + 2 * i * sizeof(u64)),
+                            PowerPC::HostRead_U64(SP + 24 + (2 * i + 1) * sizeof(u64)));
   }
 }
 }  // namespace HLE_Misc

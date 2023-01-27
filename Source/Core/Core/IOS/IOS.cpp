@@ -200,7 +200,7 @@ static void ResetAndPausePPC()
   auto& memory = system.GetMemory();
   memory.Write_U32(0x48000000, 0x00000000);  // b 0x0
   PowerPC::Reset();
-  PC = 0;
+  system.GetPPCState().pc = 0;
 }
 
 static void ReleasePPC()
@@ -212,7 +212,7 @@ static void ReleasePPC()
   // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
   // The state of other CPU registers (like the BAT registers) doesn't matter much
   // because the realmode code at 0x3400 initializes everything itself anyway.
-  PC = 0x3400;
+  system.GetPPCState().pc = 0x3400;
 }
 
 static void ReleasePPCAncast()
@@ -223,7 +223,7 @@ static void ReleasePPCAncast()
   // On a real console the Espresso verifies and decrypts the Ancast image,
   // then jumps to the decrypted ancast body.
   // The Ancast loader already did this, so just jump to the decrypted body.
-  PC = ESPRESSO_ANCAST_LOCATION_VIRT + sizeof(EspressoAncastHeader);
+  system.GetPPCState().pc = ESPRESSO_ANCAST_LOCATION_VIRT + sizeof(EspressoAncastHeader);
 }
 
 void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type)

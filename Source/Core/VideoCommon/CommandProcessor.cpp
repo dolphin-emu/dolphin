@@ -684,7 +684,8 @@ void CommandProcessorManager::HandleUnknownOpcode(u8 cmd_byte, const u8* buffer,
       fifo.bFF_Breakpoint.load(std::memory_order_relaxed) ? "true" : "false",
       fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
       fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
-      fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false", PC, LR);
+      fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
+      PowerPC::ppcState.pc, LR(PowerPC::ppcState));
 
   if (!m_is_fifo_error_seen && !suppress_panic_alert)
   {

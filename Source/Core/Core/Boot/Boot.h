@@ -34,6 +34,11 @@ namespace IOS::HLE::FS
 class FileSystem;
 }
 
+namespace PowerPC
+{
+struct PowerPCState;
+}
+
 struct RegionSetting
 {
   std::string area;
@@ -167,17 +172,17 @@ private:
   static bool DVDRead(const DiscIO::VolumeDisc& disc, u64 dvd_offset, u32 output_address,
                       u32 length, const DiscIO::Partition& partition);
   static bool DVDReadDiscID(const DiscIO::VolumeDisc& disc, u32 output_address);
-  static void RunFunction(u32 address);
+  static void RunFunction(Core::System& system, u32 address);
 
   static void UpdateDebugger_MapLoaded();
 
   static bool Boot_WiiWAD(Core::System& system, const DiscIO::VolumeWAD& wad);
   static bool BootNANDTitle(Core::System& system, u64 title_id);
 
-  static void SetupMSR();
-  static void SetupHID(bool is_wii);
-  static void SetupBAT(bool is_wii);
-  static bool RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
+  static void SetupMSR(PowerPC::PowerPCState& ppc_state);
+  static void SetupHID(PowerPC::PowerPCState& ppc_state, bool is_wii);
+  static void SetupBAT(Core::System& system, bool is_wii);
+  static bool RunApploader(Core::System& system, bool is_wii, const DiscIO::VolumeDisc& volume,
                            const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
   static bool EmulatedBS2_GC(Core::System& system, const DiscIO::VolumeDisc& volume,
                              const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);

@@ -33,6 +33,7 @@
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace PatchEngine
 {
@@ -277,10 +278,13 @@ static void ApplyMemoryPatches(std::span<const std::size_t> memory_patch_indices
 // We require at least 2 stack frames, if the stack is shallower than that then it won't work.
 static bool IsStackSane()
 {
-  DEBUG_ASSERT(MSR.DR && MSR.IR);
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
+  DEBUG_ASSERT(ppc_state.msr.DR && ppc_state.msr.IR);
 
   // Check the stack pointer
-  u32 SP = GPR(1);
+  u32 SP = ppc_state.gpr[1];
   if (!PowerPC::HostIsRAMAddress(SP))
     return false;
 
@@ -311,16 +315,19 @@ void RemoveMemoryPatch(std::size_t index)
 
 bool ApplyFramePatches()
 {
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   // Because we're using the VI Interrupt to time this instead of patching the game with a
   // callback hook we can end up catching the game in an exception vector.
   // We deal with this by returning false so that SystemTimers will reschedule us in a few cycles
   // where we can try again after the CPU hopefully returns back to the normal instruction flow.
-  if (!MSR.DR || !MSR.IR || !IsStackSane())
+  if (!ppc_state.msr.DR || !ppc_state.msr.IR || !IsStackSane())
   {
     DEBUG_LOG_FMT(ACTIONREPLAY,
                   "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
                   "MSR = {:#010x}",
-                  PC, MSR.Hex);
+                  ppc_state.pc, ppc_state.msr.Hex);
     return false;
   }
 

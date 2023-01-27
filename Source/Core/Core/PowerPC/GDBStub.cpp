@@ -397,6 +397,9 @@ static u64 re64hex(u8* p)
 
 static void ReadRegister()
 {
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   static u8 reply[64];
   u32 id;
 
@@ -410,161 +413,161 @@ static void ReadRegister()
 
   if (id < 32)
   {
-    wbe32hex(reply, GPR(id));
+    wbe32hex(reply, ppc_state.gpr[id]);
   }
   else if (id >= 32 && id < 64)
   {
-    wbe64hex(reply, rPS(id - 32).PS0AsU64());
+    wbe64hex(reply, ppc_state.ps[id - 32].PS0AsU64());
   }
   else if (id >= 71 && id < 87)
   {
-    wbe32hex(reply, PowerPC::ppcState.sr[id - 71]);
+    wbe32hex(reply, ppc_state.sr[id - 71]);
   }
   else if (id >= 88 && id < 104)
   {
-    wbe32hex(reply, PowerPC::ppcState.spr[SPR_IBAT0U + id - 88]);
+    wbe32hex(reply, ppc_state.spr[SPR_IBAT0U + id - 88]);
   }
   else
   {
     switch (id)
     {
     case 64:
-      wbe32hex(reply, PC);
+      wbe32hex(reply, ppc_state.pc);
       break;
     case 65:
-      wbe32hex(reply, MSR.Hex);
+      wbe32hex(reply, ppc_state.msr.Hex);
       break;
     case 66:
-      wbe32hex(reply, PowerPC::ppcState.cr.Get());
+      wbe32hex(reply, ppc_state.cr.Get());
       break;
     case 67:
-      wbe32hex(reply, LR);
+      wbe32hex(reply, LR(ppc_state));
       break;
     case 68:
-      wbe32hex(reply, CTR);
+      wbe32hex(reply, CTR(ppc_state));
       break;
     case 69:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_XER]);
+      wbe32hex(reply, ppc_state.spr[SPR_XER]);
       break;
     case 70:
-      wbe32hex(reply, FPSCR.Hex);
+      wbe32hex(reply, ppc_state.fpscr.Hex);
       break;
     case 87:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_PVR]);
+      wbe32hex(reply, ppc_state.spr[SPR_PVR]);
       break;
     case 104:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SDR]);
+      wbe32hex(reply, ppc_state.spr[SPR_SDR]);
       break;
     case 105:
-      wbe64hex(reply, PowerPC::ppcState.spr[SPR_ASR]);
+      wbe64hex(reply, ppc_state.spr[SPR_ASR]);
       break;
     case 106:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DAR]);
+      wbe32hex(reply, ppc_state.spr[SPR_DAR]);
       break;
     case 107:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DSISR]);
+      wbe32hex(reply, ppc_state.spr[SPR_DSISR]);
       break;
     case 108:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SPRG0]);
+      wbe32hex(reply, ppc_state.spr[SPR_SPRG0]);
       break;
     case 109:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SPRG1]);
+      wbe32hex(reply, ppc_state.spr[SPR_SPRG1]);
       break;
     case 110:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SPRG2]);
+      wbe32hex(reply, ppc_state.spr[SPR_SPRG2]);
       break;
     case 111:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SPRG3]);
+      wbe32hex(reply, ppc_state.spr[SPR_SPRG3]);
       break;
     case 112:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SRR0]);
+      wbe32hex(reply, ppc_state.spr[SPR_SRR0]);
       break;
     case 113:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SRR1]);
+      wbe32hex(reply, ppc_state.spr[SPR_SRR1]);
       break;
     case 114:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_TL]);
+      wbe32hex(reply, ppc_state.spr[SPR_TL]);
       break;
     case 115:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_TU]);
+      wbe32hex(reply, ppc_state.spr[SPR_TU]);
       break;
     case 116:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DEC]);
+      wbe32hex(reply, ppc_state.spr[SPR_DEC]);
       break;
     case 117:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DABR]);
+      wbe32hex(reply, ppc_state.spr[SPR_DABR]);
       break;
     case 118:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_EAR]);
+      wbe32hex(reply, ppc_state.spr[SPR_EAR]);
       break;
     case 119:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_HID0]);
+      wbe32hex(reply, ppc_state.spr[SPR_HID0]);
       break;
     case 120:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_HID1]);
+      wbe32hex(reply, ppc_state.spr[SPR_HID1]);
       break;
     case 121:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_IABR]);
+      wbe32hex(reply, ppc_state.spr[SPR_IABR]);
       break;
     case 122:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DABR]);
+      wbe32hex(reply, ppc_state.spr[SPR_DABR]);
       break;
     case 124:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UMMCR0]);
+      wbe32hex(reply, ppc_state.spr[SPR_UMMCR0]);
       break;
     case 125:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UPMC1]);
+      wbe32hex(reply, ppc_state.spr[SPR_UPMC1]);
       break;
     case 126:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UPMC2]);
+      wbe32hex(reply, ppc_state.spr[SPR_UPMC2]);
       break;
     case 127:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_USIA]);
+      wbe32hex(reply, ppc_state.spr[SPR_USIA]);
       break;
     case 128:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UMMCR1]);
+      wbe32hex(reply, ppc_state.spr[SPR_UMMCR1]);
       break;
     case 129:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UPMC3]);
+      wbe32hex(reply, ppc_state.spr[SPR_UPMC3]);
       break;
     case 130:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UPMC4]);
+      wbe32hex(reply, ppc_state.spr[SPR_UPMC4]);
       break;
     case 131:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_MMCR0]);
+      wbe32hex(reply, ppc_state.spr[SPR_MMCR0]);
       break;
     case 132:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_PMC1]);
+      wbe32hex(reply, ppc_state.spr[SPR_PMC1]);
       break;
     case 133:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_PMC2]);
+      wbe32hex(reply, ppc_state.spr[SPR_PMC2]);
       break;
     case 134:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SIA]);
+      wbe32hex(reply, ppc_state.spr[SPR_SIA]);
       break;
     case 135:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_MMCR1]);
+      wbe32hex(reply, ppc_state.spr[SPR_MMCR1]);
       break;
     case 136:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_PMC3]);
+      wbe32hex(reply, ppc_state.spr[SPR_PMC3]);
       break;
     case 137:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_PMC4]);
+      wbe32hex(reply, ppc_state.spr[SPR_PMC4]);
       break;
     case 138:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_L2CR]);
+      wbe32hex(reply, ppc_state.spr[SPR_L2CR]);
       break;
     case 139:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_ICTC]);
+      wbe32hex(reply, ppc_state.spr[SPR_ICTC]);
       break;
     case 140:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_THRM1]);
+      wbe32hex(reply, ppc_state.spr[SPR_THRM1]);
       break;
     case 141:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_THRM2]);
+      wbe32hex(reply, ppc_state.spr[SPR_THRM2]);
       break;
     case 142:
-      wbe32hex(reply, PowerPC::ppcState.spr[SPR_THRM3]);
+      wbe32hex(reply, ppc_state.spr[SPR_THRM3]);
       break;
     default:
       return SendReply("E01");
@@ -577,6 +580,9 @@ static void ReadRegister()
 
 static void ReadRegisters()
 {
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   static u8 bfr[GDB_BFR_MAX - 4];
   u8* bufptr = bfr;
   u32 i;
@@ -585,7 +591,7 @@ static void ReadRegisters()
 
   for (i = 0; i < 32; i++)
   {
-    wbe32hex(bufptr + i * 8, GPR(i));
+    wbe32hex(bufptr + i * 8, ppc_state.gpr[i]);
   }
   bufptr += 32 * 8;
 
@@ -594,12 +600,15 @@ static void ReadRegisters()
 
 static void WriteRegisters()
 {
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   u32 i;
   u8* bufptr = s_cmd_bfr;
 
   for (i = 0; i < 32; i++)
   {
-    GPR(i) = re32hex(bufptr + i * 8);
+    ppc_state.gpr[i] = re32hex(bufptr + i * 8);
   }
   bufptr += 32 * 8;
 
@@ -608,6 +617,9 @@ static void WriteRegisters()
 
 static void WriteRegister()
 {
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   u32 id;
 
   u8* bufptr = s_cmd_bfr + 3;
@@ -622,161 +634,161 @@ static void WriteRegister()
 
   if (id < 32)
   {
-    GPR(id) = re32hex(bufptr);
+    ppc_state.gpr[id] = re32hex(bufptr);
   }
   else if (id >= 32 && id < 64)
   {
-    rPS(id - 32).SetPS0(re64hex(bufptr));
+    ppc_state.ps[id - 32].SetPS0(re64hex(bufptr));
   }
   else if (id >= 71 && id < 87)
   {
-    PowerPC::ppcState.sr[id - 71] = re32hex(bufptr);
+    ppc_state.sr[id - 71] = re32hex(bufptr);
   }
   else if (id >= 88 && id < 104)
   {
-    PowerPC::ppcState.spr[SPR_IBAT0U + id - 88] = re32hex(bufptr);
+    ppc_state.spr[SPR_IBAT0U + id - 88] = re32hex(bufptr);
   }
   else
   {
     switch (id)
     {
     case 64:
-      PC = re32hex(bufptr);
+      ppc_state.pc = re32hex(bufptr);
       break;
     case 65:
-      MSR.Hex = re32hex(bufptr);
+      ppc_state.msr.Hex = re32hex(bufptr);
       break;
     case 66:
-      PowerPC::ppcState.cr.Set(re32hex(bufptr));
+      ppc_state.cr.Set(re32hex(bufptr));
       break;
     case 67:
-      LR = re32hex(bufptr);
+      LR(ppc_state) = re32hex(bufptr);
       break;
     case 68:
-      CTR = re32hex(bufptr);
+      CTR(ppc_state) = re32hex(bufptr);
       break;
     case 69:
-      PowerPC::ppcState.spr[SPR_XER] = re32hex(bufptr);
+      ppc_state.spr[SPR_XER] = re32hex(bufptr);
       break;
     case 70:
-      FPSCR.Hex = re32hex(bufptr);
+      ppc_state.fpscr.Hex = re32hex(bufptr);
       break;
     case 87:
-      PowerPC::ppcState.spr[SPR_PVR] = re32hex(bufptr);
+      ppc_state.spr[SPR_PVR] = re32hex(bufptr);
       break;
     case 104:
-      PowerPC::ppcState.spr[SPR_SDR] = re32hex(bufptr);
+      ppc_state.spr[SPR_SDR] = re32hex(bufptr);
       break;
     case 105:
-      PowerPC::ppcState.spr[SPR_ASR] = re64hex(bufptr);
+      ppc_state.spr[SPR_ASR] = re64hex(bufptr);
       break;
     case 106:
-      PowerPC::ppcState.spr[SPR_DAR] = re32hex(bufptr);
+      ppc_state.spr[SPR_DAR] = re32hex(bufptr);
       break;
     case 107:
-      PowerPC::ppcState.spr[SPR_DSISR] = re32hex(bufptr);
+      ppc_state.spr[SPR_DSISR] = re32hex(bufptr);
       break;
     case 108:
-      PowerPC::ppcState.spr[SPR_SPRG0] = re32hex(bufptr);
+      ppc_state.spr[SPR_SPRG0] = re32hex(bufptr);
       break;
     case 109:
-      PowerPC::ppcState.spr[SPR_SPRG1] = re32hex(bufptr);
+      ppc_state.spr[SPR_SPRG1] = re32hex(bufptr);
       break;
     case 110:
-      PowerPC::ppcState.spr[SPR_SPRG2] = re32hex(bufptr);
+      ppc_state.spr[SPR_SPRG2] = re32hex(bufptr);
       break;
     case 111:
-      PowerPC::ppcState.spr[SPR_SPRG3] = re32hex(bufptr);
+      ppc_state.spr[SPR_SPRG3] = re32hex(bufptr);
       break;
     case 112:
-      PowerPC::ppcState.spr[SPR_SRR0] = re32hex(bufptr);
+      ppc_state.spr[SPR_SRR0] = re32hex(bufptr);
       break;
     case 113:
-      PowerPC::ppcState.spr[SPR_SRR1] = re32hex(bufptr);
+      ppc_state.spr[SPR_SRR1] = re32hex(bufptr);
       break;
     case 114:
-      PowerPC::ppcState.spr[SPR_TL] = re32hex(bufptr);
+      ppc_state.spr[SPR_TL] = re32hex(bufptr);
       break;
     case 115:
-      PowerPC::ppcState.spr[SPR_TU] = re32hex(bufptr);
+      ppc_state.spr[SPR_TU] = re32hex(bufptr);
       break;
     case 116:
-      PowerPC::ppcState.spr[SPR_DEC] = re32hex(bufptr);
+      ppc_state.spr[SPR_DEC] = re32hex(bufptr);
       break;
     case 117:
-      PowerPC::ppcState.spr[SPR_DABR] = re32hex(bufptr);
+      ppc_state.spr[SPR_DABR] = re32hex(bufptr);
       break;
     case 118:
-      PowerPC::ppcState.spr[SPR_EAR] = re32hex(bufptr);
+      ppc_state.spr[SPR_EAR] = re32hex(bufptr);
       break;
     case 119:
-      PowerPC::ppcState.spr[SPR_HID0] = re32hex(bufptr);
+      ppc_state.spr[SPR_HID0] = re32hex(bufptr);
       break;
     case 120:
-      PowerPC::ppcState.spr[SPR_HID1] = re32hex(bufptr);
+      ppc_state.spr[SPR_HID1] = re32hex(bufptr);
       break;
     case 121:
-      PowerPC::ppcState.spr[SPR_IABR] = re32hex(bufptr);
+      ppc_state.spr[SPR_IABR] = re32hex(bufptr);
       break;
     case 122:
-      PowerPC::ppcState.spr[SPR_DABR] = re32hex(bufptr);
+      ppc_state.spr[SPR_DABR] = re32hex(bufptr);
       break;
     case 124:
-      PowerPC::ppcState.spr[SPR_UMMCR0] = re32hex(bufptr);
+      ppc_state.spr[SPR_UMMCR0] = re32hex(bufptr);
       break;
     case 125:
-      PowerPC::ppcState.spr[SPR_UPMC1] = re32hex(bufptr);
+      ppc_state.spr[SPR_UPMC1] = re32hex(bufptr);
       break;
     case 126:
-      PowerPC::ppcState.spr[SPR_UPMC2] = re32hex(bufptr);
+      ppc_state.spr[SPR_UPMC2] = re32hex(bufptr);
       break;
     case 127:
-      PowerPC::ppcState.spr[SPR_USIA] = re32hex(bufptr);
+      ppc_state.spr[SPR_USIA] = re32hex(bufptr);
       break;
     case 128:
-      PowerPC::ppcState.spr[SPR_UMMCR1] = re32hex(bufptr);
+      ppc_state.spr[SPR_UMMCR1] = re32hex(bufptr);
       break;
     case 129:
-      PowerPC::ppcState.spr[SPR_UPMC3] = re32hex(bufptr);
+      ppc_state.spr[SPR_UPMC3] = re32hex(bufptr);
       break;
     case 130:
-      PowerPC::ppcState.spr[SPR_UPMC4] = re32hex(bufptr);
+      ppc_state.spr[SPR_UPMC4] = re32hex(bufptr);
       break;
     case 131:
-      PowerPC::ppcState.spr[SPR_MMCR0] = re32hex(bufptr);
+      ppc_state.spr[SPR_MMCR0] = re32hex(bufptr);
       break;
     case 132:
-      PowerPC::ppcState.spr[SPR_PMC1] = re32hex(bufptr);
+      ppc_state.spr[SPR_PMC1] = re32hex(bufptr);
       break;
     case 133:
-      PowerPC::ppcState.spr[SPR_PMC2] = re32hex(bufptr);
+      ppc_state.spr[SPR_PMC2] = re32hex(bufptr);
       break;
     case 134:
-      PowerPC::ppcState.spr[SPR_SIA] = re32hex(bufptr);
+      ppc_state.spr[SPR_SIA] = re32hex(bufptr);
       break;
     case 135:
-      PowerPC::ppcState.spr[SPR_MMCR1] = re32hex(bufptr);
+      ppc_state.spr[SPR_MMCR1] = re32hex(bufptr);
       break;
     case 136:
-      PowerPC::ppcState.spr[SPR_PMC3] = re32hex(bufptr);
+      ppc_state.spr[SPR_PMC3] = re32hex(bufptr);
       break;
     case 137:
-      PowerPC::ppcState.spr[SPR_PMC4] = re32hex(bufptr);
+      ppc_state.spr[SPR_PMC4] = re32hex(bufptr);
       break;
     case 138:
-      PowerPC::ppcState.spr[SPR_L2CR] = re32hex(bufptr);
+      ppc_state.spr[SPR_L2CR] = re32hex(bufptr);
       break;
     case 139:
-      PowerPC::ppcState.spr[SPR_ICTC] = re32hex(bufptr);
+      ppc_state.spr[SPR_ICTC] = re32hex(bufptr);
       break;
     case 140:
-      PowerPC::ppcState.spr[SPR_THRM1] = re32hex(bufptr);
+      ppc_state.spr[SPR_THRM1] = re32hex(bufptr);
       break;
     case 141:
-      PowerPC::ppcState.spr[SPR_THRM2] = re32hex(bufptr);
+      ppc_state.spr[SPR_THRM2] = re32hex(bufptr);
       break;
     case 142:
-      PowerPC::ppcState.spr[SPR_THRM3] = re32hex(bufptr);
+      ppc_state.spr[SPR_THRM3] = re32hex(bufptr);
       break;
     default:
       return SendReply("E01");
@@ -981,10 +993,14 @@ void ProcessCommands(bool loop_until_continue)
       ReadMemory();
       break;
     case 'M':
+    {
       WriteMemory();
-      PowerPC::ppcState.iCache.Reset();
+      auto& system = Core::System::GetInstance();
+      auto& ppc_state = system.GetPPCState();
+      ppc_state.iCache.Reset();
       Host_UpdateDisasmDialog();
       break;
+    }
     case 's':
       Step();
       return;
@@ -1121,9 +1137,12 @@ bool JustConnected()
 
 void SendSignal(Signal signal)
 {
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   char bfr[128] = {};
-  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64, PC, 1,
-                 GPR(1));
+  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64,
+                 ppc_state.pc, 1, ppc_state.gpr[1]);
   SendReply(bfr);
 }
 }  // namespace GDBStub
