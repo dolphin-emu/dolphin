@@ -1,98 +1,24 @@
-// Copyright 2008 Dolphin Emulator Project
+// Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <array>
-#include <string>
-#include <string_view>
+#include "VideoCommon/AbstractGfx.h"
 
-#include "Common/GL/GLContext.h"
-#include "Common/GL/GLExtensions/GLExtensions.h"
-#include "VideoCommon/RenderBase.h"
-
-class BoundingBox;
+class GLContext;
 
 namespace OGL
 {
 class OGLFramebuffer;
-class OGLPipeline;
 class OGLTexture;
 
-enum GlslVersion
-{
-  Glsl130,
-  Glsl140,
-  Glsl150,
-  Glsl330,
-  Glsl400,  // and above
-  Glsl430,
-  GlslEs300,  // GLES 3.0
-  GlslEs310,  // GLES 3.1
-  GlslEs320,  // GLES 3.2
-};
-enum class EsTexbufType
-{
-  TexbufNone,
-  TexbufCore,
-  TexbufOes,
-  TexbufExt
-};
-
-enum class EsFbFetchType
-{
-  FbFetchNone,
-  FbFetchExt,
-  FbFetchArm,
-};
-
-// ogl-only config, so not in VideoConfig.h
-struct VideoConfig
-{
-  bool bIsES;
-  bool bSupportsGLPinnedMemory;
-  bool bSupportsGLSync;
-  bool bSupportsGLBaseVertex;
-  bool bSupportsGLBufferStorage;
-  bool bSupportsMSAA;
-  GlslVersion eSupportedGLSLVersion;
-  bool bSupportViewportFloat;
-  bool bSupportsAEP;
-  bool bSupportsDebug;
-  bool bSupportsCopySubImage;
-  u8 SupportedESPointSize;
-  EsTexbufType SupportedESTextureBuffer;
-  bool bSupportsTextureStorage;
-  bool bSupports2DTextureStorageMultisample;
-  bool bSupports3DTextureStorageMultisample;
-  bool bSupportsConservativeDepth;
-  bool bSupportsImageLoadStore;
-  bool bSupportsAniso;
-  bool bSupportsBitfield;
-  bool bSupportsTextureSubImage;
-  EsFbFetchType SupportedFramebufferFetch;
-  bool bSupportsShaderThreadShuffleNV;
-
-  const char* gl_vendor;
-  const char* gl_renderer;
-  const char* gl_version;
-
-  s32 max_samples;
-};
-extern VideoConfig g_ogl_config;
-
-class Renderer : public ::Renderer
+class OGLGfx final : public AbstractGfx
 {
 public:
-  Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale);
-  ~Renderer() override;
-
-  static Renderer* GetInstance() { return static_cast<Renderer*>(g_renderer.get()); }
+  OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale);
+  ~OGLGfx();
 
   bool IsHeadless() const override;
-
-  bool Initialize() override;
-  void Shutdown() override;
 
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
                                                  std::string_view name) override;
@@ -116,6 +42,8 @@ public:
   void SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer) override;
   void SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearColor& color_value = {},
                               float depth_value = 0.0f) override;
+  void ClearRegion(const MathUtil::Rectangle<int>& rc, const MathUtil::Rectangle<int>& target_rc,
+                   bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) override;
   void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
   void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
@@ -137,34 +65,30 @@ public:
   void WaitForGPUIdle() override;
   void OnConfigChanged(u32 bits) override;
 
-  void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
-                   bool zEnable, u32 color, u32 z) override;
+  virtual void SelectLeftBuffer() override;
+  virtual void SelectRightBuffer() override;
+  virtual void SelectMainBuffer() override;
 
   std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler() override;
 
   // Only call methods from this on the GPU thread.
   GLContext* GetMainGLContext() const { return m_main_gl_context.get(); }
-  bool IsGLES() const { return m_main_gl_context->IsGLES(); }
+  bool IsGLES() const;
 
   // Invalidates a cached texture binding. Required for texel buffers when they borrow the units.
   void InvalidateTextureBinding(u32 index) { m_bound_textures[index] = nullptr; }
 
   // The shared framebuffer exists for copying textures when extensions are not available. It is
   // slower, but the only way to do these things otherwise.
-  GLuint GetSharedReadFramebuffer() const { return m_shared_read_framebuffer; }
-  GLuint GetSharedDrawFramebuffer() const { return m_shared_draw_framebuffer; }
+  u32 GetSharedReadFramebuffer() const { return m_shared_read_framebuffer; }
+  u32 GetSharedDrawFramebuffer() const { return m_shared_draw_framebuffer; }
   void BindSharedReadFramebuffer();
   void BindSharedDrawFramebuffer();
 
   // Restores FBO binding after it's been changed.
   void RestoreFramebufferBinding();
 
-protected:
-  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
-
-  virtual void SelectLeftBuffer() override;
-  virtual void SelectRightBuffer() override;
-  virtual void SelectMainBuffer() override;
+  SurfaceInfo GetSurfaceInfo() const override;
 
 private:
   void CheckForSurfaceChange();
@@ -181,7 +105,14 @@ private:
   RasterizationState m_current_rasterization_state;
   DepthState m_current_depth_state;
   BlendingState m_current_blend_state;
-  GLuint m_shared_read_framebuffer = 0;
-  GLuint m_shared_draw_framebuffer = 0;
+  u32 m_shared_read_framebuffer = 0;
+  u32 m_shared_draw_framebuffer = 0;
+  float m_backbuffer_scale;
 };
+
+inline OGLGfx* GetOGLGfx()
+{
+  return static_cast<OGLGfx*>(g_gfx.get());
+}
+
 }  // namespace OGL

@@ -46,8 +46,10 @@ Make AA apply instantly during gameplay if possible
 
 #include "Core/Config/GraphicsSettings.h"
 
+#include "VideoBackends/OGL/OGLBoundingBox.h"
+#include "VideoBackends/OGL/OGLConfig.h"
+#include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoBackends/OGL/OGLPerfQuery.h"
-#include "VideoBackends/OGL/OGLRender.h"
 #include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
@@ -185,26 +187,16 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
     return false;
 
-  InitializeShared();
-  g_renderer = std::make_unique<Renderer>(std::move(main_gl_context), wsi.render_surface_scale);
+  g_gfx = std::make_unique<OGLGfx>(std::move(main_gl_context), wsi.render_surface_scale);
   ProgramShaderCache::Init();
+
   g_vertex_manager = std::make_unique<VertexManager>();
-  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_perf_query = GetPerfQuery();
-  g_texture_cache = std::make_unique<TextureCacheBase>();
   g_sampler_cache = std::make_unique<SamplerCache>();
+  g_bounding_box = std::make_unique<OGLBoundingBox>();
 
-  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
-      !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
-      !g_texture_cache->Initialize())
-  {
-    PanicAlertFmtT("Failed to initialize renderer classes");
-    Shutdown();
-    return false;
-  }
+  InitializeShared();
 
-  g_shader_cache->InitializeShaderCache();
   return true;
 }
 

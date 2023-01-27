@@ -2,14 +2,16 @@ add_library(videoogl
   GPUTimer.h
   OGLBoundingBox.cpp
   OGLBoundingBox.h
+  OGLConfig.cpp
+  OGLConfig.h
+  OGLGfx.cpp
+  OGLGfx.h
   OGLMain.cpp
   OGLNativeVertexFormat.cpp
   OGLPerfQuery.cpp
   OGLPerfQuery.h
   OGLPipeline.cpp
   OGLPipeline.h
-  OGLRender.cpp
-  OGLRender.h
   OGLShader.cpp
   OGLShader.h
   OGLStreamBuffer.cpp

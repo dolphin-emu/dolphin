@@ -8,7 +8,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
-#include "VideoBackends/OGL/OGLRender.h"
+#include "VideoBackends/OGL/OGLGfx.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -16,7 +17,7 @@ namespace OGL
 {
 std::unique_ptr<PerfQueryBase> GetPerfQuery()
 {
-  const bool is_gles = static_cast<Renderer*>(g_renderer.get())->IsGLES();
+  const bool is_gles = static_cast<OGLGfx*>(g_gfx.get())->IsGLES();
   if (is_gles && GLExtensions::Supports("GL_NV_occlusion_query_samples"))
     return std::make_unique<PerfQueryGLESNV>();
   else if (is_gles)

@@ -569,9 +569,10 @@
     <ClInclude Include="VideoBackends\Null\VideoBackend.h" />
     <ClInclude Include="VideoBackends\OGL\GPUTimer.h" />
     <ClInclude Include="VideoBackends\OGL\OGLBoundingBox.h" />
+    <ClInclude Include="VideoBackends\OGL\OGLConfig.h" />
+    <ClInclude Include="VideoBackends\OGL\OGLGfx.h" />
     <ClInclude Include="VideoBackends\OGL\OGLPerfQuery.h" />
     <ClInclude Include="VideoBackends\OGL\OGLPipeline.h" />
-    <ClInclude Include="VideoBackends\OGL\OGLRender.h" />
     <ClInclude Include="VideoBackends\OGL\OGLShader.h" />
     <ClInclude Include="VideoBackends\OGL\OGLStreamBuffer.h" />
     <ClInclude Include="VideoBackends\OGL\OGLTexture.h" />
@@ -1175,11 +1176,12 @@
     <ClCompile Include="VideoBackends\Null\NullTexture.cpp" />
     <ClCompile Include="VideoBackends\Null\NullVertexManager.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLBoundingBox.cpp" />
+    <ClCompile Include="VideoBackends\OGL\OGLConfig.cpp" />
+    <ClCompile Include="VideoBackends\OGL\OGLGfx.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLMain.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLNativeVertexFormat.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLPerfQuery.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLPipeline.cpp" />
-    <ClCompile Include="VideoBackends\OGL\OGLRender.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLShader.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLStreamBuffer.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLTexture.cpp" />

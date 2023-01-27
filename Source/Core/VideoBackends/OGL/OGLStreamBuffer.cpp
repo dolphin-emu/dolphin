@@ -8,7 +8,7 @@
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
 
-#include "VideoBackends/OGL/OGLRender.h"
+#include "VideoBackends/OGL/OGLConfig.h"
 
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"

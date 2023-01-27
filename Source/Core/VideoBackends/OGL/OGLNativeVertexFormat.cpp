@@ -6,7 +6,7 @@
 #include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
 
-#include "VideoBackends/OGL/OGLRender.h"
+#include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
@@ -19,7 +19,7 @@
 namespace OGL
 {
 std::unique_ptr<NativeVertexFormat>
-Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
+OGLGfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
   return std::make_unique<GLVertexFormat>(vtx_decl);
 }

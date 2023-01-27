@@ -39,8 +39,10 @@
 #include "VideoBackends/Metal/VideoBackend.h"
 #endif
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
@@ -324,9 +326,16 @@ void VideoBackendBase::InitializeShared()
   // do not initialize again for the config window
   m_initialized = true;
 
-  g_renderer = std::make_unique<Renderer>();
+  if (!g_renderer)
+  {
+    // Null and Software Backends supply their own Renderer
+    g_renderer = std::make_unique<Renderer>();
+  }
   g_presenter = std::make_unique<VideoCommon::Presenter>();
   g_frame_dumper = std::make_unique<FrameDumper>();
+  g_texture_cache = std::make_unique<TextureCacheBase>();
+  g_framebuffer_manager = std::make_unique<FramebufferManager>();
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
 
   auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
@@ -340,7 +349,9 @@ void VideoBackendBase::InitializeShared()
   system.GetPixelShaderManager().Init();
   TMEM::Init();
 
-  if (!g_renderer->Initialize() || !g_presenter->Initialize())
+  if (!g_vertex_manager->Initialize() || !g_renderer->Initialize() || !g_presenter->Initialize() ||
+      !g_shader_cache->Initialize() || !g_framebuffer_manager->Initialize() ||
+      !g_texture_cache->Initialize() || !g_bounding_box->Initialize())
   {
     PanicAlertFmtT("Failed to initialize renderer classes");
     Shutdown();
@@ -349,6 +360,8 @@ void VideoBackendBase::InitializeShared()
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();
+
+  g_shader_cache->InitializeShaderCache();
 }
 
 void VideoBackendBase::ShutdownShared()
@@ -363,12 +376,15 @@ void VideoBackendBase::ShutdownShared()
   if (g_texture_cache)
     g_texture_cache->Shutdown();
 
+  g_bounding_box.reset();
   g_perf_query.reset();
   g_texture_cache.reset();
   g_framebuffer_manager.reset();
   g_shader_cache.reset();
   g_vertex_manager.reset();
   g_renderer.reset();
+  g_presenter.reset();
+  g_gfx.reset();
 
   m_initialized = false;
 
