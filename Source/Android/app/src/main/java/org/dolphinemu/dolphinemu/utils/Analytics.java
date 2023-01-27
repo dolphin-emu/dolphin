@@ -2,17 +2,16 @@
 
 package org.dolphinemu.dolphinemu.utils;
 
-import android.content.Context;
 import android.os.Build;
 
 import androidx.annotation.Keep;
+import androidx.fragment.app.FragmentActivity;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
-import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.dialogs.AnalyticsDialog;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
@@ -23,28 +22,18 @@ public class Analytics
   private static final String DEVICE_MODEL = "DEVICE_MODEL";
   private static final String DEVICE_TYPE = "DEVICE_TYPE";
 
-  public static void checkAnalyticsInit(Context context)
+  public static void checkAnalyticsInit(FragmentActivity activity)
   {
     new AfterDirectoryInitializationRunner().runWithoutLifecycle(() ->
     {
       if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.getBooleanGlobal())
       {
-        showMessage(context);
+        new AnalyticsDialog().show(activity.getSupportFragmentManager(), AnalyticsDialog.TAG);
       }
     });
   }
 
-  private static void showMessage(Context context)
-  {
-    new MaterialAlertDialogBuilder(context)
-            .setTitle(context.getString(R.string.analytics))
-            .setMessage(context.getString(R.string.analytics_desc))
-            .setPositiveButton(R.string.yes, (dialogInterface, i) -> firstAnalyticsAdd(true))
-            .setNegativeButton(R.string.no, (dialogInterface, i) -> firstAnalyticsAdd(false))
-            .show();
-  }
-
-  private static void firstAnalyticsAdd(boolean enabled)
+  public static void firstAnalyticsAdd(boolean enabled)
   {
     try (Settings settings = new Settings())
     {
