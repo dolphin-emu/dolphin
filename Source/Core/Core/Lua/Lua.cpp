@@ -12,7 +12,6 @@
 #include "LuaFunctions/LuaStatistics.h"
 #include "Core/Movie.h"
 #include <filesystem>
-#include <fstream>
 
 namespace Lua
 {
@@ -41,10 +40,6 @@ void Init()
   lua_gc(mainLuaState, LUA_GCSTOP);
   mainLuaThreadState = lua_newthread(mainLuaState);
   std::filesystem::path p = std::filesystem::current_path().filename();
-  std::ofstream myFile("TESTING_123.txt");
-  myFile << "TESTING_123.txt";
-  myFile.flush();
-  myFile.close();
   if (luaL_loadfile(mainLuaThreadState, "LuaExamplesAndTests/LuaGameCubeControllerFunctionsTest.lua") != LUA_OK)
   {
     const char* tempString = lua_tostring(mainLuaThreadState, -1);

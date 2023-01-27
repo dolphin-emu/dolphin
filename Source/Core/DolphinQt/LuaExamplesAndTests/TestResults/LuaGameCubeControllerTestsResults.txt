@@ -1,3 +1,5 @@
+Running setInputs() unit tests:
+
 Test: 1
 	Calling setInput() on controller 1 with just setting A button...
 PASS!
@@ -79,7 +81,7 @@ Test: 20
 PASS!
 
 Test: 21
-	Calling setInputs() on controller  1 with setting all buttons to pressed and all analog inputs to their maximum values...
+	Calling setInputs() on controller 1 with setting all buttons to pressed and all analog inputs to their maximum values...
 PASS!
 
 Test: 22
@@ -163,7 +165,7 @@ Test: 41
 PASS!
 
 Test: 42
-	Calling setInputs() on controller  2 with setting all buttons to pressed and all analog inputs to their maximum values...
+	Calling setInputs() on controller 2 with setting all buttons to pressed and all analog inputs to their maximum values...
 PASS!
 
 Test: 43
@@ -247,7 +249,7 @@ Test: 62
 PASS!
 
 Test: 63
-	Calling setInputs() on controller  3 with setting all buttons to pressed and all analog inputs to their maximum values...
+	Calling setInputs() on controller 3 with setting all buttons to pressed and all analog inputs to their maximum values...
 PASS!
 
 Test: 64
@@ -331,7 +333,7 @@ Test: 83
 PASS!
 
 Test: 84
-	Calling setInputs() on controller  4 with setting all buttons to pressed and all analog inputs to their maximum values...
+	Calling setInputs() on controller 4 with setting all buttons to pressed and all analog inputs to their maximum values...
 PASS!
 
 Test: 85
@@ -343,6 +345,8 @@ Test: 86
 PASS!
 
 ----------------------------------------------------------------------------------
+
+Running addInputs() unit tests:
 
 Test: 87
 	Calling addInputs() on controller 1 with just setting A button...
@@ -685,10 +689,12 @@ Test: 171
 PASS!
 
 Test: 172
-	Calling addInput() twice in a row to make sure that the calls add onto each other...
+	Calling addInput() twice in a row to make sure that the calls add on to each other...
 PASS!
 
 ----------------------------------------------------------------------------------
+
+Running addButtonFlipChance() unit tests:
 
 Test: 173
 	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button A...
@@ -772,10 +778,12 @@ PASS!
 
 Test 193:
 	Running through 1000 frames of calling addButtonFlipChance() on controller 1 with 13% chance of flipping button B...
-	Impacted frames made up 11.188811188811% of all frames, which was in the acceptable range of +- 8% of the selected probability of 13%
+	Impacted frames made up 10.38961038961% of all frames, which was in the acceptable range of +- 8% of the selected probability of 13%
 PASS!
 
 ----------------------------------------------------------------------------------
+
+Running addButtonPressChance() unit tests:
 
 Test: 194
 	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button A...
@@ -850,11 +858,13 @@ Test: 211
 PASS!
 
 Test 212:
-	Running through 1000 frames of calling addButtonPressChance() on controller 1 with 34% chance of Pressing X button...
-	Impacted frames made up 33.766233766234% of all frames, which was in the acceptable range of +- 8% of the selected probability of 34%
+	Running through 1000 frames of calling addButtonPressChance() on controller 1 with 34% chance of pressing X button...
+	Impacted frames made up 32.867132867133% of all frames, which was in the acceptable range of +- 8% of the selected probability of 34%
 PASS!
 
 ----------------------------------------------------------------------------------
+
+Running addButtonReleaseChance() unit tests:
 
 Test: 213
 	Calling addButtonReleaseChance() on controller 1 after setting A to pressed with 100% probability of releasing button A...
@@ -930,10 +940,12 @@ PASS!
 
 Test 231:
 	Running through 1000 frames of calling addButtonReleaseChance() on controller 1 after setting B to pressed with 68% chance of releasing button B...
-	Impacted frames made up 66.933066933067% of all frames, which was in the acceptable range of +- 8% of the selected probability of 68%
+	Impacted frames made up 69.430569430569% of all frames, which was in the acceptable range of +- 8% of the selected probability of 68%
 PASS!
 
 ----------------------------------------------------------------------------------
+
+Running addOrSubtractFromCurrentAnalogValueChnce() unit tests:
 
 Test: 232
 	Calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 after setting a 100% probability of altering cStickX by -17 to +41...
@@ -977,10 +989,12 @@ PASS!
 
 Test 242:
 	Running through 1000 frames of calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 with 40% chance of altering cStickX by between -31 to +85...
-	Final average input of 138.65934065934 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 138.8
+	Final average input of 140.06793206793 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 138.8
 PASS!
 
 ----------------------------------------------------------------------------------
+
+Running addOrSubtractFromSpecificAnalogValueChance() unit tests:
 
 Test: 243
 	Calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 after setting a 100% probability of setting cStickX to a value between 200 - 18 and 200 + 34...
@@ -1024,12 +1038,438 @@ PASS!
 
 Test 253:
 	Running through 1000 frames of calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 with a 65% chance of setting cStickX to a random value between 50 - 30 and 50 + 10...
-	Final average input of 69.25974025974 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 70.8
+	Final average input of 70.551448551449 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 70.8
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running addButtonComboChance() unit tests:
+
+Test: 254
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting A button...
+PASS!
+
+Test: 255
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting B button...
+PASS!
+
+Test: 256
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting X button...
+PASS!
+
+Test: 257
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting Y button...
+PASS!
+
+Test: 258
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting Z button...
+PASS!
+
+Test: 259
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting L button...
+PASS!
+
+Test: 260
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting R button...
+PASS!
+
+Test: 261
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting START button...
+PASS!
+
+Test: 262
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting RESET button...
+PASS!
+
+Test: 263
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting triggerL to 183...
+PASS!
+
+Test: 264
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting triggerR to 112...
+PASS!
+
+Test: 265
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting dPadUp button...
+PASS!
+
+Test: 266
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting dPadDown button...
+PASS!
+
+Test: 267
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting dPadLeft button...
+PASS!
+
+Test: 268
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting dPadRight button...
+PASS!
+
+Test: 269
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting analogStickX to 131...
+PASS!
+
+Test: 270
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting analogStickY to 190...
+PASS!
+
+Test: 271
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting cStickX to 99...
+PASS!
+
+Test: 272
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting cStickY to 43...
+PASS!
+
+Test: 273
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting A to pressed and cStickX to 232...
+PASS!
+
+Test: 274
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test: 275
+	Calling addButtonComboChance() on controller 1 with 0% probability of setting button A to pressed...
+PASS!
+
+Test: 276
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting A button...
+PASS!
+
+Test: 277
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting B button...
+PASS!
+
+Test: 278
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting X button...
+PASS!
+
+Test: 279
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting Y button...
+PASS!
+
+Test: 280
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting Z button...
+PASS!
+
+Test: 281
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting L button...
+PASS!
+
+Test: 282
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting R button...
+PASS!
+
+Test: 283
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting START button...
+PASS!
+
+Test: 284
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting RESET button...
+PASS!
+
+Test: 285
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting triggerL to 183...
+PASS!
+
+Test: 286
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting triggerR to 112...
+PASS!
+
+Test: 287
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting dPadUp button...
+PASS!
+
+Test: 288
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting dPadDown button...
+PASS!
+
+Test: 289
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting dPadLeft button...
+PASS!
+
+Test: 290
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting dPadRight button...
+PASS!
+
+Test: 291
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting analogStickX to 131...
+PASS!
+
+Test: 292
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting analogStickY to 190...
+PASS!
+
+Test: 293
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting cStickX to 99...
+PASS!
+
+Test: 294
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting cStickY to 43...
+PASS!
+
+Test: 295
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting A to pressed and cStickX to 232...
+PASS!
+
+Test: 296
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test: 297
+	Calling addButtonComboChance() on controller 2 with 0% probability of setting button A to pressed...
+PASS!
+
+Test: 298
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting A button...
+PASS!
+
+Test: 299
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting B button...
+PASS!
+
+Test: 300
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting X button...
+PASS!
+
+Test: 301
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting Y button...
+PASS!
+
+Test: 302
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting Z button...
+PASS!
+
+Test: 303
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting L button...
+PASS!
+
+Test: 304
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting R button...
+PASS!
+
+Test: 305
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting START button...
+PASS!
+
+Test: 306
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting RESET button...
+PASS!
+
+Test: 307
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting triggerL to 183...
+PASS!
+
+Test: 308
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting triggerR to 112...
+PASS!
+
+Test: 309
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting dPadUp button...
+PASS!
+
+Test: 310
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting dPadDown button...
+PASS!
+
+Test: 311
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting dPadLeft button...
+PASS!
+
+Test: 312
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting dPadRight button...
+PASS!
+
+Test: 313
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting analogStickX to 131...
+PASS!
+
+Test: 314
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting analogStickY to 190...
+PASS!
+
+Test: 315
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting cStickX to 99...
+PASS!
+
+Test: 316
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting cStickY to 43...
+PASS!
+
+Test: 317
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting A to pressed and cStickX to 232...
+PASS!
+
+Test: 318
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test: 319
+	Calling addButtonComboChance() on controller 3 with 0% probability of setting button A to pressed...
+PASS!
+
+Test: 320
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting A button...
+PASS!
+
+Test: 321
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting B button...
+PASS!
+
+Test: 322
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting X button...
+PASS!
+
+Test: 323
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting Y button...
+PASS!
+
+Test: 324
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting Z button...
+PASS!
+
+Test: 325
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting L button...
+PASS!
+
+Test: 326
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting R button...
+PASS!
+
+Test: 327
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting START button...
+PASS!
+
+Test: 328
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting RESET button...
+PASS!
+
+Test: 329
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting triggerL to 183...
+PASS!
+
+Test: 330
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting triggerR to 112...
+PASS!
+
+Test: 331
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting dPadUp button...
+PASS!
+
+Test: 332
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting dPadDown button...
+PASS!
+
+Test: 333
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting dPadLeft button...
+PASS!
+
+Test: 334
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting dPadRight button...
+PASS!
+
+Test: 335
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting analogStickX to 131...
+PASS!
+
+Test: 336
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting analogStickY to 190...
+PASS!
+
+Test: 337
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting cStickX to 99...
+PASS!
+
+Test: 338
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting cStickY to 43...
+PASS!
+
+Test: 339
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting A to pressed and cStickX to 232...
+PASS!
+
+Test: 340
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test: 341
+	Calling addButtonComboChance() on controller 4 with 0% probability of setting button A to pressed...
+PASS!
+
+Test: 342
+	Calling addButtonComboChance() on all controllers...
+PASS!
+
+Test: 343
+	Calling addButtonComboChance() with overwrite-non-specified-values set to true. First call has 100% probability of setting B and X to pressed, and 2nd call has 100% probability of setting A and Z to pressed. Final input should be just A and Z are pressed...
+PASS!
+
+Test: 344
+	Calling addButtonComboChance() with overwrite-non-specified-values set to false. First call has 100% probability of setting B and X to pressed, and 2nd call has 100% probability of setting A and Z to pressed. Final input should be A, Z, X and B are pressed...
+PASS!
+
+Test 345:
+	Running through 1000 frames of calling addButtonComboChance() on controller 1 with 80% chance of pressing button B...
+	Impacted frames made up 80.21978021978% of all frames, which was in the acceptable range of +- 8% of the selected probability of 80%
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running addControllerClearChance() unit tests:
+
+Test: 346
+	Calling addControllerClearChance() on controller 1 after setting all inputs to max values with 100% chance of clearing inputs...
+PASS!
+
+Test: 347
+	Calling addControllerClearChance() on controller 1 after setting all inputs to max values with 0% chance of clearing inputs...
+PASS!
+
+Test: 348
+	Calling addControllerClearChance() on controller 2 after setting all inputs to max values with 100% chance of clearing inputs...
+PASS!
+
+Test: 349
+	Calling addControllerClearChance() on controller 2 after setting all inputs to max values with 0% chance of clearing inputs...
+PASS!
+
+Test: 350
+	Calling addControllerClearChance() on controller 3 after setting all inputs to max values with 100% chance of clearing inputs...
+PASS!
+
+Test: 351
+	Calling addControllerClearChance() on controller 3 after setting all inputs to max values with 0% chance of clearing inputs...
+PASS!
+
+Test: 352
+	Calling addControllerClearChance() on controller 4 after setting all inputs to max values with 100% chance of clearing inputs...
+PASS!
+
+Test: 353
+	Calling addControllerClearChance() on controller 4 after setting all inputs to max values with 0% chance of clearing inputs...
+PASS!
+
+Test 354:
+	Running through 1000 frames of calling addControllerClearChance() on controller 1 with 75% chance of clearing the controller inputs to their default values...
+	Impacted frames made up 73.926073926074% of all frames, which was in the acceptable range of +- 8% of the selected probability of 75%
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running integration tests:
+
+Test: 355
+	Calling setInputs() and addInputs() multiple times to perform integration testing. Final results should be only X, Y and Z pressed for controller 1...
+PASS!
+
+Test: 356
+	Calling setInputs(), addInputs() and multiple probability functions in order to perform integration testing. Final results should be only X, Y, Z, and dPadUp pressed for controller 1...
 PASS!
 
 ----------------------------------------------------------------------------------
 
 
-Total Tests: 253
-	Tests Passed: 253
+Total Tests: 356
+	Tests Passed: 356
 	Tests Failed: 0
