@@ -1,3 +1,4 @@
+add_dolphin_test(AssemblerTest AssemblerTest.cpp)
 add_dolphin_test(BitFieldTest BitFieldTest.cpp)
 add_dolphin_test(BitSetTest BitSetTest.cpp)
 add_dolphin_test(BitUtilsTest BitUtilsTest.cpp)
