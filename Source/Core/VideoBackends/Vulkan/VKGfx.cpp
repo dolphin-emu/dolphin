@@ -36,8 +36,8 @@ VKGfx::VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
     : m_swap_chain(std::move(swap_chain)), m_backbuffer_scale(backbuffer_scale)
 {
   UpdateActiveConfig();
-  for (SamplerState& m_sampler_state : m_sampler_states)
-    m_sampler_state = RenderState::GetPointSamplerState();
+  for (SamplerState& sampler_state : m_sampler_states)
+    sampler_state = RenderState::GetPointSamplerState();
 
   // Various initialization routines will have executed commands on the command buffer.
   // Execute what we have done before beginning the first frame.
