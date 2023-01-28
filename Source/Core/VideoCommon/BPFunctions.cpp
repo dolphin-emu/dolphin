@@ -158,11 +158,11 @@ ScissorResult::ScissorResult(const BPMemory& bpmemory, std::pair<float, float> v
   for (const auto& x_range : x_ranges)
   {
     DEBUG_ASSERT(x_range.start < x_range.end);
-    DEBUG_ASSERT(x_range.end <= EFB_WIDTH);
+    DEBUG_ASSERT(static_cast<u32>(x_range.end) <= EFB_WIDTH);
     for (const auto& y_range : y_ranges)
     {
       DEBUG_ASSERT(y_range.start < y_range.end);
-      DEBUG_ASSERT(y_range.end <= EFB_HEIGHT);
+      DEBUG_ASSERT(static_cast<u32>(y_range.end) <= EFB_HEIGHT);
       m_result.emplace_back(x_range, y_range);
     }
   }
