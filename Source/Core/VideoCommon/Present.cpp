@@ -52,6 +52,9 @@ bool Presenter::Initialize()
     if (!m_onscreen_ui->Initialize(m_backbuffer_width, m_backbuffer_height, m_backbuffer_scale))
       return false;
 
+    // Draw a blank frame (and complete OnScreenUI initialization)
+    g_gfx->BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
+    g_gfx->PresentBackbuffer();
   }
 
   return true;
@@ -77,7 +80,8 @@ void Presenter::CheckForConfigChanges(u32 changed_bits)
 {
   // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
   // the post-processor. Note that options are applied every frame, so no need to check those.
-  if (m_post_processor && m_post_processor->GetConfig()->GetShader() != g_ActiveConfig.sPostProcessingShader)
+  if (m_post_processor &&
+      m_post_processor->GetConfig()->GetShader() != g_ActiveConfig.sPostProcessingShader)
   {
     // The existing shader must not be in use when it's destroyed
     g_gfx->WaitForGPUIdle();
@@ -94,31 +98,6 @@ void Presenter::CheckForConfigChanges(u32 changed_bits)
     if (m_post_processor)
       m_post_processor->RecompilePipeline();
   }
-}
-
-void Presenter::BeginUIFrame()
-{
-  if (g_gfx->IsHeadless())
-    return;
-
-  g_gfx->BeginUtilityDrawing();
-  g_gfx->BindBackbuffer({0.0f, 0.0f, 0.0f, 1.0f});
-}
-
-void Presenter::EndUIFrame()
-{
-  m_onscreen_ui->Finalize();
-
-  if (g_gfx->IsHeadless())
-  {
-    m_onscreen_ui->DrawImGui();
-
-    std::lock_guard<std::mutex> guard(m_swap_mutex);
-    g_gfx->PresentBackbuffer();
-    g_gfx->EndUtilityDrawing();
-  }
-
-  m_onscreen_ui->BeginImGuiFrame(m_backbuffer_width, m_backbuffer_height);
 }
 
 std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>>

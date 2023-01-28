@@ -540,11 +540,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
   Common::ScopeGuard video_guard{[] { g_video_backend->Shutdown(); }};
 
-  // Render a single frame without anything on it to clear the screen.
-  // This avoids the game list being displayed while the core is finishing initializing.
-  g_presenter->BeginUIFrame();
-  g_presenter->EndUIFrame();
-
   if (cpu_info.HTT)
     Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, cpu_info.num_cores > 4);
   else

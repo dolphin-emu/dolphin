@@ -163,8 +163,6 @@ void ShaderCache::WaitForAsyncCompiler()
   bool running = true;
 
   constexpr auto update_ui_progress = [](size_t completed, size_t total) {
-    g_presenter->BeginUIFrame();
-
     const float center_x = ImGui::GetIO().DisplaySize.x * 0.5f;
     const float center_y = ImGui::GetIO().DisplaySize.y * 0.5f;
     const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
@@ -184,7 +182,7 @@ void ShaderCache::WaitForAsyncCompiler()
     }
     ImGui::End();
 
-    g_presenter->EndUIFrame();
+    g_presenter->Present();
   };
 
   while (running &&
@@ -195,9 +193,8 @@ void ShaderCache::WaitForAsyncCompiler()
     m_async_shader_compiler->RetrieveWorkItems();
   }
 
-  // Just render nothing to clear the screen
-  g_presenter->BeginUIFrame();
-  g_presenter->EndUIFrame();
+  // An extra Present to clear the screen
+  g_presenter->Present();
 }
 
 template <typename SerializedUidType, typename UidType>

@@ -40,11 +40,6 @@ public:
 
   void CheckForConfigChanges(u32 changed_bits);
 
-  // Begins/presents a "UI frame". UI frames do not draw any of the console XFB, but this could
-  // change in the future.
-  void BeginUIFrame();
-  void EndUIFrame();
-
   // Display resolution
   int GetBackbufferWidth() const { return m_backbuffer_width; }
   int GetBackbufferHeight() const { return m_backbuffer_height; }
