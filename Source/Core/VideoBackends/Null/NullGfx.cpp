@@ -29,6 +29,11 @@ bool NullGfx::IsHeadless() const
   return true;
 }
 
+bool NullGfx::SupportsUtilityDrawing() const
+{
+  return false;
+}
+
 std::unique_ptr<AbstractTexture> NullGfx::CreateTexture(const TextureConfig& config,
                                                         [[maybe_unused]] std::string_view name)
 {

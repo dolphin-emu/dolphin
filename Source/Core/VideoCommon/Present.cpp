@@ -393,12 +393,6 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
                                   const AbstractTexture* source_texture,
                                   const MathUtil::Rectangle<int>& source_rc)
 {
-  if (!g_ActiveConfig.backend_info.bSupportsPostProcessing)
-  {
-    g_gfx->ShowImage(source_texture, source_rc);
-    return;
-  }
-
   if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer &&
       g_ActiveConfig.backend_info.bUsesExplictQuadBuffering)
   {
@@ -462,6 +456,14 @@ bool Presenter::SubmitXFB(RcTcacheEntry xfb_entry, MathUtil::Rectangle<int>& xfb
 void Presenter::Present()
 {
   m_last_xfb_id = m_xfb_entry->id;
+
+  if (!g_gfx->SupportsUtilityDrawing())
+  {
+    // Video Software doesn't support Drawing a UI or doing post-processing
+    // So just Show the XFB
+    g_gfx->ShowImage(m_xfb_entry->texture.get(), m_xfb_rect);
+    return;
+  }
 
   // Since we use the common pipelines here and draw vertices if a batch is currently being
   // built by the vertex loader, we end up trampling over its pointer, as we share the buffer

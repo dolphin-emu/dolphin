@@ -15,6 +15,7 @@ public:
   SWGfx(std::unique_ptr<SWOGLWindow> window);
 
   bool IsHeadless() const override;
+  virtual bool SupportsUtilityDrawing() const override;
 
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
                                                  std::string_view name) override;

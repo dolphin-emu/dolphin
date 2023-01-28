@@ -27,6 +27,11 @@ bool SWGfx::IsHeadless() const
   return m_window->IsHeadless();
 }
 
+bool SWGfx::SupportsUtilityDrawing() const
+{
+  return false;
+}
+
 std::unique_ptr<AbstractTexture> SWGfx::CreateTexture(const TextureConfig& config,
                                                       [[maybe_unused]] std::string_view name)
 {

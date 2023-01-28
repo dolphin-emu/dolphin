@@ -59,6 +59,9 @@ public:
 
   virtual bool IsHeadless() const = 0;
 
+  // Does the backend support drawing a UI or doing post-processing
+  virtual bool SupportsUtilityDrawing() const { return true; }
+
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
