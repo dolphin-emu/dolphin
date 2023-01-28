@@ -13,9 +13,9 @@ namespace DX12
 class DXPipeline final : public AbstractPipeline
 {
 public:
-  DXPipeline(ID3D12PipelineState* pipeline, ID3D12RootSignature* root_signature,
-             AbstractPipelineUsage usage, D3D12_PRIMITIVE_TOPOLOGY primitive_topology,
-             bool use_integer_rtv);
+  DXPipeline(const AbstractPipelineConfig& config, ID3D12PipelineState* pipeline,
+             ID3D12RootSignature* root_signature, AbstractPipelineUsage usage,
+             D3D12_PRIMITIVE_TOPOLOGY primitive_topology, bool use_integer_rtv);
   ~DXPipeline() override;
 
   static std::unique_ptr<DXPipeline> Create(const AbstractPipelineConfig& config,

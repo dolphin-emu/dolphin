@@ -16,12 +16,12 @@
 
 namespace DX11
 {
-DXPipeline::DXPipeline(ID3D11InputLayout* input_layout, ID3D11VertexShader* vertex_shader,
-                       ID3D11GeometryShader* geometry_shader, ID3D11PixelShader* pixel_shader,
-                       ID3D11RasterizerState* rasterizer_state,
+DXPipeline::DXPipeline(const AbstractPipelineConfig& config, ID3D11InputLayout* input_layout,
+                       ID3D11VertexShader* vertex_shader, ID3D11GeometryShader* geometry_shader,
+                       ID3D11PixelShader* pixel_shader, ID3D11RasterizerState* rasterizer_state,
                        ID3D11DepthStencilState* depth_state, ID3D11BlendState* blend_state,
                        D3D11_PRIMITIVE_TOPOLOGY primitive_topology, bool use_logic_op)
-    : m_input_layout(input_layout), m_vertex_shader(vertex_shader),
+    : AbstractPipeline(config), m_input_layout(input_layout), m_vertex_shader(vertex_shader),
       m_geometry_shader(geometry_shader), m_pixel_shader(pixel_shader),
       m_rasterizer_state(rasterizer_state), m_depth_state(depth_state), m_blend_state(blend_state),
       m_primitive_topology(primitive_topology), m_use_logic_op(use_logic_op)
@@ -57,7 +57,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   const bool use_logic_op =
       config.blending_state.logicopenable && g_ActiveConfig.backend_info.bSupportsLogicOp;
 
-  return std::make_unique<DXPipeline>(input_layout, vertex_shader->GetD3DVertexShader(),
+  return std::make_unique<DXPipeline>(config, input_layout, vertex_shader->GetD3DVertexShader(),
                                       geometry_shader ? geometry_shader->GetD3DGeometryShader() :
                                                         nullptr,
                                       pixel_shader->GetD3DPixelShader(), rasterizer_state,

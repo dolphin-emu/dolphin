@@ -496,9 +496,10 @@ Metal::ObjectCache::CreatePipeline(const AbstractPipelineConfig& config)
   Internal::StoredPipeline pipeline = m_internal->GetOrCreatePipeline(config);
   if (!pipeline.first)
     return nullptr;
-  return std::make_unique<Pipeline>(
-      std::move(pipeline.first), pipeline.second, Convert(config.rasterization_state.primitive),
-      Convert(config.rasterization_state.cullmode), config.depth_state, config.usage);
+  return std::make_unique<Pipeline>(config, std::move(pipeline.first), pipeline.second,
+                                    Convert(config.rasterization_state.primitive),
+                                    Convert(config.rasterization_state.cullmode),
+                                    config.depth_state, config.usage);
 }
 
 void Metal::ObjectCache::ShaderDestroyed(const Shader* shader)
