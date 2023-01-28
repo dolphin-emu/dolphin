@@ -40,16 +40,19 @@ bool Presenter::Initialize()
 {
   UpdateDrawRectangle();
 
-  m_post_processor = std::make_unique<VideoCommon::PostProcessing>();
-  if (!m_post_processor->Initialize(m_backbuffer_format))
-    return false;
-
-  m_onscreen_ui = std::make_unique<OnScreenUI>();
-  if (!m_onscreen_ui->Initialize(m_backbuffer_width, m_backbuffer_height, m_backbuffer_scale))
-    return false;
-
   if (!g_gfx->IsHeadless())
+  {
     SetBackbuffer(g_gfx->GetSurfaceInfo());
+
+    m_post_processor = std::make_unique<VideoCommon::PostProcessing>();
+    if (!m_post_processor->Initialize(m_backbuffer_format))
+      return false;
+
+    m_onscreen_ui = std::make_unique<OnScreenUI>();
+    if (!m_onscreen_ui->Initialize(m_backbuffer_width, m_backbuffer_height, m_backbuffer_scale))
+      return false;
+
+  }
 
   return true;
 }
@@ -74,7 +77,7 @@ void Presenter::CheckForConfigChanges(u32 changed_bits)
 {
   // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
   // the post-processor. Note that options are applied every frame, so no need to check those.
-  if (m_post_processor->GetConfig()->GetShader() != g_ActiveConfig.sPostProcessingShader)
+  if (m_post_processor && m_post_processor->GetConfig()->GetShader() != g_ActiveConfig.sPostProcessingShader)
   {
     // The existing shader must not be in use when it's destroyed
     g_gfx->WaitForGPUIdle();
@@ -86,8 +89,10 @@ void Presenter::CheckForConfigChanges(u32 changed_bits)
   // rendering the UI.
   if (changed_bits & ConfigChangeBits::CONFIG_CHANGE_BIT_STEREO_MODE)
   {
-    m_onscreen_ui->RecompileImGuiPipeline();
-    m_post_processor->RecompilePipeline();
+    if (m_onscreen_ui)
+      m_onscreen_ui->RecompileImGuiPipeline();
+    if (m_post_processor)
+      m_post_processor->RecompilePipeline();
   }
 }
 
@@ -425,6 +430,7 @@ bool Presenter::SubmitXFB(RcTcacheEntry xfb_entry, MathUtil::Rectangle<int>& xfb
   m_xfb_entry = std::move(xfb_entry);
   m_xfb_rect = xfb_rect;
   bool is_duplicate_frame = m_last_xfb_id == m_xfb_entry->id;
+  m_last_xfb_id = m_xfb_entry->id;
 
   if (!is_duplicate_frame || !g_ActiveConfig.bSkipPresentingDuplicateXFBs)
   {
@@ -455,7 +461,8 @@ bool Presenter::SubmitXFB(RcTcacheEntry xfb_entry, MathUtil::Rectangle<int>& xfb
 
 void Presenter::Present()
 {
-  m_last_xfb_id = m_xfb_entry->id;
+  if (g_gfx->IsHeadless() || (!m_onscreen_ui && !m_xfb_entry))
+    return;
 
   if (!g_gfx->SupportsUtilityDrawing())
   {
@@ -470,60 +477,69 @@ void Presenter::Present()
   // with the loader, and it has not been unmapped yet. Force a pipeline flush to avoid this.
   g_vertex_manager->Flush();
 
-  // Render any UI elements to the draw list.
-  m_onscreen_ui->Finalize();
+  UpdateDrawRectangle();
+
+  g_gfx->BeginUtilityDrawing();
+  g_gfx->BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
 
   // Render the XFB to the screen.
-  g_gfx->BeginUtilityDrawing();
-  if (!g_gfx->IsHeadless())
+  if (m_xfb_entry)
   {
-    g_gfx->BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
-
-    UpdateDrawRectangle();
-
     // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
     auto render_target_rc = GetTargetRectangle();
     auto render_source_rc = m_xfb_rect;
     AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
                                 m_backbuffer_height);
     RenderXFBToScreen(render_target_rc, m_xfb_entry->texture.get(), render_source_rc);
+  }
 
+  if (m_onscreen_ui)
+  {
+    m_onscreen_ui->Finalize();
     m_onscreen_ui->DrawImGui();
+  }
 
-    // Present to the window system.
-    {
-      std::lock_guard<std::mutex> guard(m_swap_mutex);
-      g_gfx->PresentBackbuffer();
-    }
+  // Present to the window system.
+  {
+    std::lock_guard<std::mutex> guard(m_swap_mutex);
+    g_gfx->PresentBackbuffer();
+  }
 
+  if (m_xfb_entry)
+  {
     // Update the window size based on the frame that was just rendered.
     // Due to depending on guest state, we need to call this every frame.
     SetWindowSize(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
   }
 
-  m_onscreen_ui->BeginImGuiFrame(m_backbuffer_width, m_backbuffer_height);
+  if (m_onscreen_ui)
+    m_onscreen_ui->BeginImGuiFrame(m_backbuffer_width, m_backbuffer_height);
 
   g_gfx->EndUtilityDrawing();
 }
 
 void Presenter::SetKeyMap(std::span<std::array<int, 2>> key_map)
 {
-  m_onscreen_ui->SetKeyMap(key_map);
+  if (m_onscreen_ui)
+    m_onscreen_ui->SetKeyMap(key_map);
 }
 
 void Presenter::SetKey(u32 key, bool is_down, const char* chars)
 {
-  m_onscreen_ui->SetKey(key, is_down, chars);
+  if (m_onscreen_ui)
+    m_onscreen_ui->SetKey(key, is_down, chars);
 }
 
 void Presenter::SetMousePos(float x, float y)
 {
-  m_onscreen_ui->SetMousePos(x, y);
+  if (m_onscreen_ui)
+    m_onscreen_ui->SetMousePos(x, y);
 }
 
 void Presenter::SetMousePress(u32 button_mask)
 {
-  m_onscreen_ui->SetMousePress(button_mask);
+  if (m_onscreen_ui)
+    m_onscreen_ui->SetMousePress(button_mask);
 }
 
 }  // namespace VideoCommon
