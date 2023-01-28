@@ -15,6 +15,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/DolphinAnalytics.h"
+#include "Core/LWDProfiler.h"
 #include "Core/System.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -322,6 +323,8 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
 
 void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
+  LWDProfiler::ScopedMarker marker("Vertex/Draw Batch");
+
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
   if (g_renderer->IsBBoxEnabled() && g_ActiveConfig.bBBoxEnable &&
       g_ActiveConfig.backend_info.bSupportsBBox)
@@ -410,6 +413,8 @@ BitSet32 VertexManagerBase::UsedTextures() const
 
 void VertexManagerBase::Flush()
 {
+  LWDProfiler::ScopedMarker marker("Vertex/Flush");
+
   if (m_is_flushed)
     return;
 
@@ -639,6 +644,8 @@ void VertexManagerBase::DoState(PointerWrap& p)
 
 void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
 {
+  LWDProfiler::ScopedMarker marker("Vertex/Calc ZSlope");
+
   float out[12];
   float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
                          xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
@@ -705,6 +712,8 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
 
 void VertexManagerBase::CalculateBinormals(NativeVertexFormat* format)
 {
+  LWDProfiler::ScopedMarker marker("Vertex/Calc Binormals");
+
   const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
 
   // Only update the binormal/tangent vertex shader constants if the vertex format lacks binormals

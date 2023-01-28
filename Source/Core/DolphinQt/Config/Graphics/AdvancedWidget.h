@@ -44,6 +44,7 @@ private:
   GraphicsBool* m_show_speed_colors;
   GraphicsInteger* m_perf_samp_window;
   GraphicsBool* m_log_render_time;
+  GraphicsBool* m_enable_profiler;
 
   // Utility
   GraphicsBool* m_prefetch_custom_textures;

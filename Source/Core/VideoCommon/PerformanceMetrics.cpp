@@ -10,6 +10,7 @@
 
 #include "Core/CoreTiming.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/LWDProfiler.h"
 #include "Core/System.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -103,6 +104,10 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   const float window_width = 93.f * backbuffer_scale;
   float window_y = window_padding;
   float window_x = ImGui::GetIO().DisplaySize.x - window_padding;
+
+  const float profiler_width = 250.f * backbuffer_scale;
+  float profiler_x = window_padding;
+  float profiler_y = window_padding;
 
   const float graph_width = 50.f * backbuffer_scale + 3.f * window_width + 2.f * window_padding;
   const float graph_height =
@@ -262,6 +267,56 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
                            DT_ms(m_vps_counter.GetDtAvg()).count());
         ImGui::TextColored(ImVec4(r, g, b, 1.0f), " ±:%6.2lfms",
                            DT_ms(m_vps_counter.GetDtStd()).count());
+      }
+      ImGui::End();
+    }
+  }
+
+  if (g_ActiveConfig.bEnableProfiler)
+  {
+    const int max =
+        int((ImGui::GetIO().DisplaySize.y - 2.0 * window_padding - 12.f) / backbuffer_scale) / 17;
+    const std::vector<LWDProfiler::Entry> entries =
+        LWDProfiler::GetCPUProfiler().GetEntries(std::max<int>(1, max - 1));
+
+    const float profiler_height = (12.f + 17.f * (1.f + entries.size())) * backbuffer_scale;
+    ImGui::SetNextWindowPos(ImVec2(profiler_x, profiler_y), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(profiler_width, profiler_height));
+    ImGui::SetNextWindowBgAlpha(bg_alpha);
+
+    profiler_x += window_padding + profiler_width;
+
+    if (ImGui::Begin("WatchDogProfiler", nullptr, imgui_flags))
+    {
+      ImGui::TextColored(ImVec4(r, g, b, 1.0f), "  --------= CPU Thread =--------  ");
+      for (const LWDProfiler::Entry& entry : entries)
+      {
+        const std::string information = entry.GetString();
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "%s", information.c_str());
+      }
+      ImGui::End();
+    }
+  }
+
+  if (g_ActiveConfig.bEnableProfiler)
+  {
+    const int max =
+        int((ImGui::GetIO().DisplaySize.y - 2.0 * window_padding - 12.f) / backbuffer_scale) / 17;
+    const std::vector<LWDProfiler::Entry> entries =
+        LWDProfiler::GetGPUProfiler().GetEntries(std::max<int>(1, max - 1));
+
+    const float profiler_height = (12.f + 17.f * (1.f + entries.size())) * backbuffer_scale;
+    ImGui::SetNextWindowPos(ImVec2(profiler_x, profiler_y), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(profiler_width, profiler_height));
+    ImGui::SetNextWindowBgAlpha(bg_alpha);
+
+    if (ImGui::Begin("GPUWatchDogProfiler", nullptr, imgui_flags))
+    {
+      ImGui::TextColored(ImVec4(r, g, b, 1.0f), "  --------= GPU Thread =--------  ");
+      for (const LWDProfiler::Entry& entry : entries)
+      {
+        const std::string information = entry.GetString();
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "%s", information.c_str());
       }
       ImGui::End();
     }

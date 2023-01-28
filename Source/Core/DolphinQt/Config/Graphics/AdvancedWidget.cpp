@@ -61,6 +61,7 @@ void AdvancedWidget::CreateWidgets()
   m_perf_samp_window->SetTitle(tr("Performance Sample Window (ms)"));
   m_log_render_time =
       new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
+  m_enable_profiler = new GraphicsBool(tr("Enable Profiler"), Config::GFX_ENABLE_PROFILER);
 
   performance_layout->addWidget(m_show_fps, 0, 0);
   performance_layout->addWidget(m_show_ftimes, 0, 1);
@@ -72,6 +73,7 @@ void AdvancedWidget::CreateWidgets()
   performance_layout->addWidget(m_perf_samp_window, 3, 1);
   performance_layout->addWidget(m_log_render_time, 4, 0);
   performance_layout->addWidget(m_show_speed_colors, 4, 1);
+  performance_layout->addWidget(m_enable_profiler, 5, 0);
 
   // Debugging
   auto* debugging_box = new QGroupBox(tr("Debugging"));
@@ -284,6 +286,9 @@ void AdvancedWidget::AddDescriptions()
       "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use this "
       "feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
       "unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_ENABLE_PROFILER_DESCRIPTION[] = QT_TR_NOOP(
+      "Shows you the percentage of time being spent on each task in the dolphin "
+      "emulator.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_WIREFRAME_DESCRIPTION[] =
       QT_TR_NOOP("Renders the scene as a wireframe.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
@@ -413,6 +418,7 @@ void AdvancedWidget::AddDescriptions()
   m_show_speed->SetDescription(tr(TR_SHOW_SPEED_DESCRIPTION));
   m_log_render_time->SetDescription(tr(TR_LOG_RENDERTIME_DESCRIPTION));
   m_show_speed_colors->SetDescription(tr(TR_SHOW_SPEED_COLORS_DESCRIPTION));
+  m_enable_profiler->SetDescription(tr(TR_ENABLE_PROFILER_DESCRIPTION));
 
   m_enable_wireframe->SetDescription(tr(TR_WIREFRAME_DESCRIPTION));
   m_show_statistics->SetDescription(tr(TR_SHOW_STATS_DESCRIPTION));

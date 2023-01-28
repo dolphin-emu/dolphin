@@ -51,6 +51,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
+#include "Core/LWDProfiler.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
 
@@ -230,6 +231,8 @@ void Renderer::BBoxDisable(PixelShaderManager& pixel_shader_manager)
 
 u16 Renderer::BBoxRead(u32 index)
 {
+  LWDProfiler::ScopedMarker marker("RenderBase/BBox/Read");
+
   if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
     return m_bounding_box_fallback[index];
 
@@ -238,6 +241,8 @@ u16 Renderer::BBoxRead(u32 index)
 
 void Renderer::BBoxWrite(u32 index, u16 value)
 {
+  LWDProfiler::ScopedMarker marker("RenderBase/BBox/Write");
+
   if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
   {
     m_bounding_box_fallback[index] = value;
@@ -249,6 +254,8 @@ void Renderer::BBoxWrite(u32 index, u16 value)
 
 void Renderer::BBoxFlush()
 {
+  LWDProfiler::ScopedMarker marker("RenderBase/BBox/Flush");
+
   if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
     return;
 
@@ -257,6 +264,8 @@ void Renderer::BBoxFlush()
 
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
+  LWDProfiler::ScopedMarker marker("RenderBase/Access EFB");
+
   if (type == EFBAccessType::PeekColor)
   {
     u32 color = g_framebuffer_manager->PeekEFBColor(x, y);
@@ -328,6 +337,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
 {
+  LWDProfiler::ScopedMarker marker("RenderBase/Poke EFB");
+
   if (type == EFBAccessType::PokeColor)
   {
     for (size_t i = 0; i < num_points; i++)
@@ -1319,6 +1330,8 @@ void Renderer::UpdateWidescreenHeuristic()
 
 void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
+  LWDProfiler::ScopedMarker marker("RenderBase/Swap");
+
   if (SConfig::GetInstance().bWii)
     m_is_game_widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
 

@@ -18,6 +18,7 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/LWDProfiler.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
@@ -107,6 +108,7 @@ void CoreTimingManager::Init()
 
   // Reset data used by the throttling system
   ResetThrottle(0);
+  LWDProfiler::GetCurrentProfiler().Reset();
 
   m_event_fifo_id = 0;
   m_ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
@@ -322,9 +324,14 @@ void CoreTimingManager::Advance()
     std::pop_heap(m_event_queue.begin(), m_event_queue.end(), std::greater<Event>());
     m_event_queue.pop_back();
 
+    LWDProfiler::GetCurrentProfiler().SetMarker("Throttle");
     Throttle(evt.time);
+
+    LWDProfiler::GetCurrentProfiler().SetMarker(*evt.type->name);
     evt.type->callback(system, evt.userdata, m_globals.global_timer - evt.time);
   }
+
+  LWDProfiler::GetCurrentProfiler().SetMarker("External Exceptions");
 
   m_is_global_timer_sane = false;
 
@@ -342,6 +349,8 @@ void CoreTimingManager::Advance()
   // until the next slice:
   //        Pokemon Box refuses to boot if the first exception from the audio DMA is received late
   PowerPC::CheckExternalExceptions();
+
+  LWDProfiler::GetCurrentProfiler().SetMarker("JIT");
 }
 
 void CoreTimingManager::Throttle(const s64 target_cycle)
@@ -448,10 +457,14 @@ void CoreTimingManager::Idle()
 
   if (m_config_sync_on_skip_idle)
   {
+    LWDProfiler::GetCurrentProfiler().PushMarker("GPU Sync");
+
     // When the FIFO is processing data we must not advance because in this way
     // the VI will be desynchronized. So, We are waiting until the FIFO finish and
     // while we process only the events required by the FIFO.
     system.GetFifo().FlushGpu(system);
+
+    LWDProfiler::GetCurrentProfiler().PopMarker();
   }
 
   PowerPC::UpdatePerformanceMonitor(ppc_state.downcount, 0, 0, ppc_state);

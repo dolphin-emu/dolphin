@@ -10,6 +10,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/LWDProfiler.h"
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
@@ -409,6 +410,8 @@ MathUtil::Rectangle<int> FramebufferManager::GetEFBCacheTileRect(u32 tile_index)
 
 u32 FramebufferManager::PeekEFBColor(u32 x, u32 y)
 {
+  LWDProfiler::ScopedMarker marker("FBuffer/Peek EFB Color");
+
   // The y coordinate here assumes upper-left origin, but the readback texture is lower-left in GL.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
     y = EFB_HEIGHT - 1 - y;
@@ -432,6 +435,8 @@ u32 FramebufferManager::PeekEFBColor(u32 x, u32 y)
 
 float FramebufferManager::PeekEFBDepth(u32 x, u32 y)
 {
+  LWDProfiler::ScopedMarker marker("FBuffer/Peek EFB Depth");
+
   // The y coordinate here assumes upper-left origin, but the readback texture is lower-left in GL.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
     y = EFB_HEIGHT - 1 - y;
@@ -467,6 +472,8 @@ void FramebufferManager::SetEFBCacheTileSize(u32 size)
 
 void FramebufferManager::RefreshPeekCache()
 {
+  LWDProfiler::ScopedMarker marker("FBuffer/RefreshPeekCache");
+
   if (!m_efb_color_cache.needs_refresh && !m_efb_depth_cache.needs_refresh)
   {
     // The cache has already been refreshed.
@@ -713,6 +720,8 @@ void FramebufferManager::DestroyReadbackFramebuffer()
 
 void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async)
 {
+  LWDProfiler::ScopedMarker marker("FBuffer/Populate EFB Cache");
+
   FlushEFBPokes();
   g_vertex_manager->OnCPUEFBAccess();
 
@@ -874,6 +883,8 @@ void FramebufferManager::DestroyClearPipelines()
 
 void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)
 {
+  LWDProfiler::ScopedMarker marker("FBuffer/Poke EFB Color");
+
   // Flush if we exceeded the number of vertices per batch.
   if ((m_color_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
     FlushEFBPokes();
@@ -892,6 +903,8 @@ void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)
 
 void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
 {
+  LWDProfiler::ScopedMarker marker("FBuffer/Poke EFB Depth");
+
   // Flush if we exceeded the number of vertices per batch.
   if ((m_depth_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
     FlushEFBPokes();
@@ -911,6 +924,8 @@ void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
 void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, u32 x,
                                             u32 y, float z, u32 color)
 {
+  LWDProfiler::ScopedMarker marker("FBuffer/Create Poke Vertices");
+
   const float cs_pixel_width = 1.0f / EFB_WIDTH * 2.0f;
   const float cs_pixel_height = 1.0f / EFB_HEIGHT * 2.0f;
   if (g_ActiveConfig.backend_info.bSupportsLargePoints)
@@ -938,6 +953,8 @@ void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destinat
 
 void FramebufferManager::FlushEFBPokes()
 {
+  LWDProfiler::ScopedMarker marker("FBuffer/Flush EFB Pokes");
+
   if (!m_color_poke_vertices.empty())
   {
     DrawPokeVertices(m_color_poke_vertices.data(), static_cast<u32>(m_color_poke_vertices.size()),
