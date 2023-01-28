@@ -317,7 +317,25 @@ void VideoBackendBase::DoState(PointerWrap& p)
   system.GetFifo().GpuMaySleep();
 }
 
-void VideoBackendBase::InitializeShared()
+bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
+                                        std::unique_ptr<VertexManagerBase> vertex_manager,
+                                        std::unique_ptr<PerfQueryBase> perf_query,
+                                        std::unique_ptr<BoundingBox> bounding_box)
+{
+  // All hardware backends use the default RendererBase and TextureCacheBase.
+  // Only Null and Software backends override them
+
+  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+                          std::move(bounding_box), std::make_unique<Renderer>(),
+                          std::make_unique<TextureCacheBase>());
+}
+
+bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
+                                        std::unique_ptr<VertexManagerBase> vertex_manager,
+                                        std::unique_ptr<PerfQueryBase> perf_query,
+                                        std::unique_ptr<BoundingBox> bounding_box,
+                                        std::unique_ptr<Renderer> renderer,
+                                        std::unique_ptr<TextureCacheBase> texture_cache)
 {
   memset(reinterpret_cast<u8*>(&g_main_cp_state), 0, sizeof(g_main_cp_state));
   memset(reinterpret_cast<u8*>(&g_preprocess_cp_state), 0, sizeof(g_preprocess_cp_state));
@@ -326,14 +344,17 @@ void VideoBackendBase::InitializeShared()
   // do not initialize again for the config window
   m_initialized = true;
 
-  if (!g_renderer)
-  {
-    // Null and Software Backends supply their own Renderer
-    g_renderer = std::make_unique<Renderer>();
-  }
+  g_gfx = std::move(gfx);
+  g_vertex_manager = std::move(vertex_manager);
+  g_perf_query = std::move(perf_query);
+  g_bounding_box = std::move(bounding_box);
+
+  // Null and Software Backends supply their own derived Renderer and Texture Cache
+  g_texture_cache = std::move(texture_cache);
+  g_renderer = std::move(renderer);
+
   g_presenter = std::make_unique<VideoCommon::Presenter>();
   g_frame_dumper = std::make_unique<FrameDumper>();
-  g_texture_cache = std::make_unique<TextureCacheBase>();
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
 
@@ -355,13 +376,15 @@ void VideoBackendBase::InitializeShared()
   {
     PanicAlertFmtT("Failed to initialize renderer classes");
     Shutdown();
-    return;
+    return false;
   }
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();
 
   g_shader_cache->InitializeShaderCache();
+
+  return true;
 }
 
 void VideoBackendBase::ShutdownShared()

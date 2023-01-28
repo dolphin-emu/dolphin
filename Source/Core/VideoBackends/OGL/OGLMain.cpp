@@ -187,17 +187,16 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
     return false;
 
-  g_gfx = std::make_unique<OGLGfx>(std::move(main_gl_context), wsi.render_surface_scale);
+  auto gfx = std::make_unique<OGLGfx>(std::move(main_gl_context), wsi.render_surface_scale);
   ProgramShaderCache::Init();
-
-  g_vertex_manager = std::make_unique<VertexManager>();
-  g_perf_query = GetPerfQuery();
   g_sampler_cache = std::make_unique<SamplerCache>();
-  g_bounding_box = std::make_unique<OGLBoundingBox>();
 
-  InitializeShared();
+  auto vertex_manager = std::make_unique<VertexManager>();
+  auto perf_query = GetPerfQuery(gfx->IsGLES());
+  auto bounding_box = std::make_unique<OGLBoundingBox>();
 
-  return true;
+  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+                          std::move(bounding_box));
 }
 
 void VideoBackend::Shutdown()
