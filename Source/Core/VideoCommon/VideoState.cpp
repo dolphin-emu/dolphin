@@ -8,6 +8,7 @@
 #include "Common/ChunkFile.h"
 #include "Core/System.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"

@@ -143,7 +143,7 @@ protected:
   int m_frame_count = 0;
 
 private:
-  PixelFormat m_prev_efb_format = PixelFormat::INVALID_FMT;
+  PixelFormat m_prev_efb_format;
   unsigned int m_efb_scale = 1;
 
   u64 m_last_xfb_ticks = 0;

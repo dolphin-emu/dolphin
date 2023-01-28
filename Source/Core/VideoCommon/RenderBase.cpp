@@ -60,7 +60,9 @@
 
 std::unique_ptr<Renderer> g_renderer;
 
-Renderer::Renderer() : m_last_xfb_width{MAX_XFB_WIDTH}, m_last_xfb_height{MAX_XFB_HEIGHT}
+Renderer::Renderer()
+    : m_prev_efb_format{PixelFormat::INVALID_FMT},
+       m_last_xfb_width{MAX_XFB_WIDTH}, m_last_xfb_height{MAX_XFB_HEIGHT}
 {
   UpdateActiveConfig();
   FreeLook::UpdateActiveConfig();
