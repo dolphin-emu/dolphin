@@ -56,7 +56,7 @@ void Metal::Texture::ResolveFromTexture(const AbstractTexture* src,
 static constexpr u32 STAGING_TEXTURE_UPLOAD_THRESHOLD = 1024 * 1024 * 4;
 
 void Metal::Texture::Load(u32 level, u32 width, u32 height, u32 row_length,  //
-                          const u8* buffer, size_t buffer_size)
+                          const u8* buffer, size_t buffer_size, u32 layer)
 {
   @autoreleasepool
   {
@@ -89,7 +89,7 @@ void Metal::Texture::Load(u32 level, u32 width, u32 height, u32 row_length,  //
         sourceBytesPerImage:upload_size
                  sourceSize:MTLSizeMake(width, height, 1)
                   toTexture:m_tex
-           destinationSlice:0
+           destinationSlice:layer
            destinationLevel:level
           destinationOrigin:MTLOriginMake(0, 0, 0)];
   }

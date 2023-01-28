@@ -21,7 +21,7 @@ void NullTexture::ResolveFromTexture(const AbstractTexture* src,
 }
 
 void NullTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                       size_t buffer_size)
+                       size_t buffer_size, u32 layer)
 {
 }
 

@@ -221,10 +221,13 @@ void OGLTexture::ResolveFromTexture(const AbstractTexture* src,
 }
 
 void OGLTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                      size_t buffer_size)
+                      size_t buffer_size, u32 layer)
 {
   if (level >= m_config.levels)
     PanicAlertFmt("Texture only has {} levels, can't update level {}", m_config.levels, level);
+
+  if (layer >= m_config.layers)
+    PanicAlertFmt("Texture only has {} layer, can't update layer {}", m_config.layers, layer);
 
   const auto expected_width = std::max(1U, m_config.width >> level);
   const auto expected_height = std::max(1U, m_config.height >> level);
@@ -246,7 +249,7 @@ void OGLTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8
   {
     if (g_ogl_config.bSupportsTextureStorage)
     {
-      glCompressedTexSubImage3D(target, level, 0, 0, 0, width, height, 1, gl_internal_format,
+      glCompressedTexSubImage3D(target, level, 0, 0, layer, width, height, 1, gl_internal_format,
                                 static_cast<GLsizei>(buffer_size), buffer);
     }
     else
@@ -261,7 +264,7 @@ void OGLTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8
     GLenum gl_type = GetGLTypeForTextureFormat(m_config.format);
     if (g_ogl_config.bSupportsTextureStorage)
     {
-      glTexSubImage3D(target, level, 0, 0, 0, width, height, 1, gl_format, gl_type, buffer);
+      glTexSubImage3D(target, level, 0, 0, layer, width, height, 1, gl_format, gl_type, buffer);
     }
     else
     {

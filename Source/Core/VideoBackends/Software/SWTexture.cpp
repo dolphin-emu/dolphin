@@ -92,16 +92,13 @@ void SWTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
 }
 
 void SWTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                     size_t buffer_size)
+                     size_t buffer_size, u32 layer)
 {
-  for (u32 layer = 0; layer < m_config.layers; layer++)
+  u8* data = GetData(layer, level);
+  for (u32 y = 0; y < height; y++)
   {
-    u8* data = GetData(layer, level);
-    for (u32 y = 0; y < height; y++)
-    {
-      memcpy(&data[width * y * sizeof(Pixel)], &buffer[y * row_length * sizeof(Pixel)],
-             width * sizeof(Pixel));
-    }
+    memcpy(&data[width * y * sizeof(Pixel)], &buffer[y * row_length * sizeof(Pixel)],
+           width * sizeof(Pixel));
   }
 }
 
