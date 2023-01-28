@@ -1,7 +1,7 @@
 // Copyright 2009 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "VideoCommon/FrameDump.h"
+#include "VideoCommon/FrameDumpFFMpeg.h"
 
 #if defined(__FreeBSD__)
 #define __STDC_CONSTANT_MACROS 1

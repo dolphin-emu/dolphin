@@ -9,7 +9,7 @@
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
 
-#include "VideoCommon/FrameDump.h"
+#include "VideoCommon/FrameDumpFFMpeg.h"
 
 class AbstractStagingTexture;
 class AbstractTexture;

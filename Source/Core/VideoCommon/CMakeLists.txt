@@ -36,6 +36,7 @@ add_library(videocommon
   FramebufferShaderGen.h
   FrameDumper.cpp
   FrameDumper.h
+  FrameDumpFFMpeg.h
   FreeLookCamera.cpp
   FreeLookCamera.h
   GeometryShaderGen.cpp
@@ -203,8 +204,7 @@ endif()
 
 if(FFmpeg_FOUND)
   target_sources(videocommon PRIVATE
-    FrameDump.cpp
-    FrameDump.h
+    FrameDumpFFMpeg.cpp
   )
   target_link_libraries(videocommon PRIVATE
     FFmpeg::avcodec

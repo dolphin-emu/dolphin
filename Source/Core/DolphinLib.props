@@ -638,7 +638,7 @@
     <ClInclude Include="VideoCommon\Fifo.h" />
     <ClInclude Include="VideoCommon\FramebufferManager.h" />
     <ClInclude Include="VideoCommon\FramebufferShaderGen.h" />
-    <ClInclude Include="VideoCommon\FrameDump.h" />
+    <ClInclude Include="VideoCommon\FrameDumpFFMpeg.h" />
     <ClInclude Include="VideoCommon\FrameDumper.h" />
     <ClInclude Include="VideoCommon\FreeLookCamera.h" />
     <ClInclude Include="VideoCommon\GeometryShaderGen.h" />
@@ -1234,7 +1234,7 @@
     <ClCompile Include="VideoCommon\Fifo.cpp" />
     <ClCompile Include="VideoCommon\FramebufferManager.cpp" />
     <ClCompile Include="VideoCommon\FramebufferShaderGen.cpp" />
-    <ClCompile Include="VideoCommon\FrameDump.cpp" />
+    <ClCompile Include="VideoCommon\FrameDumpFFMpeg.cpp" />
     <ClCompile Include="VideoCommon\FrameDumper.cpp" />
     <ClCompile Include="VideoCommon\FreeLookCamera.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderGen.cpp" />
