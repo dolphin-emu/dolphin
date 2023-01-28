@@ -610,7 +610,7 @@
     <ClInclude Include="VideoBackends\Vulkan\VKBoundingBox.h" />
     <ClInclude Include="VideoBackends\Vulkan\VKPerfQuery.h" />
     <ClInclude Include="VideoBackends\Vulkan\VKPipeline.h" />
-    <ClInclude Include="VideoBackends\Vulkan\VKRenderer.h" />
+    <ClInclude Include="VideoBackends\Vulkan\VKGfx.h" />
     <ClInclude Include="VideoBackends\Vulkan\VKShader.h" />
     <ClInclude Include="VideoBackends\Vulkan\VKStreamBuffer.h" />
     <ClInclude Include="VideoBackends\Vulkan\VKSwapChain.h" />
@@ -1214,7 +1214,7 @@
     <ClCompile Include="VideoBackends\Vulkan\VKMain.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKPerfQuery.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKPipeline.cpp" />
-    <ClCompile Include="VideoBackends\Vulkan\VKRenderer.cpp" />
+    <ClCompile Include="VideoBackends\Vulkan\VKGfx.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKShader.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKStreamBuffer.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKSwapChain.cpp" />

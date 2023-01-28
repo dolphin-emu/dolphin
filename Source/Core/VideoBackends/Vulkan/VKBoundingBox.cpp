@@ -11,7 +11,7 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
-#include "VideoBackends/Vulkan/VKRenderer.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan
@@ -65,7 +65,7 @@ std::vector<BBoxType> VKBoundingBox::Read(u32 index, u32 length)
                                    VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
   // Wait until these commands complete.
-  Renderer::GetInstance()->ExecuteCommandBuffer(false, true);
+  VKGfx::GetInstance()->ExecuteCommandBuffer(false, true);
 
   // Cache is now valid.
   m_readback_buffer->InvalidateCPUCache();

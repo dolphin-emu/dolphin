@@ -4,16 +4,12 @@
 #pragma once
 
 #include <array>
-#include <cstddef>
 #include <memory>
 #include <string_view>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
-#include "VideoCommon/RenderBase.h"
-
-class BoundingBox;
-struct XFBSourceBase;
+#include "VideoCommon/AbstractGfx.h"
 
 namespace Vulkan
 {
@@ -23,18 +19,15 @@ class VKFramebuffer;
 class VKPipeline;
 class VKTexture;
 
-class Renderer : public ::Renderer
+class VKGfx : public ::AbstractGfx
 {
 public:
-  Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
-  ~Renderer() override;
+  VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
+  ~VKGfx() override;
 
-  static Renderer* GetInstance() { return static_cast<Renderer*>(g_renderer.get()); }
+  static VKGfx* GetInstance() { return static_cast<VKGfx*>(g_gfx.get()); }
 
   bool IsHeadless() const override;
-
-  bool Initialize() override;
-  void Shutdown() override;
 
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
                                                  std::string_view name) override;
@@ -60,8 +53,8 @@ public:
   void WaitForGPUIdle() override;
   void OnConfigChanged(u32 bits) override;
 
-  void ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
-                   bool z_enable, u32 color, u32 z) override;
+  void ClearRegion(const MathUtil::Rectangle<int>& rc, const MathUtil::Rectangle<int>& target_rc,
+                   bool color_enable, bool alpha_enable, bool z_enable, u32 color, u32 z) override;
 
   void SetPipeline(const AbstractPipeline* pipeline) override;
   void SetFramebuffer(AbstractFramebuffer* framebuffer) override;
@@ -84,12 +77,12 @@ public:
   void SetFullscreen(bool enable_fullscreen) override;
   bool IsFullscreen() const override;
 
+  // Returns info about the main surface (aka backbuffer)
+  virtual SurfaceInfo GetSurfaceInfo() const override;
+
   // Completes the current render pass, executes the command buffer, and restores state ready for
   // next render. Use when you want to kick the current buffer to make room for new data.
   void ExecuteCommandBuffer(bool execute_off_thread, bool wait_for_completion = false);
-
-protected:
-  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
 
 private:
   void CheckForSurfaceChange();
@@ -101,6 +94,7 @@ private:
   void BindFramebuffer(VKFramebuffer* fb);
 
   std::unique_ptr<SwapChain> m_swap_chain;
+  float m_backbuffer_scale;
 
   // Keep a copy of sampler states to avoid cache lookups every draw
   std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};

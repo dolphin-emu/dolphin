@@ -1,7 +1,7 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "VideoBackends/Vulkan/VKRenderer.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -15,152 +15,98 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
-#include "Core/Core.h"
-
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
-#include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
-#include "VideoBackends/Vulkan/VKBoundingBox.h"
-#include "VideoBackends/Vulkan/VKPerfQuery.h"
 #include "VideoBackends/Vulkan/VKPipeline.h"
 #include "VideoBackends/Vulkan/VKShader.h"
-#include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VKSwapChain.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
-#include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/RenderState.h"
-#include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/XFMemory.h"
 
 namespace Vulkan
 {
-Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
-    : ::Renderer(swap_chain ? static_cast<int>(swap_chain->GetWidth()) : 1,
-                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0, backbuffer_scale,
-                 swap_chain ? swap_chain->GetTextureFormat() : AbstractTextureFormat::Undefined),
-      m_swap_chain(std::move(swap_chain))
+VKGfx::VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
+    : m_swap_chain(std::move(swap_chain)), m_backbuffer_scale(backbuffer_scale)
 {
   UpdateActiveConfig();
   for (SamplerState& m_sampler_state : m_sampler_states)
     m_sampler_state = RenderState::GetPointSamplerState();
-}
-
-Renderer::~Renderer() = default;
-
-bool Renderer::IsHeadless() const
-{
-  return m_swap_chain == nullptr;
-}
-
-bool Renderer::Initialize()
-{
-  if (!::Renderer::Initialize())
-    return false;
 
   // Various initialization routines will have executed commands on the command buffer.
   // Execute what we have done before beginning the first frame.
   ExecuteCommandBuffer(true, false);
-  return true;
 }
 
-void Renderer::Shutdown()
+VKGfx::~VKGfx() = default;
+
+bool VKGfx::IsHeadless() const
 {
-  ::Renderer::Shutdown();
-  m_swap_chain.reset();
+  return m_swap_chain == nullptr;
 }
 
-std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config,
-                                                         std::string_view name)
+std::unique_ptr<AbstractTexture> VKGfx::CreateTexture(const TextureConfig& config,
+                                                      std::string_view name)
 {
   return VKTexture::Create(config, name);
 }
 
-std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
-                                                                       const TextureConfig& config)
+std::unique_ptr<AbstractStagingTexture> VKGfx::CreateStagingTexture(StagingTextureType type,
+                                                                    const TextureConfig& config)
 {
   return VKStagingTexture::Create(type, config);
 }
 
 std::unique_ptr<AbstractShader>
-Renderer::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
+VKGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
   return VKShader::CreateFromSource(stage, source, name);
 }
 
-std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
-                                                                 const void* data, size_t length,
-                                                                 std::string_view name)
+std::unique_ptr<AbstractShader> VKGfx::CreateShaderFromBinary(ShaderStage stage, const void* data,
+                                                              size_t length, std::string_view name)
 {
   return VKShader::CreateFromBinary(stage, data, length, name);
 }
 
 std::unique_ptr<NativeVertexFormat>
-Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
+VKGfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
   return std::make_unique<VertexFormat>(vtx_decl);
 }
 
-std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config,
-                                                           const void* cache_data,
-                                                           size_t cache_data_length)
+std::unique_ptr<AbstractPipeline> VKGfx::CreatePipeline(const AbstractPipelineConfig& config,
+                                                        const void* cache_data,
+                                                        size_t cache_data_length)
 {
   return VKPipeline::Create(config);
 }
 
-std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
-                                                                 AbstractTexture* depth_attachment)
+std::unique_ptr<AbstractFramebuffer> VKGfx::CreateFramebuffer(AbstractTexture* color_attachment,
+                                                              AbstractTexture* depth_attachment)
 {
   return VKFramebuffer::Create(static_cast<VKTexture*>(color_attachment),
                                static_cast<VKTexture*>(depth_attachment));
 }
 
-void Renderer::SetPipeline(const AbstractPipeline* pipeline)
+void VKGfx::SetPipeline(const AbstractPipeline* pipeline)
 {
   StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
 }
 
-std::unique_ptr<BoundingBox> Renderer::CreateBoundingBox() const
+void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& rc,
+                        const MathUtil::Rectangle<int>& target_rc, bool color_enable,
+                        bool alpha_enable, bool z_enable, u32 color, u32 z)
 {
-  return std::make_unique<VKBoundingBox>();
-}
-
-void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
-                           bool z_enable, u32 color, u32 z)
-{
-  g_framebuffer_manager->FlushEFBPokes();
-  g_framebuffer_manager->FlagPeekCacheAsOutOfDate();
-
-  // Native -> EFB coordinates
-  MathUtil::Rectangle<int> target_rc = Renderer::ConvertEFBRectangle(rc);
-
-  // Size we pass this size to vkBeginRenderPass, it has to be clamped to the framebuffer
-  // dimensions. The other backends just silently ignore this case.
-  target_rc.ClampUL(0, 0, m_target_width, m_target_height);
-
   VkRect2D target_vk_rc = {
       {target_rc.left, target_rc.top},
       {static_cast<uint32_t>(target_rc.GetWidth()), static_cast<uint32_t>(target_rc.GetHeight())}};
-
-  // Determine whether the EFB has an alpha channel. If it doesn't, we can clear the alpha
-  // channel to 0xFF. This hopefully allows us to use the fast path in most cases.
-  if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16 ||
-      bpmem.zcontrol.pixel_format == PixelFormat::RGB8_Z24 ||
-      bpmem.zcontrol.pixel_format == PixelFormat::Z24)
-  {
-    // Force alpha writes, and clear the alpha channel. This is different from the other backends,
-    // where the existing values of the alpha channel are preserved.
-    alpha_enable = true;
-    color &= 0x00FFFFFF;
-  }
 
   // Convert RGBA8 -> floating-point values.
   VkClearValue clear_color_value = {};
@@ -248,17 +194,17 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
   g_framebuffer_manager->ClearEFB(rc, color_enable, alpha_enable, z_enable, color, z);
 }
 
-void Renderer::Flush()
+void VKGfx::Flush()
 {
   ExecuteCommandBuffer(true, false);
 }
 
-void Renderer::WaitForGPUIdle()
+void VKGfx::WaitForGPUIdle()
 {
   ExecuteCommandBuffer(false, true);
 }
 
-void Renderer::BindBackbuffer(const ClearColor& clear_color)
+void VKGfx::BindBackbuffer(const ClearColor& clear_color)
 {
   StateTracker::GetInstance()->EndRenderPass();
 
@@ -335,7 +281,7 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
                          ClearColor{{0.0f, 0.0f, 0.0f, 1.0f}});
 }
 
-void Renderer::PresentBackbuffer()
+void VKGfx::PresentBackbuffer()
 {
   // End drawing to backbuffer
   StateTracker::GetInstance()->EndRenderPass();
@@ -356,7 +302,7 @@ void Renderer::PresentBackbuffer()
   StateTracker::GetInstance()->InvalidateCachedState();
 }
 
-void Renderer::SetFullscreen(bool enable_fullscreen)
+void VKGfx::SetFullscreen(bool enable_fullscreen)
 {
   if (!m_swap_chain->IsFullscreenSupported())
     return;
@@ -364,12 +310,12 @@ void Renderer::SetFullscreen(bool enable_fullscreen)
   m_swap_chain->SetNextFullscreenState(enable_fullscreen);
 }
 
-bool Renderer::IsFullscreen() const
+bool VKGfx::IsFullscreen() const
 {
   return m_swap_chain && m_swap_chain->GetCurrentFullscreenState();
 }
 
-void Renderer::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completion)
+void VKGfx::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completion)
 {
   StateTracker::GetInstance()->EndRenderPass();
 
@@ -378,7 +324,7 @@ void Renderer::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_comple
   StateTracker::GetInstance()->InvalidateCachedState();
 }
 
-void Renderer::CheckForSurfaceChange()
+void VKGfx::CheckForSurfaceChange()
 {
   if (!g_presenter->SurfaceChangedTestAndClear() || !m_swap_chain)
     return;
@@ -397,7 +343,7 @@ void Renderer::CheckForSurfaceChange()
   OnSwapChainResized();
 }
 
-void Renderer::CheckForSurfaceResize()
+void VKGfx::CheckForSurfaceResize()
 {
   if (!g_presenter->SurfaceResizedTestAndClear())
     return;
@@ -421,7 +367,7 @@ void Renderer::CheckForSurfaceResize()
   OnSwapChainResized();
 }
 
-void Renderer::OnConfigChanged(u32 bits)
+void VKGfx::OnConfigChanged(u32 bits)
 {
   if (bits & CONFIG_CHANGE_BIT_HOST_CONFIG)
     g_object_cache->ReloadPipelineCache();
@@ -448,12 +394,12 @@ void Renderer::OnConfigChanged(u32 bits)
   }
 }
 
-void Renderer::OnSwapChainResized()
+void VKGfx::OnSwapChainResized()
 {
   g_presenter->SetBackbuffer(m_swap_chain->GetWidth(), m_swap_chain->GetHeight());
 }
 
-void Renderer::BindFramebuffer(VKFramebuffer* fb)
+void VKGfx::BindFramebuffer(VKFramebuffer* fb)
 {
   StateTracker::GetInstance()->EndRenderPass();
 
@@ -474,7 +420,7 @@ void Renderer::BindFramebuffer(VKFramebuffer* fb)
   m_current_framebuffer = fb;
 }
 
-void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
+void VKGfx::SetFramebuffer(AbstractFramebuffer* framebuffer)
 {
   if (m_current_framebuffer == framebuffer)
     return;
@@ -483,7 +429,7 @@ void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
   BindFramebuffer(vkfb);
 }
 
-void Renderer::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
+void VKGfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
 {
   if (m_current_framebuffer == framebuffer)
     return;
@@ -496,8 +442,8 @@ void Renderer::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
   StateTracker::GetInstance()->BeginDiscardRenderPass();
 }
 
-void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
-                                      const ClearColor& color_value, float depth_value)
+void VKGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearColor& color_value,
+                                   float depth_value)
 {
   VKFramebuffer* vkfb = static_cast<VKFramebuffer*>(framebuffer);
   BindFramebuffer(vkfb);
@@ -520,7 +466,7 @@ void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
                                                     num_clear_values);
 }
 
-void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
+void VKGfx::SetTexture(u32 index, const AbstractTexture* texture)
 {
   // Texture should always be in SHADER_READ_ONLY layout prior to use.
   // This is so we don't need to transition during render passes.
@@ -531,7 +477,7 @@ void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
     {
       if (StateTracker::GetInstance()->InRenderPass())
       {
-        WARN_LOG_FMT(VIDEO, "Transitioning image in render pass in Renderer::SetTexture()");
+        WARN_LOG_FMT(VIDEO, "Transitioning image in render pass in VKGfx::SetTexture()");
         StateTracker::GetInstance()->EndRenderPass();
       }
 
@@ -547,7 +493,7 @@ void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
   }
 }
 
-void Renderer::SetSamplerState(u32 index, const SamplerState& state)
+void VKGfx::SetSamplerState(u32 index, const SamplerState& state)
 {
   // Skip lookup if the state hasn't changed.
   if (m_sampler_states[index] == state)
@@ -565,7 +511,7 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
   m_sampler_states[index] = state;
 }
 
-void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void VKGfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
 {
   VKTexture* vk_texture = static_cast<VKTexture*>(texture);
   if (vk_texture)
@@ -583,12 +529,12 @@ void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool 
   }
 }
 
-void Renderer::UnbindTexture(const AbstractTexture* texture)
+void VKGfx::UnbindTexture(const AbstractTexture* texture)
 {
   StateTracker::GetInstance()->UnbindTexture(static_cast<const VKTexture*>(texture)->GetView());
 }
 
-void Renderer::ResetSamplerStates()
+void VKGfx::ResetSamplerStates()
 {
   // Invalidate all sampler states, next draw will re-initialize them.
   for (u32 i = 0; i < m_sampler_states.size(); i++)
@@ -601,7 +547,7 @@ void Renderer::ResetSamplerStates()
   g_object_cache->ClearSamplerCache();
 }
 
-void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
+void VKGfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
   VkRect2D scissor = {{rc.left, rc.top},
                       {static_cast<u32>(rc.GetWidth()), static_cast<u32>(rc.GetHeight())}};
@@ -621,14 +567,14 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   StateTracker::GetInstance()->SetScissor(scissor);
 }
 
-void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
-                           float far_depth)
+void VKGfx::SetViewport(float x, float y, float width, float height, float near_depth,
+                        float far_depth)
 {
   VkViewport viewport = {x, y, width, height, near_depth, far_depth};
   StateTracker::GetInstance()->SetViewport(viewport);
 }
 
-void Renderer::Draw(u32 base_vertex, u32 num_vertices)
+void VKGfx::Draw(u32 base_vertex, u32 num_vertices)
 {
   if (!StateTracker::GetInstance()->Bind())
     return;
@@ -636,7 +582,7 @@ void Renderer::Draw(u32 base_vertex, u32 num_vertices)
   vkCmdDraw(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_vertices, 1, base_vertex, 0);
 }
 
-void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+void VKGfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   if (!StateTracker::GetInstance()->Bind())
     return;
@@ -645,12 +591,19 @@ void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
                    base_vertex, 0);
 }
 
-void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
-                                     u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
+void VKGfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
+                                  u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
 {
   StateTracker::GetInstance()->SetComputeShader(static_cast<const VKShader*>(shader));
   if (StateTracker::GetInstance()->BindCompute())
     vkCmdDispatch(g_command_buffer_mgr->GetCurrentCommandBuffer(), groups_x, groups_y, groups_z);
+}
+
+SurfaceInfo VKGfx::GetSurfaceInfo() const
+{
+  return {m_swap_chain ? m_swap_chain->GetWidth() : 1u,
+          m_swap_chain ? m_swap_chain->GetHeight() : 0u, m_backbuffer_scale,
+          m_swap_chain ? m_swap_chain->GetTextureFormat() : AbstractTextureFormat::Undefined};
 }
 
 }  // namespace Vulkan

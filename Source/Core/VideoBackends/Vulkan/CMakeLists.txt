@@ -17,8 +17,8 @@ add_library(videovulkan
   VKPerfQuery.h
   VKPipeline.cpp
   VKPipeline.h
-  VKRenderer.cpp
-  VKRenderer.h
+  VKGfx.cpp
+  VKGfx.h
   VKShader.cpp
   VKShader.h
   VKStreamBuffer.cpp

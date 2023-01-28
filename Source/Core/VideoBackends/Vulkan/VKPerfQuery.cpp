@@ -13,7 +13,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
-#include "VideoBackends/Vulkan/VKRenderer.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -234,7 +234,7 @@ void PerfQuery::PartialFlush(bool blocking)
   if (blocking || m_query_buffer[m_query_readback_pos].fence_counter ==
                       g_command_buffer_mgr->GetCurrentFenceCounter())
   {
-    Renderer::GetInstance()->ExecuteCommandBuffer(true, blocking);
+    VKGfx::GetInstance()->ExecuteCommandBuffer(true, blocking);
   }
 
   ReadbackQueries();
