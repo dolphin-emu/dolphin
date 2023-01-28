@@ -265,10 +265,12 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                  static_cast<u32>(dst_rect.GetHeight()) <= m_config.height,
              "Dest rect is too large for CopyRectangleFromTexture");
 
+  const u32 copy_layer_count = 1;
+
   VkImageCopy image_copy = {
-      {VK_IMAGE_ASPECT_COLOR_BIT, src_level, src_layer, src_texture->GetLayers()},
+      {VK_IMAGE_ASPECT_COLOR_BIT, src_level, src_layer, copy_layer_count},
       {src_rect.left, src_rect.top, 0},
-      {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, dst_layer, m_config.layers},
+      {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, dst_layer, copy_layer_count},
       {dst_rect.left, dst_rect.top, 0},
       {static_cast<uint32_t>(src_rect.GetWidth()), static_cast<uint32_t>(src_rect.GetHeight()), 1}};
 
