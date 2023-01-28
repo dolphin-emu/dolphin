@@ -16,6 +16,13 @@
     <ClInclude Include="Common\Align.h" />
     <ClInclude Include="Common\Analytics.h" />
     <ClInclude Include="Common\Assert.h" />
+    <ClInclude Include="Common\Assembler\AssemblerShared.h" />
+    <ClInclude Include="Common\Assembler\AssemblerTables.h" />
+    <ClInclude Include="Common\Assembler\CaseInsensitiveDict.h" />
+    <ClInclude Include="Common\Assembler\GekkoAssembler.h" />
+    <ClInclude Include="Common\Assembler\GekkoIRGen.h" />
+    <ClInclude Include="Common\Assembler\GekkoLexer.h" />
+    <ClInclude Include="Common\Assembler\GekkoParser.h" />
     <ClInclude Include="Common\BitField.h" />
     <ClInclude Include="Common\BitSet.h" />
     <ClInclude Include="Common\BitUtils.h" />
@@ -760,6 +767,12 @@
     <ClCompile Include="AudioCommon\WASAPIStream.cpp" />
     <ClCompile Include="AudioCommon\WaveFile.cpp" />
     <ClCompile Include="Common\Analytics.cpp" />
+    <ClCompile Include="Common\Assembler\AssemblerShared.cpp" />
+    <ClCompile Include="Common\Assembler\AssemblerTables.cpp" />
+    <ClCompile Include="Common\Assembler\GekkoAssembler.cpp" />
+    <ClCompile Include="Common\Assembler\GekkoIRGen.cpp" />
+    <ClCompile Include="Common\Assembler\GekkoLexer.cpp" />
+    <ClCompile Include="Common\Assembler\GekkoParser.cpp" />
     <ClCompile Include="Common\ColorUtil.cpp" />
     <ClCompile Include="Common\CommonFuncs.cpp" />
     <ClCompile Include="Common\CompatPatches.cpp" />
