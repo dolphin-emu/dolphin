@@ -406,24 +406,36 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     // Check if this is a valid entry.
     if (strlen(name) > 0)
     {
-      // Can't compute the checksum if not in RAM
-      bool good = !bad && PowerPC::HostIsInstructionRAMAddress(vaddress) &&
-                  PowerPC::HostIsInstructionRAMAddress(vaddress + size - 4);
-      if (!good)
+      bool in_function_section = section_name == ".text" || section_name == ".init";
+      bool good = !bad;
+
+      if (in_function_section)
       {
-        // check for BLR before function
-        PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(vaddress - 4);
-        if (read_result.valid && read_result.hex == 0x4e800020)
+        // Can't compute the checksum if not in RAM
+        good = good && PowerPC::HostIsInstructionRAMAddress(vaddress) &&
+               PowerPC::HostIsInstructionRAMAddress(vaddress + size - 4);
+        if (!good)
         {
-          // check for BLR at end of function
-          read_result = PowerPC::TryReadInstruction(vaddress + size - 4);
-          good = read_result.valid && read_result.hex == 0x4e800020;
+          // check for BLR before function
+          PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(vaddress - 4);
+          if (read_result.valid && read_result.hex == 0x4e800020)
+          {
+            // check for BLR at end of function
+            read_result = PowerPC::TryReadInstruction(vaddress + size - 4);
+            good = read_result.valid && read_result.hex == 0x4e800020;
+          }
         }
       }
+      else
+      {
+        good = good && PowerPC::HostIsRAMAddress(vaddress) &&
+               PowerPC::HostIsRAMAddress(vaddress + size - 1);
+      }
+
       if (good)
       {
         ++good_count;
-        if (section_name == ".text" || section_name == ".init")
+        if (in_function_section)
           AddKnownSymbol(vaddress, size, name, Common::Symbol::Type::Function);
         else
           AddKnownSymbol(vaddress, size, name, Common::Symbol::Type::Data);
