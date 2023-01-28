@@ -137,13 +137,13 @@ std::vector<LWDProfiler::Entry> LWDProfiler::Profiler::GetEntries(std::size_t ma
   std::lock_guard lock{m_profiler_lock};
   ScopedMarker sorting(*this, "Profiler/Overhead");
 
-  std::vector<LWDProfiler::Entry> entries;
+  std::vector<Entry> entries;
   entries.reserve(m_dt_marked_totals.size());
 
   for (const auto& [marker, duration] : m_dt_marked_totals)
     entries.emplace_back(marker, duration, m_dt_total);
 
-  std::sort(std::begin(entries), std::end(entries), [](auto a, auto b) { return a > b; });
+  std::sort(std::begin(entries), std::end(entries), std::greater<Entry>());
 
   DT other_duration = DT::zero();
   while (!entries.empty() && max_entries <= entries.size())
@@ -153,7 +153,7 @@ std::vector<LWDProfiler::Entry> LWDProfiler::Profiler::GetEntries(std::size_t ma
   }
 
   if (DT::zero() < other_duration)
-    entries.emplace_back(Entry("Other", other_duration, m_dt_total));
+    entries.emplace_back("Other", other_duration, m_dt_total);
 
   return entries;
 }
