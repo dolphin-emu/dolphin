@@ -6,7 +6,7 @@
 #include <d3d11.h>
 #include <string_view>
 #include "VideoBackends/D3D/D3DState.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/AbstractGfx.h"
 
 class BoundingBox;
 
@@ -16,11 +16,11 @@ class SwapChain;
 class DXTexture;
 class DXFramebuffer;
 
-class Renderer : public ::Renderer
+class Gfx : public ::AbstractGfx
 {
 public:
-  Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
-  ~Renderer() override;
+  Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
+  ~Gfx() override;
 
   StateCache& GetStateCache() { return m_state_cache; }
 
@@ -69,14 +69,14 @@ public:
 
   void OnConfigChanged(u32 bits) override;
 
-protected:
-  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
+  SurfaceInfo GetSurfaceInfo() const override;
 
 private:
   void CheckForSwapChainChanges();
 
   StateCache m_state_cache;
 
+  float m_backbuffer_scale;
   std::unique_ptr<SwapChain> m_swap_chain;
 };
 }  // namespace DX11

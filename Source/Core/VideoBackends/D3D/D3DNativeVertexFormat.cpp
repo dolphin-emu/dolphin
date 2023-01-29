@@ -7,7 +7,7 @@
 #include "Common/EnumMap.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
-#include "VideoBackends/D3D/D3DRender.h"
+#include "VideoBackends/D3D/D3DGfx.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DVertexManager.h"
 #include "VideoBackends/D3D/DXShader.h"
@@ -18,7 +18,7 @@ namespace DX11
 std::mutex s_input_layout_lock;
 
 std::unique_ptr<NativeVertexFormat>
-Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
+Gfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
   return std::make_unique<D3DVertexFormat>(vtx_decl);
 }

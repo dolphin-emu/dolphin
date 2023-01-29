@@ -1,7 +1,7 @@
 // Copyright 2010 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "VideoBackends/D3D/D3DRender.h"
+#include "VideoBackends/D3D/D3DGfx.h"
 
 #include <algorithm>
 #include <array>
@@ -37,34 +37,31 @@
 
 namespace DX11
 {
-Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
-    : ::Renderer(swap_chain ? swap_chain->GetWidth() : 0, swap_chain ? swap_chain->GetHeight() : 0,
-                 backbuffer_scale,
-                 swap_chain ? swap_chain->GetFormat() : AbstractTextureFormat::Undefined),
-      m_swap_chain(std::move(swap_chain))
+Gfx::Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
+    : m_backbuffer_scale(backbuffer_scale), m_swap_chain(std::move(swap_chain))
 {
 }
 
-Renderer::~Renderer() = default;
+Gfx::~Gfx() = default;
 
-bool Renderer::IsHeadless() const
+bool Gfx::IsHeadless() const
 {
   return !m_swap_chain;
 }
 
-std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config,
+std::unique_ptr<AbstractTexture> Gfx::CreateTexture(const TextureConfig& config,
                                                          std::string_view name)
 {
   return DXTexture::Create(config, name);
 }
 
-std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
+std::unique_ptr<AbstractStagingTexture> Gfx::CreateStagingTexture(StagingTextureType type,
                                                                        const TextureConfig& config)
 {
   return DXStagingTexture::Create(type, config);
 }
 
-std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
+std::unique_ptr<AbstractFramebuffer> Gfx::CreateFramebuffer(AbstractTexture* color_attachment,
                                                                  AbstractTexture* depth_attachment)
 {
   return DXFramebuffer::Create(static_cast<DXTexture*>(color_attachment),
@@ -72,7 +69,7 @@ std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture
 }
 
 std::unique_ptr<AbstractShader>
-Renderer::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
+Gfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
   auto bytecode = DXShader::CompileShader(D3D::feature_level, stage, source);
   if (!bytecode)
@@ -81,21 +78,21 @@ Renderer::CreateShaderFromSource(ShaderStage stage, std::string_view source, std
   return DXShader::CreateFromBytecode(stage, std::move(*bytecode), name);
 }
 
-std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
+std::unique_ptr<AbstractShader> Gfx::CreateShaderFromBinary(ShaderStage stage,
                                                                  const void* data, size_t length,
                                                                  std::string_view name)
 {
   return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length), name);
 }
 
-std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config,
+std::unique_ptr<AbstractPipeline> Gfx::CreatePipeline(const AbstractPipelineConfig& config,
                                                            const void* cache_data,
                                                            size_t cache_data_length)
 {
   return DXPipeline::Create(config);
 }
 
-void Renderer::SetPipeline(const AbstractPipeline* pipeline)
+void Gfx::SetPipeline(const AbstractPipeline* pipeline)
 {
   const DXPipeline* dx_pipeline = static_cast<const DXPipeline*>(pipeline);
   if (m_current_pipeline == dx_pipeline)
@@ -123,7 +120,7 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   }
 }
 
-void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
+void Gfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
   // TODO: Move to stateman
   const CD3D11_RECT rect(rc.left, rc.top, std::max(rc.right, rc.left + 1),
@@ -131,7 +128,7 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   D3D::context->RSSetScissorRects(1, &rect);
 }
 
-void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
+void Gfx::SetViewport(float x, float y, float width, float height, float near_depth,
                            float far_depth)
 {
   // TODO: Move to stateman
@@ -139,19 +136,19 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
   D3D::context->RSSetViewports(1, &vp);
 }
 
-void Renderer::Draw(u32 base_vertex, u32 num_vertices)
+void Gfx::Draw(u32 base_vertex, u32 num_vertices)
 {
   D3D::stateman->Apply();
   D3D::context->Draw(num_vertices, base_vertex);
 }
 
-void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+void Gfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   D3D::stateman->Apply();
   D3D::context->DrawIndexed(num_indices, base_index, base_vertex);
 }
 
-void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
+void Gfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
                                      u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
 {
   D3D::stateman->SetComputeShader(static_cast<const DXShader*>(shader)->GetD3DComputeShader());
@@ -159,25 +156,25 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groupsize
   D3D::context->Dispatch(groups_x, groups_y, groups_z);
 }
 
-void Renderer::BindBackbuffer(const ClearColor& clear_color)
+void Gfx::BindBackbuffer(const ClearColor& clear_color)
 {
   CheckForSwapChainChanges();
   SetAndClearFramebuffer(m_swap_chain->GetFramebuffer(), clear_color);
 }
 
-void Renderer::PresentBackbuffer()
+void Gfx::PresentBackbuffer()
 {
   m_swap_chain->Present();
 }
 
-void Renderer::OnConfigChanged(u32 bits)
+void Gfx::OnConfigChanged(u32 bits)
 {
   // Quad-buffer changes require swap chain recreation.
   if (bits & CONFIG_CHANGE_BIT_STEREO_MODE && m_swap_chain)
     m_swap_chain->SetStereo(SwapChain::WantsStereo());
 }
 
-void Renderer::CheckForSwapChainChanges()
+void Gfx::CheckForSwapChainChanges()
 {
   const bool surface_changed = g_presenter->SurfaceChangedTestAndClear();
   const bool surface_resized =
@@ -194,11 +191,10 @@ void Renderer::CheckForSwapChainChanges()
     m_swap_chain->ResizeSwapChain();
   }
 
-  m_backbuffer_width = m_swap_chain->GetWidth();
-  m_backbuffer_height = m_swap_chain->GetHeight();
+  g_presenter->SetBackbuffer(m_swap_chain->GetWidth(), m_swap_chain->GetHeight());
 }
 
-void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
+void Gfx::SetFramebuffer(AbstractFramebuffer* framebuffer)
 {
   if (m_current_framebuffer == framebuffer)
     return;
@@ -219,12 +215,12 @@ void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
   m_current_framebuffer = fb;
 }
 
-void Renderer::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
+void Gfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
 {
   SetFramebuffer(framebuffer);
 }
 
-void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
+void Gfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
                                       const ClearColor& color_value, float depth_value)
 {
   SetFramebuffer(framebuffer);
@@ -242,53 +238,58 @@ void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
   }
 }
 
-void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
+void Gfx::SetTexture(u32 index, const AbstractTexture* texture)
 {
   D3D::stateman->SetTexture(index, texture ? static_cast<const DXTexture*>(texture)->GetD3DSRV() :
                                              nullptr);
 }
 
-void Renderer::SetSamplerState(u32 index, const SamplerState& state)
+void Gfx::SetSamplerState(u32 index, const SamplerState& state)
 {
   D3D::stateman->SetSampler(index, m_state_cache.Get(state));
 }
 
-void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Gfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
 {
   D3D::stateman->SetComputeUAV(texture ? static_cast<DXTexture*>(texture)->GetD3DUAV() : nullptr);
 }
 
-void Renderer::UnbindTexture(const AbstractTexture* texture)
+void Gfx::UnbindTexture(const AbstractTexture* texture)
 {
   if (D3D::stateman->UnsetTexture(static_cast<const DXTexture*>(texture)->GetD3DSRV()) != 0)
     D3D::stateman->ApplyTextures();
 }
 
-std::unique_ptr<BoundingBox> Renderer::CreateBoundingBox() const
-{
-  return std::make_unique<D3DBoundingBox>();
-}
-
-void Renderer::Flush()
+void Gfx::Flush()
 {
   D3D::context->Flush();
 }
 
-void Renderer::WaitForGPUIdle()
+void Gfx::WaitForGPUIdle()
 {
   // There is no glFinish() equivalent in D3D.
   D3D::context->Flush();
 }
 
-void Renderer::SetFullscreen(bool enable_fullscreen)
+void Gfx::SetFullscreen(bool enable_fullscreen)
 {
   if (m_swap_chain)
     m_swap_chain->SetFullscreen(enable_fullscreen);
 }
 
-bool Renderer::IsFullscreen() const
+bool Gfx::IsFullscreen() const
 {
   return m_swap_chain && m_swap_chain->GetFullscreen();
+}
+
+SurfaceInfo Gfx::GetSurfaceInfo() const
+{
+  return {
+    m_swap_chain ? static_cast<u32>(m_swap_chain->GetWidth()) : 0,
+    m_swap_chain ? static_cast<u32>(m_swap_chain->GetHeight()) : 0,
+    m_backbuffer_scale,
+    m_swap_chain ? m_swap_chain->GetFormat() : AbstractTextureFormat::Undefined
+  };
 }
 
 }  // namespace DX11

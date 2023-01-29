@@ -534,7 +534,7 @@
     <ClInclude Include="VideoBackends\D3D\D3DBase.h" />
     <ClInclude Include="VideoBackends\D3D\D3DBoundingBox.h" />
     <ClInclude Include="VideoBackends\D3D\D3DPerfQuery.h" />
-    <ClInclude Include="VideoBackends\D3D\D3DRender.h" />
+    <ClInclude Include="VideoBackends\D3D\D3DGfx.h" />
     <ClInclude Include="VideoBackends\D3D\D3DState.h" />
     <ClInclude Include="VideoBackends\D3D\D3DSwapChain.h" />
     <ClInclude Include="VideoBackends\D3D\D3DVertexManager.h" />
@@ -1148,7 +1148,7 @@
     <ClCompile Include="VideoBackends\D3D\D3DMain.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DNativeVertexFormat.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DPerfQuery.cpp" />
-    <ClCompile Include="VideoBackends\D3D\D3DRender.cpp" />
+    <ClCompile Include="VideoBackends\D3D\D3DGfx.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DState.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DSwapChain.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DVertexManager.cpp" />
