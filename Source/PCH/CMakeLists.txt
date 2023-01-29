@@ -2,6 +2,12 @@
 # Instead of having one PCH per module, dolphin has one PCH shared between all modules.
 # So we need to implement PCH manually, rather than using the PCH support built into cmake
 
+# linking against this interface libary will cause targets to enable PCH
+add_library(use_pch INTERFACE)
+
+# Uncomment this return to disable PCH
+#return()
+
 add_library(build_pch pch.h pch.cpp)
 
 # fmt/format.h is included in the PCH
@@ -30,8 +36,7 @@ add_custom_target(force_build_pch
     DEPENDS $<TARGET_FILE_DIR:build_pch>/dolphin.pch
 )
 
-# linking against this interface libary will cause targets to enable PCH
-add_library(use_pch INTERFACE)
+# link the pch into anything that depends on use_pch
 target_link_libraries(use_pch INTERFACE build_pch)
 
 # targets which use the pch need these compile options
