@@ -19,6 +19,7 @@ static constexpr auto X_None = None;
 #include <climits>
 #include <cstdio>
 #include <cstring>
+#include <thread>
 
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
