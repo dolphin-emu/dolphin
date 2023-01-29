@@ -100,7 +100,6 @@ public:
 
   PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PixelFormat new_format) { m_prev_efb_format = new_format; }
-  bool EFBHasAlphaChannel() const;
 
   bool UseVertexDepthRange() const;
   void DoState(PointerWrap& p);

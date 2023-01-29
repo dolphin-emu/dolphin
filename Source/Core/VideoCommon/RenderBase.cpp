@@ -68,11 +68,6 @@ Renderer::Renderer()
 
 Renderer::~Renderer() = default;
 
-bool Renderer::EFBHasAlphaChannel() const
-{
-  return m_prev_efb_format == PixelFormat::RGBA6_Z24;
-}
-
 void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
                            bool z_enable, u32 color, u32 z)
 {
