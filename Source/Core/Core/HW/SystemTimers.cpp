@@ -139,9 +139,10 @@ void PerfTrackerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
   auto& core_timing = system.GetCoreTiming();
   g_perf_metrics.CountPerformanceMarker(system, cyclesLate);
 
-  // Call this performance tracker again in 1/64th of a second.
-  // The tracker stores 256 values so this will let us summarize the last 4 seconds.
-  core_timing.ScheduleEvent(GetTicksPerSecond() / 64 - cyclesLate, et_perf_tracker);
+  // Call this performance tracker again in 1/100th of a second.
+  // The tracker stores 256 values so this will let us summarize the last 2.56 seconds.
+  // The performance metrics require this to be called at 100hz for the speed% is correct.
+  core_timing.ScheduleEvent(GetTicksPerSecond() / 100 - cyclesLate, et_perf_tracker);
 }
 
 void VICallback(Core::System& system, u64 userdata, s64 cyclesLate)
