@@ -21,8 +21,28 @@ target_compile_options(build_pch PRIVATE /Ycpch.h)
 target_compile_options(build_pch PUBLIC /Fp$<TARGET_FILE_DIR:build_pch>/dolphin.pch )
 
 # Sharing a PCH breaks pdb files. So we use the /Z7 option to inline the pdb into
-# the binary. That also requires us to disable minimal rebuilds.
-target_compile_options(build_pch PUBLIC /Z7 /Gm-)
+# the binary. However MSVC gets noisy if you set both /Zi and /Z7
+if (POLICY CMP0141)
+    # CMake 3.25 has a policy that makes us control this somewhat sanely
+    set_property(TARGET build_pch PROPERTY MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
+
+    # Unfortnually, properties don't propagate. So we also set it globally via parent scope
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>" PARENT_SCOPE)
+else()
+    if (CMAKE_CXX_FLAGS_DEBUG MATCHES "/Zi")
+        # Otherwise we do an ugly string replace to remove it from FLAGS_DEBUG
+        string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+        string(REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+
+        # and also overwrite the version in the parent scope
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}" PARENT_SCOPE)
+        set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}" PARENT_SCOPE)
+
+        target_compile_options(build_pch PUBLIC "$<$<CONFIG:Debug,RelWithDebInfo>:/Z7>")
+    endif()
+endif()
+# Setting /Z7 also requires us to disable minimal rebuilds.
+target_compile_options(build_pch PUBLIC "$<$<CONFIG:Debug,RelWithDebInfo>:/Gm->")
 
 # To get this working with ninja, we need to tell it that compiling pch.cpp generates an extra output
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/pch.cpp PROPERTIES
