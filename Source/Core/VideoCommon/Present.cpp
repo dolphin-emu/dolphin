@@ -214,8 +214,9 @@ void Presenter::ResizeSurface()
 
 void* Presenter::GetNewSurfaceHandle()
 {
-  return m_new_surface_handle;
+  void *handle = m_new_surface_handle;
   m_new_surface_handle = nullptr;
+  return handle;
 }
 
 void Presenter::SetWindowSize(int width, int height)
