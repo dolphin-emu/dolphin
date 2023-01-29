@@ -44,7 +44,6 @@
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
@@ -52,7 +51,6 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/ShaderCache.h"
-#include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -65,11 +63,7 @@ Renderer::Renderer()
        m_last_xfb_width{MAX_XFB_WIDTH}, m_last_xfb_height{MAX_XFB_HEIGHT}
 {
   UpdateActiveConfig();
-  FreeLook::UpdateActiveConfig();
   CalculateTargetSize();
-
-  m_is_game_widescreen = SConfig::GetInstance().bWii && Config::Get(Config::SYSCONF_WIDESCREEN);
-  g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
 }
 
 Renderer::~Renderer() = default;
@@ -288,104 +282,6 @@ bool Renderer::CalculateTargetSize()
   return false;
 }
 
-void Renderer::CheckForConfigChanges()
-{
-  const ShaderHostConfig old_shader_host_config = ShaderHostConfig::GetCurrent();
-  const StereoMode old_stereo = g_ActiveConfig.stereo_mode;
-  const u32 old_multisamples = g_ActiveConfig.iMultisamples;
-  const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
-  const int old_efb_access_tile_size = g_ActiveConfig.iEFBAccessTileSize;
-  const auto old_texture_filtering_mode = g_ActiveConfig.texture_filtering_mode;
-  const bool old_vsync = g_ActiveConfig.bVSyncActive;
-  const bool old_bbox = g_ActiveConfig.bBBoxEnable;
-  const u32 old_game_mod_changes =
-      g_ActiveConfig.graphics_mod_config ? g_ActiveConfig.graphics_mod_config->GetChangeCount() : 0;
-  const bool old_graphics_mods_enabled = g_ActiveConfig.bGraphicMods;
-
-  UpdateActiveConfig();
-  FreeLook::UpdateActiveConfig();
-  g_vertex_manager->OnConfigChange();
-
-  g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
-
-  if (g_ActiveConfig.bGraphicMods && !old_graphics_mods_enabled)
-  {
-    g_ActiveConfig.graphics_mod_config = GraphicsModGroupConfig(SConfig::GetInstance().GetGameID());
-    g_ActiveConfig.graphics_mod_config->Load();
-  }
-
-  if (g_ActiveConfig.graphics_mod_config &&
-      (old_game_mod_changes != g_ActiveConfig.graphics_mod_config->GetChangeCount()))
-  {
-    g_graphics_mod_manager->Load(*g_ActiveConfig.graphics_mod_config);
-  }
-
-  // Update texture cache settings with any changed options.
-  g_texture_cache->OnConfigChanged(g_ActiveConfig);
-
-  // EFB tile cache doesn't need to notify the backend.
-  if (old_efb_access_tile_size != g_ActiveConfig.iEFBAccessTileSize)
-    g_framebuffer_manager->SetEFBCacheTileSize(std::max(g_ActiveConfig.iEFBAccessTileSize, 0));
-
-  // Determine which (if any) settings have changed.
-  ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
-  u32 changed_bits = 0;
-  if (old_shader_host_config.bits != new_host_config.bits)
-    changed_bits |= CONFIG_CHANGE_BIT_HOST_CONFIG;
-  if (old_stereo != g_ActiveConfig.stereo_mode)
-    changed_bits |= CONFIG_CHANGE_BIT_STEREO_MODE;
-  if (old_multisamples != g_ActiveConfig.iMultisamples)
-    changed_bits |= CONFIG_CHANGE_BIT_MULTISAMPLES;
-  if (old_anisotropy != g_ActiveConfig.iMaxAnisotropy)
-    changed_bits |= CONFIG_CHANGE_BIT_ANISOTROPY;
-  if (old_texture_filtering_mode != g_ActiveConfig.texture_filtering_mode)
-    changed_bits |= CONFIG_CHANGE_BIT_FORCE_TEXTURE_FILTERING;
-  if (old_vsync != g_ActiveConfig.bVSyncActive)
-    changed_bits |= CONFIG_CHANGE_BIT_VSYNC;
-  if (old_bbox != g_ActiveConfig.bBBoxEnable)
-    changed_bits |= CONFIG_CHANGE_BIT_BBOX;
-  if (CalculateTargetSize())
-    changed_bits |= CONFIG_CHANGE_BIT_TARGET_SIZE;
-
-  g_presenter->CheckForConfigChanges(changed_bits);
-
-  // No changes?
-  if (changed_bits == 0)
-    return;
-
-  // Notify the backend of the changes, if any.
-  g_gfx->OnConfigChanged(changed_bits);
-
-  // If there's any shader changes, wait for the GPU to finish before destroying anything.
-  if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
-  {
-    g_gfx->WaitForGPUIdle();
-    g_gfx->SetPipeline(nullptr);
-  }
-
-  // Framebuffer changed?
-  if (changed_bits & (CONFIG_CHANGE_BIT_MULTISAMPLES | CONFIG_CHANGE_BIT_STEREO_MODE |
-                      CONFIG_CHANGE_BIT_TARGET_SIZE))
-  {
-    g_framebuffer_manager->RecreateEFBFramebuffer();
-  }
-
-  // Reload shaders if host config has changed.
-  if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
-  {
-    OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
-    g_vertex_manager->InvalidatePipelineObject();
-    g_shader_cache->SetHostConfig(new_host_config);
-    g_shader_cache->Reload();
-    g_framebuffer_manager->RecompileShaders();
-  }
-
-  // Viewport and scissor rect have to be reset since they will be scaled differently.
-  if (changed_bits & CONFIG_CHANGE_BIT_TARGET_SIZE)
-  {
-    BPFunctions::SetScissorAndViewport();
-  }
-}
 
 MathUtil::Rectangle<int> Renderer::ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc) const
 {

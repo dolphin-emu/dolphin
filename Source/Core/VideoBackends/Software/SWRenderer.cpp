@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"

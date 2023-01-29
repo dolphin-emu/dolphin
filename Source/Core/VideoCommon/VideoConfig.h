@@ -59,6 +59,20 @@ enum class TriState : int
   Auto
 };
 
+
+// Bitmask containing information about which configuration has changed for the backend.
+enum ConfigChangeBits : u32
+{
+  CONFIG_CHANGE_BIT_HOST_CONFIG = (1 << 0),
+  CONFIG_CHANGE_BIT_MULTISAMPLES = (1 << 1),
+  CONFIG_CHANGE_BIT_STEREO_MODE = (1 << 2),
+  CONFIG_CHANGE_BIT_TARGET_SIZE = (1 << 3),
+  CONFIG_CHANGE_BIT_ANISOTROPY = (1 << 4),
+  CONFIG_CHANGE_BIT_FORCE_TEXTURE_FILTERING = (1 << 5),
+  CONFIG_CHANGE_BIT_VSYNC = (1 << 6),
+  CONFIG_CHANGE_BIT_BBOX = (1 << 7)
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -307,3 +321,4 @@ extern VideoConfig g_ActiveConfig;
 
 // Called every frame.
 void UpdateActiveConfig();
+void CheckForConfigChanges();

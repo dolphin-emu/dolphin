@@ -108,11 +108,10 @@ public:
   // Will forcibly reload all textures on the next swap
   void ForceReloadTextures();
 
-protected:
-  std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
 
-  void CheckForConfigChanges();
+protected:
+  std::tuple<int, int> CalculateTargetScale(int x, int y) const;
 
   void CheckFifoRecording();
   void RecordVideoMemory();
