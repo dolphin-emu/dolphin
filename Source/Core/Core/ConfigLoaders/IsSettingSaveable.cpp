@@ -135,6 +135,8 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_OVERRIDE_BOOT_IOS.GetLocation(),
       &Config::MAIN_GCI_FOLDER_A_PATH.GetLocation(),
       &Config::MAIN_GCI_FOLDER_B_PATH.GetLocation(),
+      &Config::MAIN_WII_SD_SYNC_TIME_FILE.GetLocation(),
+      &Config::MAIN_WII_SD_LAST_SYNC_TIME.GetLocation(),
 
       // UI.General
 

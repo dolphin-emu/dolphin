@@ -124,6 +124,8 @@ extern const Info<u32> MAIN_MEM2_SIZE;
 extern const Info<std::string> MAIN_GFX_BACKEND;
 extern const Info<HSP::HSPDeviceType> MAIN_HSP_DEVICE;
 extern const Info<u32> MAIN_ARAM_EXPANSION_SIZE;
+extern const Info<std::string> MAIN_WII_SD_SYNC_TIME_FILE;
+extern const Info<s64> MAIN_WII_SD_LAST_SYNC_TIME;
 
 enum class GPUDeterminismMode
 {

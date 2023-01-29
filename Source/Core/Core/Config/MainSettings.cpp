@@ -54,6 +54,8 @@ const Info<bool> MAIN_AUDIO_STRETCH{{System::Main, "Core", "AudioStretch"}, fals
 const Info<int> MAIN_AUDIO_STRETCH_LATENCY{{System::Main, "Core", "AudioStretchMaxLatency"}, 80};
 const Info<std::string> MAIN_MEMCARD_A_PATH{{System::Main, "Core", "MemcardAPath"}, ""};
 const Info<std::string> MAIN_MEMCARD_B_PATH{{System::Main, "Core", "MemcardBPath"}, ""};
+const Info<std::string> MAIN_WII_SD_SYNC_TIME_FILE{{System::Main, "Core", "WiiSDSyncTimeFile"}, ""};
+const Info<s64> MAIN_WII_SD_LAST_SYNC_TIME{{System::Main, "Core", "WiiSDLastSyncTime"}, 0};
 const Info<std::string>& GetInfoForMemcardPath(ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));

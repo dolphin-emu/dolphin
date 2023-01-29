@@ -43,6 +43,8 @@ private:
   void SetSDRaw(const QString& path);
   void BrowseSDSyncFolder();
   void SetSDSyncFolder(const QString& path);
+  void BrowseSDSyncTimeFile();
+  void SetSDSyncTimeFile(const QString& path);
 
   // Widgets
   QVBoxLayout* m_main_layout;
@@ -66,6 +68,7 @@ private:
   QLineEdit* m_sd_sync_folder_edit;
   QPushButton* m_sd_pack_button;
   QPushButton* m_sd_unpack_button;
+  QLineEdit* m_sd_sync_file_edit;
 
   // Whitelisted USB Passthrough Devices
   QListWidget* m_whitelist_usb_list;

@@ -216,6 +216,23 @@ void WiiPane::CreateSDCard()
     ++row;
   }
 
+  {
+    auto hlayout = new QHBoxLayout;
+    m_sd_sync_file_edit =
+        new QLineEdit(QString::fromStdString(Config::Get(Config::MAIN_WII_SD_SYNC_TIME_FILE)));
+    connect(m_sd_sync_file_edit, &QLineEdit::editingFinished,
+            [this] { SetSDSyncTimeFile(m_sd_sync_file_edit->text()); });
+    QPushButton* browse = new NonDefaultQPushButton(QStringLiteral("..."));
+    connect(browse, &QPushButton::clicked, this, &WiiPane::BrowseSDSyncTimeFile);
+    hlayout->addWidget(new QLabel(tr("SD Sync File:")));
+    hlayout->addWidget(m_sd_sync_file_edit);
+    hlayout->addWidget(browse);
+
+    sd_settings_group_layout->addLayout(hlayout, row, 0, 1, 2);
+    ++row;
+  }
+
+
   m_sd_pack_button = new NonDefaultQPushButton(tr("Convert Folder to File Now"));
   m_sd_unpack_button = new NonDefaultQPushButton(tr("Convert File to Folder Now"));
   connect(m_sd_pack_button, &QPushButton::clicked, [this] {
@@ -439,4 +456,22 @@ void WiiPane::SetSDSyncFolder(const QString& path)
 {
   Config::SetBase(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH, path.toStdString());
   SignalBlocking(m_sd_sync_folder_edit)->setText(path);
+}
+
+void WiiPane::BrowseSDSyncTimeFile()
+{
+  const auto file = QDir::toNativeSeparators(DolphinFileDialog::getSaveFileName(
+      this, tr("Select a File to track timestamp for syncing SD image"), {}, {}, nullptr,
+      QFileDialog::Option::DontConfirmOverwrite));
+
+  if (!file.isEmpty())
+  {
+    SetSDSyncTimeFile(file);
+  }
+}
+
+void WiiPane::SetSDSyncTimeFile(const QString& path)
+{
+  Config::SetBase(Config::MAIN_WII_SD_SYNC_TIME_FILE, path.toStdString());
+  SignalBlocking(m_sd_sync_file_edit)->setText(path);
 }

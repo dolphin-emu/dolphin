@@ -488,13 +488,50 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   const bool delete_savestate =
       boot_session_data.GetDeleteSavestate() == DeleteSavestateAfterBoot::Yes;
 
-  bool sync_sd_folder = core_parameter.bWii && Config::Get(Config::MAIN_WII_SD_CARD) &&
-                        Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC);
-  if (sync_sd_folder)
-    sync_sd_folder = Common::SyncSDFolderToSDImage(Core::WantsDeterminism());
+  const bool sd_folder_synced = [&]() {
+    const bool sync_enabled = core_parameter.bWii && Config::Get(Config::MAIN_WII_SD_CARD) &&
+                              Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC);
+    if (!sync_enabled)
+    {
+      return false;
+    }
 
-  Common::ScopeGuard sd_folder_sync_guard{[sync_sd_folder] {
-    if (sync_sd_folder && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
+    const auto sync_time_file = Config::Get(Config::MAIN_WII_SD_SYNC_TIME_FILE);
+
+    // If sync time file does not exist, do sd sync as usual
+    if (!File::Exists(sync_time_file))
+    {
+      INFO_LOG_FMT(CONSOLE, "SD sync time file does not exist (\"{}\"), syncing SD folder.",
+                   sync_time_file);
+      Config::SetBase(Config::MAIN_WII_SD_LAST_SYNC_TIME, 0);
+      return Common::SyncSDFolderToSDImage(Core::WantsDeterminism());
+    }
+
+    // Otherwise, check sync file timestamp to see if sd is up to date
+    const auto last_write_timepoint = std::filesystem::last_write_time(sync_time_file);
+    const auto last_write_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                        last_write_timepoint.time_since_epoch())
+                                        .count();
+    if (const auto saved_write_time = Config::Get(Config::MAIN_WII_SD_LAST_SYNC_TIME);
+        saved_write_time != last_write_time_ms)
+    {
+      // sync AND update saved_write_time
+      const auto sync_success = Common::SyncSDFolderToSDImage(Core::WantsDeterminism());
+      if (sync_success)
+      {
+        Config::SetBase(Config::MAIN_WII_SD_LAST_SYNC_TIME, last_write_time_ms);
+      }
+      return sync_success;
+    }
+    else
+    {
+      INFO_LOG_FMT(CONSOLE,
+                   "SD is up to date based on sync file timestamp, do not sync SD folder.");
+      return false;
+    }
+  }();
+  Common::ScopeGuard sd_folder_sync_guard{[sd_folder_synced] {
+    if (sd_folder_synced && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
       Common::SyncSDImageToSDFolder();
   }};
 
