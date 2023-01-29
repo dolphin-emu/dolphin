@@ -5,7 +5,6 @@
 
 #include <string>
 
-#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
@@ -41,11 +40,6 @@ void WriteHostMemory(u8 value, u32 addr)
 
 void DMAToDSP(u16* dst, u32 addr, u32 size)
 {
-  // Hardware testing indicates that a misaligned DMA address does not work properly (it's unclear
-  // exactly what goes wrong currently). A size that's not a multiple of 32 is allowed, though
-  // (and occurs with modern libogc homebrew uCode, including the oggpalyer (asnd uCode) and
-  // modplay (aesnd uCode) examples). It's untested whether extra bytes are copied in that case.
-  ASSERT_MSG(DSPLLE, (addr & 0x1f) == 0, "DSP DMA addr must be 32-byte aligned (was {:08x})", addr);
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.CopyFromEmuSwapped(dst, addr, size);
@@ -53,8 +47,6 @@ void DMAToDSP(u16* dst, u32 addr, u32 size)
 
 void DMAFromDSP(const u16* src, u32 addr, u32 size)
 {
-  // See comment in DMAToDSP
-  ASSERT_MSG(DSPLLE, (addr & 0x1f) == 0, "DSP DMA addr must be 32-byte aligned (was {:08x})", addr);
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.CopyToEmuSwapped(addr, src, size);
