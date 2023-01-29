@@ -68,8 +68,6 @@ public:
 
   virtual bool Initialize();
 
-  void BeginUtilityDrawing();
-  void EndUtilityDrawing();
   // Ideal internal resolution - multiple of the native EFB resolution
   int GetTargetWidth() const { return m_target_width; }
   int GetTargetHeight() const { return m_target_height; }

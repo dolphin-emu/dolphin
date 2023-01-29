@@ -95,18 +95,6 @@ bool Renderer::Initialize()
   return true;
 }
 
-void Renderer::BeginUtilityDrawing()
-{
-  g_vertex_manager->Flush();
-}
-
-void Renderer::EndUtilityDrawing()
-{
-  // Reset framebuffer/scissor/viewport. Pipeline will be reset at next draw.
-  g_framebuffer_manager->BindEFBFramebuffer();
-  BPFunctions::SetScissorAndViewport();
-}
-
 bool Renderer::EFBHasAlphaChannel() const
 {
   return m_prev_efb_format == PixelFormat::RGBA6_Z24;

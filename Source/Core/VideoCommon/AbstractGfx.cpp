@@ -7,6 +7,7 @@
 
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/ShaderCache.h"
@@ -22,14 +23,14 @@ bool AbstractGfx::IsHeadless() const
 
 void AbstractGfx::BeginUtilityDrawing()
 {
-  if (g_renderer)
-    g_renderer->BeginUtilityDrawing();
+  g_vertex_manager->Flush();
 }
 
 void AbstractGfx::EndUtilityDrawing()
 {
-  if (g_renderer)
-    g_renderer->EndUtilityDrawing();
+  // Reset framebuffer/scissor/viewport. Pipeline will be reset at next draw.
+  g_framebuffer_manager->BindEFBFramebuffer();
+  BPFunctions::SetScissorAndViewport();
 }
 
 void AbstractGfx::SetFramebuffer(AbstractFramebuffer* framebuffer)
