@@ -2,11 +2,13 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import androidx.annotation.NonNull;
+
 public interface AbstractSetting
 {
-  boolean isOverridden(Settings settings);
+  boolean isOverridden(@NonNull Settings settings);
 
   boolean isRuntimeEditable();
 
-  boolean delete(Settings settings);
+  boolean delete(@NonNull Settings settings);
 }

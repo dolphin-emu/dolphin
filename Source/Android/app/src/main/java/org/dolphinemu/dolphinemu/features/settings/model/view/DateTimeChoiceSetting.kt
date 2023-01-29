@@ -21,7 +21,7 @@ class DateTimeChoiceSetting(
         return setting
     }
 
-    fun setSelectedValue(settings: Settings?, selection: String) {
+    fun setSelectedValue(settings: Settings, selection: String) {
         setting.setString(settings, selection)
     }
 

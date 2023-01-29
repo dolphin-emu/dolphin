@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import androidx.annotation.NonNull;
+
 public class AbstractLegacySetting implements AbstractSetting
 {
   protected final String mFile;
@@ -16,7 +18,7 @@ public class AbstractLegacySetting implements AbstractSetting
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden(@NonNull Settings settings)
   {
     return settings.isGameSpecific() && settings.getSection(mFile, mSection).exists(mKey);
   }
@@ -28,7 +30,7 @@ public class AbstractLegacySetting implements AbstractSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     return settings.getSection(mFile, mSection).delete(mKey);
   }

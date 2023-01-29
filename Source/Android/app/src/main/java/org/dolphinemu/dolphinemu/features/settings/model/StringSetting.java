@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import androidx.annotation.NonNull;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 
 import java.util.Arrays;
@@ -63,7 +65,7 @@ public enum StringSetting implements AbstractStringSetting
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden(@NonNull Settings settings)
   {
     if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
       return settings.getSection(mFile, mSection).exists(mKey);
@@ -84,7 +86,7 @@ public enum StringSetting implements AbstractStringSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
@@ -96,8 +98,8 @@ public enum StringSetting implements AbstractStringSetting
     }
   }
 
-  @Override
-  public String getString(Settings settings)
+  @NonNull @Override
+  public String getString(@NonNull Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
@@ -111,7 +113,7 @@ public enum StringSetting implements AbstractStringSetting
   }
 
   @Override
-  public void setString(Settings settings, String newValue)
+  public void setString(@NonNull Settings settings, @NonNull String newValue)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {

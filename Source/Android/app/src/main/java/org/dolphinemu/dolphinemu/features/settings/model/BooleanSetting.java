@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import androidx.annotation.NonNull;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -290,7 +292,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden(@NonNull Settings settings)
   {
     if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
       return settings.getSection(mFile, mSection).exists(mKey);
@@ -314,7 +316,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
@@ -327,7 +329,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean getBoolean(Settings settings)
+  public boolean getBoolean(@NonNull Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
@@ -341,7 +343,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public void setBoolean(Settings settings, boolean newValue)
+  public void setBoolean(@NonNull Settings settings, boolean newValue)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {

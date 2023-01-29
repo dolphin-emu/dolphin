@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import androidx.annotation.NonNull;
+
 public class LegacyStringSetting extends AbstractLegacySetting implements AbstractStringSetting
 {
   private final String mDefaultValue;
@@ -12,14 +14,14 @@ public class LegacyStringSetting extends AbstractLegacySetting implements Abstra
     mDefaultValue = defaultValue;
   }
 
-  @Override
-  public String getString(Settings settings)
+  @NonNull @Override
+  public String getString(@NonNull Settings settings)
   {
     return settings.getSection(mFile, mSection).getString(mKey, mDefaultValue);
   }
 
   @Override
-  public void setString(Settings settings, String newValue)
+  public void setString(@NonNull Settings settings, @NonNull String newValue)
   {
     settings.getSection(mFile, mSection).setString(mKey, newValue);
   }

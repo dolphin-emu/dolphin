@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -22,6 +23,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing;
+import org.dolphinemu.dolphinemu.features.settings.model.ScaledIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.WiimoteProfileStringSetting;
@@ -333,7 +335,7 @@ public final class SettingsFragmentPresenter
     AbstractIntSetting appTheme = new AbstractIntSetting()
     {
       @Override
-      public boolean isOverridden(Settings settings)
+      public boolean isOverridden(@NonNull Settings settings)
       {
         return IntSetting.MAIN_INTERFACE_THEME.isOverridden(settings);
       }
@@ -346,20 +348,20 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public boolean delete(Settings settings)
+      public boolean delete(@NonNull Settings settings)
       {
         ThemeHelper.deleteThemeKey((AppCompatActivity) mView.getActivity());
         return IntSetting.MAIN_INTERFACE_THEME.delete(settings);
       }
 
       @Override
-      public int getInt(Settings settings)
+      public int getInt(@NonNull Settings settings)
       {
         return IntSetting.MAIN_INTERFACE_THEME.getInt(settings);
       }
 
       @Override
-      public void setInt(Settings settings, int newValue)
+      public void setInt(@NonNull Settings settings, int newValue)
       {
         IntSetting.MAIN_INTERFACE_THEME.setInt(settings, newValue);
         ThemeHelper.saveTheme((AppCompatActivity) mView.getActivity(), newValue);
@@ -381,7 +383,7 @@ public final class SettingsFragmentPresenter
     AbstractIntSetting themeMode = new AbstractIntSetting()
     {
       @Override
-      public boolean isOverridden(Settings settings)
+      public boolean isOverridden(@NonNull Settings settings)
       {
         return IntSetting.MAIN_INTERFACE_THEME_MODE.isOverridden(settings);
       }
@@ -394,20 +396,20 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public boolean delete(Settings settings)
+      public boolean delete(@NonNull Settings settings)
       {
         ThemeHelper.deleteThemeModeKey((AppCompatActivity) mView.getActivity());
         return IntSetting.MAIN_INTERFACE_THEME_MODE.delete(settings);
       }
 
       @Override
-      public int getInt(Settings settings)
+      public int getInt(@NonNull Settings settings)
       {
         return IntSetting.MAIN_INTERFACE_THEME_MODE.getInt(settings);
       }
 
       @Override
-      public void setInt(Settings settings, int newValue)
+      public void setInt(@NonNull Settings settings, int newValue)
       {
         IntSetting.MAIN_INTERFACE_THEME_MODE.setInt(settings, newValue);
         ThemeHelper.saveThemeMode((AppCompatActivity) mView.getActivity(), newValue);
@@ -420,7 +422,7 @@ public final class SettingsFragmentPresenter
     AbstractBooleanSetting blackBackgrounds = new AbstractBooleanSetting()
     {
       @Override
-      public boolean isOverridden(Settings settings)
+      public boolean isOverridden(@NonNull Settings settings)
       {
         return BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.isOverridden(settings);
       }
@@ -432,20 +434,20 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public boolean delete(Settings settings)
+      public boolean delete(@NonNull Settings settings)
       {
         ThemeHelper.deleteBackgroundSetting((AppCompatActivity) mView.getActivity());
         return BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.delete(settings);
       }
 
       @Override
-      public boolean getBoolean(Settings settings)
+      public boolean getBoolean(@NonNull Settings settings)
       {
         return BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBoolean(settings);
       }
 
       @Override
-      public void setBoolean(Settings settings, boolean newValue)
+      public void setBoolean(@NonNull Settings settings, boolean newValue)
       {
         BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.setBoolean(settings, newValue);
         ThemeHelper.saveBackgroundSetting((AppCompatActivity) mView.getActivity(), newValue);
@@ -465,7 +467,7 @@ public final class SettingsFragmentPresenter
     AbstractIntSetting dspEmulationEngine = new AbstractIntSetting()
     {
       @Override
-      public int getInt(Settings settings)
+      public int getInt(@NonNull Settings settings)
       {
         if (BooleanSetting.MAIN_DSP_HLE.getBoolean(settings))
         {
@@ -479,7 +481,7 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public void setInt(Settings settings, int newValue)
+      public void setInt(@NonNull Settings settings, int newValue)
       {
         switch (newValue)
         {
@@ -501,7 +503,7 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public boolean isOverridden(Settings settings)
+      public boolean isOverridden(@NonNull Settings settings)
       {
         return BooleanSetting.MAIN_DSP_HLE.isOverridden(settings) ||
                 BooleanSetting.MAIN_DSP_JIT.isOverridden(settings);
@@ -515,7 +517,7 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public boolean delete(Settings settings)
+      public boolean delete(@NonNull Settings settings)
       {
         // Not short circuiting
         return BooleanSetting.MAIN_DSP_HLE.delete(settings) &
@@ -642,7 +644,7 @@ public final class SettingsFragmentPresenter
     AbstractIntSetting synchronizeGpuThread = new AbstractIntSetting()
     {
       @Override
-      public int getInt(Settings settings)
+      public int getInt(@NonNull Settings settings)
       {
         if (BooleanSetting.MAIN_SYNC_GPU.getBoolean(settings))
         {
@@ -656,7 +658,7 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public void setInt(Settings settings, int newValue)
+      public void setInt(@NonNull Settings settings, int newValue)
       {
         switch (newValue)
         {
@@ -678,7 +680,7 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public boolean isOverridden(Settings settings)
+      public boolean isOverridden(@NonNull Settings settings)
       {
         return BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.isOverridden(settings) ||
                 BooleanSetting.MAIN_SYNC_GPU.isOverridden(settings);
@@ -692,7 +694,7 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public boolean delete(Settings settings)
+      public boolean delete(@NonNull Settings settings)
       {
         // Not short circuiting
         return BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.delete(settings) &
@@ -737,78 +739,15 @@ public final class SettingsFragmentPresenter
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
             R.string.overclock_title_description, 0, 400, "%", 1));
 
-    AbstractIntSetting mem1Setting = new AbstractIntSetting()
-    {
-      @Override
-      public int getInt(Settings settings)
-      {
-        return IntSetting.MAIN_MEM1_SIZE.getInt(settings) / 1024 / 1024;
-      }
+    ScaledIntSetting mem1Size = new ScaledIntSetting(1024 * 1024, IntSetting.MAIN_MEM1_SIZE);
+    ScaledIntSetting mem2Size = new ScaledIntSetting(1024 * 1024, IntSetting.MAIN_MEM2_SIZE);
 
-      @Override
-      public void setInt(Settings settings, int newValue)
-      {
-        IntSetting.MAIN_MEM1_SIZE.setInt(settings, newValue * 1024 * 1024);
-      }
-
-      @Override
-      public boolean isOverridden(Settings settings)
-      {
-        return IntSetting.MAIN_MEM1_SIZE.isOverridden(settings);
-      }
-
-      @Override
-      public boolean isRuntimeEditable()
-      {
-        return IntSetting.MAIN_MEM1_SIZE.isRuntimeEditable();
-      }
-
-      @Override
-      public boolean delete(Settings settings)
-      {
-        return IntSetting.MAIN_MEM1_SIZE.delete(settings);
-      }
-    };
-    AbstractIntSetting mem2Setting = new AbstractIntSetting()
-    {
-      @Override
-      public int getInt(Settings settings)
-      {
-        return IntSetting.MAIN_MEM2_SIZE.getInt(settings) / 1024 / 1024;
-      }
-
-      @Override
-      public void setInt(Settings settings, int newValue)
-      {
-        IntSetting.MAIN_MEM2_SIZE.setInt(settings, newValue * 1024 * 1024);
-      }
-
-      @Override
-      public boolean isOverridden(Settings settings)
-      {
-        return IntSetting.MAIN_MEM2_SIZE.isOverridden(settings);
-      }
-
-      @Override
-      public boolean isRuntimeEditable()
-      {
-        return IntSetting.MAIN_MEM2_SIZE.isRuntimeEditable();
-      }
-
-      @Override
-      public boolean delete(Settings settings)
-      {
-        return IntSetting.MAIN_MEM2_SIZE.delete(settings);
-      }
-    };
     sl.add(new HeaderSetting(mContext, R.string.memory_override, 0));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_RAM_OVERRIDE_ENABLE,
             R.string.enable_memory_size_override,
             R.string.enable_memory_size_override_description));
-    sl.add(new IntSliderSetting(mContext, mem1Setting, R.string.main_mem1_size, 0, 24, 64, "MB",
-            1));
-    sl.add(new IntSliderSetting(mContext, mem2Setting, R.string.main_mem2_size, 0, 64, 128, "MB",
-            1));
+    sl.add(new IntSliderSetting(mContext, mem1Size, R.string.main_mem1_size, 0, 24, 64, "MB", 1));
+    sl.add(new IntSliderSetting(mContext, mem2Size, R.string.main_mem2_size, 0, 64, 128, "MB", 1));
 
     sl.add(new HeaderSetting(mContext, R.string.gpu_options, 0));
     sl.add(new SingleChoiceSetting(mContext, synchronizeGpuThread, R.string.synchronize_gpu_thread,

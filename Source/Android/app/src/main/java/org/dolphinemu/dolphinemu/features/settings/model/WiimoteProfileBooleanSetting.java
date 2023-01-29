@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import androidx.annotation.NonNull;
+
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 // This stuff is pretty ugly. It's a kind of workaround for certain controller settings
@@ -32,7 +34,7 @@ public class WiimoteProfileBooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden(@NonNull Settings settings)
   {
     return settings.isWiimoteProfileEnabled(settings, mProfile, mProfileKey);
   }
@@ -44,13 +46,13 @@ public class WiimoteProfileBooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     return settings.disableWiimoteProfile(settings, mProfileKey);
   }
 
   @Override
-  public boolean getBoolean(Settings settings)
+  public boolean getBoolean(@NonNull Settings settings)
   {
     if (settings.isWiimoteProfileEnabled(settings, mProfile, mProfileKey))
       return settings.getWiimoteProfile(mProfile, mPadID).getBoolean(mSection, mKey, mDefaultValue);
@@ -59,7 +61,7 @@ public class WiimoteProfileBooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public void setBoolean(Settings settings, boolean newValue)
+  public void setBoolean(@NonNull Settings settings, boolean newValue)
   {
     settings.getWiimoteProfile(mProfile, mPadID).setBoolean(mSection, mKey, newValue);
 
