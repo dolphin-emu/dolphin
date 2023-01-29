@@ -48,6 +48,7 @@
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wnullability-completeness"
 #endif  // #ifdef __clang__
 
 #ifdef __GNUC__
