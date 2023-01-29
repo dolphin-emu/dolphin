@@ -36,7 +36,8 @@ public:
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
   std::unique_ptr<AbstractFramebuffer>
-  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) override;
+  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                    std::vector<AbstractTexture*> additional_color_attachments) override;
 
   std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, std::string_view source,
                                                          std::string_view name) override;
@@ -63,7 +64,7 @@ public:
   void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
   void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
-  void SetComputeImageTexture(AbstractTexture* texture, bool read, bool write) override;
+  void SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write) override;
   void UnbindTexture(const AbstractTexture* texture) override;
   void SetViewport(float x, float y, float width, float height, float near_depth,
                    float far_depth) override;
@@ -165,7 +166,7 @@ private:
     D3D12_CPU_DESCRIPTOR_HANDLE vs_srv = {};
     D3D12_CPU_DESCRIPTOR_HANDLE ps_uav = {};
     SamplerStateSet samplers = {};
-    const DXTexture* compute_image_texture = nullptr;
+    std::array<const DXTexture*, MAX_TEXTURES> compute_image_textures = {};
     D3D12_VIEWPORT viewport = {};
     D3D12_RECT scissor = {};
     D3D12_GPU_DESCRIPTOR_HANDLE vertex_srv_descriptor_base = {};

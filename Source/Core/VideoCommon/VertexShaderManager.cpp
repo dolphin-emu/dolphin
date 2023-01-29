@@ -410,7 +410,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
 
     auto corrected_matrix = LoadProjectionMatrix();
 
-    GraphicsModActionData::Projection projection{&corrected_matrix};
+    GraphicsModActionData::Projection projection{xfmem.projection.type, &corrected_matrix};
     for (auto action : projection_actions)
     {
       action->OnProjection(&projection);

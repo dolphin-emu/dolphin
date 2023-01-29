@@ -144,6 +144,9 @@ bool PerfQuery::IsFlushed() const
 
 void PerfQuery::ResolveQueries()
 {
+  if (m_unresolved_queries == 0)
+    return;
+
   // Do we need to split the resolve as it's wrapping around?
   if ((m_query_resolve_pos + m_unresolved_queries) > PERF_QUERY_BUFFER_SIZE)
     ResolveQueries(PERF_QUERY_BUFFER_SIZE - m_query_resolve_pos);

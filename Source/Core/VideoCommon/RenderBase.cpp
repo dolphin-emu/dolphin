@@ -73,9 +73,10 @@
 #include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/PEShaderSystem/Constants.h"
+#include "VideoCommon/PEShaderSystem/Runtime/PEShaderGroup.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/Statistics.h"
@@ -126,10 +127,6 @@ bool Renderer::Initialize()
   if (!InitializeImGui())
     return false;
 
-  m_post_processor = std::make_unique<VideoCommon::PostProcessing>();
-  if (!m_post_processor->Initialize(m_backbuffer_format))
-    return false;
-
   m_bounding_box = CreateBoundingBox();
   if (g_ActiveConfig.backend_info.bSupportsBBox && !m_bounding_box->Initialize())
   {
@@ -153,19 +150,47 @@ bool Renderer::Initialize()
     m_graphics_mod_manager.Load(*g_ActiveConfig.graphics_mod_config);
   }
 
+  m_timer.Start();
+  m_post_shader_group = std::make_unique<VideoCommon::PE::ShaderGroup>();
+  m_post_shader_group->UpdateConfig(g_ActiveConfig.m_post_processing_config);
+
+  const auto default_shader =
+      fmt::format("{}/{}/{}", File::GetSysDirectory(),
+                  VideoCommon::PE::Constants::dolphin_shipped_internal_shader_directory,
+                  "DefaultVertexPixelShader.glsl");
+  VideoCommon::PE::ShaderConfigGroup default_shader_config;
+  default_shader_config.AddShader(default_shader, VideoCommon::PE::ShaderConfig::Source::System);
+
+  m_default_shader_group = std::make_unique<VideoCommon::PE::ShaderGroup>();
+  m_default_shader_group->UpdateConfig(default_shader_config);
+
+  m_stereo_shader_group = std::make_unique<VideoCommon::PE::ShaderGroup>();
+  if (g_ActiveConfig.sStereoShader != "")
+  {
+    m_stereo_shader_config.m_shaders.clear();
+    m_stereo_shader_config.m_shader_order.clear();
+    m_stereo_shader_config.m_changes++;
+    m_stereo_shader_config.AddShader(g_ActiveConfig.sStereoShader,
+                                     VideoCommon::PE::ShaderConfig::Source::System);
+    m_stereo_shader_group->UpdateConfig(m_stereo_shader_config);
+  }
+
   return true;
 }
 
 void Renderer::Shutdown()
 {
+  m_stereo_shader_group.reset();
+
   // Disable ControllerInterface's aspect ratio adjustments so mapping dialog behaves normally.
   g_controller_interface.SetAspectRatioAdjustment(1);
+
+  m_timer.Stop();
 
   // First stop any framedumping, which might need to dump the last xfb frame. This process
   // can require additional graphics sub-systems so it needs to be done first
   ShutdownFrameDumping();
   ShutdownImGui();
-  m_post_processor.reset();
   m_bounding_box.reset();
 }
 
@@ -486,6 +511,7 @@ void Renderer::CheckForConfigChanges()
   const auto old_texture_filtering_mode = g_ActiveConfig.texture_filtering_mode;
   const bool old_vsync = g_ActiveConfig.bVSyncActive;
   const bool old_bbox = g_ActiveConfig.bBBoxEnable;
+  const std::string old_stereo_shader = g_ActiveConfig.sStereoShader;
   const u32 old_game_mod_changes =
       g_ActiveConfig.graphics_mod_config ? g_ActiveConfig.graphics_mod_config->GetChangeCount() : 0;
   const bool old_graphics_mods_enabled = g_ActiveConfig.bGraphicMods;
@@ -515,22 +541,12 @@ void Renderer::CheckForConfigChanges()
   if (old_efb_access_tile_size != g_ActiveConfig.iEFBAccessTileSize)
     g_framebuffer_manager->SetEFBCacheTileSize(std::max(g_ActiveConfig.iEFBAccessTileSize, 0));
 
-  // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
-  // the post-processor. Note that options are applied every frame, so no need to check those.
-  if (m_post_processor->GetConfig()->GetShader() != g_ActiveConfig.sPostProcessingShader)
-  {
-    // The existing shader must not be in use when it's destroyed
-    WaitForGPUIdle();
-
-    m_post_processor->RecompileShader();
-  }
-
   // Determine which (if any) settings have changed.
   ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
   u32 changed_bits = 0;
   if (old_shader_host_config.bits != new_host_config.bits)
     changed_bits |= CONFIG_CHANGE_BIT_HOST_CONFIG;
-  if (old_stereo != g_ActiveConfig.stereo_mode)
+  if (old_stereo != g_ActiveConfig.stereo_mode || old_stereo_shader != g_ActiveConfig.sStereoShader)
     changed_bits |= CONFIG_CHANGE_BIT_STEREO_MODE;
   if (old_multisamples != g_ActiveConfig.iMultisamples)
     changed_bits |= CONFIG_CHANGE_BIT_MULTISAMPLES;
@@ -544,6 +560,10 @@ void Renderer::CheckForConfigChanges()
     changed_bits |= CONFIG_CHANGE_BIT_BBOX;
   if (CalculateTargetSize())
     changed_bits |= CONFIG_CHANGE_BIT_TARGET_SIZE;
+
+  // Update post processing shader with any changes
+  if (m_post_shader_group)
+    m_post_shader_group->UpdateConfig(g_ActiveConfig.m_post_processing_config);
 
   // No changes?
   if (changed_bits == 0)
@@ -582,12 +602,20 @@ void Renderer::CheckForConfigChanges()
     BPFunctions::SetScissorAndViewport();
   }
 
-  // Stereo mode change requires recompiling our post processing pipeline and imgui pipelines for
+  // Stereo mode change requires recompiling our post stereo pipeline and imgui pipelines for
   // rendering the UI.
   if (changed_bits & CONFIG_CHANGE_BIT_STEREO_MODE)
   {
     RecompileImGuiPipeline();
-    m_post_processor->RecompilePipeline();
+    if (g_ActiveConfig.sStereoShader != "")
+    {
+      m_stereo_shader_config.m_shaders.clear();
+      m_stereo_shader_config.m_shader_order.clear();
+      m_stereo_shader_config.m_changes++;
+      m_stereo_shader_config.AddShader(g_ActiveConfig.sStereoShader,
+                                       VideoCommon::PE::ShaderConfig::Source::System);
+      m_stereo_shader_group->UpdateConfig(m_stereo_shader_config);
+    }
   }
 }
 
@@ -1490,12 +1518,63 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
   {
     const auto [left_rc, right_rc] = ConvertStereoRectangle(target_rc);
 
-    m_post_processor->BlitFromTexture(left_rc, source_rc, source_texture, 0);
-    m_post_processor->BlitFromTexture(right_rc, source_rc, source_texture, 1);
+    DrawXFB(left_rc, source_texture, source_rc, 0);
+    DrawXFB(right_rc, source_texture, source_rc, 1);
+  }
+  else if ((g_ActiveConfig.stereo_mode == StereoMode::Anaglyph ||
+            g_ActiveConfig.stereo_mode == StereoMode::Passive) &&
+           g_ActiveConfig.sStereoShader != "")
+  {
+    const auto color_attachment = m_current_framebuffer->GetColorAttachment();
+    const auto rect = color_attachment->GetRect();
+    if (m_stereo_target_width != rect.GetWidth() || m_stereo_target_height != rect.GetHeight() ||
+        color_attachment->GetFormat() != m_stereo_shader_texture->GetFormat())
+    {
+      m_stereo_shader_texture = CreateTexture(TextureConfig(rect.GetWidth(), rect.GetHeight(), 1, 2,
+                                                            1, color_attachment->GetFormat(),
+                                                            AbstractTextureFlag_RenderTarget));
+      m_stereo_target_width = rect.GetWidth();
+      m_stereo_target_height = rect.GetHeight();
+    }
+    DrawXFB(target_rc, source_texture, source_rc, 0);
+    m_stereo_shader_texture->CopyRectangleFromTexture(color_attachment, rect, 0, 0, rect, 0, 0);
+    DrawXFB(target_rc, source_texture, source_rc, 1);
+    m_stereo_shader_texture->CopyRectangleFromTexture(color_attachment, rect, 0, 0, rect, 1, 0);
+
+    // Apply the anaglyph or passive shader to the final output
+    VideoCommon::PE::ShaderApplyOptions options;
+    options.m_dest_fb = m_current_framebuffer;
+    options.m_dest_rect = target_rc;
+    options.m_source_color_tex = m_stereo_shader_texture.get();
+    options.m_source_rect = source_rc;
+    options.m_time_elapsed = m_timer.ElapsedMs();
+    m_stereo_shader_group->Apply(options);
   }
   else
   {
-    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
+    DrawXFB(target_rc, source_texture, source_rc, 0);
+  }
+}
+
+void Renderer::DrawXFB(const MathUtil::Rectangle<int>& target_rc,
+                       const AbstractTexture* source_texture,
+                       const MathUtil::Rectangle<int>& source_rc, int layer)
+{
+  VideoCommon::PE::ShaderApplyOptions options;
+  options.m_dest_fb = m_current_framebuffer;
+  options.m_dest_rect = target_rc;
+  options.m_source_color_tex = source_texture;
+  options.m_source_depth_tex = nullptr;
+  options.m_source_layer = layer;
+  options.m_source_rect = source_rc;
+  options.m_time_elapsed = m_timer.ElapsedMs();
+  if (m_post_shader_group && !m_post_shader_group->ShouldSkip())
+  {
+    m_post_shader_group->Apply(options, m_default_shader_group.get());
+  }
+  else
+  {
+    m_default_shader_group->Apply(options);
   }
 }
 

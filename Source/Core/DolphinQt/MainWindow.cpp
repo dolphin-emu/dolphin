@@ -221,6 +221,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   setAttribute(Qt::WA_NativeWindow);
 
   InitControllers();
+  g_Config.LoadDefaultPostProcessingShaders();
 
   CreateComponents();
 
@@ -312,6 +313,7 @@ MainWindow::~MainWindow()
   }
 
   ShutdownControllers();
+  g_Config.SaveDefaultPostProcessingShaders();
 
   QSettings& settings = Settings::GetQSettings();
 

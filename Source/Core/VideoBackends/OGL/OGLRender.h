@@ -72,6 +72,7 @@ struct VideoConfig
   bool bSupportsTextureSubImage;
   EsFbFetchType SupportedFramebufferFetch;
   bool bSupportsShaderThreadShuffleNV;
+  bool bSupportsExplicitLayoutInShader;
 
   const char* gl_vendor;
   const char* gl_renderer;
@@ -109,7 +110,8 @@ public:
                                                    const void* cache_data = nullptr,
                                                    size_t cache_data_length = 0) override;
   std::unique_ptr<AbstractFramebuffer>
-  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) override;
+  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                    std::vector<AbstractTexture*> additional_color_attachments) override;
 
   void SetPipeline(const AbstractPipeline* pipeline) override;
   void SetFramebuffer(AbstractFramebuffer* framebuffer) override;
@@ -119,7 +121,7 @@ public:
   void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
   void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
-  void SetComputeImageTexture(AbstractTexture* texture, bool read, bool write) override;
+  void SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write) override;
   void UnbindTexture(const AbstractTexture* texture) override;
   void SetViewport(float x, float y, float width, float height, float near_depth,
                    float far_depth) override;
@@ -176,7 +178,7 @@ private:
   std::unique_ptr<GLContext> m_main_gl_context;
   std::unique_ptr<OGLFramebuffer> m_system_framebuffer;
   std::array<const OGLTexture*, 8> m_bound_textures{};
-  AbstractTexture* m_bound_image_texture = nullptr;
+  std::array<const AbstractTexture*, 8> m_bound_image_textures{};
   RasterizationState m_current_rasterization_state;
   DepthState m_current_depth_state;
   BlendingState m_current_blend_state;

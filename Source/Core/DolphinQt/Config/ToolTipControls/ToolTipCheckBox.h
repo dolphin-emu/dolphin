@@ -11,6 +11,7 @@ class ToolTipCheckBox : public ToolTipWidget<QCheckBox>
 {
 public:
   explicit ToolTipCheckBox(const QString& label);
+  explicit ToolTipCheckBox(QWidget* parent = nullptr);
 
 private:
   QPoint GetToolTipPosition() const override;

@@ -31,7 +31,6 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -333,8 +332,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
   if (!m_main_gl_context->IsHeadless())
   {
     m_system_framebuffer = std::make_unique<OGLFramebuffer>(
-        nullptr, nullptr, AbstractTextureFormat::RGBA8, AbstractTextureFormat::Undefined,
-        std::max(m_main_gl_context->GetBackBufferWidth(), 1u),
+        nullptr, nullptr, std::vector<AbstractTexture*>{}, AbstractTextureFormat::RGBA8,
+        AbstractTextureFormat::Undefined, std::max(m_main_gl_context->GetBackBufferWidth(), 1u),
         std::max(m_main_gl_context->GetBackBufferHeight(), 1u), 1, 1, 0);
     m_current_framebuffer = m_system_framebuffer.get();
   }
@@ -623,6 +622,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     else if (GLExtensions::Version() == 330)
     {
       g_ogl_config.eSupportedGLSLVersion = Glsl330;
+      g_ogl_config.bSupportsExplicitLayoutInShader =
+          GLExtensions::Supports("GL_ARB_explicit_attrib_location");
     }
     else if (GLExtensions::Version() >= 430)
     {
@@ -630,6 +631,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       g_ogl_config.eSupportedGLSLVersion = Glsl430;
       g_ogl_config.bSupportsTextureStorage = true;
       g_ogl_config.bSupportsImageLoadStore = true;
+      g_ogl_config.bSupportsExplicitLayoutInShader = true;
       g_Config.backend_info.bSupportsSSAA = true;
       g_Config.backend_info.bSupportsSettingObjectNames = true;
 
@@ -831,11 +833,13 @@ std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTe
   return OGLStagingTexture::Create(type, config);
 }
 
-std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
-                                                                 AbstractTexture* depth_attachment)
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                            std::vector<AbstractTexture*> additional_color_attachments)
 {
   return OGLFramebuffer::Create(static_cast<OGLTexture*>(color_attachment),
-                                static_cast<OGLTexture*>(depth_attachment));
+                                static_cast<OGLTexture*>(depth_attachment),
+                                std::move(additional_color_attachments));
 }
 
 std::unique_ptr<AbstractShader>
@@ -917,8 +921,11 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groupsize
     static_cast<const OGLPipeline*>(m_current_pipeline)->GetProgram()->shader.Bind();
 
   // Barrier to texture can be used for reads.
-  if (m_bound_image_texture)
+  if (std::any_of(m_bound_image_textures.begin(), m_bound_image_textures.end(),
+                  [](auto image) { return image != nullptr; }))
+  {
     glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
+  }
 }
 
 void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
@@ -972,10 +979,10 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
     return ::Renderer::RenderXFBToScreen(target_rc, source_texture, source_rc);
 
   glDrawBuffer(GL_BACK_LEFT);
-  m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
+  DrawXFB(target_rc, source_texture, source_rc, 0);
 
   glDrawBuffer(GL_BACK_RIGHT);
-  m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 1);
+  DrawXFB(target_rc, source_texture, source_rc, 1);
 
   glDrawBuffer(GL_BACK);
 }
@@ -985,7 +992,8 @@ void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
   if (m_current_framebuffer == framebuffer)
     return;
 
-  glBindFramebuffer(GL_FRAMEBUFFER, static_cast<OGLFramebuffer*>(framebuffer)->GetFBO());
+  auto* ogl_fb = static_cast<OGLFramebuffer*>(framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, ogl_fb->GetFBO());
   m_current_framebuffer = framebuffer;
 }
 
@@ -1272,23 +1280,23 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
   g_sampler_cache->SetSamplerState(index, state);
 }
 
-void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Renderer::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
-  if (m_bound_image_texture == texture)
+  if (m_bound_image_textures[index] == texture)
     return;
 
   if (texture)
   {
     const GLenum access = read ? (write ? GL_READ_WRITE : GL_READ_ONLY) : GL_WRITE_ONLY;
-    glBindImageTexture(0, static_cast<OGLTexture*>(texture)->GetGLTextureId(), 0, GL_TRUE, 0,
+    glBindImageTexture(index, static_cast<OGLTexture*>(texture)->GetGLTextureId(), 0, GL_TRUE, 0,
                        access, static_cast<OGLTexture*>(texture)->GetGLFormatForImageTexture());
   }
   else
   {
-    glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+    glBindImageTexture(index, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
   }
 
-  m_bound_image_texture = texture;
+  m_bound_image_textures[index] = texture;
 }
 
 void Renderer::UnbindTexture(const AbstractTexture* texture)
@@ -1303,10 +1311,13 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
     m_bound_textures[i] = nullptr;
   }
 
-  if (m_bound_image_texture == texture)
+  for (size_t i = 0; i < m_bound_image_textures.size(); i++)
   {
-    glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
-    m_bound_image_texture = nullptr;
+    if (m_bound_image_textures[i] != texture)
+      continue;
+
+    glBindImageTexture(static_cast<GLuint>(i), 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+    m_bound_image_textures[i] = nullptr;
   }
 }
 

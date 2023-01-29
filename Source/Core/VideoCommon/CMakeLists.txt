@@ -53,6 +53,8 @@ add_library(videocommon
   GraphicsModSystem/Constants.h
   GraphicsModSystem/Runtime/Actions/MoveAction.cpp
   GraphicsModSystem/Runtime/Actions/MoveAction.h
+  GraphicsModSystem/Runtime/Actions/PostProcessAction.cpp
+  GraphicsModSystem/Runtime/Actions/PostProcessAction.h
   GraphicsModSystem/Runtime/Actions/PrintAction.cpp
   GraphicsModSystem/Runtime/Actions/PrintAction.h
   GraphicsModSystem/Runtime/Actions/ScaleAction.cpp
@@ -65,6 +67,7 @@ add_library(videocommon
   GraphicsModSystem/Runtime/GraphicsModActionData.h
   GraphicsModSystem/Runtime/GraphicsModActionFactory.cpp
   GraphicsModSystem/Runtime/GraphicsModActionFactory.h
+  GraphicsModSystem/Runtime/GraphicsModActionInputOutput.h
   GraphicsModSystem/Runtime/GraphicsModManager.cpp
   GraphicsModSystem/Runtime/GraphicsModManager.h
   HiresTextures.cpp
@@ -84,6 +87,40 @@ add_library(videocommon
   OnScreenDisplay.h
   OpcodeDecoding.cpp
   OpcodeDecoding.h
+  PEShaderSystem/Config/PEShaderConfig.cpp
+  PEShaderSystem/Config/PEShaderConfig.h
+  PEShaderSystem/Config/PEShaderConfigGroup.cpp
+  PEShaderSystem/Config/PEShaderConfigGroup.h
+  PEShaderSystem/Config/PEShaderConfigInput.cpp
+  PEShaderSystem/Config/PEShaderConfigInput.h
+  PEShaderSystem/Config/PEShaderConfigOption.cpp
+  PEShaderSystem/Config/PEShaderConfigOption.h
+  PEShaderSystem/Config/PEShaderConfigOutput.cpp
+  PEShaderSystem/Config/PEShaderConfigOutput.h
+  PEShaderSystem/Config/PEShaderConfigPass.cpp
+  PEShaderSystem/Config/PEShaderConfigPass.h
+  PEShaderSystem/Constants.h
+  PEShaderSystem/Runtime/BuiltinUniforms.cpp
+  PEShaderSystem/Runtime/BuiltinUniforms.h
+  PEShaderSystem/Runtime/PEBaseShader.cpp
+  PEShaderSystem/Runtime/PEBaseShader.h
+  PEShaderSystem/Runtime/PEBaseShaderPass.cpp
+  PEShaderSystem/Runtime/PEBaseShaderPass.h
+  PEShaderSystem/Runtime/PEComputeShader.cpp
+  PEShaderSystem/Runtime/PEComputeShader.h
+  PEShaderSystem/Runtime/PEComputeShaderPass.h
+  PEShaderSystem/Runtime/PEShader.cpp
+  PEShaderSystem/Runtime/PEShader.h
+  PEShaderSystem/Runtime/PEShaderApplyOptions.h
+  PEShaderSystem/Runtime/PEShaderGroup.cpp
+  PEShaderSystem/Runtime/PEShaderGroup.h
+  PEShaderSystem/Runtime/PEShaderInput.cpp
+  PEShaderSystem/Runtime/PEShaderInput.h
+  PEShaderSystem/Runtime/PEShaderOption.cpp
+  PEShaderSystem/Runtime/PEShaderOption.h
+  PEShaderSystem/Runtime/PEShaderOutput.h
+  PEShaderSystem/Runtime/PEShaderPass.h
+  PEShaderSystem/Runtime/RuntimeShaderImpl.h
   PerfQueryBase.cpp
   PerfQueryBase.h
   PerformanceMetrics.cpp
@@ -96,8 +133,6 @@ add_library(videocommon
   PixelShaderGen.h
   PixelShaderManager.cpp
   PixelShaderManager.h
-  PostProcessing.cpp
-  PostProcessing.h
   RenderBase.cpp
   RenderBase.h
   RenderState.cpp

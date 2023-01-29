@@ -115,11 +115,13 @@ std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelin
   return VKPipeline::Create(config);
 }
 
-std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
-                                                                 AbstractTexture* depth_attachment)
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                            std::vector<AbstractTexture*> additional_color_attachments)
 {
   return VKFramebuffer::Create(static_cast<VKTexture*>(color_attachment),
-                               static_cast<VKTexture*>(depth_attachment));
+                               static_cast<VKTexture*>(depth_attachment),
+                               std::move(additional_color_attachments));
 }
 
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
@@ -192,12 +194,12 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_CLEAR_LOADOP_RENDERPASS))
     use_clear_render_pass = false;
 
+  auto* vkfb = static_cast<VKFramebuffer*>(m_current_framebuffer);
+
   // Fastest path: Use a render pass to clear the buffers.
   if (use_clear_render_pass)
   {
-    const std::array<VkClearValue, 2> clear_values = {{clear_color_value, clear_depth_value}};
-    StateTracker::GetInstance()->BeginClearRenderPass(target_vk_rc, clear_values.data(),
-                                                      static_cast<u32>(clear_values.size()));
+    vkfb->Clear(clear_color_value, clear_depth_value);
     return;
   }
 
@@ -205,26 +207,39 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
   // We can't use this when preserving alpha but clearing color.
   if (use_clear_attachments)
   {
-    VkClearAttachment clear_attachments[2];
-    uint32_t num_clear_attachments = 0;
+    std::vector<VkClearAttachment> clear_attachments;
+    bool has_color = false;
     if (color_enable && alpha_enable)
     {
-      clear_attachments[num_clear_attachments].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-      clear_attachments[num_clear_attachments].colorAttachment = 0;
-      clear_attachments[num_clear_attachments].clearValue = clear_color_value;
-      num_clear_attachments++;
+      VkClearAttachment clear_attachment;
+      clear_attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+      clear_attachment.colorAttachment = 0;
+      clear_attachment.clearValue = clear_color_value;
+      clear_attachments.push_back(std::move(clear_attachment));
       color_enable = false;
       alpha_enable = false;
+      has_color = true;
     }
     if (z_enable)
     {
-      clear_attachments[num_clear_attachments].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-      clear_attachments[num_clear_attachments].colorAttachment = 0;
-      clear_attachments[num_clear_attachments].clearValue = clear_depth_value;
-      num_clear_attachments++;
-      z_enable = false;
+      VkClearAttachment clear_attachment;
+      clear_attachment.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+      clear_attachment.colorAttachment = 0;
+      clear_attachment.clearValue = clear_depth_value;
+      clear_attachments.push_back(std::move(clear_attachment));
     }
-    if (num_clear_attachments > 0)
+    if (has_color)
+    {
+      for (std::size_t i = 0; i < vkfb->GetNumberOfAdditonalAttachments(); i++)
+      {
+        VkClearAttachment clear_attachment;
+        clear_attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        clear_attachment.colorAttachment = 0;
+        clear_attachment.clearValue = clear_color_value;
+        clear_attachments.push_back(std::move(clear_attachment));
+      }
+    }
+    if (!clear_attachments.empty())
     {
       VkClearRect vk_rect = {target_vk_rc, 0, g_framebuffer_manager->GetEFBLayers()};
       if (!StateTracker::GetInstance()->IsWithinRenderArea(
@@ -235,8 +250,9 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
       }
       StateTracker::GetInstance()->BeginRenderPass();
 
-      vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_clear_attachments,
-                            clear_attachments, 1, &vk_rect);
+      vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                            static_cast<uint32_t>(clear_attachments.size()),
+                            clear_attachments.data(), 1, &vk_rect);
     }
   }
 
@@ -459,16 +475,7 @@ void Renderer::BindFramebuffer(VKFramebuffer* fb)
   StateTracker::GetInstance()->EndRenderPass();
 
   // Shouldn't be bound as a texture.
-  if (fb->GetColorAttachment())
-  {
-    StateTracker::GetInstance()->UnbindTexture(
-        static_cast<VKTexture*>(fb->GetColorAttachment())->GetView());
-  }
-  if (fb->GetDepthAttachment())
-  {
-    StateTracker::GetInstance()->UnbindTexture(
-        static_cast<VKTexture*>(fb->GetDepthAttachment())->GetView());
-  }
+  fb->Unbind();
 
   fb->TransitionForRender();
   StateTracker::GetInstance()->SetFramebuffer(fb);
@@ -503,22 +510,13 @@ void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
   VKFramebuffer* vkfb = static_cast<VKFramebuffer*>(framebuffer);
   BindFramebuffer(vkfb);
 
-  std::array<VkClearValue, 2> clear_values;
-  u32 num_clear_values = 0;
-  if (vkfb->GetColorFormat() != AbstractTextureFormat::Undefined)
-  {
-    std::memcpy(clear_values[num_clear_values].color.float32, color_value.data(),
-                sizeof(clear_values[num_clear_values].color.float32));
-    num_clear_values++;
-  }
-  if (vkfb->GetDepthFormat() != AbstractTextureFormat::Undefined)
-  {
-    clear_values[num_clear_values].depthStencil.depth = depth_value;
-    clear_values[num_clear_values].depthStencil.stencil = 0;
-    num_clear_values++;
-  }
-  StateTracker::GetInstance()->BeginClearRenderPass(vkfb->GetRect(), clear_values.data(),
-                                                    num_clear_values);
+  VkClearValue clear_color_value;
+  std::memcpy(clear_color_value.color.float32, color_value.data(),
+              sizeof(clear_color_value.color.float32));
+  VkClearValue clear_depth_value;
+  clear_depth_value.depthStencil.depth = depth_value;
+  clear_depth_value.depthStencil.stencil = 0;
+  vkfb->Clear(clear_color_value, clear_depth_value);
 }
 
 void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
@@ -566,13 +564,13 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
   m_sampler_states[index] = state;
 }
 
-void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Renderer::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
   VKTexture* vk_texture = static_cast<VKTexture*>(texture);
   if (vk_texture)
   {
     StateTracker::GetInstance()->EndRenderPass();
-    StateTracker::GetInstance()->SetImageTexture(vk_texture->GetView());
+    StateTracker::GetInstance()->SetImageTexture(index, vk_texture->GetView());
     vk_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                    read ? (write ? VKTexture::ComputeImageLayout::ReadWrite :
                                                    VKTexture::ComputeImageLayout::ReadOnly) :
@@ -580,7 +578,7 @@ void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool 
   }
   else
   {
-    StateTracker::GetInstance()->SetImageTexture(VK_NULL_HANDLE);
+    StateTracker::GetInstance()->SetImageTexture(index, VK_NULL_HANDLE);
   }
 }
 

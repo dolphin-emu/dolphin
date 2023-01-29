@@ -11,11 +11,13 @@ class GraphicsBool;
 class GraphicsChoice;
 class GraphicsSlider;
 class GraphicsWindow;
+class PostProcessingShaderWindow;
 class QCheckBox;
 class QComboBox;
 class QPushButton;
 class QSlider;
 class ToolTipComboBox;
+class ToolTipPushButton;
 
 class EnhancementsWidget final : public GraphicsWidget
 {
@@ -30,15 +32,14 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void AddDescriptions();
-  void ConfigurePostProcessingShader();
-  void LoadPPShaders();
+
+  void OnStereoModeChanged();
 
   // Enhancements
   GraphicsChoice* m_ir_combo;
   ToolTipComboBox* m_aa_combo;
   ToolTipComboBox* m_texture_filtering_combo;
   ToolTipComboBox* m_pp_effect;
-  QPushButton* m_configure_pp_effect;
   GraphicsBool* m_scaled_efb_copy;
   GraphicsBool* m_per_pixel_lighting;
   GraphicsBool* m_widescreen_hack;
@@ -46,12 +47,15 @@ private:
   GraphicsBool* m_force_24bit_color;
   GraphicsBool* m_disable_copy_filter;
   GraphicsBool* m_arbitrary_mipmap_detection;
+  ToolTipPushButton* m_pp_configure;
+  PostProcessingShaderWindow* m_post_processing_shader_window = nullptr;
 
   // Stereoscopy
   GraphicsChoice* m_3d_mode;
   GraphicsSlider* m_3d_depth;
   GraphicsSlider* m_3d_convergence;
   GraphicsBool* m_3d_swap_eyes;
+  ToolTipComboBox* m_3d_shader;
 
   int m_msaa_modes;
   bool m_block_save;

@@ -36,10 +36,7 @@ public enum StringSetting implements AbstractStringSetting
           ""),
   MAIN_WII_SD_CARD_SYNC_FOLDER_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL,
           "WiiSDCardSyncFolder", ""),
-  MAIN_WFS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WFSPath", ""),
-
-  GFX_ENHANCE_POST_SHADER(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,
-          "PostProcessingShader", "");
+  MAIN_WFS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WFSPath", "");
 
   private static final StringSetting[] NOT_RUNTIME_EDITABLE_ARRAY = new StringSetting[]{
           MAIN_CUSTOM_RTC_VALUE,

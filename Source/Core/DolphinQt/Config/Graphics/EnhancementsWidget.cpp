@@ -4,13 +4,19 @@
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 
 #include <cmath>
+#include <optional>
 
+#include <QDir>
+#include <QFileInfo>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 
@@ -19,13 +25,14 @@
 #include "DolphinQt/Config/Graphics/GraphicsRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
-#include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
+#include "DolphinQt/Config/Graphics/PostProcessingShaderWindow.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/VideoUtils.h"
 
-#include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/PEShaderSystem/Constants.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -105,7 +112,6 @@ void EnhancementsWidget::CreateWidgets()
                                      TEXTURE_FILTERING_FORCE_LINEAR_ANISO_16X);
 
   m_pp_effect = new ToolTipComboBox();
-  m_configure_pp_effect = new NonDefaultQPushButton(tr("Configure"));
   m_scaled_efb_copy = new GraphicsBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
   m_per_pixel_lighting =
       new GraphicsBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);
@@ -118,6 +124,7 @@ void EnhancementsWidget::CreateWidgets()
       new GraphicsBool(tr("Disable Copy Filter"), Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
   m_arbitrary_mipmap_detection = new GraphicsBool(tr("Arbitrary Mipmap Detection"),
                                                   Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+  m_pp_configure = new ToolTipPushButton(tr("Configure"));
 
   int row = 0;
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), row, 0);
@@ -133,8 +140,7 @@ void EnhancementsWidget::CreateWidgets()
   ++row;
 
   enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), row, 0);
-  enhancements_layout->addWidget(m_pp_effect, row, 1);
-  enhancements_layout->addWidget(m_configure_pp_effect, row, 2);
+  enhancements_layout->addWidget(m_pp_configure, row, 1, 1, -1);
   ++row;
 
   enhancements_layout->addWidget(m_scaled_efb_copy, row, 0);
@@ -164,14 +170,17 @@ void EnhancementsWidget::CreateWidgets()
   m_3d_convergence = new GraphicsSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
                                         Config::GFX_STEREO_CONVERGENCE, 100);
   m_3d_swap_eyes = new GraphicsBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
+  m_3d_shader = new ToolTipComboBox();
 
   stereoscopy_layout->addWidget(new QLabel(tr("Stereoscopic 3D Mode:")), 0, 0);
   stereoscopy_layout->addWidget(m_3d_mode, 0, 1);
-  stereoscopy_layout->addWidget(new QLabel(tr("Depth:")), 1, 0);
-  stereoscopy_layout->addWidget(m_3d_depth, 1, 1);
-  stereoscopy_layout->addWidget(new QLabel(tr("Convergence:")), 2, 0);
-  stereoscopy_layout->addWidget(m_3d_convergence, 2, 1);
-  stereoscopy_layout->addWidget(m_3d_swap_eyes, 3, 0);
+  stereoscopy_layout->addWidget(new QLabel(tr("Shader:")), 1, 0);
+  stereoscopy_layout->addWidget(m_3d_shader, 1, 1);
+  stereoscopy_layout->addWidget(new QLabel(tr("Depth:")), 2, 0);
+  stereoscopy_layout->addWidget(m_3d_depth, 2, 1);
+  stereoscopy_layout->addWidget(new QLabel(tr("Convergence:")), 3, 0);
+  stereoscopy_layout->addWidget(m_3d_convergence, 3, 1);
+  stereoscopy_layout->addWidget(m_3d_swap_eyes, 4, 0);
 
   main_layout->addWidget(enhancements_box);
   main_layout->addWidget(stereoscopy_box);
@@ -186,73 +195,29 @@ void EnhancementsWidget::ConnectWidgets()
           [this](int) { SaveSettings(); });
   connect(m_texture_filtering_combo, qOverload<int>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
-  connect(m_pp_effect, qOverload<int>(&QComboBox::currentIndexChanged),
-          [this](int) { SaveSettings(); });
+
   connect(m_3d_mode, qOverload<int>(&QComboBox::currentIndexChanged), [this] {
     m_block_save = true;
-    LoadPPShaders();
+    OnStereoModeChanged();
     m_block_save = false;
 
     SaveSettings();
   });
-  connect(m_configure_pp_effect, &QPushButton::clicked, this,
-          &EnhancementsWidget::ConfigurePostProcessingShader);
-}
-
-void EnhancementsWidget::LoadPPShaders()
-{
-  std::vector<std::string> shaders = VideoCommon::PostProcessing::GetShaderList();
-  if (g_Config.stereo_mode == StereoMode::Anaglyph)
-  {
-    shaders = VideoCommon::PostProcessing::GetAnaglyphShaderList();
-  }
-  else if (g_Config.stereo_mode == StereoMode::Passive)
-  {
-    shaders = VideoCommon::PostProcessing::GetPassiveShaderList();
-  }
-
-  m_pp_effect->clear();
-
-  if (g_Config.stereo_mode != StereoMode::Anaglyph && g_Config.stereo_mode != StereoMode::Passive)
-    m_pp_effect->addItem(tr("(off)"));
-
-  auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
-
-  bool found = false;
-
-  for (const auto& shader : shaders)
-  {
-    m_pp_effect->addItem(QString::fromStdString(shader));
-    if (selected_shader == shader)
+  connect(m_3d_shader, qOverload<int>(&QComboBox::currentIndexChanged), [this] { SaveSettings(); });
+  connect(m_pp_configure, &QPushButton::pressed, this, [this]() {
+    bool just_created = false;
+    if (!m_post_processing_shader_window)
     {
-      m_pp_effect->setCurrentIndex(m_pp_effect->count() - 1);
-      found = true;
+      just_created = true;
+      m_post_processing_shader_window =
+          new PostProcessingShaderWindow(&g_Config.m_post_processing_config);
     }
-  }
-
-  if (g_Config.stereo_mode == StereoMode::Anaglyph && !found)
-    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("dubois")));
-  else if (g_Config.stereo_mode == StereoMode::Passive && !found)
-    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("horizontal")));
-
-  const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
-  m_pp_effect->setEnabled(supports_postprocessing);
-
-  m_pp_effect->setToolTip(supports_postprocessing ?
-                              QString{} :
-                              tr("%1 doesn't support this feature.")
-                                  .arg(tr(g_video_backend->GetDisplayName().c_str())));
-
-  VideoCommon::PostProcessingConfiguration pp_shader;
-  if (selected_shader != "(off)" && supports_postprocessing)
-  {
-    pp_shader.LoadShader(selected_shader);
-    m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
-  }
-  else
-  {
-    m_configure_pp_effect->setEnabled(false);
-  }
+    m_post_processing_shader_window->show();
+    m_post_processing_shader_window->raise();
+    m_post_processing_shader_window->activateWindow();
+    if (!just_created)
+      m_post_processing_shader_window->SetShaderGroupConfig(&g_Config.m_post_processing_config);
+  });
 }
 
 void EnhancementsWidget::LoadSettings()
@@ -292,16 +257,20 @@ void EnhancementsWidget::LoadSettings()
       m_texture_filtering_combo->setCurrentIndex(TEXTURE_FILTERING_FORCE_LINEAR);
     break;
   }
-
-  // Post Processing Shader
-  LoadPPShaders();
-
   // Stereoscopy
   const bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
   m_3d_mode->setEnabled(supports_stereoscopy);
   m_3d_convergence->setEnabled(supports_stereoscopy);
   m_3d_depth->setEnabled(supports_stereoscopy);
   m_3d_swap_eyes->setEnabled(supports_stereoscopy);
+  if (supports_stereoscopy)
+  {
+    OnStereoModeChanged();
+  }
+  else
+  {
+    m_3d_shader->setEnabled(false);
+  }
   m_block_save = false;
 }
 
@@ -327,6 +296,16 @@ void EnhancementsWidget::SaveSettings()
   Config::SetBaseOrCurrent(Config::GFX_MSAA, static_cast<unsigned int>(aa_value));
 
   Config::SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
+
+  if (m_3d_shader->count() > 0)
+  {
+    Config::SetBaseOrCurrent(Config::GFX_STEREO_SHADER,
+                             m_3d_shader->currentData().toString().toStdString());
+  }
+  else
+  {
+    Config::SetBaseOrCurrent(Config::GFX_STEREO_SHADER, "");
+  }
 
   const int texture_filtering_selection = m_texture_filtering_combo->currentData().toInt();
   switch (texture_filtering_selection)
@@ -387,25 +366,6 @@ void EnhancementsWidget::SaveSettings()
                              TextureFilteringMode::Linear);
     break;
   }
-
-  const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
-  const bool passive = g_Config.stereo_mode == StereoMode::Passive;
-  Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
-                           (!anaglyph && !passive && m_pp_effect->currentIndex() == 0) ?
-                               "(off)" :
-                               m_pp_effect->currentText().toStdString());
-
-  VideoCommon::PostProcessingConfiguration pp_shader;
-  if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "(off)")
-  {
-    pp_shader.LoadShader(Config::Get(Config::GFX_ENHANCE_POST_SHADER));
-    m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
-  }
-  else
-  {
-    m_configure_pp_effect->setEnabled(false);
-  }
-
   LoadSettings();
 }
 
@@ -430,9 +390,6 @@ void EnhancementsWidget::AddDescriptions()
       "scaling filter selected by the game.<br><br>Any option except 'Default' will alter the look "
       "of the game's textures and might cause issues in a small number of "
       "games.<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
-  static const char TR_POSTPROCESSING_DESCRIPTION[] =
-      QT_TR_NOOP("Applies a post-processing effect after rendering a frame.<br><br "
-                 "/><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>");
   static const char TR_SCALED_EFB_COPY_DESCRIPTION[] =
       QT_TR_NOOP("Greatly increases the quality of textures generated using render-to-texture "
                  "effects.<br><br>Slightly increases GPU load and causes relatively few graphical "
@@ -502,9 +459,6 @@ void EnhancementsWidget::AddDescriptions()
   m_texture_filtering_combo->SetTitle(tr("Texture Filtering"));
   m_texture_filtering_combo->SetDescription(tr(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
 
-  m_pp_effect->SetTitle(tr("Post-Processing Effect"));
-  m_pp_effect->SetDescription(tr(TR_POSTPROCESSING_DESCRIPTION));
-
   m_scaled_efb_copy->SetDescription(tr(TR_SCALED_EFB_COPY_DESCRIPTION));
 
   m_per_pixel_lighting->SetDescription(tr(TR_PER_PIXEL_LIGHTING_DESCRIPTION));
@@ -531,8 +485,67 @@ void EnhancementsWidget::AddDescriptions()
   m_3d_swap_eyes->SetDescription(tr(TR_3D_SWAP_EYES_DESCRIPTION));
 }
 
-void EnhancementsWidget::ConfigurePostProcessingShader()
+void EnhancementsWidget::OnStereoModeChanged()
 {
-  const std::string shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
-  PostProcessingConfigWindow(this, shader).exec();
+  m_3d_shader->clear();
+
+  const auto stereo_mode = Config::Get<StereoMode>(Config::GFX_STEREO_MODE);
+  if (stereo_mode == StereoMode::Anaglyph || stereo_mode == StereoMode::Passive)
+  {
+    const auto current_stereo_shader = Config::Get(Config::GFX_STEREO_SHADER);
+    m_3d_shader->setEnabled(true);
+    std::string std_shader_path;
+    std::string default_shader_path;
+    std::string sys_dir = File::GetSysDirectory();
+    sys_dir = ReplaceAll(std::move(sys_dir), "\\", DIR_SEP);
+    if (stereo_mode == StereoMode::Anaglyph)
+    {
+      std_shader_path = fmt::format(
+          "{}{}/{}", sys_dir, VideoCommon::PE::Constants::dolphin_shipped_internal_shader_directory,
+          "Anaglyph");
+      default_shader_path = fmt::format("{}/{}", std_shader_path, "dubois.glsl");
+    }
+    else
+    {
+      std_shader_path = fmt::format(
+          "{}{}/{}", sys_dir, VideoCommon::PE::Constants::dolphin_shipped_internal_shader_directory,
+          "Passive");
+      default_shader_path = fmt::format("{}/{}", std_shader_path, "horizontal.glsl");
+    }
+
+    std::optional<int> selected_index;
+    int default_index = 0;
+    int index = 0;
+    const QDir shader_path(QString::fromStdString(std_shader_path));
+    for (QFileInfo info : shader_path.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot))
+    {
+      if (info.isFile())
+      {
+        const std::string path = info.absoluteFilePath().toStdString();
+        m_3d_shader->addItem(info.baseName(), info.absoluteFilePath());
+        if (path == current_stereo_shader)
+        {
+          selected_index = index;
+        }
+        if (path == default_shader_path)
+        {
+          default_index = index;
+        }
+        index++;
+      }
+    }
+
+    if (selected_index)
+    {
+      m_3d_shader->setCurrentIndex(*selected_index);
+    }
+    else
+    {
+      m_3d_shader->setCurrentIndex(default_index);
+    }
+  }
+  else
+  {
+    m_3d_shader->setEnabled(false);
+  }
 }

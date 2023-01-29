@@ -6,12 +6,21 @@
 #include <string_view>
 
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/Matrix.h"
+
+#include "VideoCommon/XFMemory.h"
 
 namespace GraphicsModActionData
 {
 struct DrawStarted
 {
+  u32 scissors_x;
+  u32 scissors_y;
+  float viewport_x;
+  float viewport_y;
+  float viewport_width;
+  float viewport_height;
   bool* skip;
 };
 
@@ -19,6 +28,7 @@ struct EFB
 {
   u32 texture_width;
   u32 texture_height;
+  MathUtil::Rectangle<int> src_rect;
   bool* skip;
   u32* scaled_width;
   u32* scaled_height;
@@ -26,6 +36,7 @@ struct EFB
 
 struct Projection
 {
+  ProjectionType projection_type;
   Common::Matrix44* matrix;
 };
 struct TextureLoad

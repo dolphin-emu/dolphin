@@ -137,6 +137,7 @@ const Info<bool> GFX_STEREO_EFB_MONO_DEPTH{{System::GFX, "Stereoscopy", "StereoE
                                            false};
 const Info<int> GFX_STEREO_DEPTH_PERCENTAGE{{System::GFX, "Stereoscopy", "StereoDepthPercentage"},
                                             100};
+const Info<std::string> GFX_STEREO_SHADER{{System::GFX, "Stereoscopy", "Shader"}, ""};
 
 // Graphics.Hacks
 

@@ -15,6 +15,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
+#include "VideoCommon/PEShaderSystem/Config/PEShaderConfigGroup.h"
 #include "VideoCommon/VideoCommon.h"
 
 constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
@@ -66,6 +67,9 @@ struct VideoConfig final
   void Refresh();
   void VerifyValidity();
 
+  void LoadDefaultPostProcessingShaders();
+  void SaveDefaultPostProcessingShaders() const;
+
   // General
   bool bVSync = false;
   bool bVSyncActive = false;
@@ -86,6 +90,7 @@ struct VideoConfig final
   bool bDisableCopyFilter = false;
   bool bArbitraryMipmapDetection = false;
   float fArbitraryMipmapDetectionThreshold = 0;
+  VideoCommon::PE::ShaderConfigGroup m_post_processing_config;
 
   // Information
   bool bShowFPS = false;
@@ -171,6 +176,7 @@ struct VideoConfig final
   bool bStereoSwapEyes = false;
   bool bStereoEFBMonoDepth = false;
   int iStereoDepthPercentage = 0;
+  std::string sStereoShader = "";
 
   // D3D only config, mostly to be merged into the above
   int iAdapter = 0;

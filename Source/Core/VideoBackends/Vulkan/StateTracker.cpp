@@ -48,7 +48,8 @@ void StateTracker::DestroyInstance()
   // Clear everything out so this doesn't happen.
   for (auto& it : s_state_tracker->m_bindings.samplers)
     it.imageView = VK_NULL_HANDLE;
-  s_state_tracker->m_bindings.image_texture.imageView = VK_NULL_HANDLE;
+  for (auto& it : s_state_tracker->m_bindings.image_textures)
+    it.imageView = VK_NULL_HANDLE;
   s_state_tracker->m_dummy_texture.reset();
 
   s_state_tracker.reset();
@@ -70,6 +71,13 @@ bool StateTracker::Initialize()
     m_bindings.samplers[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     m_bindings.samplers[i].imageView = m_dummy_texture->GetView();
     m_bindings.samplers[i].sampler = g_object_cache->GetPointSampler();
+  }
+
+  for (size_t i = 0; i < NUM_COMPUTE_IMAGE; i++)
+  {
+    m_bindings.image_textures[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    m_bindings.image_textures[i].imageView = m_dummy_texture->GetView();
+    m_bindings.image_textures[i].sampler = g_object_cache->GetPointSampler();
   }
 
   // Default dirty flags include all descriptors
@@ -216,13 +224,13 @@ void StateTracker::SetTexelBuffer(u32 index, VkBufferView view)
   m_dirty_flags |= DIRTY_FLAG_UTILITY_BINDINGS | DIRTY_FLAG_COMPUTE_BINDINGS;
 }
 
-void StateTracker::SetImageTexture(VkImageView view)
+void StateTracker::SetImageTexture(u32 index, VkImageView view)
 {
-  if (m_bindings.image_texture.imageView == view)
+  if (m_bindings.image_textures[index].imageView == view)
     return;
 
-  m_bindings.image_texture.imageView = view;
-  m_bindings.image_texture.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+  m_bindings.image_textures[index].imageView = view;
+  m_bindings.image_textures[index].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
   m_dirty_flags |= DIRTY_FLAG_COMPUTE_BINDINGS;
 }
 
@@ -237,10 +245,13 @@ void StateTracker::UnbindTexture(VkImageView view)
     }
   }
 
-  if (m_bindings.image_texture.imageView == view)
+  for (VkDescriptorImageInfo& it : m_bindings.image_textures)
   {
-    m_bindings.image_texture.imageView = m_dummy_texture->GetView();
-    m_bindings.image_texture.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    if (it.imageView == view)
+    {
+      it.imageView = m_dummy_texture->GetView();
+      it.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    }
   }
 }
 
@@ -674,7 +685,7 @@ void StateTracker::UpdateComputeDescriptorSet()
     dswrites[2] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                    nullptr,
                    m_compute_descriptor_set,
-                   3,
+                   9,
                    0,
                    NUM_COMPUTE_TEXEL_BUFFERS,
                    VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
@@ -684,11 +695,11 @@ void StateTracker::UpdateComputeDescriptorSet()
     dswrites[3] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                    nullptr,
                    m_compute_descriptor_set,
-                   5,
+                   11,
                    0,
-                   1,
+                   NUM_COMPUTE_IMAGE,
                    VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-                   &m_bindings.image_texture,
+                   m_bindings.image_textures.data(),
                    nullptr,
                    nullptr};
 

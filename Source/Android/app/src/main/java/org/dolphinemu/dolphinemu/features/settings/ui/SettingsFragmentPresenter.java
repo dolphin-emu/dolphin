@@ -21,7 +21,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.WiimoteProfileStringSetting;
@@ -923,22 +922,6 @@ public final class SettingsFragmentPresenter
     sl.add(new SingleChoiceSetting(mContext, filteringSetting, R.string.texture_filtering,
             R.string.texture_filtering_description, R.array.textureFilteringEntries,
             R.array.textureFilteringValues));
-
-    int stereoModeValue = IntSetting.GFX_STEREO_MODE.getInt(mSettings);
-    final int anaglyphMode = 3;
-    String[] shaderList = stereoModeValue == anaglyphMode ?
-            PostProcessing.getAnaglyphShaderList() : PostProcessing.getShaderList();
-
-    String[] shaderListEntries = new String[shaderList.length + 1];
-    shaderListEntries[0] = mContext.getString(R.string.off);
-    System.arraycopy(shaderList, 0, shaderListEntries, 1, shaderList.length);
-
-    String[] shaderListValues = new String[shaderList.length + 1];
-    shaderListValues[0] = "";
-    System.arraycopy(shaderList, 0, shaderListValues, 1, shaderList.length);
-
-    sl.add(new StringSingleChoiceSetting(mContext, StringSetting.GFX_ENHANCE_POST_SHADER,
-            R.string.post_processing_shader, 0, shaderListEntries, shaderListValues));
 
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HACK_COPY_EFB_SCALED,
             R.string.scaled_efb_copy, R.string.scaled_efb_copy_description));

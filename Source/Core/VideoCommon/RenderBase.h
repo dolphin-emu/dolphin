@@ -26,11 +26,13 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
+#include "Common/Timer.h"
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/PerformanceMetrics.h"
+#include "VideoCommon/PEShaderSystem/Config/PEShaderConfigGroup.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 
@@ -54,10 +56,10 @@ enum class EFBReinterpretType;
 enum class StagingTextureType;
 enum class AspectMode;
 
-namespace VideoCommon
+namespace VideoCommon::PE
 {
-class PostProcessing;
-}  // namespace VideoCommon
+class ShaderGroup;
+}  // namespace VideoCommon::PE
 
 struct EfbPokeData
 {
@@ -86,7 +88,7 @@ public:
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
   virtual void SetSamplerState(u32 index, const SamplerState& state) {}
-  virtual void SetComputeImageTexture(AbstractTexture* texture, bool read, bool write) {}
+  virtual void SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write) {}
   virtual void UnbindTexture(const AbstractTexture* texture) {}
   virtual void SetViewport(float x, float y, float width, float height, float near_depth,
                            float far_depth)
@@ -101,7 +103,8 @@ public:
   virtual std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
   virtual std::unique_ptr<AbstractFramebuffer>
-  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) = 0;
+  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                    std::vector<AbstractTexture*> additional_color_attachments = {}) = 0;
 
   // Framebuffer operations.
   virtual void SetFramebuffer(AbstractFramebuffer* framebuffer);
@@ -243,7 +246,6 @@ public:
   PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PixelFormat new_format) { m_prev_efb_format = new_format; }
   bool EFBHasAlphaChannel() const;
-  VideoCommon::PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   void ChangeSurface(void* new_surface_handle);
@@ -314,6 +316,10 @@ protected:
   // Should be called with the ImGui lock held.
   void DrawImGui();
 
+  // Draws the texture with any post processing effects if available
+  void DrawXFB(const MathUtil::Rectangle<int>& target_rc, const AbstractTexture* source_texture,
+               const MathUtil::Rectangle<int>& source_rc, int layer);
+
   virtual std::unique_ptr<BoundingBox> CreateBoundingBox() const = 0;
 
   AbstractFramebuffer* m_current_framebuffer = nullptr;
@@ -338,8 +344,6 @@ protected:
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
   MathUtil::Rectangle<int> m_target_rectangle = {};
   int m_frame_count = 0;
-
-  std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
 
   void* m_new_surface_handle = nullptr;
   Common::Flag m_surface_changed;
@@ -453,7 +457,23 @@ private:
 
   Common::Flag m_force_reload_textures;
 
+  // Default shader to apply if no post processing is available
+  // or post processing failed to compile
+  std::unique_ptr<VideoCommon::PE::ShaderGroup> m_default_shader_group;
+
+  // Post processing group to apply
+  std::unique_ptr<VideoCommon::PE::ShaderGroup> m_post_shader_group;
+
+  // Timer for post processing effects
+  Common::Timer m_timer;
+
   GraphicsModManager m_graphics_mod_manager;
+  // This texture holds the post processing output for each layer
+  std::unique_ptr<AbstractTexture> m_stereo_shader_texture;
+  VideoCommon::PE::ShaderConfigGroup m_stereo_shader_config;
+  std::unique_ptr<VideoCommon::PE::ShaderGroup> m_stereo_shader_group;
+  int m_stereo_target_width = 0;
+  int m_stereo_target_height = 0;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

@@ -1,0 +1,54 @@
+{
+	"meta":
+	{
+		"author": "iwubcode, Fubaxiusz",
+		"description": "A shader that applies a color LUT (lookup-table)"
+	},
+	"options":
+	[
+		{
+			"type": "float2",
+			"name": "_LutChromaLuma",
+			"ui_name": "LutChromaLuma",
+			"min": [ 0.0, 0.0 ],
+			"max": [ 1.0, 1.0 ],
+			"step": [ 0.005, 0.005 ],
+			"default": [ 1.0, 1.0 ]
+		},
+		{
+			"type": "int",
+			"name": "LUT_BLOCK_SIZE",
+			"ui_name": "LUT Block Size",
+			"min": [ 16.0 ],
+			"max": [ 64.0 ],
+			"default": [ 32.0 ],
+			"is_constant": true
+		},
+		{
+			"type": "bool",
+			"name": "LUT_VERTICAL",
+			"ui_name": "LUT Vertical",
+			"default": false,
+			"is_constant": true
+		}
+	],
+	"passes":
+	[
+		{
+			"entry_point": "main",
+			"inputs":
+			[
+				{
+					"type": "previous_pass",
+					"texture_filter": "linear",
+					"texture_mode": "clamp"
+				},
+				{
+					"type": "user_image",
+					"texture_filter": "point",
+					"texture_mode": "clamp"
+				}
+			]
+		}
+	]
+}

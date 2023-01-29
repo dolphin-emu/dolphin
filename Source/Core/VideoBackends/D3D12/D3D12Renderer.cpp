@@ -77,11 +77,13 @@ std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTe
   return DXStagingTexture::Create(type, config);
 }
 
-std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
-                                                                 AbstractTexture* depth_attachment)
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                            std::vector<AbstractTexture*> additional_color_attachments)
 {
   return DXFramebuffer::Create(static_cast<DXTexture*>(color_attachment),
-                               static_cast<DXTexture*>(depth_attachment));
+                               static_cast<DXTexture*>(depth_attachment),
+                               std::move(additional_color_attachments));
 }
 
 std::unique_ptr<AbstractShader>
@@ -136,19 +138,17 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
     native_rc.ClampUL(0, 0, m_current_framebuffer->GetWidth(), m_current_framebuffer->GetHeight());
     const D3D12_RECT d3d_clear_rc{native_rc.left, native_rc.top, native_rc.right, native_rc.bottom};
 
+    auto* dxfb = static_cast<const DXFramebuffer*>(m_current_framebuffer);
     if (fast_color_clear)
     {
-      static_cast<DXTexture*>(m_current_framebuffer->GetColorAttachment())
-          ->TransitionToState(D3D12_RESOURCE_STATE_RENDER_TARGET);
+      dxfb->TransitionRenderTargets();
 
       const std::array<float, 4> clear_color = {
           {static_cast<float>((color >> 16) & 0xFF) / 255.0f,
            static_cast<float>((color >> 8) & 0xFF) / 255.0f,
            static_cast<float>((color >> 0) & 0xFF) / 255.0f,
            static_cast<float>((color >> 24) & 0xFF) / 255.0f}};
-      g_dx_context->GetCommandList()->ClearRenderTargetView(
-          static_cast<const DXFramebuffer*>(m_current_framebuffer)->GetRTVDescriptor().cpu_handle,
-          clear_color.data(), 1, &d3d_clear_rc);
+      dxfb->ClearRenderTargets(clear_color, &d3d_clear_rc);
       color_enable = false;
       alpha_enable = false;
     }
@@ -160,9 +160,7 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
 
       // D3D does not support reversed depth ranges.
       const float clear_depth = 1.0f - static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
-      g_dx_context->GetCommandList()->ClearDepthStencilView(
-          static_cast<const DXFramebuffer*>(m_current_framebuffer)->GetDSVDescriptor().cpu_handle,
-          D3D12_CLEAR_FLAG_DEPTH, clear_depth, 0, 1, &d3d_clear_rc);
+      dxfb->ClearDepth(clear_depth, &d3d_clear_rc);
       z_enable = false;
     }
   }
@@ -206,11 +204,7 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 
 void Renderer::BindFramebuffer(DXFramebuffer* fb)
 {
-  if (fb->HasColorBuffer())
-  {
-    static_cast<DXTexture*>(fb->GetColorAttachment())
-        ->TransitionToState(D3D12_RESOURCE_STATE_RENDER_TARGET);
-  }
+  fb->TransitionRenderTargets();
   if (fb->HasDepthBuffer())
   {
     static_cast<DXTexture*>(fb->GetDepthAttachment())
@@ -238,19 +232,14 @@ void Renderer::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
 {
   SetFramebuffer(framebuffer);
 
-  static const D3D12_DISCARD_REGION dr = {0, nullptr, 0, 1};
-  if (framebuffer->HasColorBuffer())
+  DXFramebuffer* dxfb = static_cast<DXFramebuffer*>(framebuffer);
+  dxfb->TransitionRenderTargets();
+  if (dxfb->HasDepthBuffer())
   {
-    DXTexture* color_attachment = static_cast<DXTexture*>(framebuffer->GetColorAttachment());
-    color_attachment->TransitionToState(D3D12_RESOURCE_STATE_RENDER_TARGET);
-    g_dx_context->GetCommandList()->DiscardResource(color_attachment->GetResource(), &dr);
+    static_cast<DXTexture*>(dxfb->GetDepthAttachment())
+        ->TransitionToState(D3D12_RESOURCE_STATE_DEPTH_WRITE);
   }
-  if (framebuffer->HasDepthBuffer())
-  {
-    DXTexture* depth_attachment = static_cast<DXTexture*>(framebuffer->GetDepthAttachment());
-    depth_attachment->TransitionToState(D3D12_RESOURCE_STATE_DEPTH_WRITE);
-    g_dx_context->GetCommandList()->DiscardResource(depth_attachment->GetResource(), &dr);
-  }
+  dxfb->Unbind();
 }
 
 void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
@@ -258,18 +247,8 @@ void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
 {
   DXFramebuffer* dxfb = static_cast<DXFramebuffer*>(framebuffer);
   BindFramebuffer(dxfb);
-
-  static const D3D12_DISCARD_REGION dr = {0, nullptr, 0, 1};
-  if (framebuffer->HasColorBuffer())
-  {
-    g_dx_context->GetCommandList()->ClearRenderTargetView(dxfb->GetRTVDescriptor().cpu_handle,
-                                                          color_value.data(), 0, nullptr);
-  }
-  if (framebuffer->HasDepthBuffer())
-  {
-    g_dx_context->GetCommandList()->ClearDepthStencilView(
-        dxfb->GetDSVDescriptor().cpu_handle, D3D12_CLEAR_FLAG_DEPTH, depth_value, 0, 0, nullptr);
-  }
+  dxfb->ClearRenderTargets(color_value, nullptr);
+  dxfb->ClearDepth(depth_value, nullptr);
 }
 
 void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
@@ -309,13 +288,13 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
   m_dirty_bits |= DirtyState_Samplers;
 }
 
-void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Renderer::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
   const DXTexture* dxtex = static_cast<const DXTexture*>(texture);
-  if (m_state.compute_image_texture == dxtex)
+  if (m_state.compute_image_textures[index] == dxtex)
     return;
 
-  m_state.compute_image_texture = dxtex;
+  m_state.compute_image_textures[index] = dxtex;
   if (dxtex)
     dxtex->TransitionToState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
@@ -333,11 +312,12 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
       m_state.textures[i].ptr = g_dx_context->GetNullSRVDescriptor().cpu_handle.ptr;
       m_dirty_bits |= DirtyState_Textures;
     }
-  }
-  if (m_state.compute_image_texture == texture)
-  {
-    m_state.compute_image_texture = nullptr;
-    m_dirty_bits |= DirtyState_ComputeImageTexture;
+
+    if (m_state.compute_image_textures[i] == texture)
+    {
+      m_state.compute_image_textures[i] = nullptr;
+      m_dirty_bits |= DirtyState_ComputeImageTexture;
+    }
   }
 }
 
@@ -754,11 +734,19 @@ bool Renderer::UpdateComputeUAVDescriptorTable()
   if (!g_dx_context->GetDescriptorAllocator()->Allocate(1, &handle))
     return false;
 
-  if (m_state.compute_image_texture)
+  std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> cpu_handles;
+  for (auto compute_image_texture : m_state.compute_image_textures)
   {
-    g_dx_context->GetDevice()->CopyDescriptorsSimple(
-        1, handle.cpu_handle, m_state.compute_image_texture->GetUAVDescriptor().cpu_handle,
-        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    if (compute_image_texture)
+    {
+    }
+  }
+
+  if (!cpu_handles.empty())
+  {
+    /*g_dx_context->GetDevice()->CopyDescriptors(
+        cpu_handles.size(), handle.cpu_handle, cpu_handles.data(),
+        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);*/
   }
   else
   {

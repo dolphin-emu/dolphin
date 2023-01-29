@@ -2188,7 +2188,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     else
     {
       bool skip = false;
-      GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
+      GraphicsModActionData::EFB efb{tex_w, tex_h, srcRect, &skip, &scaled_tex_w, &scaled_tex_h};
       for (const auto action : g_renderer->GetGraphicsModManager().GetEFBActions(info))
       {
         action->OnEFB(&efb);
@@ -2951,7 +2951,7 @@ bool TextureCacheBase::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, con
                 aligned_height, src_offset, row_stride / bytes_per_buffer_elem,
                 palette_offset};
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
-  g_renderer->SetComputeImageTexture(m_decoding_texture.get(), false, true);
+  g_renderer->SetComputeImageTexture(0, m_decoding_texture.get(), false, true);
 
   auto dispatch_groups =
       TextureConversionShaderTiled::GetDispatchCount(info, aligned_width, aligned_height);

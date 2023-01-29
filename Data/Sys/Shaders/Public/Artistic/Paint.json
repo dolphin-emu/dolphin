@@ -1,0 +1,44 @@
+{
+	"meta":
+	{
+		"author": "iwubcode, others",
+		"description": "Ported from reshade.  Basic kuwahara filtering.  Very intensive at larger values.  Beware!"
+	},
+	"options":
+	[
+		{
+			"type": "int",
+			"name": "_PaintRadius",
+			"ui_name": "PaintRadius",
+			"min": [ 0.0 ],
+			"max": [ 20.0 ],
+			"step": [ 1.0 ],
+			"default": [ 2.0 ]
+		}
+	],
+	"passes":
+	[
+		{
+			"entry_point": "Kuwahara",
+			"inputs":
+			[
+				{
+					"type": "previous_pass",
+					"texture_filter": "linear",
+					"texture_mode": "clamp"
+				}
+			]
+		},
+		{
+			"entry_point": "Paint",
+			"inputs":
+			[
+				{
+					"type": "previous_pass",
+					"texture_filter": "linear",
+					"texture_mode": "clamp"
+				}
+			]
+		}
+	]
+}

@@ -5,8 +5,13 @@
 
 #include <algorithm>
 
+#include <fmt/format.h>
+#include <picojson.h>
+
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -131,6 +136,7 @@ void VideoConfig::Refresh()
   iStereoConvergence = Config::Get(Config::GFX_STEREO_CONVERGENCE);
   bStereoEFBMonoDepth = Config::Get(Config::GFX_STEREO_EFB_MONO_DEPTH);
   iStereoDepthPercentage = Config::Get(Config::GFX_STEREO_DEPTH_PERCENTAGE);
+  sStereoShader = Config::Get(Config::GFX_STEREO_SHADER);
 
   bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
   bEFBAccessDeferInvalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
@@ -226,4 +232,61 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
     return GetNumAutoShaderPreCompilerThreads();
   else
     return 1;
+}
+
+void VideoConfig::LoadDefaultPostProcessingShaders()
+{
+  const std::string default_profile_path =
+      fmt::format("{}/DefaultPostProcessingProfile.json", File::GetUserPath(D_CONFIG_IDX));
+
+  std::string json_data;
+  if (!File::ReadFileToString(default_profile_path, json_data))
+  {
+    ERROR_LOG_FMT(VIDEO, "Failed to load default post processing profile '{}'",
+                  default_profile_path);
+    return;
+  }
+
+  picojson::value root;
+  const auto error = picojson::parse(root, json_data);
+
+  if (!error.empty())
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Failed to load default post processing profile '{}' due to parse error: {}",
+                  default_profile_path, error);
+    return;
+  }
+
+  if (!root.is<picojson::array>())
+  {
+    ERROR_LOG_FMT(
+        VIDEO, "Failed to load default post processing profile '{}', root must contain an array!",
+        default_profile_path);
+    return;
+  }
+
+  const auto serialized_shaders = root.get<picojson::array>();
+  m_post_processing_config.DeserializeFromProfile(serialized_shaders);
+}
+
+void VideoConfig::SaveDefaultPostProcessingShaders() const
+{
+  const std::string default_profile_path =
+      fmt::format("{}/DefaultPostProcessingProfile.json", File::GetUserPath(D_CONFIG_IDX));
+
+  std::ofstream json_stream;
+  File::OpenFStream(json_stream, default_profile_path, std::ios_base::out);
+  if (!json_stream.is_open())
+  {
+    ERROR_LOG_FMT(VIDEO, "Failed to open default post processing profile '{}' for writing",
+                  default_profile_path);
+    return;
+  }
+
+  picojson::value serialized_shaders;
+  m_post_processing_config.SerializeToProfile(serialized_shaders);
+
+  const auto output = serialized_shaders.serialize(true);
+  json_stream << output;
 }

@@ -67,10 +67,11 @@ union FramebufferState
 
   BitField<0, 8, AbstractTextureFormat> color_texture_format;
   BitField<8, 8, AbstractTextureFormat> depth_texture_format;
-  BitField<16, 8, u32> samples;
-  BitField<24, 1, u32> per_sample_shading;
+  BitField<16, 8, u64> samples;
+  BitField<24, 1, u64> per_sample_shading;
+  BitField<25, 8, u64> additional_color_attachment_count;
 
-  u32 hex;
+  u64 hex;
 };
 
 union DepthState

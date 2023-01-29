@@ -80,7 +80,7 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
   g_Config.backend_info.bSupportsGeometryShaders = true;
-  g_Config.backend_info.bSupportsComputeShaders = false;
+  g_Config.backend_info.bSupportsComputeShaders = true;
   g_Config.backend_info.bSupports3DVision = true;
   g_Config.backend_info.bSupportsPostProcessing = true;
   g_Config.backend_info.bSupportsPaletteConversion = true;
@@ -133,6 +133,7 @@ void VideoBackend::FillBackendInfo()
     g_Config.backend_info.bSupportsFragmentStoresAndAtomics = shader_model_5_supported;
     g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
     g_Config.backend_info.bSupportsSSAA = shader_model_5_supported;
+    g_Config.backend_info.bSupportsComputeShaders = shader_model_5_supported;
     g_Config.backend_info.bSupportsGPUTextureDecoding = shader_model_5_supported;
   }
 }

@@ -41,7 +41,8 @@ void StateManager::Apply()
           m_pending.framebuffer->GetNumRTVs(),
           m_pending.use_integer_rtv ? m_pending.framebuffer->GetIntegerRTVArray() :
                                       m_pending.framebuffer->GetRTVArray(),
-          m_pending.framebuffer->GetDSV(), 2, 1, &m_pending.uav, nullptr);
+          m_pending.framebuffer->GetDSV(), m_pending.framebuffer->GetNumRTVs() + 1, 1,
+          &m_pending.uav, nullptr);
     }
     else
     {
@@ -227,13 +228,14 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
   }
 }
 
-void StateManager::SetComputeUAV(ID3D11UnorderedAccessView* uav)
+void StateManager::SetComputeUAV(u32 index, ID3D11UnorderedAccessView* uav)
 {
-  if (m_compute_image == uav)
+  if (m_compute_images[index] == uav)
     return;
 
-  m_compute_image = uav;
-  D3D::context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+  m_compute_images[index] = uav;
+  D3D::context->CSSetUnorderedAccessViews(0, static_cast<u32>(m_compute_images.size()),
+                                          m_compute_images.data(), nullptr);
 }
 
 void StateManager::SetComputeShader(ID3D11ComputeShader* shader)
@@ -247,6 +249,20 @@ void StateManager::SetComputeShader(ID3D11ComputeShader* shader)
 
 void StateManager::SyncComputeBindings()
 {
+  std::vector<ID3D11RenderTargetView*> rtv_null(m_pending.framebuffer->GetNumRTVs());
+  if (g_ActiveConfig.backend_info.bSupportsBBox)
+  {
+    ID3D11UnorderedAccessView* uav = nullptr;
+    D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
+        m_pending.framebuffer->GetNumRTVs(), rtv_null.data(), nullptr,
+        m_pending.framebuffer->GetNumRTVs() + 1, 1, &uav, nullptr);
+  }
+  else
+  {
+    D3D::context->OMSetRenderTargets(m_pending.framebuffer->GetNumRTVs(), rtv_null.data(), nullptr);
+  }
+  m_dirtyFlags |= DirtyFlag_Framebuffer;
+
   if (m_compute_constants != m_pending.pixelConstants[0])
   {
     m_compute_constants = m_pending.pixelConstants[0];
@@ -298,6 +314,24 @@ void StateManager::SyncComputeBindings()
     D3D::context->CSSetSamplers(start, end - start, &m_compute_samplers[start]);
     start = end;
   }
+}
+
+void StateManager::ResetComputeBindings()
+{
+  std::array<ID3D11ShaderResourceView*, 8> null_srv = {};
+  D3D::context->CSSetShaderResources(0, static_cast<u32>(null_srv.size()), null_srv.data());
+  m_compute_textures = {};
+
+  std::array<ID3D11SamplerState*, 8> null_ss = {};
+  D3D::context->CSSetSamplers(0, static_cast<u32>(null_ss.size()), null_ss.data());
+  m_compute_samplers = {};
+}
+
+void StateManager::ResetUAVs()
+{
+  std::array<ID3D11UnorderedAccessView*, 8> null_compute_images = {};
+  D3D::context->CSSetUnorderedAccessViews(0, static_cast<u32>(null_compute_images.size()),
+                                          null_compute_images.data(), nullptr);
 }
 }  // namespace D3D
 

@@ -79,6 +79,10 @@ add_executable(dolphin-emu
   Config/Graphics/GraphicsBool.h
   Config/Graphics/GraphicsChoice.cpp
   Config/Graphics/GraphicsChoice.h
+  Config/Graphics/GraphicsColor.cpp
+  Config/Graphics/GraphicsColor.h
+  Config/Graphics/GraphicsImage.cpp
+  Config/Graphics/GraphicsImage.h
   Config/Graphics/GraphicsInteger.cpp
   Config/Graphics/GraphicsInteger.h
   Config/Graphics/GraphicsRadio.cpp
@@ -90,8 +94,15 @@ add_executable(dolphin-emu
   Config/Graphics/GraphicsWindow.h
   Config/Graphics/HacksWidget.cpp
   Config/Graphics/HacksWidget.h
-  Config/Graphics/PostProcessingConfigWindow.cpp
-  Config/Graphics/PostProcessingConfigWindow.h
+  Config/Graphics/PostProcessingAddShaderDialog.cpp
+  Config/Graphics/PostProcessingAddShaderDialog.h
+  Config/Graphics/PostProcessingAddShaderListWidget.cpp
+  Config/Graphics/PostProcessingAddShaderListWidget.h
+  Config/Graphics/PostProcessingShaderListWidget.cpp
+  Config/Graphics/PostProcessingShaderListWidget.h
+  Config/Graphics/PostProcessingShaderListWidget.h
+  Config/Graphics/PostProcessingShaderWindow.cpp
+  Config/Graphics/PostProcessingShaderWindow.h
   Config/GraphicsModListWidget.cpp
   Config/GraphicsModListWidget.h
   Config/GraphicsModWarningWidget.cpp
@@ -173,6 +184,12 @@ add_executable(dolphin-emu
   Config/ToolTipControls/ToolTipCheckBox.h
   Config/ToolTipControls/ToolTipComboBox.cpp
   Config/ToolTipControls/ToolTipComboBox.h
+  Config/ToolTipControls/ToolTipDoubleSpinBox.cpp
+  Config/ToolTipControls/ToolTipDoubleSpinBox.h
+  Config/ToolTipControls/ToolTipLineEdit.cpp
+  Config/ToolTipControls/ToolTipLineEdit.h
+  Config/ToolTipControls/ToolTipPushButton.cpp
+  Config/ToolTipControls/ToolTipPushButton.h
   Config/ToolTipControls/ToolTipRadioButton.cpp
   Config/ToolTipControls/ToolTipRadioButton.h
   Config/ToolTipControls/ToolTipSlider.cpp

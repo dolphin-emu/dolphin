@@ -54,10 +54,12 @@ SWRenderer::CreateStagingTexture(StagingTextureType type, const TextureConfig& c
 }
 
 std::unique_ptr<AbstractFramebuffer>
-SWRenderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment)
+SWRenderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                              std::vector<AbstractTexture*> additional_color_attachments)
 {
   return SWFramebuffer::Create(static_cast<SWTexture*>(color_attachment),
-                               static_cast<SWTexture*>(depth_attachment));
+                               static_cast<SWTexture*>(depth_attachment),
+                               std::move(additional_color_attachments));
 }
 
 void SWRenderer::BindBackbuffer(const ClearColor& clear_color)
