@@ -25,7 +25,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/RenderState.h"
 
 class AbstractFramebuffer;
@@ -65,8 +64,6 @@ class Renderer
 public:
   Renderer();
   virtual ~Renderer();
-
-  virtual bool Initialize();
 
   // Ideal internal resolution - multiple of the native EFB resolution
   int GetTargetWidth() const { return m_target_width; }
@@ -111,8 +108,6 @@ public:
   // Will forcibly reload all textures on the next swap
   void ForceReloadTextures();
 
-  const GraphicsModManager& GetGraphicsModManager() const;
-
 protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
@@ -142,8 +137,6 @@ private:
   u32 m_last_xfb_height = 0;
 
   Common::Flag m_force_reload_textures;
-
-  GraphicsModManager m_graphics_mod_manager;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

@@ -49,6 +49,7 @@
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
@@ -357,6 +358,7 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   g_frame_dumper = std::make_unique<FrameDumper>();
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
+  g_graphics_mod_manager = std::make_unique<GraphicsModManager>();
 
   auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
@@ -371,9 +373,9 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   TMEM::Init();
 
   if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
-      !g_perf_query->Initialize() || !g_renderer->Initialize() ||
-      !g_presenter->Initialize() || !g_framebuffer_manager->Initialize() ||
-      !g_texture_cache->Initialize() || !g_bounding_box->Initialize())
+      !g_perf_query->Initialize() || !g_presenter->Initialize() ||
+      !g_framebuffer_manager->Initialize() || !g_texture_cache->Initialize() ||
+      !g_bounding_box->Initialize() || !g_graphics_mod_manager->Initialize())
   {
     PanicAlertFmtT("Failed to initialize renderer classes");
     Shutdown();

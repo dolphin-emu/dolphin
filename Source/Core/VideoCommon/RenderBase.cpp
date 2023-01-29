@@ -45,7 +45,7 @@
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FreeLookCamera.h"
-#include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/PixelEngine.h"
@@ -73,27 +73,6 @@ Renderer::Renderer()
 }
 
 Renderer::~Renderer() = default;
-
-bool Renderer::Initialize()
-{
-  if (g_ActiveConfig.bGraphicMods)
-  {
-    // If a config change occurred in a previous session,
-    // remember the old change count value.  By setting
-    // our current change count to the old value, we
-    // avoid loading the stale data when we
-    // check for config changes.
-    const u32 old_game_mod_changes = g_ActiveConfig.graphics_mod_config ?
-                                         g_ActiveConfig.graphics_mod_config->GetChangeCount() :
-                                         0;
-    g_ActiveConfig.graphics_mod_config = GraphicsModGroupConfig(SConfig::GetInstance().GetGameID());
-    g_ActiveConfig.graphics_mod_config->Load();
-    g_ActiveConfig.graphics_mod_config->SetChangeCount(old_game_mod_changes);
-    m_graphics_mod_manager.Load(*g_ActiveConfig.graphics_mod_config);
-  }
-
-  return true;
-}
 
 bool Renderer::EFBHasAlphaChannel() const
 {
@@ -338,7 +317,7 @@ void Renderer::CheckForConfigChanges()
   if (g_ActiveConfig.graphics_mod_config &&
       (old_game_mod_changes != g_ActiveConfig.graphics_mod_config->GetChangeCount()))
   {
-    m_graphics_mod_manager.Load(*g_ActiveConfig.graphics_mod_config);
+    g_graphics_mod_manager->Load(*g_ActiveConfig.graphics_mod_config);
   }
 
   // Update texture cache settings with any changed options.
@@ -541,7 +520,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
   if (g_ActiveConfig.bGraphicMods)
   {
-    m_graphics_mod_manager.EndOfFrame();
+    g_graphics_mod_manager->EndOfFrame();
   }
 
   g_framebuffer_manager->EndOfFrame();
@@ -674,9 +653,4 @@ void Renderer::DoState(PointerWrap& p)
 #if defined(HAVE_FFMPEG)
   g_frame_dumper->DoState(p);
 #endif
-}
-
-const GraphicsModManager& Renderer::GetGraphicsModManager() const
-{
-  return m_graphics_mod_manager;
 }

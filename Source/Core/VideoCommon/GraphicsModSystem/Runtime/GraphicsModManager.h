@@ -19,6 +19,8 @@ class GraphicsModGroupConfig;
 class GraphicsModManager
 {
 public:
+  bool Initialize();
+
   const std::vector<GraphicsModAction*>& GetProjectionActions(ProjectionType projection_type) const;
   const std::vector<GraphicsModAction*>&
   GetProjectionTextureActions(ProjectionType projection_type,
@@ -52,3 +54,5 @@ private:
 
   std::unordered_set<std::string> m_groups;
 };
+
+extern std::unique_ptr<GraphicsModManager> g_graphics_mod_manager;

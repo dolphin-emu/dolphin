@@ -22,6 +22,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -387,14 +388,14 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
   if (g_ActiveConfig.bGraphicMods)
   {
     for (const auto action :
-         g_renderer->GetGraphicsModManager().GetProjectionActions(xfmem.projection.type))
+         g_graphics_mod_manager->GetProjectionActions(xfmem.projection.type))
     {
       projection_actions.push_back(action);
     }
 
     for (const auto& texture : textures)
     {
-      for (const auto action : g_renderer->GetGraphicsModManager().GetProjectionTextureActions(
+      for (const auto action : g_graphics_mod_manager->GetProjectionTextureActions(
                xfmem.projection.type, texture))
       {
         projection_actions.push_back(action);

@@ -40,6 +40,7 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -1291,7 +1292,7 @@ TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
 
     GraphicsModActionData::TextureLoad texture_load{entry->texture_info_name};
     for (const auto action :
-         g_renderer->GetGraphicsModManager().GetTextureLoadActions(entry->texture_info_name))
+         g_graphics_mod_manager->GetTextureLoadActions(entry->texture_info_name))
     {
       action->OnTextureLoad(&texture_load);
     }
@@ -2210,7 +2211,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     info.m_texture_format = baseFormat;
     if (is_xfb_copy)
     {
-      for (const auto action : g_renderer->GetGraphicsModManager().GetXFBActions(info))
+      for (const auto action : g_graphics_mod_manager->GetXFBActions(info))
       {
         action->OnXFB();
       }
@@ -2219,7 +2220,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     {
       bool skip = false;
       GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
-      for (const auto action : g_renderer->GetGraphicsModManager().GetEFBActions(info))
+      for (const auto action : g_graphics_mod_manager->GetEFBActions(info))
       {
         action->OnEFB(&efb);
       }

@@ -10,10 +10,15 @@
 #include "Common/Logging/Log.h"
 #include "Common/VariantUtil.h"
 
+#include "Core/ConfigManager.h"
+
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 #include "VideoCommon/TextureInfo.h"
+#include "VideoCommon/VideoConfig.h"
+
+std::unique_ptr<GraphicsModManager> g_graphics_mod_manager;
 
 class GraphicsModManager::DecoratedAction final : public GraphicsModAction
 {
@@ -63,6 +68,27 @@ private:
   std::unique_ptr<GraphicsModAction> m_action_impl;
   GraphicsModConfig m_mod;
 };
+
+bool GraphicsModManager::Initialize()
+{
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    // If a config change occurred in a previous session,
+    // remember the old change count value.  By setting
+    // our current change count to the old value, we
+    // avoid loading the stale data when we
+    // check for config changes.
+    const u32 old_game_mod_changes = g_ActiveConfig.graphics_mod_config ?
+                                         g_ActiveConfig.graphics_mod_config->GetChangeCount() :
+                                         0;
+    g_ActiveConfig.graphics_mod_config = GraphicsModGroupConfig(SConfig::GetInstance().GetGameID());
+    g_ActiveConfig.graphics_mod_config->Load();
+    g_ActiveConfig.graphics_mod_config->SetChangeCount(old_game_mod_changes);
+    g_graphics_mod_manager->Load(*g_ActiveConfig.graphics_mod_config);
+  }
+
+  return true;
+}
 
 const std::vector<GraphicsModAction*>&
 GraphicsModManager::GetProjectionActions(ProjectionType projection_type) const
