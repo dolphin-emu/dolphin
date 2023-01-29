@@ -371,9 +371,9 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   TMEM::Init();
 
   if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
-      !g_renderer->Initialize() || !g_presenter->Initialize() ||
-      !g_framebuffer_manager->Initialize() || !g_texture_cache->Initialize() ||
-      !g_bounding_box->Initialize())
+      !g_perf_query->Initialize() || !g_renderer->Initialize() ||
+      !g_presenter->Initialize() || !g_framebuffer_manager->Initialize() ||
+      !g_texture_cache->Initialize() || !g_bounding_box->Initialize())
   {
     PanicAlertFmtT("Failed to initialize renderer classes");
     Shutdown();

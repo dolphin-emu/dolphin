@@ -239,19 +239,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   auto perf_query = std::make_unique<PerfQuery>();
   auto bounding_box = std::make_unique<VKBoundingBox>();
 
-  if (!InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                        std::move(bounding_box)))
-  {
-    return false;
-  }
-
-  if (!PerfQuery::GetInstance()->Initialize())
-  {
-    PanicAlertFmt("Failed to initialize PerfQuery");
-    return false;
-  }
-
-  return true;
+  return !InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+                           std::move(bounding_box));
 }
 
 void VideoBackend::Shutdown()
