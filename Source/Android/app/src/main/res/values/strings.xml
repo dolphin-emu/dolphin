@@ -128,6 +128,10 @@
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="gamecube_submenu">GameCube</string>
+    <string name="ipl_settings">IPL Settings</string>
+    <string name="skip_main_menu">Skip Main Menu</string>
+    <string name="skip_main_menu_description">Put IPL ROMs in User/GC/&lt;region&gt;</string>
+    <string name="device_settings">Device Settings</string>
     <string name="system_language">System Language</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
@@ -250,6 +254,8 @@
     <string name="FSAA_description">Reduces the amount of aliasing caused by rasterizing 3D graphics. This makes the rendered picture look less blocky. Heavily decreases emulation speed and sometimes causes issues.</string>
     <string name="anisotropic_filtering">Anisotropic Filtering</string>
     <string name="anisotropic_filtering_description">Enhances visual quality of textures that are at oblique viewing angles. Might cause issues in a small number of games.</string>
+    <string name="texture_filtering">Texture Filtering</string>
+    <string name="texture_filtering_description">Overrides the texture scaling filter selected by the game. Any option except \'Default\' will alter the look of the game\'s textures and might cause issues in a small number of games.</string>
     <string name="post_processing_shader">Post-Processing Effect</string>
     <string name="post_processing_shader_description">Apply a post-processing effect after finishing a frame</string>
     <string name="postprocessing_shader">Post Processing Shader</string>
@@ -368,7 +374,9 @@
     <string name="manual_texture_sampling">Manual Texture Sampling</string>
     <string name="manual_texture_sampling_description">Use a manual implementation of texture sampling instead of the graphics backend\'s built-in functionality.</string>
     <string name="internal_resolution_dumps">Dump Frames at Internal Resolution</string>
+    <string name="frame_dumping">Frame Dumping</string>
     <string name="internal_resolution_dumps_description">Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within. If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.</string>
+    <string name="png_compression_level">PNG Compression Level</string>
     <string name="debugging">Debugging</string>
     <string name="wireframe">Enable Wireframe</string>
     <string name="show_stats">Show Statistics</string>
@@ -381,15 +389,33 @@
 
     <!-- Advanced Settings -->
     <string name="advanced_submenu">Advanced</string>
+    <string name="cpu_options">CPU Options</string>
     <string name="cpu_core">CPU Core</string>
     <string name="mmu_enable">Enable MMU</string>
     <string name="mmu_enable_description">Enables the Memory Management Unit. Needed for some games, but may reduce performance.</string>
+    <string name="pause_on_panic">Pause on Panic</string>
+    <string name="pause_on_panic_description">Pauses the emulation if a Read/Write or Unknown Instruction panic occurs. The performance impact is the same as having Enable MMU on.</string>
+    <string name="enable_cpu_cache">Enable Write-Back Cache (slow)</string>
+    <string name="enable_cpu_cache_description">Enables emulation of the CPU write-back cache. Enabling will have a significant impact on performance. This should be left disabled unless absolutely needed.</string>
+    <string name="clock_override">Clock Override</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
+    <string name="memory_override">Memory Override</string>
+    <string name="enable_memory_size_override">Enable Emulated Memory Size Override</string>
+    <string name="enable_memory_size_override_description">Adjusts the amount of RAM in the emulated console.\n\nWARNING: Enabling this will completely break many games. Only a small number of games can benefit from this.</string>
+    <string name="main_mem1_size">MEM1 Size</string>
+    <string name="main_mem2_size">MEM2 Size</string>
+    <string name="gpu_options">GPU Options</string>
     <string name="synchronize_gpu_thread">Synchronize GPU Thread</string>
     <string name="synchronize_gpu_thread_description">Synchronizing the GPU thread reduces the risk of games crashing or becoming unstable with dual core enabled, but can also reduce the performance gain of dual core. If unsure, select \"On Idle Skipping\". Selecting \"Never\" is risky and not recommended!</string>
+    <string name="custom_rtc_options">Custom RTC Options</string>
+    <string name="custom_rtc_enable">Enable Custom RTC</string>
+    <string name="custom_rtc_description">This settings allows you to set a custom real time clock (RTC) separate from your current system time.</string>
+    <string name="set_custom_rtc">Set Custom RTC</string>
+    <string name="select_rtc_date">Select RTC Date</string>
+    <string name="select_rtc_time">Select RTC Time</string>
 
     <!-- Log Configuration -->
     <string name="log_submenu">Log</string>
@@ -623,6 +649,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="path_not_changeable_scoped_storage">Due to the Scoped Storage policy in Android 11 and newer, you can\'t change this path.</string>
     <string name="load_settings">Loading Settings…</string>
     <string name="setting_not_runtime_editable">This setting can\'t be changed while a game is running.</string>
+    <string name="ipl_not_found">IPL not found</string>
     <string name="setting_clear_info">Long press a setting to clear it.</string>
     <string name="setting_clear_confirm">Do you want to restore this setting to its default value?</string>
     <string name="setting_cleared">Setting cleared</string>
@@ -751,6 +778,11 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="multiple_four">4x</string>
     <string name="multiple_eight">8x</string>
     <string name="multiple_sixteen">16x</string>
+
+    <!-- Texture Filtering Preference -->
+    <string name="filtering_default">Default</string>
+    <string name="filtering_nearest">Force Nearest</string>
+    <string name="filtering_linear">Force Linear</string>
 
     <!-- Stereoscopy Preference -->
     <string name="stereoscopy_off">Off</string>

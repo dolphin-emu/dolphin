@@ -25,6 +25,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.WiimoteProfileStringSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.DateTimeChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
@@ -564,8 +565,13 @@ public final class SettingsFragmentPresenter
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
   {
+    sl.add(new HeaderSetting(mContext, R.string.ipl_settings, 0));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_SKIP_IPL, R.string.skip_main_menu,
+            R.string.skip_main_menu_description));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_GC_LANGUAGE, R.string.system_language,
             0, R.array.gameCubeSystemLanguageEntries, R.array.gameCubeSystemLanguageValues));
+
+    sl.add(new HeaderSetting(mContext, R.string.device_settings, 0));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_SLOT_A, R.string.slot_a_device, 0,
             R.array.slotDeviceEntries, R.array.slotDeviceValues));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_SLOT_B, R.string.slot_b_device, 0,
@@ -715,17 +721,103 @@ public final class SettingsFragmentPresenter
       emuCoresEntries = R.array.emuCoresEntriesGeneric;
       emuCoresValues = R.array.emuCoresValuesGeneric;
     }
+    sl.add(new HeaderSetting(mContext, R.string.cpu_options, 0));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_CPU_CORE, R.string.cpu_core, 0,
             emuCoresEntries, emuCoresValues));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_MMU, R.string.mmu_enable,
             R.string.mmu_enable_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_PAUSE_ON_PANIC, R.string.pause_on_panic,
+            R.string.pause_on_panic_description));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_ACCURATE_CPU_CACHE,
+            R.string.enable_cpu_cache, R.string.enable_cpu_cache_description));
+
+    sl.add(new HeaderSetting(mContext, R.string.clock_override, 0));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_OVERCLOCK_ENABLE,
             R.string.overclock_enable, R.string.overclock_enable_description));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
             R.string.overclock_title_description, 0, 400, "%"));
+
+    AbstractIntSetting mem1Setting = new AbstractIntSetting()
+    {
+      @Override
+      public int getInt(Settings settings)
+      {
+        return IntSetting.MAIN_MEM1_SIZE.getInt(settings) / 1024 / 1024;
+      }
+
+      @Override
+      public void setInt(Settings settings, int newValue)
+      {
+        IntSetting.MAIN_MEM1_SIZE.setInt(settings, newValue * 1024 * 1024);
+      }
+
+      @Override
+      public boolean isOverridden(Settings settings)
+      {
+        return IntSetting.MAIN_MEM1_SIZE.isOverridden(settings);
+      }
+
+      @Override
+      public boolean isRuntimeEditable()
+      {
+        return IntSetting.MAIN_MEM1_SIZE.isRuntimeEditable();
+      }
+
+      @Override
+      public boolean delete(Settings settings)
+      {
+        return IntSetting.MAIN_MEM1_SIZE.delete(settings);
+      }
+    };
+    AbstractIntSetting mem2Setting = new AbstractIntSetting()
+    {
+      @Override
+      public int getInt(Settings settings)
+      {
+        return IntSetting.MAIN_MEM2_SIZE.getInt(settings) / 1024 / 1024;
+      }
+
+      @Override
+      public void setInt(Settings settings, int newValue)
+      {
+        IntSetting.MAIN_MEM2_SIZE.setInt(settings, newValue * 1024 * 1024);
+      }
+
+      @Override
+      public boolean isOverridden(Settings settings)
+      {
+        return IntSetting.MAIN_MEM2_SIZE.isOverridden(settings);
+      }
+
+      @Override
+      public boolean isRuntimeEditable()
+      {
+        return IntSetting.MAIN_MEM2_SIZE.isRuntimeEditable();
+      }
+
+      @Override
+      public boolean delete(Settings settings)
+      {
+        return IntSetting.MAIN_MEM2_SIZE.delete(settings);
+      }
+    };
+    sl.add(new HeaderSetting(mContext, R.string.memory_override, 0));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_RAM_OVERRIDE_ENABLE,
+            R.string.enable_memory_size_override,
+            R.string.enable_memory_size_override_description));
+    sl.add(new IntSliderSetting(mContext, mem1Setting, R.string.main_mem1_size, 0, 24, 64, "MB"));
+    sl.add(new IntSliderSetting(mContext, mem2Setting, R.string.main_mem2_size, 0, 64, 128, "MB"));
+
+    sl.add(new HeaderSetting(mContext, R.string.gpu_options, 0));
     sl.add(new SingleChoiceSetting(mContext, synchronizeGpuThread, R.string.synchronize_gpu_thread,
             R.string.synchronize_gpu_thread_description, R.array.synchronizeGpuThreadEntries,
             R.array.synchronizeGpuThreadValues));
+
+    sl.add(new HeaderSetting(mContext, R.string.custom_rtc_options, 0));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_CUSTOM_RTC_ENABLE,
+            R.string.custom_rtc_enable, R.string.custom_rtc_description));
+    sl.add(new DateTimeChoiceSetting(mContext, StringSetting.MAIN_CUSTOM_RTC_VALUE,
+            R.string.set_custom_rtc, 0));
   }
 
   private void addSerialPortSubSettings(ArrayList<SettingsItem> sl, int serialPort1Type)
@@ -800,6 +892,37 @@ public final class SettingsFragmentPresenter
     sl.add(new SingleChoiceSetting(mContext, IntSetting.GFX_ENHANCE_MAX_ANISOTROPY,
             R.string.anisotropic_filtering, R.string.anisotropic_filtering_description,
             R.array.anisotropicFilteringEntries, R.array.anisotropicFilteringValues));
+    AbstractIntSetting filteringSetting = new AbstractIntSetting()
+    {
+      @Override public int getInt(Settings settings)
+      {
+        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.getInt(settings);
+      }
+
+      @Override public void setInt(Settings settings, int newValue)
+      {
+        BooleanSetting.GFX_ENHANCE_FORCE_FILTERING.setBoolean(settings, (newValue > 0));
+        IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.setInt(settings, newValue);
+      }
+
+      @Override public boolean isOverridden(Settings settings)
+      {
+        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.isOverridden(settings);
+      }
+
+      @Override public boolean isRuntimeEditable()
+      {
+        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.isRuntimeEditable();
+      }
+
+      @Override public boolean delete(Settings settings)
+      {
+        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.delete(settings);
+      }
+    };
+    sl.add(new SingleChoiceSetting(mContext, filteringSetting, R.string.texture_filtering,
+            R.string.texture_filtering_description, R.array.textureFilteringEntries,
+            R.array.textureFilteringValues));
 
     int stereoModeValue = IntSetting.GFX_STEREO_MODE.getInt(mSettings);
     final int anaglyphMode = 3;
@@ -821,8 +944,6 @@ public final class SettingsFragmentPresenter
             R.string.scaled_efb_copy, R.string.scaled_efb_copy_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENABLE_PIXEL_LIGHTING,
             R.string.per_pixel_lighting, R.string.per_pixel_lighting_description));
-    sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENHANCE_FORCE_FILTERING,
-            R.string.force_texture_filtering, R.string.force_texture_filtering_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENHANCE_FORCE_TRUE_COLOR,
             R.string.force_24bit_color, R.string.force_24bit_color_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_DISABLE_FOG, R.string.disable_fog,
@@ -944,8 +1065,12 @@ public final class SettingsFragmentPresenter
             R.string.defer_efb_invalidation, R.string.defer_efb_invalidation_description));
     sl.add(new InvertedSwitchSetting(mContext, BooleanSetting.GFX_HACK_FAST_TEXTURE_SAMPLING,
             R.string.manual_texture_sampling, R.string.manual_texture_sampling_description));
+
+    sl.add(new HeaderSetting(mContext, R.string.frame_dumping, 0));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_INTERNAL_RESOLUTION_FRAME_DUMPS,
             R.string.internal_resolution_dumps, R.string.internal_resolution_dumps_description));
+    sl.add(new IntSliderSetting(mContext, IntSetting.GFX_PNG_COMPRESSION_LEVEL,
+            R.string.png_compression_level, 0, 0, 9, ""));
 
     sl.add(new HeaderSetting(mContext, R.string.debugging, 0));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENABLE_WIREFRAME,

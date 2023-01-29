@@ -293,7 +293,7 @@
 
     <!-- Anisotropic Filtering Preference -->
     <string-array name="anisotropicFilteringEntries">
-        <item>@string/multiple_one</item>
+        <item>@string/filtering_default</item>
         <item>@string/multiple_two</item>
         <item>@string/multiple_four</item>
         <item>@string/multiple_eight</item>
@@ -305,6 +305,18 @@
         <item>2</item>
         <item>3</item>
         <item>4</item>
+    </integer-array>
+
+    <!-- Texture Filtering Preference -->
+    <string-array name="textureFilteringEntries">
+        <item>@string/filtering_default</item>
+        <item>@string/filtering_nearest</item>
+        <item>@string/filtering_linear</item>
+    </string-array>
+    <integer-array name="textureFilteringValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </integer-array>
 
     <!-- Stereoscopy Preference -->
