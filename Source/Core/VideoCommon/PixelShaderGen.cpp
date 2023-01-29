@@ -16,7 +16,6 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
@@ -180,7 +179,7 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->genMode_numindstages = bpmem.genMode.numindstages;
   uid_data->genMode_numtevstages = bpmem.genMode.numtevstages;
   uid_data->genMode_numtexgens = bpmem.genMode.numtexgens;
-  uid_data->bounding_box = g_ActiveConfig.bBBoxEnable && g_renderer->IsBBoxEnabled();
+  uid_data->bounding_box = g_ActiveConfig.bBBoxEnable && g_bounding_box->IsEnabled();
   uid_data->rgba6_format =
       bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor;
   uid_data->dither = bpmem.blendmode.dither && uid_data->rgba6_format;

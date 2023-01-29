@@ -33,7 +33,6 @@ class AbstractPipeline;
 class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
-class BoundingBox;
 class NativeVertexFormat;
 class PixelShaderManager;
 class PointerWrap;
@@ -68,7 +67,6 @@ public:
   virtual ~Renderer();
 
   virtual bool Initialize();
-  virtual void Shutdown();
 
   void BeginUtilityDrawing();
   void EndUtilityDrawing();
@@ -98,13 +96,6 @@ public:
 
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
-
-  bool IsBBoxEnabled() const;
-  void BBoxEnable(PixelShaderManager& pixel_shader_manager);
-  void BBoxDisable(PixelShaderManager& pixel_shader_manager);
-  u16 BBoxRead(u32 index);
-  void BBoxWrite(u32 index, u16 value);
-  void BBoxFlush();
 
   // Finish up the current frame, print some stats
   void Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
@@ -151,20 +142,6 @@ private:
   u32 m_last_xfb_width = 0;
   u32 m_last_xfb_stride = 0;
   u32 m_last_xfb_height = 0;
-
-  std::unique_ptr<BoundingBox> m_bounding_box;
-
-  // Nintendo's SDK seems to write "default" bounding box values before every draw (1023 0 1023 0
-  // are the only values encountered so far, which happen to be the extents allowed by the BP
-  // registers) to reset the registers for comparison in the pixel engine, and presumably to detect
-  // whether GX has updated the registers with real values.
-  //
-  // We can store these values when Bounding Box emulation is disabled and return them on read,
-  // which the game will interpret as "no pixels have been drawn"
-  //
-  // This produces much better results than just returning garbage, which can cause games like
-  // Ultimate Spider-Man to crash
-  std::array<u16, 4> m_bounding_box_fallback = {};
 
   Common::Flag m_force_reload_textures;
 

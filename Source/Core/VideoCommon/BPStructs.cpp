@@ -285,7 +285,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
         if (PE_copy.copy_to_xfb == 1)
         {
           // Make sure we disable Bounding box to match the side effects of the non-failure path
-          g_renderer->BBoxDisable(pixel_shader_manager);
+          g_bounding_box->Disable(pixel_shader_manager);
         }
 
         return;
@@ -316,7 +316,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
       // We should be able to get away with deactivating the current bbox tracking
       // here. Not sure if there's a better spot to put this.
       // the number of lines copied is determined by the y scale * source efb height
-      g_renderer->BBoxDisable(pixel_shader_manager);
+      g_bounding_box->Disable(pixel_shader_manager);
 
       float yScale;
       if (PE_copy.scale_invert)
@@ -484,10 +484,10 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
   case BPMEM_CLEARBBOX2:
   {
     const u8 offset = bp.address & 2;
-    g_renderer->BBoxEnable(pixel_shader_manager);
+    g_bounding_box->Enable(pixel_shader_manager);
 
-    g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
-    g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);
+    g_bounding_box->Set(offset, bp.newvalue & 0x3ff);
+    g_bounding_box->Set(offset + 1, bp.newvalue >> 10);
   }
     return;
   case BPMEM_TEXINVALIDATE:

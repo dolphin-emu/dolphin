@@ -95,11 +95,6 @@ bool Renderer::Initialize()
   return true;
 }
 
-void Renderer::Shutdown()
-{
-  g_bounding_box.reset();
-}
-
 void Renderer::BeginUtilityDrawing()
 {
   g_vertex_manager->Flush();
@@ -149,48 +144,6 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
 void Renderer::ReinterpretPixelData(EFBReinterpretType convtype)
 {
   g_framebuffer_manager->ReinterpretPixelData(convtype);
-}
-
-bool Renderer::IsBBoxEnabled() const
-{
-  return g_bounding_box->IsEnabled();
-}
-
-void Renderer::BBoxEnable(PixelShaderManager& pixel_shader_manager)
-{
-  g_bounding_box->Enable(pixel_shader_manager);
-}
-
-void Renderer::BBoxDisable(PixelShaderManager& pixel_shader_manager)
-{
-  g_bounding_box->Disable(pixel_shader_manager);
-}
-
-u16 Renderer::BBoxRead(u32 index)
-{
-  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
-    return m_bounding_box_fallback[index];
-
-  return g_bounding_box->Get(index);
-}
-
-void Renderer::BBoxWrite(u32 index, u16 value)
-{
-  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
-  {
-    m_bounding_box_fallback[index] = value;
-    return;
-  }
-
-  g_bounding_box->Set(index, value);
-}
-
-void Renderer::BBoxFlush()
-{
-  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
-    return;
-
-  g_bounding_box->Flush();
 }
 
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
@@ -716,7 +669,6 @@ void Renderer::DoState(PointerWrap& p)
   p.Do(m_last_xfb_width);
   p.Do(m_last_xfb_stride);
   p.Do(m_last_xfb_height);
-  p.DoArray(m_bounding_box_fallback);
 
   g_bounding_box->DoState(p);
 

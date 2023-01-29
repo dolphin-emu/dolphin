@@ -324,10 +324,10 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
 void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
-  if (g_renderer->IsBBoxEnabled() && g_ActiveConfig.bBBoxEnable &&
+  if (g_bounding_box->IsEnabled() && g_ActiveConfig.bBBoxEnable &&
       g_ActiveConfig.backend_info.bSupportsBBox)
   {
-    g_renderer->BBoxFlush();
+    g_bounding_box->Flush();
   }
 
   g_gfx->DrawIndexed(base_index, num_indices, base_vertex);
