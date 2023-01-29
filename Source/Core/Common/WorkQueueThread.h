@@ -91,12 +91,23 @@ public:
   }
 
   // Doesn't return until the most recent function invocation has finished.
-  void Flush()
+  void FlushOne()
   {
     if (m_thread.joinable())
     {
       m_flush.Set();
       Clear();
+      m_flushed.Wait();
+    }
+  }
+
+  // Doesn't return until the queue is empty.
+  void Flush()
+  {
+    if (m_thread.joinable())
+    {
+      m_flush.Set();
+      m_wakeup.Set();
       m_flushed.Wait();
     }
   }
