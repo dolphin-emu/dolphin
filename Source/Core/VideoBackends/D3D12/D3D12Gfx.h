@@ -6,9 +6,7 @@
 #include <d3d12.h>
 #include "VideoBackends/D3D12/DescriptorAllocator.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
-#include "VideoCommon/RenderBase.h"
-
-class BoundingBox;
+#include "VideoCommon/AbstractGfx.h"
 
 namespace DX12
 {
@@ -18,18 +16,15 @@ class DXShader;
 class DXPipeline;
 class SwapChain;
 
-class Renderer final : public ::Renderer
+class Gfx final : public ::AbstractGfx
 {
 public:
-  Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
-  ~Renderer() override;
+  Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
+  ~Gfx() override;
 
-  static Renderer* GetInstance() { return static_cast<Renderer*>(g_renderer.get()); }
+  static Gfx* GetInstance() { return static_cast<Gfx*>(g_gfx.get()); }
 
   bool IsHeadless() const override;
-
-  bool Initialize() override;
-  void Shutdown() override;
 
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
                                                  std::string_view name) override;
@@ -52,8 +47,8 @@ public:
   void Flush() override;
   void WaitForGPUIdle() override;
 
-  void ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
-                   bool z_enable, u32 color, u32 z) override;
+  void ClearRegion(const MathUtil::Rectangle<int>& rc, const MathUtil::Rectangle<int>& target_rc,
+                   bool color_enable, bool alpha_enable, bool z_enable, u32 color, u32 z) override;
 
   void SetPipeline(const AbstractPipeline* pipeline) override;
   void SetFramebuffer(AbstractFramebuffer* framebuffer) override;
@@ -73,6 +68,8 @@ public:
                              u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z) override;
   void BindBackbuffer(const ClearColor& clear_color = {}) override;
   void PresentBackbuffer() override;
+
+  SurfaceInfo GetSurfaceInfo() const override;
 
   // Completes the current render pass, executes the command buffer, and restores state ready for
   // next render. Use when you want to kick the current buffer to make room for new data.
@@ -97,8 +94,6 @@ public:
 
 protected:
   void OnConfigChanged(u32 bits) override;
-
-  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
 
 private:
   static const u32 MAX_TEXTURES = 8;
@@ -151,6 +146,8 @@ private:
   bool UpdateVSSRVDescriptorTable();
   bool UpdateComputeUAVDescriptorTable();
   bool UpdateSamplerDescriptorTable();
+
+  float m_backbuffer_scale;
 
   // Owned objects
   std::unique_ptr<SwapChain> m_swap_chain;

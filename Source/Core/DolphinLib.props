@@ -545,7 +545,7 @@
     <ClInclude Include="VideoBackends\D3D12\Common.h" />
     <ClInclude Include="VideoBackends\D3D12\D3D12BoundingBox.h" />
     <ClInclude Include="VideoBackends\D3D12\D3D12PerfQuery.h" />
-    <ClInclude Include="VideoBackends\D3D12\D3D12Renderer.h" />
+    <ClInclude Include="VideoBackends\D3D12\D3D12Gfx.h" />
     <ClInclude Include="VideoBackends\D3D12\D3D12StreamBuffer.h" />
     <ClInclude Include="VideoBackends\D3D12\D3D12SwapChain.h" />
     <ClInclude Include="VideoBackends\D3D12\D3D12VertexManager.h" />
@@ -1157,7 +1157,7 @@
     <ClCompile Include="VideoBackends\D3D\DXTexture.cpp" />
     <ClCompile Include="VideoBackends\D3D12\D3D12BoundingBox.cpp" />
     <ClCompile Include="VideoBackends\D3D12\D3D12PerfQuery.cpp" />
-    <ClCompile Include="VideoBackends\D3D12\D3D12Renderer.cpp" />
+    <ClCompile Include="VideoBackends\D3D12\D3D12Gfx.cpp" />
     <ClCompile Include="VideoBackends\D3D12\D3D12StreamBuffer.cpp" />
     <ClCompile Include="VideoBackends\D3D12\D3D12SwapChain.cpp" />
     <ClCompile Include="VideoBackends\D3D12\D3D12VertexManager.cpp" />

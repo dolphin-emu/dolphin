@@ -1,7 +1,7 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "VideoBackends/D3D12/D3D12Renderer.h"
+#include "VideoBackends/D3D12/D3D12Gfx.h"
 
 #include "Common/Logging/Log.h"
 
@@ -28,11 +28,8 @@ static bool UsesDynamicVertexLoader(const AbstractPipeline* pipeline)
          (g_ActiveConfig.UseVSForLinePointExpand() && usage != AbstractPipelineUsage::Utility);
 }
 
-Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
-    : ::Renderer(swap_chain ? swap_chain->GetWidth() : 0, swap_chain ? swap_chain->GetHeight() : 0,
-                 backbuffer_scale,
-                 swap_chain ? swap_chain->GetFormat() : AbstractTextureFormat::Undefined),
-      m_swap_chain(std::move(swap_chain))
+Gfx::Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
+    : m_backbuffer_scale(backbuffer_scale), m_swap_chain(std::move(swap_chain))
 {
   m_state.root_signature = g_dx_context->GetGXRootSignature();
 
@@ -44,41 +41,26 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale
   }
 }
 
-Renderer::~Renderer() = default;
+Gfx::~Gfx() = default;
 
-bool Renderer::IsHeadless() const
+bool Gfx::IsHeadless() const
 {
   return !m_swap_chain;
 }
 
-bool Renderer::Initialize()
-{
-  if (!::Renderer::Initialize())
-    return false;
-
-  return true;
-}
-
-void Renderer::Shutdown()
-{
-  m_swap_chain.reset();
-
-  ::Renderer::Shutdown();
-}
-
-std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config,
+std::unique_ptr<AbstractTexture> Gfx::CreateTexture(const TextureConfig& config,
                                                          std::string_view name)
 {
   return DXTexture::Create(config, name);
 }
 
-std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
+std::unique_ptr<AbstractStagingTexture> Gfx::CreateStagingTexture(StagingTextureType type,
                                                                        const TextureConfig& config)
 {
   return DXStagingTexture::Create(type, config);
 }
 
-std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
+std::unique_ptr<AbstractFramebuffer> Gfx::CreateFramebuffer(AbstractTexture* color_attachment,
                                                                  AbstractTexture* depth_attachment)
 {
   return DXFramebuffer::Create(static_cast<DXTexture*>(color_attachment),
@@ -86,12 +68,12 @@ std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture
 }
 
 std::unique_ptr<AbstractShader>
-Renderer::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
+Gfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
   return DXShader::CreateFromSource(stage, source, name);
 }
 
-std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
+std::unique_ptr<AbstractShader> Gfx::CreateShaderFromBinary(ShaderStage stage,
                                                                  const void* data, size_t length,
                                                                  std::string_view name)
 {
@@ -99,43 +81,36 @@ std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage sta
 }
 
 std::unique_ptr<NativeVertexFormat>
-Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
+Gfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
   return std::make_unique<DXVertexFormat>(vtx_decl);
 }
 
-std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config,
+std::unique_ptr<AbstractPipeline> Gfx::CreatePipeline(const AbstractPipelineConfig& config,
                                                            const void* cache_data,
                                                            size_t cache_data_length)
 {
   return DXPipeline::Create(config, cache_data, cache_data_length);
 }
 
-std::unique_ptr<BoundingBox> Renderer::CreateBoundingBox() const
-{
-  return std::make_unique<D3D12BoundingBox>();
-}
-
-void Renderer::Flush()
+void Gfx::Flush()
 {
   ExecuteCommandList(false);
 }
 
-void Renderer::WaitForGPUIdle()
+void Gfx::WaitForGPUIdle()
 {
   ExecuteCommandList(true);
 }
 
-void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
-                           bool z_enable, u32 color, u32 z)
+void Gfx::ClearRegion(const MathUtil::Rectangle<int>& rc, const MathUtil::Rectangle<int>& target_rc,
+                      bool color_enable, bool alpha_enable, bool z_enable, u32 color, u32 z)
 {
   // Use a fast path without the shader if both color/alpha are enabled.
-  const bool fast_color_clear = color_enable && (alpha_enable || !EFBHasAlphaChannel());
+  const bool fast_color_clear = color_enable && alpha_enable;
   if (fast_color_clear || z_enable)
   {
-    MathUtil::Rectangle<int> native_rc = ConvertEFBRectangle(rc);
-    native_rc.ClampUL(0, 0, m_current_framebuffer->GetWidth(), m_current_framebuffer->GetHeight());
-    const D3D12_RECT d3d_clear_rc{native_rc.left, native_rc.top, native_rc.right, native_rc.bottom};
+    const D3D12_RECT d3d_clear_rc{target_rc.left, target_rc.top, target_rc.right, target_rc.bottom};
 
     if (fast_color_clear)
     {
@@ -170,10 +145,10 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
 
   // Anything left over, fall back to clear triangle.
   if (color_enable || alpha_enable || z_enable)
-    ::Renderer::ClearScreen(rc, color_enable, alpha_enable, z_enable, color, z);
+    ::AbstractGfx::ClearRegion(rc, target_rc, color_enable, alpha_enable, z_enable, color, z);
 }
 
-void Renderer::SetPipeline(const AbstractPipeline* pipeline)
+void Gfx::SetPipeline(const AbstractPipeline* pipeline)
 {
   const DXPipeline* dx_pipeline = static_cast<const DXPipeline*>(pipeline);
   if (m_current_pipeline == dx_pipeline)
@@ -205,7 +180,7 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   }
 }
 
-void Renderer::BindFramebuffer(DXFramebuffer* fb)
+void Gfx::BindFramebuffer(DXFramebuffer* fb)
 {
   if (fb->HasColorBuffer())
   {
@@ -226,7 +201,7 @@ void Renderer::BindFramebuffer(DXFramebuffer* fb)
   m_dirty_bits &= ~DirtyState_Framebuffer;
 }
 
-void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
+void Gfx::SetFramebuffer(AbstractFramebuffer* framebuffer)
 {
   if (m_current_framebuffer == framebuffer)
     return;
@@ -235,7 +210,7 @@ void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
   m_dirty_bits |= DirtyState_Framebuffer;
 }
 
-void Renderer::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
+void Gfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
 {
   SetFramebuffer(framebuffer);
 
@@ -254,7 +229,7 @@ void Renderer::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
   }
 }
 
-void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
+void Gfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
                                       const ClearColor& color_value, float depth_value)
 {
   DXFramebuffer* dxfb = static_cast<DXFramebuffer*>(framebuffer);
@@ -273,7 +248,7 @@ void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
   }
 }
 
-void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
+void Gfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
   if (m_state.scissor.left == rc.left && m_state.scissor.right == rc.right &&
       m_state.scissor.top == rc.top && m_state.scissor.bottom == rc.bottom)
@@ -288,7 +263,7 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   m_dirty_bits |= DirtyState_ScissorRect;
 }
 
-void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
+void Gfx::SetTexture(u32 index, const AbstractTexture* texture)
 {
   const DXTexture* dxtex = static_cast<const DXTexture*>(texture);
   if (m_state.textures[index].ptr == dxtex->GetSRVDescriptor().cpu_handle.ptr)
@@ -301,7 +276,7 @@ void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
   m_dirty_bits |= DirtyState_Textures;
 }
 
-void Renderer::SetSamplerState(u32 index, const SamplerState& state)
+void Gfx::SetSamplerState(u32 index, const SamplerState& state)
 {
   if (m_state.samplers.states[index] == state)
     return;
@@ -310,7 +285,7 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
   m_dirty_bits |= DirtyState_Samplers;
 }
 
-void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Gfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
 {
   const DXTexture* dxtex = static_cast<const DXTexture*>(texture);
   if (m_state.compute_image_texture == dxtex)
@@ -323,7 +298,7 @@ void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool 
   m_dirty_bits |= DirtyState_ComputeImageTexture;
 }
 
-void Renderer::UnbindTexture(const AbstractTexture* texture)
+void Gfx::UnbindTexture(const AbstractTexture* texture)
 {
   const auto srv_shadow_descriptor =
       static_cast<const DXTexture*>(texture)->GetSRVDescriptor().cpu_handle;
@@ -342,7 +317,7 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
   }
 }
 
-void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
+void Gfx::SetViewport(float x, float y, float width, float height, float near_depth,
                            float far_depth)
 {
   if (m_state.viewport.TopLeftX == x && m_state.viewport.TopLeftY == y &&
@@ -361,7 +336,7 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
   m_dirty_bits |= DirtyState_Viewport;
 }
 
-void Renderer::Draw(u32 base_vertex, u32 num_vertices)
+void Gfx::Draw(u32 base_vertex, u32 num_vertices)
 {
   if (!ApplyState())
     return;
@@ -369,7 +344,7 @@ void Renderer::Draw(u32 base_vertex, u32 num_vertices)
   g_dx_context->GetCommandList()->DrawInstanced(num_vertices, 1, base_vertex, 0);
 }
 
-void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+void Gfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   if (!ApplyState())
     return;
@@ -381,7 +356,7 @@ void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
   g_dx_context->GetCommandList()->DrawIndexedInstanced(num_indices, 1, base_index, base_vertex, 0);
 }
 
-void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
+void Gfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
                                      u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
 {
   SetRootSignatures();
@@ -412,13 +387,13 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groupsize
   m_dirty_bits |= DirtyState_Pipeline;
 }
 
-void Renderer::BindBackbuffer(const ClearColor& clear_color)
+void Gfx::BindBackbuffer(const ClearColor& clear_color)
 {
   CheckForSwapChainChanges();
   SetAndClearFramebuffer(m_swap_chain->GetCurrentFramebuffer(), clear_color);
 }
 
-void Renderer::CheckForSwapChainChanges()
+void Gfx::CheckForSwapChainChanges()
 {
   const bool surface_changed = g_presenter->SurfaceChangedTestAndClear();
   const bool surface_resized =
@@ -437,11 +412,10 @@ void Renderer::CheckForSwapChainChanges()
     m_swap_chain->ResizeSwapChain();
   }
 
-  m_backbuffer_width = m_swap_chain->GetWidth();
-  m_backbuffer_height = m_swap_chain->GetHeight();
+  g_presenter->SetBackbuffer(m_swap_chain->GetWidth(), m_swap_chain->GetHeight());
 }
 
-void Renderer::PresentBackbuffer()
+void Gfx::PresentBackbuffer()
 {
   m_current_framebuffer = nullptr;
 
@@ -451,10 +425,18 @@ void Renderer::PresentBackbuffer()
   m_swap_chain->Present();
 }
 
-void Renderer::OnConfigChanged(u32 bits)
+SurfaceInfo Gfx::GetSurfaceInfo() const
 {
-  ::Renderer::OnConfigChanged(bits);
+  return {
+    m_swap_chain ? static_cast<u32>(m_swap_chain->GetWidth()) : 0,
+    m_swap_chain ? static_cast<u32>(m_swap_chain->GetHeight()) : 0,
+    m_backbuffer_scale,
+    m_swap_chain ? m_swap_chain->GetFormat() : AbstractTextureFormat::Undefined
+  };
+}
 
+void Gfx::OnConfigChanged(u32 bits)
+{
   // For quad-buffered stereo we need to change the layer count, so recreate the swap chain.
   if (m_swap_chain && bits & CONFIG_CHANGE_BIT_STEREO_MODE)
   {
@@ -475,14 +457,14 @@ void Renderer::OnConfigChanged(u32 bits)
     g_dx_context->RecreateGXRootSignature();
 }
 
-void Renderer::ExecuteCommandList(bool wait_for_completion)
+void Gfx::ExecuteCommandList(bool wait_for_completion)
 {
   PerfQuery::GetInstance()->ResolveQueries();
   g_dx_context->ExecuteCommandList(wait_for_completion);
   m_dirty_bits = DirtyState_All;
 }
 
-void Renderer::SetConstantBuffer(u32 index, D3D12_GPU_VIRTUAL_ADDRESS address)
+void Gfx::SetConstantBuffer(u32 index, D3D12_GPU_VIRTUAL_ADDRESS address)
 {
   if (m_state.constant_buffers[index] == address)
     return;
@@ -491,7 +473,7 @@ void Renderer::SetConstantBuffer(u32 index, D3D12_GPU_VIRTUAL_ADDRESS address)
   m_dirty_bits |= DirtyState_PS_CBV << index;
 }
 
-void Renderer::SetTextureDescriptor(u32 index, D3D12_CPU_DESCRIPTOR_HANDLE handle)
+void Gfx::SetTextureDescriptor(u32 index, D3D12_CPU_DESCRIPTOR_HANDLE handle)
 {
   if (m_state.textures[index].ptr == handle.ptr)
     return;
@@ -500,7 +482,7 @@ void Renderer::SetTextureDescriptor(u32 index, D3D12_CPU_DESCRIPTOR_HANDLE handl
   m_dirty_bits |= DirtyState_Textures;
 }
 
-void Renderer::SetPixelShaderUAV(D3D12_CPU_DESCRIPTOR_HANDLE handle)
+void Gfx::SetPixelShaderUAV(D3D12_CPU_DESCRIPTOR_HANDLE handle)
 {
   if (m_state.ps_uav.ptr == handle.ptr)
     return;
@@ -509,7 +491,7 @@ void Renderer::SetPixelShaderUAV(D3D12_CPU_DESCRIPTOR_HANDLE handle)
   m_dirty_bits |= DirtyState_PS_UAV;
 }
 
-void Renderer::SetVertexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, D3D12_CPU_DESCRIPTOR_HANDLE srv,
+void Gfx::SetVertexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, D3D12_CPU_DESCRIPTOR_HANDLE srv,
                                u32 stride, u32 size)
 {
   if (m_state.vertex_buffer.BufferLocation != address ||
@@ -527,7 +509,7 @@ void Renderer::SetVertexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, D3D12_CPU_DESC
   }
 }
 
-void Renderer::SetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, u32 size, DXGI_FORMAT format)
+void Gfx::SetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, u32 size, DXGI_FORMAT format)
 {
   if (m_state.index_buffer.BufferLocation == address && m_state.index_buffer.SizeInBytes == size &&
       m_state.index_buffer.Format == format)
@@ -541,7 +523,7 @@ void Renderer::SetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, u32 size, DXGI_
   m_dirty_bits |= DirtyState_IndexBuffer;
 }
 
-bool Renderer::ApplyState()
+bool Gfx::ApplyState()
 {
   if (!m_current_framebuffer || !m_current_pipeline)
     return false;
@@ -637,7 +619,7 @@ bool Renderer::ApplyState()
   return true;
 }
 
-void Renderer::SetRootSignatures()
+void Gfx::SetRootSignatures()
 {
   const u32 dirty_bits = m_dirty_bits;
   if (dirty_bits & DirtyState_RootSignature)
@@ -650,7 +632,7 @@ void Renderer::SetRootSignatures()
   m_dirty_bits &= ~(DirtyState_RootSignature | DirtyState_ComputeRootSignature);
 }
 
-void Renderer::SetDescriptorHeaps()
+void Gfx::SetDescriptorHeaps()
 {
   if (m_dirty_bits & DirtyState_DescriptorHeaps)
   {
@@ -660,7 +642,7 @@ void Renderer::SetDescriptorHeaps()
   }
 }
 
-void Renderer::UpdateDescriptorTables()
+void Gfx::UpdateDescriptorTables()
 {
   // Samplers force a full sync because any of the samplers could be in use.
   const bool texture_update_failed =
@@ -684,7 +666,7 @@ void Renderer::UpdateDescriptorTables()
   }
 }
 
-bool Renderer::UpdateSRVDescriptorTable()
+bool Gfx::UpdateSRVDescriptorTable()
 {
   static constexpr std::array<UINT, MAX_TEXTURES> src_sizes = {1, 1, 1, 1, 1, 1, 1, 1};
   DescriptorHandle dst_base_handle;
@@ -700,7 +682,7 @@ bool Renderer::UpdateSRVDescriptorTable()
   return true;
 }
 
-bool Renderer::UpdateSamplerDescriptorTable()
+bool Gfx::UpdateSamplerDescriptorTable()
 {
   if (!g_dx_context->GetSamplerAllocator()->GetGroupHandle(m_state.samplers,
                                                            &m_state.sampler_descriptor_base))
@@ -713,7 +695,7 @@ bool Renderer::UpdateSamplerDescriptorTable()
   return true;
 }
 
-bool Renderer::UpdateUAVDescriptorTable()
+bool Gfx::UpdateUAVDescriptorTable()
 {
   // We can skip writing the UAV descriptor if bbox isn't enabled, since it's not used otherwise.
   if (!g_ActiveConfig.bBBoxEnable)
@@ -730,7 +712,7 @@ bool Renderer::UpdateUAVDescriptorTable()
   return true;
 }
 
-bool Renderer::UpdateVSSRVDescriptorTable()
+bool Gfx::UpdateVSSRVDescriptorTable()
 {
   if (!UsesDynamicVertexLoader(m_current_pipeline))
   {
@@ -748,7 +730,7 @@ bool Renderer::UpdateVSSRVDescriptorTable()
   return true;
 }
 
-bool Renderer::UpdateComputeUAVDescriptorTable()
+bool Gfx::UpdateComputeUAVDescriptorTable()
 {
   DescriptorHandle handle;
   if (!g_dx_context->GetDescriptorAllocator()->Allocate(1, &handle))
