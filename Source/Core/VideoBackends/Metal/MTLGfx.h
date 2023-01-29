@@ -6,7 +6,7 @@
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
 
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/AbstractGfx.h"
 
 #include "VideoBackends/Metal/MRCHelpers.h"
 
@@ -15,15 +15,13 @@ namespace Metal
 class Framebuffer;
 class Texture;
 
-class Renderer final : public ::Renderer
+class Gfx final : public ::AbstractGfx
 {
 public:
-  Renderer(MRCOwned<CAMetalLayer*> layer, int width, int height, float layer_scale);
-  ~Renderer() override;
+  Gfx(MRCOwned<CAMetalLayer*> layer);
+  ~Gfx() override;
 
   bool IsHeadless() const override;
-
-  bool Initialize() override;
 
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
                                                  std::string_view name) override;
@@ -49,8 +47,8 @@ public:
   void WaitForGPUIdle() override;
   void OnConfigChanged(u32 bits) override;
 
-  void ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
-                   bool z_enable, u32 color, u32 z) override;
+  void ClearRegion(const MathUtil::Rectangle<int>& rc, const MathUtil::Rectangle<int>& target_rc,
+                   bool color_enable, bool alpha_enable, bool z_enable, u32 color, u32 z) override;
 
   void SetPipeline(const AbstractPipeline* pipeline) override;
   void SetFramebuffer(AbstractFramebuffer* framebuffer) override;
@@ -71,8 +69,8 @@ public:
   void BindBackbuffer(const ClearColor& clear_color = {}) override;
   void PresentBackbuffer() override;
 
-protected:
-  std::unique_ptr<::BoundingBox> CreateBoundingBox() const override;
+  // Returns info about the main surface (aka backbuffer)
+  SurfaceInfo GetSurfaceInfo() const override;
 
 private:
   MRCOwned<CAMetalLayer*> m_layer;

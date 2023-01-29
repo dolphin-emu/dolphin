@@ -9,6 +9,7 @@
 #include "VideoBackends/Metal/MRCHelpers.h"
 
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/BPMemory.h"
 
 struct AbstractPipelineConfig;
 class AbstractPipeline;

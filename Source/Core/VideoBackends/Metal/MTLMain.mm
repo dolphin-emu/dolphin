@@ -16,13 +16,15 @@
 #include "Common/Common.h"
 #include "Common/MsgHandler.h"
 
+#include "VideoBackends/Metal/MTLBoundingBox.h"
 #include "VideoBackends/Metal/MTLObjectCache.h"
 #include "VideoBackends/Metal/MTLPerfQuery.h"
-#include "VideoBackends/Metal/MTLRenderer.h"
+#include "VideoBackends/Metal/MTLGfx.h"
 #include "VideoBackends/Metal/MTLStateTracker.h"
 #include "VideoBackends/Metal/MTLUtil.h"
 #include "VideoBackends/Metal/MTLVertexManager.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -93,47 +95,31 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
     MRCOwned<id<MTLDevice>> adapter = std::move(devs[selected_adapter_index]);
     Util::PopulateBackendInfoFeatures(&g_Config, adapter);
 
-    // With the backend information populated, we can now initialize videocommon.
-    InitializeShared();
+    UpdateActiveConfig();
 
     MRCOwned<CAMetalLayer*> layer = MRCRetain(static_cast<CAMetalLayer*>(wsi.render_surface));
     [layer setDevice:adapter];
     if (Util::ToAbstract([layer pixelFormat]) == AbstractTextureFormat::Undefined)
       [layer setPixelFormat:MTLPixelFormatBGRA8Unorm];
-    CGSize size = [layer bounds].size;
-    float scale = [layer contentsScale];
-    if (!layer)  // headless
-      scale = 1.0;
 
     ObjectCache::Initialize(std::move(adapter));
     g_state_tracker = std::make_unique<StateTracker>();
-    g_renderer = std::make_unique<Renderer>(std::move(layer), size.width * scale,
-                                            size.height * scale, scale);
-    g_vertex_manager = std::make_unique<VertexManager>();
-    g_perf_query = std::make_unique<PerfQuery>();
-    g_framebuffer_manager = std::make_unique<FramebufferManager>();
-    g_texture_cache = std::make_unique<TextureCacheBase>();
-    g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
 
-    if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
-        !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
-        !g_texture_cache->Initialize())
-    {
-      PanicAlertFmt("Failed to initialize renderer classes");
-      Shutdown();
-      return false;
-    }
-
-    g_shader_cache->InitializeShaderCache();
-
-    return true;
+    return InitializeShared(
+      std::make_unique<Metal::Gfx>(std::move(layer)),
+      std::make_unique<Metal::VertexManager>(),
+      std::make_unique<Metal::PerfQuery>(),
+      std::make_unique<Metal::BoundingBox>()
+    );
   }
 }
 
 void Metal::VideoBackend::Shutdown()
 {
-  ObjectCache::Shutdown();
   ShutdownShared();
+
+  g_state_tracker.reset();
+  ObjectCache::Shutdown();
 }
 
 void Metal::VideoBackend::InitBackendInfo()
