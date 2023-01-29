@@ -19,6 +19,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Common/CDUtils.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"

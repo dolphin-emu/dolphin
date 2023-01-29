@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "Common/Align.h"
+#include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -192,9 +193,10 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   for (std::string& path : paths)
     UnifyPathSeparators(path);
 
+  const bool is_drive = Common::IsCDROMDevice(paths.front());
   // Check if the file exist, we may have gotten it from a --elf command line
   // that gave an incorrect file name
-  if (!File::Exists(paths.front()))
+  if (!is_drive && !File::Exists(paths.front()))
   {
     PanicAlertFmtT("The specified file \"{0}\" does not exist", paths.front());
     return {};
@@ -233,7 +235,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 
   static const std::unordered_set<std::string> disc_image_extensions = {
       {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".nfs", ".dol", ".elf"}};
-  if (disc_image_extensions.find(extension) != disc_image_extensions.end())
+  if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
   {
     std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
     if (disc)
@@ -256,7 +258,18 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
                                               std::move(boot_session_data_));
     }
 
-    PanicAlertFmtT("\"{0}\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.", path);
+    if (is_drive)
+    {
+      PanicAlertFmtT("Could not read \"{0}\". "
+                     "There is no disc in the drive or it is not a GameCube/Wii backup. "
+                     "Please note that Dolphin cannot play games directly from the original "
+                     "GameCube and Wii discs.",
+                     path);
+    }
+    else
+    {
+      PanicAlertFmtT("\"{0}\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.", path);
+    }
     return {};
   }
 
