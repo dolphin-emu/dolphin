@@ -112,7 +112,7 @@ struct ARAddr
 
 // ----------------------
 // AR Remote Functions
-void ApplyCodes(const std::vector<ARCode>& codes)
+void ApplyCodes(std::span<const ARCode> codes)
 {
   if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
     return;
@@ -132,7 +132,7 @@ void SetSyncedCodesAsActive()
   s_active_codes = s_synced_codes;
 }
 
-void UpdateSyncedCodes(const std::vector<ARCode>& codes)
+void UpdateSyncedCodes(std::span<const ARCode> codes)
 {
   s_synced_codes.clear();
   s_synced_codes.reserve(codes.size());
@@ -141,7 +141,7 @@ void UpdateSyncedCodes(const std::vector<ARCode>& codes)
   s_synced_codes.shrink_to_fit();
 }
 
-std::vector<ARCode> ApplyAndReturnCodes(const std::vector<ARCode>& codes)
+std::vector<ARCode> ApplyAndReturnCodes(std::span<const ARCode> codes)
 {
   if (Config::Get(Config::MAIN_ENABLE_CHEATS))
   {
@@ -250,7 +250,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
   return codes;
 }
 
-void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
+void SaveCodes(IniFile* local_ini, std::span<const ARCode> codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
