@@ -550,16 +550,20 @@ void RestoreNetworkErrorState(const NetworkErrorState& state)
 const char* DecodeNetworkError(s32 error_code)
 {
   thread_local char buffer[1024];
-#define IS_BSD_STRERROR                                                                            \
-  defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(ANDROID) ||       \
-      defined(__APPLE__)
+
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(ANDROID) ||     \
+    defined(__APPLE__)
+#define IS_BSD_STRERROR
+#endif
+
 #ifdef _WIN32
   FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
                      FORMAT_MESSAGE_MAX_WIDTH_MASK,
                  nullptr, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buffer,
                  sizeof(buffer), nullptr);
   return buffer;
-#elif (IS_BSD_STRERROR) || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE)
+#elif defined(IS_BSD_STRERROR) ||                                                                  \
+    ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE)
   strerror_r(error_code, buffer, sizeof(buffer));
   return buffer;
 #else
