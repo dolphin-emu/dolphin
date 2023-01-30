@@ -273,6 +273,8 @@ void Metal::Gfx::WaitForGPUIdle()
 
 void Metal::Gfx::OnConfigChanged(u32 bits)
 {
+  AbstractGfx::OnConfigChanged(bits);
+
   if (bits & CONFIG_CHANGE_BIT_VSYNC)
     [m_layer setDisplaySyncEnabled:g_ActiveConfig.bVSyncActive];
 

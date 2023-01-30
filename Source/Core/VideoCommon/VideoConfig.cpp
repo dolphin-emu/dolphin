@@ -256,6 +256,9 @@ void CheckForConfigChanges()
   const u32 old_game_mod_changes =
       g_ActiveConfig.graphics_mod_config ? g_ActiveConfig.graphics_mod_config->GetChangeCount() : 0;
   const bool old_graphics_mods_enabled = g_ActiveConfig.bGraphicMods;
+  const AspectMode old_suggested_aspect_mode = g_ActiveConfig.suggested_aspect_mode;
+  const bool old_widescreen_hack = g_ActiveConfig.bWidescreenHack;
+  const auto old_post_processing_shader = g_ActiveConfig.sPostProcessingShader;
 
   UpdateActiveConfig();
   FreeLook::UpdateActiveConfig();
@@ -301,22 +304,21 @@ void CheckForConfigChanges()
     changed_bits |= CONFIG_CHANGE_BIT_BBOX;
   if (g_renderer->CalculateTargetSize())
     changed_bits |= CONFIG_CHANGE_BIT_TARGET_SIZE;
-
-  g_presenter->CheckForConfigChanges(changed_bits);
+  if (old_suggested_aspect_mode != g_ActiveConfig.suggested_aspect_mode)
+    changed_bits |= CONFIG_CHANGE_BIT_ASPECT_RATIO;
+  if (old_widescreen_hack != g_ActiveConfig.bWidescreenHack)
+    changed_bits |= CONFIG_CHANGE_BIT_ASPECT_RATIO;
+  if (old_post_processing_shader != g_ActiveConfig.sPostProcessingShader)
+    changed_bits |= CONFIG_CHANGE_BIT_POST_PROCESSING_SHADER;
 
   // No changes?
   if (changed_bits == 0)
     return;
 
-  // Notify the backend of the changes, if any.
-  g_gfx->OnConfigChanged(changed_bits);
+  // Notify all listeners
+  ConfigChangedEvent::Trigger(changed_bits);
 
-  // If there's any shader changes, wait for the GPU to finish before destroying anything.
-  if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
-  {
-    g_gfx->WaitForGPUIdle();
-    g_gfx->SetPipeline(nullptr);
-  }
+  // TODO: Move everything else to the ConfigChanged event
 
   // Framebuffer changed?
   if (changed_bits & (CONFIG_CHANGE_BIT_MULTISAMPLES | CONFIG_CHANGE_BIT_STEREO_MODE |

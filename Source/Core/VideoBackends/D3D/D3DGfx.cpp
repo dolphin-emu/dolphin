@@ -169,6 +169,8 @@ void Gfx::PresentBackbuffer()
 
 void Gfx::OnConfigChanged(u32 bits)
 {
+  AbstractGfx::OnConfigChanged(bits);
+
   // Quad-buffer changes require swap chain recreation.
   if (bits & CONFIG_CHANGE_BIT_STEREO_MODE && m_swap_chain)
     m_swap_chain->SetStereo(SwapChain::WantsStereo());

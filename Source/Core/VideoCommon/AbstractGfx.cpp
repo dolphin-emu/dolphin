@@ -16,6 +16,11 @@
 
 std::unique_ptr<AbstractGfx> g_gfx;
 
+AbstractGfx::AbstractGfx()
+{
+  ConfigChangedEvent::Register([this](u32 bits) { OnConfigChanged(bits); }, "AbstractGfx");
+}
+
 bool AbstractGfx::IsHeadless() const
 {
   return true;
@@ -130,6 +135,16 @@ AbstractGfx::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect, u
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> AbstractGfx::CreateAsyncShaderCompiler()
 {
   return std::make_unique<VideoCommon::AsyncShaderCompiler>();
+}
+
+void AbstractGfx::OnConfigChanged(u32 changed_bits)
+{
+  // If there's any shader changes, wait for the GPU to finish before destroying anything.
+  if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
+  {
+    WaitForGPUIdle();
+    SetPipeline(nullptr);
+  }
 }
 
 bool AbstractGfx::UseGeometryShaderForUI() const

@@ -436,6 +436,8 @@ void OGLGfx::PresentBackbuffer()
 
 void OGLGfx::OnConfigChanged(u32 bits)
 {
+  AbstractGfx::OnConfigChanged(bits);
+
   if (bits & CONFIG_CHANGE_BIT_VSYNC && !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
     m_main_gl_context->SwapInterval(g_ActiveConfig.bVSyncActive);
 

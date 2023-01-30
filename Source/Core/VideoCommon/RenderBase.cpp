@@ -65,6 +65,9 @@ Renderer::Renderer()
   UpdateActiveConfig();
   CalculateTargetSize();
   UpdateWidescreen();
+
+  m_config_changed_handle = ConfigChangedEvent::Register([this](u32 bits) { OnConfigChanged(bits); }, "Renderer");
+
   // VertexManager doesn't maintain statistics in Wii mode.
   if (!SConfig::GetInstance().bWii)
     m_update_widescreen_handle = AfterFrameEvent::Register([this] { UpdateWidescreenHeuristic(); }, "WideScreen Heuristic");

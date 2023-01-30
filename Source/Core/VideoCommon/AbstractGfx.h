@@ -42,6 +42,7 @@ using ClearColor = std::array<float, 4>;
 class AbstractGfx
 {
 public:
+  AbstractGfx();
   virtual ~AbstractGfx() = default;
 
   virtual bool IsHeadless() const = 0;
@@ -149,7 +150,7 @@ public:
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
 
   // Called when the configuration changes, and backend structures need to be updated.
-  virtual void OnConfigChanged(u32 bits) {}
+  virtual void OnConfigChanged(u32 changed_bits);
 
   // Returns true if a layer-expanding geometry shader should be used when rendering the user
   // interface and final XFB.

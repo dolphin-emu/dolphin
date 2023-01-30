@@ -369,6 +369,8 @@ void VKGfx::CheckForSurfaceResize()
 
 void VKGfx::OnConfigChanged(u32 bits)
 {
+  AbstractGfx::OnConfigChanged(bits);
+
   if (bits & CONFIG_CHANGE_BIT_HOST_CONFIG)
     g_object_cache->ReloadPipelineCache();
 

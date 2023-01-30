@@ -437,6 +437,8 @@ SurfaceInfo Gfx::GetSurfaceInfo() const
 
 void Gfx::OnConfigChanged(u32 bits)
 {
+  AbstractGfx::OnConfigChanged(bits);
+
   // For quad-buffered stereo we need to change the layer count, so recreate the swap chain.
   if (m_swap_chain && bits & CONFIG_CHANGE_BIT_STEREO_MODE)
   {
