@@ -13,9 +13,9 @@ public final class IntSliderSetting extends SliderSetting
   private AbstractIntSetting mSetting;
 
   public IntSliderSetting(Context context, AbstractIntSetting setting, int titleId,
-          int descriptionId, int min, int max, String units)
+          int descriptionId, int min, int max, String units, int stepSize)
   {
-    super(context, titleId, descriptionId, min, max, units);
+    super(context, titleId, descriptionId, min, max, units, stepSize);
     mSetting = setting;
   }
 

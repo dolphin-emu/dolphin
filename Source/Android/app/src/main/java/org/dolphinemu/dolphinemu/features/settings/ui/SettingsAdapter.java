@@ -298,17 +298,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     slider.setValueFrom(item.getMin());
     slider.setValueTo(item.getMax());
     slider.setValue(mSeekbarProgress);
-
-    // Sliders can get frustrating to use with a small step size and large ranges
-    int maxRange = item.getMax() - item.getMin();
-    if (maxRange <= 100)
-    {
-      slider.setStepSize(1);
-    }
-    else
-    {
-      slider.setStepSize((int) Math.pow(10, Math.ceil(Math.log10(maxRange)) - 2));
-    }
+    slider.setStepSize(item.getStepSize());
 
     slider.addOnChangeListener(this);
 
