@@ -601,6 +601,15 @@ bool BeginRecordingInput(const ControllerTypeArray& controllers,
 
     s_currentByte = 0;
 
+    // This is a bit of a hack, SYSCONF movie code expects the movie layer active for both recording
+    // and playback. That layer is really only designed for playback, not recording. Also, we can't
+    // know if we're using a Wii at this point. So, we'll assume a Wii is used here. In practice,
+    // this shouldn't affect anything for GC (as its only unique setting is language, which will be
+    // taken from base settings as expected)
+    static DTMHeader header = {.bWii = true};
+    ConfigLoaders::SaveToDTM(&header);
+    Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&header));
+
     if (Core::IsRunning())
       Core::UpdateWantDeterminism();
   });
@@ -1354,6 +1363,7 @@ void EndPlayInput(bool cont)
     s_playMode = PlayMode::None;
     Core::DisplayMessage("Movie End.", 2000);
     s_bRecordingFromSaveState = false;
+    Config::RemoveLayer(Config::LayerType::Movie);
     // we don't clear these things because otherwise we can't resume playback if we load a movie
     // state later
     // s_totalFrames = s_totalBytes = 0;
