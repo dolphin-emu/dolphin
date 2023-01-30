@@ -46,6 +46,7 @@ add_library(common
   EnumFormatter.h
   EnumMap.h
   Event.h
+  EventHook.h
   FatFsUtil.cpp
   FatFsUtil.h
   FileSearch.cpp
@@ -115,6 +116,7 @@ add_library(common
   SocketContext.cpp
   SocketContext.h
   SPSCQueue.h
+  StringLiteral.h
   StringUtil.cpp
   StringUtil.h
   SymbolDB.cpp

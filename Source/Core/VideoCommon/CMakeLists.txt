@@ -163,6 +163,7 @@ add_library(videocommon
   VertexShaderManager.h
   VideoBackendBase.cpp
   VideoBackendBase.h
+  VideoEvents.h
   VideoCommon.h
   VideoConfig.cpp
   VideoConfig.h
