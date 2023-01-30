@@ -91,8 +91,8 @@ public:
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
 
-  // Finish up the current frame, print some stats
-  void Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
+  // Track swaps for save-states
+  void TrackSwaps(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
   bool IsGameWidescreen() const { return m_is_game_widescreen; }
 

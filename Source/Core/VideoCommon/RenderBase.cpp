@@ -365,7 +365,7 @@ void Renderer::OnConfigChanged(u32 bits)
     UpdateWidescreen();
 }
 
-void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
+void Renderer::TrackSwaps(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
   if (xfb_addr && fb_width && fb_stride && fb_height)
   {
@@ -412,13 +412,14 @@ void Renderer::DoState(PointerWrap& p)
 
   if (p.IsReadMode())
   {
-    // Force the next xfb to be displayed.
-    g_presenter->ClearLastXfbId();
-
     m_was_orthographically_anamorphic = false;
 
-    // And actually display it.
-    Swap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height, m_last_xfb_ticks);
+    // This technically counts as the end of the frame
+    AfterFrameEvent::Trigger();
+
+    // re-display the most recent XFB
+    g_presenter->ImmediateSwap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride,
+                               m_last_xfb_height, m_last_xfb_ticks);
   }
 
 #if defined(HAVE_FFMPEG)

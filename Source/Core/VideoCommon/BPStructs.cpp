@@ -350,8 +350,9 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
       if (g_ActiveConfig.bImmediateXFB)
       {
         // below div two to convert from bytes to pixels - it expects width, not stride
-        g_presenter->ImmediateSwap(destAddr, destStride / 2, destStride, height,
-                                   Core::System::GetInstance().GetCoreTiming().GetTicks());
+        u64 ticks = Core::System::GetInstance().GetCoreTiming().GetTicks();
+        g_presenter->ImmediateSwap(destAddr, destStride / 2, destStride, height, ticks);
+        g_renderer->TrackSwaps(destAddr, destStride / 2, destStride, height, ticks);
       }
       else
       {
