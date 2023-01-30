@@ -894,37 +894,9 @@ public final class SettingsFragmentPresenter
     sl.add(new SingleChoiceSetting(mContext, IntSetting.GFX_ENHANCE_MAX_ANISOTROPY,
             R.string.anisotropic_filtering, R.string.anisotropic_filtering_description,
             R.array.anisotropicFilteringEntries, R.array.anisotropicFilteringValues));
-    AbstractIntSetting filteringSetting = new AbstractIntSetting()
-    {
-      @Override public int getInt(Settings settings)
-      {
-        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.getInt(settings);
-      }
-
-      @Override public void setInt(Settings settings, int newValue)
-      {
-        BooleanSetting.GFX_ENHANCE_FORCE_FILTERING.setBoolean(settings, (newValue > 0));
-        IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.setInt(settings, newValue);
-      }
-
-      @Override public boolean isOverridden(Settings settings)
-      {
-        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.isOverridden(settings);
-      }
-
-      @Override public boolean isRuntimeEditable()
-      {
-        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.isRuntimeEditable();
-      }
-
-      @Override public boolean delete(Settings settings)
-      {
-        return IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING.delete(settings);
-      }
-    };
-    sl.add(new SingleChoiceSetting(mContext, filteringSetting, R.string.texture_filtering,
-            R.string.texture_filtering_description, R.array.textureFilteringEntries,
-            R.array.textureFilteringValues));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.GFX_ENHANCE_FORCE_TEXTURE_FILTERING,
+            R.string.texture_filtering, R.string.texture_filtering_description,
+            R.array.textureFilteringEntries, R.array.textureFilteringValues));
 
     int stereoModeValue = IntSetting.GFX_STEREO_MODE.getInt(mSettings);
     final int anaglyphMode = 3;

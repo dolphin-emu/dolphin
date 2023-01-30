@@ -225,8 +225,6 @@ public enum BooleanSetting implements AbstractBooleanSetting
   GFX_CPU_CULL(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "CPUCull", false),
   GFX_MODS_ENABLE(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "EnableMods", false),
 
-  GFX_ENHANCE_FORCE_FILTERING(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,
-          "ForceFiltering", false),
   GFX_ENHANCE_FORCE_TRUE_COLOR(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,
           "ForceTrueColor", true),
   GFX_ENHANCE_DISABLE_COPY_FILTER(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,
