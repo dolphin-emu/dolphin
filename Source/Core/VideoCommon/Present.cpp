@@ -16,6 +16,7 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 std::unique_ptr<VideoCommon::Presenter> g_presenter;
 
@@ -60,6 +61,88 @@ bool Presenter::Initialize()
   return true;
 }
 
+bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height)
+{
+  ReleaseXFBContentLock();
+
+  m_xfb_entry = g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &m_xfb_rect);
+
+  m_xfb_entry->AcquireContentLock();
+  if (m_last_xfb_id == m_xfb_entry->id)
+    return false;
+
+  m_last_xfb_id = m_xfb_entry->id;
+
+  return true;
+}
+
+void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
+{
+  bool unique = FetchXFB(xfb_addr, fb_width, fb_stride, fb_height);
+
+  PresentInfo present_info;
+  present_info.emulated_timestamp = ticks;
+  if (unique)
+  {
+    present_info.frame_count = m_frame_count++;
+    present_info.reason = PresentInfo::PresentReason::VideoInterface;
+  }
+  else
+  {
+    present_info.frame_count = m_frame_count - 1;
+    present_info.reason = PresentInfo::PresentReason::VideoInterfaceDuplicate;
+  }
+  present_info.present_count = m_present_count;
+
+  BeforePresentEvent::Trigger(present_info);
+
+  if (unique || !g_ActiveConfig.bSkipPresentingDuplicateXFBs)
+  {
+    Present();
+    ProcessFrameDumping(ticks);
+  }
+  else
+  {
+    g_gfx->Flush();
+  }
+}
+
+void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
+{
+  FetchXFB(xfb_addr, fb_width, fb_stride, fb_height);
+
+  PresentInfo present_info;
+  present_info.emulated_timestamp = ticks;
+  present_info.frame_count = m_frame_count++;
+  present_info.reason = PresentInfo::PresentReason::Immediate;
+  present_info.present_count = m_present_count++;
+
+  Present();
+  ProcessFrameDumping(ticks);
+}
+
+void Presenter::ProcessFrameDumping(u64 ticks) const
+{
+  if (g_frame_dumper->IsFrameDumping())
+  {
+    MathUtil::Rectangle<int> target_rect;
+    if (!g_ActiveConfig.bInternalResolutionFrameDumps && !g_gfx->IsHeadless())
+    {
+      target_rect = GetTargetRectangle();
+    }
+    else
+    {
+      int width, height;
+      std::tie(width, height) =
+          CalculateOutputDimensions(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
+      target_rect = MathUtil::Rectangle<int>(0, 0, width, height);
+    }
+
+    g_frame_dumper->DumpCurrentFrame(m_xfb_entry->texture.get(), m_xfb_rect, target_rect, ticks,
+                                     m_frame_count);
+  }
+}
+
 void Presenter::SetBackbuffer(int backbuffer_width, int backbuffer_height)
 {
   m_backbuffer_width = backbuffer_width;
@@ -80,8 +163,7 @@ void Presenter::CheckForConfigChanges(u32 changed_bits)
 {
   // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
   // the post-processor. Note that options are applied every frame, so no need to check those.
-  if (m_post_processor &&
-      m_post_processor->GetConfig()->GetShader() != g_ActiveConfig.sPostProcessingShader)
+  if (changed_bits & ConfigChangeBits::CONFIG_CHANGE_BIT_POST_PROCESSING_SHADER && m_post_processor)
   {
     // The existing shader must not be in use when it's destroyed
     g_gfx->WaitForGPUIdle();
@@ -404,43 +486,10 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
   }
 }
 
-bool Presenter::SubmitXFB(RcTcacheEntry xfb_entry, MathUtil::Rectangle<int>& xfb_rect, u64 ticks,
-                          int frame_count)
-{
-  m_xfb_entry = std::move(xfb_entry);
-  m_xfb_rect = xfb_rect;
-  bool is_duplicate_frame = m_last_xfb_id == m_xfb_entry->id;
-  m_last_xfb_id = m_xfb_entry->id;
-
-  if (!is_duplicate_frame || !g_ActiveConfig.bSkipPresentingDuplicateXFBs)
-  {
-    Present();
-
-    if (g_frame_dumper->IsFrameDumping())
-    {
-      MathUtil::Rectangle<int> target_rect;
-      if (!g_ActiveConfig.bInternalResolutionFrameDumps && !g_gfx->IsHeadless())
-      {
-        target_rect = GetTargetRectangle();
-      }
-      else
-      {
-        int width, height;
-        std::tie(width, height) =
-            CalculateOutputDimensions(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
-        target_rect = MathUtil::Rectangle<int>(0, 0, width, height);
-      }
-
-      g_frame_dumper->DumpCurrentFrame(m_xfb_entry->texture.get(), m_xfb_rect, target_rect, ticks,
-                                       frame_count);
-    }
-  }
-
-  return is_duplicate_frame;
-}
-
 void Presenter::Present()
 {
+  m_present_count++;
+
   if (g_gfx->IsHeadless() || (!m_onscreen_ui && !m_xfb_entry))
     return;
 

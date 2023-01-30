@@ -417,6 +417,12 @@ void VertexManagerBase::Flush()
 
   m_is_flushed = true;
 
+  if (m_draw_counter == 0)
+  {
+    // This is more or less the start of the Frame
+    BeforeFrameEvent::Trigger();
+  }
+
   if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens ||
       xfmem.numChan.numColorChans != bpmem.genMode.numcolchans)
   {

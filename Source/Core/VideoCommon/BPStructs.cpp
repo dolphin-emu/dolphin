@@ -31,6 +31,7 @@
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PerfQueryBase.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
@@ -42,6 +43,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 using namespace BPFunctions;
 
@@ -340,14 +342,16 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
           false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
           bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
 
-      // This stays in to signal end of a "frame"
-      g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
+      // This is as closest as we have to an "end of the frame"
+      // It works 99% of the time.
+      AfterFrameEvent::Trigger();
+
 
       if (g_ActiveConfig.bImmediateXFB)
       {
         // below div two to convert from bytes to pixels - it expects width, not stride
-        g_renderer->Swap(destAddr, destStride / 2, destStride, height,
-                         Core::System::GetInstance().GetCoreTiming().GetTicks());
+        g_presenter->ImmediateSwap(destAddr, destStride / 2, destStride, height,
+                                   Core::System::GetInstance().GetCoreTiming().GetTicks());
       }
       else
       {

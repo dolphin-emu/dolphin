@@ -31,8 +31,9 @@ public:
   Presenter();
   virtual ~Presenter();
 
-  bool SubmitXFB(RcTcacheEntry xfb_entry, MathUtil::Rectangle<int>& xfb_rect, u64 ticks,
-                 int frame_count);
+  void ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
+  void ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
+
   void Present();
   void ClearLastXfbId() { m_last_xfb_id = std::numeric_limits<u64>::max(); }
 
@@ -86,6 +87,12 @@ public:
   const MathUtil::Rectangle<int>& GetTargetRectangle() const { return m_target_rectangle; }
 
 private:
+  // Fetches the XFB texture from the texture cache.
+  // Returns true the contents have changed since last time
+  bool FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height);
+
+  void ProcessFrameDumping(u64 ticks) const;
+
   std::tuple<int, int> CalculateOutputDimensions(int width, int height) const;
   std::tuple<float, float> ApplyStandardAspectCrop(float width, float height) const;
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
@@ -120,6 +127,9 @@ private:
 
   std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
   std::unique_ptr<VideoCommon::OnScreenUI> m_onscreen_ui;
+
+  u64 m_frame_count = 0;
+  u64 m_present_count = 0;
 };
 
 }  // namespace VideoCommon

@@ -13,6 +13,7 @@
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderCache.h"
+#include "VideoCommon/VideoEvents.h"
 
 class DataReader;
 class NativeVertexFormat;
