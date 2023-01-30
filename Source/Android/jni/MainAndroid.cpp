@@ -60,7 +60,6 @@
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 #include "jni/AndroidCommon/AndroidCommon.h"

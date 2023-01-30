@@ -23,38 +23,27 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
-#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/DolphinAnalytics.h"
-#include "Core/FifoPlayer/FifoRecorder.h"
-#include "Core/FreeLookConfig.h"
-#include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
 
-#include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
-#include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
-#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/FrameDumper.h"
-#include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
-#include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/PerformanceMetrics.h"
+ #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/ShaderCache.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/XFMemory.h"
 
 std::unique_ptr<Renderer> g_renderer;
 
@@ -62,7 +51,6 @@ Renderer::Renderer()
     : m_prev_efb_format{PixelFormat::INVALID_FMT},
        m_last_xfb_width{MAX_XFB_WIDTH}, m_last_xfb_height{MAX_XFB_HEIGHT}
 {
-  UpdateActiveConfig();
   CalculateTargetSize();
   UpdateWidescreen();
 

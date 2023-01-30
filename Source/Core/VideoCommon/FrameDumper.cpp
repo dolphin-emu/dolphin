@@ -16,7 +16,6 @@
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 static bool DumpFrameToPNG(const FrameData& frame, const std::string& file_name)

@@ -13,43 +13,17 @@
 
 #pragma once
 
-#include <array>
 #include <memory>
-#include <mutex>
-#include <string>
-#include <string_view>
-#include <thread>
 #include <tuple>
-#include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/Flag.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoEvents.h"
 
-class AbstractFramebuffer;
-class AbstractPipeline;
-class AbstractShader;
-class AbstractTexture;
-class AbstractStagingTexture;
-class NativeVertexFormat;
-class PixelShaderManager;
 class PointerWrap;
-struct ComputePipelineConfig;
-struct AbstractPipelineConfig;
-struct PortableVertexDeclaration;
-struct TextureConfig;
-enum class AbstractTextureFormat : u32;
-enum class ShaderStage;
 enum class EFBAccessType;
 enum class EFBReinterpretType;
-enum class StagingTextureType;
-
-namespace VideoCommon
-{
-class AsyncShaderCompiler;
-}
 
 struct EfbPokeData
 {

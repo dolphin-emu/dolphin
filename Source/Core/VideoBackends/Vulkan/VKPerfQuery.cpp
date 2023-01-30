@@ -15,6 +15,7 @@
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace Vulkan
