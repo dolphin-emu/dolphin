@@ -68,8 +68,8 @@ target_link_libraries(discio
 PUBLIC
   core
   BZip2::BZip2
-  lzma
-  zstd
+  LibLZMA::LibLZMA
+  zstd::zstd
 
 PRIVATE
   fmt::fmt
