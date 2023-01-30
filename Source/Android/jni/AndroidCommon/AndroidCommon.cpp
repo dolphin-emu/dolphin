@@ -25,7 +25,7 @@ std::string GetJString(JNIEnv* env, jstring jstr)
   return converted_string;
 }
 
-jstring ToJString(JNIEnv* env, const std::string& str)
+jstring ToJString(JNIEnv* env, std::string_view str)
 {
   const std::u16string converted_string = UTF8ToUTF16(str);
   return env->NewString(reinterpret_cast<const jchar*>(converted_string.data()),
@@ -53,7 +53,7 @@ jobjectArray VectorToJStringArray(JNIEnv* env, const std::vector<std::string>& v
   return VectorToJObjectArray(env, vector, IDCache::GetStringClass(), ToJString);
 }
 
-bool IsPathAndroidContent(const std::string& uri)
+bool IsPathAndroidContent(std::string_view uri)
 {
   return uri.starts_with("content://");
 }
@@ -97,7 +97,7 @@ std::string OpenModeToAndroid(std::ios_base::openmode mode)
   return result;
 }
 
-int OpenAndroidContent(const std::string& uri, const std::string& mode)
+int OpenAndroidContent(std::string_view uri, std::string_view mode)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -113,7 +113,7 @@ int OpenAndroidContent(const std::string& uri, const std::string& mode)
   return result;
 }
 
-bool DeleteAndroidContent(const std::string& uri)
+bool DeleteAndroidContent(std::string_view uri)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -127,7 +127,7 @@ bool DeleteAndroidContent(const std::string& uri)
   return static_cast<bool>(result);
 }
 
-jlong GetAndroidContentSizeAndIsDirectory(const std::string& uri)
+jlong GetAndroidContentSizeAndIsDirectory(std::string_view uri)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -141,7 +141,7 @@ jlong GetAndroidContentSizeAndIsDirectory(const std::string& uri)
   return result;
 }
 
-std::string GetAndroidContentDisplayName(const std::string& uri)
+std::string GetAndroidContentDisplayName(std::string_view uri)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -162,7 +162,7 @@ std::string GetAndroidContentDisplayName(const std::string& uri)
   return result;
 }
 
-std::vector<std::string> GetAndroidContentChildNames(const std::string& uri)
+std::vector<std::string> GetAndroidContentChildNames(std::string_view uri)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -179,7 +179,7 @@ std::vector<std::string> GetAndroidContentChildNames(const std::string& uri)
   return result;
 }
 
-std::vector<std::string> DoFileSearchAndroidContent(const std::string& directory,
+std::vector<std::string> DoFileSearchAndroidContent(std::string_view directory,
                                                     const std::vector<std::string>& extensions,
                                                     bool recursive)
 {
