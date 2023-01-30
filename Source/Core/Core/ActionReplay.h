@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include <span>
 #include <string>
-#include <utility>
 #include <variant>
 #include <vector>
 
@@ -37,15 +37,15 @@ struct ARCode
 
 void RunAllActive();
 
-void ApplyCodes(const std::vector<ARCode>& codes);
+void ApplyCodes(std::span<const ARCode> codes);
 void SetSyncedCodesAsActive();
-void UpdateSyncedCodes(const std::vector<ARCode>& codes);
-std::vector<ARCode> ApplyAndReturnCodes(const std::vector<ARCode>& codes);
+void UpdateSyncedCodes(std::span<const ARCode> codes);
+std::vector<ARCode> ApplyAndReturnCodes(std::span<const ARCode> codes);
 void AddCode(ARCode new_code);
 void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini);
 
 std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini);
-void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes);
+void SaveCodes(IniFile* local_ini, std::span<const ARCode> codes);
 
 using EncryptedLine = std::string;
 std::variant<std::monostate, AREntry, EncryptedLine> DeserializeLine(const std::string& line);
