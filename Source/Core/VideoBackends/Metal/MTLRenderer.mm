@@ -459,7 +459,9 @@ void Metal::Renderer::PresentBackbuffer()
       // when windowed (or fullscreen with vsync enabled, but that's more understandable).
       // On the other hand, it helps Xcode's GPU captures start and stop on frame boundaries
       // which is convenient.  Put it here as a default-off config, which we can override in Xcode.
-      if (g_ActiveConfig.bUsePresentDrawable)
+      // It also seems to improve frame pacing, so enable it by default with vsync
+      if (g_ActiveConfig.iUsePresentDrawable == TriState::On ||
+          (g_ActiveConfig.iUsePresentDrawable == TriState::Auto && g_ActiveConfig.bVSyncActive))
         [g_state_tracker->GetRenderCmdBuf() presentDrawable:m_drawable];
       else
         [g_state_tracker->GetRenderCmdBuf()

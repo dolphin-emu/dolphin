@@ -85,7 +85,7 @@ extern const Info<bool> GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION;
 extern const Info<bool> GFX_CPU_CULL;
 
 extern const Info<TriState> GFX_MTL_MANUALLY_UPLOAD_BUFFERS;
-extern const Info<bool> GFX_MTL_USE_PRESENT_DRAWABLE;
+extern const Info<TriState> GFX_MTL_USE_PRESENT_DRAWABLE;
 
 extern const Info<bool> GFX_SW_DUMP_OBJECTS;
 extern const Info<bool> GFX_SW_DUMP_TEV_STAGES;
