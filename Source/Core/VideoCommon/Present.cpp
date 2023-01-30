@@ -100,6 +100,8 @@ void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
   {
     Present();
     ProcessFrameDumping(ticks);
+
+    AfterPresentEvent::Trigger(present_info);
   }
   else
   {
@@ -117,8 +119,12 @@ void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_
   present_info.reason = PresentInfo::PresentReason::Immediate;
   present_info.present_count = m_present_count++;
 
+  BeforePresentEvent::Trigger(present_info);
+
   Present();
   ProcessFrameDumping(ticks);
+
+  AfterPresentEvent::Trigger(present_info);
 }
 
 void Presenter::ProcessFrameDumping(u64 ticks) const

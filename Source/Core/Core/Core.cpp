@@ -91,6 +91,7 @@
 #include "VideoCommon/Present.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoEvents.h"
 
 #ifdef ANDROID
 #include "jni/AndroidCommon/IDCache.h"
@@ -131,6 +132,13 @@ static thread_local bool tls_is_cpu_thread = false;
 static thread_local bool tls_is_gpu_thread = false;
 
 static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi);
+
+static EventHook s_frame_presented = AfterPresentEvent::Register([](auto& present_info) {
+  const double last_speed_denominator = g_perf_metrics.GetLastSpeedDenominator();
+  // The denominator should always be > 0 but if it's not, just return 1
+  const double last_speed = last_speed_denominator > 0.0 ? (1.0 / last_speed_denominator) : 1.0;
+  Core::Callback_FramePresented(last_speed);
+}, "Core Frame Presented");
 
 bool GetIsThrottlerTempDisabled()
 {

@@ -14,8 +14,13 @@
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/XFStructs.h"
+#include "VideoCommon/XFMemory.h"
+#include "VideoCommon/VideoEvents.h"
 
 class FifoRecorder::FifoRecordAnalyzer : public OpcodeDecoder::Callback
 {
@@ -249,6 +254,40 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 
   m_RequestedRecordingEnd = false;
   m_FinishedCb = finishedCb;
+
+  m_end_of_frame_event = AfterFrameEvent::Register([this] {
+    const bool was_recording = OpcodeDecoder::g_record_fifo_data;
+    OpcodeDecoder::g_record_fifo_data = IsRecording();
+
+    if (!OpcodeDecoder::g_record_fifo_data)
+      return;
+
+    if (!was_recording)
+    {
+      RecordInitialVideoMemory();
+    }
+
+    auto& system = Core::System::GetInstance();
+    auto& command_processor = system.GetCommandProcessor();
+    const auto& fifo = command_processor.GetFifo();
+    EndFrame(fifo.CPBase.load(std::memory_order_relaxed),
+                                        fifo.CPEnd.load(std::memory_order_relaxed));
+  }, "FifoRecorder::EndFrame");
+}
+
+void FifoRecorder::RecordInitialVideoMemory()
+{
+  const u32* bpmem_ptr = reinterpret_cast<const u32*>(&bpmem);
+  u32 cpmem[256] = {};
+  // The FIFO recording format splits XF memory into xfmem and xfregs; follow
+  // that split here.
+  const u32* xfmem_ptr = reinterpret_cast<const u32*>(&xfmem);
+  const u32* xfregs_ptr = reinterpret_cast<const u32*>(&xfmem) + FifoDataFile::XF_MEM_SIZE;
+  u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
+
+  g_main_cp_state.FillCPMemoryArray(cpmem);
+
+  SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size, texMem);
 }
 
 void FifoRecorder::StopRecording()
@@ -391,11 +430,14 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
     m_SkipFutureData = true;
     // Signal video backend that it should not call this function when the next frame ends
     m_IsRecording = false;
+
+    // Remove our frame end callback
+    m_end_of_frame_event.reset();
   }
 }
 
 void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem,
-                                  const u32* xfRegs, u32 xfRegsSize, const u8* texMem)
+                                  const u32* xfRegs, u32 xfRegsSize, const u8* texMem_ptr)
 {
   std::lock_guard lk(m_mutex);
 
@@ -408,7 +450,7 @@ void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32*
     u32 xfRegsCopySize = std::min((u32)FifoDataFile::XF_REGS_SIZE, xfRegsSize);
     memcpy(m_File->GetXFRegs(), xfRegs, xfRegsCopySize * 4);
 
-    memcpy(m_File->GetTexMem(), texMem, FifoDataFile::TEX_MEM_SIZE);
+    memcpy(m_File->GetTexMem(), texMem_ptr, FifoDataFile::TEX_MEM_SIZE);
   }
 
   m_record_analyzer = std::make_unique<FifoRecordAnalyzer>(this, cpMem);

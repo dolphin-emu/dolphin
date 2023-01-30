@@ -26,6 +26,7 @@
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/VideoEvents.h"
 
 class AbstractFramebuffer;
 class AbstractPipeline;
@@ -86,8 +87,6 @@ public:
   void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
                    bool zEnable, u32 color, u32 z);
   virtual void ReinterpretPixelData(EFBReinterpretType convtype);
-  void RenderToXFB(u32 xfbAddr, const MathUtil::Rectangle<int>& sourceRc, u32 fbStride,
-                   u32 fbHeight, float Gamma = 1.0f);
 
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
@@ -95,7 +94,6 @@ public:
   // Finish up the current frame, print some stats
   void Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
-  void UpdateWidescreenHeuristic();
   bool IsGameWidescreen() const { return m_is_game_widescreen; }
 
   PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
@@ -104,16 +102,17 @@ public:
   bool UseVertexDepthRange() const;
   void DoState(PointerWrap& p);
 
-  // Will forcibly reload all textures on the next swap
-  void ForceReloadTextures();
-
   bool CalculateTargetSize();
 
-protected:
-  std::tuple<int, int> CalculateTargetScale(int x, int y) const;
+  int m_frame_count = 0;
 
-  void CheckFifoRecording();
-  void RecordVideoMemory();
+  void OnConfigChanged(u32 bits);
+
+protected:
+  void UpdateWidescreen();
+  void UpdateWidescreenHeuristic();
+
+  std::tuple<int, int> CalculateTargetScale(int x, int y) const;
 
   bool m_is_game_widescreen = false;
   bool m_was_orthographically_anamorphic = false;
@@ -121,8 +120,6 @@ protected:
   // The framebuffer size
   int m_target_width = 1;
   int m_target_height = 1;
-
-  int m_frame_count = 0;
 
 private:
   PixelFormat m_prev_efb_format;
@@ -134,7 +131,8 @@ private:
   u32 m_last_xfb_stride = 0;
   u32 m_last_xfb_height = 0;
 
-  Common::Flag m_force_reload_textures;
+  EventHook m_update_widescreen_handle;
+  EventHook m_config_changed_handle;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

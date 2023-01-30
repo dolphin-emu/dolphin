@@ -769,6 +769,23 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
   }
 }
 
+void TextureCacheBase::OnFrameEnd()
+{
+  if (m_force_reload_textures.TestAndClear())
+  {
+        ForceReload();
+  }
+  else
+  {
+    // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
+    // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
+    // copies.
+    g_texture_cache->FlushEFBCopies();
+  }
+
+  g_texture_cache->Cleanup(g_renderer->m_frame_count);
+}
+
 void TCacheEntry::DoState(PointerWrap& p)
 {
   p.Do(addr);

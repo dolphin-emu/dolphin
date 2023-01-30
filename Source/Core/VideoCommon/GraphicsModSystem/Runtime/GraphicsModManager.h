@@ -14,6 +14,7 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
 #include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/XFMemory.h"
+#include "VideoCommon/VideoEvents.h"
 
 class GraphicsModGroupConfig;
 class GraphicsModManager
@@ -34,9 +35,8 @@ public:
 
   void Load(const GraphicsModGroupConfig& config);
 
-  void EndOfFrame();
-
 private:
+  void EndOfFrame();
   void Reset();
 
   class DecoratedAction;
@@ -53,6 +53,8 @@ private:
   std::unordered_map<FBInfo, std::vector<GraphicsModAction*>, FBInfoHasher> m_xfb_target_to_actions;
 
   std::unordered_set<std::string> m_groups;
+
+  EventHook m_end_of_frame_event;
 };
 
 extern std::unique_ptr<GraphicsModManager> g_graphics_mod_manager;

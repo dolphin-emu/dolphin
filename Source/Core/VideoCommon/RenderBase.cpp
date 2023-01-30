@@ -64,6 +64,10 @@ Renderer::Renderer()
 {
   UpdateActiveConfig();
   CalculateTargetSize();
+  UpdateWidescreen();
+  // VertexManager doesn't maintain statistics in Wii mode.
+  if (!SConfig::GetInstance().bWii)
+    m_update_widescreen_handle = AfterFrameEvent::Register([this] { UpdateWidescreenHeuristic(); }, "WideScreen Heuristic");
 }
 
 Renderer::~Renderer() = default;
@@ -202,15 +206,6 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
   }
 }
 
-void Renderer::RenderToXFB(u32 xfbAddr, const MathUtil::Rectangle<int>& sourceRc, u32 fbStride,
-                           u32 fbHeight, float Gamma)
-{
-  CheckFifoRecording();
-
-  if (!fbStride || !fbHeight)
-    return;
-}
-
 unsigned int Renderer::GetEFBScale() const
 {
   return m_efb_scale;
@@ -288,59 +283,38 @@ MathUtil::Rectangle<int> Renderer::ConvertEFBRectangle(const MathUtil::Rectangle
   return result;
 }
 
-void Renderer::CheckFifoRecording()
+void Renderer::UpdateWidescreen()
 {
-  const bool was_recording = OpcodeDecoder::g_record_fifo_data;
-  OpcodeDecoder::g_record_fifo_data = FifoRecorder::GetInstance().IsRecording();
+  if (SConfig::GetInstance().bWii)
+    m_is_game_widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
 
-  if (!OpcodeDecoder::g_record_fifo_data)
-    return;
+  // suggested_aspect_mode overrides SYSCONF_WIDESCREEN
+  if (g_ActiveConfig.suggested_aspect_mode == AspectMode::Analog)
+    m_is_game_widescreen = false;
+  else if (g_ActiveConfig.suggested_aspect_mode == AspectMode::AnalogWide)
+    m_is_game_widescreen = true;
 
-  if (!was_recording)
+  // If widescreen hack is disabled override game's AR if UI is set to 4:3 or 16:9.
+  if (!g_ActiveConfig.bWidescreenHack)
   {
-    RecordVideoMemory();
+    const auto aspect_mode = g_ActiveConfig.aspect_mode;
+    if (aspect_mode == AspectMode::Analog)
+      m_is_game_widescreen = false;
+    else if (aspect_mode == AspectMode::AnalogWide)
+      m_is_game_widescreen = true;
   }
-
-  auto& system = Core::System::GetInstance();
-  auto& command_processor = system.GetCommandProcessor();
-  const auto& fifo = command_processor.GetFifo();
-  FifoRecorder::GetInstance().EndFrame(fifo.CPBase.load(std::memory_order_relaxed),
-                                       fifo.CPEnd.load(std::memory_order_relaxed));
-}
-
-void Renderer::RecordVideoMemory()
-{
-  const u32* bpmem_ptr = reinterpret_cast<const u32*>(&bpmem);
-  u32 cpmem[256] = {};
-  // The FIFO recording format splits XF memory into xfmem and xfregs; follow
-  // that split here.
-  const u32* xfmem_ptr = reinterpret_cast<const u32*>(&xfmem);
-  const u32* xfregs_ptr = reinterpret_cast<const u32*>(&xfmem) + FifoDataFile::XF_MEM_SIZE;
-  u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
-
-  g_main_cp_state.FillCPMemoryArray(cpmem);
-
-  FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size,
-                                             texMem);
-}
-
-void Renderer::ForceReloadTextures()
-{
-  m_force_reload_textures.Set();
 }
 
 // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
 void Renderer::UpdateWidescreenHeuristic()
 {
-  // VertexManager maintains no statistics in Wii mode.
-  if (SConfig::GetInstance().bWii)
-    return;
-
   const auto flush_statistics = g_vertex_manager->ResetFlushAspectRatioCount();
 
   // If suggested_aspect_mode (GameINI) is configured don't use heuristic.
   if (g_ActiveConfig.suggested_aspect_mode != AspectMode::Auto)
     return;
+
+  UpdateWidescreen();
 
   // If widescreen hack isn't active and aspect_mode (UI) is 4:3 or 16:9 don't use heuristic.
   if (!g_ActiveConfig.bWidescreenHack && (g_ActiveConfig.aspect_mode == AspectMode::Analog ||
@@ -382,119 +356,22 @@ void Renderer::UpdateWidescreenHeuristic()
   m_was_orthographically_anamorphic = ortho_looks_anamorphic;
 }
 
+void Renderer::OnConfigChanged(u32 bits)
+{
+  if (bits & CONFIG_CHANGE_BIT_ASPECT_RATIO)
+    UpdateWidescreen();
+}
+
 void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
-  if (SConfig::GetInstance().bWii)
-    m_is_game_widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
-
-  // suggested_aspect_mode overrides SYSCONF_WIDESCREEN
-  if (g_ActiveConfig.suggested_aspect_mode == AspectMode::Analog)
-    m_is_game_widescreen = false;
-  else if (g_ActiveConfig.suggested_aspect_mode == AspectMode::AnalogWide)
-    m_is_game_widescreen = true;
-
-  // If widescreen hack is disabled override game's AR if UI is set to 4:3 or 16:9.
-  if (!g_ActiveConfig.bWidescreenHack)
-  {
-    const auto aspect_mode = g_ActiveConfig.aspect_mode;
-    if (aspect_mode == AspectMode::Analog)
-      m_is_game_widescreen = false;
-    else if (aspect_mode == AspectMode::AnalogWide)
-      m_is_game_widescreen = true;
-  }
-  UpdateWidescreenHeuristic();
-
-  // Ensure the last frame was written to the dump.
-  // This is required even if frame dumping has stopped, since the frame dump is one frame
-  // behind the renderer.
-  g_frame_dumper->FlushFrameDump();
-
-  if (g_ActiveConfig.bGraphicMods)
-  {
-    g_graphics_mod_manager->EndOfFrame();
-  }
-
-  g_framebuffer_manager->EndOfFrame();
-
   if (xfb_addr && fb_width && fb_stride && fb_height)
   {
-    // Get the current XFB from texture cache
-
-    g_presenter->ReleaseXFBContentLock();
-
-    MathUtil::Rectangle<int> xfb_rect;
-    RcTcacheEntry xfb_entry =
-        g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &xfb_rect);
-
-    bool is_duplicate_frame =
-        g_presenter->SubmitXFB(std::move(xfb_entry), xfb_rect, ticks, m_frame_count);
-
-    if (!g_ActiveConfig.bSkipPresentingDuplicateXFBs || !is_duplicate_frame)
-    {
-      if (!is_duplicate_frame)
-      {
-        DolphinAnalytics::PerformanceSample perf_sample;
-        perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
-        perf_sample.num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims;
-        perf_sample.num_draw_calls = g_stats.this_frame.num_draw_calls;
-        DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
-
-        // Begin new frame
-        m_frame_count++;
-        g_stats.ResetFrame();
-      }
-
-      g_shader_cache->RetrieveAsyncShaders();
-      g_vertex_manager->OnEndFrame();
-
-      // We invalidate the pipeline object at the start of the frame.
-      // This is for the rare case where only a single pipeline configuration is used,
-      // and hybrid ubershaders have compiled the specialized shader, but without any
-      // state changes the specialized shader will not take over.
-      g_vertex_manager->InvalidatePipelineObject();
-
-      if (m_force_reload_textures.TestAndClear())
-      {
-        g_texture_cache->ForceReload();
-      }
-      else
-      {
-        // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
-        // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
-        // copies.
-        g_texture_cache->FlushEFBCopies();
-      }
-
-      if (!is_duplicate_frame)
-      {
-        // Remove stale EFB/XFB copies.
-        g_texture_cache->Cleanup(m_frame_count);
-        const double last_speed_denominator = g_perf_metrics.GetLastSpeedDenominator();
-        // The denominator should always be > 0 but if it's not, just return 1
-        const double last_speed =
-            last_speed_denominator > 0.0 ? (1.0 / last_speed_denominator) : 1.0;
-        Core::Callback_FramePresented(last_speed);
-      }
-
-      // Handle any config changes, this gets propagated to the backend.
-      CheckForConfigChanges();
-      g_Config.iSaveTargetId = 0;
-    }
-    else
-    {
-      g_gfx->Flush();
-    }
-
     // Update our last xfb values
     m_last_xfb_addr = xfb_addr;
     m_last_xfb_ticks = ticks;
     m_last_xfb_width = fb_width;
     m_last_xfb_stride = fb_stride;
     m_last_xfb_height = fb_height;
-  }
-  else
-  {
-    g_gfx->Flush();
   }
 }
 

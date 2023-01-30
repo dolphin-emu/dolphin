@@ -341,3 +341,8 @@ void CheckForConfigChanges()
     BPFunctions::SetScissorAndViewport();
   }
 }
+
+static EventHook s_check_config_event = AfterFrameEvent::Register([] {
+  CheckForConfigChanges();
+
+}, "CheckForConfigChanges");

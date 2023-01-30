@@ -18,12 +18,15 @@
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
 #include "Common/MathUtil.h"
+
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/TextureInfo.h"
+#include "VideoCommon/VideoEvents.h"
 
 class AbstractFramebuffer;
 class AbstractStagingTexture;
@@ -288,6 +291,9 @@ public:
   static bool AllCopyFilterCoefsNeeded(const std::array<u32, 3>& coefficients);
   static bool CopyFilterCanOverflow(const std::array<u32, 3>& coefficients);
 
+  // Will forcibly reload all textures when the frame next ends
+  void ForceReloadTextures() { m_force_reload_textures.Set(); }
+
 protected:
   // Decodes the specified data to the GPU texture specified by entry.
   // Returns false if the configuration is not supported.
@@ -428,6 +434,11 @@ private:
   // We store this in the class so that the same staging texture can be used for multiple
   // readbacks, saving the overhead of allocating a new buffer every time.
   std::unique_ptr<AbstractStagingTexture> m_readback_texture;
+
+  void OnFrameEnd();
+
+  Common::Flag m_force_reload_textures;
+  EventHook m_frame_event = AfterFrameEvent::Register([this] { OnFrameEnd(); }, "TextureCache");
 };
 
 extern std::unique_ptr<TextureCacheBase> g_texture_cache;

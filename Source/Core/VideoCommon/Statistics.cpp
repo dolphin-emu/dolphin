@@ -8,11 +8,28 @@
 
 #include <imgui.h>
 
+#include "Core/DolphinAnalytics.h"
+#include "Core/HW/SystemTimers.h"
+
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 Statistics g_stats;
+
+static EventHook s_before_frame_event = BeforeFrameEvent::Register([] {
+  g_stats.ResetFrame();
+}, "Statistics::ResetFrame");
+
+static EventHook s_after_frame_event = AfterFrameEvent::Register([] {
+  DolphinAnalytics::PerformanceSample perf_sample;
+  perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
+  perf_sample.num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims;
+  perf_sample.num_draw_calls = g_stats.this_frame.num_draw_calls;
+  DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
+}, "Statistics::PerformanceSample");
+
 static bool clear_scissors;
 
 void Statistics::ResetFrame()

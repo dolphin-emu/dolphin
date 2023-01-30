@@ -30,6 +30,7 @@
 #include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/UberShaderVertex.h"
 #include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoEvents.h"
 
 class NativeVertexFormat;
 enum class AbstractTextureFormat : u32;
@@ -250,6 +251,8 @@ private:
 
   // Texture decoding shaders
   std::map<std::pair<u32, u32>, std::unique_ptr<AbstractShader>> m_texture_decoding_shaders;
+
+  EventHook m_frame_end_handler;
 };
 
 }  // namespace VideoCommon

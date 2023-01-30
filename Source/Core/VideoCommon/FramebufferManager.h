@@ -16,6 +16,7 @@
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 class NativeVertexFormat;
 class PointerWrap;
@@ -213,6 +214,8 @@ protected:
   std::unique_ptr<AbstractPipeline> m_depth_poke_pipeline;
   std::vector<EFBPokeVertex> m_color_poke_vertices;
   std::vector<EFBPokeVertex> m_depth_poke_vertices;
+
+  EventHook m_end_of_frame_event;
 };
 
 extern std::unique_ptr<FramebufferManager> g_framebuffer_manager;

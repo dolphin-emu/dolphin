@@ -10,6 +10,7 @@
 #include "Common/Thread.h"
 
 #include "VideoCommon/FrameDumpFFMpeg.h"
+#include "VideoCommon/VideoEvents.h"
 
 class AbstractStagingTexture;
 class AbstractTexture;
@@ -116,6 +117,8 @@ private:
   Common::Event m_screenshot_completed;
   std::mutex m_screenshot_lock;
   std::string m_screenshot_name;
+
+  EventHook m_frame_end_handle;
 };
 
 extern std::unique_ptr<FrameDumper> g_frame_dumper;

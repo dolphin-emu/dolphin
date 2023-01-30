@@ -105,6 +105,7 @@ VertexManagerBase::~VertexManagerBase() = default;
 
 bool VertexManagerBase::Initialize()
 {
+  m_frame_end_event = AfterFrameEvent::Register([this] { OnEndFrame();}, "VertexManagerBase");
   m_index_generator.Init();
   m_cpu_cull.Init();
   return true;
@@ -996,4 +997,10 @@ void VertexManagerBase::OnEndFrame()
 #endif
 
   m_cpu_accesses_this_frame.clear();
+
+  // We invalidate the pipeline object at the start of the frame.
+  // This is for the rare case where only a single pipeline configuration is used,
+  // and hybrid ubershaders have compiled the specialized shader, but without any
+  // state changes the specialized shader will not take over.
+  InvalidatePipelineObject();
 }
