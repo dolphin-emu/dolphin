@@ -3,14 +3,14 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@color/dolphin_surface">
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/grid_sheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        android:orientation="vertical">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/root_download_covers"
@@ -30,6 +30,7 @@
                 android:layout_marginEnd="24dp"
                 android:text="@string/download_game_covers"
                 android:textAlignment="viewStart"
+                android:textColor="@color/dolphin_onSurface"
                 app:layout_constraintBottom_toBottomOf="@+id/switch_download_covers"
                 app:layout_constraintEnd_toStartOf="@+id/switch_download_covers"
                 app:layout_constraintStart_toStartOf="parent"
