@@ -1,0 +1,69 @@
+Test 1:
+	Testing that statistics:getCurrentFrame() after frame advancing 10 frames is 10 more than its original value...
+	1493 + 10 == 1503
+PASS!
+
+Test 2:
+	Testing statistics:isRecordingInput() function...
+	statistics:isRecordingInput() = false
+PASS!
+
+Test 3:
+	Testing statistics:isRecordingInputFromSaveState() function...
+	statistics:isRecordingInputFromSaveState() = false
+PASS!
+
+Test 4:
+	Testing statistics:isPlayingInput() function...
+	statistics:isPlayingInput() = true
+PASS!
+
+Test 5:
+	Testing statistics:isMovieActive() function...
+	statistics:isMovieActive() = true
+PASS!
+
+Test 6:
+	Testing statistics:getMovieLength() function...
+	statistics:getMovieLength() = 2607
+PASS!
+
+Test 7:
+	Testing statistics:getRerecordCount() function...
+	statistics:getRerecordCount() = 0
+PASS!
+
+Test 8:
+	Testing statistics:getCurrentInputCount() function...
+	statistics:getCurrentInputCount() = 12028
+PASS!
+
+Test 9:
+	Testing statistics:getTotalInputCount() function...
+	statistics:getTotalInputCount() = 20852
+PASS!
+
+Test 10:
+	Testing statistics:getCurrentLagCount() function...
+	statistics:getCurrentLagCount() = 1
+PASS!
+
+Test 11:
+	Testing statistics:getTotalLagCount() function...
+	statistics:getTotalLagCount() = 1
+PASS!
+
+Test 12:
+	Testing statistics:isGcControllerInPort(1) function...
+	statistics:isGcControllerInPort(1) = true
+PASS!
+
+Test 13:
+	Testing statistics:isUsingPort(1) function...
+	statistics:isUsingPort(1) = true
+PASS!
+
+-----------------------
+Total Tests: 13
+	Tests Passed: 13
+	Tests Failed: 0

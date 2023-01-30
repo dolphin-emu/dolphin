@@ -38,6 +38,10 @@ emu* GetEmuInstance()
 
 void InitLuaEmuFunctions(lua_State* luaState)
 {
+  waitingForSaveStateLoad = false;
+  waitingForSaveStateSave = false;
+  waitingToStartPlayingMovie = false;
+  waitingToSaveMovie = false;
   emu** emuPtrPtr = (emu**)lua_newuserdata(luaState, sizeof(emu*));
   *emuPtrPtr = GetEmuInstance();
   luaL_newmetatable(luaState, "LuaEmuMetaTable");
@@ -99,7 +103,7 @@ int emu_loadState(lua_State* luaState)
 int emu_saveState(lua_State* luaState)
 {
   luaColonOperatorTypeCheck(luaState, "saveState", "emu:saveState(stateFileName)");
-  saveStateName = checkIfFileExistsAndGetFileName(luaState, "saveState");
+  saveStateName = luaL_checkstring(luaState, 2);
   waitingForSaveStateSave = true;
   Core::QueueHostJob([=]() { State::SaveAs(saveStateName); });
   return lua_yield(luaState, 0);

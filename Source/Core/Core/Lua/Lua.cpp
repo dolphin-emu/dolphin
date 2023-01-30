@@ -40,7 +40,7 @@ void Init()
   lua_gc(mainLuaState, LUA_GCSTOP);
   mainLuaThreadState = lua_newthread(mainLuaState);
   std::filesystem::path p = std::filesystem::current_path().filename();
-  if (luaL_loadfile(mainLuaThreadState, "LuaExamplesAndTests/LuaGameCubeControllerFunctionsTest.lua") != LUA_OK)
+  if (luaL_loadfile(mainLuaThreadState, "LuaExamplesAndTests/LuaRegistersTest.lua") != LUA_OK)
   {
     const char* tempString = lua_tostring(mainLuaThreadState, -1);
     fprintf(stderr, "%s\n", tempString);

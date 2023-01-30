@@ -895,8 +895,15 @@ void Callback_NewField()
       memset(&Lua::LuaGameCubeController::addToControllerInputs[i], 0, sizeof(Movie::ControllerState)); 
     }
 
-    if (lua_resume(Lua::mainLuaThreadState, NULL, 0, Lua::x) != LUA_YIELD)
+    int retVal;
+    const char* errorMsg = NULL;
+    retVal = lua_resume(Lua::mainLuaThreadState, NULL, 0, Lua::x);
+    if (retVal != LUA_YIELD)
+    {
+      if (retVal == 2)
+        errorMsg = lua_tostring(Lua::mainLuaThreadState, -1);
       Lua::luaScriptActive = false;
+    }
   }
 
   if (s_frame_step)
