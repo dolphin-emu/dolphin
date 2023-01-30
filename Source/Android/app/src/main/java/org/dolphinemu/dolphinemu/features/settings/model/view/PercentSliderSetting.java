@@ -11,9 +11,9 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 public final class PercentSliderSetting extends FloatSliderSetting
 {
   public PercentSliderSetting(Context context, AbstractFloatSetting setting, int titleId,
-          int descriptionId, int min, int max, String units)
+          int descriptionId, int min, int max, String units, int stepSize)
   {
-    super(context, setting, titleId, descriptionId, min, max, units);
+    super(context, setting, titleId, descriptionId, min, max, units, stepSize);
   }
 
   @Override

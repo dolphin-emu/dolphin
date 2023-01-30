@@ -293,7 +293,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_AUTO_DISC_CHANGE,
             R.string.auto_disc_change, 0));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_EMULATION_SPEED,
-            R.string.speed_limit, 0, 0, 200, "%"));
+            R.string.speed_limit, 0, 0, 200, "%", 1));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_FALLBACK_REGION,
             R.string.fallback_region, 0, R.array.regionEntries, R.array.regionValues));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_ANALYTICS_ENABLED, R.string.analytics,
@@ -542,7 +542,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_AUDIO_STRETCH, R.string.audio_stretch,
             R.string.audio_stretch_description));
     sl.add(new IntSliderSetting(mContext, IntSetting.MAIN_AUDIO_VOLUME, R.string.audio_volume, 0,
-            0, 100, "%"));
+            0, 100, "%", 1));
   }
 
   private void addPathsSettings(ArrayList<SettingsItem> sl)
@@ -621,9 +621,9 @@ public final class SettingsFragmentPresenter
     sl.add(new SwitchSetting(mContext, BooleanSetting.SYSCONF_WIIMOTE_MOTOR,
             R.string.wiimote_rumble, 0));
     sl.add(new IntSliderSetting(mContext, IntSetting.SYSCONF_SPEAKER_VOLUME,
-            R.string.wiimote_volume, 0, 0, 127, ""));
+            R.string.wiimote_volume, 0, 0, 127, "", 1));
     sl.add(new IntSliderSetting(mContext, IntSetting.SYSCONF_SENSOR_BAR_SENSITIVITY,
-            R.string.sensor_bar_sensitivity, 0, 1, 5, ""));
+            R.string.sensor_bar_sensitivity, 0, 1, 5, "", 1));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.SYSCONF_SENSOR_BAR_POSITION,
             R.string.sensor_bar_position, 0, R.array.sensorBarPositionEntries,
             R.array.sensorBarPositionValues));
@@ -735,7 +735,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_OVERCLOCK_ENABLE,
             R.string.overclock_enable, R.string.overclock_enable_description));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
-            R.string.overclock_title_description, 0, 400, "%"));
+            R.string.overclock_title_description, 0, 400, "%", 1));
 
     AbstractIntSetting mem1Setting = new AbstractIntSetting()
     {
@@ -805,8 +805,10 @@ public final class SettingsFragmentPresenter
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_RAM_OVERRIDE_ENABLE,
             R.string.enable_memory_size_override,
             R.string.enable_memory_size_override_description));
-    sl.add(new IntSliderSetting(mContext, mem1Setting, R.string.main_mem1_size, 0, 24, 64, "MB"));
-    sl.add(new IntSliderSetting(mContext, mem2Setting, R.string.main_mem2_size, 0, 64, 128, "MB"));
+    sl.add(new IntSliderSetting(mContext, mem1Setting, R.string.main_mem1_size, 0, 24, 64, "MB",
+            1));
+    sl.add(new IntSliderSetting(mContext, mem2Setting, R.string.main_mem2_size, 0, 64, 128, "MB",
+            1));
 
     sl.add(new HeaderSetting(mContext, R.string.gpu_options, 0));
     sl.add(new SingleChoiceSetting(mContext, synchronizeGpuThread, R.string.synchronize_gpu_thread,
@@ -1030,7 +1032,7 @@ public final class SettingsFragmentPresenter
             R.string.log_render_time_to_file_description));
     sl.add(new IntSliderSetting(mContext, IntSetting.GFX_PERF_SAMP_WINDOW,
             R.string.performance_sample_window, R.string.performance_sample_window_description, 0,
-            10000, "ms"));
+            10000, "ms", 100));
   }
 
   private void addAdvancedGraphicsSettings(ArrayList<SettingsItem> sl)
@@ -1070,7 +1072,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_INTERNAL_RESOLUTION_FRAME_DUMPS,
             R.string.internal_resolution_dumps, R.string.internal_resolution_dumps_description));
     sl.add(new IntSliderSetting(mContext, IntSetting.GFX_PNG_COMPRESSION_LEVEL,
-            R.string.png_compression_level, 0, 0, 9, ""));
+            R.string.png_compression_level, 0, 0, 9, "", 1));
 
     sl.add(new HeaderSetting(mContext, R.string.debugging, 0));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_ENABLE_WIREFRAME,
@@ -1143,10 +1145,10 @@ public final class SettingsFragmentPresenter
     sl.add(new SingleChoiceSetting(mContext, IntSetting.GFX_STEREO_MODE, R.string.stereoscopy_mode,
             0, R.array.stereoscopyEntries, R.array.stereoscopyValues));
     sl.add(new IntSliderSetting(mContext, IntSetting.GFX_STEREO_DEPTH, R.string.stereoscopy_depth,
-            R.string.stereoscopy_depth_description, 0, 100, "%"));
+            R.string.stereoscopy_depth_description, 0, 100, "%", 1));
     sl.add(new IntSliderSetting(mContext, IntSetting.GFX_STEREO_CONVERGENCE_PERCENTAGE,
             R.string.stereoscopy_convergence, R.string.stereoscopy_convergence_description, 0, 200,
-            "%"));
+            "%", 1));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_STEREO_SWAP_EYES,
             R.string.stereoscopy_swap_eyes, R.string.stereoscopy_swap_eyes_description));
   }
