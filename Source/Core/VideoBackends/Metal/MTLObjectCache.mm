@@ -418,6 +418,12 @@ public:
         // clang-format on
       }
       FramebufferState fs = config.framebuffer_state;
+      if (fs.color_texture_format == AbstractTextureFormat::Undefined &&
+          fs.depth_texture_format == AbstractTextureFormat::Undefined)
+      {
+        // Intel HD 4000's Metal driver asserts if you try to make one of these
+        PanicAlertFmt("Attempted to create pipeline with no render targets!");
+      }
       [desc setRasterSampleCount:fs.samples];
       [color0 setPixelFormat:Util::FromAbstract(fs.color_texture_format)];
       [desc setDepthAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format)];

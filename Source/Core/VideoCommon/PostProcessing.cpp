@@ -709,6 +709,9 @@ bool PostProcessing::CompilePixelShader()
 
 bool PostProcessing::CompilePipeline()
 {
+  if (m_framebuffer_format == AbstractTextureFormat::Undefined)
+    return true;  // Not needed (some backends don't like making pipelines with no targets)
+
   AbstractPipelineConfig config = {};
   config.vertex_shader = m_vertex_shader.get();
   config.geometry_shader =
