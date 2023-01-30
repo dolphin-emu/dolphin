@@ -128,7 +128,6 @@ private:
   std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
   std::unique_ptr<VideoCommon::OnScreenUI> m_onscreen_ui;
 
-  u64 m_frame_count = 0;
   u64 m_present_count = 0;
 };
 

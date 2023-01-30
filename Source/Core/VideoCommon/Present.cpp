@@ -84,12 +84,12 @@ void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
   present_info.emulated_timestamp = ticks;
   if (unique)
   {
-    present_info.frame_count = m_frame_count++;
+    present_info.frame_count = g_renderer->FrameCountIncrement();
     present_info.reason = PresentInfo::PresentReason::VideoInterface;
   }
   else
   {
-    present_info.frame_count = m_frame_count - 1;
+    present_info.frame_count = g_renderer->FrameCount() - 1; // Previous frame
     present_info.reason = PresentInfo::PresentReason::VideoInterfaceDuplicate;
   }
   present_info.present_count = m_present_count;
@@ -115,7 +115,7 @@ void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_
 
   PresentInfo present_info;
   present_info.emulated_timestamp = ticks;
-  present_info.frame_count = m_frame_count++;
+  present_info.frame_count = g_renderer->FrameCountIncrement();
   present_info.reason = PresentInfo::PresentReason::Immediate;
   present_info.present_count = m_present_count++;
 
@@ -145,7 +145,7 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
     }
 
     g_frame_dumper->DumpCurrentFrame(m_xfb_entry->texture.get(), m_xfb_rect, target_rect, ticks,
-                                     m_frame_count);
+                                     g_renderer->FrameCount());
   }
 }
 

@@ -104,7 +104,8 @@ public:
 
   bool CalculateTargetSize();
 
-  int m_frame_count = 0;
+  int FrameCount() const { return m_frame_count; }
+  int FrameCountIncrement() { return m_frame_count++; }
 
   void OnConfigChanged(u32 bits);
 
@@ -130,6 +131,8 @@ private:
   u32 m_last_xfb_width = 0;
   u32 m_last_xfb_stride = 0;
   u32 m_last_xfb_height = 0;
+
+  int m_frame_count = 0;
 
   EventHook m_update_widescreen_handle;
   EventHook m_config_changed_handle;

@@ -783,7 +783,7 @@ void TextureCacheBase::OnFrameEnd()
     g_texture_cache->FlushEFBCopies();
   }
 
-  g_texture_cache->Cleanup(g_renderer->m_frame_count);
+  g_texture_cache->Cleanup(g_renderer->FrameCount());
 }
 
 void TCacheEntry::DoState(PointerWrap& p)
