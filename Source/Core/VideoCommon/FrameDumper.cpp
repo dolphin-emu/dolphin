@@ -288,16 +288,16 @@ void FrameDumper::StopFrameDumpToFFMPEG()
 
 #else
 
-bool FrameDump::StartFrameDumpToFFMPEG(const FrameData&)
+bool FrameDumper::StartFrameDumpToFFMPEG(const FrameData&)
 {
   return false;
 }
 
-void FrameDump::DumpFrameToFFMPEG(const FrameData&)
+void FrameDumper::DumpFrameToFFMPEG(const FrameData&)
 {
 }
 
-void FrameDump::StopFrameDumpToFFMPEG()
+void FrameDumper::StopFrameDumpToFFMPEG()
 {
 }
 
@@ -352,4 +352,10 @@ bool FrameDumper::IsFrameDumping() const
   return false;
 }
 
+void FrameDumper::DoState(PointerWrap& p)
+{
+#ifdef HAVE_FFMPEG
+  m_ffmpeg_dump.DoState(p);
+#endif
+}
 std::unique_ptr<FrameDumper> g_frame_dumper;

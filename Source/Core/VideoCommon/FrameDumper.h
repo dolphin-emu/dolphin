@@ -16,26 +16,6 @@ class AbstractStagingTexture;
 class AbstractTexture;
 class AbstractFramebuffer;
 
-// Holds relevant emulation state during a rendered frame for
-// when it is later asynchronously written.
-struct FrameState
-{
-  u64 ticks = 0;
-  int frame_number = 0;
-  u32 savestate_index = 0;
-  int refresh_rate_num = 0;
-  int refresh_rate_den = 0;
-};
-
-struct FrameData
-{
-  const u8* data = nullptr;
-  int width = 0;
-  int height = 0;
-  int stride = 0;
-  FrameState state;
-};
-
 class FrameDumper
 {
 public:
@@ -54,7 +34,7 @@ public:
 
   bool IsFrameDumping() const;
 
-  void DoState(PointerWrap& p) { m_ffmpeg_dump.DoState(p); }
+  void DoState(PointerWrap& p);
 
 private:
   // NOTE: The methods below are called on the framedumping thread.
