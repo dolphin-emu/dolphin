@@ -34,6 +34,7 @@ class JITWidget;
 class LogConfigWidget;
 class LogWidget;
 class MappingWindow;
+class MemoryEngine;
 class MemoryWidget;
 class MenuBar;
 class NetPlayDialog;
@@ -162,6 +163,7 @@ private:
   void ShowFIFOPlayer();
   void ShowSkylanderPortal();
   void ShowMemcardManager();
+  void ShowMemoryEngine();
   void ShowResourcePackManager();
   void ShowCheatsManager();
   void ShowRiivolutionBootWidget(const UICommon::GameFile& game);
@@ -244,6 +246,7 @@ private:
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
   MemoryWidget* m_memory_widget;
+  MemoryEngine* m_memory_engine;
   NetworkWidget* m_network_widget;
   RegisterWidget* m_register_widget;
   ThreadWidget* m_thread_widget;

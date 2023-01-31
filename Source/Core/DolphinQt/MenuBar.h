@@ -88,6 +88,7 @@ signals:
   void ShowFIFOPlayer();
   void ShowAboutDialog();
   void ShowCheatsManager();
+  void ShowMemoryEngine();
   void ShowResourcePackManager();
   void ShowSkylanderPortal();
   void ConnectWiiRemote(int id);

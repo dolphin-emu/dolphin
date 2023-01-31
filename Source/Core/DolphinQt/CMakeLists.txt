@@ -243,6 +243,33 @@ add_executable(dolphin-emu
   Main.cpp
   MainWindow.cpp
   MainWindow.h
+  MemoryEngine/GUICommon.cpp
+  MemoryEngine/GUICommon.h
+  MemoryEngine/MemScanner/MemScanWidget.cpp
+  MemoryEngine/MemScanner/MemScanWidget.h
+  MemoryEngine/MemScanner/ResultsListModel.cpp
+  MemoryEngine/MemScanner/ResultsListModel.h
+  MemoryEngine/MemViewer/MemViewer.cpp
+  MemoryEngine/MemViewer/MemViewer.h
+  MemoryEngine/MemViewer/MemViewerWidget.cpp
+  MemoryEngine/MemViewer/MemViewerWidget.h
+  MemoryEngine/MemWatcher/Dialogs/DlgAddWatchEntry.cpp
+  MemoryEngine/MemWatcher/Dialogs/DlgAddWatchEntry.h
+  MemoryEngine/MemWatcher/Dialogs/DlgChangeType.cpp
+  MemoryEngine/MemWatcher/Dialogs/DlgChangeType.h
+  MemoryEngine/MemWatcher/Dialogs/DlgImportCTFile.cpp
+  MemoryEngine/MemWatcher/Dialogs/DlgImportCTFile.h
+  MemoryEngine/MemWatcher/MemWatchDelegate.cpp
+  MemoryEngine/MemWatcher/MemWatchDelegate.h
+  MemoryEngine/MemWatcher/MemWatchModel.cpp
+  MemoryEngine/MemWatcher/MemWatchModel.h
+  MemoryEngine/MemWatcher/MemWatchWidget.cpp
+  MemoryEngine/MemoryEngine.cpp
+  MemoryEngine/MemoryEngine.h
+  MemoryEngine/Settings/DlgSettings.cpp
+  MemoryEngine/Settings/DlgSettings.h
+  MemoryEngine/Settings/SConfig.cpp
+  MemoryEngine/Settings/SConfig.h
   MenuBar.cpp
   MenuBar.h
   NetPlay/ChunkedProgressDialog.cpp
@@ -380,6 +407,7 @@ PRIVATE
   uicommon
   imgui
   implot
+  dolphin-memory-engine
 )
 
 if (WIN32)

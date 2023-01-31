@@ -94,6 +94,7 @@
 #include "DolphinQt/Host.h"
 #include "DolphinQt/HotkeyScheduler.h"
 #include "DolphinQt/MenuBar.h"
+#include "DolphinQt/MemoryEngine/MemoryEngine.h"
 #include "DolphinQt/NKitWarningDialog.h"
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
@@ -414,6 +415,7 @@ void MainWindow::CreateComponents()
   m_jit_widget = new JITWidget(this);
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
+  m_memory_engine = new MemoryEngine(this);
   m_memory_widget = new MemoryWidget(this);
   m_network_widget = new NetworkWidget(this);
   m_register_widget = new RegisterWidget(this);
@@ -513,6 +515,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
   connect(m_menu_bar, &MenuBar::ShowResourcePackManager, this,
           &MainWindow::ShowResourcePackManager);
+  connect(m_menu_bar, &MenuBar::ShowMemoryEngine, this, &MainWindow::ShowMemoryEngine);
   connect(m_menu_bar, &MenuBar::ShowCheatsManager, this, &MainWindow::ShowCheatsManager);
   connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
@@ -1858,6 +1861,11 @@ void MainWindow::ShowMemcardManager()
   GCMemcardManager manager(this);
 
   manager.exec();
+}
+
+void MainWindow::ShowMemoryEngine()
+{
+	m_memory_engine->show();
 }
 
 void MainWindow::ShowResourcePackManager()

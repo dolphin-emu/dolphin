@@ -218,6 +218,8 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
 
+  tools_menu->addAction(tr("&Memory Engine"), this, [this] { emit ShowMemoryEngine(); });
+
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
   tools_menu->addAction(tr("&Skylanders Portal"), this, &MenuBar::ShowSkylanderPortal);
