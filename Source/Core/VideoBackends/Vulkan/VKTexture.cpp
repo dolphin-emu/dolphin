@@ -322,7 +322,7 @@ void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
 }
 
 void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                     size_t buffer_size)
+                     size_t buffer_size, u32 layer)
 {
   // Can't copy data larger than the texture extents.
   width = std::max(1u, std::min(width, GetWidth() >> level));
@@ -398,12 +398,12 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
 
   // Copy from the streaming buffer to the actual image.
   VkBufferImageCopy image_copy = {
-      upload_buffer_offset,                      // VkDeviceSize                bufferOffset
-      row_length,                                // uint32_t                    bufferRowLength
-      0,                                         // uint32_t                    bufferImageHeight
-      {VK_IMAGE_ASPECT_COLOR_BIT, level, 0, 1},  // VkImageSubresourceLayers    imageSubresource
-      {0, 0, 0},                                 // VkOffset3D                  imageOffset
-      {width, height, 1}                         // VkExtent3D                  imageExtent
+      upload_buffer_offset,                          // VkDeviceSize             bufferOffset
+      row_length,                                    // uint32_t                 bufferRowLength
+      0,                                             // uint32_t                 bufferImageHeight
+      {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},  // VkImageSubresourceLayers imageSubresource
+      {0, 0, 0},                                     // VkOffset3D               imageOffset
+      {width, height, 1}                             // VkExtent3D               imageExtent
   };
   vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), upload_buffer,
                          m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
@@ -412,7 +412,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   // likely finished with writes to this texture for now. We can't do this in common with a
   // FinishedRendering() call because the upload happens in the init command buffer, and we
   // don't want to interrupt the render pass with calls which were executed ages before.
-  if (level == (m_config.levels - 1))
+  if (level == (m_config.levels - 1) && layer == (m_config.layers - 1))
   {
     TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

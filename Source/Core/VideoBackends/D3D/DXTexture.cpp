@@ -162,11 +162,12 @@ void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
 }
 
 void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                     size_t buffer_size)
+                     size_t buffer_size, u32 layer)
 {
   size_t src_pitch = CalculateStrideForFormat(m_config.format, row_length);
-  D3D::context->UpdateSubresource(m_texture.Get(), level, nullptr, buffer,
-                                  static_cast<UINT>(src_pitch), 0);
+  D3D::context->UpdateSubresource(m_texture.Get(),
+                                  D3D11CalcSubresource(level, layer, m_config.levels), nullptr,
+                                  buffer, static_cast<UINT>(src_pitch), 0);
 }
 
 DXStagingTexture::DXStagingTexture(StagingTextureType type, const TextureConfig& config,
