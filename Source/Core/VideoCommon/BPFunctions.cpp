@@ -342,7 +342,7 @@ void ClearScreen(const MathUtil::Rectangle<int>& rc)
       color = RGBA8ToRGB565ToRGBA8(color);
       z = Z24ToZ16ToZ24(z);
     }
-    g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
+    g_framebuffer_manager->ClearEFB(rc, colorEnable, alphaEnable, zEnable, color, z);
   }
 }
 

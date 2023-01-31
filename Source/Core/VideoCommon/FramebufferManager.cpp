@@ -16,6 +16,7 @@
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/RenderBase.h"
@@ -787,36 +788,34 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async
   data.tiles[tile_index].present = true;
 }
 
-void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear_color,
-                                  bool clear_alpha, bool clear_z, u32 color, u32 z)
+void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool color_enable,
+                                  bool alpha_enable, bool z_enable, u32 color, u32 z)
 {
   FlushEFBPokes();
   FlagPeekCacheAsOutOfDate();
-  g_gfx->BeginUtilityDrawing();
 
-  // Set up uniforms.
-  struct Uniforms
+  // Native -> EFB coordinates
+  MathUtil::Rectangle<int> target_rc = g_renderer->ConvertEFBRectangle(rc);
+  target_rc = g_gfx->ConvertFramebufferRectangle(target_rc, m_efb_framebuffer.get());
+  target_rc.ClampUL(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
+
+  // Determine whether the EFB has an alpha channel. If it doesn't, we can clear the alpha
+  // channel to 0xFF.
+  // On backends that don't allow masking Alpha clears, this allows us to use the fast path
+  // almost all the time
+  if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16 ||
+      bpmem.zcontrol.pixel_format == PixelFormat::RGB8_Z24 ||
+      bpmem.zcontrol.pixel_format == PixelFormat::Z24)
   {
-    float clear_color[4];
-    float clear_depth;
-    float padding1, padding2, padding3;
-  };
-  static_assert(std::is_standard_layout<Uniforms>::value);
-  Uniforms uniforms = {{static_cast<float>((color >> 16) & 0xFF) / 255.0f,
-                        static_cast<float>((color >> 8) & 0xFF) / 255.0f,
-                        static_cast<float>((color >> 0) & 0xFF) / 255.0f,
-                        static_cast<float>((color >> 24) & 0xFF) / 255.0f},
-                       static_cast<float>(z & 0xFFFFFF) / 16777216.0f};
-  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-    uniforms.clear_depth = 1.0f - uniforms.clear_depth;
-  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+    // Force alpha writes, and clear the alpha channel.
+    alpha_enable = true;
+    color &= 0x00FFFFFF;
+  }
 
-  const auto target_rc = g_gfx->ConvertFramebufferRectangle(g_renderer->ConvertEFBRectangle(rc),
-                                                            m_efb_framebuffer.get());
-  g_gfx->SetPipeline(m_efb_clear_pipelines[clear_color][clear_alpha][clear_z].get());
-  g_gfx->SetViewportAndScissor(target_rc);
-  g_gfx->Draw(0, 3);
-  g_gfx->EndUtilityDrawing();
+  g_gfx->ClearRegion(target_rc, color_enable, alpha_enable, z_enable, color, z);
+
+  // Scissor rect must be restored.
+  BPFunctions::SetScissorAndViewport();
 }
 
 bool FramebufferManager::CompileClearPipelines()
@@ -849,9 +848,9 @@ bool FramebufferManager::CompileClearPipelines()
         config.depth_state.testenable = depth_enable != 0;
         config.depth_state.updateenable = depth_enable != 0;
 
-        m_efb_clear_pipelines[color_enable][alpha_enable][depth_enable] =
+        m_clear_pipelines[color_enable][alpha_enable][depth_enable] =
             g_gfx->CreatePipeline(config);
-        if (!m_efb_clear_pipelines[color_enable][alpha_enable][depth_enable])
+        if (!m_clear_pipelines[color_enable][alpha_enable][depth_enable])
           return false;
       }
     }
@@ -868,10 +867,16 @@ void FramebufferManager::DestroyClearPipelines()
     {
       for (u32 depth_enable = 0; depth_enable < 2; depth_enable++)
       {
-        m_efb_clear_pipelines[color_enable][alpha_enable][depth_enable].reset();
+        m_clear_pipelines[color_enable][alpha_enable][depth_enable].reset();
       }
     }
   }
+}
+
+AbstractPipeline* FramebufferManager::GetClearPipeline(bool colorEnable, bool alphaEnable,
+                                                       bool zEnable) const
+{
+  return m_clear_pipelines[colorEnable][alphaEnable][zEnable].get();
 }
 
 void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)

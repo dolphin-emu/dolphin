@@ -82,8 +82,7 @@ public:
   virtual void SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
                                       const ClearColor& color_value = {}, float depth_value = 0.0f);
 
-  virtual void ClearRegion(const MathUtil::Rectangle<int>& rc,
-                           const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
+  virtual void ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
                            bool alphaEnable, bool zEnable, u32 color, u32 z);
 
   // Drawing with currently-bound pipeline state.

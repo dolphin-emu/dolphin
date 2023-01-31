@@ -103,7 +103,7 @@ void Gfx::WaitForGPUIdle()
   ExecuteCommandList(true);
 }
 
-void Gfx::ClearRegion(const MathUtil::Rectangle<int>& rc, const MathUtil::Rectangle<int>& target_rc,
+void Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc,
                       bool color_enable, bool alpha_enable, bool z_enable, u32 color, u32 z)
 {
   // Use a fast path without the shader if both color/alpha are enabled.
@@ -145,7 +145,7 @@ void Gfx::ClearRegion(const MathUtil::Rectangle<int>& rc, const MathUtil::Rectan
 
   // Anything left over, fall back to clear triangle.
   if (color_enable || alpha_enable || z_enable)
-    ::AbstractGfx::ClearRegion(rc, target_rc, color_enable, alpha_enable, z_enable, color, z);
+    ::AbstractGfx::ClearRegion(target_rc, color_enable, alpha_enable, z_enable, color, z);
 }
 
 void Gfx::SetPipeline(const AbstractPipeline* pipeline)

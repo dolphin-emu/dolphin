@@ -100,8 +100,7 @@ void VKGfx::SetPipeline(const AbstractPipeline* pipeline)
   StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
 }
 
-void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& rc,
-                        const MathUtil::Rectangle<int>& target_rc, bool color_enable,
+void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_enable,
                         bool alpha_enable, bool z_enable, u32 color, u32 z)
 {
   VkRect2D target_vk_rc = {
@@ -191,7 +190,7 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& rc,
   if (!color_enable && !alpha_enable && !z_enable)
     return;
 
-  g_framebuffer_manager->ClearEFB(rc, color_enable, alpha_enable, z_enable, color, z);
+  AbstractGfx::ClearRegion(target_rc, color_enable, alpha_enable, z_enable, color, z);
 }
 
 void VKGfx::Flush()

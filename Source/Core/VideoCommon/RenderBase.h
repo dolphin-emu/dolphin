@@ -52,8 +52,6 @@ public:
   float EFBToScaledXf(float x) const;
   float EFBToScaledYf(float y) const;
 
-  void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
-                   bool zEnable, u32 color, u32 z);
   virtual void ReinterpretPixelData(EFBReinterpretType convtype);
 
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);

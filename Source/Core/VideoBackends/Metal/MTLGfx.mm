@@ -285,8 +285,7 @@ void Metal::Gfx::OnConfigChanged(u32 bits)
   }
 }
 
-void Metal::Gfx::ClearRegion(const MathUtil::Rectangle<int>& rc,
-                             const MathUtil::Rectangle<int>& target_rc,
+void Metal::Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc,
                              bool color_enable, bool alpha_enable, bool z_enable, u32 color, u32 z)
 {
   u32 framebuffer_width = m_current_framebuffer->GetWidth();
@@ -332,7 +331,7 @@ void Metal::Gfx::ClearRegion(const MathUtil::Rectangle<int>& rc,
   }
 
   g_state_tracker->EnableEncoderLabel(false);
-  g_framebuffer_manager->ClearEFB(rc, color_enable, alpha_enable, z_enable, color, z);
+  AbstractGfx::ClearRegion(target_rc, color_enable, alpha_enable, z_enable, color, z);
   g_state_tracker->EnableEncoderLabel(true);
 }
 

@@ -63,35 +63,6 @@ Renderer::Renderer()
 
 Renderer::~Renderer() = default;
 
-void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
-                           bool z_enable, u32 color, u32 z)
-{
-  g_framebuffer_manager->FlushEFBPokes();
-  g_framebuffer_manager->FlagPeekCacheAsOutOfDate();
-
-  // Native -> EFB coordinates
-  MathUtil::Rectangle<int> target_rc = Renderer::ConvertEFBRectangle(rc);
-  target_rc.ClampUL(0, 0, m_target_width, m_target_height);
-
-  // Determine whether the EFB has an alpha channel. If it doesn't, we can clear the alpha
-  // channel to 0xFF.
-  // On backends that don't allow masking Alpha clears, this allows us to use the fast path
-  // almost all the time
-  if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16 ||
-      bpmem.zcontrol.pixel_format == PixelFormat::RGB8_Z24 ||
-      bpmem.zcontrol.pixel_format == PixelFormat::Z24)
-  {
-    // Force alpha writes, and clear the alpha channel.
-    alpha_enable = true;
-    color &= 0x00FFFFFF;
-  }
-
-  g_gfx->ClearRegion(rc, target_rc, color_enable, alpha_enable, z_enable, color, z);
-
-  // Scissor rect must be restored.
-  BPFunctions::SetScissorAndViewport();
-}
-
 void Renderer::ReinterpretPixelData(EFBReinterpretType convtype)
 {
   g_framebuffer_manager->ReinterpretPixelData(convtype);

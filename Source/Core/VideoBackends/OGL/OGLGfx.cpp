@@ -373,8 +373,7 @@ void OGLGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const Clea
     glDepthMask(m_current_depth_state.updateenable);
 }
 
-void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& rc,
-                         const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
+void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
                          bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
   u32 clear_mask = 0;

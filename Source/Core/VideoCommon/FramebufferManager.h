@@ -95,6 +95,8 @@ public:
   void ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear_color, bool clear_alpha,
                 bool clear_z, u32 color, u32 z);
 
+  AbstractPipeline* GetClearPipeline(bool clear_color, bool clear_alpha, bool clear_z) const;
+
   // Reads a framebuffer value back from the GPU. This may block if the cache is not current.
   u32 PeekEFBColor(u32 x, u32 y);
   float PeekEFBDepth(u32 x, u32 y);
@@ -206,7 +208,7 @@ protected:
   // EFB clear pipelines
   // Indexed by [color_write_enabled][alpha_write_enabled][depth_write_enabled]
   std::array<std::array<std::array<std::unique_ptr<AbstractPipeline>, 2>, 2>, 2>
-      m_efb_clear_pipelines;
+      m_clear_pipelines;
 
   // EFB poke drawing setup
   std::unique_ptr<NativeVertexFormat> m_poke_vertex_format;

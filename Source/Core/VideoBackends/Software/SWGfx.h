@@ -46,7 +46,7 @@ public:
 
   void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
 
-  void ClearRegion(const MathUtil::Rectangle<int>& rc, const MathUtil::Rectangle<int>& target_rc,
+  void ClearRegion(const MathUtil::Rectangle<int>& target_rc,
                    bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) override;
 
 private:

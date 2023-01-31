@@ -54,11 +54,35 @@ void AbstractGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
   m_current_framebuffer = framebuffer;
 }
 
-void AbstractGfx::ClearRegion(const MathUtil::Rectangle<int>& rc,
-                              const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
+void AbstractGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
                               bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
-  g_framebuffer_manager->ClearEFB(rc, colorEnable, alphaEnable, zEnable, color, z);
+  // This is a generic fallback for any ClearRegion operations that backends don't support.
+  // It simply draws a Quad.
+
+  BeginUtilityDrawing();
+
+  // Set up uniforms.
+  struct Uniforms
+  {
+    float clear_color[4];
+    float clear_depth;
+    float padding1, padding2, padding3;
+  };
+  static_assert(std::is_standard_layout<Uniforms>::value);
+  Uniforms uniforms = {{static_cast<float>((color >> 16) & 0xFF) / 255.0f,
+                        static_cast<float>((color >> 8) & 0xFF) / 255.0f,
+                        static_cast<float>((color >> 0) & 0xFF) / 255.0f,
+                        static_cast<float>((color >> 24) & 0xFF) / 255.0f},
+                       static_cast<float>(z & 0xFFFFFF) / 16777216.0f};
+  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    uniforms.clear_depth = 1.0f - uniforms.clear_depth;
+  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+
+  g_gfx->SetPipeline(g_framebuffer_manager->GetClearPipeline(colorEnable, alphaEnable, zEnable));
+  g_gfx->SetViewportAndScissor(target_rc);
+  g_gfx->Draw(0, 3);
+  EndUtilityDrawing();
 }
 
 void AbstractGfx::SetViewportAndScissor(const MathUtil::Rectangle<int>& rect, float min_depth,

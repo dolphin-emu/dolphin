@@ -107,8 +107,7 @@ void SWGfx::ShowImage(const AbstractTexture* source_texture,
     m_window->ShowImage(source_texture, source_rc);
 }
 
-void SWGfx::ClearRegion(const MathUtil::Rectangle<int>& rc,
-                        const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
+void SWGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
                         bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
   EfbCopy::ClearEfb();
