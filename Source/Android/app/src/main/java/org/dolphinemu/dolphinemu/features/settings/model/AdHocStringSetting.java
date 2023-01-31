@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import androidx.annotation.NonNull;
+
 public class AdHocStringSetting implements AbstractStringSetting
 {
   private final String mFile;
@@ -23,7 +25,7 @@ public class AdHocStringSetting implements AbstractStringSetting
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden(@NonNull Settings settings)
   {
     return NativeConfig.isOverridden(mFile, mSection, mKey);
   }
@@ -35,19 +37,19 @@ public class AdHocStringSetting implements AbstractStringSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
   }
 
-  @Override
-  public String getString(Settings settings)
+  @NonNull @Override
+  public String getString(@NonNull Settings settings)
   {
     return NativeConfig.getString(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
 
   @Override
-  public void setString(Settings settings, String newValue)
+  public void setString(@NonNull Settings settings, @NonNull String newValue)
   {
     NativeConfig.setString(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
   }

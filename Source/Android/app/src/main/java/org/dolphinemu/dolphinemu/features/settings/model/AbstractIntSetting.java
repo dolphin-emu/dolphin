@@ -2,9 +2,11 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import androidx.annotation.NonNull;
+
 public interface AbstractIntSetting extends AbstractSetting
 {
-  int getInt(Settings settings);
+  int getInt(@NonNull Settings settings);
 
-  void setInt(Settings settings, int newValue);
+  void setInt(@NonNull Settings settings, int newValue);
 }

@@ -4,6 +4,8 @@ package org.dolphinemu.dolphinemu.features.settings.model;
 
 import android.content.pm.ActivityInfo;
 
+import androidx.annotation.NonNull;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
 
@@ -116,7 +118,7 @@ public enum IntSetting implements AbstractIntSetting
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden(@NonNull Settings settings)
   {
     if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
       return settings.getSection(mFile, mSection).exists(mKey);
@@ -140,7 +142,7 @@ public enum IntSetting implements AbstractIntSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
@@ -153,7 +155,7 @@ public enum IntSetting implements AbstractIntSetting
   }
 
   @Override
-  public int getInt(Settings settings)
+  public int getInt(@NonNull Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
@@ -166,7 +168,7 @@ public enum IntSetting implements AbstractIntSetting
   }
 
   @Override
-  public void setInt(Settings settings, int newValue)
+  public void setInt(@NonNull Settings settings, int newValue)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
