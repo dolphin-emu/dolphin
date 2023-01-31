@@ -44,8 +44,12 @@ public:
   //       (i.e. VertexShaderManager::SetConstants needs to be called before using this!)
   void TransformToClipSpace(const float* data, float* out, u32 mtxIdx);
 
+  static bool UseVertexDepthRange();
+
   VertexShaderConstants constants{};
   bool dirty = false;
+
+
 
 private:
   alignas(16) std::array<float, 16> m_projection_matrix;

@@ -34,8 +34,6 @@ public:
 
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
-
-  static bool UseVertexDepthRange();
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

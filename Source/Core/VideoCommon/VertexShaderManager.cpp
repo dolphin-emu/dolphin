@@ -158,6 +158,26 @@ void VertexShaderManager::SetProjectionMatrix()
   }
 }
 
+bool VertexShaderManager::UseVertexDepthRange()
+{
+  // We can't compute the depth range in the vertex shader if we don't support depth clamp.
+  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
+    return false;
+
+  // We need a full depth range if a ztexture is used.
+  if (bpmem.ztex2.op != ZTexOp::Disabled && !bpmem.zcontrol.early_ztest)
+    return true;
+
+  // If an inverted depth range is unsupported, we also need to check if the range is inverted.
+  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange && xfmem.viewport.zRange < 0.0f)
+    return true;
+
+  // If an oversized depth range or a ztexture is used, we need to calculate the depth range
+  // in the vertex shader.
+  return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
+}
+
+
 // Syncs the shader constant buffers with xfmem
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
 void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
@@ -356,7 +376,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     constants.viewport[0] = (2.f * xfmem.viewport.wd);
     constants.viewport[1] = (2.f * xfmem.viewport.ht);
 
-    if (g_renderer->UseVertexDepthRange())
+    if (UseVertexDepthRange())
     {
       // Oversized depth ranges are handled in the vertex shader. We need to reverse
       // the far value to use the reversed-Z trick.

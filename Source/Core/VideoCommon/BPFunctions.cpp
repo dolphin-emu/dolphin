@@ -18,6 +18,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
@@ -246,7 +247,7 @@ void SetScissorAndViewport()
     max_depth = std::clamp(max_depth, 0.0f, GX_MAX_DEPTH);
   }
 
-  if (g_renderer->UseVertexDepthRange())
+  if (VertexShaderManager::UseVertexDepthRange())
   {
     // We need to ensure depth values are clamped the maximum value supported by the console GPU.
     // Taking into account whether the depth range is inverted or not.

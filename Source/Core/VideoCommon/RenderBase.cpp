@@ -31,7 +31,6 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/XFMemory.h"
 
 std::unique_ptr<Renderer> g_renderer;
 
@@ -140,23 +139,4 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
       g_framebuffer_manager->PokeEFBDepth(point.x, point.y, depth);
     }
   }
-}
-
-bool Renderer::UseVertexDepthRange()
-{
-  // We can't compute the depth range in the vertex shader if we don't support depth clamp.
-  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
-    return false;
-
-  // We need a full depth range if a ztexture is used.
-  if (bpmem.ztex2.op != ZTexOp::Disabled && !bpmem.zcontrol.early_ztest)
-    return true;
-
-  // If an inverted depth range is unsupported, we also need to check if the range is inverted.
-  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange && xfmem.viewport.zRange < 0.0f)
-    return true;
-
-  // If an oversized depth range or a ztexture is used, we need to calculate the depth range
-  // in the vertex shader.
-  return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
 }
