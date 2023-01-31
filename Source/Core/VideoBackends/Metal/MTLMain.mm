@@ -17,9 +17,9 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Metal/MTLBoundingBox.h"
+#include "VideoBackends/Metal/MTLGfx.h"
 #include "VideoBackends/Metal/MTLObjectCache.h"
 #include "VideoBackends/Metal/MTLPerfQuery.h"
-#include "VideoBackends/Metal/MTLGfx.h"
 #include "VideoBackends/Metal/MTLStateTracker.h"
 #include "VideoBackends/Metal/MTLUtil.h"
 #include "VideoBackends/Metal/MTLVertexManager.h"
@@ -106,11 +106,8 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
     g_state_tracker = std::make_unique<StateTracker>();
 
     return InitializeShared(
-      std::make_unique<Metal::Gfx>(std::move(layer)),
-      std::make_unique<Metal::VertexManager>(),
-      std::make_unique<Metal::PerfQuery>(),
-      std::make_unique<Metal::BoundingBox>()
-    );
+        std::make_unique<Metal::Gfx>(std::move(layer)), std::make_unique<Metal::VertexManager>(),
+        std::make_unique<Metal::PerfQuery>(), std::make_unique<Metal::BoundingBox>());
   }
 }
 

@@ -5,7 +5,6 @@
 
 #include <memory>
 
-
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
 
@@ -20,6 +19,7 @@ public:
   bool IsGameWidescreen() const { return m_is_game_widescreen; }
 
   void DoState(PointerWrap& p);
+
 private:
   void Update();
   void UpdateWidescreenHeuristic();

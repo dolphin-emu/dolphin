@@ -355,8 +355,5 @@ void CheckForConfigChanges()
   // TODO: Move everything else to the ConfigChanged event
 }
 
-static EventHook s_check_config_event = AfterFrameEvent::Register(
-    [] {
-      CheckForConfigChanges();
-    },
-    "CheckForConfigChanges");
+static EventHook s_check_config_event =
+    AfterFrameEvent::Register([] { CheckForConfigChanges(); }, "CheckForConfigChanges");

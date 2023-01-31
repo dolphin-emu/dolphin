@@ -176,7 +176,6 @@ bool VertexShaderManager::UseVertexDepthRange()
   return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
 }
 
-
 // Syncs the shader constant buffers with xfmem
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
 void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)

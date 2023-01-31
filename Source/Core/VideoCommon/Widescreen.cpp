@@ -15,10 +15,12 @@ WidescreenManager::WidescreenManager()
 {
   Update();
 
-  m_config_changed = ConfigChangedEvent::Register([this](u32 bits) {
-    if (bits & (CONFIG_CHANGE_BIT_ASPECT_RATIO))
-      Update();
-  }, "Widescreen");
+  m_config_changed = ConfigChangedEvent::Register(
+      [this](u32 bits) {
+        if (bits & (CONFIG_CHANGE_BIT_ASPECT_RATIO))
+          Update();
+      },
+      "Widescreen");
 
   // VertexManager doesn't maintain statistics in Wii mode.
   if (!SConfig::GetInstance().bWii)
@@ -27,7 +29,6 @@ WidescreenManager::WidescreenManager()
         AfterFrameEvent::Register([this] { UpdateWidescreenHeuristic(); }, "WideScreen Heuristic");
   }
 }
-
 
 void WidescreenManager::Update()
 {

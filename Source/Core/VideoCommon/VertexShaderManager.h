@@ -49,8 +49,6 @@ public:
   VertexShaderConstants constants{};
   bool dirty = false;
 
-
-
 private:
   alignas(16) std::array<float, 16> m_projection_matrix;
 
