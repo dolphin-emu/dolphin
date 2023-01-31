@@ -14,6 +14,10 @@ if (POLICY CMP0117)
   cmake_policy(SET CMP0117 NEW) # MSVC RTTI flag will not be added by default.
 endif()
 
+if (POLICY CMP0141)
+  cmake_policy(SET CMP0141 NEW) # MSVC debug information format flags are selected by an abstraction.
+endif()
+
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15.0" CACHE STRING "")
