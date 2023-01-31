@@ -12,6 +12,7 @@
 
 #include <climits>
 #include <cstdio>
+#include <thread>
 
 #include <fcntl.h>
 #include <linux/fb.h>
