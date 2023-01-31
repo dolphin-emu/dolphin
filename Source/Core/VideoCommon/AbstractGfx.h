@@ -39,6 +39,11 @@ class AsyncShaderCompiler;
 
 using ClearColor = std::array<float, 4>;
 
+// AbstractGfx is the root of Dolphin's Graphics API abstraction layer.
+//
+// Abstract knows nothing about the internals of the GameCube/Wii, that is all handled elsewhere in
+// VideoCommon.
+
 class AbstractGfx
 {
 public:

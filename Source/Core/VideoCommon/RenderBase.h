@@ -1,15 +1,6 @@
 // Copyright 2010 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// ---------------------------------------------------------------------------------------------
-// GC graphics pipeline
-// ---------------------------------------------------------------------------------------------
-// 3d commands are issued through the fifo. The GPU draws to the 2MB EFB.
-// The efb can be copied back into ram in two forms: as textures or as XFB.
-// The XFB is the region in RAM that the VI chip scans out to the television.
-// So, after all rendering to EFB is done, the image is copied into one of two XFBs in RAM.
-// Next frame, that one is scanned out and the other one gets the copy. = double buffering.
-// ---------------------------------------------------------------------------------------------
 
 #pragma once
 
@@ -32,8 +23,11 @@ struct EfbPokeData
 };
 
 // Renderer really isn't a very good name for this class - it's more like "Misc".
-// The long term goal is to get rid of this class and replace it with others that make
-// more sense.
+// It used to be a massive mess, but almost everything has been refactored out.
+//
+// Most of the remaining functionality is related to EFB and Internal Resolution scaling
+//
+// It also handles the Widescreen heuristic, frame counting and tracking xfb across save states.
 class Renderer
 {
 public:
