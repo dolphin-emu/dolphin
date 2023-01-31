@@ -3,6 +3,7 @@
 
 #include "VideoCommon/Present.h"
 
+#include "Common/ChunkFile.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 
@@ -17,6 +18,7 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
+#include "Present.h"
 
 std::unique_ptr<VideoCommon::Presenter> g_presenter;
 
@@ -61,35 +63,39 @@ bool Presenter::Initialize()
   return true;
 }
 
-bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height)
+bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
   ReleaseXFBContentLock();
 
   m_xfb_entry = g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &m_xfb_rect);
+  bool is_duplicate = m_xfb_entry->id == m_last_xfb_id;
 
   m_xfb_entry->AcquireContentLock();
-  if (m_last_xfb_id == m_xfb_entry->id)
-    return false;
 
+  m_last_xfb_addr = xfb_addr;
+  m_last_xfb_ticks = ticks;
+  m_last_xfb_width = fb_width;
+  m_last_xfb_stride = fb_stride;
+  m_last_xfb_height = fb_height;
   m_last_xfb_id = m_xfb_entry->id;
 
-  return true;
+  return is_duplicate;
 }
 
 void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
-  bool unique = FetchXFB(xfb_addr, fb_width, fb_stride, fb_height);
+  bool unique = FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
 
   PresentInfo present_info;
   present_info.emulated_timestamp = ticks;
   if (unique)
   {
-    present_info.frame_count = g_renderer->FrameCountIncrement();
+    present_info.frame_count = m_frame_count++;
     present_info.reason = PresentInfo::PresentReason::VideoInterface;
   }
   else
   {
-    present_info.frame_count = g_renderer->FrameCount() - 1; // Previous frame
+    present_info.frame_count = m_frame_count - 1; // Previous frame
     present_info.reason = PresentInfo::PresentReason::VideoInterfaceDuplicate;
   }
   present_info.present_count = m_present_count;
@@ -111,11 +117,11 @@ void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
 
 void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
-  FetchXFB(xfb_addr, fb_width, fb_stride, fb_height);
+  FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
 
   PresentInfo present_info;
   present_info.emulated_timestamp = ticks;
-  present_info.frame_count = g_renderer->FrameCountIncrement();
+  present_info.frame_count = m_frame_count++;
   present_info.reason = PresentInfo::PresentReason::Immediate;
   present_info.present_count = m_present_count++;
 
@@ -145,7 +151,7 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
     }
 
     g_frame_dumper->DumpCurrentFrame(m_xfb_entry->texture.get(), m_xfb_rect, target_rect, ticks,
-                                     g_renderer->FrameCount());
+                                     m_frame_count);
   }
 }
 
@@ -307,6 +313,13 @@ void* Presenter::GetNewSurfaceHandle()
   return handle;
 }
 
+u32 Presenter::AutoIntegralScale() const
+{
+  // Calculate a scale based on the window size
+  u32 width = EFB_WIDTH * m_target_rectangle.GetWidth() / m_last_xfb_width;
+  u32 height = EFB_HEIGHT * m_target_rectangle.GetHeight() / m_last_xfb_height;
+  return std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
+}
 void Presenter::SetWindowSize(int width, int height)
 {
   const auto [out_width, out_height] = g_presenter->CalculateOutputDimensions(width, height);
@@ -576,5 +589,27 @@ void Presenter::SetMousePress(u32 button_mask)
   if (m_onscreen_ui)
     m_onscreen_ui->SetMousePress(button_mask);
 }
+
+void Presenter::DoState(PointerWrap& p)
+{
+  p.Do(m_frame_count);
+  p.Do(m_last_xfb_ticks);
+  p.Do(m_last_xfb_addr);
+  p.Do(m_last_xfb_width);
+  p.Do(m_last_xfb_stride);
+  p.Do(m_last_xfb_height);
+
+  if (p.IsReadMode())
+  {
+    // This technically counts as the end of the frame
+    AfterFrameEvent::Trigger();
+
+    // re-display the most recent XFB
+    ImmediateSwap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride,
+                  m_last_xfb_height, m_last_xfb_ticks);
+  }
+
+}
+
 
 }  // namespace VideoCommon

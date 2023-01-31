@@ -10,6 +10,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/System.h"
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractPipeline.h"
@@ -19,7 +20,8 @@
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferShaderGen.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -145,16 +147,16 @@ static u32 CalculateEFBLayers()
   return (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
 }
 
-TextureConfig FramebufferManager::GetEFBColorTextureConfig()
+TextureConfig FramebufferManager::GetEFBColorTextureConfig(u32 width, u32 height)
 {
-  return TextureConfig(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(), 1,
+  return TextureConfig(width, height, 1,
                        CalculateEFBLayers(), g_ActiveConfig.iMultisamples, GetEFBColorFormat(),
                        AbstractTextureFlag_RenderTarget);
 }
 
-TextureConfig FramebufferManager::GetEFBDepthTextureConfig()
+TextureConfig FramebufferManager::GetEFBDepthTextureConfig(u32 width, u32 height)
 {
-  return TextureConfig(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(), 1,
+  return TextureConfig(width, height, 1,
                        CalculateEFBLayers(), g_ActiveConfig.iMultisamples, GetEFBDepthFormat(),
                        AbstractTextureFlag_RenderTarget);
 }
@@ -169,10 +171,65 @@ FramebufferState FramebufferManager::GetEFBFramebufferState() const
   return ret;
 }
 
+MathUtil::Rectangle<int>
+FramebufferManager::ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc) const
+{
+  MathUtil::Rectangle<int> result;
+  result.left = EFBToScaledX(rc.left);
+  result.top = EFBToScaledY(rc.top);
+  result.right = EFBToScaledX(rc.right);
+  result.bottom = EFBToScaledY(rc.bottom);
+  return result;
+}
+
+unsigned int FramebufferManager::GetEFBScale() const
+{
+  return m_efb_scale;
+}
+
+int FramebufferManager::EFBToScaledX(int x) const
+{
+  return x * static_cast<int>(m_efb_scale);
+}
+
+int FramebufferManager::EFBToScaledY(int y) const
+{
+  return y * static_cast<int>(m_efb_scale);
+}
+
+float FramebufferManager::EFBToScaledXf(float x) const
+{
+  return x * ((float)GetEFBWidth() / (float)EFB_WIDTH);
+}
+
+float FramebufferManager::EFBToScaledYf(float y) const
+{
+  return y * ((float)GetEFBHeight() / (float)EFB_HEIGHT);
+}
+
+std::tuple<u32, u32> FramebufferManager::CalculateTargetSize()
+{
+  if (g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL)
+    m_efb_scale = g_presenter->AutoIntegralScale();
+  else
+    m_efb_scale = g_ActiveConfig.iEFBScale;
+
+  const u32 max_size = g_ActiveConfig.backend_info.MaxTextureSize;
+  if (max_size < EFB_WIDTH * m_efb_scale)
+    m_efb_scale = max_size / EFB_WIDTH;
+
+  u32 new_efb_width = std::max(EFB_WIDTH * static_cast<int>(m_efb_scale), 1u);
+  u32 new_efb_height = std::max(EFB_HEIGHT * static_cast<int>(m_efb_scale), 1u);
+
+  return std::make_tuple(new_efb_width, new_efb_height);
+}
+
 bool FramebufferManager::CreateEFBFramebuffer()
 {
-  const TextureConfig efb_color_texture_config = GetEFBColorTextureConfig();
-  const TextureConfig efb_depth_texture_config = GetEFBDepthTextureConfig();
+  auto [width, height] = CalculateTargetSize();
+
+  const TextureConfig efb_color_texture_config = GetEFBColorTextureConfig(width, height);
+  const TextureConfig efb_depth_texture_config = GetEFBDepthTextureConfig(width, height);
 
   // We need a second texture to swap with for changing pixel formats
   m_efb_color_texture = g_gfx->CreateTexture(efb_color_texture_config, "EFB color texture");
@@ -634,7 +691,7 @@ void FramebufferManager::DestroyReadbackPipelines()
 
 bool FramebufferManager::CreateReadbackFramebuffer()
 {
-  if (g_renderer->GetEFBScale() != 1)
+  if (GetEFBScale() != 1)
   {
     const TextureConfig color_config(IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_WIDTH,
                                      IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_HEIGHT, 1,
@@ -655,7 +712,7 @@ bool FramebufferManager::CreateReadbackFramebuffer()
       (IsUsingTiledEFBCache() && !g_ActiveConfig.backend_info.bSupportsPartialDepthCopies) ||
       !AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
                                                          GetEFBDepthCopyFormat()) ||
-      g_renderer->GetEFBScale() != 1)
+      GetEFBScale() != 1)
   {
     const TextureConfig depth_config(IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_WIDTH,
                                      IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_HEIGHT, 1,
@@ -732,10 +789,10 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
   EFBCacheData& data = depth ? m_efb_depth_cache : m_efb_color_cache;
   const MathUtil::Rectangle<int> rect = GetEFBCacheTileRect(tile_index);
-  const MathUtil::Rectangle<int> native_rect = g_renderer->ConvertEFBRectangle(rect);
+  const MathUtil::Rectangle<int> native_rect = ConvertEFBRectangle(rect);
   AbstractTexture* src_texture =
       depth ? ResolveEFBDepthTexture(native_rect) : ResolveEFBColorTexture(native_rect);
-  if (g_renderer->GetEFBScale() != 1 || force_intermediate_copy)
+  if (GetEFBScale() != 1 || force_intermediate_copy)
   {
     // Downsample from internal resolution to 1x.
     // TODO: This won't produce correct results at IRs above 2x. More samples are required.
@@ -795,9 +852,9 @@ void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool color
   FlagPeekCacheAsOutOfDate();
 
   // Native -> EFB coordinates
-  MathUtil::Rectangle<int> target_rc = g_renderer->ConvertEFBRectangle(rc);
+  MathUtil::Rectangle<int> target_rc = ConvertEFBRectangle(rc);
   target_rc = g_gfx->ConvertFramebufferRectangle(target_rc, m_efb_framebuffer.get());
-  target_rc.ClampUL(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
+  target_rc.ClampUL(0, 0, m_efb_framebuffer->GetWidth(), m_efb_framebuffer->GetWidth());
 
   // Determine whether the EFB has an alpha channel. If it doesn't, we can clear the alpha
   // channel to 0xFF.
@@ -925,7 +982,7 @@ void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destinat
     // GPU will expand the point to a quad.
     const float cs_x = (static_cast<float>(x) + 0.5f) * cs_pixel_width - 1.0f;
     const float cs_y = 1.0f - (static_cast<float>(y) + 0.5f) * cs_pixel_height;
-    const float point_size = static_cast<float>(g_renderer->GetEFBScale());
+    const float point_size = static_cast<float>(GetEFBScale());
     destination_list->push_back({{cs_x, cs_y, z, point_size}, color});
     return;
   }

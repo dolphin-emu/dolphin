@@ -245,8 +245,8 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
 
     // NOTE: Reported pixel metrics should be referenced to native resolution
     const u64 native_res_result = static_cast<u64>(result) * EFB_WIDTH /
-                                  g_renderer->GetTargetWidth() * EFB_HEIGHT /
-                                  g_renderer->GetTargetHeight();
+                                  g_framebuffer_manager->GetEFBWidth() * EFB_HEIGHT /
+                                  g_framebuffer_manager->GetEFBHeight();
     m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
                                            std::memory_order_relaxed);
   }

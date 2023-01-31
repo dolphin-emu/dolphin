@@ -158,8 +158,6 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
   case Event::SWAP_EVENT:
     g_presenter->ViSwap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
                         e.swap_event.fbHeight, e.time);
-    g_renderer->TrackSwaps(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
-                           e.swap_event.fbHeight, e.time);
     break;
 
   case Event::BBOX_READ:

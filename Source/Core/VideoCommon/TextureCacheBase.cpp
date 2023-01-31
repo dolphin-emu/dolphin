@@ -44,7 +44,7 @@
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TMEM.h"
@@ -783,7 +783,7 @@ void TextureCacheBase::OnFrameEnd()
     g_texture_cache->FlushEFBCopies();
   }
 
-  g_texture_cache->Cleanup(g_renderer->FrameCount());
+  g_texture_cache->Cleanup(g_presenter->FrameCount());
 }
 
 void TCacheEntry::DoState(PointerWrap& p)
@@ -921,17 +921,17 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
             entry->native_width != entry->GetWidth() || entry->native_height != entry->GetHeight())
         {
           ScaleTextureCacheEntryTo(entry_to_update,
-                                   g_renderer->EFBToScaledX(entry_to_update->native_width),
-                                   g_renderer->EFBToScaledY(entry_to_update->native_height));
-          ScaleTextureCacheEntryTo(entry, g_renderer->EFBToScaledX(entry->native_width),
-                                   g_renderer->EFBToScaledY(entry->native_height));
+                                   g_framebuffer_manager->EFBToScaledX(entry_to_update->native_width),
+                                   g_framebuffer_manager->EFBToScaledY(entry_to_update->native_height));
+          ScaleTextureCacheEntryTo(entry, g_framebuffer_manager->EFBToScaledX(entry->native_width),
+                                   g_framebuffer_manager->EFBToScaledY(entry->native_height));
 
-          src_x = g_renderer->EFBToScaledX(src_x);
-          src_y = g_renderer->EFBToScaledY(src_y);
-          dst_x = g_renderer->EFBToScaledX(dst_x);
-          dst_y = g_renderer->EFBToScaledY(dst_y);
-          copy_width = g_renderer->EFBToScaledX(copy_width);
-          copy_height = g_renderer->EFBToScaledY(copy_height);
+          src_x = g_framebuffer_manager->EFBToScaledX(src_x);
+          src_y = g_framebuffer_manager->EFBToScaledY(src_y);
+          dst_x = g_framebuffer_manager->EFBToScaledX(dst_x);
+          dst_y = g_framebuffer_manager->EFBToScaledY(dst_y);
+          copy_width = g_framebuffer_manager->EFBToScaledX(copy_width);
+          copy_height = g_framebuffer_manager->EFBToScaledY(copy_height);
         }
 
         // If the source rectangle is outside of what we actually have in VRAM, skip the copy.
@@ -1091,7 +1091,7 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     // that have arbitrary contents, eg. are used for fog effects where the
     // distance they kick in at is important to preserve at any resolution.
     // Correct this with the upscaling factor of custom textures.
-    s32 lod_offset = std::log2(g_renderer->GetEFBScale() / custom_tex_scale) * 256.f;
+    s32 lod_offset = std::log2(g_framebuffer_manager->GetEFBScale() / custom_tex_scale) * 256.f;
     state.tm0.lod_bias = std::clamp<s32>(state.tm0.lod_bias + lod_offset, -32768, 32767);
 
     // Anisotropic also pushes mips farther away so it cannot be used either
@@ -1957,8 +1957,8 @@ void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
   // copies to be stitched together.
   if (create_upscaled_copy)
   {
-    ScaleTextureCacheEntryTo(stitched_entry, g_renderer->EFBToScaledX(stitched_entry->native_width),
-                             g_renderer->EFBToScaledY(stitched_entry->native_height));
+    ScaleTextureCacheEntryTo(stitched_entry, g_framebuffer_manager->EFBToScaledX(stitched_entry->native_width),
+                             g_framebuffer_manager->EFBToScaledY(stitched_entry->native_height));
   }
 
   for (TCacheEntry* entry : candidates)
@@ -1993,17 +1993,17 @@ void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
     // Scale to internal resolution.
     if (entry->native_width != entry->GetWidth())
     {
-      src_x = g_renderer->EFBToScaledX(src_x);
-      src_y = g_renderer->EFBToScaledY(src_y);
-      src_width = g_renderer->EFBToScaledX(src_width);
-      src_height = g_renderer->EFBToScaledY(src_height);
+      src_x = g_framebuffer_manager->EFBToScaledX(src_x);
+      src_y = g_framebuffer_manager->EFBToScaledY(src_y);
+      src_width = g_framebuffer_manager->EFBToScaledX(src_width);
+      src_height = g_framebuffer_manager->EFBToScaledY(src_height);
     }
     if (create_upscaled_copy)
     {
-      dst_x = g_renderer->EFBToScaledX(dst_x);
-      dst_y = g_renderer->EFBToScaledY(dst_y);
-      dst_width = g_renderer->EFBToScaledX(dst_width);
-      dst_height = g_renderer->EFBToScaledY(dst_height);
+      dst_x = g_framebuffer_manager->EFBToScaledX(dst_x);
+      dst_y = g_framebuffer_manager->EFBToScaledY(dst_y);
+      dst_width = g_framebuffer_manager->EFBToScaledX(dst_width);
+      dst_height = g_framebuffer_manager->EFBToScaledY(dst_height);
     }
 
     // If the source rectangle is outside of what we actually have in VRAM, skip the copy.
@@ -2183,8 +2183,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   // For the latter, we keep the EFB resolution for the virtual XFB blit.
   u32 tex_w = width;
   u32 tex_h = height;
-  u32 scaled_tex_w = g_renderer->EFBToScaledX(width);
-  u32 scaled_tex_h = g_renderer->EFBToScaledY(height);
+  u32 scaled_tex_w = g_framebuffer_manager->EFBToScaledX(width);
+  u32 scaled_tex_h = g_framebuffer_manager->EFBToScaledY(height);
 
   if (scaleByHalf)
   {
@@ -2269,7 +2269,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   // TODO: This only produces perfect downsampling for 2x IR, other resolutions will need more
   //       complex down filtering to average all pixels and produce the correct result.
   const bool linear_filter =
-      !is_depth_copy && (scaleByHalf || g_renderer->GetEFBScale() != 1 || y_scale > 1.0f);
+      !is_depth_copy && (scaleByHalf || g_framebuffer_manager->GetEFBScale() != 1 || y_scale > 1.0f);
 
   RcTcacheEntry entry;
   if (copy_to_vram)
@@ -2803,7 +2803,7 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
     return;
   }
 
-  const auto scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
+  const auto scaled_src_rect = g_framebuffer_manager->ConvertEFBRectangle(src_rect);
   const auto framebuffer_rect = g_gfx->ConvertFramebufferRectangle(
       scaled_src_rect, g_framebuffer_manager->GetEFBFramebuffer());
   AbstractTexture* src_texture =
@@ -2877,7 +2877,7 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
     return;
   }
 
-  const auto scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
+  const auto scaled_src_rect = g_framebuffer_manager->ConvertEFBRectangle(src_rect);
   const auto framebuffer_rect = g_gfx->ConvertFramebufferRectangle(
       scaled_src_rect, g_framebuffer_manager->GetEFBFramebuffer());
   AbstractTexture* src_texture =

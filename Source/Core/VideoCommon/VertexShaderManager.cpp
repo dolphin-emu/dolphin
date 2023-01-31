@@ -20,6 +20,7 @@
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
@@ -339,10 +340,10 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     const bool bUseVertexRounding = g_ActiveConfig.UseVertexRounding();
     const float viewport_width = bUseVertexRounding ?
                                      (2.f * xfmem.viewport.wd) :
-                                     g_renderer->EFBToScaledXf(2.f * xfmem.viewport.wd);
+                                     g_framebuffer_manager->EFBToScaledXf(2.f * xfmem.viewport.wd);
     const float viewport_height = bUseVertexRounding ?
                                       (2.f * xfmem.viewport.ht) :
-                                      g_renderer->EFBToScaledXf(2.f * xfmem.viewport.ht);
+                                      g_framebuffer_manager->EFBToScaledXf(2.f * xfmem.viewport.ht);
     const float pixel_size_x = 2.f / viewport_width;
     const float pixel_size_y = 2.f / viewport_height;
     constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;

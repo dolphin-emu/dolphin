@@ -198,7 +198,7 @@ void SetScissorAndViewport()
 {
   auto native_rc = ComputeScissorRects().Best();
 
-  auto target_rc = g_renderer->ConvertEFBRectangle(native_rc.rect);
+  auto target_rc = g_framebuffer_manager->ConvertEFBRectangle(native_rc.rect);
   auto converted_rc = g_gfx->ConvertFramebufferRectangle(target_rc, g_gfx->GetCurrentFramebuffer());
   g_gfx->SetScissorRect(converted_rc);
 
@@ -216,10 +216,10 @@ void SetScissorAndViewport()
     raw_height = std::round(raw_height);
   }
 
-  float x = g_renderer->EFBToScaledXf(raw_x);
-  float y = g_renderer->EFBToScaledYf(raw_y);
-  float width = g_renderer->EFBToScaledXf(raw_width);
-  float height = g_renderer->EFBToScaledYf(raw_height);
+  float x = g_framebuffer_manager->EFBToScaledXf(raw_x);
+  float y = g_framebuffer_manager->EFBToScaledYf(raw_y);
+  float width = g_framebuffer_manager->EFBToScaledXf(raw_width);
+  float height = g_framebuffer_manager->EFBToScaledYf(raw_height);
   float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
   float max_depth = xfmem.viewport.farZ / 16777216.0f;
   if (width < 0.f)

@@ -7,15 +7,18 @@
 
 #include "Common/ChunkFile.h"
 #include "Core/System.h"
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -94,6 +97,14 @@ void VideoCommon_DoState(PointerWrap& p)
 
   g_renderer->DoState(p);
   p.DoMarker("Renderer");
+
+  g_presenter->DoState(p);
+  g_frame_dumper->DoState(p);
+  p.DoMarker("Presenter");
+
+  g_bounding_box->DoState(p);
+  p.DoMarker("Bounding Box");
+
 
   // Refresh state.
   if (p.IsReadMode())

@@ -14,6 +14,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPFunctions.h"
@@ -24,7 +25,7 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -253,6 +254,7 @@ void CheckForConfigChanges()
   const auto old_texture_filtering_mode = g_ActiveConfig.texture_filtering_mode;
   const bool old_vsync = g_ActiveConfig.bVSyncActive;
   const bool old_bbox = g_ActiveConfig.bBBoxEnable;
+  const int old_efb_scale = g_ActiveConfig.iEFBScale;
   const u32 old_game_mod_changes =
       g_ActiveConfig.graphics_mod_config ? g_ActiveConfig.graphics_mod_config->GetChangeCount() : 0;
   const bool old_graphics_mods_enabled = g_ActiveConfig.bGraphicMods;
@@ -302,7 +304,7 @@ void CheckForConfigChanges()
     changed_bits |= CONFIG_CHANGE_BIT_VSYNC;
   if (old_bbox != g_ActiveConfig.bBBoxEnable)
     changed_bits |= CONFIG_CHANGE_BIT_BBOX;
-  if (g_renderer->CalculateTargetSize())
+  if (old_efb_scale != g_ActiveConfig.iEFBScale)
     changed_bits |= CONFIG_CHANGE_BIT_TARGET_SIZE;
   if (old_suggested_aspect_mode != g_ActiveConfig.suggested_aspect_mode)
     changed_bits |= CONFIG_CHANGE_BIT_ASPECT_RATIO;
@@ -315,16 +317,20 @@ void CheckForConfigChanges()
   if (changed_bits == 0)
     return;
 
-  // Notify all listeners
-  ConfigChangedEvent::Trigger(changed_bits);
-
-  // TODO: Move everything else to the ConfigChanged event
+  float old_scale = g_framebuffer_manager->GetEFBScale();
 
   // Framebuffer changed?
   if (changed_bits & (CONFIG_CHANGE_BIT_MULTISAMPLES | CONFIG_CHANGE_BIT_STEREO_MODE |
                       CONFIG_CHANGE_BIT_TARGET_SIZE))
   {
     g_framebuffer_manager->RecreateEFBFramebuffer();
+  }
+
+  if (old_scale != g_framebuffer_manager->GetEFBScale())
+  {
+    auto& system = Core::System::GetInstance();
+    auto& pixel_shader_manager = system.GetPixelShaderManager();
+    pixel_shader_manager.Dirty();
   }
 
   // Reload shaders if host config has changed.
@@ -342,6 +348,11 @@ void CheckForConfigChanges()
   {
     BPFunctions::SetScissorAndViewport();
   }
+
+  // Notify all listeners
+  ConfigChangedEvent::Trigger(changed_bits);
+
+  // TODO: Move everything else to the ConfigChanged event
 }
 
 static EventHook s_check_config_event = AfterFrameEvent::Register([] {

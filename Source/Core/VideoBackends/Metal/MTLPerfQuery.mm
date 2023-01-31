@@ -78,7 +78,7 @@ void Metal::PerfQuery::ReturnResults(const u64* data, const PerfQueryGroup* grou
       for (size_t i = 0; i < count; ++i)
       {
         u64 native_res_result = data[i] * (EFB_WIDTH * EFB_HEIGHT) /
-                                (g_renderer->GetTargetWidth() * g_renderer->GetTargetHeight());
+                                (g_framebuffer_manager->GetEFBWidth() * g_framebuffer_manager->GetEFBHeight());
 
         native_res_result /= g_ActiveConfig.iMultisamples;
 

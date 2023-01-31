@@ -37,7 +37,6 @@
 #include "VideoCommon/FrameDumper.h"
  #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -48,10 +47,8 @@
 std::unique_ptr<Renderer> g_renderer;
 
 Renderer::Renderer()
-    : m_prev_efb_format{PixelFormat::INVALID_FMT},
-       m_last_xfb_width{MAX_XFB_WIDTH}, m_last_xfb_height{MAX_XFB_HEIGHT}
+    : m_prev_efb_format{PixelFormat::INVALID_FMT}
 {
-  CalculateTargetSize();
   UpdateWidescreen();
 
   m_config_changed_handle = ConfigChangedEvent::Register([this](u32 bits) { OnConfigChanged(bits); }, "Renderer");
@@ -168,83 +165,6 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
   }
 }
 
-unsigned int Renderer::GetEFBScale() const
-{
-  return m_efb_scale;
-}
-
-int Renderer::EFBToScaledX(int x) const
-{
-  return x * static_cast<int>(m_efb_scale);
-}
-
-int Renderer::EFBToScaledY(int y) const
-{
-  return y * static_cast<int>(m_efb_scale);
-}
-
-float Renderer::EFBToScaledXf(float x) const
-{
-  return x * ((float)GetTargetWidth() / (float)EFB_WIDTH);
-}
-
-float Renderer::EFBToScaledYf(float y) const
-{
-  return y * ((float)GetTargetHeight() / (float)EFB_HEIGHT);
-}
-
-std::tuple<int, int> Renderer::CalculateTargetScale(int x, int y) const
-{
-  return std::make_tuple(x * static_cast<int>(m_efb_scale), y * static_cast<int>(m_efb_scale));
-}
-
-// return true if target size changed
-bool Renderer::CalculateTargetSize()
-{
-  if (g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL)
-  {
-    auto target_rectangle = g_presenter->GetTargetRectangle();
-    // Set a scale based on the window size
-    int width = EFB_WIDTH * target_rectangle.GetWidth() / m_last_xfb_width;
-    int height = EFB_HEIGHT * target_rectangle.GetHeight() / m_last_xfb_height;
-    m_efb_scale = std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
-  }
-  else
-  {
-    m_efb_scale = g_ActiveConfig.iEFBScale;
-  }
-
-  const u32 max_size = g_ActiveConfig.backend_info.MaxTextureSize;
-  if (max_size < EFB_WIDTH * m_efb_scale)
-    m_efb_scale = max_size / EFB_WIDTH;
-
-  auto [new_efb_width, new_efb_height] = CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT);
-  new_efb_width = std::max(new_efb_width, 1);
-  new_efb_height = std::max(new_efb_height, 1);
-
-  if (new_efb_width != m_target_width || new_efb_height != m_target_height)
-  {
-    m_target_width = new_efb_width;
-    m_target_height = new_efb_height;
-    auto& system = Core::System::GetInstance();
-    auto& pixel_shader_manager = system.GetPixelShaderManager();
-    pixel_shader_manager.SetEfbScaleChanged(EFBToScaledXf(1), EFBToScaledYf(1));
-    return true;
-  }
-  return false;
-}
-
-
-MathUtil::Rectangle<int> Renderer::ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc) const
-{
-  MathUtil::Rectangle<int> result;
-  result.left = EFBToScaledX(rc.left);
-  result.top = EFBToScaledY(rc.top);
-  result.right = EFBToScaledX(rc.right);
-  result.bottom = EFBToScaledY(rc.bottom);
-  return result;
-}
-
 void Renderer::UpdateWidescreen()
 {
   if (SConfig::GetInstance().bWii)
@@ -324,20 +244,7 @@ void Renderer::OnConfigChanged(u32 bits)
     UpdateWidescreen();
 }
 
-void Renderer::TrackSwaps(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
-{
-  if (xfb_addr && fb_width && fb_stride && fb_height)
-  {
-    // Update our last xfb values
-    m_last_xfb_addr = xfb_addr;
-    m_last_xfb_ticks = ticks;
-    m_last_xfb_width = fb_width;
-    m_last_xfb_stride = fb_stride;
-    m_last_xfb_height = fb_height;
-  }
-}
-
-bool Renderer::UseVertexDepthRange() const
+bool Renderer::UseVertexDepthRange()
 {
   // We can't compute the depth range in the vertex shader if we don't support depth clamp.
   if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
@@ -359,29 +266,9 @@ bool Renderer::UseVertexDepthRange() const
 void Renderer::DoState(PointerWrap& p)
 {
   p.Do(m_is_game_widescreen);
-  p.Do(m_frame_count);
-  p.Do(m_prev_efb_format);
-  p.Do(m_last_xfb_ticks);
-  p.Do(m_last_xfb_addr);
-  p.Do(m_last_xfb_width);
-  p.Do(m_last_xfb_stride);
-  p.Do(m_last_xfb_height);
-
-  g_bounding_box->DoState(p);
 
   if (p.IsReadMode())
   {
     m_was_orthographically_anamorphic = false;
-
-    // This technically counts as the end of the frame
-    AfterFrameEvent::Trigger();
-
-    // re-display the most recent XFB
-    g_presenter->ImmediateSwap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride,
-                               m_last_xfb_height, m_last_xfb_ticks);
   }
-
-#if defined(HAVE_FFMPEG)
-  g_frame_dumper->DoState(p);
-#endif
 }

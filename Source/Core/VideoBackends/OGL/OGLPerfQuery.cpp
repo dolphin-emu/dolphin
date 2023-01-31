@@ -9,7 +9,7 @@
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
 #include "VideoBackends/OGL/OGLGfx.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -165,7 +165,7 @@ void PerfQueryGL::FlushOne()
   // TODO: Dropping the lower 2 bits from this count should be closer to actual
   // hardware behavior when drawing triangles.
   result = static_cast<u64>(result) * EFB_WIDTH * EFB_HEIGHT /
-           (g_renderer->GetTargetWidth() * g_renderer->GetTargetHeight());
+           (g_framebuffer_manager->GetEFBWidth() * g_framebuffer_manager->GetEFBHeight());
 
   // Adjust for multisampling
   if (g_ActiveConfig.iMultisamples > 1)
@@ -265,7 +265,7 @@ void PerfQueryGLESNV::FlushOne()
   // TODO: Dropping the lower 2 bits from this count should be closer to actual
   // hardware behavior when drawing triangles.
   const u64 native_res_result = static_cast<u64>(result) * EFB_WIDTH * EFB_HEIGHT /
-                                (g_renderer->GetTargetWidth() * g_renderer->GetTargetHeight());
+                                (g_framebuffer_manager->GetEFBWidth() * g_framebuffer_manager->GetEFBHeight());
   m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
                                          std::memory_order_relaxed);
 

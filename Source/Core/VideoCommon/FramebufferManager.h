@@ -6,6 +6,7 @@
 #include <array>
 #include <memory>
 #include <optional>
+#include <tuple>
 
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
@@ -54,8 +55,8 @@ public:
   static AbstractTextureFormat GetEFBColorFormat();
   static AbstractTextureFormat GetEFBDepthFormat();
   static AbstractTextureFormat GetEFBDepthCopyFormat();
-  static TextureConfig GetEFBColorTextureConfig();
-  static TextureConfig GetEFBDepthTextureConfig();
+  static TextureConfig GetEFBColorTextureConfig(u32 width, u32 height);
+  static TextureConfig GetEFBDepthTextureConfig(u32 width, u32 height);
 
   // Accessors.
   AbstractTexture* GetEFBColorTexture() const { return m_efb_color_texture.get(); }
@@ -68,6 +69,20 @@ public:
   bool IsEFBMultisampled() const { return m_efb_color_texture->IsMultisampled(); }
   bool IsEFBStereo() const { return m_efb_color_texture->GetLayers() > 1; }
   FramebufferState GetEFBFramebufferState() const;
+
+  // EFB coordinate conversion functions
+  // Use this to convert a whole native EFB rect to backbuffer coordinates
+  MathUtil::Rectangle<int> ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc) const;
+
+  unsigned int GetEFBScale() const;
+
+  // Use this to upscale native EFB coordinates to IDEAL internal resolution
+  int EFBToScaledX(int x) const;
+  int EFBToScaledY(int y) const;
+
+  // Floating point versions of the above - only use them if really necessary
+  float EFBToScaledXf(float x) const;
+  float EFBToScaledYf(float y) const;
 
   // First-time setup.
   bool Initialize();
@@ -172,8 +187,12 @@ protected:
   void DrawPokeVertices(const EFBPokeVertex* vertices, u32 vertex_count,
                         const AbstractPipeline* pipeline);
 
+  std::tuple<u32, u32> CalculateTargetSize();
+
   void DoLoadState(PointerWrap& p);
   void DoSaveState(PointerWrap& p);
+
+  float m_efb_scale = 0.0f;
 
   std::unique_ptr<AbstractTexture> m_efb_color_texture;
   std::unique_ptr<AbstractTexture> m_efb_convert_color_texture;

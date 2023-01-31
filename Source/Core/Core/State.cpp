@@ -96,7 +96,7 @@ static size_t s_state_writes_in_queue;
 static std::condition_variable s_state_write_queue_is_empty;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 157;  // Last changed in PR 11183
+constexpr u32 STATE_VERSION = 158;  // Last changed in PR ???
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,

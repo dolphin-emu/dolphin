@@ -8,6 +8,7 @@
 
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConfig.h"
+#include "VideoCommon/VideoCommon.h"
 
 #include <array>
 #include <memory>
@@ -47,6 +48,7 @@ public:
   int GetBackbufferWidth() const { return m_backbuffer_width; }
   int GetBackbufferHeight() const { return m_backbuffer_height; }
   float GetBackbufferScale() const { return m_backbuffer_scale; }
+  u32 AutoIntegralScale() const;
   AbstractTextureFormat GetBackbufferFormat() const { return m_backbuffer_format; }
   void SetWindowSize(int width, int height);
   void SetBackbuffer(int backbuffer_width, int backbuffer_height);
@@ -86,12 +88,16 @@ public:
   void SetMousePos(float x, float y);
   void SetMousePress(u32 button_mask);
 
+  int FrameCount() const { return m_frame_count; }
+
+  void DoState(PointerWrap& p);
+
   const MathUtil::Rectangle<int>& GetTargetRectangle() const { return m_target_rectangle; }
 
 private:
   // Fetches the XFB texture from the texture cache.
   // Returns true the contents have changed since last time
-  bool FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height);
+  bool FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
   void ProcessFrameDumping(u64 ticks) const;
 
@@ -130,7 +136,15 @@ private:
   std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
   std::unique_ptr<VideoCommon::OnScreenUI> m_onscreen_ui;
 
+  u64 m_frame_count = 0;
   u64 m_present_count = 0;
+
+  // XFB tracking
+  u64 m_last_xfb_ticks = 0;
+  u32 m_last_xfb_addr = 0;
+  u32 m_last_xfb_width = MAX_XFB_WIDTH;
+  u32 m_last_xfb_stride = 0;
+  u32 m_last_xfb_height = MAX_XFB_HEIGHT;
 };
 
 }  // namespace VideoCommon
