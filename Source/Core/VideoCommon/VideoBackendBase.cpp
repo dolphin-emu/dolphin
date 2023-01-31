@@ -64,6 +64,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
+#include "VideoCommon/Widescreen.h"
 
 VideoBackendBase* g_video_backend = nullptr;
 
@@ -359,6 +360,7 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
   g_graphics_mod_manager = std::make_unique<GraphicsModManager>();
+  g_widescreen = std::make_unique<WidescreenManager>();
 
   auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
@@ -407,6 +409,7 @@ void VideoBackendBase::ShutdownShared()
   g_shader_cache.reset();
   g_vertex_manager.reset();
   g_renderer.reset();
+  g_widescreen.reset();
   g_presenter.reset();
   g_gfx.reset();
 

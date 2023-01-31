@@ -14,11 +14,11 @@
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/OnScreenUI.h"
 #include "VideoCommon/PostProcessing.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
+#include "VideoCommon/Widescreen.h"
 
 std::unique_ptr<VideoCommon::Presenter> g_presenter;
 
@@ -246,7 +246,7 @@ float Presenter::CalculateDrawAspectRatio() const
   const float aspect_ratio = VideoInterface::GetAspectRatio();
 
   if (aspect_mode == AspectMode::AnalogWide ||
-      (aspect_mode == AspectMode::Auto && g_renderer->IsGameWidescreen()))
+      (aspect_mode == AspectMode::Auto && g_widescreen->IsGameWidescreen()))
   {
     return AspectToWidescreen(aspect_ratio);
   }
@@ -346,7 +346,7 @@ std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float h
   const float current_aspect = width / height;
   const float expected_aspect =
       (aspect_mode == AspectMode::AnalogWide ||
-       (aspect_mode == AspectMode::Auto && g_renderer->IsGameWidescreen())) ?
+       (aspect_mode == AspectMode::Auto && g_widescreen->IsGameWidescreen())) ?
           (16.0f / 9.0f) :
           (4.0f / 3.0f);
   if (current_aspect > expected_aspect)
@@ -373,7 +373,7 @@ void Presenter::UpdateDrawRectangle()
   if (g_ActiveConfig.bWidescreenHack)
   {
     float source_aspect = VideoInterface::GetAspectRatio();
-    if (g_renderer && g_renderer->IsGameWidescreen())
+    if (g_widescreen->IsGameWidescreen())
       source_aspect = AspectToWidescreen(source_aspect);
 
     const float adjust = source_aspect / draw_aspect_ratio;

@@ -37,28 +37,14 @@ public:
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
 
-  bool IsGameWidescreen() const { return m_is_game_widescreen; }
-
   PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PixelFormat new_format) { m_prev_efb_format = new_format; }
 
   static bool UseVertexDepthRange();
   void DoState(PointerWrap& p);
 
-  void OnConfigChanged(u32 bits);
-
-protected:
-  void UpdateWidescreen();
-  void UpdateWidescreenHeuristic();
-
-  bool m_is_game_widescreen = false;
-  bool m_was_orthographically_anamorphic = false;
-
 private:
   PixelFormat m_prev_efb_format;
-
-  EventHook m_update_widescreen_handle;
-  EventHook m_config_changed_handle;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

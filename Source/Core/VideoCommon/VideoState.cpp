@@ -26,6 +26,7 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/Widescreen.h"
 #include "VideoCommon/XFMemory.h"
 
 void VideoCommon_DoState(PointerWrap& p)
@@ -104,6 +105,9 @@ void VideoCommon_DoState(PointerWrap& p)
 
   g_bounding_box->DoState(p);
   p.DoMarker("Bounding Box");
+
+  g_widescreen->DoState(p);
+  p.DoMarker("Widescreen");
 
   // Refresh state.
   if (p.IsReadMode())

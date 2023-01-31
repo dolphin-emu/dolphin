@@ -717,6 +717,7 @@
     <ClInclude Include="VideoCommon\VideoConfig.h" />
     <ClInclude Include="VideoCommon\VideoEvents.h" />
     <ClInclude Include="VideoCommon\VideoState.h" />
+    <ClInclude Include="VideoCommon\Widescreen.h" />
     <ClInclude Include="VideoCommon\XFMemory.h" />
     <ClInclude Include="VideoCommon\XFStructs.h" />
   </ItemGroup>
@@ -1306,6 +1307,7 @@
     <ClCompile Include="VideoCommon\VideoBackendBase.cpp" />
     <ClCompile Include="VideoCommon\VideoConfig.cpp" />
     <ClCompile Include="VideoCommon\VideoState.cpp" />
+    <ClCompile Include="VideoCommon\Widescreen.cpp" />
     <ClCompile Include="VideoCommon\XFMemory.cpp" />
     <ClCompile Include="VideoCommon\XFStructs.cpp" />
   </ItemGroup>

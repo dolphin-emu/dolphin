@@ -169,6 +169,8 @@ add_library(videocommon
   VideoConfig.h
   VideoState.cpp
   VideoState.h
+  Widescreen.cpp
+  Widescreen.h
   XFMemory.cpp
   XFMemory.h
   XFStructs.cpp
