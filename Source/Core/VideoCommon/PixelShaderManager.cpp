@@ -74,7 +74,8 @@ void PixelShaderManager::Dirty()
   // Any constants that can changed based on settings should be re-calculated
   m_fog_range_adjusted_changed = true;
 
-  SetEfbScaleChanged(g_framebuffer_manager->EFBToScaledXf(1), g_framebuffer_manager->EFBToScaledYf(1));
+  SetEfbScaleChanged(g_framebuffer_manager->EFBToScaledXf(1),
+                     g_framebuffer_manager->EFBToScaledYf(1));
   SetFogParamChanged();
 
   dirty = true;
@@ -102,8 +103,8 @@ void PixelShaderManager::SetConstants()
       // so to simplify I use the hi coefficient as K in the shader taking 256 as the scale
       // TODO: Shouldn't this be EFBToScaledXf?
       constants.fogf[2] = ScreenSpaceCenter;
-      constants.fogf[3] =
-          static_cast<float>(g_framebuffer_manager->EFBToScaledX(static_cast<int>(2.0f * xfmem.viewport.wd)));
+      constants.fogf[3] = static_cast<float>(
+          g_framebuffer_manager->EFBToScaledX(static_cast<int>(2.0f * xfmem.viewport.wd)));
 
       for (size_t i = 0, vec_index = 0; i < std::size(bpmem.fogRange.K); i++)
       {

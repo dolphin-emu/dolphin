@@ -49,19 +49,19 @@ bool Gfx::IsHeadless() const
 }
 
 std::unique_ptr<AbstractTexture> Gfx::CreateTexture(const TextureConfig& config,
-                                                         std::string_view name)
+                                                    std::string_view name)
 {
   return DXTexture::Create(config, name);
 }
 
 std::unique_ptr<AbstractStagingTexture> Gfx::CreateStagingTexture(StagingTextureType type,
-                                                                       const TextureConfig& config)
+                                                                  const TextureConfig& config)
 {
   return DXStagingTexture::Create(type, config);
 }
 
 std::unique_ptr<AbstractFramebuffer> Gfx::CreateFramebuffer(AbstractTexture* color_attachment,
-                                                                 AbstractTexture* depth_attachment)
+                                                            AbstractTexture* depth_attachment)
 {
   return DXFramebuffer::Create(static_cast<DXTexture*>(color_attachment),
                                static_cast<DXTexture*>(depth_attachment));
@@ -73,9 +73,8 @@ Gfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::str
   return DXShader::CreateFromSource(stage, source, name);
 }
 
-std::unique_ptr<AbstractShader> Gfx::CreateShaderFromBinary(ShaderStage stage,
-                                                                 const void* data, size_t length,
-                                                                 std::string_view name)
+std::unique_ptr<AbstractShader> Gfx::CreateShaderFromBinary(ShaderStage stage, const void* data,
+                                                            size_t length, std::string_view name)
 {
   return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length), name);
 }
@@ -87,8 +86,8 @@ Gfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 }
 
 std::unique_ptr<AbstractPipeline> Gfx::CreatePipeline(const AbstractPipelineConfig& config,
-                                                           const void* cache_data,
-                                                           size_t cache_data_length)
+                                                      const void* cache_data,
+                                                      size_t cache_data_length)
 {
   return DXPipeline::Create(config, cache_data, cache_data_length);
 }
@@ -103,8 +102,8 @@ void Gfx::WaitForGPUIdle()
   ExecuteCommandList(true);
 }
 
-void Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc,
-                      bool color_enable, bool alpha_enable, bool z_enable, u32 color, u32 z)
+void Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_enable,
+                      bool alpha_enable, bool z_enable, u32 color, u32 z)
 {
   // Use a fast path without the shader if both color/alpha are enabled.
   const bool fast_color_clear = color_enable && alpha_enable;
@@ -229,8 +228,8 @@ void Gfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
   }
 }
 
-void Gfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
-                                      const ClearColor& color_value, float depth_value)
+void Gfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearColor& color_value,
+                                 float depth_value)
 {
   DXFramebuffer* dxfb = static_cast<DXFramebuffer*>(framebuffer);
   BindFramebuffer(dxfb);
@@ -318,7 +317,7 @@ void Gfx::UnbindTexture(const AbstractTexture* texture)
 }
 
 void Gfx::SetViewport(float x, float y, float width, float height, float near_depth,
-                           float far_depth)
+                      float far_depth)
 {
   if (m_state.viewport.TopLeftX == x && m_state.viewport.TopLeftY == y &&
       m_state.viewport.Width == width && m_state.viewport.Height == height &&
@@ -357,7 +356,7 @@ void Gfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 }
 
 void Gfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
-                                     u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
+                                u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
 {
   SetRootSignatures();
   SetDescriptorHeaps();
@@ -427,12 +426,9 @@ void Gfx::PresentBackbuffer()
 
 SurfaceInfo Gfx::GetSurfaceInfo() const
 {
-  return {
-    m_swap_chain ? static_cast<u32>(m_swap_chain->GetWidth()) : 0,
-    m_swap_chain ? static_cast<u32>(m_swap_chain->GetHeight()) : 0,
-    m_backbuffer_scale,
-    m_swap_chain ? m_swap_chain->GetFormat() : AbstractTextureFormat::Undefined
-  };
+  return {m_swap_chain ? static_cast<u32>(m_swap_chain->GetWidth()) : 0,
+          m_swap_chain ? static_cast<u32>(m_swap_chain->GetHeight()) : 0, m_backbuffer_scale,
+          m_swap_chain ? m_swap_chain->GetFormat() : AbstractTextureFormat::Undefined};
 }
 
 void Gfx::OnConfigChanged(u32 bits)
@@ -494,7 +490,7 @@ void Gfx::SetPixelShaderUAV(D3D12_CPU_DESCRIPTOR_HANDLE handle)
 }
 
 void Gfx::SetVertexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, D3D12_CPU_DESCRIPTOR_HANDLE srv,
-                               u32 stride, u32 size)
+                          u32 stride, u32 size)
 {
   if (m_state.vertex_buffer.BufferLocation != address ||
       m_state.vertex_buffer.StrideInBytes != stride || m_state.vertex_buffer.SizeInBytes != size)

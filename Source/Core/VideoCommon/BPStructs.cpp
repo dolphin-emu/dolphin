@@ -31,9 +31,9 @@
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PerfQueryBase.h"
-#include "VideoCommon/Present.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TMEM.h"
@@ -345,7 +345,6 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
       // This is as closest as we have to an "end of the frame"
       // It works 99% of the time.
       AfterFrameEvent::Trigger();
-
 
       if (g_ActiveConfig.bImmediateXFB)
       {

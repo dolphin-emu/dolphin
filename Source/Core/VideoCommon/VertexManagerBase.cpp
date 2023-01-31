@@ -104,7 +104,7 @@ VertexManagerBase::~VertexManagerBase() = default;
 
 bool VertexManagerBase::Initialize()
 {
-  m_frame_end_event = AfterFrameEvent::Register([this] { OnEndFrame();}, "VertexManagerBase");
+  m_frame_end_event = AfterFrameEvent::Register([this] { OnEndFrame(); }, "VertexManagerBase");
   m_index_generator.Init();
   m_cpu_cull.Init();
   return true;
@@ -562,8 +562,7 @@ void VertexManagerBase::Flush()
     {
       bool skip = false;
       GraphicsModActionData::DrawStarted draw_started{&skip};
-      for (const auto action :
-           g_graphics_mod_manager->GetDrawStartedActions(texture_name))
+      for (const auto action : g_graphics_mod_manager->GetDrawStartedActions(texture_name))
       {
         action->OnDrawStarted(&draw_started);
       }

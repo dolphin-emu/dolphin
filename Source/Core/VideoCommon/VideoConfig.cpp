@@ -24,8 +24,8 @@
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/Present.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -355,7 +355,8 @@ void CheckForConfigChanges()
   // TODO: Move everything else to the ConfigChanged event
 }
 
-static EventHook s_check_config_event = AfterFrameEvent::Register([] {
-  CheckForConfigChanges();
-
-}, "CheckForConfigChanges");
+static EventHook s_check_config_event = AfterFrameEvent::Register(
+    [] {
+      CheckForConfigChanges();
+    },
+    "CheckForConfigChanges");

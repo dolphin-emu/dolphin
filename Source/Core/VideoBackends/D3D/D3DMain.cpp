@@ -13,8 +13,8 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBoundingBox.h"
-#include "VideoBackends/D3D/D3DPerfQuery.h"
 #include "VideoBackends/D3D/D3DGfx.h"
+#include "VideoBackends/D3D/D3DPerfQuery.h"
 #include "VideoBackends/D3D/D3DSwapChain.h"
 #include "VideoBackends/D3D/D3DVertexManager.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
@@ -161,7 +161,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   auto bounding_box = std::make_unique<D3DBoundingBox>();
 
   return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                        std::move(bounding_box));
+                          std::move(bounding_box));
 }
 
 void VideoBackend::Shutdown()

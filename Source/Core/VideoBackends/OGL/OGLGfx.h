@@ -42,8 +42,8 @@ public:
   void SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer) override;
   void SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearColor& color_value = {},
                               float depth_value = 0.0f) override;
-  void ClearRegion(const MathUtil::Rectangle<int>& target_rc,
-                   bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) override;
+  void ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEnable, bool alphaEnable,
+                   bool zEnable, u32 color, u32 z) override;
   void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
   void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;

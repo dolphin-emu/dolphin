@@ -16,7 +16,6 @@ class AbstractPipeline;
 
 namespace VideoCommon
 {
-
 // OnScreenUI handles all the ImGui rendering.
 class OnScreenUI
 {

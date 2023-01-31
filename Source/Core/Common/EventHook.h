@@ -36,7 +36,7 @@ struct HookBase
 
 using EventHook = std::unique_ptr<HookBase>;
 
-template<StringLiteral EventName, typename... CallbackArgs>
+template <StringLiteral EventName, typename... CallbackArgs>
 class Event
 {
 public:
@@ -46,12 +46,12 @@ private:
   struct HookImpl : public HookBase
   {
     ~HookImpl() override { Event::Remove(this); }
-    HookImpl(CallbackType callback, std::string name) : m_fn(callback), m_name(name){ }
+    HookImpl(CallbackType callback, std::string name) : m_fn(callback), m_name(name) {}
     CallbackType m_fn;
     std::string m_name;
   };
-public:
 
+public:
   // Returns a handle that will unregister the listener when destroyed.
   static EventHook Register(CallbackType callback, std::string name)
   {

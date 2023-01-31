@@ -18,9 +18,9 @@
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/XFStructs.h"
-#include "VideoCommon/XFMemory.h"
 #include "VideoCommon/VideoEvents.h"
+#include "VideoCommon/XFMemory.h"
+#include "VideoCommon/XFStructs.h"
 
 class FifoRecorder::FifoRecordAnalyzer : public OpcodeDecoder::Callback
 {
@@ -255,24 +255,26 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
   m_RequestedRecordingEnd = false;
   m_FinishedCb = finishedCb;
 
-  m_end_of_frame_event = AfterFrameEvent::Register([this] {
-    const bool was_recording = OpcodeDecoder::g_record_fifo_data;
-    OpcodeDecoder::g_record_fifo_data = IsRecording();
+  m_end_of_frame_event = AfterFrameEvent::Register(
+      [this] {
+        const bool was_recording = OpcodeDecoder::g_record_fifo_data;
+        OpcodeDecoder::g_record_fifo_data = IsRecording();
 
-    if (!OpcodeDecoder::g_record_fifo_data)
-      return;
+        if (!OpcodeDecoder::g_record_fifo_data)
+          return;
 
-    if (!was_recording)
-    {
-      RecordInitialVideoMemory();
-    }
+        if (!was_recording)
+        {
+          RecordInitialVideoMemory();
+        }
 
-    auto& system = Core::System::GetInstance();
-    auto& command_processor = system.GetCommandProcessor();
-    const auto& fifo = command_processor.GetFifo();
-    EndFrame(fifo.CPBase.load(std::memory_order_relaxed),
-                                        fifo.CPEnd.load(std::memory_order_relaxed));
-  }, "FifoRecorder::EndFrame");
+        auto& system = Core::System::GetInstance();
+        auto& command_processor = system.GetCommandProcessor();
+        const auto& fifo = command_processor.GetFifo();
+        EndFrame(fifo.CPBase.load(std::memory_order_relaxed),
+                 fifo.CPEnd.load(std::memory_order_relaxed));
+      },
+      "FifoRecorder::EndFrame");
 }
 
 void FifoRecorder::RecordInitialVideoMemory()

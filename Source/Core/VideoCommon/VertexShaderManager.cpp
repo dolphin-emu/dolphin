@@ -388,16 +388,15 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
   std::vector<GraphicsModAction*> projection_actions;
   if (g_ActiveConfig.bGraphicMods)
   {
-    for (const auto action :
-         g_graphics_mod_manager->GetProjectionActions(xfmem.projection.type))
+    for (const auto action : g_graphics_mod_manager->GetProjectionActions(xfmem.projection.type))
     {
       projection_actions.push_back(action);
     }
 
     for (const auto& texture : textures)
     {
-      for (const auto action : g_graphics_mod_manager->GetProjectionTextureActions(
-               xfmem.projection.type, texture))
+      for (const auto action :
+           g_graphics_mod_manager->GetProjectionTextureActions(xfmem.projection.type, texture))
       {
         projection_actions.push_back(action);
       }

@@ -9,6 +9,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "Present.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/OnScreenUI.h"
@@ -18,7 +19,6 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
-#include "Present.h"
 
 std::unique_ptr<VideoCommon::Presenter> g_presenter;
 
@@ -67,7 +67,8 @@ bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_heigh
 {
   ReleaseXFBContentLock();
 
-  m_xfb_entry = g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &m_xfb_rect);
+  m_xfb_entry =
+      g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &m_xfb_rect);
   bool is_duplicate = m_xfb_entry->id == m_last_xfb_id;
 
   m_xfb_entry->AcquireContentLock();
@@ -95,7 +96,7 @@ void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
   }
   else
   {
-    present_info.frame_count = m_frame_count - 1; // Previous frame
+    present_info.frame_count = m_frame_count - 1;  // Previous frame
     present_info.reason = PresentInfo::PresentReason::VideoInterfaceDuplicate;
   }
   present_info.present_count = m_present_count;
@@ -308,7 +309,7 @@ void Presenter::ResizeSurface()
 
 void* Presenter::GetNewSurfaceHandle()
 {
-  void *handle = m_new_surface_handle;
+  void* handle = m_new_surface_handle;
   m_new_surface_handle = nullptr;
   return handle;
 }
@@ -605,11 +606,9 @@ void Presenter::DoState(PointerWrap& p)
     AfterFrameEvent::Trigger();
 
     // re-display the most recent XFB
-    ImmediateSwap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride,
-                  m_last_xfb_height, m_last_xfb_ticks);
+    ImmediateSwap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height,
+                  m_last_xfb_ticks);
   }
-
 }
-
 
 }  // namespace VideoCommon

@@ -114,8 +114,8 @@ void PerfQuery::FlushOne()
   // NOTE: Reported pixel metrics should be referenced to native resolution
   // TODO: Dropping the lower 2 bits from this count should be closer to actual
   // hardware behavior when drawing triangles.
-  const u64 native_res_result = result * EFB_WIDTH / g_framebuffer_manager->GetEFBWidth() * EFB_HEIGHT /
-                                g_framebuffer_manager->GetEFBHeight();
+  const u64 native_res_result = result * EFB_WIDTH / g_framebuffer_manager->GetEFBWidth() *
+                                EFB_HEIGHT / g_framebuffer_manager->GetEFBHeight();
   m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
                                          std::memory_order_relaxed);
 
@@ -143,8 +143,8 @@ void PerfQuery::WeakFlush()
     if (hr == S_OK)
     {
       // NOTE: Reported pixel metrics should be referenced to native resolution
-      const u64 native_res_result = result * EFB_WIDTH / g_framebuffer_manager->GetEFBWidth() * EFB_HEIGHT /
-                                    g_framebuffer_manager->GetEFBHeight();
+      const u64 native_res_result = result * EFB_WIDTH / g_framebuffer_manager->GetEFBWidth() *
+                                    EFB_HEIGHT / g_framebuffer_manager->GetEFBHeight();
       m_results[entry.query_group].store(static_cast<u32>(native_res_result),
                                          std::memory_order_relaxed);
 

@@ -226,8 +226,7 @@ protected:
 
   // EFB clear pipelines
   // Indexed by [color_write_enabled][alpha_write_enabled][depth_write_enabled]
-  std::array<std::array<std::array<std::unique_ptr<AbstractPipeline>, 2>, 2>, 2>
-      m_clear_pipelines;
+  std::array<std::array<std::array<std::unique_ptr<AbstractPipeline>, 2>, 2>, 2> m_clear_pipelines;
 
   // EFB poke drawing setup
   std::unique_ptr<NativeVertexFormat> m_poke_vertex_format;

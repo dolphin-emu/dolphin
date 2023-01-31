@@ -149,16 +149,14 @@ static u32 CalculateEFBLayers()
 
 TextureConfig FramebufferManager::GetEFBColorTextureConfig(u32 width, u32 height)
 {
-  return TextureConfig(width, height, 1,
-                       CalculateEFBLayers(), g_ActiveConfig.iMultisamples, GetEFBColorFormat(),
-                       AbstractTextureFlag_RenderTarget);
+  return TextureConfig(width, height, 1, CalculateEFBLayers(), g_ActiveConfig.iMultisamples,
+                       GetEFBColorFormat(), AbstractTextureFlag_RenderTarget);
 }
 
 TextureConfig FramebufferManager::GetEFBDepthTextureConfig(u32 width, u32 height)
 {
-  return TextureConfig(width, height, 1,
-                       CalculateEFBLayers(), g_ActiveConfig.iMultisamples, GetEFBDepthFormat(),
-                       AbstractTextureFlag_RenderTarget);
+  return TextureConfig(width, height, 1, CalculateEFBLayers(), g_ActiveConfig.iMultisamples,
+                       GetEFBDepthFormat(), AbstractTextureFlag_RenderTarget);
 }
 
 FramebufferState FramebufferManager::GetEFBFramebufferState() const
@@ -905,8 +903,7 @@ bool FramebufferManager::CompileClearPipelines()
         config.depth_state.testenable = depth_enable != 0;
         config.depth_state.updateenable = depth_enable != 0;
 
-        m_clear_pipelines[color_enable][alpha_enable][depth_enable] =
-            g_gfx->CreatePipeline(config);
+        m_clear_pipelines[color_enable][alpha_enable][depth_enable] = g_gfx->CreatePipeline(config);
         if (!m_clear_pipelines[color_enable][alpha_enable][depth_enable])
           return false;
       }

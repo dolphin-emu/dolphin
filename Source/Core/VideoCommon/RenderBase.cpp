@@ -31,31 +31,32 @@
 #include "Core/System.h"
 
 #include "VideoCommon/AbstractGfx.h"
+#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
-#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/FrameDumper.h"
- #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 std::unique_ptr<Renderer> g_renderer;
 
-Renderer::Renderer()
-    : m_prev_efb_format{PixelFormat::INVALID_FMT}
+Renderer::Renderer() : m_prev_efb_format{PixelFormat::INVALID_FMT}
 {
   UpdateWidescreen();
 
-  m_config_changed_handle = ConfigChangedEvent::Register([this](u32 bits) { OnConfigChanged(bits); }, "Renderer");
+  m_config_changed_handle =
+      ConfigChangedEvent::Register([this](u32 bits) { OnConfigChanged(bits); }, "Renderer");
 
   // VertexManager doesn't maintain statistics in Wii mode.
   if (!SConfig::GetInstance().bWii)
-    m_update_widescreen_handle = AfterFrameEvent::Register([this] { UpdateWidescreenHeuristic(); }, "WideScreen Heuristic");
+    m_update_widescreen_handle =
+        AfterFrameEvent::Register([this] { UpdateWidescreenHeuristic(); }, "WideScreen Heuristic");
 }
 
 Renderer::~Renderer() = default;

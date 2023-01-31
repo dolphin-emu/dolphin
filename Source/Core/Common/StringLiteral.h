@@ -7,11 +7,10 @@
 
 // A useful template for passing string literals as arguments to templates
 // from: https://ctrpeach.io/posts/cpp20-string-literal-template-parameters/
-template<size_t N>
-struct StringLiteral {
-  consteval StringLiteral(const char (&str)[N]) {
-      std::copy_n(str, N, value);
-  }
+template <size_t N>
+struct StringLiteral
+{
+  consteval StringLiteral(const char (&str)[N]) { std::copy_n(str, N, value); }
 
   char value[N];
 };

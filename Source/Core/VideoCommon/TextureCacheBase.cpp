@@ -773,7 +773,7 @@ void TextureCacheBase::OnFrameEnd()
 {
   if (m_force_reload_textures.TestAndClear())
   {
-        ForceReload();
+    ForceReload();
   }
   else
   {
@@ -920,9 +920,9 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
             entry_to_update->native_height != entry_to_update->GetHeight() ||
             entry->native_width != entry->GetWidth() || entry->native_height != entry->GetHeight())
         {
-          ScaleTextureCacheEntryTo(entry_to_update,
-                                   g_framebuffer_manager->EFBToScaledX(entry_to_update->native_width),
-                                   g_framebuffer_manager->EFBToScaledY(entry_to_update->native_height));
+          ScaleTextureCacheEntryTo(
+              entry_to_update, g_framebuffer_manager->EFBToScaledX(entry_to_update->native_width),
+              g_framebuffer_manager->EFBToScaledY(entry_to_update->native_height));
           ScaleTextureCacheEntryTo(entry, g_framebuffer_manager->EFBToScaledX(entry->native_width),
                                    g_framebuffer_manager->EFBToScaledY(entry->native_height));
 
@@ -1957,7 +1957,8 @@ void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
   // copies to be stitched together.
   if (create_upscaled_copy)
   {
-    ScaleTextureCacheEntryTo(stitched_entry, g_framebuffer_manager->EFBToScaledX(stitched_entry->native_width),
+    ScaleTextureCacheEntryTo(stitched_entry,
+                             g_framebuffer_manager->EFBToScaledX(stitched_entry->native_width),
                              g_framebuffer_manager->EFBToScaledY(stitched_entry->native_height));
   }
 
@@ -2269,7 +2270,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   // TODO: This only produces perfect downsampling for 2x IR, other resolutions will need more
   //       complex down filtering to average all pixels and produce the correct result.
   const bool linear_filter =
-      !is_depth_copy && (scaleByHalf || g_framebuffer_manager->GetEFBScale() != 1 || y_scale > 1.0f);
+      !is_depth_copy &&
+      (scaleByHalf || g_framebuffer_manager->GetEFBScale() != 1 || y_scale > 1.0f);
 
   RcTcacheEntry entry;
   if (copy_to_vram)

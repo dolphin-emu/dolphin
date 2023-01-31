@@ -59,7 +59,6 @@ enum class TriState : int
   Auto
 };
 
-
 // Bitmask containing information about which configuration has changed for the backend.
 enum ConfigChangeBits : u32
 {

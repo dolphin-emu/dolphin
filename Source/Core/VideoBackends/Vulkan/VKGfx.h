@@ -53,8 +53,8 @@ public:
   void WaitForGPUIdle() override;
   void OnConfigChanged(u32 bits) override;
 
-  void ClearRegion(const MathUtil::Rectangle<int>& target_rc,
-                   bool color_enable, bool alpha_enable, bool z_enable, u32 color, u32 z) override;
+  void ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_enable, bool alpha_enable,
+                   bool z_enable, u32 color, u32 z) override;
 
   void SetPipeline(const AbstractPipeline* pipeline) override;
   void SetFramebuffer(AbstractFramebuffer* framebuffer) override;
