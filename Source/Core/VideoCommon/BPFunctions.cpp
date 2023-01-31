@@ -364,9 +364,9 @@ void OnPixelFormatChange()
   if (!g_ActiveConfig.bEFBEmulateFormatChanges)
     return;
 
-  const auto old_format = g_renderer->GetPrevPixelFormat();
+  const auto old_format = g_framebuffer_manager->GetPrevPixelFormat();
   const auto new_format = bpmem.zcontrol.pixel_format;
-  g_renderer->StorePixelFormat(new_format);
+  g_framebuffer_manager->StorePixelFormat(new_format);
 
   DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", new_format, bpmem.zcontrol.zformat);
 

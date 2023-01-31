@@ -105,6 +105,8 @@ public:
   // Assumes no render pass is currently in progress.
   // Swaps EFB framebuffers, so re-bind afterwards.
   bool ReinterpretPixelData(EFBReinterpretType convtype);
+  PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
+  void StorePixelFormat(PixelFormat new_format) { m_prev_efb_format = new_format; }
 
   // Clears the EFB using shaders.
   void ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear_color, bool clear_alpha,
@@ -193,6 +195,7 @@ protected:
   void DoSaveState(PointerWrap& p);
 
   float m_efb_scale = 0.0f;
+  PixelFormat m_prev_efb_format;
 
   std::unique_ptr<AbstractTexture> m_efb_color_texture;
   std::unique_ptr<AbstractTexture> m_efb_convert_color_texture;

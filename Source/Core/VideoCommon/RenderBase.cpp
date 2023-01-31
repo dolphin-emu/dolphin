@@ -20,30 +20,20 @@
 
 #include <fmt/format.h>
 
-#include "Common/Assert.h"
-#include "Common/ChunkFile.h"
-#include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
 
-#include "VideoCommon/BPFunctions.h"
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/Present.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 std::unique_ptr<Renderer> g_renderer;
-
-Renderer::Renderer() : m_prev_efb_format{PixelFormat::INVALID_FMT}
-{
-}
 
 Renderer::~Renderer() = default;
 
@@ -169,9 +159,4 @@ bool Renderer::UseVertexDepthRange()
   // If an oversized depth range or a ztexture is used, we need to calculate the depth range
   // in the vertex shader.
   return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
-}
-
-void Renderer::DoState(PointerWrap& p)
-{
-  p.Do(m_prev_efb_format);
 }

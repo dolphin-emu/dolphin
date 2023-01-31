@@ -19,7 +19,6 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -95,9 +94,6 @@ void VideoCommon_DoState(PointerWrap& p)
 
   g_texture_cache->DoState(p);
   p.DoMarker("TextureCache");
-
-  g_renderer->DoState(p);
-  p.DoMarker("Renderer");
 
   g_presenter->DoState(p);
   g_frame_dumper->DoState(p);

@@ -24,12 +24,10 @@ struct EfbPokeData
 // Renderer really isn't a very good name for this class - it's more like "Misc".
 // It used to be a massive mess, but almost everything has been refactored out.
 //
-// All that's left is Widescreen tracking, pixel format and a thin abstraction layer
-// for VideoSoftware to intercept EFB accesses.
+// All that's left is a thin abstraction layer for VideoSoftware to intercept EFB accesses.
 class Renderer
 {
 public:
-  Renderer();
   virtual ~Renderer();
 
   virtual void ReinterpretPixelData(EFBReinterpretType convtype);
@@ -37,14 +35,7 @@ public:
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
 
-  PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
-  void StorePixelFormat(PixelFormat new_format) { m_prev_efb_format = new_format; }
-
   static bool UseVertexDepthRange();
-  void DoState(PointerWrap& p);
-
-private:
-  PixelFormat m_prev_efb_format;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

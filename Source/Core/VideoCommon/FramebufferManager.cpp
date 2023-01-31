@@ -1092,6 +1092,7 @@ void FramebufferManager::DestroyPokePipelines()
 void FramebufferManager::DoState(PointerWrap& p)
 {
   FlushEFBPokes();
+  p.Do(m_prev_efb_format);
 
   bool save_efb_state = Config::Get(Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
   p.Do(save_efb_state);
