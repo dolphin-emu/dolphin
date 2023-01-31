@@ -65,7 +65,7 @@ void PixelShaderManager::Init()
     }
   }
 
-  dirty = true;
+  Dirty();
 }
 
 void PixelShaderManager::Dirty()

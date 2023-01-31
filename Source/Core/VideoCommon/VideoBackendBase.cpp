@@ -362,6 +362,16 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   g_graphics_mod_manager = std::make_unique<GraphicsModManager>();
   g_widescreen = std::make_unique<WidescreenManager>();
 
+  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
+      !g_perf_query->Initialize() || !g_presenter->Initialize() ||
+      !g_framebuffer_manager->Initialize() || !g_texture_cache->Initialize() ||
+      !g_bounding_box->Initialize() || !g_graphics_mod_manager->Initialize())
+  {
+    PanicAlertFmtT("Failed to initialize renderer classes");
+    Shutdown();
+    return false;
+  }
+
   auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
   command_processor.Init(system);
@@ -373,16 +383,6 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   system.GetGeometryShaderManager().Init();
   system.GetPixelShaderManager().Init();
   TMEM::Init();
-
-  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
-      !g_perf_query->Initialize() || !g_presenter->Initialize() ||
-      !g_framebuffer_manager->Initialize() || !g_texture_cache->Initialize() ||
-      !g_bounding_box->Initialize() || !g_graphics_mod_manager->Initialize())
-  {
-    PanicAlertFmtT("Failed to initialize renderer classes");
-    Shutdown();
-    return false;
-  }
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();
