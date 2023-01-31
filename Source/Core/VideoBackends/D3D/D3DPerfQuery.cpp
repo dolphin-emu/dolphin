@@ -6,7 +6,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "VideoBackends/D3D/D3DBase.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace DX11

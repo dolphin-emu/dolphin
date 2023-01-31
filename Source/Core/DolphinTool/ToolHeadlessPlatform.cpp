@@ -15,7 +15,6 @@
 #include "Core/Host.h"
 
 // Begin stubs needed to satisfy Core dependencies
-#include "VideoCommon/RenderBase.h"
 
 std::vector<std::string> Host_GetPreferredLocales()
 {

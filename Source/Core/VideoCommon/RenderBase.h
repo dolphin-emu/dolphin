@@ -4,14 +4,9 @@
 #pragma once
 
 #include <memory>
-#include <tuple>
 
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
-#include "VideoCommon/RenderState.h"
-#include "VideoCommon/VideoEvents.h"
 
-class PointerWrap;
 enum class EFBAccessType;
 enum class EFBReinterpretType;
 

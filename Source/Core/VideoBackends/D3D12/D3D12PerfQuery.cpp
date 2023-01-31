@@ -11,7 +11,7 @@
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12Gfx.h"
 #include "VideoBackends/D3D12/DX12Context.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace DX12
