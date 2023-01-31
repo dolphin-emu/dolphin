@@ -29,6 +29,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
 // Qt is not guaranteed to keep track of file paths using native file pickers, so we use this
@@ -521,6 +522,7 @@ const std::map<const std::pair<const u16, const u16>, const char*> list_skylande
 SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(tr("Skylanders Manager"));
+  setWindowIcon(Resources::GetAppIcon());
   setObjectName(QString::fromStdString("skylanders_manager"));
   setMinimumSize(QSize(700, 200));
 

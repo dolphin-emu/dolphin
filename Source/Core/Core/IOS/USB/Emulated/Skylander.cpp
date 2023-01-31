@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/Logging/Log.h"
+#include "Common/Random.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Core/Core.h"
@@ -747,11 +748,24 @@ bool SkylanderPortal::CreateSkylander(const std::string& file_path, u16 sky_id, 
   {
     memcpy(&file_data[(index * 0x40) + 0x36], &other_blocks, sizeof(other_blocks));
   }
+
+  // Set the NUID of the figure
+  Common::Random::Generate(&file_data[0], 4);
+
+  // The BCC (Block Check Character)
+  file_data[4] = file_data[0] ^ file_data[1] ^ file_data[2] ^ file_data[3];
+
+  // ATQA
+  file_data[5] = 0x81;
+  file_data[6] = 0x01;
+
+  // SAK
+  file_data[7] = 0x0F;
+
   // Set the skylander info
-  u16 sky_info = (sky_id | sky_var) + 1;
-  memcpy(&file_data[0], &sky_info, sizeof(sky_info));
   memcpy(&file_data[0x10], &sky_id, sizeof(sky_id));
   memcpy(&file_data[0x1C], &sky_var, sizeof(sky_var));
+
   // Set checksum
   u16 checksum = SkylanderCRC16(0xFFFF, file_data, 0x1E);
   memcpy(&file_data[0x1E], &checksum, sizeof(checksum));
