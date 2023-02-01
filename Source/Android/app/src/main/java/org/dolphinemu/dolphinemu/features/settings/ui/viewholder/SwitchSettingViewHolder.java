@@ -39,7 +39,7 @@ public final class SwitchSettingViewHolder extends SettingViewHolder
     mBinding.textSettingDescription.setText(item.getDescription());
 
     mBinding.settingSwitch.setChecked(mItem.isChecked(getAdapter().getSettings()));
-    mBinding.settingSwitch.setEnabled(true);
+    mBinding.settingSwitch.setEnabled(mItem.isEditable());
 
     // Check for IPL to make sure user can skip.
     if (mItem.getSetting() == BooleanSetting.MAIN_SKIP_IPL)
