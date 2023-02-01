@@ -39,6 +39,12 @@ int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event)
 
 bool SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id)
 {
+  if (!socket)
+  {
+    ERROR_LOG_FMT(NETPLAY, "Target socket is null.");
+    return false;
+  }
+
   ENetPacket* epac =
       enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
   if (!epac)
