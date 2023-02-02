@@ -434,22 +434,23 @@ void Metal::StateTracker::FlushEncoders()
     m_texture_upload_cmdbuf = nullptr;
   }
   [m_current_render_cmdbuf
-    addCompletedHandler:[backref = m_backref, draw = m_current_draw,
-                         q = std::move(m_current_perf_query)](id<MTLCommandBuffer> buf) {
-      std::lock_guard<std::mutex> guard(backref->mtx);
-      if (StateTracker* tracker = backref->state_tracker)
-      {
-        // We can do the update non-atomically because we only ever update under the lock
-        u64 newval = std::max(draw, tracker->m_last_finished_draw.load(std::memory_order_relaxed));
-        tracker->m_last_finished_draw.store(newval, std::memory_order_release);
-        if (q)
+      addCompletedHandler:[backref = m_backref, draw = m_current_draw,
+                           q = std::move(m_current_perf_query)](id<MTLCommandBuffer> buf) {
+        std::lock_guard<std::mutex> guard(backref->mtx);
+        if (StateTracker* tracker = backref->state_tracker)
         {
-          if (PerfQuery* query = static_cast<PerfQuery*>(g_perf_query.get()))
-            query->ReturnResults(q->contents, q->groups.data(), q->groups.size(), q->query_id);
-          tracker->m_perf_query_tracker_cache.emplace_back(std::move(q));
+          // We can do the update non-atomically because we only ever update under the lock
+          u64 newval =
+              std::max(draw, tracker->m_last_finished_draw.load(std::memory_order_relaxed));
+          tracker->m_last_finished_draw.store(newval, std::memory_order_release);
+          if (q)
+          {
+            if (PerfQuery* query = static_cast<PerfQuery*>(g_perf_query.get()))
+              query->ReturnResults(q->contents, q->groups.data(), q->groups.size(), q->query_id);
+            tracker->m_perf_query_tracker_cache.emplace_back(std::move(q));
+          }
         }
-      }
-    }];
+      }];
   m_current_perf_query = nullptr;
   [m_current_render_cmdbuf commit];
   m_last_render_cmdbuf = std::move(m_current_render_cmdbuf);

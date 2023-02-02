@@ -91,8 +91,8 @@ static const char* to_string(MTLCompareFunction compare)
 
 // clang-format on
 
-static void SetupDepthStencil(
-    MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES])
+static void
+SetupDepthStencil(MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES])
 {
   auto desc = MRCTransfer([MTLDepthStencilDescriptor new]);
   Metal::DepthStencilSelector sel;
