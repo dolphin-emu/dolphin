@@ -151,9 +151,9 @@ void KeyboardMouse::SelectEventsForDevice(XIEventMask* mask, int deviceid)
 }
 
 KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard,
-                             double scroll_increment)
+                             double scroll_increment_)
     : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard),
-      scroll_increment(scroll_increment)
+      scroll_increment(scroll_increment_)
 {
   // The cool thing about each KeyboardMouse object having its own Display
   // is that each one gets its own separate copy of the X11 event stream,
