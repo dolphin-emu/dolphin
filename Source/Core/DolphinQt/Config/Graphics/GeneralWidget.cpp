@@ -314,5 +314,5 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   m_adapter_combo->SetDescription(supports_adapters ?
                                       tr(TR_ADAPTER_AVAILABLE_DESCRIPTION) :
                                       tr(TR_ADAPTER_UNAVAILABLE_DESCRIPTION)
-                                          .arg(tr(g_video_backend->GetDisplayName().c_str())));
+                                          .arg(tr(g_Config.backend_info.DisplayName.c_str())));
 }

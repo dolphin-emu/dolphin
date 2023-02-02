@@ -1601,4 +1601,5 @@ ShaderCache::GetTextureDecodingShader(TextureFormat format,
   const auto iiter = m_texture_decoding_shaders.emplace(key, std::move(shader));
   return iiter.first->second.get();
 }
+
 }  // namespace VideoCommon

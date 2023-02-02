@@ -34,9 +34,11 @@
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/InputConfig.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace
@@ -358,9 +360,11 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));
   builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));
-  if (g_video_backend)
+
+  auto backend = Core::System::GetInstance().GetVideo().GetBackend();
+  if (backend)
   {
-    builder.AddData("cfg-video-backend", g_video_backend->GetName());
+    builder.AddData("cfg-video-backend", backend->GetName());
   }
 
   // Video configuration.

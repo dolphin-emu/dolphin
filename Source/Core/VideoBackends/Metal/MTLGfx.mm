@@ -18,7 +18,8 @@
 
 #include <fstream>
 
-Metal::Gfx::Gfx(MRCOwned<CAMetalLayer*> layer) : m_layer(std::move(layer))
+Metal::Gfx::Gfx(VideoBackendBase* backend, MRCOwned<CAMetalLayer*> layer) :
+  AbstractGfx(backend), m_layer(std::move(layer))
 {
   UpdateActiveConfig();
   [m_layer setDisplaySyncEnabled:g_ActiveConfig.bVSyncActive];
@@ -160,7 +161,7 @@ std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(ShaderStage stag
     NSError* err = nullptr;
     auto DumpBadShader = [&](std::string_view msg) {
       static int counter = 0;
-      std::string filename = VideoBackendBase::BadShaderFilename(StageFilename(stage), counter++);
+      std::string filename = m_backend->BadShaderFilename(StageFilename(stage), counter++);
       std::ofstream stream(filename);
       if (stream.good())
       {
@@ -182,7 +183,7 @@ std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(ShaderStage stag
 
       stream << std::endl;
       stream << "Dolphin Version: " << Common::GetScmRevStr() << std::endl;
-      stream << "Video Backend: " << g_video_backend->GetDisplayName() << std::endl;
+      stream << "Video Backend: " << m_backend->GetDisplayName() << std::endl;
       stream << "*/" << std::endl;
       stream.close();
 

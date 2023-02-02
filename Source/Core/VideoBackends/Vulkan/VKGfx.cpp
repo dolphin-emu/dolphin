@@ -32,8 +32,8 @@
 
 namespace Vulkan
 {
-VKGfx::VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
-    : m_swap_chain(std::move(swap_chain)), m_backbuffer_scale(backbuffer_scale)
+VKGfx::VKGfx(VideoBackendBase* backend, std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
+    : AbstractGfx(backend), m_swap_chain(std::move(swap_chain)), m_backbuffer_scale(backbuffer_scale)
 {
   UpdateActiveConfig();
   for (SamplerState& sampler_state : m_sampler_states)

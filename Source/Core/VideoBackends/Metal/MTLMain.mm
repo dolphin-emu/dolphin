@@ -63,22 +63,22 @@ static bool WindowSystemTypeSupportsMetal(WindowSystemType type)
   }
 }
 
-bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
+std::unique_ptr<AbstractGfx> Metal::VideoBackend::CreateGfx()
 {
   @autoreleasepool
   {
-    const bool surface_ok = wsi.type == WindowSystemType::Headless || wsi.render_surface;
-    if (!WindowSystemTypeSupportsMetal(wsi.type) || !surface_ok)
+    const bool surface_ok = m_wsi.type == WindowSystemType::Headless || m_wsi.render_surface;
+    if (!WindowSystemTypeSupportsMetal(m_wsi.type) || !surface_ok)
     {
       PanicAlertFmt("Bad WindowSystemInfo for Metal renderer.");
-      return false;
+      return {};
     }
 
     auto devs = Util::GetAdapterList();
     if (devs.empty())
     {
       PanicAlertFmt("No Metal GPUs detected.");
-      return false;
+      return {};
     }
 
     Util::PopulateBackendInfo(&g_Config);
@@ -97,7 +97,7 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
     UpdateActiveConfig();
 
-    MRCOwned<CAMetalLayer*> layer = MRCRetain(static_cast<CAMetalLayer*>(wsi.render_surface));
+    MRCOwned<CAMetalLayer*> layer = MRCRetain(static_cast<CAMetalLayer*>(m_wsi.render_surface));
     [layer setDevice:adapter];
     if (Util::ToAbstract([layer pixelFormat]) == AbstractTextureFormat::Undefined)
       [layer setPixelFormat:MTLPixelFormatBGRA8Unorm];
@@ -105,16 +105,28 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
     ObjectCache::Initialize(std::move(adapter));
     g_state_tracker = std::make_unique<StateTracker>();
 
-    return InitializeShared(
-        std::make_unique<Metal::Gfx>(std::move(layer)), std::make_unique<Metal::VertexManager>(),
-        std::make_unique<Metal::PerfQuery>(), std::make_unique<Metal::BoundingBox>());
+    return std::make_unique<Metal::Gfx>(this, std::move(layer));
   }
 }
 
+std::unique_ptr<VertexManagerBase> Metal::VideoBackend::CreateVertexManager()
+{
+  return std::make_unique<Metal::VertexManager>();
+}
+
+std::unique_ptr<PerfQueryBase> Metal::VideoBackend::CreatePerfQuery()
+{
+  return std::make_unique<Metal::PerfQuery>();
+}
+
+std::unique_ptr<BoundingBox> Metal::VideoBackend::CreateBoundingBox()
+{
+  return std::make_unique<Metal::BoundingBox>();
+}
+
+
 void Metal::VideoBackend::Shutdown()
 {
-  ShutdownShared();
-
   g_state_tracker.reset();
   ObjectCache::Shutdown();
 }
@@ -148,4 +160,5 @@ void Metal::VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
   [view setLayer:layer];
   wsi.render_surface = layer;
 #endif
+  VideoBackendBase::PrepareWindow(wsi);
 }

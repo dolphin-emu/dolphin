@@ -37,8 +37,8 @@
 
 namespace DX11
 {
-Gfx::Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
-    : m_backbuffer_scale(backbuffer_scale), m_swap_chain(std::move(swap_chain))
+Gfx::Gfx(VideoBackendBase* backend, std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
+    : AbstractGfx(backend), m_backbuffer_scale(backbuffer_scale), m_swap_chain(std::move(swap_chain))
 {
 }
 

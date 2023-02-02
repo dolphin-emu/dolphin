@@ -103,12 +103,12 @@ void VideoBackend::FillBackendInfo()
   }
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
 {
   if (!DXContext::Create(g_Config.iAdapter, g_Config.bEnableValidationLayer))
   {
     PanicAlertFmtT("Failed to create D3D12 context");
-    return false;
+    return {};
   }
 
   FillBackendInfo();
@@ -118,36 +118,37 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   {
     PanicAlertFmtT("Failed to create D3D12 global resources");
     DXContext::Destroy();
-    ShutdownShared();
-    return false;
+    return {};
   }
 
   std::unique_ptr<SwapChain> swap_chain;
-  if (wsi.render_surface && !(swap_chain = SwapChain::Create(wsi)))
+  if (m_wsi.render_surface && !(swap_chain = SwapChain::Create(m_wsi)))
   {
     PanicAlertFmtT("Failed to create D3D swap chain");
     DXContext::Destroy();
-    ShutdownShared();
-    return false;
+    return {};
   }
 
-  // Create main wrapper instances.
-  auto gfx = std::make_unique<DX12::Gfx>(std::move(swap_chain), wsi.render_surface_scale);
-  auto vertex_manager = std::make_unique<DX12::VertexManager>();
-  auto perf_query = std::make_unique<DX12::PerfQuery>();
-  auto bounding_box = std::make_unique<DX12::D3D12BoundingBox>();
+  return std::make_unique<DX12::Gfx>(this, std::move(swap_chain), m_wsi.render_surface_scale);
+}
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                          std::move(bounding_box));
+std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager()
+{
+  return std::make_unique<DX12::VertexManager>();
+}
+
+std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery()
+{
+  return std::make_unique<DX12::PerfQuery>();
+}
+
+std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox()
+{
+  return std::make_unique<DX12::D3D12BoundingBox>();
 }
 
 void VideoBackend::Shutdown()
 {
-  // Keep the debug runtime happy...
-  if (g_gfx)
-    Gfx::GetInstance()->ExecuteCommandList(true);
-
-  ShutdownShared();
   DXContext::Destroy();
 }
 }  // namespace DX12

@@ -16,6 +16,7 @@ class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
 class NativeVertexFormat;
+class VideoBackendBase;
 struct ComputePipelineConfig;
 struct AbstractPipelineConfig;
 struct PortableVertexDeclaration;
@@ -47,8 +48,10 @@ using ClearColor = std::array<float, 4>;
 class AbstractGfx
 {
 public:
-  AbstractGfx();
+  AbstractGfx(VideoBackendBase* backend);
   virtual ~AbstractGfx() = default;
+
+  VideoBackendBase* GetBackend() const { return m_backend; }
 
   virtual bool IsHeadless() const = 0;
 
@@ -166,6 +169,8 @@ public:
 protected:
   AbstractFramebuffer* m_current_framebuffer = nullptr;
   const AbstractPipeline* m_current_pipeline = nullptr;
+
+  VideoBackendBase* m_backend = nullptr;
 };
 
 extern std::unique_ptr<AbstractGfx> g_gfx;

@@ -6,8 +6,8 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/VideoBase.h"
 
-enum class EFBAccessType;
 enum class EFBReinterpretType;
 
 struct EfbPokeData

@@ -22,7 +22,7 @@ class VKTexture;
 class VKGfx final : public ::AbstractGfx
 {
 public:
-  VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
+  VKGfx(VideoBackendBase* backend, std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
   ~VKGfx() override;
 
   static VKGfx* GetInstance() { return static_cast<VKGfx*>(g_gfx.get()); }

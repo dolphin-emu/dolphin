@@ -69,16 +69,34 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.AAModes = {1};
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
 {
-  return InitializeShared(std::make_unique<NullGfx>(), std::make_unique<VertexManager>(),
-                          std::make_unique<PerfQuery>(), std::make_unique<NullBoundingBox>(),
-                          std::make_unique<NullRenderer>(), std::make_unique<TextureCache>());
+  return std::make_unique<NullGfx>(this);
 }
 
-void VideoBackend::Shutdown()
+std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager()
 {
-  ShutdownShared();
+  return std::make_unique<VertexManager>();
+}
+
+std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery()
+{
+  return std::make_unique<PerfQuery>();
+}
+
+std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox()
+{
+  return std::make_unique<NullBoundingBox>();
+}
+
+std::unique_ptr<Renderer> VideoBackend::CreateRenderer()
+{
+  return std::make_unique<Renderer>();
+}
+
+std::unique_ptr<TextureCacheBase> VideoBackend::CreateTextureCache()
+{
+  return std::make_unique<TextureCache>();
 }
 
 std::string VideoBackend::GetDisplayName() const

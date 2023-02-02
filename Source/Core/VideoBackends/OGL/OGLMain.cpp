@@ -176,32 +176,52 @@ bool VideoBackend::FillBackendInfo()
   return true;
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
 {
   std::unique_ptr<GLContext> main_gl_context =
-      GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
+      GLContext::Create(m_wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
                         Config::Get(Config::GFX_PREFER_GLES));
   if (!main_gl_context)
-    return false;
+    return {};
 
   if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
-    return false;
+    return {};
 
-  auto gfx = std::make_unique<OGLGfx>(std::move(main_gl_context), wsi.render_surface_scale);
+  if (!PopulateConfig(main_gl_context.get()))
+  {
+    // Not all needed extensions are supported, so we have to stop here.
+    return {};
+  }
+  InitDriverInfo();
+
+  m_is_gles = main_gl_context->IsGLES();
+
+  auto gfx = std::make_unique<OGLGfx>(this, std::move(main_gl_context), m_wsi.render_surface_scale);
+
   ProgramShaderCache::Init();
   g_sampler_cache = std::make_unique<SamplerCache>();
 
-  auto vertex_manager = std::make_unique<VertexManager>();
-  auto perf_query = GetPerfQuery(gfx->IsGLES());
-  auto bounding_box = std::make_unique<OGLBoundingBox>();
+  return gfx;
+}
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                          std::move(bounding_box));
+std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager()
+{
+  return std::make_unique<VertexManager>();
+}
+
+std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery()
+{
+  return GetPerfQuery(m_is_gles);
+}
+
+std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox()
+{
+  return std::make_unique<OGLBoundingBox>();
 }
 
 void VideoBackend::Shutdown()
 {
-  ShutdownShared();
+  //ShutdownShared();
 
   ProgramShaderCache::Shutdown();
   g_sampler_cache.reset();

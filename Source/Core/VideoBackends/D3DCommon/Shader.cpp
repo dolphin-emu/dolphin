@@ -20,6 +20,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Spirv.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -250,7 +251,7 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
   if (FAILED(hr))
   {
     static int num_failures = 0;
-    std::string filename = VideoBackendBase::BadShaderFilename(target, num_failures++);
+    std::string filename = g_gfx->GetBackend()->BadShaderFilename(target, num_failures++);
     std::ofstream file;
     File::OpenFStream(file, filename, std::ios_base::out);
     file.write(hlsl->data(), hlsl->size());
@@ -258,7 +259,7 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
     file.write(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize());
     file << "\n";
     file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
-    file << "Video Backend: " + g_video_backend->GetDisplayName();
+    file << "Video Backend: " + g_gfx->GetBackend()->GetDisplayName();
 
     if (const auto spirv = GetSpirv(stage, source))
     {

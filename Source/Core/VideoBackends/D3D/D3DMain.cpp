@@ -138,35 +138,42 @@ void VideoBackend::FillBackendInfo()
   }
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
 {
   if (!D3D::Create(g_Config.iAdapter, g_Config.bEnableValidationLayer))
-    return false;
+    return {};
 
   FillBackendInfo();
   UpdateActiveConfig();
 
   std::unique_ptr<SwapChain> swap_chain;
-  if (wsi.render_surface && !(swap_chain = SwapChain::Create(wsi)))
+  if (m_wsi.render_surface && !(swap_chain = SwapChain::Create(m_wsi)))
   {
     PanicAlertFmtT("Failed to create D3D swap chain");
-    ShutdownShared();
     D3D::Destroy();
-    return false;
+    return {};
   }
 
-  auto gfx = std::make_unique<DX11::Gfx>(std::move(swap_chain), wsi.render_surface_scale);
-  auto vertex_manager = std::make_unique<VertexManager>();
-  auto perf_query = std::make_unique<PerfQuery>();
-  auto bounding_box = std::make_unique<D3DBoundingBox>();
+  return std::make_unique<DX11::Gfx>(this, std::move(swap_chain), m_wsi.render_surface_scale);
+}
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                          std::move(bounding_box));
+std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager()
+{
+  return std::make_unique<DX11::VertexManager>();
+}
+
+std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery()
+{
+  return std::make_unique<DX11::PerfQuery>();
+}
+
+std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox()
+{
+  return std::make_unique<DX11::D3DBoundingBox>();
 }
 
 void VideoBackend::Shutdown()
 {
-  ShutdownShared();
   D3D::Destroy();
 }
 }  // namespace DX11

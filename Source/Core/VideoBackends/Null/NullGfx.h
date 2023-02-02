@@ -11,7 +11,7 @@ namespace Null
 class NullGfx final : public AbstractGfx
 {
 public:
-  NullGfx();
+  NullGfx(VideoBackendBase* backend);
   ~NullGfx() override;
 
   bool IsHeadless() const override;

@@ -14,8 +14,10 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+
 
 namespace
 {
@@ -68,7 +70,7 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
 
   auto DumpBadShader = [&](const char* msg) {
     static int counter = 0;
-    std::string filename = VideoBackendBase::BadShaderFilename(stage_filename, counter++);
+    std::string filename = g_gfx->GetBackend()->BadShaderFilename(stage_filename, counter++);
     std::ofstream stream;
     File::OpenFStream(stream, filename, std::ios_base::out);
     if (stream.good())
@@ -88,7 +90,7 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
 
     stream << "\n";
     stream << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
-    stream << "Video Backend: " + g_video_backend->GetDisplayName();
+    stream << "Video Backend: " + g_gfx->GetBackend()->GetDisplayName();
     stream.close();
 
     PanicAlertFmt("{} (written to {})\nDebug info:\n{}", msg, filename, shader->getInfoLog());

@@ -16,7 +16,7 @@
 
 std::unique_ptr<AbstractGfx> g_gfx;
 
-AbstractGfx::AbstractGfx()
+AbstractGfx::AbstractGfx(VideoBackendBase* backend) : m_backend(backend)
 {
   ConfigChangedEvent::Register([this](u32 bits) { OnConfigChanged(bits); }, "AbstractGfx");
 }

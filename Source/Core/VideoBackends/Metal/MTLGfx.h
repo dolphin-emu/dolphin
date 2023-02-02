@@ -18,7 +18,7 @@ class Texture;
 class Gfx final : public ::AbstractGfx
 {
 public:
-  Gfx(MRCOwned<CAMetalLayer*> layer);
+  Gfx(VideoBackendBase* backend, MRCOwned<CAMetalLayer*> layer);
   ~Gfx() override;
 
   bool IsHeadless() const override;

@@ -714,6 +714,7 @@
     <ClInclude Include="VideoCommon\VertexShaderGen.h" />
     <ClInclude Include="VideoCommon\VertexShaderManager.h" />
     <ClInclude Include="VideoCommon\VideoBackendBase.h" />
+    <ClInclude Include="VideoCommon\VideoBase.h" />
     <ClInclude Include="VideoCommon\VideoCommon.h" />
     <ClInclude Include="VideoCommon\VideoConfig.h" />
     <ClInclude Include="VideoCommon\VideoEvents.h" />
@@ -1306,6 +1307,7 @@
     <ClCompile Include="VideoCommon\VertexShaderGen.cpp" />
     <ClCompile Include="VideoCommon\VertexShaderManager.cpp" />
     <ClCompile Include="VideoCommon\VideoBackendBase.cpp" />
+    <ClCompile Include="VideoCommon\VideoBase.cpp" />
     <ClCompile Include="VideoCommon\VideoConfig.cpp" />
     <ClCompile Include="VideoCommon\VideoState.cpp" />
     <ClCompile Include="VideoCommon\Widescreen.cpp" />

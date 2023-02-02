@@ -90,6 +90,7 @@
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoBase.h"
 #include "VideoCommon/VideoEvents.h"
 
 #ifdef ANDROID
@@ -246,12 +247,10 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
-  // Manually reactivate the video backend in case a GameINI overrides the video backend setting.
-  VideoBackendBase::PopulateBackendInfo();
-
   // Issue any API calls which must occur on the main thread for the graphics backend.
+  // FIXME-PR: This needs to be connected with RenderWindow creation, not here.
   WindowSystemInfo prepared_wsi(wsi);
-  g_video_backend->PrepareWindow(prepared_wsi);
+  VideoBackendBase::GetConfiguredBackend()->PrepareWindow(prepared_wsi);
 
   // Start the emu thread
   s_is_booting.Set();
@@ -295,12 +294,12 @@ void Stop()  // - Hammertime!
 
   if (system.IsDualCoreMode())
   {
-    // Video_EnterLoop() should now exit so that EmuThread()
+    // Fifo processing loop should now exit so that EmuThread()
     // will continue concurrently with the rest of the commands
     // in this function. We no longer rely on Postmessage.
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
 
-    g_video_backend->Video_ExitLoop();
+    system.GetFifo().ExitGpuLoop(system);
   }
 
   s_last_actual_emulation_speed = 1.0;
@@ -540,14 +539,13 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     PowerPC::debug_interface.Clear();
   }};
 
-  VideoBackendBase::PopulateBackendInfo();
-
-  if (!g_video_backend->Initialize(wsi))
+  auto& video = system.GetVideo();
+  if (!video.Initialize())
   {
     PanicAlertFmt("Failed to initialize video backend!");
     return;
   }
-  Common::ScopeGuard video_guard{[] { g_video_backend->Shutdown(); }};
+  Common::ScopeGuard video_guard{[&video] { video.Shutdown(); }};
 
   if (cpu_info.HTT)
     Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, cpu_info.num_cores > 4);
@@ -878,7 +876,7 @@ void UpdateTitle()
   // Settings are shown the same for both extended and summary info
   const std::string SSettings = fmt::format(
       "{} {} | {} | {}", PowerPC::GetCPUName(),
-      Core::System::GetInstance().IsDualCoreMode() ? "DC" : "SC", g_video_backend->GetDisplayName(),
+      Core::System::GetInstance().IsDualCoreMode() ? "DC" : "SC", g_Config.backend_info.DisplayName,
       Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
 
   std::string message = fmt::format("{} | {}", Common::GetScmRevStr(), SSettings);

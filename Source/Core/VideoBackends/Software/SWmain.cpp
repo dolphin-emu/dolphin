@@ -97,23 +97,41 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.AAModes = {1};
 }
 
-bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
+std::unique_ptr<AbstractGfx> VideoSoftware::CreateGfx()
 {
-  std::unique_ptr<SWOGLWindow> window = SWOGLWindow::Create(wsi);
+  std::unique_ptr<SWOGLWindow> window = SWOGLWindow::Create(m_wsi);
   if (!window)
-    return false;
+    return {};
 
   Clipper::Init();
   Rasterizer::Init();
 
-  return InitializeShared(std::make_unique<SWGfx>(std::move(window)),
-                          std::make_unique<SWVertexLoader>(), std::make_unique<PerfQuery>(),
-                          std::make_unique<SWBoundingBox>(), std::make_unique<SWRenderer>(),
-                          std::make_unique<TextureCache>());
+  return std::make_unique<SWGfx>(this, std::move(window));
 }
 
-void VideoSoftware::Shutdown()
+std::unique_ptr<VertexManagerBase> VideoSoftware::CreateVertexManager()
 {
-  ShutdownShared();
+  return std::make_unique<SWVertexLoader>();
 }
+
+std::unique_ptr<PerfQueryBase> VideoSoftware::CreatePerfQuery()
+{
+  return std::make_unique<SW::PerfQuery>();
+}
+
+std::unique_ptr<BoundingBox> VideoSoftware::CreateBoundingBox()
+{
+  return std::make_unique<SWBoundingBox>();
+}
+
+std::unique_ptr<Renderer> VideoSoftware::CreateRenderer()
+{
+  return std::make_unique<SWRenderer>();
+}
+
+std::unique_ptr<TextureCacheBase> VideoSoftware::CreateTextureCache()
+{
+  return std::make_unique<SW::TextureCache>();
+}
+
 }  // namespace SW

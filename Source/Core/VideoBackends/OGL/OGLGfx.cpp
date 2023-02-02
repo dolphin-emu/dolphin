@@ -117,8 +117,8 @@ static void APIENTRY ClearDepthf(GLfloat depthval)
   glClearDepth(depthval);
 }
 
-OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale)
-    : m_main_gl_context(std::move(main_gl_context)),
+OGLGfx::OGLGfx(VideoBackendBase* backend, std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale)
+    : AbstractGfx(backend), m_main_gl_context(std::move(main_gl_context)),
       m_current_rasterization_state(RenderState::GetInvalidRasterizationState()),
       m_current_depth_state(RenderState::GetInvalidDepthState()),
       m_current_blend_state(RenderState::GetInvalidBlendingState()),
@@ -146,13 +146,6 @@ OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scal
     }
   }
 
-  if (!PopulateConfig(m_main_gl_context.get()))
-  {
-    // Not all needed extensions are supported, so we have to stop here.
-    // Else some of the next calls might crash.
-    return;
-  }
-  InitDriverInfo();
 
   // Setup Debug logging
   if (g_ogl_config.bSupportsDebug)

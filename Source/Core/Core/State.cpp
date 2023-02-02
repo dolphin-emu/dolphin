@@ -44,7 +44,7 @@
 
 #include "VideoCommon/FrameDumpFFMpeg.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoBase.h"
 
 namespace State
 {
@@ -221,7 +221,7 @@ static void DoState(PointerWrap& p)
 
   // Begin with video backend, so that it gets a chance to clear its caches and writeback modified
   // things to RAM
-  g_video_backend->DoState(p);
+  system.GetVideo().DoState(p);
   p.DoMarker("video_backend");
 
   // CoreTiming needs to be restored before restoring Hardware because

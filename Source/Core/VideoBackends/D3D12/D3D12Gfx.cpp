@@ -28,8 +28,8 @@ static bool UsesDynamicVertexLoader(const AbstractPipeline* pipeline)
          (g_ActiveConfig.UseVSForLinePointExpand() && usage != AbstractPipelineUsage::Utility);
 }
 
-Gfx::Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
-    : m_backbuffer_scale(backbuffer_scale), m_swap_chain(std::move(swap_chain))
+Gfx::Gfx(VideoBackendBase* backend, std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
+    : AbstractGfx(backend), m_backbuffer_scale(backbuffer_scale), m_swap_chain(std::move(swap_chain))
 {
   m_state.root_signature = g_dx_context->GetGXRootSignature();
 

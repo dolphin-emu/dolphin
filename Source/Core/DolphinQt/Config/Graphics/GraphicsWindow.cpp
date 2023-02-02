@@ -73,7 +73,7 @@ void GraphicsWindow::OnBackendChanged(const QString& backend_name)
   VideoBackendBase::PopulateBackendInfoFromUI();
 
   setWindowTitle(
-      tr("%1 Graphics Configuration").arg(tr(g_video_backend->GetDisplayName().c_str())));
+      tr("%1 Graphics Configuration").arg(tr(g_Config.backend_info.DisplayName.c_str())));
 
   emit BackendChanged(backend_name);
 }

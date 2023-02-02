@@ -241,7 +241,7 @@ void EnhancementsWidget::LoadPPShaders()
   m_pp_effect->setToolTip(supports_postprocessing ?
                               QString{} :
                               tr("%1 doesn't support this feature.")
-                                  .arg(tr(g_video_backend->GetDisplayName().c_str())));
+                                  .arg(tr(g_Config.backend_info.DisplayName.c_str())));
 
   VideoCommon::PostProcessingConfiguration pp_shader;
   if (selected_shader != "(off)" && supports_postprocessing)
