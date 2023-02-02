@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -266,7 +267,7 @@ void IndexGenerator::Init()
 {
   using OpcodeDecoder::Primitive;
 
-  if (g_Config.backend_info.bSupportsPrimitiveRestart)
+  if (g_gfx->BackendInfo().bSupportsPrimitiveRestart)
   {
     m_primitive_table[Primitive::GX_DRAW_QUADS] = AddQuads<true>;
     m_primitive_table[Primitive::GX_DRAW_QUADS_2] = AddQuads_nonstandard<true>;
@@ -282,9 +283,9 @@ void IndexGenerator::Init()
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_STRIP] = AddStrip<false>;
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_FAN] = AddFan<false>;
   }
-  if (g_Config.UseVSForLinePointExpand())
+  if (g_Config.UseVSForLinePointExpand(g_gfx->BackendInfo()))
   {
-    if (g_Config.backend_info.bSupportsPrimitiveRestart)
+    if (g_gfx->BackendInfo().bSupportsPrimitiveRestart)
     {
       m_primitive_table[Primitive::GX_DRAW_LINES] = AddLines_VSExpand<true, false>;
       m_primitive_table[Primitive::GX_DRAW_LINE_STRIP] = AddLines_VSExpand<true, true>;
@@ -330,7 +331,8 @@ u32 IndexGenerator::GetRemainingIndices(OpcodeDecoder::Primitive primitive) cons
 {
   u32 max_index = UINT16_MAX;
 
-  if (g_Config.UseVSForLinePointExpand() && primitive >= OpcodeDecoder::Primitive::GX_DRAW_LINES)
+  if (g_Config.UseVSForLinePointExpand(g_gfx->BackendInfo()) &&
+      primitive >= OpcodeDecoder::Primitive::GX_DRAW_LINES)
     max_index >>= 2;
 
   // Although we reserve UINT16_MAX for primitive restart, we aren't allowed to use that as an

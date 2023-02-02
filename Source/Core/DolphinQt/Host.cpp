@@ -150,7 +150,8 @@ bool Host::GetRenderFullFocus()
 void Host::SetRenderFocus(bool focus)
 {
   m_render_focus = focus;
-  if (g_gfx && m_render_fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
+  if (g_gfx && m_render_fullscreen &&
+      g_ActiveConfig.ExclusiveFullscreenEnabled(g_gfx->BackendInfo()))
   {
     RunWithGPUThreadInactive([focus] {
       if (!Config::Get(Config::MAIN_RENDER_TO_MAIN))
@@ -182,7 +183,8 @@ void Host::SetRenderFullscreen(bool fullscreen)
 {
   m_render_fullscreen = fullscreen;
 
-  if (g_gfx && g_gfx->IsFullscreen() != fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
+  if (g_gfx && g_gfx->IsFullscreen() != fullscreen &&
+      g_ActiveConfig.ExclusiveFullscreenEnabled(g_gfx->BackendInfo()))
   {
     RunWithGPUThreadInactive([fullscreen] { g_gfx->SetFullscreen(fullscreen); });
   }

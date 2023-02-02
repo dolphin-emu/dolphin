@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace Vulkan
 {
@@ -26,7 +27,7 @@ public:
   ~StateTracker();
 
   static StateTracker* GetInstance();
-  static bool CreateInstance();
+  static bool CreateInstance(const BackendInfo& backend_info);
   static void DestroyInstance();
 
   VKFramebuffer* GetFramebuffer() const { return m_framebuffer; }
@@ -109,7 +110,7 @@ private:
                                  DIRTY_FLAG_UTILITY_BINDINGS | DIRTY_FLAG_COMPUTE_BINDINGS
   };
 
-  bool Initialize();
+  bool Initialize(const BackendInfo& backend_info);
 
   // Check that the specified viewport is within the render area.
   // If not, ends the render pass if it is a clear render pass.
@@ -119,6 +120,12 @@ private:
   void UpdateGXDescriptorSet();
   void UpdateUtilityDescriptorSet();
   void UpdateComputeDescriptorSet();
+
+  // Supported features copied from backend_info
+  bool m_needs_bbox_ssbo = false;
+  bool m_needs_gs_ubo = false;
+  bool m_supports_dynamic_vertex_loader = false;
+  bool m_supports_vs_line_point_expand = false;
 
   // Which bindings/state has to be updated before the next draw.
   u32 m_dirty_flags = 0;

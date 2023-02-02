@@ -81,8 +81,8 @@ std::unique_ptr<AbstractGfx> Metal::VideoBackend::CreateGfx()
       return {};
     }
 
-    Util::PopulateBackendInfo(&g_Config);
-    Util::PopulateBackendInfoAdapters(&g_Config, devs);
+    Util::PopulateBackendInfo(backend_info);
+    Util::PopulateBackendInfoAdapters(backend_info, devs);
 
     // Since we haven't called InitializeShared yet, iAdapter may be out of range,
     // so we have to check it ourselves.
@@ -93,7 +93,7 @@ std::unique_ptr<AbstractGfx> Metal::VideoBackend::CreateGfx()
       selected_adapter_index = 0;
     }
     MRCOwned<id<MTLDevice>> adapter = std::move(devs[selected_adapter_index]);
-    Util::PopulateBackendInfoFeatures(&g_Config, adapter);
+    Util::PopulateBackendInfoFeatures(backend_info, &g_Config, adapter);
 
     UpdateActiveConfig();
 
@@ -102,7 +102,7 @@ std::unique_ptr<AbstractGfx> Metal::VideoBackend::CreateGfx()
     if (Util::ToAbstract([layer pixelFormat]) == AbstractTextureFormat::Undefined)
       [layer setPixelFormat:MTLPixelFormatBGRA8Unorm];
 
-    ObjectCache::Initialize(std::move(adapter));
+    ObjectCache::Initialize(std::move(adapter), backend_info);
     g_state_tracker = std::make_unique<StateTracker>();
 
     return std::make_unique<Metal::Gfx>(this, std::move(layer));
@@ -124,7 +124,6 @@ std::unique_ptr<BoundingBox> Metal::VideoBackend::CreateBoundingBox()
   return std::make_unique<Metal::BoundingBox>();
 }
 
-
 void Metal::VideoBackend::Shutdown()
 {
   g_state_tracker.reset();
@@ -135,16 +134,16 @@ void Metal::VideoBackend::InitBackendInfo()
 {
   @autoreleasepool
   {
-    Util::PopulateBackendInfo(&g_Config);
+    Util::PopulateBackendInfo(backend_info);
     auto adapters = Util::GetAdapterList();
-    Util::PopulateBackendInfoAdapters(&g_Config, adapters);
+    Util::PopulateBackendInfoAdapters(backend_info, adapters);
     if (!adapters.empty())
     {
       // Use the selected adapter, or the first to fill features.
       size_t index = static_cast<size_t>(g_Config.iAdapter);
       if (index >= adapters.size())
         index = 0;
-      Util::PopulateBackendInfoFeatures(&g_Config, adapters[index]);
+      Util::PopulateBackendInfoFeatures(backend_info, &g_Config, adapters[index]);
     }
   }
 }

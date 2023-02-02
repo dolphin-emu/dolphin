@@ -15,6 +15,8 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/Present.h"
 
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
@@ -129,10 +131,10 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
 }
 
 std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi, VkSurfaceKHR surface,
-                                             bool vsync)
+                                             bool vsync, BackendInfo& backend_info)
 {
   std::unique_ptr<SwapChain> swap_chain = std::make_unique<SwapChain>(wsi, surface, vsync);
-  if (!swap_chain->CreateSwapChain() || !swap_chain->SetupSwapChainImages())
+  if (!swap_chain->CreateSwapChain(backend_info) || !swap_chain->SetupSwapChainImages(backend_info))
     return nullptr;
 
   return swap_chain;
@@ -237,7 +239,7 @@ bool SwapChain::SelectPresentMode()
   return true;
 }
 
-bool SwapChain::CreateSwapChain()
+bool SwapChain::CreateSwapChain(BackendInfo& backend_info)
 {
   // Look up surface properties to determine image count and dimensions
   VkSurfaceCapabilitiesKHR surface_capabilities;
@@ -342,8 +344,8 @@ bool SwapChain::CreateSwapChain()
       // Try without exclusive fullscreen.
       WARN_LOG_FMT(VIDEO, "Failed to create exclusive fullscreen swapchain, trying without.");
       swap_chain_info.pNext = nullptr;
-      g_Config.backend_info.bSupportsExclusiveFullscreen = false;
-      g_ActiveConfig.backend_info.bSupportsExclusiveFullscreen = false;
+      backend_info.bSupportsExclusiveFullscreen = false;
+      backend_info.bSupportsExclusiveFullscreen = false;
       m_fullscreen_supported = false;
     }
   }
@@ -371,7 +373,7 @@ bool SwapChain::CreateSwapChain()
   return true;
 }
 
-bool SwapChain::SetupSwapChainImages()
+bool SwapChain::SetupSwapChainImages(const BackendInfo& backend_info)
 {
   ASSERT(m_swap_chain_images.empty());
 
@@ -409,7 +411,7 @@ bool SwapChain::SetupSwapChainImages()
 
     // Create texture object, which creates a view of the backbuffer
     image.texture =
-        VKTexture::CreateAdopted(texture_config, image.image,
+        VKTexture::CreateAdopted(texture_config, image.image, backend_info,
                                  m_layers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D,
                                  VK_IMAGE_LAYOUT_UNDEFINED);
     if (!image.texture)
@@ -463,10 +465,10 @@ VkResult SwapChain::AcquireNextImage()
   return res;
 }
 
-bool SwapChain::ResizeSwapChain()
+bool SwapChain::ResizeSwapChain(BackendInfo& backend_info)
 {
   DestroySwapChainImages();
-  if (!CreateSwapChain() || !SetupSwapChainImages())
+  if (!CreateSwapChain(backend_info) || !SetupSwapChainImages(backend_info))
   {
     PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
     return false;
@@ -475,11 +477,11 @@ bool SwapChain::ResizeSwapChain()
   return true;
 }
 
-bool SwapChain::RecreateSwapChain()
+bool SwapChain::RecreateSwapChain(BackendInfo& backend_info)
 {
   DestroySwapChainImages();
   DestroySwapChain();
-  if (!CreateSwapChain() || !SetupSwapChainImages())
+  if (!CreateSwapChain(backend_info) || !SetupSwapChainImages(backend_info))
   {
     PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
     return false;
@@ -488,14 +490,14 @@ bool SwapChain::RecreateSwapChain()
   return true;
 }
 
-bool SwapChain::SetVSync(bool enabled)
+bool SwapChain::SetVSync(bool enabled, BackendInfo& backend_info)
 {
   if (m_vsync_enabled == enabled)
     return true;
 
   // Recreate the swap chain with the new present mode.
   m_vsync_enabled = enabled;
-  return RecreateSwapChain();
+  return RecreateSwapChain(backend_info);
 }
 
 bool SwapChain::SetFullscreenState(bool state)
@@ -531,7 +533,7 @@ bool SwapChain::SetFullscreenState(bool state)
 #endif
 }
 
-bool SwapChain::RecreateSurface(void* native_handle)
+bool SwapChain::RecreateSurface(void* native_handle, BackendInfo& backend_info)
 {
   // Destroy the old swap chain, images, and surface.
   DestroySwapChainImages();
@@ -562,13 +564,13 @@ bool SwapChain::RecreateSurface(void* native_handle)
 
   // Update exclusive fullscreen support (unlikely to change).
   m_fullscreen_supported = g_vulkan_context->SupportsExclusiveFullscreen(m_wsi, m_surface);
-  g_Config.backend_info.bSupportsExclusiveFullscreen = m_fullscreen_supported;
-  g_ActiveConfig.backend_info.bSupportsExclusiveFullscreen = m_fullscreen_supported;
+  backend_info.bSupportsExclusiveFullscreen = m_fullscreen_supported;
+  backend_info.bSupportsExclusiveFullscreen = m_fullscreen_supported;
   m_current_fullscreen_state = false;
   m_next_fullscreen_state = false;
 
   // Finally re-create the swap chain
-  if (!CreateSwapChain() || !SetupSwapChainImages())
+  if (!CreateSwapChain(backend_info) || !SetupSwapChainImages(backend_info))
     return false;
 
   return true;

@@ -9,23 +9,24 @@
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
 
+#include "VideoBackendBase.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Present.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -36,10 +37,10 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
 #include "VideoCommon/Widescreen.h"
-#include "VideoBackendBase.h"
 
 #ifdef _WIN32
 #include <windows.h>
+#include "VideoBase.h"
 
 // Nvidia drivers >= v302 will check if the application exports a global
 // variable named NvOptimusEnablement to know if it should run the app in high
@@ -64,8 +65,7 @@ bool VideoBase::Initialize()
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBase::OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                                       u64 ticks)
+void VideoBase::OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
   if (m_initialized && g_presenter && !g_ActiveConfig.bImmediateXFB)
   {
@@ -151,7 +151,7 @@ u16 VideoBase::GetBoundingBox(int index)
     }
     warn_once = false;
   }
-  else if (!g_ActiveConfig.backend_info.bSupportsBBox)
+  else if (!g_gfx->BackendInfo().bSupportsBBox)
   {
     static bool warn_once = true;
     if (warn_once)
@@ -197,6 +197,16 @@ void VideoBase::DoState(PointerWrap& p)
   system.GetFifo().GpuMaySleep();
 }
 
+const BackendInfo& VideoBase::GetBackendInfo() const
+{
+  if (m_backend)
+    return m_backend->backend_info;
+
+  auto backend = VideoBackendBase::GetConfiguredBackend();
+  backend->InitBackendInfo();
+
+  return backend->backend_info;
+}
 bool VideoBase::InitializeShared(VideoBackendBase* backend)
 {
   memset(reinterpret_cast<u8*>(&g_main_cp_state), 0, sizeof(g_main_cp_state));
@@ -249,7 +259,7 @@ bool VideoBase::InitializeShared(VideoBackendBase* backend)
   system.GetPixelShaderManager().Init();
   TMEM::Init();
 
-  g_Config.VerifyValidity();
+  g_Config.VerifyValidity(backend->backend_info);
   UpdateActiveConfig();
 
   g_shader_cache->InitializeShaderCache();

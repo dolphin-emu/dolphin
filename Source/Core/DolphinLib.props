@@ -714,6 +714,7 @@
     <ClInclude Include="VideoCommon\VertexShaderGen.h" />
     <ClInclude Include="VideoCommon\VertexShaderManager.h" />
     <ClInclude Include="VideoCommon\VideoBackendBase.h" />
+    <ClInclude Include="VideoCommon\VideoBackendInfo.h" />
     <ClInclude Include="VideoCommon\VideoBase.h" />
     <ClInclude Include="VideoCommon\VideoCommon.h" />
     <ClInclude Include="VideoCommon\VideoConfig.h" />

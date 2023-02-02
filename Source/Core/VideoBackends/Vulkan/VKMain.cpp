@@ -32,7 +32,7 @@ namespace Vulkan
 {
 void VideoBackend::InitBackendInfo()
 {
-  VulkanContext::PopulateBackendInfo(&g_Config);
+  VulkanContext::PopulateBackendInfo(backend_info);
 
   if (LoadVulkanLibrary())
   {
@@ -44,7 +44,7 @@ void VideoBackend::InitBackendInfo()
       if (LoadVulkanInstanceFunctions(temp_instance))
       {
         VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(temp_instance);
-        VulkanContext::PopulateBackendInfoAdapters(&g_Config, gpu_list);
+        VulkanContext::PopulateBackendInfoAdapters(backend_info, gpu_list);
 
         if (!gpu_list.empty())
         {
@@ -58,8 +58,8 @@ void VideoBackend::InitBackendInfo()
           vkGetPhysicalDeviceProperties(gpu, &properties);
           VkPhysicalDeviceFeatures features;
           vkGetPhysicalDeviceFeatures(gpu, &features);
-          VulkanContext::PopulateBackendInfoFeatures(&g_Config, gpu, properties, features);
-          VulkanContext::PopulateBackendInfoMultisampleModes(&g_Config, gpu, properties);
+          VulkanContext::PopulateBackendInfoFeatures(backend_info, gpu, properties, features);
+          VulkanContext::PopulateBackendInfoMultisampleModes(backend_info, gpu, properties);
         }
       }
 
@@ -147,8 +147,8 @@ std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
   }
 
   // Populate BackendInfo with as much information as we can at this point.
-  VulkanContext::PopulateBackendInfo(&g_Config);
-  VulkanContext::PopulateBackendInfoAdapters(&g_Config, gpu_list);
+  VulkanContext::PopulateBackendInfo(backend_info);
+  VulkanContext::PopulateBackendInfoAdapters(backend_info, gpu_list);
 
   // We need the surface before we can create a device, as some parameters depend on it.
   VkSurfaceKHR surface = VK_NULL_HANDLE;
@@ -186,12 +186,12 @@ std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
 
   // Since VulkanContext maintains a copy of the device features and properties, we can use this
   // to initialize the backend information, so that we don't need to enumerate everything again.
-  VulkanContext::PopulateBackendInfoFeatures(&g_Config, g_vulkan_context->GetPhysicalDevice(),
+  VulkanContext::PopulateBackendInfoFeatures(backend_info, g_vulkan_context->GetPhysicalDevice(),
                                              g_vulkan_context->GetDeviceProperties(),
                                              g_vulkan_context->GetDeviceFeatures());
   VulkanContext::PopulateBackendInfoMultisampleModes(
-      &g_Config, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceProperties());
-  g_Config.backend_info.bSupportsExclusiveFullscreen =
+      backend_info, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceProperties());
+  backend_info.bSupportsExclusiveFullscreen =
       enable_surface && g_vulkan_context->SupportsExclusiveFullscreen(m_wsi, surface);
 
   UpdateActiveConfig();
@@ -207,7 +207,7 @@ std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
 
   // Remaining classes are also dependent on object cache.
   g_object_cache = std::make_unique<ObjectCache>();
-  if (!g_object_cache->Initialize())
+  if (!g_object_cache->Initialize(backend_info))
   {
     PanicAlertFmt("Failed to initialize Vulkan object cache.");
     Shutdown();
@@ -218,7 +218,7 @@ std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
   std::unique_ptr<SwapChain> swap_chain;
   if (surface != VK_NULL_HANDLE)
   {
-    swap_chain = SwapChain::Create(m_wsi, surface, g_ActiveConfig.bVSyncActive);
+    swap_chain = SwapChain::Create(m_wsi, surface, g_ActiveConfig.bVSyncActive, backend_info);
     if (!swap_chain)
     {
       PanicAlertFmt("Failed to create Vulkan swap chain.");
@@ -227,7 +227,7 @@ std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
     }
   }
 
-  if (!StateTracker::CreateInstance())
+  if (!StateTracker::CreateInstance(backend_info))
   {
     PanicAlertFmt("Failed to create state tracker");
     Shutdown();
@@ -260,7 +260,7 @@ void VideoBackend::Shutdown()
   if (g_object_cache)
     g_object_cache->Shutdown();
 
-  //ShutdownShared();
+  // ShutdownShared();
 
   g_object_cache.reset();
   StateTracker::DestroyInstance();

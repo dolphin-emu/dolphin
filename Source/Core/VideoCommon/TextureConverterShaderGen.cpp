@@ -5,10 +5,10 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoConfig.h"
 
 namespace TextureConversionShaderGen
 {
@@ -49,7 +49,7 @@ ShaderCode GenerateVertexShader(APIType api_type)
   ShaderCode out;
   WriteHeader(api_type, out);
 
-  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_gfx->BackendInfo().bSupportsGeometryShaders)
   {
     out.Write("VARYING_LOCATION(0) out VertexData {{\n"
               "  float3 v_tex0;\n"
@@ -90,7 +90,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
             mono_depth ? "0.0" : "uv.z");
   if (uid_data->is_depth_copy)
   {
-    if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    if (!g_gfx->BackendInfo().bSupportsReversedDepthRange)
       out.Write("  tex_sample.x = 1.0 - tex_sample.x;\n");
 
     out.Write("  uint depth = uint(tex_sample.x * 16777216.0);\n"
@@ -103,7 +103,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
               "}}\n");
   }
 
-  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_gfx->BackendInfo().bSupportsGeometryShaders)
   {
     out.Write("VARYING_LOCATION(0) in VertexData {{\n"
               "  float3 v_tex0;\n"

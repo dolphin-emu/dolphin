@@ -21,6 +21,7 @@
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/VideoBackendInfo.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace Vulkan
@@ -39,12 +40,12 @@ ObjectCache::~ObjectCache()
   m_dummy_texture.reset();
 }
 
-bool ObjectCache::Initialize()
+bool ObjectCache::Initialize(const BackendInfo& backend_info)
 {
-  if (!CreateDescriptorSetLayouts())
+  if (!CreateDescriptorSetLayouts(backend_info))
     return false;
 
-  if (!CreatePipelineLayouts())
+  if (!CreatePipelineLayouts(backend_info))
     return false;
 
   if (!CreateStaticSamplers())
@@ -60,12 +61,12 @@ bool ObjectCache::Initialize()
 
   if (g_ActiveConfig.bShaderCache)
   {
-    if (!LoadPipelineCache())
+    if (!LoadPipelineCache(backend_info))
       return false;
   }
   else
   {
-    if (!CreatePipelineCache())
+    if (!CreatePipelineCache(backend_info))
       return false;
   }
 
@@ -105,7 +106,7 @@ void ObjectCache::DestroySamplers()
   }
 }
 
-bool ObjectCache::CreateDescriptorSetLayouts()
+bool ObjectCache::CreateDescriptorSetLayouts(const BackendInfo& backend_info)
 {
   // The geometry shader buffer must be last in this binding set, as we don't include it
   // if geometry shaders are not supported by the device. See the decrement below.
@@ -174,20 +175,20 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   }};
 
   // Don't set the GS bit if geometry shaders aren't available.
-  if (g_ActiveConfig.UseVSForLinePointExpand())
+  if (g_ActiveConfig.UseVSForLinePointExpand(backend_info))
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (backend_info.bSupportsGeometryShaders)
       ubo_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].stageFlags |= VK_SHADER_STAGE_VERTEX_BIT;
     else
       ubo_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
   }
-  else if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  else if (!backend_info.bSupportsGeometryShaders)
   {
     create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS].bindingCount--;
   }
 
   // Remove the dynamic vertex loader's buffer if it'll never be needed
-  if (!g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+  if (!backend_info.bSupportsDynamicVertexLoader)
     create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS].bindingCount--;
 
   for (size_t i = 0; i < create_infos.size(); i++)
@@ -213,7 +214,7 @@ void ObjectCache::DestroyDescriptorSetLayouts()
   }
 }
 
-bool ObjectCache::CreatePipelineLayouts()
+bool ObjectCache::CreatePipelineLayouts(const BackendInfo& backend_info)
 {
   // Descriptor sets for each pipeline layout.
   // In the standard set, the SSBO must be the last descriptor, as we do not include it
@@ -256,13 +257,13 @@ bool ObjectCache::CreatePipelineLayouts()
   }};
 
   const bool ssbos_in_standard =
-      g_ActiveConfig.backend_info.bSupportsBBox || g_ActiveConfig.UseVSForLinePointExpand();
+      backend_info.bSupportsBBox || g_ActiveConfig.UseVSForLinePointExpand(backend_info);
 
   // If bounding box is unsupported, don't bother with the SSBO descriptor set.
   if (!ssbos_in_standard)
     pipeline_layout_info[PIPELINE_LAYOUT_STANDARD].setLayoutCount--;
   // If neither SSBO-using feature is supported, skip in ubershaders too
-  if (!ssbos_in_standard && !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+  if (!ssbos_in_standard && !backend_info.bSupportsDynamicVertexLoader)
     pipeline_layout_info[PIPELINE_LAYOUT_UBER].setLayoutCount--;
 
   for (size_t i = 0; i < pipeline_layout_info.size(); i++)
@@ -493,12 +494,12 @@ public:
   void Read(const u32& key, const u8* value, u32 value_size) override {}
 };
 
-bool ObjectCache::CreatePipelineCache()
+bool ObjectCache::CreatePipelineCache(const BackendInfo& backend_info)
 {
   // Vulkan pipeline caches can be shared between games for shader compile time reduction.
   // This assumes that drivers don't create all pipelines in the cache on load time, only
   // when a lookup occurs that matches a pipeline (or pipeline data) in the cache.
-  m_pipeline_cache_filename = GetDiskShaderCacheFileName(APIType::Vulkan, "Pipeline", false, true);
+  m_pipeline_cache_filename = GetDiskShaderCacheFileName(backend_info, "Pipeline", false, true);
 
   VkPipelineCacheCreateInfo info = {
       VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
@@ -517,11 +518,11 @@ bool ObjectCache::CreatePipelineCache()
   return false;
 }
 
-bool ObjectCache::LoadPipelineCache()
+bool ObjectCache::LoadPipelineCache(const BackendInfo& backend_info)
 {
   // We have to keep the pipeline cache file name around since when we save it
   // we delete the old one, by which time the game's unique ID is already cleared.
-  m_pipeline_cache_filename = GetDiskShaderCacheFileName(APIType::Vulkan, "Pipeline", false, true);
+  m_pipeline_cache_filename = GetDiskShaderCacheFileName(backend_info, "Pipeline", false, true);
 
   std::vector<u8> disk_data;
   LinearDiskCache<u32, u8> disk_cache;
@@ -533,7 +534,7 @@ bool ObjectCache::LoadPipelineCache()
   {
     // Don't use this data. In fact, we should delete it to prevent it from being used next time.
     File::Delete(m_pipeline_cache_filename);
-    return CreatePipelineCache();
+    return CreatePipelineCache(backend_info);
   }
 
   VkPipelineCacheCreateInfo info = {
@@ -551,7 +552,7 @@ bool ObjectCache::LoadPipelineCache()
 
   // Failed to create pipeline cache, try with it empty.
   LOG_VULKAN_ERROR(res, "vkCreatePipelineCache failed, trying empty cache: ");
-  return CreatePipelineCache();
+  return CreatePipelineCache(backend_info);
 }
 
 // Based on Vulkan 1.0 specification,
@@ -657,13 +658,13 @@ void ObjectCache::SavePipelineCache()
   disk_cache.Close();
 }
 
-void ObjectCache::ReloadPipelineCache()
+void ObjectCache::ReloadPipelineCache(const BackendInfo& backend_info)
 {
   SavePipelineCache();
 
   if (g_ActiveConfig.bShaderCache)
-    LoadPipelineCache();
+    LoadPipelineCache(backend_info);
   else
-    CreatePipelineCache();
+    CreatePipelineCache(backend_info);
 }
 }  // namespace Vulkan

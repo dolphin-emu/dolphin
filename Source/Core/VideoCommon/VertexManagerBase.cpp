@@ -137,7 +137,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   u32 const needed_vertex_bytes = count * stride + 4;
 
   // We can't merge different kinds of primitives, so we have to flush here
-  PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+  PrimitiveType new_primitive_type = g_gfx->BackendInfo().bSupportsPrimitiveRestart ?
                                          primitive_from_gx_pr[primitive] :
                                          primitive_from_gx[primitive];
   if (m_current_primitive_type != new_primitive_type)
@@ -218,9 +218,9 @@ u32 VertexManagerBase::GetRemainingIndices(OpcodeDecoder::Primitive primitive) c
 
   if (primitive >= Primitive::GX_DRAW_LINES)
   {
-    if (g_Config.UseVSForLinePointExpand())
+    if (g_Config.UseVSForLinePointExpand(g_gfx->BackendInfo()))
     {
-      if (g_Config.backend_info.bSupportsPrimitiveRestart)
+      if (g_gfx->BackendInfo().bSupportsPrimitiveRestart)
       {
         switch (primitive)
         {
@@ -264,7 +264,7 @@ u32 VertexManagerBase::GetRemainingIndices(OpcodeDecoder::Primitive primitive) c
       }
     }
   }
-  else if (g_Config.backend_info.bSupportsPrimitiveRestart)
+  else if (g_gfx->BackendInfo().bSupportsPrimitiveRestart)
   {
     switch (primitive)
     {
@@ -326,7 +326,7 @@ void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 ba
 {
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
   if (g_bounding_box->IsEnabled() && g_ActiveConfig.bBBoxEnable &&
-      g_ActiveConfig.backend_info.bSupportsBBox)
+      g_gfx->BackendInfo().bSupportsBBox)
   {
     g_bounding_box->Flush();
   }
@@ -580,8 +580,8 @@ void VertexManagerBase::Flush()
                  VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(), num_indices,
                  &base_vertex, &base_index);
 
-    if (g_ActiveConfig.backend_info.api_type != APIType::D3D &&
-        g_ActiveConfig.UseVSForLinePointExpand() &&
+    if (g_gfx->BackendInfo().api_type != APIType::D3D &&
+        g_ActiveConfig.UseVSForLinePointExpand(g_gfx->BackendInfo()) &&
         (m_current_primitive_type == PrimitiveType::Points ||
          m_current_primitive_type == PrimitiveType::Lines))
     {

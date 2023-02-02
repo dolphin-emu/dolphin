@@ -8,7 +8,7 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/AbstractPipeline.h"
-
+#include "VideoCommon/VideoBackendBase.h"
 namespace DX11
 {
 class DXPipeline final : public AbstractPipeline
@@ -32,7 +32,8 @@ public:
   bool HasGeometryShader() const { return m_geometry_shader != nullptr; }
   bool UseLogicOp() const { return m_use_logic_op; }
 
-  static std::unique_ptr<DXPipeline> Create(const AbstractPipelineConfig& config);
+  static std::unique_ptr<DXPipeline> Create(const AbstractPipelineConfig& config,
+                                            const BackendInfo& backend_info);
 
 private:
   ComPtr<ID3D11InputLayout> m_input_layout;

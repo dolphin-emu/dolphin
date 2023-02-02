@@ -17,6 +17,7 @@ enum class EFBAccessType
 };
 
 class PointerWrap;
+struct BackendInfo;
 
 // TODO: Think of a better name for this
 // Essentially this is the root class for the shared "flipper/hollywood to modern graphics"
@@ -38,6 +39,7 @@ public:
   void DoState(PointerWrap& p);
 
   VideoBackendBase* GetBackend() const { return m_backend; }
+  const BackendInfo& GetBackendInfo() const;
 
 private:
   bool InitializeShared(VideoBackendBase* backend);

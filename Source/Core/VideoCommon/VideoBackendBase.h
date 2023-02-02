@@ -10,6 +10,8 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
+#include "VideoCommon/VideoBackendInfo.h"
+#include "VideoCommon/VideoCommon.h"
 
 class AbstractGfx;
 class BoundingBox;
@@ -57,6 +59,8 @@ public:
   void PopulateBackendInfo();
   // Called by the UI thread when the graphics config is opened.
   static void PopulateBackendInfoFromUI();
+
+  struct BackendInfo backend_info = {};
 
 protected:
   bool m_initialized = false;

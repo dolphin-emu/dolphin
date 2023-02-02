@@ -26,7 +26,7 @@ std::unique_ptr<StateManager> stateman;
 StateManager::StateManager() = default;
 StateManager::~StateManager() = default;
 
-void StateManager::Apply()
+void StateManager::Apply(const BackendInfo& backend_info)
 {
   if (!m_dirtyFlags)
     return;
@@ -35,7 +35,7 @@ void StateManager::Apply()
   // our bindings and sets them to null to prevent hazards.
   if (m_dirtyFlags & DirtyFlag_Framebuffer)
   {
-    if (g_ActiveConfig.backend_info.bSupportsBBox)
+    if (backend_info.bSupportsBBox)
     {
       D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
           m_pending.framebuffer->GetNumRTVs(),
@@ -354,14 +354,14 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   return m_sampler.emplace(state, std::move(res)).first->second.Get();
 }
 
-ID3D11BlendState* StateCache::Get(BlendingState state)
+ID3D11BlendState* StateCache::Get(BlendingState state, const BackendInfo& backend_info)
 {
   std::lock_guard<std::mutex> guard(m_lock);
   auto it = m_blend.find(state.hex);
   if (it != m_blend.end())
     return it->second.Get();
 
-  if (state.logicopenable && g_ActiveConfig.backend_info.bSupportsLogicOp)
+  if (state.logicopenable && backend_info.bSupportsLogicOp)
   {
     D3D11_BLEND_DESC1 desc = {};
     D3D11_RENDER_TARGET_BLEND_DESC1& tdesc = desc.RenderTarget[0];

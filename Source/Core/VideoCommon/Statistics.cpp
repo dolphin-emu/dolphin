@@ -11,6 +11,7 @@
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/SystemTimers.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -72,7 +73,7 @@ void Statistics::Display() const
     ImGui::NextColumn();
   };
 
-  if (g_ActiveConfig.backend_info.api_type == APIType::Nothing)
+  if (g_gfx->BackendInfo().api_type == APIType::Nothing)
   {
     draw_statistic("Objects", "%d", this_frame.num_drawn_objects);
     draw_statistic("Vertices Loaded", "%d", this_frame.num_vertices_loaded);

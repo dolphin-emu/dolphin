@@ -122,9 +122,10 @@ bool DXContext::Create(u32 adapter_index, bool enable_debug_layer)
   return true;
 }
 
-bool DXContext::CreateGlobalResources()
+bool DXContext::CreateGlobalResources(const BackendInfo& backend_info)
 {
-  return g_dx_context->CreateDescriptorHeaps() && g_dx_context->CreateRootSignatures() &&
+  return g_dx_context->CreateDescriptorHeaps() &&
+         g_dx_context->CreateRootSignatures(backend_info) &&
          g_dx_context->CreateTextureUploadBuffer() && g_dx_context->CreateCommandLists();
 }
 
@@ -325,12 +326,13 @@ static bool BuildRootSignature(ID3D12Device* device, ID3D12RootSignature** sig_p
   return true;
 }
 
-bool DXContext::CreateRootSignatures()
+bool DXContext::CreateRootSignatures(const BackendInfo& backend_info)
 {
-  return CreateGXRootSignature() && CreateUtilityRootSignature() && CreateComputeRootSignature();
+  return CreateGXRootSignature(backend_info) && CreateUtilityRootSignature() &&
+         CreateComputeRootSignature();
 }
 
-bool DXContext::CreateGXRootSignature()
+bool DXContext::CreateGXRootSignature(const BackendInfo& backend_info)
 {
   // GX:
   //  - 3 constant buffers (bindings 0-2), 0/1 visible in PS, 2 visible in VS, 1 visible in GS.
@@ -353,7 +355,7 @@ bool DXContext::CreateGXRootSignature()
   param_count++;
   SetRootParamCBV(&params[param_count], 1, D3D12_SHADER_VISIBILITY_VERTEX);
   param_count++;
-  if (g_ActiveConfig.UseVSForLinePointExpand())
+  if (g_ActiveConfig.UseVSForLinePointExpand(backend_info))
     SetRootParamCBV(&params[param_count], 2, D3D12_SHADER_VISIBILITY_VERTEX);
   else
     SetRootParamCBV(&params[param_count], 0, D3D12_SHADER_VISIBILITY_GEOMETRY);
@@ -526,10 +528,10 @@ void DXContext::ResetSamplerAllocators()
     res.sampler_allocator.Reset();
 }
 
-void DXContext::RecreateGXRootSignature()
+void DXContext::RecreateGXRootSignature(const BackendInfo& backend_info)
 {
   m_gx_root_signature.Reset();
-  if (!CreateGXRootSignature())
+  if (!CreateGXRootSignature(backend_info))
     PanicAlertFmt("Failed to re-create GX root signature.");
 }
 

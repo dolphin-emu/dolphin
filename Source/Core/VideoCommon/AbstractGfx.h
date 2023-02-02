@@ -6,6 +6,8 @@
 #include "Common/MathUtil.h"
 
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 #include <array>
 #include <memory>
@@ -165,6 +167,8 @@ public:
 
   // Returns info about the main surface (aka backbuffer)
   virtual SurfaceInfo GetSurfaceInfo() const { return {}; }
+
+  inline const BackendInfo& BackendInfo() const { return m_backend->backend_info; }
 
 protected:
   AbstractFramebuffer* m_current_framebuffer = nullptr;

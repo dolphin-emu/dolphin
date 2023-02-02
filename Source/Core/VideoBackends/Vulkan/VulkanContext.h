@@ -34,12 +34,12 @@ public:
 
   // Populates backend/video config.
   // These are public so that the backend info can be populated without creating a context.
-  static void PopulateBackendInfo(VideoConfig* config);
-  static void PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list);
-  static void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice gpu,
+  static void PopulateBackendInfo(BackendInfo& config);
+  static void PopulateBackendInfoAdapters(BackendInfo& config, const GPUList& gpu_list);
+  static void PopulateBackendInfoFeatures(BackendInfo& config, VkPhysicalDevice gpu,
                                           const VkPhysicalDeviceProperties& properties,
                                           const VkPhysicalDeviceFeatures& features);
-  static void PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice gpu,
+  static void PopulateBackendInfoMultisampleModes(BackendInfo& config, VkPhysicalDevice gpu,
                                                   const VkPhysicalDeviceProperties& properties);
 
   // Creates a Vulkan device context.
@@ -114,8 +114,7 @@ public:
 #endif
 
 private:
-  static bool SelectInstanceExtensions(std::vector<const char*>* extension_list,
-                                       WindowSystemType wstype, bool enable_debug_utils,
+  static bool SelectInstanceExtensions(WindowSystemType wstype, bool enable_debug_utils,
                                        bool validation_layer_enabled);
   bool SelectDeviceExtensions(bool enable_surface);
   bool SelectDeviceFeatures();
@@ -145,6 +144,7 @@ private:
   bool m_supports_shader_subgroup_operations = false;
 
   std::vector<std::string> m_device_extensions;
+  static inline std::vector<const char*> m_instance_extensions;
 };
 
 extern std::unique_ptr<VulkanContext> g_vulkan_context;

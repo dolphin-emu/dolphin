@@ -18,8 +18,8 @@
 
 #include <fstream>
 
-Metal::Gfx::Gfx(VideoBackendBase* backend, MRCOwned<CAMetalLayer*> layer) :
-  AbstractGfx(backend), m_layer(std::move(layer))
+Metal::Gfx::Gfx(VideoBackendBase* backend, MRCOwned<CAMetalLayer*> layer)
+    : AbstractGfx(backend), m_layer(std::move(layer))
 {
   UpdateActiveConfig();
   [m_layer setDisplaySyncEnabled:g_ActiveConfig.bVSyncActive];
@@ -319,7 +319,7 @@ void Metal::Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool col
             static_cast<double>((color >> 24) & 0xFF) / 255.0);
         // clang-format on
         float z_normalized = static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
-        if (!g_Config.backend_info.bSupportsReversedDepthRange)
+        if (!BackendInfo().bSupportsReversedDepthRange)
           z_normalized = 1.f - z_normalized;
         g_state_tracker->BeginClearRenderPass(clear_color, z_normalized);
         return;
@@ -406,7 +406,7 @@ void Metal::Gfx::Draw(u32 base_vertex, u32 num_vertices)
 {
   @autoreleasepool
   {
-    g_state_tracker->Draw(base_vertex, num_vertices);
+    g_state_tracker->Draw(base_vertex, num_vertices, BackendInfo());
   }
 }
 
@@ -414,7 +414,7 @@ void Metal::Gfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   @autoreleasepool
   {
-    g_state_tracker->DrawIndexed(base_index, num_indices, base_vertex);
+    g_state_tracker->DrawIndexed(base_index, num_indices, base_vertex, BackendInfo());
   }
 }
 

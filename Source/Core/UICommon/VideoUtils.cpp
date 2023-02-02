@@ -4,6 +4,9 @@
 #include "UICommon/VideoUtils.h"
 
 #include "Common/Assert.h"
+#include "Core/System.h"
+#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 #ifdef _WIN32
@@ -47,9 +50,11 @@ std::vector<std::string> GetAvailableResolutions(X11Utils::XRRConfiguration* xrr
 
 std::vector<std::string> GetAvailableAntialiasingModes(int& msaa_modes)
 {
+  auto& backend_info = Core::System::GetInstance().GetVideo().GetBackendInfo();
+
   std::vector<std::string> modes;
-  const auto& aa_modes = g_Config.backend_info.AAModes;
-  const bool supports_ssaa = g_Config.backend_info.bSupportsSSAA;
+  const auto& aa_modes = backend_info.AAModes;
+  const bool supports_ssaa = backend_info.bSupportsSSAA;
   msaa_modes = 0;
 
   for (const auto mode : aa_modes)

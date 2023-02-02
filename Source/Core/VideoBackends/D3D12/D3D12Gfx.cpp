@@ -20,16 +20,18 @@
 
 namespace DX12
 {
-static bool UsesDynamicVertexLoader(const AbstractPipeline* pipeline)
+static bool UsesDynamicVertexLoader(const AbstractPipeline* pipeline,
+                                    const BackendInfo& backend_info)
 {
   const AbstractPipelineUsage usage = static_cast<const DXPipeline*>(pipeline)->GetUsage();
-  return (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader &&
-          usage == AbstractPipelineUsage::GXUber) ||
-         (g_ActiveConfig.UseVSForLinePointExpand() && usage != AbstractPipelineUsage::Utility);
+  return (backend_info.bSupportsDynamicVertexLoader && usage == AbstractPipelineUsage::GXUber) ||
+         (g_ActiveConfig.UseVSForLinePointExpand(backend_info) &&
+          usage != AbstractPipelineUsage::Utility);
 }
 
 Gfx::Gfx(VideoBackendBase* backend, std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
-    : AbstractGfx(backend), m_backbuffer_scale(backbuffer_scale), m_swap_chain(std::move(swap_chain))
+    : AbstractGfx(backend), m_backbuffer_scale(backbuffer_scale),
+      m_swap_chain(std::move(swap_chain))
 {
   m_state.root_signature = g_dx_context->GetGXRootSignature();
 
@@ -349,7 +351,7 @@ void Gfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
     return;
 
   // DX12 is great and doesn't include the base vertex in SV_VertexID
-  if (UsesDynamicVertexLoader(m_current_pipeline))
+  if (UsesDynamicVertexLoader(m_current_pipeline, BackendInfo()))
     g_dx_context->GetCommandList()->SetGraphicsRoot32BitConstant(
         ROOT_PARAMETER_BASE_VERTEX_CONSTANT, base_vertex, 0);
   g_dx_context->GetCommandList()->DrawIndexedInstanced(num_indices, 1, base_index, base_vertex, 0);
@@ -404,11 +406,11 @@ void Gfx::CheckForSwapChainChanges()
   WaitForGPUIdle();
   if (surface_changed)
   {
-    m_swap_chain->ChangeSurface(g_presenter->GetNewSurfaceHandle());
+    m_swap_chain->ChangeSurface(g_presenter->GetNewSurfaceHandle(), BackendInfo());
   }
   else
   {
-    m_swap_chain->ResizeSwapChain();
+    m_swap_chain->ResizeSwapChain(BackendInfo());
   }
 
   g_presenter->SetBackbuffer(m_swap_chain->GetWidth(), m_swap_chain->GetHeight());
@@ -439,7 +441,7 @@ void Gfx::OnConfigChanged(u32 bits)
   if (m_swap_chain && bits & CONFIG_CHANGE_BIT_STEREO_MODE)
   {
     ExecuteCommandList(true);
-    m_swap_chain->SetStereo(SwapChain::WantsStereo());
+    m_swap_chain->SetStereo(SwapChain::WantsStereo(), BackendInfo());
   }
 
   // Wipe sampler cache if force texture filtering or anisotropy changes.
@@ -452,7 +454,7 @@ void Gfx::OnConfigChanged(u32 bits)
 
   // If the host config changed (e.g. bbox/per-pixel-shading), recreate the root signature.
   if (bits & CONFIG_CHANGE_BIT_HOST_CONFIG)
-    g_dx_context->RecreateGXRootSignature();
+    g_dx_context->RecreateGXRootSignature(BackendInfo());
 }
 
 void Gfx::ExecuteCommandList(bool wait_for_completion)
@@ -590,7 +592,8 @@ bool Gfx::ApplyState()
       }
     }
 
-    if (dirty_bits & DirtyState_VS_SRV_Descriptor && UsesDynamicVertexLoader(pipeline))
+    if (dirty_bits & DirtyState_VS_SRV_Descriptor &&
+        UsesDynamicVertexLoader(pipeline, BackendInfo()))
     {
       cmdlist->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_VS_SRV,
                                               m_state.vertex_srv_descriptor_base);
@@ -712,7 +715,7 @@ bool Gfx::UpdateUAVDescriptorTable()
 
 bool Gfx::UpdateVSSRVDescriptorTable()
 {
-  if (!UsesDynamicVertexLoader(m_current_pipeline))
+  if (!UsesDynamicVertexLoader(m_current_pipeline, BackendInfo()))
   {
     return true;
   }

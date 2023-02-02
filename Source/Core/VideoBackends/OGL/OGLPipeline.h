@@ -30,7 +30,8 @@ public:
   GLenum GetGLPrimitive() const { return m_gl_primitive; }
   CacheData GetCacheData() const override;
   static std::unique_ptr<OGLPipeline> Create(const AbstractPipelineConfig& config,
-                                             const void* cache_data, size_t cache_data_size);
+                                             const void* cache_data, size_t cache_data_size,
+                                             const BackendInfo& backend_info);
 
 private:
   const GLVertexFormat* m_vertex_format;

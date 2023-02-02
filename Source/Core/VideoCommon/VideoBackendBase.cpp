@@ -21,9 +21,9 @@
 #include "Core/Core.h"
 #include "Core/System.h"
 
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 // TODO: ugly
 #ifdef _WIN32
@@ -42,11 +42,10 @@
 #include "VideoBackends/Metal/VideoBackend.h"
 #endif
 
-
 std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int counter) const
 {
-  return fmt::format("{}bad_{}_{}_{}.txt", File::GetUserPath(D_DUMP_IDX), shader_stage,
-                     GetName(), counter);
+  return fmt::format("{}bad_{}_{}_{}.txt", File::GetUserPath(D_DUMP_IDX), shader_stage, GetName(),
+                     counter);
 }
 
 static VideoBackendBase* GetDefaultVideoBackend()
@@ -131,13 +130,13 @@ void VideoBackendBase::PopulateBackendInfo()
   g_Config.Refresh();
   // Reset backend_info so if the backend forgets to initialize something it doesn't end up using
   // a value from the previously used renderer
-  g_Config.backend_info = {};
+  backend_info = {};
 
-  g_Config.backend_info.DisplayName = GetDisplayName();
+  backend_info.DisplayName = GetDisplayName();
   InitBackendInfo();
   // We validate the config after initializing the backend info, as system-specific settings
   // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
-  g_Config.VerifyValidity();
+  g_Config.VerifyValidity(backend_info);
 }
 
 void VideoBackendBase::PopulateBackendInfoFromUI()

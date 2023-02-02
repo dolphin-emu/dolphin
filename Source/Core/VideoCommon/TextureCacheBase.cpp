@@ -274,7 +274,7 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
 RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette,
                                                     TLUTFormat tlutfmt)
 {
-  DEBUG_ASSERT(g_ActiveConfig.backend_info.bSupportsPaletteConversion);
+  DEBUG_ASSERT(g_gfx->BackendInfo().bSupportsPaletteConversion);
 
   const AbstractPipeline* pipeline = g_shader_cache->GetPaletteConversionPipeline(tlutfmt);
   if (!pipeline)
@@ -393,7 +393,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(RcTcacheEntry& entry, u32 new_wi
     return;
   }
 
-  const u32 max = g_ActiveConfig.backend_info.MaxTextureSize;
+  const u32 max = g_gfx->BackendInfo().MaxTextureSize;
   if (max < new_width || max < new_height)
   {
     ERROR_LOG_FMT(VIDEO, "Texture too big, width = {}, height = {}", new_width, new_height);
@@ -1435,7 +1435,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
       // EFB copies have slightly different rules as EFB copy formats have different
       // meanings from texture formats.
       if ((base_hash == entry->hash &&
-           (!texture_info.GetPaletteSize() || g_Config.backend_info.bSupportsPaletteConversion)) ||
+           (!texture_info.GetPaletteSize() || g_gfx->BackendInfo().bSupportsPaletteConversion)) ||
           IsPlayingBackFifologWithBrokenEFBCopies)
       {
         // The texture format in VRAM must match the format that the copy was created with. Some
@@ -1470,7 +1470,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
 
         // TODO: We should check width/height/levels for EFB copies. I'm not sure what effect
         // checking width/height/levels would have.
-        if (!texture_info.GetPaletteSize() || !g_Config.backend_info.bSupportsPaletteConversion)
+        if (!texture_info.GetPaletteSize() || !g_gfx->BackendInfo().bSupportsPaletteConversion)
           return entry;
 
         // Note that we found an unconverted EFB copy, then continue.  We'll
@@ -1621,7 +1621,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   // there's no conversion between formats. In the future this could be extended with a separate
   // shader, however.
   const bool decode_on_gpu =
-      !hires_tex && g_ActiveConfig.UseGPUTextureDecoding() &&
+      !hires_tex && g_ActiveConfig.UseGPUTextureDecoding(g_gfx->BackendInfo()) &&
       !(texture_info.IsFromTmem() && texture_info.GetTextureFormat() == TextureFormat::RGBA8);
 
   // create the entry/texture
@@ -1832,7 +1832,7 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height
   entry->is_custom_tex = false;
   entry->may_have_overlapping_textures = false;
   entry->frameCount = FRAMECOUNT_INVALID;
-  if (!g_ActiveConfig.UseGPUTextureDecoding() ||
+  if (!g_ActiveConfig.UseGPUTextureDecoding(g_gfx->BackendInfo()) ||
       !DecodeTextureOnGPU(entry, 0, src_data, total_size, entry->format.texfmt, width, height,
                           width, height, stride, texMem, entry->format.tlutfmt))
   {
@@ -2164,7 +2164,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   // which stalls any further CPU processing.
   const bool is_xfb_copy = !is_depth_copy && !isIntensity && dstFormat == EFBCopyFormat::XFB;
   bool copy_to_vram =
-      g_ActiveConfig.backend_info.bSupportsCopyToVram && !g_ActiveConfig.bDisableCopyToVRAM;
+      g_gfx->BackendInfo().bSupportsCopyToVram && !g_ActiveConfig.bDisableCopyToVRAM;
   bool copy_to_ram =
       !(is_xfb_copy ? g_ActiveConfig.bSkipXFBCopyToRam : g_ActiveConfig.bSkipEFBCopyToRam) ||
       !copy_to_vram;
@@ -2772,7 +2772,7 @@ bool TextureCacheBase::CreateUtilityTextures()
   if (!m_efb_encoding_framebuffer)
     return false;
 
-  if (g_ActiveConfig.backend_info.bSupportsGPUTextureDecoding)
+  if (g_gfx->BackendInfo().bSupportsGPUTextureDecoding)
   {
     constexpr TextureConfig decoding_texture_config(
         1024, 1024, 1, 1, 1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_ComputeImage);

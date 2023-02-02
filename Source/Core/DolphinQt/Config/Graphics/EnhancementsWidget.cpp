@@ -235,13 +235,15 @@ void EnhancementsWidget::LoadPPShaders()
   else if (g_Config.stereo_mode == StereoMode::Passive && !found)
     m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("horizontal")));
 
-  const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
+  const BackendInfo& backend_info = VideoBackendBase::GetConfiguredBackend()->backend_info;
+
+  const bool supports_postprocessing = backend_info.bSupportsPostProcessing;
   m_pp_effect->setEnabled(supports_postprocessing);
 
-  m_pp_effect->setToolTip(supports_postprocessing ?
-                              QString{} :
-                              tr("%1 doesn't support this feature.")
-                                  .arg(tr(g_Config.backend_info.DisplayName.c_str())));
+  m_pp_effect->setToolTip(
+      supports_postprocessing ?
+          QString{} :
+          tr("%1 doesn't support this feature.").arg(tr(backend_info.DisplayName.c_str())));
 
   VideoCommon::PostProcessingConfiguration pp_shader;
   if (selected_shader != "(off)" && supports_postprocessing)
@@ -296,8 +298,10 @@ void EnhancementsWidget::LoadSettings()
   // Post Processing Shader
   LoadPPShaders();
 
+  const BackendInfo& backend_info = VideoBackendBase::GetConfiguredBackend()->backend_info;
+
   // Stereoscopy
-  const bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
+  const bool supports_stereoscopy = backend_info.bSupportsGeometryShaders;
   m_3d_mode->setEnabled(supports_stereoscopy);
   m_3d_convergence->setEnabled(supports_stereoscopy);
   m_3d_depth->setEnabled(supports_stereoscopy);

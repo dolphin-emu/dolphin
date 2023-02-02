@@ -11,6 +11,7 @@
 
 #include "Common/GL/GLUtil.h"
 #include "VideoCommon/AsyncShaderCompiler.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace OGL
 {
@@ -35,8 +36,8 @@ struct SHADER
   GLuint psid = 0;
   GLuint glprogid = 0;
 
-  void SetProgramVariables();
-  void SetProgramBindings(bool is_compute);
+  void SetProgramVariables(const BackendInfo& backend_info);
+  void SetProgramBindings(const BackendInfo& backend_info, bool is_compute);
   void Bind() const;
   void DestroyShaders();
 };
@@ -75,7 +76,8 @@ public:
   static void InvalidateVertexFormatIfBound(GLuint vao);
   static void InvalidateLastProgram();
 
-  static bool CompileComputeShader(SHADER& shader, std::string_view code);
+  static bool CompileComputeShader(const BackendInfo& backend_info, SHADER& shader,
+                                   std::string_view code);
   static GLuint CompileSingleShader(GLenum type, std::string_view code);
   static bool CheckShaderCompileResult(GLuint id, GLenum type, std::string_view code);
   static bool CheckProgramLinkResult(GLuint id, std::string_view vcode, std::string_view pcode,
@@ -85,9 +87,9 @@ public:
   static void UploadConstants();
   static void UploadConstants(const void* data, u32 data_size);
 
-  static void Init();
+  static void Init(const BackendInfo& backend_info);
   static void Shutdown();
-  static void CreateHeader();
+  static void CreateHeader(const BackendInfo& backend_info);
 
   // This counter increments with each shader object allocated, in order to give it a unique ID.
   // Since the shaders can be destroyed after a pipeline is created, we can't use the shader pointer
@@ -97,11 +99,10 @@ public:
   // pipeline do not match the pipeline configuration.
   static u64 GenerateShaderID();
 
-  static PipelineProgram* GetPipelineProgram(const GLVertexFormat* vertex_format,
-                                             const OGLShader* vertex_shader,
-                                             const OGLShader* geometry_shader,
-                                             const OGLShader* pixel_shader, const void* cache_data,
-                                             size_t cache_data_size);
+  static PipelineProgram*
+  GetPipelineProgram(const BackendInfo& backend_info, const GLVertexFormat* vertex_format,
+                     const OGLShader* vertex_shader, const OGLShader* geometry_shader,
+                     const OGLShader* pixel_shader, const void* cache_data, size_t cache_data_size);
   static void ReleasePipelineProgram(PipelineProgram* prog);
 
 private:
@@ -124,10 +125,16 @@ private:
 
 class SharedContextAsyncShaderCompiler : public VideoCommon::AsyncShaderCompiler
 {
+public:
+  SharedContextAsyncShaderCompiler(const BackendInfo& info) : m_backend_info(info) {}
+
 protected:
   bool WorkerThreadInitMainThread(void** param) override;
   bool WorkerThreadInitWorkerThread(void* param) override;
   void WorkerThreadExit(void* param) override;
+
+private:
+  BackendInfo m_backend_info;
 };
 
 }  // namespace OGL

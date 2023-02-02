@@ -74,67 +74,66 @@ void VideoBackend::InitBackendInfo()
 
 void VideoBackend::FillBackendInfo()
 {
-  g_Config.backend_info.api_type = APIType::D3D;
-  g_Config.backend_info.MaxTextureSize = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
-  g_Config.backend_info.bUsesLowerLeftOrigin = false;
-  g_Config.backend_info.bSupportsExclusiveFullscreen = true;
-  g_Config.backend_info.bSupportsDualSourceBlend = true;
-  g_Config.backend_info.bSupportsPrimitiveRestart = true;
-  g_Config.backend_info.bSupportsGeometryShaders = true;
-  g_Config.backend_info.bSupportsComputeShaders = false;
-  g_Config.backend_info.bSupports3DVision = true;
-  g_Config.backend_info.bSupportsPostProcessing = true;
-  g_Config.backend_info.bSupportsPaletteConversion = true;
-  g_Config.backend_info.bSupportsClipControl = true;
-  g_Config.backend_info.bSupportsDepthClamp = true;
-  g_Config.backend_info.bSupportsReversedDepthRange = false;
-  g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsGPUTextureDecoding = true;
-  g_Config.backend_info.bSupportsCopyToVram = true;
-  g_Config.backend_info.bSupportsLargePoints = false;
-  g_Config.backend_info.bSupportsDepthReadback = true;
-  g_Config.backend_info.bSupportsPartialDepthCopies = false;
-  g_Config.backend_info.bSupportsBitfield = false;
-  g_Config.backend_info.bSupportsDynamicSamplerIndexing = false;
-  g_Config.backend_info.bSupportsFramebufferFetch = false;
-  g_Config.backend_info.bSupportsBackgroundCompiling = true;
-  g_Config.backend_info.bSupportsST3CTextures = true;
-  g_Config.backend_info.bSupportsBPTCTextures = true;
-  g_Config.backend_info.bSupportsEarlyZ = true;
-  g_Config.backend_info.bSupportsBBox = true;
-  g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
-  g_Config.backend_info.bSupportsGSInstancing = true;
-  g_Config.backend_info.bSupportsSSAA = true;
-  g_Config.backend_info.bSupportsShaderBinaries = true;
-  g_Config.backend_info.bSupportsPipelineCacheData = false;
-  g_Config.backend_info.bSupportsCoarseDerivatives = true;
-  g_Config.backend_info.bSupportsTextureQueryLevels = true;
-  g_Config.backend_info.bSupportsLodBiasInSampler = true;
-  g_Config.backend_info.bSupportsLogicOp = D3D::SupportsLogicOp(g_Config.iAdapter);
-  g_Config.backend_info.bSupportsSettingObjectNames = true;
-  g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
-  g_Config.backend_info.bSupportsDynamicVertexLoader = false;
+  backend_info.api_type = APIType::D3D;
+  backend_info.MaxTextureSize = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
+  backend_info.bUsesLowerLeftOrigin = false;
+  backend_info.bSupportsExclusiveFullscreen = true;
+  backend_info.bSupportsDualSourceBlend = true;
+  backend_info.bSupportsPrimitiveRestart = true;
+  backend_info.bSupportsGeometryShaders = true;
+  backend_info.bSupportsComputeShaders = false;
+  backend_info.bSupports3DVision = true;
+  backend_info.bSupportsPostProcessing = true;
+  backend_info.bSupportsPaletteConversion = true;
+  backend_info.bSupportsClipControl = true;
+  backend_info.bSupportsDepthClamp = true;
+  backend_info.bSupportsReversedDepthRange = false;
+  backend_info.bSupportsMultithreading = false;
+  backend_info.bSupportsGPUTextureDecoding = true;
+  backend_info.bSupportsCopyToVram = true;
+  backend_info.bSupportsLargePoints = false;
+  backend_info.bSupportsDepthReadback = true;
+  backend_info.bSupportsPartialDepthCopies = false;
+  backend_info.bSupportsBitfield = false;
+  backend_info.bSupportsDynamicSamplerIndexing = false;
+  backend_info.bSupportsFramebufferFetch = false;
+  backend_info.bSupportsBackgroundCompiling = true;
+  backend_info.bSupportsST3CTextures = true;
+  backend_info.bSupportsBPTCTextures = true;
+  backend_info.bSupportsEarlyZ = true;
+  backend_info.bSupportsBBox = true;
+  backend_info.bSupportsFragmentStoresAndAtomics = true;
+  backend_info.bSupportsGSInstancing = true;
+  backend_info.bSupportsSSAA = true;
+  backend_info.bSupportsShaderBinaries = true;
+  backend_info.bSupportsPipelineCacheData = false;
+  backend_info.bSupportsCoarseDerivatives = true;
+  backend_info.bSupportsTextureQueryLevels = true;
+  backend_info.bSupportsLodBiasInSampler = true;
+  backend_info.bSupportsLogicOp = D3D::SupportsLogicOp(g_Config.iAdapter);
+  backend_info.bSupportsSettingObjectNames = true;
+  backend_info.bSupportsPartialMultisampleResolve = true;
+  backend_info.bSupportsDynamicVertexLoader = false;
 
-  g_Config.backend_info.Adapters = D3DCommon::GetAdapterNames();
-  g_Config.backend_info.AAModes = D3D::GetAAModes(g_Config.iAdapter);
+  backend_info.Adapters = D3DCommon::GetAdapterNames();
+  backend_info.AAModes = D3D::GetAAModes(g_Config.iAdapter);
 
   // Override optional features if we are actually booting.
   if (D3D::device)
   {
-    g_Config.backend_info.bSupportsST3CTextures =
-        D3D::SupportsTextureFormat(DXGI_FORMAT_BC1_UNORM) &&
-        D3D::SupportsTextureFormat(DXGI_FORMAT_BC2_UNORM) &&
-        D3D::SupportsTextureFormat(DXGI_FORMAT_BC3_UNORM);
-    g_Config.backend_info.bSupportsBPTCTextures = D3D::SupportsTextureFormat(DXGI_FORMAT_BC7_UNORM);
+    backend_info.bSupportsST3CTextures = D3D::SupportsTextureFormat(DXGI_FORMAT_BC1_UNORM) &&
+                                         D3D::SupportsTextureFormat(DXGI_FORMAT_BC2_UNORM) &&
+                                         D3D::SupportsTextureFormat(DXGI_FORMAT_BC3_UNORM);
+    backend_info.bSupportsBPTCTextures = D3D::SupportsTextureFormat(DXGI_FORMAT_BC7_UNORM);
 
     // Features only supported with a FL11.0+ device.
     const bool shader_model_5_supported = D3D::feature_level >= D3D_FEATURE_LEVEL_11_0;
-    g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
-    g_Config.backend_info.bSupportsBBox = shader_model_5_supported;
-    g_Config.backend_info.bSupportsFragmentStoresAndAtomics = shader_model_5_supported;
-    g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
-    g_Config.backend_info.bSupportsSSAA = shader_model_5_supported;
-    g_Config.backend_info.bSupportsGPUTextureDecoding = shader_model_5_supported;
+    backend_info.bSupportsEarlyZ = shader_model_5_supported;
+    backend_info.bSupportsBBox = shader_model_5_supported;
+    backend_info.bSupportsFragmentStoresAndAtomics = shader_model_5_supported;
+    backend_info.bSupportsGSInstancing = shader_model_5_supported;
+    backend_info.bSupportsSSAA = shader_model_5_supported;
+    backend_info.bSupportsGPUTextureDecoding = shader_model_5_supported;
   }
 }
 
@@ -147,7 +146,7 @@ std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
   UpdateActiveConfig();
 
   std::unique_ptr<SwapChain> swap_chain;
-  if (m_wsi.render_surface && !(swap_chain = SwapChain::Create(m_wsi)))
+  if (m_wsi.render_surface && !(swap_chain = SwapChain::Create(m_wsi, backend_info)))
   {
     PanicAlertFmtT("Failed to create D3D swap chain");
     D3D::Destroy();

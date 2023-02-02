@@ -8,6 +8,7 @@
 #include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
@@ -50,7 +51,7 @@ AbstractPipeline::CacheData OGLPipeline::GetCacheData() const
   // copies of the same program combination, we set a flag on the program object so that it can't
   // be retrieved again. When booting, the pipeline cache is loaded in-order, so the additional
   // pipelines which use the program combination will re-use the already-created object.
-  if (!g_ActiveConfig.backend_info.bSupportsPipelineCacheData || m_program->binary_retrieved)
+  if (m_program->binary_retrieved)
     return {};
 
   GLint program_size = 0;
@@ -78,10 +79,11 @@ AbstractPipeline::CacheData OGLPipeline::GetCacheData() const
 }
 
 std::unique_ptr<OGLPipeline> OGLPipeline::Create(const AbstractPipelineConfig& config,
-                                                 const void* cache_data, size_t cache_data_size)
+                                                 const void* cache_data, size_t cache_data_size,
+                                                 const BackendInfo& backend_info)
 {
   PipelineProgram* program = ProgramShaderCache::GetPipelineProgram(
-      static_cast<const GLVertexFormat*>(config.vertex_format),
+      backend_info, static_cast<const GLVertexFormat*>(config.vertex_format),
       static_cast<const OGLShader*>(config.vertex_shader),
       static_cast<const OGLShader*>(config.geometry_shader),
       static_cast<const OGLShader*>(config.pixel_shader), cache_data, cache_data_size);

@@ -27,46 +27,46 @@ namespace Null
 {
 void VideoBackend::InitBackendInfo()
 {
-  g_Config.backend_info.api_type = APIType::Nothing;
-  g_Config.backend_info.MaxTextureSize = 16384;
-  g_Config.backend_info.bSupportsExclusiveFullscreen = true;
-  g_Config.backend_info.bSupportsDualSourceBlend = true;
-  g_Config.backend_info.bSupportsPrimitiveRestart = true;
-  g_Config.backend_info.bSupportsGeometryShaders = true;
-  g_Config.backend_info.bSupportsComputeShaders = false;
-  g_Config.backend_info.bSupports3DVision = false;
-  g_Config.backend_info.bSupportsEarlyZ = true;
-  g_Config.backend_info.bSupportsBindingLayout = true;
-  g_Config.backend_info.bSupportsBBox = true;
-  g_Config.backend_info.bSupportsGSInstancing = true;
-  g_Config.backend_info.bSupportsPostProcessing = false;
-  g_Config.backend_info.bSupportsPaletteConversion = true;
-  g_Config.backend_info.bSupportsClipControl = true;
-  g_Config.backend_info.bSupportsSSAA = true;
-  g_Config.backend_info.bSupportsDepthClamp = true;
-  g_Config.backend_info.bSupportsReversedDepthRange = true;
-  g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsGPUTextureDecoding = false;
-  g_Config.backend_info.bSupportsST3CTextures = false;
-  g_Config.backend_info.bSupportsBPTCTextures = false;
-  g_Config.backend_info.bSupportsFramebufferFetch = false;
-  g_Config.backend_info.bSupportsBackgroundCompiling = false;
-  g_Config.backend_info.bSupportsLogicOp = false;
-  g_Config.backend_info.bSupportsLargePoints = false;
-  g_Config.backend_info.bSupportsDepthReadback = false;
-  g_Config.backend_info.bSupportsPartialDepthCopies = false;
-  g_Config.backend_info.bSupportsShaderBinaries = false;
-  g_Config.backend_info.bSupportsPipelineCacheData = false;
-  g_Config.backend_info.bSupportsCoarseDerivatives = false;
-  g_Config.backend_info.bSupportsTextureQueryLevels = false;
-  g_Config.backend_info.bSupportsLodBiasInSampler = false;
-  g_Config.backend_info.bSupportsSettingObjectNames = false;
-  g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
-  g_Config.backend_info.bSupportsDynamicVertexLoader = false;
+  backend_info.api_type = APIType::Nothing;
+  backend_info.MaxTextureSize = 16384;
+  backend_info.bSupportsExclusiveFullscreen = true;
+  backend_info.bSupportsDualSourceBlend = true;
+  backend_info.bSupportsPrimitiveRestart = true;
+  backend_info.bSupportsGeometryShaders = true;
+  backend_info.bSupportsComputeShaders = false;
+  backend_info.bSupports3DVision = false;
+  backend_info.bSupportsEarlyZ = true;
+  backend_info.bSupportsBindingLayout = true;
+  backend_info.bSupportsBBox = true;
+  backend_info.bSupportsGSInstancing = true;
+  backend_info.bSupportsPostProcessing = false;
+  backend_info.bSupportsPaletteConversion = true;
+  backend_info.bSupportsClipControl = true;
+  backend_info.bSupportsSSAA = true;
+  backend_info.bSupportsDepthClamp = true;
+  backend_info.bSupportsReversedDepthRange = true;
+  backend_info.bSupportsMultithreading = false;
+  backend_info.bSupportsGPUTextureDecoding = false;
+  backend_info.bSupportsST3CTextures = false;
+  backend_info.bSupportsBPTCTextures = false;
+  backend_info.bSupportsFramebufferFetch = false;
+  backend_info.bSupportsBackgroundCompiling = false;
+  backend_info.bSupportsLogicOp = false;
+  backend_info.bSupportsLargePoints = false;
+  backend_info.bSupportsDepthReadback = false;
+  backend_info.bSupportsPartialDepthCopies = false;
+  backend_info.bSupportsShaderBinaries = false;
+  backend_info.bSupportsPipelineCacheData = false;
+  backend_info.bSupportsCoarseDerivatives = false;
+  backend_info.bSupportsTextureQueryLevels = false;
+  backend_info.bSupportsLodBiasInSampler = false;
+  backend_info.bSupportsSettingObjectNames = false;
+  backend_info.bSupportsPartialMultisampleResolve = true;
+  backend_info.bSupportsDynamicVertexLoader = false;
 
   // aamodes: We only support 1 sample, so no MSAA
-  g_Config.backend_info.Adapters.clear();
-  g_Config.backend_info.AAModes = {1};
+  backend_info.Adapters.clear();
+  backend_info.AAModes = {1};
 }
 
 std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()

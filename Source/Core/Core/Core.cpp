@@ -873,11 +873,13 @@ void Callback_NewField()
 
 void UpdateTitle()
 {
+  auto& backend_info = Core::System::GetInstance().GetVideo().GetBackendInfo();
+
   // Settings are shown the same for both extended and summary info
-  const std::string SSettings = fmt::format(
-      "{} {} | {} | {}", PowerPC::GetCPUName(),
-      Core::System::GetInstance().IsDualCoreMode() ? "DC" : "SC", g_Config.backend_info.DisplayName,
-      Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
+  const std::string SSettings =
+      fmt::format("{} {} | {} | {}", PowerPC::GetCPUName(),
+                  Core::System::GetInstance().IsDualCoreMode() ? "DC" : "SC",
+                  backend_info.DisplayName, Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
 
   std::string message = fmt::format("{} | {}", Common::GetScmRevStr(), SSettings);
   if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))

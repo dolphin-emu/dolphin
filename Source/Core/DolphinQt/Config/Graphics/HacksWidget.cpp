@@ -19,6 +19,7 @@
 #include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 #include "DolphinQt/Settings.h"
 
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 HacksWidget::HacksWidget(GraphicsWindow* parent)
@@ -128,8 +129,10 @@ void HacksWidget::CreateWidgets()
 
 void HacksWidget::OnBackendChanged(const QString& backend_name)
 {
-  const bool bbox = g_Config.backend_info.bSupportsBBox;
-  const bool gpu_texture_decoding = g_Config.backend_info.bSupportsGPUTextureDecoding;
+  const BackendInfo& backend_info = VideoBackendBase::GetConfiguredBackend()->backend_info;
+
+  const bool bbox = backend_info.bSupportsBBox;
+  const bool gpu_texture_decoding = backend_info.bSupportsGPUTextureDecoding;
 
   m_gpu_texture_decoding->setEnabled(gpu_texture_decoding);
   m_disable_bounding_box->setEnabled(bbox);

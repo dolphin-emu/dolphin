@@ -7,6 +7,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoConfig.h"
@@ -70,7 +71,7 @@ void GeometryShaderManager::SetConstants(PrimitiveType prim)
     dirty = true;
   }
 
-  if (g_ActiveConfig.UseVSForLinePointExpand())
+  if (g_ActiveConfig.UseVSForLinePointExpand(g_gfx->BackendInfo()))
   {
     if (prim == PrimitiveType::Points)
       SetVSExpand(VSExpand::Point);
