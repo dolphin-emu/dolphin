@@ -752,7 +752,7 @@ GCPadStatus Input(int chan)
 }
 
 // Get ControllerType from first byte in input payload.
-ControllerType IdentifyControllerType(u8 data)
+static ControllerType IdentifyControllerType(u8 data)
 {
   if (Common::ExtractBit<4>(data))
     return ControllerType::Wired;
