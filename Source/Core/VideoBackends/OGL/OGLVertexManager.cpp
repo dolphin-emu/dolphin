@@ -36,8 +36,7 @@ static void CheckBufferBinding()
 
 VertexManager::VertexManager(const BackendInfo& backend_info)
 {
-  if (g_ActiveConfig.UseVSForLinePointExpand(backend_info) ||
-      backend_info.bSupportsDynamicVertexLoader)
+  if (backend_info.bSupportsVSLinePointExpand || backend_info.bSupportsDynamicVertexLoader)
     m_needs_vertex_ssbo = true;
 
   if (backend_info.bSupportsPaletteConversion)

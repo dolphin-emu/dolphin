@@ -58,10 +58,9 @@ bool StateTracker::Initialize(const BackendInfo& backend_info)
 {
   // We copy this info now, so that UpdateGXDescriptorSet doesn't need to access backend_info
   m_needs_bbox_ssbo = backend_info.bSupportsBBox;
-  m_needs_gs_ubo =
-      backend_info.bSupportsGeometryShaders || g_ActiveConfig.UseVSForLinePointExpand(backend_info);
+  m_needs_gs_ubo = backend_info.bSupportsGeometryShaders || backend_info.bSupportsVSLinePointExpand;
   m_supports_dynamic_vertex_loader = backend_info.bSupportsDynamicVertexLoader;
-  m_supports_vs_line_point_expand = g_ActiveConfig.UseVSForLinePointExpand(backend_info);
+  m_supports_vs_line_point_expand = backend_info.bSupportsVSLinePointExpand;
 
   // Create a dummy texture which can be used in place of a real binding.
   m_dummy_texture = VKTexture::Create(TextureConfig(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, 0),

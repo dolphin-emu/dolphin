@@ -175,7 +175,7 @@ bool ObjectCache::CreateDescriptorSetLayouts(const BackendInfo& backend_info)
   }};
 
   // Don't set the GS bit if geometry shaders aren't available.
-  if (g_ActiveConfig.UseVSForLinePointExpand(backend_info))
+  if (backend_info.bSupportsVSLinePointExpand)
   {
     if (backend_info.bSupportsGeometryShaders)
       ubo_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].stageFlags |= VK_SHADER_STAGE_VERTEX_BIT;
@@ -257,7 +257,7 @@ bool ObjectCache::CreatePipelineLayouts(const BackendInfo& backend_info)
   }};
 
   const bool ssbos_in_standard =
-      backend_info.bSupportsBBox || g_ActiveConfig.UseVSForLinePointExpand(backend_info);
+      backend_info.bSupportsBBox || backend_info.bSupportsVSLinePointExpand;
 
   // If bounding box is unsupported, don't bother with the SSBO descriptor set.
   if (!ssbos_in_standard)
