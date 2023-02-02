@@ -578,7 +578,7 @@ bool CEXIETHERNET::RecvHandlePacket()
       off = 0;
       // avoid increasing the BBA register while copying
       // sometime the OS can try to process when it's not completed
-      current_rwp = current_rwp == page_ptr(BBA_RHBP) ? page_ptr(BBA_BP) : ++current_rwp;
+      current_rwp = current_rwp == page_ptr(BBA_RHBP) ? page_ptr(BBA_BP) : current_rwp + 1;
 
       write_ptr = &mBbaMem[current_rwp << 8];
 
@@ -604,7 +604,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 
   // Align up to next page
   if ((mRecvBufferLength + 4) % 256)
-    current_rwp = current_rwp == page_ptr(BBA_RHBP) ? page_ptr(BBA_BP) : ++current_rwp;
+    current_rwp = current_rwp == page_ptr(BBA_RHBP) ? page_ptr(BBA_BP) : current_rwp + 1;
 
 #ifdef BBA_TRACK_PAGE_PTRS
   INFO_LOG_FMT(SP1, "{:x} {:x} {:x} {:x}", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
