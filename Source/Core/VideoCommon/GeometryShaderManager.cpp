@@ -71,7 +71,7 @@ void GeometryShaderManager::SetConstants(PrimitiveType prim)
     dirty = true;
   }
 
-  if (g_ActiveConfig.UseVSForLinePointExpand(g_gfx->BackendInfo()))
+  if (g_ActiveConfig.UseVSForLinePointExpand(g_gfx->GetBackendInfo()))
   {
     if (prim == PrimitiveType::Points)
       SetVSExpand(VSExpand::Point);

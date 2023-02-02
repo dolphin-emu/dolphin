@@ -175,10 +175,10 @@ OGLGfx::OGLGfx(VideoBackendBase* backend, std::unique_ptr<GLContext> main_gl_con
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
     m_main_gl_context->SwapInterval(g_ActiveConfig.bVSyncActive);
 
-  if (BackendInfo().bSupportsClipControl)
+  if (GetBackendInfo().bSupportsClipControl)
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
-  if (BackendInfo().bSupportsDepthClamp)
+  if (GetBackendInfo().bSupportsDepthClamp)
   {
     glEnable(GL_CLIP_DISTANCE0);
     glEnable(GL_CLIP_DISTANCE1);
@@ -190,7 +190,7 @@ OGLGfx::OGLGfx(VideoBackendBase* backend, std::unique_ptr<GLContext> main_gl_con
   glGenFramebuffers(1, &m_shared_read_framebuffer);
   glGenFramebuffers(1, &m_shared_draw_framebuffer);
 
-  if (BackendInfo().bSupportsPrimitiveRestart)
+  if (GetBackendInfo().bSupportsPrimitiveRestart)
     GLUtil::EnablePrimitiveRestart(m_main_gl_context.get());
 
   UpdateActiveConfig();
@@ -210,7 +210,7 @@ bool OGLGfx::IsHeadless() const
 std::unique_ptr<AbstractTexture> OGLGfx::CreateTexture(const TextureConfig& config,
                                                        std::string_view name)
 {
-  return std::make_unique<OGLTexture>(config, name, BackendInfo());
+  return std::make_unique<OGLTexture>(config, name, GetBackendInfo());
 }
 
 std::unique_ptr<AbstractStagingTexture> OGLGfx::CreateStagingTexture(StagingTextureType type,
@@ -229,7 +229,7 @@ std::unique_ptr<AbstractFramebuffer> OGLGfx::CreateFramebuffer(AbstractTexture* 
 std::unique_ptr<AbstractShader>
 OGLGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
-  return OGLShader::CreateFromSource(stage, source, name, BackendInfo());
+  return OGLShader::CreateFromSource(stage, source, name, GetBackendInfo());
 }
 
 std::unique_ptr<AbstractShader>
@@ -243,7 +243,7 @@ std::unique_ptr<AbstractPipeline> OGLGfx::CreatePipeline(const AbstractPipelineC
                                                          const void* cache_data,
                                                          size_t cache_data_length)
 {
-  return OGLPipeline::Create(config, cache_data, cache_data_length, BackendInfo());
+  return OGLPipeline::Create(config, cache_data, cache_data_length, GetBackendInfo());
 }
 
 void OGLGfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
@@ -479,7 +479,7 @@ void OGLGfx::CheckForSurfaceResize()
 void OGLGfx::BeginUtilityDrawing()
 {
   AbstractGfx::BeginUtilityDrawing();
-  if (BackendInfo().bSupportsDepthClamp)
+  if (GetBackendInfo().bSupportsDepthClamp)
   {
     glDisable(GL_CLIP_DISTANCE0);
     glDisable(GL_CLIP_DISTANCE1);
@@ -489,7 +489,7 @@ void OGLGfx::BeginUtilityDrawing()
 void OGLGfx::EndUtilityDrawing()
 {
   AbstractGfx::EndUtilityDrawing();
-  if (BackendInfo().bSupportsDepthClamp)
+  if (GetBackendInfo().bSupportsDepthClamp)
   {
     glEnable(GL_CLIP_DISTANCE0);
     glEnable(GL_CLIP_DISTANCE1);
@@ -646,7 +646,7 @@ void OGLGfx::SetTexture(u32 index, const AbstractTexture* texture)
 
 void OGLGfx::SetSamplerState(u32 index, const SamplerState& state)
 {
-  g_sampler_cache->SetSamplerState(index, state, BackendInfo());
+  g_sampler_cache->SetSamplerState(index, state, GetBackendInfo());
 }
 
 void OGLGfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
@@ -689,7 +689,7 @@ void OGLGfx::UnbindTexture(const AbstractTexture* texture)
 
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> OGLGfx::CreateAsyncShaderCompiler()
 {
-  return std::make_unique<SharedContextAsyncShaderCompiler>(BackendInfo());
+  return std::make_unique<SharedContextAsyncShaderCompiler>(GetBackendInfo());
 }
 
 bool OGLGfx::IsGLES() const

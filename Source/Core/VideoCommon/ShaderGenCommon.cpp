@@ -334,7 +334,7 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
 
   // Without GL_ARB_shading_language_420pack support, the interpolation qualifier must be
   // "centroid in" and not "centroid", even within an interface block.
-  if (in_glsl_interface_block && !g_gfx->BackendInfo().bSupportsBindingLayout)
+  if (in_glsl_interface_block && !g_gfx->GetBackendInfo().bSupportsBindingLayout)
   {
     if (!ssaa)
       return in ? "centroid in" : "centroid out";

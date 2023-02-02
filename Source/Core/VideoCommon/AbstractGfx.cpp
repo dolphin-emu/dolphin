@@ -75,7 +75,7 @@ void AbstractGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool co
                         static_cast<float>((color >> 0) & 0xFF) / 255.0f,
                         static_cast<float>((color >> 24) & 0xFF) / 255.0f},
                        static_cast<float>(z & 0xFFFFFF) / 16777216.0f};
-  if (!BackendInfo().bSupportsReversedDepthRange)
+  if (!GetBackendInfo().bSupportsReversedDepthRange)
     uniforms.clear_depth = 1.0f - uniforms.clear_depth;
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 
@@ -148,7 +148,7 @@ AbstractGfx::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect, u
                                          u32 fb_height) const
 {
   MathUtil::Rectangle<int> ret = rect;
-  if (BackendInfo().bUsesLowerLeftOrigin)
+  if (GetBackendInfo().bUsesLowerLeftOrigin)
   {
     ret.top = fb_height - rect.bottom;
     ret.bottom = fb_height - rect.top;
@@ -176,5 +176,5 @@ bool AbstractGfx::UseGeometryShaderForUI() const
   // OpenGL doesn't render to a 2-layer backbuffer like D3D/Vulkan for quad-buffered stereo,
   // instead drawing twice and the eye selected by glDrawBuffer() (see Presenter::RenderXFBToScreen)
   return g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer &&
-         BackendInfo().api_type != APIType::OpenGL;
+         GetBackendInfo().api_type != APIType::OpenGL;
 }

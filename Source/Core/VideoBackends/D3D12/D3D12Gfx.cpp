@@ -351,7 +351,7 @@ void Gfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
     return;
 
   // DX12 is great and doesn't include the base vertex in SV_VertexID
-  if (UsesDynamicVertexLoader(m_current_pipeline, BackendInfo()))
+  if (UsesDynamicVertexLoader(m_current_pipeline, GetBackendInfo()))
     g_dx_context->GetCommandList()->SetGraphicsRoot32BitConstant(
         ROOT_PARAMETER_BASE_VERTEX_CONSTANT, base_vertex, 0);
   g_dx_context->GetCommandList()->DrawIndexedInstanced(num_indices, 1, base_index, base_vertex, 0);
@@ -406,11 +406,11 @@ void Gfx::CheckForSwapChainChanges()
   WaitForGPUIdle();
   if (surface_changed)
   {
-    m_swap_chain->ChangeSurface(g_presenter->GetNewSurfaceHandle(), BackendInfo());
+    m_swap_chain->ChangeSurface(g_presenter->GetNewSurfaceHandle(), GetBackendInfo());
   }
   else
   {
-    m_swap_chain->ResizeSwapChain(BackendInfo());
+    m_swap_chain->ResizeSwapChain(GetBackendInfo());
   }
 
   g_presenter->SetBackbuffer(m_swap_chain->GetWidth(), m_swap_chain->GetHeight());
@@ -441,7 +441,7 @@ void Gfx::OnConfigChanged(u32 bits)
   if (m_swap_chain && bits & CONFIG_CHANGE_BIT_STEREO_MODE)
   {
     ExecuteCommandList(true);
-    m_swap_chain->SetStereo(SwapChain::WantsStereo(), BackendInfo());
+    m_swap_chain->SetStereo(SwapChain::WantsStereo(), GetBackendInfo());
   }
 
   // Wipe sampler cache if force texture filtering or anisotropy changes.
@@ -454,7 +454,7 @@ void Gfx::OnConfigChanged(u32 bits)
 
   // If the host config changed (e.g. bbox/per-pixel-shading), recreate the root signature.
   if (bits & CONFIG_CHANGE_BIT_HOST_CONFIG)
-    g_dx_context->RecreateGXRootSignature(BackendInfo());
+    g_dx_context->RecreateGXRootSignature(GetBackendInfo());
 }
 
 void Gfx::ExecuteCommandList(bool wait_for_completion)
@@ -593,7 +593,7 @@ bool Gfx::ApplyState()
     }
 
     if (dirty_bits & DirtyState_VS_SRV_Descriptor &&
-        UsesDynamicVertexLoader(pipeline, BackendInfo()))
+        UsesDynamicVertexLoader(pipeline, GetBackendInfo()))
     {
       cmdlist->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_VS_SRV,
                                               m_state.vertex_srv_descriptor_base);
@@ -715,7 +715,7 @@ bool Gfx::UpdateUAVDescriptorTable()
 
 bool Gfx::UpdateVSSRVDescriptorTable()
 {
-  if (!UsesDynamicVertexLoader(m_current_pipeline, BackendInfo()))
+  if (!UsesDynamicVertexLoader(m_current_pipeline, GetBackendInfo()))
   {
     return true;
   }

@@ -66,7 +66,7 @@ std::unique_ptr<AbstractFramebuffer> Gfx::CreateFramebuffer(AbstractTexture* col
                                                             AbstractTexture* depth_attachment)
 {
   return DXFramebuffer::Create(static_cast<DXTexture*>(color_attachment),
-                               static_cast<DXTexture*>(depth_attachment), BackendInfo());
+                               static_cast<DXTexture*>(depth_attachment), GetBackendInfo());
 }
 
 std::unique_ptr<AbstractShader>
@@ -89,7 +89,7 @@ std::unique_ptr<AbstractPipeline> Gfx::CreatePipeline(const AbstractPipelineConf
                                                       const void* cache_data,
                                                       size_t cache_data_length)
 {
-  return DXPipeline::Create(config, BackendInfo());
+  return DXPipeline::Create(config, GetBackendInfo());
 }
 
 void Gfx::SetPipeline(const AbstractPipeline* pipeline)
@@ -138,13 +138,13 @@ void Gfx::SetViewport(float x, float y, float width, float height, float near_de
 
 void Gfx::Draw(u32 base_vertex, u32 num_vertices)
 {
-  D3D::stateman->Apply(BackendInfo());
+  D3D::stateman->Apply(GetBackendInfo());
   D3D::context->Draw(num_vertices, base_vertex);
 }
 
 void Gfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 {
-  D3D::stateman->Apply(BackendInfo());
+  D3D::stateman->Apply(GetBackendInfo());
   D3D::context->DrawIndexed(num_indices, base_index, base_vertex);
 }
 
@@ -173,7 +173,7 @@ void Gfx::OnConfigChanged(u32 bits)
 
   // Quad-buffer changes require swap chain recreation.
   if (bits & CONFIG_CHANGE_BIT_STEREO_MODE && m_swap_chain)
-    m_swap_chain->SetStereo(SwapChain::WantsStereo(), BackendInfo());
+    m_swap_chain->SetStereo(SwapChain::WantsStereo(), GetBackendInfo());
 }
 
 void Gfx::CheckForSwapChainChanges()
@@ -186,11 +186,11 @@ void Gfx::CheckForSwapChainChanges()
 
   if (surface_changed)
   {
-    m_swap_chain->ChangeSurface(g_presenter->GetNewSurfaceHandle(), BackendInfo());
+    m_swap_chain->ChangeSurface(g_presenter->GetNewSurfaceHandle(), GetBackendInfo());
   }
   else
   {
-    m_swap_chain->ResizeSwapChain(BackendInfo());
+    m_swap_chain->ResizeSwapChain(GetBackendInfo());
   }
 
   g_presenter->SetBackbuffer(m_swap_chain->GetWidth(), m_swap_chain->GetHeight());
@@ -226,7 +226,7 @@ void Gfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearCo
                                  float depth_value)
 {
   SetFramebuffer(framebuffer);
-  D3D::stateman->Apply(BackendInfo());
+  D3D::stateman->Apply(GetBackendInfo());
 
   if (framebuffer->GetColorFormat() != AbstractTextureFormat::Undefined)
   {

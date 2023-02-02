@@ -113,7 +113,7 @@ std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
   FillBackendInfo();
   UpdateActiveConfig();
 
-  if (!g_dx_context->CreateGlobalResources(BackendInfo()))
+  if (!g_dx_context->CreateGlobalResources(backend_info))
   {
     PanicAlertFmtT("Failed to create D3D12 global resources");
     DXContext::Destroy();

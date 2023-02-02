@@ -151,7 +151,7 @@ u16 VideoBase::GetBoundingBox(int index)
     }
     warn_once = false;
   }
-  else if (!g_gfx->BackendInfo().bSupportsBBox)
+  else if (!g_gfx->GetBackendInfo().bSupportsBBox)
   {
     static bool warn_once = true;
     if (warn_once)

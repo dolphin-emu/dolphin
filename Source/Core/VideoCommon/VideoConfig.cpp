@@ -222,7 +222,7 @@ static u32 GetNumAutoShaderPreCompilerThreads()
 
 u32 VideoConfig::GetShaderCompilerThreads() const
 {
-  if (!g_gfx->BackendInfo().bSupportsBackgroundCompiling)
+  if (!g_gfx->GetBackendInfo().bSupportsBackgroundCompiling)
     return 0;
 
   if (iShaderCompilerThreads >= 0)
@@ -237,7 +237,7 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
   if (!bWaitForShadersBeforeStarting)
     return GetShaderCompilerThreads();
 
-  if (!g_gfx->BackendInfo().bSupportsBackgroundCompiling)
+  if (!g_gfx->GetBackendInfo().bSupportsBackgroundCompiling)
     return 0;
 
   if (iShaderPrecompilerThreads >= 0)
@@ -268,7 +268,7 @@ bool VideoConfig::UseGPUTextureDecoding(const BackendInfo& backend_info) const
 void CheckForConfigChanges()
 {
   const ShaderHostConfig old_shader_host_config =
-      ShaderHostConfig::GetCurrent(g_gfx->BackendInfo());
+      ShaderHostConfig::GetCurrent(g_gfx->GetBackendInfo());
   const StereoMode old_stereo = g_ActiveConfig.stereo_mode;
   const u32 old_multisamples = g_ActiveConfig.iMultisamples;
   const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
@@ -310,7 +310,7 @@ void CheckForConfigChanges()
     g_framebuffer_manager->SetEFBCacheTileSize(std::max(g_ActiveConfig.iEFBAccessTileSize, 0));
 
   // Determine which (if any) settings have changed.
-  ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent(g_gfx->BackendInfo());
+  ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent(g_gfx->GetBackendInfo());
   u32 changed_bits = 0;
   if (old_shader_host_config.bits != new_host_config.bits)
     changed_bits |= CONFIG_CHANGE_BIT_HOST_CONFIG;

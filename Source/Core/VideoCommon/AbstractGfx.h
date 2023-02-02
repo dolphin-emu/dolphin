@@ -168,7 +168,7 @@ public:
   // Returns info about the main surface (aka backbuffer)
   virtual SurfaceInfo GetSurfaceInfo() const { return {}; }
 
-  inline const BackendInfo& BackendInfo() const { return m_backend->backend_info; }
+  inline const BackendInfo& GetBackendInfo() const { return m_backend->backend_info; }
 
 protected:
   AbstractFramebuffer* m_current_framebuffer = nullptr;

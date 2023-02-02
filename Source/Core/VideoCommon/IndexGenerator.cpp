@@ -267,7 +267,7 @@ void IndexGenerator::Init()
 {
   using OpcodeDecoder::Primitive;
 
-  if (g_gfx->BackendInfo().bSupportsPrimitiveRestart)
+  if (g_gfx->GetBackendInfo().bSupportsPrimitiveRestart)
   {
     m_primitive_table[Primitive::GX_DRAW_QUADS] = AddQuads<true>;
     m_primitive_table[Primitive::GX_DRAW_QUADS_2] = AddQuads_nonstandard<true>;
@@ -283,9 +283,9 @@ void IndexGenerator::Init()
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_STRIP] = AddStrip<false>;
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_FAN] = AddFan<false>;
   }
-  if (g_Config.UseVSForLinePointExpand(g_gfx->BackendInfo()))
+  if (g_Config.UseVSForLinePointExpand(g_gfx->GetBackendInfo()))
   {
-    if (g_gfx->BackendInfo().bSupportsPrimitiveRestart)
+    if (g_gfx->GetBackendInfo().bSupportsPrimitiveRestart)
     {
       m_primitive_table[Primitive::GX_DRAW_LINES] = AddLines_VSExpand<true, false>;
       m_primitive_table[Primitive::GX_DRAW_LINE_STRIP] = AddLines_VSExpand<true, true>;
@@ -331,7 +331,7 @@ u32 IndexGenerator::GetRemainingIndices(OpcodeDecoder::Primitive primitive) cons
 {
   u32 max_index = UINT16_MAX;
 
-  if (g_Config.UseVSForLinePointExpand(g_gfx->BackendInfo()) &&
+  if (g_Config.UseVSForLinePointExpand(g_gfx->GetBackendInfo()) &&
       primitive >= OpcodeDecoder::Primitive::GX_DRAW_LINES)
     max_index >>= 2;
 

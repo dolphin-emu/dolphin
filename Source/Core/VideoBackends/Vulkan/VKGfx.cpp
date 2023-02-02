@@ -56,7 +56,7 @@ bool VKGfx::IsHeadless() const
 std::unique_ptr<AbstractTexture> VKGfx::CreateTexture(const TextureConfig& config,
                                                       std::string_view name)
 {
-  return VKTexture::Create(config, name, BackendInfo());
+  return VKTexture::Create(config, name, GetBackendInfo());
 }
 
 std::unique_ptr<AbstractStagingTexture> VKGfx::CreateStagingTexture(StagingTextureType type,
@@ -68,13 +68,13 @@ std::unique_ptr<AbstractStagingTexture> VKGfx::CreateStagingTexture(StagingTextu
 std::unique_ptr<AbstractShader>
 VKGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
-  return VKShader::CreateFromSource(stage, source, name, BackendInfo());
+  return VKShader::CreateFromSource(stage, source, name, GetBackendInfo());
 }
 
 std::unique_ptr<AbstractShader> VKGfx::CreateShaderFromBinary(ShaderStage stage, const void* data,
                                                               size_t length, std::string_view name)
 {
-  return VKShader::CreateFromBinary(stage, data, length, name, BackendInfo());
+  return VKShader::CreateFromBinary(stage, data, length, name, GetBackendInfo());
 }
 
 std::unique_ptr<NativeVertexFormat>
@@ -87,7 +87,7 @@ std::unique_ptr<AbstractPipeline> VKGfx::CreatePipeline(const AbstractPipelineCo
                                                         const void* cache_data,
                                                         size_t cache_data_length)
 {
-  return VKPipeline::Create(config, BackendInfo());
+  return VKPipeline::Create(config, GetBackendInfo());
 }
 
 std::unique_ptr<AbstractFramebuffer> VKGfx::CreateFramebuffer(AbstractTexture* color_attachment,
@@ -117,7 +117,7 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_en
   clear_color_value.color.float32[2] = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
   clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
   clear_depth_value.depthStencil.depth = static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
-  if (!BackendInfo().bSupportsReversedDepthRange)
+  if (!GetBackendInfo().bSupportsReversedDepthRange)
     clear_depth_value.depthStencil.depth = 1.0f - clear_depth_value.depthStencil.depth;
 
   // If we're not in a render pass (start of the frame), we can use a clear render pass
@@ -373,7 +373,7 @@ void VKGfx::OnConfigChanged(u32 bits)
   AbstractGfx::OnConfigChanged(bits);
 
   if (bits & CONFIG_CHANGE_BIT_HOST_CONFIG)
-    g_object_cache->ReloadPipelineCache(BackendInfo());
+    g_object_cache->ReloadPipelineCache(GetBackendInfo());
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
   if (m_swap_chain && bits & CONFIG_CHANGE_BIT_VSYNC)

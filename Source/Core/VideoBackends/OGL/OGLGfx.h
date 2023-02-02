@@ -16,7 +16,8 @@ class OGLTexture;
 class OGLGfx final : public AbstractGfx
 {
 public:
-  OGLGfx(VideoBackendBase* backend, std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale);
+  OGLGfx(VideoBackendBase* backend, std::unique_ptr<GLContext> main_gl_context,
+         float backbuffer_scale);
   ~OGLGfx();
 
   bool IsHeadless() const override;
