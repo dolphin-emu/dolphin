@@ -13,7 +13,7 @@ class Tev
   struct TevColor
   {
     constexpr TevColor() = default;
-    constexpr explicit TevColor(s16 a, s16 b, s16 g, s16 r) : a(a), b(b), g(g), r(r) {}
+    constexpr explicit TevColor(s16 a_, s16 b_, s16 g_, s16 r_) : a(a_), b(b_), g(g_), r(r_) {}
 
     s16 a = 0;
     s16 b = 0;
@@ -43,7 +43,10 @@ class Tev
 
   struct TevColorRef
   {
-    constexpr explicit TevColorRef(const s16& r, const s16& g, const s16& b) : r(r), g(g), b(b) {}
+    constexpr explicit TevColorRef(const s16& r_, const s16& g_, const s16& b_)
+        : r(r_), g(g_), b(b_)
+    {
+    }
 
     const s16& r;
     const s16& g;
@@ -60,15 +63,15 @@ class Tev
   struct TevAlphaRef
   {
     constexpr explicit TevAlphaRef(const TevColor& color) : a(color.a) {}
-    constexpr explicit TevAlphaRef(const s16& a) : a(a) {}
+    constexpr explicit TevAlphaRef(const s16& a_) : a(a_) {}
 
     const s16& a;
   };
 
   struct TevKonstRef
   {
-    constexpr explicit TevKonstRef(const s16& a, const s16& r, const s16& g, const s16& b)
-        : a(a), r(r), g(g), b(b)
+    constexpr explicit TevKonstRef(const s16& a_, const s16& r_, const s16& g_, const s16& b_)
+        : a(a_), r(r_), g(g_), b(b_)
     {
     }
 
