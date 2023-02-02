@@ -263,7 +263,9 @@ public final class SettingsFragmentPresenter
     {
       sl.add(new SubmenuSetting(mContext, R.string.gcpad_settings, MenuTag.GCPAD_TYPE));
       if (mSettings.isWii())
+      {
         sl.add(new SubmenuSetting(mContext, R.string.wiimote_settings, MenuTag.WIIMOTE));
+      }
     }
 
     sl.add(new HeaderSetting(mContext, R.string.setting_clear_info, 0));
@@ -633,6 +635,10 @@ public final class SettingsFragmentPresenter
             R.string.wiimote_scanning, R.string.wiimote_scanning_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_WIIMOTE_ENABLE_SPEAKER,
             R.string.wiimote_speaker, R.string.wiimote_speaker_description));
+
+    sl.add(new HeaderSetting(mContext, R.string.emulated_usb_devices, 0));
+    sl.add(new SwitchSetting(mContext, BooleanSetting.MAIN_EMULATE_SKYLANDER_PORTAL,
+            R.string.emulate_skylander_portal, 0));
   }
 
   private void addAdvancedSettings(ArrayList<SettingsItem> sl)

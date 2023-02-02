@@ -42,6 +42,7 @@ public class Settings implements Closeable
   public static final String SECTION_GFX_HACKS = "Hacks";
 
   public static final String SECTION_DEBUG = "Debug";
+  public static final String SECTION_EMULATED_USB_DEVICES = "EmulatedUSBDevices";
 
   public static final String SECTION_STEREOSCOPY = "Stereoscopy";
 

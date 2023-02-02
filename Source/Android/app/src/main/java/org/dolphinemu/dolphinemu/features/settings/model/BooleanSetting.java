@@ -89,6 +89,9 @@ public enum BooleanSetting implements AbstractBooleanSetting
   MAIN_DEBUG_JIT_REGISTER_CACHE_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG,
           "JitRegisterCacheOff", false),
 
+  MAIN_EMULATE_SKYLANDER_PORTAL(Settings.FILE_DOLPHIN, Settings.SECTION_EMULATED_USB_DEVICES,
+          "EmulateSkylanderPortal", false),
+
   MAIN_SHOW_GAME_TITLES(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "ShowGameTitles", true),
   MAIN_USE_BLACK_BACKGROUNDS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
@@ -273,6 +276,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
           MAIN_RAM_OVERRIDE_ENABLE,
           MAIN_CUSTOM_RTC_ENABLE,
           MAIN_DSP_JIT,
+          MAIN_EMULATE_SKYLANDER_PORTAL,
   };
 
   private static final Set<BooleanSetting> NOT_RUNTIME_EDITABLE =
