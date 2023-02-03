@@ -416,6 +416,9 @@
     <string name="set_custom_rtc">Set Custom RTC</string>
     <string name="select_rtc_date">Select RTC Date</string>
     <string name="select_rtc_time">Select RTC Time</string>
+    <string name="misc_settings">Misc Settings</string>
+    <string name="emulate_disc_speed">Emulate Disc Speed</string>
+    <string name="emulate_disc_speed_description">Enable emulated disc speed. Disabling this can cause crashes and other problems in some games.</string>
 
     <!-- Log Configuration -->
     <string name="log_submenu">Log</string>

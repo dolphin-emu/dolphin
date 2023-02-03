@@ -765,6 +765,11 @@ public final class SettingsFragmentPresenter
             R.string.custom_rtc_enable, R.string.custom_rtc_description));
     sl.add(new DateTimeChoiceSetting(mContext, StringSetting.MAIN_CUSTOM_RTC_VALUE,
             R.string.set_custom_rtc, 0));
+
+    sl.add(new HeaderSetting(mContext, R.string.misc_settings, 0));
+    sl.add(new InvertedSwitchSetting(mContext, BooleanSetting.MAIN_FAST_DISC_SPEED,
+            R.string.emulate_disc_speed,
+            R.string.emulate_disc_speed_description));
   }
 
   private void addSerialPortSubSettings(ArrayList<SettingsItem> sl, int serialPort1Type)
