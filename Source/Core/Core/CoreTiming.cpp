@@ -386,7 +386,7 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   // It doesn't matter what amount of lag we skip VI at, as long as it's constant.
   const DT max_variance =
       std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
-  const TimePoint vi_deadline = time - max_variance;
+  const TimePoint vi_deadline = time - max_variance / 2;
   m_throttle_disable_vi_int = 0.0 < speed && m_throttle_deadline < vi_deadline;
 
   // Only sleep if we are behind the deadline
