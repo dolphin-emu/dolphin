@@ -53,10 +53,6 @@ void LuaScriptWindow::CreateMainLayout()
   outputBox->addWidget(outputHeader, 0, 0, Qt::AlignTop);
   outputBox->addWidget(lua_output_list_widget_ptr, 1, 0, Qt::AlignTop);
 
-   QStringList list;
-  list << QString::fromStdString("Hello World!");
-  list << QString::fromStdString("Last line...\n\nOther line!");
-  lua_output_list_widget_ptr->insertItems(0, list);
   lua_output_list_widget_ptr->setSpacing(1);
   lua_output_list_widget_ptr->setStyleSheet(tr("background-color:white;"));
 
@@ -92,6 +88,7 @@ void LuaScriptWindow::LoadScriptFunction()
     pathOfScriptToRun = path.toStdString();
     QStringList list;
     list << path;
+    lua_script_name_list_widget_ptr->clear();
     lua_script_name_list_widget_ptr->insertItems(0, list);
     m_play_script_button->setStyleSheet(tr("background-color:green;"));
   }
