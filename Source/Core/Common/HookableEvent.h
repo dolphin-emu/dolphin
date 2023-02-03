@@ -15,30 +15,40 @@
 
 namespace Common
 {
-// A hookable event system.
-
-// Define Events in a header as:
-//
-//     using MyLoveyEvent = HookableEvent<"My lovely event", std::string>;
-//
-// Register listeners anywhere you need them as:
-//    EventHook myHook = MyLoveyEvent::Register([](std::string foo) {
-//       // Do something
-//   }, "Name of the hook");
-//
-// The hook will be automatically unregistered when the EventHook object goes out of scope.
-// Trigger events by doing:
-//
-//   MyLoveyEvent::Trigger("Hello world");
-//
-
 struct HookBase
 {
   virtual ~HookBase() = default;
+
+protected:
+  HookBase() = default;
+
+  // This shouldn't be copied. And since we always wrap it in unique_ptr, no need to move it either
+  HookBase(const HookBase&) = delete;
+  HookBase(HookBase&&) = delete;
+  HookBase& operator=(const HookBase&) = delete;
+  HookBase& operator=(HookBase&&) = delete;
 };
 
+// EventHook is a handle a registered listener holds.
+// When the handle is destroyed, the HookableEvent will automatically remove the listener.
 using EventHook = std::unique_ptr<HookBase>;
 
+// A hookable event system.
+//
+// Define Events in a header as:
+//
+//     using MyLoveyEvent = HookableEvent<"My lovely event", std::string, u32>;
+//
+// Register listeners anywhere you need them as:
+//    EventHook myHook = MyLoveyEvent::Register([](std::string foo, u32 bar) {
+//       fmt::print("I've been triggered with {} and {}", foo, bar)
+//   }, "NameOfHook");
+//
+// The hook will be automatically unregistered when the EventHook object goes out of scope.
+// Trigger events by calling Trigger as:
+//
+//   MyLoveyEvent::Trigger("Hello world", 42);
+//
 template <StringLiteral EventName, typename... CallbackArgs>
 class HookableEvent
 {
@@ -62,6 +72,7 @@ public:
   static EventHook Register(CallbackType callback, std::string name)
   {
     std::lock_guard lock(m_mutex);
+
     DEBUG_LOG_FMT(COMMON, "Registering {} handler at {} event hook", name, EventName.value);
     auto handle = std::make_unique<HookImpl>(callback, std::move(name));
     m_listeners.push_back(handle.get());
@@ -71,7 +82,8 @@ public:
   static void Trigger(const CallbackArgs&... args)
   {
     std::lock_guard lock(m_mutex);
-    for (auto& handle : m_listeners)
+
+    for (const auto& handle : m_listeners)
       handle->m_fn(args...);
   }
 
@@ -79,6 +91,7 @@ private:
   static void Remove(HookImpl* handle)
   {
     std::lock_guard lock(m_mutex);
+
     std::erase(m_listeners, handle);
   }
 
