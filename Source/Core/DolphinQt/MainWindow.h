@@ -33,6 +33,7 @@ class HotkeyScheduler;
 class JITWidget;
 class LogConfigWidget;
 class LogWidget;
+class LuaScriptWindow;
 class MappingWindow;
 class MemoryWidget;
 class MenuBar;
@@ -160,6 +161,7 @@ private:
   void ShowNetPlayBrowser();
   void ShowFIFOPlayer();
   void ShowMemcardManager();
+  void ShowLuaScriptManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
   void ShowRiivolutionBootWidget(const UICommon::GameFile& game);
@@ -247,4 +249,5 @@ private:
   WatchWidget* m_watch_widget;
   CheatsManager* m_cheats_manager;
   QByteArray m_render_widget_geometry;
+  LuaScriptWindow* m_lua_script_manager;
 };

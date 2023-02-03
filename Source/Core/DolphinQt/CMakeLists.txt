@@ -24,6 +24,9 @@ message(STATUS "Found Qt version ${QT_VERSION}")
 
 set_property(TARGET Qt${QT_VERSION_MAJOR}::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 
+add_subdirectory(Externals/Lua)
+include_directories(Externals/Lua/src)
+
 add_executable(dolphin-emu
   AboutDialog.cpp
   AboutDialog.h
@@ -240,6 +243,8 @@ add_executable(dolphin-emu
   Host.h
   HotkeyScheduler.cpp
   HotkeyScheduler.h
+  LuaScriptWindow.h
+  LuaScriptWindow.cpp
   Main.cpp
   MainWindow.cpp
   MainWindow.h

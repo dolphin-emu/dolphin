@@ -93,6 +93,7 @@
 #include "DolphinQt/GameList/GameList.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/HotkeyScheduler.h"
+#include "DolphinQt/LuaScriptWindow.h"
 #include "DolphinQt/MenuBar.h"
 #include "DolphinQt/NKitWarningDialog.h"
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
@@ -421,6 +422,7 @@ void MainWindow::CreateComponents()
   m_breakpoint_widget = new BreakpointWidget(this);
   m_code_widget = new CodeWidget(this);
   m_cheats_manager = new CheatsManager(this);
+  m_lua_script_manager = new LuaScriptWindow(this);
 
   const auto request_watch = [this](QString name, u32 addr) {
     m_watch_widget->AddWatch(name, addr);
@@ -512,6 +514,7 @@ void MainWindow::ConnectMenuBar()
 
   // Tools
   connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
+  connect(m_menu_bar, &MenuBar::ShowLuaScriptManager, this, &MainWindow::ShowLuaScriptManager);
   connect(m_menu_bar, &MenuBar::ShowResourcePackManager, this,
           &MainWindow::ShowResourcePackManager);
   connect(m_menu_bar, &MenuBar::ShowCheatsManager, this, &MainWindow::ShowCheatsManager);
@@ -1846,6 +1849,11 @@ void MainWindow::ShowMemcardManager()
   GCMemcardManager manager(this);
 
   manager.exec();
+}
+
+void MainWindow::ShowLuaScriptManager()
+{
+  m_lua_script_manager->show();
 }
 
 void MainWindow::ShowResourcePackManager()

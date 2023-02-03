@@ -89,6 +89,7 @@ signals:
   void ShowFIFOPlayer();
   void ShowAboutDialog();
   void ShowCheatsManager();
+  void ShowLuaScriptManager();
   void ShowResourcePackManager();
   void ConnectWiiRemote(int id);
 

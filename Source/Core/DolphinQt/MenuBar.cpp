@@ -229,6 +229,7 @@ void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("&Tools"));
 
+  tools_menu->addAction(tr("&Lua Script Manager"), this, &MenuBar::ShowLuaScriptManager);
   tools_menu->addAction(tr("&Resource Pack Manager"), this,
                         [this] { emit ShowResourcePackManager(); });
 

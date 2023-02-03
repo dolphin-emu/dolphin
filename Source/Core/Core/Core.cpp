@@ -876,12 +876,6 @@ void Callback_FramePresented(double actual_emulation_speed)
 void Callback_NewField()
 {
 
-  if (!Lua::luaInitialized)
-  {
-    Lua::Init();
-  }
-
-
   if (Lua::luaScriptActive && !Lua::LuaEmu::waitingForSaveStateLoad && !Lua::LuaEmu::waitingForSaveStateSave && !Lua::LuaEmu::waitingToStartPlayingMovie && !Lua::LuaEmu::waitingToSaveMovie)
   {
     for (int i = 0; i < 4; ++i)
@@ -901,7 +895,11 @@ void Callback_NewField()
     if (retVal != LUA_YIELD)
     {
       if (retVal == 2)
+      {
         errorMsg = lua_tostring(Lua::mainLuaThreadState, -1);
+        (*Lua::printCallbackFunction)(errorMsg);
+      }
+      (*Lua::scriptEndCallbackFunction)();
       Lua::luaScriptActive = false;
     }
   }
