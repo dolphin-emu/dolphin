@@ -343,7 +343,18 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
 
       // This is as closest as we have to an "end of the frame"
       // It works 99% of the time.
+      // But sometimes games want to render an XFB larger than the EFB's 640x528 pixel resolution
+      // (especially when using the 3xMSAA mode, which cuts EFB resolution to 640x264). So they
+      // render multiple sub-frames and arrange the XFB copies in next to each-other in main memory
+      // so they form a single completed XFB.
+      // See https://dolphin-emu.org/blog/2017/11/19/hybridxfb/ for examples and more detail.
       AfterFrameEvent::Trigger();
+
+      // Note: Theoretically, in the future we could track the VI configuration and try to detect
+      //       when an XFB is the last XFB copy of a frame. Not only would we get a clean "end of
+      //       the frame", but we would also be able to use ImmediateXFB even for these games.
+      //       Might also clean up some issues with games doing XFB copies they don't intend to
+      //       display.
 
       if (g_ActiveConfig.bImmediateXFB)
       {
