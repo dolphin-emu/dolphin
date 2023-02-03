@@ -80,7 +80,7 @@ bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_heigh
   m_last_xfb_height = fb_height;
   m_last_xfb_id = m_xfb_entry->id;
 
-  return is_duplicate;
+  return !is_duplicate;
 }
 
 void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
