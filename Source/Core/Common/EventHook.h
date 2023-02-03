@@ -46,7 +46,7 @@ private:
   struct HookImpl : public HookBase
   {
     ~HookImpl() override { Event::Remove(this); }
-    HookImpl(CallbackType callback, std::string name) : m_fn(callback), m_name(name) {}
+    HookImpl(CallbackType callback, std::string name) : m_fn(std::move(callback)), m_name(std::move(name)) {}
     CallbackType m_fn;
     std::string m_name;
   };
@@ -56,12 +56,12 @@ public:
   static EventHook Register(CallbackType callback, std::string name)
   {
     DEBUG_LOG_FMT(COMMON, "Registering {} handler at {} event hook", name, EventName.value);
-    auto handle = std::make_unique<HookImpl>(callback, name);
+    auto handle = std::make_unique<HookImpl>(callback, std::move(name));
     m_listeners.push_back(handle.get());
     return handle;
   }
 
-  static void Trigger(CallbackArgs... args)
+  static void Trigger(const CallbackArgs&... args)
   {
     for (auto& handle : m_listeners)
       handle->m_fn(args...);
