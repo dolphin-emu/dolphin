@@ -675,6 +675,7 @@
     <ClInclude Include="VideoCommon\NetPlayGolfUI.h" />
     <ClInclude Include="VideoCommon\OnScreenDisplay.h" />
     <ClInclude Include="VideoCommon\OnScreenUI.h" />
+    <ClInclude Include="VideoCommon\OnScreenUIKeyMap.h" />
     <ClInclude Include="VideoCommon\OpcodeDecoding.h" />
     <ClInclude Include="VideoCommon\PerfQueryBase.h" />
     <ClInclude Include="VideoCommon\PerformanceMetrics.h" />

@@ -3,6 +3,7 @@
 
 #include "VideoCommon/OnScreenUI.h"
 
+#include "Common/EnumMap.h"
 #include "Common/Profiler.h"
 #include "Common/Timer.h"
 
@@ -346,15 +347,30 @@ void OnScreenUI::SetScale(float backbuffer_scale)
 
   m_backbuffer_scale = backbuffer_scale;
 }
-void OnScreenUI::SetKeyMap(std::span<const std::array<int, 2>> key_map)
+void OnScreenUI::SetKeyMap(const DolphinKeyMap& key_map)
 {
+  // Right now this is a 1:1 mapping. But might not be true later
+  static constexpr DolphinKeyMap dolphin_to_imgui_map = {
+      ImGuiKey_Tab,       ImGuiKey_LeftArrow, ImGuiKey_RightArrow, ImGuiKey_UpArrow,
+      ImGuiKey_DownArrow, ImGuiKey_PageUp,    ImGuiKey_PageDown,   ImGuiKey_Home,
+      ImGuiKey_End,       ImGuiKey_Insert,    ImGuiKey_Delete,     ImGuiKey_Backspace,
+      ImGuiKey_Space,     ImGuiKey_Enter,     ImGuiKey_Escape,     ImGuiKey_KeyPadEnter,
+      ImGuiKey_A,         ImGuiKey_C,         ImGuiKey_V,          ImGuiKey_X,
+      ImGuiKey_Y,         ImGuiKey_Z,
+  };
+  static_assert(dolphin_to_imgui_map.size() == ImGuiKey_COUNT);  // Fail if ImGui adds keys
+
   auto lock = GetImGuiLock();
 
   if (!ImGui::GetCurrentContext())
     return;
 
-  for (auto [imgui_key, qt_key] : key_map)
-    ImGui::GetIO().KeyMap[imgui_key] = (qt_key & 0x1FF);
+  for (int dolphin_key = 0; dolphin_key <= static_cast<int>(DolphinKey::Z); dolphin_key++)
+  {
+    int imgui_key = dolphin_to_imgui_map[DolphinKey(dolphin_key)];
+    if (imgui_key >= 0)
+      ImGui::GetIO().KeyMap[imgui_key] = (key_map[DolphinKey(dolphin_key)] & 0x1FF);
+  }
 }
 
 void OnScreenUI::SetKey(u32 key, bool is_down, const char* chars)

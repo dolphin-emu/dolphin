@@ -6,6 +6,7 @@
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
 
+#include "VideoCommon/OnScreenUIKeyMap.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoCommon.h"
@@ -18,6 +19,7 @@
 
 class AbstractTexture;
 struct SurfaceInfo;
+enum class DolphinKey;
 
 namespace VideoCommon
 {
@@ -82,7 +84,7 @@ public:
   bool SurfaceChangedTestAndClear() { return m_surface_changed.TestAndClear(); }
   void* GetNewSurfaceHandle();
 
-  void SetKeyMap(std::span<std::array<int, 2>> key_map);
+  void SetKeyMap(const DolphinKeyMap& key_map);
 
   void SetKey(u32 key, bool is_down, const char* chars);
   void SetMousePos(float x, float y);

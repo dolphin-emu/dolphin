@@ -19,8 +19,6 @@
 #include <QTimer>
 #include <QWindow>
 
-#include <imgui.h>
-
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/State.h"
@@ -32,6 +30,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "VideoCommon/OnScreenUI.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -62,7 +61,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     if (state == Core::State::Running)
-      SetImGuiKeyMap();
+      SetPresenterKeyMap();
   });
 
   // We have to use Qt::DirectConnection here because we don't want those signals to get queued
@@ -338,7 +337,7 @@ void RenderWidget::SetWaitingForMessageBox(bool waiting_for_message_box)
 
 bool RenderWidget::event(QEvent* event)
 {
-  PassEventToImGui(event);
+  PassEventToPresenter(event);
 
   switch (event->type())
   {
@@ -470,7 +469,7 @@ bool RenderWidget::event(QEvent* event)
   return QWidget::event(event);
 }
 
-void RenderWidget::PassEventToImGui(const QEvent* event)
+void RenderWidget::PassEventToPresenter(const QEvent* event)
 {
   if (!Core::IsRunningAndStarted())
     return;
@@ -498,7 +497,7 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
         chars = utf8.constData();
     }
 
-    // Pass the key onto ImGui
+    // Pass the key onto Presenter (for the imgui UI)
     g_presenter->SetKey(key, is_down, chars);
   }
   break;
@@ -529,31 +528,16 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
   }
 }
 
-void RenderWidget::SetImGuiKeyMap()
+void RenderWidget::SetPresenterKeyMap()
 {
-  static std::array<std::array<int, 2>, 21> key_map{{
-      {ImGuiKey_Tab, Qt::Key_Tab},
-      {ImGuiKey_LeftArrow, Qt::Key_Left},
-      {ImGuiKey_RightArrow, Qt::Key_Right},
-      {ImGuiKey_UpArrow, Qt::Key_Up},
-      {ImGuiKey_DownArrow, Qt::Key_Down},
-      {ImGuiKey_PageUp, Qt::Key_PageUp},
-      {ImGuiKey_PageDown, Qt::Key_PageDown},
-      {ImGuiKey_Home, Qt::Key_Home},
-      {ImGuiKey_End, Qt::Key_End},
-      {ImGuiKey_Insert, Qt::Key_Insert},
-      {ImGuiKey_Delete, Qt::Key_Delete},
-      {ImGuiKey_Backspace, Qt::Key_Backspace},
-      {ImGuiKey_Space, Qt::Key_Space},
-      {ImGuiKey_Enter, Qt::Key_Return},
-      {ImGuiKey_Escape, Qt::Key_Escape},
-      {ImGuiKey_A, Qt::Key_A},
-      {ImGuiKey_C, Qt::Key_C},
-      {ImGuiKey_V, Qt::Key_V},
-      {ImGuiKey_X, Qt::Key_X},
-      {ImGuiKey_Y, Qt::Key_Y},
-      {ImGuiKey_Z, Qt::Key_Z},
-  }};
+  static constexpr DolphinKeyMap key_map = {
+      Qt::Key_Tab,    Qt::Key_Left,      Qt::Key_Right, Qt::Key_Up,     Qt::Key_Down,
+      Qt::Key_PageUp, Qt::Key_PageDown,  Qt::Key_Home,  Qt::Key_End,    Qt::Key_Insert,
+      Qt::Key_Delete, Qt::Key_Backspace, Qt::Key_Space, Qt::Key_Return, Qt::Key_Escape,
+      Qt::Key_Enter,  // Keypad enter
+      Qt::Key_A,      Qt::Key_C,         Qt::Key_V,     Qt::Key_X,      Qt::Key_Y,
+      Qt::Key_Z,
+  };
 
   g_presenter->SetKeyMap(key_map);
 }

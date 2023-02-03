@@ -571,7 +571,7 @@ void Presenter::Present()
   g_gfx->EndUtilityDrawing();
 }
 
-void Presenter::SetKeyMap(std::span<std::array<int, 2>> key_map)
+void Presenter::SetKeyMap(const DolphinKeyMap& key_map)
 {
   if (m_onscreen_ui)
     m_onscreen_ui->SetKeyMap(key_map);
