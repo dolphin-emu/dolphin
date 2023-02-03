@@ -31,7 +31,9 @@ constexpr size_t MAX_POKE_VERTICES = 32768;
 
 std::unique_ptr<FramebufferManager> g_framebuffer_manager;
 
-FramebufferManager::FramebufferManager() = default;
+FramebufferManager::FramebufferManager() : m_prev_efb_format(PixelFormat::INVALID_FMT)
+{
+}
 
 FramebufferManager::~FramebufferManager()
 {
