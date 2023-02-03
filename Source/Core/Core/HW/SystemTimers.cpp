@@ -109,10 +109,26 @@ int GetAudioDMACallbackPeriod()
          (Mixer::FIXED_SAMPLE_RATE_DIVIDEND * 4 / 32);
 }
 
+static TimePoint next_audio_update(DT::zero());
+
 void AudioDMACallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  DSP::UpdateAudioDMA();  // Push audio to speakers.
-  system.GetCoreTiming().ScheduleEvent(GetAudioDMACallbackPeriod() - cyclesLate, et_AudioDMA);
+  const TimePoint now = Clock::now();
+
+  if (now > next_audio_update)
+  {
+    DSP::UpdateAudioDMA();  // Push audio to speakers.
+
+    DT max_variance =
+        std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
+    if (now - next_audio_update > max_variance)
+      next_audio_update = now;
+
+    next_audio_update +=
+        std::chrono::duration_cast<DT>(DT_s(GetAudioDMACallbackPeriod()) / GetTicksPerSecond());
+  }
+
+  system.GetCoreTiming().ScheduleEvent(GetAudioDMACallbackPeriod() / 60 - cyclesLate, et_AudioDMA);
 }
 
 void IPC_HLE_UpdateCallback(Core::System& system, u64 userdata, s64 cyclesLate)
