@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+namespace Common
+{
 // A useful template for passing string literals as arguments to templates
 // from: https://ctrpeach.io/posts/cpp20-string-literal-template-parameters/
 template <size_t N>
@@ -14,3 +16,5 @@ struct StringLiteral
 
   char value[N];
 };
+
+}  // namespace Common

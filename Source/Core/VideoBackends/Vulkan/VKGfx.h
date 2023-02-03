@@ -19,7 +19,7 @@ class VKFramebuffer;
 class VKPipeline;
 class VKTexture;
 
-class VKGfx : public ::AbstractGfx
+class VKGfx final : public ::AbstractGfx
 {
 public:
   VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
@@ -77,7 +77,6 @@ public:
   void SetFullscreen(bool enable_fullscreen) override;
   bool IsFullscreen() const override;
 
-  // Returns info about the main surface (aka backbuffer)
   virtual SurfaceInfo GetSurfaceInfo() const override;
 
   // Completes the current render pass, executes the command buffer, and restores state ready for

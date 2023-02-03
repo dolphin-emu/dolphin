@@ -54,7 +54,7 @@ private:
 
   std::unordered_set<std::string> m_groups;
 
-  EventHook m_end_of_frame_event;
+  Common::EventHook m_end_of_frame_event;
 };
 
 extern std::unique_ptr<GraphicsModManager> g_graphics_mod_manager;

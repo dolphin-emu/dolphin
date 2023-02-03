@@ -98,7 +98,7 @@ private:
   std::mutex m_screenshot_lock;
   std::string m_screenshot_name;
 
-  EventHook m_frame_end_handle;
+  Common::EventHook m_frame_end_handle;
 };
 
 extern std::unique_ptr<FrameDumper> g_frame_dumper;

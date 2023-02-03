@@ -123,8 +123,8 @@ struct TCacheEntry
   bool is_efb_copy = false;
   bool is_custom_tex = false;
   bool may_have_overlapping_textures = true;
-  bool has_arbitrary_mips = false;         // indicates that the mips in this texture are arbitrary
-                                           // content, aren't just downscaled
+  // indicates that the mips in this texture are arbitrary content, aren't just downscaled
+  bool has_arbitrary_mips = false;
   bool should_force_safe_hashing = false;  // for XFB
   bool is_xfb_copy = false;
   bool is_xfb_container = false;
@@ -438,7 +438,8 @@ private:
   void OnFrameEnd();
 
   Common::Flag m_force_reload_textures;
-  EventHook m_frame_event = AfterFrameEvent::Register([this] { OnFrameEnd(); }, "TextureCache");
+  Common::EventHook m_frame_event =
+      AfterFrameEvent::Register([this] { OnFrameEnd(); }, "TextureCache");
 };
 
 extern std::unique_ptr<TextureCacheBase> g_texture_cache;

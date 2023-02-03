@@ -18,10 +18,10 @@
 
 Statistics g_stats;
 
-static EventHook s_before_frame_event =
+static Common::EventHook s_before_frame_event =
     BeforeFrameEvent::Register([] { g_stats.ResetFrame(); }, "Statistics::ResetFrame");
 
-static EventHook s_after_frame_event = AfterFrameEvent::Register(
+static Common::EventHook s_after_frame_event = AfterFrameEvent::Register(
     [] {
       DolphinAnalytics::PerformanceSample perf_sample;
       perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();

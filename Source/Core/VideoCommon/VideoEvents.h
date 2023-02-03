@@ -7,16 +7,16 @@
 #include "Common/EventHook.h"
 
 // Called when certain video config setting are changed
-using ConfigChangedEvent = Event<"ConfigChanged", u32>;
+using ConfigChangedEvent = Common::Event<"ConfigChanged", u32>;
 
 // An event called just before the first draw call of a frame
-using BeforeFrameEvent = Event<"BeforeFrame">;
+using BeforeFrameEvent = Common::Event<"BeforeFrame">;
 
 // An event called after the frame XFB copy begins processing on the host GPU.
 // Useful for "once per frame" usecases.
 // Note: In a few rare cases, games do multiple XFB copies per frame and join them while presenting.
 //       If this matters to your usecase, you should use BeforePresent instead.
-using AfterFrameEvent = Event<"AfterFrame">;
+using AfterFrameEvent = Common::Event<"AfterFrame">;
 
 struct PresentInfo
 {
@@ -76,8 +76,8 @@ struct PresentInfo
 // frame.
 //
 // frame_count: The number of frames
-using BeforePresentEvent = Event<"BeforePresent", PresentInfo&>;
+using BeforePresentEvent = Common::Event<"BeforePresent", PresentInfo&>;
 
 // An event that is triggered after a frame is presented.
 // The exact timing of this event depends on backend/driver support.
-using AfterPresentEvent = Event<"AfterPresent", PresentInfo&>;
+using AfterPresentEvent = Common::Event<"AfterPresent", PresentInfo&>;

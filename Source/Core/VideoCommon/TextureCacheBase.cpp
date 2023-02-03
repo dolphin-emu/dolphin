@@ -780,10 +780,10 @@ void TextureCacheBase::OnFrameEnd()
     // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
     // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
     // copies.
-    g_texture_cache->FlushEFBCopies();
+    FlushEFBCopies();
   }
 
-  g_texture_cache->Cleanup(g_presenter->FrameCount());
+  Cleanup(g_presenter->FrameCount());
 }
 
 void TCacheEntry::DoState(PointerWrap& p)

@@ -230,7 +230,7 @@ private:
   std::vector<u32> m_scheduled_command_buffer_kicks;
   bool m_allow_background_execution = true;
 
-  EventHook m_frame_end_event;
+  Common::EventHook m_frame_end_event;
 };
 
 extern std::unique_ptr<VertexManagerBase> g_vertex_manager;

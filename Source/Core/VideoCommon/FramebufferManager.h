@@ -238,7 +238,7 @@ protected:
   std::vector<EFBPokeVertex> m_color_poke_vertices;
   std::vector<EFBPokeVertex> m_depth_poke_vertices;
 
-  EventHook m_end_of_frame_event;
+  Common::EventHook m_end_of_frame_event;
 };
 
 extern std::unique_ptr<FramebufferManager> g_framebuffer_manager;

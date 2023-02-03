@@ -69,7 +69,6 @@ public:
   void BindBackbuffer(const ClearColor& clear_color = {}) override;
   void PresentBackbuffer() override;
 
-  // Returns info about the main surface (aka backbuffer)
   SurfaceInfo GetSurfaceInfo() const override;
 
 private:

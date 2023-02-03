@@ -8,10 +8,13 @@
 
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <vector>
 
+namespace Common
+{
 // A hookable event system.
 
 // Define Events in a header as:
@@ -43,10 +46,13 @@ public:
   using CallbackType = std::function<void(CallbackArgs...)>;
 
 private:
-  struct HookImpl : public HookBase
+  struct HookImpl final : public HookBase
   {
     ~HookImpl() override { Event::Remove(this); }
-    HookImpl(CallbackType callback, std::string name) : m_fn(std::move(callback)), m_name(std::move(name)) {}
+    HookImpl(CallbackType callback, std::string name)
+        : m_fn(std::move(callback)), m_name(std::move(name))
+    {
+    }
     CallbackType m_fn;
     std::string m_name;
   };
@@ -55,6 +61,7 @@ public:
   // Returns a handle that will unregister the listener when destroyed.
   static EventHook Register(CallbackType callback, std::string name)
   {
+    std::lock_guard lock(m_mutex);
     DEBUG_LOG_FMT(COMMON, "Registering {} handler at {} event hook", name, EventName.value);
     auto handle = std::make_unique<HookImpl>(callback, std::move(name));
     m_listeners.push_back(handle.get());
@@ -63,6 +70,7 @@ public:
 
   static void Trigger(const CallbackArgs&... args)
   {
+    std::lock_guard lock(m_mutex);
     for (auto& handle : m_listeners)
       handle->m_fn(args...);
   }
@@ -70,10 +78,12 @@ public:
 private:
   static void Remove(HookImpl* handle)
   {
-    auto it = std::find(m_listeners.begin(), m_listeners.end(), handle);
-    if (it != m_listeners.end())
-      m_listeners.erase(it);
+    std::lock_guard lock(m_mutex);
+    std::erase(m_listeners, handle);
   }
 
   inline static std::vector<HookImpl*> m_listeners = {};
+  inline static std::mutex m_mutex;
 };
+
+}  // namespace Common

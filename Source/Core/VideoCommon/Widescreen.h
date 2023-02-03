@@ -27,8 +27,8 @@ private:
   bool m_is_game_widescreen = false;
   bool m_was_orthographically_anamorphic = false;
 
-  EventHook m_update_widescreen;
-  EventHook m_config_changed;
+  Common::EventHook m_update_widescreen;
+  Common::EventHook m_config_changed;
 };
 
 extern std::unique_ptr<WidescreenManager> g_widescreen;
