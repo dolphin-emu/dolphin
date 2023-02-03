@@ -31,6 +31,8 @@ static float AspectToWidescreen(float aspect)
 
 Presenter::Presenter()
 {
+  m_config_changed =
+      ConfigChangedEvent::Register([this](u32 bits) { ConfigChanged(bits); }, "Presenter");
 }
 
 Presenter::~Presenter()
@@ -176,7 +178,7 @@ void Presenter::SetBackbuffer(SurfaceInfo info)
   UpdateDrawRectangle();
 }
 
-void Presenter::CheckForConfigChanges(u32 changed_bits)
+void Presenter::ConfigChanged(u32 changed_bits)
 {
   // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
   // the post-processor. Note that options are applied every frame, so no need to check those.

@@ -44,7 +44,7 @@ public:
 
   bool Initialize();
 
-  void CheckForConfigChanges(u32 changed_bits);
+  void ConfigChanged(u32 changed_bits);
 
   // Display resolution
   int GetBackbufferWidth() const { return m_backbuffer_width; }
@@ -147,6 +147,8 @@ private:
   u32 m_last_xfb_width = MAX_XFB_WIDTH;
   u32 m_last_xfb_stride = 0;
   u32 m_last_xfb_height = MAX_XFB_HEIGHT;
+
+  Common::EventHook m_config_changed;
 };
 
 }  // namespace VideoCommon
