@@ -608,7 +608,14 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
 static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
 {
   GXPipelineUid out;
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
   memcpy(&out, &in, sizeof(out));  // copy padding
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
   pixel_shader_uid_data* ps = out.ps_uid.GetUidData();
   BlendingState& blend = out.blending_state;
 
@@ -778,7 +785,14 @@ ShaderCache::GetGXPipelineConfig(const GXPipelineUid& config_in)
 static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
 {
   GXUberPipelineUid out;
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
   memcpy(&out, &in, sizeof(out));  // Copy padding
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
   if (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
     out.vertex_format = nullptr;
 

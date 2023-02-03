@@ -17,7 +17,14 @@ CPState g_preprocess_cp_state;
 
 void CopyPreprocessCPStateFromMain()
 {
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
   std::memcpy(&g_preprocess_cp_state, &g_main_cp_state, sizeof(CPState));
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 }
 
 std::pair<std::string, std::string> GetCPRegInfo(u8 cmd, u32 value)
