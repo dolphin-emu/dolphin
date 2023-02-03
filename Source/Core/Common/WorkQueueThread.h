@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <queue>
+#include <string>
 #include <thread>
 
 #include "Common/Event.h"
@@ -19,8 +20,11 @@ template <typename T>
 class WorkQueueThread
 {
 public:
-  WorkQueueThread() = default;
-  WorkQueueThread(std::function<void(T)> function) { Reset(std::move(function)); }
+  WorkQueueThread(std::string name) : m_thread_name(name){};
+  WorkQueueThread(std::function<void(T)> function, std::string name) : m_thread_name(name)
+  {
+    Reset(std::move(function));
+  }
   ~WorkQueueThread() { Shutdown(); }
   void Reset(std::function<void(T)> function)
   {
@@ -139,7 +143,7 @@ public:
 private:
   void ThreadLoop()
   {
-    Common::SetCurrentThreadName("WorkQueueThread");
+    Common::SetCurrentThreadName(m_thread_name.c_str());
 
     while (true)
     {
@@ -166,6 +170,7 @@ private:
   }
 
   std::function<void(T)> m_function;
+  std::string m_thread_name;
   std::thread m_thread;
   std::mutex m_lock;
   std::queue<T> m_items;

@@ -85,7 +85,7 @@ struct CompressAndDumpState_args
 static std::mutex s_save_thread_mutex;
 
 // Queue for compressing and writing savestates to disk.
-static Common::WorkQueueThread<CompressAndDumpState_args> s_save_thread;
+static Common::WorkQueueThread<CompressAndDumpState_args> s_save_thread("Savestate Worker");
 
 // Keeps track of savestate writes that are currently happening, so we don't load a state while
 // another one is still saving. This is particularly important so if you save to a slot and then

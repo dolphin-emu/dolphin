@@ -87,7 +87,7 @@ private:
   // game path -> directories that track it
   QMap<QString, QSet<QString>> m_tracked_files;
   QVector<QString> m_tracked_paths;
-  Common::WorkQueueThread<Command> m_load_thread;
+  Common::WorkQueueThread<Command> m_load_thread{"GameList Tracker"};
   UICommon::GameFileCache m_cache;
   Common::Event m_cache_loaded_event;
   Common::Event m_initial_games_emitted_event;
