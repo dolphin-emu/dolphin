@@ -66,53 +66,57 @@ bool Presenter::Initialize()
 bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
   ReleaseXFBContentLock();
+  u64 old_xfb_id = m_last_xfb_id;
 
-  m_xfb_entry =
-      g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &m_xfb_rect);
-  bool is_duplicate = m_xfb_entry->id == m_last_xfb_id;
+  if (fb_width == 0 || fb_height == 0)
+  {
+    // Game is blanking the screen
+    m_xfb_entry.reset();
+    m_last_xfb_id = std::numeric_limits<u64>::max();
+  }
+  else
+  {
+    m_xfb_entry =
+        g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &m_xfb_rect);
+    m_last_xfb_id = m_xfb_entry->id;
 
-  m_xfb_entry->AcquireContentLock();
-
+    m_xfb_entry->AcquireContentLock();
+  }
   m_last_xfb_addr = xfb_addr;
   m_last_xfb_ticks = ticks;
   m_last_xfb_width = fb_width;
   m_last_xfb_stride = fb_stride;
   m_last_xfb_height = fb_height;
-  m_last_xfb_id = m_xfb_entry->id;
 
-  return !is_duplicate;
+  return old_xfb_id == m_last_xfb_id;
 }
 
 void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
-  bool unique = FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
+  bool is_duplicate = FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
 
   PresentInfo present_info;
   present_info.emulated_timestamp = ticks;
-  if (unique)
-  {
-    present_info.frame_count = m_frame_count++;
-    present_info.reason = PresentInfo::PresentReason::VideoInterface;
-  }
-  else
+  present_info.present_count = m_present_count++;
+  if (is_duplicate)
   {
     present_info.frame_count = m_frame_count - 1;  // Previous frame
     present_info.reason = PresentInfo::PresentReason::VideoInterfaceDuplicate;
   }
-  present_info.present_count = m_present_count;
+  else
+  {
+    present_info.frame_count = m_frame_count++;
+    present_info.reason = PresentInfo::PresentReason::VideoInterface;
+  }
 
   BeforePresentEvent::Trigger(present_info);
 
-  if (unique || !g_ActiveConfig.bSkipPresentingDuplicateXFBs)
+  if (!is_duplicate || !g_ActiveConfig.bSkipPresentingDuplicateXFBs)
   {
     Present();
     ProcessFrameDumping(ticks);
 
     AfterPresentEvent::Trigger(present_info);
-  }
-  else
-  {
-    g_gfx->Flush();
   }
 }
 
@@ -121,7 +125,7 @@ void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_
   FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
 
   PresentInfo present_info;
-  present_info.emulated_timestamp = ticks;
+  present_info.emulated_timestamp = ticks;  // TODO: This should be the time of the next VI field
   present_info.frame_count = m_frame_count++;
   present_info.reason = PresentInfo::PresentReason::Immediate;
   present_info.present_count = m_present_count++;
@@ -136,7 +140,7 @@ void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_
 
 void Presenter::ProcessFrameDumping(u64 ticks) const
 {
-  if (g_frame_dumper->IsFrameDumping())
+  if (g_frame_dumper->IsFrameDumping() && m_xfb_entry)
   {
     MathUtil::Rectangle<int> target_rect;
     if (!g_ActiveConfig.bInternalResolutionFrameDumps && !g_gfx->IsHeadless())
