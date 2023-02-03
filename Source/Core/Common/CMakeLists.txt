@@ -46,7 +46,6 @@ add_library(common
   EnumFormatter.h
   EnumMap.h
   Event.h
-  EventHook.h
   FatFsUtil.cpp
   FatFsUtil.h
   FileSearch.cpp
@@ -63,6 +62,7 @@ add_library(common
   GekkoDisassembler.h
   Hash.cpp
   Hash.h
+  HookableEvent.h
   HttpRequest.cpp
   HttpRequest.h
   Image.cpp

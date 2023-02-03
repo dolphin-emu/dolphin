@@ -19,7 +19,7 @@ namespace Common
 
 // Define Events in a header as:
 //
-//     using MyLoveyEvent = Event<"My lovely event", std::string>;
+//     using MyLoveyEvent = HookableEvent<"My lovely event", std::string>;
 //
 // Register listeners anywhere you need them as:
 //    EventHook myHook = MyLoveyEvent::Register([](std::string foo) {
@@ -40,7 +40,7 @@ struct HookBase
 using EventHook = std::unique_ptr<HookBase>;
 
 template <StringLiteral EventName, typename... CallbackArgs>
-class Event
+class HookableEvent
 {
 public:
   using CallbackType = std::function<void(CallbackArgs...)>;
@@ -48,7 +48,7 @@ public:
 private:
   struct HookImpl final : public HookBase
   {
-    ~HookImpl() override { Event::Remove(this); }
+    ~HookImpl() override { HookableEvent::Remove(this); }
     HookImpl(CallbackType callback, std::string name)
         : m_fn(std::move(callback)), m_name(std::move(name))
     {

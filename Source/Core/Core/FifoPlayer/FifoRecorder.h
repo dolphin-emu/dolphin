@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
-#include "Common/EventHook.h"
+#include "Common/HookableEvent.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 
 class FifoRecorder
