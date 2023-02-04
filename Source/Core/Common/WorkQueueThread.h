@@ -8,6 +8,7 @@
 #include <functional>
 #include <queue>
 #include <string>
+#include <string_view>
 #include <thread>
 
 #include "Common/Thread.h"
@@ -21,19 +22,19 @@ class WorkQueueThread
 {
 public:
   WorkQueueThread() = default;
-  WorkQueueThread(const std::string name, std::function<void(T)> function)
+  WorkQueueThread(const std::string_view name, std::function<void(T)> function)
   {
-    Reset(std::move(name), std::move(function));
+    Reset(name, std::move(function));
   }
   ~WorkQueueThread() { Shutdown(); }
 
   // Shuts the current work thread down (if any) and starts a new thread with the given function
   // Note: Some consumers of this API push items to the queue before starting the thread.
-  void Reset(const std::string& name, std::function<void(T)> function)
+  void Reset(const std::string_view name, std::function<void(T)> function)
   {
     Shutdown();
     std::lock_guard lg(m_lock);
-    m_thread_name = std::move(name);
+    m_thread_name = name;
     m_shutdown = false;
     m_function = std::move(function);
     m_thread = std::thread(&WorkQueueThread::ThreadLoop, this);
@@ -59,7 +60,7 @@ public:
     if (m_shutdown)
       return;
 
-    m_items.push(item);
+    m_items.push(std::move(item));
     m_idle = false;
     m_worker_cond_var.notify_one();
   }
@@ -122,7 +123,7 @@ public:
     m_wait_cond_var.wait(lg, [&] { return m_idle; });
   }
 
-  // For the worker to check if it should abort it's work early.
+  // If the worker polls IsCanceling(), it can abort its work when Cancelling
   bool IsCancelling() const { return m_cancelling.load(); }
 
 private:
