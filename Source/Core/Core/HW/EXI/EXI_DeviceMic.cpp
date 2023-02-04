@@ -200,7 +200,7 @@ CEXIMic::CEXIMic(int index)
     : slot(index)
 #ifdef _WIN32
       ,
-      m_work_queue([](const std::function<void()>& func) { func(); }, "Mic Worker")
+      m_work_queue("Mic Worker", [](const std::function<void()>& func) { func(); })
 #endif
 {
   m_position = 0;

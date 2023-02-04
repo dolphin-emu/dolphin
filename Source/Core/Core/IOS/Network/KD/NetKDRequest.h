@@ -54,7 +54,7 @@ private:
 
   NWC24::NWC24Config config;
   NWC24::NWC24Dl m_dl_list;
-  Common::WorkQueueThread<AsyncTask> m_work_queue{"WiiConnect24 Worker"};
+  Common::WorkQueueThread<AsyncTask> m_work_queue;
   std::mutex m_async_reply_lock;
   std::queue<AsyncReply> m_async_replies;
   // TODO: Maybe move away from Common::HttpRequest?

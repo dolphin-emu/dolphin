@@ -20,19 +20,20 @@ template <typename T>
 class WorkQueueThread
 {
 public:
-  WorkQueueThread(std::string name) : m_thread_name(name){};
-  WorkQueueThread(std::function<void(T)> function, std::string name) : m_thread_name(name)
+  WorkQueueThread() = default;
+  WorkQueueThread(const std::string name, std::function<void(T)> function)
   {
-    Reset(std::move(function));
+    Reset(std::move(name), std::move(function));
   }
   ~WorkQueueThread() { Shutdown(); }
 
   // Shuts the current work thread down (if any) and starts a new thread with the given function
   // Note: Some consumers of this API push items to the queue before starting the thread.
-  void Reset(std::function<void(T)> function)
+  void Reset(const std::string& name, std::function<void(T)> function)
   {
     Shutdown();
     std::lock_guard lg(m_lock);
+    m_thread_name = std::move(name);
     m_shutdown = false;
     m_function = std::move(function);
     m_thread = std::thread(&WorkQueueThread::ThreadLoop, this);

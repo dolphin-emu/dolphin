@@ -85,7 +85,7 @@ struct CompressAndDumpState_args
 static std::mutex s_save_thread_mutex;
 
 // Queue for compressing and writing savestates to disk.
-static Common::WorkQueueThread<CompressAndDumpState_args> s_save_thread("Savestate Worker");
+static Common::WorkQueueThread<CompressAndDumpState_args> s_save_thread;
 
 // Keeps track of savestate writes that are currently happening, so we don't load a state while
 // another one is still saving. This is particularly important so if you save to a slot and then
@@ -724,7 +724,7 @@ void Init()
   if (lzo_init() != LZO_E_OK)
     PanicAlertFmtT("Internal LZO Error - lzo_init() failed");
 
-  s_save_thread.Reset([](CompressAndDumpState_args args) {
+  s_save_thread.Reset("Savestate Worker", [](CompressAndDumpState_args args) {
     CompressAndDumpState(args);
 
     {

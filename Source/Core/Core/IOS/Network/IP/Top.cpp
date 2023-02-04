@@ -65,7 +65,7 @@ enum SOResultCode : s32
 NetIPTopDevice::NetIPTopDevice(Kernel& ios, const std::string& device_name)
     : Device(ios, device_name)
 {
-  m_work_queue.Reset([this](AsyncTask task) {
+  m_work_queue.Reset("Network Worker", [this](AsyncTask task) {
     const IPCReply reply = task.handler();
     {
       std::lock_guard lg(m_async_reply_lock);
