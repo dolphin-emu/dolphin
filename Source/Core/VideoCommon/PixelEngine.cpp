@@ -111,7 +111,8 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                      return system.GetVideo().GetQueryResult(pq_reg.pqtype) & 0xFFFF;
                    }),
                    MMIO::InvalidWrite<u16>());
-    mmio->Register(base | (pq_reg.addr + 2), MMIO::ComplexRead<u16>([pq_reg](Core::System& system, u32) {
+    mmio->Register(base | (pq_reg.addr + 2),
+                   MMIO::ComplexRead<u16>([pq_reg](Core::System& system, u32) {
                      return system.GetVideo().GetQueryResult(pq_reg.pqtype) >> 16;
                    }),
                    MMIO::InvalidWrite<u16>());

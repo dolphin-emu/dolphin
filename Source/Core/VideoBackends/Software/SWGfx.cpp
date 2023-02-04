@@ -18,7 +18,8 @@
 
 namespace SW
 {
-SWGfx::SWGfx(VideoBackendBase* backend, std::unique_ptr<SWOGLWindow> window) : AbstractGfx(backend), m_window(std::move(window))
+SWGfx::SWGfx(VideoBackendBase* backend, std::unique_ptr<SWOGLWindow> window)
+    : AbstractGfx(backend), m_window(std::move(window))
 {
 }
 

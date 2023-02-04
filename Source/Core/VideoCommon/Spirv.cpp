@@ -18,7 +18,6 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-
 namespace
 {
 bool InitializeGlslang()
