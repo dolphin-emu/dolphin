@@ -93,6 +93,7 @@ public:
   // Tells the worker to shut down when it's queue is empty
   // Blocks until the worker thread exits.
   // If cancel is true, will Cancel before before telling the worker to exit
+  // Otherwise, all currently queued items will complete before the worker exits
   void Shutdown(bool cancel = false)
   {
     {
@@ -117,10 +118,13 @@ public:
   void WaitForCompletion()
   {
     std::unique_lock lg(m_lock);
-    if (m_idle)  // Only check m_idle, we want this to work even another thread called Shutdown
+    // don't check m_shutdown, because it gets set to request a shutdown, and we want to wait until
+    // after the shutdown completes.
+    // We also check m_cancelling, because we want to ensure the worker acknowledges our cancel.
+    if (m_idle && !m_cancelling.load())
       return;
 
-    m_wait_cond_var.wait(lg, [&] { return m_idle; });
+    m_wait_cond_var.wait(lg, [&] { return m_idle && m_cancelling.load(); });
   }
 
   // If the worker polls IsCanceling(), it can abort its work when Cancelling
@@ -134,17 +138,16 @@ private:
     while (true)
     {
       std::unique_lock lg(m_lock);
-      if (m_items.empty())
+      while (m_items.empty())
       {
         m_idle = true;
         m_cancelling = false;
         m_wait_cond_var.notify_all();
+        if (m_shutdown)
+          return;
+
         m_worker_cond_var.wait(
             lg, [&] { return m_shutdown || m_cancelling.load() || !m_items.empty(); });
-
-        if (m_shutdown)
-          break;
-        continue;
       }
       T item{std::move(m_items.front())};
       m_items.pop();
