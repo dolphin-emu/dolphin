@@ -147,7 +147,7 @@ private:
           return;
 
         m_worker_cond_var.wait(
-            lg, [&] { return m_shutdown || m_cancelling.load() || !m_items.empty(); });
+            lg, [&] { return !m_items.empty() || m_shutdown || m_cancelling.load(); });
       }
       T item{std::move(m_items.front())};
       m_items.pop();
