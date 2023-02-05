@@ -7,25 +7,43 @@
 #define DIR_SEP "/"
 #define DIR_SEP_CHR '/'
 
-// The user data dir
+// The current working directory
 #define ROOT_DIR "."
+
+// The normal user directory
+#ifndef STEAM
 #ifdef _WIN32
-#define USERDATA_DIR "User"
-#define DOLPHIN_DATA_DIR "Dolphin"
-#elif defined __APPLE__
-// On OS X, USERDATA_DIR exists within the .app, but *always* reference
-// the copy in Application Support instead! (Copied on first run)
-// You can use the File::GetUserPath() util for this
-#define USERDATA_DIR "Contents/Resources/User"
-#define DOLPHIN_DATA_DIR "Library/Application Support/Dolphin"
-#elif defined ANDROID
-#define USERDATA_DIR "user"
-#define DOLPHIN_DATA_DIR "/sdcard/dolphin-emu"
-#define NOMEDIA_FILE ".nomedia"
+#define NORMAL_USER_DIR "Dolphin Emulator"
+#elif defined(__APPLE__)
+#define NORMAL_USER_DIR "Library/Application Support/Dolphin"
+#elif defined(ANDROID)
+#define NORMAL_USER_DIR "/sdcard/dolphin-emu"
 #else
-#define USERDATA_DIR "user"
-#define DOLPHIN_DATA_DIR "dolphin-emu"
+#define NORMAL_USER_DIR "dolphin-emu"
 #endif
+#else  // ifndef STEAM
+#ifdef _WIN32
+#define NORMAL_USER_DIR "Dolphin Emulator (Steam)"
+#elif defined(__APPLE__)
+#define NORMAL_USER_DIR "Library/Application Support/Dolphin (Steam)"
+#else
+#define NORMAL_USER_DIR "dolphin-emu-steam"
+#endif
+#endif
+
+// The portable user directory
+#ifdef _WIN32
+#define PORTABLE_USER_DIR "User"
+#elif defined(__APPLE__)
+#define PORTABLE_USER_DIR "User"
+#define EMBEDDED_USER_DIR "Contents/Resources/User"
+#else
+#define PORTABLE_USER_DIR "user"
+#define EMBEDDED_USER_DIR PORTABLE_USER_DIR
+#endif
+
+// Flag file to prevent media scanning from indexing a directory
+#define NOMEDIA_FILE ".nomedia"
 
 // Dirs in both User and Sys
 // Legacy setups used /JAP/ while newer setups use /JPN/ by default.
