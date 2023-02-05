@@ -43,3 +43,9 @@ async def memorybreakpoint() -> (bool, int, int):
     """
     Awaitable event that completes once a previously added memory breakpoint is hit.
     """
+
+
+def system_reset() -> None:
+    """
+    Resets the emulation.
+    """

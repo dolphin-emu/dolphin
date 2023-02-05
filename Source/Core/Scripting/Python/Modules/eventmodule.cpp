@@ -10,6 +10,8 @@
 
 #include "Common/Logging/Log.h"
 #include "Core/API/Events.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/Movie.h"
 
 #include "Scripting/Python/coroutine.h"
 #include "Scripting/Python/Utils/convert.h"
@@ -311,6 +313,15 @@ static PyObject* Reset(PyObject* module)
   Py_RETURN_NONE;
 }
 
+static PyObject* SystemReset(PyObject* self)
+{
+  // Copy from DolphinQt/MainWindow.cpp: MainWindow::Reset()
+  if (Movie::IsRecordingInput())
+    Movie::SetReset(true);
+  ProcessorInterface::ResetButton_Tap();
+  Py_RETURN_NONE;
+}
+
 PyMODINIT_FUNC PyInit_event()
 {
   static PyMethodDef methods[] = {
@@ -321,6 +332,7 @@ PyMODINIT_FUNC PyInit_event()
       Py::MakeMethodDef<PyCodeBreakpointEvent::SetCallback>("on_codebreakpoint"),
       Py::MakeMethodDef<PyFrameDrawnEvent::SetCallback>("on_framedrawn"),
       Py::MakeMethodDef<Reset>("_dolphin_reset"),
+      Py::MakeMethodDef<SystemReset>("system_reset"),
 
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
