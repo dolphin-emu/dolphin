@@ -650,34 +650,6 @@ u32 offsetToAddr(u32 offset, bool considerAram)
   return offset;
 }
 
-void readRange(void* data, u32 address, size_t size, bool withBSwap)
-{
-  if(withBSwap)
-  {
-    switch(size)
-	 {
-	 case 2:
-	   Core::System::GetInstance().GetMemory().CopyFromEmu(
-				reinterpret_cast<u16*>(data),
-				address, size);
-		break;
-	 case 4:
-	   Core::System::GetInstance().GetMemory().CopyFromEmu(
-				reinterpret_cast<u32*>(data),
-				address, size);
-		break;
-	 case 8:
-	   Core::System::GetInstance().GetMemory().CopyFromEmu(
-				reinterpret_cast<u64*>(data),
-				address, size);
-		break;
-	 }
-  }
-  else
-	 Core::System::GetInstance().GetMemory().CopyFromEmu(data, address, size);
-  return;
-}
-
 void readFromRAM(void* data, u32 address, size_t size, bool withBSwap)
 {
   if(withBSwap)
@@ -685,24 +657,24 @@ void readFromRAM(void* data, u32 address, size_t size, bool withBSwap)
     switch(size)
 	 {
 	 case 2:
-	   Core::System::GetInstance().GetMemory().CopyFromEmu(
+		std::memcpy(
 				reinterpret_cast<u16*>(data),
-				address, size);
+				(void*) address, size);
 		break;
 	 case 4:
-	   Core::System::GetInstance().GetMemory().CopyFromEmu(
+		std::memcpy(
 				reinterpret_cast<u32*>(data),
-				address, size);
+				(void*) address, size);
 		break;
 	 case 8:
-	   Core::System::GetInstance().GetMemory().CopyFromEmu(
+		std::memcpy(
 				reinterpret_cast<u64*>(data),
-				address, size);
+				(void*) address, size);
 		break;
 	 }
   }
   else
-	 Core::System::GetInstance().GetMemory().CopyFromEmu(data, address, size);
+	 std::memcpy(data, (void*) address, size);
   return;
 }
 
@@ -713,24 +685,24 @@ void writeToRAM(void* data, u32 address, size_t size, bool withBSwap)
     switch(size)
 	 {
 	 case 2:
-	   Core::System::GetInstance().GetMemory().CopyToEmu(address,
+		 std::memcpy((void*) address,
 				reinterpret_cast<u16*>(data),
 				size);
 		break;
 	 case 4:
-	   Core::System::GetInstance().GetMemory().CopyToEmu(address,
+	   std::memcpy((void*) address,
 				reinterpret_cast<u32*>(data),
 				size);
 		break;
 	 case 8:
-	   Core::System::GetInstance().GetMemory().CopyToEmu(address,
+	   std::memcpy((void*) address,
 				reinterpret_cast<u64*>(data),
 				size);
 		break;
 	 }
   }
   else
-	 Core::System::GetInstance().GetMemory().CopyToEmu(address, data, size);
+	 std::memcpy((void*) address, data, size);
   return;
 }
 
@@ -739,14 +711,18 @@ void readAllRAM(void *data)
   Memory::MemoryManager& mem = Core::System::GetInstance().GetMemory();
   if(mem.GetFakeVMEM())
   {
-    mem.CopyFromEmu(data, (size_t) mem.GetFakeVMEM(), mem.GetFakeVMemSize());
+    std::memcpy(data, mem.GetFakeVMEM(), mem.GetFakeVMemSize());
 	 data = (u8*) data + mem.GetFakeVMemSize();
   }
-  mem.CopyFromEmu(data, (size_t) mem.GetRAM(), mem.GetRamSizeReal());
+  if(mem.GetRAM())
+  {
+    std::memcpy(data, mem.GetRAM(), mem.GetRamSizeReal());
+	 data = (u8*) data + mem.GetRamSizeReal();
+  }
   if(mem.GetEXRAM())
   {
     data = (u8*) data + mem.GetRamSizeReal();
-	 mem.CopyFromEmu(data, (size_t) mem.GetEXRAM(), mem.GetExRamSizeReal());
+	 std::memcpy(data, mem.GetEXRAM(), mem.GetExRamSizeReal());
   }
 }
 } // namespace Common
