@@ -1,0 +1,188 @@
+memory class:
+
+	Number readFrom(Integer address, String typeString)
+		Reads from the specified type from the specified address, and returns the result.
+
+	nluatable readUnsignedBytes(Integer address, Integer numBytes)
+		Returns an array of unsigned bytes (of length numBytes) starting from the specified address.
+
+	nluatable readSignedBytes(Integer address, Integer numBytes)
+		Returns an array of signed bytes (of length numBytes) starting from the specified address.
+
+	string readFixedLengthString(Integer address, Integer stringLength)
+		Returns a string (of length stringLength) starting from the specified address.
+
+	string readNullTerminatedString(Integer address)
+		Returns a string which starts at the specified address and ends witl the null terminator character.
+
+	void writeTo(Integer address, String typeString, Number value)
+		Writes value to the specified address. The typeString determines what type value is treated as having (which can be an integer or floating point type).
+
+	void writeBytes(nluatable byteArray)
+		byteArray is a table whose keys are addresses, and whose values are byteValues. The function writes the byteValues to the specified addresses.
+
+	void writeString(Integer address, String stringToWrite)
+		Writes the specified string to the specified address.
+
+-----------------------------------------------------------------------------------------------------------
+
+bit class:
+
+	Integer bitwise_and(Integer integer1, Integer integer2)
+		Performs a bitwise AND of integer1 and integer2, and returns the resulting Integer.
+
+	Integer bitwise_or(Integer integer1, Integer integer2)
+		Performs a bitwise OR of integer1 and integer2, and returns the resulting Integer.
+
+	Integer bitwise_not(Integer inputInteger)
+		Performs a bitwise NOT of the Integer passed into the function, and returns the resulting Integer.
+
+	Integer bitwise_xor(Integer integer1, Integer integer2)
+		Performs a bitwise XOR of integer1 and integer2, and returns the resulting Integer.
+
+	Boolean logical_and(Integer integer1, Integer integer2)
+		Performs a logical AND of integer1 and integer2, and returns the resulting Boolean.
+
+	Boolean logical_or(Integer integer1, Integer integer2)
+		Performs a logical OR of integer1 and integer2, and returns the resulting Boolean.
+
+	Boolean logical_xor(Integer integer1, Integer integer2)
+		Performs a logical XOR of integer1 and integer2, and returns the resulting Boolean.
+
+	Boolean logical_not(Integer exampleInteger)
+		Performs a logical NOT of the integer passed into the function, and returns the resulting Boolean.
+
+	Integer bit_shift_left(Integer integer1, Integer shiftAmount)
+		Performs a bit shift left on integer1 by shiftAmount. Note that both arguments must be positive integers.
+
+	Integer bit_shift_right(Integer integer1, Integer shiftAmount)
+		Performs a bit shift right on integer1 by shiftAmount. Note that both arguments must be positive integers.
+
+---------------------------------------------------------------------------------------------------------------
+
+emu class:
+
+	void frameAdvance()
+		Frame advances forwards by one frame. This is the main function that appears in the while loop of Lua programs. A sample Dolphin Lua program looks like:
+		while (true) do
+			# code to check variables and other logic
+			emu:frameAdvance()
+		end
+
+	void loadState(String stateFileName)
+		Loads the save state specified by stateFileName on the current frame.
+
+	void saveState(String stateFileName)
+		Creates a save state for the current frame which has the file name specified by stateFileName.
+
+	void playMovie(String movieFileName)
+		Starts playing the movie specified by movieFileName
+
+	void saveMovie(String movieFileName)
+		Creates a movie file on the current frame with the file name specified by movieFileName (includes all inputs up to the current frame, assuming Dolphin is in movie_recording mode).
+
+--------------------------------------------------------------------------------------------------------------
+
+gc_controller class:
+
+NOTE: On a give frame, execution will happen in the following order (0, 1, 2 or all of the below steps may occur, depending on which of the functions the user has called). Also, each of these 3 steps will overwrite any movie inputs (if a movie is currently playing back). That way, when the user goes to save the movie, it will include the updated inputs that actually happened on each frame. Furthermore, each function call in this class only affects what will happen on the next frame. As such, these need to be included in the main while loop of the lua program in order to apply on each frame:
+
+1. If setInputs() was called, then the inputs will be set to the values the user specified.
+2. If addInputs() was called, these additional inputs will now be added on to whatever the current inputs were.
+3. Any input-probability functions will now be executed in the order that they were originally called. Note that it is guaranteed that the same inputs will be written during 1 frame for a given controller, even if the controller is polled multiple times in 1 frame.
+
+	void setInputs(Integer controllerPortNumber, nluatable controllerValuesTable)
+		This function sets the specified controller port to have the inputs specified by the controllerValuesTable. This assumes that a GameCube controller is plugged into the specified port. Also note that the controller's inputs won't actually be set until a frame advance occurs. This occurs before any addInput() or input-probability functions are applied to a controller. Try using getControllerInputs() to see what this table of controller inputs should look like. Note that if a button is not included in the table, it will be set to its default value (false for button presses, 0 for triggers, and 128X128 for controll stick positions).
+
+	void addInputs(Integer controllerPortNumber, nluatable controllerValuesTable)
+		This function sets the specified controller port to have the inputs specified by the controllerValuesTable. This assumes that a GameCube controller  is plugged into the specified port. Also note that the inputs won't be added to the controller until a frame advance occurs. This occurs after a call to setInput() but before any input-probability functions are applied to a controller. Try using getControllerInputs() to see what this table of controller inputs should look like. Note that if a button is not included in the table, then the value of the button will remain unchanged from its original value (unlike the setInputs() function).
+
+	void addButtonFlipChance(Integer controllerPortNumber, Number probability, String buttonName)
+		This function adds a random chance (specified as probability, which is between 0 and 100) that the button specified by buttonName will be flipped on the controller specified by controllerPortNumber (i.e. a button which is set to pressed will be released, or a button which isn't being pressed will be set to pressed). This occurs after any call to addInput() or setInput(). Try using getControllerInputs() to see the name of each button (but note that only buttons which have a boolean value as their datatype are valid arguments for this function).
+
+	void addButtonPressChance(Integer controllerPortNumber, Number probability, String buttonName)
+		This function adds a random chance (specified as probability, which is between 0 and 100) that the button specified by buttonName will be set to pressed on the controller specified by controllerPortNumber. This occurs after any call to addInput() or setInput(). Try using getControllerInputs() to see the name of each button (but note that only buttons which have a boolean value as their datatype are valid arguments for this function).
+
+	void addButtonReleaseChance(Integer controllerPortNumber, Number probability, String buttonName)
+		This function adds a random chance (specified as probability, which is between 0 and 100) that the button specified by buttonName will be set to released/not pressed on the controller specified by controllerPortNumber. This occurs after any call to addInput() or setInput(). Try using getControllerInputs() to see the name of each button (but note that only buttons which have a boolean value as their datatype are valid arguments for this function).
+
+	void addOrSubtractFromCurrentAnalogValueChance(Integer controllerPortNumber, Number probability, String buttonName, Integer lowerMagnitudeDifference, [optional] Integer upperMagnitudeDifference)
+		This function adds a random chance (specified as probability, which is between 0 and 100) that the analog trigger/stick specified by buttonName will be altered from its current value by a random amount on the controller specified by controllerPortNumber. This occurs after any call to addInput() or setInput(). If the last argument is omitted, then the lowerMagnitudeDifference parameter will represent how much above and below the current value the input can be altered by. Otherwise, lowerMagnitudeDifference will represent how much lower the input could possibly be, and upperMagnitudeDifference will represent how much higher the input could possibly be. It is purely random chance which number between the lower bound and the upper bound is selected as the final value of the input. Note that this function can only be called for analog buttons (buttons which have an Integer as their datatype).
+
+	void addOrSubtractFromSpecificAnalogValueChance(Integer controllerPortNumber, Number probability, String buttonName, Integer analogBaseValue, Integer lowerMagnitudeDifference, [optional] Integer upperMagnitudeDifference)
+		This function adds a random chance (specified as probability, which is between 0 and 100) that the analog trigger/stick specified by buttonName will be set to analogBaseValue and then altered by a random amount between the lower and upper magnitude differences on the controller specified by controllerPortNumber. This occurs after any call to addInput() or setInput() If the last argument is omitted, then the lowerMagnitudeDifference parameter will represent how much above and below the value can be altered from the base analog value by. Otherwise, lowerMagnitudeDifference will represent how much lower than the specified value the input can possibly be, and upperMagnitudeDifference will represent how much higher the input could possibly be.  It  is purely random chance which number between the lower and upper bounds is selected as the final value of the input. Note that this function can only be called for analog buttons (buttons which have an Integer as their datatype).
+
+	void addButtonComboChance(Integer controllerPortNumber, double probability, Boolean setOtherButtonsToBlank, nluatable buttonsTable)
+		This function adds a random chance (specified as probability, which is between 0 and 100) that the controller specified by controllerPortNumber will have its buttons set to the corresponding values in buttonsTable. This function occurs after setInput() and addInput(). If setOtherButtonsToBlank is true, then any button names not included in the table will be set to their default values (not pressed for buttons, 0 for triggers, and 128X128 for sticks). Otherwise, buttons not specified by the table will keep their original values.
+
+	void addControllerClearChance(Integer controllerPortNumber, double probability)
+		This function adds a random chance (specified as probability, which is between 0 and 100) that the controller specified by controllerPortNumber will have all of its buttons set to their default values (released for buttons, 0 for triggers, and 128X128 for sticks). This function occurs after setInput() and addInput().
+
+	nluatable getControllerInputs(Integer controllerPortNumber)
+		This function returns a table which has button names as keys and button values as values for the controller specified by controllerPortNumber. Note that this shows what buttons are being pressed on the controller, and not what inputs will be read out (in the case where a movie is being played back).
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+registers class:
+
+NOTE: The only register names which are currently supported are r0-r31, f0-f31, pc and lr (the return address of function calls).
+
+	Number getRegister(String registerName, String returnNumberType, [optional] Integer offsetBytes)
+		This function gets the Number stored in the register specified by registerName, and returns it as the number type specified by returnNumberType. There is also an optional parameter called offsetBytes, which specified how many bytes to skip before reading the value (if this parameter is left blank, it defaults to 0).
+
+	nluatable getRegisterAsUnsignedByteArray(String registerName, Integer arraySize, [optional] Integer offsetBytes)
+		This function returns a lua table which contains the bytes of the register specified by registerName. The table will be arraySize bytes long, and each byte of the register will be treated as an unsigned byte. If the optional parameter offsetBytes is set, then the number of bytes specified by offsetBytes will be skipped at the start of the register (this value defaults to 0 if not set).
+
+	nluatable getRegisterAsSignedByteArray(String registerName, Integer arraySize, [optional] Integer offsetBytes)
+		This function returns a lua table which contains the bytes of the register specified by registerName. The table will be arraySize bytes long, and each byte of the register will be treated as a signed byte. If the optional parameter offsetBytes is set, then the number of bytes specified by offsetBytes will be skipped at the start of the register (this value defaults to 0 if not set).
+
+	void setRegister(String registerName, String valueType, Number value, [optional] Integer offsetBytes)
+		This function sets the register specified by registerName to have the value specified by the parameter value. Value is treated as having the type/size specified by valueType. If offsetBytes is set, then the first offsetBytes bytes of the register will be skipped (this value defaults to 0, if not set).
+
+	void setRegisterFromByteArray(String registerName, nluatable byteTable, [optional] Integer offsetBytes)
+		This function sets the register specified by registerName to have the values specified by the byteTable (each byte of the register is set in the same order as the bytes of the table are encountered). If offsetBytes is set, then the first offsetBytes bytes of the register will be skipped (this value defualts to 0 if not set).
+
+-----------------------------------------------------------------------------------------------------------------
+	
+statistics class:
+
+	Boolean isRecordingInput()
+		Returns true if Dolphin is in movie-recording mode, and false otherwise.
+
+	Boolean isRecordingInputFromSaveState()
+		Returns true if Dolphin is recording a movie which starts from a save state, and false otherwise.
+
+	Boolean isPlayingInput()
+		Returns true if Dolphin is playing back a movie, and false otherwise.
+
+	Boolean isMovieActive()
+		Returns true if Dolphin is recording a movie or playing a movie back, and false otherwise.
+
+	Integer getCurrentFrame()
+		Returns the current frame number.
+
+	Integer getMovieLength()
+		Returns the number of frames in the currently-playing movie.
+
+	Integer getRerecordCount()
+		Returns the number of rerecords for the current movie.
+
+	Integer getCurrentInputCount()
+		Returns the number of input frames that have occured from the start of the movie up to the current frame.
+
+	Integer getTotalInputCount()
+		Returns the total number of input frames that occur over the whole movie (from start to finish).
+
+	Integer getCurrentLagCount()
+		Returns the number of lag frames that have occured from the start of the movie up to the current frame.
+
+	Integer getTotalLagCount()
+		Returns the number of lag frames that occur over the whole movie (from start to finish).
+
+	Boolean isGcControllerInPort(Integer controllerPortNumber)
+		Returns true if a GameCube controller is plugged into the port specified by controllerPortNumber, and returns false otherwise.
+
+	Boolean isUsingPort(Integer controllerPortNumber)
+		Returns true if some controller is plugged into the port specified by controllerPortNumber, and returns false otherwise.
+
+-----------------------------------------------------------------------------------------------------------------
