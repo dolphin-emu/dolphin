@@ -124,6 +124,7 @@ void LuaScriptWindow::updateOutputWindow()
   size_t outputSize = outputLines.size();
   for (size_t i = 0; i < outputSize; ++i)
     list << QString::fromStdString(outputLines[i]);
+  lua_output_list_widget_ptr->clear();
   lua_output_list_widget_ptr->insertItems(0, list);
   lua_output_list_widget_ptr->setSpacing(1);
 }

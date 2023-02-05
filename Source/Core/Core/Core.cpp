@@ -62,8 +62,9 @@
 #include "Core/Host.h"
 #include "Core/IOS/IOS.h"
 #include "Core/Lua/Lua.h"
-#include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
+#include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
+#include "Core/Lua/LuaHelperClasses/LuaGameCubeButtonProbabilityClasses.h"
 #include "Core/MemTools.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
@@ -136,6 +137,8 @@ static thread_local bool tls_is_cpu_thread = false;
 static thread_local bool tls_is_gpu_thread = false;
 
 static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi);
+
+static bool wasRngSeedCalled = false;
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -875,6 +878,11 @@ void Callback_FramePresented(double actual_emulation_speed)
 // Called from VideoInterface::Update (CPU thread) at emulated field boundaries
 void Callback_NewField()
 {
+  if (!wasRngSeedCalled)
+  {
+    LuaGameCubeButtonProbabilityEvent::setRngSeeding();
+    wasRngSeedCalled = true;
+  }
 
   if (Lua::luaScriptActive && !Lua::LuaEmu::waitingForSaveStateLoad && !Lua::LuaEmu::waitingForSaveStateSave && !Lua::LuaEmu::waitingToStartPlayingMovie && !Lua::LuaEmu::waitingToSaveMovie)
   {

@@ -3,10 +3,15 @@
 #include "Core/Movie.h"
 #include "LuaGCButtons.h"
 #include <vector>
+#include <random>
+
 
 class LuaGameCubeButtonProbabilityEvent
 {
 public:
+  static std::mt19937_64 numGenerator_64Bits;
+  static void setRngSeeding();
+
   virtual void applyProbability(Movie::ControllerState& controllerState) = 0;
   virtual ~LuaGameCubeButtonProbabilityEvent() {}
   void checkIfEventHappened(double probability) {
@@ -15,7 +20,7 @@ public:
     else if (probability <= 0.0)
       eventHappened = false;
     else
-    eventHappened = ((probability/100.0) >= (static_cast<double>(rand()) / (static_cast<double>(RAND_MAX))));
+    eventHappened = ((probability/100.0) >= (static_cast<double>(numGenerator_64Bits()) / static_cast<double>(numGenerator_64Bits.max())));
   }
 
   bool eventHappened;

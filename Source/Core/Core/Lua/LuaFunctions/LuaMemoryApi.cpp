@@ -50,8 +50,8 @@ u8 read_u8_from_domain_function(lua_State* luaState, u32 address)
   std::optional<PowerPC::ReadResult<u8>> readResult = PowerPC::HostTryReadU8(address);
   if (!readResult.has_value())
   {
-    luaL_error(luaState, "Error: Attempt to read_u8 from memory failed!");
-    return 1;
+    //luaL_error(luaState, "Error: Attempt to read_u8 from memory failed!");
+    return 0; //TODO: Change this value back to 1, and uncomment out the line above.
   }
   return readResult.value().value;
 }
