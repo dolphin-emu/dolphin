@@ -327,7 +327,7 @@ void CoreTimingManager::Advance()
     LWDProfiler::GetCurrentProfiler().SetMarker("Throttle");
     Throttle(evt.time);
 
-    LWDProfiler::GetCurrentProfiler().SetMarker(*evt.type->name);
+    LWDProfiler::GetCurrentProfiler().SetMarker(evt.type->name->c_str());
     evt.type->callback(system, evt.userdata, m_globals.global_timer - evt.time);
   }
 

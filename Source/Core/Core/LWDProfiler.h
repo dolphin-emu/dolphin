@@ -16,7 +16,7 @@
 
 namespace LWDProfiler
 {
-using Marker = std::string_view;
+using Marker = const char*;
 
 struct Entry
 {
@@ -92,7 +92,7 @@ private:
   TimePoint m_last_time;
   Marker m_last_marker;
 
-  std::deque<Marker> m_marker_stack;
+  std::vector<Marker> m_marker_stack;
 };
 
 Profiler& GetCPUProfiler();

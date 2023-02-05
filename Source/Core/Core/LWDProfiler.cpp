@@ -36,11 +36,14 @@ LWDProfiler::Profiler& LWDProfiler::GetGPUProfiler()
 
 LWDProfiler::Profiler& LWDProfiler::GetCurrentProfiler()
 {
-  if (Core::IsCPUThread())
-    return GetCPUProfiler();
+  if (!GetProfilerDisabled())
+  {
+    if (Core::IsCPUThread())
+      return GetCPUProfiler();
 
-  if (Core::IsGPUThread())
-    return GetGPUProfiler();
+    if (Core::IsGPUThread())
+      return GetGPUProfiler();
+  }
 
   WARN_LOG_FMT(CORE, "Profiler accessed on a non cpu or gpu thread!");
   return s_null_profiler;
