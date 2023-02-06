@@ -16,6 +16,7 @@ extern "C" {
 #include <Array>
 #include <memory>
 #include <vector>
+#include <string>
 
 namespace Lua
 {
@@ -32,7 +33,7 @@ namespace LuaGameCubeController
   extern std::array<std::vector<GC_BUTTON_NAME>, 4> buttonListsForAddToControllerInputs;
   extern std::array<std::vector<std::unique_ptr<LuaGameCubeButtonProbabilityEvent>>, 4> randomButtonEvents;
   
-  void InitLuaGameCubeControllerFunctions(lua_State* luaState);
+  void InitLuaGameCubeControllerFunctions(lua_State* luaState, const std::string& luaApiVersion);
 
   int setInputs(lua_State* luaState);
   int addInputs(lua_State* luaState);

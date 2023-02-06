@@ -1,4 +1,5 @@
 #include "LuaGameCubeController.h"
+#include "../LuaVersionResolver.h"
 
 namespace Lua
 {
@@ -27,7 +28,7 @@ gc_controller_lua* getControllerInstance()
   return gc_controller_pointer;
 }
 
-  void InitLuaGameCubeControllerFunctions(lua_State* luaState)
+  void InitLuaGameCubeControllerFunctions(lua_State* luaState, const std::string& luaApiVersion)
 {
     gc_controller_lua** gcControllerLuaPtrPtr = (gc_controller_lua**)lua_newuserdata(luaState, sizeof(gc_controller_lua*));
     *gcControllerLuaPtrPtr = getControllerInstance();
@@ -35,21 +36,21 @@ gc_controller_lua* getControllerInstance()
     lua_pushvalue(luaState, -1);
     lua_setfield(luaState, -2, "__index");
 
-    luaL_Reg luaGCControllerFunctions[] = {
-      {"setInputs", setInputs},
-      {"addInputs", addInputs},
-      {"addButtonFlipChance", addButtonFlipChance},
-      {"addButtonPressChance", addButtonPressChance},
-      {"addButtonReleaseChance", addButtonReleaseChance},
-      {"addOrSubtractFromCurrentAnalogValueChance", addOrSubtractFromCurrentAnalogValueChance},
-      {"addOrSubtractFromSpecificAnalogValueChance", addOrSubtractFromSpecificAnalogValueChance},
-      {"addButtonComboChance", addButtonComboChance},
-      {"addControllerClearChance", addControllerClearChance},
-      {"getControllerInputs", getControllerInputs},
-      {nullptr, nullptr}
+    luaL_Reg luaGCControllerFunctionsWithVersionsAttached[] = {
+      {"setInputs-VERSION-1.0", setInputs},
+      {"addInputs-VERSION-1.0", addInputs},
+      {"addButtonFlipChance-VERSION-1.0", addButtonFlipChance},
+      {"addButtonPressChance-VERSION-1.0", addButtonPressChance},
+      {"addButtonReleaseChance-VERSION-1.0", addButtonReleaseChance},
+      {"addOrSubtractFromCurrentAnalogValueChance-VERSION-1.0", addOrSubtractFromCurrentAnalogValueChance},
+      {"addOrSubtractFromSpecificAnalogValueChance-VERSION-1.0", addOrSubtractFromSpecificAnalogValueChance},
+      {"addButtonComboChance-VERSION-1.0", addButtonComboChance},
+      {"addControllerClearChance-VERSION-1.0", addControllerClearChance},
+      {"getControllerInputs-VERSION-1.0", getControllerInputs}
     };
 
-    luaL_setfuncs(luaState, luaGCControllerFunctions, 0);
+    std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaGCControllerFunctionsWithVersionsAttached, 10, luaApiVersion);
+    luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
     lua_setmetatable(luaState, -2);
     lua_setglobal(luaState, "gc_controller");
 

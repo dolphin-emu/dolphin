@@ -1,4 +1,5 @@
 #include "LuaEmuFunctions.h"
+#include "../LuaVersionResolver.h"
 #include "Core/State.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
@@ -36,7 +37,7 @@ emu* GetEmuInstance()
   return emuPointer;
 }
 
-void InitLuaEmuFunctions(lua_State* luaState)
+void InitLuaEmuFunctions(lua_State* luaState, const std::string& luaApiVersion)
 {
   waitingForSaveStateLoad = false;
   waitingForSaveStateSave = false;
@@ -48,15 +49,16 @@ void InitLuaEmuFunctions(lua_State* luaState)
   lua_pushvalue(luaState, -1);
   lua_setfield(luaState, -2, "__index");
 
-  luaL_Reg luaEmuFunctions[] = {
-    {"frameAdvance", emu_frameAdvance},
-    {"loadState", emu_loadState},
-    {"saveState", emu_saveState},
-    {"playMovie", emu_playMovie},
-    {"saveMovie", emu_saveMovie},
-    {nullptr, nullptr}};
+  luaL_Reg luaEmuFunctionsWithVersionsAttached[] = {
+    {"frameAdvance-VERSION-1.0", emu_frameAdvance},
+    {"loadState-VERSION-1.0", emu_loadState},
+    {"saveState-VERSION-1.0", emu_saveState},
+    {"playMovie-VERSION-1.0", emu_playMovie},
+    {"saveMovie-VERSION-1.0", emu_saveMovie},
+   };
 
-  luaL_setfuncs(luaState, luaEmuFunctions, 0);
+  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaEmuFunctionsWithVersionsAttached, 5, luaApiVersion);
+  luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
   lua_setmetatable(luaState, -2);
   lua_setglobal(luaState, "emu");
 }

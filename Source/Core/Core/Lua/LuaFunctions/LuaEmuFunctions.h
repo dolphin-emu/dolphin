@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 extern "C" {
 #include "src/lapi.h"
 #include "src/lua.h"
@@ -17,7 +18,7 @@ namespace Lua
   extern bool waitingToStartPlayingMovie;
   extern bool waitingToSaveMovie;
 
-    void InitLuaEmuFunctions(lua_State* luaState);
+    void InitLuaEmuFunctions(lua_State* luaState, const std::string& luaApiVersion);
     int emu_frameAdvance(lua_State* luaState);
     int emu_loadState(lua_State* luaState);
     int emu_saveState(lua_State* luaState);

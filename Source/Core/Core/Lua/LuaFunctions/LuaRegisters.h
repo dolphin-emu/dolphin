@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 extern "C" {
 #include "src/lapi.h"
 #include "src/lua.h"
@@ -11,7 +12,7 @@ namespace Lua
 {
 namespace LuaRegisters
 {
-void InitLuaRegistersFunctions(lua_State* luaState);
+void InitLuaRegistersFunctions(lua_State* luaState, const std::string& luaApiVersion);
 int getRegister(lua_State* luaState);
 int getRegisterAsUnsignedByteArray(lua_State* luaState);
 int getRegisterAsSignedByteArray(lua_State* luaState);

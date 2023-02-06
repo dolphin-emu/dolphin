@@ -1,4 +1,5 @@
 #include "LuaStatistics.h"
+#include "../LuaVersionResolver.h"
 
 namespace Lua
 {
@@ -20,7 +21,7 @@ Lua_Statistics* getStatisticsInstance()
   return lua_statistics_pointer;
 }
 
-void InitLuaStatisticsFunctions(lua_State* luaState)
+void InitLuaStatisticsFunctions(lua_State* luaState, const std::string& luaApiVersion)
 {
   Lua_Statistics** luaStatisticsPtrPtr = (Lua_Statistics**)lua_newuserdata(luaState, sizeof(Lua_Statistics*));
   *luaStatisticsPtrPtr = getStatisticsInstance();
@@ -28,23 +29,24 @@ void InitLuaStatisticsFunctions(lua_State* luaState)
   lua_pushvalue(luaState, -1);
   lua_setfield(luaState, -2, "__index");
 
-  luaL_Reg luaStatisticsFunctions[] = {
-    {"isRecordingInput", isRecordingInput},
-    {"isRecordingInputFromSaveState", isRecordingInputFromSaveState},
-    {"isPlayingInput", isPlayingInput},
-    {"isMovieActive", isMovieActive},
-    {"getCurrentFrame", getCurrentFrame},
-    {"getMovieLength", getMovieLength},
-    {"getRerecordCount", getRerecordCount},
-    {"getCurrentInputCount", getCurrentInputCount},
-    {"getTotalInputCount", getTotalInputCount},
-    {"getCurrentLagCount",  getCurrentLagCount},
-    {"getTotalLagCount", getTotalLagCount},
-    {"isGcControllerInPort", isGcControllerInPort},
-    {"isUsingPort", isUsingPort},
-    {nullptr, nullptr}};
+  luaL_Reg luaStatisticsFunctionsWithVersionsAttached[] = {
+    {"isRecordingInput-VERSION-1.0", isRecordingInput},
+    {"isRecordingInputFromSaveState-VERSION-1.0", isRecordingInputFromSaveState},
+    {"isPlayingInput-VERSION-1.0", isPlayingInput},
+    {"isMovieActive-VERSION-1.0", isMovieActive},
+    {"getCurrentFrame-VERSION-1.0", getCurrentFrame},
+    {"getMovieLength-VERSION-1.0", getMovieLength},
+    {"getRerecordCount-VERSION-1.0", getRerecordCount},
+    {"getCurrentInputCount-VERSION-1.0", getCurrentInputCount},
+    {"getTotalInputCount-VERSION-1.0", getTotalInputCount},
+    {"getCurrentLagCount-VERSION-1.0",  getCurrentLagCount},
+    {"getTotalLagCount-VERSION-1.0", getTotalLagCount},
+    {"isGcControllerInPort-VERSION-1.0", isGcControllerInPort},
+    {"isUsingPort-VERSION-1.0", isUsingPort}
+  };
 
-  luaL_setfuncs(luaState, luaStatisticsFunctions, 0);
+  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaStatisticsFunctionsWithVersionsAttached, 13, luaApiVersion);
+  luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
   lua_setmetatable(luaState, -2);
   lua_setglobal(luaState, "statistics");
 }

@@ -1,4 +1,5 @@
 #include "LuaMemoryApi.h"
+#include "../LuaVersionResolver.h"
 #include "../LuaHelperClasses/NumberType.h"
 #include <optional>
 #include "Core/PowerPC/mmu.h"
@@ -17,7 +18,7 @@ MEMORY* GetInstance()
   return instance;
 }
 
-void InitLuaMemoryApi(lua_State* luaState)
+void InitLuaMemoryApi(lua_State* luaState, const std::string& luaApiVersion)
 {
   MEMORY** instancePtrPtr = (MEMORY**)lua_newuserdata(luaState, sizeof(MEMORY*));
   *instancePtrPtr = GetInstance();
@@ -25,21 +26,21 @@ void InitLuaMemoryApi(lua_State* luaState)
   lua_pushvalue(luaState, -1);
   lua_setfield(luaState, -2, "__index");
 
-  luaL_Reg* luaMemoryFunctionsList = new luaL_Reg[]{
+  luaL_Reg luaMemoryFunctionsListWithVersionsAttached[] = {
 
-      {"readFrom", do_general_read},
-      {"readUnsignedBytes", do_read_unsigned_bytes},
-      {"readSignedBytes", do_read_signed_bytes},
-      {"readFixedLengthString", do_read_fixed_length_string},
-      {"readNullTerminatedString", do_read_null_terminated_string},
+      {"readFrom-VERSION-1.0", do_general_read},
+      {"readUnsignedBytes-VERSION-1.0", do_read_unsigned_bytes},
+      {"readSignedBytes-VERSION-1.0", do_read_signed_bytes},
+      {"readFixedLengthString-VERSION-1.0", do_read_fixed_length_string},
+      {"readNullTerminatedString-VERSION-1.0", do_read_null_terminated_string},
 
-      {"writeTo", do_general_write},
-      {"writeBytes", do_write_bytes},
-      {"writeString", do_write_string},
+      {"writeTo-VERSION-1.0", do_general_write},
+      {"writeBytes-VERSION-1.0", do_write_bytes},
+      {"writeString-VERSION-1.0", do_write_string}
+  };
 
-      {nullptr, nullptr}};
-
-  luaL_setfuncs(luaState, luaMemoryFunctionsList, 0);
+  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaMemoryFunctionsListWithVersionsAttached, 8, luaApiVersion);
+  luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
   lua_setmetatable(luaState, -2);
   lua_setglobal(luaState, "memory");
 }

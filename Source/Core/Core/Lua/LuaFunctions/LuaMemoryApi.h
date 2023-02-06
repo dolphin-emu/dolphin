@@ -21,7 +21,7 @@ public:
 
 inline MEMORY* instance = NULL;
 
-void InitLuaMemoryApi(lua_State* luaState);
+void InitLuaMemoryApi(lua_State* luaState, const std::string& luaApiVersion);
 
 int do_general_read(lua_State* luaState);
 int do_read_unsigned_bytes(lua_State* luaState);

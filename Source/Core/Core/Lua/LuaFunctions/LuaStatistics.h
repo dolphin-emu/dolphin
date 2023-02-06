@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 extern "C" {
 #include "src/lapi.h"
 #include "src/lua.h"
@@ -14,7 +15,7 @@ namespace Lua
 namespace LuaStatistics
 {
 
-void InitLuaStatisticsFunctions(lua_State* luaState);
+void InitLuaStatisticsFunctions(lua_State* luaState, const std::string& luaApiVersion);
 
 int isRecordingInput(lua_State* luaState);
 int isRecordingInputFromSaveState(lua_State* luaState);

@@ -1,4 +1,5 @@
 #include "LuaBitFunctions.h"
+#include "../LuaVersionResolver.h"
 #include "common/CommonTypes.h"
 
 namespace Lua
@@ -20,7 +21,7 @@ BitClass* GetBitInstance()
   return bitInstance;
 }
 
-  void InitLuaBitFunctions(lua_State* luaState)
+  void InitLuaBitFunctions(lua_State* luaState, const std::string& luaApiVersion)
   {
     BitClass** bitPtrPtr = (BitClass**)lua_newuserdata(luaState, sizeof(BitClass*));
     *bitPtrPtr = GetBitInstance();
@@ -28,20 +29,20 @@ BitClass* GetBitInstance()
     lua_pushvalue(luaState, -1);
     lua_setfield(luaState, -2, "__index");
 
-    luaL_Reg luaBitFunctions[] = {
-      {"bitwise_and", bitwise_and},
-      {"bitwise_or", bitwise_or},
-      {"bitwise_not", bitwise_not},
-      {"bitwise_xor", bitwise_xor},
-      {"logical_and", logical_and},
-      {"logical_or", logical_or},
-      {"logical_xor", logical_xor},
-      {"logical_not", logical_not},
-      {"bit_shift_left", bit_shift_left},
-      {"bit_shift_right", bit_shift_right},
-      {nullptr, nullptr}};
+    luaL_Reg luaBitFunctionsWithVersionsAttached[] = {
+      {"bitwise_and-VERSION-1.0", bitwise_and},
+      {"bitwise_or-VERSION-1.0", bitwise_or},
+      {"bitwise_not-VERSION-1.0", bitwise_not},
+      {"bitwise_xor-VERSION-1.0", bitwise_xor},
+      {"logical_and-VERSION-1.0", logical_and},
+      {"logical_or-VERSION-1.0", logical_or},
+      {"logical_xor-VERSION-1.0", logical_xor},
+      {"logical_not-VERSION-1.0", logical_not},
+      {"bit_shift_left-VERSION-1.0", bit_shift_left},
+      {"bit_shift_right-VERSION-1.0", bit_shift_right}};
 
-    luaL_setfuncs(luaState, luaBitFunctions, 0);
+    std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaBitFunctionsWithVersionsAttached, 10, luaApiVersion);
+    luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
     lua_setmetatable(luaState, -2);
     lua_setglobal(luaState, "bit");
   }

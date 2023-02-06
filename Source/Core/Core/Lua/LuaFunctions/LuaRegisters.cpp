@@ -1,4 +1,5 @@
 #include "LuaRegisters.h"
+#include "../LuaVersionResolver.h"
 #include "../LuaHelperClasses/NumberType.h"
 #include "common/CommonTypes.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -27,7 +28,7 @@ luaRegister* GetLuaRegisterInstance()
 // Currently supported registers are:
 // r0 - r31, f0 - f31, PC, and LR (the register which stores the return address to jump to when a
 // function call ends)
-void InitLuaRegistersFunctions(lua_State* luaState)
+void InitLuaRegistersFunctions(lua_State* luaState, const std::string& luaApiVersion)
 {
   luaRegister** luaRegisterPtrPtr = (luaRegister**)lua_newuserdata(luaState, sizeof(luaRegister*));
   *luaRegisterPtrPtr = GetLuaRegisterInstance();
@@ -35,15 +36,16 @@ void InitLuaRegistersFunctions(lua_State* luaState)
   lua_pushvalue(luaState, -1);
   lua_setfield(luaState, -2, "__index");
 
-  luaL_Reg luaRegistersFunctions[] = {
-    {"getRegister", getRegister},
-    {"getRegisterAsUnsignedByteArray", getRegisterAsUnsignedByteArray},
-    {"getRegisterAsSignedByteArray", getRegisterAsSignedByteArray},
-    {"setRegister",  setRegister},
-    {"setRegisterFromByteArray", setRegisterFromByteArray},
-    {nullptr, nullptr}
+  luaL_Reg luaRegistersFunctionsWithVersionsAttached[] = {
+    {"getRegister-VERSION-1.0", getRegister},
+    {"getRegisterAsUnsignedByteArray-VERSION-1.0", getRegisterAsUnsignedByteArray},
+    {"getRegisterAsSignedByteArray-VERSION-1.0", getRegisterAsSignedByteArray},
+    {"setRegister-VERSION-1.0",  setRegister},
+    {"setRegisterFromByteArray-VERSION-1.0", setRegisterFromByteArray}
   };
-  luaL_setfuncs(luaState, luaRegistersFunctions, 0);
+
+  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaRegistersFunctionsWithVersionsAttached, 5, luaApiVersion);
+  luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
   lua_setmetatable(luaState, -2);
   lua_setglobal(luaState, "registers");
 }

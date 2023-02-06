@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "src/lua.hpp"
 #include "src/lua.h"
 #include "src/luaconf.h"
@@ -10,7 +11,7 @@ namespace Lua
 namespace LuaBit
 {
 
-void InitLuaBitFunctions(lua_State* luaState);
+void InitLuaBitFunctions(lua_State* luaState, const std::string& luaApiVersion);
 int bitwise_and(lua_State* luaState);
 int bitwise_or(lua_State* luaState);
 int bitwise_not(lua_State* luaState);
