@@ -7,6 +7,7 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/PrintAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/ScaleAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/SkipAction.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/Actions/TexturePropertiesAction.h"
 
 namespace GraphicsModActionFactory
 {
@@ -27,6 +28,10 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   else if (name == "scale")
   {
     return ScaleAction::Create(json_data);
+  }
+  else if (name == "set_texture_properties")
+  {
+    return TexturePropertiesAction::Create(json_data);
   }
 
   return nullptr;

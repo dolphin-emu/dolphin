@@ -21,6 +21,7 @@
 #include "Common/MathUtil.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/TextureInfo.h"
@@ -157,6 +158,12 @@ public:
     bool pending_efb_copy_invalidated = false;
 
     std::string texture_info_name = "";
+
+    std::optional<FilterMode> custom_min_filter;
+    std::optional<FilterMode> custom_mag_filter;
+    std::optional<FilterMode> custom_mipmap_filter;
+    std::optional<WrapMode> custom_wrap_u;
+    std::optional<WrapMode> custom_wrap_v;
 
     explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                          std::unique_ptr<AbstractFramebuffer> fb);

@@ -993,7 +993,11 @@ static bool IsAnisostropicEnhancementSafe(const TexMode0& tm0)
 }
 
 static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
-                            bool has_arbitrary_mips)
+                            bool has_arbitrary_mips, std::optional<FilterMode> custom_min_filter,
+                            std::optional<FilterMode> custom_mag_filter,
+                            std::optional<FilterMode> custom_mipmap_filter,
+                            std::optional<WrapMode> custom_wrap_u,
+                            std::optional<WrapMode> custom_wrap_v)
 {
   const TexMode0& tm0 = bpmem.tex.GetUnit(index).texMode0;
 
@@ -1053,6 +1057,40 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     state.tm0.anisotropic_filtering = false;
   }
 
+  if (custom_min_filter)
+  {
+    state.tm0.min_filter = *custom_min_filter;
+
+    // Overriding our settings with a custom value also disables ansiotropic filtering if enabled
+    state.tm0.anisotropic_filtering = false;
+  }
+
+  if (custom_mag_filter)
+  {
+    state.tm0.mag_filter = *custom_mag_filter;
+
+    // Overriding our settings with a custom value also disables ansiotropic filtering if enabled
+    state.tm0.anisotropic_filtering = false;
+  }
+
+  if (custom_mipmap_filter)
+  {
+    state.tm0.mipmap_filter = *custom_mipmap_filter;
+
+    // Overriding our settings with a custom value also disables ansiotropic filtering if enabled
+    state.tm0.anisotropic_filtering = false;
+  }
+
+  if (custom_wrap_u)
+  {
+    state.tm0.wrap_u = *custom_wrap_u;
+  }
+
+  if (custom_wrap_v)
+  {
+    state.tm0.wrap_v = *custom_wrap_v;
+  }
+
   g_renderer->SetSamplerState(index, state);
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
@@ -1072,7 +1110,9 @@ void TextureCacheBase::BindTextures(BitSet32 used_textures)
       pixel_shader_manager.SetTexDims(i, tentry->native_width, tentry->native_height);
 
       const float custom_tex_scale = tentry->GetWidth() / float(tentry->native_width);
-      SetSamplerState(i, custom_tex_scale, tentry->is_custom_tex, tentry->has_arbitrary_mips);
+      SetSamplerState(i, custom_tex_scale, tentry->is_custom_tex, tentry->has_arbitrary_mips,
+                      tentry->custom_min_filter, tentry->custom_mag_filter,
+                      tentry->custom_mipmap_filter, tentry->custom_wrap_u, tentry->custom_wrap_v);
     }
   }
 
@@ -1255,7 +1295,9 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture
   {
     entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
 
-    GraphicsModActionData::TextureLoad texture_load{entry->texture_info_name};
+    GraphicsModActionData::TextureLoad texture_load{
+        entry->texture_info_name,     &entry->custom_min_filter, &entry->custom_mag_filter,
+        &entry->custom_mipmap_filter, &entry->custom_wrap_u,     &entry->custom_wrap_v};
     for (const auto action :
          g_renderer->GetGraphicsModManager().GetTextureLoadActions(entry->texture_info_name))
     {
