@@ -185,6 +185,45 @@ struct PadDataResponse
   float gyro_roll_deg_s;
 };
 
+struct MotorInfoRequest
+{
+  static constexpr auto FROM = CLIENT;
+  static constexpr auto TYPE = 0x110001U;
+  MessageHeader header;
+  u32 message_type;
+  RegisterFlags register_flags;
+  u8 pad_id_to_register;
+  std::array<u8, 6> mac_address_to_register;
+};
+
+struct MotorInfoResponse
+{
+  static constexpr auto FROM = SERVER;
+  static constexpr auto TYPE = 0x110001U;
+  MessageHeader header;
+  u32 message_type;
+  u8 pad_id;
+  DsState pad_state;
+  DsModel model;
+  DsConnection connection_type;
+  std::array<u8, 6> pad_mac_address;
+  DsBattery battery_status;
+  u8 motor_count;
+};
+
+struct PadRumbleRequest
+{
+  static constexpr auto FROM = CLIENT;
+  static constexpr auto TYPE = 0x110002U;
+  MessageHeader header;
+  u32 message_type;
+  RegisterFlags register_flags;
+  u8 pad_id_to_register;
+  std::array<u8, 6> mac_address_to_register;
+  u8 motor_id;
+  ControlState motor_state;
+};
+
 struct FromServer
 {
   union
@@ -197,6 +236,7 @@ struct FromServer
     MessageType::VersionResponse version_response;
     MessageType::PortInfo port_info;
     MessageType::PadDataResponse pad_data_response;
+    MessageType::MotorInfoResponse motor_info_response;
   };
 };
 
@@ -212,6 +252,8 @@ struct FromClient
     MessageType::VersionRequest version_request;
     MessageType::ListPorts list_ports;
     MessageType::PadDataRequest pad_data_request;
+    MessageType::MotorInfoRequest motor_info_request;
+    MessageType::PadRumbleRequest pad_rumble_request;
   };
 };
 }  // namespace MessageType
@@ -244,6 +286,8 @@ struct Message
     m_message.header.crc32 = 0;
     const u32 crc32_calculated =
         Common::ComputeCRC32(reinterpret_cast<const u8*>(&m_message), sizeof(ToMsgType));
+    // recover crc32 value
+    m_message.header.crc32 = crc32_in_header;
     if (crc32_in_header != crc32_calculated)
     {
       NOTICE_LOG_FMT(

@@ -127,8 +127,32 @@ private:
     const BatteryState& m_battery;
   };
 
+  class Motor final : public Output
+  {
+  public:
+    Motor(u8 index, Device* parent) : m_index(index), m_parent(parent) {}
+    std::string GetName() const override
+    { 
+      std::ostringstream ss;
+      ss << "Motor " << static_cast<int>(m_index);
+      return ss.str();
+    }
+    void SetState(ControlState state) override
+    {
+      m_state = state;
+      m_parent->UpdateMotor(m_index, m_state);
+    }
+
+  private:
+    const u8 m_index;
+    Device* m_parent;
+    ControlState m_state;
+  };
+
 public:
   void UpdateInput() override;
+  void QueryMotorCount();
+  void UpdateMotor(u8 motor_id, ControlState motor_state);
 
   Device(std::string name, int index, std::string server_address, u16 server_port, u32 client_uid);
 
@@ -152,6 +176,7 @@ private:
   int m_touch_y = 0;
   const std::string m_server_address;
   const u16 m_server_port;
+  int m_motor_count = -1;
 
   s16 m_touch_x_min;
   s16 m_touch_y_min;
@@ -220,6 +245,7 @@ private:
   std::thread m_hotplug_thread;
   Common::Flag m_hotplug_thread_running;
   std::size_t m_config_change_callback_id;
+  std::vector<std::shared_ptr<Device>> m_devices;
 };
 
 std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)
@@ -269,6 +295,11 @@ void InputBackend::HotplugThreadFunc()
           ERROR_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
         }
         timed_out_servers[i] = true;
+      }
+
+      for (const auto& d : m_devices)
+      {
+        d->QueryMotorCount();
       }
     }
 
@@ -491,6 +522,7 @@ void InputBackend::PopulateDevices()
   // correctly if they have the same name
   GetControllerInterface().RemoveDevice(
       [](const auto* dev) { return dev->GetSource() == DUALSHOCKUDP_SOURCE_NAME; });
+  m_devices.clear();
 
   // Users might have created more than one server on the same IP/Port.
   // Devices might end up being duplicated (if the server responds two all requests)
@@ -503,9 +535,10 @@ void InputBackend::PopulateDevices()
       if (port_info.pad_state != Proto::DsState::Connected)
         continue;
 
-      GetControllerInterface().AddDevice(
-          std::make_shared<Device>(server.m_description, static_cast<int>(port_index),
-                                   server.m_address, server.m_port, m_client_uid));
+      const auto device = std::make_shared<Device>(server.m_description, static_cast<int>(port_index),
+                                             server.m_address, server.m_port, m_client_uid);
+      m_devices.emplace_back(std::move(device));
+      GetControllerInterface().AddDevice(device);
     }
   }
 }
@@ -580,6 +613,10 @@ Device::Device(std::string name, int index, std::string server_address, u16 serv
 
   AddInput(new BatteryInput(m_pad_data.battery_status));
 
+  // Two motors for DualShock
+  AddOutput(new Motor(0, this));
+  AddOutput(new Motor(1, this));
+
   m_touch_x_min = 0;
   m_touch_y_min = 0;
   // DS4 touchpad max values
@@ -587,6 +624,7 @@ Device::Device(std::string name, int index, std::string server_address, u16 serv
   m_touch_y_max = 941;
 
   ResetPadData();
+  QueryMotorCount();
 }
 
 void Device::ResetPadData()
@@ -658,6 +696,50 @@ void Device::UpdateInput()
       }
       m_prev_touch = m_pad_data.touch1;
       m_prev_touch_valid = true;
+    }
+    else if (m_motor_count == -1)
+    {
+      if (auto motor_info = msg.CheckAndCastTo<Proto::MessageType::MotorInfoResponse>())
+      {
+        INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient receive motor count {}",
+                     motor_info->motor_count);
+        // Update motor count
+        m_motor_count = motor_info->motor_count;
+      }
+    }
+  }
+}
+
+void Device::QueryMotorCount()
+{
+  Proto::Message<Proto::MessageType::MotorInfoRequest> req_msg(m_client_uid);
+  auto& data_req = req_msg.m_message;
+  data_req.register_flags = Proto::RegisterFlags::PadID;
+  data_req.pad_id_to_register = m_index;
+  req_msg.Finish();
+  if (m_socket.send(&data_req, sizeof(data_req), m_server_address, m_server_port) !=
+      sf::Socket::Status::Done)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient QueryMotorCount send failed");
+  }
+}
+
+void Device::UpdateMotor(u8 motor_id, ControlState motor_state)
+{
+  // Only the motor which `id < count` works, id takes value from 0 to `count - 1`
+  if (motor_id < m_motor_count)
+  {
+    Proto::Message<Proto::MessageType::PadRumbleRequest> msg(m_client_uid);
+    auto& data_req = msg.m_message;
+    data_req.register_flags = Proto::RegisterFlags::PadID;
+    data_req.pad_id_to_register = m_index;
+    data_req.motor_id = motor_id;
+    data_req.motor_state = motor_state;
+    msg.Finish();
+    if (m_socket.send(&data_req, sizeof(data_req), m_server_address, m_server_port) !=
+        sf::Socket::Status::Done)
+    {
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient UpdateMotor send failed");
     }
   }
 }
