@@ -1,0 +1,20 @@
+{
+	"meta":
+	{
+		"title": "Native Resolution DOF",
+		"author": "Dolphin Team",
+		"description": "Scales DOF effects to draw at their native resolution, regardless of internal resolution.  Results in DOF looking much more natural at higher resolutions but may cause shimmering."
+	},
+	"features":
+	[
+		{
+			"group": "DOF",
+			"action": "scale",
+			"action_data": {
+				"X": 1.0,
+				"Y": 1.0,
+				"Z": 1.0
+			}
+		}
+	]
+}
