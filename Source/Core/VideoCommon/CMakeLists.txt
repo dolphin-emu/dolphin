@@ -170,7 +170,7 @@ PUBLIC
   core
 PRIVATE
   fmt::fmt
-  spng
+  ${spng_target}
   xxhash
   imgui
   implot

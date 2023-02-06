@@ -81,7 +81,7 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
-  spng
+  ${spng_target}
 )
 
 if(WIN32)
