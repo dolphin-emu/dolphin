@@ -128,7 +128,7 @@ static Common::Event s_cpu_thread_job_finished;
 static thread_local bool tls_is_cpu_thread = false;
 static thread_local bool tls_is_gpu_thread = false;
 
-static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi);
+static void EmuThread(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi);
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -239,12 +239,12 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   VideoBackendBase::PopulateBackendInfo();
 
   // Issue any API calls which must occur on the main thread for the graphics backend.
-  WindowSystemInfo prepared_wsi(wsi);
-  g_video_backend->PrepareWindow(prepared_wsi);
+  g_video_wsi = wsi;
+  g_video_backend->PrepareWindow(g_video_wsi);
 
   // Start the emu thread
   s_is_booting.Set();
-  s_emu_thread = std::thread(EmuThread, std::move(boot), prepared_wsi);
+  s_emu_thread = std::thread(EmuThread, std::move(boot), g_video_wsi);
   return true;
 }
 
@@ -446,7 +446,7 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
 // See the BootManager.cpp file description for a complete call schedule.
-static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi)
+static void EmuThread(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 {
   Core::System& system = Core::System::GetInstance();
   const SConfig& core_parameter = SConfig::GetInstance();

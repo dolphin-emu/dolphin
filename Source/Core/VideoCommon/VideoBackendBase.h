@@ -36,8 +36,6 @@ class VideoBackendBase
 {
 public:
   virtual ~VideoBackendBase() {}
-  virtual bool Initialize(const WindowSystemInfo& wsi) = 0;
-  virtual void Shutdown() = 0;
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
@@ -47,6 +45,11 @@ public:
   // Prepares a native window for rendering. This is called on the main thread, or the
   // thread which owns the window.
   virtual void PrepareWindow(WindowSystemInfo& wsi) {}
+  // Undoes PrepareWindow
+  virtual void UnPrepareWindow(WindowSystemInfo& wsi) {}
+
+  bool Initialize(const WindowSystemInfo& wsi);
+  void Shutdown();
 
   static std::string BadShaderFilename(const char* shader_stage, int counter);
 
@@ -66,15 +69,29 @@ public:
   static void PopulateBackendInfo();
   // Called by the UI thread when the graphics config is opened.
   static void PopulateBackendInfoFromUI();
+  // Request a backend reload at the next call to BackendReloadIfRequested
+  static void RequestBackendReload();
+  // Does a full backend reload if previously requested
+  static void BackendReloadIfRequested();
+  // Fully reloads the backend, allowing for any graphics config to be changed
+  // If run is non-null, it will be run while the backend is shut down
+  static void FullBackendReload(void (*run)(void* ctx) = nullptr, void* run_ctx = nullptr);
+  // FullBackendReload for being called by the CPU thread
+  static void FullBackendReloadFromCPU(void (*run)(void* ctx) = nullptr, void* run_ctx = nullptr);
 
   // Wrapper function which pushes the event to the GPU thread.
   void DoState(PointerWrap& p);
 
 protected:
+  virtual bool InitializeBackend(const WindowSystemInfo& wsi) = 0;
+  virtual void ShutdownBackend() = 0;
+
   void InitializeShared();
+  void InitializeConfig();
   void ShutdownShared();
 
   bool m_initialized = false;
 };
 
+extern WindowSystemInfo g_video_wsi;
 extern VideoBackendBase* g_video_backend;

@@ -137,19 +137,18 @@ void VideoBackend::FillBackendInfo()
   }
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool VideoBackend::InitializeBackend(const WindowSystemInfo& wsi)
 {
   if (!D3D::Create(g_Config.iAdapter, g_Config.bEnableValidationLayer))
     return false;
 
   FillBackendInfo();
-  InitializeShared();
+  InitializeConfig();
 
   std::unique_ptr<SwapChain> swap_chain;
   if (wsi.render_surface && !(swap_chain = SwapChain::Create(wsi)))
   {
     PanicAlertFmtT("Failed to create D3D swap chain");
-    ShutdownShared();
     D3D::Destroy();
     return false;
   }
@@ -184,7 +183,6 @@ void VideoBackend::Shutdown()
   g_vertex_manager.reset();
   g_renderer.reset();
 
-  ShutdownShared();
   D3D::Destroy();
 }
 }  // namespace DX11

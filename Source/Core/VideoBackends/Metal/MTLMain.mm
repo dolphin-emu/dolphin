@@ -61,7 +61,7 @@ static bool WindowSystemTypeSupportsMetal(WindowSystemType type)
   }
 }
 
-bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool Metal::VideoBackend::InitializeBackend(const WindowSystemInfo& wsi)
 {
   @autoreleasepool
   {
@@ -82,7 +82,7 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
     Util::PopulateBackendInfo(&g_Config);
     Util::PopulateBackendInfoAdapters(&g_Config, devs);
 
-    // Since we haven't called InitializeShared yet, iAdapter may be out of range,
+    // Since we haven't called InitializeConfig yet, iAdapter may be out of range,
     // so we have to check it ourselves.
     size_t selected_adapter_index = static_cast<size_t>(g_Config.iAdapter);
     if (selected_adapter_index >= devs.size())
@@ -94,7 +94,7 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
     Util::PopulateBackendInfoFeatures(&g_Config, adapter);
 
     // With the backend information populated, we can now initialize videocommon.
-    InitializeShared();
+    InitializeConfig();
 
     MRCOwned<CAMetalLayer*> layer = MRCRetain(static_cast<CAMetalLayer*>(wsi.render_surface));
     [layer setDevice:adapter];
@@ -130,7 +130,7 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
   }
 }
 
-void Metal::VideoBackend::Shutdown()
+void Metal::VideoBackend::ShutdownBackend()
 {
   g_shader_cache->Shutdown();
   g_renderer->Shutdown();
@@ -143,7 +143,6 @@ void Metal::VideoBackend::Shutdown()
   g_renderer.reset();
   g_state_tracker.reset();
   ObjectCache::Shutdown();
-  ShutdownShared();
 }
 
 void Metal::VideoBackend::InitBackendInfo()
@@ -169,10 +168,23 @@ void Metal::VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
 #if TARGET_OS_OSX
   if (wsi.type != WindowSystemType::MacOS)
     return;
-  NSView* view = static_cast<NSView*>(wsi.render_surface);
+  NSView* view = static_cast<NSView*>(wsi.render_window);
   CAMetalLayer* layer = [CAMetalLayer layer];
   [view setWantsLayer:YES];
   [view setLayer:layer];
   wsi.render_surface = layer;
+#endif
+}
+
+void Metal::VideoBackend::UnPrepareWindow(WindowSystemInfo& wsi)
+{
+#if TARGET_OS_OSX
+  if (wsi.type != WindowSystemType::MacOS)
+    return;
+  NSView* view = static_cast<NSView*>(wsi.render_window);
+  [view setLayer:nullptr];
+  [view setWantsLayer:NO];
+  [static_cast<CAMetalLayer*>(wsi.render_surface) release];
+  wsi.render_surface = wsi.render_window;
 #endif
 }

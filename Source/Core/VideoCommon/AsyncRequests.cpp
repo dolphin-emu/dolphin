@@ -154,6 +154,7 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
   case Event::SWAP_EVENT:
     g_renderer->Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
                      e.swap_event.fbHeight, e.time);
+    VideoBackendBase::BackendReloadIfRequested();
     break;
 
   case Event::BBOX_READ:
@@ -170,6 +171,10 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 
   case Event::DO_SAVE_STATE:
     VideoCommon_DoState(*e.do_save_state.p);
+    break;
+
+  case Event::BACKEND_RELOAD:
+    VideoBackendBase::FullBackendReload(e.backend_reload.run, e.backend_reload.ctx);
     break;
   }
 }

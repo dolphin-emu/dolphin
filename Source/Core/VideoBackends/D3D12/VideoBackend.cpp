@@ -102,7 +102,7 @@ void VideoBackend::FillBackendInfo()
   }
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool VideoBackend::InitializeBackend(const WindowSystemInfo& wsi)
 {
   if (!DXContext::Create(g_Config.iAdapter, g_Config.bEnableValidationLayer))
   {
@@ -111,7 +111,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   }
 
   FillBackendInfo();
-  InitializeShared();
+  InitializeConfig();
 
   if (!g_dx_context->CreateGlobalResources())
   {
@@ -151,7 +151,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   return true;
 }
 
-void VideoBackend::Shutdown()
+void VideoBackend::ShutdownBackend()
 {
   // Keep the debug runtime happy...
   if (g_renderer)
@@ -170,6 +170,5 @@ void VideoBackend::Shutdown()
   g_vertex_manager.reset();
   g_renderer.reset();
   DXContext::Destroy();
-  ShutdownShared();
 }
 }  // namespace DX12

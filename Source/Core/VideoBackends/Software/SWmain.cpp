@@ -94,9 +94,9 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.AAModes = {1};
 }
 
-bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
+bool VideoSoftware::InitializeBackend(const WindowSystemInfo& wsi)
 {
-  InitializeShared();
+  InitializeConfig();
 
   std::unique_ptr<SWOGLWindow> window = SWOGLWindow::Create(wsi);
   if (!window)
@@ -125,7 +125,7 @@ bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
   return true;
 }
 
-void VideoSoftware::Shutdown()
+void VideoSoftware::ShutdownBackend()
 {
   if (g_shader_cache)
     g_shader_cache->Shutdown();
@@ -139,6 +139,5 @@ void VideoSoftware::Shutdown()
   g_shader_cache.reset();
   g_vertex_manager.reset();
   g_renderer.reset();
-  ShutdownShared();
 }
 }  // namespace SW
