@@ -131,17 +131,17 @@ std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
   return std::make_unique<DX12::Gfx>(this, std::move(swap_chain), m_wsi.render_surface_scale);
 }
 
-std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager()
+std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager(AbstractGfx* gfx)
 {
   return std::make_unique<DX12::VertexManager>();
 }
 
-std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery()
+std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery(AbstractGfx* gfx)
 {
   return std::make_unique<DX12::PerfQuery>();
 }
 
-std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox()
+std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox(AbstractGfx* gfx)
 {
   return std::make_unique<DX12::D3D12BoundingBox>();
 }

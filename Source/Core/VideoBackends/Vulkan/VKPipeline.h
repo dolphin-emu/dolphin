@@ -7,24 +7,25 @@
 
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 #include "VideoCommon/AbstractPipeline.h"
-#include "VideoCommon/VideoBackendInfo.h"
 
 namespace Vulkan
 {
+class VKGfx;
+
 class VKPipeline final : public AbstractPipeline
 {
 public:
-  explicit VKPipeline(VkPipeline pipeline, VkPipelineLayout pipeline_layout,
+  explicit VKPipeline(VKGfx* gfx, VkPipeline pipeline, VkPipelineLayout pipeline_layout,
                       AbstractPipelineUsage usage);
   ~VKPipeline() override;
 
   VkPipeline GetVkPipeline() const { return m_pipeline; }
   VkPipelineLayout GetVkPipelineLayout() const { return m_pipeline_layout; }
   AbstractPipelineUsage GetUsage() const { return m_usage; }
-  static std::unique_ptr<VKPipeline> Create(const AbstractPipelineConfig& config,
-                                            const BackendInfo& backend_info);
+  static std::unique_ptr<VKPipeline> Create(VKGfx* gfx, const AbstractPipelineConfig& config);
 
 private:
+  VKGfx* m_gfx = nullptr;
   VkPipeline m_pipeline;
   VkPipelineLayout m_pipeline_layout;
   AbstractPipelineUsage m_usage;

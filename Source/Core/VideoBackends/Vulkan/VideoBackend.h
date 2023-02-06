@@ -19,9 +19,9 @@ public:
   void PrepareWindow(WindowSystemInfo& wsi) override;
 
   std::unique_ptr<AbstractGfx> CreateGfx() override;
-  std::unique_ptr<VertexManagerBase> CreateVertexManager() override;
-  std::unique_ptr<PerfQueryBase> CreatePerfQuery() override;
-  std::unique_ptr<BoundingBox> CreateBoundingBox() override;
+  std::unique_ptr<VertexManagerBase> CreateVertexManager(AbstractGfx* gfx) override;
+  std::unique_ptr<PerfQueryBase> CreatePerfQuery(AbstractGfx* gfx) override;
+  std::unique_ptr<BoundingBox> CreateBoundingBox(AbstractGfx* gfx) override;
 
   static constexpr const char* NAME = "Vulkan";
 };

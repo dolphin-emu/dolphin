@@ -109,17 +109,17 @@ std::unique_ptr<AbstractGfx> Metal::VideoBackend::CreateGfx()
   }
 }
 
-std::unique_ptr<VertexManagerBase> Metal::VideoBackend::CreateVertexManager()
+std::unique_ptr<VertexManagerBase> Metal::VideoBackend::CreateVertexManager(AbstractGfx* gfx)
 {
   return std::make_unique<Metal::VertexManager>();
 }
 
-std::unique_ptr<PerfQueryBase> Metal::VideoBackend::CreatePerfQuery()
+std::unique_ptr<PerfQueryBase> Metal::VideoBackend::CreatePerfQuery(AbstractGfx* gfx)
 {
   return std::make_unique<Metal::PerfQuery>();
 }
 
-std::unique_ptr<BoundingBox> Metal::VideoBackend::CreateBoundingBox()
+std::unique_ptr<BoundingBox> Metal::VideoBackend::CreateBoundingBox(AbstractGfx* gfx)
 {
   return std::make_unique<Metal::BoundingBox>();
 }

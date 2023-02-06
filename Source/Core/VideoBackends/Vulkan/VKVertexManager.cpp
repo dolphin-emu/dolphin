@@ -29,7 +29,7 @@
 
 namespace Vulkan
 {
-static VkBufferView CreateTexelBufferView(VkBuffer buffer, VkFormat vk_format)
+VkBufferView VertexManager::CreateTexelBufferView(VkBuffer buffer, VkFormat vk_format)
 {
   // Create a view of the whole buffer, we'll offset our texel load into it
   VkBufferViewCreateInfo view_info = {
@@ -43,7 +43,7 @@ static VkBufferView CreateTexelBufferView(VkBuffer buffer, VkFormat vk_format)
   };
 
   VkBufferView view;
-  VkResult res = vkCreateBufferView(g_vulkan_context->GetDevice(), &view_info, nullptr, &view);
+  VkResult res = vkCreateBufferView(m_gfx->GetContext()->GetDevice(), &view_info, nullptr, &view);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateBufferView failed: ");
@@ -53,7 +53,7 @@ static VkBufferView CreateTexelBufferView(VkBuffer buffer, VkFormat vk_format)
   return view;
 }
 
-VertexManager::VertexManager() = default;
+VertexManager::VertexManager(VKGfx* gfx) : m_gfx(gfx){};
 
 VertexManager::~VertexManager()
 {
@@ -65,13 +65,13 @@ bool VertexManager::Initialize()
   if (!VertexManagerBase::Initialize())
     return false;
 
-  m_vertex_stream_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                           VERTEX_STREAM_BUFFER_SIZE);
+  m_vertex_stream_buffer = StreamBuffer::Create(
+      m_gfx, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+      VERTEX_STREAM_BUFFER_SIZE);
   m_index_stream_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, INDEX_STREAM_BUFFER_SIZE);
+      StreamBuffer::Create(m_gfx, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, INDEX_STREAM_BUFFER_SIZE);
   m_uniform_stream_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, UNIFORM_STREAM_BUFFER_SIZE);
+      StreamBuffer::Create(m_gfx, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, UNIFORM_STREAM_BUFFER_SIZE);
   if (!m_vertex_stream_buffer || !m_index_stream_buffer || !m_uniform_stream_buffer)
   {
     PanicAlertFmt("Failed to allocate streaming buffers");
@@ -82,20 +82,22 @@ bool VertexManager::Initialize()
   // To work around this we reserve the maximum buffer size at all times, but only commit
   // as many bytes as we use.
   m_uniform_buffer_reserve_size = sizeof(PixelShaderConstants);
-  m_uniform_buffer_reserve_size = Common::AlignUp(m_uniform_buffer_reserve_size,
-                                                  g_vulkan_context->GetUniformBufferAlignment()) +
-                                  sizeof(VertexShaderConstants);
-  m_uniform_buffer_reserve_size = Common::AlignUp(m_uniform_buffer_reserve_size,
-                                                  g_vulkan_context->GetUniformBufferAlignment()) +
-                                  sizeof(GeometryShaderConstants);
+  m_uniform_buffer_reserve_size =
+      Common::AlignUp(m_uniform_buffer_reserve_size,
+                      m_gfx->GetContext()->GetUniformBufferAlignment()) +
+      sizeof(VertexShaderConstants);
+  m_uniform_buffer_reserve_size =
+      Common::AlignUp(m_uniform_buffer_reserve_size,
+                      m_gfx->GetContext()->GetUniformBufferAlignment()) +
+      sizeof(GeometryShaderConstants);
 
   // Prefer an 8MB buffer if possible, but use less if the device doesn't support this.
   // This buffer is potentially going to be addressed as R8s in the future, so we assume
   // that one element is one byte.
   const u32 texel_buffer_size = std::min(
-      TEXEL_STREAM_BUFFER_SIZE, g_vulkan_context->GetDeviceLimits().maxTexelBufferElements);
+      TEXEL_STREAM_BUFFER_SIZE, m_gfx->GetContext()->GetDeviceLimits().maxTexelBufferElements);
   m_texel_stream_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, texel_buffer_size);
+      StreamBuffer::Create(m_gfx, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, texel_buffer_size);
   if (!m_texel_stream_buffer)
   {
     PanicAlertFmt("Failed to allocate streaming texel buffer");
@@ -121,12 +123,11 @@ bool VertexManager::Initialize()
 
   // Bind the buffers to all the known spots even if it's not used, to keep the driver happy.
   UploadAllConstants();
-  StateTracker::GetInstance()->SetUtilityUniformBuffer(m_uniform_stream_buffer->GetBuffer(), 0,
-                                                       sizeof(VertexShaderConstants));
+  m_gfx->GetStateTracker()->SetUtilityUniformBuffer(m_uniform_stream_buffer->GetBuffer(), 0,
+                                                    sizeof(VertexShaderConstants));
   for (u32 i = 0; i < NUM_COMPUTE_TEXEL_BUFFERS; i++)
   {
-    StateTracker::GetInstance()->SetTexelBuffer(i,
-                                                m_texel_buffer_views[TEXEL_BUFFER_FORMAT_R8_UINT]);
+    m_gfx->GetStateTracker()->SetTexelBuffer(i, m_texel_buffer_views[TEXEL_BUFFER_FORMAT_R8_UINT]);
   }
 
   return true;
@@ -137,7 +138,7 @@ void VertexManager::DestroyTexelBufferViews()
   for (VkBufferView view : m_texel_buffer_views)
   {
     if (view != VK_NULL_HANDLE)
-      vkDestroyBufferView(g_vulkan_context->GetDevice(), view, nullptr);
+      vkDestroyBufferView(m_gfx->GetContext()->GetDevice(), view, nullptr);
   }
 }
 
@@ -152,7 +153,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   {
     // Flush any pending commands first, so that we can wait on the fences
     WARN_LOG_FMT(VIDEO, "Executing command list while waiting for space in vertex/index buffer");
-    VKGfx::GetInstance()->ExecuteCommandBuffer(false);
+    m_gfx->ExecuteCommandBuffer(false);
 
     // Attempt to allocate again, this may cause a fence wait
     if (!has_vbuffer_allocation)
@@ -189,10 +190,10 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
   ADDSTAT(g_stats.this_frame.bytes_vertex_streamed, static_cast<int>(vertex_data_size));
   ADDSTAT(g_stats.this_frame.bytes_index_streamed, static_cast<int>(index_data_size));
 
-  StateTracker::GetInstance()->SetVertexBuffer(m_vertex_stream_buffer->GetBuffer(), 0,
-                                               VERTEX_STREAM_BUFFER_SIZE);
-  StateTracker::GetInstance()->SetIndexBuffer(m_index_stream_buffer->GetBuffer(), 0,
-                                              VK_INDEX_TYPE_UINT16);
+  m_gfx->GetStateTracker()->SetVertexBuffer(m_vertex_stream_buffer->GetBuffer(), 0,
+                                            VERTEX_STREAM_BUFFER_SIZE);
+  m_gfx->GetStateTracker()->SetIndexBuffer(m_index_stream_buffer->GetBuffer(), 0,
+                                           VK_INDEX_TYPE_UINT16);
 }
 
 void VertexManager::UploadUniforms()
@@ -210,7 +211,7 @@ void VertexManager::UpdateVertexShaderConstants()
   if (!vertex_shader_manager.dirty || !ReserveConstantStorage())
     return;
 
-  StateTracker::GetInstance()->SetGXUniformBuffer(
+  m_gfx->GetStateTracker()->SetGXUniformBuffer(
       UBO_DESCRIPTOR_SET_BINDING_VS, m_uniform_stream_buffer->GetBuffer(),
       m_uniform_stream_buffer->GetCurrentOffset(), sizeof(VertexShaderConstants));
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &vertex_shader_manager.constants,
@@ -228,7 +229,7 @@ void VertexManager::UpdateGeometryShaderConstants()
   if (!geometry_shader_manager.dirty || !ReserveConstantStorage())
     return;
 
-  StateTracker::GetInstance()->SetGXUniformBuffer(
+  m_gfx->GetStateTracker()->SetGXUniformBuffer(
       UBO_DESCRIPTOR_SET_BINDING_GS, m_uniform_stream_buffer->GetBuffer(),
       m_uniform_stream_buffer->GetCurrentOffset(), sizeof(GeometryShaderConstants));
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &geometry_shader_manager.constants,
@@ -246,7 +247,7 @@ void VertexManager::UpdatePixelShaderConstants()
   if (!pixel_shader_manager.dirty || !ReserveConstantStorage())
     return;
 
-  StateTracker::GetInstance()->SetGXUniformBuffer(
+  m_gfx->GetStateTracker()->SetGXUniformBuffer(
       UBO_DESCRIPTOR_SET_BINDING_PS, m_uniform_stream_buffer->GetBuffer(),
       m_uniform_stream_buffer->GetCurrentOffset(), sizeof(PixelShaderConstants));
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &pixel_shader_manager.constants,
@@ -259,14 +260,14 @@ void VertexManager::UpdatePixelShaderConstants()
 bool VertexManager::ReserveConstantStorage()
 {
   if (m_uniform_stream_buffer->ReserveMemory(m_uniform_buffer_reserve_size,
-                                             g_vulkan_context->GetUniformBufferAlignment()))
+                                             m_gfx->GetContext()->GetUniformBufferAlignment()))
   {
     return true;
   }
 
   // The only places that call constant updates are safe to have state restored.
   WARN_LOG_FMT(VIDEO, "Executing command buffer while waiting for space in uniform buffer");
-  VKGfx::GetInstance()->ExecuteCommandBuffer(false);
+  m_gfx->ExecuteCommandBuffer(false);
 
   // Since we are on a new command buffer, all constants have been invalidated, and we need
   // to reupload them. We may as well do this now, since we're issuing a draw anyway.
@@ -277,7 +278,7 @@ bool VertexManager::ReserveConstantStorage()
 void VertexManager::UploadAllConstants()
 {
   // We are free to re-use parts of the buffer now since we're uploading all constants.
-  const u32 ub_alignment = static_cast<u32>(g_vulkan_context->GetUniformBufferAlignment());
+  const u32 ub_alignment = static_cast<u32>(m_gfx->GetContext()->GetUniformBufferAlignment());
   const u32 pixel_constants_offset = 0;
   const u32 vertex_constants_offset =
       Common::AlignUp(pixel_constants_offset + sizeof(PixelShaderConstants), ub_alignment);
@@ -299,15 +300,15 @@ void VertexManager::UploadAllConstants()
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
 
   // Update bindings
-  StateTracker::GetInstance()->SetGXUniformBuffer(
+  m_gfx->GetStateTracker()->SetGXUniformBuffer(
       UBO_DESCRIPTOR_SET_BINDING_PS, m_uniform_stream_buffer->GetBuffer(),
       m_uniform_stream_buffer->GetCurrentOffset() + pixel_constants_offset,
       sizeof(PixelShaderConstants));
-  StateTracker::GetInstance()->SetGXUniformBuffer(
+  m_gfx->GetStateTracker()->SetGXUniformBuffer(
       UBO_DESCRIPTOR_SET_BINDING_VS, m_uniform_stream_buffer->GetBuffer(),
       m_uniform_stream_buffer->GetCurrentOffset() + vertex_constants_offset,
       sizeof(VertexShaderConstants));
-  StateTracker::GetInstance()->SetGXUniformBuffer(
+  m_gfx->GetStateTracker()->SetGXUniformBuffer(
       UBO_DESCRIPTOR_SET_BINDING_GS, m_uniform_stream_buffer->GetBuffer(),
       m_uniform_stream_buffer->GetCurrentOffset() + geometry_constants_offset,
       sizeof(GeometryShaderConstants));
@@ -334,13 +335,13 @@ void VertexManager::UploadUtilityUniforms(const void* data, u32 data_size)
 {
   InvalidateConstants();
   if (!m_uniform_stream_buffer->ReserveMemory(data_size,
-                                              g_vulkan_context->GetUniformBufferAlignment()))
+                                              m_gfx->GetContext()->GetUniformBufferAlignment()))
   {
     WARN_LOG_FMT(VIDEO, "Executing command buffer while waiting for ext space in uniform buffer");
-    VKGfx::GetInstance()->ExecuteCommandBuffer(false);
+    m_gfx->ExecuteCommandBuffer(false);
   }
 
-  StateTracker::GetInstance()->SetUtilityUniformBuffer(
+  m_gfx->GetStateTracker()->SetUtilityUniformBuffer(
       m_uniform_stream_buffer->GetBuffer(), m_uniform_stream_buffer->GetCurrentOffset(), data_size);
   std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), data, data_size);
   m_uniform_stream_buffer->CommitMemory(data_size);
@@ -358,7 +359,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   {
     // Try submitting cmdbuffer.
     WARN_LOG_FMT(VIDEO, "Submitting command buffer while waiting for space in texel buffer");
-    VKGfx::GetInstance()->ExecuteCommandBuffer(false, false);
+    m_gfx->ExecuteCommandBuffer(false, false);
     if (!m_texel_stream_buffer->ReserveMemory(data_size, elem_size))
     {
       PanicAlertFmt("Failed to allocate {} bytes from texel buffer", data_size);
@@ -370,7 +371,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   *out_offset = static_cast<u32>(m_texel_stream_buffer->GetCurrentOffset()) / elem_size;
   m_texel_stream_buffer->CommitMemory(data_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
-  StateTracker::GetInstance()->SetTexelBuffer(0, m_texel_buffer_views[format]);
+  m_gfx->GetStateTracker()->SetTexelBuffer(0, m_texel_buffer_views[format]);
   return true;
 }
 
@@ -388,7 +389,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   {
     // Try submitting cmdbuffer.
     WARN_LOG_FMT(VIDEO, "Submitting command buffer while waiting for space in texel buffer");
-    VKGfx::GetInstance()->ExecuteCommandBuffer(false, false);
+    m_gfx->ExecuteCommandBuffer(false, false);
     if (!m_texel_stream_buffer->ReserveMemory(reserve_size, elem_size))
     {
       PanicAlertFmt("Failed to allocate {} bytes from texel buffer", reserve_size);
@@ -407,8 +408,8 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
 
   m_texel_stream_buffer->CommitMemory(palette_byte_offset + palette_size);
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, palette_byte_offset + palette_size);
-  StateTracker::GetInstance()->SetTexelBuffer(0, m_texel_buffer_views[format]);
-  StateTracker::GetInstance()->SetTexelBuffer(1, m_texel_buffer_views[palette_format]);
+  m_gfx->GetStateTracker()->SetTexelBuffer(0, m_texel_buffer_views[format]);
+  m_gfx->GetStateTracker()->SetTexelBuffer(1, m_texel_buffer_views[palette_format]);
   return true;
 }
 }  // namespace Vulkan

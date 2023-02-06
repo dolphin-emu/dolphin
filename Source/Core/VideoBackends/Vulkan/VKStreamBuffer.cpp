@@ -12,11 +12,13 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan
 {
-StreamBuffer::StreamBuffer(VkBufferUsageFlags usage, u32 size) : m_usage(usage), m_size(size)
+StreamBuffer::StreamBuffer(VKGfx* gfx, VkBufferUsageFlags usage, u32 size)
+    : m_gfx(gfx), m_usage(usage), m_size(size)
 {
 }
 
@@ -24,12 +26,12 @@ StreamBuffer::~StreamBuffer()
 {
   // VMA_ALLOCATION_CREATE_MAPPED_BIT automatically handles unmapping for us
   if (m_buffer != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferBufferDestruction(m_buffer, m_alloc);
+    m_gfx->GetCmdBufferMgr()->DeferBufferDestruction(m_buffer, m_alloc);
 }
 
-std::unique_ptr<StreamBuffer> StreamBuffer::Create(VkBufferUsageFlags usage, u32 size)
+std::unique_ptr<StreamBuffer> StreamBuffer::Create(VKGfx* gfx, VkBufferUsageFlags usage, u32 size)
 {
-  std::unique_ptr<StreamBuffer> buffer = std::make_unique<StreamBuffer>(usage, size);
+  std::unique_ptr<StreamBuffer> buffer = std::make_unique<StreamBuffer>(gfx, usage, size);
   if (!buffer->AllocateBuffer())
     return nullptr;
 
@@ -65,7 +67,7 @@ bool StreamBuffer::AllocateBuffer()
   VkBuffer buffer = VK_NULL_HANDLE;
   VmaAllocation alloc = VK_NULL_HANDLE;
   VmaAllocationInfo alloc_info;
-  VkResult res = vmaCreateBuffer(g_vulkan_context->GetMemoryAllocator(), &buffer_create_info,
+  VkResult res = vmaCreateBuffer(m_gfx->GetContext()->GetMemoryAllocator(), &buffer_create_info,
                                  &alloc_create_info, &buffer, &alloc, &alloc_info);
   if (res != VK_SUCCESS)
   {
@@ -76,7 +78,7 @@ bool StreamBuffer::AllocateBuffer()
   // Destroy the backings for the buffer after the command buffer executes
   // VMA_ALLOCATION_CREATE_MAPPED_BIT automatically handles unmapping for us
   if (m_buffer != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferBufferDestruction(m_buffer, m_alloc);
+    m_gfx->GetCmdBufferMgr()->DeferBufferDestruction(m_buffer, m_alloc);
 
   // Replace with the new buffer
   m_buffer = buffer;
@@ -162,7 +164,7 @@ void StreamBuffer::CommitMemory(u32 final_num_bytes)
 
   // For non-coherent mappings, flush the memory range
   // vmaFlushAllocation checks whether the allocation uses a coherent memory type internally
-  vmaFlushAllocation(g_vulkan_context->GetMemoryAllocator(), m_alloc, m_current_offset,
+  vmaFlushAllocation(m_gfx->GetContext()->GetMemoryAllocator(), m_alloc, m_current_offset,
                      final_num_bytes);
 
   m_current_offset += final_num_bytes;
@@ -175,7 +177,7 @@ void StreamBuffer::UpdateCurrentFencePosition()
     return;
 
   // Has the offset changed since the last fence?
-  const u64 counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+  const u64 counter = m_gfx->GetCmdBufferMgr()->GetCurrentFenceCounter();
   if (!m_tracked_fences.empty() && m_tracked_fences.back().first == counter)
   {
     // Still haven't executed a command buffer, so just update the offset.
@@ -193,7 +195,7 @@ void StreamBuffer::UpdateGPUPosition()
   auto start = m_tracked_fences.begin();
   auto end = start;
 
-  const u64 completed_counter = g_command_buffer_mgr->GetCompletedFenceCounter();
+  const u64 completed_counter = m_gfx->GetCmdBufferMgr()->GetCompletedFenceCounter();
   while (end != m_tracked_fences.end() && completed_counter >= end->first)
   {
     m_current_gpu_position = end->second;
@@ -267,13 +269,13 @@ bool StreamBuffer::WaitForClearSpace(u32 num_bytes)
   // Did any fences satisfy this condition?
   // Has the command buffer been executed yet? If not, the caller should execute it.
   if (iter == m_tracked_fences.end() ||
-      iter->first == g_command_buffer_mgr->GetCurrentFenceCounter())
+      iter->first == m_gfx->GetCmdBufferMgr()->GetCurrentFenceCounter())
   {
     return false;
   }
 
   // Wait until this fence is signaled. This will fire the callback, updating the GPU position.
-  g_command_buffer_mgr->WaitForFenceCounter(iter->first);
+  m_gfx->GetCmdBufferMgr()->WaitForFenceCounter(iter->first);
   m_tracked_fences.erase(m_tracked_fences.begin(),
                          m_current_offset == iter->second ? m_tracked_fences.end() : ++iter);
   m_current_offset = new_offset;

@@ -13,10 +13,12 @@
 
 namespace Vulkan
 {
+class VKGfx;
+
 class StreamBuffer
 {
 public:
-  StreamBuffer(VkBufferUsageFlags usage, u32 size);
+  StreamBuffer(VKGfx* gfx, VkBufferUsageFlags usage, u32 size);
   ~StreamBuffer();
 
   VkBuffer GetBuffer() const { return m_buffer; }
@@ -27,7 +29,7 @@ public:
   bool ReserveMemory(u32 num_bytes, u32 alignment);
   void CommitMemory(u32 final_num_bytes);
 
-  static std::unique_ptr<StreamBuffer> Create(VkBufferUsageFlags usage, u32 size);
+  static std::unique_ptr<StreamBuffer> Create(VKGfx* gfx, VkBufferUsageFlags usage, u32 size);
 
 private:
   bool AllocateBuffer();
@@ -37,6 +39,7 @@ private:
   // Waits for as many fences as needed to allocate num_bytes bytes from the buffer.
   bool WaitForClearSpace(u32 num_bytes);
 
+  VKGfx* m_gfx = nullptr;
   VkBufferUsageFlags m_usage;
   u32 m_size;
   u32 m_current_offset = 0;

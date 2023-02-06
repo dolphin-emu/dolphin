@@ -204,17 +204,17 @@ std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
   return gfx;
 }
 
-std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager()
+std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager(AbstractGfx* gfx)
 {
   return std::make_unique<VertexManager>(backend_info);
 }
 
-std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery()
+std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery(AbstractGfx* gfx)
 {
   return GetPerfQuery(m_is_gles);
 }
 
-std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox()
+std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox(AbstractGfx* gfx)
 {
   return std::make_unique<OGLBoundingBox>();
 }

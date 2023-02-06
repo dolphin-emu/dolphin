@@ -174,98 +174,54 @@ std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
   }
 
   // Now we can create the Vulkan device. VulkanContext takes ownership of the instance and surface.
-  g_vulkan_context =
+  auto vulkan_context =
       VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface, enable_debug_utils,
                             enable_validation_layer, vk_api_version);
-  if (!g_vulkan_context)
+  if (!vulkan_context)
   {
     PanicAlertFmt("Failed to create Vulkan device");
-    UnloadVulkanLibrary();
     return {};
   }
 
   // Since VulkanContext maintains a copy of the device features and properties, we can use this
   // to initialize the backend information, so that we don't need to enumerate everything again.
-  VulkanContext::PopulateBackendInfoFeatures(backend_info, g_vulkan_context->GetPhysicalDevice(),
-                                             g_vulkan_context->GetDeviceProperties(),
-                                             g_vulkan_context->GetDeviceFeatures());
+  VulkanContext::PopulateBackendInfoFeatures(backend_info, vulkan_context->GetPhysicalDevice(),
+                                             vulkan_context->GetDeviceProperties(),
+                                             vulkan_context->GetDeviceFeatures());
   VulkanContext::PopulateBackendInfoMultisampleModes(
-      backend_info, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceProperties());
+      backend_info, vulkan_context->GetPhysicalDevice(), vulkan_context->GetDeviceProperties());
   backend_info.bSupportsExclusiveFullscreen =
-      enable_surface && g_vulkan_context->SupportsExclusiveFullscreen(m_wsi, surface);
+      enable_surface && vulkan_context->SupportsExclusiveFullscreen(m_wsi, surface);
 
   UpdateActiveConfig();
 
-  // Create command buffers. We do this separately because the other classes depend on it.
-  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
-  if (!g_command_buffer_mgr->Initialize())
+  auto gfx = std::make_unique<VKGfx>(this, std::move(vulkan_context));
+  if (!gfx->Initialize(m_wsi, surface))
   {
-    PanicAlertFmt("Failed to create Vulkan command buffers");
-    Shutdown();
+    PanicAlertFmt("Failed to initialize Vulkan backend's Gfx");
     return {};
   }
 
-  // Remaining classes are also dependent on object cache.
-  g_object_cache = std::make_unique<ObjectCache>();
-  if (!g_object_cache->Initialize(backend_info))
-  {
-    PanicAlertFmt("Failed to initialize Vulkan object cache.");
-    Shutdown();
-    return {};
-  }
-
-  // Create swap chain. This has to be done early so that the target size is correct for auto-scale.
-  std::unique_ptr<SwapChain> swap_chain;
-  if (surface != VK_NULL_HANDLE)
-  {
-    swap_chain = SwapChain::Create(m_wsi, surface, g_ActiveConfig.bVSyncActive, backend_info);
-    if (!swap_chain)
-    {
-      PanicAlertFmt("Failed to create Vulkan swap chain.");
-      Shutdown();
-      return {};
-    }
-  }
-
-  if (!StateTracker::CreateInstance(backend_info))
-  {
-    PanicAlertFmt("Failed to create state tracker");
-    Shutdown();
-    return {};
-  }
-
-  return std::make_unique<VKGfx>(this, std::move(swap_chain), m_wsi.render_surface_scale);
+  return gfx;
 }
 
-std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager()
+std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager(AbstractGfx* gfx)
 {
-  return std::make_unique<Vulkan::VertexManager>();
+  return std::make_unique<Vulkan::VertexManager>(static_cast<VKGfx*>(gfx));
 }
 
-std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery()
+std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery(AbstractGfx* gfx)
 {
-  return std::make_unique<Vulkan::PerfQuery>();
+  return std::make_unique<Vulkan::PerfQuery>(static_cast<VKGfx*>(gfx));
 }
 
-std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox()
+std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox(AbstractGfx* gfx)
 {
-  return std::make_unique<Vulkan::VKBoundingBox>();
+  return std::make_unique<Vulkan::VKBoundingBox>(static_cast<VKGfx*>(gfx));
 }
 
 void VideoBackend::Shutdown()
 {
-  if (g_vulkan_context)
-    vkDeviceWaitIdle(g_vulkan_context->GetDevice());
-
-  if (g_object_cache)
-    g_object_cache->Shutdown();
-
-  // ShutdownShared();
-
-  g_object_cache.reset();
-  StateTracker::DestroyInstance();
-  g_command_buffer_mgr.reset();
-  g_vulkan_context.reset();
   UnloadVulkanLibrary();
 }
 

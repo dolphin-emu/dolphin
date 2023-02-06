@@ -16,13 +16,13 @@
 
 namespace Vulkan
 {
+class VKGfx;
 class VKShader final : public AbstractShader
 {
 public:
-  VKShader(ShaderStage stage, std::vector<u32> spv, VkShaderModule mod, std::string_view name,
-           const BackendInfo& backend_info);
-  VKShader(std::vector<u32> spv, VkPipeline compute_pipeline, std::string_view name,
-           const BackendInfo& backend_info);
+  VKShader(VKGfx* gfx, ShaderStage stage, std::vector<u32> spv, VkShaderModule mod,
+           std::string_view name);
+  VKShader(VKGfx* gfx, std::vector<u32> spv, VkPipeline compute_pipeline, std::string_view name);
   ~VKShader() override;
 
   VkShaderModule GetShaderModule() const { return m_module; }
@@ -30,13 +30,13 @@ public:
   BinaryData GetBinary() const override;
 
   static std::unique_ptr<VKShader> CreateFromSource(ShaderStage stage, std::string_view source,
-                                                    std::string_view name,
-                                                    const BackendInfo& backend_info);
+                                                    std::string_view name, VKGfx* gfx);
   static std::unique_ptr<VKShader> CreateFromBinary(ShaderStage stage, const void* data,
                                                     size_t length, std::string_view name,
-                                                    const BackendInfo& backend_info);
+                                                    VKGfx* gfx);
 
 private:
+  VKGfx* m_gfx = nullptr;
   std::vector<u32> m_spv;
   VkShaderModule m_module;
   VkPipeline m_compute_pipeline;

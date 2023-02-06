@@ -19,16 +19,15 @@ class VKPipeline;
 class VKTexture;
 class StreamBuffer;
 class VertexFormat;
+class VKGfx;
 
 class StateTracker
 {
 public:
-  StateTracker();
+  StateTracker(VKGfx* gfx);
   ~StateTracker();
 
-  static StateTracker* GetInstance();
-  static bool CreateInstance(const BackendInfo& backend_info);
-  static void DestroyInstance();
+  static std::unique_ptr<StateTracker> Create(VKGfx* gfx);
 
   VKFramebuffer* GetFramebuffer() const { return m_framebuffer; }
   const VKPipeline* GetPipeline() const { return m_pipeline; }
@@ -110,7 +109,7 @@ private:
                                  DIRTY_FLAG_UTILITY_BINDINGS | DIRTY_FLAG_COMPUTE_BINDINGS
   };
 
-  bool Initialize(const BackendInfo& backend_info);
+  bool Initialize();
 
   // Check that the specified viewport is within the render area.
   // If not, ends the render pass if it is a clear render pass.
@@ -120,6 +119,8 @@ private:
   void UpdateGXDescriptorSet();
   void UpdateUtilityDescriptorSet();
   void UpdateComputeDescriptorSet();
+
+  VKGfx* m_gfx = nullptr;
 
   // Supported features copied from backend_info
   bool m_needs_bbox_ssbo = false;

@@ -13,11 +13,12 @@
 namespace Vulkan
 {
 class StreamBuffer;
+class VKGfx;
 
 class VertexManager : public VertexManagerBase
 {
 public:
-  VertexManager();
+  VertexManager(VKGfx* gfx);
   ~VertexManager();
 
   bool Initialize() override;
@@ -35,6 +36,7 @@ protected:
                     u32* out_base_index) override;
   void UploadUniforms() override;
 
+  VkBufferView CreateTexelBufferView(VkBuffer buffer, VkFormat vk_format);
   void DestroyTexelBufferViews();
 
   void UpdateVertexShaderConstants();
@@ -46,6 +48,8 @@ protected:
   // constants will be re-uploaded. false will be returned in this case, otherwise true.
   bool ReserveConstantStorage();
   void UploadAllConstants();
+
+  VKGfx* m_gfx = nullptr;
 
   std::unique_ptr<StreamBuffer> m_vertex_stream_buffer;
   std::unique_ptr<StreamBuffer> m_index_stream_buffer;

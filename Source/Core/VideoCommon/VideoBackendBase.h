@@ -34,13 +34,13 @@ public:
 
   // The various subclassed components that backends must supply
   virtual std::unique_ptr<AbstractGfx> CreateGfx() = 0;
-  virtual std::unique_ptr<VertexManagerBase> CreateVertexManager() = 0;
-  virtual std::unique_ptr<PerfQueryBase> CreatePerfQuery() = 0;
-  virtual std::unique_ptr<BoundingBox> CreateBoundingBox() = 0;
+  virtual std::unique_ptr<VertexManagerBase> CreateVertexManager(AbstractGfx* gfx) = 0;
+  virtual std::unique_ptr<PerfQueryBase> CreatePerfQuery(AbstractGfx* gfx) = 0;
+  virtual std::unique_ptr<BoundingBox> CreateBoundingBox(AbstractGfx* gfx) = 0;
 
   // Optional components that backends only VideoSoftware and VideoNull override
-  virtual std::unique_ptr<Renderer> CreateRenderer();
-  virtual std::unique_ptr<TextureCacheBase> CreateTextureCache();
+  virtual std::unique_ptr<Renderer> CreateRenderer(AbstractGfx* gfx);
+  virtual std::unique_ptr<TextureCacheBase> CreateTextureCache(AbstractGfx* gfx);
 
   // Prepares a native window for rendering. This is called on the main thread, or the
   // thread which owns the window.

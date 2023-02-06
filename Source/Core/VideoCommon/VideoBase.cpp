@@ -219,16 +219,17 @@ bool VideoBase::InitializeShared(VideoBackendBase* backend)
   if (!g_gfx)
   {
     PanicAlertFmtT("Failed to initialize {0} backend.", backend->GetDisplayName());
+    Shutdown();
     return false;
   }
 
-  g_vertex_manager = backend->CreateVertexManager();
-  g_perf_query = backend->CreatePerfQuery();
-  g_bounding_box = backend->CreateBoundingBox();
+  g_vertex_manager = backend->CreateVertexManager(g_gfx.get());
+  g_perf_query = backend->CreatePerfQuery(g_gfx.get());
+  g_bounding_box = backend->CreateBoundingBox(g_gfx.get());
 
   // Null and Software Backends supply their own derived Renderer and Texture Cache
-  g_texture_cache = backend->CreateTextureCache();
-  g_renderer = backend->CreateRenderer();
+  g_texture_cache = backend->CreateTextureCache(g_gfx.get());
+  g_renderer = backend->CreateRenderer(g_gfx.get());
 
   g_presenter = std::make_unique<VideoCommon::Presenter>();
   g_frame_dumper = std::make_unique<FrameDumper>();
@@ -269,7 +270,8 @@ bool VideoBase::InitializeShared(VideoBackendBase* backend)
 
 void VideoBase::Shutdown()
 {
-  g_gfx->WaitForGPUIdle();
+  if (g_gfx)
+    g_gfx->WaitForGPUIdle();
 
   g_frame_dumper.reset();
   g_presenter.reset();

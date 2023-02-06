@@ -9,6 +9,7 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
@@ -19,15 +20,15 @@
 
 namespace Vulkan
 {
-VKPipeline::VKPipeline(VkPipeline pipeline, VkPipelineLayout pipeline_layout,
+VKPipeline::VKPipeline(VKGfx* gfx, VkPipeline pipeline, VkPipelineLayout pipeline_layout,
                        AbstractPipelineUsage usage)
-    : m_pipeline(pipeline), m_pipeline_layout(pipeline_layout), m_usage(usage)
+    : m_gfx(gfx), m_pipeline(pipeline), m_pipeline_layout(pipeline_layout), m_usage(usage)
 {
 }
 
 VKPipeline::~VKPipeline()
 {
-  vkDestroyPipeline(g_vulkan_context->GetDevice(), m_pipeline, nullptr);
+  vkDestroyPipeline(m_gfx->GetContext()->GetDevice(), m_pipeline, nullptr);
 }
 
 static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
@@ -236,13 +237,15 @@ GetVulkanColorBlendState(const BlendingState& state,
   return vk_state;
 }
 
-std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& config,
-                                               const BackendInfo& backend_info)
+std::unique_ptr<VKPipeline> VKPipeline::Create(VKGfx* gfx, const AbstractPipelineConfig& config)
 {
   DEBUG_ASSERT(config.vertex_shader && config.pixel_shader);
 
+  ObjectCache* object_cache = gfx->GetObjectCache();
+  auto backend_info = gfx->GetBackendInfo();
+
   // Get render pass for config.
-  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+  VkRenderPass render_pass = object_cache->GetRenderPass(
       VKTexture::GetVkFormatForHostTextureFormat(config.framebuffer_state.color_texture_format),
       VKTexture::GetVkFormatForHostTextureFormat(config.framebuffer_state.depth_texture_format),
       config.framebuffer_state.samples, VK_ATTACHMENT_LOAD_OP_LOAD);
@@ -252,13 +255,13 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   switch (config.usage)
   {
   case AbstractPipelineUsage::GX:
-    pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
+    pipeline_layout = object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
     break;
   case AbstractPipelineUsage::GXUber:
-    pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UBER);
+    pipeline_layout = object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UBER);
     break;
   case AbstractPipelineUsage::Utility:
-    pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
+    pipeline_layout = object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
     break;
   default:
     PanicAlertFmt("Unknown pipeline layout.");
@@ -398,14 +401,14 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
 
   VkPipeline pipeline;
   VkResult res =
-      vkCreateGraphicsPipelines(g_vulkan_context->GetDevice(), g_object_cache->GetPipelineCache(),
-                                1, &pipeline_info, nullptr, &pipeline);
+      vkCreateGraphicsPipelines(gfx->GetContext()->GetDevice(), object_cache->GetPipelineCache(), 1,
+                                &pipeline_info, nullptr, &pipeline);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateGraphicsPipelines failed: ");
     return VK_NULL_HANDLE;
   }
 
-  return std::make_unique<VKPipeline>(pipeline, pipeline_layout, config.usage);
+  return std::make_unique<VKPipeline>(gfx, pipeline, pipeline_layout, config.usage);
 }
 }  // namespace Vulkan

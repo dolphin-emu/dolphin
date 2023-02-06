@@ -28,11 +28,12 @@ class CommandBufferManager;
 class VertexFormat;
 class VKTexture;
 class StreamBuffer;
+class VKGfx;
 
 class ObjectCache
 {
 public:
-  ObjectCache();
+  ObjectCache(VKGfx* gfx);
   ~ObjectCache();
 
   // Perform at startup, create descriptor layouts, compiles all static shaders.
@@ -89,6 +90,8 @@ private:
   bool ValidatePipelineCache(const u8* data, size_t data_length);
   void DestroyPipelineCache();
 
+  VKGfx* m_gfx = nullptr;
+
   std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SET_LAYOUTS> m_descriptor_set_layouts = {};
   std::array<VkPipelineLayout, NUM_PIPELINE_LAYOUTS> m_pipeline_layouts = {};
 
@@ -110,7 +113,5 @@ private:
   VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
   std::string m_pipeline_cache_filename;
 };
-
-extern std::unique_ptr<ObjectCache> g_object_cache;
 
 }  // namespace Vulkan

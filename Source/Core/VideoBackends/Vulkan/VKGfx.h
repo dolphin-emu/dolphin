@@ -13,19 +13,23 @@
 
 namespace Vulkan
 {
+class CommandBufferManager;
+class ObjectCache;
 class SwapChain;
 class StagingTexture2D;
+class StateTracker;
 class VKFramebuffer;
 class VKPipeline;
 class VKTexture;
+class VulkanContext;
 
 class VKGfx final : public ::AbstractGfx
 {
 public:
-  VKGfx(VideoBackendBase* backend, std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
+  VKGfx(VideoBackendBase* backend, std::unique_ptr<VulkanContext> context);
   ~VKGfx() override;
 
-  static VKGfx* GetInstance() { return static_cast<VKGfx*>(g_gfx.get()); }
+  bool Initialize(WindowSystemInfo& wsi, VkSurfaceKHR surface);
 
   bool IsHeadless() const override;
 
@@ -83,6 +87,11 @@ public:
   // next render. Use when you want to kick the current buffer to make room for new data.
   void ExecuteCommandBuffer(bool execute_off_thread, bool wait_for_completion = false);
 
+  VulkanContext* GetContext() const { return m_context.get(); }
+  CommandBufferManager* GetCmdBufferMgr() const { return m_cmd_buffer_mgr.get(); }
+  ObjectCache* GetObjectCache() const { return m_object_cache.get(); }
+  StateTracker* GetStateTracker() const { return m_state_tracker.get(); }
+
 private:
   void CheckForSurfaceChange();
   void CheckForSurfaceResize();
@@ -92,7 +101,12 @@ private:
   void OnSwapChainResized();
   void BindFramebuffer(VKFramebuffer* fb);
 
+  std::unique_ptr<VulkanContext> m_context;
+  std::unique_ptr<CommandBufferManager> m_cmd_buffer_mgr;
+  std::unique_ptr<ObjectCache> m_object_cache;
+  std::unique_ptr<StateTracker> m_state_tracker;
   std::unique_ptr<SwapChain> m_swap_chain;
+
   float m_backbuffer_scale;
 
   // Keep a copy of sampler states to avoid cache lookups every draw

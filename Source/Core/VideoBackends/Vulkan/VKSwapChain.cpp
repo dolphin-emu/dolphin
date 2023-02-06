@@ -13,6 +13,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
@@ -25,9 +26,9 @@
 
 namespace Vulkan
 {
-SwapChain::SwapChain(const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsync)
-    : m_wsi(wsi), m_surface(surface), m_vsync_enabled(vsync),
-      m_fullscreen_supported(g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface))
+SwapChain::SwapChain(VKGfx* gfx, const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsync)
+    : m_gfx(gfx), m_wsi(wsi), m_surface(surface), m_vsync_enabled(vsync),
+      m_fullscreen_supported(gfx->GetContext()->SupportsExclusiveFullscreen(wsi, surface))
 {
 }
 
@@ -130,11 +131,12 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
   return VK_NULL_HANDLE;
 }
 
-std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi, VkSurfaceKHR surface,
-                                             bool vsync, BackendInfo& backend_info)
+std::unique_ptr<SwapChain> SwapChain::Create(VKGfx* gfx, const WindowSystemInfo& wsi,
+                                             VkSurfaceKHR surface, bool vsync,
+                                             BackendInfo& backend_info)
 {
-  std::unique_ptr<SwapChain> swap_chain = std::make_unique<SwapChain>(wsi, surface, vsync);
-  if (!swap_chain->CreateSwapChain(backend_info) || !swap_chain->SetupSwapChainImages(backend_info))
+  std::unique_ptr<SwapChain> swap_chain = std::make_unique<SwapChain>(gfx, wsi, surface, vsync);
+  if (!swap_chain->CreateSwapChain(backend_info) || !swap_chain->SetupSwapChainImages())
     return nullptr;
 
   return swap_chain;
@@ -143,7 +145,7 @@ std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi, VkSurf
 bool SwapChain::SelectSurfaceFormat()
 {
   u32 format_count;
-  VkResult res = vkGetPhysicalDeviceSurfaceFormatsKHR(g_vulkan_context->GetPhysicalDevice(),
+  VkResult res = vkGetPhysicalDeviceSurfaceFormatsKHR(m_gfx->GetContext()->GetPhysicalDevice(),
                                                       m_surface, &format_count, nullptr);
   if (res != VK_SUCCESS || format_count == 0)
   {
@@ -152,7 +154,7 @@ bool SwapChain::SelectSurfaceFormat()
   }
 
   std::vector<VkSurfaceFormatKHR> surface_formats(format_count);
-  res = vkGetPhysicalDeviceSurfaceFormatsKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
+  res = vkGetPhysicalDeviceSurfaceFormatsKHR(m_gfx->GetContext()->GetPhysicalDevice(), m_surface,
                                              &format_count, surface_formats.data());
   ASSERT(res == VK_SUCCESS);
 
@@ -191,8 +193,8 @@ bool SwapChain::SelectPresentMode()
 {
   VkResult res;
   u32 mode_count;
-  res = vkGetPhysicalDeviceSurfacePresentModesKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
-                                                  &mode_count, nullptr);
+  res = vkGetPhysicalDeviceSurfacePresentModesKHR(m_gfx->GetContext()->GetPhysicalDevice(),
+                                                  m_surface, &mode_count, nullptr);
   if (res != VK_SUCCESS || mode_count == 0)
   {
     LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceFormatsKHR failed: ");
@@ -200,8 +202,8 @@ bool SwapChain::SelectPresentMode()
   }
 
   std::vector<VkPresentModeKHR> present_modes(mode_count);
-  res = vkGetPhysicalDeviceSurfacePresentModesKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
-                                                  &mode_count, present_modes.data());
+  res = vkGetPhysicalDeviceSurfacePresentModesKHR(m_gfx->GetContext()->GetPhysicalDevice(),
+                                                  m_surface, &mode_count, present_modes.data());
   ASSERT(res == VK_SUCCESS);
 
   // Checks if a particular mode is supported, if it is, returns that mode.
@@ -243,7 +245,7 @@ bool SwapChain::CreateSwapChain(BackendInfo& backend_info)
 {
   // Look up surface properties to determine image count and dimensions
   VkSurfaceCapabilitiesKHR surface_capabilities;
-  VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(g_vulkan_context->GetPhysicalDevice(),
+  VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_gfx->GetContext()->GetPhysicalDevice(),
                                                            m_surface, &surface_capabilities);
   if (res != VK_SUCCESS)
   {
@@ -315,11 +317,11 @@ bool SwapChain::CreateSwapChain(BackendInfo& backend_info)
                                               VK_TRUE,
                                               old_swap_chain};
   std::array<uint32_t, 2> indices = {{
-      g_vulkan_context->GetGraphicsQueueFamilyIndex(),
-      g_vulkan_context->GetPresentQueueFamilyIndex(),
+      m_gfx->GetContext()->GetGraphicsQueueFamilyIndex(),
+      m_gfx->GetContext()->GetPresentQueueFamilyIndex(),
   }};
-  if (g_vulkan_context->GetGraphicsQueueFamilyIndex() !=
-      g_vulkan_context->GetPresentQueueFamilyIndex())
+  if (m_gfx->GetContext()->GetGraphicsQueueFamilyIndex() !=
+      m_gfx->GetContext()->GetPresentQueueFamilyIndex())
   {
     swap_chain_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
     swap_chain_info.queueFamilyIndexCount = 2;
@@ -334,10 +336,10 @@ bool SwapChain::CreateSwapChain(BackendInfo& backend_info)
     fullscreen_support.sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT;
     fullscreen_support.fullScreenExclusive = VK_FULL_SCREEN_EXCLUSIVE_APPLICATION_CONTROLLED_EXT;
 
-    auto platform_info = g_vulkan_context->GetPlatformExclusiveFullscreenInfo(m_wsi);
+    auto platform_info = m_gfx->GetContext()->GetPlatformExclusiveFullscreenInfo(m_wsi);
     fullscreen_support.pNext = &platform_info;
 
-    res = vkCreateSwapchainKHR(g_vulkan_context->GetDevice(), &swap_chain_info, nullptr,
+    res = vkCreateSwapchainKHR(m_gfx->GetContext()->GetDevice(), &swap_chain_info, nullptr,
                                &m_swap_chain);
     if (res != VK_SUCCESS)
     {
@@ -353,7 +355,7 @@ bool SwapChain::CreateSwapChain(BackendInfo& backend_info)
 
   if (m_swap_chain == VK_NULL_HANDLE)
   {
-    res = vkCreateSwapchainKHR(g_vulkan_context->GetDevice(), &swap_chain_info, nullptr,
+    res = vkCreateSwapchainKHR(m_gfx->GetContext()->GetDevice(), &swap_chain_info, nullptr,
                                &m_swap_chain);
   }
   if (res != VK_SUCCESS)
@@ -365,7 +367,7 @@ bool SwapChain::CreateSwapChain(BackendInfo& backend_info)
   // Now destroy the old swap chain, since it's been recreated.
   // We can do this immediately since all work should have been completed before calling resize.
   if (old_swap_chain != VK_NULL_HANDLE)
-    vkDestroySwapchainKHR(g_vulkan_context->GetDevice(), old_swap_chain, nullptr);
+    vkDestroySwapchainKHR(m_gfx->GetContext()->GetDevice(), old_swap_chain, nullptr);
 
   m_width = size.width;
   m_height = size.height;
@@ -373,13 +375,13 @@ bool SwapChain::CreateSwapChain(BackendInfo& backend_info)
   return true;
 }
 
-bool SwapChain::SetupSwapChainImages(const BackendInfo& backend_info)
+bool SwapChain::SetupSwapChainImages()
 {
   ASSERT(m_swap_chain_images.empty());
 
   uint32_t image_count;
-  VkResult res =
-      vkGetSwapchainImagesKHR(g_vulkan_context->GetDevice(), m_swap_chain, &image_count, nullptr);
+  VkResult res = vkGetSwapchainImagesKHR(m_gfx->GetContext()->GetDevice(), m_swap_chain,
+                                         &image_count, nullptr);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkGetSwapchainImagesKHR failed: ");
@@ -387,15 +389,15 @@ bool SwapChain::SetupSwapChainImages(const BackendInfo& backend_info)
   }
 
   std::vector<VkImage> images(image_count);
-  res = vkGetSwapchainImagesKHR(g_vulkan_context->GetDevice(), m_swap_chain, &image_count,
+  res = vkGetSwapchainImagesKHR(m_gfx->GetContext()->GetDevice(), m_swap_chain, &image_count,
                                 images.data());
   ASSERT(res == VK_SUCCESS);
 
   const TextureConfig texture_config(TextureConfig(
       m_width, m_height, 1, m_layers, 1, m_texture_format, AbstractTextureFlag_RenderTarget));
-  const VkRenderPass load_render_pass = g_object_cache->GetRenderPass(
+  const VkRenderPass load_render_pass = m_gfx->GetObjectCache()->GetRenderPass(
       m_surface_format.format, VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_LOAD);
-  const VkRenderPass clear_render_pass = g_object_cache->GetRenderPass(
+  const VkRenderPass clear_render_pass = m_gfx->GetObjectCache()->GetRenderPass(
       m_surface_format.format, VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_CLEAR);
   if (load_render_pass == VK_NULL_HANDLE || clear_render_pass == VK_NULL_HANDLE)
   {
@@ -411,13 +413,13 @@ bool SwapChain::SetupSwapChainImages(const BackendInfo& backend_info)
 
     // Create texture object, which creates a view of the backbuffer
     image.texture =
-        VKTexture::CreateAdopted(texture_config, image.image, backend_info,
+        VKTexture::CreateAdopted(m_gfx, texture_config, image.image,
                                  m_layers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D,
                                  VK_IMAGE_LAYOUT_UNDEFINED);
     if (!image.texture)
       return false;
 
-    image.framebuffer = VKFramebuffer::Create(image.texture.get(), nullptr);
+    image.framebuffer = VKFramebuffer::Create(m_gfx, image.texture.get(), nullptr);
     if (!image.framebuffer)
     {
       image.texture.reset();
@@ -450,14 +452,14 @@ void SwapChain::DestroySwapChain()
   if (m_current_fullscreen_state)
     SetFullscreenState(false);
 
-  vkDestroySwapchainKHR(g_vulkan_context->GetDevice(), m_swap_chain, nullptr);
+  vkDestroySwapchainKHR(m_gfx->GetContext()->GetDevice(), m_swap_chain, nullptr);
   m_swap_chain = VK_NULL_HANDLE;
 }
 
 VkResult SwapChain::AcquireNextImage()
 {
-  VkResult res = vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX,
-                                       g_command_buffer_mgr->GetCurrentCommandBufferSemaphore(),
+  VkResult res = vkAcquireNextImageKHR(m_gfx->GetContext()->GetDevice(), m_swap_chain, UINT64_MAX,
+                                       m_gfx->GetCmdBufferMgr()->GetCurrentCommandBufferSemaphore(),
                                        VK_NULL_HANDLE, &m_current_swap_chain_image_index);
   if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
     LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
@@ -468,7 +470,7 @@ VkResult SwapChain::AcquireNextImage()
 bool SwapChain::ResizeSwapChain(BackendInfo& backend_info)
 {
   DestroySwapChainImages();
-  if (!CreateSwapChain(backend_info) || !SetupSwapChainImages(backend_info))
+  if (!CreateSwapChain(backend_info) || !SetupSwapChainImages())
   {
     PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
     return false;
@@ -481,7 +483,7 @@ bool SwapChain::RecreateSwapChain(BackendInfo& backend_info)
 {
   DestroySwapChainImages();
   DestroySwapChain();
-  if (!CreateSwapChain(backend_info) || !SetupSwapChainImages(backend_info))
+  if (!CreateSwapChain(backend_info) || !SetupSwapChainImages())
   {
     PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
     return false;
@@ -508,7 +510,8 @@ bool SwapChain::SetFullscreenState(bool state)
 
   if (state)
   {
-    VkResult res = vkAcquireFullScreenExclusiveModeEXT(g_vulkan_context->GetDevice(), m_swap_chain);
+    VkResult res =
+        vkAcquireFullScreenExclusiveModeEXT(m_gfx->GetContext()->GetDevice(), m_swap_chain);
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkAcquireFullScreenExclusiveModeEXT failed:");
@@ -519,7 +522,8 @@ bool SwapChain::SetFullscreenState(bool state)
   }
   else
   {
-    VkResult res = vkReleaseFullScreenExclusiveModeEXT(g_vulkan_context->GetDevice(), m_swap_chain);
+    VkResult res =
+        vkReleaseFullScreenExclusiveModeEXT(m_gfx->GetContext()->GetDevice(), m_swap_chain);
     if (res != VK_SUCCESS)
       LOG_VULKAN_ERROR(res, "vkReleaseFullScreenExclusiveModeEXT failed:");
 
@@ -542,14 +546,14 @@ bool SwapChain::RecreateSurface(void* native_handle, BackendInfo& backend_info)
 
   // Re-create the surface with the new native handle
   m_wsi.render_surface = native_handle;
-  m_surface = CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), m_wsi);
+  m_surface = CreateVulkanSurface(m_gfx->GetContext()->GetVulkanInstance(), m_wsi);
   if (m_surface == VK_NULL_HANDLE)
     return false;
 
   // The validation layers get angry at us if we don't call this before creating the swapchain.
   VkBool32 present_supported = VK_TRUE;
   VkResult res = vkGetPhysicalDeviceSurfaceSupportKHR(
-      g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetPresentQueueFamilyIndex(),
+      m_gfx->GetContext()->GetPhysicalDevice(), m_gfx->GetContext()->GetPresentQueueFamilyIndex(),
       m_surface, &present_supported);
   if (res != VK_SUCCESS)
   {
@@ -563,14 +567,14 @@ bool SwapChain::RecreateSurface(void* native_handle, BackendInfo& backend_info)
   }
 
   // Update exclusive fullscreen support (unlikely to change).
-  m_fullscreen_supported = g_vulkan_context->SupportsExclusiveFullscreen(m_wsi, m_surface);
+  m_fullscreen_supported = m_gfx->GetContext()->SupportsExclusiveFullscreen(m_wsi, m_surface);
   backend_info.bSupportsExclusiveFullscreen = m_fullscreen_supported;
   backend_info.bSupportsExclusiveFullscreen = m_fullscreen_supported;
   m_current_fullscreen_state = false;
   m_next_fullscreen_state = false;
 
   // Finally re-create the swap chain
-  if (!CreateSwapChain(backend_info) || !SetupSwapChainImages(backend_info))
+  if (!CreateSwapChain(backend_info) || !SetupSwapChainImages())
     return false;
 
   return true;
@@ -578,7 +582,7 @@ bool SwapChain::RecreateSurface(void* native_handle, BackendInfo& backend_info)
 
 void SwapChain::DestroySurface()
 {
-  vkDestroySurfaceKHR(g_vulkan_context->GetVulkanInstance(), m_surface, nullptr);
+  vkDestroySurfaceKHR(m_gfx->GetContext()->GetVulkanInstance(), m_surface, nullptr);
   m_surface = VK_NULL_HANDLE;
 }
 }  // namespace Vulkan

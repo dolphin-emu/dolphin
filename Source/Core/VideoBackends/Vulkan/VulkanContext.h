@@ -147,6 +147,4 @@ private:
   static inline std::vector<const char*> m_instance_extensions;
 };
 
-extern std::unique_ptr<VulkanContext> g_vulkan_context;
-
 }  // namespace Vulkan

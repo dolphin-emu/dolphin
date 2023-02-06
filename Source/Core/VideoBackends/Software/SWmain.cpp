@@ -109,27 +109,27 @@ std::unique_ptr<AbstractGfx> VideoSoftware::CreateGfx()
   return std::make_unique<SWGfx>(this, std::move(window));
 }
 
-std::unique_ptr<VertexManagerBase> VideoSoftware::CreateVertexManager()
+std::unique_ptr<VertexManagerBase> VideoSoftware::CreateVertexManager(AbstractGfx* gfx)
 {
   return std::make_unique<SWVertexLoader>();
 }
 
-std::unique_ptr<PerfQueryBase> VideoSoftware::CreatePerfQuery()
+std::unique_ptr<PerfQueryBase> VideoSoftware::CreatePerfQuery(AbstractGfx* gfx)
 {
   return std::make_unique<SW::PerfQuery>();
 }
 
-std::unique_ptr<BoundingBox> VideoSoftware::CreateBoundingBox()
+std::unique_ptr<BoundingBox> VideoSoftware::CreateBoundingBox(AbstractGfx* gfx)
 {
   return std::make_unique<SWBoundingBox>();
 }
 
-std::unique_ptr<Renderer> VideoSoftware::CreateRenderer()
+std::unique_ptr<Renderer> VideoSoftware::CreateRenderer(AbstractGfx* gfx)
 {
   return std::make_unique<SWRenderer>();
 }
 
-std::unique_ptr<TextureCacheBase> VideoSoftware::CreateTextureCache()
+std::unique_ptr<TextureCacheBase> VideoSoftware::CreateTextureCache(AbstractGfx* gfx)
 {
   return std::make_unique<SW::TextureCache>();
 }

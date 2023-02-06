@@ -18,19 +18,21 @@ class CommandBufferManager;
 class ObjectCache;
 class VKTexture;
 class VKFramebuffer;
+class VKGfx;
 
 class SwapChain
 {
 public:
-  SwapChain(const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsync);
+  SwapChain(VKGfx* gfx, const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsync);
   ~SwapChain();
 
   // Creates a vulkan-renderable surface for the specified window handle.
   static VkSurfaceKHR CreateVulkanSurface(VkInstance instance, const WindowSystemInfo& wsi);
 
   // Create a new swap chain from a pre-existing surface.
-  static std::unique_ptr<SwapChain> Create(const WindowSystemInfo& wsi, VkSurfaceKHR surface,
-                                           bool vsync, BackendInfo& backend_info);
+  static std::unique_ptr<SwapChain> Create(VKGfx* gfx, const WindowSystemInfo& wsi,
+                                           VkSurfaceKHR surface, bool vsync,
+                                           BackendInfo& backend_info);
 
   VkSurfaceKHR GetSurface() const { return m_surface; }
   VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surface_format; }
@@ -78,7 +80,7 @@ private:
   bool CreateSwapChain(BackendInfo& backend_info);
   void DestroySwapChain();
 
-  bool SetupSwapChainImages(const BackendInfo& backend_info);
+  bool SetupSwapChainImages();
   void DestroySwapChainImages();
 
   void DestroySurface();
@@ -90,6 +92,7 @@ private:
     std::unique_ptr<VKFramebuffer> framebuffer;
   };
 
+  VKGfx* m_gfx = nullptr;
   WindowSystemInfo m_wsi;
   VkSurfaceKHR m_surface = VK_NULL_HANDLE;
   VkSurfaceFormatKHR m_surface_format = {};

@@ -17,6 +17,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
@@ -26,9 +27,9 @@
 
 namespace Vulkan
 {
-std::unique_ptr<ObjectCache> g_object_cache;
-
-ObjectCache::ObjectCache() = default;
+ObjectCache::ObjectCache(VKGfx* gfx) : m_gfx(gfx)
+{
+}
 
 ObjectCache::~ObjectCache()
 {
@@ -52,7 +53,7 @@ bool ObjectCache::Initialize(const BackendInfo& backend_info)
     return false;
 
   m_texture_upload_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, TEXTURE_UPLOAD_BUFFER_SIZE);
+      StreamBuffer::Create(m_gfx, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, TEXTURE_UPLOAD_BUFFER_SIZE);
   if (!m_texture_upload_buffer)
   {
     PanicAlertFmt("Failed to create texture upload buffer");
@@ -84,7 +85,7 @@ void ObjectCache::ClearSamplerCache()
   for (const auto& it : m_sampler_cache)
   {
     if (it.second != VK_NULL_HANDLE)
-      vkDestroySampler(g_vulkan_context->GetDevice(), it.second, nullptr);
+      vkDestroySampler(m_gfx->GetContext()->GetDevice(), it.second, nullptr);
   }
   m_sampler_cache.clear();
 }
@@ -95,13 +96,13 @@ void ObjectCache::DestroySamplers()
 
   if (m_point_sampler != VK_NULL_HANDLE)
   {
-    vkDestroySampler(g_vulkan_context->GetDevice(), m_point_sampler, nullptr);
+    vkDestroySampler(m_gfx->GetContext()->GetDevice(), m_point_sampler, nullptr);
     m_point_sampler = VK_NULL_HANDLE;
   }
 
   if (m_linear_sampler != VK_NULL_HANDLE)
   {
-    vkDestroySampler(g_vulkan_context->GetDevice(), m_linear_sampler, nullptr);
+    vkDestroySampler(m_gfx->GetContext()->GetDevice(), m_linear_sampler, nullptr);
     m_linear_sampler = VK_NULL_HANDLE;
   }
 }
@@ -193,7 +194,7 @@ bool ObjectCache::CreateDescriptorSetLayouts(const BackendInfo& backend_info)
 
   for (size_t i = 0; i < create_infos.size(); i++)
   {
-    VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &create_infos[i],
+    VkResult res = vkCreateDescriptorSetLayout(m_gfx->GetContext()->GetDevice(), &create_infos[i],
                                                nullptr, &m_descriptor_set_layouts[i]);
     if (res != VK_SUCCESS)
     {
@@ -210,7 +211,7 @@ void ObjectCache::DestroyDescriptorSetLayouts()
   for (VkDescriptorSetLayout layout : m_descriptor_set_layouts)
   {
     if (layout != VK_NULL_HANDLE)
-      vkDestroyDescriptorSetLayout(g_vulkan_context->GetDevice(), layout, nullptr);
+      vkDestroyDescriptorSetLayout(m_gfx->GetContext()->GetDevice(), layout, nullptr);
   }
 }
 
@@ -269,7 +270,7 @@ bool ObjectCache::CreatePipelineLayouts(const BackendInfo& backend_info)
   for (size_t i = 0; i < pipeline_layout_info.size(); i++)
   {
     VkResult res;
-    if ((res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &pipeline_layout_info[i],
+    if ((res = vkCreatePipelineLayout(m_gfx->GetContext()->GetDevice(), &pipeline_layout_info[i],
                                       nullptr, &m_pipeline_layouts[i])) != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreatePipelineLayout failed: ");
@@ -285,7 +286,7 @@ void ObjectCache::DestroyPipelineLayouts()
   for (VkPipelineLayout layout : m_pipeline_layouts)
   {
     if (layout != VK_NULL_HANDLE)
-      vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), layout, nullptr);
+      vkDestroyPipelineLayout(m_gfx->GetContext()->GetDevice(), layout, nullptr);
   }
 }
 
@@ -313,7 +314,7 @@ bool ObjectCache::CreateStaticSamplers()
   };
 
   VkResult res =
-      vkCreateSampler(g_vulkan_context->GetDevice(), &create_info, nullptr, &m_point_sampler);
+      vkCreateSampler(m_gfx->GetContext()->GetDevice(), &create_info, nullptr, &m_point_sampler);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateSampler failed: ");
@@ -324,7 +325,7 @@ bool ObjectCache::CreateStaticSamplers()
   create_info.minFilter = VK_FILTER_LINEAR;
   create_info.magFilter = VK_FILTER_LINEAR;
   create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-  res = vkCreateSampler(g_vulkan_context->GetDevice(), &create_info, nullptr, &m_linear_sampler);
+  res = vkCreateSampler(m_gfx->GetContext()->GetDevice(), &create_info, nullptr, &m_linear_sampler);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateSampler failed: ");
@@ -369,16 +370,16 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
   };
 
   // Can we use anisotropic filtering with this sampler?
-  if (info.tm0.anisotropic_filtering && g_vulkan_context->SupportsAnisotropicFiltering())
+  if (info.tm0.anisotropic_filtering && m_gfx->GetContext()->SupportsAnisotropicFiltering())
   {
     // Cap anisotropy to device limits.
     create_info.anisotropyEnable = VK_TRUE;
     create_info.maxAnisotropy = std::min(static_cast<float>(1 << g_ActiveConfig.iMaxAnisotropy),
-                                         g_vulkan_context->GetMaxSamplerAnisotropy());
+                                         m_gfx->GetContext()->GetMaxSamplerAnisotropy());
   }
 
   VkSampler sampler = VK_NULL_HANDLE;
-  VkResult res = vkCreateSampler(g_vulkan_context->GetDevice(), &create_info, nullptr, &sampler);
+  VkResult res = vkCreateSampler(m_gfx->GetContext()->GetDevice(), &create_info, nullptr, &sampler);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkCreateSampler failed: ");
 
@@ -455,7 +456,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
                                       nullptr};
 
   VkRenderPass pass;
-  VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr, &pass);
+  VkResult res = vkCreateRenderPass(m_gfx->GetContext()->GetDevice(), &pass_info, nullptr, &pass);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
@@ -469,7 +470,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
 void ObjectCache::DestroyRenderPassCache()
 {
   for (auto& it : m_render_pass_cache)
-    vkDestroyRenderPass(g_vulkan_context->GetDevice(), it.second, nullptr);
+    vkDestroyRenderPass(m_gfx->GetContext()->GetDevice(), it.second, nullptr);
   m_render_pass_cache.clear();
 }
 
@@ -510,7 +511,7 @@ bool ObjectCache::CreatePipelineCache(const BackendInfo& backend_info)
   };
 
   VkResult res =
-      vkCreatePipelineCache(g_vulkan_context->GetDevice(), &info, nullptr, &m_pipeline_cache);
+      vkCreatePipelineCache(m_gfx->GetContext()->GetDevice(), &info, nullptr, &m_pipeline_cache);
   if (res == VK_SUCCESS)
     return true;
 
@@ -546,7 +547,7 @@ bool ObjectCache::LoadPipelineCache(const BackendInfo& backend_info)
   };
 
   VkResult res =
-      vkCreatePipelineCache(g_vulkan_context->GetDevice(), &info, nullptr, &m_pipeline_cache);
+      vkCreatePipelineCache(m_gfx->GetContext()->GetDevice(), &info, nullptr, &m_pipeline_cache);
   if (res == VK_SUCCESS)
     return true;
 
@@ -593,23 +594,23 @@ bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
     return false;
   }
 
-  if (header.vendor_id != g_vulkan_context->GetDeviceProperties().vendorID)
+  if (header.vendor_id != m_gfx->GetContext()->GetDeviceProperties().vendorID)
   {
     ERROR_LOG_FMT(
         VIDEO, "Pipeline cache failed validation: Incorrect vendor ID (file: {:#X}, device: {:#X})",
-        header.vendor_id, g_vulkan_context->GetDeviceProperties().vendorID);
+        header.vendor_id, m_gfx->GetContext()->GetDeviceProperties().vendorID);
     return false;
   }
 
-  if (header.device_id != g_vulkan_context->GetDeviceProperties().deviceID)
+  if (header.device_id != m_gfx->GetContext()->GetDeviceProperties().deviceID)
   {
     ERROR_LOG_FMT(
         VIDEO, "Pipeline cache failed validation: Incorrect device ID (file: {:#X}, device: {:#X})",
-        header.device_id, g_vulkan_context->GetDeviceProperties().deviceID);
+        header.device_id, m_gfx->GetContext()->GetDeviceProperties().deviceID);
     return false;
   }
 
-  if (std::memcmp(header.uuid, g_vulkan_context->GetDeviceProperties().pipelineCacheUUID,
+  if (std::memcmp(header.uuid, m_gfx->GetContext()->GetDeviceProperties().pipelineCacheUUID,
                   VK_UUID_SIZE) != 0)
   {
     ERROR_LOG_FMT(VIDEO, "Pipeline cache failed validation: Incorrect UUID");
@@ -621,15 +622,15 @@ bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
 
 void ObjectCache::DestroyPipelineCache()
 {
-  vkDestroyPipelineCache(g_vulkan_context->GetDevice(), m_pipeline_cache, nullptr);
+  vkDestroyPipelineCache(m_gfx->GetContext()->GetDevice(), m_pipeline_cache, nullptr);
   m_pipeline_cache = VK_NULL_HANDLE;
 }
 
 void ObjectCache::SavePipelineCache()
 {
   size_t data_size;
-  VkResult res =
-      vkGetPipelineCacheData(g_vulkan_context->GetDevice(), m_pipeline_cache, &data_size, nullptr);
+  VkResult res = vkGetPipelineCacheData(m_gfx->GetContext()->GetDevice(), m_pipeline_cache,
+                                        &data_size, nullptr);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkGetPipelineCacheData failed: ");
@@ -637,7 +638,7 @@ void ObjectCache::SavePipelineCache()
   }
 
   std::vector<u8> data(data_size);
-  res = vkGetPipelineCacheData(g_vulkan_context->GetDevice(), m_pipeline_cache, &data_size,
+  res = vkGetPipelineCacheData(m_gfx->GetContext()->GetDevice(), m_pipeline_cache, &data_size,
                                data.data());
   if (res != VK_SUCCESS)
   {

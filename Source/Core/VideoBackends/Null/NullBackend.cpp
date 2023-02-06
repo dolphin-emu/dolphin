@@ -23,6 +23,8 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
+class AbstractGfx;
+
 namespace Null
 {
 void VideoBackend::InitBackendInfo()
@@ -74,27 +76,27 @@ std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
   return std::make_unique<NullGfx>(this);
 }
 
-std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager()
+std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager(AbstractGfx* gfx)
 {
   return std::make_unique<VertexManager>();
 }
 
-std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery()
+std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery(AbstractGfx* gfx)
 {
   return std::make_unique<PerfQuery>();
 }
 
-std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox()
+std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox(AbstractGfx* gfx)
 {
   return std::make_unique<NullBoundingBox>();
 }
 
-std::unique_ptr<Renderer> VideoBackend::CreateRenderer()
+std::unique_ptr<Renderer> VideoBackend::CreateRenderer(AbstractGfx* gfx)
 {
   return std::make_unique<Renderer>();
 }
 
-std::unique_ptr<TextureCacheBase> VideoBackend::CreateTextureCache()
+std::unique_ptr<TextureCacheBase> VideoBackend::CreateTextureCache(AbstractGfx* gfx)
 {
   return std::make_unique<TextureCache>();
 }

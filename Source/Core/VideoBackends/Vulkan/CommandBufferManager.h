@@ -22,10 +22,12 @@
 
 namespace Vulkan
 {
+class VKGfx;
+
 class CommandBufferManager
 {
 public:
-  explicit CommandBufferManager(bool use_threaded_submission);
+  explicit CommandBufferManager(VKGfx* gfx, bool use_threaded_submission);
   ~CommandBufferManager();
 
   bool Initialize();
@@ -106,6 +108,8 @@ private:
 
   VkDescriptorPool CreateDescriptorPool(u32 descriptor_sizes);
 
+  VKGfx* m_gfx = nullptr;
+
   const u32 DESCRIPTOR_SETS_PER_POOL = 1024;
 
   struct CmdBufferResources
@@ -165,7 +169,5 @@ private:
   bool m_use_threaded_submission = false;
   u32 m_descriptor_set_count = DESCRIPTOR_SETS_PER_POOL;
 };
-
-extern std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;
 
 }  // namespace Vulkan

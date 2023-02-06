@@ -97,12 +97,12 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
   return s_available_backends;
 }
 
-std::unique_ptr<Renderer> VideoBackendBase::CreateRenderer()
+std::unique_ptr<Renderer> VideoBackendBase::CreateRenderer(AbstractGfx* gfx)
 {
   return std::make_unique<Renderer>();
 }
 
-std::unique_ptr<TextureCacheBase> VideoBackendBase::CreateTextureCache()
+std::unique_ptr<TextureCacheBase> VideoBackendBase::CreateTextureCache(AbstractGfx* gfx)
 {
   return std::make_unique<TextureCacheBase>();
 }
