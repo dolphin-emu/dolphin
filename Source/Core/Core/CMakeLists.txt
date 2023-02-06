@@ -507,6 +507,8 @@ add_library(core
   System.h
   TitleDatabase.cpp
   TitleDatabase.h
+  LWDProfiler.cpp
+  LWDProfiler.h
   WiiRoot.cpp
   WiiRoot.h
   WiiUtils.cpp

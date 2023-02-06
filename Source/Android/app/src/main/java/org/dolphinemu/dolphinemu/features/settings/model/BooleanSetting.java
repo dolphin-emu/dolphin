@@ -194,6 +194,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   GFX_SHOW_GRAPHS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "ShowGraphs", false),
   GFX_SHOW_SPEED(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "ShowSpeed", false),
   GFX_SHOW_SPEED_COLORS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "ShowSpeedColors", true),
+  GFX_ENABLE_PROFILER(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "ShowSpeedColors", true),
   GFX_LOG_RENDER_TIME_TO_FILE(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "LogRenderTimeToFile", false),
   GFX_OVERLAY_STATS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "OverlayStats", false),

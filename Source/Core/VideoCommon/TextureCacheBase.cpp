@@ -31,6 +31,7 @@
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
+#include "Core/LWDProfiler.h"
 #include "Core/System.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
@@ -1061,6 +1062,8 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
 
 void TextureCacheBase::BindTextures(BitSet32 used_textures)
 {
+  LWDProfiler::ScopedMarker marker("Texture/Bind");
+
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
   for (u32 i = 0; i < bound_textures.size(); i++)

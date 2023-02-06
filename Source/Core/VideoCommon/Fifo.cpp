@@ -20,6 +20,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
+#include "Core/LWDProfiler.h"
 #include "Core/System.h"
 
 #include "VideoCommon/AsyncRequests.h"
@@ -289,6 +290,8 @@ void FifoManager::RunGpuLoop(Core::System& system)
 
   m_gpu_mainloop.Run(
       [this, &system] {
+        LWDProfiler::ScopedMarker profiler{"GPU Loop/Other"};
+
         // Run events from the CPU thread.
         AsyncRequests::GetInstance()->PullEvents();
 
@@ -314,6 +317,8 @@ void FifoManager::RunGpuLoop(Core::System& system)
           auto& command_processor = system.GetCommandProcessor();
           auto& fifo = command_processor.GetFifo();
           command_processor.SetCPStatusFromGPU(system);
+
+          profiler.SetMarker("GPU Loop/FIFO Loop");
 
           // check if we are able to run this buffer
           while (!command_processor.IsInterruptWaiting() &&

@@ -70,6 +70,7 @@ void VideoConfig::Refresh()
   bShowGraphs = Config::Get(Config::GFX_SHOW_GRAPHS);
   bShowSpeed = Config::Get(Config::GFX_SHOW_SPEED);
   bShowSpeedColors = Config::Get(Config::GFX_SHOW_SPEED_COLORS);
+  bEnableProfiler = Config::Get(Config::GFX_ENABLE_PROFILER);
   iPerfSampleUSec = Config::Get(Config::GFX_PERF_SAMP_WINDOW) * 1000;
   bShowNetPlayPing = Config::Get(Config::GFX_SHOW_NETPLAY_PING);
   bShowNetPlayMessages = Config::Get(Config::GFX_SHOW_NETPLAY_MESSAGES);
