@@ -38,8 +38,8 @@ GameConfigEdit::GameConfigEdit(QWidget* parent, QString path, bool read_only)
                                                  "cause issues. Defaults to <b>True</b>"));
 
   AddDescription(QStringLiteral("FastDiscSpeed"),
-                 tr("Shortens loading times but may break some games. Can have negative effects on "
-                    "performance. Defaults to <b>False</b>"));
+                 tr("Emulate the disc speed of real hardware. Disabling can cause instability. "
+                    "Defaults to <b>True</b>"));
 
   AddDescription(QStringLiteral("MMU"), tr("Controls whether or not the Memory Management Unit "
                                            "should be emulated fully. Few games require it."));
