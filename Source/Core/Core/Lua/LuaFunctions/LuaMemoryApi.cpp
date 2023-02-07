@@ -18,6 +18,18 @@ MEMORY* GetInstance()
   return instance;
 }
 
+  luaL_Reg_With_Version luaMemoryFunctionsListWithVersionsAttached[] = {
+
+    {"readFrom", "1.0", do_general_read},
+    {"readUnsignedBytes", "1.0", do_read_unsigned_bytes},
+    {"readSignedBytes", "1.0", do_read_signed_bytes},
+    {"readFixedLengthString", "1.0", do_read_fixed_length_string},
+    {"readNullTerminatedString", "1.0", do_read_null_terminated_string},
+
+    {"writeTo", "1.0", do_general_write},
+    {"writeBytes", "1.0", do_write_bytes},
+    {"writeString", "1.0", do_write_string}};
+
 void InitLuaMemoryApi(lua_State* luaState, const std::string& luaApiVersion)
 {
   MEMORY** instancePtrPtr = (MEMORY**)lua_newuserdata(luaState, sizeof(MEMORY*));
@@ -26,20 +38,10 @@ void InitLuaMemoryApi(lua_State* luaState, const std::string& luaApiVersion)
   lua_pushvalue(luaState, -1);
   lua_setfield(luaState, -2, "__index");
 
-  luaL_Reg luaMemoryFunctionsListWithVersionsAttached[] = {
 
-      {"readFrom-VERSION-1.0", do_general_read},
-      {"readUnsignedBytes-VERSION-1.0", do_read_unsigned_bytes},
-      {"readSignedBytes-VERSION-1.0", do_read_signed_bytes},
-      {"readFixedLengthString-VERSION-1.0", do_read_fixed_length_string},
-      {"readNullTerminatedString-VERSION-1.0", do_read_null_terminated_string},
 
-      {"writeTo-VERSION-1.0", do_general_write},
-      {"writeBytes-VERSION-1.0", do_write_bytes},
-      {"writeString-VERSION-1.0", do_write_string}
-  };
-
-  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaMemoryFunctionsListWithVersionsAttached, 8, luaApiVersion);
+  std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
+  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaMemoryFunctionsListWithVersionsAttached, 8, luaApiVersion, deprecatedFunctionsMap);
   luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
   lua_setmetatable(luaState, -2);
   lua_setglobal(luaState, "memory");

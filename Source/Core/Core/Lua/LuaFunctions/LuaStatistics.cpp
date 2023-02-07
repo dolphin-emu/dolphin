@@ -29,23 +29,24 @@ void InitLuaStatisticsFunctions(lua_State* luaState, const std::string& luaApiVe
   lua_pushvalue(luaState, -1);
   lua_setfield(luaState, -2, "__index");
 
-  luaL_Reg luaStatisticsFunctionsWithVersionsAttached[] = {
-    {"isRecordingInput-VERSION-1.0", isRecordingInput},
-    {"isRecordingInputFromSaveState-VERSION-1.0", isRecordingInputFromSaveState},
-    {"isPlayingInput-VERSION-1.0", isPlayingInput},
-    {"isMovieActive-VERSION-1.0", isMovieActive},
-    {"getCurrentFrame-VERSION-1.0", getCurrentFrame},
-    {"getMovieLength-VERSION-1.0", getMovieLength},
-    {"getRerecordCount-VERSION-1.0", getRerecordCount},
-    {"getCurrentInputCount-VERSION-1.0", getCurrentInputCount},
-    {"getTotalInputCount-VERSION-1.0", getTotalInputCount},
-    {"getCurrentLagCount-VERSION-1.0",  getCurrentLagCount},
-    {"getTotalLagCount-VERSION-1.0", getTotalLagCount},
-    {"isGcControllerInPort-VERSION-1.0", isGcControllerInPort},
-    {"isUsingPort-VERSION-1.0", isUsingPort}
+  luaL_Reg_With_Version luaStatisticsFunctionsWithVersionsAttached[] = {
+    {"isRecordingInput", "1.0", isRecordingInput},
+    {"isRecordingInputFromSaveState", "1.0", isRecordingInputFromSaveState},
+    {"isPlayingInput", "1.0", isPlayingInput},
+    {"isMovieActive", "1.0", isMovieActive},
+    {"getCurrentFrame", "1.0", getCurrentFrame},
+    {"getMovieLength", "1.0", getMovieLength},
+    {"getRerecordCount", "1.0", getRerecordCount},
+    {"getCurrentInputCount", "1.0", getCurrentInputCount},
+    {"getTotalInputCount", "1.0", getTotalInputCount},
+    {"getCurrentLagCount", "1.0", getCurrentLagCount},
+    {"getTotalLagCount", "1.0", getTotalLagCount},
+    {"isGcControllerInPort", "1.0", isGcControllerInPort},
+    {"isUsingPort", "1.0", isUsingPort}
   };
 
-  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaStatisticsFunctionsWithVersionsAttached, 13, luaApiVersion);
+  std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
+  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaStatisticsFunctionsWithVersionsAttached, 13, luaApiVersion, deprecatedFunctionsMap);
   luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
   lua_setmetatable(luaState, -2);
   lua_setglobal(luaState, "statistics");

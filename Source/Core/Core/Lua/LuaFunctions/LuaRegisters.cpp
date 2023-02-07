@@ -36,15 +36,17 @@ void InitLuaRegistersFunctions(lua_State* luaState, const std::string& luaApiVer
   lua_pushvalue(luaState, -1);
   lua_setfield(luaState, -2, "__index");
 
-  luaL_Reg luaRegistersFunctionsWithVersionsAttached[] = {
-    {"getRegister-VERSION-1.0", getRegister},
-    {"getRegisterAsUnsignedByteArray-VERSION-1.0", getRegisterAsUnsignedByteArray},
-    {"getRegisterAsSignedByteArray-VERSION-1.0", getRegisterAsSignedByteArray},
-    {"setRegister-VERSION-1.0",  setRegister},
-    {"setRegisterFromByteArray-VERSION-1.0", setRegisterFromByteArray}
+  luaL_Reg_With_Version luaRegistersFunctionsWithVersionsAttached[] = {
+    {"getRegister", "1.0", getRegister},
+    {"getRegisterAsUnsignedByteArray", "1.0", getRegisterAsUnsignedByteArray},
+    {"getRegisterAsSignedByteArray", "1.0", getRegisterAsSignedByteArray},
+    {"setRegister", "1.0", setRegister},
+    {"setRegisterFromByteArray", "1.0", setRegisterFromByteArray}
   };
 
-  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaRegistersFunctionsWithVersionsAttached, 5, luaApiVersion);
+  std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
+
+  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaRegistersFunctionsWithVersionsAttached, 5, luaApiVersion, deprecatedFunctionsMap);
   luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
   lua_setmetatable(luaState, -2);
   lua_setglobal(luaState, "registers");

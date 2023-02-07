@@ -36,20 +36,21 @@ gc_controller_lua* getControllerInstance()
     lua_pushvalue(luaState, -1);
     lua_setfield(luaState, -2, "__index");
 
-    luaL_Reg luaGCControllerFunctionsWithVersionsAttached[] = {
-      {"setInputs-VERSION-1.0", setInputs},
-      {"addInputs-VERSION-1.0", addInputs},
-      {"addButtonFlipChance-VERSION-1.0", addButtonFlipChance},
-      {"addButtonPressChance-VERSION-1.0", addButtonPressChance},
-      {"addButtonReleaseChance-VERSION-1.0", addButtonReleaseChance},
-      {"addOrSubtractFromCurrentAnalogValueChance-VERSION-1.0", addOrSubtractFromCurrentAnalogValueChance},
-      {"addOrSubtractFromSpecificAnalogValueChance-VERSION-1.0", addOrSubtractFromSpecificAnalogValueChance},
-      {"addButtonComboChance-VERSION-1.0", addButtonComboChance},
-      {"addControllerClearChance-VERSION-1.0", addControllerClearChance},
-      {"getControllerInputs-VERSION-1.0", getControllerInputs}
+    luaL_Reg_With_Version luaGCControllerFunctionsWithVersionsAttached[] = {
+      {"setInputs", "1.0", setInputs},
+      {"addInputs", "1.0", addInputs},
+      {"addButtonFlipChance", "1.0", addButtonFlipChance},
+      {"addButtonPressChance", "1.0", addButtonPressChance},
+      {"addButtonReleaseChance", "1.0", addButtonReleaseChance},
+      {"addOrSubtractFromCurrentAnalogValueChance", "1.0", addOrSubtractFromCurrentAnalogValueChance},
+      {"addOrSubtractFromSpecificAnalogValueChance", "1.0", addOrSubtractFromSpecificAnalogValueChance},
+      {"addButtonComboChance", "1.0", addButtonComboChance},
+      {"addControllerClearChance", "1.0", addControllerClearChance},
+      {"getControllerInputs", "1.0", getControllerInputs}
     };
 
-    std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaGCControllerFunctionsWithVersionsAttached, 10, luaApiVersion);
+    std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
+    std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaGCControllerFunctionsWithVersionsAttached, 10, luaApiVersion, deprecatedFunctionsMap);
     luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
     lua_setmetatable(luaState, -2);
     lua_setglobal(luaState, "gc_controller");
