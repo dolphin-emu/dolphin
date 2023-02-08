@@ -1213,20 +1213,28 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     WriteSwitch(out, api_type, "blend_dst_factor", blendDstFactor, 4, true);
     WriteSwitch(out, api_type, "blend_dst_factor_alpha", blendDstFactorAlpha, 4, true);
 
-    out.Write(
-        "    float4 blend_result;\n"
-        "    if (blend_subtract)\n"
-        "      blend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * blend_src.rgb;\n"
-        "    else\n"
-        "      blend_result.rgb = initial_ocol0.rgb * blend_dst.rgb + ocol0.rgb * "
-        "blend_src.rgb;\n");
+    out.Write("    int4 blend_src_real = int4(blend_src * 255.0);\n"
+              "    blend_src_real += blend_src_real >> 7;\n"
+              "    int4 blend_src_col = int4(ocol0 * 255.0);\n"
+              "    int4 blend_dst_real = int4(blend_dst * 255.0);\n"
+              "    blend_dst_real += blend_dst_real >> 7;\n"
+              "    int4 blend_dst_col = int4(initial_ocol0 * 255.0);\n"
+              "    int4 blend_result;\n"
+              "    if (blend_subtract)\n"
+              "      blend_result.rgb = blend_dst_col.rgb * blend_dst_real.rgb "
+              "- blend_src_col.rgb * blend_src_real.rgb;\n"
+              "    else\n"
+              "      blend_result.rgb = blend_dst_col.rgb * blend_dst_real.rgb "
+              "+ blend_src_col.rgb * blend_src_real.rgb;\n");
 
     out.Write("    if (blend_subtract_alpha)\n"
-              "      blend_result.a = initial_ocol0.a * blend_dst.a - ocol0.a * blend_src.a;\n"
+              "      blend_result.a = blend_dst_col.a * blend_dst_real.a "
+              "- blend_src_col.a * blend_src_real.a;\n"
               "    else\n"
-              "      blend_result.a = initial_ocol0.a * blend_dst.a + ocol0.a * blend_src.a;\n");
+              "      blend_result.a = blend_dst_col.a * blend_dst_real.a "
+              "+ blend_src_col.a * blend_src_real.a;\n");
 
-    out.Write("    real_ocol0 = blend_result;\n");
+    out.Write("    real_ocol0 = float4(clamp(blend_result >> 8, 0, 255)) / 255.0;\n");
 
     out.Write("  }} else {{\n"
               "    real_ocol0 = ocol0;\n"

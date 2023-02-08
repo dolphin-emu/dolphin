@@ -647,13 +647,13 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
 
   if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
   {
-    bool fbfetch_blend = false;
+    bool fbfetch_blend = blend.blendenable;
     if ((DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z) ||
          !g_ActiveConfig.backend_info.bSupportsEarlyZ) &&
         ps->ztest == EmulatedZ::ForcedEarly)
     {
       ps->ztest = EmulatedZ::EarlyWithFBFetch;
-      fbfetch_blend |= static_cast<bool>(out.blending_state.blendenable);
+      fbfetch_blend |= static_cast<bool>(blend.blendenable);
       ps->no_dual_src = true;
     }
     fbfetch_blend |= blend.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp;
@@ -676,7 +676,10 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
         ps->blend_dst_factor_alpha = blend.dstfactoralpha;
         ps->blend_subtract = blend.subtract;
         ps->blend_subtract_alpha = blend.subtractAlpha;
-        blend.blendenable = false;
+        blend.hex = 0;
+        blend.colorupdate = in.blending_state.colorupdate.Value();
+        blend.alphaupdate = in.blending_state.alphaupdate.Value();
+        blend.usedualsrc = false;
       }
     }
   }
