@@ -18,18 +18,6 @@ MEMORY* GetInstance()
   return instance;
 }
 
-  luaL_Reg_With_Version luaMemoryFunctionsListWithVersionsAttached[] = {
-
-    {"readFrom", "1.0", do_general_read},
-    {"readUnsignedBytes", "1.0", do_read_unsigned_bytes},
-    {"readSignedBytes", "1.0", do_read_signed_bytes},
-    {"readFixedLengthString", "1.0", do_read_fixed_length_string},
-    {"readNullTerminatedString", "1.0", do_read_null_terminated_string},
-
-    {"writeTo", "1.0", do_general_write},
-    {"writeBytes", "1.0", do_write_bytes},
-    {"writeString", "1.0", do_write_string}};
-
 void InitLuaMemoryApi(lua_State* luaState, const std::string& luaApiVersion)
 {
   MEMORY** instancePtrPtr = (MEMORY**)lua_newuserdata(luaState, sizeof(MEMORY*));
@@ -39,11 +27,21 @@ void InitLuaMemoryApi(lua_State* luaState, const std::string& luaApiVersion)
   lua_setfield(luaState, -2, "__index");
 
 
+  
+  std::array luaMemoryFunctionsListWithVersionsAttached = {
+
+      luaL_Reg_With_Version({"readFrom", "1.0", do_general_read}),
+      luaL_Reg_With_Version({"readUnsignedBytes", "1.0", do_read_unsigned_bytes}),
+      luaL_Reg_With_Version({"readSignedBytes", "1.0", do_read_signed_bytes}),
+      luaL_Reg_With_Version({"readFixedLengthString", "1.0", do_read_fixed_length_string}),
+      luaL_Reg_With_Version({"readNullTerminatedString", "1.0", do_read_null_terminated_string}),
+
+      luaL_Reg_With_Version({"writeTo", "1.0", do_general_write}),
+      luaL_Reg_With_Version({"writeBytes", "1.0", do_write_bytes}),
+      luaL_Reg_With_Version({"writeString", "1.0", do_write_string})};
 
   std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
-  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaMemoryFunctionsListWithVersionsAttached, 8, luaApiVersion, deprecatedFunctionsMap);
-  luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
-  lua_setmetatable(luaState, -2);
+  addLatestFunctionsForVersion(luaMemoryFunctionsListWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
   lua_setglobal(luaState, "memory");
 }
 

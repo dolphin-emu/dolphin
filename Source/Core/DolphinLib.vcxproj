@@ -79,6 +79,8 @@
     <ClInclude Include="Core\Lua\LuaFunctions\LuaGameCubeController.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaRegisters.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaStatistics.h" />
+    <ClInclude Include="Core\Lua\LuaHelperClasses\luaL_Reg_With_Version.h" />
+    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaVersionComparisonFunctions.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\NumberType.h" />
     <ClInclude Include="Core\Lua\LuaVersionResolver.h" />
   </ItemGroup>
@@ -92,8 +94,8 @@
     <ClCompile Include="Core\Lua\LuaFunctions\LuaMemoryApi.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaRegisters.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaStatistics.cpp" />
+    <ClCompile Include="Core\Lua\LuaHelperClasses\LuaVersionComparisonFunctions.cpp" />
     <ClCompile Include="Core\Lua\LuaHelperClasses\NumberType.cpp" />
-    <ClCompile Include="Core\Lua\LuaVersionResolver.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>

@@ -49,18 +49,16 @@ void InitLuaEmuFunctions(lua_State* luaState, const std::string& luaApiVersion)
   lua_pushvalue(luaState, -1);
   lua_setfield(luaState, -2, "__index");
 
-  luaL_Reg_With_Version luaEmuFunctionsWithVersionsAttached[] = {
-    {"frameAdvance", "1.0", emu_frameAdvance},
-    {"loadState", "1.0", emu_loadState},
-    {"saveState", "1.0", emu_saveState},
-    {"playMovie", "1.0", emu_playMovie},
-    {"saveMovie", "1.0", emu_saveMovie},
+  std::array luaEmuFunctionsWithVersionsAttached = {
+    luaL_Reg_With_Version({"frameAdvance", "1.0", emu_frameAdvance}),
+    luaL_Reg_With_Version({"loadState", "1.0", emu_loadState}),
+    luaL_Reg_With_Version({"saveState", "1.0", emu_saveState}),
+    luaL_Reg_With_Version({"playMovie", "1.0", emu_playMovie}),
+    luaL_Reg_With_Version({"saveMovie", "1.0", emu_saveMovie}),
    };
 
   std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
-  std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaEmuFunctionsWithVersionsAttached, 5, luaApiVersion, deprecatedFunctionsMap);
-  luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
-  lua_setmetatable(luaState, -2);
+  addLatestFunctionsForVersion(luaEmuFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
   lua_setglobal(luaState, "emu");
 }
 

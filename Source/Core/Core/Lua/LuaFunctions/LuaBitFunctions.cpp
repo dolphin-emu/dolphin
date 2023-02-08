@@ -29,22 +29,21 @@ BitClass* GetBitInstance()
     lua_pushvalue(luaState, -1);
     lua_setfield(luaState, -2, "__index");
 
-    luaL_Reg_With_Version luaBitFunctionsWithVersionsAttached[] = {
-      {"bitwise_and", "1.0", bitwise_and},
-      {"bitwise_or", "1.0", bitwise_or},
-      {"bitwise_not", "1.0", bitwise_not},
-      {"bitwise_xor", "1.0", bitwise_xor},
-      {"logical_and", "1.0", logical_and},
-      {"logical_or", "1.0", logical_or},
-      {"logical_xor", "1.0", logical_xor},
-      {"logical_not", "1.0", logical_not},
-      {"bit_shift_left", "1.0", bit_shift_left},
-      {"bit_shift_right", "1.0", bit_shift_right}};
+    std::array luaBitFunctionsWithVersionsAttached =  {
+      luaL_Reg_With_Version({"bitwise_and", "1.0", bitwise_and}),
+      luaL_Reg_With_Version({"bitwise_or", "1.0", bitwise_or}),
+      luaL_Reg_With_Version({"bitwise_not", "1.0", bitwise_not}),
+      luaL_Reg_With_Version({"bitwise_xor", "1.0", bitwise_xor}),
+      luaL_Reg_With_Version({"logical_and", "1.0", logical_and}),
+      luaL_Reg_With_Version({"logical_or", "1.0", logical_or}),
+      luaL_Reg_With_Version({"logical_xor", "1.0", logical_xor}),
+      luaL_Reg_With_Version({"logical_not", "1.0", logical_not}),
+      luaL_Reg_With_Version({"bit_shift_left", "1.0", bit_shift_left}),
+      luaL_Reg_With_Version({"bit_shift_right", "1.0", bit_shift_right})
+    };
 
     std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
-    std::vector<luaL_Reg> vectorOfFunctionsForVersion = getLatestFunctionsForVersion(luaBitFunctionsWithVersionsAttached, 10, luaApiVersion, deprecatedFunctionsMap);
-    luaL_setfuncs(luaState, &vectorOfFunctionsForVersion[0], 0);
-    lua_setmetatable(luaState, -2);
+    addLatestFunctionsForVersion(luaBitFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
     lua_setglobal(luaState, "bit");
   }
 
