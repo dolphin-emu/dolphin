@@ -4,67 +4,67 @@ namespace Lua
 {
 // This helper function returns -1 if firstVersion < secondVersion, 0 if firstVersion ==
 // secondVersion, and 1 if firstVersion > secondVersion
- int compareFirstVersionToSecondVersion(std::string firstVersion, std::string secondVersion)
+ int CompareFirstVersionToSecondVersion(std::string first_version, std::string second_version)
 {
-  size_t numberOfPeriodsInFirstVersion = std::count(firstVersion.begin(), firstVersion.end(), '.');
-  size_t numberOfPeriodsInSecondVersion = std::count(secondVersion.begin(), secondVersion.end(), '.');
+  size_t number_of_periods_in_first_version = std::count(first_version.begin(), first_version.end(), '.');
+  size_t number_of_periods_in_second_version = std::count(second_version.begin(), second_version.end(), '.');
 
-  if (firstVersion[0] == '.')
-    firstVersion = "0" + firstVersion;
+  if (first_version[0] == '.')
+    first_version = "0" + first_version;
 
-  if (secondVersion[0] == '.')
-    secondVersion = "0" + secondVersion;
+  if (second_version[0] == '.')
+    second_version = "0" + second_version;
 
-  while (numberOfPeriodsInFirstVersion < numberOfPeriodsInSecondVersion)
+  while (number_of_periods_in_first_version < number_of_periods_in_second_version)
   {
-    firstVersion += ".0";
-    ++numberOfPeriodsInFirstVersion;
+    first_version += ".0";
+    ++number_of_periods_in_first_version;
   }
 
-  while (numberOfPeriodsInSecondVersion < numberOfPeriodsInFirstVersion)
+  while (number_of_periods_in_second_version < number_of_periods_in_first_version)
   {
-    secondVersion += ".0";
-    ++numberOfPeriodsInSecondVersion;
+    second_version += ".0";
+    ++number_of_periods_in_second_version;
   }
 
-  size_t indexOfNextDigitInFirstVersion = 0;
-  size_t indexOfNextDigitInSecondVersion = 0;
+  size_t index_of_next_digit_in_first_version = 0;
+  size_t index_of_next_digit_in_second_version = 0;
 
-  while (indexOfNextDigitInFirstVersion < firstVersion.length())
+  while (index_of_next_digit_in_first_version < first_version.length())
   {
-    std::string nextNumberInFirstVersion;
-    std::string nextNumberInSecondVersion;
+    std::string next_number_in_first_version;
+    std::string next_number_in_second_version;
 
-    size_t indexOfNextPeriodInFirstVersion = firstVersion.find('.', indexOfNextDigitInFirstVersion);
-    if (indexOfNextPeriodInFirstVersion == std::string::npos)
+    size_t index_of_next_period_in_first_version = first_version.find('.', index_of_next_digit_in_first_version);
+    if (index_of_next_period_in_first_version == std::string::npos)
     {
-      nextNumberInFirstVersion = firstVersion.substr(indexOfNextDigitInFirstVersion);
-      indexOfNextDigitInFirstVersion = firstVersion.length();
+      next_number_in_first_version = first_version.substr(index_of_next_digit_in_first_version);
+      index_of_next_digit_in_first_version = first_version.length();
     }
     else
     {
-      nextNumberInFirstVersion = firstVersion.substr(indexOfNextDigitInFirstVersion, indexOfNextPeriodInFirstVersion);
-      indexOfNextDigitInFirstVersion = indexOfNextPeriodInFirstVersion + 1;
+      next_number_in_first_version = first_version.substr(index_of_next_digit_in_first_version, index_of_next_period_in_first_version);
+      index_of_next_digit_in_first_version = index_of_next_period_in_first_version + 1;
     }
 
-    size_t indexOfNextPeriodInSecondVersion = secondVersion.find('.', indexOfNextDigitInSecondVersion);
-    if (indexOfNextPeriodInSecondVersion == std::string::npos)
+    size_t index_of_next_period_in_second_version = second_version.find('.', index_of_next_digit_in_second_version);
+    if (index_of_next_period_in_second_version == std::string::npos)
     {
-      nextNumberInSecondVersion = secondVersion.substr(indexOfNextDigitInSecondVersion);
-      indexOfNextDigitInSecondVersion = secondVersion.length();
+      next_number_in_second_version = second_version.substr(index_of_next_digit_in_second_version);
+      index_of_next_digit_in_second_version = second_version.length();
     }
     else
     {
-      nextNumberInSecondVersion = secondVersion.substr(indexOfNextDigitInSecondVersion, indexOfNextPeriodInSecondVersion);
-      indexOfNextDigitInSecondVersion = indexOfNextPeriodInSecondVersion + 1;
+      next_number_in_second_version = second_version.substr(index_of_next_digit_in_second_version, index_of_next_period_in_second_version);
+      index_of_next_digit_in_second_version = index_of_next_period_in_second_version + 1;
     }
 
-    int firstNumber = std::stoi(nextNumberInFirstVersion);
-    int secondNumber = std::stoi(nextNumberInSecondVersion);
+    int first_number = std::stoi(next_number_in_first_version);
+    int second_number = std::stoi(next_number_in_second_version);
 
-    if (firstNumber > secondNumber)
+    if (first_number > second_number)
       return 1;
-    else if (firstNumber < secondNumber)
+    else if (first_number < second_number)
       return -1;
   }
 
@@ -72,15 +72,15 @@ namespace Lua
 }
 
 
-bool isFirstVersionGreaterThanSecondVersion(const std::string& firstVersion, const std::string& secondVersion)
+bool IsFirstVersionGreaterThanSecondVersion(const std::string& first_version, const std::string& second_version)
 {
-  return compareFirstVersionToSecondVersion(firstVersion, secondVersion) > 0;
+  return CompareFirstVersionToSecondVersion(first_version, second_version) > 0;
 }
 
 
-bool isFirstVersionGreaterThanOrEqualToSecondVersion(const std::string& firstVersion, const std::string& secondVersion)
+bool IsFirstVersionGreaterThanOrEqualToSecondVersion(const std::string& first_version, const std::string& second_version)
 {
-  return compareFirstVersionToSecondVersion(firstVersion, secondVersion) >= 0;
+  return CompareFirstVersionToSecondVersion(first_version, second_version) >= 0;
 }
 
 }

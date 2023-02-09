@@ -44,7 +44,7 @@ void InitLuaRegistersFunctions(lua_State* luaState, const std::string& luaApiVer
 
   std::unordered_map<std::string, std::string> deprecatedFunctionsMap;
 
-  addLatestFunctionsForVersion(luaRegistersFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
+  AddLatestFunctionsForVersion(luaRegistersFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
   lua_setglobal(luaState, "registers");
 }
 
@@ -146,7 +146,7 @@ u8* getAddressForRegister(RegisterObject registerObject, lua_State* luaState, co
 
 void pushValueFromAddress(lua_State* luaState, u8* memoryLocation, NumberType returnType, u8 registerSize, u8 offsetBytes)
 {
-  u8 returnTypeSize = getMaxSize(returnType);
+  u8 returnTypeSize = GetMaxSize(returnType);
   if (returnTypeSize > registerSize)
     luaL_error(luaState, "Error: in getRegister(), user requested a return type that was larger than the register!");
   else if (returnTypeSize + offsetBytes > registerSize)
@@ -164,45 +164,45 @@ void pushValueFromAddress(lua_State* luaState, u8* memoryLocation, NumberType re
 
   switch (returnType)
   {
-  case NumberType::UNSIGNED_8:
+  case NumberType::Unsigned8:
     memcpy(&unsigned8, memoryLocation + offsetBytes, returnTypeSize);
     lua_pushinteger(luaState, unsigned8);
     return;
-  case NumberType::SIGNED_8:
+  case NumberType::Signed8:
     memcpy(&signed8, memoryLocation + offsetBytes, returnTypeSize);
     lua_pushinteger(luaState, signed8);
     return;
-  case NumberType::UNSIGNED_16:
+  case NumberType::Unsigned16:
     memcpy(&unsigned16, memoryLocation + offsetBytes, returnTypeSize);
     lua_pushinteger(luaState, unsigned16);
     return;
-  case NumberType::SIGNED_16:
+  case NumberType::Signed16:
     memcpy(&signed16, memoryLocation + offsetBytes, returnTypeSize);
     lua_pushinteger(luaState, signed16);
     return;
-  case NumberType::UNSIGNED_32:
+  case NumberType::Unsigned32:
     memcpy(&unsigned32, memoryLocation + offsetBytes, returnTypeSize);
     lua_pushinteger(luaState, unsigned32);
     return;
-  case NumberType::SIGNED_32:
+  case NumberType::Signed32:
     memcpy(&signed32, memoryLocation + offsetBytes, returnTypeSize);
     lua_pushinteger(luaState, signed32);
     return;
-  case NumberType::FLOAT:
+  case NumberType::Float:
     memcpy(&floatVal, memoryLocation + offsetBytes, returnTypeSize);
     lua_pushnumber(luaState, floatVal);
     return;
-  case NumberType::UNSIGNED_64:
+  case NumberType::Unsigned64:
     luaL_error(
         luaState,
         "Error: in getRegister(), UNSIGNED_64 is not a valid type, since Lua stores everything as "
         "SIGNED 64 bit numbers and doubles internally. You should request an S64 instead");
     return;
-  case NumberType::SIGNED_64:
+  case NumberType::Signed64:
     memcpy(&signed64, memoryLocation + offsetBytes, returnTypeSize);
     lua_pushinteger(luaState, signed64);
     return;
-  case NumberType::DOUBLE:
+  case NumberType::Double:
     memcpy(&doubleVal, memoryLocation + offsetBytes, returnTypeSize);
     lua_pushnumber(luaState, doubleVal);
     return;
@@ -213,14 +213,14 @@ void pushValueFromAddress(lua_State* luaState, u8* memoryLocation, NumberType re
 
 int getRegister(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "getRegister", "registers:getRegister(\"r4\", \"u32\", 4)");
+  LuaColonOperatorTypeCheck(luaState, "getRegister", "registers:getRegister(\"r4\", \"u32\", 4)");
   const char* registerString = luaL_checkstring(luaState, 2);
   RegisterObject registerObject = parseRegister(registerString);
 
   const char* returnTypeString = luaL_checkstring(luaState, 3);
-  NumberType returnType = parseType(returnTypeString);
+  NumberType returnType = ParseType(returnTypeString);
 
-  if (returnType == NumberType::UNDEFINED)
+  if (returnType == NumberType::Undefined)
     luaL_error(luaState, "Error: undefined type string was passed as an argument to getRegister()");
   s64 offsetBytes = 0;
   u8 registerSize = 4;
@@ -281,20 +281,20 @@ int pushByteArrayFromAddressHelperFunction(lua_State* luaState, bool isUnsigned,
 
 int getRegisterAsUnsignedByteArray(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "getRegisterAsUnsignedByteArray", "registers:getRegisterAsUnsignedByteArray(\"r4\", 2, 6)");
+  LuaColonOperatorTypeCheck(luaState, "getRegisterAsUnsignedByteArray", "registers:getRegisterAsUnsignedByteArray(\"r4\", 2, 6)");
   return pushByteArrayFromAddressHelperFunction(luaState, true, "getRegisterAsUnsignedByteArray()");
 }
 
 int getRegisterAsSignedByteArray(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "getRegisterAsSignedByteArray", "registers:getRegisterAsSignedByteArray(\"r4\", 2, 6)");
+  LuaColonOperatorTypeCheck(luaState, "getRegisterAsSignedByteArray", "registers:getRegisterAsSignedByteArray(\"r4\", 2, 6)");
   return pushByteArrayFromAddressHelperFunction(luaState, false, "getRegisterAsSignedByteArray()");
 }
 
 void writeValueToAddress(lua_State* luaState, u8* memoryLocation, NumberType valueType,
                          u8 registerSize, u8 offsetBytes)
 {
-  u8 valueTypeSize = getMaxSize(valueType);
+  u8 valueTypeSize = GetMaxSize(valueType);
   if (valueTypeSize > registerSize)
     luaL_error(luaState, "Error: in setRegister(), user tried to write a number that was larger than the register!");
   else if (offsetBytes >= registerSize)
@@ -315,43 +315,43 @@ void writeValueToAddress(lua_State* luaState, u8* memoryLocation, NumberType val
 
   switch (valueType)
   {
-  case NumberType::UNSIGNED_8:
+  case NumberType::Unsigned8:
     unsigned8 = static_cast<u8>(luaL_checkinteger(luaState, 4));
     memcpy(memoryLocation + offsetBytes, &unsigned8, 1);
     return;
-  case NumberType::SIGNED_8:
+  case NumberType::Signed8:
     signed8 = static_cast<s8>(luaL_checkinteger(luaState, 4));
     memcpy(memoryLocation + offsetBytes, &signed8, 1);
     return;
-  case NumberType::UNSIGNED_16:
+  case NumberType::Unsigned16:
     unsigned16 = static_cast<u16>(luaL_checkinteger(luaState, 4));
     memcpy(memoryLocation + offsetBytes, &unsigned16, 2);
     return;
-  case NumberType::SIGNED_16:
+  case NumberType::Signed16:
     signed16 = static_cast<s16>(luaL_checkinteger(luaState, 4));
     memcpy(memoryLocation + offsetBytes, &signed16, 2);
     return;
-  case NumberType::UNSIGNED_32:
+  case NumberType::Unsigned32:
     unsigned32 = static_cast<u32>(luaL_checkinteger(luaState, 4));
     memcpy(memoryLocation + offsetBytes, &unsigned32, 4);
     return;
-  case NumberType::SIGNED_32:
+  case NumberType::Signed32:
     signed32 = static_cast<s32>(luaL_checkinteger(luaState, 4));
     memcpy(memoryLocation + offsetBytes, &signed32, 4);
     return;
-  case NumberType::UNSIGNED_64:
+  case NumberType::Unsigned64:
     luaL_error(luaState, "Error: UNSIGNED_64 is not a valid type for setRegister(), since Lua only "
                          "supports SIGNED_64 and DOUBLE internally. Please use S64 instead");
     return;
-  case NumberType::SIGNED_64:
+  case NumberType::Signed64:
     signed64 = luaL_checkinteger(luaState, 4);
     memcpy(memoryLocation + offsetBytes, &signed64, 8);
     return;
-  case NumberType::FLOAT:
+  case NumberType::Float:
     floatVal = static_cast<float>(luaL_checknumber(luaState, 4));
     memcpy(memoryLocation + offsetBytes, &floatVal, 4);
     return;
-  case NumberType::DOUBLE:
+  case NumberType::Double:
     doubleVal = luaL_checknumber(luaState, 4);
     memcpy(memoryLocation + offsetBytes, &doubleVal, 8);
     return;
@@ -363,12 +363,12 @@ void writeValueToAddress(lua_State* luaState, u8* memoryLocation, NumberType val
 
 int setRegister(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "setRegister", "registers:setRegister(\"r4\", \"u32\", 45, 4)");
+  LuaColonOperatorTypeCheck(luaState, "setRegister", "registers:setRegister(\"r4\", \"u32\", 45, 4)");
   const char* registerString = luaL_checkstring(luaState, 2);
   RegisterObject registerObject = parseRegister(registerString);
   const char* typeString = luaL_checkstring(luaState, 3);
-  NumberType valueType = parseType(typeString);
-  if (valueType == NumberType::UNDEFINED)
+  NumberType valueType = ParseType(typeString);
+  if (valueType == NumberType::Undefined)
     luaL_error(luaState, "Error: undefined type string was passed as an argument to setRegister()");
   u8 registerSize = 4;
   if (registerObject.regType == RegisterObject::RegisterType::FloatingPointRegister)
@@ -398,7 +398,7 @@ bool sortIndexValuePairByIndexFunction(IndexValuePair o1, IndexValuePair o2)
 
 int setRegisterFromByteArray(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "setRegisterFromByteArray", "registers:setRegisterFromByteArray(\"r4\", byteTable, 2)");
+  LuaColonOperatorTypeCheck(luaState, "setRegisterFromByteArray", "registers:setRegisterFromByteArray(\"r4\", byteTable, 2)");
   const char* registerString = luaL_checkstring(luaState, 2);
   RegisterObject registerObject = parseRegister(registerString);
   u8 registerSize = 4;

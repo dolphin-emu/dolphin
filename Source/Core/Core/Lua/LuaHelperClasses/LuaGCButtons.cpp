@@ -1,46 +1,46 @@
 #include "LuaGCButtons.h"
 
 
-bool isBinaryButton(GcButtonName button)
+bool IsBinaryButton(GcButtonName button)
 {
   return (button == GcButtonName::A || button == GcButtonName::B || button == GcButtonName::X || button == GcButtonName::Y ||
     button == GcButtonName::Z || button == GcButtonName::L || button == GcButtonName::R || button == GcButtonName::Start ||
     button == GcButtonName::Reset || button == GcButtonName::DPadUp || button == GcButtonName::DPadDown || button == GcButtonName::DPadLeft || button == GcButtonName::DPadRight);
 }
 
-bool isAnalogButton(GcButtonName button)
+bool IsAnalogButton(GcButtonName button)
 {
   return (button == GcButtonName::AnalogStickX || button == GcButtonName::AnalogStickY ||
           button == GcButtonName::CStickX || button == GcButtonName::CStickY ||
           button == GcButtonName::TriggerL || button == GcButtonName::TriggerR);
 }
-bool isEqualIgnoreCase(const char* string1, const char* string2)
+bool IsEqualIgnoreCase(const char* string_1, const char* string_2)
 {
   int index = 0;
-  while (string1[index] != '\0')
+  while (string_1[index] != '\0')
   {
-    if (string1[index] != string2[index])
+    if (string_1[index] != string_2[index])
     {
-      char firstChar = string1[index];
-      if (firstChar >= 65 && firstChar <= 90)
-        firstChar += 32;
-      char secondChar = string2[index];
-      if (secondChar >= 65 && secondChar <= 90)
-        secondChar += 32;
-      if (firstChar != secondChar)
+      char first_char = string_1[index];
+      if (first_char >= 65 && first_char <= 90)
+        first_char += 32;
+      char second_char = string_2[index];
+      if (second_char >= 65 && second_char <= 90)
+        second_char += 32;
+      if (first_char != second_char)
         return false;
     }
     ++index;
   }
 
-  return string2[index] == '\0';
+  return string_2[index] == '\0';
 }
 
-GcButtonName parseGCButton(const char* buttonName)
+GcButtonName ParseGCButton(const char* button_name)
 {
-  if (strlen(buttonName) == 1)
+  if (strlen(button_name) == 1)
   {
-    switch (buttonName[0])
+    switch (button_name[0])
     {
     case 'a':
     case 'A':
@@ -75,58 +75,58 @@ GcButtonName parseGCButton(const char* buttonName)
     }
   }
 
-  switch (buttonName[0])
+  switch (button_name[0])
   {
   case 'd':
   case 'D':
-    if (isEqualIgnoreCase(buttonName, "dPadUp"))
+    if (IsEqualIgnoreCase(button_name, "dPadUp"))
       return GcButtonName::DPadUp;
-    else if (isEqualIgnoreCase(buttonName, "dPadDown"))
+    else if (IsEqualIgnoreCase(button_name, "dPadDown"))
       return GcButtonName::DPadDown;
-    else if (isEqualIgnoreCase(buttonName, "dPadLeft"))
+    else if (IsEqualIgnoreCase(button_name, "dPadLeft"))
       return GcButtonName::DPadLeft;
-    else if (isEqualIgnoreCase(buttonName, "dPadRight"))
+    else if (IsEqualIgnoreCase(button_name, "dPadRight"))
       return GcButtonName::DPadRight;
     else
       return GcButtonName::Unknown;
 
   case 'a':
   case 'A':
-    if (isEqualIgnoreCase(buttonName, "analogStickX"))
+    if (IsEqualIgnoreCase(button_name, "analogStickX"))
       return GcButtonName::AnalogStickX;
-    else if (isEqualIgnoreCase(buttonName, "analogStickY"))
+    else if (IsEqualIgnoreCase(button_name, "analogStickY"))
       return GcButtonName::AnalogStickY;
     else
       return GcButtonName::Unknown;
 
   case 'c':
   case 'C':
-    if (isEqualIgnoreCase(buttonName, "cStickX"))
+    if (IsEqualIgnoreCase(button_name, "cStickX"))
       return GcButtonName::CStickX;
-    else if (isEqualIgnoreCase(buttonName, "cStickY"))
+    else if (IsEqualIgnoreCase(button_name, "cStickY"))
       return GcButtonName::CStickY;
     else
       return GcButtonName::Unknown;
 
   case 't':
   case 'T':
-    if (isEqualIgnoreCase(buttonName, "triggerL"))
+    if (IsEqualIgnoreCase(button_name, "triggerL"))
       return GcButtonName::TriggerL;
-    else if (isEqualIgnoreCase(buttonName, "triggerR"))
+    else if (IsEqualIgnoreCase(button_name, "triggerR"))
       return GcButtonName::TriggerR;
     else
       return GcButtonName::Unknown;
 
   case 'r':
   case 'R':
-    if (isEqualIgnoreCase(buttonName, "reset"))
+    if (IsEqualIgnoreCase(button_name, "reset"))
       return GcButtonName::Reset;
     else
       return GcButtonName::Unknown;
 
   case 's':
   case 'S':
-    if (isEqualIgnoreCase(buttonName, "start"))
+    if (IsEqualIgnoreCase(button_name, "start"))
       return GcButtonName::Start;
     else
       return GcButtonName::Unknown;
@@ -136,7 +136,7 @@ GcButtonName parseGCButton(const char* buttonName)
   }
 }
 
-  const char* convertButtonEnumToString(GcButtonName button)
+  const char* ConvertButtonEnumToString(GcButtonName button)
   {
     switch (button)
     {

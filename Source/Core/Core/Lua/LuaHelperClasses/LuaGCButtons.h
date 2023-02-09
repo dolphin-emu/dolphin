@@ -6,8 +6,8 @@ enum class GcButtonName
   A, B, X, Y, Z, L, R, DPadUp, DPadDown, DPadLeft, DPadRight, AnalogStickX, AnalogStickY, CStickX, CStickY, TriggerL, TriggerR, Start, Reset, Unknown
 };
 
-extern bool isBinaryButton(GcButtonName button);
-extern bool isAnalogButton(GcButtonName button);
-extern bool isEqualIgnoreCase(const char* string1, const char* string2);
-extern GcButtonName parseGCButton(const char* buttonName);
-extern const char* convertButtonEnumToString(GcButtonName button);
+extern bool IsBinaryButton(GcButtonName button);
+extern bool IsAnalogButton(GcButtonName button);
+extern bool IsEqualIgnoreCase(const char* string_1, const char* string_2);
+extern GcButtonName ParseGCButton(const char* button_name);
+extern const char* ConvertButtonEnumToString(GcButtonName button);

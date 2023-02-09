@@ -2,15 +2,15 @@
 
 namespace Lua
 {
-void luaColonOperatorTypeCheck(lua_State* luaState, const char* functionName, const char* exampleCall)
+void LuaColonOperatorTypeCheck(lua_State* lua_state, const char* function_name, const char* example_call)
 {
-  if (lua_type(luaState, 1) != LUA_TUSERDATA)
+  if (lua_type(lua_state, 1) != LUA_TUSERDATA)
   {
     luaL_error(
-        luaState,
-        (std::string("Error: User attempted to call ") + functionName +
+        lua_state,
+        (std::string("Error: User attempted to call ") + function_name +
          " function using the dot operator. Please use the colon operator instead like this: '" +
-         exampleCall + "'")
+         example_call + "'")
             .c_str());
   }
 }

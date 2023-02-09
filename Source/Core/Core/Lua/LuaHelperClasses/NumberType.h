@@ -4,19 +4,9 @@
 
 enum class NumberType
 {
-  UNDEFINED,
-  UNSIGNED_8,
-  SIGNED_8,
-  UNSIGNED_16,
-  SIGNED_16,
-  UNSIGNED_32,
-  SIGNED_32,
-  UNSIGNED_64,
-  SIGNED_64,
-  FLOAT,
-  DOUBLE
+  Undefined, Unsigned8, Signed8, Unsigned16, Signed16, Unsigned32, Signed32, Unsigned64, Signed64, Float, Double
 };
 
-NumberType parseType(const char* inputString);
-std::string getNumberTypeAsString(NumberType inputType);
-u8 getMaxSize(NumberType inputType);
+NumberType ParseType(const char* input_string);
+std::string GetNumberTypeAsString(NumberType input_type);
+u8 GetMaxSize(NumberType input_type);

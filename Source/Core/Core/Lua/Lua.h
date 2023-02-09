@@ -9,21 +9,21 @@
 
 namespace Lua
 {
-extern std::string GLOBAL_LUA_API_VERSION_VARIABLE;
-extern lua_State* mainLuaState;
-extern lua_State* mainLuaThreadState;
-extern int* x;
-extern bool luaScriptActive;
-extern bool luaInitialized;
-extern std::function<void(const std::string&)>* printCallbackFunction;
-extern std::function<void()>* scriptEndCallbackFunction;
+extern std::string global_lua_api_version;
+extern lua_State* main_lua_state;
+extern lua_State* main_lua_thread_state;
+extern int x;
+extern bool is_lua_script_active;
+extern bool is_lua_core_initialized;
+extern std::function<void(const std::string&)>* print_callback_function;
+extern std::function<void()>* script_end_callback_function;
 
-int setLuaCoreVersion(lua_State* luaState);
-int getLuaCoreVersion(lua_State* luaState);
+int SetLuaCoreVersion(lua_State* lua_state);
+int GetLuaCoreVersion(lua_State* lua_state);
 
-void Init(const std::string& scriptLocation,
-          std::function<void(const std::string&)>* newPrintCallback,
-          std::function<void()>* newScriptEndCallback);
+void Init(const std::string& script_location,
+          std::function<void(const std::string&)>* new_print_callback,
+          std::function<void()>* new_script_end_callback);
 
 void StopScript();
 

@@ -1,16 +1,16 @@
 #include "NumberType.h"
 
-  constexpr unsigned long long hashFunc(const char* inputString)
+  constexpr unsigned long long hashFunc(const char* input_string)
 {
   unsigned long long hash = 5381;
-  for (size_t i = 0; inputString[i] != '\0'; ++i)
+  for (size_t i = 0; input_string[i] != '\0'; ++i)
   {
-    if (inputString[i] >= 'A' && inputString[i] <= 'Z')
-      hash = 33 * hash + (unsigned char)(inputString[i] + 32);
-    else if (inputString[i] == ' ')
+    if (input_string[i] >= 'A' && input_string[i] <= 'Z')
+      hash = 33 * hash + (unsigned char)(input_string[i] + 32);
+    else if (input_string[i] == ' ')
       hash = 33 * hash + (unsigned char)('_');
     else
-      hash = 33 * hash + (unsigned char)inputString[i];
+      hash = 33 * hash + (unsigned char)input_string[i];
   }
   return hash;
 }
@@ -65,36 +65,36 @@ constexpr unsigned long long SIGNED_LONG_LONG_ALT_HASH = hashFunc("SignedLongLon
 // Checks if 2 strings are equal, but the function is case insensitive and treats '_' and ' ' as
 // the same character.
 // In other words, isEqualSpecial("ABe 0", "aBE_0") would return true.
-bool isEqualSpecial(const char* firstString, const char* secondString)
+bool IsEqualSpecial(const char* first_string, const char* second_string)
 {
-  for (size_t i = 0; firstString[i] != '\0'; ++i)
+  for (size_t i = 0; first_string[i] != '\0'; ++i)
   {
-    if (firstString[i] != secondString[i])
+    if (first_string[i] != second_string[i])
     {
-      char firstStringChar = firstString[i];
-      char secondStringChar = secondString[i];
+      char first_string_char = first_string[i];
+      char second_string_char = second_string[i];
 
-      if (firstStringChar >= 'A' && firstStringChar <= 'Z')
-        firstStringChar += 32;
-      else if (firstStringChar == ' ')
-        firstStringChar = '_';
-      if (secondStringChar >= 'A' && secondStringChar <= 'Z')
-        secondStringChar += 32;
-      else if (secondStringChar == ' ')
-        secondStringChar = '_';
+      if (first_string_char >= 'A' && first_string_char <= 'Z')
+        first_string_char += 32;
+      else if (first_string_char == ' ')
+        first_string_char = '_';
+      if (second_string_char >= 'A' && second_string_char <= 'Z')
+        second_string_char += 32;
+      else if (second_string_char == ' ')
+        second_string_char = '_';
 
-      if (firstStringChar != secondStringChar)
+      if (first_string_char != second_string_char)
         return false;
     }
   }
   return true;
 }
 
-NumberType returnTypeIfEqual(const char* firstString, const char* secondString, NumberType returnType)
+NumberType ReturnTypeIfEqual(const char* first_string, const char* second_string, NumberType return_type)
 {
-  if (isEqualSpecial(firstString, secondString))
-    return returnType;
-  return NumberType::UNDEFINED;
+  if (IsEqualSpecial(first_string, second_string))
+    return return_type;
+  return NumberType::Undefined;
 }
 
 // Returns the type specified by the string the user passed in as an argument.
@@ -116,154 +116,154 @@ NumberType returnTypeIfEqual(const char* firstString, const char* secondString, 
 // Checks if 2 strings are equal, but the function is case insensitive and treats '_' and ' ' as
 // the same character. In other words, isEqualSpecial("ABe 0", "aBE_0") would return true.
 
-NumberType parseType(const char* inputString)
+NumberType ParseType(const char* input_string)
 {
-  unsigned long long inputStringHash = hashFunc(inputString);
+  unsigned long long input_string_hash = hashFunc(input_string);
   // There are 42 cases below.
-  switch (inputStringHash)
+  switch (input_string_hash)
   {
 
   case U8_HASH:
-    return returnTypeIfEqual(inputString, "u8", NumberType::UNSIGNED_8);
+    return ReturnTypeIfEqual(input_string, "u8", NumberType::Unsigned8);
   case U16_HASH:
-    return returnTypeIfEqual(inputString, "u16", NumberType::UNSIGNED_16);
+    return ReturnTypeIfEqual(input_string, "u16", NumberType::Unsigned16);
   case U32_HASH:
-    return returnTypeIfEqual(inputString, "u32", NumberType::UNSIGNED_32);
+    return ReturnTypeIfEqual(input_string, "u32", NumberType::Unsigned32);
   case U64_HASH:
-    return returnTypeIfEqual(inputString, "u64", NumberType::UNSIGNED_64);
+    return ReturnTypeIfEqual(input_string, "u64", NumberType::Unsigned64);
 
 
   case S8_HASH:
-    return returnTypeIfEqual(inputString, "s8", NumberType::SIGNED_8);
+    return ReturnTypeIfEqual(input_string, "s8", NumberType::Signed8);
   case S16_HASH:
-    return returnTypeIfEqual(inputString, "s16", NumberType::SIGNED_16);
+    return ReturnTypeIfEqual(input_string, "s16", NumberType::Signed16);
   case S32_HASH:
-    return returnTypeIfEqual(inputString, "s32", NumberType::SIGNED_32);
+    return ReturnTypeIfEqual(input_string, "s32", NumberType::Signed32);
   case S64_HASH:
-    return returnTypeIfEqual(inputString, "s64", NumberType::SIGNED_64);
+    return ReturnTypeIfEqual(input_string, "s64", NumberType::Signed64);
 
 
   case FLOAT_HASH:
-    return returnTypeIfEqual(inputString, "float", NumberType::FLOAT);
+    return ReturnTypeIfEqual(input_string, "float", NumberType::Float);
   case DOUBLE_HASH:
-    return returnTypeIfEqual(inputString, "double", NumberType::DOUBLE);
+    return ReturnTypeIfEqual(input_string, "double", NumberType::Double);
 
 
   case UNSIGNED_8_HASH:
-    return returnTypeIfEqual(inputString, "unsigned_8", NumberType::UNSIGNED_8);
+    return ReturnTypeIfEqual(input_string, "unsigned_8", NumberType::Unsigned8);
   case UNSIGNED_16_HASH:
-    return returnTypeIfEqual(inputString, "unsigned_16", NumberType::UNSIGNED_16);
+    return ReturnTypeIfEqual(input_string, "unsigned_16", NumberType::Unsigned16);
   case UNSIGNED_32_HASH:
-    return returnTypeIfEqual(inputString, "unsigned_32", NumberType::UNSIGNED_32);
+    return ReturnTypeIfEqual(input_string, "unsigned_32", NumberType::Unsigned32);
   case UNSIGNED_64_HASH:
-    return returnTypeIfEqual(inputString, "unsigned_64", NumberType::UNSIGNED_64);
+    return ReturnTypeIfEqual(input_string, "unsigned_64", NumberType::Unsigned64);
 
 
   case UNSIGNED_8_ALT_HASH:
-    return returnTypeIfEqual(inputString, "unsigned8", NumberType::UNSIGNED_8);
+    return ReturnTypeIfEqual(input_string, "unsigned8", NumberType::Unsigned8);
   case UNSIGNED_16_ALT_HASH:
-    return returnTypeIfEqual(inputString, "unsigned16", NumberType::UNSIGNED_16);
+    return ReturnTypeIfEqual(input_string, "unsigned16", NumberType::Unsigned16);
   case UNSIGNED_32_ALT_HASH:
-    return returnTypeIfEqual(inputString, "unsigned32", NumberType::UNSIGNED_32);
+    return ReturnTypeIfEqual(input_string, "unsigned32", NumberType::Unsigned32);
   case UNSIGNED_64_ALT_HASH:
-    return returnTypeIfEqual(inputString, "unsigned64", NumberType::UNSIGNED_64);
+    return ReturnTypeIfEqual(input_string, "unsigned64", NumberType::Unsigned64);
 
   case SIGNED_8_HASH:
-    return returnTypeIfEqual(inputString, "signed_8", NumberType::SIGNED_8);
+    return ReturnTypeIfEqual(input_string, "signed_8", NumberType::Signed8);
   case SIGNED_16_HASH:
-    return returnTypeIfEqual(inputString, "signed_16", NumberType::SIGNED_16);
+    return ReturnTypeIfEqual(input_string, "signed_16", NumberType::Signed16);
   case SIGNED_32_HASH:
-    return returnTypeIfEqual(inputString, "signed_32", NumberType::SIGNED_32);
+    return ReturnTypeIfEqual(input_string, "signed_32", NumberType::Signed32);
   case SIGNED_64_HASH:
-    return returnTypeIfEqual(inputString, "signed_64", NumberType::SIGNED_64);
+    return ReturnTypeIfEqual(input_string, "signed_64", NumberType::Signed64);
 
 
   case SIGNED_8_ALT_HASH:
-    return returnTypeIfEqual(inputString, "signed8", NumberType::SIGNED_8);
+    return ReturnTypeIfEqual(input_string, "signed8", NumberType::Signed8);
   case SIGNED_16_ALT_HASH:
-    return returnTypeIfEqual(inputString, "signed16", NumberType::SIGNED_16);
+    return ReturnTypeIfEqual(input_string, "signed16", NumberType::Signed16);
   case SIGNED_32_ALT_HASH:
-    return returnTypeIfEqual(inputString, "signed32", NumberType::SIGNED_32);
+    return ReturnTypeIfEqual(input_string, "signed32", NumberType::Signed32);
   case SIGNED_64_ALT_HASH:
-    return returnTypeIfEqual(inputString, "signed64", NumberType::SIGNED_64);
+    return ReturnTypeIfEqual(input_string, "signed64", NumberType::Signed64);
 
 
   case UNSIGNED_BYTE_HASH:
-    return returnTypeIfEqual(inputString, "unsigned byte", NumberType::UNSIGNED_8);
+    return ReturnTypeIfEqual(input_string, "unsigned byte", NumberType::Unsigned8);
   case SIGNED_BYTE_HASH:
-    return returnTypeIfEqual(inputString, "signed byte", NumberType::SIGNED_8);
+    return ReturnTypeIfEqual(input_string, "signed byte", NumberType::Signed8);
   case UNSIGNED_INT_HASH:
-    return returnTypeIfEqual(inputString, "unsigned int", NumberType::UNSIGNED_32);
+    return ReturnTypeIfEqual(input_string, "unsigned int", NumberType::Unsigned32);
   case SIGNED_INT_HASH:
-    return returnTypeIfEqual(inputString, "signed int", NumberType::SIGNED_32);
+    return ReturnTypeIfEqual(input_string, "signed int", NumberType::Signed32);
   case UNSIGNED_LONG_LONG_HASH:
-    return returnTypeIfEqual(inputString, "unsigned long long", NumberType::UNSIGNED_64);
+    return ReturnTypeIfEqual(input_string, "unsigned long long", NumberType::Unsigned64);
   case SIGNED_LONG_LONG_HASH:
-    return returnTypeIfEqual(inputString, "signed long long", NumberType::SIGNED_64);
+    return ReturnTypeIfEqual(input_string, "signed long long", NumberType::Signed64);
 
   case UNSIGNED_BYTE_ALT_HASH:
-    return returnTypeIfEqual(inputString, "UnsignedByte", NumberType::UNSIGNED_8);
+    return ReturnTypeIfEqual(input_string, "UnsignedByte", NumberType::Unsigned8);
   case SIGNED_BYTE_ALT_HASH:
-    return returnTypeIfEqual(inputString, "SignedByte", NumberType::SIGNED_8);
+    return ReturnTypeIfEqual(input_string, "SignedByte", NumberType::Signed8);
   case UNSIGNED_INT_ALT_HASH:
-    return returnTypeIfEqual(inputString, "UnsignedInt", NumberType::UNSIGNED_32);
+    return ReturnTypeIfEqual(input_string, "UnsignedInt", NumberType::Unsigned32);
   case SIGNED_INT_ALT_HASH:
-    return returnTypeIfEqual(inputString, "SignedInt", NumberType::SIGNED_32);
+    return ReturnTypeIfEqual(input_string, "SignedInt", NumberType::Signed32);
   case UNSIGNED_LONG_LONG_ALT_HASH:
-    return returnTypeIfEqual(inputString, "UnsignedLongLong", NumberType::UNSIGNED_64);
+    return ReturnTypeIfEqual(input_string, "UnsignedLongLong", NumberType::Unsigned64);
   case SIGNED_LONG_LONG_ALT_HASH:
-    return returnTypeIfEqual(inputString, "SignedLongLong", NumberType::SIGNED_64);
+    return ReturnTypeIfEqual(input_string, "SignedLongLong", NumberType::Signed64);
   default:
-    return NumberType::UNDEFINED;
+    return NumberType::Undefined;
   }
 }
 
-std::string getNumberTypeAsString(NumberType inputType)
+std::string GetNumberTypeAsString(NumberType input_type)
 {
-    switch (inputType)
+    switch (input_type)
     {
-    case NumberType::UNSIGNED_8:
+    case NumberType::Unsigned8:
       return "UNSIGNED_8";
-    case NumberType::UNSIGNED_16:
+    case NumberType::Unsigned16:
       return "UNSIGNED_16";
-    case NumberType::UNSIGNED_32:
+    case NumberType::Unsigned32:
       return "UNSIGNED_32";
-    case NumberType::UNSIGNED_64:
+    case NumberType::Unsigned64:
       return "UNSIGNED_64";
-    case NumberType::SIGNED_8:
+    case NumberType::Signed8:
       return "SIGNED_8";
-    case NumberType::SIGNED_16:
+    case NumberType::Signed16:
       return "SIGNED_16";
-    case NumberType::SIGNED_32:
+    case NumberType::Signed32:
       return "SIGNED_32";
-    case NumberType::SIGNED_64:
+    case NumberType::Signed64:
       return "SIGNED_64";
-    case NumberType::FLOAT:
+    case NumberType::Float:
       return "FLOAT";
-    case NumberType::DOUBLE:
+    case NumberType::Double:
       return "DOUBLE";
     default:
       return "UNDEFINED";
     }
   }
 
-u8 getMaxSize(NumberType inputType)
+u8 GetMaxSize(NumberType input_type)
 {
-  switch (inputType)
+  switch (input_type)
   {
-  case NumberType::UNSIGNED_8:
-  case NumberType::SIGNED_8:
+  case NumberType::Unsigned8:
+  case NumberType::Signed8:
     return 1;
-  case NumberType::UNSIGNED_16:
-  case NumberType::SIGNED_16:
+  case NumberType::Unsigned16:
+  case NumberType::Signed16:
     return 2;
-  case NumberType::UNSIGNED_32:
-  case NumberType::SIGNED_32:
-  case NumberType::FLOAT:
+  case NumberType::Unsigned32:
+  case NumberType::Signed32:
+  case NumberType::Float:
     return 4;
-  case NumberType::UNSIGNED_64:
-  case NumberType::SIGNED_64:
-  case NumberType::DOUBLE:
+  case NumberType::Unsigned64:
+  case NumberType::Signed64:
+  case NumberType::Double:
     return 8;
   default:
     return 0;

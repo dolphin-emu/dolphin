@@ -1,8 +1,8 @@
 #include "LuaGameCubeButtonProbabilityClasses.h"
 
-std::mt19937_64 LuaGameCubeButtonProbabilityEvent::numGenerator_64Bits;
+std::mt19937_64 LuaGameCubeButtonProbabilityEvent::num_generator_64_bits;
 
-void LuaGameCubeButtonProbabilityEvent::setRngSeeding()
+void LuaGameCubeButtonProbabilityEvent::SetRngSeeding()
 {
-  LuaGameCubeButtonProbabilityEvent::numGenerator_64Bits.seed(time(nullptr));
+  LuaGameCubeButtonProbabilityEvent::num_generator_64_bits.seed(time(nullptr));
 }

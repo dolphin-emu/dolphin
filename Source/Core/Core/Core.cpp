@@ -880,11 +880,11 @@ void Callback_NewField()
 {
   if (!wasRngSeedCalled)
   {
-    LuaGameCubeButtonProbabilityEvent::setRngSeeding();
+    LuaGameCubeButtonProbabilityEvent::SetRngSeeding();
     wasRngSeedCalled = true;
   }
 
-  if (Lua::luaScriptActive && !Lua::LuaEmu::waitingForSaveStateLoad && !Lua::LuaEmu::waitingForSaveStateSave && !Lua::LuaEmu::waitingToStartPlayingMovie && !Lua::LuaEmu::waitingToSaveMovie)
+  if (Lua::is_lua_script_active && !Lua::LuaEmu::waitingForSaveStateLoad && !Lua::LuaEmu::waitingForSaveStateSave && !Lua::LuaEmu::waitingToStartPlayingMovie && !Lua::LuaEmu::waitingToSaveMovie)
   {
     for (int i = 0; i < 4; ++i)
     {
@@ -898,17 +898,17 @@ void Callback_NewField()
     }
 
     int retVal;
-    const char* errorMsg = NULL;
-    retVal = lua_resume(Lua::mainLuaThreadState, NULL, 0, Lua::x);
+    const char* errorMsg = nullptr;
+    retVal = lua_resume(Lua::main_lua_thread_state, nullptr, 0, &Lua::x);
     if (retVal != LUA_YIELD)
     {
       if (retVal == 2)
       {
-        errorMsg = lua_tostring(Lua::mainLuaThreadState, -1);
-        (*Lua::printCallbackFunction)(errorMsg);
+        errorMsg = lua_tostring(Lua::main_lua_thread_state, -1);
+        (*Lua::print_callback_function)(errorMsg);
       }
-      (*Lua::scriptEndCallbackFunction)();
-      Lua::luaScriptActive = false;
+      (*Lua::script_end_callback_function)();
+      Lua::is_lua_script_active = false;
     }
   }
 

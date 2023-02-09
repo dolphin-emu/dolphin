@@ -521,7 +521,7 @@ void SaveAs(const std::string& filename, bool wait)
           }
           Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
         }
-        if (Lua::luaScriptActive)
+        if (Lua::is_lua_script_active)
           Lua::LuaEmu::waitingForSaveStateSave = false;
       },
       true);
@@ -710,7 +710,7 @@ void LoadAs(const std::string& filename)
 
         if (s_on_after_load_callback)
           s_on_after_load_callback();
-        if (Lua::luaScriptActive)
+        if (Lua::is_lua_script_active)
           Lua::LuaEmu::waitingForSaveStateLoad = false;
 
       },

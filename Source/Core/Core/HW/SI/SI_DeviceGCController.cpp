@@ -327,7 +327,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
   {
     pad_status = Pad::GetStatus(m_device_number);
 
-    if (Lua::luaScriptActive && !Movie::IsPlayingInput())
+    if (Lua::is_lua_script_active && !Movie::IsPlayingInput())
     {
       std::vector<GcButtonName> allButtons{GcButtonName::A, GcButtonName::B,
                                            GcButtonName::X,
@@ -372,7 +372,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
         copyGCPadStatusToControllerState(pad_status, startingControllerInputs);
         for (int i = 0; i < Lua::LuaGameCubeController::randomButtonEvents[m_device_number].size();
              ++i)
-          Lua::LuaGameCubeController::randomButtonEvents[m_device_number][i]->applyProbability(
+          Lua::LuaGameCubeController::randomButtonEvents[m_device_number][i]->ApplyProbability(
               startingControllerInputs);
         copyControllerStateToGCPadStatus(startingControllerInputs, pad_status, allButtons);
       }

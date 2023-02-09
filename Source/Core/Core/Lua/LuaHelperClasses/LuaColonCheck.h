@@ -5,5 +5,5 @@
 
 namespace Lua
 {
-void luaColonOperatorTypeCheck(lua_State* luaState, const char* functionName, const char* exampleCall);
+void LuaColonOperatorTypeCheck(lua_State* lua_state, const char* function_name, const char* example_call);
 }

@@ -42,13 +42,13 @@ BitClass* GetBitInstance()
     };
 
     std::unordered_map<std::string, std::string> deprecatedFunctionsMap;
-    addLatestFunctionsForVersion(luaBitFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
+    AddLatestFunctionsForVersion(luaBitFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
     lua_setglobal(luaState, "bit");
   }
 
 int bitwise_and(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "bitwise_and", "bitwise_and(integer1, integer2)");
+  LuaColonOperatorTypeCheck(luaState, "bitwise_and", "bitwise_and(integer1, integer2)");
   s64 firstVal = luaL_checkinteger(luaState, 2);
   s64 secondVal = luaL_checkinteger(luaState, 3);
   lua_pushinteger(luaState, firstVal & secondVal);
@@ -57,7 +57,7 @@ int bitwise_and(lua_State* luaState)
 
 int bitwise_or(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "bitwise_or", "bitwise_or(integer1, integer2)");
+  LuaColonOperatorTypeCheck(luaState, "bitwise_or", "bitwise_or(integer1, integer2)");
   s64 firstVal = luaL_checkinteger(luaState, 2);
   s64 secondVal = luaL_checkinteger(luaState, 3);
   lua_pushinteger(luaState, firstVal | secondVal);
@@ -66,7 +66,7 @@ int bitwise_or(lua_State* luaState)
 
 int bitwise_not(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "bitwise_not", "bitwise_not(exampleInteger)");
+  LuaColonOperatorTypeCheck(luaState, "bitwise_not", "bitwise_not(exampleInteger)");
   s64 inputVal = luaL_checkinteger(luaState, 2);
   lua_pushinteger(luaState, ~inputVal);
   return 1;
@@ -74,7 +74,7 @@ int bitwise_not(lua_State* luaState)
 
 int bitwise_xor(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "bitwise_xor", "bitwise_xor(integer1, integer2)");
+  LuaColonOperatorTypeCheck(luaState, "bitwise_xor", "bitwise_xor(integer1, integer2)");
   s64 firstVal = luaL_checkinteger(luaState, 2);
   s64 secondVal = luaL_checkinteger(luaState, 3);
   lua_pushinteger(luaState, firstVal ^ secondVal);
@@ -83,7 +83,7 @@ int bitwise_xor(lua_State* luaState)
 
 int logical_and(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "logical_and", "logical_and(integer1, integer2)");
+  LuaColonOperatorTypeCheck(luaState, "logical_and", "logical_and(integer1, integer2)");
   s64 firstVal = luaL_checkinteger(luaState, 2);
   s64 secondVal = luaL_checkinteger(luaState, 3);
   lua_pushboolean(luaState, firstVal && secondVal);
@@ -92,7 +92,7 @@ int logical_and(lua_State* luaState)
 
 int logical_or(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "logical_or", "logical_or(integer1, integer2)");
+  LuaColonOperatorTypeCheck(luaState, "logical_or", "logical_or(integer1, integer2)");
   s64 firstVal = luaL_checkinteger(luaState, 2);
   s64 secondVal = luaL_checkinteger(luaState, 3);
   lua_pushboolean(luaState, firstVal || secondVal);
@@ -101,7 +101,7 @@ int logical_or(lua_State* luaState)
 
 int logical_xor(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "logical_xor", "logical_xor(integer1, integer2)");
+  LuaColonOperatorTypeCheck(luaState, "logical_xor", "logical_xor(integer1, integer2)");
   s64 firstVal = luaL_checkinteger(luaState, 2);
   s64 secondVal = luaL_checkinteger(luaState, 3);
   lua_pushboolean(luaState, (firstVal || secondVal) && !(firstVal && secondVal));
@@ -111,7 +111,7 @@ int logical_xor(lua_State* luaState)
 
 int logical_not(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "logical_not", "logical_not(exampleInteger)");
+  LuaColonOperatorTypeCheck(luaState, "logical_not", "logical_not(exampleInteger)");
   s64 inputVal = luaL_checkinteger(luaState, 2);
   lua_pushboolean(luaState, !inputVal);
   return 1;
@@ -119,7 +119,7 @@ int logical_not(lua_State* luaState)
 
 int bit_shift_left(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "bit_shit_left", "bit_shift_left(integer1, integer2)");
+  LuaColonOperatorTypeCheck(luaState, "bit_shit_left", "bit_shift_left(integer1, integer2)");
   s64 firstVal = luaL_checkinteger(luaState, 2);
   s64 secondVal = luaL_checkinteger(luaState, 3);
   if (firstVal < 0 || secondVal < 0)
@@ -130,7 +130,7 @@ int bit_shift_left(lua_State* luaState)
 
 int bit_shift_right(lua_State* luaState)
 {
-  luaColonOperatorTypeCheck(luaState, "bit_shift_right", "bit_shift_right(integer1, integer2)");
+  LuaColonOperatorTypeCheck(luaState, "bit_shift_right", "bit_shift_right(integer1, integer2)");
   s64 firstVal = luaL_checkinteger(luaState, 2);
   s64 secondVal = luaL_checkinteger(luaState, 3);
   if (firstVal < 0 || secondVal < 0)

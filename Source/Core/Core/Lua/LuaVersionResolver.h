@@ -11,48 +11,48 @@
 namespace Lua
 {
 
-  template <typename size_t arraySize>
-  void addLatestFunctionsForVersion(const std::array<luaL_Reg_With_Version, arraySize> allFunctions, const std::string& LUA_API_VERSION, std::unordered_map<std::string, std::string>& deprecatedFunctionsToVersionTheyWereRemovedInMap, lua_State* luaState)
+  template <typename size_t array_size>
+  void AddLatestFunctionsForVersion(const std::array<luaL_Reg_With_Version, array_size> all_functions, const std::string& lua_api_version, std::unordered_map<std::string, std::string>& deprecated_functions_to_version_they_were_removed_in_map, lua_State* lua_state)
 {
   // This map contains key-value pairs of the format "functionName", {"functionName",
   // "versionNumber", functionLocation} For example, suppose we have a function that we want to be
   // called "writeBytes" in Lua scripts, which refers to a function called do_general_write on the
   // backend. The key value pairs might look like:
   //  "writeBytes", {"writeBytes", "1.3", do_general_write}
-  std::unordered_map<std::string, luaL_Reg_With_Version> functionToLatestVersionFoundMap = std::unordered_map<std::string, luaL_Reg_With_Version>();
+  std::unordered_map<std::string, luaL_Reg_With_Version> function_to_latest_version_found_map;
 
-  for (int i = 0; i < arraySize; ++i)
+  for (int i = 0; i < array_size; ++i)
   {
-    std::string currentFunctionName = allFunctions[i].name;
-    std::string functionVersionNumber = allFunctions[i].version;
+    std::string current_function_name = all_functions[i].name;
+    std::string function_version_number = all_functions[i].version;
     
-    if (functionToLatestVersionFoundMap.count(currentFunctionName) == 0 && !isFirstVersionGreaterThanSecondVersion(functionVersionNumber, LUA_API_VERSION))
-      functionToLatestVersionFoundMap[currentFunctionName] = allFunctions[i];
+    if (function_to_latest_version_found_map.count(current_function_name) == 0 && !IsFirstVersionGreaterThanSecondVersion(function_version_number, lua_api_version))
+      function_to_latest_version_found_map[current_function_name] = all_functions[i];
 
-    else if (isFirstVersionGreaterThanSecondVersion(functionVersionNumber, functionToLatestVersionFoundMap[currentFunctionName].version) && !isFirstVersionGreaterThanSecondVersion(functionVersionNumber, LUA_API_VERSION))
-      functionToLatestVersionFoundMap[currentFunctionName] = allFunctions[i];
+    else if (IsFirstVersionGreaterThanSecondVersion(function_version_number, function_to_latest_version_found_map[current_function_name].version) && !IsFirstVersionGreaterThanSecondVersion(function_version_number, lua_api_version))
+      function_to_latest_version_found_map[current_function_name] = all_functions[i];
   }
   
-  std::vector<luaL_Reg_With_Version> finalListOfFunctionsForVersionWithDeprecatedFunctions = std::vector<luaL_Reg_With_Version>();
+  std::vector<luaL_Reg_With_Version> final_list_of_functions_for_version_with_deprecated_functions;
 
-  for (auto it = functionToLatestVersionFoundMap.begin(); it != functionToLatestVersionFoundMap.end(); it++)
+  for (auto it = function_to_latest_version_found_map.begin(); it != function_to_latest_version_found_map.end(); it++)
   {
-    finalListOfFunctionsForVersionWithDeprecatedFunctions.push_back(it->second);
+    final_list_of_functions_for_version_with_deprecated_functions.push_back(it->second);
   }
 
-  std::vector<luaL_Reg> finalListOfFunctionsForVersion = std::vector<luaL_Reg>();
+  std::vector<luaL_Reg> final_list_of_functions_for_version;
 
-  for (auto it = finalListOfFunctionsForVersionWithDeprecatedFunctions.begin(); it != finalListOfFunctionsForVersionWithDeprecatedFunctions.end(); ++it)
+  for (auto it = final_list_of_functions_for_version_with_deprecated_functions.begin(); it != final_list_of_functions_for_version_with_deprecated_functions.end(); ++it)
   {
-    if (!(deprecatedFunctionsToVersionTheyWereRemovedInMap.count(it->name) > 0 && isFirstVersionGreaterThanOrEqualToSecondVersion(LUA_API_VERSION, deprecatedFunctionsToVersionTheyWereRemovedInMap[it->name])))
+    if (!(deprecated_functions_to_version_they_were_removed_in_map.count(it->name) > 0 && IsFirstVersionGreaterThanOrEqualToSecondVersion(lua_api_version, deprecated_functions_to_version_they_were_removed_in_map[it->name])))
     {
-      finalListOfFunctionsForVersion.push_back({it->name, it->func});
+      final_list_of_functions_for_version.push_back({it->name, it->func});
     }
   }
 
-  finalListOfFunctionsForVersion.push_back({nullptr, nullptr});
+  final_list_of_functions_for_version.push_back({nullptr, nullptr});
 
-  luaL_setfuncs(luaState, &finalListOfFunctionsForVersion[0], 0);
-  lua_setmetatable(luaState, -2);
+  luaL_setfuncs(lua_state, &final_list_of_functions_for_version[0], 0);
+  lua_setmetatable(lua_state, -2);
 }
 }  // namespace Lua

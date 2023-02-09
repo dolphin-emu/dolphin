@@ -1016,7 +1016,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
     Movie::LoadInput(movie_path);
   }
 
-  if (Lua::luaScriptActive)
+  if (Lua::is_lua_script_active)
     Lua::LuaEmu::waitingToStartPlayingMovie = false;
 
   return true;
@@ -1297,7 +1297,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     EndPlayInput(!s_bReadOnly);
     return;
   }
-  if (Lua::luaScriptActive)
+  if (Lua::is_lua_script_active)
   {
     if (Lua::LuaGameCubeController::overwriteControllerAtSpecifiedPort[controllerID])
     {
@@ -1317,7 +1317,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     {
       memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
       for (int i = 0; i < Lua::LuaGameCubeController::randomButtonEvents[controllerID].size(); ++i)
-        Lua::LuaGameCubeController::randomButtonEvents[controllerID][i]->applyProbability(s_padState);
+        Lua::LuaGameCubeController::randomButtonEvents[controllerID][i]->ApplyProbability(s_padState);
       memcpy(&s_temp_input[s_currentByte], &s_padState, sizeof(ControllerState));
     }
   }
@@ -1544,7 +1544,7 @@ void SaveRecording(const std::string& filename)
   else
     Core::DisplayMessage(fmt::format("Failed to save {}", filename), 2000);
 
-  if (Lua::luaScriptActive)
+  if (Lua::is_lua_script_active)
     Lua::LuaEmu::waitingToSaveMovie = false;
 }
 

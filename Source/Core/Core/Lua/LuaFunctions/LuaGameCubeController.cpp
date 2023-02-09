@@ -48,7 +48,7 @@ gc_controller_lua* getControllerInstance()
     };
 
     std::unordered_map<std::string, std::string> deprecatedFunctionsMap;
-    addLatestFunctionsForVersion(luaGCControllerFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
+    AddLatestFunctionsForVersion(luaGCControllerFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
     lua_setglobal(luaState, "gc_controller");
 
     for (int i = 0; i < 4; ++i)
@@ -95,7 +95,7 @@ gc_controller_lua* getControllerInstance()
   //NOTE: In SI.cpp, UpdateDevices() is called to update each device, which moves exactly 8 bytes forward for each controller. Also, it moves in order from controllers 1 to 4.
   int setInputs(lua_State* luaState)
   {
-    luaColonOperatorTypeCheck(luaState, "setInputs", "gc_controller:setInputs(1, controllerValuesTable)");
+    LuaColonOperatorTypeCheck(luaState, "setInputs", "gc_controller:setInputs(1, controllerValuesTable)");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "setInputs");
 
     overwriteControllerAtSpecifiedPort[controllerPortNumber - 1] = true;
@@ -118,7 +118,7 @@ gc_controller_lua* getControllerInstance()
         luaL_error(luaState, "Error: in setInputs() function, an empty string was passed for a button name!");
       }
 
-      switch (parseGCButton(buttonName))
+      switch (ParseGCButton(buttonName))
       {
       case GcButtonName::A:
         newOverwriteControllerInputs[controllerPortNumber - 1].A = lua_toboolean(luaState, -1);
@@ -229,7 +229,7 @@ gc_controller_lua* getControllerInstance()
 
   int addInputs(lua_State* luaState)
   {
-    luaColonOperatorTypeCheck(luaState, "addInputs", "gc_controller:addInputs(1, controllerValuesTable)");
+    LuaColonOperatorTypeCheck(luaState, "addInputs", "gc_controller:addInputs(1, controllerValuesTable)");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addInputs");
 
     addToControllerAtSpecifiedPort[controllerPortNumber - 1] = true;
@@ -246,7 +246,7 @@ gc_controller_lua* getControllerInstance()
                    "Error: in addInputs() function, an empty string was passed for a button name!");
       }
 
-      switch (parseGCButton(buttonName))
+      switch (ParseGCButton(buttonName))
       {
       case GcButtonName::A:
         addToControllerInputs[controllerPortNumber - 1].A = lua_toboolean(luaState, -1);
@@ -394,17 +394,17 @@ gc_controller_lua* getControllerInstance()
 
   int addButtonFlipChance(lua_State* luaState)
   {
-    luaColonOperatorTypeCheck(luaState, "addButtonFlipChance", "gc_controller:addButtonFlipChance(1, 32, \"A\")");
+    LuaColonOperatorTypeCheck(luaState, "addButtonFlipChance", "gc_controller:addButtonFlipChance(1, 32, \"A\")");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonFlipChance");
     double probability = getProbabilityHelperFunction(luaState, "addButtonFlipChance");
-    GcButtonName buttonName = parseGCButton(luaL_checkstring(luaState, 4));
+    GcButtonName buttonName = ParseGCButton(luaL_checkstring(luaState, 4));
 
     if (buttonName == GcButtonName::TriggerL)
       buttonName = GcButtonName::L;
     if (buttonName == GcButtonName::TriggerR)
       buttonName = GcButtonName::R;
 
-    if (!isBinaryButton(buttonName))
+    if (!IsBinaryButton(buttonName))
       luaL_error(
           luaState,
           "Error: In function gc_controller:addButtonFlipChance(), button name string was not a "
@@ -417,15 +417,15 @@ gc_controller_lua* getControllerInstance()
 
   int addButtonPressChance(lua_State* luaState)
   {
-    luaColonOperatorTypeCheck(luaState, "addButtonPressChance", "gc_controller:addButtonPressChance(1, 32, \"A\")");
+    LuaColonOperatorTypeCheck(luaState, "addButtonPressChance", "gc_controller:addButtonPressChance(1, 32, \"A\")");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonPressChance");
     double probability = getProbabilityHelperFunction(luaState, "addButtonPressChance");
-    GcButtonName buttonName = parseGCButton(luaL_checkstring(luaState, 4));
+    GcButtonName buttonName = ParseGCButton(luaL_checkstring(luaState, 4));
     if (buttonName == GcButtonName::TriggerL)
       buttonName = GcButtonName::L;
     if (buttonName == GcButtonName::TriggerR)
       buttonName = GcButtonName::R;
-    if (!isBinaryButton(buttonName))
+    if (!IsBinaryButton(buttonName))
       luaL_error(
           luaState,
           "Error: In function gc_controller:addButtonPressChance(), button name string was not a "
@@ -438,15 +438,15 @@ gc_controller_lua* getControllerInstance()
 
   int addButtonReleaseChance(lua_State* luaState)
   {
-    luaColonOperatorTypeCheck(luaState, "addButtonReleaseChance", "gc_controller:addButtonReleaseChance(1, 32, \"A\")");
+    LuaColonOperatorTypeCheck(luaState, "addButtonReleaseChance", "gc_controller:addButtonReleaseChance(1, 32, \"A\")");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonReleaseChance");
     double probability = getProbabilityHelperFunction(luaState, "addButtonReleaseChance");
-    GcButtonName buttonName = parseGCButton(luaL_checkstring(luaState, 4));
+    GcButtonName buttonName = ParseGCButton(luaL_checkstring(luaState, 4));
     if (buttonName == GcButtonName::TriggerL)
       buttonName = GcButtonName::L;
     if (buttonName == GcButtonName::TriggerR)
       buttonName = GcButtonName::R;
-    if (!isBinaryButton(buttonName))
+    if (!IsBinaryButton(buttonName))
       luaL_error(
           luaState,
           "Error: In function gc_controller:addButtonReleaseChance(), button name string was not a "
@@ -471,16 +471,16 @@ gc_controller_lua* getControllerInstance()
   // 6. Upper Magnitude difference (added to current value)
   int addOrSubtractFromCurrentAnalogValueChance(lua_State* luaState)
   {
-    luaColonOperatorTypeCheck(luaState, "addOrSubtractFromCurrentAnalogValueChance", "gc_controller:addOrSubtractFromCurrentAnalogValueChance(1, 32, \"cStickX\", 14, 9)");
+    LuaColonOperatorTypeCheck(luaState, "addOrSubtractFromCurrentAnalogValueChance", "gc_controller:addOrSubtractFromCurrentAnalogValueChance(1, 32, \"cStickX\", 14, 9)");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addOrSubtractFromCurrentAnalogValueChance");
     double probability = getProbabilityHelperFunction(luaState, "addOrSubtractFromCurrentAnalogValueChance");
-    GcButtonName buttonName = parseGCButton(luaL_checkstring(luaState, 4));
+    GcButtonName buttonName = ParseGCButton(luaL_checkstring(luaState, 4));
     if (buttonName == GcButtonName::L)
       buttonName = GcButtonName::TriggerL;
     if (buttonName == GcButtonName::R)
       buttonName = GcButtonName::TriggerR;
 
-    if (!isAnalogButton(buttonName))
+    if (!IsAnalogButton(buttonName))
       luaL_error(luaState, "Error: In function gc_controller:addOrSubtractFromCurrentAnalogValueChance(), button name string was not an analog button!");
 
     s64 maxToSubtract = 0;
@@ -532,12 +532,12 @@ gc_controller_lua* getControllerInstance()
   // 7. Upper magnitude difference (added to base value)
   int addOrSubtractFromSpecificAnalogValueChance(lua_State* luaState)
   {
-    luaColonOperatorTypeCheck(luaState, "addOrSubtractFromSpecificAnalogValueChance", "gc_controller:addOrSubtractFromSpecificAnalogValueChance(1, 32, \"cStickX\", 184, 5, 13)");
+    LuaColonOperatorTypeCheck(luaState, "addOrSubtractFromSpecificAnalogValueChance", "gc_controller:addOrSubtractFromSpecificAnalogValueChance(1, 32, \"cStickX\", 184, 5, 13)");
     s64 controllerPortNumber =
         getPortNumberHelperFunction(luaState, "addOrSubtractFromSpecificAnalogValueChance");
     double probability =
         getProbabilityHelperFunction(luaState, "addOrSubtractFromSpecificAnalogValueChance");
-    GcButtonName buttonName = parseGCButton(luaL_checkstring(luaState, 4));
+    GcButtonName buttonName = ParseGCButton(luaL_checkstring(luaState, 4));
     if (buttonName == GcButtonName::L)
       buttonName = GcButtonName::TriggerL;
     if (buttonName == GcButtonName::R)
@@ -578,7 +578,7 @@ gc_controller_lua* getControllerInstance()
 
   int addButtonComboChance(lua_State* luaState)
   {
-    luaColonOperatorTypeCheck(luaState, "addButtonComboChance", "gc_controller:AddButtonComboChance(1, 44, true, buttonTable)");
+    LuaColonOperatorTypeCheck(luaState, "addButtonComboChance", "gc_controller:AddButtonComboChance(1, 44, true, buttonTable)");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonComboChance");
     double probability = getProbabilityHelperFunction(luaState, "addButtonComboChance");
     bool setOtherButtonsToBlank = lua_toboolean(luaState, 4);
@@ -598,7 +598,7 @@ gc_controller_lua* getControllerInstance()
                    "Error: in addButtonComboChance() function, an empty string was passed for a button name!");
       }
 
-      switch (parseGCButton(buttonName))
+      switch (ParseGCButton(buttonName))
       {
       case GcButtonName::A:
         controllerState.A = lua_toboolean(luaState, -1);
@@ -729,7 +729,7 @@ gc_controller_lua* getControllerInstance()
 
   int addControllerClearChance(lua_State* luaState)
   {
-    luaColonOperatorTypeCheck(luaState, "addControllerClearChance",
+    LuaColonOperatorTypeCheck(luaState, "addControllerClearChance",
                               "gc_controller:addControllerClearChance(1, 56)");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addControllerClearChance");
     double probability = getProbabilityHelperFunction(luaState, "addControllerClearChance");
@@ -742,7 +742,7 @@ gc_controller_lua* getControllerInstance()
 
   int getControllerInputs(lua_State* luaState)
   {
-    luaColonOperatorTypeCheck(luaState, "getControllerInputs","gc_controller:getControllerInputs(1)");
+    LuaColonOperatorTypeCheck(luaState, "getControllerInputs","gc_controller:getControllerInputs(1)");
     s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "getControllerInputs");
 
     Movie::ControllerState controllerInputs = Movie::GetLuaGCInputsForPort(controllerPortNumber - 1);
@@ -760,7 +760,7 @@ gc_controller_lua* getControllerInstance()
 
     for (GcButtonName buttonCode : allGcButtons)
     {
-      const char* buttonNameString = convertButtonEnumToString(buttonCode);
+      const char* buttonNameString = ConvertButtonEnumToString(buttonCode);
       lua_pushlstring(luaState, buttonNameString, std::strlen(buttonNameString));
 
       switch (buttonCode)

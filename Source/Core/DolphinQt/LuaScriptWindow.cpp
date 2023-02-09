@@ -24,7 +24,7 @@ LuaScriptWindow::LuaScriptWindow(QWidget* parent) : QDialog(parent)
 
 LuaScriptWindow::~LuaScriptWindow()
 {
-  Lua::luaScriptActive = false;
+  Lua::is_lua_script_active = false;
   auto& settings = Settings::GetQSettings();
   settings.setValue(QStringLiteral("luascriptwindow/geometry"), saveGeometry());
 }
@@ -99,7 +99,7 @@ void LuaScriptWindow::LoadScriptFunction()
 
 void LuaScriptWindow::PlayScriptFunction()
 {
-  if (Lua::luaScriptActive || pathOfScriptToRun.empty())
+  if (Lua::is_lua_script_active || pathOfScriptToRun.empty())
     return;
 
   lua_output_list_widget_ptr->clear();
@@ -110,7 +110,7 @@ void LuaScriptWindow::PlayScriptFunction()
 
 void LuaScriptWindow::StopScriptFunction()
 {
-  if (!Lua::luaInitialized || !Lua::luaScriptActive)
+  if (!Lua::is_lua_core_initialized || !Lua::is_lua_script_active)
     return;
 
   Lua::StopScript();

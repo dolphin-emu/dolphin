@@ -11,132 +11,135 @@
 
 namespace Lua
 {
-std::string GLOBAL_LUA_API_VERSION_VARIABLE = "1.0.0";
-lua_State* mainLuaState = nullptr;
-lua_State* mainLuaThreadState = nullptr;
-bool luaScriptActive = false;
-int* x = nullptr;
-bool luaInitialized = false;
-std::function<void(const std::string&)>* printCallbackFunction = nullptr;
-std::function<void()>* scriptEndCallbackFunction = nullptr;
+std::string global_lua_api_version = "1.0.0";
+lua_State* main_lua_state = nullptr;
+lua_State* main_lua_thread_state = nullptr;
+int x = 0;
+bool is_lua_script_active = false;
+bool is_lua_core_initialized = false;
+std::function<void(const std::string&)>* print_callback_function = nullptr;
+std::function<void()>* script_end_callback_function = nullptr;
 
-int custom_print_function(lua_State* luaState)
+int CustomPrintFunction(lua_State* lua_state)
 {
-  int nargs = lua_gettop(luaState);
-  std::string outputString;
+  int nargs = lua_gettop(lua_state);
+  std::string output_string;
   for (int i = 1; i <= nargs; i++)
   {
-    if (lua_isstring(luaState, i))
+    if (lua_isstring(lua_state, i))
     {
-      outputString.append(lua_tostring(luaState, i));
+      output_string.append(lua_tostring(lua_state, i));
       /* Pop the next arg using lua_tostring(L, i) and do your print */
     }
-    else if (lua_isinteger(luaState, i))
+    else if (lua_isinteger(lua_state, i))
     {
-      outputString.append(std::to_string(lua_tointeger(luaState, i)));
+      output_string.append(std::to_string(lua_tointeger(lua_state, i)));
     }
-    else if (lua_isnumber(luaState, i))
+    else if (lua_isnumber(lua_state, i))
     {
-      outputString.append(std::to_string(lua_tonumber(luaState, i)));
+      output_string.append(std::to_string(lua_tonumber(lua_state, i)));
     }
-    else if (lua_isboolean(luaState, i))
+    else if (lua_isboolean(lua_state, i))
     {
-      outputString.append(lua_toboolean(luaState, i) ? "true" : "false");
+      output_string.append(lua_toboolean(lua_state, i) ? "true" : "false");
     }
-    else if (lua_isnil(luaState, i))
+    else if (lua_isnil(lua_state, i))
     {
-      outputString.append("nil");
+      output_string.append("nil");
     }
     else
     {
-      luaL_error(luaState, "Error: Unknown type encountered in print function. Supported types are String, Integer, Number, Boolean, and nil");
+      luaL_error(lua_state, "Error: Unknown type encountered in print function. Supported types are String, Integer, Number, Boolean, and nil");
     }
   }
 
-  (*printCallbackFunction)(outputString);
+  (*print_callback_function)(output_string);
 
   return 0;
 }
 
-int setLuaCoreVersion(lua_State* luaState)
+int SetLuaCoreVersion(lua_State* lua_state)
 {
-  std::string newVersionNumber = luaL_checkstring(luaState, 1);
-  if (newVersionNumber.length() == 0)
-    luaL_error(luaState, "Error: string was not passed to setLuaCoreVersion() function. Function "
-                          "should be called as in the following example: setLuaCoreVersion(\"3.4.2\")");
-  if (newVersionNumber[0] == '.')
-    newVersionNumber = "0" + newVersionNumber;
+  std::string new_version_number = luaL_checkstring(lua_state, 1);
+  if (new_version_number.length() == 0)
+    luaL_error(lua_state,
+               "Error: string was not passed to setLuaCoreVersion() function. Function "
+               "should be called as in the following example: setLuaCoreVersion(\"3.4.2\")");
+  if (new_version_number[0] == '.')
+    new_version_number = "0" + new_version_number;
 
-  size_t newVersionNumberLength = newVersionNumber.length();
+  size_t new_version_number_length = new_version_number.length();
   size_t i = 0;
 
-  while (i < newVersionNumberLength)
+  while (i < new_version_number_length)
   {
-    if (!isdigit(newVersionNumber[i]))
+    if (!isdigit(new_version_number[i]))
     {
-      if (newVersionNumber[i] == '.' && i != newVersionNumberLength - 1 && isdigit(newVersionNumber[i + 1]))
+      if (new_version_number[i] == '.' && i != new_version_number_length - 1 &&
+          isdigit(new_version_number[i + 1]))
         i += 2;
       else
-        luaL_error(luaState,"Error: invalid format for version number passed into setLuaCoreVersion() function. " "Function should be called as in the following example: setLuaCoreVersion(\"3.4.2\")");
+        luaL_error(
+            lua_state,
+            "Error: invalid format for version number passed into setLuaCoreVersion() function. "
+            "Function should be called as in the following example: setLuaCoreVersion(\"3.4.2\")");
     }
     else
       ++i;
   }
 
-  if (std::atof(newVersionNumber.c_str()) < 1.0f)
-    luaL_error(luaState, "Error: value of argument passed to setLuaCoreVersion() function was less "
+  if (new_version_number[0] == '0' || new_version_number[0] == '.')
+    luaL_error(lua_state, "Error: value of argument passed to setLuaCoreVersion() function was less "
                          "than 1.0 (1.0 is the earliest version of the API that was released.");
 
-  GLOBAL_LUA_API_VERSION_VARIABLE = newVersionNumber;
+  global_lua_api_version = new_version_number;
   return 0;
   // Need to stop the current Lua script and start another script after this for the change in version number to take effect.
 }
 
-int getLuaCoreVersion(lua_State* luaState)
+int GetLuaCoreVersion(lua_State* lua_state)
 {
-  lua_pushstring(luaState, GLOBAL_LUA_API_VERSION_VARIABLE.c_str());
+  lua_pushstring(lua_state, global_lua_api_version.c_str());
   return 1;
 }
 
-void Init(const std::string& scriptLocation,
-          std::function<void(const std::string&)>* newPrintCallback, std::function<void()>* newScriptEndCallback)
+void Init(const std::string& script_location, std::function<void(const std::string&)>* new_print_callback, std::function<void()>* new_script_end_callback)
 {
-  printCallbackFunction = newPrintCallback;
-  scriptEndCallbackFunction = newScriptEndCallback;
-  x = new int;
-  *x = 0;
-  luaScriptActive = true;
-  luaInitialized = true;
-  mainLuaState = luaL_newstate();
-  luaL_openlibs(mainLuaState);
-  LuaMemoryApi::InitLuaMemoryApi(mainLuaState, GLOBAL_LUA_API_VERSION_VARIABLE);
-  LuaEmu::InitLuaEmuFunctions(mainLuaState, GLOBAL_LUA_API_VERSION_VARIABLE);
-  LuaBit::InitLuaBitFunctions(mainLuaState, GLOBAL_LUA_API_VERSION_VARIABLE);
-  LuaGameCubeController::InitLuaGameCubeControllerFunctions(mainLuaState, GLOBAL_LUA_API_VERSION_VARIABLE);
-  LuaStatistics::InitLuaStatisticsFunctions(mainLuaState, GLOBAL_LUA_API_VERSION_VARIABLE);
-  LuaRegisters::InitLuaRegistersFunctions(mainLuaState, GLOBAL_LUA_API_VERSION_VARIABLE);
-  lua_gc(mainLuaState, LUA_GCSTOP);
-  lua_newtable(mainLuaState);
-  lua_pushcfunction(mainLuaState, custom_print_function);
-  lua_setglobal(mainLuaState, "print");
+  print_callback_function = new_print_callback;
+  script_end_callback_function = new_script_end_callback;
+  x = 0;
+  is_lua_script_active = true;
+  is_lua_core_initialized = true;
+  main_lua_state = luaL_newstate();
+  luaL_openlibs(main_lua_state);
+  LuaMemoryApi::InitLuaMemoryApi(main_lua_state, global_lua_api_version);
+  LuaEmu::InitLuaEmuFunctions(main_lua_state, global_lua_api_version);
+  LuaBit::InitLuaBitFunctions(main_lua_state, global_lua_api_version);
+  LuaGameCubeController::InitLuaGameCubeControllerFunctions(main_lua_state, global_lua_api_version);
+  LuaStatistics::InitLuaStatisticsFunctions(main_lua_state, global_lua_api_version);
+  LuaRegisters::InitLuaRegistersFunctions(main_lua_state, global_lua_api_version);
+  //lua_gc(main_lua_state, LUA_GCSTOP);
+  lua_newtable(main_lua_state);
+  lua_pushcfunction(main_lua_state, CustomPrintFunction);
+  lua_setglobal(main_lua_state, "print");
 
-  mainLuaThreadState = lua_newthread(mainLuaState);
-  if (luaL_loadfile(mainLuaThreadState, scriptLocation.c_str()) != LUA_OK)
+  main_lua_thread_state = lua_newthread(main_lua_state);
+  if (luaL_loadfile(main_lua_thread_state, script_location.c_str()) != LUA_OK)
   {
-    const char* tempString = lua_tostring(mainLuaThreadState, -1);
-    (*printCallbackFunction)(tempString);
-    (*scriptEndCallbackFunction)();
+    const char* temp_string = lua_tostring(main_lua_thread_state, -1);
+    (*print_callback_function)(temp_string);
+    (*script_end_callback_function)();
   }
-  int retVal = lua_resume(Lua::mainLuaThreadState, nullptr, 0, Lua::x);
+  int retVal = lua_resume(Lua::main_lua_thread_state, nullptr, 0, &Lua::x);
   if (retVal != LUA_YIELD)
   {
     if (retVal == 2)
     {
-      const char* errorMsg = lua_tostring(Lua::mainLuaThreadState, -1);
-      (*Lua::printCallbackFunction)(errorMsg);
+      const char* error_msg = lua_tostring(Lua::main_lua_thread_state, -1);
+      (*Lua::print_callback_function)(error_msg);
     }
-    (*scriptEndCallbackFunction)();
-    Lua::luaScriptActive = false;
+    (*script_end_callback_function)();
+    Lua::is_lua_script_active = false;
   }
 
   return;
@@ -144,7 +147,7 @@ void Init(const std::string& scriptLocation,
 
 void StopScript()
 {
-  luaScriptActive = false;
+  is_lua_script_active = false;
 }
 
 }
