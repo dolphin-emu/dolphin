@@ -134,7 +134,7 @@ OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scal
     m_current_framebuffer = m_system_framebuffer.get();
   }
 
-  if (m_main_gl_context->IsGLES())
+  if (!m_main_gl_context->IsGLES())
   {
     // OpenGL 3 doesn't provide GLES like float functions for depth.
     // They are in core in OpenGL 4.1, so almost every driver should support them.
