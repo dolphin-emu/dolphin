@@ -7,21 +7,15 @@
 namespace Lua::LuaMemoryApi
 {
 
-class MEMORY
-{
-public:
-  MEMORY() {}
-};
+void InitLuaMemoryApi(lua_State* lua_state, const std::string& lua_api_version);
 
-void InitLuaMemoryApi(lua_State* luaState, const std::string& luaApiVersion);
+int DoGeneralRead(lua_State* lua_state);
+int DoReadUnsignedBytes(lua_State* lua_state);
+int DoReadSignedBytes(lua_State* lua_state);
+int DoReadFixedLengthString(lua_State* lua_state);
+int DoReadNullTerminatedString(lua_State* lua_state);
 
-int do_general_read(lua_State* luaState);
-int do_read_unsigned_bytes(lua_State* luaState);
-int do_read_signed_bytes(lua_State* luaState);
-int do_read_fixed_length_string(lua_State* luaState);
-int do_read_null_terminated_string(lua_State* luaState);
-
-int do_general_write(lua_State* luaState);
-int do_write_bytes(lua_State* luaState);
-int do_write_string(lua_State* luaState);
+int DoGeneralWrite(lua_State* lua_state);
+int DoWriteBytes(lua_State* lua_state);
+int DoWriteString(lua_State* lua_state);
 }  // namespace LuaMemoryApi

@@ -7,15 +7,17 @@
 
 namespace Lua::LuaEmu
   {
-  extern bool waitingForSaveStateLoad;
-  extern bool waitingForSaveStateSave;
-  extern bool waitingToStartPlayingMovie;
-  extern bool waitingToSaveMovie;
 
-    void InitLuaEmuFunctions(lua_State* luaState, const std::string& luaApiVersion);
-    int emu_frameAdvance(lua_State* luaState);
-    int emu_loadState(lua_State* luaState);
-    int emu_saveState(lua_State* luaState);
-    int emu_playMovie(lua_State* luaState);
-    int emu_saveMovie(lua_State* luaState);
+  extern bool waiting_for_save_state_load;
+  extern bool waiting_for_save_state_save;
+  extern bool waiting_to_start_playing_movie;
+  extern bool waiting_to_save_movie;
+
+  void InitLuaEmuFunctions(lua_State* lua_state, const std::string& lua_api_version);
+  int EmuFrameAdvance(lua_State* lua_State);
+  int EmuLoadState(lua_State* lua_state);
+  int EmuSaveState(lua_State* lua_state);
+  int EmuPlayMovie(lua_State* lua_state);
+  int EmuSaveMovie(lua_State* lua_state);
+
   }

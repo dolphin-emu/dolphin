@@ -8,14 +8,15 @@
 
 LuaScriptWindow::LuaScriptWindow(QWidget* parent) : QDialog(parent)
 {
-  callbackPrintFunction = [this](const std::string& message) {
-    outputLines.push_back(message);
-    QueueOnObject(this, &LuaScriptWindow::updateOutputWindow);
+  callback_print_function = [this](const std::string& message) {
+    output_lines.push_back(message);
+    QueueOnObject(this, &LuaScriptWindow::UpdateOutputWindow);
   };
 
-  finishedScriptCallbackFunction = [this]() {
-    QueueOnObject(this, &LuaScriptWindow::onScriptFinish);
+  finished_script_callback_function = [this]() {
+    QueueOnObject(this, &LuaScriptWindow::OnScriptFinish);
   };
+
   CreateMainLayout();
   ConnectWidgets();
   auto& settings = Settings::GetQSettings();
@@ -42,16 +43,16 @@ void LuaScriptWindow::CreateMainLayout()
   lua_script_name_list_widget_ptr = new QListWidget;
   lua_script_name_list_widget_ptr->setMaximumHeight(100);
 
-  QLabel* scriptNameHeader = new QLabel(tr("Script Name:"));
-  auto* scriptNameBox = new QGridLayout();
-  scriptNameBox->addWidget(scriptNameHeader, 0, 0, Qt::AlignTop);
-  scriptNameBox->addWidget(lua_script_name_list_widget_ptr, 1, 0, Qt::AlignTop);
+  QLabel* script_name_header = new QLabel(tr("Script Name:"));
+  auto* script_name_box = new QGridLayout();
+  script_name_box->addWidget(script_name_header, 0, 0, Qt::AlignTop);
+  script_name_box->addWidget(lua_script_name_list_widget_ptr, 1, 0, Qt::AlignTop);
 
-  QLabel* outputHeader = new QLabel(tr("Output:"));
+  QLabel* output_header = new QLabel(tr("Output:"));
   lua_output_list_widget_ptr = new QListWidget;
-  auto* outputBox = new QGridLayout();
-  outputBox->addWidget(outputHeader, 0, 0, Qt::AlignTop);
-  outputBox->addWidget(lua_output_list_widget_ptr, 1, 0, Qt::AlignTop);
+  auto* output_box = new QGridLayout();
+  output_box->addWidget(output_header, 0, 0, Qt::AlignTop);
+  output_box->addWidget(lua_output_list_widget_ptr, 1, 0, Qt::AlignTop);
 
   lua_output_list_widget_ptr->setSpacing(1);
   lua_output_list_widget_ptr->setStyleSheet(tr("background-color:white;"));
@@ -59,8 +60,8 @@ void LuaScriptWindow::CreateMainLayout()
   layout->addWidget(m_load_script_button, 0, 0, Qt::AlignTop);
   layout->addWidget(m_play_script_button, 0, 1, Qt::AlignTop);
   layout->addWidget(m_stop_script_button, 0, 2, Qt::AlignTop);
-  layout->addLayout(scriptNameBox, 1, 0, Qt::AlignTop);
-  layout->addLayout(outputBox, 1, 1, Qt::AlignTop);
+  layout->addLayout(script_name_box, 1, 0, Qt::AlignTop);
+  layout->addLayout(output_box, 1, 1, Qt::AlignTop);
   setWindowTitle(tr("Lua Script Manager"));
   setLayout(layout);
 }
@@ -85,7 +86,7 @@ void LuaScriptWindow::LoadScriptFunction()
   if (!path.isEmpty())
   {
     settings.setValue(QStringLiteral("luascriptwindow/lastdir"), QFileInfo(path).absoluteDir().absolutePath());
-    pathOfScriptToRun = path.toStdString();
+    path_of_script_to_run = path.toStdString();
     QStringList list;
     list << path;
     lua_script_name_list_widget_ptr->clear();
@@ -93,17 +94,16 @@ void LuaScriptWindow::LoadScriptFunction()
     m_play_script_button->setStyleSheet(tr("background-color:green;"));
   }
 
-
   return;
 }
 
 void LuaScriptWindow::PlayScriptFunction()
 {
-  if (Lua::is_lua_script_active || pathOfScriptToRun.empty())
+  if (Lua::is_lua_script_active || path_of_script_to_run.empty())
     return;
 
   lua_output_list_widget_ptr->clear();
-  Lua::Init(pathOfScriptToRun, &callbackPrintFunction, &finishedScriptCallbackFunction);
+  Lua::Init(path_of_script_to_run, &callback_print_function, &finished_script_callback_function);
   m_play_script_button->setStyleSheet(tr("background-color:grey;"));
   m_stop_script_button->setStyleSheet(tr("background-color:red;"));
 }
@@ -118,18 +118,18 @@ void LuaScriptWindow::StopScriptFunction()
   m_stop_script_button->setStyleSheet(tr("background-color:grey;"));
 }
 
-void LuaScriptWindow::updateOutputWindow()
+void LuaScriptWindow::UpdateOutputWindow()
 {
   QStringList list;
-  size_t outputSize = outputLines.size();
-  for (size_t i = 0; i < outputSize; ++i)
-    list << QString::fromStdString(outputLines[i]);
+  size_t output_size = output_lines.size();
+  for (size_t i = 0; i < output_size; ++i)
+    list << QString::fromStdString(output_lines[i]);
   lua_output_list_widget_ptr->clear();
   lua_output_list_widget_ptr->insertItems(0, list);
   lua_output_list_widget_ptr->setSpacing(1);
 }
 
-void LuaScriptWindow::onScriptFinish()
+void LuaScriptWindow::OnScriptFinish()
 {
   m_play_script_button->setStyleSheet(tr("background-color:green;"));
   m_stop_script_button->setStyleSheet(tr("background-color:grey;"));

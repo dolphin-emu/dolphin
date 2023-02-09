@@ -3,384 +3,387 @@
 
 namespace Lua:: LuaGameCubeController
 {
-class gc_controller_lua
-{
-public:
-  inline gc_controller_lua(){};
-};
 
-  gc_controller_lua* gc_controller_pointer = nullptr;
-  std::array<bool, 4> overwriteControllerAtSpecifiedPort = {};
-  std::array<bool, 4> addToControllerAtSpecifiedPort = {};
-  std::array<bool, 4> doRandomInputEventsAtSpecifiedPort = {};
+  std::array<bool, 4> overwrite_controller_at_specified_port = {};
+  std::array<bool, 4> add_to_controller_at_specified_port = {};
+  std::array<bool, 4> do_random_input_events_at_specified_port = {};
 
-  std::array<Movie::ControllerState, 4> newOverwriteControllerInputs = {};
-  std::array<Movie::ControllerState, 4> addToControllerInputs = {};
-  std::array<std::vector<GcButtonName>, 4> buttonListsForAddToControllerInputs = {};
-  std::array<std::vector<std::unique_ptr<LuaGameCubeButtonProbabilityEvent>>, 4> randomButtonEvents = {};
+  std::array<Movie::ControllerState, 4> new_overwrite_controller_inputs = {};
+  std::array<Movie::ControllerState, 4> add_to_controller_inputs = {};
+  std::array<std::vector<GcButtonName>, 4> button_lists_for_add_to_controller_inputs = {};
+  std::array<std::vector<std::unique_ptr<LuaGameCubeButtonProbabilityEvent>>, 4> random_button_events = {};
 
-gc_controller_lua* getControllerInstance()
+
+  class GcControllerLua
+  {
+  public:
+    inline GcControllerLua(){};
+  };
+
+  GcControllerLua* gc_controller_pointer = nullptr;
+
+  GcControllerLua* getControllerInstance()
 {
   if (gc_controller_pointer == nullptr)
-    gc_controller_pointer = new gc_controller_lua();
+    gc_controller_pointer = new GcControllerLua();
   return gc_controller_pointer;
 }
 
-  void InitLuaGameCubeControllerFunctions(lua_State* luaState, const std::string& luaApiVersion)
+  void InitLuaGameCubeControllerFunctions(lua_State* lua_state, const std::string& lua_api_version)
 {
-    gc_controller_lua** gcControllerLuaPtrPtr = (gc_controller_lua**)lua_newuserdata(luaState, sizeof(gc_controller_lua*));
-    *gcControllerLuaPtrPtr = getControllerInstance();
-    luaL_newmetatable(luaState, "LuaGCControllerTable");
-    lua_pushvalue(luaState, -1);
-    lua_setfield(luaState, -2, "__index");
+    GcControllerLua** gc_controller_lua_ptr_ptr = (GcControllerLua**)lua_newuserdata(lua_state, sizeof(GcControllerLua*));
+    *gc_controller_lua_ptr_ptr = getControllerInstance();
+    luaL_newmetatable(lua_state, "LuaGCControllerTable");
+    lua_pushvalue(lua_state, -1);
+    lua_setfield(lua_state, -2, "__index");
 
-    std::array luaGCControllerFunctionsWithVersionsAttached = {
-      luaL_Reg_With_Version({"setInputs", "1.0", setInputs}),
-      luaL_Reg_With_Version({"addInputs", "1.0", addInputs}),
-      luaL_Reg_With_Version({"addButtonFlipChance", "1.0", addButtonFlipChance}),
-      luaL_Reg_With_Version({"addButtonPressChance", "1.0", addButtonPressChance}),
-      luaL_Reg_With_Version({"addButtonReleaseChance", "1.0", addButtonReleaseChance}),
-      luaL_Reg_With_Version({"addOrSubtractFromCurrentAnalogValueChance", "1.0", addOrSubtractFromCurrentAnalogValueChance}),
-      luaL_Reg_With_Version({"addOrSubtractFromSpecificAnalogValueChance", "1.0", addOrSubtractFromSpecificAnalogValueChance}),
-      luaL_Reg_With_Version({"addButtonComboChance", "1.0", addButtonComboChance}),
-      luaL_Reg_With_Version({"addControllerClearChance", "1.0", addControllerClearChance}),
-      luaL_Reg_With_Version({"getControllerInputs", "1.0", getControllerInputs})
+    std::array lua_gc_controller_functions_with_versions_attached = {
+      luaL_Reg_With_Version({"setInputs", "1.0", SetInputs}),
+      luaL_Reg_With_Version({"addInputs", "1.0", AddInputs}),
+      luaL_Reg_With_Version({"addButtonFlipChance", "1.0", AddButtonFlipChance}),
+      luaL_Reg_With_Version({"addButtonPressChance", "1.0", AddButtonPressChance}),
+      luaL_Reg_With_Version({"addButtonReleaseChance", "1.0", AddButtonReleaseChance}),
+      luaL_Reg_With_Version({"addOrSubtractFromCurrentAnalogValueChance", "1.0", AddOrSubtractFromCurrentAnalogValueChance}),
+      luaL_Reg_With_Version({"addOrSubtractFromSpecificAnalogValueChance", "1.0", AddOrSubtractFromSpecificAnalogValueChance}),
+      luaL_Reg_With_Version({"addButtonComboChance", "1.0", AddButtonComboChance}),
+      luaL_Reg_With_Version({"addControllerClearChance", "1.0", AddControllerClearChance}),
+      luaL_Reg_With_Version({"getControllerInputs", "1.0", GetControllerInputs})
     };
 
-    std::unordered_map<std::string, std::string> deprecatedFunctionsMap;
-    AddLatestFunctionsForVersion(luaGCControllerFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
-    lua_setglobal(luaState, "gc_controller");
+    std::unordered_map<std::string, std::string> deprecated_functions_map;
+    AddLatestFunctionsForVersion(lua_gc_controller_functions_with_versions_attached, lua_api_version, deprecated_functions_map, lua_state);
+    lua_setglobal(lua_state, "gc_controller");
 
     for (int i = 0; i < 4; ++i)
     {
-      overwriteControllerAtSpecifiedPort[i] = false;
-      addToControllerAtSpecifiedPort[i] = false;
-      doRandomInputEventsAtSpecifiedPort[i] = false;
+      overwrite_controller_at_specified_port[i] = false;
+      add_to_controller_at_specified_port[i] = false;
+      do_random_input_events_at_specified_port[i] = false;
 
-      randomButtonEvents[i] = std::vector<std::unique_ptr<LuaGameCubeButtonProbabilityEvent>>();
-      buttonListsForAddToControllerInputs[i] = std::vector<GcButtonName>();
+      random_button_events[i] = std::vector<std::unique_ptr<LuaGameCubeButtonProbabilityEvent>>();
+      button_lists_for_add_to_controller_inputs[i] = std::vector<GcButtonName>();
     }
   }
 
-  int getPortNumberHelperFunction(lua_State* luaState, const char* funcName)
+  int GetPortNumberHelperFunction(lua_State* lua_state, const char* func_name)
   {
-    s64 controllerPortNumber = luaL_checkinteger(luaState, 2);
-    if (controllerPortNumber < 1 || controllerPortNumber > 4)
+    s64 controller_port_number = luaL_checkinteger(lua_state, 2);
+    if (controller_port_number < 1 || controller_port_number > 4)
     {
-      luaL_error(luaState, (std::string("Error: In function gc_controller:") + funcName + ", controller port number wasn't between 1 and 4!").c_str());
+      luaL_error(lua_state, (std::string("Error: In function gc_controller:") + func_name + ", controller port number wasn't between 1 and 4!").c_str());
     }
 
-    if (controllerPortNumber > Pad::GetConfig()->GetControllerCount())
+    if (controller_port_number > Pad::GetConfig()->GetControllerCount())
     {
-      luaL_error(luaState, (std::string("Error: in ") + funcName + "(), attempt was made to access a port which did not have a GameCube controller plugged into it!").c_str());
+      luaL_error(lua_state, (std::string("Error: in ") + func_name + "(), attempt was made to access a port which did not have a GameCube controller plugged into it!").c_str());
     }
 
 
-    return controllerPortNumber;
+    return controller_port_number;
   }
 
-  double getProbabilityHelperFunction(lua_State* luaState, const char* funcName)
+  double GetProbabilityHelperFunction(lua_State* lua_state, const char* func_name)
   {
     double probability = 0.0;
-    if (lua_isinteger(luaState, 3))
-      probability = static_cast<double>(lua_tointeger(luaState, 3));
+    if (lua_isinteger(lua_state, 3))
+      probability = static_cast<double>(lua_tointeger(lua_state, 3));
     else
-      probability = luaL_checknumber(luaState, 3);
+      probability = luaL_checknumber(lua_state, 3);
 
     if (probability < 0.0 || probability > 100.0)
-      luaL_error(luaState, (std::string("Error: In function gc_controller:") + funcName + ", probability was outside the acceptable range of 0 to 100%").c_str());
+      luaL_error(lua_state, (std::string("Error: In function gc_controller:") + func_name + ", probability was outside the acceptable range of 0 to 100%").c_str());
     return probability;
   }
 
   //NOTE: In SI.cpp, UpdateDevices() is called to update each device, which moves exactly 8 bytes forward for each controller. Also, it moves in order from controllers 1 to 4.
-  int setInputs(lua_State* luaState)
+  int SetInputs(lua_State* lua_state)
   {
-    LuaColonOperatorTypeCheck(luaState, "setInputs", "gc_controller:setInputs(1, controllerValuesTable)");
-    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "setInputs");
+    LuaColonOperatorTypeCheck(lua_state, "setInputs", "gc_controller:setInputs(1, controllerValuesTable)");
+    s64 controller_port_number = GetPortNumberHelperFunction(lua_state, "setInputs");
 
-    overwriteControllerAtSpecifiedPort[controllerPortNumber - 1] = true;
-    memset(&newOverwriteControllerInputs[controllerPortNumber - 1], 0, sizeof(Movie::ControllerState));
-    newOverwriteControllerInputs[controllerPortNumber - 1].is_connected = true;
-    newOverwriteControllerInputs[controllerPortNumber - 1].CStickX = 128;
-    newOverwriteControllerInputs[controllerPortNumber - 1].CStickY = 128;
-    newOverwriteControllerInputs[controllerPortNumber - 1].AnalogStickX = 128;
-    newOverwriteControllerInputs[controllerPortNumber - 1].AnalogStickY = 128;
+    overwrite_controller_at_specified_port[controller_port_number - 1] = true;
+    memset(&new_overwrite_controller_inputs[controller_port_number - 1], 0, sizeof(Movie::ControllerState));
+    new_overwrite_controller_inputs[controller_port_number - 1].is_connected = true;
+    new_overwrite_controller_inputs[controller_port_number - 1].CStickX = 128;
+    new_overwrite_controller_inputs[controller_port_number - 1].CStickY = 128;
+    new_overwrite_controller_inputs[controller_port_number - 1].AnalogStickX = 128;
+    new_overwrite_controller_inputs[controller_port_number - 1].AnalogStickY = 128;
     s64 magnitude = 0;
 
 
-    lua_pushnil(luaState); /* first key */
-    while (lua_next(luaState, 3) != 0)
+    lua_pushnil(lua_state); /* first key */
+    while (lua_next(lua_state, 3) != 0)
     {
       /* uses 'key' (at index -2) and 'value' (at index -1) */
-      const char* buttonName = luaL_checkstring(luaState, -2);
-      if (buttonName == nullptr || buttonName[0] == '\0')
+      const char* button_name = luaL_checkstring(lua_state, -2);
+      if (button_name == nullptr || button_name[0] == '\0')
       {
-        luaL_error(luaState, "Error: in setInputs() function, an empty string was passed for a button name!");
+        luaL_error(lua_state, "Error: in setInputs() function, an empty string was passed for a button name!");
       }
 
-      switch (ParseGCButton(buttonName))
+      switch (ParseGCButton(button_name))
       {
       case GcButtonName::A:
-        newOverwriteControllerInputs[controllerPortNumber - 1].A = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].A = lua_toboolean(lua_state, -1);
           break;
 
       case GcButtonName::B:
-        newOverwriteControllerInputs[controllerPortNumber - 1].B = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].B = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::X:
-        newOverwriteControllerInputs[controllerPortNumber - 1].X = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].X = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::Y:
-        newOverwriteControllerInputs[controllerPortNumber - 1].Y = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].Y = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::Z:
-        newOverwriteControllerInputs[controllerPortNumber - 1].Z = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].Z = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::L:
-        newOverwriteControllerInputs[controllerPortNumber - 1].L = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].L = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::R:
-        newOverwriteControllerInputs[controllerPortNumber - 1].R = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].R = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::DPadUp:
-        newOverwriteControllerInputs[controllerPortNumber - 1].DPadUp = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].DPadUp = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::DPadDown:
-        newOverwriteControllerInputs[controllerPortNumber - 1].DPadDown = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].DPadDown = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::DPadLeft:
-        newOverwriteControllerInputs[controllerPortNumber - 1].DPadLeft = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].DPadLeft = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::DPadRight:
-        newOverwriteControllerInputs[controllerPortNumber - 1].DPadRight = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].DPadRight = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::Start:
-        newOverwriteControllerInputs[controllerPortNumber - 1].Start = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].Start = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::Reset:
-        newOverwriteControllerInputs[controllerPortNumber - 1].reset = lua_toboolean(luaState, -1);
+        new_overwrite_controller_inputs[controller_port_number - 1].reset = lua_toboolean(lua_state, -1);
         break;
 
       case GcButtonName::AnalogStickX:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: analogStickX was outside bounds of 0 and 255!");
-        newOverwriteControllerInputs[controllerPortNumber - 1].AnalogStickX = static_cast<u8>(magnitude);
+          luaL_error(lua_state, "Error: analogStickX was outside bounds of 0 and 255!");
+        new_overwrite_controller_inputs[controller_port_number - 1].AnalogStickX = static_cast<u8>(magnitude);
         break;
 
       case GcButtonName::AnalogStickY:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: analogStickY was outside bounds of 0 and 255!");
-        newOverwriteControllerInputs[controllerPortNumber - 1].AnalogStickY = static_cast<u8>(magnitude);
+          luaL_error(lua_state, "Error: analogStickY was outside bounds of 0 and 255!");
+        new_overwrite_controller_inputs[controller_port_number - 1].AnalogStickY = static_cast<u8>(magnitude);
         break;
 
       case GcButtonName::CStickX:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: cStickX was outside bounds of 0 and 255!");
-        newOverwriteControllerInputs[controllerPortNumber - 1].CStickX = static_cast<u8>(magnitude);
+          luaL_error(lua_state, "Error: cStickX was outside bounds of 0 and 255!");
+        new_overwrite_controller_inputs[controller_port_number - 1].CStickX = static_cast<u8>(magnitude);
         break;
 
       case GcButtonName::CStickY:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: cStickY was outside bounds of 0 and 255!");
-        newOverwriteControllerInputs[controllerPortNumber - 1].CStickY = magnitude;
+          luaL_error(lua_state, "Error: cStickY was outside bounds of 0 and 255!");
+        new_overwrite_controller_inputs[controller_port_number - 1].CStickY = magnitude;
         break;
 
       case GcButtonName::TriggerL:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: triggerL was outside bounds of 0 and 255!");
-        newOverwriteControllerInputs[controllerPortNumber - 1].TriggerL = magnitude;
+          luaL_error(lua_state, "Error: triggerL was outside bounds of 0 and 255!");
+        new_overwrite_controller_inputs[controller_port_number - 1].TriggerL = magnitude;
         break;
 
       case GcButtonName::TriggerR:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: triggerR was outside bounds of 0 and 255!");
-        newOverwriteControllerInputs[controllerPortNumber - 1].TriggerR = magnitude;
+          luaL_error(lua_state, "Error: triggerR was outside bounds of 0 and 255!");
+        new_overwrite_controller_inputs[controller_port_number - 1].TriggerR = magnitude;
         break;
 
       default:
-        luaL_error(luaState,
+        luaL_error(lua_state,
                    "Error: Unknown button name passed in as input to setInputs(). Valid button "
                    "names are: A, B, X, Y, Z, L, R, Z, dPadUp, dPadDown, dPadLeft, dPadRight, "
                    "cStickX, cStickY, analogStickX, analogStickY, triggerL, triggerR, RESET, and START");
       }
 
-      lua_pop(luaState, 1);
+      lua_pop(lua_state, 1);
     }
 
     return 0;
   }
 
-  int addInputs(lua_State* luaState)
+  int AddInputs(lua_State* lua_state)
   {
-    LuaColonOperatorTypeCheck(luaState, "addInputs", "gc_controller:addInputs(1, controllerValuesTable)");
-    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addInputs");
+    LuaColonOperatorTypeCheck(lua_state, "addInputs", "gc_controller:addInputs(1, controllerValuesTable)");
+    s64 controller_port_number = GetPortNumberHelperFunction(lua_state, "addInputs");
 
-    addToControllerAtSpecifiedPort[controllerPortNumber - 1] = true;
+    add_to_controller_at_specified_port[controller_port_number - 1] = true;
     s64 magnitude;
 
-    lua_pushnil(luaState); /* first key */
-    while (lua_next(luaState, 3) != 0)
+    lua_pushnil(lua_state); /* first key */
+    while (lua_next(lua_state, 3) != 0)
     {
       /* uses 'key' (at index -2) and 'value' (at index -1) */
-      const char* buttonName = luaL_checkstring(luaState, -2);
-      if (buttonName == nullptr || buttonName[0] == '\0')
+      const char* button_name = luaL_checkstring(lua_state, -2);
+      if (button_name == nullptr || button_name[0] == '\0')
       {
-        luaL_error(luaState,
+        luaL_error(lua_state,
                    "Error: in addInputs() function, an empty string was passed for a button name!");
       }
 
-      switch (ParseGCButton(buttonName))
+      switch (ParseGCButton(button_name))
       {
       case GcButtonName::A:
-        addToControllerInputs[controllerPortNumber - 1].A = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(GcButtonName::A);
+        add_to_controller_inputs[controller_port_number - 1].A = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(GcButtonName::A);
         break;
 
       case GcButtonName::B:
-        addToControllerInputs[controllerPortNumber - 1].B = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(GcButtonName::B);
+        add_to_controller_inputs[controller_port_number - 1].B = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(GcButtonName::B);
         break;
 
       case GcButtonName::X:
-        addToControllerInputs[controllerPortNumber - 1].X = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(GcButtonName::X);
+        add_to_controller_inputs[controller_port_number - 1].X = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(GcButtonName::X);
         break;
 
       case GcButtonName::Y:
-        addToControllerInputs[controllerPortNumber - 1].Y = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(GcButtonName::Y);
+        add_to_controller_inputs[controller_port_number - 1].Y = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(GcButtonName::Y);
         break;
 
       case GcButtonName::Z:
-        addToControllerInputs[controllerPortNumber - 1].Z = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(GcButtonName::Z);
+        add_to_controller_inputs[controller_port_number - 1].Z = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(GcButtonName::Z);
         break;
 
       case GcButtonName::L:
-        addToControllerInputs[controllerPortNumber - 1].L = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(GcButtonName::L);
+        add_to_controller_inputs[controller_port_number - 1].L = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(GcButtonName::L);
         break;
 
       case GcButtonName::R:
-        addToControllerInputs[controllerPortNumber - 1].R = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(GcButtonName::R);
+        add_to_controller_inputs[controller_port_number - 1].R = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(GcButtonName::R);
         break;
 
       case GcButtonName::DPadUp:
-        addToControllerInputs[controllerPortNumber - 1].DPadUp = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+        add_to_controller_inputs[controller_port_number - 1].DPadUp = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::DPadUp);
         break;
 
       case GcButtonName::DPadDown:
-        addToControllerInputs[controllerPortNumber - 1].DPadDown = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+        add_to_controller_inputs[controller_port_number - 1].DPadDown = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::DPadDown);
         break;
 
       case GcButtonName::DPadLeft:
-        addToControllerInputs[controllerPortNumber - 1].DPadLeft = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+        add_to_controller_inputs[controller_port_number - 1].DPadLeft = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::DPadLeft);
         break;
 
       case GcButtonName::DPadRight:
-        addToControllerInputs[controllerPortNumber - 1].DPadRight = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+        add_to_controller_inputs[controller_port_number - 1].DPadRight = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::DPadRight);
         break;
 
       case GcButtonName::Start:
-        addToControllerInputs[controllerPortNumber - 1].Start = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+        add_to_controller_inputs[controller_port_number - 1].Start = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::Start);
         break;
 
       case GcButtonName::Reset:
-        addToControllerInputs[controllerPortNumber - 1].reset = lua_toboolean(luaState, -1);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+        add_to_controller_inputs[controller_port_number - 1].reset = lua_toboolean(lua_state, -1);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::Reset);
         break;
 
       case GcButtonName::AnalogStickX:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: analogStickX was outside bounds of 0 and 255!");
-        addToControllerInputs[controllerPortNumber - 1].AnalogStickX = static_cast<u8>(magnitude);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+          luaL_error(lua_state, "Error: analogStickX was outside bounds of 0 and 255!");
+        add_to_controller_inputs[controller_port_number - 1].AnalogStickX = static_cast<u8>(magnitude);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::AnalogStickX);
         break;
 
       case GcButtonName::AnalogStickY:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: analogStickY was outside bounds of 0 and 255!");
-        addToControllerInputs[controllerPortNumber - 1].AnalogStickY = static_cast<u8>(magnitude);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+          luaL_error(lua_state, "Error: analogStickY was outside bounds of 0 and 255!");
+        add_to_controller_inputs[controller_port_number - 1].AnalogStickY = static_cast<u8>(magnitude);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::AnalogStickY);
         break;
 
       case GcButtonName::CStickX:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: cStickX was outside bounds of 0 and 255!");
-        addToControllerInputs[controllerPortNumber - 1].CStickX = static_cast<u8>(magnitude);
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+          luaL_error(lua_state, "Error: cStickX was outside bounds of 0 and 255!");
+        add_to_controller_inputs[controller_port_number - 1].CStickX = static_cast<u8>(magnitude);
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::CStickX);
         break;
 
       case GcButtonName::CStickY:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: cStickY was outside bounds of 0 and 255!");
-        addToControllerInputs[controllerPortNumber - 1].CStickY = magnitude;
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+          luaL_error(lua_state, "Error: cStickY was outside bounds of 0 and 255!");
+        add_to_controller_inputs[controller_port_number - 1].CStickY = magnitude;
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::CStickY);
         break;
 
       case GcButtonName::TriggerL:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: triggerL was outside bounds of 0 and 255!");
-        addToControllerInputs[controllerPortNumber - 1].TriggerL = magnitude;
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+          luaL_error(lua_state, "Error: triggerL was outside bounds of 0 and 255!");
+        add_to_controller_inputs[controller_port_number - 1].TriggerL = magnitude;
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::TriggerL);
         break;
 
       case GcButtonName::TriggerR:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: triggerR was outside bounds of 0 and 255!");
-        addToControllerInputs[controllerPortNumber - 1].TriggerR = magnitude;
-        buttonListsForAddToControllerInputs[controllerPortNumber - 1].push_back(
+          luaL_error(lua_state, "Error: triggerR was outside bounds of 0 and 255!");
+        add_to_controller_inputs[controller_port_number - 1].TriggerR = magnitude;
+        button_lists_for_add_to_controller_inputs[controller_port_number - 1].push_back(
             GcButtonName::TriggerR);
         break;
 
       default:
-        luaL_error(luaState,
+        luaL_error(lua_state,
                    "Error: Unknown button name passed in as input to addInputs(). Valid button "
                    "names are: A, B, X, Y, Z, L, R, Z, dPadUp, dPadDown, dPadLeft, dPadRight, "
                    "cStickX, cStickY, analogStickX, analogStickY, triggerL, triggerR, RESET, and START");
       }
 
-      lua_pop(luaState, 1);
+      lua_pop(lua_state, 1);
     }
 
     return 0;
@@ -392,68 +395,68 @@ gc_controller_lua* getControllerInstance()
   // 3. Probability
   // 4. Button Name (string)
 
-  int addButtonFlipChance(lua_State* luaState)
+  int AddButtonFlipChance(lua_State* lua_state)
   {
-    LuaColonOperatorTypeCheck(luaState, "addButtonFlipChance", "gc_controller:addButtonFlipChance(1, 32, \"A\")");
-    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonFlipChance");
-    double probability = getProbabilityHelperFunction(luaState, "addButtonFlipChance");
-    GcButtonName buttonName = ParseGCButton(luaL_checkstring(luaState, 4));
+    LuaColonOperatorTypeCheck(lua_state, "addButtonFlipChance", "gc_controller:addButtonFlipChance(1, 32, \"A\")");
+    s64 controller_port_number = GetPortNumberHelperFunction(lua_state, "addButtonFlipChance");
+    double probability = GetProbabilityHelperFunction(lua_state, "addButtonFlipChance");
+    GcButtonName button_name = ParseGCButton(luaL_checkstring(lua_state, 4));
 
-    if (buttonName == GcButtonName::TriggerL)
-      buttonName = GcButtonName::L;
-    if (buttonName == GcButtonName::TriggerR)
-      buttonName = GcButtonName::R;
+    if (button_name == GcButtonName::TriggerL)
+      button_name = GcButtonName::L;
+    if (button_name == GcButtonName::TriggerR)
+      button_name = GcButtonName::R;
 
-    if (!IsBinaryButton(buttonName))
+    if (!IsBinaryButton(button_name))
       luaL_error(
-          luaState,
+          lua_state,
           "Error: In function gc_controller:addButtonFlipChance(), button name string was not a "
           "valid button that could be pressed (analog input buttons are not allowed here)");
 
-    doRandomInputEventsAtSpecifiedPort[controllerPortNumber - 1] = true;
-    randomButtonEvents[controllerPortNumber - 1].push_back(std::unique_ptr<LuaGCButtonFlipProbabilityEvent>(new LuaGCButtonFlipProbabilityEvent(probability, buttonName)));
+    do_random_input_events_at_specified_port[controller_port_number - 1] = true;
+    random_button_events[controller_port_number - 1].push_back(std::unique_ptr<LuaGCButtonFlipProbabilityEvent>(new LuaGCButtonFlipProbabilityEvent(probability, button_name)));
     return 0;
   }
 
-  int addButtonPressChance(lua_State* luaState)
+  int AddButtonPressChance(lua_State* lua_state)
   {
-    LuaColonOperatorTypeCheck(luaState, "addButtonPressChance", "gc_controller:addButtonPressChance(1, 32, \"A\")");
-    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonPressChance");
-    double probability = getProbabilityHelperFunction(luaState, "addButtonPressChance");
-    GcButtonName buttonName = ParseGCButton(luaL_checkstring(luaState, 4));
-    if (buttonName == GcButtonName::TriggerL)
-      buttonName = GcButtonName::L;
-    if (buttonName == GcButtonName::TriggerR)
-      buttonName = GcButtonName::R;
-    if (!IsBinaryButton(buttonName))
+    LuaColonOperatorTypeCheck(lua_state, "addButtonPressChance", "gc_controller:addButtonPressChance(1, 32, \"A\")");
+    s64 controller_port_number = GetPortNumberHelperFunction(lua_state, "addButtonPressChance");
+    double probability = GetProbabilityHelperFunction(lua_state, "addButtonPressChance");
+    GcButtonName button_name = ParseGCButton(luaL_checkstring(lua_state, 4));
+    if (button_name == GcButtonName::TriggerL)
+      button_name = GcButtonName::L;
+    if (button_name == GcButtonName::TriggerR)
+      button_name = GcButtonName::R;
+    if (!IsBinaryButton(button_name))
       luaL_error(
-          luaState,
+          lua_state,
           "Error: In function gc_controller:addButtonPressChance(), button name string was not a "
           "valid button that could be pressed (analog input buttons are not allowed here)");
 
-    doRandomInputEventsAtSpecifiedPort[controllerPortNumber - 1] = true;
-    randomButtonEvents[controllerPortNumber - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCButtonPressEvent(probability, buttonName)));
+    do_random_input_events_at_specified_port[controller_port_number - 1] = true;
+    random_button_events[controller_port_number - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCButtonPressEvent(probability, button_name)));
     return 0;
   }
 
-  int addButtonReleaseChance(lua_State* luaState)
+  int AddButtonReleaseChance(lua_State* lua_state)
   {
-    LuaColonOperatorTypeCheck(luaState, "addButtonReleaseChance", "gc_controller:addButtonReleaseChance(1, 32, \"A\")");
-    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonReleaseChance");
-    double probability = getProbabilityHelperFunction(luaState, "addButtonReleaseChance");
-    GcButtonName buttonName = ParseGCButton(luaL_checkstring(luaState, 4));
-    if (buttonName == GcButtonName::TriggerL)
-      buttonName = GcButtonName::L;
-    if (buttonName == GcButtonName::TriggerR)
-      buttonName = GcButtonName::R;
-    if (!IsBinaryButton(buttonName))
+    LuaColonOperatorTypeCheck(lua_state, "addButtonReleaseChance", "gc_controller:addButtonReleaseChance(1, 32, \"A\")");
+    s64 controller_port_number = GetPortNumberHelperFunction(lua_state, "addButtonReleaseChance");
+    double probability = GetProbabilityHelperFunction(lua_state, "addButtonReleaseChance");
+    GcButtonName button_name = ParseGCButton(luaL_checkstring(lua_state, 4));
+    if (button_name == GcButtonName::TriggerL)
+      button_name = GcButtonName::L;
+    if (button_name == GcButtonName::TriggerR)
+      button_name = GcButtonName::R;
+    if (!IsBinaryButton(button_name))
       luaL_error(
-          luaState,
+          lua_state,
           "Error: In function gc_controller:addButtonReleaseChance(), button name string was not a "
           "valid button that could be pressed (analog input buttons are not allowed here)");
 
-    doRandomInputEventsAtSpecifiedPort[controllerPortNumber - 1] = true;
-    randomButtonEvents[controllerPortNumber - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCButtonReleaseEvent(probability, buttonName)));
+    do_random_input_events_at_specified_port[controller_port_number - 1] = true;
+    random_button_events[controller_port_number - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCButtonReleaseEvent(probability, button_name)));
     return 0;
   }
 
@@ -469,47 +472,47 @@ gc_controller_lua* getControllerInstance()
   //If there are 6 arguments, then the following is the format of the remaining args:
   // 5. Lower Magnitude difference (subtracted from current value)
   // 6. Upper Magnitude difference (added to current value)
-  int addOrSubtractFromCurrentAnalogValueChance(lua_State* luaState)
+  int AddOrSubtractFromCurrentAnalogValueChance(lua_State* lua_state)
   {
-    LuaColonOperatorTypeCheck(luaState, "addOrSubtractFromCurrentAnalogValueChance", "gc_controller:addOrSubtractFromCurrentAnalogValueChance(1, 32, \"cStickX\", 14, 9)");
-    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addOrSubtractFromCurrentAnalogValueChance");
-    double probability = getProbabilityHelperFunction(luaState, "addOrSubtractFromCurrentAnalogValueChance");
-    GcButtonName buttonName = ParseGCButton(luaL_checkstring(luaState, 4));
-    if (buttonName == GcButtonName::L)
-      buttonName = GcButtonName::TriggerL;
-    if (buttonName == GcButtonName::R)
-      buttonName = GcButtonName::TriggerR;
+    LuaColonOperatorTypeCheck(lua_state, "addOrSubtractFromCurrentAnalogValueChance", "gc_controller:addOrSubtractFromCurrentAnalogValueChance(1, 32, \"cStickX\", 14, 9)");
+    s64 controller_port_number = GetPortNumberHelperFunction(lua_state, "addOrSubtractFromCurrentAnalogValueChance");
+    double probability = GetProbabilityHelperFunction(lua_state, "addOrSubtractFromCurrentAnalogValueChance");
+    GcButtonName button_name = ParseGCButton(luaL_checkstring(lua_state, 4));
+    if (button_name == GcButtonName::L)
+      button_name = GcButtonName::TriggerL;
+    if (button_name == GcButtonName::R)
+      button_name = GcButtonName::TriggerR;
 
-    if (!IsAnalogButton(buttonName))
-      luaL_error(luaState, "Error: In function gc_controller:addOrSubtractFromCurrentAnalogValueChance(), button name string was not an analog button!");
+    if (!IsAnalogButton(button_name))
+      luaL_error(lua_state, "Error: In function gc_controller:addOrSubtractFromCurrentAnalogValueChance(), button name string was not an analog button!");
 
-    s64 maxToSubtract = 0;
-    s64 maxToAdd = 0;
+    s64 max_to_subtract = 0;
+    s64 max_to_add = 0;
 
-    if (lua_gettop(luaState) <= 5)
+    if (lua_gettop(lua_state) <= 5)
     {
-      maxToAdd = luaL_checkinteger(luaState, 5);
-      if (maxToAdd < 1)
-        maxToAdd *= -1;
-      maxToSubtract = maxToAdd;
+      max_to_add = luaL_checkinteger(lua_state, 5);
+      if (max_to_add < 1)
+        max_to_add *= -1;
+      max_to_subtract = max_to_add;
     }
     else
     {
-      maxToSubtract = luaL_checkinteger(luaState, 5);
-      if (maxToSubtract < 1)
-        maxToSubtract *= -1;
-      maxToAdd = luaL_checkinteger(luaState, 6);
-      if (maxToAdd < 1)
-        maxToAdd *= -1;
+      max_to_subtract = luaL_checkinteger(lua_state, 5);
+      if (max_to_subtract < 1)
+        max_to_subtract *= -1;
+      max_to_add = luaL_checkinteger(lua_state, 6);
+      if (max_to_add < 1)
+        max_to_add *= -1;
     }
 
-    if (maxToSubtract > 255 || maxToAdd > 255)
-      luaL_error(luaState,
+    if (max_to_subtract > 255 || max_to_add > 255)
+      luaL_error(lua_state,
                  "Error: In function gc_controller:addOrSubtractFromCurrentAnalogValueChance(), the max amount to "
                  "add or subtract from the current analog value was greater than the maximum value of 255");
-    doRandomInputEventsAtSpecifiedPort[controllerPortNumber - 1] = true;
-    randomButtonEvents[controllerPortNumber - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCAlterAnalogInputFromCurrentValue(
-        probability, buttonName, static_cast<u8>(maxToSubtract), static_cast<u8>(maxToAdd))));
+    do_random_input_events_at_specified_port[controller_port_number - 1] = true;
+    random_button_events[controller_port_number - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCAlterAnalogInputFromCurrentValue(
+        probability, button_name, static_cast<u8>(max_to_subtract), static_cast<u8>(max_to_add))));
     return 0;
   }
 
@@ -530,325 +533,319 @@ gc_controller_lua* getControllerInstance()
 
   // 6. Lower magnitude difference (subtracted from base value)
   // 7. Upper magnitude difference (added to base value)
-  int addOrSubtractFromSpecificAnalogValueChance(lua_State* luaState)
+  int AddOrSubtractFromSpecificAnalogValueChance(lua_State* lua_state)
   {
-    LuaColonOperatorTypeCheck(luaState, "addOrSubtractFromSpecificAnalogValueChance", "gc_controller:addOrSubtractFromSpecificAnalogValueChance(1, 32, \"cStickX\", 184, 5, 13)");
-    s64 controllerPortNumber =
-        getPortNumberHelperFunction(luaState, "addOrSubtractFromSpecificAnalogValueChance");
-    double probability =
-        getProbabilityHelperFunction(luaState, "addOrSubtractFromSpecificAnalogValueChance");
-    GcButtonName buttonName = ParseGCButton(luaL_checkstring(luaState, 4));
-    if (buttonName == GcButtonName::L)
-      buttonName = GcButtonName::TriggerL;
-    if (buttonName == GcButtonName::R)
-      buttonName = GcButtonName::TriggerR;
+    LuaColonOperatorTypeCheck(lua_state, "addOrSubtractFromSpecificAnalogValueChance", "gc_controller:addOrSubtractFromSpecificAnalogValueChance(1, 32, \"cStickX\", 184, 5, 13)");
+    s64 controller_port_number = GetPortNumberHelperFunction(lua_state, "addOrSubtractFromSpecificAnalogValueChance");
+    double probability = GetProbabilityHelperFunction(lua_state, "addOrSubtractFromSpecificAnalogValueChance");
+    GcButtonName button_name = ParseGCButton(luaL_checkstring(lua_state, 4));
+    if (button_name == GcButtonName::L)
+      button_name = GcButtonName::TriggerL;
+    if (button_name == GcButtonName::R)
+      button_name = GcButtonName::TriggerR;
 
-    s64 baseAnalogValue = luaL_checkinteger(luaState, 5);
-    if (baseAnalogValue < 0 || baseAnalogValue > 255)
-      luaL_error(luaState, "Error: in function gc_controller:addOrSubtractFromSpecificAnalogValueChance(), base analog value was outside bounds of 0-255");
+    s64 base_analog_value = luaL_checkinteger(lua_state, 5);
+    if (base_analog_value < 0 || base_analog_value > 255)
+      luaL_error(lua_state, "Error: in function gc_controller:addOrSubtractFromSpecificAnalogValueChance(), base analog value was outside bounds of 0-255");
 
-    s64 maxToSubtract = 0;
-    s64 maxToAdd = 0;
+    s64 max_to_subtract = 0;
+    s64 max_to_add = 0;
 
-    if (lua_gettop(luaState) <= 6)
+    if (lua_gettop(lua_state) <= 6)
     {
-      maxToSubtract = maxToAdd = luaL_checkinteger(luaState, 6);
+      max_to_subtract = max_to_add = luaL_checkinteger(lua_state, 6);
     }
     else
     {
-      maxToSubtract = luaL_checkinteger(luaState, 6);
-      maxToAdd = luaL_checkinteger(luaState, 7);
+      max_to_subtract = luaL_checkinteger(lua_state, 6);
+      max_to_add = luaL_checkinteger(lua_state, 7);
     }
 
-    if (maxToSubtract < 0)
-      maxToSubtract *= -1;
-    if (maxToAdd < 0)
-      maxToAdd *= -1;
+    if (max_to_subtract < 0)
+      max_to_subtract *= -1;
+    if (max_to_add < 0)
+      max_to_add *= -1;
 
-    if (maxToSubtract > 255 || maxToAdd > 255)
-      luaL_error(luaState,
+    if (max_to_subtract > 255 || max_to_add > 255)
+      luaL_error(lua_state,
                  "Error: In function gc_controller:addOrSubtractFromSpecificAnalogValueChance(), the amount to add or subtract exceeded the maximum value of 255");
 
-    doRandomInputEventsAtSpecifiedPort[controllerPortNumber - 1] = true;
-    randomButtonEvents[controllerPortNumber - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCAlterAnalogInputFromFixedValue(
-        probability, buttonName, static_cast<u8>(baseAnalogValue), static_cast<u8>(maxToSubtract), static_cast<u8>(maxToAdd))));
+    do_random_input_events_at_specified_port[controller_port_number - 1] = true;
+    random_button_events[controller_port_number - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCAlterAnalogInputFromFixedValue(
+        probability, button_name, static_cast<u8>(base_analog_value), static_cast<u8>(max_to_subtract), static_cast<u8>(max_to_add))));
     return 0;
   }
 
 
-  int addButtonComboChance(lua_State* luaState)
+  int AddButtonComboChance(lua_State* lua_state)
   {
-    LuaColonOperatorTypeCheck(luaState, "addButtonComboChance", "gc_controller:AddButtonComboChance(1, 44, true, buttonTable)");
-    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addButtonComboChance");
-    double probability = getProbabilityHelperFunction(luaState, "addButtonComboChance");
-    bool setOtherButtonsToBlank = lua_toboolean(luaState, 4);
+    LuaColonOperatorTypeCheck(lua_state, "addButtonComboChance", "gc_controller:AddButtonComboChance(1, 44, true, buttonTable)");
+    s64 controller_port_number = GetPortNumberHelperFunction(lua_state, "addButtonComboChance");
+    double probability = GetProbabilityHelperFunction(lua_state, "addButtonComboChance");
+    bool set_other_buttons_to_blank = lua_toboolean(lua_state, 4);
     Movie::ControllerState controllerState;
     memset(&controllerState, 0, sizeof(controllerState));
-    std::vector<GcButtonName> buttonsList = std::vector<GcButtonName>();
-    lua_pushnil(luaState);
+    std::vector<GcButtonName> buttons_list = std::vector<GcButtonName>();
+    lua_pushnil(lua_state);
     s64 magnitude = 0;
 
-    while (lua_next(luaState, 5) != 0)
+    while (lua_next(lua_state, 5) != 0)
     {
       /* uses 'key' (at index -2) and 'value' (at index -1) */
-      const char* buttonName = luaL_checkstring(luaState, -2);
-      if (buttonName == nullptr || buttonName[0] == '\0')
+      const char* button_name = luaL_checkstring(lua_state, -2);
+      if (button_name == nullptr || button_name[0] == '\0')
       {
-        luaL_error(luaState,
+        luaL_error(lua_state,
                    "Error: in addButtonComboChance() function, an empty string was passed for a button name!");
       }
 
-      switch (ParseGCButton(buttonName))
+      switch (ParseGCButton(button_name))
       {
       case GcButtonName::A:
-        controllerState.A = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::A);
+        controllerState.A = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::A);
         break;
 
       case GcButtonName::B:
-        controllerState.B = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::B);
+        controllerState.B = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::B);
         break;
 
       case GcButtonName::X:
-        controllerState.X = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::X);
+        controllerState.X = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::X);
         break;
 
       case GcButtonName::Y:
-        controllerState.Y = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::Y);
+        controllerState.Y = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::Y);
         break;
 
       case GcButtonName::Z:
-        controllerState.Z = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::Z);
+        controllerState.Z = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::Z);
         break;
 
       case GcButtonName::L:
-        controllerState.L = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::L);
+        controllerState.L = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::L);
         break;
 
       case GcButtonName::R:
-        controllerState.R = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::R);
+        controllerState.R = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::R);
         break;
 
       case GcButtonName::DPadUp:
-        controllerState.DPadUp = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::DPadUp);
+        controllerState.DPadUp = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::DPadUp);
         break;
 
       case GcButtonName::DPadDown:
-        controllerState.DPadDown = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::DPadDown);
+        controllerState.DPadDown = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::DPadDown);
         break;
 
       case GcButtonName::DPadLeft:
-        controllerState.DPadLeft = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::DPadLeft);
+        controllerState.DPadLeft = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::DPadLeft);
         break;
 
       case GcButtonName::DPadRight:
-        controllerState.DPadRight = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::DPadRight);
+        controllerState.DPadRight = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::DPadRight);
         break;
 
       case GcButtonName::Start:
-        controllerState.Start = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::Start);
+        controllerState.Start = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::Start);
         break;
 
       case GcButtonName::Reset:
-        controllerState.reset = lua_toboolean(luaState, -1);
-        buttonsList.push_back(GcButtonName::Reset);
+        controllerState.reset = lua_toboolean(lua_state, -1);
+        buttons_list.push_back(GcButtonName::Reset);
         break;
 
       case GcButtonName::AnalogStickX:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: analogStickX was outside bounds of 0 and 255!");
+          luaL_error(lua_state, "Error: analogStickX was outside bounds of 0 and 255!");
         controllerState.AnalogStickX = static_cast<u8>(magnitude);
-        buttonsList.push_back(GcButtonName::AnalogStickX);
+        buttons_list.push_back(GcButtonName::AnalogStickX);
         break;
 
       case GcButtonName::AnalogStickY:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: analogStickY was outside bounds of 0 and 255!");
+          luaL_error(lua_state, "Error: analogStickY was outside bounds of 0 and 255!");
         controllerState.AnalogStickY = static_cast<u8>(magnitude);
-        buttonsList.push_back(GcButtonName::AnalogStickY);
+        buttons_list.push_back(GcButtonName::AnalogStickY);
         break;
 
       case GcButtonName::CStickX:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: cStickX was outside bounds of 0 and 255!");
+          luaL_error(lua_state, "Error: cStickX was outside bounds of 0 and 255!");
         controllerState.CStickX = static_cast<u8>(magnitude);
-        buttonsList.push_back(GcButtonName::CStickX);
+        buttons_list.push_back(GcButtonName::CStickX);
         break;
 
       case GcButtonName::CStickY:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: cStickY was outside bounds of 0 and 255!");
+          luaL_error(lua_state, "Error: cStickY was outside bounds of 0 and 255!");
         controllerState.CStickY = static_cast<u8>(magnitude);
-        buttonsList.push_back(GcButtonName::CStickY);
+        buttons_list.push_back(GcButtonName::CStickY);
         break;
 
       case GcButtonName::TriggerL:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: triggerL was outside bounds of 0 and 255!");
+          luaL_error(lua_state, "Error: triggerL was outside bounds of 0 and 255!");
         controllerState.TriggerL = static_cast<u8>(magnitude);
-        buttonsList.push_back(GcButtonName::TriggerL);
+        buttons_list.push_back(GcButtonName::TriggerL);
         break;
 
       case GcButtonName::TriggerR:
-        magnitude = luaL_checkinteger(luaState, -1);
+        magnitude = luaL_checkinteger(lua_state, -1);
         if (magnitude < 0 || magnitude > 255)
-          luaL_error(luaState, "Error: triggerR was outside bounds of 0 and 255!");
+          luaL_error(lua_state, "Error: triggerR was outside bounds of 0 and 255!");
         controllerState.TriggerR = static_cast<u8>(magnitude);
-        buttonsList.push_back(GcButtonName::TriggerR);
+        buttons_list.push_back(GcButtonName::TriggerR);
         break;
 
       default:
-        luaL_error(luaState,
+        luaL_error(lua_state,
                    "Error: Unknown button name passed in as input to addInputs(). Valid button "
                    "names are: A, B, X, Y, Z, L, R, Z, dPadUp, dPadDown, dPadLeft, dPadRight, "
                    "cStickX, cStickY, analogStickX, analogStickY, triggerL, triggerR, RESET, and START");
       }
 
-      lua_pop(luaState, 1);
+      lua_pop(lua_state, 1);
     }
-    doRandomInputEventsAtSpecifiedPort[controllerPortNumber - 1] = true;
-    randomButtonEvents[controllerPortNumber - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCButtonComboEvent(probability, controllerState, buttonsList, setOtherButtonsToBlank)));
+    do_random_input_events_at_specified_port[controller_port_number - 1] = true;
+    random_button_events[controller_port_number - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCButtonComboEvent(probability, controllerState, buttons_list, set_other_buttons_to_blank)));
     return 0;
   }
 
-  int addControllerClearChance(lua_State* luaState)
+  int AddControllerClearChance(lua_State* lua_state)
   {
-    LuaColonOperatorTypeCheck(luaState, "addControllerClearChance",
-                              "gc_controller:addControllerClearChance(1, 56)");
-    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "addControllerClearChance");
-    double probability = getProbabilityHelperFunction(luaState, "addControllerClearChance");
+    LuaColonOperatorTypeCheck(lua_state, "addControllerClearChance", "gc_controller:addControllerClearChance(1, 56)");
+    s64 controller_port_number = GetPortNumberHelperFunction(lua_state, "addControllerClearChance");
+    double probability = GetProbabilityHelperFunction(lua_state, "addControllerClearChance");
 
-    doRandomInputEventsAtSpecifiedPort[controllerPortNumber - 1] = true;
-    randomButtonEvents[controllerPortNumber - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCClearControllerEvent(probability)));
+    do_random_input_events_at_specified_port[controller_port_number - 1] = true;
+    random_button_events[controller_port_number - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCClearControllerEvent(probability)));
     return 0;
-
   }
 
-  int getControllerInputs(lua_State* luaState)
+  int GetControllerInputs(lua_State* lua_state)
   {
-    LuaColonOperatorTypeCheck(luaState, "getControllerInputs","gc_controller:getControllerInputs(1)");
-    s64 controllerPortNumber = getPortNumberHelperFunction(luaState, "getControllerInputs");
+    LuaColonOperatorTypeCheck(lua_state, "getControllerInputs","gc_controller:getControllerInputs(1)");
+    s64 controller_port_number = GetPortNumberHelperFunction(lua_state, "getControllerInputs");
 
-    Movie::ControllerState controllerInputs = Movie::GetLuaGCInputsForPort(controllerPortNumber - 1);
-    std::string inputDisplayString = Movie::GetInputDisplay();
-    inputDisplayString = inputDisplayString;
-    bool buttonPressed = false;
+    Movie::ControllerState controller_inputs = Movie::GetLuaGCInputsForPort(controller_port_number - 1);
+    bool button_pressed = false;
     s64 magnitude = 0;
-    lua_newtable(luaState);
-    GcButtonName allGcButtons[] = { GcButtonName::A, GcButtonName::B, GcButtonName::X, GcButtonName::Y,
+    lua_newtable(lua_state);
+    GcButtonName all_gc_buttons[] = { GcButtonName::A, GcButtonName::B, GcButtonName::X, GcButtonName::Y,
                                     GcButtonName::Z, GcButtonName::L, GcButtonName::R, GcButtonName::DPadUp,
                                     GcButtonName::DPadDown, GcButtonName::DPadLeft, GcButtonName::DPadRight, GcButtonName::AnalogStickX,
                                     GcButtonName::AnalogStickY, GcButtonName::CStickX, GcButtonName::CStickY, GcButtonName::TriggerL,
-                                    GcButtonName::TriggerR, GcButtonName::Start, GcButtonName::Reset, GcButtonName::Unknown
+                                    GcButtonName::TriggerR, GcButtonName::Start, GcButtonName::Reset
                                   };
 
-    for (GcButtonName buttonCode : allGcButtons)
+    for (GcButtonName button_code : all_gc_buttons)
     {
-      const char* buttonNameString = ConvertButtonEnumToString(buttonCode);
-      lua_pushlstring(luaState, buttonNameString, std::strlen(buttonNameString));
+      const char* button_name_string = ConvertButtonEnumToString(button_code);
+      lua_pushlstring(lua_state, button_name_string, std::strlen(button_name_string));
 
-      switch (buttonCode)
+      switch (button_code)
       {
       case GcButtonName::A:
-        buttonPressed = controllerInputs.A;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.A;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::B:
-        buttonPressed = controllerInputs.B;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.B;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::X:
-        buttonPressed = controllerInputs.X;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.X;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::Y:
-        buttonPressed = controllerInputs.Y;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.Y;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::Z:
-        buttonPressed = controllerInputs.Z;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.Z;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::L:
-        buttonPressed = controllerInputs.L;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.L;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::R:
-        buttonPressed = controllerInputs.R;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.R;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::Start:
-        buttonPressed = controllerInputs.Start;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.Start;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::Reset:
-        buttonPressed = controllerInputs.reset;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.reset;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::DPadUp:
-        buttonPressed = controllerInputs.DPadUp;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.DPadUp;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::DPadDown:
-        buttonPressed = controllerInputs.DPadDown;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.DPadDown;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::DPadLeft:
-        buttonPressed = controllerInputs.DPadLeft;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.DPadLeft;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::DPadRight:
-        buttonPressed = controllerInputs.DPadRight;
-        lua_pushboolean(luaState, buttonPressed);
+        button_pressed = controller_inputs.DPadRight;
+        lua_pushboolean(lua_state, button_pressed);
         break;
       case GcButtonName::AnalogStickX:
-        magnitude = controllerInputs.AnalogStickX;
-        lua_pushinteger(luaState, magnitude);
+        magnitude = controller_inputs.AnalogStickX;
+        lua_pushinteger(lua_state, magnitude);
         break;
       case GcButtonName::AnalogStickY:
-        magnitude = controllerInputs.AnalogStickY;
-        lua_pushinteger(luaState, magnitude);
+        magnitude = controller_inputs.AnalogStickY;
+        lua_pushinteger(lua_state, magnitude);
         break;
       case GcButtonName::CStickX:
-        magnitude = controllerInputs.CStickX;
-        lua_pushinteger(luaState, magnitude);
+        magnitude = controller_inputs.CStickX;
+        lua_pushinteger(lua_state, magnitude);
         break;
       case GcButtonName::CStickY:
-        magnitude = controllerInputs.CStickY;
-        lua_pushinteger(luaState, magnitude);
+        magnitude = controller_inputs.CStickY;
+        lua_pushinteger(lua_state, magnitude);
         break;
       case GcButtonName::TriggerL:
-        magnitude = controllerInputs.TriggerL;
-        lua_pushinteger(luaState, magnitude);
+        magnitude = controller_inputs.TriggerL;
+        lua_pushinteger(lua_state, magnitude);
         break;
       case GcButtonName::TriggerR:
-        magnitude = controllerInputs.TriggerR;
-        lua_pushinteger(luaState, magnitude);
+        magnitude = controller_inputs.TriggerR;
+        lua_pushinteger(lua_state, magnitude);
         break;
       default:
         luaL_error(
-            luaState,
+            lua_state,
             "An unexpected implementation error occured in gc_controller:getControllerInputs(). "
             "Did you modify the order of the enums in LuaGCButtons.h?");
         break;
       }
-      lua_settable(luaState, -3);
+      lua_settable(lua_state, -3);
     }
     return 1;
   }

@@ -96,7 +96,7 @@ static u32 s_rerecords = 0;
 static PlayMode s_playMode = PlayMode::None;
 
 static std::array<ControllerType, 4> s_controllers{};
-static std::array<ControllerState, 4> luaGameCubeInputs{};
+static std::array<ControllerState, 4> lua_game_cube_inputs{};
 static std::array<bool, 4> s_wiimotes{};
 static ControllerState s_padState;
 static DTMHeader tmpHeader;
@@ -665,7 +665,7 @@ static std::string Analog1DToString(u32 v, const std::string& prefix, u32 range 
 // NOTE: CPU Thread
 static void SetInputDisplayString(ControllerState padState, int controllerID)
 {
-  luaGameCubeInputs[controllerID] = padState;
+  lua_game_cube_inputs[controllerID] = padState;
 
   std::string display_str = fmt::format("P{}:", controllerID + 1);
 
@@ -1017,7 +1017,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   }
 
   if (Lua::is_lua_script_active)
-    Lua::LuaEmu::waitingToStartPlayingMovie = false;
+    Lua::LuaEmu::waiting_to_start_playing_movie = false;
 
   return true;
 }
@@ -1212,69 +1212,68 @@ static void CheckInputEnd()
 }
 
 
-void addControllerInputs(ControllerState& startingState, ControllerState newControllerValues,
-                         std::vector<GcButtonName> buttonsToAdd)
+void AddControllerInputs(ControllerState& starting_state, ControllerState new_controller_values, std::vector<GcButtonName> buttons_to_add)
 {
-  for (int i = 0; i < buttonsToAdd.size(); ++i)
+  for (int i = 0; i < buttons_to_add.size(); ++i)
   {
-    switch (buttonsToAdd[i])
+    switch (buttons_to_add[i])
     {
     case GcButtonName::A:
-        startingState.A = newControllerValues.A;
+        starting_state.A = new_controller_values.A;
         break;
     case GcButtonName::B:
-        startingState.B = newControllerValues.B;
+        starting_state.B = new_controller_values.B;
         break;
     case GcButtonName::X:
-        startingState.X = newControllerValues.X;
+        starting_state.X = new_controller_values.X;
         break;
     case GcButtonName::Y:
-        startingState.Y = newControllerValues.Y;
+        starting_state.Y = new_controller_values.Y;
         break;
     case GcButtonName::Z:
-        startingState.Z = newControllerValues.Z;
+        starting_state.Z = new_controller_values.Z;
         break;
     case GcButtonName::L:
-        startingState.L = newControllerValues.L;
+        starting_state.L = new_controller_values.L;
         break;
     case GcButtonName::R:
-        startingState.R = newControllerValues.R;
+        starting_state.R = new_controller_values.R;
         break;
     case GcButtonName::Start:
-        startingState.Start = newControllerValues.Start;
+        starting_state.Start = new_controller_values.Start;
         break;
     case GcButtonName::Reset:
-        startingState.reset = newControllerValues.reset;
+        starting_state.reset = new_controller_values.reset;
         break;
     case GcButtonName::DPadUp:
-        startingState.DPadUp = newControllerValues.DPadUp;
+        starting_state.DPadUp = new_controller_values.DPadUp;
         break;
     case GcButtonName::DPadDown:
-        startingState.DPadDown = newControllerValues.DPadDown;
+        starting_state.DPadDown = new_controller_values.DPadDown;
         break;
     case GcButtonName::DPadLeft:
-        startingState.DPadLeft = newControllerValues.DPadLeft;
+        starting_state.DPadLeft = new_controller_values.DPadLeft;
         break;
     case GcButtonName::DPadRight:
-        startingState.DPadRight = newControllerValues.DPadRight;
+        starting_state.DPadRight = new_controller_values.DPadRight;
         break;
     case GcButtonName::TriggerL:
-        startingState.TriggerL = newControllerValues.TriggerL;
+        starting_state.TriggerL = new_controller_values.TriggerL;
         break;
     case GcButtonName::TriggerR:
-        startingState.TriggerR = newControllerValues.TriggerR;
+        starting_state.TriggerR = new_controller_values.TriggerR;
         break;
     case GcButtonName::AnalogStickX:
-        startingState.AnalogStickX = newControllerValues.AnalogStickX;
+        starting_state.AnalogStickX = new_controller_values.AnalogStickX;
         break;
     case GcButtonName::AnalogStickY:
-        startingState.AnalogStickY = newControllerValues.AnalogStickY;
+        starting_state.AnalogStickY = new_controller_values.AnalogStickY;
         break;
     case GcButtonName::CStickX:
-        startingState.CStickX = newControllerValues.CStickX;
+        starting_state.CStickX = new_controller_values.CStickX;
         break;
     case GcButtonName::CStickY:
-        startingState.CStickY = newControllerValues.CStickY;
+        starting_state.CStickY = new_controller_values.CStickY;
         break;
       default:
         break;
@@ -1299,25 +1298,25 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
   }
   if (Lua::is_lua_script_active)
   {
-    if (Lua::LuaGameCubeController::overwriteControllerAtSpecifiedPort[controllerID])
+    if (Lua::LuaGameCubeController::overwrite_controller_at_specified_port[controllerID])
     {
-      memcpy(&s_temp_input[s_currentByte], &Lua::LuaGameCubeController::newOverwriteControllerInputs[controllerID], sizeof(ControllerState));
+      memcpy(&s_temp_input[s_currentByte], &Lua::LuaGameCubeController::new_overwrite_controller_inputs[controllerID], sizeof(ControllerState));
     }
 
-    if (Lua::LuaGameCubeController::addToControllerAtSpecifiedPort[controllerID])
+    if (Lua::LuaGameCubeController::add_to_controller_at_specified_port[controllerID])
     {
       memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
-      addControllerInputs(
-          s_padState, Lua::LuaGameCubeController::addToControllerInputs[controllerID],
-          Lua::LuaGameCubeController::buttonListsForAddToControllerInputs[controllerID]);
+      AddControllerInputs(
+          s_padState, Lua::LuaGameCubeController::add_to_controller_inputs[controllerID],
+          Lua::LuaGameCubeController::button_lists_for_add_to_controller_inputs[controllerID]);
       memcpy(&s_temp_input[s_currentByte], &s_padState, sizeof(ControllerState));
     }
 
-    if (Lua::LuaGameCubeController::doRandomInputEventsAtSpecifiedPort[controllerID])
+    if (Lua::LuaGameCubeController::do_random_input_events_at_specified_port[controllerID])
     {
       memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
-      for (int i = 0; i < Lua::LuaGameCubeController::randomButtonEvents[controllerID].size(); ++i)
-        Lua::LuaGameCubeController::randomButtonEvents[controllerID][i]->ApplyProbability(s_padState);
+      for (int i = 0; i < Lua::LuaGameCubeController::random_button_events[controllerID].size(); ++i)
+        Lua::LuaGameCubeController::random_button_events[controllerID][i]->ApplyProbability(s_padState);
       memcpy(&s_temp_input[s_currentByte], &s_padState, sizeof(ControllerState));
     }
   }
@@ -1545,7 +1544,7 @@ void SaveRecording(const std::string& filename)
     Core::DisplayMessage(fmt::format("Failed to save {}", filename), 2000);
 
   if (Lua::is_lua_script_active)
-    Lua::LuaEmu::waitingToSaveMovie = false;
+    Lua::LuaEmu::waiting_to_save_movie = false;
 }
 
 // NOTE: GPU Thread
@@ -1680,9 +1679,9 @@ void Shutdown()
   s_temp_input.clear();
 }
 
-ControllerState GetLuaGCInputsForPort(int portNum)
+ControllerState GetLuaGCInputsForPort(int port_number)
 {
-  return luaGameCubeInputs[portNum];
+  return lua_game_cube_inputs[port_number];
 }
 
 }  // namespace Movie

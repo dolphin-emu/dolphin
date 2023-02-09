@@ -138,7 +138,7 @@ static thread_local bool tls_is_gpu_thread = false;
 
 static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi);
 
-static bool wasRngSeedCalled = false;
+static bool was_rng_seed_called = false;
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -878,34 +878,34 @@ void Callback_FramePresented(double actual_emulation_speed)
 // Called from VideoInterface::Update (CPU thread) at emulated field boundaries
 void Callback_NewField()
 {
-  if (!wasRngSeedCalled)
+  if (!was_rng_seed_called)
   {
     LuaGameCubeButtonProbabilityEvent::SetRngSeeding();
-    wasRngSeedCalled = true;
+    was_rng_seed_called = true;
   }
 
-  if (Lua::is_lua_script_active && !Lua::LuaEmu::waitingForSaveStateLoad && !Lua::LuaEmu::waitingForSaveStateSave && !Lua::LuaEmu::waitingToStartPlayingMovie && !Lua::LuaEmu::waitingToSaveMovie)
+  if (Lua::is_lua_script_active && !Lua::LuaEmu::waiting_for_save_state_load && !Lua::LuaEmu::waiting_for_save_state_save && !Lua::LuaEmu::waiting_to_start_playing_movie && !Lua::LuaEmu::waiting_to_save_movie)
   {
     for (int i = 0; i < 4; ++i)
     {
-      Lua::LuaGameCubeController::overwriteControllerAtSpecifiedPort[i] = false;
-      Lua::LuaGameCubeController::addToControllerAtSpecifiedPort[i] = false;
-      Lua::LuaGameCubeController::doRandomInputEventsAtSpecifiedPort[i] = false;
-      Lua::LuaGameCubeController::randomButtonEvents[i].clear();
-      Lua::LuaGameCubeController::buttonListsForAddToControllerInputs[i].clear();
-      memset(&Lua::LuaGameCubeController::newOverwriteControllerInputs[i], 0, sizeof(Movie::ControllerState));
-      memset(&Lua::LuaGameCubeController::addToControllerInputs[i], 0, sizeof(Movie::ControllerState)); 
+      Lua::LuaGameCubeController::overwrite_controller_at_specified_port[i] = false;
+      Lua::LuaGameCubeController::add_to_controller_at_specified_port[i] = false;
+      Lua::LuaGameCubeController::do_random_input_events_at_specified_port[i] = false;
+      Lua::LuaGameCubeController::random_button_events[i].clear();
+      Lua::LuaGameCubeController::button_lists_for_add_to_controller_inputs[i].clear();
+      memset(&Lua::LuaGameCubeController::new_overwrite_controller_inputs[i], 0, sizeof(Movie::ControllerState));
+      memset(&Lua::LuaGameCubeController::add_to_controller_inputs[i], 0, sizeof(Movie::ControllerState)); 
     }
 
-    int retVal;
-    const char* errorMsg = nullptr;
-    retVal = lua_resume(Lua::main_lua_thread_state, nullptr, 0, &Lua::x);
-    if (retVal != LUA_YIELD)
+    int ret_val;
+    const char* error_msg = nullptr;
+    ret_val = lua_resume(Lua::main_lua_thread_state, nullptr, 0, &Lua::x);
+    if (ret_val != LUA_YIELD)
     {
-      if (retVal == 2)
+      if (ret_val == 2)
       {
-        errorMsg = lua_tostring(Lua::main_lua_thread_state, -1);
-        (*Lua::print_callback_function)(errorMsg);
+        error_msg = lua_tostring(Lua::main_lua_thread_state, -1);
+        (*Lua::print_callback_function)(error_msg);
       }
       (*Lua::script_end_callback_function)();
       Lua::is_lua_script_active = false;

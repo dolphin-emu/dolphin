@@ -8,21 +8,21 @@
 namespace Lua::LuaStatistics
 {
 
-void InitLuaStatisticsFunctions(lua_State* luaState, const std::string& luaApiVersion);
+void InitLuaStatisticsFunctions(lua_State* lua_state, const std::string& lua_api_version);
 
-int isRecordingInput(lua_State* luaState);
-int isRecordingInputFromSaveState(lua_State* luaState);
-int isPlayingInput(lua_State* luaState);
-int isMovieActive(lua_State* luaState);
+int IsRecordingInput(lua_State* lua_state);
+int IsRecordingInputFromSaveState(lua_State* lua_state);
+int IsPlayingInput(lua_State* lua_state);
+int IsMovieActive(lua_State* lua_state);
 
-int getCurrentFrame(lua_State* luaState);
-int getMovieLength(lua_State* luaState);
-int getRerecordCount(lua_State* luaState);
-int getCurrentInputCount(lua_State* luaState);
-int getTotalInputCount(lua_State* luaState);
-int getCurrentLagCount(lua_State* luaState);
-int getTotalLagCount(lua_State* luaState);
+int GetCurrentFrame(lua_State* lua_state);
+int GetMovieLength(lua_State* lua_state);
+int GetRerecordCount(lua_State* lua_state);
+int GetCurrentInputCount(lua_State* lua_state);
+int GetTotalInputCount(lua_State* lua_state);
+int GetCurrentLagCount(lua_State* lua_state);
+int GetTotalLagCount(lua_State* lua_state);
 
-int isGcControllerInPort(lua_State* luaState);
-int isUsingPort(lua_State* luaState);
+int IsGcControllerInPort(lua_State* lua_state);
+int IsUsingPort(lua_State* lua_state);
 }

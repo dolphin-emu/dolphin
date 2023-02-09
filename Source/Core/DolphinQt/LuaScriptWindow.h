@@ -23,17 +23,19 @@ public:
 private:
   void CreateMainLayout();
   void ConnectWidgets();
-  std::function<void(const std::string&)> callbackPrintFunction;
-  std::function<void()> finishedScriptCallbackFunction;
-  void updateOutputWindow();
-  void onScriptFinish();
+  void UpdateOutputWindow();
+  void OnScriptFinish();
+
+  std::function<void(const std::string&)> callback_print_function;
+  std::function<void()> finished_script_callback_function;
+
   QListWidget* lua_output_list_widget_ptr;
   QListWidget* lua_script_name_list_widget_ptr;
   NonDefaultQPushButton* m_load_script_button;
   NonDefaultQPushButton* m_play_script_button;
   NonDefaultQPushButton* m_stop_script_button;
-  std::string pathOfScriptToRun;
-  std::vector<std::string> outputLines;
+  std::string path_of_script_to_run;
+  std::vector<std::string> output_lines;
 
 
 

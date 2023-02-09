@@ -7,10 +7,10 @@
 
 namespace Lua::LuaRegisters
 {
-void InitLuaRegistersFunctions(lua_State* luaState, const std::string& luaApiVersion);
-int getRegister(lua_State* luaState);
-int getRegisterAsUnsignedByteArray(lua_State* luaState);
-int getRegisterAsSignedByteArray(lua_State* luaState);
-int setRegister(lua_State* luaState);
-int setRegisterFromByteArray(lua_State* luaState);
+void InitLuaRegistersFunctions(lua_State* lua_state, const std::string& lua_api_version);
+int GetRegister(lua_State* lua_state);
+int GetRegisterAsUnsignedByteArray(lua_State* lua_state);
+int GetRegisterAsSignedByteArray(lua_State* lua_state);
+int SetRegister(lua_State* lua_state);
+int SetRegisterFromByteArray(lua_State* lua_state);
 }
