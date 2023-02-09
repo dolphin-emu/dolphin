@@ -57,7 +57,7 @@ u32 SwapChain::GetSwapChainFlags() const
   return m_allow_tearing_supported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 }
 
-bool SwapChain::CreateSwapChain(bool stereo)
+bool SwapChain::CreateSwapChain(bool stereo, const BackendInfo& backend_info)
 {
   RECT client_rc;
   if (GetClientRect(static_cast<HWND>(m_wsi.render_surface), &client_rc))
@@ -138,7 +138,7 @@ bool SwapChain::CreateSwapChain(bool stereo)
     WARN_LOG_FMT(VIDEO, "MakeWindowAssociation() failed: {}", Common::HRWrap(hr));
 
   m_stereo = stereo;
-  if (!CreateSwapChainBuffers())
+  if (!CreateSwapChainBuffers(backend_info))
   {
     PanicAlertFmt("Failed to create swap chain buffers");
     DestroySwapChainBuffers();
@@ -160,7 +160,7 @@ void SwapChain::DestroySwapChain()
   m_swap_chain.Reset();
 }
 
-bool SwapChain::ResizeSwapChain()
+bool SwapChain::ResizeSwapChain(const BackendInfo& backend_info)
 {
   DestroySwapChainBuffers();
 
@@ -177,19 +177,19 @@ bool SwapChain::ResizeSwapChain()
     m_height = desc.BufferDesc.Height;
   }
 
-  return CreateSwapChainBuffers();
+  return CreateSwapChainBuffers(backend_info);
 }
 
-void SwapChain::SetStereo(bool stereo)
+void SwapChain::SetStereo(bool stereo, const BackendInfo& backend_info)
 {
   if (m_stereo == stereo)
     return;
 
   DestroySwapChain();
-  if (!CreateSwapChain(stereo))
+  if (!CreateSwapChain(stereo, backend_info))
   {
     PanicAlertFmt("Failed to switch swap chain stereo mode");
-    CreateSwapChain(false);
+    CreateSwapChain(false, backend_info);
   }
 }
 
@@ -245,11 +245,11 @@ bool SwapChain::Present()
   return true;
 }
 
-bool SwapChain::ChangeSurface(void* native_handle)
+bool SwapChain::ChangeSurface(void* native_handle, const BackendInfo& backend_info)
 {
   DestroySwapChain();
   m_wsi.render_surface = native_handle;
-  return CreateSwapChain(m_stereo);
+  return CreateSwapChain(m_stereo, backend_info);
 }
 
 }  // namespace D3DCommon

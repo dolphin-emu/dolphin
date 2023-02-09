@@ -17,17 +17,19 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/VideoBackendInfo.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace Vulkan
 {
-std::unique_ptr<ObjectCache> g_object_cache;
-
-ObjectCache::ObjectCache() = default;
+ObjectCache::ObjectCache(VKGfx* gfx) : m_gfx(gfx)
+{
+}
 
 ObjectCache::~ObjectCache()
 {
@@ -39,19 +41,19 @@ ObjectCache::~ObjectCache()
   m_dummy_texture.reset();
 }
 
-bool ObjectCache::Initialize()
+bool ObjectCache::Initialize(const BackendInfo& backend_info)
 {
-  if (!CreateDescriptorSetLayouts())
+  if (!CreateDescriptorSetLayouts(backend_info))
     return false;
 
-  if (!CreatePipelineLayouts())
+  if (!CreatePipelineLayouts(backend_info))
     return false;
 
   if (!CreateStaticSamplers())
     return false;
 
   m_texture_upload_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, TEXTURE_UPLOAD_BUFFER_SIZE);
+      StreamBuffer::Create(m_gfx, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, TEXTURE_UPLOAD_BUFFER_SIZE);
   if (!m_texture_upload_buffer)
   {
     PanicAlertFmt("Failed to create texture upload buffer");
@@ -60,12 +62,12 @@ bool ObjectCache::Initialize()
 
   if (g_ActiveConfig.bShaderCache)
   {
-    if (!LoadPipelineCache())
+    if (!LoadPipelineCache(backend_info))
       return false;
   }
   else
   {
-    if (!CreatePipelineCache())
+    if (!CreatePipelineCache(backend_info))
       return false;
   }
 
@@ -83,7 +85,7 @@ void ObjectCache::ClearSamplerCache()
   for (const auto& it : m_sampler_cache)
   {
     if (it.second != VK_NULL_HANDLE)
-      vkDestroySampler(g_vulkan_context->GetDevice(), it.second, nullptr);
+      vkDestroySampler(m_gfx->GetContext()->GetDevice(), it.second, nullptr);
   }
   m_sampler_cache.clear();
 }
@@ -94,18 +96,18 @@ void ObjectCache::DestroySamplers()
 
   if (m_point_sampler != VK_NULL_HANDLE)
   {
-    vkDestroySampler(g_vulkan_context->GetDevice(), m_point_sampler, nullptr);
+    vkDestroySampler(m_gfx->GetContext()->GetDevice(), m_point_sampler, nullptr);
     m_point_sampler = VK_NULL_HANDLE;
   }
 
   if (m_linear_sampler != VK_NULL_HANDLE)
   {
-    vkDestroySampler(g_vulkan_context->GetDevice(), m_linear_sampler, nullptr);
+    vkDestroySampler(m_gfx->GetContext()->GetDevice(), m_linear_sampler, nullptr);
     m_linear_sampler = VK_NULL_HANDLE;
   }
 }
 
-bool ObjectCache::CreateDescriptorSetLayouts()
+bool ObjectCache::CreateDescriptorSetLayouts(const BackendInfo& backend_info)
 {
   // The geometry shader buffer must be last in this binding set, as we don't include it
   // if geometry shaders are not supported by the device. See the decrement below.
@@ -174,25 +176,25 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   }};
 
   // Don't set the GS bit if geometry shaders aren't available.
-  if (g_ActiveConfig.UseVSForLinePointExpand())
+  if (backend_info.bSupportsVSLinePointExpand)
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (backend_info.bSupportsGeometryShaders)
       ubo_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].stageFlags |= VK_SHADER_STAGE_VERTEX_BIT;
     else
       ubo_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
   }
-  else if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  else if (!backend_info.bSupportsGeometryShaders)
   {
     create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS].bindingCount--;
   }
 
   // Remove the dynamic vertex loader's buffer if it'll never be needed
-  if (!g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+  if (!backend_info.bSupportsDynamicVertexLoader)
     create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS].bindingCount--;
 
   for (size_t i = 0; i < create_infos.size(); i++)
   {
-    VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &create_infos[i],
+    VkResult res = vkCreateDescriptorSetLayout(m_gfx->GetContext()->GetDevice(), &create_infos[i],
                                                nullptr, &m_descriptor_set_layouts[i]);
     if (res != VK_SUCCESS)
     {
@@ -209,11 +211,11 @@ void ObjectCache::DestroyDescriptorSetLayouts()
   for (VkDescriptorSetLayout layout : m_descriptor_set_layouts)
   {
     if (layout != VK_NULL_HANDLE)
-      vkDestroyDescriptorSetLayout(g_vulkan_context->GetDevice(), layout, nullptr);
+      vkDestroyDescriptorSetLayout(m_gfx->GetContext()->GetDevice(), layout, nullptr);
   }
 }
 
-bool ObjectCache::CreatePipelineLayouts()
+bool ObjectCache::CreatePipelineLayouts(const BackendInfo& backend_info)
 {
   // Descriptor sets for each pipeline layout.
   // In the standard set, the SSBO must be the last descriptor, as we do not include it
@@ -256,19 +258,19 @@ bool ObjectCache::CreatePipelineLayouts()
   }};
 
   const bool ssbos_in_standard =
-      g_ActiveConfig.backend_info.bSupportsBBox || g_ActiveConfig.UseVSForLinePointExpand();
+      backend_info.bSupportsBBox || backend_info.bSupportsVSLinePointExpand;
 
   // If bounding box is unsupported, don't bother with the SSBO descriptor set.
   if (!ssbos_in_standard)
     pipeline_layout_info[PIPELINE_LAYOUT_STANDARD].setLayoutCount--;
   // If neither SSBO-using feature is supported, skip in ubershaders too
-  if (!ssbos_in_standard && !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+  if (!ssbos_in_standard && !backend_info.bSupportsDynamicVertexLoader)
     pipeline_layout_info[PIPELINE_LAYOUT_UBER].setLayoutCount--;
 
   for (size_t i = 0; i < pipeline_layout_info.size(); i++)
   {
     VkResult res;
-    if ((res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &pipeline_layout_info[i],
+    if ((res = vkCreatePipelineLayout(m_gfx->GetContext()->GetDevice(), &pipeline_layout_info[i],
                                       nullptr, &m_pipeline_layouts[i])) != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreatePipelineLayout failed: ");
@@ -284,7 +286,7 @@ void ObjectCache::DestroyPipelineLayouts()
   for (VkPipelineLayout layout : m_pipeline_layouts)
   {
     if (layout != VK_NULL_HANDLE)
-      vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), layout, nullptr);
+      vkDestroyPipelineLayout(m_gfx->GetContext()->GetDevice(), layout, nullptr);
   }
 }
 
@@ -312,7 +314,7 @@ bool ObjectCache::CreateStaticSamplers()
   };
 
   VkResult res =
-      vkCreateSampler(g_vulkan_context->GetDevice(), &create_info, nullptr, &m_point_sampler);
+      vkCreateSampler(m_gfx->GetContext()->GetDevice(), &create_info, nullptr, &m_point_sampler);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateSampler failed: ");
@@ -323,7 +325,7 @@ bool ObjectCache::CreateStaticSamplers()
   create_info.minFilter = VK_FILTER_LINEAR;
   create_info.magFilter = VK_FILTER_LINEAR;
   create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-  res = vkCreateSampler(g_vulkan_context->GetDevice(), &create_info, nullptr, &m_linear_sampler);
+  res = vkCreateSampler(m_gfx->GetContext()->GetDevice(), &create_info, nullptr, &m_linear_sampler);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateSampler failed: ");
@@ -368,16 +370,16 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
   };
 
   // Can we use anisotropic filtering with this sampler?
-  if (info.tm0.anisotropic_filtering && g_vulkan_context->SupportsAnisotropicFiltering())
+  if (info.tm0.anisotropic_filtering && m_gfx->GetContext()->SupportsAnisotropicFiltering())
   {
     // Cap anisotropy to device limits.
     create_info.anisotropyEnable = VK_TRUE;
     create_info.maxAnisotropy = std::min(static_cast<float>(1 << g_ActiveConfig.iMaxAnisotropy),
-                                         g_vulkan_context->GetMaxSamplerAnisotropy());
+                                         m_gfx->GetContext()->GetMaxSamplerAnisotropy());
   }
 
   VkSampler sampler = VK_NULL_HANDLE;
-  VkResult res = vkCreateSampler(g_vulkan_context->GetDevice(), &create_info, nullptr, &sampler);
+  VkResult res = vkCreateSampler(m_gfx->GetContext()->GetDevice(), &create_info, nullptr, &sampler);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkCreateSampler failed: ");
 
@@ -454,7 +456,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
                                       nullptr};
 
   VkRenderPass pass;
-  VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr, &pass);
+  VkResult res = vkCreateRenderPass(m_gfx->GetContext()->GetDevice(), &pass_info, nullptr, &pass);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
@@ -468,7 +470,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
 void ObjectCache::DestroyRenderPassCache()
 {
   for (auto& it : m_render_pass_cache)
-    vkDestroyRenderPass(g_vulkan_context->GetDevice(), it.second, nullptr);
+    vkDestroyRenderPass(m_gfx->GetContext()->GetDevice(), it.second, nullptr);
   m_render_pass_cache.clear();
 }
 
@@ -493,12 +495,12 @@ public:
   void Read(const u32& key, const u8* value, u32 value_size) override {}
 };
 
-bool ObjectCache::CreatePipelineCache()
+bool ObjectCache::CreatePipelineCache(const BackendInfo& backend_info)
 {
   // Vulkan pipeline caches can be shared between games for shader compile time reduction.
   // This assumes that drivers don't create all pipelines in the cache on load time, only
   // when a lookup occurs that matches a pipeline (or pipeline data) in the cache.
-  m_pipeline_cache_filename = GetDiskShaderCacheFileName(APIType::Vulkan, "Pipeline", false, true);
+  m_pipeline_cache_filename = GetDiskShaderCacheFileName(backend_info, "Pipeline", false, true);
 
   VkPipelineCacheCreateInfo info = {
       VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
@@ -509,7 +511,7 @@ bool ObjectCache::CreatePipelineCache()
   };
 
   VkResult res =
-      vkCreatePipelineCache(g_vulkan_context->GetDevice(), &info, nullptr, &m_pipeline_cache);
+      vkCreatePipelineCache(m_gfx->GetContext()->GetDevice(), &info, nullptr, &m_pipeline_cache);
   if (res == VK_SUCCESS)
     return true;
 
@@ -517,11 +519,11 @@ bool ObjectCache::CreatePipelineCache()
   return false;
 }
 
-bool ObjectCache::LoadPipelineCache()
+bool ObjectCache::LoadPipelineCache(const BackendInfo& backend_info)
 {
   // We have to keep the pipeline cache file name around since when we save it
   // we delete the old one, by which time the game's unique ID is already cleared.
-  m_pipeline_cache_filename = GetDiskShaderCacheFileName(APIType::Vulkan, "Pipeline", false, true);
+  m_pipeline_cache_filename = GetDiskShaderCacheFileName(backend_info, "Pipeline", false, true);
 
   std::vector<u8> disk_data;
   LinearDiskCache<u32, u8> disk_cache;
@@ -533,7 +535,7 @@ bool ObjectCache::LoadPipelineCache()
   {
     // Don't use this data. In fact, we should delete it to prevent it from being used next time.
     File::Delete(m_pipeline_cache_filename);
-    return CreatePipelineCache();
+    return CreatePipelineCache(backend_info);
   }
 
   VkPipelineCacheCreateInfo info = {
@@ -545,13 +547,13 @@ bool ObjectCache::LoadPipelineCache()
   };
 
   VkResult res =
-      vkCreatePipelineCache(g_vulkan_context->GetDevice(), &info, nullptr, &m_pipeline_cache);
+      vkCreatePipelineCache(m_gfx->GetContext()->GetDevice(), &info, nullptr, &m_pipeline_cache);
   if (res == VK_SUCCESS)
     return true;
 
   // Failed to create pipeline cache, try with it empty.
   LOG_VULKAN_ERROR(res, "vkCreatePipelineCache failed, trying empty cache: ");
-  return CreatePipelineCache();
+  return CreatePipelineCache(backend_info);
 }
 
 // Based on Vulkan 1.0 specification,
@@ -592,23 +594,23 @@ bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
     return false;
   }
 
-  if (header.vendor_id != g_vulkan_context->GetDeviceProperties().vendorID)
+  if (header.vendor_id != m_gfx->GetContext()->GetDeviceProperties().vendorID)
   {
     ERROR_LOG_FMT(
         VIDEO, "Pipeline cache failed validation: Incorrect vendor ID (file: {:#X}, device: {:#X})",
-        header.vendor_id, g_vulkan_context->GetDeviceProperties().vendorID);
+        header.vendor_id, m_gfx->GetContext()->GetDeviceProperties().vendorID);
     return false;
   }
 
-  if (header.device_id != g_vulkan_context->GetDeviceProperties().deviceID)
+  if (header.device_id != m_gfx->GetContext()->GetDeviceProperties().deviceID)
   {
     ERROR_LOG_FMT(
         VIDEO, "Pipeline cache failed validation: Incorrect device ID (file: {:#X}, device: {:#X})",
-        header.device_id, g_vulkan_context->GetDeviceProperties().deviceID);
+        header.device_id, m_gfx->GetContext()->GetDeviceProperties().deviceID);
     return false;
   }
 
-  if (std::memcmp(header.uuid, g_vulkan_context->GetDeviceProperties().pipelineCacheUUID,
+  if (std::memcmp(header.uuid, m_gfx->GetContext()->GetDeviceProperties().pipelineCacheUUID,
                   VK_UUID_SIZE) != 0)
   {
     ERROR_LOG_FMT(VIDEO, "Pipeline cache failed validation: Incorrect UUID");
@@ -620,15 +622,15 @@ bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
 
 void ObjectCache::DestroyPipelineCache()
 {
-  vkDestroyPipelineCache(g_vulkan_context->GetDevice(), m_pipeline_cache, nullptr);
+  vkDestroyPipelineCache(m_gfx->GetContext()->GetDevice(), m_pipeline_cache, nullptr);
   m_pipeline_cache = VK_NULL_HANDLE;
 }
 
 void ObjectCache::SavePipelineCache()
 {
   size_t data_size;
-  VkResult res =
-      vkGetPipelineCacheData(g_vulkan_context->GetDevice(), m_pipeline_cache, &data_size, nullptr);
+  VkResult res = vkGetPipelineCacheData(m_gfx->GetContext()->GetDevice(), m_pipeline_cache,
+                                        &data_size, nullptr);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkGetPipelineCacheData failed: ");
@@ -636,7 +638,7 @@ void ObjectCache::SavePipelineCache()
   }
 
   std::vector<u8> data(data_size);
-  res = vkGetPipelineCacheData(g_vulkan_context->GetDevice(), m_pipeline_cache, &data_size,
+  res = vkGetPipelineCacheData(m_gfx->GetContext()->GetDevice(), m_pipeline_cache, &data_size,
                                data.data());
   if (res != VK_SUCCESS)
   {
@@ -657,13 +659,13 @@ void ObjectCache::SavePipelineCache()
   disk_cache.Close();
 }
 
-void ObjectCache::ReloadPipelineCache()
+void ObjectCache::ReloadPipelineCache(const BackendInfo& backend_info)
 {
   SavePipelineCache();
 
   if (g_ActiveConfig.bShaderCache)
-    LoadPipelineCache();
+    LoadPipelineCache(backend_info);
   else
-    CreatePipelineCache();
+    CreatePipelineCache(backend_info);
 }
 }  // namespace Vulkan

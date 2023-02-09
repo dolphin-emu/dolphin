@@ -19,6 +19,7 @@
 #include "Common/TypeUtils.h"
 
 #include "VideoCommon/AbstractShader.h"
+#include "VideoCommon/VideoBackendInfo.h"
 #include "VideoCommon/VideoCommon.h"
 
 /**
@@ -180,12 +181,13 @@ union ShaderHostConfig
   BitField<27, 1, bool, u32> backend_dynamic_vertex_loader;
   BitField<28, 1, bool, u32> backend_vs_point_line_expand;
 
-  static ShaderHostConfig GetCurrent();
+  static ShaderHostConfig GetCurrent(const BackendInfo& backend_info);
 };
 
 // Gets the filename of the specified type of cache object (e.g. vertex shader, pipeline).
-std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool include_gameid,
-                                       bool include_host_config, bool include_api = true);
+std::string GetDiskShaderCacheFileName(const BackendInfo& backend_info, const char* type,
+                                       bool include_gameid, bool include_host_config,
+                                       bool include_api = true);
 
 void WriteIsNanHeader(ShaderCode& out, APIType api_type);
 void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,

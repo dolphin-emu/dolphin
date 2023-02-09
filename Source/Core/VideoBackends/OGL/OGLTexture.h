@@ -13,13 +13,15 @@
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace OGL
 {
 class OGLTexture final : public AbstractTexture
 {
 public:
-  explicit OGLTexture(const TextureConfig& tex_config, std::string_view name);
+  explicit OGLTexture(const TextureConfig& tex_config, std::string_view name,
+                      const BackendInfo& backend_info);
   ~OGLTexture();
 
   void CopyRectangleFromTexture(const AbstractTexture* src,

@@ -16,10 +16,12 @@
 namespace Vulkan
 {
 class StagingBuffer;
+class VKGfx;
 
 class VKBoundingBox final : public BoundingBox
 {
 public:
+  VKBoundingBox(VKGfx* gfx);
   ~VKBoundingBox() override;
 
   bool Initialize() override;
@@ -32,6 +34,7 @@ private:
   bool CreateGPUBuffer();
   bool CreateReadbackBuffer();
 
+  VKGfx* m_gfx = nullptr;
   VkBuffer m_gpu_buffer = VK_NULL_HANDLE;
   VmaAllocation m_gpu_allocation = VK_NULL_HANDLE;
 

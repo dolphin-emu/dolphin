@@ -16,6 +16,7 @@ namespace Vulkan
 {
 class StagingBuffer;
 class Texture2D;
+class VKGfx;
 
 class VKTexture final : public AbstractTexture
 {
@@ -30,7 +31,7 @@ public:
   };
 
   VKTexture() = delete;
-  VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkImage image,
+  VKTexture(VKGfx* gfx, const TextureConfig& tex_config, VmaAllocation alloc, VkImage image,
             std::string_view name, VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED,
             ComputeImageLayout compute_layout = ComputeImageLayout::Undefined);
   ~VKTexture();
@@ -56,9 +57,10 @@ public:
   VkFormat GetVkFormat() const { return GetVkFormatForHostTextureFormat(m_config.format); }
   bool IsAdopted() const { return m_alloc != VmaAllocation(VK_NULL_HANDLE); }
 
-  static std::unique_ptr<VKTexture> Create(const TextureConfig& tex_config, std::string_view name);
+  static std::unique_ptr<VKTexture> Create(VKGfx* gfx, const TextureConfig& tex_config,
+                                           std::string_view name);
   static std::unique_ptr<VKTexture>
-  CreateAdopted(const TextureConfig& tex_config, VkImage image,
+  CreateAdopted(VKGfx* gfx, const TextureConfig& tex_config, VkImage image,
                 VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
                 VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED);
 
@@ -73,6 +75,7 @@ public:
 private:
   bool CreateView(VkImageViewType type);
 
+  VKGfx* m_gfx = nullptr;
   VmaAllocation m_alloc;
   VkImage m_image;
   VkImageView m_view = VK_NULL_HANDLE;
@@ -89,7 +92,7 @@ class VKStagingTexture final : public AbstractStagingTexture
 
 public:
   VKStagingTexture() = delete;
-  VKStagingTexture(PrivateTag, StagingTextureType type, const TextureConfig& config,
+  VKStagingTexture(PrivateTag, VKGfx* gfx, StagingTextureType type, const TextureConfig& config,
                    std::unique_ptr<StagingBuffer> buffer, VkImage linear_image,
                    VmaAllocation linear_image_alloc);
 
@@ -106,10 +109,10 @@ public:
   void Unmap() override;
   void Flush() override;
 
-  static std::unique_ptr<VKStagingTexture> Create(StagingTextureType type,
+  static std::unique_ptr<VKStagingTexture> Create(VKGfx* gfx, StagingTextureType type,
                                                   const TextureConfig& config);
 
-  static std::pair<VkImage, VmaAllocation> CreateLinearImage(StagingTextureType type,
+  static std::pair<VkImage, VmaAllocation> CreateLinearImage(VKGfx* gfx, StagingTextureType type,
                                                              const TextureConfig& config);
 
 private:
@@ -117,6 +120,7 @@ private:
                                     const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                     u32 src_level, const MathUtil::Rectangle<int>& dst_rect);
 
+  VKGfx* m_gfx = nullptr;
   std::unique_ptr<StagingBuffer> m_staging_buffer;
   VkImage m_linear_image = VK_NULL_HANDLE;
   VmaAllocation m_linear_image_alloc = VK_NULL_HANDLE;
@@ -126,9 +130,10 @@ private:
 class VKFramebuffer final : public AbstractFramebuffer
 {
 public:
-  VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attachment, u32 width, u32 height,
-                u32 layers, u32 samples, VkFramebuffer fb, VkRenderPass load_render_pass,
-                VkRenderPass discard_render_pass, VkRenderPass clear_render_pass);
+  VKFramebuffer(VKGfx* gfx, VKTexture* color_attachment, VKTexture* depth_attachment, u32 width,
+                u32 height, u32 layers, u32 samples, VkFramebuffer fb,
+                VkRenderPass load_render_pass, VkRenderPass discard_render_pass,
+                VkRenderPass clear_render_pass);
   ~VKFramebuffer() override;
 
   VkFramebuffer GetFB() const { return m_fb; }
@@ -139,10 +144,11 @@ public:
   VkRenderPass GetClearRenderPass() const { return m_clear_render_pass; }
   void TransitionForRender();
 
-  static std::unique_ptr<VKFramebuffer> Create(VKTexture* color_attachments,
+  static std::unique_ptr<VKFramebuffer> Create(VKGfx* gfx, VKTexture* color_attachments,
                                                VKTexture* depth_attachment);
 
 protected:
+  VKGfx* m_gfx = nullptr;
   VkFramebuffer m_fb;
   VkRenderPass m_load_render_pass;
   VkRenderPass m_discard_render_pass;

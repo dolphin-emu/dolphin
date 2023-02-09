@@ -19,7 +19,7 @@ class SwapChain;
 class Gfx final : public ::AbstractGfx
 {
 public:
-  Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
+  Gfx(VideoBackendBase* backend, std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
   ~Gfx() override;
 
   static Gfx* GetInstance() { return static_cast<Gfx*>(g_gfx.get()); }

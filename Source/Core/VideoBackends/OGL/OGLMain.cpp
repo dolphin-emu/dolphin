@@ -76,53 +76,53 @@ std::string VideoBackend::GetDisplayName() const
 
 void VideoBackend::InitBackendInfo()
 {
-  g_Config.backend_info.api_type = APIType::OpenGL;
-  g_Config.backend_info.MaxTextureSize = 16384;
-  g_Config.backend_info.bUsesLowerLeftOrigin = true;
-  g_Config.backend_info.bSupportsExclusiveFullscreen = false;
-  g_Config.backend_info.bSupportsGeometryShaders = true;
-  g_Config.backend_info.bSupportsComputeShaders = false;
-  g_Config.backend_info.bSupports3DVision = false;
-  g_Config.backend_info.bSupportsPostProcessing = true;
-  g_Config.backend_info.bSupportsSSAA = true;
-  g_Config.backend_info.bSupportsReversedDepthRange = true;
-  g_Config.backend_info.bSupportsLogicOp = true;
-  g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsCopyToVram = true;
-  g_Config.backend_info.bSupportsLargePoints = true;
-  g_Config.backend_info.bSupportsDepthReadback = true;
-  g_Config.backend_info.bSupportsPartialDepthCopies = true;
-  g_Config.backend_info.bSupportsShaderBinaries = false;
-  g_Config.backend_info.bSupportsPipelineCacheData = false;
-  g_Config.backend_info.bSupportsLodBiasInSampler = true;
-  g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
+  backend_info.api_type = APIType::OpenGL;
+  backend_info.MaxTextureSize = 16384;
+  backend_info.bUsesLowerLeftOrigin = true;
+  backend_info.bSupportsExclusiveFullscreen = false;
+  backend_info.bSupportsGeometryShaders = true;
+  backend_info.bSupportsComputeShaders = false;
+  backend_info.bSupports3DVision = false;
+  backend_info.bSupportsPostProcessing = true;
+  backend_info.bSupportsSSAA = true;
+  backend_info.bSupportsReversedDepthRange = true;
+  backend_info.bSupportsLogicOp = true;
+  backend_info.bSupportsMultithreading = false;
+  backend_info.bSupportsCopyToVram = true;
+  backend_info.bSupportsLargePoints = true;
+  backend_info.bSupportsDepthReadback = true;
+  backend_info.bSupportsPartialDepthCopies = true;
+  backend_info.bSupportsShaderBinaries = false;
+  backend_info.bSupportsPipelineCacheData = false;
+  backend_info.bSupportsLodBiasInSampler = true;
+  backend_info.bSupportsPartialMultisampleResolve = true;
   // Unneccessary since OGL doesn't use pipelines
-  g_Config.backend_info.bSupportsDynamicVertexLoader = false;
+  backend_info.bSupportsDynamicVertexLoader = false;
 
   // TODO: There is a bug here, if texel buffers or SSBOs/atomics are not supported the graphics
   // options will show the option when it is not supported. The only way around this would be
   // creating a context when calling this function to determine what is available.
-  g_Config.backend_info.bSupportsGPUTextureDecoding = true;
-  g_Config.backend_info.bSupportsBBox = true;
+  backend_info.bSupportsGPUTextureDecoding = true;
+  backend_info.bSupportsBBox = true;
 
   // Overwritten in OGLRender.cpp later
-  g_Config.backend_info.bSupportsDualSourceBlend = true;
-  g_Config.backend_info.bSupportsPrimitiveRestart = true;
-  g_Config.backend_info.bSupportsPaletteConversion = true;
-  g_Config.backend_info.bSupportsClipControl = true;
-  g_Config.backend_info.bSupportsDepthClamp = true;
-  g_Config.backend_info.bSupportsST3CTextures = false;
-  g_Config.backend_info.bSupportsBPTCTextures = false;
-  g_Config.backend_info.bSupportsCoarseDerivatives = false;
-  g_Config.backend_info.bSupportsTextureQueryLevels = false;
-  g_Config.backend_info.bSupportsSettingObjectNames = false;
+  backend_info.bSupportsDualSourceBlend = true;
+  backend_info.bSupportsPrimitiveRestart = true;
+  backend_info.bSupportsPaletteConversion = true;
+  backend_info.bSupportsClipControl = true;
+  backend_info.bSupportsDepthClamp = true;
+  backend_info.bSupportsST3CTextures = false;
+  backend_info.bSupportsBPTCTextures = false;
+  backend_info.bSupportsCoarseDerivatives = false;
+  backend_info.bSupportsTextureQueryLevels = false;
+  backend_info.bSupportsSettingObjectNames = false;
 
-  g_Config.backend_info.bUsesExplictQuadBuffering = true;
+  backend_info.bUsesExplictQuadBuffering = true;
 
-  g_Config.backend_info.Adapters.clear();
+  backend_info.Adapters.clear();
 
   // aamodes - 1 is to stay consistent with D3D (means no AA)
-  g_Config.backend_info.AAModes = {1, 2, 4, 8};
+  backend_info.AAModes = {1, 2, 4, 8};
 }
 
 bool VideoBackend::InitializeGLExtensions(GLContext* context)
@@ -165,7 +165,7 @@ bool VideoBackend::FillBackendInfo()
   // check the max texture width and height
   GLint max_texture_size = 0;
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
-  g_Config.backend_info.MaxTextureSize = static_cast<u32>(max_texture_size);
+  backend_info.MaxTextureSize = static_cast<u32>(max_texture_size);
   if (max_texture_size < 1024)
   {
     PanicAlertFmtT("GL_MAX_TEXTURE_SIZE is {0} - must be at least 1024.", max_texture_size);
@@ -176,32 +176,52 @@ bool VideoBackend::FillBackendInfo()
   return true;
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
 {
   std::unique_ptr<GLContext> main_gl_context =
-      GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
+      GLContext::Create(m_wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
                         Config::Get(Config::GFX_PREFER_GLES));
   if (!main_gl_context)
-    return false;
+    return {};
 
   if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
-    return false;
+    return {};
 
-  auto gfx = std::make_unique<OGLGfx>(std::move(main_gl_context), wsi.render_surface_scale);
-  ProgramShaderCache::Init();
+  if (!PopulateConfig(backend_info, main_gl_context.get()))
+  {
+    // Not all needed extensions are supported, so we have to stop here.
+    return {};
+  }
+  InitDriverInfo(backend_info);
+
+  m_is_gles = main_gl_context->IsGLES();
+
+  auto gfx = std::make_unique<OGLGfx>(this, std::move(main_gl_context), m_wsi.render_surface_scale);
+
+  ProgramShaderCache::Init(backend_info);
   g_sampler_cache = std::make_unique<SamplerCache>();
 
-  auto vertex_manager = std::make_unique<VertexManager>();
-  auto perf_query = GetPerfQuery(gfx->IsGLES());
-  auto bounding_box = std::make_unique<OGLBoundingBox>();
+  return gfx;
+}
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                          std::move(bounding_box));
+std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager(AbstractGfx* gfx)
+{
+  return std::make_unique<VertexManager>(backend_info);
+}
+
+std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery(AbstractGfx* gfx)
+{
+  return GetPerfQuery(m_is_gles);
+}
+
+std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox(AbstractGfx* gfx)
+{
+  return std::make_unique<OGLBoundingBox>();
 }
 
 void VideoBackend::Shutdown()
 {
-  ShutdownShared();
+  // ShutdownShared();
 
   ProgramShaderCache::Shutdown();
   g_sampler_cache.reset();

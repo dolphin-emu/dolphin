@@ -9,14 +9,16 @@
 #include "Common/Assert.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/DriverDetails.h"
 
 namespace Vulkan
 {
-StagingBuffer::StagingBuffer(STAGING_BUFFER_TYPE type, VkBuffer buffer, VmaAllocation alloc,
-                             VkDeviceSize size, char* map_ptr)
-    : m_type(type), m_buffer(buffer), m_alloc(alloc), m_size(size), m_map_pointer(map_ptr)
+StagingBuffer::StagingBuffer(VKGfx* gfx, STAGING_BUFFER_TYPE type, VkBuffer buffer,
+                             VmaAllocation alloc, VkDeviceSize size, char* map_ptr)
+    : m_gfx(gfx), m_type(type), m_buffer(buffer), m_alloc(alloc), m_size(size),
+      m_map_pointer(map_ptr)
 {
 }
 
@@ -26,7 +28,7 @@ StagingBuffer::~StagingBuffer()
   if (m_map_pointer)
     Unmap();
 
-  g_command_buffer_mgr->DeferBufferDestruction(m_buffer, m_alloc);
+  m_gfx->GetCmdBufferMgr()->DeferBufferDestruction(m_buffer, m_alloc);
 }
 
 void StagingBuffer::BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer,
@@ -65,7 +67,7 @@ void StagingBuffer::Unmap()
 void StagingBuffer::FlushCPUCache(VkDeviceSize offset, VkDeviceSize size)
 {
   // vmaFlushAllocation checks whether the allocation uses a coherent memory type internally
-  vmaFlushAllocation(g_vulkan_context->GetMemoryAllocator(), m_alloc, offset, size);
+  vmaFlushAllocation(m_gfx->GetContext()->GetMemoryAllocator(), m_alloc, offset, size);
 }
 
 void StagingBuffer::InvalidateGPUCache(VkCommandBuffer command_buffer,
@@ -100,7 +102,7 @@ void StagingBuffer::FlushGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBi
 void StagingBuffer::InvalidateCPUCache(VkDeviceSize offset, VkDeviceSize size)
 {
   // vmaInvalidateAllocation checks whether the allocation uses a coherent memory type internally
-  vmaInvalidateAllocation(g_vulkan_context->GetMemoryAllocator(), m_alloc, offset, size);
+  vmaInvalidateAllocation(m_gfx->GetContext()->GetMemoryAllocator(), m_alloc, offset, size);
 }
 
 void StagingBuffer::Read(VkDeviceSize offset, void* data, size_t size, bool invalidate_caches)
@@ -122,7 +124,7 @@ void StagingBuffer::Write(VkDeviceSize offset, const void* data, size_t size,
     FlushCPUCache(offset, size);
 }
 
-bool StagingBuffer::AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size,
+bool StagingBuffer::AllocateBuffer(VKGfx* gfx, STAGING_BUFFER_TYPE type, VkDeviceSize size,
                                    VkBufferUsageFlags usage, VkBuffer* out_buffer,
                                    VmaAllocation* out_alloc, char** out_map_ptr)
 {
@@ -165,13 +167,13 @@ bool StagingBuffer::AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size,
   }
 
   VmaAllocationInfo alloc_info;
-  VkResult res = vmaCreateBuffer(g_vulkan_context->GetMemoryAllocator(), &buffer_create_info,
+  VkResult res = vmaCreateBuffer(gfx->GetContext()->GetMemoryAllocator(), &buffer_create_info,
                                  &alloc_create_info, out_buffer, out_alloc, &alloc_info);
 
   if (type == STAGING_BUFFER_TYPE_UPLOAD)
   {
     VkMemoryPropertyFlags flags = 0;
-    vmaGetMemoryTypeProperties(g_vulkan_context->GetMemoryAllocator(), alloc_info.memoryType,
+    vmaGetMemoryTypeProperties(gfx->GetContext()->GetMemoryAllocator(), alloc_info.memoryType,
                                &flags);
     if (!(flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))
     {
@@ -189,20 +191,20 @@ bool StagingBuffer::AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size,
   }
 
   VkMemoryPropertyFlags flags = 0;
-  vmaGetAllocationMemoryProperties(g_vulkan_context->GetMemoryAllocator(), *out_alloc, &flags);
+  vmaGetAllocationMemoryProperties(gfx->GetContext()->GetMemoryAllocator(), *out_alloc, &flags);
   return true;
 }
 
-std::unique_ptr<StagingBuffer> StagingBuffer::Create(STAGING_BUFFER_TYPE type, VkDeviceSize size,
-                                                     VkBufferUsageFlags usage)
+std::unique_ptr<StagingBuffer> StagingBuffer::Create(VKGfx* gfx, STAGING_BUFFER_TYPE type,
+                                                     VkDeviceSize size, VkBufferUsageFlags usage)
 {
   VkBuffer buffer;
   VmaAllocation alloc;
   char* map_ptr;
-  if (!AllocateBuffer(type, size, usage, &buffer, &alloc, &map_ptr))
+  if (!AllocateBuffer(gfx, type, size, usage, &buffer, &alloc, &map_ptr))
     return nullptr;
 
-  return std::make_unique<StagingBuffer>(type, buffer, alloc, size, map_ptr);
+  return std::make_unique<StagingBuffer>(gfx, type, buffer, alloc, size, map_ptr);
 }
 
 }  // namespace Vulkan

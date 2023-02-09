@@ -10,6 +10,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Vulkan
+{
+class VKGfx;
+}
+
 namespace Vulkan::ShaderCompiler
 {
 // SPIR-V compiled code type
@@ -17,14 +22,18 @@ using SPIRVCodeType = u32;
 using SPIRVCodeVector = std::vector<SPIRVCodeType>;
 
 // Compile a vertex shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileVertexShader(std::string_view source_code);
+std::optional<SPIRVCodeVector> CompileVertexShader(Vulkan::VKGfx* gfx,
+                                                   std::string_view source_code);
 
 // Compile a geometry shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileGeometryShader(std::string_view source_code);
+std::optional<SPIRVCodeVector> CompileGeometryShader(Vulkan::VKGfx* gfx,
+                                                     std::string_view source_code);
 
 // Compile a fragment shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_code);
+std::optional<SPIRVCodeVector> CompileFragmentShader(Vulkan::VKGfx* gfx,
+                                                     std::string_view source_code);
 
 // Compile a compute shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code);
+std::optional<SPIRVCodeVector> CompileComputeShader(Vulkan::VKGfx* gfx,
+                                                    std::string_view source_code);
 }  // namespace Vulkan::ShaderCompiler

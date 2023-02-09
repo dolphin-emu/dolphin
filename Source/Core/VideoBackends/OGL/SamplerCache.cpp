@@ -7,6 +7,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/OGL/OGLConfig.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
@@ -44,7 +45,8 @@ void SamplerCache::BindLinearSampler(int stage)
   glBindSampler(stage, m_linear_sampler);
 }
 
-void SamplerCache::SetSamplerState(u32 stage, const SamplerState& state)
+void SamplerCache::SetSamplerState(u32 stage, const SamplerState& state,
+                                   const BackendInfo& backend_info)
 {
   if (m_active_samplers[stage].first == state && m_active_samplers[stage].second != 0)
     return;
@@ -54,7 +56,7 @@ void SamplerCache::SetSamplerState(u32 stage, const SamplerState& state)
   {
     GLuint sampler;
     glGenSamplers(1, &sampler);
-    SetParameters(sampler, state);
+    SetParameters(sampler, state, backend_info);
     it = m_cache.emplace(state, sampler).first;
   }
 
@@ -68,7 +70,8 @@ void SamplerCache::InvalidateBinding(u32 stage)
   m_active_samplers[stage].second = 0;
 }
 
-void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
+void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params,
+                                 const BackendInfo& backend_info)
 {
   GLenum min_filter;
   GLenum mag_filter = (params.tm0.mag_filter == FilterMode::Near) ? GL_NEAREST : GL_LINEAR;
@@ -97,7 +100,7 @@ void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
   glSamplerParameterf(sampler_id, GL_TEXTURE_MIN_LOD, params.tm1.min_lod / 16.f);
   glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_LOD, params.tm1.max_lod / 16.f);
 
-  if (g_ActiveConfig.backend_info.bSupportsLodBiasInSampler)
+  if (backend_info.bSupportsLodBiasInSampler)
   {
     glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, params.tm0.lod_bias / 256.f);
   }

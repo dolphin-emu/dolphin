@@ -14,7 +14,7 @@
 namespace Null
 {
 // Init functions
-NullGfx::NullGfx()
+NullGfx::NullGfx(VideoBackendBase* backend) : AbstractGfx(backend)
 {
   UpdateActiveConfig();
 }

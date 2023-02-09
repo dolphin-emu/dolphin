@@ -13,7 +13,7 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
-#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/AbstractGfx.h"
 
 namespace
 {
@@ -317,7 +317,7 @@ bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
       info->format = AbstractTextureFormat::BPTC;
       info->block_size = 4;
       info->bytes_per_block = 16;
-      if (!g_ActiveConfig.backend_info.bSupportsBPTCTextures)
+      if (!g_gfx->GetBackendInfo().bSupportsBPTCTextures)
         return false;
     }
     else
@@ -361,7 +361,7 @@ bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
 
   // We also need to ensure the backend supports these formats natively before loading them,
   // otherwise, fallback to SOIL, which will decompress them to RGBA.
-  if (needs_s3tc && !g_ActiveConfig.backend_info.bSupportsST3CTextures)
+  if (needs_s3tc && !g_gfx->GetBackendInfo().bSupportsST3CTextures)
     return false;
 
   // Mip levels smaller than the block size are padded to multiples of the block size.

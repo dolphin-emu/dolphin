@@ -10,89 +10,59 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
-#include "VideoCommon/PerfQueryBase.h"
-
-namespace MMIO
-{
-class Mapping;
-}
-class PointerWrap;
+#include "VideoCommon/VideoBackendInfo.h"
+#include "VideoCommon/VideoCommon.h"
 
 class AbstractGfx;
 class BoundingBox;
 class Renderer;
 class TextureCacheBase;
 class VertexManagerBase;
-
-enum class FieldType
-{
-  Odd,
-  Even,
-};
-
-enum class EFBAccessType
-{
-  PeekZ,
-  PokeZ,
-  PeekColor,
-  PokeColor
-};
+class PerfQueryBase;
 
 class VideoBackendBase
 {
 public:
   virtual ~VideoBackendBase() {}
-  virtual bool Initialize(const WindowSystemInfo& wsi) = 0;
-  virtual void Shutdown() = 0;
+  virtual bool Initialize(const WindowSystemInfo& wsi) { return true; }
+  virtual void Shutdown() {}
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
   virtual void InitBackendInfo() = 0;
   virtual std::optional<std::string> GetWarningMessage() const { return {}; }
 
+  // The various subclassed components that backends must supply
+  virtual std::unique_ptr<AbstractGfx> CreateGfx() = 0;
+  virtual std::unique_ptr<VertexManagerBase> CreateVertexManager(AbstractGfx* gfx) = 0;
+  virtual std::unique_ptr<PerfQueryBase> CreatePerfQuery(AbstractGfx* gfx) = 0;
+  virtual std::unique_ptr<BoundingBox> CreateBoundingBox(AbstractGfx* gfx) = 0;
+
+  // Optional components that backends only VideoSoftware and VideoNull override
+  virtual std::unique_ptr<Renderer> CreateRenderer(AbstractGfx* gfx);
+  virtual std::unique_ptr<TextureCacheBase> CreateTextureCache(AbstractGfx* gfx);
+
   // Prepares a native window for rendering. This is called on the main thread, or the
   // thread which owns the window.
-  virtual void PrepareWindow(WindowSystemInfo& wsi) {}
+  virtual void PrepareWindow(WindowSystemInfo& wsi) { m_wsi = wsi; }
 
-  static std::string BadShaderFilename(const char* shader_stage, int counter);
-
-  void Video_ExitLoop();
-
-  void Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
-
-  u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data);
-  u32 Video_GetQueryResult(PerfQueryType type);
-  u16 Video_GetBoundingBox(int index);
+  // filename to save shader errors to
+  std::string BadShaderFilename(const char* shader_stage, int counter) const;
 
   static std::string GetDefaultBackendName();
   static const std::vector<std::unique_ptr<VideoBackendBase>>& GetAvailableBackends();
-  static void ActivateBackend(const std::string& name);
+
+  // Maps config strings to backends.
+  static VideoBackendBase* GetConfiguredBackend();
 
   // Fills the backend_info fields with the capabilities of the selected backend/device.
-  static void PopulateBackendInfo();
+  void PopulateBackendInfo();
   // Called by the UI thread when the graphics config is opened.
   static void PopulateBackendInfoFromUI();
 
-  // Wrapper function which pushes the event to the GPU thread.
-  void DoState(PointerWrap& p);
+  struct BackendInfo backend_info = {};
 
 protected:
-  // For hardware backends
-  bool InitializeShared(std::unique_ptr<AbstractGfx> gfx,
-                        std::unique_ptr<VertexManagerBase> vertex_manager,
-                        std::unique_ptr<PerfQueryBase> perf_query,
-                        std::unique_ptr<BoundingBox> bounding_box);
-
-  // For software and null backends. Allows overriding the default Renderer and Texture Cache
-  bool InitializeShared(std::unique_ptr<AbstractGfx> gfx,
-                        std::unique_ptr<VertexManagerBase> vertex_manager,
-                        std::unique_ptr<PerfQueryBase> perf_query,
-                        std::unique_ptr<BoundingBox> bounding_box,
-                        std::unique_ptr<Renderer> renderer,
-                        std::unique_ptr<TextureCacheBase> texture_cache);
-  void ShutdownShared();
-
   bool m_initialized = false;
+  WindowSystemInfo m_wsi;
 };
-
-extern VideoBackendBase* g_video_backend;

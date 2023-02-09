@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DriverDetails.h"
@@ -616,7 +617,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   int size_t = size.y;
   int num_layers = size.z;
 )");
-      if (g_ActiveConfig.backend_info.bSupportsTextureQueryLevels)
+      if (g_gfx->GetBackendInfo().bSupportsTextureQueryLevels)
       {
         out.Write("  int number_of_levels = textureQueryLevels(tex);\n");
       }
@@ -645,7 +646,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
 )");
     }
 
-    if (g_ActiveConfig.backend_info.bSupportsCoarseDerivatives)
+    if (g_gfx->GetBackendInfo().bSupportsCoarseDerivatives)
     {
       // The software renderer uses the equivalent of coarse derivatives, so use them here for
       // consistency.  This hasn't been hardware tested.
@@ -1684,7 +1685,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   if (per_pixel_depth)
   {
     out.Write("\t\tdepth = {};\n",
-              !g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? "0.0" : "1.0");
+              !g_gfx->GetBackendInfo().bSupportsReversedDepthRange ? "0.0" : "1.0");
   }
 
   // ZCOMPLOC HACK:

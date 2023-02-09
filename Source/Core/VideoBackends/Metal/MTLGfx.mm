@@ -18,7 +18,8 @@
 
 #include <fstream>
 
-Metal::Gfx::Gfx(MRCOwned<CAMetalLayer*> layer) : m_layer(std::move(layer))
+Metal::Gfx::Gfx(VideoBackendBase* backend, MRCOwned<CAMetalLayer*> layer)
+    : AbstractGfx(backend), m_layer(std::move(layer))
 {
   UpdateActiveConfig();
   [m_layer setDisplaySyncEnabled:g_ActiveConfig.bVSyncActive];
@@ -160,7 +161,7 @@ std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(ShaderStage stag
     NSError* err = nullptr;
     auto DumpBadShader = [&](std::string_view msg) {
       static int counter = 0;
-      std::string filename = VideoBackendBase::BadShaderFilename(StageFilename(stage), counter++);
+      std::string filename = m_backend->BadShaderFilename(StageFilename(stage), counter++);
       std::ofstream stream(filename);
       if (stream.good())
       {
@@ -182,7 +183,7 @@ std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(ShaderStage stag
 
       stream << std::endl;
       stream << "Dolphin Version: " << Common::GetScmRevStr() << std::endl;
-      stream << "Video Backend: " << g_video_backend->GetDisplayName() << std::endl;
+      stream << "Video Backend: " << m_backend->GetDisplayName() << std::endl;
       stream << "*/" << std::endl;
       stream.close();
 
@@ -318,7 +319,7 @@ void Metal::Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool col
             static_cast<double>((color >> 24) & 0xFF) / 255.0);
         // clang-format on
         float z_normalized = static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
-        if (!g_Config.backend_info.bSupportsReversedDepthRange)
+        if (!GetBackendInfo().bSupportsReversedDepthRange)
           z_normalized = 1.f - z_normalized;
         g_state_tracker->BeginClearRenderPass(clear_color, z_normalized);
         return;
@@ -405,7 +406,7 @@ void Metal::Gfx::Draw(u32 base_vertex, u32 num_vertices)
 {
   @autoreleasepool
   {
-    g_state_tracker->Draw(base_vertex, num_vertices);
+    g_state_tracker->Draw(base_vertex, num_vertices, GetBackendInfo());
   }
 }
 
@@ -413,7 +414,7 @@ void Metal::Gfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   @autoreleasepool
   {
-    g_state_tracker->DrawIndexed(base_index, num_indices, base_vertex);
+    g_state_tracker->DrawIndexed(base_index, num_indices, base_vertex, GetBackendInfo());
   }
 }
 

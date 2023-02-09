@@ -12,13 +12,12 @@
 
 namespace Vulkan
 {
+class VKGfx;
 class PerfQuery : public PerfQueryBase
 {
 public:
-  PerfQuery();
+  PerfQuery(VKGfx* gfx);
   ~PerfQuery();
-
-  static PerfQuery* GetInstance() { return static_cast<PerfQuery*>(g_perf_query.get()); }
 
   bool Initialize() override;
 
@@ -49,6 +48,7 @@ private:
   void ReadbackQueries(u32 query_count);
   void PartialFlush(bool blocking);
 
+  VKGfx* m_gfx = nullptr;
   VkQueryPool m_query_pool = VK_NULL_HANDLE;
   u32 m_query_readback_pos = 0;
   u32 m_query_next_pos = 0;

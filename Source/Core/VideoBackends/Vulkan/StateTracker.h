@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace Vulkan
 {
@@ -18,16 +19,15 @@ class VKPipeline;
 class VKTexture;
 class StreamBuffer;
 class VertexFormat;
+class VKGfx;
 
 class StateTracker
 {
 public:
-  StateTracker();
+  StateTracker(VKGfx* gfx);
   ~StateTracker();
 
-  static StateTracker* GetInstance();
-  static bool CreateInstance();
-  static void DestroyInstance();
+  static std::unique_ptr<StateTracker> Create(VKGfx* gfx);
 
   VKFramebuffer* GetFramebuffer() const { return m_framebuffer; }
   const VKPipeline* GetPipeline() const { return m_pipeline; }
@@ -119,6 +119,14 @@ private:
   void UpdateGXDescriptorSet();
   void UpdateUtilityDescriptorSet();
   void UpdateComputeDescriptorSet();
+
+  VKGfx* m_gfx = nullptr;
+
+  // Supported features copied from backend_info
+  bool m_needs_bbox_ssbo = false;
+  bool m_needs_gs_ubo = false;
+  bool m_supports_dynamic_vertex_loader = false;
+  bool m_supports_vs_line_point_expand = false;
 
   // Which bindings/state has to be updated before the next draw.
   u32 m_dirty_flags = 0;

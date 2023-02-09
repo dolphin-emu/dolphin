@@ -23,6 +23,7 @@
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 AdvancedWidget::AdvancedWidget(GraphicsWindow* parent)
@@ -232,10 +233,11 @@ void AdvancedWidget::SaveSettings()
 
 void AdvancedWidget::OnBackendChanged()
 {
-  m_backend_multithreading->setEnabled(g_Config.backend_info.bSupportsMultithreading);
-  m_prefer_vs_for_point_line_expansion->setEnabled(
-      g_Config.backend_info.bSupportsGeometryShaders &&
-      g_Config.backend_info.bSupportsVSLinePointExpand);
+  const BackendInfo& backend_info = VideoBackendBase::GetConfiguredBackend()->backend_info;
+
+  m_backend_multithreading->setEnabled(backend_info.bSupportsMultithreading);
+  m_prefer_vs_for_point_line_expansion->setEnabled(backend_info.bSupportsGeometryShaders &&
+                                                   backend_info.bSupportsVSLinePointExpand);
   AddDescriptions();
 }
 
@@ -405,6 +407,8 @@ void AdvancedWidget::AddDescriptions()
   static const char IF_UNSURE_UNCHECKED[] =
       QT_TR_NOOP("<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
+  const BackendInfo& backend_info = VideoBackendBase::GetConfiguredBackend()->backend_info;
+
   m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));
   m_show_ftimes->SetDescription(tr(TR_SHOW_FTIMES_DESCRIPTION));
   m_show_vps->SetDescription(tr(TR_SHOW_VPS_DESCRIPTION));
@@ -437,12 +441,12 @@ void AdvancedWidget::AddDescriptions()
   m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
   m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
   QString vsexpand_extra;
-  if (!g_Config.backend_info.bSupportsGeometryShaders)
+  if (!backend_info.bSupportsGeometryShaders)
     vsexpand_extra = tr("Forced on because %1 doesn't support geometry shaders.")
-                         .arg(tr(g_Config.backend_info.DisplayName.c_str()));
-  else if (!g_Config.backend_info.bSupportsVSLinePointExpand)
+                         .arg(tr(backend_info.DisplayName.c_str()));
+  else if (!backend_info.bSupportsVSLinePointExpand)
     vsexpand_extra = tr("Forced off because %1 doesn't support VS expansion.")
-                         .arg(tr(g_Config.backend_info.DisplayName.c_str()));
+                         .arg(tr(backend_info.DisplayName.c_str()));
   else
     vsexpand_extra = tr(IF_UNSURE_UNCHECKED);
   m_prefer_vs_for_point_line_expansion->SetDescription(

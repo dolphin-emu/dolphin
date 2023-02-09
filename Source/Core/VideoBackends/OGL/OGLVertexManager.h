@@ -10,6 +10,7 @@
 #include "Common/GL/GLUtil.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace OGL
 {
@@ -28,7 +29,7 @@ public:
 class VertexManager final : public VertexManagerBase
 {
 public:
-  VertexManager();
+  VertexManager(const BackendInfo& backend_info);
   ~VertexManager() override;
 
   bool Initialize() override;
@@ -54,5 +55,8 @@ private:
   std::unique_ptr<StreamBuffer> m_index_buffer;
   std::unique_ptr<StreamBuffer> m_texel_buffer;
   std::array<GLuint, NUM_TEXEL_BUFFER_FORMATS> m_texel_buffer_views{};
+
+  bool m_supports_palette_conversion = false;
+  bool m_needs_vertex_ssbo = false;
 };
 }  // namespace OGL

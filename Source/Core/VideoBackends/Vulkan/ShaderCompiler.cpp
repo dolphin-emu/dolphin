@@ -5,7 +5,9 @@
 
 #include <cstddef>
 #include <string>
+#include <string_view>
 
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Spirv.h"
 
@@ -88,7 +90,8 @@ static const char SUBGROUP_HELPER_HEADER[] = R"(
   #define SUBGROUP_MAX(value) value = subgroupMax(value)
 )";
 
-static std::string GetShaderCode(std::string_view source, std::string_view header)
+static std::string GetShaderCode(Vulkan::VKGfx* gfx, std::string_view source,
+                                 std::string_view header)
 {
   std::string full_source_code;
   if (!header.empty())
@@ -96,7 +99,7 @@ static std::string GetShaderCode(std::string_view source, std::string_view heade
     constexpr size_t subgroup_helper_header_length = std::size(SUBGROUP_HELPER_HEADER) - 1;
     full_source_code.reserve(header.size() + subgroup_helper_header_length + source.size());
     full_source_code.append(header);
-    if (g_vulkan_context->SupportsShaderSubgroupOperations())
+    if (gfx->GetContext()->SupportsShaderSubgroupOperations())
       full_source_code.append(SUBGROUP_HELPER_HEADER, subgroup_helper_header_length);
     full_source_code.append(source);
   }
@@ -104,36 +107,39 @@ static std::string GetShaderCode(std::string_view source, std::string_view heade
   return full_source_code;
 }
 
-static glslang::EShTargetLanguageVersion GetLanguageVersion()
+static glslang::EShTargetLanguageVersion GetLanguageVersion(Vulkan::VKGfx* gfx)
 {
   // Sub-group operations require Vulkan 1.1 and SPIR-V 1.3.
-  if (g_vulkan_context->SupportsShaderSubgroupOperations())
+  if (gfx->GetContext()->SupportsShaderSubgroupOperations())
     return glslang::EShTargetSpv_1_3;
 
   return glslang::EShTargetSpv_1_0;
 }
 
-std::optional<SPIRVCodeVector> CompileVertexShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileVertexShader(Vulkan::VKGfx* gfx, std::string_view source_code)
 {
-  return SPIRV::CompileVertexShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
-                                    GetLanguageVersion());
+  return SPIRV::CompileVertexShader(GetShaderCode(gfx, source_code, SHADER_HEADER), APIType::Vulkan,
+                                    GetLanguageVersion(gfx));
 }
 
-std::optional<SPIRVCodeVector> CompileGeometryShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileGeometryShader(Vulkan::VKGfx* gfx,
+                                                     std::string_view source_code)
 {
-  return SPIRV::CompileGeometryShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
-                                      GetLanguageVersion());
+  return SPIRV::CompileGeometryShader(GetShaderCode(gfx, source_code, SHADER_HEADER),
+                                      APIType::Vulkan, GetLanguageVersion(gfx));
 }
 
-std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileFragmentShader(Vulkan::VKGfx* gfx,
+                                                     std::string_view source_code)
 {
-  return SPIRV::CompileFragmentShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
-                                      GetLanguageVersion());
+  return SPIRV::CompileFragmentShader(GetShaderCode(gfx, source_code, SHADER_HEADER),
+                                      APIType::Vulkan, GetLanguageVersion(gfx));
 }
 
-std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileComputeShader(Vulkan::VKGfx* gfx,
+                                                    std::string_view source_code)
 {
-  return SPIRV::CompileComputeShader(GetShaderCode(source_code, COMPUTE_SHADER_HEADER),
-                                     APIType::Vulkan, GetLanguageVersion());
+  return SPIRV::CompileComputeShader(GetShaderCode(gfx, source_code, COMPUTE_SHADER_HEADER),
+                                     APIType::Vulkan, GetLanguageVersion(gfx));
 }
 }  // namespace Vulkan::ShaderCompiler

@@ -29,6 +29,7 @@
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 #include "VideoCommon/VideoCommon.h"
 
@@ -63,7 +64,10 @@ void VideoConfig::Refresh()
     Config::AddConfigChangedCallback([]() {
       Core::RunAsCPUThread([]() {
         g_Config.Refresh();
-        g_Config.VerifyValidity();
+
+        auto backend = VideoBackendBase::GetConfiguredBackend();
+
+        g_Config.VerifyValidity(backend->backend_info);
       });
     });
     s_has_registered_callback = true;
@@ -174,7 +178,7 @@ void VideoConfig::Refresh()
   bGraphicMods = Config::Get(Config::GFX_MODS_ENABLE);
 }
 
-void VideoConfig::VerifyValidity()
+void VideoConfig::VerifyValidity(BackendInfo& backend_info)
 {
   // TODO: Check iMaxAnisotropy value
   if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
@@ -218,7 +222,7 @@ static u32 GetNumAutoShaderPreCompilerThreads()
 
 u32 VideoConfig::GetShaderCompilerThreads() const
 {
-  if (!backend_info.bSupportsBackgroundCompiling)
+  if (!g_gfx->GetBackendInfo().bSupportsBackgroundCompiling)
     return 0;
 
   if (iShaderCompilerThreads >= 0)
@@ -233,7 +237,7 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
   if (!bWaitForShadersBeforeStarting)
     return GetShaderCompilerThreads();
 
-  if (!backend_info.bSupportsBackgroundCompiling)
+  if (!g_gfx->GetBackendInfo().bSupportsBackgroundCompiling)
     return 0;
 
   if (iShaderPrecompilerThreads >= 0)
@@ -244,9 +248,27 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
     return 1;
 }
 
+bool VideoConfig::UseVSForLinePointExpand(const BackendInfo& backend_info) const
+{
+  if (!backend_info.bSupportsVSLinePointExpand)
+    return false;
+  if (!backend_info.bSupportsGeometryShaders)
+    return true;
+  return bPreferVSForLinePointExpansion;
+}
+bool VideoConfig::ExclusiveFullscreenEnabled(const BackendInfo& backend_info) const
+{
+  return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;
+}
+bool VideoConfig::UseGPUTextureDecoding(const BackendInfo& backend_info) const
+{
+  return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
+}
+
 void CheckForConfigChanges()
 {
-  const ShaderHostConfig old_shader_host_config = ShaderHostConfig::GetCurrent();
+  const ShaderHostConfig old_shader_host_config =
+      ShaderHostConfig::GetCurrent(g_gfx->GetBackendInfo());
   const StereoMode old_stereo = g_ActiveConfig.stereo_mode;
   const u32 old_multisamples = g_ActiveConfig.iMultisamples;
   const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
@@ -288,7 +310,7 @@ void CheckForConfigChanges()
     g_framebuffer_manager->SetEFBCacheTileSize(std::max(g_ActiveConfig.iEFBAccessTileSize, 0));
 
   // Determine which (if any) settings have changed.
-  ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
+  ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent(g_gfx->GetBackendInfo());
   u32 changed_bits = 0;
   if (old_shader_host_config.bits != new_host_config.bits)
     changed_bits |= CONFIG_CHANGE_BIT_HOST_CONFIG;

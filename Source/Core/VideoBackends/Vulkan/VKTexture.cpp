@@ -22,40 +22,43 @@
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/VideoBackendInfo.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan
 {
-VKTexture::VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkImage image,
-                     std::string_view name, VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
+VKTexture::VKTexture(VKGfx* gfx, const TextureConfig& tex_config, VmaAllocation alloc,
+                     VkImage image, std::string_view name,
+                     VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
                      ComputeImageLayout compute_layout /* = ComputeImageLayout::Undefined */)
-    : AbstractTexture(tex_config), m_alloc(alloc), m_image(image), m_layout(layout),
+    : AbstractTexture(tex_config), m_gfx(gfx), m_alloc(alloc), m_image(image), m_layout(layout),
       m_compute_layout(compute_layout), m_name(name)
 {
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && m_gfx->GetBackendInfo().bSupportsSettingObjectNames)
   {
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     name_info.objectType = VK_OBJECT_TYPE_IMAGE;
     name_info.objectHandle = reinterpret_cast<uint64_t>(image);
     name_info.pObjectName = m_name.c_str();
-    vkSetDebugUtilsObjectNameEXT(g_vulkan_context->GetDevice(), &name_info);
+    vkSetDebugUtilsObjectNameEXT(m_gfx->GetContext()->GetDevice(), &name_info);
   }
 }
 
 VKTexture::~VKTexture()
 {
-  StateTracker::GetInstance()->UnbindTexture(m_view);
-  g_command_buffer_mgr->DeferImageViewDestruction(m_view);
+  m_gfx->GetStateTracker()->UnbindTexture(m_view);
+  m_gfx->GetCmdBufferMgr()->DeferImageViewDestruction(m_view);
 
   // If we don't have device memory allocated, the image is not owned by us (e.g. swapchain)
   if (m_alloc != VK_NULL_HANDLE)
   {
-    g_command_buffer_mgr->DeferImageDestruction(m_image, m_alloc);
+    m_gfx->GetCmdBufferMgr()->DeferImageDestruction(m_image, m_alloc);
   }
 }
 
-std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, std::string_view name)
+std::unique_ptr<VKTexture> VKTexture::Create(VKGfx* gfx, const TextureConfig& tex_config,
+                                             std::string_view name)
 {
   // Determine image usage, we need to flag as an attachment if it can be used as a rendertarget.
   VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
@@ -96,7 +99,7 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
 
   VkImage image = VK_NULL_HANDLE;
   VmaAllocation alloc = VK_NULL_HANDLE;
-  VkResult res = vmaCreateImage(g_vulkan_context->GetMemoryAllocator(), &image_info,
+  VkResult res = vmaCreateImage(gfx->GetContext()->GetMemoryAllocator(), &image_info,
                                 &alloc_create_info, &image, &alloc, nullptr);
   if (res != VK_SUCCESS)
   {
@@ -104,19 +107,22 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
     return nullptr;
   }
 
-  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
-      tex_config, alloc, image, name, VK_IMAGE_LAYOUT_UNDEFINED, ComputeImageLayout::Undefined);
+  std::unique_ptr<VKTexture> texture =
+      std::make_unique<VKTexture>(gfx, tex_config, alloc, image, name, VK_IMAGE_LAYOUT_UNDEFINED,
+                                  ComputeImageLayout::Undefined);
   if (!texture->CreateView(VK_IMAGE_VIEW_TYPE_2D_ARRAY))
     return nullptr;
 
   return texture;
 }
 
-std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_config, VkImage image,
-                                                    VkImageViewType view_type, VkImageLayout layout)
+std::unique_ptr<VKTexture> VKTexture::CreateAdopted(VKGfx* gfx, const TextureConfig& tex_config,
+                                                    VkImage image, VkImageViewType view_type,
+                                                    VkImageLayout layout)
 {
-  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
-      tex_config, VmaAllocation(VK_NULL_HANDLE), image, "", layout, ComputeImageLayout::Undefined);
+  std::unique_ptr<VKTexture> texture =
+      std::make_unique<VKTexture>(gfx, tex_config, VmaAllocation(VK_NULL_HANDLE), image, "", layout,
+                                  ComputeImageLayout::Undefined);
   if (!texture->CreateView(view_type))
     return nullptr;
 
@@ -136,7 +142,7 @@ bool VKTexture::CreateView(VkImageViewType type)
        VK_COMPONENT_SWIZZLE_IDENTITY},
       {GetImageViewAspectForFormat(GetFormat()), 0, GetLevels(), 0, GetLayers()}};
 
-  VkResult res = vkCreateImageView(g_vulkan_context->GetDevice(), &view_info, nullptr, &m_view);
+  VkResult res = vkCreateImageView(m_gfx->GetContext()->GetDevice(), &view_info, nullptr, &m_view);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
@@ -275,20 +281,21 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
       {static_cast<uint32_t>(src_rect.GetWidth()), static_cast<uint32_t>(src_rect.GetHeight()), 1}};
 
   // Must be called outside of a render pass.
-  StateTracker::GetInstance()->EndRenderPass();
+  m_gfx->GetStateTracker()->EndRenderPass();
 
   const VkImageLayout old_src_layout = src_texture->GetLayout();
-  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  src_texture->TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-  vkCmdCopyImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_texture->m_image,
+  vkCmdCopyImage(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(), src_texture->m_image,
                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_image,
                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
 
   // Only restore the source layout. Destination is restored by FinishedRendering().
-  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_src_layout);
+  src_texture->TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
+                                  old_src_layout);
 }
 
 void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
@@ -301,11 +308,11 @@ void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
                rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
 
   // Resolving is considered to be a transfer operation.
-  StateTracker::GetInstance()->EndRenderPass();
+  m_gfx->GetStateTracker()->EndRenderPass();
   VkImageLayout old_src_layout = srcentry->m_layout;
-  srcentry->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  srcentry->TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   VkImageResolve resolve = {
@@ -315,10 +322,10 @@ void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
       {rect.left, rect.top, 0},                                                   // dstOffset
       {static_cast<u32>(rect.GetWidth()), static_cast<u32>(rect.GetHeight()), 1}  // extent
   };
-  vkCmdResolveImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), srcentry->m_image,
+  vkCmdResolveImage(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(), srcentry->m_image,
                     srcentry->m_layout, m_image, m_layout, 1, &resolve);
 
-  srcentry->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_src_layout);
+  srcentry->TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(), old_src_layout);
 }
 
 void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
@@ -344,12 +351,12 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   // When the last mip level is uploaded, we transition to SHADER_READ_ONLY, ready for use. This is
   // because we can't transition in a render pass, and we don't necessarily know when this texture
   // is going to be used.
-  TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+  TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentInitCommandBuffer(),
                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   // For unaligned textures, we can save some memory in the transfer buffer by skipping the rows
   // that lie outside of the texture's dimensions.
-  const u32 upload_alignment = static_cast<u32>(g_vulkan_context->GetBufferImageGranularity());
+  const u32 upload_alignment = static_cast<u32>(m_gfx->GetContext()->GetBufferImageGranularity());
   const u32 block_size = GetBlockSizeForFormat(GetFormat());
   const u32 num_rows = Common::AlignUp(height, block_size) / block_size;
   const u32 source_pitch = CalculateStrideForFormat(m_config.format, row_length);
@@ -361,13 +368,13 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   // Does this texture data fit within the streaming buffer?
   if (upload_size <= STAGING_TEXTURE_UPLOAD_THRESHOLD)
   {
-    StreamBuffer* stream_buffer = g_object_cache->GetTextureUploadBuffer();
+    StreamBuffer* stream_buffer = m_gfx->GetObjectCache()->GetTextureUploadBuffer();
     if (!stream_buffer->ReserveMemory(upload_size, upload_alignment))
     {
       // Execute the command buffer first.
       WARN_LOG_FMT(VIDEO,
                    "Executing command list while waiting for space in texture upload buffer");
-      VKGfx::GetInstance()->ExecuteCommandBuffer(false);
+      m_gfx->ExecuteCommandBuffer(false);
 
       // Try allocating again. This may cause a fence wait.
       if (!stream_buffer->ReserveMemory(upload_size, upload_alignment))
@@ -382,7 +389,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   else
   {
     // Create a temporary staging buffer that is destroyed after the image is copied.
-    temp_buffer = StagingBuffer::Create(STAGING_BUFFER_TYPE_UPLOAD, upload_size,
+    temp_buffer = StagingBuffer::Create(m_gfx, STAGING_BUFFER_TYPE_UPLOAD, upload_size,
                                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     if (!temp_buffer || !temp_buffer->Map())
     {
@@ -405,7 +412,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
       {0, 0, 0},                                     // VkOffset3D               imageOffset
       {width, height, 1}                             // VkExtent3D               imageExtent
   };
-  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), upload_buffer,
+  vkCmdCopyBufferToImage(m_gfx->GetCmdBufferMgr()->GetCurrentInitCommandBuffer(), upload_buffer,
                          m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
 
   // Preemptively transition to shader read only after uploading the last mip level, as we're
@@ -414,7 +421,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   // don't want to interrupt the render pass with calls which were executed ages before.
   if (level == (m_config.levels - 1) && layer == (m_config.layers - 1))
   {
-    TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+    TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentInitCommandBuffer(),
                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
 }
@@ -424,8 +431,8 @@ void VKTexture::FinishedRendering()
   if (m_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
     return;
 
-  StateTracker::GetInstance()->EndRenderPass();
-  TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_gfx->GetStateTracker()->EndRenderPass();
+  TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
@@ -682,10 +689,11 @@ void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer,
                        &barrier);
 }
 
-VKStagingTexture::VKStagingTexture(PrivateTag, StagingTextureType type, const TextureConfig& config,
+VKStagingTexture::VKStagingTexture(PrivateTag, VKGfx* gfx, StagingTextureType type,
+                                   const TextureConfig& config,
                                    std::unique_ptr<StagingBuffer> buffer, VkImage linear_image,
                                    VmaAllocation linear_image_alloc)
-    : AbstractStagingTexture(type, config), m_staging_buffer(std::move(buffer)),
+    : AbstractStagingTexture(type, config), m_gfx(gfx), m_staging_buffer(std::move(buffer)),
       m_linear_image(linear_image), m_linear_image_alloc(linear_image_alloc)
 {
 }
@@ -694,11 +702,11 @@ VKStagingTexture::~VKStagingTexture()
 {
   if (m_linear_image != VK_NULL_HANDLE)
   {
-    g_command_buffer_mgr->DeferImageDestruction(m_linear_image, m_linear_image_alloc);
+    m_gfx->GetCmdBufferMgr()->DeferImageDestruction(m_linear_image, m_linear_image_alloc);
   }
 }
 
-std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType type,
+std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(VKGfx* gfx, StagingTextureType type,
                                                            const TextureConfig& config)
 {
   size_t stride = config.GetStride();
@@ -725,7 +733,7 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
   VkBuffer buffer;
   VmaAllocation alloc;
   char* map_ptr;
-  if (!StagingBuffer::AllocateBuffer(buffer_type, buffer_size, buffer_usage, &buffer, &alloc,
+  if (!StagingBuffer::AllocateBuffer(gfx, buffer_type, buffer_size, buffer_usage, &buffer, &alloc,
                                      &map_ptr))
   {
     return nullptr;
@@ -737,13 +745,13 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
   if (DriverDetails::HasBug(DriverDetails::BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY) &&
       type == StagingTextureType::Readback && config.samples == 1)
   {
-    std::tie(linear_image, linear_image_alloc) = CreateLinearImage(type, config);
+    std::tie(linear_image, linear_image_alloc) = CreateLinearImage(gfx, type, config);
   }
 
   std::unique_ptr<StagingBuffer> staging_buffer =
-      std::make_unique<StagingBuffer>(buffer_type, buffer, alloc, buffer_size, map_ptr);
+      std::make_unique<StagingBuffer>(gfx, buffer_type, buffer, alloc, buffer_size, map_ptr);
   std::unique_ptr<VKStagingTexture> staging_tex = std::make_unique<VKStagingTexture>(
-      PrivateTag{}, type, config, std::move(staging_buffer), linear_image, linear_image_alloc);
+      PrivateTag{}, gfx, type, config, std::move(staging_buffer), linear_image, linear_image_alloc);
 
   // Use persistent mapping.
   if (!staging_tex->m_staging_buffer->Map())
@@ -753,7 +761,8 @@ std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType ty
   return staging_tex;
 }
 
-std::pair<VkImage, VmaAllocation> VKStagingTexture::CreateLinearImage(StagingTextureType type,
+std::pair<VkImage, VmaAllocation> VKStagingTexture::CreateLinearImage(VKGfx* gfx,
+                                                                      StagingTextureType type,
                                                                       const TextureConfig& config)
 {
   // Create a intermediate texture with linear tiling
@@ -775,7 +784,7 @@ std::pair<VkImage, VmaAllocation> VKStagingTexture::CreateLinearImage(StagingTex
 
   VkImageFormatProperties format_properties;
   VkResult res = vkGetPhysicalDeviceImageFormatProperties(
-      g_vulkan_context->GetPhysicalDevice(), image_info.format, image_info.imageType,
+      gfx->GetContext()->GetPhysicalDevice(), image_info.format, image_info.imageType,
       image_info.tiling, image_info.usage, image_info.flags, &format_properties);
   if (res != VK_SUCCESS)
   {
@@ -794,7 +803,7 @@ std::pair<VkImage, VmaAllocation> VKStagingTexture::CreateLinearImage(StagingTex
 
   VkImage image;
   VmaAllocation alloc;
-  res = vmaCreateImage(g_vulkan_context->GetMemoryAllocator(), &image_info, &alloc_create_info,
+  res = vmaCreateImage(gfx->GetContext()->GetMemoryAllocator(), &image_info, &alloc_create_info,
                        &image, &alloc, nullptr);
   if (res != VK_SUCCESS)
   {
@@ -817,10 +826,10 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
   ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
          dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
 
-  StateTracker::GetInstance()->EndRenderPass();
+  m_gfx->GetStateTracker()->EndRenderPass();
 
   VkImageLayout old_layout = src_tex->GetLayout();
-  src_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  src_tex->TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
   // Issue the image->buffer copy, but delay it for now.
@@ -844,15 +853,15 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
     image_copy.imageOffset = {0, 0, 0};
   }
 
-  vkCmdCopyImageToBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_image,
+  vkCmdCopyImageToBuffer(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(), src_image,
                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_staging_buffer->GetBuffer(), 1,
                          &image_copy);
 
   // Restore old source texture layout.
-  src_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_layout);
+  src_tex->TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(), old_layout);
 
   m_needs_flush = true;
-  m_flush_fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+  m_flush_fence_counter = m_gfx->GetCmdBufferMgr()->GetCurrentFenceCounter();
 }
 
 void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
@@ -875,7 +884,7 @@ void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
   linear_image_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
   linear_image_barrier.image = m_linear_image;
   linear_image_barrier.subresourceRange = {aspect, 0, 1, 0, 1};
-  vkCmdPipelineBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  vkCmdPipelineBarrier(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
                        nullptr, 0, nullptr, 1, &linear_image_barrier);
 
@@ -891,7 +900,7 @@ void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
   blit.dstOffsets[0] = {0, 0, 0};
   blit.dstOffsets[1] = {dst_rect.GetWidth(), dst_rect.GetHeight(), 1u};
 
-  vkCmdBlitImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_tex->GetImage(),
+  vkCmdBlitImage(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(), src_tex->GetImage(),
                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_linear_image,
                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_NEAREST);
 
@@ -899,7 +908,7 @@ void VKStagingTexture::CopyFromTextureToLinearImage(const VKTexture* src_tex,
   linear_image_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
   linear_image_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 
-  vkCmdPipelineBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  vkCmdPipelineBarrier(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
                        nullptr, 0, nullptr, 1, &linear_image_barrier);
 }
@@ -919,10 +928,10 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
 
   // Flush caches before copying.
   m_staging_buffer->FlushCPUCache();
-  StateTracker::GetInstance()->EndRenderPass();
+  m_gfx->GetStateTracker()->EndRenderPass();
 
   VkImageLayout old_layout = dst_tex->GetLayout();
-  dst_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  dst_tex->TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   // Issue the image->buffer copy, but delay it for now.
@@ -936,15 +945,15 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   image_copy.imageOffset = {dst_rect.left, dst_rect.top, 0};
   image_copy.imageExtent = {static_cast<u32>(dst_rect.GetWidth()),
                             static_cast<u32>(dst_rect.GetHeight()), 1u};
-  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  vkCmdCopyBufferToImage(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                          m_staging_buffer->GetBuffer(), dst_tex->GetImage(),
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
 
   // Restore old source texture layout.
-  dst_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_layout);
+  dst_tex->TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(), old_layout);
 
   m_needs_flush = true;
-  m_flush_fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+  m_flush_fence_counter = m_gfx->GetCmdBufferMgr()->GetCurrentFenceCounter();
 }
 
 bool VKStagingTexture::Map()
@@ -964,15 +973,15 @@ void VKStagingTexture::Flush()
     return;
 
   // Is this copy in the current command buffer?
-  if (g_command_buffer_mgr->GetCurrentFenceCounter() == m_flush_fence_counter)
+  if (m_gfx->GetCmdBufferMgr()->GetCurrentFenceCounter() == m_flush_fence_counter)
   {
     // Execute the command buffer and wait for it to finish.
-    VKGfx::GetInstance()->ExecuteCommandBuffer(false, true);
+    m_gfx->ExecuteCommandBuffer(false, true);
   }
   else
   {
     // Wait for the GPU to finish with it.
-    g_command_buffer_mgr->WaitForFenceCounter(m_flush_fence_counter);
+    m_gfx->GetCmdBufferMgr()->WaitForFenceCounter(m_flush_fence_counter);
   }
 
   // For readback textures, invalidate the CPU cache as there is new data there.
@@ -982,8 +991,8 @@ void VKStagingTexture::Flush()
   m_needs_flush = false;
 }
 
-VKFramebuffer::VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attachment, u32 width,
-                             u32 height, u32 layers, u32 samples, VkFramebuffer fb,
+VKFramebuffer::VKFramebuffer(VKGfx* gfx, VKTexture* color_attachment, VKTexture* depth_attachment,
+                             u32 width, u32 height, u32 layers, u32 samples, VkFramebuffer fb,
                              VkRenderPass load_render_pass, VkRenderPass discard_render_pass,
                              VkRenderPass clear_render_pass)
     : AbstractFramebuffer(
@@ -991,17 +1000,17 @@ VKFramebuffer::VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attac
           color_attachment ? color_attachment->GetFormat() : AbstractTextureFormat::Undefined,
           depth_attachment ? depth_attachment->GetFormat() : AbstractTextureFormat::Undefined,
           width, height, layers, samples),
-      m_fb(fb), m_load_render_pass(load_render_pass), m_discard_render_pass(discard_render_pass),
-      m_clear_render_pass(clear_render_pass)
+      m_gfx(gfx), m_fb(fb), m_load_render_pass(load_render_pass),
+      m_discard_render_pass(discard_render_pass), m_clear_render_pass(clear_render_pass)
 {
 }
 
 VKFramebuffer::~VKFramebuffer()
 {
-  g_command_buffer_mgr->DeferFramebufferDestruction(m_fb);
+  m_gfx->GetCmdBufferMgr()->DeferFramebufferDestruction(m_fb);
 }
 
-std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(VKTexture* color_attachment,
+std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(VKGfx* gfx, VKTexture* color_attachment,
                                                      VKTexture* depth_attachment)
 {
   if (!ValidateConfig(color_attachment, depth_attachment))
@@ -1026,11 +1035,11 @@ std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(VKTexture* color_attachment
   if (depth_attachment)
     attachment_views[num_attachments++] = depth_attachment->GetView();
 
-  VkRenderPass load_render_pass = g_object_cache->GetRenderPass(
+  VkRenderPass load_render_pass = gfx->GetObjectCache()->GetRenderPass(
       vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_LOAD);
-  VkRenderPass discard_render_pass = g_object_cache->GetRenderPass(
+  VkRenderPass discard_render_pass = gfx->GetObjectCache()->GetRenderPass(
       vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
-  VkRenderPass clear_render_pass = g_object_cache->GetRenderPass(
+  VkRenderPass clear_render_pass = gfx->GetObjectCache()->GetRenderPass(
       vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_CLEAR);
   if (load_render_pass == VK_NULL_HANDLE || discard_render_pass == VK_NULL_HANDLE ||
       clear_render_pass == VK_NULL_HANDLE)
@@ -1050,15 +1059,15 @@ std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(VKTexture* color_attachment
 
   VkFramebuffer fb;
   VkResult res =
-      vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr, &fb);
+      vkCreateFramebuffer(gfx->GetContext()->GetDevice(), &framebuffer_info, nullptr, &fb);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
     return nullptr;
   }
 
-  return std::make_unique<VKFramebuffer>(color_attachment, depth_attachment, width, height, layers,
-                                         samples, fb, load_render_pass, discard_render_pass,
+  return std::make_unique<VKFramebuffer>(gfx, color_attachment, depth_attachment, width, height,
+                                         layers, samples, fb, load_render_pass, discard_render_pass,
                                          clear_render_pass);
 }
 
@@ -1067,14 +1076,14 @@ void VKFramebuffer::TransitionForRender()
   if (m_color_attachment)
   {
     static_cast<VKTexture*>(m_color_attachment)
-        ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+        ->TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
   }
 
   if (m_depth_attachment)
   {
     static_cast<VKTexture*>(m_depth_attachment)
-        ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+        ->TransitionToLayout(m_gfx->GetCmdBufferMgr()->GetCurrentCommandBuffer(),
                              VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
   }
 }

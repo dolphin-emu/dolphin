@@ -721,7 +721,7 @@ static NSRange RangeOfBits(u32 value)
   return NSMakeRange(low, high + 1 - low);
 }
 
-void Metal::StateTracker::PrepareRender()
+void Metal::StateTracker::PrepareRender(const BackendInfo& backend_info)
 {
   // BeginRenderPass needs this
   if (m_state.perf_query_group != static_cast<PerfQueryGroup>(-1) && !m_current_perf_query)
@@ -755,9 +755,8 @@ void Metal::StateTracker::PrepareRender()
       m_current.depth_stencil = pipe->DepthStencil();
       [enc setDepthStencilState:g_object_cache->GetDepthStencil(m_current.depth_stencil)];
     }
-    MTLDepthClipMode clip = is_gx && g_ActiveConfig.backend_info.bSupportsDepthClamp ?
-                                MTLDepthClipModeClamp :
-                                MTLDepthClipModeClip;
+    MTLDepthClipMode clip =
+        is_gx && backend_info.bSupportsDepthClamp ? MTLDepthClipModeClamp : MTLDepthClipModeClip;
     if (clip != m_current.depth_clip_mode)
     {
       m_current.depth_clip_mode = clip;
@@ -926,21 +925,22 @@ void Metal::StateTracker::PrepareCompute()
   }
 }
 
-void Metal::StateTracker::Draw(u32 base_vertex, u32 num_vertices)
+void Metal::StateTracker::Draw(u32 base_vertex, u32 num_vertices, const BackendInfo& backend_info)
 {
   if (!num_vertices)
     return;
-  PrepareRender();
+  PrepareRender(backend_info);
   [m_current_render_encoder drawPrimitives:m_state.render_pipeline->Prim()
                                vertexStart:base_vertex
                                vertexCount:num_vertices];
 }
 
-void Metal::StateTracker::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+void Metal::StateTracker::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex,
+                                      const BackendInfo& backend_info)
 {
   if (!num_indices)  // Happens in Metroid Prime, Metal API validation doesn't like this
     return;
-  PrepareRender();
+  PrepareRender(backend_info);
   [m_current_render_encoder drawIndexedPrimitives:m_state.render_pipeline->Prim()
                                        indexCount:num_indices
                                         indexType:MTLIndexTypeUInt16

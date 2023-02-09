@@ -5,6 +5,7 @@
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
@@ -27,22 +28,23 @@ static GLenum GetGLShaderTypeForStage(ShaderStage stage)
 }
 
 OGLShader::OGLShader(ShaderStage stage, GLenum gl_type, GLuint gl_id, std::string source,
-                     std::string name)
+                     std::string name, const BackendInfo& backend_info)
     : AbstractShader(stage), m_id(ProgramShaderCache::GenerateShaderID()), m_type(gl_type),
       m_gl_id(gl_id), m_source(std::move(source)), m_name(std::move(name))
 {
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && backend_info.bSupportsSettingObjectNames)
   {
     glObjectLabel(GL_SHADER, m_gl_id, (GLsizei)m_name.size(), m_name.c_str());
   }
 }
 
-OGLShader::OGLShader(GLuint gl_compute_program_id, std::string source, std::string name)
+OGLShader::OGLShader(GLuint gl_compute_program_id, std::string source, std::string name,
+                     const BackendInfo& backend_info)
     : AbstractShader(ShaderStage::Compute), m_id(ProgramShaderCache::GenerateShaderID()),
       m_type(GL_COMPUTE_SHADER), m_gl_compute_program_id(gl_compute_program_id),
       m_source(std::move(source)), m_name(std::move(name))
 {
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && backend_info.bSupportsSettingObjectNames)
   {
     glObjectLabel(GL_PROGRAM, m_gl_compute_program_id, (GLsizei)m_name.size(), m_name.c_str());
   }
@@ -57,7 +59,8 @@ OGLShader::~OGLShader()
 }
 
 std::unique_ptr<OGLShader> OGLShader::CreateFromSource(ShaderStage stage, std::string_view source,
-                                                       std::string_view name)
+                                                       std::string_view name,
+                                                       const BackendInfo& backend_info)
 {
   std::string source_str(source);
   std::string name_str(name);
@@ -69,14 +72,15 @@ std::unique_ptr<OGLShader> OGLShader::CreateFromSource(ShaderStage stage, std::s
       return nullptr;
 
     return std::make_unique<OGLShader>(stage, shader_type, shader_id, std::move(source_str),
-                                       std::move(name_str));
+                                       std::move(name_str), backend_info);
   }
 
   // Compute shaders.
   SHADER prog;
-  if (!ProgramShaderCache::CompileComputeShader(prog, source_str))
+  if (!ProgramShaderCache::CompileComputeShader(backend_info, prog, source_str))
     return nullptr;
-  return std::make_unique<OGLShader>(prog.glprogid, std::move(source_str), std::move(name_str));
+  return std::make_unique<OGLShader>(prog.glprogid, std::move(source_str), std::move(name_str),
+                                     backend_info);
 }
 
 }  // namespace OGL

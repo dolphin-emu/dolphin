@@ -9,24 +9,26 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/DriverDetails.h"
 
 namespace Vulkan
 {
-VKPipeline::VKPipeline(VkPipeline pipeline, VkPipelineLayout pipeline_layout,
+VKPipeline::VKPipeline(VKGfx* gfx, VkPipeline pipeline, VkPipelineLayout pipeline_layout,
                        AbstractPipelineUsage usage)
-    : m_pipeline(pipeline), m_pipeline_layout(pipeline_layout), m_usage(usage)
+    : m_gfx(gfx), m_pipeline(pipeline), m_pipeline_layout(pipeline_layout), m_usage(usage)
 {
 }
 
 VKPipeline::~VKPipeline()
 {
-  vkDestroyPipeline(g_vulkan_context->GetDevice(), m_pipeline, nullptr);
+  vkDestroyPipeline(m_gfx->GetContext()->GetDevice(), m_pipeline, nullptr);
 }
 
 static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
@@ -38,13 +40,13 @@ static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
 }
 
 static VkPipelineRasterizationStateCreateInfo
-GetVulkanRasterizationState(const RasterizationState& state)
+GetVulkanRasterizationState(const RasterizationState& state, const BackendInfo& backend_info)
 {
   static constexpr std::array<VkCullModeFlags, 4> cull_modes = {
       {VK_CULL_MODE_NONE, VK_CULL_MODE_BACK_BIT, VK_CULL_MODE_FRONT_BIT,
        VK_CULL_MODE_FRONT_AND_BACK}};
 
-  bool depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
+  bool depth_clamp = backend_info.bSupportsDepthClamp;
 
   return {
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,  // VkStructureType sType
@@ -79,11 +81,12 @@ static VkPipelineMultisampleStateCreateInfo GetVulkanMultisampleState(const Fram
   };
 }
 
-static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const DepthState& state)
+static VkPipelineDepthStencilStateCreateInfo
+GetVulkanDepthStencilState(const DepthState& state, const BackendInfo& backend_info)
 {
   // Less/greater are swapped due to inverted depth.
   VkCompareOp compare_op;
-  bool inverted_depth = !g_ActiveConfig.backend_info.bSupportsReversedDepthRange;
+  bool inverted_depth = !backend_info.bSupportsReversedDepthRange;
   switch (state.func)
   {
   case CompareMode::Never:
@@ -200,7 +203,7 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
 static VkPipelineColorBlendStateCreateInfo
 GetVulkanColorBlendState(const BlendingState& state,
                          const VkPipelineColorBlendAttachmentState* attachments,
-                         uint32_t num_attachments)
+                         uint32_t num_attachments, const BackendInfo& backend_info)
 {
   static constexpr std::array<VkLogicOp, 16> vk_logic_ops = {
       {VK_LOGIC_OP_CLEAR, VK_LOGIC_OP_AND, VK_LOGIC_OP_AND_REVERSE, VK_LOGIC_OP_COPY,
@@ -209,7 +212,7 @@ GetVulkanColorBlendState(const BlendingState& state,
        VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED, VK_LOGIC_OP_NAND, VK_LOGIC_OP_SET}};
 
   VkBool32 vk_logic_op_enable = static_cast<VkBool32>(state.logicopenable);
-  if (vk_logic_op_enable && !g_ActiveConfig.backend_info.bSupportsLogicOp)
+  if (vk_logic_op_enable && !backend_info.bSupportsLogicOp)
   {
     // At the time of writing, Adreno and Mali drivers didn't support logic ops.
     // The "emulation" through blending path has been removed, so just disable it completely.
@@ -234,12 +237,15 @@ GetVulkanColorBlendState(const BlendingState& state,
   return vk_state;
 }
 
-std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& config)
+std::unique_ptr<VKPipeline> VKPipeline::Create(VKGfx* gfx, const AbstractPipelineConfig& config)
 {
   DEBUG_ASSERT(config.vertex_shader && config.pixel_shader);
 
+  ObjectCache* object_cache = gfx->GetObjectCache();
+  auto backend_info = gfx->GetBackendInfo();
+
   // Get render pass for config.
-  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+  VkRenderPass render_pass = object_cache->GetRenderPass(
       VKTexture::GetVkFormatForHostTextureFormat(config.framebuffer_state.color_texture_format),
       VKTexture::GetVkFormatForHostTextureFormat(config.framebuffer_state.depth_texture_format),
       config.framebuffer_state.samples, VK_ATTACHMENT_LOAD_OP_LOAD);
@@ -249,13 +255,13 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   switch (config.usage)
   {
   case AbstractPipelineUsage::GX:
-    pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
+    pipeline_layout = object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
     break;
   case AbstractPipelineUsage::GXUber:
-    pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UBER);
+    pipeline_layout = object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UBER);
     break;
   case AbstractPipelineUsage::Utility:
-    pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
+    pipeline_layout = object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
     break;
   default:
     PanicAlertFmt("Unknown pipeline layout.");
@@ -293,7 +299,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
   // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY or VK_PRIMITIVE_TOPOLOGY_PATCH_LIST,
   // primitiveRestartEnable must be VK_FALSE
-  if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart &&
+  if (backend_info.bSupportsPrimitiveRestart &&
       IsStripPrimitiveTopology(input_assembly_state.topology))
   {
     input_assembly_state.primitiveRestartEnable = VK_TRUE;
@@ -335,15 +341,15 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
 
   // Fill in Vulkan descriptor structs from our state structures.
   VkPipelineRasterizationStateCreateInfo rasterization_state =
-      GetVulkanRasterizationState(config.rasterization_state);
+      GetVulkanRasterizationState(config.rasterization_state, backend_info);
   VkPipelineMultisampleStateCreateInfo multisample_state =
       GetVulkanMultisampleState(config.framebuffer_state);
   VkPipelineDepthStencilStateCreateInfo depth_stencil_state =
-      GetVulkanDepthStencilState(config.depth_state);
+      GetVulkanDepthStencilState(config.depth_state, backend_info);
   VkPipelineColorBlendAttachmentState blend_attachment_state =
       GetVulkanAttachmentBlendState(config.blending_state, config.usage);
   VkPipelineColorBlendStateCreateInfo blend_state =
-      GetVulkanColorBlendState(config.blending_state, &blend_attachment_state, 1);
+      GetVulkanColorBlendState(config.blending_state, &blend_attachment_state, 1, backend_info);
 
   // This viewport isn't used, but needs to be specified anyway.
   static const VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
@@ -395,14 +401,14 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
 
   VkPipeline pipeline;
   VkResult res =
-      vkCreateGraphicsPipelines(g_vulkan_context->GetDevice(), g_object_cache->GetPipelineCache(),
-                                1, &pipeline_info, nullptr, &pipeline);
+      vkCreateGraphicsPipelines(gfx->GetContext()->GetDevice(), object_cache->GetPipelineCache(), 1,
+                                &pipeline_info, nullptr, &pipeline);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateGraphicsPipelines failed: ");
     return VK_NULL_HANDLE;
   }
 
-  return std::make_unique<VKPipeline>(pipeline, pipeline_layout, config.usage);
+  return std::make_unique<VKPipeline>(gfx, pipeline, pipeline_layout, config.usage);
 }
 }  // namespace Vulkan

@@ -10,12 +10,16 @@ namespace Null
 class VideoBackend final : public VideoBackendBase
 {
 public:
-  bool Initialize(const WindowSystemInfo& wsi) override;
-  void Shutdown() override;
-
   std::string GetName() const override { return NAME; }
   std::string GetDisplayName() const override;
   void InitBackendInfo() override;
+
+  std::unique_ptr<AbstractGfx> CreateGfx() override;
+  std::unique_ptr<VertexManagerBase> CreateVertexManager(AbstractGfx* gfx) override;
+  std::unique_ptr<PerfQueryBase> CreatePerfQuery(AbstractGfx* gfx) override;
+  std::unique_ptr<BoundingBox> CreateBoundingBox(AbstractGfx* gfx) override;
+  std::unique_ptr<Renderer> CreateRenderer(AbstractGfx* gfx) override;
+  std::unique_ptr<TextureCacheBase> CreateTextureCache(AbstractGfx* gfx) override;
 
   static constexpr const char* NAME = "Null";
 };

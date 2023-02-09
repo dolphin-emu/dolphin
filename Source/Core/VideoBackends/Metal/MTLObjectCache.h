@@ -10,6 +10,7 @@
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 struct AbstractPipelineConfig;
 class AbstractPipeline;
@@ -71,12 +72,12 @@ struct SamplerSelector
 
 class ObjectCache
 {
-  ObjectCache();
+  ObjectCache(const BackendInfo& backend_info);
 
 public:
   ~ObjectCache();
 
-  static void Initialize(MRCOwned<id<MTLDevice>> device);
+  static void Initialize(MRCOwned<id<MTLDevice>> device, const BackendInfo& backend_info);
   static void Shutdown();
 
   id<MTLDepthStencilState> GetDepthStencil(DepthStencilSelector sel) { return m_dss[sel.value]; }

@@ -25,13 +25,14 @@ public:
   SwapChain(const WindowSystemInfo& wsi, IDXGIFactory* dxgi_factory, ID3D11Device* d3d_device);
   ~SwapChain();
 
-  static std::unique_ptr<SwapChain> Create(const WindowSystemInfo& wsi);
+  static std::unique_ptr<SwapChain> Create(const WindowSystemInfo& wsi,
+                                           const BackendInfo& backend_info);
 
   DXTexture* GetTexture() const { return m_texture.get(); }
   DXFramebuffer* GetFramebuffer() const { return m_framebuffer.get(); }
 
 protected:
-  bool CreateSwapChainBuffers() override;
+  bool CreateSwapChainBuffers(const BackendInfo& backend_info) override;
   void DestroySwapChainBuffers() override;
 
 private:
