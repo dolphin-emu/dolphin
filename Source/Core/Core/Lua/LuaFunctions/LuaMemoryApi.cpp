@@ -1,19 +1,20 @@
-#include "LuaMemoryApi.h"
-#include "../LuaVersionResolver.h"
-#include "../LuaHelperClasses/NumberType.h"
 #include <optional>
+
+#include "LuaMemoryApi.h"
+#include "Core/Lua/LuaVersionResolver.h"
+#include "Core/Lua/LuaHelperClasses/NumberType.h"
 #include "Core/PowerPC/mmu.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
-namespace Lua
+namespace Lua::LuaMemoryApi
 {
-namespace LuaMemoryApi
-{
+
+MEMORY* instance = nullptr;
 
 MEMORY* GetInstance()
 {
-  if (instance == NULL)
+  if (instance == nullptr)
     instance = new MEMORY();
   return instance;
 }
@@ -40,7 +41,7 @@ void InitLuaMemoryApi(lua_State* luaState, const std::string& luaApiVersion)
       luaL_Reg_With_Version({"writeBytes", "1.0", do_write_bytes}),
       luaL_Reg_With_Version({"writeString", "1.0", do_write_string})};
 
-  std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
+  std::unordered_map<std::string, std::string> deprecatedFunctionsMap;
   addLatestFunctionsForVersion(luaMemoryFunctionsListWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
   lua_setglobal(luaState, "memory");
 }
@@ -535,4 +536,3 @@ int do_write_string(lua_State* luaState)
 }
 
 }  // namespace LuaMemoryApi
-}  // namespace Lua

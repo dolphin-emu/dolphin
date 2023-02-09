@@ -1,4 +1,5 @@
 #include "LuaVersionComparisonFunctions.h"
+
 namespace Lua
 {
 // This helper function returns -1 if firstVersion < secondVersion, 0 if firstVersion ==

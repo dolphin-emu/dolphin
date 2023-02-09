@@ -12,13 +12,13 @@
 namespace Lua
 {
 std::string GLOBAL_LUA_API_VERSION_VARIABLE = "1.0.0";
-lua_State* mainLuaState = NULL;
-lua_State* mainLuaThreadState = NULL;
+lua_State* mainLuaState = nullptr;
+lua_State* mainLuaThreadState = nullptr;
 bool luaScriptActive = false;
-int* x = NULL;
+int* x = nullptr;
 bool luaInitialized = false;
-std::function<void(const std::string&)>* printCallbackFunction = NULL;
-std::function<void()>* scriptEndCallbackFunction = NULL;
+std::function<void(const std::string&)>* printCallbackFunction = nullptr;
+std::function<void()>* scriptEndCallbackFunction = nullptr;
 
 int custom_print_function(lua_State* luaState)
 {
@@ -127,7 +127,7 @@ void Init(const std::string& scriptLocation,
     (*printCallbackFunction)(tempString);
     (*scriptEndCallbackFunction)();
   }
-  int retVal = lua_resume(Lua::mainLuaThreadState, NULL, 0, Lua::x);
+  int retVal = lua_resume(Lua::mainLuaThreadState, nullptr, 0, Lua::x);
   if (retVal != LUA_YIELD)
   {
     if (retVal == 2)

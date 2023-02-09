@@ -1,14 +1,9 @@
 #pragma once
 #include <string>
-#include "src/lua.hpp"
-#include "src/lua.h"
-#include "src/luaconf.h"
-#include "src/lapi.h"
-#include "../LuaHelperClasses/LuaColonCheck.h"
+#include <lua.hpp>
+#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 
-namespace Lua
-{
-namespace LuaBit
+namespace Lua::LuaBit
 {
 
 void InitLuaBitFunctions(lua_State* luaState, const std::string& luaApiVersion);
@@ -22,5 +17,5 @@ int logical_xor(lua_State* luaState);
 int logical_not(lua_State* luaState);
 int bit_shift_left(lua_State* luaState);
 int bit_shift_right(lua_State* luaState);
-}
+
 }

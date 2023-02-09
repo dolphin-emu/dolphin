@@ -1,22 +1,21 @@
 #include "LuaBitFunctions.h"
-#include "../LuaVersionResolver.h"
-#include "common/CommonTypes.h"
+#include "Core/Lua/LuaVersionResolver.h"
+#include "Common/CommonTypes.h"
 
-namespace Lua
+namespace Lua::LuaBit
 {
-namespace LuaBit
-{
+
 class BitClass
 {
 public:
   BitClass() {}
 };
 
-BitClass* bitInstance;
+BitClass* bitInstance = nullptr;
 
 BitClass* GetBitInstance()
 {
-  if (bitInstance == NULL)
+  if (bitInstance == nullptr)
     bitInstance = new BitClass();
   return bitInstance;
 }
@@ -42,7 +41,7 @@ BitClass* GetBitInstance()
       luaL_Reg_With_Version({"bit_shift_right", "1.0", bit_shift_right})
     };
 
-    std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
+    std::unordered_map<std::string, std::string> deprecatedFunctionsMap;
     addLatestFunctionsForVersion(luaBitFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
     lua_setglobal(luaState, "bit");
   }
@@ -138,6 +137,5 @@ int bit_shift_right(lua_State* luaState)
     luaL_error(luaState, "Error: in bit:bit_shift_right() function, an argument passed into the function was negative. Both arguments to the function must be positive!");
   lua_pushinteger(luaState, static_cast<s64>(static_cast<u64>(firstVal) >> static_cast<u64>(secondVal)));
   return 1;
-}
 }
 }

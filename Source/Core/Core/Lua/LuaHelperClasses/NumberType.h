@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <common/CommonTypes.h>
+#include <Common/CommonTypes.h>
 
 enum class NumberType
 {

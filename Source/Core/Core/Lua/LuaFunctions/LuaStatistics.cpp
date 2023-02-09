@@ -1,9 +1,7 @@
 #include "LuaStatistics.h"
-#include "../LuaVersionResolver.h"
+#include "Core/Lua/LuaVersionResolver.h"
 
-namespace Lua
-{
-namespace LuaStatistics
+namespace Lua::LuaStatistics
 {
 
 class Lua_Statistics
@@ -12,11 +10,11 @@ public:
   inline Lua_Statistics(){};
 };
 
-Lua_Statistics* lua_statistics_pointer;
+Lua_Statistics* lua_statistics_pointer = nullptr;
 
 Lua_Statistics* getStatisticsInstance()
 {
-  if (lua_statistics_pointer == NULL)
+  if (lua_statistics_pointer == nullptr)
     lua_statistics_pointer = new Lua_Statistics();
   return lua_statistics_pointer;
 }
@@ -45,7 +43,7 @@ void InitLuaStatisticsFunctions(lua_State* luaState, const std::string& luaApiVe
     luaL_Reg_With_Version({"isUsingPort", "1.0", isUsingPort})
   };
 
-  std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
+  std::unordered_map<std::string, std::string> deprecatedFunctionsMap;
   addLatestFunctionsForVersion(luaStatisticsFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
   lua_setglobal(luaState, "statistics");
 }
@@ -147,5 +145,4 @@ int isUsingPort(lua_State* luaState)
   return 1;
 }
 
-}
 }

@@ -24,13 +24,14 @@ public:
   }
 
   bool eventHappened;
-  GC_BUTTON_NAME buttonEffected;
+  GcButtonName buttonEffected;
 };
 
 class LuaGCButtonFlipProbabilityEvent : public LuaGameCubeButtonProbabilityEvent
 {
 public:
-  LuaGCButtonFlipProbabilityEvent(double probability, GC_BUTTON_NAME newButtonEffected) {
+  LuaGCButtonFlipProbabilityEvent(double probability, GcButtonName newButtonEffected)
+  {
     buttonEffected = newButtonEffected;
     checkIfEventHappened(probability);
   }
@@ -42,43 +43,43 @@ public:
 
     switch (buttonEffected)
     {
-    case A:
+    case GcButtonName::A:
       controllerState.A = !controllerState.A;
       return;
-    case B:
+    case GcButtonName::B:
       controllerState.B = !controllerState.B;
       return;
-    case X:
+    case GcButtonName::X:
       controllerState.X = !controllerState.X;
       return;
-    case Y:
+    case GcButtonName::Y:
       controllerState.Y = !controllerState.Y;
       return;
-    case Z:
+    case GcButtonName::Z:
       controllerState.Z = !controllerState.Z;
       return;
-    case L:
+    case GcButtonName::L:
       controllerState.L = !controllerState.L;
       return;
-    case R:
+    case GcButtonName::R:
       controllerState.R = !controllerState.R;
       return;
-    case dPadUp:
+    case GcButtonName::DPadUp:
       controllerState.DPadUp = !controllerState.DPadUp;
       return;
-    case dPadDown:
+    case GcButtonName::DPadDown:
       controllerState.DPadDown = !controllerState.DPadDown;
       return;
-    case dPadLeft:
+    case GcButtonName::DPadLeft:
       controllerState.DPadLeft = !controllerState.DPadLeft;
       return;
-    case dPadRight:
+    case GcButtonName::DPadRight:
       controllerState.DPadRight = !controllerState.DPadRight;
       return;
-    case START:
+    case GcButtonName::Start:
       controllerState.Start = !controllerState.Start;
       return;
-    case RESET:
+    case GcButtonName::Reset:
       controllerState.reset = !controllerState.reset;
       return;
     default:
@@ -90,7 +91,8 @@ public:
 class LuaGCButtonReleaseEvent : public LuaGameCubeButtonProbabilityEvent
 {
 public:
-  LuaGCButtonReleaseEvent(double probability, GC_BUTTON_NAME newButtonName) {
+  LuaGCButtonReleaseEvent(double probability, GcButtonName newButtonName)
+  {
     buttonEffected = newButtonName;
     checkIfEventHappened(probability);
   }
@@ -102,43 +104,43 @@ public:
 
     switch (buttonEffected)
     {
-    case A:
+    case GcButtonName::A:
       controllerState.A = false;
       return;
-    case B:
+    case GcButtonName::B:
       controllerState.B = false;
       return;
-    case X:
+    case GcButtonName::X:
       controllerState.X = false;
       return;
-    case Y:
+    case GcButtonName::Y:
       controllerState.Y = false;
       return;
-    case Z:
+    case GcButtonName::Z:
       controllerState.Z = false;
       return;
-    case L:
+    case GcButtonName::L:
       controllerState.L = false;
       return;
-    case R:
+    case GcButtonName::R:
       controllerState.R = false;
       return;
-    case dPadUp:
+    case GcButtonName::DPadUp:
       controllerState.DPadUp = false;
       return;
-    case dPadDown:
+    case GcButtonName::DPadDown:
       controllerState.DPadDown = false;
       return;
-    case dPadLeft:
+    case GcButtonName::DPadLeft:
       controllerState.DPadLeft = false;
       return;
-    case dPadRight:
+    case GcButtonName::DPadRight:
       controllerState.DPadRight = false;
       return;
-    case START:
+    case GcButtonName::Start:
       controllerState.Start = false;
       return;
-    case RESET:
+    case GcButtonName::Reset:
       controllerState.reset = false;
       return;
     default:
@@ -151,7 +153,7 @@ public:
 class LuaGCButtonPressEvent : public LuaGameCubeButtonProbabilityEvent
 {
 public:
-  LuaGCButtonPressEvent(double probability, GC_BUTTON_NAME newButton)
+  LuaGCButtonPressEvent(double probability, GcButtonName newButton)
   {
     buttonEffected = newButton;
     checkIfEventHappened(probability);
@@ -164,43 +166,43 @@ public:
 
     switch (buttonEffected)
     {
-    case A:
+    case GcButtonName::A:
       controllerState.A = true;
       return;
-    case B:
+    case GcButtonName::B:
       controllerState.B = true;
       return;
-    case X:
+    case GcButtonName::X:
       controllerState.X = true;
       return;
-    case Y:
+    case GcButtonName::Y:
       controllerState.Y = true;
       return;
-    case Z:
+    case GcButtonName::Z:
       controllerState.Z = true;
       return;
-    case L:
+    case GcButtonName::L:
       controllerState.L = true;
       return;
-    case R:
+    case GcButtonName::R:
       controllerState.R = true;
       return;
-    case dPadUp:
+    case GcButtonName::DPadUp:
       controllerState.DPadUp = true;
       return;
-    case dPadDown:
+    case GcButtonName::DPadDown:
       controllerState.DPadDown = true;
       return;
-    case dPadLeft:
+    case GcButtonName::DPadLeft:
       controllerState.DPadLeft = true;
       return;
-    case dPadRight:
+    case GcButtonName::DPadRight:
       controllerState.DPadRight = true;
       return;
-    case START:
+    case GcButtonName::Start:
       controllerState.Start = true;
       return;
-    case RESET:
+    case GcButtonName::Reset:
       controllerState.reset = true;
       return;
     default:
@@ -214,7 +216,8 @@ class LuaGCAlterAnalogInputFromCurrentValue : public LuaGameCubeButtonProbabilit
 
 public:
 
-  LuaGCAlterAnalogInputFromCurrentValue(double probability, GC_BUTTON_NAME newButtonName, u32 newMaxLowerDifference, u32 newMaxUpperDifference)
+  LuaGCAlterAnalogInputFromCurrentValue(double probability, GcButtonName newButtonName,
+                                        u32 newMaxLowerDifference, u32 newMaxUpperDifference)
   {
     buttonEffected = newButtonName;
     maxLowerDifference = newMaxLowerDifference;
@@ -229,22 +232,22 @@ public:
 
     switch (buttonEffected)
     {
-    case analogStickX:
+    case GcButtonName::AnalogStickX:
       controllerState.AnalogStickX = getNewValue(controllerState.AnalogStickX);
       return;
-    case analogStickY:
+    case GcButtonName::AnalogStickY:
       controllerState.AnalogStickY = getNewValue(controllerState.AnalogStickY);
       return;
-    case cStickX:
+    case GcButtonName::CStickX:
       controllerState.CStickX = getNewValue(controllerState.CStickX);
       return;
-    case cStickY:
+    case GcButtonName::CStickY:
       controllerState.CStickY = getNewValue(controllerState.CStickY);
       return;
-    case triggerL:
+    case GcButtonName::TriggerL:
       controllerState.TriggerL = getNewValue(controllerState.TriggerL);
       return;
-    case triggerR:
+    case GcButtonName::TriggerR:
       controllerState.TriggerR = getNewValue(controllerState.TriggerR);
       return;
     default:
@@ -283,7 +286,8 @@ public:
 class LuaGCAlterAnalogInputFromFixedValue : public LuaGameCubeButtonProbabilityEvent
 {
 public:
-  LuaGCAlterAnalogInputFromFixedValue(double probability, GC_BUTTON_NAME newButtonName, u32 value, u32 maxLowerDifference, u32 maxUpperDifference)
+    LuaGCAlterAnalogInputFromFixedValue(double probability, GcButtonName newButtonName, u32 value,
+                                        u32 maxLowerDifference, u32 maxUpperDifference)
   {
     checkIfEventHappened(probability);
     buttonEffected = newButtonName;
@@ -308,22 +312,22 @@ public:
 
     switch (buttonEffected)
     {
-    case analogStickX:
+    case GcButtonName::AnalogStickX:
       controllerState.AnalogStickX = alteredButtonValue;
       return;
-    case analogStickY:
+    case GcButtonName::AnalogStickY:
       controllerState.AnalogStickY = alteredButtonValue;
       return;
-    case cStickX:
+    case GcButtonName::CStickX:
       controllerState.CStickX = alteredButtonValue;
       return;
-    case cStickY:
+    case GcButtonName::CStickY:
       controllerState.CStickY = alteredButtonValue;
       return;
-    case triggerL:
+    case GcButtonName::TriggerL:
       controllerState.TriggerL = alteredButtonValue;
       return;
-    case triggerR:
+    case GcButtonName::TriggerR:
       controllerState.TriggerR = alteredButtonValue;
       return;
     default:
@@ -338,7 +342,9 @@ public:
 class LuaGCButtonComboEvent : public LuaGameCubeButtonProbabilityEvent
 {
 public:
-  LuaGCButtonComboEvent(double probability,  Movie::ControllerState newButtonPresses, std::vector<GC_BUTTON_NAME> newButtonsToLookAt, bool newSetOtherButtonsToBlank)
+    LuaGCButtonComboEvent(double probability, Movie::ControllerState newButtonPresses,
+                          std::vector<GcButtonName> newButtonsToLookAt,
+                          bool newSetOtherButtonsToBlank)
   {
     checkIfEventHappened(probability);
     buttonPresses = newButtonPresses;
@@ -365,74 +371,72 @@ public:
     {
       switch (buttonsToLookAt[i])
       {
-      case A:
+      case GcButtonName::A:
         controllerState.A = buttonPresses.A;
         break;
-      case B:
+      case GcButtonName::B:
         controllerState.B = buttonPresses.B;
         break;
-      case X:
+      case GcButtonName::X:
         controllerState.X = buttonPresses.X;
         break;
-      case Y:
+      case GcButtonName::Y:
         controllerState.Y = buttonPresses.Y;
         break;
-      case Z:
+      case GcButtonName::Z:
         controllerState.Z = buttonPresses.Z;
         break;
-      case L:
+      case GcButtonName::L:
         controllerState.L = buttonPresses.L;
         break;
-      case R:
+      case GcButtonName::R:
         controllerState.R = buttonPresses.R;
         break;
-      case dPadUp:
+      case GcButtonName::DPadUp:
         controllerState.DPadUp = buttonPresses.DPadUp;
         break;
-      case dPadDown:
+      case GcButtonName::DPadDown:
         controllerState.DPadDown = buttonPresses.DPadDown;
         break;
-      case dPadLeft:
+      case GcButtonName::DPadLeft:
         controllerState.DPadLeft = buttonPresses.DPadLeft;
         break;
-      case dPadRight:
+      case GcButtonName::DPadRight:
         controllerState.DPadRight = buttonPresses.DPadRight;
         break;
-      case START:
+      case GcButtonName::Start:
         controllerState.Start = buttonPresses.Start;
         break;
-      case RESET:
+      case GcButtonName::Reset:
         controllerState.reset = buttonPresses.reset;
         break;
-      case triggerL:
+      case GcButtonName::TriggerL:
         controllerState.TriggerL = buttonPresses.TriggerL;
         break;
-      case triggerR:
+      case GcButtonName::TriggerR:
         controllerState.TriggerR = buttonPresses.TriggerR;
         break;
-      case analogStickX:
+      case GcButtonName::AnalogStickX:
         controllerState.AnalogStickX = buttonPresses.AnalogStickX;
         break;
-      case analogStickY:
+      case GcButtonName::AnalogStickY:
         controllerState.AnalogStickY = buttonPresses.AnalogStickY;
         break;
-      case cStickX:
+      case GcButtonName::CStickX:
         controllerState.CStickX = buttonPresses.CStickX;
         break;
-      case cStickY:
+      case GcButtonName::CStickY:
         controllerState.CStickY = buttonPresses.CStickY;
         break;
       default:
         break;
       }
     }
-
-
   }
 
   private:
     Movie::ControllerState buttonPresses;
-    std::vector<GC_BUTTON_NAME> buttonsToLookAt;
+    std::vector<GcButtonName> buttonsToLookAt;
     bool setOtherButtonsToBlank;
     
 };

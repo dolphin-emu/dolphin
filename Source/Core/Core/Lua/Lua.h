@@ -1,11 +1,6 @@
 #pragma once
 
-extern "C" {
-#include "src/lapi.h"
-#include "src/lua.h"
-#include "src/lua.hpp"
-#include "src/luaconf.h"
-}
+#include <lua.hpp>
 
 #include <string>
 #include <functional>
@@ -22,8 +17,6 @@ extern bool luaScriptActive;
 extern bool luaInitialized;
 extern std::function<void(const std::string&)>* printCallbackFunction;
 extern std::function<void()>* scriptEndCallbackFunction;
-
-void tempRunner();
 
 int setLuaCoreVersion(lua_State* luaState);
 int getLuaCoreVersion(lua_State* luaState);

@@ -1,32 +1,13 @@
 #pragma once
 #include "string.h"
 
-enum GC_BUTTON_NAME
+enum class GcButtonName
 {
-  A,
-  B,
-  X,
-  Y,
-  Z,
-  L,
-  R,
-  dPadUp,
-  dPadDown,
-  dPadLeft,
-  dPadRight,
-  analogStickX,
-  analogStickY,
-  cStickX,
-  cStickY,
-  triggerL,
-  triggerR,
-  START,
-  RESET,
-  UNKNOWN
+  A, B, X, Y, Z, L, R, DPadUp, DPadDown, DPadLeft, DPadRight, AnalogStickX, AnalogStickY, CStickX, CStickY, TriggerL, TriggerR, Start, Reset, Unknown
 };
 
-extern bool isBinaryButton(GC_BUTTON_NAME button);
-extern bool isAnalogButton(GC_BUTTON_NAME button);
+extern bool isBinaryButton(GcButtonName button);
+extern bool isAnalogButton(GcButtonName button);
 extern bool isEqualIgnoreCase(const char* string1, const char* string2);
-extern GC_BUTTON_NAME parseGCButton(const char* buttonName);
-extern const char* convertButtonEnumToString(GC_BUTTON_NAME button);
+extern GcButtonName parseGCButton(const char* buttonName);
+extern const char* convertButtonEnumToString(GcButtonName button);

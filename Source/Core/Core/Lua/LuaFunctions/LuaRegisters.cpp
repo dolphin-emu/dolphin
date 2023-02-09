@@ -1,14 +1,12 @@
 #include "LuaRegisters.h"
-#include "../LuaVersionResolver.h"
-#include "../LuaHelperClasses/NumberType.h"
-#include "common/CommonTypes.h"
+#include "Core/Lua/LuaVersionResolver.h"
+#include "Core/Lua/LuaHelperClasses/NumberType.h"
+#include "Common/CommonTypes.h"
 #include "Core/PowerPC/PowerPC.h"
 #include <algorithm>
 #include <string>
 
-namespace Lua
-{
-namespace LuaRegisters
+namespace Lua::LuaRegisters
 {
 class luaRegister
 {
@@ -16,11 +14,11 @@ public:
   inline luaRegister() {}
 };
 
-luaRegister* luaRegisterPointer = NULL;
+luaRegister* luaRegisterPointer = nullptr;
 
 luaRegister* GetLuaRegisterInstance()
 {
-  if (luaRegisterPointer == NULL)
+  if (luaRegisterPointer == nullptr)
     luaRegisterPointer = new luaRegister();
   return luaRegisterPointer;
 }
@@ -44,7 +42,7 @@ void InitLuaRegistersFunctions(lua_State* luaState, const std::string& luaApiVer
     luaL_Reg_With_Version({"setRegisterFromByteArray", "1.0", setRegisterFromByteArray})
   };
 
-  std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
+  std::unordered_map<std::string, std::string> deprecatedFunctionsMap;
 
   addLatestFunctionsForVersion(luaRegistersFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
   lua_setglobal(luaState, "registers");
@@ -54,28 +52,28 @@ class RegisterObject
 {
 public:
 
-  enum REGISTER_TYPE
+  enum class RegisterType
   {
-    GENERAL_PURPOSE_REGISTER,
-    FLOATING_POINT_REGISTER,
-    PC_REGISTER,
-    RETURN_REGISTER, //LR register
-    UNDEFINED
+    GeneralPurposeRegister,
+    FloatingPointRegister,
+    PcRegister,
+    ReturnRegister, //LR register
+    Undefined
   };
 
-  RegisterObject(REGISTER_TYPE newRegType, u8 newRegNum) {
+  RegisterObject(RegisterType newRegType, u8 newRegNum) {
     regType = newRegType;
     registerNum = newRegNum;
   }
 
   u8 registerNum;
-  REGISTER_TYPE regType;
+  RegisterType regType;
 };
 
 RegisterObject parseRegister(const char* registerString)
 {
-  if (registerString == NULL || registerString[0] == '\0')
-    return RegisterObject(RegisterObject::REGISTER_TYPE::UNDEFINED, 0);
+  if (registerString == nullptr || registerString[0] == '\0')
+    return RegisterObject(RegisterObject::RegisterType::Undefined, 0);
 
   s64 regNum = 0;
   switch (registerString[0])
@@ -83,56 +81,56 @@ RegisterObject parseRegister(const char* registerString)
   case 'r':
   case 'R':
 
-    regNum = std::stoi(std::string(registerString).substr(1), NULL);
+    regNum = std::stoi(std::string(registerString).substr(1), nullptr);
     if (regNum < 0 || regNum > 31)
-      return RegisterObject(RegisterObject::REGISTER_TYPE::UNDEFINED, 0);
-    return RegisterObject(RegisterObject::REGISTER_TYPE::GENERAL_PURPOSE_REGISTER, regNum);
+      return RegisterObject(RegisterObject::RegisterType::Undefined, 0);
+    return RegisterObject(RegisterObject::RegisterType::GeneralPurposeRegister, regNum);
     break;
 
   case 'f':
   case 'F':
-    regNum = std::stoi(std::string(registerString).substr(1), NULL);
+    regNum = std::stoi(std::string(registerString).substr(1), nullptr);
     if (regNum < 0 || regNum > 31)
-      return RegisterObject(RegisterObject::REGISTER_TYPE::UNDEFINED, 0);
-    return RegisterObject(RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER, regNum);
+      return RegisterObject(RegisterObject::RegisterType::Undefined, 0);
+    return RegisterObject(RegisterObject::RegisterType::FloatingPointRegister, regNum);
     break;
 
   case 'p':
   case 'P':
     if (registerString[1] != 'c' && registerString[1] != 'C')
-      return RegisterObject(RegisterObject::REGISTER_TYPE::UNDEFINED, 0);
-    return RegisterObject(RegisterObject::REGISTER_TYPE::PC_REGISTER, 0);
+      return RegisterObject(RegisterObject::RegisterType::Undefined, 0);
+    return RegisterObject(RegisterObject::RegisterType::PcRegister, 0);
     break;
 
   case 'l':
   case 'L':
     if (registerString[1] != 'r' && registerString[1] != 'R')
-      return RegisterObject(RegisterObject::REGISTER_TYPE::UNDEFINED, 0);
-    return RegisterObject(RegisterObject::REGISTER_TYPE::RETURN_REGISTER, 0);
+      return RegisterObject(RegisterObject::RegisterType::Undefined, 0);
+    return RegisterObject(RegisterObject::RegisterType::ReturnRegister, 0);
     break;
 
   default:
-    return RegisterObject(RegisterObject::REGISTER_TYPE::UNDEFINED, 0);
+    return RegisterObject(RegisterObject::RegisterType::Undefined, 0);
   }
 }
 
 u8* getAddressForRegister(RegisterObject registerObject, lua_State* luaState, const char* funcName)
 {
   u8 regNum = 0;
-  u8* address = NULL;
+  u8* address = nullptr;
   switch (registerObject.regType)
   {
-  case RegisterObject::REGISTER_TYPE::GENERAL_PURPOSE_REGISTER:
+  case RegisterObject::RegisterType::GeneralPurposeRegister:
     regNum = registerObject.registerNum;
     address = (u8*)(rGPR + regNum);
     return address;
-  case RegisterObject::REGISTER_TYPE::PC_REGISTER:
+  case RegisterObject::RegisterType::PcRegister:
     address = ((u8*)&PC);
     return address;
-  case RegisterObject::REGISTER_TYPE::RETURN_REGISTER:
+  case RegisterObject::RegisterType::ReturnRegister:
     address = ((u8*)(PowerPC::ppcState.spr + SPR_LR));
     return address;
-  case RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER:
+  case RegisterObject::RegisterType::FloatingPointRegister:
     address = (u8*)(PowerPC::ppcState.ps + regNum);
     return address;
 
@@ -142,7 +140,7 @@ u8* getAddressForRegister(RegisterObject registerObject, lua_State* luaState, co
                 " function. Currently, R0-R31, F0-F31, PC, and LR are the only registers which are "
                 "supported.")
                    .c_str());
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -226,7 +224,7 @@ int getRegister(lua_State* luaState)
     luaL_error(luaState, "Error: undefined type string was passed as an argument to getRegister()");
   s64 offsetBytes = 0;
   u8 registerSize = 4;
-  if (registerObject.regType == RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER)
+  if (registerObject.regType == RegisterObject::RegisterType::FloatingPointRegister)
     registerSize = 16;
   if (lua_gettop(luaState) >= 4)
     offsetBytes = luaL_checkinteger(luaState, 4);
@@ -243,7 +241,7 @@ int pushByteArrayFromAddressHelperFunction(lua_State* luaState, bool isUnsigned,
   const char* registerString = luaL_checkstring(luaState, 2);
   RegisterObject registerObject = parseRegister(registerString);
   u8 registerSize = 4;
-  if (registerObject.regType == RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER)
+  if (registerObject.regType == RegisterObject::RegisterType::FloatingPointRegister)
     registerSize = 16;
 
   u8* address = getAddressForRegister(registerObject, luaState, funcName);
@@ -373,7 +371,7 @@ int setRegister(lua_State* luaState)
   if (valueType == NumberType::UNDEFINED)
     luaL_error(luaState, "Error: undefined type string was passed as an argument to setRegister()");
   u8 registerSize = 4;
-  if (registerObject.regType == RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER)
+  if (registerObject.regType == RegisterObject::RegisterType::FloatingPointRegister)
     registerSize = 16;
   u8* address = getAddressForRegister(registerObject, luaState, "setRegister()");
   u8 offsetBytes = 0;
@@ -404,7 +402,7 @@ int setRegisterFromByteArray(lua_State* luaState)
   const char* registerString = luaL_checkstring(luaState, 2);
   RegisterObject registerObject = parseRegister(registerString);
   u8 registerSize = 4;
-  if (registerObject.regType == RegisterObject::REGISTER_TYPE::FLOATING_POINT_REGISTER)
+  if (registerObject.regType == RegisterObject::RegisterType::FloatingPointRegister)
     registerSize = 16;
   s64 offsetBytes = 0;
   if (lua_gettop(luaState) >= 4)
@@ -464,4 +462,3 @@ int setRegisterFromByteArray(lua_State* luaState)
 }
 
 }  // namespace LuaRegisters
-}  // namespace Lua

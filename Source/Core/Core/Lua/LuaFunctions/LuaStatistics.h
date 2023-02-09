@@ -1,18 +1,11 @@
 #pragma once
 #include <string>
-extern "C" {
-#include "src/lapi.h"
-#include "src/lua.h"
-#include "src/lua.hpp"
-#include "src/luaconf.h"
-}
+#include <lua.hpp>
 
-#include "../LuaHelperClasses/LuaColonCheck.h"
+#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 #include "Core/Movie.h"
 
-namespace Lua
-{
-namespace LuaStatistics
+namespace Lua::LuaStatistics
 {
 
 void InitLuaStatisticsFunctions(lua_State* luaState, const std::string& luaApiVersion);
@@ -32,5 +25,4 @@ int getTotalLagCount(lua_State* luaState);
 
 int isGcControllerInPort(lua_State* luaState);
 int isUsingPort(lua_State* luaState);
-}
 }

@@ -1,14 +1,12 @@
 #include "LuaEmuFunctions.h"
-#include "../LuaVersionResolver.h"
+#include "Core/Lua/LuaVersionResolver.h"
 #include "Core/State.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
 #include <optional>
 
-namespace Lua
-{
-namespace LuaEmu
+namespace Lua::LuaEmu
 {
   bool waitingForSaveStateLoad = false;
   bool waitingForSaveStateSave = false;
@@ -28,11 +26,11 @@ public:
   inline emu() {}
 };
 
-emu* emuPointer = NULL;
+emu* emuPointer = nullptr;
 
 emu* GetEmuInstance()
 {
-  if (emuPointer == NULL)
+  if (emuPointer == nullptr)
     emuPointer = new emu();
   return emuPointer;
 }
@@ -57,7 +55,7 @@ void InitLuaEmuFunctions(lua_State* luaState, const std::string& luaApiVersion)
     luaL_Reg_With_Version({"saveMovie", "1.0", emu_saveMovie}),
    };
 
-  std::unordered_map<std::string, std::string> deprecatedFunctionsMap = std::unordered_map<std::string, std::string>();
+  std::unordered_map<std::string, std::string> deprecatedFunctionsMap;
   addLatestFunctionsForVersion(luaEmuFunctionsWithVersionsAttached, luaApiVersion, deprecatedFunctionsMap, luaState);
   lua_setglobal(luaState, "emu");
 }
@@ -134,4 +132,3 @@ int emu_saveMovie(lua_State* luaState)
 }
 
 }  // namespace Lua_emu
-}  // namespace Lua

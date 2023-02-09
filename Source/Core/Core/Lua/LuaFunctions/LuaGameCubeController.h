@@ -1,26 +1,20 @@
 #pragma once
 
-extern "C" {
-#include "src/lapi.h"
-#include "src/lua.h"
-#include "src/lua.hpp"
-#include "src/luaconf.h"
-}
+#include <lua.hpp>
 
-#include "Core/HW/GCPad.h"
-#include "InputCommon/GCPadStatus.h"
-#include "InputCommon/InputConfig.h"
-#include "Core/Movie.h"
-#include "../LuaHelperClasses/LuaGameCubeButtonProbabilityClasses.h"
-#include "../LuaHelperClasses/LuaColonCheck.h"
 #include <Array>
 #include <memory>
 #include <vector>
 #include <string>
 
-namespace Lua
-{
-namespace LuaGameCubeController
+#include "Core/HW/GCPad.h"
+#include "Core/Movie.h"
+#include "Core/Lua/LuaHelperClasses/LuaGameCubeButtonProbabilityClasses.h"
+#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
+#include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
+
+namespace Lua::LuaGameCubeController
 {
 
   extern std::array<bool, 4> overwriteControllerAtSpecifiedPort;
@@ -30,7 +24,7 @@ namespace LuaGameCubeController
 
   extern std::array<Movie::ControllerState, 4> newOverwriteControllerInputs;
   extern std::array<Movie::ControllerState, 4> addToControllerInputs;
-  extern std::array<std::vector<GC_BUTTON_NAME>, 4> buttonListsForAddToControllerInputs;
+  extern std::array<std::vector<GcButtonName>, 4> buttonListsForAddToControllerInputs;
   extern std::array<std::vector<std::unique_ptr<LuaGameCubeButtonProbabilityEvent>>, 4> randomButtonEvents;
   
   void InitLuaGameCubeControllerFunctions(lua_State* luaState, const std::string& luaApiVersion);
@@ -46,4 +40,3 @@ namespace LuaGameCubeController
   int addControllerClearChance(lua_State* luaState);
   int getControllerInputs(lua_State* luaState);
   }
-}

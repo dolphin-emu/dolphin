@@ -1,16 +1,10 @@
 #pragma once
 #include <string>
-#include "src/lua.hpp"
-#include "src/lua.h"
-#include "src/luaconf.h"
-#include "src/lapi.h"
-#include "common/CommonTypes.h"
-#include "../LuaHelperClasses/LuaColonCheck.h"
+#include <lua.hpp>
+#include "Common/CommonTypes.h"
+#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 
-namespace Lua
-{
-
-namespace LuaMemoryApi
+namespace Lua::LuaMemoryApi
 {
 
 class MEMORY
@@ -18,8 +12,6 @@ class MEMORY
 public:
   MEMORY() {}
 };
-
-inline MEMORY* instance = NULL;
 
 void InitLuaMemoryApi(lua_State* luaState, const std::string& luaApiVersion);
 
@@ -33,4 +25,3 @@ int do_general_write(lua_State* luaState);
 int do_write_bytes(lua_State* luaState);
 int do_write_string(lua_State* luaState);
 }  // namespace LuaMemoryApi
-}  // namespace Lua

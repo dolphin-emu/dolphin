@@ -1,17 +1,11 @@
 #pragma once
 
 #include <string>
-extern "C" {
-#include "src/lapi.h"
-#include "src/lua.h"
-#include "src/lua.hpp"
-#include "src/luaconf.h"
-}
-#include "../LuaHelperClasses/LuaColonCheck.h"
+#include <lua.hpp>
 
-namespace Lua
-{
-  namespace LuaEmu
+#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
+
+namespace Lua::LuaEmu
   {
   extern bool waitingForSaveStateLoad;
   extern bool waitingForSaveStateSave;
@@ -25,4 +19,3 @@ namespace Lua
     int emu_playMovie(lua_State* luaState);
     int emu_saveMovie(lua_State* luaState);
   }
-}

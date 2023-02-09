@@ -1213,67 +1213,67 @@ static void CheckInputEnd()
 
 
 void addControllerInputs(ControllerState& startingState, ControllerState newControllerValues,
-                         std::vector<GC_BUTTON_NAME> buttonsToAdd)
+                         std::vector<GcButtonName> buttonsToAdd)
 {
   for (int i = 0; i < buttonsToAdd.size(); ++i)
   {
     switch (buttonsToAdd[i])
     {
-      case A:
+    case GcButtonName::A:
         startingState.A = newControllerValues.A;
         break;
-      case B:
+    case GcButtonName::B:
         startingState.B = newControllerValues.B;
         break;
-      case X:
+    case GcButtonName::X:
         startingState.X = newControllerValues.X;
         break;
-      case Y:
+    case GcButtonName::Y:
         startingState.Y = newControllerValues.Y;
         break;
-      case Z:
+    case GcButtonName::Z:
         startingState.Z = newControllerValues.Z;
         break;
-      case L:
+    case GcButtonName::L:
         startingState.L = newControllerValues.L;
         break;
-      case R:
+    case GcButtonName::R:
         startingState.R = newControllerValues.R;
         break;
-      case START:
+    case GcButtonName::Start:
         startingState.Start = newControllerValues.Start;
         break;
-      case RESET:
+    case GcButtonName::Reset:
         startingState.reset = newControllerValues.reset;
         break;
-      case dPadUp:
+    case GcButtonName::DPadUp:
         startingState.DPadUp = newControllerValues.DPadUp;
         break;
-      case dPadDown:
+    case GcButtonName::DPadDown:
         startingState.DPadDown = newControllerValues.DPadDown;
         break;
-      case dPadLeft:
+    case GcButtonName::DPadLeft:
         startingState.DPadLeft = newControllerValues.DPadLeft;
         break;
-      case dPadRight:
+    case GcButtonName::DPadRight:
         startingState.DPadRight = newControllerValues.DPadRight;
         break;
-      case triggerL:
+    case GcButtonName::TriggerL:
         startingState.TriggerL = newControllerValues.TriggerL;
         break;
-      case triggerR:
+    case GcButtonName::TriggerR:
         startingState.TriggerR = newControllerValues.TriggerR;
         break;
-      case analogStickX:
+    case GcButtonName::AnalogStickX:
         startingState.AnalogStickX = newControllerValues.AnalogStickX;
         break;
-      case analogStickY:
+    case GcButtonName::AnalogStickY:
         startingState.AnalogStickY = newControllerValues.AnalogStickY;
         break;
-      case cStickX:
+    case GcButtonName::CStickX:
         startingState.CStickX = newControllerValues.CStickX;
         break;
-      case cStickY:
+    case GcButtonName::CStickY:
         startingState.CStickY = newControllerValues.CStickY;
         break;
       default:

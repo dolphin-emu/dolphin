@@ -2,12 +2,7 @@
 #include <string>
 #include <unordered_map>
 
-extern "C" {
-#include "src/lapi.h"
-#include "src/lua.h"
-#include "src/lua.hpp"
-#include "src/luaconf.h"
-}
+#include <lua.hpp>
 
 #include <array>
 #include "LuaHelperClasses/LuaL_Reg_With_Version.h"
@@ -16,8 +11,8 @@ extern "C" {
 namespace Lua
 {
 
-template <typename size_t arraySize>
-void addLatestFunctionsForVersion(const std::array<luaL_Reg_With_Version, arraySize> allFunctions, const std::string& LUA_API_VERSION, std::unordered_map<std::string, std::string>& deprecatedFunctionsToVersionTheyWereRemovedInMap, lua_State* luaState)
+  template <typename size_t arraySize>
+  void addLatestFunctionsForVersion(const std::array<luaL_Reg_With_Version, arraySize> allFunctions, const std::string& LUA_API_VERSION, std::unordered_map<std::string, std::string>& deprecatedFunctionsToVersionTheyWereRemovedInMap, lua_State* luaState)
 {
   // This map contains key-value pairs of the format "functionName", {"functionName",
   // "versionNumber", functionLocation} For example, suppose we have a function that we want to be

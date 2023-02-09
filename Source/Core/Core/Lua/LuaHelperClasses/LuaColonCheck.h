@@ -1,10 +1,6 @@
 #pragma once
-extern "C" {
-#include "src/lapi.h"
-#include "src/lua.h"
-#include "src/lua.hpp"
-#include "src/luaconf.h"
-}
+
+#include <lua.hpp>
 #include <string>
 
 namespace Lua
