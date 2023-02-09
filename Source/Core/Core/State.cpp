@@ -724,7 +724,7 @@ void Init()
   if (lzo_init() != LZO_E_OK)
     PanicAlertFmtT("Internal LZO Error - lzo_init() failed");
 
-  s_save_thread.Reset([](CompressAndDumpState_args args) {
+  s_save_thread.Reset("Savestate Worker", [](CompressAndDumpState_args args) {
     CompressAndDumpState(args);
 
     {
