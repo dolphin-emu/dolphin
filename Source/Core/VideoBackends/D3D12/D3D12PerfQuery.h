@@ -17,7 +17,7 @@ public:
 
   static PerfQuery* GetInstance() { return static_cast<PerfQuery*>(g_perf_query.get()); }
 
-  bool Initialize();
+  bool Initialize() override;
   void ResolveQueries();
 
   void EnableQuery(PerfQueryGroup group) override;

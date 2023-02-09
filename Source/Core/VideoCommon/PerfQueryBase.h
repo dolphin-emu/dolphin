@@ -34,6 +34,8 @@ public:
   PerfQueryBase() : m_query_count(0) {}
   virtual ~PerfQueryBase() {}
 
+  virtual bool Initialize() { return true; }
+
   // Checks if performance queries are enabled in the gameini configuration.
   // NOTE: Called from CPU+GPU thread
   static bool ShouldEmulate();

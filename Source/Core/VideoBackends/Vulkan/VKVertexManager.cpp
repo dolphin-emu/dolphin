@@ -14,7 +14,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
-#include "VideoBackends/Vulkan/VKRenderer.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
@@ -152,7 +152,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   {
     // Flush any pending commands first, so that we can wait on the fences
     WARN_LOG_FMT(VIDEO, "Executing command list while waiting for space in vertex/index buffer");
-    Renderer::GetInstance()->ExecuteCommandBuffer(false);
+    VKGfx::GetInstance()->ExecuteCommandBuffer(false);
 
     // Attempt to allocate again, this may cause a fence wait
     if (!has_vbuffer_allocation)
@@ -266,7 +266,7 @@ bool VertexManager::ReserveConstantStorage()
 
   // The only places that call constant updates are safe to have state restored.
   WARN_LOG_FMT(VIDEO, "Executing command buffer while waiting for space in uniform buffer");
-  Renderer::GetInstance()->ExecuteCommandBuffer(false);
+  VKGfx::GetInstance()->ExecuteCommandBuffer(false);
 
   // Since we are on a new command buffer, all constants have been invalidated, and we need
   // to reupload them. We may as well do this now, since we're issuing a draw anyway.
@@ -337,7 +337,7 @@ void VertexManager::UploadUtilityUniforms(const void* data, u32 data_size)
                                               g_vulkan_context->GetUniformBufferAlignment()))
   {
     WARN_LOG_FMT(VIDEO, "Executing command buffer while waiting for ext space in uniform buffer");
-    Renderer::GetInstance()->ExecuteCommandBuffer(false);
+    VKGfx::GetInstance()->ExecuteCommandBuffer(false);
   }
 
   StateTracker::GetInstance()->SetUtilityUniformBuffer(
@@ -358,7 +358,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   {
     // Try submitting cmdbuffer.
     WARN_LOG_FMT(VIDEO, "Submitting command buffer while waiting for space in texel buffer");
-    Renderer::GetInstance()->ExecuteCommandBuffer(false, false);
+    VKGfx::GetInstance()->ExecuteCommandBuffer(false, false);
     if (!m_texel_stream_buffer->ReserveMemory(data_size, elem_size))
     {
       PanicAlertFmt("Failed to allocate {} bytes from texel buffer", data_size);
@@ -388,7 +388,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   {
     // Try submitting cmdbuffer.
     WARN_LOG_FMT(VIDEO, "Submitting command buffer while waiting for space in texel buffer");
-    Renderer::GetInstance()->ExecuteCommandBuffer(false, false);
+    VKGfx::GetInstance()->ExecuteCommandBuffer(false, false);
     if (!m_texel_stream_buffer->ReserveMemory(reserve_size, elem_size))
     {
       PanicAlertFmt("Failed to allocate {} bytes from texel buffer", reserve_size);

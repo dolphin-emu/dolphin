@@ -62,6 +62,7 @@ add_library(common
   GekkoDisassembler.h
   Hash.cpp
   Hash.h
+  HookableEvent.h
   HttpRequest.cpp
   HttpRequest.h
   Image.cpp
@@ -115,6 +116,7 @@ add_library(common
   SocketContext.cpp
   SocketContext.h
   SPSCQueue.h
+  StringLiteral.h
   StringUtil.cpp
   StringUtil.h
   SymbolDB.cpp

@@ -11,12 +11,14 @@
 #include "Common/Common.h"
 #include "Common/MsgHandler.h"
 
-#include "VideoBackends/Null/NullRender.h"
+#include "VideoBackends/Null/NullBoundingBox.h"
+#include "VideoBackends/Null/NullGfx.h"
 #include "VideoBackends/Null/NullVertexManager.h"
 #include "VideoBackends/Null/PerfQuery.h"
 #include "VideoBackends/Null/TextureCache.h"
 
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -69,39 +71,13 @@ void VideoBackend::InitBackendInfo()
 
 bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
-  InitializeShared();
-
-  g_renderer = std::make_unique<Renderer>();
-  g_vertex_manager = std::make_unique<VertexManager>();
-  g_perf_query = std::make_unique<PerfQuery>();
-  g_framebuffer_manager = std::make_unique<FramebufferManager>();
-  g_texture_cache = std::make_unique<TextureCache>();
-  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-
-  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
-      !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
-      !g_texture_cache->Initialize())
-  {
-    PanicAlertFmt("Failed to initialize renderer classes");
-    Shutdown();
-    return false;
-  }
-
-  g_shader_cache->InitializeShaderCache();
-  return true;
+  return InitializeShared(std::make_unique<NullGfx>(), std::make_unique<VertexManager>(),
+                          std::make_unique<PerfQuery>(), std::make_unique<NullBoundingBox>(),
+                          std::make_unique<NullRenderer>(), std::make_unique<TextureCache>());
 }
 
 void VideoBackend::Shutdown()
 {
-  g_shader_cache->Shutdown();
-  g_renderer->Shutdown();
-
-  g_texture_cache.reset();
-  g_perf_query.reset();
-  g_vertex_manager.reset();
-  g_framebuffer_manager.reset();
-  g_renderer.reset();
-
   ShutdownShared();
 }
 

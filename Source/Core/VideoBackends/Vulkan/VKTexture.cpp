@@ -17,7 +17,7 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
-#include "VideoBackends/Vulkan/VKRenderer.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
@@ -367,7 +367,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
       // Execute the command buffer first.
       WARN_LOG_FMT(VIDEO,
                    "Executing command list while waiting for space in texture upload buffer");
-      Renderer::GetInstance()->ExecuteCommandBuffer(false);
+      VKGfx::GetInstance()->ExecuteCommandBuffer(false);
 
       // Try allocating again. This may cause a fence wait.
       if (!stream_buffer->ReserveMemory(upload_size, upload_alignment))
@@ -967,7 +967,7 @@ void VKStagingTexture::Flush()
   if (g_command_buffer_mgr->GetCurrentFenceCounter() == m_flush_fence_counter)
   {
     // Execute the command buffer and wait for it to finish.
-    Renderer::GetInstance()->ExecuteCommandBuffer(false, true);
+    VKGfx::GetInstance()->ExecuteCommandBuffer(false, true);
   }
   else
   {

@@ -20,9 +20,10 @@
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -154,6 +155,25 @@ void VertexShaderManager::SetProjectionMatrix()
     auto corrected_matrix = LoadProjectionMatrix();
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
   }
+}
+
+bool VertexShaderManager::UseVertexDepthRange()
+{
+  // We can't compute the depth range in the vertex shader if we don't support depth clamp.
+  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
+    return false;
+
+  // We need a full depth range if a ztexture is used.
+  if (bpmem.ztex2.op != ZTexOp::Disabled && !bpmem.zcontrol.early_ztest)
+    return true;
+
+  // If an inverted depth range is unsupported, we also need to check if the range is inverted.
+  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange && xfmem.viewport.zRange < 0.0f)
+    return true;
+
+  // If an oversized depth range or a ztexture is used, we need to calculate the depth range
+  // in the vertex shader.
+  return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
 }
 
 // Syncs the shader constant buffers with xfmem
@@ -338,10 +358,10 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     const bool bUseVertexRounding = g_ActiveConfig.UseVertexRounding();
     const float viewport_width = bUseVertexRounding ?
                                      (2.f * xfmem.viewport.wd) :
-                                     g_renderer->EFBToScaledXf(2.f * xfmem.viewport.wd);
+                                     g_framebuffer_manager->EFBToScaledXf(2.f * xfmem.viewport.wd);
     const float viewport_height = bUseVertexRounding ?
                                       (2.f * xfmem.viewport.ht) :
-                                      g_renderer->EFBToScaledXf(2.f * xfmem.viewport.ht);
+                                      g_framebuffer_manager->EFBToScaledXf(2.f * xfmem.viewport.ht);
     const float pixel_size_x = 2.f / viewport_width;
     const float pixel_size_y = 2.f / viewport_height;
     constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
@@ -354,7 +374,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     constants.viewport[0] = (2.f * xfmem.viewport.wd);
     constants.viewport[1] = (2.f * xfmem.viewport.ht);
 
-    if (g_renderer->UseVertexDepthRange())
+    if (UseVertexDepthRange())
     {
       // Oversized depth ranges are handled in the vertex shader. We need to reverse
       // the far value to use the reversed-Z trick.
@@ -386,16 +406,15 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
   std::vector<GraphicsModAction*> projection_actions;
   if (g_ActiveConfig.bGraphicMods)
   {
-    for (const auto action :
-         g_renderer->GetGraphicsModManager().GetProjectionActions(xfmem.projection.type))
+    for (const auto action : g_graphics_mod_manager->GetProjectionActions(xfmem.projection.type))
     {
       projection_actions.push_back(action);
     }
 
     for (const auto& texture : textures)
     {
-      for (const auto action : g_renderer->GetGraphicsModManager().GetProjectionTextureActions(
-               xfmem.projection.type, texture))
+      for (const auto action :
+           g_graphics_mod_manager->GetProjectionTextureActions(xfmem.projection.type, texture))
       {
         projection_actions.push_back(action);
       }

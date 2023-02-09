@@ -1383,7 +1383,7 @@ void MainWindow::SetStateSlot(int slot)
 
 void MainWindow::IncrementSelectedStateSlot()
 {
-  int state_slot = m_state_slot + 1;
+  u32 state_slot = m_state_slot + 1;
   if (state_slot > State::NUM_STATES)
     state_slot = 1;
   m_menu_bar->SetStateSlot(state_slot);
@@ -1391,7 +1391,7 @@ void MainWindow::IncrementSelectedStateSlot()
 
 void MainWindow::DecrementSelectedStateSlot()
 {
-  int state_slot = m_state_slot - 1;
+  u32 state_slot = m_state_slot - 1;
   if (state_slot < 1)
     state_slot = State::NUM_STATES;
   m_menu_bar->SetStateSlot(state_slot);

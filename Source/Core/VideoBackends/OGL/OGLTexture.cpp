@@ -7,6 +7,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 
+#include "VideoBackends/OGL/OGLConfig.h"
+#include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 
 #include "VideoCommon/VideoConfig.h"
@@ -160,7 +162,7 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
 
 OGLTexture::~OGLTexture()
 {
-  Renderer::GetInstance()->UnbindTexture(this);
+  GetOGLGfx()->UnbindTexture(this);
   glDeleteTextures(1, &m_texId);
 }
 
@@ -190,10 +192,10 @@ void OGLTexture::BlitFramebuffer(OGLTexture* srcentry, const MathUtil::Rectangle
                                  const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
                                  u32 dst_level)
 {
-  Renderer::GetInstance()->BindSharedReadFramebuffer();
+  GetOGLGfx()->BindSharedReadFramebuffer();
   glFramebufferTextureLayer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, srcentry->m_texId, src_level,
                             src_layer);
-  Renderer::GetInstance()->BindSharedDrawFramebuffer();
+  GetOGLGfx()->BindSharedDrawFramebuffer();
   glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_texId, dst_level,
                             dst_layer);
 
@@ -206,7 +208,7 @@ void OGLTexture::BlitFramebuffer(OGLTexture* srcentry, const MathUtil::Rectangle
   // The default state for the scissor test is enabled. We don't need to do a full state
   // restore, as the framebuffer and scissor test are the only things we changed.
   glEnable(GL_SCISSOR_TEST);
-  Renderer::GetInstance()->RestoreFramebufferBinding();
+  GetOGLGfx()->RestoreFramebufferBinding();
 }
 
 void OGLTexture::ResolveFromTexture(const AbstractTexture* src,
@@ -391,7 +393,7 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
   else
   {
     // Mutate the shared framebuffer.
-    Renderer::GetInstance()->BindSharedReadFramebuffer();
+    GetOGLGfx()->BindSharedReadFramebuffer();
     if (AbstractTexture::IsDepthFormat(gltex->GetFormat()))
     {
       glFramebufferTextureLayer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 0, 0, 0);
@@ -407,7 +409,7 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
     glReadPixels(src_rect.left, src_rect.top, src_rect.GetWidth(), src_rect.GetHeight(),
                  GetGLFormatForTextureFormat(src->GetFormat()),
                  GetGLTypeForTextureFormat(src->GetFormat()), reinterpret_cast<void*>(dst_offset));
-    Renderer::GetInstance()->RestoreFramebufferBinding();
+    GetOGLGfx()->RestoreFramebufferBinding();
   }
 
   glPixelStorei(GL_PACK_ROW_LENGTH, 0);
@@ -600,7 +602,7 @@ std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(OGLTexture* color_attachm
   }
 
   DEBUG_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-  Renderer::GetInstance()->RestoreFramebufferBinding();
+  GetOGLGfx()->RestoreFramebufferBinding();
 
   return std::make_unique<OGLFramebuffer>(color_attachment, depth_attachment, color_format,
                                           depth_format, width, height, layers, samples, fbo);

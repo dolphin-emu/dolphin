@@ -1,40 +1,27 @@
-// Copyright 2016 Dolphin Emulator Project
+// Copyright 2022 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <array>
-#include <cstddef>
-#include <memory>
-#include <string_view>
+#include <Metal/Metal.h>
+#include <QuartzCore/QuartzCore.h>
 
-#include "Common/CommonTypes.h"
-#include "VideoBackends/Vulkan/Constants.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/AbstractGfx.h"
 
-class BoundingBox;
-struct XFBSourceBase;
+#include "VideoBackends/Metal/MRCHelpers.h"
 
-namespace Vulkan
+namespace Metal
 {
-class SwapChain;
-class StagingTexture2D;
-class VKFramebuffer;
-class VKPipeline;
-class VKTexture;
+class Framebuffer;
+class Texture;
 
-class Renderer : public ::Renderer
+class Gfx final : public ::AbstractGfx
 {
 public:
-  Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
-  ~Renderer() override;
-
-  static Renderer* GetInstance() { return static_cast<Renderer*>(g_renderer.get()); }
+  Gfx(MRCOwned<CAMetalLayer*> layer);
+  ~Gfx() override;
 
   bool IsHeadless() const override;
-
-  bool Initialize() override;
-  void Shutdown() override;
 
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
                                                  std::string_view name) override;
@@ -48,19 +35,19 @@ public:
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
                                                          size_t length,
                                                          std::string_view name) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromMSL(ShaderStage stage, std::string msl,
+                                                      std::string_view glsl, std::string_view name);
   std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
   std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
                                                    const void* cache_data = nullptr,
                                                    size_t cache_data_length = 0) override;
 
-  SwapChain* GetSwapChain() const { return m_swap_chain.get(); }
-
   void Flush() override;
   void WaitForGPUIdle() override;
   void OnConfigChanged(u32 bits) override;
 
-  void ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
+  void ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_enable, bool alpha_enable,
                    bool z_enable, u32 color, u32 z) override;
 
   void SetPipeline(const AbstractPipeline* pipeline) override;
@@ -81,28 +68,20 @@ public:
                              u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z) override;
   void BindBackbuffer(const ClearColor& clear_color = {}) override;
   void PresentBackbuffer() override;
-  void SetFullscreen(bool enable_fullscreen) override;
-  bool IsFullscreen() const override;
 
-  // Completes the current render pass, executes the command buffer, and restores state ready for
-  // next render. Use when you want to kick the current buffer to make room for new data.
-  void ExecuteCommandBuffer(bool execute_off_thread, bool wait_for_completion = false);
-
-protected:
-  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
+  SurfaceInfo GetSurfaceInfo() const override;
 
 private:
+  MRCOwned<CAMetalLayer*> m_layer;
+  MRCOwned<id<CAMetalDrawable>> m_drawable;
+  std::unique_ptr<Texture> m_bb_texture;
+  std::unique_ptr<Framebuffer> m_backbuffer;
+  u32 m_texture_counter = 0;
+  u32 m_staging_texture_counter = 0;
+  std::array<u32, 4> m_shader_counter = {};
+
   void CheckForSurfaceChange();
   void CheckForSurfaceResize();
-
-  void ResetSamplerStates();
-
-  void OnSwapChainResized();
-  void BindFramebuffer(VKFramebuffer* fb);
-
-  std::unique_ptr<SwapChain> m_swap_chain;
-
-  // Keep a copy of sampler states to avoid cache lookups every draw
-  std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};
+  void SetupSurface();
 };
-}  // namespace Vulkan
+}  // namespace Metal

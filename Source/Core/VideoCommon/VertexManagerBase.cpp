@@ -17,18 +17,19 @@
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureInfo.h"
@@ -103,6 +104,7 @@ VertexManagerBase::~VertexManagerBase() = default;
 
 bool VertexManagerBase::Initialize()
 {
+  m_frame_end_event = AfterFrameEvent::Register([this] { OnEndFrame(); }, "VertexManagerBase");
   m_index_generator.Init();
   m_cpu_cull.Init();
   return true;
@@ -323,13 +325,13 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
 void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
-  if (g_renderer->IsBBoxEnabled() && g_ActiveConfig.bBBoxEnable &&
+  if (g_bounding_box->IsEnabled() && g_ActiveConfig.bBBoxEnable &&
       g_ActiveConfig.backend_info.bSupportsBBox)
   {
-    g_renderer->BBoxFlush();
+    g_bounding_box->Flush();
   }
 
-  g_renderer->DrawIndexed(base_index, num_indices, base_vertex);
+  g_gfx->DrawIndexed(base_index, num_indices, base_vertex);
 }
 
 void VertexManagerBase::UploadUniforms()
@@ -414,6 +416,12 @@ void VertexManagerBase::Flush()
     return;
 
   m_is_flushed = true;
+
+  if (m_draw_counter == 0)
+  {
+    // This is more or less the start of the Frame
+    BeforeFrameEvent::Trigger();
+  }
 
   if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens ||
       xfmem.numChan.numColorChans != bpmem.genMode.numcolchans)
@@ -554,8 +562,7 @@ void VertexManagerBase::Flush()
     {
       bool skip = false;
       GraphicsModActionData::DrawStarted draw_started{&skip};
-      for (const auto action :
-           g_renderer->GetGraphicsModManager().GetDrawStartedActions(texture_name))
+      for (const auto action : g_graphics_mod_manager->GetDrawStartedActions(texture_name))
       {
         action->OnDrawStarted(&draw_started);
       }
@@ -599,7 +606,7 @@ void VertexManagerBase::Flush()
     UpdatePipelineObject();
     if (m_current_pipeline_object)
     {
-      g_renderer->SetPipeline(m_current_pipeline_object);
+      g_gfx->SetPipeline(m_current_pipeline_object);
       if (PerfQueryBase::ShouldEmulate())
         g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
@@ -877,7 +884,7 @@ void VertexManagerBase::OnDraw()
   u32 diff = m_draw_counter - m_last_efb_copy_draw_counter;
   if (m_unflushed_efb_copy && diff > MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK)
   {
-    g_renderer->Flush();
+    g_gfx->Flush();
     m_unflushed_efb_copy = false;
     m_last_efb_copy_draw_counter = m_draw_counter;
   }
@@ -892,7 +899,7 @@ void VertexManagerBase::OnDraw()
                          m_scheduled_command_buffer_kicks.end(), m_draw_counter))
   {
     // Kick a command buffer on the background thread.
-    g_renderer->Flush();
+    g_gfx->Flush();
     m_unflushed_efb_copy = false;
     m_last_efb_copy_draw_counter = m_draw_counter;
   }
@@ -927,7 +934,7 @@ void VertexManagerBase::OnEFBCopyToRAM()
   }
 
   m_unflushed_efb_copy = false;
-  g_renderer->Flush();
+  g_gfx->Flush();
 }
 
 void VertexManagerBase::OnEndFrame()
@@ -988,4 +995,10 @@ void VertexManagerBase::OnEndFrame()
 #endif
 
   m_cpu_accesses_this_frame.clear();
+
+  // We invalidate the pipeline object at the start of the frame.
+  // This is for the rare case where only a single pipeline configuration is used,
+  // and hybrid ubershaders have compiled the specialized shader, but without any
+  // state changes the specialized shader will not take over.
+  InvalidatePipelineObject();
 }

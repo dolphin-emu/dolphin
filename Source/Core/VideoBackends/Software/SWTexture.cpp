@@ -8,7 +8,7 @@
 #include "Common/Assert.h"
 
 #include "VideoBackends/Software/CopyRegion.h"
-#include "VideoBackends/Software/SWRenderer.h"
+#include "VideoBackends/Software/SWGfx.h"
 
 namespace SW
 {
@@ -48,10 +48,10 @@ void CopyTextureData(const TextureConfig& src_config, const u8* src_ptr, u32 src
 }
 }  // namespace
 
-void SWRenderer::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
-                              const MathUtil::Rectangle<int>& dst_rect,
-                              const AbstractTexture* src_texture,
-                              const MathUtil::Rectangle<int>& src_rect)
+void SWGfx::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
+                         const MathUtil::Rectangle<int>& dst_rect,
+                         const AbstractTexture* src_texture,
+                         const MathUtil::Rectangle<int>& src_rect)
 {
   const SWTexture* software_source_texture = static_cast<const SWTexture*>(src_texture);
   SWTexture* software_dest_texture = static_cast<SWTexture*>(dst_framebuffer->GetColorAttachment());

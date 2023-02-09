@@ -44,6 +44,8 @@ public:
   //       (i.e. VertexShaderManager::SetConstants needs to be called before using this!)
   void TransformToClipSpace(const float* data, float* out, u32 mtxIdx);
 
+  static bool UseVertexDepthRange();
+
   VertexShaderConstants constants{};
   bool dirty = false;
 

@@ -18,6 +18,7 @@
 #include "VideoBackends/Software/Tev.h"
 #include "VideoBackends/Software/TransformUnit.h"
 
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/IndexGenerator.h"
@@ -62,8 +63,8 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
   }
 
   // Flush bounding box here because software overrides the base function
-  if (g_renderer->IsBBoxEnabled())
-    g_renderer->BBoxFlush();
+  if (g_bounding_box->IsEnabled())
+    g_bounding_box->Flush();
 
   m_setup_unit.Init(primitive_type);
   Rasterizer::SetTevKonstColors();

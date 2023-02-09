@@ -11,8 +11,9 @@
 #include "Core/ConfigManager.h"
 
 #include "VideoBackends/D3D12/Common.h"
+#include "VideoBackends/D3D12/D3D12BoundingBox.h"
+#include "VideoBackends/D3D12/D3D12Gfx.h"
 #include "VideoBackends/D3D12/D3D12PerfQuery.h"
-#include "VideoBackends/D3D12/D3D12Renderer.h"
 #include "VideoBackends/D3D12/D3D12SwapChain.h"
 #include "VideoBackends/D3D12/D3D12VertexManager.h"
 #include "VideoBackends/D3D12/DX12Context.h"
@@ -111,7 +112,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   }
 
   FillBackendInfo();
-  InitializeShared();
+  UpdateActiveConfig();
 
   if (!g_dx_context->CreateGlobalResources())
   {
@@ -131,45 +132,22 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   }
 
   // Create main wrapper instances.
-  g_renderer = std::make_unique<Renderer>(std::move(swap_chain), wsi.render_surface_scale);
-  g_vertex_manager = std::make_unique<VertexManager>();
-  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  g_framebuffer_manager = std::make_unique<FramebufferManager>();
-  g_texture_cache = std::make_unique<TextureCacheBase>();
-  g_perf_query = std::make_unique<PerfQuery>();
+  auto gfx = std::make_unique<DX12::Gfx>(std::move(swap_chain), wsi.render_surface_scale);
+  auto vertex_manager = std::make_unique<DX12::VertexManager>();
+  auto perf_query = std::make_unique<DX12::PerfQuery>();
+  auto bounding_box = std::make_unique<DX12::D3D12BoundingBox>();
 
-  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
-      !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
-      !g_texture_cache->Initialize() || !PerfQuery::GetInstance()->Initialize())
-  {
-    PanicAlertFmtT("Failed to initialize renderer classes");
-    Shutdown();
-    return false;
-  }
-
-  g_shader_cache->InitializeShaderCache();
-  return true;
+  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+                          std::move(bounding_box));
 }
 
 void VideoBackend::Shutdown()
 {
   // Keep the debug runtime happy...
-  if (g_renderer)
-    Renderer::GetInstance()->ExecuteCommandList(true);
+  if (g_gfx)
+    Gfx::GetInstance()->ExecuteCommandList(true);
 
-  if (g_shader_cache)
-    g_shader_cache->Shutdown();
-
-  if (g_renderer)
-    g_renderer->Shutdown();
-
-  g_perf_query.reset();
-  g_texture_cache.reset();
-  g_framebuffer_manager.reset();
-  g_shader_cache.reset();
-  g_vertex_manager.reset();
-  g_renderer.reset();
-  DXContext::Destroy();
   ShutdownShared();
+  DXContext::Destroy();
 }
 }  // namespace DX12

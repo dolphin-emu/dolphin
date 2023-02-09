@@ -20,7 +20,6 @@
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/PerfQueryBase.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace PixelEngine
@@ -148,7 +147,7 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   {
     mmio->Register(base | (PE_BBOX_LEFT + 2 * i),
                    MMIO::ComplexRead<u16>([i](Core::System& system, u32) {
-                     g_renderer->BBoxDisable(system.GetPixelShaderManager());
+                     g_bounding_box->Disable(system.GetPixelShaderManager());
                      return g_video_backend->Video_GetBoundingBox(i);
                    }),
                    MMIO::InvalidWrite<u16>());

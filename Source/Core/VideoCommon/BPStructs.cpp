@@ -33,7 +33,7 @@
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -42,6 +42,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 using namespace BPFunctions;
 
@@ -185,6 +186,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
     {
       INCSTAT(g_stats.this_frame.num_draw_done);
       g_texture_cache->FlushEFBCopies();
+      g_texture_cache->FlushStaleBinds();
       g_framebuffer_manager->InvalidatePeekCache(false);
       g_framebuffer_manager->RefreshPeekCache();
       auto& system = Core::System::GetInstance();
@@ -203,6 +205,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
   {
     INCSTAT(g_stats.this_frame.num_token);
     g_texture_cache->FlushEFBCopies();
+    g_texture_cache->FlushStaleBinds();
     g_framebuffer_manager->InvalidatePeekCache(false);
     g_framebuffer_manager->RefreshPeekCache();
     auto& system = Core::System::GetInstance();
@@ -218,6 +221,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
   {
     INCSTAT(g_stats.this_frame.num_token_int);
     g_texture_cache->FlushEFBCopies();
+    g_texture_cache->FlushStaleBinds();
     g_framebuffer_manager->InvalidatePeekCache(false);
     g_framebuffer_manager->RefreshPeekCache();
     auto& system = Core::System::GetInstance();
@@ -282,7 +286,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
         if (PE_copy.copy_to_xfb == 1)
         {
           // Make sure we disable Bounding box to match the side effects of the non-failure path
-          g_renderer->BBoxDisable(pixel_shader_manager);
+          g_bounding_box->Disable(pixel_shader_manager);
         }
 
         return;
@@ -313,7 +317,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
       // We should be able to get away with deactivating the current bbox tracking
       // here. Not sure if there's a better spot to put this.
       // the number of lines copied is determined by the y scale * source efb height
-      g_renderer->BBoxDisable(pixel_shader_manager);
+      g_bounding_box->Disable(pixel_shader_manager);
 
       float yScale;
       if (PE_copy.scale_invert)
@@ -337,14 +341,26 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
           false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
           bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
 
-      // This stays in to signal end of a "frame"
-      g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
+      // This is as closest as we have to an "end of the frame"
+      // It works 99% of the time.
+      // But sometimes games want to render an XFB larger than the EFB's 640x528 pixel resolution
+      // (especially when using the 3xMSAA mode, which cuts EFB resolution to 640x264). So they
+      // render multiple sub-frames and arrange the XFB copies in next to each-other in main memory
+      // so they form a single completed XFB.
+      // See https://dolphin-emu.org/blog/2017/11/19/hybridxfb/ for examples and more detail.
+      AfterFrameEvent::Trigger();
+
+      // Note: Theoretically, in the future we could track the VI configuration and try to detect
+      //       when an XFB is the last XFB copy of a frame. Not only would we get a clean "end of
+      //       the frame", but we would also be able to use ImmediateXFB even for these games.
+      //       Might also clean up some issues with games doing XFB copies they don't intend to
+      //       display.
 
       if (g_ActiveConfig.bImmediateXFB)
       {
         // below div two to convert from bytes to pixels - it expects width, not stride
-        g_renderer->Swap(destAddr, destStride / 2, destStride, height,
-                         Core::System::GetInstance().GetCoreTiming().GetTicks());
+        u64 ticks = Core::System::GetInstance().GetCoreTiming().GetTicks();
+        g_presenter->ImmediateSwap(destAddr, destStride / 2, destStride, height, ticks);
       }
       else
       {
@@ -481,10 +497,10 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
   case BPMEM_CLEARBBOX2:
   {
     const u8 offset = bp.address & 2;
-    g_renderer->BBoxEnable(pixel_shader_manager);
+    g_bounding_box->Enable(pixel_shader_manager);
 
-    g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
-    g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);
+    g_bounding_box->Set(offset, bp.newvalue & 0x3ff);
+    g_bounding_box->Set(offset + 1, bp.newvalue >> 10);
   }
     return;
   case BPMEM_TEXINVALIDATE:

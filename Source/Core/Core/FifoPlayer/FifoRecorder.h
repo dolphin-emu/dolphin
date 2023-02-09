@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/HookableEvent.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 
 class FifoRecorder
@@ -50,6 +51,8 @@ public:
 private:
   class FifoRecordAnalyzer;
 
+  void RecordInitialVideoMemory();
+
   // Accessed from both GUI and video threads
 
   std::recursive_mutex m_mutex;
@@ -72,4 +75,6 @@ private:
   std::vector<u8> m_FifoData;
   std::vector<u8> m_Ram;
   std::vector<u8> m_ExRam;
+
+  Common::EventHook m_end_of_frame_event;
 };

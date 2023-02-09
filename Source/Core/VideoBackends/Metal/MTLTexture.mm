@@ -6,7 +6,7 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 
-#include "VideoBackends/Metal/MTLRenderer.h"
+#include "VideoBackends/Metal/MTLGfx.h"
 #include "VideoBackends/Metal/MTLStateTracker.h"
 
 Metal::Texture::Texture(MRCOwned<id<MTLTexture>> tex, const TextureConfig& config)

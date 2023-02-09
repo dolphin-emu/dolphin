@@ -4,11 +4,21 @@
 #pragma once
 
 #include "Common/BitField.h"
+#include "Common/CommonTypes.h"
 
-#include "VideoCommon/BPMemory.h"
-#include "VideoCommon/BPStructs.h"
+struct BPMemory;
 
 enum class AbstractTextureFormat : u32;
+
+enum class CompareMode : u32;
+enum class CullMode : u32;
+enum class DstBlendFactor : u32;
+enum class FilterMode : u32;
+enum class LODType : u32;
+enum class LogicOp : u32;
+enum class PixelFormat : u32;
+enum class SrcBlendFactor : u32;
+enum class WrapMode : u32;
 
 enum class PrimitiveType : u32
 {

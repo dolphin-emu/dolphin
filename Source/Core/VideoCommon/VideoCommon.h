@@ -12,18 +12,18 @@
 #include "VideoCommon/BPMemory.h"
 
 // These are accurate (disregarding AA modes).
-constexpr u32 EFB_WIDTH = 640;
-constexpr u32 EFB_HEIGHT = 528;
+constexpr u32 EFB_WIDTH = 640u;
+constexpr u32 EFB_HEIGHT = 528u;
 
 // Max XFB width is 720. You can only copy out 640 wide areas of efb to XFB
 // so you need multiple copies to do the full width.
 // The VI can do horizontal scaling (TODO: emulate).
-constexpr u32 MAX_XFB_WIDTH = 720;
+constexpr u32 MAX_XFB_WIDTH = 720u;
 
 // Although EFB height is 528, 576-line XFB's can be created either with
 // vertical scaling by the EFB copy operation or copying to multiple XFB's
 // that are next to each other in memory (TODO: handle that situation).
-constexpr u32 MAX_XFB_HEIGHT = 576;
+constexpr u32 MAX_XFB_HEIGHT = 576u;
 
 #define PRIM_LOG(t, ...) DEBUG_LOG_FMT(VIDEO, t __VA_OPT__(, ) __VA_ARGS__)
 

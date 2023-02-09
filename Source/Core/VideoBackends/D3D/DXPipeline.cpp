@@ -7,7 +7,7 @@
 #include "Common/Logging/Log.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
-#include "VideoBackends/D3D/D3DRender.h"
+#include "VideoBackends/D3D/D3DGfx.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DVertexManager.h"
 #include "VideoBackends/D3D/DXShader.h"
@@ -32,7 +32,7 @@ DXPipeline::~DXPipeline() = default;
 
 std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& config)
 {
-  StateCache& state_cache = static_cast<Renderer*>(g_renderer.get())->GetStateCache();
+  StateCache& state_cache = static_cast<Gfx*>(g_gfx.get())->GetStateCache();
   ID3D11RasterizerState* rasterizer_state = state_cache.Get(config.rasterization_state);
   ID3D11DepthStencilState* depth_state = state_cache.Get(config.depth_state);
   ID3D11BlendState* blend_state = state_cache.Get(config.blending_state);

@@ -15,7 +15,7 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Present.h"
 
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
 #include <X11/Xlib.h>
@@ -265,8 +265,8 @@ bool SwapChain::CreateSwapChain()
   VkExtent2D size = surface_capabilities.currentExtent;
   if (size.width == UINT32_MAX)
   {
-    size.width = std::max(g_renderer->GetBackbufferWidth(), 1);
-    size.height = std::max(g_renderer->GetBackbufferHeight(), 1);
+    size.width = std::max(g_presenter->GetBackbufferWidth(), 1);
+    size.height = std::max(g_presenter->GetBackbufferHeight(), 1);
   }
   size.width = std::clamp(size.width, surface_capabilities.minImageExtent.width,
                           surface_capabilities.maxImageExtent.width);

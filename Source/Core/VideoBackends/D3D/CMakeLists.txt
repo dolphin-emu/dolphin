@@ -7,8 +7,8 @@ add_library(videod3d
   D3DNativeVertexFormat.cpp
   D3DPerfQuery.cpp
   D3DPerfQuery.h
-  D3DRender.cpp
-  D3DRender.h
+  D3DGfx.cpp
+  D3DGfx.h
   D3DState.cpp
   D3DState.h
   D3DSwapChain.cpp

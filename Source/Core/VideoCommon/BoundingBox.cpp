@@ -13,6 +13,8 @@
 
 #include <algorithm>
 
+std::unique_ptr<BoundingBox> g_bounding_box;
+
 void BoundingBox::Enable(PixelShaderManager& pixel_shader_manager)
 {
   m_is_active = true;
@@ -27,7 +29,7 @@ void BoundingBox::Disable(PixelShaderManager& pixel_shader_manager)
 
 void BoundingBox::Flush()
 {
-  if (!g_ActiveConfig.backend_info.bSupportsBBox)
+  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
     return;
 
   m_is_valid = false;
@@ -74,6 +76,9 @@ u16 BoundingBox::Get(u32 index)
 {
   ASSERT(index < NUM_BBOX_VALUES);
 
+  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+    return m_bounding_box_fallback[index];
+
   if (!m_is_valid)
     Readback();
 
@@ -83,6 +88,12 @@ u16 BoundingBox::Get(u32 index)
 void BoundingBox::Set(u32 index, u16 value)
 {
   ASSERT(index < NUM_BBOX_VALUES);
+
+  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+  {
+    m_bounding_box_fallback[index] = value;
+    return;
+  }
 
   if (m_is_valid && m_values[index] == value)
     return;
@@ -96,6 +107,7 @@ void BoundingBox::Set(u32 index, u16 value)
 // Nonetheless, it has been designed to be as safe as possible.
 void BoundingBox::DoState(PointerWrap& p)
 {
+  p.DoArray(m_bounding_box_fallback);
   p.Do(m_is_active);
   p.DoArray(m_values);
   p.DoArray(m_dirty);

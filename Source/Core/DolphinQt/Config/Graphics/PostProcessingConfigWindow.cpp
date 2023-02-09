@@ -21,7 +21,7 @@
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 
 #include "VideoCommon/PostProcessing.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/VideoConfig.h"
 
 using ConfigurationOption = VideoCommon::PostProcessingConfiguration::ConfigurationOption;
@@ -31,9 +31,9 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
                                                        const std::string& shader)
     : QDialog(parent), m_shader(shader)
 {
-  if (g_renderer && g_renderer->GetPostProcessor())
+  if (g_presenter && g_presenter->GetPostProcessor())
   {
-    m_post_processor = g_renderer->GetPostProcessor()->GetConfig();
+    m_post_processor = g_presenter->GetPostProcessor()->GetConfig();
   }
   else
   {
@@ -52,7 +52,7 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
 PostProcessingConfigWindow::~PostProcessingConfigWindow()
 {
   m_post_processor->SaveOptionsConfiguration();
-  if (!(g_renderer && g_renderer->GetPostProcessor()))
+  if (!(g_presenter && g_presenter->GetPostProcessor()))
   {
     delete m_post_processor;
   }
