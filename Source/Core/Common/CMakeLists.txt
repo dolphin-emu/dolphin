@@ -157,7 +157,7 @@ PRIVATE
   ${CURL_LIBRARIES}
   FatFs
   ${ICONV_LIBRARIES}
-  spng
+  ${spng_target}
   ${VTUNE_LIBRARIES}
 )
 

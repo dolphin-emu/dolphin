@@ -800,7 +800,15 @@ else()
   set(LZO lzo2)
 endif()
 
-add_subdirectory(Externals/libspng)
+pkg_check_modules(pc_spng IMPORTED_TARGET spng)
+if (pc_spng_FOUND AND TARGET PkgConfig::pc_spng)
+  message(STATUS "Using the system libspng")
+  set(spng_target PkgConfig::pc_spng)
+else()
+  message(STATUS "Using static libspng from Externals")
+  add_subdirectory(Externals/libspng)
+  set(spng_target spng)
+endif()
 
 # Using static FreeSurround from Externals
 # There is no system FreeSurround library.
