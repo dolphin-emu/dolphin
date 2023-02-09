@@ -13,8 +13,8 @@ namespace Vulkan
 class VKPipeline final : public AbstractPipeline
 {
 public:
-  explicit VKPipeline(VkPipeline pipeline, VkPipelineLayout pipeline_layout,
-                      AbstractPipelineUsage usage);
+  explicit VKPipeline(const AbstractPipelineConfig& config, VkPipeline pipeline,
+                      VkPipelineLayout pipeline_layout, AbstractPipelineUsage usage);
   ~VKPipeline() override;
 
   VkPipeline GetVkPipeline() const { return m_pipeline; }

@@ -27,7 +27,8 @@ struct PipelineReflection
 class Pipeline final : public AbstractPipeline
 {
 public:
-  explicit Pipeline(MRCOwned<id<MTLRenderPipelineState>> pipeline,
+  explicit Pipeline(const AbstractPipelineConfig& config,
+                    MRCOwned<id<MTLRenderPipelineState>> pipeline,
                     const PipelineReflection& reflection, MTLPrimitiveType prim, MTLCullMode cull,
                     DepthState depth, AbstractPipelineUsage usage);
 

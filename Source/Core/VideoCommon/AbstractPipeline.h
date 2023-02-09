@@ -76,7 +76,10 @@ class AbstractPipeline
 {
 public:
   AbstractPipeline() = default;
+  explicit AbstractPipeline(const AbstractPipelineConfig& config) : m_config(config) {}
   virtual ~AbstractPipeline() = default;
+
+  AbstractPipelineConfig m_config;
 
   // "Cache data" can be used to assist a driver with creating pipelines by using previously
   // compiled shader ISA. The abstract shaders and creation struct are still required to create

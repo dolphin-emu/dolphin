@@ -18,9 +18,10 @@
 
 namespace Vulkan
 {
-VKPipeline::VKPipeline(VkPipeline pipeline, VkPipelineLayout pipeline_layout,
-                       AbstractPipelineUsage usage)
-    : m_pipeline(pipeline), m_pipeline_layout(pipeline_layout), m_usage(usage)
+VKPipeline::VKPipeline(const AbstractPipelineConfig& config, VkPipeline pipeline,
+                       VkPipelineLayout pipeline_layout, AbstractPipelineUsage usage)
+    : AbstractPipeline(config), m_pipeline(pipeline), m_pipeline_layout(pipeline_layout),
+      m_usage(usage)
 {
 }
 
@@ -403,6 +404,6 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
     return VK_NULL_HANDLE;
   }
 
-  return std::make_unique<VKPipeline>(pipeline, pipeline_layout, config.usage);
+  return std::make_unique<VKPipeline>(config, pipeline, pipeline_layout, config.usage);
 }
 }  // namespace Vulkan

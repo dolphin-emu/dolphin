@@ -14,11 +14,11 @@
 
 namespace DX12
 {
-DXPipeline::DXPipeline(ID3D12PipelineState* pipeline, ID3D12RootSignature* root_signature,
-                       AbstractPipelineUsage usage, D3D12_PRIMITIVE_TOPOLOGY primitive_topology,
-                       bool use_integer_rtv)
-    : m_pipeline(pipeline), m_root_signature(root_signature), m_usage(usage),
-      m_primitive_topology(primitive_topology), m_use_integer_rtv(use_integer_rtv)
+DXPipeline::DXPipeline(const AbstractPipelineConfig& config, ID3D12PipelineState* pipeline,
+                       ID3D12RootSignature* root_signature, AbstractPipelineUsage usage,
+                       D3D12_PRIMITIVE_TOPOLOGY primitive_topology, bool use_integer_rtv)
+    : AbstractPipeline(config), m_pipeline(pipeline), m_root_signature(root_signature),
+      m_usage(usage), m_primitive_topology(primitive_topology), m_use_integer_rtv(use_integer_rtv)
 {
 }
 
@@ -218,7 +218,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
 
   const bool use_integer_rtv =
       !config.blending_state.blendenable && config.blending_state.logicopenable;
-  return std::make_unique<DXPipeline>(pso, desc.pRootSignature, config.usage,
+  return std::make_unique<DXPipeline>(config, pso, desc.pRootSignature, config.usage,
                                       GetD3DTopology(config.rasterization_state), use_integer_rtv);
 }
 
