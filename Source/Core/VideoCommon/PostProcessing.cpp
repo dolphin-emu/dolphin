@@ -499,7 +499,7 @@ std::string PostProcessing::GetHeader() const
   ss << GetUniformBufferHeader();
   ss << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n";
 
-  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_gfx->GetBackendInfo().bSupportsGeometryShaders)
   {
     ss << "VARYING_LOCATION(0) in VertexData {\n";
     ss << "  float3 v_tex0;\n";
@@ -575,7 +575,7 @@ bool PostProcessing::CompileVertexShader()
   std::ostringstream ss;
   ss << GetUniformBufferHeader();
 
-  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_gfx->GetBackendInfo().bSupportsGeometryShaders)
   {
     ss << "VARYING_LOCATION(0) out VertexData {\n";
     ss << "  float3 v_tex0;\n";
@@ -593,7 +593,7 @@ bool PostProcessing::CompileVertexShader()
   ss << "  opos = float4(v_tex0.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);\n";
   ss << "  v_tex0 = float3(src_rect.xy + (src_rect.zw * v_tex0.xy), float(src_layer));\n";
 
-  if (g_ActiveConfig.backend_info.api_type == APIType::Vulkan)
+  if (g_gfx->GetBackendInfo().api_type == APIType::Vulkan)
     ss << "  opos.y = -opos.y;\n";
 
   ss << "}\n";

@@ -109,7 +109,8 @@ bool UsePersistentStagingBuffers()
 }
 }  // Anonymous namespace
 
-OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
+OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name,
+                       const BackendInfo& backend_info)
     : AbstractTexture(tex_config), m_name(name)
 {
   DEBUG_ASSERT_MSG(VIDEO, !tex_config.IsMultisampled() || tex_config.levels == 1,
@@ -120,7 +121,7 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
   glActiveTexture(GL_MUTABLE_TEXTURE_INDEX);
   glBindTexture(target, m_texId);
 
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && backend_info.bSupportsSettingObjectNames)
   {
     glObjectLabel(GL_TEXTURE, m_texId, (GLsizei)m_name.size(), m_name.c_str());
   }

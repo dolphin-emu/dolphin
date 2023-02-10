@@ -23,24 +23,25 @@ MRCOwned<id<MTLDevice>> Metal::g_device;
 MRCOwned<id<MTLCommandQueue>> Metal::g_queue;
 std::unique_ptr<Metal::ObjectCache> Metal::g_object_cache;
 
-static void SetupDepthStencil(
-    MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES]);
+static void
+SetupDepthStencil(MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES],
+                  const BackendInfo& backend_info);
 
-Metal::ObjectCache::ObjectCache()
+Metal::ObjectCache::ObjectCache(const BackendInfo& backend_info)
 {
   m_internal = std::make_unique<Internal>();
-  SetupDepthStencil(m_dss);
+  SetupDepthStencil(m_dss, backend_info);
 }
 
 Metal::ObjectCache::~ObjectCache()
 {
 }
 
-void Metal::ObjectCache::Initialize(MRCOwned<id<MTLDevice>> device)
+void Metal::ObjectCache::Initialize(MRCOwned<id<MTLDevice>> device, const BackendInfo& backend_info)
 {
   g_device = std::move(device);
   g_queue = MRCTransfer([g_device newCommandQueue]);
-  g_object_cache = std::unique_ptr<ObjectCache>(new ObjectCache);
+  g_object_cache = std::unique_ptr<ObjectCache>(new ObjectCache(backend_info));
 }
 
 void Metal::ObjectCache::Shutdown()
@@ -54,9 +55,9 @@ void Metal::ObjectCache::Shutdown()
 
 // clang-format off
 
-static MTLCompareFunction Convert(CompareMode mode)
+static MTLCompareFunction Convert(CompareMode mode, const BackendInfo& backend_info)
 {
-  const bool invert_depth = !g_Config.backend_info.bSupportsReversedDepthRange;
+  const bool invert_depth = !backend_info.bSupportsReversedDepthRange;
   switch (mode)
   {
   case CompareMode::Never:   return MTLCompareFunctionNever;
@@ -92,14 +93,15 @@ static const char* to_string(MTLCompareFunction compare)
 // clang-format on
 
 static void
-SetupDepthStencil(MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES])
+SetupDepthStencil(MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES],
+                  const BackendInfo& backend_info)
 {
   auto desc = MRCTransfer([MTLDepthStencilDescriptor new]);
   Metal::DepthStencilSelector sel;
   for (size_t i = 0; i < std::size(dss); ++i)
   {
     sel.value = i;
-    MTLCompareFunction mcompare = Convert(sel.CompareMode());
+    MTLCompareFunction mcompare = Convert(sel.CompareMode(), backend_info);
     [desc setDepthWriteEnabled:sel.UpdateEnable()];
     [desc setDepthCompareFunction:mcompare];
     [desc setLabel:[NSString stringWithFormat:@"DSS %s%s", to_string(mcompare),

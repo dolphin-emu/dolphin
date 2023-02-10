@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 class GLContext;
 
@@ -70,8 +71,8 @@ struct VideoConfig
   s32 max_samples;
 };
 
-void InitDriverInfo();
-bool PopulateConfig(GLContext* main_gl_context);
+void InitDriverInfo(BackendInfo& backend_info);
+bool PopulateConfig(BackendInfo& backend_info, GLContext* main_gl_context);
 
 extern VideoConfig g_ogl_config;
 

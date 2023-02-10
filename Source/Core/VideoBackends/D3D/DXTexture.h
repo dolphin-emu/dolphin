@@ -14,6 +14,7 @@
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace DX11
 {
@@ -90,8 +91,8 @@ public:
   ID3D11RenderTargetView* const* GetIntegerRTVArray() const { return m_integer_rtv.GetAddressOf(); }
   UINT GetNumRTVs() const { return m_rtv ? 1 : 0; }
   ID3D11DepthStencilView* GetDSV() const { return m_dsv.Get(); }
-  static std::unique_ptr<DXFramebuffer> Create(DXTexture* color_attachment,
-                                               DXTexture* depth_attachment);
+  static std::unique_ptr<DXFramebuffer>
+  Create(DXTexture* color_attachment, DXTexture* depth_attachment, const BackendInfo& backend_info);
 
 protected:
   ComPtr<ID3D11RenderTargetView> m_rtv;

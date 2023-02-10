@@ -14,6 +14,8 @@
 #include "VideoBackends/D3D12/DescriptorAllocator.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 
+#include "VideoCommon/VideoBackendInfo.h"
+
 struct IDXGIFactory;
 
 namespace DX12
@@ -108,7 +110,7 @@ public:
   bool SupportsTextureFormat(DXGI_FORMAT format);
 
   // Creates command lists, global buffers and descriptor heaps.
-  bool CreateGlobalResources();
+  bool CreateGlobalResources(const BackendInfo& backend_info);
 
   // Executes the current command list.
   void ExecuteCommandList(bool wait_for_completion);
@@ -126,7 +128,7 @@ public:
   void ResetSamplerAllocators();
 
   // Re-creates the root signature. Call when the host config changes (e.g. bbox/per-pixel shading).
-  void RecreateGXRootSignature();
+  void RecreateGXRootSignature(const BackendInfo& backend_info);
 
 private:
   // Number of command lists. One is being built while the other(s) are executed.
@@ -153,8 +155,8 @@ private:
   bool CreateCommandQueue();
   bool CreateFence();
   bool CreateDescriptorHeaps();
-  bool CreateRootSignatures();
-  bool CreateGXRootSignature();
+  bool CreateRootSignatures(const BackendInfo& backend_info);
+  bool CreateGXRootSignature(const BackendInfo& backend_info);
   bool CreateUtilityRootSignature();
   bool CreateComputeRootSignature();
   bool CreateTextureUploadBuffer();

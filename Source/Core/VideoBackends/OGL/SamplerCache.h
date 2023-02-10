@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLUtil.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace OGL
 {
@@ -24,7 +25,7 @@ public:
   SamplerCache(SamplerCache&&) = delete;
   SamplerCache& operator=(SamplerCache&&) = delete;
 
-  void SetSamplerState(u32 stage, const SamplerState& state);
+  void SetSamplerState(u32 stage, const SamplerState& state, const BackendInfo& backend_info);
   void InvalidateBinding(u32 stage);
 
   void Clear();
@@ -32,7 +33,8 @@ public:
   void BindLinearSampler(int stage);
 
 private:
-  static void SetParameters(GLuint sampler_id, const SamplerState& params);
+  static void SetParameters(GLuint sampler_id, const SamplerState& params,
+                            const BackendInfo& backend_info);
 
   std::map<SamplerState, GLuint> m_cache;
   std::array<std::pair<SamplerState, GLuint>, 8> m_active_samplers{};

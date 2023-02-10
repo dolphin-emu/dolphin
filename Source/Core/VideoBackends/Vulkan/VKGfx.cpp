@@ -32,8 +32,10 @@
 
 namespace Vulkan
 {
-VKGfx::VKGfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
-    : m_swap_chain(std::move(swap_chain)), m_backbuffer_scale(backbuffer_scale)
+VKGfx::VKGfx(VideoBackendBase* backend, std::unique_ptr<SwapChain> swap_chain,
+             float backbuffer_scale)
+    : AbstractGfx(backend), m_swap_chain(std::move(swap_chain)),
+      m_backbuffer_scale(backbuffer_scale)
 {
   UpdateActiveConfig();
   for (SamplerState& sampler_state : m_sampler_states)
@@ -54,7 +56,7 @@ bool VKGfx::IsHeadless() const
 std::unique_ptr<AbstractTexture> VKGfx::CreateTexture(const TextureConfig& config,
                                                       std::string_view name)
 {
-  return VKTexture::Create(config, name);
+  return VKTexture::Create(config, name, GetBackendInfo());
 }
 
 std::unique_ptr<AbstractStagingTexture> VKGfx::CreateStagingTexture(StagingTextureType type,
@@ -66,13 +68,13 @@ std::unique_ptr<AbstractStagingTexture> VKGfx::CreateStagingTexture(StagingTextu
 std::unique_ptr<AbstractShader>
 VKGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
-  return VKShader::CreateFromSource(stage, source, name);
+  return VKShader::CreateFromSource(stage, source, name, GetBackendInfo());
 }
 
 std::unique_ptr<AbstractShader> VKGfx::CreateShaderFromBinary(ShaderStage stage, const void* data,
                                                               size_t length, std::string_view name)
 {
-  return VKShader::CreateFromBinary(stage, data, length, name);
+  return VKShader::CreateFromBinary(stage, data, length, name, GetBackendInfo());
 }
 
 std::unique_ptr<NativeVertexFormat>
@@ -85,7 +87,7 @@ std::unique_ptr<AbstractPipeline> VKGfx::CreatePipeline(const AbstractPipelineCo
                                                         const void* cache_data,
                                                         size_t cache_data_length)
 {
-  return VKPipeline::Create(config);
+  return VKPipeline::Create(config, GetBackendInfo());
 }
 
 std::unique_ptr<AbstractFramebuffer> VKGfx::CreateFramebuffer(AbstractTexture* color_attachment,
@@ -115,7 +117,7 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_en
   clear_color_value.color.float32[2] = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
   clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
   clear_depth_value.depthStencil.depth = static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
-  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+  if (!GetBackendInfo().bSupportsReversedDepthRange)
     clear_depth_value.depthStencil.depth = 1.0f - clear_depth_value.depthStencil.depth;
 
   // If we're not in a render pass (start of the frame), we can use a clear render pass
@@ -250,18 +252,18 @@ void VKGfx::BindBackbuffer(const ClearColor& clear_color)
     {
       // The present keeps returning exclusive mode lost unless we re-create the swap chain.
       INFO_LOG_FMT(VIDEO, "Lost exclusive fullscreen.");
-      m_swap_chain->RecreateSwapChain();
+      m_swap_chain->RecreateSwapChain(m_backend->backend_info);
     }
     else if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
     {
       INFO_LOG_FMT(VIDEO, "Resizing swap chain due to suboptimal/out-of-date");
-      m_swap_chain->ResizeSwapChain();
+      m_swap_chain->ResizeSwapChain(m_backend->backend_info);
     }
     else
     {
       ERROR_LOG_FMT(VIDEO, "Unknown present error {:#010X} {}, please report.",
                     static_cast<u32>(res), VkResultToString(res));
-      m_swap_chain->RecreateSwapChain();
+      m_swap_chain->RecreateSwapChain(m_backend->backend_info);
     }
 
     res = m_swap_chain->AcquireNextImage();
@@ -335,7 +337,7 @@ void VKGfx::CheckForSurfaceChange()
   g_command_buffer_mgr->CheckLastPresentFail();
 
   // Recreate the surface. If this fails we're in trouble.
-  if (!m_swap_chain->RecreateSurface(g_presenter->GetNewSurfaceHandle()))
+  if (!m_swap_chain->RecreateSurface(g_presenter->GetNewSurfaceHandle(), m_backend->backend_info))
     PanicAlertFmt("Failed to recreate Vulkan surface. Cannot continue.");
 
   // Handle case where the dimensions are now different.
@@ -362,7 +364,7 @@ void VKGfx::CheckForSurfaceResize()
   g_command_buffer_mgr->CheckLastPresentFail();
 
   // Resize the swap chain.
-  m_swap_chain->RecreateSwapChain();
+  m_swap_chain->RecreateSwapChain(m_backend->backend_info);
   OnSwapChainResized();
 }
 
@@ -371,20 +373,20 @@ void VKGfx::OnConfigChanged(u32 bits)
   AbstractGfx::OnConfigChanged(bits);
 
   if (bits & CONFIG_CHANGE_BIT_HOST_CONFIG)
-    g_object_cache->ReloadPipelineCache();
+    g_object_cache->ReloadPipelineCache(GetBackendInfo());
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
   if (m_swap_chain && bits & CONFIG_CHANGE_BIT_VSYNC)
   {
     ExecuteCommandBuffer(false, true);
-    m_swap_chain->SetVSync(g_ActiveConfig.bVSyncActive);
+    m_swap_chain->SetVSync(g_ActiveConfig.bVSyncActive, m_backend->backend_info);
   }
 
   // For quad-buffered stereo we need to change the layer count, so recreate the swap chain.
   if (m_swap_chain && bits & CONFIG_CHANGE_BIT_STEREO_MODE)
   {
     ExecuteCommandBuffer(false, true);
-    m_swap_chain->RecreateSwapChain();
+    m_swap_chain->RecreateSwapChain(m_backend->backend_info);
   }
 
   // Wipe sampler cache if force texture filtering or anisotropy changes.

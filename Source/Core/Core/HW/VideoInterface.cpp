@@ -31,8 +31,14 @@
 
 #include "DiscIO/Enums.h"
 
-#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+enum class FieldType
+{
+  Odd,
+  Even,
+};
 
 namespace VideoInterface
 {
@@ -854,7 +860,7 @@ static void OutputField(FieldType field, u64 ticks)
   // can change the register values during scanout. To correctly emulate the scanout process, we
   // would need to collate all changes to the VI registers during scanout.
   if (xfbAddr)
-    g_video_backend->Video_OutputXFB(xfbAddr, fbWidth, fbStride, fbHeight, ticks);
+    Core::System::GetInstance().GetVideo().OutputXFB(xfbAddr, fbWidth, fbStride, fbHeight, ticks);
 }
 
 static void BeginField(FieldType field, u64 ticks)

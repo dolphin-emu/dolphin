@@ -12,7 +12,7 @@ namespace SW
 class SWGfx final : public AbstractGfx
 {
 public:
-  SWGfx(std::unique_ptr<SWOGLWindow> window);
+  SWGfx(VideoBackendBase* backend, std::unique_ptr<SWOGLWindow> window);
 
   bool IsHeadless() const override;
   virtual bool SupportsUtilityDrawing() const override;

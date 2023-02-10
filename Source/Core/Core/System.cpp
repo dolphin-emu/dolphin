@@ -28,7 +28,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
-
+#include "VideoCommon/VideoBase.h"
 namespace Core
 {
 struct System::Impl
@@ -63,6 +63,7 @@ struct System::Impl
   Sram m_sram;
   VertexShaderManager m_vertex_shader_manager;
   VideoInterface::VideoInterfaceState m_video_interface_state;
+  VideoBase m_video;
 };
 
 System::System() : m_impl{std::make_unique<Impl>(*this)}
@@ -212,4 +213,10 @@ VideoInterface::VideoInterfaceState& System::GetVideoInterfaceState() const
 {
   return m_impl->m_video_interface_state;
 }
+
+VideoBase& System::GetVideo() const
+{
+  return m_impl->m_video;
+}
+
 }  // namespace Core

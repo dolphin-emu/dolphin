@@ -64,56 +64,74 @@ std::optional<std::string> VideoSoftware::GetWarningMessage() const
 
 void VideoSoftware::InitBackendInfo()
 {
-  g_Config.backend_info.api_type = APIType::Nothing;
-  g_Config.backend_info.MaxTextureSize = 16384;
-  g_Config.backend_info.bUsesLowerLeftOrigin = false;
-  g_Config.backend_info.bSupports3DVision = false;
-  g_Config.backend_info.bSupportsDualSourceBlend = true;
-  g_Config.backend_info.bSupportsEarlyZ = true;
-  g_Config.backend_info.bSupportsPrimitiveRestart = false;
-  g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsComputeShaders = false;
-  g_Config.backend_info.bSupportsGPUTextureDecoding = false;
-  g_Config.backend_info.bSupportsST3CTextures = false;
-  g_Config.backend_info.bSupportsBPTCTextures = false;
-  g_Config.backend_info.bSupportsCopyToVram = false;
-  g_Config.backend_info.bSupportsLargePoints = false;
-  g_Config.backend_info.bSupportsDepthReadback = false;
-  g_Config.backend_info.bSupportsPartialDepthCopies = false;
-  g_Config.backend_info.bSupportsFramebufferFetch = false;
-  g_Config.backend_info.bSupportsBackgroundCompiling = false;
-  g_Config.backend_info.bSupportsLogicOp = true;
-  g_Config.backend_info.bSupportsShaderBinaries = false;
-  g_Config.backend_info.bSupportsPipelineCacheData = false;
-  g_Config.backend_info.bSupportsBBox = true;
-  g_Config.backend_info.bSupportsCoarseDerivatives = false;
-  g_Config.backend_info.bSupportsTextureQueryLevels = false;
-  g_Config.backend_info.bSupportsLodBiasInSampler = false;
-  g_Config.backend_info.bSupportsSettingObjectNames = false;
-  g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
-  g_Config.backend_info.bSupportsDynamicVertexLoader = false;
+  backend_info.api_type = APIType::Nothing;
+  backend_info.MaxTextureSize = 16384;
+  backend_info.bUsesLowerLeftOrigin = false;
+  backend_info.bSupports3DVision = false;
+  backend_info.bSupportsDualSourceBlend = true;
+  backend_info.bSupportsEarlyZ = true;
+  backend_info.bSupportsPrimitiveRestart = false;
+  backend_info.bSupportsMultithreading = false;
+  backend_info.bSupportsComputeShaders = false;
+  backend_info.bSupportsGPUTextureDecoding = false;
+  backend_info.bSupportsST3CTextures = false;
+  backend_info.bSupportsBPTCTextures = false;
+  backend_info.bSupportsCopyToVram = false;
+  backend_info.bSupportsLargePoints = false;
+  backend_info.bSupportsDepthReadback = false;
+  backend_info.bSupportsPartialDepthCopies = false;
+  backend_info.bSupportsFramebufferFetch = false;
+  backend_info.bSupportsBackgroundCompiling = false;
+  backend_info.bSupportsLogicOp = true;
+  backend_info.bSupportsShaderBinaries = false;
+  backend_info.bSupportsPipelineCacheData = false;
+  backend_info.bSupportsBBox = true;
+  backend_info.bSupportsCoarseDerivatives = false;
+  backend_info.bSupportsTextureQueryLevels = false;
+  backend_info.bSupportsLodBiasInSampler = false;
+  backend_info.bSupportsSettingObjectNames = false;
+  backend_info.bSupportsPartialMultisampleResolve = true;
+  backend_info.bSupportsDynamicVertexLoader = false;
 
   // aamodes
-  g_Config.backend_info.AAModes = {1};
+  backend_info.AAModes = {1};
 }
 
-bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
+std::unique_ptr<AbstractGfx> VideoSoftware::CreateGfx()
 {
-  std::unique_ptr<SWOGLWindow> window = SWOGLWindow::Create(wsi);
+  std::unique_ptr<SWOGLWindow> window = SWOGLWindow::Create(m_wsi);
   if (!window)
-    return false;
+    return {};
 
   Clipper::Init();
   Rasterizer::Init();
 
-  return InitializeShared(std::make_unique<SWGfx>(std::move(window)),
-                          std::make_unique<SWVertexLoader>(), std::make_unique<PerfQuery>(),
-                          std::make_unique<SWBoundingBox>(), std::make_unique<SWRenderer>(),
-                          std::make_unique<TextureCache>());
+  return std::make_unique<SWGfx>(this, std::move(window));
 }
 
-void VideoSoftware::Shutdown()
+std::unique_ptr<VertexManagerBase> VideoSoftware::CreateVertexManager()
 {
-  ShutdownShared();
+  return std::make_unique<SWVertexLoader>();
 }
+
+std::unique_ptr<PerfQueryBase> VideoSoftware::CreatePerfQuery()
+{
+  return std::make_unique<SW::PerfQuery>();
+}
+
+std::unique_ptr<BoundingBox> VideoSoftware::CreateBoundingBox()
+{
+  return std::make_unique<SWBoundingBox>();
+}
+
+std::unique_ptr<Renderer> VideoSoftware::CreateRenderer()
+{
+  return std::make_unique<SWRenderer>();
+}
+
+std::unique_ptr<TextureCacheBase> VideoSoftware::CreateTextureCache()
+{
+  return std::make_unique<SW::TextureCache>();
+}
+
 }  // namespace SW

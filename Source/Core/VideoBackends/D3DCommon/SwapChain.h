@@ -10,6 +10,7 @@
 #include "Common/WindowSystemInfo.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/TextureConfig.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace D3DCommon
 {
@@ -40,16 +41,16 @@ public:
   // Presents the swap chain to the screen.
   virtual bool Present();
 
-  bool ChangeSurface(void* native_handle);
-  bool ResizeSwapChain();
-  void SetStereo(bool stereo);
+  bool ChangeSurface(void* native_handle, const BackendInfo& backend_info);
+  bool ResizeSwapChain(const BackendInfo& backend_info);
+  void SetStereo(bool stereo, const BackendInfo& backend_info);
 
 protected:
   u32 GetSwapChainFlags() const;
-  bool CreateSwapChain(bool stereo);
+  bool CreateSwapChain(bool stereo, const BackendInfo& backend_info);
   void DestroySwapChain();
 
-  virtual bool CreateSwapChainBuffers() = 0;
+  virtual bool CreateSwapChainBuffers(const BackendInfo& backend_info) = 0;
   virtual void DestroySwapChainBuffers() = 0;
 
   WindowSystemInfo m_wsi;

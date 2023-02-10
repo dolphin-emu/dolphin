@@ -8,6 +8,7 @@
 
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/TextureConfig.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 #include "VideoBackends/Metal/MRCHelpers.h"
@@ -39,10 +40,11 @@ struct Viewport
 
 /// Gets the list of Metal devices, ordered so the system default device is first
 std::vector<MRCOwned<id<MTLDevice>>> GetAdapterList();
-void PopulateBackendInfo(VideoConfig* config);
-void PopulateBackendInfoAdapters(VideoConfig* config,
+void PopulateBackendInfo(BackendInfo& backend_info);
+void PopulateBackendInfoAdapters(BackendInfo& backend_info,
                                  const std::vector<MRCOwned<id<MTLDevice>>>& adapters);
-void PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice> device);
+void PopulateBackendInfoFeatures(BackendInfo& backend_info, VideoConfig* config,
+                                 id<MTLDevice> device);
 
 AbstractTextureFormat ToAbstract(MTLPixelFormat format);
 MTLPixelFormat FromAbstract(AbstractTextureFormat format);

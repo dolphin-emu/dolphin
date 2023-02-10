@@ -20,6 +20,7 @@
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace Vulkan
 {
@@ -35,7 +36,7 @@ public:
   ~ObjectCache();
 
   // Perform at startup, create descriptor layouts, compiles all static shaders.
-  bool Initialize();
+  bool Initialize(const BackendInfo& backend_info);
   void Shutdown();
 
   // Descriptor set layout accessor. Used for allocating descriptor sets.
@@ -73,18 +74,18 @@ public:
   void SavePipelineCache();
 
   // Reload pipeline cache. Call when host config changes.
-  void ReloadPipelineCache();
+  void ReloadPipelineCache(const BackendInfo& backend_info);
 
 private:
-  bool CreateDescriptorSetLayouts();
+  bool CreateDescriptorSetLayouts(const BackendInfo& backend_info);
   void DestroyDescriptorSetLayouts();
-  bool CreatePipelineLayouts();
+  bool CreatePipelineLayouts(const BackendInfo& backend_info);
   void DestroyPipelineLayouts();
   bool CreateStaticSamplers();
   void DestroySamplers();
   void DestroyRenderPassCache();
-  bool CreatePipelineCache();
-  bool LoadPipelineCache();
+  bool CreatePipelineCache(const BackendInfo& backend_info);
+  bool LoadPipelineCache(const BackendInfo& backend_info);
   bool ValidatePipelineCache(const u8* data, size_t data_length);
   void DestroyPipelineCache();
 

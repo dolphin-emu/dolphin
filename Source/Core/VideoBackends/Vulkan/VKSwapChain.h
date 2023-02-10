@@ -10,6 +10,7 @@
 #include "Common/WindowSystemInfo.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/TextureConfig.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace Vulkan
 {
@@ -29,7 +30,7 @@ public:
 
   // Create a new swap chain from a pre-existing surface.
   static std::unique_ptr<SwapChain> Create(const WindowSystemInfo& wsi, VkSurfaceKHR surface,
-                                           bool vsync);
+                                           bool vsync, BackendInfo& backend_info);
 
   VkSurfaceKHR GetSurface() const { return m_surface; }
   VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surface_format; }
@@ -52,12 +53,12 @@ public:
   }
   VkResult AcquireNextImage();
 
-  bool RecreateSurface(void* native_handle);
-  bool ResizeSwapChain();
-  bool RecreateSwapChain();
+  bool RecreateSurface(void* native_handle, BackendInfo& backend_info);
+  bool ResizeSwapChain(BackendInfo& backend_info);
+  bool RecreateSwapChain(BackendInfo& backend_info);
 
   // Change vsync enabled state. This may fail as it causes a swapchain recreation.
-  bool SetVSync(bool enabled);
+  bool SetVSync(bool enabled, BackendInfo& backend_info);
 
   // Is exclusive fullscreen supported?
   bool IsFullscreenSupported() const { return m_fullscreen_supported; }
@@ -74,10 +75,10 @@ private:
   bool SelectSurfaceFormat();
   bool SelectPresentMode();
 
-  bool CreateSwapChain();
+  bool CreateSwapChain(BackendInfo& backend_info);
   void DestroySwapChain();
 
-  bool SetupSwapChainImages();
+  bool SetupSwapChainImages(const BackendInfo& backend_info);
   void DestroySwapChainImages();
 
   void DestroySurface();

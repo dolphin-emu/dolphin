@@ -22,17 +22,19 @@
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/VideoBackendInfo.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan
 {
 VKTexture::VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkImage image,
-                     std::string_view name, VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
+                     std::string_view name, const BackendInfo& backend_info,
+                     VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
                      ComputeImageLayout compute_layout /* = ComputeImageLayout::Undefined */)
     : AbstractTexture(tex_config), m_alloc(alloc), m_image(image), m_layout(layout),
       m_compute_layout(compute_layout), m_name(name)
 {
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && backend_info.bSupportsSettingObjectNames)
   {
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
@@ -55,7 +57,8 @@ VKTexture::~VKTexture()
   }
 }
 
-std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, std::string_view name)
+std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, std::string_view name,
+                                             const BackendInfo& backend_info)
 {
   // Determine image usage, we need to flag as an attachment if it can be used as a rendertarget.
   VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
@@ -104,8 +107,9 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
     return nullptr;
   }
 
-  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
-      tex_config, alloc, image, name, VK_IMAGE_LAYOUT_UNDEFINED, ComputeImageLayout::Undefined);
+  std::unique_ptr<VKTexture> texture =
+      std::make_unique<VKTexture>(tex_config, alloc, image, name, backend_info,
+                                  VK_IMAGE_LAYOUT_UNDEFINED, ComputeImageLayout::Undefined);
   if (!texture->CreateView(VK_IMAGE_VIEW_TYPE_2D_ARRAY))
     return nullptr;
 
@@ -113,10 +117,12 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
 }
 
 std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_config, VkImage image,
+                                                    const BackendInfo& backend_info,
                                                     VkImageViewType view_type, VkImageLayout layout)
 {
-  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
-      tex_config, VmaAllocation(VK_NULL_HANDLE), image, "", layout, ComputeImageLayout::Undefined);
+  std::unique_ptr<VKTexture> texture =
+      std::make_unique<VKTexture>(tex_config, VmaAllocation(VK_NULL_HANDLE), image, "",
+                                  backend_info, layout, ComputeImageLayout::Undefined);
   if (!texture->CreateView(view_type))
     return nullptr;
 

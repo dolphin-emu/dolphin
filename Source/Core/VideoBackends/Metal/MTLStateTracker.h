@@ -103,8 +103,9 @@ public:
   void DisablePerfQuery();
   void UnbindTexture(id<MTLTexture> texture);
 
-  void Draw(u32 base_vertex, u32 num_vertices);
-  void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex);
+  void Draw(u32 base_vertex, u32 num_vertices, const BackendInfo& backend_info);
+  void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex,
+                   const BackendInfo& backend_info);
   void DispatchComputeShader(u32 groupsize_x, u32 groupsize_y, u32 groupsize_z, u32 groups_x,
                              u32 groups_y, u32 groups_z);
   void ResolveTexture(id<MTLTexture> src, id<MTLTexture> dst, u32 layer, u32 level);
@@ -279,7 +280,7 @@ private:
   Map CommitPreallocation(UploadBuffer buffer_idx, size_t actual_amt);
   void CheckViewport();
   void CheckScissor();
-  void PrepareRender();
+  void PrepareRender(const BackendInfo& backend_info);
   void PrepareCompute();
 };
 

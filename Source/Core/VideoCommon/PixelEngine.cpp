@@ -20,7 +20,7 @@
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/PerfQueryBase.h"
-#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoBase.h"
 
 namespace PixelEngine
 {
@@ -107,12 +107,13 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   };
   for (auto& pq_reg : pq_regs)
   {
-    mmio->Register(base | pq_reg.addr, MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32) {
-                     return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) & 0xFFFF;
+    mmio->Register(base | pq_reg.addr, MMIO::ComplexRead<u16>([pq_reg](Core::System& system, u32) {
+                     return system.GetVideo().GetQueryResult(pq_reg.pqtype) & 0xFFFF;
                    }),
                    MMIO::InvalidWrite<u16>());
-    mmio->Register(base | (pq_reg.addr + 2), MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32) {
-                     return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) >> 16;
+    mmio->Register(base | (pq_reg.addr + 2),
+                   MMIO::ComplexRead<u16>([pq_reg](Core::System& system, u32) {
+                     return system.GetVideo().GetQueryResult(pq_reg.pqtype) >> 16;
                    }),
                    MMIO::InvalidWrite<u16>());
   }
@@ -148,7 +149,7 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     mmio->Register(base | (PE_BBOX_LEFT + 2 * i),
                    MMIO::ComplexRead<u16>([i](Core::System& system, u32) {
                      g_bounding_box->Disable(system.GetPixelShaderManager());
-                     return g_video_backend->Video_GetBoundingBox(i);
+                     return system.GetVideo().GetBoundingBox(i);
                    }),
                    MMIO::InvalidWrite<u16>());
   }

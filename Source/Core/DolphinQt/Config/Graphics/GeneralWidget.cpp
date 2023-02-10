@@ -185,7 +185,9 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
   m_render_main_window->setEnabled(!running);
   m_enable_fullscreen->setEnabled(!running);
 
-  const bool supports_adapters = !g_Config.backend_info.Adapters.empty();
+  const BackendInfo& backend_info = VideoBackendBase::GetConfiguredBackend()->backend_info;
+
+  const bool supports_adapters = !backend_info.Adapters.empty();
   m_adapter_combo->setEnabled(!running && supports_adapters);
 }
 
@@ -294,7 +296,9 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
 
   m_adapter_combo->clear();
 
-  const auto& adapters = g_Config.backend_info.Adapters;
+  const BackendInfo& backend_info = VideoBackendBase::GetConfiguredBackend()->backend_info;
+
+  const auto& adapters = backend_info.Adapters;
 
   for (const auto& adapter : adapters)
     m_adapter_combo->addItem(QString::fromStdString(adapter));
@@ -311,8 +315,8 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
       QT_TR_NOOP("Selects a hardware adapter to use.<br><br>"
                  "<dolphin_emphasis>%1 doesn't support this feature.</dolphin_emphasis>");
 
-  m_adapter_combo->SetDescription(supports_adapters ?
-                                      tr(TR_ADAPTER_AVAILABLE_DESCRIPTION) :
-                                      tr(TR_ADAPTER_UNAVAILABLE_DESCRIPTION)
-                                          .arg(tr(g_video_backend->GetDisplayName().c_str())));
+  m_adapter_combo->SetDescription(
+      supports_adapters ?
+          tr(TR_ADAPTER_AVAILABLE_DESCRIPTION) :
+          tr(TR_ADAPTER_UNAVAILABLE_DESCRIPTION).arg(tr(backend_info.DisplayName.c_str())));
 }

@@ -10,16 +10,17 @@
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan
 {
 VKShader::VKShader(ShaderStage stage, std::vector<u32> spv, VkShaderModule mod,
-                   std::string_view name)
+                   std::string_view name, const BackendInfo& backend_info)
     : AbstractShader(stage), m_spv(std::move(spv)), m_module(mod),
       m_compute_pipeline(VK_NULL_HANDLE), m_name(name)
 {
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && backend_info.bSupportsSettingObjectNames)
   {
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
@@ -30,11 +31,12 @@ VKShader::VKShader(ShaderStage stage, std::vector<u32> spv, VkShaderModule mod,
   }
 }
 
-VKShader::VKShader(std::vector<u32> spv, VkPipeline compute_pipeline, std::string_view name)
+VKShader::VKShader(std::vector<u32> spv, VkPipeline compute_pipeline, std::string_view name,
+                   const BackendInfo& backend_info)
     : AbstractShader(ShaderStage::Compute), m_spv(std::move(spv)), m_module(VK_NULL_HANDLE),
       m_compute_pipeline(compute_pipeline), m_name(name)
 {
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && backend_info.bSupportsSettingObjectNames)
   {
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
@@ -60,8 +62,10 @@ AbstractShader::BinaryData VKShader::GetBinary() const
   return ret;
 }
 
-static std::unique_ptr<VKShader>
-CreateShaderObject(ShaderStage stage, ShaderCompiler::SPIRVCodeVector spv, std::string_view name)
+static std::unique_ptr<VKShader> CreateShaderObject(ShaderStage stage,
+                                                    ShaderCompiler::SPIRVCodeVector spv,
+                                                    std::string_view name,
+                                                    const BackendInfo& backend_info)
 {
   VkShaderModuleCreateInfo info = {};
   info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -78,7 +82,7 @@ CreateShaderObject(ShaderStage stage, ShaderCompiler::SPIRVCodeVector spv, std::
 
   // If it's a graphics shader, we defer pipeline creation.
   if (stage != ShaderStage::Compute)
-    return std::make_unique<VKShader>(stage, std::move(spv), mod, name);
+    return std::make_unique<VKShader>(stage, std::move(spv), mod, name, backend_info);
 
   // If it's a compute shader, we create the pipeline straight away.
   const VkComputePipelineCreateInfo pipeline_info = {
@@ -104,11 +108,12 @@ CreateShaderObject(ShaderStage stage, ShaderCompiler::SPIRVCodeVector spv, std::
     return nullptr;
   }
 
-  return std::make_unique<VKShader>(std::move(spv), pipeline, name);
+  return std::make_unique<VKShader>(std::move(spv), pipeline, name, backend_info);
 }
 
 std::unique_ptr<VKShader> VKShader::CreateFromSource(ShaderStage stage, std::string_view source,
-                                                     std::string_view name)
+                                                     std::string_view name,
+                                                     const BackendInfo& backend_info)
 {
   std::optional<ShaderCompiler::SPIRVCodeVector> spv;
   switch (stage)
@@ -132,11 +137,12 @@ std::unique_ptr<VKShader> VKShader::CreateFromSource(ShaderStage stage, std::str
   if (!spv)
     return nullptr;
 
-  return CreateShaderObject(stage, std::move(*spv), name);
+  return CreateShaderObject(stage, std::move(*spv), name, backend_info);
 }
 
 std::unique_ptr<VKShader> VKShader::CreateFromBinary(ShaderStage stage, const void* data,
-                                                     size_t length, std::string_view name)
+                                                     size_t length, std::string_view name,
+                                                     const BackendInfo& backend_info)
 {
   const size_t size_in_words = Common::AlignUp(length, sizeof(ShaderCompiler::SPIRVCodeType)) /
                                sizeof(ShaderCompiler::SPIRVCodeType);
@@ -144,7 +150,7 @@ std::unique_ptr<VKShader> VKShader::CreateFromBinary(ShaderStage stage, const vo
   if (length > 0)
     std::memcpy(spv.data(), data, length);
 
-  return CreateShaderObject(stage, std::move(spv), name);
+  return CreateShaderObject(stage, std::move(spv), name, backend_info);
 }
 
 }  // namespace Vulkan

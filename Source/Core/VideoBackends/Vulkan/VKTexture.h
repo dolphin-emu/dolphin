@@ -11,6 +11,7 @@
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace Vulkan
 {
@@ -31,7 +32,8 @@ public:
 
   VKTexture() = delete;
   VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkImage image,
-            std::string_view name, VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED,
+            std::string_view name, const BackendInfo& backend_info,
+            VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED,
             ComputeImageLayout compute_layout = ComputeImageLayout::Undefined);
   ~VKTexture();
 
@@ -56,9 +58,10 @@ public:
   VkFormat GetVkFormat() const { return GetVkFormatForHostTextureFormat(m_config.format); }
   bool IsAdopted() const { return m_alloc != VmaAllocation(VK_NULL_HANDLE); }
 
-  static std::unique_ptr<VKTexture> Create(const TextureConfig& tex_config, std::string_view name);
+  static std::unique_ptr<VKTexture> Create(const TextureConfig& tex_config, std::string_view name,
+                                           const BackendInfo& backend_info);
   static std::unique_ptr<VKTexture>
-  CreateAdopted(const TextureConfig& tex_config, VkImage image,
+  CreateAdopted(const TextureConfig& tex_config, VkImage image, const BackendInfo& backend_info,
                 VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
                 VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED);
 

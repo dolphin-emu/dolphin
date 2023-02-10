@@ -34,11 +34,18 @@ static void CheckBufferBinding()
   }
 }
 
-VertexManager::VertexManager() = default;
+VertexManager::VertexManager(const BackendInfo& backend_info)
+{
+  if (backend_info.bSupportsVSLinePointExpand || backend_info.bSupportsDynamicVertexLoader)
+    m_needs_vertex_ssbo = true;
+
+  if (backend_info.bSupportsPaletteConversion)
+    m_supports_palette_conversion = true;
+}
 
 VertexManager::~VertexManager()
 {
-  if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
+  if (m_supports_palette_conversion)
   {
     glDeleteTextures(static_cast<GLsizei>(m_texel_buffer_views.size()),
                      m_texel_buffer_views.data());
@@ -58,13 +65,12 @@ bool VertexManager::Initialize()
 
   m_vertex_buffer = StreamBuffer::Create(GL_ARRAY_BUFFER, VERTEX_STREAM_BUFFER_SIZE);
   m_index_buffer = StreamBuffer::Create(GL_ELEMENT_ARRAY_BUFFER, INDEX_STREAM_BUFFER_SIZE);
-  if (g_ActiveConfig.UseVSForLinePointExpand() ||
-      g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+  if (m_needs_vertex_ssbo)
   {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_vertex_buffer->GetGLBufferId());
   }
 
-  if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
+  if (m_supports_palette_conversion)
   {
     // The minimum MAX_TEXTURE_BUFFER_SIZE that the spec mandates is 65KB, we are asking for a 1MB
     // buffer here. This buffer is also used as storage for undecoded textures when compute shader

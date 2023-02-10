@@ -34,9 +34,11 @@
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/InputConfig.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace
@@ -358,9 +360,11 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));
   builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));
-  if (g_video_backend)
+
+  auto backend = Core::System::GetInstance().GetVideo().GetBackend();
+  if (backend)
   {
-    builder.AddData("cfg-video-backend", g_video_backend->GetName());
+    builder.AddData("cfg-video-backend", backend->GetName());
   }
 
   // Video configuration.
@@ -385,33 +389,34 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-fast-depth", g_Config.bFastDepthCalc);
   builder.AddData("cfg-gfx-vertex-rounding", g_Config.UseVertexRounding());
 
+  auto& backend_info = Core::System::GetInstance().GetVideo().GetBackendInfo();
+
   // GPU features.
-  if (g_Config.iAdapter < static_cast<int>(g_Config.backend_info.Adapters.size()))
+  if (g_Config.iAdapter < static_cast<int>(backend_info.Adapters.size()))
   {
-    builder.AddData("gpu-adapter", g_Config.backend_info.Adapters[g_Config.iAdapter]);
+    builder.AddData("gpu-adapter", backend_info.Adapters[g_Config.iAdapter]);
   }
-  else if (!g_Config.backend_info.AdapterName.empty())
+  else if (!backend_info.AdapterName.empty())
   {
-    builder.AddData("gpu-adapter", g_Config.backend_info.AdapterName);
+    builder.AddData("gpu-adapter", backend_info.AdapterName);
   }
-  builder.AddData("gpu-has-exclusive-fullscreen",
-                  g_Config.backend_info.bSupportsExclusiveFullscreen);
-  builder.AddData("gpu-has-dual-source-blend", g_Config.backend_info.bSupportsDualSourceBlend);
-  builder.AddData("gpu-has-primitive-restart", g_Config.backend_info.bSupportsPrimitiveRestart);
-  builder.AddData("gpu-has-geometry-shaders", g_Config.backend_info.bSupportsGeometryShaders);
-  builder.AddData("gpu-has-3d-vision", g_Config.backend_info.bSupports3DVision);
-  builder.AddData("gpu-has-early-z", g_Config.backend_info.bSupportsEarlyZ);
-  builder.AddData("gpu-has-binding-layout", g_Config.backend_info.bSupportsBindingLayout);
-  builder.AddData("gpu-has-bbox", g_Config.backend_info.bSupportsBBox);
+  builder.AddData("gpu-has-exclusive-fullscreen", backend_info.bSupportsExclusiveFullscreen);
+  builder.AddData("gpu-has-dual-source-blend", backend_info.bSupportsDualSourceBlend);
+  builder.AddData("gpu-has-primitive-restart", backend_info.bSupportsPrimitiveRestart);
+  builder.AddData("gpu-has-geometry-shaders", backend_info.bSupportsGeometryShaders);
+  builder.AddData("gpu-has-3d-vision", backend_info.bSupports3DVision);
+  builder.AddData("gpu-has-early-z", backend_info.bSupportsEarlyZ);
+  builder.AddData("gpu-has-binding-layout", backend_info.bSupportsBindingLayout);
+  builder.AddData("gpu-has-bbox", backend_info.bSupportsBBox);
   builder.AddData("gpu-has-fragment-stores-and-atomics",
-                  g_Config.backend_info.bSupportsFragmentStoresAndAtomics);
-  builder.AddData("gpu-has-gs-instancing", g_Config.backend_info.bSupportsGSInstancing);
-  builder.AddData("gpu-has-post-processing", g_Config.backend_info.bSupportsPostProcessing);
-  builder.AddData("gpu-has-palette-conversion", g_Config.backend_info.bSupportsPaletteConversion);
-  builder.AddData("gpu-has-clip-control", g_Config.backend_info.bSupportsClipControl);
-  builder.AddData("gpu-has-ssaa", g_Config.backend_info.bSupportsSSAA);
-  builder.AddData("gpu-has-logic-ops", g_Config.backend_info.bSupportsLogicOp);
-  builder.AddData("gpu-has-framebuffer-fetch", g_Config.backend_info.bSupportsFramebufferFetch);
+                  backend_info.bSupportsFragmentStoresAndAtomics);
+  builder.AddData("gpu-has-gs-instancing", backend_info.bSupportsGSInstancing);
+  builder.AddData("gpu-has-post-processing", backend_info.bSupportsPostProcessing);
+  builder.AddData("gpu-has-palette-conversion", backend_info.bSupportsPaletteConversion);
+  builder.AddData("gpu-has-clip-control", backend_info.bSupportsClipControl);
+  builder.AddData("gpu-has-ssaa", backend_info.bSupportsSSAA);
+  builder.AddData("gpu-has-logic-ops", backend_info.bSupportsLogicOp);
+  builder.AddData("gpu-has-framebuffer-fetch", backend_info.bSupportsFramebufferFetch);
 
   // NetPlay / recording.
   builder.AddData("netplay", NetPlay::IsNetPlayRunning());

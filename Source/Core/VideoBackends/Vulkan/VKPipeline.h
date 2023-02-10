@@ -7,6 +7,7 @@
 
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 #include "VideoCommon/AbstractPipeline.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace Vulkan
 {
@@ -20,7 +21,8 @@ public:
   VkPipeline GetVkPipeline() const { return m_pipeline; }
   VkPipelineLayout GetVkPipelineLayout() const { return m_pipeline_layout; }
   AbstractPipelineUsage GetUsage() const { return m_usage; }
-  static std::unique_ptr<VKPipeline> Create(const AbstractPipelineConfig& config);
+  static std::unique_ptr<VKPipeline> Create(const AbstractPipelineConfig& config,
+                                            const BackendInfo& backend_info);
 
 private:
   VkPipeline m_pipeline;

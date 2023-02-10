@@ -32,7 +32,7 @@ namespace Vulkan
 {
 void VideoBackend::InitBackendInfo()
 {
-  VulkanContext::PopulateBackendInfo(&g_Config);
+  VulkanContext::PopulateBackendInfo(backend_info);
 
   if (LoadVulkanLibrary())
   {
@@ -44,7 +44,7 @@ void VideoBackend::InitBackendInfo()
       if (LoadVulkanInstanceFunctions(temp_instance))
       {
         VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(temp_instance);
-        VulkanContext::PopulateBackendInfoAdapters(&g_Config, gpu_list);
+        VulkanContext::PopulateBackendInfoAdapters(backend_info, gpu_list);
 
         if (!gpu_list.empty())
         {
@@ -58,8 +58,8 @@ void VideoBackend::InitBackendInfo()
           vkGetPhysicalDeviceProperties(gpu, &properties);
           VkPhysicalDeviceFeatures features;
           vkGetPhysicalDeviceFeatures(gpu, &features);
-          VulkanContext::PopulateBackendInfoFeatures(&g_Config, gpu, properties, features);
-          VulkanContext::PopulateBackendInfoMultisampleModes(&g_Config, gpu, properties);
+          VulkanContext::PopulateBackendInfoFeatures(backend_info, gpu, properties, features);
+          VulkanContext::PopulateBackendInfoMultisampleModes(backend_info, gpu, properties);
         }
       }
 
@@ -96,12 +96,12 @@ static bool ShouldEnableDebugUtils(bool enable_validation_layers)
   return enable_validation_layers || IsHostGPULoggingEnabled();
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+std::unique_ptr<AbstractGfx> VideoBackend::CreateGfx()
 {
   if (!LoadVulkanLibrary())
   {
     PanicAlertFmt("Failed to load Vulkan library.");
-    return false;
+    return {};
   }
 
   // Check for presence of the validation layers before trying to enable it
@@ -114,16 +114,16 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   // Create Vulkan instance, needed before we can create a surface, or enumerate devices.
   // We use this instance to fill in backend info, then re-use it for the actual device.
-  bool enable_surface = wsi.type != WindowSystemType::Headless;
+  bool enable_surface = m_wsi.type != WindowSystemType::Headless;
   bool enable_debug_utils = ShouldEnableDebugUtils(enable_validation_layer);
   u32 vk_api_version = 0;
   VkInstance instance = VulkanContext::CreateVulkanInstance(
-      wsi.type, enable_debug_utils, enable_validation_layer, &vk_api_version);
+      m_wsi.type, enable_debug_utils, enable_validation_layer, &vk_api_version);
   if (instance == VK_NULL_HANDLE)
   {
     PanicAlertFmt("Failed to create Vulkan instance.");
     UnloadVulkanLibrary();
-    return false;
+    return {};
   }
 
   // Load instance function pointers.
@@ -132,7 +132,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     PanicAlertFmt("Failed to load Vulkan instance functions.");
     vkDestroyInstance(instance, nullptr);
     UnloadVulkanLibrary();
-    return false;
+    return {};
   }
 
   // Obtain a list of physical devices (GPUs) from the instance.
@@ -143,24 +143,24 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     PanicAlertFmt("No Vulkan physical devices available.");
     vkDestroyInstance(instance, nullptr);
     UnloadVulkanLibrary();
-    return false;
+    return {};
   }
 
   // Populate BackendInfo with as much information as we can at this point.
-  VulkanContext::PopulateBackendInfo(&g_Config);
-  VulkanContext::PopulateBackendInfoAdapters(&g_Config, gpu_list);
+  VulkanContext::PopulateBackendInfo(backend_info);
+  VulkanContext::PopulateBackendInfoAdapters(backend_info, gpu_list);
 
   // We need the surface before we can create a device, as some parameters depend on it.
   VkSurfaceKHR surface = VK_NULL_HANDLE;
   if (enable_surface)
   {
-    surface = SwapChain::CreateVulkanSurface(instance, wsi);
+    surface = SwapChain::CreateVulkanSurface(instance, m_wsi);
     if (surface == VK_NULL_HANDLE)
     {
       PanicAlertFmt("Failed to create Vulkan surface.");
       vkDestroyInstance(instance, nullptr);
       UnloadVulkanLibrary();
-      return false;
+      return {};
     }
   }
 
@@ -181,18 +181,18 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   {
     PanicAlertFmt("Failed to create Vulkan device");
     UnloadVulkanLibrary();
-    return false;
+    return {};
   }
 
   // Since VulkanContext maintains a copy of the device features and properties, we can use this
   // to initialize the backend information, so that we don't need to enumerate everything again.
-  VulkanContext::PopulateBackendInfoFeatures(&g_Config, g_vulkan_context->GetPhysicalDevice(),
+  VulkanContext::PopulateBackendInfoFeatures(backend_info, g_vulkan_context->GetPhysicalDevice(),
                                              g_vulkan_context->GetDeviceProperties(),
                                              g_vulkan_context->GetDeviceFeatures());
   VulkanContext::PopulateBackendInfoMultisampleModes(
-      &g_Config, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceProperties());
-  g_Config.backend_info.bSupportsExclusiveFullscreen =
-      enable_surface && g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface);
+      backend_info, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceProperties());
+  backend_info.bSupportsExclusiveFullscreen =
+      enable_surface && g_vulkan_context->SupportsExclusiveFullscreen(m_wsi, surface);
 
   UpdateActiveConfig();
 
@@ -202,45 +202,54 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   {
     PanicAlertFmt("Failed to create Vulkan command buffers");
     Shutdown();
-    return false;
+    return {};
   }
 
   // Remaining classes are also dependent on object cache.
   g_object_cache = std::make_unique<ObjectCache>();
-  if (!g_object_cache->Initialize())
+  if (!g_object_cache->Initialize(backend_info))
   {
     PanicAlertFmt("Failed to initialize Vulkan object cache.");
     Shutdown();
-    return false;
+    return {};
   }
 
   // Create swap chain. This has to be done early so that the target size is correct for auto-scale.
   std::unique_ptr<SwapChain> swap_chain;
   if (surface != VK_NULL_HANDLE)
   {
-    swap_chain = SwapChain::Create(wsi, surface, g_ActiveConfig.bVSyncActive);
+    swap_chain = SwapChain::Create(m_wsi, surface, g_ActiveConfig.bVSyncActive, backend_info);
     if (!swap_chain)
     {
       PanicAlertFmt("Failed to create Vulkan swap chain.");
       Shutdown();
-      return false;
+      return {};
     }
   }
 
-  if (!StateTracker::CreateInstance())
+  if (!StateTracker::CreateInstance(backend_info))
   {
     PanicAlertFmt("Failed to create state tracker");
     Shutdown();
-    return false;
+    return {};
   }
 
-  auto gfx = std::make_unique<VKGfx>(std::move(swap_chain), wsi.render_surface_scale);
-  auto vertex_manager = std::make_unique<VertexManager>();
-  auto perf_query = std::make_unique<PerfQuery>();
-  auto bounding_box = std::make_unique<VKBoundingBox>();
+  return std::make_unique<VKGfx>(this, std::move(swap_chain), m_wsi.render_surface_scale);
+}
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                          std::move(bounding_box));
+std::unique_ptr<VertexManagerBase> VideoBackend::CreateVertexManager()
+{
+  return std::make_unique<Vulkan::VertexManager>();
+}
+
+std::unique_ptr<PerfQueryBase> VideoBackend::CreatePerfQuery()
+{
+  return std::make_unique<Vulkan::PerfQuery>();
+}
+
+std::unique_ptr<BoundingBox> VideoBackend::CreateBoundingBox()
+{
+  return std::make_unique<Vulkan::VKBoundingBox>();
 }
 
 void VideoBackend::Shutdown()
@@ -251,7 +260,7 @@ void VideoBackend::Shutdown()
   if (g_object_cache)
     g_object_cache->Shutdown();
 
-  ShutdownShared();
+  // ShutdownShared();
 
   g_object_cache.reset();
   StateTracker::DestroyInstance();
@@ -302,5 +311,6 @@ void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
   // Store the layer pointer, that way MoltenVK doesn't call [NSView layer] outside the main thread.
   wsi.render_surface = layer;
 #endif
+  VideoBackendBase::PrepareWindow(wsi);
 }
 }  // namespace Vulkan

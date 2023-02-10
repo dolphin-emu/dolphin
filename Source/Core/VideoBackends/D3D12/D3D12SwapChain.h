@@ -26,7 +26,8 @@ public:
             ID3D12CommandQueue* d3d_command_queue);
   ~SwapChain();
 
-  static std::unique_ptr<SwapChain> Create(const WindowSystemInfo& wsi);
+  static std::unique_ptr<SwapChain> Create(const WindowSystemInfo& wsi,
+                                           const BackendInfo& backend_info);
 
   bool Present() override;
 
@@ -37,7 +38,7 @@ public:
   }
 
 protected:
-  bool CreateSwapChainBuffers() override;
+  bool CreateSwapChainBuffers(const BackendInfo& backend_info) override;
   void DestroySwapChainBuffers() override;
 
 private:

@@ -127,7 +127,6 @@ void Init()
   SConfig::Init();
   Discord::Init();
   Common::Log::LogManager::Init();
-  VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
   s_config_changed_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
   RefreshConfig();

@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/VideoBackendInfo.h"
 
 namespace DX11
 {
@@ -26,7 +27,7 @@ public:
   // Get existing or create new render state.
   // Returned objects is owned by the cache and does not need to be released.
   ID3D11SamplerState* Get(SamplerState state);
-  ID3D11BlendState* Get(BlendingState state);
+  ID3D11BlendState* Get(BlendingState state, const BackendInfo& backend_info);
   ID3D11RasterizerState* Get(RasterizationState state);
   ID3D11DepthStencilState* Get(DepthState state);
 
@@ -39,6 +40,7 @@ private:
   std::unordered_map<u32, ComPtr<ID3D11BlendState>> m_blend;
   std::unordered_map<SamplerState, ComPtr<ID3D11SamplerState>> m_sampler;
   std::mutex m_lock;
+  bool m_supports_logic_op;
 };
 
 namespace D3D
@@ -212,7 +214,7 @@ public:
 
   // call this immediately before any drawing operation or to explicitly apply pending resource
   // state changes
-  void Apply();
+  void Apply(const BackendInfo& backend_info);
 
   // Binds constant buffers/textures/samplers to the compute shader stage.
   // We don't track these explicitly because it's not often-used.
