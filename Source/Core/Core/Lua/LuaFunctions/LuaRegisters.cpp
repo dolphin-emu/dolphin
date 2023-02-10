@@ -272,8 +272,8 @@ int PushByteArrayFromAddressHelperFunction(lua_State* lua_state, bool is_unsigne
 
   if (array_size + offset_bytes > register_size)
     luaL_error(lua_state, (std::string("Error: in ") + func_name +
-                          ", attempt to read past the end of the register occured.")
-                             .c_str());
+                           ", attempt to read past the end of the register occured.")
+                              .c_str());
 
   for (int i = 0; i < array_size; ++i)
   {

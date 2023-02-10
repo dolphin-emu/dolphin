@@ -81,9 +81,9 @@ int GetPortNumberHelperFunction(lua_State* lua_state, const char* func_name)
   if (controller_port_number > Pad::GetConfig()->GetControllerCount())
   {
     luaL_error(lua_state, (std::string("Error: in ") + func_name +
-                          "(), attempt was made to access a port which did not have a GameCube "
-                          "controller plugged into it!")
-                             .c_str());
+                           "(), attempt was made to access a port which did not have a GameCube "
+                           "controller plugged into it!")
+                              .c_str());
   }
 
   return controller_port_number;
@@ -99,8 +99,8 @@ double GetProbabilityHelperFunction(lua_State* lua_state, const char* func_name)
 
   if (probability < 0.0 || probability > 100.0)
     luaL_error(lua_state, (std::string("Error: In function gc_controller:") + func_name +
-                          ", probability was outside the acceptable range of 0 to 100%")
-                             .c_str());
+                           ", probability was outside the acceptable range of 0 to 100%")
+                              .c_str());
   return probability;
 }
 
@@ -496,12 +496,14 @@ int AddButtonReleaseChance(lua_State* lua_state)
     button_name = GcButtonName::R;
   if (!IsBinaryButton(button_name))
     luaL_error(
-      lua_state,
-      "Error: In function gc_controller:addButtonReleaseChance(), button name string was not a "
-      "valid button that could be pressed (analog input buttons are not allowed here)");
+        lua_state,
+        "Error: In function gc_controller:addButtonReleaseChance(), button name string was not a "
+        "valid button that could be pressed (analog input buttons are not allowed here)");
 
   do_random_input_events_at_specified_port[controller_port_number - 1] = true;
-  random_button_events[controller_port_number - 1].push_back(std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCButtonReleaseEvent(probability, button_name)));
+  random_button_events[controller_port_number - 1].push_back(
+      std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(
+          new LuaGCButtonReleaseEvent(probability, button_name)));
   return 0;
 }
 
@@ -512,7 +514,8 @@ int AddButtonReleaseChance(lua_State* lua_state)
 // 3. Probability
 // 4. Button Name (String)
 
-// There can be only 5 arguments or 6 arguments. If there are 5, then the following is the format of the remaining args:
+// There can be only 5 arguments or 6 arguments. If there are 5, then the following is the
+// format of the remaining args:
 // 5. Magnitude difference (applied in both directions).
 
 // If there are 6 arguments, then the following is the format of the remaining args:

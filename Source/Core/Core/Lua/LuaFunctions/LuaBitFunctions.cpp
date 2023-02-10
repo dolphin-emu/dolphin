@@ -106,7 +106,6 @@ int LogicalXor(lua_State* lua_state)
   s64 second_val = luaL_checkinteger(lua_state, 3);
   lua_pushboolean(lua_state, (first_val || second_val) && !(first_val && second_val));
   return 1;
-
 }
 
 int LogicalNot(lua_State* lua_state)

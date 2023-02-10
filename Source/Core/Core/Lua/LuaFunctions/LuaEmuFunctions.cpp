@@ -88,8 +88,8 @@ std::string CheckIfFileExistsAndGetFileName(lua_State* lua_state, const char* fu
     fclose(file);
   else
     luaL_error(lua_state, (std::string("Error: Filename ") + file_name + " passed into emu:" +
-                          func_name + "() did not represent a file which exists.")
-                             .c_str());
+                           func_name + "() did not represent a file which exists.")
+                              .c_str());
   return file_name;
 }
 
