@@ -912,7 +912,10 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
         }
       }
       if (pass == 1)
-        m_labels.RegisterLabel(label, lval);
+      {
+        if (!m_labels.RegisterLabel(label, lval))
+          ShowError(AssemblerError::LabelAlreadyExists);
+      }
     }
 
     if (opcode == nullptr)
