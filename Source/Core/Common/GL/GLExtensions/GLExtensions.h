@@ -37,6 +37,7 @@
 #include "Common/GL/GLExtensions/EXT_texture_filter_anisotropic.h"
 #include "Common/GL/GLExtensions/HP_occlusion_test.h"
 #include "Common/GL/GLExtensions/KHR_debug.h"
+#include "Common/GL/GLExtensions/KHR_shader_subgroup.h"
 #include "Common/GL/GLExtensions/NV_depth_buffer_float.h"
 #include "Common/GL/GLExtensions/NV_occlusion_query_samples.h"
 #include "Common/GL/GLExtensions/NV_primitive_restart.h"
