@@ -880,9 +880,9 @@ void Callback_NewField()
       Lua::LuaGameCubeController::random_button_events[i].clear();
       Lua::LuaGameCubeController::button_lists_for_add_to_controller_inputs[i].clear();
       memset(&Lua::LuaGameCubeController::new_overwrite_controller_inputs[i], 0,
-              sizeof(Movie::ControllerState));
+             sizeof(Movie::ControllerState));
       memset(&Lua::LuaGameCubeController::add_to_controller_inputs[i], 0,
-              sizeof(Movie::ControllerState));
+             sizeof(Movie::ControllerState));
     }
 
     int ret_val;
