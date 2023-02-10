@@ -24,8 +24,6 @@ message(STATUS "Found Qt version ${QT_VERSION}")
 
 set_property(TARGET Qt${QT_VERSION_MAJOR}::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 
-add_subdirectory(Externals/Lua)
-
 add_executable(dolphin-emu
   AboutDialog.cpp
   AboutDialog.h
