@@ -120,13 +120,13 @@ void ESDevice::InitializeEmulationState()
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
   s_finish_init_event = core_timing.RegisterEvent(
-      "IOS-ESFinishInit", [](Core::System& system, u64, s64) { GetIOS()->GetES()->FinishInit(); });
+      "IOS-ESFinishInit", [](Core::System& system_, u64, s64) { GetIOS()->GetES()->FinishInit(); });
   s_reload_ios_for_ppc_launch_event = core_timing.RegisterEvent(
-      "IOS-ESReloadIOSForPPCLaunch", [](Core::System& system, u64 ios_id, s64) {
+      "IOS-ESReloadIOSForPPCLaunch", [](Core::System& system_, u64 ios_id, s64) {
         GetIOS()->GetES()->LaunchTitle(ios_id, HangPPC::Yes);
       });
   s_bootstrap_ppc_for_launch_event =
-      core_timing.RegisterEvent("IOS-ESBootstrapPPCForLaunch", [](Core::System& system, u64, s64) {
+      core_timing.RegisterEvent("IOS-ESBootstrapPPCForLaunch", [](Core::System& system_, u64, s64) {
         GetIOS()->GetES()->BootstrapPPC();
       });
 }

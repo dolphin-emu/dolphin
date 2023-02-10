@@ -498,15 +498,15 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     const u32 address = base | static_cast<u32>(io_buffer_base + i);
 
     mmio->Register(address, MMIO::ComplexRead<u32>([i](Core::System& system, u32) {
-                     auto& state = system.GetSerialInterfaceState().GetData();
+                     auto& state_ = system.GetSerialInterfaceState().GetData();
                      u32 val;
-                     std::memcpy(&val, &state.si_buffer[i], sizeof(val));
+                     std::memcpy(&val, &state_.si_buffer[i], sizeof(val));
                      return Common::swap32(val);
                    }),
                    MMIO::ComplexWrite<u32>([i](Core::System& system, u32, u32 val) {
-                     auto& state = system.GetSerialInterfaceState().GetData();
+                     auto& state_ = system.GetSerialInterfaceState().GetData();
                      val = Common::swap32(val);
-                     std::memcpy(&state.si_buffer[i], &val, sizeof(val));
+                     std::memcpy(&state_.si_buffer[i], &val, sizeof(val));
                    }));
   }
   for (size_t i = 0; i < state.si_buffer.size(); i += sizeof(u16))
@@ -514,15 +514,15 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     const u32 address = base | static_cast<u32>(io_buffer_base + i);
 
     mmio->Register(address, MMIO::ComplexRead<u16>([i](Core::System& system, u32) {
-                     auto& state = system.GetSerialInterfaceState().GetData();
+                     auto& state_ = system.GetSerialInterfaceState().GetData();
                      u16 val;
-                     std::memcpy(&val, &state.si_buffer[i], sizeof(val));
+                     std::memcpy(&val, &state_.si_buffer[i], sizeof(val));
                      return Common::swap16(val);
                    }),
                    MMIO::ComplexWrite<u16>([i](Core::System& system, u32, u16 val) {
-                     auto& state = system.GetSerialInterfaceState().GetData();
+                     auto& state_ = system.GetSerialInterfaceState().GetData();
                      val = Common::swap16(val);
-                     std::memcpy(&state.si_buffer[i], &val, sizeof(val));
+                     std::memcpy(&state_.si_buffer[i], &val, sizeof(val));
                    }));
   }
 
@@ -541,18 +541,18 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    MMIO::DirectWrite<u32>(&state.channel[i].out.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_HI + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](Core::System& system, u32) {
-                     auto& state = system.GetSerialInterfaceState().GetData();
-                     state.status_reg.hex &= ~(1U << rdst_bit);
+                     auto& state_ = system.GetSerialInterfaceState().GetData();
+                     state_.status_reg.hex &= ~(1U << rdst_bit);
                      UpdateInterrupts();
-                     return state.channel[i].in_hi.hex;
+                     return state_.channel[i].in_hi.hex;
                    }),
                    MMIO::DirectWrite<u32>(&state.channel[i].in_hi.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](Core::System& system, u32) {
-                     auto& state = system.GetSerialInterfaceState().GetData();
-                     state.status_reg.hex &= ~(1U << rdst_bit);
+                     auto& state_ = system.GetSerialInterfaceState().GetData();
+                     state_.status_reg.hex &= ~(1U << rdst_bit);
                      UpdateInterrupts();
-                     return state.channel[i].in_lo.hex;
+                     return state_.channel[i].in_lo.hex;
                    }),
                    MMIO::DirectWrite<u32>(&state.channel[i].in_lo.hex));
   }
@@ -562,90 +562,91 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | SI_COM_CSR, MMIO::DirectRead<u32>(&state.com_csr.hex),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& state = system.GetSerialInterfaceState().GetData();
+                   auto& state_ = system.GetSerialInterfaceState().GetData();
                    const USIComCSR tmp_com_csr(val);
 
-                   state.com_csr.CHANNEL = tmp_com_csr.CHANNEL.Value();
-                   state.com_csr.INLNGTH = tmp_com_csr.INLNGTH.Value();
-                   state.com_csr.OUTLNGTH = tmp_com_csr.OUTLNGTH.Value();
-                   state.com_csr.RDSTINTMSK = tmp_com_csr.RDSTINTMSK.Value();
-                   state.com_csr.TCINTMSK = tmp_com_csr.TCINTMSK.Value();
+                   state_.com_csr.CHANNEL = tmp_com_csr.CHANNEL.Value();
+                   state_.com_csr.INLNGTH = tmp_com_csr.INLNGTH.Value();
+                   state_.com_csr.OUTLNGTH = tmp_com_csr.OUTLNGTH.Value();
+                   state_.com_csr.RDSTINTMSK = tmp_com_csr.RDSTINTMSK.Value();
+                   state_.com_csr.TCINTMSK = tmp_com_csr.TCINTMSK.Value();
 
                    if (tmp_com_csr.RDSTINT)
-                     state.com_csr.RDSTINT = 0;
+                     state_.com_csr.RDSTINT = 0;
                    if (tmp_com_csr.TCINT)
-                     state.com_csr.TCINT = 0;
+                     state_.com_csr.TCINT = 0;
 
                    // be careful: run si-buffer after updating the INT flags
                    if (tmp_com_csr.TSTART)
                    {
-                     if (state.com_csr.TSTART)
-                       system.GetCoreTiming().RemoveEvent(state.event_type_tranfer_pending);
-                     state.com_csr.TSTART = 1;
+                     if (state_.com_csr.TSTART)
+                       system.GetCoreTiming().RemoveEvent(state_.event_type_tranfer_pending);
+                     state_.com_csr.TSTART = 1;
                      RunSIBuffer(system, 0, 0);
                    }
 
-                   if (!state.com_csr.TSTART)
+                   if (!state_.com_csr.TSTART)
                      UpdateInterrupts();
                  }));
 
-  mmio->Register(base | SI_STATUS_REG, MMIO::DirectRead<u32>(&state.status_reg.hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& state = system.GetSerialInterfaceState().GetData();
-                   const USIStatusReg tmp_status(val);
+  mmio->Register(
+      base | SI_STATUS_REG, MMIO::DirectRead<u32>(&state.status_reg.hex),
+      MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
+        auto& state_ = system.GetSerialInterfaceState().GetData();
+        const USIStatusReg tmp_status(val);
 
-                   // clear bits ( if (tmp.bit) SISR.bit=0 )
-                   if (tmp_status.NOREP0)
-                     state.status_reg.NOREP0 = 0;
-                   if (tmp_status.COLL0)
-                     state.status_reg.COLL0 = 0;
-                   if (tmp_status.OVRUN0)
-                     state.status_reg.OVRUN0 = 0;
-                   if (tmp_status.UNRUN0)
-                     state.status_reg.UNRUN0 = 0;
+        // clear bits ( if (tmp.bit) SISR.bit=0 )
+        if (tmp_status.NOREP0)
+          state_.status_reg.NOREP0 = 0;
+        if (tmp_status.COLL0)
+          state_.status_reg.COLL0 = 0;
+        if (tmp_status.OVRUN0)
+          state_.status_reg.OVRUN0 = 0;
+        if (tmp_status.UNRUN0)
+          state_.status_reg.UNRUN0 = 0;
 
-                   if (tmp_status.NOREP1)
-                     state.status_reg.NOREP1 = 0;
-                   if (tmp_status.COLL1)
-                     state.status_reg.COLL1 = 0;
-                   if (tmp_status.OVRUN1)
-                     state.status_reg.OVRUN1 = 0;
-                   if (tmp_status.UNRUN1)
-                     state.status_reg.UNRUN1 = 0;
+        if (tmp_status.NOREP1)
+          state_.status_reg.NOREP1 = 0;
+        if (tmp_status.COLL1)
+          state_.status_reg.COLL1 = 0;
+        if (tmp_status.OVRUN1)
+          state_.status_reg.OVRUN1 = 0;
+        if (tmp_status.UNRUN1)
+          state_.status_reg.UNRUN1 = 0;
 
-                   if (tmp_status.NOREP2)
-                     state.status_reg.NOREP2 = 0;
-                   if (tmp_status.COLL2)
-                     state.status_reg.COLL2 = 0;
-                   if (tmp_status.OVRUN2)
-                     state.status_reg.OVRUN2 = 0;
-                   if (tmp_status.UNRUN2)
-                     state.status_reg.UNRUN2 = 0;
+        if (tmp_status.NOREP2)
+          state_.status_reg.NOREP2 = 0;
+        if (tmp_status.COLL2)
+          state_.status_reg.COLL2 = 0;
+        if (tmp_status.OVRUN2)
+          state_.status_reg.OVRUN2 = 0;
+        if (tmp_status.UNRUN2)
+          state_.status_reg.UNRUN2 = 0;
 
-                   if (tmp_status.NOREP3)
-                     state.status_reg.NOREP3 = 0;
-                   if (tmp_status.COLL3)
-                     state.status_reg.COLL3 = 0;
-                   if (tmp_status.OVRUN3)
-                     state.status_reg.OVRUN3 = 0;
-                   if (tmp_status.UNRUN3)
-                     state.status_reg.UNRUN3 = 0;
+        if (tmp_status.NOREP3)
+          state_.status_reg.NOREP3 = 0;
+        if (tmp_status.COLL3)
+          state_.status_reg.COLL3 = 0;
+        if (tmp_status.OVRUN3)
+          state_.status_reg.OVRUN3 = 0;
+        if (tmp_status.UNRUN3)
+          state_.status_reg.UNRUN3 = 0;
 
-                   // send command to devices
-                   if (tmp_status.WR)
-                   {
-                     state.channel[0].device->SendCommand(state.channel[0].out.hex, state.poll.EN0);
-                     state.channel[1].device->SendCommand(state.channel[1].out.hex, state.poll.EN1);
-                     state.channel[2].device->SendCommand(state.channel[2].out.hex, state.poll.EN2);
-                     state.channel[3].device->SendCommand(state.channel[3].out.hex, state.poll.EN3);
+        // send command to devices
+        if (tmp_status.WR)
+        {
+          state_.channel[0].device->SendCommand(state_.channel[0].out.hex, state_.poll.EN0);
+          state_.channel[1].device->SendCommand(state_.channel[1].out.hex, state_.poll.EN1);
+          state_.channel[2].device->SendCommand(state_.channel[2].out.hex, state_.poll.EN2);
+          state_.channel[3].device->SendCommand(state_.channel[3].out.hex, state_.poll.EN3);
 
-                     state.status_reg.WR = 0;
-                     state.status_reg.WRST0 = 0;
-                     state.status_reg.WRST1 = 0;
-                     state.status_reg.WRST2 = 0;
-                     state.status_reg.WRST3 = 0;
-                   }
-                 }));
+          state_.status_reg.WR = 0;
+          state_.status_reg.WRST0 = 0;
+          state_.status_reg.WRST1 = 0;
+          state_.status_reg.WRST2 = 0;
+          state_.status_reg.WRST3 = 0;
+        }
+      }));
 
   mmio->Register(base | SI_EXI_CLOCK_COUNT, MMIO::DirectRead<u32>(&state.exi_clock_count.hex),
                  MMIO::DirectWrite<u32>(&state.exi_clock_count.hex));

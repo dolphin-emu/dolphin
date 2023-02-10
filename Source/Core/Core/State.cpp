@@ -473,7 +473,7 @@ void SaveAs(const std::string& filename, bool wait)
   Core::RunOnCPUThread(
       [&] {
         {
-          std::lock_guard lk(s_state_writes_in_queue_mutex);
+          std::lock_guard lk_(s_state_writes_in_queue_mutex);
           ++s_state_writes_in_queue;
         }
 
@@ -515,7 +515,7 @@ void SaveAs(const std::string& filename, bool wait)
           // someone aborted the save by changing the mode?
           {
             // Note: The worker thread takes care of this in the other branch.
-            std::lock_guard lk(s_state_writes_in_queue_mutex);
+            std::lock_guard lk_(s_state_writes_in_queue_mutex);
             if (--s_state_writes_in_queue == 0)
               s_state_write_queue_is_empty.notify_all();
           }

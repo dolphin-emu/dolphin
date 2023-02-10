@@ -24,6 +24,8 @@
 
 namespace Discord
 {
+static bool s_using_custom_client = false;
+
 #ifdef USE_DISCORD_PRESENCE
 namespace
 {

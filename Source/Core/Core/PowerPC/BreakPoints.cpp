@@ -39,7 +39,7 @@ bool BreakPoints::IsTempBreakPoint(u32 address) const
 const TBreakPoint* BreakPoints::GetBreakpoint(u32 address) const
 {
   auto bp = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
-                         [address](const auto& bp) { return bp.address == address; });
+                         [address](const auto& bp_) { return bp_.address == address; });
 
   if (bp == m_breakpoints.end())
     return nullptr;

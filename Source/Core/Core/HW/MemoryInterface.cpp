@@ -150,7 +150,14 @@ void Init()
 {
   auto& state = Core::System::GetInstance().GetMemoryInterfaceState().GetData();
   static_assert(std::is_trivially_copyable_v<MIMemStruct>);
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
   std::memset(&state.mi_mem, 0, sizeof(MIMemStruct));
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 }
 
 void Shutdown()

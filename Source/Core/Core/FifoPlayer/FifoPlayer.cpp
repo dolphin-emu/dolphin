@@ -101,7 +101,14 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
         part_start = offset;
         // Copy cpmem now, because end_of_primitives isn't triggered until the first opcode after
         // primitive data, and the first opcode might update cpmem
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
         std::memcpy(&cpmem, &analyzer.m_cpmem, sizeof(CPState));
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
       }
       if (analyzer.m_end_of_primitives)
       {

@@ -153,7 +153,14 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
   // The padding in the structs can cause the memcmp() in the map to create duplicates.
   // Avoid this by initializing the padding to zero.
   PortableVertexDeclaration new_decl;
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
   std::memset(&new_decl, 0, sizeof(new_decl));
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
   new_decl.stride = decl.stride;
 
   auto MakeDummyAttribute = [](AttributeFormat& attr, ComponentFormat type, int components,
