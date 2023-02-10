@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/AbstractGfx.h"
+#include "VideoCommon/Constants.h"
 
 namespace Vulkan
 {
@@ -96,6 +97,6 @@ private:
   float m_backbuffer_scale;
 
   // Keep a copy of sampler states to avoid cache lookups every draw
-  std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};
+  std::array<SamplerState, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};
 };
 }  // namespace Vulkan

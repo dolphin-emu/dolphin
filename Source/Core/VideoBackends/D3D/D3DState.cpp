@@ -205,7 +205,7 @@ u32 StateManager::UnsetTexture(ID3D11ShaderResourceView* srv)
 {
   u32 mask = 0;
 
-  for (u32 index = 0; index < 8; ++index)
+  for (u32 index = 0; index < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; ++index)
   {
     if (m_current.textures[index] == srv)
     {

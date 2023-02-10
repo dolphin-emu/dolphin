@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
+#include "VideoCommon/Constants.h"
 
 namespace Vulkan
 {
@@ -141,7 +142,7 @@ private:
     std::array<u32, NUM_UBO_DESCRIPTOR_SET_BINDINGS> gx_ubo_offsets;
     VkDescriptorBufferInfo utility_ubo_binding;
     u32 utility_ubo_offset;
-    std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS> samplers;
+    std::array<VkDescriptorImageInfo, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> samplers;
     std::array<VkBufferView, NUM_COMPUTE_TEXEL_BUFFERS> texel_buffers;
     VkDescriptorBufferInfo ssbo;
     VkDescriptorBufferInfo gx_uber_vertex_ssbo;

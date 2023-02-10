@@ -635,6 +635,7 @@
     <ClInclude Include="VideoCommon\BPStructs.h" />
     <ClInclude Include="VideoCommon\CommandProcessor.h" />
     <ClInclude Include="VideoCommon\ConstantManager.h" />
+    <ClInclude Include="VideoCommon\Constants.h" />
     <ClInclude Include="VideoCommon\CPMemory.h" />
     <ClInclude Include="VideoCommon\CPUCull.h" />
     <ClInclude Include="VideoCommon\CPUCullImpl.h" />

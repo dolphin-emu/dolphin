@@ -78,8 +78,8 @@ enum UNIFORM_BUFFER_DESCRIPTOR_SET_BINDING
 constexpr u32 MAX_VERTEX_ATTRIBUTES = 16;
 
 // Number of pixel shader texture slots
-constexpr u32 NUM_PIXEL_SHADER_SAMPLERS = 8;
 constexpr u32 NUM_COMPUTE_SHADER_SAMPLERS = 2;
+constexpr u32 NUM_UTILITY_PIXEL_SAMPLERS = 8;
 
 // Number of texel buffer binding points.
 constexpr u32 NUM_COMPUTE_TEXEL_BUFFERS = 2;

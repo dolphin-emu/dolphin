@@ -86,23 +86,23 @@ bool SamplerAllocator::GetGroupHandle(const SamplerStateSet& sss,
 
   // Allocate a group of descriptors.
   DescriptorHandle allocation;
-  if (!Allocate(SamplerStateSet::NUM_SAMPLERS_PER_GROUP, &allocation))
+  if (!Allocate(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS, &allocation))
     return false;
 
   // Lookup sampler handles from global cache.
-  std::array<D3D12_CPU_DESCRIPTOR_HANDLE, SamplerStateSet::NUM_SAMPLERS_PER_GROUP> source_handles;
-  for (u32 i = 0; i < SamplerStateSet::NUM_SAMPLERS_PER_GROUP; i++)
+  std::array<D3D12_CPU_DESCRIPTOR_HANDLE, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> source_handles;
+  for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)
   {
     if (!g_dx_context->GetSamplerHeapManager().Lookup(sss.states[i], &source_handles[i]))
       return false;
   }
 
   // Copy samplers from the sampler heap.
-  static constexpr std::array<UINT, SamplerStateSet::NUM_SAMPLERS_PER_GROUP> source_sizes = {
+  static constexpr std::array<UINT, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> source_sizes = {
       {1, 1, 1, 1, 1, 1, 1, 1}};
   g_dx_context->GetDevice()->CopyDescriptors(
-      1, &allocation.cpu_handle, &SamplerStateSet::NUM_SAMPLERS_PER_GROUP,
-      SamplerStateSet::NUM_SAMPLERS_PER_GROUP, source_handles.data(), source_sizes.data(),
+      1, &allocation.cpu_handle, &VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
+      VideoCommon::MAX_PIXEL_SHADER_SAMPLERS, source_handles.data(), source_sizes.data(),
       D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
   *handle = allocation.gpu_handle;
   m_sampler_map.emplace(sss, allocation.gpu_handle);
