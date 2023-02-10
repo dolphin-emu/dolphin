@@ -252,7 +252,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
       continue;
 
     // Support CodeWarrior and Dolphin map
-    if (StringEndsWith(line, " section layout\n") || strcmp(temp, ".text") == 0 ||
+    if (std::string_view{line}.ends_with(" section layout\n") || strcmp(temp, ".text") == 0 ||
         strcmp(temp, ".init") == 0)
     {
       section_name = temp;
@@ -284,7 +284,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     //    3] _stack_addr found as linker generated symbol
     // ...
     //           10] EXILock(func, global) found in exi.a EXIBios.c
-    if (StringEndsWith(temp, "]"))
+    if (std::string_view{temp}.ends_with(']'))
       continue;
 
     // TODO - Handle/Write a parser for:

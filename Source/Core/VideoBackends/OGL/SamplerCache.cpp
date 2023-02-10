@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "VideoBackends/OGL/OGLRender.h"
+#include "VideoBackends/OGL/OGLConfig.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL

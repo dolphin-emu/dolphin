@@ -22,7 +22,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
 
-#include "VideoBackends/OGL/OGLRender.h"
+#include "VideoBackends/OGL/OGLConfig.h"
+#include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/OGLStreamBuffer.h"
 #include "VideoBackends/OGL/OGLVertexManager.h"
@@ -863,8 +864,7 @@ u64 ProgramShaderCache::GenerateShaderID()
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
 {
-  std::unique_ptr<GLContext> context =
-      static_cast<Renderer*>(g_renderer.get())->GetMainGLContext()->CreateSharedContext();
+  std::unique_ptr<GLContext> context = GetOGLGfx()->GetMainGLContext()->CreateSharedContext();
   if (!context)
   {
     PanicAlertFmt("Failed to create shared context for shader compiling.");

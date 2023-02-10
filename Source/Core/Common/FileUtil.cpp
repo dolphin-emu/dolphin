@@ -54,7 +54,6 @@
 #endif
 
 #ifdef ANDROID
-#include "Common/StringUtil.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #endif
 
@@ -172,7 +171,7 @@ bool Delete(const std::string& filename, IfAbsentBehavior behavior)
   DEBUG_LOG_FMT(COMMON, "Delete: file {}", filename);
 
 #ifdef ANDROID
-  if (StringBeginsWith(filename, "content://"))
+  if (filename.starts_with("content://"))
   {
     const bool success = DeleteAndroidContent(filename);
     if (!success)
@@ -1055,7 +1054,7 @@ void SetUserPath(unsigned int dir_index, std::string path)
 #endif
 
   // Directories should end with a separator, files should not.
-  while (StringEndsWith(path, "/"))
+  while (path.ends_with('/'))
     path.pop_back();
   if (path.empty())
     return;

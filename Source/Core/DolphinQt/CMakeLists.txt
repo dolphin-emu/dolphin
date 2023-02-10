@@ -3,11 +3,11 @@ if(POLICY CMP0084)
   cmake_policy(SET CMP0084 NEW)
 endif()
 
-if (NOT QT_DIR AND MSVC)
+if (MSVC)
   if(_M_ARM_64)
-    set(QT_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/ARM64/lib/cmake/Qt6")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/ARM64")
   else()
-    set(QT_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/x64/lib/cmake/Qt6")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/x64")
   endif()
 endif()
 
@@ -329,6 +329,8 @@ add_executable(dolphin-emu
   Settings/USBDeviceAddToWhitelistDialog.h
   Settings/WiiPane.cpp
   Settings/WiiPane.h
+  SkylanderPortal/SkylanderPortalWindow.cpp
+  SkylanderPortal/SkylanderPortalWindow.h
   TAS/GCTASInputWindow.cpp
   TAS/GCTASInputWindow.h
   TAS/GBATASInputWindow.cpp
@@ -628,7 +630,7 @@ if(APPLE)
       /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/Dolphin.app" || true)
   endif()
 else()
-  install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
+  install(TARGETS dolphin-emu RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND STEAM)

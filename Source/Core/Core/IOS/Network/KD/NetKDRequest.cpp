@@ -150,7 +150,7 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
 NetKDRequestDevice::NetKDRequestDevice(Kernel& ios, const std::string& device_name)
     : Device(ios, device_name), config{ios.GetFS()}, m_dl_list{ios.GetFS()}
 {
-  m_work_queue.Reset([this](AsyncTask task) {
+  m_work_queue.Reset("WiiConnect24 Worker", [this](AsyncTask task) {
     const IPCReply reply = task.handler();
     {
       std::lock_guard lg(m_async_reply_lock);

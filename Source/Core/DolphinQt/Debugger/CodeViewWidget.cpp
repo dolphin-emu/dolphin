@@ -167,11 +167,11 @@ CodeViewWidget::CodeViewWidget()
           &CodeViewWidget::FontBasedSizing);
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
-    m_address = PC;
+    m_address = PowerPC::ppcState.pc;
     Update();
   });
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    m_address = PC;
+    m_address = PowerPC::ppcState.pc;
     Update();
   });
 
@@ -235,17 +235,16 @@ u32 CodeViewWidget::AddressForRow(int row) const
 
 static bool IsBranchInstructionWithLink(std::string_view ins)
 {
-  return StringEndsWith(ins, "l") || StringEndsWith(ins, "la") || StringEndsWith(ins, "l+") ||
-         StringEndsWith(ins, "la+") || StringEndsWith(ins, "l-") || StringEndsWith(ins, "la-");
+  return ins.ends_with('l') || ins.ends_with("la") || ins.ends_with("l+") || ins.ends_with("la+") ||
+         ins.ends_with("l-") || ins.ends_with("la-");
 }
 
 static bool IsInstructionLoadStore(std::string_view ins)
 {
   // Could add check for context address being near PC, because we need gprs to be correct for the
   // load/store.
-  return (StringBeginsWith(ins, "l") && !StringBeginsWith(ins, "li")) ||
-         StringBeginsWith(ins, "st") || StringBeginsWith(ins, "psq_l") ||
-         StringBeginsWith(ins, "psq_s");
+  return (ins.starts_with('l') && !ins.starts_with("li")) || ins.starts_with("st") ||
+         ins.starts_with("psq_l") || ins.starts_with("psq_s");
 }
 
 void CodeViewWidget::Update()
@@ -568,9 +567,9 @@ void CodeViewWidget::OnContextMenu()
       menu->addAction(tr("Restore instruction"), this, &CodeViewWidget::OnRestoreInstruction);
 
   QString target;
-  if (addr == PC && running && Core::GetState() == Core::State::Paused)
+  if (addr == PowerPC::ppcState.pc && running && Core::GetState() == Core::State::Paused)
   {
-    const std::string line = PowerPC::debug_interface.Disassemble(PC);
+    const std::string line = PowerPC::debug_interface.Disassemble(PowerPC::ppcState.pc);
     const auto target_it = std::find(line.begin(), line.end(), '\t');
     const auto target_end = std::find(target_it, line.end(), ',');
 

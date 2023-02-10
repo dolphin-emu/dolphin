@@ -2,9 +2,11 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import androidx.annotation.NonNull;
+
 public interface AbstractFloatSetting extends AbstractSetting
 {
-  float getFloat(Settings settings);
+  float getFloat(@NonNull Settings settings);
 
-  void setFloat(Settings settings, float newValue);
+  void setFloat(@NonNull Settings settings, float newValue);
 }

@@ -12,8 +12,9 @@
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
+#include "VideoBackends/Vulkan/VKBoundingBox.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKPerfQuery.h"
-#include "VideoBackends/Vulkan/VKRenderer.h"
 #include "VideoBackends/Vulkan/VKSwapChain.h"
 #include "VideoBackends/Vulkan/VKVertexManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
@@ -193,8 +194,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   g_Config.backend_info.bSupportsExclusiveFullscreen =
       enable_surface && g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface);
 
-  // With the backend information populated, we can now initialize videocommon.
-  InitializeShared();
+  UpdateActiveConfig();
 
   // Create command buffers. We do this separately because the other classes depend on it.
   g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
@@ -234,25 +234,13 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     return false;
   }
 
-  // Create main wrapper instances.
-  g_renderer = std::make_unique<Renderer>(std::move(swap_chain), wsi.render_surface_scale);
-  g_vertex_manager = std::make_unique<VertexManager>();
-  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  g_framebuffer_manager = std::make_unique<FramebufferManager>();
-  g_texture_cache = std::make_unique<TextureCacheBase>();
-  g_perf_query = std::make_unique<PerfQuery>();
+  auto gfx = std::make_unique<VKGfx>(std::move(swap_chain), wsi.render_surface_scale);
+  auto vertex_manager = std::make_unique<VertexManager>();
+  auto perf_query = std::make_unique<PerfQuery>();
+  auto bounding_box = std::make_unique<VKBoundingBox>();
 
-  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
-      !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
-      !g_texture_cache->Initialize() || !PerfQuery::GetInstance()->Initialize())
-  {
-    PanicAlertFmt("Failed to initialize renderer classes");
-    Shutdown();
-    return false;
-  }
-
-  g_shader_cache->InitializeShaderCache();
-  return true;
+  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+                          std::move(bounding_box));
 }
 
 void VideoBackend::Shutdown()
@@ -260,26 +248,15 @@ void VideoBackend::Shutdown()
   if (g_vulkan_context)
     vkDeviceWaitIdle(g_vulkan_context->GetDevice());
 
-  if (g_shader_cache)
-    g_shader_cache->Shutdown();
-
   if (g_object_cache)
     g_object_cache->Shutdown();
 
-  if (g_renderer)
-    g_renderer->Shutdown();
+  ShutdownShared();
 
-  g_perf_query.reset();
-  g_texture_cache.reset();
-  g_framebuffer_manager.reset();
-  g_shader_cache.reset();
-  g_vertex_manager.reset();
-  g_renderer.reset();
   g_object_cache.reset();
   StateTracker::DestroyInstance();
   g_command_buffer_mgr.reset();
   g_vulkan_context.reset();
-  ShutdownShared();
   UnloadVulkanLibrary();
 }
 

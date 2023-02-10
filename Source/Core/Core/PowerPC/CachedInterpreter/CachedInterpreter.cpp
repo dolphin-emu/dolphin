@@ -81,7 +81,7 @@ void CachedInterpreter::ExecuteOneBlock()
   const u8* normal_entry = m_block_cache.Dispatch();
   if (!normal_entry)
   {
-    Jit(PC);
+    Jit(PowerPC::ppcState.pc);
     return;
   }
 
@@ -136,35 +136,35 @@ void CachedInterpreter::SingleStep()
 
 static void EndBlock(UGeckoInstruction data)
 {
-  PC = NPC;
+  PowerPC::ppcState.pc = PowerPC::ppcState.npc;
   PowerPC::ppcState.downcount -= data.hex;
-  PowerPC::UpdatePerformanceMonitor(data.hex, 0, 0);
+  PowerPC::UpdatePerformanceMonitor(data.hex, 0, 0, PowerPC::ppcState);
 }
 
 static void UpdateNumLoadStoreInstructions(UGeckoInstruction data)
 {
-  PowerPC::UpdatePerformanceMonitor(0, data.hex, 0);
+  PowerPC::UpdatePerformanceMonitor(0, data.hex, 0, PowerPC::ppcState);
 }
 
 static void UpdateNumFloatingPointInstructions(UGeckoInstruction data)
 {
-  PowerPC::UpdatePerformanceMonitor(0, 0, data.hex);
+  PowerPC::UpdatePerformanceMonitor(0, 0, data.hex, PowerPC::ppcState);
 }
 
 static void WritePC(UGeckoInstruction data)
 {
-  PC = data.hex;
-  NPC = data.hex + 4;
+  PowerPC::ppcState.pc = data.hex;
+  PowerPC::ppcState.npc = data.hex + 4;
 }
 
 static void WriteBrokenBlockNPC(UGeckoInstruction data)
 {
-  NPC = data.hex;
+  PowerPC::ppcState.npc = data.hex;
 }
 
 static bool CheckFPU(u32 data)
 {
-  if (!MSR.FP)
+  if (!PowerPC::ppcState.msr.FP)
   {
     PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
     PowerPC::CheckExceptions();
@@ -239,20 +239,21 @@ void CachedInterpreter::Jit(u32 address)
     ClearCache();
   }
 
-  const u32 nextPC = analyzer.Analyze(PC, &code_block, &m_code_buffer, m_code_buffer.size());
+  const u32 nextPC =
+      analyzer.Analyze(PowerPC::ppcState.pc, &code_block, &m_code_buffer, m_code_buffer.size());
   if (code_block.m_memory_exception)
   {
     // Address of instruction could not be translated
-    NPC = nextPC;
+    PowerPC::ppcState.npc = nextPC;
     PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
     PowerPC::CheckExceptions();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }
 
-  JitBlock* b = m_block_cache.AllocateBlock(PC);
+  JitBlock* b = m_block_cache.AllocateBlock(PowerPC::ppcState.pc);
 
-  js.blockStart = PC;
+  js.blockStart = PowerPC::ppcState.pc;
   js.firstFPInstructionFound = false;
   js.fifoBytesSinceCheck = 0;
   js.downcountAmount = 0;

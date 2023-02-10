@@ -7,7 +7,6 @@ endif()
 set(SRCS
   implot/implot.cpp
   implot/implot_items.cpp
-  implot/implot_demo.cpp
 )
 
 add_library(implot STATIC ${SRCS})

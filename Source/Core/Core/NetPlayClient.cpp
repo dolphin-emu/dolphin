@@ -248,7 +248,12 @@ bool NetPlayClient::Connect()
   sf::Packet rpac;
   // TODO: make this not hang
   ENetEvent netEvent;
-  if (enet_host_service(m_client, &netEvent, 5000) > 0 && netEvent.type == ENET_EVENT_TYPE_RECEIVE)
+  int net;
+  while ((net = enet_host_service(m_client, &netEvent, 5000)) > 0 && netEvent.type == 42)
+  {
+    // ignore packets from traversal server
+  }
+  if (net > 0 && netEvent.type == ENET_EVENT_TYPE_RECEIVE)
   {
     rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
     enet_packet_destroy(netEvent.packet);

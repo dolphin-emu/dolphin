@@ -12,12 +12,13 @@
 #include <string_view>
 #include <variant>
 
+#include <Core/Core.h>
+
 #include <fmt/format.h>
 
 #include "AudioCommon/AudioCommon.h"
 
 #include "Common/Assert.h"
-#include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -49,6 +50,7 @@
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "Core/TitleDatabase.h"
 #include "VideoCommon/HiresTextures.h"
 
@@ -177,6 +179,10 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
+  if (Core::IsRunning())
+  {
+    Core::UpdateTitle();
+  }
 
   Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
   Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
@@ -196,7 +202,8 @@ void SConfig::OnNewTitleLoad()
     Host_NotifyMapLoaded();
   }
   CBoot::LoadMapFromFilename();
-  HLE::Reload();
+  auto& system = Core::System::GetInstance();
+  HLE::Reload(system);
   PatchEngine::Reload();
   HiresTexture::Update();
 }

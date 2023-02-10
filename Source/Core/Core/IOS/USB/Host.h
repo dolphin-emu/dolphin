@@ -76,10 +76,13 @@ protected:
 
 private:
   bool AddDevice(std::unique_ptr<USB::Device> device);
+  void Update() override;
   bool UpdateDevices(bool always_add_hooks = false);
   bool AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks, bool always_add_hooks);
   void DetectRemovedDevices(const std::set<u64>& plugged_devices, DeviceChangeHooks& hooks);
   void DispatchHooks(const DeviceChangeHooks& hooks);
+  void AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
+                          bool always_add_hooks);
 
   bool m_has_initialised = false;
   LibusbUtils::Context m_context;

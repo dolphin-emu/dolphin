@@ -12,7 +12,7 @@
 
 namespace OGL
 {
-std::unique_ptr<PerfQueryBase> GetPerfQuery();
+std::unique_ptr<PerfQueryBase> GetPerfQuery(bool is_gles);
 
 class PerfQuery : public PerfQueryBase
 {

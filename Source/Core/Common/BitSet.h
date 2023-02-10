@@ -93,11 +93,10 @@ public:
     int m_bit;
   };
 
-  constexpr BitSet() : m_val(0) {}
+  constexpr BitSet() = default;
   constexpr explicit BitSet(IntTy val) : m_val(val) {}
-  BitSet(std::initializer_list<int> init)
+  constexpr BitSet(std::initializer_list<int> init)
   {
-    m_val = 0;
     for (int bit : init)
       m_val |= (IntTy)1 << bit;
   }
@@ -132,7 +131,7 @@ public:
   constexpr unsigned int Count() const { return std::popcount(m_val); }
   constexpr Iterator begin() const { return ++Iterator(m_val, 0); }
   constexpr Iterator end() const { return Iterator(m_val, -1); }
-  IntTy m_val;
+  IntTy m_val{};
 };
 }  // namespace Common
 

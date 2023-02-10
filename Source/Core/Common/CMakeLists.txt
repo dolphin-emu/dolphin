@@ -6,8 +6,6 @@ add_library(common
   BitSet.h
   BitUtils.h
   BlockingLoop.h
-  CDUtils.cpp
-  CDUtils.h
   ChunkFile.h
   CodeBlock.h
   ColorUtil.cpp
@@ -64,6 +62,7 @@ add_library(common
   GekkoDisassembler.h
   Hash.cpp
   Hash.h
+  HookableEvent.h
   HttpRequest.cpp
   HttpRequest.h
   Image.cpp
@@ -117,6 +116,7 @@ add_library(common
   SocketContext.cpp
   SocketContext.h
   SPSCQueue.h
+  StringLiteral.h
   StringUtil.cpp
   StringUtil.h
   SymbolDB.cpp
@@ -157,7 +157,7 @@ PRIVATE
   ${CURL_LIBRARIES}
   FatFs
   ${ICONV_LIBRARIES}
-  spng
+  ${spng_target}
   ${VTUNE_LIBRARIES}
 )
 
@@ -270,6 +270,7 @@ if(WIN32)
     CompatPatches.cpp
     GL/GLInterface/WGL.cpp
     GL/GLInterface/WGL.h
+    WindowsRegistry.cpp
   )
 elseif(APPLE)
   target_sources(common PRIVATE

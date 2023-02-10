@@ -10,6 +10,7 @@
 #include "Common/IOFile.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
+#include "Common/WindowsRegistry.h"
 
 #include "UpdaterCommon/Platform.h"
 #include "UpdaterCommon/UI.h"
@@ -133,9 +134,7 @@ static const char* VCRuntimeRegistrySubkey()
 
 static bool ReadVCRuntimeVersionField(u32* value, const char* name)
 {
-  DWORD value_len = sizeof(*value);
-  return RegGetValueA(HKEY_LOCAL_MACHINE, VCRuntimeRegistrySubkey(), name, RRF_RT_REG_DWORD,
-                      nullptr, value, &value_len) == ERROR_SUCCESS;
+  return WindowsRegistry::ReadValue(value, VCRuntimeRegistrySubkey(), name);
 }
 
 static std::optional<BuildVersion> GetInstalledVCRuntimeVersion()
@@ -219,11 +218,7 @@ static bool VCRuntimeUpdate(const BuildInfo& build_info)
 
 static BuildVersion CurrentOSVersion()
 {
-  typedef DWORD(WINAPI * RtlGetVersion_t)(PRTL_OSVERSIONINFOW);
-  auto RtlGetVersion =
-      (RtlGetVersion_t)GetProcAddress(GetModuleHandle(TEXT("ntdll")), "RtlGetVersion");
-  RTL_OSVERSIONINFOW info{.dwOSVersionInfoSize = sizeof(info)};
-  RtlGetVersion(&info);
+  OSVERSIONINFOW info = WindowsRegistry::GetOSVersion();
   return {.major = info.dwMajorVersion, .minor = info.dwMinorVersion, .build = info.dwBuildNumber};
 }
 

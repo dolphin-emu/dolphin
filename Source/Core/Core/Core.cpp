@@ -89,11 +89,13 @@
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoEvents.h"
 
 #ifdef ANDROID
 #include "jni/AndroidCommon/IDCache.h"
@@ -104,9 +106,6 @@ namespace Core
 static bool s_wants_determinism;
 
 // Declarations and definitions
-static Common::Timer s_timer;
-static u64 s_timer_offset;
-
 static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
 static bool s_is_started = false;
@@ -139,6 +138,15 @@ static thread_local bool tls_is_gpu_thread = false;
 static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi);
 
 static bool was_rng_seed_called = false;
+
+static Common::EventHook s_frame_presented = AfterPresentEvent::Register(
+    [](auto& present_info) {
+      const double last_speed_denominator = g_perf_metrics.GetLastSpeedDenominator();
+      // The denominator should always be > 0 but if it's not, just return 1
+      const double last_speed = last_speed_denominator > 0.0 ? (1.0 / last_speed_denominator) : 1.0;
+      Core::Callback_FramePresented(last_speed);
+    },
+    "Core Frame Presented");
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -187,7 +195,6 @@ void DisplayMessage(std::string message, int time_in_ms)
   if (!std::all_of(message.begin(), message.end(), IsPrintableCharacter))
     return;
 
-  Host_UpdateTitle(message);
   OSD::AddMessage(std::move(message), time_in_ms);
 }
 
@@ -549,11 +556,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
   Common::ScopeGuard video_guard{[] { g_video_backend->Shutdown(); }};
 
-  // Render a single frame without anything on it to clear the screen.
-  // This avoids the game list being displayed while the core is finishing initializing.
-  g_renderer->BeginUIFrame();
-  g_renderer->EndUIFrame();
-
   if (cpu_info.HTT)
     Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, cpu_info.num_cores > 4);
   else
@@ -620,6 +622,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
   }
 
+  UpdateTitle();
+
   // ENTER THE VIDEO THREAD LOOP
   if (system.IsDualCoreMode())
   {
@@ -669,16 +673,11 @@ void SetState(State state)
     CPU::EnableStepping(true);  // Break
     Wiimote::Pause();
     ResetRumble();
-    s_timer_offset = s_timer.ElapsedMs();
     break;
   case State::Running:
   {
     CPU::EnableStepping(false);
     Wiimote::Resume();
-    // Restart timer, accounting for time that had elapsed between previous s_timer.Start() and
-    // emulator pause
-    s_timer.StartWithOffset(s_timer_offset);
-    s_timer_offset = 0;
     break;
   }
   default:
@@ -745,13 +744,13 @@ static std::string GenerateScreenshotName()
 
 void SaveScreenShot()
 {
-  Core::RunAsCPUThread([] { g_renderer->SaveScreenshot(GenerateScreenshotName()); });
+  Core::RunAsCPUThread([] { g_frame_dumper->SaveScreenshot(GenerateScreenshotName()); });
 }
 
 void SaveScreenShot(std::string_view name)
 {
   Core::RunAsCPUThread([&name] {
-    g_renderer->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
+    g_frame_dumper->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
   });
 }
 
@@ -848,21 +847,6 @@ void RunOnCPUThread(std::function<void()> function, bool wait_for_completion)
   }
 }
 
-// Display FPS info
-// This should only be called from VI
-void VideoThrottle()
-{
-  g_perf_metrics.CountVBlank();
-
-  // Update info per second
-  u64 elapsed_ms = s_timer.ElapsedMs();
-  if ((elapsed_ms >= 500) || s_frame_step)
-  {
-    s_timer.Start();
-    UpdateTitle();
-  }
-}
-
 // --- Callbacks for backends / engine ---
 
 // Called from Renderer::Swap (GPU thread) when a new (non-duplicate)
@@ -932,58 +916,13 @@ void Callback_NewField()
 
 void UpdateTitle()
 {
-  const double FPS = g_perf_metrics.GetFPS();
-  const double VPS = g_perf_metrics.GetVPS();
-  const double Speed = 100.0 * g_perf_metrics.GetSpeed();
-
   // Settings are shown the same for both extended and summary info
   const std::string SSettings = fmt::format(
       "{} {} | {} | {}", PowerPC::GetCPUName(),
       Core::System::GetInstance().IsDualCoreMode() ? "DC" : "SC", g_video_backend->GetDisplayName(),
       Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
 
-  std::string SFPS;
-  if (Movie::IsPlayingInput())
-  {
-    SFPS = fmt::format("Input: {}/{} - VI: {}/{} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
-                       Movie::GetCurrentInputCount(), Movie::GetTotalInputCount(),
-                       Movie::GetCurrentFrame(), Movie::GetTotalFrames(), FPS, VPS, Speed);
-  }
-  else if (Movie::IsRecordingInput())
-  {
-    SFPS = fmt::format("Input: {} - VI: {} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
-                       Movie::GetCurrentInputCount(), Movie::GetCurrentFrame(), FPS, VPS, Speed);
-  }
-  else
-  {
-    SFPS = fmt::format("FPS: {:.0f} - VPS: {:.0f} - {:.0f}%", FPS, VPS, Speed);
-    if (Config::Get(Config::MAIN_EXTENDED_FPS_INFO))
-    {
-      // Use extended or summary information. The summary information does not print the ticks data,
-      // that's more of a debugging interest, it can always be optional of course if someone is
-      // interested.
-      static u64 ticks = 0;
-      static u64 idleTicks = 0;
-      auto& core_timing = Core::System::GetInstance().GetCoreTiming();
-      u64 newTicks = core_timing.GetTicks();
-      u64 newIdleTicks = core_timing.GetIdleTicks();
-
-      u64 diff = (newTicks - ticks) / 1000000;
-      u64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
-
-      ticks = newTicks;
-      idleTicks = newIdleTicks;
-
-      float TicksPercentage =
-          (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
-
-      SFPS += fmt::format(" | CPU: ~{} MHz [Real: {} + IdleSkip: {}] / {} MHz (~{:3.0f}%)", diff,
-                          diff - idleDiff, idleDiff, SystemTimers::GetTicksPerSecond() / 1000000,
-                          TicksPercentage);
-    }
-  }
-
-  std::string message = fmt::format("{} | {} | {}", Common::GetScmRevStr(), SSettings, SFPS);
+  std::string message = fmt::format("{} | {}", Common::GetScmRevStr(), SSettings);
   if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))
   {
     const std::string& title = SConfig::GetInstance().GetTitleDescription();

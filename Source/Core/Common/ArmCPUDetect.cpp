@@ -14,6 +14,7 @@
 #elif defined(_WIN32)
 #include <Windows.h>
 #include <arm64intr.h>
+#include "Common/WindowsRegistry.h"
 #else
 #ifndef __FreeBSD__
 #include <asm/hwcap.h>
@@ -55,33 +56,14 @@ static constexpr char SUBKEY_CORE0[] = R"(HARDWARE\DESCRIPTION\System\CentralPro
 // There are some other maybe-interesting values nearby, BIOS info etc.
 static bool ReadProcessorString(std::string* value, const std::string& name)
 {
-  const DWORD flags = RRF_RT_REG_SZ | RRF_NOEXPAND;
-  DWORD value_len = 0;
-  auto status = RegGetValueA(HKEY_LOCAL_MACHINE, SUBKEY_CORE0, name.c_str(), flags, nullptr,
-                             nullptr, &value_len);
-  if (status != ERROR_SUCCESS && status != ERROR_MORE_DATA)
-    return false;
-
-  value->resize(value_len);
-  status = RegGetValueA(HKEY_LOCAL_MACHINE, SUBKEY_CORE0, name.c_str(), flags, nullptr,
-                        value->data(), &value_len);
-  if (status != ERROR_SUCCESS)
-  {
-    value->clear();
-    return false;
-  }
-
-  TruncateToCString(value);
-  return true;
+  return WindowsRegistry::ReadValue(value, SUBKEY_CORE0, name);
 }
 
 // Read cached register values from the registry
 static bool ReadPrivilegedCPReg(u64* value, u32 reg)
 {
-  DWORD value_len = sizeof(*value);
   // Not sure if the value name is padded or not
-  return RegGetValueA(HKEY_LOCAL_MACHINE, SUBKEY_CORE0, fmt::format("CP {:x}", reg).c_str(),
-                      RRF_RT_REG_QWORD, nullptr, value, &value_len) == ERROR_SUCCESS;
+  return WindowsRegistry::ReadValue(value, SUBKEY_CORE0, fmt::format("CP {:x}", reg).c_str());
 }
 
 static bool Read_MIDR_EL1(u64* value)
@@ -125,7 +107,7 @@ static std::string ReadCpuinfoField(const std::string& field)
 
   while (std::getline(file, line))
   {
-    if (!StringBeginsWith(line, field))
+    if (!line.starts_with(field))
       continue;
     auto non_tab = line.find_first_not_of("\t", field.length());
     if (non_tab == line.npos)

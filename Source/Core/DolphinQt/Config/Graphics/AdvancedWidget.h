@@ -69,6 +69,7 @@ private:
   ToolTipCheckBox* m_enable_prog_scan;
   GraphicsBool* m_backend_multithreading;
   GraphicsBool* m_prefer_vs_for_point_line_expansion;
+  GraphicsBool* m_cpu_cull;
   GraphicsBool* m_borderless_fullscreen;
 
   // Experimental

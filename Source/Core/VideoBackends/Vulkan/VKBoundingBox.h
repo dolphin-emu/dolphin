@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 
 #include "VideoCommon/BoundingBox.h"

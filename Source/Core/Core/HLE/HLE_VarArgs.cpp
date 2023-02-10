@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HLE/HLE_VarArgs.h"
+#include "Core/System.h"
 
 #include "Common/Logging/Log.h"
 
@@ -9,18 +10,19 @@ HLE::SystemVABI::VAList::~VAList() = default;
 
 u32 HLE::SystemVABI::VAList::GetGPR(u32 gpr) const
 {
-  return GPR(gpr);
+  return m_system.GetPPCState().gpr[gpr];
 }
 
 double HLE::SystemVABI::VAList::GetFPR(u32 fpr) const
 {
-  return rPS(fpr).PS0AsDouble();
+  return m_system.GetPPCState().ps[fpr].PS0AsDouble();
 }
 
-HLE::SystemVABI::VAListStruct::VAListStruct(u32 address)
-    : VAList(0), m_va_list{PowerPC::HostRead_U8(address), PowerPC::HostRead_U8(address + 1),
-                           PowerPC::HostRead_U32(address + 4), PowerPC::HostRead_U32(address + 8)},
-      m_address(address), m_has_fpr_area(PowerPC::ppcState.cr.GetBit(6) == 1)
+HLE::SystemVABI::VAListStruct::VAListStruct(Core::System& system, u32 address)
+    : VAList(system, 0), m_va_list{PowerPC::HostRead_U8(address), PowerPC::HostRead_U8(address + 1),
+                                   PowerPC::HostRead_U32(address + 4),
+                                   PowerPC::HostRead_U32(address + 8)},
+      m_address(address), m_has_fpr_area(system.GetPPCState().cr.GetBit(6) == 1)
 {
   m_stack = m_va_list.overflow_arg_area;
   m_gpr += m_va_list.gpr;

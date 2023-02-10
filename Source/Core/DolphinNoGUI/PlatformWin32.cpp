@@ -13,7 +13,7 @@
 #include <climits>
 #include <cstdio>
 
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Present.h"
 #include "resource.h"
 
 namespace
@@ -181,8 +181,8 @@ LRESULT PlatformWin32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
   case WM_SIZE:
   {
-    if (g_renderer)
-      g_renderer->ResizeSurface();
+    if (g_presenter)
+      g_presenter->ResizeSurface();
   }
   break;
 

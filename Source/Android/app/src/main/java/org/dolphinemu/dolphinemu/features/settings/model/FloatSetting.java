@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import androidx.annotation.NonNull;
+
 public enum FloatSetting implements AbstractFloatSetting
 {
   // These entries have the same names and order as in C++, just for consistency.
@@ -23,7 +25,7 @@ public enum FloatSetting implements AbstractFloatSetting
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden(@NonNull Settings settings)
   {
     if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
       return settings.getSection(mFile, mSection).exists(mKey);
@@ -38,7 +40,7 @@ public enum FloatSetting implements AbstractFloatSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
@@ -51,7 +53,7 @@ public enum FloatSetting implements AbstractFloatSetting
   }
 
   @Override
-  public float getFloat(Settings settings)
+  public float getFloat(@NonNull Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
@@ -64,7 +66,7 @@ public enum FloatSetting implements AbstractFloatSetting
   }
 
   @Override
-  public void setFloat(Settings settings, float newValue)
+  public void setFloat(@NonNull Settings settings, float newValue)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {

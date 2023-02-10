@@ -20,6 +20,8 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "IOS/USB/Emulated/Skylander.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -31,7 +33,10 @@ namespace Core
 {
 struct System::Impl
 {
-  explicit Impl(System& system) : m_gp_fifo(system) {}
+  explicit Impl(System& system)
+      : m_core_timing(system), m_gp_fifo(system), m_ppc_state(PowerPC::ppcState)
+  {
+  }
 
   std::unique_ptr<SoundStream> m_sound_stream;
   bool m_sound_stream_running = false;
@@ -47,10 +52,12 @@ struct System::Impl
   Fifo::FifoManager m_fifo;
   GeometryShaderManager m_geometry_shader_manager;
   GPFifo::GPFifoManager m_gp_fifo;
+  IOS::HLE::USB::SkylanderPortal m_skylander_portal;
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceState m_memory_interface_state;
   PixelEngine::PixelEngineManager m_pixel_engine;
   PixelShaderManager m_pixel_shader_manager;
+  PowerPC::PowerPCState& m_ppc_state;
   ProcessorInterface::ProcessorInterfaceManager m_processor_interface;
   SerialInterface::SerialInterfaceState m_serial_interface_state;
   Sram m_sram;
@@ -151,6 +158,11 @@ GPFifo::GPFifoManager& System::GetGPFifo() const
   return m_impl->m_gp_fifo;
 }
 
+IOS::HLE::USB::SkylanderPortal& System::GetSkylanderPortal() const
+{
+  return m_impl->m_skylander_portal;
+}
+
 Memory::MemoryManager& System::GetMemory() const
 {
   return m_impl->m_memory;
@@ -169,6 +181,11 @@ PixelEngine::PixelEngineManager& System::GetPixelEngine() const
 PixelShaderManager& System::GetPixelShaderManager() const
 {
   return m_impl->m_pixel_shader_manager;
+}
+
+PowerPC::PowerPCState& System::GetPPCState() const
+{
+  return m_impl->m_ppc_state;
 }
 
 ProcessorInterface::ProcessorInterfaceManager& System::GetProcessorInterface() const

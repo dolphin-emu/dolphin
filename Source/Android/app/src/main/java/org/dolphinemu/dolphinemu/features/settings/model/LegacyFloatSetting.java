@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import androidx.annotation.NonNull;
+
 public class LegacyFloatSetting extends AbstractLegacySetting implements AbstractFloatSetting
 {
   private final float mDefaultValue;
@@ -13,13 +15,13 @@ public class LegacyFloatSetting extends AbstractLegacySetting implements Abstrac
   }
 
   @Override
-  public float getFloat(Settings settings)
+  public float getFloat(@NonNull Settings settings)
   {
     return settings.getSection(mFile, mSection).getFloat(mKey, mDefaultValue);
   }
 
   @Override
-  public void setFloat(Settings settings, float newValue)
+  public void setFloat(@NonNull Settings settings, float newValue)
   {
     settings.getSection(mFile, mSection).setFloat(mKey, newValue);
   }

@@ -13,8 +13,6 @@ add_library(discio
   DiscScrubber.h
   DiscUtils.cpp
   DiscUtils.h
-  DriveBlob.cpp
-  DriveBlob.h
   Enums.cpp
   Enums.h
   FileBlob.cpp
@@ -70,8 +68,8 @@ target_link_libraries(discio
 PUBLIC
   core
   BZip2::BZip2
-  lzma
-  zstd
+  LibLZMA::LibLZMA
+  zstd::zstd
 
 PRIVATE
   fmt::fmt

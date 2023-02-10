@@ -185,6 +185,41 @@ struct PowerPCState
   }
 
   void SetSR(u32 index, u32 value);
+
+  void SetCarry(u32 ca) { xer_ca = ca; }
+
+  u32 GetCarry() const { return xer_ca; }
+
+  UReg_XER GetXER() const
+  {
+    u32 xer = 0;
+    xer |= xer_stringctrl;
+    xer |= xer_ca << XER_CA_SHIFT;
+    xer |= xer_so_ov << XER_OV_SHIFT;
+    return UReg_XER{xer};
+  }
+
+  void SetXER(UReg_XER new_xer)
+  {
+    xer_stringctrl = new_xer.BYTE_COUNT + (new_xer.BYTE_CMP << 8);
+    xer_ca = new_xer.CA;
+    xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
+  }
+
+  u32 GetXER_SO() const { return xer_so_ov >> 1; }
+
+  void SetXER_SO(bool value) { xer_so_ov |= static_cast<u32>(value) << 1; }
+
+  u32 GetXER_OV() const { return xer_so_ov & 1; }
+
+  void SetXER_OV(bool value)
+  {
+    xer_so_ov = (xer_so_ov & 0xFE) | static_cast<u32>(value);
+    SetXER_SO(value);
+  }
+
+  void UpdateFPRFDouble(double dvalue);
+  void UpdateFPRFSingle(float fvalue);
 };
 
 #if _M_X86_64
@@ -232,91 +267,28 @@ void RunLoop();
 u64 ReadFullTimeBaseValue();
 void WriteFullTimeBaseValue(u64 value);
 
-void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
+void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst,
+                              PowerPCState& ppc_state);
 
 // Easy register access macros.
-#define HID0 ((UReg_HID0&)PowerPC::ppcState.spr[SPR_HID0])
-#define HID2 ((UReg_HID2&)PowerPC::ppcState.spr[SPR_HID2])
-#define HID4 ((UReg_HID4&)PowerPC::ppcState.spr[SPR_HID4])
-#define DMAU (*(UReg_DMAU*)&PowerPC::ppcState.spr[SPR_DMAU])
-#define DMAL (*(UReg_DMAL*)&PowerPC::ppcState.spr[SPR_DMAL])
-#define MMCR0 ((UReg_MMCR0&)PowerPC::ppcState.spr[SPR_MMCR0])
-#define MMCR1 ((UReg_MMCR1&)PowerPC::ppcState.spr[SPR_MMCR1])
-#define THRM1 ((UReg_THRM12&)PowerPC::ppcState.spr[SPR_THRM1])
-#define THRM2 ((UReg_THRM12&)PowerPC::ppcState.spr[SPR_THRM2])
-#define THRM3 ((UReg_THRM3&)PowerPC::ppcState.spr[SPR_THRM3])
-#define PC PowerPC::ppcState.pc
-#define NPC PowerPC::ppcState.npc
-#define FPSCR PowerPC::ppcState.fpscr
-#define MSR PowerPC::ppcState.msr
-#define GPR(n) PowerPC::ppcState.gpr[n]
+#define HID0(ppc_state) ((UReg_HID0&)(ppc_state).spr[SPR_HID0])
+#define HID2(ppc_state) ((UReg_HID2&)(ppc_state).spr[SPR_HID2])
+#define HID4(ppc_state) ((UReg_HID4&)(ppc_state).spr[SPR_HID4])
+#define DMAU(ppc_state) (*(UReg_DMAU*)&(ppc_state).spr[SPR_DMAU])
+#define DMAL(ppc_state) (*(UReg_DMAL*)&(ppc_state).spr[SPR_DMAL])
+#define MMCR0(ppc_state) ((UReg_MMCR0&)(ppc_state).spr[SPR_MMCR0])
+#define MMCR1(ppc_state) ((UReg_MMCR1&)(ppc_state).spr[SPR_MMCR1])
+#define THRM1(ppc_state) ((UReg_THRM12&)(ppc_state).spr[SPR_THRM1])
+#define THRM2(ppc_state) ((UReg_THRM12&)(ppc_state).spr[SPR_THRM2])
+#define THRM3(ppc_state) ((UReg_THRM3&)(ppc_state).spr[SPR_THRM3])
 
-#define rGPR PowerPC::ppcState.gpr
-#define rSPR(i) PowerPC::ppcState.spr[i]
-#define LR PowerPC::ppcState.spr[SPR_LR]
-#define CTR PowerPC::ppcState.spr[SPR_CTR]
-#define rDEC PowerPC::ppcState.spr[SPR_DEC]
-#define SRR0 PowerPC::ppcState.spr[SPR_SRR0]
-#define SRR1 PowerPC::ppcState.spr[SPR_SRR1]
-#define SPRG0 PowerPC::ppcState.spr[SPR_SPRG0]
-#define SPRG1 PowerPC::ppcState.spr[SPR_SPRG1]
-#define SPRG2 PowerPC::ppcState.spr[SPR_SPRG2]
-#define SPRG3 PowerPC::ppcState.spr[SPR_SPRG3]
-#define GQR(x) PowerPC::ppcState.spr[SPR_GQR0 + (x)]
-#define TL PowerPC::ppcState.spr[SPR_TL]
-#define TU PowerPC::ppcState.spr[SPR_TU]
-
-#define rPS(i) (PowerPC::ppcState.ps[(i)])
-
-inline void SetCarry(u32 ca)
-{
-  PowerPC::ppcState.xer_ca = ca;
-}
-
-inline u32 GetCarry()
-{
-  return PowerPC::ppcState.xer_ca;
-}
-
-inline UReg_XER GetXER()
-{
-  u32 xer = 0;
-  xer |= PowerPC::ppcState.xer_stringctrl;
-  xer |= PowerPC::ppcState.xer_ca << XER_CA_SHIFT;
-  xer |= PowerPC::ppcState.xer_so_ov << XER_OV_SHIFT;
-  return UReg_XER{xer};
-}
-
-inline void SetXER(UReg_XER new_xer)
-{
-  PowerPC::ppcState.xer_stringctrl = new_xer.BYTE_COUNT + (new_xer.BYTE_CMP << 8);
-  PowerPC::ppcState.xer_ca = new_xer.CA;
-  PowerPC::ppcState.xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
-}
-
-inline u32 GetXER_SO()
-{
-  return PowerPC::ppcState.xer_so_ov >> 1;
-}
-
-inline void SetXER_SO(bool value)
-{
-  PowerPC::ppcState.xer_so_ov |= static_cast<u32>(value) << 1;
-}
-
-inline u32 GetXER_OV()
-{
-  return PowerPC::ppcState.xer_so_ov & 1;
-}
-
-inline void SetXER_OV(bool value)
-{
-  PowerPC::ppcState.xer_so_ov = (PowerPC::ppcState.xer_so_ov & 0xFE) | static_cast<u32>(value);
-  SetXER_SO(value);
-}
-
-void UpdateFPRFDouble(double dvalue);
-void UpdateFPRFSingle(float fvalue);
+#define LR(ppc_state) (ppc_state).spr[SPR_LR]
+#define CTR(ppc_state) (ppc_state).spr[SPR_CTR]
+#define SRR0(ppc_state) (ppc_state).spr[SPR_SRR0]
+#define SRR1(ppc_state) (ppc_state).spr[SPR_SRR1]
+#define GQR(ppc_state, x) (ppc_state).spr[SPR_GQR0 + (x)]
+#define TL(ppc_state) (ppc_state).spr[SPR_TL]
+#define TU(ppc_state) (ppc_state).spr[SPR_TU]
 
 void RoundingModeUpdated();
 

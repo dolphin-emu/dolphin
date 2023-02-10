@@ -9,7 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLUtil.h"
-#include "VideoBackends/OGL/OGLRender.h"
+#include "VideoCommon/RenderState.h"
 
 namespace OGL
 {

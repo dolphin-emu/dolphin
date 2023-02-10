@@ -31,8 +31,8 @@ public:
                                 u32 dst_layer, u32 dst_level) override;
   void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
                           u32 layer, u32 level) override;
-  void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-            size_t buffer_size) override;
+  void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer, size_t buffer_size,
+            u32 layer) override;
 
   ID3D11Texture2D* GetD3DTexture() const { return m_texture.Get(); }
   ID3D11ShaderResourceView* GetD3DSRV() const { return m_srv.Get(); }

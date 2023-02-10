@@ -29,7 +29,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
     for (const std::string_view section :
          {"NetPlay", "General", "GBA", "Display", "Network", "Analytics", "AndroidOverlayButtons",
           "DSP", "GameList", "FifoPlayer", "AutoUpdate", "Movie", "Input", "Debug",
-          "BluetoothPassthrough", "USBPassthrough", "Interface"})
+          "BluetoothPassthrough", "USBPassthrough", "Interface", "EmulatedUSBDevices"})
     {
       if (config_location.section == section)
         return true;
@@ -111,6 +111,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_SYNC_ON_SKIP_IDLE.GetLocation(),
       &Config::MAIN_FASTMEM.GetLocation(),
       &Config::MAIN_TIMING_VARIANCE.GetLocation(),
+      &Config::MAIN_MAX_FALLBACK.GetLocation(),
       &Config::MAIN_WII_SD_CARD.GetLocation(),
       &Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC.GetLocation(),
       &Config::MAIN_WII_KEYBOARD.GetLocation(),

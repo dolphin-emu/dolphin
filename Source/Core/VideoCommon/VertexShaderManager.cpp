@@ -20,9 +20,10 @@
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -63,6 +64,116 @@ void VertexShaderManager::Dirty()
   m_projection_changed = true;
 
   dirty = true;
+}
+
+Common::Matrix44 VertexShaderManager::LoadProjectionMatrix()
+{
+  const auto& rawProjection = xfmem.projection.rawProjection;
+
+  switch (xfmem.projection.type)
+  {
+  case ProjectionType::Perspective:
+  {
+    const Common::Vec2 fov_multiplier = g_freelook_camera.IsActive() ?
+                                            g_freelook_camera.GetFieldOfViewMultiplier() :
+                                            Common::Vec2{1, 1};
+    m_projection_matrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW * fov_multiplier.x;
+    m_projection_matrix[1] = 0.0f;
+    m_projection_matrix[2] = rawProjection[1] * g_ActiveConfig.fAspectRatioHackW * fov_multiplier.x;
+    m_projection_matrix[3] = 0.0f;
+
+    m_projection_matrix[4] = 0.0f;
+    m_projection_matrix[5] = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH * fov_multiplier.y;
+    m_projection_matrix[6] = rawProjection[3] * g_ActiveConfig.fAspectRatioHackH * fov_multiplier.y;
+    m_projection_matrix[7] = 0.0f;
+
+    m_projection_matrix[8] = 0.0f;
+    m_projection_matrix[9] = 0.0f;
+    m_projection_matrix[10] = rawProjection[4];
+    m_projection_matrix[11] = rawProjection[5];
+
+    m_projection_matrix[12] = 0.0f;
+    m_projection_matrix[13] = 0.0f;
+
+    m_projection_matrix[14] = -1.0f;
+    m_projection_matrix[15] = 0.0f;
+
+    g_stats.gproj = m_projection_matrix;
+  }
+  break;
+
+  case ProjectionType::Orthographic:
+  {
+    m_projection_matrix[0] = rawProjection[0];
+    m_projection_matrix[1] = 0.0f;
+    m_projection_matrix[2] = 0.0f;
+    m_projection_matrix[3] = rawProjection[1];
+
+    m_projection_matrix[4] = 0.0f;
+    m_projection_matrix[5] = rawProjection[2];
+    m_projection_matrix[6] = 0.0f;
+    m_projection_matrix[7] = rawProjection[3];
+
+    m_projection_matrix[8] = 0.0f;
+    m_projection_matrix[9] = 0.0f;
+    m_projection_matrix[10] = rawProjection[4];
+    m_projection_matrix[11] = rawProjection[5];
+
+    m_projection_matrix[12] = 0.0f;
+    m_projection_matrix[13] = 0.0f;
+
+    m_projection_matrix[14] = 0.0f;
+    m_projection_matrix[15] = 1.0f;
+
+    g_stats.g2proj = m_projection_matrix;
+    g_stats.proj = rawProjection;
+  }
+  break;
+
+  default:
+    ERROR_LOG_FMT(VIDEO, "Unknown projection type: {}", xfmem.projection.type);
+  }
+
+  PRIM_LOG("Projection: {} {} {} {} {} {}", rawProjection[0], rawProjection[1], rawProjection[2],
+           rawProjection[3], rawProjection[4], rawProjection[5]);
+
+  auto corrected_matrix = m_viewport_correction * Common::Matrix44::FromArray(m_projection_matrix);
+
+  if (g_freelook_camera.IsActive() && xfmem.projection.type == ProjectionType::Perspective)
+    corrected_matrix *= g_freelook_camera.GetView();
+
+  g_freelook_camera.GetController()->SetClean();
+
+  return corrected_matrix;
+}
+
+void VertexShaderManager::SetProjectionMatrix()
+{
+  if (m_projection_changed || g_freelook_camera.GetController()->IsDirty())
+  {
+    m_projection_changed = false;
+    auto corrected_matrix = LoadProjectionMatrix();
+    memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
+  }
+}
+
+bool VertexShaderManager::UseVertexDepthRange()
+{
+  // We can't compute the depth range in the vertex shader if we don't support depth clamp.
+  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
+    return false;
+
+  // We need a full depth range if a ztexture is used.
+  if (bpmem.ztex2.op != ZTexOp::Disabled && !bpmem.zcontrol.early_ztest)
+    return true;
+
+  // If an inverted depth range is unsupported, we also need to check if the range is inverted.
+  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange && xfmem.viewport.zRange < 0.0f)
+    return true;
+
+  // If an oversized depth range or a ztexture is used, we need to calculate the depth range
+  // in the vertex shader.
+  return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
 }
 
 // Syncs the shader constant buffers with xfmem
@@ -247,10 +358,10 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     const bool bUseVertexRounding = g_ActiveConfig.UseVertexRounding();
     const float viewport_width = bUseVertexRounding ?
                                      (2.f * xfmem.viewport.wd) :
-                                     g_renderer->EFBToScaledXf(2.f * xfmem.viewport.wd);
+                                     g_framebuffer_manager->EFBToScaledXf(2.f * xfmem.viewport.wd);
     const float viewport_height = bUseVertexRounding ?
                                       (2.f * xfmem.viewport.ht) :
-                                      g_renderer->EFBToScaledXf(2.f * xfmem.viewport.ht);
+                                      g_framebuffer_manager->EFBToScaledXf(2.f * xfmem.viewport.ht);
     const float pixel_size_x = 2.f / viewport_width;
     const float pixel_size_y = 2.f / viewport_height;
     constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
@@ -263,7 +374,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     constants.viewport[0] = (2.f * xfmem.viewport.wd);
     constants.viewport[1] = (2.f * xfmem.viewport.ht);
 
-    if (g_renderer->UseVertexDepthRange())
+    if (UseVertexDepthRange())
     {
       // Oversized depth ranges are handled in the vertex shader. We need to reverse
       // the far value to use the reversed-Z trick.
@@ -295,16 +406,15 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
   std::vector<GraphicsModAction*> projection_actions;
   if (g_ActiveConfig.bGraphicMods)
   {
-    for (const auto action :
-         g_renderer->GetGraphicsModManager().GetProjectionActions(xfmem.projection.type))
+    for (const auto action : g_graphics_mod_manager->GetProjectionActions(xfmem.projection.type))
     {
       projection_actions.push_back(action);
     }
 
     for (const auto& texture : textures)
     {
-      for (const auto action : g_renderer->GetGraphicsModManager().GetProjectionTextureActions(
-               xfmem.projection.type, texture))
+      for (const auto action :
+           g_graphics_mod_manager->GetProjectionTextureActions(xfmem.projection.type, texture))
       {
         projection_actions.push_back(action);
       }
@@ -317,84 +427,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     m_projection_changed = false;
     m_projection_graphics_mod_change = !projection_actions.empty();
 
-    const auto& rawProjection = xfmem.projection.rawProjection;
-
-    switch (xfmem.projection.type)
-    {
-    case ProjectionType::Perspective:
-    {
-      const Common::Vec2 fov_multiplier = g_freelook_camera.IsActive() ?
-                                              g_freelook_camera.GetFieldOfViewMultiplier() :
-                                              Common::Vec2{1, 1};
-      m_projection_matrix[0] =
-          rawProjection[0] * g_ActiveConfig.fAspectRatioHackW * fov_multiplier.x;
-      m_projection_matrix[1] = 0.0f;
-      m_projection_matrix[2] =
-          rawProjection[1] * g_ActiveConfig.fAspectRatioHackW * fov_multiplier.x;
-      m_projection_matrix[3] = 0.0f;
-
-      m_projection_matrix[4] = 0.0f;
-      m_projection_matrix[5] =
-          rawProjection[2] * g_ActiveConfig.fAspectRatioHackH * fov_multiplier.y;
-      m_projection_matrix[6] =
-          rawProjection[3] * g_ActiveConfig.fAspectRatioHackH * fov_multiplier.y;
-      m_projection_matrix[7] = 0.0f;
-
-      m_projection_matrix[8] = 0.0f;
-      m_projection_matrix[9] = 0.0f;
-      m_projection_matrix[10] = rawProjection[4];
-      m_projection_matrix[11] = rawProjection[5];
-
-      m_projection_matrix[12] = 0.0f;
-      m_projection_matrix[13] = 0.0f;
-
-      m_projection_matrix[14] = -1.0f;
-      m_projection_matrix[15] = 0.0f;
-
-      g_stats.gproj = m_projection_matrix;
-    }
-    break;
-
-    case ProjectionType::Orthographic:
-    {
-      m_projection_matrix[0] = rawProjection[0];
-      m_projection_matrix[1] = 0.0f;
-      m_projection_matrix[2] = 0.0f;
-      m_projection_matrix[3] = rawProjection[1];
-
-      m_projection_matrix[4] = 0.0f;
-      m_projection_matrix[5] = rawProjection[2];
-      m_projection_matrix[6] = 0.0f;
-      m_projection_matrix[7] = rawProjection[3];
-
-      m_projection_matrix[8] = 0.0f;
-      m_projection_matrix[9] = 0.0f;
-      m_projection_matrix[10] = rawProjection[4];
-      m_projection_matrix[11] = rawProjection[5];
-
-      m_projection_matrix[12] = 0.0f;
-      m_projection_matrix[13] = 0.0f;
-
-      m_projection_matrix[14] = 0.0f;
-      m_projection_matrix[15] = 1.0f;
-
-      g_stats.g2proj = m_projection_matrix;
-      g_stats.proj = rawProjection;
-    }
-    break;
-
-    default:
-      ERROR_LOG_FMT(VIDEO, "Unknown projection type: {}", xfmem.projection.type);
-    }
-
-    PRIM_LOG("Projection: {} {} {} {} {} {}", rawProjection[0], rawProjection[1], rawProjection[2],
-             rawProjection[3], rawProjection[4], rawProjection[5]);
-
-    auto corrected_matrix =
-        m_viewport_correction * Common::Matrix44::FromArray(m_projection_matrix);
-
-    if (g_freelook_camera.IsActive() && xfmem.projection.type == ProjectionType::Perspective)
-      corrected_matrix *= g_freelook_camera.GetView();
+    auto corrected_matrix = LoadProjectionMatrix();
 
     GraphicsModActionData::Projection projection{&corrected_matrix};
     for (auto action : projection_actions)
@@ -403,8 +436,6 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     }
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
-
-    g_freelook_camera.GetController()->SetClean();
 
     dirty = true;
   }

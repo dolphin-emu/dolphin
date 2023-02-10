@@ -10,7 +10,7 @@
 
 class OpenSLESStream final : public SoundStream
 {
-#ifdef ANDROID
+#ifdef HAVE_OPENSL_ES
 public:
   ~OpenSLESStream() override;
   bool Init() override;
@@ -21,5 +21,5 @@ public:
 private:
   std::thread thread;
   Common::Event soundSyncEvent;
-#endif  // HAVE_OPENSL
+#endif  // HAVE_OPENSL_ES
 };

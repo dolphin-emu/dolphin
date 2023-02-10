@@ -90,7 +90,8 @@ bool JitBase::CanMergeNextInstructions(int count) const
 void JitBase::UpdateMemoryAndExceptionOptions()
 {
   bool any_watchpoints = PowerPC::memchecks.HasAny();
-  jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (MSR.DR || !any_watchpoints);
+  jo.fastmem =
+      m_fastmem_enabled && jo.fastmem_arena && (PowerPC::ppcState.msr.DR || !any_watchpoints);
   jo.memcheck = m_mmu_enabled || m_pause_on_panic_enabled || any_watchpoints;
   jo.fp_exceptions = m_enable_float_exceptions;
   jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;

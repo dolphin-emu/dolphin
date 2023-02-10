@@ -75,6 +75,8 @@ void GlobalIdle();
 class CoreTimingManager
 {
 public:
+  explicit CoreTimingManager(Core::System& system);
+
   // CoreTiming begins at the boundary of timing slice -1. An initial call to Advance() is
   // required to end slice -1 and start slice 0 before the first cycle of code is executed.
   void Init();
@@ -146,9 +148,12 @@ public:
   void Throttle(const s64 target_cycle);
 
   TimePoint GetCPUTimePoint(s64 cyclesLate) const;  // Used by Dolphin Analytics
+  bool GetVISkip() const;                           // Used By VideoInterface
 
 private:
   Globals m_globals;
+
+  Core::System& m_system;
 
   // unordered_map stores each element separately as a linked list node so pointers to elements
   // remain stable regardless of rehashes/resizing.
@@ -182,8 +187,9 @@ private:
 
   s64 m_throttle_last_cycle = 0;
   TimePoint m_throttle_deadline = Clock::now();
-  s64 m_throttle_clock_per_sec;
-  s64 m_throttle_min_clock_per_sleep;
+  s64 m_throttle_clock_per_sec = 0;
+  s64 m_throttle_min_clock_per_sleep = 0;
+  bool m_throttle_disable_vi_int = false;
 
   void ResetThrottle(s64 cycle);
 

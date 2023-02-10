@@ -20,7 +20,6 @@
     <ClInclude Include="Common\BitSet.h" />
     <ClInclude Include="Common\BitUtils.h" />
     <ClInclude Include="Common\BlockingLoop.h" />
-    <ClInclude Include="Common\CDUtils.h" />
     <ClInclude Include="Common\ChunkFile.h" />
     <ClInclude Include="Common\CodeBlock.h" />
     <ClInclude Include="Common\ColorUtil.h" />
@@ -110,6 +109,7 @@
     <ClInclude Include="Common\GL\GLUtil.h" />
     <ClInclude Include="Common\GL\GLX11Window.h" />
     <ClInclude Include="Common\Hash.h" />
+    <ClInclude Include="Common\HookableEvent.h" />
     <ClInclude Include="Common\HRWrap.h" />
     <ClInclude Include="Common\HttpRequest.h" />
     <ClInclude Include="Common\Image.h" />
@@ -146,6 +146,7 @@
     <ClInclude Include="Common\SFMLHelper.h" />
     <ClInclude Include="Common\SocketContext.h" />
     <ClInclude Include="Common\SPSCQueue.h" />
+    <ClInclude Include="Common\StringLiteral.h" />
     <ClInclude Include="Common\StringUtil.h" />
     <ClInclude Include="Common\Swap.h" />
     <ClInclude Include="Common\SymbolDB.h" />
@@ -157,6 +158,7 @@
     <ClInclude Include="Common\UPnP.h" />
     <ClInclude Include="Common\VariantUtil.h" />
     <ClInclude Include="Common\Version.h" />
+    <ClInclude Include="Common\WindowsRegistry.h" />
     <ClInclude Include="Common\WindowSystemInfo.h" />
     <ClInclude Include="Common\WorkQueueThread.h" />
     <ClInclude Include="Core\ActionReplay.h" />
@@ -373,6 +375,7 @@
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteDevice.h" />
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.h" />
     <ClInclude Include="Core\IOS\USB\Common.h" />
+    <ClInclude Include="Core\IOS\USB\Emulated\Skylander.h" />
     <ClInclude Include="Core\IOS\USB\Host.h" />
     <ClInclude Include="Core\IOS\USB\LibusbDevice.h" />
     <ClInclude Include="Core\IOS\USB\OH0\OH0.h" />
@@ -439,7 +442,6 @@
     <ClInclude Include="DiscIO\DiscExtractor.h" />
     <ClInclude Include="DiscIO\DiscScrubber.h" />
     <ClInclude Include="DiscIO\DiscUtils.h" />
-    <ClInclude Include="DiscIO\DriveBlob.h" />
     <ClInclude Include="DiscIO\Enums.h" />
     <ClInclude Include="DiscIO\FileBlob.h" />
     <ClInclude Include="DiscIO\Filesystem.h" />
@@ -535,7 +537,7 @@
     <ClInclude Include="VideoBackends\D3D\D3DBase.h" />
     <ClInclude Include="VideoBackends\D3D\D3DBoundingBox.h" />
     <ClInclude Include="VideoBackends\D3D\D3DPerfQuery.h" />
-    <ClInclude Include="VideoBackends\D3D\D3DRender.h" />
+    <ClInclude Include="VideoBackends\D3D\D3DGfx.h" />
     <ClInclude Include="VideoBackends\D3D\D3DState.h" />
     <ClInclude Include="VideoBackends\D3D\D3DSwapChain.h" />
     <ClInclude Include="VideoBackends\D3D\D3DVertexManager.h" />
@@ -546,7 +548,7 @@
     <ClInclude Include="VideoBackends\D3D12\Common.h" />
     <ClInclude Include="VideoBackends\D3D12\D3D12BoundingBox.h" />
     <ClInclude Include="VideoBackends\D3D12\D3D12PerfQuery.h" />
-    <ClInclude Include="VideoBackends\D3D12\D3D12Renderer.h" />
+    <ClInclude Include="VideoBackends\D3D12\D3D12Gfx.h" />
     <ClInclude Include="VideoBackends\D3D12\D3D12StreamBuffer.h" />
     <ClInclude Include="VideoBackends\D3D12\D3D12SwapChain.h" />
     <ClInclude Include="VideoBackends\D3D12\D3D12VertexManager.h" />
@@ -562,7 +564,7 @@
     <ClInclude Include="VideoBackends\D3DCommon\Shader.h" />
     <ClInclude Include="VideoBackends\D3DCommon\SwapChain.h" />
     <ClInclude Include="VideoBackends\Null\NullBoundingBox.h" />
-    <ClInclude Include="VideoBackends\Null\NullRender.h" />
+    <ClInclude Include="VideoBackends\Null\NullGfx.h" />
     <ClInclude Include="VideoBackends\Null\NullTexture.h" />
     <ClInclude Include="VideoBackends\Null\NullVertexManager.h" />
     <ClInclude Include="VideoBackends\Null\PerfQuery.h" />
@@ -570,9 +572,10 @@
     <ClInclude Include="VideoBackends\Null\VideoBackend.h" />
     <ClInclude Include="VideoBackends\OGL\GPUTimer.h" />
     <ClInclude Include="VideoBackends\OGL\OGLBoundingBox.h" />
+    <ClInclude Include="VideoBackends\OGL\OGLConfig.h" />
+    <ClInclude Include="VideoBackends\OGL\OGLGfx.h" />
     <ClInclude Include="VideoBackends\OGL\OGLPerfQuery.h" />
     <ClInclude Include="VideoBackends\OGL\OGLPipeline.h" />
-    <ClInclude Include="VideoBackends\OGL\OGLRender.h" />
     <ClInclude Include="VideoBackends\OGL\OGLShader.h" />
     <ClInclude Include="VideoBackends\OGL\OGLStreamBuffer.h" />
     <ClInclude Include="VideoBackends\OGL\OGLTexture.h" />
@@ -588,6 +591,7 @@
     <ClInclude Include="VideoBackends\Software\Rasterizer.h" />
     <ClInclude Include="VideoBackends\Software\SetupUnit.h" />
     <ClInclude Include="VideoBackends\Software\SWBoundingBox.h" />
+    <ClInclude Include="VideoBackends\Software\SWGfx.h" />
     <ClInclude Include="VideoBackends\Software\SWOGLWindow.h" />
     <ClInclude Include="VideoBackends\Software\SWRenderer.h" />
     <ClInclude Include="VideoBackends\Software\SWTexture.h" />
@@ -609,7 +613,7 @@
     <ClInclude Include="VideoBackends\Vulkan\VKBoundingBox.h" />
     <ClInclude Include="VideoBackends\Vulkan\VKPerfQuery.h" />
     <ClInclude Include="VideoBackends\Vulkan\VKPipeline.h" />
-    <ClInclude Include="VideoBackends\Vulkan\VKRenderer.h" />
+    <ClInclude Include="VideoBackends\Vulkan\VKGfx.h" />
     <ClInclude Include="VideoBackends\Vulkan\VKShader.h" />
     <ClInclude Include="VideoBackends\Vulkan\VKStreamBuffer.h" />
     <ClInclude Include="VideoBackends\Vulkan\VKSwapChain.h" />
@@ -619,6 +623,7 @@
     <ClInclude Include="VideoBackends\Vulkan\VulkanContext.h" />
     <ClInclude Include="VideoBackends\Vulkan\VulkanLoader.h" />
     <ClInclude Include="VideoCommon\AbstractFramebuffer.h" />
+    <ClInclude Include="VideoCommon\AbstractGfx.h" />
     <ClInclude Include="VideoCommon\AbstractPipeline.h" />
     <ClInclude Include="VideoCommon\AbstractShader.h" />
     <ClInclude Include="VideoCommon\AbstractStagingTexture.h" />
@@ -632,12 +637,15 @@
     <ClInclude Include="VideoCommon\CommandProcessor.h" />
     <ClInclude Include="VideoCommon\ConstantManager.h" />
     <ClInclude Include="VideoCommon\CPMemory.h" />
+    <ClInclude Include="VideoCommon\CPUCull.h" />
+    <ClInclude Include="VideoCommon\CPUCullImpl.h" />
     <ClInclude Include="VideoCommon\DataReader.h" />
     <ClInclude Include="VideoCommon\DriverDetails.h" />
     <ClInclude Include="VideoCommon\Fifo.h" />
     <ClInclude Include="VideoCommon\FramebufferManager.h" />
     <ClInclude Include="VideoCommon\FramebufferShaderGen.h" />
-    <ClInclude Include="VideoCommon\FrameDump.h" />
+    <ClInclude Include="VideoCommon\FrameDumpFFMpeg.h" />
+    <ClInclude Include="VideoCommon\FrameDumper.h" />
     <ClInclude Include="VideoCommon\FreeLookCamera.h" />
     <ClInclude Include="VideoCommon\GeometryShaderGen.h" />
     <ClInclude Include="VideoCommon\GeometryShaderManager.h" />
@@ -667,6 +675,8 @@
     <ClInclude Include="VideoCommon\NetPlayChatUI.h" />
     <ClInclude Include="VideoCommon\NetPlayGolfUI.h" />
     <ClInclude Include="VideoCommon\OnScreenDisplay.h" />
+    <ClInclude Include="VideoCommon\OnScreenUI.h" />
+    <ClInclude Include="VideoCommon\OnScreenUIKeyMap.h" />
     <ClInclude Include="VideoCommon\OpcodeDecoding.h" />
     <ClInclude Include="VideoCommon\PerfQueryBase.h" />
     <ClInclude Include="VideoCommon\PerformanceMetrics.h" />
@@ -675,6 +685,7 @@
     <ClInclude Include="VideoCommon\PixelShaderGen.h" />
     <ClInclude Include="VideoCommon\PixelShaderManager.h" />
     <ClInclude Include="VideoCommon\PostProcessing.h" />
+    <ClInclude Include="VideoCommon\Present.h" />
     <ClInclude Include="VideoCommon\RenderBase.h" />
     <ClInclude Include="VideoCommon\RenderState.h" />
     <ClInclude Include="VideoCommon\ShaderCache.h" />
@@ -706,7 +717,9 @@
     <ClInclude Include="VideoCommon\VideoBackendBase.h" />
     <ClInclude Include="VideoCommon\VideoCommon.h" />
     <ClInclude Include="VideoCommon\VideoConfig.h" />
+    <ClInclude Include="VideoCommon\VideoEvents.h" />
     <ClInclude Include="VideoCommon\VideoState.h" />
+    <ClInclude Include="VideoCommon\Widescreen.h" />
     <ClInclude Include="VideoCommon\XFMemory.h" />
     <ClInclude Include="VideoCommon\XFStructs.h" />
   </ItemGroup>
@@ -722,7 +735,6 @@
     <ClCompile Include="AudioCommon\WASAPIStream.cpp" />
     <ClCompile Include="AudioCommon\WaveFile.cpp" />
     <ClCompile Include="Common\Analytics.cpp" />
-    <ClCompile Include="Common\CDUtils.cpp" />
     <ClCompile Include="Common\ColorUtil.cpp" />
     <ClCompile Include="Common\CommonFuncs.cpp" />
     <ClCompile Include="Common\CompatPatches.cpp" />
@@ -779,6 +791,7 @@
     <ClCompile Include="Common\Timer.cpp" />
     <ClCompile Include="Common\TraversalClient.cpp" />
     <ClCompile Include="Common\UPnP.cpp" />
+    <ClCompile Include="Common\WindowsRegistry.cpp" />
     <ClCompile Include="Common\Version.cpp" />
     <ClCompile Include="Core\ActionReplay.cpp" />
     <ClCompile Include="Core\ARDecrypt.cpp" />
@@ -987,6 +1000,7 @@
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteDevice.cpp" />
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.cpp" />
     <ClCompile Include="Core\IOS\USB\Common.cpp" />
+    <ClCompile Include="Core\IOS\USB\Emulated\Skylander.cpp" />
     <ClCompile Include="Core\IOS\USB\Host.cpp" />
     <ClCompile Include="Core\IOS\USB\LibusbDevice.cpp" />
     <ClCompile Include="Core\IOS\USB\OH0\OH0.cpp" />
@@ -1053,7 +1067,6 @@
     <ClCompile Include="DiscIO\DiscExtractor.cpp" />
     <ClCompile Include="DiscIO\DiscScrubber.cpp" />
     <ClCompile Include="DiscIO\DiscUtils.cpp" />
-    <ClCompile Include="DiscIO\DriveBlob.cpp" />
     <ClCompile Include="DiscIO\Enums.cpp" />
     <ClCompile Include="DiscIO\FileBlob.cpp" />
     <ClCompile Include="DiscIO\Filesystem.cpp" />
@@ -1142,7 +1155,7 @@
     <ClCompile Include="VideoBackends\D3D\D3DMain.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DNativeVertexFormat.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DPerfQuery.cpp" />
-    <ClCompile Include="VideoBackends\D3D\D3DRender.cpp" />
+    <ClCompile Include="VideoBackends\D3D\D3DGfx.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DState.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DSwapChain.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DVertexManager.cpp" />
@@ -1151,7 +1164,7 @@
     <ClCompile Include="VideoBackends\D3D\DXTexture.cpp" />
     <ClCompile Include="VideoBackends\D3D12\D3D12BoundingBox.cpp" />
     <ClCompile Include="VideoBackends\D3D12\D3D12PerfQuery.cpp" />
-    <ClCompile Include="VideoBackends\D3D12\D3D12Renderer.cpp" />
+    <ClCompile Include="VideoBackends\D3D12\D3D12Gfx.cpp" />
     <ClCompile Include="VideoBackends\D3D12\D3D12StreamBuffer.cpp" />
     <ClCompile Include="VideoBackends\D3D12\D3D12SwapChain.cpp" />
     <ClCompile Include="VideoBackends\D3D12\D3D12VertexManager.cpp" />
@@ -1167,15 +1180,16 @@
     <ClCompile Include="VideoBackends\D3DCommon\Shader.cpp" />
     <ClCompile Include="VideoBackends\D3DCommon\SwapChain.cpp" />
     <ClCompile Include="VideoBackends\Null\NullBackend.cpp" />
-    <ClCompile Include="VideoBackends\Null\NullRender.cpp" />
+    <ClCompile Include="VideoBackends\Null\NullGfx.cpp" />
     <ClCompile Include="VideoBackends\Null\NullTexture.cpp" />
     <ClCompile Include="VideoBackends\Null\NullVertexManager.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLBoundingBox.cpp" />
+    <ClCompile Include="VideoBackends\OGL\OGLConfig.cpp" />
+    <ClCompile Include="VideoBackends\OGL\OGLGfx.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLMain.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLNativeVertexFormat.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLPerfQuery.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLPipeline.cpp" />
-    <ClCompile Include="VideoBackends\OGL\OGLRender.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLShader.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLStreamBuffer.cpp" />
     <ClCompile Include="VideoBackends\OGL\OGLTexture.cpp" />
@@ -1189,6 +1203,7 @@
     <ClCompile Include="VideoBackends\Software\SetupUnit.cpp" />
     <ClCompile Include="VideoBackends\Software\SWmain.cpp" />
     <ClCompile Include="VideoBackends\Software\SWBoundingBox.cpp" />
+    <ClCompile Include="VideoBackends\Software\SWGfx.cpp" />
     <ClCompile Include="VideoBackends\Software\SWOGLWindow.cpp" />
     <ClCompile Include="VideoBackends\Software\SWRenderer.cpp" />
     <ClCompile Include="VideoBackends\Software\SWTexture.cpp" />
@@ -1206,7 +1221,7 @@
     <ClCompile Include="VideoBackends\Vulkan\VKMain.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKPerfQuery.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKPipeline.cpp" />
-    <ClCompile Include="VideoBackends\Vulkan\VKRenderer.cpp" />
+    <ClCompile Include="VideoBackends\Vulkan\VKGfx.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKShader.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKStreamBuffer.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKSwapChain.cpp" />
@@ -1216,6 +1231,7 @@
     <ClCompile Include="VideoBackends\Vulkan\VulkanContext.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VulkanLoader.cpp" />
     <ClCompile Include="VideoCommon\AbstractFramebuffer.cpp" />
+    <ClCompile Include="VideoCommon\AbstractGfx.cpp" />
     <ClCompile Include="VideoCommon\AbstractStagingTexture.cpp" />
     <ClCompile Include="VideoCommon\AbstractTexture.cpp" />
     <ClCompile Include="VideoCommon\AsyncRequests.cpp" />
@@ -1226,11 +1242,13 @@
     <ClCompile Include="VideoCommon\BPStructs.cpp" />
     <ClCompile Include="VideoCommon\CommandProcessor.cpp" />
     <ClCompile Include="VideoCommon\CPMemory.cpp" />
+    <ClCompile Include="VideoCommon\CPUCull.cpp" />
     <ClCompile Include="VideoCommon\DriverDetails.cpp" />
     <ClCompile Include="VideoCommon\Fifo.cpp" />
     <ClCompile Include="VideoCommon\FramebufferManager.cpp" />
     <ClCompile Include="VideoCommon\FramebufferShaderGen.cpp" />
-    <ClCompile Include="VideoCommon\FrameDump.cpp" />
+    <ClCompile Include="VideoCommon\FrameDumpFFMpeg.cpp" />
+    <ClCompile Include="VideoCommon\FrameDumper.cpp" />
     <ClCompile Include="VideoCommon\FreeLookCamera.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderGen.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderManager.cpp" />
@@ -1253,6 +1271,7 @@
     <ClCompile Include="VideoCommon\NetPlayChatUI.cpp" />
     <ClCompile Include="VideoCommon\NetPlayGolfUI.cpp" />
     <ClCompile Include="VideoCommon\OnScreenDisplay.cpp" />
+    <ClCompile Include="VideoCommon\OnScreenUI.cpp" />
     <ClCompile Include="VideoCommon\OpcodeDecoding.cpp" />
     <ClCompile Include="VideoCommon\PerfQueryBase.cpp" />
     <ClCompile Include="VideoCommon\PerformanceMetrics.cpp" />
@@ -1261,6 +1280,7 @@
     <ClCompile Include="VideoCommon\PixelShaderGen.cpp" />
     <ClCompile Include="VideoCommon\PixelShaderManager.cpp" />
     <ClCompile Include="VideoCommon\PostProcessing.cpp" />
+    <ClCompile Include="VideoCommon\Present.cpp" />
     <ClCompile Include="VideoCommon\RenderBase.cpp" />
     <ClCompile Include="VideoCommon\RenderState.cpp" />
     <ClCompile Include="VideoCommon\ShaderCache.cpp" />
@@ -1290,6 +1310,7 @@
     <ClCompile Include="VideoCommon\VideoBackendBase.cpp" />
     <ClCompile Include="VideoCommon\VideoConfig.cpp" />
     <ClCompile Include="VideoCommon\VideoState.cpp" />
+    <ClCompile Include="VideoCommon\Widescreen.cpp" />
     <ClCompile Include="VideoCommon\XFMemory.cpp" />
     <ClCompile Include="VideoCommon\XFStructs.cpp" />
   </ItemGroup>

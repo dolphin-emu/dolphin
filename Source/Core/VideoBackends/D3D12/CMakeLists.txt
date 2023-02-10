@@ -3,8 +3,8 @@ add_library(videod3d12
   D3D12BoundingBox.h
   D3D12PerfQuery.cpp
   D3D12PerfQuery.h
-  D3D12Renderer.cpp
-  D3D12Renderer.h
+  D3D12Gfx.cpp
+  D3D12Gfx.h
   D3D12StreamBuffer.cpp
   D3D12StreamBuffer.h
   D3D12SwapChain.cpp

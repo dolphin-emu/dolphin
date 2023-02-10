@@ -3,7 +3,7 @@
 
 #include "VideoBackends/OGL/OGLBoundingBox.h"
 
-#include "VideoBackends/OGL/OGLRender.h"
+#include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoCommon/DriverDetails.h"
 
 namespace OGL
@@ -35,7 +35,7 @@ std::vector<BBoxType> OGLBoundingBox::Read(u32 index, u32 length)
   // on nVidia drivers. This is more noticeable at higher internal resolutions.
   // Using glGetBufferSubData instead does not seem to exhibit this slowdown.
   if (!DriverDetails::HasBug(DriverDetails::BUG_SLOW_GETBUFFERSUBDATA) &&
-      !static_cast<Renderer*>(g_renderer.get())->IsGLES())
+      !static_cast<OGLGfx*>(g_gfx.get())->IsGLES())
   {
     // We also need to ensure the the CPU does not receive stale values which have been updated by
     // the GPU. Apparently the buffer here is not coherent on NVIDIA drivers. Not sure if this is a

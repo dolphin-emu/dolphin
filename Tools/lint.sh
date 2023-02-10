@@ -18,7 +18,7 @@ if ! [ -x "$(command -v $GIT)" ]; then
   exit 1
 fi
 
-REQUIRED_CLANG_FORMAT_MAJOR=12
+REQUIRED_CLANG_FORMAT_MAJOR=13
 REQUIRED_CLANG_FORMAT_MINOR=0
 CLANG_FORMAT=clang-format
 CLANG_FORMAT_MAJOR=clang-format-${REQUIRED_CLANG_FORMAT_MAJOR}
@@ -103,17 +103,17 @@ function java_check() {
 # Loop through each modified file.
 for f in ${modified_files}; do
   # Filter them.
-  if echo "${f}" | egrep -q "[.]java$"; then
+  if echo "${f}" | grep -E -q "[.]java$"; then
     # Copy Java files to a temporary directory
     java_setup
     mkdir -p $(dirname "${java_temp_dir}/${f}")
     cp "${f}" "${java_temp_dir}/${f}"
     continue
   fi
-  if ! echo "${f}" | egrep -q "[.](cpp|h|mm)$"; then
+  if ! echo "${f}" | grep -E -q "[.](cpp|h|mm)$"; then
     continue
   fi
-  if ! echo "${f}" | egrep -q "^Source"; then
+  if ! echo "${f}" | grep -E -q "^Source"; then
     continue
   fi
 

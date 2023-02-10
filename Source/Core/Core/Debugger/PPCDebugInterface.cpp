@@ -23,6 +23,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch, bool store_existing_value)
 {
@@ -81,7 +82,10 @@ void PPCPatches::UnPatch(std::size_t index)
   PatchEngine::RemoveMemoryPatch(index);
 }
 
-PPCDebugInterface::PPCDebugInterface() = default;
+PPCDebugInterface::PPCDebugInterface(Core::System& system) : m_system(system)
+{
+}
+
 PPCDebugInterface::~PPCDebugInterface() = default;
 
 std::size_t PPCDebugInterface::SetWatch(u32 address, std::string name)
@@ -449,7 +453,7 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
   if (is_reg == offset_match[0])
   {
     const int register_index = std::stoi(offset_match.substr(1), nullptr, 10);
-    offset = (register_index == 0 ? 0 : GPR(register_index));
+    offset = (register_index == 0 ? 0 : m_system.GetPPCState().gpr[register_index]);
   }
   else
   {
@@ -468,7 +472,7 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
   else
     i = std::stoi(register_match, nullptr, 10);
 
-  const u32 base_address = GPR(i);
+  const u32 base_address = m_system.GetPPCState().gpr[i];
 
   if (!match.str(1).empty())
     return base_address - offset;
@@ -478,12 +482,12 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
 
 u32 PPCDebugInterface::GetPC() const
 {
-  return PowerPC::ppcState.pc;
+  return m_system.GetPPCState().pc;
 }
 
 void PPCDebugInterface::SetPC(u32 address)
 {
-  PowerPC::ppcState.pc = address;
+  m_system.GetPPCState().pc = address;
 }
 
 void PPCDebugInterface::RunToBreakpoint()

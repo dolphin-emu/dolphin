@@ -12,8 +12,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
+#include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoBackends/OGL/OGLPipeline.h"
-#include "VideoBackends/OGL/OGLRender.h"
 #include "VideoBackends/OGL/OGLStreamBuffer.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
@@ -116,7 +116,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   // Bind the correct view to the texel buffer slot.
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_BUFFER, m_texel_buffer_views[static_cast<u32>(format)]);
-  Renderer::GetInstance()->InvalidateTextureBinding(0);
+  GetOGLGfx()->InvalidateTextureBinding(0);
   return true;
 }
 
@@ -141,11 +141,11 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_BUFFER, m_texel_buffer_views[static_cast<u32>(format)]);
-  Renderer::GetInstance()->InvalidateTextureBinding(0);
+  GetOGLGfx()->InvalidateTextureBinding(0);
 
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_BUFFER, m_texel_buffer_views[static_cast<u32>(palette_format)]);
-  Renderer::GetInstance()->InvalidateTextureBinding(1);
+  GetOGLGfx()->InvalidateTextureBinding(1);
 
   return true;
 }

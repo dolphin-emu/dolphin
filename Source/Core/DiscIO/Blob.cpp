@@ -10,7 +10,6 @@
 #include <string>
 #include <utility>
 
-#include "Common/CDUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
@@ -18,7 +17,6 @@
 #include "DiscIO/CISOBlob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DirectoryBlob.h"
-#include "DiscIO/DriveBlob.h"
 #include "DiscIO/FileBlob.h"
 #include "DiscIO/NFSBlob.h"
 #include "DiscIO/TGCBlob.h"
@@ -215,9 +213,6 @@ u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
 
 std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
 {
-  if (Common::IsCDROMDevice(filename))
-    return DriveReader::Create(filename);
-
   File::IOFile file(filename, "rb");
   u32 magic;
   if (!file.ReadArray(&magic, 1))

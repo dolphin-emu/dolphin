@@ -20,6 +20,7 @@
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 template <typename T>
 static T HostRead(u32 address);
@@ -109,7 +110,7 @@ static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
     return 0;
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
-  bool success = Dolphin_Debugger::GetCallstack(stack);
+  bool success = Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), stack);
   if (!success)
     return 0;
 
@@ -246,25 +247,25 @@ void Expression::SynchronizeBindings(SynchronizeDirection dir) const
       break;
     case VarBindingType::GPR:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(GPR(bind->index));
+        v->value = static_cast<double>(PowerPC::ppcState.gpr[bind->index]);
       else
-        GPR(bind->index) = static_cast<u32>(static_cast<s64>(v->value));
+        PowerPC::ppcState.gpr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
       break;
     case VarBindingType::FPR:
       if (dir == SynchronizeDirection::From)
-        v->value = rPS(bind->index).PS0AsDouble();
+        v->value = PowerPC::ppcState.ps[bind->index].PS0AsDouble();
       else
-        rPS(bind->index).SetPS0(v->value);
+        PowerPC::ppcState.ps[bind->index].SetPS0(v->value);
       break;
     case VarBindingType::SPR:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(rSPR(bind->index));
+        v->value = static_cast<double>(PowerPC::ppcState.spr[bind->index]);
       else
-        rSPR(bind->index) = static_cast<u32>(static_cast<s64>(v->value));
+        PowerPC::ppcState.spr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
       break;
     case VarBindingType::PCtr:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(PC);
+        v->value = static_cast<double>(PowerPC::ppcState.pc);
       break;
     }
   }

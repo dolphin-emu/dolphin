@@ -19,7 +19,7 @@
   <ItemDefinitionGroup>
     <!--This project also compiles gtest-->
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)gtest\include;$(ExternalsDir)gtest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)gtest\googletest\include;$(ExternalsDir)gtest\googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -35,9 +35,9 @@
   </ItemGroup>
   <ItemGroup>
     <!--gtest is rather small, so just include it into the build here-->
-    <ClCompile Include="$(ExternalsDir)gtest\src\gtest-all.cc" />
-    <ClCompile Include="$(ExternalsDir)gtest\src\gtest_main.cc" />
+    <ClCompile Include="$(ExternalsDir)gtest\googletest\src\gtest-all.cc" />
     <!--Lump all of the tests (and supporting code) into one binary-->
+    <ClCompile Include="UnitTestsMain.cpp" />
     <ClCompile Include="Common\BitFieldTest.cpp" />
     <ClCompile Include="Common\BitSetTest.cpp" />
     <ClCompile Include="Common\BitUtilsTest.cpp" />

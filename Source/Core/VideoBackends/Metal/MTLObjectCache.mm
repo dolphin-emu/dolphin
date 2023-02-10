@@ -91,8 +91,8 @@ static const char* to_string(MTLCompareFunction compare)
 
 // clang-format on
 
-static void SetupDepthStencil(
-    MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES])
+static void
+SetupDepthStencil(MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES])
 {
   auto desc = MRCTransfer([MTLDepthStencilDescriptor new]);
   Metal::DepthStencilSelector sel;
@@ -418,6 +418,12 @@ public:
         // clang-format on
       }
       FramebufferState fs = config.framebuffer_state;
+      if (fs.color_texture_format == AbstractTextureFormat::Undefined &&
+          fs.depth_texture_format == AbstractTextureFormat::Undefined)
+      {
+        // Intel HD 4000's Metal driver asserts if you try to make one of these
+        PanicAlertFmt("Attempted to create pipeline with no render targets!");
+      }
       [desc setRasterSampleCount:fs.samples];
       [color0 setPixelFormat:Util::FromAbstract(fs.color_texture_format)];
       [desc setDepthAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format)];
@@ -490,9 +496,10 @@ Metal::ObjectCache::CreatePipeline(const AbstractPipelineConfig& config)
   Internal::StoredPipeline pipeline = m_internal->GetOrCreatePipeline(config);
   if (!pipeline.first)
     return nullptr;
-  return std::make_unique<Pipeline>(
-      std::move(pipeline.first), pipeline.second, Convert(config.rasterization_state.primitive),
-      Convert(config.rasterization_state.cullmode), config.depth_state, config.usage);
+  return std::make_unique<Pipeline>(config, std::move(pipeline.first), pipeline.second,
+                                    Convert(config.rasterization_state.primitive),
+                                    Convert(config.rasterization_state.cullmode),
+                                    config.depth_state, config.usage);
 }
 
 void Metal::ObjectCache::ShaderDestroyed(const Shader* shader)

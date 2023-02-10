@@ -24,7 +24,6 @@
     <ItemGroup>
         <ClCompile Include="implot/implot.cpp" />
         <ClCompile Include="implot/implot_items.cpp" />
-        <ClCompile Include="implot/implot_demo.cpp" />
     </ItemGroup>
     <ItemGroup>
         <ClInclude Include="implot/implot.h" />

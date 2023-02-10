@@ -13,12 +13,13 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBoundingBox.h"
+#include "VideoBackends/D3D/D3DGfx.h"
 #include "VideoBackends/D3D/D3DPerfQuery.h"
-#include "VideoBackends/D3D/D3DRender.h"
 #include "VideoBackends/D3D/D3DSwapChain.h"
 #include "VideoBackends/D3D/D3DVertexManager.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -143,7 +144,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     return false;
 
   FillBackendInfo();
-  InitializeShared();
+  UpdateActiveConfig();
 
   std::unique_ptr<SwapChain> swap_chain;
   if (wsi.render_surface && !(swap_chain = SwapChain::Create(wsi)))
@@ -154,36 +155,17 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     return false;
   }
 
-  g_renderer = std::make_unique<Renderer>(std::move(swap_chain), wsi.render_surface_scale);
-  g_vertex_manager = std::make_unique<VertexManager>();
-  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  g_framebuffer_manager = std::make_unique<FramebufferManager>();
-  g_texture_cache = std::make_unique<TextureCacheBase>();
-  g_perf_query = std::make_unique<PerfQuery>();
-  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
-      !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
-      !g_texture_cache->Initialize())
-  {
-    Shutdown();
-    return false;
-  }
+  auto gfx = std::make_unique<DX11::Gfx>(std::move(swap_chain), wsi.render_surface_scale);
+  auto vertex_manager = std::make_unique<VertexManager>();
+  auto perf_query = std::make_unique<PerfQuery>();
+  auto bounding_box = std::make_unique<D3DBoundingBox>();
 
-  g_shader_cache->InitializeShaderCache();
-  return true;
+  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+                          std::move(bounding_box));
 }
 
 void VideoBackend::Shutdown()
 {
-  g_shader_cache->Shutdown();
-  g_renderer->Shutdown();
-
-  g_perf_query.reset();
-  g_texture_cache.reset();
-  g_framebuffer_manager.reset();
-  g_shader_cache.reset();
-  g_vertex_manager.reset();
-  g_renderer.reset();
-
   ShutdownShared();
   D3D::Destroy();
 }

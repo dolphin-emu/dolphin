@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -43,7 +44,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-#include "VideoCommon/FrameDump.h"
+#include "VideoCommon/FrameDumpFFMpeg.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -97,7 +98,7 @@ static size_t s_state_writes_in_queue;
 static std::condition_variable s_state_write_queue_is_empty;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 157;  // Last changed in PR 11183
+constexpr u32 STATE_VERSION = 158;  // Last changed in PR 11522
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -460,7 +461,8 @@ static void CompressAndDumpState(CompressAndDumpState_args& save_args)
     File::Rename(temp_filename, filename);
   }
 
-  Core::DisplayMessage(fmt::format("Saved State to {}", filename), 2000);
+  std::filesystem::path tempfilename(filename);
+  Core::DisplayMessage(fmt::format("Saved State to {}", tempfilename.filename().string()), 2000);
   Host_UpdateMainFrame();
 }
 
@@ -692,7 +694,9 @@ void LoadAs(const std::string& filename)
         {
           if (loadedSuccessfully)
           {
-            Core::DisplayMessage(fmt::format("Loaded state from {}", filename), 2000);
+            std::filesystem::path tempfilename(filename);
+            Core::DisplayMessage(
+                fmt::format("Loaded State from {}", tempfilename.filename().string()), 2000);
             if (File::Exists(filename + ".dtm"))
               Movie::LoadInput(filename + ".dtm");
             else if (!Movie::IsJustStartingRecordingInputFromSaveState() &&
@@ -727,7 +731,7 @@ void Init()
   if (lzo_init() != LZO_E_OK)
     PanicAlertFmtT("Internal LZO Error - lzo_init() failed");
 
-  s_save_thread.Reset([](CompressAndDumpState_args args) {
+  s_save_thread.Reset("Savestate Worker", [](CompressAndDumpState_args args) {
     CompressAndDumpState(args);
 
     {

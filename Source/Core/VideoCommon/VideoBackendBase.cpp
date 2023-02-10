@@ -39,16 +39,22 @@
 #include "VideoBackends/Metal/VideoBackend.h"
 #endif
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/FrameDumper.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -58,6 +64,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
+#include "VideoCommon/Widescreen.h"
 
 VideoBackendBase* g_video_backend = nullptr;
 
@@ -91,7 +98,7 @@ void VideoBackendBase::Video_ExitLoop()
 void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
                                        u64 ticks)
 {
-  if (m_initialized && g_renderer && !g_ActiveConfig.bImmediateXFB)
+  if (m_initialized && g_presenter && !g_ActiveConfig.bImmediateXFB)
   {
     auto& system = Core::System::GetInstance();
     system.GetFifo().SyncGPU(Fifo::SyncGPUReason::Swap);
@@ -312,7 +319,25 @@ void VideoBackendBase::DoState(PointerWrap& p)
   system.GetFifo().GpuMaySleep();
 }
 
-void VideoBackendBase::InitializeShared()
+bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
+                                        std::unique_ptr<VertexManagerBase> vertex_manager,
+                                        std::unique_ptr<PerfQueryBase> perf_query,
+                                        std::unique_ptr<BoundingBox> bounding_box)
+{
+  // All hardware backends use the default RendererBase and TextureCacheBase.
+  // Only Null and Software backends override them
+
+  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+                          std::move(bounding_box), std::make_unique<Renderer>(),
+                          std::make_unique<TextureCacheBase>());
+}
+
+bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
+                                        std::unique_ptr<VertexManagerBase> vertex_manager,
+                                        std::unique_ptr<PerfQueryBase> perf_query,
+                                        std::unique_ptr<BoundingBox> bounding_box,
+                                        std::unique_ptr<Renderer> renderer,
+                                        std::unique_ptr<TextureCacheBase> texture_cache)
 {
   memset(reinterpret_cast<u8*>(&g_main_cp_state), 0, sizeof(g_main_cp_state));
   memset(reinterpret_cast<u8*>(&g_preprocess_cp_state), 0, sizeof(g_preprocess_cp_state));
@@ -320,6 +345,32 @@ void VideoBackendBase::InitializeShared()
 
   // do not initialize again for the config window
   m_initialized = true;
+
+  g_gfx = std::move(gfx);
+  g_vertex_manager = std::move(vertex_manager);
+  g_perf_query = std::move(perf_query);
+  g_bounding_box = std::move(bounding_box);
+
+  // Null and Software Backends supply their own derived Renderer and Texture Cache
+  g_texture_cache = std::move(texture_cache);
+  g_renderer = std::move(renderer);
+
+  g_presenter = std::make_unique<VideoCommon::Presenter>();
+  g_frame_dumper = std::make_unique<FrameDumper>();
+  g_framebuffer_manager = std::make_unique<FramebufferManager>();
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
+  g_graphics_mod_manager = std::make_unique<GraphicsModManager>();
+  g_widescreen = std::make_unique<WidescreenManager>();
+
+  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
+      !g_perf_query->Initialize() || !g_presenter->Initialize() ||
+      !g_framebuffer_manager->Initialize() || !g_texture_cache->Initialize() ||
+      !g_bounding_box->Initialize() || !g_graphics_mod_manager->Initialize())
+  {
+    PanicAlertFmtT("Failed to initialize renderer classes");
+    Shutdown();
+    return false;
+  }
 
   auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
@@ -335,10 +386,33 @@ void VideoBackendBase::InitializeShared()
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();
+
+  g_shader_cache->InitializeShaderCache();
+
+  return true;
 }
 
 void VideoBackendBase::ShutdownShared()
 {
+  g_frame_dumper.reset();
+  g_presenter.reset();
+
+  if (g_shader_cache)
+    g_shader_cache->Shutdown();
+  if (g_texture_cache)
+    g_texture_cache->Shutdown();
+
+  g_bounding_box.reset();
+  g_perf_query.reset();
+  g_texture_cache.reset();
+  g_framebuffer_manager.reset();
+  g_shader_cache.reset();
+  g_vertex_manager.reset();
+  g_renderer.reset();
+  g_widescreen.reset();
+  g_presenter.reset();
+  g_gfx.reset();
+
   m_initialized = false;
 
   auto& system = Core::System::GetInstance();

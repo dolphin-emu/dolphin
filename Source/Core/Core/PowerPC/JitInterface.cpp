@@ -153,12 +153,14 @@ std::variant<GetHostCodeError, GetHostCodeResult> GetHostCode(u32 address)
     return GetHostCodeError::NoJitActive;
   }
 
-  JitBlock* block = g_jit->GetBlockCache()->GetBlockFromStartAddress(address, MSR.Hex);
+  JitBlock* block =
+      g_jit->GetBlockCache()->GetBlockFromStartAddress(address, PowerPC::ppcState.msr.Hex);
   if (!block)
   {
     for (int i = 0; i < 500; i++)
     {
-      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i, MSR.Hex);
+      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i,
+                                                               PowerPC::ppcState.msr.Hex);
       if (block)
         break;
     }
@@ -264,20 +266,21 @@ void CompileExceptionCheck(ExceptionType type)
     break;
   }
 
-  if (PC != 0 && (exception_addresses->find(PC)) == (exception_addresses->end()))
+  if (PowerPC::ppcState.pc != 0 &&
+      (exception_addresses->find(PowerPC::ppcState.pc)) == (exception_addresses->end()))
   {
     if (type == ExceptionType::FIFOWrite)
     {
       // Check in case the code has been replaced since: do we need to do this?
-      const OpType optype = PPCTables::GetOpInfo(PowerPC::HostRead_U32(PC))->type;
+      const OpType optype = PPCTables::GetOpInfo(PowerPC::HostRead_U32(PowerPC::ppcState.pc))->type;
       if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }
-    exception_addresses->insert(PC);
+    exception_addresses->insert(PowerPC::ppcState.pc);
 
     // Invalidate the JIT block so that it gets recompiled with the external exception check
     // included.
-    g_jit->GetBlockCache()->InvalidateICache(PC, 4, true);
+    g_jit->GetBlockCache()->InvalidateICache(PowerPC::ppcState.pc, 4, true);
   }
 }
 

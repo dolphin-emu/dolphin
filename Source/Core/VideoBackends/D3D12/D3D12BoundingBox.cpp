@@ -6,7 +6,7 @@
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 
-#include "VideoBackends/D3D12/D3D12Renderer.h"
+#include "VideoBackends/D3D12/D3D12Gfx.h"
 #include "VideoBackends/D3D12/DX12Context.h"
 
 namespace DX12
@@ -22,7 +22,7 @@ bool D3D12BoundingBox::Initialize()
   if (!CreateBuffers())
     return false;
 
-  Renderer::GetInstance()->SetPixelShaderUAV(m_gpu_descriptor.cpu_handle);
+  Gfx::GetInstance()->SetPixelShaderUAV(m_gpu_descriptor.cpu_handle);
   return true;
 }
 
@@ -35,7 +35,7 @@ std::vector<BBoxType> D3D12BoundingBox::Read(u32 index, u32 length)
                                                    0, BUFFER_SIZE);
   ResourceBarrier(g_dx_context->GetCommandList(), m_gpu_buffer.Get(),
                   D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-  Renderer::GetInstance()->ExecuteCommandList(true);
+  Gfx::GetInstance()->ExecuteCommandList(true);
 
   // Read back to cached values.
   std::vector<BBoxType> values(length);
@@ -62,7 +62,7 @@ void D3D12BoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
   if (!m_upload_buffer.ReserveMemory(copy_size, sizeof(BBoxType)))
   {
     WARN_LOG_FMT(VIDEO, "Executing command list while waiting for space in bbox stream buffer");
-    Renderer::GetInstance()->ExecuteCommandList(false);
+    Gfx::GetInstance()->ExecuteCommandList(false);
     if (!m_upload_buffer.ReserveMemory(copy_size, sizeof(BBoxType)))
     {
       PanicAlertFmt("Failed to allocate bbox stream buffer space");

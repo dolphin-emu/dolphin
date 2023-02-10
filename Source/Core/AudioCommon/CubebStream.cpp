@@ -39,7 +39,7 @@ void CubebStream::StateCallback(cubeb_stream* stream, void* user_data, cubeb_sta
 
 CubebStream::CubebStream()
 #ifdef _WIN32
-    : m_work_queue([](const std::function<void()>& func) { func(); })
+    : m_work_queue("Cubeb Worker", [](const std::function<void()>& func) { func(); })
 {
   Common::Event sync_event;
   m_work_queue.EmplaceItem([this, &sync_event] {

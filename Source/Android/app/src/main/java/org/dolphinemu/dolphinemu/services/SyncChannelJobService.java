@@ -129,7 +129,7 @@ public class SyncChannelJobService extends JobService
                               builder.build().toContentValues());
 
       channelId = ContentUris.parseId(channelUrl);
-      Bitmap bitmap = TvUtil.convertToBitmap(context, R.drawable.ic_dolphin);
+      Bitmap bitmap = TvUtil.convertToBitmap(context, R.drawable.ic_dolphin_launcher);
       ChannelLogoUtils.storeChannelLogo(context, channelId, bitmap);
 
       return channelId;

@@ -38,6 +38,13 @@ void TransferCommand::OnTransferComplete(s32 return_value) const
   m_ios.EnqueueIPCReply(ios_request, return_value, 0, CoreTiming::FromThread::NON_CPU);
 }
 
+void TransferCommand::ScheduleTransferCompletion(s32 return_value, u32 expected_time_us) const
+{
+  auto ticks = SystemTimers::GetTicksPerSecond();
+  s64 cycles_in_future = static_cast<s64>((static_cast<u64>(ticks) * expected_time_us) / 1'000'000);
+  m_ios.EnqueueIPCReply(ios_request, return_value, cycles_in_future, CoreTiming::FromThread::ANY);
+}
+
 void IsoMessage::SetPacketReturnValue(const size_t packet_num, const u16 return_value) const
 {
   auto& system = Core::System::GetInstance();

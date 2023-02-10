@@ -3,22 +3,22 @@
 
 #include "Common/Debug/CodeTrace.h"
 
+#include <algorithm>
 #include <chrono>
 #include <regex>
 
 #include "Common/Event.h"
-#include "Common/StringUtil.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace
 {
 bool IsInstructionLoadStore(std::string_view ins)
 {
-  return (StringBeginsWith(ins, "l") && !StringBeginsWith(ins, "li")) ||
-         StringBeginsWith(ins, "st") || StringBeginsWith(ins, "psq_l") ||
-         StringBeginsWith(ins, "psq_s");
+  return (ins.starts_with('l') && !ins.starts_with("li")) || ins.starts_with("st") ||
+         ins.starts_with("psq_l") || ins.starts_with("psq_s");
 }
 
 u32 GetMemoryTargetSize(std::string_view instr)
@@ -57,11 +57,13 @@ void CodeTrace::SetRegTracked(const std::string& reg)
 
 InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& instruction) const
 {
+  auto& system = Core::System::GetInstance();
+
   // Slower process of breaking down saved instruction. Only used when stepping through code if a
   // decision has to be made, otherwise used afterwards on a log file.
   InstructionAttributes tmp_attributes;
   tmp_attributes.instruction = instruction.instruction;
-  tmp_attributes.address = PC;
+  tmp_attributes.address = system.GetPPCState().pc;
   std::string instr = instruction.instruction;
   std::smatch match;
 
@@ -95,7 +97,7 @@ InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& ins
       tmp_attributes.memory_target = instruction.memory_target;
       tmp_attributes.memory_target_size = GetMemoryTargetSize(instr);
 
-      if (StringBeginsWith(instr, "st") || StringBeginsWith(instr, "psq_s"))
+      if (instr.starts_with("st") || instr.starts_with("psq_s"))
         tmp_attributes.is_store = true;
       else
         tmp_attributes.is_load = true;
@@ -107,11 +109,14 @@ InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& ins
 
 TraceOutput CodeTrace::SaveCurrentInstruction() const
 {
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
   // Quickly save instruction and memory target for fast logging.
   TraceOutput output;
-  const std::string instr = PowerPC::debug_interface.Disassemble(PC);
+  const std::string instr = PowerPC::debug_interface.Disassemble(ppc_state.pc);
   output.instruction = instr;
-  output.address = PC;
+  output.address = ppc_state.pc;
 
   if (IsInstructionLoadStore(output.instruction))
     output.memory_target = PowerPC::debug_interface.GetMemoryAddressFromInstruction(instr);
@@ -263,9 +268,8 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit)
 
   // Checks if the intstruction is a type that needs special handling.
   const auto CompareInstruction = [](std::string_view instruction, const auto& type_compare) {
-    return std::any_of(
-        type_compare.begin(), type_compare.end(),
-        [&instruction](std::string_view s) { return StringBeginsWith(instruction, s); });
+    return std::any_of(type_compare.begin(), type_compare.end(),
+                       [&instruction](std::string_view s) { return instruction.starts_with(s); });
   };
 
   // Exclusions from updating tracking logic. mt operations are too complex and specialized.
@@ -280,12 +284,12 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit)
   static const std::array<std::string_view, 2> mover{"mr", "fmr"};
 
   // Link register for when r0 gets overwritten
-  if (StringBeginsWith(instr.instruction, "mflr") && match_reg0)
+  if (instr.instruction.starts_with("mflr") && match_reg0)
   {
     m_reg_autotrack.erase(reg_itr);
     return HitType::OVERWRITE;
   }
-  else if (StringBeginsWith(instr.instruction, "mtlr") && match_reg0)
+  if (instr.instruction.starts_with("mtlr") && match_reg0)
   {
     // LR is not something tracked
     return HitType::MOVED;

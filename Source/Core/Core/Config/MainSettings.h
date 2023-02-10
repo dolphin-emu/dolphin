@@ -58,6 +58,7 @@ extern const Info<bool> MAIN_FASTMEM;
 extern const Info<bool> MAIN_ACCURATE_CPU_CACHE;
 // Should really be in the DSP section, but we're kind of stuck with bad decisions made in the past.
 extern const Info<bool> MAIN_DSP_HLE;
+extern const Info<int> MAIN_MAX_FALLBACK;
 extern const Info<int> MAIN_TIMING_VARIANCE;
 extern const Info<bool> MAIN_CPU_THREAD;
 extern const Info<bool> MAIN_SYNC_ON_SKIP_IDLE;
@@ -236,7 +237,6 @@ extern const Info<ShowCursor> MAIN_SHOW_CURSOR;
 
 extern const Info<bool> MAIN_LOCK_CURSOR;
 extern const Info<std::string> MAIN_INTERFACE_LANGUAGE;
-extern const Info<bool> MAIN_EXTENDED_FPS_INFO;
 extern const Info<bool> MAIN_SHOW_ACTIVE_TITLE;
 extern const Info<bool> MAIN_USE_BUILT_IN_TITLE_DATABASE;
 extern const Info<std::string> MAIN_THEME_NAME;
@@ -340,6 +340,10 @@ extern const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS;
 extern const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES;
 std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist();
 void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices);
+
+// Main.EmulatedUSBDevices
+
+extern const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL;
 
 // GameCube path utility functions
 

@@ -67,8 +67,7 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
     // Perform sanity check on BBA MAC address, XLink requires the vendor OUI to be Nintendo's and
     // to be one of the two used for the GameCube.
     // Don't actually stop the BBA from initializing though
-    if (!StringBeginsWith(mac_addr_setting, "00:09:bf") &&
-        !StringBeginsWith(mac_addr_setting, "00:17:ab"))
+    if (!mac_addr_setting.starts_with("00:09:bf") && !mac_addr_setting.starts_with("00:17:ab"))
     {
       PanicAlertFmtT(
           "BBA MAC address {0} invalid for XLink Kai. A valid Nintendo GameCube MAC address "

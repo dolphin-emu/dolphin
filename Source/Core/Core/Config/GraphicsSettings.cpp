@@ -93,11 +93,12 @@ const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE{
     {System::GFX, "Settings", "SaveTextureCacheToState"}, true};
 const Info<bool> GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION{
     {System::GFX, "Settings", "PreferVSForLinePointExpansion"}, false};
+const Info<bool> GFX_CPU_CULL{{System::GFX, "Settings", "CPUCull"}, false};
 
 const Info<TriState> GFX_MTL_MANUALLY_UPLOAD_BUFFERS{
     {System::GFX, "Settings", "ManuallyUploadBuffers"}, TriState::Auto};
-const Info<bool> GFX_MTL_USE_PRESENT_DRAWABLE{{System::GFX, "Settings", "MTLUsePresentDrawable"},
-                                              false};
+const Info<TriState> GFX_MTL_USE_PRESENT_DRAWABLE{
+    {System::GFX, "Settings", "MTLUsePresentDrawable"}, TriState::Auto};
 
 const Info<bool> GFX_SW_DUMP_OBJECTS{{System::GFX, "Settings", "SWDumpObjects"}, false};
 const Info<bool> GFX_SW_DUMP_TEV_STAGES{{System::GFX, "Settings", "SWDumpTevStages"}, false};
@@ -156,6 +157,7 @@ const Info<bool> GFX_HACK_COPY_EFB_SCALED{{System::GFX, "Hacks", "EFBScaledCopy"
 const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES{
     {System::GFX, "Hacks", "EFBEmulateFormatChanges"}, false};
 const Info<bool> GFX_HACK_VERTEX_ROUNDING{{System::GFX, "Hacks", "VertexRounding"}, false};
+const Info<bool> GFX_HACK_VI_SKIP{{System::GFX, "Hacks", "VISkip"}, false};
 const Info<u32> GFX_HACK_MISSING_COLOR_VALUE{{System::GFX, "Hacks", "MissingColorValue"},
                                              0xFFFFFFFF};
 const Info<bool> GFX_HACK_FAST_TEXTURE_SAMPLING{{System::GFX, "Hacks", "FastTextureSampling"},

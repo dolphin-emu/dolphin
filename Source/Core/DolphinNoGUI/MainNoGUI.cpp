@@ -33,7 +33,6 @@
 
 #include "InputCommon/GCAdapter.h"
 
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 static std::unique_ptr<Platform> s_platform;

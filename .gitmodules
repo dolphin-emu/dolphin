@@ -26,7 +26,7 @@
 [submodule "SDL"]
 	path = Externals/SDL/SDL
 	url = https://github.com/libsdl-org/SDL.git
-	branch = main
+	branch = SDL2
 	shallow = true
 [submodule "Externals/zlib-ng/zlib-ng"]
 	path = Externals/zlib-ng/zlib-ng
@@ -48,3 +48,6 @@
 [submodule "Externals/implot/implot"]
 	path = Externals/implot/implot
 	url = https://github.com/epezent/implot.git
+[submodule "Externals/gtest"]
+	path = Externals/gtest
+	url = https://github.com/google/googletest.git

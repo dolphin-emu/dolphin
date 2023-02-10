@@ -35,12 +35,12 @@ GPFifoManager::GPFifoManager(Core::System& system) : m_system(system)
 
 size_t GPFifoManager::GetGatherPipeCount()
 {
-  return PowerPC::ppcState.gather_pipe_ptr - m_gather_pipe;
+  return m_system.GetPPCState().gather_pipe_ptr - m_gather_pipe;
 }
 
 void GPFifoManager::SetGatherPipeCount(size_t size)
 {
-  PowerPC::ppcState.gather_pipe_ptr = m_gather_pipe + size;
+  m_system.GetPPCState().gather_pipe_ptr = m_gather_pipe + size;
 }
 
 void GPFifoManager::DoState(PointerWrap& p)
@@ -54,7 +54,7 @@ void GPFifoManager::DoState(PointerWrap& p)
 void GPFifoManager::Init()
 {
   ResetGatherPipe();
-  PowerPC::ppcState.gather_pipe_base_ptr = m_gather_pipe;
+  m_system.GetPPCState().gather_pipe_base_ptr = m_gather_pipe;
   memset(m_gather_pipe, 0, sizeof(m_gather_pipe));
 }
 
@@ -162,29 +162,33 @@ void GPFifoManager::Write64(const u64 value)
 
 void GPFifoManager::FastWrite8(const u8 value)
 {
-  *PowerPC::ppcState.gather_pipe_ptr = value;
-  PowerPC::ppcState.gather_pipe_ptr += sizeof(u8);
+  auto& ppc_state = m_system.GetPPCState();
+  *ppc_state.gather_pipe_ptr = value;
+  ppc_state.gather_pipe_ptr += sizeof(u8);
 }
 
 void GPFifoManager::FastWrite16(u16 value)
 {
   value = Common::swap16(value);
-  std::memcpy(PowerPC::ppcState.gather_pipe_ptr, &value, sizeof(u16));
-  PowerPC::ppcState.gather_pipe_ptr += sizeof(u16);
+  auto& ppc_state = m_system.GetPPCState();
+  std::memcpy(ppc_state.gather_pipe_ptr, &value, sizeof(u16));
+  ppc_state.gather_pipe_ptr += sizeof(u16);
 }
 
 void GPFifoManager::FastWrite32(u32 value)
 {
   value = Common::swap32(value);
-  std::memcpy(PowerPC::ppcState.gather_pipe_ptr, &value, sizeof(u32));
-  PowerPC::ppcState.gather_pipe_ptr += sizeof(u32);
+  auto& ppc_state = m_system.GetPPCState();
+  std::memcpy(ppc_state.gather_pipe_ptr, &value, sizeof(u32));
+  ppc_state.gather_pipe_ptr += sizeof(u32);
 }
 
 void GPFifoManager::FastWrite64(u64 value)
 {
   value = Common::swap64(value);
-  std::memcpy(PowerPC::ppcState.gather_pipe_ptr, &value, sizeof(u64));
-  PowerPC::ppcState.gather_pipe_ptr += sizeof(u64);
+  auto& ppc_state = m_system.GetPPCState();
+  std::memcpy(ppc_state.gather_pipe_ptr, &value, sizeof(u64));
+  ppc_state.gather_pipe_ptr += sizeof(u64);
 }
 
 void UpdateGatherPipe(GPFifoManager& gpfifo)

@@ -19,7 +19,6 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-#include "Common/CDUtils.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
@@ -189,19 +188,6 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   }
 }
 
-void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
-{
-  m_backup_menu = file_menu->addMenu(tr("&Boot from DVD Backup"));
-
-  const std::vector<std::string> drives = Common::GetCDDevices();
-  // Windows Limitation of 24 character drives
-  for (size_t i = 0; i < drives.size() && i < 24; i++)
-  {
-    auto drive = QString::fromStdString(drives[i]);
-    m_backup_menu->addAction(drive, this, [this, drive] { emit BootDVDBackup(drive); });
-  }
-}
-
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
@@ -212,12 +198,10 @@ void MenuBar::AddFileMenu()
   m_change_disc = file_menu->addAction(tr("Change &Disc..."), this, &MenuBar::ChangeDisc);
   m_eject_disc = file_menu->addAction(tr("&Eject Disc"), this, &MenuBar::EjectDisc);
 
-  AddDVDBackupMenu(file_menu);
-
   file_menu->addSeparator();
 
   m_open_user_folder =
-      file_menu->addAction(tr("Open Global &User Directory"), this, &MenuBar::OpenUserFolder);
+      file_menu->addAction(tr("Open &User Folder"), this, &MenuBar::OpenUserFolder);
 
   file_menu->addSeparator();
 
@@ -236,6 +220,8 @@ void MenuBar::AddToolsMenu()
   tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
 
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
+
+  tools_menu->addAction(tr("&Skylanders Portal"), this, &MenuBar::ShowSkylanderPortal);
 
   tools_menu->addSeparator();
 
@@ -1452,7 +1438,7 @@ void MenuBar::LoadSymbolMap()
                                  tr("Loaded symbols from '%1'").arg(existing_map_file_path));
   }
 
-  HLE::PatchFunctions();
+  HLE::PatchFunctions(system);
   emit NotifySymbolsUpdated();
 }
 
@@ -1476,7 +1462,8 @@ void MenuBar::LoadOtherSymbolMap()
   if (!TryLoadMapFile(file))
     return;
 
-  HLE::PatchFunctions();
+  auto& system = Core::System::GetInstance();
+  HLE::PatchFunctions(system);
   emit NotifySymbolsUpdated();
 }
 
@@ -1492,7 +1479,8 @@ void MenuBar::LoadBadSymbolMap()
   if (!TryLoadMapFile(file, true))
     return;
 
-  HLE::PatchFunctions();
+  auto& system = Core::System::GetInstance();
+  HLE::PatchFunctions(system);
   emit NotifySymbolsUpdated();
 }
 
@@ -1611,7 +1599,8 @@ void MenuBar::ApplySignatureFile()
   db.Load(load_path);
   db.Apply(&g_symbolDB);
   db.List();
-  HLE::PatchFunctions();
+  auto& system = Core::System::GetInstance();
+  HLE::PatchFunctions(system);
   emit NotifySymbolsUpdated();
 }
 
@@ -1650,7 +1639,8 @@ void MenuBar::CombineSignatureFiles()
 
 void MenuBar::PatchHLEFunctions()
 {
-  HLE::PatchFunctions();
+  auto& system = Core::System::GetInstance();
+  HLE::PatchFunctions(system);
 }
 
 void MenuBar::ClearCache()

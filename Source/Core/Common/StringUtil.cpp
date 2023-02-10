@@ -431,23 +431,13 @@ std::string ReplaceAll(std::string result, std::string_view src, std::string_vie
   return result;
 }
 
-bool StringBeginsWith(std::string_view str, std::string_view begin)
-{
-  return str.size() >= begin.size() && std::equal(begin.begin(), begin.end(), str.begin());
-}
-
-bool StringEndsWith(std::string_view str, std::string_view end)
-{
-  return str.size() >= end.size() && std::equal(end.rbegin(), end.rend(), str.rbegin());
-}
-
 void StringPopBackIf(std::string* s, char c)
 {
   if (!s->empty() && s->back() == c)
     s->pop_back();
 }
 
-size_t StringUTF8CodePointCount(const std::string& str)
+size_t StringUTF8CodePointCount(std::string_view str)
 {
   return str.size() -
          std::count_if(str.begin(), str.end(), [](char c) -> bool { return (c & 0xC0) == 0x80; });
@@ -645,7 +635,6 @@ std::u16string UTF8ToUTF16(std::string_view input)
   return converter.from_bytes(input.data(), input.data() + input.size());
 }
 
-#ifdef HAS_STD_FILESYSTEM
 // This is a replacement for path::u8path, which is deprecated starting with C++20.
 std::filesystem::path StringToPath(std::string_view path)
 {
@@ -666,7 +655,6 @@ std::string PathToString(const std::filesystem::path& path)
   return path.native();
 #endif
 }
-#endif
 
 #ifdef _WIN32
 std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)

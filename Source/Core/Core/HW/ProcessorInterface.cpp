@@ -65,14 +65,14 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& processor_interface = system.GetProcessorInterface();
                    processor_interface.m_interrupt_cause &= ~val;
-                   processor_interface.UpdateException();
+                   processor_interface.UpdateException(system);
                  }));
 
   mmio->Register(base | PI_INTERRUPT_MASK, MMIO::DirectRead<u32>(&m_interrupt_mask),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& processor_interface = system.GetProcessorInterface();
                    processor_interface.m_interrupt_mask = val;
-                   processor_interface.UpdateException();
+                   processor_interface.UpdateException(system);
                  }));
 
   mmio->Register(base | PI_FIFO_BASE, MMIO::DirectRead<u32>(&m_fifo_cpu_base),
@@ -137,12 +137,13 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 }
 
-void ProcessorInterfaceManager::UpdateException()
+void ProcessorInterfaceManager::UpdateException(Core::System& system)
 {
+  auto& ppc_state = system.GetPPCState();
   if ((m_interrupt_cause & m_interrupt_mask) != 0)
-    PowerPC::ppcState.Exceptions |= EXCEPTION_EXTERNAL_INT;
+    ppc_state.Exceptions |= EXCEPTION_EXTERNAL_INT;
   else
-    PowerPC::ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
+    ppc_state.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 }
 
 static const char* Debug_GetInterruptName(u32 cause_mask)
@@ -208,7 +209,7 @@ void ProcessorInterfaceManager::SetInterrupt(u32 cause_mask, bool set)
     m_interrupt_cause &= ~cause_mask;  // is there any reason to have this possibility?
   // F|RES: i think the hw devices reset the interrupt in the PI to 0
   // if the interrupt cause is eliminated. that isn't done by software (afaik)
-  UpdateException();
+  UpdateException(Core::System::GetInstance());
 }
 
 void ProcessorInterfaceManager::SetResetButton(bool set)

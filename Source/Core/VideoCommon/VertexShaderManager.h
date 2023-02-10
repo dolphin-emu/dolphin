@@ -24,6 +24,7 @@ public:
   void DoState(PointerWrap& p);
 
   // constant management
+  void SetProjectionMatrix();
   void SetConstants(const std::vector<std::string>& textures);
 
   void InvalidateXFRange(int start, int end);
@@ -42,6 +43,8 @@ public:
   // NOTE: m_projection_matrix must be up to date when this is called
   //       (i.e. VertexShaderManager::SetConstants needs to be called before using this!)
   void TransformToClipSpace(const float* data, float* out, u32 mtxIdx);
+
+  static bool UseVertexDepthRange();
 
   VertexShaderConstants constants{};
   bool dirty = false;
@@ -64,4 +67,6 @@ private:
   std::array<int, 2> m_minmax_lights_changed{};
 
   Common::Matrix44 m_viewport_correction{};
+
+  Common::Matrix44 LoadProjectionMatrix();
 };

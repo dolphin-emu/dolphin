@@ -8,7 +8,7 @@
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/D3D12/Common.h"
-#include "VideoBackends/D3D12/D3D12Renderer.h"
+#include "VideoBackends/D3D12/D3D12Gfx.h"
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 #include "VideoBackends/D3D12/DX12Context.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
@@ -203,7 +203,7 @@ bool DXTexture::CreateUAVDescriptor()
 }
 
 void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                     size_t buffer_size)
+                     size_t buffer_size, u32 layer)
 {
   // Textures greater than 1024*1024 will be put in staging textures that are released after
   // execution instead. A 2048x2048 texture is 16MB, and we'd only fit four of these in our
@@ -254,7 +254,7 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
     {
       WARN_LOG_FMT(VIDEO,
                    "Executing command list while waiting for space in texture upload buffer");
-      Renderer::GetInstance()->ExecuteCommandList(false);
+      Gfx::GetInstance()->ExecuteCommandList(false);
       if (!g_dx_context->GetTextureUploadBuffer().ReserveMemory(
               upload_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT))
       {
@@ -301,7 +301,7 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   const u32 aligned_height = Common::AlignUp(height, block_size);
   const D3D12_TEXTURE_COPY_LOCATION dst_loc = {m_resource.Get(),
                                                D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-                                               {static_cast<UINT>(CalcSubresource(level, 0))}};
+                                               {static_cast<UINT>(CalcSubresource(level, layer))}};
   const D3D12_TEXTURE_COPY_LOCATION src_loc = {
       upload_buffer_resource,
       D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
@@ -632,7 +632,7 @@ void DXStagingTexture::Flush()
   // the current list and wait for it to complete. This is the slowest path. Otherwise, if the
   // command list with the copy has been submitted, we only need to wait for the fence.
   if (m_completed_fence == g_dx_context->GetCurrentFenceValue())
-    Renderer::GetInstance()->ExecuteCommandList(true);
+    Gfx::GetInstance()->ExecuteCommandList(true);
   else
     g_dx_context->WaitForFence(m_completed_fence);
 }

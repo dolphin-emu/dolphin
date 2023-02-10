@@ -572,7 +572,8 @@ static void Do_ARAM_DMA()
   {
     // ARAM -> MRAM
     DEBUG_LOG_FMT(DSPINTERFACE, "DMA {:08x} bytes from ARAM {:08x} to MRAM {:08x} PC: {:08x}",
-                  state.aram_dma.Cnt.count, state.aram_dma.ARAddr, state.aram_dma.MMAddr, PC);
+                  state.aram_dma.Cnt.count, state.aram_dma.ARAddr, state.aram_dma.MMAddr,
+                  system.GetPPCState().pc);
 
     // Outgoing data from ARAM is mirrored every 64MB (verified on real HW)
     state.aram_dma.ARAddr &= 0x3ffffff;
@@ -620,7 +621,8 @@ static void Do_ARAM_DMA()
   {
     // MRAM -> ARAM
     DEBUG_LOG_FMT(DSPINTERFACE, "DMA {:08x} bytes from MRAM {:08x} to ARAM {:08x} PC: {:08x}",
-                  state.aram_dma.Cnt.count, state.aram_dma.MMAddr, state.aram_dma.ARAddr, PC);
+                  state.aram_dma.Cnt.count, state.aram_dma.MMAddr, state.aram_dma.ARAddr,
+                  system.GetPPCState().pc);
 
     // Incoming data into ARAM is mirrored every 64MB (verified on real HW)
     state.aram_dma.ARAddr &= 0x3ffffff;

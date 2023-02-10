@@ -9,10 +9,6 @@
       "buildRoot": "${workspaceRoot}\\Build\\${name}",
       "cmakeCommandArgs": "",
       "variables": [
-        {
-          "name": "CMAKE_PREFIX_PATH",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt6.3.0\\x64"
-        }
       ]
     },
     {
@@ -24,10 +20,6 @@
       "buildRoot": "${workspaceRoot}\\Build\\${name}",
       "cmakeCommandArgs": "",
       "variables": [
-        {
-          "name": "CMAKE_PREFIX_PATH",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt6.3.0\\x64"
-        }
       ]
     },
     {
@@ -39,10 +31,6 @@
       "buildRoot": "${workspaceRoot}\\Build\\${name}",
       "cmakeCommandArgs": "",
       "variables": [
-        {
-          "name": "CMAKE_PREFIX_PATH",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt6.3.0\\ARM64"
-        },
         {
           "name": "CMAKE_SYSTEM_NAME",
           "value": "Windows"
@@ -62,10 +50,6 @@
       "buildRoot": "${workspaceRoot}\\Build\\${name}",
       "cmakeCommandArgs": "",
       "variables": [
-        {
-          "name": "CMAKE_PREFIX_PATH",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt6.3.0\\ARM64"
-        },
         {
           "name": "CMAKE_SYSTEM_NAME",
           "value": "Windows"

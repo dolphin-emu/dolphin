@@ -1,6 +1,6 @@
 Test 1:
 	Testing that statistics:getCurrentFrame() after frame advancing 10 frames is 10 more than its original value...
-	1493 + 10 == 1503
+	1496 + 10 == 1506
 PASS!
 
 Test 2:
@@ -25,7 +25,7 @@ PASS!
 
 Test 6:
 	Testing statistics:getMovieLength() function...
-	statistics:getMovieLength() = 2607
+	statistics:getMovieLength() = 2535
 PASS!
 
 Test 7:
@@ -35,12 +35,12 @@ PASS!
 
 Test 8:
 	Testing statistics:getCurrentInputCount() function...
-	statistics:getCurrentInputCount() = 12028
+	statistics:getCurrentInputCount() = 12052
 PASS!
 
 Test 9:
 	Testing statistics:getTotalInputCount() function...
-	statistics:getTotalInputCount() = 20852
+	statistics:getTotalInputCount() = 20276
 PASS!
 
 Test 10:

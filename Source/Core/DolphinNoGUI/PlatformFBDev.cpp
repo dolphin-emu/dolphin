@@ -12,6 +12,7 @@
 
 #include <climits>
 #include <cstdio>
+#include <thread>
 
 #include <fcntl.h>
 #include <linux/fb.h>
@@ -21,7 +22,6 @@
 #include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
-#include "VideoCommon/RenderBase.h"
 
 namespace
 {

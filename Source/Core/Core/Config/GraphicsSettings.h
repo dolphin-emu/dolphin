@@ -82,9 +82,10 @@ extern const Info<int> GFX_SHADER_COMPILER_THREADS;
 extern const Info<int> GFX_SHADER_PRECOMPILER_THREADS;
 extern const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE;
 extern const Info<bool> GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION;
+extern const Info<bool> GFX_CPU_CULL;
 
 extern const Info<TriState> GFX_MTL_MANUALLY_UPLOAD_BUFFERS;
-extern const Info<bool> GFX_MTL_USE_PRESENT_DRAWABLE;
+extern const Info<TriState> GFX_MTL_USE_PRESENT_DRAWABLE;
 
 extern const Info<bool> GFX_SW_DUMP_OBJECTS;
 extern const Info<bool> GFX_SW_DUMP_TEV_STAGES;
@@ -135,6 +136,7 @@ extern const Info<bool> GFX_HACK_EARLY_XFB_OUTPUT;
 extern const Info<bool> GFX_HACK_COPY_EFB_SCALED;
 extern const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES;
 extern const Info<bool> GFX_HACK_VERTEX_ROUNDING;
+extern const Info<bool> GFX_HACK_VI_SKIP;
 extern const Info<u32> GFX_HACK_MISSING_COLOR_VALUE;
 extern const Info<bool> GFX_HACK_FAST_TEXTURE_SAMPLING;
 #ifdef __APPLE__

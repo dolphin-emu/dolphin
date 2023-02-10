@@ -17,8 +17,8 @@
 #include "VideoBackends/Metal/MTLTexture.h"
 #include "VideoBackends/Metal/MTLUtil.h"
 
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/PerfQueryBase.h"
-#include "VideoCommon/RenderBase.h"
 
 namespace Metal
 {

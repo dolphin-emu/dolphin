@@ -128,6 +128,10 @@
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="gamecube_submenu">GameCube</string>
+    <string name="ipl_settings">IPL Settings</string>
+    <string name="skip_main_menu">Skip Main Menu</string>
+    <string name="skip_main_menu_description">Put IPL ROMs in User/GC/&lt;region&gt;</string>
+    <string name="device_settings">Device Settings</string>
     <string name="system_language">System Language</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
@@ -250,6 +254,8 @@
     <string name="FSAA_description">Reduces the amount of aliasing caused by rasterizing 3D graphics. This makes the rendered picture look less blocky. Heavily decreases emulation speed and sometimes causes issues.</string>
     <string name="anisotropic_filtering">Anisotropic Filtering</string>
     <string name="anisotropic_filtering_description">Enhances visual quality of textures that are at oblique viewing angles. Might cause issues in a small number of games.</string>
+    <string name="texture_filtering">Texture Filtering</string>
+    <string name="texture_filtering_description">Overrides the texture scaling filter selected by the game. Any option except \'Default\' will alter the look of the game\'s textures and might cause issues in a small number of games.</string>
     <string name="post_processing_shader">Post-Processing Effect</string>
     <string name="post_processing_shader_description">Apply a post-processing effect after finishing a frame</string>
     <string name="postprocessing_shader">Post Processing Shader</string>
@@ -309,6 +315,8 @@
     <string name="disable_bbox_description">Disables bounding box emulation. This may improve GPU performance significantly, but some games will break. If unsure, leave this checked.</string>
     <string name="vertex_rounding">Vertex Rounding</string>
     <string name="vertex_rounding_description">Rounds 2D vertices to whole pixels and rounds the viewport size to a whole number. Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used. If unsure, leave this unchecked.</string>
+    <string name="vi_skip">VI Skip</string>
+    <string name="vi_skip_description">Skips VI interrupts when lag is detected, allowing for smooth audio playback when emulation speed is not 100%. Can cause freezes and compatibility issues.</string>
     <string name="texture_cache_to_state">Save Texture Cache to State</string>
     <string name="texture_cache_to_state_description">Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies in save states. Fixes missing and/or non-upscaled textures/objects when loading states at the cost of additional save/load time.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
@@ -328,6 +336,8 @@
     <string name="show_vtimes_description">Shows the average time in ms between each rendered frame alongside the standard deviation.</string>
     <string name="show_graphs">Show Performance Graphs</string>
     <string name="show_graphs_description">Shows frametime graph along with statistics as a representation of emulation performance.</string>
+    <string name="performance_sample_window">Performance Sample Window</string>
+    <string name="performance_sample_window_description">The amount of time the FPS and VPS counters will sample over. The higher the value, the more stable the FPS/VPS counter will be, but the slower it will be to update.</string>
     <string name="show_speed">Show % Speed</string>
     <string name="show_speed_description">Shows the % speed of emulation compared to full speed.</string>
     <string name="show_speed_colors">Show Speed Color</string>
@@ -357,12 +367,16 @@
     <string name="backend_multithreading_description">Enables graphics backend multithreading (Vulkan only). May affect performance. If unsure, leave this checked.</string>
     <string name="prefer_vs_for_point_line_expansion">Prefer VS for Point/Line Expansion</string>
     <string name="prefer_vs_for_point_line_expansion_description">On backends that support both using the geometry shader and the vertex shader for expanding points and lines, selects the vertex shader for the job. May affect performance.</string>
+    <string name="cpu_cull">Cull Vertices on the CPU</string>
+    <string name="cpu_cull_description">Cull vertices on the CPU to reduce the number of draw calls required. May affect performance. If unsure, leave this unchecked.</string>
     <string name="defer_efb_invalidation">Defer EFB Cache Invalidation</string>
     <string name="defer_efb_invalidation_description">Defers invalidation of the EFB access cache until a GPU synchronization command is executed. May improve performance in some games at the cost of stability. If unsure, leave this unchecked.</string>
     <string name="manual_texture_sampling">Manual Texture Sampling</string>
     <string name="manual_texture_sampling_description">Use a manual implementation of texture sampling instead of the graphics backend\'s built-in functionality.</string>
     <string name="internal_resolution_dumps">Dump Frames at Internal Resolution</string>
+    <string name="frame_dumping">Frame Dumping</string>
     <string name="internal_resolution_dumps_description">Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within. If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.</string>
+    <string name="png_compression_level">PNG Compression Level</string>
     <string name="debugging">Debugging</string>
     <string name="wireframe">Enable Wireframe</string>
     <string name="show_stats">Show Statistics</string>
@@ -375,15 +389,33 @@
 
     <!-- Advanced Settings -->
     <string name="advanced_submenu">Advanced</string>
+    <string name="cpu_options">CPU Options</string>
     <string name="cpu_core">CPU Core</string>
     <string name="mmu_enable">Enable MMU</string>
     <string name="mmu_enable_description">Enables the Memory Management Unit. Needed for some games, but may reduce performance.</string>
+    <string name="pause_on_panic">Pause on Panic</string>
+    <string name="pause_on_panic_description">Pauses the emulation if a Read/Write or Unknown Instruction panic occurs. The performance impact is the same as having Enable MMU on.</string>
+    <string name="enable_cpu_cache">Enable Write-Back Cache (slow)</string>
+    <string name="enable_cpu_cache_description">Enables emulation of the CPU write-back cache. Enabling will have a significant impact on performance. This should be left disabled unless absolutely needed.</string>
+    <string name="clock_override">Clock Override</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
+    <string name="memory_override">Memory Override</string>
+    <string name="enable_memory_size_override">Enable Emulated Memory Size Override</string>
+    <string name="enable_memory_size_override_description">Adjusts the amount of RAM in the emulated console.\n\nWARNING: Enabling this will completely break many games. Only a small number of games can benefit from this.</string>
+    <string name="main_mem1_size">MEM1 Size</string>
+    <string name="main_mem2_size">MEM2 Size</string>
+    <string name="gpu_options">GPU Options</string>
     <string name="synchronize_gpu_thread">Synchronize GPU Thread</string>
     <string name="synchronize_gpu_thread_description">Synchronizing the GPU thread reduces the risk of games crashing or becoming unstable with dual core enabled, but can also reduce the performance gain of dual core. If unsure, select \"On Idle Skipping\". Selecting \"Never\" is risky and not recommended!</string>
+    <string name="custom_rtc_options">Custom RTC Options</string>
+    <string name="custom_rtc_enable">Enable Custom RTC</string>
+    <string name="custom_rtc_description">This settings allows you to set a custom real time clock (RTC) separate from your current system time.</string>
+    <string name="set_custom_rtc">Set Custom RTC</string>
+    <string name="select_rtc_date">Select RTC Date</string>
+    <string name="select_rtc_time">Select RTC Time</string>
 
     <!-- Log Configuration -->
     <string name="log_submenu">Log</string>
@@ -461,6 +493,7 @@
     <string name="grid_menu_load_wii_system_menu">Load Wii System Menu</string>
     <string name="grid_menu_load_wii_system_menu_installed">Load Wii System Menu (%s)</string>
     <string name="grid_menu_load_vwii_system_menu_installed">Load vWii System Menu (%s)</string>
+    <string name="grid_menu_about">About</string>
     <string name="import_in_progress">Importing…</string>
     <string name="export_in_progress">Exporting…</string>
     <string name="do_not_close_app">Do not close the app!</string>
@@ -616,6 +649,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="path_not_changeable_scoped_storage">Due to the Scoped Storage policy in Android 11 and newer, you can\'t change this path.</string>
     <string name="load_settings">Loading Settings…</string>
     <string name="setting_not_runtime_editable">This setting can\'t be changed while a game is running.</string>
+    <string name="ipl_not_found">IPL not found</string>
     <string name="setting_clear_info">Long press a setting to clear it.</string>
     <string name="setting_clear_confirm">Do you want to restore this setting to its default value?</string>
     <string name="setting_cleared">Setting cleared</string>
@@ -745,6 +779,11 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="multiple_eight">8x</string>
     <string name="multiple_sixteen">16x</string>
 
+    <!-- Texture Filtering Preference -->
+    <string name="filtering_default">Default</string>
+    <string name="filtering_nearest">Force Nearest</string>
+    <string name="filtering_linear">Force Linear</string>
+
     <!-- Stereoscopy Preference -->
     <string name="stereoscopy_off">Off</string>
     <string name="stereoscopy_side_by_side">Side-by-Side</string>
@@ -857,5 +896,31 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="compression_lzma">LZMA (slow)</string>
     <string name="compression_lzma2">LZMA2 (slow)</string>
     <string name="compression_zstandard">Zstandard (recommended)</string>
+
+    <!-- About dialog -->
+    <string name="about_dolphin">Dolphin</string>
+    <string name="wark">WARK WARK WARK</string>
+    <string name="about_dolphin_image">Dolphin logo</string>
+    <string name="about_branch">Branch:\n%s</string>
+    <string name="about_revision">Revision:\n%s</string>
+    <string name="about_dolphin_description">Dolphin is a free and open-source GameCube and Wii emulator.\n\nThis software should not be used to play games you do not legally own.</string>
+    <string name="about_website"><a href="https://dolphin-emu.org/">Website</a></string>
+    <string name="about_github"><a href="https://github.com/dolphin-emu/dolphin">GitHub</a></string>
+    <string name="about_support"><a href="https://forums.dolphin-emu.org/">Support</a></string>
+    <string name="about_copyright_warning">\u00A9 2003–2015+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.</string>
+
+    <!-- Emulated USB Devices -->
+    <string name="emulated_usb_devices">Emulated USB Devices</string>
+    <string name="emulate_skylander_portal">Skylanders Portal</string>
+    <string name="skylanders_manager">Skylanders Manager</string>
+    <string name="load_skylander">Load</string>
+    <string name="remove_skylander">Remove</string>
+    <string name="create_skylander">Create</string>
+    <string name="create_skylander_title">Create Skylander</string>
+    <string name="skylander_label">Skylander</string>
+    <string name="skylander_slot">Slot %1$d</string>
+    <string name="skylander_id">ID</string>
+    <string name="skylander_variant">Variant</string>
+    <string name="invalid_skylander">Invalid Skylander Selection</string>
 
 </resources>

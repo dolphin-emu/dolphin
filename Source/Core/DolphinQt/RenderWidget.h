@@ -39,8 +39,8 @@ private:
   void OnLockCursorChanged();
   void OnKeepOnTopChanged(bool top);
   void UpdateCursor();
-  void PassEventToImGui(const QEvent* event);
-  void SetImGuiKeyMap();
+  void PassEventToPresenter(const QEvent* event);
+  void SetPresenterKeyMap();
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
 

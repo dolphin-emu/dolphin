@@ -22,7 +22,10 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/IOS/USB/Common.h"
+#include "Core/IOS/USB/Emulated/Skylander.h"
 #include "Core/IOS/USB/LibusbDevice.h"
+#include "Core/NetPlayProto.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -34,7 +37,7 @@ USBHost::~USBHost() = default;
 
 std::optional<IPCReply> USBHost::Open(const OpenRequest& request)
 {
-  if (!m_has_initialised && !Core::WantsDeterminism())
+  if (!m_has_initialised)
   {
     GetScanThread().Start();
     // Force a device scan to complete, because some games (including Your Shape) only care
@@ -96,12 +99,15 @@ bool USBHost::ShouldAddDevice(const USB::Device& device) const
   return true;
 }
 
+void USBHost::Update()
+{
+  if (Core::WantsDeterminism())
+    UpdateDevices();
+}
+
 // This is called from the scan thread. Returns false if we failed to update the device list.
 bool USBHost::UpdateDevices(const bool always_add_hooks)
 {
-  if (Core::WantsDeterminism())
-    return true;
-
   DeviceChangeHooks hooks;
   std::set<u64> plugged_devices;
   // If we failed to get a new, up-to-date list of devices, we cannot detect device removals.
@@ -115,31 +121,35 @@ bool USBHost::UpdateDevices(const bool always_add_hooks)
 bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
                             const bool always_add_hooks)
 {
+  AddEmulatedDevices(new_devices, hooks, always_add_hooks);
 #ifdef __LIBUSB__
-  auto whitelist = Config::GetUSBDeviceWhitelist();
-  if (whitelist.empty())
-    return true;
-
-  if (m_context.IsValid())
+  if (!Core::WantsDeterminism())
   {
-    const int ret = m_context.GetDeviceList([&](libusb_device* device) {
-      libusb_device_descriptor descriptor;
-      libusb_get_device_descriptor(device, &descriptor);
-      if (whitelist.count({descriptor.idVendor, descriptor.idProduct}) == 0)
-        return true;
-
-      auto usb_device = std::make_unique<USB::LibusbDevice>(m_ios, device, descriptor);
-      if (!ShouldAddDevice(*usb_device))
-        return true;
-
-      const u64 id = usb_device->GetId();
-      new_devices.insert(id);
-      if (AddDevice(std::move(usb_device)) || always_add_hooks)
-        hooks.emplace(GetDeviceById(id), ChangeEvent::Inserted);
+    auto whitelist = Config::GetUSBDeviceWhitelist();
+    if (whitelist.empty())
       return true;
-    });
-    if (ret != LIBUSB_SUCCESS)
-      WARN_LOG_FMT(IOS_USB, "GetDeviceList failed: {}", LibusbUtils::ErrorWrap(ret));
+
+    if (m_context.IsValid())
+    {
+      const int ret = m_context.GetDeviceList([&](libusb_device* device) {
+        libusb_device_descriptor descriptor;
+        libusb_get_device_descriptor(device, &descriptor);
+        if (whitelist.count({descriptor.idVendor, descriptor.idProduct}) == 0)
+          return true;
+
+        auto usb_device = std::make_unique<USB::LibusbDevice>(m_ios, device, descriptor);
+        if (!ShouldAddDevice(*usb_device))
+          return true;
+
+        const u64 id = usb_device->GetId();
+        new_devices.insert(id);
+        if (AddDevice(std::move(usb_device)) || always_add_hooks)
+          hooks.emplace(GetDeviceById(id), ChangeEvent::Inserted);
+        return true;
+      });
+      if (ret != LIBUSB_SUCCESS)
+        WARN_LOG_FMT(IOS_USB, "GetDeviceList failed: {}", LibusbUtils::ErrorWrap(ret));
+    }
   }
 #endif
   return true;
@@ -175,6 +185,24 @@ void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
     OnDeviceChangeEnd();
 }
 
+void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
+                                 bool always_add_hooks)
+{
+  if (Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
+  {
+    auto skylanderportal = std::make_unique<USB::SkylanderUSB>(m_ios, "Skylander Portal");
+    if (ShouldAddDevice(*skylanderportal))
+    {
+      const u64 skyid = skylanderportal->GetId();
+      new_devices.insert(skyid);
+      if (AddDevice(std::move(skylanderportal)) || always_add_hooks)
+      {
+        hooks.emplace(GetDeviceById(skyid), ChangeEvent::Inserted);
+      }
+    }
+  }
+}
+
 USBHost::ScanThread::~ScanThread()
 {
   Stop();
@@ -182,14 +210,19 @@ USBHost::ScanThread::~ScanThread()
 
 void USBHost::ScanThread::WaitForFirstScan()
 {
-  m_first_scan_complete_event.Wait();
+  if (m_thread_running.IsSet())
+  {
+    m_first_scan_complete_event.Wait();
+  }
 }
 
 void USBHost::ScanThread::Start()
 {
   if (Core::WantsDeterminism())
+  {
+    m_host->UpdateDevices();
     return;
-
+  }
   if (m_thread_running.TestAndSet())
   {
     m_thread = std::thread([this] {

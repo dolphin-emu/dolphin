@@ -8,15 +8,15 @@
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
-#include "VideoBackends/OGL/OGLRender.h"
+#include "VideoBackends/OGL/OGLGfx.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
 {
-std::unique_ptr<PerfQueryBase> GetPerfQuery()
+std::unique_ptr<PerfQueryBase> GetPerfQuery(bool is_gles)
 {
-  const bool is_gles = static_cast<Renderer*>(g_renderer.get())->IsGLES();
   if (is_gles && GLExtensions::Supports("GL_NV_occlusion_query_samples"))
     return std::make_unique<PerfQueryGLESNV>();
   else if (is_gles)
@@ -165,7 +165,7 @@ void PerfQueryGL::FlushOne()
   // TODO: Dropping the lower 2 bits from this count should be closer to actual
   // hardware behavior when drawing triangles.
   result = static_cast<u64>(result) * EFB_WIDTH * EFB_HEIGHT /
-           (g_renderer->GetTargetWidth() * g_renderer->GetTargetHeight());
+           (g_framebuffer_manager->GetEFBWidth() * g_framebuffer_manager->GetEFBHeight());
 
   // Adjust for multisampling
   if (g_ActiveConfig.iMultisamples > 1)
@@ -264,8 +264,9 @@ void PerfQueryGLESNV::FlushOne()
   // NOTE: Reported pixel metrics should be referenced to native resolution
   // TODO: Dropping the lower 2 bits from this count should be closer to actual
   // hardware behavior when drawing triangles.
-  const u64 native_res_result = static_cast<u64>(result) * EFB_WIDTH * EFB_HEIGHT /
-                                (g_renderer->GetTargetWidth() * g_renderer->GetTargetHeight());
+  const u64 native_res_result =
+      static_cast<u64>(result) * EFB_WIDTH * EFB_HEIGHT /
+      (g_framebuffer_manager->GetEFBWidth() * g_framebuffer_manager->GetEFBHeight());
   m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
                                          std::memory_order_relaxed);
 

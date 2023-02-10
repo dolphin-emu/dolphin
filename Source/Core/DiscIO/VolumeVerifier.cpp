@@ -247,7 +247,7 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
     if (version % 0x30 != m_revision % 0x30)
       continue;
 
-    if (serials.empty() || StringBeginsWith(serials, "DS"))
+    if (serials.empty() || serials.starts_with("DS"))
     {
       // GC Datel discs have no serials in Redump, Wii Datel discs have serials like "DS000101"
       if (!m_game_id.empty())
@@ -666,7 +666,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
         {
           std::string file_name = f.GetName();
           Common::ToLower(&file_name);
-          if (StringBeginsWith(file_name, correct_ios))
+          if (file_name.starts_with(correct_ios))
           {
             has_correct_ios = true;
             break;
@@ -865,13 +865,13 @@ void VolumeVerifier::CheckMisc()
     bool inconsistent_game_id = true;
     if (game_id_encrypted == "RELSAB")
     {
-      if (StringBeginsWith(game_id_unencrypted, "410"))
+      if (game_id_unencrypted.starts_with("410"))
       {
         // This is the Wii Backup Disc (aka "pinkfish" disc),
         // which legitimately has an inconsistent game ID.
         inconsistent_game_id = false;
       }
-      else if (StringBeginsWith(game_id_unencrypted, "010"))
+      else if (game_id_unencrypted.starts_with("010"))
       {
         // Hacked version of the Wii Backup Disc (aka "pinkfish" disc).
         std::string proper_game_id = game_id_unencrypted;
@@ -1016,7 +1016,7 @@ void VolumeVerifier::CheckMisc()
                            "though the files are not identical."));
   }
 
-  if (IsDisc(m_volume.GetVolumeType()) && StringBeginsWith(game_id_unencrypted, "R8P"))
+  if (IsDisc(m_volume.GetVolumeType()) && game_id_unencrypted.starts_with("R8P"))
     CheckSuperPaperMario();
 }
 

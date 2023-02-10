@@ -504,16 +504,17 @@ static void ImHere()
     if (!f)
       f.Open("log64.txt", "w");
 
-    f.WriteString(fmt::format("{0:08x}\n", PC));
+    f.WriteString(fmt::format("{0:08x}\n", PowerPC::ppcState.pc));
   }
-  if (been_here.find(PC) != been_here.end())
+  if (been_here.find(PowerPC::ppcState.pc) != been_here.end())
   {
-    been_here.find(PC)->second++;
-    if ((been_here.find(PC)->second) & 1023)
+    been_here.find(PowerPC::ppcState.pc)->second++;
+    if ((been_here.find(PowerPC::ppcState.pc)->second) & 1023)
       return;
   }
-  INFO_LOG_FMT(DYNA_REC, "I'm here - PC = {:08x} , LR = {:08x}", PC, LR);
-  been_here[PC] = 1;
+  INFO_LOG_FMT(DYNA_REC, "I'm here - PC = {:08x} , LR = {:08x}", PowerPC::ppcState.pc,
+               LR(PowerPC::ppcState));
+  been_here[PowerPC::ppcState.pc] = 1;
 }
 
 bool Jit64::Cleanup()
@@ -534,11 +535,11 @@ bool Jit64::Cleanup()
   }
 
   // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
-  if (MMCR0.Hex || MMCR1.Hex)
+  if (MMCR0(PowerPC::ppcState).Hex || MMCR1(PowerPC::ppcState).Hex)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunctionCCC(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
-                        js.numFloatingPointInst);
+    ABI_CallFunctionCCCP(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
+                         js.numFloatingPointInst, &PowerPC::ppcState);
     ABI_PopRegistersAndAdjustStack({}, 0);
     did_something = true;
   }
@@ -758,7 +759,9 @@ void Jit64::Trace()
   DEBUG_LOG_FMT(DYNA_REC,
                 "JIT64 PC: {:08x} SRR0: {:08x} SRR1: {:08x} FPSCR: {:08x} "
                 "MSR: {:08x} LR: {:08x} {} {}",
-                PC, SRR0, SRR1, FPSCR.Hex, MSR.Hex, PowerPC::ppcState.spr[8], regs, fregs);
+                PowerPC::ppcState.pc, SRR0(PowerPC::ppcState), SRR1(PowerPC::ppcState),
+                PowerPC::ppcState.fpscr.Hex, PowerPC::ppcState.msr.Hex, PowerPC::ppcState.spr[8],
+                regs, fregs);
 }
 
 void Jit64::Jit(u32 em_address)
@@ -829,7 +832,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   if (code_block.m_memory_exception)
   {
     // Address of instruction could not be translated
-    NPC = nextPC;
+    PowerPC::ppcState.npc = nextPC;
     PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
     PowerPC::CheckExceptions();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
@@ -978,7 +981,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       // the start of the block in case our guess turns out wrong.
       for (int gqr : gqr_static)
       {
-        u32 value = GQR(gqr);
+        u32 value = GQR(PowerPC::ppcState, gqr);
         js.constantGqr[gqr] = value;
         CMP_or_TEST(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm32(value));
         J_CC(CC_NZ, target);

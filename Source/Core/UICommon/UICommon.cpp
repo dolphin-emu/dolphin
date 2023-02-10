@@ -295,7 +295,22 @@ void SetUserDirectory(std::string custom_path)
   //    -> Use AppData\Roaming\Dolphin Emulator as the User directory path
   // 6. Default
   //    -> Use GetExeDirectory()\User
+  //
+  // On Steam builds, we take a simplified approach:
+  // 1. GetExeDirectory()\portable.txt exists
+  //    -> Use GetExeDirectory()\User
+  // 2. AppData\Roaming exists
+  //    -> Use AppData\Roaming\Dolphin Emulator (Steam) as the User directory path
+  // 3. Default
+  //    -> Use GetExeDirectory()\User
 
+  // Get AppData path in case we need it.
+  // TODO: Maybe use WIL when it's available?
+  PWSTR appdata = nullptr;
+  bool appdata_found =
+      SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &appdata));
+
+#ifndef STEAM
   // Check our registry keys
   // TODO: Maybe use WIL when it's available?
   HKEY hkey;
@@ -325,12 +340,6 @@ void SetUserDirectory(std::string custom_path)
 
   local = local != 0 || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt");
 
-  // Get AppData path in case we need it.
-  // TODO: Maybe use WIL when it's available?
-  PWSTR appdata = nullptr;
-  bool appdata_found =
-      SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &appdata));
-
   // Attempt to check if the old User directory exists in My Documents.
   // TODO: Maybe use WIL when it's available?
   PWSTR documents = nullptr;
@@ -340,12 +349,12 @@ void SetUserDirectory(std::string custom_path)
   std::optional<std::string> old_user_folder;
   if (documents_found)
   {
-    old_user_folder = TStrToUTF8(documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
+    old_user_folder = TStrToUTF8(documents) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
   }
 
   if (local)  // Case 1-2
   {
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
   }
   else if (configPath)  // Case 3
   {
@@ -357,7 +366,7 @@ void SetUserDirectory(std::string custom_path)
   }
   else if (appdata_found)  // Case 5
   {
-    user_path = TStrToUTF8(appdata) + DIR_SEP "Dolphin Emulator" DIR_SEP;
+    user_path = TStrToUTF8(appdata) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
     // Set the UserConfigPath value in the registry for backwards compatibility with older Dolphin
     // builds, which will look for the default User directory in Documents. If we set this key,
@@ -370,15 +379,30 @@ void SetUserDirectory(std::string custom_path)
   }
   else  // Case 6
   {
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
   }
 
-  CoTaskMemFree(appdata);
   CoTaskMemFree(documents);
-#else
-  if (File::IsDirectory(ROOT_DIR DIR_SEP USERDATA_DIR))
+#else  // ifndef STEAM
+  if (File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt"))  // Case 1
   {
-    user_path = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
+  }
+  else if (appdata_found)  // Case 2
+  {
+    user_path = TStrToUTF8(appdata) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
+  }
+  else  // Case 3
+  {
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
+  }
+#endif
+
+  CoTaskMemFree(appdata);
+#else
+  if (File::IsDirectory(ROOT_DIR DIR_SEP EMBEDDED_USER_DIR))
+  {
+    user_path = ROOT_DIR DIR_SEP EMBEDDED_USER_DIR DIR_SEP;
   }
   else
   {
@@ -412,7 +436,7 @@ void SetUserDirectory(std::string custom_path)
     std::string exe_path = File::GetExeDirectory();
     if (File::Exists(exe_path + DIR_SEP "portable.txt"))
     {
-      user_path = exe_path + DIR_SEP "User" DIR_SEP;
+      user_path = exe_path + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
     }
     else if (env_path)
     {
@@ -421,12 +445,12 @@ void SetUserDirectory(std::string custom_path)
 #if defined(__APPLE__) || defined(ANDROID)
     else
     {
-      user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
+      user_path = home_path + NORMAL_USER_DIR DIR_SEP;
     }
 #else
     else
     {
-      user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
+      user_path = home_path + "." NORMAL_USER_DIR DIR_SEP;
 
       if (!File::Exists(user_path))
       {
@@ -434,18 +458,18 @@ void SetUserDirectory(std::string custom_path)
         std::string data_path =
             std::string(data_home && data_home[0] == '/' ? data_home :
                                                            (home_path + ".local" DIR_SEP "share")) +
-            DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+            DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
         const char* config_home = getenv("XDG_CONFIG_HOME");
         std::string config_path =
             std::string(config_home && config_home[0] == '/' ? config_home :
                                                                (home_path + ".config")) +
-            DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+            DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
         const char* cache_home = getenv("XDG_CACHE_HOME");
         std::string cache_path =
             std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache")) +
-            DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+            DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
         File::SetUserPath(D_USER_IDX, data_path);
         File::SetUserPath(D_CONFIG_IDX, config_path);

@@ -20,16 +20,17 @@
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace VertexLoaderManager
@@ -139,7 +140,7 @@ NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& d
   auto iter = s_native_vertex_map.find(decl);
   if (iter == s_native_vertex_map.end())
   {
-    std::unique_ptr<NativeVertexFormat> fmt = g_renderer->CreateNativeVertexFormat(decl);
+    std::unique_ptr<NativeVertexFormat> fmt = g_gfx->CreateNativeVertexFormat(decl);
     auto ipair = s_native_vertex_map.emplace(decl, std::move(fmt));
     iter = ipair.first;
   }
@@ -366,16 +367,32 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
     vertex_shader_manager.SetVertexFormat(loader->m_native_components,
                                           loader->m_native_vertex_format->GetVertexDeclaration());
 
-    // if cull mode is CULL_ALL, tell VertexManager to skip triangles and quads.
-    // They still need to go through vertex loading, because we need to calculate a zfreeze refrence
-    // slope.
-    bool cullall = (bpmem.genMode.cullmode == CullMode::All &&
-                    primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES);
+    // CPUCull's performance increase comes from encoding fewer GPU commands, not sending less data
+    // Therefore it's only useful to check if culling could remove a flush
+    const bool can_cpu_cull = g_ActiveConfig.bCPUCull &&
+                              primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES &&
+                              !g_vertex_manager->HasSendableVertices();
 
-    DataReader dst = g_vertex_manager->PrepareForAdditionalData(
-        primitive, count, loader->m_native_vtx_decl.stride, cullall);
+    // if cull mode is CULL_ALL, tell VertexManager to skip triangles and quads.
+    // They still need to go through vertex loading, because we need to calculate a zfreeze
+    // reference slope.
+    const bool cullall = (bpmem.genMode.cullmode == CullMode::All &&
+                          primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES);
+
+    const int stride = loader->m_native_vtx_decl.stride;
+    DataReader dst = g_vertex_manager->PrepareForAdditionalData(primitive, count, stride,
+                                                                cullall || can_cpu_cull);
 
     count = loader->RunVertices(src, dst.GetPointer(), count);
+
+    if (can_cpu_cull && !cullall)
+    {
+      if (!g_vertex_manager->AreAllVerticesCulled(loader, primitive, dst.GetPointer(), count))
+      {
+        DataReader new_dst = g_vertex_manager->DisableCullAll(stride);
+        memmove(new_dst.GetPointer(), dst.GetPointer(), count * stride);
+      }
+    }
 
     g_vertex_manager->AddIndices(primitive, count);
     g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
