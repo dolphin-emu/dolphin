@@ -1,6 +1,5 @@
 #include "LuaGCButtons.h"
 
-
 bool IsBinaryButton(GcButtonName button)
 {
   return (button == GcButtonName::A || button == GcButtonName::B || button == GcButtonName::X ||

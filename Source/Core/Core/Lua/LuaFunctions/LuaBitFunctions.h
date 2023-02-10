@@ -18,4 +18,4 @@ int LogicalNot(lua_State* lua_state);
 int BitShiftLeft(lua_State* lua_state);
 int BitShiftRight(lua_State* lua_state);
 
-} // namespace Lua::LuaBit
+}  // namespace Lua::LuaBit

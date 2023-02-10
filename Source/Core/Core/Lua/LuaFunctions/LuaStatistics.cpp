@@ -42,8 +42,7 @@ void InitLuaStatisticsFunctions(lua_State* lua_state, const std::string& lua_api
       luaL_Reg_With_Version({"getCurrentLagCount", "1.0", GetCurrentLagCount}),
       luaL_Reg_With_Version({"getTotalLagCount", "1.0", GetTotalLagCount}),
       luaL_Reg_With_Version({"isGcControllerInPort", "1.0", IsGcControllerInPort}),
-      luaL_Reg_With_Version({"isUsingPort", "1.0", IsUsingPort})
-  };
+      luaL_Reg_With_Version({"isUsingPort", "1.0", IsUsingPort})};
 
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   AddLatestFunctionsForVersion(lua_statistics_functions_with_versions_attached, lua_api_version,
@@ -136,7 +135,7 @@ int IsGcControllerInPort(lua_State* lua_state)
   s64 port_number = luaL_checkinteger(lua_state, 2);
   if (port_number < 1 || port_number > 4)
     luaL_error(lua_state,
-              "Error: in isGcControllerInPort() function, portNumber was not between 1 and 4");
+               "Error: in isGcControllerInPort() function, portNumber was not between 1 and 4");
   lua_pushboolean(lua_state, Movie::IsUsingGCController(port_number - 1));
   return 1;
 }
@@ -151,4 +150,4 @@ int IsUsingPort(lua_State* lua_state)
   return 1;
 }
 
-} // namespace Lua::LuaStatistics
+}  // namespace Lua::LuaStatistics

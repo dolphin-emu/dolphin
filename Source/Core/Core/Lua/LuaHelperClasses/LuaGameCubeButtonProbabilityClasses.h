@@ -22,8 +22,8 @@ public:
       event_happened = false;
     else
       event_happened =
-           ((probability/100.0) >= (static_cast<double>(num_generator_64_bits()) /
-                                    static_cast<double>(num_generator_64_bits.max())));
+          ((probability/100.0) >= (static_cast<double>(num_generator_64_bits()) /
+                                   static_cast<double>(num_generator_64_bits.max())));
   }
 
   bool event_happened;
@@ -438,7 +438,7 @@ public:
 private:
   Movie::ControllerState button_presses;
   std::vector<GcButtonName> buttons_to_look_at;
-  bool set_other_buttons_to_blank;  
+  bool set_other_buttons_to_blank;
 };
 
 class LuaGCClearControllerEvent : public LuaGameCubeButtonProbabilityEvent

@@ -91,8 +91,8 @@ int SetLuaCoreVersion(lua_State* lua_state)
 
   if (new_version_number[0] == '0' || new_version_number[0] == '.')
     luaL_error(lua_state,
-              "Error: value of argument passed to setLuaCoreVersion() function was less "
-              "than 1.0 (1.0 is the earliest version of the API that was released.");
+               "Error: value of argument passed to setLuaCoreVersion() function was less "
+               "than 1.0 (1.0 is the earliest version of the API that was released.");
 
   global_lua_api_version = new_version_number;
   return 0;
@@ -155,4 +155,4 @@ void StopScript()
   is_lua_script_active = false;
 }
 
-}
+}  // namespace Lua

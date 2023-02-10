@@ -54,7 +54,7 @@ void InitLuaEmuFunctions(lua_State* lua_state, const std::string& lua_api_versio
       luaL_Reg_With_Version({"saveState", "1.0", EmuSaveState}),
       luaL_Reg_With_Version({"playMovie", "1.0", EmuPlayMovie}),
       luaL_Reg_With_Version({"saveMovie", "1.0", EmuSaveMovie}),
-   };
+  };
 
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   AddLatestFunctionsForVersion(lua_emu_functions_with_versions_attached, lua_api_version,
@@ -88,8 +88,8 @@ std::string CheckIfFileExistsAndGetFileName(lua_State* lua_state, const char* fu
     fclose(file);
   else
     luaL_error(lua_state, (std::string("Error: Filename ") + file_name + " passed into emu:" +
-               func_name + "() did not represent a file which exists.")
-              .c_str());
+                          func_name + "() did not represent a file which exists.")
+                             .c_str());
   return file_name;
 }
 
@@ -132,4 +132,4 @@ int EmuSaveMovie(lua_State* lua_state)
   return lua_yield(lua_state, 0);
 }
 
-} // namespace Lua::LuaEmu
+}  // namespace Lua::LuaEmu

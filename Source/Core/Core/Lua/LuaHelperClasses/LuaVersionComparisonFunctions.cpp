@@ -38,7 +38,7 @@ int CompareFirstVersionToSecondVersion(std::string first_version, std::string se
     std::string next_number_in_second_version;
 
     size_t index_of_next_period_in_first_version =
-      first_version.find('.', index_of_next_digit_in_first_version);
+        first_version.find('.', index_of_next_digit_in_first_version);
     if (index_of_next_period_in_first_version == std::string::npos)
     {
       next_number_in_first_version = first_version.substr(index_of_next_digit_in_first_version);
@@ -77,13 +77,11 @@ int CompareFirstVersionToSecondVersion(std::string first_version, std::string se
   return 0;
 }
 
-
 bool IsFirstVersionGreaterThanSecondVersion(const std::string& first_version,
                                             const std::string& second_version)
 {
   return CompareFirstVersionToSecondVersion(first_version, second_version) > 0;
 }
-
 
 bool IsFirstVersionGreaterThanOrEqualToSecondVersion(const std::string& first_version,
                                                      const std::string& second_version)
@@ -91,4 +89,4 @@ bool IsFirstVersionGreaterThanOrEqualToSecondVersion(const std::string& first_ve
   return CompareFirstVersionToSecondVersion(first_version, second_version) >= 0;
 }
 
-} // namespace Lua
+}  // namespace Lua

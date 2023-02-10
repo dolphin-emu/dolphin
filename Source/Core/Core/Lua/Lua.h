@@ -27,4 +27,4 @@ void Init(const std::string& script_location,
 
 void StopScript();
 
-} // namespace Lua
+}  // namespace Lua

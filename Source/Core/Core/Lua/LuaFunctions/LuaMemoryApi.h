@@ -20,4 +20,4 @@ int DoReadNullTerminatedString(lua_State* lua_state);
 int DoGeneralWrite(lua_State* lua_state);
 int DoWriteBytes(lua_State* lua_state);
 int DoWriteString(lua_State* lua_state);
-} // namespace Lua::LuaMemoryApi
+}  // namespace Lua::LuaMemoryApi

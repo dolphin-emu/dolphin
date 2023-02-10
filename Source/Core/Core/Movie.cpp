@@ -1329,7 +1329,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
       for (int i = 0; i < Lua::LuaGameCubeController::random_button_events[controllerID].size();
            ++i)
         Lua::LuaGameCubeController::random_button_events[controllerID][i]->ApplyProbability(
-             s_padState);
+            s_padState);
       memcpy(&s_temp_input[s_currentByte], &s_padState, sizeof(ControllerState));
     }
   }

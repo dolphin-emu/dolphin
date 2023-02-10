@@ -376,7 +376,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
         for (int i = 0;
              i < Lua::LuaGameCubeController::random_button_events[m_device_number].size(); ++i)
           Lua::LuaGameCubeController::random_button_events[m_device_number][i]->ApplyProbability(
-            starting_controller_inputs);
+              starting_controller_inputs);
         CopyControllerStateToGCPadStatus(starting_controller_inputs, pad_status, all_buttons);
       }
     }

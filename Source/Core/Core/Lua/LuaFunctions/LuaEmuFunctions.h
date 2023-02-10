@@ -19,4 +19,4 @@ int EmuSaveState(lua_State* lua_state);
 int EmuPlayMovie(lua_State* lua_state);
 int EmuSaveMovie(lua_State* lua_state);
 
-} // namespace Lua::LuaEmu
+}  // namespace Lua::LuaEmu

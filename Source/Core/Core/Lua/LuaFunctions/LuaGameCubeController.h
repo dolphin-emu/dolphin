@@ -24,7 +24,8 @@ extern std::array<bool, 4> do_random_input_events_at_specified_port;
 extern std::array<Movie::ControllerState, 4> new_overwrite_controller_inputs;
 extern std::array<Movie::ControllerState, 4> add_to_controller_inputs;
 extern std::array<std::vector<GcButtonName>, 4> button_lists_for_add_to_controller_inputs;
-extern std::array<std::vector<std::unique_ptr<LuaGameCubeButtonProbabilityEvent>>, 4> random_button_events;
+extern std::array<std::vector<std::unique_ptr<LuaGameCubeButtonProbabilityEvent>>, 4>
+    random_button_events;
 
 void InitLuaGameCubeControllerFunctions(lua_State* lua_state, const std::string& lua_api_version);
 
@@ -39,4 +40,4 @@ int AddButtonComboChance(lua_State* lua_state);
 int AddControllerClearChance(lua_State* lua_state);
 int GetControllerInputs(lua_State* lua_state);
 
-} // namespace Lua::LuaGameCubeController
+}  // namespace Lua::LuaGameCubeController

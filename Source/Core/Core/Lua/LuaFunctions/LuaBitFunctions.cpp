@@ -42,9 +42,9 @@ void InitLuaBitFunctions(lua_State* lua_state, const std::string& lua_api_versio
 
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   AddLatestFunctionsForVersion(lua_bit_functions_with_versions_attached, lua_api_version,
-                                 deprecated_functions_map, lua_state);
+                               deprecated_functions_map, lua_state);
   lua_setglobal(lua_state, "bit");
-  }
+}
 
 int BitwiseAnd(lua_State* lua_state)
 {
@@ -124,8 +124,8 @@ int BitShiftLeft(lua_State* lua_state)
   s64 second_val = luaL_checkinteger(lua_state, 3);
   if (first_val < 0 || second_val < 0)
     luaL_error(lua_state,
-              "Error: in bit:bit_shift_left() function, an argument passed into the function was "
-              "negative. Both arguments to the function must be positive!");
+               "Error: in bit:bit_shift_left() function, an argument passed into the function was "
+               "negative. Both arguments to the function must be positive!");
   lua_pushinteger(lua_state,
                   static_cast<s64>(static_cast<u64>(first_val) << static_cast<u64>(second_val)));
   return 1;
@@ -138,10 +138,10 @@ int BitShiftRight(lua_State* lua_state)
   s64 second_val = luaL_checkinteger(lua_state, 3);
   if (first_val < 0 || second_val < 0)
     luaL_error(lua_state,
-              "Error: in bit:bit_shift_right() function, an argument passed into the function was "
-              "negative. Both arguments to the function must be positive!");
+               "Error: in bit:bit_shift_right() function, an argument passed into the function was "
+               "negative. Both arguments to the function must be positive!");
   lua_pushinteger(lua_state,
                   static_cast<s64>(static_cast<u64>(first_val) >> static_cast<u64>(second_val)));
   return 1;
 }
-} // namespace Lua::LuaBit
+}  // namespace Lua::LuaBit

@@ -869,8 +869,8 @@ void Callback_NewField()
   }
 
   if (Lua::is_lua_script_active && !Lua::LuaEmu::waiting_for_save_state_load &&
-    !Lua::LuaEmu::waiting_for_save_state_save && !Lua::LuaEmu::waiting_to_start_playing_movie &&
-    !Lua::LuaEmu::waiting_to_save_movie)
+      !Lua::LuaEmu::waiting_for_save_state_save && !Lua::LuaEmu::waiting_to_start_playing_movie &&
+      !Lua::LuaEmu::waiting_to_save_movie)
   {
     for (int i = 0; i < 4; ++i)
     {
@@ -880,9 +880,9 @@ void Callback_NewField()
       Lua::LuaGameCubeController::random_button_events[i].clear();
       Lua::LuaGameCubeController::button_lists_for_add_to_controller_inputs[i].clear();
       memset(&Lua::LuaGameCubeController::new_overwrite_controller_inputs[i], 0,
-        sizeof(Movie::ControllerState));
+             sizeof(Movie::ControllerState));
       memset(&Lua::LuaGameCubeController::add_to_controller_inputs[i], 0,
-        sizeof(Movie::ControllerState)); 
+             sizeof(Movie::ControllerState)); 
     }
 
     int ret_val;

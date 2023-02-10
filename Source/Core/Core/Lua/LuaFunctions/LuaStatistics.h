@@ -25,4 +25,4 @@ int GetTotalLagCount(lua_State* lua_state);
 
 int IsGcControllerInPort(lua_State* lua_state);
 int IsUsingPort(lua_State* lua_state);
-} // namespace Lua::LuaStatistics
+}  // namespace Lua::LuaStatistics

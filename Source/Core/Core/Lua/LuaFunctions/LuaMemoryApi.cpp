@@ -46,7 +46,7 @@ void InitLuaMemoryApi(lua_State* lua_state, const std::string& lua_api_version)
 
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   AddLatestFunctionsForVersion(lua_memory_functions_list_with_versions_attached, lua_api_version,
-    deprecated_functions_map, lua_state);
+                               deprecated_functions_map, lua_state);
   lua_setglobal(lua_state, "memory");
 }
 
@@ -98,7 +98,7 @@ u64 ReadU64FromDomainFunction(lua_State* lua_state, u32 address)
 std::string GetStringFromDomainFunction(lua_State* lua_state, u32 address, u32 length)
 {
   std::optional<PowerPC::ReadResult<std::string>> read_result =
-    PowerPC::HostTryReadString(address, length);
+      PowerPC::HostTryReadString(address, length);
   if (!read_result.has_value())
   {
     luaL_error(lua_state, "Error: Attempt to read string from memory failed!");
@@ -269,7 +269,7 @@ void WriteDouble(lua_State* lua_state, u32 address, double value)
 // End of helper functions block.
 
 int DoGeneralRead(lua_State* lua_state)  // format is: 1st argument after object is address,
-                                        // 2nd argument after object is type string.
+                                         // 2nd argument after object is type string.
 {
   u8 u8_val = 0;
   u16 u16_val = 0;
@@ -343,10 +343,10 @@ int DoGeneralRead(lua_State* lua_state)  // format is: 1st argument after object
   default:
     luaL_error(lua_state,
                "Error: Undefined type encountered in Memory:readFrom() function. Valid types are "
-                "u8, u16, u32, s8, s16, s32, s64, float, double, unsigned_8, unsigned_16, "
-                "unsigned_32, signed_8, signed_16, signed_32, signed_64, unsigned "
-                "byte, signed byte, unsigned int, signed int, signed long "
-                "long");
+               "u8, u16, u32, s8, s16, s32, s64, float, double, unsigned_8, unsigned_16, "
+               "unsigned_32, signed_8, signed_16, signed_32, signed_64, unsigned "
+               "byte, signed byte, unsigned int, signed int, signed long "
+               "long");
     return 0;
   }
 }
@@ -523,7 +523,7 @@ int DoWriteBytes(lua_State* lua_state)
                        "to be representable as a byte, the value must be between -128 and 255. "
                        "However, the number which was supposed to be written to address " +
                        std::to_string(address) + " was " + std::to_string(value))
-                .c_str()));
+               .c_str()));
       return 0;
     }
     if (value < 0)
@@ -545,7 +545,7 @@ int DoWriteBytes(lua_State* lua_state)
 int DoWriteString(lua_State* lua_state)
 {
   LuaColonOperatorTypeCheck(lua_state, "writeString",
-    "memory:writeString(0X80000043, \"exampleString\")");
+                            "memory:writeString(0X80000043, \"exampleString\")");
   u32 address = luaL_checkinteger(lua_state, 2);
   const char* string_to_write = luaL_checkstring(lua_state, 3);
   size_t string_size = strlen(string_to_write);

@@ -35,8 +35,8 @@ void AddLatestFunctionsForVersion(const std::array<luaL_Reg_With_Version, array_
       function_to_latest_version_found_map[current_function_name] = all_functions[i];
 
     else if (IsFirstVersionGreaterThanSecondVersion(
-                function_version_number,
-                function_to_latest_version_found_map[current_function_name].version) &&
+                 function_version_number,
+                 function_to_latest_version_found_map[current_function_name].version) &&
              !IsFirstVersionGreaterThanSecondVersion(function_version_number, lua_api_version))
       function_to_latest_version_found_map[current_function_name] = all_functions[i];
   }

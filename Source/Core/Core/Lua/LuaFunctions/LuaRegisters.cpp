@@ -39,7 +39,8 @@ void InitLuaRegistersFunctions(lua_State* lua_state, const std::string& lua_api_
 
   std::array lua_registers_functions_with_versions_attached = {
       luaL_Reg_With_Version({"getRegister", "1.0", GetRegister}),
-      luaL_Reg_With_Version({"getRegisterAsUnsignedByteArray", "1.0", GetRegisterAsUnsignedByteArray}),
+      luaL_Reg_With_Version(
+          {"getRegisterAsUnsignedByteArray", "1.0", GetRegisterAsUnsignedByteArray}),
       luaL_Reg_With_Version({"getRegisterAsSignedByteArray", "1.0", GetRegisterAsSignedByteArray}),
       luaL_Reg_With_Version({"setRegister", "1.0", SetRegister}),
       luaL_Reg_With_Version({"setRegisterFromByteArray", "1.0", SetRegisterFromByteArray})};
@@ -153,8 +154,8 @@ void PushValueFromAddress(lua_State* lua_state, u8* memory_location, NumberType 
   u8 return_type_size = GetMaxSize(return_type);
   if (return_type_size > register_size)
     luaL_error(
-      lua_state,
-      "Error: in getRegister(), user requested a return type that was larger than the register!");
+        lua_state,
+        "Error: in getRegister(), user requested a return type that was larger than the register!");
   else if (return_type_size + offset_bytes > register_size)
     luaL_error(lua_state, "Error: in getRegister(), there was not enough room after offsetting the "
                           "specified number of bytes in order to get the specified data type.");
@@ -229,7 +230,7 @@ int GetRegister(lua_State* lua_state)
 
   if (return_type == NumberType::Undefined)
     luaL_error(lua_state,
-      "Error: undefined type string was passed as an argument to getRegister()");
+               "Error: undefined type string was passed as an argument to getRegister()");
   s64 offset_bytes = 0;
   u8 register_size = 4;
   if (register_object.register_type == RegisterObject::RegisterType::FloatingPointRegister)
@@ -271,8 +272,8 @@ int PushByteArrayFromAddressHelperFunction(lua_State* lua_state, bool is_unsigne
 
   if (array_size + offset_bytes > register_size)
     luaL_error(lua_state, (std::string("Error: in ") + func_name +
-               ", attempt to read past the end of the register occured.")
-                  .c_str());
+                          ", attempt to read past the end of the register occured.")
+                             .c_str());
 
   for (int i = 0; i < array_size; ++i)
   {
@@ -305,8 +306,7 @@ int GetRegisterAsSignedByteArray(lua_State* lua_state)
 {
   LuaColonOperatorTypeCheck(lua_state, "getRegisterAsSignedByteArray",
                             "registers:getRegisterAsSignedByteArray(\"r4\", 2, 6)");
-  return PushByteArrayFromAddressHelperFunction(lua_state, false,
-                                                "getRegisterAsSignedByteArray()");
+  return PushByteArrayFromAddressHelperFunction(lua_state, false, "getRegisterAsSignedByteArray()");
 }
 
 void WriteValueToAddress(lua_State* lua_state, u8* memory_location, NumberType value_type,
@@ -315,16 +315,16 @@ void WriteValueToAddress(lua_State* lua_state, u8* memory_location, NumberType v
   u8 value_type_size = GetMaxSize(value_type);
   if (value_type_size > register_size)
     luaL_error(
-       lua_state,
-       "Error: in setRegister(), user tried to write a number that was larger than the register!");
+        lua_state,
+        "Error: in setRegister(), user tried to write a number that was larger than the register!");
   else if (offset_bytes >= register_size)
     luaL_error(
-       lua_state,
-       "Error: in setRegister(), user tried to use an offset that was larger than the register!");
+        lua_state,
+        "Error: in setRegister(), user tried to use an offset that was larger than the register!");
   else if (value_type_size + offset_bytes > register_size)
     luaL_error(lua_state, "Error: in setRegister(), there was not enough room after offsetting the "
                           "specified number of bytes in order to write the specified value.");
-  
+
   u8 unsigned8 = 0;
   s8 signed8 = 0;
   u16 unsigned16 = 0;
@@ -472,12 +472,12 @@ int SetRegisterFromByteArray(lua_State* lua_state)
 
     if (signed64 < -128)
       luaL_error(lua_state,
-                "Error: in setRegisterFromByteArray(), attempted to write value from byte array "
-                "which could not be represented with 1 byte (value was less than -128)");
+                 "Error: in setRegisterFromByteArray(), attempted to write value from byte array "
+                 "which could not be represented with 1 byte (value was less than -128)");
     else if (signed64 > 255)
       luaL_error(lua_state,
-                "Error: in setRegisterFromByteArray(), attempted to write value from byte array "
-                "which could not be represented with 1 byte (value was greater than 255)");
+                 "Error: in setRegisterFromByteArray(), attempted to write value from byte array "
+                 "which could not be represented with 1 byte (value was greater than 255)");
 
     if (signed64 < 0)
     {
@@ -493,4 +493,4 @@ int SetRegisterFromByteArray(lua_State* lua_state)
   return 0;
 }
 
-} // namespace Lua::LuaRegisters
+}  // namespace Lua::LuaRegisters
