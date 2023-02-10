@@ -3,9 +3,12 @@
 
 bool IsBinaryButton(GcButtonName button)
 {
-  return (button == GcButtonName::A || button == GcButtonName::B || button == GcButtonName::X || button == GcButtonName::Y ||
-    button == GcButtonName::Z || button == GcButtonName::L || button == GcButtonName::R || button == GcButtonName::Start ||
-    button == GcButtonName::Reset || button == GcButtonName::DPadUp || button == GcButtonName::DPadDown || button == GcButtonName::DPadLeft || button == GcButtonName::DPadRight);
+  return (button == GcButtonName::A || button == GcButtonName::B || button == GcButtonName::X ||
+          button == GcButtonName::Y || button == GcButtonName::Z || button == GcButtonName::L ||
+          button == GcButtonName::R || button == GcButtonName::Start ||
+          button == GcButtonName::Reset || button == GcButtonName::DPadUp ||
+          button == GcButtonName::DPadDown || button == GcButtonName::DPadLeft ||
+          button == GcButtonName::DPadRight);
 }
 
 bool IsAnalogButton(GcButtonName button)
@@ -136,49 +139,49 @@ GcButtonName ParseGCButton(const char* button_name)
   }
 }
 
-  const char* ConvertButtonEnumToString(GcButtonName button)
+const char* ConvertButtonEnumToString(GcButtonName button)
+{
+  switch (button)
   {
-    switch (button)
-    {
-    case GcButtonName::A:
-      return "A";
-    case GcButtonName::B:
-      return "B";
-    case GcButtonName::X:
-      return "X";
-    case GcButtonName::Y:
-      return "Y";
-    case GcButtonName::Z:
-      return "Z";
-    case GcButtonName::L:
-      return "L";
-    case GcButtonName::R:
-      return "R";
-    case GcButtonName::Start:
-      return "START";
-    case GcButtonName::Reset:
-      return "RESET";
-    case GcButtonName::DPadUp:
-      return "dPadUp";
-    case GcButtonName::DPadDown:
-      return "dPadDown";
-    case GcButtonName::DPadLeft:
-      return "dPadLeft";
-    case GcButtonName::DPadRight:
-      return "dPadRight";
-    case GcButtonName::TriggerL:
-      return "triggerL";
-    case GcButtonName::TriggerR:
-      return "triggerR";
-    case GcButtonName::AnalogStickX:
-      return "analogStickX";
-    case GcButtonName::AnalogStickY:
-      return "analogStickY";
-    case GcButtonName::CStickX:
-      return "cStickX";
-    case GcButtonName::CStickY:
-      return "cStickY";
-    default:
-      return "";
-    }
+  case GcButtonName::A:
+    return "A";
+  case GcButtonName::B:
+    return "B";
+  case GcButtonName::X:
+    return "X";
+  case GcButtonName::Y:
+    return "Y";
+  case GcButtonName::Z:
+    return "Z";
+  case GcButtonName::L:
+    return "L";
+  case GcButtonName::R:
+    return "R";
+  case GcButtonName::Start:
+    return "START";
+  case GcButtonName::Reset:
+    return "RESET";
+  case GcButtonName::DPadUp:
+    return "dPadUp";
+  case GcButtonName::DPadDown:
+    return "dPadDown";
+  case GcButtonName::DPadLeft:
+    return "dPadLeft";
+  case GcButtonName::DPadRight:
+    return "dPadRight";
+  case GcButtonName::TriggerL:
+    return "triggerL";
+  case GcButtonName::TriggerR:
+    return "triggerR";
+  case GcButtonName::AnalogStickX:
+    return "analogStickX";
+  case GcButtonName::AnalogStickY:
+    return "analogStickY";
+  case GcButtonName::CStickX:
+    return "cStickX";
+  case GcButtonName::CStickY:
+    return "cStickY";
+  default:
+    return "";
   }
+}

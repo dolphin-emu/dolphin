@@ -13,4 +13,4 @@ int GetRegisterAsUnsignedByteArray(lua_State* lua_state);
 int GetRegisterAsSignedByteArray(lua_State* lua_state);
 int SetRegister(lua_State* lua_state);
 int SetRegisterFromByteArray(lua_State* lua_state);
-}
+} // namespace Lua::LuaRegisters

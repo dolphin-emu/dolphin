@@ -9,4 +9,4 @@ typedef struct luaL_Reg_With_Version
   const char* version;
   lua_CFunction func;
 } luaL_Reg_With_Version;
-#endif 
+#endif

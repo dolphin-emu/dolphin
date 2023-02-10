@@ -3,7 +3,26 @@
 
 enum class GcButtonName
 {
-  A, B, X, Y, Z, L, R, DPadUp, DPadDown, DPadLeft, DPadRight, AnalogStickX, AnalogStickY, CStickX, CStickY, TriggerL, TriggerR, Start, Reset, Unknown
+  A,
+  B,
+  X,
+  Y,
+  Z,
+  L,
+  R,
+  DPadUp,
+  DPadDown,
+  DPadLeft,
+  DPadRight,
+  AnalogStickX,
+  AnalogStickY,
+  CStickX,
+  CStickY,
+  TriggerL,
+  TriggerR,
+  Start,
+  Reset,
+  Unknown
 };
 
 extern bool IsBinaryButton(GcButtonName button);

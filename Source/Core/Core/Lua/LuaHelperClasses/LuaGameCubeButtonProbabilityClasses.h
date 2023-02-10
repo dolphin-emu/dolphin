@@ -1,10 +1,10 @@
 #pragma once
 
+#include <random>
+#include <vector>
+
 #include "Core/Movie.h"
 #include "LuaGCButtons.h"
-#include <vector>
-#include <random>
-
 
 class LuaGameCubeButtonProbabilityEvent
 {
@@ -14,13 +14,16 @@ public:
 
   virtual void ApplyProbability(Movie::ControllerState& controller_state) = 0;
   virtual ~LuaGameCubeButtonProbabilityEvent() {}
-  void CheckIfEventHappened(double probability) {
+  void CheckIfEventHappened(double probability)
+  {
     if (probability >= 100.0)
       event_happened = true;
     else if (probability <= 0.0)
       event_happened = false;
     else
-    event_happened = ((probability/100.0) >= (static_cast<double>(num_generator_64_bits()) / static_cast<double>(num_generator_64_bits.max())));
+      event_happened =
+           ((probability/100.0) >= (static_cast<double>(num_generator_64_bits()) /
+                                    static_cast<double>(num_generator_64_bits.max())));
   }
 
   bool event_happened;
@@ -145,7 +148,6 @@ public:
       return;
     default:
       return;
-
     }
   }
 };
@@ -213,9 +215,7 @@ public:
 
 class LuaGCAlterAnalogInputFromCurrentValue : public LuaGameCubeButtonProbabilityEvent
 {
-
 public:
-
   LuaGCAlterAnalogInputFromCurrentValue(double probability, GcButtonName new_button_name,
                                         u32 new_max_lower_difference, u32 new_max_upper_difference)
   {
@@ -252,42 +252,41 @@ public:
       return;
     default:
       return;
-
     }
   }
 
-  private:
-    u32 offset_from_lower_bound;
-    u8 max_lower_difference;
+private:
+  u32 offset_from_lower_bound;
+  u8 max_lower_difference;
 
-    void CalculateOffsetFromLowerBound(u32 lower_difference, u32 upper_difference)
+  void CalculateOffsetFromLowerBound(u32 lower_difference, u32 upper_difference)
+  {
+    if (upper_difference == 0 && lower_difference == 0)
     {
-      if (upper_difference == 0 && lower_difference == 0)
-      {
-        offset_from_lower_bound = 0;
-        return;
-      }
-
-      offset_from_lower_bound = (rand() % (lower_difference + upper_difference + 1));
+      offset_from_lower_bound = 0;
+      return;
     }
 
-    u8 GetNewValue(u8 current_value)
-    {
-      int lower_bound = static_cast<int>(current_value) - static_cast<int>(max_lower_difference);
-      int return_value = lower_bound + static_cast<int>(offset_from_lower_bound);
-      if (return_value < 0)
-        return_value = 0;
-      else if (return_value > 255)
-        return_value = 255;
-      return static_cast<u8>(return_value);
-    }
+    offset_from_lower_bound = (rand() % (lower_difference + upper_difference + 1));
+  }
+
+  u8 GetNewValue(u8 current_value)
+  {
+    int lower_bound = static_cast<int>(current_value) - static_cast<int>(max_lower_difference);
+    int return_value = lower_bound + static_cast<int>(offset_from_lower_bound);
+    if (return_value < 0)
+      return_value = 0;
+    else if (return_value > 255)
+      return_value = 255;
+    return static_cast<u8>(return_value);
+  }
 };
 
 class LuaGCAlterAnalogInputFromFixedValue : public LuaGameCubeButtonProbabilityEvent
 {
 public:
-    LuaGCAlterAnalogInputFromFixedValue(double probability, GcButtonName new_button_name, u32 value,
-                                        u32 max_lower_difference, u32 max_upper_difference)
+  LuaGCAlterAnalogInputFromFixedValue(double probability, GcButtonName new_button_name, u32 value,
+                                      u32 max_lower_difference, u32 max_upper_difference)
   {
     CheckIfEventHappened(probability);
     button_effected = new_button_name;
@@ -296,7 +295,9 @@ public:
     else
     {
       int lower_bound = static_cast<int>(value) - static_cast<int>(max_lower_difference);
-      int temp_result = lower_bound + static_cast<int>((rand() % (max_lower_difference + max_upper_difference + 1)));
+      int temp_result =
+          lower_bound +
+          static_cast<int>((rand() % (max_lower_difference + max_upper_difference + 1)));
       if (temp_result < 0)
         temp_result = 0;
       if (temp_result > 255)
@@ -331,20 +332,20 @@ public:
       controller_state.TriggerR = altered_button_value;
       return;
     default:
-      return; 
+      return;
     }
   }
 
-  private:
-    u8 altered_button_value;
+private:
+  u8 altered_button_value;
 };
 
 class LuaGCButtonComboEvent : public LuaGameCubeButtonProbabilityEvent
 {
 public:
-    LuaGCButtonComboEvent(double probability, Movie::ControllerState new_button_presses,
-                          std::vector<GcButtonName> new_buttons_to_look_at,
-                          bool new_set_other_buttons_to_blank)
+  LuaGCButtonComboEvent(double probability, Movie::ControllerState new_button_presses,
+                        std::vector<GcButtonName> new_buttons_to_look_at,
+                        bool new_set_other_buttons_to_blank)
   {
     CheckIfEventHappened(probability);
     button_presses = new_button_presses;
@@ -434,19 +435,16 @@ public:
     }
   }
 
-  private:
-    Movie::ControllerState button_presses;
-    std::vector<GcButtonName> buttons_to_look_at;
-    bool set_other_buttons_to_blank;
-    
+private:
+  Movie::ControllerState button_presses;
+  std::vector<GcButtonName> buttons_to_look_at;
+  bool set_other_buttons_to_blank;  
 };
 
 class LuaGCClearControllerEvent : public LuaGameCubeButtonProbabilityEvent
 {
 public:
-  LuaGCClearControllerEvent(double probability) {
-    CheckIfEventHappened(probability);
-  }
+  LuaGCClearControllerEvent(double probability) { CheckIfEventHappened(probability); }
 
   void ApplyProbability(Movie::ControllerState& controller_state)
   {

@@ -1,26 +1,27 @@
 #include "LuaEmuFunctions.h"
-#include "Core/Lua/LuaVersionResolver.h"
-#include "Core/State.h"
+#include <optional>
 #include "Core/Core.h"
+#include "Core/Lua/LuaVersionResolver.h"
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
-#include <optional>
+#include "Core/State.h"
 
 namespace Lua::LuaEmu
 {
-  bool waiting_for_save_state_load = false;
-  bool waiting_for_save_state_save = false;
-  bool waiting_to_start_playing_movie = false;
-  bool waiting_to_save_movie = false;
 
-  std::string load_state_name;
-  std::string save_state_name;
-  std::string movie_path_name;
-  std::string play_movie_name;
-  std::optional<std::string> blank_string;
-  std::string save_movie_name;
+bool waiting_for_save_state_load = false;
+bool waiting_for_save_state_save = false;
+bool waiting_to_start_playing_movie = false;
+bool waiting_to_save_movie = false;
 
-  class Emu
+std::string load_state_name;
+std::string save_state_name;
+std::string movie_path_name;
+std::string play_movie_name;
+std::optional<std::string> blank_string;
+std::string save_movie_name;
+
+class Emu
 {
 public:
   inline Emu() {}
@@ -48,15 +49,16 @@ void InitLuaEmuFunctions(lua_State* lua_state, const std::string& lua_api_versio
   lua_setfield(lua_state, -2, "__index");
 
   std::array lua_emu_functions_with_versions_attached = {
-    luaL_Reg_With_Version({"frameAdvance", "1.0", EmuFrameAdvance}),
-    luaL_Reg_With_Version({"loadState", "1.0", EmuLoadState}),
-    luaL_Reg_With_Version({"saveState", "1.0", EmuSaveState}),
-    luaL_Reg_With_Version({"playMovie", "1.0", EmuPlayMovie}),
-    luaL_Reg_With_Version({"saveMovie", "1.0", EmuSaveMovie}),
+      luaL_Reg_With_Version({"frameAdvance", "1.0", EmuFrameAdvance}),
+      luaL_Reg_With_Version({"loadState", "1.0", EmuLoadState}),
+      luaL_Reg_With_Version({"saveState", "1.0", EmuSaveState}),
+      luaL_Reg_With_Version({"playMovie", "1.0", EmuPlayMovie}),
+      luaL_Reg_With_Version({"saveMovie", "1.0", EmuSaveMovie}),
    };
 
   std::unordered_map<std::string, std::string> deprecated_functions_map;
-  AddLatestFunctionsForVersion(lua_emu_functions_with_versions_attached, lua_api_version, deprecated_functions_map, lua_state);
+  AddLatestFunctionsForVersion(lua_emu_functions_with_versions_attached, lua_api_version,
+                               deprecated_functions_map, lua_state);
   lua_setglobal(lua_state, "emu");
 }
 
@@ -85,8 +87,9 @@ std::string CheckIfFileExistsAndGetFileName(lua_State* lua_state, const char* fu
   if (FILE* file = fopen(file_name.c_str(), "r"))
     fclose(file);
   else
-    luaL_error(lua_state, (std::string("Error: Filename ") + file_name + " passed into emu:" + func_name +
-                             "() did not represent a file which exists.").c_str());
+    luaL_error(lua_state, (std::string("Error: Filename ") + file_name + " passed into emu:" +
+               func_name + "() did not represent a file which exists.")
+              .c_str());
   return file_name;
 }
 
@@ -125,10 +128,8 @@ int EmuSaveMovie(lua_State* lua_state)
   LuaColonOperatorTypeCheck(lua_state, "saveMovie", "emu:saveMovie(movieFileName)");
   save_movie_name = luaL_checkstring(lua_state, 2);
   waiting_to_save_movie = true;
-  Core::QueueHostJob([=]() {
-    Movie::SaveRecording(save_movie_name);
-  });
+  Core::QueueHostJob([=]() { Movie::SaveRecording(save_movie_name); });
   return lua_yield(lua_state, 0);
 }
 
-}  // namespace Lua_emu
+} // namespace Lua::LuaEmu

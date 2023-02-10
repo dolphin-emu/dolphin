@@ -1,6 +1,6 @@
 #pragma once
-#include <string>
 #include <lua.hpp>
+#include <string>
 #include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 
 namespace Lua::LuaBit
@@ -18,4 +18,4 @@ int LogicalNot(lua_State* lua_state);
 int BitShiftLeft(lua_State* lua_state);
 int BitShiftRight(lua_State* lua_state);
 
-}
+} // namespace Lua::LuaBit

@@ -1,6 +1,8 @@
 #pragma once
-#include <string>
 #include <lua.hpp>
+
+#include <string>
+
 #include "Common/CommonTypes.h"
 #include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 
@@ -18,4 +20,4 @@ int DoReadNullTerminatedString(lua_State* lua_state);
 int DoGeneralWrite(lua_State* lua_state);
 int DoWriteBytes(lua_State* lua_state);
 int DoWriteString(lua_State* lua_state);
-}  // namespace LuaMemoryApi
+} // namespace Lua::LuaMemoryApi

@@ -1220,77 +1220,77 @@ static void CheckInputEnd()
   }
 }
 
-
-void AddControllerInputs(ControllerState& starting_state, ControllerState new_controller_values, std::vector<GcButtonName> buttons_to_add)
+void AddControllerInputs(ControllerState& starting_state, ControllerState new_controller_values,
+                         std::vector<GcButtonName> buttons_to_add)
 {
   for (int i = 0; i < buttons_to_add.size(); ++i)
   {
     switch (buttons_to_add[i])
     {
     case GcButtonName::A:
-        starting_state.A = new_controller_values.A;
-        break;
+      starting_state.A = new_controller_values.A;
+      break;
     case GcButtonName::B:
-        starting_state.B = new_controller_values.B;
-        break;
+      starting_state.B = new_controller_values.B;
+      break;
     case GcButtonName::X:
-        starting_state.X = new_controller_values.X;
-        break;
+      starting_state.X = new_controller_values.X;
+      break;
     case GcButtonName::Y:
-        starting_state.Y = new_controller_values.Y;
-        break;
+      starting_state.Y = new_controller_values.Y;
+      break;
     case GcButtonName::Z:
-        starting_state.Z = new_controller_values.Z;
-        break;
+      starting_state.Z = new_controller_values.Z;
+      break;
     case GcButtonName::L:
-        starting_state.L = new_controller_values.L;
-        break;
+      starting_state.L = new_controller_values.L;
+      break;
     case GcButtonName::R:
-        starting_state.R = new_controller_values.R;
-        break;
+      starting_state.R = new_controller_values.R;
+      break;
     case GcButtonName::Start:
-        starting_state.Start = new_controller_values.Start;
-        break;
+      starting_state.Start = new_controller_values.Start;
+      break;
     case GcButtonName::Reset:
-        starting_state.reset = new_controller_values.reset;
-        break;
+      starting_state.reset = new_controller_values.reset;
+      break;
     case GcButtonName::DPadUp:
-        starting_state.DPadUp = new_controller_values.DPadUp;
-        break;
+      starting_state.DPadUp = new_controller_values.DPadUp;
+      break;
     case GcButtonName::DPadDown:
-        starting_state.DPadDown = new_controller_values.DPadDown;
-        break;
+      starting_state.DPadDown = new_controller_values.DPadDown;
+      break;
     case GcButtonName::DPadLeft:
-        starting_state.DPadLeft = new_controller_values.DPadLeft;
-        break;
+      starting_state.DPadLeft = new_controller_values.DPadLeft;
+      break;
     case GcButtonName::DPadRight:
-        starting_state.DPadRight = new_controller_values.DPadRight;
-        break;
+      starting_state.DPadRight = new_controller_values.DPadRight;
+      break;
     case GcButtonName::TriggerL:
-        starting_state.TriggerL = new_controller_values.TriggerL;
-        break;
+      starting_state.TriggerL = new_controller_values.TriggerL;
+      break;
     case GcButtonName::TriggerR:
-        starting_state.TriggerR = new_controller_values.TriggerR;
-        break;
+      starting_state.TriggerR = new_controller_values.TriggerR;
+      break;
     case GcButtonName::AnalogStickX:
-        starting_state.AnalogStickX = new_controller_values.AnalogStickX;
-        break;
+      starting_state.AnalogStickX = new_controller_values.AnalogStickX;
+      break;
     case GcButtonName::AnalogStickY:
-        starting_state.AnalogStickY = new_controller_values.AnalogStickY;
-        break;
+      starting_state.AnalogStickY = new_controller_values.AnalogStickY;
+      break;
     case GcButtonName::CStickX:
-        starting_state.CStickX = new_controller_values.CStickX;
-        break;
+      starting_state.CStickX = new_controller_values.CStickX;
+      break;
     case GcButtonName::CStickY:
-        starting_state.CStickY = new_controller_values.CStickY;
-        break;
-      default:
-        break;
+      starting_state.CStickY = new_controller_values.CStickY;
+      break;
+    default:
+      break;
     }
   }
-
 }
-    // NOTE: CPU Thread
+
+// NOTE: CPU Thread
 void PlayController(GCPadStatus* PadStatus, int controllerID)
 {
   // Correct playback is entirely dependent on the emulator polling the controllers
@@ -1309,7 +1309,9 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
   {
     if (Lua::LuaGameCubeController::overwrite_controller_at_specified_port[controllerID])
     {
-      memcpy(&s_temp_input[s_currentByte], &Lua::LuaGameCubeController::new_overwrite_controller_inputs[controllerID], sizeof(ControllerState));
+      memcpy(&s_temp_input[s_currentByte],
+             &Lua::LuaGameCubeController::new_overwrite_controller_inputs[controllerID],
+             sizeof(ControllerState));
     }
 
     if (Lua::LuaGameCubeController::add_to_controller_at_specified_port[controllerID])
@@ -1324,8 +1326,10 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     if (Lua::LuaGameCubeController::do_random_input_events_at_specified_port[controllerID])
     {
       memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
-      for (int i = 0; i < Lua::LuaGameCubeController::random_button_events[controllerID].size(); ++i)
-        Lua::LuaGameCubeController::random_button_events[controllerID][i]->ApplyProbability(s_padState);
+      for (int i = 0; i < Lua::LuaGameCubeController::random_button_events[controllerID].size();
+           ++i)
+        Lua::LuaGameCubeController::random_button_events[controllerID][i]->ApplyProbability(
+             s_padState);
       memcpy(&s_temp_input[s_currentByte], &s_padState, sizeof(ControllerState));
     }
   }

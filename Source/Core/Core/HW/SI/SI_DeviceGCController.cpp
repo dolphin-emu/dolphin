@@ -128,7 +128,9 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   return 0;
 }
 
-void CopyControllerStateToGCPadStatus(Movie::ControllerState controller_state, GCPadStatus& gc_pad_status, std::vector<GcButtonName> buttons_to_copy)
+void CopyControllerStateToGCPadStatus(Movie::ControllerState controller_state,
+                                      GCPadStatus& gc_pad_status,
+                                      std::vector<GcButtonName> buttons_to_copy)
 {
   gc_pad_status.button |= PAD_USE_ORIGIN;
   for (int i = 0; i < buttons_to_copy.size(); ++i)
@@ -262,7 +264,8 @@ void CopyControllerStateToGCPadStatus(Movie::ControllerState controller_state, G
   }
 }
 
-void CopyGCPadStatusToControllerState(GCPadStatus gc_pad_status, Movie::ControllerState& controller_state)
+void CopyGCPadStatusToControllerState(GCPadStatus gc_pad_status,
+                                      Movie::ControllerState& controller_state)
 {
   controller_state.A = ((gc_pad_status.button & PAD_BUTTON_A) != 0);
   controller_state.B = ((gc_pad_status.button & PAD_BUTTON_B) != 0);
@@ -290,7 +293,6 @@ void CopyGCPadStatusToControllerState(GCPadStatus gc_pad_status, Movie::Controll
   controller_state.is_connected = gc_pad_status.isConnected;
 
   controller_state.get_origin = (gc_pad_status.button & PAD_GET_ORIGIN) != 0;
-
 }
 
 void CSIDevice_GCController::HandleMoviePadStatus(int device_number, GCPadStatus* pad_status)
@@ -327,11 +329,24 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
 
     if (Lua::is_lua_script_active && !Movie::IsPlayingInput())
     {
-      std::vector<GcButtonName> all_buttons{ GcButtonName::A, GcButtonName::B, GcButtonName::X, GcButtonName::Y,
-                                             GcButtonName::Z, GcButtonName::L, GcButtonName::R, GcButtonName::Start,
-                                             GcButtonName::DPadUp, GcButtonName::DPadDown, GcButtonName::DPadLeft, GcButtonName::DPadRight,
-                                             GcButtonName::TriggerL, GcButtonName::TriggerR, GcButtonName::AnalogStickX,
-                                             GcButtonName::AnalogStickY, GcButtonName::CStickX, GcButtonName::CStickY};
+      std::vector<GcButtonName> all_buttons{GcButtonName::A,
+                                            GcButtonName::B,
+                                            GcButtonName::X,
+                                            GcButtonName::Y,
+                                            GcButtonName::Z,
+                                            GcButtonName::L,
+                                            GcButtonName::R,
+                                            GcButtonName::Start,
+                                            GcButtonName::DPadUp,
+                                            GcButtonName::DPadDown,
+                                            GcButtonName::DPadLeft,
+                                            GcButtonName::DPadRight,
+                                            GcButtonName::TriggerL,
+                                            GcButtonName::TriggerR,
+                                            GcButtonName::AnalogStickX,
+                                            GcButtonName::AnalogStickY,
+                                            GcButtonName::CStickX,
+                                            GcButtonName::CStickY};
 
       if (Lua::LuaGameCubeController::overwrite_controller_at_specified_port[m_device_number])
       {
@@ -358,20 +373,22 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
         Movie::ControllerState starting_controller_inputs;
         memset(&starting_controller_inputs, 0, sizeof(Movie::ControllerState));
         CopyGCPadStatusToControllerState(pad_status, starting_controller_inputs);
-        for (int i = 0; i < Lua::LuaGameCubeController::random_button_events[m_device_number].size(); ++i)
-          Lua::LuaGameCubeController::random_button_events[m_device_number][i]->ApplyProbability(starting_controller_inputs);
+        for (int i = 0;
+             i < Lua::LuaGameCubeController::random_button_events[m_device_number].size(); ++i)
+          Lua::LuaGameCubeController::random_button_events[m_device_number][i]->ApplyProbability(
+            starting_controller_inputs);
         CopyControllerStateToGCPadStatus(starting_controller_inputs, pad_status, all_buttons);
       }
     }
   }
-    HandleMoviePadStatus(m_device_number, &pad_status);
+  HandleMoviePadStatus(m_device_number, &pad_status);
 
-    // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
-    // Watch for this to calibrate real controllers on connection.
-    if (pad_status.button & PAD_GET_ORIGIN)
-      SetOrigin(pad_status);
+  // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
+  // Watch for this to calibrate real controllers on connection.
+  if (pad_status.button & PAD_GET_ORIGIN)
+    SetOrigin(pad_status);
 
-    return pad_status;
+  return pad_status;
 }
 
 // GetData

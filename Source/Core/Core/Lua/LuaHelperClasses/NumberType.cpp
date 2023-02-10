@@ -1,6 +1,6 @@
 #include "NumberType.h"
 
-  constexpr unsigned long long hashFunc(const char* input_string)
+constexpr unsigned long long hashFunc(const char* input_string)
 {
   unsigned long long hash = 5381;
   for (size_t i = 0; input_string[i] != '\0'; ++i)
@@ -90,7 +90,8 @@ bool IsEqualSpecial(const char* first_string, const char* second_string)
   return true;
 }
 
-NumberType ReturnTypeIfEqual(const char* first_string, const char* second_string, NumberType return_type)
+NumberType ReturnTypeIfEqual(const char* first_string, const char* second_string,
+                             NumberType return_type)
 {
   if (IsEqualSpecial(first_string, second_string))
     return return_type;
@@ -105,8 +106,8 @@ NumberType ReturnTypeIfEqual(const char* first_string, const char* second_string
 //
 // Valid type strings that the user can pass in are listed below. Note that each string is case
 // insensitive, and spaces can be replaced with underscores and vice versa. Also, any string which
-// is 2 or more words can be written as one word, a series of words seperated by underscores, or a series
-// of words seperated by spaces:
+// is 2 or more words can be written as one word, a series of words seperated by underscores, or a
+// series of words seperated by spaces:
 //
 // "u8", "u16", "u32", "u64", "s8", "s16", "s32", "s64", "float", "double"
 // "unsigned_8", "unsigned_16", "unsigned_32", "unsigned_64", "signed_8", "signed_16",
@@ -122,7 +123,6 @@ NumberType ParseType(const char* input_string)
   // There are 42 cases below.
   switch (input_string_hash)
   {
-
   case U8_HASH:
     return ReturnTypeIfEqual(input_string, "u8", NumberType::Unsigned8);
   case U16_HASH:
@@ -131,7 +131,6 @@ NumberType ParseType(const char* input_string)
     return ReturnTypeIfEqual(input_string, "u32", NumberType::Unsigned32);
   case U64_HASH:
     return ReturnTypeIfEqual(input_string, "u64", NumberType::Unsigned64);
-
 
   case S8_HASH:
     return ReturnTypeIfEqual(input_string, "s8", NumberType::Signed8);
@@ -142,12 +141,10 @@ NumberType ParseType(const char* input_string)
   case S64_HASH:
     return ReturnTypeIfEqual(input_string, "s64", NumberType::Signed64);
 
-
   case FLOAT_HASH:
     return ReturnTypeIfEqual(input_string, "float", NumberType::Float);
   case DOUBLE_HASH:
     return ReturnTypeIfEqual(input_string, "double", NumberType::Double);
-
 
   case UNSIGNED_8_HASH:
     return ReturnTypeIfEqual(input_string, "unsigned_8", NumberType::Unsigned8);
@@ -157,7 +154,6 @@ NumberType ParseType(const char* input_string)
     return ReturnTypeIfEqual(input_string, "unsigned_32", NumberType::Unsigned32);
   case UNSIGNED_64_HASH:
     return ReturnTypeIfEqual(input_string, "unsigned_64", NumberType::Unsigned64);
-
 
   case UNSIGNED_8_ALT_HASH:
     return ReturnTypeIfEqual(input_string, "unsigned8", NumberType::Unsigned8);
@@ -177,7 +173,6 @@ NumberType ParseType(const char* input_string)
   case SIGNED_64_HASH:
     return ReturnTypeIfEqual(input_string, "signed_64", NumberType::Signed64);
 
-
   case SIGNED_8_ALT_HASH:
     return ReturnTypeIfEqual(input_string, "signed8", NumberType::Signed8);
   case SIGNED_16_ALT_HASH:
@@ -186,7 +181,6 @@ NumberType ParseType(const char* input_string)
     return ReturnTypeIfEqual(input_string, "signed32", NumberType::Signed32);
   case SIGNED_64_ALT_HASH:
     return ReturnTypeIfEqual(input_string, "signed64", NumberType::Signed64);
-
 
   case UNSIGNED_BYTE_HASH:
     return ReturnTypeIfEqual(input_string, "unsigned byte", NumberType::Unsigned8);
@@ -220,32 +214,32 @@ NumberType ParseType(const char* input_string)
 
 std::string GetNumberTypeAsString(NumberType input_type)
 {
-    switch (input_type)
-    {
-    case NumberType::Unsigned8:
-      return "UNSIGNED_8";
-    case NumberType::Unsigned16:
-      return "UNSIGNED_16";
-    case NumberType::Unsigned32:
-      return "UNSIGNED_32";
-    case NumberType::Unsigned64:
-      return "UNSIGNED_64";
-    case NumberType::Signed8:
-      return "SIGNED_8";
-    case NumberType::Signed16:
-      return "SIGNED_16";
-    case NumberType::Signed32:
-      return "SIGNED_32";
-    case NumberType::Signed64:
-      return "SIGNED_64";
-    case NumberType::Float:
-      return "FLOAT";
-    case NumberType::Double:
-      return "DOUBLE";
-    default:
-      return "UNDEFINED";
-    }
+  switch (input_type)
+  {
+  case NumberType::Unsigned8:
+    return "UNSIGNED_8";
+  case NumberType::Unsigned16:
+    return "UNSIGNED_16";
+  case NumberType::Unsigned32:
+    return "UNSIGNED_32";
+  case NumberType::Unsigned64:
+    return "UNSIGNED_64";
+  case NumberType::Signed8:
+    return "SIGNED_8";
+  case NumberType::Signed16:
+    return "SIGNED_16";
+  case NumberType::Signed32:
+    return "SIGNED_32";
+  case NumberType::Signed64:
+    return "SIGNED_64";
+  case NumberType::Float:
+    return "FLOAT";
+  case NumberType::Double:
+    return "DOUBLE";
+  default:
+    return "UNDEFINED";
   }
+}
 
 u8 GetMaxSize(NumberType input_type)
 {
@@ -267,6 +261,5 @@ u8 GetMaxSize(NumberType input_type)
     return 8;
   default:
     return 0;
-  
   }
- }
+}

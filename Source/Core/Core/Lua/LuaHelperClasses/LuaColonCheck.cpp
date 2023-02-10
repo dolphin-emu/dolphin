@@ -2,7 +2,8 @@
 
 namespace Lua
 {
-void LuaColonOperatorTypeCheck(lua_State* lua_state, const char* function_name, const char* example_call)
+void LuaColonOperatorTypeCheck(lua_State* lua_state, const char* function_name,
+                               const char* example_call)
 {
   if (lua_type(lua_state, 1) != LUA_TUSERDATA)
   {

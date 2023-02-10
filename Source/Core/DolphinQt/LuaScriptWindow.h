@@ -36,7 +36,4 @@ private:
   NonDefaultQPushButton* m_stop_script_button;
   std::string path_of_script_to_run;
   std::vector<std::string> output_lines;
-
-
-
 };

@@ -1,6 +1,6 @@
 #include "LuaBitFunctions.h"
-#include "Core/Lua/LuaVersionResolver.h"
 #include "Common/CommonTypes.h"
+#include "Core/Lua/LuaVersionResolver.h"
 
 namespace Lua::LuaBit
 {
@@ -20,15 +20,15 @@ BitClass* GetBitInstance()
   return bit_instance;
 }
 
-  void InitLuaBitFunctions(lua_State* lua_state, const std::string& lua_api_version)
-  {
-    BitClass** bit_ptr_ptr = (BitClass**)lua_newuserdata(lua_state, sizeof(BitClass*));
-    *bit_ptr_ptr = GetBitInstance();
-    luaL_newmetatable(lua_state, "LuaBitMetaTable");
-    lua_pushvalue(lua_state, -1);
-    lua_setfield(lua_state, -2, "__index");
+void InitLuaBitFunctions(lua_State* lua_state, const std::string& lua_api_version)
+{
+  BitClass** bit_ptr_ptr = (BitClass**)lua_newuserdata(lua_state, sizeof(BitClass*));
+  *bit_ptr_ptr = GetBitInstance();
+  luaL_newmetatable(lua_state, "LuaBitMetaTable");
+  lua_pushvalue(lua_state, -1);
+  lua_setfield(lua_state, -2, "__index");
 
-    std::array lua_bit_functions_with_versions_attached =  {
+  std::array lua_bit_functions_with_versions_attached = {
       luaL_Reg_With_Version({"bitwise_and", "1.0", BitwiseAnd}),
       luaL_Reg_With_Version({"bitwise_or", "1.0", BitwiseOr}),
       luaL_Reg_With_Version({"bitwise_not", "1.0", BitwiseNot}),
@@ -38,12 +38,12 @@ BitClass* GetBitInstance()
       luaL_Reg_With_Version({"logical_xor", "1.0", LogicalXor}),
       luaL_Reg_With_Version({"logical_not", "1.0", LogicalNot}),
       luaL_Reg_With_Version({"bit_shift_left", "1.0", BitShiftLeft}),
-      luaL_Reg_With_Version({"bit_shift_right", "1.0", BitShiftRight})
-    };
+      luaL_Reg_With_Version({"bit_shift_right", "1.0", BitShiftRight})};
 
-    std::unordered_map<std::string, std::string> deprecated_functions_map;
-    AddLatestFunctionsForVersion(lua_bit_functions_with_versions_attached, lua_api_version, deprecated_functions_map, lua_state);
-    lua_setglobal(lua_state, "bit");
+  std::unordered_map<std::string, std::string> deprecated_functions_map;
+  AddLatestFunctionsForVersion(lua_bit_functions_with_versions_attached, lua_api_version,
+                                 deprecated_functions_map, lua_state);
+  lua_setglobal(lua_state, "bit");
   }
 
 int BitwiseAnd(lua_State* lua_state)
@@ -123,8 +123,11 @@ int BitShiftLeft(lua_State* lua_state)
   s64 first_val = luaL_checkinteger(lua_state, 2);
   s64 second_val = luaL_checkinteger(lua_state, 3);
   if (first_val < 0 || second_val < 0)
-    luaL_error(lua_state, "Error: in bit:bit_shift_left() function, an argument passed into the function was negative. Both arguments to the function must be positive!");
-  lua_pushinteger(lua_state, static_cast<s64>(static_cast<u64>(first_val) << static_cast<u64>(second_val)));
+    luaL_error(lua_state,
+              "Error: in bit:bit_shift_left() function, an argument passed into the function was "
+              "negative. Both arguments to the function must be positive!");
+  lua_pushinteger(lua_state,
+                  static_cast<s64>(static_cast<u64>(first_val) << static_cast<u64>(second_val)));
   return 1;
 }
 
@@ -134,8 +137,11 @@ int BitShiftRight(lua_State* lua_state)
   s64 first_val = luaL_checkinteger(lua_state, 2);
   s64 second_val = luaL_checkinteger(lua_state, 3);
   if (first_val < 0 || second_val < 0)
-    luaL_error(lua_state, "Error: in bit:bit_shift_right() function, an argument passed into the function was negative. Both arguments to the function must be positive!");
-  lua_pushinteger(lua_state, static_cast<s64>(static_cast<u64>(first_val) >> static_cast<u64>(second_val)));
+    luaL_error(lua_state,
+              "Error: in bit:bit_shift_right() function, an argument passed into the function was "
+              "negative. Both arguments to the function must be positive!");
+  lua_pushinteger(lua_state,
+                  static_cast<s64>(static_cast<u64>(first_val) >> static_cast<u64>(second_val)));
   return 1;
 }
-}
+} // namespace Lua::LuaBit

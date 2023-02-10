@@ -1,6 +1,6 @@
 #pragma once
-#include <string>
 #include <lua.hpp>
+#include <string>
 
 #include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 #include "Core/Movie.h"
@@ -25,4 +25,4 @@ int GetTotalLagCount(lua_State* lua_state);
 
 int IsGcControllerInPort(lua_State* lua_state);
 int IsUsingPort(lua_State* lua_state);
-}
+} // namespace Lua::LuaStatistics

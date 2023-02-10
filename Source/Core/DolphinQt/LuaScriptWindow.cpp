@@ -2,9 +2,9 @@
 #include <QDialogButtonBox>
 #include <QListWidget>
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/Settings.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/Settings.h"
 
 LuaScriptWindow::LuaScriptWindow(QWidget* parent) : QDialog(parent)
 {
@@ -79,13 +79,12 @@ void LuaScriptWindow::LoadScriptFunction()
   QString path = DolphinFileDialog::getOpenFileName(
       this, tr("Select a File"),
       settings.value(QStringLiteral("luascriptwindow/lastdir"), QString{}).toString(),
-      QStringLiteral("%1 (*.lua *.txt);;%2 (*)")
-          .arg(tr("All lua/txt files"))
-          .arg(tr("All Files")));
+      QStringLiteral("%1 (*.lua *.txt);;%2 (*)").arg(tr("All lua/txt files")).arg(tr("All Files")));
 
   if (!path.isEmpty())
   {
-    settings.setValue(QStringLiteral("luascriptwindow/lastdir"), QFileInfo(path).absoluteDir().absolutePath());
+    settings.setValue(QStringLiteral("luascriptwindow/lastdir"),
+                      QFileInfo(path).absoluteDir().absolutePath());
     path_of_script_to_run = path.toStdString();
     QStringList list;
     list << path;

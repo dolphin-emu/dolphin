@@ -716,7 +716,6 @@ void LoadAs(const std::string& filename)
           s_on_after_load_callback();
         if (Lua::is_lua_script_active)
           Lua::LuaEmu::waiting_for_save_state_load = false;
-
       },
       true);
 }

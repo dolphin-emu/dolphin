@@ -2,10 +2,10 @@
 
 #include <lua.hpp>
 
-#include <string>
-#include <functional>
-#include <vector>
 #include <array>
+#include <functional>
+#include <string>
+#include <vector>
 
 namespace Lua
 {
@@ -27,4 +27,4 @@ void Init(const std::string& script_location,
 
 void StopScript();
 
-}
+} // namespace Lua

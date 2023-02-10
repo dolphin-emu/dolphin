@@ -1,13 +1,13 @@
 #include "Lua.h"
 
-#include "LuaFunctions/LuaMemoryApi.h"
-#include "LuaFunctions/LuaEmuFunctions.h"
+#include <filesystem>
+#include "Core/Movie.h"
 #include "LuaFunctions/LuaBitFunctions.h"
+#include "LuaFunctions/LuaEmuFunctions.h"
 #include "LuaFunctions/LuaGameCubeController.h"
+#include "LuaFunctions/LuaMemoryApi.h"
 #include "LuaFunctions/LuaRegisters.h"
 #include "LuaFunctions/LuaStatistics.h"
-#include "Core/Movie.h"
-#include <filesystem>
 
 namespace Lua
 {
@@ -49,7 +49,8 @@ int CustomPrintFunction(lua_State* lua_state)
     }
     else
     {
-      luaL_error(lua_state, "Error: Unknown type encountered in print function. Supported types are String, Integer, Number, Boolean, and nil");
+      luaL_error(lua_state, "Error: Unknown type encountered in print function. Supported types "
+                            "are String, Integer, Number, Boolean, and nil");
     }
   }
 
@@ -89,12 +90,14 @@ int SetLuaCoreVersion(lua_State* lua_state)
   }
 
   if (new_version_number[0] == '0' || new_version_number[0] == '.')
-    luaL_error(lua_state, "Error: value of argument passed to setLuaCoreVersion() function was less "
-                         "than 1.0 (1.0 is the earliest version of the API that was released.");
+    luaL_error(lua_state,
+              "Error: value of argument passed to setLuaCoreVersion() function was less "
+              "than 1.0 (1.0 is the earliest version of the API that was released.");
 
   global_lua_api_version = new_version_number;
   return 0;
-  // Need to stop the current Lua script and start another script after this for the change in version number to take effect.
+  // Need to stop the current Lua script and start another script after this for the change in
+  // version number to take effect.
 }
 
 int GetLuaCoreVersion(lua_State* lua_state)
@@ -103,7 +106,9 @@ int GetLuaCoreVersion(lua_State* lua_state)
   return 1;
 }
 
-void Init(const std::string& script_location, std::function<void(const std::string&)>* new_print_callback, std::function<void()>* new_script_end_callback)
+void Init(const std::string& script_location,
+          std::function<void(const std::string&)>* new_print_callback,
+          std::function<void()>* new_script_end_callback)
 {
   print_callback_function = new_print_callback;
   script_end_callback_function = new_script_end_callback;
@@ -118,7 +123,7 @@ void Init(const std::string& script_location, std::function<void(const std::stri
   LuaGameCubeController::InitLuaGameCubeControllerFunctions(main_lua_state, global_lua_api_version);
   LuaStatistics::InitLuaStatisticsFunctions(main_lua_state, global_lua_api_version);
   LuaRegisters::InitLuaRegistersFunctions(main_lua_state, global_lua_api_version);
-  //lua_gc(main_lua_state, LUA_GCSTOP);
+  // lua_gc(main_lua_state, LUA_GCSTOP);
   lua_newtable(main_lua_state);
   lua_pushcfunction(main_lua_state, CustomPrintFunction);
   lua_setglobal(main_lua_state, "print");

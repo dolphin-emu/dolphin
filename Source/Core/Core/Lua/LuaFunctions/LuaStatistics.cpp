@@ -21,30 +21,33 @@ Lua_Statistics* getStatisticsInstance()
 
 void InitLuaStatisticsFunctions(lua_State* lua_state, const std::string& lua_api_version)
 {
-  Lua_Statistics** lua_statistics_ptr_ptr = (Lua_Statistics**)lua_newuserdata(lua_state, sizeof(Lua_Statistics*));
+  Lua_Statistics** lua_statistics_ptr_ptr =
+      (Lua_Statistics**)lua_newuserdata(lua_state, sizeof(Lua_Statistics*));
   *lua_statistics_ptr_ptr = getStatisticsInstance();
   luaL_newmetatable(lua_state, "LuaStatisticsTable");
   lua_pushvalue(lua_state, -1);
   lua_setfield(lua_state, -2, "__index");
 
   std::array lua_statistics_functions_with_versions_attached = {
-    luaL_Reg_With_Version({"isRecordingInput", "1.0", IsRecordingInput}),
-   luaL_Reg_With_Version({"isRecordingInputFromSaveState", "1.0", IsRecordingInputFromSaveState}),
-    luaL_Reg_With_Version({"isPlayingInput", "1.0", IsPlayingInput}),
-    luaL_Reg_With_Version({"isMovieActive", "1.0", IsMovieActive}),
-    luaL_Reg_With_Version({"getCurrentFrame", "1.0", GetCurrentFrame}),
-    luaL_Reg_With_Version({"getMovieLength", "1.0", GetMovieLength}),
-    luaL_Reg_With_Version({"getRerecordCount", "1.0", GetRerecordCount}),
-    luaL_Reg_With_Version({"getCurrentInputCount", "1.0", GetCurrentInputCount}),
-    luaL_Reg_With_Version({"getTotalInputCount", "1.0", GetTotalInputCount}),
-    luaL_Reg_With_Version({"getCurrentLagCount", "1.0", GetCurrentLagCount}),
-    luaL_Reg_With_Version({"getTotalLagCount", "1.0", GetTotalLagCount}),
-    luaL_Reg_With_Version({"isGcControllerInPort", "1.0", IsGcControllerInPort}),
-    luaL_Reg_With_Version({"isUsingPort", "1.0", IsUsingPort})
+      luaL_Reg_With_Version({"isRecordingInput", "1.0", IsRecordingInput}),
+      luaL_Reg_With_Version(
+          {"isRecordingInputFromSaveState", "1.0", IsRecordingInputFromSaveState}),
+      luaL_Reg_With_Version({"isPlayingInput", "1.0", IsPlayingInput}),
+      luaL_Reg_With_Version({"isMovieActive", "1.0", IsMovieActive}),
+      luaL_Reg_With_Version({"getCurrentFrame", "1.0", GetCurrentFrame}),
+      luaL_Reg_With_Version({"getMovieLength", "1.0", GetMovieLength}),
+      luaL_Reg_With_Version({"getRerecordCount", "1.0", GetRerecordCount}),
+      luaL_Reg_With_Version({"getCurrentInputCount", "1.0", GetCurrentInputCount}),
+      luaL_Reg_With_Version({"getTotalInputCount", "1.0", GetTotalInputCount}),
+      luaL_Reg_With_Version({"getCurrentLagCount", "1.0", GetCurrentLagCount}),
+      luaL_Reg_With_Version({"getTotalLagCount", "1.0", GetTotalLagCount}),
+      luaL_Reg_With_Version({"isGcControllerInPort", "1.0", IsGcControllerInPort}),
+      luaL_Reg_With_Version({"isUsingPort", "1.0", IsUsingPort})
   };
 
   std::unordered_map<std::string, std::string> deprecated_functions_map;
-  AddLatestFunctionsForVersion(lua_statistics_functions_with_versions_attached, lua_api_version, deprecated_functions_map, lua_state);
+  AddLatestFunctionsForVersion(lua_statistics_functions_with_versions_attached, lua_api_version,
+                               deprecated_functions_map, lua_state);
   lua_setglobal(lua_state, "statistics");
 }
 
@@ -57,7 +60,8 @@ int IsRecordingInput(lua_State* lua_state)
 
 int IsRecordingInputFromSaveState(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "isRecordingInputFromSaveState", "statistics:isRecordingInputFromSaveState()");
+  LuaColonOperatorTypeCheck(lua_state, "isRecordingInputFromSaveState",
+                            "statistics:isRecordingInputFromSaveState()");
   lua_pushboolean(lua_state, Movie::IsRecordingInputFromSaveState());
   return 1;
 }
@@ -127,10 +131,12 @@ int GetTotalLagCount(lua_State* lua_state)
 
 int IsGcControllerInPort(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "isGcControllerInPort", "statistics:isGcControllerInPort(1)");
+  LuaColonOperatorTypeCheck(lua_state, "isGcControllerInPort",
+                            "statistics:isGcControllerInPort(1)");
   s64 port_number = luaL_checkinteger(lua_state, 2);
   if (port_number < 1 || port_number > 4)
-    luaL_error(lua_state, "Error: in isGcControllerInPort() function, portNumber was not between 1 and 4");
+    luaL_error(lua_state,
+              "Error: in isGcControllerInPort() function, portNumber was not between 1 and 4");
   lua_pushboolean(lua_state, Movie::IsUsingGCController(port_number - 1));
   return 1;
 }
@@ -145,4 +151,4 @@ int IsUsingPort(lua_State* lua_state)
   return 1;
 }
 
-}
+} // namespace Lua::LuaStatistics
