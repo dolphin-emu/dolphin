@@ -4,7 +4,6 @@
 #pragma once
 
 #include <array>
-#include <bitset>
 #include <fmt/format.h>
 #include <map>
 #include <memory>
