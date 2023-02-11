@@ -1,8 +1,8 @@
 #include "LuaScriptWindow.h"
 #include <QDialogButtonBox>
 #include <QGridLayout>
-#include <QListWidget>
 #include <QLabel>
+#include <QListWidget>
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
