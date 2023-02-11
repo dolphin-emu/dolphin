@@ -3,8 +3,8 @@
 #include <random>
 #include <vector>
 
+#include "Core/Lua/LuaHelperClasses/LuaGCButtons.h"
 #include "Core/Movie.h"
-#include "LuaGCButtons.h"
 
 class LuaGameCubeButtonProbabilityEvent
 {

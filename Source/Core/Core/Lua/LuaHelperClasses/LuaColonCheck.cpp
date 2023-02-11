@@ -1,4 +1,4 @@
-#include "LuaColonCheck.h"
+#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 
 namespace Lua
 {

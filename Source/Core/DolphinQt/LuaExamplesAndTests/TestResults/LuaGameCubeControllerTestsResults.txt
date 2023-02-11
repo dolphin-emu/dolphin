@@ -778,7 +778,7 @@ PASS!
 
 Test 193:
 	Running through 1000 frames of calling addButtonFlipChance() on controller 1 with 13% chance of flipping button B...
-	Impacted frames made up 11.788211788212% of all frames, which was in the acceptable range of +- 8% of the selected probability of 13%
+	Impacted frames made up 13.786213786214% of all frames, which was in the acceptable range of +- 8% of the selected probability of 13%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -859,7 +859,7 @@ PASS!
 
 Test 212:
 	Running through 1000 frames of calling addButtonPressChance() on controller 1 with 34% chance of pressing X button...
-	Impacted frames made up 35.664335664336% of all frames, which was in the acceptable range of +- 8% of the selected probability of 34%
+	Impacted frames made up 37.362637362637% of all frames, which was in the acceptable range of +- 8% of the selected probability of 34%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -940,7 +940,7 @@ PASS!
 
 Test 231:
 	Running through 1000 frames of calling addButtonReleaseChance() on controller 1 after setting B to pressed with 68% chance of releasing button B...
-	Impacted frames made up 69.130869130869% of all frames, which was in the acceptable range of +- 8% of the selected probability of 68%
+	Impacted frames made up 67.432567432567% of all frames, which was in the acceptable range of +- 8% of the selected probability of 68%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -989,7 +989,7 @@ PASS!
 
 Test 242:
 	Running through 1000 frames of calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 with 40% chance of altering cStickX by between -31 to +85...
-	Final average input of 138.52147852148 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 138.8
+	Final average input of 139.21378621379 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 138.8
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1038,7 +1038,7 @@ PASS!
 
 Test 253:
 	Running through 1000 frames of calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 with a 65% chance of setting cStickX to a random value between 50 - 30 and 50 + 10...
-	Final average input of 69.575424575425 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 70.8
+	Final average input of 70.506493506494 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 70.8
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1411,7 +1411,7 @@ PASS!
 
 Test 345:
 	Running through 1000 frames of calling addButtonComboChance() on controller 1 with 80% chance of pressing button B...
-	Impacted frames made up 79.52047952048% of all frames, which was in the acceptable range of +- 8% of the selected probability of 80%
+	Impacted frames made up 79.420579420579% of all frames, which was in the acceptable range of +- 8% of the selected probability of 80%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1452,7 +1452,7 @@ PASS!
 
 Test 354:
 	Running through 1000 frames of calling addControllerClearChance() on controller 1 with 75% chance of clearing the controller inputs to their default values...
-	Impacted frames made up 75.224775224775% of all frames, which was in the acceptable range of +- 8% of the selected probability of 75%
+	Impacted frames made up 74.525474525475% of all frames, which was in the acceptable range of +- 8% of the selected probability of 75%
 PASS!
 
 ----------------------------------------------------------------------------------

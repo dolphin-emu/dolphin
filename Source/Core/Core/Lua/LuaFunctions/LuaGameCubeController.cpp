@@ -1,4 +1,4 @@
-#include "LuaGameCubeController.h"
+#include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
 #include "Core/Lua/LuaVersionResolver.h"
 
 namespace Lua::LuaGameCubeController

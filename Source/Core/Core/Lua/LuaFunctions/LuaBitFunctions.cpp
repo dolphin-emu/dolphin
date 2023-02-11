@@ -1,4 +1,5 @@
-#include "LuaBitFunctions.h"
+#include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
+
 #include "Common/CommonTypes.h"
 #include "Core/Lua/LuaVersionResolver.h"
 

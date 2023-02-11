@@ -1,3 +1,5 @@
+#include "Core/Lua/LuaFunctions/LuaMemoryApi.h"
+
 #include <optional>
 
 #include "Core/HW/Memmap.h"
@@ -5,7 +7,6 @@
 #include "Core/Lua/LuaVersionResolver.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
-#include "LuaMemoryApi.h"
 
 namespace Lua::LuaMemoryApi
 {

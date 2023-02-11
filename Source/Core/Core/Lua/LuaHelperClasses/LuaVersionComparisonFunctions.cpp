@@ -1,4 +1,4 @@
-#include "LuaVersionComparisonFunctions.h"
+#include "Core/Lua/LuaHelperClasses/LuaVersionComparisonFunctions.h"
 
 namespace Lua
 {

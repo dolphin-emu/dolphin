@@ -5,8 +5,8 @@
 #include <lua.hpp>
 
 #include <array>
-#include "LuaHelperClasses/LuaVersionComparisonFunctions.h"
-#include "LuaHelperClasses/luaL_Reg_With_Version.h"
+#include "Core/Lua/LuaHelperClasses/LuaVersionComparisonFunctions.h"
+#include "Core/Lua/LuaHelperClasses/luaL_Reg_With_Version.h"
 
 namespace Lua
 {

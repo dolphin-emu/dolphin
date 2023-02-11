@@ -1,4 +1,4 @@
-#include "LuaGameCubeButtonProbabilityClasses.h"
+#include "Core/Lua/LuaHelperClasses/LuaGameCubeButtonProbabilityClasses.h"
 
 std::mt19937_64 LuaGameCubeButtonProbabilityEvent::num_generator_64_bits;
 

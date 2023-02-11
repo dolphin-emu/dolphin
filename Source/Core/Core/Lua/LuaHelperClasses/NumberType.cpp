@@ -1,4 +1,4 @@
-#include "NumberType.h"
+#include "Core/Lua/LuaHelperClasses/NumberType.h"
 
 constexpr unsigned long long hashFunc(const char* input_string)
 {

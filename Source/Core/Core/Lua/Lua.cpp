@@ -1,13 +1,13 @@
-#include "Lua.h"
+#include "Core/Lua/Lua.h"
 
 #include <filesystem>
+#include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
+#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
+#include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
+#include "Core/Lua/LuaFunctions/LuaMemoryApi.h"
+#include "Core/Lua/LuaFunctions/LuaRegisters.h"
+#include "Core/Lua/LuaFunctions/LuaStatistics.h"
 #include "Core/Movie.h"
-#include "LuaFunctions/LuaBitFunctions.h"
-#include "LuaFunctions/LuaEmuFunctions.h"
-#include "LuaFunctions/LuaGameCubeController.h"
-#include "LuaFunctions/LuaMemoryApi.h"
-#include "LuaFunctions/LuaRegisters.h"
-#include "LuaFunctions/LuaStatistics.h"
 
 namespace Lua
 {

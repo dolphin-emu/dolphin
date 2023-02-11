@@ -1,4 +1,4 @@
-#include "LuaRegisters.h"
+#include "Core/Lua/LuaFunctions/LuaRegisters.h"
 
 #include <algorithm>
 #include <string>

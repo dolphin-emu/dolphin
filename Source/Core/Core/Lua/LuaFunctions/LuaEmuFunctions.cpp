@@ -1,4 +1,4 @@
-#include "LuaEmuFunctions.h"
+#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include <optional>
 #include "Core/Core.h"
 #include "Core/Lua/LuaVersionResolver.h"

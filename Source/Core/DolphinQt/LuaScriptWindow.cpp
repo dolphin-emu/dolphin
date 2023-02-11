@@ -1,4 +1,5 @@
-#include "LuaScriptWindow.h"
+#include "DolphinQt/LuaScriptWindow.h"
+
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>

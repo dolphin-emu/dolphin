@@ -1,4 +1,4 @@
-#include "LuaStatistics.h"
+#include "Core/Lua/LuaFunctions/LuaStatistics.h"
 #include "Core/Lua/LuaVersionResolver.h"
 
 namespace Lua::LuaStatistics
