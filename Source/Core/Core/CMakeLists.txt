@@ -429,6 +429,32 @@ add_library(core
   IOS/WFS/WFSSRV.h
   LibusbUtils.cpp
   LibusbUtils.h
+  Lua/Lua.cpp
+  Lua/Lua.h
+  Lua/LuaVersionResolver.h
+  Lua/LuaHelperClasses/LuaColonCheck.cpp
+  Lua/LuaHelperClasses/LuaColonCheck.h
+  Lua/LuaHelperClasses/LuaGameCubeButtonProbabilityClasses.cpp
+  Lua/LuaHelperClasses/LuaGameCubeButtonProbabilityClasses.h
+  Lua/LuaHelperClasses/LuaGCButtons.cpp
+  Lua/LuaHelperClasses/LuaGCButtons.h
+  Lua/LuaHelperClasses/luaL_Reg_With_Version.h
+  Lua/LuaHelperClasses/LuaVersionComparisonFunctions.cpp
+  Lua/LuaHelperClasses/LuaVersionComparisonFunctions.h
+  Lua/LuaHelperClasses/NumberType.cpp
+  Lua/LuaHelperClasses/NumberType.h
+  Lua/LuaFunctions/LuaBitFunctions.cpp
+  Lua/LuaFunctions/LuaBitFunctions.h
+  Lua/LuaFunctions/LuaEmuFunctions.cpp
+  Lua/LuaFunctions/LuaEmuFunctions.h
+  Lua/LuaFunctions/LuaGameCubeController.h
+  Lua/LuaFunctions/LuaGameCubeController.cpp
+  Lua/LuaFunctions/LuaMemoryApi.cpp
+  Lua/LuaFunctions/LuaMemoryApi.h
+  Lua/LuaFunctions/LuaRegisters.cpp
+  Lua/LuaFunctions/LuaRegisters.h
+  Lua/LuaFunctions/LuaStatistics.cpp
+  Lua/LuaFunctions/LuaStatistics.h
   MemTools.cpp
   MemTools.h
   Movie.cpp
