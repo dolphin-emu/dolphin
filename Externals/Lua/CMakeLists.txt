@@ -3,4 +3,8 @@ project(Lua C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_library(Lua)
+add_library(Lua STATIC
+	*.h
+	*.hpp
+	*.c
+)
