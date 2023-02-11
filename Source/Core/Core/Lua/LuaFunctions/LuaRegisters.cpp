@@ -127,15 +127,15 @@ u8* GetAddressForRegister(RegisterObject register_object, lua_State* lua_state,
   {
   case RegisterObject::RegisterType::GeneralPurposeRegister:
     register_number = register_object.register_number;
-    address = (u8*)(PowerPC::ppcState.gpr + register_number);
+    address = reinterpret_cast<u8*>(PowerPC::ppcState.gpr + register_number);
     return address;
   case RegisterObject::RegisterType::PcRegister:
-    address = ((u8*)&PowerPC::ppcState.pc);
+    address = reinterpret_cast<u8*>(&PowerPC::ppcState.pc);
     return address;
   case RegisterObject::RegisterType::ReturnRegister:
-    address = ((u8*)(&PowerPC::ppcState.spr[SPR_LR]));
+    address = reinterpret_cast<u8*>(&PowerPC::ppcState.spr[SPR_LR]);
   case RegisterObject::RegisterType::FloatingPointRegister:
-    address = (u8*)(PowerPC::ppcState.ps + register_number);
+    address = reinterpret_cast<u8*>(PowerPC::ppcState.ps + register_number);
     return address;
 
   default:
