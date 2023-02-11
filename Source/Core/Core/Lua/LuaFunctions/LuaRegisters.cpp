@@ -141,8 +141,13 @@ u8* GetAddressForRegister(RegisterObject register_object, lua_State* lua_state,
     return address;
 
   default:
-    luaL_error(lua_state,
-               fmt::format("Error: Invalid string passed in for register name in registers:{} function. Currently, R0-R31, F0-F31, PC, and LR are the only registers which are supported.", func_name).c_str());
+    luaL_error(
+        lua_state,
+        fmt::format(
+            "Error: Invalid string passed in for register name in registers:{} function. "
+            "Currently, R0-R31, F0-F31, PC, and LR are the only registers which are supported.",
+            func_name)
+            .c_str());
     return nullptr;
   }
 }
@@ -257,20 +262,26 @@ int PushByteArrayFromAddressHelperFunction(lua_State* lua_state, bool is_unsigne
   u8* address = GetAddressForRegister(register_object, lua_state, func_name);
   s64 array_size = luaL_checkinteger(lua_state, 3);
   if (array_size <= 0)
-    luaL_error(lua_state,
-               fmt::format("Error: in function registers:{}, arraySize was <= 0.", func_name).c_str());
+    luaL_error(
+        lua_state,
+        fmt::format("Error: in function registers:{}, arraySize was <= 0.", func_name).c_str());
   s64 offset_bytes = 0;
   if (lua_gettop(lua_state) >= 4)
     offset_bytes = luaL_checkinteger(lua_state, 4);
   if (offset_bytes < 0)
-    luaL_error(lua_state,
-               fmt::format("Error: in function registers:{}, offset value was less than 0.", func_name).c_str());
+    luaL_error(
+        lua_state,
+        fmt::format("Error: in function registers:{}, offset value was less than 0.", func_name)
+            .c_str());
   lua_createtable(lua_state, array_size, 0);
   s8 signed8 = 0;
   u8 unsigned8 = 0;
 
   if (array_size + offset_bytes > register_size)
-    luaL_error(lua_state, fmt::format("Error: in function registers:{}, attempt to read past the end of the register occured.", func_name).c_str());
+    luaL_error(lua_state, fmt::format("Error: in function registers:{}, attempt to read past the "
+                                      "end of the register occured.",
+                                      func_name)
+                              .c_str());
 
   for (int i = 0; i < array_size; ++i)
   {
