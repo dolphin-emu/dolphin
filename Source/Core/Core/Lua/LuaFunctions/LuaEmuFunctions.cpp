@@ -1,5 +1,6 @@
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include <filesystem>
+#include <fmt/format.h>
 #include <memory>
 #include <optional>
 #include "Core/Core.h"
@@ -79,9 +80,7 @@ std::string CheckIfFileExistsAndGetFileName(lua_State* lua_state, const char* fu
 {
   const std::string file_name = luaL_checkstring(lua_state, 2);
   if (!std::filesystem::exists(file_name))
-    luaL_error(lua_state, (std::string("Error: Filename ") + file_name + " passed into emu:" +
-                           func_name + "() did not represent a file which exists.")
-                              .c_str());
+    luaL_error(lua_state, fmt::format("Error: Filename {} passed into emu:{} did not represent a file which exists", file_name, func_name).c_str());
   return file_name;
 }
 

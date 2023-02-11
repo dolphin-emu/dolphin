@@ -1,5 +1,7 @@
 #include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 
+#include <fmt/format.h>
+
 namespace Lua
 {
 void LuaColonOperatorTypeCheck(lua_State* lua_state, const char* function_name,
@@ -9,10 +11,7 @@ void LuaColonOperatorTypeCheck(lua_State* lua_state, const char* function_name,
   {
     luaL_error(
         lua_state,
-        (std::string("Error: User attempted to call ") + function_name +
-         " function using the dot operator. Please use the colon operator instead like this: '" +
-         example_call + "'")
-            .c_str());
+        fmt::format("Error: User attempted to call {} function using the dot operator. Please use the colon operator instead like this: '{}'", function_name, example_call).c_str());
   }
 }
 

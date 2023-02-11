@@ -1,6 +1,7 @@
 #include "Core/Lua/LuaFunctions/LuaRegisters.h"
 
 #include <algorithm>
+#include <fmt/format.h>
 #include <memory>
 #include <string>
 
@@ -141,10 +142,7 @@ u8* GetAddressForRegister(RegisterObject register_object, lua_State* lua_state,
 
   default:
     luaL_error(lua_state,
-               (std::string("Error: Invalid string passed in for register name in ") + func_name +
-                " function. Currently, R0-R31, F0-F31, PC, and LR are the only registers which are "
-                "supported.")
-                   .c_str());
+               fmt::format("Error: Invalid string passed in for register name in registers:{} function. Currently, R0-R31, F0-F31, PC, and LR are the only registers which are supported.", func_name).c_str());
     return nullptr;
   }
 }
@@ -260,21 +258,19 @@ int PushByteArrayFromAddressHelperFunction(lua_State* lua_state, bool is_unsigne
   s64 array_size = luaL_checkinteger(lua_state, 3);
   if (array_size <= 0)
     luaL_error(lua_state,
-               (std::string("Error: in ") + func_name + ", arraySize was <= 0.").c_str());
+               fmt::format("Error: in function registers:{}, arraySize was <= 0.", func_name).c_str());
   s64 offset_bytes = 0;
   if (lua_gettop(lua_state) >= 4)
     offset_bytes = luaL_checkinteger(lua_state, 4);
   if (offset_bytes < 0)
     luaL_error(lua_state,
-               (std::string("Error: in ") + func_name + ", offset value was less than 0.").c_str());
+               fmt::format("Error: in function registers:{}, offset value was less than 0.", func_name).c_str());
   lua_createtable(lua_state, array_size, 0);
   s8 signed8 = 0;
   u8 unsigned8 = 0;
 
   if (array_size + offset_bytes > register_size)
-    luaL_error(lua_state, (std::string("Error: in ") + func_name +
-                           ", attempt to read past the end of the register occured.")
-                              .c_str());
+    luaL_error(lua_state, fmt::format("Error: in function registers:{}, attempt to read past the end of the register occured.", func_name).c_str());
 
   for (int i = 0; i < array_size; ++i)
   {

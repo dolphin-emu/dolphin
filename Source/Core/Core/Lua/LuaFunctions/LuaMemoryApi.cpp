@@ -1,5 +1,6 @@
 #include "Core/Lua/LuaFunctions/LuaMemoryApi.h"
 
+#include <fmt/format.h>
 #include <optional>
 
 #include "Core/HW/Memmap.h"
@@ -521,11 +522,7 @@ int DoWriteBytes(lua_State* lua_state)
     {
       luaL_error(
           lua_state,
-          (std::string("Error: Invalid number passed into memory:writeBytes() function. In order "
-                       "to be representable as a byte, the value must be between -128 and 255. "
-                       "However, the number which was supposed to be written to address " +
-                       std::to_string(address) + " was " + std::to_string(value))
-               .c_str()));
+          fmt::format("Error: Invalid number passed into memory:writeBytes() function. In order to be representable as a byte, the value must be between -128 and 255. However, the number which was supposed to be written to address {:x} was {}", address, value).c_str());
       return 0;
     }
     if (value < 0)

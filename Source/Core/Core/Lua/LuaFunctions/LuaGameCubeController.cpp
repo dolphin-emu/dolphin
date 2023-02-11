@@ -1,4 +1,6 @@
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
+
+#include <fmt/format.h>
 #include "Core/Lua/LuaVersionResolver.h"
 
 namespace Lua::LuaGameCubeController
@@ -73,17 +75,12 @@ int GetPortNumberHelperFunction(lua_State* lua_state, const char* func_name)
   s64 controller_port_number = luaL_checkinteger(lua_state, 2);
   if (controller_port_number < 1 || controller_port_number > 4)
   {
-    luaL_error(lua_state, (std::string("Error: In function gc_controller:") + func_name +
-                           ", controller port number wasn't between 1 and 4!")
-                              .c_str());
+    luaL_error(lua_state, fmt::format("Error: In function gc_controller:{}, controller port number wasn't between 1 and 4!", func_name).c_str());
   }
 
   if (controller_port_number > Pad::GetConfig()->GetControllerCount())
   {
-    luaL_error(lua_state, (std::string("Error: in ") + func_name +
-                           "(), attempt was made to access a port which did not have a GameCube "
-                           "controller plugged into it!")
-                              .c_str());
+    luaL_error(lua_state, fmt::format("Error: in gc_controller:{}, attempt was made to access a port which did not have a GameCube controller plugged into it!", func_name).c_str());
   }
 
   return controller_port_number;
@@ -98,9 +95,7 @@ double GetProbabilityHelperFunction(lua_State* lua_state, const char* func_name)
     probability = luaL_checknumber(lua_state, 3);
 
   if (probability < 0.0 || probability > 100.0)
-    luaL_error(lua_state, (std::string("Error: In function gc_controller:") + func_name +
-                           ", probability was outside the acceptable range of 0 to 100%")
-                              .c_str());
+    luaL_error(lua_state, fmt::format("Error: In function gc_controller:{}, probability was outside the acceptable range of 0 to 100%", func_name).c_str());
   return probability;
 }
 
