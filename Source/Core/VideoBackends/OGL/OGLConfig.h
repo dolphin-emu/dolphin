@@ -15,8 +15,9 @@ enum GlslVersion
   Glsl140,
   Glsl150,
   Glsl330,
-  Glsl400,  // and above
-  Glsl430,
+  Glsl400,    // and above
+  Glsl430,    // 430 - 440
+  Glsl450,    // 450 - xxx
   GlslEs300,  // GLES 3.0
   GlslEs310,  // GLES 3.1
   GlslEs320,  // GLES 3.2
@@ -61,7 +62,7 @@ struct VideoConfig
   bool bSupportsBitfield;
   bool bSupportsTextureSubImage;
   EsFbFetchType SupportedFramebufferFetch;
-  bool bSupportsShaderThreadShuffleNV;
+  bool bSupportsKHRShaderSubgroup;  // basic + arithmetic + ballot
 
   const char* gl_vendor;
   const char* gl_renderer;

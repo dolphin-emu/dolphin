@@ -110,14 +110,14 @@ void CodeWidget::CreateWidgets()
 
   auto add_search_line_edit = [this](const QString& name, QListWidget* list_widget) {
     auto* widget = new QWidget;
-    auto* layout = new QGridLayout;
+    auto* line_layout = new QGridLayout;
     auto* label = new QLabel(name);
     auto* search_line_edit = new QLineEdit;
 
-    widget->setLayout(layout);
-    layout->addWidget(label, 0, 0);
-    layout->addWidget(search_line_edit, 0, 1);
-    layout->addWidget(list_widget, 1, 0, -1, -1);
+    widget->setLayout(line_layout);
+    line_layout->addWidget(label, 0, 0);
+    line_layout->addWidget(search_line_edit, 0, 1);
+    line_layout->addWidget(list_widget, 1, 0, -1, -1);
     m_box_splitter->addWidget(widget);
     return search_line_edit;
   };

@@ -64,7 +64,7 @@ void SkylanderPortalWindow::CreateMainWindow()
   checkbox_layout->setAlignment(Qt::AlignHCenter);
   m_checkbox = new QCheckBox(tr("Emulate Skylander Portal"), this);
   m_checkbox->setChecked(Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
-  connect(m_checkbox, &QCheckBox::toggled, [=](bool checked) { EmulatePortal(checked); });
+  connect(m_checkbox, &QCheckBox::toggled, [&](bool checked) { EmulatePortal(checked); });
   checkbox_layout->addWidget(m_checkbox);
   checkbox_group->setLayout(checkbox_layout);
   main_layout->addWidget(checkbox_group);

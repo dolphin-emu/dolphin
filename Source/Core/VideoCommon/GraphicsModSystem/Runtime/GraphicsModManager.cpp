@@ -195,21 +195,22 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
   {
     for (const GraphicsModFeatureConfig& feature : mod.m_features)
     {
-      const auto create_action = [](const std::string_view& action_name,
-                                    const picojson::value& json_data,
-                                    GraphicsModConfig mod) -> std::unique_ptr<GraphicsModAction> {
+      const auto create_action =
+          [](const std::string_view& action_name, const picojson::value& json_data,
+             GraphicsModConfig mod_config) -> std::unique_ptr<GraphicsModAction> {
         auto action = GraphicsModActionFactory::Create(action_name, json_data);
         if (action == nullptr)
         {
           return nullptr;
         }
-        return std::make_unique<DecoratedAction>(std::move(action), std::move(mod));
+        return std::make_unique<DecoratedAction>(std::move(action), std::move(mod_config));
       };
 
       const auto internal_group = fmt::format("{}.{}", mod.m_title, feature.m_group);
 
-      const auto add_target = [&](const GraphicsTargetConfig& target, GraphicsModConfig mod) {
-        auto action = create_action(feature.m_action, feature.m_action_data, std::move(mod));
+      const auto add_target = [&](const GraphicsTargetConfig& target,
+                                  GraphicsModConfig mod_config) {
+        auto action = create_action(feature.m_action, feature.m_action_data, std::move(mod_config));
         if (action == nullptr)
         {
           WARN_LOG_FMT(VIDEO, "Failed to create action '{}' for group '{}'.", feature.m_action,

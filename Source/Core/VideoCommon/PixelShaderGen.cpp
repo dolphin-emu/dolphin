@@ -457,15 +457,12 @@ void UpdateBoundingBox(float2 rawpos) {{
   int2 pos_br = pos | 1;   // round up to odd
 
 #ifdef SUPPORTS_SUBGROUP_REDUCTION
-  if (CAN_USE_SUBGROUP_REDUCTION) {{
-    int2 min_pos = IS_HELPER_INVOCATION ? int2(2147483647, 2147483647) : pos_tl;
-    int2 max_pos = IS_HELPER_INVOCATION ? int2(-2147483648, -2147483648) : pos_br;
-    SUBGROUP_MIN(min_pos);
-    SUBGROUP_MAX(max_pos);
+  if (!IS_HELPER_INVOCATION)
+  {{
+    SUBGROUP_MIN(pos_tl);
+    SUBGROUP_MAX(pos_br);
     if (IS_FIRST_ACTIVE_INVOCATION)
-      UpdateBoundingBoxBuffer(min_pos, max_pos);
-  }} else {{
-    UpdateBoundingBoxBuffer(pos_tl, pos_br);
+      UpdateBoundingBoxBuffer(pos_tl, pos_br);
   }}
 #else
   UpdateBoundingBoxBuffer(pos_tl, pos_br);

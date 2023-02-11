@@ -195,6 +195,7 @@ extern "C" DWORD get_fattime(void)
   return static_cast<DWORD>(s_callbacks->GetCurrentTimeFAT());
 }
 
+#if FF_USE_LFN == 3  // match ff.h; currently unused by Dolphin
 extern "C" void* ff_memalloc(UINT msize)
 {
   return std::malloc(msize);
@@ -204,7 +205,9 @@ extern "C" void ff_memfree(void* mblock)
 {
   return std::free(mblock);
 }
+#endif
 
+#if FF_FS_REENTRANT
 extern "C" int ff_cre_syncobj(BYTE vol, FF_SYNC_t* sobj)
 {
   *sobj = new std::recursive_mutex();
@@ -229,6 +232,7 @@ extern "C" int ff_del_syncobj(FF_SYNC_t sobj)
   delete reinterpret_cast<std::recursive_mutex*>(sobj);
   return 1;
 }
+#endif
 
 static const char* FatFsErrorToString(FRESULT error_code)
 {

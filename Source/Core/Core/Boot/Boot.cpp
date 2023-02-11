@@ -502,8 +502,8 @@ bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
 
   struct BootTitle
   {
-    BootTitle(Core::System& system, const std::vector<DiscIO::Riivolution::Patch>& patches)
-        : system(system), config(SConfig::GetInstance()), riivolution_patches(patches)
+    BootTitle(Core::System& system_, const std::vector<DiscIO::Riivolution::Patch>& patches)
+        : system(system_), config(SConfig::GetInstance()), riivolution_patches(patches)
     {
     }
     bool operator()(BootParameters::Disc& disc) const

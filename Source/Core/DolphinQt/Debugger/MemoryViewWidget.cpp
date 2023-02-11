@@ -728,6 +728,9 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QString input_te
     }
     break;
   }
+  default:
+    // Do nothing
+    break;
   }
 
   return {};

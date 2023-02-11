@@ -647,24 +647,24 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
   mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&state.DISR.Hex),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& state = system.GetDVDInterfaceState().GetData();
+                   auto& state_ = system.GetDVDInterfaceState().GetData();
                    const UDISR tmp_status_reg(val);
 
-                   state.DISR.DEINTMASK = tmp_status_reg.DEINTMASK.Value();
-                   state.DISR.TCINTMASK = tmp_status_reg.TCINTMASK.Value();
-                   state.DISR.BRKINTMASK = tmp_status_reg.BRKINTMASK.Value();
-                   state.DISR.BREAK = tmp_status_reg.BREAK.Value();
+                   state_.DISR.DEINTMASK = tmp_status_reg.DEINTMASK.Value();
+                   state_.DISR.TCINTMASK = tmp_status_reg.TCINTMASK.Value();
+                   state_.DISR.BRKINTMASK = tmp_status_reg.BRKINTMASK.Value();
+                   state_.DISR.BREAK = tmp_status_reg.BREAK.Value();
 
                    if (tmp_status_reg.DEINT)
-                     state.DISR.DEINT = 0;
+                     state_.DISR.DEINT = 0;
 
                    if (tmp_status_reg.TCINT)
-                     state.DISR.TCINT = 0;
+                     state_.DISR.TCINT = 0;
 
                    if (tmp_status_reg.BRKINT)
-                     state.DISR.BRKINT = 0;
+                     state_.DISR.BRKINT = 0;
 
-                   if (state.DISR.BREAK)
+                   if (state_.DISR.BREAK)
                    {
                      DEBUG_ASSERT(0);
                    }
@@ -674,13 +674,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
 
   mmio->Register(base | DI_COVER_REGISTER, MMIO::DirectRead<u32>(&state.DICVR.Hex),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& state = system.GetDVDInterfaceState().GetData();
+                   auto& state_ = system.GetDVDInterfaceState().GetData();
                    const UDICVR tmp_cover_reg(val);
 
-                   state.DICVR.CVRINTMASK = tmp_cover_reg.CVRINTMASK.Value();
+                   state_.DICVR.CVRINTMASK = tmp_cover_reg.CVRINTMASK.Value();
 
                    if (tmp_cover_reg.CVRINT)
-                     state.DICVR.CVRINT = 0;
+                     state_.DICVR.CVRINT = 0;
 
                    UpdateInterrupts();
                  }));
@@ -712,9 +712,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
                  MMIO::DirectWrite<u32>(&state.DILENGTH, ~0x1F));
   mmio->Register(base | DI_DMA_CONTROL_REGISTER, MMIO::DirectRead<u32>(&state.DICR.Hex),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& state = system.GetDVDInterfaceState().GetData();
-                   state.DICR.Hex = val & 7;
-                   if (state.DICR.TSTART)
+                   auto& state_ = system.GetDVDInterfaceState().GetData();
+                   state_.DICR.Hex = val & 7;
+                   if (state_.DICR.TSTART)
                    {
                      ExecuteCommand(ReplyType::Interrupt);
                    }

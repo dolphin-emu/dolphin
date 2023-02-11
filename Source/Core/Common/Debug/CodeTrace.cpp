@@ -48,6 +48,21 @@ u32 GetMemoryTargetSize(std::string_view instr)
 
   return 4;
 }
+
+bool CompareMemoryTargetToTracked(const std::string& instr, const u32 mem_target,
+                                  const std::set<u32>& mem_tracked)
+{
+  // This function is hit often and should be optimized.
+  auto it_lower = std::lower_bound(mem_tracked.begin(), mem_tracked.end(), mem_target);
+
+  if (it_lower == mem_tracked.end())
+    return false;
+  else if (*it_lower == mem_target)
+    return true;
+
+  // If the base value doesn't hit, still need to check if longer values overlap.
+  return *it_lower < mem_target + GetMemoryTargetSize(instr);
+}
 }  // namespace
 
 void CodeTrace::SetRegTracked(const std::string& reg)
@@ -122,21 +137,6 @@ TraceOutput CodeTrace::SaveCurrentInstruction() const
     output.memory_target = PowerPC::debug_interface.GetMemoryAddressFromInstruction(instr);
 
   return output;
-}
-
-bool CompareMemoryTargetToTracked(const std::string& instr, const u32 mem_target,
-                                  const std::set<u32>& mem_tracked)
-{
-  // This function is hit often and should be optimized.
-  auto it_lower = std::lower_bound(mem_tracked.begin(), mem_tracked.end(), mem_target);
-
-  if (it_lower == mem_tracked.end())
-    return false;
-  else if (*it_lower == mem_target)
-    return true;
-
-  // If the base value doesn't hit, still need to check if longer values overlap.
-  return *it_lower < mem_target + GetMemoryTargetSize(instr);
 }
 
 AutoStepResults CodeTrace::AutoStepping(bool continue_previous, AutoStop stop_on)

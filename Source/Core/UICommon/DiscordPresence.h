@@ -27,8 +27,6 @@ enum class SecretType
   RoomID,
 };
 
-static bool s_using_custom_client = false;
-
 void Init();
 void InitNetPlayFunctionality(Handler& handler);
 void CallPendingCallbacks();

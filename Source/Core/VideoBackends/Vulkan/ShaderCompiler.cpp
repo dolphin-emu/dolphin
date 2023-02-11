@@ -81,9 +81,8 @@ static const char SUBGROUP_HELPER_HEADER[] = R"(
   #extension GL_KHR_shader_subgroup_ballot : enable
 
   #define SUPPORTS_SUBGROUP_REDUCTION 1
-  #define CAN_USE_SUBGROUP_REDUCTION true
   #define IS_HELPER_INVOCATION gl_HelperInvocation
-  #define IS_FIRST_ACTIVE_INVOCATION (gl_SubgroupInvocationID == subgroupBallotFindLSB(subgroupBallot(!gl_HelperInvocation)))
+  #define IS_FIRST_ACTIVE_INVOCATION (subgroupElect())
   #define SUBGROUP_MIN(value) value = subgroupMin(value)
   #define SUBGROUP_MAX(value) value = subgroupMax(value)
 )";
