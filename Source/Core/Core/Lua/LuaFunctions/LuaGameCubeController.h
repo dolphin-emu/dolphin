@@ -2,7 +2,7 @@
 
 #include <lua.hpp>
 
-#include <Array>
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
