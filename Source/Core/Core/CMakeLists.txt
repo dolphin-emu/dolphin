@@ -599,6 +599,7 @@ PUBLIC
   enet
   expr
   inputcommon
+  Lua
   ${MBEDTLS_LIBRARIES}
   pugixml
   RangeSet::RangeSet
