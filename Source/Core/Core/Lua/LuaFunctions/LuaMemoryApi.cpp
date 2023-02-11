@@ -3,7 +3,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/Lua/LuaHelperClasses/NumberType.h"
 #include "Core/Lua/LuaVersionResolver.h"
-#include "Core/PowerPC/mmu.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
 #include "LuaMemoryApi.h"
 
@@ -15,7 +15,8 @@ class MEMORY
 public:
   inline MEMORY() {}
 };
-MEMORY* instance = nullptr;
+
+static MEMORY* instance = nullptr;
 
 MEMORY* GetInstance()
 {

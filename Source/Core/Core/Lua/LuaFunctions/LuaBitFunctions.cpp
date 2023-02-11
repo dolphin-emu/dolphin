@@ -11,7 +11,7 @@ public:
   BitClass() {}
 };
 
-BitClass* bit_instance = nullptr;
+static BitClass* bit_instance = nullptr;
 
 BitClass* GetBitInstance()
 {

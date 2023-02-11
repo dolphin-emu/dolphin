@@ -11,7 +11,7 @@
 namespace Lua
 {
 
-template <typename size_t array_size>
+template <size_t array_size>
 void AddLatestFunctionsForVersion(const std::array<luaL_Reg_With_Version, array_size> all_functions,
                                   const std::string& lua_api_version,
                                   std::unordered_map<std::string, std::string>&

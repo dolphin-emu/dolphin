@@ -27,7 +27,7 @@ public:
   inline Emu() {}
 };
 
-Emu* emu_pointer = nullptr;
+static Emu* emu_pointer = nullptr;
 
 Emu* GetEmuInstance()
 {

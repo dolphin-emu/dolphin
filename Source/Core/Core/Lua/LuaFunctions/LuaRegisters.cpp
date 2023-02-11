@@ -16,7 +16,7 @@ public:
   inline LuaRegister() {}
 };
 
-LuaRegister* lua_register_pointer = nullptr;
+static LuaRegister* lua_register_pointer = nullptr;
 
 LuaRegister* GetLuaRegisterInstance()
 {
@@ -453,7 +453,7 @@ int SetRegisterFromByteArray(lua_State* lua_state)
   {
     temp_key = lua_tointeger(lua_state, -2);
     signed64 = lua_tointeger(lua_state, -1);
-    sorted_byte_table.push_back(IndexValuePair(temp_key, signed64));
+    sorted_byte_table.push_back({temp_key, signed64});
 
     lua_pop(lua_state, 1);
   }

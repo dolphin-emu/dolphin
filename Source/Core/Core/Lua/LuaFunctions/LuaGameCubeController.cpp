@@ -20,7 +20,7 @@ public:
   inline GcControllerLua(){};
 };
 
-GcControllerLua* gc_controller_pointer = nullptr;
+static GcControllerLua* gc_controller_pointer = nullptr;
 
 GcControllerLua* getControllerInstance()
 {

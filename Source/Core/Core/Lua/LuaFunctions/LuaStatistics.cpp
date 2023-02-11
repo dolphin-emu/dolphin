@@ -10,7 +10,7 @@ public:
   inline Lua_Statistics(){};
 };
 
-Lua_Statistics* lua_statistics_pointer = nullptr;
+static Lua_Statistics* lua_statistics_pointer = nullptr;
 
 Lua_Statistics* getStatisticsInstance()
 {
