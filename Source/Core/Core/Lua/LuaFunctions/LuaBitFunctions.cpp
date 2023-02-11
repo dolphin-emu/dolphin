@@ -1,5 +1,6 @@
 #include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
 
+#include <memory>
 #include "Common/CommonTypes.h"
 #include "Core/Lua/LuaVersionResolver.h"
 
@@ -12,13 +13,13 @@ public:
   BitClass() {}
 };
 
-static BitClass* bit_instance = nullptr;
+static std::unique_ptr<BitClass> bit_instance = nullptr;
 
 BitClass* GetBitInstance()
 {
   if (bit_instance == nullptr)
-    bit_instance = new BitClass();
-  return bit_instance;
+    bit_instance = std::make_unique<BitClass>(BitClass());
+  return bit_instance.get();
 }
 
 void InitLuaBitFunctions(lua_State* lua_state, const std::string& lua_api_version)

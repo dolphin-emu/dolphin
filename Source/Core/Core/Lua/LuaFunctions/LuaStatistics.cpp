@@ -1,4 +1,6 @@
 #include "Core/Lua/LuaFunctions/LuaStatistics.h"
+
+#include <memory>
 #include "Core/Lua/LuaVersionResolver.h"
 
 namespace Lua::LuaStatistics
@@ -10,13 +12,13 @@ public:
   inline Lua_Statistics(){};
 };
 
-static Lua_Statistics* lua_statistics_pointer = nullptr;
+static std::unique_ptr<Lua_Statistics> lua_statistics_pointer = nullptr;
 
 Lua_Statistics* getStatisticsInstance()
 {
   if (lua_statistics_pointer == nullptr)
-    lua_statistics_pointer = new Lua_Statistics();
-  return lua_statistics_pointer;
+    lua_statistics_pointer = std::make_unique<Lua_Statistics>(Lua_Statistics());
+  return lua_statistics_pointer.get();
 }
 
 void InitLuaStatisticsFunctions(lua_State* lua_state, const std::string& lua_api_version)

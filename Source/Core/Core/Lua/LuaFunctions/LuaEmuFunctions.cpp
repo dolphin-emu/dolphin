@@ -1,4 +1,6 @@
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
+#include <filesystem>
+#include <memory>
 #include <optional>
 #include "Core/Core.h"
 #include "Core/Lua/LuaVersionResolver.h"
@@ -14,12 +16,12 @@ bool waiting_for_save_state_save = false;
 bool waiting_to_start_playing_movie = false;
 bool waiting_to_save_movie = false;
 
-std::string load_state_name;
-std::string save_state_name;
-std::string movie_path_name;
-std::string play_movie_name;
-std::optional<std::string> blank_string;
-std::string save_movie_name;
+static std::string load_state_name;
+static std::string save_state_name;
+static std::string movie_path_name;
+static std::string play_movie_name;
+static std::optional<std::string> blank_string;
+static std::string save_movie_name;
 
 class Emu
 {
@@ -27,13 +29,13 @@ public:
   inline Emu() {}
 };
 
-static Emu* emu_pointer = nullptr;
+static std::unique_ptr<Emu> emu_pointer = nullptr;
 
 Emu* GetEmuInstance()
 {
   if (emu_pointer == nullptr)
-    emu_pointer = new Emu();
-  return emu_pointer;
+    emu_pointer = std::make_unique<Emu>(Emu());
+  return emu_pointer.get();
 }
 
 void InitLuaEmuFunctions(lua_State* lua_state, const std::string& lua_api_version)
@@ -73,20 +75,10 @@ int EmuFrameAdvance(lua_State* lua_state)
   return lua_yield(lua_state, 0);
 }
 
-void ConvertToUpperCase(std::string& input_string)
-{
-  for (int i = 0; i < input_string.length(); ++i)
-  {
-    input_string[i] = std::toupper(input_string[i]);
-  }
-}
-
 std::string CheckIfFileExistsAndGetFileName(lua_State* lua_state, const char* func_name)
 {
   const std::string file_name = luaL_checkstring(lua_state, 2);
-  if (FILE* file = fopen(file_name.c_str(), "r"))
-    fclose(file);
-  else
+  if (!std::filesystem::exists(file_name))
     luaL_error(lua_state, (std::string("Error: Filename ") + file_name + " passed into emu:" +
                            func_name + "() did not represent a file which exists.")
                               .c_str());

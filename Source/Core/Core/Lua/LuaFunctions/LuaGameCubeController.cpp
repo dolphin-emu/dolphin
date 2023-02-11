@@ -20,13 +20,13 @@ public:
   inline GcControllerLua(){};
 };
 
-static GcControllerLua* gc_controller_pointer = nullptr;
+static std::unique_ptr<GcControllerLua> gc_controller_pointer = nullptr;
 
 GcControllerLua* getControllerInstance()
 {
   if (gc_controller_pointer == nullptr)
-    gc_controller_pointer = new GcControllerLua();
-  return gc_controller_pointer;
+    gc_controller_pointer = std::make_unique<GcControllerLua>(GcControllerLua());
+  return gc_controller_pointer.get();
 }
 
 void InitLuaGameCubeControllerFunctions(lua_State* lua_state, const std::string& lua_api_version)
@@ -454,8 +454,8 @@ int AddButtonFlipChance(lua_State* lua_state)
 
   do_random_input_events_at_specified_port[controller_port_number - 1] = true;
   random_button_events[controller_port_number - 1].push_back(
-      std::unique_ptr<LuaGCButtonFlipProbabilityEvent>(
-          new LuaGCButtonFlipProbabilityEvent(probability, button_name)));
+      std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(
+          std::make_unique<LuaGCButtonFlipProbabilityEvent>(LuaGCButtonFlipProbabilityEvent(probability, button_name))));
   return 0;
 }
 
@@ -479,7 +479,7 @@ int AddButtonPressChance(lua_State* lua_state)
   do_random_input_events_at_specified_port[controller_port_number - 1] = true;
   random_button_events[controller_port_number - 1].push_back(
       std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(
-          new LuaGCButtonPressEvent(probability, button_name)));
+          std::make_unique<LuaGCButtonPressEvent>(LuaGCButtonPressEvent(probability, button_name))));
   return 0;
 }
 
@@ -503,7 +503,7 @@ int AddButtonReleaseChance(lua_State* lua_state)
   do_random_input_events_at_specified_port[controller_port_number - 1] = true;
   random_button_events[controller_port_number - 1].push_back(
       std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(
-          new LuaGCButtonReleaseEvent(probability, button_name)));
+          std::make_unique<LuaGCButtonReleaseEvent>(LuaGCButtonReleaseEvent(probability, button_name))));
   return 0;
 }
 
@@ -569,9 +569,11 @@ int AddOrSubtractFromCurrentAnalogValueChance(lua_State* lua_state)
         "the maximum value of 255");
   do_random_input_events_at_specified_port[controller_port_number - 1] = true;
   random_button_events[controller_port_number - 1].push_back(
-      std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCAlterAnalogInputFromCurrentValue(
+      std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(
+          std::make_unique<LuaGCAlterAnalogInputFromCurrentValue>(
+              LuaGCAlterAnalogInputFromCurrentValue(
           probability, button_name, static_cast<u8>(max_to_subtract),
-          static_cast<u8>(max_to_add))));
+          static_cast<u8>(max_to_add)))));
   return 0;
 }
 
@@ -636,9 +638,11 @@ int AddOrSubtractFromSpecificAnalogValueChance(lua_State* lua_state)
 
   do_random_input_events_at_specified_port[controller_port_number - 1] = true;
   random_button_events[controller_port_number - 1].push_back(
-      std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCAlterAnalogInputFromFixedValue(
+      std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(
+          std::make_unique<LuaGCAlterAnalogInputFromFixedValue>(
+              LuaGCAlterAnalogInputFromFixedValue(
           probability, button_name, static_cast<u8>(base_analog_value),
-          static_cast<u8>(max_to_subtract), static_cast<u8>(max_to_add))));
+          static_cast<u8>(max_to_subtract), static_cast<u8>(max_to_add)))));
   return 0;
 }
 
@@ -793,8 +797,9 @@ int AddButtonComboChance(lua_State* lua_state)
   }
   do_random_input_events_at_specified_port[controller_port_number - 1] = true;
   random_button_events[controller_port_number - 1].push_back(
-      std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(new LuaGCButtonComboEvent(
-          probability, controllerState, buttons_list, set_other_buttons_to_blank)));
+      std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(std::make_unique<LuaGCButtonComboEvent>(
+          LuaGCButtonComboEvent(
+          probability, controllerState, buttons_list, set_other_buttons_to_blank))));
   return 0;
 }
 
@@ -808,7 +813,7 @@ int AddControllerClearChance(lua_State* lua_state)
   do_random_input_events_at_specified_port[controller_port_number - 1] = true;
   random_button_events[controller_port_number - 1].push_back(
       std::unique_ptr<LuaGameCubeButtonProbabilityEvent>(
-          new LuaGCClearControllerEvent(probability)));
+          std::make_unique<LuaGCClearControllerEvent>(LuaGCClearControllerEvent(probability))));
   return 0;
 }
 

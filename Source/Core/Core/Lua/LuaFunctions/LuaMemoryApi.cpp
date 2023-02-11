@@ -17,13 +17,13 @@ public:
   inline MEMORY() {}
 };
 
-static MEMORY* instance = nullptr;
+static std::unique_ptr<MEMORY> instance = nullptr;
 
 MEMORY* GetInstance()
 {
   if (instance == nullptr)
-    instance = new MEMORY();
-  return instance;
+    instance = std::make_unique<MEMORY>(MEMORY());
+  return instance.get();
 }
 
 void InitLuaMemoryApi(lua_State* lua_state, const std::string& lua_api_version)

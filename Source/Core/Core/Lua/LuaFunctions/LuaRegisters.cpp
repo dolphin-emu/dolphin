@@ -1,6 +1,7 @@
 #include "Core/Lua/LuaFunctions/LuaRegisters.h"
 
 #include <algorithm>
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -16,13 +17,13 @@ public:
   inline LuaRegister() {}
 };
 
-static LuaRegister* lua_register_pointer = nullptr;
+static std::unique_ptr<LuaRegister> lua_register_pointer = nullptr;
 
 LuaRegister* GetLuaRegisterInstance()
 {
   if (lua_register_pointer == nullptr)
-    lua_register_pointer = new LuaRegister();
-  return lua_register_pointer;
+    lua_register_pointer = std::make_unique<LuaRegister>(LuaRegister());
+  return lua_register_pointer.get();
 }
 
 // Currently supported registers are:
