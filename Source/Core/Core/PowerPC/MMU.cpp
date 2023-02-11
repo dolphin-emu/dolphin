@@ -270,11 +270,19 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
     return bswap(value);
   }
 
-  PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, PowerPC::ppcState.pc);
-  if (Core::System::GetInstance().IsPauseOnPanicMode())
+  if (IsNoExceptionFlag(flag))
   {
-    CPU::Break();
-    ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+    ERROR_LOG_FMT(POWERPC, "Unable to resolve read address {:x} PC {:x}", em_address,
+                  PowerPC::ppcState.pc);
+  }
+  else
+  {
+    PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, PowerPC::ppcState.pc);
+    if (Core::System::GetInstance().IsPauseOnPanicMode())
+    {
+      CPU::Break();
+      ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+    }
   }
   return 0;
 }
@@ -459,11 +467,19 @@ static void WriteToHardware(Core::System& system, Memory::MemoryManager& memory,
     return;
   }
 
-  PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, PowerPC::ppcState.pc);
-  if (Core::System::GetInstance().IsPauseOnPanicMode())
+  if (IsNoExceptionFlag(flag))
   {
-    CPU::Break();
-    ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+    ERROR_LOG_FMT(POWERPC, "Unable to resolve write address {:x} PC {:x}", em_address,
+                  PowerPC::ppcState.pc);
+  }
+  else
+  {
+    PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, PowerPC::ppcState.pc);
+    if (Core::System::GetInstance().IsPauseOnPanicMode())
+    {
+      CPU::Break();
+      ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+    }
   }
 }
 // =====================
