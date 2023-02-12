@@ -53,7 +53,8 @@ void InitLuaOnFrameStartCallbackFunctions(lua_State* lua_state, const std::strin
 
 int Register(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "OnFrameStart:register", "OnFrameStart:register(functionName)");
+  LuaColonOperatorTypeCheck(lua_state, "OnFrameStart:register",
+                            "OnFrameStart:register(functionName)");
   if (frame_start_callback_is_registered)
     luaL_unref(lua_state, LUA_REGISTRYINDEX, on_frame_start_lua_function_reference);
   lua_pushvalue(lua_state, 2);

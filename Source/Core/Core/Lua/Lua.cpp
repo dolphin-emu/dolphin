@@ -127,7 +127,8 @@ void Init(const std::string& script_location,
   LuaGameCubeController::InitLuaGameCubeControllerFunctions(main_lua_state, global_lua_api_version);
   LuaStatistics::InitLuaStatisticsFunctions(main_lua_state, global_lua_api_version);
   LuaRegisters::InitLuaRegistersFunctions(main_lua_state, global_lua_api_version);
-  LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(main_lua_state, global_lua_api_version);
+  LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(main_lua_state,
+                                                                global_lua_api_version);
 
   main_lua_thread_state = lua_newthread(main_lua_state);
   if (luaL_loadfile(main_lua_thread_state, script_location.c_str()) != LUA_OK)
