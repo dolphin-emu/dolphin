@@ -12,6 +12,11 @@
 
 class IniFile;
 
+namespace Core
+{
+class CPUThreadGuard;
+};
+
 namespace ActionReplay
 {
 struct AREntry
@@ -35,7 +40,7 @@ struct ARCode
   bool user_defined = false;
 };
 
-void RunAllActive();
+void RunAllActive(const Core::CPUThreadGuard& cpu_guard);
 
 void ApplyCodes(std::span<const ARCode> codes);
 void SetSyncedCodesAsActive();

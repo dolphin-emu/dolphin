@@ -181,7 +181,7 @@ SectionID ElfReader::GetSectionByName(const char* name, int firstSection) const
   return -1;
 }
 
-bool ElfReader::LoadSymbols() const
+bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard) const
 {
   bool hasSymbols = false;
   SectionID sec = GetSectionByName(".symtab");
@@ -219,7 +219,7 @@ bool ElfReader::LoadSymbols() const
       default:
         continue;
       }
-      g_symbolDB.AddKnownSymbol(value, size, name, symtype);
+      g_symbolDB.AddKnownSymbol(guard, value, size, name, symtype);
       hasSymbols = true;
     }
   }

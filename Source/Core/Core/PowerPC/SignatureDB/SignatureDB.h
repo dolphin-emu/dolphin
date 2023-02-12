@@ -11,6 +11,11 @@
 
 // You're not meant to keep around SignatureDB objects persistently. Use 'em, throw them away.
 
+namespace Core
+{
+class CPUThreadGuard;
+}
+
 class PPCSymbolDB;
 class SignatureDBFormatHandler;
 
@@ -33,9 +38,9 @@ public:
   void List() const;
 
   void Populate(const PPCSymbolDB* func_db, const std::string& filter = "");
-  void Apply(PPCSymbolDB* func_db) const;
+  void Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db) const;
 
-  bool Add(u32 start_addr, u32 size, const std::string& name);
+  bool Add(const Core::CPUThreadGuard& guard, u32 start_addr, u32 size, const std::string& name);
 
 private:
   std::unique_ptr<SignatureDBFormatHandler> m_handler;
@@ -52,9 +57,10 @@ public:
   virtual void List() const = 0;
 
   virtual void Populate(const PPCSymbolDB* func_db, const std::string& filter = "") = 0;
-  virtual void Apply(PPCSymbolDB* func_db) const = 0;
+  virtual void Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db) const = 0;
 
-  virtual bool Add(u32 startAddr, u32 size, const std::string& name) = 0;
+  virtual bool Add(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
+                   const std::string& name) = 0;
 };
 
 class HashSignatureDB : public SignatureDBFormatHandler
@@ -69,15 +75,16 @@ public:
   };
   using FuncDB = std::map<u32, DBFunc>;
 
-  static u32 ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd);
+  static u32 ComputeCodeChecksum(const Core::CPUThreadGuard& guard, u32 offsetStart, u32 offsetEnd);
 
   void Clear() override;
   void List() const override;
 
   void Populate(const PPCSymbolDB* func_db, const std::string& filter = "") override;
-  void Apply(PPCSymbolDB* func_db) const override;
+  void Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db) const override;
 
-  bool Add(u32 startAddr, u32 size, const std::string& name) override;
+  bool Add(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
+           const std::string& name) override;
 
 protected:
   // Map from signature to function. We store the DB in this map because it optimizes the

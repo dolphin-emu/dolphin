@@ -15,6 +15,11 @@ class QMouseEvent;
 class QResizeEvent;
 class QShowEvent;
 
+namespace Core
+{
+class CPUThreadGuard;
+};
+
 struct CodeViewBranch;
 class BranchDisplayDelegate;
 
@@ -39,6 +44,7 @@ public:
   // Set tighter row height. Set BP column sizing. This needs to run when font type changes.
   void FontBasedSizing();
   void Update();
+  void Update(const Core::CPUThreadGuard* guard);
 
   void ToggleBreakpoint();
   void AddBreakpoint();

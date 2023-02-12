@@ -495,7 +495,9 @@ void MemoryWidget::SetAddress(u32 address)
   {
     AddressSpace::Accessors* accessors =
         AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
-    good = accessors->IsValidAddress(current_addr);
+
+    Core::CPUThreadGuard guard;
+    good = accessors->IsValidAddress(guard, current_addr);
   }
 
   if (m_search_address->findText(current_text) == -1 && good)
@@ -651,17 +653,20 @@ void MemoryWidget::OnSetValue()
     return;
   }
 
+  Core::CPUThreadGuard guard;
+
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
   u32 end_address = target_addr.address + static_cast<u32>(bytes.size()) - 1;
 
-  if (!accessors->IsValidAddress(target_addr.address) || !accessors->IsValidAddress(end_address))
+  if (!accessors->IsValidAddress(guard, target_addr.address) ||
+      !accessors->IsValidAddress(guard, end_address))
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Target address range is invalid."));
     return;
   }
 
   for (const char c : bytes)
-    accessors->WriteU8(target_addr.address++, static_cast<u8>(c));
+    accessors->WriteU8(guard, target_addr.address++, static_cast<u8>(c));
 
   Update();
 }
@@ -710,8 +715,10 @@ void MemoryWidget::OnSetValueFromFile()
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
+  Core::CPUThreadGuard guard;
+
   for (u8 b : file_contents)
-    accessors->WriteU8(target_addr.address++, b);
+    accessors->WriteU8(guard, target_addr.address++, b);
 
   Update();
 }
@@ -822,11 +829,15 @@ void MemoryWidget::FindValue(bool next)
     target_addr.address += next ? 1 : -1;
   }
 
-  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+  const std::optional<u32> found_addr = [&] {
+    AddressSpace::Accessors* accessors =
+        AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  const auto found_addr =
-      accessors->Search(target_addr.address, reinterpret_cast<const u8*>(search_for.data()),
-                        static_cast<u32>(search_for.size()), next);
+    Core::CPUThreadGuard guard;
+    return accessors->Search(guard, target_addr.address,
+                             reinterpret_cast<const u8*>(search_for.data()),
+                             static_cast<u32>(search_for.size()), next);
+  }();
 
   if (found_addr.has_value())
   {

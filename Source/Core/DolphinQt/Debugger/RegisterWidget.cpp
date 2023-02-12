@@ -295,7 +295,11 @@ void RegisterWidget::AutoStep(const std::string& reg) const
 
   while (true)
   {
-    const AutoStepResults results = trace.AutoStepping(true);
+    const AutoStepResults results = [&trace] {
+      Core::CPUThreadGuard guard;
+      return trace.AutoStepping(guard, true);
+    }();
+
     emit Host::GetInstance()->UpdateDisasmDialog();
 
     if (!results.timed_out)

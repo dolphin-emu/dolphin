@@ -14,6 +14,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HLE/HLE.h"
@@ -339,11 +340,14 @@ void Interpreter::Run()
 
 void Interpreter::unknown_instruction(UGeckoInstruction inst)
 {
-  const u32 opcode = PowerPC::HostRead_U32(last_pc);
+  ASSERT(Core::IsCPUThread());
+  Core::CPUThreadGuard guard;
+
+  const u32 opcode = PowerPC::HostRead_U32(guard, last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
-  Dolphin_Debugger::PrintCallstack(Core::System::GetInstance(), Common::Log::LogType::POWERPC,
-                                   Common::Log::LogLevel::LNOTICE);
+  Dolphin_Debugger::PrintCallstack(Core::System::GetInstance(), guard,
+                                   Common::Log::LogType::POWERPC, Common::Log::LogLevel::LNOTICE);
   NOTICE_LOG_FMT(
       POWERPC,
       "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",

@@ -28,6 +28,7 @@
 #include "Core/CheatCodes.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
@@ -230,7 +231,7 @@ void LoadPatches()
   LoadSpeedhacks("Speedhacks", merged);
 }
 
-static void ApplyPatches(const std::vector<Patch>& patches)
+static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)
 {
   for (const Patch& patch : patches)
   {
@@ -244,16 +245,17 @@ static void ApplyPatches(const std::vector<Patch>& patches)
         switch (entry.type)
         {
         case PatchType::Patch8Bit:
-          if (!entry.conditional || PowerPC::HostRead_U8(addr) == static_cast<u8>(comparand))
-            PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+          if (!entry.conditional || PowerPC::HostRead_U8(guard, addr) == static_cast<u8>(comparand))
+            PowerPC::HostWrite_U8(guard, static_cast<u8>(value), addr);
           break;
         case PatchType::Patch16Bit:
-          if (!entry.conditional || PowerPC::HostRead_U16(addr) == static_cast<u16>(comparand))
-            PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
+          if (!entry.conditional ||
+              PowerPC::HostRead_U16(guard, addr) == static_cast<u16>(comparand))
+            PowerPC::HostWrite_U16(guard, static_cast<u16>(value), addr);
           break;
         case PatchType::Patch32Bit:
-          if (!entry.conditional || PowerPC::HostRead_U32(addr) == comparand)
-            PowerPC::HostWrite_U32(value, addr);
+          if (!entry.conditional || PowerPC::HostRead_U32(guard, addr) == comparand)
+            PowerPC::HostWrite_U32(guard, value, addr);
           break;
         default:
           // unknown patchtype
@@ -264,19 +266,20 @@ static void ApplyPatches(const std::vector<Patch>& patches)
   }
 }
 
-static void ApplyMemoryPatches(std::span<const std::size_t> memory_patch_indices)
+static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
+                               std::span<const std::size_t> memory_patch_indices)
 {
   std::lock_guard lock(s_on_frame_memory_mutex);
   for (std::size_t index : memory_patch_indices)
   {
-    PowerPC::debug_interface.ApplyExistingPatch(index);
+    PowerPC::debug_interface.ApplyExistingPatch(guard, index);
   }
 }
 
 // Requires MSR.DR, MSR.IR
 // There's no perfect way to do this, it's just a heuristic.
 // We require at least 2 stack frames, if the stack is shallower than that then it won't work.
-static bool IsStackSane()
+static bool IsStackValid(const Core::CPUThreadGuard& guard)
 {
   auto& system = Core::System::GetInstance();
   auto& ppc_state = system.GetPPCState();
@@ -285,19 +288,19 @@ static bool IsStackSane()
 
   // Check the stack pointer
   u32 SP = ppc_state.gpr[1];
-  if (!PowerPC::HostIsRAMAddress(SP))
+  if (!PowerPC::HostIsRAMAddress(guard, SP))
     return false;
 
   // Read the frame pointer from the stack (find 2nd frame from top), assert that it makes sense
-  u32 next_SP = PowerPC::HostRead_U32(SP);
-  if (next_SP <= SP || !PowerPC::HostIsRAMAddress(next_SP) ||
-      !PowerPC::HostIsRAMAddress(next_SP + 4))
+  u32 next_SP = PowerPC::HostRead_U32(guard, SP);
+  if (next_SP <= SP || !PowerPC::HostIsRAMAddress(guard, next_SP) ||
+      !PowerPC::HostIsRAMAddress(guard, next_SP + 4))
     return false;
 
   // Check the link register makes sense (that it points to a valid IBAT address)
-  const u32 address = PowerPC::HostRead_U32(next_SP + 4);
-  return PowerPC::HostIsInstructionRAMAddress(address) &&
-         0 != PowerPC::HostRead_Instruction(address);
+  const u32 address = PowerPC::HostRead_U32(guard, next_SP + 4);
+  return PowerPC::HostIsInstructionRAMAddress(guard, address) &&
+         0 != PowerPC::HostRead_Instruction(guard, address);
 }
 
 void AddMemoryPatch(std::size_t index)
@@ -318,11 +321,14 @@ bool ApplyFramePatches()
   auto& system = Core::System::GetInstance();
   auto& ppc_state = system.GetPPCState();
 
+  ASSERT(Core::IsCPUThread());
+  Core::CPUThreadGuard guard;
+
   // Because we're using the VI Interrupt to time this instead of patching the game with a
   // callback hook we can end up catching the game in an exception vector.
   // We deal with this by returning false so that SystemTimers will reschedule us in a few cycles
   // where we can try again after the CPU hopefully returns back to the normal instruction flow.
-  if (!ppc_state.msr.DR || !ppc_state.msr.IR || !IsStackSane())
+  if (!ppc_state.msr.DR || !ppc_state.msr.IR || !IsStackValid(guard))
   {
     DEBUG_LOG_FMT(ACTIONREPLAY,
                   "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
@@ -331,12 +337,12 @@ bool ApplyFramePatches()
     return false;
   }
 
-  ApplyPatches(s_on_frame);
-  ApplyMemoryPatches(s_on_frame_memory);
+  ApplyPatches(guard, s_on_frame);
+  ApplyMemoryPatches(guard, s_on_frame_memory);
 
   // Run the Gecko code handler
-  Gecko::RunCodeHandler();
-  ActionReplay::RunAllActive();
+  Gecko::RunCodeHandler(guard);
+  ActionReplay::RunAllActive(guard);
 
   return true;
 }

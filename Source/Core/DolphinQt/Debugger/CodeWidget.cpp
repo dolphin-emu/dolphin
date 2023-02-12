@@ -329,7 +329,10 @@ void CodeWidget::UpdateCallstack()
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
 
-  bool success = Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), stack);
+  const bool success = [&stack] {
+    Core::CPUThreadGuard guard;
+    return Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), guard, stack);
+  }();
 
   if (!success)
   {
@@ -452,7 +455,11 @@ void CodeWidget::StepOver()
   if (!CPU::IsStepping())
     return;
 
-  UGeckoInstruction inst = PowerPC::HostRead_Instruction(PowerPC::ppcState.pc);
+  const UGeckoInstruction inst = [] {
+    Core::CPUThreadGuard guard;
+    return PowerPC::HostRead_Instruction(guard, PowerPC::ppcState.pc);
+  }();
+
   if (inst.LK)
   {
     PowerPC::breakpoints.ClearAllTemporary();
@@ -485,48 +492,51 @@ void CodeWidget::StepOut()
   if (!CPU::IsStepping())
     return;
 
-  CPU::PauseAndLock(true, false);
-  PowerPC::breakpoints.ClearAllTemporary();
-
   // Keep stepping until the next return instruction or timeout after five seconds
   using clock = std::chrono::steady_clock;
   clock::time_point timeout = clock::now() + std::chrono::seconds(5);
-  PowerPC::CoreMode old_mode = PowerPC::GetMode();
-  PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
 
-  // Loop until either the current instruction is a return instruction with no Link flag
-  // or a breakpoint is detected so it can step at the breakpoint. If the PC is currently
-  // on a breakpoint, skip it.
-  UGeckoInstruction inst = PowerPC::HostRead_Instruction(PowerPC::ppcState.pc);
-  do
   {
-    if (WillInstructionReturn(inst))
-    {
-      PowerPC::SingleStep();
-      break;
-    }
+    Core::CPUThreadGuard guard;
 
-    if (inst.LK)
+    PowerPC::breakpoints.ClearAllTemporary();
+
+    PowerPC::CoreMode old_mode = PowerPC::GetMode();
+    PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
+
+    // Loop until either the current instruction is a return instruction with no Link flag
+    // or a breakpoint is detected so it can step at the breakpoint. If the PC is currently
+    // on a breakpoint, skip it.
+    UGeckoInstruction inst = PowerPC::HostRead_Instruction(guard, PowerPC::ppcState.pc);
+    do
     {
-      // Step over branches
-      u32 next_pc = PowerPC::ppcState.pc + 4;
-      do
+      if (WillInstructionReturn(inst))
       {
         PowerPC::SingleStep();
-      } while (PowerPC::ppcState.pc != next_pc && clock::now() < timeout &&
-               !PowerPC::breakpoints.IsAddressBreakPoint(PowerPC::ppcState.pc));
-    }
-    else
-    {
-      PowerPC::SingleStep();
-    }
+        break;
+      }
 
-    inst = PowerPC::HostRead_Instruction(PowerPC::ppcState.pc);
-  } while (clock::now() < timeout &&
-           !PowerPC::breakpoints.IsAddressBreakPoint(PowerPC::ppcState.pc));
+      if (inst.LK)
+      {
+        // Step over branches
+        u32 next_pc = PowerPC::ppcState.pc + 4;
+        do
+        {
+          PowerPC::SingleStep();
+        } while (PowerPC::ppcState.pc != next_pc && clock::now() < timeout &&
+                 !PowerPC::breakpoints.IsAddressBreakPoint(PowerPC::ppcState.pc));
+      }
+      else
+      {
+        PowerPC::SingleStep();
+      }
 
-  PowerPC::SetMode(old_mode);
-  CPU::PauseAndLock(false, false);
+      inst = PowerPC::HostRead_Instruction(guard, PowerPC::ppcState.pc);
+    } while (clock::now() < timeout &&
+             !PowerPC::breakpoints.IsAddressBreakPoint(PowerPC::ppcState.pc));
+
+    PowerPC::SetMode(old_mode);
+  }
 
   emit Host::GetInstance()->UpdateDisasmDialog();
 

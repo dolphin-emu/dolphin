@@ -191,7 +191,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
     DolphinAnalytics::Instance().ReportGameStart();
 }
 
-void SConfig::OnNewTitleLoad()
+void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
 {
   if (!Core::IsRunning())
     return;
@@ -201,7 +201,7 @@ void SConfig::OnNewTitleLoad()
     g_symbolDB.Clear();
     Host_NotifyMapLoaded();
   }
-  CBoot::LoadMapFromFilename();
+  CBoot::LoadMapFromFilename(guard);
   auto& system = Core::System::GetInstance();
   HLE::Reload(system);
   PatchEngine::Reload();

@@ -103,41 +103,47 @@ namespace
 {
 template <typename T>
 static std::optional<PowerPC::ReadResult<T>>
-TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space);
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space);
 
 template <>
 std::optional<PowerPC::ReadResult<u8>>
-TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
 {
-  return PowerPC::HostTryReadU8(addr, space);
+  return PowerPC::HostTryReadU8(guard, addr, space);
 }
 
 template <>
 std::optional<PowerPC::ReadResult<u16>>
-TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
 {
-  return PowerPC::HostTryReadU16(addr, space);
+  return PowerPC::HostTryReadU16(guard, addr, space);
 }
 
 template <>
 std::optional<PowerPC::ReadResult<u32>>
-TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
 {
-  return PowerPC::HostTryReadU32(addr, space);
+  return PowerPC::HostTryReadU32(guard, addr, space);
 }
 
 template <>
 std::optional<PowerPC::ReadResult<u64>>
-TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
 {
-  return PowerPC::HostTryReadU64(addr, space);
+  return PowerPC::HostTryReadU64(guard, addr, space);
 }
 
 template <>
 std::optional<PowerPC::ReadResult<s8>>
-TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::HostTryReadU8(addr, space);
+  auto tmp = PowerPC::HostTryReadU8(guard, addr, space);
   if (!tmp)
     return std::nullopt;
   return PowerPC::ReadResult<s8>(tmp->translated, Common::BitCast<s8>(tmp->value));
@@ -145,9 +151,10 @@ TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
 
 template <>
 std::optional<PowerPC::ReadResult<s16>>
-TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::HostTryReadU16(addr, space);
+  auto tmp = PowerPC::HostTryReadU16(guard, addr, space);
   if (!tmp)
     return std::nullopt;
   return PowerPC::ReadResult<s16>(tmp->translated, Common::BitCast<s16>(tmp->value));
@@ -155,9 +162,10 @@ TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
 
 template <>
 std::optional<PowerPC::ReadResult<s32>>
-TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::HostTryReadU32(addr, space);
+  auto tmp = PowerPC::HostTryReadU32(guard, addr, space);
   if (!tmp)
     return std::nullopt;
   return PowerPC::ReadResult<s32>(tmp->translated, Common::BitCast<s32>(tmp->value));
@@ -165,9 +173,10 @@ TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
 
 template <>
 std::optional<PowerPC::ReadResult<s64>>
-TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
 {
-  auto tmp = PowerPC::HostTryReadU64(addr, space);
+  auto tmp = PowerPC::HostTryReadU64(guard, addr, space);
   if (!tmp)
     return std::nullopt;
   return PowerPC::ReadResult<s64>(tmp->translated, Common::BitCast<s64>(tmp->value));
@@ -175,22 +184,25 @@ TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
 
 template <>
 std::optional<PowerPC::ReadResult<float>>
-TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
 {
-  return PowerPC::HostTryReadF32(addr, space);
+  return PowerPC::HostTryReadF32(guard, addr, space);
 }
 
 template <>
 std::optional<PowerPC::ReadResult<double>>
-TryReadValueFromEmulatedMemory(u32 addr, PowerPC::RequestedAddressSpace space)
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
 {
-  return PowerPC::HostTryReadF64(addr, space);
+  return PowerPC::HostTryReadF64(guard, addr, space);
 }
 }  // namespace
 
 template <typename T>
 Common::Result<Cheats::SearchErrorCode, std::vector<Cheats::SearchResult<T>>>
-Cheats::NewSearch(const std::vector<Cheats::MemoryRange>& memory_ranges,
+Cheats::NewSearch(const Core::CPUThreadGuard& guard,
+                  const std::vector<Cheats::MemoryRange>& memory_ranges,
                   PowerPC::RequestedAddressSpace address_space, bool aligned,
                   const std::function<bool(const T& value)>& validator)
 {
@@ -229,7 +241,7 @@ Cheats::NewSearch(const std::vector<Cheats::MemoryRange>& memory_ranges,
       for (u64 i = 0; i < length; i += increment_per_loop)
       {
         const u32 addr = start_address + i;
-        const auto current_value = TryReadValueFromEmulatedMemory<T>(addr, address_space);
+        const auto current_value = TryReadValueFromEmulatedMemory<T>(guard, addr, address_space);
         if (!current_value)
           continue;
 
@@ -252,7 +264,8 @@ Cheats::NewSearch(const std::vector<Cheats::MemoryRange>& memory_ranges,
 
 template <typename T>
 Common::Result<Cheats::SearchErrorCode, std::vector<Cheats::SearchResult<T>>>
-Cheats::NextSearch(const std::vector<Cheats::SearchResult<T>>& previous_results,
+Cheats::NextSearch(const Core::CPUThreadGuard& guard,
+                   const std::vector<Cheats::SearchResult<T>>& previous_results,
                    PowerPC::RequestedAddressSpace address_space,
                    const std::function<bool(const T& new_value, const T& old_value)>& validator)
 {
@@ -277,7 +290,7 @@ Cheats::NextSearch(const std::vector<Cheats::SearchResult<T>>& previous_results,
     for (const auto& previous_result : previous_results)
     {
       const u32 addr = previous_result.m_address;
-      const auto current_value = TryReadValueFromEmulatedMemory<T>(addr, address_space);
+      const auto current_value = TryReadValueFromEmulatedMemory<T>(guard, addr, address_space);
       if (!current_value)
       {
         auto& r = results.emplace_back();
@@ -429,7 +442,7 @@ MakeCompareFunctionForLastValue(Cheats::CompareType op)
 }
 
 template <typename T>
-Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch()
+Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPUThreadGuard& guard)
 {
   Common::Result<SearchErrorCode, std::vector<SearchResult<T>>> result =
       Cheats::SearchErrorCode::InvalidParameters;
@@ -442,12 +455,12 @@ Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch()
     if (m_first_search_done)
     {
       result = Cheats::NextSearch<T>(
-          m_search_results, m_address_space,
+          guard, m_search_results, m_address_space,
           [&func](const T& new_value, const T& old_value) { return func(new_value); });
     }
     else
     {
-      result = Cheats::NewSearch<T>(m_memory_ranges, m_address_space, m_aligned, func);
+      result = Cheats::NewSearch<T>(guard, m_memory_ranges, m_address_space, m_aligned, func);
     }
   }
   else if (m_filter_type == FilterType::CompareAgainstLastValue)
@@ -455,19 +468,19 @@ Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch()
     if (!m_first_search_done)
       return Cheats::SearchErrorCode::InvalidParameters;
 
-    result = Cheats::NextSearch<T>(m_search_results, m_address_space,
+    result = Cheats::NextSearch<T>(guard, m_search_results, m_address_space,
                                    MakeCompareFunctionForLastValue<T>(m_compare_type));
   }
   else if (m_filter_type == FilterType::DoNotFilter)
   {
     if (m_first_search_done)
     {
-      result = Cheats::NextSearch<T>(m_search_results, m_address_space,
+      result = Cheats::NextSearch<T>(guard, m_search_results, m_address_space,
                                      [](const T& v1, const T& v2) { return true; });
     }
     else
     {
-      result = Cheats::NewSearch<T>(m_memory_ranges, m_address_space, m_aligned,
+      result = Cheats::NewSearch<T>(guard, m_memory_ranges, m_address_space, m_aligned,
                                     [](const T& v) { return true; });
     }
   }

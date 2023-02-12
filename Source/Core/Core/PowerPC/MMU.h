@@ -10,6 +10,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Core
+{
+class CPUThreadGuard;
+};
+
 namespace PowerPC
 {
 // Routines for debugger UI, cheats, etc. to access emulated memory from the
@@ -27,14 +32,14 @@ enum class RequestedAddressSpace
 // If the read fails (eg. address does not correspond to a mapped address in the current address
 // space), a PanicAlert will be shown to the user and zero (or an empty string for the string case)
 // will be returned.
-u8 HostRead_U8(u32 address);
-u16 HostRead_U16(u32 address);
-u32 HostRead_U32(u32 address);
-u64 HostRead_U64(u32 address);
-float HostRead_F32(u32 address);
-double HostRead_F64(u32 address);
-u32 HostRead_Instruction(u32 address);
-std::string HostGetString(u32 address, size_t size = 0);
+u8 HostRead_U8(const Core::CPUThreadGuard& guard, u32 address);
+u16 HostRead_U16(const Core::CPUThreadGuard& guard, u32 address);
+u32 HostRead_U32(const Core::CPUThreadGuard& guard, u32 address);
+u64 HostRead_U64(const Core::CPUThreadGuard& guard, u32 address);
+float HostRead_F32(const Core::CPUThreadGuard& guard, u32 address);
+double HostRead_F64(const Core::CPUThreadGuard& guard, u32 address);
+u32 HostRead_Instruction(const Core::CPUThreadGuard& guard, u32 address);
+std::string HostGetString(const Core::CPUThreadGuard& guard, u32 address, size_t size = 0);
 
 template <typename T>
 struct ReadResult
@@ -57,32 +62,39 @@ struct ReadResult
 // value and information on whether the given address had to be translated or not. Unlike the
 // HostRead functions, this does not raise a user-visible alert on failure.
 std::optional<ReadResult<u8>>
-HostTryReadU8(u32 address, RequestedAddressSpace space = RequestedAddressSpace::Effective);
+HostTryReadU8(const Core::CPUThreadGuard& guard, u32 address,
+              RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<ReadResult<u16>>
-HostTryReadU16(u32 address, RequestedAddressSpace space = RequestedAddressSpace::Effective);
+HostTryReadU16(const Core::CPUThreadGuard& guard, u32 address,
+               RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<ReadResult<u32>>
-HostTryReadU32(u32 address, RequestedAddressSpace space = RequestedAddressSpace::Effective);
+HostTryReadU32(const Core::CPUThreadGuard& guard, u32 address,
+               RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<ReadResult<u64>>
-HostTryReadU64(u32 address, RequestedAddressSpace space = RequestedAddressSpace::Effective);
+HostTryReadU64(const Core::CPUThreadGuard& guard, u32 address,
+               RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<ReadResult<float>>
-HostTryReadF32(u32 address, RequestedAddressSpace space = RequestedAddressSpace::Effective);
+HostTryReadF32(const Core::CPUThreadGuard& guard, u32 address,
+               RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<ReadResult<double>>
-HostTryReadF64(u32 address, RequestedAddressSpace space = RequestedAddressSpace::Effective);
+HostTryReadF64(const Core::CPUThreadGuard& guard, u32 address,
+               RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<ReadResult<u32>>
-HostTryReadInstruction(u32 address, RequestedAddressSpace space = RequestedAddressSpace::Effective);
+HostTryReadInstruction(const Core::CPUThreadGuard& guard, u32 address,
+                       RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<ReadResult<std::string>>
-HostTryReadString(u32 address, size_t size = 0,
+HostTryReadString(const Core::CPUThreadGuard& guard, u32 address, size_t size = 0,
                   RequestedAddressSpace space = RequestedAddressSpace::Effective);
 
 // Writes a value to emulated memory using the currently active MMU settings.
 // If the write fails (eg. address does not correspond to a mapped address in the current address
 // space), a PanicAlert will be shown to the user.
-void HostWrite_U8(u32 var, u32 address);
-void HostWrite_U16(u32 var, u32 address);
-void HostWrite_U32(u32 var, u32 address);
-void HostWrite_U64(u64 var, u32 address);
-void HostWrite_F32(float var, u32 address);
-void HostWrite_F64(double var, u32 address);
+void HostWrite_U8(const Core::CPUThreadGuard& guard, u32 var, u32 address);
+void HostWrite_U16(const Core::CPUThreadGuard& guard, u32 var, u32 address);
+void HostWrite_U32(const Core::CPUThreadGuard& guard, u32 var, u32 address);
+void HostWrite_U64(const Core::CPUThreadGuard& guard, u64 var, u32 address);
+void HostWrite_F32(const Core::CPUThreadGuard& guard, float var, u32 address);
+void HostWrite_F64(const Core::CPUThreadGuard& guard, double var, u32 address);
 
 struct WriteResult
 {
@@ -98,30 +110,31 @@ struct WriteResult
 // address had to be translated or not. Unlike the HostWrite functions, this does not raise a
 // user-visible alert on failure.
 std::optional<WriteResult>
-HostTryWriteU8(u32 var, const u32 address,
+HostTryWriteU8(const Core::CPUThreadGuard& guard, u32 var, const u32 address,
                RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<WriteResult>
-HostTryWriteU16(u32 var, const u32 address,
+HostTryWriteU16(const Core::CPUThreadGuard& guard, u32 var, const u32 address,
                 RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<WriteResult>
-HostTryWriteU32(u32 var, const u32 address,
+HostTryWriteU32(const Core::CPUThreadGuard& guard, u32 var, const u32 address,
                 RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<WriteResult>
-HostTryWriteU64(u64 var, const u32 address,
+HostTryWriteU64(const Core::CPUThreadGuard& guard, u64 var, const u32 address,
                 RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<WriteResult>
-HostTryWriteF32(float var, const u32 address,
+HostTryWriteF32(const Core::CPUThreadGuard& guard, float var, const u32 address,
                 RequestedAddressSpace space = RequestedAddressSpace::Effective);
 std::optional<WriteResult>
-HostTryWriteF64(double var, const u32 address,
+HostTryWriteF64(const Core::CPUThreadGuard& guard, double var, const u32 address,
                 RequestedAddressSpace space = RequestedAddressSpace::Effective);
 
 // Returns whether a read or write to the given address will resolve to a RAM access in the given
 // address space.
-bool HostIsRAMAddress(u32 address, RequestedAddressSpace space = RequestedAddressSpace::Effective);
+bool HostIsRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
+                      RequestedAddressSpace space = RequestedAddressSpace::Effective);
 
 // Same as HostIsRAMAddress, but uses IBAT instead of DBAT.
-bool HostIsInstructionRAMAddress(u32 address,
+bool HostIsInstructionRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
                                  RequestedAddressSpace space = RequestedAddressSpace::Effective);
 
 // Routines for the CPU core to access memory.

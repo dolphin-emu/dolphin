@@ -92,6 +92,33 @@ enum class ConsoleType : u32
   ReservedTDEVSystem = 0x20000007,
 };
 
+// Run a function as the CPU thread. This is an RAII alternative to the RunAsCPUThread function.
+//
+// If constructed from the Host thread, the CPU thread is paused and the current thread temporarily
+// becomes the CPU thread.
+// If constructed from the CPU thread, nothing special happens.
+//
+// This should only be constructed from the CPU thread or the host thread.
+//
+// Some functions use a parameter of this type to indicate that the function should only be called
+// from the CPU thread. If the parameter is a pointer, the function has a fallback for being called
+// from the wrong thread (with the argument being set to nullptr).
+class CPUThreadGuard final
+{
+public:
+  CPUThreadGuard();
+  ~CPUThreadGuard();
+
+  CPUThreadGuard(const CPUThreadGuard&) = delete;
+  CPUThreadGuard(CPUThreadGuard&&) = delete;
+  CPUThreadGuard& operator=(const CPUThreadGuard&) = delete;
+  CPUThreadGuard& operator=(CPUThreadGuard&&) = delete;
+
+private:
+  const bool m_was_cpu_thread;
+  bool m_was_unpaused = false;
+};
+
 bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi);
 void Stop();
 void Shutdown();

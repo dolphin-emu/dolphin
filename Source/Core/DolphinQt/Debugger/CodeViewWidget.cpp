@@ -175,14 +175,15 @@ CodeViewWidget::CodeViewWidget()
     Update();
   });
 
-  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &CodeViewWidget::Update);
+  connect(&Settings::Instance(), &Settings::ThemeChanged, this,
+          qOverload<>(&CodeViewWidget::Update));
 }
 
 CodeViewWidget::~CodeViewWidget() = default;
 
-static u32 GetBranchFromAddress(u32 addr)
+static u32 GetBranchFromAddress(const Core::CPUThreadGuard& guard, u32 addr)
 {
-  std::string disasm = PowerPC::debug_interface.Disassemble(addr);
+  std::string disasm = PowerPC::debug_interface.Disassemble(&guard, addr);
   size_t pos = disasm.find("->0x");
 
   if (pos == std::string::npos)
@@ -255,6 +256,26 @@ void CodeViewWidget::Update()
   if (m_updating)
     return;
 
+  if (Core::GetState() == Core::State::Paused)
+  {
+    Core::CPUThreadGuard guard;
+    Update(&guard);
+  }
+  else
+  {
+    // If the core is running, blank out the view of memory instead of reading anything.
+    Update(nullptr);
+  }
+}
+
+void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
+{
+  if (!isVisible())
+    return;
+
+  if (m_updating)
+    return;
+
   m_updating = true;
 
   clearSelection();
@@ -284,11 +305,11 @@ void CodeViewWidget::Update()
   for (int i = 0; i < rowCount(); i++)
   {
     const u32 addr = AddressForRow(i);
-    const u32 color = PowerPC::debug_interface.GetColor(addr);
+    const u32 color = PowerPC::debug_interface.GetColor(guard, addr);
     auto* bp_item = new QTableWidgetItem;
     auto* addr_item = new QTableWidgetItem(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
 
-    std::string disas = PowerPC::debug_interface.Disassemble(addr);
+    std::string disas = PowerPC::debug_interface.Disassemble(guard, addr);
     auto split = disas.find('\t');
 
     std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
@@ -332,9 +353,9 @@ void CodeViewWidget::Update()
       hex_str = param.substr(pos);
     }
 
-    if (hex_str.length() == VALID_BRANCH_LENGTH && desc != "---")
+    if (guard && hex_str.length() == VALID_BRANCH_LENGTH && desc != "---")
     {
-      u32 branch_addr = GetBranchFromAddress(addr);
+      u32 branch_addr = GetBranchFromAddress(*guard, addr);
       CodeViewBranch& branch = m_branches.emplace_back();
       branch.src_addr = addr;
       branch.dst_addr = branch_addr;
@@ -514,15 +535,20 @@ void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
 
 void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
 {
-  PowerPC::debug_interface.SetPatch(address, replace == ReplaceWith::BLR ? 0x4e800020 : 0x60000000);
-  Update();
+  Core::CPUThreadGuard guard;
+
+  PowerPC::debug_interface.SetPatch(guard, address,
+                                    replace == ReplaceWith::BLR ? 0x4e800020 : 0x60000000);
+
+  Update(&guard);
 }
 
 void CodeViewWidget::OnContextMenu()
 {
   QMenu* menu = new QMenu(this);
 
-  bool running = Core::GetState() != Core::State::Uninitialized;
+  const bool running = Core::GetState() != Core::State::Uninitialized;
+  const bool paused = Core::GetState() == Core::State::Paused;
 
   const u32 addr = GetContextAddress();
 
@@ -567,14 +593,25 @@ void CodeViewWidget::OnContextMenu()
       menu->addAction(tr("Restore instruction"), this, &CodeViewWidget::OnRestoreInstruction);
 
   QString target;
-  if (addr == PowerPC::ppcState.pc && running && Core::GetState() == Core::State::Paused)
+  bool valid_load_store = false;
+  bool follow_branch_enabled = false;
+  if (paused)
   {
-    const std::string line = PowerPC::debug_interface.Disassemble(PowerPC::ppcState.pc);
-    const auto target_it = std::find(line.begin(), line.end(), '\t');
-    const auto target_end = std::find(target_it, line.end(), ',');
+    Core::CPUThreadGuard guard;
+    const std::string disasm = PowerPC::debug_interface.Disassemble(&guard, PowerPC::ppcState.pc);
 
-    if (target_it != line.end() && target_end != line.end())
-      target = QString::fromStdString(std::string{target_it + 1, target_end});
+    if (addr == PowerPC::ppcState.pc)
+    {
+      const auto target_it = std::find(disasm.begin(), disasm.end(), '\t');
+      const auto target_end = std::find(target_it, disasm.end(), ',');
+
+      if (target_it != disasm.end() && target_end != disasm.end())
+        target = QString::fromStdString(std::string{target_it + 1, target_end});
+    }
+
+    valid_load_store = IsInstructionLoadStore(disasm);
+
+    follow_branch_enabled = GetBranchFromAddress(guard, addr);
   }
 
   auto* run_until_menu = menu->addMenu(tr("Run until (ignoring breakpoints)"));
@@ -589,17 +626,16 @@ void CodeViewWidget::OnContextMenu()
                             [this] { AutoStep(CodeTrace::AutoStop::Changed); });
 
   run_until_menu->setEnabled(!target.isEmpty());
-  follow_branch_action->setEnabled(running && GetBranchFromAddress(addr));
+  follow_branch_action->setEnabled(follow_branch_enabled);
 
   for (auto* action : {copy_address_action, copy_line_action, copy_hex_action, function_action,
                        ppc_action, insert_blr_action, insert_nop_action, replace_action})
+  {
     action->setEnabled(running);
+  }
 
   for (auto* action : {symbol_rename_action, symbol_size_action, symbol_end_action})
     action->setEnabled(has_symbol);
-
-  const bool valid_load_store = Core::GetState() == Core::State::Paused &&
-                                IsInstructionLoadStore(PowerPC::debug_interface.Disassemble(addr));
 
   for (auto* action : {copy_target_memory, show_target_memory})
   {
@@ -617,6 +653,8 @@ void CodeViewWidget::AutoStep(CodeTrace::AutoStop option)
   // Autosteps and follows value in the target (left-most) register. The Used and Changed options
   // silently follows target through reshuffles in memory and registers and stops on use or update.
 
+  Core::CPUThreadGuard guard;
+
   CodeTrace code_trace;
   bool repeat = false;
 
@@ -628,7 +666,7 @@ void CodeViewWidget::AutoStep(CodeTrace::AutoStop option)
   do
   {
     // Run autostep then update codeview
-    const AutoStepResults results = code_trace.AutoStepping(repeat, option);
+    const AutoStepResults results = code_trace.AutoStepping(guard, repeat, option);
     emit Host::GetInstance()->UpdateDisasmDialog();
     repeat = true;
 
@@ -703,16 +741,24 @@ void CodeViewWidget::OnCopyTargetAddress()
   if (Core::GetState() != Core::State::Paused)
     return;
 
-  const std::string code_line = PowerPC::debug_interface.Disassemble(GetContextAddress());
+  const u32 addr = GetContextAddress();
+
+  const std::string code_line = [addr] {
+    Core::CPUThreadGuard guard;
+    return PowerPC::debug_interface.Disassemble(&guard, addr);
+  }();
 
   if (!IsInstructionLoadStore(code_line))
     return;
 
-  const std::optional<u32> addr =
+  const std::optional<u32> target_addr =
       PowerPC::debug_interface.GetMemoryAddressFromInstruction(code_line);
 
   if (addr)
-    QApplication::clipboard()->setText(QStringLiteral("%1").arg(*addr, 8, 16, QLatin1Char('0')));
+  {
+    QApplication::clipboard()->setText(
+        QStringLiteral("%1").arg(*target_addr, 8, 16, QLatin1Char('0')));
+  }
 }
 
 void CodeViewWidget::OnShowInMemory()
@@ -725,24 +771,33 @@ void CodeViewWidget::OnShowTargetInMemory()
   if (Core::GetState() != Core::State::Paused)
     return;
 
-  const std::string code_line = PowerPC::debug_interface.Disassemble(GetContextAddress());
+  const u32 addr = GetContextAddress();
+
+  const std::string code_line = [addr] {
+    Core::CPUThreadGuard guard;
+    return PowerPC::debug_interface.Disassemble(&guard, addr);
+  }();
 
   if (!IsInstructionLoadStore(code_line))
     return;
 
-  const std::optional<u32> addr =
+  const std::optional<u32> target_addr =
       PowerPC::debug_interface.GetMemoryAddressFromInstruction(code_line);
 
   if (addr)
-    emit ShowMemory(*addr);
+    emit ShowMemory(*target_addr);
 }
 
 void CodeViewWidget::OnCopyCode()
 {
   const u32 addr = GetContextAddress();
 
-  QApplication::clipboard()->setText(
-      QString::fromStdString(PowerPC::debug_interface.Disassemble(addr)));
+  const std::string text = [addr] {
+    Core::CPUThreadGuard guard;
+    return PowerPC::debug_interface.Disassemble(&guard, addr);
+  }();
+
+  QApplication::clipboard()->setText(QString::fromStdString(text));
 }
 
 void CodeViewWidget::OnCopyFunction()
@@ -754,13 +809,18 @@ void CodeViewWidget::OnCopyFunction()
     return;
 
   std::string text = symbol->name + "\r\n";
-  // we got a function
-  const u32 start = symbol->address;
-  const u32 end = start + symbol->size;
-  for (u32 addr = start; addr != end; addr += 4)
+
   {
-    const std::string disasm = PowerPC::debug_interface.Disassemble(addr);
-    fmt::format_to(std::back_inserter(text), "{:08x}: {}\r\n", addr, disasm);
+    Core::CPUThreadGuard guard;
+
+    // we got a function
+    const u32 start = symbol->address;
+    const u32 end = start + symbol->size;
+    for (u32 addr = start; addr != end; addr += 4)
+    {
+      const std::string disasm = PowerPC::debug_interface.Disassemble(&guard, addr);
+      fmt::format_to(std::back_inserter(text), "{:08x}: {}\r\n", addr, disasm);
+    }
   }
 
   QApplication::clipboard()->setText(QString::fromStdString(text));
@@ -769,7 +829,11 @@ void CodeViewWidget::OnCopyFunction()
 void CodeViewWidget::OnCopyHex()
 {
   const u32 addr = GetContextAddress();
-  const u32 instruction = PowerPC::debug_interface.ReadInstruction(addr);
+
+  const u32 instruction = [addr] {
+    Core::CPUThreadGuard guard;
+    return PowerPC::debug_interface.ReadInstruction(guard, addr);
+  }();
 
   QApplication::clipboard()->setText(
       QStringLiteral("%1").arg(instruction, 8, 16, QLatin1Char('0')));
@@ -795,9 +859,11 @@ void CodeViewWidget::OnAddFunction()
 {
   const u32 addr = GetContextAddress();
 
-  g_symbolDB.AddFunction(addr);
+  Core::CPUThreadGuard guard;
+
+  g_symbolDB.AddFunction(guard, addr);
   emit SymbolsChanged();
-  Update();
+  Update(&guard);
 }
 
 void CodeViewWidget::OnInsertBLR()
@@ -818,7 +884,10 @@ void CodeViewWidget::OnFollowBranch()
 {
   const u32 addr = GetContextAddress();
 
-  u32 branch_addr = GetBranchFromAddress(addr);
+  const u32 branch_addr = [addr] {
+    Core::CPUThreadGuard guard;
+    return GetBranchFromAddress(guard, addr);
+  }();
 
   if (!branch_addr)
     return;
@@ -879,9 +948,11 @@ void CodeViewWidget::OnSetSymbolSize()
   if (!good)
     return;
 
-  PPCAnalyst::ReanalyzeFunction(symbol->address, *symbol, size);
+  Core::CPUThreadGuard guard;
+
+  PPCAnalyst::ReanalyzeFunction(guard, symbol->address, *symbol, size);
   emit SymbolsChanged();
-  Update();
+  Update(&guard);
 }
 
 void CodeViewWidget::OnSetSymbolEndAddress()
@@ -905,37 +976,43 @@ void CodeViewWidget::OnSetSymbolEndAddress()
   if (!good)
     return;
 
-  PPCAnalyst::ReanalyzeFunction(symbol->address, *symbol, address - symbol->address);
+  Core::CPUThreadGuard guard;
+
+  PPCAnalyst::ReanalyzeFunction(guard, symbol->address, *symbol, address - symbol->address);
   emit SymbolsChanged();
-  Update();
+  Update(&guard);
 }
 
 void CodeViewWidget::OnReplaceInstruction()
 {
+  Core::CPUThreadGuard guard;
+
   const u32 addr = GetContextAddress();
 
-  if (!PowerPC::HostIsInstructionRAMAddress(addr))
+  if (!PowerPC::HostIsInstructionRAMAddress(guard, addr))
     return;
 
   const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
   if (!read_result.valid)
     return;
 
-  PatchInstructionDialog dialog(this, addr, PowerPC::debug_interface.ReadInstruction(addr));
+  PatchInstructionDialog dialog(this, addr, PowerPC::debug_interface.ReadInstruction(guard, addr));
 
   if (dialog.exec() == QDialog::Accepted)
   {
-    PowerPC::debug_interface.SetPatch(addr, dialog.GetCode());
-    Update();
+    PowerPC::debug_interface.SetPatch(guard, addr, dialog.GetCode());
+    Update(&guard);
   }
 }
 
 void CodeViewWidget::OnRestoreInstruction()
 {
+  Core::CPUThreadGuard guard;
+
   const u32 addr = GetContextAddress();
 
-  PowerPC::debug_interface.UnsetPatch(addr);
-  Update();
+  PowerPC::debug_interface.UnsetPatch(guard, addr);
+  Update(&guard);
 }
 
 void CodeViewWidget::resizeEvent(QResizeEvent*)

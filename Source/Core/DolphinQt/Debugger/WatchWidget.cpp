@@ -161,6 +161,8 @@ void WatchWidget::Update()
        // i18n: Floating-point (non-integer) number
        tr("Float"), tr("Locked")});
 
+  Core::CPUThreadGuard guard;
+
   for (int i = 0; i < size; i++)
   {
     const auto& entry = PowerPC::debug_interface.GetWatch(i);
@@ -181,18 +183,18 @@ void WatchWidget::Update()
 
     QBrush brush = QPalette().brush(QPalette::Text);
 
-    if (!Core::IsRunning() || !PowerPC::HostIsRAMAddress(entry.address))
+    if (!Core::IsRunning() || !PowerPC::HostIsRAMAddress(guard, entry.address))
       brush.setColor(Qt::red);
 
     if (Core::IsRunning())
     {
-      if (PowerPC::HostIsRAMAddress(entry.address))
+      if (PowerPC::HostIsRAMAddress(guard, entry.address))
       {
-        hex->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U32(entry.address), 8, 16,
+        hex->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U32(guard, entry.address), 8, 16,
                                               QLatin1Char('0')));
-        decimal->setText(QString::number(PowerPC::HostRead_U32(entry.address)));
-        string->setText(QString::fromStdString(PowerPC::HostGetString(entry.address, 32)));
-        floatValue->setText(QString::number(PowerPC::HostRead_F32(entry.address)));
+        decimal->setText(QString::number(PowerPC::HostRead_U32(guard, entry.address)));
+        string->setText(QString::fromStdString(PowerPC::HostGetString(guard, entry.address, 32)));
+        floatValue->setText(QString::number(PowerPC::HostRead_F32(guard, entry.address)));
         lockValue->setCheckState(entry.locked ? Qt::Checked : Qt::Unchecked);
       }
     }
@@ -279,11 +281,13 @@ void WatchWidget::OnLoad()
     return;
   }
 
+  Core::CPUThreadGuard guard;
+
   if (ini.GetLines("Watches", &watches, false))
   {
     for (const auto& watch : PowerPC::debug_interface.GetWatches())
     {
-      PowerPC::debug_interface.UnsetPatch(watch.address);
+      PowerPC::debug_interface.UnsetPatch(guard, watch.address);
     }
     PowerPC::debug_interface.ClearWatches();
     PowerPC::debug_interface.LoadWatchesFromStrings(watches);
@@ -387,17 +391,19 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
 
       if (good)
       {
+        Core::CPUThreadGuard guard;
+
         if (column == COLUMN_INDEX_ADDRESS)
         {
           const auto& watch = PowerPC::debug_interface.GetWatch(row);
-          PowerPC::debug_interface.UnsetPatch(watch.address);
+          PowerPC::debug_interface.UnsetPatch(guard, watch.address);
           PowerPC::debug_interface.UpdateWatchAddress(row, value);
           if (watch.locked)
-            LockWatchAddress(value);
+            LockWatchAddress(guard, value);
         }
         else
         {
-          PowerPC::HostWrite_U32(value, PowerPC::debug_interface.GetWatch(row).address);
+          PowerPC::HostWrite_U32(guard, value, PowerPC::debug_interface.GetWatch(row).address);
         }
       }
       else
@@ -410,10 +416,11 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
     {
       PowerPC::debug_interface.UpdateWatchLockedState(row, item->checkState() == Qt::Checked);
       const auto& watch = PowerPC::debug_interface.GetWatch(row);
+      Core::CPUThreadGuard guard;
       if (watch.locked)
-        LockWatchAddress(watch.address);
+        LockWatchAddress(guard, watch.address);
       else
-        PowerPC::debug_interface.UnsetPatch(watch.address);
+        PowerPC::debug_interface.UnsetPatch(guard, watch.address);
       break;
     }
     }
@@ -422,9 +429,9 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
   }
 }
 
-void WatchWidget::LockWatchAddress(u32 address)
+void WatchWidget::LockWatchAddress(const Core::CPUThreadGuard& guard, u32 address)
 {
-  const std::string memory_data_as_string = PowerPC::HostGetString(address, 4);
+  const std::string memory_data_as_string = PowerPC::HostGetString(guard, address, 4);
 
   std::vector<u8> bytes;
   for (const char c : memory_data_as_string)
@@ -432,42 +439,48 @@ void WatchWidget::LockWatchAddress(u32 address)
     bytes.push_back(static_cast<u8>(c));
   }
 
-  PowerPC::debug_interface.SetFramePatch(address, bytes);
+  PowerPC::debug_interface.SetFramePatch(guard, address, bytes);
 }
 
 void WatchWidget::DeleteSelectedWatches()
 {
-  std::vector<int> row_indices;
-  for (const auto& index : m_table->selectionModel()->selectedRows())
   {
-    const auto* item = m_table->item(index.row(), index.column());
-    const auto row_variant = item->data(Qt::UserRole);
-    if (row_variant.isNull())
-      continue;
+    Core::CPUThreadGuard guard;
+    std::vector<int> row_indices;
+    for (const auto& index : m_table->selectionModel()->selectedRows())
+    {
+      const auto* item = m_table->item(index.row(), index.column());
+      const auto row_variant = item->data(Qt::UserRole);
+      if (row_variant.isNull())
+        continue;
 
-    row_indices.push_back(row_variant.toInt());
-  }
+      row_indices.push_back(row_variant.toInt());
+    }
 
-  // Sort greatest to smallest, so we
-  // don't stomp on existing indices
-  std::sort(row_indices.begin(), row_indices.end(), std::greater{});
-  for (const int row : row_indices)
-  {
-    DeleteWatch(row);
+    // Sort greatest to smallest, so we don't stomp on existing indices
+    std::sort(row_indices.begin(), row_indices.end(), std::greater{});
+    for (const int row : row_indices)
+    {
+      DeleteWatch(guard, row);
+    }
   }
 
   Update();
 }
 
-void WatchWidget::DeleteWatch(int row)
+void WatchWidget::DeleteWatch(const Core::CPUThreadGuard& guard, int row)
 {
-  PowerPC::debug_interface.UnsetPatch(PowerPC::debug_interface.GetWatch(row).address);
+  PowerPC::debug_interface.UnsetPatch(guard, PowerPC::debug_interface.GetWatch(row).address);
   PowerPC::debug_interface.RemoveWatch(row);
 }
 
 void WatchWidget::DeleteWatchAndUpdate(int row)
 {
-  DeleteWatch(row);
+  {
+    Core::CPUThreadGuard guard;
+    DeleteWatch(guard, row);
+  }
+
   Update();
 }
 
@@ -489,18 +502,21 @@ void WatchWidget::AddWatch(QString name, u32 addr)
 
 void WatchWidget::LockSelectedWatches()
 {
-  for (const auto& index : m_table->selectionModel()->selectedRows())
   {
-    const auto* item = m_table->item(index.row(), index.column());
-    const auto row_variant = item->data(Qt::UserRole);
-    if (row_variant.isNull())
-      continue;
-    const int row = row_variant.toInt();
-    const auto& watch = PowerPC::debug_interface.GetWatch(row);
-    if (watch.locked)
-      continue;
-    PowerPC::debug_interface.UpdateWatchLockedState(row, true);
-    LockWatchAddress(watch.address);
+    Core::CPUThreadGuard guard;
+    for (const auto& index : m_table->selectionModel()->selectedRows())
+    {
+      const auto* item = m_table->item(index.row(), index.column());
+      const auto row_variant = item->data(Qt::UserRole);
+      if (row_variant.isNull())
+        continue;
+      const int row = row_variant.toInt();
+      const auto& watch = PowerPC::debug_interface.GetWatch(row);
+      if (watch.locked)
+        continue;
+      PowerPC::debug_interface.UpdateWatchLockedState(row, true);
+      LockWatchAddress(guard, watch.address);
+    }
   }
 
   Update();
@@ -508,18 +524,21 @@ void WatchWidget::LockSelectedWatches()
 
 void WatchWidget::UnlockSelectedWatches()
 {
-  for (const auto& index : m_table->selectionModel()->selectedRows())
   {
-    const auto* item = m_table->item(index.row(), index.column());
-    const auto row_variant = item->data(Qt::UserRole);
-    if (row_variant.isNull())
-      continue;
-    const int row = row_variant.toInt();
-    const auto& watch = PowerPC::debug_interface.GetWatch(row);
-    if (!watch.locked)
-      continue;
-    PowerPC::debug_interface.UpdateWatchLockedState(row, false);
-    PowerPC::debug_interface.UnsetPatch(watch.address);
+    Core::CPUThreadGuard guard;
+    for (const auto& index : m_table->selectionModel()->selectedRows())
+    {
+      const auto* item = m_table->item(index.row(), index.column());
+      const auto row_variant = item->data(Qt::UserRole);
+      if (row_variant.isNull())
+        continue;
+      const int row = row_variant.toInt();
+      const auto& watch = PowerPC::debug_interface.GetWatch(row);
+      if (!watch.locked)
+        continue;
+      PowerPC::debug_interface.UpdateWatchLockedState(row, false);
+      PowerPC::debug_interface.UnsetPatch(guard, watch.address);
+    }
   }
 
   Update();

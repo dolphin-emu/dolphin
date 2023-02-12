@@ -483,7 +483,11 @@ void CodeDiffDialog::OnSetBLR()
   Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(item->data(Qt::UserRole).toUInt());
   if (!symbol)
     return;
-  PowerPC::debug_interface.SetPatch(symbol->address, 0x4E800020);
+
+  {
+    Core::CPUThreadGuard guard;
+    PowerPC::debug_interface.SetPatch(guard, symbol->address, 0x4E800020);
+  }
 
   int row = item->row();
   m_matching_results_table->item(row, 0)->setForeground(QBrush(Qt::red));

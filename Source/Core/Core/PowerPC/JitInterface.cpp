@@ -16,6 +16,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
@@ -271,8 +272,12 @@ void CompileExceptionCheck(ExceptionType type)
   {
     if (type == ExceptionType::FIFOWrite)
     {
+      ASSERT(Core::IsCPUThread());
+      Core::CPUThreadGuard guard;
+
       // Check in case the code has been replaced since: do we need to do this?
-      const OpType optype = PPCTables::GetOpInfo(PowerPC::HostRead_U32(PowerPC::ppcState.pc))->type;
+      const OpType optype =
+          PPCTables::GetOpInfo(PowerPC::HostRead_U32(guard, PowerPC::ppcState.pc))->type;
       if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }

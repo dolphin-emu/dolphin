@@ -36,6 +36,7 @@
 #include "Core/CheatGeneration.h"
 #include "Core/CheatSearch.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
@@ -286,7 +287,11 @@ void CheatSearchWidget::OnNextScanClicked()
       return;
     }
   }
-  Cheats::SearchErrorCode error_code = m_session->RunSearch();
+
+  const Cheats::SearchErrorCode error_code = [this] {
+    Core::CPUThreadGuard guard;
+    return m_session->RunSearch(guard);
+  }();
 
   if (error_code == Cheats::SearchErrorCode::Success)
   {
@@ -391,7 +396,13 @@ bool CheatSearchWidget::RefreshValues()
   }
 
   tmp->SetFilterType(Cheats::FilterType::DoNotFilter);
-  if (tmp->RunSearch() != Cheats::SearchErrorCode::Success)
+
+  const Cheats::SearchErrorCode error_code = [&tmp] {
+    Core::CPUThreadGuard guard;
+    return tmp->RunSearch(guard);
+  }();
+
+  if (error_code != Cheats::SearchErrorCode::Success)
   {
     m_info_label_1->setText(tr("Refresh failed. Please run the game for a bit and try again."));
     return false;

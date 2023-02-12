@@ -11,6 +11,11 @@
 
 class PointerWrap;
 
+namespace Core
+{
+class CPUThreadGuard;
+};
+
 namespace Gecko
 {
 class GeckoCode
@@ -63,7 +68,7 @@ void SetActiveCodes(std::span<const GeckoCode> gcodes);
 void SetSyncedCodesAsActive();
 void UpdateSyncedCodes(std::span<const GeckoCode> gcodes);
 std::vector<GeckoCode> SetAndReturnActiveCodes(std::span<const GeckoCode> gcodes);
-void RunCodeHandler();
+void RunCodeHandler(const Core::CPUThreadGuard& guard);
 void Shutdown();
 void DoState(PointerWrap&);
 

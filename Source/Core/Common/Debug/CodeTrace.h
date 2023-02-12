@@ -10,6 +10,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Core
+{
+class CPUThreadGuard;
+}
+
 struct InstructionAttributes
 {
   u32 address = 0;
@@ -63,11 +68,12 @@ public:
   };
 
   void SetRegTracked(const std::string& reg);
-  AutoStepResults AutoStepping(bool continue_previous = false, AutoStop stop_on = AutoStop::Always);
+  AutoStepResults AutoStepping(const Core::CPUThreadGuard& guard, bool continue_previous = false,
+                               AutoStop stop_on = AutoStop::Always);
 
 private:
   InstructionAttributes GetInstructionAttributes(const TraceOutput& line) const;
-  TraceOutput SaveCurrentInstruction() const;
+  TraceOutput SaveCurrentInstruction(const Core::CPUThreadGuard* guard) const;
   HitType TraceLogic(const TraceOutput& current_instr, bool first_hit = false);
 
   bool m_recording = false;

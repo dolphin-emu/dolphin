@@ -6,11 +6,13 @@
 #include <cstring>
 #include <utility>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -57,6 +59,10 @@ bool Load()
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+
+  ASSERT(Core::IsCPUThread());
+  Core::CPUThreadGuard guard;
+
   memory.Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   memory.Write_U32(0x09142001, 0x3180);
 
@@ -69,7 +75,7 @@ bool Load()
     g_symbolDB.Clear();
     Host_NotifyMapLoaded();
   }
-  if (g_symbolDB.LoadMap(File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
+  if (g_symbolDB.LoadMap(guard, File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
   {
     ::HLE::Clear();
     ::HLE::PatchFunctions(system);
@@ -93,7 +99,7 @@ bool Load()
   NOTICE_LOG_FMT(IOS, "IPL ready.");
   SConfig::GetInstance().m_is_mios = true;
   DVDInterface::UpdateRunningGameMetadata();
-  SConfig::OnNewTitleLoad();
+  SConfig::OnNewTitleLoad(guard);
   return true;
 }
 }  // namespace IOS::HLE::MIOS

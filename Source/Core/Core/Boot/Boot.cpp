@@ -375,11 +375,11 @@ bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_ma
   return false;
 }
 
-bool CBoot::LoadMapFromFilename()
+bool CBoot::LoadMapFromFilename(const Core::CPUThreadGuard& guard)
 {
   std::string strMapFilename;
   bool found = FindMapFile(&strMapFilename, nullptr);
-  if (found && g_symbolDB.LoadMap(strMapFilename))
+  if (found && g_symbolDB.LoadMap(guard, strMapFilename))
   {
     UpdateDebugger_MapLoaded();
     return true;
@@ -486,7 +486,8 @@ static void CopyDefaultExceptionHandlers(Core::System& system)
 }
 
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
-bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
+bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
+                   std::unique_ptr<BootParameters> boot)
 {
   SConfig& config = SConfig::GetInstance();
 
@@ -502,8 +503,10 @@ bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
 
   struct BootTitle
   {
-    BootTitle(Core::System& system_, const std::vector<DiscIO::Riivolution::Patch>& patches)
-        : system(system_), config(SConfig::GetInstance()), riivolution_patches(patches)
+    BootTitle(Core::System& system_, const Core::CPUThreadGuard& guard_,
+              const std::vector<DiscIO::Riivolution::Patch>& patches)
+        : system(system_), guard(guard_), config(SConfig::GetInstance()),
+          riivolution_patches(patches)
     {
     }
     bool operator()(BootParameters::Disc& disc) const
@@ -515,10 +518,10 @@ bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
       if (!volume)
         return false;
 
-      if (!EmulatedBS2(system, config.bWii, *volume, riivolution_patches))
+      if (!EmulatedBS2(system, guard, config.bWii, *volume, riivolution_patches))
         return false;
 
-      SConfig::OnNewTitleLoad();
+      SConfig::OnNewTitleLoad(guard);
       return true;
     }
 
@@ -551,7 +554,7 @@ bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
       }
       else
       {
-        SetupGCMemory(system);
+        SetupGCMemory(system, guard);
       }
 
       if (!executable.reader->LoadIntoMemory())
@@ -560,11 +563,11 @@ bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
         return false;
       }
 
-      SConfig::OnNewTitleLoad();
+      SConfig::OnNewTitleLoad(guard);
 
       ppc_state.pc = executable.reader->GetEntryPoint();
 
-      if (executable.reader->LoadSymbols())
+      if (executable.reader->LoadSymbols(guard))
       {
         UpdateDebugger_MapLoaded();
         HLE::PatchFunctions(system);
@@ -578,7 +581,7 @@ bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
       if (!Boot_WiiWAD(system, wad))
         return false;
 
-      SConfig::OnNewTitleLoad();
+      SConfig::OnNewTitleLoad(guard);
       return true;
     }
 
@@ -588,7 +591,7 @@ bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
       if (!BootNANDTitle(system, nand_title.id))
         return false;
 
-      SConfig::OnNewTitleLoad();
+      SConfig::OnNewTitleLoad(guard);
       return true;
     }
 
@@ -613,7 +616,7 @@ bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
         SetDisc(DiscIO::CreateDisc(ipl.disc->path), ipl.disc->auto_disc_change_paths);
       }
 
-      SConfig::OnNewTitleLoad();
+      SConfig::OnNewTitleLoad(guard);
       return true;
     }
 
@@ -625,14 +628,15 @@ bool CBoot::BootUp(Core::System& system, std::unique_ptr<BootParameters> boot)
 
   private:
     Core::System& system;
+    const Core::CPUThreadGuard& guard;
     const SConfig& config;
     const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches;
   };
 
-  if (!std::visit(BootTitle(system, boot->riivolution_patches), boot->parameters))
+  if (!std::visit(BootTitle(system, guard, boot->riivolution_patches), boot->parameters))
     return false;
 
-  DiscIO::Riivolution::ApplyGeneralMemoryPatches(boot->riivolution_patches);
+  DiscIO::Riivolution::ApplyGeneralMemoryPatches(guard, boot->riivolution_patches);
 
   return true;
 }

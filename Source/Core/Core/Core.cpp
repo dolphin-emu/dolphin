@@ -166,7 +166,12 @@ void OnFrameEnd()
 {
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
-    s_memory_watcher->Step();
+  {
+    ASSERT(IsCPUThread());
+    CPUThreadGuard guard;
+
+    s_memory_watcher->Step(guard);
+  }
 #endif
 }
 
@@ -537,7 +542,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
     PatchEngine::Shutdown();
     HLE::Clear();
-    PowerPC::debug_interface.Clear();
+
+    CPUThreadGuard guard;
+    PowerPC::debug_interface.Clear(guard);
   }};
 
   VideoBackendBase::PopulateBackendInfo();
@@ -587,8 +594,12 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   if (SConfig::GetInstance().bWii)
     savegame_redirect = DiscIO::Riivolution::ExtractSavegameRedirect(boot->riivolution_patches);
 
-  if (!CBoot::BootUp(system, std::move(boot)))
-    return;
+  {
+    ASSERT(IsCPUThread());
+    CPUThreadGuard guard;
+    if (!CBoot::BootUp(system, guard, std::move(boot)))
+      return;
+  }
 
   // Initialise Wii filesystem contents.
   // This is done here after Boot and not in BootManager to ensure that we operate
@@ -1034,6 +1045,18 @@ void UpdateInputGate(bool require_focus, bool require_full_focus)
   const bool full_focus_passes =
       !require_focus || !require_full_focus || (focus_passes && Host_RendererHasFullFocus());
   ControlReference::SetInputGate(focus_passes && full_focus_passes);
+}
+
+CPUThreadGuard::CPUThreadGuard() : m_was_cpu_thread(IsCPUThread())
+{
+  if (!m_was_cpu_thread)
+    m_was_unpaused = PauseAndLock(true, true);
+}
+
+CPUThreadGuard::~CPUThreadGuard()
+{
+  if (!m_was_cpu_thread)
+    PauseAndLock(false, m_was_unpaused);
 }
 
 }  // namespace Core
