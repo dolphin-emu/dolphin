@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include "Core/Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h"
+#include "Core/Lua/LuaEventCallbackClasses/LuaWheneverCallbackClass.h"
 #include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
@@ -129,6 +130,7 @@ void Init(const std::string& script_location,
   LuaRegisters::InitLuaRegistersFunctions(main_lua_state, global_lua_api_version);
   LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(main_lua_state,
                                                                 global_lua_api_version);
+  LuaWheneverCallback::InitLuaWheneverCallbackFunctions(main_lua_state, global_lua_api_version);
 
   main_lua_thread_state = lua_newthread(main_lua_state);
   if (luaL_loadfile(main_lua_thread_state, script_location.c_str()) != LUA_OK)

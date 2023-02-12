@@ -12,6 +12,7 @@
 LuaScriptWindow::LuaScriptWindow(QWidget* parent) : QDialog(parent)
 {
   callback_print_function = [this](const std::string& message) {
+    std::lock_guard<std::mutex> lock(print_lock);
     output_lines.push_back(message);
     QueueOnObject(this, &LuaScriptWindow::UpdateOutputWindow);
   };
@@ -122,6 +123,7 @@ void LuaScriptWindow::StopScriptFunction()
 
 void LuaScriptWindow::UpdateOutputWindow()
 {
+  std::lock_guard<std::mutex> lock(print_lock);
   QStringList list;
   size_t output_size = output_lines.size();
   for (size_t i = 0; i < output_size; ++i)

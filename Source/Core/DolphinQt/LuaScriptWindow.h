@@ -1,4 +1,5 @@
 #pragma once
+#include <mutex>
 
 #include <QDialog>
 #include <string>
@@ -36,4 +37,5 @@ private:
   NonDefaultQPushButton* m_stop_script_button;
   std::string path_of_script_to_run;
   std::vector<std::string> output_lines;
+  std::mutex print_lock;
 };
