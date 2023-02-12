@@ -106,7 +106,7 @@ void HacksWidget::CreateWidgets()
   m_vertex_rounding = new GraphicsBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUNDING);
   m_save_texture_cache_state =
       new GraphicsBool(tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
-  m_vi_skip = new GraphicsBool(tr("VI Skip"), Config::GFX_HACK_VI_SKIP);
+  m_vi_skip = new GraphicsBool(tr("VBI Skip"), Config::GFX_HACK_VI_SKIP);
 
   other_layout->addWidget(m_fast_depth_calculation, 0, 0);
   other_layout->addWidget(m_disable_bounding_box, 0, 1);
@@ -285,7 +285,7 @@ void HacksWidget::AddDescriptions()
       "effect when native internal resolution is used.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_VI_SKIP_DESCRIPTION[] =
-      QT_TR_NOOP("Skips VI interrupts when lag is detected, allowing for "
+      QT_TR_NOOP("Skips Vertical Blank Interrupts when lag is detected, allowing for "
                  "smooth audio playback when emulation speed is not 100%. <br><br>"
                  "<dolphin_emphasis>WARNING: Can cause freezes and compatibility "
                  "issues.</dolphin_emphasis> <br><br>"
