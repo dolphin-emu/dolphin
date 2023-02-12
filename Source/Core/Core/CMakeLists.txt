@@ -432,6 +432,8 @@ add_library(core
   Lua/Lua.cpp
   Lua/Lua.h
   Lua/LuaVersionResolver.h
+  Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.cpp
+  Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h
   Lua/LuaHelperClasses/LuaColonCheck.cpp
   Lua/LuaHelperClasses/LuaColonCheck.h
   Lua/LuaHelperClasses/LuaGameCubeButtonProbabilityClasses.cpp
