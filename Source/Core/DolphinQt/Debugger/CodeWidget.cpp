@@ -322,10 +322,10 @@ void CodeWidget::Update()
 
 void CodeWidget::UpdateCallstack()
 {
-  if (Core::GetState() == Core::State::Starting)
-    return;
-
   m_callstack_list->clear();
+
+  if (Core::GetState() != Core::State::Paused)
+    return;
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
 
