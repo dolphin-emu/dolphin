@@ -1,6 +1,7 @@
 #include "Core/Lua/Lua.h"
 
 #include <filesystem>
+#include "Core/Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h"
 #include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
@@ -117,16 +118,16 @@ void Init(const std::string& script_location,
   is_lua_core_initialized = true;
   main_lua_state = luaL_newstate();
   luaL_openlibs(main_lua_state);
+  lua_newtable(main_lua_state);
+  lua_pushcfunction(main_lua_state, CustomPrintFunction);
+  lua_setglobal(main_lua_state, "print");
   LuaMemoryApi::InitLuaMemoryApi(main_lua_state, global_lua_api_version);
   LuaEmu::InitLuaEmuFunctions(main_lua_state, global_lua_api_version);
   LuaBit::InitLuaBitFunctions(main_lua_state, global_lua_api_version);
   LuaGameCubeController::InitLuaGameCubeControllerFunctions(main_lua_state, global_lua_api_version);
   LuaStatistics::InitLuaStatisticsFunctions(main_lua_state, global_lua_api_version);
   LuaRegisters::InitLuaRegistersFunctions(main_lua_state, global_lua_api_version);
-  // lua_gc(main_lua_state, LUA_GCSTOP);
-  lua_newtable(main_lua_state);
-  lua_pushcfunction(main_lua_state, CustomPrintFunction);
-  lua_setglobal(main_lua_state, "print");
+  LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(main_lua_state, global_lua_api_version);
 
   main_lua_thread_state = lua_newthread(main_lua_state);
   if (luaL_loadfile(main_lua_thread_state, script_location.c_str()) != LUA_OK)
@@ -136,7 +137,7 @@ void Init(const std::string& script_location,
     (*script_end_callback_function)();
   }
   int retVal = lua_resume(Lua::main_lua_thread_state, nullptr, 0, &Lua::x);
-  if (retVal != LUA_YIELD)
+  if (retVal != LUA_YIELD && retVal != LUA_OK)
   {
     if (retVal == 2)
     {

@@ -62,6 +62,7 @@
 #include "Core/Host.h"
 #include "Core/IOS/IOS.h"
 #include "Core/Lua/Lua.h"
+#include "Core/Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h"
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
 #include "Core/Lua/LuaHelperClasses/LuaGameCubeButtonProbabilityClasses.h"
@@ -885,19 +886,8 @@ void Callback_NewField()
              sizeof(Movie::ControllerState));
     }
 
-    int ret_val;
-    const char* error_msg = nullptr;
-    ret_val = lua_resume(Lua::main_lua_thread_state, nullptr, 0, &Lua::x);
-    if (ret_val != LUA_YIELD)
-    {
-      if (ret_val == 2)
-      {
-        error_msg = lua_tostring(Lua::main_lua_thread_state, -1);
-        (*Lua::print_callback_function)(error_msg);
-      }
-      (*Lua::script_end_callback_function)();
-      Lua::is_lua_script_active = false;
-    }
+    if (Lua::LuaOnFrameStartCallback::frame_start_callback_is_registered)
+      Lua::LuaOnFrameStartCallback::RunCallback();
   }
 
   if (s_frame_step)
