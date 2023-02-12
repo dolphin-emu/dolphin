@@ -89,7 +89,7 @@ int RunCallback()
     {
       in_middle_of_callback = true;
       lua_rawgeti(on_frame_start_thread, LUA_REGISTRYINDEX, on_frame_start_lua_function_reference);
-      lua_pcall(on_frame_start_thread, 0, 0, 0);
+      lua_resume(on_frame_start_thread, nullptr, 0, &temp_int);
       in_middle_of_callback = false;
     }
   }
