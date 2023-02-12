@@ -315,8 +315,8 @@
     <string name="disable_bbox_description">Disables bounding box emulation. This may improve GPU performance significantly, but some games will break. If unsure, leave this checked.</string>
     <string name="vertex_rounding">Vertex Rounding</string>
     <string name="vertex_rounding_description">Rounds 2D vertices to whole pixels and rounds the viewport size to a whole number. Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used. If unsure, leave this unchecked.</string>
-    <string name="vi_skip">VI Skip</string>
-    <string name="vi_skip_description">Skips VI interrupts when lag is detected, allowing for smooth audio playback when emulation speed is not 100%. Can cause freezes and compatibility issues.</string>
+    <string name="vi_skip">VBI Skip</string>
+    <string name="vi_skip_description">Skips Vertical Blank Interrupts when lag is detected, allowing for smooth audio playback when emulation speed is not 100%. Can cause freezes and compatibility issues.</string>
     <string name="texture_cache_to_state">Save Texture Cache to State</string>
     <string name="texture_cache_to_state_description">Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies in save states. Fixes missing and/or non-upscaled textures/objects when loading states at the cost of additional save/load time.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
