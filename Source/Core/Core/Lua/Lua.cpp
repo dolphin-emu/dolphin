@@ -1,6 +1,7 @@
 #include "Core/Lua/Lua.h"
 
 #include <filesystem>
+#include <mutex>
 #include "Core/Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h"
 #include "Core/Lua/LuaEventCallbackClasses/LuaWheneverCallbackClass.h"
 #include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
@@ -21,6 +22,7 @@ bool is_lua_script_active = false;
 bool is_lua_core_initialized = false;
 std::function<void(const std::string&)>* print_callback_function = nullptr;
 std::function<void()>* script_end_callback_function = nullptr;
+std::mutex general_lua_lock;
 
 int CustomPrintFunction(lua_State* lua_state)
 {
@@ -129,8 +131,10 @@ void Init(const std::string& script_location,
   LuaStatistics::InitLuaStatisticsFunctions(main_lua_state, global_lua_api_version);
   LuaRegisters::InitLuaRegistersFunctions(main_lua_state, global_lua_api_version);
   LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(main_lua_state,
-                                                                global_lua_api_version);
-  LuaWheneverCallback::InitLuaWheneverCallbackFunctions(main_lua_state, global_lua_api_version);
+                                                                global_lua_api_version,
+                                                                &general_lua_lock);
+  LuaWheneverCallback::InitLuaWheneverCallbackFunctions(main_lua_state, global_lua_api_version,
+                                                        &general_lua_lock);
 
   main_lua_thread_state = lua_newthread(main_lua_state);
   if (luaL_loadfile(main_lua_thread_state, script_location.c_str()) != LUA_OK)

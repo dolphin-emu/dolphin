@@ -15,6 +15,7 @@ bool frame_start_callback_is_registered = false;
 
 static bool in_middle_of_callback = false;
 static int temp_int = 0;
+static std::mutex* general_lua_lock;
 
 class LuaOnFrameStart
 {
@@ -31,8 +32,10 @@ LuaOnFrameStart* GetInstance()
   return instance.get();
 }
 
-void InitLuaOnFrameStartCallbackFunctions(lua_State* lua_state, const std::string& lua_api_version)
+void InitLuaOnFrameStartCallbackFunctions(lua_State* lua_state, const std::string& lua_api_version,
+                                          std::mutex* new_lua_general_lock)
 {
+  general_lua_lock = new_lua_general_lock;
   LuaOnFrameStart** lua_on_frame_start_instance_ptr_ptr =
       (LuaOnFrameStart**)lua_newuserdata(lua_state, sizeof(LuaOnFrameStart*));
   *lua_on_frame_start_instance_ptr_ptr = GetInstance();
@@ -82,14 +85,18 @@ int RunCallback()
   {
     if (in_middle_of_callback)
     {
+      general_lua_lock->lock();
       lua_resume(on_frame_start_thread, nullptr, 0, &temp_int);
+      general_lua_lock->unlock();
       in_middle_of_callback = false;
     }
     else
     {
       in_middle_of_callback = true;
+      general_lua_lock->lock();
       lua_rawgeti(on_frame_start_thread, LUA_REGISTRYINDEX, on_frame_start_lua_function_reference);
       lua_resume(on_frame_start_thread, nullptr, 0, &temp_int);
+      general_lua_lock->unlock();
       in_middle_of_callback = false;
     }
   }

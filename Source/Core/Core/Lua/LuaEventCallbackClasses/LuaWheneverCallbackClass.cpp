@@ -34,6 +34,8 @@ static std::mutex list_of_functions_lock;
 static std::condition_variable list_of_functions_condition_variable;
 static std::mt19937_64 rng_generator;
 static int temp_int;
+static std::mutex* general_lua_lock;
+static bool initialized_whenever_thread = false;
 
 LuaWhenever* GetInstance()
 {
@@ -42,8 +44,10 @@ LuaWhenever* GetInstance()
   return instance.get();
 }
 
-void InitLuaWheneverCallbackFunctions(lua_State* lua_state, const std::string& lua_api_version)
+void InitLuaWheneverCallbackFunctions(lua_State* lua_state, const std::string& lua_api_version,
+                                      std::mutex* new_general_lua_lock)
 {
+  general_lua_lock = new_general_lua_lock;
   rng_generator.seed(time(nullptr));
   LuaWhenever** lua_whenever_instance_ptr_ptr =
       (LuaWhenever**)lua_newuserdata(lua_state, sizeof(LuaWhenever*));
@@ -60,12 +64,13 @@ void InitLuaWheneverCallbackFunctions(lua_State* lua_state, const std::string& l
   AddLatestFunctionsForVersion(lua_whenever_functions_list_with_versions_attached,
                                lua_api_version, deprecated_functions_map, lua_state);
   lua_setglobal(lua_state, "Whenever");
-  lua_whenever_callback_runner_thread = std::thread(RunCallbacks);
+  if (!initialized_whenever_thread)
+    lua_whenever_callback_runner_thread = std::thread(RunCallbacks);
+  initialized_whenever_thread = true;
 }
 
 int Register(lua_State* lua_state)
 {
-  list_of_functions_lock.lock();
   list_of_functions_is_empty = false;
   LuaColonOperatorTypeCheck(lua_state, "Whenever:register",
                             "Whenever:register(functionName)");
@@ -74,14 +79,12 @@ int Register(lua_State* lua_state)
   lua_State* new_lua_thread = lua_newthread(lua_state);
   list_of_functions_to_run.push_back({new_lua_thread, new_function_reference});
   lua_pushinteger(lua_state, new_function_reference); // used to unregister later on.
-  list_of_functions_lock.unlock();
   list_of_functions_condition_variable.notify_one();
   return 1;
 }
 
 int Unregister(lua_State* lua_state)
 {
-  list_of_functions_lock.lock();
   LuaColonOperatorTypeCheck(lua_state, "Whenever:unregister",
                             "Whenever:unregister("
                             "uniqueFunctionNumberReturnedByRegisterFunction)");
@@ -99,7 +102,6 @@ int Unregister(lua_State* lua_state)
     list_of_functions_is_empty = true;
   else
     list_of_functions_is_empty = false;
-  list_of_functions_lock.unlock();
   list_of_functions_condition_variable.notify_one();
   return 0;
 }
@@ -109,17 +111,20 @@ int RunCallbacks()
 {
   while (true)
   {
-    std::unique_lock<std::mutex> unique_lock_wrapper(list_of_functions_lock);
     if (list_of_functions_to_run.empty())
-      list_of_functions_condition_variable.wait(unique_lock_wrapper);
+    {
+      std::unique_lock<std::mutex> un_l(*general_lua_lock);
+      list_of_functions_condition_variable.wait_for(un_l, std::chrono::seconds(3));
+    }
     else
     {
+      general_lua_lock->lock();
       size_t list_index = rng_generator() % list_of_functions_to_run.size();
       lua_State* next_lua_thread = list_of_functions_to_run[list_index].lua_thread;
       int next_function_reference = list_of_functions_to_run[list_index].function_reference;
       lua_rawgeti(next_lua_thread, LUA_REGISTRYINDEX, next_function_reference);
-      unique_lock_wrapper.unlock();
       lua_resume(next_lua_thread, nullptr, 0, &temp_int);
+      general_lua_lock->unlock();
     }
 
   }
