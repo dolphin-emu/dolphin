@@ -35,7 +35,7 @@ private:
   PlainFileReader(File::IOFile file);
 
   File::IOFile m_file;
-  s64 m_size;
+  u64 m_size;
 };
 
 }  // namespace DiscIO
