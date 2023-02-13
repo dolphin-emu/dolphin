@@ -483,7 +483,7 @@ void Jit64::HLEFunction(u32 hook_index)
   gpr.Flush();
   fpr.Flush();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionCC(HLE::Execute, js.compilerPC, hook_index);
+  ABI_CallFunctionCC(HLE::ExecuteFromJIT, js.compilerPC, hook_index);
   ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
