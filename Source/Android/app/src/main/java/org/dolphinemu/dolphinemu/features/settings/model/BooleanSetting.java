@@ -43,6 +43,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
   MAIN_ACCURATE_CPU_CACHE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AccurateCPUCache",
           false),
   MAIN_SYNC_GPU(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SyncGPU", false),
+  MAIN_FAST_DISC_SPEED(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "FastDiscSpeed",
+          false),
   MAIN_OVERCLOCK_ENABLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "OverclockEnable", false),
   MAIN_RAM_OVERRIDE_ENABLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "RAMOverrideEnable",
           false),
