@@ -23,6 +23,7 @@
 #include "Core/Core.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/Emulated/Infinity.h"
+#include "Core/IOS/USB/Emulated/Skateboard.h"
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 #include "Core/NetPlayProto.h"
@@ -195,6 +196,12 @@ void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& 
   {
     auto infinity_base = std::make_unique<USB::InfinityUSB>(GetEmulationKernel(), "Infinity Base");
     CheckAndAddDevice(std::move(infinity_base), new_devices, hooks, always_add_hooks);
+  }
+  // TODO: add a configuration option
+  if (/*Config::Get(Config::MAIN_EMULATE_SKATEBOARD) &&*/ !NetPlay::IsNetPlayRunning())
+  {
+    auto skateboard = std::make_unique<USB::SkateboardUSB>();
+    CheckAndAddDevice(std::move(skateboard), new_devices, hooks, always_add_hooks);
   }
 }
 
