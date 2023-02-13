@@ -3,10 +3,16 @@
 
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2ipdef.h>
+#else
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
+#endif
 
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
@@ -15,42 +21,84 @@
 
 namespace ExpansionInterface
 {
-// This interface is only implemented on macOS, since macOS needs a replacement
-// for TunTap when the kernel extension is no longer supported. This interface
-// only appears in the menu on macOS, so on other platforms, it does nothing and
-// refuses to activate.
 
-constexpr char socket_path[] = "/tmp/dolphin-tap";
+static int ConnectToDestination(const std::string& destination)
+{
+  if (destination.empty())
+  {
+    INFO_LOG_FMT(SP1, "Cannot connect: destination is empty\n");
+    return -1;
+  }
+
+  size_t ss_size;
+  struct sockaddr_storage ss;
+  memset(&ss, 0, sizeof(ss));
+  if (destination[0] != '/')
+  {  // IP address or hostname
+    size_t colon_offset = destination.find(':');
+    if (colon_offset == std::string::npos)
+    {
+      INFO_LOG_FMT(SP1, "Destination IP address does not include port\n");
+      return -1;
+    }
+
+    struct sockaddr_in* sin = reinterpret_cast<struct sockaddr_in*>(&ss);
+    sin->sin_addr.s_addr = htonl(sf::IpAddress(destination.substr(0, colon_offset)).toInteger());
+    sin->sin_family = AF_INET;
+    sin->sin_port = htons(stoul(destination.substr(colon_offset + 1)));
+    ss_size = sizeof(*sin);
+#ifndef _WIN32
+  }
+  else
+  {  // UNIX socket
+    struct sockaddr_un* sun = reinterpret_cast<struct sockaddr_un*>(&ss);
+    if (destination.size() + 1 > sizeof(sun->sun_path))
+    {
+      INFO_LOG_FMT(SP1, "Socket path is too long, unable to init BBA\n");
+      return -1;
+    }
+    sun->sun_family = AF_UNIX;
+    strcpy(sun->sun_path, destination.c_str());
+    ss_size = sizeof(*sun);
+#else
+  }
+  else
+  {
+    INFO_LOG_FMT(SP1, "UNIX sockets are not supported on Windows\n");
+    return -1;
+#endif
+  }
+
+  int fd = socket(ss.ss_family, SOCK_STREAM, (ss.ss_family == AF_INET) ? IPPROTO_TCP : 0);
+  if (fd == -1)
+  {
+    INFO_LOG_FMT(SP1, "Couldn't create socket; unable to init BBA\n");
+    return -1;
+  }
+
+#ifdef __APPLE__
+  int opt_no_sigpipe = 1;
+  if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
+    INFO_LOG_FMT(SP1, "Failed to set SO_NOSIGPIPE on socket\n");
+#endif
+
+  if (connect(fd, reinterpret_cast<sockaddr*>(&ss), ss_size) == -1)
+  {
+    std::string s = Common::LastStrerrorString();
+    INFO_LOG_FMT(SP1, "Couldn't connect socket ({}), unable to init BBA\n", s.c_str());
+    close(fd);
+    return -1;
+  }
+
+  return fd;
+}
 
 bool CEXIETHERNET::TAPServerNetworkInterface::Activate()
 {
   if (IsActivated())
     return true;
 
-  sockaddr_un sun = {};
-  if (sizeof(socket_path) > sizeof(sun.sun_path))
-  {
-    ERROR_LOG_FMT(SP1, "Socket path is too long, unable to init BBA");
-    return false;
-  }
-  sun.sun_family = AF_UNIX;
-  strcpy(sun.sun_path, socket_path);
-
-  fd = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (fd == -1)
-  {
-    ERROR_LOG_FMT(SP1, "Couldn't create socket, unable to init BBA");
-    return false;
-  }
-
-  if (connect(fd, reinterpret_cast<sockaddr*>(&sun), sizeof(sun)) == -1)
-  {
-    ERROR_LOG_FMT(SP1, "Couldn't connect socket ({}), unable to init BBA",
-                  Common::LastStrerrorString());
-    close(fd);
-    fd = -1;
-    return false;
-  }
+  fd = ConnectToDestination(m_destination);
 
   INFO_LOG_FMT(SP1, "BBA initialized.");
   return RecvInit();

@@ -48,6 +48,17 @@ void BroadbandAdapterSettingsDialog::InitControls()
     window_title = tr("Broadband Adapter MAC Address");
     break;
 
+  case Type::TapServer:
+    address_label = new QLabel(tr("UNIX socket path or netloc (address:port):"));
+    address_placeholder = QStringLiteral("/tmp/dolphin-tap");
+    current_address = QString::fromStdString(Config::Get(Config::MAIN_BBA_TAPSERVER_DESTINATION));
+    description =
+        new QLabel(tr("On macOS and Linux, the default value \"/tmp/dolphin-tap\" will work with "
+                      "tapserver and newserv. On Windows, you must enter an IP address and port."));
+
+    window_title = tr("BBA destination address");
+    break;
+
   case Type::BuiltIn:
     address_label = new QLabel(tr("Enter the DNS server to use:"));
     address_placeholder = QStringLiteral("8.8.8.8");
@@ -114,6 +125,9 @@ void BroadbandAdapterSettingsDialog::SaveAddress()
     Config::SetBaseOrCurrent(Config::MAIN_BBA_MAC, bba_new_address);
     break;
   }
+  case Type::TapServer:
+    Config::SetBaseOrCurrent(Config::MAIN_BBA_TAPSERVER_DESTINATION, bba_new_address);
+    break;
   case Type::BuiltIn:
     Config::SetBaseOrCurrent(Config::MAIN_BBA_BUILTIN_DNS, bba_new_address);
     break;
