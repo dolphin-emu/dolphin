@@ -382,6 +382,7 @@ void SetUSBDeviceWhitelist(const std::set<USBUtils::DeviceInfo>& devices);
 
 extern const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL;
 extern const Info<bool> MAIN_EMULATE_INFINITY_BASE;
+extern const Info<bool> MAIN_EMULATE_SKATEBOARD;
 extern const Info<bool> MAIN_EMULATE_WII_SPEAK;
 extern const Info<std::string> MAIN_WII_SPEAK_MICROPHONE;
 extern const Info<bool> MAIN_WII_SPEAK_MUTED;

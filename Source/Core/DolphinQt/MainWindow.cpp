@@ -60,6 +60,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Emulated/Skateboard.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -399,6 +400,9 @@ void MainWindow::InitControllers()
 
   FreeLook::LoadInputConfig();
   FreeLook::GetInputConfig()->SaveConfig();
+
+  Skateboard::LoadConfig();
+  Skateboard::GetConfig()->SaveConfig();
 }
 
 void MainWindow::ShutdownControllers()
@@ -570,6 +574,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowInfinityBase, this, &MainWindow::ShowInfinityBase);
   connect(m_menu_bar, &MenuBar::ShowWiiSpeakWindow, this, &MainWindow::ShowWiiSpeakWindow);
   connect(m_menu_bar, &MenuBar::ShowLogitechMicWindow, this, &MainWindow::ShowLogitechMicWindow);
+  connect(m_menu_bar, &MenuBar::ShowSkateboardWindow, this, &MainWindow::ShowSkateboardWindow);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -1502,6 +1507,19 @@ void MainWindow::ShowLogitechMicWindow()
   m_logitech_mic_window->show();
   m_logitech_mic_window->raise();
   m_logitech_mic_window->activateWindow();
+}
+
+void MainWindow::ShowSkateboardWindow()
+{
+  if (!m_skateboard_window)
+  {
+    m_skateboard_window = new MappingWindow(this, MappingWindow::Type::MAPPING_USB_SKATEBOARD, 0);
+    InstallHotkeyFilter(m_skateboard_window);
+  }
+
+  m_skateboard_window->show();
+  m_skateboard_window->raise();
+  m_skateboard_window->activateWindow();
 }
 
 void MainWindow::StateLoad()

@@ -47,6 +47,7 @@
 #include "DolphinQt/Config/Mapping/HotkeyUSBEmu.h"
 #include "DolphinQt/Config/Mapping/HotkeyWii.h"
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
+#include "DolphinQt/Config/Mapping/SkateboardWidget.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.h"
@@ -523,6 +524,11 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     widget = CreateAMBaseboardMappingWidget(this);
     setWindowTitle(tr("Triforce Baseboard at Port %1").arg(GetPort() + 1));
     AddWidget(tr("Triforce Baseboard"), widget);
+    break;
+  case Type::MAPPING_USB_SKATEBOARD:
+    widget = new SkateboardWidget(this);
+    setWindowTitle(tr("Skateboard Controller %1").arg(GetPort() + 1));
+    AddWidget(tr("Skateboard"), widget);
     break;
   default:
     return;
