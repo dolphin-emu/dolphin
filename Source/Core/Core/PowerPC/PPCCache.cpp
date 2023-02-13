@@ -269,11 +269,11 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
     addrs[set][way] = addr;
     valid[set] |= (1 << way);
     modified[set] &= ~(1 << way);
-
-    // update plru
-    if (way != 0xff)
-      plru[set] = (plru[set] & ~s_plru_mask[way]) | s_plru_value[way];
   }
+
+  // update plru
+  if (way != 0xff)
+    plru[set] = (plru[set] & ~s_plru_mask[way]) | s_plru_value[way];
 
   return {set, way};
 }
