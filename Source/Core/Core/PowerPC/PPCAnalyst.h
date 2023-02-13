@@ -39,13 +39,11 @@ struct CodeOp  // 16B
   bool isBranchTarget = false;
   bool branchUsesCtr = false;
   bool branchIsIdleLoop = false;
-  bool wantsCR0 = false;
-  bool wantsCR1 = false;
+  BitSet8 wantsCR;
   bool wantsFPRF = false;
   bool wantsCA = false;
   bool wantsCAInFlags = false;
-  bool outputCR0 = false;
-  bool outputCR1 = false;
+  BitSet8 outputCR;
   bool outputFPRF = false;
   bool outputCA = false;
   bool canEndBlock = false;
