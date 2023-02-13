@@ -1186,25 +1186,29 @@ void MenuBar::ClearSymbols()
 
 void MenuBar::GenerateSymbolsFromAddress()
 {
+  Core::CPUThreadGuard guard;
+
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
-  PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR,
+  PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR,
                             Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &g_symbolDB);
   emit NotifySymbolsUpdated();
 }
 
 void MenuBar::GenerateSymbolsFromSignatureDB()
 {
+  Core::CPUThreadGuard guard;
+
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
-  PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR,
+  PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR,
                             Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &g_symbolDB);
   SignatureDB db(SignatureDB::HandlerType::DSY);
   if (db.Load(File::GetSysDirectory() + TOTALDB))
   {
-    db.Apply(&g_symbolDB);
+    db.Apply(guard, &g_symbolDB);
     ModalMessageBox::information(
         this, tr("Information"),
         tr("Generated symbol names from '%1'").arg(QString::fromStdString(TOTALDB)));
@@ -1240,10 +1244,12 @@ void MenuBar::GenerateSymbolsFromRSO()
     return;
   }
 
+  Core::CPUThreadGuard guard;
+
   RSOChainView rso_chain;
-  if (rso_chain.Load(static_cast<u32>(address)))
+  if (rso_chain.Load(guard, static_cast<u32>(address)))
   {
-    rso_chain.Apply(&g_symbolDB);
+    rso_chain.Apply(guard, &g_symbolDB);
     emit NotifySymbolsUpdated();
   }
   else
@@ -1293,9 +1299,12 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
 
   RSOChainView rso_chain;
   const u32 address = item.mid(0, item.indexOf(QLatin1Char(' '))).toUInt(nullptr, 16);
-  if (rso_chain.Load(address))
+
+  Core::CPUThreadGuard guard;
+
+  if (rso_chain.Load(guard, address))
   {
-    rso_chain.Apply(&g_symbolDB);
+    rso_chain.Apply(guard, &g_symbolDB);
     emit NotifySymbolsUpdated();
   }
   else
@@ -1306,6 +1315,8 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
 
 RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
 {
+  Core::CPUThreadGuard guard;
+
   constexpr std::array<std::string_view, 2> search_for = {".elf", ".plf"};
 
   const AddressSpace::Accessors* accessors =
@@ -1324,8 +1335,8 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
         return matches;
       }
 
-      auto found_addr =
-          accessors->Search(next, reinterpret_cast<const u8*>(str.data()), str.size() + 1, true);
+      auto found_addr = accessors->Search(guard, next, reinterpret_cast<const u8*>(str.data()),
+                                          str.size() + 1, true);
 
       if (!found_addr.has_value())
         break;
@@ -1334,13 +1345,13 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
 
       // Non-null data can precede the module name.
       // Get the maximum name length that a module could have.
-      auto get_max_module_name_len = [found_addr] {
+      auto get_max_module_name_len = [&guard, found_addr] {
         constexpr u32 MODULE_NAME_MAX_LENGTH = 260;
         u32 len = 0;
 
         for (; len < MODULE_NAME_MAX_LENGTH; ++len)
         {
-          const auto res = PowerPC::HostRead_U8(*found_addr - (len + 1));
+          const auto res = PowerPC::HostRead_U8(guard, *found_addr - (len + 1));
           if (!std::isprint(res))
           {
             break;
@@ -1375,12 +1386,12 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
 
         // Get the field (Module Name Offset) that point to the string
         const auto module_name_offset_addr =
-            accessors->Search(lookup_addr, ref.data(), ref.size(), false);
+            accessors->Search(guard, lookup_addr, ref.data(), ref.size(), false);
         if (!module_name_offset_addr.has_value())
           continue;
 
         // The next 4 bytes should be the module name length
-        module_name_length = accessors->ReadU32(*module_name_offset_addr + 4);
+        module_name_length = accessors->ReadU32(guard, *module_name_offset_addr + 4);
         if (module_name_length == max_name_length - i + str.length())
         {
           found_addr = module_name_offset_addr;
@@ -1392,11 +1403,11 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
       if (!found)
         continue;
 
-      const auto module_name_offset = accessors->ReadU32(*found_addr);
+      const auto module_name_offset = accessors->ReadU32(guard, *found_addr);
 
       // Go to the beginning of the RSO header
       matches.emplace_back(*found_addr - 16,
-                           PowerPC::HostGetString(module_name_offset, module_name_length));
+                           PowerPC::HostGetString(guard, module_name_offset, module_name_length));
 
       progress.SetLabelText(tr("Modules found: %1").arg(matches.size()));
     }
@@ -1416,11 +1427,16 @@ void MenuBar::LoadSymbolMap()
   if (!map_exists)
   {
     g_symbolDB.Clear();
-    PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR + 0x1300000,
-                              Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &g_symbolDB);
-    SignatureDB db(SignatureDB::HandlerType::DSY);
-    if (db.Load(File::GetSysDirectory() + TOTALDB))
-      db.Apply(&g_symbolDB);
+
+    {
+      Core::CPUThreadGuard guard;
+
+      PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR + 0x1300000,
+                                Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &g_symbolDB);
+      SignatureDB db(SignatureDB::HandlerType::DSY);
+      if (db.Load(File::GetSysDirectory() + TOTALDB))
+        db.Apply(guard, &g_symbolDB);
+    }
 
     ModalMessageBox::warning(this, tr("Warning"),
                              tr("'%1' not found, scanning for common functions instead")
@@ -1505,7 +1521,13 @@ void MenuBar::SaveCode()
   const std::string path =
       writable_map_file.substr(0, writable_map_file.find_last_of('.')) + "_code.map";
 
-  if (!g_symbolDB.SaveCodeMap(path))
+  bool success;
+  {
+    Core::CPUThreadGuard guard;
+    success = g_symbolDB.SaveCodeMap(guard, path);
+  }
+
+  if (!success)
   {
     ModalMessageBox::warning(
         this, tr("Error"),
@@ -1515,7 +1537,9 @@ void MenuBar::SaveCode()
 
 bool MenuBar::TryLoadMapFile(const QString& path, const bool bad)
 {
-  if (!g_symbolDB.LoadMap(path.toStdString(), bad))
+  Core::CPUThreadGuard guard;
+
+  if (!g_symbolDB.LoadMap(guard, path.toStdString(), bad))
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Failed to load map file '%1'").arg(path));
     return false;
@@ -1596,7 +1620,10 @@ void MenuBar::ApplySignatureFile()
   const std::string load_path = file.toStdString();
   SignatureDB db(load_path);
   db.Load(load_path);
-  db.Apply(&g_symbolDB);
+  {
+    Core::CPUThreadGuard guard;
+    db.Apply(guard, &g_symbolDB);
+  }
   db.List();
   auto& system = Core::System::GetInstance();
   HLE::PatchFunctions(system);
@@ -1665,12 +1692,14 @@ void MenuBar::SearchInstruction()
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
+  Core::CPUThreadGuard guard;
+
   bool found = false;
   for (u32 addr = Memory::MEM1_BASE_ADDR; addr < Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal();
        addr += 4)
   {
     const auto ins_name =
-        QString::fromStdString(PPCTables::GetInstructionName(PowerPC::HostRead_U32(addr)));
+        QString::fromStdString(PPCTables::GetInstructionName(PowerPC::HostRead_U32(guard, addr)));
     if (op == ins_name)
     {
       NOTICE_LOG_FMT(POWERPC, "Found {} at {:08x}", op.toStdString(), addr);

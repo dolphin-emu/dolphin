@@ -10,6 +10,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/Debug/Threads.h"
 
+namespace Core
+{
+class CPUThreadGuard;
+};
+
 namespace Core::Debug
 {
 template <class C>
@@ -56,7 +61,7 @@ struct OSContext
   u32 psf_padding;
   std::array<double, 32> psf;
 
-  void Read(u32 addr);
+  void Read(const Core::CPUThreadGuard& guard, u32 addr);
 };
 
 static_assert(std::is_trivially_copyable_v<OSContext>);
@@ -96,8 +101,8 @@ struct OSThread
   std::array<u32, 2> specific;  // Pointers to data (can be used to store thread names)
 
   static constexpr u32 STACK_MAGIC = 0xDEADBABE;
-  void Read(u32 addr);
-  bool IsValid() const;
+  void Read(const Core::CPUThreadGuard& guard, u32 addr);
+  bool IsValid(const Core::CPUThreadGuard& guard) const;
 };
 
 static_assert(std::is_trivially_copyable_v<OSThread>);
@@ -115,7 +120,7 @@ struct OSMutex
   OSMutexLink link;            // Used to traverse the thread's mutex queue
   // OSLockMutex uses it to insert the acquired mutex at the end of the queue
 
-  void Read(u32 addr);
+  void Read(const Core::CPUThreadGuard& guard, u32 addr);
 };
 
 static_assert(std::is_trivially_copyable_v<OSMutex>);
@@ -126,12 +131,12 @@ static_assert(offsetof(OSMutex, link) == 0x10);
 class OSThreadView : public Common::Debug::ThreadView
 {
 public:
-  explicit OSThreadView(u32 addr);
+  explicit OSThreadView(const Core::CPUThreadGuard& guard, u32 addr);
   ~OSThreadView() = default;
 
   const OSThread& Data() const;
 
-  Common::Debug::PartialContext GetContext() const override;
+  Common::Debug::PartialContext GetContext(const Core::CPUThreadGuard& guard) const override;
   u32 GetAddress() const override;
   u16 GetState() const override;
   bool IsSuspended() const override;
@@ -142,8 +147,8 @@ public:
   u32 GetStackEnd() const override;
   std::size_t GetStackSize() const override;
   s32 GetErrno() const override;
-  std::string GetSpecific() const override;
-  bool IsValid() const override;
+  std::string GetSpecific(const Core::CPUThreadGuard& guard) const override;
+  bool IsValid(const Core::CPUThreadGuard& guard) const override;
 
 private:
   u32 m_address = 0;

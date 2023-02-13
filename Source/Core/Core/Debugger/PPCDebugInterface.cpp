@@ -25,27 +25,28 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch, bool store_existing_value)
+void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, Common::Debug::MemoryPatch& patch,
+                      bool store_existing_value)
 {
   if (patch.value.empty())
     return;
 
   const u32 address = patch.address;
   const std::size_t size = patch.value.size();
-  if (!PowerPC::HostIsRAMAddress(address))
+  if (!PowerPC::HostIsRAMAddress(guard, address))
     return;
 
   for (u32 offset = 0; offset < size; ++offset)
   {
     if (store_existing_value)
     {
-      const u8 value = PowerPC::HostRead_U8(address + offset);
-      PowerPC::HostWrite_U8(patch.value[offset], address + offset);
+      const u8 value = PowerPC::HostRead_U8(guard, address + offset);
+      PowerPC::HostWrite_U8(guard, patch.value[offset], address + offset);
       patch.value[offset] = value;
     }
     else
     {
-      PowerPC::HostWrite_U8(patch.value[offset], address + offset);
+      PowerPC::HostWrite_U8(guard, patch.value[offset], address + offset);
     }
 
     if (((address + offset) % 4) == 3)
@@ -58,17 +59,17 @@ void ApplyMemoryPatch(Common::Debug::MemoryPatch& patch, bool store_existing_val
   }
 }
 
-void PPCPatches::ApplyExistingPatch(std::size_t index)
+void PPCPatches::ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
   auto& patch = m_patches[index];
-  ApplyMemoryPatch(patch, false);
+  ApplyMemoryPatch(guard, patch, false);
 }
 
-void PPCPatches::Patch(std::size_t index)
+void PPCPatches::Patch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
   auto& patch = m_patches[index];
   if (patch.type == Common::Debug::MemoryPatch::ApplyType::Once)
-    ApplyMemoryPatch(patch);
+    ApplyMemoryPatch(guard, patch);
   else
     PatchEngine::AddMemoryPatch(index);
 }
@@ -163,24 +164,26 @@ void PPCDebugInterface::ClearWatches()
   m_watches.Clear();
 }
 
-void PPCDebugInterface::SetPatch(u32 address, u32 value)
+void PPCDebugInterface::SetPatch(const Core::CPUThreadGuard& guard, u32 address, u32 value)
 {
-  m_patches.SetPatch(address, value);
+  m_patches.SetPatch(guard, address, value);
 }
 
-void PPCDebugInterface::SetPatch(u32 address, std::vector<u8> value)
+void PPCDebugInterface::SetPatch(const Core::CPUThreadGuard& guard, u32 address,
+                                 std::vector<u8> value)
 {
-  m_patches.SetPatch(address, std::move(value));
+  m_patches.SetPatch(guard, address, std::move(value));
 }
 
-void PPCDebugInterface::SetFramePatch(u32 address, u32 value)
+void PPCDebugInterface::SetFramePatch(const Core::CPUThreadGuard& guard, u32 address, u32 value)
 {
-  m_patches.SetFramePatch(address, value);
+  m_patches.SetFramePatch(guard, address, value);
 }
 
-void PPCDebugInterface::SetFramePatch(u32 address, std::vector<u8> value)
+void PPCDebugInterface::SetFramePatch(const Core::CPUThreadGuard& guard, u32 address,
+                                      std::vector<u8> value)
 {
-  m_patches.SetFramePatch(address, std::move(value));
+  m_patches.SetFramePatch(guard, address, std::move(value));
 }
 
 const std::vector<Common::Debug::MemoryPatch>& PPCDebugInterface::GetPatches() const
@@ -188,19 +191,19 @@ const std::vector<Common::Debug::MemoryPatch>& PPCDebugInterface::GetPatches() c
   return m_patches.GetPatches();
 }
 
-void PPCDebugInterface::UnsetPatch(u32 address)
+void PPCDebugInterface::UnsetPatch(const Core::CPUThreadGuard& guard, u32 address)
 {
-  m_patches.UnsetPatch(address);
+  m_patches.UnsetPatch(guard, address);
 }
 
-void PPCDebugInterface::EnablePatch(std::size_t index)
+void PPCDebugInterface::EnablePatch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
-  m_patches.EnablePatch(index);
+  m_patches.EnablePatch(guard, index);
 }
 
-void PPCDebugInterface::DisablePatch(std::size_t index)
+void PPCDebugInterface::DisablePatch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
-  m_patches.DisablePatch(index);
+  m_patches.DisablePatch(guard, index);
 }
 
 bool PPCDebugInterface::HasEnabledPatch(u32 address) const
@@ -208,45 +211,45 @@ bool PPCDebugInterface::HasEnabledPatch(u32 address) const
   return m_patches.HasEnabledPatch(address);
 }
 
-void PPCDebugInterface::RemovePatch(std::size_t index)
+void PPCDebugInterface::RemovePatch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
-  m_patches.RemovePatch(index);
+  m_patches.RemovePatch(guard, index);
 }
 
-void PPCDebugInterface::ClearPatches()
+void PPCDebugInterface::ClearPatches(const Core::CPUThreadGuard& guard)
 {
-  m_patches.ClearPatches();
+  m_patches.ClearPatches(guard);
 }
 
-void PPCDebugInterface::ApplyExistingPatch(std::size_t index)
+void PPCDebugInterface::ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
-  m_patches.ApplyExistingPatch(index);
+  m_patches.ApplyExistingPatch(guard, index);
 }
 
-Common::Debug::Threads PPCDebugInterface::GetThreads() const
+Common::Debug::Threads PPCDebugInterface::GetThreads(const Core::CPUThreadGuard& guard) const
 {
   Common::Debug::Threads threads;
 
   constexpr u32 ACTIVE_QUEUE_HEAD_ADDR = 0x800000dc;
-  if (!PowerPC::HostIsRAMAddress(ACTIVE_QUEUE_HEAD_ADDR))
+  if (!PowerPC::HostIsRAMAddress(guard, ACTIVE_QUEUE_HEAD_ADDR))
     return threads;
-  const u32 active_queue_head = PowerPC::HostRead_U32(ACTIVE_QUEUE_HEAD_ADDR);
-  if (!PowerPC::HostIsRAMAddress(active_queue_head))
+  const u32 active_queue_head = PowerPC::HostRead_U32(guard, ACTIVE_QUEUE_HEAD_ADDR);
+  if (!PowerPC::HostIsRAMAddress(guard, active_queue_head))
     return threads;
 
-  auto active_thread = std::make_unique<Core::Debug::OSThreadView>(active_queue_head);
-  if (!active_thread->IsValid())
+  auto active_thread = std::make_unique<Core::Debug::OSThreadView>(guard, active_queue_head);
+  if (!active_thread->IsValid(guard))
     return threads;
 
   std::vector<u32> visited_addrs{active_thread->GetAddress()};
-  const auto insert_threads = [&threads, &visited_addrs](u32 addr, auto get_next_addr) {
-    while (addr != 0 && PowerPC::HostIsRAMAddress(addr))
+  const auto insert_threads = [&guard, &threads, &visited_addrs](u32 addr, auto get_next_addr) {
+    while (addr != 0 && PowerPC::HostIsRAMAddress(guard, addr))
     {
       if (std::find(visited_addrs.begin(), visited_addrs.end(), addr) != visited_addrs.end())
         break;
       visited_addrs.push_back(addr);
-      auto thread = std::make_unique<Core::Debug::OSThreadView>(addr);
-      if (!thread->IsValid())
+      auto thread = std::make_unique<Core::Debug::OSThreadView>(guard, addr);
+      if (!thread->IsValid(guard))
         break;
       addr = get_next_addr(*thread);
       threads.emplace_back(std::move(thread));
@@ -264,20 +267,16 @@ Common::Debug::Threads PPCDebugInterface::GetThreads() const
   return threads;
 }
 
-std::string PPCDebugInterface::Disassemble(u32 address) const
+std::string PPCDebugInterface::Disassemble(const Core::CPUThreadGuard* guard, u32 address) const
 {
-  // PowerPC::HostRead_U32 seemed to crash on shutdown
-  if (!IsAlive())
-    return "";
-
-  if (Core::GetState() == Core::State::Paused)
+  if (guard)
   {
-    if (!PowerPC::HostIsRAMAddress(address))
+    if (!PowerPC::HostIsRAMAddress(*guard, address))
     {
       return "(No RAM here)";
     }
 
-    const u32 op = PowerPC::HostRead_Instruction(address);
+    const u32 op = PowerPC::HostRead_Instruction(*guard, address);
     std::string disasm = Common::GekkoDisassembler::Disassemble(op, address);
     const UGeckoInstruction inst{op};
 
@@ -294,14 +293,18 @@ std::string PPCDebugInterface::Disassemble(u32 address) const
   }
 }
 
-std::string PPCDebugInterface::GetRawMemoryString(int memory, u32 address) const
+std::string PPCDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& guard, int memory,
+                                                  u32 address) const
 {
   if (IsAlive())
   {
     const bool is_aram = memory != 0;
 
-    if (is_aram || PowerPC::HostIsRAMAddress(address))
-      return fmt::format("{:08X}{}", ReadExtraMemory(memory, address), is_aram ? " (ARAM)" : "");
+    if (is_aram || PowerPC::HostIsRAMAddress(guard, address))
+    {
+      return fmt::format("{:08X}{}", ReadExtraMemory(guard, memory, address),
+                         is_aram ? " (ARAM)" : "");
+    }
 
     return is_aram ? "--ARAM--" : "--------";
   }
@@ -309,17 +312,18 @@ std::string PPCDebugInterface::GetRawMemoryString(int memory, u32 address) const
   return "<unknwn>";  // bad spelling - 8 chars
 }
 
-u32 PPCDebugInterface::ReadMemory(u32 address) const
+u32 PPCDebugInterface::ReadMemory(const Core::CPUThreadGuard& guard, u32 address) const
 {
-  return PowerPC::HostRead_U32(address);
+  return PowerPC::HostRead_U32(guard, address);
 }
 
-u32 PPCDebugInterface::ReadExtraMemory(int memory, u32 address) const
+u32 PPCDebugInterface::ReadExtraMemory(const Core::CPUThreadGuard& guard, int memory,
+                                       u32 address) const
 {
   switch (memory)
   {
   case 0:
-    return PowerPC::HostRead_U32(address);
+    return PowerPC::HostRead_U32(guard, address);
   case 1:
     return (DSP::ReadARAM(address) << 24) | (DSP::ReadARAM(address + 1) << 16) |
            (DSP::ReadARAM(address + 2) << 8) | (DSP::ReadARAM(address + 3));
@@ -328,9 +332,9 @@ u32 PPCDebugInterface::ReadExtraMemory(int memory, u32 address) const
   }
 }
 
-u32 PPCDebugInterface::ReadInstruction(u32 address) const
+u32 PPCDebugInterface::ReadInstruction(const Core::CPUThreadGuard& guard, u32 address) const
 {
-  return PowerPC::HostRead_Instruction(address);
+  return PowerPC::HostRead_Instruction(guard, address);
 }
 
 bool PPCDebugInterface::IsAlive() const
@@ -401,11 +405,11 @@ void PPCDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool 
 // =======================================================
 // Separate the blocks with colors.
 // -------------
-u32 PPCDebugInterface::GetColor(u32 address) const
+u32 PPCDebugInterface::GetColor(const Core::CPUThreadGuard* guard, u32 address) const
 {
-  if (!IsAlive())
+  if (!guard || !IsAlive())
     return 0xFFFFFF;
-  if (!PowerPC::HostIsRAMAddress(address))
+  if (!PowerPC::HostIsRAMAddress(*guard, address))
     return 0xeeeeee;
 
   Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
@@ -525,11 +529,11 @@ std::shared_ptr<Core::NetworkCaptureLogger> PPCDebugInterface::NetworkLogger()
   return m_network_logger;
 }
 
-void PPCDebugInterface::Clear()
+void PPCDebugInterface::Clear(const Core::CPUThreadGuard& guard)
 {
   ClearAllBreakpoints();
   ClearAllMemChecks();
-  ClearPatches();
+  ClearPatches(guard);
   ClearWatches();
   m_network_logger.reset();
 }

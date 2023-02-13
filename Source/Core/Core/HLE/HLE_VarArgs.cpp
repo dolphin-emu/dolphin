@@ -8,20 +8,22 @@
 
 HLE::SystemVABI::VAList::~VAList() = default;
 
-u32 HLE::SystemVABI::VAList::GetGPR(u32 gpr) const
+u32 HLE::SystemVABI::VAList::GetGPR(const Core::CPUThreadGuard&, u32 gpr) const
 {
   return m_system.GetPPCState().gpr[gpr];
 }
 
-double HLE::SystemVABI::VAList::GetFPR(u32 fpr) const
+double HLE::SystemVABI::VAList::GetFPR(const Core::CPUThreadGuard&, u32 fpr) const
 {
   return m_system.GetPPCState().ps[fpr].PS0AsDouble();
 }
 
-HLE::SystemVABI::VAListStruct::VAListStruct(Core::System& system, u32 address)
-    : VAList(system, 0), m_va_list{PowerPC::HostRead_U8(address), PowerPC::HostRead_U8(address + 1),
-                                   PowerPC::HostRead_U32(address + 4),
-                                   PowerPC::HostRead_U32(address + 8)},
+HLE::SystemVABI::VAListStruct::VAListStruct(Core::System& system, const Core::CPUThreadGuard& guard,
+                                            u32 address)
+    : VAList(system, 0), m_va_list{PowerPC::HostRead_U8(guard, address),
+                                   PowerPC::HostRead_U8(guard, address + 1),
+                                   PowerPC::HostRead_U32(guard, address + 4),
+                                   PowerPC::HostRead_U32(guard, address + 8)},
       m_address(address), m_has_fpr_area(system.GetPPCState().cr.GetBit(6) == 1)
 {
   m_stack = m_va_list.overflow_arg_area;
@@ -39,7 +41,7 @@ u32 HLE::SystemVABI::VAListStruct::GetFPRArea() const
   return GetGPRArea() + 4 * 8;
 }
 
-u32 HLE::SystemVABI::VAListStruct::GetGPR(u32 gpr) const
+u32 HLE::SystemVABI::VAListStruct::GetGPR(const Core::CPUThreadGuard& guard, u32 gpr) const
 {
   if (gpr < 3 || gpr > 10)
   {
@@ -47,10 +49,10 @@ u32 HLE::SystemVABI::VAListStruct::GetGPR(u32 gpr) const
     return 0;
   }
   const u32 gpr_address = Common::AlignUp(GetGPRArea() + 4 * (gpr - 3), 4);
-  return PowerPC::HostRead_U32(gpr_address);
+  return PowerPC::HostRead_U32(guard, gpr_address);
 }
 
-double HLE::SystemVABI::VAListStruct::GetFPR(u32 fpr) const
+double HLE::SystemVABI::VAListStruct::GetFPR(const Core::CPUThreadGuard& guard, u32 fpr) const
 {
   if (!m_has_fpr_area || fpr < 1 || fpr > 8)
   {
@@ -58,5 +60,5 @@ double HLE::SystemVABI::VAListStruct::GetFPR(u32 fpr) const
     return 0.0;
   }
   const u32 fpr_address = Common::AlignUp(GetFPRArea() + 8 * (fpr - 1), 8);
-  return PowerPC::HostRead_F64(fpr_address);
+  return PowerPC::HostRead_F64(guard, fpr_address);
 }

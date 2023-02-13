@@ -23,57 +23,57 @@
 #include "Core/System.h"
 
 template <typename T>
-static T HostRead(u32 address);
+static T HostRead(const Core::CPUThreadGuard& guard, u32 address);
 
 template <typename T>
-static void HostWrite(T var, u32 address);
+static void HostWrite(const Core::CPUThreadGuard& guard, T var, u32 address);
 
 template <>
-u8 HostRead(u32 address)
+u8 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U8(address);
+  return PowerPC::HostRead_U8(guard, address);
 }
 
 template <>
-u16 HostRead(u32 address)
+u16 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U16(address);
+  return PowerPC::HostRead_U16(guard, address);
 }
 
 template <>
-u32 HostRead(u32 address)
+u32 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U32(address);
+  return PowerPC::HostRead_U32(guard, address);
 }
 
 template <>
-u64 HostRead(u32 address)
+u64 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U64(address);
+  return PowerPC::HostRead_U64(guard, address);
 }
 
 template <>
-void HostWrite(u8 var, u32 address)
+void HostWrite(const Core::CPUThreadGuard& guard, u8 var, u32 address)
 {
-  PowerPC::HostWrite_U8(var, address);
+  PowerPC::HostWrite_U8(guard, var, address);
 }
 
 template <>
-void HostWrite(u16 var, u32 address)
+void HostWrite(const Core::CPUThreadGuard& guard, u16 var, u32 address)
 {
-  PowerPC::HostWrite_U16(var, address);
+  PowerPC::HostWrite_U16(guard, var, address);
 }
 
 template <>
-void HostWrite(u32 var, u32 address)
+void HostWrite(const Core::CPUThreadGuard& guard, u32 var, u32 address)
 {
-  PowerPC::HostWrite_U32(var, address);
+  PowerPC::HostWrite_U32(guard, var, address);
 }
 
 template <>
-void HostWrite(u64 var, u32 address)
+void HostWrite(const Core::CPUThreadGuard& guard, u64 var, u32 address)
 {
-  PowerPC::HostWrite_U64(var, address);
+  PowerPC::HostWrite_U64(guard, var, address);
 }
 
 template <typename T, typename U = T>
@@ -81,8 +81,9 @@ static double HostReadFunc(expr_func* f, vec_expr_t* args, void* c)
 {
   if (vec_len(args) != 1)
     return 0;
+  const auto* guard = reinterpret_cast<const Core::CPUThreadGuard*>(c);
   const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 0)));
-  return Common::BitCast<T>(HostRead<U>(address));
+  return Common::BitCast<T>(HostRead<U>(*guard, address));
 }
 
 template <typename T, typename U = T>
@@ -90,9 +91,10 @@ static double HostWriteFunc(expr_func* f, vec_expr_t* args, void* c)
 {
   if (vec_len(args) != 2)
     return 0;
+  const auto* guard = reinterpret_cast<const Core::CPUThreadGuard*>(c);
   const T var = static_cast<T>(expr_eval(&vec_nth(args, 0)));
   const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 1)));
-  HostWrite<U>(Common::BitCast<U>(var), address);
+  HostWrite<U>(*guard, Common::BitCast<U>(var), address);
   return var;
 }
 
@@ -110,7 +112,8 @@ static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
     return 0;
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
-  bool success = Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), stack);
+  const auto* guard = reinterpret_cast<const Core::CPUThreadGuard*>(c);
+  bool success = Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), *guard, stack);
   if (!success)
     return 0;
 
@@ -225,7 +228,13 @@ double Expression::Evaluate() const
 {
   SynchronizeBindings(SynchronizeDirection::From);
 
-  double result = expr_eval(m_expr.get());
+  double result;
+  {
+    Core::CPUThreadGuard guard;
+    m_expr->param.func.context = &guard;
+    result = expr_eval(m_expr.get());
+    m_expr->param.func.context = nullptr;
+  }
 
   SynchronizeBindings(SynchronizeDirection::To);
 

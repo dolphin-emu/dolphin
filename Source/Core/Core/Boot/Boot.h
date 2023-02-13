@@ -21,8 +21,9 @@
 
 namespace Core
 {
+class CPUThreadGuard;
 class System;
-}
+}  // namespace Core
 
 namespace File
 {
@@ -153,7 +154,8 @@ struct BootParameters
 class CBoot
 {
 public:
-  static bool BootUp(Core::System& system, std::unique_ptr<BootParameters> boot);
+  static bool BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
+                     std::unique_ptr<BootParameters> boot);
 
   // Tries to find a map file for the current game by looking first in the
   // local user directory, then in the shared user directory.
@@ -166,7 +168,7 @@ public:
   //
   // Returns true if a map file exists, false if none could be found.
   static bool FindMapFile(std::string* existing_map_file, std::string* writable_map_file);
-  static bool LoadMapFromFilename();
+  static bool LoadMapFromFilename(const Core::CPUThreadGuard& guard);
 
 private:
   static bool DVDRead(const DiscIO::VolumeDisc& disc, u64 dvd_offset, u32 output_address,
@@ -182,17 +184,21 @@ private:
   static void SetupMSR(PowerPC::PowerPCState& ppc_state);
   static void SetupHID(PowerPC::PowerPCState& ppc_state, bool is_wii);
   static void SetupBAT(Core::System& system, bool is_wii);
-  static bool RunApploader(Core::System& system, bool is_wii, const DiscIO::VolumeDisc& volume,
+  static bool RunApploader(Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
+                           const DiscIO::VolumeDisc& volume,
                            const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
-  static bool EmulatedBS2_GC(Core::System& system, const DiscIO::VolumeDisc& volume,
+  static bool EmulatedBS2_GC(Core::System& system, const Core::CPUThreadGuard& guard,
+                             const DiscIO::VolumeDisc& volume,
                              const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
-  static bool EmulatedBS2_Wii(Core::System& system, const DiscIO::VolumeDisc& volume,
+  static bool EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& guard,
+                              const DiscIO::VolumeDisc& volume,
                               const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
-  static bool EmulatedBS2(Core::System& system, bool is_wii, const DiscIO::VolumeDisc& volume,
+  static bool EmulatedBS2(Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
+                          const DiscIO::VolumeDisc& volume,
                           const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
   static bool Load_BS2(Core::System& system, const std::string& boot_rom_filename);
 
-  static void SetupGCMemory(Core::System& system);
+  static void SetupGCMemory(Core::System& system, const Core::CPUThreadGuard& guard);
   static bool SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType console_type);
 };
 
@@ -208,7 +214,7 @@ public:
   virtual bool IsValid() const = 0;
   virtual bool IsWii() const = 0;
   virtual bool LoadIntoMemory(bool only_in_mem1 = false) const = 0;
-  virtual bool LoadSymbols() const = 0;
+  virtual bool LoadSymbols(const Core::CPUThreadGuard& guard) const = 0;
 
 protected:
   std::vector<u8> m_bytes;

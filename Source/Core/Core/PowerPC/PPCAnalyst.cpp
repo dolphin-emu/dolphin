@@ -74,7 +74,8 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 // Also collect which internal branch goes the farthest.
 // If any one goes farther than the blr or rfi, assume that there is more than
 // one blr or rfi, and keep scanning.
-bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
+bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::Symbol& func,
+                     u32 max_size)
 {
   if (func.name.empty())
     func.Rename(fmt::format("zz_{:08x}_", startAddr));
@@ -91,15 +92,18 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
   for (u32 addr = startAddr; true; addr += 4)
   {
     func.size += 4;
-    if (func.size >= JitBase::code_buffer_size * 4 || !PowerPC::HostIsInstructionRAMAddress(addr))
+    if (func.size >= JitBase::code_buffer_size * 4 ||
+        !PowerPC::HostIsInstructionRAMAddress(guard, addr))
+    {
       return false;
+    }
 
     if (max_size && func.size > max_size)
     {
       func.address = startAddr;
       func.analyzed = true;
       func.size -= 4;
-      func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr - 4);
+      func.hash = HashSignatureDB::ComputeCodeChecksum(guard, startAddr, addr - 4);
       if (numInternalBranches == 0)
         func.flags |= Common::FFLAG_STRAIGHT;
       return true;
@@ -121,7 +125,7 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
         // Let's calc the checksum and get outta here
         func.address = startAddr;
         func.analyzed = true;
-        func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
+        func.hash = HashSignatureDB::ComputeCodeChecksum(guard, startAddr, addr);
         if (numInternalBranches == 0)
           func.flags |= Common::FFLAG_STRAIGHT;
         return true;
@@ -167,12 +171,13 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
   }
 }
 
-bool ReanalyzeFunction(u32 start_addr, Common::Symbol& func, u32 max_size)
+bool ReanalyzeFunction(const Core::CPUThreadGuard& guard, u32 start_addr, Common::Symbol& func,
+                       u32 max_size)
 {
   ASSERT_MSG(SYMBOLS, func.analyzed, "The function wasn't previously analyzed!");
 
   func.analyzed = false;
-  return AnalyzeFunction(start_addr, func, max_size);
+  return AnalyzeFunction(guard, start_addr, func, max_size);
 }
 
 // Second pass analysis, done after the first pass is done for all functions
@@ -256,7 +261,8 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
 // called by another function. Therefore, let's scan the
 // entire space for bl operations and find what functions
 // get called.
-static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, Common::SymbolDB* func_db)
+static void FindFunctionsFromBranches(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr,
+                                      Common::SymbolDB* func_db)
 {
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
@@ -274,9 +280,9 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, Common::Symbol
           u32 target = SignExt26(instr.LI << 2);
           if (!instr.AA)
             target += addr;
-          if (PowerPC::HostIsRAMAddress(target))
+          if (PowerPC::HostIsRAMAddress(guard, target))
           {
-            func_db->AddFunction(target);
+            func_db->AddFunction(guard, target);
           }
         }
       }
@@ -288,7 +294,7 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, Common::Symbol
   }
 }
 
-static void FindFunctionsFromHandlers(PPCSymbolDB* func_db)
+static void FindFunctionsFromHandlers(const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db)
 {
   static const std::map<u32, const char* const> handlers = {
       {0x80000100, "system_reset_exception_handler"},
@@ -314,7 +320,7 @@ static void FindFunctionsFromHandlers(PPCSymbolDB* func_db)
     if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
     {
       // Check if this function is already mapped
-      Common::Symbol* f = func_db->AddFunction(entry.first);
+      Common::Symbol* f = func_db->AddFunction(guard, entry.first);
       if (!f)
         continue;
       f->Rename(entry.second);
@@ -322,7 +328,8 @@ static void FindFunctionsFromHandlers(PPCSymbolDB* func_db)
   }
 }
 
-static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
+static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guard,
+                                                PPCSymbolDB* func_db)
 {
   std::vector<u32> funcAddrs;
 
@@ -346,7 +353,7 @@ static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
       if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
       {
         // check if this function is already mapped
-        Common::Symbol* f = func_db->AddFunction(location);
+        Common::Symbol* f = func_db->AddFunction(guard, location);
         if (!f)
           break;
         else
@@ -358,12 +365,13 @@ static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
   }
 }
 
-void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
+void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr,
+                   PPCSymbolDB* func_db)
 {
   // Step 1: Find all functions
-  FindFunctionsFromBranches(startAddr, endAddr, func_db);
-  FindFunctionsFromHandlers(func_db);
-  FindFunctionsAfterReturnInstruction(func_db);
+  FindFunctionsFromBranches(guard, startAddr, endAddr, func_db);
+  FindFunctionsFromHandlers(guard, func_db);
+  FindFunctionsAfterReturnInstruction(guard, func_db);
 
   // Step 2:
   func_db->FillInCallers();

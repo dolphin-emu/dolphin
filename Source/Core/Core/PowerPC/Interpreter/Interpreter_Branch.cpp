@@ -6,6 +6,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HLE/HLE.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -95,7 +96,11 @@ void Interpreter::bclrx(UGeckoInstruction inst)
 void Interpreter::HLEFunction(UGeckoInstruction inst)
 {
   m_end_block = true;
-  HLE::Execute(PowerPC::ppcState.pc, inst.hex);
+
+  ASSERT(Core::IsCPUThread());
+  Core::CPUThreadGuard guard;
+
+  HLE::Execute(guard, PowerPC::ppcState.pc, inst.hex);
 }
 
 void Interpreter::rfi(UGeckoInstruction inst)

@@ -13,8 +13,9 @@
 
 namespace Core
 {
+class CPUThreadGuard;
 class System;
-}
+}  // namespace Core
 
 namespace HLE::SystemVABI
 {
@@ -47,14 +48,14 @@ public:
 
   // 0 - arg_ARGPOINTER
   template <typename T, typename std::enable_if_t<IS_ARG_POINTER<T>>* = nullptr>
-  T GetArg()
+  T GetArg(const Core::CPUThreadGuard& guard)
   {
     T obj;
-    u32 addr = GetArg<u32>();
+    u32 addr = GetArg<u32>(guard);
 
     for (size_t i = 0; i < sizeof(T); i += 1, addr += 1)
     {
-      reinterpret_cast<u8*>(&obj)[i] = PowerPC::HostRead_U8(addr);
+      reinterpret_cast<u8*>(&obj)[i] = PowerPC::HostRead_U8(guard, addr);
     }
 
     return obj;
@@ -62,20 +63,20 @@ public:
 
   // 1 - arg_WORD
   template <typename T, typename std::enable_if_t<IS_WORD<T>>* = nullptr>
-  T GetArg()
+  T GetArg(const Core::CPUThreadGuard& guard)
   {
     static_assert(!std::is_pointer<T>(), "VAList doesn't support pointers");
     u64 value;
 
     if (m_gpr <= m_gpr_max)
     {
-      value = GetGPR(m_gpr);
+      value = GetGPR(guard, m_gpr);
       m_gpr += 1;
     }
     else
     {
       m_stack = Common::AlignUp(m_stack, 4);
-      value = PowerPC::HostRead_U32(m_stack);
+      value = PowerPC::HostRead_U32(guard, m_stack);
       m_stack += 4;
     }
 
@@ -84,7 +85,7 @@ public:
 
   // 2 - arg_DOUBLEWORD
   template <typename T, typename std::enable_if_t<IS_DOUBLE_WORD<T>>* = nullptr>
-  T GetArg()
+  T GetArg(const Core::CPUThreadGuard& guard)
   {
     u64 value;
 
@@ -92,13 +93,13 @@ public:
       m_gpr += 1;
     if (m_gpr < m_gpr_max)
     {
-      value = static_cast<u64>(GetGPR(m_gpr)) << 32 | GetGPR(m_gpr + 1);
+      value = static_cast<u64>(GetGPR(guard, m_gpr)) << 32 | GetGPR(guard, m_gpr + 1);
       m_gpr += 2;
     }
     else
     {
       m_stack = Common::AlignUp(m_stack, 8);
-      value = PowerPC::HostRead_U64(m_stack);
+      value = PowerPC::HostRead_U64(guard, m_stack);
       m_stack += 8;
     }
 
@@ -107,19 +108,19 @@ public:
 
   // 3 - arg_ARGREAL
   template <typename T, typename std::enable_if_t<IS_ARG_REAL<T>>* = nullptr>
-  T GetArg()
+  T GetArg(const Core::CPUThreadGuard& guard)
   {
     double value;
 
     if (m_fpr <= m_fpr_max)
     {
-      value = GetFPR(m_fpr);
+      value = GetFPR(guard, m_fpr);
       m_fpr += 1;
     }
     else
     {
       m_stack = Common::AlignUp(m_stack, 8);
-      value = PowerPC::HostRead_F64(m_stack);
+      value = PowerPC::HostRead_F64(guard, m_stack);
       m_stack += 8;
     }
 
@@ -128,9 +129,9 @@ public:
 
   // Helper
   template <typename T>
-  T GetArgT()
+  T GetArgT(const Core::CPUThreadGuard& guard)
   {
-    return static_cast<T>(GetArg<T>());
+    return static_cast<T>(GetArg<T>(guard));
   }
 
 protected:
@@ -142,8 +143,8 @@ protected:
   u32 m_stack;
 
 private:
-  virtual u32 GetGPR(u32 gpr) const;
-  virtual double GetFPR(u32 fpr) const;
+  virtual u32 GetGPR(const Core::CPUThreadGuard& guard, u32 gpr) const;
+  virtual double GetFPR(const Core::CPUThreadGuard& guard, u32 fpr) const;
 };
 
 // See System V ABI (SVR4) for more details
@@ -155,7 +156,7 @@ private:
 class VAListStruct : public VAList
 {
 public:
-  explicit VAListStruct(Core::System& system, u32 address);
+  explicit VAListStruct(Core::System& system, const Core::CPUThreadGuard& guard, u32 address);
   ~VAListStruct() = default;
 
 private:
@@ -173,8 +174,8 @@ private:
   u32 GetGPRArea() const;
   u32 GetFPRArea() const;
 
-  u32 GetGPR(u32 gpr) const override;
-  double GetFPR(u32 fpr) const override;
+  u32 GetGPR(const Core::CPUThreadGuard& guard, u32 gpr) const override;
+  double GetFPR(const Core::CPUThreadGuard& guard, u32 fpr) const override;
 };
 
 }  // namespace HLE::SystemVABI

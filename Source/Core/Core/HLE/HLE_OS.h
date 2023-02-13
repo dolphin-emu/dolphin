@@ -3,14 +3,19 @@
 
 #pragma once
 
+namespace Core
+{
+class CPUThreadGuard;
+};
+
 namespace HLE_OS
 {
-void HLE_GeneralDebugPrint();
-void HLE_GeneralDebugVPrint();
-void HLE_write_console();
-void HLE_OSPanic();
-void HLE_LogDPrint();
-void HLE_LogVDPrint();
-void HLE_LogFPrint();
-void HLE_LogVFPrint();
+void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard);
+void HLE_GeneralDebugVPrint(const Core::CPUThreadGuard& guard);
+void HLE_write_console(const Core::CPUThreadGuard& guard);
+void HLE_OSPanic(const Core::CPUThreadGuard& guard);
+void HLE_LogDPrint(const Core::CPUThreadGuard& guard);
+void HLE_LogVDPrint(const Core::CPUThreadGuard& guard);
+void HLE_LogFPrint(const Core::CPUThreadGuard& guard);
+void HLE_LogVFPrint(const Core::CPUThreadGuard& guard);
 }  // namespace HLE_OS

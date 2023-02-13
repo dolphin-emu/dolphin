@@ -18,6 +18,7 @@
 #include <fmt/printf.h>
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
 #include "Common/FloatUtils.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
@@ -45,6 +46,8 @@ constexpr int SCROLLBAR_MINIMUM = 0;
 constexpr int SCROLLBAR_PAGESTEP = 250;
 constexpr int SCROLLBAR_MAXIMUM = 20000;
 constexpr int SCROLLBAR_CENTER = SCROLLBAR_MAXIMUM / 2;
+
+const QString INVALID_MEMORY = QStringLiteral("-");
 
 class MemoryViewTable final : public QTableWidget
 {
@@ -151,11 +154,13 @@ public:
     u32 end_address = address + static_cast<u32>(bytes.size()) - 1;
     AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_view->GetAddressSpace());
 
-    if (!bytes.empty() && accessors->IsValidAddress(address) &&
-        accessors->IsValidAddress(end_address))
+    Core::CPUThreadGuard guard;
+
+    if (!bytes.empty() && accessors->IsValidAddress(guard, address) &&
+        accessors->IsValidAddress(guard, end_address))
     {
       for (const u8 c : bytes)
-        accessors->WriteU8(address++, c);
+        accessors->WriteU8(guard, address++, c);
     }
 
     m_view->Update();
@@ -190,8 +195,9 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QWidget(parent)
 
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &MemoryViewWidget::UpdateFont);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &MemoryViewWidget::UpdateColumns);
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &MemoryViewWidget::UpdateColumns);
+          qOverload<>(&MemoryViewWidget::UpdateColumns));
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
+          qOverload<>(&MemoryViewWidget::UpdateColumns));
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
 
   // Also calls create table.
@@ -322,13 +328,13 @@ void MemoryViewWidget::CreateTable()
   bp_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
 
   // Row Addresses
-  auto* row_item = new QTableWidgetItem(QStringLiteral("-"));
+  auto* row_item = new QTableWidgetItem(INVALID_MEMORY);
   row_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
   row_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
   row_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
 
   // Data item
-  auto* item = new QTableWidgetItem(QStringLiteral("-"));
+  auto* item = new QTableWidgetItem(INVALID_MEMORY);
   item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
   item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
 
@@ -435,6 +441,24 @@ void MemoryViewWidget::UpdateColumns()
   if (m_table->item(1, 1) == nullptr)
     return;
 
+  if (Core::GetState() == Core::State::Paused)
+  {
+    Core::CPUThreadGuard guard;
+    UpdateColumns(&guard);
+  }
+  else
+  {
+    // If the core is running, blank out the view of memory instead of reading anything.
+    UpdateColumns(nullptr);
+  }
+}
+
+void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
+{
+  // Check if table is created
+  if (m_table->item(1, 1) == nullptr)
+    return;
+
   const QSignalBlocker blocker(m_table);
 
   for (int i = 0; i < m_table->rowCount(); i++)
@@ -445,7 +469,7 @@ void MemoryViewWidget::UpdateColumns()
       const u32 cell_address = cell_item->data(USER_ROLE_CELL_ADDRESS).toUInt();
       const Type type = static_cast<Type>(cell_item->data(USER_ROLE_VALUE_TYPE).toInt());
 
-      cell_item->setText(ValueToString(cell_address, type));
+      cell_item->setText(guard ? ValueToString(*guard, cell_address, type) : INVALID_MEMORY);
 
       // Set search address to selected / colored
       if (cell_address == m_address_highlight)
@@ -454,55 +478,56 @@ void MemoryViewWidget::UpdateColumns()
   }
 }
 
-QString MemoryViewWidget::ValueToString(u32 address, Type type)
+// May only be called if we have taken on the role of the CPU thread
+QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type)
 {
   const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
-  if (!accessors->IsValidAddress(address) || Core::GetState() != Core::State::Paused)
-    return QStringLiteral("-");
+  if (!accessors->IsValidAddress(guard, address))
+    return INVALID_MEMORY;
 
   switch (type)
   {
   case Type::Hex8:
   {
-    const u8 value = accessors->ReadU8(address);
+    const u8 value = accessors->ReadU8(guard, address);
     return QStringLiteral("%1").arg(value, 2, 16, QLatin1Char('0'));
   }
   case Type::ASCII:
   {
-    const char value = accessors->ReadU8(address);
+    const char value = accessors->ReadU8(guard, address);
     return IsPrintableCharacter(value) ? QString{QChar::fromLatin1(value)} :
                                          QString{QChar::fromLatin1('.')};
   }
   case Type::Hex16:
   {
-    const u16 value = accessors->ReadU16(address);
+    const u16 value = accessors->ReadU16(guard, address);
     return QStringLiteral("%1").arg(value, 4, 16, QLatin1Char('0'));
   }
   case Type::Hex32:
   {
-    const u32 value = accessors->ReadU32(address);
+    const u32 value = accessors->ReadU32(guard, address);
     return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
   }
   case Type::Hex64:
   {
-    const u64 value = accessors->ReadU64(address);
+    const u64 value = accessors->ReadU64(guard, address);
     return QStringLiteral("%1").arg(value, 16, 16, QLatin1Char('0'));
   }
   case Type::Unsigned8:
-    return QString::number(accessors->ReadU8(address));
+    return QString::number(accessors->ReadU8(guard, address));
   case Type::Unsigned16:
-    return QString::number(accessors->ReadU16(address));
+    return QString::number(accessors->ReadU16(guard, address));
   case Type::Unsigned32:
-    return QString::number(accessors->ReadU32(address));
+    return QString::number(accessors->ReadU32(guard, address));
   case Type::Signed8:
-    return QString::number(Common::BitCast<s8>(accessors->ReadU8(address)));
+    return QString::number(Common::BitCast<s8>(accessors->ReadU8(guard, address)));
   case Type::Signed16:
-    return QString::number(Common::BitCast<s16>(accessors->ReadU16(address)));
+    return QString::number(Common::BitCast<s16>(accessors->ReadU16(guard, address)));
   case Type::Signed32:
-    return QString::number(Common::BitCast<s32>(accessors->ReadU32(address)));
+    return QString::number(Common::BitCast<s32>(accessors->ReadU32(guard, address)));
   case Type::Float32:
   {
-    QString string = QString::number(accessors->ReadF32(address), 'g', 4);
+    QString string = QString::number(accessors->ReadF32(guard, address), 'g', 4);
     // Align to first digit.
     if (!string.startsWith(QLatin1Char('-')))
       string.prepend(QLatin1Char(' '));
@@ -511,7 +536,8 @@ QString MemoryViewWidget::ValueToString(u32 address, Type type)
   }
   case Type::Double:
   {
-    QString string = QString::number(Common::BitCast<double>(accessors->ReadU64(address)), 'g', 4);
+    QString string =
+        QString::number(Common::BitCast<double>(accessors->ReadU64(guard, address)), 'g', 4);
     // Align to first digit.
     if (!string.startsWith(QLatin1Char('-')))
       string.prepend(QLatin1Char(' '));
@@ -519,7 +545,7 @@ QString MemoryViewWidget::ValueToString(u32 address, Type type)
     return string;
   }
   default:
-    return QStringLiteral("-");
+    return INVALID_MEMORY;
   }
 }
 
@@ -823,7 +849,11 @@ void MemoryViewWidget::OnCopyHex(u32 addr)
   const auto length = GetTypeSize(m_type);
 
   const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
-  u64 value = accessors->ReadU64(addr);
+
+  const u64 value = [addr, accessors] {
+    Core::CPUThreadGuard guard;
+    return accessors->ReadU64(guard, addr);
+  }();
 
   QApplication::clipboard()->setText(
       QStringLiteral("%1").arg(value, sizeof(u64) * 2, 16, QLatin1Char('0')).left(length * 2));
@@ -839,10 +869,14 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
     return;
 
   const u32 addr = item_selected->data(USER_ROLE_CELL_ADDRESS).toUInt();
-  const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
   const bool item_has_value =
       item_selected->data(USER_ROLE_VALUE_TYPE).toInt() != static_cast<int>(Type::Null) &&
-      accessors->IsValidAddress(addr);
+      [this, addr] {
+        const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
+
+        Core::CPUThreadGuard guard;
+        return accessors->IsValidAddress(guard, addr);
+      }();
 
   auto* menu = new QMenu(this);
 

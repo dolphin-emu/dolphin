@@ -519,17 +519,18 @@ TryReadInstResult TryReadInstruction(u32 address)
   return TryReadInstResult{true, from_bat, hex, address};
 }
 
-u32 HostRead_Instruction(const u32 address)
+u32 HostRead_Instruction(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   return ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(memory, address);
 }
 
-std::optional<ReadResult<u32>> HostTryReadInstruction(const u32 address,
+std::optional<ReadResult<u32>> HostTryReadInstruction(const Core::CPUThreadGuard& guard,
+                                                      const u32 address,
                                                       RequestedAddressSpace space)
 {
-  if (!HostIsInstructionRAMAddress(address, space))
+  if (!HostIsInstructionRAMAddress(guard, address, space))
     return std::nullopt;
 
   auto& system = Core::System::GetInstance();
@@ -648,9 +649,10 @@ float Read_F32(const u32 address)
 }
 
 template <typename T>
-static std::optional<ReadResult<T>> HostTryReadUX(const u32 address, RequestedAddressSpace space)
+static std::optional<ReadResult<T>> HostTryReadUX(const Core::CPUThreadGuard& guard,
+                                                  const u32 address, RequestedAddressSpace space)
 {
-  if (!HostIsRAMAddress(address, space))
+  if (!HostIsRAMAddress(guard, address, space))
     return std::nullopt;
 
   auto& system = Core::System::GetInstance();
@@ -681,37 +683,43 @@ static std::optional<ReadResult<T>> HostTryReadUX(const u32 address, RequestedAd
   return std::nullopt;
 }
 
-std::optional<ReadResult<u8>> HostTryReadU8(u32 address, RequestedAddressSpace space)
+std::optional<ReadResult<u8>> HostTryReadU8(const Core::CPUThreadGuard& guard, u32 address,
+                                            RequestedAddressSpace space)
 {
-  return HostTryReadUX<u8>(address, space);
+  return HostTryReadUX<u8>(guard, address, space);
 }
 
-std::optional<ReadResult<u16>> HostTryReadU16(u32 address, RequestedAddressSpace space)
+std::optional<ReadResult<u16>> HostTryReadU16(const Core::CPUThreadGuard& guard, u32 address,
+                                              RequestedAddressSpace space)
 {
-  return HostTryReadUX<u16>(address, space);
+  return HostTryReadUX<u16>(guard, address, space);
 }
 
-std::optional<ReadResult<u32>> HostTryReadU32(u32 address, RequestedAddressSpace space)
+std::optional<ReadResult<u32>> HostTryReadU32(const Core::CPUThreadGuard& guard, u32 address,
+                                              RequestedAddressSpace space)
 {
-  return HostTryReadUX<u32>(address, space);
+  return HostTryReadUX<u32>(guard, address, space);
 }
 
-std::optional<ReadResult<u64>> HostTryReadU64(u32 address, RequestedAddressSpace space)
+std::optional<ReadResult<u64>> HostTryReadU64(const Core::CPUThreadGuard& guard, u32 address,
+                                              RequestedAddressSpace space)
 {
-  return HostTryReadUX<u64>(address, space);
+  return HostTryReadUX<u64>(guard, address, space);
 }
 
-std::optional<ReadResult<float>> HostTryReadF32(u32 address, RequestedAddressSpace space)
+std::optional<ReadResult<float>> HostTryReadF32(const Core::CPUThreadGuard& guard, u32 address,
+                                                RequestedAddressSpace space)
 {
-  const auto result = HostTryReadUX<u32>(address, space);
+  const auto result = HostTryReadUX<u32>(guard, address, space);
   if (!result)
     return std::nullopt;
   return ReadResult<float>(result->translated, Common::BitCast<float>(result->value));
 }
 
-std::optional<ReadResult<double>> HostTryReadF64(u32 address, RequestedAddressSpace space)
+std::optional<ReadResult<double>> HostTryReadF64(const Core::CPUThreadGuard& guard, u32 address,
+                                                 RequestedAddressSpace space)
 {
-  const auto result = HostTryReadUX<u64>(address, space);
+  const auto result = HostTryReadUX<u64>(guard, address, space);
   if (!result)
     return std::nullopt;
   return ReadResult<double>(result->translated, Common::BitCast<double>(result->value));
@@ -780,70 +788,70 @@ void Write_F64(const double var, const u32 address)
   Write_U64(integral, address);
 }
 
-u8 HostRead_U8(const u32 address)
+u8 HostRead_U8(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   return ReadFromHardware<XCheckTLBFlag::NoException, u8>(memory, address);
 }
 
-u16 HostRead_U16(const u32 address)
+u16 HostRead_U16(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   return ReadFromHardware<XCheckTLBFlag::NoException, u16>(memory, address);
 }
 
-u32 HostRead_U32(const u32 address)
+u32 HostRead_U32(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   return ReadFromHardware<XCheckTLBFlag::NoException, u32>(memory, address);
 }
 
-u64 HostRead_U64(const u32 address)
+u64 HostRead_U64(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   return ReadFromHardware<XCheckTLBFlag::NoException, u64>(memory, address);
 }
 
-float HostRead_F32(const u32 address)
+float HostRead_F32(const Core::CPUThreadGuard& guard, const u32 address)
 {
-  const u32 integral = HostRead_U32(address);
+  const u32 integral = HostRead_U32(guard, address);
 
   return Common::BitCast<float>(integral);
 }
 
-double HostRead_F64(const u32 address)
+double HostRead_F64(const Core::CPUThreadGuard& guard, const u32 address)
 {
-  const u64 integral = HostRead_U64(address);
+  const u64 integral = HostRead_U64(guard, address);
 
   return Common::BitCast<double>(integral);
 }
 
-void HostWrite_U8(const u32 var, const u32 address)
+void HostWrite_U8(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, 1);
 }
 
-void HostWrite_U16(const u32 var, const u32 address)
+void HostWrite_U16(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, 2);
 }
 
-void HostWrite_U32(const u32 var, const u32 address)
+void HostWrite_U32(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, 4);
 }
 
-void HostWrite_U64(const u64 var, const u32 address)
+void HostWrite_U64(const Core::CPUThreadGuard& guard, const u64 var, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
@@ -853,24 +861,25 @@ void HostWrite_U64(const u64 var, const u32 address)
                                               static_cast<u32>(var), 4);
 }
 
-void HostWrite_F32(const float var, const u32 address)
+void HostWrite_F32(const Core::CPUThreadGuard& guard, const float var, const u32 address)
 {
   const u32 integral = Common::BitCast<u32>(var);
 
-  HostWrite_U32(integral, address);
+  HostWrite_U32(guard, integral, address);
 }
 
-void HostWrite_F64(const double var, const u32 address)
+void HostWrite_F64(const Core::CPUThreadGuard& guard, const double var, const u32 address)
 {
   const u64 integral = Common::BitCast<u64>(var);
 
-  HostWrite_U64(integral, address);
+  HostWrite_U64(guard, integral, address);
 }
 
-static std::optional<WriteResult> HostTryWriteUX(const u32 var, const u32 address, const u32 size,
+static std::optional<WriteResult> HostTryWriteUX(const Core::CPUThreadGuard& guard, const u32 var,
+                                                 const u32 address, const u32 size,
                                                  RequestedAddressSpace space)
 {
-  if (!HostIsRAMAddress(address, space))
+  if (!HostIsRAMAddress(guard, address, space))
     return std::nullopt;
 
   auto& system = Core::System::GetInstance();
@@ -895,56 +904,56 @@ static std::optional<WriteResult> HostTryWriteUX(const u32 var, const u32 addres
   return std::nullopt;
 }
 
-std::optional<WriteResult> HostTryWriteU8(const u32 var, const u32 address,
-                                          RequestedAddressSpace space)
+std::optional<WriteResult> HostTryWriteU8(const Core::CPUThreadGuard& guard, const u32 var,
+                                          const u32 address, RequestedAddressSpace space)
 {
-  return HostTryWriteUX(var, address, 1, space);
+  return HostTryWriteUX(guard, var, address, 1, space);
 }
 
-std::optional<WriteResult> HostTryWriteU16(const u32 var, const u32 address,
-                                           RequestedAddressSpace space)
+std::optional<WriteResult> HostTryWriteU16(const Core::CPUThreadGuard& guard, const u32 var,
+                                           const u32 address, RequestedAddressSpace space)
 {
-  return HostTryWriteUX(var, address, 2, space);
+  return HostTryWriteUX(guard, var, address, 2, space);
 }
 
-std::optional<WriteResult> HostTryWriteU32(const u32 var, const u32 address,
-                                           RequestedAddressSpace space)
+std::optional<WriteResult> HostTryWriteU32(const Core::CPUThreadGuard& guard, const u32 var,
+                                           const u32 address, RequestedAddressSpace space)
 {
-  return HostTryWriteUX(var, address, 4, space);
+  return HostTryWriteUX(guard, var, address, 4, space);
 }
 
-std::optional<WriteResult> HostTryWriteU64(const u64 var, const u32 address,
-                                           RequestedAddressSpace space)
+std::optional<WriteResult> HostTryWriteU64(const Core::CPUThreadGuard& guard, const u64 var,
+                                           const u32 address, RequestedAddressSpace space)
 {
-  const auto result = HostTryWriteUX(static_cast<u32>(var >> 32), address, 4, space);
+  const auto result = HostTryWriteUX(guard, static_cast<u32>(var >> 32), address, 4, space);
   if (!result)
     return result;
 
-  return HostTryWriteUX(static_cast<u32>(var), address + 4, 4, space);
+  return HostTryWriteUX(guard, static_cast<u32>(var), address + 4, 4, space);
 }
 
-std::optional<WriteResult> HostTryWriteF32(const float var, const u32 address,
-                                           RequestedAddressSpace space)
+std::optional<WriteResult> HostTryWriteF32(const Core::CPUThreadGuard& guard, const float var,
+                                           const u32 address, RequestedAddressSpace space)
 {
   const u32 integral = Common::BitCast<u32>(var);
-  return HostTryWriteU32(integral, address, space);
+  return HostTryWriteU32(guard, integral, address, space);
 }
 
-std::optional<WriteResult> HostTryWriteF64(const double var, const u32 address,
-                                           RequestedAddressSpace space)
+std::optional<WriteResult> HostTryWriteF64(const Core::CPUThreadGuard& guard, const double var,
+                                           const u32 address, RequestedAddressSpace space)
 {
   const u64 integral = Common::BitCast<u64>(var);
-  return HostTryWriteU64(integral, address, space);
+  return HostTryWriteU64(guard, integral, address, space);
 }
 
-std::string HostGetString(u32 address, size_t size)
+std::string HostGetString(const Core::CPUThreadGuard& guard, u32 address, size_t size)
 {
   std::string s;
   do
   {
-    if (!HostIsRAMAddress(address))
+    if (!HostIsRAMAddress(guard, address))
       break;
-    u8 res = HostRead_U8(address);
+    u8 res = HostRead_U8(guard, address);
     if (!res)
       break;
     s += static_cast<char>(res);
@@ -953,10 +962,11 @@ std::string HostGetString(u32 address, size_t size)
   return s;
 }
 
-std::optional<ReadResult<std::string>> HostTryReadString(u32 address, size_t size,
+std::optional<ReadResult<std::string>> HostTryReadString(const Core::CPUThreadGuard& guard,
+                                                         u32 address, size_t size,
                                                          RequestedAddressSpace space)
 {
-  auto c = HostTryReadU8(address, space);
+  auto c = HostTryReadU8(guard, address, space);
   if (!c)
     return std::nullopt;
   if (c->value == 0)
@@ -967,7 +977,7 @@ std::optional<ReadResult<std::string>> HostTryReadString(u32 address, size_t siz
   while (size == 0 || s.length() < size)
   {
     ++address;
-    const auto res = HostTryReadU8(address, space);
+    const auto res = HostTryReadU8(guard, address, space);
     if (!res || res->value == 0)
       break;
     s += static_cast<char>(res->value);
@@ -1024,7 +1034,7 @@ static bool IsRAMAddress(Memory::MemoryManager& memory, u32 address, bool transl
   return false;
 }
 
-bool HostIsRAMAddress(u32 address, RequestedAddressSpace space)
+bool HostIsRAMAddress(const Core::CPUThreadGuard& guard, u32 address, RequestedAddressSpace space)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
@@ -1045,7 +1055,8 @@ bool HostIsRAMAddress(u32 address, RequestedAddressSpace space)
   return false;
 }
 
-bool HostIsInstructionRAMAddress(u32 address, RequestedAddressSpace space)
+bool HostIsInstructionRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
+                                 RequestedAddressSpace space)
 {
   // Instructions are always 32bit aligned.
   if (address & 3)

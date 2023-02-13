@@ -13,6 +13,11 @@
 
 class PPCSymbolDB;
 
+namespace Core
+{
+class CPUThreadGuard;
+};
+
 struct RSOEntry
 {
   u32 next_entry;
@@ -103,7 +108,7 @@ using RSOExternalsEntry = RSORelocationTableEntry<RSORelocationTableType::Extern
 class RSOHeaderView
 {
 public:
-  void Load(u32 address);
+  void Load(const Core::CPUThreadGuard& guard, u32 address);
 
   u32 GetNextEntry() const;
   u32 GetPrevEntry() const;
@@ -139,7 +144,7 @@ private:
 class RSOSectionsView
 {
 public:
-  void Load(u32 address, std::size_t count = 1);
+  void Load(const Core::CPUThreadGuard& guard, u32 address, std::size_t count = 1);
   std::size_t Count() const;
 
   const RSOSection& GetSection(std::size_t index) const;
@@ -153,7 +158,7 @@ private:
 class RSOImportsView
 {
 public:
-  void Load(u32 address, std::size_t count = 1);
+  void Load(const Core::CPUThreadGuard& guard, u32 address, std::size_t count = 1);
   std::size_t Count() const;
 
   const RSOImport& GetImport(std::size_t index) const;
@@ -167,7 +172,7 @@ private:
 class RSOExportsView
 {
 public:
-  void Load(u32 address, std::size_t count = 1);
+  void Load(const Core::CPUThreadGuard& guard, u32 address, std::size_t count = 1);
   std::size_t Count() const;
 
   const RSOExport& GetExport(std::size_t index) const;
@@ -181,7 +186,7 @@ private:
 class RSOInternalsView
 {
 public:
-  void Load(u32 address, std::size_t count = 1);
+  void Load(const Core::CPUThreadGuard& guard, u32 address, std::size_t count = 1);
   std::size_t Count() const;
 
   const RSOInternalsEntry& GetEntry(std::size_t index) const;
@@ -195,7 +200,7 @@ private:
 class RSOExternalsView
 {
 public:
-  void Load(u32 address, std::size_t count = 1);
+  void Load(const Core::CPUThreadGuard& guard, u32 address, std::size_t count = 1);
   std::size_t Count() const;
 
   const RSOExternalsEntry& GetEntry(std::size_t index) const;
@@ -209,15 +214,15 @@ private:
 class RSOView
 {
 public:
-  void LoadHeader(u32 address);
-  void LoadSections();
-  void LoadImports();
-  void LoadExports();
-  void LoadInternals();
-  void LoadExternals();
-  void LoadAll(u32 address);
+  void LoadHeader(const Core::CPUThreadGuard& guard, u32 address);
+  void LoadSections(const Core::CPUThreadGuard& guard);
+  void LoadImports(const Core::CPUThreadGuard& guard);
+  void LoadExports(const Core::CPUThreadGuard& guard);
+  void LoadInternals(const Core::CPUThreadGuard& guard);
+  void LoadExternals(const Core::CPUThreadGuard& guard);
+  void LoadAll(const Core::CPUThreadGuard& guard, u32 address);
 
-  void Apply(PPCSymbolDB* symbol_db) const;
+  void Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) const;
 
   u32 GetNextEntry() const;
   u32 GetPrevEntry() const;
@@ -230,12 +235,12 @@ public:
 
   std::size_t GetImportsCount() const;
   const RSOImport& GetImport(std::size_t index) const;
-  std::string GetImportName(const RSOImport& rso_import) const;
+  std::string GetImportName(const Core::CPUThreadGuard& guard, const RSOImport& rso_import) const;
   const std::vector<RSOImport>& GetImports() const;
 
   std::size_t GetExportsCount() const;
   const RSOExport& GetExport(std::size_t index) const;
-  std::string GetExportName(const RSOExport& rso_export) const;
+  std::string GetExportName(const Core::CPUThreadGuard& guard, const RSOExport& rso_export) const;
   u32 GetExportAddress(const RSOExport& rso_export) const;
   const std::vector<RSOExport>& GetExports() const;
 
@@ -248,8 +253,8 @@ public:
   const std::vector<RSOExternalsEntry>& GetExternals() const;
 
   const std::string& GetName() const;
-  std::string GetName(const RSOImport& rso_import) const;
-  std::string GetName(const RSOExport& rso_export) const;
+  std::string GetName(const Core::CPUThreadGuard& guard, const RSOImport& rso_import) const;
+  std::string GetName(const Core::CPUThreadGuard& guard, const RSOExport& rso_export) const;
 
   u32 GetProlog() const;
   u32 GetEpilog() const;
@@ -268,14 +273,14 @@ private:
 class RSOChainView
 {
 public:
-  bool Load(u32 address);
-  void Apply(PPCSymbolDB* symbol_db) const;
+  bool Load(const Core::CPUThreadGuard& guard, u32 address);
+  void Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) const;
   void Clear();
   const std::list<RSOView>& GetChain() const;
 
 private:
-  bool LoadNextChain(const RSOView& view);
-  bool LoadPrevChain(const RSOView& view);
+  bool LoadNextChain(const Core::CPUThreadGuard& guard, const RSOView& view);
+  bool LoadPrevChain(const Core::CPUThreadGuard& guard, const RSOView& view);
 
   std::list<RSOView> m_chain;
 };

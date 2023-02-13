@@ -16,40 +16,40 @@ namespace Core::Debug
 //  - OSDumpContext
 //  - OSClearContext
 //  - OSExceptionVector
-void OSContext::Read(u32 addr)
+void OSContext::Read(const Core::CPUThreadGuard& guard, u32 addr)
 {
   for (std::size_t i = 0; i < gpr.size(); i++)
-    gpr[i] = PowerPC::HostRead_U32(addr + u32(i * sizeof(int)));
-  cr = PowerPC::HostRead_U32(addr + 0x80);
-  lr = PowerPC::HostRead_U32(addr + 0x84);
-  ctr = PowerPC::HostRead_U32(addr + 0x88);
-  xer = PowerPC::HostRead_U32(addr + 0x8C);
+    gpr[i] = PowerPC::HostRead_U32(guard, addr + u32(i * sizeof(int)));
+  cr = PowerPC::HostRead_U32(guard, addr + 0x80);
+  lr = PowerPC::HostRead_U32(guard, addr + 0x84);
+  ctr = PowerPC::HostRead_U32(guard, addr + 0x88);
+  xer = PowerPC::HostRead_U32(guard, addr + 0x8C);
   for (std::size_t i = 0; i < fpr.size(); i++)
-    fpr[i] = PowerPC::HostRead_F64(addr + 0x90 + u32(i * sizeof(double)));
-  fpscr = PowerPC::HostRead_U64(addr + 0x190);
-  srr0 = PowerPC::HostRead_U32(addr + 0x198);
-  srr1 = PowerPC::HostRead_U32(addr + 0x19c);
-  dummy = PowerPC::HostRead_U16(addr + 0x1a0);
-  state = static_cast<OSContext::State>(PowerPC::HostRead_U16(addr + 0x1a2));
+    fpr[i] = PowerPC::HostRead_F64(guard, addr + 0x90 + u32(i * sizeof(double)));
+  fpscr = PowerPC::HostRead_U64(guard, addr + 0x190);
+  srr0 = PowerPC::HostRead_U32(guard, addr + 0x198);
+  srr1 = PowerPC::HostRead_U32(guard, addr + 0x19c);
+  dummy = PowerPC::HostRead_U16(guard, addr + 0x1a0);
+  state = static_cast<OSContext::State>(PowerPC::HostRead_U16(guard, addr + 0x1a2));
   for (std::size_t i = 0; i < gqr.size(); i++)
-    gqr[i] = PowerPC::HostRead_U32(addr + 0x1a4 + u32(i * sizeof(int)));
+    gqr[i] = PowerPC::HostRead_U32(guard, addr + 0x1a4 + u32(i * sizeof(int)));
   psf_padding = 0;
   for (std::size_t i = 0; i < psf.size(); i++)
-    psf[i] = PowerPC::HostRead_F64(addr + 0x1c8 + u32(i * sizeof(double)));
+    psf[i] = PowerPC::HostRead_F64(guard, addr + 0x1c8 + u32(i * sizeof(double)));
 }
 
 // Mutex offsets based on the following functions:
 //  - OSInitMutex
 //  - OSLockMutex
 //  - __OSUnlockAllMutex
-void OSMutex::Read(u32 addr)
+void OSMutex::Read(const Core::CPUThreadGuard& guard, u32 addr)
 {
-  thread_queue.head = PowerPC::HostRead_U32(addr);
-  thread_queue.tail = PowerPC::HostRead_U32(addr + 0x4);
-  owner_addr = PowerPC::HostRead_U32(addr + 0x8);
-  lock_count = PowerPC::HostRead_U32(addr + 0xc);
-  link.next = PowerPC::HostRead_U32(addr + 0x10);
-  link.prev = PowerPC::HostRead_U32(addr + 0x14);
+  thread_queue.head = PowerPC::HostRead_U32(guard, addr);
+  thread_queue.tail = PowerPC::HostRead_U32(guard, addr + 0x4);
+  owner_addr = PowerPC::HostRead_U32(guard, addr + 0x8);
+  lock_count = PowerPC::HostRead_U32(guard, addr + 0xc);
+  link.next = PowerPC::HostRead_U32(guard, addr + 0x10);
+  link.prev = PowerPC::HostRead_U32(guard, addr + 0x14);
 }
 
 // Thread offsets based on the following functions:
@@ -64,46 +64,47 @@ void OSMutex::Read(u32 addr)
 //  - __OSThreadInit
 //  - OSSetThreadSpecific
 //  - SOInit (for errno)
-void OSThread::Read(u32 addr)
+void OSThread::Read(const Core::CPUThreadGuard& guard, u32 addr)
 {
-  context.Read(addr);
-  state = PowerPC::HostRead_U16(addr + 0x2c8);
-  is_detached = PowerPC::HostRead_U16(addr + 0x2ca);
-  suspend = PowerPC::HostRead_U32(addr + 0x2cc);
-  effective_priority = PowerPC::HostRead_U32(addr + 0x2d0);
-  base_priority = PowerPC::HostRead_U32(addr + 0x2d4);
-  exit_code_addr = PowerPC::HostRead_U32(addr + 0x2d8);
+  context.Read(guard, addr);
+  state = PowerPC::HostRead_U16(guard, addr + 0x2c8);
+  is_detached = PowerPC::HostRead_U16(guard, addr + 0x2ca);
+  suspend = PowerPC::HostRead_U32(guard, addr + 0x2cc);
+  effective_priority = PowerPC::HostRead_U32(guard, addr + 0x2d0);
+  base_priority = PowerPC::HostRead_U32(guard, addr + 0x2d4);
+  exit_code_addr = PowerPC::HostRead_U32(guard, addr + 0x2d8);
 
-  queue_addr = PowerPC::HostRead_U32(addr + 0x2dc);
-  queue_link.next = PowerPC::HostRead_U32(addr + 0x2e0);
-  queue_link.prev = PowerPC::HostRead_U32(addr + 0x2e4);
+  queue_addr = PowerPC::HostRead_U32(guard, addr + 0x2dc);
+  queue_link.next = PowerPC::HostRead_U32(guard, addr + 0x2e0);
+  queue_link.prev = PowerPC::HostRead_U32(guard, addr + 0x2e4);
 
-  join_queue.head = PowerPC::HostRead_U32(addr + 0x2e8);
-  join_queue.tail = PowerPC::HostRead_U32(addr + 0x2ec);
+  join_queue.head = PowerPC::HostRead_U32(guard, addr + 0x2e8);
+  join_queue.tail = PowerPC::HostRead_U32(guard, addr + 0x2ec);
 
-  mutex_addr = PowerPC::HostRead_U32(addr + 0x2f0);
-  mutex_queue.head = PowerPC::HostRead_U32(addr + 0x2f4);
-  mutex_queue.tail = PowerPC::HostRead_U32(addr + 0x2f8);
+  mutex_addr = PowerPC::HostRead_U32(guard, addr + 0x2f0);
+  mutex_queue.head = PowerPC::HostRead_U32(guard, addr + 0x2f4);
+  mutex_queue.tail = PowerPC::HostRead_U32(guard, addr + 0x2f8);
 
-  thread_link.next = PowerPC::HostRead_U32(addr + 0x2fc);
-  thread_link.prev = PowerPC::HostRead_U32(addr + 0x300);
+  thread_link.next = PowerPC::HostRead_U32(guard, addr + 0x2fc);
+  thread_link.prev = PowerPC::HostRead_U32(guard, addr + 0x300);
 
-  stack_addr = PowerPC::HostRead_U32(addr + 0x304);
-  stack_end = PowerPC::HostRead_U32(addr + 0x308);
-  error = PowerPC::HostRead_U32(addr + 0x30c);
-  specific[0] = PowerPC::HostRead_U32(addr + 0x310);
-  specific[1] = PowerPC::HostRead_U32(addr + 0x314);
+  stack_addr = PowerPC::HostRead_U32(guard, addr + 0x304);
+  stack_end = PowerPC::HostRead_U32(guard, addr + 0x308);
+  error = PowerPC::HostRead_U32(guard, addr + 0x30c);
+  specific[0] = PowerPC::HostRead_U32(guard, addr + 0x310);
+  specific[1] = PowerPC::HostRead_U32(guard, addr + 0x314);
 }
 
-bool OSThread::IsValid() const
+bool OSThread::IsValid(const Core::CPUThreadGuard& guard) const
 {
-  return PowerPC::HostIsRAMAddress(stack_end) && PowerPC::HostRead_U32(stack_end) == STACK_MAGIC;
+  return PowerPC::HostIsRAMAddress(guard, stack_end) &&
+         PowerPC::HostRead_U32(guard, stack_end) == STACK_MAGIC;
 }
 
-OSThreadView::OSThreadView(u32 addr)
+OSThreadView::OSThreadView(const Core::CPUThreadGuard& guard, u32 addr)
 {
   m_address = addr;
-  m_thread.Read(addr);
+  m_thread.Read(guard, addr);
 }
 
 const OSThread& OSThreadView::Data() const
@@ -111,11 +112,11 @@ const OSThread& OSThreadView::Data() const
   return m_thread;
 }
 
-Common::Debug::PartialContext OSThreadView::GetContext() const
+Common::Debug::PartialContext OSThreadView::GetContext(const Core::CPUThreadGuard& guard) const
 {
   Common::Debug::PartialContext context;
 
-  if (!IsValid())
+  if (!IsValid(guard))
     return context;
 
   context.gpr = m_thread.context.gpr;
@@ -185,23 +186,23 @@ s32 OSThreadView::GetErrno() const
   return m_thread.error;
 }
 
-std::string OSThreadView::GetSpecific() const
+std::string OSThreadView::GetSpecific(const Core::CPUThreadGuard& guard) const
 {
   std::string specific;
 
   for (u32 addr : m_thread.specific)
   {
-    if (!PowerPC::HostIsRAMAddress(addr))
+    if (!PowerPC::HostIsRAMAddress(guard, addr))
       break;
-    specific += fmt::format("{:08x} \"{}\"\n", addr, PowerPC::HostGetString(addr));
+    specific += fmt::format("{:08x} \"{}\"\n", addr, PowerPC::HostGetString(guard, addr));
   }
 
   return specific;
 }
 
-bool OSThreadView::IsValid() const
+bool OSThreadView::IsValid(const Core::CPUThreadGuard& guard) const
 {
-  return m_thread.IsValid();
+  return m_thread.IsValid(guard);
 }
 
 }  // namespace Core::Debug

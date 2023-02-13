@@ -16,6 +16,11 @@
 
 class IniFile;
 
+namespace Core
+{
+class CPUThreadGuard;
+}
+
 namespace DiscIO
 {
 enum class Language;
@@ -68,7 +73,7 @@ struct SConfig
   void SetRunningGameMetadata(const std::string& game_id);
   // Reloads title-specific map files, patches, custom textures, etc.
   // This should only be called after the new title has been loaded into memory.
-  static void OnNewTitleLoad();
+  static void OnNewTitleLoad(const Core::CPUThreadGuard& guard);
 
   void LoadDefaults();
   static std::string MakeGameID(std::string_view file_name);

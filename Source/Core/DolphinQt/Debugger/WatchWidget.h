@@ -14,6 +14,11 @@ class QTableWidget;
 class QTableWidgetItem;
 class QToolBar;
 
+namespace Core
+{
+class CPUThreadGuard;
+};
+
 class WatchWidget : public QDockWidget
 {
   Q_OBJECT
@@ -46,9 +51,9 @@ private:
 
   void ShowContextMenu();
   void OnItemChanged(QTableWidgetItem* item);
-  void LockWatchAddress(u32 address);
+  void LockWatchAddress(const Core::CPUThreadGuard& guard, u32 address);
   void DeleteSelectedWatches();
-  void DeleteWatch(int row);
+  void DeleteWatch(const Core::CPUThreadGuard& guard, int row);
   void DeleteWatchAndUpdate(int row);
   void AddWatchBreakpoint(int row);
   void ShowInMemory(int row);

@@ -12,6 +12,11 @@
 struct expr;
 struct expr_var_list;
 
+namespace Core
+{
+class CPUThreadGuard;
+}
+
 struct ExprDeleter
 {
   void operator()(expr* expression) const;

@@ -39,29 +39,30 @@ void AddAutoBreakpoints()
 }
 
 // Returns true if the address is not a valid RAM address or NULL.
-static bool IsStackBottom(u32 addr)
+static bool IsStackBottom(const Core::CPUThreadGuard& guard, u32 addr)
 {
-  return !addr || !PowerPC::HostIsRAMAddress(addr);
+  return !addr || !PowerPC::HostIsRAMAddress(guard, addr);
 }
 
-static void WalkTheStack(Core::System& system, const std::function<void(u32)>& stack_step)
+static void WalkTheStack(Core::System& system, const Core::CPUThreadGuard& guard,
+                         const std::function<void(u32)>& stack_step)
 {
   auto& ppc_state = system.GetPPCState();
 
-  if (!IsStackBottom(ppc_state.gpr[1]))
+  if (!IsStackBottom(guard, ppc_state.gpr[1]))
   {
-    u32 addr = PowerPC::HostRead_U32(ppc_state.gpr[1]);  // SP
+    u32 addr = PowerPC::HostRead_U32(guard, ppc_state.gpr[1]);  // SP
 
     // Walk the stack chain
-    for (int count = 0; !IsStackBottom(addr + 4) && (count++ < 20); ++count)
+    for (int count = 0; !IsStackBottom(guard, addr + 4) && (count++ < 20); ++count)
     {
-      u32 func_addr = PowerPC::HostRead_U32(addr + 4);
+      u32 func_addr = PowerPC::HostRead_U32(guard, addr + 4);
       stack_step(func_addr);
 
-      if (IsStackBottom(addr))
+      if (IsStackBottom(guard, addr))
         break;
 
-      addr = PowerPC::HostRead_U32(addr);
+      addr = PowerPC::HostRead_U32(guard, addr);
     }
   }
 }
@@ -69,11 +70,12 @@ static void WalkTheStack(Core::System& system, const std::function<void(u32)>& s
 // Returns callstack "formatted for debugging" - meaning that it
 // includes LR as the last item, and all items are the last step,
 // instead of "pointing ahead"
-bool GetCallstack(Core::System& system, std::vector<CallstackEntry>& output)
+bool GetCallstack(Core::System& system, const Core::CPUThreadGuard& guard,
+                  std::vector<CallstackEntry>& output)
 {
   auto& ppc_state = system.GetPPCState();
 
-  if (!Core::IsRunning() || !PowerPC::HostIsRAMAddress(ppc_state.gpr[1]))
+  if (!Core::IsRunning() || !PowerPC::HostIsRAMAddress(guard, ppc_state.gpr[1]))
     return false;
 
   if (LR(ppc_state) == 0)
@@ -91,7 +93,7 @@ bool GetCallstack(Core::System& system, std::vector<CallstackEntry>& output)
   entry.vAddress = LR(ppc_state) - 4;
   output.push_back(entry);
 
-  WalkTheStack(system, [&entry, &output](u32 func_addr) {
+  WalkTheStack(system, guard, [&entry, &output](u32 func_addr) {
     std::string func_desc = g_symbolDB.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
@@ -103,7 +105,8 @@ bool GetCallstack(Core::System& system, std::vector<CallstackEntry>& output)
   return true;
 }
 
-void PrintCallstack(Core::System& system, Common::Log::LogType type, Common::Log::LogLevel level)
+void PrintCallstack(Core::System& system, const Core::CPUThreadGuard& guard,
+                    Common::Log::LogType type, Common::Log::LogLevel level)
 {
   auto& ppc_state = system.GetPPCState();
 
@@ -120,7 +123,7 @@ void PrintCallstack(Core::System& system, Common::Log::LogType type, Common::Log
                     LR(ppc_state));
   }
 
-  WalkTheStack(system, [type, level](u32 func_addr) {
+  WalkTheStack(system, guard, [type, level](u32 func_addr) {
     std::string func_desc = g_symbolDB.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
