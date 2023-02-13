@@ -254,7 +254,7 @@ void JitArm64::HLEFunction(u32 hook_index)
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
 
-  MOVP2R(ARM64Reg::X8, &HLE::Execute);
+  MOVP2R(ARM64Reg::X8, &HLE::ExecuteFromJIT);
   MOVI2R(ARM64Reg::W0, js.compilerPC);
   MOVI2R(ARM64Reg::W1, hook_index);
   BLR(ARM64Reg::X8);
