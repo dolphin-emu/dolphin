@@ -7,6 +7,7 @@
 #include "VideoBackends/D3D12/DescriptorAllocator.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 #include "VideoCommon/AbstractGfx.h"
+#include "VideoCommon/Constants.h"
 
 namespace DX12
 {
@@ -96,7 +97,6 @@ protected:
   void OnConfigChanged(u32 bits) override;
 
 private:
-  static const u32 MAX_TEXTURES = 8;
   static const u32 NUM_CONSTANT_BUFFERS = 3;
 
   // Dirty bits
@@ -158,7 +158,7 @@ private:
     ID3D12RootSignature* root_signature = nullptr;
     DXShader* compute_shader = nullptr;
     std::array<D3D12_GPU_VIRTUAL_ADDRESS, 3> constant_buffers = {};
-    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, MAX_TEXTURES> textures = {};
+    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> textures = {};
     D3D12_CPU_DESCRIPTOR_HANDLE vs_srv = {};
     D3D12_CPU_DESCRIPTOR_HANDLE ps_uav = {};
     SamplerStateSet samplers = {};

@@ -5,6 +5,7 @@
 
 #include <map>
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
+#include "VideoCommon/Constants.h"
 
 namespace DX12
 {
@@ -34,8 +35,7 @@ protected:
 
 struct SamplerStateSet final
 {
-  static const u32 NUM_SAMPLERS_PER_GROUP = 8;
-  SamplerState states[NUM_SAMPLERS_PER_GROUP];
+  SamplerState states[VideoCommon::MAX_PIXEL_SHADER_SAMPLERS];
 };
 
 bool operator==(const SamplerStateSet& lhs, const SamplerStateSet& rhs);

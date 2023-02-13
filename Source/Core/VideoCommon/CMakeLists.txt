@@ -23,6 +23,7 @@ add_library(videocommon
   CommandProcessor.cpp
   CommandProcessor.h
   ConstantManager.h
+  Constants.h
   CPMemory.cpp
   CPMemory.h
   CPUCull.cpp

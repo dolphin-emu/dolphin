@@ -11,6 +11,7 @@
 #include "Common/Thread.h"
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/Constants.h"
 
 namespace Vulkan
 {
@@ -148,14 +149,17 @@ VkDescriptorPool CommandBufferManager::CreateDescriptorPool(u32 max_descriptor_s
   /*
    * Worst case descriptor counts according to the descriptor layout created in ObjectCache.cpp:
    * UNIFORM_BUFFER_DYNAMIC: 3
-   * COMBINED_IMAGE_SAMPLER: 18
+   * COMBINED_IMAGE_SAMPLER: NUM_UTILITY_PIXEL_SAMPLERS + NUM_COMPUTE_SHADER_SAMPLERS +
+   * VideoCommon::MAX_PIXEL_SHADER_SAMPLERS
    * STORAGE_BUFFER: 2
    * UNIFORM_TEXEL_BUFFER: 3
    * STORAGE_IMAGE: 1
    */
   const std::array<VkDescriptorPoolSize, 5> pool_sizes{{
       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, max_descriptor_sets * 3},
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, max_descriptor_sets * 18},
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+       max_descriptor_sets * (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS + NUM_COMPUTE_SHADER_SAMPLERS +
+                              NUM_UTILITY_PIXEL_SAMPLERS)},
       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, max_descriptor_sets * 2},
       {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, max_descriptor_sets * 3},
       {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, max_descriptor_sets * 1},

@@ -13,6 +13,7 @@
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/Constants.h"
 
 namespace Vulkan
 {
@@ -65,7 +66,7 @@ bool StateTracker::Initialize()
                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Initialize all samplers to point by default
-  for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
+  for (size_t i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)
   {
     m_bindings.samplers[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     m_bindings.samplers[i].imageView = m_dummy_texture->GetView();
@@ -498,7 +499,7 @@ void StateTracker::UpdateGXDescriptorSet()
                             m_gx_descriptor_sets[1],
                             0,
                             0,
-                            static_cast<u32>(NUM_PIXEL_SHADER_SAMPLERS),
+                            static_cast<u32>(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS),
                             VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                             m_bindings.samplers.data(),
                             nullptr,
@@ -602,7 +603,7 @@ void StateTracker::UpdateUtilityDescriptorSet()
                           m_utility_descriptor_sets[1],
                           0,
                           0,
-                          NUM_PIXEL_SHADER_SAMPLERS,
+                          NUM_UTILITY_PIXEL_SAMPLERS,
                           VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                           m_bindings.samplers.data(),
                           nullptr,

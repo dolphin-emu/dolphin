@@ -12,6 +12,7 @@
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D/D3DBase.h"
+#include "VideoCommon/Constants.h"
 #include "VideoCommon/RenderState.h"
 
 namespace DX11
@@ -263,8 +264,8 @@ private:
 
   struct Resources
   {
-    std::array<ID3D11ShaderResourceView*, 8> textures;
-    std::array<ID3D11SamplerState*, 8> samplers;
+    std::array<ID3D11ShaderResourceView*, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> textures;
+    std::array<ID3D11SamplerState*, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> samplers;
     std::array<ID3D11Buffer*, 2> pixelConstants;
     ID3D11Buffer* vertexConstants;
     ID3D11Buffer* geometryConstants;
