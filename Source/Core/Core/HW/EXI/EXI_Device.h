@@ -39,7 +39,6 @@ enum class EXIDeviceType : int
   MemoryCardFolder,
   AGP,
   EthernetXLink,
-  // Only used on Apple devices.
   EthernetTapServer,
   EthernetBuiltIn,
   None = 0xFF

@@ -137,11 +137,9 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
     result = std::make_unique<CEXIETHERNET>(system, BBADeviceType::TAP);
     break;
 
-#if defined(__APPLE__)
   case EXIDeviceType::EthernetTapServer:
     result = std::make_unique<CEXIETHERNET>(system, BBADeviceType::TAPSERVER);
     break;
-#endif
 
   case EXIDeviceType::EthernetXLink:
     result = std::make_unique<CEXIETHERNET>(system, BBADeviceType::XLINK);

@@ -15,6 +15,7 @@ public:
   {
     Ethernet,
     XLinkKai,
+    TapServer,
     BuiltIn
   };
 

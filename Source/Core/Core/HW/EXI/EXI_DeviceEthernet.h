@@ -205,9 +205,7 @@ enum class BBADeviceType
 {
   TAP,
   XLINK,
-#if defined(__APPLE__)
   TAPSERVER,
-#endif
   BuiltIn,
 };
 
@@ -364,11 +362,13 @@ private:
 #endif
   };
 
-#if defined(__APPLE__)
   class TAPServerNetworkInterface : public TAPNetworkInterface
   {
   public:
-    explicit TAPServerNetworkInterface(CEXIETHERNET* eth_ref) : TAPNetworkInterface(eth_ref) {}
+    explicit TAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination)
+        : TAPNetworkInterface(eth_ref), m_destination(destination)
+    {
+    }
 
   public:
     bool Activate() override;
@@ -376,9 +376,10 @@ private:
     bool RecvInit() override;
 
   private:
+    std::string m_destination;
+
     void ReadThreadHandler();
   };
-#endif
 
   class XLinkNetworkInterface : public NetworkInterface
   {
