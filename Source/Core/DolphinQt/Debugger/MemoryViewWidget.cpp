@@ -18,7 +18,6 @@
 #include <fmt/printf.h>
 
 #include "Common/Align.h"
-#include "Common/Assert.h"
 #include "Common/FloatUtils.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"

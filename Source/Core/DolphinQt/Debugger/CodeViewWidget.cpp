@@ -754,7 +754,7 @@ void CodeViewWidget::OnCopyTargetAddress()
   const std::optional<u32> target_addr =
       PowerPC::debug_interface.GetMemoryAddressFromInstruction(code_line);
 
-  if (addr)
+  if (target_addr)
   {
     QApplication::clipboard()->setText(
         QStringLiteral("%1").arg(*target_addr, 8, 16, QLatin1Char('0')));
@@ -784,7 +784,7 @@ void CodeViewWidget::OnShowTargetInMemory()
   const std::optional<u32> target_addr =
       PowerPC::debug_interface.GetMemoryAddressFromInstruction(code_line);
 
-  if (addr)
+  if (target_addr)
     emit ShowMemory(*target_addr);
 }
 
