@@ -67,36 +67,49 @@ private:
     std::string m_name;
   };
 
+  struct Storage
+  {
+    std::mutex m_mutex;
+    std::vector<HookImpl*> m_listeners;
+  };
+
+  // We use the "Construct On First Use" idiom to avoid the static initialization order fiasco.
+  // https://isocpp.org/wiki/faq/ctors#static-init-order
+  static Storage& GetStorage()
+  {
+    static Storage storage;
+    return storage;
+  }
+
+  static void Remove(HookImpl* handle)
+  {
+    auto& storage = GetStorage();
+    std::lock_guard lock(storage.m_mutex);
+
+    std::erase(storage.m_listeners, handle);
+  }
+
 public:
   // Returns a handle that will unregister the listener when destroyed.
   static EventHook Register(CallbackType callback, std::string name)
   {
-    std::lock_guard lock(m_mutex);
+    auto& storage = GetStorage();
+    std::lock_guard lock(storage.m_mutex);
 
     DEBUG_LOG_FMT(COMMON, "Registering {} handler at {} event hook", name, EventName.value);
     auto handle = std::make_unique<HookImpl>(callback, std::move(name));
-    m_listeners.push_back(handle.get());
+    storage.m_listeners.push_back(handle.get());
     return handle;
   }
 
   static void Trigger(const CallbackArgs&... args)
   {
-    std::lock_guard lock(m_mutex);
+    auto& storage = GetStorage();
+    std::lock_guard lock(storage.m_mutex);
 
-    for (const auto& handle : m_listeners)
+    for (const auto& handle : storage.m_listeners)
       handle->m_fn(args...);
   }
-
-private:
-  static void Remove(HookImpl* handle)
-  {
-    std::lock_guard lock(m_mutex);
-
-    std::erase(m_listeners, handle);
-  }
-
-  inline static std::vector<HookImpl*> m_listeners = {};
-  inline static std::mutex m_mutex;
 };
 
 }  // namespace Common
