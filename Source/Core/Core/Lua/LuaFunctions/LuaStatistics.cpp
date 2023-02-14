@@ -1,5 +1,6 @@
 #include "Core/Lua/LuaFunctions/LuaStatistics.h"
 
+#include <fmt/format.h>
 #include <memory>
 #include "Core/Lua/LuaVersionResolver.h"
 
@@ -20,6 +21,8 @@ Lua_Statistics* getStatisticsInstance()
     lua_statistics_pointer = std::make_unique<Lua_Statistics>(Lua_Statistics());
   return lua_statistics_pointer.get();
 }
+
+static const char* class_name = "statisticsAPI";
 
 void InitLuaStatisticsFunctions(lua_State* lua_state, const std::string& lua_api_version)
 {
@@ -49,105 +52,105 @@ void InitLuaStatisticsFunctions(lua_State* lua_state, const std::string& lua_api
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   AddLatestFunctionsForVersion(lua_statistics_functions_with_versions_attached, lua_api_version,
                                deprecated_functions_map, lua_state);
-  lua_setglobal(lua_state, "statistics");
+  lua_setglobal(lua_state, class_name);
 }
 
 int IsRecordingInput(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "isRecordingInput", "statistics:isRecordingInput()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "isRecordingInput", "()");
   lua_pushboolean(lua_state, Movie::IsRecordingInput());
   return 1;
 }
 
 int IsRecordingInputFromSaveState(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "isRecordingInputFromSaveState",
-                            "statistics:isRecordingInputFromSaveState()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "isRecordingInputFromSaveState", "()");
   lua_pushboolean(lua_state, Movie::IsRecordingInputFromSaveState());
   return 1;
 }
 
 int IsPlayingInput(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "isPlayingInput", "statistics:isPlayingInput()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "isPlayingInput", "()");
   lua_pushboolean(lua_state, Movie::IsPlayingInput());
   return 1;
 }
 
 int IsMovieActive(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "isMovieActive", "statistics:isMovieActive()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "isMovieActive", "()");
   lua_pushboolean(lua_state, Movie::IsMovieActive());
   return 1;
 }
 
 int GetCurrentFrame(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "getCurrentFrame", "statistics:getCurrentFrame()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "getCurrentFrame", "()");
   lua_pushinteger(lua_state, Movie::GetCurrentFrame());
   return 1;
 }
 
 int GetMovieLength(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "getMovieLength", "statistics:getMovieLength()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "getMovieLength", "()");
   lua_pushinteger(lua_state, Movie::GetTotalFrames());
   return 1;
 }
 
 int GetRerecordCount(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "getRerecordCount", "statistics:getRerecordCount()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "getRerecordCount", "()");
   lua_pushinteger(lua_state, Movie::GetRerecordCount());
   return 1;
 }
 
 int GetCurrentInputCount(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "getCurrentInputCount", "statistics:getCurrentInputCount()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "getCurrentInputCount", "()");
   lua_pushinteger(lua_state, Movie::GetCurrentInputCount());
   return 1;
 }
 
 int GetTotalInputCount(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "getTotalInputCount", "statistics:getTotalInputCount()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "getTotalInputCount", "()");
   lua_pushinteger(lua_state, Movie::GetTotalInputCount());
   return 1;
 }
 
 int GetCurrentLagCount(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "getCurrentLagCount", "statistics:getCurrentLagCount()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "getCurrentLagCount", "()");
   lua_pushinteger(lua_state, Movie::GetCurrentLagCount());
   return 1;
 }
 
 int GetTotalLagCount(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "getTotalLagCount", "statistics:getTotalLagCount()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "getTotalLagCount", "()");
   lua_pushinteger(lua_state, Movie::GetTotalLagCount());
   return 1;
 }
 
 int IsGcControllerInPort(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "isGcControllerInPort",
-                            "statistics:isGcControllerInPort(1)");
+  const char* func_name = "isGcControllerInPort";
+  LuaColonOperatorTypeCheck(lua_state, class_name, func_name, "(1)");
   s64 port_number = luaL_checkinteger(lua_state, 2);
   if (port_number < 1 || port_number > 4)
     luaL_error(lua_state,
-               "Error: in isGcControllerInPort() function, portNumber was not between 1 and 4");
+               fmt::format("Error: in {}:{}() function, portNumber was not between 1 and 4", class_name, func_name).c_str());
   lua_pushboolean(lua_state, Movie::IsUsingGCController(port_number - 1));
   return 1;
 }
 
 int IsUsingPort(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "isUsingPort", "statistics:isUsingPort(1)");
+  const char* func_name = "isUsingPort";
+  LuaColonOperatorTypeCheck(lua_state, class_name, func_name, "(1)");
   s64 port_number = luaL_checkinteger(lua_state, 2);
   if (port_number < 1 || port_number > 4)
-    luaL_error(lua_state, "Error: in isUsingPort() function, portNumber was not between 1 and 4");
+    luaL_error(lua_state, fmt::format("Error: in {}:{}() function, portNumber was not between 1 and 4", class_name, func_name).c_str());
   lua_pushboolean(lua_state, Movie::IsUsingPad(port_number - 1));
   return 1;
 }

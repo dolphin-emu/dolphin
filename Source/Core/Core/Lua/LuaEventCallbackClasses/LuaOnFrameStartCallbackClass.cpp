@@ -32,6 +32,8 @@ LuaOnFrameStart* GetInstance()
   return instance.get();
 }
 
+static const char* class_name = "OnFrameStart";
+
 void InitLuaOnFrameStartCallbackFunctions(lua_State* lua_state, const std::string& lua_api_version,
                                           std::mutex* new_lua_general_lock)
 {
@@ -50,14 +52,14 @@ void InitLuaOnFrameStartCallbackFunctions(lua_State* lua_state, const std::strin
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   AddLatestFunctionsForVersion(lua_on_frame_start_functions_list_with_versions_attached,
                                lua_api_version, deprecated_functions_map, lua_state);
-  lua_setglobal(lua_state, "OnFrameStart");
+  lua_setglobal(lua_state, class_name);
   on_frame_start_thread = lua_newthread(lua_state);
 }
 
 int Register(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "OnFrameStart:register",
-                            "OnFrameStart:register(functionName)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "register",
+                            "(functionName)");
   if (frame_start_callback_is_registered)
     luaL_unref(lua_state, LUA_REGISTRYINDEX, on_frame_start_lua_function_reference);
   lua_pushvalue(lua_state, 2);
@@ -68,7 +70,7 @@ int Register(lua_State* lua_state)
 }
 int Unregister(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "OnFrameStart:unregister", "OnFrameStart:unregister()");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "unregister", "()");
   if (frame_start_callback_is_registered)
   {
     luaL_unref(lua_state, LUA_REGISTRYINDEX, on_frame_start_lua_function_reference);

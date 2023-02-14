@@ -44,6 +44,8 @@ LuaWhenever* GetInstance()
   return instance.get();
 }
 
+static const char* class_name = "Whenever";
+
 void InitLuaWheneverCallbackFunctions(lua_State* lua_state, const std::string& lua_api_version,
                                       std::mutex* new_general_lua_lock)
 {
@@ -63,7 +65,7 @@ void InitLuaWheneverCallbackFunctions(lua_State* lua_state, const std::string& l
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   AddLatestFunctionsForVersion(lua_whenever_functions_list_with_versions_attached,
                                lua_api_version, deprecated_functions_map, lua_state);
-  lua_setglobal(lua_state, "Whenever");
+  lua_setglobal(lua_state, class_name);
   if (!initialized_whenever_thread)
     lua_whenever_callback_runner_thread = std::thread(RunCallbacks);
   initialized_whenever_thread = true;
@@ -72,8 +74,7 @@ void InitLuaWheneverCallbackFunctions(lua_State* lua_state, const std::string& l
 int Register(lua_State* lua_state)
 {
   list_of_functions_is_empty = false;
-  LuaColonOperatorTypeCheck(lua_state, "Whenever:register",
-                            "Whenever:register(functionName)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "register", "(functionName)");
   lua_pushvalue(lua_state, 2);
   int new_function_reference = luaL_ref(lua_state, LUA_REGISTRYINDEX);
   lua_State* new_lua_thread = lua_newthread(lua_state);
@@ -85,9 +86,8 @@ int Register(lua_State* lua_state)
 
 int Unregister(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "Whenever:unregister",
-                            "Whenever:unregister("
-                            "uniqueFunctionNumberReturnedByRegisterFunction)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "unregister",
+                            "(uniqueFunctionNumberReturnedByRegisterFunction)");
   int reference_of_function_to_delete = luaL_checkinteger(lua_state, 2);
   for (auto it = list_of_functions_to_run.begin(); it != list_of_functions_to_run.end(); ++it)
   {

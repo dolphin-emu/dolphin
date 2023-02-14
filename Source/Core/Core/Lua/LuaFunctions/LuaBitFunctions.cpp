@@ -1,5 +1,6 @@
 #include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
 
+#include <fmt/format.h>
 #include <memory>
 #include "Common/CommonTypes.h"
 #include "Core/Lua/LuaVersionResolver.h"
@@ -14,6 +15,7 @@ public:
 };
 
 static std::unique_ptr<BitClass> bit_instance = nullptr;
+static const char* class_name = "bitAPI";
 
 BitClass* GetBitInstance()
 {
@@ -45,12 +47,13 @@ void InitLuaBitFunctions(lua_State* lua_state, const std::string& lua_api_versio
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   AddLatestFunctionsForVersion(lua_bit_functions_with_versions_attached, lua_api_version,
                                deprecated_functions_map, lua_state);
-  lua_setglobal(lua_state, "bit");
+  lua_setglobal(lua_state, class_name);
 }
 
 int BitwiseAnd(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "bitwise_and", "bitwise_and(integer1, integer2)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "bitwise_and",
+                            "(integer1, integer2)");
   s64 first_val = luaL_checkinteger(lua_state, 2);
   s64 second_val = luaL_checkinteger(lua_state, 3);
   lua_pushinteger(lua_state, first_val & second_val);
@@ -59,7 +62,7 @@ int BitwiseAnd(lua_State* lua_state)
 
 int BitwiseOr(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "bitwise_or", "bitwise_or(integer1, integer2)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "bitwise_or", "(integer1, integer2)");
   s64 first_val = luaL_checkinteger(lua_state, 2);
   s64 second_val = luaL_checkinteger(lua_state, 3);
   lua_pushinteger(lua_state, first_val | second_val);
@@ -68,7 +71,7 @@ int BitwiseOr(lua_State* lua_state)
 
 int BitwiseNot(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "bitwise_not", "bitwise_not(exampleInteger)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "bitwise_not", "(exampleInteger)");
   s64 input_val = luaL_checkinteger(lua_state, 2);
   lua_pushinteger(lua_state, ~input_val);
   return 1;
@@ -76,7 +79,7 @@ int BitwiseNot(lua_State* lua_state)
 
 int BitwiseXor(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "bitwise_xor", "bitwise_xor(integer1, integer2)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "bitwise_xor", "(integer1, integer2)");
   s64 first_val = luaL_checkinteger(lua_state, 2);
   s64 second_val = luaL_checkinteger(lua_state, 3);
   lua_pushinteger(lua_state, first_val ^ second_val);
@@ -85,7 +88,7 @@ int BitwiseXor(lua_State* lua_state)
 
 int LogicalAnd(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "logical_and", "logical_and(integer1, integer2)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "logical_and", "(integer1, integer2)");
   s64 first_val = luaL_checkinteger(lua_state, 2);
   s64 second_val = luaL_checkinteger(lua_state, 3);
   lua_pushboolean(lua_state, first_val && second_val);
@@ -94,7 +97,7 @@ int LogicalAnd(lua_State* lua_state)
 
 int LogicalOr(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "logical_or", "logical_or(integer1, integer2)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "logical_or", "(integer1, integer2)");
   s64 first_val = luaL_checkinteger(lua_state, 2);
   s64 second_val = luaL_checkinteger(lua_state, 3);
   lua_pushboolean(lua_state, first_val || second_val);
@@ -103,7 +106,7 @@ int LogicalOr(lua_State* lua_state)
 
 int LogicalXor(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "logical_xor", "logical_xor(integer1, integer2)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "logical_xor", "(integer1, integer2)");
   s64 first_val = luaL_checkinteger(lua_state, 2);
   s64 second_val = luaL_checkinteger(lua_state, 3);
   lua_pushboolean(lua_state, (first_val || second_val) && !(first_val && second_val));
@@ -112,7 +115,7 @@ int LogicalXor(lua_State* lua_state)
 
 int LogicalNot(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "logical_not", "logical_not(exampleInteger)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "logical_not", "(exampleInteger)");
   s64 input_val = luaL_checkinteger(lua_state, 2);
   lua_pushboolean(lua_state, !input_val);
   return 1;
@@ -120,13 +123,14 @@ int LogicalNot(lua_State* lua_state)
 
 int BitShiftLeft(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "bit_shit_left", "bit_shift_left(integer1, integer2)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "bit_shit_left", "(integer1, integer2)");
   s64 first_val = luaL_checkinteger(lua_state, 2);
   s64 second_val = luaL_checkinteger(lua_state, 3);
   if (first_val < 0 || second_val < 0)
     luaL_error(lua_state,
-               "Error: in bit:bit_shift_left() function, an argument passed into the function was "
-               "negative. Both arguments to the function must be positive!");
+               fmt::format("Error: in {}:{}() function, an argument passed into the function was "
+               "negative. Both arguments to the function must be positive!", class_name, "bit_shift_left")
+               .c_str());
   lua_pushinteger(lua_state,
                   static_cast<s64>(static_cast<u64>(first_val) << static_cast<u64>(second_val)));
   return 1;
@@ -134,13 +138,14 @@ int BitShiftLeft(lua_State* lua_state)
 
 int BitShiftRight(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, "bit_shift_right", "bit_shift_right(integer1, integer2)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "bit_shift_right", "(integer1, integer2)");
   s64 first_val = luaL_checkinteger(lua_state, 2);
   s64 second_val = luaL_checkinteger(lua_state, 3);
   if (first_val < 0 || second_val < 0)
     luaL_error(lua_state,
-               "Error: in bit:bit_shift_right() function, an argument passed into the function was "
-               "negative. Both arguments to the function must be positive!");
+               fmt::format("Error: in {}:{}() function, an argument passed into the function was "
+               "negative. Both arguments to the function must be positive!", class_name, "bit_shift_right")
+               .c_str());
   lua_pushinteger(lua_state,
                   static_cast<s64>(static_cast<u64>(first_val) >> static_cast<u64>(second_val)));
   return 1;
