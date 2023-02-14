@@ -584,13 +584,13 @@ void JitArm64::cmp(UGeckoInstruction inst)
   }
   else if (gpr.IsImm(a) && !gpr.GetImm(a))
   {
-    NEG(EncodeRegTo32(CR), gpr.R(b));
-    SXTW(CR, EncodeRegTo32(CR));
+    SXTW(CR, gpr.R(b));
+    NEG(CR, CR);
   }
   else if (gpr.IsImm(a) && gpr.GetImm(a) == 0xFFFFFFFF)
   {
-    MVN(EncodeRegTo32(CR), gpr.R(b));
-    SXTW(CR, EncodeRegTo32(CR));
+    SXTW(CR, gpr.R(b));
+    MVN(CR, CR);
   }
   else if (gpr.IsImm(b) && !gpr.GetImm(b))
   {
