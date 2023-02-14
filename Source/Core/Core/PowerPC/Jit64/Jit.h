@@ -51,7 +51,7 @@ public:
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
   bool HandleStackFault() override;
-  bool BackPatch(u32 emAddress, SContext* ctx);
+  bool BackPatch(SContext* ctx);
 
   void EnableOptimization();
   void EnableBlockLink();

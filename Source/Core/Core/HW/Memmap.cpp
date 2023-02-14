@@ -157,6 +157,11 @@ void MemoryManager::Init()
   m_is_initialized = true;
 }
 
+bool MemoryManager::IsAddressInFastmemArea(const u8* address) const
+{
+  return address >= m_fastmem_arena && address < m_fastmem_arena + m_fastmem_arena_size;
+}
+
 bool MemoryManager::InitFastmemArena()
 {
   // Here we set up memory mappings for fastmem. The basic idea of fastmem is that we reserve 4 GiB
@@ -194,15 +199,15 @@ bool MemoryManager::InitFastmemArena()
   constexpr size_t guard_size = 0x8000'0000;
   constexpr size_t memory_size = ppc_view_size * 2 + guard_size * 3;
 
-  u8* fastmem_arena = m_arena.ReserveMemoryRegion(memory_size);
-  if (!fastmem_arena)
+  m_fastmem_arena = m_arena.ReserveMemoryRegion(memory_size);
+  if (!m_fastmem_arena)
   {
     PanicAlertFmt("Memory::InitFastmemArena(): Failed finding a memory base.");
     return false;
   }
 
-  m_physical_base = fastmem_arena + guard_size;
-  m_logical_base = fastmem_arena + ppc_view_size + guard_size * 2;
+  m_physical_base = m_fastmem_arena + guard_size;
+  m_logical_base = m_fastmem_arena + ppc_view_size + guard_size * 2;
 
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
@@ -222,6 +227,7 @@ bool MemoryManager::InitFastmemArena()
   }
 
   m_is_fastmem_arena_initialized = true;
+  m_fastmem_arena_size = memory_size;
   return true;
 }
 
@@ -371,6 +377,8 @@ void MemoryManager::ShutdownFastmemArena()
 
   m_arena.ReleaseMemoryRegion();
 
+  m_fastmem_arena = nullptr;
+  m_fastmem_arena_size = 0;
   m_physical_base = nullptr;
   m_logical_base = nullptr;
 

@@ -33,7 +33,7 @@ public:
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
   void DoBacktrace(uintptr_t access_address, SContext* ctx);
   bool HandleStackFault() override;
-  bool HandleFastmemFault(uintptr_t access_address, SContext* ctx);
+  bool HandleFastmemFault(SContext* ctx);
 
   void ClearCache() override;
 

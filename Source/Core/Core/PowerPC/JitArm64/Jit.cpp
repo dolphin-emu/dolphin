@@ -123,8 +123,30 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
     success = HandleStackFault();
 
   // If the fault is in JIT code space, look for fastmem areas.
-  if (!success && IsInSpace((u8*)ctx->CTX_PC))
-    success = HandleFastmemFault(access_address, ctx);
+  if (!success && IsInSpace(reinterpret_cast<u8*>(ctx->CTX_PC)))
+  {
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+
+    if (memory.IsAddressInFastmemArea(reinterpret_cast<u8*>(access_address)))
+    {
+      auto& ppc_state = system.GetPPCState();
+      const uintptr_t memory_base = reinterpret_cast<uintptr_t>(
+          ppc_state.msr.DR ? memory.GetLogicalBase() : memory.GetPhysicalBase());
+
+      if (access_address < memory_base || access_address >= memory_base + 0x1'0000'0000)
+      {
+        ERROR_LOG_FMT(DYNA_REC,
+                      "JitArm64 address calculation overflowed. This should never happen! "
+                      "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}",
+                      ctx->CTX_PC, access_address, memory_base, ppc_state.msr.DR);
+      }
+      else
+      {
+        success = HandleFastmemFault(ctx);
+      }
+    }
+  }
 
   if (!success)
   {

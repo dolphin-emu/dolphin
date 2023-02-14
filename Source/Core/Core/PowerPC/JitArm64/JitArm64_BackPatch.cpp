@@ -16,13 +16,11 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
-#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/Jit_Util.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
 
 using namespace Arm64Gen;
 
@@ -304,22 +302,8 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
   }
 }
 
-bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
+bool JitArm64::HandleFastmemFault(SContext* ctx)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
-  if (!(access_address >= (uintptr_t)memory.GetPhysicalBase() &&
-        access_address < (uintptr_t)memory.GetPhysicalBase() + 0x100010000) &&
-      !(access_address >= (uintptr_t)memory.GetLogicalBase() &&
-        access_address < (uintptr_t)memory.GetLogicalBase() + 0x100010000))
-  {
-    ERROR_LOG_FMT(DYNA_REC,
-                  "Exception handler - access below memory space. PC: {:#018x} {:#018x} < {:#018x}",
-                  ctx->CTX_PC, access_address, (uintptr_t)memory.GetPhysicalBase());
-    return false;
-  }
-
   const u8* pc = reinterpret_cast<const u8*>(ctx->CTX_PC);
   auto slow_handler_iter = m_fault_to_handler.upper_bound(pc);
 
