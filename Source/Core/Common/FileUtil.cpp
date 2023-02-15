@@ -209,13 +209,12 @@ bool CreateDir(const std::string& path)
   return success;
 }
 
-// Creates the full path of fullPath returns true on success
-bool CreateFullPath(const std::string& fullPath)
+bool CreateFullPath(std::string_view fullPath)
 {
   DEBUG_LOG_FMT(COMMON, "{}: path {}", __func__, fullPath);
 
   std::error_code error;
-  auto native_path = StringToPath(fullPath);
+  auto native_path = StringToPath(fullPath).parent_path();
   bool success = fs::create_directories(native_path, error);
   // If the path was not created, check if it was a pre-existing directory
   if (!success && fs::is_directory(native_path))

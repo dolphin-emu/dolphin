@@ -143,8 +143,10 @@ u64 GetSize(FILE* f);
 // Returns true if successful, or path already exists.
 bool CreateDir(const std::string& filename);
 
-// Creates the full path of fullPath returns true on success
-bool CreateFullPath(const std::string& fullPath);
+// Creates the full path to the file given in fullPath.
+// That is, for path '/a/b/c.bin', creates folders '/a' and '/a/b'.
+// Returns true if creation is successful or if the path already exists.
+bool CreateFullPath(std::string_view fullPath);
 
 enum class IfAbsentBehavior
 {
