@@ -3,7 +3,6 @@
 #include <filesystem>
 #include <mutex>
 #include "Core/Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h"
-#include "Core/Lua/LuaEventCallbackClasses/LuaWheneverCallbackClass.h"
 #include "Core/Lua/LuaFunctions/LuaImportModule.h"
 #include "Core/Movie.h"
 
@@ -123,8 +122,6 @@ void Init(const std::string& script_location,
   LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(&main_lua_thread_state,
                                                                 global_lua_api_version,
                                                                 &general_lua_lock, script_end_callback_function);
-  LuaWheneverCallback::InitLuaWheneverCallbackFunctions(main_lua_thread_state, global_lua_api_version,
-                                                        &general_lua_lock);
   LuaImportModule::InitLuaImportModule(main_lua_thread_state, global_lua_api_version);
 
   if (luaL_loadfile(main_lua_thread_state, script_location.c_str()) != LUA_OK)
