@@ -11,7 +11,7 @@
 
 namespace Lua::LuaMemoryApi
 {
-const char* class_name = "memoryAPI";
+const char* class_name = "memory";
 
 class MEMORY
 {

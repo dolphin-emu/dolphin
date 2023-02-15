@@ -6,7 +6,7 @@
 
 namespace Lua::LuaStatistics
 {
-const char* class_name = "statisticsAPI";
+const char* class_name = "statistics";
 
 class Lua_Statistics
 {

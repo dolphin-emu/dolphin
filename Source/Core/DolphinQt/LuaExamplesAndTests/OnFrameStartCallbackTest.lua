@@ -1,3 +1,5 @@
+dolphin:importModule("statistics")
+
 funcRef = 0
 
 function mainFunction()

@@ -1,3 +1,5 @@
+dolphin:importModule("bit")
+
 testNum = 1
 resultsTable = {}
 resultsTable["PASS"] = 0

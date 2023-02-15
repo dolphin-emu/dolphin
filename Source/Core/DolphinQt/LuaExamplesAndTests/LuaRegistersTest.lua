@@ -1,3 +1,5 @@
+dolphin:importModule("registers")
+
 testNum = 1
 resultsTable = {}
 resultsTable["PASS"] = 0
@@ -272,14 +274,11 @@ function setRegisterFromByteArrayUnitTests()
 end
 
 
-
+function registersTests()
 file = io.open("LuaExamplesAndTests/TestResults/LuaRegistersTestsResults.txt", "w")
 io.output(file)
 io.write("CREATED FILE!\n\n")
 io.flush()
-
-emu:frameAdvance()
-emu:frameAdvance()
 
 -- Getting the names of the registers, and storing the initial values of the registers
 -- so that they can be restored after all of the tests are done...
@@ -322,4 +321,8 @@ io.write("Tests Passed: " .. tostring(resultsTable["PASS"]) .. "\n\t")
 io.write("Tests Failed: " .. tostring(resultsTable["FAIL"]) .. "\n")
 io.flush()
 io.close()
+OnFrameStart:unregister()
+end
+
+OnFrameStart:register(registersTests)
 

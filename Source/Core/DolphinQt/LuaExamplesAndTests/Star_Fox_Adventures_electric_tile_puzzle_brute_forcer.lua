@@ -1,3 +1,8 @@
+dolphin:importModule("gcController")
+dolphin:importModule("memory")
+dolphin:importModule("emu")
+dolphin:importModule("statistics")
+
 basePasswordAddress = 0x80329849
 earlySaveStatePath= "saveStateName.sav"
 movieNamePath = "movieName.dtm"
@@ -21,33 +26,25 @@ function getPassword()
 	return returnTable
 end
 
-emu:frameAdvance()
-emu:frameAdvance()
-emu:frameAdvance()
+
+
 emu:playMovie(movieNamePath)
 totalMovieLength = statistics:getMovieLength()
 
-shouldContinueSearching = true
-
-while shouldContinueSearching do
+function mainScriptBody()
 	emu:loadState(earlySaveStatePath)
 
-	while statistics:getCurrentFrame() <= totalMovieLength - 10 and not isPasswordSet() do
-		gc_controller:addButtonPressChance(1, 15, "dPadLeft")
-		gc_controller:addButtonPressChance(1, 10, "dPadRight")
-		gc_controller:addButtonPressChance(1, 0.005, "Y")
-		gc_controller:addButtonComboChance(1, 10, false, {cStickX = 255})
-		gc_controller:addButtonComboChance(1, 10, false, {cStickX = 0})
-		gc_controller:addButtonComboChance(1, 10, false, {cStickY = 0})
-		gc_controller:addButtonComboChance(1, 10, false, {cStickY = 255})
-		emu:frameAdvance()
+	if statistics:getCurrentFrame() <= totalMovieLength - 10 and not isPasswordSet() then
+		gcController:addButtonPressChance(1, 15, "dPadLeft")
+		gcController:addButtonPressChance(1, 10, "dPadRight")
+		gcController:addButtonPressChance(1, 0.005, "Y")
+		gcController:addButtonComboChance(1, 10, false, {cStickX = 255})
+		gcController:addButtonComboChance(1, 10, false, {cStickX = 0})
+		gcController:addButtonComboChance(1, 10, false, {cStickY = 0})
+		gcController:addButtonComboChance(1, 10, false, {cStickY = 255})
 	end
 	
 	if statistics:getCurrentFrame() <= totalMovieLength - 10 then -- This if statement is true when we broke out of the loop because the password was set.
-		emu:frameAdvance()
-		emu:frameAdvance()
-		emu:frameAdvance()
-		emu:frameAdvance()
 		emu:frameAdvance()
 		passwordValue = getPassword()
 		print("bruteForcePattern_" .. tostring(passwordValue[1]) .. tostring(passwordValue[2]) .. tostring(passwordValue[3]) .. "-" .. tostring(passwordValue[4]) .. tostring(passwordValue[5]) .. tostring(passwordValue[6]))
@@ -58,9 +55,10 @@ while shouldContinueSearching do
 		end
 		
 		if passwordValue[1] == 1 and passwordValue[2] == 1 and passwordValue[3] == 1 and passwordValue[4] == 1 and passwordValue[5] == 1 and passwordValue[6] == 1 then
-			shouldContinueSearching = false
+			OnFrameEnd:unregister()
+			print("Finished generating a movie with a 111 111 electric tile puzzle!")
 		end
 	end
 end
 
-print("Finished generating a movie with a 111 111 electric tile puzzle!")
+OnFrameEnd:register(mainScriptBody)

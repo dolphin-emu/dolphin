@@ -5,7 +5,7 @@
 
 namespace Lua::LuaGameCubeController
 {
-const char* class_name = "gcControllerAPI";
+const char* class_name = "gcController";
 
 std::array<bool, 4> overwrite_controller_at_specified_port = {};
 std::array<bool, 4> add_to_controller_at_specified_port = {};

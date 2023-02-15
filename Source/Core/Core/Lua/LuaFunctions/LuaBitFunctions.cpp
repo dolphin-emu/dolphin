@@ -7,7 +7,7 @@
 
 namespace Lua::LuaBit
 {
-const char* class_name = "bitAPI";
+const char* class_name = "bit";
 
 class BitClass
 {

@@ -1,3 +1,6 @@
+dolphin:importModule("statistics")
+dolphin:importModule("emu")
+
 baseMovieFilePath  = "testBaseRecording.dtm"
 earlySaveStatePath = "testEarlySaveState.sav"
 laterMovieName = "laterRecording.sav.dtm"
@@ -33,6 +36,8 @@ end
 
 file = io.open("LuaExamplesAndTests/TestResults/LuaStatisticsTestsResults.txt", "w")
 io.output(file)
+
+function statisticsTests()
 emu:frameAdvance()
 emu:frameAdvance()
 emu:playMovie(baseMovieFilePath)
@@ -63,3 +68,8 @@ io.write("Tests Passed: " .. tostring(resultsTable["PASS"]) .. "\n\t")
 io.write("Tests Failed: " .. tostring(resultsTable["FAIL"]) .. "\n") 
 io.flush()
 io.close()
+OnFrameStart:unregister()
+end
+
+OnFrameStart:register(statisticsTests)
+

@@ -11,7 +11,7 @@
 
 namespace Lua::LuaEmu
 {
-const char* class_name = "emuAPI";
+const char* class_name = "emu";
 
 bool waiting_for_save_state_load = false;
 bool waiting_for_save_state_save = false;
