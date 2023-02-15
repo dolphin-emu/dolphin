@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18.4)
+cmake_minimum_required(VERSION 3.14)
 
 add_library(Lua STATIC
 	lapi.h
