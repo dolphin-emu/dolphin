@@ -453,6 +453,8 @@ add_library(core
   Lua/LuaFunctions/LuaEmuFunctions.h
   Lua/LuaFunctions/LuaGameCubeController.h
   Lua/LuaFunctions/LuaGameCubeController.cpp
+  Lua/LuaFunctions/LuaImportModule.h
+  Lua/LuaFunctions/LuaImportModule.cpp
   Lua/LuaFunctions/LuaMemoryApi.cpp
   Lua/LuaFunctions/LuaMemoryApi.h
   Lua/LuaFunctions/LuaRegisters.cpp
