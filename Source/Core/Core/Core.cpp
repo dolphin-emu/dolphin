@@ -138,7 +138,6 @@ static thread_local bool tls_is_gpu_thread = false;
 
 static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi);
 
-
 static Common::EventHook s_frame_presented = AfterPresentEvent::Register(
     [](auto& present_info) {
       const double last_speed_denominator = g_perf_metrics.GetLastSpeedDenominator();
