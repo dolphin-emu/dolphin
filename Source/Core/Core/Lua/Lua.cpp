@@ -119,14 +119,14 @@ void Init(const std::string& script_location,
   lua_newtable(main_lua_state);
   lua_pushcfunction(main_lua_state, CustomPrintFunction);
   lua_setglobal(main_lua_state, "print");
-  LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(main_lua_state,
-                                                                global_lua_api_version,
-                                                                &general_lua_lock);
-  LuaWheneverCallback::InitLuaWheneverCallbackFunctions(main_lua_state, global_lua_api_version,
-                                                        &general_lua_lock);
-  LuaImportModule::InitLuaImportModule(main_lua_state, global_lua_api_version);
-
   main_lua_thread_state = lua_newthread(main_lua_state);
+  LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(&main_lua_thread_state,
+                                                                global_lua_api_version,
+                                                                &general_lua_lock, script_end_callback_function);
+  LuaWheneverCallback::InitLuaWheneverCallbackFunctions(main_lua_thread_state, global_lua_api_version,
+                                                        &general_lua_lock);
+  LuaImportModule::InitLuaImportModule(main_lua_thread_state, global_lua_api_version);
+
   if (luaL_loadfile(main_lua_thread_state, script_location.c_str()) != LUA_OK)
   {
     const char* temp_string = lua_tostring(main_lua_thread_state, -1);
