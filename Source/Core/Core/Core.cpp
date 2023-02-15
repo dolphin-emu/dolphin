@@ -1038,9 +1038,12 @@ void DoFrameStep()
 
 void UpdateInputGate(bool require_focus, bool require_full_focus)
 {
+  // Check for core not running and main window focus
+  const bool main_window_focus_passes = Host_MainWindowHasFocus() && !IsRunning();
   // If the user accepts background input, controls should pass even if an on screen interface is on
   const bool focus_passes =
-      !require_focus || (Host_RendererHasFocus() && !Host_UIBlocksControllerState());
+      !require_focus ||
+      ((Host_RendererHasFocus() || (main_window_focus_passes)) && !Host_UIBlocksControllerState());
   // Ignore full focus if we don't require basic focus
   const bool full_focus_passes =
       !require_focus || !require_full_focus || (focus_passes && Host_RendererHasFullFocus());

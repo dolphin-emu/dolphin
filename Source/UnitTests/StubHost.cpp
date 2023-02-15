@@ -63,6 +63,10 @@ bool Host_RendererIsFullscreen()
 {
   return false;
 }
+bool Host_MainWindowHasFocus()
+{
+  return false;
+}
 void Host_YieldToUI()
 {
 }

@@ -110,6 +110,11 @@ bool Host_RendererIsFullscreen()
   return s_platform->IsWindowFullscreen();
 }
 
+bool Host_MainWindowHasFocus()
+{
+  return false;
+}
+
 void Host_YieldToUI()
 {
 }

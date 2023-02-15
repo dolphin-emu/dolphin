@@ -28,12 +28,14 @@ public:
   bool GetRenderFullFocus();
   bool GetRenderFullscreen();
   bool GetGBAFocus();
+  bool GetMainWindowFocus();
 
   void SetMainWindowHandle(void* handle);
   void SetRenderHandle(void* handle);
   void SetRenderFocus(bool focus);
   void SetRenderFullFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
+  void SetMainWindowFocus(bool focus);
   void ResizeSurface(int new_width, int new_height);
   void RequestNotifyMapLoaded();
 
@@ -53,4 +55,5 @@ private:
   std::atomic<bool> m_render_focus{false};
   std::atomic<bool> m_render_full_focus{false};
   std::atomic<bool> m_render_fullscreen{false};
+  std::atomic<bool> m_main_window_focus{false};
 };
