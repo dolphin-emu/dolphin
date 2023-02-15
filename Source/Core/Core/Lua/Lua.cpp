@@ -119,9 +119,9 @@ void Init(const std::string& script_location,
   lua_pushcfunction(main_lua_state, CustomPrintFunction);
   lua_setglobal(main_lua_state, "print");
   main_lua_thread_state = lua_newthread(main_lua_state);
-  LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(&main_lua_thread_state,
-                                                                global_lua_api_version,
-                                                                &general_lua_lock, script_end_callback_function);
+  LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(
+      &main_lua_thread_state, global_lua_api_version, &general_lua_lock,
+      script_end_callback_function);
   LuaImportModule::InitLuaImportModule(main_lua_thread_state, global_lua_api_version);
 
   if (luaL_loadfile(main_lua_thread_state, script_location.c_str()) != LUA_OK)

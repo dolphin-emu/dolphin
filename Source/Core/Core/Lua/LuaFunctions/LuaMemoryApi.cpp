@@ -512,8 +512,11 @@ int DoGeneralWrite(lua_State* lua_state)
     return 0;
 
   default:
-    luaL_error(lua_state, fmt::format("Error: undefined type passed into {}:{}() method. Valid types "
-                          "include u8, u16, u32, s8, s16, s32, s64, float, double.", class_name, func_name).c_str());
+    luaL_error(lua_state,
+               fmt::format("Error: undefined type passed into {}:{}() method. Valid types "
+                           "include u8, u16, u32, s8, s16, s32, s64, float, double.",
+                           class_name, func_name)
+                   .c_str());
     return 0;
   }
 }
@@ -558,7 +561,8 @@ int DoWriteBytes(lua_State* lua_state)
 
 int DoWriteString(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, class_name, "writeString", "(0X80000043, \"exampleString\")");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "writeString",
+                            "(0X80000043, \"exampleString\")");
   u32 address = luaL_checkinteger(lua_state, 2);
   const char* string_to_write = luaL_checkstring(lua_state, 3);
   size_t string_size = strlen(string_to_write);

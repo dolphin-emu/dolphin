@@ -138,7 +138,9 @@ int IsGcControllerInPort(lua_State* lua_state)
   s64 port_number = luaL_checkinteger(lua_state, 2);
   if (port_number < 1 || port_number > 4)
     luaL_error(lua_state,
-               fmt::format("Error: in {}:{}() function, portNumber was not between 1 and 4", class_name, func_name).c_str());
+               fmt::format("Error: in {}:{}() function, portNumber was not between 1 and 4",
+                           class_name, func_name)
+                   .c_str());
   lua_pushboolean(lua_state, Movie::IsUsingGCController(port_number - 1));
   return 1;
 }
@@ -149,7 +151,10 @@ int IsUsingPort(lua_State* lua_state)
   LuaColonOperatorTypeCheck(lua_state, class_name, func_name, "(1)");
   s64 port_number = luaL_checkinteger(lua_state, 2);
   if (port_number < 1 || port_number > 4)
-    luaL_error(lua_state, fmt::format("Error: in {}:{}() function, portNumber was not between 1 and 4", class_name, func_name).c_str());
+    luaL_error(lua_state,
+               fmt::format("Error: in {}:{}() function, portNumber was not between 1 and 4",
+                           class_name, func_name)
+                   .c_str());
   lua_pushboolean(lua_state, Movie::IsUsingPad(port_number - 1));
   return 1;
 }

@@ -52,8 +52,7 @@ void InitLuaBitFunctions(lua_State* lua_state, const std::string& lua_api_versio
 
 int BitwiseAnd(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, class_name, "bitwise_and",
-                            "(integer1, integer2)");
+  LuaColonOperatorTypeCheck(lua_state, class_name, "bitwise_and", "(integer1, integer2)");
   s64 first_val = luaL_checkinteger(lua_state, 2);
   s64 second_val = luaL_checkinteger(lua_state, 3);
   lua_pushinteger(lua_state, first_val & second_val);
@@ -129,8 +128,9 @@ int BitShiftLeft(lua_State* lua_state)
   if (first_val < 0 || second_val < 0)
     luaL_error(lua_state,
                fmt::format("Error: in {}:{}() function, an argument passed into the function was "
-               "negative. Both arguments to the function must be positive!", class_name, "bit_shift_left")
-               .c_str());
+                           "negative. Both arguments to the function must be positive!",
+                           class_name, "bit_shift_left")
+                   .c_str());
   lua_pushinteger(lua_state,
                   static_cast<s64>(static_cast<u64>(first_val) << static_cast<u64>(second_val)));
   return 1;
@@ -144,8 +144,9 @@ int BitShiftRight(lua_State* lua_state)
   if (first_val < 0 || second_val < 0)
     luaL_error(lua_state,
                fmt::format("Error: in {}:{}() function, an argument passed into the function was "
-               "negative. Both arguments to the function must be positive!", class_name, "bit_shift_right")
-               .c_str());
+                           "negative. Both arguments to the function must be positive!",
+                           class_name, "bit_shift_right")
+                   .c_str());
   lua_pushinteger(lua_state,
                   static_cast<s64>(static_cast<u64>(first_val) >> static_cast<u64>(second_val)));
   return 1;

@@ -865,6 +865,7 @@ void Callback_NewField()
 {
   if (Lua::is_lua_script_active && !Lua::LuaEmu::waiting_for_save_state_load &&
       !Lua::LuaEmu::waiting_for_save_state_save && !Lua::LuaEmu::waiting_to_start_playing_movie &&
+      !Lua::LuaEmu::waiting_for_save_state_save && !Lua::LuaEmu::waiting_to_start_playing_movie &&
       !Lua::LuaEmu::waiting_to_save_movie)
   {
     Lua::LuaOnFrameStartCallback::RunCallback();

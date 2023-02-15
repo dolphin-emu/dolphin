@@ -20,7 +20,6 @@ extern std::function<void(const std::string&)>* print_callback_function;
 extern std::function<void()>* script_end_callback_function;
 extern std::mutex general_lua_lock;
 
-
 int SetLuaCoreVersion(lua_State* lua_state);
 int GetLuaCoreVersion(lua_State* lua_state);
 

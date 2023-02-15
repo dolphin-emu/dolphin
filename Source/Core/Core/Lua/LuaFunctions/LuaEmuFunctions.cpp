@@ -19,7 +19,6 @@ bool waiting_to_start_playing_movie = false;
 bool waiting_to_save_movie = false;
 bool called_yielding_function_on_last_frame = false;
 
-
 static std::string load_state_name;
 static std::string save_state_name;
 static std::string movie_path_name;
@@ -86,8 +85,9 @@ std::string CheckIfFileExistsAndGetFileName(lua_State* lua_state, const char* fu
   if (!std::filesystem::exists(file_name))
     luaL_error(
         lua_state,
-        fmt::format("Error: Filename {} passed into {}:{} function did not represent a file which exists",
-                    file_name, class_name, func_name)
+        fmt::format(
+            "Error: Filename {} passed into {}:{} function did not represent a file which exists",
+            file_name, class_name, func_name)
             .c_str());
   return file_name;
 }

@@ -13,4 +13,4 @@ void InitLuaImportModule(lua_State* lua_state, const std::string& lua_api_versio
 int ImportModule(lua_State* lua_state);
 int ImportAlt(lua_State* luaState);
 
-}
+}  // namespace Lua::LuaImportModule
