@@ -872,6 +872,9 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
     if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
       ERROR_LOG_FMT(IOS_NET, "Failed to set SO_NOSIGPIPE on socket");
 #endif
+
+    BOOL opt_broadcast = TRUE;
+    setsockopt(fd, SOL_SOCKET, SO_BROADCAST, (char*)&opt_broadcast, sizeof(opt_broadcast));
   }
 
   SetLastNetError(wii_fd);
