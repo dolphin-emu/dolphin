@@ -873,7 +873,7 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
       ERROR_LOG_FMT(IOS_NET, "Failed to set SO_NOSIGPIPE on socket");
 #endif
 
-    BOOL opt_broadcast = TRUE;
+    int opt_broadcast = 1;
     setsockopt(fd, SOL_SOCKET, SO_BROADCAST, (char*)&opt_broadcast, sizeof(opt_broadcast));
   }
 
