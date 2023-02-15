@@ -11,6 +11,7 @@
 
 namespace Lua::LuaEmu
 {
+const char* class_name = "emuAPI";
 
 bool waiting_for_save_state_load = false;
 bool waiting_for_save_state_save = false;
@@ -31,7 +32,6 @@ public:
 };
 
 static std::unique_ptr<Emu> emu_pointer = nullptr;
-static const char* class_name = "emuAPI";
 
 Emu* GetEmuInstance()
 {

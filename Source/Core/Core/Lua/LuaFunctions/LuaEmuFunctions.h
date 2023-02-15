@@ -6,6 +6,7 @@
 
 namespace Lua::LuaEmu
 {
+extern const char* class_name;
 
 extern bool waiting_for_save_state_load;
 extern bool waiting_for_save_state_save;

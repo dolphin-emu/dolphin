@@ -11,6 +11,7 @@
 
 namespace Lua::LuaMemoryApi
 {
+const char* class_name = "memoryAPI";
 
 class MEMORY
 {
@@ -19,7 +20,6 @@ public:
 };
 
 static std::unique_ptr<MEMORY> instance = nullptr;
-static const char* class_name = "memoryAPI";
 
 MEMORY* GetInstance()
 {

@@ -8,6 +8,7 @@
 
 namespace Lua::LuaMemoryApi
 {
+extern const char* class_name;
 
 void InitLuaMemoryApi(lua_State* lua_state, const std::string& lua_api_version);
 

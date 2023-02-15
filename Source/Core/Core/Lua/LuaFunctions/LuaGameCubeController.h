@@ -16,6 +16,7 @@
 
 namespace Lua::LuaGameCubeController
 {
+extern const char* class_name;
 
 extern std::array<bool, 4> overwrite_controller_at_specified_port;
 extern std::array<bool, 4> add_to_controller_at_specified_port;

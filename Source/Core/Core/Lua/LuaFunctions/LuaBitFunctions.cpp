@@ -7,6 +7,7 @@
 
 namespace Lua::LuaBit
 {
+const char* class_name = "bitAPI";
 
 class BitClass
 {
@@ -15,7 +16,6 @@ public:
 };
 
 static std::unique_ptr<BitClass> bit_instance = nullptr;
-static const char* class_name = "bitAPI";
 
 BitClass* GetBitInstance()
 {

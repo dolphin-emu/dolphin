@@ -6,6 +6,7 @@
 
 namespace Lua::LuaStatistics
 {
+const char* class_name = "statisticsAPI";
 
 class Lua_Statistics
 {
@@ -21,8 +22,6 @@ Lua_Statistics* getStatisticsInstance()
     lua_statistics_pointer = std::make_unique<Lua_Statistics>(Lua_Statistics());
   return lua_statistics_pointer.get();
 }
-
-static const char* class_name = "statisticsAPI";
 
 void InitLuaStatisticsFunctions(lua_State* lua_state, const std::string& lua_api_version)
 {

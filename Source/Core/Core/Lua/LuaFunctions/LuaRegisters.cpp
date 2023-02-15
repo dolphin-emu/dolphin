@@ -12,6 +12,8 @@
 
 namespace Lua::LuaRegisters
 {
+const char* class_name = "registersAPI";
+
 class LuaRegister
 {
 public:
@@ -19,7 +21,6 @@ public:
 };
 
 static std::unique_ptr<LuaRegister> lua_register_pointer = nullptr;
-static const char* class_name = "registersAPI";
 
 LuaRegister* GetLuaRegisterInstance()
 {

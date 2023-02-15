@@ -7,6 +7,8 @@
 
 namespace Lua::LuaRegisters
 {
+
+extern const char* class_name;
 void InitLuaRegistersFunctions(lua_State* lua_state, const std::string& lua_api_version);
 int GetRegister(lua_State* lua_state);
 int GetRegisterAsUnsignedByteArray(lua_State* lua_state);

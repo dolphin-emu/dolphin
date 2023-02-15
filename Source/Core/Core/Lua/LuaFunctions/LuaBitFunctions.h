@@ -5,6 +5,7 @@
 
 namespace Lua::LuaBit
 {
+extern const char* class_name;
 
 void InitLuaBitFunctions(lua_State* lua_state, const std::string& lua_api_version);
 int BitwiseAnd(lua_State* lua_state);
