@@ -92,6 +92,7 @@ int Unregister(lua_State* lua_state)
 
 int RunCallback()
 {
+  general_lua_lock->lock();
   for (int i = 0; i < 4; ++i)
   {
     Lua::LuaGameCubeController::overwrite_controller_at_specified_port[i] = false;
@@ -110,24 +111,20 @@ int RunCallback()
     in_global_scope = false;
     if (LuaEmu::called_yielding_function_on_last_frame)
     {
-      general_lua_lock->lock();
       int ret_val = lua_resume(on_frame_start_thread, nullptr, 0, &temp_int);
       if (ret_val == LUA_YIELD)
         LuaEmu::called_yielding_function_on_last_frame = true;
       else
         LuaEmu::called_yielding_function_on_last_frame = false;
-      general_lua_lock->unlock();
     }
     else
     {
-      general_lua_lock->lock();
       lua_rawgeti(on_frame_start_thread, LUA_REGISTRYINDEX, on_frame_start_lua_function_reference);
       int ret_val = lua_resume(on_frame_start_thread, nullptr, 0, &temp_int);
       if (ret_val == LUA_YIELD)
         LuaEmu::called_yielding_function_on_last_frame = true;
       else
         LuaEmu::called_yielding_function_on_last_frame = false;
-      general_lua_lock->unlock();
     }
   }
   else if (in_global_scope && !finished_global_code)
@@ -142,6 +139,7 @@ int RunCallback()
       LuaEmu::called_yielding_function_on_last_frame = false;
     }
   }
+  general_lua_lock->unlock();
   return 0;
 }
 }  // namespace Lua::LuaOnFrameStartCallback

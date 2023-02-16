@@ -108,6 +108,7 @@ void Init(const std::string& script_location,
           std::function<void(const std::string&)>* new_print_callback,
           std::function<void()>* new_script_end_callback)
 {
+  general_lua_lock.lock();
   print_callback_function = new_print_callback;
   script_end_callback_function = new_script_end_callback;
   x = 0;
@@ -142,6 +143,7 @@ void Init(const std::string& script_location,
 
   is_lua_script_active = true;
   is_lua_core_initialized = true;
+  general_lua_lock.unlock();
   return;
 }
 
