@@ -18,7 +18,8 @@ bool is_lua_core_initialized = false;
 std::function<void(const std::string&)>* print_callback_function = nullptr;
 std::function<void()>* script_end_callback_function = nullptr;
 std::mutex general_lua_lock;
-static LuaScriptCallLocations lua_script_called_location = LuaScriptCallLocations::FromScriptStartup;
+static LuaScriptCallLocations lua_script_called_location =
+    LuaScriptCallLocations::FromScriptStartup;
 
 int CustomPrintFunction(lua_State* lua_state)
 {
