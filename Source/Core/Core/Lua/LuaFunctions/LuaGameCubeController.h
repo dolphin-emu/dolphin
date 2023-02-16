@@ -10,6 +10,7 @@
 #include "Core/HW/GCPad.h"
 #include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 #include "Core/Lua/LuaHelperClasses/LuaGameCubeButtonProbabilityClasses.h"
+#include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
 #include "Core/Movie.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
@@ -28,7 +29,8 @@ extern std::array<std::vector<GcButtonName>, 4> button_lists_for_add_to_controll
 extern std::array<std::vector<std::unique_ptr<LuaGameCubeButtonProbabilityEvent>>, 4>
     random_button_events;
 
-void InitLuaGameCubeControllerFunctions(lua_State* lua_state, const std::string& lua_api_version);
+void InitLuaGameCubeControllerFunctions(lua_State* lua_state, const std::string& lua_api_version,
+                                        LuaScriptCallLocations* new_script_call_location_pointer);
 
 int SetInputs(lua_State* lua_state);
 int AddInputs(lua_State* lua_state);

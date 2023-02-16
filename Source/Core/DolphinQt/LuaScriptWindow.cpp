@@ -135,6 +135,7 @@ void LuaScriptWindow::UpdateOutputWindow()
 
 void LuaScriptWindow::OnScriptFinish()
 {
+  Lua::StopScript();
   m_play_script_button->setStyleSheet(tr("background-color:green;"));
   m_stop_script_button->setStyleSheet(tr("background-color:grey;"));
 }

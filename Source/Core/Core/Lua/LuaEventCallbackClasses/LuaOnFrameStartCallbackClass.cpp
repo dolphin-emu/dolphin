@@ -17,7 +17,6 @@ static lua_State** main_lua_state = nullptr;
 int on_frame_start_lua_function_reference = -1;
 bool frame_start_callback_is_registered = false;
 
-static bool in_global_scope = true;
 static bool finished_global_code = false;
 static int temp_int = 0;
 static std::mutex* general_lua_lock;
@@ -30,6 +29,7 @@ public:
 };
 
 static std::unique_ptr<LuaOnFrameStart> instance = nullptr;
+static LuaScriptCallLocations* script_call_location = nullptr;
 
 LuaOnFrameStart* GetInstance()
 {
@@ -42,13 +42,14 @@ static const char* class_name = "OnFrameStart";
 
 void InitLuaOnFrameStartCallbackFunctions(lua_State** lua_state, const std::string& lua_api_version,
                                           std::mutex* new_lua_general_lock,
-                                          std::function<void()>* new_shutdown_func)
+                                          std::function<void()>* new_shutdown_func,
+                                          LuaScriptCallLocations* new_call_locations_pointer)
 {
   finished_global_code = false;
-  in_global_scope = true;
   main_lua_state = lua_state;
   general_lua_lock = new_lua_general_lock;
   shutdown_func = new_shutdown_func;
+  script_call_location = new_call_locations_pointer;
   LuaOnFrameStart** lua_on_frame_start_instance_ptr_ptr =
       (LuaOnFrameStart**)lua_newuserdata(*lua_state, sizeof(LuaOnFrameStart*));
   *lua_on_frame_start_instance_ptr_ptr = GetInstance();
@@ -85,7 +86,6 @@ int Unregister(lua_State* lua_state)
     luaL_unref(lua_state, LUA_REGISTRYINDEX, on_frame_start_lua_function_reference);
     frame_start_callback_is_registered = false;
     on_frame_start_lua_function_reference = -1;
-    in_global_scope = true;
   }
   return 0;
 }
@@ -106,9 +106,25 @@ int RunCallback()
            sizeof(Movie::ControllerState));
   }
 
-  if (frame_start_callback_is_registered)
+  if (!finished_global_code)
   {
-    in_global_scope = false;
+    *script_call_location = LuaScriptCallLocations::FromFrameStartGlobalScope;
+    int ret_val = lua_resume(*main_lua_state, nullptr, 0, &temp_int);
+    if (ret_val == LUA_YIELD)
+      LuaEmu::called_yielding_function_on_last_frame = true;
+    else
+    {
+      finished_global_code = true;
+      LuaEmu::called_yielding_function_on_last_frame = false;
+    }
+
+    if (finished_global_code && !frame_start_callback_is_registered)
+      (*shutdown_func)();
+  }
+
+  if (finished_global_code && frame_start_callback_is_registered)
+  {
+    *script_call_location = LuaScriptCallLocations::FromFrameStartCallback;
     if (LuaEmu::called_yielding_function_on_last_frame)
     {
       int ret_val = lua_resume(on_frame_start_thread, nullptr, 0, &temp_int);
@@ -126,19 +142,11 @@ int RunCallback()
       else
         LuaEmu::called_yielding_function_on_last_frame = false;
     }
+    if (finished_global_code && !frame_start_callback_is_registered &&
+        !LuaEmu::called_yielding_function_on_last_frame)
+      (*shutdown_func)();
   }
-  else if (in_global_scope && !finished_global_code)
-  {
-    in_global_scope = true;
-    int ret_val = lua_resume(*main_lua_state, nullptr, 0, &temp_int);
-    if (ret_val == LUA_YIELD)
-      LuaEmu::called_yielding_function_on_last_frame = true;
-    else
-    {
-      finished_global_code = true;
-      LuaEmu::called_yielding_function_on_last_frame = false;
-    }
-  }
+
   general_lua_lock->unlock();
   return 0;
 }

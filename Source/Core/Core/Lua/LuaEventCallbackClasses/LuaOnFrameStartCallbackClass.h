@@ -5,6 +5,8 @@
 
 #include <lua.hpp>
 
+#include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
+
 namespace Lua::LuaOnFrameStartCallback
 {
 
@@ -14,7 +16,8 @@ extern bool frame_start_callback_is_registered;
 
 void InitLuaOnFrameStartCallbackFunctions(lua_State** lua_state, const std::string& lua_api_version,
                                           std::mutex* new_lua_general_lock,
-                                          std::function<void()>* new_shutdown_func);
+                                          std::function<void()>* new_shutdown_func,
+                                          LuaScriptCallLocations* new_call_locations_pointer);
 int Register(lua_State* lua_state);
 int Unregister(lua_State* lua_state);
 int RunCallback();

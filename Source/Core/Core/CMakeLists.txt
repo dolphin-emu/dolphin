@@ -441,6 +441,7 @@ add_library(core
   Lua/LuaHelperClasses/LuaGCButtons.cpp
   Lua/LuaHelperClasses/LuaGCButtons.h
   Lua/LuaHelperClasses/luaL_Reg_With_Version.h
+  Lua/LuaHelperClasses/LuaScriptCallLocations.h
   Lua/LuaHelperClasses/LuaVersionComparisonFunctions.cpp
   Lua/LuaHelperClasses/LuaVersionComparisonFunctions.h
   Lua/LuaHelperClasses/NumberType.cpp

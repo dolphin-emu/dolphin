@@ -82,6 +82,7 @@
     <ClInclude Include="Core\Lua\LuaFunctions\LuaRegisters.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaStatistics.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\luaL_Reg_With_Version.h" />
+    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaScriptCallLocations.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaVersionComparisonFunctions.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\NumberType.h" />
     <ClInclude Include="Core\Lua\LuaVersionResolver.h" />

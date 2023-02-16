@@ -16,6 +16,7 @@ public:
 };
 
 static std::unique_ptr<BitClass> bit_instance = nullptr;
+static LuaScriptCallLocations* script_call_location_pointer = nullptr;
 
 BitClass* GetBitInstance()
 {
@@ -24,8 +25,10 @@ BitClass* GetBitInstance()
   return bit_instance.get();
 }
 
-void InitLuaBitFunctions(lua_State* lua_state, const std::string& lua_api_version)
+void InitLuaBitFunctions(lua_State* lua_state, const std::string& lua_api_version,
+                         LuaScriptCallLocations* new_script_call_location_pointer)
 {
+  script_call_location_pointer = new_script_call_location_pointer;
   BitClass** bit_ptr_ptr = (BitClass**)lua_newuserdata(lua_state, sizeof(BitClass*));
   *bit_ptr_ptr = GetBitInstance();
   luaL_newmetatable(lua_state, "LuaBitMetaTable");

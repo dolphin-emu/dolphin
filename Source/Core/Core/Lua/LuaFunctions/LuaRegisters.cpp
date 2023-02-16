@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 #include "Core/Lua/LuaHelperClasses/NumberType.h"
 #include "Core/Lua/LuaVersionResolver.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -20,6 +21,7 @@ public:
   inline LuaRegister() {}
 };
 
+static LuaScriptCallLocations* script_call_location_pointer = nullptr;
 static std::unique_ptr<LuaRegister> lua_register_pointer = nullptr;
 
 LuaRegister* GetLuaRegisterInstance()
@@ -32,8 +34,10 @@ LuaRegister* GetLuaRegisterInstance()
 // Currently supported registers are:
 // r0 - r31, f0 - f31, PC, and LR (the register which stores the return address to jump to when a
 // function call ends)
-void InitLuaRegistersFunctions(lua_State* lua_state, const std::string& lua_api_version)
+void InitLuaRegistersFunctions(lua_State* lua_state, const std::string& lua_api_version,
+                               LuaScriptCallLocations* new_script_call_location_pointer)
 {
+  script_call_location_pointer = new_script_call_location_pointer;
   LuaRegister** lua_register_ptr_ptr =
       (LuaRegister**)lua_newuserdata(lua_state, sizeof(LuaRegister*));
   *lua_register_ptr_ptr = GetLuaRegisterInstance();

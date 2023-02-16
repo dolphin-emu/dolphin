@@ -4,6 +4,7 @@
 #include <mutex>
 #include "Core/Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h"
 #include "Core/Lua/LuaFunctions/LuaImportModule.h"
+#include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
 #include "Core/Movie.h"
 
 namespace Lua
@@ -17,6 +18,7 @@ bool is_lua_core_initialized = false;
 std::function<void(const std::string&)>* print_callback_function = nullptr;
 std::function<void()>* script_end_callback_function = nullptr;
 std::mutex general_lua_lock;
+static LuaScriptCallLocations lua_script_called_location = LuaScriptCallLocations::FromScriptStartup;
 
 int CustomPrintFunction(lua_State* lua_state)
 {
@@ -109,6 +111,7 @@ void Init(const std::string& script_location,
           std::function<void()>* new_script_end_callback)
 {
   general_lua_lock.lock();
+  lua_script_called_location = LuaScriptCallLocations::FromScriptStartup;
   print_callback_function = new_print_callback;
   script_end_callback_function = new_script_end_callback;
   x = 0;
@@ -120,8 +123,9 @@ void Init(const std::string& script_location,
   main_lua_thread_state = lua_newthread(main_lua_state);
   LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(
       &main_lua_thread_state, global_lua_api_version, &general_lua_lock,
-      script_end_callback_function);
-  LuaImportModule::InitLuaImportModule(main_lua_thread_state, global_lua_api_version);
+      script_end_callback_function, &lua_script_called_location);
+  LuaImportModule::InitLuaImportModule(main_lua_thread_state, global_lua_api_version,
+                                       &lua_script_called_location);
 
   if (luaL_loadfile(main_lua_thread_state, script_location.c_str()) != LUA_OK)
   {

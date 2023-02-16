@@ -33,6 +33,7 @@ public:
 };
 
 static std::unique_ptr<Emu> emu_pointer = nullptr;
+static LuaScriptCallLocations* script_call_location_pointer = nullptr;
 
 Emu* GetEmuInstance()
 {
@@ -41,8 +42,11 @@ Emu* GetEmuInstance()
   return emu_pointer.get();
 }
 
-void InitLuaEmuFunctions(lua_State* lua_state, const std::string& lua_api_version)
+void InitLuaEmuFunctions(lua_State* lua_state, const std::string& lua_api_version,
+                         LuaScriptCallLocations* new_script_call_location_pointer)
 {
+  script_call_location_pointer = new_script_call_location_pointer;
+  called_yielding_function_on_last_frame = false;
   waiting_for_save_state_load = false;
   waiting_for_save_state_save = false;
   waiting_to_start_playing_movie = false;

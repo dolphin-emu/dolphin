@@ -526,7 +526,6 @@ void SaveAs(const std::string& filename, bool wait)
         if (Lua::is_lua_script_active)
         {
           Lua::LuaEmu::waiting_for_save_state_save = false;
-          Lua::LuaEmu::called_yielding_function_on_last_frame = true;
         }
       },
       true);
@@ -720,7 +719,6 @@ void LoadAs(const std::string& filename)
         if (Lua::is_lua_script_active)
         {
           Lua::LuaEmu::waiting_for_save_state_load = false;
-          Lua::LuaEmu::called_yielding_function_on_last_frame = true;
         }
       },
       true);
