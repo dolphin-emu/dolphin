@@ -45,8 +45,6 @@ android {
             signingConfig signingConfigs.debug
             matchingFallbacks = ['release']
             debuggable true
-            applicationIdSuffix ".benchmark"
-            versionNameSuffix '-benchmark'
             proguardFiles getDefaultProguardFile(
                     'proguard-android-optimize.txt'),
                     'proguard-rules.pro'
