@@ -122,9 +122,9 @@ class Tev
   static constexpr s16 V7_8 = 223;
   static constexpr s16 V1 = 255;
 
-  u8 AlphaBump;
-  u8 IndirectTex[4][4];
-  TextureCoordinateType TexCoord;
+  u8 AlphaBump = 0;
+  u8 IndirectTex[4][4]{};
+  TextureCoordinateType TexCoord{};
 
   const Common::EnumMap<TevColorRef, TevColorArg::Zero> m_ColorInputLUT{
       TevColorRef::Color(Reg[TevOutput::Prev]),    // prev.rgb
@@ -213,13 +213,13 @@ class Tev
   void Indirect(unsigned int stageNum, s32 s, s32 t);
 
 public:
-  s32 Position[3];
-  u8 Color[2][4];  // must be RGBA for correct swap table ordering
-  TextureCoordinateType Uv[8];
-  s32 IndirectLod[4];
-  bool IndirectLinear[4];
-  s32 TextureLod[16];
-  bool TextureLinear[16];
+  s32 Position[3]{};
+  u8 Color[2][4]{};  // must be RGBA for correct swap table ordering
+  TextureCoordinateType Uv[8]{};
+  s32 IndirectLod[4]{};
+  bool IndirectLinear[4]{};
+  s32 TextureLod[16]{};
+  bool TextureLinear[16]{};
 
   enum
   {

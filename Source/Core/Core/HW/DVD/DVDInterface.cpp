@@ -138,11 +138,11 @@ struct DVDInterfaceState::Data
   // Hardware registers
   UDISR DISR;
   UDICVR DICVR;
-  u32 DICMDBUF[3];
-  u32 DIMAR;
-  u32 DILENGTH;
+  std::array<u32, 3> DICMDBUF{};
+  u32 DIMAR = 0;
+  u32 DILENGTH = 0;
   UDICR DICR;
-  u32 DIIMMBUF;
+  u32 DIIMMBUF = 0;
   UDICFG DICFG;
 
   StreamADPCM::ADPCMDecoder adpcm_decoder;
@@ -150,36 +150,36 @@ struct DVDInterfaceState::Data
   // DTK
   bool stream = false;
   bool stop_at_track_end = false;
-  u64 audio_position;
-  u64 current_start;
-  u32 current_length;
-  u64 next_start;
-  u32 next_length;
-  u32 pending_samples;
+  u64 audio_position = 0;
+  u64 current_start = 0;
+  u32 current_length = 0;
+  u64 next_start = 0;
+  u32 next_length = 0;
+  u32 pending_samples = 0;
   bool enable_dtk = false;
   u8 dtk_buffer_length = 0;  // TODO: figure out how this affects the regular buffer
 
   // Disc drive state
-  DriveState drive_state;
-  DriveError error_code;
-  u64 disc_end_offset;
+  DriveState drive_state = DriveState::Ready;
+  DriveError error_code = DriveError::None;
+  u64 disc_end_offset = 0;
 
   // Disc drive timing
-  u64 read_buffer_start_time;
-  u64 read_buffer_end_time;
-  u64 read_buffer_start_offset;
-  u64 read_buffer_end_offset;
+  u64 read_buffer_start_time = 0;
+  u64 read_buffer_end_time = 0;
+  u64 read_buffer_start_offset = 0;
+  u64 read_buffer_end_offset = 0;
 
   // Disc changing
   std::string disc_path_to_insert;
   std::vector<std::string> auto_disc_change_paths;
-  size_t auto_disc_change_index;
+  size_t auto_disc_change_index = 0;
 
   // Events
-  CoreTiming::EventType* finish_executing_command;
-  CoreTiming::EventType* auto_change_disc;
-  CoreTiming::EventType* eject_disc;
-  CoreTiming::EventType* insert_disc;
+  CoreTiming::EventType* finish_executing_command = nullptr;
+  CoreTiming::EventType* auto_change_disc = nullptr;
+  CoreTiming::EventType* eject_disc = nullptr;
+  CoreTiming::EventType* insert_disc = nullptr;
 };
 
 DVDInterfaceState::DVDInterfaceState() : m_data(std::make_unique<Data>())

@@ -57,7 +57,7 @@ private:
   void SetGatherPipeCount(size_t size);
 
   // More room for the fastmodes
-  alignas(GATHER_PIPE_SIZE) u8 m_gather_pipe[GATHER_PIPE_EXTRA_SIZE];
+  alignas(GATHER_PIPE_SIZE) u8 m_gather_pipe[GATHER_PIPE_EXTRA_SIZE]{};
 
   Core::System& m_system;
 };

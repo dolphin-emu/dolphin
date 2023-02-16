@@ -21,9 +21,9 @@ public:
 struct DisassembleResult
 {
   std::string text;
-  u32 entry_address;
-  u32 instruction_count;
-  u32 code_size;
+  u32 entry_address = 0;
+  u32 instruction_count = 0;
+  u32 code_size = 0;
 };
 
 std::unique_ptr<HostDisassembler> GetNewDisassembler(const std::string& arch);

@@ -51,8 +51,8 @@ struct VideoInterfaceState::Data
   UVIFBInfoRegister xfb_info_bottom;
   UVIFBInfoRegister xfb_3d_info_top;  // Start making your stereoscopic demos! :p
   UVIFBInfoRegister xfb_3d_info_bottom;
-  std::array<UVIInterruptRegister, 4> interrupt_register;
-  std::array<UVILatchRegister, 2> latch_register;
+  std::array<UVIInterruptRegister, 4> interrupt_register{};
+  std::array<UVILatchRegister, 2> latch_register{};
   PictureConfigurationRegister picture_configuration;
   UVIHorizontalScaling horizontal_scaling;
   SVIFilterCoefTables filter_coef_tables;
@@ -68,15 +68,15 @@ struct VideoInterfaceState::Data
   u32 target_refresh_rate_numerator = 0;
   u32 target_refresh_rate_denominator = 1;
 
-  u64 ticks_last_line_start;      // number of ticks when the current full scanline started
-  u32 half_line_count;            // number of halflines that have occurred for this full frame
-  u32 half_line_of_next_si_poll;  // halfline when next SI poll results should be available
+  u64 ticks_last_line_start = 0;      // number of ticks when the current full scanline started
+  u32 half_line_count = 0;            // number of halflines that have occurred for this full frame
+  u32 half_line_of_next_si_poll = 0;  // halfline when next SI poll results should be available
 
   // below indexes are 0-based
-  u32 even_field_first_hl;  // index first halfline of the even field
-  u32 odd_field_first_hl;   // index first halfline of the odd field
-  u32 even_field_last_hl;   // index last halfline of the even field
-  u32 odd_field_last_hl;    // index last halfline of the odd field
+  u32 even_field_first_hl = 0;  // index first halfline of the even field
+  u32 odd_field_first_hl = 0;   // index first halfline of the odd field
+  u32 even_field_last_hl = 0;   // index last halfline of the even field
+  u32 odd_field_last_hl = 0;    // index last halfline of the odd field
 };
 
 VideoInterfaceState::VideoInterfaceState() : m_data(std::make_unique<Data>())

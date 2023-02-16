@@ -43,7 +43,7 @@ struct ContentFile
   std::string m_filename;
 
   // Offset from the start of the file where the first byte of this content chunk is.
-  u64 m_offset;
+  u64 m_offset = 0;
 };
 
 // Content chunk that loads data from a DirectoryBlobReader.
@@ -54,20 +54,20 @@ struct ContentPartition
   DirectoryBlobReader* m_reader;
 
   // Offset from the start of the partition for the first byte represented by this chunk.
-  u64 m_offset;
+  u64 m_offset = 0;
 
   // The value passed as partition_data_offset to EncryptPartitionData().
-  u64 m_partition_data_offset;
+  u64 m_partition_data_offset = 0;
 };
 
 // Content chunk that loads data from a Volume.
 struct ContentVolume
 {
   // Offset from the start of the volume for the first byte represented by this chunk.
-  u64 m_offset;
+  u64 m_offset = 0;
 
   // The volume to read data from.
-  const Volume* m_volume;
+  const Volume* m_volume = nullptr;
 
   // The partition passed to the Volume's Read() method.
   Partition m_partition;
@@ -77,7 +77,7 @@ struct ContentVolume
 // Useful for padding between chunks within a file.
 struct ContentFixedByte
 {
-  u8 m_byte;
+  u8 m_byte = 0;
 };
 
 // Content chunk representing an arbitrary byte sequence that's stored within the struct itself.
@@ -96,15 +96,15 @@ using ContentSource = std::variant<ContentFile,       // File
 
 struct BuilderContentSource
 {
-  u64 m_offset;
-  u64 m_size;
+  u64 m_offset = 0;
+  u64 m_size = 0;
   ContentSource m_source;
 };
 
 struct FSTBuilderNode
 {
   std::string m_filename;
-  u64 m_size;
+  u64 m_size = 0;
   std::variant<std::vector<BuilderContentSource>, std::vector<FSTBuilderNode>> m_content;
   void* m_user_data = nullptr;
 

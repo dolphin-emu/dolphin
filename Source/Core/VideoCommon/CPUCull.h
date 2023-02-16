@@ -29,10 +29,10 @@ private:
   {
     void operator()(T* ptr);
   };
-  std::unique_ptr<TransformedVertex[], BufferDeleter<TransformedVertex>> m_transform_buffer;
+  std::unique_ptr<TransformedVertex[], BufferDeleter<TransformedVertex>> m_transform_buffer{};
   u32 m_transform_buffer_size = 0;
-  std::array<std::array<TransformFunction, 2>, 2> m_transform_table;
+  std::array<std::array<TransformFunction, 2>, 2> m_transform_table{};
   Common::EnumMap<Common::EnumMap<CullFunction, CullMode::All>,
                   OpcodeDecoder::Primitive::GX_DRAW_TRIANGLE_FAN>
-      m_cull_table;
+      m_cull_table{};
 };

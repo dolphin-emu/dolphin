@@ -160,8 +160,8 @@ public:
     return GetSystemTimeFAT();
   }
 
-  File::IOFile* m_image;
-  bool m_deterministic;
+  File::IOFile* m_image = nullptr;
+  bool m_deterministic = false;
 };
 }  // namespace
 

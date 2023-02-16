@@ -347,7 +347,7 @@ protected:
   void Force25BitPrecision(Arm64Gen::ARM64Reg output, Arm64Gen::ARM64Reg input);
 
   // <Fastmem fault location, slowmem handler location>
-  std::map<const u8*, FastmemArea> m_fault_to_handler;
+  std::map<const u8*, FastmemArea> m_fault_to_handler{};
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
 
@@ -359,11 +359,11 @@ protected:
   bool m_in_far_code = false;
 
   // Backed up when we switch to far code.
-  u8* m_near_code;
-  u8* m_near_code_end;
-  bool m_near_code_write_failed;
+  u8* m_near_code = nullptr;
+  u8* m_near_code_end = nullptr;
+  bool m_near_code_write_failed = false;
 
-  bool m_enable_blr_optimization;
+  bool m_enable_blr_optimization = false;
   bool m_cleanup_after_stackfault = false;
   u8* m_stack_base = nullptr;
   u8* m_stack_pointer = nullptr;

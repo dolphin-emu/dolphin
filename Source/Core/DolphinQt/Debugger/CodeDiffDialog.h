@@ -15,10 +15,10 @@ class QTableWidget;
 
 struct Diff
 {
-  u32 addr;
+  u32 addr = 0;
   std::string symbol;
-  u32 hits;
-  u32 total_hits;
+  u32 hits = 0;
+  u32 total_hits = 0;
 
   bool operator<(const std::string& val) const { return symbol < val; }
 };

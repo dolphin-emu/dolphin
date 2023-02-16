@@ -53,7 +53,7 @@ union RasterizationState
   BitField<0, 2, CullMode> cullmode;
   BitField<3, 2, PrimitiveType> primitive;
 
-  u32 hex;
+  u32 hex = 0;
 };
 
 union FramebufferState
@@ -80,7 +80,7 @@ union FramebufferState
   BitField<16, 8, u32> samples;
   BitField<24, 1, u32> per_sample_shading;
 
-  u32 hex;
+  u32 hex = 0;
 };
 
 union DepthState
@@ -109,7 +109,7 @@ union DepthState
   BitField<1, 1, u32> updateenable;
   BitField<2, 3, CompareMode> func;
 
-  u32 hex;
+  u32 hex = 0;
 };
 
 union BlendingState
@@ -155,7 +155,7 @@ union BlendingState
 
   bool RequiresDualSrc() const;
 
-  u32 hex;
+  u32 hex = 0;
 };
 
 struct SamplerState
@@ -200,14 +200,14 @@ struct SamplerState
     BitField<8, 16, s32> lod_bias;         // multiplied by 256, higher precision than normal
     BitField<24, 1, bool, u32> lod_clamp;  // TODO: This isn't currently implemented
     BitField<25, 1, bool, u32> anisotropic_filtering;  // TODO: This doesn't use the BP one yet
-    u32 hex;
+    u32 hex = 0;
   };
   union TM1
   {
     // Min is guaranteed to be less than or equal to max
     BitField<0, 8, u32> min_lod;  // multiplied by 16
     BitField<8, 8, u32> max_lod;  // multiplied by 16
-    u32 hex;
+    u32 hex = 0;
   };
 
   TM0 tm0;

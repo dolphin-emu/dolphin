@@ -137,16 +137,16 @@ struct DSPState::Data
   // Contains bitfields for some stuff we don't care about (and nothing ever reads):
   //  CAS latency/burst length/addressing mode/write mode
   // We care about the LSB tho. It indicates that the ARAM controller has finished initializing
-  u16 aram_mode;
-  u16 aram_refresh;
+  u16 aram_mode = 0;
+  u16 aram_refresh = 0;
   int dsp_slice = 0;
 
   std::unique_ptr<DSPEmulator> dsp_emulator;
 
   bool is_lle = false;
 
-  CoreTiming::EventType* event_type_generate_dsp_interrupt;
-  CoreTiming::EventType* event_type_complete_aram;
+  CoreTiming::EventType* event_type_generate_dsp_interrupt = nullptr;
+  CoreTiming::EventType* event_type_complete_aram = nullptr;
 };
 
 DSPState::DSPState() : m_data(std::make_unique<Data>())

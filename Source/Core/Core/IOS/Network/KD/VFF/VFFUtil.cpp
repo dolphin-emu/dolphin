@@ -253,7 +253,7 @@ public:
 
   int DiskIOCtl(u8 pdrv, u8 cmd, void* buff) override { return vff_ioctl(m_vff, pdrv, cmd, buff); }
 
-  IOS::HLE::FS::FileHandle* m_vff;
+  IOS::HLE::FS::FileHandle* m_vff = nullptr;
 };
 }  // namespace
 

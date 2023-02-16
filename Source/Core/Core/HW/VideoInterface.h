@@ -133,7 +133,7 @@ union UVIDisplayControlRegister
 
 union UVIHorizontalTiming0
 {
-  u32 Hex;
+  u32 Hex = 0;
   struct
   {
     u16 Lo, Hi;
@@ -151,7 +151,7 @@ union UVIHorizontalTiming0
 
 union UVIHorizontalTiming1
 {
-  u32 Hex;
+  u32 Hex = 0;
   struct
   {
     u16 Lo, Hi;
@@ -168,7 +168,7 @@ union UVIHorizontalTiming1
 // Exists for both odd and even fields
 union UVIVBlankTimingRegister
 {
-  u32 Hex;
+  u32 Hex = 0;
   struct
   {
     u16 Lo, Hi;
@@ -185,7 +185,7 @@ union UVIVBlankTimingRegister
 // Exists for both odd and even fields
 union UVIBurstBlankingRegister
 {
-  u32 Hex;
+  u32 Hex = 0;
   struct
   {
     u16 Lo, Hi;
@@ -201,7 +201,7 @@ union UVIBurstBlankingRegister
 
 union UVIFBInfoRegister
 {
-  u32 Hex;
+  u32 Hex = 0;
   struct
   {
     u16 Lo, Hi;
@@ -221,7 +221,7 @@ union UVIFBInfoRegister
 // VI Interrupt Register
 union UVIInterruptRegister
 {
-  u32 Hex;
+  u32 Hex = 0;
   struct
   {
     u16 Lo, Hi;
@@ -240,7 +240,7 @@ union UVIInterruptRegister
 
 union UVILatchRegister
 {
-  u32 Hex;
+  u32 Hex = 0;
   struct
   {
     u16 Lo, Hi;
@@ -257,7 +257,7 @@ union UVILatchRegister
 
 union PictureConfigurationRegister
 {
-  u16 Hex;
+  u16 Hex = 0;
   struct
   {
     u16 STD : 8;
@@ -284,7 +284,7 @@ union UVIHorizontalScaling
 // Used for tables 0-2
 union UVIFilterCoefTable3
 {
-  u32 Hex;
+  u32 Hex = 0;
   struct
   {
     u16 Lo, Hi;
@@ -301,7 +301,7 @@ union UVIFilterCoefTable3
 // Used for tables 3-6
 union UVIFilterCoefTable4
 {
-  u32 Hex;
+  u32 Hex = 0;
   struct
   {
     u16 Lo, Hi;
@@ -324,7 +324,7 @@ struct SVIFilterCoefTables
 // Debug video mode only, probably never used in Dolphin...
 union UVIBorderBlankRegister
 {
-  u32 Hex;
+  u32 Hex = 0;
   struct
   {
     u16 Lo, Hi;
@@ -341,7 +341,7 @@ union UVIBorderBlankRegister
 // ntsc-j and component cable bits
 union UVIDTVStatus
 {
-  u16 Hex;
+  u16 Hex = 0;
   struct
   {
     u16 component_plugged : 1;
@@ -352,7 +352,7 @@ union UVIDTVStatus
 
 union UVIHorizontalStepping
 {
-  u16 Hex;
+  u16 Hex = 0;
   struct
   {
     u16 srcwidth : 10;

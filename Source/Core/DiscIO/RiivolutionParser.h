@@ -54,7 +54,7 @@ struct Option
 
   // The currently selected patch choice in the m_choices vector.
   // Note that this index is 1-based; 0 means no choice is selected and this Option is disabled.
-  u32 m_selected_choice;
+  u32 m_selected_choice = 0;
 };
 
 // A single page of options presented to the user in the Riivolution GUI.
@@ -177,7 +177,7 @@ struct Patch
 struct Disc
 {
   // Riivolution version. Only '1' exists at time of writing.
-  int m_version;
+  int m_version = 0;
 
   // Info about which game and revision these patches are for.
   GameFilter m_game_filter;
@@ -209,7 +209,7 @@ struct ConfigOption
   std::string m_id;
 
   // The selected Choice index.
-  u32 m_default;
+  u32 m_default = 0;
 };
 
 struct Config
