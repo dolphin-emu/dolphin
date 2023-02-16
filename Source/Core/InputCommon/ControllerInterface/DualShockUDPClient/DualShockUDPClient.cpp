@@ -153,10 +153,10 @@ private:
   const std::string m_server_address;
   const u16 m_server_port;
 
-  s16 m_touch_x_min;
-  s16 m_touch_y_min;
-  s16 m_touch_x_max;
-  s16 m_touch_y_max;
+  s16 m_touch_x_min = 0;
+  s16 m_touch_y_min = 0;
+  s16 m_touch_x_max = 0;
+  s16 m_touch_y_max = 0;
 
   const u32 m_client_uid;
 };
@@ -192,7 +192,7 @@ struct Server
 
   std::string m_description;
   std::string m_address;
-  u16 m_port;
+  u16 m_port = 0;
   std::array<Proto::MessageType::PortInfo, Proto::PORT_COUNT> m_port_info{};
   sf::UdpSocket m_socket;
   SteadyClock::time_point m_disconnect_time = SteadyClock::now();
@@ -213,9 +213,9 @@ private:
   void StartHotplugThread();
   void StopHotplugThread();
 
-  bool m_servers_enabled;
+  bool m_servers_enabled = false;
   std::vector<Server> m_servers;
-  u32 m_client_uid;
+  u32 m_client_uid = 0;
   SteadyClock::time_point m_next_listports_time;
   std::thread m_hotplug_thread;
   Common::Flag m_hotplug_thread_running;
