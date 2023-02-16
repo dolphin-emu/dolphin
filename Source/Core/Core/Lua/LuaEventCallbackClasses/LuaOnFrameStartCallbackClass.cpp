@@ -18,6 +18,7 @@ int on_frame_start_lua_function_reference = -1;
 bool frame_start_callback_is_registered = false;
 
 static bool in_global_scope = true;
+static bool finished_global_code = false;
 static int temp_int = 0;
 static std::mutex* general_lua_lock;
 std::function<void()>* shutdown_func;
@@ -43,6 +44,7 @@ void InitLuaOnFrameStartCallbackFunctions(lua_State** lua_state, const std::stri
                                           std::mutex* new_lua_general_lock,
                                           std::function<void()>* new_shutdown_func)
 {
+  finished_global_code = false;
   in_global_scope = true;
   main_lua_state = lua_state;
   general_lua_lock = new_lua_general_lock;
@@ -128,7 +130,7 @@ int RunCallback()
       general_lua_lock->unlock();
     }
   }
-  else if (in_global_scope)
+  else if (in_global_scope && !finished_global_code)
   {
     in_global_scope = true;
     int ret_val = lua_resume(*main_lua_state, nullptr, 0, &temp_int);
@@ -136,6 +138,7 @@ int RunCallback()
       LuaEmu::called_yielding_function_on_last_frame = true;
     else
     {
+      finished_global_code = true;
       LuaEmu::called_yielding_function_on_last_frame = false;
     }
   }
