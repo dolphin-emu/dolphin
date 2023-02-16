@@ -59,9 +59,6 @@ public:
   void SetMousePress(u32 button_mask);
 
 private:
-  // Destroys all ImGui GPU resources, must do before shutdown.
-  void ShutdownImGui();
-
   void DrawDebugText();
 
   // ImGui resources.
