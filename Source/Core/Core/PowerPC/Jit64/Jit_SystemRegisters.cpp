@@ -460,7 +460,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   auto& system = Core::System::GetInstance();
   MOV(64, R(RSCRATCH), ImmPtr(&system.GetProcessorInterface().m_interrupt_cause));
   TEST(32, MatR(RSCRATCH), Imm32(ProcessorInterface::INT_CAUSE_CP));
-  FixupBranch cpInt = J_CC(CC_NZ);
+  FixupBranch cpInt = J_CC(CC_NZ, true);
 
   MOV(32, PPCSTATE(pc), Imm32(js.compilerPC + 4));
   WriteExternalExceptionExit();
