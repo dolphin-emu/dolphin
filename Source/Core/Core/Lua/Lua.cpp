@@ -111,8 +111,6 @@ void Init(const std::string& script_location,
   print_callback_function = new_print_callback;
   script_end_callback_function = new_script_end_callback;
   x = 0;
-  is_lua_script_active = true;
-  is_lua_core_initialized = true;
   main_lua_state = luaL_newstate();
   luaL_openlibs(main_lua_state);
   lua_newtable(main_lua_state);
@@ -142,6 +140,8 @@ void Init(const std::string& script_location,
     Lua::is_lua_script_active = false;
   }
 
+  is_lua_script_active = true;
+  is_lua_core_initialized = true;
   return;
 }
 
