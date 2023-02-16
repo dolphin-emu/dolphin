@@ -29,10 +29,10 @@ namespace ExpansionInterface
 {
 struct ExpansionInterfaceState::Data
 {
-  CoreTiming::EventType* event_type_change_device;
-  CoreTiming::EventType* event_type_update_interrupts;
+  CoreTiming::EventType* event_type_change_device = nullptr;
+  CoreTiming::EventType* event_type_update_interrupts = nullptr;
 
-  std::array<std::unique_ptr<CEXIChannel>, MAX_EXI_CHANNELS> channels;
+  std::array<std::unique_ptr<CEXIChannel>, MAX_EXI_CHANNELS> channels{};
 
   bool using_overridden_sram = false;
 };

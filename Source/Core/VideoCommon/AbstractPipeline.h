@@ -40,16 +40,16 @@ enum class AbstractPipelineUsage
 
 struct AbstractPipelineConfig
 {
-  const NativeVertexFormat* vertex_format;
-  const AbstractShader* vertex_shader;
-  const AbstractShader* geometry_shader;
-  const AbstractShader* pixel_shader;
+  const NativeVertexFormat* vertex_format = nullptr;
+  const AbstractShader* vertex_shader = nullptr;
+  const AbstractShader* geometry_shader = nullptr;
+  const AbstractShader* pixel_shader = nullptr;
   RasterizationState rasterization_state;
   DepthState depth_state;
   BlendingState blending_state;
   FramebufferState framebuffer_state;
 
-  AbstractPipelineUsage usage;
+  AbstractPipelineUsage usage = AbstractPipelineUsage::GX;
 
   bool operator==(const AbstractPipelineConfig& rhs) const
   {

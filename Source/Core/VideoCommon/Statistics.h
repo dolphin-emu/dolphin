@@ -10,22 +10,22 @@
 
 struct Statistics
 {
-  int num_pixel_shaders_created;
-  int num_pixel_shaders_alive;
-  int num_vertex_shaders_created;
-  int num_vertex_shaders_alive;
+  int num_pixel_shaders_created = 0;
+  int num_pixel_shaders_alive = 0;
+  int num_vertex_shaders_created = 0;
+  int num_vertex_shaders_alive = 0;
 
-  int num_textures_created;
-  int num_textures_uploaded;
-  int num_textures_alive;
+  int num_textures_created = 0;
+  int num_textures_uploaded = 0;
+  int num_textures_alive = 0;
 
-  int num_vertex_loaders;
+  int num_vertex_loaders = 0;
 
-  std::array<float, 6> proj;
-  std::array<float, 16> gproj;
-  std::array<float, 16> g2proj;
+  std::array<float, 6> proj{};
+  std::array<float, 16> gproj{};
+  std::array<float, 16> g2proj{};
 
-  std::vector<BPFunctions::ScissorResult> scissors;
+  std::vector<BPFunctions::ScissorResult> scissors{};
   size_t current_scissor = 0;  // 0 => all, otherwise index + 1
   int scissor_scale = 10;
   int scissor_expected_count = 0;
@@ -37,44 +37,44 @@ struct Statistics
 
   struct ThisFrame
   {
-    int num_bp_loads;
-    int num_cp_loads;
-    int num_xf_loads;
+    int num_bp_loads = 0;
+    int num_cp_loads = 0;
+    int num_xf_loads = 0;
 
-    int num_bp_loads_in_dl;
-    int num_cp_loads_in_dl;
-    int num_xf_loads_in_dl;
+    int num_bp_loads_in_dl = 0;
+    int num_cp_loads_in_dl = 0;
+    int num_xf_loads_in_dl = 0;
 
-    int num_prims;
-    int num_dl_prims;
-    int num_shader_changes;
+    int num_prims = 0;
+    int num_dl_prims = 0;
+    int num_shader_changes = 0;
 
-    int num_primitive_joins;
-    int num_draw_calls;
+    int num_primitive_joins = 0;
+    int num_draw_calls = 0;
 
-    int num_dlists_called;
+    int num_dlists_called = 0;
 
-    int bytes_vertex_streamed;
-    int bytes_index_streamed;
-    int bytes_uniform_streamed;
+    int bytes_vertex_streamed = 0;
+    int bytes_index_streamed = 0;
+    int bytes_uniform_streamed = 0;
 
-    int num_triangles_clipped;
-    int num_triangles_in;
-    int num_triangles_rejected;
-    int num_triangles_culled;
-    int num_drawn_objects;
-    int rasterized_pixels;
-    int num_triangles_drawn;
-    int num_vertices_loaded;
-    int tev_pixels_in;
-    int tev_pixels_out;
+    int num_triangles_clipped = 0;
+    int num_triangles_in = 0;
+    int num_triangles_rejected = 0;
+    int num_triangles_culled = 0;
+    int num_drawn_objects = 0;
+    int rasterized_pixels = 0;
+    int num_triangles_drawn = 0;
+    int num_vertices_loaded = 0;
+    int tev_pixels_in = 0;
+    int tev_pixels_out = 0;
 
-    int num_efb_peeks;
-    int num_efb_pokes;
+    int num_efb_peeks = 0;
+    int num_efb_pokes = 0;
 
-    int num_draw_done;
-    int num_token;
-    int num_token_int;
+    int num_draw_done = 0;
+    int num_token = 0;
+    int num_token_int = 0;
   };
   ThisFrame this_frame;
   void ResetFrame();

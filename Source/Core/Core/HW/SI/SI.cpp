@@ -201,19 +201,19 @@ union USIEXIClockCount
 
 struct SerialInterfaceState::Data
 {
-  CoreTiming::EventType* event_type_change_device;
-  CoreTiming::EventType* event_type_tranfer_pending;
-  std::array<CoreTiming::EventType*, MAX_SI_CHANNELS> event_types_device;
+  CoreTiming::EventType* event_type_change_device = nullptr;
+  CoreTiming::EventType* event_type_tranfer_pending = nullptr;
+  std::array<CoreTiming::EventType*, MAX_SI_CHANNELS> event_types_device{};
 
   // User-configured device type. possibly overridden by TAS/Netplay
-  std::array<std::atomic<SIDevices>, MAX_SI_CHANNELS> desired_device_types;
+  std::array<std::atomic<SIDevices>, MAX_SI_CHANNELS> desired_device_types{};
 
-  std::array<SSIChannel, MAX_SI_CHANNELS> channel;
+  std::array<SSIChannel, MAX_SI_CHANNELS> channel{};
   USIPoll poll;
   USIComCSR com_csr;
   USIStatusReg status_reg;
   USIEXIClockCount exi_clock_count;
-  std::array<u8, 128> si_buffer;
+  std::array<u8, 128> si_buffer{};
 };
 
 SerialInterfaceState::SerialInterfaceState() : m_data(std::make_unique<Data>())

@@ -76,7 +76,7 @@ static void FinishRead(Core::System& system, u64 id, s64 cycles_late);
 
 struct DVDThreadState::Data
 {
-  CoreTiming::EventType* finish_read;
+  CoreTiming::EventType* finish_read = nullptr;
 
   u64 next_id = 0;
 

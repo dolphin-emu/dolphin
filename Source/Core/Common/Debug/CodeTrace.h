@@ -31,7 +31,7 @@ struct InstructionAttributes
 
 struct TraceOutput
 {
-  u32 address;
+  u32 address = 0;
   std::optional<u32> memory_target = std::nullopt;
   std::string instruction;
 };

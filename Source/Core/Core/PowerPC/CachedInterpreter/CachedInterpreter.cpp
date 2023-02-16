@@ -40,7 +40,7 @@ struct CachedInterpreter::Instruction
 
   union
   {
-    const CommonCallback common_callback;
+    const CommonCallback common_callback = nullptr;
     const ConditionalCallback conditional_callback;
   };
 

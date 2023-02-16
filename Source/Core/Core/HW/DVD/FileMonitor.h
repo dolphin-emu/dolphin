@@ -18,6 +18,6 @@ public:
 
 private:
   DiscIO::Partition m_previous_partition;
-  u64 m_previous_file_offset;
+  u64 m_previous_file_offset = 0;
 };
 }  // namespace FileMonitor

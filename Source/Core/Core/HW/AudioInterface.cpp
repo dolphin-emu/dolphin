@@ -124,7 +124,7 @@ struct AudioInterfaceState::Data
   u32 ais_sample_rate_divisor = Mixer::FIXED_SAMPLE_RATE_DIVIDEND / 48000;
   u32 aid_sample_rate_divisor = Mixer::FIXED_SAMPLE_RATE_DIVIDEND / 32000;
 
-  CoreTiming::EventType* event_type_ai;
+  CoreTiming::EventType* event_type_ai = nullptr;
 };
 
 AudioInterfaceState::AudioInterfaceState() : m_data(std::make_unique<Data>())
