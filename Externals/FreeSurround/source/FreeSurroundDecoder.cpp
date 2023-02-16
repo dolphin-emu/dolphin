@@ -31,10 +31,8 @@ DPL2FSDecoder::DPL2FSDecoder() {
 }
 
 DPL2FSDecoder::~DPL2FSDecoder() {
-#pragma warning(suppress : 4150)
-  delete forward;
-#pragma warning(suppress : 4150)
-  delete inverse;
+  kiss_fftr_free(forward);
+  kiss_fftr_free(inverse);
 }
 
 void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
