@@ -4,6 +4,7 @@
 #include "DolphinQt/ConvertDialog.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <functional>
 #include <future>
 #include <memory>
@@ -22,6 +23,7 @@
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/ScrubbedBlob.h"
@@ -385,6 +387,8 @@ void ConvertDialog::Convert()
       return;
   }
 
+  int success_count = 0;
+
   for (const auto& file : m_files)
   {
     const auto original_path = file->GetFilePath();
@@ -407,6 +411,21 @@ void ConvertDialog::Convert()
 
         if (confirm_replace.exec() == QMessageBox::No)
           continue;
+      }
+    }
+
+    if (std::filesystem::exists(StringToPath(dst_path.toStdString())))
+    {
+      std::error_code ec;
+      if (std::filesystem::equivalent(StringToPath(dst_path.toStdString()),
+                                      StringToPath(original_path), ec))
+      {
+        ModalMessageBox::critical(
+            this, tr("Error"),
+            tr("The destination file cannot be the same as the source file\n\n"
+               "Please select another destination path for \"%1\"")
+                .arg(QString::fromStdString(original_path)));
+        continue;
       }
     }
 
@@ -507,11 +526,13 @@ void ConvertDialog::Convert()
                                   tr("Dolphin failed to complete the requested action."));
         return;
       }
+
+      success_count++;
     }
   }
 
   ModalMessageBox::information(this, tr("Success"),
-                               tr("Successfully converted %n image(s).", "", m_files.size()));
+                               tr("Successfully converted %n image(s).", "", success_count));
 
   close();
 }
