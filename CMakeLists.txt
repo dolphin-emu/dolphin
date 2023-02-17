@@ -502,12 +502,15 @@ if(ENABLE_HEADLESS)
   set(USE_DISCORD_PRESENCE 0)
 endif()
 
-# Set file offset size to 64 bits.
+# Set file offset size to 64 bits. On modern Unixes, this is typically already the case. Exceptions:
 #
-# On modern Unixes, this is typically already the case. The lone exception is
-# glibc, which may default to 32 bits. glibc allows this to be configured
-# by setting _FILE_OFFSET_BITS.
-if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+# glibc may default to 32 bits. This can be configured by setting _FILE_OFFSET_BITS=64.
+#
+# bionic (Android) defaults to 32 bits for 32-bit ABIs. Here too we can use _FILE_OFFSET_BITS=64,
+# but only on API 25 and up. Since we're currently supporting older API levels and 32-bit Android
+# isn't a build configuration we officially support, let's leave this as it is for now.
+# More details: https://android.googlesource.com/platform/bionic/+/master/docs/32-bit-abi.md
+if(NOT ANDROID AND NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
   add_definitions(-D_FILE_OFFSET_BITS=64)
   add_definitions(-D_LARGEFILE_SOURCE)
 endif()
