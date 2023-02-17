@@ -387,6 +387,8 @@ void ConvertDialog::Convert()
       return;
   }
 
+  int success_count = 0;
+
   for (const auto& file : m_files)
   {
     const auto original_path = file->GetFilePath();
@@ -524,11 +526,13 @@ void ConvertDialog::Convert()
                                   tr("Dolphin failed to complete the requested action."));
         return;
       }
+
+      success_count++;
     }
   }
 
   ModalMessageBox::information(this, tr("Success"),
-                               tr("Successfully converted %n image(s).", "", m_files.size()));
+                               tr("Successfully converted %n image(s).", "", success_count));
 
   close();
 }
