@@ -404,6 +404,16 @@ void MemScanWidget::handleScannerErrors(const Common::MemOperationReturnCode err
   {
     emit mustUnhook();
   }
+  else if(errorCode == Common::MemOperationReturnCode::uninitialized)
+  {
+	  QMessageBox* errorBox =
+        new QMessageBox(QMessageBox::Critical, tr("Invalid memory operation"),
+                        tr("Memory is not initialized.")
+                            .arg(m_cmbScanType->currentText()),
+                        QMessageBox::Ok, this);
+    errorBox->exec();
+
+  }
 }
 
 QTimer* MemScanWidget::getUpdateTimer() const

@@ -17,6 +17,8 @@ Common::MemOperationReturnCode MemScanner::firstScan(const MemScanner::ScanFiter
 {
   m_scanRAMCache = nullptr;
   u32 ramSize = Common::totalRAMSize();
+  if(ramSize == 0)
+    return Common::MemOperationReturnCode::uninitialized;
   m_scanRAMCache = new char[ramSize];
   Common::readAllRAM(m_scanRAMCache);
 
@@ -78,7 +80,7 @@ Common::MemOperationReturnCode MemScanner::firstScan(const MemScanner::ScanFiter
 
   char* noOffset = new char[m_memSize];
   std::memset(noOffset, 0, m_memSize);
-
+  
   int increment = m_enforceMemAlignement ? Common::getNbrBytesAlignementForType(m_memType) : 1;
   for (u32 i = 0; i < (ramSize - m_memSize); i += increment)
   {
@@ -123,7 +125,7 @@ Common::MemOperationReturnCode MemScanner::firstScan(const MemScanner::ScanFiter
     }
 
     if (isResult)
-      m_resultsConsoleAddr.push_back(Common::offsetToAddr(i, Common::isARAMAccessible()));
+      m_resultsConsoleAddr.push_back(Common::offsetToAddr(i));
   }
   delete[] noOffset;
   delete[] memoryToCompare1;
@@ -139,6 +141,8 @@ Common::MemOperationReturnCode MemScanner::nextScan(const MemScanner::ScanFiter 
 {
   char* newerRAMCache = nullptr;
   u32 ramSize = Common::totalRAMSize();
+  if(ramSize == 0)
+    return Common::MemOperationReturnCode::uninitialized;
   newerRAMCache = new char[ramSize];
   Common::readAllRAM(newerRAMCache);
 
@@ -195,15 +199,15 @@ Common::MemOperationReturnCode MemScanner::nextScan(const MemScanner::ScanFiter 
     {
       if (isHitNextScan(filter, memoryToCompare1, memoryToCompare2, noOffset, newerRAMCache,
                         m_memSize, i))
-        newerResults.push_back(Common::offsetToAddr(i, aramAccessible));
+        newerResults.push_back(Common::offsetToAddr(i));
     }
   }
   else
   {
     for (auto i : m_resultsConsoleAddr)
     {
-      u32 offset = Common::addrToOffset(i, aramAccessible);
-      if (isHitNextScan(filter, memoryToCompare1, memoryToCompare2, noOffset, newerRAMCache,
+      u32 offset = Common::addrToOffset(i);
+		if(isHitNextScan(filter, memoryToCompare1, memoryToCompare2, noOffset, newerRAMCache,
                         m_memSize, offset))
       {
         newerResults.push_back(i);
@@ -382,7 +386,7 @@ std::vector<u32> MemScanner::getResultsConsoleAddr() const
 std::string MemScanner::getFormattedScannedValueAt(const int index) const
 {
   bool aramAccessible = Common::isARAMAccessible();
-  u32 offset = Common::addrToOffset(m_resultsConsoleAddr.at(index), aramAccessible);
+  u32 offset = Common::addrToOffset(m_resultsConsoleAddr.at(index));
   return Common::formatMemoryToString(&m_scanRAMCache[offset], m_memType, m_memSize, m_memBase,
                                       !m_memIsSigned, Common::shouldBeBSwappedForType(m_memType));
 }

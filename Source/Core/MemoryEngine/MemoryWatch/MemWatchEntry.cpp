@@ -195,7 +195,7 @@ u32 MemWatchEntry::getAddressForPointerLevel(const int level)
   for (int i = 0; i < level; ++i)
   {
     Common::readFromRAM(addressBuffer, 
-            Common::addrToOffset(address, Common::isARAMAccessible()),
+            Common::addrToOffset(address),
             sizeof(u32), true);
     std::memcpy(&address, addressBuffer, sizeof(u32));
     if (Common::isValidAddress(address))
@@ -230,8 +230,7 @@ Common::MemOperationReturnCode MemWatchEntry::readMemoryFromRAM()
     for (int offset : m_pointerOffsets)
     {
       Common::readFromRAM(realConsoleAddressBuffer, 
-              Common::addrToOffset(realConsoleAddress,
-                                          Common::isARAMAccessible()),
+              Common::addrToOffset(realConsoleAddress),
               sizeof(u32), true);
       std::memcpy(&realConsoleAddress, realConsoleAddressBuffer, sizeof(u32));
       if (Common::isValidAddress(realConsoleAddress))
@@ -247,8 +246,7 @@ Common::MemOperationReturnCode MemWatchEntry::readMemoryFromRAM()
   }
 
   Common::readFromRAM(m_memory, 
-          Common::addrToOffset(realConsoleAddress,
-                                      Common::isARAMAccessible()),
+          Common::addrToOffset(realConsoleAddress),
           getSizeForType(m_type, m_length), shouldBeBSwappedForType(m_type));
   return Common::MemOperationReturnCode::OK;
 }
@@ -263,8 +261,7 @@ Common::MemOperationReturnCode MemWatchEntry::writeMemoryToRAM(const char* memor
     for (int offset : m_pointerOffsets)
     {
       Common::readFromRAM(realConsoleAddressBuffer, 
-              Common::addrToOffset(realConsoleAddress,
-                                          Common::isARAMAccessible()),
+              Common::addrToOffset(realConsoleAddress),
               sizeof(u32), true);
       std::memcpy(&realConsoleAddress, realConsoleAddressBuffer, sizeof(u32));
       if (Common::isValidAddress(realConsoleAddress))
@@ -280,8 +277,7 @@ Common::MemOperationReturnCode MemWatchEntry::writeMemoryToRAM(const char* memor
   }
 
   Common::writeToRAM((void*) memory,
-          Common::addrToOffset(realConsoleAddress,
-                                      Common::isARAMAccessible()),
+          Common::addrToOffset(realConsoleAddress),
           size, shouldBeBSwappedForType(m_type));
   return Common::MemOperationReturnCode::OK;
 }

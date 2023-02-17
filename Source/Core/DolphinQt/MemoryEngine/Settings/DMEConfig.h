@@ -2,12 +2,12 @@
 
 #include <QSettings>
 
-class SConfig
+class DMEConfig
 {
 public:
-  static SConfig& getInstance();
-  SConfig(SConfig const&) = delete;
-  void operator=(SConfig const&) = delete;
+  static DMEConfig& getInstance();
+  DMEConfig(DMEConfig const&) = delete;
+  void operator=(DMEConfig const&) = delete;
 
   int getWatcherUpdateTimerMs() const;
   int getFreezeTimerMs() const;
@@ -24,8 +24,8 @@ public:
   void setViewerNbrBytesSeparator(const int viewerNbrBytesSeparator);
 
 private:
-  SConfig();
-  ~SConfig();
+  DMEConfig();
+  ~DMEConfig();
 
   QSettings* m_settings;
 };

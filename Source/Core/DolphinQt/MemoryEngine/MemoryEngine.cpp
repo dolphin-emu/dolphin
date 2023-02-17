@@ -11,7 +11,7 @@
 #include "../../MemoryEngine/Common/MemoryCommon.h"
 #include "../../MemoryEngine/MemoryWatch/MemWatchEntry.h"
 #include "Settings/DlgSettings.h"
-#include "Settings/SConfig.h"
+#include "Settings/DMEConfig.h"
 
 MemoryEngine::MemoryEngine(QWidget *parent) : QDialog(parent)
 {
@@ -221,10 +221,10 @@ void MemoryEngine::onOpenSettings()
     m_viewer->getUpdateTimer()->stop();
     if (Common::hasMemory())
     {
-      m_scanner->getUpdateTimer()->start(SConfig::getInstance().getScannerUpdateTimerMs());
-      m_watcher->getUpdateTimer()->start(SConfig::getInstance().getWatcherUpdateTimerMs());
-      m_watcher->getFreezeTimer()->start(SConfig::getInstance().getFreezeTimerMs());
-      m_viewer->getUpdateTimer()->start(SConfig::getInstance().getViewerUpdateTimerMs());
+      m_scanner->getUpdateTimer()->start(DMEConfig::getInstance().getScannerUpdateTimerMs());
+      m_watcher->getUpdateTimer()->start(DMEConfig::getInstance().getWatcherUpdateTimerMs());
+      m_watcher->getFreezeTimer()->start(DMEConfig::getInstance().getFreezeTimerMs());
+      m_viewer->getUpdateTimer()->start(DMEConfig::getInstance().getViewerUpdateTimerMs());
     }
   }
 }

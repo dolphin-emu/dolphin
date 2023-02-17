@@ -508,18 +508,17 @@ std::string formatMemoryToString(const char* memory, const MemType type, const s
   }
 }
 
-u8* getMEM1()
+u32 getMEM1()
 {
-  return Core::System::GetInstance().GetMemory().GetRAM();
+  return 0x80000000;
 }
 u32 getMEM1Size()
 {
   return Core::System::GetInstance().GetMemory().GetRamSizeReal();
 }
-u8* getMEM1End()
+u32 getMEM1End()
 {
-  Memory::MemoryManager& mem = Core::System::GetInstance().GetMemory();
-  return mem.GetRAM() + mem.GetRamSizeReal();
+  return getMEM1() + Core::System::GetInstance().GetMemory().GetRamSizeReal();
 }
 
 bool isMEM2Present()
@@ -527,18 +526,17 @@ bool isMEM2Present()
   return Core::System::GetInstance().GetMemory().GetEXRAM();
 }
 
-u8* getMEM2()
+u32 getMEM2()
 {
-  return Core::System::GetInstance().GetMemory().GetEXRAM();
+  return 0x90000000;
 }
 u32 getMEM2Size()
 {
   return Core::System::GetInstance().GetMemory().GetExRamSizeReal();
 }
-u8* getMEM2End()
+u32 getMEM2End()
 {
-  Memory::MemoryManager& mem = Core::System::GetInstance().GetMemory();
-  return mem.GetEXRAM() + mem.GetExRamSizeReal();
+  return getMEM2() + Core::System::GetInstance().GetMemory().GetExRamSizeReal();
 }
 
 bool isARAMAccessible()
@@ -546,18 +544,17 @@ bool isARAMAccessible()
   return Core::System::GetInstance().GetMemory().GetFakeVMEM();
 }
 
-u8* getARAM()
+u32 getARAM()
 {
-  return Core::System::GetInstance().GetMemory().GetFakeVMEM();
+  return 0x7E000000;
 }
 u32 getARAMSize()
 {
   return Core::System::GetInstance().GetMemory().GetFakeVMemSize();
 }
-u8* getARAMEnd()
+u32 getARAMEnd()
 {
-  Memory::MemoryManager& mem = Core::System::GetInstance().GetMemory();
-  return mem.GetFakeVMEM() + mem.GetFakeVMemSize();
+  return getARAM() + Core::System::GetInstance().GetMemory().GetFakeVMemSize();
 }
 
 u32 totalRAMSize()
@@ -581,129 +578,134 @@ bool isValidAddress(const u32 address)
 	//Could use Memory::MemoryManager::GetPointer but it may panic, so the code from DME may be better. 
   Memory::MemoryManager& mem = Core::System::GetInstance().GetMemory();
 
-  if(address >= (size_t) mem.GetRAM() && address < (size_t) mem.GetRAM() + mem.GetRamSizeReal())
+  if(address >= getMEM1() && address < getMEM1() + mem.GetRamSizeReal())
     return true;
 
   if(mem.GetEXRAM() &&
-		address >= (size_t) mem.GetEXRAM() && address < (size_t) mem.GetEXRAM() + mem.GetExRamSizeReal())
+		address >= getMEM2() && address < getMEM2() + mem.GetExRamSizeReal())
     return true;
 
   if(mem.GetFakeVMEM() &&
-		address >= (size_t) mem.GetFakeVMEM() && address < (size_t) mem.GetFakeVMEM() + mem.GetFakeVMemSize())
+		address >= getARAM() && address < getARAM() + mem.GetFakeVMemSize())
     return true;
 
   return false;
 }
 
-u32 addrToOffset(u32 addr, bool considerAram)
+u32 addrToOffset(u32 addr)
 {
   Memory::MemoryManager& mem = Core::System::GetInstance().GetMemory();
 
   // ARAM address
-  if (addr >= (size_t) mem.GetFakeVMEM() && addr < (size_t) mem.GetFakeVMEM() + mem.GetFakeVMemSize())
-    addr -= (size_t) mem.GetFakeVMEM();
+  if (addr >= getARAM() && addr < getARAM() + mem.GetFakeVMemSize())
+    return addr - getARAM();
 
   // MEM1 address
-  else if (addr >= (size_t) mem.GetRAM() && addr < (size_t) mem.GetRAM() + mem.GetRamSizeReal())
-  {
-    addr -= (size_t) mem.GetRAM();
-    if (considerAram)
-      addr += mem.GetFakeVMemSize();
-  }
+  if (addr >= getMEM1() && addr < getMEM1() + mem.GetRamSizeReal())
+	 return addr - getMEM1() + (mem.GetFakeVMEM() ? mem.GetFakeVMemSize() : 0);
+
   // MEM2 address
-  else if (addr >= (size_t) mem.GetEXRAM() && addr < (size_t) mem.GetEXRAM() + mem.GetExRamSizeReal())
-  {
-    addr -= (size_t) mem.GetEXRAM();
-    addr += ((size_t)mem.GetEXRAM() - (size_t) mem.GetRAM());
-  }
-  return addr;
+  if (addr >= getMEM2() && addr < getMEM2() + mem.GetExRamSizeReal())
+	 return addr - getMEM2() + (mem.GetFakeVMEM() ? mem.GetFakeVMemSize() : 0) + mem.GetRamSizeReal();
+
+  // invalid address
+  return mem.GetFakeVMemSize() + mem.GetRamSizeReal() + mem.GetExRamSizeReal();
 }
 
-u32 offsetToAddr(u32 offset, bool considerAram)
+u32 offsetToAddr(u32 offset)
 {
   Memory::MemoryManager& mem = Core::System::GetInstance().GetMemory();
 
-  if (considerAram)
+  if(mem.GetFakeVMEM())
   {
     if (offset < mem.GetFakeVMemSize())
-    {
-      offset += (size_t) mem.GetFakeVMEM();
-    }
-    else if (offset >= mem.GetFakeVMemSize() && offset < mem.GetFakeVMemSize() + mem.GetRamSizeReal())
-    {
-      offset += (size_t) mem.GetRAM();
-      offset -= mem.GetFakeVMemSize();
-    }
+      return offset + getARAM();
+    offset -= mem.GetFakeVMemSize();
   }
-  else
-  {
-    if (offset < mem.GetRamSizeReal())
-    {
-      offset += (size_t) mem.GetRAM();
-    }
-    else if (offset >= (size_t) mem.GetEXRAM() - (size_t) mem.GetRAM() && offset < (size_t) mem.GetEXRAM() - (size_t) mem.GetRAM() + mem.GetExRamSizeReal())
-    {
-      offset += (size_t) mem.GetEXRAM();
-      offset -= ((size_t)mem.GetEXRAM() - (size_t) mem.GetRAM());
-    }
-  }
-  return offset;
+  if (offset < mem.GetRamSizeReal())
+    return offset + getMEM1();
+  return offset - mem.GetRamSizeReal() + getMEM2();
 }
 
 void readFromRAM(void* data, u32 address, size_t size, bool withBSwap)
 {
+  if(getARAM() <= address && address + size <= getARAMEnd())
+	  std::memcpy(data,
+       Core::System::GetInstance().GetMemory().GetFakeVMEM() + address - getARAM(),
+       size);
+  else
+    Core::System::GetInstance().GetMemory().CopyFromEmu(data, address, size);
+
   if(withBSwap)
   {
-    switch(size)
-	 {
-	 case 2:
-		std::memcpy(
-				reinterpret_cast<u16*>(data),
-				(void*) address, size);
-		break;
-	 case 4:
-		std::memcpy(
-				reinterpret_cast<u32*>(data),
-				(void*) address, size);
-		break;
-	 case 8:
-		std::memcpy(
-				reinterpret_cast<u64*>(data),
-				(void*) address, size);
-		break;
-	 }
+    switch (size)
+    {
+    case 2:
+    {
+      u16 halfword = 0;
+      std::memcpy(&halfword, data, sizeof(u16));
+      halfword = Common::swap16(halfword);
+      std::memcpy(data, &halfword, sizeof(u16));
+      break;
+    }
+    case 4:
+    {
+      u32 word = 0;
+      std::memcpy(&word, data, sizeof(u32));
+      word = Common::swap32(word);
+      std::memcpy(data, &word, sizeof(u32));
+      break;
+    }
+    case 8:
+    {
+      u64 doubleword = 0;
+      std::memcpy(&doubleword, data, sizeof(u64));
+      doubleword = Common::swap64(doubleword);
+      std::memcpy(data, &doubleword, sizeof(u64));
+      break;
+    }}
   }
-  else
-	 std::memcpy(data, (void*) address, size);
-  return;
 }
 
 void writeToRAM(void* data, u32 address, size_t size, bool withBSwap)
 {
   if(withBSwap)
   {
-    switch(size)
-	 {
-	 case 2:
-		 std::memcpy((void*) address,
-				reinterpret_cast<u16*>(data),
-				size);
-		break;
-	 case 4:
-	   std::memcpy((void*) address,
-				reinterpret_cast<u32*>(data),
-				size);
-		break;
-	 case 8:
-	   std::memcpy((void*) address,
-				reinterpret_cast<u64*>(data),
-				size);
-		break;
-	 }
+    switch (size)
+    {
+    case 2:
+    {
+      u16 halfword = 0;
+      std::memcpy(&halfword, data, sizeof(u16));
+      halfword = Common::swap16(halfword);
+      std::memcpy(data, &halfword, sizeof(u16));
+      break;
+    }
+    case 4:
+    {
+      u32 word = 0;
+      std::memcpy(&word, data, sizeof(u32));
+      word = Common::swap32(word);
+      std::memcpy(data, &word, sizeof(u32));
+      break;
+    }
+    case 8:
+    {
+      u64 doubleword = 0;
+      std::memcpy(&doubleword, data, sizeof(u64));
+      doubleword = Common::swap64(doubleword);
+      std::memcpy(data, &doubleword, sizeof(u64));
+      break;
+    }}
   }
+
+  if(getARAM() <= address && address + size <= getARAMEnd())
+	  std::memcpy(
+       Core::System::GetInstance().GetMemory().GetFakeVMEM() + address - getARAM(),
+       data,
+       size);
   else
-	 std::memcpy((void*) address, data, size);
-  return;
+    Core::System::GetInstance().GetMemory().CopyToEmu(address, data, size);
 }
 
 void readAllRAM(void *data)
@@ -711,18 +713,15 @@ void readAllRAM(void *data)
   Memory::MemoryManager& mem = Core::System::GetInstance().GetMemory();
   if(mem.GetFakeVMEM())
   {
-    std::memcpy(data, mem.GetFakeVMEM(), mem.GetFakeVMemSize());
+	 std::memcpy(data, mem.GetFakeVMEM(), mem.GetFakeVMemSize());
 	 data = (u8*) data + mem.GetFakeVMemSize();
   }
   if(mem.GetRAM())
   {
-    std::memcpy(data, mem.GetRAM(), mem.GetRamSizeReal());
+    mem.CopyFromEmu(data, getMEM1(), mem.GetRamSizeReal());
 	 data = (u8*) data + mem.GetRamSizeReal();
   }
   if(mem.GetEXRAM())
-  {
-    data = (u8*) data + mem.GetRamSizeReal();
-	 std::memcpy(data, mem.GetEXRAM(), mem.GetExRamSizeReal());
-  }
+	 mem.CopyFromEmu(data, getMEM2(), mem.GetExRamSizeReal());
 }
 } // namespace Common

@@ -1,67 +1,67 @@
-#include "SConfig.h"
+#include "DMEConfig.h"
 
-SConfig::SConfig()
+DMEConfig::DMEConfig()
 {
   m_settings = new QSettings(QSettings::tr("settings.ini"), QSettings::IniFormat);
 }
 
-SConfig::~SConfig()
+DMEConfig::~DMEConfig()
 {
   delete m_settings;
 }
 
-SConfig& SConfig::getInstance()
+DMEConfig& DMEConfig::getInstance()
 {
-  static SConfig instance;
+  static DMEConfig instance;
   return instance;
 }
 
-int SConfig::getWatcherUpdateTimerMs() const
+int DMEConfig::getWatcherUpdateTimerMs() const
 {
   return m_settings->value(QSettings::tr("timerSettings/watcherUpdateTimerMs"), 100).toInt();
 }
 
-int SConfig::getFreezeTimerMs() const
+int DMEConfig::getFreezeTimerMs() const
 {
   return m_settings->value(QSettings::tr("timerSettings/freezeTimerMs"), 10).toInt();
 }
 
-int SConfig::getScannerUpdateTimerMs() const
+int DMEConfig::getScannerUpdateTimerMs() const
 {
   return m_settings->value(QSettings::tr("timerSettings/scannerUpdateTimerMs"), 10).toInt();
 }
 
-int SConfig::getViewerUpdateTimerMs() const
+int DMEConfig::getViewerUpdateTimerMs() const
 {
   return m_settings->value(QSettings::tr("timerSettings/viewerUpdateTimerMs"), 100).toInt();
 }
 
-int SConfig::getViewerNbrBytesSeparator() const
+int DMEConfig::getViewerNbrBytesSeparator() const
 {
   return m_settings->value(QSettings::tr("viewerSettings/nbrBytesSeparator"), 1).toInt();
 }
 
-void SConfig::setWatcherUpdateTimerMs(const int updateTimerMs)
+void DMEConfig::setWatcherUpdateTimerMs(const int updateTimerMs)
 {
   m_settings->setValue(QSettings::tr("timerSettings/watcherUpdateTimerMs"), updateTimerMs);
 }
 
-void SConfig::setFreezeTimerMs(const int freezeTimerMs)
+void DMEConfig::setFreezeTimerMs(const int freezeTimerMs)
 {
   m_settings->setValue(QSettings::tr("timerSettings/freezeTimerMs"), freezeTimerMs);
 }
 
-void SConfig::setScannerUpdateTimerMs(const int scannerUpdateTimerMs)
+void DMEConfig::setScannerUpdateTimerMs(const int scannerUpdateTimerMs)
 {
   m_settings->setValue(QSettings::tr("timerSettings/scannerUpdateTimerMs"), scannerUpdateTimerMs);
 }
 
-void SConfig::setViewerUpdateTimerMs(const int viewerUpdateTimerMs)
+void DMEConfig::setViewerUpdateTimerMs(const int viewerUpdateTimerMs)
 {
   m_settings->setValue(QSettings::tr("timerSettings/viewerUpdateTimerMs"), viewerUpdateTimerMs);
 }
 
-void SConfig::setViewerNbrBytesSeparator(const int viewerNbrBytesSeparator)
+void DMEConfig::setViewerNbrBytesSeparator(const int viewerNbrBytesSeparator)
 {
   m_settings->setValue(QSettings::tr("viewerSettings/nbrBytesSeparator"), viewerNbrBytesSeparator);
 }

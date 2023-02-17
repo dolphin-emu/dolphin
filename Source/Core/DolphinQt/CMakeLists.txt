@@ -268,8 +268,8 @@ add_executable(dolphin-emu
   MemoryEngine/MemoryEngine.h
   MemoryEngine/Settings/DlgSettings.cpp
   MemoryEngine/Settings/DlgSettings.h
-  MemoryEngine/Settings/SConfig.cpp
-  MemoryEngine/Settings/SConfig.h
+  MemoryEngine/Settings/DMEConfig.cpp
+  MemoryEngine/Settings/DMEConfig.h
   MenuBar.cpp
   MenuBar.h
   NetPlay/ChunkedProgressDialog.cpp

@@ -18,7 +18,7 @@
 
 #include "../../../MemoryEngine/Common/MemoryCommon.h"
 #include "../MemWatcher/Dialogs/DlgAddWatchEntry.h"
-#include "../Settings/SConfig.h"
+#include "../Settings/DMEConfig.h"
 
 MemViewer::MemViewer(QWidget* parent) : QAbstractScrollArea(parent)
 {
@@ -347,9 +347,9 @@ void MemViewer::updateFontSize(int newSize)
   m_memoryFontSize = newSize;
 
 #ifdef __linux__
-  setFont(QFont("Monospace", m_memoryFontSize));
+  setFont(QFont(tr("Monospace"), m_memoryFontSize));
 #elif _WIN32
-  setFont(QFont("Courier New", m_memoryFontSize));
+  setFont(QFont(tr("Courier New"), m_memoryFontSize));
 #endif
 
   m_charWidthEm = fontMetrics().width(QLatin1Char('M'));
@@ -769,14 +769,14 @@ void MemViewer::renderSeparatorLines(QPainter& painter)
   painter.drawLine(0, m_columnHeaderHeight, m_hexAsciiSeparatorPosX + 17 * m_charWidthEm,
                    m_columnHeaderHeight);
 
-  if (SConfig::getInstance().getViewerNbrBytesSeparator() != 0)
+  if (DMEConfig::getInstance().getViewerNbrBytesSeparator() != 0)
   {
     int bytesSeparatorXPos = m_rowHeaderWidth - m_charWidthEm / 2 + m_charWidthEm / 4;
-    for (int i = 0; i < m_numColumns / SConfig::getInstance().getViewerNbrBytesSeparator() - 1; i++)
+    for (int i = 0; i < m_numColumns / DMEConfig::getInstance().getViewerNbrBytesSeparator() - 1; i++)
     {
       bytesSeparatorXPos +=
-          (m_charWidthEm * 2) * SConfig::getInstance().getViewerNbrBytesSeparator() +
-          (m_charWidthEm / 2) * SConfig::getInstance().getViewerNbrBytesSeparator();
+          (m_charWidthEm * 2) * DMEConfig::getInstance().getViewerNbrBytesSeparator() +
+          (m_charWidthEm / 2) * DMEConfig::getInstance().getViewerNbrBytesSeparator();
       painter.drawLine(bytesSeparatorXPos, 0, bytesSeparatorXPos,
                        m_columnHeaderHeight + m_hexAreaHeight);
     }

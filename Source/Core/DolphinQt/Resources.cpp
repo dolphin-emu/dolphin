@@ -47,7 +47,10 @@ QIcon Resources::GetIcon(std::string_view name, const QString& dir)
 QPixmap Resources::GetPixmap(std::string_view name, const QString& dir)
 {
   const auto icon = GetIcon(name, dir);
-  return icon.pixmap(icon.availableSizes()[0]);
+  QList<QSize> available = icon.availableSizes();
+  if(available.size() == 0)
+    return QPixmap();
+  return icon.pixmap(available[0]);
 }
 
 static QString GetCurrentThemeDir()

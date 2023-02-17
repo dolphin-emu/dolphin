@@ -6,7 +6,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-#include "SConfig.h"
+#include "DMEConfig.h"
 
 DlgSettings::DlgSettings(QWidget* parent) : QDialog(parent)
 {
@@ -92,20 +92,20 @@ DlgSettings::~DlgSettings()
 
 void DlgSettings::loadSettings()
 {
-  m_spnWatcherUpdateTimerMs->setValue(SConfig::getInstance().getWatcherUpdateTimerMs());
-  m_spnScannerUpdateTimerMs->setValue(SConfig::getInstance().getScannerUpdateTimerMs());
-  m_spnViewerUpdateTimerMs->setValue(SConfig::getInstance().getViewerUpdateTimerMs());
-  m_spnFreezeTimerMs->setValue(SConfig::getInstance().getFreezeTimerMs());
+  m_spnWatcherUpdateTimerMs->setValue(DMEConfig::getInstance().getWatcherUpdateTimerMs());
+  m_spnScannerUpdateTimerMs->setValue(DMEConfig::getInstance().getScannerUpdateTimerMs());
+  m_spnViewerUpdateTimerMs->setValue(DMEConfig::getInstance().getViewerUpdateTimerMs());
+  m_spnFreezeTimerMs->setValue(DMEConfig::getInstance().getFreezeTimerMs());
   m_cmbViewerBytesSeparator->setCurrentIndex(
-      m_cmbViewerBytesSeparator->findData(SConfig::getInstance().getViewerNbrBytesSeparator()));
+      m_cmbViewerBytesSeparator->findData(DMEConfig::getInstance().getViewerNbrBytesSeparator()));
 }
 
 void DlgSettings::saveSettings() const
 {
-  SConfig::getInstance().setWatcherUpdateTimerMs(m_spnWatcherUpdateTimerMs->value());
-  SConfig::getInstance().setScannerUpdateTimerMs(m_spnScannerUpdateTimerMs->value());
-  SConfig::getInstance().setViewerUpdateTimerMs(m_spnViewerUpdateTimerMs->value());
-  SConfig::getInstance().setFreezeTimerMs(m_spnFreezeTimerMs->value());
-  SConfig::getInstance().setViewerNbrBytesSeparator(
+  DMEConfig::getInstance().setWatcherUpdateTimerMs(m_spnWatcherUpdateTimerMs->value());
+  DMEConfig::getInstance().setScannerUpdateTimerMs(m_spnScannerUpdateTimerMs->value());
+  DMEConfig::getInstance().setViewerUpdateTimerMs(m_spnViewerUpdateTimerMs->value());
+  DMEConfig::getInstance().setFreezeTimerMs(m_spnFreezeTimerMs->value());
+  DMEConfig::getInstance().setViewerNbrBytesSeparator(
       m_cmbViewerBytesSeparator->currentData().toInt());
 }

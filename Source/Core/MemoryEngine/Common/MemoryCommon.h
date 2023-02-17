@@ -31,6 +31,7 @@ enum class MemBase
 
 enum class MemOperationReturnCode
 {
+  uninitialized,
   invalidInput,
   operationFailed,
   inputTooLong,
@@ -48,22 +49,22 @@ std::string formatMemoryToString(const char* memory, const MemType type, const s
                                  const MemBase base, const bool isUnsigned,
                                  const bool withBSwap = false);
 
-u8* getMEM1();
+u32 getMEM1();
 u32 getMEM1Size();
-u8* getMEM1End();
+u32 getMEM1End();
 bool isMEM2Present();
-u8* getMEM2();
+u32 getMEM2();
 u32 getMEM2Size();
-u8* getMEM2End();
+u32 getMEM2End();
 bool isARAMAccessible();
-u8* getARAM();
+u32 getARAM();
 u32 getARAMSize();
-u8* getARAMEnd();
+u32 getARAMEnd();
 u32 totalRAMSize();
 bool hasMemory();
 bool isValidAddress(const u32 address);
-u32 addrToOffset(u32 addr, bool considerAram);
-u32 offsetToAddr(u32 offset, bool considerAram);
+u32 addrToOffset(u32 addr);
+u32 offsetToAddr(u32 offset);
 void readFromRAM(void* data, u32 address, size_t size, bool withBSwap = false);
 void writeToRAM(void* data, u32 address, size_t size, bool withBSwap = false);
 void readAllRAM(void *data);
