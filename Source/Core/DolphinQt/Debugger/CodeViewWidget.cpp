@@ -51,7 +51,7 @@ constexpr u32 WIDTH_PER_BRANCH_ARROW = 16;
 class BranchDisplayDelegate : public QStyledItemDelegate
 {
 public:
-  BranchDisplayDelegate(CodeViewWidget* parent) : m_parent(parent) {}
+  BranchDisplayDelegate(CodeViewWidget* parent) : QStyledItemDelegate(parent), m_parent(parent) {}
 
 private:
   CodeViewWidget* m_parent;
