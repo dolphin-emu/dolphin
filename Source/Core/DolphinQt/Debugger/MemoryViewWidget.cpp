@@ -321,36 +321,36 @@ void MemoryViewWidget::CreateTable()
 
   // Create cells and add data that won't be changing.
   // Breakpoint buttons
-  auto* bp_item = new QTableWidgetItem;
-  bp_item->setFlags(Qt::ItemIsEnabled);
-  bp_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, true);
-  bp_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
+  auto bp_item = QTableWidgetItem();
+  bp_item.setFlags(Qt::ItemIsEnabled);
+  bp_item.setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, true);
+  bp_item.setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
 
   // Row Addresses
-  auto* row_item = new QTableWidgetItem(INVALID_MEMORY);
-  row_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-  row_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
-  row_item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
+  auto row_item = QTableWidgetItem(INVALID_MEMORY);
+  row_item.setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+  row_item.setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
+  row_item.setData(USER_ROLE_VALUE_TYPE, static_cast<int>(Type::Null));
 
   // Data item
-  auto* item = new QTableWidgetItem(INVALID_MEMORY);
-  item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
-  item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
+  auto item = QTableWidgetItem(INVALID_MEMORY);
+  item.setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
+  item.setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
 
   for (int i = 0; i < rows; i++)
   {
-    m_table->setItem(i, 0, bp_item->clone());
-    m_table->setItem(i, 1, row_item->clone());
+    m_table->setItem(i, 0, bp_item.clone());
+    m_table->setItem(i, 1, row_item.clone());
 
     for (int c = 0; c < m_data_columns; c++)
     {
       if (left_type && c < data_span)
       {
-        item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(left_type.value()));
+        item.setData(USER_ROLE_VALUE_TYPE, static_cast<int>(left_type.value()));
       }
       else
       {
-        item->setData(USER_ROLE_VALUE_TYPE, static_cast<int>(m_type));
+        item.setData(USER_ROLE_VALUE_TYPE, static_cast<int>(m_type));
 
         // Left type will never be these.
         auto text_alignment = Qt::AlignLeft;
@@ -359,10 +359,10 @@ void MemoryViewWidget::CreateTable()
         {
           text_alignment = Qt::AlignRight;
         }
-        item->setTextAlignment(text_alignment | Qt::AlignVCenter);
+        item.setTextAlignment(text_alignment | Qt::AlignVCenter);
       }
 
-      m_table->setItem(i, c + MISC_COLUMNS, item->clone());
+      m_table->setItem(i, c + MISC_COLUMNS, item.clone());
     }
   }
 
