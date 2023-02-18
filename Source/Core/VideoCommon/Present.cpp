@@ -524,7 +524,13 @@ void Presenter::Present()
     // Video Software doesn't support drawing a UI or doing post-processing
     // So just show the XFB
     if (m_xfb_entry)
+    {
       g_gfx->ShowImage(m_xfb_entry->texture.get(), m_xfb_rect);
+
+      // Update the window size based on the frame that was just rendered.
+      // Due to depending on guest state, we need to call this every frame.
+      SetWindowSize(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
+    }
     return;
   }
 
