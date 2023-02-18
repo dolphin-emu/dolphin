@@ -37,6 +37,7 @@ public:
     void operator()(T* func)
     {
       (*func)();
+      delete func;
     }
   };
 
