@@ -181,8 +181,10 @@ void Error(const std::string& text)
 {
   auto wide_text = UTF8ToWString(text);
 
-  MessageBox(nullptr,
-             (L"A fatal error occurred and the updater cannot continue:\n" + wide_text + "\nIf this persists, please redownload the latest update manually.").c_str(),
+    MessageBox(nullptr,
+             (L"A fatal error occurred and the updater cannot continue:\n" + wide_text +
+              L"\nIf this persists, please redownload the latest update manually.")
+                 .c_str(),
              L"Error", MB_ICONERROR);
 
   if (taskbar_list)
