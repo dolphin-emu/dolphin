@@ -521,9 +521,10 @@ void Presenter::Present()
 
   if (!g_gfx->SupportsUtilityDrawing())
   {
-    // Video Software doesn't support Drawing a UI or doing post-processing
-    // So just Show the XFB
-    g_gfx->ShowImage(m_xfb_entry->texture.get(), m_xfb_rect);
+    // Video Software doesn't support drawing a UI or doing post-processing
+    // So just show the XFB
+    if (m_xfb_entry)
+      g_gfx->ShowImage(m_xfb_entry->texture.get(), m_xfb_rect);
     return;
   }
 
