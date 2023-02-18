@@ -164,6 +164,14 @@ private:
   void ShowSkylanderPortal();
   void ShowMemcardManager();
   void ShowMemoryEngine();
+  void DMEOpenWatchFile();
+  void DMESaveWatchFile();
+  void DMESaveAsWatchFile();
+  void DMEClearWatchList();
+  void DMEImportFromCT();
+  void DMEExportAsCSV();
+  void DMEOpenSettings();
+  void DMEShowScanner(bool show);
   void ShowResourcePackManager();
   void ShowCheatsManager();
   void ShowRiivolutionBootWidget(const UICommon::GameFile& game);

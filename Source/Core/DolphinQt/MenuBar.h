@@ -89,6 +89,14 @@ signals:
   void ShowAboutDialog();
   void ShowCheatsManager();
   void ShowMemoryEngine();
+  void DMEOpenWatchFile();
+  void DMESaveWatchFile();
+  void DMESaveAsWatchFile();
+  void DMEClearWatchList();
+  void DMEImportFromCT();
+  void DMEExportAsCSV();
+  void DMEOpenSettings();
+  void DMEShowScanner(bool);
   void ShowResourcePackManager();
   void ShowSkylanderPortal();
   void ConnectWiiRemote(int id);
@@ -198,6 +206,7 @@ private:
   QAction* m_open_user_folder;
 
   // Tools
+  QAction* m_viewDMEScanner;
   QAction* m_wad_install_action;
   QMenu* m_perform_online_update_menu;
   QAction* m_perform_online_update_for_current_region;

@@ -34,7 +34,7 @@ public:
   void onOpenSettings();
   void onImportFromCT();
   void onExportAsCSV();
-  void onAbout();
+  void onShowScanner(bool show);
   void onQuit();
 
 signals:

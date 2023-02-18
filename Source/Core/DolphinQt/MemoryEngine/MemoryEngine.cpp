@@ -208,6 +208,14 @@ void MemoryEngine::onExportAsCSV()
   m_watcher->exportWatchListAsCSV();
 }
 
+void MemoryEngine::onShowScanner(bool show)
+{
+  if(show)
+	 m_scanner->show();
+  else
+    m_scanner->hide();
+}
+
 void MemoryEngine::onOpenSettings()
 {
   DlgSettings* dlg = new DlgSettings(this);
@@ -227,17 +235,6 @@ void MemoryEngine::onOpenSettings()
       m_viewer->getUpdateTimer()->start(DMEConfig::getInstance().getViewerUpdateTimerMs());
     }
   }
-}
-
-void MemoryEngine::onAbout()
-{
-  QString title = tr("About Dolphin memory engine");
-  QString text =
-      tr("Beta version 0.6.0\n\n") +
-      tr("A RAM search made to facilitate research and reverse engineering of GameCube and Wii "
-         "games using the Dolphin emulator.\n\nThis program is licensed under the MIT license. You "
-         "should have received a copy of the MIT license along with this program");
-  QMessageBox::about(this, title, text);
 }
 
 void MemoryEngine::onQuit()

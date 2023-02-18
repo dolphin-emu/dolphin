@@ -516,6 +516,14 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowResourcePackManager, this,
           &MainWindow::ShowResourcePackManager);
   connect(m_menu_bar, &MenuBar::ShowMemoryEngine, this, &MainWindow::ShowMemoryEngine);
+  connect(m_menu_bar, &MenuBar::DMEOpenWatchFile, this, &MainWindow::DMEOpenWatchFile);
+  connect(m_menu_bar, &MenuBar::DMESaveWatchFile, this, &MainWindow::DMESaveWatchFile);
+  connect(m_menu_bar, &MenuBar::DMESaveAsWatchFile, this, &MainWindow::DMESaveAsWatchFile);
+  connect(m_menu_bar, &MenuBar::DMEClearWatchList, this, &MainWindow::DMEClearWatchList);
+  connect(m_menu_bar, &MenuBar::DMEImportFromCT, this, &MainWindow::DMEImportFromCT);
+  connect(m_menu_bar, &MenuBar::DMEExportAsCSV, this, &MainWindow::DMEExportAsCSV);
+  connect(m_menu_bar, &MenuBar::DMEOpenSettings, this, &MainWindow::DMEOpenSettings);
+  connect(m_menu_bar, &MenuBar::DMEShowScanner, this, &MainWindow::DMEShowScanner);
   connect(m_menu_bar, &MenuBar::ShowCheatsManager, this, &MainWindow::ShowCheatsManager);
   connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
@@ -1865,7 +1873,47 @@ void MainWindow::ShowMemcardManager()
 
 void MainWindow::ShowMemoryEngine()
 {
-	m_memory_engine->show();
+  m_memory_engine->show();
+}
+
+void MainWindow::DMEOpenWatchFile()
+{
+  m_memory_engine->onOpenWatchFile();
+}
+
+void MainWindow::DMESaveWatchFile()
+{
+  m_memory_engine->onSaveWatchFile();
+}
+
+void MainWindow::DMESaveAsWatchFile()
+{
+  m_memory_engine->onSaveAsWatchFile();
+}
+
+void MainWindow::DMEClearWatchList()
+{
+  m_memory_engine->onClearWatchList();
+}
+
+void MainWindow::DMEImportFromCT()
+{
+  m_memory_engine->onImportFromCT();
+}
+
+void MainWindow::DMEExportAsCSV()
+{
+  m_memory_engine->onExportAsCSV();
+}
+
+void MainWindow::DMEOpenSettings()
+{
+  m_memory_engine->onOpenSettings();
+}
+
+void MainWindow::DMEShowScanner(bool show)
+{
+  m_memory_engine->onShowScanner(show);
 }
 
 void MainWindow::ShowResourcePackManager()
