@@ -23,7 +23,6 @@ public:
   inline GcControllerLua(){};
 };
 
-static LuaScriptCallLocations* script_call_location_pointer = nullptr;
 static std::unique_ptr<GcControllerLua> gc_controller_pointer = nullptr;
 
 GcControllerLua* getControllerInstance()
@@ -33,10 +32,8 @@ GcControllerLua* getControllerInstance()
   return gc_controller_pointer.get();
 }
 
-void InitLuaGameCubeControllerFunctions(lua_State* lua_state, const std::string& lua_api_version,
-                                        LuaScriptCallLocations* new_script_call_location_pointer)
+void InitLuaGameCubeControllerFunctions(lua_State* lua_state, const std::string& lua_api_version)
 {
-  script_call_location_pointer = new_script_call_location_pointer;
   GcControllerLua** gc_controller_lua_ptr_ptr =
       (GcControllerLua**)lua_newuserdata(lua_state, sizeof(GcControllerLua*));
   *gc_controller_lua_ptr_ptr = getControllerInstance();

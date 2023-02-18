@@ -5,21 +5,18 @@
 #include "Core/Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h"
 #include "Core/Lua/LuaFunctions/LuaImportModule.h"
 #include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
+#include "Core/Lua/LuaHelperClasses/LuaScriptLocationModifier.h"
 #include "Core/Movie.h"
 
 namespace Lua
 {
 std::string global_lua_api_version = "1.0.0";
-lua_State* main_lua_state = nullptr;
-lua_State* main_lua_thread_state = nullptr;
 int x = 0;
-bool is_lua_script_active = false;
 bool is_lua_core_initialized = false;
+std::vector<std::shared_ptr<LuaScriptContext>> list_of_lua_script_contexts = std::vector<std::shared_ptr<LuaScriptContext>>();
 std::function<void(const std::string&)>* print_callback_function = nullptr;
-std::function<void()>* script_end_callback_function = nullptr;
-std::mutex general_lua_lock;
-static LuaScriptCallLocations lua_script_called_location =
-    LuaScriptCallLocations::FromScriptStartup;
+std::function<void(int)>* script_end_callback_function = nullptr;
+static std::mutex lua_initialization_and_destruction_lock;
 
 int CustomPrintFunction(lua_State* lua_state)
 {
@@ -109,52 +106,82 @@ int GetLuaCoreVersion(lua_State* lua_state)
 
 void Init(const std::string& script_location,
           std::function<void(const std::string&)>* new_print_callback,
-          std::function<void()>* new_script_end_callback)
+          std::function<void(int)>* new_script_end_callback, int unique_script_identifier)
 {
-  general_lua_lock.lock();
-  lua_script_called_location = LuaScriptCallLocations::FromScriptStartup;
-  print_callback_function = new_print_callback;
-  script_end_callback_function = new_script_end_callback;
-  x = 0;
-  main_lua_state = luaL_newstate();
-  luaL_openlibs(main_lua_state);
-  lua_newtable(main_lua_state);
-  lua_pushcfunction(main_lua_state, CustomPrintFunction);
-  lua_setglobal(main_lua_state, "print");
-  main_lua_thread_state = lua_newthread(main_lua_state);
+  const std::lock_guard<std::mutex> lock(lua_initialization_and_destruction_lock);
+  if (!is_lua_core_initialized)
+  {
+    x = 0;
+    print_callback_function = new_print_callback;
+    script_end_callback_function = new_script_end_callback;
+    is_lua_core_initialized = true;
+  }
+
+
+  lua_State* new_main_lua_state = luaL_newstate();
+  luaL_openlibs(new_main_lua_state);
+  lua_newtable(new_main_lua_state);
+  lua_pushcfunction(new_main_lua_state, CustomPrintFunction);
+  lua_setglobal(new_main_lua_state, "print");
+  std::shared_ptr<LuaScriptContext> new_lua_script_context = Lua::CreateNewLuaScriptContext(new_main_lua_state, unique_script_identifier,  script_location);
+  Lua::SetScriptCallLocation(new_lua_script_context->main_lua_thread,
+                             LuaScriptCallLocations::FromScriptStartup);
+
+  list_of_lua_script_contexts.push_back(new_lua_script_context);
+
+  LuaImportModule::InitLuaImportModule(new_lua_script_context->main_lua_thread, global_lua_api_version);
   LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(
-      &main_lua_thread_state, global_lua_api_version, &general_lua_lock,
-      script_end_callback_function, &lua_script_called_location);
-  LuaImportModule::InitLuaImportModule(main_lua_thread_state, global_lua_api_version,
-                                       &lua_script_called_location);
+      new_lua_script_context->main_lua_thread, global_lua_api_version, &list_of_lua_script_contexts,
+      script_end_callback_function);
+  new_lua_script_context->frame_callback_lua_thread = lua_newthread(new_lua_script_context->main_lua_thread);
 
-  if (luaL_loadfile(main_lua_thread_state, script_location.c_str()) != LUA_OK)
+
+  if (luaL_loadfile(new_lua_script_context->main_lua_thread, new_lua_script_context->script_filename.c_str()) != LUA_OK)
   {
-    const char* temp_string = lua_tostring(main_lua_thread_state, -1);
+    const char* temp_string = lua_tostring(new_lua_script_context->main_lua_thread, -1);
     (*print_callback_function)(temp_string);
-    (*script_end_callback_function)();
+    (*script_end_callback_function)(unique_script_identifier);
   }
-  int retVal = lua_resume(Lua::main_lua_thread_state, nullptr, 0, &Lua::x);
-  if (retVal != LUA_YIELD && retVal != LUA_OK)
+  new_lua_script_context->lua_script_specific_lock.lock();
+  int retVal = lua_resume(new_lua_script_context->main_lua_thread, nullptr, 0, &Lua::x);
+  if (retVal == LUA_YIELD)
+    new_lua_script_context->called_yielding_function_in_last_global_script_resume = true;
+  else
   {
-    if (retVal == 2)
+    new_lua_script_context->called_yielding_function_in_last_global_script_resume = false;
+    if (retVal == LUA_OK)
+      new_lua_script_context->finished_with_global_code = true;
+    else
     {
-      const char* error_msg = lua_tostring(Lua::main_lua_thread_state, -1);
-      (*Lua::print_callback_function)(error_msg);
+      if (retVal == 2)
+      {
+        const char* error_msg = lua_tostring(new_lua_script_context->main_lua_thread, -1);
+        (*Lua::print_callback_function)(error_msg);
+      }
+      (*script_end_callback_function)(unique_script_identifier);
+      new_lua_script_context->is_lua_script_active = false;
     }
-    (*script_end_callback_function)();
-    Lua::is_lua_script_active = false;
-  }
+    }
+  new_lua_script_context->lua_script_specific_lock.unlock();
 
-  is_lua_script_active = true;
-  is_lua_core_initialized = true;
-  general_lua_lock.unlock();
+  
+
   return;
 }
 
-void StopScript()
+void StopScript(int unique_identifier)
 {
-  is_lua_script_active = false;
+  const std::lock_guard<std::mutex> lock(lua_initialization_and_destruction_lock);
+  for (int i = 0; i < list_of_lua_script_contexts.size(); ++i)
+  {
+    if (list_of_lua_script_contexts[i].get()->unique_script_identifier == unique_identifier)
+    {
+      LuaScriptContext* script_context_to_delete = list_of_lua_script_contexts[i].get();
+      script_context_to_delete->lua_script_specific_lock.lock();
+      script_context_to_delete->is_lua_script_active = false;
+      script_context_to_delete->lua_script_specific_lock.unlock();
+    }
+  }
 }
 
 }  // namespace Lua

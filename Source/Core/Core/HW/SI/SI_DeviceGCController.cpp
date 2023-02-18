@@ -327,7 +327,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
   {
     pad_status = Pad::GetStatus(m_device_number);
 
-    if (Lua::is_lua_script_active && !Movie::IsPlayingInput())
+    if (Lua::is_lua_core_initialized && !Movie::IsPlayingInput())
     {
       std::vector<GcButtonName> all_buttons{GcButtonName::A,
                                             GcButtonName::B,

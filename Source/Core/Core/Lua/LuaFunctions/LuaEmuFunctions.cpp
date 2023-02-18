@@ -17,7 +17,6 @@ bool waiting_for_save_state_load = false;
 bool waiting_for_save_state_save = false;
 bool waiting_to_start_playing_movie = false;
 bool waiting_to_save_movie = false;
-bool called_yielding_function_on_last_frame = false;
 
 static std::string load_state_name;
 static std::string save_state_name;
@@ -33,7 +32,6 @@ public:
 };
 
 static std::unique_ptr<Emu> emu_pointer = nullptr;
-static LuaScriptCallLocations* script_call_location_pointer = nullptr;
 
 Emu* GetEmuInstance()
 {
@@ -42,11 +40,8 @@ Emu* GetEmuInstance()
   return emu_pointer.get();
 }
 
-void InitLuaEmuFunctions(lua_State* lua_state, const std::string& lua_api_version,
-                         LuaScriptCallLocations* new_script_call_location_pointer)
+void InitLuaEmuFunctions(lua_State* lua_state, const std::string& lua_api_version)
 {
-  script_call_location_pointer = new_script_call_location_pointer;
-  called_yielding_function_on_last_frame = false;
   waiting_for_save_state_load = false;
   waiting_for_save_state_save = false;
   waiting_to_start_playing_movie = false;
@@ -79,7 +74,6 @@ void StatePauseFunction()
 int EmuFrameAdvance(lua_State* lua_state)
 {
   LuaColonOperatorTypeCheck(lua_state, class_name, "frameAdvance", "()");
-  called_yielding_function_on_last_frame = true;
   return lua_yield(lua_state, 0);
 }
 

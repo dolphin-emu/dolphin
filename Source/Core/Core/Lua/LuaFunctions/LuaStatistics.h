@@ -2,14 +2,12 @@
 #include <lua.hpp>
 #include <string>
 
-#include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
 #include "Core/Movie.h"
 
 namespace Lua::LuaStatistics
 {
 extern const char* class_name;
-void InitLuaStatisticsFunctions(lua_State* lua_state, const std::string& lua_api_version,
-                                LuaScriptCallLocations* new_script_call_location_pointer);
+void InitLuaStatisticsFunctions(lua_State* lua_state, const std::string& lua_api_version);
 
 int IsRecordingInput(lua_State* lua_state);
 int IsRecordingInputFromSaveState(lua_State* lua_state);

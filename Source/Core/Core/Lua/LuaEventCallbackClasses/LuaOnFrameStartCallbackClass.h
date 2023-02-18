@@ -2,23 +2,18 @@
 #include <functional>
 #include <mutex>
 #include <string>
-
+#include <vector>
 #include <lua.hpp>
 
-#include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
+#include "Core/Lua/LuaHelperClasses/LuaScriptContext.h"
 
 namespace Lua::LuaOnFrameStartCallback
 {
-
-extern lua_State* on_frame_start_thread;
-extern int on_frame_start_lua_function_reference;
-extern bool frame_start_callback_is_registered;
-
-void InitLuaOnFrameStartCallbackFunctions(lua_State** lua_state, const std::string& lua_api_version,
-                                          std::mutex* new_lua_general_lock,
-                                          std::function<void()>* new_shutdown_func,
-                                          LuaScriptCallLocations* new_call_locations_pointer);
+void InitLuaOnFrameStartCallbackFunctions(
+    lua_State* main_lua_thread, const std::string& lua_api_version,
+    std::vector<std::shared_ptr<LuaScriptContext>>* new_pointer_to_lua_script_list,
+    std::function<void(int)>* new_script_end_callback_function);
 int Register(lua_State* lua_state);
 int Unregister(lua_State* lua_state);
-int RunCallback();
+int RunCallbacks();
 }  // namespace Lua::LuaOnFrameStartCallback

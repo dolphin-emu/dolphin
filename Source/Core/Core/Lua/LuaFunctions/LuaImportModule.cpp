@@ -25,7 +25,6 @@ public:
 };
 
 static std::unique_ptr<ImportModuleClass> import_module_class_pointer = nullptr;
-static LuaScriptCallLocations* script_call_location_pointer = nullptr;
 
 ImportModuleClass* GetImportModuleClassInstance()
 {
@@ -35,11 +34,9 @@ ImportModuleClass* GetImportModuleClassInstance()
 }
 
 static std::string lua_version_from_global;
-void InitLuaImportModule(lua_State* lua_state, const std::string& lua_api_version,
-                         LuaScriptCallLocations* new_script_call_location_pointer)
+void InitLuaImportModule(lua_State* lua_state, const std::string& lua_api_version)
 {
   lua_version_from_global = lua_api_version;
-  script_call_location_pointer = new_script_call_location_pointer;
   ImportModuleClass** import_module_class_ptr_ptr =
       (ImportModuleClass**)lua_newuserdata(lua_state, sizeof(ImportModuleClass*));
   *import_module_class_ptr_ptr = GetImportModuleClassInstance();
@@ -67,25 +64,22 @@ int ImportCommon(lua_State* lua_state, const char* func_name)
     version_number = luaL_checkstring(lua_state, 3);
 
   if (module_class == std::string(LuaBit::class_name))
-    LuaBit::InitLuaBitFunctions(lua_state, version_number, script_call_location_pointer);
+    LuaBit::InitLuaBitFunctions(lua_state, version_number);
 
   else if (module_class == std::string(LuaEmu::class_name))
-    LuaEmu::InitLuaEmuFunctions(lua_state, version_number, script_call_location_pointer);
+    LuaEmu::InitLuaEmuFunctions(lua_state, version_number);
 
   else if (module_class == std::string(LuaGameCubeController::class_name))
-    LuaGameCubeController::InitLuaGameCubeControllerFunctions(lua_state, version_number,
-                                                              script_call_location_pointer);
+    LuaGameCubeController::InitLuaGameCubeControllerFunctions(lua_state, version_number);
 
   else if (module_class == std::string(LuaMemoryApi::class_name))
-    LuaMemoryApi::InitLuaMemoryApi(lua_state, version_number, script_call_location_pointer);
+    LuaMemoryApi::InitLuaMemoryApi(lua_state, version_number);
 
   else if (module_class == std::string(LuaRegisters::class_name))
-    LuaRegisters::InitLuaRegistersFunctions(lua_state, version_number,
-                                            script_call_location_pointer);
+    LuaRegisters::InitLuaRegistersFunctions(lua_state, version_number);
 
   else if (module_class == std::string(LuaStatistics::class_name))
-    LuaStatistics::InitLuaStatisticsFunctions(lua_state, version_number,
-                                              script_call_location_pointer);
+    LuaStatistics::InitLuaStatisticsFunctions(lua_state, version_number);
   else
     luaL_error(lua_state,
                fmt::format("Error: In function {}:{}(), unknown module name of {} was passed in.",

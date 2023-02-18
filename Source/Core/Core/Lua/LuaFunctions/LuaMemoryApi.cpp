@@ -20,7 +20,6 @@ public:
   inline MEMORY() {}
 };
 
-static LuaScriptCallLocations* script_call_location_pointer = nullptr;
 static std::unique_ptr<MEMORY> instance = nullptr;
 
 MEMORY* GetInstance()
@@ -30,10 +29,8 @@ MEMORY* GetInstance()
   return instance.get();
 }
 
-void InitLuaMemoryApi(lua_State* lua_state, const std::string& lua_api_version,
-                      LuaScriptCallLocations* new_script_call_location_pointer)
+void InitLuaMemoryApi(lua_State* lua_state, const std::string& lua_api_version)
 {
-  script_call_location_pointer = new_script_call_location_pointer;
   MEMORY** memory_instance_ptr_ptr = (MEMORY**)lua_newuserdata(lua_state, sizeof(MEMORY*));
   *memory_instance_ptr_ptr = GetInstance();
   luaL_newmetatable(lua_state, "LuaMemoryFunctionsMetaTable");

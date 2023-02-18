@@ -4,29 +4,31 @@
 
 #include <array>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
 
+#include "Core/Lua/LuaHelperClasses/LuaScriptContext.h"
+
 namespace Lua
 {
 extern std::string global_lua_api_version;
-extern lua_State* main_lua_state;
-extern lua_State* main_lua_thread_state;
 extern int x;
-extern bool is_lua_script_active;
 extern bool is_lua_core_initialized;
+
+extern std::vector<std::shared_ptr<LuaScriptContext>> list_of_lua_script_contexts;
+
 extern std::function<void(const std::string&)>* print_callback_function;
-extern std::function<void()>* script_end_callback_function;
-extern std::mutex general_lua_lock;
+extern std::function<void(int)>* script_end_callback_function;
 
 int SetLuaCoreVersion(lua_State* lua_state);
 int GetLuaCoreVersion(lua_State* lua_state);
 
 void Init(const std::string& script_location,
           std::function<void(const std::string&)>* new_print_callback,
-          std::function<void()>* new_script_end_callback);
+          std::function<void(int)>* new_script_end_callback, int unique_script_identifier);
 
-void StopScript();
+void StopScript(int unique_identifier);
 
 }  // namespace Lua

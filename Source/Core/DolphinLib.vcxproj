@@ -83,6 +83,8 @@
     <ClInclude Include="Core\Lua\LuaFunctions\LuaStatistics.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\luaL_Reg_With_Version.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaScriptCallLocations.h" />
+    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaScriptContext.h" />
+    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaScriptLocationModifier.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaVersionComparisonFunctions.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\NumberType.h" />
     <ClInclude Include="Core\Lua\LuaVersionResolver.h" />
@@ -99,6 +101,8 @@
     <ClCompile Include="Core\Lua\LuaFunctions\LuaMemoryApi.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaRegisters.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaStatistics.cpp" />
+    <ClCompile Include="Core\Lua\LuaHelperClasses\LuaScriptContext.cpp" />
+    <ClCompile Include="Core\Lua\LuaHelperClasses\LuaScriptLocationModifier.cpp" />
     <ClCompile Include="Core\Lua\LuaHelperClasses\LuaVersionComparisonFunctions.cpp" />
     <ClCompile Include="Core\Lua\LuaHelperClasses\NumberType.cpp" />
   </ItemGroup>

@@ -15,7 +15,6 @@ public:
   inline Lua_Statistics(){};
 };
 
-static LuaScriptCallLocations* script_call_location_pointer = nullptr;
 static std::unique_ptr<Lua_Statistics> lua_statistics_pointer = nullptr;
 
 Lua_Statistics* getStatisticsInstance()
@@ -25,10 +24,8 @@ Lua_Statistics* getStatisticsInstance()
   return lua_statistics_pointer.get();
 }
 
-void InitLuaStatisticsFunctions(lua_State* lua_state, const std::string& lua_api_version,
-                                LuaScriptCallLocations* new_script_call_location_pointer)
+void InitLuaStatisticsFunctions(lua_State* lua_state, const std::string& lua_api_version)
 {
-  script_call_location_pointer = new_script_call_location_pointer;
   Lua_Statistics** lua_statistics_ptr_ptr =
       (Lua_Statistics**)lua_newuserdata(lua_state, sizeof(Lua_Statistics*));
   *lua_statistics_ptr_ptr = getStatisticsInstance();
