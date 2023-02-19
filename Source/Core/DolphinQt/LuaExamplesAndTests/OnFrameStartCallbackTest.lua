@@ -21,5 +21,3 @@ function constantFunction()
 end
 
 OnFrameStart:register(mainFunction)
-funcRef = Whenever:register(constantFunction)
-

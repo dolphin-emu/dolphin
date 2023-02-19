@@ -10,6 +10,7 @@ std::shared_ptr<LuaScriptContext> CreateNewLuaScriptContext(lua_State* new_main_
   return_result->unique_script_identifier = new_unique_script_identifier;
   return_result->script_filename = new_script_filename;
   return_result->finished_with_global_code = false;
+  return_result->current_call_location = LuaScriptCallLocations::FromScriptStartup;
   return_result->called_yielding_function_in_last_global_script_resume = false;
   return_result->called_yielding_function_in_last_frame_callback_script_resume = false;
   return_result->called_yielding_function_in_last_instruction_address_callback_script_resume =

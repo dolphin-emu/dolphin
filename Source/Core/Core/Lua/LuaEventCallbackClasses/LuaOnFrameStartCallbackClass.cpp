@@ -2,11 +2,12 @@
 
 #include <array>
 #include <memory>
+#include <vector>
 
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
 #include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
-#include "Core/Lua/LuaHelperClasses/LuaScriptLocationModifier.h"
+#include "Core/Lua/LuaHelperClasses/LuaStateToScriptContextMap.h"
 #include "Core/Lua/LuaVersionResolver.h"
 #include "Core/Movie.h"
 
@@ -61,20 +62,45 @@ void InitLuaOnFrameStartCallbackFunctions(lua_State* main_lua_thread, const std:
 int Register(lua_State* lua_state)
 {
   LuaColonOperatorTypeCheck(lua_state, class_name, "register", "(functionName)");
-  /* lua_pushvalue(lua_state, 2);
-   pointer_to_lua_script_list  = luaL_ref(lua_state, LUA_REGISTRYINDEX); TODO: Fix this*/
+  int new_function_reference = lua_tointeger(lua_state, 2);
+  lua_getglobal(lua_state, "StateToScriptContextMap");
+  std::string r = luaL_typename(lua_state, -1);
+  if (!lua_islightuserdata(lua_state, -1))
+    luaL_error(lua_state, (std::string("Error: type of value found in stack was ") + r).c_str());
+  LuaStateToScriptContextMap* state_to_script_context_map = (LuaStateToScriptContextMap*) lua_touserdata(lua_state, -1);
+  lua_pop(lua_state, 1);
+  LuaScriptContext* corresponding_script_context =
+      state_to_script_context_map->lua_state_to_script_context_pointer_map[lua_state];
+  if (corresponding_script_context == nullptr)
+    luaL_error(lua_state, "Error: in OnFrameStart:register(func) method, could not find the lua script "
+                          "context associated with the current lua_State*");
+  lua_pushinteger(lua_state, new_function_reference);
+  luaL_ref(lua_state, LUA_REGISTRYINDEX);
+  corresponding_script_context->frame_callback_locations.push_back(new_function_reference);
   return 0;
 }
 int Unregister(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, class_name, "unregister", "()"); /*
-  if (frame_start_callback_is_registered)
-  {
-    luaL_unref(lua_state, LUA_REGISTRYINDEX, on_frame_start_lua_function_reference);
-    frame_start_callback_is_registered = false;
-    on_frame_start_lua_function_reference = -1;
-  }
-  TODO: Fix this*/
+  LuaColonOperatorTypeCheck(lua_state, class_name, "unregister", "()");
+  int function_reference_to_delete = lua_tointeger(lua_state, 2);
+  lua_getglobal(lua_state, "StateToScriptContextMap");
+  LuaStateToScriptContextMap* state_to_script_context_map =
+      (LuaStateToScriptContextMap*)lua_touserdata(lua_state, -1);
+  LuaScriptContext* corresponding_script_context =
+      state_to_script_context_map->lua_state_to_script_context_pointer_map[lua_state];
+  if (corresponding_script_context == nullptr)
+    luaL_error(lua_state, "Error: in OnFrameStart:unregister(func) method, could not find the lua "
+                          "script context associated with the current lua_State*");
+  if (std::find(corresponding_script_context->frame_callback_locations.begin(),
+                corresponding_script_context->frame_callback_locations.end(),
+                function_reference_to_delete) ==
+      corresponding_script_context->frame_callback_locations.end())
+    luaL_error(lua_state, "Error: Attempt to call OnFrameStart:unregister(func) on a function "
+                          "which wasn't registered as a frame callback function!");
+  corresponding_script_context->frame_callback_locations.erase((std::find(corresponding_script_context->frame_callback_locations.begin(),
+             corresponding_script_context->frame_callback_locations.end(),
+             function_reference_to_delete)));
+  luaL_unref(lua_state, LUA_REGISTRYINDEX, function_reference_to_delete);
   return 0;
 }
 
@@ -103,8 +129,7 @@ int RunCallbacks()
     current_script->lua_script_specific_lock.lock();
     if (!current_script->finished_with_global_code)
     {
-      Lua::SetScriptCallLocation(current_script->main_lua_thread,
-                                 LuaScriptCallLocations::FromFrameStartGlobalScope);
+      current_script->current_call_location = LuaScriptCallLocations::FromFrameStartGlobalScope;
       int ret_val = lua_resume(current_script->main_lua_thread, nullptr, 0, &x);
       if (ret_val == LUA_YIELD)
         current_script->called_yielding_function_in_last_global_script_resume = true;
@@ -120,8 +145,7 @@ int RunCallbacks()
 
     if (current_script->finished_with_global_code && current_script->frame_callback_locations.size() > 0)
     {
-      Lua::SetScriptCallLocation(current_script->frame_callback_lua_thread,
-                                 LuaScriptCallLocations::FromFrameStartCallback);
+      current_script->current_call_location = LuaScriptCallLocations::FromFrameStartCallback;
       if (current_script->index_of_next_frame_callback_to_execute >=
           current_script->frame_callback_locations.size())
       {

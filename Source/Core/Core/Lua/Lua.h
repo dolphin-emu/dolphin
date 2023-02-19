@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Core/Lua/LuaHelperClasses/LuaScriptContext.h"
+#include "Core/Lua/LuaHelperClasses/LuaStateToScriptContextMap.h"
 
 namespace Lua
 {

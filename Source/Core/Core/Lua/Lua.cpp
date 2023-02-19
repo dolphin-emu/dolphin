@@ -5,7 +5,7 @@
 #include "Core/Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h"
 #include "Core/Lua/LuaFunctions/LuaImportModule.h"
 #include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
-#include "Core/Lua/LuaHelperClasses/LuaScriptLocationModifier.h"
+#include "Core/Lua/LuaHelperClasses/LuaStateToScriptContextMap.h"
 #include "Core/Movie.h"
 
 namespace Lua
@@ -17,6 +17,7 @@ std::vector<std::shared_ptr<LuaScriptContext>> list_of_lua_script_contexts = std
 std::function<void(const std::string&)>* print_callback_function = nullptr;
 std::function<void(int)>* script_end_callback_function = nullptr;
 static std::mutex lua_initialization_and_destruction_lock;
+static std::unique_ptr<LuaStateToScriptContextMap> state_to_script_context_map = nullptr;
 
 int CustomPrintFunction(lua_State* lua_state)
 {
@@ -109,24 +110,31 @@ void Init(const std::string& script_location,
           std::function<void(int)>* new_script_end_callback, int unique_script_identifier)
 {
   const std::lock_guard<std::mutex> lock(lua_initialization_and_destruction_lock);
+  lua_State* new_main_lua_state = luaL_newstate();
+  luaL_openlibs(new_main_lua_state);
+
   if (!is_lua_core_initialized)
   {
+    state_to_script_context_map =
+        std::make_unique<LuaStateToScriptContextMap>(LuaStateToScriptContextMap());
     x = 0;
     print_callback_function = new_print_callback;
     script_end_callback_function = new_script_end_callback;
     is_lua_core_initialized = true;
   }
 
-
-  lua_State* new_main_lua_state = luaL_newstate();
-  luaL_openlibs(new_main_lua_state);
+  lua_pushlightuserdata(new_main_lua_state, state_to_script_context_map.get());
+  lua_setglobal(new_main_lua_state, "StateToScriptContextMap");
+  
   lua_newtable(new_main_lua_state);
   lua_pushcfunction(new_main_lua_state, CustomPrintFunction);
   lua_setglobal(new_main_lua_state, "print");
   std::shared_ptr<LuaScriptContext> new_lua_script_context = Lua::CreateNewLuaScriptContext(new_main_lua_state, unique_script_identifier,  script_location);
-  Lua::SetScriptCallLocation(new_lua_script_context->main_lua_thread,
-                             LuaScriptCallLocations::FromScriptStartup);
+  state_to_script_context_map.get()
+      ->lua_state_to_script_context_pointer_map[new_lua_script_context->main_lua_thread] =
+      new_lua_script_context.get();
 
+  new_lua_script_context->current_call_location = LuaScriptCallLocations::FromScriptStartup;
   list_of_lua_script_contexts.push_back(new_lua_script_context);
 
   LuaImportModule::InitLuaImportModule(new_lua_script_context->main_lua_thread, global_lua_api_version);
@@ -134,6 +142,9 @@ void Init(const std::string& script_location,
       new_lua_script_context->main_lua_thread, global_lua_api_version, &list_of_lua_script_contexts,
       script_end_callback_function);
   new_lua_script_context->frame_callback_lua_thread = lua_newthread(new_lua_script_context->main_lua_thread);
+   state_to_script_context_map.get()
+      ->lua_state_to_script_context_pointer_map[new_lua_script_context->frame_callback_lua_thread] =
+      new_lua_script_context.get();
 
 
   if (luaL_loadfile(new_lua_script_context->main_lua_thread, new_lua_script_context->script_filename.c_str()) != LUA_OK)

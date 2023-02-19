@@ -8,6 +8,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
+
 namespace Lua
 {
 
@@ -16,7 +18,7 @@ struct LuaScriptContext
   int unique_script_identifier;
   std::string script_filename;
   bool finished_with_global_code;
-
+  LuaScriptCallLocations current_call_location;
 
   std::mutex lua_script_specific_lock;
 
