@@ -93,8 +93,8 @@ void LuaScriptWindow::LoadScriptFunction()
     row_num_to_is_running[next_unique_identifier] = false;
     QStringList list;
     list << path;
-    lua_script_name_list_widget_ptr->insertItems(0, list);
-    lua_script_name_list_widget_ptr->setCurrentRow(0);
+    lua_script_name_list_widget_ptr->addItem(path);
+    lua_script_name_list_widget_ptr->setCurrentRow(lua_script_name_list_widget_ptr->count());
     ++next_unique_identifier;
     UpdateButtonText();
   }
@@ -134,6 +134,7 @@ void LuaScriptWindow::PlayOrStopScriptFunction()
     StopScriptFunction();
   else
     PlayScriptFunction();
+  UpdateButtonText();
 }
 
 void LuaScriptWindow::UpdateOutputWindow()

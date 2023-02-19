@@ -1,6 +1,7 @@
 dolphin:importModule("memory")
 dolphin:importModule("emu")
 
+funcRef = 0
 testNum = 1
 function readFromAndWriteToTest()
 	resultsTable = {}
@@ -233,7 +234,7 @@ function LuaMemoryApiTest()
 	io.write("\tTests Failed: " .. tostring(testResults["FAIL"]) .. "\n")
 	io.flush()
 	io.close()
-	OnFrameStart:unregister()
+	OnFrameStart:unregister(funcRef)
 end
 
-OnFrameStart:register(LuaMemoryApiTest)
+funcRef = OnFrameStart:register(LuaMemoryApiTest)

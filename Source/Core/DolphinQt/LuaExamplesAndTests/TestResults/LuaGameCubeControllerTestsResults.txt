@@ -1,6 +1,0 @@
-Running setInputs() unit tests:
-
-Test: 1
-	Calling setInput() on controller 1 with just setting A button...
-PASS!
-

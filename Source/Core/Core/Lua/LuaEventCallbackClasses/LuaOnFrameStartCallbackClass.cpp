@@ -90,6 +90,7 @@ int Unregister(lua_State* lua_state)
   lua_getglobal(lua_state, "StateToScriptContextMap");
   LuaStateToScriptContextMap* state_to_script_context_map =
       (LuaStateToScriptContextMap*)lua_touserdata(lua_state, -1);
+  lua_pop(lua_state, 1);
   LuaScriptContext* corresponding_script_context =
       state_to_script_context_map->lua_state_to_script_context_pointer_map[lua_state];
   if (corresponding_script_context == nullptr)
