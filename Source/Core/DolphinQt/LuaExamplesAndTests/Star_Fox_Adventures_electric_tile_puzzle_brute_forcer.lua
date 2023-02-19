@@ -3,6 +3,7 @@ dolphin:importModule("memory")
 dolphin:importModule("emu")
 dolphin:importModule("statistics")
 
+funcRef = 0
 basePasswordAddress = 0x80329849
 earlySaveStatePath= "saveStateName.sav"
 movieNamePath = "movieName.dtm"
@@ -55,10 +56,10 @@ function mainScriptBody()
 		end
 		
 		if passwordValue[1] == 1 and passwordValue[2] == 1 and passwordValue[3] == 1 and passwordValue[4] == 1 and passwordValue[5] == 1 and passwordValue[6] == 1 then
-			OnFrameEnd:unregister()
+			OnFrameStart:unregister(funcRef)
 			print("Finished generating a movie with a 111 111 electric tile puzzle!")
 		end
 	end
 end
 
-OnFrameEnd:register(mainScriptBody)
+funcRef = OnFrameStart:register(mainScriptBody)
