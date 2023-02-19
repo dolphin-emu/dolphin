@@ -257,10 +257,19 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
 {
   const UICommon::GameFile& game = *m_games[index];
 
-  if (!m_term.isEmpty() &&
-      !QString::fromStdString(game.GetName(m_title_database)).contains(m_term, Qt::CaseInsensitive))
+  if (!m_term.isEmpty())
   {
-    return false;
+    const bool matches_title = QString::fromStdString(game.GetName(m_title_database))
+                                   .contains(m_term, Qt::CaseInsensitive);
+    const bool filename_visible = Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_NAME);
+    const bool list_view_selected = Settings::Instance().GetPreferredView();
+    const bool matches_filename =
+        filename_visible && list_view_selected &&
+        QString::fromStdString(game.GetFileName()).contains(m_term, Qt::CaseInsensitive);
+    if (!(matches_title || matches_filename))
+    {
+      return false;
+    }
   }
 
   const bool show_platform = [&game] {
