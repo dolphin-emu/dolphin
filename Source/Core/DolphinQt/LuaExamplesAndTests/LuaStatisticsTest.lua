@@ -1,6 +1,7 @@
 dolphin:importModule("statistics")
 dolphin:importModule("emu")
 
+funcRef = 0
 baseMovieFilePath  = "testBaseRecording.dtm"
 earlySaveStatePath = "testEarlySaveState.sav"
 laterMovieName = "laterRecording.sav.dtm"
@@ -68,8 +69,8 @@ io.write("Tests Passed: " .. tostring(resultsTable["PASS"]) .. "\n\t")
 io.write("Tests Failed: " .. tostring(resultsTable["FAIL"]) .. "\n") 
 io.flush()
 io.close()
-OnFrameStart:unregister()
+OnFrameStart:unregister(funcRef)
 end
 
-OnFrameStart:register(statisticsTests)
+funcRef = OnFrameStart:register(statisticsTests)
 

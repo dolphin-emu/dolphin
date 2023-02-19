@@ -19,8 +19,7 @@ LuaScriptWindow::LuaScriptWindow(QWidget* parent) : QDialog(parent)
   };
 
   finished_script_callback_function = [this](int unique_identifier) {
-    std::lock_guard<std::mutex> lock(script_start_or_stop_lock);
-    ids_of_scripts_to_stop.push_back(unique_identifier);
+    ids_of_scripts_to_stop.push(unique_identifier);
     QueueOnObject(this, &LuaScriptWindow::OnScriptFinish);
   };
 
@@ -45,7 +44,10 @@ void LuaScriptWindow::CreateMainLayout()
   m_play_or_stop_script_button->setStyleSheet(tr("background-color:grey;"));
 
   lua_script_name_list_widget_ptr = new QListWidget;
-  lua_script_name_list_widget_ptr->setMaximumHeight(100);
+  lua_script_name_list_widget_ptr->setMinimumHeight(100);
+  lua_script_name_list_widget_ptr->setMaximumHeight(200);
+  lua_script_name_list_widget_ptr->setMinimumWidth(550);
+  lua_script_name_list_widget_ptr->setMaximumWidth(800);
 
   QLabel* script_name_header = new QLabel(tr("Script Name:"));
   auto* script_name_box = new QGridLayout();
@@ -54,6 +56,10 @@ void LuaScriptWindow::CreateMainLayout()
 
   QLabel* output_header = new QLabel(tr("Output:"));
   lua_output_list_widget_ptr = new QListWidget;
+  lua_output_list_widget_ptr->setMinimumHeight(300);
+  lua_output_list_widget_ptr->setMaximumHeight(600);
+  lua_output_list_widget_ptr->setMinimumWidth(550);
+  lua_output_list_widget_ptr->setMaximumWidth(800);
   auto* output_box = new QGridLayout();
   output_box->addWidget(output_header, 0, 0, Qt::AlignTop);
   output_box->addWidget(lua_output_list_widget_ptr, 1, 0, Qt::AlignTop);
@@ -94,7 +100,7 @@ void LuaScriptWindow::LoadScriptFunction()
     QStringList list;
     list << path;
     lua_script_name_list_widget_ptr->addItem(path);
-    lua_script_name_list_widget_ptr->setCurrentRow(lua_script_name_list_widget_ptr->count());
+    lua_script_name_list_widget_ptr->setCurrentRow(lua_script_name_list_widget_ptr->count() - 1);
     ++next_unique_identifier;
     UpdateButtonText();
   }
@@ -104,25 +110,35 @@ void LuaScriptWindow::LoadScriptFunction()
 
 void LuaScriptWindow::PlayScriptFunction()
 {
-  std::lock_guard<std::mutex> lock(script_start_or_stop_lock);
-
+  print_lock.lock();
   lua_output_list_widget_ptr->clear();
-  Lua::Init(lua_script_name_list_widget_ptr->currentItem()->text().toStdString(), &callback_print_function,
+  output_lines.clear();
+  print_lock.unlock();
+
+  script_start_or_stop_lock.lock();
+  int current_row = lua_script_name_list_widget_ptr->currentRow();
+  std::string current_script_name =
+      lua_script_name_list_widget_ptr->currentItem()->text().toStdString();
+  script_start_or_stop_lock.unlock();
+
+  Lua::Init(current_script_name, &callback_print_function,
             &finished_script_callback_function,
-            lua_script_name_list_widget_ptr->currentRow());
+            current_row);
 
-  row_num_to_is_running[lua_script_name_list_widget_ptr->currentRow()] = true;
-
+  row_num_to_is_running[current_row] = true;
 }
 
 void LuaScriptWindow::StopScriptFunction()
 {
-  std::lock_guard<std::mutex> lock(script_start_or_stop_lock);
   if (!Lua::is_lua_core_initialized)
     return;
 
-  Lua::StopScript(lua_script_name_list_widget_ptr->currentRow());
-  row_num_to_is_running[lua_script_name_list_widget_ptr->currentRow()] = false;
+  script_start_or_stop_lock.lock();
+  int current_row = lua_script_name_list_widget_ptr->currentRow();
+  script_start_or_stop_lock.unlock();
+
+  Lua::StopScript(current_row);
+  row_num_to_is_running[current_row] = false;
   UpdateButtonText();
 }
 
@@ -130,10 +146,14 @@ void LuaScriptWindow::PlayOrStopScriptFunction()
 {
   if (lua_script_name_list_widget_ptr->count() == 0)
     return;
-  if (row_num_to_is_running[lua_script_name_list_widget_ptr->currentRow()])
+
+  int current_row = lua_script_name_list_widget_ptr->currentRow();
+  if (row_num_to_is_running[current_row])
     StopScriptFunction();
-  else
+  else if (!row_num_to_is_running[current_row])
     PlayScriptFunction();
+  else
+    return;
   UpdateButtonText();
 }
 
@@ -151,14 +171,13 @@ void LuaScriptWindow::UpdateOutputWindow()
 
 void LuaScriptWindow::OnScriptFinish()
 {
-  std::lock_guard<std::mutex> lock(script_start_or_stop_lock);
-  for (int i = 0; i < ids_of_scripts_to_stop.size(); ++i)
+  int id_of_script_to_stop = ids_of_scripts_to_stop.pop();
+  if (id_of_script_to_stop >= 0 && row_num_to_is_running[id_of_script_to_stop])
   {
-    Lua::StopScript(ids_of_scripts_to_stop[i]);
-    row_num_to_is_running[lua_script_name_list_widget_ptr->currentRow()] = false;
+    row_num_to_is_running[id_of_script_to_stop] = false;
+    Lua::StopScript(id_of_script_to_stop);
+    UpdateButtonText();
   }
-  ids_of_scripts_to_stop.clear();
-  UpdateButtonText();
 }
 
 void LuaScriptWindow::UpdateButtonText()

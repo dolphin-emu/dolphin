@@ -13,7 +13,7 @@
 
 namespace Lua::LuaOnFrameStartCallback
 {
-static std::mutex frame_start_lock;
+std::mutex frame_start_lock;
 static int x;
 
 class LuaOnFrameStart

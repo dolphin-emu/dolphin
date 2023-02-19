@@ -135,6 +135,7 @@ void Init(const std::string& script_location,
       new_lua_script_context.get();
 
   new_lua_script_context->current_call_location = LuaScriptCallLocations::FromScriptStartup;
+  new_lua_script_context->lua_script_specific_lock.lock();
   list_of_lua_script_contexts.push_back(new_lua_script_context);
 
   LuaImportModule::InitLuaImportModule(new_lua_script_context->main_lua_thread, global_lua_api_version);
@@ -153,7 +154,6 @@ void Init(const std::string& script_location,
     (*print_callback_function)(temp_string);
     (*script_end_callback_function)(unique_script_identifier);
   }
-  new_lua_script_context->lua_script_specific_lock.lock();
   int retVal = lua_resume(new_lua_script_context->main_lua_thread, nullptr, 0, &Lua::x);
   if (retVal == LUA_YIELD)
     new_lua_script_context->called_yielding_function_in_last_global_script_resume = true;
@@ -161,7 +161,11 @@ void Init(const std::string& script_location,
   {
     new_lua_script_context->called_yielding_function_in_last_global_script_resume = false;
     if (retVal == LUA_OK)
+    {
       new_lua_script_context->finished_with_global_code = true;
+      if (new_lua_script_context->frame_callback_locations.size() == 0)
+        (*script_end_callback_function)(new_lua_script_context->unique_script_identifier);
+    }
     else
     {
       if (retVal == 2)
@@ -174,25 +178,51 @@ void Init(const std::string& script_location,
     }
     }
   new_lua_script_context->lua_script_specific_lock.unlock();
-
-  
-
   return;
 }
 
 void StopScript(int unique_identifier)
 {
-  const std::lock_guard<std::mutex> lock(lua_initialization_and_destruction_lock);
+  lua_initialization_and_destruction_lock.lock();
+  Lua::LuaOnFrameStartCallback::frame_start_lock.lock();
   for (int i = 0; i < list_of_lua_script_contexts.size(); ++i)
   {
     if (list_of_lua_script_contexts[i].get()->unique_script_identifier == unique_identifier)
     {
       LuaScriptContext* script_context_to_delete = list_of_lua_script_contexts[i].get();
-      script_context_to_delete->lua_script_specific_lock.lock();
+      script_context_to_delete->lua_script_specific_lock.lock(); // permanently locking the script so it can't be called again (should be impossible to try to call it, however)
       script_context_to_delete->is_lua_script_active = false;
-      script_context_to_delete->lua_script_specific_lock.unlock();
+
+      if (state_to_script_context_map.get()->lua_state_to_script_context_pointer_map.count(
+              script_context_to_delete->main_lua_thread) > 0)
+        state_to_script_context_map.get()->lua_state_to_script_context_pointer_map.erase(
+            script_context_to_delete->main_lua_thread);
+
+      if (state_to_script_context_map.get()->lua_state_to_script_context_pointer_map.count(
+              script_context_to_delete->frame_callback_lua_thread) > 0)
+        state_to_script_context_map.get()->lua_state_to_script_context_pointer_map.erase(
+            script_context_to_delete->frame_callback_lua_thread);
+
+      if (state_to_script_context_map.get()->lua_state_to_script_context_pointer_map.count(
+              script_context_to_delete->instruction_address_hit_callback_lua_thread) > 0)
+        state_to_script_context_map.get()->lua_state_to_script_context_pointer_map.erase(
+            script_context_to_delete->instruction_address_hit_callback_lua_thread);
+
+      if (state_to_script_context_map.get()->lua_state_to_script_context_pointer_map.count(
+              script_context_to_delete->memory_address_read_from_callback_lua_thread) > 0)
+        state_to_script_context_map.get()->lua_state_to_script_context_pointer_map.erase(
+            script_context_to_delete->memory_address_read_from_callback_lua_thread);
+
+      if (state_to_script_context_map.get()->lua_state_to_script_context_pointer_map.count(
+              script_context_to_delete->memory_address_written_to_callback_lua_thread) > 0)
+        state_to_script_context_map.get()->lua_state_to_script_context_pointer_map.erase(
+            script_context_to_delete->memory_address_written_to_callback_lua_thread);
+
+      list_of_lua_script_contexts.erase(list_of_lua_script_contexts.begin() + i);
     }
   }
+  Lua::LuaOnFrameStartCallback::frame_start_lock.unlock();
+  lua_initialization_and_destruction_lock.unlock();
 }
 
 }  // namespace Lua

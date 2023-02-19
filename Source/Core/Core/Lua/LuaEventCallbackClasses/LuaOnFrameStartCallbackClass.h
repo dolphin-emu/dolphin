@@ -9,6 +9,7 @@
 
 namespace Lua::LuaOnFrameStartCallback
 {
+extern std::mutex frame_start_lock;
 void InitLuaOnFrameStartCallbackFunctions(
     lua_State* main_lua_thread, const std::string& lua_api_version,
     std::vector<std::shared_ptr<LuaScriptContext>>* new_pointer_to_lua_script_list,
