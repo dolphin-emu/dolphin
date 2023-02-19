@@ -54,6 +54,7 @@ public:
   void PauseAndLock(Core::System& system, bool doLock, bool unpauseOnUnlock);
   void UpdateWantDeterminism(Core::System& system, bool want);
   bool UseDeterministicGPUThread() const { return m_use_deterministic_gpu_thread; }
+  bool UseSyncGPU() const { return m_config_sync_gpu; }
 
   // In deterministic GPU thread mode this waits for the GPU to be done with pending work.
   void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr = true);

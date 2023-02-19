@@ -417,6 +417,11 @@ bool CoreTimingManager::GetVISkip() const
   return m_throttle_disable_vi_int && g_ActiveConfig.bVISkip && !Core::WantsDeterminism();
 }
 
+bool CoreTimingManager::UseSyncOnSkipIdle() const
+{
+  return m_config_sync_on_skip_idle;
+}
+
 void CoreTimingManager::LogPendingEvents() const
 {
   auto clone = m_event_queue;

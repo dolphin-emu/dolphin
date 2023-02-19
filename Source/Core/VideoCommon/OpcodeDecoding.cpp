@@ -219,8 +219,8 @@ public:
     }
     else
     {
-      Core::System::GetInstance().GetCommandProcessor().HandleUnknownOpcode(opcode, data,
-                                                                            is_preprocess);
+      auto& system = Core::System::GetInstance();
+      system.GetCommandProcessor().HandleUnknownOpcode(system, opcode, data, is_preprocess);
       m_cycles += 1;
     }
   }
