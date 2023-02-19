@@ -368,12 +368,14 @@ void MainWindow::InitCoreCallbacks()
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     if (state == Core::State::Uninitialized)
       OnStopComplete();
-
+	
     if (state == Core::State::Running && m_fullscreen_requested)
     {
       FullScreen();
       m_fullscreen_requested = false;
     }
+
+	 m_memory_engine->onEmulationStateChanged(state != Core::State::Uninitialized);
   });
   installEventFilter(this);
   m_render_widget->installEventFilter(this);

@@ -36,6 +36,7 @@ public:
   void onExportAsCSV();
   void onShowScanner(bool show);
   void onQuit();
+  void onEmulationStateChanged(bool running);
 
 signals:
   void sigQuit();

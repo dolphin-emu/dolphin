@@ -223,13 +223,11 @@ void MemoryEngine::onOpenSettings()
   delete dlg;
   if (dlgResult == QDialog::Accepted)
   {
-    m_scanner->getUpdateTimer()->stop();
     m_watcher->getUpdateTimer()->stop();
     m_watcher->getFreezeTimer()->stop();
     m_viewer->getUpdateTimer()->stop();
     if (Common::hasMemory())
     {
-      m_scanner->getUpdateTimer()->start(DMEConfig::getInstance().getScannerUpdateTimerMs());
       m_watcher->getUpdateTimer()->start(DMEConfig::getInstance().getWatcherUpdateTimerMs());
       m_watcher->getFreezeTimer()->start(DMEConfig::getInstance().getFreezeTimerMs());
       m_viewer->getUpdateTimer()->start(DMEConfig::getInstance().getViewerUpdateTimerMs());
@@ -240,6 +238,23 @@ void MemoryEngine::onOpenSettings()
 void MemoryEngine::onQuit()
 {
   close();
+}
+
+void MemoryEngine::onEmulationStateChanged(bool running)
+{
+  if(running)
+  {
+    m_watcher->getUpdateTimer()->start(DMEConfig::getInstance().getWatcherUpdateTimerMs());
+    m_watcher->getFreezeTimer()->start(DMEConfig::getInstance().getFreezeTimerMs());
+    m_viewer->getUpdateTimer()->start(DMEConfig::getInstance().getViewerUpdateTimerMs());
+  }
+  else
+  {
+    m_watcher->getUpdateTimer()->stop();
+    m_watcher->getFreezeTimer()->stop();
+    m_viewer->getUpdateTimer()->stop();
+  }
+
 }
 
 void MemoryEngine::closeEvent(QCloseEvent* event)

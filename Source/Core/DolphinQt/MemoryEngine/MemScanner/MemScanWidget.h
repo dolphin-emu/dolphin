@@ -45,7 +45,6 @@ signals:
                                             Common::MemBase base);
   void requestAddAllResultsToWatchList(Common::MemType type, size_t length, bool isUnsigned,
                                        Common::MemBase base);
-  void mustUnhook();
 
 private:
   void initialiseWidgets();
@@ -66,7 +65,6 @@ private:
   QLineEdit* m_txbSearchTerm1;
   QLineEdit* m_txbSearchTerm2;
   QWidget* m_searchTerm2Widget;
-  QTimer* m_currentValuesUpdateTimer;
   QComboBox* m_cmbScanFilter;
   QComboBox* m_cmbScanType;
   QLabel* m_lblResultCount;

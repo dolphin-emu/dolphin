@@ -400,10 +400,6 @@ void MemScanWidget::handleScannerErrors(const Common::MemOperationReturnCode err
                         QMessageBox::Ok, this);
     errorBox->exec();
   }
-  else if (errorCode == Common::MemOperationReturnCode::operationFailed)
-  {
-    emit mustUnhook();
-  }
   else if(errorCode == Common::MemOperationReturnCode::uninitialized)
   {
 	  QMessageBox* errorBox =
@@ -414,11 +410,6 @@ void MemScanWidget::handleScannerErrors(const Common::MemOperationReturnCode err
     errorBox->exec();
 
   }
-}
-
-QTimer* MemScanWidget::getUpdateTimer() const
-{
-  return m_currentValuesUpdateTimer;
 }
 
 void MemScanWidget::onResultListDoubleClicked(const QModelIndex& index)
