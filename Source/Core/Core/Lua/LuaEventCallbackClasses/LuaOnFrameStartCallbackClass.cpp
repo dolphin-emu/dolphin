@@ -62,7 +62,6 @@ void InitLuaOnFrameStartCallbackFunctions(lua_State* main_lua_thread, const std:
 int Register(lua_State* lua_state)
 {
   LuaColonOperatorTypeCheck(lua_state, class_name, "register", "(functionName)");
-  int new_function_reference = lua_tointeger(lua_state, 2);
   lua_getglobal(lua_state, "StateToScriptContextMap");
   std::string r = luaL_typename(lua_state, -1);
   if (!lua_islightuserdata(lua_state, -1))
@@ -74,10 +73,15 @@ int Register(lua_State* lua_state)
   if (corresponding_script_context == nullptr)
     luaL_error(lua_state, "Error: in OnFrameStart:register(func) method, could not find the lua script "
                           "context associated with the current lua_State*");
-  lua_pushinteger(lua_state, new_function_reference);
-  luaL_ref(lua_state, LUA_REGISTRYINDEX);
+
+  std::string q = luaL_typename(lua_state, 2);
+  lua_pushvalue(lua_state, 2);
+  lua_xmove(lua_state, corresponding_script_context->frame_callback_lua_thread, 1);
+  lua_pop(lua_state, 1);
+  int new_function_reference = luaL_ref(corresponding_script_context->frame_callback_lua_thread, LUA_REGISTRYINDEX);
   corresponding_script_context->frame_callback_locations.push_back(new_function_reference);
-  return 0;
+  lua_pushinteger(lua_state, new_function_reference);
+  return 1;
 }
 int Unregister(lua_State* lua_state)
 {
@@ -100,7 +104,7 @@ int Unregister(lua_State* lua_state)
   corresponding_script_context->frame_callback_locations.erase((std::find(corresponding_script_context->frame_callback_locations.begin(),
              corresponding_script_context->frame_callback_locations.end(),
              function_reference_to_delete)));
-  luaL_unref(lua_state, LUA_REGISTRYINDEX, function_reference_to_delete);
+  luaL_unref(corresponding_script_context->frame_callback_lua_thread, LUA_REGISTRYINDEX, function_reference_to_delete);
   return 0;
 }
 
