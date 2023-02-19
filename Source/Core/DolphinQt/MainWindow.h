@@ -16,6 +16,7 @@
 class QStackedWidget;
 class QString;
 
+class AchievementsWindow;
 class BreakpointWidget;
 struct BootParameters;
 class CheatsManager;
@@ -165,6 +166,9 @@ private:
   void ShowResourcePackManager();
   void ShowCheatsManager();
   void ShowRiivolutionBootWidget(const UICommon::GameFile& game);
+  void ShowAchievementsWindow();
+  void ShowAchievementsWelcome();
+  void ActivateRAMenuItem(int id);
 
   void NetPlayInit();
   bool NetPlayJoin();
@@ -227,6 +231,7 @@ private:
   SkylanderPortalWindow* m_skylander_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
+  AchievementsWindow* m_achievements_window = nullptr;
 
   HotkeyScheduler* m_hotkey_scheduler;
   NetPlayDialog* m_netplay_dialog;

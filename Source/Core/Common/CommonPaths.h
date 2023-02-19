@@ -112,6 +112,7 @@
 #define LOGGER_CONFIG "Logger.ini"
 #define DUALSHOCKUDPCLIENT_CONFIG "DSUClient.ini"
 #define FREELOOK_CONFIG "FreeLook.ini"
+#define ACHIEVEMENTS_CONFIG "Achievements.ini"
 
 // Files in the directory returned by GetUserPath(D_LOGS_IDX)
 #define MAIN_LOG "dolphin.log"

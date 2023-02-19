@@ -1,0 +1,360 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{c1b8966b-c711-43ce-ac8a-1dcca6b41ff3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\lua">
+      <UniqueIdentifier>{9d6d4e6d-a0b7-4181-b536-93e34de1e625}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\rcheevos">
+      <UniqueIdentifier>{43b6b53b-c37e-453e-97bf-df56c515f1a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\rhash">
+      <UniqueIdentifier>{9060be9f-a1f8-4940-a6e6-8ada5c89ae94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{faf643ae-e095-4db5-a701-3ea9ed343cc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\rcheevos">
+      <UniqueIdentifier>{f890b4f1-8de5-4730-b612-3a7dbf65ca74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\rhash">
+      <UniqueIdentifier>{21341552-6b14-4f5b-a26c-d9393ffbdbcc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\rurl">
+      <UniqueIdentifier>{8789fd50-d142-4c00-8ef5-c33fbac7bd2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\rurl">
+      <UniqueIdentifier>{b10820d1-368c-422b-a8ef-b3f7e804464e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\rapi">
+      <UniqueIdentifier>{d049182b-0721-46b5-b93e-6f8f7f572b45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\rapi">
+      <UniqueIdentifier>{0b946a47-0089-4118-a5b2-cd57245dc58b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\rcheevos\format.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\lboard.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\operand.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\trigger.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\value.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\alloc.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\condition.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\condset.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lapi.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lauxlib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lbaselib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lbitlib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lcode.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lcorolib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lctype.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\ldblib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\ldebug.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\ldo.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\ldump.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lfunc.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lgc.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\linit.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\liolib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\llex.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lmathlib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lmem.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\loadlib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lobject.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lopcodes.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\loslib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lparser.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lstate.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lstring.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lstrlib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\ltable.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\ltablib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\ltm.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lundump.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lutf8lib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lvm.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\src\lzio.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\richpresence.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\memref.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\runtime.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rhash\md5.c">
+      <Filter>src\rhash</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_operand.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="test.c">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_memref.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_condition.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_condset.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_value.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_format.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_trigger.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_lboard.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rhash\hash.c">
+      <Filter>src\rhash</Filter>
+    </ClCompile>
+    <ClCompile Include="rhash\test_hash.c">
+      <Filter>tests\rhash</Filter>
+    </ClCompile>
+    <ClCompile Include="rhash\data.c">
+      <Filter>tests\rhash</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_richpresence.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\compat.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_runtime.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\consoleinfo.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_consoleinfo.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\runtime_progress.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_runtime_progress.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rurl\url.c">
+      <Filter>src\rurl</Filter>
+    </ClCompile>
+    <ClCompile Include="rurl\test_url.c">
+      <Filter>tests\rurl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rhash\cdreader.c">
+      <Filter>src\rhash</Filter>
+    </ClCompile>
+    <ClCompile Include="rhash\test_cdreader.c">
+      <Filter>tests\rhash</Filter>
+    </ClCompile>
+    <ClCompile Include="rhash\mock_filereader.c">
+      <Filter>tests\rhash</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rapi\rc_api_common.c">
+      <Filter>src\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rapi\rc_api_runtime.c">
+      <Filter>src\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rapi\rc_api_user.c">
+      <Filter>src\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="rapi\test_rc_api_runtime.c">
+      <Filter>tests\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="rapi\test_rc_api_user.c">
+      <Filter>tests\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="rapi\test_rc_api_common.c">
+      <Filter>tests\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\rc_libretro.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_rc_libretro.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rapi\rc_api_info.c">
+      <Filter>src\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="rapi\test_rc_api_info.c">
+      <Filter>tests\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rapi\rc_api_editor.c">
+      <Filter>src\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="rapi\test_rc_api_editor.c">
+      <Filter>tests\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\rc_validate.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="rcheevos\test_rc_validate.c">
+      <Filter>tests\rcheevos</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\rcheevos.h">
+      <Filter>src\rcheevos</Filter>
+    </ClInclude>
+    <ClInclude Include="rcheevos\mock_memory.h">
+      <Filter>tests\rcheevos</Filter>
+    </ClInclude>
+    <ClInclude Include="test_framework.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="rhash\data.h">
+      <Filter>tests\rhash</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rhash\md5.h">
+      <Filter>src\rhash</Filter>
+    </ClInclude>
+    <ClInclude Include="rhash\mock_filereader.h">
+      <Filter>tests\rhash</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rc_hash.h">
+      <Filter>src\rhash</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rc_consoles.h">
+      <Filter>src\rcheevos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rc_url.h">
+      <Filter>src\rurl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rcheevos\rc_internal.h">
+      <Filter>src\rcheevos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rcheevos\rc_compat.h">
+      <Filter>src\rcheevos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rc_error.h">
+      <Filter>src\rcheevos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rapi\rc_api_common.h">
+      <Filter>src\rapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rc_api_user.h">
+      <Filter>src\rapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rc_api_request.h">
+      <Filter>src\rapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rc_api_runtime.h">
+      <Filter>src\rapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rcheevos\rc_libretro.h">
+      <Filter>src\rcheevos</Filter>
+    </ClInclude>
+    <ClInclude Include="libretro.h">
+      <Filter>tests\rcheevos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rc_runtime.h">
+      <Filter>src\rcheevos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rc_runtime_types.h">
+      <Filter>src\rcheevos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rc_api_info.h">
+      <Filter>src\rapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rc_api_editor.h">
+      <Filter>src\rapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rcheevos\rc_validate.h">
+      <Filter>src\rcheevos</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

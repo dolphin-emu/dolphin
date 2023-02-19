@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2036
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rcheevos-test", "rcheevos-test.vcxproj", "{74FBBFC4-5AC5-4A86-B292-B2F535E9912C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{900F3B07-2B47-4967-8296-CEC29233458F}"
+	ProjectSection(SolutionItems) = preProject
+		..\.editorconfig = ..\.editorconfig
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "validator", "..\validator\validator.vcxproj", "{16FABFA7-A2EC-4CD0-9E04-50315A2BB613}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{74FBBFC4-5AC5-4A86-B292-B2F535E9912C}.Debug|x64.ActiveCfg = Debug|x64
+		{74FBBFC4-5AC5-4A86-B292-B2F535E9912C}.Debug|x64.Build.0 = Debug|x64
+		{74FBBFC4-5AC5-4A86-B292-B2F535E9912C}.Debug|x86.ActiveCfg = Debug|Win32
+		{74FBBFC4-5AC5-4A86-B292-B2F535E9912C}.Debug|x86.Build.0 = Debug|Win32
+		{74FBBFC4-5AC5-4A86-B292-B2F535E9912C}.Release|x64.ActiveCfg = Release|x64
+		{74FBBFC4-5AC5-4A86-B292-B2F535E9912C}.Release|x64.Build.0 = Release|x64
+		{74FBBFC4-5AC5-4A86-B292-B2F535E9912C}.Release|x86.ActiveCfg = Release|Win32
+		{74FBBFC4-5AC5-4A86-B292-B2F535E9912C}.Release|x86.Build.0 = Release|Win32
+		{16FABFA7-A2EC-4CD0-9E04-50315A2BB613}.Debug|x64.ActiveCfg = Debug|x64
+		{16FABFA7-A2EC-4CD0-9E04-50315A2BB613}.Debug|x64.Build.0 = Debug|x64
+		{16FABFA7-A2EC-4CD0-9E04-50315A2BB613}.Debug|x86.ActiveCfg = Debug|Win32
+		{16FABFA7-A2EC-4CD0-9E04-50315A2BB613}.Debug|x86.Build.0 = Debug|Win32
+		{16FABFA7-A2EC-4CD0-9E04-50315A2BB613}.Release|x64.ActiveCfg = Release|x64
+		{16FABFA7-A2EC-4CD0-9E04-50315A2BB613}.Release|x64.Build.0 = Release|x64
+		{16FABFA7-A2EC-4CD0-9E04-50315A2BB613}.Release|x86.ActiveCfg = Release|Win32
+		{16FABFA7-A2EC-4CD0-9E04-50315A2BB613}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {02ADF144-5109-40C0-AA02-5BC5585A9883}
+	EndGlobalSection
+EndGlobal

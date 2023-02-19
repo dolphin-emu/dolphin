@@ -29,6 +29,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -162,6 +163,12 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
       });
     }
   }
+
+  Achievements::StartSession(&Core::System::GetInstance().GetMemory());
+  Achievements::FetchData();
+  Achievements::ActivateAM();
+  Achievements::ActivateLB();
+  Achievements::ActivateRP();
 
   const bool load_ipl = !StartUp.bWii && !Config::Get(Config::MAIN_SKIP_IPL) &&
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);

@@ -96,6 +96,8 @@
 #include "jni/AndroidCommon/IDCache.h"
 #endif
 
+#include "AchievementManager.h"
+
 namespace Core
 {
 static bool s_wants_determinism;
@@ -164,6 +166,9 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
+  // TODO lillyjade: This still feels a bit hacky but it may genuinely
+  // be the best place to put this???
+  Achievements::DoFrame();
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
   {
@@ -280,6 +285,8 @@ void Stop()  // - Hammertime!
 {
   if (GetState() == State::Stopping || GetState() == State::Uninitialized)
     return;
+
+  Achievements::EndSession();
 
   s_is_stopping = true;
 
@@ -525,6 +532,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   Common::ScopeGuard audio_guard([&system] { AudioCommon::ShutdownSoundStream(system); });
 
   HW::Init(NetPlay::IsNetPlayRunning() ? &(boot_session_data.GetNetplaySettings()->sram) : nullptr);
+
+  Achievements::RAIntegration::GameChanged(core_parameter.bWii);
 
   Common::ScopeGuard hw_guard{[] {
     // We must set up this flag before executing HW::Shutdown()

@@ -1,0 +1,88 @@
+RetroAchievements Emulator Requirements:
+* If the emulator does not support a feature, the requirement is automatically met. This is primarily a set of
+  guidelines to ensure the interaction between the emulator and the toolkit is consistent between emulators.
+* If the system is supported by RetroArch, explain why a standalone emulator is desirable. RetroArch support is 
+  preferred as it is usable by more players (i.e. not just Windows users), and adding support to RALibRetro for 
+  an additional core is much easier than overhauling an entire emulator.
+
+[ ] Game Identification
+  [ ] Hash method documented and approved
+  [ ] If emulator supports dynamic patching [i.e. ips], hash is calculated after applying patch
+  [ ] Hash ignores any persistent save data [SRAM]
+  [ ] Game can be properly identified (RA_OnLoadNewRom and/or RA_IdentifyROM + RA_ActivateGame)
+  [ ] Unidentified game provides some descriptor [typically filename] to unknown game dialog (RA_InstallSharedFunctions>RA_GetEstimatedGameTitle)
+  [ ] Unidentified game provides list of known games for console (RA_SetConsoleID - which is usually called by RAIntegration in the emulator registration)
+[ ] Emulator
+  [ ] DLL is downloaded if not available (RA_Init - new EmulatorID enum value may be needed in RA_Interface.h)
+  [ ] RetroAchievements menu is visible (RA_CreatePopupMenu) and functional (RA_InvokeDialog)
+  [ ] RetroAchievements menu updates when logging in/out (RA_InstallSharedFunctions>RA_RebuildMenu)
+  [ ] Login dialog displayed on first run or auto-login on future runs (RA_AttemptLogin)
+  [ ] Title includes logged in user (RA_UpdateAppTitle)
+  [ ] RALog.txt ends with "Shutdown complete" after closing emulator (RA_Shutdown)
+  [ ] Full-window overlay can be displayed (RA_SetPaused)
+  [ ] Full-window overlay can be navigated (RA_NavigateOverlay)
+  [ ] Full-window overlay navigation uses player's custom controller bindings, not hard-coded inputs.
+  [ ] Closing the full-window overlay unpauses the emulator (RA_InstallSharedFunctions>RA_CauseUnpause)
+  [ ] Overlay is still functional when toggling full-screen mode (RA_UpdateHWnd)
+  [ ] Resetting the emulator disables any active popups/leaderboards (RA_OnReset)
+  [ ] Performance of emulator (without any debugging windows open) should not be noticeably different than the source emulator at 100% speed
+  [ ] Emulator must perform at intended framerate on a PC that could have been purchased at a retail store within the last four years.
+[ ] Emulated System
+  [ ] Memory mapping method is documented and approved (RA_InstallMemoryBank)
+  [ ] Modifying memory affects the game (RA_InstallMemoryBank>pWriter)
+[ ] Achievements/Leaderboards/Rich Presence
+  [ ] Achievements can be created
+  [ ] Achievements trigger (RA_InstallMemoryBank>pReader, RA_DoAchievementsFrame)
+  [ ] Achievement trigger displays notification
+  [ ] Achievement can pause emulator [Pause on Reset, Pause on Trigger] (RA_InstallSharedFunctions>RA_CausePause)
+  [ ] Achievements are not processed when emulator is paused [HitCount for true condition does not increment] (RA_DoAchievementsFrame not called when paused)
+  [ ] When using frame advance, achievements are only processed when the frame is advanced.
+  [ ] Changing the current game prompts the user to save modifications (RA_ConfirmLoadNewRom)
+    [ ] Choosing not to save modifications aborts changing the current game.
+  [ ] Closing the emulator prompts the user to save modifications (RA_ConfirmLoadNewRom)
+    [ ] Choosing not to save modifications aborts closing the emulator.
+  [ ] Closing the current game prompts the user to save modifications (RA_ConfirmLoadNewRom)
+    [ ] Choosing not to save modifications aborts closing the current game.
+  [ ] Closing the current game clears the list of achievements for the game (RA_ActivateGame(0))
+[ ] Softcore
+  [ ] Save states can be created
+  [ ] Save states can be loaded
+  [ ] HitCounts persist with save state (RA_OnSaveState, RA_OnLoadState)
+  [ ] Speed may be adjusted above 100% [framerate higher than normal]
+  [ ] Speed may be adjusted below 100% [framerate lower than normal]
+  [ ] Fast-forward [removing frame limiter] is allowed
+  [ ] Rewind is allowed
+  [ ] Frame advance is allowed
+    [ ] Overlay should not be displayed when using frame advance (don't call RA_SetPaused)
+  [ ] Recording is allowed
+  [ ] Recording playback is allowed
+  [ ] Switching to Hardcore resets the emulator (RA_InstallSharedFunctions>RA_ResetEmulation)
+  [ ] Switching to Hardcore resets the emulator speed to 100%
+  [ ] Switching to Hardcore closes any emulator specific tools for viewing/modifying memory
+  [ ] Switching to Hardcore disables any enabled cheats
+[ ] Hardcore
+  [ ] Save states can be created
+  [ ] Save states cannot be loaded [prompt to switch to softcore (RA_WarnDisableHardcore)]
+  [ ] Speed may be adjusted above 100%
+  [ ] Speed cannot be adjusted below 100%
+  [ ] Fast-forward is allowed
+  [ ] Rewind is not allowed
+  [ ] Frame advance is not allowed
+  [ ] Recording is allowed
+  [ ] Recording playback is not allowed
+  [ ] Switching to Softcore does not reset the emulator
+  [ ] Emulator specific tools for viewing/modifying memory are not allowed [prompt to switch to softcore optional]
+  [ ] Emulator specific tools for supporting cheats are not allowed [prompt to switch to softcore optional]
+  [ ] Ensure any features not allowed in hardcore are disabled both from menu items and hotkeys
+[ ] After approval
+  [ ] Version generated from git tag
+  [ ] Zip file needs to be built - should contain emulator, default Overlay directory, and any supplemental files needed by the emulator
+  [ ] Backend (to be done by the RAWeb team)
+    [ ] Add the emulator's console ID as a "valid" console, so new achievements can be promoted to the Core set (RAWeb:lib/database/game.php>isValidConsoleId).
+    [ ] Add the emulator's enum (get the number from RAInterface.h and add it in RAWeb:src/Emulators.php)
+    [ ] dorequest.php>latestclient needs to map to LatestXXXVersion.html file when it receives either emulator ID or console ID.
+    [ ] Add link to the new system game list in RAWeb:lib/dynrenderer.php>RenderToolbar.
+    [ ] Add an entry for the emulator in RAWeb:public/reportissue.php, so people can choose it when opening tickets.
+    [ ] Upload zip file to the server
+    [ ] Create the LatestXXXVersion.html page.
+    [ ] Add a link to the zip file and show the latest emulator's version in RAWeb:public/download.php 

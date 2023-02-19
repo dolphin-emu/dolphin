@@ -7,6 +7,12 @@
     <ProjectName>Dolphin</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
   <Import Project="$(VSPropsDir)Configuration.Application.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -40,6 +46,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch_qt.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>pch_qt.h</ForcedIncludeFiles>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -47,6 +54,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="Config\AchievementLeaderboardWidget.cpp" />
+    <ClCompile Include="Config\AchievementProgressWidget.cpp" />
+    <ClCompile Include="Config\AchievementSettingsWidget.cpp" />
+    <ClCompile Include="Config\AchievementsWindow.cpp" />
     <ClCompile Include="CheatSearchFactoryWidget.cpp" />
     <ClCompile Include="CheatSearchWidget.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
@@ -220,6 +231,10 @@
     also be modified using the VS UI.
     -->
   <ItemGroup>
+    <QtMoc Include="Config\AchievementsWindow.h" />
+    <QtMoc Include="Config\AchievementSettingsWidget.h" />
+    <QtMoc Include="Config\AchievementProgressWidget.h" />
+    <QtMoc Include="Config\AchievementLeaderboardWidget.h" />
     <ClInclude Include="Config\CheatCodeEditor.h" />
     <ClInclude Include="Config\GameConfigEdit.h" />
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
@@ -432,6 +447,7 @@
   <Import Project="$(ExternalsDir)mbedtls\exports.props" />
   <Import Project="$(ExternalsDir)mGBA\exports.props" />
   <Import Project="$(ExternalsDir)picojson\exports.props" />
+  <Import Project="$(ExternalsDir)rcheevos\exports.props" />
   <Import Project="$(ExternalsDir)SFML\exports.props" />
   <Import Project="$(ExternalsDir)soundtouch\exports.props" />
   <Import Project="$(ExternalsDir)zstd\exports.props" />
@@ -443,6 +459,9 @@
     <DataTxtFiles Include="$(DolphinRootDir)Data\license.txt" />
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(BinaryFiles)" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Binary\x64\RA_Integration.dll" />
   </ItemGroup>
   <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Data directory..." Importance="High" />

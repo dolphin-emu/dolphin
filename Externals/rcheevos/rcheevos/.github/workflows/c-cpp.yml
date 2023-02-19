@@ -1,0 +1,116 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master,develop ]
+  pull_request:
+    branches: [ master,develop ]
+
+jobs:
+  linux-x86:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install gcc-multilib # bits/libc-header-start.h
+    - name: Build
+      run: make ARCH=x86 BUILD=c89 test
+      working-directory: test
+    - name: Run tests
+      run: ./test
+      working-directory: test
+
+  linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install valgrind gcc-multilib # bits/libc-header-start.h
+    - name: Build
+      run: make ARCH=x64 BUILD=c89 test
+      working-directory: test
+    - name: Run tests
+      run: ./test
+      working-directory: test
+    - name: Valgrind
+      run: make ARCH=x64 BUILD=c89 valgrind
+      working-directory: test
+      
+  # RetroArch compiles with gcc-8, gnu99, and a different set of warnings.
+  # Attempt to catch issues caused by those discrepencies.
+  linux-x64-retroarch:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install valgrind gcc-multilib # bits/libc-header-start.h
+    - name: Check ctype calls
+      run: make ARCH=x64 BUILD=retroarch check_ctype
+      working-directory: test
+    - name: Build
+      run: make ARCH=x64 BUILD=retroarch test
+      working-directory: test
+    - name: Run tests
+      run: ./test
+      working-directory: test
+    - name: Valgrind
+      run: make ARCH=x64 BUILD=retroarch valgrind
+      working-directory: test
+      
+  linux-x64-lua:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install valgrind gcc-multilib # bits/libc-header-start.h
+    - name: Build
+      run: make ARCH=x64 BUILD=c89 HAVE_LUA=1 test
+      working-directory: test
+    - name: Run tests
+      run: ./test
+      working-directory: test
+    - name: Valgrind
+      run: make ARCH=x64 BUILD=c89 HAVE_LUA=1 valgrind
+      working-directory: test
+
+  windows-x64-msbuild:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install MSBuild
+      uses: microsoft/setup-msbuild@v1.0.2
+    - name: Install Windows SDK 8.1
+      run: choco install windows-sdk-8.1
+    - name: Build
+      run: msbuild.exe rcheevos-test.sln -t:rcheevos-test -p:Configuration=Release -p:Platform=x64
+      working-directory: test
+    - name: Run tests
+      run: ./rcheevos-test.exe
+      working-directory: test/x64/Release
+
+  windows-x64-mingw:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install MinGW
+      uses: egor-tensin/setup-mingw@v2
+    - name: Build
+      run: make ARCH=x64 BUILD=c89 test
+      working-directory: test
+    - name: Run tests
+      run: ./test.exe
+      working-directory: test

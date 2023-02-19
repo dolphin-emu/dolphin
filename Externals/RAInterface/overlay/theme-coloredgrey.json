@@ -1,0 +1,47 @@
+{
+  "Popup": {
+    "Font": "Tahoma",
+    "FontSizes": {
+      "Title": 26,
+      "Subtitle": 18,
+      "Detail": 16,
+      "LeaderboardTitle": 22,
+      "LeaderboardEntry": 18,
+      "LeaderboardTracker": 18
+    },
+    "Colors": {
+      "Background": "#404040",
+      "NonHardcoreBackground": "#405068",
+      "MasteryBackground": "#685820",
+      "Border": "#202020",
+      "TextShadow": "#202020",
+      "Title": "#FFFFFF",
+      "Description": "#F0E040",
+      "Detail": "#40C0E0",
+      "Error": "#E02020",
+      "LeaderboardEntry": "#B4B4B4",
+      "LeaderboardPlayer": "#F0E080"
+    }
+  },
+  "Overlay": {
+    "Font": "Tahoma",
+    "FontSizes": {
+      "Title": 32,
+      "Header": 26,
+      "Summary": 22
+    },
+    "Colors": {
+      "Panel": "#202020",
+      "Text": "#1166DD",
+      "DisabledText": "#747A90",
+      "SubText": "#8C8C8C",
+      "DisabledSubText": "#606060",
+      "SelectionBackground": "#16163C",
+      "SelectionText": "#FFFFFF",
+      "SelectionDisabledText": "#C8C8C8",
+      "ScrollBar": "#404040",
+      "ScrollBarGripper": "#C0C0C0"
+    }
+  },
+  "Transparent": true
+}

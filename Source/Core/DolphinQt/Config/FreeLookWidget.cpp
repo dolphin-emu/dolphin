@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -31,7 +32,9 @@ void FreeLookWidget::CreateLayout()
   auto* layout = new QVBoxLayout();
 
   m_enable_freelook = new ToolTipCheckBox(tr("Enable"));
-  m_enable_freelook->setChecked(Config::Get(Config::FREE_LOOK_ENABLED));
+  m_enable_freelook->setEnabled(!Config::Get(Config::RA_HARDCORE_ENABLED));
+  m_enable_freelook->setChecked(Config::Get(Config::FREE_LOOK_ENABLED) &&
+      m_enable_freelook->isEnabled());
   m_enable_freelook->SetDescription(
       tr("Allows manipulation of the in-game camera.<br><br><dolphin_emphasis>If unsure, "
          "leave this unchecked.</dolphin_emphasis>"));
@@ -102,7 +105,8 @@ void FreeLookWidget::OnFreeLookControllerConfigured()
 
 void FreeLookWidget::LoadSettings()
 {
-  const bool checked = Config::Get(Config::FREE_LOOK_ENABLED);
+  const bool checked = Config::Get(Config::FREE_LOOK_ENABLED) && !Config::Get(Config::RA_HARDCORE_ENABLED);
+  m_enable_freelook->setEnabled(!Config::Get(Config::RA_HARDCORE_ENABLED));
   m_enable_freelook->setChecked(checked);
   m_freelook_control_type->setEnabled(checked);
   m_freelook_controller_configure_button->setEnabled(checked);

@@ -20,6 +20,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
+#include <Core/AchievementManager.h>
 
 namespace ProcessorInterface
 {
@@ -251,6 +252,10 @@ void ProcessorInterfaceManager::ResetButton_Tap()
 {
   if (!Core::IsRunning())
     return;
+
+  // TODO lillyjade: I hate putting this here so frigging much but I can't seem
+  // to find where the hardware resets the game, if it even does
+  Achievements::ResetSession();
 
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();

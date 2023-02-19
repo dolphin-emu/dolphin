@@ -127,6 +127,10 @@ public:
   bool GetCheatsEnabled() const;
   void SetCheatsEnabled(bool enabled);
 
+  // Achievements
+  void SetHardcoreModeEnabled(bool enabled);
+  bool IsHardcoreModeEnabled() const;
+
   // Debug
   void SetDebugModeEnabled(bool enabled);
   bool IsDebugModeEnabled() const;
@@ -203,6 +207,7 @@ signals:
   void SDCardInsertionChanged(bool inserted);
   void USBKeyboardConnectionChanged(bool connected);
   void EnableGfxModsChanged(bool enabled);
+  void HardcoreModeToggled(bool enabled);
 
 private:
   Settings();

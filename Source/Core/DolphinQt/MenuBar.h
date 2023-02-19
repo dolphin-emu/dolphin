@@ -91,6 +91,8 @@ signals:
   void ShowResourcePackManager();
   void ShowSkylanderPortal();
   void ConnectWiiRemote(int id);
+  void ShowAchievementsWindow();
+  void ActivateRAMenuItem(int id);
 
   // Options
   void Configure();
@@ -183,6 +185,7 @@ private:
   void OnRecordingStatusChanged(bool recording);
   void OnReadOnlyModeChanged(bool read_only);
   void OnDebugModeToggled(bool enabled);
+  void OnHardcoreModeToggled(bool enabled);
 
   QString GetSignatureSelector() const;
 

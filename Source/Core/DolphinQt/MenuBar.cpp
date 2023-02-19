@@ -19,8 +19,10 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -92,6 +94,8 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 
   OnEmulationStateChanged(Core::GetState());
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &MenuBar::OnDebugModeToggled);
+  connect(&Settings::Instance(), &Settings::HardcoreModeToggled, this,
+          &MenuBar::OnHardcoreModeToggled);
 
   connect(this, &MenuBar::SelectionChanged, this, &MenuBar::OnSelectionChanged);
   connect(this, &MenuBar::RecordingStatusChanged, this, &MenuBar::OnRecordingStatusChanged);
@@ -116,9 +120,9 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_stop_action->setVisible(running);
   m_reset_action->setEnabled(running);
   m_fullscreen_action->setEnabled(running);
-  m_frame_advance_action->setEnabled(running);
+  m_frame_advance_action->setEnabled(!Settings::Instance().IsHardcoreModeEnabled() && running);
   m_screenshot_action->setEnabled(running);
-  m_state_load_menu->setEnabled(running);
+  m_state_load_menu->setEnabled(!Settings::Instance().IsHardcoreModeEnabled() && running);
   m_state_save_menu->setEnabled(running);
 
   // Movie
@@ -188,6 +192,12 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   }
 }
 
+void MenuBar::OnHardcoreModeToggled(bool enabled)
+{
+  m_frame_advance_action->setEnabled(!enabled && Core::IsRunning());
+  m_state_load_menu->setEnabled(!enabled && Core::IsRunning());
+}
+
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
@@ -226,6 +236,32 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
   tools_menu->addAction(tr("Browse &NetPlay Sessions...."), this, &MenuBar::BrowseNetPlay);
+
+  tools_menu->addSeparator();
+
+  tools_menu->addAction(tr("Achievements"), this, [this] { emit ShowAchievementsWindow(); });
+
+  QMenu* ra_dev_ipl = tools_menu->addMenu(tr("Achievement Development"));
+
+  const auto items = Achievements::RAIntegration::GetMenuItems();
+  for (const auto& [id, title, checked] : items)
+  {
+    if (id == 0)
+    {
+      ra_dev_ipl->addSeparator();
+      continue;
+    }
+
+    QAction* raAction = ra_dev_ipl->addAction(QString::fromUtf8(title));
+    if (checked)
+    {
+      raAction->setCheckable(true);
+      raAction->setChecked(checked);
+    }
+
+    connect(raAction, &QAction::triggered, this,
+            [this, id = id]() { emit ActivateRAMenuItem(id); });
+  }
 
   tools_menu->addSeparator();
 

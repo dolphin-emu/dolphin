@@ -83,6 +83,9 @@ InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
   CreateLayout();
   LoadConfig();
   ConnectLayout();
+
+  connect(&Settings::Instance(), &Settings::HardcoreModeToggled, this,
+          &InterfacePane::OnHardcoreModeToggled);
 }
 
 void InterfacePane::CreateLayout()
@@ -243,6 +246,8 @@ void InterfacePane::LoadConfig()
       ->setChecked(Config::Get(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE));
   SignalBlocking(m_checkbox_show_debugging_ui)
       ->setChecked(Settings::Instance().IsDebugModeEnabled());
+  SignalBlocking(m_checkbox_show_debugging_ui)
+      ->setEnabled(!Settings::Instance().IsHardcoreModeEnabled());
   SignalBlocking(m_combobox_language)
       ->setCurrentIndex(m_combobox_language->findData(
           QString::fromStdString(Config::Get(Config::MAIN_INTERFACE_LANGUAGE))));
@@ -330,6 +335,15 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_DISABLE_SCREENSAVER, m_checkbox_disable_screensaver->isChecked());
 
   Config::Save();
+}
+
+void InterfacePane::OnHardcoreModeToggled(bool enabled)
+{
+  m_checkbox_show_debugging_ui->setEnabled(!enabled);
+  if (enabled)
+  {
+    m_checkbox_show_debugging_ui->setChecked(false);
+  }
 }
 
 void InterfacePane::OnCursorVisibleMovement()

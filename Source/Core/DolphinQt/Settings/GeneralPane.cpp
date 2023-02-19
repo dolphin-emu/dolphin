@@ -55,6 +55,8 @@ GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &GeneralPane::OnEmulationStateChanged);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GeneralPane::LoadConfig);
+  connect(&Settings::Instance(), &Settings::HardcoreModeToggled, this,
+          &GeneralPane::OnHardcoreModeToggled);
 
   OnEmulationStateChanged(Core::GetState());
 }
@@ -89,6 +91,37 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
   m_checkbox_discord_presence->setEnabled(!running);
 #endif
   m_combobox_fallback_region->setEnabled(!running);
+
+  if (Settings::Instance().IsHardcoreModeEnabled())
+  {
+    m_checkbox_cheats->setEnabled(false);
+  }
+  else
+  {
+    m_checkbox_cheats->setEnabled(!running);
+  }
+}
+
+void GeneralPane::OnHardcoreModeToggled(bool enabled)
+{
+  if (enabled)
+  {
+    m_checkbox_cheats->setEnabled(false);
+    m_checkbox_cheats->setChecked(false);
+    auto* model = qobject_cast<QStandardItemModel*>(m_combobox_speedlimit->model());
+    // TODO lillyjade : this feels like a magic number, see if I can const it somehow
+    for (int ix = 1; ix < 10; ix++)
+      model->item(ix)->setEnabled(false);
+    if (m_combobox_speedlimit->currentIndex() < 10 && m_combobox_speedlimit->currentIndex() > 0)
+      m_combobox_speedlimit->setCurrentIndex(10);
+  }
+  else
+  {
+    auto* model = qobject_cast<QStandardItemModel*>(m_combobox_speedlimit->model());
+    for (int ix = 1; ix < 10; ix++)
+      model->item(ix)->setEnabled(true);
+    m_checkbox_cheats->setEnabled(!Core::IsRunning());
+  }
 }
 
 void GeneralPane::ConnectLayout()
@@ -171,6 +204,10 @@ void GeneralPane::CreateBasic()
 
     m_combobox_speedlimit->addItem(str);
   }
+  auto* model = qobject_cast<QStandardItemModel*>(m_combobox_speedlimit->model());
+  // TODO lillyjade : this feels like a magic number, see if I can const it somehow
+  for (int ix = 1; ix < 10; ix++)
+    model->item(ix)->setEnabled(!Settings::Instance().IsHardcoreModeEnabled());
 
   speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
 }

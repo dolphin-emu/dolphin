@@ -29,10 +29,14 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/AchievementManager.h"
+#include "Core/Config/AchievementSettings.h"
+#include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/ProcessorInterface.h"
 #include "Core/IOS/IOS.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
@@ -46,6 +50,7 @@
 
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
+#include "VideoCommon/RenderBase.h"
 
 Settings::Settings()
 {
@@ -447,11 +452,13 @@ void Settings::ResetNetPlayServer(NetPlay::NetPlayServer* server)
 
 bool Settings::GetCheatsEnabled() const
 {
-  return Config::Get(Config::MAIN_ENABLE_CHEATS);
+  return !IsHardcoreModeEnabled() && Config::Get(Config::MAIN_ENABLE_CHEATS);
 }
 
 void Settings::SetCheatsEnabled(bool enabled)
 {
+  if (IsHardcoreModeEnabled())
+    enabled = false;
   if (Config::Get(Config::MAIN_ENABLE_CHEATS) != enabled)
   {
     Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, enabled);
@@ -459,8 +466,41 @@ void Settings::SetCheatsEnabled(bool enabled)
   }
 }
 
+void Settings::SetHardcoreModeEnabled(bool enabled)
+{
+  if (IsHardcoreModeEnabled() != enabled)
+  {
+    Config::SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED, enabled);
+    if (Config::Get(Config::RA_LEADERBOARDS_ENABLED))
+    {
+      if (enabled)
+        Achievements::ActivateLB();
+      else
+        Achievements::DeactivateLB();
+    }
+    if (enabled)
+      Achievements::ResetGame();
+    emit HardcoreModeToggled(enabled);
+  }
+  if (enabled)
+  {
+    SetCheatsEnabled(false);
+    SetDebugModeEnabled(false);
+    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
+  }
+}
+
+bool Settings::IsHardcoreModeEnabled() const
+{
+  return Config::Get(Config::RA_HARDCORE_ENABLED);
+}
+
 void Settings::SetDebugModeEnabled(bool enabled)
 {
+  if (IsHardcoreModeEnabled())
+    enabled = false;
   if (IsDebugModeEnabled() != enabled)
   {
     Config::SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
@@ -472,7 +512,7 @@ void Settings::SetDebugModeEnabled(bool enabled)
 
 bool Settings::IsDebugModeEnabled() const
 {
-  return Config::Get(Config::MAIN_ENABLE_DEBUGGING);
+  return !IsHardcoreModeEnabled() && Config::Get(Config::MAIN_ENABLE_DEBUGGING);
 }
 
 void Settings::SetRegistersVisible(bool enabled)

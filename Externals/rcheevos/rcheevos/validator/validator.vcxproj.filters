@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{125bb837-6e5b-4a66-a607-e2250b31f108}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\lua">
+      <UniqueIdentifier>{36DC4CE2-0F57-46DE-A037-25E4272A7747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\rcheevos">
+      <UniqueIdentifier>{DD82F9EB-1066-40C6-9568-D5C7EEB2A49B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\rhash">
+      <UniqueIdentifier>{efdc689a-471b-432e-8ecb-dde3a3202949}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\rapi">
+      <UniqueIdentifier>{8570c19e-e882-409f-84d8-b87887371c26}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\rcheevos\format.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\lboard.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\operand.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\trigger.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\value.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\alloc.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\condition.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\condset.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lapi.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lauxlib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lbaselib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lbitlib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lcode.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lcorolib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lctype.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\ldblib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\ldebug.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\ldo.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\ldump.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lfunc.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lgc.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\linit.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\liolib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\llex.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lmathlib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lmem.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\loadlib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lobject.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lopcodes.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\loslib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lparser.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lstate.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lstring.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lstrlib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\ltable.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\ltablib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\ltm.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lundump.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lutf8lib.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lvm.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\test\lua\src\lzio.c">
+      <Filter>src\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\richpresence.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\memref.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\runtime.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="validator.c" />
+    <ClCompile Include="..\src\rhash\md5.c">
+      <Filter>src\rhash</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\compat.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rapi\rc_api_runtime.c">
+      <Filter>src\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rapi\rc_api_common.c">
+      <Filter>src\rapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\consoleinfo.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rcheevos\rc_validate.c">
+      <Filter>src\rcheevos</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\rcheevos.h">
+      <Filter>src\rcheevos</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rcheevos\rc_internal.h">
+      <Filter>src\rcheevos</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

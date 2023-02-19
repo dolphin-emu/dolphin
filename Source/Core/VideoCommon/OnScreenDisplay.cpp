@@ -37,12 +37,18 @@ struct Message
   {
     timer.Start();
   }
+  Message(std::string text_, u32 duration_, u32 color_, ImTextureID icon_)
+      : text(std::move(text_)), duration(duration_), color(color_), icon(icon_)
+  {
+    timer.Start();
+  }
   s64 TimeRemaining() const { return duration - timer.ElapsedMs(); }
   std::string text;
   Common::Timer timer;
   u32 duration = 0;
   bool ever_drawn = false;
   u32 color = 0;
+  ImTextureID icon = nullptr;
 };
 static std::multimap<MessageType, Message> s_messages;
 static std::mutex s_messages_mutex;
@@ -77,6 +83,13 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
                        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
                        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
   {
+    if (msg.icon != nullptr)
+    {
+      ImVec2 size(64, 64);
+      // TODO lillyjade: Disabled until I can figure out how to properly load a .png
+      // into the texture cache
+      //      ImGui::Image(msg.icon, size);
+    }
     // Use %s in case message contains %.
     ImGui::TextColored(ARGBToImVec4(msg.color), "%s", msg.text.c_str());
     window_height =
@@ -98,10 +111,10 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb)
   s_messages.emplace(type, Message(std::move(message), ms, argb));
 }
 
-void AddMessage(std::string message, u32 ms, u32 argb)
+void AddMessage(std::string message, u32 ms, u32 argb, ImTextureID icon)
 {
   std::lock_guard lock{s_messages_mutex};
-  s_messages.emplace(MessageType::Typeless, Message(std::move(message), ms, argb));
+  s_messages.emplace(MessageType::Typeless, Message(std::move(message), ms, argb, icon));
 }
 
 void DrawMessages()

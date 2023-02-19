@@ -29,6 +29,7 @@
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -235,6 +236,9 @@ static void DoState(PointerWrap& p)
 
   PowerPC::DoState(p);
   p.DoMarker("PowerPC");
+
+  Achievements::DoState(p);
+  p.DoMarker("Achievements");
 
   if (SConfig::GetInstance().bWii)
     Wiimote::DoState(p);

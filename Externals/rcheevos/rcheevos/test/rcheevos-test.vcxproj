@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{74FBBFC4-5AC5-4A86-B292-B2F535E9912C}</ProjectGuid>
+    <RootNamespace>rcheevostest</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\include;$(ProjectDir)..\src\rcheevos;$(ProjectDir)lua\src</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\include;$(ProjectDir)..\src\rcheevos;$(ProjectDir)lua\src</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\include;$(ProjectDir)..\src\rcheevos;$(ProjectDir)lua\src</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\include;$(ProjectDir)..\src\rcheevos;$(ProjectDir)lua\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\rapi\rc_api_common.c" />
+    <ClCompile Include="..\src\rapi\rc_api_editor.c" />
+    <ClCompile Include="..\src\rapi\rc_api_info.c" />
+    <ClCompile Include="..\src\rapi\rc_api_runtime.c" />
+    <ClCompile Include="..\src\rapi\rc_api_user.c" />
+    <ClCompile Include="..\src\rcheevos\alloc.c" />
+    <ClCompile Include="..\src\rcheevos\compat.c" />
+    <ClCompile Include="..\src\rcheevos\condition.c" />
+    <ClCompile Include="..\src\rcheevos\condset.c" />
+    <ClCompile Include="..\src\rcheevos\consoleinfo.c" />
+    <ClCompile Include="..\src\rcheevos\format.c" />
+    <ClCompile Include="..\src\rcheevos\lboard.c" />
+    <ClCompile Include="..\src\rcheevos\memref.c" />
+    <ClCompile Include="..\src\rcheevos\operand.c" />
+    <ClCompile Include="..\src\rcheevos\rc_libretro.c" />
+    <ClCompile Include="..\src\rcheevos\rc_validate.c" />
+    <ClCompile Include="..\src\rcheevos\richpresence.c" />
+    <ClCompile Include="..\src\rcheevos\runtime.c" />
+    <ClCompile Include="..\src\rcheevos\runtime_progress.c" />
+    <ClCompile Include="..\src\rcheevos\trigger.c" />
+    <ClCompile Include="..\src\rcheevos\value.c" />
+    <ClCompile Include="..\src\rhash\cdreader.c" />
+    <ClCompile Include="..\src\rhash\hash.c" />
+    <ClCompile Include="..\src\rhash\md5.c" />
+    <ClCompile Include="..\src\rurl\url.c" />
+    <ClCompile Include="lua\src\lapi.c" />
+    <ClCompile Include="lua\src\lauxlib.c" />
+    <ClCompile Include="lua\src\lbaselib.c" />
+    <ClCompile Include="lua\src\lbitlib.c" />
+    <ClCompile Include="lua\src\lcode.c" />
+    <ClCompile Include="lua\src\lcorolib.c" />
+    <ClCompile Include="lua\src\lctype.c" />
+    <ClCompile Include="lua\src\ldblib.c" />
+    <ClCompile Include="lua\src\ldebug.c" />
+    <ClCompile Include="lua\src\ldo.c" />
+    <ClCompile Include="lua\src\ldump.c" />
+    <ClCompile Include="lua\src\lfunc.c" />
+    <ClCompile Include="lua\src\lgc.c" />
+    <ClCompile Include="lua\src\linit.c" />
+    <ClCompile Include="lua\src\liolib.c" />
+    <ClCompile Include="lua\src\llex.c" />
+    <ClCompile Include="lua\src\lmathlib.c" />
+    <ClCompile Include="lua\src\lmem.c" />
+    <ClCompile Include="lua\src\loadlib.c" />
+    <ClCompile Include="lua\src\lobject.c" />
+    <ClCompile Include="lua\src\lopcodes.c" />
+    <ClCompile Include="lua\src\loslib.c" />
+    <ClCompile Include="lua\src\lparser.c" />
+    <ClCompile Include="lua\src\lstate.c" />
+    <ClCompile Include="lua\src\lstring.c" />
+    <ClCompile Include="lua\src\lstrlib.c" />
+    <ClCompile Include="lua\src\ltable.c" />
+    <ClCompile Include="lua\src\ltablib.c" />
+    <ClCompile Include="lua\src\ltm.c" />
+    <ClCompile Include="lua\src\lundump.c" />
+    <ClCompile Include="lua\src\lutf8lib.c" />
+    <ClCompile Include="lua\src\lvm.c" />
+    <ClCompile Include="lua\src\lzio.c" />
+    <ClCompile Include="rapi\test_rc_api_common.c" />
+    <ClCompile Include="rapi\test_rc_api_editor.c" />
+    <ClCompile Include="rapi\test_rc_api_info.c" />
+    <ClCompile Include="rapi\test_rc_api_runtime.c" />
+    <ClCompile Include="rapi\test_rc_api_user.c" />
+    <ClCompile Include="rcheevos\test_condition.c" />
+    <ClCompile Include="rcheevos\test_condset.c" />
+    <ClCompile Include="rcheevos\test_consoleinfo.c" />
+    <ClCompile Include="rcheevos\test_format.c" />
+    <ClCompile Include="rcheevos\test_lboard.c" />
+    <ClCompile Include="rcheevos\test_memref.c" />
+    <ClCompile Include="rcheevos\test_operand.c" />
+    <ClCompile Include="rcheevos\test_rc_libretro.c" />
+    <ClCompile Include="rcheevos\test_rc_validate.c" />
+    <ClCompile Include="rcheevos\test_richpresence.c" />
+    <ClCompile Include="rcheevos\test_runtime.c" />
+    <ClCompile Include="rcheevos\test_runtime_progress.c" />
+    <ClCompile Include="rcheevos\test_trigger.c" />
+    <ClCompile Include="rcheevos\test_value.c" />
+    <ClCompile Include="rhash\data.c" />
+    <ClCompile Include="rhash\mock_filereader.c" />
+    <ClCompile Include="rhash\test_cdreader.c" />
+    <ClCompile Include="rhash\test_hash.c" />
+    <ClCompile Include="rurl\test_url.c" />
+    <ClCompile Include="test.c" />
+    <ClInclude Include="..\include\rcheevos.h" />
+    <ClInclude Include="..\include\rc_api_editor.h" />
+    <ClInclude Include="..\include\rc_api_info.h" />
+    <ClInclude Include="..\include\rc_api_request.h" />
+    <ClInclude Include="..\include\rc_api_runtime.h" />
+    <ClInclude Include="..\include\rc_api_user.h" />
+    <ClInclude Include="..\include\rc_consoles.h" />
+    <ClInclude Include="..\include\rc_hash.h" />
+    <ClInclude Include="..\include\rc_runtime.h" />
+    <ClInclude Include="..\include\rc_runtime_types.h" />
+    <ClInclude Include="..\include\rc_url.h" />
+    <ClInclude Include="..\src\rcheevos\rc_compat.h" />
+    <ClInclude Include="..\src\rcheevos\rc_internal.h" />
+    <ClInclude Include="..\include\rc_error.h" />
+    <ClInclude Include="..\src\rapi\rc_api_common.h" />
+    <ClInclude Include="..\src\rcheevos\rc_libretro.h" />
+    <ClInclude Include="..\src\rcheevos\rc_validate.h" />
+    <ClInclude Include="..\src\rhash\md5.h" />
+    <ClInclude Include="libretro.h" />
+    <ClInclude Include="rcheevos\mock_memory.h" />
+    <ClInclude Include="rhash\data.h" />
+    <ClInclude Include="rhash\mock_filereader.h" />
+    <ClInclude Include="test_framework.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
