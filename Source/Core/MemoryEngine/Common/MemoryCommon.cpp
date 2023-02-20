@@ -575,7 +575,7 @@ bool hasMemory()
 
 bool isValidAddress(const u32 address)
 {
-	//Could use Memory::MemoryManager::GetPointer but it may panic, so the code from DME may be better. 
+// We could use Memory::MemoryManager::GetPointer but it may panic, so the code from DME may be better. 
   Memory::MemoryManager& mem = Core::System::GetInstance().GetMemory();
 
   if(address >= getMEM1() && address < getMEM1() + mem.GetRamSizeReal())
@@ -606,7 +606,8 @@ u32 addrToOffset(u32 addr)
 
   // MEM2 address
   if (addr >= getMEM2() && addr < getMEM2() + mem.GetExRamSizeReal())
-	 return addr - getMEM2() + (mem.GetFakeVMEM() ? mem.GetFakeVMemSize() : 0) + mem.GetRamSizeReal();
+	 return addr - getMEM2() +
+		 (mem.GetFakeVMEM() ? mem.GetFakeVMemSize() : 0) + mem.GetRamSizeReal();
 
   // invalid address
   return mem.GetFakeVMemSize() + mem.GetRamSizeReal() + mem.GetExRamSizeReal();
@@ -629,9 +630,15 @@ u32 offsetToAddr(u32 offset)
 
 void readFromRAM(void* data, u32 address, size_t size, bool withBSwap)
 {
+// We may come here without the memory being initialized if the
+// emulation has just stopped and a timer asks for a refresh.
+  if(!Core::System::GetInstance().GetMemory().GetRAM())
+	 return;
+
   if(getARAM() <= address && address + size <= getARAMEnd())
 	  std::memcpy(data,
-       Core::System::GetInstance().GetMemory().GetFakeVMEM() + address - getARAM(),
+       Core::System::GetInstance().GetMemory().GetFakeVMEM() +
+		   address - getARAM(),
        size);
   else
     Core::System::GetInstance().GetMemory().CopyFromEmu(data, address, size);
@@ -671,6 +678,7 @@ void writeToRAM(void* data, u32 address, size_t size, bool withBSwap)
 {
   if(withBSwap)
   {
+	 char* buffer = new char[size];
     switch (size)
     {
     case 2:
@@ -678,7 +686,7 @@ void writeToRAM(void* data, u32 address, size_t size, bool withBSwap)
       u16 halfword = 0;
       std::memcpy(&halfword, data, sizeof(u16));
       halfword = Common::swap16(halfword);
-      std::memcpy(data, &halfword, sizeof(u16));
+      std::memcpy(buffer, &halfword, sizeof(u16));
       break;
     }
     case 4:
@@ -686,7 +694,7 @@ void writeToRAM(void* data, u32 address, size_t size, bool withBSwap)
       u32 word = 0;
       std::memcpy(&word, data, sizeof(u32));
       word = Common::swap32(word);
-      std::memcpy(data, &word, sizeof(u32));
+      std::memcpy(buffer, &word, sizeof(u32));
       break;
     }
     case 8:
@@ -694,18 +702,25 @@ void writeToRAM(void* data, u32 address, size_t size, bool withBSwap)
       u64 doubleword = 0;
       std::memcpy(&doubleword, data, sizeof(u64));
       doubleword = Common::swap64(doubleword);
-      std::memcpy(data, &doubleword, sizeof(u64));
+      std::memcpy(buffer, &doubleword, sizeof(u64));
       break;
     }}
+    writeToRAM(buffer, address, size, false);
+	 delete[] buffer;
   }
-
-  if(getARAM() <= address && address + size <= getARAMEnd())
-	  std::memcpy(
-       Core::System::GetInstance().GetMemory().GetFakeVMEM() + address - getARAM(),
-       data,
-       size);
-  else
-    Core::System::GetInstance().GetMemory().CopyToEmu(address, data, size);
+// We may come here without the memory being initialized if the
+// emulation has just stopped and a timer asks for a refresh.
+  else if(Core::System::GetInstance().GetMemory().GetRAM())
+  {
+    if(getARAM() <= address && address + size <= getARAMEnd())
+	   std::memcpy(
+        Core::System::GetInstance().GetMemory().GetFakeVMEM() +
+		    address - getARAM(),
+        data,
+        size);
+    else
+      Core::System::GetInstance().GetMemory().CopyToEmu(address, data, size);
+  }
 }
 
 void readAllRAM(void *data)
