@@ -128,6 +128,8 @@ android {
 }
 
 dependencies {
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.10'
+
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.0'
 
     implementation 'androidx.core:core-ktx:1.9.0'
