@@ -293,7 +293,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
   for (int i = 0; i < rows; i++)
     setRowHeight(i, rowh);
 
-  u32 pc = PowerPC::ppcState.pc;
+  const std::optional<u32> pc = guard ? std::make_optional(PowerPC::ppcState.pc) : std::nullopt;
 
   const bool dark_theme = qApp->palette().color(QPalette::Base).valueF() < 0.5;
 
