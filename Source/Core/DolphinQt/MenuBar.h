@@ -49,6 +49,8 @@ public:
 
   void InstallUpdateManually();
 
+  void DMEEnabled(bool enabled);
+
 signals:
   // File
   void Open();
@@ -88,7 +90,7 @@ signals:
   void ShowFIFOPlayer();
   void ShowAboutDialog();
   void ShowCheatsManager();
-  void ShowMemoryEngine();
+  void DMEStart();
   void DMEOpenWatchFile();
   void DMESaveWatchFile();
   void DMESaveAsWatchFile();
@@ -206,7 +208,15 @@ private:
   QAction* m_open_user_folder;
 
   // Tools
-  QAction* m_viewDMEScanner;
+  QAction* m_dme_start;
+  QAction* m_dme_open_watch;
+  QAction* m_dme_save_watch;
+  QAction* m_dme_save_watch_as;
+  QAction* m_dme_clear_watch;
+  QAction* m_dme_import_ct;
+  QAction* m_dme_export_csv;
+  QAction* m_dme_settings;
+  QAction* m_dme_scanner;
   QAction* m_wad_install_action;
   QMenu* m_perform_online_update_menu;
   QAction* m_perform_online_update_for_current_region;

@@ -163,7 +163,7 @@ private:
   void ShowFIFOPlayer();
   void ShowSkylanderPortal();
   void ShowMemcardManager();
-  void ShowMemoryEngine();
+  void DMEStart();
   void DMEOpenWatchFile();
   void DMESaveWatchFile();
   void DMESaveAsWatchFile();

@@ -220,21 +220,54 @@ void MenuBar::AddToolsMenu()
 
   QMenu* dme = tools_menu->addMenu(tr("Memory Engine"));
 
-  dme->addAction(tr("Show"), this, [this] { emit ShowMemoryEngine(); });
-  dme->addAction(tr("Open watch list"), this, [this] { emit DMEOpenWatchFile(); });
-  dme->addAction(tr("Save watch list"), this, [this] { emit DMESaveWatchFile(); });
-  dme->addAction(tr("Save watch list as"), this, [this] { emit DMESaveAsWatchFile(); });
-  dme->addAction(tr("Clear watch list"), this, [this] { emit DMEClearWatchList(); });
-  dme->addAction(tr("Import from Cheat Engine's CT file..."), this,
-                 [this] { emit DMEImportFromCT(); });
-  dme->addAction(tr("Export as CSV..."), this, [this] { emit DMEExportAsCSV(); });
-  dme->addAction(tr("Settings"), this, [this] { emit DMEOpenSettings(); });
-  m_viewDMEScanner = new QAction(tr("Scanner"), this);
-  m_viewDMEScanner->setCheckable(true);
-  m_viewDMEScanner->setChecked(true);
-  connect(m_viewDMEScanner, &QAction::toggled, this,
-          [this] { emit DMEShowScanner(m_viewDMEScanner->isChecked()); });
-  dme->addAction(m_viewDMEScanner);
+  m_dme_start = new QAction(tr("Start"), this);
+  connect(m_dme_start, &QAction::triggered, this,
+          [this] { emit DMEStart(); });
+  dme->addAction(m_dme_start);
+
+  m_dme_open_watch = new QAction(tr("Open watch list"), this);
+  connect(m_dme_open_watch, &QAction::triggered, this,
+		  [this] { emit DMEOpenWatchFile(); });
+  dme->addAction(m_dme_open_watch);
+
+  m_dme_save_watch = new QAction(tr("Save watch list"), this);
+  connect(m_dme_save_watch, &QAction::triggered, this,
+		  [this] { emit DMESaveWatchFile(); });
+  dme->addAction(m_dme_save_watch);
+
+  m_dme_save_watch_as = new QAction(tr("Save watch list as"), this);
+  connect(m_dme_save_watch_as, &QAction::triggered, this,
+		  [this] { emit DMESaveWatchFile(); });
+  dme->addAction(m_dme_save_watch_as);
+
+  m_dme_clear_watch = new QAction(tr("Clear watch list"), this);
+  connect(m_dme_clear_watch, &QAction::triggered, this,
+		  [this] { emit DMEClearWatchList(); });
+  dme->addAction(m_dme_clear_watch);
+
+  m_dme_import_ct = new QAction(tr("Import from Cheat Engine's CT file..."), this);
+  connect(m_dme_import_ct, &QAction::triggered, this,
+		  [this] { emit DMEImportFromCT(); });
+  dme->addAction(m_dme_import_ct);
+
+  m_dme_export_csv = new QAction(tr("Export as CSV..."), this);
+  connect(m_dme_export_csv, &QAction::triggered, this,
+		  [this] { emit DMEImportFromCT(); });
+  dme->addAction(m_dme_export_csv);
+
+  m_dme_settings = new QAction(tr("Settings"), this);
+  connect(m_dme_settings, &QAction::triggered, this,
+		  [this] { emit DMEOpenSettings(); });
+  dme->addAction(m_dme_settings);
+ 
+  m_dme_scanner = new QAction(tr("Scanner"), this);
+  m_dme_scanner->setCheckable(true);
+  m_dme_scanner->setChecked(true);
+  connect(m_dme_scanner, &QAction::triggered, this,
+          [this] { emit DMEShowScanner(m_dme_scanner->isChecked()); });
+  dme->addAction(m_dme_scanner);
+
+  DMEEnabled(false);
 
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
@@ -569,6 +602,19 @@ void MenuBar::InstallUpdateManually()
                                     Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
 
   updater->CheckForUpdate();
+}
+
+void MenuBar::DMEEnabled(bool enabled)
+{
+  m_dme_start->setText(enabled ? tr("Stop") : tr("Start"));
+  m_dme_open_watch->setEnabled(enabled);
+  m_dme_save_watch->setEnabled(enabled);
+  m_dme_save_watch_as->setEnabled(enabled);
+  m_dme_clear_watch->setEnabled(enabled);
+  m_dme_import_ct->setEnabled(enabled);
+  m_dme_export_csv->setEnabled(enabled);
+  m_dme_settings->setEnabled(enabled);
+  m_dme_scanner->setEnabled(enabled);
 }
 
 void MenuBar::AddHelpMenu()

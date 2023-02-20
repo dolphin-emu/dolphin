@@ -374,8 +374,6 @@ void MainWindow::InitCoreCallbacks()
       FullScreen();
       m_fullscreen_requested = false;
     }
-
-    m_memory_engine->onEmulationStateChanged(state != Core::State::Uninitialized);
   });
   installEventFilter(this);
   m_render_widget->installEventFilter(this);
@@ -417,7 +415,6 @@ void MainWindow::CreateComponents()
   m_jit_widget = new JITWidget(this);
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
-  m_memory_engine = new MemoryEngine(this);
   m_memory_widget = new MemoryWidget(this);
   m_network_widget = new NetworkWidget(this);
   m_register_widget = new RegisterWidget(this);
@@ -425,6 +422,7 @@ void MainWindow::CreateComponents()
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
   m_code_widget = new CodeWidget(this);
+  m_memory_engine = nullptr;
   m_cheats_manager = new CheatsManager(this);
 
   const auto request_watch = [this](QString name, u32 addr) {
@@ -517,7 +515,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
   connect(m_menu_bar, &MenuBar::ShowResourcePackManager, this,
           &MainWindow::ShowResourcePackManager);
-  connect(m_menu_bar, &MenuBar::ShowMemoryEngine, this, &MainWindow::ShowMemoryEngine);
+  connect(m_menu_bar, &MenuBar::DMEStart, this, &MainWindow::DMEStart);
   connect(m_menu_bar, &MenuBar::DMEOpenWatchFile, this, &MainWindow::DMEOpenWatchFile);
   connect(m_menu_bar, &MenuBar::DMESaveWatchFile, this, &MainWindow::DMESaveWatchFile);
   connect(m_menu_bar, &MenuBar::DMESaveAsWatchFile, this, &MainWindow::DMESaveAsWatchFile);
@@ -1873,49 +1871,71 @@ void MainWindow::ShowMemcardManager()
   manager.exec();
 }
 
-void MainWindow::ShowMemoryEngine()
+void MainWindow::DMEStart()
 {
-  m_memory_engine->show();
+  if(m_memory_engine)
+  {
+    delete m_memory_engine;
+	 m_memory_engine = nullptr;
+	 m_menu_bar->DMEEnabled(false);
+  }
+  else
+  {
+    m_memory_engine = new MemoryEngine(this);
+    connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+ 	   m_memory_engine->onEmulationStateChanged(state != Core::State::Uninitialized);
+  });
+	 m_memory_engine->show();
+	 m_menu_bar->DMEEnabled(true);
+  }
 }
 
 void MainWindow::DMEOpenWatchFile()
 {
-  m_memory_engine->onOpenWatchFile();
+  if(m_memory_engine)
+    m_memory_engine->onOpenWatchFile();
 }
 
 void MainWindow::DMESaveWatchFile()
 {
-  m_memory_engine->onSaveWatchFile();
+  if(m_memory_engine)
+    m_memory_engine->onSaveWatchFile();
 }
 
 void MainWindow::DMESaveAsWatchFile()
 {
-  m_memory_engine->onSaveAsWatchFile();
+  if(m_memory_engine)
+    m_memory_engine->onSaveAsWatchFile();
 }
 
 void MainWindow::DMEClearWatchList()
 {
-  m_memory_engine->onClearWatchList();
+  if(m_memory_engine)
+    m_memory_engine->onClearWatchList();
 }
 
 void MainWindow::DMEImportFromCT()
 {
-  m_memory_engine->onImportFromCT();
+  if(m_memory_engine)
+    m_memory_engine->onImportFromCT();
 }
 
 void MainWindow::DMEExportAsCSV()
 {
-  m_memory_engine->onExportAsCSV();
+  if(m_memory_engine)
+    m_memory_engine->onExportAsCSV();
 }
 
 void MainWindow::DMEOpenSettings()
 {
-  m_memory_engine->onOpenSettings();
+  if(m_memory_engine)
+    m_memory_engine->onOpenSettings();
 }
 
 void MainWindow::DMEShowScanner(bool show)
 {
-  m_memory_engine->onShowScanner(show);
+  if(m_memory_engine)
+    m_memory_engine->onShowScanner(show);
 }
 
 void MainWindow::ShowResourcePackManager()
