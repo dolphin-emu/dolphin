@@ -7,5 +7,5 @@
 
 namespace VideoCommon
 {
-constexpr u32 MAX_PIXEL_SHADER_SAMPLERS = 8;
+constexpr u32 MAX_PIXEL_SHADER_SAMPLERS = 16;
 }

@@ -99,7 +99,7 @@ bool SamplerAllocator::GetGroupHandle(const SamplerStateSet& sss,
 
   // Copy samplers from the sampler heap.
   static constexpr std::array<UINT, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> source_sizes = {
-      {1, 1, 1, 1, 1, 1, 1, 1}};
+      {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
   g_dx_context->GetDevice()->CopyDescriptors(
       1, &allocation.cpu_handle, &VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
       VideoCommon::MAX_PIXEL_SHADER_SAMPLERS, source_handles.data(), source_sizes.data(),
