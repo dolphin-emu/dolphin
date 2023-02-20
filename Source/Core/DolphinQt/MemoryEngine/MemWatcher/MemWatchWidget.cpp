@@ -21,8 +21,8 @@
 #include <QVBoxLayout>
 #include <string>
 
-#include "../../../MemoryEngine/Common/MemoryCommon.h"
-#include "../../../MemoryEngine/MemoryWatch/MemWatchEntry.h"
+#include "MemoryEngine/Common/MemoryCommon.h"
+#include "MemoryEngine/MemoryWatch/MemWatchEntry.h"
 #include "../GUICommon.h"
 #include "Dialogs/DlgAddWatchEntry.h"
 #include "Dialogs/DlgChangeType.h"

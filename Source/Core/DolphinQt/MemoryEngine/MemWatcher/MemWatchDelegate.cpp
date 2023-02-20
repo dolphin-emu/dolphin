@@ -2,7 +2,7 @@
 
 #include <QLineEdit>
 
-#include "../../../MemoryEngine/MemoryWatch/MemWatchTreeNode.h"
+#include "MemoryEngine/MemoryWatch/MemWatchTreeNode.h"
 #include "../GUICommon.h"
 #include "MemWatchModel.h"
 

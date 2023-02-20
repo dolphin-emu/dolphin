@@ -6,9 +6,9 @@
 #include <sstream>
 #include <vector>
 
-#include "../../Common/Swap.h"
-#include "../../Core/HW/Memmap.h"
-#include "../../Core/System.h"
+#include "Common/Swap.h"
+#include "Core/HW/Memmap.h"
+#include "Core/System.h"
 #include "CommonTypes.h"
 
 namespace Common

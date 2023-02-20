@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 
-#include "../../DolphinQt/MemoryEngine/GUICommon.h"
+#include "DolphinQt/MemoryEngine/GUICommon.h"
 #include "../Common/MemoryCommon.h"
 
 CheatEngineParser::CheatEngineParser()

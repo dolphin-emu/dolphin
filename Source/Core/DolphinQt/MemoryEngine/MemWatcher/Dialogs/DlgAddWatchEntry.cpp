@@ -6,7 +6,7 @@
 #include <QVBoxLayout>
 #include <sstream>
 
-#include "../../../../MemoryEngine/Common/MemoryCommon.h"
+#include "MemoryEngine/Common/MemoryCommon.h"
 #include "../../GUICommon.h"
 
 DlgAddWatchEntry::DlgAddWatchEntry(MemWatchEntry* entry)

@@ -16,7 +16,7 @@
 #include <QRegularExpression>
 #include <QScrollBar>
 
-#include "../../../MemoryEngine/Common/MemoryCommon.h"
+#include "MemoryEngine/Common/MemoryCommon.h"
 #include "../MemWatcher/Dialogs/DlgAddWatchEntry.h"
 #include "../Settings/DMEConfig.h"
 

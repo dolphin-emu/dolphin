@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-#include "../../DolphinQt/MemoryEngine/GUICommon.h"
+#include "DolphinQt/MemoryEngine/GUICommon.h"
 
 MemWatchTreeNode::MemWatchTreeNode(MemWatchEntry* entry, MemWatchTreeNode* parent,
                                    const bool isGroup, const QString& groupName)

@@ -3,8 +3,8 @@
 #include <QCloseEvent>
 #include <QDialog>
 
-#include "../../MemoryEngine/Common/CommonTypes.h"
-#include "../../MemoryEngine/Common/MemoryCommon.h"
+#include "MemoryEngine/Common/CommonTypes.h"
+#include "MemoryEngine/Common/MemoryCommon.h"
 #include "MemScanner/MemScanWidget.h"
 #include "MemViewer/MemViewerWidget.h"
 #include "MemWatcher/MemWatchWidget.h"

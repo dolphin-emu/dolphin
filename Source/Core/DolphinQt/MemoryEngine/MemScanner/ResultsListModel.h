@@ -2,7 +2,7 @@
 
 #include <QAbstractTableModel>
 
-#include "../../../MemoryEngine/MemoryScanner/MemoryScanner.h"
+#include "MemoryEngine/MemoryScanner/MemoryScanner.h"
 
 class ResultsListModel : public QAbstractTableModel
 {

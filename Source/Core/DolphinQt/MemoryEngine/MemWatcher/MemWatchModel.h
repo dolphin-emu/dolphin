@@ -4,8 +4,8 @@
 #include <QFile>
 #include <QJsonObject>
 
-#include "../../../MemoryEngine/MemoryWatch/MemWatchEntry.h"
-#include "../../../MemoryEngine/MemoryWatch/MemWatchTreeNode.h"
+#include "MemoryEngine/MemoryWatch/MemWatchEntry.h"
+#include "MemoryEngine/MemoryWatch/MemWatchTreeNode.h"
 
 class MemWatchModel : public QAbstractItemModel
 {

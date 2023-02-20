@@ -6,7 +6,7 @@
 #include <limits>
 #include <sstream>
 
-#include "../../../MemoryEngine/CheatEngineParser/CheatEngineParser.h"
+#include "MemoryEngine/CheatEngineParser/CheatEngineParser.h"
 #include "../GUICommon.h"
 
 MemWatchModel::MemWatchModel(QObject* parent) : QAbstractItemModel(parent)

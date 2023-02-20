@@ -3,7 +3,7 @@
 #include <QString>
 #include <QStringList>
 
-#include "../../MemoryEngine/Common/MemoryCommon.h"
+#include "MemoryEngine/Common/MemoryCommon.h"
 
 namespace GUICommon
 {

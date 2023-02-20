@@ -5,7 +5,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-#include "../../../MemoryEngine/Common/MemoryCommon.h"
+#include "MemoryEngine/Common/MemoryCommon.h"
 
 MemViewerWidget::MemViewerWidget(QWidget* parent, u32 consoleAddress) : QWidget(parent)
 {

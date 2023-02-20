@@ -8,8 +8,8 @@
 #include <QVBoxLayout>
 #include <string>
 
-#include "../../MemoryEngine/Common/MemoryCommon.h"
-#include "../../MemoryEngine/MemoryWatch/MemWatchEntry.h"
+#include "MemoryEngine/Common/MemoryCommon.h"
+#include "MemoryEngine/MemoryWatch/MemWatchEntry.h"
 #include "Settings/DMEConfig.h"
 #include "Settings/DlgSettings.h"
 

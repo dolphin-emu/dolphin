@@ -9,9 +9,9 @@
 #include <QTimer>
 #include <QWidget>
 
-#include "../../../MemoryEngine/Common/CommonTypes.h"
-#include "../../../MemoryEngine/Common/MemoryCommon.h"
-#include "../../../MemoryEngine/MemoryWatch/MemWatchEntry.h"
+#include "MemoryEngine/Common/CommonTypes.h"
+#include "MemoryEngine/Common/MemoryCommon.h"
+#include "MemoryEngine/MemoryWatch/MemWatchEntry.h"
 
 class MemViewer : public QAbstractScrollArea
 {
