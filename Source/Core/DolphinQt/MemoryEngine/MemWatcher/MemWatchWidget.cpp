@@ -416,10 +416,11 @@ void MemWatchWidget::onValueWriteError(const QModelIndex& index,
   }
   case Common::MemOperationReturnCode::invalidPointer:
   {
-    QMessageBox* errorBox = new QMessageBox(QMessageBox::Critical, QString(tr("Invalid pointer")),
-                                            tr("This pointer points to invalid memory, therefore, you "
-                                            "cannot write to the value of this watch"),
-                                            QMessageBox::Ok, this);
+    QMessageBox* errorBox =
+        new QMessageBox(QMessageBox::Critical, QString(tr("Invalid pointer")),
+                        tr("This pointer points to invalid memory, therefore, you "
+                           "cannot write to the value of this watch"),
+                        QMessageBox::Ok, this);
     errorBox->exec();
     break;
   }
@@ -434,8 +435,8 @@ void MemWatchWidget::onValueWriteError(const QModelIndex& index,
 void MemWatchWidget::onAddGroup()
 {
   bool ok = false;
-  QString text = QInputDialog::getText(this, tr("Add a group"),
-                                       tr("Enter the group name:"), QLineEdit::Normal, tr(""), &ok);
+  QString text = QInputDialog::getText(this, tr("Add a group"), tr("Enter the group name:"),
+                                       QLineEdit::Normal, tr(""), &ok);
   if (ok && !text.isEmpty())
   {
     m_watchModel->addGroup(text);
@@ -503,10 +504,10 @@ void MemWatchWidget::onDeleteSelection()
   if (hasGroupWithChild)
     confirmationMsg +=
         tr("\n\nThe current selection contains one or more groups with watches in them, deleting "
-        "the "
-        "groups will also delete their watches, if you want to avoid this, move the watches out "
-        "of "
-        "the groups.");
+           "the "
+           "groups will also delete their watches, if you want to avoid this, move the watches out "
+           "of "
+           "the groups.");
 
   QMessageBox* confirmationBox =
       new QMessageBox(QMessageBox::Question, QString(tr("Deleting confirmation")), confirmationMsg,
@@ -560,17 +561,19 @@ void MemWatchWidget::openWatchFile()
     QFile watchFile(fileName);
     if (!watchFile.exists())
     {
-      QMessageBox* errorBox = new QMessageBox(
-          QMessageBox::Critical, QString(tr("Error while opening file")),
-          QString(tr("The watch list file ") + fileName + tr(" does not exist")), QMessageBox::Ok, this);
+      QMessageBox* errorBox =
+          new QMessageBox(QMessageBox::Critical, QString(tr("Error while opening file")),
+                          QString(tr("The watch list file ") + fileName + tr(" does not exist")),
+                          QMessageBox::Ok, this);
       errorBox->exec();
       return;
     }
     if (!watchFile.open(QIODevice::ReadOnly))
     {
-      QMessageBox* errorBox = new QMessageBox(
-          QMessageBox::Critical, tr("Error while opening file"),
-          tr("An error occured while opening the watch list file for reading"), QMessageBox::Ok, this);
+      QMessageBox* errorBox =
+          new QMessageBox(QMessageBox::Critical, tr("Error while opening file"),
+                          tr("An error occured while opening the watch list file for reading"),
+                          QMessageBox::Ok, this);
       errorBox->exec();
       return;
     }
@@ -660,18 +663,19 @@ void MemWatchWidget::importFromCTFile()
     QFile* CTFile = new QFile(dlg->getFileName(), this);
     if (!CTFile->exists())
     {
-      QMessageBox* errorBox =
-          new QMessageBox(QMessageBox::Critical, QString(tr("Error while opening file")),
-                          QString(tr("The cheat table file ") + CTFile->fileName() + tr(" does not exist")),
-                          QMessageBox::Ok, this);
+      QMessageBox* errorBox = new QMessageBox(
+          QMessageBox::Critical, QString(tr("Error while opening file")),
+          QString(tr("The cheat table file ") + CTFile->fileName() + tr(" does not exist")),
+          QMessageBox::Ok, this);
       errorBox->exec();
       return;
     }
     if (!CTFile->open(QIODevice::ReadOnly))
     {
-      QMessageBox* errorBox = new QMessageBox(
-          QMessageBox::Critical, tr("Error while opening file"),
-          tr("An error occured while opening the cheat table file for reading"), QMessageBox::Ok, this);
+      QMessageBox* errorBox =
+          new QMessageBox(QMessageBox::Critical, tr("Error while opening file"),
+                          tr("An error occured while opening the cheat table file for reading"),
+                          QMessageBox::Ok, this);
       errorBox->exec();
       return;
     }
@@ -694,21 +698,21 @@ void MemWatchWidget::importFromCTFile()
     }
     else if (parsingErrors.isCritical)
     {
-      QMessageBox* errorBox = new QMessageBox(
-          QMessageBox::Critical, tr("Import failed"),
-          tr("The Cheat Table could not have been imported, here are the details of the error:\n\n") +
-              parsingErrors.errorStr,
-          QMessageBox::Ok, this);
+      QMessageBox* errorBox = new QMessageBox(QMessageBox::Critical, tr("Import failed"),
+                                              tr("The Cheat Table could not have been imported, "
+                                                 "here are the details of the error:\n\n") +
+                                                  parsingErrors.errorStr,
+                                              QMessageBox::Ok, this);
       errorBox->exec();
     }
     else
     {
-      QMessageBox* errorBox =
-          new QMessageBox(QMessageBox::Warning, tr("Cheat table imported with errors"),
-                          tr("The Cheat Table was imported with error(s), click \"Show Details...\" "
-                          "to see the error(s) detail(s) (you can right-click to select all the "
-                          "details and copy it to the clipboard)"),
-                          QMessageBox::Ok, this);
+      QMessageBox* errorBox = new QMessageBox(
+          QMessageBox::Warning, tr("Cheat table imported with errors"),
+          tr("The Cheat Table was imported with error(s), click \"Show Details...\" "
+             "to see the error(s) detail(s) (you can right-click to select all the "
+             "details and copy it to the clipboard)"),
+          QMessageBox::Ok, this);
       errorBox->setDetailedText(parsingErrors.errorStr);
       errorBox->exec();
     }
@@ -726,10 +730,10 @@ void MemWatchWidget::exportWatchListAsCSV()
     QFile csvFile(fileName);
     if (!csvFile.open(QIODevice::WriteOnly))
     {
-      QMessageBox* errorBox =
-          new QMessageBox(QMessageBox::Critical, tr("Error while creating file"),
-                          tr("An error occured while creating and opening the csv file for writting"),
-                          QMessageBox::Ok, this);
+      QMessageBox* errorBox = new QMessageBox(
+          QMessageBox::Critical, tr("Error while creating file"),
+          tr("An error occured while creating and opening the csv file for writting"),
+          QMessageBox::Ok, this);
       errorBox->exec();
       return;
     }

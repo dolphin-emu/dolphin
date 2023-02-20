@@ -17,7 +17,7 @@ Common::MemOperationReturnCode MemScanner::firstScan(const MemScanner::ScanFiter
 {
   m_scanRAMCache = nullptr;
   u32 ramSize = Common::totalRAMSize();
-  if(ramSize == 0)
+  if (ramSize == 0)
     return Common::MemOperationReturnCode::uninitialized;
   m_scanRAMCache = new char[ramSize];
   Common::readAllRAM(m_scanRAMCache);
@@ -80,7 +80,7 @@ Common::MemOperationReturnCode MemScanner::firstScan(const MemScanner::ScanFiter
 
   char* noOffset = new char[m_memSize];
   std::memset(noOffset, 0, m_memSize);
-  
+
   int increment = m_enforceMemAlignement ? Common::getNbrBytesAlignementForType(m_memType) : 1;
   for (u32 i = 0; i < (ramSize - m_memSize); i += increment)
   {
@@ -121,7 +121,7 @@ Common::MemOperationReturnCode MemScanner::firstScan(const MemScanner::ScanFiter
                                          m_memSize) == MemScanner::CompareResult::smaller);
       break;
     }
-	 default:;
+    default:;
     }
 
     if (isResult)
@@ -141,7 +141,7 @@ Common::MemOperationReturnCode MemScanner::nextScan(const MemScanner::ScanFiter 
 {
   char* newerRAMCache = nullptr;
   u32 ramSize = Common::totalRAMSize();
-  if(ramSize == 0)
+  if (ramSize == 0)
     return Common::MemOperationReturnCode::uninitialized;
   newerRAMCache = new char[ramSize];
   Common::readAllRAM(newerRAMCache);
@@ -207,7 +207,7 @@ Common::MemOperationReturnCode MemScanner::nextScan(const MemScanner::ScanFiter 
     for (auto i : m_resultsConsoleAddr)
     {
       u32 offset = Common::addrToOffset(i);
-		if(isHitNextScan(filter, memoryToCompare1, memoryToCompare2, noOffset, newerRAMCache,
+      if (isHitNextScan(filter, memoryToCompare1, memoryToCompare2, noOffset, newerRAMCache,
                         m_memSize, offset))
       {
         newerResults.push_back(i);
@@ -395,13 +395,14 @@ std::string MemScanner::getFormattedCurrentValueAt(const int index) const
 {
   if (Common::isValidAddress(m_resultsConsoleAddr.at(index)))
   {
-	 u32 size = Common::getSizeForType(m_memType, m_memSize);
-	 char* cache = new char[size];
-	 Common::readFromRAM(cache, m_resultsConsoleAddr.at(index), size);
-	 std::string s = Common::formatMemoryToString(cache, m_memType, m_memSize, m_memBase,
-			 !m_memIsSigned, Common::shouldBeBSwappedForType(m_memType));
-	 delete[] cache;
-	 return s;
+    u32 size = Common::getSizeForType(m_memType, m_memSize);
+    char* cache = new char[size];
+    Common::readFromRAM(cache, m_resultsConsoleAddr.at(index), size);
+    std::string s =
+        Common::formatMemoryToString(cache, m_memType, m_memSize, m_memBase, !m_memIsSigned,
+                                     Common::shouldBeBSwappedForType(m_memType));
+    delete[] cache;
+    return s;
   }
   return "";
 }

@@ -566,8 +566,8 @@ void MemWatchModel::sortRecursive(int column, Qt::SortOrder order, MemWatchTreeN
                 u32 leftAddress = left->getEntry()->getConsoleAddress();
                 u32 rightAddress = right->getEntry()->getConsoleAddress();
 
-                return order == Qt::AscendingOrder ? leftAddress < rightAddress
-                                                   : leftAddress > rightAddress;
+                return order == Qt::AscendingOrder ? leftAddress < rightAddress :
+                                                     leftAddress > rightAddress;
               });
     break;
   }

@@ -48,7 +48,7 @@ QPixmap Resources::GetPixmap(std::string_view name, const QString& dir)
 {
   const auto icon = GetIcon(name, dir);
   QList<QSize> available = icon.availableSizes();
-  if(available.size() == 0)
+  if (available.size() == 0)
     return QPixmap();
   return icon.pixmap(available[0]);
 }

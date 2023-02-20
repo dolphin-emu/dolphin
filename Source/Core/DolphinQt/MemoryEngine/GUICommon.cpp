@@ -69,4 +69,4 @@ QString getNameFromBase(const Common::MemBase base)
     return QString();
   }
 }
-} // namespace GUICommon
+}  // namespace GUICommon

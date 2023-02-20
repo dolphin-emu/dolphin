@@ -193,8 +193,8 @@ QModelIndexList MemScanWidget::getSelectedResults() const
 
 MemScanner::ScanFiter MemScanWidget::getSelectedFilter() const
 {
-  int index =
-      GUICommon::g_memScanFilter.indexOf(QRegExp(tr("^") + m_cmbScanFilter->currentText() + tr("$")));
+  int index = GUICommon::g_memScanFilter.indexOf(
+      QRegExp(tr("^") + m_cmbScanFilter->currentText() + tr("$")));
   return static_cast<MemScanner::ScanFiter>(index);
 }
 
@@ -400,15 +400,12 @@ void MemScanWidget::handleScannerErrors(const Common::MemOperationReturnCode err
                         QMessageBox::Ok, this);
     errorBox->exec();
   }
-  else if(errorCode == Common::MemOperationReturnCode::uninitialized)
+  else if (errorCode == Common::MemOperationReturnCode::uninitialized)
   {
-	  QMessageBox* errorBox =
-        new QMessageBox(QMessageBox::Critical, tr("Invalid memory operation"),
-                        tr("Memory is not initialized.")
-                            .arg(m_cmbScanType->currentText()),
-                        QMessageBox::Ok, this);
+    QMessageBox* errorBox = new QMessageBox(
+        QMessageBox::Critical, tr("Invalid memory operation"),
+        tr("Memory is not initialized.").arg(m_cmbScanType->currentText()), QMessageBox::Ok, this);
     errorBox->exec();
-
   }
 }
 

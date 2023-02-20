@@ -52,8 +52,8 @@ void MemViewer::initialise()
   m_updatedRawMemoryData = new char[m_numCells];
   m_lastRawMemoryData = new char[m_numCells];
   m_memoryMsElapsedLastChange = new int[m_numCells];
-  m_memViewStart = (size_t) Common::getMEM1();
-  m_memViewEnd = (size_t) Common::getMEM1End();
+  m_memViewStart = (size_t)Common::getMEM1();
+  m_memViewEnd = (size_t)Common::getMEM1End();
   m_currentFirstAddress = m_memViewStart;
 
   std::fill(m_memoryMsElapsedLastChange, m_memoryMsElapsedLastChange + m_numCells, 0);
@@ -102,14 +102,14 @@ void MemViewer::jumpToAddress(const u32 address)
   if (Common::isValidAddress(address))
   {
     m_currentFirstAddress = address;
-    if (address >= (size_t) Common::getARAM() && address < (size_t) Common::getARAMEnd() &&
-        m_memViewStart != (size_t) Common::getARAM())
+    if (address >= (size_t)Common::getARAM() && address < (size_t)Common::getARAMEnd() &&
+        m_memViewStart != (size_t)Common::getARAM())
       changeMemoryRegion(MemoryRegion::ARAM);
-    else if (address >= (size_t) Common::getMEM1() && address < (size_t) Common::getMEM1End() &&
-             m_memViewStart != (size_t) Common::getMEM1())
+    else if (address >= (size_t)Common::getMEM1() && address < (size_t)Common::getMEM1End() &&
+             m_memViewStart != (size_t)Common::getMEM1())
       changeMemoryRegion(MemoryRegion::MEM1);
-    else if (address >= (size_t) Common::getMEM2() && address < (size_t) Common::getMEM2End() &&
-             m_memViewStart != (size_t) Common::getMEM2())
+    else if (address >= (size_t)Common::getMEM2() && address < (size_t)Common::getMEM2End() &&
+             m_memViewStart != (size_t)Common::getMEM2())
       changeMemoryRegion(MemoryRegion::MEM2);
 
     if (m_currentFirstAddress > m_memViewEnd - m_numCells)
@@ -132,16 +132,16 @@ void MemViewer::changeMemoryRegion(const MemoryRegion region)
   switch (region)
   {
   case MemoryRegion::ARAM:
-    m_memViewStart = (size_t) Common::getARAM();
-    m_memViewEnd = (size_t) Common::getARAMEnd();
+    m_memViewStart = (size_t)Common::getARAM();
+    m_memViewEnd = (size_t)Common::getARAMEnd();
     break;
   case MemoryRegion::MEM1:
-    m_memViewStart = (size_t) Common::getMEM1();
-    m_memViewEnd = (size_t) Common::getMEM1End();
+    m_memViewStart = (size_t)Common::getMEM1();
+    m_memViewEnd = (size_t)Common::getMEM1End();
     break;
   case MemoryRegion::MEM2:
-    m_memViewStart = (size_t) Common::getMEM2();
-    m_memViewEnd = (size_t) Common::getMEM2End();
+    m_memViewStart = (size_t)Common::getMEM2();
+    m_memViewEnd = (size_t)Common::getMEM2End();
     break;
   }
   verticalScrollBar()->setRange(0, ((m_memViewEnd - m_memViewStart) / m_numColumns) - m_numRows);
@@ -430,9 +430,7 @@ void MemViewer::editSelection()
     char* newMem = new char[selectionLength];
     std::memset(newMem, byte, selectionLength);
     if (Common::isValidAddress(m_currentFirstAddress + indexStart))
-      Common::writeToRAM(newMem, 
-              m_currentFirstAddress + indexStart,
-              selectionLength, false);
+      Common::writeToRAM(newMem, m_currentFirstAddress + indexStart, selectionLength, false);
     delete[] newMem;
   }
 }
@@ -772,7 +770,8 @@ void MemViewer::renderSeparatorLines(QPainter& painter)
   if (DMEConfig::getInstance().getViewerNbrBytesSeparator() != 0)
   {
     int bytesSeparatorXPos = m_rowHeaderWidth - m_charWidthEm / 2 + m_charWidthEm / 4;
-    for (int i = 0; i < m_numColumns / DMEConfig::getInstance().getViewerNbrBytesSeparator() - 1; i++)
+    for (int i = 0; i < m_numColumns / DMEConfig::getInstance().getViewerNbrBytesSeparator() - 1;
+         i++)
     {
       bytesSeparatorXPos +=
           (m_charWidthEm * 2) * DMEConfig::getInstance().getViewerNbrBytesSeparator() +
@@ -922,8 +921,7 @@ void MemViewer::renderMemory(QPainter& painter, const int rowIndex, const int co
   int posXHex = m_rowHeaderWidth + (m_charWidthEm * 2 + m_charWidthEm / 2) * columnIndex;
   if (!(m_currentFirstAddress + (m_numColumns * rowIndex + columnIndex) >= m_memViewStart &&
         m_currentFirstAddress + (m_numColumns * rowIndex + columnIndex) < m_memViewEnd) ||
-      !Common::isValidAddress(
-          m_currentFirstAddress + (m_numColumns * rowIndex + columnIndex)) ||
+      !Common::isValidAddress(m_currentFirstAddress + (m_numColumns * rowIndex + columnIndex)) ||
       !m_validMemory)
   {
     painter.setPen(fgColor);

@@ -14,7 +14,7 @@ MemWatchEntry::MemWatchEntry(const QString label, const u32 consoleAddress,
                              const bool isUnsigned, const size_t length,
                              const bool isBoundToPointer)
     : m_label(label), m_consoleAddress(consoleAddress), m_type(type), m_base(base),
-	   m_isUnsigned(isUnsigned), m_boundToPointer(isBoundToPointer), m_length(length)
+      m_isUnsigned(isUnsigned), m_boundToPointer(isBoundToPointer), m_length(length)
 {
   m_memory = new char[getSizeForType(m_type, m_length)];
 }
@@ -31,7 +31,7 @@ MemWatchEntry::MemWatchEntry()
 
 MemWatchEntry::MemWatchEntry(MemWatchEntry* entry)
     : m_label(entry->m_label), m_consoleAddress(entry->m_consoleAddress), m_type(entry->m_type),
-      m_base(entry->m_base), m_isUnsigned(entry->m_isUnsigned), 
+      m_base(entry->m_base), m_isUnsigned(entry->m_isUnsigned),
       m_boundToPointer(entry->m_boundToPointer), m_pointerOffsets(entry->m_pointerOffsets),
       m_isValidPointer(entry->m_isValidPointer), m_length(entry->m_length)
 {
@@ -194,9 +194,7 @@ u32 MemWatchEntry::getAddressForPointerLevel(const int level)
   char addressBuffer[sizeof(u32)] = {0};
   for (int i = 0; i < level; ++i)
   {
-    Common::readFromRAM(addressBuffer, 
-            address,
-            sizeof(u32), true);
+    Common::readFromRAM(addressBuffer, address, sizeof(u32), true);
     std::memcpy(&address, addressBuffer, sizeof(u32));
     if (Common::isValidAddress(address))
       address += m_pointerOffsets.at(i);
@@ -229,9 +227,7 @@ Common::MemOperationReturnCode MemWatchEntry::readMemoryFromRAM()
     char realConsoleAddressBuffer[sizeof(u32)] = {0};
     for (int offset : m_pointerOffsets)
     {
-      Common::readFromRAM(realConsoleAddressBuffer, 
-              realConsoleAddress,
-              sizeof(u32), true);
+      Common::readFromRAM(realConsoleAddressBuffer, realConsoleAddress, sizeof(u32), true);
       std::memcpy(&realConsoleAddress, realConsoleAddressBuffer, sizeof(u32));
       if (Common::isValidAddress(realConsoleAddress))
         realConsoleAddress += offset;
@@ -245,9 +241,8 @@ Common::MemOperationReturnCode MemWatchEntry::readMemoryFromRAM()
     m_isValidPointer = true;
   }
 
-  Common::readFromRAM(m_memory, 
-          realConsoleAddress,
-          getSizeForType(m_type, m_length), shouldBeBSwappedForType(m_type));
+  Common::readFromRAM(m_memory, realConsoleAddress, getSizeForType(m_type, m_length),
+                      shouldBeBSwappedForType(m_type));
   return Common::MemOperationReturnCode::OK;
 }
 
@@ -260,9 +255,7 @@ Common::MemOperationReturnCode MemWatchEntry::writeMemoryToRAM(const char* memor
     char realConsoleAddressBuffer[sizeof(u32)] = {0};
     for (int offset : m_pointerOffsets)
     {
-      Common::readFromRAM(realConsoleAddressBuffer, 
-              realConsoleAddress,
-              sizeof(u32), true);
+      Common::readFromRAM(realConsoleAddressBuffer, realConsoleAddress, sizeof(u32), true);
       std::memcpy(&realConsoleAddress, realConsoleAddressBuffer, sizeof(u32));
       if (Common::isValidAddress(realConsoleAddress))
         realConsoleAddress += offset;
@@ -276,9 +269,7 @@ Common::MemOperationReturnCode MemWatchEntry::writeMemoryToRAM(const char* memor
     m_isValidPointer = true;
   }
 
-  Common::writeToRAM((void*) memory,
-          realConsoleAddress,
-          size, shouldBeBSwappedForType(m_type));
+  Common::writeToRAM((void*)memory, realConsoleAddress, size, shouldBeBSwappedForType(m_type));
   return Common::MemOperationReturnCode::OK;
 }
 

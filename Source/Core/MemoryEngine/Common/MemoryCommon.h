@@ -26,7 +26,7 @@ enum class MemBase
   base_hexadecimal,
   base_octal,
   base_binary,
-  base_none // Placeholder when the base doesn't matter (ie. string)
+  base_none  // Placeholder when the base doesn't matter (ie. string)
 };
 
 enum class MemOperationReturnCode
@@ -67,5 +67,5 @@ u32 addrToOffset(u32 addr);
 u32 offsetToAddr(u32 offset);
 void readFromRAM(void* data, u32 address, size_t size, bool withBSwap = false);
 void writeToRAM(void* data, u32 address, size_t size, bool withBSwap = false);
-void readAllRAM(void *data);
-} // namespace Common
+void readAllRAM(void* data);
+}  // namespace Common

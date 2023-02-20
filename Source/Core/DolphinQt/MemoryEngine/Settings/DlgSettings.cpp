@@ -27,17 +27,18 @@ DlgSettings::DlgSettings(QWidget* parent) : QDialog(parent)
 
   QFormLayout* timerSettingsInputLayout = new QFormLayout();
   timerSettingsInputLayout->addRow(tr("Watcher update timer (ms)"), m_spnWatcherUpdateTimerMs);
-  timerSettingsInputLayout->addRow(tr("Scanner results update timer (ms)"), m_spnScannerUpdateTimerMs);
+  timerSettingsInputLayout->addRow(tr("Scanner results update timer (ms)"),
+                                   m_spnScannerUpdateTimerMs);
   timerSettingsInputLayout->addRow(tr("Memory viewer update timer (ms)"), m_spnViewerUpdateTimerMs);
   timerSettingsInputLayout->addRow(tr("Address value lock timer (ms)"), m_spnFreezeTimerMs);
   timerSettingsInputLayout->setLabelAlignment(Qt::AlignRight);
 
-  QLabel* lblTimerSettingsDescription = new QLabel(tr(
-      "These settings changes the time in miliseconds it takes for updates to be fetched from "
-      "Dolphin. The lower these values are, the more frequant updates will happen, but the more "
-      "likely it will increase lag in the program especially on large watches list. For the "
-      "address value lock timer, it sets how long it will take before settings the value in "
-      "Dolphin."));
+  QLabel* lblTimerSettingsDescription = new QLabel(
+      tr("These settings changes the time in miliseconds it takes for updates to be fetched from "
+         "Dolphin. The lower these values are, the more frequant updates will happen, but the more "
+         "likely it will increase lag in the program especially on large watches list. For the "
+         "address value lock timer, it sets how long it will take before settings the value in "
+         "Dolphin."));
   lblTimerSettingsDescription->setWordWrap(true);
 
   QVBoxLayout* timerSettingsLayout = new QVBoxLayout;

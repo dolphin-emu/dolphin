@@ -4,8 +4,8 @@
 #include <sstream>
 #include <string>
 
-#include "../Common/MemoryCommon.h"
 #include "../../DolphinQt/MemoryEngine/GUICommon.h"
+#include "../Common/MemoryCommon.h"
 
 CheatEngineParser::CheatEngineParser()
 {
@@ -115,7 +115,7 @@ MemWatchTreeNode* CheatEngineParser::parseCheatEntries(MemWatchTreeNode* node,
 void CheatEngineParser::parseCheatEntry(MemWatchTreeNode* node, const bool useDolphinPointer)
 {
   std::string label = "No label";
-  u32 consoleAddress = (size_t) Common::getMEM1();
+  u32 consoleAddress = (size_t)Common::getMEM1();
   Common::MemType type = Common::MemType::type_byte;
   Common::MemBase base = Common::MemBase::base_decimal;
   bool isUnsigned = true;
@@ -205,7 +205,7 @@ void CheatEngineParser::parseCheatEntry(MemWatchTreeNode* node, const bool useDo
           else
           {
             consoleAddressCandidate -= m_tableStartAddress;
-            consoleAddressCandidate += (size_t) Common::getMEM1();
+            consoleAddressCandidate += (size_t)Common::getMEM1();
             if (Common::isValidAddress(consoleAddressCandidate))
               consoleAddress = consoleAddressCandidate;
             else
@@ -233,7 +233,7 @@ void CheatEngineParser::parseCheatEntry(MemWatchTreeNode* node, const bool useDo
               }
               else
               {
-                consoleAddressCandidate += (size_t) Common::getMEM1();
+                consoleAddressCandidate += (size_t)Common::getMEM1();
                 if (Common::isValidAddress(consoleAddressCandidate))
                   consoleAddress = consoleAddressCandidate;
                 else

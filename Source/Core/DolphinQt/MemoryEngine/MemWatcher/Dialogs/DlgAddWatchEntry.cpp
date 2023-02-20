@@ -308,9 +308,8 @@ void DlgAddWatchEntry::accept()
 {
   if (!validateAndSetAddress())
   {
-    QString errorMsg =
-        tr("The address you entered is invalid, make sure it is an "
-           "hexadecimal number between 0x80000000 and 0x817FFFFF");
+    QString errorMsg = tr("The address you entered is invalid, make sure it is an "
+                          "hexadecimal number between 0x80000000 and 0x817FFFFF");
     if (Common::getMEM2())
       errorMsg.append(tr(" or between 0x90000000 and 0x93FFFFFF"));
 

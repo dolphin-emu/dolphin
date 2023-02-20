@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
+#include "../../Common/Swap.h"
 #include "../Common/CommonTypes.h"
 #include "../Common/MemoryCommon.h"
-#include "../../Common/Swap.h"
 
 class MemScanner
 {

@@ -10,15 +10,15 @@
 
 #include "../../MemoryEngine/Common/MemoryCommon.h"
 #include "../../MemoryEngine/MemoryWatch/MemWatchEntry.h"
-#include "Settings/DlgSettings.h"
 #include "Settings/DMEConfig.h"
+#include "Settings/DlgSettings.h"
 
-MemoryEngine::MemoryEngine(QWidget *parent) : QDialog(parent)
+MemoryEngine::MemoryEngine(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Memory Engine"));
   initialiseWidgets();
   makeLayouts();
-  //makeMenus();
+  // makeMenus();
   makeMemViewer();
 }
 
@@ -127,14 +127,14 @@ void MemoryEngine::makeLayouts()
 
 void MemoryEngine::makeMemViewer()
 {
-  m_viewer = new MemViewerWidget(nullptr, (size_t) Common::getMEM1());
+  m_viewer = new MemViewerWidget(nullptr, (size_t)Common::getMEM1());
   connect(m_viewer, &MemViewerWidget::addWatchRequested, m_watcher, &MemWatchWidget::addWatchEntry);
   connect(m_watcher, &MemWatchWidget::goToAddressInViewer, this,
           &MemoryEngine::onOpenMemViewerWithAddress);
 }
 
-void MemoryEngine::addSelectedResultsToWatchList(Common::MemType type, size_t length, bool isUnsigned,
-                                               Common::MemBase base)
+void MemoryEngine::addSelectedResultsToWatchList(Common::MemType type, size_t length,
+                                                 bool isUnsigned, Common::MemBase base)
 {
   QModelIndexList selection = m_scanner->getSelectedResults();
   for (int i = 0; i < selection.count(); i++)
@@ -147,7 +147,7 @@ void MemoryEngine::addSelectedResultsToWatchList(Common::MemType type, size_t le
 }
 
 void MemoryEngine::addAllResultsToWatchList(Common::MemType type, size_t length, bool isUnsigned,
-                                          Common::MemBase base)
+                                            Common::MemBase base)
 {
   for (auto item : m_scanner->getAllResults())
   {
@@ -158,7 +158,7 @@ void MemoryEngine::addAllResultsToWatchList(Common::MemType type, size_t length,
 }
 
 void MemoryEngine::addWatchRequested(u32 address, Common::MemType type, size_t length,
-                                   bool isUnsigned, Common::MemBase base)
+                                     bool isUnsigned, Common::MemBase base)
 {
   MemWatchEntry* newEntry =
       new MemWatchEntry(tr("No label"), address, type, base, isUnsigned, length);
@@ -210,8 +210,8 @@ void MemoryEngine::onExportAsCSV()
 
 void MemoryEngine::onShowScanner(bool show)
 {
-  if(show)
-	 m_scanner->show();
+  if (show)
+    m_scanner->show();
   else
     m_scanner->hide();
 }
@@ -242,7 +242,7 @@ void MemoryEngine::onQuit()
 
 void MemoryEngine::onEmulationStateChanged(bool running)
 {
-  if(running)
+  if (running)
   {
     m_watcher->getUpdateTimer()->start(DMEConfig::getInstance().getWatcherUpdateTimerMs());
     m_watcher->getFreezeTimer()->start(DMEConfig::getInstance().getFreezeTimerMs());
@@ -254,7 +254,6 @@ void MemoryEngine::onEmulationStateChanged(bool running)
     m_watcher->getFreezeTimer()->stop();
     m_viewer->getUpdateTimer()->stop();
   }
-
 }
 
 void MemoryEngine::closeEvent(QCloseEvent* event)

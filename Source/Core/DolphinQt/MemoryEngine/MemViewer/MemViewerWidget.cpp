@@ -70,15 +70,15 @@ void MemViewerWidget::onJumpToAddressTextChanged()
 
 void MemViewerWidget::onGoToMEM1Start()
 {
-  m_memViewer->jumpToAddress((size_t) Common::getMEM1());
+  m_memViewer->jumpToAddress((size_t)Common::getMEM1());
 }
 
 void MemViewerWidget::onGoToSecondaryRAMStart()
 {
   if (Common::isARAMAccessible())
-    m_memViewer->jumpToAddress((size_t) Common::getARAM());
+    m_memViewer->jumpToAddress((size_t)Common::getARAM());
   else
-    m_memViewer->jumpToAddress((size_t) Common::getMEM2());
+    m_memViewer->jumpToAddress((size_t)Common::getMEM2());
 }
 
 void MemViewerWidget::hookStatusChanged(bool hook)
@@ -92,9 +92,9 @@ void MemViewerWidget::hookStatusChanged(bool hook)
 void MemViewerWidget::onMEM2StatusChanged(bool enabled)
 {
   m_btnGoToSecondaryRAMStart->setText(enabled ? tr("Go to MEM2") : tr("Go to ARAM"));
-  if ((!enabled && m_memViewer->getCurrentFirstAddress() >= (size_t) Common::getMEM2()) ||
-      (enabled && m_memViewer->getCurrentFirstAddress() < (size_t) Common::getMEM1()))
-    m_memViewer->jumpToAddress((size_t) Common::getMEM1());
+  if ((!enabled && m_memViewer->getCurrentFirstAddress() >= (size_t)Common::getMEM2()) ||
+      (enabled && m_memViewer->getCurrentFirstAddress() < (size_t)Common::getMEM1()))
+    m_memViewer->jumpToAddress((size_t)Common::getMEM1());
 
   if (!enabled)
     m_btnGoToSecondaryRAMStart->setEnabled(Common::isARAMAccessible());

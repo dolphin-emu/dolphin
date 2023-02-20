@@ -14,7 +14,7 @@ class MemoryEngine : public QDialog
   Q_OBJECT
 
 public:
-  MemoryEngine(QWidget *parent = nullptr);
+  MemoryEngine(QWidget* parent = nullptr);
   ~MemoryEngine();
   void closeEvent(QCloseEvent* event) override;
   void forceQuit();
@@ -42,7 +42,7 @@ signals:
   void sigQuit();
 
 private:
-  //void makeMenus();
+  // void makeMenus();
   void initialiseWidgets();
   void makeLayouts();
   void makeMemViewer();
