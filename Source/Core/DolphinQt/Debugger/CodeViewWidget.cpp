@@ -295,9 +295,6 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
 
   u32 pc = PowerPC::ppcState.pc;
 
-  if (Core::GetState() != Core::State::Paused && PowerPC::debug_interface.IsBreakpoint(pc))
-    Core::SetState(Core::State::Paused);
-
   const bool dark_theme = qApp->palette().color(QPalette::Base).valueF() < 0.5;
 
   m_branches.clear();
