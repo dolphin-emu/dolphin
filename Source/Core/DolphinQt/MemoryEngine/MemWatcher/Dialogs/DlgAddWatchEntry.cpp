@@ -333,9 +333,8 @@ void DlgAddWatchEntry::accept()
       {
         QMessageBox* errorBox = new QMessageBox(
             QMessageBox::Critical, tr("Invalid offset"),
-            QString::fromStdString("The offset you entered for the level " + std::to_string(i + 1) +
-                                   " is invalid, make sure it is an "
-                                   "hexadecimal number"),
+            tr("The offset you entered for the level %1 is invalid, make sure"
+					" it is an hexadecimal number".arg(QString::number(i + 1))),
             QMessageBox::Ok, this);
         errorBox->exec();
         return;
