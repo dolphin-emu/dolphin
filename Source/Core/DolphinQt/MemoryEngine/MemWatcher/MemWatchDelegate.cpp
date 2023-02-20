@@ -2,9 +2,9 @@
 
 #include <QLineEdit>
 
-#include "MemoryEngine/MemoryWatch/MemWatchTreeNode.h"
 #include "../GUICommon.h"
 #include "MemWatchModel.h"
+#include "MemoryEngine/MemoryWatch/MemWatchTreeNode.h"
 
 QWidget* MemWatchDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option,
                                         const QModelIndex& index) const

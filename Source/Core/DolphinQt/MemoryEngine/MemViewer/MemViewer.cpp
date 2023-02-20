@@ -16,7 +16,7 @@
 #include <QRegularExpression>
 #include <QScrollBar>
 
-#include "MemoryEngine/Common/MemoryCommon.h"
+#include "../../../MemoryEngine/Common/MemoryCommon.h"
 #include "../MemWatcher/Dialogs/DlgAddWatchEntry.h"
 #include "../Settings/DMEConfig.h"
 
@@ -32,7 +32,7 @@ MemViewer::MemViewer(QWidget* parent) : QAbstractScrollArea(parent)
 
   m_copyShortcut = new QShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key::Key_C), parent);
   connect(m_copyShortcut, &QShortcut::activated, this,
-          [=]() { copySelection(Common::MemType::type_byteArray); });
+          [this]() { copySelection(Common::MemType::type_byteArray); });
 
   // The viewport is implicitly updated at the constructor's end
 }
@@ -298,12 +298,12 @@ void MemViewer::contextMenuEvent(QContextMenuEvent* event)
     {
       QAction* copyBytesAction = new QAction(tr("&Copy selection as bytes"));
       connect(copyBytesAction, &QAction::triggered, this,
-              [=]() { copySelection(Common::MemType::type_byteArray); });
+              [this]() { copySelection(Common::MemType::type_byteArray); });
       contextMenu->addAction(copyBytesAction);
 
       QAction* copyStringAction = new QAction(tr("&Copy selection as ASCII string"));
       connect(copyStringAction, &QAction::triggered, this,
-              [=]() { copySelection(Common::MemType::type_string); });
+              [this]() { copySelection(Common::MemType::type_string); });
       contextMenu->addAction(copyStringAction);
 
       QAction* editAction = new QAction(tr("&Edit all selection..."));
@@ -318,7 +318,7 @@ void MemViewer::contextMenuEvent(QContextMenuEvent* event)
 
     QAction* addSingleWatchAction = new QAction(tr("&Add a watch to this address..."));
     connect(addSingleWatchAction, &QAction::triggered, this,
-            [=]() { addByteIndexAsWatch(indexMouse); });
+            [=, this]() { addByteIndexAsWatch(indexMouse); });
     contextMenu->addAction(addSingleWatchAction);
 
     contextMenu->popup(viewport()->mapToGlobal(event->pos()));
@@ -329,9 +329,9 @@ void MemViewer::wheelEvent(QWheelEvent* event)
 {
   if (event->modifiers().testFlag(Qt::ControlModifier))
   {
-    if (event->delta() < 0 && m_memoryFontSize > 5)
+    if (event->angleDelta().y() < 0 && m_memoryFontSize > 5)
       updateFontSize(m_memoryFontSize - 1);
-    else if (event->delta() > 0)
+    else if (event->angleDelta().y() > 0)
       updateFontSize(m_memoryFontSize + 1);
 
     viewport()->update();
@@ -352,7 +352,7 @@ void MemViewer::updateFontSize(int newSize)
   setFont(QFont(tr("Courier New"), m_memoryFontSize));
 #endif
 
-  m_charWidthEm = fontMetrics().width(QLatin1Char('M'));
+  m_charWidthEm = fontMetrics().horizontalAdvance(QLatin1Char('M'));
   m_charHeight = fontMetrics().height();
   m_hexAreaWidth = m_numColumns * (m_charWidthEm * 2 + m_charWidthEm / 2);
   m_hexAreaHeight = m_numRows * m_charHeight;

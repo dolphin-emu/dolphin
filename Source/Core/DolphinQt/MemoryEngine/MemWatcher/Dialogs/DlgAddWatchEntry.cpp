@@ -6,8 +6,8 @@
 #include <QVBoxLayout>
 #include <sstream>
 
-#include "MemoryEngine/Common/MemoryCommon.h"
 #include "../../GUICommon.h"
+#include "MemoryEngine/Common/MemoryCommon.h"
 
 DlgAddWatchEntry::DlgAddWatchEntry(MemWatchEntry* entry)
 {
@@ -174,12 +174,11 @@ void DlgAddWatchEntry::fillFields(MemWatchEntry* entry)
     if (m_entry->isBoundToPointer())
     {
       m_pointerWidget->show();
-      for (int i = 0; i < m_entry->getPointerLevel(); ++i)
+      for (int i = 0; (size_t)i < m_entry->getPointerLevel(); ++i)
       {
         std::stringstream ss;
         ss << std::hex << std::uppercase << m_entry->getPointerOffset(i);
-        QLabel* lblLevel =
-            new QLabel(QString::fromStdString("Level " + std::to_string(i + 1) + ":"));
+        QLabel* lblLevel = new QLabel(tr("Level %1:").arg(i + 1));
         QLineEdit* txbOffset = new QLineEdit();
         txbOffset->setFixedWidth(100);
         txbOffset->setMaxLength(7);
@@ -323,7 +322,7 @@ void DlgAddWatchEntry::accept()
     {
       bool allOffsetsValid = true;
       int i = 0;
-      for (i; i < m_offsets.count(); ++i)
+      for (; i < m_offsets.count(); ++i)
       {
         allOffsetsValid = validateAndSetOffset(i);
         if (!allOffsetsValid)
@@ -331,11 +330,12 @@ void DlgAddWatchEntry::accept()
       }
       if (!allOffsetsValid)
       {
-        QMessageBox* errorBox = new QMessageBox(
-            QMessageBox::Critical, tr("Invalid offset"),
-            tr("The offset you entered for the level %1 is invalid, make sure"
-					" it is an hexadecimal number".arg(QString::number(i + 1))),
-            QMessageBox::Ok, this);
+        QMessageBox* errorBox =
+            new QMessageBox(QMessageBox::Critical, tr("Invalid offset"),
+                            tr("The offset you entered for the level %1 is invalid, make sure"
+                               " it is an hexadecimal number")
+                                .arg(QString::number(i + 1)),
+                            QMessageBox::Ok, this);
         errorBox->exec();
         return;
       }
@@ -399,9 +399,8 @@ void DlgAddWatchEntry::updatePreview()
   if (m_entry->isBoundToPointer())
   {
     size_t level = m_entry->getPointerLevel();
-    for (int i = 0; i < level; ++i)
+    for (int i = 0; (size_t)i < level; ++i)
     {
-      QWidget* test = m_offsetsLayout->itemAtPosition(i, 2)->widget();
       QLabel* lblAddressOfPath =
           static_cast<QLabel*>(m_offsetsLayout->itemAtPosition(i, 2)->widget());
       lblAddressOfPath->setText(

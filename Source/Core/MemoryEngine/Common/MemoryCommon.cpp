@@ -7,9 +7,9 @@
 #include <vector>
 
 #include "Common/Swap.h"
+#include "CommonTypes.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
-#include "CommonTypes.h"
 
 namespace Common
 {
@@ -104,6 +104,7 @@ char* formatStringToMemory(MemOperationReturnCode& returnCode, size_t& actualLen
   case MemBase::base_hexadecimal:
     ss >> std::hex;
     break;
+  default:;
   }
 
   size_t size = getSizeForType(type, length);
@@ -117,17 +118,7 @@ char* formatStringToMemory(MemOperationReturnCode& returnCode, size_t& actualLen
     if (base == MemBase::base_binary)
     {
       unsigned long long input = 0;
-      // try
-      //{
       input = std::bitset<sizeof(u8) * 8>(inputString).to_ullong();
-      //}
-      // catch (std::invalid_argument)
-      //{
-      //  delete[] buffer;
-      //  buffer = nullptr;
-      //  returnCode = MemOperationReturnCode::invalidInput;
-      //  return buffer;
-      //}
       theByte = static_cast<u8>(input);
     }
     else
@@ -155,17 +146,7 @@ char* formatStringToMemory(MemOperationReturnCode& returnCode, size_t& actualLen
     if (base == MemBase::base_binary)
     {
       unsigned long long input = 0;
-      // try
-      //{
       input = std::bitset<sizeof(u16) * 8>(inputString).to_ullong();
-      //}
-      // catch (std::invalid_argument)
-      //{
-      //  delete[] buffer;
-      //  buffer = nullptr;
-      //  returnCode = MemOperationReturnCode::invalidInput;
-      //  return buffer;
-      //}
       theHalfword = static_cast<u16>(input);
     }
     else
@@ -323,6 +304,7 @@ char* formatStringToMemory(MemOperationReturnCode& returnCode, size_t& actualLen
     }
     actualLength = bytes.size();
   }
+  default:;
   }
   return buffer;
 }
@@ -342,6 +324,7 @@ std::string formatMemoryToString(const char* memory, const MemType type, const s
   case Common::MemBase::base_hexadecimal:
     ss << std::hex << std::uppercase;
     break;
+  default:;
   }
 
   switch (type)
@@ -479,19 +462,16 @@ std::string formatMemoryToString(const char* memory, const MemType type, const s
   }
   case Common::MemType::type_string:
   {
-    int actualLength = 0;
-    for (actualLength; actualLength < length; ++actualLength)
-    {
-      if (*(memory + actualLength) == 0x00)
-        break;
-    }
+    size_t actualLength = 0;
+    while (actualLength < length && *(memory + actualLength) != 0x00)
+      ++actualLength;
     return std::string(memory, actualLength);
   }
   case Common::MemType::type_byteArray:
   {
     // Force Hexadecimal, no matter the base
     ss << std::hex << std::uppercase;
-    for (int i = 0; i < length; ++i)
+    for (size_t i = 0; i < length; ++i)
     {
       u8 aByte = 0;
       std::memcpy(&aByte, memory + i, sizeof(u8));

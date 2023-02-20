@@ -67,7 +67,7 @@ DlgSettings::DlgSettings(QWidget* parent) : QDialog(parent)
   m_buttonsDlg = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
   connect(m_buttonsDlg, &QDialogButtonBox::rejected, this, &QDialog::reject);
-  connect(m_buttonsDlg, &QDialogButtonBox::clicked, this, [=](QAbstractButton* button) {
+  connect(m_buttonsDlg, &QDialogButtonBox::clicked, this, [this](QAbstractButton* button) {
     if (m_buttonsDlg->buttonRole(button) == QDialogButtonBox::AcceptRole)
     {
       saveSettings();

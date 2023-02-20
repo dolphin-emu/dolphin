@@ -21,12 +21,12 @@
 #include <QVBoxLayout>
 #include <string>
 
-#include "MemoryEngine/Common/MemoryCommon.h"
-#include "MemoryEngine/MemoryWatch/MemWatchEntry.h"
 #include "../GUICommon.h"
 #include "Dialogs/DlgAddWatchEntry.h"
 #include "Dialogs/DlgChangeType.h"
 #include "Dialogs/DlgImportCTFile.h"
+#include "MemoryEngine/Common/MemoryCommon.h"
+#include "MemoryEngine/MemoryWatch/MemWatchEntry.h"
 
 MemWatchWidget::MemWatchWidget(QWidget* parent) : QWidget(parent)
 {
@@ -85,7 +85,7 @@ void MemWatchWidget::initialiseWidgets()
 
   QShortcut* pasteWatchShortcut =
       new QShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key::Key_V), m_watchView);
-  connect(pasteWatchShortcut, &QShortcut::activated, this, [=] {
+  connect(pasteWatchShortcut, &QShortcut::activated, this, [=, this] {
     pasteWatchFromClipBoard(
         m_watchModel->getTreeNodeFromIndex(m_watchView->selectionModel()->currentIndex()),
         m_watchView->selectionModel()->currentIndex().row() + 1);
@@ -141,9 +141,9 @@ void MemWatchWidget::onMemWatchContextMenuRequested(const QPoint& pos)
         QMenu* memViewerSubMenu = contextMenu->addMenu(tr("Browse &memory at"));
         QAction* showPointerInViewer = new QAction(tr("The &pointer address..."), this);
         connect(showPointerInViewer, &QAction::triggered, this,
-                [=] { emit goToAddressInViewer(entry->getConsoleAddress()); });
+                [=, this] { emit goToAddressInViewer(entry->getConsoleAddress()); });
         memViewerSubMenu->addAction(showPointerInViewer);
-        for (int i = 0; i < entry->getPointerLevel(); ++i)
+        for (int i = 0; (size_t)i < entry->getPointerLevel(); ++i)
         {
           std::string strAddressOfPath = entry->getAddressStringForPointerLevel(i + 1);
           if (strAddressOfPath == "???")
@@ -151,19 +151,19 @@ void MemWatchWidget::onMemWatchContextMenuRequested(const QPoint& pos)
           QAction* showAddressOfPathInViewer = new QAction(
               tr("The pointed address at &level %1...").arg(QString::number(i + 1)), this);
           connect(showAddressOfPathInViewer, &QAction::triggered, this,
-                  [=] { emit goToAddressInViewer(entry->getAddressForPointerLevel(i + 1)); });
+                  [=, this] { emit goToAddressInViewer(entry->getAddressForPointerLevel(i + 1)); });
           memViewerSubMenu->addAction(showAddressOfPathInViewer);
         }
 
         QAction* showInViewer = new QAction(tr("Browse memory at this &address..."), this);
         connect(showInViewer, &QAction::triggered, this,
-                [=] { emit goToAddressInViewer(entry->getConsoleAddress()); });
+                [=, this] { emit goToAddressInViewer(entry->getConsoleAddress()); });
       }
       else
       {
         QAction* showInViewer = new QAction(tr("Browse memory at this &address..."), this);
         connect(showInViewer, &QAction::triggered, this,
-                [=] { emit goToAddressInViewer(entry->getConsoleAddress()); });
+                [=, this] { emit goToAddressInViewer(entry->getConsoleAddress()); });
 
         contextMenu->addAction(showInViewer);
       }
@@ -176,19 +176,19 @@ void MemWatchWidget::onMemWatchContextMenuRequested(const QPoint& pos)
         QAction* viewOct = new QAction(tr("View as &Octal"), this);
         QAction* viewBin = new QAction(tr("View as &Binary"), this);
 
-        connect(viewDec, &QAction::triggered, m_watchModel, [=] {
+        connect(viewDec, &QAction::triggered, m_watchModel, [=, this] {
           entry->setBase(Common::MemBase::base_decimal);
           m_hasUnsavedChanges = true;
         });
-        connect(viewHex, &QAction::triggered, m_watchModel, [=] {
+        connect(viewHex, &QAction::triggered, m_watchModel, [=, this] {
           entry->setBase(Common::MemBase::base_hexadecimal);
           m_hasUnsavedChanges = true;
         });
-        connect(viewOct, &QAction::triggered, m_watchModel, [=] {
+        connect(viewOct, &QAction::triggered, m_watchModel, [=, this] {
           entry->setBase(Common::MemBase::base_octal);
           m_hasUnsavedChanges = true;
         });
-        connect(viewBin, &QAction::triggered, m_watchModel, [=] {
+        connect(viewBin, &QAction::triggered, m_watchModel, [=, this] {
           entry->setBase(Common::MemBase::base_binary);
           m_hasUnsavedChanges = true;
         });
@@ -208,11 +208,11 @@ void MemWatchWidget::onMemWatchContextMenuRequested(const QPoint& pos)
           QAction* viewSigned = new QAction(tr("View as &Signed"), this);
           QAction* viewUnsigned = new QAction(tr("View as &Unsigned"), this);
 
-          connect(viewSigned, &QAction::triggered, m_watchModel, [=] {
+          connect(viewSigned, &QAction::triggered, m_watchModel, [=, this] {
             entry->setSignedUnsigned(false);
             m_hasUnsavedChanges = true;
           });
-          connect(viewUnsigned, &QAction::triggered, m_watchModel, [=] {
+          connect(viewUnsigned, &QAction::triggered, m_watchModel, [=, this] {
             entry->setSignedUnsigned(true);
             m_hasUnsavedChanges = true;
           });
@@ -243,21 +243,21 @@ void MemWatchWidget::onMemWatchContextMenuRequested(const QPoint& pos)
   }
 
   QAction* cut = new QAction(tr("Cu&t"), this);
-  connect(cut, &QAction::triggered, this, [=] { cutSelectedWatchesToClipBoard(); });
+  connect(cut, &QAction::triggered, this, [=, this] { cutSelectedWatchesToClipBoard(); });
   contextMenu->addAction(cut);
   QAction* copy = new QAction(tr("&Copy"), this);
-  connect(copy, &QAction::triggered, this, [=] { copySelectedWatchesToClipBoard(); });
+  connect(copy, &QAction::triggered, this, [=, this] { copySelectedWatchesToClipBoard(); });
   contextMenu->addAction(copy);
 
   QAction* paste = new QAction(tr("&Paste"), this);
-  connect(paste, &QAction::triggered, this, [=] {
+  connect(paste, &QAction::triggered, this, [=, this] {
     pasteWatchFromClipBoard(node, m_watchView->selectionModel()->currentIndex().row() + 1);
   });
   contextMenu->addAction(paste);
 
   contextMenu->addSeparator();
   QAction* deleteSelection = new QAction(tr("&Delete"), this);
-  connect(deleteSelection, &QAction::triggered, this, [=] { onDeleteSelection(); });
+  connect(deleteSelection, &QAction::triggered, this, [=, this] { onDeleteSelection(); });
   contextMenu->addAction(deleteSelection);
 
   QModelIndexList selection = m_watchView->selectionModel()->selectedRows();
@@ -425,10 +425,12 @@ void MemWatchWidget::onValueWriteError(const QModelIndex& index,
     break;
   }
   case Common::MemOperationReturnCode::operationFailed:
+  case Common::MemOperationReturnCode::uninitialized:
   {
     emit mustUnhook();
     break;
   }
+  default:;
   }
 }
 

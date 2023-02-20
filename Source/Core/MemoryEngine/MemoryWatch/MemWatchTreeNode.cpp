@@ -226,7 +226,7 @@ void MemWatchTreeNode::writeToJson(QJsonObject& json) const
       if (m_entry->isBoundToPointer())
       {
         QJsonArray offsets;
-        for (int i = 0; i < m_entry->getPointerOffsets().size(); ++i)
+        for (int i = 0; (size_t)i < m_entry->getPointerOffsets().size(); ++i)
         {
           std::stringstream ssOffset;
           ssOffset << std::hex << std::uppercase << m_entry->getPointerOffset(i);
@@ -256,7 +256,7 @@ QString MemWatchTreeNode::writeAsCSV() const
     ssAddress << std::hex << std::uppercase << m_entry->getConsoleAddress();
     if (m_entry->isBoundToPointer())
     {
-      for (int i = 0; i < m_entry->getPointerLevel(); i++)
+      for (int i = 0; (size_t)i < m_entry->getPointerLevel(); i++)
       {
         std::stringstream ssOffset;
         ssOffset << std::hex << std::uppercase << m_entry->getPointerOffset(i);

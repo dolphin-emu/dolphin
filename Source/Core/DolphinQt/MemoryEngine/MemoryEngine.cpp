@@ -18,7 +18,6 @@ MemoryEngine::MemoryEngine(QWidget* parent) : QDialog(parent)
   setWindowTitle(tr("Memory Engine"));
   initialiseWidgets();
   makeLayouts();
-  // makeMenus();
   makeMemViewer();
 }
 
@@ -27,68 +26,6 @@ MemoryEngine::~MemoryEngine()
   delete m_viewer;
   delete m_watcher;
 }
-
-/*void MemoryEngine::makeMenus()
-{
-  m_actOpenWatchList = new QAction(tr("&Open..."), this);
-  m_actSaveWatchList = new QAction(tr("&Save"), this);
-  m_actSaveAsWatchList = new QAction(tr("&Save as..."), this);
-  m_actClearWatchList = new QAction(tr("&Clear the watch list"), this);
-  m_actImportFromCT = new QAction(tr("&Import from Cheat Engine's CT file..."), this);
-  m_actExportAsCSV = new QAction(tr("&Export as CSV..."), this);
-
-  m_actOpenWatchList->setShortcut(Qt::Modifier::CTRL + Qt::Key::Key_O);
-  m_actSaveWatchList->setShortcut(Qt::Modifier::CTRL + Qt::Key::Key_S);
-  m_actSaveAsWatchList->setShortcut(Qt::Modifier::CTRL + Qt::Modifier::SHIFT + Qt::Key::Key_S);
-  m_actImportFromCT->setShortcut(Qt::Modifier::CTRL + Qt::Key::Key_I);
-
-  m_actSettings = new QAction(tr("&Settings"), this);
-
-  m_actViewScanner = new QAction(tr("&Scanner"), this);
-  m_actViewScanner->setCheckable(true);
-  m_actViewScanner->setChecked(true);
-
-  m_actQuit = new QAction(tr("&Quit"), this);
-  m_actAbout = new QAction(tr("&About"), this);
-  connect(m_actOpenWatchList, &QAction::triggered, this, &MemoryEngine::onOpenWatchFile);
-  connect(m_actSaveWatchList, &QAction::triggered, this, &MemoryEngine::onSaveWatchFile);
-  connect(m_actSaveAsWatchList, &QAction::triggered, this, &MemoryEngine::onSaveAsWatchFile);
-  connect(m_actClearWatchList, &QAction::triggered, this, &MemoryEngine::onClearWatchList);
-  connect(m_actImportFromCT, &QAction::triggered, this, &MemoryEngine::onImportFromCT);
-  connect(m_actExportAsCSV, &QAction::triggered, this, &MemoryEngine::onExportAsCSV);
-
-  connect(m_actSettings, &QAction::triggered, this, &MemoryEngine::onOpenSettings);
-
-  connect(m_actViewScanner, &QAction::toggled, this,
-          [=]
-          {
-            if (m_actViewScanner->isChecked())
-              m_scanner->show();
-            else
-              m_scanner->hide();
-          });
-
-  connect(m_actQuit, &QAction::triggered, this, &MemoryEngine::onQuit);
-  connect(m_actAbout, &QAction::triggered, this, &MemoryEngine::onAbout);
-
-  m_menuFile = menuBar()->addMenu(tr("&File"));
-  m_menuFile->addAction(m_actOpenWatchList);
-  m_menuFile->addAction(m_actSaveWatchList);
-  m_menuFile->addAction(m_actSaveAsWatchList);
-  m_menuFile->addAction(m_actClearWatchList);
-  m_menuFile->addAction(m_actImportFromCT);
-  m_menuFile->addAction(m_actExportAsCSV);
-  m_menuFile->addAction(m_actQuit);
-
-  m_menuEdit = menuBar()->addMenu(tr("&Edit"));
-  m_menuEdit->addAction(m_actSettings);
-
-  m_menuView = menuBar()->addMenu(tr("&View"));
-  m_menuView->addAction(m_actViewScanner);
-
-  m_menuHelp = menuBar()->addMenu(tr("&Help"));
-  m_menuHelp->addAction(m_actAbout);
-}*/
 
 void MemoryEngine::initialiseWidgets()
 {

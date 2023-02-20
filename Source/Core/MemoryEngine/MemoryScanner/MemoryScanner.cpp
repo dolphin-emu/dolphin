@@ -188,7 +188,6 @@ Common::MemOperationReturnCode MemScanner::nextScan(const MemScanner::ScanFiter 
   std::memset(noOffset, 0, m_memSize);
 
   std::vector<u32> newerResults = std::vector<u32>();
-  bool aramAccessible = Common::isARAMAccessible();
 
   if (m_wasUnknownInitialValue)
   {
@@ -385,7 +384,6 @@ std::vector<u32> MemScanner::getResultsConsoleAddr() const
 
 std::string MemScanner::getFormattedScannedValueAt(const int index) const
 {
-  bool aramAccessible = Common::isARAMAccessible();
   u32 offset = Common::addrToOffset(m_resultsConsoleAddr.at(index));
   return Common::formatMemoryToString(&m_scanRAMCache[offset], m_memType, m_memSize, m_memBase,
                                       !m_memIsSigned, Common::shouldBeBSwappedForType(m_memType));
@@ -417,7 +415,7 @@ std::string MemScanner::addSpacesToBytesArrays(const std::string& bytesArray) co
 {
   std::string result(bytesArray);
   int spacesAdded = 0;
-  for (int i = 2; i < bytesArray.length(); i += 2)
+  for (int i = 2; (size_t)i < bytesArray.length(); i += 2)
   {
     if (bytesArray[i] != ' ')
     {
