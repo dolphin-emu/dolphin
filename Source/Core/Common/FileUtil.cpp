@@ -520,24 +520,47 @@ bool DeleteDirRecursively(const std::string& directory)
 // Create directory and copy contents (optionally overwrites existing files)
 bool CopyDir(const std::string& source_path, const std::string& dest_path, const bool destructive)
 {
-  auto src_path = StringToPath(source_path);
-  auto dst_path = StringToPath(dest_path);
-  if (fs::equivalent(src_path, dst_path))
-    return true;
-
   DEBUG_LOG_FMT(COMMON, "{}: {} --> {}", __func__, source_path, dest_path);
+
+  auto src_path = StringToPath(source_path);
+  std::error_code error;
+  if (!fs::is_directory(src_path, error))
+  {
+    ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: source does not exist or is not a directory",
+                  __func__, source_path, dest_path);
+    return false;
+  }
+
+  auto dst_path = StringToPath(dest_path);
+  if (fs::exists(dst_path, error))
+  {
+    if (fs::equivalent(src_path, dst_path, error))
+      return true;
+    if (error)
+    {
+      ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: error checking equivalence: {}", __func__,
+                    source_path, dest_path, error.message());
+      return false;
+    }
+  }
+  else if (error)
+  {
+    ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: error checking target: {}", __func__, source_path,
+                  dest_path, error.message());
+    return false;
+  }
 
   auto options = fs::copy_options::recursive;
   if (destructive)
     options |= fs::copy_options::overwrite_existing;
-  std::error_code error;
-  bool copied = fs::copy_file(src_path, dst_path, options, error);
-  if (!copied)
+  fs::copy(src_path, dst_path, options, error);
+  if (error)
   {
     ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: {}", __func__, source_path, dest_path,
                   error.message());
+    return false;
   }
-  return copied;
+  return true;
 }
 
 // Returns the current directory
