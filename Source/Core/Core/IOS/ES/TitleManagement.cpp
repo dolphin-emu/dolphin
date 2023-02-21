@@ -580,15 +580,19 @@ ReturnCode ESDevice::DeleteTicket(const u8* ticket_view)
   if (!ticket.IsValid())
     return FS_ENOENT;
 
+  const bool was_v1_ticket = ticket.IsV1Ticket();
+  const std::string ticket_path =
+      was_v1_ticket ? Common::GetV1TicketFileName(title_id) : Common::GetTicketFileName(title_id);
+
   const u64 ticket_id = Common::swap64(ticket_view + offsetof(ES::TicketView, ticket_id));
   ticket.DeleteTicket(ticket_id);
 
   const std::vector<u8>& new_ticket = ticket.GetBytes();
-  const std::string ticket_path = ticket.IsV1Ticket() ? Common::GetV1TicketFileName(title_id) :
-                                                        Common::GetTicketFileName(title_id);
 
   if (!new_ticket.empty())
   {
+    ASSERT(ticket.IsValid());
+    ASSERT(ticket.IsV1Ticket() == was_v1_ticket);
     const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, ticket_path, FS::Mode::ReadWrite);
     if (!file || !file->Write(new_ticket.data(), new_ticket.size()))
       return ES_EIO;
