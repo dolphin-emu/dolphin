@@ -93,12 +93,6 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
   }
 
   @Override
-  public void refreshScreenshotAtPosition(int position)
-  {
-    mAdapter.notifyItemChanged(position);
-  }
-
-  @Override
   public void onItemClick(String gameId)
   {
     // No-op for now
