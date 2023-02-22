@@ -326,7 +326,7 @@ if(MSVC)
   # Note: In msbuild build, this gets set by msbuild by default
   add_compile_options(/Zc:inline)
   # Fix various other non-conformant behaviors
-  add_compile_options(/Zc:__cplusplus,enumTypes,externConstexpr,preprocessor,throwingNew)
+  add_compile_options(/Zc:__cplusplus,enumTypes,externConstexpr,preprocessor,templateScope,throwingNew)
   # Enforce strict volatile semantics as per ISO C++
   add_compile_options(/volatile:iso)
 
