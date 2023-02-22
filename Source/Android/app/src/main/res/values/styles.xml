@@ -67,10 +67,14 @@
     </style>
 
     <style name="Widget.Dolphin.ExtendedFloatingActionButton" parent="Widget.Material3.ExtendedFloatingActionButton.Primary">
-        <item name="materialThemeOverlay">@style/ThemeOverlay.Dolphin.ExtendedFloatingActionButton</item>
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Dolphin.FloatingActionButton</item>
     </style>
 
-    <style name="ThemeOverlay.Dolphin.ExtendedFloatingActionButton" parent="">
+    <style name="Widget.Dolphin.FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Dolphin.FloatingActionButton</item>
+    </style>
+
+    <style name="ThemeOverlay.Dolphin.FloatingActionButton" parent="">
         <item name="colorContainer">@color/dolphin_primary</item>
         <item name="colorOnContainer">@color/dolphin_onPrimary</item>
     </style>

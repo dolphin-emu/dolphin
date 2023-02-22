@@ -16,7 +16,7 @@ interface MainView {
      *
      * @param version A string pulled from native code.
      */
-    fun setVersionString(version: String)
+    fun setVersionString(version: String) { /* no op */ }
     fun launchSettingsActivity(menuTag: MenuTag)
     fun launchFileListActivity()
     fun launchOpenFileActivity(requestCode: Int)
@@ -24,12 +24,12 @@ interface MainView {
     /**
      * Shows or hides the loading indicator.
      */
-    fun setRefreshing(refreshing: Boolean)
+    fun setRefreshing(refreshing: Boolean) { /* no op */ }
 
     /**
      * To be called when the game file cache is updated.
      */
-    fun showGames()
-    fun reloadGrid()
+    fun showGames() { /* no op */ }
+    fun reloadGrid() { /* no op */ }
     fun showGridOptions()
 }

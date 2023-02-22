@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation android:id="@+id/dolphin_navigation"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:startDestination="@id/gamecubeFragment">
+
+    <fragment
+        android:id="@+id/gamecubeFragment"
+        android:name="org.dolphinemu.dolphinemu.ui.platform.PlatformGamesFragment"
+        android:label="GamecubeFragment">
+        <argument
+            android:name="platform"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/wiiFragment"
+        android:name="org.dolphinemu.dolphinemu.ui.platform.PlatformGamesFragment"
+        android:label="WiiFragment">
+        <argument
+            android:name="platform"
+            app:argType="integer"
+            android:defaultValue="1" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/wiiwareFragment"
+        android:name="org.dolphinemu.dolphinemu.ui.platform.PlatformGamesFragment"
+        android:label="WiiWareFragment">
+        <argument
+            android:name="platform"
+            app:argType="integer"
+            android:defaultValue="2" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/moreFragment"
+        android:name="org.dolphinemu.dolphinemu.fragments.MoreFragment"
+        android:label="MoreFragment" />
+
+</navigation>

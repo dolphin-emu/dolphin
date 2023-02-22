@@ -10,13 +10,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
-        app:liftOnScroll="true"
-        app:liftOnScrollTargetViewId="@id/grid_games">
+        app:elevation="0dp"
+        app:liftOnScroll="false">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar_main"
             android:layout_width="match_parent"
             android:layout_height="72dp"
+            android:background="?attr/colorSurface"
+            app:layout_scrollFlags="scroll|enterAlways|snap"
             app:menu="@menu/menu_game_grid"
             app:title="@string/app_name"
             app:subtitleTextColor="?attr/colorOnSurface"

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="smallLayout">false</bool>
+    <bool name="mediumLayout">true</bool>
+    <bool name="largeLayout">false</bool>
+</resources>

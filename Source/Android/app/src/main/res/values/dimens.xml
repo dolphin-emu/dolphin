@@ -5,8 +5,10 @@
     <dimen name="spacing_xtralarge">32dp</dimen>
     <dimen name="spacing_list">64dp</dimen>
     <dimen name="spacing_fab">72dp</dimen>
+    <dimen name="spacing_navigation">80dp</dimen>
     <dimen name="menu_width">256dp</dimen>
     <dimen name="card_width">135dp</dimen>
 
     <dimen name="elevated_app_bar">3dp</dimen>
+    <dimen name="list_width">0dp</dimen>
 </resources>

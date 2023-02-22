@@ -5,23 +5,27 @@ package org.dolphinemu.dolphinemu.ui.main
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
+import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener
-import com.google.android.material.appbar.AppBarLayout
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.NavigationUI
+import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.color.MaterialColors
-import com.google.android.material.tabs.TabLayout
+import com.google.android.material.elevation.ElevationOverlayProvider
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import com.google.android.material.navigation.NavigationBarView
+import com.google.android.material.navigation.NavigationView
+import org.dolphinemu.dolphinemu.BuildConfig
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
-import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter
 import org.dolphinemu.dolphinemu.databinding.ActivityMainBinding
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
@@ -29,14 +33,15 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity
 import org.dolphinemu.dolphinemu.fragments.GridOptionDialogFragment
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
-import org.dolphinemu.dolphinemu.ui.platform.Platform
-import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView
+import org.dolphinemu.dolphinemu.ui.Tab
 import org.dolphinemu.dolphinemu.utils.*
 
-class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProvider {
+class MainActivity : AppCompatActivity(), MainView, ThemeProvider {
     override var themeID = 0
     private val presenter = MainPresenter(this, this)
     private lateinit var binding: ActivityMainBinding
+
+    private val mainActivityViewModel: MainActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen: SplashScreen = installSplashScreen()
@@ -51,19 +56,10 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setInsets()
-        ThemeHelper.enableStatusBarScrollTint(this, binding.appbarMain)
 
-        setSupportActionBar(binding.toolbarMain)
+        setUpFAB()
 
-        // Set up the FAB.
-        binding.buttonAddDirectory.setOnClickListener { presenter.onFabClick() }
-        binding.appbarMain.addOnOffsetChangedListener { appBarLayout: AppBarLayout, verticalOffset: Int ->
-            if (verticalOffset == 0) {
-                binding.buttonAddDirectory.extend()
-            } else if (appBarLayout.totalScrollRange == -verticalOffset) {
-                binding.buttonAddDirectory.shrink()
-            }
-        }
+        AfterDirectoryInitializationRunner().runWithLifecycle(this) { setUpNavigation() }
 
         presenter.onCreate()
 
@@ -74,7 +70,7 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
         }
         if (!DirectoryInitialization.isWaitingForWriteAccess(this)) {
             AfterDirectoryInitializationRunner()
-                .runWithLifecycle(this) { setPlatformTabsAndStartGameFileCacheService() }
+                .runWithLifecycle(this) { GameFileCacheManager.startLoad() }
         }
     }
 
@@ -86,7 +82,7 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
         if (DirectoryInitialization.shouldStart(this)) {
             DirectoryInitialization.start(this)
             AfterDirectoryInitializationRunner()
-                .runWithLifecycle(this) { setPlatformTabsAndStartGameFileCacheService() }
+                .runWithLifecycle(this) { GameFileCacheManager.startLoad() }
         }
 
         presenter.onResume()
@@ -115,25 +111,9 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
         StartupHandler.setSessionTime(this)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_game_grid, menu)
-        if (WiiUtils.isSystemMenuInstalled()) {
-            val resId =
-                if (WiiUtils.isSystemMenuvWii()) R.string.grid_menu_load_vwii_system_menu_installed else R.string.grid_menu_load_wii_system_menu_installed
-
-            menu.findItem(R.id.menu_load_wii_system_menu).title =
-                getString(resId, WiiUtils.getSystemMenuVersion())
-        }
-        return true
-    }
-
     /**
      * MainView
      */
-    override fun setVersionString(version: String) {
-        binding.toolbarMain.subtitle = version
-    }
-
     override fun launchSettingsActivity(menuTag: MenuTag) {
         SettingsActivity.launch(this, menuTag)
     }
@@ -209,74 +189,50 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
 
             DirectoryInitialization.start(this)
             AfterDirectoryInitializationRunner()
-                .runWithLifecycle(this) { setPlatformTabsAndStartGameFileCacheService() }
+                .runWithLifecycle(this) { GameFileCacheManager.startLoad() }
         }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return presenter.handleOptionSelection(item.itemId, this)
-    }
-
-    override fun onRefresh() {
-        setRefreshing(true)
-        GameFileCacheManager.startRescan()
-    }
-
-    override fun setRefreshing(refreshing: Boolean) {
-        forEachPlatformGamesView { view: PlatformGamesView -> view.setRefreshing(refreshing) }
-    }
-
-    override fun showGames() {
-        forEachPlatformGamesView { obj: PlatformGamesView -> obj.showGames() }
-    }
-
-    override fun reloadGrid() {
-        forEachPlatformGamesView { obj: PlatformGamesView -> obj.refetchMetadata() }
     }
 
     override fun showGridOptions() {
         GridOptionDialogFragment().show(supportFragmentManager, "gridOptions")
     }
 
-    private fun forEachPlatformGamesView(action: Action1<PlatformGamesView>) {
-        for (platform in Platform.values()) {
-            val fragment = getPlatformGamesView(platform)
-            if (fragment != null) {
-                action.call(fragment)
+    private fun setUpNavigation() {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
+
+        val navInflater = navHostFragment.navController.navInflater
+        val navGraph = navInflater.inflate(R.navigation.dolphin_navigation)
+        navGraph.setStartDestination(
+            Tab.fromInt(IntSetting.MAIN_LAST_PLATFORM_TAB.int).getID()
+        )
+        navHostFragment.navController.graph = navGraph
+
+        if (resources.getBoolean(R.bool.smallLayout) || resources.getBoolean(R.bool.mediumLayout)) {
+            (binding.navigationBar as NavigationBarView).menu.findItem(R.id.menu_grid_options).isVisible =
+                false
+            (binding.navigationBar as NavigationBarView).setupWithNavController(navHostFragment.navController)
+        } else {
+            binding.navigationView!!.menu.findItem(R.id.menu_grid_options).isVisible = true
+            binding.navigationView!!.setupWithNavController(navHostFragment.navController)
+            binding.navigationView!!.setNavigationItemSelectedListener { menuItem ->
+                if (NavigationUI.onNavDestinationSelected(
+                        menuItem,
+                        navHostFragment.navController
+                    )
+                ) {
+                    true
+                } else {
+                    when (menuItem.itemId) {
+                        R.id.menu_grid_options -> {
+                            showGridOptions()
+                            true
+                        }
+                        else -> true
+                    }
+                }
             }
         }
-    }
-
-    private fun getPlatformGamesView(platform: Platform): PlatformGamesView? {
-        val fragmentTag = "android:switcher:" + binding.pagerPlatforms.id + ":" + platform.toInt()
-        return supportFragmentManager.findFragmentByTag(fragmentTag) as PlatformGamesView?
-    }
-
-    // Don't call this before DirectoryInitialization completes.
-    private fun setPlatformTabsAndStartGameFileCacheService() {
-        val platformPagerAdapter = PlatformPagerAdapter(supportFragmentManager, this)
-        binding.pagerPlatforms.adapter = platformPagerAdapter
-        binding.pagerPlatforms.offscreenPageLimit = platformPagerAdapter.count
-        binding.tabsPlatforms.setupWithViewPager(binding.pagerPlatforms)
-        binding.tabsPlatforms.addOnTabSelectedListener(
-            object : TabLayout.ViewPagerOnTabSelectedListener(binding.pagerPlatforms) {
-                override fun onTabSelected(tab: TabLayout.Tab) {
-                    super.onTabSelected(tab)
-                    IntSetting.MAIN_LAST_PLATFORM_TAB.setInt(
-                        NativeConfig.LAYER_BASE,
-                        tab.position
-                    )
-                }
-            })
-
-        for (i in PlatformPagerAdapter.TAB_ICONS.indices) {
-            binding.tabsPlatforms.getTabAt(i)!!.setIcon(PlatformPagerAdapter.TAB_ICONS[i])
-        }
-
-        binding.pagerPlatforms.currentItem = IntSetting.MAIN_LAST_PLATFORM_TAB.int
-
-        showGames()
-        GameFileCacheManager.startLoad()
     }
 
     override fun setTheme(themeId: Int) {
@@ -288,26 +244,62 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
         ThemeHelper.setCorrectTheme(this)
     }
 
+    private fun setUpFAB() {
+        if (resources.getBoolean(R.bool.smallLayout)) {
+            binding.buttonAddDirectory!!.setOnClickListener { presenter.onFabClick() }
+            mainActivityViewModel.shrunkFab.observe(this) { shrunkFab ->
+                if (shrunkFab)
+                    binding.buttonAddDirectory!!.shrink()
+                else
+                    binding.buttonAddDirectory!!.extend()
+            }
+            mainActivityViewModel.visibleFab.observe(this) { visibleFab ->
+                if (visibleFab)
+                    binding.buttonAddDirectory!!.show()
+                else
+                    binding.buttonAddDirectory!!.hide()
+            }
+        } else if (resources.getBoolean(R.bool.mediumLayout)) {
+            binding.buttonAddDirectorySmall!!.setOnClickListener { presenter.onFabClick() }
+        } else {
+            val headerView = (binding.navigationView as NavigationView).getHeaderView(0)
+            headerView.findViewById<ExtendedFloatingActionButton>(R.id.button_add_directory_header)
+                .setOnClickListener { presenter.onFabClick() }
+            headerView.findViewById<TextView>(R.id.subtitle_text).text = BuildConfig.VERSION_NAME
+        }
+    }
+
     private fun setInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.appbarMain) { _: View?, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.constraintMain) { _: View?, windowInsets: WindowInsetsCompat ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
 
-            InsetsHelper.insetAppBar(insets, binding.appbarMain)
-
-            val mlpFab = binding.buttonAddDirectory.layoutParams as MarginLayoutParams
-            val fabPadding = resources.getDimensionPixelSize(R.dimen.spacing_large)
-            mlpFab.leftMargin = insets.left + fabPadding
-            mlpFab.bottomMargin = insets.bottom + fabPadding
-            mlpFab.rightMargin = insets.right + fabPadding
-            binding.buttonAddDirectory.layoutParams = mlpFab
-
-            binding.pagerPlatforms.setPadding(insets.left, 0, insets.right, 0)
-
             InsetsHelper.applyNavbarWorkaround(insets.bottom, binding.workaroundView)
-            ThemeHelper.setNavigationBarColor(
-                this,
-                MaterialColors.getColor(binding.appbarMain, R.attr.colorSurface)
-            )
+
+            if (resources.getBoolean(R.bool.smallLayout) && binding.buttonAddDirectory != null) {
+                val mlpFab = binding.buttonAddDirectory!!.layoutParams as MarginLayoutParams
+                val fabPadding = resources.getDimensionPixelSize(R.dimen.spacing_large)
+                mlpFab.leftMargin = insets.left + fabPadding
+                mlpFab.rightMargin = insets.right + fabPadding
+                binding.buttonAddDirectory!!.layoutParams = mlpFab
+            }
+
+            if (!resources.getBoolean(R.bool.largeLayout) && binding.navigationBar != null) {
+                ThemeHelper.setNavigationBarColor(
+                    this,
+                    ElevationOverlayProvider(binding.navigationBar!!.context).compositeOverlay(
+                        MaterialColors.getColor(binding.navigationBar!!, R.attr.colorSurface),
+                        binding.navigationBar!!.elevation
+                    )
+                )
+            } else if (binding.navigationView != null) {
+                ThemeHelper.setNavigationBarColor(
+                    this,
+                    ElevationOverlayProvider(binding.navigationView!!.context).compositeOverlay(
+                        MaterialColors.getColor(binding.navigationView!!, R.attr.colorSurface),
+                        binding.navigationView!!.elevation
+                    )
+                )
+            }
 
             windowInsets
         }

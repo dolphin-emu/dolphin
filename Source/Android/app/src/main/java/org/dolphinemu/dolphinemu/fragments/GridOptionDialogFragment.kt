@@ -10,10 +10,12 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.FragmentGridOptionsBinding
 import org.dolphinemu.dolphinemu.databinding.FragmentGridOptionsTvBinding
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
+import org.dolphinemu.dolphinemu.ui.main.MainActivityViewModel
 import org.dolphinemu.dolphinemu.ui.main.MainView
 
 class GridOptionDialogFragment : BottomSheetDialogFragment() {
@@ -88,7 +90,8 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
                 NativeConfig.LAYER_BASE,
                 mBindingMobile.switchShowTitles.isChecked
             )
-            mView.reloadGrid()
+            val mainActivityViewModel = ViewModelProvider(requireActivity())[MainActivityViewModel::class.java]
+            mainActivityViewModel.setShouldReloadGrid(true)
         }
     }
 

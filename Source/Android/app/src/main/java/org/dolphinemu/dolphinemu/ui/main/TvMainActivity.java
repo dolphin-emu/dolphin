@@ -368,7 +368,7 @@ public final class TvMainActivity extends FragmentActivity
 
     rowItems.add(new TvSettingsItem(R.id.menu_settings,
             R.drawable.ic_settings_tv,
-            R.string.grid_menu_settings));
+            R.string.settings));
 
     rowItems.add(new TvSettingsItem(R.id.button_add_directory,
             R.drawable.ic_add_tv,
@@ -376,39 +376,39 @@ public final class TvMainActivity extends FragmentActivity
 
     rowItems.add(new TvSettingsItem(R.id.menu_grid_options,
             R.drawable.ic_list_tv,
-            R.string.grid_menu_grid_options));
+            R.string.grid_options));
 
     rowItems.add(new TvSettingsItem(R.id.menu_refresh,
             R.drawable.ic_refresh_tv,
-            R.string.grid_menu_refresh));
+            R.string.refresh_library));
 
     rowItems.add(new TvSettingsItem(R.id.menu_open_file,
             R.drawable.ic_play_tv,
-            R.string.grid_menu_open_file));
+            R.string.open_file));
 
     rowItems.add(new TvSettingsItem(R.id.menu_install_wad,
             R.drawable.ic_folder_tv,
-            R.string.grid_menu_install_wad));
+            R.string.install_wad));
 
     rowItems.add(new TvSettingsItem(R.id.menu_load_wii_system_menu,
             R.drawable.ic_folder_tv,
-            R.string.grid_menu_load_wii_system_menu));
+            R.string.load_wii_system_menu));
 
     rowItems.add(new TvSettingsItem(R.id.menu_import_wii_save,
             R.drawable.ic_folder_tv,
-            R.string.grid_menu_import_wii_save));
+            R.string.import_wii_save));
 
     rowItems.add(new TvSettingsItem(R.id.menu_import_nand_backup,
             R.drawable.ic_folder_tv,
-            R.string.grid_menu_import_nand_backup));
+            R.string.import_nand_backup));
 
     rowItems.add(new TvSettingsItem(R.id.menu_online_system_update,
             R.drawable.ic_folder_tv,
-            R.string.grid_menu_online_system_update));
+            R.string.online_system_update));
 
     rowItems.add(new TvSettingsItem(R.id.menu_about,
             R.drawable.ic_info_tv,
-            R.string.grid_menu_about));
+            R.string.about));
 
     // Create a header for this row.
     HeaderItem header = new HeaderItem(R.string.settings, getString(R.string.settings));

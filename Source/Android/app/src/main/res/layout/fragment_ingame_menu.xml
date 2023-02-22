@@ -84,7 +84,7 @@
             <Button
                 android:id="@+id/menu_settings"
                 style="@style/InGameMenuOption"
-                android:text="@string/grid_menu_settings" />
+                android:text="@string/settings" />
 
             <Button
                 android:id="@+id/menu_overlay_controls"

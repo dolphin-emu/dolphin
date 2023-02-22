@@ -2,4 +2,7 @@
 <resources>
     <bool name="hasTouch">true</bool>
     <bool name="enableDocumentProvider">false</bool>
+    <bool name="smallLayout">true</bool>
+    <bool name="mediumLayout">false</bool>
+    <bool name="largeLayout">false</bool>
 </resources>

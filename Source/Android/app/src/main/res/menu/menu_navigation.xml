@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group
+        android:id="@+id/menu_group"
+        android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/gamecubeFragment"
+            android:icon="@drawable/ic_gamecube"
+            android:title="@string/platform_gamecube" />
+
+        <item
+            android:id="@+id/wiiFragment"
+            android:icon="@drawable/ic_wii"
+            android:title="@string/platform_wii" />
+
+        <item
+            android:id="@+id/wiiwareFragment"
+            android:icon="@drawable/ic_folder"
+            android:title="@string/platform_wiiware" />
+
+        <item
+            android:id="@+id/moreFragment"
+            android:icon="@drawable/ic_more_horizontal"
+            android:title="@string/more" />
+
+    </group>
+
+    <item
+        android:id="@+id/menu_grid_options"
+        android:icon="@drawable/ic_list"
+        android:title="@string/grid_options"
+        android:visible="true" />
+
+</menu>

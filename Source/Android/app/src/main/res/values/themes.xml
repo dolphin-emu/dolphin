@@ -49,12 +49,15 @@
 
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">default</item>
 
+        <item name="android:statusBarColor">@android:color/transparent</item>
+
         <item name="materialAlertDialogTheme">@style/DolphinMaterialDialog</item>
         <item name="popupTheme">@style/DolphinPopup</item>
         <item name="sliderStyle">@style/DolphinSlider</item>
         <item name="materialDividerStyle">@style/DolphinDivider</item>
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Dolphin.BottomSheetDialog</item>
         <item name="extendedFloatingActionButtonStyle">@style/Widget.Dolphin.ExtendedFloatingActionButton</item>
+        <item name="floatingActionButtonStyle">@style/Widget.Dolphin.FloatingActionButton</item>
     </style>
 
     <!-- Trick for API >= 29 specific changes -->
@@ -64,6 +67,7 @@
         <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
         <item name="extendedFloatingActionButtonStyle">@style/Widget.Material3.ExtendedFloatingActionButton.Primary</item>
+        <item name="floatingActionButtonStyle">@style/Widget.Material3.FloatingActionButton.Primary</item>
     </style>
 
     <style name="Theme.Dolphin.Main.Green" parent="Theme.Dolphin.Main">
@@ -96,6 +100,7 @@
         <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
         <item name="extendedFloatingActionButtonStyle">@style/Widget.Material3.ExtendedFloatingActionButton.Primary</item>
+        <item name="floatingActionButtonStyle">@style/Widget.Material3.FloatingActionButton.Primary</item>
     </style>
 
     <style name="Theme.Dolphin.Main.Pink" parent="Theme.Dolphin.Main">
@@ -128,6 +133,7 @@
         <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
         <item name="popupTheme">@style/ThemeOverlay.Material3</item>
         <item name="extendedFloatingActionButtonStyle">@style/Widget.Material3.ExtendedFloatingActionButton.Primary</item>
+        <item name="floatingActionButtonStyle">@style/Widget.Material3.FloatingActionButton.Primary</item>
     </style>
 
     <!-- Inherit from a base file picker theme that handles day/night -->
