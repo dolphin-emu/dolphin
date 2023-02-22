@@ -140,8 +140,11 @@ u64 GetSize(const std::string& path);
 // Overloaded GetSize, accepts FILE*
 u64 GetSize(FILE* f);
 
-// Returns true if successful, or path already exists.
+// Creates a single directory. Returns true if successful or if the path already exists.
 bool CreateDir(const std::string& filename);
+
+// Creates directories recursively. Returns true if successful or if the path already exists.
+bool CreateDirs(std::string_view filename);
 
 // Creates the full path to the file given in fullPath.
 // That is, for path '/a/b/c.bin', creates folders '/a' and '/a/b'.

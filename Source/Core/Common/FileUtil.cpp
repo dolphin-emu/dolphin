@@ -193,7 +193,6 @@ bool Delete(const std::string& filename, IfAbsentBehavior behavior)
   return true;
 }
 
-// Returns true if successful, or path already exists.
 bool CreateDir(const std::string& path)
 {
   DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, path);
@@ -203,6 +202,22 @@ bool CreateDir(const std::string& path)
   bool success = fs::create_directory(native_path, error);
   // If the path was not created, check if it was a pre-existing directory
   if (!success && fs::is_directory(native_path))
+    success = true;
+  if (!success)
+    ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, path, error.message());
+  return success;
+}
+
+bool CreateDirs(std::string_view path)
+{
+  DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, path);
+
+  std::error_code error;
+  auto native_path = StringToPath(path);
+  bool success = fs::create_directories(native_path, error);
+  // If the path was not created, check if it was a pre-existing directory
+  std::error_code error_ignored;
+  if (!success && fs::is_directory(native_path, error_ignored))
     success = true;
   if (!success)
     ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, path, error.message());
