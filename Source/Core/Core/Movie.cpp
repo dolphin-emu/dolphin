@@ -1432,7 +1432,7 @@ void SaveRecording(const std::string& filename)
   if (success && s_bRecordingFromSaveState)
   {
     std::string stateFilename = filename + ".sav";
-    success = File::Copy(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav", stateFilename);
+    success = File::CopyRegularFile(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav", stateFilename);
   }
 
   if (success)

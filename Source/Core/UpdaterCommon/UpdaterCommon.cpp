@@ -433,12 +433,12 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
     // Unfortunately, there is a quirk in the kernel with how it handles the cache: if the file is
     // simply overwritten, the cache isn't invalidated and the old code signature is used to verify
     // the new file. This causes macOS to kill the process with a code signing error. To workaround
-    // this, we use File::Rename() instead of File::Copy(). However, this also means that if two
-    // files have the same hash, the first file will succeed, but the second file will fail because
-    // the source file no longer exists. To deal with this, we copy the content file to a temporary
-    // file and then rename the temporary file to the destination path.
+    // this, we use File::Rename() instead of File::CopyRegularFile(). However, this also means that
+    // if two files have the same hash, the first file will succeed, but the second file will fail
+    // because the source file no longer exists. To deal with this, we copy the content file to a
+    // temporary file and then rename the temporary file to the destination path.
     const std::string temporary_file = temp_path + DIR_SEP + "temporary_file";
-    if (!File::Copy(temp_path + DIR_SEP + content_filename, temporary_file))
+    if (!File::CopyRegularFile(temp_path + DIR_SEP + content_filename, temporary_file))
     {
       fprintf(log_fp, "Could not copy %s to %s.\n", content_filename.c_str(),
               temporary_file.c_str());
@@ -447,7 +447,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
 
     if (!File::Rename(temporary_file, path))
 #else
-    if (!File::Copy(temp_path + DIR_SEP + content_filename, path))
+    if (!File::CopyRegularFile(temp_path + DIR_SEP + content_filename, path))
 #endif
     {
       fprintf(log_fp, "Could not update file %s.\n", op.filename.c_str());

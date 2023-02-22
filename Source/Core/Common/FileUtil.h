@@ -169,8 +169,9 @@ bool Rename(const std::string& srcFilename, const std::string& destFilename);
 // ditto, but syncs the source file and, on Unix, syncs the directories after rename
 bool RenameSync(const std::string& srcFilename, const std::string& destFilename);
 
-// copies file srcFilename to destFilename, returns true on success
-bool Copy(const std::string& srcFilename, const std::string& destFilename);
+// Copies a file at source_path to destination_path, as if by std::filesystem::copy_file().
+// If a file already exists at destination_path it is overwritten. Returns true on success.
+bool CopyRegularFile(std::string_view source_path, std::string_view destination_path);
 
 // creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string& filename);
