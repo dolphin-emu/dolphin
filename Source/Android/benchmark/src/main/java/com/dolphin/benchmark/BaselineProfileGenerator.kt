@@ -29,6 +29,10 @@ class BaselineProfileGenerator {
             // TODO: Make all activities testable without having games available
             // TODO: Use resource strings to support more languages
 
+            // Navigate to More Fragment
+            val more = device.findObject(UiSelector().description("More Options"))
+            more.click()
+
             // Navigate to the Settings Activity
             val settings = device.findObject(UiSelector().description("Settings"))
             settings.clickAndWaitForNewWindow(30_000)
