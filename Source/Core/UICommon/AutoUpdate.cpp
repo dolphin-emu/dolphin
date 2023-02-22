@@ -248,7 +248,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
 #ifdef __APPLE__
   // Copy the updater so it can update itself if needed.
   const std::string reloc_updater_path = UpdaterPath(true);
-  if (!File::CopyDir(UpdaterPath(), reloc_updater_path))
+  if (!File::Copy(UpdaterPath(), reloc_updater_path))
   {
     CriticalAlertFmtT("Unable to create updater copy.");
     return;

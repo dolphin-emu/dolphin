@@ -186,7 +186,10 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
 
     const auto& netplay_redirect_folder = boot_session_data.GetWiiSyncRedirectFolder();
     if (!netplay_redirect_folder.empty())
-      File::CopyDir(netplay_redirect_folder, s_temp_redirect_root + "/");
+    {
+      File::CreateDirs(s_temp_redirect_root);
+      File::Copy(netplay_redirect_folder, s_temp_redirect_root);
+    }
   }
 }
 
@@ -359,11 +362,11 @@ void InitializeWiiFileSystemContents(
 
     if (!File::IsDirectory(save_redirect->m_target_path))
     {
-      File::CreateFullPath(save_redirect->m_target_path + "/");
+      File::CreateDirs(save_redirect->m_target_path);
       if (save_redirect->m_clone)
       {
-        File::CopyDir(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT),
-                      save_redirect->m_target_path);
+        File::Copy(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT),
+                   save_redirect->m_target_path);
       }
     }
     s_nand_redirects.emplace_back(IOS::HLE::FS::NandRedirect{
