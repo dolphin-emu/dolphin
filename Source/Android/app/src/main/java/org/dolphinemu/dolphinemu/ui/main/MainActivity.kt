@@ -34,7 +34,7 @@ import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView
 import org.dolphinemu.dolphinemu.utils.*
 
 class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProvider {
-    private var themeID = 0
+    override var themeID = 0
     private val presenter = MainPresenter(this, this)
     private lateinit var binding: ActivityMainBinding
 
@@ -282,10 +282,6 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
     override fun setTheme(themeId: Int) {
         super.setTheme(themeId)
         themeID = themeId
-    }
-
-    override fun getThemeId(): Int {
-        return themeID
     }
 
     private fun checkTheme() {

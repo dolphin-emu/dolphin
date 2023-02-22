@@ -149,9 +149,9 @@ object ThemeHelper {
 
     @JvmStatic
     fun setCorrectTheme(activity: AppCompatActivity) {
-        val currentTheme = (activity as ThemeProvider).themeId
+        val currentTheme = (activity as ThemeProvider).themeID
         setTheme(activity)
-        if (currentTheme != (activity as ThemeProvider).themeId) {
+        if (currentTheme != (activity as ThemeProvider).themeID) {
             activity.recreate()
         }
     }

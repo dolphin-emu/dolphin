@@ -85,7 +85,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
   private Settings mSettings;
 
-  private int mThemeId;
+  private int mThemeID;
 
   private boolean mMenuVisible;
 
@@ -1167,12 +1167,12 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public void setTheme(int themeId)
   {
     super.setTheme(themeId);
-    this.mThemeId = themeId;
+    mThemeID = themeId;
   }
 
   @Override
-  public int getThemeId()
+  public int getThemeID()
   {
-    return mThemeId;
+    return mThemeID;
   }
 }
