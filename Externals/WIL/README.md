@@ -12,7 +12,8 @@ Some things that WIL includes to whet your appetite:
   Smart pointers and auto-releasing resource wrappers to let you manage Windows
   API HANDLEs, HWNDs, and other resources and resource handles with
   [RAII](https://en.cppreference.com/w/cpp/language/raii) semantics.
-- [`include/wil/win32_helpers.h`](include/wil/win32_helpers.h): Wrappers for API functions
+- [`include/wil/win32_helpers.h`](include/wil/win32_helpers.h)
+  ([documentation](https://github.com/microsoft/wil/wiki/Win32-helpers)): Wrappers for API functions
   that save you the work of manually specifying buffer sizes, calling a function twice
   to get the needed buffer size and then allocate and pass the right-size buffer,
   casting or converting between types, and so on.
@@ -24,6 +25,11 @@ Some things that WIL includes to whet your appetite:
   Preprocessor macros to help you check for errors from Windows API functions,
   in many of the myriad ways those errors are reported, and surface them as
   error codes or C++ exceptions in your code.
+- [`include/wil/Tracelogging.h`](include/wil/Tracelogging.h): This file contains the convenience macros 
+  that enable developers define and log telemetry. These macros use
+  [`TraceLogging API`](https://docs.microsoft.com/en-us/windows/win32/tracelogging/trace-logging-portal) 
+  to log data. This data can be viewed in tools such as 
+  [`Windows Performance Analyzer`](https://docs.microsoft.com/en-us/windows-hardware/test/wpt/windows-performance-analyzer).
 
 WIL can be used by C++ code that uses C++ exceptions as well as code that uses returned
 error codes to report errors. All of WIL can be used from user-space Windows code,
@@ -50,7 +56,7 @@ Note that even though WIL is a header-only library, you still need to install th
 # Building/Testing
 To get started testing WIL, first make sure that you have a recent version of [Visual Studio](https://visualstudio.microsoft.com/downloads/) and the most recent [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) installed. If you are doing
 any non-trivial work, also be sure to have a recent version of [Clang](http://releases.llvm.org/download.html) installed. Once everything is installed, open a VS
-native command window (e.g. "x64 Native Tools Command Prompt for VS 2019"). If you are familiar with CMake you can get started building normally. Otherwise, or if you prefer to skip all of the boilerplate, you can use one of the scripts in the [scripts](scripts) directory:
+native command window (e.g. "x64 Native Tools Command Prompt for VS 2022"). If you are familiar with CMake you can get started building normally. Otherwise, or if you prefer to skip all of the boilerplate, you can use one of the scripts in the [scripts](scripts) directory:
 ```cmd
 C:\wil> scripts\init.cmd -c clang -g ninja -b debug
 ```
@@ -76,7 +82,7 @@ C:\wil> scripts\build_all.cmd
 C:\wil> scripts\runtests.cmd
 ```
 Note that this will only test for the architecture that corresponds to the command window you opened. You will want to
-repeat this process for the other architecture (e.g. by using the "x86 Native Tools Command Prompt for VS 2019")
+repeat this process for the other architecture (e.g. by using the "x86 Native Tools Command Prompt for VS 2022")
 
 # Contributing
 
