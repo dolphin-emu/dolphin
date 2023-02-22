@@ -589,7 +589,7 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
     {
       // If either path is a redirect, the source and target may be on a different partition or
       // device, so a simple rename may not work. Fall back to Copy & Delete and see if that works.
-      if (!File::Copy(host_old_path, host_new_path))
+      if (!File::CopyRegularFile(host_old_path, host_new_path))
       {
         ERROR_LOG_FMT(IOS_FS, "Copying {} to {} in Rename fallback failed", host_old_path,
                       host_new_path);

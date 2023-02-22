@@ -59,7 +59,7 @@ static bool CopyBackupFile(const std::string& path_from, const std::string& path
 
   File::CreateFullPath(path_to);
 
-  return File::Copy(path_from, path_to);
+  return File::CopyRegularFile(path_from, path_to);
 }
 
 static void DeleteBackupFile(const std::string& file_name)

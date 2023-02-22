@@ -312,8 +312,7 @@ bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
   return true;
 }
 
-// copies file source_path to destination_path, returns true on success
-bool Copy(const std::string& source_path, const std::string& destination_path)
+bool CopyRegularFile(std::string_view source_path, std::string_view destination_path)
 {
   DEBUG_LOG_FMT(COMMON, "{}: {} --> {}", __func__, source_path, destination_path);
 
