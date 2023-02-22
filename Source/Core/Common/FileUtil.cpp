@@ -201,7 +201,8 @@ bool CreateDir(const std::string& path)
   auto native_path = StringToPath(path);
   bool success = fs::create_directory(native_path, error);
   // If the path was not created, check if it was a pre-existing directory
-  if (!success && fs::is_directory(native_path))
+  std::error_code error_ignored;
+  if (!success && fs::is_directory(native_path, error_ignored))
     success = true;
   if (!success)
     ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, path, error.message());
@@ -232,7 +233,8 @@ bool CreateFullPath(std::string_view fullPath)
   auto native_path = StringToPath(fullPath).parent_path();
   bool success = fs::create_directories(native_path, error);
   // If the path was not created, check if it was a pre-existing directory
-  if (!success && fs::is_directory(native_path))
+  std::error_code error_ignored;
+  if (!success && fs::is_directory(native_path, error_ignored))
     success = true;
   if (!success)
     ERROR_LOG_FMT(COMMON, "{}: failed on {}: {}", __func__, fullPath, error.message());
