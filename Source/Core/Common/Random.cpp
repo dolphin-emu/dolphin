@@ -10,38 +10,6 @@
 
 namespace Common::Random
 {
-struct PRNG::Impl
-{
-  Impl(void* seed, std::size_t size)
-  {
-    mbedtls_hmac_drbg_init(&m_context);
-    const int ret = mbedtls_hmac_drbg_seed_buf(
-        &m_context, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), static_cast<u8*>(seed), size);
-    ASSERT(ret == 0);
-  }
-
-  ~Impl() { mbedtls_hmac_drbg_free(&m_context); }
-
-  void Generate(void* buffer, std::size_t size)
-  {
-    const int ret = mbedtls_hmac_drbg_random(&m_context, static_cast<u8*>(buffer), size);
-    ASSERT(ret == 0);
-  }
-
-  mbedtls_hmac_drbg_context m_context;
-};
-
-PRNG::PRNG(void* seed, std::size_t size) : m_impl(std::make_unique<Impl>(seed, size))
-{
-}
-
-PRNG::~PRNG() = default;
-
-void PRNG::Generate(void* buffer, std::size_t size)
-{
-  m_impl->Generate(buffer, size);
-}
-
 class EntropySeededPRNG final
 {
 public:
