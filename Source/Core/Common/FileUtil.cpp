@@ -516,6 +516,31 @@ bool DeleteDirRecursively(const std::string& directory)
   return success;
 }
 
+bool Copy(std::string_view source_path, std::string_view dest_path, bool overwrite_existing)
+{
+  DEBUG_LOG_FMT(COMMON, "{}: {} --> {} ({})", __func__, source_path, dest_path,
+                overwrite_existing ? "overwrite" : "preserve");
+
+  auto src_path = StringToPath(source_path);
+  auto dst_path = StringToPath(dest_path);
+  std::error_code error;
+  auto options = fs::copy_options::recursive;
+  if (overwrite_existing)
+    options |= fs::copy_options::overwrite_existing;
+  fs::copy(src_path, dst_path, options, error);
+  if (error)
+  {
+    std::error_code error_ignored;
+    if (fs::equivalent(src_path, dst_path, error_ignored))
+      return true;
+
+    ERROR_LOG_FMT(COMMON, "{}: failed {} --> {} ({}): {}", __func__, source_path, dest_path,
+                  overwrite_existing ? "overwrite" : "preserve", error.message());
+    return false;
+  }
+  return true;
+}
+
 // Create directory and copy contents (optionally overwrites existing files)
 bool CopyDir(const std::string& source_path, const std::string& dest_path, const bool destructive)
 {

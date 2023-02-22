@@ -185,6 +185,11 @@ bool DeleteDirRecursively(const std::string& directory);
 // Returns the current directory
 std::string GetCurrentDir();
 
+// Copies source_path to dest_path, as if by std::filesystem::copy(). Returns true on success or if
+// the source and destination are already the same (as determined by std::filesystem::equivalent()).
+bool Copy(std::string_view source_path, std::string_view dest_path,
+          bool overwrite_existing = false);
+
 // Create directory and copy contents (optionally overwrites existing files)
 bool CopyDir(const std::string& source_path, const std::string& dest_path,
              bool destructive = false);
