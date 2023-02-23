@@ -1,4 +1,4 @@
-dolphin:importModule("gcController")
+require ("gc_controller")
 dolphin:importModule("emu")
 
 testNum = 1
@@ -75,7 +75,7 @@ function testSingleFrameInputFunction(testDescription, inputAlterFunction, portN
 	for i = 0, 6 do
 		emu:frameAdvance()
 	end
-	finalInputList = gcController:getControllerInputs(portNumber)
+	finalInputList = gc_controller:getControllerInputsForPreviousFrame(portNumber)
 	if not testCheckFunction(finalInputList, buttonTable) then
 		resultsTable["FAIL"] = resultsTable["FAIL"] + 1
 		io.write("FAILURE!\n\n")
@@ -83,8 +83,6 @@ function testSingleFrameInputFunction(testDescription, inputAlterFunction, portN
 		resultsTable["PASS"] = resultsTable["PASS"] + 1
 		io.write("PASS!\n\n")
 	end
-	io.flush()
-
 end
 
 
@@ -104,7 +102,7 @@ function testProbabilityButton(testDescription, inputAlterFunction, buttonName, 
 	emu:loadState(originalSaveState)
 	for i = 0, 1000 do
 		emu:frameAdvance()
-		if testCheckFunction(gcController:getControllerInputs(1), expectedValue) then
+		if testCheckFunction(gc_controller:getControllerInputsForPreviousFrame(1), expectedValue) then
 			numberOfFramesImpacted = numberOfFramesImpacted + 1	
 		end
 	end
@@ -142,7 +140,7 @@ function testProbabilityAnalogFromCurrent(testDescription, inputAlterFunction, p
 	emu:loadState(originalSaveState)
 	for i = 0, 1000 do
 		emu:frameAdvance()
-		currentValue = gcController:getControllerInputs(1)[buttonName]
+		currentValue = gc_controller:getControllerInputsForPreviousFrame(1)[buttonName]
 		totalAnalogValue = totalAnalogValue + currentValue
 		if currentValue < 0 or currentValue > 255 or currentValue < getDefaultValue(buttonName) - lowerOffset or currentValue > getDefaultValue(buttonName) + upperOffset then
 			io.write("\tERROR: current value of " .. buttonName .. " was out of range with value of " .. tostring(currentValue) .. "\nFAILURE!\n\n")
@@ -182,7 +180,7 @@ function testProbabilityAnalogFromSpecific(testDescription, inputAlterFunction, 
 	emu:loadState(originalSaveState)
 	for i = 0, 1000 do
 		emu:frameAdvance()
-		currentValue = gcController:getControllerInputs(1)[buttonName]
+		currentValue = gc_controller:getControllerInputsForPreviousFrame(1)[buttonName]
 		totalAnalogValue = totalAnalogValue + currentValue
 		if currentValue < 0 or currentValue > 255 or (currentValue ~= getDefaultValue(buttonName) and (currentValue < specificValue - lowerOffset or currentValue > specificValue + upperOffset)) then
 			io.write("\tERROR: current value of " .. buttonName .. " was out of range with value of " .. tostring(currentValue) .. "\nFAILURE!\n\n")
@@ -206,12 +204,12 @@ function testProbabilityAnalogFromSpecific(testDescription, inputAlterFunction, 
 end
 
 function setInputFunction(portNumber, buttonTable)
-	gcController:setInputs(portNumber, buttonTable)
+	gc_controller:setInputs(portNumber, buttonTable)
 end
 
 
 function addInputFunction(portNumber, buttonTable)
-	gcController:addInputs(portNumber, buttonTable)
+	gc_controller:addInputs(portNumber, buttonTable)
 end
 
 function addOrSubtractFromCurrentAnalogValueFunction(portNumber, buttonTable)
@@ -225,9 +223,9 @@ function addOrSubtractFromCurrentAnalogValueFunction(portNumber, buttonTable)
 	end
 
 	if minusOffset == plusOffset then
-		gcController:addOrSubtractFromCurrentAnalogValueChance(portNumber, 100, buttonName, plusOffset)
+		gc_controller:addOrSubtractFromCurrentAnalogValueChance(portNumber, 100, buttonName, plusOffset)
 	else
-		gcController:addOrSubtractFromCurrentAnalogValueChance(portNumber, 100, buttonName, minusOffset, plusOffset)
+		gc_controller:addOrSubtractFromCurrentAnalogValueChance(portNumber, 100, buttonName, minusOffset, plusOffset)
 	end
 end
 
@@ -243,74 +241,74 @@ function addOrSubtractFromSpecificAnalogValueChanceFunction(portNumber, buttonTa
 		plusOffset = value["plusOffset"]
 	end
 	if minusOffset == plusOffset then
-		gcController:addOrSubtractFromSpecificAnalogValueChance(portNumber, 100, buttonName, specificValue, plusOffset)
+		gc_controller:addOrSubtractFromSpecificAnalogValueChance(portNumber, 100, buttonName, specificValue, plusOffset)
 	else
-		gcController:addOrSubtractFromSpecificAnalogValueChance(portNumber, 100, buttonName, specificValue, minusOffset, plusOffset)
+		gc_controller:addOrSubtractFromSpecificAnalogValueChance(portNumber, 100, buttonName, specificValue, minusOffset, plusOffset)
 	end
 end
 
 function addOrSubtractFromSpecifcAnalogValueZeroChanceFunction(portNumber, buttonTable)
-	gcController:addOrSubtractFromSpecificAnalogValueChance(1, 0, "analogStickX", 170, 30, 45)
+	gc_controller:addOrSubtractFromSpecificAnalogValueChance(1, 0, "analogStickX", 170, 30, 45)
 end
 
 function addOrSubtractFromCurrentAnalogValueZeroChanceFunction(portNumber, buttonTable)
-	gcController:addOrSubtractFromCurrentAnalogValueChance(1, 0, "cStickY", 20, 50)
+	gc_controller:addOrSubtractFromCurrentAnalogValueChance(1, 0, "cStickY", 20, 50)
 end
 
 function addButtonComboChanceFunction(portNumber, buttonTable)
-	gcController:addButtonComboChance(portNumber, 100, true, buttonTable)
+	gc_controller:addButtonComboChance(portNumber, 100, buttonTable,  true)
 end
 
 function testProbabilityAddButtonFlipInput(buttonName, probability)
-	gcController:addButtonFlipChance(1, probability, buttonName)
+	gc_controller:addButtonFlipChance(1, probability, buttonName)
 end
 
 function testProbabilityAddButtonPressInput(buttonName, probability)
-	gcController:addButtonPressChance(1, probability, buttonName)
+	gc_controller:addButtonPressChance(1, probability, buttonName)
 end
 
 function testProbabilityAddButtonReleaseInput(buttonName, probability)
-	gcController:setInputs(1, {[buttonName] = true})
-	gcController:addButtonReleaseChance(1, probability, buttonName)
+	gc_controller:setInputs(1, {[buttonName] = true})
+	gc_controller:addButtonReleaseChance(1, probability, buttonName)
 end
 
 function testProbabilityAddOrSubtractFromCurrentAnalogValueInput(buttonName, probability, minusOffset, plusOffset)
 	if minusOffset == plusOffset then
-		gcController:addOrSubtractFromCurrentAnalogValueChance(1, probability, buttonName, plusOffset)
+		gc_controller:addOrSubtractFromCurrentAnalogValueChance(1, probability, buttonName, plusOffset)
 	else
-		gcController:addOrSubtractFromCurrentAnalogValueChance(1, probability, buttonName, minusOffset, plusOffset)
+		gc_controller:addOrSubtractFromCurrentAnalogValueChance(1, probability, buttonName, minusOffset, plusOffset)
 	end
 end
 
 function testProbabilityAddOrSubtractFromSpecificAnalogValueInput(buttonName, probability, specificValue, minusOffset, plusOffset)
 	if minusOffset == plusOffset then
-		gcController:addOrSubtractFromSpecificAnalogValueChance(1, probability, buttonName, specificValue, plusOffset)
+		gc_controller:addOrSubtractFromSpecificAnalogValueChance(1, probability, buttonName, specificValue, plusOffset)
 	else
-		gcController:addOrSubtractFromSpecificAnalogValueChance(1, probability, buttonName, specificValue, minusOffset, plusOffset)
+		gc_controller:addOrSubtractFromSpecificAnalogValueChance(1, probability, buttonName, specificValue, minusOffset, plusOffset)
 	end
 end
 
 function testProbabilityAddButtonComboInput(buttonName, probability)
-	gcController:addButtonComboChance(1, probability, true, {[buttonName] = true })
+	gc_controller:addButtonComboChance(1, probability, {[buttonName] = true }, true)
 end
 
 function addZeroChanceButtonComboFunction(portNumber, buttonTable)
-	gcController:addButtonComboChance(portNumber, 0, true, buttonTable)
+	gc_controller:addButtonComboChance(portNumber, 0, buttonTable, true)
 end
 
 function addOverwritingButtonComboChancesFunction(portNumber, buttonTable)
-	gcController:addButtonComboChance(portNumber, 100, true, {B = true, X = true})
-	gcController:addButtonComboChance(portNumber, 100, true, {A = true, Z = true})
+	gc_controller:addButtonComboChance(portNumber, 100, {B = true, X = true},  true)
+	gc_controller:addButtonComboChance(portNumber, 100, {A = true, Z = true}, true)
 end
 
 function addNonOverwritingButtonComboChancesFunction(portNumber, buttonTable)
-	gcController:addButtonComboChance(portNumber, 100, false, {B = true, X = true})
-	gcController:addButtonComboChance(portNumber, 100, false, {A = true, Z = true})
+	gc_controller:addButtonComboChance(portNumber, 100, {B = true, X = true}, false)
+	gc_controller:addButtonComboChance(portNumber, 100, {A = true, Z = true}, false)
 end
 
 function addReversedButtonFlipChanceFunction(portNumber, buttonTable)
-	gcController:setInputs(1, {B = true})
-	gcController:addButtomComboChance(1, 100, true, {B = false } )
+	gc_controller:setInputs(1, {B = true})
+	gc_controller:addButtomComboChance(1, 100, {B = false }, true )
 end
 
 function extractButtonName(buttonTable)
@@ -365,36 +363,36 @@ function testButtonWithinBoundsOrDefault(actualButtonTable, buttonName, lowerBou
 end
 
 function setInputTwiceFunction(ignoredValue, ignoredButtonTable)
-	gcController:setInputs(1, {A = true, X = true})
-	gcController:setInputs(1, {B = true, Z = true})
+	gc_controller:setInputs(1, {A = true, X = true})
+	gc_controller:setInputs(1, {B = true, Z = true})
 end
 
 function testSetInputsTwice(ignoredValue, ignoreTable)
-	return testActualButtonsEqualExpectedFunction(gcController:getControllerInputs(1), {B = true, Z = true})
+	return testActualButtonsEqualExpectedFunction(gc_controller:getControllerInputsForPreviousFrame(1), {B = true, Z = true})
 end
 
 function setInputForAllControllers(ignoreValue, ignoreTable)
-	gcController:setInputs(1, {A = true, B = true})
-	gcController:setInputs(2, {X = true, Y = true})
-	gcController:setInputs(3, {Z = true, B = true})
-	gcController:setInputs(4, {A = true, X = true})
+	gc_controller:setInputs(1, {A = true, B = true})
+	gc_controller:setInputs(2, {X = true, Y = true})
+	gc_controller:setInputs(3, {Z = true, B = true})
+	gc_controller:setInputs(4, {A = true, X = true})
 end
 
 function addButtonComboChanceForAllControllers(ignoreValue, ignoreTable)
-	gcController:addButtonComboChance(1, 100, true, {A = true, B = true})
-	gcController:addButtonComboChance(2, 100, true, {X = true, Y = true})
-	gcController:addButtonComboChance(3, 100, true, {Z = true, B = true})
-	gcController:addButtonComboChance(4, 100, true, {A = true, X = true})
+	gc_controller:addButtonComboChance(1, 100, {A = true, B = true}, true)
+	gc_controller:addButtonComboChance(2, 100, {X = true, Y = true}, true)
+	gc_controller:addButtonComboChance(3, 100, {Z = true, B = true}, true)
+	gc_controller:addButtonComboChance(4, 100, {A = true, X = true}, true)
 end
 
 function testSetInputsForAllControllers() 
-	if not testActualButtonsEqualExpectedFunction(gcController:getControllerInputs(1), {A = true, B = true}) then
+	if not testActualButtonsEqualExpectedFunction(gc_controller:getControllerInputsForPreviousFrame(1), {A = true, B = true}) then
 		return false
-	elseif not testActualButtonsEqualExpectedFunction(gcController:getControllerInputs(2), {X = true, Y = true}) then
+	elseif not testActualButtonsEqualExpectedFunction(gc_controller:getControllerInputsForPreviousFrame(2), {X = true, Y = true}) then
 		return false
-	elseif not testActualButtonsEqualExpectedFunction(gcController:getControllerInputs(3), {Z = true, B = true}) then
+	elseif not testActualButtonsEqualExpectedFunction(gc_controller:getControllerInputsForPreviousFrame(3), {Z = true, B = true}) then
 		return false
-	elseif not testActualButtonsEqualExpectedFunction(gcController:getControllerInputs(4), {A = true, X = true}) then
+	elseif not testActualButtonsEqualExpectedFunction(gc_controller:getControllerInputsForPreviousFrame(4), {A = true, X = true}) then
 		return false
 	else
 		return true
@@ -432,19 +430,19 @@ function testSetInputsUnitTests()
 end
 
 function addInputTwiceFunction(ignoredValue, ignoredButtonTable)
-	gcController:addInputs(1, {A = true, X = true})
-	gcController:addInputs(1, {B = true, Z = true})
+	gc_controller:addInputs(1, {A = true, X = true})
+	gc_controller:addInputs(1, {B = true, Z = true})
 end
 
 function testAddInputsTwice(ignoredValue, ignoredTable)
-	return testActualButtonsEqualExpectedFunction(gcController:getControllerInputs(1), {A = true, X = true, B = true, Z = true})
+	return testActualButtonsEqualExpectedFunction(gc_controller:getControllerInputsForPreviousFrame(1), {A = true, X = true, B = true, Z = true})
 end
 
 function addInputForAllControllers(ignoreValue, ignoreTable)
-	gcController:addInputs(1, {A = true, B = true})
-	gcController:addInputs(2, {X = true, Y = true})
-	gcController:addInputs(3, {Z = true, B = true})
-	gcController:addInputs(4, {A = true, X = true})
+	gc_controller:addInputs(1, {A = true, B = true})
+	gc_controller:addInputs(2, {X = true, Y = true})
+	gc_controller:addInputs(3, {Z = true, B = true})
+	gc_controller:addInputs(4, {A = true, X = true})
 end
 
 function testAddInputsUnitTests()
@@ -477,27 +475,27 @@ function testAddInputsUnitTests()
 end
 
 function addButtonFlipChanceFunction(portNumber, buttonTable)
-	gcController:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
+	gc_controller:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
 end
 
 function addReversedButtonFlipChanceFunction(portNumber, buttonTable)
-	gcController:addInputs(portNumber, {B = true})
-	gcController:addButtonFlipChance(portNumber, 100, "B")
+	gc_controller:addInputs(portNumber, {B = true})
+	gc_controller:addButtonFlipChance(portNumber, 100, "B")
 end
 
 function addButtonFlipChanceTwiceFunction(portNumber, buttonTable)
-	gcController:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
-	gcController:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
+	gc_controller:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
+	gc_controller:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
 end
 
 function addButtonFlipChanceThriceFunction(portNumber, buttonTable)
-	gcController:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
-	gcController:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
-	gcController:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
+	gc_controller:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
+	gc_controller:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
+	gc_controller:addButtonFlipChance(portNumber, 100, extractButtonName(buttonTable))
 end
 
 function addZeroChanceButtonFlipChanceFunction(portNumber, buttonTable)
-	gcController:addButtonFlipChance(portNumber, 0, extractButtonName(buttonTable))
+	gc_controller:addButtonFlipChance(portNumber, 0, extractButtonName(buttonTable))
 end
 
 
@@ -527,16 +525,16 @@ function testAddButtonFlipChanceUnitTests()
 end
 
 function addButtonPressChanceFunction(portNumber, buttonTable)
-	gcController:addButtonPressChance(portNumber, 100, extractButtonName(buttonTable))
+	gc_controller:addButtonPressChance(portNumber, 100, extractButtonName(buttonTable))
 end
 
 function addReversedButtonPressChanceFunction(portNumber, buttonTable)
-	gcController:addInputs(portNumber, {B = true})
-	gcController:addButtonPressChance(portNumber, 100, "B")
+	gc_controller:addInputs(portNumber, {B = true})
+	gc_controller:addButtonPressChance(portNumber, 100, "B")
 end
 
 function addZeroChanceButtonPressChanceFunction(portNumber, buttonTable)
-	gcController:addButtonPressChance(portNumber, 0, extractButtonName(buttonTable))
+	gc_controller:addButtonPressChance(portNumber, 0, extractButtonName(buttonTable))
 end
 
 
@@ -565,18 +563,18 @@ end
 
 function addButtonReleaseChanceWithSetFunction(portNumber, buttonTable)
 	buttonName = extractButtonName(buttonTable)
-	gcController:setInputs(portNumber, {[buttonName] = true})
-	gcController:addButtonReleaseChance(portNumber, 100, extractButtonName(buttonTable))
+	gc_controller:setInputs(portNumber, {[buttonName] = true})
+	gc_controller:addButtonReleaseChance(portNumber, 100, extractButtonName(buttonTable))
 end
 
 function addButtonReleaseChanceFunction(portNumber, buttonTable)
-	gcController:addButtonReleaseChance(portNumber, 100, extractButtonName(buttonTable))
+	gc_controller:addButtonReleaseChance(portNumber, 100, extractButtonName(buttonTable))
 end
 
 function addButtonReleaseZeroChanceFunction(portNumber, buttonTable)
 	buttonName = extractButtonName(buttonTable)
-	gcController:setInputs(portNumber, {[buttonName] = true})
-	gcController:addButtonReleaseChance(portNumber, 0, extractButtonName(buttonTable))
+	gc_controller:setInputs(portNumber, {[buttonName] = true})
+	gc_controller:addButtonReleaseChance(portNumber, 0, extractButtonName(buttonTable))
 end
 
 
@@ -633,6 +631,8 @@ function testAddOrSubtractFromSpecificAnalogValueChanceUnitTests()
 end
 
 function testAddButtonComboChanceUnitTests()
+	testSingleFrameInputFunction("Calling addButtonComboChance() with overwrite-non-specified-values set to false. First call has 100% probability of setting B and X to pressed, and 2nd call has 100% probability of setting A and Z to pressed. Final input should be A, Z, X and B are pressed...", addNonOverwritingButtonComboChancesFunction, 1, {A = true, B = true, X = true, Z = true}, testActualButtonsEqualExpectedFunction)
+
 	for i = 1, 4 do
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting A button...", addButtonComboChanceFunction, i, {A = true}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting B button...", addButtonComboChanceFunction, i, {B = true}, testActualButtonsEqualExpectedFunction)
@@ -666,18 +666,18 @@ function testAddButtonComboChanceUnitTests()
 end
 
 function addControllerClearChanceFunction(portNumber, buttonTable)
-	gcController:setInputs(portNumber, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
-	gcController:addControllerClearChance(portNumber, 100)
+	gc_controller:setInputs(portNumber, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
+	gc_controller:addControllerClearChance(portNumber, 100)
 end
 
 function addControllerClearZeroChanceFunction(portNumber, buttonTable)
-	gcController:setInputs(portNumber, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
-	gcController:addControllerClearChance(portNumber, 0)
+	gc_controller:setInputs(portNumber, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
+	gc_controller:addControllerClearChance(portNumber, 0)
 end
 
 function testProbabilityAddControllerClearInput(buttonName, probability)
-	gcController:setInputs(1, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
-	gcController:addControllerClearChance(1, probability)
+	gc_controller:setInputs(1, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
+	gc_controller:addControllerClearChance(1, probability)
 end
 
 function testAddControllerClearChanceUnitTests()
@@ -691,16 +691,16 @@ end
 
 
 function setAndThenAddInputs(portNumber, buttonTable)
-	gcController:setInputs(1, {A = true, B = true, L = true, dPadUp = true})
-	gcController:setInputs(1, {X = true, B = false})
-	gcController:addInputs(1, {Z = true, Y = true})
-	gcController:addInputs(1, {Y = true, dPadUp = false})
+	gc_controller:setInputs(1, {A = true, B = true, L = true, dPadUp = true})
+	gc_controller:setInputs(1, {X = true, B = false})
+	gc_controller:addInputs(1, {Z = true, Y = true})
+	gc_controller:addInputs(1, {Y = true, dPadUp = false})
 end
 
 function setAndThenAddAndThenProbability(portNumber, buttonTable)
 	setAndThenAddInputs(portNumber, buttonTable)
-	gcController:addButtonFlipChance(1, 100, "dPadUp")
-	gcController:addButtonPressChance(1, 100, "Y")
+	gc_controller:addButtonFlipChance(1, 100, "dPadUp")
+	gc_controller:addButtonPressChance(1, 100, "Y")
 
 end
 
@@ -711,6 +711,9 @@ end
 
 file = io.open("LuaExamplesAndTests/TestResults/LuaGameCubeControllerTestsResults.txt", "w")
 io.output(file)
+
+testAddButtonComboChanceUnitTests()
+
 
 io.write("Running setInputs() unit tests:\n\n")
 testSetInputsUnitTests()

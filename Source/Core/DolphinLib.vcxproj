@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Lua\LuaEventCallbackClasses\LuaOnFrameStartCallbackClass.h" />
+    <ClInclude Include="Core\Lua\LuaEventCallbackClasses\LuaOnGCControllerPolled.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaImportModule.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaColonCheck.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaBitFunctions.h" />
@@ -92,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Lua\LuaEventCallbackClasses\LuaOnFrameStartCallbackClass.cpp" />
+    <ClCompile Include="Core\Lua\LuaEventCallbackClasses\LuaOnGCControllerPolled.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaImportModule.cpp" />
     <ClCompile Include="Core\Lua\LuaHelperClasses\LuaColonCheck.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaBitFunctions.cpp" />

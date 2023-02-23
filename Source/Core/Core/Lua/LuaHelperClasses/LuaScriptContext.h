@@ -27,14 +27,17 @@ struct LuaScriptContext
   lua_State* instruction_address_hit_callback_lua_thread;
   lua_State* memory_address_read_from_callback_lua_thread;
   lua_State* memory_address_written_to_callback_lua_thread;
+  lua_State* gc_controller_input_polled_callback_lua_thread;
 
   bool called_yielding_function_in_last_global_script_resume;
   bool called_yielding_function_in_last_frame_callback_script_resume;
   bool called_yielding_function_in_last_instruction_address_callback_script_resume;
   bool called_yielding_function_in_last_memory_address_read_callback_script_resume;
   bool called_yielding_function_in_last_memory_address_written_callback_script_resume;
+  bool called_yielding_function_in_last_gc_controller_input_polled_callback_script_resume;
 
   std::vector<int> frame_callback_locations;
+  std::vector<int> gc_controller_input_polled_callback_locations;
 
   int index_of_next_frame_callback_to_execute;
 

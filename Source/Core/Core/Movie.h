@@ -200,7 +200,4 @@ void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt
 std::string GetInputDisplay();
 std::string GetRTCDisplay();
 std::string GetRerecords();
-
-ControllerState GetLuaGCInputsForPort(int portNum);
-
 }  // namespace Movie

@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <mutex>
 #include "Core/Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h"
+#include "Core/Lua/LuaEventCallbackClasses/LuaOnGCControllerPolled.h"
 #include "Core/Lua/LuaFunctions/LuaImportModule.h"
 #include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
 #include "Core/Lua/LuaHelperClasses/LuaStateToScriptContextMap.h"
@@ -112,6 +113,7 @@ void Init(const std::string& script_location,
   const std::lock_guard<std::mutex> lock(lua_initialization_and_destruction_lock);
   lua_State* new_main_lua_state = luaL_newstate();
   luaL_openlibs(new_main_lua_state);
+  luaL_dostring(new_main_lua_state, "package.path = package.path .. ';/Load/LuaLibs/?.lua;Data/Sys/LuaLibs/?.lua;'");
 
   if (!is_lua_core_initialized)
   {
@@ -140,11 +142,19 @@ void Init(const std::string& script_location,
 
   LuaImportModule::InitLuaImportModule(new_lua_script_context->main_lua_thread, global_lua_api_version);
   LuaOnFrameStartCallback::InitLuaOnFrameStartCallbackFunctions(
-      new_lua_script_context->main_lua_thread, global_lua_api_version, &list_of_lua_script_contexts,
+      new_lua_script_context->main_lua_thread, global_lua_api_version, &list_of_lua_script_contexts, print_callback_function,
+      script_end_callback_function);
+  LuaOnGCControllerPolled::InitLuaOnGCControllerPolledCallbackFunctions(
+      new_lua_script_context->main_lua_thread, global_lua_api_version, &list_of_lua_script_contexts, print_callback_function,
       script_end_callback_function);
   new_lua_script_context->frame_callback_lua_thread = lua_newthread(new_lua_script_context->main_lua_thread);
+  new_lua_script_context->gc_controller_input_polled_callback_lua_thread =
+      lua_newthread(new_lua_script_context->main_lua_thread);
    state_to_script_context_map.get()
       ->lua_state_to_script_context_pointer_map[new_lua_script_context->frame_callback_lua_thread] =
+      new_lua_script_context.get();
+  state_to_script_context_map.get()->lua_state_to_script_context_pointer_map
+      [new_lua_script_context->gc_controller_input_polled_callback_lua_thread] =
       new_lua_script_context.get();
 
 

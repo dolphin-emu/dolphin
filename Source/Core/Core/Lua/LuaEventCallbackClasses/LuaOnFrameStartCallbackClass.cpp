@@ -34,13 +34,16 @@ LuaOnFrameStart* GetInstance()
 static const char* class_name = "OnFrameStart";
 static std::vector<std::shared_ptr<LuaScriptContext>>* pointer_to_lua_script_list;
 static std::function<void(int)>* script_end_callback_function = nullptr;
+static std::function<void(const std::string&)>* print_callback_function;
 
 void InitLuaOnFrameStartCallbackFunctions(lua_State* main_lua_thread, const std::string& lua_api_version,
     std::vector<std::shared_ptr<LuaScriptContext>>* new_pointer_to_lua_script_list,
+    std::function<void(const std::string&)>* new_print_callback_function,
     std::function<void(int)>* new_script_end_callback_function)
 {
   x = 0;
   pointer_to_lua_script_list = new_pointer_to_lua_script_list;
+  print_callback_function = new_print_callback_function;
   script_end_callback_function = new_script_end_callback_function;
   LuaOnFrameStart** lua_on_frame_start_instance_ptr_ptr =
       (LuaOnFrameStart**)lua_newuserdata(main_lua_thread, sizeof(LuaOnFrameStart*));
@@ -112,18 +115,6 @@ int Unregister(lua_State* lua_state)
 int RunCallbacks()
 {
   std::lock_guard<std::mutex> lock(frame_start_lock);
-  for (int i = 0; i < 4; ++i)
-  {
-    Lua::LuaGameCubeController::overwrite_controller_at_specified_port[i] = false;
-    Lua::LuaGameCubeController::add_to_controller_at_specified_port[i] = false;
-    Lua::LuaGameCubeController::do_random_input_events_at_specified_port[i] = false;
-    Lua::LuaGameCubeController::random_button_events[i].clear();
-    Lua::LuaGameCubeController::button_lists_for_add_to_controller_inputs[i].clear();
-    memset(&Lua::LuaGameCubeController::new_overwrite_controller_inputs[i], 0,
-           sizeof(Movie::ControllerState));
-    memset(&Lua::LuaGameCubeController::add_to_controller_inputs[i], 0,
-           sizeof(Movie::ControllerState));
-  }
 
   size_t number_of_scripts = pointer_to_lua_script_list->size();
   for (size_t i = 0; i < number_of_scripts; ++i)
@@ -132,6 +123,66 @@ int RunCallbacks()
     if (!current_script->is_lua_script_active)
       break;
     current_script->lua_script_specific_lock.lock();
+    if (current_script->frame_callback_locations.size() > 0)
+    {
+      current_script->current_call_location = LuaScriptCallLocations::FromFrameStartCallback;
+      if (current_script->index_of_next_frame_callback_to_execute >=
+          current_script->frame_callback_locations.size())
+      {
+        current_script->index_of_next_frame_callback_to_execute = 0;
+        current_script->called_yielding_function_in_last_frame_callback_script_resume = false;
+      }
+      for (current_script->index_of_next_frame_callback_to_execute;
+           current_script->index_of_next_frame_callback_to_execute <
+           current_script->frame_callback_locations.size();
+           ++(current_script->index_of_next_frame_callback_to_execute))
+      {
+        if (current_script->called_yielding_function_in_last_frame_callback_script_resume)
+        {
+          int ret_val = lua_resume(current_script->frame_callback_lua_thread, nullptr, 0, &x);
+          if (ret_val == LUA_YIELD)
+            current_script->called_yielding_function_in_last_frame_callback_script_resume = true;
+          else
+          {
+            current_script->called_yielding_function_in_last_frame_callback_script_resume = false;
+            if (ret_val != LUA_OK)
+            {
+              const char* error_msg = lua_tostring(current_script->frame_callback_lua_thread, -1);
+              (*print_callback_function)(error_msg);
+              (*script_end_callback_function)(current_script->unique_script_identifier);
+              current_script->is_lua_script_active = false;
+            }
+          }
+        }
+        else
+        {
+          lua_rawgeti(current_script->frame_callback_lua_thread, LUA_REGISTRYINDEX,
+                      current_script->frame_callback_locations
+                          [current_script->index_of_next_frame_callback_to_execute]);
+          int ret_val = lua_resume(current_script->frame_callback_lua_thread, nullptr, 0, &x);
+          if (ret_val == LUA_YIELD)
+            current_script->called_yielding_function_in_last_frame_callback_script_resume = true;
+          else
+          {
+            current_script->called_yielding_function_in_last_frame_callback_script_resume = false;
+            if (ret_val != LUA_OK)
+            {
+              const char* error_msg = lua_tostring(current_script->frame_callback_lua_thread, -1);
+              (*print_callback_function)(error_msg);
+              (*script_end_callback_function)(current_script->unique_script_identifier);
+              current_script->is_lua_script_active = false;
+            }
+            break;
+          }
+        }
+      }
+      if (current_script->finished_with_global_code &&
+          current_script->frame_callback_locations.size() == 0 &&
+          current_script->gc_controller_input_polled_callback_locations.size() == 0 &&
+          !current_script->called_yielding_function_in_last_frame_callback_script_resume)
+        (*script_end_callback_function)(current_script->unique_script_identifier);
+    }
+
     if (!current_script->finished_with_global_code)
     {
       current_script->current_call_location = LuaScriptCallLocations::FromFrameStartGlobalScope;
@@ -142,51 +193,18 @@ int RunCallbacks()
       {
         current_script->finished_with_global_code = true;
         current_script->called_yielding_function_in_last_global_script_resume = false;
-      }
-
-      if (current_script->finished_with_global_code && current_script->frame_callback_locations.size() == 0)
-        (*script_end_callback_function)(current_script->unique_script_identifier);
-    }
-
-    if (current_script->finished_with_global_code && current_script->frame_callback_locations.size() > 0)
-    {
-      current_script->current_call_location = LuaScriptCallLocations::FromFrameStartCallback;
-      if (current_script->index_of_next_frame_callback_to_execute >=
-          current_script->frame_callback_locations.size())
-      {
-        current_script->index_of_next_frame_callback_to_execute = 0;
-        current_script->called_yielding_function_in_last_frame_callback_script_resume = false;
-      }
-      for (current_script->index_of_next_frame_callback_to_execute;
-           current_script->index_of_next_frame_callback_to_execute < current_script->frame_callback_locations.size(); ++(current_script->index_of_next_frame_callback_to_execute))
-      {
-        if (current_script->called_yielding_function_in_last_frame_callback_script_resume)
+        if (ret_val != LUA_OK)
         {
-          int ret_val = lua_resume(current_script->frame_callback_lua_thread, nullptr, 0, &x);
-          if (ret_val != LUA_YIELD)
-            current_script->called_yielding_function_in_last_frame_callback_script_resume = false;
-          else
-          {
-            current_script->called_yielding_function_in_last_frame_callback_script_resume = true;
-            break;
-          }
-      }
-        else {
-          lua_rawgeti(current_script->frame_callback_lua_thread, LUA_REGISTRYINDEX,
-                      current_script->frame_callback_locations[current_script->index_of_next_frame_callback_to_execute]);
-          int ret_val = lua_resume(current_script->frame_callback_lua_thread, nullptr, 0, &x);
-          if (ret_val != LUA_YIELD)
-            current_script->called_yielding_function_in_last_frame_callback_script_resume = false;
-          else
-          {
-            current_script->called_yielding_function_in_last_frame_callback_script_resume = true;
-            break;
-          }
-            }
-    }
-      if (current_script->finished_with_global_code && current_script->frame_callback_locations.size() == 0 &&
-          !current_script->called_yielding_function_in_last_frame_callback_script_resume)
+            const char* error_msg = lua_tostring(current_script->main_lua_thread, -1);
+            (*print_callback_function)(error_msg);
             (*script_end_callback_function)(current_script->unique_script_identifier);
+            current_script->is_lua_script_active = false;
+        }
+        
+        }
+
+      if (current_script->finished_with_global_code && current_script->frame_callback_locations.size() == 0 && current_script->gc_controller_input_polled_callback_locations.size() == 0)
+        (*script_end_callback_function)(current_script->unique_script_identifier);
     }
     current_script->lua_script_specific_lock.unlock();
   }

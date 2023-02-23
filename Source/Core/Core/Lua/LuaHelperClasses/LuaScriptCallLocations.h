@@ -10,7 +10,8 @@ enum class LuaScriptCallLocations
   FromFrameStartCallback,
   FromInstructionBreakpointCallback,
   FromMemoryAddressReadFromCallback,
-  FromMemoryAddressWrittenToCallback
+  FromMemoryAddressWrittenToCallback,
+  FromGCControllerInputPolled
 };
 }
 

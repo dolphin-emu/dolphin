@@ -17,6 +17,7 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Lua/Lua.h"
+#include "Core/Lua/LuaEventCallbackClasses/LuaOnGCControllerPolled.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
@@ -129,139 +130,88 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
 }
 
 void CopyControllerStateToGCPadStatus(Movie::ControllerState controller_state,
-                                      GCPadStatus& gc_pad_status,
-                                      std::vector<GcButtonName> buttons_to_copy)
+                                      GCPadStatus& gc_pad_status)
 {
   gc_pad_status.button |= PAD_USE_ORIGIN;
-  for (int i = 0; i < buttons_to_copy.size(); ++i)
+
+  if (controller_state.A)
   {
-    switch (buttons_to_copy[i])
-    {
-    case GcButtonName::A:
-      if (controller_state.A)
-      {
-        gc_pad_status.button |= PAD_BUTTON_A;
-        gc_pad_status.analogA = 0xFF;
-      }
-      else
-      {
-        gc_pad_status.button &= ~PAD_BUTTON_A;
-        gc_pad_status.analogA = 0;
-      }
-      break;
-
-    case GcButtonName::B:
-      if (controller_state.B)
-      {
-        gc_pad_status.button |= PAD_BUTTON_B;
-        gc_pad_status.analogB = 0xFF;
-      }
-      else
-      {
-        gc_pad_status.button &= ~PAD_BUTTON_B;
-        gc_pad_status.analogB = 0;
-      }
-      break;
-
-    case GcButtonName::X:
-      if (controller_state.X)
-        gc_pad_status.button |= PAD_BUTTON_X;
-      else
-        gc_pad_status.button &= ~PAD_BUTTON_X;
-
-      break;
-
-    case GcButtonName::Y:
-      if (controller_state.Y)
-        gc_pad_status.button |= PAD_BUTTON_Y;
-      else
-        gc_pad_status.button &= ~PAD_BUTTON_Y;
-      break;
-
-    case GcButtonName::Z:
-      if (controller_state.Z)
-        gc_pad_status.button |= PAD_TRIGGER_Z;
-      else
-        gc_pad_status.button &= ~PAD_TRIGGER_Z;
-      break;
-
-    case GcButtonName::Start:
-      if (controller_state.Start)
-        gc_pad_status.button |= PAD_BUTTON_START;
-      else
-        gc_pad_status.button &= ~PAD_BUTTON_START;
-      break;
-
-    case GcButtonName::DPadUp:
-      if (controller_state.DPadUp)
-        gc_pad_status.button |= PAD_BUTTON_UP;
-      else
-        gc_pad_status.button &= ~PAD_BUTTON_UP;
-      break;
-
-    case GcButtonName::DPadDown:
-      if (controller_state.DPadDown)
-        gc_pad_status.button |= PAD_BUTTON_DOWN;
-      else
-        gc_pad_status.button &= ~PAD_BUTTON_DOWN;
-      break;
-
-    case GcButtonName::DPadLeft:
-      if (controller_state.DPadLeft)
-        gc_pad_status.button |= PAD_BUTTON_LEFT;
-      else
-        gc_pad_status.button &= ~PAD_BUTTON_LEFT;
-      break;
-
-    case GcButtonName::DPadRight:
-      if (controller_state.DPadRight)
-        gc_pad_status.button |= PAD_BUTTON_RIGHT;
-      else
-        gc_pad_status.button &= ~PAD_BUTTON_RIGHT;
-      break;
-
-    case GcButtonName::L:
-      if (controller_state.L)
-        gc_pad_status.button |= PAD_TRIGGER_L;
-      else
-        gc_pad_status.button &= ~PAD_TRIGGER_L;
-      break;
-
-    case GcButtonName::R:
-      if (controller_state.R)
-        gc_pad_status.button |= PAD_TRIGGER_R;
-      else
-        gc_pad_status.button &= ~PAD_TRIGGER_R;
-      break;
-
-    case GcButtonName::TriggerL:
-      gc_pad_status.triggerLeft = controller_state.TriggerL;
-      break;
-
-    case GcButtonName::TriggerR:
-      gc_pad_status.triggerRight = controller_state.TriggerR;
-      break;
-
-    case GcButtonName::AnalogStickX:
-      gc_pad_status.stickX = controller_state.AnalogStickX;
-      break;
-
-    case GcButtonName::AnalogStickY:
-      gc_pad_status.stickY = controller_state.AnalogStickY;
-      break;
-
-    case GcButtonName::CStickX:
-      gc_pad_status.substickX = controller_state.CStickX;
-      break;
-
-    case GcButtonName::CStickY:
-      gc_pad_status.substickY = controller_state.CStickY;
-      break;
-
-    default:
-      break;
-    }
+    gc_pad_status.button |= PAD_BUTTON_A;
+    gc_pad_status.analogA = 0xFF;
   }
+  else
+  {
+    gc_pad_status.button &= ~PAD_BUTTON_A;
+    gc_pad_status.analogA = 0;
+  }
+
+  if (controller_state.B)
+  {
+    gc_pad_status.button |= PAD_BUTTON_B;
+    gc_pad_status.analogB = 0xFF;
+  }
+  else
+  {
+    gc_pad_status.button &= ~PAD_BUTTON_B;
+    gc_pad_status.analogB = 0;
+  }
+
+  if (controller_state.X)
+    gc_pad_status.button |= PAD_BUTTON_X;
+  else
+    gc_pad_status.button &= ~PAD_BUTTON_X;
+
+  if (controller_state.Y)
+    gc_pad_status.button |= PAD_BUTTON_Y;
+  else
+    gc_pad_status.button &= ~PAD_BUTTON_Y;
+
+  if (controller_state.Z)
+    gc_pad_status.button |= PAD_TRIGGER_Z;
+  else
+    gc_pad_status.button &= ~PAD_TRIGGER_Z;
+
+  if (controller_state.Start)
+    gc_pad_status.button |= PAD_BUTTON_START;
+  else
+    gc_pad_status.button &= ~PAD_BUTTON_START;
+
+  if (controller_state.DPadUp)
+    gc_pad_status.button |= PAD_BUTTON_UP;
+  else
+    gc_pad_status.button &= ~PAD_BUTTON_UP;
+
+  if (controller_state.DPadDown)
+    gc_pad_status.button |= PAD_BUTTON_DOWN;
+  else
+    gc_pad_status.button &= ~PAD_BUTTON_DOWN;
+
+  if (controller_state.DPadLeft)
+    gc_pad_status.button |= PAD_BUTTON_LEFT;
+  else
+    gc_pad_status.button &= ~PAD_BUTTON_LEFT;
+
+  if (controller_state.DPadRight)
+    gc_pad_status.button |= PAD_BUTTON_RIGHT;
+  else
+    gc_pad_status.button &= ~PAD_BUTTON_RIGHT;
+
+  if (controller_state.L)
+    gc_pad_status.button |= PAD_TRIGGER_L;
+  else
+    gc_pad_status.button &= ~PAD_TRIGGER_L;
+
+  if (controller_state.R)
+    gc_pad_status.button |= PAD_TRIGGER_R;
+  else
+    gc_pad_status.button &= ~PAD_TRIGGER_R;
+
+  gc_pad_status.triggerLeft = controller_state.TriggerL;
+  gc_pad_status.triggerRight = controller_state.TriggerR;
+  gc_pad_status.stickX = controller_state.AnalogStickX;
+  gc_pad_status.stickY = controller_state.AnalogStickY;
+  gc_pad_status.substickX = controller_state.CStickX;
+  gc_pad_status.substickY = controller_state.CStickY;
 }
 
 void CopyGCPadStatusToControllerState(GCPadStatus gc_pad_status,
@@ -329,55 +279,20 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
 
     if (Lua::is_lua_core_initialized && !Movie::IsPlayingInput())
     {
-      std::vector<GcButtonName> all_buttons{GcButtonName::A,
-                                            GcButtonName::B,
-                                            GcButtonName::X,
-                                            GcButtonName::Y,
-                                            GcButtonName::Z,
-                                            GcButtonName::L,
-                                            GcButtonName::R,
-                                            GcButtonName::Start,
-                                            GcButtonName::DPadUp,
-                                            GcButtonName::DPadDown,
-                                            GcButtonName::DPadLeft,
-                                            GcButtonName::DPadRight,
-                                            GcButtonName::TriggerL,
-                                            GcButtonName::TriggerR,
-                                            GcButtonName::AnalogStickX,
-                                            GcButtonName::AnalogStickY,
-                                            GcButtonName::CStickX,
-                                            GcButtonName::CStickY};
-
+      Lua::LuaGameCubeController::current_controller_number_polled = m_device_number;
+      Movie::ControllerState temp_controller_state;
+      CopyGCPadStatusToControllerState(pad_status, temp_controller_state);
+      memcpy(&Lua::LuaGameCubeController::new_controller_inputs[m_device_number],
+             &temp_controller_state, sizeof(Movie::ControllerState));
+      Lua::LuaGameCubeController::overwrite_controller_at_specified_port[m_device_number] = false;
+      Lua::LuaOnGCControllerPolled::RunCallbacks();
       if (Lua::LuaGameCubeController::overwrite_controller_at_specified_port[m_device_number])
       {
         memset(&pad_status, 0, sizeof(GCPadStatus));
-        Movie::ControllerState temp_controller_state =
-            Lua::LuaGameCubeController::new_overwrite_controller_inputs[m_device_number];
+        temp_controller_state = Lua::LuaGameCubeController::new_controller_inputs[m_device_number];
         pad_status.isConnected = temp_controller_state.is_connected;
         pad_status.button |= PAD_USE_ORIGIN;
-        CopyControllerStateToGCPadStatus(temp_controller_state, pad_status, all_buttons);
-      }
-
-      if (Lua::LuaGameCubeController::add_to_controller_at_specified_port[m_device_number])
-      {
-        Movie::ControllerState temp_controller_state =
-            Lua::LuaGameCubeController::add_to_controller_inputs[m_device_number];
-        pad_status.button |= PAD_USE_ORIGIN;
-        CopyControllerStateToGCPadStatus(
-            temp_controller_state, pad_status,
-            Lua::LuaGameCubeController::button_lists_for_add_to_controller_inputs[m_device_number]);
-      }
-
-      if (Lua::LuaGameCubeController::do_random_input_events_at_specified_port[m_device_number])
-      {
-        Movie::ControllerState starting_controller_inputs;
-        memset(&starting_controller_inputs, 0, sizeof(Movie::ControllerState));
-        CopyGCPadStatusToControllerState(pad_status, starting_controller_inputs);
-        for (int i = 0;
-             i < Lua::LuaGameCubeController::random_button_events[m_device_number].size(); ++i)
-          Lua::LuaGameCubeController::random_button_events[m_device_number][i]->ApplyProbability(
-              starting_controller_inputs);
-        CopyControllerStateToGCPadStatus(starting_controller_inputs, pad_status, all_buttons);
+        CopyControllerStateToGCPadStatus(temp_controller_state, pad_status);
       }
     }
   }

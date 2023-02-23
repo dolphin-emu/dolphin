@@ -62,6 +62,7 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Lua/Lua.h"
+#include "Core/Lua/LuaEventCallbackClasses/LuaOnGCControllerPolled.h"
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
 #include "Core/NetPlayProto.h"
@@ -96,7 +97,6 @@ static u32 s_rerecords = 0;
 static PlayMode s_playMode = PlayMode::None;
 
 static std::array<ControllerType, 4> s_controllers{};
-static std::array<ControllerState, 4> lua_game_cube_inputs{};
 static std::array<bool, 4> s_wiimotes{};
 static ControllerState s_padState;
 static DTMHeader tmpHeader;
@@ -674,7 +674,7 @@ static std::string Analog1DToString(u32 v, const std::string& prefix, u32 range 
 // NOTE: CPU Thread
 static void SetInputDisplayString(ControllerState padState, int controllerID)
 {
-  lua_game_cube_inputs[controllerID] = padState;
+  Lua::LuaGameCubeController::controller_inputs_on_last_frame[controllerID] = padState;
 
   std::string display_str = fmt::format("P{}:", controllerID + 1);
 
@@ -1307,33 +1307,20 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     EndPlayInput(!s_bReadOnly);
     return;
   }
+
   if (Lua::is_lua_core_initialized)
   {
+    Lua::LuaGameCubeController::current_controller_number_polled = controllerID;
+    Lua::LuaGameCubeController::overwrite_controller_at_specified_port[controllerID] = false;
+    memcpy(&Lua::LuaGameCubeController::new_controller_inputs[controllerID], &s_temp_input[s_currentByte], sizeof(ControllerState));
+    Lua::LuaOnGCControllerPolled::RunCallbacks();
     if (Lua::LuaGameCubeController::overwrite_controller_at_specified_port[controllerID])
     {
       memcpy(&s_temp_input[s_currentByte],
-             &Lua::LuaGameCubeController::new_overwrite_controller_inputs[controllerID],
+             &Lua::LuaGameCubeController::new_controller_inputs[controllerID],
              sizeof(ControllerState));
-    }
 
-    if (Lua::LuaGameCubeController::add_to_controller_at_specified_port[controllerID])
-    {
-      memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
-      AddControllerInputs(
-          s_padState, Lua::LuaGameCubeController::add_to_controller_inputs[controllerID],
-          Lua::LuaGameCubeController::button_lists_for_add_to_controller_inputs[controllerID]);
-      memcpy(&s_temp_input[s_currentByte], &s_padState, sizeof(ControllerState));
-    }
-
-    if (Lua::LuaGameCubeController::do_random_input_events_at_specified_port[controllerID])
-    {
-      memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
-      for (int i = 0; i < Lua::LuaGameCubeController::random_button_events[controllerID].size();
-           ++i)
-        Lua::LuaGameCubeController::random_button_events[controllerID][i]->ApplyProbability(
-            s_padState);
-      memcpy(&s_temp_input[s_currentByte], &s_padState, sizeof(ControllerState));
-    }
+    }  
   }
 
   memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
@@ -1695,11 +1682,6 @@ void Shutdown()
 {
   s_currentInputCount = s_totalInputCount = s_totalFrames = s_tickCountAtLastInput = 0;
   s_temp_input.clear();
-}
-
-ControllerState GetLuaGCInputsForPort(int port_number)
-{
-  return lua_game_cube_inputs[port_number];
 }
 
 }  // namespace Movie
