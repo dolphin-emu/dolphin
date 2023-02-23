@@ -1,7 +1,7 @@
-dolphin:importModule("gcController")
-dolphin:importModule("memory")
-dolphin:importModule("emu")
-dolphin:importModule("statistics")
+require ("emu")
+require ("gc_controller")
+require ("memory")
+require ("statistics")
 
 funcRef = 0
 basePasswordAddress = 0x80329849

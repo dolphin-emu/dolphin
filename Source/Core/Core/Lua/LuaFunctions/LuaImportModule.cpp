@@ -57,11 +57,9 @@ void InitLuaImportModule(lua_State* lua_state, const std::string& lua_api_versio
 int ImportCommon(lua_State* lua_state, const char* func_name)
 {
   LuaColonOperatorTypeCheck(lua_state, class_name, func_name,
-                            "(module_name, [optional] version_number)");
+                            "(module_name, version_number)");
   std::string module_class = luaL_checkstring(lua_state, 2);
-  std::string version_number = lua_version_from_global;
-  if (lua_gettop(lua_state) >= 3)
-    version_number = luaL_checkstring(lua_state, 3);
+  std::string version_number = luaL_checkstring(lua_state, 3);
 
   if (module_class == std::string(LuaBit::class_name))
     LuaBit::InitLuaBitFunctions(lua_state, version_number);

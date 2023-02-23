@@ -157,9 +157,9 @@ const char* ConvertButtonEnumToString(GcButtonName button)
   case GcButtonName::R:
     return "R";
   case GcButtonName::Start:
-    return "START";
+    return "Start";
   case GcButtonName::Reset:
-    return "RESET";
+    return "Reset";
   case GcButtonName::DPadUp:
     return "dPadUp";
   case GcButtonName::DPadDown:

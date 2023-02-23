@@ -1,4 +1,4 @@
-dolphin:importModule("bit")
+require ("bit")
 
 testNum = 1
 resultsTable = {}

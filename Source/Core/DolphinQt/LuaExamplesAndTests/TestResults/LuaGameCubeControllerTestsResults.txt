@@ -29,11 +29,11 @@ Test: 7
 PASS!
 
 Test: 8
-	Calling setInput() on controller 1 with just setting START button...
+	Calling setInput() on controller 1 with just setting Start button...
 PASS!
 
 Test: 9
-	Calling setInput() on controller 1 with just setting RESET button...
+	Calling setInput() on controller 1 with just setting Reset button...
 PASS!
 
 Test: 10
@@ -113,11 +113,11 @@ Test: 28
 PASS!
 
 Test: 29
-	Calling setInput() on controller 2 with just setting START button...
+	Calling setInput() on controller 2 with just setting Start button...
 PASS!
 
 Test: 30
-	Calling setInput() on controller 2 with just setting RESET button...
+	Calling setInput() on controller 2 with just setting Reset button...
 PASS!
 
 Test: 31
@@ -197,11 +197,11 @@ Test: 49
 PASS!
 
 Test: 50
-	Calling setInput() on controller 3 with just setting START button...
+	Calling setInput() on controller 3 with just setting Start button...
 PASS!
 
 Test: 51
-	Calling setInput() on controller 3 with just setting RESET button...
+	Calling setInput() on controller 3 with just setting Reset button...
 PASS!
 
 Test: 52
@@ -281,11 +281,11 @@ Test: 70
 PASS!
 
 Test: 71
-	Calling setInput() on controller 4 with just setting START button...
+	Calling setInput() on controller 4 with just setting Start button...
 PASS!
 
 Test: 72
-	Calling setInput() on controller 4 with just setting RESET button...
+	Calling setInput() on controller 4 with just setting Reset button...
 PASS!
 
 Test: 73
@@ -377,11 +377,11 @@ Test: 93
 PASS!
 
 Test: 94
-	Calling addInputs() on controller 1 with just setting START button...
+	Calling addInputs() on controller 1 with just setting Start button...
 PASS!
 
 Test: 95
-	Calling addInputs() on controller 1 with just setting RESET button...
+	Calling addInputs() on controller 1 with just setting Reset button...
 PASS!
 
 Test: 96
@@ -461,11 +461,11 @@ Test: 114
 PASS!
 
 Test: 115
-	Calling addInputs() on controller 2 with just setting START button...
+	Calling addInputs() on controller 2 with just setting Start button...
 PASS!
 
 Test: 116
-	Calling addInputs() on controller 2 with just setting RESET button...
+	Calling addInputs() on controller 2 with just setting Reset button...
 PASS!
 
 Test: 117
@@ -545,11 +545,11 @@ Test: 135
 PASS!
 
 Test: 136
-	Calling addInputs() on controller 3 with just setting START button...
+	Calling addInputs() on controller 3 with just setting Start button...
 PASS!
 
 Test: 137
-	Calling addInputs() on controller 3 with just setting RESET button...
+	Calling addInputs() on controller 3 with just setting Reset button...
 PASS!
 
 Test: 138
@@ -629,11 +629,11 @@ Test: 156
 PASS!
 
 Test: 157
-	Calling addInputs() on controller 4 with just setting START button...
+	Calling addInputs() on controller 4 with just setting Start button...
 PASS!
 
 Test: 158
-	Calling addInputs() on controller 4 with just setting RESET button...
+	Calling addInputs() on controller 4 with just setting Reset button...
 PASS!
 
 Test: 159
@@ -737,11 +737,11 @@ Test: 182
 PASS!
 
 Test: 183
-	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button START...
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button Start...
 PASS!
 
 Test: 184
-	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button RESET...
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button Reset...
 PASS!
 
 Test: 185
@@ -778,7 +778,7 @@ PASS!
 
 Test 193:
 	Running through 1000 frames of calling addButtonFlipChance() on controller 1 with 13% chance of flipping button B...
-	Impacted frames made up 13.886113886114% of all frames, which was in the acceptable range of +- 8% of the selected probability of 13%
+	Impacted frames made up 11.788211788212% of all frames, which was in the acceptable range of +- 8% of the selected probability of 13%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -826,11 +826,11 @@ Test: 203
 PASS!
 
 Test: 204
-	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button START...
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button Start...
 PASS!
 
 Test: 205
-	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button RESET...
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button Reset...
 PASS!
 
 Test: 206
@@ -859,7 +859,7 @@ PASS!
 
 Test 212:
 	Running through 1000 frames of calling addButtonPressChance() on controller 1 with 34% chance of pressing X button...
-	Impacted frames made up 35.764235764236% of all frames, which was in the acceptable range of +- 8% of the selected probability of 34%
+	Impacted frames made up 31.668331668332% of all frames, which was in the acceptable range of +- 8% of the selected probability of 34%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -907,11 +907,11 @@ Test: 222
 PASS!
 
 Test: 223
-	Calling addButtonReleaseChance() on controller 1 after setting START to pressed with 100% probability of releasing button START...
+	Calling addButtonReleaseChance() on controller 1 after setting Start to pressed with 100% probability of releasing button Start...
 PASS!
 
 Test: 224
-	Calling addButtonReleaseChance() on controller 1 after setting RESET to pressed with 100% probability of releasing button RESET...
+	Calling addButtonReleaseChance() on controller 1 after setting Reset to pressed with 100% probability of releasing button Reset...
 PASS!
 
 Test: 225
@@ -940,7 +940,7 @@ PASS!
 
 Test 231:
 	Running through 1000 frames of calling addButtonReleaseChance() on controller 1 after setting B to pressed with 68% chance of releasing button B...
-	Impacted frames made up 70.629370629371% of all frames, which was in the acceptable range of +- 8% of the selected probability of 68%
+	Impacted frames made up 69.73026973027% of all frames, which was in the acceptable range of +- 8% of the selected probability of 68%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -989,7 +989,7 @@ PASS!
 
 Test 242:
 	Running through 1000 frames of calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 with 40% chance of altering cStickX by between -31 to +85...
-	Final average input of 138.84615384615 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 138.8
+	Final average input of 138.82517482517 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 138.8
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1038,7 +1038,7 @@ PASS!
 
 Test 253:
 	Running through 1000 frames of calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 with a 65% chance of setting cStickX to a random value between 50 - 30 and 50 + 10...
-	Final average input of 69.686313686314 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 70.8
+	Final average input of 71.54045954046 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 70.8
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1074,11 +1074,11 @@ Test: 260
 PASS!
 
 Test: 261
-	Calling addButtonComboChance() on controller 1 with 100% probability of setting START button...
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting Start button...
 PASS!
 
 Test: 262
-	Calling addButtonComboChance() on controller 1 with 100% probability of setting RESET button...
+	Calling addButtonComboChance() on controller 1 with 100% probability of setting Reset button...
 PASS!
 
 Test: 263
@@ -1162,11 +1162,11 @@ Test: 282
 PASS!
 
 Test: 283
-	Calling addButtonComboChance() on controller 2 with 100% probability of setting START button...
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting Start button...
 PASS!
 
 Test: 284
-	Calling addButtonComboChance() on controller 2 with 100% probability of setting RESET button...
+	Calling addButtonComboChance() on controller 2 with 100% probability of setting Reset button...
 PASS!
 
 Test: 285
@@ -1250,11 +1250,11 @@ Test: 304
 PASS!
 
 Test: 305
-	Calling addButtonComboChance() on controller 3 with 100% probability of setting START button...
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting Start button...
 PASS!
 
 Test: 306
-	Calling addButtonComboChance() on controller 3 with 100% probability of setting RESET button...
+	Calling addButtonComboChance() on controller 3 with 100% probability of setting Reset button...
 PASS!
 
 Test: 307
@@ -1338,11 +1338,11 @@ Test: 326
 PASS!
 
 Test: 327
-	Calling addButtonComboChance() on controller 4 with 100% probability of setting START button...
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting Start button...
 PASS!
 
 Test: 328
-	Calling addButtonComboChance() on controller 4 with 100% probability of setting RESET button...
+	Calling addButtonComboChance() on controller 4 with 100% probability of setting Reset button...
 PASS!
 
 Test: 329
@@ -1411,7 +1411,7 @@ PASS!
 
 Test 345:
 	Running through 1000 frames of calling addButtonComboChance() on controller 1 with 80% chance of pressing button B...
-	Impacted frames made up 81.518481518482% of all frames, which was in the acceptable range of +- 8% of the selected probability of 80%
+	Impacted frames made up 80.21978021978% of all frames, which was in the acceptable range of +- 8% of the selected probability of 80%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1452,7 +1452,7 @@ PASS!
 
 Test 354:
 	Running through 1000 frames of calling addControllerClearChance() on controller 1 with 75% chance of clearing the controller inputs to their default values...
-	Impacted frames made up 75.724275724276% of all frames, which was in the acceptable range of +- 8% of the selected probability of 75%
+	Impacted frames made up 75.624375624376% of all frames, which was in the acceptable range of +- 8% of the selected probability of 75%
 PASS!
 
 ----------------------------------------------------------------------------------

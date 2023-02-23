@@ -1,5 +1,5 @@
-dolphin:importModule("statistics")
-dolphin:importModule("emu")
+require ("emu")
+require ("statistics")
 
 funcRef = 0
 baseMovieFilePath  = "testBaseRecording.dtm"

@@ -1,5 +1,5 @@
 require ("gc_controller")
-dolphin:importModule("emu")
+require ("emu")
 
 testNum = 1
 resultsTable = {}
@@ -25,9 +25,9 @@ function getDefaultValue(buttonName)
 		return false
 	elseif buttonName == "R" then
 		return false
-	elseif buttonName == "START" then
+	elseif buttonName == "Start" then
 		return false
-	elseif buttonName == "RESET" then
+	elseif buttonName == "Reset" then
 		return false
 	elseif buttonName == "dPadUp" then
 		return false
@@ -409,8 +409,8 @@ function testSetInputsUnitTests()
 		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with just setting Z button...", setInputFunction, i, {Z = true}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with just setting L button...", setInputFunction, i, {L = true}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with just setting R button...", setInputFunction, i, {R = true}, testActualButtonsEqualExpectedFunction)
-		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with just setting START button...", setInputFunction, i, {START = true}, testActualButtonsEqualExpectedFunction)
-		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with just setting RESET button...", setInputFunction, i, {RESET=true}, testActualButtonsEqualExpectedFunction)
+		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with just setting Start button...", setInputFunction, i, {Start = true}, testActualButtonsEqualExpectedFunction)
+		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with just setting Reset button...", setInputFunction, i, {Reset=true}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with just setting triggerL to 183...", setInputFunction, i, {triggerL=183}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with just setting triggerR to 112...", setInputFunction, i, {triggerR=112}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with just setting dPadUp...", setInputFunction, i, {dPadUp=true}, testActualButtonsEqualExpectedFunction)
@@ -423,7 +423,7 @@ function testSetInputsUnitTests()
 		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with just setting cStickY button to 64...", setInputFunction, i, {cStickY=64}, testActualButtonsEqualExpectedFunction)
 		
 		testSingleFrameInputFunction("Calling setInput() on controller " .. tostring(i) .. " with setting A to pressed and cStickX to 232...", setInputFunction, i, {A = true, cStickX = 232}, testActualButtonsEqualExpectedFunction)
-		testSingleFrameInputFunction("Calling setInputs() on controller " .. tostring(i) .. " with setting all buttons to pressed and all analog inputs to their maximum values...", setInputFunction, i, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255}, testActualButtonsEqualExpectedFunction)
+		testSingleFrameInputFunction("Calling setInputs() on controller " .. tostring(i) .. " with setting all buttons to pressed and all analog inputs to their maximum values...", setInputFunction, i, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, Start = true, Reset = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255}, testActualButtonsEqualExpectedFunction)
 	end
 	testSingleFrameInputFunction("Calling setInputs() on all controllers...", setInputForAllControllers, 1, {}, testSetInputsForAllControllers)
 	testSingleFrameInputFunction("Calling setInput() twice in a row to make sure the 2nd call overwrites the 1st one...", setInputTwiceFunction, 1, {}, testSetInputsTwice)
@@ -454,8 +454,8 @@ function testAddInputsUnitTests()
 		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting Z button...", addInputFunction, i, {Z = true}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting L button...", addInputFunction, i, {L = true}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting R button...", addInputFunction, i, {R = true}, testActualButtonsEqualExpectedFunction)
-		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting START button...", addInputFunction, i, {START = true}, testActualButtonsEqualExpectedFunction)
-		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting RESET button...", addInputFunction, i, {RESET = true}, testActualButtonsEqualExpectedFunction)
+		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting Start button...", addInputFunction, i, {Start = true}, testActualButtonsEqualExpectedFunction)
+		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting Reset button...", addInputFunction, i, {Reset = true}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting triggerL to 183...", addInputFunction, i, {triggerL = 183}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting triggerR to 112...", addInputFunction, i, {triggerR = 112}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting dPadUp button...", addInputFunction, i, {dPadUp = true}, testActualButtonsEqualExpectedFunction)
@@ -467,7 +467,7 @@ function testAddInputsUnitTests()
 		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting cStickX to 99...", addInputFunction, i, {cStickX = 99}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addInputs() on controller " .. tostring(i) .. " with just setting cStickY to 43...", addInputFunction, i, {cStickY = 43}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addInput() on controller " .. tostring(i) .. " with setting A to pressed and cStickX to 232...", addInputFunction, i, {A = true, cStickX = 232}, testActualButtonsEqualExpectedFunction)
-		testSingleFrameInputFunction("Calling addInputs() on controller  " .. tostring(i) .. " with setting all buttons to pressed and all analog inputs to their maximum values...", addInputFunction, i, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255}, testActualButtonsEqualExpectedFunction)
+		testSingleFrameInputFunction("Calling addInputs() on controller  " .. tostring(i) .. " with setting all buttons to pressed and all analog inputs to their maximum values...", addInputFunction, i, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, Start = true, Reset = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255}, testActualButtonsEqualExpectedFunction)
 	end
 	testSingleFrameInputFunction("Calling addInputs() on all controllers...", addInputForAllControllers, 1, {}, testSetInputsForAllControllers)
 	testSingleFrameInputFunction("Calling addInput() twice in a row to make sure that the calls add on to each other...", addInputTwiceFunction, 1, {}, testAddInputsTwice)
@@ -509,8 +509,8 @@ function testAddButtonFlipChanceUnitTests()
 	testSingleFrameInputFunction("Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button Z...", addButtonFlipChanceFunction, 1, {Z = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button L...", addButtonFlipChanceFunction, 1, {L = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button R...", addButtonFlipChanceFunction, 1, {R = true}, testActualButtonsEqualExpectedFunction)
-	testSingleFrameInputFunction("Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button START...", addButtonFlipChanceFunction, 1, {START = true}, testActualButtonsEqualExpectedFunction)
-	testSingleFrameInputFunction("Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button RESET...", addButtonFlipChanceFunction, 1, {RESET = true}, testActualButtonsEqualExpectedFunction)
+	testSingleFrameInputFunction("Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button Start...", addButtonFlipChanceFunction, 1, {Start = true}, testActualButtonsEqualExpectedFunction)
+	testSingleFrameInputFunction("Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button Reset...", addButtonFlipChanceFunction, 1, {Reset = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button dPadUp...", addButtonFlipChanceFunction, 1, {dPadUp = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button dPadDown...", addButtonFlipChanceFunction, 1, {dPadDown = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button dPadLeft...", addButtonFlipChanceFunction, 1, {dPadLeft = true}, testActualButtonsEqualExpectedFunction)
@@ -548,8 +548,8 @@ function testAddButtonPressChanceUnitTests()
 	testSingleFrameInputFunction("Calling addButtonPressChance() on controller 1 with 100% probability of pressing button Z...", addButtonPressChanceFunction, 1, {Z = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonPressChance() on controller 1 with 100% probability of pressing button L...", addButtonPressChanceFunction, 1, {L = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonPressChance() on controller 1 with 100% probability of pressing button R...", addButtonPressChanceFunction, 1, {R = true}, testActualButtonsEqualExpectedFunction)
-	testSingleFrameInputFunction("Calling addButtonPressChance() on controller 1 with 100% probability of pressing button START...", addButtonPressChanceFunction, 1, {START = true}, testActualButtonsEqualExpectedFunction)
-	testSingleFrameInputFunction("Calling addButtonPressChance() on controller 1 with 100% probability of pressing button RESET...", addButtonPressChanceFunction, 1, {RESET = true}, testActualButtonsEqualExpectedFunction)
+	testSingleFrameInputFunction("Calling addButtonPressChance() on controller 1 with 100% probability of pressing button Start...", addButtonPressChanceFunction, 1, {Start = true}, testActualButtonsEqualExpectedFunction)
+	testSingleFrameInputFunction("Calling addButtonPressChance() on controller 1 with 100% probability of pressing button Reset...", addButtonPressChanceFunction, 1, {Reset = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonPressChance() on controller 1 with 100% probability of pressing button dPadUp...", addButtonPressChanceFunction, 1, {dPadUp = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonPressChance() on controller 1 with 100% probability of pressing button dPadDown...", addButtonPressChanceFunction, 1, {dPadDown = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonPressChance() on controller 1 with 100% probability of pressing button dPadLeft...", addButtonPressChanceFunction, 1, {dPadLeft = true}, testActualButtonsEqualExpectedFunction)
@@ -588,8 +588,8 @@ function testAddButtonReleaseChanceUnitTests()
 	testSingleFrameInputFunction("Calling addButtonReleaseChance() on controller 1 after setting Z to pressed with 100% probability of releasing button Z...", addButtonReleaseChanceWithSetFunction, 1, {Z = false}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonReleaseChance() on controller 1 after setting L to pressed with 100% probability of releasing button L...", addButtonReleaseChanceWithSetFunction, 1, {L = false}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonReleaseChance() on controller 1 after setting R to pressed with 100% probability of releasing button R...", addButtonReleaseChanceWithSetFunction, 1, {R = false}, testActualButtonsEqualExpectedFunction)
-	testSingleFrameInputFunction("Calling addButtonReleaseChance() on controller 1 after setting START to pressed with 100% probability of releasing button START...", addButtonReleaseChanceWithSetFunction, 1, {START = false}, testActualButtonsEqualExpectedFunction)
-	testSingleFrameInputFunction("Calling addButtonReleaseChance() on controller 1 after setting RESET to pressed with 100% probability of releasing button RESET...", addButtonReleaseChanceWithSetFunction, 1, {RESET = false}, testActualButtonsEqualExpectedFunction)
+	testSingleFrameInputFunction("Calling addButtonReleaseChance() on controller 1 after setting Start to pressed with 100% probability of releasing button Start...", addButtonReleaseChanceWithSetFunction, 1, {Start = false}, testActualButtonsEqualExpectedFunction)
+	testSingleFrameInputFunction("Calling addButtonReleaseChance() on controller 1 after setting Reset to pressed with 100% probability of releasing button Reset...", addButtonReleaseChanceWithSetFunction, 1, {Reset = false}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonReleaseChance() on controller 1 after setting dPadUp to pressed with 100% probability of releasing button dPadUp...", addButtonReleaseChanceWithSetFunction, 1, {dPadUp = false}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonReleaseChance() on controller 1 after setting dPadDown to pressed with 100% probability of releasing button dPadDown...", addButtonReleaseChanceWithSetFunction, 1, {dPadDown = false}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonReleaseChance() on controller 1 after setting dPadLeft to pressed with 100% probability of releasing button dPadLeft...", addButtonReleaseChanceWithSetFunction, 1, {dPadLeft = false}, testActualButtonsEqualExpectedFunction)
@@ -639,8 +639,8 @@ function testAddButtonComboChanceUnitTests()
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting Z button...", addButtonComboChanceFunction, i, {Z = true}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting L button...", addButtonComboChanceFunction, i, {L = true}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting R button...", addButtonComboChanceFunction, i, {R = true}, testActualButtonsEqualExpectedFunction)
-		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting START button...", addButtonComboChanceFunction, i, {START = true}, testActualButtonsEqualExpectedFunction)
-		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting RESET button...", addButtonComboChanceFunction, i, {RESET = true}, testActualButtonsEqualExpectedFunction)
+		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting Start button...", addButtonComboChanceFunction, i, {Start = true}, testActualButtonsEqualExpectedFunction)
+		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting Reset button...", addButtonComboChanceFunction, i, {Reset = true}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting triggerL to 183...", addButtonComboChanceFunction, i, {triggerL = 183}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting triggerR to 112...", addButtonComboChanceFunction, i, {triggerR = 112}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting dPadUp button...", addButtonComboChanceFunction, i, {dPadUp = true}, testActualButtonsEqualExpectedFunction)
@@ -652,7 +652,7 @@ function testAddButtonComboChanceUnitTests()
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting cStickX to 99...", addButtonComboChanceFunction, i, {cStickX = 99}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting cStickY to 43...", addButtonComboChanceFunction, i, {cStickY = 43}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting A to pressed and cStickX to 232...", addButtonComboChanceFunction, i, {A = true, cStickX = 232}, testActualButtonsEqualExpectedFunction)
-		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting all buttons to pressed and all analog inputs to their maximum values...", addButtonComboChanceFunction, i, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255}, testActualButtonsEqualExpectedFunction)
+		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting all buttons to pressed and all analog inputs to their maximum values...", addButtonComboChanceFunction, i, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, Start = true, Reset = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 0% probability of setting button A to pressed...", addZeroChanceButtonComboFunction, 1, {A = false}, testActualButtonsEqualExpectedFunction)
 	end
 	testSingleFrameInputFunction("Calling addButtonComboChance() on all controllers...", addButtonComboChanceForAllControllers, 1, {}, testSetInputsForAllControllers)
@@ -663,24 +663,24 @@ function testAddButtonComboChanceUnitTests()
 end
 
 function addControllerClearChanceFunction(portNumber, buttonTable)
-	gc_controller:setInputs(portNumber, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
+	gc_controller:setInputs(portNumber, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, Start = true, Reset = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
 	gc_controller:addControllerClearChance(portNumber, 100)
 end
 
 function addControllerClearZeroChanceFunction(portNumber, buttonTable)
-	gc_controller:setInputs(portNumber, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
+	gc_controller:setInputs(portNumber, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, Start = true, Reset = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
 	gc_controller:addControllerClearChance(portNumber, 0)
 end
 
 function testProbabilityAddControllerClearInput(buttonName, probability)
-	gc_controller:setInputs(1, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
+	gc_controller:setInputs(1, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, Start = true, Reset = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
 	gc_controller:addControllerClearChance(1, probability)
 end
 
 function testAddControllerClearChanceUnitTests()
 	for i = 1, 4 do
 		testSingleFrameInputFunction("Calling addControllerClearChance() on controller " .. tostring(i) .. " after setting all inputs to max values with 100% chance of clearing inputs...", addControllerClearChanceFunction, i, {}, testActualButtonsEqualExpectedFunction)
-		testSingleFrameInputFunction("Calling addControllerClearChance() on controller " .. tostring(i) .. " after setting all inputs to max values with 0% chance of clearing inputs...", addControllerClearZeroChanceFunction, i, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255}, testActualButtonsEqualExpectedFunction)
+		testSingleFrameInputFunction("Calling addControllerClearChance() on controller " .. tostring(i) .. " after setting all inputs to max values with 0% chance of clearing inputs...", addControllerClearZeroChanceFunction, i, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, Start = true, Reset = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255}, testActualButtonsEqualExpectedFunction)
 	end
 	
 	testProbabilityButton("Running through 1000 frames of calling addControllerClearChance() on controller 1 with 75% chance of clearing the controller inputs to their default values...", testProbabilityAddControllerClearInput, "", 75, {}, testActualButtonsEqualExpectedFunction)

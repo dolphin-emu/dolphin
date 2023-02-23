@@ -1,4 +1,4 @@
-dolphin:importModule("registers")
+require ("registers")
 
 funcRef = 0
 testNum = 1
@@ -278,8 +278,6 @@ end
 function registersTests()
 file = io.open("LuaExamplesAndTests/TestResults/LuaRegistersTestsResults.txt", "w")
 io.output(file)
-io.write("CREATED FILE!\n\n")
-io.flush()
 
 -- Getting the names of the registers, and storing the initial values of the registers
 -- so that they can be restored after all of the tests are done...

@@ -1,4 +1,4 @@
-dolphin:importModule("statistics")
+require ("statistics")
 
 funcRef = 0
 function mainFunction()

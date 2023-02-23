@@ -1,5 +1,3 @@
-CREATED FILE!
-
 Testing writing to/reading from all of the integer registers:
 
 Test 1:

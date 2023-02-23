@@ -1,5 +1,5 @@
-dolphin:importModule("memory")
-dolphin:importModule("emu")
+require ("emu")
+require ("memory")
 
 funcRef = 0
 testNum = 1

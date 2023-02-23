@@ -1,4 +1,4 @@
-dolphin:importModule("gcController", "1.0")
+dolphin:importModule("gcController", "1.0.0")
 
 GcControllerLuaLibrary = {set_controller_input_list = {}, add_controller_input_list = {}, probability_controller_change_input_list = {}}
 
