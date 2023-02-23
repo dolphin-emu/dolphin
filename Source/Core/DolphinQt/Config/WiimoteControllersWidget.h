@@ -27,6 +27,8 @@ class WiimoteControllersWidget final : public QWidget
 public:
   explicit WiimoteControllersWidget(QWidget* parent);
 
+  void UpdateBluetoothAvailableStatus();
+
 private:
   void SaveSettings();
   void OnBluetoothPassthroughSyncPressed();
@@ -55,4 +57,5 @@ private:
   QCheckBox* m_wiimote_speaker_data;
   QCheckBox* m_wiimote_ciface;
   QPushButton* m_wiimote_refresh;
+  QLabel* m_bluetooth_unavailable;
 };
