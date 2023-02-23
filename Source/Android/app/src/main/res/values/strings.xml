@@ -3,8 +3,8 @@
 
     <!-- Title of the app -->
     <string name="app_name">Dolphin Emulator</string>
-    <string name="host">app</string>
-    <string name="scheme">dolphinemu</string>
+    <string name="host" translatable="false">app</string>
+    <string name="scheme" translatable="false">dolphinemu</string>
 
     <string name="controller_0">GameCube Controller 1</string>
     <string name="controller_1">GameCube Controller 2</string>
