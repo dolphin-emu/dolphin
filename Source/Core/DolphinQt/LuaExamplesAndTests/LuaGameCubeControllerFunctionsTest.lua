@@ -631,8 +631,6 @@ function testAddOrSubtractFromSpecificAnalogValueChanceUnitTests()
 end
 
 function testAddButtonComboChanceUnitTests()
-	testSingleFrameInputFunction("Calling addButtonComboChance() with overwrite-non-specified-values set to false. First call has 100% probability of setting B and X to pressed, and 2nd call has 100% probability of setting A and Z to pressed. Final input should be A, Z, X and B are pressed...", addNonOverwritingButtonComboChancesFunction, 1, {A = true, B = true, X = true, Z = true}, testActualButtonsEqualExpectedFunction)
-
 	for i = 1, 4 do
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting A button...", addButtonComboChanceFunction, i, {A = true}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting B button...", addButtonComboChanceFunction, i, {B = true}, testActualButtonsEqualExpectedFunction)
@@ -657,7 +655,6 @@ function testAddButtonComboChanceUnitTests()
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting all buttons to pressed and all analog inputs to their maximum values...", addButtonComboChanceFunction, i, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, START = true, RESET = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 0% probability of setting button A to pressed...", addZeroChanceButtonComboFunction, 1, {A = false}, testActualButtonsEqualExpectedFunction)
 	end
-
 	testSingleFrameInputFunction("Calling addButtonComboChance() on all controllers...", addButtonComboChanceForAllControllers, 1, {}, testSetInputsForAllControllers)
 	testSingleFrameInputFunction("Calling addButtonComboChance() with overwrite-non-specified-values set to true. First call has 100% probability of setting B and X to pressed, and 2nd call has 100% probability of setting A and Z to pressed. Final input should be just A and Z are pressed...", addOverwritingButtonComboChancesFunction, 1, {A = true, Z = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonComboChance() with overwrite-non-specified-values set to false. First call has 100% probability of setting B and X to pressed, and 2nd call has 100% probability of setting A and Z to pressed. Final input should be A, Z, X and B are pressed...", addNonOverwritingButtonComboChancesFunction, 1, {A = true, B = true, X = true, Z = true}, testActualButtonsEqualExpectedFunction)
@@ -712,9 +709,6 @@ end
 file = io.open("LuaExamplesAndTests/TestResults/LuaGameCubeControllerTestsResults.txt", "w")
 io.output(file)
 
-testAddButtonComboChanceUnitTests()
-
-
 io.write("Running setInputs() unit tests:\n\n")
 testSetInputsUnitTests()
 io.write("----------------------------------------------------------------------------------\n\n")
@@ -730,7 +724,7 @@ io.write("----------------------------------------------------------------------
 io.write("Running addButtonReleaseChance() unit tests:\n\n")
 testAddButtonReleaseChanceUnitTests()
 io.write("----------------------------------------------------------------------------------\n\n")
-io.write("Running addOrSubtractFromCurrentAnalogValueChnce() unit tests:\n\n")
+io.write("Running addOrSubtractFromCurrentAnalogValueChance() unit tests:\n\n")
 testAddOrSubtractactFromCurrentAnalogValueChanceUnitTests()
 io.write("----------------------------------------------------------------------------------\n\n")
 io.write("Running addOrSubtractFromSpecificAnalogValueChance() unit tests:\n\n")

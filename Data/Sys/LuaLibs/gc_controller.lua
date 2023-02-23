@@ -16,6 +16,27 @@ function checkProbability(probability, functionExample)
 	return probability
 end
 
+function checkIfEventHappened(probability, functionName)
+	if probability < 0.0 then
+		error("Error: probability passed into gc_controller:" .. tostring(functionName) .. " function was less than 0!")
+	end
+	
+	if probability > 100.0 then
+		error("Error: probability passed into gc_controller:" .. tostring(functionName) .. " function was more than 100!")
+	end
+	
+	local localEventHappened
+	if (probability == 0.0) then
+		localEventHappened = false
+	elseif (probability == 100.0) then
+		localEventHappened = true
+	else
+		localEventHappened = ((probability / 100.0) >= math.random())
+	end
+	
+	return localEventHappened
+end
+
 function isDigitalButton(standardizedButtonName)
 	if standardizedButtonName == "A" or standardizedButtonName == "B" or standardizedButtonName == "X" or standardizedButtonName == "Y"
 	or standardizedButtonName == "Z" or standardizedButtonName == "L" or standardizedButtonName == "R" or standardizedButtonName == "dPadUp"
@@ -162,46 +183,21 @@ function GcControllerLuaLibrary:addInputs(portNumber, controllerValuesTable)
 end
 
 
-ProbabilityOfAlteringGCButtonClass = {probability = 0.0, buttonName = "", eventHappened = false, functionName = ""}
+ProbabilityOfAlteringGCButtonClass = {}
 
-function ProbabilityOfAlteringGCButtonClass:new(o, probability, buttonName, functionName)
-	o = o or {}
-	setmetatable(o, self)
+function ProbabilityOfAlteringGCButtonClass:new(obj)
+	obj = obj or {}
 	self.__index = self
-	self.probability = probability
-	self.buttonName = buttonName
-	self.functionName = functionName
-	if (probability < 0.0) then
-		error("Error: probability passed into gc_controller function was less than 0!")
-	end
-	
-	if (probability > 100.0) then
-		error("Error: probability passed into gc_controller:" .. functionName .. " function was greater than 100!")
-	end
-	
-	if (probability == 0.0) then
-		self.eventHappened = false
-	elseif (probability == 100.0) then
-		self.eventHappened = true
-	else
-		self.eventHappened = ((probability / 100.0) >= math.random())
-	end
-	return o
+	return setmetatable(obj, self)
 end
 
 function ProbabilityOfAlteringGCButtonClass:applyProbability(inputtedControllerState)
-	error("Error; the applyProbability() function needs to be overwritten by subclasses of the ProbabilityOfAlteringGCButtonClass class")
+	error("Error: the applyProbability() function needs to be overwritten by subclasses of the ProbabilityOfAlteringGCButtonClass class")
 	return nil
 end
 
-AddButtonFlipProbabilityClass = ProbabilityOfAlteringGCButtonClass:new(nil, 0.0, 0.00, 0.0)
 
-function AddButtonFlipProbabilityClass:new(o, probability, buttonName)
-	o = o or ProbabilityOfAlteringGCButtonClass:new(nil, probability, buttonName, "AddButtonFlipChance")
-	setmetatable(o, self)
-	self.__index = self
-	return o
-end
+AddButtonFlipProbabilityClass = ProbabilityOfAlteringGCButtonClass:new()
 
 function AddButtonFlipProbabilityClass:applyProbability(inputtedControllerState)
 	if not self.eventHappened then
@@ -211,14 +207,8 @@ function AddButtonFlipProbabilityClass:applyProbability(inputtedControllerState)
 	return inputtedControllerState
 end
 
-AddButtonPressProbabilityClass = ProbabilityOfAlteringGCButtonClass:new(nil, 0.0, 0.0, 0.0)
 
-function AddButtonPressProbabilityClass:new(o, probability, buttonName)
-	o = o or ProbabilityOfAlteringGCButtonClass:new(nil, probability, buttonName, "addButtonPressChance")
-	setmetatable(o,  self)
-	self.__index = self
-	return o
-end
+AddButtonPressProbabilityClass = ProbabilityOfAlteringGCButtonClass:new()
 
 function AddButtonPressProbabilityClass:applyProbability(inputtedControllerState)
 	if not self.eventHappened then
@@ -228,14 +218,8 @@ function AddButtonPressProbabilityClass:applyProbability(inputtedControllerState
 	return inputtedControllerState
 end
 
-AddButtonReleaseProbabilityClass = ProbabilityOfAlteringGCButtonClass:new(nil, 0.0, 0.0, 0.0)
 
-function AddButtonReleaseProbabilityClass:new(o, probability, buttonName)
-	o = o or ProbabilityOfAlteringGCButtonClass:new(nil, probability, buttonName, "addButtonReleaseChance")
-	setmetatable(o, self)
-	self.__index = self
-	return o
-end
+AddButtonReleaseProbabilityClass = ProbabilityOfAlteringGCButtonClass:new()
 
 function AddButtonReleaseProbabilityClass:applyProbability(inputtedControllerState)
 	if not self.eventHappened then
@@ -245,28 +229,7 @@ function AddButtonReleaseProbabilityClass:applyProbability(inputtedControllerSta
 	return inputtedControllerState
 end
 
-AddOrSubtractFromCurrentAnalogValueProbabilityClass = ProbabilityOfAlteringGCButtonClass:new(nil, 0.0, 0.0, 0.0)
-
-function AddOrSubtractFromCurrentAnalogValueProbabilityClass:new(o, probability, buttonName, ...)
-	args = {...}
-	o = o or ProbabilityOfAlteringGCButtonClass:new(nil, probability, buttonName, "addOrSubtractFromCurrentAnalogValueChance")
-	setmetatable(o, self)
-	self.__index = self
-	if args.n == 1 then
-		self.maxToSubtract = args[1]
-		self.maxToAdd = args[1]
-	else
-		self.maxToSubtract = args[1]
-		self.maxToAdd = args[2]
-	end
-	
-	if self.maxToSubtract == self.maxToAdd then
-		self.amountToChangeInputBy = 0
-	else
-		self.amountToChangeInputBy = math.random(self.maxToSubtract * -1, self.maxToAdd)
-	end
-	return o
-end
+AddOrSubtractFromCurrentAnalogValueProbabilityClass = ProbabilityOfAlteringGCButtonClass:new()
 
 function AddOrSubtractFromCurrentAnalogValueProbabilityClass:applyProbability(inputtedControllerState)
 	if not self.eventHappened then
@@ -284,38 +247,7 @@ function AddOrSubtractFromCurrentAnalogValueProbabilityClass:applyProbability(in
 	return inputtedControllerState
 end
 
-AddOrSubtractFromSpecificAnalogValueProbabilityClass = ProbabilityOfAlteringGCButtonClass:new(nil, 0.0, 0.0, 0.0)
-
-function AddOrSubtractFromSpecificAnalogValueProbabilityClass:new(o, probability, buttonName, baseValue, ...)
-	args = {...}
-	o = o or ProbabilityOfAlteringGCButtonClass:new(nil, probability, buttonName, "addOrSubtractFromSpecificAnalogValueChance")
-	setmetatable(o, self)
-	self.__index = self
-	self.baseValue = baseValue
-	
-	if args.n == 1 then
-		self.maxToSubtract = args[1]
-		self.maxToAdd = args[1]
-	else
-		self.maxToSubtract = args[1]
-		self.maxToAdd = args[2]
-	end
-	
-	if self.maxToSubtract == self.maxToAdd then
-		self.amountToChangeInputBy = 0
-	else
-		self.amountToChangeInputBy = math.random(self.maxToSubtract * -1, self.maxToAdd)
-	end
-	
-	if self.baseValue + self.amountToChangeInputBy < 0 then
-		self.finalAnalogValue = 0
-	elseif self.baseValue + self.amountToChangeInputBy > 255 then
-		self.finalAnalogValue = 255
-	else
-		self.finalAnalogValue = self.baseValue + self.amountToChangeInputBy
-	end
-	return o
-end
+AddOrSubtractFromSpecificAnalogValueProbabilityClass = ProbabilityOfAlteringGCButtonClass:new()
 
 function AddOrSubtractFromSpecificAnalogValueProbabilityClass:applyProbability(inputtedControllerState)
 	if not self.eventHappened then
@@ -348,20 +280,7 @@ function clearControllerStateToDefaultValues(inputtedControllerState)
 	return inputtedControllerState
 end
 
-AddButtonComboProbabilityClass = ProbabilityOfAlteringGCButtonClass:new(nil, 0.0, 0.0, 0.0)
-
-function AddButtonComboProbabilityClass:new(o, probability, newButtonsTable, shouldSetUnspecifiedInputsToDefaultValues)
-	o = o or ProbabilityOfAlteringGCButtonClass:new(nil, probability, "", "addButtonComboChance")
-	setmetatable(o, self)
-	self.__index = self
-	self.newButtonsTable = newButtonsTable
-	for key, value in pairs(self.newButtonsTable) do
-		print("In constructor for AddButtonComboProbabilityClass, with key of " .. key .. ", and value of " .. tostring(value))
-	end
-	print("At end of constructor...")
-	self.shouldSetUnspecifiedInputsToDefaultValues = shouldSetUnspecifiedInputsToDefaultValues
-	return o
-end
+AddButtonComboProbabilityClass = ProbabilityOfAlteringGCButtonClass:new()
 
 function AddButtonComboProbabilityClass:applyProbability(inputtedControllerState)
 	if not self.eventHappened then
@@ -373,22 +292,13 @@ function AddButtonComboProbabilityClass:applyProbability(inputtedControllerState
 	end
 	
 	for key, value in pairs(self.newButtonsTable) do
-		print("At line 372, key of " .. key .. ", and value of " .. tostring(value) .. "\n")
 		inputtedControllerState[key] = value	
 	end
-	print("Finished table!")
 	
 	return inputtedControllerState
 end
 
-AddControllerClearProbabilityClass = ProbabilityOfAlteringGCButtonClass:new(nil, 0.0, 0.0)
-
-function AddControllerClearProbabilityClass:new(o, probability)
-	o = o or ProbabilityOfAlteringGCButtonClass:new(nil, probability, "", "addControllerClearChance")
-	setmetatable(o, self)
-	self.__index = self
-	return o
-end
+AddControllerClearProbabilityClass = ProbabilityOfAlteringGCButtonClass:new()
 
 function AddControllerClearProbabilityClass:applyProbability(inputtedControllerState)
 	if not self.eventHappened then
@@ -418,10 +328,8 @@ function applyRequestedInputAlterFunctions()
 	end
 	
 	for key, inputProbabilityEvent in pairs(gc_controller.probability_controller_change_input_list[currentPortNumber]) do
-		print("In alter function with key of " .. tostring(key))
 		currentControllerInput = inputProbabilityEvent:applyProbability(currentControllerInput)
 	end
-	print("At end of applyRequestedInputAlterFunctions()")
 	gcController:setInputsForPoll(currentControllerInput)
 end
 
@@ -459,7 +367,8 @@ function GcControllerLuaLibrary:addButtonFlipChance(portNumber, probability, but
 	if not isDigitalButton(buttonName) then
 		error("Error: in gc_controller:" .. exampleFunctionCall .. ", " .. buttonName .. " was not a digital button")
 	end
-	table.insert(self.probability_controller_change_input_list[portNumber], AddButtonFlipProbabilityClass:new(nil, probability, buttonName))
+	eventHappened = checkIfEventHappened(probability, exampleFunctionCall)
+	table.insert(self.probability_controller_change_input_list[portNumber], AddButtonFlipProbabilityClass:new({["probability"] = probability, ["buttonName"] = buttonName, ["eventHappened"] = eventHappened}))
 end
 
 
@@ -471,7 +380,8 @@ function GcControllerLuaLibrary:addButtonPressChance(portNumber, probability, bu
 	if not isDigitalButton(buttonName) then
 		error("Error: in gc_controller:" .. exampleFunctionCall .. ", " .. buttonName .. " was not a digital button")
 	end
-	table.insert(self.probability_controller_change_input_list[portNumber], AddButtonPressProbabilityClass:new(nil, probability, buttonName))
+	eventHappened = checkIfEventHappened(probability, exampleFunctionCall)
+	table.insert(self.probability_controller_change_input_list[portNumber], AddButtonPressProbabilityClass:new({["probability"] = probability, ["buttonName"] = buttonName, ["eventHappened"] = eventHappened}))
 end
 
 
@@ -483,7 +393,8 @@ function GcControllerLuaLibrary:addButtonReleaseChance(portNumber, probability, 
 	if not isDigitalButton(buttonName) then
 		error("Error: in gc_controller:" .. exampleFunctionCall .. ", " .. buttonName .. " was not a digital button")
 	end
-	table.insert(self.probability_controller_change_input_list[portNumber], AddButtonReleaseProbabilityClass:new(nil, probability, buttonName))
+	eventHappened = checkIfEventHappened(probability, exampleFunctionCall)
+	table.insert(self.probability_controller_change_input_list[portNumber], AddButtonReleaseProbabilityClass:new({["probability"] = probability, ["buttonName"] = buttonName, ["eventHappened"] = eventHappened}))
 end
 
 
@@ -523,7 +434,14 @@ function GcControllerLuaLibrary:addOrSubtractFromCurrentAnalogValueChance(portNu
 	if not isAnalogButton(buttonName) then
 		error("Error: in gc_controller:" .. exampleFunctionCall .. ", " .. buttonName .. " was not an analog button")
 	end
-	table.insert(self.probability_controller_change_input_list[portNumber], AddOrSubtractFromCurrentAnalogValueProbabilityClass:new(nil, probability, buttonName, maxToSubtract, maxToAdd))
+	eventHappened = checkIfEventHappened(probability, exampleFunctionCall)
+	amountToChangeInputBy = 0
+	if maxToSubtract == maxToAdd then
+		amountToChangeInputBy = 0
+	else
+		amountToChangeInputBy = math.random(maxToSubtract * -1, maxToAdd)
+	end
+	table.insert(self.probability_controller_change_input_list[portNumber], AddOrSubtractFromCurrentAnalogValueProbabilityClass:new({["probability"] = probability, ["buttonName"] = buttonName, ["eventHappened"] = eventHappened, ["maxToSubtract"] = maxToSubtract, ["maxToAdd"] = maxToAdd, ["amountToChangeInputBy"] = amountToChangeInputBy}))
 end
 
 
@@ -569,7 +487,24 @@ function GcControllerLuaLibrary:addOrSubtractFromSpecificAnalogValueChance(portN
 	if not isAnalogButton(buttonName) then
 		error("Error: in gc_controller:" .. exampleFunctionCall .. ", " .. buttonName .. " was not an analog button")
 	end
-	table.insert(self.probability_controller_change_input_list[portNumber], AddOrSubtractFromSpecificAnalogValueProbabilityClass:new(nil, probability, buttonName, baseValue, maxToSubtract, maxToAdd))
+	eventHappened = checkIfEventHappened(probability, exampleFunctionCall)
+	
+	amountToChangeInputBy = 0
+	finalAnalogValue = 0
+	if maxToSubtract == maxToAdd then
+		amountToChangeInputBy = 0
+	else
+		amountToChangeInputBy = math.random(maxToSubtract * -1, maxToAdd)
+	end
+	
+	if baseValue + amountToChangeInputBy < 0 then
+		finalAnalogValue = 0
+	elseif baseValue + amountToChangeInputBy > 255 then
+		finalAnalogValue = 255
+	else
+		finalAnalogValue = baseValue + amountToChangeInputBy
+	end
+	table.insert(self.probability_controller_change_input_list[portNumber], AddOrSubtractFromSpecificAnalogValueProbabilityClass:new({["probability"] = probability, ["buttonName"] = buttonName, ["eventHappened"] = eventHappened, ["maxToSubtraxt"] = maxToSubtract, ["maxToAdd"] = maxToAdd, ["baseValue"] = baseValue, ["amountToChangeInputBy"] = amountToChangeInputBy, ["finalAnalogValue"] = finalAnalogValue}))
 end
 
 
@@ -578,11 +513,8 @@ function GcControllerLuaLibrary:addButtonComboChance(portNumber, probability, ne
 	checkPortNumber(portNumber, exampleFunctionCall)
 	probability = checkProbability(probability, exampleFunctionCall)
 	newButtonTable = checkAndStandardizeButtonTable(newButtonTable, exampleFunctionCall)
-	for key, value in pairs(newButtonTable) do 
-		print("Table in addButtonComboChance() has key of " .. key .. ", and value of " .. tostring(value))
-	end
-	print("END OF LIST!")
-	table.insert(self.probability_controller_change_input_list[portNumber], AddButtonComboProbabilityClass:new(nil, probability, newButtonTable, shouldSetUnspecifiedInputsToDefaultValues))
+	eventHappened = checkIfEventHappened(probability, exampleFunctionCall)
+	table.insert(self.probability_controller_change_input_list[portNumber], AddButtonComboProbabilityClass:new({["probability"] = probability, ["buttonName"] = "", ["eventHappened"] = eventHappened, ["newButtonsTable"] = newButtonTable, ["shouldSetUnspecifiedInputsToDefaultValues"] = shouldSetUnspecifiedInputsToDefaultValues}))
 end
 
 
@@ -590,7 +522,8 @@ function GcControllerLuaLibrary:addControllerClearChance(portNumber, probability
 	exampleFunctionCall = "addControllerClearChance(portNumber, probability)"
 	checkPortNumber(portNumber, exampleFunctionCall)
 	probability = checkProbability(probability, exampleFunctionCall)
-	table.insert(self.probability_controller_change_input_list[portNumber], AddControllerClearProbabilityClass:new(nil, probability))
+	eventHappened = checkIfEventHappened(probability, exampleFunctionCall)
+	table.insert(self.probability_controller_change_input_list[portNumber], AddControllerClearProbabilityClass:new({["probability"] = probability, ["buttonName"] = "", ["eventHappened"] = eventHappened}))
 end
 
 function GcControllerLuaLibrary:getControllerInputsForPreviousFrame(portNumber)
