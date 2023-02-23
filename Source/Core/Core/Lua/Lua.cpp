@@ -7,6 +7,7 @@
 #include "Core/Lua/LuaFunctions/LuaImportModule.h"
 #include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
 #include "Core/Lua/LuaHelperClasses/LuaStateToScriptContextMap.h"
+#include "Common/FileUtil.h"
 #include "Core/Movie.h"
 
 namespace Lua
@@ -113,8 +114,9 @@ void Init(const std::string& script_location,
   const std::lock_guard<std::mutex> lock(lua_initialization_and_destruction_lock);
   lua_State* new_main_lua_state = luaL_newstate();
   luaL_openlibs(new_main_lua_state);
-  luaL_dostring(new_main_lua_state, "package.path = package.path .. ';/Load/LuaLibs/?.lua;Data/Sys/LuaLibs/?.lua;'");
-
+  std::string executionString = (std::string("package.path = package.path .. ';") + File::GetUserPath(D_LOAD_IDX) + "LuaLibs/?.lua;" + File::GetSysDirectory() + "LuaLibs/?.lua;'");
+  std::replace(executionString.begin(), executionString.end(), '\\', '/');
+  luaL_dostring(new_main_lua_state, executionString.c_str());
   if (!is_lua_core_initialized)
   {
     state_to_script_context_map =
