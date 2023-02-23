@@ -45,9 +45,9 @@ endif()
 
 # Enforce minimium compiler versions that support the c++20 features we use
 set (GCC_min_version 10)
-set (Clang_min_version 11)
-set (AppleClang_min_version 12.0.5)
-set (min_xcode_version "12.5.1") # corrosponding xcode version for AppleClang_min_version
+set (Clang_min_version 12)
+set (AppleClang_min_version 13.0.0)
+set (min_xcode_version "13.0") # corrosponding xcode version for AppleClang_min_version
 set (MSVC_min_version 14.32)
 set (min_vs_version "2022 17.2.3") # corrosponding Visual Studio version for MSVC_min_version
 
