@@ -197,13 +197,15 @@ void StopScript(int unique_identifier)
 {
   lua_initialization_and_destruction_lock.lock();
   Lua::LuaOnFrameStartCallback::frame_start_lock.lock();
+  Lua::LuaOnGCControllerPolled::gc_controller_polled_lock.lock();
   for (int i = 0; i < list_of_lua_script_contexts.size(); ++i)
   {
     if (list_of_lua_script_contexts[i].get()->unique_script_identifier == unique_identifier)
     {
       LuaScriptContext* script_context_to_delete = list_of_lua_script_contexts[i].get();
-      script_context_to_delete->lua_script_specific_lock.lock(); // permanently locking the script so it can't be called again (should be impossible to try to call it, however)
+      script_context_to_delete->lua_script_specific_lock.lock();
       script_context_to_delete->is_lua_script_active = false;
+      script_context_to_delete->lua_script_specific_lock.unlock();
 
       if (state_to_script_context_map.get()->lua_state_to_script_context_pointer_map.count(
               script_context_to_delete->main_lua_thread) > 0)
@@ -233,6 +235,7 @@ void StopScript(int unique_identifier)
       list_of_lua_script_contexts.erase(list_of_lua_script_contexts.begin() + i);
     }
   }
+  Lua::LuaOnGCControllerPolled::gc_controller_polled_lock.unlock();
   Lua::LuaOnFrameStartCallback::frame_start_lock.unlock();
   lua_initialization_and_destruction_lock.unlock();
 }
