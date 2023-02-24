@@ -193,6 +193,13 @@ std::string GetCurrentDir();
 bool Copy(std::string_view source_path, std::string_view dest_path,
           bool overwrite_existing = false);
 
+// Moves source_path to dest_path. On success, the source_path will no longer exist, and the
+// dest_path will contain the data previously in source_path. Files in dest_path will be overwritten
+// if they match files in source_path, but files that only exist in dest_path will be kept. No
+// guarantee on the state is given on failure; the move may have completely failed or partially
+// completed.
+bool MoveWithOverwrite(std::string_view source_path, std::string_view dest_path);
+
 // Create directory and copy contents (optionally overwrites existing files)
 bool CopyDir(const std::string& source_path, const std::string& dest_path,
              bool destructive = false);

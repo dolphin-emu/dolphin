@@ -558,6 +558,58 @@ bool Copy(std::string_view source_path, std::string_view dest_path, bool overwri
   return true;
 }
 
+static bool MoveWithOverwrite(const std::filesystem::path& src, const std::filesystem::path& dst,
+                              std::error_code& error)
+{
+  fs::rename(src, dst, error);
+  if (!error)
+    return true;
+
+  // rename failed, try fallbacks
+
+  if (!fs::is_directory(src))
+  {
+    // src is not a directory (ie, probably a file), try to copy file + delete
+    if (!fs::copy_file(src, dst, fs::copy_options::overwrite_existing, error))
+      return false;
+    if (!fs::remove(src, error))
+      return false;
+    return true;
+  }
+
+  // src is a directory, recurse into it and try to move all sub-elements one by one
+  // this usually happens because the target is a non-empty directory
+  for (fs::directory_iterator it(src, error); it != fs::directory_iterator(); it.increment(error))
+  {
+    if (error)
+      return false;
+    if (!MoveWithOverwrite(it->path(), dst / it->path().filename(), error))
+      return false;
+  }
+  if (error)
+    return false;
+
+  // all sub-elements moved, remove top directory
+  if (!fs::remove(src, error))
+    return false;
+
+  return true;
+}
+
+bool MoveWithOverwrite(std::string_view source_path, std::string_view dest_path)
+{
+  DEBUG_LOG_FMT(COMMON, "{}: {} --> {}", __func__, source_path, dest_path);
+  auto src_path = StringToPath(source_path);
+  auto dst_path = StringToPath(dest_path);
+  std::error_code error;
+  if (!MoveWithOverwrite(src_path, dst_path, error))
+  {
+    ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: {}", __func__, source_path, dest_path,
+                  error.message());
+  }
+  return true;
+}
+
 // Create directory and copy contents (optionally overwrites existing files)
 bool CopyDir(const std::string& source_path, const std::string& dest_path, const bool destructive)
 {
