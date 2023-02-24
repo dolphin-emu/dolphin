@@ -60,6 +60,6 @@ external_irq:
 
 ; Expected result ($AX0.H (send_back num), $AX1.H, and $SR):
 ; 1, 1, 2024 (start)
-; 3, 3, 2025 (in interrupt handler - note that the interrupt happens after two LRIS instructions)
+; 3, 3, 2825 (in interrupt handler - note that the interrupt happens after two LRIS instructions)
 ; 2, 6, 3825 (the remaining LRIS instructions execute)
 ; DSPSpy shows "interrupt after 131054 ticks / 37414 tries" (exact numbers vary but are close)

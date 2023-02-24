@@ -20,7 +20,7 @@ test_main:
 	SBCLR #5
 	SBCLR #6
 
-	LRI $AX1.H, #1
+	LRIS $AX1.H, #1
 
 	LRIS $AX0.H, #1
 	CALL send_back
@@ -60,6 +60,6 @@ external_irq:
 
 ; Expected result ($AX0.H (send_back num), $AX1.H, and $SR):
 ; 1, 1, 2024 (start)
-; 3, 2, 2025 (in interrupt handler - note that the interrupt happens after one LRI instruction)
+; 3, 2, 2825 (in interrupt handler - note that the interrupt happens after one LRI instruction)
 ; 2, 6, 3825 (the remaining LRI instructions execute)
 ; DSPSpy shows "interrupt after 131054 ticks / 37414 tries" (exact numbers vary but are close)
