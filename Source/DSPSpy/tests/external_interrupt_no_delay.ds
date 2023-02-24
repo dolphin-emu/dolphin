@@ -60,7 +60,7 @@ external_irq:
 	CALL send_back
 	RTI
 
-; Expected result ($AX0.H (send_back num), $AR0, and $SR):
+; Expected result ($AX0.H (send_back num), $AX1.H, and $SR):
 ; 1, 1, 2024 (start)
 ; 3, 1, 2020 (in interrupt handler)
 ; 2, 6, 3825 (end)
