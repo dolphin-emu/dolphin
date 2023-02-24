@@ -1,5 +1,6 @@
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
 
+#include "Core/Scripting/LuaScriptContext.h" // TODO: Remove this.
 #include <fmt/format.h>
 #include "Core/Lua/LuaVersionResolver.h"
 
@@ -359,7 +360,19 @@ int GetInputsForPoll(lua_State* lua_state)
 
 int GetInputsForPreviousFrame(lua_State* lua_state)
 {
+  LuaScriptContext l = LuaScriptContext();
+  int cNum = l.GetIntArgumentAtIndex(2, lua_state, "gcController", "getInputsForPreviousFrame");
   const char* func_name = "GetInputsForPreviousFrame";
+
+  if (cNum)
+  {
+    func_name = "ab";
+  }
+  else
+  {
+    func_name = "cd";
+  }
+
   LuaColonOperatorTypeCheck(lua_state, class_name, func_name, "(1)");
   s64 controller_port_number = luaL_checkinteger(lua_state, 2);
   if (controller_port_number < 1 || controller_port_number > 4)

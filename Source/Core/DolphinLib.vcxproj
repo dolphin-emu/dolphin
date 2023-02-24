@@ -89,6 +89,8 @@
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaVersionComparisonFunctions.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\NumberType.h" />
     <ClInclude Include="Core\Lua\LuaVersionResolver.h" />
+    <ClInclude Include="Core\Scripting\LuaScriptContext.h" />
+    <ClInclude Include="Core\Scripting\ScriptContext.h" />
     <ClInclude Include="DolphinQt\ThreadSafeIntQueue.h" />
   </ItemGroup>
   <ItemGroup>
