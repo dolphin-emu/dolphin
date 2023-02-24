@@ -610,29 +610,6 @@ bool MoveWithOverwrite(std::string_view source_path, std::string_view dest_path)
   return true;
 }
 
-// Create directory and copy contents (optionally overwrites existing files)
-bool CopyDir(const std::string& source_path, const std::string& dest_path, const bool destructive)
-{
-  auto src_path = StringToPath(source_path);
-  auto dst_path = StringToPath(dest_path);
-  if (fs::equivalent(src_path, dst_path))
-    return true;
-
-  DEBUG_LOG_FMT(COMMON, "{}: {} --> {}", __func__, source_path, dest_path);
-
-  auto options = fs::copy_options::recursive;
-  if (destructive)
-    options |= fs::copy_options::overwrite_existing;
-  std::error_code error;
-  bool copied = fs::copy_file(src_path, dst_path, options, error);
-  if (!copied)
-  {
-    ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: {}", __func__, source_path, dest_path,
-                  error.message());
-  }
-  return copied;
-}
-
 // Returns the current directory
 std::string GetCurrentDir()
 {

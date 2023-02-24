@@ -200,10 +200,6 @@ bool Copy(std::string_view source_path, std::string_view dest_path,
 // completed.
 bool MoveWithOverwrite(std::string_view source_path, std::string_view dest_path);
 
-// Create directory and copy contents (optionally overwrites existing files)
-bool CopyDir(const std::string& source_path, const std::string& dest_path,
-             bool destructive = false);
-
 // Set the current directory to given directory
 bool SetCurrentDir(const std::string& directory);
 
