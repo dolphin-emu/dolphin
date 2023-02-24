@@ -197,7 +197,7 @@ static void MoveToBackupIfExists(const std::string& path)
 {
   if (File::Exists(path))
   {
-    const std::string backup_path = path.substr(0, path.size() - 1) + ".backup" DIR_SEP;
+    const std::string backup_path = path.substr(0, path.size() - 1) + ".backup";
     WARN_LOG_FMT(IOS_FS, "Temporary directory at {} exists, moving to backup...", path);
 
     // If backup exists, delete it as we don't want a mess
@@ -207,7 +207,7 @@ static void MoveToBackupIfExists(const std::string& path)
       File::DeleteDirRecursively(backup_path);
     }
 
-    File::CopyDir(path, backup_path, true);
+    File::MoveWithOverwrite(path, backup_path);
   }
 }
 
@@ -399,7 +399,10 @@ void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
 
   // copy back the temp nand redirected files to where they should normally be redirected to
   for (const auto& redirect : s_temp_nand_redirects)
-    File::CopyDir(redirect.temp_path, redirect.real_path + "/", true);
+  {
+    File::CreateFullPath(redirect.real_path);
+    File::MoveWithOverwrite(redirect.temp_path, redirect.real_path);
+  }
 
   IOS::HLE::EmulationKernel* ios = IOS::HLE::GetIOS();
 
