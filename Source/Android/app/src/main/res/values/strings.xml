@@ -2,7 +2,7 @@
 <resources>
 
     <!-- Title of the app -->
-    <string name="app_name">Dolphin Emulator</string>
+    <string name="app_name" i18n="App name in top app bar">Dolphin Emulator</string>
     <string name="host" translatable="false">app</string>
     <string name="scheme" translatable="false">dolphinemu</string>
 
