@@ -180,7 +180,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:textAlignment="viewStart"
-            android:text="@string/game_details_compression"
+            android:text="@string/compression"
             android:textColor="@color/dolphin_onSurface"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/label_file_format" />
@@ -191,7 +191,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:textAlignment="viewStart"
-            android:text="@string/game_details_block_size"
+            android:text="@string/block_size"
             android:textColor="@color/dolphin_onSurface"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/label_compression" />

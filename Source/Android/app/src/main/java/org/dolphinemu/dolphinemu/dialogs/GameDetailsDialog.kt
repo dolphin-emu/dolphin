@@ -65,7 +65,7 @@ class GameDetailsDialog : DialogFragment() {
                     )
 
                     if (compression.isEmpty()) {
-                        textCompression.setText(R.string.game_details_no_compression)
+                        textCompression.setText(R.string.compression_none)
                     } else {
                         textCompression.text = gameFile.compressionMethod
                     }
@@ -117,7 +117,7 @@ class GameDetailsDialog : DialogFragment() {
                     )
 
                     if (compression.isEmpty()) {
-                        textCompression.setText(R.string.game_details_no_compression)
+                        textCompression.setText(R.string.compression_none)
                     } else {
                         textCompression.text = gameFile.compressionMethod
                     }

@@ -87,7 +87,7 @@ class CheatsAdapter(
         var itemPosition = position
         if (itemPosition == 0) return CheatItem(
             CheatItem.TYPE_HEADER,
-            R.string.cheats_header_graphics_mod
+            R.string.menu_gfx_mods
         )
         itemPosition -= 1
 

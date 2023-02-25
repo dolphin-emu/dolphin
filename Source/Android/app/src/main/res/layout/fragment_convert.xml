@@ -27,7 +27,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:hint="@string/convert_block_size"
+        android:hint="@string/block_size"
         android:enabled="false"
         app:layout_constraintTop_toBottomOf="@id/format">
 
@@ -45,7 +45,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:hint="@string/convert_compression"
+        android:hint="@string/compression"
         android:enabled="false"
         app:layout_constraintTop_toBottomOf="@id/block_size">
 
