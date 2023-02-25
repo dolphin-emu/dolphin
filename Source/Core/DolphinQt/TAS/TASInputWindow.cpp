@@ -112,11 +112,12 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
   auto* x_layout = new QHBoxLayout;
   x_value = CreateSliderValuePair(x_layout, x_default, max_x, x_shortcut_key_sequence,
                                   Qt::Horizontal, box);
+  x_value->setMaximumWidth(40);
 
   auto* y_layout = new QVBoxLayout;
   y_value =
       CreateSliderValuePair(y_layout, y_default, max_y, y_shortcut_key_sequence, Qt::Vertical, box);
-  y_value->setMaximumWidth(60);
+  y_value->setMaximumWidth(40);
 
   auto* visual = new StickWidget(this, max_x, max_y);
   visual->SetX(x_default);
