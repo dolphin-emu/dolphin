@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <unistd.h>
 
@@ -13,6 +12,7 @@
 
 #include <climits>
 #include <cstdio>
+#include <thread>
 
 #include <fcntl.h>
 #include <linux/fb.h>
@@ -22,7 +22,6 @@
 #include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
-#include "VideoCommon/RenderBase.h"
 
 namespace
 {

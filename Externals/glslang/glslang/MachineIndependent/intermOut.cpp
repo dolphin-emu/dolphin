@@ -2,6 +2,7 @@
 // Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
 // Copyright (C) 2012-2016 LunarG, Inc.
 // Copyright (C) 2017 ARM Limited.
+// Modifications Copyright (C) 2020 Advanced Micro Devices, Inc. All rights reserved.
 //
 // All rights reserved.
 //
@@ -35,7 +36,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 
-#ifndef GLSLANG_WEB
+#if !defined(GLSLANG_WEB) && !defined(GLSLANG_ANGLE)
 
 #include "localintermediate.h"
 #include "../Include/InfoSink.h"
@@ -47,37 +48,6 @@
 #endif
 #include <cstdint>
 
-namespace {
-
-bool IsInfinity(double x) {
-#ifdef _MSC_VER
-    switch (_fpclass(x)) {
-    case _FPCLASS_NINF:
-    case _FPCLASS_PINF:
-        return true;
-    default:
-        return false;
-    }
-#else
-    return std::isinf(x);
-#endif
-}
-
-bool IsNan(double x) {
-#ifdef _MSC_VER
-    switch (_fpclass(x)) {
-    case _FPCLASS_SNAN:
-    case _FPCLASS_QNAN:
-        return true;
-    default:
-        return false;
-    }
-#else
-  return std::isnan(x);
-#endif
-}
-
-}
 
 namespace glslang {
 
@@ -437,6 +407,9 @@ bool TOutputTraverser::visitUnary(TVisit /* visit */, TIntermUnary* node)
     case EOpConvUint64ToPtr:  out.debug << "Convert uint64_t to pointer";   break;
     case EOpConvPtrToUint64:  out.debug << "Convert pointer to uint64_t";   break;
 
+    case EOpConvUint64ToAccStruct: out.debug << "Convert uint64_t to acceleration structure"; break;
+    case EOpConvUvec2ToAccStruct:  out.debug << "Convert uvec2 to acceleration strucuture "; break;
+
     case EOpRadians:        out.debug << "radians";              break;
     case EOpDegrees:        out.debug << "degrees";              break;
     case EOpSin:            out.debug << "sine";                 break;
@@ -692,6 +665,10 @@ bool TOutputTraverser::visitUnary(TVisit /* visit */, TIntermUnary* node)
 
     case EOpConstructReference: out.debug << "Construct reference type"; break;
 
+#ifndef GLSLANG_WEB
+    case EOpSpirvInst: out.debug << "spirv_instruction"; break;
+#endif
+
     default: out.debug.message(EPrefixError, "Bad unary op");
     }
 
@@ -828,6 +805,7 @@ bool TOutputTraverser::visitAggregate(TVisit /* visit */, TIntermAggregate* node
     case EOpConstructTextureSampler: out.debug << "Construct combined texture-sampler"; break;
     case EOpConstructReference:  out.debug << "Construct reference";  break;
     case EOpConstructCooperativeMatrix:  out.debug << "Construct cooperative matrix";  break;
+    case EOpConstructAccStruct: out.debug << "Construct acceleration structure"; break;
 
     case EOpLessThan:         out.debug << "Compare Less Than";             break;
     case EOpGreaterThan:      out.debug << "Compare Greater Than";          break;
@@ -881,6 +859,7 @@ bool TOutputTraverser::visitAggregate(TVisit /* visit */, TIntermAggregate* node
     case EOpTime:                       out.debug << "time";                  break;
 
     case EOpAtomicAdd:                  out.debug << "AtomicAdd";             break;
+    case EOpAtomicSubtract:             out.debug << "AtomicSubtract";        break;
     case EOpAtomicMin:                  out.debug << "AtomicMin";             break;
     case EOpAtomicMax:                  out.debug << "AtomicMax";             break;
     case EOpAtomicAnd:                  out.debug << "AtomicAnd";             break;
@@ -1079,17 +1058,51 @@ bool TOutputTraverser::visitAggregate(TVisit /* visit */, TIntermAggregate* node
     case EOpSubpassLoadMS: out.debug << "subpassLoadMS"; break;
 
     case EOpTraceNV:                          out.debug << "traceNV"; break;
-    case EOpReportIntersectionNV:             out.debug << "reportIntersectionNV"; break;
+    case EOpTraceRayMotionNV:                 out.debug << "traceRayMotionNV"; break;
+    case EOpTraceKHR:                         out.debug << "traceRayKHR"; break;
+    case EOpReportIntersection:               out.debug << "reportIntersectionNV"; break;
     case EOpIgnoreIntersectionNV:             out.debug << "ignoreIntersectionNV"; break;
+    case EOpIgnoreIntersectionKHR:            out.debug << "ignoreIntersectionKHR"; break;
     case EOpTerminateRayNV:                   out.debug << "terminateRayNV"; break;
+    case EOpTerminateRayKHR:                  out.debug << "terminateRayKHR"; break;
     case EOpExecuteCallableNV:                out.debug << "executeCallableNV"; break;
+    case EOpExecuteCallableKHR:               out.debug << "executeCallableKHR"; break;
     case EOpWritePackedPrimitiveIndices4x8NV: out.debug << "writePackedPrimitiveIndices4x8NV"; break;
+
+    case EOpRayQueryInitialize:                                            out.debug << "rayQueryInitializeEXT"; break;
+    case EOpRayQueryTerminate:                                             out.debug << "rayQueryTerminateEXT"; break;
+    case EOpRayQueryGenerateIntersection:                                  out.debug << "rayQueryGenerateIntersectionEXT"; break;
+    case EOpRayQueryConfirmIntersection:                                   out.debug << "rayQueryConfirmIntersectionEXT"; break;
+    case EOpRayQueryProceed:                                               out.debug << "rayQueryProceedEXT"; break;
+    case EOpRayQueryGetIntersectionType:                                   out.debug << "rayQueryGetIntersectionTypeEXT"; break;
+    case EOpRayQueryGetRayTMin:                                            out.debug << "rayQueryGetRayTMinEXT"; break;
+    case EOpRayQueryGetRayFlags:                                           out.debug << "rayQueryGetRayFlagsEXT"; break;
+    case EOpRayQueryGetIntersectionT:                                      out.debug << "rayQueryGetIntersectionTEXT"; break;
+    case EOpRayQueryGetIntersectionInstanceCustomIndex:                    out.debug << "rayQueryGetIntersectionInstanceCustomIndexEXT"; break;
+    case EOpRayQueryGetIntersectionInstanceId:                             out.debug << "rayQueryGetIntersectionInstanceIdEXT"; break;
+    case EOpRayQueryGetIntersectionInstanceShaderBindingTableRecordOffset: out.debug << "rayQueryGetIntersectionInstanceShaderBindingTableRecordOffsetEXT"; break;
+    case EOpRayQueryGetIntersectionGeometryIndex:                          out.debug << "rayQueryGetIntersectionGeometryIndexEXT"; break;
+    case EOpRayQueryGetIntersectionPrimitiveIndex:                         out.debug << "rayQueryGetIntersectionPrimitiveIndexEXT"; break;
+    case EOpRayQueryGetIntersectionBarycentrics:                           out.debug << "rayQueryGetIntersectionBarycentricsEXT"; break;
+    case EOpRayQueryGetIntersectionFrontFace:                              out.debug << "rayQueryGetIntersectionFrontFaceEXT"; break;
+    case EOpRayQueryGetIntersectionCandidateAABBOpaque:                    out.debug << "rayQueryGetIntersectionCandidateAABBOpaqueEXT"; break;
+    case EOpRayQueryGetIntersectionObjectRayDirection:                     out.debug << "rayQueryGetIntersectionObjectRayDirectionEXT"; break;
+    case EOpRayQueryGetIntersectionObjectRayOrigin:                        out.debug << "rayQueryGetIntersectionObjectRayOriginEXT"; break;
+    case EOpRayQueryGetWorldRayDirection:                                  out.debug << "rayQueryGetWorldRayDirectionEXT"; break;
+    case EOpRayQueryGetWorldRayOrigin:                                     out.debug << "rayQueryGetWorldRayOriginEXT"; break;
+    case EOpRayQueryGetIntersectionObjectToWorld:                          out.debug << "rayQueryGetIntersectionObjectToWorldEXT"; break;
+    case EOpRayQueryGetIntersectionWorldToObject:                          out.debug << "rayQueryGetIntersectionWorldToObjectEXT"; break;
 
     case EOpCooperativeMatrixLoad:  out.debug << "Load cooperative matrix";  break;
     case EOpCooperativeMatrixStore:  out.debug << "Store cooperative matrix";  break;
     case EOpCooperativeMatrixMulAdd: out.debug << "MulAdd cooperative matrices"; break;
 
     case EOpIsHelperInvocation: out.debug << "IsHelperInvocation"; break;
+    case EOpDebugPrintf:  out.debug << "Debug printf";  break;
+
+#ifndef GLSLANG_WEB
+    case EOpSpirvInst: out.debug << "spirv_instruction"; break;
+#endif
 
     default: out.debug.message(EPrefixError, "Bad aggregation op");
     }
@@ -1295,6 +1308,9 @@ static void OutputConstantUnion(TInfoSink& out, const TIntermTyped* node, const 
                 out.debug << buf << "\n";
             }
             break;
+        case EbtString:
+            out.debug << "\"" << constUnion[i].getSConst()->c_str() << "\"\n";
+            break;
         default:
             out.info.message(EPrefixInternalError, "Unknown constant", node->getLoc());
             break;
@@ -1380,14 +1396,17 @@ bool TOutputTraverser::visitBranch(TVisit /* visit*/, TIntermBranch* node)
     OutputTreeText(out, node, depth);
 
     switch (node->getFlowOp()) {
-    case EOpKill:      out.debug << "Branch: Kill";           break;
-    case EOpBreak:     out.debug << "Branch: Break";          break;
-    case EOpContinue:  out.debug << "Branch: Continue";       break;
-    case EOpReturn:    out.debug << "Branch: Return";         break;
-    case EOpCase:      out.debug << "case: ";                 break;
-    case EOpDemote:    out.debug << "Demote";                 break;
-    case EOpDefault:   out.debug << "default: ";              break;
-    default:               out.debug << "Branch: Unknown Branch"; break;
+    case EOpKill:                   out.debug << "Branch: Kill";                  break;
+    case EOpTerminateInvocation:    out.debug << "Branch: TerminateInvocation";   break;
+    case EOpIgnoreIntersectionKHR:  out.debug << "Branch: IgnoreIntersectionKHR"; break;
+    case EOpTerminateRayKHR:        out.debug << "Branch: TerminateRayKHR";       break;
+    case EOpBreak:                  out.debug << "Branch: Break";                 break;
+    case EOpContinue:               out.debug << "Branch: Continue";              break;
+    case EOpReturn:                 out.debug << "Branch: Return";                break;
+    case EOpCase:                   out.debug << "case: ";                        break;
+    case EOpDemote:                 out.debug << "Demote";                        break;
+    case EOpDefault:                out.debug << "default: ";                     break;
+    default:                        out.debug << "Branch: Unknown Branch";        break;
     }
 
     if (node->getExpression()) {
@@ -1445,6 +1464,9 @@ void TIntermediate::output(TInfoSink& infoSink, bool tree)
 
     if (xfbMode)
         infoSink.debug << "in xfb mode\n";
+
+    if (getSubgroupUniformControlFlow())
+        infoSink.debug << "subgroup_uniform_control_flow\n";
 
     switch (language) {
     case EShLangVertex:
@@ -1536,4 +1558,4 @@ void TIntermediate::output(TInfoSink& infoSink, bool tree)
 
 } // end namespace glslang
 
-#endif // not GLSLANG_WEB
+#endif // !GLSLANG_WEB && !GLSLANG_ANGLE

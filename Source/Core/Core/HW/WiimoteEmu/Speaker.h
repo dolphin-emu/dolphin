@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -29,6 +28,8 @@ public:
 
   void Reset();
   void DoState(PointerWrap& p);
+
+  void SetSpeakerEnabled(bool enabled);
 
 private:
   // Pan is -1.0 to +1.0
@@ -65,13 +66,15 @@ private:
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
 
-  Register reg_data;
+  Register reg_data{};
 
   // TODO: What actions reset this state?
   // Is this actually in the register somewhere?
-  ADPCMState adpcm_state;
+  ADPCMState adpcm_state{};
 
   ControllerEmu::SettingValue<double> m_speaker_pan_setting;
+
+  bool m_speaker_enabled = false;
 };
 
 }  // namespace WiimoteEmu

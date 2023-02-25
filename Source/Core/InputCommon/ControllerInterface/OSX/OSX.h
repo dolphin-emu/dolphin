@@ -1,13 +1,11 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 namespace ciface::OSX
 {
-void Init(void* window);
-void PopulateDevices(void* window);
+void Init();
 void DeInit();
 
 void DeviceElementDebugPrint(const void*, void*);

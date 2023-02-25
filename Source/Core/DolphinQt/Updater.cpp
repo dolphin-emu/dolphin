@@ -1,8 +1,9 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Updater.h"
+
+#include <utility>
 
 #include <QCheckBox>
 #include <QDialog>
@@ -17,28 +18,30 @@
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/Settings.h"
 
-Updater::Updater(QWidget* parent) : m_parent(parent)
+// Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
+
+Updater::Updater(QWidget* parent, std::string update_track, std::string hash_override)
+    : m_parent(parent), m_update_track(std::move(update_track)),
+      m_hash_override(std::move(hash_override))
 {
   connect(this, &QThread::finished, this, &QObject::deleteLater);
 }
 
 void Updater::run()
 {
-  AutoUpdateChecker::CheckForUpdate();
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override,
+                                    AutoUpdateChecker::CheckType::Automatic);
 }
 
-bool Updater::CheckForUpdate()
+void Updater::CheckForUpdate()
 {
-  m_update_available = false;
-  AutoUpdateChecker::CheckForUpdate();
-
-  return m_update_available;
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override,
+                                    AutoUpdateChecker::CheckType::Manual);
 }
 
 void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 {
   bool later = false;
-  m_update_available = true;
 
   std::optional<int> choice = RunOnObject(m_parent, [&] {
     QDialog* dialog = new QDialog(m_parent);
@@ -50,7 +53,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
            "download. "
            "You are running %2.<br> Would you like to update?<br><h4>Release Notes:</h4>")
             .arg(QString::fromStdString(info.new_shortrev))
-            .arg(QString::fromStdString(Common::scm_desc_str)));
+            .arg(QString::fromStdString(Common::GetScmDescStr())));
     label->setTextFormat(Qt::RichText);
 
     auto* changelog = new QTextBrowser;

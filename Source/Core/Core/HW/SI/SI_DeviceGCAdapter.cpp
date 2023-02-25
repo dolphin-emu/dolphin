@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/SI/SI_DeviceGCAdapter.h"
 
@@ -8,7 +7,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/GCPad.h"
 #include "Core/NetPlayProto.h"
@@ -25,7 +24,7 @@ CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int device_number)
   // get the correct pad number that should rumble locally when using netplay
   const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
   if (pad_num < 4)
-    m_simulate_konga = SConfig::GetInstance().m_AdapterKonga[pad_num];
+    m_simulate_konga = Config::Get(Config::GetInfoForSimulateKonga(pad_num));
 }
 
 GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
@@ -39,7 +38,7 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
     pad_status = GCAdapter::Input(m_device_number);
   }
 
-  HandleMoviePadStatus(&pad_status);
+  HandleMoviePadStatus(m_device_number, &pad_status);
 
   // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
   // Watch for this to calibrate real controllers on connection.
@@ -81,9 +80,8 @@ bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
   return true;
 }
 
-void CSIDevice_GCController::Rumble(int pad_num, ControlState strength)
+void CSIDevice_GCController::Rumble(int pad_num, ControlState strength, SIDevices device)
 {
-  SIDevices device = SConfig::GetInstance().m_SIDevice[pad_num];
   if (device == SIDEVICE_WIIU_ADAPTER)
     GCAdapter::Output(pad_num, static_cast<u8>(strength));
   else if (SIDevice_IsGCController(device))

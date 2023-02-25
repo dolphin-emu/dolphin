@@ -1,36 +1,52 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include "DolphinQt/TAS/TASInputWindow.h"
 
-namespace WiimoteCommon
-{
-class DataReportBuilder;
-}
+#include "Core/HW/WiimoteEmu/ExtensionPort.h"
+
+class QGroupBox;
+class QHideEvent;
+class QShowEvent;
+class QSpinBox;
+class TASCheckBox;
 
 namespace WiimoteEmu
 {
-class EncryptionKey;
-}
+class Extension;
+class Wiimote;
+}  // namespace WiimoteEmu
 
-class QGroupBox;
-class QSpinBox;
-class TASCheckBox;
+namespace ControllerEmu
+{
+class Attachments;
+}
 
 class WiiTASInputWindow : public TASInputWindow
 {
   Q_OBJECT
 public:
   explicit WiiTASInputWindow(QWidget* parent, int num);
-  void GetValues(WiimoteCommon::DataReportBuilder& rpt, int ext,
-                 const WiimoteEmu::EncryptionKey& key);
+
+  void hideEvent(QHideEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
 private:
-  void UpdateExt(u8 ext);
+  WiimoteEmu::Wiimote* GetWiimote();
+  ControllerEmu::Attachments* GetAttachments();
+  WiimoteEmu::Extension* GetExtension();
+
+  void UpdateExt();
+
+  WiimoteEmu::ExtensionNumber m_active_extension;
   int m_num;
+
+  InputOverrider m_wiimote_overrider;
+  InputOverrider m_nunchuk_overrider;
+  InputOverrider m_classic_overrider;
+
   TASCheckBox* m_a_button;
   TASCheckBox* m_b_button;
   TASCheckBox* m_1_button;

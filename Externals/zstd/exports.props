@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)zstd\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)zstd\zstd.vcxproj">
+      <Project>{1bea10f3-80ce-4bc4-9331-5769372cdf99}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

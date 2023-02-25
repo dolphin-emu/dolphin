@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)soundtouch;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)soundtouch\SoundTouch.vcxproj">
+      <Project>{ec082900-b4d8-42e9-9663-77f02f6936ae}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

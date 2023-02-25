@@ -1,10 +1,11 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <memory>
+#include <string>
+#include <string_view>
 
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 #include "VideoCommon/AbstractFramebuffer.h"
@@ -29,8 +30,8 @@ public:
   };
 
   VKTexture() = delete;
-  VKTexture(const TextureConfig& tex_config, VkDeviceMemory device_memory, VkImage image,
-            VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED,
+  VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkImage image,
+            std::string_view name, VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED,
             ComputeImageLayout compute_layout = ComputeImageLayout::Undefined);
   ~VKTexture();
 
@@ -45,18 +46,17 @@ public:
                                 u32 dst_layer, u32 dst_level) override;
   void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
                           u32 layer, u32 level) override;
-  void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-            size_t buffer_size) override;
+  void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer, size_t buffer_size,
+            u32 layer) override;
   void FinishedRendering() override;
 
   VkImage GetImage() const { return m_image; }
-  VkDeviceMemory GetDeviceMemory() const { return m_device_memory; }
   VkImageView GetView() const { return m_view; }
   VkImageLayout GetLayout() const { return m_layout; }
   VkFormat GetVkFormat() const { return GetVkFormatForHostTextureFormat(m_config.format); }
-  bool IsAdopted() const { return m_device_memory != VkDeviceMemory(VK_NULL_HANDLE); }
+  bool IsAdopted() const { return m_alloc != VmaAllocation(VK_NULL_HANDLE); }
 
-  static std::unique_ptr<VKTexture> Create(const TextureConfig& tex_config);
+  static std::unique_ptr<VKTexture> Create(const TextureConfig& tex_config, std::string_view name);
   static std::unique_ptr<VKTexture>
   CreateAdopted(const TextureConfig& tex_config, VkImage image,
                 VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
@@ -73,17 +73,26 @@ public:
 private:
   bool CreateView(VkImageViewType type);
 
-  VkDeviceMemory m_device_memory;
+  VmaAllocation m_alloc;
   VkImage m_image;
   VkImageView m_view = VK_NULL_HANDLE;
   mutable VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
   mutable ComputeImageLayout m_compute_layout = ComputeImageLayout::Undefined;
+  std::string m_name;
 };
 
 class VKStagingTexture final : public AbstractStagingTexture
 {
+  struct PrivateTag
+  {
+  };
+
 public:
   VKStagingTexture() = delete;
+  VKStagingTexture(PrivateTag, StagingTextureType type, const TextureConfig& config,
+                   std::unique_ptr<StagingBuffer> buffer, VkImage linear_image,
+                   VmaAllocation linear_image_alloc);
+
   ~VKStagingTexture();
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
@@ -100,11 +109,17 @@ public:
   static std::unique_ptr<VKStagingTexture> Create(StagingTextureType type,
                                                   const TextureConfig& config);
 
+  static std::pair<VkImage, VmaAllocation> CreateLinearImage(StagingTextureType type,
+                                                             const TextureConfig& config);
+
 private:
-  VKStagingTexture(StagingTextureType type, const TextureConfig& config,
-                   std::unique_ptr<StagingBuffer> buffer);
+  void CopyFromTextureToLinearImage(const VKTexture* src_tex,
+                                    const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                    u32 src_level, const MathUtil::Rectangle<int>& dst_rect);
 
   std::unique_ptr<StagingBuffer> m_staging_buffer;
+  VkImage m_linear_image = VK_NULL_HANDLE;
+  VmaAllocation m_linear_image_alloc = VK_NULL_HANDLE;
   u64 m_flush_fence_counter = 0;
 };
 

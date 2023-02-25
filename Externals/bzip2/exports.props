@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)bzip2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)bzip2\bzip2.vcxproj">
+      <Project>{1d8c51d2-ffa4-418e-b183-9f42b6a6717e}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

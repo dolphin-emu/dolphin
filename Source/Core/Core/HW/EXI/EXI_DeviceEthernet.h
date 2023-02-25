@@ -1,10 +1,11 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <atomic>
+#include <map>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -15,6 +16,8 @@
 #include <SFML/Network.hpp>
 
 #include "Common/Flag.h"
+#include "Common/Network.h"
+#include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
@@ -202,6 +205,10 @@ enum class BBADeviceType
 {
   TAP,
   XLINK,
+#if defined(__APPLE__)
+  TAPSERVER,
+#endif
+  BuiltIn,
 };
 
 class CEXIETHERNET : public IEXIDevice
@@ -287,7 +294,6 @@ private:
     return ((u16)mBbaMem[index + 1] << 8) | mBbaMem[index];
   }
 
-  inline u8* ptr_from_page_ptr(int const index) const { return &mBbaMem[page_ptr(index) << 8]; }
   bool IsMXCommand(u32 const data);
   bool IsWriteCommand(u32 const data);
   const char* GetRegisterName() const;
@@ -297,9 +303,11 @@ private:
   void SendFromDirectFIFO();
   void SendFromPacketBuffer();
   void SendComplete();
+  void SendCompleteBack();
   u8 HashIndex(const u8* dest_eth_addr);
   bool RecvMACFilter();
   void inc_rwp();
+  void set_rwp(u16 value);
   bool RecvHandlePacket();
 
   std::unique_ptr<u8[]> mBbaMem;
@@ -337,7 +345,7 @@ private:
     void RecvStart() override;
     void RecvStop() override;
 
-  private:
+  protected:
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__)
     std::thread readThread;
@@ -355,6 +363,22 @@ private:
     int fd = -1;
 #endif
   };
+
+#if defined(__APPLE__)
+  class TAPServerNetworkInterface : public TAPNetworkInterface
+  {
+  public:
+    explicit TAPServerNetworkInterface(CEXIETHERNET* eth_ref) : TAPNetworkInterface(eth_ref) {}
+
+  public:
+    bool Activate() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+
+  private:
+    void ReadThreadHandler();
+  };
+#endif
 
   class XLinkNetworkInterface : public NetworkInterface
   {
@@ -383,16 +407,70 @@ private:
     bool m_bba_link_up = false;
     bool m_bba_failure_notified = false;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
-    defined(__OpenBSD__)
+    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     sf::UdpSocket m_sf_socket;
     sf::IpAddress m_sf_recipient_ip;
-    char m_in_frame[9004];
-    char m_out_frame[9004];
+    char m_in_frame[9004]{};
+    char m_out_frame[9004]{};
     std::thread m_read_thread;
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;
     static void ReadThreadHandler(XLinkNetworkInterface* self);
 #endif
+  };
+
+  class BuiltInBBAInterface : public NetworkInterface
+  {
+  public:
+    BuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip, std::string local_ip)
+        : NetworkInterface(eth_ref), m_dns_ip(std::move(dns_ip)), m_local_ip(std::move(local_ip))
+    {
+    }
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
+
+  private:
+    std::string m_mac_id;
+    std::string m_dns_ip;
+    bool m_active = false;
+    u16 m_ip_frame_id = 0;
+    u8 m_queue_read = 0;
+    u8 m_queue_write = 0;
+    std::array<std::vector<u8>, 16> m_queue_data;
+    std::mutex m_mtx;
+    std::string m_local_ip;
+    u32 m_current_ip = 0;
+    Common::MACAddress m_current_mac{};
+    u32 m_router_ip = 0;
+    Common::MACAddress m_router_mac{};
+    std::map<u32, Common::MACAddress> m_arp_table;
+    sf::TcpListener m_upnp_httpd;
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
+    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
+    std::array<StackRef, 10> network_ref{};  // max 10 at same time, i think most gc game had a
+                                             // limit of 8 in the gc framework
+    std::thread m_read_thread;
+    Common::Flag m_read_enabled;
+    Common::Flag m_read_thread_shutdown;
+    static void ReadThreadHandler(BuiltInBBAInterface* self);
+#endif
+    void WriteToQueue(const std::vector<u8>& data);
+    StackRef* GetAvailableSlot(u16 port);
+    StackRef* GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
+    std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref);
+
+    void HandleARP(const Common::ARPPacket& packet);
+    void HandleDHCP(const Common::UDPPacket& packet);
+    void HandleTCPFrame(const Common::TCPPacket& packet);
+    void InitUDPPort(u16 port);
+    void HandleUDPFrame(const Common::UDPPacket& packet);
+    void HandleUPnPClient();
+    const Common::MACAddress& ResolveAddress(u32 inet_ip);
   };
 
   std::unique_ptr<NetworkInterface> m_network_interface;

@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/GCKeyboardEmu.h"
 
@@ -76,9 +75,6 @@ GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
   groups.emplace_back(m_keys5x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys5)
     m_keys5x->AddInput(ControllerEmu::DoNotTranslate, key);
-
-  // options
-  groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
 }
 
 std::string GCKeyboard::GetName() const
@@ -102,8 +98,6 @@ ControllerEmu::ControlGroup* GCKeyboard::GetGroup(KeyboardGroup group)
     return m_keys4x;
   case KeyboardGroup::Kb5x:
     return m_keys5x;
-  case KeyboardGroup::Options:
-    return m_options;
   default:
     return nullptr;
   }
@@ -225,43 +219,43 @@ void GCKeyboard::LoadDefaults(const ControllerInterface& ciface)
 #elif __APPLE__
   m_keys0x->SetControlExpression(0, "Home");
   m_keys0x->SetControlExpression(1, "End");
-  m_keys0x->SetControlExpression(2, "Page Up");
-  m_keys0x->SetControlExpression(3, "Page Down");
+  m_keys0x->SetControlExpression(2, "`Page Up`");
+  m_keys0x->SetControlExpression(3, "`Page Down`");
   m_keys0x->SetControlExpression(4, "");  // Scroll lock
 
-  m_keys2x->SetControlExpression(9, "-");
+  m_keys2x->SetControlExpression(9, "`-`");
   m_keys2x->SetControlExpression(10, "Paragraph");
   m_keys2x->SetControlExpression(11, "");  // Print Scr
-  m_keys2x->SetControlExpression(12, "'");
-  m_keys2x->SetControlExpression(13, "[");
-  m_keys2x->SetControlExpression(14, "=");
-  m_keys2x->SetControlExpression(15, "Keypad *");
-  m_keys3x->SetControlExpression(0, "]");
-  m_keys3x->SetControlExpression(1, ",");
-  m_keys3x->SetControlExpression(2, ".");
-  m_keys3x->SetControlExpression(3, "/");
-  m_keys3x->SetControlExpression(4, "\\");
+  m_keys2x->SetControlExpression(12, "`'`");
+  m_keys2x->SetControlExpression(13, "`[`");
+  m_keys2x->SetControlExpression(14, "`=`");
+  m_keys2x->SetControlExpression(15, "`Keypad *`");
+  m_keys3x->SetControlExpression(0, "`]`");
+  m_keys3x->SetControlExpression(1, "`,`");
+  m_keys3x->SetControlExpression(2, "`.`");
+  m_keys3x->SetControlExpression(3, "`/`");
+  m_keys3x->SetControlExpression(4, "`\\`");
 
   m_keys4x->SetControlExpression(1, "Escape");
   m_keys4x->SetControlExpression(2, "Insert");
   m_keys4x->SetControlExpression(3, "Delete");
-  m_keys4x->SetControlExpression(4, ";");
+  m_keys4x->SetControlExpression(4, "`;`");
   m_keys4x->SetControlExpression(5, "Backspace");
   m_keys4x->SetControlExpression(6, "Tab");
-  m_keys4x->SetControlExpression(7, "Caps Lock");
-  m_keys4x->SetControlExpression(8, "Left Shift");
-  m_keys4x->SetControlExpression(9, "Right Shift");
-  m_keys4x->SetControlExpression(10, "Left Control");
-  m_keys4x->SetControlExpression(11, "Right Alt");
-  m_keys4x->SetControlExpression(12, "Left Command");
+  m_keys4x->SetControlExpression(7, "`Caps Lock`");
+  m_keys4x->SetControlExpression(8, "`Left Shift`");
+  m_keys4x->SetControlExpression(9, "`Right Shift`");
+  m_keys4x->SetControlExpression(10, "`Left Control`");
+  m_keys4x->SetControlExpression(11, "`Right Alt`");
+  m_keys4x->SetControlExpression(12, "`Left Command`");
   m_keys4x->SetControlExpression(13, "Space");
-  m_keys4x->SetControlExpression(14, "Right Command");
+  m_keys4x->SetControlExpression(14, "`Right Command`");
   m_keys4x->SetControlExpression(15, "");  // Menu
 
-  m_keys5x->SetControlExpression(0, "Left Arrow");
-  m_keys5x->SetControlExpression(1, "Down Arrow");
-  m_keys5x->SetControlExpression(2, "Up Arrow");
-  m_keys5x->SetControlExpression(3, "Right Arrow");
+  m_keys5x->SetControlExpression(0, "`Left Arrow`");
+  m_keys5x->SetControlExpression(1, "`Down Arrow`");
+  m_keys5x->SetControlExpression(2, "`Up Arrow`");
+  m_keys5x->SetControlExpression(3, "`Right Arrow`");
   m_keys5x->SetControlExpression(4, "Return");
 #else  // linux
   m_keys0x->SetControlExpression(0, "Home");

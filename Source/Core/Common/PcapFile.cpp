@@ -1,12 +1,12 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/PcapFile.h"
 
 #include <chrono>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/PcapFile.h"
+#include "Common/IOFile.h"
 
 namespace Common
 {
@@ -16,9 +16,6 @@ const u32 PCAP_MAGIC = 0xa1b2c3d4;
 const u16 PCAP_VERSION_MAJOR = 2;
 const u16 PCAP_VERSION_MINOR = 4;
 const u32 PCAP_CAPTURE_LENGTH = 65535;
-
-// TODO(delroth): Make this configurable at PCAP creation time?
-const u32 PCAP_DATA_LINK_TYPE = 147;  // Reserved for internal use.
 
 // Designed to be directly written into the PCAP file. The PCAP format is
 // endian independent, so this works just fine.
@@ -45,10 +42,10 @@ struct PCAPRecordHeader
 
 }  // namespace
 
-void PCAP::AddHeader()
+void PCAP::AddHeader(u32 link_type)
 {
   PCAPHeader hdr = {PCAP_MAGIC, PCAP_VERSION_MAJOR,  PCAP_VERSION_MINOR, 0,
-                    0,          PCAP_CAPTURE_LENGTH, PCAP_DATA_LINK_TYPE};
+                    0,          PCAP_CAPTURE_LENGTH, link_type};
   m_fp->WriteBytes(&hdr, sizeof(hdr));
 }
 

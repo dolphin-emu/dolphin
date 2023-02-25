@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -27,6 +26,7 @@ std::string RootUserPath(FromWhichRoot from);
 std::string GetImportTitlePath(u64 title_id, std::optional<FromWhichRoot> from = {});
 
 std::string GetTicketFileName(u64 title_id, std::optional<FromWhichRoot> from = {});
+std::string GetV1TicketFileName(u64 title_id, std::optional<FromWhichRoot> from = {});
 std::string GetTitlePath(u64 title_id, std::optional<FromWhichRoot> from = {});
 std::string GetTitleDataPath(u64 title_id, std::optional<FromWhichRoot> from = {});
 std::string GetTitleContentPath(u64 title_id, std::optional<FromWhichRoot> from = {});
@@ -43,4 +43,6 @@ std::string EscapeFileName(const std::string& filename);
 std::string EscapePath(const std::string& path);
 // Reverses escaping done by EscapeFileName
 std::string UnescapeFileName(const std::string& filename);
+// Tests for a file name being "safe" as per the escaping defined in EscapeFileName
+bool IsFileNameSafe(const std::string_view filename);
 }  // namespace Common

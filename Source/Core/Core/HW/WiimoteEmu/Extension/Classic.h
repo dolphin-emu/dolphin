@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -179,7 +178,8 @@ public:
 
   Classic();
 
-  void Update() override;
+  void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;
+  void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(ClassicGroup group);
@@ -205,15 +205,41 @@ public:
   static constexpr u8 STICK_GATE_RADIUS = 0x61;
 
   static constexpr u8 CAL_STICK_CENTER = 0x80;
-  static constexpr u8 CAL_STICK_RANGE = 0x7f;
+  static constexpr u8 CAL_STICK_RADIUS = 0x7f;
+  static constexpr u8 CAL_STICK_RANGE = 0xff;
 
   static constexpr u8 LEFT_STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - LEFT_STICK_BITS);
-  static constexpr u8 LEFT_STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - LEFT_STICK_BITS);
+  static constexpr u8 LEFT_STICK_RANGE = CAL_STICK_RANGE >> (CAL_STICK_BITS - LEFT_STICK_BITS);
 
   static constexpr u8 RIGHT_STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
-  static constexpr u8 RIGHT_STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
+  static constexpr u8 RIGHT_STICK_RANGE = CAL_STICK_RANGE >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
 
   static constexpr u8 TRIGGER_RANGE = 0x1F;
+
+  static constexpr const char* BUTTONS_GROUP = _trans("Buttons");
+  static constexpr const char* LEFT_STICK_GROUP = _trans("Left Stick");
+  static constexpr const char* RIGHT_STICK_GROUP = _trans("Right Stick");
+  static constexpr const char* TRIGGERS_GROUP = _trans("Triggers");
+  static constexpr const char* DPAD_GROUP = _trans("D-Pad");
+
+  static constexpr const char* A_BUTTON = "A";
+  static constexpr const char* B_BUTTON = "B";
+  static constexpr const char* X_BUTTON = "X";
+  static constexpr const char* Y_BUTTON = "Y";
+  static constexpr const char* ZL_BUTTON = "ZL";
+  static constexpr const char* ZR_BUTTON = "ZR";
+  static constexpr const char* MINUS_BUTTON = "-";
+  static constexpr const char* PLUS_BUTTON = "+";
+  static constexpr const char* HOME_BUTTON = "Home";
+
+  // i18n: The left trigger button (labeled L on real controllers)
+  static constexpr const char* L_DIGITAL = _trans("L");
+  // i18n: The right trigger button (labeled R on real controllers)
+  static constexpr const char* R_DIGITAL = _trans("R");
+  // i18n: The left trigger button (labeled L on real controllers) used as an analog input
+  static constexpr const char* L_ANALOG = _trans("L-Analog");
+  // i18n: The right trigger button (labeled R on real controllers) used as an analog input
+  static constexpr const char* R_ANALOG = _trans("R-Analog");
 
 private:
   ControllerEmu::Buttons* m_buttons;

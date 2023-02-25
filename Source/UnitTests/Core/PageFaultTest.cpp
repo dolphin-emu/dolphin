@@ -1,8 +1,8 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <chrono>
+#include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Timer.h"
@@ -44,13 +44,29 @@ public:
     return true;
   }
 
-  void* m_data;
+  void* m_data = nullptr;
   std::chrono::time_point<std::chrono::high_resolution_clock> m_pre_unprotect_time,
       m_post_unprotect_time;
 };
 
+#ifdef _MSC_VER
+#define ASAN_DISABLE __declspec(no_sanitize_address)
+#else
+#define ASAN_DISABLE
+#endif
+
+static void ASAN_DISABLE perform_invalid_access(void* data)
+{
+  *(volatile int*)data = 5;
+}
+
 TEST(PageFault, PageFault)
 {
+  if (!EMM::IsExceptionHandlerSupported())
+  {
+    // TODO: Use GTEST_SKIP() instead when GTest is updated to 1.10+
+    return;
+  }
   EMM::InstallExceptionHandler();
   void* data = Common::AllocateMemoryPages(PAGE_GRAN);
   EXPECT_NE(data, nullptr);
@@ -61,19 +77,22 @@ TEST(PageFault, PageFault)
   pfjit.m_data = data;
 
   auto start = std::chrono::high_resolution_clock::now();
-  *(volatile int*)data = 5;
+  perform_invalid_access(data);
   auto end = std::chrono::high_resolution_clock::now();
 
-#define AS_NS(diff)                                                                                \
-  ((unsigned long long)std::chrono::duration_cast<std::chrono::nanoseconds>(diff).count())
+  auto difference_in_nanoseconds = [](auto start, auto end) {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+  };
 
   EMM::UninstallExceptionHandler();
   JitInterface::SetJit(nullptr);
 
-  printf("page fault timing:\n");
-  printf("start->HandleFault     %llu ns\n", AS_NS(pfjit.m_pre_unprotect_time - start));
-  printf("UnWriteProtectMemory   %llu ns\n",
-         AS_NS(pfjit.m_post_unprotect_time - pfjit.m_pre_unprotect_time));
-  printf("HandleFault->end       %llu ns\n", AS_NS(end - pfjit.m_post_unprotect_time));
-  printf("total                  %llu ns\n", AS_NS(end - start));
+  fmt::print("page fault timing:\n");
+  fmt::print("start->HandleFault     {} ns\n",
+             difference_in_nanoseconds(start, pfjit.m_pre_unprotect_time));
+  fmt::print("UnWriteProtectMemory   {} ns\n",
+             difference_in_nanoseconds(pfjit.m_pre_unprotect_time, pfjit.m_post_unprotect_time));
+  fmt::print("HandleFault->end       {} ns\n",
+             difference_in_nanoseconds(pfjit.m_post_unprotect_time, end));
+  fmt::print("total                  {} ns\n", difference_in_nanoseconds(start, end));
 }

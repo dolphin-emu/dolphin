@@ -1,16 +1,17 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteEmu/Extension/TaTaCon.h"
 
 #include <array>
-#include <cassert>
 #include <cstring>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -49,21 +50,28 @@ TaTaCon::TaTaCon() : Extension3rdParty("TaTaCon", _trans("Taiko Drum"))
     m_rim->AddInput(ControllerEmu::Translate, name);
 }
 
-void TaTaCon::Update()
+void TaTaCon::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DataFormat tatacon_data = {};
 
-  m_center->GetState(&tatacon_data.state, center_bitmasks.data());
-  m_rim->GetState(&tatacon_data.state, rim_bitmasks.data());
+  m_center->GetState(&tatacon_data.state, center_bitmasks.data(), m_input_override_function);
+  m_rim->GetState(&tatacon_data.state, rim_bitmasks.data(), m_input_override_function);
 
   // Flip button bits.
   tatacon_data.state ^= 0xff;
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tatacon_data;
+  target_state->data = tatacon_data;
+}
+
+void TaTaCon::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void TaTaCon::Reset()
 {
+  EncryptedExtension::Reset();
+
   m_reg = {};
   m_reg.identifier = tatacon_id;
 
@@ -80,7 +88,7 @@ ControllerEmu::ControlGroup* TaTaCon::GetGroup(TaTaConGroup group)
   case TaTaConGroup::Rim:
     return m_rim;
   default:
-    assert(false);
+    ASSERT(false);
     return nullptr;
   }
 }

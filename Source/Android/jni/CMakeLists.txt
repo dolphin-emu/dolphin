@@ -1,10 +1,21 @@
 add_library(main SHARED
+  Cheats/ARCheat.cpp
+  Cheats/Cheats.h
+  Cheats/GeckoCheat.cpp
+  Cheats/GraphicsMod.cpp
+  Cheats/GraphicsModGroup.cpp
+  Cheats/PatchCheat.cpp
+  Config/NativeConfig.cpp
+  Config/PostProcessing.cpp
   GameList/GameFile.cpp
   GameList/GameFile.h
   GameList/GameFileCache.cpp
+  Input/InputOverrider.cpp
   IniFile.cpp
   MainAndroid.cpp
-  NativeConfig.cpp
+  RiivolutionPatches.cpp
+  SkylanderConfig.cpp
+  WiiUtils.cpp
 )
 
 target_link_libraries(main

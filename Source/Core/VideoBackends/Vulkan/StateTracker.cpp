@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Vulkan/StateTracker.h"
 
@@ -8,12 +7,13 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
-#include "VideoBackends/Vulkan/Renderer.h"
+#include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKPipeline.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
-#include "VideoBackends/Vulkan/VertexFormat.h"
+#include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/Constants.h"
 
 namespace Vulkan
 {
@@ -59,14 +59,14 @@ bool StateTracker::Initialize()
 {
   // Create a dummy texture which can be used in place of a real binding.
   m_dummy_texture =
-      VKTexture::Create(TextureConfig(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, 0));
+      VKTexture::Create(TextureConfig(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, 0), "");
   if (!m_dummy_texture)
     return false;
   m_dummy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Initialize all samplers to point by default
-  for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
+  for (size_t i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)
   {
     m_bindings.samplers[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     m_bindings.samplers[i].imageView = m_dummy_texture->GetView();
@@ -78,14 +78,23 @@ bool StateTracker::Initialize()
   return true;
 }
 
-void StateTracker::SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset)
+void StateTracker::SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset, u32 size)
 {
-  if (m_vertex_buffer == buffer && m_vertex_buffer_offset == offset)
-    return;
-
-  m_vertex_buffer = buffer;
-  m_vertex_buffer_offset = offset;
-  m_dirty_flags |= DIRTY_FLAG_VERTEX_BUFFER;
+  if (m_vertex_buffer != buffer || m_vertex_buffer_offset != offset)
+  {
+    m_vertex_buffer = buffer;
+    m_vertex_buffer_offset = offset;
+    m_dirty_flags |= DIRTY_FLAG_VERTEX_BUFFER;
+  }
+  if (m_bindings.gx_uber_vertex_ssbo.buffer != buffer ||
+      m_bindings.gx_uber_vertex_ssbo.offset != offset ||
+      m_bindings.gx_uber_vertex_ssbo.range != size)
+  {
+    m_bindings.gx_uber_vertex_ssbo.buffer = buffer;
+    m_bindings.gx_uber_vertex_ssbo.offset = offset;
+    m_bindings.gx_uber_vertex_ssbo.range = size;
+    m_dirty_flags |= DIRTY_FLAG_GX_SSBO;
+  }
 }
 
 void StateTracker::SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type)
@@ -348,18 +357,7 @@ bool StateTracker::Bind()
     EndRenderPass();
 
   // Get a new descriptor set if any parts have changed
-  if (!UpdateDescriptorSet())
-  {
-    // We can fail to allocate descriptors if we exhaust the pool for this command buffer.
-    WARN_LOG_FMT(VIDEO, "Failed to get a descriptor set, executing buffer");
-    Renderer::GetInstance()->ExecuteCommandBuffer(false, false);
-    if (!UpdateDescriptorSet())
-    {
-      // Something strange going on.
-      ERROR_LOG_FMT(VIDEO, "Failed to get descriptor set, skipping draw");
-      return false;
-    }
-  }
+  UpdateDescriptorSet();
 
   // Start render pass if not already started
   if (!InRenderPass())
@@ -367,8 +365,13 @@ bool StateTracker::Bind()
 
   // Re-bind parts of the pipeline
   const VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-  if (m_dirty_flags & DIRTY_FLAG_VERTEX_BUFFER)
+  const bool needs_vertex_buffer = !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader ||
+                                   m_pipeline->GetUsage() != AbstractPipelineUsage::GXUber;
+  if (needs_vertex_buffer && (m_dirty_flags & DIRTY_FLAG_VERTEX_BUFFER))
+  {
     vkCmdBindVertexBuffers(command_buffer, 0, 1, &m_vertex_buffer, &m_vertex_buffer_offset);
+    m_dirty_flags &= ~DIRTY_FLAG_VERTEX_BUFFER;
+  }
 
   if (m_dirty_flags & DIRTY_FLAG_INDEX_BUFFER)
     vkCmdBindIndexBuffer(command_buffer, m_index_buffer, m_index_buffer_offset, m_index_type);
@@ -382,8 +385,8 @@ bool StateTracker::Bind()
   if (m_dirty_flags & DIRTY_FLAG_SCISSOR)
     vkCmdSetScissor(command_buffer, 0, 1, &m_scissor);
 
-  m_dirty_flags &= ~(DIRTY_FLAG_VERTEX_BUFFER | DIRTY_FLAG_INDEX_BUFFER | DIRTY_FLAG_PIPELINE |
-                     DIRTY_FLAG_VIEWPORT | DIRTY_FLAG_SCISSOR);
+  m_dirty_flags &=
+      ~(DIRTY_FLAG_INDEX_BUFFER | DIRTY_FLAG_PIPELINE | DIRTY_FLAG_VIEWPORT | DIRTY_FLAG_SCISSOR);
   return true;
 }
 
@@ -403,18 +406,7 @@ bool StateTracker::BindCompute()
                       m_compute_shader->GetComputePipeline());
   }
 
-  if (!UpdateComputeDescriptorSet())
-  {
-    WARN_LOG_FMT(VIDEO, "Failed to get a compute descriptor set, executing buffer");
-    Renderer::GetInstance()->ExecuteCommandBuffer(false, false);
-    if (!UpdateComputeDescriptorSet())
-    {
-      // Something strange going on.
-      ERROR_LOG_FMT(VIDEO, "Failed to get descriptor set, skipping dispatch");
-      return false;
-    }
-  }
-
+  UpdateComputeDescriptorSet();
   m_dirty_flags &= ~DIRTY_FLAG_COMPUTE_SHADER;
   return true;
 }
@@ -451,33 +443,33 @@ void StateTracker::EndClearRenderPass()
   EndRenderPass();
 }
 
-bool StateTracker::UpdateDescriptorSet()
+void StateTracker::UpdateDescriptorSet()
 {
-  if (m_pipeline->GetUsage() == AbstractPipelineUsage::GX)
-    return UpdateGXDescriptorSet();
+  if (m_pipeline->GetUsage() != AbstractPipelineUsage::Utility)
+    UpdateGXDescriptorSet();
   else
-    return UpdateUtilityDescriptorSet();
+    UpdateUtilityDescriptorSet();
 }
 
-bool StateTracker::UpdateGXDescriptorSet()
+void StateTracker::UpdateGXDescriptorSet()
 {
   const size_t MAX_DESCRIPTOR_WRITES = NUM_UBO_DESCRIPTOR_SET_BINDINGS +  // UBO
                                        1 +                                // Samplers
-                                       1;                                 // SSBO
+                                       2;                                 // SSBO
   std::array<VkWriteDescriptorSet, MAX_DESCRIPTOR_WRITES> writes;
   u32 num_writes = 0;
+
+  const bool needs_gs_ubo = g_ActiveConfig.backend_info.bSupportsGeometryShaders ||
+                            g_ActiveConfig.UseVSForLinePointExpand();
 
   if (m_dirty_flags & DIRTY_FLAG_GX_UBOS || m_gx_descriptor_sets[0] == VK_NULL_HANDLE)
   {
     m_gx_descriptor_sets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
         g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS));
-    if (m_gx_descriptor_sets[0] == VK_NULL_HANDLE)
-      return false;
 
     for (size_t i = 0; i < NUM_UBO_DESCRIPTOR_SET_BINDINGS; i++)
     {
-      if (i == UBO_DESCRIPTOR_SET_BINDING_GS &&
-          !g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+      if (i == UBO_DESCRIPTOR_SET_BINDING_GS && !needs_gs_ubo)
       {
         continue;
       }
@@ -501,15 +493,13 @@ bool StateTracker::UpdateGXDescriptorSet()
   {
     m_gx_descriptor_sets[1] = g_command_buffer_mgr->AllocateDescriptorSet(
         g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_STANDARD_SAMPLERS));
-    if (m_gx_descriptor_sets[1] == VK_NULL_HANDLE)
-      return false;
 
     writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                             nullptr,
                             m_gx_descriptor_sets[1],
                             0,
                             0,
-                            static_cast<u32>(NUM_PIXEL_SHADER_SAMPLERS),
+                            static_cast<u32>(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS),
                             VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                             m_bindings.samplers.data(),
                             nullptr,
@@ -517,18 +507,38 @@ bool StateTracker::UpdateGXDescriptorSet()
     m_dirty_flags = (m_dirty_flags & ~DIRTY_FLAG_GX_SAMPLERS) | DIRTY_FLAG_DESCRIPTOR_SETS;
   }
 
-  if (g_ActiveConfig.backend_info.bSupportsBBox &&
+  const bool needs_bbox_ssbo = g_ActiveConfig.backend_info.bSupportsBBox;
+  const bool needs_vertex_ssbo = (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader &&
+                                  m_pipeline->GetUsage() == AbstractPipelineUsage::GXUber) ||
+                                 g_ActiveConfig.UseVSForLinePointExpand();
+  const bool needs_ssbo = needs_bbox_ssbo || needs_vertex_ssbo;
+
+  if (needs_ssbo &&
       (m_dirty_flags & DIRTY_FLAG_GX_SSBO || m_gx_descriptor_sets[2] == VK_NULL_HANDLE))
   {
     m_gx_descriptor_sets[2] =
         g_command_buffer_mgr->AllocateDescriptorSet(g_object_cache->GetDescriptorSetLayout(
             DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS));
-    if (m_gx_descriptor_sets[2] == VK_NULL_HANDLE)
-      return false;
 
     writes[num_writes++] = {
         VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, m_gx_descriptor_sets[2], 0,      0, 1,
         VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,      nullptr, &m_bindings.ssbo,        nullptr};
+
+    if (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader ||
+        g_ActiveConfig.UseVSForLinePointExpand())
+    {
+      writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                              nullptr,
+                              m_gx_descriptor_sets[2],
+                              1,
+                              0,
+                              1,
+                              VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                              nullptr,
+                              &m_bindings.gx_uber_vertex_ssbo,
+                              nullptr};
+    }
+
     m_dirty_flags = (m_dirty_flags & ~DIRTY_FLAG_GX_SSBO) | DIRTY_FLAG_DESCRIPTOR_SETS;
   }
 
@@ -539,32 +549,25 @@ bool StateTracker::UpdateGXDescriptorSet()
   {
     vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                             VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->GetVkPipelineLayout(), 0,
-                            g_ActiveConfig.backend_info.bSupportsBBox ?
-                                NUM_GX_DESCRIPTOR_SETS :
-                                (NUM_GX_DESCRIPTOR_SETS - 1),
+                            needs_ssbo ? NUM_GX_DESCRIPTOR_SETS : (NUM_GX_DESCRIPTOR_SETS - 1),
                             m_gx_descriptor_sets.data(),
-                            g_ActiveConfig.backend_info.bSupportsGeometryShaders ?
-                                NUM_UBO_DESCRIPTOR_SET_BINDINGS :
-                                (NUM_UBO_DESCRIPTOR_SET_BINDINGS - 1),
+                            needs_gs_ubo ? NUM_UBO_DESCRIPTOR_SET_BINDINGS :
+                                           (NUM_UBO_DESCRIPTOR_SET_BINDINGS - 1),
                             m_bindings.gx_ubo_offsets.data());
     m_dirty_flags &= ~(DIRTY_FLAG_DESCRIPTOR_SETS | DIRTY_FLAG_GX_UBO_OFFSETS);
   }
   else if (m_dirty_flags & DIRTY_FLAG_GX_UBO_OFFSETS)
   {
-    vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                            VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->GetVkPipelineLayout(), 0,
-                            1, m_gx_descriptor_sets.data(),
-                            g_ActiveConfig.backend_info.bSupportsGeometryShaders ?
-                                NUM_UBO_DESCRIPTOR_SET_BINDINGS :
-                                (NUM_UBO_DESCRIPTOR_SET_BINDINGS - 1),
-                            m_bindings.gx_ubo_offsets.data());
+    vkCmdBindDescriptorSets(
+        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS,
+        m_pipeline->GetVkPipelineLayout(), 0, 1, m_gx_descriptor_sets.data(),
+        needs_gs_ubo ? NUM_UBO_DESCRIPTOR_SET_BINDINGS : (NUM_UBO_DESCRIPTOR_SET_BINDINGS - 1),
+        m_bindings.gx_ubo_offsets.data());
     m_dirty_flags &= ~DIRTY_FLAG_GX_UBO_OFFSETS;
   }
-
-  return true;
 }
 
-bool StateTracker::UpdateUtilityDescriptorSet()
+void StateTracker::UpdateUtilityDescriptorSet()
 {
   // Max number of updates - UBO, Samplers, TexelBuffer
   std::array<VkWriteDescriptorSet, 3> dswrites;
@@ -575,8 +578,6 @@ bool StateTracker::UpdateUtilityDescriptorSet()
   {
     m_utility_descriptor_sets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
         g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_UTILITY_UNIFORM_BUFFER));
-    if (!m_utility_descriptor_sets[0])
-      return false;
 
     dswrites[writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                           nullptr,
@@ -596,15 +597,13 @@ bool StateTracker::UpdateUtilityDescriptorSet()
   {
     m_utility_descriptor_sets[1] = g_command_buffer_mgr->AllocateDescriptorSet(
         g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_UTILITY_SAMPLERS));
-    if (!m_utility_descriptor_sets[1])
-      return false;
 
     dswrites[writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                           nullptr,
                           m_utility_descriptor_sets[1],
                           0,
                           0,
-                          NUM_PIXEL_SHADER_SAMPLERS,
+                          NUM_UTILITY_PIXEL_SAMPLERS,
                           VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                           m_bindings.samplers.data(),
                           nullptr,
@@ -641,11 +640,9 @@ bool StateTracker::UpdateUtilityDescriptorSet()
                             1, m_utility_descriptor_sets.data(), 1, &m_bindings.utility_ubo_offset);
     m_dirty_flags &= ~(DIRTY_FLAG_DESCRIPTOR_SETS | DIRTY_FLAG_UTILITY_UBO_OFFSET);
   }
-
-  return true;
 }
 
-bool StateTracker::UpdateComputeDescriptorSet()
+void StateTracker::UpdateComputeDescriptorSet()
 {
   // Max number of updates - UBO, Samplers, TexelBuffer, Image
   std::array<VkWriteDescriptorSet, 4> dswrites;
@@ -710,8 +707,6 @@ bool StateTracker::UpdateComputeDescriptorSet()
                             &m_compute_descriptor_set, 1, &m_bindings.utility_ubo_offset);
     m_dirty_flags &= ~DIRTY_FLAG_COMPUTE_DESCRIPTOR_SET;
   }
-
-  return true;
 }
 
 }  // namespace Vulkan

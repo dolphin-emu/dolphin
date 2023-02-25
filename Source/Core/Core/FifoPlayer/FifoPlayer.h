@@ -1,21 +1,22 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <functional>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/OpcodeDecoding.h"
 
 class FifoDataFile;
 struct MemoryUpdate;
-struct AnalyzedFrameInfo;
 
 namespace CPU
 {
@@ -44,15 +45,45 @@ enum class State;
 //    8. The output of fifoplayer would be wrong.
 
 // To keep compatibility with old fifologs, we have this flag which signals texture cache to not
-// bother
-// hashing the memory and just assume the hash matched.
+// bother hashing the memory and just assume the hash matched.
 // At a later point proper efb copy support should be added to fiforecorder and this flag will
-// change
-// based on the version of the .dff file, but until then it will always be true when a fifolog is
-// playing.
+// change based on the version of the .dff file, but until then it will always be true when a
+// fifolog is playing.
 
 // Shitty global to fix a shitty problem
 extern bool IsPlayingBackFifologWithBrokenEFBCopies;
+
+enum class FramePartType
+{
+  Commands,
+  PrimitiveData,
+  EFBCopy,
+};
+
+struct FramePart
+{
+  constexpr FramePart(FramePartType type, u32 start, u32 end, const CPState& cpmem)
+      : m_type(type), m_start(start), m_end(end), m_cpmem(cpmem)
+  {
+  }
+
+  const FramePartType m_type;
+  const u32 m_start;
+  const u32 m_end;
+  const CPState m_cpmem;
+};
+
+struct AnalyzedFrameInfo
+{
+  std::vector<FramePart> parts;
+  Common::EnumMap<u32, FramePartType::EFBCopy> part_type_counts;
+
+  void AddPart(FramePartType type, u32 start, u32 end, const CPState& cpmem)
+  {
+    parts.emplace_back(type, start, end, cpmem);
+    part_type_counts[type]++;
+  }
+};
 
 class FifoPlayer
 {
@@ -74,7 +105,9 @@ public:
   bool IsPlaying() const;
 
   FifoDataFile* GetFile() const { return m_File.get(); }
-  u32 GetFrameObjectCount() const;
+  u32 GetMaxObjectCount() const;
+  u32 GetFrameObjectCount(u32 frame) const;
+  u32 GetCurrentFrameObjectCount() const;
   u32 GetCurrentFrameNum() const { return m_CurrentFrame; }
   const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) const { return m_FrameInfo[frame]; }
   // Frame range
@@ -89,9 +122,7 @@ public:
   void SetObjectRangeStart(u32 start) { m_ObjectRangeStart = start; }
   u32 GetObjectRangeEnd() const { return m_ObjectRangeEnd; }
   void SetObjectRangeEnd(u32 end) { m_ObjectRangeEnd = end; }
-  // If enabled then all memory updates happen at once before the first frame
-  // Default is disabled
-  void SetEarlyMemoryUpdates(bool enabled) { m_EarlyMemoryUpdates = enabled; }
+
   // Callbacks
   void SetFileLoadedCallback(CallbackFunc callback);
   void SetFrameWrittenCallback(CallbackFunc callback) { m_FrameWrittenCb = std::move(callback); }
@@ -101,14 +132,12 @@ public:
 
 private:
   class CPUCore;
-
   FifoPlayer();
 
   CPU::State AdvanceFrame();
 
   void WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info);
-  void WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate, const FifoFrameInfo& frame,
-                      const AnalyzedFrameInfo& info);
+  void WriteFramePart(const FramePart& part, u32* next_mem_update, const FifoFrameInfo& frame);
 
   void WriteAllMemoryUpdates();
   void WriteMemory(const MemoryUpdate& memUpdate);
@@ -122,11 +151,13 @@ private:
   void LoadMemory();
   void LoadRegisters();
   void LoadTextureMemory();
+  void ClearEfb();
 
   void WriteCP(u32 address, u16 value);
   void WritePI(u32 address, u32 value);
 
   void FlushWGP();
+  void WaitForGPUInactive();
 
   void LoadBPReg(u8 reg, u32 value);
   void LoadCPReg(u8 reg, u32 value);
@@ -134,11 +165,16 @@ private:
   void LoadXFMem16(u16 address, const u32* data);
 
   bool ShouldLoadBP(u8 address);
+  bool ShouldLoadXF(u8 address);
 
   static bool IsIdleSet();
   static bool IsHighWatermarkSet();
 
-  bool m_Loop;
+  void RefreshConfig();
+
+  bool m_Loop = true;
+  // If enabled then all memory updates happen at once before the first frame
+  bool m_EarlyMemoryUpdates = false;
 
   u32 m_CurrentFrame = 0;
   u32 m_FrameRangeStart = 0;
@@ -147,14 +183,13 @@ private:
   u32 m_ObjectRangeStart = 0;
   u32 m_ObjectRangeEnd = 10000;
 
-  bool m_EarlyMemoryUpdates = false;
-
   u64 m_CyclesPerFrame = 0;
   u32 m_ElapsedCycles = 0;
   u32 m_FrameFifoSize = 0;
 
   CallbackFunc m_FileLoadedCb = nullptr;
   CallbackFunc m_FrameWrittenCb = nullptr;
+  size_t m_config_changed_callback_id;
 
   std::unique_ptr<FifoDataFile> m_File;
 

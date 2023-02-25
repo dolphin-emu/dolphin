@@ -1,20 +1,17 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
-
-#include <cstring>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Software/SetupUnit.h"
 
+#include <cstring>
+
 #include "Common/Logging/Log.h"
-
 #include "VideoBackends/Software/Clipper.h"
-
 #include "VideoCommon/OpcodeDecoding.h"
 
-void SetupUnit::Init(u8 primitiveType)
+void SetupUnit::Init(OpcodeDecoder::Primitive primitive_type)
 {
-  m_PrimType = primitiveType;
+  m_PrimType = primitive_type;
 
   m_VertexCounter = 0;
   m_VertPointer[0] = &m_Vertices[0];
@@ -25,37 +22,38 @@ void SetupUnit::Init(u8 primitiveType)
 
 OutputVertexData* SetupUnit::GetVertex()
 {
-  memset(m_VertWritePointer, 0, sizeof(*m_VertWritePointer));
+  memset(reinterpret_cast<u8*>(m_VertWritePointer), 0, sizeof(*m_VertWritePointer));
   return m_VertWritePointer;
 }
 
 void SetupUnit::SetupVertex()
 {
+  using OpcodeDecoder::Primitive;
   switch (m_PrimType)
   {
-  case OpcodeDecoder::GX_DRAW_QUADS:
+  case Primitive::GX_DRAW_QUADS:
     SetupQuad();
     break;
-  case OpcodeDecoder::GX_DRAW_QUADS_2:
+  case Primitive::GX_DRAW_QUADS_2:
     WARN_LOG_FMT(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
     SetupQuad();
     break;
-  case OpcodeDecoder::GX_DRAW_TRIANGLES:
+  case Primitive::GX_DRAW_TRIANGLES:
     SetupTriangle();
     break;
-  case OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP:
+  case Primitive::GX_DRAW_TRIANGLE_STRIP:
     SetupTriStrip();
     break;
-  case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
+  case Primitive::GX_DRAW_TRIANGLE_FAN:
     SetupTriFan();
     break;
-  case OpcodeDecoder::GX_DRAW_LINES:
+  case Primitive::GX_DRAW_LINES:
     SetupLine();
     break;
-  case OpcodeDecoder::GX_DRAW_LINE_STRIP:
+  case Primitive::GX_DRAW_LINE_STRIP:
     SetupLineStrip();
     break;
-  case OpcodeDecoder::GX_DRAW_POINTS:
+  case Primitive::GX_DRAW_POINTS:
     SetupPoint();
     break;
   }
@@ -167,4 +165,5 @@ void SetupUnit::SetupLineStrip()
 
 void SetupUnit::SetupPoint()
 {
+  Clipper::ProcessPoint(m_VertPointer[0]);
 }

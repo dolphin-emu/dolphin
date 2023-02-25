@@ -1,6 +1,7 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "UICommon/UICommon.h"
 
 #include <algorithm>
 #include <clocale>
@@ -11,6 +12,8 @@
 #include <sstream>
 #ifdef _WIN32
 #include <shlobj.h>  // for SHGetFolderPath
+
+#include <wil/resource.h>
 #endif
 
 #include "Common/Common.h"
@@ -27,19 +30,25 @@
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/FreeLookManager.h"
+#include "Core/HW/GBAPad.h"
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
+#include "Core/System.h"
 #include "Core/WiiRoot.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
-#include "UICommon/UICommon.h"
 #include "UICommon/USBUtils.h"
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_X11
 #include "UICommon/X11Utils.h"
 #endif
 
@@ -51,10 +60,12 @@
 
 namespace UICommon
 {
-static void CreateDumpPath(const std::string& path)
+static size_t s_config_changed_callback_id;
+
+static void CreateDumpPath(std::string path)
 {
   if (!path.empty())
-    File::SetUserPath(D_DUMP_IDX, path + '/');
+    File::SetUserPath(D_DUMP_IDX, std::move(path));
   File::CreateFullPath(File::GetUserPath(D_DUMPAUDIO_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
@@ -63,17 +74,25 @@ static void CreateDumpPath(const std::string& path)
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
 }
 
-static void CreateLoadPath(const std::string& path)
+static void CreateLoadPath(std::string path)
 {
   if (!path.empty())
-    File::SetUserPath(D_LOAD_IDX, path + '/');
+    File::SetUserPath(D_LOAD_IDX, std::move(path));
   File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_RIIVOLUTION_IDX));
+  File::CreateFullPath(File::GetUserPath(D_GRAPHICSMOD_IDX));
 }
 
-static void CreateResourcePackPath(const std::string& path)
+static void CreateResourcePackPath(std::string path)
 {
   if (!path.empty())
-    File::SetUserPath(D_RESOURCEPACK_IDX, path + '/');
+    File::SetUserPath(D_RESOURCEPACK_IDX, std::move(path));
+}
+
+static void CreateWFSPath(const std::string& path)
+{
+  if (!path.empty())
+    File::SetUserPath(D_WFSROOT_IDX, path + '/');
 }
 
 static void InitCustomPaths()
@@ -82,9 +101,22 @@ static void InitCustomPaths()
   CreateLoadPath(Config::Get(Config::MAIN_LOAD_PATH));
   CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
   CreateResourcePackPath(Config::Get(Config::MAIN_RESOURCEPACK_PATH));
-  const std::string sd_path = Config::Get(Config::MAIN_SD_PATH);
-  if (!sd_path.empty())
-    File::SetUserPath(F_WIISDCARD_IDX, sd_path);
+  CreateWFSPath(Config::Get(Config::MAIN_WFS_PATH));
+  File::SetUserPath(F_WIISDCARDIMAGE_IDX, Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH));
+  File::SetUserPath(D_WIISDCARDSYNCFOLDER_IDX,
+                    Config::Get(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH));
+  File::CreateFullPath(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX));
+#ifdef HAS_LIBMGBA
+  File::SetUserPath(F_GBABIOS_IDX, Config::Get(Config::MAIN_GBA_BIOS_PATH));
+  File::SetUserPath(D_GBASAVES_IDX, Config::Get(Config::MAIN_GBA_SAVES_PATH));
+  File::CreateFullPath(File::GetUserPath(D_GBASAVES_IDX));
+#endif
+}
+
+static void RefreshConfig()
+{
+  Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
+  Common::SetAbortOnPanicAlert(Config::Get(Config::MAIN_ABORT_ON_PANIC_ALERT));
 }
 
 void Init()
@@ -97,21 +129,57 @@ void Init()
   SConfig::Init();
   Discord::Init();
   Common::Log::LogManager::Init();
-  WiimoteReal::LoadSettings();
-  GCAdapter::Init();
   VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
-  Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
+  s_config_changed_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
+  RefreshConfig();
 }
 
 void Shutdown()
 {
+  Config::RemoveConfigChangedCallback(s_config_changed_callback_id);
+
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();
   Common::Log::LogManager::Shutdown();
   Discord::Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();
+}
+
+void InitControllers(const WindowSystemInfo& wsi)
+{
+  if (g_controller_interface.IsInit())
+    return;
+
+  g_controller_interface.Initialize(wsi);
+
+  if (!g_controller_interface.HasDefaultDevice())
+  {
+    // Note that the CI default device could be still temporarily removed at any time
+    WARN_LOG_FMT(CONTROLLERINTERFACE, "No default device has been added in time. Premade control "
+                                      "mappings intended for the default device may not work.");
+  }
+
+  GCAdapter::Init();
+  Pad::Initialize();
+  Pad::InitializeGBA();
+  Keyboard::Initialize();
+  Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+  HotkeyManagerEmu::Initialize();
+  FreeLook::Initialize();
+}
+
+void ShutdownControllers()
+{
+  Pad::Shutdown();
+  Pad::ShutdownGBA();
+  Keyboard::Shutdown();
+  Wiimote::Shutdown();
+  HotkeyManagerEmu::Shutdown();
+  FreeLook::Shutdown();
+
+  g_controller_interface.Shutdown();
 }
 
 void SetLocale(std::string locale_name)
@@ -178,6 +246,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
   File::CreateFullPath(File::GetUserPath(D_COVERCACHE_IDX));
   File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
+  File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX) + GRAPHICSMOD_CONFIG_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
@@ -187,6 +256,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_GRAPHICSMOD_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
@@ -202,12 +272,12 @@ void CreateDirectories()
 #endif
 }
 
-void SetUserDirectory(const std::string& custom_path)
+void SetUserDirectory(std::string custom_path)
 {
   if (!custom_path.empty())
   {
     File::CreateFullPath(custom_path + DIR_SEP);
-    File::SetUserPath(D_USER_IDX, custom_path + DIR_SEP);
+    File::SetUserPath(D_USER_IDX, std::move(custom_path));
     return;
   }
 
@@ -221,69 +291,112 @@ void SetUserDirectory(const std::string& custom_path)
   //    -> Use GetExeDirectory()\User
   // 3. HKCU\Software\Dolphin Emulator\UserConfigPath exists
   //    -> Use this as the user directory path
-  // 4. My Documents exists
-  //    -> Use My Documents\Dolphin Emulator as the User directory path
-  // 5. Default
+  // 4. My Documents\Dolphin Emulator exists (default user folder before PR 10708)
+  //    -> Use this as the user directory path
+  // 5. AppData\Roaming exists
+  //    -> Use AppData\Roaming\Dolphin Emulator as the User directory path
+  // 6. Default
+  //    -> Use GetExeDirectory()\User
+  //
+  // On Steam builds, we take a simplified approach:
+  // 1. GetExeDirectory()\portable.txt exists
+  //    -> Use GetExeDirectory()\User
+  // 2. AppData\Roaming exists
+  //    -> Use AppData\Roaming\Dolphin Emulator (Steam) as the User directory path
+  // 3. Default
   //    -> Use GetExeDirectory()\User
 
+  // Get AppData path in case we need it.
+  wil::unique_cotaskmem_string appdata;
+  bool appdata_found = SUCCEEDED(
+      SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, appdata.put()));
+
+#ifndef STEAM
   // Check our registry keys
-  // TODO: Maybe use WIL when it's available?
-  HKEY hkey;
+  wil::unique_hkey hkey;
   DWORD local = 0;
   std::unique_ptr<TCHAR[]> configPath;
   if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), 0, KEY_QUERY_VALUE,
-                   &hkey) == ERROR_SUCCESS)
+                   hkey.put()) == ERROR_SUCCESS)
   {
-    DWORD size = 4;
-    if (RegQueryValueEx(hkey, TEXT("LocalUserConfig"), nullptr, nullptr,
+    DWORD size = sizeof(local);
+    if (RegQueryValueEx(hkey.get(), TEXT("LocalUserConfig"), nullptr, nullptr,
                         reinterpret_cast<LPBYTE>(&local), &size) != ERROR_SUCCESS)
     {
       local = 0;
     }
 
     size = 0;
-    RegQueryValueEx(hkey, TEXT("UserConfigPath"), nullptr, nullptr, nullptr, &size);
+    RegQueryValueEx(hkey.get(), TEXT("UserConfigPath"), nullptr, nullptr, nullptr, &size);
     configPath = std::make_unique<TCHAR[]>(size / sizeof(TCHAR));
-    if (RegQueryValueEx(hkey, TEXT("UserConfigPath"), nullptr, nullptr,
+    if (RegQueryValueEx(hkey.get(), TEXT("UserConfigPath"), nullptr, nullptr,
                         reinterpret_cast<LPBYTE>(configPath.get()), &size) != ERROR_SUCCESS)
     {
       configPath.reset();
     }
-
-    RegCloseKey(hkey);
   }
 
   local = local != 0 || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt");
 
-  // Get Documents path in case we need it.
-  // TODO: Maybe use WIL when it's available?
-  PWSTR my_documents = nullptr;
-  bool my_documents_found =
-      SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, nullptr, &my_documents));
+  // Attempt to check if the old User directory exists in Documents.
+  wil::unique_cotaskmem_string documents;
+  bool documents_found = SUCCEEDED(
+      SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, nullptr, documents.put()));
+
+  std::optional<std::string> old_user_folder;
+  if (documents_found)
+  {
+    old_user_folder = TStrToUTF8(documents.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
+  }
 
   if (local)  // Case 1-2
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+  {
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
+  }
   else if (configPath)  // Case 3
+  {
     user_path = TStrToUTF8(configPath.get());
-  else if (my_documents_found)  // Case 4
-    user_path = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
-  else  // Case 5
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+  }
+  else if (old_user_folder && File::Exists(old_user_folder.value()))  // Case 4
+  {
+    user_path = old_user_folder.value();
+  }
+  else if (appdata_found)  // Case 5
+  {
+    user_path = TStrToUTF8(appdata.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
-  CoTaskMemFree(my_documents);
-
-  // Prettify the path: it will be displayed in some places, we don't want a mix
-  // of \ and /.
-  user_path = ReplaceAll(std::move(user_path), "\\", DIR_SEP);
-
-  // Make sure it ends in DIR_SEP.
-  if (user_path.back() != DIR_SEP_CHR)
-    user_path += DIR_SEP;
+    // Set the UserConfigPath value in the registry for backwards compatibility with older Dolphin
+    // builds, which will look for the default User directory in Documents. If we set this key,
+    // they will use this as the User directory instead.
+    // (If we're in this case, then this key doesn't exist, so it's OK to set it.)
+    std::wstring wstr_path = UTF8ToWString(user_path);
+    RegSetKeyValueW(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), TEXT("UserConfigPath"),
+                    REG_SZ, wstr_path.c_str(),
+                    static_cast<DWORD>((wstr_path.size() + 1) * sizeof(wchar_t)));
+  }
+  else  // Case 6
+  {
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
+  }
+#else  // ifndef STEAM
+  if (File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt"))  // Case 1
+  {
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
+  }
+  else if (appdata_found)  // Case 2
+  {
+    user_path = TStrToUTF8(appdata.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
+  }
+  else  // Case 3
+  {
+    user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
+  }
+#endif
 
 #else
-  if (File::IsDirectory(ROOT_DIR DIR_SEP USERDATA_DIR))
+  if (File::IsDirectory(ROOT_DIR DIR_SEP EMBEDDED_USER_DIR))
   {
-    user_path = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
+    user_path = ROOT_DIR DIR_SEP EMBEDDED_USER_DIR DIR_SEP;
   }
   else
   {
@@ -309,7 +422,7 @@ void SetUserDirectory(const std::string& custom_path)
       user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
     }
 #else
-    // We are on a non-Apple and non-Android POSIX system, there are 4 cases:
+    // On a non-Apple and non-Android POSIX system, there are 4 cases:
     // 1. GetExeDirectory()/portable.txt exists
     //    -> Use GetExeDirectory()/User
     // 2. $DOLPHIN_EMU_USERPATH is set
@@ -319,67 +432,64 @@ void SetUserDirectory(const std::string& custom_path)
     // 4. Default
     //    -> Use XDG basedir, see
     //    http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
-    user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
+    //
+    // On macOS:
+    // 1. GetExeDirectory()/portable.txt exists
+    //    -> Use GetExeDirectory()/User
+    // 2. $DOLPHIN_EMU_USERPATH is set
+    //    -> Use $DOLPHIN_EMU_USERPATH
+    // 3. Default
+    //
+    // On Android, custom_path is set, so this code path is never reached.
     std::string exe_path = File::GetExeDirectory();
     if (File::Exists(exe_path + DIR_SEP "portable.txt"))
     {
-      user_path = exe_path + DIR_SEP "User" DIR_SEP;
+      user_path = exe_path + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
     }
     else if (env_path)
     {
       user_path = env_path;
     }
-    else if (!File::Exists(user_path))
+#if defined(__APPLE__) || defined(ANDROID)
+    else
     {
-      const char* data_home = getenv("XDG_DATA_HOME");
-      std::string data_path =
-          std::string(data_home && data_home[0] == '/' ? data_home :
-                                                         (home_path + ".local" DIR_SEP "share")) +
-          DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+      user_path = home_path + NORMAL_USER_DIR DIR_SEP;
+    }
+#else
+    else
+    {
+      user_path = home_path + "." NORMAL_USER_DIR DIR_SEP;
 
-      const char* config_home = getenv("XDG_CONFIG_HOME");
-      std::string config_path =
-          std::string(config_home && config_home[0] == '/' ? config_home :
-                                                             (home_path + ".config")) +
-          DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+      if (!File::Exists(user_path))
+      {
+        const char* data_home = getenv("XDG_DATA_HOME");
+        std::string data_path =
+            std::string(data_home && data_home[0] == '/' ? data_home :
+                                                           (home_path + ".local" DIR_SEP "share")) +
+            DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
-      const char* cache_home = getenv("XDG_CACHE_HOME");
-      std::string cache_path =
-          std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache")) +
-          DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+        const char* config_home = getenv("XDG_CONFIG_HOME");
+        std::string config_path =
+            std::string(config_home && config_home[0] == '/' ? config_home :
+                                                               (home_path + ".config")) +
+            DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
-      File::SetUserPath(D_USER_IDX, data_path);
-      File::SetUserPath(D_CONFIG_IDX, config_path);
-      File::SetUserPath(D_CACHE_IDX, cache_path);
-      return;
+        const char* cache_home = getenv("XDG_CACHE_HOME");
+        std::string cache_path =
+            std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache")) +
+            DIR_SEP NORMAL_USER_DIR DIR_SEP;
+
+        File::SetUserPath(D_USER_IDX, data_path);
+        File::SetUserPath(D_CONFIG_IDX, config_path);
+        File::SetUserPath(D_CACHE_IDX, cache_path);
+        return;
+      }
     }
 #endif
   }
 #endif
+#endif
   File::SetUserPath(D_USER_IDX, std::move(user_path));
-}
-
-void SaveWiimoteSources()
-{
-  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
-
-  IniFile inifile;
-  inifile.Load(ini_filename);
-
-  for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-  {
-    std::string secname("Wiimote");
-    secname += (char)('1' + i);
-    IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-
-    sec.Set("Source", int(WiimoteCommon::GetSource(i)));
-  }
-
-  std::string secname("BalanceBoard");
-  IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-  sec.Set("Source", int(WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD)));
-
-  inifile.Save(ini_filename);
 }
 
 bool TriggerSTMPowerEvent()
@@ -389,16 +499,17 @@ bool TriggerSTMPowerEvent()
     return false;
 
   const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
-  if (!stm || !std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->HasHookInstalled())
+  if (!stm || !std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->HasHookInstalled())
     return false;
 
   Core::DisplayMessage("Shutting down", 30000);
-  ProcessorInterface::PowerButton_Tap();
+  auto& system = Core::System::GetInstance();
+  system.GetProcessorInterface().PowerButton_Tap();
 
   return true;
 }
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_X11
 void InhibitScreenSaver(Window win, bool inhibit)
 #else
 void InhibitScreenSaver(bool inhibit)
@@ -407,7 +518,7 @@ void InhibitScreenSaver(bool inhibit)
   // Inhibit the screensaver. Depending on the operating system this may also
   // disable low-power states and/or screen dimming.
 
-#if defined(HAVE_X11) && HAVE_X11
+#ifdef HAVE_X11
   X11Utils::InhibitScreensaver(win, inhibit);
 #endif
 

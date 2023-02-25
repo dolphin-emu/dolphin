@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/USB/OH0/OH0Device.h"
 
@@ -14,7 +13,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/OH0/OH0.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 static void GetVidPidFromDevicePath(const std::string& device_path, u16& vid, u16& pid)
 {
@@ -45,37 +44,37 @@ OH0Device::OH0Device(Kernel& ios, const std::string& name) : Device(ios, name, D
 void OH0Device::DoState(PointerWrap& p)
 {
   m_oh0 = std::static_pointer_cast<OH0>(GetIOS()->GetDeviceByName("/dev/usb/oh0"));
-  p.Do(m_name);
+  Device::DoState(p);
   p.Do(m_vid);
   p.Do(m_pid);
   p.Do(m_device_id);
 }
 
-IPCCommandResult OH0Device::Open(const OpenRequest& request)
+std::optional<IPCReply> OH0Device::Open(const OpenRequest& request)
 {
   if (m_vid == 0 && m_pid == 0)
-    return GetDefaultReply(IPC_ENOENT);
+    return IPCReply(IPC_ENOENT);
 
   m_oh0 = std::static_pointer_cast<OH0>(GetIOS()->GetDeviceByName("/dev/usb/oh0"));
 
   ReturnCode return_code;
   std::tie(return_code, m_device_id) = m_oh0->DeviceOpen(m_vid, m_pid);
-  return GetDefaultReply(return_code);
+  return IPCReply(return_code);
 }
 
-IPCCommandResult OH0Device::Close(u32 fd)
+std::optional<IPCReply> OH0Device::Close(u32 fd)
 {
   m_oh0->DeviceClose(m_device_id);
   return Device::Close(fd);
 }
 
-IPCCommandResult OH0Device::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> OH0Device::IOCtl(const IOCtlRequest& request)
 {
   return m_oh0->DeviceIOCtl(m_device_id, request);
 }
 
-IPCCommandResult OH0Device::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> OH0Device::IOCtlV(const IOCtlVRequest& request)
 {
   return m_oh0->DeviceIOCtlV(m_device_id, request);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -25,9 +24,10 @@ public:
 
   bool IsValid() const override { return m_is_valid; }
   bool IsWii() const override { return m_is_wii; }
+  bool IsAncast() const { return m_is_ancast; };
   u32 GetEntryPoint() const override { return m_dolheader.entryPoint; }
   bool LoadIntoMemory(bool only_in_mem1 = false) const override;
-  bool LoadSymbols() const override { return false; }
+  bool LoadSymbols(const Core::CPUThreadGuard& guard) const override { return false; }
 
 private:
   enum
@@ -58,7 +58,10 @@ private:
 
   bool m_is_valid;
   bool m_is_wii;
+  bool m_is_ancast;
 
   // Copy sections to internal buffers
   bool Initialize(const std::vector<u8>& buffer);
+
+  bool LoadAncastIntoMemory() const;
 };

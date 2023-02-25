@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.content.Context;
@@ -8,8 +10,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
@@ -29,8 +32,6 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
 
     itemView.setOnClickListener(this);
     itemView.setOnLongClickListener(this);
-
-    findViews(itemView);
   }
 
   protected SettingsAdapter getAdapter()
@@ -53,12 +54,11 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
             Toast.LENGTH_SHORT).show();
   }
 
-  /**
-   * Gets handles to all this ViewHolder's child views using their XML-defined identifiers.
-   *
-   * @param root The newly inflated top-level view.
-   */
-  protected abstract void findViews(View root);
+  protected static void showIplNotAvailableError()
+  {
+    Toast.makeText(DolphinApplication.getAppContext(), R.string.ipl_not_found, Toast.LENGTH_SHORT)
+            .show();
+  }
 
   /**
    * Called by the adapter to set this ViewHolder's child views to display the list item
@@ -94,20 +94,17 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
 
     Context context = clicked.getContext();
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase)
-            .setMessage(R.string.setting_clear_confirm);
-
-    builder
+    new MaterialAlertDialogBuilder(context)
+            .setMessage(R.string.setting_clear_confirm)
             .setPositiveButton(R.string.ok, (dialog, whichButton) ->
             {
-              getAdapter().clearSetting(item, getAdapterPosition());
+              getAdapter().clearSetting(item);
               bind(item);
               Toast.makeText(context, R.string.setting_cleared, Toast.LENGTH_SHORT).show();
               dialog.dismiss();
             })
-            .setNegativeButton(R.string.cancel, (dialog, whichButton) -> dialog.dismiss());
-
-    builder.show();
+            .setNegativeButton(R.string.cancel, (dialog, whichButton) -> dialog.dismiss())
+            .show();
 
     return true;
   }

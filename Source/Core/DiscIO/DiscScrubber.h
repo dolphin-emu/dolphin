@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // DiscScrubber removes the pseudorandom padding data from discs
 
@@ -47,7 +46,7 @@ private:
   bool ParsePartitionData(const Partition& partition);
   void ParseFileSystemData(u64 partition_data_offset, const FileInfo& directory);
 
-  const Volume* m_disc;
+  const Volume* m_disc = nullptr;
 
   std::vector<u8> m_free_table;
   u64 m_file_size = 0;

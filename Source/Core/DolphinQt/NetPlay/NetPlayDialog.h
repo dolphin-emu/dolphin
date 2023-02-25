@@ -1,8 +1,11 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
+
+#include <functional>
+#include <memory>
+#include <string>
 
 #include <QDialog>
 #include <QMenuBar>
@@ -12,8 +15,9 @@
 #include "DolphinQt/GameList/GameListModel.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
+class BootSessionData;
 class ChunkedProgressDialog;
-class MD5Dialog;
+class GameDigestDialog;
 class PadMappingDialog;
 class QCheckBox;
 class QComboBox;
@@ -31,14 +35,19 @@ class NetPlayDialog : public QDialog, public NetPlay::NetPlayUI
 {
   Q_OBJECT
 public:
-  explicit NetPlayDialog(const GameListModel& game_list_model, QWidget* parent = nullptr);
+  using StartGameCallback = std::function<void(const std::string& path,
+                                               std::unique_ptr<BootSessionData> boot_session_data)>;
+
+  explicit NetPlayDialog(const GameListModel& game_list_model,
+                         StartGameCallback start_game_callback, QWidget* parent = nullptr);
   ~NetPlayDialog();
 
   void show(std::string nickname, bool use_traversal);
   void reject() override;
 
   // NetPlayUI methods
-  void BootGame(const std::string& filename) override;
+  void BootGame(const std::string& filename,
+                std::unique_ptr<BootSessionData> boot_session_data) override;
   void StopGame() override;
   bool IsHosting() const override;
 
@@ -47,6 +56,7 @@ public:
 
   void OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifier,
                        const std::string& netplay_name) override;
+  void OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config) override;
   void OnMsgStartGame() override;
   void OnMsgStopGame() override;
   void OnMsgPowerButton() override;
@@ -69,21 +79,25 @@ public:
   std::shared_ptr<const UICommon::GameFile>
   FindGameFile(const NetPlay::SyncIdentifier& sync_identifier,
                NetPlay::SyncIdentifierComparison* found = nullptr) override;
+  std::string FindGBARomPath(const std::array<u8, 20>& hash, std::string_view title,
+                             int device_number) override;
 
   void LoadSettings();
   void SaveSettings();
 
-  void ShowMD5Dialog(const std::string& title) override;
-  void SetMD5Progress(int pid, int progress) override;
-  void SetMD5Result(int pid, const std::string& result) override;
-  void AbortMD5() override;
+  void ShowGameDigestDialog(const std::string& title) override;
+  void SetGameDigestProgress(int pid, int progress) override;
+  void SetGameDigestResult(int pid, const std::string& result) override;
+  void AbortGameDigest() override;
 
   void ShowChunkedProgressDialog(const std::string& title, u64 data_size,
                                  const std::vector<int>& players) override;
   void HideChunkedProgressDialog() override;
   void SetChunkedProgress(int pid, u64 progress) override;
+
+  void SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder) override;
+
 signals:
-  void Boot(const QString& filename);
   void Stop();
 
 private:
@@ -122,29 +136,33 @@ private:
   QMenuBar* m_menu_bar;
   QMenu* m_data_menu;
   QMenu* m_network_menu;
-  QMenu* m_md5_menu;
+  QMenu* m_game_digest_menu;
   QMenu* m_other_menu;
   QPushButton* m_game_button;
   QPushButton* m_start_button;
   QLabel* m_buffer_label;
   QSpinBox* m_buffer_size_box;
-  QAction* m_save_sd_action;
-  QAction* m_load_wii_action;
-  QAction* m_sync_save_data_action;
+
+  QActionGroup* m_savedata_style_group;
+  QAction* m_savedata_none_action;
+  QAction* m_savedata_load_only_action;
+  QAction* m_savedata_load_and_write_action;
+  QAction* m_savedata_all_wii_saves_action;
+
   QAction* m_sync_codes_action;
   QAction* m_record_input_action;
   QAction* m_strict_settings_sync_action;
   QAction* m_host_input_authority_action;
-  QAction* m_sync_all_wii_saves_action;
   QAction* m_golf_mode_action;
   QAction* m_golf_mode_overlay_action;
   QAction* m_fixed_delay_action;
+  QAction* m_hide_remote_gbas_action;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
   QActionGroup* m_network_mode_group;
 
   QGridLayout* m_main_layout;
-  MD5Dialog* m_md5_dialog;
+  GameDigestDialog* m_game_digest_dialog;
   ChunkedProgressDialog* m_chunked_progress_dialog;
   PadMappingDialog* m_pad_mapping;
   NetPlay::SyncIdentifier m_current_game_identifier;
@@ -159,4 +177,6 @@ private:
   int m_player_count = 0;
   int m_old_player_count = 0;
   bool m_host_input_authority = false;
+
+  StartGameCallback m_start_game_callback;
 };

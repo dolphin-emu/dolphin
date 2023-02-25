@@ -1,10 +1,11 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "MacUpdater/ViewController.h"
 
+#include "UpdaterCommon/Platform.h"
 #include "UpdaterCommon/UI.h"
+#include "UpdaterCommon/UpdaterCommon.h"
 
 #include <Cocoa/Cocoa.h>
 #include <unistd.h>
@@ -136,4 +137,58 @@ void UI::Stop()
 // Stub. Only needed on Windows
 void UI::Init()
 {
+}
+
+bool Platform::VersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
+                            const std::string& install_base_path, const std::string& temp_dir,
+                            FILE* log_fp)
+{
+  const auto op_it = std::find_if(to_update.cbegin(), to_update.cend(), [&](const auto& op) {
+    return op.filename == "Dolphin.app/Contents/Info.plist";
+  });
+  if (op_it == to_update.cend())
+    return true;
+
+  const auto op = *op_it;
+  std::string plist_path = temp_dir + "/" + HexEncode(op.new_hash.data(), op.new_hash.size());
+
+  NSData* data = [NSData dataWithContentsOfFile:[NSString stringWithCString:plist_path.c_str()]];
+  if (!data)
+  {
+    fprintf(log_fp, "Failed to read %s, skipping platform version check.\n", plist_path.c_str());
+    return true;
+  }
+
+  NSError* error = nil;
+  NSDictionary* info_dict =
+      [NSPropertyListSerialization propertyListWithData:data
+                                                options:NSPropertyListImmutable
+                                                 format:nil
+                                                  error:&error];
+  if (error)
+  {
+    fprintf(log_fp, "Failed to parse %s, skipping platform version check.\n", plist_path.c_str());
+    return true;
+  }
+  NSString* min_version_str = info_dict[@"LSMinimumSystemVersion"];
+  if (!min_version_str)
+  {
+    fprintf(log_fp, "LSMinimumSystemVersion key missing, skipping platform version check.\n");
+    return true;
+  }
+
+  NSArray* components = [min_version_str componentsSeparatedByString:@"."];
+  NSOperatingSystemVersion next_version{
+      [components[0] integerValue], [components[1] integerValue], [components[2] integerValue]};
+
+  fprintf(log_fp, "Platform version check: next_version=%ld.%ld.%ld\n",
+          (long)next_version.majorVersion, (long)next_version.minorVersion,
+          (long)next_version.patchVersion);
+
+  if (![[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:next_version])
+  {
+    UI::Error("Please update macOS in order to update Dolphin.");
+    return false;
+  }
+  return true;
 }

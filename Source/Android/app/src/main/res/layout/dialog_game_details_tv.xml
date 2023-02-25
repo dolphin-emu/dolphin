@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:transitionName="card_game">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/text_game_title"
+            style="@android:style/TextAppearance.Material.Headline"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:ellipsize="end"
+            android:textColor="@color/dolphin_onSurface"
+            android:textAlignment="viewStart"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Rhythm Heaven Fever" />
+
+        <TextView
+            android:id="@+id/text_description"
+            style="@android:style/TextAppearance.Material.Caption"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/dolphin_onSurface"
+            android:textAlignment="viewStart"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_game_title"
+            tools:text="Zany rhythm action!" />
+
+        <ImageView
+            android:id="@+id/banner"
+            android:layout_width="144dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="16dp"
+            tools:src="@drawable/no_banner"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_description" />
+
+        <View
+            android:id="@+id/divider_1"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="@color/dolphin_onSurfaceVariant"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/banner" />
+
+        <TextView
+            android:id="@+id/label_country"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textAlignment="viewStart"
+            android:text="@string/game_details_country"
+            android:textColor="@color/dolphin_onSurface"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider_1" />
+
+        <TextView
+            android:id="@+id/label_company"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textAlignment="viewStart"
+            android:text="@string/game_details_company"
+            android:textColor="@color/dolphin_onSurface"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/label_country" />
+
+        <TextView
+            android:id="@+id/label_game_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textAlignment="viewStart"
+            android:text="@string/game_details_game_id"
+            android:textColor="@color/dolphin_onSurface"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/label_company" />
+
+        <TextView
+            android:id="@+id/label_revision"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textAlignment="viewStart"
+            android:text="@string/game_details_revision"
+            android:textColor="@color/dolphin_onSurface"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/label_game_id" />
+
+        <TextView
+            android:id="@+id/text_country"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAlignment="viewEnd"
+            android:textColor="@color/dolphin_onSurface"
+            android:layout_marginStart="@dimen/spacing_medlarge"
+            app:layout_constraintBaseline_toBaselineOf="@+id/label_country"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/label_country"
+            tools:text="United States" />
+
+        <TextView
+            android:id="@+id/text_company"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAlignment="viewEnd"
+            android:textColor="@color/dolphin_onSurface"
+            android:layout_marginStart="@dimen/spacing_medlarge"
+            app:layout_constraintBaseline_toBaselineOf="@+id/label_company"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/label_company"
+            tools:text="Nintendo" />
+
+        <TextView
+            android:id="@+id/text_game_id"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAlignment="viewEnd"
+            android:textColor="@color/dolphin_onSurface"
+            android:layout_marginStart="@dimen/spacing_medlarge"
+            app:layout_constraintBaseline_toBaselineOf="@+id/label_game_id"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/label_game_id"
+            tools:text="SOME01" />
+
+        <TextView
+            android:id="@+id/text_revision"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAlignment="viewEnd"
+            android:textColor="@color/dolphin_onSurface"
+            android:layout_marginStart="@dimen/spacing_medlarge"
+            app:layout_constraintBaseline_toBaselineOf="@+id/label_revision"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/label_revision"
+            tools:text="0" />
+
+        <View
+            android:id="@+id/divider_2"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="@color/dolphin_onSurfaceVariant"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/label_revision" />
+
+        <TextView
+            android:id="@+id/label_file_format"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="@dimen/spacing_small"
+            android:textAlignment="viewStart"
+            android:text="@string/game_details_file_format"
+            android:textColor="@color/dolphin_onSurface"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider_2" />
+
+        <TextView
+            android:id="@+id/label_compression"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textAlignment="viewStart"
+            android:text="@string/game_details_compression"
+            android:textColor="@color/dolphin_onSurface"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/label_file_format" />
+
+        <TextView
+            android:id="@+id/label_block_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textAlignment="viewStart"
+            android:text="@string/game_details_block_size"
+            android:textColor="@color/dolphin_onSurface"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/label_compression" />
+
+        <TextView
+            android:id="@+id/text_file_format"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAlignment="viewEnd"
+            android:textColor="@color/dolphin_onSurface"
+            android:layout_marginStart="@dimen/spacing_medlarge"
+            app:layout_constraintBaseline_toBaselineOf="@+id/label_file_format"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/label_file_format"
+            tools:text="ISO (4.38 GiB)" />
+
+        <TextView
+            android:id="@+id/text_compression"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAlignment="viewEnd"
+            android:textColor="@color/dolphin_onSurface"
+            android:layout_marginStart="@dimen/spacing_medlarge"
+            app:layout_constraintBaseline_toBaselineOf="@+id/label_compression"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/label_compression"
+            tools:text="No Compression" />
+
+        <TextView
+            android:id="@+id/text_block_size"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAlignment="viewEnd"
+            android:textColor="@color/dolphin_onSurface"
+            android:layout_marginStart="@dimen/spacing_medlarge"
+            app:layout_constraintBaseline_toBaselineOf="@+id/label_block_size"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/label_block_size"
+            tools:text="0 B" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

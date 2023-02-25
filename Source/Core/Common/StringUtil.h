@@ -1,12 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <cstdarg>
 #include <cstddef>
 #include <cstdlib>
+#include <filesystem>
 #include <iomanip>
 #include <limits>
 #include <locale>
@@ -16,11 +16,6 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-
-#ifdef _MSC_VER
-#include <filesystem>
-#define HAS_STD_FILESYSTEM
-#endif
 
 std::string StringFromFormatV(const char* format, va_list args);
 
@@ -47,10 +42,15 @@ inline void CharArrayFromFormat(char (&out)[Count], const char* format, ...)
 // Good
 std::string ArrayToString(const u8* data, u32 size, int line_len = 20, bool spaces = true);
 
+std::string_view StripWhitespace(std::string_view s);
 std::string_view StripSpaces(std::string_view s);
 std::string_view StripQuotes(std::string_view s);
 
 std::string ReplaceAll(std::string result, std::string_view src, std::string_view dest);
+
+void ReplaceBreaksWithSpaces(std::string& str);
+
+void TruncateToCString(std::string* s);
 
 bool TryParse(const std::string& str, bool* output);
 
@@ -156,18 +156,21 @@ std::vector<std::string> SplitString(const std::string& str, char delim);
 std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter);
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
+// This requires forward slashes to be used for the path separators, even on Windows.
 bool SplitPath(std::string_view full_path, std::string* path, std::string* filename,
                std::string* extension);
 
+// Converts the path separators of a path into forward slashes on Windows, which is assumed to be
+// true for paths at various places in the codebase.
+void UnifyPathSeparators(std::string& path);
+std::string WithUnifiedPathSeparators(std::string path);
+
+// Extracts just the filename (including extension) from a full path.
+// This requires forward slashes to be used for the path separators, even on Windows.
 std::string PathToFileName(std::string_view path);
 
-void BuildCompleteFilename(std::string& complete_filename, std::string_view path,
-                           std::string_view filename);
-
-bool StringBeginsWith(std::string_view str, std::string_view begin);
-bool StringEndsWith(std::string_view str, std::string_view end);
 void StringPopBackIf(std::string* s, char c);
-size_t StringUTF8CodePointCount(const std::string& str);
+size_t StringUTF8CodePointCount(std::string_view str);
 
 #ifdef _WIN32
 std::u32string UTF8ToUTF32(const std::string& input);
@@ -212,10 +215,8 @@ inline std::string UTF8ToTStr(std::string_view str)
 
 #endif
 
-#ifdef HAS_STD_FILESYSTEM
 std::filesystem::path StringToPath(std::string_view path);
 std::string PathToString(const std::filesystem::path& path);
-#endif
 
 // Thousand separator. Turns 12345678 into 12,345,678
 template <typename I>
@@ -244,6 +245,30 @@ inline bool IsPrintableCharacter(char c)
   return std::isprint(c, std::locale::classic());
 }
 
+/// Returns whether a character is a letter, i.e. whether 'a' <= c <= 'z' || 'A' <= c <= 'Z'
+/// is true. Use this instead of calling std::isalpha directly to ensure
+/// the C locale is being used and to avoid possibly undefined behaviour.
+inline bool IsAlpha(char c)
+{
+  return std::isalpha(c, std::locale::classic());
+}
+
 #ifdef _WIN32
 std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line);
 #endif
+
+std::string GetEscapedHtml(std::string html);
+
+namespace Common
+{
+inline char ToLower(char ch)
+{
+  return std::tolower(ch, std::locale::classic());
+}
+inline char ToUpper(char ch)
+{
+  return std::toupper(ch, std::locale::classic());
+}
+void ToLower(std::string* str);
+void ToUpper(std::string* str);
+}  // namespace Common

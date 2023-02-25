@@ -1,13 +1,18 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <QuartzCore/QuartzCore.h>
 
 #include "Common/Matrix.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
+
+#ifdef __OBJC__
+@class DolWindowPositionObserver;
+#else
+class DolWindowPositionObserver;
+#endif
 
 namespace ciface::Quartz
 {
@@ -59,14 +64,17 @@ private:
 public:
   void UpdateInput() override;
 
-  explicit KeyboardAndMouse(void* window);
+  explicit KeyboardAndMouse(void* view);
+  ~KeyboardAndMouse() override;
 
   std::string GetName() const override;
   std::string GetSource() const override;
 
 private:
+  void MainThreadInitialization(void* view);
+
   Common::Vec2 m_cursor;
 
-  uint32_t m_windowid;
+  DolWindowPositionObserver* m_window_pos_observer;
 };
 }  // namespace ciface::Quartz

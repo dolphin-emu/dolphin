@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="..\..\Source\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4BC5A148-0AB3-440F-A980-A29B4B999190}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src/format.cc" />
+    <ClCompile Include="src/os.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include/fmt/args.h" />
+    <ClInclude Include="include/fmt/chrono.h" />
+    <ClInclude Include="include/fmt/color.h" />
+    <ClInclude Include="include/fmt/compile.h" />
+    <ClInclude Include="include/fmt/core.h" />
+    <ClInclude Include="include/fmt/format-inl.h" />
+    <ClInclude Include="include/fmt/format.h" />
+    <ClInclude Include="include/fmt/os.h" />
+    <ClInclude Include="include/fmt/ostream.h" />
+    <ClInclude Include="include/fmt/printf.h" />
+    <ClInclude Include="include/fmt/ranges.h" />
+    <ClInclude Include="include/fmt/std.h" />
+    <ClInclude Include="include/fmt/xchar.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

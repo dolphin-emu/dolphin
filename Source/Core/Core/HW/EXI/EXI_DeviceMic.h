@@ -1,12 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <mutex>
 
 #include "Common/CommonTypes.h"
+#include "Common/WorkQueueThread.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 struct cubeb;
@@ -100,5 +100,11 @@ private:
   int stream_wpos;
   int stream_rpos;
   int samples_avail;
+
+#ifdef _WIN32
+  Common::WorkQueueThread<std::function<void()>> m_work_queue;
+  bool m_coinit_success = false;
+  bool m_should_couninit = false;
+#endif
 };
 }  // namespace ExpansionInterface

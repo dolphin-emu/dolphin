@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HotkeyManager.h"
 
@@ -25,7 +24,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-constexpr std::array<const char*, 143> s_hotkey_labels{{
+constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -36,6 +35,8 @@ constexpr std::array<const char*, 143> s_hotkey_labels{{
     _trans("Toggle Fullscreen"),
     _trans("Take Screenshot"),
     _trans("Exit"),
+    _trans("Unlock Cursor"),
+    _trans("Center Mouse"),
     _trans("Activate NetPlay Chat"),
     _trans("Control NetPlay Golf Mode"),
 
@@ -118,21 +119,7 @@ constexpr std::array<const char*, 143> s_hotkey_labels{{
     // i18n: IR stands for internal resolution
     _trans("Decrease IR"),
 
-    _trans("Freelook Decrease Speed"),
-    _trans("Freelook Increase Speed"),
-    _trans("Freelook Reset Speed"),
-    _trans("Freelook Move Up"),
-    _trans("Freelook Move Down"),
-    _trans("Freelook Move Left"),
-    _trans("Freelook Move Right"),
-    _trans("Freelook Zoom In"),
-    _trans("Freelook Zoom Out"),
-    _trans("Freelook Reset"),
     _trans("Freelook Toggle"),
-    _trans("Freelook Increase Field of View X"),
-    _trans("Freelook Decrease Field of View X"),
-    _trans("Freelook Increase Field of View Y"),
-    _trans("Freelook Decrease Field of View Y"),
 
     _trans("Toggle 3D Side-by-Side"),
     _trans("Toggle 3D Top-Bottom"),
@@ -199,6 +186,22 @@ constexpr std::array<const char*, 143> s_hotkey_labels{{
     _trans("Step backwards in Slippi replay"),
     _trans("Step forwards in Slippi replay"),
     _trans("Jump forwards in Slippi replay"),
+
+    _trans("Increase Selected State Slot"),
+    _trans("Decrease Selected State Slot"),
+
+    _trans("Load ROM"),
+    _trans("Unload ROM"),
+    _trans("Reset"),
+
+    _trans("Volume Down"),
+    _trans("Volume Up"),
+    _trans("Volume Toggle Mute"),
+
+    _trans("1x"),
+    _trans("2x"),
+    _trans("3x"),
+    _trans("4x"),
 }};
 
 // clang-format on
@@ -217,10 +220,10 @@ InputConfig* GetConfig()
   return &s_config;
 }
 
-void GetStatus()
+void GetStatus(bool ignore_focus)
 {
   // Get input
-  static_cast<HotkeyManager*>(s_config.GetController(0))->GetInput(&s_hotkey);
+  static_cast<HotkeyManager*>(s_config.GetController(0))->GetInput(&s_hotkey, ignore_focus);
 }
 
 bool IsEnabled()
@@ -307,7 +310,7 @@ void Initialize()
 
 void LoadConfig()
 {
-  s_config.LoadConfig(true);
+  s_config.LoadConfig(InputConfig::InputClass::GC);
   LoadLegacyConfig(s_config.GetController(0));
 }
 
@@ -329,6 +332,7 @@ struct HotkeyGroupInfo
   const char* name;
   Hotkey first;
   Hotkey last;
+  bool ignore_focus = false;
 };
 
 constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
@@ -347,7 +351,7 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Controller Profile 4"), HK_NEXT_WIIMOTE_PROFILE_4, HK_PREV_GAME_WIIMOTE_PROFILE_4},
      {_trans("Graphics Toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
      {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
-     {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_DECREASE_FOV_Y},
+     {_trans("Freelook"), HK_FREELOOK_TOGGLE, HK_FREELOOK_TOGGLE},
      // i18n: Stereoscopic 3D
      {_trans("3D"), HK_TOGGLE_STEREO_SBS, HK_TOGGLE_STEREO_ANAGLYPH},
      // i18n: Stereoscopic 3D
@@ -356,8 +360,11 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Save State"), HK_SAVE_STATE_SLOT_1, HK_SAVE_STATE_SLOT_SELECTED},
      {_trans("Select State"), HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
      {_trans("Load Last State"), HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
-     {_trans("Other State Hotkeys"), HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE},
-     {_trans("Slippi playback controls"), HK_SLIPPI_JUMP_BACK, HK_SLIPPI_JUMP_FORWARD} } };
+     {_trans("Other State Hotkeys"), HK_SAVE_FIRST_STATE, HK_DECREMENT_SELECTED_STATE_SLOT},
+     {_trans("Slippi playback controls"), HK_SLIPPI_JUMP_BACK, HK_SLIPPI_JUMP_FORWARD},
+     {_trans("GBA Core"), HK_GBA_LOAD, HK_GBA_RESET, true},
+     {_trans("GBA Volume"), HK_GBA_VOLUME_DOWN, HK_GBA_TOGGLE_MUTE, true},
+     {_trans("GBA Window Size"), HK_GBA_1X, HK_GBA_4X, true}}};
 
 HotkeyManager::HotkeyManager()
 {
@@ -382,11 +389,14 @@ std::string HotkeyManager::GetName() const
   return "Hotkeys";
 }
 
-void HotkeyManager::GetInput(HotkeyStatus* const kb)
+void HotkeyManager::GetInput(HotkeyStatus* kb, bool ignore_focus)
 {
   const auto lock = GetStateLock();
   for (std::size_t group = 0; group < s_groups_info.size(); group++)
   {
+    if (s_groups_info[group].ignore_focus != ignore_focus)
+      continue;
+
     const int group_count = (s_groups_info[group].last - s_groups_info[group].first) + 1;
     std::vector<u32> bitmasks(group_count);
     for (size_t key = 0; key < bitmasks.size(); key++)
@@ -455,22 +465,6 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_TOGGLE_THROTTLE, "Tab");
 #endif
 
-  // Freelook
-  set_key_expression(HK_FREELOOK_DECREASE_SPEED, hotkey_string({"Shift", "`1`"}));
-  set_key_expression(HK_FREELOOK_INCREASE_SPEED, hotkey_string({"Shift", "`2`"}));
-  set_key_expression(HK_FREELOOK_RESET_SPEED, hotkey_string({"Shift", "F"}));
-  set_key_expression(HK_FREELOOK_UP, hotkey_string({"Shift", "E"}));
-  set_key_expression(HK_FREELOOK_DOWN, hotkey_string({"Shift", "Q"}));
-  set_key_expression(HK_FREELOOK_LEFT, hotkey_string({"Shift", "A"}));
-  set_key_expression(HK_FREELOOK_RIGHT, hotkey_string({"Shift", "D"}));
-  set_key_expression(HK_FREELOOK_ZOOM_IN, hotkey_string({"Shift", "W"}));
-  set_key_expression(HK_FREELOOK_ZOOM_OUT, hotkey_string({"Shift", "S"}));
-  set_key_expression(HK_FREELOOK_RESET, hotkey_string({"Shift", "R"}));
-  set_key_expression(HK_FREELOOK_INCREASE_FOV_X, hotkey_string({"Shift", "`Axis Z+`"}));
-  set_key_expression(HK_FREELOOK_DECREASE_FOV_X, hotkey_string({"Shift", "`Axis Z-`"}));
-  set_key_expression(HK_FREELOOK_INCREASE_FOV_Y, hotkey_string({"Shift", "`Axis Z+`"}));
-  set_key_expression(HK_FREELOOK_DECREASE_FOV_Y, hotkey_string({"Shift", "`Axis Z-`"}));
-
   // Savestates
   for (int i = 0; i < 8; i++)
   {
@@ -481,7 +475,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_UNDO_LOAD_STATE, "F12");
   set_key_expression(HK_UNDO_SAVE_STATE, hotkey_string({"Shift", "F12"}));
 
-  // Slippi Playback
+// Slippi Playback
 #ifdef IS_PLAYBACK
   if (SConfig::GetInstance().m_slippiEnableSeek) {
 #ifdef _WIN32
@@ -507,6 +501,31 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
     set_key_expression(HK_SLIPPI_STEP_FORWARD, "`Right`");
     set_key_expression(HK_SLIPPI_JUMP_FORWARD, hotkey_string({"Shift", "`Right`"}));
 #endif
-  }
+#endif
+
+  // GBA
+  set_key_expression(HK_GBA_LOAD, hotkey_string({"`Ctrl`", "`Shift`", "`O`"}));
+  set_key_expression(HK_GBA_UNLOAD, hotkey_string({"`Ctrl`", "`Shift`", "`W`"}));
+  set_key_expression(HK_GBA_RESET, hotkey_string({"`Ctrl`", "`Shift`", "`R`"}));
+
+#ifdef _WIN32
+  set_key_expression(HK_GBA_VOLUME_DOWN, "`SUBTRACT`");
+  set_key_expression(HK_GBA_VOLUME_UP, "`ADD`");
+#else
+  set_key_expression(HK_GBA_VOLUME_DOWN, "`KP_Subtract`");
+  set_key_expression(HK_GBA_VOLUME_UP, "`KP_Add`");
+#endif
+  set_key_expression(HK_GBA_TOGGLE_MUTE, "`M`");
+
+#ifdef _WIN32
+  set_key_expression(HK_GBA_1X, "`NUMPAD1`");
+  set_key_expression(HK_GBA_2X, "`NUMPAD2`");
+  set_key_expression(HK_GBA_3X, "`NUMPAD3`");
+  set_key_expression(HK_GBA_4X, "`NUMPAD4`");
+#else
+  set_key_expression(HK_GBA_1X, "`KP_1`");
+  set_key_expression(HK_GBA_2X, "`KP_2`");
+  set_key_expression(HK_GBA_3X, "`KP_3`");
+  set_key_expression(HK_GBA_4X, "`KP_4`");
 #endif
 }

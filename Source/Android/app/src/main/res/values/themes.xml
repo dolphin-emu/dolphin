@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.Dolphin.Splash.Main" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/dolphin_surface</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_dolphin_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.Dolphin.Main</item>
+    </style>
+
+    <style name="Theme.Dolphin.Splash.TV" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/dolphin_surface</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_dolphin_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.Dolphin.TV</item>
+    </style>
+
+    <!-- Base theme -->
+    <style name="Theme.Dolphin" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/dolphin_primary</item>
+        <item name="colorOnPrimary">@color/dolphin_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/dolphin_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/dolphin_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/dolphin_secondary</item>
+        <item name="colorOnSecondary">@color/dolphin_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/dolphin_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/dolphin_onSecondaryContainer</item>
+        <item name="colorTertiary">@color/dolphin_tertiary</item>
+        <item name="colorOnTertiary">@color/dolphin_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/dolphin_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/dolphin_onTertiaryContainer</item>
+        <item name="colorError">@color/dolphin_error</item>
+        <item name="colorErrorContainer">@color/dolphin_errorContainer</item>
+        <item name="colorOnError">@color/dolphin_onError</item>
+        <item name="colorOnErrorContainer">@color/dolphin_onErrorContainer</item>
+        <item name="android:colorBackground">@color/dolphin_background</item>
+        <item name="colorOnBackground">@color/dolphin_onBackground</item>
+        <item name="colorSurface">@color/dolphin_surface</item>
+        <item name="colorOnSurface">@color/dolphin_onSurface</item>
+        <item name="colorSurfaceVariant">@color/dolphin_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/dolphin_onSurfaceVariant</item>
+        <item name="colorOutline">@color/dolphin_outline</item>
+        <item name="colorOnSurfaceInverse">@color/dolphin_inverseOnSurface</item>
+        <item name="colorSurfaceInverse">@color/dolphin_inverseSurface</item>
+        <item name="colorPrimaryInverse">@color/dolphin_inversePrimary</item>
+        <item name="android:shadowColor">@color/dolphin_shadow</item>
+
+        <!-- Enable window content transitions -->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">default</item>
+
+        <item name="materialAlertDialogTheme">@style/DolphinMaterialDialog</item>
+        <item name="popupTheme">@style/DolphinPopup</item>
+        <item name="sliderStyle">@style/DolphinSlider</item>
+        <item name="materialDividerStyle">@style/DolphinDivider</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Dolphin.BottomSheetDialog</item>
+        <item name="extendedFloatingActionButtonStyle">@style/Widget.Dolphin.ExtendedFloatingActionButton</item>
+    </style>
+
+    <!-- Trick for API >= 29 specific changes -->
+    <style name="Theme.Dolphin.Main" parent="Theme.Dolphin" />
+
+    <style name="Theme.Dolphin.Main.Material" parent="Theme.Dolphin.Main">
+        <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
+        <item name="popupTheme">@style/ThemeOverlay.Material3</item>
+        <item name="extendedFloatingActionButtonStyle">@style/Widget.Material3.ExtendedFloatingActionButton.Primary</item>
+    </style>
+
+    <style name="Theme.Dolphin.Main.Green" parent="Theme.Dolphin.Main">
+        <item name="colorPrimary">@color/green_primary</item>
+        <item name="colorOnPrimary">@color/green_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/green_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/green_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/green_secondary</item>
+        <item name="colorOnSecondary">@color/green_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/green_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/green_onSecondaryContainer</item>
+        <item name="colorTertiary">@color/green_tertiary</item>
+        <item name="colorOnTertiary">@color/green_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/green_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/green_onTertiaryContainer</item>
+        <item name="colorErrorContainer">@color/green_errorContainer</item>
+        <item name="colorOnError">@color/green_onError</item>
+        <item name="colorOnErrorContainer">@color/green_onErrorContainer</item>
+        <item name="android:colorBackground">@color/green_background</item>
+        <item name="colorOnBackground">@color/green_onBackground</item>
+        <item name="colorSurface">@color/green_surface</item>
+        <item name="colorOnSurface">@color/green_onSurface</item>
+        <item name="colorSurfaceVariant">@color/green_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/green_onSurfaceVariant</item>
+        <item name="colorOutline">@color/green_outline</item>
+        <item name="colorOnSurfaceInverse">@color/green_inverseOnSurface</item>
+        <item name="colorSurfaceInverse">@color/green_inverseSurface</item>
+        <item name="colorPrimaryInverse">@color/green_inversePrimary</item>
+
+        <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
+        <item name="popupTheme">@style/ThemeOverlay.Material3</item>
+        <item name="extendedFloatingActionButtonStyle">@style/Widget.Material3.ExtendedFloatingActionButton.Primary</item>
+    </style>
+
+    <style name="Theme.Dolphin.Main.Pink" parent="Theme.Dolphin.Main">
+        <item name="colorPrimary">@color/pink_primary</item>
+        <item name="colorOnPrimary">@color/pink_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/pink_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/pink_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/pink_secondary</item>
+        <item name="colorOnSecondary">@color/pink_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/pink_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/pink_onSecondaryContainer</item>
+        <item name="colorTertiary">@color/pink_tertiary</item>
+        <item name="colorOnTertiary">@color/pink_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/pink_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/pink_onTertiaryContainer</item>
+        <item name="colorErrorContainer">@color/pink_errorContainer</item>
+        <item name="colorOnError">@color/pink_onError</item>
+        <item name="colorOnErrorContainer">@color/pink_onErrorContainer</item>
+        <item name="android:colorBackground">@color/pink_background</item>
+        <item name="colorOnBackground">@color/pink_onBackground</item>
+        <item name="colorSurface">@color/pink_surface</item>
+        <item name="colorOnSurface">@color/pink_onSurface</item>
+        <item name="colorSurfaceVariant">@color/pink_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/pink_onSurfaceVariant</item>
+        <item name="colorOutline">@color/pink_outline</item>
+        <item name="colorOnSurfaceInverse">@color/pink_inverseOnSurface</item>
+        <item name="colorSurfaceInverse">@color/pink_inverseSurface</item>
+        <item name="colorPrimaryInverse">@color/pink_inversePrimary</item>
+
+        <item name="materialAlertDialogTheme">@style/MaterialDialog</item>
+        <item name="popupTheme">@style/ThemeOverlay.Material3</item>
+        <item name="extendedFloatingActionButtonStyle">@style/Widget.Material3.ExtendedFloatingActionButton.Primary</item>
+    </style>
+
+    <!-- Inherit from a base file picker theme that handles day/night -->
+    <style name="Theme.Dolphin.FilePicker" parent="FilePickerBaseTheme">
+        <item name="colorPrimary">@color/dolphin_filepicker</item>
+        <item name="colorPrimaryDark">@color/dolphin_filepicker</item>
+        <item name="colorAccent">@color/dolphin_filepicker</item>
+
+        <!-- Setting a divider is entirely optional -->
+        <item name="nnf_list_item_divider">?android:attr/listDivider</item>
+
+        <!-- If you want to set a specific toolbar theme, do it here -->
+        <item name="nnf_toolbarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+    </style>
+
+    <style name="Theme.Dolphin.TV" parent="Theme.Leanback.Browse">
+        <!-- Enable window content transitions -->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+
+        <!-- Use CustomTitleView as the leanback title view. -->
+        <item name="browseTitleViewLayout">@layout/titleview</item>
+
+        <!-- Global AlertDialog Theme -->
+        <item name="alertDialogTheme">@style/DolphinTVDialog</item>
+    </style>
+</resources>

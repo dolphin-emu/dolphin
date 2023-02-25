@@ -1,6 +1,7 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
 #include <array>
 #include <sstream>
@@ -8,23 +9,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-
-#include "Core/Core.h"
-#include "Core/HW/GCPad.h"
-#include "Core/HW/GCPadEmu.h"
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/Extension/Classic.h"
-#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerEmu/StickGate.h"
-#include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
 namespace ButtonManager
 {
@@ -654,7 +642,7 @@ void Init(const std::string& game_id)
       {
         hasbind = true;
         type = BIND_AXIS;
-        if (StringBeginsWith(value, "Device ''"))
+        if (value.starts_with("Device ''"))
           sscanf(value.c_str(), "Device ''-Axis %d%c", &bindnum, &modifier);
         else
           sscanf(value.c_str(), "Device '%127[^\']'-Axis %d%c", dev, &bindnum, &modifier);
@@ -663,7 +651,7 @@ void Init(const std::string& game_id)
       {
         hasbind = true;
         type = BIND_BUTTON;
-        if (StringBeginsWith(value, "Device ''"))
+        if (value.starts_with("Device ''"))
           sscanf(value.c_str(), "Device ''-Button %d", &bindnum);
         else
           sscanf(value.c_str(), "Device '%127[^\']'-Button %d", dev, &bindnum);
@@ -700,39 +688,6 @@ float GetAxisValue(int pad_id, ButtonType axis)
   return value;
 }
 
-double GetInputRadiusAtAngle(int pad_id, ButtonType stick, double angle)
-{
-  // To avoid a crash, don't access controllers before they've been initialized by the boot process
-  if (!Core::IsRunningAndStarted())
-    return 0;
-
-  ControllerEmu::ControlGroup* group;
-
-  switch (stick)
-  {
-  case STICK_MAIN:
-    group = Pad::GetGroup(pad_id, PadGroup::MainStick);
-    break;
-  case STICK_C:
-    group = Pad::GetGroup(pad_id, PadGroup::CStick);
-    break;
-  case NUNCHUK_STICK:
-    group = Wiimote::GetNunchukGroup(pad_id, WiimoteEmu::NunchukGroup::Stick);
-    break;
-  case CLASSIC_STICK_LEFT:
-    group = Wiimote::GetClassicGroup(pad_id, WiimoteEmu::ClassicGroup::LeftStick);
-    break;
-  case CLASSIC_STICK_RIGHT:
-    group = Wiimote::GetClassicGroup(pad_id, WiimoteEmu::ClassicGroup::RightStick);
-    break;
-  default:
-    ASSERT(false);
-    return 0;
-  }
-
-  return static_cast<ControllerEmu::ReshapableInput*>(group)->GetInputRadiusAtAngle(angle);
-}
-
 bool GamepadEvent(const std::string& dev, int button, int action)
 {
   auto it = m_controllers.find(dev);
@@ -766,7 +721,7 @@ bool InputDevice::PressEvent(int button, int action)
       if (binding.second->m_bind_type == BIND_BUTTON)
         m_buttons[binding.second->m_button_type] = action == BUTTON_PRESSED ? true : false;
       else
-        m_axises[binding.second->m_button_type] = action == BUTTON_PRESSED ? 1.0f : 0.0f;
+        m_axes[binding.second->m_button_type] = action == BUTTON_PRESSED ? 1.0f : 0.0f;
       handled = true;
     }
   }
@@ -780,34 +735,54 @@ void InputDevice::AxisEvent(int axis, float value)
     if (binding.second->m_bind == axis)
     {
       if (binding.second->m_bind_type == BIND_AXIS)
-        m_axises[binding.second->m_button_type] = value;
+        m_axes[binding.second->m_button_type] = value;
       else
         m_buttons[binding.second->m_button_type] = value > 0.5f ? true : false;
     }
   }
 }
 
-bool InputDevice::ButtonValue(int pad_id, ButtonType button)
+bool InputDevice::ButtonValue(int pad_id, ButtonType button) const
 {
-  const auto& binding = m_input_binds.find(std::make_pair(pad_id, button));
+  const auto binding = m_input_binds.find(std::make_pair(pad_id, button));
   if (binding == m_input_binds.end())
     return false;
 
   if (binding->second->m_bind_type == BIND_BUTTON)
-    return m_buttons[binding->second->m_button_type];
+  {
+    const auto button = m_buttons.find(binding->second->m_button_type);
+    if (button == m_buttons.end())
+      return false;
+    return button->second;
+  }
   else
-    return (m_axises[binding->second->m_button_type] * binding->second->m_neg) > 0.5f;
+  {
+    const auto axis = m_axes.find(binding->second->m_button_type);
+    if (axis == m_axes.end())
+      return false;
+    return (axis->second * binding->second->m_neg) > 0.5f;
+  }
 }
 
-float InputDevice::AxisValue(int pad_id, ButtonType axis)
+float InputDevice::AxisValue(int pad_id, ButtonType axis) const
 {
-  const auto& binding = m_input_binds.find(std::make_pair(pad_id, axis));
+  const auto binding = m_input_binds.find(std::make_pair(pad_id, axis));
   if (binding == m_input_binds.end())
     return 0.0f;
 
   if (binding->second->m_bind_type == BIND_AXIS)
-    return m_axises[binding->second->m_button_type] * binding->second->m_neg;
+  {
+    const auto axis = m_axes.find(binding->second->m_button_type);
+    if (axis == m_axes.end())
+      return 0.0f;
+    return axis->second * binding->second->m_neg;
+  }
   else
-    return m_buttons[binding->second->m_button_type] == BUTTON_PRESSED ? 1.0f : 0.0f;
+  {
+    const auto button = m_buttons.find(binding->second->m_button_type);
+    if (button == m_buttons.end())
+      return 0.0f;
+    return button->second == BUTTON_PRESSED ? 1.0f : 0.0f;
+  }
 }
 }  // namespace ButtonManager

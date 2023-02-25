@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemGroup>
+    <ClInclude Include="Common\Arm64Emitter.h" />
+    <ClInclude Include="Common\ArmCommon.h" />
+    <ClInclude Include="Core\PowerPC\JitArm64\Jit_Util.h" />
+    <ClInclude Include="Core\PowerPC\JitArm64\Jit.h" />
+    <ClInclude Include="Core\PowerPC\JitArm64\JitArm64_RegCache.h" />
+    <ClInclude Include="Core\PowerPC\JitArm64\JitArm64Cache.h" />
+    <ClInclude Include="Core\PowerPC\JitArmCommon\BackPatch.h" />
+    <ClInclude Include="VideoCommon\VertexLoaderARM64.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Common\Arm64Emitter.cpp" />
+    <ClCompile Include="Common\ArmCPUDetect.cpp" />
+    <ClCompile Include="Common\ArmFPURoundMode.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\Jit_Util.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\Jit.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_BackPatch.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_Branch.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_FloatingPoint.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_Integer.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_LoadStore.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_LoadStoreFloating.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_LoadStorePaired.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_Paired.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_RegCache.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_SystemRegisters.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_Tables.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitArm64Cache.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\JitAsm.cpp" />
+    <ClCompile Include="VideoCommon\TextureDecoder_Generic.cpp" />
+    <ClCompile Include="VideoCommon\VertexLoaderARM64.cpp" />
+  </ItemGroup>
+</Project>

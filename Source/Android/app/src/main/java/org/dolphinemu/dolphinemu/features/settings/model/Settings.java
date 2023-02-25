@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.model;
 
 import android.content.Context;
@@ -5,9 +7,11 @@ import android.text.TextUtils;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
-import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.IniFile;
 
 import java.io.Closeable;
@@ -38,6 +42,7 @@ public class Settings implements Closeable
   public static final String SECTION_GFX_HACKS = "Hacks";
 
   public static final String SECTION_DEBUG = "Debug";
+  public static final String SECTION_EMULATED_USB_DEVICES = "EmulatedUSBDevices";
 
   public static final String SECTION_STEREOSCOPY = "Stereoscopy";
 
@@ -53,11 +58,13 @@ public class Settings implements Closeable
 
   private String mGameId;
   private int mRevision;
+  private boolean mIsWii;
 
   private static final String[] configFiles = new String[]{FILE_DOLPHIN, FILE_GFX, FILE_LOGGER,
           FILE_WIIMOTE};
 
-  private HashMap<String, IniFile> mIniFiles = new HashMap<>();
+  private Map<String, IniFile> mIniFiles = new HashMap<>();
+  private final Map<String, IniFile> mWiimoteProfileFiles = new HashMap<>();
 
   private boolean mLoadedRecursiveIsoPathsValue = false;
 
@@ -87,6 +94,55 @@ public class Settings implements Closeable
     return !TextUtils.isEmpty(mGameId);
   }
 
+  public boolean isWii()
+  {
+    return mIsWii;
+  }
+
+  public IniFile getWiimoteProfile(String profile, int padID)
+  {
+    IniFile wiimoteProfileIni = mWiimoteProfileFiles.computeIfAbsent(profile, profileComputed ->
+    {
+      IniFile newIni = new IniFile();
+      newIni.load(SettingsFile.getWiiProfile(profileComputed), false);
+      return newIni;
+    });
+
+    if (!wiimoteProfileIni.exists(SECTION_PROFILE))
+    {
+      String defaultWiiProfilePath = DirectoryInitialization.getUserDirectory() +
+              "/Config/Profiles/Wiimote/WiimoteProfile.ini";
+
+      wiimoteProfileIni.load(defaultWiiProfilePath, false);
+
+      wiimoteProfileIni
+              .setString(SECTION_PROFILE, "Device", "Android/" + (padID + 4) + "/Touchscreen");
+    }
+
+    return wiimoteProfileIni;
+  }
+
+  public void enableWiimoteProfile(Settings settings, String profile, String profileKey)
+  {
+    getWiimoteControlsSection(settings).setString(profileKey, profile);
+  }
+
+  public boolean disableWiimoteProfile(Settings settings, String profileKey)
+  {
+    return getWiimoteControlsSection(settings).delete(profileKey);
+  }
+
+  public boolean isWiimoteProfileEnabled(Settings settings, String profile,
+          String profileKey)
+  {
+    return profile.equals(getWiimoteControlsSection(settings).getString(profileKey, ""));
+  }
+
+  private IniFile.Section getWiimoteControlsSection(Settings settings)
+  {
+    return settings.getSection(GAME_SETTINGS_PLACEHOLDER_FILE_NAME, SECTION_CONTROLS);
+  }
+
   public int getWriteLayer()
   {
     return isGameSpecific() ? NativeConfig.LAYER_LOCAL_GAME : NativeConfig.LAYER_BASE_OR_CURRENT;
@@ -97,8 +153,16 @@ public class Settings implements Closeable
     return mIniFiles.isEmpty();
   }
 
-  public void loadSettings(SettingsActivityView view)
+  public void loadSettings()
   {
+    // The value of isWii doesn't matter if we don't have any SettingsActivity
+    loadSettings(null, true);
+  }
+
+  public void loadSettings(SettingsActivityView view, boolean isWii)
+  {
+    mIsWii = isWii;
+
     mIniFiles = new HashMap<>();
 
     if (!isGameSpecific())
@@ -135,11 +199,11 @@ public class Settings implements Closeable
     mIniFiles.put(GAME_SETTINGS_PLACEHOLDER_FILE_NAME, ini);
   }
 
-  public void loadSettings(String gameId, int revision, SettingsActivityView view)
+  public void loadSettings(SettingsActivityView view, String gameId, int revision, boolean isWii)
   {
     mGameId = gameId;
     mRevision = revision;
-    loadSettings(view);
+    loadSettings(view, isWii);
   }
 
   public void saveSettings(SettingsActivityView view, Context context)
@@ -147,14 +211,14 @@ public class Settings implements Closeable
     if (!isGameSpecific())
     {
       if (context != null)
-        Toast.makeText(context, "Saved settings to INI files", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, R.string.settings_saved, Toast.LENGTH_SHORT).show();
 
       for (Map.Entry<String, IniFile> entry : mIniFiles.entrySet())
       {
         SettingsFile.saveFile(entry.getKey(), entry.getValue(), view);
       }
 
-      NativeConfig.save(NativeConfig.LAYER_BASE_OR_CURRENT);
+      NativeConfig.save(NativeConfig.LAYER_BASE);
 
       if (!NativeLibrary.IsRunning())
       {
@@ -170,7 +234,7 @@ public class Settings implements Closeable
       if (mLoadedRecursiveIsoPathsValue != BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this))
       {
         // Refresh game library
-        GameFileCacheService.startRescan(context);
+        GameFileCacheManager.startRescan();
       }
     }
     else
@@ -178,11 +242,19 @@ public class Settings implements Closeable
       // custom game settings
 
       if (context != null)
-        Toast.makeText(context, "Saved settings for " + mGameId, Toast.LENGTH_SHORT).show();
+      {
+        Toast.makeText(context, context.getString(R.string.settings_saved_game_specific, mGameId),
+                Toast.LENGTH_SHORT).show();
+      }
 
       SettingsFile.saveCustomGameSettings(mGameId, getGameSpecificFile());
 
       NativeConfig.save(NativeConfig.LAYER_LOCAL_GAME);
+    }
+
+    for (Map.Entry<String, IniFile> entry : mWiimoteProfileFiles.entrySet())
+    {
+      entry.getValue().save(SettingsFile.getWiiProfile(entry.getKey()));
     }
   }
 

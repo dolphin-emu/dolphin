@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)pugixml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
+      <Project>{38fee76f-f347-484b-949c-b4649381cffb}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(miniupnpc C)
 set(MINIUPNPC_VERSION 1.9)
@@ -33,6 +33,7 @@ set(SRCS	src/igd_desc_parse.c
 			src/receivedata.c)
 
 add_library(miniupnpc STATIC ${SRCS})
+dolphin_disable_warnings_msvc(miniupnpc)
 target_include_directories(miniupnpc PUBLIC src)
 
 add_library(Miniupnpc::miniupnpc ALIAS miniupnpc)

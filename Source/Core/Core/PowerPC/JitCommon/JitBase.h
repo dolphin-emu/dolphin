@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -8,6 +7,7 @@
 #include <map>
 #include <unordered_set>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
@@ -36,12 +36,24 @@
     }                                                                                              \
   } while (0)
 
-#define JITDISABLE(setting)                                                                        \
-  FALLBACK_IF(SConfig::GetInstance().bJITOff || SConfig::GetInstance().setting)
+#define JITDISABLE(setting) FALLBACK_IF(bJITOff || setting)
 
 class JitBase : public CPUCoreBase
 {
 protected:
+  enum class CarryFlag
+  {
+    InPPCState,
+    InHostCarry,
+#ifdef _M_X86_64
+    InHostCarryInverted,
+#endif
+#ifdef _M_ARM_64
+    ConstantTrue,
+    ConstantFalse,
+#endif
+  };
+
   struct JitOptions
   {
     bool enableBlocklink;
@@ -50,6 +62,8 @@ protected:
     bool fastmem;
     bool fastmem_arena;
     bool memcheck;
+    bool fp_exceptions;
+    bool div_by_zero_exceptions;
     bool profile_blocks;
   };
   struct JitState
@@ -69,23 +83,24 @@ protected:
     Gen::FixupBranch exceptionHandler;
 
     bool assumeNoPairedQuantize;
-    std::map<u8, u32> constantGqr;
+    BitSet8 constantGqrValid;
+    std::array<u32, 8> constantGqr;
     bool firstFPInstructionFound;
     bool isLastInstruction;
     int skipInstructions;
-    bool carryFlagSet;
-    bool carryFlagInverted;
+    CarryFlag carryFlag;
 
     bool generatingTrampoline = false;
     u8* trampolineExceptionHandler;
 
     bool mustCheckFifo;
-    int fifoBytesSinceCheck;
+    u32 fifoBytesSinceCheck;
 
     PPCAnalyst::BlockStats st;
     PPCAnalyst::BlockRegStats gpa;
     PPCAnalyst::BlockRegStats fpa;
     PPCAnalyst::CodeOp* op;
+    BitSet32 fpr_is_store_safe;
 
     JitBlock* curBlock;
 
@@ -98,13 +113,44 @@ protected:
   PPCAnalyst::CodeBuffer m_code_buffer;
   PPCAnalyst::PPCAnalyzer analyzer;
 
+  size_t m_registered_config_callback_id;
+  bool bJITOff = false;
+  bool bJITLoadStoreOff = false;
+  bool bJITLoadStorelXzOff = false;
+  bool bJITLoadStorelwzOff = false;
+  bool bJITLoadStorelbzxOff = false;
+  bool bJITLoadStoreFloatingOff = false;
+  bool bJITLoadStorePairedOff = false;
+  bool bJITFloatingPointOff = false;
+  bool bJITIntegerOff = false;
+  bool bJITPairedOff = false;
+  bool bJITSystemRegistersOff = false;
+  bool bJITBranchOff = false;
+  bool bJITRegisterCacheOff = false;
+  bool m_enable_debugging = false;
+  bool m_enable_float_exceptions = false;
+  bool m_enable_div_by_zero_exceptions = false;
+  bool m_low_dcbz_hack = false;
+  bool m_fprf = false;
+  bool m_accurate_nans = false;
+  bool m_fastmem_enabled = false;
+  bool m_mmu_enabled = false;
+  bool m_pause_on_panic_enabled = false;
+  bool m_accurate_cpu_cache_enabled = false;
+
+  void RefreshConfig();
+
   bool CanMergeNextInstructions(int count) const;
 
-  void UpdateMemoryOptions();
+  void UpdateMemoryAndExceptionOptions();
+
+  bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op);
 
 public:
   JitBase();
   ~JitBase() override;
+
+  bool IsDebuggingEnabled() const { return m_enable_debugging; }
 
   static const u8* Dispatch(JitBase& jit);
   virtual JitBaseBlockCache* GetBlockCache() = 0;

@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/Device.h"
 
@@ -13,19 +12,24 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/IOS.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
 Request::Request(const u32 address_) : address(address_)
 {
-  command = static_cast<IPCCommandType>(Memory::Read_U32(address));
-  fd = Memory::Read_U32(address + 8);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  command = static_cast<IPCCommandType>(memory.Read_U32(address));
+  fd = memory.Read_U32(address + 8);
 }
 
 OpenRequest::OpenRequest(const u32 address_) : Request(address_)
 {
-  path = Memory::GetString(Memory::Read_U32(address + 0xc));
-  flags = static_cast<OpenMode>(Memory::Read_U32(address + 0x10));
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  path = memory.GetString(memory.Read_U32(address + 0xc));
+  flags = static_cast<OpenMode>(memory.Read_U32(address + 0x10));
   const Kernel* ios = GetIOS();
   if (ios)
   {
@@ -36,38 +40,46 @@ OpenRequest::OpenRequest(const u32 address_) : Request(address_)
 
 ReadWriteRequest::ReadWriteRequest(const u32 address_) : Request(address_)
 {
-  buffer = Memory::Read_U32(address + 0xc);
-  size = Memory::Read_U32(address + 0x10);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  buffer = memory.Read_U32(address + 0xc);
+  size = memory.Read_U32(address + 0x10);
 }
 
 SeekRequest::SeekRequest(const u32 address_) : Request(address_)
 {
-  offset = Memory::Read_U32(address + 0xc);
-  mode = static_cast<SeekMode>(Memory::Read_U32(address + 0x10));
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  offset = memory.Read_U32(address + 0xc);
+  mode = static_cast<SeekMode>(memory.Read_U32(address + 0x10));
 }
 
 IOCtlRequest::IOCtlRequest(const u32 address_) : Request(address_)
 {
-  request = Memory::Read_U32(address + 0x0c);
-  buffer_in = Memory::Read_U32(address + 0x10);
-  buffer_in_size = Memory::Read_U32(address + 0x14);
-  buffer_out = Memory::Read_U32(address + 0x18);
-  buffer_out_size = Memory::Read_U32(address + 0x1c);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  request = memory.Read_U32(address + 0x0c);
+  buffer_in = memory.Read_U32(address + 0x10);
+  buffer_in_size = memory.Read_U32(address + 0x14);
+  buffer_out = memory.Read_U32(address + 0x18);
+  buffer_out_size = memory.Read_U32(address + 0x1c);
 }
 
 IOCtlVRequest::IOCtlVRequest(const u32 address_) : Request(address_)
 {
-  request = Memory::Read_U32(address + 0x0c);
-  const u32 in_number = Memory::Read_U32(address + 0x10);
-  const u32 out_number = Memory::Read_U32(address + 0x14);
-  const u32 vectors_base = Memory::Read_U32(address + 0x18);  // address to vectors
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  request = memory.Read_U32(address + 0x0c);
+  const u32 in_number = memory.Read_U32(address + 0x10);
+  const u32 out_number = memory.Read_U32(address + 0x14);
+  const u32 vectors_base = memory.Read_U32(address + 0x18);  // address to vectors
 
   u32 offset = 0;
   for (size_t i = 0; i < (in_number + out_number); ++i)
   {
     IOVector vector;
-    vector.address = Memory::Read_U32(vectors_base + offset);
-    vector.size = Memory::Read_U32(vectors_base + offset + 4);
+    vector.address = memory.Read_U32(vectors_base + offset);
+    vector.size = memory.Read_U32(vectors_base + offset + 4);
     offset += 8;
     if (i < in_number)
       in_vectors.emplace_back(vector);
@@ -78,7 +90,8 @@ IOCtlVRequest::IOCtlVRequest(const u32 address_) : Request(address_)
 
 const IOCtlVRequest::IOVector* IOCtlVRequest::GetVector(size_t index) const
 {
-  ASSERT(index < (in_vectors.size() + io_vectors.size()));
+  if (index >= in_vectors.size() + io_vectors.size())
+    return nullptr;
   if (index < in_vectors.size())
     return &in_vectors[index];
   return &io_vectors[index - in_vectors.size()];
@@ -94,32 +107,38 @@ bool IOCtlVRequest::HasNumberOfValidVectors(const size_t in_count, const size_t 
          std::all_of(io_vectors.begin(), io_vectors.end(), IsValidVector);
 }
 
-void IOCtlRequest::Log(std::string_view device_name, Common::Log::LOG_TYPE type,
-                       Common::Log::LOG_LEVELS verbosity) const
+void IOCtlRequest::Log(std::string_view device_name, Common::Log::LogType type,
+                       Common::Log::LogLevel verbosity) const
 {
   GENERIC_LOG_FMT(type, verbosity, "{} (fd {}) - IOCtl {:#x} (in_size={:#x}, out_size={:#x})",
                   device_name, fd, request, buffer_in_size, buffer_out_size);
 }
 
-void IOCtlRequest::Dump(const std::string& description, Common::Log::LOG_TYPE type,
-                        Common::Log::LOG_LEVELS level) const
+void IOCtlRequest::Dump(const std::string& description, Common::Log::LogType type,
+                        Common::Log::LogLevel level) const
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   Log("===== " + description, type, level);
   GENERIC_LOG_FMT(type, level, "In buffer\n{}",
-                  HexDump(Memory::GetPointer(buffer_in), buffer_in_size));
+                  HexDump(memory.GetPointer(buffer_in), buffer_in_size));
   GENERIC_LOG_FMT(type, level, "Out buffer\n{}",
-                  HexDump(Memory::GetPointer(buffer_out), buffer_out_size));
+                  HexDump(memory.GetPointer(buffer_out), buffer_out_size));
 }
 
-void IOCtlRequest::DumpUnknown(const std::string& description, Common::Log::LOG_TYPE type,
-                               Common::Log::LOG_LEVELS level) const
+void IOCtlRequest::DumpUnknown(const std::string& description, Common::Log::LogType type,
+                               Common::Log::LogLevel level) const
 {
   Dump("Unknown IOCtl - " + description, type, level);
 }
 
-void IOCtlVRequest::Dump(std::string_view description, Common::Log::LOG_TYPE type,
-                         Common::Log::LOG_LEVELS level) const
+void IOCtlVRequest::Dump(std::string_view description, Common::Log::LogType type,
+                         Common::Log::LogLevel level) const
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   GENERIC_LOG_FMT(type, level, "===== {} (fd {}) - IOCtlV {:#x} ({} in, {} io)", description, fd,
                   request, in_vectors.size(), io_vectors.size());
 
@@ -127,7 +146,7 @@ void IOCtlVRequest::Dump(std::string_view description, Common::Log::LOG_TYPE typ
   for (const auto& vector : in_vectors)
   {
     GENERIC_LOG_FMT(type, level, "in[{}] (size={:#x}):\n{}", i++, vector.size,
-                    HexDump(Memory::GetPointer(vector.address), vector.size));
+                    HexDump(memory.GetPointer(vector.address), vector.size));
   }
 
   i = 0;
@@ -135,14 +154,12 @@ void IOCtlVRequest::Dump(std::string_view description, Common::Log::LOG_TYPE typ
     GENERIC_LOG_FMT(type, level, "io[{}] (size={:#x})", i++, vector.size);
 }
 
-void IOCtlVRequest::DumpUnknown(const std::string& description, Common::Log::LOG_TYPE type,
-                                Common::Log::LOG_LEVELS level) const
+void IOCtlVRequest::DumpUnknown(const std::string& description, Common::Log::LogType type,
+                                Common::Log::LogLevel level) const
 {
   Dump("Unknown IOCtlV - " + description, type, level);
 }
 
-namespace Device
-{
 Device::Device(Kernel& ios, const std::string& device_name, const DeviceType type)
     : m_ios(ios), m_name(device_name), m_device_type(type)
 {
@@ -150,30 +167,24 @@ Device::Device(Kernel& ios, const std::string& device_name, const DeviceType typ
 
 void Device::DoState(PointerWrap& p)
 {
-  DoStateShared(p);
-  p.Do(m_is_active);
-}
-
-void Device::DoStateShared(PointerWrap& p)
-{
   p.Do(m_name);
   p.Do(m_device_type);
   p.Do(m_is_active);
 }
 
-IPCCommandResult Device::Open(const OpenRequest& request)
+std::optional<IPCReply> Device::Open(const OpenRequest& request)
 {
   m_is_active = true;
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply{IPC_SUCCESS};
 }
 
-IPCCommandResult Device::Close(u32 fd)
+std::optional<IPCReply> Device::Close(u32 fd)
 {
   m_is_active = false;
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply{IPC_SUCCESS};
 }
 
-IPCCommandResult Device::Unsupported(const Request& request)
+std::optional<IPCReply> Device::Unsupported(const Request& request)
 {
   static const std::map<IPCCommandType, std::string_view> names{{
       {IPC_CMD_READ, "Read"},
@@ -184,28 +195,6 @@ IPCCommandResult Device::Unsupported(const Request& request)
   }};
 
   WARN_LOG_FMT(IOS, "{} does not support {}()", m_name, names.at(request.command));
-  return GetDefaultReply(IPC_EINVAL);
+  return IPCReply{IPC_EINVAL};
 }
-
-// Returns an IPCCommandResult for a reply with an average reply time for devices
-// Please avoid using this function if more accurate timings are known.
-IPCCommandResult Device::GetDefaultReply(const s32 return_value)
-{
-  // Based on a hardware test, a device takes at least ~2700 ticks to reply to an IPC request.
-  // Depending on how much work a command performs, this can take much longer (10000+)
-  // especially if the NAND filesystem is accessed.
-  //
-  // Because we currently don't emulate timing very accurately, we should not return
-  // the minimum possible reply time (~960 ticks from the kernel or ~2700 from devices)
-  // but an average time, otherwise we are going to be much too fast in most cases.
-  return {return_value, true, 4000 * SystemTimers::TIMER_RATIO};
-}
-
-// Returns an IPCCommandResult with no reply. Useful for async commands that will generate a reply
-// later. This takes no return value because it won't be used.
-IPCCommandResult Device::GetNoReply()
-{
-  return {IPC_SUCCESS, false, 0};
-}
-}  // namespace Device
 }  // namespace IOS::HLE

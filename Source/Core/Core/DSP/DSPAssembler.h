@@ -1,14 +1,17 @@
 // Copyright 2009 Dolphin Emulator Project
 // Copyright 2005 Duddie
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <cstddef>
 #include <map>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
+
+#include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
 
@@ -86,6 +89,17 @@ private:
     Extension
   };
 
+  struct LocationContext
+  {
+    u32 line_num = 0;
+    std::string line_text;
+    std::optional<OpcodeType> opcode_type;
+    std::optional<size_t> opcode_param_number;
+    std::optional<std::string> included_file_path;
+  };
+
+  friend struct ::fmt::formatter<DSP::DSPAssembler::LocationContext>;
+
   // Utility functions
   s32 ParseValue(const char* str);
   u32 ParseExpression(const char* ptr);
@@ -95,7 +109,11 @@ private:
   void InitPass(int pass);
   bool AssemblePass(const std::string& text, int pass);
 
-  void ShowError(AssemblerError err_code, const char* extra_info = nullptr);
+  void ShowError(AssemblerError err_code);
+  template <typename... Args>
+  void ShowError(AssemblerError err_code, fmt::format_string<Args...> format, Args&&... args);
+  template <typename... Args>
+  void ShowWarning(fmt::format_string<Args...> format, Args&&... args);
 
   char* FindBrackets(char* src, char* dst);
   const DSPOPCTemplate* FindOpcode(std::string name, size_t par_count, OpcodeType type);
@@ -105,7 +123,6 @@ private:
   std::vector<u16> m_output_buffer;
 
   std::string m_include_dir;
-  std::string m_cur_line;
 
   u32 m_cur_addr = 0;
   int m_total_size = 0;
@@ -113,7 +130,6 @@ private:
 
   LabelMap m_labels;
 
-  u32 m_code_line = 0;
   bool m_failed = false;
   std::string m_last_error_str;
   AssemblerError m_last_error = AssemblerError::OK;
@@ -123,7 +139,8 @@ private:
 
   segment_t m_cur_segment = SEGMENT_CODE;
   u32 m_segment_addr[SEGMENT_MAX] = {};
-  int m_current_param = 0;
   const AssemblerSettings m_settings;
+
+  LocationContext m_location;
 };
 }  // namespace DSP

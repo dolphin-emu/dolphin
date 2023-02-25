@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Based off of tachtig/twintig http://git.infradead.org/?p=users/segher/wii.git
 // Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
@@ -14,7 +13,6 @@
 #include <cstdio>
 #include <cstring>
 #include <mbedtls/md5.h>
-#include <mbedtls/sha1.h>
 #include <memory>
 #include <optional>
 #include <string>
@@ -25,9 +23,10 @@
 
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Crypto/ec.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Lazy.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
@@ -40,6 +39,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
+#include "Core/WiiUtils.h"
 
 namespace WiiSave
 {
@@ -68,9 +68,35 @@ public:
     ScanForFiles(m_data_dir);
   }
 
-  bool SaveExists() override
+  bool SaveExists() const override
   {
-    return m_uid && m_gid && m_fs->GetMetadata(*m_uid, *m_gid, m_data_dir + "/banner.bin");
+    return !m_files_list.empty() ||
+           (m_uid && m_gid && m_fs->GetMetadata(*m_uid, *m_gid, m_data_dir + "/banner.bin"));
+  }
+
+  bool EraseSave() override
+  {
+    // banner.bin is not in m_files_list, delete separately
+    const auto banner_delete_result =
+        m_fs->Delete(IOS::PID_KERNEL, IOS::PID_KERNEL, m_data_dir + "/banner.bin");
+    if (banner_delete_result != FS::ResultCode::Success)
+      return false;
+
+    for (const SaveFile& file : m_files_list)
+    {
+      // files in subdirs are deleted automatically when the subdir is deleted
+      if (file.path.find('/') != std::string::npos)
+        continue;
+
+      const auto result =
+          m_fs->Delete(IOS::PID_KERNEL, IOS::PID_KERNEL, m_data_dir + "/" + file.path);
+      if (result != FS::ResultCode::Success)
+        return false;
+    }
+
+    m_files_list.clear();
+    m_files_size = 0;
+    return true;
   }
 
   std::optional<Header> ReadHeader() override
@@ -78,14 +104,21 @@ public:
     if (!m_uid || !m_gid)
       return {};
 
-    const auto banner = m_fs->OpenFile(*m_uid, *m_gid, m_data_dir + "/banner.bin", FS::Mode::Read);
+    const auto banner_path = m_data_dir + "/banner.bin";
+    const auto banner = m_fs->OpenFile(*m_uid, *m_gid, banner_path, FS::Mode::Read);
     if (!banner)
       return {};
     Header header{};
     header.banner_size = banner->GetStatus()->size;
+    if (header.banner_size > sizeof(header.banner))
+    {
+      ERROR_LOG_FMT(CORE, "NandStorage::ReadHeader: {} corrupted banner_size: {:x}", banner_path,
+                    header.banner_size);
+      return {};
+    }
     header.tid = m_tid;
     header.md5 = s_md5_blanker;
-    const u8 mode = GetBinMode(m_data_dir + "/banner.bin");
+    const u8 mode = GetBinMode(banner_path);
     if (!mode || !banner->Read(header.banner, header.banner_size))
       return {};
     header.permissions = mode;
@@ -245,10 +278,14 @@ public:
     m_file = File::IOFile{path, mode};
   }
 
+  bool SaveExists() const override { return m_file.GetSize() > 0; }
+
+  bool EraseSave() override { return m_file.GetSize() == 0 || m_file.Resize(0); }
+
   std::optional<Header> ReadHeader() override
   {
     Header header;
-    if (!m_file.Seek(0, SEEK_SET) || !m_file.ReadArray(&header, 1))
+    if (!m_file.Seek(0, File::SeekOrigin::Begin) || !m_file.ReadArray(&header, 1))
       return {};
 
     std::array<u8, 0x10> iv = s_sd_initial_iv;
@@ -280,7 +317,7 @@ public:
   std::optional<BkHeader> ReadBkHeader() override
   {
     BkHeader bk_header;
-    m_file.Seek(sizeof(Header), SEEK_SET);
+    m_file.Seek(sizeof(Header), File::SeekOrigin::Begin);
     if (!m_file.ReadArray(&bk_header, 1))
       return {};
     if (bk_header.size != BK_LISTED_SZ || bk_header.magic != BK_HDR_MAGIC)
@@ -293,7 +330,7 @@ public:
   std::optional<std::vector<SaveFile>> ReadFiles() override
   {
     const std::optional<BkHeader> bk_header = ReadBkHeader();
-    if (!bk_header || !m_file.Seek(sizeof(Header) + sizeof(BkHeader), SEEK_SET))
+    if (!bk_header || !m_file.Seek(sizeof(Header) + sizeof(BkHeader), File::SeekOrigin::Begin))
       return {};
 
     std::vector<SaveFile> files;
@@ -322,15 +359,18 @@ public:
         save_file.data = [this, size, rounded_size, iv,
                           pos]() mutable -> std::optional<std::vector<u8>> {
           std::vector<u8> file_data(rounded_size);
-          if (!m_file.Seek(pos, SEEK_SET) || !m_file.ReadBytes(file_data.data(), rounded_size))
+          if (!m_file.Seek(pos, File::SeekOrigin::Begin) ||
+              !m_file.ReadBytes(file_data.data(), rounded_size))
+          {
             return {};
+          }
 
           m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), file_data.data(), rounded_size,
                          file_data.data(), IOS::PID_ES);
           file_data.resize(size);
           return file_data;
         };
-        m_file.Seek(pos + rounded_size, SEEK_SET);
+        m_file.Seek(pos + rounded_size, File::SeekOrigin::Begin);
       }
       files.emplace_back(std::move(save_file));
     }
@@ -343,17 +383,17 @@ public:
     std::array<u8, 0x10> iv = s_sd_initial_iv;
     m_iosc.Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), reinterpret_cast<const u8*>(&header),
                    sizeof(Header), reinterpret_cast<u8*>(&encrypted_header), IOS::PID_ES);
-    return m_file.Seek(0, SEEK_SET) && m_file.WriteArray(&encrypted_header, 1);
+    return m_file.Seek(0, File::SeekOrigin::Begin) && m_file.WriteArray(&encrypted_header, 1);
   }
 
   bool WriteBkHeader(const BkHeader& bk_header) override
   {
-    return m_file.Seek(sizeof(Header), SEEK_SET) && m_file.WriteArray(&bk_header, 1);
+    return m_file.Seek(sizeof(Header), File::SeekOrigin::Begin) && m_file.WriteArray(&bk_header, 1);
   }
 
   bool WriteFiles(const std::vector<SaveFile>& files) override
   {
-    if (!m_file.Seek(sizeof(Header) + sizeof(BkHeader), SEEK_SET))
+    if (!m_file.Seek(sizeof(Header) + sizeof(BkHeader), File::SeekOrigin::Begin))
       return false;
 
     for (const SaveFile& save_file : files)
@@ -406,14 +446,14 @@ private:
       return false;
 
     // Read data to sign.
-    std::array<u8, 20> data_sha1;
+    Common::SHA1::Digest data_sha1;
     {
       const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
       auto data = std::make_unique<u8[]>(data_size);
-      m_file.Seek(sizeof(Header), SEEK_SET);
+      m_file.Seek(sizeof(Header), File::SeekOrigin::Begin);
       if (!m_file.ReadBytes(data.get(), data_size))
         return false;
-      mbedtls_sha1_ret(data.get(), data_size, data_sha1.data());
+      data_sha1 = Common::SHA1::CalculateDigest(data.get(), data_size);
     }
 
     // Sign the data.
@@ -423,7 +463,7 @@ private:
                 data_sha1.data(), static_cast<u32>(data_sha1.size()));
 
     // Write signatures.
-    if (!m_file.Seek(0, SEEK_END))
+    if (!m_file.Seek(0, File::SeekOrigin::End))
       return false;
     const u32 SIGNATURE_END_MAGIC = Common::swap32(0x2f536969);
     const IOS::CertECC device_certificate = m_iosc.GetDeviceCertificate();
@@ -446,26 +486,63 @@ StoragePointer MakeDataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path,
   return StoragePointer{new DataBinStorage{iosc, path, mode}};
 }
 
-template <typename T>
-static bool Copy(std::string_view description, Storage* source,
-                 std::optional<T> (Storage::*read_fn)(), Storage* dest,
-                 bool (Storage::*write_fn)(const T&))
+CopyResult Copy(Storage* source, Storage* dest)
 {
-  const std::optional<T> data = (source->*read_fn)();
-  if (data && (dest->*write_fn)(*data))
-    return true;
-  ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to {} {}", !data ? "read" : "write", description);
-  return false;
+  // first make sure we can read all the data from the source
+  const auto header = source->ReadHeader();
+  if (!header)
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read header");
+    return CopyResult::CorruptedSource;
+  }
+
+  const auto bk_header = source->ReadBkHeader();
+  if (!bk_header)
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read bk header");
+    return CopyResult::CorruptedSource;
+  }
+
+  const auto files = source->ReadFiles();
+  if (!files)
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read files");
+    return CopyResult::CorruptedSource;
+  }
+
+  // once we have confirmed we can read the source, erase corresponding save in the destination
+  if (dest->SaveExists())
+  {
+    if (!dest->EraseSave())
+    {
+      ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to erase existing save");
+      return CopyResult::Error;
+    }
+  }
+
+  // and then write it to the destination
+  if (!dest->WriteHeader(*header))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write header");
+    return CopyResult::Error;
+  }
+
+  if (!dest->WriteBkHeader(*bk_header))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write bk header");
+    return CopyResult::Error;
+  }
+
+  if (!dest->WriteFiles(*files))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write files");
+    return CopyResult::Error;
+  }
+
+  return CopyResult::Success;
 }
 
-bool Copy(Storage* source, Storage* dest)
-{
-  return Copy("header", source, &Storage::ReadHeader, dest, &Storage::WriteHeader) &&
-         Copy("bk header", source, &Storage::ReadBkHeader, dest, &Storage::WriteBkHeader) &&
-         Copy("files", source, &Storage::ReadFiles, dest, &Storage::WriteFiles);
-}
-
-bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrite)
+CopyResult Import(const std::string& data_bin_path, std::function<bool()> can_overwrite)
 {
   IOS::HLE::Kernel ios;
   const auto data_bin = MakeDataBinStorage(&ios.GetIOSC(), data_bin_path, "rb");
@@ -473,15 +550,23 @@ bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrit
   if (!header)
   {
     ERROR_LOG_FMT(CORE, "WiiSave::Import: Failed to read header");
-    return false;
+    return CopyResult::CorruptedSource;
   }
+
+  if (!WiiUtils::EnsureTMDIsImported(*ios.GetFS(), *ios.GetES(), header->tid))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Import: Failed to find or import TMD for title {:16x}",
+                  header->tid);
+    return CopyResult::TitleMissing;
+  }
+
   const auto nand = MakeNandStorage(ios.GetFS().get(), header->tid);
   if (nand->SaveExists() && !can_overwrite())
-    return false;
+    return CopyResult::Cancelled;
   return Copy(data_bin.get(), nand.get());
 }
 
-static bool Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
+static CopyResult Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
 {
   const std::string path = fmt::format("{}/private/wii/title/{}{}{}{}/data.bin", export_path,
                                        static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
@@ -490,7 +575,7 @@ static bool Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
               MakeDataBinStorage(&ios->GetIOSC(), path, "w+b").get());
 }
 
-bool Export(u64 tid, std::string_view export_path)
+CopyResult Export(u64 tid, std::string_view export_path)
 {
   IOS::HLE::Kernel ios;
   return Export(tid, export_path, &ios);
@@ -502,7 +587,7 @@ size_t ExportAll(std::string_view export_path)
   size_t exported_save_count = 0;
   for (const u64 title : ios.GetES()->GetInstalledTitles())
   {
-    if (Export(title, export_path, &ios))
+    if (Export(title, export_path, &ios) == CopyResult::Success)
       ++exported_save_count;
   }
   return exported_save_count;

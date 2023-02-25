@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -21,6 +20,8 @@ class NativeVertexFormat;
 //       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS)
 //       - 8 combined image samplers (accessible from PS)
 //       - 1 SSBO, accessible from PS if bounding box is enabled
+//   - GX Uber
+//       - Same as GX, plus one VS SSBO for vertices if dynamic vertex loading is enabled
 //   - Utility
 //       - Single UBO, accessible from all stages [set=0, binding=1]
 //       - 8 combined image samplers (accessible from PS) [set=1, binding=0-7]
@@ -33,21 +34,22 @@ class NativeVertexFormat;
 enum class AbstractPipelineUsage
 {
   GX,
+  GXUber,
   Utility
 };
 
 struct AbstractPipelineConfig
 {
-  const NativeVertexFormat* vertex_format;
-  const AbstractShader* vertex_shader;
-  const AbstractShader* geometry_shader;
-  const AbstractShader* pixel_shader;
+  const NativeVertexFormat* vertex_format = nullptr;
+  const AbstractShader* vertex_shader = nullptr;
+  const AbstractShader* geometry_shader = nullptr;
+  const AbstractShader* pixel_shader = nullptr;
   RasterizationState rasterization_state;
   DepthState depth_state;
   BlendingState blending_state;
   FramebufferState framebuffer_state;
 
-  AbstractPipelineUsage usage;
+  AbstractPipelineUsage usage = AbstractPipelineUsage::GX;
 
   bool operator==(const AbstractPipelineConfig& rhs) const
   {
@@ -74,7 +76,10 @@ class AbstractPipeline
 {
 public:
   AbstractPipeline() = default;
+  explicit AbstractPipeline(const AbstractPipelineConfig& config) : m_config(config) {}
   virtual ~AbstractPipeline() = default;
+
+  AbstractPipelineConfig m_config;
 
   // "Cache data" can be used to assist a driver with creating pipelines by using previously
   // compiled shader ISA. The abstract shaders and creation struct are still required to create

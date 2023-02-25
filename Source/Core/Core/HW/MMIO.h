@@ -1,18 +1,21 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <string>
 #include <tuple>
 #include <type_traits>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIOHandlers.h"
+#include "Core/System.h"
 
 namespace MMIO
 {
@@ -42,7 +45,7 @@ const u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
 // interface.
 inline bool IsMMIOAddress(u32 address)
 {
-  if (address == 0x0C008000)
+  if (address == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)
     return false;  // WG Pipe
   if ((address & 0xFFFF0000) == 0x0C000000)
     return true;  // GameCube MMIOs
@@ -79,17 +82,19 @@ inline u16* LowPart(u32* ptr)
 {
   return (u16*)ptr;
 }
-inline u16* LowPart(volatile u32* ptr)
+inline u16* LowPart(std::atomic<u32>* ptr)
 {
-  return (u16*)ptr;
+  static_assert(std::atomic<u32>::is_always_lock_free && sizeof(std::atomic<u32>) == sizeof(u32));
+  return LowPart(Common::BitCast<u32*>(ptr));
 }
 inline u16* HighPart(u32* ptr)
 {
   return LowPart(ptr) + 1;
 }
-inline u16* HighPart(volatile u32* ptr)
+inline u16* HighPart(std::atomic<u32>* ptr)
 {
-  return LowPart(ptr) + 1;
+  static_assert(std::atomic<u32>::is_always_lock_free && sizeof(std::atomic<u32>) == sizeof(u32));
+  return HighPart(Common::BitCast<u32*>(ptr));
 }
 }  // namespace Utils
 
@@ -128,13 +133,13 @@ public:
   template <typename Unit>
   Unit Read(u32 addr)
   {
-    return GetHandlerForRead<Unit>(addr).Read(addr);
+    return GetHandlerForRead<Unit>(addr).Read(Core::System::GetInstance(), addr);
   }
 
   template <typename Unit>
   void Write(u32 addr, Unit val)
   {
-    GetHandlerForWrite<Unit>(addr).Write(addr, val);
+    GetHandlerForWrite<Unit>(addr).Write(Core::System::GetInstance(), addr, val);
   }
 
   // Handlers access interface.

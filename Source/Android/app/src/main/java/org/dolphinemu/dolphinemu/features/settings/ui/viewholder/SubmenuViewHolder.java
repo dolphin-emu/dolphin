@@ -1,11 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.view.View;
-import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ListItemSubmenuBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
@@ -14,17 +16,12 @@ public final class SubmenuViewHolder extends SettingViewHolder
 {
   private SubmenuSetting mItem;
 
-  private TextView mTextSettingName;
+  private final ListItemSubmenuBinding mBinding;
 
-  public SubmenuViewHolder(View itemView, SettingsAdapter adapter)
+  public SubmenuViewHolder(@NonNull ListItemSubmenuBinding binding, SettingsAdapter adapter)
   {
-    super(itemView, adapter);
-  }
-
-  @Override
-  protected void findViews(View root)
-  {
-    mTextSettingName = root.findViewById(R.id.text_setting_name);
+    super(binding.getRoot(), adapter);
+    mBinding = binding;
   }
 
   @Override
@@ -32,7 +29,7 @@ public final class SubmenuViewHolder extends SettingViewHolder
   {
     mItem = (SubmenuSetting) item;
 
-    mTextSettingName.setText(item.getNameId());
+    mBinding.textSettingName.setText(item.getName());
   }
 
   @Override

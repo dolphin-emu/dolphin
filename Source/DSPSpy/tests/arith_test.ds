@@ -2,6 +2,8 @@
 incdir  "tests"
 include "dsp_base.inc"
 
+test_main:
+
 clr $acc0
 tst $acc0
 
@@ -136,3 +138,6 @@ sub $acc1, $acc0
 set16
 
 call send_back 	; 20
+
+; We're done, DO NOT DELETE THIS LINE
+jmp end_of_test

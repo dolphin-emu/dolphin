@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControlReference/ControlReference.h"
 
@@ -59,9 +58,7 @@ std::optional<std::string> ControlReference::SetExpression(std::string expr)
   return parse_result.description;
 }
 
-ControlReference::ControlReference() : range(1), m_parsed_expression(nullptr)
-{
-}
+ControlReference::ControlReference() = default;
 
 ControlReference::~ControlReference() = default;
 

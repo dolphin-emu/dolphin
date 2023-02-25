@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <Import Project="..\..\Source\VSProps\Base.Macros.props" />
+    <Import Project="$(VSPropsDir)Base.Targets.props" />
+    <PropertyGroup Label="Globals">
+        <ProjectGuid>{A608225E-AE0A-4D1A-9B55-97F57C862391}</ProjectGuid>
+    </PropertyGroup>
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+    <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+    <ImportGroup Label="ExtensionSettings" />
+    <ImportGroup Label="PropertySheets">
+        <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+        <Import Project="$(VSPropsDir)Base.props" />
+        <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
+    </ImportGroup>
+    <PropertyGroup Label="UserMacros" />
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <!--IM_ASSERT is defined as Dolphin's ASSERT() :( (DolphinLib circular dependency)-->
+            <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+        </ClCompile>
+    </ItemDefinitionGroup>
+    <ItemGroup>
+        <ClCompile Include="implot/implot.cpp" />
+        <ClCompile Include="implot/implot_items.cpp" />
+    </ItemGroup>
+    <ItemGroup>
+        <ClInclude Include="implot/implot.h" />
+        <ClInclude Include="implot/implot_internal.h" />
+    </ItemGroup>
+    <Import Project="$(ExternalsDir)imgui\exports.props" />
+    <Import Project="$(ExternalsDir)fmt\exports.props" />
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+    <ImportGroup Label="ExtensionTargets">
+    </ImportGroup>
+</Project>

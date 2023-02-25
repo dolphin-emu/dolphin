@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -54,26 +53,24 @@ class OpenALStream final : public SoundStream
 {
 #ifdef _WIN32
 public:
-  OpenALStream() : m_source(0) {}
+  OpenALStream() = default;
   ~OpenALStream() override;
   bool Init() override;
-  void SoundLoop() override;
   void SetVolume(int volume) override;
   bool SetRunning(bool running) override;
-  void Update() override;
 
-  static bool isValid();
+  static bool IsValid();
 
 private:
+  void SoundLoop();
+
   std::thread m_thread;
   Common::Flag m_run_thread;
 
-  Common::Event m_sound_sync_event;
-
   std::vector<short> m_realtime_buffer;
-  std::array<ALuint, OAL_BUFFERS> m_buffers;
-  ALuint m_source;
-  ALfloat m_volume;
+  std::array<ALuint, OAL_BUFFERS> m_buffers{};
+  ALuint m_source = 0;
+  ALfloat m_volume = 1;
 
 #endif  // _WIN32
 };

@@ -1,8 +1,8 @@
 add_library(inputcommon
-  DynamicInputTextureConfiguration.cpp
-  DynamicInputTextureConfiguration.h
   DynamicInputTextureManager.cpp
   DynamicInputTextureManager.h
+  GCAdapter.cpp
+  GCAdapter.h
   ImageOperations.cpp
   ImageOperations.h
   InputConfig.cpp
@@ -54,16 +54,25 @@ add_library(inputcommon
   ControllerInterface/DualShockUDPClient/DualShockUDPProto.h
   ControllerInterface/ControllerInterface.cpp
   ControllerInterface/ControllerInterface.h
-  ControllerInterface/Device.cpp
-  ControllerInterface/Device.h
-  ControllerInterface/Wiimote/Wiimote.cpp
-  ControllerInterface/Wiimote/Wiimote.h
+  ControllerInterface/CoreDevice.cpp
+  ControllerInterface/CoreDevice.h
+  ControllerInterface/InputBackend.cpp
+  ControllerInterface/InputBackend.h
+  ControllerInterface/MappingCommon.cpp
+  ControllerInterface/MappingCommon.h
+  ControllerInterface/Wiimote/WiimoteController.cpp
+  ControllerInterface/Wiimote/WiimoteController.h
   ControlReference/ControlReference.cpp
   ControlReference/ControlReference.h
   ControlReference/ExpressionParser.cpp
   ControlReference/ExpressionParser.h
   ControlReference/FunctionExpression.cpp
   ControlReference/FunctionExpression.h
+  DynamicInputTextures/DITConfiguration.cpp
+  DynamicInputTextures/DITConfiguration.h
+  DynamicInputTextures/DITData.h
+  DynamicInputTextures/DITSpecification.cpp
+  DynamicInputTextures/DITSpecification.h
 )
 
 target_link_libraries(inputcommon
@@ -72,7 +81,7 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
-  png
+  ${spng_target}
 )
 
 if(WIN32)
@@ -89,6 +98,8 @@ if(WIN32)
     ControllerInterface/DInput/XInputFilter.h
     ControllerInterface/Win32/Win32.cpp
     ControllerInterface/Win32/Win32.h
+    ControllerInterface/WGInput/WGInput.cpp
+    ControllerInterface/WGInput/WGInput.h
     ControllerInterface/XInput/XInput.cpp
     ControllerInterface/XInput/XInput.h
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
@@ -115,6 +126,9 @@ elseif(APPLE)
     ${FORCEFEEDBACK_LIBRARY}
     ${IOK_LIBRARY}
   )
+  target_compile_options(inputcommon PRIVATE
+    -fobjc-arc
+  )
 elseif(X11_FOUND)
   target_sources(inputcommon PRIVATE
     ControllerInterface/Xlib/XInput2.cpp
@@ -131,18 +145,14 @@ elseif(ANDROID)
     ControllerInterface/Android/Android.h
     ControllerInterface/Touch/ButtonManager.cpp
     ControllerInterface/Touch/ButtonManager.h
+    ControllerInterface/Touch/InputOverrider.cpp
+    ControllerInterface/Touch/InputOverrider.h
     ControllerInterface/Touch/Touchscreen.cpp
     ControllerInterface/Touch/Touchscreen.h
   )
 endif()
 
-if(ANDROID)
-  target_sources(inputcommon PRIVATE GCAdapter_Android.cpp)
-else()
-  target_sources(inputcommon PRIVATE
-    GCAdapter.cpp
-    GCAdapter.h
-  )
+if(NOT ANDROID)
   target_link_libraries(inputcommon PUBLIC ${LIBUSB_LIBRARIES})
 endif()
 
@@ -171,30 +181,15 @@ if(UNIX OR WIN32)
   )
 endif()
 
-if(ENABLE_SDL)
-  find_package(SDL2)
-  if(SDL2_FOUND)
-    message(STATUS "Using shared SDL2")
-    set(SDL_TARGET SDL2::SDL2)
-  else()
-    # SDL2 not found, try SDL
-    find_package(SDL)
-    if(SDL_FOUND)
-      message(STATUS "Using shared SDL")
-      add_library(System_SDL INTERFACE)
-      target_include_directories(System_SDL INTERFACE ${SDL_INCLUDE_DIR})
-      target_link_libraries(System_SDL INTERFACE ${SDL_LIBRARY})
-      set(SDL_TARGET System_SDL)
-    endif()
-  endif()
-  if(SDL_TARGET AND TARGET ${SDL_TARGET})
-    target_sources(inputcommon PRIVATE
-      ControllerInterface/SDL/SDL.cpp
-      ControllerInterface/SDL/SDL.h
-    )
-    target_link_libraries(inputcommon PRIVATE ${SDL_TARGET})
-    target_compile_definitions(inputcommon PRIVATE "CIFACE_USE_SDL=1")
-  else()
-    message(STATUS "SDL NOT found, disabling SDL input")
-  endif()
+if(SDL2_FOUND)
+  target_sources(inputcommon PRIVATE
+    ControllerInterface/SDL/SDL.cpp
+    ControllerInterface/SDL/SDL.h
+  )
+  target_link_libraries(inputcommon PRIVATE SDL2::SDL2)
+endif()
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(inputcommon PRIVATE use_pch)
 endif()

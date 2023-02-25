@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 #include <functional>
@@ -54,6 +53,9 @@ void EnableStepping(bool stepping);
 //   should not be used by the Host.
 void Break();
 
+// This should only be called from the CPU thread
+void Continue();
+
 // Shorthand for GetState() == State::Stepping.
 // WARNING: State::PowerDown will return false, not just State::Running.
 bool IsStepping();
@@ -67,7 +69,7 @@ const State* GetStatePtr();
 
 // Locks the CPU Thread (waiting for it to become idle).
 // While this lock is held, the CPU Thread will not perform any action so it is safe to access
-// PowerPC::ppcState, CoreTiming, etc. without racing the CPU Thread.
+// PowerPC, CoreTiming, etc. without racing the CPU Thread.
 // Cannot be used recursively. Must be paired as PauseAndLock(true)/PauseAndLock(false).
 // Return value for do_lock == true is whether the state was State::Running or not.
 // Return value for do_lock == false is whether the state was changed *to* State::Running or not.

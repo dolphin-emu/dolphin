@@ -1,16 +1,17 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include <algorithm>
-#include <cassert>
 #include <memory>
+#include <optional>
 #include <string_view>
 
 #include <fmt/format.h>
 
+#include "Common/Assert.h"
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
@@ -18,20 +19,21 @@
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 
-#include "Core/Config/SYSCONFSettings.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Extension/Shinkansen.h"
 #include "Core/HW/WiimoteEmu/Extension/TaTaCon.h"
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
@@ -63,12 +65,10 @@ static const u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote:
 static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP,
                                              Wiimote::PAD_DOWN};
 
-constexpr std::array<std::string_view, 7> named_buttons{
-    "A", "B", "1", "2", "-", "+", "Home",
-};
-
 void Wiimote::Reset()
 {
+  const bool want_determinism = Core::WantsDeterminism();
+
   SetRumble(false);
 
   // Wiimote starts in non-continuous CORE mode:
@@ -78,8 +78,12 @@ void Wiimote::Reset()
   m_speaker_mute = false;
 
   // EEPROM
+
+  // TODO: This feels sketchy, this needs to properly handle the case where the load and the write
+  // happen under different Wii Roots and/or determinism modes.
+
   std::string eeprom_file = (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" + GetName() + ".bin");
-  if (m_eeprom_dirty)
+  if (!want_determinism && m_eeprom_dirty)
   {
     // Write out existing EEPROM
     INFO_LOG_FMT(WIIMOTE, "Wrote EEPROM for {}", GetName());
@@ -92,7 +96,7 @@ void Wiimote::Reset()
   }
   m_eeprom = {};
 
-  if (File::Exists(eeprom_file))
+  if (!want_determinism && File::Exists(eeprom_file))
   {
     // Read existing EEPROM
     std::ifstream file;
@@ -172,18 +176,24 @@ void Wiimote::Reset()
   m_extension_port.AttachExtension(GetNoneExtension());
   m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
 
-  // Switch to desired M+ status and extension (if any).
-  // M+ and EXT are reset on attachment.
-  HandleExtensionSwap();
+  if (!want_determinism)
+  {
+    // Switch to desired M+ status and extension (if any).
+    // M+ and EXT are reset on attachment.
+    HandleExtensionSwap(static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment()),
+                        m_motion_plus_setting.GetValue());
+  }
 
   // Reset sub-devices.
   m_speaker_logic.Reset();
   m_camera_logic.Reset();
 
   m_status = {};
-  // This will suppress a status report on connect when an extension is already attached.
-  // TODO: I am not 100% sure if this is proper.
-  m_status.extension = m_extension_port.IsDeviceConnected();
+
+  // A real wii remote does not normally send a status report on connection.
+  // But if an extension is already attached it does send one.
+  // Clearing this initially will simulate that on the first update cycle.
+  m_status.extension = 0;
 
   // Dynamics:
   m_swing_state = {};
@@ -194,27 +204,26 @@ void Wiimote::Reset()
   m_imu_cursor_state = {};
 }
 
-Wiimote::Wiimote(const unsigned int index) : m_index(index)
+Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(index)
 {
   // Buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  for (auto& named_button : named_buttons)
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
+  for (auto& named_button : {A_BUTTON, B_BUTTON, ONE_BUTTON, TWO_BUTTON, MINUS_BUTTON, PLUS_BUTTON})
   {
-    std::string_view ui_name = (named_button == "Home") ? "HOME" : named_button;
-    m_buttons->AddInput(ControllerEmu::DoNotTranslate, std::string(named_button),
-                        std::string(ui_name));
+    m_buttons->AddInput(ControllerEmu::DoNotTranslate, named_button);
   }
+  m_buttons->AddInput(ControllerEmu::DoNotTranslate, HOME_BUTTON, "HOME");
 
   // Pointing (IR)
   // i18n: "Point" refers to the action of pointing a Wii Remote.
-  groups.emplace_back(m_ir = new ControllerEmu::Cursor("IR", _trans("Point")));
+  groups.emplace_back(m_ir = new ControllerEmu::Cursor(IR_GROUP, _trans("Point")));
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
   groups.emplace_back(m_shake = new ControllerEmu::Shake(_trans("Shake")));
   groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
-                          "IMUAccelerometer", _trans("Accelerometer")));
+                          ACCELEROMETER_GROUP, _trans("Accelerometer")));
   groups.emplace_back(m_imu_gyroscope =
-                          new ControllerEmu::IMUGyroscope("IMUGyroscope", _trans("Gyroscope")));
+                          new ControllerEmu::IMUGyroscope(GYROSCOPE_GROUP, _trans("Gyroscope")));
   groups.emplace_back(m_imu_ir = new ControllerEmu::IMUCursor("IMUIR", _trans("Point")));
 
   const auto fov_default =
@@ -249,6 +258,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::UDrawTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Shinkansen>());
 
   m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
 
@@ -257,7 +267,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
 
   // D-Pad
-  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
     m_dpad->AddInput(ControllerEmu::Translate, named_direction);
@@ -298,6 +308,14 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   Reset();
+
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
+}
+
+Wiimote::~Wiimote()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 std::string Wiimote::GetName() const
@@ -338,7 +356,7 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
   case WiimoteGroup::IMUPoint:
     return m_imu_ir;
   default:
-    assert(false);
+    ASSERT(false);
     return nullptr;
   }
 }
@@ -394,6 +412,13 @@ ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
       ->GetGroup(group);
 }
 
+ControllerEmu::ControlGroup* Wiimote::GetShinkansenGroup(ShinkansenGroup group) const
+{
+  return static_cast<Shinkansen*>(
+             m_attachments->GetAttachmentList()[ExtensionNumber::SHINKANSEN].get())
+      ->GetGroup(group);
+}
+
 bool Wiimote::ProcessExtensionPortEvent()
 {
   // WiiBrew: Following a connection or disconnection event on the Extension Port,
@@ -412,47 +437,85 @@ bool Wiimote::ProcessExtensionPortEvent()
   return true;
 }
 
-// Update buttons in status struct from user input.
-void Wiimote::UpdateButtonsStatus()
+void Wiimote::UpdateButtonsStatus(const DesiredWiimoteState& target_state)
 {
-  m_status.buttons.hex = 0;
-
-  m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
-  m_dpad->GetState(&m_status.buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
+  m_status.buttons.hex = target_state.buttons.hex & ButtonData::BUTTON_MASK;
 }
 
-// This is called every ::Wiimote::UPDATE_FREQ (200hz)
-void Wiimote::Update()
+void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state)
 {
-  const auto lock = GetStateLock();
-
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
-  m_hotkeys->GetState();
+  m_hotkeys->UpdateState();
 
   // Update our motion simulations.
   StepDynamics();
 
+  // Fetch pressed buttons from user input.
+  target_state->buttons.hex = 0;
+  m_buttons->GetState(&target_state->buttons.hex, button_bitmasks, m_input_override_function);
+  m_dpad->GetState(&target_state->buttons.hex,
+                   IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks,
+                   m_input_override_function);
+
+  // Calculate accelerometer state.
+  // Calibration values are 8-bit but we want 10-bit precision, so << 2.
+  target_state->acceleration =
+      ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
+
+  // Calculate IR camera state.
+  target_state->camera_points = CameraLogic::GetCameraPoints(
+      GetTotalTransformation(),
+      Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
+          float(MathUtil::TAU));
+
+  // Calculate MotionPlus state.
+  if (m_motion_plus_setting.GetValue())
+    target_state->motion_plus = MotionPlus::GetGyroscopeData(GetTotalAngularVelocity());
+  else
+    target_state->motion_plus = std::nullopt;
+
+  // Build Extension state.
+  // This also allows the extension to perform any regular duties it may need.
+  // (e.g. Nunchuk motion simulation step)
+  static_cast<Extension*>(
+      m_attachments->GetAttachmentList()[m_attachments->GetSelectedAttachment()].get())
+      ->BuildDesiredExtensionState(&target_state->extension);
+}
+
+u8 Wiimote::GetWiimoteDeviceIndex() const
+{
+  return m_bt_device_index;
+}
+
+void Wiimote::SetWiimoteDeviceIndex(u8 index)
+{
+  m_bt_device_index = index;
+}
+
+// This is called every ::Wiimote::UPDATE_FREQ (200hz)
+void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state)
+{
+  const auto lock = GetStateLock();
+  BuildDesiredWiimoteState(target_state);
+}
+
+void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
+{
   // Update buttons in the status struct which is sent in 99% of input reports.
-  // FYI: Movies only sync button updates in data reports.
-  if (!Core::WantsDeterminism())
-  {
-    UpdateButtonsStatus();
-  }
+  UpdateButtonsStatus(target_state);
 
   // If a new extension is requested in the GUI the change will happen here.
-  HandleExtensionSwap();
+  HandleExtensionSwap(static_cast<ExtensionNumber>(target_state.extension.data.index()),
+                      target_state.motion_plus.has_value());
 
-  // Allow extension to perform any regular duties it may need.
-  // (e.g. Nunchuk motion simulation step)
-  // Input is prepared here too.
-  // TODO: Separate input preparation from Update.
-  GetActiveExtension()->Update();
+  // Prepare input data of the extension for reading.
+  GetActiveExtension()->Update(target_state.extension);
 
   if (m_is_motion_plus_attached)
   {
     // M+ has some internal state that must processed.
-    m_motion_plus.Update();
+    m_motion_plus.Update(target_state.extension);
   }
 
   // Returns true if a report was sent.
@@ -470,10 +533,10 @@ void Wiimote::Update()
     return;
   }
 
-  SendDataReport();
+  SendDataReport(target_state);
 }
 
-void Wiimote::SendDataReport()
+void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 {
   Movie::SetPolledDevice();
 
@@ -493,7 +556,8 @@ void Wiimote::SendDataReport()
   DataReportBuilder rpt_builder(m_reporting_mode);
 
   if (Movie::IsPlayingInput() &&
-      Movie::PlayWiimote(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey()))
+      Movie::PlayWiimote(m_bt_device_index, rpt_builder, m_active_extension,
+                         GetExtensionEncryptionKey()))
   {
     // Update buttons in status struct from movie:
     rpt_builder.GetCoreData(&m_status.buttons);
@@ -503,22 +567,13 @@ void Wiimote::SendDataReport()
     // Core buttons:
     if (rpt_builder.HasCore())
     {
-      if (Core::WantsDeterminism())
-      {
-        // When running non-deterministically we've already updated buttons in Update()
-        UpdateButtonsStatus();
-      }
-
       rpt_builder.SetCoreData(m_status.buttons);
     }
 
     // Acceleration:
     if (rpt_builder.HasAccel())
     {
-      // Calibration values are 8-bit but we want 10-bit precision, so << 2.
-      AccelData accel =
-          ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
-      rpt_builder.SetAccelData(accel);
+      rpt_builder.SetAccelData(target_state.acceleration);
     }
 
     // IR Camera:
@@ -526,9 +581,7 @@ void Wiimote::SendDataReport()
     {
       // Note: Camera logic currently contains no changing state so we can just update it here.
       // If that changes this should be moved to Wiimote::Update();
-      m_camera_logic.Update(GetTotalTransformation(),
-                            Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) /
-                                360 * float(MathUtil::TAU));
+      m_camera_logic.Update(target_state.camera_points);
 
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
       const u8 camera_data_offset =
@@ -556,7 +609,9 @@ void Wiimote::SendDataReport()
       if (m_is_motion_plus_attached)
       {
         // TODO: Make input preparation triggered by bus read.
-        m_motion_plus.PrepareInput(GetTotalAngularVelocity());
+        m_motion_plus.PrepareInput(target_state.motion_plus.has_value() ?
+                                       target_state.motion_plus.value() :
+                                       MotionPlus::GetDefaultGyroscopeData());
       }
 
       u8* ext_data = rpt_builder.GetExtDataPtr();
@@ -569,20 +624,10 @@ void Wiimote::SendDataReport()
         std::fill_n(ext_data, ext_size, u8(0xff));
       }
     }
-
-    Movie::CallWiiInputManip(rpt_builder, m_index, m_active_extension, GetExtensionEncryptionKey());
   }
 
-  if (NetPlay::IsNetPlayRunning())
-  {
-    NetPlay_GetWiimoteData(m_index, rpt_builder.GetDataPtr(), rpt_builder.GetDataSize(),
-                           u8(m_reporting_mode));
-
-    // TODO: clean up how m_status.buttons is updated.
-    rpt_builder.GetCoreData(&m_status.buttons);
-  }
-
-  Movie::CheckWiimoteStatus(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey());
+  Movie::CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
+                            GetExtensionEncryptionKey());
 
   // Send the report:
   InterruptDataInputCallback(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());
@@ -594,14 +639,16 @@ void Wiimote::SendDataReport()
     m_reporting_mode = InputReportID::ReportInterleave1;
 }
 
-bool Wiimote::IsButtonPressed()
+ButtonData Wiimote::GetCurrentlyPressedButtons()
 {
-  u16 buttons = 0;
   const auto lock = GetStateLock();
-  m_buttons->GetState(&buttons, button_bitmasks);
-  m_dpad->GetState(&buttons, dpad_bitmasks);
 
-  return buttons != 0;
+  ButtonData buttons{};
+  m_buttons->GetState(&buttons.hex, button_bitmasks, m_input_override_function);
+  m_dpad->GetState(&buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks,
+                   m_input_override_function);
+
+  return buttons;
 }
 
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)
@@ -611,14 +658,19 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 // Buttons
 #if defined HAVE_X11 && HAVE_X11
   // A
-  m_buttons->SetControlExpression(0, "Click 1");
+  m_buttons->SetControlExpression(0, "`Click 1`");
   // B
-  m_buttons->SetControlExpression(1, "Click 3");
+  m_buttons->SetControlExpression(1, "`Click 3`");
+#elif __APPLE__
+  // A
+  m_buttons->SetControlExpression(0, "`Left Click`");
+  // B
+  m_buttons->SetControlExpression(1, "`Right Click`");
 #else
   // A
-  m_buttons->SetControlExpression(0, "Click 0");
+  m_buttons->SetControlExpression(0, "`Click 0`");
   // B
-  m_buttons->SetControlExpression(1, "Click 1");
+  m_buttons->SetControlExpression(1, "`Click 1`");
 #endif
   m_buttons->SetControlExpression(2, "`1`");  // 1
   m_buttons->SetControlExpression(3, "`2`");  // 2
@@ -628,18 +680,23 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 #ifdef _WIN32
   m_buttons->SetControlExpression(6, "RETURN");  // Home
 #else
-  m_buttons->SetControlExpression(6, "Return");    // Home
+  // Home
+  m_buttons->SetControlExpression(6, "Return");
 #endif
 
   // Shake
   for (int i = 0; i < 3; ++i)
-    m_shake->SetControlExpression(i, "Click 2");
+#ifdef __APPLE__
+    m_shake->SetControlExpression(i, "`Middle Click`");
+#else
+    m_shake->SetControlExpression(i, "`Click 2`");
+#endif
 
   // Pointing (IR)
-  m_ir->SetControlExpression(0, "Cursor Y-");
-  m_ir->SetControlExpression(1, "Cursor Y+");
-  m_ir->SetControlExpression(2, "Cursor X-");
-  m_ir->SetControlExpression(3, "Cursor X+");
+  m_ir->SetControlExpression(0, "`Cursor Y-`");
+  m_ir->SetControlExpression(1, "`Cursor Y+`");
+  m_ir->SetControlExpression(2, "`Cursor X-`");
+  m_ir->SetControlExpression(3, "`Cursor X+`");
 
 // DPad
 #ifdef _WIN32
@@ -648,10 +705,10 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_dpad->SetControlExpression(2, "LEFT");   // Left
   m_dpad->SetControlExpression(3, "RIGHT");  // Right
 #elif __APPLE__
-  m_dpad->SetControlExpression(0, "Up Arrow");     // Up
-  m_dpad->SetControlExpression(1, "Down Arrow");   // Down
-  m_dpad->SetControlExpression(2, "Left Arrow");   // Left
-  m_dpad->SetControlExpression(3, "Right Arrow");  // Right
+  m_dpad->SetControlExpression(0, "`Up Arrow`");     // Up
+  m_dpad->SetControlExpression(1, "`Down Arrow`");   // Down
+  m_dpad->SetControlExpression(2, "`Left Arrow`");   // Left
+  m_dpad->SetControlExpression(3, "`Right Arrow`");  // Right
 #else
   m_dpad->SetControlExpression(0, "Up");     // Up
   m_dpad->SetControlExpression(1, "Down");   // Down
@@ -660,18 +717,18 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   // Motion Source
-  m_imu_accelerometer->SetControlExpression(0, "Accel Up");
-  m_imu_accelerometer->SetControlExpression(1, "Accel Down");
-  m_imu_accelerometer->SetControlExpression(2, "Accel Left");
-  m_imu_accelerometer->SetControlExpression(3, "Accel Right");
-  m_imu_accelerometer->SetControlExpression(4, "Accel Forward");
-  m_imu_accelerometer->SetControlExpression(5, "Accel Backward");
-  m_imu_gyroscope->SetControlExpression(0, "Gyro Pitch Up");
-  m_imu_gyroscope->SetControlExpression(1, "Gyro Pitch Down");
-  m_imu_gyroscope->SetControlExpression(2, "Gyro Roll Left");
-  m_imu_gyroscope->SetControlExpression(3, "Gyro Roll Right");
-  m_imu_gyroscope->SetControlExpression(4, "Gyro Yaw Left");
-  m_imu_gyroscope->SetControlExpression(5, "Gyro Yaw Right");
+  m_imu_accelerometer->SetControlExpression(0, "`Accel Up`");
+  m_imu_accelerometer->SetControlExpression(1, "`Accel Down`");
+  m_imu_accelerometer->SetControlExpression(2, "`Accel Left`");
+  m_imu_accelerometer->SetControlExpression(3, "`Accel Right`");
+  m_imu_accelerometer->SetControlExpression(4, "`Accel Forward`");
+  m_imu_accelerometer->SetControlExpression(5, "`Accel Backward`");
+  m_imu_gyroscope->SetControlExpression(0, "`Gyro Pitch Up`");
+  m_imu_gyroscope->SetControlExpression(1, "`Gyro Pitch Down`");
+  m_imu_gyroscope->SetControlExpression(2, "`Gyro Roll Left`");
+  m_imu_gyroscope->SetControlExpression(3, "`Gyro Roll Right`");
+  m_imu_gyroscope->SetControlExpression(4, "`Gyro Yaw Left`");
+  m_imu_gyroscope->SetControlExpression(5, "`Gyro Yaw Right`");
 
   // Enable Nunchuk:
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
@@ -699,15 +756,15 @@ EncryptionKey Wiimote::GetExtensionEncryptionKey() const
 
 bool Wiimote::IsSideways() const
 {
-  const bool sideways_modifier_toggle = m_hotkeys->getSettingsModifier()[0];
-  const bool sideways_modifier_switch = m_hotkeys->getSettingsModifier()[2];
+  const bool sideways_modifier_toggle = m_hotkeys->GetSettingsModifier()[0];
+  const bool sideways_modifier_switch = m_hotkeys->GetSettingsModifier()[2];
   return m_sideways_setting.GetValue() ^ sideways_modifier_toggle ^ sideways_modifier_switch;
 }
 
 bool Wiimote::IsUpright() const
 {
-  const bool upright_modifier_toggle = m_hotkeys->getSettingsModifier()[1];
-  const bool upright_modifier_switch = m_hotkeys->getSettingsModifier()[3];
+  const bool upright_modifier_toggle = m_hotkeys->GetSettingsModifier()[1];
+  const bool upright_modifier_switch = m_hotkeys->GetSettingsModifier()[3];
   return m_upright_setting.GetValue() ^ upright_modifier_toggle ^ upright_modifier_switch;
 }
 
@@ -717,11 +774,16 @@ void Wiimote::SetRumble(bool on)
   m_rumble->controls.front()->control_ref->State(on);
 }
 
+void Wiimote::RefreshConfig()
+{
+  m_speaker_logic.SetSpeakerEnabled(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
+}
+
 void Wiimote::StepDynamics()
 {
   EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
-  EmulatePoint(&m_point_state, m_ir, 1.f / ::Wiimote::UPDATE_FREQ);
+  EmulatePoint(&m_point_state, m_ir, m_input_override_function, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
                    1.f / ::Wiimote::UPDATE_FREQ);
@@ -763,20 +825,87 @@ Common::Quaternion Wiimote::GetOrientation() const
          Common::Quaternion::RotateX(float(MathUtil::TAU / 4 * IsUpright()));
 }
 
+std::optional<Common::Vec3> Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group,
+                                                  std::optional<Common::Vec3> optional_vec) const
+{
+  bool has_value = optional_vec.has_value();
+  Common::Vec3 vec = has_value ? *optional_vec : Common::Vec3{};
+
+  if (m_input_override_function)
+  {
+    if (const std::optional<ControlState> x_override = m_input_override_function(
+            control_group->name, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE, vec.x))
+    {
+      has_value = true;
+      vec.x = *x_override;
+    }
+
+    if (const std::optional<ControlState> y_override = m_input_override_function(
+            control_group->name, ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE, vec.y))
+    {
+      has_value = true;
+      vec.y = *y_override;
+    }
+
+    if (const std::optional<ControlState> z_override = m_input_override_function(
+            control_group->name, ControllerEmu::ReshapableInput::Z_INPUT_OVERRIDE, vec.z))
+    {
+      has_value = true;
+      vec.z = *z_override;
+    }
+  }
+
+  return has_value ? std::make_optional(vec) : std::nullopt;
+}
+
+Common::Vec3 Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group,
+                                   Common::Vec3 vec) const
+{
+  return OverrideVec3(control_group, vec, m_input_override_function);
+}
+
+Common::Vec3
+Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group, Common::Vec3 vec,
+                      const ControllerEmu::InputOverrideFunction& input_override_function)
+{
+  if (input_override_function)
+  {
+    if (const std::optional<ControlState> x_override = input_override_function(
+            control_group->name, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE, vec.x))
+    {
+      vec.x = *x_override;
+    }
+
+    if (const std::optional<ControlState> y_override = input_override_function(
+            control_group->name, ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE, vec.y))
+    {
+      vec.y = *y_override;
+    }
+
+    if (const std::optional<ControlState> z_override = input_override_function(
+            control_group->name, ControllerEmu::ReshapableInput::Z_INPUT_OVERRIDE, vec.z))
+    {
+      vec.z = *z_override;
+    }
+  }
+
+  return vec;
+}
+
 Common::Vec3 Wiimote::GetTotalAcceleration() const
 {
-  if (const auto accel = m_imu_accelerometer->GetState())
-    return GetAcceleration(*accel);
+  const Common::Vec3 default_accel = Common::Vec3(0, 0, float(GRAVITY_ACCELERATION));
+  const Common::Vec3 accel = m_imu_accelerometer->GetState().value_or(default_accel);
 
-  return GetAcceleration();
+  return OverrideVec3(m_imu_accelerometer, GetAcceleration(accel));
 }
 
 Common::Vec3 Wiimote::GetTotalAngularVelocity() const
 {
-  if (const auto ang_vel = m_imu_gyroscope->GetState())
-    return GetAngularVelocity(*ang_vel);
+  const Common::Vec3 default_ang_vel = {};
+  const Common::Vec3 ang_vel = m_imu_gyroscope->GetState().value_or(default_ang_vel);
 
-  return GetAngularVelocity();
+  return OverrideVec3(m_imu_gyroscope, GetAngularVelocity(ang_vel));
 }
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const

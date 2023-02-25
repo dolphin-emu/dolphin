@@ -1,16 +1,15 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <vector>
 
-#include <mbedtls/aes.h>
-
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
@@ -32,14 +31,12 @@ private:
   std::vector<u8> m_whole_file;
 };
 
-namespace Device
-{
-class WFSI : public Device
+class WFSIDevice : public Device
 {
 public:
-  WFSI(Kernel& ios, const std::string& device_name);
+  WFSIDevice(Kernel& ios, const std::string& device_name);
 
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 
 private:
   u32 GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const;
@@ -53,20 +50,20 @@ private:
 
   std::string m_device_name;
 
-  mbedtls_aes_context m_aes_ctx;
+  std::unique_ptr<Common::AES::Context> m_aes_ctx{};
   u8 m_aes_key[0x10] = {};
   u8 m_aes_iv[0x10] = {};
 
-  IOS::ES::TMDReader m_tmd;
+  ES::TMDReader m_tmd;
   std::string m_base_extract_path;
 
-  u64 m_current_title_id;
+  u64 m_current_title_id = 0;
   std::string m_current_title_id_str;
-  u16 m_current_group_id;
+  u16 m_current_group_id = 0;
   std::string m_current_group_id_str;
-  u64 m_import_title_id;
+  u64 m_import_title_id = 0;
   std::string m_import_title_id_str;
-  u16 m_import_group_id;
+  u16 m_import_group_id = 0;
   std::string m_import_group_id_str;
 
   // Set on IMPORT_TITLE_INIT when the next profile application should not delete
@@ -125,5 +122,4 @@ private:
     IOCTL_WFSI_CHECK_HAS_SPACE = 0x95,
   };
 };
-}  // namespace Device
 }  // namespace IOS::HLE

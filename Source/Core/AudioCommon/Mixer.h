@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -30,12 +29,18 @@ public:
   void PushSamples(const short* samples, unsigned int num_samples);
   void PushStreamingSamples(const short* samples, unsigned int num_samples);
   void PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples,
-                                 unsigned int sample_rate);
+                                 unsigned int sample_rate_divisor);
+  void PushGBASamples(int device_number, const short* samples, unsigned int num_samples);
+
   unsigned int GetSampleRate() const { return m_sampleRate; }
-  void SetDMAInputSampleRate(unsigned int rate);
-  void SetStreamInputSampleRate(unsigned int rate);
+
+  void SetDMAInputSampleRateDivisor(unsigned int rate_divisor);
+  void SetStreamInputSampleRateDivisor(unsigned int rate_divisor);
+  void SetGBAInputSampleRateDivisors(int device_number, unsigned int rate_divisor);
+
   void SetStreamingVolume(unsigned int lvolume, unsigned int rvolume);
   void SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume);
+  void SetGBAVolume(int device_number, unsigned int lvolume, unsigned int rvolume);
 
   void StartLogDTKAudio(const std::string& filename);
   void StopLogDTKAudio();
@@ -43,8 +48,8 @@ public:
   void StartLogDSPAudio(const std::string& filename);
   void StopLogDSPAudio();
 
-  float GetCurrentSpeed() const { return m_speed.load(); }
-  void UpdateSpeed(float val) { m_speed.store(val); }
+  // 54000000 doesn't work here as it doesn't evenly divide with 32000, but 108000000 does
+  static constexpr u64 FIXED_SAMPLE_RATE_DIVIDEND = 54000000 * 2;
 
 private:
   static constexpr u32 MAX_SAMPLES = 1024 * 4;  // 128 ms
@@ -58,20 +63,25 @@ private:
   class MixerFifo final
   {
   public:
-    MixerFifo(Mixer* mixer, unsigned sample_rate) : m_mixer(mixer), m_input_sample_rate(sample_rate)
+    MixerFifo(Mixer* mixer, unsigned sample_rate_divisor, bool little_endian)
+        : m_mixer(mixer), m_input_sample_rate_divisor(sample_rate_divisor),
+          m_little_endian(little_endian)
     {
     }
     void DoState(PointerWrap& p);
     void PushSamples(const short* samples, unsigned int num_samples);
-    unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
-    void SetInputSampleRate(unsigned int rate);
-    unsigned int GetInputSampleRate() const;
+    unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit,
+                     float emulationspeed, int timing_variance);
+    void SetInputSampleRateDivisor(unsigned int rate_divisor);
+    unsigned int GetInputSampleRateDivisor() const;
     void SetVolume(unsigned int lvolume, unsigned int rvolume);
+    std::pair<s32, s32> GetVolume() const;
     unsigned int AvailableSamples() const;
 
   private:
     Mixer* m_mixer;
-    unsigned m_input_sample_rate;
+    unsigned m_input_sample_rate_divisor;
+    bool m_little_endian;
     std::array<short, MAX_SAMPLES * 2> m_buffer{};
     std::atomic<u32> m_indexW{0};
     std::atomic<u32> m_indexR{0};
@@ -82,15 +92,21 @@ private:
     u32 m_frac = 0;
   };
 
-  MixerFifo m_dma_mixer{this, 32000};
-  MixerFifo m_streaming_mixer{this, 48000};
-  MixerFifo m_wiimote_speaker_mixer{this, 3000};
+  void RefreshConfig();
+
+  MixerFifo m_dma_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 32000, false};
+  MixerFifo m_streaming_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, false};
+  MixerFifo m_wiimote_speaker_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000, true};
+  std::array<MixerFifo, 4> m_gba_mixers{MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
+                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
+                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
+                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true}};
   unsigned int m_sampleRate;
 
   bool m_is_stretching = false;
   AudioCommon::AudioStretcher m_stretcher;
   AudioCommon::SurroundDecoder m_surround_decoder;
-  std::array<short, MAX_SAMPLES * 2> m_scratch_buffer;
+  std::array<short, MAX_SAMPLES * 2> m_scratch_buffer{};
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;
@@ -98,6 +114,9 @@ private:
   bool m_log_dtk_audio = false;
   bool m_log_dsp_audio = false;
 
-  // Current rate of emulation (1.0 = 100% speed)
-  std::atomic<float> m_speed{0.0f};
+  float m_config_emulation_speed;
+  int m_config_timing_variance;
+  bool m_config_audio_stretch;
+
+  size_t m_config_changed_callback_id;
 };

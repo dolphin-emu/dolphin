@@ -1,12 +1,12 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
 #include <climits>
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <initializer_list>
 #include <type_traits>
@@ -104,50 +104,6 @@ constexpr Result ExtractBits(const T src) noexcept
 }
 
 ///
-/// Rotates a value left (ROL).
-///
-/// @param  value  The value to rotate.
-/// @param  amount The number of bits to rotate the value.
-/// @tparam T      An unsigned type.
-///
-/// @return The rotated value.
-///
-template <typename T>
-constexpr T RotateLeft(const T value, size_t amount) noexcept
-{
-  static_assert(std::is_unsigned<T>(), "Can only rotate unsigned types left.");
-
-  amount %= BitSize<T>();
-
-  if (amount == 0)
-    return value;
-
-  return static_cast<T>((value << amount) | (value >> (BitSize<T>() - amount)));
-}
-
-///
-/// Rotates a value right (ROR).
-///
-/// @param  value  The value to rotate.
-/// @param  amount The number of bits to rotate the value.
-/// @tparam T      An unsigned type.
-///
-/// @return The rotated value.
-///
-template <typename T>
-constexpr T RotateRight(const T value, size_t amount) noexcept
-{
-  static_assert(std::is_unsigned<T>(), "Can only rotate unsigned types right.");
-
-  amount %= BitSize<T>();
-
-  if (amount == 0)
-    return value;
-
-  return static_cast<T>((value >> amount) | (value << (BitSize<T>() - amount)));
-}
-
-///
 /// Verifies whether the supplied value is a valid bit mask of the form 0b00...0011...11.
 /// Both edge cases of all zeros and all ones are considered valid masks, too.
 ///
@@ -197,7 +153,7 @@ inline To BitCast(const From& source) noexcept
   static_assert(std::is_trivially_copyable<To>(),
                 "BitCast destination type must be trivially copyable.");
 
-  std::aligned_storage_t<sizeof(To), alignof(To)> storage;
+  alignas(To) std::byte storage[sizeof(To)];
   std::memcpy(&storage, &source, sizeof(storage));
   return reinterpret_cast<To&>(storage);
 }
@@ -356,5 +312,4 @@ T ExpandValue(T value, size_t left_shift_amount)
   return (value << left_shift_amount) |
          (T(-ExtractBit<0>(value)) >> (BitSize<T>() - left_shift_amount));
 }
-
 }  // namespace Common

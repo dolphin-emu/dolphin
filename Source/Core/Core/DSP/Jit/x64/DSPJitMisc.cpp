@@ -1,12 +1,11 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPMemoryMap.h"
-#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 
@@ -36,8 +35,8 @@ void DSPEmitter::mrr(const UDSPInstruction opc)
 // S16 mode.
 void DSPEmitter::lri(const UDSPInstruction opc)
 {
-  u8 reg = opc & 0x1F;
-  u16 imm = dsp_imem_read(m_compile_pc + 1);
+  const u8 reg = opc & 0x1F;
+  const u16 imm = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
   dsp_op_write_reg_imm(reg, imm);
   dsp_conditional_extend_accum_imm(reg, imm);
 }
@@ -132,8 +131,8 @@ void DSPEmitter::clrCompileSR(u16 bit)
 }
 // SBCLR #I
 // 0001 0011 aaaa aiii
-// bit of status register $sr. Bit number is calculated by adding 6 to
-// immediate value I.
+// Clear bit of status register $sr. Bit number is calculated by adding 6 to immediate value I;
+// thus, bits 6 through 13 (LZ through AM) can be cleared with this instruction.
 void DSPEmitter::sbclr(const UDSPInstruction opc)
 {
   u8 bit = (opc & 0x7) + 6;
@@ -143,8 +142,8 @@ void DSPEmitter::sbclr(const UDSPInstruction opc)
 
 // SBSET #I
 // 0001 0010 aaaa aiii
-// Set bit of status register $sr. Bit number is calculated by adding 6 to
-// immediate value I.
+// Set bit of status register $sr. Bit number is calculated by adding 6 to immediate value I;
+// thus, bits 6 through 13 (LZ through AM) can be set with this instruction.
 void DSPEmitter::sbset(const UDSPInstruction opc)
 {
   u8 bit = (opc & 0x7) + 6;

@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/USB/USBV4.h"
 
@@ -13,6 +12,7 @@
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
+#include "Core/System.h"
 
 namespace IOS::HLE::USB
 {
@@ -48,8 +48,11 @@ struct HIDRequest
 
 V4CtrlMessage::V4CtrlMessage(Kernel& ios, const IOCtlRequest& ioctl) : CtrlMessage(ios, ioctl, 0)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   HIDRequest hid_request;
-  Memory::CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
+  memory.CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
   request_type = hid_request.control.bmRequestType;
   request = hid_request.control.bmRequest;
   value = Common::swap16(hid_request.control.wValue);
@@ -64,8 +67,11 @@ V4CtrlMessage::V4CtrlMessage(Kernel& ios, const IOCtlRequest& ioctl) : CtrlMessa
 V4GetUSStringMessage::V4GetUSStringMessage(Kernel& ios, const IOCtlRequest& ioctl)
     : CtrlMessage(ios, ioctl, 0)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   HIDRequest hid_request;
-  Memory::CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
+  memory.CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
   request_type = 0x80;
   request = REQUEST_GET_DESCRIPTOR;
   value = (0x03 << 8) | hid_request.string.bIndex;
@@ -76,16 +82,22 @@ V4GetUSStringMessage::V4GetUSStringMessage(Kernel& ios, const IOCtlRequest& ioct
 
 void V4GetUSStringMessage::OnTransferComplete(s32 return_value) const
 {
-  std::string message = Memory::GetString(data_address);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  std::string message = memory.GetString(data_address);
   std::replace_if(message.begin(), message.end(), std::not_fn(IsPrintableCharacter), '?');
-  Memory::CopyToEmu(data_address, message.c_str(), message.size());
+  memory.CopyToEmu(data_address, message.c_str(), message.size());
   TransferCommand::OnTransferComplete(return_value);
 }
 
 V4IntrMessage::V4IntrMessage(Kernel& ios, const IOCtlRequest& ioctl) : IntrMessage(ios, ioctl, 0)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   HIDRequest hid_request;
-  Memory::CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
+  memory.CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
   length = Common::swap32(hid_request.interrupt.length);
   endpoint = static_cast<u8>(Common::swap32(hid_request.interrupt.endpoint));
   data_address = Common::swap32(hid_request.data_addr);

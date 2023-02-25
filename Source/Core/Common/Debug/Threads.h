@@ -1,6 +1,5 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -11,6 +10,11 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+
+namespace Core
+{
+class CPUThreadGuard;
+};
 
 namespace Common::Debug
 {
@@ -42,7 +46,7 @@ public:
     LWPThread,  // devkitPro libogc thread
   };
 
-  virtual PartialContext GetContext() const = 0;
+  virtual PartialContext GetContext(const Core::CPUThreadGuard& guard) const = 0;
   virtual u32 GetAddress() const = 0;
   virtual u16 GetState() const = 0;
   virtual bool IsSuspended() const = 0;
@@ -54,8 +58,8 @@ public:
   virtual std::size_t GetStackSize() const = 0;
   virtual s32 GetErrno() const = 0;
   // Implementation specific, used to store arbitrary data
-  virtual std::string GetSpecific() const = 0;
-  virtual bool IsValid() const = 0;
+  virtual std::string GetSpecific(const Core::CPUThreadGuard& guard) const = 0;
+  virtual bool IsValid(const Core::CPUThreadGuard& guard) const = 0;
 };
 
 using Threads = std::vector<std::unique_ptr<ThreadView>>;

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // WARNING - THIS LIBRARY IS NOT THREAD SAFE!!!
 
@@ -374,7 +373,6 @@ private:
   void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
                    int extrabytes = 0);
   void WriteMOVBE(int bits, u8 op, X64Reg regOp, const OpArg& arg);
-  void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, const OpArg& arg);
   void WriteNormalOp(int bits, NormalOp op, const OpArg& a1, const OpArg& a2);
 
   void ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size,
@@ -580,31 +578,6 @@ public:
   void REPNE();
   void FSOverride();
   void GSOverride();
-
-  // x87
-  enum x87StatusWordBits
-  {
-    x87_InvalidOperation = 0x1,
-    x87_DenormalizedOperand = 0x2,
-    x87_DivisionByZero = 0x4,
-    x87_Overflow = 0x8,
-    x87_Underflow = 0x10,
-    x87_Precision = 0x20,
-    x87_StackFault = 0x40,
-    x87_ErrorSummary = 0x80,
-    x87_C0 = 0x100,
-    x87_C1 = 0x200,
-    x87_C2 = 0x400,
-    x87_TopOfStack = 0x2000 | 0x1000 | 0x800,
-    x87_C3 = 0x4000,
-    x87_FPUBusy = 0x8000,
-  };
-
-  void FLD(int bits, const OpArg& src);
-  void FST(int bits, const OpArg& dest);
-  void FSTP(int bits, const OpArg& dest);
-  void FNSTSW_AX();
-  void FWAIT();
 
   // SSE/SSE2: Floating point arithmetic
   void ADDSS(X64Reg regOp, const OpArg& arg);
@@ -1097,6 +1070,13 @@ public:
   }
 
   template <typename FunctionPointer>
+  void ABI_CallFunctionP(FunctionPointer func, const void* param1)
+  {
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
   void ABI_CallFunctionPC(FunctionPointer func, const void* param1, u32 param2)
   {
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
@@ -1122,11 +1102,29 @@ public:
     ABI_CallFunction(func);
   }
 
+  // Pass a pointer and register as a parameter.
+  template <typename FunctionPointer>
+  void ABI_CallFunctionPR(FunctionPointer func, const void* ptr, X64Reg reg1)
+  {
+    MOV(64, R(ABI_PARAM2), R(reg1));
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
+    ABI_CallFunction(func);
+  }
+
   // Pass two registers as parameters.
   template <typename FunctionPointer>
   void ABI_CallFunctionRR(FunctionPointer func, X64Reg reg1, X64Reg reg2)
   {
     MOVTwo(64, ABI_PARAM1, reg1, 0, ABI_PARAM2, reg2);
+    ABI_CallFunction(func);
+  }
+
+  // Pass a pointer and two registers as parameters.
+  template <typename FunctionPointer>
+  void ABI_CallFunctionPRR(FunctionPointer func, const void* ptr, X64Reg reg1, X64Reg reg2)
+  {
+    MOVTwo(64, ABI_PARAM2, reg1, 0, ABI_PARAM3, reg2);
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
     ABI_CallFunction(func);
   }
 
@@ -1170,10 +1168,10 @@ public:
   }
 
   template <typename T, typename... Args>
-  void ABI_CallLambdaC(const std::function<T(Args...)>* f, u32 p1)
+  void ABI_CallLambdaPC(const std::function<T(Args...)>* f, void* p1, u32 p2)
   {
     auto trampoline = &XEmitter::CallLambdaTrampoline<T, Args...>;
-    ABI_CallFunctionPC(trampoline, reinterpret_cast<const void*>(f), p1);
+    ABI_CallFunctionPPC(trampoline, reinterpret_cast<const void*>(f), p1, p2);
   }
 };  // class XEmitter
 

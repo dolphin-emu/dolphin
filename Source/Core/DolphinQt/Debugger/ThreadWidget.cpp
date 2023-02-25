@@ -1,6 +1,5 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Debugger/ThreadWidget.h"
 
@@ -131,10 +130,10 @@ void ThreadWidget::ShowContextMenu(QTableWidget* table)
 
 QLineEdit* ThreadWidget::CreateLineEdit() const
 {
-  QLineEdit* line_edit = new QLineEdit(QLatin1Literal("00000000"));
+  QLineEdit* line_edit = new QLineEdit(QStringLiteral("00000000"));
   line_edit->setReadOnly(true);
   line_edit->setFixedWidth(
-      line_edit->fontMetrics().boundingRect(QLatin1Literal(" 00000000 ")).width());
+      line_edit->fontMetrics().boundingRect(QStringLiteral(" 00000000 ")).width());
   return line_edit;
 }
 
@@ -257,7 +256,9 @@ void ThreadWidget::Update()
   {
     m_thread_table->setRowCount(0);
     UpdateThreadContext({});
-    UpdateThreadCallstack({});
+
+    Core::CPUThreadGuard guard;
+    UpdateThreadCallstack(guard, {});
   }
   if (emu_state != Core::State::Paused)
     return;
@@ -265,8 +266,8 @@ void ThreadWidget::Update()
   const auto format_hex = [](u32 value) {
     return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
   };
-  const auto format_hex_from = [&format_hex](u32 addr) {
-    addr = PowerPC::HostIsRAMAddress(addr) ? PowerPC::HostRead_U32(addr) : 0;
+  const auto format_hex_from = [&format_hex](const Core::CPUThreadGuard& guard, u32 addr) {
+    addr = PowerPC::HostIsRAMAddress(guard, addr) ? PowerPC::HostRead_U32(guard, addr) : 0;
     return format_hex(addr);
   };
   const auto get_state = [](u16 thread_state) {
@@ -299,35 +300,41 @@ void ThreadWidget::Update()
         .arg(start, 8, 16, QLatin1Char('0'));
   };
 
-  // YAGCD - Section 4.2.1.4 Dolphin OS Globals
-  m_current_context->setText(format_hex_from(0x800000D4));
-  m_current_thread->setText(format_hex_from(0x800000E4));
-  m_default_thread->setText(format_hex_from(0x800000D8));
-
-  m_queue_head->setText(format_hex_from(0x800000DC));
-  m_queue_tail->setText(format_hex_from(0x800000E0));
-
-  // Thread group
-  m_threads = PowerPC::debug_interface.GetThreads();
-  int i = 0;
-  m_thread_table->setRowCount(i);
-  for (const auto& thread : m_threads)
   {
-    m_thread_table->insertRow(i);
-    m_thread_table->setItem(i, 0, new QTableWidgetItem(format_hex(thread->GetAddress())));
-    m_thread_table->setItem(i, 1, new QTableWidgetItem(get_state(thread->GetState())));
-    m_thread_table->setItem(i, 2, new QTableWidgetItem(QString::number(thread->IsDetached())));
-    m_thread_table->setItem(i, 3, new QTableWidgetItem(QString::number(thread->IsSuspended())));
-    m_thread_table->setItem(i, 4,
-                            new QTableWidgetItem(get_priority(thread->GetBasePriority(),
-                                                              thread->GetEffectivePriority())));
-    m_thread_table->setItem(
-        i, 5, new QTableWidgetItem(get_stack(thread->GetStackEnd(), thread->GetStackStart())));
-    m_thread_table->setItem(i, 6, new QTableWidgetItem(QString::number(thread->GetErrno())));
-    m_thread_table->setItem(i, 7,
-                            new QTableWidgetItem(QString::fromStdString(thread->GetSpecific())));
-    i += 1;
+    Core::CPUThreadGuard guard;
+
+    // YAGCD - Section 4.2.1.4 Dolphin OS Globals
+    m_current_context->setText(format_hex_from(guard, 0x800000D4));
+    m_current_thread->setText(format_hex_from(guard, 0x800000E4));
+    m_default_thread->setText(format_hex_from(guard, 0x800000D8));
+
+    m_queue_head->setText(format_hex_from(guard, 0x800000DC));
+    m_queue_tail->setText(format_hex_from(guard, 0x800000E0));
+
+    // Thread group
+    m_threads = PowerPC::debug_interface.GetThreads(guard);
+
+    int i = 0;
+    m_thread_table->setRowCount(i);
+    for (const auto& thread : m_threads)
+    {
+      m_thread_table->insertRow(i);
+      m_thread_table->setItem(i, 0, new QTableWidgetItem(format_hex(thread->GetAddress())));
+      m_thread_table->setItem(i, 1, new QTableWidgetItem(get_state(thread->GetState())));
+      m_thread_table->setItem(i, 2, new QTableWidgetItem(QString::number(thread->IsDetached())));
+      m_thread_table->setItem(i, 3, new QTableWidgetItem(QString::number(thread->IsSuspended())));
+      m_thread_table->setItem(i, 4,
+                              new QTableWidgetItem(get_priority(thread->GetBasePriority(),
+                                                                thread->GetEffectivePriority())));
+      m_thread_table->setItem(
+          i, 5, new QTableWidgetItem(get_stack(thread->GetStackEnd(), thread->GetStackStart())));
+      m_thread_table->setItem(i, 6, new QTableWidgetItem(QString::number(thread->GetErrno())));
+      m_thread_table->setItem(
+          i, 7, new QTableWidgetItem(QString::fromStdString(thread->GetSpecific(guard))));
+      i += 1;
+    }
   }
+
   m_thread_table->resizeColumnsToContents();
   m_thread_table->resizeRowsToContents();
 
@@ -374,39 +381,39 @@ void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& cont
     switch (i)
     {
     case 8:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("CR")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("CR")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.cr)));
       break;
     case 9:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("LR")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("LR")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.lr)));
       break;
     case 10:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("CTR")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("CTR")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.ctr)));
       break;
     case 11:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("XER")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("XER")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.xer)));
       break;
     case 12:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("FPSCR")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("FPSCR")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.fpscr)));
       break;
     case 13:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("SRR0")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("SRR0")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.srr0)));
       break;
     case 14:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("SRR1")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("SRR1")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.srr1)));
       break;
     case 15:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("DUMMY")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("DUMMY")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.dummy)));
       break;
     case 16:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("STATE")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("STATE")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.state)));
       break;
     default:
@@ -426,7 +433,8 @@ void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& cont
   m_context_table->resizeColumnsToContents();
 }
 
-void ThreadWidget::UpdateThreadCallstack(const Common::Debug::PartialContext& context)
+void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
+                                         const Common::Debug::PartialContext& context)
 {
   m_callstack_table->setRowCount(0);
 
@@ -440,13 +448,13 @@ void ThreadWidget::UpdateThreadCallstack(const Common::Debug::PartialContext& co
   u32 sp = context.gpr->at(1);
   for (int i = 0; i < 16; i++)
   {
-    if (sp == 0 || sp == 0xffffffff || !PowerPC::HostIsRAMAddress(sp))
+    if (sp == 0 || sp == 0xffffffff || !PowerPC::HostIsRAMAddress(guard, sp))
       break;
     m_callstack_table->insertRow(i);
     m_callstack_table->setItem(i, 0, new QTableWidgetItem(format_hex(sp)));
-    if (PowerPC::HostIsRAMAddress(sp + 4))
+    if (PowerPC::HostIsRAMAddress(guard, sp + 4))
     {
-      const u32 lr_save = PowerPC::HostRead_U32(sp + 4);
+      const u32 lr_save = PowerPC::HostRead_U32(guard, sp + 4);
       m_callstack_table->setItem(i, 2, new QTableWidgetItem(format_hex(lr_save)));
       m_callstack_table->setItem(i, 3,
                                  new QTableWidgetItem(QString::fromStdString(
@@ -454,20 +462,21 @@ void ThreadWidget::UpdateThreadCallstack(const Common::Debug::PartialContext& co
     }
     else
     {
-      m_callstack_table->setItem(i, 2, new QTableWidgetItem(QLatin1Literal("--------")));
+      m_callstack_table->setItem(i, 2, new QTableWidgetItem(QStringLiteral("--------")));
     }
-    sp = PowerPC::HostRead_U32(sp);
+    sp = PowerPC::HostRead_U32(guard, sp);
     m_callstack_table->setItem(i, 1, new QTableWidgetItem(format_hex(sp)));
   }
 }
 
 void ThreadWidget::OnSelectionChanged(int row)
 {
+  Core::CPUThreadGuard guard;
   Common::Debug::PartialContext context;
 
   if (row >= 0 && size_t(row) < m_threads.size())
-    context = m_threads[row]->GetContext();
+    context = m_threads[row]->GetContext(guard);
 
   UpdateThreadContext(context);
-  UpdateThreadCallstack(context);
+  UpdateThreadCallstack(guard, context);
 }

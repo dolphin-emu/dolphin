@@ -1,23 +1,23 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <string>
 
+#include <QComboBox>
 #include <QDialog>
 #include <QString>
 #include <QSyntaxHighlighter>
 
 #include "Common/Flag.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 class ControlReference;
 class MappingWidget;
 class QAbstractButton;
-class QComboBox;
 class QDialogButtonBox;
 class QLineEdit;
 class QTableWidget;
@@ -45,6 +45,17 @@ protected:
   void highlightBlock(const QString& text) final override;
 };
 
+class QComboBoxWithMouseWheelDisabled : public QComboBox
+{
+  Q_OBJECT
+public:
+  explicit QComboBoxWithMouseWheelDisabled(QWidget* parent = nullptr) : QComboBox(parent) {}
+
+protected:
+  // Consumes event while doing nothing
+  void wheelEvent(QWheelEvent* event) override;
+};
+
 class IOWindow final : public QDialog
 {
   Q_OBJECT
@@ -58,16 +69,16 @@ public:
   explicit IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* m_controller,
                     ControlReference* ref, Type type);
 
-  std::shared_ptr<ciface::Core::Device> GetSelectedDevice();
-
 private:
+  std::shared_ptr<ciface::Core::Device> GetSelectedDevice() const;
+
   void CreateMainLayout();
   void ConnectWidgets();
   void ConfigChanged();
   void Update();
 
   void OnDialogButtonPressed(QAbstractButton* button);
-  void OnDeviceChanged(const QString& device);
+  void OnDeviceChanged();
   void OnDetectButtonPressed();
   void OnTestButtonPressed();
   void OnRangeChanged(int range);
@@ -75,6 +86,7 @@ private:
   void AppendSelectedOption();
   void UpdateOptionList();
   void UpdateDeviceList();
+  void ReleaseDevices();
 
   enum class UpdateMode
   {
@@ -93,13 +105,13 @@ private:
   // Options
   QTableWidget* m_option_list;
 
-  // Range
-  QSlider* m_range_slider;
-  QSpinBox* m_range_spinbox;
+  // Scalar
+  QSpinBox* m_scalar_spinbox;
 
   // Shared actions
   QPushButton* m_select_button;
   QComboBox* m_operators_combo;
+  QComboBox* m_variables_combo;
 
   // Input actions
   QPushButton* m_detect_button;
@@ -123,4 +135,5 @@ private:
   ciface::Core::DeviceQualifier m_devq;
   Type m_type;
   std::shared_ptr<ciface::Core::Device> m_selected_device;
+  std::mutex m_selected_device_mutex;
 };

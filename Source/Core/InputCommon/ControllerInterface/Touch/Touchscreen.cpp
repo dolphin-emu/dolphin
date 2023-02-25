@@ -1,15 +1,15 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "InputCommon/ControllerInterface/Touch/Touchscreen.h"
+
+#include <sstream>
+#include <thread>
 #ifdef ANDROID
 #include <jni/AndroidCommon/IDCache.h>
 #endif
 
-#include <sstream>
-#include <thread>
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/Touch/Touchscreen.h"
 
 namespace ciface::Touch
 {

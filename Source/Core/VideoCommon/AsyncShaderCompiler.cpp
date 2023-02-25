@@ -1,12 +1,15 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/AsyncShaderCompiler.h"
+
 #include <thread>
+
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
+
+#include "Core/Core.h"
 
 namespace VideoCommon
 {
@@ -64,17 +67,11 @@ bool AsyncShaderCompiler::HasCompletedWork()
   return !m_completed_work.empty();
 }
 
-void AsyncShaderCompiler::WaitUntilCompletion()
-{
-  while (HasPendingWork())
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-}
-
-void AsyncShaderCompiler::WaitUntilCompletion(
+bool AsyncShaderCompiler::WaitUntilCompletion(
     const std::function<void(size_t, size_t)>& progress_callback)
 {
   if (!HasPendingWork())
-    return;
+    return true;
 
   // Wait a second before opening a progress dialog.
   // This way, if the operation completes quickly, we don't annoy the user.
@@ -84,11 +81,11 @@ void AsyncShaderCompiler::WaitUntilCompletion(
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(CHECK_INTERVAL));
     if (!HasPendingWork())
-      return;
+      return true;
   }
 
   // Grab the number of pending items. We use this to work out how many are left.
-  size_t total_items = 0;
+  size_t total_items;
   {
     // Safe to hold both locks here, since nowhere else does.
     std::lock_guard<std::mutex> pending_guard(m_pending_work_lock);
@@ -99,6 +96,9 @@ void AsyncShaderCompiler::WaitUntilCompletion(
   // Update progress while the compiles complete.
   for (;;)
   {
+    if (Core::GetState() == Core::State::Stopping)
+      return false;
+
     size_t remaining_items;
     {
       std::lock_guard<std::mutex> pending_guard(m_pending_work_lock);
@@ -110,6 +110,7 @@ void AsyncShaderCompiler::WaitUntilCompletion(
     progress_callback(total_items - remaining_items, total_items);
     std::this_thread::sleep_for(CHECK_INTERVAL);
   }
+  return true;
 }
 
 bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)

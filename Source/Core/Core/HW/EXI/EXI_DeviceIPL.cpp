@@ -1,9 +1,7 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
-#include "Core/HW/DVD/DVDInterface.h"
 
 #include <cstring>
 #include <string>
@@ -13,8 +11,8 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
@@ -22,6 +20,7 @@
 #include "Common/Timer.h"
 
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -29,6 +28,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 
 #include "DiscIO/Enums.h"
 
@@ -106,7 +106,7 @@ CEXIIPL::CEXIIPL()
 
   // Load whole ROM dump
   // Note: The Wii doesn't have a copy of the IPL, only fonts.
-  if (!SConfig::GetInstance().bWii && Config::Get(Config::MAIN_LOAD_IPL_DUMP) &&
+  if (!SConfig::GetInstance().bWii && Config::Get(Config::SESSION_LOAD_IPL_DUMP) &&
       LoadFileToIPL(SConfig::GetInstance().m_strBootROM, 0))
   {
     // Descramble the encrypted section (contains BS1 and BS2)
@@ -130,29 +130,25 @@ CEXIIPL::CEXIIPL()
     LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_WINDOWS_1252), 0x1fcf00);
   }
 
+  auto& sram = Core::System::GetInstance().GetSRAM();
+
   // Clear RTC
-  g_SRAM.rtc = 0;
+  sram.rtc = 0;
 
   // We Overwrite language selection here since it's possible on the GC to change the language as
   // you please
-  g_SRAM.settings.language = SConfig::GetInstance().SelectedLanguage;
-  if (SConfig::GetInstance().bEnableCustomRTC)
-    g_SRAM.settings.rtc_bias = 0;
-  FixSRAMChecksums();
+  sram.settings.language = Config::Get(Config::MAIN_GC_LANGUAGE);
+  sram.settings.rtc_bias = 0;
+  FixSRAMChecksums(&sram);
 }
 
-CEXIIPL::~CEXIIPL()
-{
-  // SRAM
-  if (!g_SRAM_netplay_initialized)
-  {
-    File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
-    file.WriteArray(&g_SRAM, 1);
-  }
-}
+CEXIIPL::~CEXIIPL() = default;
+
 void CEXIIPL::DoState(PointerWrap& p)
 {
-  p.Do(g_SRAM);
+  auto& sram = Core::System::GetInstance().GetSRAM();
+
+  p.Do(sram);
   p.Do(g_rtc_flags);
   p.Do(m_command);
   p.Do(m_command_bytes_received);
@@ -208,7 +204,7 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   // in some titles. This function check if the user has IPL dumps available and load the fonts
   // from those dumps instead of loading the bundled fonts
 
-  if (!Config::Get(Config::MAIN_LOAD_IPL_DUMP))
+  if (!Config::Get(Config::SESSION_LOAD_IPL_DUMP))
   {
     // IPL loading disabled, load bundled font instead
     LoadFileToIPL(filename, offset);
@@ -238,7 +234,7 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   INFO_LOG_FMT(BOOT, "Found IPL dump, loading {} font from {}",
                (offset == 0x1aff00) ? "Shift JIS" : "Windows-1252", ipl_rom_path);
 
-  stream.Seek(offset, 0);
+  stream.Seek(offset, File::SeekOrigin::Begin);
   stream.ReadBytes(&m_rom[offset], fontsize);
 
   m_fonts_loaded = true;
@@ -255,7 +251,8 @@ void CEXIIPL::SetCS(int cs)
 
 void CEXIIPL::UpdateRTC()
 {
-  g_SRAM.rtc = GetEmulatedTime(GC_EPOCH);
+  auto& sram = Core::System::GetInstance().GetSRAM();
+  sram.rtc = GetEmulatedTime(GC_EPOCH);
 }
 
 bool CEXIIPL::IsPresent() const
@@ -345,11 +342,12 @@ void CEXIIPL::TransferByte(u8& data)
     }
     else if (IN_RANGE(SRAM))
     {
+      auto& sram = Core::System::GetInstance().GetSRAM();
       u32 dev_addr = DEV_ADDR_CURSOR(SRAM);
       if (m_command.is_write())
-        g_SRAM[dev_addr] = data;
+        sram[dev_addr] = data;
       else
-        data = g_SRAM[dev_addr];
+        data = sram[dev_addr];
     }
     else if (IN_RANGE(UART))
     {
@@ -407,14 +405,16 @@ u32 CEXIIPL::GetEmulatedTime(u32 epoch)
     ltime = Movie::GetRecordingStartTime();
 
     // let's keep time moving forward, regardless of what it starts at
-    ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
+    ltime +=
+        Core::System::GetInstance().GetCoreTiming().GetTicks() / SystemTimers::GetTicksPerSecond();
   }
   else if (NetPlay::IsNetPlayRunning())
   {
     ltime = NetPlay_GetEmulatedTime();
 
     // let's keep time moving forward, regardless of what it starts at
-    ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
+    ltime +=
+        Core::System::GetInstance().GetCoreTiming().GetTicks() / SystemTimers::GetTicksPerSecond();
   }
   else
   {

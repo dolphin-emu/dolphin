@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -25,6 +24,11 @@ const char* NumericSettingBase::GetUISuffix() const
 const char* NumericSettingBase::GetUIDescription() const
 {
   return m_details.ui_description;
+}
+
+SettingVisibility NumericSettingBase::GetVisibility() const
+{
+  return m_details.visibility;
 }
 
 template <>

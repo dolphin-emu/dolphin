@@ -1,21 +1,24 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/BPFunctions.h"
 
 #include <algorithm>
+#include <cmath>
 #include <string_view>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
+#include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
@@ -37,41 +40,187 @@ void SetGenerationMode()
   g_vertex_manager->SetRasterizationStateChanged();
 }
 
-void SetScissor()
+int ScissorRect::GetArea() const
 {
-  /* NOTE: the minimum value here for the scissor rect and offset is -342.
-   * GX internally adds on an offset of 342 to both the offset and scissor
-   * coords to ensure that the register was always unsigned.
-   *
-   * The code that was here before tried to "undo" this offset, but
-   * since we always take the difference, the +342 added to both
-   * sides cancels out. */
-
-  /* The scissor offset is always even, so to save space, the scissor offset
-   * register is scaled down by 2. So, if somebody calls
-   * GX_SetScissorBoxOffset(20, 20); the registers will be set to 10, 10. */
-  const int xoff = bpmem.scissorOffset.x * 2;
-  const int yoff = bpmem.scissorOffset.y * 2;
-
-  MathUtil::Rectangle<int> native_rc(bpmem.scissorTL.x - xoff, bpmem.scissorTL.y - yoff,
-                                     bpmem.scissorBR.x - xoff + 1, bpmem.scissorBR.y - yoff + 1);
-  native_rc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
-
-  auto target_rc = g_renderer->ConvertEFBRectangle(native_rc);
-  auto converted_rc =
-      g_renderer->ConvertFramebufferRectangle(target_rc, g_renderer->GetCurrentFramebuffer());
-  g_renderer->SetScissorRect(converted_rc);
+  return rect.GetWidth() * rect.GetHeight();
 }
 
-void SetViewport()
+int ScissorResult::GetViewportArea(const ScissorRect& rect) const
 {
-  int scissor_x_off = bpmem.scissorOffset.x * 2;
-  int scissor_y_off = bpmem.scissorOffset.y * 2;
-  float x = g_renderer->EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissor_x_off);
-  float y = g_renderer->EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissor_y_off);
+  int x0 = std::clamp<int>(rect.rect.left + rect.x_off, viewport_left, viewport_right);
+  int x1 = std::clamp<int>(rect.rect.right + rect.x_off, viewport_left, viewport_right);
 
-  float width = g_renderer->EFBToScaledXf(2.0f * xfmem.viewport.wd);
-  float height = g_renderer->EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  int y0 = std::clamp<int>(rect.rect.top + rect.y_off, viewport_top, viewport_bottom);
+  int y1 = std::clamp<int>(rect.rect.bottom + rect.y_off, viewport_top, viewport_bottom);
+
+  return (x1 - x0) * (y1 - y0);
+}
+
+// Compare so that a sorted collection of rectangles has the best one last, so that if they're drawn
+// in order, the best one is the one that is drawn last (and thus over the rest).
+// The exact iteration order on hardware hasn't been tested, but silly things can happen where a
+// polygon can intersect with itself; this only applies outside of the viewport region (in areas
+// that would normally be affected by clipping).  No game is known to care about this.
+bool ScissorResult::IsWorse(const ScissorRect& lhs, const ScissorRect& rhs) const
+{
+  // First, penalize any rect that is not in the viewport
+  int lhs_area = GetViewportArea(lhs);
+  int rhs_area = GetViewportArea(rhs);
+
+  if (lhs_area != rhs_area)
+    return lhs_area < rhs_area;
+
+  // Now compare on total areas, without regard for the viewport
+  return lhs.GetArea() < rhs.GetArea();
+}
+
+namespace
+{
+// Dynamically sized small array of ScissorRanges (used as an heap-less alternative to std::vector
+// to reduce allocation overhead)
+struct RangeList
+{
+  static constexpr u32 MAX_RANGES = 9;
+
+  u32 m_num_ranges = 0;
+  std::array<ScissorRange, MAX_RANGES> m_ranges{};
+
+  void AddRange(int offset, int start, int end)
+  {
+    DEBUG_ASSERT(m_num_ranges < MAX_RANGES);
+    m_ranges[m_num_ranges] = ScissorRange(offset, start, end);
+    m_num_ranges++;
+  }
+  auto begin() const { return m_ranges.begin(); }
+  auto end() const { return m_ranges.begin() + m_num_ranges; }
+
+  u32 size() { return m_num_ranges; }
+};
+
+static RangeList ComputeScissorRanges(int start, int end, int offset, int efb_dim)
+{
+  RangeList ranges;
+
+  for (int extra_off = -4096; extra_off <= 4096; extra_off += 1024)
+  {
+    int new_off = offset + extra_off;
+    int new_start = std::clamp(start - new_off, 0, efb_dim);
+    int new_end = std::clamp(end - new_off + 1, 0, efb_dim);
+    if (new_start < new_end)
+    {
+      ranges.AddRange(new_off, new_start, new_end);
+    }
+  }
+
+  return ranges;
+}
+}  // namespace
+
+ScissorResult::ScissorResult(const BPMemory& bpmemory, const XFMemory& xfmemory)
+    : ScissorResult(bpmemory,
+                    std::minmax(xfmemory.viewport.xOrig - xfmemory.viewport.wd,
+                                xfmemory.viewport.xOrig + xfmemory.viewport.wd),
+                    std::minmax(xfmemory.viewport.yOrig - xfmemory.viewport.ht,
+                                xfmemory.viewport.yOrig + xfmemory.viewport.ht))
+{
+}
+ScissorResult::ScissorResult(const BPMemory& bpmemory, std::pair<float, float> viewport_x,
+                             std::pair<float, float> viewport_y)
+    : scissor_tl{.hex = bpmemory.scissorTL.hex}, scissor_br{.hex = bpmemory.scissorBR.hex},
+      scissor_off{.hex = bpmemory.scissorOffset.hex}, viewport_left(viewport_x.first),
+      viewport_right(viewport_x.second), viewport_top(viewport_y.first),
+      viewport_bottom(viewport_y.second)
+{
+  // Range is [left, right] and [top, bottom] (closed intervals)
+  const int left = scissor_tl.x;
+  const int right = scissor_br.x;
+  const int top = scissor_tl.y;
+  const int bottom = scissor_br.y;
+  // When left > right or top > bottom, nothing renders (even with wrapping from the offsets)
+  if (left > right || top > bottom)
+    return;
+
+  // Note that both the offsets and the coordinates have 342 added to them internally by GX
+  // functions (for the offsets, this is before they are divided by 2/right shifted). This code
+  // could undo both sets of offsets, but it doesn't need to since they cancel out when subtracting
+  // (and those offsets actually matter for the left > right and top > bottom checks).
+  const int x_off = scissor_off.x << 1;
+  const int y_off = scissor_off.y << 1;
+
+  RangeList x_ranges = ComputeScissorRanges(left, right, x_off, EFB_WIDTH);
+  RangeList y_ranges = ComputeScissorRanges(top, bottom, y_off, EFB_HEIGHT);
+
+  m_result.reserve(x_ranges.size() * y_ranges.size());
+
+  // Now we need to form actual rectangles from the x and y ranges,
+  // which is a simple Cartesian product of x_ranges_clamped and y_ranges_clamped.
+  // Each rectangle is also a Cartesian product of x_range and y_range, with
+  // the rectangles being half-open (of the form [x0, x1) X [y0, y1)).
+  for (const auto& x_range : x_ranges)
+  {
+    DEBUG_ASSERT(x_range.start < x_range.end);
+    DEBUG_ASSERT(static_cast<u32>(x_range.end) <= EFB_WIDTH);
+    for (const auto& y_range : y_ranges)
+    {
+      DEBUG_ASSERT(y_range.start < y_range.end);
+      DEBUG_ASSERT(static_cast<u32>(y_range.end) <= EFB_HEIGHT);
+      m_result.emplace_back(x_range, y_range);
+    }
+  }
+
+  auto cmp = [&](const ScissorRect& lhs, const ScissorRect& rhs) { return IsWorse(lhs, rhs); };
+  std::sort(m_result.begin(), m_result.end(), cmp);
+}
+
+ScissorRect ScissorResult::Best() const
+{
+  // For now, simply choose the best rectangle (see ScissorResult::IsWorse).
+  // This does mean we calculate all rectangles and only choose one, which is not optimal, but this
+  // is called infrequently.  Eventually, all backends will support multiple scissor rects.
+  if (!m_result.empty())
+  {
+    return m_result.back();
+  }
+  else
+  {
+    // But if we have no rectangles, use a bogus one that's out of bounds.
+    // Ideally, all backends will support multiple scissor rects, in which case this won't be
+    // needed.
+    return ScissorRect(ScissorRange{0, 1000, 1001}, ScissorRange{0, 1000, 1001});
+  }
+}
+
+ScissorResult ComputeScissorRects()
+{
+  return ScissorResult{bpmem, xfmem};
+}
+
+void SetScissorAndViewport()
+{
+  auto native_rc = ComputeScissorRects().Best();
+
+  auto target_rc = g_framebuffer_manager->ConvertEFBRectangle(native_rc.rect);
+  auto converted_rc = g_gfx->ConvertFramebufferRectangle(target_rc, g_gfx->GetCurrentFramebuffer());
+  g_gfx->SetScissorRect(converted_rc);
+
+  float raw_x = (xfmem.viewport.xOrig - native_rc.x_off) - xfmem.viewport.wd;
+  float raw_y = (xfmem.viewport.yOrig - native_rc.y_off) + xfmem.viewport.ht;
+  float raw_width = 2.0f * xfmem.viewport.wd;
+  float raw_height = -2.0f * xfmem.viewport.ht;
+  if (g_ActiveConfig.UseVertexRounding())
+  {
+    // Round the viewport to match full 1x IR pixels as well.
+    // This eliminates a line in the archery mode in Wii Sports Resort at 3x IR and higher.
+    raw_x = std::round(raw_x);
+    raw_y = std::round(raw_y);
+    raw_width = std::round(raw_width);
+    raw_height = std::round(raw_height);
+  }
+
+  float x = g_framebuffer_manager->EFBToScaledXf(raw_x);
+  float y = g_framebuffer_manager->EFBToScaledYf(raw_y);
+  float width = g_framebuffer_manager->EFBToScaledXf(raw_width);
+  float height = g_framebuffer_manager->EFBToScaledYf(raw_height);
   float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
   float max_depth = xfmem.viewport.farZ / 16777216.0f;
   if (width < 0.f)
@@ -98,7 +247,7 @@ void SetViewport()
     max_depth = std::clamp(max_depth, 0.0f, GX_MAX_DEPTH);
   }
 
-  if (g_renderer->UseVertexDepthRange())
+  if (VertexShaderManager::UseVertexDepthRange())
   {
     // We need to ensure depth values are clamped the maximum value supported by the console GPU.
     // Taking into account whether the depth range is inverted or not.
@@ -130,22 +279,11 @@ void SetViewport()
     far_depth = 1.0f - min_depth;
   }
 
-  // Clamp to size if oversized not supported. Required for D3D.
-  if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
-  {
-    const float max_width = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetWidth());
-    const float max_height = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetHeight());
-    x = std::clamp(x, 0.0f, max_width - 1.0f);
-    y = std::clamp(y, 0.0f, max_height - 1.0f);
-    width = std::clamp(width, 1.0f, max_width - x);
-    height = std::clamp(height, 1.0f, max_height - y);
-  }
-
   // Lower-left flip.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
-    y = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetHeight()) - y - height;
+    y = static_cast<float>(g_gfx->GetCurrentFramebuffer()->GetHeight()) - y - height;
 
-  g_renderer->SetViewport(x, y, width, height, near_depth, far_depth);
+  g_gfx->SetViewport(x, y, width, height, near_depth, far_depth);
 }
 
 void SetDepthMode()
@@ -184,8 +322,8 @@ void ClearScreen(const MathUtil::Rectangle<int>& rc)
   auto pixel_format = bpmem.zcontrol.pixel_format;
 
   // (1): Disable unused color channels
-  if (pixel_format == PEControl::RGB8_Z24 || pixel_format == PEControl::RGB565_Z16 ||
-      pixel_format == PEControl::Z24)
+  if (pixel_format == PixelFormat::RGB8_Z24 || pixel_format == PixelFormat::RGB565_Z16 ||
+      pixel_format == PixelFormat::Z24)
   {
     alphaEnable = false;
   }
@@ -196,24 +334,27 @@ void ClearScreen(const MathUtil::Rectangle<int>& rc)
     u32 z = bpmem.clearZValue;
 
     // (2) drop additional accuracy
-    if (pixel_format == PEControl::RGBA6_Z24)
+    if (pixel_format == PixelFormat::RGBA6_Z24)
     {
       color = RGBA8ToRGBA6ToRGBA8(color);
     }
-    else if (pixel_format == PEControl::RGB565_Z16)
+    else if (pixel_format == PixelFormat::RGB565_Z16)
     {
       color = RGBA8ToRGB565ToRGBA8(color);
       z = Z24ToZ16ToZ24(z);
     }
-    g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
+    g_framebuffer_manager->ClearEFB(rc, colorEnable, alphaEnable, zEnable, color, z);
   }
 }
 
 void OnPixelFormatChange()
 {
   // TODO : Check for Z compression format change
-  // When using 16bit Z, the game may enable a special compression format which we need to handle
-  // If we don't, Z values will be completely screwed up, currently only Star Wars:RS2 uses that.
+  // When using 16bit Z, the game may enable a special compression format which we might need to
+  // handle. Only a few games like RS2 and RS3 even use z compression but it looks like they
+  // always use ZFAR when using 16bit Z (on top of linear 24bit Z)
+
+  // Besides, we currently don't even emulate 16bit depth and force it to 24bit.
 
   /*
    * When changing the EFB format, the pixel data won't get converted to the new format but stays
@@ -224,33 +365,32 @@ void OnPixelFormatChange()
   if (!g_ActiveConfig.bEFBEmulateFormatChanges)
     return;
 
-  const auto old_format = g_renderer->GetPrevPixelFormat();
+  const auto old_format = g_framebuffer_manager->GetPrevPixelFormat();
   const auto new_format = bpmem.zcontrol.pixel_format;
-  g_renderer->StorePixelFormat(new_format);
+  g_framebuffer_manager->StorePixelFormat(new_format);
 
-  DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", static_cast<int>(new_format),
-                static_cast<int>(bpmem.zcontrol.zformat));
+  DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", new_format, bpmem.zcontrol.zformat);
 
   // no need to reinterpret pixel data in these cases
-  if (new_format == old_format || old_format == PEControl::INVALID_FMT)
+  if (new_format == old_format || old_format == PixelFormat::INVALID_FMT)
     return;
 
   // Check for pixel format changes
   switch (old_format)
   {
-  case PEControl::RGB8_Z24:
-  case PEControl::Z24:
+  case PixelFormat::RGB8_Z24:
+  case PixelFormat::Z24:
   {
     // Z24 and RGB8_Z24 are treated equal, so just return in this case
-    if (new_format == PEControl::RGB8_Z24 || new_format == PEControl::Z24)
+    if (new_format == PixelFormat::RGB8_Z24 || new_format == PixelFormat::Z24)
       return;
 
-    if (new_format == PEControl::RGBA6_Z24)
+    if (new_format == PixelFormat::RGBA6_Z24)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGBA6);
       return;
     }
-    else if (new_format == PEControl::RGB565_Z16)
+    else if (new_format == PixelFormat::RGB565_Z16)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGB565);
       return;
@@ -258,14 +398,14 @@ void OnPixelFormatChange()
   }
   break;
 
-  case PEControl::RGBA6_Z24:
+  case PixelFormat::RGBA6_Z24:
   {
-    if (new_format == PEControl::RGB8_Z24 || new_format == PEControl::Z24)
+    if (new_format == PixelFormat::RGB8_Z24 || new_format == PixelFormat::Z24)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB8);
       return;
     }
-    else if (new_format == PEControl::RGB565_Z16)
+    else if (new_format == PixelFormat::RGB565_Z16)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB565);
       return;
@@ -273,14 +413,14 @@ void OnPixelFormatChange()
   }
   break;
 
-  case PEControl::RGB565_Z16:
+  case PixelFormat::RGB565_Z16:
   {
-    if (new_format == PEControl::RGB8_Z24 || new_format == PEControl::Z24)
+    if (new_format == PixelFormat::RGB8_Z24 || new_format == PixelFormat::Z24)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGB8);
       return;
     }
-    else if (new_format == PEControl::RGBA6_Z24)
+    else if (new_format == PixelFormat::RGBA6_Z24)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGBA6);
       return;
@@ -292,8 +432,7 @@ void OnPixelFormatChange()
     break;
   }
 
-  ERROR_LOG_FMT(VIDEO, "Unhandled EFB format change: {} to {}", static_cast<int>(old_format),
-                static_cast<int>(new_format));
+  ERROR_LOG_FMT(VIDEO, "Unhandled EFB format change: {} to {}", old_format, new_format);
 }
 
 void SetInterlacingMode(const BPCmd& bp)
@@ -305,17 +444,15 @@ void SetInterlacingMode(const BPCmd& bp)
   {
     // SDK always sets bpmem.lineptwidth.lineaspect via BPMEM_LINEPTWIDTH
     // just before this cmd
-    static constexpr std::string_view action[] = {"don't adjust", "adjust"};
-    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMODE texLOD:{} lineaspect:{}", action[bpmem.fieldmode.texLOD],
-                  action[bpmem.lineptwidth.lineaspect]);
+    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMODE texLOD:{} lineaspect:{}", bpmem.fieldmode.texLOD,
+                  bpmem.lineptwidth.adjust_for_aspect_ratio);
   }
   break;
   case BPMEM_FIELDMASK:
   {
     // Determines if fields will be written to EFB (always computed)
-    static constexpr std::string_view action[] = {"skip", "write"};
-    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMASK even:{} odd:{}", action[bpmem.fieldmask.even],
-                  action[bpmem.fieldmask.odd]);
+    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMASK even:{} odd:{}", bpmem.fieldmask.even,
+                  bpmem.fieldmask.odd);
   }
   break;
   default:

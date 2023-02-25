@@ -1,6 +1,7 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "VideoBackends/Software/SWOGLWindow.h"
 
 #include <memory>
 
@@ -9,7 +10,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
-#include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWTexture.h"
 
 SWOGLWindow::SWOGLWindow() = default;
@@ -20,7 +20,7 @@ std::unique_ptr<SWOGLWindow> SWOGLWindow::Create(const WindowSystemInfo& wsi)
   std::unique_ptr<SWOGLWindow> window = std::unique_ptr<SWOGLWindow>(new SWOGLWindow());
   if (!window->Initialize(wsi))
   {
-    PanicAlert("Failed to create OpenGL window");
+    PanicAlertFmt("Failed to create OpenGL window");
     return nullptr;
   }
 
@@ -105,7 +105,7 @@ void SWOGLWindow::ShowImage(const AbstractTexture* image,
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(sw_image->GetConfig().width),
                static_cast<GLsizei>(sw_image->GetConfig().height), 0, GL_RGBA, GL_UNSIGNED_BYTE,
-               sw_image->GetData());
+               sw_image->GetData(0, 0));
 
   glUseProgram(m_image_program);
 

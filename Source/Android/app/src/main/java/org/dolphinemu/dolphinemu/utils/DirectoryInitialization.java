@@ -1,30 +1,34 @@
 /*
  * Copyright 2014 Dolphin Emulator Project
- * Licensed under GPLv2+
- * Refer to the license.txt file included.
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 package org.dolphinemu.dolphinemu.utils;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Environment;
-import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.preference.PreferenceManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A service that spawns its own thread in order to copy several binary and shader files
@@ -32,73 +36,70 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class DirectoryInitialization
 {
-  public static final String BROADCAST_ACTION =
-          "org.dolphinemu.dolphinemu.DIRECTORY_INITIALIZATION";
-
   public static final String EXTRA_STATE = "directoryState";
   private static final int WiimoteNewVersion = 5;  // Last changed in PR 8907
-  private static volatile DirectoryInitializationState directoryState =
-          DirectoryInitializationState.NOT_YET_INITIALIZED;
+  private static final MutableLiveData<DirectoryInitializationState> directoryState =
+          new MutableLiveData<>(DirectoryInitializationState.NOT_YET_INITIALIZED);
   private static volatile boolean areDirectoriesAvailable = false;
   private static String userPath;
-  private static String internalPath;
-  private static AtomicBoolean isDolphinDirectoryInitializationRunning = new AtomicBoolean(false);
+  private static boolean isUsingLegacyUserDirectory = false;
 
   public enum DirectoryInitializationState
   {
     NOT_YET_INITIALIZED,
-    DOLPHIN_DIRECTORIES_INITIALIZED,
-    EXTERNAL_STORAGE_PERMISSION_NEEDED,
-    CANT_FIND_EXTERNAL_STORAGE
+    INITIALIZING,
+    DOLPHIN_DIRECTORIES_INITIALIZED
   }
 
   public static void start(Context context)
   {
-    if (!isDolphinDirectoryInitializationRunning.compareAndSet(false, true))
+    if (directoryState.getValue() != DirectoryInitializationState.NOT_YET_INITIALIZED)
       return;
 
+    directoryState.setValue(DirectoryInitializationState.INITIALIZING);
+
     // Can take a few seconds to run, so don't block UI thread.
-    //noinspection TrivialFunctionalExpressionUsage
-    ((Runnable) () -> init(context)).run();
+    new Thread(() -> init(context)).start();
   }
 
   private static void init(Context context)
   {
-    if (directoryState != DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+    if (directoryState.getValue() == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+      return;
+
+    if (!setDolphinUserDirectory(context))
     {
-      if (PermissionsHandler.hasWriteAccess(context))
-      {
-        if (setDolphinUserDirectory(context))
-        {
-          initializeInternalStorage(context);
-          boolean wiimoteIniWritten = initializeExternalStorage(context);
-          NativeLibrary.Initialize();
-          NativeLibrary.ReportStartToAnalytics();
-
-          areDirectoriesAvailable = true;
-
-          if (wiimoteIniWritten)
-          {
-            // This has to be done after calling NativeLibrary.Initialize(),
-            // as it relies on the config system
-            EmulationActivity.updateWiimoteNewIniPreferences(context);
-          }
-
-          directoryState = DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
-        }
-        else
-        {
-          directoryState = DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE;
-        }
-      }
-      else
-      {
-        directoryState = DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED;
-      }
+      Toast.makeText(context, R.string.external_storage_not_mounted, Toast.LENGTH_LONG).show();
+      System.exit(1);
     }
 
-    isDolphinDirectoryInitializationRunning.set(false);
-    sendBroadcastState(directoryState, context);
+    initializeInternalStorage(context);
+    boolean wiimoteIniWritten = initializeExternalStorage(context);
+    NativeLibrary.Initialize();
+    NativeLibrary.ReportStartToAnalytics();
+
+    areDirectoriesAvailable = true;
+
+    checkThemeSettings(context);
+
+    if (wiimoteIniWritten)
+    {
+      // This has to be done after calling NativeLibrary.Initialize(),
+      // as it relies on the config system
+      EmulationActivity.updateWiimoteNewIniPreferences(context);
+    }
+
+    directoryState.postValue(DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED);
+  }
+
+  @Nullable
+  private static File getLegacyUserDirectoryPath()
+  {
+    File externalPath = Environment.getExternalStorageDirectory();
+    if (externalPath == null)
+      return null;
+
+    return new File(externalPath, "dolphin-emu");
   }
 
   private static boolean setDolphinUserDirectory(Context context)
@@ -106,11 +107,17 @@ public final class DirectoryInitialization
     if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
       return false;
 
-    File externalPath = Environment.getExternalStorageDirectory();
-    if (externalPath == null)
+    isUsingLegacyUserDirectory =
+            preferLegacyUserDirectory(context) && PermissionsHandler.hasWriteAccess(context);
+
+    File path = isUsingLegacyUserDirectory ?
+            getLegacyUserDirectoryPath() : context.getExternalFilesDir(null);
+
+    if (path == null)
       return false;
 
-    userPath = externalPath.getAbsolutePath() + "/dolphin-emu";
+    userPath = path.getAbsolutePath();
+
     Log.debug("[DirectoryInitialization] User Dir: " + userPath);
     NativeLibrary.SetUserDirectory(userPath);
 
@@ -127,7 +134,6 @@ public final class DirectoryInitialization
   private static void initializeInternalStorage(Context context)
   {
     File sysDirectory = new File(context.getFilesDir(), "Sys");
-    internalPath = sysDirectory.getAbsolutePath();
 
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     String revision = NativeLibrary.GetGitRevision();
@@ -208,26 +214,20 @@ public final class DirectoryInitialization
 
   public static boolean shouldStart(Context context)
   {
-    return !isDolphinDirectoryInitializationRunning.get() &&
-            getDolphinDirectoriesState(context) == DirectoryInitializationState.NOT_YET_INITIALIZED;
+    return getDolphinDirectoriesState().getValue() ==
+            DirectoryInitializationState.NOT_YET_INITIALIZED &&
+            !isWaitingForWriteAccess(context);
   }
 
   public static boolean areDolphinDirectoriesReady()
   {
-    return directoryState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
+    return directoryState.getValue() ==
+            DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
   }
 
-  public static DirectoryInitializationState getDolphinDirectoriesState(Context context)
+  public static LiveData<DirectoryInitializationState> getDolphinDirectoriesState()
   {
-    if (directoryState == DirectoryInitializationState.NOT_YET_INITIALIZED &&
-            !PermissionsHandler.hasWriteAccess(context))
-    {
-      return DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED;
-    }
-    else
-    {
-      return directoryState;
-    }
+    return directoryState;
   }
 
   public static String getUserDirectory()
@@ -240,22 +240,9 @@ public final class DirectoryInitialization
     return userPath;
   }
 
-  public static String getDolphinInternalDirectory()
+  public static File getGameListCache(Context context)
   {
-    if (!areDirectoriesAvailable)
-    {
-      throw new IllegalStateException(
-              "DirectoryInitialization must run before accessing the internal directory!");
-    }
-    return internalPath;
-  }
-
-  private static void sendBroadcastState(DirectoryInitializationState state, Context context)
-  {
-    Intent localIntent =
-            new Intent(BROADCAST_ACTION)
-                    .putExtra(EXTRA_STATE, state);
-    LocalBroadcastManager.getInstance(context).sendBroadcast(localIntent);
+    return new File(context.getExternalCacheDir(), "gamelist.cache");
   }
 
   private static boolean copyAsset(String asset, File output, Boolean overwrite, Context context)
@@ -344,6 +331,105 @@ public final class DirectoryInitialization
       {
         Log.error("[DirectoryInitialization] Failed to create folder " + wiiPath.getAbsolutePath());
       }
+    }
+  }
+
+  public static boolean preferOldFolderPicker(Context context)
+  {
+    // As of January 2021, ACTION_OPEN_DOCUMENT_TREE seems to be broken on the Nvidia Shield TV
+    // (the activity can't be navigated correctly with a gamepad). We can use the old folder picker
+    // for the time being - Android 11 hasn't been released for this device. We have an explicit
+    // check for Android 11 below in hopes that Nvidia will fix this before releasing Android 11.
+    //
+    // No Android TV device other than the Nvidia Shield TV is known to have an implementation of
+    // ACTION_OPEN_DOCUMENT or ACTION_OPEN_DOCUMENT_TREE that even launches, but "fortunately", no
+    // Android TV device other than the Shield TV is known to be able to run Dolphin (either due to
+    // the 64-bit requirement or due to the GLES 3.0 requirement), so we can ignore this problem.
+    //
+    // All phones which are running a compatible version of Android support ACTION_OPEN_DOCUMENT and
+    // ACTION_OPEN_DOCUMENT_TREE, as this is required by the mobile Android CTS (unlike Android TV).
+
+    return Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
+            PermissionsHandler.isExternalStorageLegacy() && TvUtil.isLeanback(context);
+  }
+
+  private static boolean isExternalFilesDirEmpty(Context context)
+  {
+    File dir = context.getExternalFilesDir(null);
+    if (dir == null)
+      return false;  // External storage not available
+
+    File[] contents = dir.listFiles();
+    return contents == null || contents.length == 0;
+  }
+
+  private static boolean legacyUserDirectoryExists()
+  {
+    try
+    {
+      return getLegacyUserDirectoryPath().exists();
+    }
+    catch (SecurityException e)
+    {
+      // Most likely we don't have permission to read external storage.
+      // Return true so that external storage permissions will be requested.
+      //
+      // Strangely, we don't seem to trigger this case in practice, even with no permissions...
+      // But this only makes things more convenient for users, so no harm done.
+
+      return true;
+    }
+  }
+
+  private static boolean preferLegacyUserDirectory(Context context)
+  {
+    return PermissionsHandler.isExternalStorageLegacy() &&
+            !PermissionsHandler.isWritePermissionDenied() &&
+            isExternalFilesDirEmpty(context) && legacyUserDirectoryExists();
+  }
+
+  public static boolean isUsingLegacyUserDirectory()
+  {
+    return isUsingLegacyUserDirectory;
+  }
+
+  public static boolean isWaitingForWriteAccess(Context context)
+  {
+    // This first check is only for performance, not correctness
+    if (directoryState.getValue() != DirectoryInitializationState.NOT_YET_INITIALIZED)
+      return false;
+
+    return preferLegacyUserDirectory(context) && !PermissionsHandler.hasWriteAccess(context);
+  }
+
+  private static void checkThemeSettings(Context context)
+  {
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    if (IntSetting.MAIN_INTERFACE_THEME.getIntGlobal() !=
+            preferences.getInt(ThemeHelper.CURRENT_THEME, ThemeHelper.DEFAULT))
+    {
+      preferences.edit()
+              .putInt(ThemeHelper.CURRENT_THEME, IntSetting.MAIN_INTERFACE_THEME.getIntGlobal())
+              .apply();
+    }
+
+    if (IntSetting.MAIN_INTERFACE_THEME_MODE.getIntGlobal() !=
+            preferences.getInt(ThemeHelper.CURRENT_THEME_MODE,
+                    AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM))
+    {
+      preferences.edit()
+              .putInt(ThemeHelper.CURRENT_THEME_MODE,
+                      IntSetting.MAIN_INTERFACE_THEME_MODE.getIntGlobal())
+              .apply();
+    }
+
+    if (BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBooleanGlobal() !=
+            preferences.getBoolean(ThemeHelper.USE_BLACK_BACKGROUNDS, false))
+    {
+      preferences.edit()
+              .putBoolean(ThemeHelper.USE_BLACK_BACKGROUNDS,
+                      BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBooleanGlobal())
+              .apply();
     }
   }
 

@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -8,9 +7,8 @@
 #include <cstring>
 #include <optional>
 
-#include <zlib.h>
-
 #include "Common/CommonTypes.h"
+#include "Common/Hash.h"
 
 namespace ciface::DualShockUDPClient::Proto
 {
@@ -113,7 +111,7 @@ struct ListPorts
   MessageHeader header;
   u32 message_type;
   u32 pad_request_count;
-  std::array<u8, 4> pad_id;
+  std::array<u8, 4> pad_ids;
 };
 
 struct PortInfo
@@ -178,7 +176,7 @@ struct PadDataResponse
   u8 trigger_l2;
   Touch touch1;
   Touch touch2;
-  u64 timestamp_us;
+  u64 accelerometer_timestamp_us;
   float accelerometer_x_g;
   float accelerometer_y_g;
   float accelerometer_z_g;
@@ -218,11 +216,6 @@ struct FromClient
 };
 }  // namespace MessageType
 
-static inline u32 CRC32(const void* buffer, unsigned length)
-{
-  return crc32(crc32(0L, Z_NULL, 0), static_cast<const Bytef*>(buffer), length);
-}
-
 template <typename MsgType>
 struct Message
 {
@@ -237,7 +230,11 @@ struct Message
     m_message.message_type = MsgType::TYPE;
   }
 
-  void Finish() { m_message.header.crc32 = CRC32(&m_message, sizeof(m_message)); }
+  void Finish()
+  {
+    m_message.header.crc32 =
+        Common::ComputeCRC32(reinterpret_cast<const u8*>(&m_message), sizeof(m_message));
+  }
 
   template <class ToMsgType>
   std::optional<ToMsgType> CheckAndCastTo()
@@ -245,11 +242,12 @@ struct Message
     const u32 crc32_in_header = m_message.header.crc32;
     // zero out the crc32 in the packet once we got it since that's whats needed for calculation
     m_message.header.crc32 = 0;
-    const u32 crc32_calculated = CRC32(&m_message, sizeof(ToMsgType));
+    const u32 crc32_calculated =
+        Common::ComputeCRC32(reinterpret_cast<const u8*>(&m_message), sizeof(ToMsgType));
     if (crc32_in_header != crc32_calculated)
     {
       NOTICE_LOG_FMT(
-          SERIALINTERFACE,
+          CONTROLLERINTERFACE,
           "DualShockUDPClient Received message with bad CRC in header: got {:08x}, expected {:08x}",
           crc32_in_header, crc32_calculated);
       return std::nullopt;

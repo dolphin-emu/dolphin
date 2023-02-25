@@ -1,4 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.model;
+
+import android.content.pm.ActivityInfo;
+
+import androidx.annotation.NonNull;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
@@ -14,18 +20,33 @@ public enum IntSetting implements AbstractIntSetting
   MAIN_CPU_CORE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "CPUCore",
           NativeLibrary.DefaultCPUCore()),
   MAIN_GC_LANGUAGE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SelectedLanguage", 0),
+  MAIN_MEM1_SIZE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "MEM1Size", 0x01800000),
+  MAIN_MEM2_SIZE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "MEM2Size", 0x04000000),
   MAIN_SLOT_A(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SlotA", 8),
   MAIN_SLOT_B(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SlotB", 255),
+  MAIN_SERIAL_PORT_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SerialPort1", 255),
+  MAIN_FALLBACK_REGION(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "FallbackRegion", 2),
+  MAIN_SI_DEVICE_0(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice0", 6),
+  MAIN_SI_DEVICE_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice1", 0),
+  MAIN_SI_DEVICE_2(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice2", 0),
+  MAIN_SI_DEVICE_3(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice3", 0),
 
   MAIN_AUDIO_VOLUME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "Volume", 100),
 
   MAIN_CONTROL_SCALE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlScale", 50),
+  MAIN_CONTROL_OPACITY(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlOpacity", 65),
+  MAIN_EMULATION_ORIENTATION(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "EmulationOrientation", ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE),
+  MAIN_INTERFACE_THEME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "InterfaceTheme", 0),
+  MAIN_INTERFACE_THEME_MODE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "InterfaceThemeMode", -1),
   MAIN_LAST_PLATFORM_TAB(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "LastPlatformTab", 0),
   MAIN_MOTION_CONTROLS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "MotionControls", 1),
+  MAIN_IR_MODE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "IRMode",
+          InputOverlayPointer.MODE_FOLLOW),
 
   MAIN_DOUBLE_TAP_BUTTON(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
-          "DoubleTapButton",
-          InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A)),
+          "DoubleTapButton", NativeLibrary.ButtonType.WIIMOTE_BUTTON_A),
 
   SYSCONF_LANGUAGE(Settings.FILE_SYSCONF, "IPL", "LNG", 0x01),
   SYSCONF_SOUND_MODE(Settings.FILE_SYSCONF, "IPL", "SND", 0x01),
@@ -37,10 +58,15 @@ public enum IntSetting implements AbstractIntSetting
   GFX_ASPECT_RATIO(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "AspectRatio", 0),
   GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "SafeTextureCacheColorSamples", 128),
+  GFX_PNG_COMPRESSION_LEVEL(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "PNGCompressionLevel",
+          6),
   GFX_MSAA(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "MSAA", 1),
   GFX_EFB_SCALE(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "InternalResolution", 1),
   GFX_SHADER_COMPILATION_MODE(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "ShaderCompilationMode", 0),
+
+  GFX_ENHANCE_FORCE_TEXTURE_FILTERING(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,
+          "ForceTextureFiltering", 0),
 
   GFX_ENHANCE_MAX_ANISOTROPY(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS, "MaxAnisotropy",
           0),
@@ -50,13 +76,29 @@ public enum IntSetting implements AbstractIntSetting
   GFX_STEREO_CONVERGENCE_PERCENTAGE(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY,
           "StereoConvergencePercentage", 100),
 
-  LOGGER_VERBOSITY(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "Verbosity", 1);
+  GFX_PERF_SAMP_WINDOW(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "PerfSampWindowMS", 1000),
+
+  LOGGER_VERBOSITY(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "Verbosity", 1),
+
+  WIIMOTE_1_SOURCE(Settings.FILE_WIIMOTE, "Wiimote1", "Source", 1),
+  WIIMOTE_2_SOURCE(Settings.FILE_WIIMOTE, "Wiimote2", "Source", 0),
+  WIIMOTE_3_SOURCE(Settings.FILE_WIIMOTE, "Wiimote3", "Source", 0),
+  WIIMOTE_4_SOURCE(Settings.FILE_WIIMOTE, "Wiimote4", "Source", 0),
+  WIIMOTE_BB_SOURCE(Settings.FILE_WIIMOTE, "BalanceBoard", "Source", 0);
 
   private static final IntSetting[] NOT_RUNTIME_EDITABLE_ARRAY = new IntSetting[]{
           MAIN_CPU_CORE,
           MAIN_GC_LANGUAGE,
+          MAIN_MEM1_SIZE,
+          MAIN_MEM2_SIZE,
           MAIN_SLOT_A,  // Can actually be changed, but specific code is required
           MAIN_SLOT_B,  // Can actually be changed, but specific code is required
+          MAIN_SERIAL_PORT_1,
+          MAIN_FALLBACK_REGION,
+          MAIN_SI_DEVICE_0,  // Can actually be changed, but specific code is required
+          MAIN_SI_DEVICE_1,  // Can actually be changed, but specific code is required
+          MAIN_SI_DEVICE_2,  // Can actually be changed, but specific code is required
+          MAIN_SI_DEVICE_3,  // Can actually be changed, but specific code is required
   };
 
   private static final Set<IntSetting> NOT_RUNTIME_EDITABLE =
@@ -76,7 +118,7 @@ public enum IntSetting implements AbstractIntSetting
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden(@NonNull Settings settings)
   {
     if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
       return settings.getSection(mFile, mSection).exists(mKey);
@@ -100,7 +142,7 @@ public enum IntSetting implements AbstractIntSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
@@ -113,7 +155,7 @@ public enum IntSetting implements AbstractIntSetting
   }
 
   @Override
-  public int getInt(Settings settings)
+  public int getInt(@NonNull Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
@@ -126,7 +168,7 @@ public enum IntSetting implements AbstractIntSetting
   }
 
   @Override
-  public void setInt(Settings settings, int newValue)
+  public void setInt(@NonNull Settings settings, int newValue)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
@@ -141,5 +183,10 @@ public enum IntSetting implements AbstractIntSetting
   public int getIntGlobal()
   {
     return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
+  }
+
+  public void setIntGlobal(int layer, int newValue)
+  {
+    NativeConfig.setInt(layer, mFile, mSection, mKey, newValue);
   }
 }

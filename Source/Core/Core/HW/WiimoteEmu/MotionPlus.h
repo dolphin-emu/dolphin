@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -119,14 +118,18 @@ public:
 
   MotionPlus();
 
-  void Update() override;
+  void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;
+  void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
   void DoState(PointerWrap& p) override;
 
   ExtensionPort& GetExtPort();
 
   // Vec3 is interpreted as radians/s about the x,y,z axes following the "right-hand rule".
-  void PrepareInput(const Common::Vec3& angular_velocity);
+  static MotionPlus::DataFormat::Data GetGyroscopeData(const Common::Vec3& angular_velocity);
+  static MotionPlus::DataFormat::Data GetDefaultGyroscopeData();
+
+  void PrepareInput(const MotionPlus::DataFormat::Data& gyroscope_data);
 
   // Pointer to 6 bytes is expected.
   static void ApplyPassthroughModifications(PassthroughMode, u8* data);
@@ -218,6 +221,10 @@ private:
   static constexpr u16 CALIBRATION_SCALE_OFFSET = 0x4400;
   static constexpr u16 CALIBRATION_FAST_SCALE_DEGREES = 0x4b0;
   static constexpr u16 CALIBRATION_SLOW_SCALE_DEGREES = 0x10e;
+
+  static constexpr int BITS_OF_PRECISION = 14;
+  static constexpr s32 ZERO_VALUE = CALIBRATION_ZERO >> (CALIBRATION_BITS - BITS_OF_PRECISION);
+  static constexpr s32 MAX_VALUE = (1 << BITS_OF_PRECISION) - 1;
 
   void Activate();
   void Deactivate();

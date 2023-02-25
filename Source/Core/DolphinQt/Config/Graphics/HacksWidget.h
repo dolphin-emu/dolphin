@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -27,6 +26,7 @@ private:
   GraphicsBool* m_skip_efb_cpu;
   GraphicsBool* m_ignore_format_changes;
   GraphicsBool* m_store_efb_copies;
+  GraphicsBool* m_defer_efb_copies;
 
   // Texture Cache
   QLabel* m_accuracy_label;
@@ -42,8 +42,8 @@ private:
   GraphicsBool* m_fast_depth_calculation;
   GraphicsBool* m_disable_bounding_box;
   GraphicsBool* m_vertex_rounding;
+  GraphicsBool* m_vi_skip;
   GraphicsBool* m_save_texture_cache_state;
-  GraphicsBool* m_defer_efb_copies;
 
   void CreateWidgets();
   void ConnectWidgets();

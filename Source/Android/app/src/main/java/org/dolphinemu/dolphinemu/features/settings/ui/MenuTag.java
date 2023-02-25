@@ -1,26 +1,32 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import androidx.annotation.NonNull;
 
 public enum MenuTag
 {
+  SETTINGS("settings"),
   CONFIG("config"),
   CONFIG_GENERAL("config_general"),
   CONFIG_INTERFACE("config_interface"),
   CONFIG_AUDIO("config_audio"),
   CONFIG_PATHS("config_paths"),
   CONFIG_GAME_CUBE("config_gamecube"),
+  CONFIG_SERIALPORT1("config_serialport1"),
   CONFIG_WII("config_wii"),
   CONFIG_ADVANCED("config_advanced"),
   CONFIG_LOG("config_log"),
-  WIIMOTE("wiimote"),
-  WIIMOTE_EXTENSION("wiimote_extension"),
-  GCPAD_TYPE("gc_pad_type"),
-  GRAPHICS("graphics"),
-  HACKS("hacks"),
   DEBUG("debug"),
+  GRAPHICS("graphics"),
   ENHANCEMENTS("enhancements"),
   STEREOSCOPY("stereoscopy"),
+  HACKS("hacks"),
+  STATISTICS("statistics"),
+  ADVANCED_GRAPHICS("advanced_graphics"),
+  GCPAD_TYPE("gc_pad_type"),
+  WIIMOTE("wiimote"),
+  WIIMOTE_EXTENSION("wiimote_extension"),
   GCPAD_1("gcpad", 0),
   GCPAD_2("gcpad", 1),
   GCPAD_3("gcpad", 2),
@@ -68,6 +74,11 @@ public enum MenuTag
   public int getSubType()
   {
     return subType;
+  }
+
+  public boolean isSerialPort1Menu()
+  {
+    return this == CONFIG_SERIALPORT1;
   }
 
   public boolean isGCPadMenu()

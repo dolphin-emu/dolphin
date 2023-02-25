@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -105,8 +104,10 @@ public:
   const std::string& GetApploaderDate() const { return m_apploader_date; }
   u64 GetFileSize() const { return m_file_size; }
   u64 GetVolumeSize() const { return m_volume_size; }
-  bool IsVolumeSizeAccurate() const { return m_volume_size_is_accurate; }
+  DiscIO::DataSizeType GetVolumeSizeType() const { return m_volume_size_type; }
   bool IsDatelDisc() const { return m_is_datel_disc; }
+  bool IsNKit() const { return m_is_nkit; }
+  bool IsModDescriptor() const;
   const GameBanner& GetBannerImage() const;
   const GameCover& GetCoverImage() const;
   void DoState(PointerWrap& p);
@@ -132,6 +133,7 @@ private:
   bool IsElfOrDol() const;
   bool ReadXMLMetadata(const std::string& path);
   bool ReadPNGBanner(const std::string& path);
+  bool TryLoadGameModDescriptorBanner();
 
   // IMPORTANT: Nearly all data members must be save/restored in DoState.
   // If anything is changed, make sure DoState handles it properly and
@@ -143,7 +145,7 @@ private:
 
   u64 m_file_size{};
   u64 m_volume_size{};
-  bool m_volume_size_is_accurate{};
+  DiscIO::DataSizeType m_volume_size_type{};
   bool m_is_datel_disc{};
   bool m_is_nkit{};
 

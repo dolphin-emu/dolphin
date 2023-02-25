@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
@@ -42,7 +41,7 @@ Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::
              7, 1, 50);
 }
 
-Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted)
+Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted) const
 {
   const ControlState y = controls[0]->GetState() - controls[1]->GetState();
   const ControlState x = controls[3]->GetState() - controls[2]->GetState();
@@ -51,12 +50,10 @@ Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted)
   if (!adjusted)
     return {x, y};
 
-  const ControlState modifier = controls[4]->GetState();
-
-  return Reshape(x, y, modifier);
+  return Reshape(x, y, GetModifierInput()->GetState());
 }
 
-Tilt::StateData Tilt::GetState()
+Tilt::StateData Tilt::GetState() const
 {
   return GetReshapableState(true);
 }
@@ -75,6 +72,11 @@ ControlState Tilt::GetDefaultInputRadiusAtAngle(double ang) const
 ControlState Tilt::GetMaxRotationalVelocity() const
 {
   return m_max_rotational_velocity.GetValue() * MathUtil::TAU;
+}
+
+Control* Tilt::GetModifierInput() const
+{
+  return controls[4].get();
 }
 
 }  // namespace ControllerEmu

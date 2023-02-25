@@ -1,4 +1,4 @@
-// This file is public domain, in case it's useful to anyone. -comex
+// SPDX-License-Identifier: CC0-1.0
 
 #pragma once
 
@@ -6,6 +6,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include <enet/enet.h>
 
@@ -19,17 +20,17 @@ public:
   virtual ~TraversalClientClient() = default;
   virtual void OnTraversalStateChanged() = 0;
   virtual void OnConnectReady(ENetAddress addr) = 0;
-  virtual void OnConnectFailed(u8 reason) = 0;
+  virtual void OnConnectFailed(TraversalConnectFailedReason reason) = 0;
 };
 
 class TraversalClient
 {
 public:
-  enum State
+  enum class State
   {
     Connecting,
     Connected,
-    Failure
+    Failure,
   };
   enum class FailureReason
   {
@@ -43,11 +44,16 @@ public:
   ~TraversalClient();
 
   TraversalHostId GetHostID() const;
+  TraversalInetAddress GetExternalAddress() const;
   State GetState() const;
   FailureReason GetFailureReason() const;
 
+  bool HasFailed() const { return m_State == State::Failure; }
+  bool IsConnecting() const { return m_State == State::Connecting; }
+  bool IsConnected() const { return m_State == State::Connected; }
+
   void Reset();
-  void ConnectToClient(const std::string& host);
+  void ConnectToClient(std::string_view host);
   void ReconnectToServer();
   void Update();
   void HandleResends();
@@ -72,6 +78,7 @@ private:
 
   ENetHost* m_NetHost;
   TraversalHostId m_HostId{};
+  TraversalInetAddress m_external_address{};
   State m_State{};
   FailureReason m_FailureReason{};
   TraversalRequestId m_ConnectRequestId = 0;

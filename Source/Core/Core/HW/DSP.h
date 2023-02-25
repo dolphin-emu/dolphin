@@ -1,8 +1,9 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
+
+#include <memory>
 
 #include "Common/CommonTypes.h"
 
@@ -15,6 +16,23 @@ class Mapping;
 
 namespace DSP
 {
+class DSPState
+{
+public:
+  DSPState();
+  DSPState(const DSPState&) = delete;
+  DSPState(DSPState&&) = delete;
+  DSPState& operator=(const DSPState&) = delete;
+  DSPState& operator=(DSPState&&) = delete;
+  ~DSPState();
+
+  struct Data;
+  Data& GetData() { return *m_data; }
+
+private:
+  std::unique_ptr<Data> m_data;
+};
+
 enum DSPInterruptType
 {
   INT_DSP = 0x80,
@@ -82,4 +100,4 @@ u8* GetARAMPtr();
 void UpdateAudioDMA();
 void UpdateDSPSlice(int cycles);
 
-}  // end of namespace DSP
+}  // namespace DSP

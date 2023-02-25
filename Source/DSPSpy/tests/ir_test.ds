@@ -30,7 +30,7 @@ include "dsp_base.inc"
 
 ; I really don't know how the above could possibly be efficiently implemented in hardware.
 ; And thus it's tricky to implement in software too :p
-
+test_main:
 ; test using indexing register 1 - 0 is used in send_back
 lri $AR1, #16
 lri $IX1, #32

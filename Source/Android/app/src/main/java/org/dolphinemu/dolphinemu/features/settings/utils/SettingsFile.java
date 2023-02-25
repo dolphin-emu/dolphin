@@ -1,8 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.utils;
 
 import androidx.annotation.NonNull;
 
-import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.utils.BiMap;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
@@ -16,9 +17,10 @@ import java.io.File;
  */
 public final class SettingsFile
 {
-  public static final String KEY_GCPAD_TYPE = "SIDevice";
+  public static final String KEY_ISO_PATH_BASE = "ISOPath";
+  public static final String KEY_ISO_PATHS = "ISOPaths";
+
   public static final String KEY_GCPAD_PLAYER_1 = "SIDevice0";
-  public static final String KEY_GCPAD_G_TYPE = "PadType";
 
   public static final String KEY_GCBIND_A = "InputA_";
   public static final String KEY_GCBIND_B = "InputB_";
@@ -41,16 +43,11 @@ public final class SettingsFile
   public static final String KEY_GCBIND_DPAD_LEFT = "DPadLeft_";
   public static final String KEY_GCBIND_DPAD_RIGHT = "DPadRight_";
 
-  public static final String KEY_GCADAPTER_RUMBLE = "AdapterRumble";
-  public static final String KEY_GCADAPTER_BONGOS = "SimulateKonga";
-
   public static final String KEY_EMU_RUMBLE = "EmuRumble";
 
-  public static final String KEY_WIIMOTE_TYPE = "Source";
   public static final String KEY_WIIMOTE_EXTENSION = "Extension";
 
   // Controller keys for game specific settings
-  public static final String KEY_WIIMOTE_G_TYPE = "WiimoteSource";
   public static final String KEY_WIIMOTE_PROFILE = "WiimoteProfile";
 
   public static final String KEY_WIIBIND_A = "WiimoteA_";
@@ -231,18 +228,6 @@ public final class SettingsFile
     readFile(getCustomGameSettingsFile(gameId), ini, view);
   }
 
-  public static void readGenericGameSettings(final String gameId, IniFile ini,
-          SettingsActivityView view)
-  {
-    readFile(getGenericGameSettingsFile(gameId), ini, view);
-  }
-
-  public static void readGenericGameSettingsForAllRegions(final String gameId,
-          IniFile ini, SettingsActivityView view)
-  {
-    readFile(getGenericGameSettingsForAllRegions(gameId), ini, view);
-  }
-
   /**
    * Saves a given .ini file on disk.
    * If unsuccessful, outputs an error telling why it failed.
@@ -291,22 +276,6 @@ public final class SettingsFile
   {
     return new File(
             DirectoryInitialization.getUserDirectory() + "/Config/" + fileName + ".ini");
-  }
-
-  private static File getGenericGameSettingsForAllRegions(String gameId)
-  {
-    // Use the first 3 chars from the gameId to load the generic game settings for all regions
-    gameId = gameId.substring(0, 3);
-    return new File(
-            DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" +
-                    gameId + ".ini");
-  }
-
-  private static File getGenericGameSettingsFile(String gameId)
-  {
-    return new File(
-            DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" +
-                    gameId + ".ini");
   }
 
   public static File getCustomGameSettingsFile(String gameId)

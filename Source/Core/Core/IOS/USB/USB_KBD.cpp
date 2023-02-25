@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/USB/USB_KBD.h"
 
@@ -11,16 +10,17 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"  // Local core functions
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 #include "InputCommon/ControlReference/ControlReference.h"  // For background input check
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 namespace
 {
@@ -188,7 +188,7 @@ USB_KBD::USB_KBD(Kernel& ios, const std::string& device_name) : Device(ios, devi
 {
 }
 
-IPCCommandResult USB_KBD::Open(const OpenRequest& request)
+std::optional<IPCReply> USB_KBD::Open(const OpenRequest& request)
 {
   INFO_LOG_FMT(IOS, "USB_KBD: Open");
   IniFile ini;
@@ -203,21 +203,23 @@ IPCCommandResult USB_KBD::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-IPCCommandResult USB_KBD::Write(const ReadWriteRequest& request)
+std::optional<IPCReply> USB_KBD::Write(const ReadWriteRequest& request)
 {
   // Stubbed.
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult USB_KBD::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> USB_KBD::IOCtl(const IOCtlRequest& request)
 {
-  if (SConfig::GetInstance().m_WiiKeyboard && !Core::WantsDeterminism() &&
+  if (Config::Get(Config::MAIN_WII_KEYBOARD) && !Core::WantsDeterminism() &&
       ControlReference::GetInputGate() && !m_message_queue.empty())
   {
-    Memory::CopyToEmu(request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    memory.CopyToEmu(request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
     m_message_queue.pop();
   }
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
 bool USB_KBD::IsKeyPressed(int key) const
@@ -232,7 +234,7 @@ bool USB_KBD::IsKeyPressed(int key) const
 
 void USB_KBD::Update()
 {
-  if (!SConfig::GetInstance().m_WiiKeyboard || Core::WantsDeterminism() || !m_is_active)
+  if (!Config::Get(Config::MAIN_WII_KEYBOARD) || Core::WantsDeterminism() || !m_is_active)
     return;
 
   u8 modifiers = 0x00;
@@ -307,4 +309,4 @@ void USB_KBD::Update()
   if (got_event)
     m_message_queue.emplace(MessageType::Event, modifiers, pressed_keys);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

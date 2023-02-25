@@ -10,16 +10,10 @@ SRCDIR=Source
 find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
 	xgettext -s -p ./Languages/po -o dolphin-emu.pot --package-name="Dolphin Emulator" \
 	--keyword=_ \
-	--keyword=wxTRANSLATE \
-	--keyword=AskYesNoT \
 	--keyword=AskYesNoFmtT \
-	--keyword=CriticalAlertT \
 	--keyword=CriticalAlertFmtT \
-	--keyword=PanicAlertT \
 	--keyword=PanicAlertFmtT \
-	--keyword=PanicYesNoT \
 	--keyword=PanicYesNoFmtT \
-	--keyword=SuccessAlertT \
 	--keyword=SuccessAlertFmtT \
 	--keyword=GetStringT \
 	--keyword=_trans \

@@ -1,10 +1,11 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
+
 #include "Common/Assert.h"
-#include "VideoBackends/D3D12/DXContext.h"
+
+#include "VideoBackends/D3D12/DX12Context.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX12
@@ -19,12 +20,11 @@ bool DescriptorHeapManager::Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_T
                                      D3D12_DESCRIPTOR_HEAP_FLAG_NONE};
 
   HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
-  CHECK(SUCCEEDED(hr), "Create descriptor heap");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create descriptor heap: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 
   m_heap_base_cpu = m_descriptor_heap->GetCPUDescriptorHandleForHeapStart();
-  m_heap_base_gpu = m_descriptor_heap->GetGPUDescriptorHandleForHeapStart();
   m_num_descriptors = num_descriptors;
   m_descriptor_increment_size = device->GetDescriptorHandleIncrementSize(type);
 
@@ -59,11 +59,11 @@ bool DescriptorHeapManager::Allocate(DescriptorHandle* handle)
 
     handle->index = index;
     handle->cpu_handle.ptr = m_heap_base_cpu.ptr + index * m_descriptor_increment_size;
-    handle->gpu_handle.ptr = m_heap_base_gpu.ptr + index * m_descriptor_increment_size;
+    handle->gpu_handle.ptr = 0;
     return true;
   }
 
-  PanicAlert("Out of fixed descriptors");
+  PanicAlertFmt("Out of fixed descriptors");
   return false;
 }
 
@@ -86,32 +86,32 @@ SamplerHeapManager::~SamplerHeapManager() = default;
 
 static void GetD3DSamplerDesc(D3D12_SAMPLER_DESC* desc, const SamplerState& state)
 {
-  if (state.mipmap_filter == SamplerState::Filter::Linear)
+  if (state.tm0.mipmap_filter == FilterMode::Linear)
   {
-    if (state.min_filter == SamplerState::Filter::Linear)
+    if (state.tm0.min_filter == FilterMode::Linear)
     {
-      desc->Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                          D3D12_FILTER_MIN_MAG_MIP_LINEAR :
                          D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
     }
     else
     {
-      desc->Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                          D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR :
                          D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
     }
   }
   else
   {
-    if (state.min_filter == SamplerState::Filter::Linear)
+    if (state.tm0.min_filter == FilterMode::Linear)
     {
-      desc->Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                          D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT :
                          D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
     }
     else
     {
-      desc->Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                          D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT :
                          D3D12_FILTER_MIN_MAG_MIP_POINT;
     }
@@ -120,15 +120,15 @@ static void GetD3DSamplerDesc(D3D12_SAMPLER_DESC* desc, const SamplerState& stat
   static constexpr std::array<D3D12_TEXTURE_ADDRESS_MODE, 3> address_modes = {
       {D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_WRAP,
        D3D12_TEXTURE_ADDRESS_MODE_MIRROR}};
-  desc->AddressU = address_modes[static_cast<u32>(state.wrap_u.Value())];
-  desc->AddressV = address_modes[static_cast<u32>(state.wrap_v.Value())];
+  desc->AddressU = address_modes[static_cast<u32>(state.tm0.wrap_u.Value())];
+  desc->AddressV = address_modes[static_cast<u32>(state.tm0.wrap_v.Value())];
   desc->AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-  desc->MaxLOD = state.max_lod / 16.f;
-  desc->MinLOD = state.min_lod / 16.f;
-  desc->MipLODBias = static_cast<s32>(state.lod_bias) / 256.f;
+  desc->MaxLOD = state.tm1.max_lod / 16.f;
+  desc->MinLOD = state.tm1.min_lod / 16.f;
+  desc->MipLODBias = static_cast<s32>(state.tm0.lod_bias) / 256.f;
   desc->ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 
-  if (state.anisotropic_filtering)
+  if (state.tm0.anisotropic_filtering)
   {
     desc->Filter = D3D12_FILTER_ANISOTROPIC;
     desc->MaxAnisotropy = 1u << g_ActiveConfig.iMaxAnisotropy;
@@ -137,7 +137,7 @@ static void GetD3DSamplerDesc(D3D12_SAMPLER_DESC* desc, const SamplerState& stat
 
 bool SamplerHeapManager::Lookup(const SamplerState& ss, D3D12_CPU_DESCRIPTOR_HANDLE* handle)
 {
-  const auto it = m_sampler_map.find(ss.hex);
+  const auto it = m_sampler_map.find(ss);
   if (it != m_sampler_map.end())
   {
     *handle = it->second;
@@ -159,7 +159,7 @@ bool SamplerHeapManager::Lookup(const SamplerState& ss, D3D12_CPU_DESCRIPTOR_HAN
                                                   m_current_offset * m_descriptor_increment_size};
   g_dx_context->GetDevice()->CreateSampler(&desc, new_handle);
 
-  m_sampler_map.emplace(ss.hex, new_handle);
+  m_sampler_map.emplace(ss, new_handle);
   m_current_offset++;
   *handle = new_handle;
   return true;
@@ -175,7 +175,7 @@ bool SamplerHeapManager::Create(ID3D12Device* device, u32 num_descriptors)
 {
   const D3D12_DESCRIPTOR_HEAP_DESC desc = {D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, num_descriptors};
   HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
-  CHECK(SUCCEEDED(hr), "Failed to create sampler descriptor heap");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create sampler descriptor heap: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 

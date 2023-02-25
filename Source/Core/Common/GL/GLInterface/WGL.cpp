@@ -1,12 +1,12 @@
 // Copyright 2012 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/GL/GLInterface/WGL.h"
 
 #include <windows.h>
 #include <array>
 #include <string>
 
-#include "Common/GL/GLInterface/WGL.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
@@ -277,27 +277,27 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   m_dc = GetDC(m_window_handle);
   if (!m_dc)
   {
-    PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
+    PanicAlertFmt("(1) Can't create an OpenGL Device context. Fail.");
     return false;
   }
 
-  int pixel_format = ChoosePixelFormat(m_dc, &pfd);
-  if (!pixel_format)
+  const int pixel_format = ChoosePixelFormat(m_dc, &pfd);
+  if (pixel_format == 0)
   {
-    PanicAlert("(2) Can't find a suitable PixelFormat.");
+    PanicAlertFmt("(2) Can't find a suitable PixelFormat.");
     return false;
   }
 
   if (!SetPixelFormat(m_dc, pixel_format, &pfd))
   {
-    PanicAlert("(3) Can't set the PixelFormat.");
+    PanicAlertFmt("(3) Can't set the PixelFormat.");
     return false;
   }
 
   m_rc = wglCreateContext(m_dc);
   if (!m_rc)
   {
-    PanicAlert("(4) Can't create an OpenGL rendering context.");
+    PanicAlertFmt("(4) Can't create an OpenGL rendering context.");
     return false;
   }
 
@@ -310,7 +310,7 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     // This is because we need an active context to use wglCreateContextAttribsARB.
     if (!wglMakeCurrent(m_dc, m_rc))
     {
-      PanicAlert("(5) Can't make dummy WGL context current.");
+      PanicAlertFmt("(5) Can't make dummy WGL context current.");
       return false;
     }
 
@@ -324,7 +324,7 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     // context. If we didn't get a core context, the caller expects that the context is not current.
     if (!wglMakeCurrent(m_dc, nullptr))
     {
-      PanicAlert("(6) Failed to switch out temporary context");
+      PanicAlertFmt("(6) Failed to switch out temporary context");
       return false;
     }
 
@@ -397,20 +397,9 @@ HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
                                       0};
 
     // Attempt creating this context.
-    HGLRC core_context = wglCreateContextAttribsARB(dc, nullptr, attribs.data());
+    HGLRC core_context = wglCreateContextAttribsARB(dc, share_context, attribs.data());
     if (core_context)
     {
-      // If we're creating a shared context, share the resources before the context is used.
-      if (share_context)
-      {
-        if (!wglShareLists(share_context, core_context))
-        {
-          ERROR_LOG_FMT(VIDEO, "wglShareLists failed");
-          wglDeleteContext(core_context);
-          return nullptr;
-        }
-      }
-
       INFO_LOG_FMT(VIDEO, "WGL: Created a GL {}.{} core context", version.first, version.second);
       return core_context;
     }

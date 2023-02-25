@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
@@ -9,6 +8,8 @@
 #include <memory>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -16,15 +17,16 @@
 #include "Common/GL/GLContext.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "Common/Version.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/System.h"
 
+#include "VideoBackends/OGL/OGLConfig.h"
+#include "VideoBackends/OGL/OGLGfx.h"
 #include "VideoBackends/OGL/OGLShader.h"
-#include "VideoBackends/OGL/Render.h"
-#include "VideoBackends/OGL/StreamBuffer.h"
-#include "VideoBackends/OGL/VertexManager.h"
+#include "VideoBackends/OGL/OGLStreamBuffer.h"
+#include "VideoBackends/OGL/OGLVertexManager.h"
 
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -76,6 +78,8 @@ static std::string GetGLSLVersionString()
     return "#version 400";
   case Glsl430:
     return "#version 430";
+  case Glsl450:
+    return "#version 450";
   default:
     // Shouldn't ever hit this
     return "#version ERROR";
@@ -109,9 +113,9 @@ void SHADER::SetProgramVariables()
   for (int a = 0; a < 8; ++a)
   {
     // Still need to get sampler locations since we aren't binding them statically in the shaders
-    int loc = glGetUniformLocation(glprogid, StringFromFormat("samp[%d]", a).c_str());
+    int loc = glGetUniformLocation(glprogid, fmt::format("samp[{}]", a).c_str());
     if (loc < 0)
-      loc = glGetUniformLocation(glprogid, StringFromFormat("samp%d", a).c_str());
+      loc = glGetUniformLocation(glprogid, fmt::format("samp{}", a).c_str());
     if (loc >= 0)
       glUniform1i(loc, a);
   }
@@ -133,22 +137,24 @@ void SHADER::SetProgramBindings(bool is_compute)
       glBindFragDataLocationIndexed(glprogid, 0, 1, "ocol1");
     }
     // Need to set some attribute locations
-    glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Position), "rawpos");
 
-    glBindAttribLocation(glprogid, SHADER_POSMTX_ATTRIB, "posmtx");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::PositionMatrix), "posmtx");
 
-    glBindAttribLocation(glprogid, SHADER_COLOR0_ATTRIB, "rawcolor0");
-    glBindAttribLocation(glprogid, SHADER_COLOR1_ATTRIB, "rawcolor1");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Color0), "rawcolor0");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Color1), "rawcolor1");
 
-    glBindAttribLocation(glprogid, SHADER_NORM0_ATTRIB, "rawnorm0");
-    glBindAttribLocation(glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
-    glBindAttribLocation(glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Normal), "rawnormal");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Tangent), "rawtangent");
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Binormal), "rawbinormal");
   }
 
   for (int i = 0; i < 8; i++)
   {
-    std::string attrib_name = StringFromFormat("rawtex%d", i);
-    glBindAttribLocation(glprogid, SHADER_TEXTURE0_ATTRIB + i, attrib_name.c_str());
+    // Per documentation: OpenGL copies the name string when glBindAttribLocation is called, so an
+    // application may free its copy of the name string immediately after the function returns.
+    glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::TexCoord0 + i),
+                         fmt::format("rawtex{}", i).c_str());
   }
 }
 
@@ -218,18 +224,22 @@ u32 ProgramShaderCache::GetUniformBufferAlignment()
 
 void ProgramShaderCache::UploadConstants()
 {
-  if (PixelShaderManager::dirty || VertexShaderManager::dirty || GeometryShaderManager::dirty)
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+  if (pixel_shader_manager.dirty || vertex_shader_manager.dirty || geometry_shader_manager.dirty)
   {
     auto buffer = s_buffer->Map(s_ubo_buffer_size, s_ubo_align);
 
-    memcpy(buffer.first, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+    memcpy(buffer.first, &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
 
     memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align),
-           &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+           &vertex_shader_manager.constants, sizeof(VertexShaderConstants));
 
     memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align) +
                Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align),
-           &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
+           &geometry_shader_manager.constants, sizeof(GeometryShaderConstants));
 
     s_buffer->Unmap(s_ubo_buffer_size);
     glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second,
@@ -242,9 +252,9 @@ void ProgramShaderCache::UploadConstants()
                           Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align),
                       sizeof(GeometryShaderConstants));
 
-    PixelShaderManager::dirty = false;
-    VertexShaderManager::dirty = false;
-    GeometryShaderManager::dirty = false;
+    pixel_shader_manager.dirty = false;
+    vertex_shader_manager.dirty = false;
+    geometry_shader_manager.dirty = false;
 
     ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, s_ubo_buffer_size);
   }
@@ -364,14 +374,14 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
       File::OpenFStream(file, filename, std::ios_base::out);
       file << s_glsl_header << code << info_log;
       file << "\n";
-      file << "Dolphin Version: " + Common::scm_rev_str + "\n";
+      file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
       file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 
-      PanicAlert("Failed to compile %s shader: %s\n"
-                 "Debug info (%s, %s, %s):\n%s",
-                 prefix, filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-                 g_ogl_config.gl_version, info_log.c_str());
+      PanicAlertFmt("Failed to compile {} shader: {}\n"
+                    "Debug info ({}, {}, {}):\n{}",
+                    prefix, filename, g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+                    g_ogl_config.gl_version, info_log);
 
       return false;
     }
@@ -409,14 +419,14 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
 
       file << info_log;
       file << "\n";
-      file << "Dolphin Version: " + Common::scm_rev_str + "\n";
+      file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
       file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 
-      PanicAlert("Failed to link shaders: %s\n"
-                 "Debug info (%s, %s, %s):\n%s",
-                 filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-                 g_ogl_config.gl_version, info_log.c_str());
+      PanicAlertFmt("Failed to link shaders: {}\n"
+                    "Debug info ({}, {}, {}):\n{}",
+                    filename, g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+                    g_ogl_config.gl_version, info_log);
 
       return false;
     }
@@ -492,6 +502,12 @@ void ProgramShaderCache::BindVertexFormat(const GLVertexFormat* vertex_format)
 
   glBindVertexArray(new_VAO);
   s_last_VAO = new_VAO;
+}
+
+void ProgramShaderCache::ReBindVertexFormat()
+{
+  if (s_last_VAO)
+    glBindVertexArray(s_last_VAO);
 }
 
 bool ProgramShaderCache::IsValidVertexFormatBound()
@@ -693,7 +709,6 @@ void ProgramShaderCache::CreateHeader()
   {
   case EsFbFetchType::FbFetchExt:
     framebuffer_fetch_string = "#extension GL_EXT_shader_framebuffer_fetch: enable\n"
-                               "#define FB_FETCH_VALUE real_ocol0\n"
                                "#define FRAGMENT_INOUT inout";
     break;
   case EsFbFetchType::FbFetchArm:
@@ -707,55 +722,50 @@ void ProgramShaderCache::CreateHeader()
   }
 
   std::string shader_shuffle_string;
-  if (g_ogl_config.bSupportsShaderThreadShuffleNV)
+  if (g_ogl_config.bSupportsKHRShaderSubgroup)
   {
     shader_shuffle_string = R"(
-#extension GL_NV_shader_thread_group : enable
-#extension GL_NV_shader_thread_shuffle : enable
+#extension GL_KHR_shader_subgroup_basic : enable
+#extension GL_KHR_shader_subgroup_arithmetic : enable
+#extension GL_KHR_shader_subgroup_ballot : enable
+
 #define SUPPORTS_SUBGROUP_REDUCTION 1
-
-// The xor shuffle below produces incorrect results if all threads in a warp are not active.
-#define CAN_USE_SUBGROUP_REDUCTION (ballotThreadNV(true) == 0xFFFFFFFFu)
-
-#define IS_HELPER_INVOCATION gl_HelperThreadNV
-#define IS_FIRST_ACTIVE_INVOCATION (gl_ThreadInWarpNV == findLSB(ballotThreadNV(!gl_HelperThreadNV)))
-#define SUBGROUP_REDUCTION(func, value) value = func(value, shuffleXorNV(value, 16, 32)); \
-                                        value = func(value, shuffleXorNV(value, 8, 32)); \
-                                        value = func(value, shuffleXorNV(value, 4, 32)); \
-                                        value = func(value, shuffleXorNV(value, 2, 32)); \
-                                        value = func(value, shuffleXorNV(value, 1, 32));
-#define SUBGROUP_MIN(value) SUBGROUP_REDUCTION(min, value)
-#define SUBGROUP_MAX(value) SUBGROUP_REDUCTION(max, value)
+#define IS_HELPER_INVOCATION gl_HelperInvocation
+#define IS_FIRST_ACTIVE_INVOCATION (subgroupElect())
+#define SUBGROUP_MIN(value) value = subgroupMin(value)
+#define SUBGROUP_MAX(value) value = subgroupMax(value)
 )";
   }
 
-  s_glsl_header = StringFromFormat(
-      "%s\n"
-      "%s\n"  // ubo
-      "%s\n"  // early-z
-      "%s\n"  // 420pack
-      "%s\n"  // msaa
-      "%s\n"  // Input/output/sampler binding
-      "%s\n"  // Varying location
-      "%s\n"  // storage buffer
-      "%s\n"  // shader5
-      "%s\n"  // SSAA
-      "%s\n"  // Geometry point size
-      "%s\n"  // AEP
-      "%s\n"  // texture buffer
-      "%s\n"  // ES texture buffer
-      "%s\n"  // ES dual source blend
-      "%s\n"  // shader image load store
-      "%s\n"  // shader framebuffer fetch
-      "%s\n"  // shader thread shuffle
+  s_glsl_header = fmt::format(
+      "{}\n"
+      "{}\n"  // ubo
+      "{}\n"  // early-z
+      "{}\n"  // 420pack
+      "{}\n"  // msaa
+      "{}\n"  // Input/output/sampler binding
+      "{}\n"  // Varying location
+      "{}\n"  // storage buffer
+      "{}\n"  // shader5
+      "{}\n"  // SSAA
+      "{}\n"  // Geometry point size
+      "{}\n"  // AEP
+      "{}\n"  // texture buffer
+      "{}\n"  // ES texture buffer
+      "{}\n"  // ES dual source blend
+      "{}\n"  // shader image load store
+      "{}\n"  // shader framebuffer fetch
+      "{}\n"  // shader thread shuffle
+      "{}\n"  // derivative control
+      "{}\n"  // query levels
 
       // Precision defines for GLSL ES
-      "%s\n"
-      "%s\n"
-      "%s\n"
-      "%s\n"
-      "%s\n"
-      "%s\n"
+      "{}\n"
+      "{}\n"
+      "{}\n"
+      "{}\n"
+      "{}\n"
+      "{}\n"
 
       // Silly differences
       "#define API_OPENGL 1\n"
@@ -772,8 +782,8 @@ void ProgramShaderCache::CreateHeader()
       "#define lerp mix\n"
 
       ,
-      GetGLSLVersionString().c_str(),
-      v < Glsl140 ? "#extension GL_ARB_uniform_buffer_object : enable" : "", earlyz_string.c_str(),
+      GetGLSLVersionString(), v < Glsl140 ? "#extension GL_ARB_uniform_buffer_object : enable" : "",
+      earlyz_string,
       (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GlslEs310) ?
           "#extension GL_ARB_shading_language_420pack : enable" :
           "",
@@ -790,7 +800,7 @@ void ProgramShaderCache::CreateHeader()
           "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
           "#define SAMPLER_BINDING(x) layout(binding = x)\n"
           "#define TEXEL_BUFFER_BINDING(x) layout(binding = x)\n"
-          "#define SSBO_BINDING(x) layout(binding = x)\n"
+          "#define SSBO_BINDING(x) layout(std430, binding = x)\n"
           "#define IMAGE_BINDING(format, x) layout(format, binding = x)\n" :
           "#define ATTRIBUTE_LOCATION(x)\n"
           "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
@@ -798,7 +808,7 @@ void ProgramShaderCache::CreateHeader()
           "#define UBO_BINDING(packing, x) layout(packing)\n"
           "#define SAMPLER_BINDING(x)\n"
           "#define TEXEL_BUFFER_BINDING(x)\n"
-          "#define SSBO_BINDING(x)\n"
+          "#define SSBO_BINDING(x) layout(std430)\n"
           "#define IMAGE_BINDING(format, x) layout(format)\n",
       // Input/output blocks are matched by name during program linking
       "#define VARYING_LOCATION(x)\n",
@@ -811,12 +821,12 @@ void ProgramShaderCache::CreateHeader()
       v < Glsl400 && g_ActiveConfig.backend_info.bSupportsSSAA ?
           "#extension GL_ARB_sample_shading : enable" :
           "",
-      SupportedESPointSize.c_str(),
+      SupportedESPointSize,
       g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : "",
       v < Glsl140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ?
           "#extension GL_ARB_texture_buffer_object : enable" :
           "",
-      SupportedESTextureBuffer.c_str(),
+      SupportedESTextureBuffer,
       is_glsles && g_ActiveConfig.backend_info.bSupportsDualSourceBlend ?
           "#extension GL_EXT_blend_func_extended : enable" :
           ""
@@ -826,13 +836,19 @@ void ProgramShaderCache::CreateHeader()
               ((!is_glsles && v < Glsl430) || (is_glsles && v < GlslEs310)) ?
           "#extension GL_ARB_shader_image_load_store : enable" :
           "",
-      framebuffer_fetch_string.c_str(), shader_shuffle_string.c_str(),
+      framebuffer_fetch_string, shader_shuffle_string,
+      g_ActiveConfig.backend_info.bSupportsCoarseDerivatives ?
+          "#extension GL_ARB_derivative_control : enable" :
+          "",
+      g_ActiveConfig.backend_info.bSupportsTextureQueryLevels ?
+          "#extension GL_ARB_texture_query_levels : enable" :
+          "",
       is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
       is_glsles ? "precision highp sampler2DArray;" : "",
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
           "precision highp usamplerBuffer;" :
           "",
-      v > GlslEs300 ? "precision highp sampler2DMS;" : "",
+      v > GlslEs300 ? "precision highp sampler2DMSArray;" : "",
       v >= GlslEs310 ? "precision highp image2DArray;" : "");
 }
 
@@ -843,11 +859,10 @@ u64 ProgramShaderCache::GenerateShaderID()
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
 {
-  std::unique_ptr<GLContext> context =
-      static_cast<Renderer*>(g_renderer.get())->GetMainGLContext()->CreateSharedContext();
+  std::unique_ptr<GLContext> context = GetOGLGfx()->GetMainGLContext()->CreateSharedContext();
   if (!context)
   {
-    PanicAlert("Failed to create shared context for shader compiling.");
+    PanicAlertFmt("Failed to create shared context for shader compiling.");
     return false;
   }
 

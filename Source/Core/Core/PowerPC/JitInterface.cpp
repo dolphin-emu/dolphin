@@ -1,11 +1,9 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/JitInterface.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cstdio>
 #include <string>
 #include <unordered_set>
@@ -18,9 +16,10 @@
 
 #include <fmt/format.h>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/Core.h"
@@ -49,7 +48,7 @@ void SetJit(JitBase* jit)
 }
 void DoState(PointerWrap& p)
 {
-  if (g_jit && p.GetMode() == PointerWrap::MODE_READ)
+  if (g_jit && p.IsReadMode())
     g_jit->ClearCache();
 }
 CPUCoreBase* InitJitCore(PowerPC::CPUCore core)
@@ -71,9 +70,8 @@ CPUCoreBase* InitJitCore(PowerPC::CPUCore core)
     break;
 
   default:
-    PanicAlertFmtT("The selected CPU emulation core ({0}) is not available. "
-                   "Please select a different CPU emulation core in the settings.",
-                   core);
+    // Under this case the caller overrides the CPU core to the default and logs that
+    // it performed the override.
     g_jit = nullptr;
     return nullptr;
   }
@@ -131,65 +129,62 @@ void GetProfileResults(Profiler::ProfileStats* prof_stats)
   prof_stats->timecost_sum = 0;
   prof_stats->block_stats.clear();
 
-  Core::State old_state = Core::GetState();
-  if (old_state == Core::State::Running)
-    Core::SetState(Core::State::Paused);
+  Core::RunAsCPUThread([&prof_stats] {
+    QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
+    g_jit->GetBlockCache()->RunOnBlocks([&prof_stats](const JitBlock& block) {
+      const auto& data = block.profile_data;
+      u64 cost = data.downcountCounter;
+      u64 timecost = data.ticCounter;
+      // Todo: tweak.
+      if (data.runCount >= 1)
+        prof_stats->block_stats.emplace_back(block.effectiveAddress, cost, timecost, data.runCount,
+                                             block.codeSize);
+      prof_stats->cost_sum += cost;
+      prof_stats->timecost_sum += timecost;
+    });
 
-  QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
-  g_jit->GetBlockCache()->RunOnBlocks([&prof_stats](const JitBlock& block) {
-    const auto& data = block.profile_data;
-    u64 cost = data.downcountCounter;
-    u64 timecost = data.ticCounter;
-    // Todo: tweak.
-    if (data.runCount >= 1)
-      prof_stats->block_stats.emplace_back(block.effectiveAddress, cost, timecost, data.runCount,
-                                           block.codeSize);
-    prof_stats->cost_sum += cost;
-    prof_stats->timecost_sum += timecost;
+    sort(prof_stats->block_stats.begin(), prof_stats->block_stats.end());
   });
-
-  sort(prof_stats->block_stats.begin(), prof_stats->block_stats.end());
-  if (old_state == Core::State::Running)
-    Core::SetState(Core::State::Running);
 }
 
-int GetHostCode(u32* address, const u8** code, u32* code_size)
+std::variant<GetHostCodeError, GetHostCodeResult> GetHostCode(u32 address)
 {
   if (!g_jit)
   {
-    *code_size = 0;
-    return 1;
+    return GetHostCodeError::NoJitActive;
   }
 
-  JitBlock* block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address, MSR.Hex);
+  JitBlock* block =
+      g_jit->GetBlockCache()->GetBlockFromStartAddress(address, PowerPC::ppcState.msr.Hex);
   if (!block)
   {
     for (int i = 0; i < 500; i++)
     {
-      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address - 4 * i, MSR.Hex);
+      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i,
+                                                               PowerPC::ppcState.msr.Hex);
       if (block)
         break;
     }
 
     if (block)
     {
-      if (!(block->effectiveAddress <= *address &&
-            block->originalSize + block->effectiveAddress >= *address))
+      if (!(block->effectiveAddress <= address &&
+            block->originalSize + block->effectiveAddress >= address))
         block = nullptr;
     }
 
-    // Do not merge this "if" with the above - block_num changes inside it.
+    // Do not merge this "if" with the above - block changes inside it.
     if (!block)
     {
-      *code_size = 0;
-      return 2;
+      return GetHostCodeError::NoTranslation;
     }
   }
 
-  *code = block->checkedEntry;
-  *code_size = block->codeSize;
-  *address = block->effectiveAddress;
-  return 0;
+  GetHostCodeResult result;
+  result.code = block->checkedEntry;
+  result.code_size = block->codeSize;
+  result.entry_address = block->effectiveAddress;
+  return result;
 }
 
 bool HandleFault(uintptr_t access_address, SContext* ctx)
@@ -230,6 +225,28 @@ void InvalidateICache(u32 address, u32 size, bool forced)
     g_jit->GetBlockCache()->InvalidateICache(address, size, forced);
 }
 
+void InvalidateICacheLine(u32 address)
+{
+  if (g_jit)
+    g_jit->GetBlockCache()->InvalidateICacheLine(address);
+}
+
+void InvalidateICacheLines(u32 address, u32 count)
+{
+  // This corresponds to a PPC code loop that:
+  // - calls some form of dcb* instruction on 'address'
+  // - increments 'address' by the size of a cache line (0x20 bytes)
+  // - decrements 'count' by 1
+  // - jumps back to the dcb* instruction if 'count' != 0
+  // with an extra optimization for the case of a single cache line invalidation
+  if (count == 1)
+    InvalidateICacheLine(address);
+  else if (count == 0 || count >= static_cast<u32>(0x1'0000'0000 / 32))
+    InvalidateICache(address & ~0x1f, 0xffffffff, false);
+  else
+    InvalidateICache(address & ~0x1f, 32 * count, false);
+}
+
 void CompileExceptionCheck(ExceptionType type)
 {
   if (!g_jit)
@@ -250,20 +267,25 @@ void CompileExceptionCheck(ExceptionType type)
     break;
   }
 
-  if (PC != 0 && (exception_addresses->find(PC)) == (exception_addresses->end()))
+  if (PowerPC::ppcState.pc != 0 &&
+      (exception_addresses->find(PowerPC::ppcState.pc)) == (exception_addresses->end()))
   {
     if (type == ExceptionType::FIFOWrite)
     {
+      ASSERT(Core::IsCPUThread());
+      Core::CPUThreadGuard guard;
+
       // Check in case the code has been replaced since: do we need to do this?
-      const OpType optype = PPCTables::GetOpInfo(PowerPC::HostRead_U32(PC))->type;
+      const OpType optype =
+          PPCTables::GetOpInfo(PowerPC::HostRead_U32(guard, PowerPC::ppcState.pc))->type;
       if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }
-    exception_addresses->insert(PC);
+    exception_addresses->insert(PowerPC::ppcState.pc);
 
     // Invalidate the JIT block so that it gets recompiled with the external exception check
     // included.
-    g_jit->GetBlockCache()->InvalidateICache(PC, 4, true);
+    g_jit->GetBlockCache()->InvalidateICache(PowerPC::ppcState.pc, 4, true);
   }
 }
 

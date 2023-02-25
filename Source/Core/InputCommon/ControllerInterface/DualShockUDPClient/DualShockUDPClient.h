@@ -1,10 +1,10 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include "Common/Config/Config.h"
+#include "InputCommon/ControllerInterface/InputBackend.h"
 
 namespace ciface::DualShockUDPClient
 {
@@ -21,7 +21,6 @@ extern const Config::Info<std::string> SERVERS;
 extern const Config::Info<bool> SERVERS_ENABLED;
 }  // namespace Settings
 
-void Init();
-void PopulateDevices();
-void DeInit();
+std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface);
+
 }  // namespace ciface::DualShockUDPClient

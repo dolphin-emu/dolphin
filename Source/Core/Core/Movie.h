@@ -1,12 +1,10 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
 #include <cstring>
-#include <functional>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -17,6 +15,11 @@ struct BootParameters;
 
 struct GCPadStatus;
 class PointerWrap;
+
+namespace ExpansionInterface
+{
+enum class Slot : int;
+}
 
 namespace WiimoteCommon
 {
@@ -33,12 +36,14 @@ class EncryptionKey;
 namespace Movie
 {
 // Enumerations and structs
-enum PlayMode
+enum class ControllerType
 {
-  MODE_NONE = 0,
-  MODE_RECORDING,
-  MODE_PLAYING
+  None = 0,
+  GC,
+  GBA,
 };
+using ControllerTypeArray = std::array<ControllerType, 4>;
+using WiimoteEnabledArray = std::array<bool, 4>;
 
 // GameCube Controller State
 #pragma pack(push, 1)
@@ -116,7 +121,9 @@ struct DTMHeader
   u8 language;
   u8 reserved3;
   bool bFollowBranch;
-  std::array<u8, 9> reserved;       // Padding for any new config options
+  bool bUseFMA;
+  u8 GBAControllers;                // GBA Controllers plugged in (the bits are ports 1-4)
+  std::array<u8, 7> reserved;       // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
   std::array<u8, 20> revision;      // Git hash
   u32 DSPiromHash;
@@ -156,19 +163,21 @@ void SetReset(bool reset);
 
 bool IsConfigSaved();
 bool IsStartingFromClearSave();
-bool IsUsingMemcard(int memcard);
+bool IsUsingMemcard(ExpansionInterface::Slot slot);
 void SetGraphicsConfig();
 bool IsNetPlayRecording();
 
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);
 bool IsUsingBongo(int controller);
+bool IsUsingGBA(int controller);
 void ChangePads();
 void ChangeWiiPads(bool instantly = false);
 
 void SetReadOnly(bool bEnabled);
 
-bool BeginRecordingInput(int controllers);
+bool BeginRecordingInput(const ControllerTypeArray& controllers,
+                         const WiimoteEnabledArray& wiimotes);
 void RecordInput(const GCPadStatus* PadStatus, int controllerID);
 void RecordWiimote(int wiimote, const u8* data, u8 size);
 
@@ -188,15 +197,6 @@ void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt
 
 std::string GetInputDisplay();
 std::string GetRTCDisplay();
+std::string GetRerecords();
 
-// Done this way to avoid mixing of core and gui code
-using GCManipFunction = std::function<void(GCPadStatus*, int)>;
-using WiiManipFunction = std::function<void(WiimoteCommon::DataReportBuilder&, int, int,
-                                            const WiimoteEmu::EncryptionKey&)>;
-
-void SetGCInputManip(GCManipFunction);
-void SetWiiInputManip(WiiManipFunction);
-void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
-void CallWiiInputManip(WiimoteCommon::DataReportBuilder& rpt, int controllerID, int ext,
-                       const WiimoteEmu::EncryptionKey& key);
 }  // namespace Movie

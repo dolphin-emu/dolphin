@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.overlay;
 
 import android.graphics.Rect;
@@ -5,25 +7,34 @@ import android.os.Handler;
 import android.view.MotionEvent;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.features.input.model.InputOverrider;
 
 import java.util.ArrayList;
 
 public class InputOverlayPointer
 {
-  public static final int DOUBLE_TAP_A = 0;
-  public static final int DOUBLE_TAP_B = 1;
-  public static final int DOUBLE_TAP_2 = 2;
-  public static final int DOUBLE_TAP_CLASSIC_A = 3;
+  public static final int MODE_DISABLED = 0;
+  public static final int MODE_FOLLOW = 1;
+  public static final int MODE_DRAG = 2;
 
-  private final float[] axes = {0f, 0f};
+  private float mCurrentX = 0.0f;
+  private float mCurrentY = 0.0f;
+  private float mOldX = 0.0f;
+  private float mOldY = 0.0f;
 
   private float mGameCenterX;
   private float mGameCenterY;
   private float mGameWidthHalfInv;
   private float mGameHeightHalfInv;
 
+  private float mTouchStartX;
+  private float mTouchStartY;
+
+  private int mMode;
+  private boolean mRecenter;
+
   private boolean doubleTap = false;
-  private int doubleTapButton;
+  private int mDoubleTapControl;
   private int trackId = -1;
 
   public static ArrayList<Integer> DOUBLE_TAP_OPTIONS = new ArrayList<>();
@@ -36,9 +47,11 @@ public class InputOverlayPointer
     DOUBLE_TAP_OPTIONS.add(NativeLibrary.ButtonType.CLASSIC_BUTTON_A);
   }
 
-  public InputOverlayPointer(Rect surfacePosition, int button)
+  public InputOverlayPointer(Rect surfacePosition, int doubleTapControl, int mode, boolean recenter)
   {
-    doubleTapButton = button;
+    mDoubleTapControl = doubleTapControl;
+    mMode = mode;
+    mRecenter = recenter;
 
     mGameCenterX = (surfacePosition.left + surfacePosition.right) / 2.0f;
     mGameCenterY = (surfacePosition.top + surfacePosition.bottom) / 2.0f;
@@ -67,52 +80,96 @@ public class InputOverlayPointer
 
   public void onTouch(MotionEvent event)
   {
-    int pointerIndex = event.getActionIndex();
+    int action = event.getActionMasked();
+    boolean firstPointer = action != MotionEvent.ACTION_POINTER_DOWN &&
+            action != MotionEvent.ACTION_POINTER_UP;
+    int pointerIndex = firstPointer ? 0 : event.getActionIndex();
 
-    switch (event.getAction() & MotionEvent.ACTION_MASK)
+    switch (action)
     {
       case MotionEvent.ACTION_DOWN:
       case MotionEvent.ACTION_POINTER_DOWN:
         trackId = event.getPointerId(pointerIndex);
+        mTouchStartX = event.getX(pointerIndex);
+        mTouchStartY = event.getY(pointerIndex);
         touchPress();
         break;
       case MotionEvent.ACTION_UP:
       case MotionEvent.ACTION_POINTER_UP:
         if (trackId == event.getPointerId(pointerIndex))
           trackId = -1;
+        if (mMode == MODE_DRAG)
+          updateOldAxes();
+        if (mRecenter)
+          reset();
         break;
     }
 
     if (trackId == -1)
       return;
 
-    axes[0] = (event.getY(event.findPointerIndex(trackId)) - mGameCenterY) * mGameHeightHalfInv;
-    axes[1] = (event.getX(event.findPointerIndex(trackId)) - mGameCenterX) * mGameWidthHalfInv;
+    if (mMode == MODE_FOLLOW)
+    {
+      mCurrentX = (event.getX(event.findPointerIndex(trackId)) - mGameCenterX) * mGameWidthHalfInv;
+      mCurrentY = (event.getY(event.findPointerIndex(trackId)) - mGameCenterY) * mGameHeightHalfInv;
+    }
+    else if (mMode == MODE_DRAG)
+    {
+      mCurrentX = mOldX +
+              (event.getX(event.findPointerIndex(trackId)) - mTouchStartX) * mGameWidthHalfInv;
+      mCurrentY = mOldY +
+              (event.getY(event.findPointerIndex(trackId)) - mTouchStartY) * mGameHeightHalfInv;
+    }
   }
 
   private void touchPress()
   {
-    if (doubleTap)
+    if (mMode != MODE_DISABLED)
     {
-      NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice,
-              doubleTapButton, NativeLibrary.ButtonState.PRESSED);
-      new Handler().postDelayed(() -> NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice,
-              doubleTapButton, NativeLibrary.ButtonState.RELEASED), 50);
-    }
-    else
-    {
-      doubleTap = true;
-      new Handler().postDelayed(() -> doubleTap = false, 300);
+      if (doubleTap)
+      {
+        InputOverrider.setControlState(0, mDoubleTapControl, 1.0);
+        new Handler().postDelayed(() -> InputOverrider.setControlState(0, mDoubleTapControl, 0.0),
+                50);
+      }
+      else
+      {
+        doubleTap = true;
+        new Handler().postDelayed(() -> doubleTap = false, 300);
+      }
     }
   }
 
-  public float[] getAxisValues()
+  private void updateOldAxes()
   {
-    float[] iraxes = {0f, 0f, 0f, 0f};
-    iraxes[1] = axes[0];
-    iraxes[0] = axes[0];
-    iraxes[3] = axes[1];
-    iraxes[2] = axes[1];
-    return iraxes;
+    mOldX = mCurrentX;
+    mOldY = mCurrentY;
+  }
+
+  private void reset()
+  {
+    mCurrentX = mCurrentY = mOldX = mOldY = 0.0f;
+  }
+
+  public float getX()
+  {
+    return mCurrentX;
+  }
+
+  public float getY()
+  {
+    return mCurrentY;
+  }
+
+  public void setMode(int mode)
+  {
+    mMode = mode;
+    if (mode == MODE_DRAG)
+      updateOldAxes();
+  }
+
+  public void setRecenter(boolean recenter)
+  {
+    mRecenter = recenter;
   }
 }

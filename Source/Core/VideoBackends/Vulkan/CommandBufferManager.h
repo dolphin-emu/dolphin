@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -35,16 +34,14 @@ public:
   // is submitted, after that you should call these functions again.
   VkCommandBuffer GetCurrentInitCommandBuffer()
   {
-    m_frame_resources[m_current_frame].init_command_buffer_used = true;
-    return m_frame_resources[m_current_frame].command_buffers[0];
+    CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
+    cmd_buffer_resources.init_command_buffer_used = true;
+    return cmd_buffer_resources.command_buffers[0];
   }
   VkCommandBuffer GetCurrentCommandBuffer() const
   {
-    return m_frame_resources[m_current_frame].command_buffers[1];
-  }
-  VkDescriptorPool GetCurrentDescriptorPool() const
-  {
-    return m_frame_resources[m_current_frame].descriptor_pool;
+    const CmdBufferResources& cmd_buffer_resources = m_command_buffers[m_current_cmd_buffer];
+    return cmd_buffer_resources.command_buffers[1];
   }
   // Allocates a descriptors set from the pool reserved for the current frame.
   VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetLayout set_layout);
@@ -57,14 +54,19 @@ public:
 
   // Gets the fence that will be signaled when the currently executing command buffer is
   // queued and executed. Do not wait for this fence before the buffer is executed.
-  u64 GetCurrentFenceCounter() const { return m_frame_resources[m_current_frame].fence_counter; }
+  u64 GetCurrentFenceCounter() const
+  {
+    auto& resources = m_command_buffers[m_current_cmd_buffer];
+    return resources.fence_counter;
+  }
 
   // Returns the semaphore for the current command buffer, which can be used to ensure the
   // swap chain image is ready before the command buffer executes.
   VkSemaphore GetCurrentCommandBufferSemaphore()
   {
-    m_frame_resources[m_current_frame].semaphore_used = true;
-    return m_frame_resources[m_current_frame].semaphore;
+    auto& resources = m_command_buffers[m_current_cmd_buffer];
+    resources.semaphore_used = true;
+    return resources.semaphore;
   }
 
   // Ensure that the worker thread has submitted any previous command buffers and is idle.
@@ -81,14 +83,14 @@ public:
   // Was the last present submitted to the queue a failure? If so, we must recreate our swapchain.
   bool CheckLastPresentFail() { return m_last_present_failed.TestAndClear(); }
   VkResult GetLastPresentResult() const { return m_last_present_result; }
+  bool CheckLastPresentDone() { return m_last_present_done.TestAndClear(); }
 
   // Schedule a vulkan resource for destruction later on. This will occur when the command buffer
   // is next re-used, and the GPU has finished working with the specified resource.
-  void DeferBufferDestruction(VkBuffer object);
   void DeferBufferViewDestruction(VkBufferView object);
-  void DeferDeviceMemoryDestruction(VkDeviceMemory object);
+  void DeferBufferDestruction(VkBuffer buffer, VmaAllocation alloc);
   void DeferFramebufferDestruction(VkFramebuffer object);
-  void DeferImageDestruction(VkImage object);
+  void DeferImageDestruction(VkImage object, VmaAllocation alloc);
   void DeferImageViewDestruction(VkImageView object);
 
 private:
@@ -102,30 +104,48 @@ private:
                            u32 present_image_index);
   void BeginCommandBuffer();
 
-  struct FrameResources
+  VkDescriptorPool CreateDescriptorPool(u32 descriptor_sizes);
+
+  const u32 DESCRIPTOR_SETS_PER_POOL = 1024;
+
+  struct CmdBufferResources
   {
     // [0] - Init (upload) command buffer, [1] - draw command buffer
     VkCommandPool command_pool = VK_NULL_HANDLE;
     std::array<VkCommandBuffer, 2> command_buffers = {};
-    VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
     VkFence fence = VK_NULL_HANDLE;
     VkSemaphore semaphore = VK_NULL_HANDLE;
     u64 fence_counter = 0;
     bool init_command_buffer_used = false;
     bool semaphore_used = false;
+    std::atomic<bool> waiting_for_submit{false};
+    u32 frame_index = 0;
 
     std::vector<std::function<void()>> cleanup_resources;
   };
 
+  struct FrameResources
+  {
+    std::vector<VkDescriptorPool> descriptor_pools;
+    u32 current_descriptor_pool_index = 0;
+  };
+
+  FrameResources& GetCurrentFrameResources() { return m_frame_resources[m_current_frame]; }
+
+  CmdBufferResources& GetCurrentCmdBufferResources()
+  {
+    return m_command_buffers[m_current_cmd_buffer];
+  }
+
   u64 m_next_fence_counter = 1;
   u64 m_completed_fence_counter = 0;
 
-  std::array<FrameResources, NUM_COMMAND_BUFFERS> m_frame_resources;
-  u32 m_current_frame;
+  std::array<FrameResources, NUM_FRAMES_IN_FLIGHT> m_frame_resources;
+  std::array<CmdBufferResources, NUM_COMMAND_BUFFERS> m_command_buffers;
+  u32 m_current_frame = 0;
+  u32 m_current_cmd_buffer = 0;
 
   // Threaded command buffer execution
-  // Semaphore determines when a command buffer can be queued
-  Common::Semaphore m_submit_semaphore;
   std::thread m_submit_thread;
   std::unique_ptr<Common::BlockingLoop> m_submit_loop;
   struct PendingCommandBufferSubmit
@@ -137,9 +157,13 @@ private:
   VkSemaphore m_present_semaphore = VK_NULL_HANDLE;
   std::deque<PendingCommandBufferSubmit> m_pending_submits;
   std::mutex m_pending_submit_lock;
+  std::condition_variable m_submit_worker_condvar;
+  bool m_submit_worker_idle = true;
   Common::Flag m_last_present_failed;
+  Common::Flag m_last_present_done;
   VkResult m_last_present_result = VK_SUCCESS;
   bool m_use_threaded_submission = false;
+  u32 m_descriptor_set_count = DESCRIPTOR_SETS_PER_POOL;
 };
 
 extern std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;

@@ -1,0 +1,31 @@
+{
+	"meta":
+	{
+		"title": "Bloom Texture Definitions",
+		"author": "iwubcode"
+	},
+	"groups":
+	[
+		{
+			"name": "Bloom",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n15_20x16_4"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n9_40x30_4"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n7_80x58_4"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n1_320x228_4"
+				}
+			]
+		}
+	]
+}

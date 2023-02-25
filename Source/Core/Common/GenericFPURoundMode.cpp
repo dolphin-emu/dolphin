@@ -1,20 +1,14 @@
 // Copyright 2003 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/FPURoundMode.h"
 
 #include "Common/CommonTypes.h"
-#include "Common/FPURoundMode.h"
 
 // Generic, do nothing
 namespace FPURoundMode
 {
-void SetRoundMode(int mode)
-{
-}
-void SetPrecisionMode(PrecisionMode mode)
-{
-}
-void SetSIMDMode(int rounding_mode, bool non_ieee_mode)
+void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
 {
 }
 void SaveSIMDState()

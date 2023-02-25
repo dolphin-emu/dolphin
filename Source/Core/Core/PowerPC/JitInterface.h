@@ -1,10 +1,10 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <string>
+#include <variant>
 
 #include "Common/CommonTypes.h"
 #include "Core/MachineContext.h"
@@ -44,10 +44,22 @@ enum class ProfilingState
   Disabled
 };
 
+enum class GetHostCodeError
+{
+  NoJitActive,
+  NoTranslation,
+};
+struct GetHostCodeResult
+{
+  const u8* code;
+  u32 code_size;
+  u32 entry_address;
+};
+
 void SetProfilingState(ProfilingState state);
 void WriteProfileResults(const std::string& filename);
 void GetProfileResults(Profiler::ProfileStats* prof_stats);
-int GetHostCode(u32* address, const u8** code, u32* code_size);
+std::variant<GetHostCodeError, GetHostCodeResult> GetHostCode(u32 address);
 
 // Memory Utilities
 bool HandleFault(uintptr_t access_address, SContext* ctx);
@@ -63,6 +75,8 @@ void ClearSafe();
 
 // If "forced" is true, a recompile is being requested on code that hasn't been modified.
 void InvalidateICache(u32 address, u32 size, bool forced);
+void InvalidateICacheLine(u32 address);
+void InvalidateICacheLines(u32 address, u32 count);
 
 void CompileExceptionCheck(ExceptionType type);
 

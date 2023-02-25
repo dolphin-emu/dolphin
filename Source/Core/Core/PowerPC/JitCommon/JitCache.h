@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -12,6 +11,8 @@
 #include <memory>
 #include <set>
 #include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -120,7 +121,7 @@ public:
   void Set(u32 bit) { m_valid_block[bit / 32] |= 1u << (bit % 32); }
   void Clear(u32 bit) { m_valid_block[bit / 32] &= ~(1u << (bit % 32)); }
   void ClearAll() { memset(m_valid_block.get(), 0, sizeof(u32) * VALID_BLOCK_ALLOC_ELEMENTS); }
-  bool Test(u32 bit) { return (m_valid_block[bit / 32] & (1u << (bit % 32))) != 0; }
+  bool Test(u32 bit) const { return (m_valid_block[bit / 32] & (1u << (bit % 32))) != 0; }
 };
 
 class JitBaseBlockCache
@@ -160,6 +161,7 @@ public:
   const u8* Dispatch();
 
   void InvalidateICache(u32 address, u32 length, bool forced);
+  void InvalidateICacheLine(u32 address);
   void ErasePhysicalRange(u32 address, u32 length);
 
   u32* GetBlockBitSet() const;
@@ -176,6 +178,7 @@ private:
   void LinkBlockExits(JitBlock& block);
   void LinkBlock(JitBlock& block);
   void UnlinkBlock(const JitBlock& block);
+  void InvalidateICacheInternal(u32 physical_address, u32 address, u32 length, bool forced);
 
   JitBlock* MoveBlockIntoFastCache(u32 em_address, u32 msr);
 
@@ -184,7 +187,7 @@ private:
 
   // links_to hold all exit points of all valid blocks in a reverse way.
   // It is used to query all blocks which links to an address.
-  std::multimap<u32, JitBlock*> links_to;  // destination_PC -> number
+  std::unordered_map<u32, std::unordered_set<JitBlock*>> links_to;  // destination_PC -> number
 
   // Map indexed by the physical address of the entry point.
   // This is used to query the block based on the current PC in a slow way.
@@ -194,7 +197,7 @@ private:
   // This is used for invalidation of memory regions. The range is grouped
   // in macro blocks of each 0x100 bytes.
   static constexpr u32 BLOCK_RANGE_MAP_ELEMENTS = 0x100;
-  std::map<u32, std::set<JitBlock*>> block_range_map;
+  std::map<u32, std::unordered_set<JitBlock*>> block_range_map;
 
   // This bitsets shows which cachelines overlap with any blocks.
   // It is used to provide a fast way to query if no icache invalidation is needed.
@@ -202,5 +205,5 @@ private:
 
   // This array is indexed with the masked PC and likely holds the correct block id.
   // This is used as a fast cache of block_map used in the assembly dispatcher.
-  std::array<JitBlock*, FAST_BLOCK_MAP_ELEMENTS> fast_block_map;  // start_addr & mask -> number
+  std::array<JitBlock*, FAST_BLOCK_MAP_ELEMENTS> fast_block_map{};  // start_addr & mask -> number
 };

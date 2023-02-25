@@ -1,16 +1,21 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "VideoCommon/AsyncRequests.h"
 
 #include <mutex>
 
-#include "VideoCommon/AsyncRequests.h"
+#include "Core/System.h"
+
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/VideoState.h"
 
 AsyncRequests AsyncRequests::s_singleton;
@@ -90,7 +95,8 @@ void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
 
   m_queue.push(event);
 
-  Fifo::RunGpu();
+  auto& system = Core::System::GetInstance();
+  system.GetFifo().RunGpu(system);
   if (blocking)
   {
     m_cond.wait(lock, [this] { return m_queue.empty(); });
@@ -150,12 +156,16 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
     break;
 
   case Event::SWAP_EVENT:
-    g_renderer->Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
-                     e.swap_event.fbHeight, e.time);
+    g_presenter->ViSwap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
+                        e.swap_event.fbHeight, e.time);
     break;
 
   case Event::BBOX_READ:
-    *e.bbox.data = g_renderer->BBoxRead(e.bbox.index);
+    *e.bbox.data = g_bounding_box->Get(e.bbox.index);
+    break;
+
+  case Event::FIFO_RESET:
+    Core::System::GetInstance().GetFifo().ResetVideoBuffer();
     break;
 
   case Event::PERF_QUERY:

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
@@ -8,14 +10,19 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.divider.MaterialDividerItemDecoration;
+
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.FragmentSettingsBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
-import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +33,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   private static final String ARGUMENT_MENU_TAG = "menu_tag";
   private static final String ARGUMENT_GAME_ID = "game_id";
 
-  private SettingsFragmentPresenter mPresenter = new SettingsFragmentPresenter(this);
+  private SettingsFragmentPresenter mPresenter;
   private SettingsActivityView mActivity;
 
   private SettingsAdapter mAdapter;
@@ -35,23 +42,27 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
   static
   {
-    titles.put(MenuTag.CONFIG, R.string.preferences_settings);
+    titles.put(MenuTag.SETTINGS, R.string.settings);
+    titles.put(MenuTag.CONFIG, R.string.config);
     titles.put(MenuTag.CONFIG_GENERAL, R.string.general_submenu);
     titles.put(MenuTag.CONFIG_INTERFACE, R.string.interface_submenu);
     titles.put(MenuTag.CONFIG_AUDIO, R.string.audio_submenu);
     titles.put(MenuTag.CONFIG_PATHS, R.string.paths_submenu);
     titles.put(MenuTag.CONFIG_GAME_CUBE, R.string.gamecube_submenu);
+    titles.put(MenuTag.CONFIG_SERIALPORT1, R.string.serialport1_submenu);
     titles.put(MenuTag.CONFIG_WII, R.string.wii_submenu);
     titles.put(MenuTag.CONFIG_ADVANCED, R.string.advanced_submenu);
-    titles.put(MenuTag.WIIMOTE, R.string.grid_menu_wiimote_settings);
-    titles.put(MenuTag.WIIMOTE_EXTENSION, R.string.wiimote_extensions);
-    titles.put(MenuTag.GCPAD_TYPE, R.string.grid_menu_gcpad_settings);
-    titles.put(MenuTag.GRAPHICS, R.string.grid_menu_graphics_settings);
-    titles.put(MenuTag.HACKS, R.string.hacks_submenu);
-    titles.put(MenuTag.CONFIG_LOG, R.string.log_submenu);
     titles.put(MenuTag.DEBUG, R.string.debug_submenu);
+    titles.put(MenuTag.GRAPHICS, R.string.graphics_settings);
     titles.put(MenuTag.ENHANCEMENTS, R.string.enhancements_submenu);
     titles.put(MenuTag.STEREOSCOPY, R.string.stereoscopy_submenu);
+    titles.put(MenuTag.HACKS, R.string.hacks_submenu);
+    titles.put(MenuTag.STATISTICS, R.string.statistics_submenu);
+    titles.put(MenuTag.ADVANCED_GRAPHICS, R.string.advanced_graphics_submenu);
+    titles.put(MenuTag.CONFIG_LOG, R.string.log_submenu);
+    titles.put(MenuTag.GCPAD_TYPE, R.string.gcpad_settings);
+    titles.put(MenuTag.WIIMOTE, R.string.wiimote_settings);
+    titles.put(MenuTag.WIIMOTE_EXTENSION, R.string.wiimote_extensions);
     titles.put(MenuTag.GCPAD_1, R.string.controller_0);
     titles.put(MenuTag.GCPAD_2, R.string.controller_1);
     titles.put(MenuTag.GCPAD_3, R.string.controller_2);
@@ -65,6 +76,8 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     titles.put(MenuTag.WIIMOTE_EXTENSION_3, R.string.wiimote_extension_6);
     titles.put(MenuTag.WIIMOTE_EXTENSION_4, R.string.wiimote_extension_7);
   }
+
+  private FragmentSettingsBinding mBinding;
 
   public static Fragment newInstance(MenuTag menuTag, String gameId, Bundle extras)
   {
@@ -96,22 +109,23 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   {
     super.onCreate(savedInstanceState);
 
-    setRetainInstance(true);
     Bundle args = getArguments();
     MenuTag menuTag = (MenuTag) args.getSerializable(ARGUMENT_MENU_TAG);
     String gameId = getArguments().getString(ARGUMENT_GAME_ID);
 
-    mAdapter = new SettingsAdapter(this, getActivity());
+    mPresenter = new SettingsFragmentPresenter(this, getContext());
+    mAdapter = new SettingsAdapter(this, getContext());
 
     mPresenter.onCreate(menuTag, gameId, args);
   }
 
-  @Nullable
+  @NonNull
   @Override
-  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
           @Nullable Bundle savedInstanceState)
   {
-    return inflater.inflate(R.layout.fragment_settings, container, false);
+    mBinding = FragmentSettingsBinding.inflate(inflater, container, false);
+    return mBinding.getRoot();
   }
 
   @Override
@@ -122,19 +136,32 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
     if (titles.containsKey(menuTag))
     {
-      getActivity().setTitle(titles.get(menuTag));
+      mActivity.setToolbarTitle(getString(titles.get(menuTag)));
     }
 
     LinearLayoutManager manager = new LinearLayoutManager(getActivity());
 
-    RecyclerView recyclerView = view.findViewById(R.id.list_settings);
+    RecyclerView recyclerView = mBinding.listSettings;
 
     recyclerView.setAdapter(mAdapter);
     recyclerView.setLayoutManager(manager);
-    recyclerView.addItemDecoration(new DividerItemDecoration(requireActivity(), null));
+
+    MaterialDividerItemDecoration divider =
+            new MaterialDividerItemDecoration(requireActivity(), LinearLayoutManager.VERTICAL);
+    divider.setLastItemDecorated(false);
+    recyclerView.addItemDecoration(divider);
+
+    setInsets();
 
     SettingsActivityView activity = (SettingsActivityView) getActivity();
     mPresenter.onViewCreated(menuTag, activity.getSettings());
+  }
+
+  @Override
+  public void onDestroyView()
+  {
+    super.onDestroyView();
+    mBinding = null;
   }
 
   @Override
@@ -199,6 +226,12 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
+  public void onSerialPort1SettingChanged(MenuTag menuTag, int value)
+  {
+    mActivity.onSerialPort1SettingChanged(menuTag, value);
+  }
+
+  @Override
   public void onGcPadSettingChanged(MenuTag menuTag, int value)
   {
     mActivity.onGcPadSettingChanged(menuTag, value);
@@ -214,5 +247,16 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   public void onExtensionSettingChanged(MenuTag menuTag, int value)
   {
     mActivity.onExtensionSettingChanged(menuTag, value);
+  }
+
+  private void setInsets()
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(mBinding.listSettings, (v, windowInsets) ->
+    {
+      Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+      v.setPadding(0, 0, 0,
+              insets.bottom + getResources().getDimensionPixelSize(R.dimen.spacing_list));
+      return windowInsets;
+    });
   }
 }

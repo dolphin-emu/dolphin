@@ -12,7 +12,7 @@
 
     <item
         android:id="@+id/menu_emulation_adjust_scale"
-        android:title="@string/emulation_control_scale"/>
+        android:title="@string/emulation_control_adjustments"/>
 
     <group android:checkableBehavior="all">
         <item
@@ -38,6 +38,13 @@
         android:id="@+id/menu_emulation_ir_group"
         android:title="@string/emulation_ir_group">
         <menu>
+            <item
+                android:id="@+id/menu_emulation_ir_recenter"
+                android:checkable="true"
+                android:title="@string/emulation_ir_recenter"/>
+            <item
+                android:id="@+id/menu_emulation_set_ir_mode"
+                android:title="@string/emulation_ir_mode"/>
             <item
                 android:id="@+id/menu_emulation_set_ir_sensitivity"
                 android:title="@string/emulation_ir_sensitivity"/>

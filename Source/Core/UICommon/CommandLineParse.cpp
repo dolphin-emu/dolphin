@@ -1,6 +1,7 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "UICommon/CommandLineParse.h"
 
 #include <list>
 #include <optional>
@@ -14,7 +15,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/Config/MainSettings.h"
-#include "UICommon/CommandLineParse.h"
 
 namespace CommandLineParse
 {
@@ -26,15 +26,18 @@ public:
       : ConfigLayerLoader(Config::LayerType::CommandLine)
   {
     if (!video_backend.empty())
-      m_values.emplace_back(Config::MAIN_GFX_BACKEND.location, video_backend);
+      m_values.emplace_back(Config::MAIN_GFX_BACKEND.GetLocation(), video_backend);
 
     if (!audio_backend.empty())
-      m_values.emplace_back(Config::MAIN_DSP_HLE.location, ValueToString(audio_backend == "HLE"));
+    {
+      m_values.emplace_back(Config::MAIN_DSP_HLE.GetLocation(),
+                            ValueToString(audio_backend == "HLE"));
+    }
 
     // Batch mode hides the main window, and render to main hides the render window. To avoid a
     // situation where we would have no window at all, disable render to main when using batch mode.
     if (batch)
-      m_values.emplace_back(Config::MAIN_RENDER_TO_MAIN.location, ValueToString(false));
+      m_values.emplace_back(Config::MAIN_RENDER_TO_MAIN.GetLocation(), ValueToString(false));
 
     // Arguments are in the format of <System>.<Section>.<Key>=Value
     for (const auto& arg : args)
@@ -75,7 +78,7 @@ private:
 std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
 {
   auto parser = std::make_unique<optparse::OptionParser>();
-  parser->usage("usage: %prog [options]... [FILE]...").version(Common::scm_slippi_semver_str);
+  parser->usage("usage: %prog [options]... [FILE]...").version(Common::GetSemVerStr());
 
   parser->add_option("-u", "--user").action("store").help("User folder path");
   parser->add_option("-m", "--movie").action("store").help("Play a movie file");

@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -18,6 +17,12 @@ namespace MMIO
 class Mapping;
 }
 class PointerWrap;
+
+class AbstractGfx;
+class BoundingBox;
+class Renderer;
+class TextureCacheBase;
+class VertexManagerBase;
 
 enum class FieldType
 {
@@ -53,7 +58,7 @@ public:
 
   void Video_ExitLoop();
 
-  void Video_BeginField(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
+  void Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
   u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data);
   u32 Video_GetQueryResult(PerfQueryType type);
@@ -72,7 +77,19 @@ public:
   void DoState(PointerWrap& p);
 
 protected:
-  void InitializeShared();
+  // For hardware backends
+  bool InitializeShared(std::unique_ptr<AbstractGfx> gfx,
+                        std::unique_ptr<VertexManagerBase> vertex_manager,
+                        std::unique_ptr<PerfQueryBase> perf_query,
+                        std::unique_ptr<BoundingBox> bounding_box);
+
+  // For software and null backends. Allows overriding the default Renderer and Texture Cache
+  bool InitializeShared(std::unique_ptr<AbstractGfx> gfx,
+                        std::unique_ptr<VertexManagerBase> vertex_manager,
+                        std::unique_ptr<PerfQueryBase> perf_query,
+                        std::unique_ptr<BoundingBox> bounding_box,
+                        std::unique_ptr<Renderer> renderer,
+                        std::unique_ptr<TextureCacheBase> texture_cache);
   void ShutdownShared();
 
   bool m_initialized = false;

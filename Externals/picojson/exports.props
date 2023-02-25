@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)picojson;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)picojson\picojson.vcxproj">
+      <Project>{2c0d058e-de35-4471-ad99-e68a2caf9e18}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -10,7 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Constants.h"
 
 namespace Vulkan
 {
@@ -33,7 +32,7 @@ public:
 
   VKFramebuffer* GetFramebuffer() const { return m_framebuffer; }
   const VKPipeline* GetPipeline() const { return m_pipeline; }
-  void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset);
+  void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset, u32 size);
   void SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type);
   void SetFramebuffer(VKFramebuffer* framebuffer);
   void SetPipeline(const VKPipeline* pipeline);
@@ -117,10 +116,10 @@ private:
   // If not, ends the render pass if it is a clear render pass.
   bool IsViewportWithinRenderArea() const;
 
-  bool UpdateDescriptorSet();
-  bool UpdateGXDescriptorSet();
-  bool UpdateUtilityDescriptorSet();
-  bool UpdateComputeDescriptorSet();
+  void UpdateDescriptorSet();
+  void UpdateGXDescriptorSet();
+  void UpdateUtilityDescriptorSet();
+  void UpdateComputeDescriptorSet();
 
   // Which bindings/state has to be updated before the next draw.
   u32 m_dirty_flags = 0;
@@ -143,9 +142,10 @@ private:
     std::array<u32, NUM_UBO_DESCRIPTOR_SET_BINDINGS> gx_ubo_offsets;
     VkDescriptorBufferInfo utility_ubo_binding;
     u32 utility_ubo_offset;
-    std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS> samplers;
+    std::array<VkDescriptorImageInfo, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> samplers;
     std::array<VkBufferView, NUM_COMPUTE_TEXEL_BUFFERS> texel_buffers;
     VkDescriptorBufferInfo ssbo;
+    VkDescriptorBufferInfo gx_uber_vertex_ssbo;
     VkDescriptorImageInfo image_texture;
   } m_bindings = {};
   std::array<VkDescriptorSet, NUM_GX_DESCRIPTOR_SETS> m_gx_descriptor_sets = {};

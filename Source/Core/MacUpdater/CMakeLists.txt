@@ -13,6 +13,8 @@ set(SOURCES
 add_executable(MacUpdater ${SOURCES})
 
 set(MacUpdater_NAME "Dolphin Updater")
+set(MacUpdater_BIN_DIR ${CMAKE_BINARY_DIR}/Binaries)
+set(MacUpdater_BUNDLE_PATH ${MacUpdater_BIN_DIR}/${MacUpdater_NAME}.app)
 
 set_target_properties(MacUpdater PROPERTIES
   MACOSX_BUNDLE true
@@ -30,8 +32,8 @@ target_link_libraries(MacUpdater PRIVATE
     "-framework AppKit"
     "-framework CoreData"
     "-framework Foundation"
-	uicommon
-	updatercommon
+    uicommon
+    updatercommon
 )
 
 # Compile storyboards (Adapted from https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/OSX-InterfaceBuilderFiles)
@@ -53,8 +55,24 @@ foreach(sb ${STORYBOARDS})
 
   add_custom_command(TARGET MacUpdater POST_BUILD
                      COMMAND ${IBTOOL} --errors --warnings --notices --output-format human-readable-text
-                                       --compile ${MacUpdater_BIN_DIR}/${MacUpdater_NAME}.app/Contents/Resources/${sb}c
+                                       --compile ${MacUpdater_BUNDLE_PATH}/Contents/Resources/${sb}c
                      ${CMAKE_CURRENT_SOURCE_DIR}/${sb}
                      COMMENT "Compiling Storyboard ${sb}...")
 endforeach()
 
+if(MACOS_CODE_SIGNING)
+  if (MACOS_CODE_SIGNING_IDENTITY_UPDATER STREQUAL "")
+    set(MACOS_CODE_SIGNING_IDENTITY_UPDATER "${MACOS_CODE_SIGNING_IDENTITY}")
+  endif()
+
+  # Make file build code sign
+  add_custom_command(TARGET MacUpdater POST_BUILD
+    COMMAND test ${MacUpdater_BUNDLE_PATH} || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime ${MacUpdater_BUNDLE_PATH})
+  
+  # Xcode build code sign
+  add_custom_command(TARGET MacUpdater POST_BUILD
+    COMMAND test "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/${MacUpdater_NAME}.app" || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/${MacUpdater_NAME}.app")
+    
+  add_custom_command(TARGET MacUpdater POST_BUILD
+    COMMAND test "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${MacUpdater_NAME}.app" || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${MacUpdater_NAME}.app")
+endif()

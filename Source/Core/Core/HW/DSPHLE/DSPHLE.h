@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -66,9 +65,7 @@ private:
   std::unique_ptr<UCodeInterface> m_last_ucode;
 
   DSP::UDSPControl m_dsp_control;
+  u64 m_control_reg_init_code_clear_time = 0;
   CMailHandler m_mail_handler;
-
-  bool m_halt;
-  bool m_assert_interrupt;
 };
 }  // namespace DSP::HLE

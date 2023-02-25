@@ -1,6 +1,5 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -48,7 +47,8 @@ private:
 
   void Update();
   void UpdateThreadContext(const Common::Debug::PartialContext& context);
-  void UpdateThreadCallstack(const Common::Debug::PartialContext& context);
+  void UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
+                             const Common::Debug::PartialContext& context);
   void OnSelectionChanged(int row);
 
   QGroupBox* m_state;

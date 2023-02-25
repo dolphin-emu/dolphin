@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Settings/AdvancedPane.h"
 
@@ -28,8 +27,8 @@
 static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
     {PowerPC::CPUCore::Interpreter, QT_TR_NOOP("Interpreter (slowest)")},
     {PowerPC::CPUCore::CachedInterpreter, QT_TR_NOOP("Cached Interpreter (slower)")},
-    {PowerPC::CPUCore::JIT64, QT_TR_NOOP("JIT Recompiler (recommended)")},
-    {PowerPC::CPUCore::JITARM64, QT_TR_NOOP("JIT Arm64 (experimental)")},
+    {PowerPC::CPUCore::JIT64, QT_TR_NOOP("JIT Recompiler for x86-64 (recommended)")},
+    {PowerPC::CPUCore::JITARM64, QT_TR_NOOP("JIT Recompiler for ARM64 (recommended)")},
 };
 
 AdvancedPane::AdvancedPane(QWidget* parent) : QWidget(parent)
@@ -47,26 +46,39 @@ void AdvancedPane::CreateLayout()
   auto* main_layout = new QVBoxLayout();
   setLayout(main_layout);
 
-  auto* cpu_options = new QGroupBox(tr("CPU Options"));
-  auto* cpu_options_layout = new QVBoxLayout();
-  cpu_options->setLayout(cpu_options_layout);
-  main_layout->addWidget(cpu_options);
+  auto* cpu_options_group = new QGroupBox(tr("CPU Options"));
+  auto* cpu_options_group_layout = new QVBoxLayout();
+  cpu_options_group->setLayout(cpu_options_group_layout);
+  main_layout->addWidget(cpu_options_group);
 
-  QGridLayout* cpu_emulation_layout = new QGridLayout();
-  QLabel* cpu_emulation_engine_label = new QLabel(tr("CPU Emulation Engine:"));
+  auto* cpu_emulation_engine_layout = new QFormLayout;
+  cpu_emulation_engine_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  cpu_emulation_engine_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  cpu_options_group_layout->addLayout(cpu_emulation_engine_layout);
+
   m_cpu_emulation_engine_combobox = new QComboBox(this);
+  cpu_emulation_engine_layout->addRow(tr("CPU Emulation Engine:"), m_cpu_emulation_engine_combobox);
   for (PowerPC::CPUCore cpu_core : PowerPC::AvailableCPUCores())
   {
     m_cpu_emulation_engine_combobox->addItem(tr(CPU_CORE_NAMES.at(cpu_core)));
   }
-  cpu_emulation_layout->addWidget(cpu_emulation_engine_label, 0, 0);
-  cpu_emulation_layout->addWidget(m_cpu_emulation_engine_combobox, 0, 1, Qt::AlignLeft);
-  cpu_options_layout->addLayout(cpu_emulation_layout);
 
   m_enable_mmu_checkbox = new QCheckBox(tr("Enable MMU"));
   m_enable_mmu_checkbox->setToolTip(tr(
       "Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
-  cpu_options_layout->addWidget(m_enable_mmu_checkbox);
+  cpu_options_group_layout->addWidget(m_enable_mmu_checkbox);
+
+  m_pause_on_panic_checkbox = new QCheckBox(tr("Pause on Panic"));
+  m_pause_on_panic_checkbox->setToolTip(
+      tr("Pauses the emulation if a Read/Write or Unknown Instruction panic occurs.\nEnabling will "
+         "affect performance.\nThe performance impact is the same as having Enable MMU on."));
+  cpu_options_group_layout->addWidget(m_pause_on_panic_checkbox);
+
+  m_accurate_cpu_cache_checkbox = new QCheckBox(tr("Enable Write-Back Cache (slow)"));
+  m_accurate_cpu_cache_checkbox->setToolTip(
+      tr("Enables emulation of the CPU write-back cache.\nEnabling will have a significant impact "
+         "on performance.\nThis should be left disabled unless absolutely needed."));
+  cpu_options_group_layout->addWidget(m_accurate_cpu_cache_checkbox);
 
   auto* clock_override = new QGroupBox(tr("Clock Override"));
   auto* clock_override_layout = new QVBoxLayout();
@@ -174,16 +186,20 @@ void AdvancedPane::ConnectLayout()
 {
   connect(m_cpu_emulation_engine_combobox,
           static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [](int index) {
-            SConfig::GetInstance().cpu_core = PowerPC::AvailableCPUCores()[index];
             Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[index]);
           });
 
   connect(m_enable_mmu_checkbox, &QCheckBox::toggled, this,
-          [](bool checked) { SConfig::GetInstance().bMMU = checked; });
+          [](bool checked) { Config::SetBaseOrCurrent(Config::MAIN_MMU, checked); });
 
-  m_cpu_clock_override_checkbox->setChecked(SConfig::GetInstance().m_OCEnable);
+  connect(m_pause_on_panic_checkbox, &QCheckBox::toggled, this,
+          [](bool checked) { Config::SetBaseOrCurrent(Config::MAIN_PAUSE_ON_PANIC, checked); });
+
+  connect(m_accurate_cpu_cache_checkbox, &QCheckBox::toggled, this,
+          [](bool checked) { Config::SetBaseOrCurrent(Config::MAIN_ACCURATE_CPU_CACHE, checked); });
+
+  m_cpu_clock_override_checkbox->setChecked(Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
-    SConfig::GetInstance().m_OCEnable = enable_clock_override;
     Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK_ENABLE, enable_clock_override);
     Update();
   });
@@ -191,7 +207,6 @@ void AdvancedPane::ConnectLayout()
   connect(m_cpu_clock_override_slider, &QSlider::valueChanged, [this](int oc_factor) {
     // Vaguely exponential scaling?
     const float factor = std::exp2f((m_cpu_clock_override_slider->value() - 100.f) / 25.f);
-    SConfig::GetInstance().m_OCFactor = factor;
     Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK, factor);
     Update();
   });
@@ -214,17 +229,18 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
-  m_custom_rtc_checkbox->setChecked(SConfig::GetInstance().bEnableCustomRTC);
+  m_custom_rtc_checkbox->setChecked(Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE));
   connect(m_custom_rtc_checkbox, &QCheckBox::toggled, [this](bool enable_custom_rtc) {
-    SConfig::GetInstance().bEnableCustomRTC = enable_custom_rtc;
+    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_ENABLE, enable_custom_rtc);
     Update();
   });
 
   QDateTime initial_date_time;
-  initial_date_time.setTime_t(SConfig::GetInstance().m_customRTCValue);
+  initial_date_time.setSecsSinceEpoch(Config::Get(Config::MAIN_CUSTOM_RTC_VALUE));
   m_custom_rtc_datetime->setDateTime(initial_date_time);
   connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](QDateTime date_time) {
-    SConfig::GetInstance().m_customRTCValue = date_time.toTime_t();
+    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
+                             static_cast<u32>(date_time.toSecsSinceEpoch()));
     Update();
   });
 }
@@ -232,20 +248,27 @@ void AdvancedPane::ConnectLayout()
 void AdvancedPane::Update()
 {
   const bool running = Core::GetState() != Core::State::Uninitialized;
-  const bool enable_cpu_clock_override_widgets = SConfig::GetInstance().m_OCEnable;
+  const bool enable_cpu_clock_override_widgets = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   const bool enable_ram_override_widgets = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
-  const bool enable_custom_rtc_widgets = SConfig::GetInstance().bEnableCustomRTC && !running;
+  const bool enable_custom_rtc_widgets = Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE) && !running;
 
   const std::vector<PowerPC::CPUCore>& available_cpu_cores = PowerPC::AvailableCPUCores();
+  const auto cpu_core = Config::Get(Config::MAIN_CPU_CORE);
   for (size_t i = 0; i < available_cpu_cores.size(); ++i)
   {
-    if (available_cpu_cores[i] == SConfig::GetInstance().cpu_core)
+    if (available_cpu_cores[i] == cpu_core)
       m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
   }
   m_cpu_emulation_engine_combobox->setEnabled(!running);
 
-  m_enable_mmu_checkbox->setChecked(SConfig::GetInstance().bMMU);
+  m_enable_mmu_checkbox->setChecked(Config::Get(Config::MAIN_MMU));
   m_enable_mmu_checkbox->setEnabled(!running);
+
+  m_pause_on_panic_checkbox->setChecked(Config::Get(Config::MAIN_PAUSE_ON_PANIC));
+  m_pause_on_panic_checkbox->setEnabled(!running);
+
+  m_accurate_cpu_cache_checkbox->setChecked(Config::Get(Config::MAIN_ACCURATE_CPU_CACHE));
+  m_accurate_cpu_cache_checkbox->setEnabled(!running);
 
   QFont bf = font();
   bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) !=
@@ -258,15 +281,15 @@ void AdvancedPane::Update()
 
   {
     const QSignalBlocker blocker(m_cpu_clock_override_slider);
-    m_cpu_clock_override_slider->setValue(
-        static_cast<int>(std::round(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f)));
+    m_cpu_clock_override_slider->setValue(static_cast<int>(
+        std::round(std::log2f(Config::Get(Config::MAIN_OVERCLOCK)) * 25.f + 100.f)));
   }
 
   m_cpu_clock_override_slider_label->setText([] {
     int core_clock = SystemTimers::GetTicksPerSecond() / std::pow(10, 6);
-    int percent = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * 100.f));
-    int clock = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * core_clock));
-    return tr("%1 % (%2 MHz)").arg(QString::number(percent), QString::number(clock));
+    int percent = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * 100.f));
+    int clock = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * core_clock));
+    return tr("%1% (%2 MHz)").arg(QString::number(percent), QString::number(clock));
   }());
 
   m_ram_override_checkbox->setEnabled(!running);
@@ -282,7 +305,7 @@ void AdvancedPane::Update()
 
   m_mem1_override_slider_label->setText([] {
     const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
-    return tr("%1MB (MEM1)").arg(QString::number(mem1_size));
+    return tr("%1 MB (MEM1)").arg(QString::number(mem1_size));
   }());
 
   m_mem2_override_slider->setEnabled(enable_ram_override_widgets && !running);
@@ -296,7 +319,7 @@ void AdvancedPane::Update()
 
   m_mem2_override_slider_label->setText([] {
     const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;
-    return tr("%1MB (MEM2)").arg(QString::number(mem2_size));
+    return tr("%1 MB (MEM2)").arg(QString::number(mem2_size));
   }());
 
   m_custom_rtc_checkbox->setEnabled(!running);

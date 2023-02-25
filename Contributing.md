@@ -7,7 +7,8 @@ If you make any contributions to Dolphin after December 1st, 2014, you are agree
 - [Introduction](#introduction)
 - [C++ coding style and formatting](#cpp-coding-style-and-formatting)
 - [C++ code-specific guidelines](#cpp-code-specific-guidelines)
-- [Android and Java](#android-and-java)
+- [Android](#android)
+- [Help](#help)
 
 
 # <a name="introduction"></a>Introduction
@@ -24,7 +25,6 @@ This guide is for developers who wish to contribute to the Dolphin codebase. It 
 Following this guide and formatting your code as detailed will likely get your pull request merged much faster than if you don't (assuming the written code has no mistakes in itself).
 
 This project uses clang-format (stable branch) to check for common style issues. In case of conflicts between this guide and clang-format rules, the latter should be followed instead of this guide.
-
 
 ## <a name="intro-formatting-issues"></a>Checking and fixing formatting issues
 
@@ -50,6 +50,8 @@ In most cases, clang-format can and **should** be used to automatically reformat
   echo '/Source/Core/**/*.h filter=clang_format' >> .git/info/attributes
   echo '/Source/Core/**/*.mm filter=clang_format' >> .git/info/attributes
   ```
+
+- Visual Studio supports automatically formatting the current document according to the clang-format configuration by pressing <kbd>Control</kbd>+<kbd>K</kbd> followed by <kbd>Control</kbd>+<kbd>D</kbd> (or selecting Edit &rarr; Advanced &rarr; Format Document). This can be used without separately installing clang-format.
 
 # <a name="cpp-coding-style-and-formatting"></a>C++ coding style and formatting
 
@@ -95,7 +97,7 @@ Summary:
   - `constexpr int MAX_PATH = 260;`
 - All variables should be lowercase with underscores separating the individual words in the name.
   - `int this_variable_name;`
-- Please do not use [Hungarian notation](http://en.wikipedia.org/wiki/Hungarian_notation) prefixes with variables. The only exceptions to this are the variable prefixes below.
+- Please do not use [Hungarian notation](https://en.wikipedia.org/wiki/Hungarian_notation) prefixes with variables. The only exceptions to this are the variable prefixes below.
   - Global variables – `g_`
   - Class variables – `m_`
   - Static variables – `s_`
@@ -135,7 +137,7 @@ Summary:
 
 
 ## <a name="cpp-style-classes-and-structs"></a>Classes and structs
-- If making a [POD](http://en.wikipedia.org/wiki/Plain_Old_Data_Structures) type, use a `struct` for this. Use a `class` otherwise.
+- If making a [POD](https://en.wikipedia.org/wiki/Passive_data_structure) type, use a `struct` for this. Use a `class` otherwise.
 - Class layout should be in the order, `public`, `protected`, and then `private`.
   - If one or more of these sections are not needed, then simply don't include them.
 - For each of the above specified access levels, the contents of each should follow this given order: constructor, destructor, operator overloads, functions, then variables.
@@ -172,8 +174,8 @@ Summary:
 
 ## <a name="cpp-code-general"></a>General
 - The codebase currently uses C++17.
-- Use the [nullptr](http://en.cppreference.com/w/cpp/language/nullptr) type over the macro `NULL`.
-- If a [range-based for loop](http://en.cppreference.com/w/cpp/language/range-for) can be used instead of container iterators, use it.
+- Use the [nullptr](https://en.cppreference.com/w/cpp/language/nullptr) type over the macro `NULL`.
+- If a [range-based for loop](https://en.cppreference.com/w/cpp/language/range-for) can be used instead of container iterators, use it.
 - Obviously, try not to use `goto` unless you have a *really* good reason for it.
 - If a compiler warning is found, please try and fix it.
 - Try to avoid using raw pointers (pointers allocated with `new`) as much as possible. There are cases where using a raw pointer is unavoidable, and in these situations it is OK to use them. An example of this is functions from a C library that require them. In cases where it is avoidable, the STL usually has a means to solve this (`vector`, `unique_ptr`, etc).
@@ -203,6 +205,7 @@ Summary:
   ```c++
   do
   {
+    // code
   } while (false);
   ```
 
@@ -269,6 +272,15 @@ Summary:
   };
   ```
 
-# <a name="android-and-java"></a>Android and Java
+# <a name="android"></a>Android
 
-The Android project is currently written in Java. If you are using Android Studio to contribute, you can import the project's code style from `code-style-java.jar`, located in `[Dolphin Root]/Source/Android`. Please organize imports before committing.
+If you are using Kotlin, just use the built-in official Kotlin code style.
+
+To install the Java code style in Android Studio, select the gear icon in the Code Style settings as shown, select `Import Scheme...` and select `dolphin/Source/Android/code-style-java.xml`. The Code Style menu should look like this when complete. ![Code Style Window][code-style]
+
+You can now select any section of code and press `Ctrl + Alt + L` to automatically format it.
+
+# <a name="help"></a>Help
+If you have any questions about Dolphin's development or would like some help, Dolphin developers use `#dolphin-emu @ irc.libera.chat` to communicate. If you are new to IRC, [Libera.Chat has resources to get started chatting with IRC.](https://libera.chat/)
+
+[code-style]: https://i.imgur.com/3b3UBhb.png

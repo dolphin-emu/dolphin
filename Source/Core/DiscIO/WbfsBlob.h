@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -9,7 +8,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "DiscIO/Blob.h"
 
 namespace DiscIO
@@ -26,15 +25,13 @@ public:
   BlobType GetBlobType() const override { return BlobType::WBFS; }
 
   u64 GetRawSize() const override { return m_size; }
-  // The WBFS format does not save the original file size.
-  // This function returns a constant upper bound
-  // (the size of a double-layer Wii disc).
   u64 GetDataSize() const override;
-  bool IsDataSizeAccurate() const override { return false; }
+  DataSizeType GetDataSizeType() const override { return DataSizeType::UpperBound; }
 
   u64 GetBlockSize() const override { return m_wbfs_sector_size; }
   bool HasFastRandomAccessInBlock() const override { return true; }
   std::string GetCompressionMethod() const override { return {}; }
+  std::optional<int> GetCompressionLevel() const override { return std::nullopt; }
 
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 

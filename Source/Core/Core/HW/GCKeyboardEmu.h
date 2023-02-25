@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -24,8 +23,6 @@ enum class KeyboardGroup
   Kb3x,
   Kb4x,
   Kb5x,
-
-  Options
 };
 
 class GCKeyboard : public ControllerEmu::EmulatedController
@@ -44,7 +41,6 @@ private:
   ControllerEmu::Buttons* m_keys3x;
   ControllerEmu::Buttons* m_keys4x;
   ControllerEmu::Buttons* m_keys5x;
-  ControllerEmu::ControlGroup* m_options;
 
   const unsigned int m_index;
 };

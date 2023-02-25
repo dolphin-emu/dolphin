@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_DeviceMic.h"
 
@@ -13,27 +12,60 @@
 #include "AudioCommon/CubebUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Event.h"
 #include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
 
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/System.h"
+
+#ifdef _WIN32
+#include <Objbase.h>
+#endif
 
 namespace ExpansionInterface
 {
 void CEXIMic::StreamInit()
 {
-  m_cubeb_ctx = CubebUtils::GetContext();
-
   stream_buffer = nullptr;
   samples_avail = stream_wpos = stream_rpos = 0;
+
+#ifdef _WIN32
+  if (!m_coinit_success)
+    return;
+  Common::Event sync_event;
+  m_work_queue.EmplaceItem([this, &sync_event] {
+    Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+#endif
+    m_cubeb_ctx = CubebUtils::GetContext();
+#ifdef _WIN32
+  });
+  sync_event.Wait();
+#endif
 }
 
 void CEXIMic::StreamTerminate()
 {
   StreamStop();
-  m_cubeb_ctx.reset();
+
+  if (m_cubeb_ctx)
+  {
+#ifdef _WIN32
+    if (!m_coinit_success)
+      return;
+    Common::Event sync_event;
+    m_work_queue.EmplaceItem([this, &sync_event] {
+      Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+#endif
+      m_cubeb_ctx.reset();
+#ifdef _WIN32
+    });
+    sync_event.Wait();
+#endif
+  }
 }
 
 static void state_callback(cubeb_stream* stream, void* user_data, cubeb_state state)
@@ -45,7 +77,7 @@ long CEXIMic::DataCallback(cubeb_stream* stream, void* user_data, const void* in
 {
   CEXIMic* mic = static_cast<CEXIMic*>(user_data);
 
-  std::lock_guard<std::mutex> lk(mic->ring_lock);
+  std::lock_guard lk(mic->ring_lock);
 
   const s16* buff_in = static_cast<const s16*>(input_buffer);
   for (long i = 0; i < nframes; i++)
@@ -69,48 +101,68 @@ void CEXIMic::StreamStart()
   if (!m_cubeb_ctx)
     return;
 
-  // Open stream with current parameters
-  stream_size = buff_size_samples * 500;
-  stream_buffer = new s16[stream_size];
-
-  cubeb_stream_params params;
-  params.format = CUBEB_SAMPLE_S16LE;
-  params.rate = sample_rate;
-  params.channels = 1;
-  params.layout = CUBEB_LAYOUT_MONO;
-
-  u32 minimum_latency;
-  if (cubeb_get_min_latency(m_cubeb_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
-  {
-    WARN_LOG_FMT(EXPANSIONINTERFACE, "Error getting minimum latency");
-  }
-
-  if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream, "Dolphin Emulated GameCube Microphone",
-                        nullptr, &params, nullptr, nullptr,
-                        std::max<u32>(buff_size_samples, minimum_latency), DataCallback,
-                        state_callback, this) != CUBEB_OK)
-  {
-    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Error initializing cubeb stream");
+#ifdef _WIN32
+  if (!m_coinit_success)
     return;
-  }
+  Common::Event sync_event;
+  m_work_queue.EmplaceItem([this, &sync_event] {
+    Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+#endif
+    // Open stream with current parameters
+    stream_size = buff_size_samples * 500;
+    stream_buffer = new s16[stream_size];
 
-  if (cubeb_stream_start(m_cubeb_stream) != CUBEB_OK)
-  {
-    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Error starting cubeb stream");
-    return;
-  }
+    cubeb_stream_params params{};
+    params.format = CUBEB_SAMPLE_S16LE;
+    params.rate = sample_rate;
+    params.channels = 1;
+    params.layout = CUBEB_LAYOUT_MONO;
 
-  INFO_LOG_FMT(EXPANSIONINTERFACE, "started cubeb stream");
+    u32 minimum_latency;
+    if (cubeb_get_min_latency(m_cubeb_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
+    {
+      WARN_LOG_FMT(EXPANSIONINTERFACE, "Error getting minimum latency");
+    }
+
+    if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream,
+                          "Dolphin Emulated GameCube Microphone", nullptr, &params, nullptr,
+                          nullptr, std::max<u32>(buff_size_samples, minimum_latency), DataCallback,
+                          state_callback, this) != CUBEB_OK)
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "Error initializing cubeb stream");
+      return;
+    }
+
+    if (cubeb_stream_start(m_cubeb_stream) != CUBEB_OK)
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "Error starting cubeb stream");
+      return;
+    }
+
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "started cubeb stream");
+#ifdef _WIN32
+  });
+  sync_event.Wait();
+#endif
 }
 
 void CEXIMic::StreamStop()
 {
   if (m_cubeb_stream)
   {
-    if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
-      ERROR_LOG_FMT(EXPANSIONINTERFACE, "Error stopping cubeb stream");
-    cubeb_stream_destroy(m_cubeb_stream);
-    m_cubeb_stream = nullptr;
+#ifdef _WIN32
+    Common::Event sync_event;
+    m_work_queue.EmplaceItem([this, &sync_event] {
+      Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+#endif
+      if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
+        ERROR_LOG_FMT(EXPANSIONINTERFACE, "Error stopping cubeb stream");
+      cubeb_stream_destroy(m_cubeb_stream);
+      m_cubeb_stream = nullptr;
+#ifdef _WIN32
+    });
+    sync_event.Wait();
+#endif
   }
 
   samples_avail = stream_wpos = stream_rpos = 0;
@@ -121,7 +173,7 @@ void CEXIMic::StreamStop()
 
 void CEXIMic::StreamReadOne()
 {
-  std::lock_guard<std::mutex> lk(ring_lock);
+  std::lock_guard lk(ring_lock);
 
   if (samples_avail >= buff_size_samples)
   {
@@ -144,7 +196,12 @@ void CEXIMic::StreamReadOne()
 
 u8 const CEXIMic::exi_id[] = {0, 0x0a, 0, 0, 0};
 
-CEXIMic::CEXIMic(int index) : slot(index)
+CEXIMic::CEXIMic(int index)
+    : slot(index)
+#ifdef _WIN32
+      ,
+      m_work_queue("Mic Worker", [](const std::function<void()>& func) { func(); })
+#endif
 {
   m_position = 0;
   command = 0;
@@ -159,12 +216,37 @@ CEXIMic::CEXIMic(int index) : slot(index)
 
   next_int_ticks = 0;
 
+#ifdef _WIN32
+  Common::Event sync_event;
+  m_work_queue.EmplaceItem([this, &sync_event] {
+    Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+    auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+    m_coinit_success = result == S_OK;
+    m_should_couninit = result == S_OK || result == S_FALSE;
+  });
+  sync_event.Wait();
+#endif
+
   StreamInit();
 }
 
 CEXIMic::~CEXIMic()
 {
   StreamTerminate();
+
+#ifdef _WIN32
+  if (m_should_couninit)
+  {
+    Common::Event sync_event;
+    m_work_queue.EmplaceItem([this, &sync_event] {
+      Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+      m_should_couninit = false;
+      CoUninitialize();
+    });
+    sync_event.Wait();
+  }
+  m_coinit_success = false;
+#endif
 }
 
 bool CEXIMic::IsPresent() const
@@ -183,13 +265,13 @@ void CEXIMic::SetCS(int cs)
 void CEXIMic::UpdateNextInterruptTicks()
 {
   int diff = (SystemTimers::GetTicksPerSecond() / sample_rate) * buff_size_samples;
-  next_int_ticks = CoreTiming::GetTicks() + diff;
+  next_int_ticks = Core::System::GetInstance().GetCoreTiming().GetTicks() + diff;
   ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, diff);
 }
 
 bool CEXIMic::IsInterruptSet()
 {
-  if (next_int_ticks && CoreTiming::GetTicks() >= next_int_ticks)
+  if (next_int_ticks && Core::System::GetInstance().GetCoreTiming().GetTicks() >= next_int_ticks)
   {
     if (status.is_active)
       UpdateNextInterruptTicks();

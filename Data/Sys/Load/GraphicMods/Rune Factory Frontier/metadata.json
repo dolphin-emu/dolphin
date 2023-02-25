@@ -1,0 +1,112 @@
+{
+	"meta":
+	{
+		"title": "Bloom and HUD Texture Definitions",
+		"author": "iwubcode"
+	},
+	"groups":
+	[
+		{
+			"name": "HUD",
+			"targets": [
+				{
+					"type": "draw_started",
+					"pretty_name": "hp_rp",
+					"texture_filename": "tex1_200x64_29bf40765535b389_fb4403f0539ecfc6_9"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "hp_rp",
+					"texture_filename": "tex1_200x64_29bf40765535b389_fb4403f0539ecfc6_9"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "hp_gradient",
+					"texture_filename": "tex1_96x8_491977b196c249d8_1feafe410943bfac_8"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "hp_gradient",
+					"texture_filename": "tex1_96x8_491977b196c249d8_1feafe410943bfac_8"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "rp_gradient",
+					"texture_filename": "tex1_96x8_cdcb5c030686767c_2c5a8138bfca228c_8"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "rp_gradient",
+					"texture_filename": "tex1_96x8_cdcb5c030686767c_2c5a8138bfca228c_8"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "spring_season",
+					"texture_filename": "tex1_256x40_30d99f26895bc811_02e626cce31a83ae_9"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "spring_season",
+					"texture_filename": "tex1_256x40_30d99f26895bc811_02e626cce31a83ae_9"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "quick_pick_box",
+					"texture_filename": "tex1_128x128_b87c102764a80c67_0488ebdbd87cfc9d_9"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "quick_pick_box",
+					"texture_filename": "tex1_128x128_b87c102764a80c67_0488ebdbd87cfc9d_9"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "face",
+					"texture_filename": "tex1_48x48_92405f9277895cd2_914f5a4762aa04ae_9"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "face",
+					"texture_filename": "tex1_48x48_92405f9277895cd2_914f5a4762aa04ae_9"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "sunny_icon",
+					"texture_filename": "tex1_24x24_3791555ba7e8186f_e82e2316ceba262d_9"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "sunny_icon",
+					"texture_filename": "tex1_24x24_3791555ba7e8186f_e82e2316ceba262d_9"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "text",
+					"texture_filename": "tex1_256x256_83aa16840fa69ffb_0"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "text",
+					"texture_filename": "tex1_256x256_83aa16840fa69ffb_0"
+				}
+			]
+		},
+		{
+			"name": "Bloom",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000002_320x240_1"
+				}
+			]
+		}
+	]
+}

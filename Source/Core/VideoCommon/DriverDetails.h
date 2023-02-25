@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "Common/CommonTypes.h"
 
@@ -14,7 +13,8 @@ namespace DriverDetails
 enum API
 {
   API_OPENGL = (1 << 0),
-  API_VULKAN = (1 << 1)
+  API_VULKAN = (1 << 1),
+  API_METAL = (1 << 2),
 };
 
 // Enum of supported operating systems
@@ -27,6 +27,8 @@ enum OS
   OS_ANDROID = (1 << 4),
   OS_FREEBSD = (1 << 5),
   OS_OPENBSD = (1 << 6),
+  OS_NETBSD = (1 << 7),
+  OS_HAIKU = (1 << 8),
 };
 // Enum of known vendors
 // Tegra and Nvidia are separated out due to such substantial differences
@@ -42,6 +44,7 @@ enum Vendor
   VENDOR_TEGRA,
   VENDOR_VIVANTE,
   VENDOR_MESA,
+  VENDOR_APPLE,
   VENDOR_UNKNOWN
 };
 
@@ -62,6 +65,7 @@ enum Driver
   DRIVER_IMGTEC,       // Official PowerVR driver
   DRIVER_VIVANTE,      // Official Vivante driver
   DRIVER_PORTABILITY,  // Vulkan via Metal on macOS
+  DRIVER_APPLE,        // Metal on macOS
   DRIVER_UNKNOWN       // Unknown driver, default to official hardware driver
 };
 
@@ -228,13 +232,17 @@ enum Bug
   // index as a MRT location instead, or omit the binding completely.
   BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION,
 
-  // Bug: Dual-source outputs from fragment shaders are broken on AMD OpenGL drivers
+  // Bug: Dual-source outputs from fragment shaders are broken on some drivers.
   // Started Version: -1
   // Ended Version: -1
-  // Fragment shaders that specify dual-source outputs, cause the driver to crash
-  // sometimes this happens in the kernel mode part of the driver resulting in a BSOD.
-  // Disable dual-source blending support for now.
+  // On some AMD drivers, fragment shaders that specify dual-source outputs can cause the driver to
+  // crash. Sometimes this happens in the kernel mode part of the driver, resulting in a BSOD.
+  // These shaders are also particularly problematic on macOS's Intel drivers. On OpenGL, they can
+  // cause depth issues. On Metal, they can cause the driver to not write a primitive to the depth
+  // buffer if dual source blending is output in the shader but not subsequently used in blending.
+  // Compile separate shaders for DSB on vs off for these drivers.
   BUG_BROKEN_DUAL_SOURCE_BLENDING,
+
   // BUG: ImgTec GLSL shader compiler fails when negating the input to a bitwise operation
   // Started version: 1.5
   // Ended version: 1.8@4693462
@@ -286,6 +294,53 @@ enum Bug
   // Mali Vulkan driver, causing high CPU usage in the __pi___inval_cache_range kernel
   // function. This flag causes readback buffers to select the coherent type.
   BUG_SLOW_CACHED_READBACK_MEMORY,
+
+  // BUG: Apparently ARM Mali GLSL compiler managed to break bitwise AND operations between
+  // two integers vectors, when one of them is non-constant (though the exact cases of when
+  // this occurs are still unclear). The resulting vector from the operation will be the
+  // constant vector.
+  // Easy enough to fix, just do the bitwise AND operation on the vector components first and
+  // then construct the final vector.
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_VECTOR_BITWISE_AND,
+
+  // BUG: Accessing gl_SubgroupInvocationID causes the Metal shader compiler to crash.
+  //      Affected devices: AMD (older macOS)
+  // BUG: gl_HelperInvocation always returns true, even for non-helper invocations
+  //      Affected devices: AMD (newer macOS)
+  // BUG: Using subgroupMax in a shader that can discard results in garbage data
+  //      (For some reason, this only happens at 4x+ IR on Metal, but 2x+ IR on MoltenVK)
+  //      Affected devices: Intel (macOS)
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_SUBGROUP_OPS,
+
+  // BUG: Multi-threaded shader pre-compilation sometimes crashes
+  // Used primarily in Videoconfig.cpp's GetNumAutoShaderPreCompilerThreads()
+  // refer to https://github.com/dolphin-emu/dolphin/pull/9414 for initial validation coverage
+  BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION,
+
+  // BUG: Some driver and Apple Silicon GPU combinations have problems with fragment discard when
+  // early depth test is enabled. Discarded fragments may appear corrupted (Super Mario Sunshine,
+  // Sonic Adventure 2: Battle, Phantasy Star Online Epsiodes 1 & 2, etc).
+  // Affected devices: Apple Silicon GPUs of Apple family 4 and newer.
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_DISCARD_WITH_EARLY_Z,
+
+  // BUG: Using dynamic sampler indexing locks up the GPU
+  // Affected devices: Intel (macOS Metal)
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING,
+
+  // BUG: vkCmdCopyImageToBuffer allocates a staging image when used to copy from
+  // an image with optimal tiling.
+  // Affected devices: Adreno
+  // Started Version: -1
+  // Ended Version: -1
+  BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY
 };
 
 // Initializes our internal vendor, device family, and driver version

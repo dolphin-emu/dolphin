@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -12,7 +11,6 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VertexLoaderBase.h"
 
-class DataReader;
 class VertexLoader;
 typedef void (*TPipelineFunction)(VertexLoader* loader);
 
@@ -21,9 +19,7 @@ class VertexLoader : public VertexLoaderBase
 public:
   VertexLoader(const TVtxDesc& vtx_desc, const VAT& vtx_attr);
 
-  int RunVertices(DataReader src, DataReader dst, int count) override;
-  std::string GetName() const override { return "OldLoader"; }
-  bool IsInitialized() override { return true; }  // This vertex loader supports all formats
+  int RunVertices(const u8* src, u8* dst, int count) override;
   // They are used for the communication with the loader functions
   float m_posScale;
   float m_tcScale[8];
@@ -38,7 +34,7 @@ public:
   int m_texmtxread;
   bool m_vertexSkip;
   int m_skippedVertices;
-  int m_counter;
+  int m_remaining;
 
 private:
   // Pipeline.

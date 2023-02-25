@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -9,19 +8,14 @@
 #include "Common/CommonTypes.h"
 #include "Common/SymbolDB.h"
 
+namespace DSP
+{
+struct SDSP;
+}
+
 namespace DSP::Symbols
 {
-class DSPSymbolDB : public Common::SymbolDB
-{
-public:
-  DSPSymbolDB() {}
-  ~DSPSymbolDB() {}
-  Common::Symbol* GetSymbolFromAddr(u32 addr) override;
-};
-
-extern DSPSymbolDB g_dsp_symbol_db;
-
-void AutoDisassembly(u16 start_addr, u16 end_addr);
+void AutoDisassembly(const SDSP& dsp, u16 start_addr, u16 end_addr);
 
 void Clear();
 

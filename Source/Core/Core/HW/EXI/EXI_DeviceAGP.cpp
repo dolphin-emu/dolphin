@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_DeviceAGP.h"
 
@@ -9,18 +8,21 @@
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/HW/EXI/EXI.h"
 
 namespace ExpansionInterface
 {
-CEXIAgp::CEXIAgp(int index)
+CEXIAgp::CEXIAgp(Slot slot)
 {
-  m_slot = index;
+  ASSERT(IsMemcardSlot(slot));
+  m_slot = slot;
 
   // Create the ROM
   m_rom_size = 0;
@@ -36,9 +38,7 @@ CEXIAgp::~CEXIAgp()
   std::string filename;
   std::string ext;
   std::string gbapath;
-  SplitPath(m_slot == 0 ? SConfig::GetInstance().m_strGbaCartA :
-                          SConfig::GetInstance().m_strGbaCartB,
-            &path, &filename, &ext);
+  SplitPath(Config::Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
   gbapath = path + filename;
 
   SaveFileFromEEPROM(gbapath + ".sav");
@@ -76,9 +76,7 @@ void CEXIAgp::LoadRom()
   std::string path;
   std::string filename;
   std::string ext;
-  SplitPath(m_slot == 0 ? SConfig::GetInstance().m_strGbaCartA :
-                          SConfig::GetInstance().m_strGbaCartB,
-            &path, &filename, &ext);
+  SplitPath(Config::Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
   const std::string gbapath = path + filename;
   LoadFileToROM(gbapath + ext);
   INFO_LOG_FMT(EXPANSIONINTERFACE, "Loaded GBA rom: {} card: {}", gbapath, m_slot);

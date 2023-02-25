@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.os.Bundle;
@@ -9,12 +11,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridLayout;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.databinding.FragmentSaveloadStateBinding;
 
 public final class SaveLoadStateFragment extends Fragment implements View.OnClickListener
 {
@@ -57,6 +61,8 @@ public final class SaveLoadStateFragment extends Fragment implements View.OnClic
 
   private SaveOrLoad mSaveOrLoad;
 
+  private FragmentSaveloadStateBinding mBinding;
+
   public static SaveLoadStateFragment newInstance(SaveOrLoad saveOrLoad)
   {
     SaveLoadStateFragment fragment = new SaveLoadStateFragment();
@@ -76,12 +82,19 @@ public final class SaveLoadStateFragment extends Fragment implements View.OnClic
     mSaveOrLoad = (SaveOrLoad) getArguments().getSerializable(KEY_SAVEORLOAD);
   }
 
+  @NonNull
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+          Bundle savedInstanceState)
   {
-    View rootView = inflater.inflate(R.layout.fragment_saveload_state, container, false);
+    mBinding = FragmentSaveloadStateBinding.inflate(inflater, container, false);
+    return mBinding.getRoot();
+  }
 
-    GridLayout grid = rootView.findViewById(R.id.grid_state_slots);
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+  {
+    GridLayout grid = mBinding.gridStateSlots;
     for (int childIndex = 0; childIndex < grid.getChildCount(); childIndex++)
     {
       Button button = (Button) grid.getChildAt(childIndex);
@@ -91,8 +104,13 @@ public final class SaveLoadStateFragment extends Fragment implements View.OnClic
 
     // So that item clicked to start this Fragment is no longer the focused item.
     grid.requestFocus();
+  }
 
-    return rootView;
+  @Override
+  public void onDestroyView()
+  {
+    super.onDestroyView();
+    mBinding = null;
   }
 
   @Override
