@@ -81,9 +81,10 @@ static double HostReadFunc(expr_func* f, vec_expr_t* args, void* c)
 {
   if (vec_len(args) != 1)
     return 0;
-  const auto* guard = reinterpret_cast<const Core::CPUThreadGuard*>(c);
   const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 0)));
-  return Common::BitCast<T>(HostRead<U>(*guard, address));
+
+  Core::CPUThreadGuard guard;
+  return Common::BitCast<T>(HostRead<U>(guard, address));
 }
 
 template <typename T, typename U = T>
@@ -91,10 +92,11 @@ static double HostWriteFunc(expr_func* f, vec_expr_t* args, void* c)
 {
   if (vec_len(args) != 2)
     return 0;
-  const auto* guard = reinterpret_cast<const Core::CPUThreadGuard*>(c);
   const T var = static_cast<T>(expr_eval(&vec_nth(args, 0)));
   const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 1)));
-  HostWrite<U>(*guard, Common::BitCast<U>(var), address);
+
+  Core::CPUThreadGuard guard;
+  HostWrite<U>(guard, Common::BitCast<U>(var), address);
   return var;
 }
 
@@ -112,10 +114,12 @@ static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
     return 0;
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
-  const auto* guard = reinterpret_cast<const Core::CPUThreadGuard*>(c);
-  bool success = Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), *guard, stack);
-  if (!success)
-    return 0;
+  {
+    Core::CPUThreadGuard guard;
+    bool success = Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), guard, stack);
+    if (!success)
+      return 0;
+  }
 
   double num = expr_eval(&vec_nth(args, 0));
   if (!std::isnan(num))
@@ -158,11 +162,11 @@ static double StreqFunc(expr_func* f, vec_expr_t* args, void* c)
   if (vec_len(args) != 2)
     return 0;
 
-  const auto* guard = reinterpret_cast<const Core::CPUThreadGuard*>(c);
   std::array<std::string, 2> strs;
+  Core::CPUThreadGuard guard;
   for (int i = 0; i < 2; i++)
   {
-    std::optional<std::string> arg = ReadStringArg(*guard, &vec_nth(args, i));
+    std::optional<std::string> arg = ReadStringArg(guard, &vec_nth(args, i));
     if (arg == std::nullopt)
       return 0;
 
@@ -266,13 +270,7 @@ double Expression::Evaluate() const
 {
   SynchronizeBindings(SynchronizeDirection::From);
 
-  double result;
-  {
-    Core::CPUThreadGuard guard;
-    m_expr->param.func.context = &guard;
-    result = expr_eval(m_expr.get());
-    m_expr->param.func.context = nullptr;
-  }
+  double result = expr_eval(m_expr.get());
 
   SynchronizeBindings(SynchronizeDirection::To);
 
