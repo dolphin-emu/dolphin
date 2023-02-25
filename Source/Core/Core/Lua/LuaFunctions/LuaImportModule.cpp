@@ -1,6 +1,6 @@
 #include "Core/Lua/LuaFunctions/LuaImportModule.h"
 
-#include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
+#include "Core/Scripting/LanguageDefinitions/NewLuaScriptContext.h"
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
 #include "Core/Lua/LuaFunctions/LuaMemoryApi.h"
@@ -61,8 +61,8 @@ int ImportCommon(lua_State* lua_state, const char* func_name)
   std::string module_class = luaL_checkstring(lua_state, 2);
   std::string version_number = luaL_checkstring(lua_state, 3);
 
-  if (module_class == std::string(LuaBit::class_name))
-    LuaBit::InitLuaBitFunctions(lua_state, version_number);
+  if (module_class == "bit")
+    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "bit");
 
   else if (module_class == std::string(LuaEmu::class_name))
     LuaEmu::InitLuaEmuFunctions(lua_state, version_number);

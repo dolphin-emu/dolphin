@@ -86,11 +86,16 @@
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaScriptCallLocations.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaScriptContext.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaStateToScriptContextMap.h" />
-    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaVersionComparisonFunctions.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\ClassMetadata.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\VersionComparisonFunctions.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\NumberType.h" />
     <ClInclude Include="Core\Lua\LuaVersionResolver.h" />
-    <ClInclude Include="Core\Scripting\LuaScriptContext.h" />
-    <ClInclude Include="Core\Scripting\ScriptContext.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\ArgHolder.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\ArgTypeEnum.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\FunctionMetadata.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\ScriptContext.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\VersionResolver.h" />
+    <ClInclude Include="Core\Scripting\LanguageDefinitions\NewLuaScriptContext.h" />
     <ClInclude Include="DolphinQt\ThreadSafeIntQueue.h" />
   </ItemGroup>
   <ItemGroup>
@@ -107,8 +112,9 @@
     <ClCompile Include="Core\Lua\LuaFunctions\LuaRegisters.cpp" />
     <ClCompile Include="Core\Lua\LuaFunctions\LuaStatistics.cpp" />
     <ClCompile Include="Core\Lua\LuaHelperClasses\LuaScriptContext.cpp" />
-    <ClCompile Include="Core\Lua\LuaHelperClasses\LuaVersionComparisonFunctions.cpp" />
+    <ClCompile Include="Core\Scripting\HelperClasses\VersionComparisonFunctions.cpp" />
     <ClCompile Include="Core\Lua\LuaHelperClasses\NumberType.cpp" />
+    <ClCompile Include="Core\Scripting\HelperClasses\ArgHolder.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>

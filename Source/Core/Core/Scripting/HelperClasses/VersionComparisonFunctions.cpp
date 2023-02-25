@@ -1,6 +1,6 @@
-#include "Core/Lua/LuaHelperClasses/LuaVersionComparisonFunctions.h"
+#include "Core/Scripting/HelperClasses/VersionComparisonFunctions.h"
 
-namespace Lua
+namespace Scripting
 {
 // This helper function returns -1 if firstVersion < secondVersion, 0 if firstVersion ==
 // secondVersion, and 1 if firstVersion > secondVersion
@@ -89,4 +89,4 @@ bool IsFirstVersionGreaterThanOrEqualToSecondVersion(const std::string& first_ve
   return CompareFirstVersionToSecondVersion(first_version, second_version) >= 0;
 }
 
-}  // namespace Lua
+}  // namespace Scripting

@@ -2,7 +2,7 @@
 #define VERSION_COMPARISON_FUNCTIONS
 #include <string>
 
-namespace Lua
+namespace Scripting
 {
 int CompareFirstVersionToSecondVersion(std::string first_version, std::string second_version);
 bool IsFirstVersionGreaterThanSecondVersion(const std::string& first_version,

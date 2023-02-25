@@ -2,21 +2,26 @@
 #include <lua.hpp>
 #include <string>
 #include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
+#include "Core/Scripting/HelperClasses/ArgHolder.h"
+#include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
+#include "Core/Scripting/HelperClasses/FunctionMetadata.h"
+#include "Core/Scripting/HelperClasses/ClassMetadata.h"
+#include <vector>
 
-namespace Lua::LuaBit
+namespace Scripting::BitApi
 {
 extern const char* class_name;
 
-void InitLuaBitFunctions(lua_State* lua_state, const std::string& lua_api_version);
-int BitwiseAnd(lua_State* lua_state);
-int BitwiseOr(lua_State* lua_state);
-int BitwiseNot(lua_State* lua_state);
-int BitwiseXor(lua_State* lua_state);
-int LogicalAnd(lua_State* lua_state);
-int LogicalOr(lua_State* lua_state);
-int LogicalXor(lua_State* lua_state);
-int LogicalNot(lua_State* lua_state);
-int BitShiftLeft(lua_State* lua_state);
-int BitShiftRight(lua_State* lua_state);
+ClassMetadata GetBitApiClassData(const std::string& api_version);
+ArgHolder BitwiseAnd(std::vector<ArgHolder>& args_list);
+ArgHolder BitwiseOr(std::vector<ArgHolder>& args_list);
+ArgHolder BitwiseNot(std::vector<ArgHolder>& args_list);
+ArgHolder BitwiseXor(std::vector<ArgHolder>& args_list);
+ArgHolder LogicalAnd(std::vector<ArgHolder>& args_list);
+ArgHolder LogicalOr(std::vector<ArgHolder>& args_list);
+ArgHolder LogicalXor(std::vector<ArgHolder>& args_list);
+ArgHolder LogicalNot(std::vector<ArgHolder>& args_list);
+ArgHolder BitShiftLeft(std::vector<ArgHolder>& args_list);
+ArgHolder BitShiftRight(std::vector<ArgHolder>& args_list);
 
-}  // namespace Lua::LuaBit
+}  // namespace Scripting::BitApi

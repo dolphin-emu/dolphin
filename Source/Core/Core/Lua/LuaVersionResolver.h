@@ -5,7 +5,7 @@
 #include <lua.hpp>
 
 #include <array>
-#include "Core/Lua/LuaHelperClasses/LuaVersionComparisonFunctions.h"
+#include "Core/Scripting/HelperClasses/VersionComparisonFunctions.h"
 #include "Core/Lua/LuaHelperClasses/luaL_Reg_With_Version.h"
 
 namespace Lua
@@ -31,14 +31,15 @@ void AddLatestFunctionsForVersion(const std::array<luaL_Reg_With_Version, array_
     std::string function_version_number = all_functions[i].version;
 
     if (function_to_latest_version_found_map.count(current_function_name) == 0 &&
-        !IsFirstVersionGreaterThanSecondVersion(function_version_number, lua_api_version))
+        !Scripting::IsFirstVersionGreaterThanSecondVersion(function_version_number, lua_api_version))
       function_to_latest_version_found_map[current_function_name] = all_functions[i];
 
     else if (function_to_latest_version_found_map.count(current_function_name) > 0 &&
-             IsFirstVersionGreaterThanSecondVersion(
+             Scripting::IsFirstVersionGreaterThanSecondVersion(
                  function_version_number,
                  function_to_latest_version_found_map[current_function_name].version) &&
-             !IsFirstVersionGreaterThanSecondVersion(function_version_number, lua_api_version))
+             !Scripting::IsFirstVersionGreaterThanSecondVersion(function_version_number,
+                                                                lua_api_version))
       function_to_latest_version_found_map[current_function_name] = all_functions[i];
   }
 
@@ -56,7 +57,7 @@ void AddLatestFunctionsForVersion(const std::array<luaL_Reg_With_Version, array_
        it != final_list_of_functions_for_version_with_deprecated_functions.end(); ++it)
   {
     if (!(deprecated_functions_to_version_they_were_removed_in_map.count(it->name) > 0 &&
-          IsFirstVersionGreaterThanOrEqualToSecondVersion(
+          Scripting::IsFirstVersionGreaterThanOrEqualToSecondVersion(
               lua_api_version, deprecated_functions_to_version_they_were_removed_in_map[it->name])))
     {
       final_list_of_functions_for_version.push_back({it->name, it->func});
