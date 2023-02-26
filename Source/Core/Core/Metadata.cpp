@@ -492,6 +492,7 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     {
       // would handle error in here
     }
+    WaitForSingleObject(pi.hProcess, INFINITE);
     // the task has ended so close the handle
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);

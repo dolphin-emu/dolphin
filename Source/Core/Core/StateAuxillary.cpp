@@ -133,7 +133,10 @@ void StateAuxillary::endPlayback()
   for (int i = 0; i < 4; i++)
   {
     std::string innerFileName = replays_path + fileArr[i];
-    std::filesystem::remove(innerFileName);
+    if (File::Exists(innerFileName))
+    {
+      std::filesystem::remove(innerFileName);
+    }
   }
 }
 
