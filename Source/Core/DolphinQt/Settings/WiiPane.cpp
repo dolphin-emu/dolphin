@@ -3,7 +3,9 @@
 
 #include "DolphinQt/Settings/WiiPane.h"
 
+#include <array>
 #include <future>
+#include <utility>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -53,6 +55,36 @@ static int TranslateSensorBarPosition(int position)
   return position;
 }
 
+namespace
+{
+struct SDSizeComboEntry
+{
+  u64 size;
+  const char* name;
+};
+static constexpr u64 MebibytesToBytes(u64 mebibytes)
+{
+  return mebibytes * 1024u * 1024u;
+}
+static constexpr u64 GibibytesToBytes(u64 gibibytes)
+{
+  return MebibytesToBytes(gibibytes * 1024u);
+}
+constexpr std::array sd_size_combo_entries{
+    SDSizeComboEntry{0, _trans("Auto")},
+    SDSizeComboEntry{MebibytesToBytes(64), _trans("64 MiB")},
+    SDSizeComboEntry{MebibytesToBytes(128), _trans("128 MiB")},
+    SDSizeComboEntry{MebibytesToBytes(256), _trans("256 MiB")},
+    SDSizeComboEntry{MebibytesToBytes(512), _trans("512 MiB")},
+    SDSizeComboEntry{GibibytesToBytes(1), _trans("1 GiB")},
+    SDSizeComboEntry{GibibytesToBytes(2), _trans("2 GiB")},
+    SDSizeComboEntry{GibibytesToBytes(4), _trans("4 GiB (SDHC)")},
+    SDSizeComboEntry{GibibytesToBytes(8), _trans("8 GiB (SDHC)")},
+    SDSizeComboEntry{GibibytesToBytes(16), _trans("16 GiB (SDHC)")},
+    SDSizeComboEntry{GibibytesToBytes(32), _trans("32 GiB (SDHC)")},
+};
+}  // namespace
+
 WiiPane::WiiPane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
@@ -94,6 +126,8 @@ void WiiPane::ConnectLayout()
   connect(m_sd_card_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_allow_sd_writes_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_sync_sd_folder_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
+  connect(m_sd_card_size_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &WiiPane::OnSaveConfig);
 
   // Whitelisted USB Passthrough Devices
   connect(m_whitelist_usb_list, &QListWidget::itemClicked, this, &WiiPane::ValidateSelectionState);
@@ -218,6 +252,13 @@ void WiiPane::CreateSDCard()
     sd_settings_group_layout->addLayout(hlayout, row, 0, 1, 2);
     ++row;
   }
+
+  m_sd_card_size_combo = new QComboBox();
+  for (size_t i = 0; i < sd_size_combo_entries.size(); ++i)
+    m_sd_card_size_combo->addItem(tr(sd_size_combo_entries[i].name));
+  sd_settings_group_layout->addWidget(new QLabel(tr("SD Card File Size:")), row, 0);
+  sd_settings_group_layout->addWidget(m_sd_card_size_combo, row, 1);
+  ++row;
 
   m_sd_pack_button = new NonDefaultQPushButton(tr("Convert Folder to File Now"));
   m_sd_unpack_button = new NonDefaultQPushButton(tr("Convert File to Folder Now"));
@@ -360,6 +401,13 @@ void WiiPane::LoadConfig()
   m_allow_sd_writes_checkbox->setChecked(Config::Get(Config::MAIN_ALLOW_SD_WRITES));
   m_sync_sd_folder_checkbox->setChecked(Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC));
 
+  const u64 sd_card_size = Config::Get(Config::MAIN_WII_SD_CARD_FILESIZE);
+  for (size_t i = 0; i < sd_size_combo_entries.size(); ++i)
+  {
+    if (sd_size_combo_entries[i].size == sd_card_size)
+      m_sd_card_size_combo->setCurrentIndex(static_cast<int>(i));
+  }
+
   PopulateUSBPassthroughListWidget();
 
   m_wiimote_ir_sensor_position->setCurrentIndex(
@@ -390,6 +438,14 @@ void WiiPane::OnSaveConfig()
   Config::SetBase(Config::MAIN_ALLOW_SD_WRITES, m_allow_sd_writes_checkbox->isChecked());
   Config::SetBase(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC,
                   m_sync_sd_folder_checkbox->isChecked());
+
+  const int sd_card_size_index = m_sd_card_size_combo->currentIndex();
+  if (sd_card_size_index >= 0 &&
+      static_cast<size_t>(sd_card_size_index) < sd_size_combo_entries.size())
+  {
+    Config::SetBase(Config::MAIN_WII_SD_CARD_FILESIZE,
+                    sd_size_combo_entries[sd_card_size_index].size);
+  }
 }
 
 void WiiPane::ValidateSelectionState()
