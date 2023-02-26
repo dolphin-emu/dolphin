@@ -25,7 +25,7 @@ static std::array all_bit_functions_metadata_list = {
     FunctionMetadata("logical_xor", "1.0", LogicalXor, ArgTypeEnum::Boolean,
                      {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
     FunctionMetadata("logical_not", "1.0", LogicalNot, ArgTypeEnum::Boolean,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+                       {ArgTypeEnum::LongLong}),
     FunctionMetadata("bit_shift_left", "1.0", BitShiftLeft, ArgTypeEnum::LongLong,
                      {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
     FunctionMetadata("bit_shift_right", "1.0", BitShiftRight, ArgTypeEnum::LongLong,

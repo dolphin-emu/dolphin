@@ -2,13 +2,13 @@
 #include "lua.hpp"
 #include <memory>
 #include <utility>
+#include <fstream>
 
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
 
 namespace Scripting
 {
-static FunctionMetadata tempMetadata;
 class NewLuaScriptContext
 {
 public:
@@ -36,9 +36,8 @@ public:
 
       for (auto& functionMetadata : bitClassMetadata.functions_list)
       {
-        tempMetadata = functionMetadata;
         lua_CFunction lambdaFunction = [](lua_State* lua_state) mutable {
-          static bool initialized_metadata = false;
+          auto localFunctionMetadata = (FunctionMetadata*)lua_touserdata(lua_state, lua_upvalueindex(1));
           std::vector<ArgHolder> arguments = std::vector<ArgHolder>();
           ArgHolder returnValue = {};
           if (lua_type(lua_state, 1) != LUA_TUSERDATA)
@@ -49,7 +48,7 @@ public:
           }
 
           int next_index_in_args = 2;
-          for (ArgTypeEnum arg_type : tempMetadata.arguments_list)
+          for (ArgTypeEnum arg_type : localFunctionMetadata->arguments_list)
           {
             switch (arg_type)
             {
@@ -104,7 +103,7 @@ public:
             ++next_index_in_args;
           }
 
-          returnValue = (*tempMetadata.function_pointer)(arguments);
+          returnValue = (localFunctionMetadata->function_pointer)(arguments);
 
           switch (returnValue.argument_type)
           {
@@ -149,14 +148,15 @@ public:
           }
         };
 
-        final_lua_functions_list.push_back(
-            {functionMetadata.function_name.c_str(), lambdaFunction});
+        FunctionMetadata* heap_metadata = new FunctionMetadata(functionMetadata);
+        lua_pushstring(lua_state, heap_metadata->function_name.c_str());
+        lua_pushlightuserdata(lua_state, heap_metadata);
+        lua_pushcclosure(lua_state, lambdaFunction, 1);
+        lua_settable(lua_state, -3);
       }
 
-      final_lua_functions_list.push_back({nullptr, nullptr});
-      luaL_setfuncs(lua_state, &final_lua_functions_list[0], 0);
       lua_setmetatable(lua_state, -2);
-      lua_setglobal(lua_state, bitClassMetadata.class_name.c_str());
+      lua_setglobal(lua_state, "bit");
     }
   }
 

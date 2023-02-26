@@ -1,0 +1,24 @@
+1: userdata
+0,000,01C,4AE,6EE,CF8
+2: table
+0,000,01C,4AE,6EE,A40
+
+(Above values before calling luaL_setfuncs)
+
+--------------------------------------------------
+1: userdata
+0,000,01C,4AE,6EE,CF8
+2: table
+0,000,01C,4AE,6EE,A40
+
+(Above same values after calling luaL_setFuncs)
+
+------------------------------------------
+After calling setmetable:
+
+1: userdata
+0,000,01C,4AE,6EE,CF8
+
+
+NOTE: should have just userdata left after setting metatable, and the last call to setglobal should remove this (it doesn't work that way for BitAPi, though - has error of 
+"Attempt to index a userdata value (global bit)"

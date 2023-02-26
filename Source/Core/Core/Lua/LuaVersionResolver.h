@@ -7,7 +7,7 @@
 #include <array>
 #include "Core/Scripting/HelperClasses/VersionComparisonFunctions.h"
 #include "Core/Lua/LuaHelperClasses/luaL_Reg_With_Version.h"
-
+#include <fstream>
 namespace Lua
 {
 
@@ -65,8 +65,8 @@ void AddLatestFunctionsForVersion(const std::array<luaL_Reg_With_Version, array_
   }
 
   final_list_of_functions_for_version.push_back({nullptr, nullptr});
-
   luaL_setfuncs(lua_state, &final_list_of_functions_for_version[0], 0);
   lua_setmetatable(lua_state, -2);
+  return;
 }
 }  // namespace Lua

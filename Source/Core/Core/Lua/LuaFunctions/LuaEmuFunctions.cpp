@@ -8,6 +8,7 @@
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
+#include <fstream>
 
 namespace Lua::LuaEmu
 {
