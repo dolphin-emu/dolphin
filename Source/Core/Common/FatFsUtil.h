@@ -9,8 +9,8 @@
 
 namespace Common
 {
-bool SyncSDFolderToSDImage(bool deterministic);
-bool SyncSDImageToSDFolder();
+bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool deterministic);
+bool SyncSDImageToSDFolder(const std::function<bool()>& cancelled);
 
 class FatFsCallbacks
 {

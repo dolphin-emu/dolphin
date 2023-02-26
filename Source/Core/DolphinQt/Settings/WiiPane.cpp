@@ -228,7 +228,7 @@ void WiiPane::CreateSDCard()
         QMessageBox::Yes | QMessageBox::No);
     if (result == QMessageBox::Yes)
     {
-      if (!Common::SyncSDFolderToSDImage(false))
+      if (!Common::SyncSDFolderToSDImage([]() { return false; }, false))
         ModalMessageBox::warning(this, tr("Convert Folder to File Now"), tr("Conversion failed."));
     }
   });
@@ -242,7 +242,7 @@ void WiiPane::CreateSDCard()
         QMessageBox::Yes | QMessageBox::No);
     if (result == QMessageBox::Yes)
     {
-      if (!Common::SyncSDImageToSDFolder())
+      if (!Common::SyncSDImageToSDFolder([]() { return false; }))
         ModalMessageBox::warning(this, tr("Convert File to Folder Now"), tr("Conversion failed."));
     }
   });
