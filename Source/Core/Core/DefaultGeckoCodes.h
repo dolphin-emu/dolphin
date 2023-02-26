@@ -149,6 +149,13 @@ private:
       {0x3BC00000, 0x3DC08043, 0x39CE0068, 0x81EE0000, 0x2C000056, 0x4182000C, 0x2C000057,
        0x4082000C, 0x39EF0001, 0x48000008, 0x39E00000, 0x91EE0000, 0x60000000}};
 
+  const DefaultGeckoCode recordCaptainAndSidekickIDs = {
+      0x8017F454,
+      0,
+      {0x3DC08040, 0x2C040000, 0x40820010, 0x39CE000C, 0x81E30008, 0x4800000C, 0x39CE000E,
+       0x81E3000C, 0x980E0000, 0x99EE0001, 0x3DC08040, 0x39CE0010, 0x81E30010, 0x99EE0000,
+       0x2C000008}};
+
   void WriteAsm(DefaultGeckoCode CodeBlock);
   u32 aWriteAddr;  // address where the first code gets written to
 
@@ -162,7 +169,7 @@ private:
       recordMissedShots,
       recordBallOwnership,
       recordVelocities,
-      recordBallCharge};
+      recordBallCharge,    recordCaptainAndSidekickIDs};
 
   /*
   std::vector<DefaultGeckoCode> sNetplayCodes = {

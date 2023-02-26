@@ -29,6 +29,9 @@
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Movie.h"
+#include "StateAuxillary.h"
+#include "DefaultGeckoCodes.h"
 
 namespace PatchEngine
 {
@@ -301,6 +304,15 @@ bool ApplyFramePatches()
   // Run the Gecko code handler
   Gecko::RunCodeHandler();
   ActionReplay::RunAllActive();
+
+  // inject ALWAYS requried replay codes if we're not playing back a recording
+  // we don't want to mess up past save states with current, possibly different, gecko codes
+  if (!StateAuxillary::getBoolWroteCodes() && !Movie::IsPlayingInput())
+  {
+    DefaultGeckoCodes codeWriter;
+    codeWriter.RunCodeInject(false);
+    StateAuxillary::setBoolWroteCodes(true);
+  }
 
   return true;
 }
