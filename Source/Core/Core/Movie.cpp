@@ -1026,15 +1026,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   const SerialInterface::SIDevices currentDevice3 =
       Config::Get(Config::GetInfoForSIDevice(static_cast<int>(3)));
   StateAuxillary::setPrePort(currentDevice0, currentDevice1, currentDevice2, currentDevice3);
-  /*
-  // set port 1 to GCN adapter (12) for correct playback.
-  const SerialInterface::SIDevices gcnAdapter = SerialInterface::SIDEVICE_WIIU_ADAPTER;
-  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(0)), gcnAdapter);
-  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(1)), SerialInterface::SIDEVICE_NONE);
-  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(2)), SerialInterface::SIDEVICE_NONE);
-  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(3)), SerialInterface::SIDEVICE_NONE);
-  SConfig::GetInstance().SaveSettings();
-  */
+
   // movie_path is a const and trying to change that breaks a lot of things
   std::string actual_movie_path = movie_path;
 
@@ -1051,6 +1043,8 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
     {
       printf("not found");
     }
+
+    bool boolFoundOutputSav = false;
 
     // Get info about the zip file
     unz_global_info global_info;
@@ -1102,6 +1096,11 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
 
           actual_movie_path = directory.string();
         }
+        if (foundDTMFile.extension() == ".sav")
+        {
+          INFO_LOG_FMT(CORE, "We found a savestate in the CIT");
+          boolFoundOutputSav = true;
+        }
         if (unzOpenCurrentFile(zipfile) != UNZ_OK)
         {
           printf("could not open file\n");
@@ -1152,6 +1151,44 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
     }
 
     unzClose(zipfile);
+
+    if (!boolFoundOutputSav)
+    {
+      INFO_LOG_FMT(CORE, "We did not find a savestate in the CIT");
+      // create output.dtm.sav from patch if we did not find it from unzipping
+      char ownPth[MAX_PATH];
+      HMODULE hModule = GetModuleHandle(NULL);
+      GetModuleFileNameA(hModule, ownPth, (sizeof(ownPth))); 
+      std::filesystem::path fullpath(ownPth);
+      fullpath.remove_filename();
+      std::string currentDirectory = fullpath.string();
+      std::filesystem::path cwd = fullpath / "createoutputfromdiff.bat";
+      std::string pathToBatch = cwd.string();
+      INFO_LOG_FMT(CORE, "Path to the batch file is {}", pathToBatch);
+      std::string batchPath = "\"\"" + pathToBatch + "\"";
+      std::string pathToSaveState =
+          "\"" + File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.dtm.sav" + "\"";
+      std::string pathToDiff =
+          "\"" + File::GetUserPath(D_CITRUSREPLAYS_IDX) + "diffFile.patch" + "\"";
+      std::string pathToEXE = "\"" + currentDirectory + "\"";
+      batchPath += " " + pathToDiff + " " + pathToSaveState + " " + pathToEXE + "\"";
+      STARTUPINFO si;
+      PROCESS_INFORMATION pi;
+      memset(&si, 0, sizeof(si));
+      si.cb = sizeof(si);
+      // si.wShowWindow = SW_HIDE;
+      //  CREATE_NO_WINDOW after true
+      if (!CreateProcessA(pathToBatch.c_str(), &batchPath[0], NULL, NULL, TRUE, CREATE_NO_WINDOW,
+                          NULL, NULL,
+                          (LPSTARTUPINFOA)&si, &pi))
+      {
+        // would handle error in here
+      }
+      WaitForSingleObject(pi.hProcess, INFINITE);
+      // the task has ended so close the handle
+      CloseHandle(pi.hThread);
+      CloseHandle(pi.hProcess);
+    }
   }
 
   File::IOFile recording_file(actual_movie_path, "rb");

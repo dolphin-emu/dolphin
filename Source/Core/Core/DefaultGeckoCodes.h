@@ -58,8 +58,18 @@ private:
   const DefaultGeckoCode replayOvertime = {
       0x8003CF68, 0, {0x3C80802A, 0x3DC08040, 0x39E00001, 0x99EE0002, 0x39E00000}};
 
+  // turns the flag to 1 when we are in grudge match
   const DefaultGeckoCode replayGrudgeFlag1 = {
       0x800d8c80, 0, {0x7fa4eb78, 0x3dc08040, 0x39e00001, 0x99ee0003}};
+
+  // turns the flag to 0 when we are in strikers 101
+  const DefaultGeckoCode replayGrudgeFlag2 = {
+      0x800d7034, 0, {0x38800000, 0x3dc08040, 0x39e00000, 0x99ee0003}};
+
+  // turns the flag to 2 when we are in a cup/tournament
+  const DefaultGeckoCode replayGrudgeFlag3 = {
+      0x800EB5D0, 0, {0x83CDADB8, 0x3DC08040, 0x39E00002, 0x99EE0003}};
+
 
   const DefaultGeckoCode replayRecordTime = {
       0x800f90b0, 0, {0x3dc08040, 0x81e30008, 0x91ee0004, 0x806da6c8}};
@@ -144,7 +154,9 @@ private:
 
   std::vector<DefaultGeckoCode> sRequiredCodes = {
       replayStart,
-      replayEnd,        replayQuit,           replayOvertime,        replayGrudgeFlag1, replayRecordTime,
+      replayEnd,        replayQuit,           replayOvertime,
+      replayGrudgeFlag1, replayGrudgeFlag2, replayGrudgeFlag3,
+      replayRecordTime,
       replayTimeAllottedHUD, recordItemUse,
       recordGoalTimestamp,
       recordMissedShots,

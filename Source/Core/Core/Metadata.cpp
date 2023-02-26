@@ -10,6 +10,9 @@
 #include <Core/StateAuxillary.h>
 #include <Common/Version.h>
 #include <Common/Timer.h>
+#include <Common/IOFile.h>
+#include "Core.h"
+#include <VideoCommon/OnScreenDisplay.h>
 
 struct ItemStruct
 {
@@ -421,6 +424,8 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
   replays_path += "\"";
   // "C://Users//Brian//Documents//Citrus Replays"
   */
+  OSD::ClearMessages();
+  Core::DisplayMessage("Do not close Dolphin ... saving replay", 4000);
   std::string improvedReplayPath = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.json";
   File::WriteStringToFile(improvedReplayPath, jsonString);
 
@@ -445,13 +450,44 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     batchPath += gameVar + "\"";
     */
     /*
+    std::string baseSavPath = (std::filesystem::current_path() / "base.sav").string();
+    std::ifstream file_in1(baseSavPath, std::ios::binary);
+    std::ifstream file_in2(File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.dtm.sav",
+                           std::ios::binary);
+    std::vector<unsigned char> contents_in1((std::istreambuf_iterator<char>(file_in1)),
+                                            std::istreambuf_iterator<char>());
+    std::vector<unsigned char> contents_in2((std::istreambuf_iterator<char>(file_in2)),
+                                            std::istreambuf_iterator<char>());
+    std::vector<unsigned char> out;
+
+    create_single_compressed_diff(&contents_in2[0], &contents_in2[0] + contents_in2.size(),
+                                  &contents_in1[0], &contents_in1[0] + contents_in1.size(), out, 0,
+                                  kMinSingleMatchScore_default, kDefaultPatchStepMemSize, false, 0,
+                                  8);
+
+    std::ofstream output_file(File::GetUserPath(D_CITRUSREPLAYS_IDX) + "diffFile.patch");
+    std::ostream_iterator<unsigned char> output_iterator(output_file);
+    std::copy(out.begin(), out.end(), output_iterator);
+    */
+    #ifdef _WIN32
+    std::filesystem::path cwd = std::filesystem::current_path() / "creatediff.bat";
+    std::string pathToBatch = cwd.string();
+    std::string batchPath = "\"\"" + pathToBatch + "\"";
+    std::string pathToSaveState =
+        "\"" + File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.dtm.sav" + "\"";
+    std::string pathToDiff =
+        "\"" + File::GetUserPath(D_CITRUSREPLAYS_IDX) + "diffFile.patch" + "\"";
+    batchPath += " " + pathToSaveState + " " + pathToDiff + "\"";
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
     memset(&si, 0, sizeof(si));
     si.cb = sizeof(si);
     //si.wShowWindow = SW_HIDE;
-    // CREATE_NO_WINDOW
-    if (!CreateProcessA(pathToBatch.c_str(), &batchPath[0], NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL,
+    // CREATE_NO_WINDOW after true
+    INFO_LOG_FMT(CORE, "Path {}, {}", pathToBatch, batchPath);
+
+    if (!CreateProcessA(pathToBatch.c_str(), &batchPath[0], NULL, NULL, TRUE, CREATE_NO_WINDOW,
+                        NULL,
                    NULL, (LPSTARTUPINFOA)&si, &pi))
     {
       // would handle error in here
@@ -459,7 +495,7 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     // the task has ended so close the handle
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
-    */
+    #endif
     //WinExec(batchPath.c_str(), SW_HIDE);
     // https://stackoverflow.com/questions/11370908/how-do-i-use-minizip-on-zlib
     std::vector<std::wstring> paths;
@@ -481,9 +517,23 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
       if (c == '/')
         c = '\\';
     }
-    paths.push_back(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(exampleFile1));
+    std::string exampleFile4 = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "diffFile.patch";
+    for (char& c : exampleFile4)
+    {
+      if (c == '/')
+        c = '\\';
+    }
+    
     paths.push_back(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(exampleFile2));
     paths.push_back(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(exampleFile3));
+    if (File::Exists(exampleFile4))
+    {
+      paths.push_back(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(exampleFile4));
+    }
+    else
+    {
+      paths.push_back(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(exampleFile1));
+    }
     std::string zipName = File::GetUserPath(D_CITRUSREPLAYS_IDX) + gameTime + ".cit ";
 
     zipFile zf = zipOpen(zipName.c_str(), APPEND_STATUS_CREATE);
@@ -524,10 +574,16 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
       _return = false;
     }
 
-    // common function to delete residual files
-    StateAuxillary::endPlayback();
-    if (zipClose(zf, NULL))
+    OSD::ClearMessages();
+    if (zipClose(zf, NULL)) {
+      Core::DisplayMessage("Done saving replay", 2000);
+      // common function to delete residual files
+      StateAuxillary::endPlayback();
       return;
+    }
+
+    Core::DisplayMessage("Done saving replay", 2000);
+    StateAuxillary::endPlayback();
 
     if (!_return)
       return;
@@ -559,11 +615,11 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
   controllerVector.at(3) = controllerPort4;
 
   // set captains, sidekicks, stage, stadium, and overtime
-  leftSideCaptainID = Memory::Read_U32(addressLeftSideCaptainID);
-  rightSideCaptainID = Memory::Read_U32(addressRightSideCaptainID);
-  leftSideSidekickID = Memory::Read_U32(addressLeftSideSidekickID);
-  rightSideSidekickID = Memory::Read_U32(addressRightSideSidekickID);
-  stadiumID = Memory::Read_U32(addressStadiumID);
+  leftSideCaptainID = Metadata::getLeftSideCaptainID();
+  rightSideCaptainID = Metadata::getRightSideCaptainID();
+  leftSideSidekickID = Metadata::getLeftSideSidekickID();
+  rightSideSidekickID = Metadata::getRightSideSidekickID();
+  stadiumID = Metadata::getStadiumID();
   overtimeNotReached = Memory::Read_U8(addressOvertimeNotReachedBool);
 
   // set left team stats
@@ -838,6 +894,15 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
   {
     rightTeamPlayerNamesVector.push_back("CPU");
   }
+
+  // account for me not having the correct goal/shot addresses for cup battles currently
+  if (Metadata::getMatchMode() == 2)
+  {
+    leftSideScore = (int)leftTeamGoalVector.size();
+    rightSideScore = (int)rightTeamGoalVector.size();
+    leftSideShots = (int)(leftSideScore + leftTeamMissedShotsVector.size());
+    rightSideShots = (int)(rightSideScore + rightTeamMissedShotsVector.size());
+  }
 }
 
 void Metadata::setPlayerName(std::string playerNameParam)
@@ -875,4 +940,74 @@ NetPlay::PadMappingArray Metadata::getControllers()
 void Metadata::setNetPlayRoomCode(std::string roomIDParam)
 {
   roomID = roomIDParam;
+}
+
+int Metadata::getMatchMode()
+{
+  return Memory::Read_U8(addressMatchMode);
+}
+
+int Metadata::getLeftSideCaptainID()
+{
+  int matchMode = Metadata::getMatchMode();
+  if (matchMode == 1)
+  {
+    return Memory::Read_U32(addressLeftSideCaptainID);
+  }
+  else
+  {
+    return Memory::Read_U8(addressLeftSideCupCaptainID);
+  }
+}
+
+int Metadata::getRightSideCaptainID()
+{
+  int matchMode = Metadata::getMatchMode();
+  if (matchMode == 1)
+  {
+    return Memory::Read_U32(addressRightSideCaptainID);
+  }
+  else
+  {
+    return Memory::Read_U8(addressRightSideCupCaptainID);
+  }
+}
+
+int Metadata::getLeftSideSidekickID()
+{
+  int matchMode = Metadata::getMatchMode();
+  if (matchMode == 1)
+  {
+    return Memory::Read_U32(addressLeftSideSidekickID);
+  }
+  else
+  {
+    return Memory::Read_U8(addressLeftSideCupSidekickID);
+  }
+}
+
+int Metadata::getRightSideSidekickID()
+{
+  int matchMode = Metadata::getMatchMode();
+  if (matchMode == 1)
+  {
+    return Memory::Read_U32(addressRightSideSidekickID);
+  }
+  else
+  {
+    return Memory::Read_U8(addressRightSideCupSidekickID);
+  }
+}
+
+int Metadata::getStadiumID()
+{
+  int matchMode = Metadata::getMatchMode();
+  if (matchMode == 1)
+  {
+    return Memory::Read_U32(addressStadiumID);
+  }
+  else
+  {
+    return Memory::Read_U8(addressCupStadiumID);
+  }
 }

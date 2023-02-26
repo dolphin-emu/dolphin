@@ -200,16 +200,93 @@ void OnFrameEnd()
 
   static const u32 matchStart = 0x80400000;
   static const u32 matchEnd = 0x80400001;
-  static const u32 grudgeMatchBool = 0x80400003;
+
+  /*
+  if (Movie::IsPlayingInput())
+  {
+    // if you try to overclock it does not speed past the loading screen
+    if (Memory::Read_U8(matchStart) != 1 && (Memory::Read_U8(matchEnd) != 1))
+    {
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 0.0f);
+      SConfig::GetInstance().SaveSettings();
+    }
+    else
+    {
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+      SConfig::GetInstance().SaveSettings();
+    }
+  }
+  */
+
+  /*
+  if (Memory::Read_U8(matchStart) == 1)
+  {
+    if (accessors->ReadF32(addressTimeElapsed) > 0 && moviePlaybackIndex < 279)
+    {
+      PowerPC::HostWrite_F32(sampleInput[moviePlaybackIndex][1], homeCaptainAddressXPos);
+      PowerPC::HostWrite_F32(sampleInput[moviePlaybackIndex][2], homeCaptainAddressYPos);
+      Memory::Write_U32(0x0000001a, 0x8160A534);
+      moviePlaybackIndex++;
+    }
+  }
+  */
+
+  /*
+  // recording state code
+
+  if (Movie::IsPlayingInput() && !moviePlaybackStart)
+  {
+    accessors = AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+    moviePlaybackStart = true;
+    moviePlaybackEnd = false;
+    json_stream << "{" << std::endl;
+  }
+
+  if (Memory::Read_U8(matchStart) == 1 && Movie::IsPlayingInput() && accessors->ReadF32(addressTimeElapsed) > 0)
+  {
+    float currentTime = accessors->ReadF32(addressTimeElapsed);
+    float xPos = accessors->ReadF32(homeCaptainAddressXPos);
+    float yPos = accessors->ReadF32(homeCaptainAddressYPos);
+    CharacterStruct homeCaptainStruct = {currentTime, xPos, yPos};
+    characterVector.push_back(homeCaptainStruct);
+  }
+
+  if ((Memory::Read_U8(matchEnd) == 1 && !moviePlaybackEnd))
+  {
+    moviePlaybackEnd = true;
+    std::string improvedReplayPath = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "playback.json";
+    json_stream << "  \"Home Captain Info\": [" << std::endl;
+    for (int i = 0; i < characterVector.size(); i++)
+    {
+      if (i != characterVector.size() - 1)
+      {
+        json_stream << "    [" << std::to_string(characterVector.at(i).elapsedTime) << ","
+                    << std::to_string(characterVector.at(i).xPos) << ","
+                    << characterVector.at(i).yPos << "]"
+                    << "," << std::endl;
+      }
+      else
+      {
+        json_stream << "    [" << std::to_string(characterVector.at(i).elapsedTime) << ","
+                    << std::to_string(characterVector.at(i).xPos) << ","
+                    << characterVector.at(i).yPos << "]" << std::endl;
+      }
+    }
+    json_stream << "  ]" << std::endl;
+    json_stream << "}" << std::endl;
+    File::WriteStringToFile(improvedReplayPath, json_stream.str());
+  }
+  */
   // overtime is at 0x80400002 so don't use that for anything
 
   // c2 gecko for hud (800f83bc) must be on to make this happen
   // movie cannot be playing input back since we do not want to record that
 
   //match start
-  if (Memory::Read_U8(matchStart) == 1 && !StateAuxillary::getBoolMatchStart() &&
+
+  if (Memory::Read_U8(Metadata::addressMatchStart) == 1 && !StateAuxillary::getBoolMatchStart() &&
       !Movie::IsPlayingInput() && !Movie::IsRecordingInput() && !StateAuxillary::isSpectator() &&
-      Memory::Read_U8(grudgeMatchBool) == 1 &&
+      (Metadata::getMatchMode() == 1 || Metadata::getMatchMode() == 2) &&
       Config::Get(Config::MAIN_REPLAYS))
   {
     boolMatchStart = true;
@@ -219,12 +296,28 @@ void OnFrameEnd()
     StateAuxillary::startRecording();
     StateAuxillary::setBoolMatchEnd(false);
     boolMatchEnd = false;
-
+    /*
+    // generate random numbers and fill spots
+    randomNumberVector.clear();
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    randomNumberVector.push_back(5);
+    int counter = 0;
+    for (int i = 1; i < 29; i++)
+    {
+      // to get range from 25 to 63: 25 + ( std::rand() % ( 63 - 25 + 1 ) )
+      float randomNumber = (i * 10) + (std::rand() % ((i * 10 + 10) - (i*10) + 1));
+      randomNumberVector.push_back(randomNumber);
+      PowerPC::HostWrite_F32(randomNumber, 0x80480008 + counter);
+      counter += 4;
+    }
+    generatedRandomNumbers = true;
+    */
     //direcotry gets created from UICommon.cpp now
   }
 
   //match end
-  if (Memory::Read_U8(matchEnd) == 1 && !StateAuxillary::getBoolMatchEnd() &&
+
+  if (Memory::Read_U8(Metadata::addressMatchEnd) == 1 && !StateAuxillary::getBoolMatchEnd() &&
       !Movie::IsPlayingInput() && Movie::IsRecordingInput())
   {
     StateAuxillary::setBoolMatchEnd(true);

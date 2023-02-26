@@ -18,6 +18,12 @@ public:
   static std::vector<const NetPlay::Player*> getPlayerArray();
   static NetPlay::PadMappingArray getControllers();
   static void setNetPlayRoomCode(std::string roomIDParam);
+  static int getMatchMode();
+  static int getLeftSideCaptainID();
+  static int getRightSideCaptainID();
+  static int getLeftSideSidekickID();
+  static int getRightSideSidekickID();
+  static int getStadiumID();
 
   /*
   Game Derived Locations (we do not mark these as variables because we do not directly use them here, just in gecko codes)
@@ -43,6 +49,12 @@ public:
   static const u32 addressLeftSideSidekickID = 0x815369f8;
   static const u32 addressRightSideSidekickID = 0x815369fc;
   static const u32 addressStadiumID = 0x81536a00;
+
+  static const u32 addressLeftSideCupCaptainID = 0x8040000c;
+  static const u32 addressLeftSideCupSidekickID = 0x8040000d;
+  static const u32 addressRightSideCupCaptainID = 0x8040000e;
+  static const u32 addressRightSideCupSidekickID = 0x8040000f;
+  static const u32 addressCupStadiumID = 0x80400010;
 
   //left team
   static const u32 addressLeftSideScore = 0x81536a56;
@@ -73,8 +85,11 @@ public:
   static const u32 addressMatchDifficulty = 0x81534c6c;
   // using custom time allotted instead. this one is what we see in the hud as opposed to ruleset
   static const u32 addressMatchTimeAllotted = 0x80400008;
+  static const u32 addressMatchStart = 0x80400000;
+  static const u32 addressMatchEnd = 0x80400001;
   static const u32 addressOvertimeNotReachedBool = 0x80400002;
-  // 0x80400003 is if grudge or not
+  // 0 for strikers 101, 1 for grudge, 2 for cups/tournaments
+  static const u32 addressMatchMode = 0x80400003;
   static const u32 addressTimeElapsed = 0x80400004;
   static const u32 addressMatchItemsBool = 0x81534c74;
   static const u32 addressMatchSuperStrikesBool = 0x81534c75;
