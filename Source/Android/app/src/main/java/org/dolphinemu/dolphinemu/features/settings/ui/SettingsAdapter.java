@@ -467,7 +467,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     }
   }
 
-  private void handleMenuTag(MenuTag menuTag, int value)
+  public void handleMenuTag(MenuTag menuTag, int value)
   {
     if (menuTag != null)
     {
@@ -504,8 +504,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       if (scSetting.getSelectedValue(getSettings()) != value)
         mView.onSettingChanged();
 
-      handleMenuTag(scSetting.getMenuTag(), value);
-
       scSetting.setSelectedValue(getSettings(), value);
 
       closeDialog();
@@ -529,8 +527,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       String value = scSetting.getValueAt(which);
       if (!scSetting.getSelectedValue(getSettings()).equals(value))
         mView.onSettingChanged();
-
-      handleMenuTag(scSetting.getMenuTag(), which);
 
       scSetting.setSelectedValue(getSettings(), value);
 

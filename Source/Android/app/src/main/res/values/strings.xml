@@ -478,6 +478,7 @@
     <string name="disabled">Disabled</string>
     <string name="other">Other</string>
     <string name="continue_anyway">Continue Anyway</string>
+    <string name="more_settings">More Settings</string>
 
     <!-- Game Grid Screen-->
     <string name="platform_gamecube">GameCube Games</string>

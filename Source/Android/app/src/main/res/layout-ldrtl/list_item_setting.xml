@@ -9,7 +9,7 @@
     android:clickable="true"
     android:focusable="true"
     android:minHeight="72dp"
-    android:nextFocusRight="@id/button_more_settings">
+    android:nextFocusLeft="@id/button_more_settings">
 
     <TextView
         android:id="@+id/text_setting_name"
@@ -49,7 +49,7 @@
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/spacing_small"
-        android:nextFocusLeft="@id/root"
+        android:nextFocusRight="@id/root"
         android:visibility="gone"
         app:icon="@drawable/ic_settings"
         app:iconTint="?attr/colorOnPrimaryContainer" />
