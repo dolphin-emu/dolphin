@@ -129,8 +129,8 @@ void StateAuxillary::endPlayback()
   replays_path += "\\Citrus Replays\\";
   */
   std::string replays_path = File::GetUserPath(D_CITRUSREPLAYS_IDX);
-  std::string fileArr[3] = {"output.dtm", "output.dtm.sav", "output.json"};
-  for (int i = 0; i < 3; i++)
+  std::string fileArr[4] = {"output.dtm", "output.dtm.sav", "output.json", "diffFile.patch"};
+  for (int i = 0; i < 4; i++)
   {
     std::string innerFileName = replays_path + fileArr[i];
     std::filesystem::remove(innerFileName);
