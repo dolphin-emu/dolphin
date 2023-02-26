@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Settings/WiiPane.h"
 
+#include <future>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
@@ -30,6 +32,7 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/USBDeviceAddToWhitelistDialog.h"
@@ -228,7 +231,17 @@ void WiiPane::CreateSDCard()
         QMessageBox::Yes | QMessageBox::No);
     if (result == QMessageBox::Yes)
     {
-      if (!Common::SyncSDFolderToSDImage([]() { return false; }, false))
+      ParallelProgressDialog progress_dialog(tr("Converting..."), tr("Cancel"), 0, 0, this);
+      progress_dialog.GetRaw()->setWindowModality(Qt::WindowModal);
+      progress_dialog.GetRaw()->setWindowTitle(tr("Progress"));
+      auto success = std::async(std::launch::async, [&] {
+        const bool good = Common::SyncSDFolderToSDImage(
+            [&progress_dialog]() { return progress_dialog.WasCanceled(); }, false);
+        progress_dialog.Reset();
+        return good;
+      });
+      progress_dialog.GetRaw()->exec();
+      if (!success.get())
         ModalMessageBox::warning(this, tr("Convert Folder to File Now"), tr("Conversion failed."));
     }
   });
@@ -242,7 +255,17 @@ void WiiPane::CreateSDCard()
         QMessageBox::Yes | QMessageBox::No);
     if (result == QMessageBox::Yes)
     {
-      if (!Common::SyncSDImageToSDFolder([]() { return false; }))
+      ParallelProgressDialog progress_dialog(tr("Converting..."), tr("Cancel"), 0, 0, this);
+      progress_dialog.GetRaw()->setWindowModality(Qt::WindowModal);
+      progress_dialog.GetRaw()->setWindowTitle(tr("Progress"));
+      auto success = std::async(std::launch::async, [&] {
+        const bool good = Common::SyncSDImageToSDFolder(
+            [&progress_dialog]() { return progress_dialog.WasCanceled(); });
+        progress_dialog.Reset();
+        return good;
+      });
+      progress_dialog.GetRaw()->exec();
+      if (!success.get())
         ModalMessageBox::warning(this, tr("Convert File to Folder Now"), tr("Conversion failed."));
     }
   });
