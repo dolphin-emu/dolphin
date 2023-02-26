@@ -1354,7 +1354,9 @@ void ZeldaAudioRenderer::FetchVPB(u16 voice_id, VPB* vpb)
 void ZeldaAudioRenderer::StoreVPB(u16 voice_id, VPB* vpb)
 {
   u16* vpb_words = (u16*)vpb;
-  u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(m_vpb_base_addr);
+  // volatile is a workaround for msvc optimizer bug, see
+  // https://developercommunity.visualstudio.com/t/VS-175-bad-codegen-optimizing-loop-with/10291620
+  volatile u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(m_vpb_base_addr);
 
   size_t vpb_size = (m_flags & TINY_VPB) ? 0x80 : 0xC0;
   size_t base_idx = voice_id * vpb_size;
