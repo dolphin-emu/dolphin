@@ -20,7 +20,8 @@ enum class ArgTypeEnum
   VoidPointer,
   UnsignedByteVector,
   SignedByteVector,
-  ControllerStateObject
+  ControllerStateObject,
+  ErrorStringType
 };
 }
 #endif

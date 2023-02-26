@@ -1,6 +1,0 @@
-1: userdata
-0,000,018,FAE,70F,BA8
-2: string
-bit
-3: string
-1.0.0

@@ -31,6 +31,7 @@ struct ArgHolder
   std::vector<u8> unsigned_bytes_vector_val;
   std::vector<s8> signed_bytes_vector_val;
   Movie::ControllerState controller_state_val;
+  std::string error_string_val;
 };
 
 ArgHolder CreateBoolArgHolder(bool new_bool_value);
@@ -48,5 +49,6 @@ ArgHolder CreateVoidPointerArgHolder(void* new_void_pointer_val);
 ArgHolder CreateUnsignedBytesVectorArgHolder(const std::vector<u8>& new_unsigned_bytes_vector_val);
 ArgHolder CreateSignedBytesVectorArgHolder(const std::vector<s8>& new_signed_bytes_vector_val);
 ArgHolder CreateControllerStateArgHolder(const Movie::ControllerState& new_controller_state_val);
+ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val);
 }  // namespace Scripting
 #endif

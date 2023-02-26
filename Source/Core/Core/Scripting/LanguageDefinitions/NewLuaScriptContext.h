@@ -1,4 +1,5 @@
 #pragma once
+#include "fmt/format.h"
 #include "lua.hpp"
 #include <memory>
 #include <utility>
@@ -37,14 +38,19 @@ public:
       for (auto& functionMetadata : bitClassMetadata.functions_list)
       {
         lua_CFunction lambdaFunction = [](lua_State* lua_state) mutable {
-          auto localFunctionMetadata = (FunctionMetadata*)lua_touserdata(lua_state, lua_upvalueindex(1));
+          std::string class_name = lua_tostring(lua_state, lua_upvalueindex(1));
+          FunctionMetadata* localFunctionMetadata = (FunctionMetadata*)lua_touserdata(lua_state, lua_upvalueindex(2));
           std::vector<ArgHolder> arguments = std::vector<ArgHolder>();
           ArgHolder returnValue = {};
           if (lua_type(lua_state, 1) != LUA_TUSERDATA)
           {
-            luaL_error(lua_state,
-                       "Error: User attempted to call bit class function using the dot operator. "
-                       "Please use the colon operator instead like this: bit:bitwise_and(4, 81)");
+            luaL_error(
+                lua_state,
+                fmt::format("Error: User attempted to call the {}:{}() function using the dot "
+                            "operator. Please use the colon operator instead like this: {}:{}",
+                            class_name, localFunctionMetadata->function_name, class_name,
+                            localFunctionMetadata->example_function_call)
+                    .c_str());
           }
 
           int next_index_in_args = 2;
@@ -142,6 +148,11 @@ public:
           case ArgTypeEnum::String:
             lua_pushstring(lua_state, returnValue.string_val.c_str());
             return 1;
+          case ArgTypeEnum::ErrorStringType:
+            luaL_error(lua_state, fmt::format("Error: in {}:{}() function, {}", class_name,
+                                              localFunctionMetadata->function_name,
+                                              returnValue.error_string_val)
+                                      .c_str());
           default:
             luaL_error(lua_state, "Error: unsupported return type encountered in function!");
             return 0;
@@ -150,8 +161,9 @@ public:
 
         FunctionMetadata* heap_metadata = new FunctionMetadata(functionMetadata);
         lua_pushstring(lua_state, heap_metadata->function_name.c_str());
+        lua_pushstring(lua_state, bitClassMetadata.class_name.c_str());
         lua_pushlightuserdata(lua_state, heap_metadata);
-        lua_pushcclosure(lua_state, lambdaFunction, 1);
+        lua_pushcclosure(lua_state, lambdaFunction, 2);
         lua_settable(lua_state, -3);
       }
 

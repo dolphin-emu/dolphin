@@ -122,4 +122,14 @@ ArgHolder CreateControllerStateArgHolder(const Movie::ControllerState& new_contr
   return_val.controller_state_val = new_controller_state_val;
   return return_val;
 }
+
+ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val)
+{
+  ArgHolder return_val = {};
+  return_val.argument_type = ArgTypeEnum::ErrorStringType;
+  return_val.error_string_val = new_error_string_val;
+  return return_val;
+}
+
+
 }  // namespace Scripting
