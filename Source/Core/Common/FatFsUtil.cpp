@@ -535,7 +535,10 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
   }
 
   // delete temp file in failure case
-  Common::ScopeGuard image_delete_guard{[&] { File::Delete(temp_image_path); }};
+  Common::ScopeGuard image_delete_guard{[&] {
+    image.Close();
+    File::Delete(temp_image_path);
+  }};
 
   if (!image.Resize(size))
   {
