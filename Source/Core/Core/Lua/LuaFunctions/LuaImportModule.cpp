@@ -76,8 +76,8 @@ int ImportCommon(lua_State* lua_state, const char* func_name)
   else if (module_class == std::string(LuaRegisters::class_name))
     LuaRegisters::InitLuaRegistersFunctions(lua_state, version_number);
 
-  else if (module_class == std::string(LuaStatistics::class_name))
-    LuaStatistics::InitLuaStatisticsFunctions(lua_state, version_number);
+  else if (module_class == "statistics")
+    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "statistics");
   else
     luaL_error(lua_state,
                fmt::format("Error: In function {}:{}(), unknown module name of {} was passed in.",

@@ -9,6 +9,7 @@
 #include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
+#include "Core/Lua/LuaFunctions/LuaStatistics.h"
 #include "Core/Lua/LuaHelperClasses/LuaStateToScriptContextMap.h"
 
 namespace Scripting
@@ -35,13 +36,21 @@ public:
     inline GcController(){};
   };
 
+  class Statistics
+  {
+  public:
+    inline Statistics(){};
+  };
+
   static Bit* GetBitInstance() { return std::make_unique<Bit>(Bit()).get(); }
 
   static Emu* GetEmuInstance() { return std::make_unique<Emu>(Emu()).get(); }
 
-  static GcController* GetGcControllerInstance()
+  static GcController* GetGcControllerInstance() { return std::make_unique<GcController>(GcController()).get(); }
+
+  static Statistics* GetStatisticsInstance()
   {
-    return std::make_unique<GcController>(GcController()).get();
+    return std::make_unique<Statistics>(Statistics()).get();
   }
 
   static std::string GetMagnitudeOutOfBoundsErrorMessage(const std::string& class_name, const std::string& func_name, const std::string& button_name)
@@ -70,6 +79,12 @@ public:
           (GcController**)lua_newuserdata(lua_state, sizeof(GcController*));
       *gc_controller_ptr_ptr = GetGcControllerInstance();
     }
+    else if (api_name == "statistics")
+    {
+      Statistics** statistics_ptr_ptr =
+          (Statistics**)lua_newuserdata(lua_state, sizeof(Statistics*));
+      *statistics_ptr_ptr = GetStatisticsInstance();
+    }
 
       luaL_newmetatable(lua_state, (std::string("Lua") + char(std::toupper(api_name[0])) + api_name.substr(1) + "MetaTable").c_str());
       lua_pushvalue(lua_state, -1);
@@ -82,6 +97,8 @@ public:
         classMetadata = EmuApi::GetEmuApiClassData(api_version);
       else if (api_name == "gcController")
         classMetadata = GameCubeControllerApi::GetGameCubeControllerApiClassData(api_version);
+      else if (api_name == "statistics")
+        classMetadata = StatisticsApi::GetStatisticsApiClassData(api_version);
 
       std::vector<luaL_Reg> final_lua_functions_list = std::vector<luaL_Reg>();
 
