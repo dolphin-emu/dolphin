@@ -226,27 +226,9 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
-  public void onSerialPort1SettingChanged(MenuTag menuTag, int value)
+  public void onMenuTagAction(@NonNull MenuTag menuTag, int value)
   {
-    mActivity.onSerialPort1SettingChanged(menuTag, value);
-  }
-
-  @Override
-  public void onGcPadSettingChanged(MenuTag menuTag, int value)
-  {
-    mActivity.onGcPadSettingChanged(menuTag, value);
-  }
-
-  @Override
-  public void onWiimoteSettingChanged(MenuTag menuTag, int value)
-  {
-    mActivity.onWiimoteSettingChanged(menuTag, value);
-  }
-
-  @Override
-  public void onExtensionSettingChanged(MenuTag menuTag, int value)
-  {
-    mActivity.onExtensionSettingChanged(menuTag, value);
+    mActivity.onMenuTagAction(menuTag, value);
   }
 
   private void setInsets()

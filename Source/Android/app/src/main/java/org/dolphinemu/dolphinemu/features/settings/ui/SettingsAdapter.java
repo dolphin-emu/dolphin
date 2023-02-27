@@ -467,30 +467,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     }
   }
 
-  public void handleMenuTag(MenuTag menuTag, int value)
+  public void onMenuTagAction(@NonNull MenuTag menuTag, int value)
   {
-    if (menuTag != null)
-    {
-      if (menuTag.isSerialPort1Menu())
-      {
-        mView.onSerialPort1SettingChanged(menuTag, value);
-      }
-
-      if (menuTag.isGCPadMenu())
-      {
-        mView.onGcPadSettingChanged(menuTag, value);
-      }
-
-      if (menuTag.isWiimoteMenu())
-      {
-        mView.onWiimoteSettingChanged(menuTag, value);
-      }
-
-      if (menuTag.isWiimoteExtensionMenu())
-      {
-        mView.onExtensionSettingChanged(menuTag, value);
-      }
-    }
+    mView.onMenuTagAction(menuTag, value);
   }
 
   @Override

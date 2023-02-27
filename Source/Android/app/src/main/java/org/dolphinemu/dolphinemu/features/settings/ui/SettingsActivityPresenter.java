@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ComponentActivity;
 
 import org.dolphinemu.dolphinemu.R;
@@ -128,47 +129,50 @@ public final class SettingsActivityPresenter
     return mShouldSave;
   }
 
-  public void onSerialPort1SettingChanged(MenuTag key, int value)
+  public void onMenuTagAction(@NonNull MenuTag menuTag, int value)
   {
-    if (value != 0 && value != 255) // Not disabled or dummy
+    if (menuTag.isSerialPort1Menu())
     {
-      Bundle bundle = new Bundle();
-      bundle.putInt(SettingsFragmentPresenter.ARG_SERIALPORT1_TYPE, value);
-      mView.showSettingsFragment(key, bundle, true, mGameId);
+      if (value != 0 && value != 255) // Not disabled or dummy
+      {
+        Bundle bundle = new Bundle();
+        bundle.putInt(SettingsFragmentPresenter.ARG_SERIALPORT1_TYPE, value);
+        mView.showSettingsFragment(menuTag, bundle, true, mGameId);
+      }
     }
-  }
 
-  public void onGcPadSettingChanged(MenuTag key, int value)
-  {
-    if (value != 0) // Not disabled
+    if (menuTag.isGCPadMenu())
     {
-      Bundle bundle = new Bundle();
-      bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
-      mView.showSettingsFragment(key, bundle, true, mGameId);
+      if (value != 0) // Not disabled
+      {
+        Bundle bundle = new Bundle();
+        bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
+        mView.showSettingsFragment(menuTag, bundle, true, mGameId);
+      }
     }
-  }
 
-  public void onWiimoteSettingChanged(MenuTag menuTag, int value)
-  {
-    switch (value)
+    if (menuTag.isWiimoteMenu())
     {
-      case 1:
-        mView.showSettingsFragment(menuTag, null, true, mGameId);
-        break;
+      switch (value)
+      {
+        case 1:
+          mView.showSettingsFragment(menuTag, null, true, mGameId);
+          break;
 
-      case 2:
-        mView.showToastMessage(mActivity.getString(R.string.make_sure_continuous_scan_enabled));
-        break;
+        case 2:
+          mView.showToastMessage(mActivity.getString(R.string.make_sure_continuous_scan_enabled));
+          break;
+      }
     }
-  }
 
-  public void onExtensionSettingChanged(MenuTag menuTag, int value)
-  {
-    if (value != 0) // None
+    if (menuTag.isWiimoteExtensionMenu())
     {
-      Bundle bundle = new Bundle();
-      bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
-      mView.showSettingsFragment(menuTag, bundle, true, mGameId);
+      if (value != 0) // None
+      {
+        Bundle bundle = new Bundle();
+        bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
+        mView.showSettingsFragment(menuTag, bundle, true, mGameId);
+      }
     }
   }
 }

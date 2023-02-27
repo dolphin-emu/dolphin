@@ -2,6 +2,7 @@
 
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -72,35 +73,11 @@ public interface SettingsFragmentView
   void onSettingChanged();
 
   /**
-   * Called by a containing Fragment to tell the containing Activity that the Serial Port 1 setting
-   * was modified.
+   * Have the fragment tell the containing Activity that the user wants to open the MenuTag
+   * associated with a setting.
    *
-   * @param menuTag Identifier for the SerialPort that was modified.
-   * @param value   New setting for the SerialPort.
+   * @param menuTag The MenuTag to open.
+   * @param value   The current value of the associated setting.
    */
-  void onSerialPort1SettingChanged(MenuTag menuTag, int value);
-
-  /**
-   * Have the fragment tell the containing Activity that a GCPad's setting was modified.
-   *
-   * @param menuTag Identifier for the GCPad that was modified.
-   * @param value   New setting for the GCPad.
-   */
-  void onGcPadSettingChanged(MenuTag menuTag, int value);
-
-  /**
-   * Have the fragment tell the containing Activity that a Wiimote's setting was modified.
-   *
-   * @param menuTag Identifier for Wiimote that was modified.
-   * @param value   New setting for the Wiimote.
-   */
-  void onWiimoteSettingChanged(MenuTag menuTag, int value);
-
-  /**
-   * Have the fragment tell the containing Activity that an extension setting was modified.
-   *
-   * @param menuTag Identifier for the extension that was modified.
-   * @param value   New setting for the extension.
-   */
-  void onExtensionSettingChanged(MenuTag menuTag, int value);
+  void onMenuTagAction(@NonNull MenuTag menuTag, int value);
 }

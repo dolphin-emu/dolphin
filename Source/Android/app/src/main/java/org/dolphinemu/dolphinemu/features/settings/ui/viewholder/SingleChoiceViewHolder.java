@@ -108,7 +108,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
       final MenuTag finalMenuTag = menuTag;
       final Function<Settings, Integer> finalGetSelectedValue = getSelectedValue;
       mBinding.buttonMoreSettings.setOnClickListener((view) ->
-              adapter.handleMenuTag(finalMenuTag, finalGetSelectedValue.apply(settings)));
+              adapter.onMenuTagAction(finalMenuTag, finalGetSelectedValue.apply(settings)));
     }
     else
     {

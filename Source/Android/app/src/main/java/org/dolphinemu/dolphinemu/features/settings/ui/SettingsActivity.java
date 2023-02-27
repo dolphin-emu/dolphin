@@ -305,27 +305,9 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
-  public void onSerialPort1SettingChanged(MenuTag menuTag, int value)
+  public void onMenuTagAction(@NonNull MenuTag menuTag, int value)
   {
-    mPresenter.onSerialPort1SettingChanged(menuTag, value);
-  }
-
-  @Override
-  public void onGcPadSettingChanged(MenuTag key, int value)
-  {
-    mPresenter.onGcPadSettingChanged(key, value);
-  }
-
-  @Override
-  public void onWiimoteSettingChanged(MenuTag section, int value)
-  {
-    mPresenter.onWiimoteSettingChanged(section, value);
-  }
-
-  @Override
-  public void onExtensionSettingChanged(MenuTag menuTag, int value)
-  {
-    mPresenter.onExtensionSettingChanged(menuTag, value);
+    mPresenter.onMenuTagAction(menuTag, value);
   }
 
   @Override
