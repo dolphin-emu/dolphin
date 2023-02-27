@@ -683,7 +683,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="replug_gc_adapter">GameCube Adapter couldn\'t be opened. Please re-plug the device.</string>
     <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
     <string name="ignore_warning_alert_messages">Ignore for this session</string>
-    <string name="make_sure_continuous_scan_enabled">Please make sure Continuous Scanning is enabled in Core Settings.</string>
 
     <!-- UI CPU Core selection -->
     <string name="jit_recompiler_x86">JIT Recompiler for x86–64 (recommended)</string>

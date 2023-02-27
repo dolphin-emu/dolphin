@@ -101,7 +101,8 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
       getSelectedValue = setting::getSelectedValueIndex;
     }
 
-    if (menuTag != null)
+    if (menuTag != null &&
+            adapter.hasMenuTagActionForValue(menuTag, getSelectedValue.apply(settings)))
     {
       mBinding.buttonMoreSettings.setVisibility(View.VISIBLE);
 

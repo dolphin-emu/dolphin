@@ -311,6 +311,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
+  public boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value)
+  {
+    return mPresenter.hasMenuTagActionForValue(menuTag, value);
+  }
+
+  @Override
   public boolean onSupportNavigateUp()
   {
     onBackPressed();

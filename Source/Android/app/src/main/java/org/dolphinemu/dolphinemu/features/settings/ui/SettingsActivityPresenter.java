@@ -153,26 +153,45 @@ public final class SettingsActivityPresenter
 
     if (menuTag.isWiimoteMenu())
     {
-      switch (value)
+      if (value == 1) // Emulated Wii Remote
       {
-        case 1:
-          mView.showSettingsFragment(menuTag, null, true, mGameId);
-          break;
-
-        case 2:
-          mView.showToastMessage(mActivity.getString(R.string.make_sure_continuous_scan_enabled));
-          break;
+        mView.showSettingsFragment(menuTag, null, true, mGameId);
       }
     }
 
     if (menuTag.isWiimoteExtensionMenu())
     {
-      if (value != 0) // None
+      if (value != 0) // Not disabled
       {
         Bundle bundle = new Bundle();
         bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
         mView.showSettingsFragment(menuTag, bundle, true, mGameId);
       }
     }
+  }
+
+  public boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value)
+  {
+    if (menuTag.isSerialPort1Menu())
+    {
+      return (value != 0 && value != 255); // Not disabled or dummy
+    }
+
+    if (menuTag.isGCPadMenu())
+    {
+      return (value != 0); // Not disabled
+    }
+
+    if (menuTag.isWiimoteMenu())
+    {
+      return (value == 1); // Emulated Wii Remote
+    }
+
+    if (menuTag.isWiimoteExtensionMenu())
+    {
+      return (value != 0); // Not disabled
+    }
+
+    return false;
   }
 }

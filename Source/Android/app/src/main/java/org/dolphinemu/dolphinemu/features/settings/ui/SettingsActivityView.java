@@ -64,10 +64,19 @@ public interface SettingsActivityView
    * Called by a containing Fragment to tell the containing Activity that the user wants to open the
    * MenuTag associated with a setting.
    *
-   * @param menuTag The MenuTag to open.
-   * @param value   The current value of the associated setting.
+   * @param menuTag The MenuTag of the setting.
+   * @param value   The current value of the setting.
    */
   void onMenuTagAction(@NonNull MenuTag menuTag, int value);
+
+  /**
+   * Returns whether anything will happen when the user wants to open the MenuTag associated with a
+   * setting, given the current value of the setting.
+   *
+   * @param menuTag The MenuTag of the setting.
+   * @param value   The current value of the setting.
+   */
+  boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value);
 
   /**
    * Show loading dialog while loading the settings

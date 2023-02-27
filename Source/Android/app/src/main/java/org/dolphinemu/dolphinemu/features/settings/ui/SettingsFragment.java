@@ -231,6 +231,11 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     mActivity.onMenuTagAction(menuTag, value);
   }
 
+  public boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value)
+  {
+    return mActivity.hasMenuTagActionForValue(menuTag, value);
+  }
+
   private void setInsets()
   {
     ViewCompat.setOnApplyWindowInsetsListener(mBinding.listSettings, (v, windowInsets) ->

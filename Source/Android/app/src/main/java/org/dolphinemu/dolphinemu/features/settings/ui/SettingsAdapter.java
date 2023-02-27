@@ -472,6 +472,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mView.onMenuTagAction(menuTag, value);
   }
 
+  public boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value)
+  {
+    return mView.hasMenuTagActionForValue(menuTag, value);
+  }
+
   @Override
   public void onClick(DialogInterface dialog, int which)
   {
