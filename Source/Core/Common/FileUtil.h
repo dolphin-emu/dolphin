@@ -140,8 +140,11 @@ u64 GetSize(const std::string& path);
 // Overloaded GetSize, accepts FILE*
 u64 GetSize(FILE* f);
 
-// Returns true if successful, or path already exists.
+// Creates a single directory. Returns true if successful or if the path already exists.
 bool CreateDir(const std::string& filename);
+
+// Creates directories recursively. Returns true if successful or if the path already exists.
+bool CreateDirs(std::string_view filename);
 
 // Creates the full path to the file given in fullPath.
 // That is, for path '/a/b/c.bin', creates folders '/a' and '/a/b'.
@@ -185,9 +188,17 @@ bool DeleteDirRecursively(const std::string& directory);
 // Returns the current directory
 std::string GetCurrentDir();
 
-// Create directory and copy contents (optionally overwrites existing files)
-bool CopyDir(const std::string& source_path, const std::string& dest_path,
-             bool destructive = false);
+// Copies source_path to dest_path, as if by std::filesystem::copy(). Returns true on success or if
+// the source and destination are already the same (as determined by std::filesystem::equivalent()).
+bool Copy(std::string_view source_path, std::string_view dest_path,
+          bool overwrite_existing = false);
+
+// Moves source_path to dest_path. On success, the source_path will no longer exist, and the
+// dest_path will contain the data previously in source_path. Files in dest_path will be overwritten
+// if they match files in source_path, but files that only exist in dest_path will be kept. No
+// guarantee on the state is given on failure; the move may have completely failed or partially
+// completed.
+bool MoveWithOverwrite(std::string_view source_path, std::string_view dest_path);
 
 // Set the current directory to given directory
 bool SetCurrentDir(const std::string& directory);
