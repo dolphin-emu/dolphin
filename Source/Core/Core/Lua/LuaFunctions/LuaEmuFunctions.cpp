@@ -48,7 +48,7 @@ void StatePauseFunction()
   Core::SetState(Core::State::Paused);
 }
 
-ArgHolder EmuFrameAdvance(std::vector<ArgHolder>& args_list)
+ArgHolder EmuFrameAdvance(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   return CreateYieldTypeArgHolder();
 }
@@ -60,7 +60,7 @@ bool CheckIfFileExists(std::string filename)
   return true;
 }
 
-ArgHolder EmuLoadState(std::vector<ArgHolder>& args_list)
+ArgHolder EmuLoadState(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   load_state_name = args_list[0].string_val;
   if (!CheckIfFileExists(load_state_name))
@@ -71,7 +71,7 @@ ArgHolder EmuLoadState(std::vector<ArgHolder>& args_list)
   return CreateYieldTypeArgHolder();
 }
 
-ArgHolder EmuSaveState(std::vector<ArgHolder>& args_list)
+ArgHolder EmuSaveState(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   save_state_name = args_list[0].string_val;
   waiting_for_save_state_save = true;
@@ -79,7 +79,7 @@ ArgHolder EmuSaveState(std::vector<ArgHolder>& args_list)
   return CreateYieldTypeArgHolder();
 }
 
-ArgHolder EmuPlayMovie(std::vector<ArgHolder>& args_list)
+ArgHolder EmuPlayMovie(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   play_movie_name = args_list[0].string_val;
   if (!CheckIfFileExists(play_movie_name))
@@ -92,7 +92,7 @@ ArgHolder EmuPlayMovie(std::vector<ArgHolder>& args_list)
   return CreateYieldTypeArgHolder();
 }
 
-ArgHolder EmuSaveMovie(std::vector<ArgHolder>& args_list)
+ArgHolder EmuSaveMovie(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   save_movie_name = args_list[0].string_val;
   waiting_to_save_movie = true;

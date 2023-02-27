@@ -674,7 +674,7 @@ static std::string Analog1DToString(u32 v, const std::string& prefix, u32 range 
 // NOTE: CPU Thread
 static void SetInputDisplayString(ControllerState padState, int controllerID)
 {
-  Lua::LuaGameCubeController::controller_inputs_on_last_frame[controllerID] = padState;
+  Scripting::GameCubeControllerApi::controller_inputs_on_last_frame[controllerID] = padState;
 
   std::string display_str = fmt::format("P{}:", controllerID + 1);
 
@@ -1310,14 +1310,14 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 
   if (Lua::is_lua_core_initialized)
   {
-    Lua::LuaGameCubeController::current_controller_number_polled = controllerID;
-    Lua::LuaGameCubeController::overwrite_controller_at_specified_port[controllerID] = false;
-    memcpy(&Lua::LuaGameCubeController::new_controller_inputs[controllerID], &s_temp_input[s_currentByte], sizeof(ControllerState));
+    Scripting::GameCubeControllerApi::current_controller_number_polled = controllerID;
+    Scripting::GameCubeControllerApi::overwrite_controller_at_specified_port[controllerID] = false;
+    memcpy(&Scripting::GameCubeControllerApi::new_controller_inputs[controllerID], &s_temp_input[s_currentByte], sizeof(ControllerState));
     Lua::LuaOnGCControllerPolled::RunCallbacks();
-    if (Lua::LuaGameCubeController::overwrite_controller_at_specified_port[controllerID])
+    if (Scripting::GameCubeControllerApi::overwrite_controller_at_specified_port[controllerID])
     {
       memcpy(&s_temp_input[s_currentByte],
-             &Lua::LuaGameCubeController::new_controller_inputs[controllerID],
+             &Scripting::GameCubeControllerApi::new_controller_inputs[controllerID],
              sizeof(ControllerState));
 
     }  

@@ -1,7 +1,7 @@
 #ifndef ARG_HOLDER
 #define ARG_HOLDER
 #include <string>
-#include <vector>
+#include <map>
 #include "Common/CommonTypes.h"
 #include "Core/Movie.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
@@ -28,8 +28,9 @@ struct ArgHolder
   double double_val;
   std::string string_val;
   void* void_pointer_val;
-  std::vector<u8> unsigned_bytes_vector_val;
-  std::vector<s8> signed_bytes_vector_val;
+  std::map<long long, u8> address_to_unsigned_byte_map;
+  std::map<long long, s8> address_to_signed_byte_map;
+  std::map<long long, s16> address_to_byte_map;
   Movie::ControllerState controller_state_val;
   std::string error_string_val;
 };
@@ -46,10 +47,14 @@ ArgHolder CreateFloatArgHolder(float new_float_val);
 ArgHolder CreateDoubleArgHolder(double new_double_val);
 ArgHolder CreateStringArgHolder(const std::string& new_string_val);
 ArgHolder CreateVoidPointerArgHolder(void* new_void_pointer_val);
-ArgHolder CreateUnsignedBytesVectorArgHolder(const std::vector<u8>& new_unsigned_bytes_vector_val);
-ArgHolder CreateSignedBytesVectorArgHolder(const std::vector<s8>& new_signed_bytes_vector_val);
+
+ArgHolder CreateAddressToUnsignedByteMapArgHolder(const std::map<long long, u8>& new_address_to_unsigned_byte_map);
+ArgHolder CreateAddressToSignedByteMapArgHolder(const std::map<long long, s8>& new_address_to_signed_byte_map);
+ArgHolder CreateAddressToByteMapArgHolder(const std::map<long long, s16>& new_address_to_byte_map);
+
 ArgHolder CreateControllerStateArgHolder(const Movie::ControllerState& new_controller_state_val);
 ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val);
 ArgHolder CreateYieldTypeArgHolder();
+ArgHolder CreateVoidTypeArgHolder();
 }  // namespace Scripting
 #endif

@@ -13,22 +13,23 @@
 #include "Core/Movie.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
+#include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
+#include "Core/Scripting/HelperClasses/ArgHolder.h"
+#include "Core/Scripting/HelperClasses/ClassMetadata.h"
 
-namespace Lua::LuaGameCubeController
+namespace Scripting::GameCubeControllerApi
 {
 extern const char* class_name;
 
 extern std::array<bool, 4> overwrite_controller_at_specified_port;
 extern std::array<Movie::ControllerState, 4> new_controller_inputs;
+extern std::array<Movie::ControllerState, 4> controller_inputs_on_last_frame;
 extern int current_controller_number_polled;
 
-extern std::array<Movie::ControllerState, 4> controller_inputs_on_last_frame;
-
-void InitLuaGameCubeControllerFunctions(lua_State* lua_state, const std::string& lua_api_version);
-
-int GetCurrentPortNumberOfPoll(lua_State* lua_state);
-int SetInputsForPoll(lua_State* lua_state);
-int GetInputsForPoll(lua_State* lua_state);
-int GetInputsForPreviousFrame(lua_State* lua_state);
+ClassMetadata GetGameCubeControllerApiClassData(const std::string& api_version);
+ArgHolder GetCurrentPortNumberOfPoll(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list);
+ArgHolder SetInputsForPoll(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list);
+ArgHolder GetInputsForPoll(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list);
+ArgHolder GetInputsForPreviousFrame(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list);
 
 }  // namespace Lua::LuaGameCubeController

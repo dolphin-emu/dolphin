@@ -83,7 +83,7 @@
     <ClInclude Include="Core\Lua\LuaFunctions\LuaRegisters.h" />
     <ClInclude Include="Core\Lua\LuaFunctions\LuaStatistics.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\luaL_Reg_With_Version.h" />
-    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaScriptCallLocations.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\ScriptCallLocations.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaScriptContext.h" />
     <ClInclude Include="Core\Lua\LuaHelperClasses\LuaStateToScriptContextMap.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\ClassMetadata.h" />

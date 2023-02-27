@@ -132,7 +132,7 @@ int RunCallbacks()
 
     if (current_script->gc_controller_input_polled_callback_locations.size() > 0)
     {
-      current_script->current_call_location = LuaScriptCallLocations::FromGCControllerInputPolled;
+      current_script->current_call_location = Scripting::ScriptCallLocations::FromGCControllerInputPolled;
       
       for (size_t function_index = 0; function_index < current_script->gc_controller_input_polled_callback_locations.size(); ++function_index)
       {

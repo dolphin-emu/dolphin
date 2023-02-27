@@ -125,7 +125,7 @@ int RunCallbacks()
     current_script->lua_script_specific_lock.lock();
     if (current_script->frame_callback_locations.size() > 0)
     {
-      current_script->current_call_location = LuaScriptCallLocations::FromFrameStartCallback;
+      current_script->current_call_location = Scripting::ScriptCallLocations::FromFrameStartCallback;
       if (current_script->index_of_next_frame_callback_to_execute >=
           current_script->frame_callback_locations.size())
       {
@@ -185,7 +185,7 @@ int RunCallbacks()
 
     if (!current_script->finished_with_global_code)
     {
-      current_script->current_call_location = LuaScriptCallLocations::FromFrameStartGlobalScope;
+      current_script->current_call_location = Scripting::ScriptCallLocations::FromFrameStartGlobalScope;
       int ret_val = lua_resume(current_script->main_lua_thread, nullptr, 0, &x);
       if (ret_val == LUA_YIELD)
         current_script->called_yielding_function_in_last_global_script_resume = true;

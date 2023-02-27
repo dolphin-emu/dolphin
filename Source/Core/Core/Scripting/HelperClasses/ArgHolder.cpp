@@ -99,19 +99,28 @@ ArgHolder CreateVoidPointerArgHolder(void* new_void_pointer_val)
   return return_val;
 }
 
-ArgHolder CreateUnsignedBytesVectorArgHolder(const std::vector<u8>& new_unsigned_bytes_vector_val)
+ArgHolder CreateAddressToUnsignedByteMapArgHolder(
+    const std::map<long long, u8>& new_address_to_unsigned_byte_map)
 {
   ArgHolder return_val = {};
-  return_val.argument_type = ArgTypeEnum::UnsignedByteVector;
-  return_val.unsigned_bytes_vector_val = new_unsigned_bytes_vector_val;
+  return_val.argument_type = ArgTypeEnum::AddressToUnsignedByteMap;
+  return_val.address_to_unsigned_byte_map = new_address_to_unsigned_byte_map;
   return return_val;
 }
 
-ArgHolder CreateSignedBytesVectorArgHolder(const std::vector<s8>& new_signed_bytes_vector_val)
+ArgHolder CreateAddressToSignedByteMapArgHolder(const std::map<long long, s8>& new_address_to_signed_byte_map)
 {
   ArgHolder return_val = {};
-  return_val.argument_type = ArgTypeEnum::SignedByteVector;
-  return_val.signed_bytes_vector_val = new_signed_bytes_vector_val;
+  return_val.argument_type = ArgTypeEnum::AddressToSignedByteMap;
+  return_val.address_to_signed_byte_map = new_address_to_signed_byte_map;
+  return return_val;
+}
+
+ArgHolder CreateAddressToByteMapArgHolder(const std::map<long long, s16>& new_address_to_byte_map)
+{
+  ArgHolder return_val = {};
+  return_val.argument_type = ArgTypeEnum::AddressToByteMap;
+  return_val.address_to_byte_map = new_address_to_byte_map;
   return return_val;
 }
 
@@ -138,6 +147,12 @@ ArgHolder CreateYieldTypeArgHolder()
   return return_val;
 }
 
+ArgHolder CreateVoidTypeArgHolder()
+{
+  ArgHolder return_val = {};
+  return_val.argument_type = ArgTypeEnum::VoidType;
+  return return_val;
+}
 
 
 }  // namespace Scripting

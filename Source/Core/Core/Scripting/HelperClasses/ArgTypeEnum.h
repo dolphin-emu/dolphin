@@ -18,8 +18,9 @@ enum class ArgTypeEnum
   Double,
   String,
   VoidPointer,
-  UnsignedByteVector,
-  SignedByteVector,
+  AddressToUnsignedByteMap,
+  AddressToSignedByteMap,
+  AddressToByteMap,
   ControllerStateObject,
   ErrorStringType,
   YieldType

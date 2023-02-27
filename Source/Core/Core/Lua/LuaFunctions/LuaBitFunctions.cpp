@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 #include <memory>
 #include "Common/CommonTypes.h"
+#include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 
 namespace Scripting::BitApi
@@ -38,61 +39,61 @@ static std::array all_bit_functions_metadata_list = {
   return {class_name, GetLatestFunctionsForVersion(all_bit_functions_metadata_list, api_version, deprecated_functions_map)};
 }
 
-ArgHolder BitwiseAnd(std::vector<ArgHolder>& args_list)
+ArgHolder BitwiseAnd(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateLongLongArgHolder(first_val & second_val);
 }
 
-ArgHolder BitwiseOr(std::vector<ArgHolder>& args_list)
+ArgHolder BitwiseOr(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateLongLongArgHolder(first_val | second_val);
 }
 
-ArgHolder BitwiseNot(std::vector<ArgHolder>& args_list)
+ArgHolder BitwiseNot(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   s64 input_val = args_list[0].long_long_val;
   return CreateLongLongArgHolder(~input_val);
 }
 
-ArgHolder BitwiseXor(std::vector<ArgHolder>& args_list)
+ArgHolder BitwiseXor(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateLongLongArgHolder(first_val ^ second_val);
 }
 
-ArgHolder LogicalAnd(std::vector<ArgHolder>& args_list)
+ArgHolder LogicalAnd(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateBoolArgHolder(first_val && second_val);
 }
 
-ArgHolder LogicalOr(std::vector<ArgHolder>& args_list)
+ArgHolder LogicalOr(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateBoolArgHolder(first_val || second_val);
 }
 
-ArgHolder LogicalXor(std::vector<ArgHolder>& args_list)
+ArgHolder LogicalXor(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateBoolArgHolder((first_val || second_val) && !(first_val && second_val));
 }
 
-ArgHolder LogicalNot(std::vector<ArgHolder>& args_list)
+ArgHolder LogicalNot(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   s64 input_val = args_list[0].long_long_val;
   return CreateBoolArgHolder(!input_val);
 }
 
-ArgHolder BitShiftLeft(std::vector<ArgHolder>& args_list)
+ArgHolder BitShiftLeft(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
@@ -107,7 +108,7 @@ ArgHolder BitShiftLeft(std::vector<ArgHolder>& args_list)
       static_cast<s64>(static_cast<u64>(first_val) << static_cast<u64>(second_val)));
 }
 
-ArgHolder BitShiftRight(std::vector<ArgHolder>& args_list)
+ArgHolder BitShiftRight(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;

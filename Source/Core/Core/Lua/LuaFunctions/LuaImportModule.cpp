@@ -67,8 +67,8 @@ int ImportCommon(lua_State* lua_state, const char* func_name)
   else if (module_class == "emu")
     Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "emu");
 
-  else if (module_class == std::string(LuaGameCubeController::class_name))
-    LuaGameCubeController::InitLuaGameCubeControllerFunctions(lua_state, version_number);
+  else if (module_class == "gcController")
+    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "gcController");
 
   else if (module_class == std::string(LuaMemoryApi::class_name))
     LuaMemoryApi::InitLuaMemoryApi(lua_state, version_number);

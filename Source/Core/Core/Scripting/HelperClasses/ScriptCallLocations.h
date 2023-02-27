@@ -1,9 +1,9 @@
 #ifndef LUA_SCRIPT_CALL_LOCS
 #define LUA_SCRIPT_CALL_LOCS
 
-namespace Lua
+namespace Scripting
 {
-enum class LuaScriptCallLocations
+enum class ScriptCallLocations
 {
   FromScriptStartup,
   FromFrameStartGlobalScope,

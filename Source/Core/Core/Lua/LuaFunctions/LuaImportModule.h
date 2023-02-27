@@ -3,7 +3,7 @@
 
 #include <lua.hpp>
 
-#include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
+#include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
 
 namespace Lua::LuaImportModule
 {

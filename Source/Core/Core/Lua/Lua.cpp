@@ -5,7 +5,7 @@
 #include "Core/Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h"
 #include "Core/Lua/LuaEventCallbackClasses/LuaOnGCControllerPolled.h"
 #include "Core/Lua/LuaFunctions/LuaImportModule.h"
-#include "Core/Lua/LuaHelperClasses/LuaScriptCallLocations.h"
+#include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
 #include "Core/Lua/LuaHelperClasses/LuaStateToScriptContextMap.h"
 #include "Common/FileUtil.h"
 #include "Core/Movie.h"
@@ -138,7 +138,7 @@ void Init(const std::string& script_location,
       ->lua_state_to_script_context_pointer_map[new_lua_script_context->main_lua_thread] =
       new_lua_script_context.get();
 
-  new_lua_script_context->current_call_location = LuaScriptCallLocations::FromScriptStartup;
+  new_lua_script_context->current_call_location = Scripting::ScriptCallLocations::FromScriptStartup;
   new_lua_script_context->lua_script_specific_lock.lock();
   list_of_lua_script_contexts.push_back(new_lua_script_context);
 
