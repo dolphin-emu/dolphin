@@ -51,6 +51,7 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "Core/StateAuxillary.h"
+#include "Config/GraphicsSettings.h"
 
 namespace BootManager
 {
@@ -70,6 +71,9 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   {
     return false;
   }
+
+  // overwrite savestate texture cache option to always be false. keeps savestates to minimum size
+  Config::SetBaseOrCurrent(Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE, false);
 
   // set replay and default gecko codes bool value to false for this instance of core
   StateAuxillary::setBoolMatchStart(false);
