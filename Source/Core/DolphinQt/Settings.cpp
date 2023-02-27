@@ -22,6 +22,8 @@
 
 #include <QTabBar>
 #include <QToolButton>
+
+#include <winrt/Windows.UI.ViewManagement.h>
 #endif
 
 #include "AudioCommon/AudioCommon.h"
@@ -127,8 +129,25 @@ QString Settings::GetCurrentUserStyle() const
 }
 
 // Calling this before the main window has been created breaks the style of some widgets.
-void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
+void Settings::SetCurrentUserStyle(QString stylesheet_name)
 {
+#ifdef _WIN32
+  // On the first boot of Dolphin, automatically select the dark theme
+  // if the Windows system has it enabled
+  if (stylesheet_name.isEmpty())
+  {
+    using namespace winrt::Windows::UI::ViewManagement;
+    const UISettings settings;
+    const auto& color = settings.GetColorValue(UIColorType::Foreground);
+
+    const bool is_system_dark = (((5 * color.G) + (2 * color.R) + color.B) > (8 * 128));
+    if (is_system_dark)
+    {
+      stylesheet_name = QStringLiteral("Dark");
+    }
+  }
+#endif
+
   QString stylesheet_contents;
 
   // If we haven't found one, we continue with an empty (default) style

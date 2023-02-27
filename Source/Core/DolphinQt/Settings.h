@@ -52,7 +52,7 @@ public:
 
   // UI
   void SetThemeName(const QString& theme_name);
-  void SetCurrentUserStyle(const QString& stylesheet_name);
+  void SetCurrentUserStyle(QString stylesheet_name);
   QString GetCurrentUserStyle() const;
 
   void GetToolTipStyle(QColor& window_color, QColor& text_color, QColor& emphasis_text_color,

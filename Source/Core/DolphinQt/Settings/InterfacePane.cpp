@@ -253,8 +253,7 @@ void InterfacePane::LoadConfig()
           m_combobox_theme->findText(QString::fromStdString(Config::Get(Config::MAIN_THEME_NAME))));
 
   const QString userstyle = Settings::Instance().GetCurrentUserStyle();
-  const int index = m_combobox_userstyle->findData(QFileInfo(userstyle).fileName());
-
+  const int index = m_combobox_userstyle->findText(userstyle);
   if (index > 0)
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
 
