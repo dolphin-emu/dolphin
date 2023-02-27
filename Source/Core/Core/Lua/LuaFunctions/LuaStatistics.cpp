@@ -2,7 +2,6 @@
 
 #include <fmt/format.h>
 #include <memory>
-#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 #include "Core/Lua/LuaVersionResolver.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
@@ -26,7 +25,6 @@ static std::array all_statistics_functions_metadata_list = {
   FunctionMetadata("isGcControllerInPort", "1.0", "isGcControllerInPort(1)", IsGcControllerInPort, ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong}),
   FunctionMetadata("isUsingPort", "1.0", "isUsingPort(1)", IsUsingPort, ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong})
 };
-
 
  ClassMetadata GetStatisticsApiClassData(const std::string& api_version)
 {

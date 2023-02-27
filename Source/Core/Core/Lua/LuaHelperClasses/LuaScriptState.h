@@ -13,7 +13,7 @@
 namespace Lua
 {
 
-struct LuaScriptContext
+struct LuaScriptState
 {
   int unique_script_identifier;
   std::string script_filename;
@@ -53,7 +53,7 @@ struct LuaScriptContext
   bool is_lua_script_active;
   };
 
-  std::shared_ptr<LuaScriptContext>
+  std::shared_ptr<LuaScriptState>
   CreateNewLuaScriptContext(lua_State* new_main_lua_state, int new_unique_script_identifier,
                             const std::string& new_script_filename);
   }

@@ -5,10 +5,12 @@
 #include <utility>
 #include <fstream>
 
+#include "Core/Lua/LuaHelperClasses/LuaGCButtons.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
+#include "Core/Lua/LuaFunctions/LuaMemoryApi.h"
 #include "Core/Lua/LuaFunctions/LuaStatistics.h"
 #include "Core/Lua/LuaHelperClasses/LuaStateToScriptContextMap.h"
 
@@ -36,6 +38,12 @@ public:
     inline GcController(){};
   };
 
+  class MEMORY
+  {
+  public:
+    inline MEMORY(){};
+  };
+
   class Statistics
   {
   public:
@@ -47,6 +55,8 @@ public:
   static Emu* GetEmuInstance() { return std::make_unique<Emu>(Emu()).get(); }
 
   static GcController* GetGcControllerInstance() { return std::make_unique<GcController>(GcController()).get(); }
+
+  static MEMORY* GetMemoryInstance() { return std::make_unique<MEMORY>(MEMORY()).get(); }
 
   static Statistics* GetStatisticsInstance()
   {
@@ -79,6 +89,11 @@ public:
           (GcController**)lua_newuserdata(lua_state, sizeof(GcController*));
       *gc_controller_ptr_ptr = GetGcControllerInstance();
     }
+    else if (api_name == "memory")
+    {
+      MEMORY** memory_ptr_ptr = (MEMORY**)lua_newuserdata(lua_state, sizeof(MEMORY*));
+      *memory_ptr_ptr = GetMemoryInstance();
+    }
     else if (api_name == "statistics")
     {
       Statistics** statistics_ptr_ptr =
@@ -97,6 +112,8 @@ public:
         classMetadata = EmuApi::GetEmuApiClassData(api_version);
       else if (api_name == "gcController")
         classMetadata = GameCubeControllerApi::GetGameCubeControllerApiClassData(api_version);
+      else if (api_name == "memory")
+        classMetadata = MemoryApi::GetMemoryApiClassData(api_version);
       else if (api_name == "statistics")
         classMetadata = StatisticsApi::GetStatisticsApiClassData(api_version);
 
@@ -112,7 +129,7 @@ public:
           Lua::LuaStateToScriptContextMap* state_to_script_context_map =
               (Lua::LuaStateToScriptContextMap*)lua_touserdata(lua_state, -1);
           lua_pop(lua_state, 1);
-          Lua::LuaScriptContext* corresponding_script_context =
+          Lua::LuaScriptState* corresponding_script_context =
               state_to_script_context_map->lua_state_to_script_context_pointer_map[lua_state];
           std::vector<ArgHolder> arguments = std::vector<ArgHolder>();
           ArgHolder returnValue = {};
@@ -155,6 +172,15 @@ public:
                     .c_str());
           }
 
+          if (localFunctionMetadata->return_type == ArgTypeEnum::U64)
+          {
+            luaL_error(
+                lua_state,
+                fmt::format("Error: User attempted to call the {}:{}() function, which returns a "
+                            "u64. The largest size type that Dolphin supports for Lua is s64. As "
+                            "such, please use an s64 version of this function instead.",
+                            class_name, localFunctionMetadata->function_name).c_str());
+          }
           int next_index_in_args = 2;
           for (ArgTypeEnum arg_type : localFunctionMetadata->arguments_list)
           {
@@ -175,6 +201,15 @@ public:
             case ArgTypeEnum::U32:
               arguments.push_back(
                   CreateU32ArgHolder(luaL_checkinteger(lua_state, next_index_in_args)));
+              break;
+            case ArgTypeEnum::U64:
+              luaL_error(
+                  lua_state,
+                  fmt::format("Error: User attempted to call the {}:{}() function, which takes a "
+                              "u64 as one of its parameters. The largest type supported in Dolphin "
+                              "for Lua is s64. Please use an s64 version of the function instead.",
+                              class_name, localFunctionMetadata->function_name)
+                      .c_str());
               break;
             case ArgTypeEnum::S8:
               arguments.push_back(
@@ -421,6 +456,15 @@ public:
           case ArgTypeEnum::U32:
             lua_pushinteger(lua_state, returnValue.u32_val);
             return 1;
+          case ArgTypeEnum::U64:
+            luaL_error(
+                lua_state,
+                fmt::format("Error: User called the {}:{}() function, which returned a value of "
+                            "type u64. The largest value that Dolphin supports for Lua is s64. "
+                            "Please call an s64 version of the function instead.",
+                            class_name, localFunctionMetadata->function_name)
+                    .c_str());
+            break;
           case ArgTypeEnum::S8:
             lua_pushinteger(lua_state, returnValue.s8_val);
             return 1;

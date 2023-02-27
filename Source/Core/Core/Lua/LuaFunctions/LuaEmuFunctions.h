@@ -2,7 +2,6 @@
 
 #include <lua.hpp>
 #include <string>
-#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"

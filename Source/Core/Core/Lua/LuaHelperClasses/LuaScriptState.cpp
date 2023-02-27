@@ -1,12 +1,12 @@
-#include "Core/Lua/LuaHelperClasses/LuaScriptContext.h"
+#include "Core/Lua/LuaHelperClasses/LuaScriptState.h"
 
 namespace Lua
 {
-std::shared_ptr<LuaScriptContext> CreateNewLuaScriptContext(lua_State* new_main_lua_state,
+std::shared_ptr<LuaScriptState> CreateNewLuaScriptContext(lua_State* new_main_lua_state,
                                                             int new_unique_script_identifier,
                                                             const std::string& new_script_filename)
 {
-  std::shared_ptr<LuaScriptContext> return_result = std::make_unique<LuaScriptContext>();
+  std::shared_ptr<LuaScriptState> return_result = std::make_unique<LuaScriptState>();
   return_result->unique_script_identifier = new_unique_script_identifier;
   return_result->script_filename = new_script_filename;
   return_result->finished_with_global_code = false;

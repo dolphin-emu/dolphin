@@ -10,6 +10,7 @@ enum class ArgTypeEnum
   U8,
   U16,
   U32,
+  U64,
   S8,
   S16,
   Integer,

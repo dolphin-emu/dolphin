@@ -15,7 +15,7 @@ namespace Lua
 std::string global_lua_api_version = "1.0.0";
 int x = 0;
 bool is_lua_core_initialized = false;
-std::vector<std::shared_ptr<LuaScriptContext>> list_of_lua_script_contexts = std::vector<std::shared_ptr<LuaScriptContext>>();
+std::vector<std::shared_ptr<LuaScriptState>> list_of_lua_script_contexts = std::vector<std::shared_ptr<LuaScriptState>>();
 std::function<void(const std::string&)>* print_callback_function = nullptr;
 std::function<void(int)>* script_end_callback_function = nullptr;
 static std::mutex lua_initialization_and_destruction_lock;
@@ -133,7 +133,7 @@ void Init(const std::string& script_location,
   lua_newtable(new_main_lua_state);
   lua_pushcfunction(new_main_lua_state, CustomPrintFunction);
   lua_setglobal(new_main_lua_state, "print");
-  std::shared_ptr<LuaScriptContext> new_lua_script_context = Lua::CreateNewLuaScriptContext(new_main_lua_state, unique_script_identifier,  script_location);
+  std::shared_ptr<LuaScriptState> new_lua_script_context = Lua::CreateNewLuaScriptContext(new_main_lua_state, unique_script_identifier,  script_location);
   state_to_script_context_map.get()
       ->lua_state_to_script_context_pointer_map[new_lua_script_context->main_lua_thread] =
       new_lua_script_context.get();
@@ -202,7 +202,7 @@ void StopScript(int unique_identifier)
   {
     if (list_of_lua_script_contexts[i].get()->unique_script_identifier == unique_identifier)
     {
-      LuaScriptContext* script_context_to_delete = list_of_lua_script_contexts[i].get();
+      LuaScriptState* script_context_to_delete = list_of_lua_script_contexts[i].get();
       script_context_to_delete->lua_script_specific_lock.lock();
       script_context_to_delete->is_lua_script_active = false;
       script_context_to_delete->lua_script_specific_lock.unlock();

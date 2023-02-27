@@ -6,7 +6,6 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 #include "Core/Lua/LuaHelperClasses/NumberType.h"
 #include "Core/Lua/LuaVersionResolver.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -238,7 +237,6 @@ void PushValueFromAddress(lua_State* lua_state, const char* func_name, u8* memor
 int GetRegister(lua_State* lua_state)
 {
   const char* func_name = "getRegister";
-  LuaColonOperatorTypeCheck(lua_state, class_name, func_name, "(\"r4\", \"u32\", 4)");
   const char* register_string = luaL_checkstring(lua_state, 2);
   RegisterObject register_object = ParseRegister(register_string);
 
@@ -322,14 +320,12 @@ int PushByteArrayFromAddressHelperFunction(lua_State* lua_state, bool is_unsigne
 int GetRegisterAsUnsignedByteArray(lua_State* lua_state)
 {
   const char* func_name = "getRegisterAsUnsignedByteArray";
-  LuaColonOperatorTypeCheck(lua_state, class_name, func_name, "(\"r4\", 2, 6)");
   return PushByteArrayFromAddressHelperFunction(lua_state, true, func_name);
 }
 
 int GetRegisterAsSignedByteArray(lua_State* lua_state)
 {
   const char* func_name = "getRegisterAsSignedByteArray";
-  LuaColonOperatorTypeCheck(lua_state, class_name, func_name, "(\"r4\", 2, 6)");
   return PushByteArrayFromAddressHelperFunction(lua_state, false, func_name);
 }
 
@@ -423,7 +419,6 @@ void WriteValueToAddress(lua_State* lua_state, const char* func_name, u8* memory
 int SetRegister(lua_State* lua_state)
 {
   const char* func_name = "setRegister";
-  LuaColonOperatorTypeCheck(lua_state, class_name, func_name, "(\"r4\", \"u32\", 45, 4)");
   const char* register_string = luaL_checkstring(lua_state, 2);
   RegisterObject register_object = ParseRegister(register_string);
   const char* type_string = luaL_checkstring(lua_state, 3);
@@ -466,7 +461,6 @@ bool SortIndexValuePairByIndexFunction(IndexValuePair o1, IndexValuePair o2)
 int SetRegisterFromByteArray(lua_State* lua_state)
 {
   const char* func_name = "setRegisterFromByteArray";
-  LuaColonOperatorTypeCheck(lua_state, class_name, func_name, "(\"r4\", byteTable, 2)");
   const char* register_string = luaL_checkstring(lua_state, 2);
   RegisterObject register_object = ParseRegister(register_string);
   u8 register_size = 4;

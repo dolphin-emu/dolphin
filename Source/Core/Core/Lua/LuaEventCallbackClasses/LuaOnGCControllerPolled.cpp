@@ -6,7 +6,6 @@
 
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
-#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 #include "Core/Lua/LuaHelperClasses/LuaStateToScriptContextMap.h"
 #include "Core/Lua/LuaVersionResolver.h"
 #include "Core/Movie.h"
@@ -32,13 +31,13 @@ LuaOnGCControllerPoll* GetInstance()
 }
 
 static const char* class_name = "OnGCControllerPolled";
-static std::vector<std::shared_ptr<LuaScriptContext>>* pointer_to_lua_script_list;
+static std::vector<std::shared_ptr<LuaScriptState>>* pointer_to_lua_script_list;
 static std::function<void(const std::string&)>* print_callback_function;
 static std::function<void(int)>* script_end_callback_function = nullptr;
 
 void InitLuaOnGCControllerPolledCallbackFunctions(
     lua_State* main_lua_thread, const std::string& lua_api_version,
-    std::vector<std::shared_ptr<LuaScriptContext>>* new_pointer_to_lua_script_list,
+    std::vector<std::shared_ptr<LuaScriptState>>* new_pointer_to_lua_script_list,
     std::function<void(const std::string&)>* new_print_callback_function,
     std::function<void(int)>* new_script_end_callback_function)
 {
@@ -65,7 +64,6 @@ void InitLuaOnGCControllerPolledCallbackFunctions(
 
 int Register(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, class_name, "register", "(functionName)");
   lua_getglobal(lua_state, "StateToScriptContextMap");
   std::string r = luaL_typename(lua_state, -1);
   if (!lua_islightuserdata(lua_state, -1))
@@ -73,7 +71,7 @@ int Register(lua_State* lua_state)
   LuaStateToScriptContextMap* state_to_script_context_map =
       (LuaStateToScriptContextMap*)lua_touserdata(lua_state, -1);
   lua_pop(lua_state, 1);
-  LuaScriptContext* corresponding_script_context =
+  LuaScriptState* corresponding_script_context =
       state_to_script_context_map->lua_state_to_script_context_pointer_map[lua_state];
   if (corresponding_script_context == nullptr)
     luaL_error(lua_state,
@@ -93,13 +91,12 @@ int Register(lua_State* lua_state)
 
 int Unregister(lua_State* lua_state)
 {
-  LuaColonOperatorTypeCheck(lua_state, class_name, "unregister", "()");
   int function_reference_to_delete = lua_tointeger(lua_state, 2);
   lua_getglobal(lua_state, "StateToScriptContextMap");
   LuaStateToScriptContextMap* state_to_script_context_map =
       (LuaStateToScriptContextMap*)lua_touserdata(lua_state, -1);
   lua_pop(lua_state, 1);
-  LuaScriptContext* corresponding_script_context =
+  LuaScriptState* corresponding_script_context =
       state_to_script_context_map->lua_state_to_script_context_pointer_map[lua_state];
   if (corresponding_script_context == nullptr)
     luaL_error(lua_state, "Error: in OnGCControllerInputPolled:unregister(func) method, could not find the lua "
@@ -125,7 +122,7 @@ int RunCallbacks()
   size_t number_of_scripts = pointer_to_lua_script_list->size();
   for (size_t i = 0; i < number_of_scripts; ++i)
   {
-    LuaScriptContext* current_script = (*pointer_to_lua_script_list)[i].get();
+    LuaScriptState* current_script = (*pointer_to_lua_script_list)[i].get();
     if (!current_script->is_lua_script_active)
       break;
     current_script->lua_script_specific_lock.lock();

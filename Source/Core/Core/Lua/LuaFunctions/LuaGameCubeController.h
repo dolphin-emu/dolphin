@@ -8,8 +8,6 @@
 #include <vector>
 
 #include "Core/HW/GCPad.h"
-#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
-#include "Core/Lua/LuaHelperClasses/LuaGameCubeButtonProbabilityClasses.h"
 #include "Core/Movie.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"

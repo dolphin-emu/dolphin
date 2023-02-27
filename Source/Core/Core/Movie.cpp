@@ -65,6 +65,7 @@
 #include "Core/Lua/LuaEventCallbackClasses/LuaOnGCControllerPolled.h"
 #include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 #include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
+#include "Core/Lua/LuaHelperClasses/LuaGCButtons.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
 #include "Core/System.h"

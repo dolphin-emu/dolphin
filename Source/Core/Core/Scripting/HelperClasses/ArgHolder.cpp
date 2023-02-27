@@ -35,6 +35,14 @@ ArgHolder CreateU32ArgHolder(u32 new_u32_val)
   return return_val;
 }
 
+ArgHolder CreateU64ArgHolder(u64 new_u64_val)
+{
+  ArgHolder return_val = {};
+  return_val.argument_type = ArgTypeEnum::U64;
+  return_val.u64_val = new_u64_val;
+  return return_val;
+}
+
 ArgHolder CreateS8ArgHolder(s8 new_s8_val)
 {
   ArgHolder return_val = {};

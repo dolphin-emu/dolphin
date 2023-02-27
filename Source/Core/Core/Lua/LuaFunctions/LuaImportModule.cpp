@@ -10,7 +10,6 @@
 #include <fmt/format.h>
 #include <memory>
 #include <unordered_map>
-#include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
 #include "Core/Lua/LuaHelperClasses/luaL_Reg_With_Version.h"
 #include "Core/Lua/LuaVersionResolver.h"
 
@@ -56,8 +55,6 @@ void InitLuaImportModule(lua_State* lua_state, const std::string& lua_api_versio
 
 int ImportCommon(lua_State* lua_state, const char* func_name)
 {
-  LuaColonOperatorTypeCheck(lua_state, class_name, func_name,
-                            "(module_name, version_number)");
   std::string module_class = luaL_checkstring(lua_state, 2);
   std::string version_number = luaL_checkstring(lua_state, 3);
 
@@ -70,8 +67,8 @@ int ImportCommon(lua_State* lua_state, const char* func_name)
   else if (module_class == "gcController")
     Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "gcController");
 
-  else if (module_class == std::string(LuaMemoryApi::class_name))
-    LuaMemoryApi::InitLuaMemoryApi(lua_state, version_number);
+  else if (module_class == "memory")
+    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "memory");
 
   else if (module_class == std::string(LuaRegisters::class_name))
     LuaRegisters::InitLuaRegistersFunctions(lua_state, version_number);

@@ -20,6 +20,7 @@ struct ArgHolder
   u8 u8_val;
   u16 u16_val;
   u32 u32_val;
+  u64 u64_val;
   s8 s8_val;
   s16 s16_val;
   int int_val;
@@ -39,6 +40,7 @@ ArgHolder CreateBoolArgHolder(bool new_bool_value);
 ArgHolder CreateU8ArgHolder(u8 new_u8_val);
 ArgHolder CreateU16ArgHolder(u16 new_u16_val);
 ArgHolder CreateU32ArgHolder(u32 new_u32_val);
+ArgHolder CreateU64ArgHolder(u64 new_u64_val);
 ArgHolder CreateS8ArgHolder(s8 new_s8_val);
 ArgHolder CreateS16ArgHolder(s16 new_s16_val);
 ArgHolder CreateIntArgHolder(int new_int_val);
