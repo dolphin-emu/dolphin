@@ -97,10 +97,10 @@ ArgHolder BitShiftLeft(std::vector<ArgHolder>& args_list)
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   if (first_val < 0)
-    return CreateErrorStringArgHolder("first argument passed to the function was negative. Both "
+    return CreateErrorStringArgHolder("first argument passed into the function was negative. Both "
                                       "arguments to the function must be positive!");
   else if (second_val < 0)
-    return CreateErrorStringArgHolder("second argument passed to the function was negative. Both "
+    return CreateErrorStringArgHolder("second argument passed into the function was negative. Both "
                                       "arguments to the function must be positive!");
 
   return CreateLongLongArgHolder(

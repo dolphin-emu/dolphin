@@ -50,5 +50,6 @@ ArgHolder CreateUnsignedBytesVectorArgHolder(const std::vector<u8>& new_unsigned
 ArgHolder CreateSignedBytesVectorArgHolder(const std::vector<s8>& new_signed_bytes_vector_val);
 ArgHolder CreateControllerStateArgHolder(const Movie::ControllerState& new_controller_state_val);
 ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val);
+ArgHolder CreateYieldTypeArgHolder();
 }  // namespace Scripting
 #endif

@@ -525,7 +525,7 @@ void SaveAs(const std::string& filename, bool wait)
         }
         if (Lua::is_lua_core_initialized)
         {
-          Lua::LuaEmu::waiting_for_save_state_save = false;
+          Scripting::EmuApi::waiting_for_save_state_save = false;
         }
       },
       true);
@@ -718,7 +718,7 @@ void LoadAs(const std::string& filename)
           s_on_after_load_callback();
         if (Lua::is_lua_core_initialized)
         {
-          Lua::LuaEmu::waiting_for_save_state_load = false;
+          Scripting::EmuApi::waiting_for_save_state_load = false;
         }
       },
       true);

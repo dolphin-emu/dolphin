@@ -64,8 +64,8 @@ int ImportCommon(lua_State* lua_state, const char* func_name)
   if (module_class == "bit")
     Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "bit");
 
-  else if (module_class == std::string(LuaEmu::class_name))
-    LuaEmu::InitLuaEmuFunctions(lua_state, version_number);
+  else if (module_class == "emu")
+    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "emu");
 
   else if (module_class == std::string(LuaGameCubeController::class_name))
     LuaGameCubeController::InitLuaGameCubeControllerFunctions(lua_state, version_number);

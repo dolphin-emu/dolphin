@@ -21,7 +21,8 @@ enum class ArgTypeEnum
   UnsignedByteVector,
   SignedByteVector,
   ControllerStateObject,
-  ErrorStringType
+  ErrorStringType,
+  YieldType
 };
 }
 #endif

@@ -5,14 +5,25 @@
 #include <optional>
 #include "Core/Core.h"
 #include "Core/Lua/LuaVersionResolver.h"
+#include "Core/Scripting/HelperClasses/FunctionMetadata.h"
+#include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
-#include <fstream>
+#include "Core/Scripting/HelperClasses/VersionResolver.h"
 
-namespace Lua::LuaEmu
+
+namespace Scripting::EmuApi
 {
+
 const char* class_name = "emu";
+static std::array all_emu_functions_metadata_list = {
+  FunctionMetadata("frameAdvance", "1.0", "frameAdvance()", EmuFrameAdvance, ArgTypeEnum::YieldType, {}),
+  FunctionMetadata("loadState", "1.0", "loadState(\"savestateFilename.sav\")", EmuLoadState, ArgTypeEnum::YieldType, {ArgTypeEnum::String}),
+  FunctionMetadata("saveState", "1.0", "saveState(\"savestateFilename.sav\")", EmuSaveState, ArgTypeEnum::YieldType, {ArgTypeEnum::String}),
+  FunctionMetadata("playMovie", "1.0", "playMovie(\"movieFilename.dtm\")", EmuPlayMovie, ArgTypeEnum::YieldType, {ArgTypeEnum::String}),
+  FunctionMetadata("saveMovie", "1.0", "saveMovie(\"movieFilename.dtm\")", EmuSaveMovie, ArgTypeEnum::YieldType, {ArgTypeEnum::String})
+};
 
 bool waiting_for_save_state_load = false;
 bool waiting_for_save_state_save = false;
@@ -26,45 +37,10 @@ static std::string play_movie_name;
 static std::optional<std::string> blank_string;
 static std::string save_movie_name;
 
-class Emu
+ ClassMetadata GetEmuApiClassData(const std::string& api_version)
 {
-public:
-  inline Emu() {}
-};
-
-static std::unique_ptr<Emu> emu_pointer = nullptr;
-
-Emu* GetEmuInstance()
-{
-  if (emu_pointer == nullptr)
-    emu_pointer = std::make_unique<Emu>(Emu());
-  return emu_pointer.get();
-}
-
-void InitLuaEmuFunctions(lua_State* lua_state, const std::string& lua_api_version)
-{
-  waiting_for_save_state_load = false;
-  waiting_for_save_state_save = false;
-  waiting_to_start_playing_movie = false;
-  waiting_to_save_movie = false;
-  Emu** emu_ptr_ptr = (Emu**)lua_newuserdata(lua_state, sizeof(Emu*));
-  *emu_ptr_ptr = GetEmuInstance();
-  luaL_newmetatable(lua_state, "LuaEmuMetaTable");
-  lua_pushvalue(lua_state, -1);
-  lua_setfield(lua_state, -2, "__index");
-
-  std::array lua_emu_functions_with_versions_attached = {
-      luaL_Reg_With_Version({"frameAdvance", "1.0", EmuFrameAdvance}),
-      luaL_Reg_With_Version({"loadState", "1.0", EmuLoadState}),
-      luaL_Reg_With_Version({"saveState", "1.0", EmuSaveState}),
-      luaL_Reg_With_Version({"playMovie", "1.0", EmuPlayMovie}),
-      luaL_Reg_With_Version({"saveMovie", "1.0", EmuSaveMovie}),
-  };
-
   std::unordered_map<std::string, std::string> deprecated_functions_map;
-  AddLatestFunctionsForVersion(lua_emu_functions_with_versions_attached, lua_api_version,
-                               deprecated_functions_map, lua_state);
-  lua_setglobal(lua_state, class_name);
+  return {class_name, GetLatestFunctionsForVersion(all_emu_functions_metadata_list, api_version, deprecated_functions_map)};
 }
 
 void StatePauseFunction()
@@ -72,62 +48,56 @@ void StatePauseFunction()
   Core::SetState(Core::State::Paused);
 }
 
-int EmuFrameAdvance(lua_State* lua_state)
+ArgHolder EmuFrameAdvance(std::vector<ArgHolder>& args_list)
 {
-  LuaColonOperatorTypeCheck(lua_state, class_name, "frameAdvance", "()");
-  return lua_yield(lua_state, 0);
+  return CreateYieldTypeArgHolder();
 }
 
-std::string CheckIfFileExistsAndGetFileName(lua_State* lua_state, const char* func_name)
+bool CheckIfFileExists(std::string filename)
 {
-  const std::string file_name = luaL_checkstring(lua_state, 2);
-  if (!std::filesystem::exists(file_name))
-    luaL_error(
-        lua_state,
-        fmt::format(
-            "Error: Filename {} passed into {}:{} function did not represent a file which exists",
-            file_name, class_name, func_name)
-            .c_str());
-  return file_name;
+  if (!std::filesystem::exists(filename))
+    return false;
+  return true;
 }
 
-int EmuLoadState(lua_State* lua_state)
+ArgHolder EmuLoadState(std::vector<ArgHolder>& args_list)
 {
-  LuaColonOperatorTypeCheck(lua_state, class_name, "loadState", "(stateFileName)");
-  load_state_name = CheckIfFileExistsAndGetFileName(lua_state, "loadState");
+  load_state_name = args_list[0].string_val;
+  if (!CheckIfFileExists(load_state_name))
+    return CreateErrorStringArgHolder(fmt::format("could not find savestate with filename of {}", load_state_name).c_str());
+
   waiting_for_save_state_load = true;
   Core::QueueHostJob([=]() { State::LoadAs(load_state_name); });
-  return lua_yield(lua_state, 0);
+  return CreateYieldTypeArgHolder();
 }
 
-int EmuSaveState(lua_State* lua_state)
+ArgHolder EmuSaveState(std::vector<ArgHolder>& args_list)
 {
-  LuaColonOperatorTypeCheck(lua_state, class_name, "saveState", "(stateFileName)");
-  save_state_name = luaL_checkstring(lua_state, 2);
+  save_state_name = args_list[0].string_val;
   waiting_for_save_state_save = true;
   Core::QueueHostJob([=]() { State::SaveAs(save_state_name); });
-  return lua_yield(lua_state, 0);
+  return CreateYieldTypeArgHolder();
 }
 
-int EmuPlayMovie(lua_State* lua_state)
+ArgHolder EmuPlayMovie(std::vector<ArgHolder>& args_list)
 {
-  LuaColonOperatorTypeCheck(lua_state, class_name, "playMovie", "(movieFileName)");
-  play_movie_name = CheckIfFileExistsAndGetFileName(lua_state, "playMovie");
+  play_movie_name = args_list[0].string_val;
+  if (!CheckIfFileExists(play_movie_name))
+    return CreateErrorStringArgHolder(fmt::format("could not find a movie with filename of {}", play_movie_name).c_str());
   waiting_to_start_playing_movie = true;
   Core::QueueHostJob([=]() {
     Movie::EndPlayInput(false);
     Movie::PlayInput(play_movie_name, &blank_string);
   });
-  return lua_yield(lua_state, 0);
+  return CreateYieldTypeArgHolder();
 }
 
-int EmuSaveMovie(lua_State* lua_state)
+ArgHolder EmuSaveMovie(std::vector<ArgHolder>& args_list)
 {
-  LuaColonOperatorTypeCheck(lua_state, class_name, "saveMovie", "(movieFileName)");
-  save_movie_name = luaL_checkstring(lua_state, 2);
+  save_movie_name = args_list[0].string_val;
   waiting_to_save_movie = true;
   Core::QueueHostJob([=]() { Movie::SaveRecording(save_movie_name); });
-  return lua_yield(lua_state, 0);
+  return CreateYieldTypeArgHolder();
 }
 
 }  // namespace Lua::LuaEmu

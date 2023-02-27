@@ -862,10 +862,10 @@ void Callback_FramePresented(double actual_emulation_speed)
 // Called from VideoInterface::Update (CPU thread) at emulated field boundaries
 void Callback_NewField()
 {
-  if (Lua::is_lua_core_initialized && !Lua::LuaEmu::waiting_for_save_state_load &&
-      !Lua::LuaEmu::waiting_for_save_state_save && !Lua::LuaEmu::waiting_to_start_playing_movie &&
-      !Lua::LuaEmu::waiting_for_save_state_save && !Lua::LuaEmu::waiting_to_start_playing_movie &&
-      !Lua::LuaEmu::waiting_to_save_movie)
+  if (Lua::is_lua_core_initialized && !Scripting::EmuApi::waiting_for_save_state_load &&
+      !Scripting::EmuApi::waiting_for_save_state_save && !Scripting::EmuApi::waiting_to_start_playing_movie &&
+      !Scripting::EmuApi::waiting_for_save_state_save && !Scripting::EmuApi::waiting_to_start_playing_movie &&
+      !Scripting::EmuApi::waiting_to_save_movie)
   {
     Lua::LuaOnFrameStartCallback::RunCallbacks();
   }

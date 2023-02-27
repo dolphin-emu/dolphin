@@ -131,5 +131,13 @@ ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val)
   return return_val;
 }
 
+ArgHolder CreateYieldTypeArgHolder()
+{
+  ArgHolder return_val = {};
+  return_val.argument_type = ArgTypeEnum::YieldType;
+  return return_val;
+}
+
+
 
 }  // namespace Scripting

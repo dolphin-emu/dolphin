@@ -1027,7 +1027,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
 
   if (Lua::is_lua_core_initialized)
   {
-    Lua::LuaEmu::waiting_to_start_playing_movie = false;
+    Scripting::EmuApi::waiting_to_start_playing_movie = false;
   }
 
   return true;
@@ -1548,7 +1548,7 @@ void SaveRecording(const std::string& filename)
 
   if (Lua::is_lua_core_initialized)
   {
-    Lua::LuaEmu::waiting_to_save_movie = false;
+    Scripting::EmuApi::waiting_to_save_movie = false;
   }
 }
 

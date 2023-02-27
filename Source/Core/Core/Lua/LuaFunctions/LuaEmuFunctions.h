@@ -3,8 +3,11 @@
 #include <lua.hpp>
 #include <string>
 #include "Core/Lua/LuaHelperClasses/LuaColonCheck.h"
+#include "Core/Scripting/HelperClasses/ArgHolder.h"
+#include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
+#include "Core/Scripting/HelperClasses/ClassMetadata.h"
 
-namespace Lua::LuaEmu
+namespace Scripting::EmuApi
 {
 extern const char* class_name;
 
@@ -13,11 +16,11 @@ extern bool waiting_for_save_state_save;
 extern bool waiting_to_start_playing_movie;
 extern bool waiting_to_save_movie;
 
-void InitLuaEmuFunctions(lua_State* lua_state, const std::string& lua_api_version);
-int EmuFrameAdvance(lua_State* lua_State);
-int EmuLoadState(lua_State* lua_state);
-int EmuSaveState(lua_State* lua_state);
-int EmuPlayMovie(lua_State* lua_state);
-int EmuSaveMovie(lua_State* lua_state);
+ClassMetadata GetEmuApiClassData(const std::string& api_version);
+ArgHolder EmuFrameAdvance(std::vector<ArgHolder>& args_list);
+ArgHolder EmuLoadState(std::vector<ArgHolder>& args_list);
+ArgHolder EmuSaveState(std::vector<ArgHolder>& args_list);
+ArgHolder EmuPlayMovie(std::vector<ArgHolder>& args_list);
+ArgHolder EmuSaveMovie(std::vector<ArgHolder>& args_list);
 
 }  // namespace Lua::LuaEmu

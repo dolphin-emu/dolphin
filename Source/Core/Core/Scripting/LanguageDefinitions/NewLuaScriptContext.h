@@ -7,6 +7,7 @@
 
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
+#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
 
 namespace Scripting
 {
@@ -20,7 +21,15 @@ public:
     inline Bit() {}
   };
 
+  class Emu
+  {
+  public:
+    inline Emu() {}
+  };
+
   static Bit* GetBitInstance() { return std::make_unique<Bit>(Bit()).get(); }
+
+  static Emu* GetEmuInstance() { return std::make_unique<Emu>(Emu()).get(); }
 
   static void ImportModule(lua_State* lua_state, const std::string& api_version,
                     const std::string& api_name)
@@ -29,13 +38,24 @@ public:
     {
       Bit** bit_ptr_ptr = (Bit**)lua_newuserdata(lua_state, sizeof(Bit*));
       *bit_ptr_ptr = GetBitInstance();
-      luaL_newmetatable(lua_state, "LuaBitMetaTable");
+    }
+    else if (api_name == "emu")
+    {
+      Emu** emu_ptr_ptr = (Emu**)lua_newuserdata(lua_state, sizeof(Emu*));
+      *emu_ptr_ptr = GetEmuInstance();
+    }
+      luaL_newmetatable(lua_state, (std::string("Lua") + char(std::toupper(api_name[0])) + api_name.substr(1) + "MetaTable").c_str());
       lua_pushvalue(lua_state, -1);
       lua_setfield(lua_state, -2, "__index");
-      ClassMetadata bitClassMetadata = BitApi::GetBitApiClassData(api_version);
+      ClassMetadata classMetadata = {};
+      if (api_name == "bit")
+        classMetadata = BitApi::GetBitApiClassData(api_version);
+      else if (api_name == "emu")
+        classMetadata = EmuApi::GetEmuApiClassData(api_version);
+
       std::vector<luaL_Reg> final_lua_functions_list = std::vector<luaL_Reg>();
 
-      for (auto& functionMetadata : bitClassMetadata.functions_list)
+      for (auto& functionMetadata : classMetadata.functions_list)
       {
         lua_CFunction lambdaFunction = [](lua_State* lua_state) mutable {
           std::string class_name = lua_tostring(lua_state, lua_upvalueindex(1));
@@ -113,6 +133,9 @@ public:
 
           switch (returnValue.argument_type)
           {
+          case ArgTypeEnum::YieldType:
+            lua_yield(lua_state, 0);
+            return 0;
           case ArgTypeEnum::VoidType:
             return 0;
           case ArgTypeEnum::Boolean:
@@ -159,17 +182,16 @@ public:
           }
         };
 
-        FunctionMetadata* heap_metadata = new FunctionMetadata(functionMetadata);
-        lua_pushstring(lua_state, heap_metadata->function_name.c_str());
-        lua_pushstring(lua_state, bitClassMetadata.class_name.c_str());
-        lua_pushlightuserdata(lua_state, heap_metadata);
+        FunctionMetadata* heap_function_metadata = new FunctionMetadata(functionMetadata);
+        lua_pushstring(lua_state, heap_function_metadata->function_name.c_str());
+        lua_pushstring(lua_state, classMetadata.class_name.c_str());
+        lua_pushlightuserdata(lua_state, heap_function_metadata);
         lua_pushcclosure(lua_state, lambdaFunction, 2);
         lua_settable(lua_state, -3);
       }
 
       lua_setmetatable(lua_state, -2);
-      lua_setglobal(lua_state, "bit");
-    }
+      lua_setglobal(lua_state, api_name.c_str());
   }
 
 };
