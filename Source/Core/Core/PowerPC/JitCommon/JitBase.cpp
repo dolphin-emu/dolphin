@@ -3,14 +3,52 @@
 
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
+#include "Common/MemoryUtil.h"
+#include "Common/Thread.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#include <processthreadsapi.h>
+#else
+#include <unistd.h>
+#endif
+
+// The BLR optimization is nice, but it means that JITted code can overflow the
+// native stack by repeatedly running BL.  (The chance of this happening in any
+// retail game is close to 0, but correctness is correctness...) Also, the
+// overflow might not happen directly in the JITted code but in a C++ function
+// called from it, so we can't just adjust RSP in the case of a fault.
+// Instead, we have to have extra stack space preallocated under the fault
+// point which allows the code to continue, after wiping the JIT cache so we
+// can reset things at a safe point.  Once this condition trips, the
+// optimization is permanently disabled, under the assumption this will never
+// happen in practice.
+
+// On Unix, we just mark an appropriate region of the stack as PROT_NONE and
+// handle it the same way as fastmem faults.  It's safe to take a fault with a
+// bad RSP, because on Linux we can use sigaltstack and on OS X we're already
+// on a separate thread.
+
+// Windows is... under-documented.
+// It already puts guard pages so it can automatically grow the stack and it
+// doesn't look like there is a way to hook into a guard page fault and implement
+// our own logic.
+// But when windows reaches the last guard page, it raises a "Stack Overflow"
+// exception which we can hook into, however by default it leaves you with less
+// than 4kb of stack. So we use SetThreadStackGuarantee to trigger the Stack
+// Overflow early while we still have 256kb of stack remaining.
+// After resetting the stack to the top, we call _resetstkoflw() to restore
+// the guard page at the 256kb mark.
 
 const u8* JitBase::Dispatch(JitBase& jit)
 {
@@ -70,6 +108,107 @@ void JitBase::RefreshConfig()
   analyzer.SetBranchFollowingEnabled(Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH));
   analyzer.SetFloatExceptionsEnabled(m_enable_float_exceptions);
   analyzer.SetDivByZeroExceptionsEnabled(m_enable_div_by_zero_exceptions);
+}
+
+void JitBase::InitBLROptimization()
+{
+  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
+  m_cleanup_after_stackfault = false;
+}
+
+void JitBase::ProtectStack()
+{
+  if (!m_enable_blr_optimization)
+    return;
+
+#ifdef _WIN32
+  ULONG reserveSize = SAFE_STACK_SIZE;
+  SetThreadStackGuarantee(&reserveSize);
+#else
+  auto [stack_addr, stack_size] = Common::GetCurrentThreadStack();
+
+  const uintptr_t stack_base_addr = reinterpret_cast<uintptr_t>(stack_addr);
+  const uintptr_t stack_middle_addr = reinterpret_cast<uintptr_t>(&stack_addr);
+  if (stack_middle_addr < stack_base_addr || stack_middle_addr >= stack_base_addr + stack_size)
+  {
+    PanicAlertFmt("Failed to get correct stack base");
+    m_enable_blr_optimization = false;
+    return;
+  }
+
+  const long page_size = sysconf(_SC_PAGESIZE);
+  if (page_size <= 0)
+  {
+    PanicAlertFmt("Failed to get page size");
+    m_enable_blr_optimization = false;
+    return;
+  }
+
+  const uintptr_t stack_guard_addr = Common::AlignUp(stack_base_addr + GUARD_OFFSET, page_size);
+  if (stack_guard_addr >= stack_middle_addr ||
+      stack_middle_addr - stack_guard_addr < GUARD_SIZE + MIN_UNSAFE_STACK_SIZE)
+  {
+    PanicAlertFmt("Stack is too small for BLR optimization (size {:x}, base {:x}, current stack "
+                  "pointer {:x}, alignment {:x})",
+                  stack_size, stack_base_addr, stack_middle_addr, page_size);
+    m_enable_blr_optimization = false;
+    return;
+  }
+
+  m_stack_guard = reinterpret_cast<u8*>(stack_guard_addr);
+  Common::ReadProtectMemory(m_stack_guard, GUARD_SIZE);
+#endif
+}
+
+void JitBase::UnprotectStack()
+{
+#ifndef _WIN32
+  if (m_stack_guard)
+  {
+    Common::UnWriteProtectMemory(m_stack_guard, GUARD_SIZE);
+    m_stack_guard = nullptr;
+  }
+#endif
+}
+
+bool JitBase::HandleStackFault()
+{
+  // It's possible the stack fault might have been caused by something other than
+  // the BLR optimization. If the fault was triggered from another thread, or
+  // when BLR optimization isn't enabled then there is nothing we can do about the fault.
+  // Return false so the regular stack overflow handler can trigger (which crashes)
+  if (!m_enable_blr_optimization || !Core::IsCPUThread())
+    return false;
+
+  WARN_LOG_FMT(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
+
+  UnprotectStack();
+  m_enable_blr_optimization = false;
+
+  // We're going to need to clear the whole cache to get rid of the bad
+  // CALLs, but we can't yet.  Fake the downcount so we're forced to the
+  // dispatcher (no block linking), and clear the cache so we're sent to
+  // Jit. In the case of Windows, we will also need to call _resetstkoflw()
+  // to reset the guard page.
+  // Yeah, it's kind of gross.
+  GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
+  Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(0);
+  m_cleanup_after_stackfault = true;
+
+  return true;
+}
+
+void JitBase::CleanUpAfterStackFault()
+{
+  if (m_cleanup_after_stackfault)
+  {
+    ClearCache();
+    m_cleanup_after_stackfault = false;
+#ifdef _WIN32
+    // The stack is in an invalid state with no guard page, reset it.
+    _resetstkoflw();
+#endif
+  }
 }
 
 bool JitBase::CanMergeNextInstructions(int count) const

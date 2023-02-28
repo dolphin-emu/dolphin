@@ -50,7 +50,6 @@ public:
   void Shutdown() override;
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
-  bool HandleStackFault() override;
   bool BackPatch(SContext* ctx);
 
   void EnableOptimization();
@@ -255,9 +254,6 @@ private:
 
   bool HandleFunctionHooking(u32 address);
 
-  void ProtectStack();
-  void UnprotectStack();
-
   void ResetFreeMemoryRanges();
 
   JitBlockCache blocks{*this};
@@ -267,10 +263,6 @@ private:
   FPURegCache fpr{*this};
 
   Jit64AsmRoutineManager asm_routines{*this};
-
-  bool m_enable_blr_optimization = false;
-  bool m_cleanup_after_stackfault = false;
-  u8* m_stack_guard = nullptr;
 
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near;
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far;

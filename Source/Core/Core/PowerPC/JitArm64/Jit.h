@@ -32,7 +32,6 @@ public:
   bool IsInCodeSpace(const u8* ptr) const { return IsInSpace(ptr); }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
   void DoBacktrace(uintptr_t access_address, SContext* ctx);
-  bool HandleStackFault() override;
   bool HandleFastmemFault(SContext* ctx);
 
   void ClearCache() override;
@@ -288,8 +287,6 @@ protected:
   void DoDownCount();
   void Cleanup();
   void ResetStack();
-  void ProtectStack();
-  void UnprotectStack();
 
   void ResetFreeMemoryRanges();
 
@@ -362,10 +359,6 @@ protected:
   u8* m_near_code = nullptr;
   u8* m_near_code_end = nullptr;
   bool m_near_code_write_failed = false;
-
-  bool m_enable_blr_optimization = false;
-  bool m_cleanup_after_stackfault = false;
-  u8* m_stack_guard = nullptr;
 
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near;
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far;
