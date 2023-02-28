@@ -264,4 +264,5 @@ inline char ToUpper(char ch)
 }
 void ToLower(std::string* str);
 void ToUpper(std::string* str);
+bool CaseInsensitiveEquals(std::string_view a, std::string_view b);
 }  // namespace Common
