@@ -9,7 +9,7 @@
 namespace Scripting::BitApi
 {
 
-const char* class_name = "bit";
+const char* class_name = "BitAPI";
 static std::array all_bit_functions_metadata_list = {
       FunctionMetadata("bitwise_and", "1.0", "bitwise_and(17, 81)", BitwiseAnd, ArgTypeEnum::LongLong,
                      {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),

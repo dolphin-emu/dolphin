@@ -15,7 +15,7 @@
 
 namespace Scripting::MemoryApi
 {
-const char* class_name = "memory";
+const char* class_name = "MemoryAPI";
 
 static std::array all_memory_functions_metadata_list = {
   FunctionMetadata("read_u8", "1.0", "read_u8(0X80003421)", ReadU8, ArgTypeEnum::U8, {ArgTypeEnum::LongLong}),

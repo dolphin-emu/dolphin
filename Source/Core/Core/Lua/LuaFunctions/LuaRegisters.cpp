@@ -12,7 +12,7 @@
 
 namespace Lua::LuaRegisters
 {
-const char* class_name = "registers";
+const char* class_name = "RegistersAPI";
 
 class LuaRegister
 {

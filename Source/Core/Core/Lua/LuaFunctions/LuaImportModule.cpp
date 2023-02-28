@@ -55,26 +55,29 @@ void InitLuaImportModule(lua_State* lua_state, const std::string& lua_api_versio
 
 int ImportCommon(lua_State* lua_state, const char* func_name)
 {
+  if (lua_type(lua_state, 1) != LUA_TUSERDATA)
+    luaL_error(lua_state, "Error: importModule must be called using the colon operator like this - "
+                          "dolphin:importModule(\"BitAPI\")");
   std::string module_class = luaL_checkstring(lua_state, 2);
   std::string version_number = luaL_checkstring(lua_state, 3);
 
-  if (module_class == "bit")
-    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "bit");
+  if (module_class == Scripting::BitApi::class_name)
+    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, module_class);
 
-  else if (module_class == "emu")
-    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "emu");
+  else if (module_class == Scripting::EmuApi::class_name)
+    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, module_class);
 
-  else if (module_class == "gcController")
-    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "gcController");
+  else if (module_class == Scripting::GameCubeControllerApi::class_name)
+    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, module_class);
 
-  else if (module_class == "memory")
-    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "memory");
+  else if (module_class == Scripting::MemoryApi::class_name)
+    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, module_class);
 
   else if (module_class == std::string(LuaRegisters::class_name))
     LuaRegisters::InitLuaRegistersFunctions(lua_state, version_number);
 
-  else if (module_class == "statistics")
-    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, "statistics");
+  else if (module_class == Scripting::StatisticsApi::class_name)
+    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, module_class);
   else
     luaL_error(lua_state,
                fmt::format("Error: In function {}:{}(), unknown module name of {} was passed in.",

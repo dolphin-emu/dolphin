@@ -9,7 +9,8 @@
 
 namespace Scripting::StatisticsApi
 {
-const char* class_name = "statistics";
+const char* class_name = "StatisticsAPI";
+
 static std::array all_statistics_functions_metadata_list = {
   FunctionMetadata("isRecordingInput", "1.0", "isRecordingInput()", IsRecordingInput, ArgTypeEnum::Boolean, {}),
   FunctionMetadata("isRecordingInputFromSaveState", "1.0", "isRecordingInputFromSaveState()", IsRecordingInputFromSaveState, ArgTypeEnum::Boolean, {}),

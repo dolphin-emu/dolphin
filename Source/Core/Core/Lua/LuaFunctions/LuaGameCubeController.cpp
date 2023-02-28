@@ -8,7 +8,7 @@
 
 namespace Scripting::GameCubeControllerApi
 {
-const char* class_name = "gcController";
+const char* class_name = "GameCubeControllerAPI";
 static std::array all_game_cube_controller_functions_metadata_list = {
     FunctionMetadata("getCurrentPortNumberOfPoll", "1.0", "getCurrentPortNumberOfPoll()",
                      GetCurrentPortNumberOfPoll, ArgTypeEnum::LongLong, {}),

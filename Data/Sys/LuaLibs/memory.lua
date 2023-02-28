@@ -1,1 +1,1 @@
-dolphin:importModule("memory", "1.0.0")
+dolphin:importModule("MemoryAPI", "1.0.0")

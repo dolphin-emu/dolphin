@@ -16,7 +16,7 @@
 namespace Scripting::EmuApi
 {
 
-const char* class_name = "emu";
+const char* class_name = "EmuAPI";
 static std::array all_emu_functions_metadata_list = {
   FunctionMetadata("frameAdvance", "1.0", "frameAdvance()", EmuFrameAdvance, ArgTypeEnum::YieldType, {}),
   FunctionMetadata("loadState", "1.0", "loadState(\"savestateFilename.sav\")", EmuLoadState, ArgTypeEnum::YieldType, {ArgTypeEnum::String}),

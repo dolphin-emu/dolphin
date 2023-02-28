@@ -73,28 +73,28 @@ public:
                     const std::string& api_name)
   {
 
-    if (api_name == "bit")
+    if (api_name == BitApi::class_name)
     {
       Bit** bit_ptr_ptr = (Bit**)lua_newuserdata(lua_state, sizeof(Bit*));
       *bit_ptr_ptr = GetBitInstance();
     }
-    else if (api_name == "emu")
+    else if (api_name == EmuApi::class_name)
     {
       Emu** emu_ptr_ptr = (Emu**)lua_newuserdata(lua_state, sizeof(Emu*));
       *emu_ptr_ptr = GetEmuInstance();
     }
-    else if (api_name == "gcController")
+    else if (api_name == GameCubeControllerApi::class_name)
     {
       GcController** gc_controller_ptr_ptr =
           (GcController**)lua_newuserdata(lua_state, sizeof(GcController*));
       *gc_controller_ptr_ptr = GetGcControllerInstance();
     }
-    else if (api_name == "memory")
+    else if (api_name == MemoryApi::class_name)
     {
       MEMORY** memory_ptr_ptr = (MEMORY**)lua_newuserdata(lua_state, sizeof(MEMORY*));
       *memory_ptr_ptr = GetMemoryInstance();
     }
-    else if (api_name == "statistics")
+    else if (api_name == StatisticsApi::class_name)
     {
       Statistics** statistics_ptr_ptr =
           (Statistics**)lua_newuserdata(lua_state, sizeof(Statistics*));
@@ -106,15 +106,15 @@ public:
       lua_setfield(lua_state, -2, "__index");
       ClassMetadata classMetadata = {};
 
-      if (api_name == "bit")
+      if (api_name == BitApi::class_name)
         classMetadata = BitApi::GetBitApiClassData(api_version);
-      else if (api_name == "emu")
+      else if (api_name == EmuApi::class_name)
         classMetadata = EmuApi::GetEmuApiClassData(api_version);
-      else if (api_name == "gcController")
+      else if (api_name == GameCubeControllerApi::class_name)
         classMetadata = GameCubeControllerApi::GetGameCubeControllerApiClassData(api_version);
-      else if (api_name == "memory")
+      else if (api_name == MemoryApi::class_name)
         classMetadata = MemoryApi::GetMemoryApiClassData(api_version);
-      else if (api_name == "statistics")
+      else if (api_name == StatisticsApi::class_name)
         classMetadata = StatisticsApi::GetStatisticsApiClassData(api_version);
 
       std::vector<luaL_Reg> final_lua_functions_list = std::vector<luaL_Reg>();

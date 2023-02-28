@@ -1,6 +1,6 @@
-dolphin:importModule("gcController", "1.0.0")
+dolphin:importModule("GameCubeControllerAPI", "1.0.0")
 
-GcControllerLuaLibrary = {set_controller_input_list = {}, add_controller_input_list = {}, probability_controller_change_input_list = {}}
+GameCubeControllerAPILuaLibrary = {set_controller_input_list = {}, add_controller_input_list = {}, probability_controller_change_input_list = {}}
 
 function checkPortNumber(portNumber, functionExample)
 	if (portNumber == nil or portNumber < 1 or portNumber > 4) then
@@ -138,7 +138,7 @@ function checkAndStandardizeButtonName(buttonName)
 	end
 end
 
-function GcControllerLuaLibrary:new (o) 
+function GameCubeControllerAPILuaLibrary:new (o) 
 	o = {}
 	setmetatable(o, self)
 	self.__index = self
@@ -155,7 +155,7 @@ function GcControllerLuaLibrary:new (o)
 	return o
 end
 
-gc_controller = GcControllerLuaLibrary:new(nil)
+gc_controller = GameCubeControllerAPILuaLibrary:new(nil)
 
 
 function clearMappings()
@@ -172,7 +172,7 @@ end
 
 OnFrameStart:register(clearMappings)
 
-function GcControllerLuaLibrary:addInputs(portNumber, controllerValuesTable)
+function GameCubeControllerAPILuaLibrary:addInputs(portNumber, controllerValuesTable)
 	checkPortNumber("addInputs(portNumber, controllerValuesTable)", portNumber)
 	
 	if (controllerValuesTable == nil) then
@@ -311,11 +311,11 @@ end
 
 
 function applyRequestedInputAlterFunctions()
-	currentPortNumber = gcController:getCurrentPortNumberOfPoll()
+	currentPortNumber = GameCubeControllerAPI:getCurrentPortNumberOfPoll()
 	if #gc_controller.set_controller_input_list[currentPortNumber] == 0 and #gc_controller.add_controller_input_list[currentPortNumber] == 0 and #gc_controller.probability_controller_change_input_list[currentPortNumber] == 0 then
 		return
 	end
-	currentControllerInput = gcController:getInputsForPoll()
+	currentControllerInput = GameCubeControllerAPI:getInputsForPoll()
 	
 	for key, controllerTable in pairs(gc_controller.set_controller_input_list[currentPortNumber]) do
 		currentControllerInput = controllerTable
@@ -330,14 +330,14 @@ function applyRequestedInputAlterFunctions()
 	for key, inputProbabilityEvent in pairs(gc_controller.probability_controller_change_input_list[currentPortNumber]) do
 		currentControllerInput = inputProbabilityEvent:applyProbability(currentControllerInput)
 	end
-	gcController:setInputsForPoll(currentControllerInput)
+	GameCubeControllerAPI:setInputsForPoll(currentControllerInput)
 end
 
 OnGCControllerPolled:register(applyRequestedInputAlterFunctions)
 
 -- The code below here is the public code that the user can use (the user should never try to call functions or classes listed above this point from another file, except for using the gc_controller object to call the functions specified below.
 
-function GcControllerLuaLibrary:setInputs(portNumber, rawControllerTable)
+function GameCubeControllerAPILuaLibrary:setInputs(portNumber, rawControllerTable)
 	checkPortNumber(portNumber, "setInputs(portNumber, controllerTable)")
 	formattedUserControllerTable = checkAndStandardizeButtonTable(rawControllerTable, "setInputs(portNumber, controllerTable)")
 	
@@ -352,14 +352,14 @@ function GcControllerLuaLibrary:setInputs(portNumber, rawControllerTable)
 end
 
 
-function GcControllerLuaLibrary:addInputs(portNumber, rawControllerTable)
+function GameCubeControllerAPILuaLibrary:addInputs(portNumber, rawControllerTable)
 	checkPortNumber(portNumber, "addInputs(portNumber, controllerTable")
 	formattedUserControllerTable = checkAndStandardizeButtonTable(rawControllerTable, "addInputs(portNumber, controllerTable)")
 	table.insert(self.add_controller_input_list[portNumber], formattedUserControllerTable)
 end
 
 
-function GcControllerLuaLibrary:addButtonFlipChance(portNumber, probability, buttonName)
+function GameCubeControllerAPILuaLibrary:addButtonFlipChance(portNumber, probability, buttonName)
 	exampleFunctionCall = "addButtonFlipChance(portNumber, probability, buttonName)"
 	checkPortNumber(portNumber, exampleFunctionCall)
 	probability = checkProbability(probability, exampleFunctionCall)
@@ -372,7 +372,7 @@ function GcControllerLuaLibrary:addButtonFlipChance(portNumber, probability, but
 end
 
 
-function GcControllerLuaLibrary:addButtonPressChance(portNumber, probability, buttonName)
+function GameCubeControllerAPILuaLibrary:addButtonPressChance(portNumber, probability, buttonName)
 	exampleFunctionCall = "addButtonPressChance(portNumber, probability, buttonName)"
 	checkPortNumber(portNumber, exampleFunctionCall)
 	probability = checkProbability(probability, exampleFunctionCall)
@@ -385,7 +385,7 @@ function GcControllerLuaLibrary:addButtonPressChance(portNumber, probability, bu
 end
 
 
-function GcControllerLuaLibrary:addButtonReleaseChance(portNumber, probability, buttonName)
+function GameCubeControllerAPILuaLibrary:addButtonReleaseChance(portNumber, probability, buttonName)
 	exampleFunctionCall = "addButtonReleaseChance(portNumber, probability, buttonName)"
 	checkPortNumber(portNumber, exampleFunctionCall)
 	probability = checkProbability(probability, exampleFunctionCall)
@@ -398,7 +398,7 @@ function GcControllerLuaLibrary:addButtonReleaseChance(portNumber, probability, 
 end
 
 
-function GcControllerLuaLibrary:addOrSubtractFromCurrentAnalogValueChance(portNumber, probability, buttonName, ...)
+function GameCubeControllerAPILuaLibrary:addOrSubtractFromCurrentAnalogValueChance(portNumber, probability, buttonName, ...)
 	exampleFunctionCall = "addOrSubtractFromCurrentAnalogValueChance(portNumber, probability, buttonName, maxToAddOrSubtract)"
 	maxToSubtract = 0
 	maxToAdd = 0
@@ -445,7 +445,7 @@ function GcControllerLuaLibrary:addOrSubtractFromCurrentAnalogValueChance(portNu
 end
 
 
-function GcControllerLuaLibrary:addOrSubtractFromSpecificAnalogValueChance(portNumber, probability, buttonName, baseValue, ...)
+function GameCubeControllerAPILuaLibrary:addOrSubtractFromSpecificAnalogValueChance(portNumber, probability, buttonName, baseValue, ...)
 	exampleFunctionCall = "addOrSubtractFromSpecificAnalogValueChance(portNumber, probability, buttonName, baseValue, maxToAddOrSubtract)"
 	maxToSubtract = 0
 	maxToAdd = 0
@@ -508,7 +508,7 @@ function GcControllerLuaLibrary:addOrSubtractFromSpecificAnalogValueChance(portN
 end
 
 
-function GcControllerLuaLibrary:addButtonComboChance(portNumber, probability, newButtonTable, shouldSetUnspecifiedInputsToDefaultValues)
+function GameCubeControllerAPILuaLibrary:addButtonComboChance(portNumber, probability, newButtonTable, shouldSetUnspecifiedInputsToDefaultValues)
 	exampleFunctionCall = "addButtonComboChance(portNumber, probability, buttonComboTable, shouldSetUnspecifiedInputsToDefaultValues)"
 	checkPortNumber(portNumber, exampleFunctionCall)
 	probability = checkProbability(probability, exampleFunctionCall)
@@ -518,7 +518,7 @@ function GcControllerLuaLibrary:addButtonComboChance(portNumber, probability, ne
 end
 
 
-function GcControllerLuaLibrary:addControllerClearChance(portNumber, probability)
+function GameCubeControllerAPILuaLibrary:addControllerClearChance(portNumber, probability)
 	exampleFunctionCall = "addControllerClearChance(portNumber, probability)"
 	checkPortNumber(portNumber, exampleFunctionCall)
 	probability = checkProbability(probability, exampleFunctionCall)
@@ -526,7 +526,7 @@ function GcControllerLuaLibrary:addControllerClearChance(portNumber, probability
 	table.insert(self.probability_controller_change_input_list[portNumber], AddControllerClearProbabilityClass:new({["probability"] = probability, ["buttonName"] = "", ["eventHappened"] = eventHappened}))
 end
 
-function GcControllerLuaLibrary:getControllerInputsForPreviousFrame(portNumber)
+function GameCubeControllerAPILuaLibrary:getControllerInputsForPreviousFrame(portNumber)
 	checkPortNumber(portNumber, "getControllerInputsForPreviousFrame(portNumber)")
-	return gcController:getInputsForPreviousFrame(portNumber)
+	return GameCubeControllerAPI:getInputsForPreviousFrame(portNumber)
 end

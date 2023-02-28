@@ -1,1 +1,63 @@
-dolphin:importModule("statistics", "1.0.0")
+dolphin:importModule("StatisticsAPI", "1.0.0")
+
+StatisticsClass = {}
+
+function StatisticsClass:new(obj)
+	obj = obj or {}
+	self.__index = self
+	return setmetatable(obj, self)
+end
+
+statistics = StatisticsClass:new(nil)
+
+function StatisticsClass:isRecordingInput()
+	return StatisticsAPI:isRecordingInput()
+end
+
+function StatisticsClass:isRecordingInputFromSaveState()
+	return StatisticsAPI:isRecordingInputFromSaveState()
+end
+
+function StatisticsClass:isPlayingInput()
+	return StatisticsAPI:isPlayingInput()
+end
+
+function StatisticsClass:isMovieActive()
+	return StatisticsAPI:isMovieActive()
+end
+
+function StatisticsClass:getCurrentFrame()
+	return StatisticsAPI:getCurrentFrame()
+end
+
+function StatisticsClass:getMovieLength()
+	return StatisticsAPI:getMovieLength()
+end
+
+function StatisticsClass:getRerecordCount()
+	return StatisticsAPI:getRerecordCount()
+end
+
+function StatisticsClass:getCurrentInputCount()
+	return StatisticsAPI:getCurrentInputCount()
+end
+
+function StatisticsClass:getTotalInputCount()
+	return StatisticsAPI:getTotalInputCount()
+end
+
+function StatisticsClass:getCurrentLagCount()
+	return StatisticsAPI:getCurrentLagCount()
+end
+
+function StatisticsClass:getTotalLagCount()
+	return StatisticsAPI:getTotalLagCount()
+end
+
+function StatisticsClass:isGcControllerInPort(portNumber)
+	return StatisticsAPI:isGcControllerInPort(portNumber)
+end
+
+function StatisticsClass:isUsingPort(portNumber)
+	return StatisticsAPI:isUsingPort(portNumber)
+end

@@ -12,6 +12,7 @@ namespace Scripting::BitApi
 extern const char* class_name;
 
 ClassMetadata GetBitApiClassData(const std::string& api_version);
+
 ArgHolder BitwiseAnd(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list);
 ArgHolder BitwiseOr(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list);
 ArgHolder BitwiseNot(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list);

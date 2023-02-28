@@ -1,1 +1,1 @@
-dolphin:importModule("registers", "1.0.0")
+dolphin:importModule("RegistersAPI", "1.0.0")
