@@ -454,6 +454,10 @@ ArgHolder WriteString(ScriptCallLocations call_location, std::vector<ArgHolder>&
         return CreateErrorStringArgHolder(
             fmt::format("Could not write char of {} to address {}", input_string[i], address + i));
   }
+  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU8('\0', address + static_cast<s32>(string_length));
+  if (!write_result.has_value())
+      return CreateErrorStringArgHolder(
+          fmt::format("Could not write char of {} to address {}",'\0', address + string_length));
   return CreateVoidTypeArgHolder();
 }
 

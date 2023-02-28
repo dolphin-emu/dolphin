@@ -14,7 +14,3 @@ PASS!
 
 Test: 4
 	Calling setInput() on controller 1 with just setting Y button...
-PASS!
-
-Test: 5
-	Calling setInput() on controller 1 with just setting Z button...
