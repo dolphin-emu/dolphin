@@ -79,7 +79,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getEnabled(JNIEn
   return static_cast<jboolean>(GetPointer(env, obj)->enabled);
 }
 
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_trySetImpl(
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_setCheatImpl(
     JNIEnv* env, jobject obj, jstring name, jstring creator, jstring notes, jstring code_string)
 {
   PatchEngine::Patch* patch = GetPointer(env, obj);

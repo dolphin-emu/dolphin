@@ -514,7 +514,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass patch_cheat_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/cheats/model/PatchCheat");
   s_patch_cheat_class = reinterpret_cast<jclass>(env->NewGlobalRef(patch_cheat_class));
-  s_patch_cheat_pointer = env->GetFieldID(patch_cheat_class, "mPointer", "J");
+  s_patch_cheat_pointer = env->GetFieldID(patch_cheat_class, "pointer", "J");
   s_patch_cheat_constructor = env->GetMethodID(patch_cheat_class, "<init>", "(J)V");
   env->DeleteLocalRef(patch_cheat_class);
 
