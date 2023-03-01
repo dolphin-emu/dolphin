@@ -38,7 +38,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/Lua/Lua.h"
-#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
+#include "Core/Scripting/InternalAPIFunctions/EmuAPI.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"

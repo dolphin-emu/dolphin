@@ -7,11 +7,12 @@
 
 #include "Core/Lua/LuaHelperClasses/LuaGCButtons.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
-#include "Core/Lua/LuaFunctions/LuaBitFunctions.h"
-#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
-#include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
-#include "Core/Lua/LuaFunctions/LuaMemoryApi.h"
-#include "Core/Lua/LuaFunctions/LuaStatistics.h"
+#include "Core/Scripting/InternalAPIFunctions/BitAPI.h"
+#include "Core/Scripting/InternalAPIFunctions/EmuAPI.h"
+#include "Core/Scripting/InternalAPIFunctions/GameCubeControllerAPI.h"
+#include "Core/Scripting/InternalAPIFunctions/MemoryAPI.h"
+#include "Core/Scripting/InternalAPIFunctions/RegistersAPI.h"
+#include "Core/Scripting/InternalAPIFunctions/StatisticsAPI.h"
 #include "Core/Lua/LuaHelperClasses/LuaStateToScriptContextMap.h"
 
 namespace Scripting
@@ -44,6 +45,12 @@ public:
     inline MEMORY(){};
   };
 
+  class Registers
+  {
+  public:
+    inline Registers(){};
+  };
+
   class Statistics
   {
   public:
@@ -57,6 +64,11 @@ public:
   static GcController* GetGcControllerInstance() { return std::make_unique<GcController>(GcController()).get(); }
 
   static MEMORY* GetMemoryInstance() { return std::make_unique<MEMORY>(MEMORY()).get(); }
+
+  static Registers* GetRegistersInstance()
+  {
+    return std::make_unique<Registers>(Registers()).get();
+  }
 
   static Statistics* GetStatisticsInstance()
   {
@@ -94,6 +106,11 @@ public:
       MEMORY** memory_ptr_ptr = (MEMORY**)lua_newuserdata(lua_state, sizeof(MEMORY*));
       *memory_ptr_ptr = GetMemoryInstance();
     }
+    else if (api_name == RegistersAPI::class_name)
+    {
+      Registers** registers_ptr_ptr = (Registers**)lua_newuserdata(lua_state, sizeof(Registers*));
+      *registers_ptr_ptr = GetRegistersInstance();
+    }
     else if (api_name == StatisticsApi::class_name)
     {
       Statistics** statistics_ptr_ptr =
@@ -114,6 +131,8 @@ public:
         classMetadata = GameCubeControllerApi::GetGameCubeControllerApiClassData(api_version);
       else if (api_name == MemoryApi::class_name)
         classMetadata = MemoryApi::GetMemoryApiClassData(api_version);
+      else if (api_name == RegistersAPI::class_name)
+        classMetadata = RegistersAPI::GetRegistersApiClassData(api_version);
       else if (api_name == StatisticsApi::class_name)
         classMetadata = StatisticsApi::GetStatisticsApiClassData(api_version);
 

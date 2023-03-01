@@ -4,8 +4,8 @@
 #include <memory>
 #include <vector>
 
-#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
-#include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
+#include "Core/Scripting/InternalAPIFunctions/EmuAPI.h"
+#include "Core/Scripting/InternalAPIFunctions/GameCubeControllerAPI.h"
 #include "Core/Lua/LuaHelperClasses/LuaStateToScriptContextMap.h"
 #include "Core/Lua/LuaVersionResolver.h"
 #include "Core/Movie.h"

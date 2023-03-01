@@ -1,11 +1,6 @@
 #include "Core/Lua/LuaFunctions/LuaImportModule.h"
 
 #include "Core/Scripting/LanguageDefinitions/NewLuaScriptContext.h"
-#include "Core/Lua/LuaFunctions/LuaEmuFunctions.h"
-#include "Core/Lua/LuaFunctions/LuaGameCubeController.h"
-#include "Core/Lua/LuaFunctions/LuaMemoryApi.h"
-#include "Core/Lua/LuaFunctions/LuaRegisters.h"
-#include "Core/Lua/LuaFunctions/LuaStatistics.h"
 
 #include <fmt/format.h>
 #include <memory>
@@ -60,29 +55,7 @@ int ImportCommon(lua_State* lua_state, const char* func_name)
                           "dolphin:importModule(\"BitAPI\")");
   std::string module_class = luaL_checkstring(lua_state, 2);
   std::string version_number = luaL_checkstring(lua_state, 3);
-
-  if (module_class == Scripting::BitApi::class_name)
-    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, module_class);
-
-  else if (module_class == Scripting::EmuApi::class_name)
-    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, module_class);
-
-  else if (module_class == Scripting::GameCubeControllerApi::class_name)
-    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, module_class);
-
-  else if (module_class == Scripting::MemoryApi::class_name)
-    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, module_class);
-
-  else if (module_class == std::string(LuaRegisters::class_name))
-    LuaRegisters::InitLuaRegistersFunctions(lua_state, version_number);
-
-  else if (module_class == Scripting::StatisticsApi::class_name)
-    Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, module_class);
-  else
-    luaL_error(lua_state,
-               fmt::format("Error: In function {}:{}(), unknown module name of {} was passed in.",
-                           class_name, func_name, module_class)
-                   .c_str());
+  Scripting::NewLuaScriptContext::ImportModule(lua_state, version_number, module_class);
   return 0;
 }
 
