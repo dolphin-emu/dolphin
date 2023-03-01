@@ -529,7 +529,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass graphics_mod_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/cheats/model/GraphicsMod");
   s_graphics_mod_class = reinterpret_cast<jclass>(env->NewGlobalRef(graphics_mod_class));
-  s_graphics_mod_pointer = env->GetFieldID(graphics_mod_class, "mPointer", "J");
+  s_graphics_mod_pointer = env->GetFieldID(graphics_mod_class, "pointer", "J");
   s_graphics_mod_constructor =
       env->GetMethodID(graphics_mod_class, "<init>",
                        "(JLorg/dolphinemu/dolphinemu/features/cheats/model/GraphicsModGroup;)V");
