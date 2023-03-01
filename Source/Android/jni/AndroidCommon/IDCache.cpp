@@ -500,7 +500,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass ar_cheat_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/cheats/model/ARCheat");
   s_ar_cheat_class = reinterpret_cast<jclass>(env->NewGlobalRef(ar_cheat_class));
-  s_ar_cheat_pointer = env->GetFieldID(ar_cheat_class, "mPointer", "J");
+  s_ar_cheat_pointer = env->GetFieldID(ar_cheat_class, "pointer", "J");
   s_ar_cheat_constructor = env->GetMethodID(ar_cheat_class, "<init>", "(J)V");
   env->DeleteLocalRef(ar_cheat_class);
 

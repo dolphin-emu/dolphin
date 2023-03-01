@@ -81,7 +81,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getEnabled(JNIEnv* 
   return static_cast<jboolean>(GetPointer(env, obj)->enabled);
 }
 
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_trySetImpl(
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_setCheatImpl(
     JNIEnv* env, jobject obj, jstring name, jstring creator, jstring notes, jstring code_string)
 {
   ActionReplay::ARCode* code = GetPointer(env, obj);
