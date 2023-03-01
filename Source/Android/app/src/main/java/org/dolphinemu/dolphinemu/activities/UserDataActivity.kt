@@ -38,6 +38,8 @@ class UserDataActivity : AppCompatActivity() {
     private lateinit var mBinding: ActivityUserDataBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        taskViewModel = ViewModelProvider(this)[TaskViewModel::class.java]
+
         ThemeHelper.setTheme(this)
 
         super.onCreate(savedInstanceState)
@@ -81,7 +83,6 @@ class UserDataActivity : AppCompatActivity() {
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        taskViewModel = ViewModelProvider(this)[TaskViewModel::class.java]
         if (requestCode == REQUEST_CODE_IMPORT && resultCode == RESULT_OK) {
             val arguments = Bundle()
             arguments.putString(
