@@ -1265,7 +1265,6 @@
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\FBInfo.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionFactory.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModManager.cpp" />
-    <ClCompile Include="VideoCommon\HiresTextures_DDSLoader.cpp" />
     <ClCompile Include="VideoCommon\HiresTextures.cpp" />
     <ClCompile Include="VideoCommon\IndexGenerator.cpp" />
     <ClCompile Include="VideoCommon\LightingShaderGen.cpp" />

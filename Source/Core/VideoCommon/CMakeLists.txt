@@ -77,7 +77,6 @@ add_library(videocommon
   GraphicsModSystem/Runtime/GraphicsModManager.h
   HiresTextures.cpp
   HiresTextures.h
-  HiresTextures_DDSLoader.cpp
   IndexGenerator.cpp
   IndexGenerator.h
   LightingShaderGen.cpp

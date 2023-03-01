@@ -185,7 +185,7 @@ void HiresTexture::Prefetch()
       }
       if (iter != s_textureCache.end())
       {
-        for (const Level& l : iter->second->m_levels)
+        for (const VideoCommon::CustomTextureData::Level& l : iter->second->m_data.m_levels)
           size_sum += l.data.size();
       }
     }
@@ -246,21 +246,6 @@ std::string HiresTexture::GenBaseName(const TextureInfo& texture_info, bool dump
   return "";
 }
 
-u32 HiresTexture::CalculateMipCount(u32 width, u32 height)
-{
-  u32 mip_width = width;
-  u32 mip_height = height;
-  u32 mip_count = 1;
-  while (mip_width > 1 || mip_height > 1)
-  {
-    mip_width = std::max(mip_width / 2, 1u);
-    mip_height = std::max(mip_height / 2, 1u);
-    mip_count++;
-  }
-
-  return mip_count;
-}
-
 std::shared_ptr<HiresTexture> HiresTexture::Search(const TextureInfo& texture_info)
 {
   const std::string base_filename = GenBaseName(texture_info);
@@ -298,10 +283,10 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   std::unique_ptr<HiresTexture> ret = std::unique_ptr<HiresTexture>(new HiresTexture());
   const DiskTexture& first_mip_file = filename_iter->second;
   ret->m_has_arbitrary_mipmaps = first_mip_file.has_arbitrary_mipmaps;
-  LoadDDSTexture(ret.get(), first_mip_file.path);
+  VideoCommon::LoadDDSTexture(&ret->m_data, first_mip_file.path);
 
   // Load remaining mip levels, or from the start if it's not a DDS texture.
-  for (u32 mip_level = static_cast<u32>(ret->m_levels.size());; mip_level++)
+  for (u32 mip_level = static_cast<u32>(ret->m_data.m_levels.size());; mip_level++)
   {
     std::string filename = base_filename;
     if (mip_level != 0)
@@ -313,30 +298,25 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
     // Try loading DDS textures first, that way we maintain compression of DXT formats.
     // TODO: Reduce the number of open() calls here. We could use one fd.
-    Level level;
-    if (!LoadDDSTexture(level, filename_iter->second.path, mip_level))
+    VideoCommon::CustomTextureData::Level level;
+    if (!LoadDDSTexture(&level, filename_iter->second.path, mip_level))
     {
-      File::IOFile file;
-      file.Open(filename_iter->second.path, "rb");
-      std::vector<u8> buffer(file.GetSize());
-      file.ReadBytes(buffer.data(), file.GetSize());
-
-      if (!LoadTexture(level, buffer))
+      if (!LoadPNGTexture(&level, filename_iter->second.path))
       {
         ERROR_LOG_FMT(VIDEO, "Custom texture {} failed to load", filename);
         break;
       }
     }
 
-    ret->m_levels.push_back(std::move(level));
+    ret->m_data.m_levels.push_back(std::move(level));
   }
 
   // If we failed to load any mip levels, we can't use this texture at all.
-  if (ret->m_levels.empty())
+  if (ret->m_data.m_levels.empty())
     return nullptr;
 
   // Verify that the aspect ratio of the texture hasn't changed, as this could have side-effects.
-  const Level& first_mip = ret->m_levels[0];
+  const VideoCommon::CustomTextureData::Level& first_mip = ret->m_data.m_levels[0];
   if (first_mip.width * height != first_mip.height * width)
   {
     ERROR_LOG_FMT(VIDEO,
@@ -357,14 +337,14 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   // Verify that each mip level is the correct size (divide by 2 each time).
   u32 current_mip_width = first_mip.width;
   u32 current_mip_height = first_mip.height;
-  for (u32 mip_level = 1; mip_level < static_cast<u32>(ret->m_levels.size()); mip_level++)
+  for (u32 mip_level = 1; mip_level < static_cast<u32>(ret->m_data.m_levels.size()); mip_level++)
   {
     if (current_mip_width != 1 || current_mip_height != 1)
     {
       current_mip_width = std::max(current_mip_width / 2, 1u);
       current_mip_height = std::max(current_mip_height / 2, 1u);
 
-      const Level& level = ret->m_levels[mip_level];
+      const VideoCommon::CustomTextureData::Level& level = ret->m_data.m_levels[mip_level];
       if (current_mip_width == level.width && current_mip_height == level.height)
         continue;
 
@@ -381,13 +361,15 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
     }
 
     // Drop this mip level and any others after it.
-    while (ret->m_levels.size() > mip_level)
-      ret->m_levels.pop_back();
+    while (ret->m_data.m_levels.size() > mip_level)
+      ret->m_data.m_levels.pop_back();
   }
 
   // All levels have to have the same format.
-  if (std::any_of(ret->m_levels.begin(), ret->m_levels.end(),
-                  [&ret](const Level& l) { return l.format != ret->m_levels[0].format; }))
+  if (std::any_of(ret->m_data.m_levels.begin(), ret->m_data.m_levels.end(),
+                  [&ret](const VideoCommon::CustomTextureData::Level& l) {
+                    return l.format != ret->m_data.m_levels[0].format;
+                  }))
   {
     ERROR_LOG_FMT(VIDEO, "Custom texture {} has inconsistent formats across mip levels.",
                   first_mip_file.path);
@@ -396,20 +378,6 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   }
 
   return ret;
-}
-
-bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
-{
-  if (!Common::LoadPNG(buffer, &level.data, &level.width, &level.height))
-    return false;
-
-  if (level.data.empty())
-    return false;
-
-  // Loaded PNG images are converted to RGBA.
-  level.format = AbstractTextureFormat::RGBA8;
-  level.row_length = level.width;
-  return true;
 }
 
 std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_directory,
@@ -464,7 +432,7 @@ HiresTexture::~HiresTexture()
 
 AbstractTextureFormat HiresTexture::GetFormat() const
 {
-  return m_levels.at(0).format;
+  return m_data.m_levels.at(0).format;
 }
 
 bool HiresTexture::HasArbitraryMipmaps() const
