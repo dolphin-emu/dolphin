@@ -539,7 +539,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->FindClass("org/dolphinemu/dolphinemu/features/riivolution/model/RiivolutionPatches");
   s_riivolution_patches_class =
       reinterpret_cast<jclass>(env->NewGlobalRef(riivolution_patches_class));
-  s_riivolution_patches_pointer = env->GetFieldID(riivolution_patches_class, "mPointer", "J");
+  s_riivolution_patches_pointer = env->GetFieldID(riivolution_patches_class, "pointer", "J");
   env->DeleteLocalRef(riivolution_patches_class);
 
   const jclass wii_update_cb_class =
