@@ -467,30 +467,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     }
   }
 
-  private void handleMenuTag(MenuTag menuTag, int value)
+  public void onMenuTagAction(@NonNull MenuTag menuTag, int value)
   {
-    if (menuTag != null)
-    {
-      if (menuTag.isSerialPort1Menu())
-      {
-        mView.onSerialPort1SettingChanged(menuTag, value);
-      }
+    mView.onMenuTagAction(menuTag, value);
+  }
 
-      if (menuTag.isGCPadMenu())
-      {
-        mView.onGcPadSettingChanged(menuTag, value);
-      }
-
-      if (menuTag.isWiimoteMenu())
-      {
-        mView.onWiimoteSettingChanged(menuTag, value);
-      }
-
-      if (menuTag.isWiimoteExtensionMenu())
-      {
-        mView.onExtensionSettingChanged(menuTag, value);
-      }
-    }
+  public boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value)
+  {
+    return mView.hasMenuTagActionForValue(menuTag, value);
   }
 
   @Override
@@ -503,8 +487,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       int value = getValueForSingleChoiceSelection(scSetting, which);
       if (scSetting.getSelectedValue(getSettings()) != value)
         mView.onSettingChanged();
-
-      handleMenuTag(scSetting.getMenuTag(), value);
 
       scSetting.setSelectedValue(getSettings(), value);
 
@@ -529,8 +511,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       String value = scSetting.getValueAt(which);
       if (!scSetting.getSelectedValue(getSettings()).equals(value))
         mView.onSettingChanged();
-
-      handleMenuTag(scSetting.getMenuTag(), which);
 
       scSetting.setSelectedValue(getSettings(), value);
 
