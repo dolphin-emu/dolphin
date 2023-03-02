@@ -65,6 +65,8 @@ add_library(videocommon
   GraphicsModSystem/Runtime/Actions/ScaleAction.h
   GraphicsModSystem/Runtime/Actions/SkipAction.cpp
   GraphicsModSystem/Runtime/Actions/SkipAction.h
+  GraphicsModSystem/Runtime/CustomTextureData.cpp
+  GraphicsModSystem/Runtime/CustomTextureData.h
   GraphicsModSystem/Runtime/FBInfo.cpp
   GraphicsModSystem/Runtime/FBInfo.h
   GraphicsModSystem/Runtime/GraphicsModAction.h
@@ -75,7 +77,6 @@ add_library(videocommon
   GraphicsModSystem/Runtime/GraphicsModManager.h
   HiresTextures.cpp
   HiresTextures.h
-  HiresTextures_DDSLoader.cpp
   IndexGenerator.cpp
   IndexGenerator.h
   LightingShaderGen.cpp

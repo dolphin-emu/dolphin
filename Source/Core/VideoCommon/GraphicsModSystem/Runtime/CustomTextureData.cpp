@@ -1,7 +1,7 @@
-// Copyright 2017 Dolphin Emulator Project
+// Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomTextureData.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -11,6 +11,7 @@
 
 #include "Common/Align.h"
 #include "Common/IOFile.h"
+#include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "VideoCommon/VideoConfig.h"
@@ -127,7 +128,7 @@ constexpr DDS_PIXELFORMAT DDSPF_R8G8B8 = {
 
 // End of Microsoft code from DDS.h.
 
-bool DDSPixelFormatMatches(const DDS_PIXELFORMAT& pf1, const DDS_PIXELFORMAT& pf2)
+static constexpr bool DDSPixelFormatMatches(const DDS_PIXELFORMAT& pf1, const DDS_PIXELFORMAT& pf2)
 {
   return std::tie(pf1.dwSize, pf1.dwFlags, pf1.dwFourCC, pf1.dwRGBBitCount, pf1.dwRBitMask,
                   pf1.dwGBitMask, pf1.dwGBitMask, pf1.dwBBitMask, pf1.dwABitMask) ==
@@ -147,15 +148,30 @@ struct DDSLoadInfo
   size_t first_mip_size = 0;
   u32 first_mip_row_length = 0;
 
-  std::function<void(HiresTexture::Level*)> conversion_function;
+  std::function<void(VideoCommon::CustomTextureData::Level*)> conversion_function;
 };
 
-u32 GetBlockCount(u32 extent, u32 block_size)
+static constexpr u32 GetBlockCount(u32 extent, u32 block_size)
 {
   return std::max(Common::AlignUp(extent, block_size) / block_size, 1u);
 }
 
-void ConvertTexture_X8B8G8R8(HiresTexture::Level* level)
+static u32 CalculateMipCount(u32 width, u32 height)
+{
+  u32 mip_width = width;
+  u32 mip_height = height;
+  u32 mip_count = 1;
+  while (mip_width > 1 || mip_height > 1)
+  {
+    mip_width = std::max(mip_width / 2, 1u);
+    mip_height = std::max(mip_height / 2, 1u);
+    mip_count++;
+  }
+
+  return mip_count;
+}
+
+static void ConvertTexture_X8B8G8R8(VideoCommon::CustomTextureData::Level* level)
 {
   u8* data_ptr = level->data.data();
   for (u32 row = 0; row < level->height; row++)
@@ -169,7 +185,7 @@ void ConvertTexture_X8B8G8R8(HiresTexture::Level* level)
   }
 }
 
-void ConvertTexture_A8R8G8B8(HiresTexture::Level* level)
+static void ConvertTexture_A8R8G8B8(VideoCommon::CustomTextureData::Level* level)
 {
   u8* data_ptr = level->data.data();
   for (u32 row = 0; row < level->height; row++)
@@ -186,7 +202,7 @@ void ConvertTexture_A8R8G8B8(HiresTexture::Level* level)
   }
 }
 
-void ConvertTexture_X8R8G8B8(HiresTexture::Level* level)
+static void ConvertTexture_X8R8G8B8(VideoCommon::CustomTextureData::Level* level)
 {
   u8* data_ptr = level->data.data();
   for (u32 row = 0; row < level->height; row++)
@@ -203,7 +219,7 @@ void ConvertTexture_X8R8G8B8(HiresTexture::Level* level)
   }
 }
 
-void ConvertTexture_R8G8B8(HiresTexture::Level* level)
+static void ConvertTexture_R8G8B8(VideoCommon::CustomTextureData::Level* level)
 {
   std::vector<u8> new_data(level->row_length * level->height * sizeof(u32));
 
@@ -227,7 +243,7 @@ void ConvertTexture_R8G8B8(HiresTexture::Level* level)
   level->data = std::move(new_data);
 }
 
-bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
+static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
 {
   // Exit as early as possible for non-DDS textures, since all extensions are currently
   // passed through this function.
@@ -261,7 +277,7 @@ bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
     if (header.dwMipMapCount != 0)
       info->mip_count = header.dwMipMapCount;
     else
-      info->mip_count = HiresTexture::CalculateMipCount(info->width, info->height);
+      info->mip_count = CalculateMipCount(info->width, info->height);
   }
   else
   {
@@ -400,9 +416,9 @@ bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
   return true;
 }
 
-bool ReadMipLevel(HiresTexture::Level* level, File::IOFile& file, const std::string& filename,
-                  u32 mip_level, const DDSLoadInfo& info, u32 width, u32 height, u32 row_length,
-                  size_t size)
+static bool ReadMipLevel(VideoCommon::CustomTextureData::Level* level, File::IOFile& file,
+                         const std::string& filename, u32 mip_level, const DDSLoadInfo& info,
+                         u32 width, u32 height, u32 row_length, size_t size)
 {
   // D3D11 cannot handle block compressed textures where the first mip level is
   // not a multiple of the block size.
@@ -434,7 +450,9 @@ bool ReadMipLevel(HiresTexture::Level* level, File::IOFile& file, const std::str
 
 }  // namespace
 
-bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename)
+namespace VideoCommon
+{
+bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
 {
   File::IOFile file;
   file.Open(filename, "rb");
@@ -446,7 +464,7 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
     return false;
 
   // Read first mip level, as it may have a custom pitch.
-  Level first_level;
+  CustomTextureData::Level first_level;
   if (!file.Seek(info.first_mip_offset, File::SeekOrigin::Begin) ||
       !ReadMipLevel(&first_level, file, filename, 0, info, info.width, info.height,
                     info.first_mip_row_length, info.first_mip_size))
@@ -454,7 +472,7 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
     return false;
   }
 
-  tex->m_levels.push_back(std::move(first_level));
+  texture->m_levels.push_back(std::move(first_level));
 
   // Read in any remaining mip levels in the file.
   // If the .dds file does not contain a full mip chain, we'll fall back to the old path.
@@ -470,18 +488,18 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
     u32 blocks_high = GetBlockCount(mip_height, info.block_size);
     u32 mip_row_length = blocks_wide * info.block_size;
     size_t mip_size = blocks_wide * static_cast<size_t>(info.bytes_per_block) * blocks_high;
-    Level level;
+    CustomTextureData::Level level;
     if (!ReadMipLevel(&level, file, filename, i, info, mip_width, mip_height, mip_row_length,
                       mip_size))
       break;
 
-    tex->m_levels.push_back(std::move(level));
+    texture->m_levels.push_back(std::move(level));
   }
 
   return true;
 }
 
-bool HiresTexture::LoadDDSTexture(Level& level, const std::string& filename, u32 mip_level)
+bool LoadDDSTexture(CustomTextureData::Level* level, const std::string& filename, u32 mip_level)
 {
   // Only loading a single mip level.
   File::IOFile file;
@@ -493,6 +511,34 @@ bool HiresTexture::LoadDDSTexture(Level& level, const std::string& filename, u32
   if (!ParseDDSHeader(file, &info))
     return false;
 
-  return ReadMipLevel(&level, file, filename, mip_level, info, info.width, info.height,
+  return ReadMipLevel(level, file, filename, mip_level, info, info.width, info.height,
                       info.first_mip_row_length, info.first_mip_size);
 }
+
+bool LoadPNGTexture(CustomTextureData* texture, const std::string& filename)
+{
+  return LoadPNGTexture(&texture->m_levels[0], filename);
+}
+
+bool LoadPNGTexture(CustomTextureData::Level* level, const std::string& filename)
+{
+  if (!level) [[unlikely]]
+    return false;
+
+  File::IOFile file;
+  file.Open(filename, "rb");
+  std::vector<u8> buffer(file.GetSize());
+  file.ReadBytes(buffer.data(), file.GetSize());
+
+  if (!Common::LoadPNG(buffer, &level->data, &level->width, &level->height))
+    return false;
+
+  if (level->data.empty())
+    return false;
+
+  // Loaded PNG images are converted to RGBA.
+  level->format = AbstractTextureFormat::RGBA8;
+  level->row_length = level->width;
+  return true;
+}
+}  // namespace VideoCommon
