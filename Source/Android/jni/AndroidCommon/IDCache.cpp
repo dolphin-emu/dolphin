@@ -500,7 +500,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass ar_cheat_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/cheats/model/ARCheat");
   s_ar_cheat_class = reinterpret_cast<jclass>(env->NewGlobalRef(ar_cheat_class));
-  s_ar_cheat_pointer = env->GetFieldID(ar_cheat_class, "mPointer", "J");
+  s_ar_cheat_pointer = env->GetFieldID(ar_cheat_class, "pointer", "J");
   s_ar_cheat_constructor = env->GetMethodID(ar_cheat_class, "<init>", "(J)V");
   env->DeleteLocalRef(ar_cheat_class);
 
@@ -514,7 +514,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass patch_cheat_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/cheats/model/PatchCheat");
   s_patch_cheat_class = reinterpret_cast<jclass>(env->NewGlobalRef(patch_cheat_class));
-  s_patch_cheat_pointer = env->GetFieldID(patch_cheat_class, "mPointer", "J");
+  s_patch_cheat_pointer = env->GetFieldID(patch_cheat_class, "pointer", "J");
   s_patch_cheat_constructor = env->GetMethodID(patch_cheat_class, "<init>", "(J)V");
   env->DeleteLocalRef(patch_cheat_class);
 
@@ -522,14 +522,14 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->FindClass("org/dolphinemu/dolphinemu/features/cheats/model/GraphicsModGroup");
   s_graphics_mod_group_class =
       reinterpret_cast<jclass>(env->NewGlobalRef(graphics_mod_group_class));
-  s_graphics_mod_group_pointer = env->GetFieldID(graphics_mod_group_class, "mPointer", "J");
+  s_graphics_mod_group_pointer = env->GetFieldID(graphics_mod_group_class, "pointer", "J");
   s_graphics_mod_group_constructor = env->GetMethodID(graphics_mod_group_class, "<init>", "(J)V");
   env->DeleteLocalRef(graphics_mod_group_class);
 
   const jclass graphics_mod_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/cheats/model/GraphicsMod");
   s_graphics_mod_class = reinterpret_cast<jclass>(env->NewGlobalRef(graphics_mod_class));
-  s_graphics_mod_pointer = env->GetFieldID(graphics_mod_class, "mPointer", "J");
+  s_graphics_mod_pointer = env->GetFieldID(graphics_mod_class, "pointer", "J");
   s_graphics_mod_constructor =
       env->GetMethodID(graphics_mod_class, "<init>",
                        "(JLorg/dolphinemu/dolphinemu/features/cheats/model/GraphicsModGroup;)V");
