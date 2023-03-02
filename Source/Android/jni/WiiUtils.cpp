@@ -191,12 +191,12 @@ Java_org_dolphinemu_dolphinemu_utils_WiiUtils_getSystemMenuVersion(JNIEnv* env, 
 JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_utils_WiiUtils_syncSdFolderToSdImage(JNIEnv* env, jclass)
 {
-  return static_cast<jboolean>(Common::SyncSDFolderToSDImage(false));
+  return static_cast<jboolean>(Common::SyncSDFolderToSDImage([]() { return false; }, false));
 }
 
 JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_utils_WiiUtils_syncSdImageToSdFolder(JNIEnv* env, jclass)
 {
-  return static_cast<jboolean>(Common::SyncSDImageToSDFolder());
+  return static_cast<jboolean>(Common::SyncSDImageToSDFolder([]() { return false; }));
 }
 }
