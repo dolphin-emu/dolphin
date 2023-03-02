@@ -1,4 +1,4 @@
-#include "Core/Scripting/InternalAPIFunctions/GameCubeControllerAPI.h"
+#include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 
 #include <fmt/format.h>
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
@@ -29,27 +29,27 @@ ClassMetadata GetGameCubeControllerApiClassData(const std::string& api_version)
   return {class_name, GetLatestFunctionsForVersion(all_game_cube_controller_functions_metadata_list, api_version, deprecated_functions_map)};
 }
 
-ArgHolder GetCurrentPortNumberOfPoll(ScriptCallLocations call_location,
-                                     std::vector<ArgHolder>& args_list)
+ArgHolder
+GetCurrentPortNumberOfPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(current_controller_number_polled + 1);
 }
 
 // NOTE: In SI.cpp, UpdateDevices() is called to update each device, which moves exactly 8 bytes
 // forward for each controller. Also, it moves in order from controllers 1 to 4.
-ArgHolder SetInputsForPoll(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   overwrite_controller_at_specified_port[current_controller_number_polled] = true;
   new_controller_inputs[current_controller_number_polled] = args_list[0].controller_state_val;
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder GetInputsForPoll(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateControllerStateArgHolder(new_controller_inputs[current_controller_number_polled]);
 }
 
-ArgHolder GetInputsForPreviousFrame(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetInputsForPreviousFrame(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 controller_port_number = args_list[0].long_long_val;
   if (controller_port_number < 1 || controller_port_number > 4)

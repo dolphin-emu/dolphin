@@ -24,7 +24,11 @@ enum class ArgTypeEnum
   AddressToByteMap,
   ControllerStateObject,
   ErrorStringType,
-  YieldType
+  YieldType,
+  RegistrationInputType,
+  UnregistrationInputType,
+  RegistrationReturnType,
+  UnregistrationReturnType
 };
 }
 #endif

@@ -72,44 +72,55 @@
   <ItemGroup>
     <ClInclude Include="Core\Lua\LuaEventCallbackClasses\LuaOnFrameStartCallbackClass.h" />
     <ClInclude Include="Core\Lua\LuaEventCallbackClasses\LuaOnGCControllerPolled.h" />
-    <ClInclude Include="Core\Lua\LuaFunctions\LuaImportModule.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIFunctions\BitAPI.h" />
-    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaGCButtons.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIFunctions\EmuAPI.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIFunctions\MemoryAPI.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIFunctions\GameCubeControllerAPI.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIFunctions\RegistersAPI.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIFunctions\StatisticsAPI.h" />
-    <ClInclude Include="Core\Lua\LuaHelperClasses\luaL_Reg_With_Version.h" />
+    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.h" />
+    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.h" />
+    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.h" />
+    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressReadFromCallbackAPI.h" />
+    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressWrittenToCallbackAPI.h" />
+    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.h" />
+    <ClInclude Include="Core\Scripting\InternalAPIModules\ImportAPI.h" />
+    <ClInclude Include="Core\Scripting\ScriptContext.h" />
+    <ClInclude Include="Core\Scripting\InternalAPIModules\BitAPI.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\GCButtons.h" />
+    <ClInclude Include="Core\Scripting\InternalAPIModules\EmuAPI.h" />
+    <ClInclude Include="Core\Scripting\InternalAPIModules\MemoryAPI.h" />
+    <ClInclude Include="Core\Scripting\InternalAPIModules\GameCubeControllerAPI.h" />
+    <ClInclude Include="Core\Scripting\InternalAPIModules\RegistersAPI.h" />
+    <ClInclude Include="Core\Scripting\InternalAPIModules\StatisticsAPI.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\ScriptCallLocations.h" />
-    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaScriptState.h" />
-    <ClInclude Include="Core\Lua\LuaHelperClasses\LuaStateToScriptContextMap.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\ClassMetadata.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\VersionComparisonFunctions.h" />
-    <ClInclude Include="Core\Lua\LuaHelperClasses\NumberType.h" />
-    <ClInclude Include="Core\Lua\LuaVersionResolver.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\ArgHolder.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\ArgTypeEnum.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\FunctionMetadata.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\VersionResolver.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\NewLuaScriptContext.h" />
+    <ClInclude Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.h" />
     <ClInclude Include="DolphinQt\ThreadSafeIntQueue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Lua\LuaEventCallbackClasses\LuaOnFrameStartCallbackClass.cpp" />
     <ClCompile Include="Core\Lua\LuaEventCallbackClasses\LuaOnGCControllerPolled.cpp" />
-    <ClCompile Include="Core\Lua\LuaFunctions\LuaImportModule.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIFunctions\BitAPI.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIFunctions\EmuAPI.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIFunctions\GameCubeControllerAPI.cpp" />
-    <ClCompile Include="Core\Lua\LuaHelperClasses\LuaGCButtons.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIFunctions\MemoryAPI.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIFunctions\RegistersAPI.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIFunctions\StatisticsAPI.cpp" />
-    <ClCompile Include="Core\Lua\LuaHelperClasses\LuaScriptState.cpp" />
+    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.cpp" />
+    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.cpp" />
+    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressReadFromCallbackAPI.cpp" />
+    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressWrittenToCallbackAPI.cpp" />
+    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.cpp" />
+    <ClCompile Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.cpp" />
+    <ClCompile Include="Core\Scripting\InternalAPIModules\ImportAPI.cpp" />
+    <ClCompile Include="Core\Scripting\InternalAPIModules\BitAPI.cpp" />
+    <ClCompile Include="Core\Scripting\InternalAPIModules\EmuAPI.cpp" />
+    <ClCompile Include="Core\Scripting\InternalAPIModules\GameCubeControllerAPI.cpp" />
+    <ClCompile Include="Core\Scripting\HelperClasses\GCButtons.cpp" />
+    <ClCompile Include="Core\Scripting\InternalAPIModules\MemoryAPI.cpp" />
+    <ClCompile Include="Core\Scripting\InternalAPIModules\RegistersAPI.cpp" />
+    <ClCompile Include="Core\Scripting\InternalAPIModules\StatisticsAPI.cpp" />
     <ClCompile Include="Core\Scripting\HelperClasses\VersionComparisonFunctions.cpp" />
-    <ClCompile Include="Core\Lua\LuaHelperClasses\NumberType.cpp" />
     <ClCompile Include="Core\Scripting\HelperClasses\ArgHolder.cpp" />
+    <ClCompile Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>

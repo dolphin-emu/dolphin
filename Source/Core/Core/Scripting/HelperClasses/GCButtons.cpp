@@ -1,4 +1,4 @@
-#include "Core/Lua/LuaHelperClasses/LuaGCButtons.h"
+#include "Core/Scripting/HelperClasses/GCButtons.h"
 
 bool IsBinaryButton(GcButtonName button)
 {

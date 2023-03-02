@@ -1,4 +1,4 @@
-#include "Core/Scripting/InternalAPIFunctions/MemoryAPI.h"
+#include "Core/Scripting/InternalAPIModules/MemoryAPI.h"
 
 #include <fmt/format.h>
 #include <optional>
@@ -49,7 +49,7 @@ ClassMetadata GetMemoryApiClassData(const std::string& api_version)
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   return {class_name, GetLatestFunctionsForVersion(all_memory_functions_metadata_list, api_version, deprecated_functions_map)};
 }
-ArgHolder ReadU8(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder ReadU8(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -63,8 +63,8 @@ ArgHolder ReadU8(ScriptCallLocations call_location, std::vector<ArgHolder>& args
     return CreateU8ArgHolder(read_result.value().value);
   }
 
-ArgHolder ReadU16(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
-{
+ArgHolder ReadU16(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+  {
     long long address = args_list[0].long_long_val;
     if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
@@ -75,7 +75,7 @@ ArgHolder ReadU16(ScriptCallLocations call_location, std::vector<ArgHolder>& arg
     return CreateU16ArgHolder(read_result.value().value);
 }
 
-ArgHolder ReadU32(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder ReadU32(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
     long long address = args_list[0].long_long_val;
     if (address < 0)
@@ -87,7 +87,7 @@ ArgHolder ReadU32(ScriptCallLocations call_location, std::vector<ArgHolder>& arg
     return CreateU32ArgHolder(read_result.value().value);
 }
 
-ArgHolder ReadU64(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder ReadU64(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
     long long address = args_list[0].long_long_val;
     if (address < 0)
@@ -99,7 +99,7 @@ ArgHolder ReadU64(ScriptCallLocations call_location, std::vector<ArgHolder>& arg
     return CreateU64ArgHolder(read_result.value().value);
 }
 
-ArgHolder ReadS8(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder ReadS8(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
     long long address = args_list[0].long_long_val;
     if (address < 0)
@@ -114,7 +114,7 @@ ArgHolder ReadS8(ScriptCallLocations call_location, std::vector<ArgHolder>& args
     return CreateS8ArgHolder(s8_val);
 }
 
-ArgHolder ReadS16(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder ReadS16(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
     long long address = args_list[0].long_long_val;
     if (address < 0)
@@ -129,7 +129,7 @@ ArgHolder ReadS16(ScriptCallLocations call_location, std::vector<ArgHolder>& arg
     return CreateS16ArgHolder(s16_val);
 }
 
-ArgHolder ReadS32(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder ReadS32(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
     long long address = args_list[0].long_long_val;
     if (address < 0)
@@ -144,7 +144,7 @@ ArgHolder ReadS32(ScriptCallLocations call_location, std::vector<ArgHolder>& arg
     return CreateIntArgHolder(s32_val);
 }
 
-ArgHolder ReadS64(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder ReadS64(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
     long long address = args_list[0].long_long_val;
     if (address < 0)
@@ -159,7 +159,7 @@ ArgHolder ReadS64(ScriptCallLocations call_location, std::vector<ArgHolder>& arg
     return CreateLongLongArgHolder(s64_val);
 }
 
-ArgHolder ReadFloat(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder ReadFloat(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
     long long address = args_list[0].long_long_val;
     if (address < 0)
@@ -174,7 +174,7 @@ ArgHolder ReadFloat(ScriptCallLocations call_location, std::vector<ArgHolder>& a
     return CreateFloatArgHolder(float_val);
 }
 
-ArgHolder ReadDouble(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder ReadDouble(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
     long long address = args_list[0].long_long_val;
     if (address < 0)
@@ -189,7 +189,7 @@ ArgHolder ReadDouble(ScriptCallLocations call_location, std::vector<ArgHolder>& 
     return CreateDoubleArgHolder(double_val);
 }
 
-ArgHolder ReadFixedLengthString(ScriptCallLocations call_location,
+ArgHolder ReadFixedLengthString(ScriptContext* current_script,
                                    std::vector<ArgHolder>& args_list)
 {
     long long address = args_list[0].long_long_val;
@@ -214,7 +214,7 @@ ArgHolder ReadFixedLengthString(ScriptCallLocations call_location,
     return CreateStringArgHolder(return_string);
 }
 
-ArgHolder ReadNullTerminatedString(ScriptCallLocations call_location,
+ArgHolder ReadNullTerminatedString(ScriptContext* current_script,
                                       std::vector<ArgHolder>& args_list)
 {
     long long address = args_list[0].long_long_val;
@@ -243,7 +243,7 @@ ArgHolder ReadNullTerminatedString(ScriptCallLocations call_location,
 }
 
 
-ArgHolder ReadUnsignedBytes(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder ReadUnsignedBytes(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   long long number_of_bytes = args_list[1].long_long_val;
@@ -268,7 +268,7 @@ ArgHolder ReadUnsignedBytes(ScriptCallLocations call_location, std::vector<ArgHo
   return CreateAddressToUnsignedByteMapArgHolder(address_to_unsigned_byte_map);
 }
 
-ArgHolder ReadSignedBytes(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder ReadSignedBytes(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   long long number_of_bytes = args_list[1].long_long_val;
@@ -295,7 +295,7 @@ ArgHolder ReadSignedBytes(ScriptCallLocations call_location, std::vector<ArgHold
   return CreateAddressToSignedByteMapArgHolder(address_to_signed_byte_map);
 }
 
-ArgHolder WriteU8(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteU8(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -308,7 +308,7 @@ ArgHolder WriteU8(ScriptCallLocations call_location, std::vector<ArgHolder>& arg
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteU16(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteU16(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -321,7 +321,7 @@ ArgHolder WriteU16(ScriptCallLocations call_location, std::vector<ArgHolder>& ar
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteU32(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteU32(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -334,7 +334,7 @@ ArgHolder WriteU32(ScriptCallLocations call_location, std::vector<ArgHolder>& ar
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteU64(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteU64(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -347,7 +347,7 @@ ArgHolder WriteU64(ScriptCallLocations call_location, std::vector<ArgHolder>& ar
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS8(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteS8(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -362,7 +362,7 @@ ArgHolder WriteS8(ScriptCallLocations call_location, std::vector<ArgHolder>& arg
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS16(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteS16(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -377,7 +377,7 @@ ArgHolder WriteS16(ScriptCallLocations call_location, std::vector<ArgHolder>& ar
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS32(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteS32(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -392,7 +392,7 @@ ArgHolder WriteS32(ScriptCallLocations call_location, std::vector<ArgHolder>& ar
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS64(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteS64(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -407,7 +407,7 @@ ArgHolder WriteS64(ScriptCallLocations call_location, std::vector<ArgHolder>& ar
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteFloat(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteFloat(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -422,7 +422,7 @@ ArgHolder WriteFloat(ScriptCallLocations call_location, std::vector<ArgHolder>& 
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteDouble(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteDouble(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -437,7 +437,7 @@ ArgHolder WriteDouble(ScriptCallLocations call_location, std::vector<ArgHolder>&
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteString(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteString(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;
   if (address < 0)
@@ -458,7 +458,7 @@ ArgHolder WriteString(ScriptCallLocations call_location, std::vector<ArgHolder>&
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteBytes(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteBytes(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   std::map<long long, s16> address_to_byte_map = args_list[0].address_to_byte_map;
   for (auto& it : address_to_byte_map)

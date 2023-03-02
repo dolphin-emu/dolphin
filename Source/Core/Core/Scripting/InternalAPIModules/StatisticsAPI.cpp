@@ -1,4 +1,4 @@
-#include "Core/Scripting/InternalAPIFunctions/StatisticsAPI.h"
+#include "Core/Scripting/InternalAPIModules/StatisticsAPI.h"
 
 #include <fmt/format.h>
 #include <memory>
@@ -32,62 +32,63 @@ static std::array all_statistics_functions_metadata_list = {
   return {class_name, GetLatestFunctionsForVersion(all_statistics_functions_metadata_list, api_version, deprecated_functions_map)};
 }
 
-ArgHolder IsRecordingInput(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder IsRecordingInput(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateBoolArgHolder(Movie::IsRecordingInput());
 }
 
-ArgHolder IsRecordingInputFromSaveState(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder IsRecordingInputFromSaveState(ScriptContext* current_script,
+                                        std::vector<ArgHolder>& args_list)
 {
   return CreateBoolArgHolder(Movie::IsRecordingInputFromSaveState());
 }
 
-ArgHolder IsPlayingInput(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder IsPlayingInput(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateBoolArgHolder(Movie::IsPlayingInput());
 }
 
-ArgHolder IsMovieActive(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder IsMovieActive(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateBoolArgHolder(Movie::IsMovieActive());
 }
 
-ArgHolder GetCurrentFrame(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetCurrentFrame(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(Movie::GetCurrentFrame());
 }
 
-ArgHolder GetMovieLength(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetMovieLength(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(Movie::GetTotalFrames());
 }
 
-ArgHolder GetRerecordCount(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetRerecordCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(Movie::GetRerecordCount());
 }
 
-ArgHolder GetCurrentInputCount(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetCurrentInputCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(Movie::GetCurrentInputCount());
 }
 
-ArgHolder GetTotalInputCount(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetTotalInputCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(Movie::GetTotalInputCount());
 }
 
-ArgHolder GetCurrentLagCount(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetCurrentLagCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(Movie::GetCurrentLagCount());
 }
 
-ArgHolder GetTotalLagCount(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetTotalLagCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(Movie::GetTotalLagCount());
 }
 
-ArgHolder IsGcControllerInPort(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long controller_port_number = args_list[0].long_long_val;
   
@@ -97,7 +98,7 @@ ArgHolder IsGcControllerInPort(ScriptCallLocations call_location, std::vector<Ar
   return CreateBoolArgHolder(Movie::IsUsingGCController(controller_port_number - 1));
 }
 
-ArgHolder IsUsingPort(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder IsUsingPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long controller_port_number = args_list[0].long_long_val;
   if (controller_port_number < 1 || controller_port_number > 4)

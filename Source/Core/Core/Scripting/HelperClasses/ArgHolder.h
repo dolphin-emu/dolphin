@@ -58,5 +58,9 @@ ArgHolder CreateControllerStateArgHolder(const Movie::ControllerState& new_contr
 ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val);
 ArgHolder CreateYieldTypeArgHolder();
 ArgHolder CreateVoidTypeArgHolder();
+ArgHolder CreateRegistrationInputTypeArgHolder(void* new_val);
+ArgHolder CreateUnregistrationInputTypeArgHolder(void* new_val);
+ArgHolder CreateRegistrationReturnTypeArgHolder(void* new_val);
+ArgHolder CreateUnregistrationReturnTypeArgHolder(void* new_val);
 }  // namespace Scripting
 #endif

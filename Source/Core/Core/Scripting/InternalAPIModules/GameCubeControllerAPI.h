@@ -9,7 +9,7 @@
 #include "Core/Movie.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
-#include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
+#include "Core/Scripting/ScriptContext.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 
@@ -23,9 +23,11 @@ extern std::array<Movie::ControllerState, 4> controller_inputs_on_last_frame;
 extern int current_controller_number_polled;
 
 ClassMetadata GetGameCubeControllerApiClassData(const std::string& api_version);
-ArgHolder GetCurrentPortNumberOfPoll(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list);
-ArgHolder SetInputsForPoll(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list);
-ArgHolder GetInputsForPoll(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list);
-ArgHolder GetInputsForPreviousFrame(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list);
+ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
+                                     std::vector<ArgHolder>& args_list);
+ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder GetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder GetInputsForPreviousFrame(ScriptContext* current_script,
+                                    std::vector<ArgHolder>& args_list);
 
 }  // namespace Scripting::GameCubeControllerAPI

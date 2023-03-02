@@ -1,4 +1,4 @@
-#include "Core/Scripting/InternalAPIFunctions/RegistersAPI.h"
+#include "Core/Scripting/InternalAPIModules/RegistersAPI.h"
 
 #include <algorithm>
 #include <fmt/format.h>
@@ -178,7 +178,7 @@ bool IsRegisterObjectUndefined(const RegisterObject& register_object)
   return register_object.register_type == RegisterObject::RegisterType::Undefined;
 }
 
-ArgHolder GetU8FromRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetU8FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   long long offset = args_list[1].long_long_val;
@@ -197,7 +197,7 @@ ArgHolder GetU8FromRegister(ScriptCallLocations call_location, std::vector<ArgHo
   return CreateU8ArgHolder(u8_return_val);
 }
 
-ArgHolder GetU16FromRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetU16FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   long long offset = args_list[1].long_long_val;
@@ -216,7 +216,7 @@ ArgHolder GetU16FromRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateU16ArgHolder(u16_return_val);
 }
 
-ArgHolder GetU32FromRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetU32FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   long long offset = args_list[1].long_long_val;
@@ -235,7 +235,7 @@ ArgHolder GetU32FromRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateU32ArgHolder(u32_return_val);
 }
 
-ArgHolder GetU64FromRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetU64FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   long long offset = args_list[1].long_long_val;
@@ -254,7 +254,7 @@ ArgHolder GetU64FromRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateU64ArgHolder(u64_return_val);
 }
 
-ArgHolder GetS8FromRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetS8FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   long long offset = args_list[1].long_long_val;
@@ -273,7 +273,7 @@ ArgHolder GetS8FromRegister(ScriptCallLocations call_location, std::vector<ArgHo
   return CreateS8ArgHolder(s8_return_val);
 }
 
-ArgHolder GetS16FromRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetS16FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   long long offset = args_list[1].long_long_val;
@@ -291,7 +291,7 @@ ArgHolder GetS16FromRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateS16ArgHolder(s16_return_val);
 }
 
-ArgHolder GetS32FromRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetS32FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   long long offset = args_list[1].long_long_val;
@@ -310,7 +310,7 @@ ArgHolder GetS32FromRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateIntArgHolder(s32_return_val);
 }
 
-ArgHolder GetS64FromRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetS64FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   long long offset = args_list[1].long_long_val;
@@ -329,7 +329,7 @@ ArgHolder GetS64FromRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateLongLongArgHolder(s64_return_val);
 }
 
-ArgHolder GetFloatFromRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetFloatFromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   long long offset = args_list[1].long_long_val;
@@ -348,7 +348,7 @@ ArgHolder GetFloatFromRegister(ScriptCallLocations call_location, std::vector<Ar
   return CreateFloatArgHolder(float_return_val);
 }
 
-ArgHolder GetDoubleFromRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder GetDoubleFromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   long long offset = args_list[1].long_long_val;
@@ -367,7 +367,7 @@ ArgHolder GetDoubleFromRegister(ScriptCallLocations call_location, std::vector<A
   return CreateDoubleArgHolder(double_return_val);
 }
 
-ArgHolder GetUnsignedBytesFromRegister(ScriptCallLocations call_location,
+ArgHolder GetUnsignedBytesFromRegister(ScriptContext* current_script,
                                        std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
@@ -398,7 +398,7 @@ ArgHolder GetUnsignedBytesFromRegister(ScriptCallLocations call_location,
   return CreateAddressToUnsignedByteMapArgHolder(index_to_unsigned_byte_map);
 }
 
-ArgHolder GetSignedBytesFromRegister(ScriptCallLocations call_location,
+ArgHolder GetSignedBytesFromRegister(ScriptContext* current_script,
                                        std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
@@ -429,7 +429,7 @@ ArgHolder GetSignedBytesFromRegister(ScriptCallLocations call_location,
   return CreateAddressToSignedByteMapArgHolder(index_to_signed_byte_map);
 }
 
-ArgHolder WriteU8ToRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteU8ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   u8 u8_val = args_list[1].u8_val;
@@ -449,7 +449,7 @@ ArgHolder WriteU8ToRegister(ScriptCallLocations call_location, std::vector<ArgHo
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteU16ToRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteU16ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   u16 u16_val = args_list[1].u16_val;
@@ -469,7 +469,7 @@ ArgHolder WriteU16ToRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteU32ToRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteU32ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   u32 u32_val = args_list[1].u32_val;
@@ -489,7 +489,7 @@ ArgHolder WriteU32ToRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteU64ToRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteU64ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   u64 u64_val = args_list[1].u64_val;
@@ -509,7 +509,7 @@ ArgHolder WriteU64ToRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS8ToRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteS8ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   s8 s8_val = args_list[1].s8_val;
@@ -529,7 +529,7 @@ ArgHolder WriteS8ToRegister(ScriptCallLocations call_location, std::vector<ArgHo
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS16ToRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteS16ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   s16 s16_val = args_list[1].s16_val;
@@ -549,7 +549,7 @@ ArgHolder WriteS16ToRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS32ToRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteS32ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   s32 s32_val = args_list[1].int_val;
@@ -569,7 +569,7 @@ ArgHolder WriteS32ToRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS64ToRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteS64ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   s64 s64_val = args_list[1].long_long_val;
@@ -589,7 +589,7 @@ ArgHolder WriteS64ToRegister(ScriptCallLocations call_location, std::vector<ArgH
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteFloatToRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteFloatToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   float float_val = args_list[1].float_val;
@@ -609,7 +609,7 @@ ArgHolder WriteFloatToRegister(ScriptCallLocations call_location, std::vector<Ar
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteDoubleToRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteDoubleToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   double double_val = args_list[1].double_val;
@@ -629,7 +629,7 @@ ArgHolder WriteDoubleToRegister(ScriptCallLocations call_location, std::vector<A
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteBytesToRegister(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder WriteBytesToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   std::map<long long, s16> index_to_byte_map = args_list[1].address_to_byte_map;

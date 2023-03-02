@@ -1,4 +1,4 @@
-#include "Core/Scripting/InternalAPIFunctions/BitAPI.h"
+#include "Core/Scripting/InternalAPIModules/BitAPI.h"
 
 #include <fmt/format.h>
 #include <memory>
@@ -39,61 +39,61 @@ static std::array all_bit_functions_metadata_list = {
   return {class_name, GetLatestFunctionsForVersion(all_bit_functions_metadata_list, api_version, deprecated_functions_map)};
 }
 
-ArgHolder BitwiseAnd(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder BitwiseAnd(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateLongLongArgHolder(first_val & second_val);
 }
 
-ArgHolder BitwiseOr(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder BitwiseOr(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateLongLongArgHolder(first_val | second_val);
 }
 
-ArgHolder BitwiseNot(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder BitwiseNot(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 input_val = args_list[0].long_long_val;
   return CreateLongLongArgHolder(~input_val);
 }
 
-ArgHolder BitwiseXor(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder BitwiseXor(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateLongLongArgHolder(first_val ^ second_val);
 }
 
-ArgHolder LogicalAnd(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder LogicalAnd(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateBoolArgHolder(first_val && second_val);
 }
 
-ArgHolder LogicalOr(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder LogicalOr(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateBoolArgHolder(first_val || second_val);
 }
 
-ArgHolder LogicalXor(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder LogicalXor(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
   return CreateBoolArgHolder((first_val || second_val) && !(first_val && second_val));
 }
 
-ArgHolder LogicalNot(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder LogicalNot(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 input_val = args_list[0].long_long_val;
   return CreateBoolArgHolder(!input_val);
 }
 
-ArgHolder BitShiftLeft(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder BitShiftLeft(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;
@@ -108,7 +108,7 @@ ArgHolder BitShiftLeft(ScriptCallLocations call_location, std::vector<ArgHolder>
       static_cast<s64>(static_cast<u64>(first_val) << static_cast<u64>(second_val)));
 }
 
-ArgHolder BitShiftRight(ScriptCallLocations call_location, std::vector<ArgHolder>& args_list)
+ArgHolder BitShiftRight(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;
   s64 second_val = args_list[1].long_long_val;

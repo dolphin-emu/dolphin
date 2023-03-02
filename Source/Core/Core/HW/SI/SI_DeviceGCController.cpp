@@ -18,7 +18,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Lua/Lua.h"
 #include "Core/Lua/LuaEventCallbackClasses/LuaOnGCControllerPolled.h"
-#include "Core/Scripting/InternalAPIFunctions/GameCubeControllerAPI.h"
+#include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
