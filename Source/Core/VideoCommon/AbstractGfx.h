@@ -161,7 +161,7 @@ public:
   bool UseGeometryShaderForUI() const;
 
   // Returns info about the main surface (aka backbuffer)
-  virtual SurfaceInfo GetSurfaceInfo() const { return {}; }
+  virtual SurfaceInfo GetSurfaceInfo() const = 0;
 
 protected:
   AbstractFramebuffer* m_current_framebuffer = nullptr;
