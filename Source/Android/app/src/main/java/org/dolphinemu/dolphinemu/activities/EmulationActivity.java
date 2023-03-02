@@ -406,7 +406,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     outState.putBoolean(EXTRA_MENU_TOAST_SHOWN, mMenuToastShown);
     outState.putInt(EXTRA_SKYLANDER_SLOT, mSkylanderSlot);
     outState.putInt(EXTRA_SKYLANDER_ID, mSkylanderData.getId());
-    outState.putInt(EXTRA_SKYLANDER_VAR, mSkylanderData.getVar());
+    outState.putInt(EXTRA_SKYLANDER_VAR, mSkylanderData.getVariant());
     outState.putString(EXTRA_SKYLANDER_NAME, mSkylanderData.getName());
     super.onSaveInstanceState(outState);
   }
@@ -546,10 +546,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
       }
       else if (requestCode == REQUEST_CREATE_SKYLANDER)
       {
-        if (!(mSkylanderData.getId() == -1) && !(mSkylanderData.getVar() == -1))
+        if (!(mSkylanderData.getId() == -1) && !(mSkylanderData.getVariant() == -1))
         {
           Pair<Integer, String> slot = SkylanderConfig.createSkylander(mSkylanderData.getId(),
-                  mSkylanderData.getVar(),
+                  mSkylanderData.getVariant(),
                   result.getData().toString(), sSkylanderSlots.get(mSkylanderSlot).getPortalSlot());
           clearSkylander(mSkylanderSlot);
           sSkylanderSlots.get(mSkylanderSlot).setPortalSlot(slot.first);
