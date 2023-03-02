@@ -62,7 +62,7 @@ external_irq:
 
 ; Expected result ($AX0.H (send_back num), $AX1.H, and $SR):
 ; 1, 1, 2024 (start)
-; 3, 1, 2020 (in interrupt handler)
+; 3, 1, 2820 (in interrupt handler)
 ; 2, 6, 3825 (end)
 ; DSPSpy shows "interrupt after 21 ticks / 0 tries" (exact numbers vary)
 ; $ACC1 in the interrupt handler is approximately 15 (so it loops 15 times

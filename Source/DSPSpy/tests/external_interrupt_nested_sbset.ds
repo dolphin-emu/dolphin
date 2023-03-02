@@ -84,6 +84,6 @@ exit_irq:
 
 ; Expected result ($AX0.H (send_back num), $AC0.L (interrupt depth), $AC0.M (interrupt count), $AR0, and $SR):
 ; 1, 0, 0, 0, 2024
-; 3, 1, 1, 2, 2020
-; 3, 2, 2, 2, 2020
+; 3, 1, 1, 2, 2820
+; 3, 2, 2, 2, 2820
 ; 2, 0, 2, 6, 3825
