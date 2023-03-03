@@ -238,21 +238,25 @@ std::optional<ControlState> TASInputWindow::GetButton(TASCheckBox* checkbox,
                                                       ControlState controller_state)
 {
   const bool pressed = std::llround(controller_state) > 0;
+  bool input_value = checkbox->GetValue();
+
   if (m_use_controller->isChecked())
   {
     if (pressed)
     {
+      input_value = true;
       m_checkbox_set_by_controller[checkbox] = true;
-      QueueOnObjectBlocking(checkbox, [checkbox] { checkbox->setChecked(true); });
+      QueueOnObject(checkbox, [checkbox] { checkbox->setChecked(true); });
     }
     else if (m_checkbox_set_by_controller.count(checkbox) && m_checkbox_set_by_controller[checkbox])
     {
+      input_value = false;
       m_checkbox_set_by_controller[checkbox] = false;
-      QueueOnObjectBlocking(checkbox, [checkbox] { checkbox->setChecked(false); });
+      QueueOnObject(checkbox, [checkbox] { checkbox->setChecked(false); });
     }
   }
 
-  return checkbox->GetValue() ? 1.0 : 0.0;
+  return input_value ? 1.0 : 0.0;
 }
 
 std::optional<ControlState> TASInputWindow::GetSpinBox(QSpinBox* spin, u16 zero, u16 min, u16 max,
@@ -260,13 +264,15 @@ std::optional<ControlState> TASInputWindow::GetSpinBox(QSpinBox* spin, u16 zero,
 {
   const u16 controller_value =
       ControllerEmu::EmulatedController::MapFloat<u16>(controller_state, zero, 0, max);
+  u16 input_value = spin->value();
 
   if (m_use_controller->isChecked())
   {
     if (!m_spinbox_most_recent_values.count(spin) ||
         m_spinbox_most_recent_values[spin] != controller_value)
     {
-      QueueOnObjectBlocking(spin, [spin, controller_value] { spin->setValue(controller_value); });
+      input_value = controller_value;
+      QueueOnObject(spin, [spin, controller_value] { spin->setValue(controller_value); });
     }
 
     m_spinbox_most_recent_values[spin] = controller_value;
@@ -276,7 +282,7 @@ std::optional<ControlState> TASInputWindow::GetSpinBox(QSpinBox* spin, u16 zero,
     m_spinbox_most_recent_values.clear();
   }
 
-  return ControllerEmu::EmulatedController::MapToFloat<ControlState, u16>(spin->value(), zero, min,
+  return ControllerEmu::EmulatedController::MapToFloat<ControlState, u16>(input_value, zero, min,
                                                                           max);
 }
 
@@ -285,13 +291,15 @@ std::optional<ControlState> TASInputWindow::GetSpinBox(QSpinBox* spin, u16 zero,
                                                        ControlState scale)
 {
   const u16 controller_value = static_cast<u16>(std::llround(controller_state * scale + zero));
+  u16 input_value = spin->value();
 
   if (m_use_controller->isChecked())
   {
     if (!m_spinbox_most_recent_values.count(spin) ||
         m_spinbox_most_recent_values[spin] != controller_value)
     {
-      QueueOnObjectBlocking(spin, [spin, controller_value] { spin->setValue(controller_value); });
+      input_value = controller_value;
+      QueueOnObject(spin, [spin, controller_value] { spin->setValue(controller_value); });
     }
 
     m_spinbox_most_recent_values[spin] = controller_value;
@@ -301,5 +309,5 @@ std::optional<ControlState> TASInputWindow::GetSpinBox(QSpinBox* spin, u16 zero,
     m_spinbox_most_recent_values.clear();
   }
 
-  return (spin->value() - zero) / scale;
+  return (input_value - zero) / scale;
 }

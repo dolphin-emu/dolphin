@@ -17,11 +17,3 @@ static void QueueOnObject(T* obj, F&& func)
   QObject src;
   QObject::connect(&src, &QObject::destroyed, obj, std::forward<F>(func), Qt::QueuedConnection);
 }
-
-template <typename T, typename F>
-static void QueueOnObjectBlocking(T* obj, F&& func)
-{
-  QObject src;
-  QObject::connect(&src, &QObject::destroyed, obj, std::forward<F>(func),
-                   Qt::BlockingQueuedConnection);
-}
