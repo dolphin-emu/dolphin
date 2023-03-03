@@ -401,7 +401,7 @@ static QString GetFormatDescription(Memcard::SavefileFormat format)
   case Memcard::SavefileFormat::SAV:
     return QObject::tr("Datel MaxDrive/Pro files");
   default:
-    ASSERT(0);
+    ASSERT(false);
     return QObject::tr("Native GCI File");
   }
 }

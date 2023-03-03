@@ -1088,7 +1088,7 @@ std::string GenerateDecodingShader(TextureFormat format, std::optional<TLUTForma
     ss << "#define TEXEL_BUFFER_FORMAT_R32G32 1\n";
     break;
   case NUM_TEXEL_BUFFER_FORMATS:
-    ASSERT(0);
+    ASSERT(false);
     break;
   }
 

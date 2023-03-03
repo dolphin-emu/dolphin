@@ -3,7 +3,6 @@
 
 #include "Core/CheatSearch.h"
 
-#include <cassert>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -13,6 +12,7 @@
 #include <vector>
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/StringUtil.h"
 
@@ -94,7 +94,7 @@ std::vector<u8> Cheats::GetValueAsByteVector(const Cheats::SearchValue& value)
   case Cheats::DataType::F64:
     return ToByteVector(Common::swap64(Common::BitCast<u64>(std::get<double>(value.m_value))));
   default:
-    assert(0);
+    DEBUG_ASSERT(false);
     return {};
   }
 }
@@ -412,7 +412,7 @@ MakeCompareFunctionForSpecificValue(Cheats::CompareType op, const T& old_value)
   case Cheats::CompareType::GreaterOrEqual:
     return [&](const T& new_value) { return new_value >= old_value; };
   default:
-    assert(0);
+    DEBUG_ASSERT(false);
     return nullptr;
   }
 }
@@ -436,7 +436,7 @@ MakeCompareFunctionForLastValue(Cheats::CompareType op)
   case Cheats::CompareType::GreaterOrEqual:
     return [](const T& new_value, const T& old_value) { return new_value >= old_value; };
   default:
-    assert(0);
+    DEBUG_ASSERT(false);
     return nullptr;
   }
 }
@@ -680,7 +680,7 @@ Cheats::MakeSession(std::vector<MemoryRange> memory_ranges,
     return std::make_unique<CheatSearchSession<double>>(std::move(memory_ranges), address_space,
                                                         aligned);
   default:
-    assert(0);
+    DEBUG_ASSERT(false);
     return nullptr;
   }
 }

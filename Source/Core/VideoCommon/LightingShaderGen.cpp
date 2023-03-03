@@ -70,7 +70,7 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
                  swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
     break;
   default:
-    ASSERT(0);
+    ASSERT(false);
   }
 
   object.Write("\n");
