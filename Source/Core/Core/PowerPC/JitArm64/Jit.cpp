@@ -38,11 +38,6 @@ constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
 constexpr size_t FARCODE_SIZE = 1024 * 1024 * 64;
 constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 64;
 
-constexpr size_t STACK_SIZE = 2 * 1024 * 1024;
-constexpr size_t SAFE_STACK_SIZE = 512 * 1024;
-constexpr size_t GUARD_SIZE = 64 * 1024;  // two guards - bottom (permanent) and middle (see above)
-constexpr size_t GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE;
-
 JitArm64::JitArm64() : m_float_emit(this)
 {
 }
@@ -71,10 +66,6 @@ void JitArm64::Init()
   code_block.m_gpa = &js.gpa;
   code_block.m_fpa = &js.fpa;
 
-  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
-  m_cleanup_after_stackfault = false;
-
-  AllocStack();
   GenerateAsm();
 
   ResetFreeMemoryRanges();
@@ -117,9 +108,8 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
   bool success = false;
 
   // Handle BLR stack faults, may happen in C++ code.
-  uintptr_t stack = (uintptr_t)m_stack_base;
-  uintptr_t diff = access_address - stack;
-  if (diff >= GUARD_OFFSET && diff < GUARD_OFFSET + GUARD_SIZE)
+  const uintptr_t stack_guard = reinterpret_cast<uintptr_t>(m_stack_guard);
+  if (access_address >= stack_guard && access_address < stack_guard + GUARD_SIZE)
     success = HandleStackFault();
 
   // If the fault is in JIT code space, look for fastmem areas.
@@ -156,23 +146,6 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
   return success;
 }
 
-bool JitArm64::HandleStackFault()
-{
-  if (!m_enable_blr_optimization)
-    return false;
-
-  ERROR_LOG_FMT(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
-  m_enable_blr_optimization = false;
-#ifndef _WIN32
-  Common::UnWriteProtectMemory(m_stack_base + GUARD_OFFSET, GUARD_SIZE);
-#endif
-  GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
-  Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(0);
-  m_cleanup_after_stackfault = true;
-
-  return true;
-}
-
 void JitArm64::ClearCache()
 {
   m_fault_to_handler.clear();
@@ -205,7 +178,6 @@ void JitArm64::Shutdown()
   memory.ShutdownFastmemArena();
   FreeCodeSpace();
   blocks.Shutdown();
-  FreeStack();
 }
 
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
@@ -335,40 +307,6 @@ void JitArm64::ResetStack()
 
   LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
   ADD(ARM64Reg::SP, ARM64Reg::X0, 0);
-}
-
-void JitArm64::AllocStack()
-{
-  if (!m_enable_blr_optimization)
-    return;
-
-#ifndef _WIN32
-  m_stack_base = static_cast<u8*>(Common::AllocateMemoryPages(STACK_SIZE));
-  if (!m_stack_base)
-  {
-    m_enable_blr_optimization = false;
-    return;
-  }
-
-  m_stack_pointer = m_stack_base + STACK_SIZE;
-  Common::ReadProtectMemory(m_stack_base, GUARD_SIZE);
-  Common::ReadProtectMemory(m_stack_base + GUARD_OFFSET, GUARD_SIZE);
-#else
-  // For windows we just keep using the system stack and reserve a large amount of memory at the end
-  // of the stack.
-  ULONG reserveSize = SAFE_STACK_SIZE;
-  SetThreadStackGuarantee(&reserveSize);
-#endif
-}
-
-void JitArm64::FreeStack()
-{
-#ifndef _WIN32
-  if (m_stack_base)
-    Common::FreeMemoryPages(m_stack_base, STACK_SIZE);
-  m_stack_base = nullptr;
-  m_stack_pointer = nullptr;
-#endif
 }
 
 void JitArm64::IntializeSpeculativeConstants()
@@ -696,14 +634,22 @@ void JitArm64::EndTimeProfile(JitBlock* b)
 
 void JitArm64::Run()
 {
+  ProtectStack();
+
   CompiledCode pExecAddr = (CompiledCode)enter_code;
   pExecAddr();
+
+  UnprotectStack();
 }
 
 void JitArm64::SingleStep()
 {
+  ProtectStack();
+
   CompiledCode pExecAddr = (CompiledCode)enter_code;
   pExecAddr();
+
+  UnprotectStack();
 }
 
 void JitArm64::Trace()
@@ -740,15 +686,7 @@ void JitArm64::Jit(u32 em_address)
 
 void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 {
-  if (m_cleanup_after_stackfault)
-  {
-    ClearCache();
-    m_cleanup_after_stackfault = false;
-#ifdef _WIN32
-    // The stack is in an invalid state with no guard page, reset it.
-    _resetstkoflw();
-#endif
-  }
+  CleanUpAfterStackFault();
 
   if (SConfig::GetInstance().bJITNoBlockCache)
     ClearCache();

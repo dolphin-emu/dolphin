@@ -45,22 +45,13 @@ void JitArm64::GenerateAsm()
 
   MOVP2R(PPC_REG, &PowerPC::ppcState);
 
-  // Swap the stack pointer, so we have proper guard pages.
+  // Store the stack pointer, so we can reset it if the BLR optimization fails.
   ADD(ARM64Reg::X0, ARM64Reg::SP, 0);
-  STR(IndexType::Unsigned, ARM64Reg::X0, ARM64Reg::X1,
-      MOVPage2R(ARM64Reg::X1, &m_saved_stack_pointer));
-  LDR(IndexType::Unsigned, ARM64Reg::X0, ARM64Reg::X1, MOVPage2R(ARM64Reg::X1, &m_stack_pointer));
-  FixupBranch no_fake_stack = CBZ(ARM64Reg::X0);
-  ADD(ARM64Reg::SP, ARM64Reg::X0, 0);
-  SetJumpTarget(no_fake_stack);
+  STR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
 
   // Push {nullptr; -1} as invalid destination on the stack.
   MOVI2R(ARM64Reg::X0, 0xFFFFFFFF);
   STP(IndexType::Pre, ARM64Reg::ZR, ARM64Reg::X0, ARM64Reg::SP, -16);
-
-  // Store the stack pointer, so we can reset it if the BLR optimization fails.
-  ADD(ARM64Reg::X0, ARM64Reg::SP, 0);
-  STR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
 
   // The PC will be loaded into DISPATCHER_PC after the call to CoreTiming::Advance().
   // Advance() does an exception check so we don't know what PC to use until afterwards.
@@ -204,9 +195,9 @@ void JitArm64::GenerateAsm()
   if (enable_debugging)
     SetJumpTarget(debug_exit);
 
-  // Reset the stack pointer, as the BLR optimization have touched it.
-  LDR(IndexType::Unsigned, ARM64Reg::X0, ARM64Reg::X1,
-      MOVPage2R(ARM64Reg::X1, &m_saved_stack_pointer));
+  // Reset the stack pointer, since the BLR optimization may have pushed things onto the stack
+  // without popping them.
+  LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
   ADD(ARM64Reg::SP, ARM64Reg::X0, 0);
 
   m_float_emit.ABI_PopRegisters(regs_to_save_fpr, ARM64Reg::X30);

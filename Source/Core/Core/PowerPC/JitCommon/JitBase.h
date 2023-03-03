@@ -54,6 +54,12 @@ protected:
 #endif
   };
 
+  static constexpr size_t SAFE_STACK_SIZE = 256 * 1024;
+  static constexpr size_t MIN_UNSAFE_STACK_SIZE = 192 * 1024;
+  static constexpr size_t MIN_STACK_SIZE = SAFE_STACK_SIZE + MIN_UNSAFE_STACK_SIZE;
+  static constexpr size_t GUARD_SIZE = 64 * 1024;
+  static constexpr size_t GUARD_OFFSET = SAFE_STACK_SIZE - GUARD_SIZE;
+
   struct JitOptions
   {
     bool enableBlocklink;
@@ -138,7 +144,16 @@ protected:
   bool m_pause_on_panic_enabled = false;
   bool m_accurate_cpu_cache_enabled = false;
 
+  bool m_enable_blr_optimization = false;
+  bool m_cleanup_after_stackfault = false;
+  u8* m_stack_guard = nullptr;
+
   void RefreshConfig();
+
+  void InitBLROptimization();
+  void ProtectStack();
+  void UnprotectStack();
+  void CleanUpAfterStackFault();
 
   bool CanMergeNextInstructions(int count) const;
 
@@ -160,7 +175,7 @@ public:
   virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
 
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
-  virtual bool HandleStackFault() { return false; }
+  bool HandleStackFault();
 
   static constexpr std::size_t code_buffer_size = 32000;
 
