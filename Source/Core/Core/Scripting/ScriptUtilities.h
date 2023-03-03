@@ -1,10 +1,13 @@
-#pragma once
+#ifndef SCRIPTING_UTILITIES
+#define SCRIPTING_UTILITIES
+
 #include <string>
 #include <functional>
 #include <mutex>
 #include <vector>
 #include "Core/Scripting/LanguageDefinitions/DefinedScriptingLanguagesEnum.h"
 #include "Core/Scripting/ScriptContext.h"
+
 namespace Scripting::ScriptUtilities
 {
 
@@ -31,3 +34,4 @@ void RunGlobalCode();
 void RunOnGCInputPolledCallbacks();
 
 }  // namespace Scripting::ScriptUtilities
+#endif

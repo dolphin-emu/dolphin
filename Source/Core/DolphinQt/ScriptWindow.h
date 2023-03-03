@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "Core/Scripting/ScriptUtils.h"
+#include "Core/Scripting/ScriptUtilities.h"
 #include "DolphinQt/ThreadSafeIntQueue.h"
 
 class QDialogButtonBox;

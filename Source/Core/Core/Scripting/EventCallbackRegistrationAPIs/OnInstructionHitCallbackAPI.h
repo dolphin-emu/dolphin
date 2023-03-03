@@ -13,5 +13,4 @@ ClassMetadata GetOnInstructionHitCallbackApiClassData(const std::string& api_ver
 
 ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-
 }  // namespace Scripting::OnInstructionHitCallbackAPI

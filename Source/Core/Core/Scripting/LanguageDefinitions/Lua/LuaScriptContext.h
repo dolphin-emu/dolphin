@@ -1,4 +1,6 @@
-#pragma once
+#ifndef LUA_SCRIPT_CONTEXT
+#define LUA_SCRIPT_CONTEXT
+
 #include "fmt/format.h"
 #include "lua.hpp"
 #include <memory>
@@ -20,8 +22,8 @@ extern std::function<void(const std::string&)>* print_callback;
 extern bool set_print_callback;
 extern bool set_script_end_callback;
 extern std::function<void(int)>* script_end_callback;
-const char* THIS_VARIABLE_NAME = "THIS__Internal984Z234"; //Making this something unlikely to overlap with a user-defined global.
-int x = 0;
+extern const char* THIS_VARIABLE_NAME;  // Making this something unlikely to overlap with a user-defined global.
+extern int x;
 
 class LuaScriptContext : public ScriptContext
 {
@@ -136,7 +138,7 @@ public:
     lua_newtable(main_lua_thread);
     lua_pushcfunction(main_lua_thread, CustomPrintFunction);
     lua_setglobal(main_lua_thread, "print");
-    this->ImportModule("importModule", api_version);
+    this->ImportModule("dolphin", api_version);
     this->ImportModule("OnFrameStart", api_version);
     this->ImportModule("OnGCControllerPolled", api_version);
     this->ImportModule("OnInstructionHit", api_version);
@@ -183,7 +185,7 @@ public:
     }
   }
 
-  ~LuaScriptContext() {}
+  virtual ~LuaScriptContext() {}
   virtual void ImportModule(const std::string& api_name, const std::string& api_version);
   virtual void RunGlobalScopeCode();
   virtual void RunOnFrameStartCallbacks();
@@ -230,3 +232,5 @@ public:
   virtual void ShutdownScript();
 };
 }  // namespace Scripting
+
+#endif

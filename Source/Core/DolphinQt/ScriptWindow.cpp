@@ -121,9 +121,9 @@ void ScriptWindow::PlayScriptFunction()
       lua_script_name_list_widget_ptr->currentItem()->text().toStdString();
   script_start_or_stop_lock.unlock();
 
-  Scripting::ScriptUtilities::StartScript(current_row, current_script_name, callback_print_function,
-                                          finished_script_callback_function,
-                                          DefinedScriptingLanguagesEnum::Lua);
+  Scripting::ScriptUtilities::StartScript(current_row, current_script_name, &callback_print_function,
+                                          &finished_script_callback_function,
+                                          DefinedScriptingLanguagesEnum::LUA);
 
 
   row_num_to_is_running[current_row] = true;
@@ -131,7 +131,7 @@ void ScriptWindow::PlayScriptFunction()
 
 void ScriptWindow::StopScriptFunction()
 {
-  if (!Lua::is_lua_core_initialized)
+  if (!Scripting::ScriptUtilities::IsScriptingCoreInitialized())
     return;
 
   script_start_or_stop_lock.lock();

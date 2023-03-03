@@ -6,6 +6,8 @@ std::function<void(const std::string&)>* print_callback;
 bool set_print_callback = false;
 bool set_script_end_callback = false;
 std::function<void(int)>* script_end_callback;
+const char* THIS_VARIABLE_NAME = "THIS__Internal984Z234";  // Making this something unlikely to overlap with a user-defined global.
+int x = 0;
 
 class UserdataClass
 {
@@ -26,7 +28,7 @@ public:
                      func_name, button_name);
 }
 
-void LuaScriptContext::ImportModule(const std::string& api_version, const std::string& api_name)
+void LuaScriptContext::ImportModule(const std::string& api_name, const std::string& api_version)
 {
 
   UserdataClass** userdata_ptr_ptr = (UserdataClass**)lua_newuserdata(current_lua_state_thread, sizeof(UserdataClass*));
@@ -163,12 +165,12 @@ void LuaScriptContext::ImportModule(const std::string& api_version, const std::s
         case ArgTypeEnum::RegistrationInputType:
           lua_pushvalue(lua_state, next_index_in_args);
           function_reference = luaL_ref(lua_state, LUA_REGISTRYINDEX);
-          arguments.push_back(CreateRegistrationInputTypeArgHolder(reinterpret_cast<void*>(function_reference)));
+          arguments.push_back(CreateRegistrationInputTypeArgHolder(*((void**)(&function_reference))));
           break;
         case ArgTypeEnum::UnregistrationInputType:
           function_reference = lua_tointeger(lua_state, next_index_in_args);
           luaL_unref(lua_state, LUA_REGISTRYINDEX, function_reference);
-          arguments.push_back(CreateUnregistrationInputTypeArgHolder(reinterpret_cast<void*>(function_reference)));
+          arguments.push_back(CreateUnregistrationInputTypeArgHolder(*((void**)(&function_reference))));
           break;
         case ArgTypeEnum::AddressToByteMap:
           address_to_byte_map = std::map<long long, s16>();
@@ -414,7 +416,7 @@ void LuaScriptContext::ImportModule(const std::string& api_version, const std::s
         lua_pushstring(lua_state, returnValue.string_val.c_str());
         return 1;
       case ArgTypeEnum::RegistrationReturnType:
-        lua_pushinteger(lua_state, reinterpret_cast<int>(returnValue.void_pointer_val));
+        lua_pushinteger(lua_state, (*((int*)&(returnValue.void_pointer_val))));
         return 1;
       case ArgTypeEnum::UnregistrationReturnType:
         return 0;
@@ -746,14 +748,14 @@ void LuaScriptContext::RunOnWiiInputPolledCallbacks()
 
 void* LuaScriptContext::RegisterForVectorHelper(std::vector<int>& input_vector, void* callbacks)
 {
-  int function_reference = reinterpret_cast<int>(callbacks);
+  int function_reference = *((int*)(&callbacks));
   input_vector.push_back(function_reference);
-  return reinterpret_cast<void*>(function_reference);
+  return callbacks;
 }
 
 bool LuaScriptContext::UnregisterForVectorHelper(std::vector<int>& input_vector, void* callbacks)
 {
-  int function_reference_to_delete = reinterpret_cast<int>(callbacks);
+  int function_reference_to_delete = *((int*)(&callbacks));
   if (std::find(input_vector.begin(), input_vector.end(), function_reference_to_delete) == input_vector.end())
     return false;
 
@@ -764,16 +766,16 @@ bool LuaScriptContext::UnregisterForVectorHelper(std::vector<int>& input_vector,
 void* LuaScriptContext::RegisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map,
                                              void* callbacks)
 {
-  int function_reference = reinterpret_cast<int>(callbacks);
+  int function_reference = *((int*)(&callbacks));
   if (!input_map.count(address))
    input_map[address] = std::vector<int>();
   input_map[address].push_back(function_reference);
-  return reinterpret_cast<void*>(function_reference);
+  return callbacks;
 }
 
 bool LuaScriptContext::UnregisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks)
 {
-  int function_reference_to_delete = reinterpret_cast<int>(callbacks);
+  int function_reference_to_delete = *((int*)(&callbacks));
   if (!input_map.count(address))
    return false;
 
@@ -847,7 +849,7 @@ bool LuaScriptContext::UnregisterOnFrameStartCallbacks(void* callbacks)
   return this->UnregisterForVectorHelper(this->wii_controller_input_polled_callback_locations, callbacks);
  }
 
-void ShutdownScript()
+void LuaScriptContext::ShutdownScript()
  {
 
 }

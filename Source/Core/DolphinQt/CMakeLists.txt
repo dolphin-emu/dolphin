@@ -240,8 +240,6 @@ add_executable(dolphin-emu
   Host.h
   HotkeyScheduler.cpp
   HotkeyScheduler.h
-  LuaScriptWindow.h
-  LuaScriptWindow.cpp
   Main.cpp
   MainWindow.cpp
   MainWindow.h
@@ -327,6 +325,8 @@ add_executable(dolphin-emu
   Settings/USBDeviceAddToWhitelistDialog.h
   Settings/WiiPane.cpp
   Settings/WiiPane.h
+  ScriptWindow.cpp
+  ScriptWindow.h
   SkylanderPortal/SkylanderPortalWindow.cpp
   SkylanderPortal/SkylanderPortalWindow.h
   TAS/GCTASInputWindow.cpp

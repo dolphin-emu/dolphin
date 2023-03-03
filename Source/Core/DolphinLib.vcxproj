@@ -101,6 +101,7 @@
   <ItemGroup>
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.cpp" />
+	<ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressReadFromCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressWrittenToCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.cpp" />
@@ -117,9 +118,6 @@
     <ClCompile Include="Core\Scripting\HelperClasses\ArgHolder.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.cpp" />
     <ClCompile Include="Core\Scripting\ScriptUtilities.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>

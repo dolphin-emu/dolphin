@@ -391,7 +391,6 @@
     <ClInclude Include="Core\IOS\WFS\WFSI.h" />
     <ClInclude Include="Core\IOS\WFS\WFSSRV.h" />
     <ClInclude Include="Core\LibusbUtils.h" />
-    <ClInclude Include="Core\Lua\Lua.h" />
     <ClInclude Include="Core\MachineContext.h" />
     <ClInclude Include="Core\MemTools.h" />
     <ClInclude Include="Core\Movie.h" />
@@ -1016,7 +1015,6 @@
     <ClCompile Include="Core\IOS\WFS\WFSI.cpp" />
     <ClCompile Include="Core\IOS\WFS\WFSSRV.cpp" />
     <ClCompile Include="Core\LibusbUtils.cpp" />
-    <ClCompile Include="Core\Lua\Lua.cpp" />
     <ClCompile Include="Core\MemTools.cpp" />
     <ClCompile Include="Core\Movie.cpp" />
     <ClCompile Include="Core\NetPlayClient.cpp" />

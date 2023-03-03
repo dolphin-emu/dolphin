@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCRIPT_CONTEXT
+#define SCRIPT_CONTEXT
 #include <string>
 #include <mutex>
 #include <vector>
@@ -32,7 +33,7 @@ public:
     called_yielding_function_in_last_frame_callback_script_resume = false;
   }
 
-  virtual ~ScriptContext() = 0;
+  virtual ~ScriptContext() {}
   virtual void ImportModule(const std::string& api_name, const std::string& api_version) = 0;
 
   virtual void RunGlobalScopeCode() = 0;
@@ -65,3 +66,4 @@ public:
 };
 
 }  // namespace Scripting
+#endif
