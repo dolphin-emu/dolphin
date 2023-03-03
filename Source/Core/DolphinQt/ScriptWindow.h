@@ -33,8 +33,8 @@ private:
   std::function<void(const std::string&)> callback_print_function;
   std::function<void(int)> finished_script_callback_function;
 
-  QListWidget* lua_output_list_widget_ptr;
-  QListWidget* lua_script_name_list_widget_ptr;
+  QListWidget* script_output_list_widget_ptr;
+  QListWidget* script_name_list_widget_ptr;
   NonDefaultQPushButton* m_load_script_button;
   NonDefaultQPushButton* m_play_or_stop_script_button;
   std::vector<std::string> output_lines;

@@ -75,15 +75,133 @@ void StopScript(int unique_script_identifier)
   initialization_and_destruction_lock.unlock();
 }
 
-void RunOnFrameStartCallbacks()
-{
-}
 void RunGlobalCode()
 {
+  std::lock_guard<std::mutex> lock(global_code_and_frame_callback_running_lock);
+  if (global_pointer_to_list_of_all_scripts == nullptr)
+    return;
+  for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
+  {
+    ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
+    current_script->script_specific_lock.lock();
+    if (current_script->is_script_active)
+    {
+      current_script->current_script_call_location = ScriptCallLocations::FromFrameStartGlobalScope;
+      current_script->RunGlobalScopeCode();
+    }
+    current_script->script_specific_lock.unlock();
+  }
+}
+
+void RunOnFrameStartCallbacks()
+{
+  std::lock_guard<std::mutex> lock(global_code_and_frame_callback_running_lock);
+  if (global_pointer_to_list_of_all_scripts == nullptr)
+    return;
+  for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
+  {
+    ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
+    current_script->script_specific_lock.lock();
+    if (current_script->is_script_active)
+    {
+      current_script->current_script_call_location = ScriptCallLocations::FromFrameStartCallback;
+      current_script->RunOnFrameStartCallbacks();
+    }
+    current_script->script_specific_lock.unlock();
+  }
+
 }
 
 void RunOnGCInputPolledCallbacks()
 {
+  std::lock_guard<std::mutex> lock(gc_controller_polled_callback_running_lock);
+  if (global_pointer_to_list_of_all_scripts == nullptr)
+    return;
+  for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
+  {
+    ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
+    current_script->script_specific_lock.lock();
+    if (current_script->is_script_active)
+    {
+      current_script->current_script_call_location = ScriptCallLocations::FromGCControllerInputPolled;
+      current_script->RunOnGCControllerPolledCallbacks();
+    }
+    current_script->script_specific_lock.unlock();
+  }
+}
 
+void RunOnInstructionHitCallbacks(size_t instruction_address)
+{
+  std::lock_guard<std::mutex> lock(instruction_hit_callback_running_lock);
+  if (global_pointer_to_list_of_all_scripts == nullptr)
+    return;
+  for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
+  {
+    ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
+    current_script->script_specific_lock.lock();
+    if (current_script->is_script_active)
+    {
+      current_script->current_script_call_location =
+          ScriptCallLocations::FromInstructionBreakpointCallback;
+      current_script->RunOnInstructionReachedCallbacks(instruction_address);
+    }
+    current_script->script_specific_lock.unlock();
+  }
+}
+
+void RunOnMemoryAddressReadFromCallbacks(size_t memory_address)
+{
+  std::lock_guard<std::mutex> lock(memory_address_read_from_callback_running_lock);
+  if (global_pointer_to_list_of_all_scripts == nullptr)
+    return;
+  for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
+  {
+    ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
+    current_script->script_specific_lock.lock();
+    if (current_script->is_script_active)
+    {
+      current_script->current_script_call_location =
+          ScriptCallLocations::FromMemoryAddressReadFromCallback;
+      current_script->RunOnMemoryAddressReadFromCallbacks(memory_address);
+    }
+    current_script->script_specific_lock.unlock();
+  }
+}
+
+void RunOnMemoryAddressWrittenToCallbacks(size_t memory_address)
+{
+  std::lock_guard<std::mutex> lock(memory_address_written_to_callback_running_lock);
+  if (global_pointer_to_list_of_all_scripts == nullptr)
+    return;
+  for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
+  {
+    ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
+    current_script->script_specific_lock.lock();
+    if (current_script->is_script_active)
+    {
+      current_script->current_script_call_location =
+          ScriptCallLocations::FromMemoryAddressWrittenToCallback;
+      current_script->RunOnMemoryAddressWrittenToCallbacks(memory_address);
+    }
+    current_script->script_specific_lock.unlock();
+  }
+}
+
+void RunOnWiiInputPolledCallbacks()
+{
+  std::lock_guard<std::mutex> lock(wii_input_polled_callback_running_lock);
+  if (global_pointer_to_list_of_all_scripts == nullptr)
+    return;
+  for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
+  {
+    ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
+    current_script->script_specific_lock.lock();
+    if (current_script->is_script_active)
+    {
+      current_script->current_script_call_location = ScriptCallLocations::FromWiiInputPolled;
+      current_script->RunOnWiiInputPolledCallbacks();
+    }
+    current_script->script_specific_lock.unlock();
+  }
 }
 }

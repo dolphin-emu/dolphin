@@ -1,6 +1,7 @@
 dolphin:importModule("GameCubeControllerAPI", "1.0.0")
 
 GameCubeControllerAPILuaLibrary = {set_controller_input_list = {}, add_controller_input_list = {}, probability_controller_change_input_list = {}}
+math.randomseed(os.time())
 
 function checkPortNumber(portNumber, functionExample)
 	if (portNumber == nil or portNumber < 1 or portNumber > 4) then

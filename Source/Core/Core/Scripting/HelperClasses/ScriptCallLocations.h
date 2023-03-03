@@ -1,5 +1,5 @@
-#ifndef LUA_SCRIPT_CALL_LOCS
-#define LUA_SCRIPT_CALL_LOCS
+#ifndef SCRIPT_CALL_LOCS
+#define SCRIPT_CALL_LOCS
 
 namespace Scripting
 {
@@ -11,7 +11,8 @@ enum class ScriptCallLocations
   FromInstructionBreakpointCallback,
   FromMemoryAddressReadFromCallback,
   FromMemoryAddressWrittenToCallback,
-  FromGCControllerInputPolled
+  FromGCControllerInputPolled,
+  FromWiiInputPolled
 };
 }
 

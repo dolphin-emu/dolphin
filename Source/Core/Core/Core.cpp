@@ -865,6 +865,14 @@ void Callback_NewField()
       !Scripting::EmuApi::waiting_to_save_movie)
   {
     Scripting::ScriptUtilities::RunOnFrameStartCallbacks();
+  }
+
+    if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() &&
+      !Scripting::EmuApi::waiting_for_save_state_load &&
+      !Scripting::EmuApi::waiting_for_save_state_save &&
+      !Scripting::EmuApi::waiting_to_start_playing_movie &&
+      !Scripting::EmuApi::waiting_to_save_movie)
+  {
     Scripting::ScriptUtilities::RunGlobalCode();
   }
 
