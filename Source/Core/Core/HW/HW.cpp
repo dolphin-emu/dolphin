@@ -26,7 +26,6 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
 #include "Core/IOS/IOS.h"
-#include "Core/Lua/Lua.h"
 #include "Core/State.h"
 #include "Core/System.h"
 

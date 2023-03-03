@@ -5,19 +5,19 @@
 #include <string>
 #include <vector>
 
-#include "Core/Lua/Lua.h"
+#include "Core/Scripting/ScriptUtils.h"
 #include "DolphinQt/ThreadSafeIntQueue.h"
 
 class QDialogButtonBox;
 class QListWidget;
 class NonDefaultQPushButton;
 
-class LuaScriptWindow : public QDialog
+class ScriptWindow : public QDialog
 {
   Q_OBJECT
 public:
-  explicit LuaScriptWindow(QWidget* parent = nullptr);
-  ~LuaScriptWindow();
+  explicit ScriptWindow(QWidget* parent = nullptr);
+  ~ScriptWindow();
   void LoadScriptFunction();
   void PlayScriptFunction();
   void StopScriptFunction();

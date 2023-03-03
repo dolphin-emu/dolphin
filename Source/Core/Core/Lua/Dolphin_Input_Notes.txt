@@ -1,5 +1,0 @@
-Line 179 of SI_DeviceGCController.cpp (the GetData() function), the GetPadStatus() line at the start of the function is where input from the controller for the current frame/polling moment is set (also includes movie input setting inside of there).
-
---> After Line 159 of SI_DeviceGCController.cpp, insert code to set button presses for current frame in Lua script.
-
---> RecordInput() and no movie playing will work normally with only making the change on the line listed above. To alter inputs in a movie playback (the  only other case), make change on line 1210 of Movie.cpp to the s_temp_input buffer (Movie::PlayController).

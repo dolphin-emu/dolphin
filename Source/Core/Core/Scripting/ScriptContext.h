@@ -35,6 +35,7 @@ public:
   virtual ~ScriptContext() = 0;
   virtual void ImportModule(const std::string& api_name, const std::string& api_version) = 0;
 
+  virtual void RunGlobalScopeCode() = 0;
   virtual void RunOnFrameStartCallbacks() = 0;
   virtual void RunOnGCControllerPolledCallbacks() = 0;
   virtual void RunOnInstructionReachedCallbacks(size_t current_address) = 0;
@@ -43,22 +44,22 @@ public:
   virtual void RunOnWiiInputPolledCallbacks() = 0;
 
   virtual void* RegisterOnFrameStartCallbacks(void* callbacks) = 0;
-  virtual void* UnregisterOnFrameStartCallbacks(void* callbacks) = 0;
+  virtual bool UnregisterOnFrameStartCallbacks(void* callbacks) = 0;
 
   virtual void* RegisterOnGCCControllerPolledCallbacks(void* callbacks) = 0;
-  virtual void* UnregisterOnGCControllerPolledCallbacks(void* callbacks) = 0;
+  virtual bool UnregisterOnGCControllerPolledCallbacks(void* callbacks) = 0;
 
   virtual void* RegisterOnInstructionReachedCallbacks(size_t address, void* callbacks) = 0;
-  virtual void* UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks) = 0;
+  virtual bool UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks) = 0;
 
   virtual void* RegisterOnMemoryAddressReadFromCallbacks(size_t memory_address, void* callbacks) = 0;
-  virtual void* UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address, void* callbacks) = 0;
+  virtual bool UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address, void* callbacks) = 0;
 
   virtual void* RegisterOnMemoryAddressWrittenToCallbacks(size_t memory_address, void* callbacks) = 0;
-  virtual void* UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address, void* callbacks) = 0;
+  virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address, void* callbacks) = 0;
 
   virtual void* RegisterOnWiiInputPolledCallbacks(void* callbacks) = 0;
-  virtual void* UnregisterOnWiiInputPolledCallbacks(void* callbacks) = 0;
+  virtual bool UnregisterOnWiiInputPolledCallbacks(void* callbacks) = 0;
 
   virtual void ShutdownScript() = 0;
 };

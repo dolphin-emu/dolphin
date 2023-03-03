@@ -61,8 +61,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/IOS.h"
-#include "Core/Lua/Lua.h"
-#include "Core/Lua/LuaEventCallbackClasses/LuaOnFrameStartCallbackClass.h"
+#include "Core/Scripting/ScriptUtilities.h"
 #include "Core/Scripting/InternalAPIModules/EmuAPI.h"
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 #include "Core/MemTools.h"
@@ -860,12 +859,13 @@ void Callback_FramePresented(double actual_emulation_speed)
 // Called from VideoInterface::Update (CPU thread) at emulated field boundaries
 void Callback_NewField()
 {
-  if (Lua::is_lua_core_initialized && !Scripting::EmuApi::waiting_for_save_state_load &&
-      !Scripting::EmuApi::waiting_for_save_state_save && !Scripting::EmuApi::waiting_to_start_playing_movie &&
+  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() &&
+      !Scripting::EmuApi::waiting_for_save_state_load &&
       !Scripting::EmuApi::waiting_for_save_state_save && !Scripting::EmuApi::waiting_to_start_playing_movie &&
       !Scripting::EmuApi::waiting_to_save_movie)
   {
-    Lua::LuaOnFrameStartCallback::RunCallbacks();
+    Scripting::ScriptUtilities::RunOnFrameStartCallbacks();
+    Scripting::ScriptUtilities::RunGlobalCode();
   }
 
   if (s_frame_step)

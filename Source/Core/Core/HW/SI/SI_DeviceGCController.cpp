@@ -16,8 +16,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/Lua/Lua.h"
-#include "Core/Lua/LuaEventCallbackClasses/LuaOnGCControllerPolled.h"
+#include "Core/Scripting/ScriptUtilities.h"
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
@@ -277,7 +276,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
   {
     pad_status = Pad::GetStatus(m_device_number);
 
-    if (Lua::is_lua_core_initialized && !Movie::IsPlayingInput())
+    if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() && !Movie::IsPlayingInput())
     {
       Scripting::GameCubeControllerApi::current_controller_number_polled = m_device_number;
       Movie::ControllerState temp_controller_state;
@@ -285,7 +284,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
       memcpy(&Scripting::GameCubeControllerApi::new_controller_inputs[m_device_number],
              &temp_controller_state, sizeof(Movie::ControllerState));
       Scripting::GameCubeControllerApi::overwrite_controller_at_specified_port[m_device_number] = false;
-      Lua::LuaOnGCControllerPolled::RunCallbacks();
+      Scripting::ScriptUtilities::RunOnGCInputPolledCallbacks();
       if (Scripting::GameCubeControllerApi::overwrite_controller_at_specified_port[m_device_number])
       {
         memset(&pad_status, 0, sizeof(GCPadStatus));

@@ -70,8 +70,6 @@
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Core\Lua\LuaEventCallbackClasses\LuaOnFrameStartCallbackClass.h" />
-    <ClInclude Include="Core\Lua\LuaEventCallbackClasses\LuaOnGCControllerPolled.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.h" />
@@ -80,6 +78,7 @@
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\ImportAPI.h" />
+    <ClInclude Include="Core\Scripting\LanguageDefinitions\DefinedScriptingLanguagesEnum.h" />
     <ClInclude Include="Core\Scripting\ScriptContext.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\BitAPI.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\GCButtons.h" />
@@ -96,11 +95,10 @@
     <ClInclude Include="Core\Scripting\HelperClasses\FunctionMetadata.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\VersionResolver.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.h" />
+    <ClInclude Include="Core\Scripting\ScriptUtilities.h" />
     <ClInclude Include="DolphinQt\ThreadSafeIntQueue.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core\Lua\LuaEventCallbackClasses\LuaOnFrameStartCallbackClass.cpp" />
-    <ClCompile Include="Core\Lua\LuaEventCallbackClasses\LuaOnGCControllerPolled.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressReadFromCallbackAPI.cpp" />
@@ -118,6 +116,7 @@
     <ClCompile Include="Core\Scripting\HelperClasses\VersionComparisonFunctions.cpp" />
     <ClCompile Include="Core\Scripting\HelperClasses\ArgHolder.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.cpp" />
+    <ClCompile Include="Core\Scripting\ScriptUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.cpp" />

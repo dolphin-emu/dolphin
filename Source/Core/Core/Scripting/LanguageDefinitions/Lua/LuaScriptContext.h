@@ -183,7 +183,9 @@ public:
     }
   }
 
+  ~LuaScriptContext() {}
   virtual void ImportModule(const std::string& api_name, const std::string& api_version);
+  virtual void RunGlobalScopeCode();
   virtual void RunOnFrameStartCallbacks();
   virtual void RunOnGCControllerPolledCallbacks();
   virtual void RunOnInstructionReachedCallbacks(size_t current_address);
@@ -192,25 +194,39 @@ public:
   virtual void RunOnWiiInputPolledCallbacks();
 
   virtual void* RegisterOnFrameStartCallbacks(void* callbacks);
-  virtual void* UnregisterOnFrameStartCallbacks(void* callbacks);
+  virtual bool UnregisterOnFrameStartCallbacks(void* callbacks);
 
   virtual void* RegisterOnGCCControllerPolledCallbacks(void* callbacks);
-  virtual void* UnregisterOnGCControllerPolledCallbacks(void* callbacks);
+  virtual bool UnregisterOnGCControllerPolledCallbacks(void* callbacks);
 
   virtual void* RegisterOnInstructionReachedCallbacks(size_t address, void* callbacks);
-  virtual void* UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks);
+  virtual bool UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks);
 
   virtual void* RegisterOnMemoryAddressReadFromCallbacks(size_t memory_address,
                                                          void* callbacks);
-  virtual void* UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address,
+  virtual bool UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address,
                                                            void* callbacks);
 
   virtual void* RegisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
                                                           void* callbacks);
-  virtual void* UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
+  virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
                                                             void* callbacks);
 
   virtual void* RegisterOnWiiInputPolledCallbacks(void* callbacks);
-  virtual void* UnregisterOnWiiInputPolledCallbacks(void* callbacks);
+  virtual bool UnregisterOnWiiInputPolledCallbacks(void* callbacks);
+
+  private:
+  void GenericRunCallbacksHelperFunction(lua_State*& current_lua_state,
+                                         std::vector<int>& vector_of_callbacks,
+                                         int& index_of_next_callback_to_run,
+                                         bool& yielded_on_last_callback_call,
+                                         bool yields_are_allowed);
+
+  void* RegisterForVectorHelper(std::vector<int>& input_vector, void* callbacks);
+  bool UnregisterForVectorHelper(std::vector<int>& input_vector, void* callbacks);
+
+  void* RegisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks);
+  bool UnregisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks);
+  virtual void ShutdownScript();
 };
 }  // namespace Scripting

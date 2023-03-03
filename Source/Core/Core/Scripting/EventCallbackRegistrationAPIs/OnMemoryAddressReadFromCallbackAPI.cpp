@@ -29,7 +29,15 @@ ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_l
 
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  return CreateUnregistrationReturnTypeArgHolder(
-      current_script->UnregisterOnMemoryAddressReadFromCallbacks(args_list[0].long_long_val, args_list[1].void_pointer_val));
+  if (args_list[0].long_long_val < 0)
+    return CreateErrorStringArgHolder("Address was less than 0!");
+  bool return_value = current_script->UnregisterOnMemoryAddressReadFromCallbacks(args_list[0].long_long_val, args_list[1].void_pointer_val);
+  if (!return_value)
+    return CreateErrorStringArgHolder(
+        "2nd Argument passed into OnMemoryAddressReadFrom:unregister() was not a reference to a "
+        "function currently registered as an OnMemoryAddressReadFrom callback!");
+  
+  else
+    return CreateUnregistrationReturnTypeArgHolder(nullptr);
 }
 }  // namespace Scripting::OnMemoryAddressReadFromCallbackAPI

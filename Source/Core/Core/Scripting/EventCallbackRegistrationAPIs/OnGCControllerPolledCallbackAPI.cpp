@@ -24,7 +24,12 @@ ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_l
 
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  return CreateUnregistrationReturnTypeArgHolder(
-      current_script->UnregisterOnGCControllerPolledCallbacks(args_list[0].void_pointer_val));
+  bool return_value = current_script->UnregisterOnGCControllerPolledCallbacks(args_list[0].void_pointer_val);
+  if (!return_value)
+    return CreateErrorStringArgHolder(
+        "Argument passed into OnGCControllerPolled:unregister() was not a reference to a function "
+        "currently registered as an OnGCControllerPolled callback!");
+  else
+    return CreateUnregistrationReturnTypeArgHolder(nullptr);
 }
 }  // namespace Scripting::OnGCControllerPolledCallbackAPI

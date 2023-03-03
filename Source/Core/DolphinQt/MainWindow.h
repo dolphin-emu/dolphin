@@ -33,7 +33,7 @@ class HotkeyScheduler;
 class JITWidget;
 class LogConfigWidget;
 class LogWidget;
-class LuaScriptWindow;
+class ScriptWindow;
 class MappingWindow;
 class MemoryWidget;
 class MenuBar;
@@ -252,5 +252,5 @@ private:
   WatchWidget* m_watch_widget;
   CheatsManager* m_cheats_manager;
   QByteArray m_render_widget_geometry;
-  LuaScriptWindow* m_lua_script_manager;
+  ScriptWindow* m_lua_script_manager;
 };

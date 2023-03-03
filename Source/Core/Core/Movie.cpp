@@ -61,11 +61,10 @@
 
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
-#include "Core/Lua/Lua.h"
-#include "Core/Lua/LuaEventCallbackClasses/LuaOnGCControllerPolled.h"
 #include "Core/Scripting/InternalAPIModules/EmuAPI.h"
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
-#include "Core/Lua/LuaHelperClasses/LuaGCButtons.h"
+#include "Core/Scripting/ScriptUtilities.h"
+#include "Core/Scripting/HelperClasses/GCButtons.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
 #include "Core/System.h"
@@ -1026,7 +1025,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
     Movie::LoadInput(movie_path);
   }
 
-  if (Lua::is_lua_core_initialized)
+  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
   {
     Scripting::EmuApi::waiting_to_start_playing_movie = false;
   }
@@ -1309,12 +1308,12 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     return;
   }
 
-  if (Lua::is_lua_core_initialized)
+  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
   {
     Scripting::GameCubeControllerApi::current_controller_number_polled = controllerID;
     Scripting::GameCubeControllerApi::overwrite_controller_at_specified_port[controllerID] = false;
     memcpy(&Scripting::GameCubeControllerApi::new_controller_inputs[controllerID], &s_temp_input[s_currentByte], sizeof(ControllerState));
-    Lua::LuaOnGCControllerPolled::RunCallbacks();
+    Scripting::ScriptUtilities::RunOnGCInputPolledCallbacks();
     if (Scripting::GameCubeControllerApi::overwrite_controller_at_specified_port[controllerID])
     {
       memcpy(&s_temp_input[s_currentByte],
@@ -1547,7 +1546,7 @@ void SaveRecording(const std::string& filename)
   else
     Core::DisplayMessage(fmt::format("Failed to save {}", filename), 2000);
 
-  if (Lua::is_lua_core_initialized)
+  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
   {
     Scripting::EmuApi::waiting_to_save_movie = false;
   }
