@@ -85,6 +85,16 @@ void WatchWidget::CreateWidgets()
   m_table->setContextMenuPolicy(Qt::CustomContextMenu);
   m_table->setSelectionMode(QAbstractItemView::ExtendedSelection);
   m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
+  m_table->setHorizontalHeaderLabels(
+      {tr("Label"), tr("Address"), tr("Hexadecimal"),
+       // i18n: The base 10 numeral system. Not related to non-integer numbers
+       tr("Decimal"),
+       // i18n: Data type used in computing
+       tr("String"),
+       // i18n: Floating-point (non-integer) number
+       tr("Float"), tr("Locked")});
+  m_table->setRowCount(1);
+  SetEmptyRow(0);
 
   m_new = m_toolbar->addAction(tr("New"), this, &WatchWidget::OnNewWatch);
   m_delete = m_toolbar->addAction(tr("Delete"), this, &WatchWidget::OnDelete);
@@ -146,22 +156,21 @@ void WatchWidget::Update()
 
   m_updating = true;
 
-  m_table->clear();
+  if (Core::GetState() != Core::State::Paused)
+  {
+    m_table->setDisabled(true);
+    m_updating = false;
+    return;
+  }
+
+  m_table->setDisabled(false);
+  m_table->clearContents();
+
+  Core::CPUThreadGuard guard;
 
   int size = static_cast<int>(PowerPC::debug_interface.GetWatches().size());
 
   m_table->setRowCount(size + 1);
-
-  m_table->setHorizontalHeaderLabels(
-      {tr("Label"), tr("Address"), tr("Hexadecimal"),
-       // i18n: The base 10 numeral system. Not related to non-integer numbers
-       tr("Decimal"),
-       // i18n: Data type used in computing
-       tr("String"),
-       // i18n: Floating-point (non-integer) number
-       tr("Float"), tr("Locked")});
-
-  Core::CPUThreadGuard guard;
 
   for (int i = 0; i < size; i++)
   {
@@ -211,19 +220,24 @@ void WatchWidget::Update()
     }
   }
 
+  SetEmptyRow(size);
+
+  m_updating = false;
+}
+
+void WatchWidget::SetEmptyRow(int row)
+{
   auto* label = new QTableWidgetItem;
   label->setData(Qt::UserRole, -1);
 
-  m_table->setItem(size, 0, label);
+  m_table->setItem(row, 0, label);
 
   for (int i = 1; i < NUM_COLUMNS; i++)
   {
     auto* no_edit = new QTableWidgetItem;
     no_edit->setFlags(Qt::ItemIsEnabled);
-    m_table->setItem(size, i, no_edit);
+    m_table->setItem(row, i, no_edit);
   }
-
-  m_updating = false;
 }
 
 void WatchWidget::closeEvent(QCloseEvent*)
