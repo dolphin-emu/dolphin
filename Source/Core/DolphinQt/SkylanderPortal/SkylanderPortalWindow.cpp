@@ -332,7 +332,6 @@ void SkylanderPortalWindow::ClearSkylander(u8 slot)
                            QMessageBox::Ok);
       return;
     }
-    system.GetSkylanderPortal().RemoveSkylander(slot_infos->portal_slot);
     m_sky_slots[slot].reset();
     UpdateEdits();
   }
