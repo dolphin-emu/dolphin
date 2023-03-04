@@ -79,6 +79,5 @@ private:
   std::optional<ControlState> GetSpinBox(QSpinBox* spin, u16 zero, ControlState controller_state,
                                          ControlState scale);
 
-  std::map<TASCheckBox*, bool> m_checkbox_set_by_controller;
   std::map<QSpinBox*, u16> m_spinbox_most_recent_values;
 };

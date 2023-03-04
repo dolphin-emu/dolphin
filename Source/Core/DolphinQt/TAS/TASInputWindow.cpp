@@ -239,18 +239,7 @@ std::optional<ControlState> TASInputWindow::GetButton(TASCheckBox* checkbox,
 {
   const bool pressed = std::llround(controller_state) > 0;
   if (m_use_controller->isChecked())
-  {
-    if (pressed)
-    {
-      m_checkbox_set_by_controller[checkbox] = true;
-      QueueOnObjectBlocking(checkbox, [checkbox] { checkbox->setChecked(true); });
-    }
-    else if (m_checkbox_set_by_controller.count(checkbox) && m_checkbox_set_by_controller[checkbox])
-    {
-      m_checkbox_set_by_controller[checkbox] = false;
-      QueueOnObjectBlocking(checkbox, [checkbox] { checkbox->setChecked(false); });
-    }
-  }
+    checkbox->OnControllerValueChanged(pressed);
 
   return checkbox->GetValue() ? 1.0 : 0.0;
 }

@@ -207,6 +207,7 @@
     <ClCompile Include="TAS\StickWidget.cpp" />
     <ClCompile Include="TAS\TASCheckBox.cpp" />
     <ClCompile Include="TAS\TASInputWindow.cpp" />
+    <ClCompile Include="TAS\TASControlState.cpp" />
     <ClCompile Include="TAS\TASSlider.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
     <ClCompile Include="ToolBar.cpp" />
@@ -242,6 +243,7 @@
     <ClInclude Include="QtUtils\WrapInScrollArea.h" />
     <ClInclude Include="ResourcePackManager.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="TAS\TASControlState.h" />
     <ClInclude Include="TAS\TASSlider.h" />
     <ClInclude Include="Translation.h" />
     <ClInclude Include="WiiUpdate.h" />
