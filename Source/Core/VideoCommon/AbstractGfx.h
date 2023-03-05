@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Common/HookableEvent.h"
 #include "Common/MathUtil.h"
 
 #include "VideoCommon/RenderState.h"
@@ -166,6 +167,9 @@ public:
 protected:
   AbstractFramebuffer* m_current_framebuffer = nullptr;
   const AbstractPipeline* m_current_pipeline = nullptr;
+
+private:
+  Common::EventHook m_config_changed;
 };
 
 extern std::unique_ptr<AbstractGfx> g_gfx;
