@@ -91,7 +91,7 @@ private:
 
 public:
   // Returns a handle that will unregister the listener when destroyed.
-  static EventHook Register(CallbackType callback, std::string name)
+  [[nodiscard]] static EventHook Register(CallbackType callback, std::string name)
   {
     auto& storage = GetStorage();
     std::lock_guard lock(storage.m_mutex);
