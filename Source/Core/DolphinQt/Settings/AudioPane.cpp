@@ -368,7 +368,7 @@ void AudioPane::OnBackendChanged()
     m_wasapi_device_combo->clear();
     m_wasapi_device_combo->addItem(tr("Default Device"));
 
-    for (const auto device : WASAPIStream::GetAvailableDevices())
+    for (const auto& device : WASAPIStream::GetAvailableDevices())
       m_wasapi_device_combo->addItem(QString::fromStdString(device));
   }
 #endif

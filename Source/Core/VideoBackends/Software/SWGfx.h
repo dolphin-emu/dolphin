@@ -3,9 +3,12 @@
 
 #pragma once
 
+#include "SWOGLWindow.h"
 #include "VideoCommon/AbstractGfx.h"
 
-class SWOGLWindow;
+// Normally we should be able to simply forward declare SWOGLWindow, but that ends up causing issues
+// with clang due to the virtual default deconstructor in AbstractGfx and the constexpr unique_ptr
+// in c++23, see https://godbolt.org/z/rPeje78e8
 
 namespace SW
 {

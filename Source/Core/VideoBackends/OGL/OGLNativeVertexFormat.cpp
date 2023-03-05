@@ -40,10 +40,12 @@ static void SetPointer(ShaderAttrib attrib, u32 stride, const AttributeFormat& f
   glEnableVertexAttribArray(static_cast<GLuint>(attrib));
   if (format.integer)
     glVertexAttribIPointer(static_cast<GLuint>(attrib), format.components, VarToGL(format.type),
-                           stride, (u8*)nullptr + format.offset);
+                           stride,
+                           reinterpret_cast<void*>(static_cast<std::intptr_t>(format.offset)));
   else
     glVertexAttribPointer(static_cast<GLuint>(attrib), format.components, VarToGL(format.type),
-                          true, stride, (u8*)nullptr + format.offset);
+                          true, stride,
+                          reinterpret_cast<void*>(static_cast<std::intptr_t>(format.offset)));
 }
 
 GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)

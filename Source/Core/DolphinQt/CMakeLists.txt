@@ -423,6 +423,9 @@ if(WIN32)
     WIN32_EXECUTABLE TRUE
   )
 
+  # Specify that Qt will not link against its QtEntryPoint library (as we handle the entrypoint ourselves)
+  set_property(TARGET dolphin-emu PROPERTY qt_no_entrypoint TRUE)
+
   # Copy Sys dir
   add_custom_command(TARGET dolphin-emu POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Data/Sys" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys"

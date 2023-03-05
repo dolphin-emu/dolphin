@@ -22,7 +22,7 @@
 #endif
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #define ATTRIBUTE_TARGET(x)
 #else
 #define ATTRIBUTE_TARGET(x) [[gnu::target(x)]]

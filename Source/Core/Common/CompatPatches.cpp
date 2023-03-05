@@ -204,7 +204,8 @@ void CompatPatchesInstall(LdrWatcher* watcher)
                       // crash if applied before module initialization (i.e. called on the Ldr
                       // callout path).
                       auto patcher = ImportPatcher(event.base_address);
-                      patcher.PatchIAT("kernel32.dll", "HeapCreate", HeapCreateLow4GB);
+                      patcher.PatchIAT("kernel32.dll", "HeapCreate",
+                                       reinterpret_cast<void*>(HeapCreateLow4GB));
                     }});
   watcher->Install(
       {{L"ucrtbase.dll"}, [](const LdrDllLoadEvent& event) {

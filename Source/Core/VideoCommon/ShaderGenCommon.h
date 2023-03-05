@@ -218,9 +218,12 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
                                       bool in = false);
 
 // bitfieldExtract generator for BitField types
-template <auto ptr_to_bitfield_member>
+template <auto ptr_to_bitfield_member, typename = decltype(ptr_to_bitfield_member)>
 std::string BitfieldExtract(std::string_view source)
 {
+  // The second template argument is needed to avoid compile errors with clang-cl, as it gives
+  // different members of a union the same mangled name despite them being of different types.
+  // Refer to https://github.com/llvm/llvm-project/issues/61010
   using BitFieldT = Common::MemberType<ptr_to_bitfield_member>;
   return fmt::format("bitfieldExtract({}({}), {}, {})", BitFieldT::IsSigned() ? "int" : "uint",
                      source, static_cast<u32>(BitFieldT::StartBit()),
