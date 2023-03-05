@@ -137,7 +137,9 @@ static Common::EventHook s_frame_presented = AfterPresentEvent::Register(
       const double last_speed_denominator = g_perf_metrics.GetLastSpeedDenominator();
       // The denominator should always be > 0 but if it's not, just return 1
       const double last_speed = last_speed_denominator > 0.0 ? (1.0 / last_speed_denominator) : 1.0;
-      Core::Callback_FramePresented(last_speed);
+
+      if (present_info.reason != PresentInfo::PresentReason::VideoInterfaceDuplicate)
+        Core::Callback_FramePresented(last_speed);
     },
     "Core Frame Presented");
 
