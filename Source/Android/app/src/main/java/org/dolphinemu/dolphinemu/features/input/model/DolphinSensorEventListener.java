@@ -89,7 +89,13 @@ public class DolphinSensorEventListener implements SensorEventListener
     {
       mSensorManager = inputDevice.getSensorManager();
 
-      addSensors();
+      // TODO: There is a bug where after suspending sensors, onSensorChanged can get called for
+      // a sensor that we never registered as a listener for. The way our code is currently written,
+      // this causes a NullPointerException, but if we checked for null we would instead have the
+      // problem of being spammed with onSensorChanged calls even though the sensor shouldn't be
+      // enabled. For now, let's comment out the ability to use InputDevice sensors.
+
+      //addSensors();
     }
     else
     {
