@@ -368,9 +368,10 @@ bool PopulateConfig(GLContext* m_main_gl_context)
 
   if (m_main_gl_context->IsGLES())
   {
-    g_ogl_config.SupportedESPointSize = GLExtensions::Supports("GL_OES_geometry_point_size") ? 1 :
-                                        GLExtensions::Supports("GL_EXT_geometry_point_size") ? 2 :
-                                                                                               0;
+    g_ogl_config.SupportedESPointSize =
+        GLExtensions::Supports("GL_OES_geometry_point_size") ? EsPointSizeType::PointSizeOes :
+        GLExtensions::Supports("GL_EXT_geometry_point_size") ? EsPointSizeType::PointSizeExt :
+                                                               EsPointSizeType::PointSizeNone;
     g_ogl_config.SupportedESTextureBuffer =
         GLExtensions::Supports("VERSION_GLES_3_2")      ? EsTexbufType::TexbufCore :
         GLExtensions::Supports("GL_OES_texture_buffer") ? EsTexbufType::TexbufOes :
@@ -410,7 +411,8 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
       g_Config.backend_info.bSupportsComputeShaders = true;
       g_Config.backend_info.bSupportsGSInstancing =
-          g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
+          g_Config.backend_info.bSupportsGeometryShaders &&
+          g_ogl_config.SupportedESPointSize != EsPointSizeType::PointSizeNone;
       g_Config.backend_info.bSupportsSSAA = g_ogl_config.bSupportsAEP;
       g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
       g_ogl_config.bSupportsMSAA = true;
@@ -434,7 +436,8 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       g_ogl_config.bSupportsImageLoadStore = true;
       g_Config.backend_info.bSupportsGeometryShaders = true;
       g_Config.backend_info.bSupportsComputeShaders = true;
-      g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
+      g_Config.backend_info.bSupportsGSInstancing =
+          g_ogl_config.SupportedESPointSize != EsPointSizeType::PointSizeNone;
       g_Config.backend_info.bSupportsPaletteConversion = true;
       g_Config.backend_info.bSupportsSSAA = true;
       g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;

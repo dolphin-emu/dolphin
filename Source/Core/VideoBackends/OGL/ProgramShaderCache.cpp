@@ -664,12 +664,13 @@ void ProgramShaderCache::CreateHeader()
   std::string SupportedESTextureBuffer;
   switch (g_ogl_config.SupportedESPointSize)
   {
-  case 1:
+  case EsPointSizeType::PointSizeOes:
     SupportedESPointSize = "#extension GL_OES_geometry_point_size : enable";
     break;
-  case 2:
+  case EsPointSizeType::PointSizeExt:
     SupportedESPointSize = "#extension GL_EXT_geometry_point_size : enable";
     break;
+  case EsPointSizeType::PointSizeNone:
   default:
     SupportedESPointSize = "";
     break;
