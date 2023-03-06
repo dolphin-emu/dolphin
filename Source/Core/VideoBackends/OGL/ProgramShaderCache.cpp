@@ -722,8 +722,12 @@ void ProgramShaderCache::CreateHeader()
     break;
   }
 
-  // The sampler2DMSArray keyword is reserved in GLSL ES 3.0 and 3.1, but is available in 3.2.
-  const bool use_multisample_2d_array_precision = v >= GlslEs320;
+  // The sampler2DMSArray keyword is reserved in GLSL ES 3.0 and 3.1, but is available in 3.2 and
+  // with GL_OES_texture_storage_multisample_2d_array for 3.1.
+  // See https://bugs.dolphin-emu.org/issues/13198.
+  const bool use_multisample_2d_array_precision =
+      v >= GlslEs320 ||
+      g_ogl_config.SupportedMultisampleTexStorage != MultisampleTexStorageType::TexStorageNone;
 
   std::string shader_shuffle_string;
   if (g_ogl_config.bSupportsKHRShaderSubgroup)
@@ -762,6 +766,7 @@ void ProgramShaderCache::CreateHeader()
       "{}\n"  // shader thread shuffle
       "{}\n"  // derivative control
       "{}\n"  // query levels
+      "{}\n"  // OES multisample texture storage
 
       // Precision defines for GLSL ES
       "{}\n"
@@ -846,6 +851,12 @@ void ProgramShaderCache::CreateHeader()
           "",
       g_ActiveConfig.backend_info.bSupportsTextureQueryLevels ?
           "#extension GL_ARB_texture_query_levels : enable" :
+          "",
+      // Note: GL_ARB_texture_storage_multisample doesn't have an #extension, as it doesn't
+      // need to change GLSL, but on GLES 3.1 sampler2DMSArray is a reserved keyword unless
+      // the extension is enabled. Thus, we don't need to check TexStorageCore/have an ARB version.
+      g_ogl_config.SupportedMultisampleTexStorage == MultisampleTexStorageType::TexStorageOes ?
+          "#extension GL_OES_texture_storage_multisample_2d_array : enable" :
           "",
       is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
       is_glsles ? "precision highp sampler2DArray;" : "",

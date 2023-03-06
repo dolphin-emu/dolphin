@@ -45,6 +45,13 @@ enum class EsFbFetchType
   FbFetchArm,
 };
 
+enum class MultisampleTexStorageType
+{
+  TexStorageNone,
+  TexStorageCore,
+  TexStorageOes,
+};
+
 // ogl-only config, so not in VideoConfig.h
 struct VideoConfig
 {
@@ -62,6 +69,7 @@ struct VideoConfig
   EsPointSizeType SupportedESPointSize;
   EsTexbufType SupportedESTextureBuffer;
   bool bSupportsTextureStorage;
+  MultisampleTexStorageType SupportedMultisampleTexStorage;
   bool bSupportsConservativeDepth;
   bool bSupportsImageLoadStore;
   bool bSupportsAniso;

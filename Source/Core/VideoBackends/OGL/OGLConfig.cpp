@@ -333,6 +333,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   g_ogl_config.bSupportsDebug =
       GLExtensions::Supports("GL_KHR_debug") || GLExtensions::Supports("GL_ARB_debug_output");
   g_ogl_config.bSupportsTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage");
+  g_ogl_config.SupportedMultisampleTexStorage = MultisampleTexStorageType::TexStorageNone;
   g_ogl_config.bSupportsImageLoadStore = GLExtensions::Supports("GL_ARB_shader_image_load_store");
   g_ogl_config.bSupportsConservativeDepth = GLExtensions::Supports("GL_ARB_conservative_depth");
   g_ogl_config.bSupportsAniso = GLExtensions::Supports("GL_EXT_texture_filter_anisotropic");
@@ -412,6 +413,8 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
       g_ogl_config.bSupportsMSAA = true;
       g_ogl_config.bSupportsTextureStorage = true;
+      if (GLExtensions::Supports("GL_OES_texture_storage_multisample_2d_array"))
+        g_ogl_config.SupportedMultisampleTexStorage = MultisampleTexStorageType::TexStorageOes;
       g_Config.backend_info.bSupportsBitfield = true;
       g_Config.backend_info.bSupportsDynamicSamplerIndexing = g_ogl_config.bSupportsAEP;
     }
@@ -433,6 +436,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       g_ogl_config.bSupportsDebug = true;
       g_ogl_config.bSupportsMSAA = true;
       g_ogl_config.bSupportsTextureStorage = true;
+      g_ogl_config.SupportedMultisampleTexStorage = MultisampleTexStorageType::TexStorageCore;
       g_Config.backend_info.bSupportsBitfield = true;
       g_Config.backend_info.bSupportsDynamicSamplerIndexing = true;
       g_Config.backend_info.bSupportsSettingObjectNames = true;
@@ -440,6 +444,9 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   }
   else
   {
+    if (GLExtensions::Supports("GL_ARB_texture_storage_multisample"))
+      g_ogl_config.SupportedMultisampleTexStorage = MultisampleTexStorageType::TexStorageCore;
+
     if (GLExtensions::Version() < 300)
     {
       PanicAlertFmtT("GPU: OGL ERROR: Need at least GLSL 1.30\n"
@@ -486,6 +493,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
         g_ogl_config.eSupportedGLSLVersion = Glsl430;
       }
       g_ogl_config.bSupportsTextureStorage = true;
+      g_ogl_config.SupportedMultisampleTexStorage = MultisampleTexStorageType::TexStorageCore;
       g_ogl_config.bSupportsImageLoadStore = true;
       g_Config.backend_info.bSupportsSSAA = true;
       g_Config.backend_info.bSupportsSettingObjectNames = true;
