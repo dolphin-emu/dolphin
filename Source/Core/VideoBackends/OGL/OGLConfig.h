@@ -62,8 +62,6 @@ struct VideoConfig
   EsPointSizeType SupportedESPointSize;
   EsTexbufType SupportedESTextureBuffer;
   bool bSupportsTextureStorage;
-  bool bSupports2DTextureStorageMultisample;
-  bool bSupports3DTextureStorageMultisample;
   bool bSupportsConservativeDepth;
   bool bSupportsImageLoadStore;
   bool bSupportsAniso;
