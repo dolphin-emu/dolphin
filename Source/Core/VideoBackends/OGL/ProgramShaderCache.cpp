@@ -722,6 +722,9 @@ void ProgramShaderCache::CreateHeader()
     break;
   }
 
+  // The sampler2DMSArray keyword is reserved in GLSL ES 3.0 and 3.1, but is available in 3.2.
+  const bool use_multisample_2d_array_precision = v >= GlslEs320;
+
   std::string shader_shuffle_string;
   if (g_ogl_config.bSupportsKHRShaderSubgroup)
   {
@@ -849,7 +852,7 @@ void ProgramShaderCache::CreateHeader()
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
           "precision highp usamplerBuffer;" :
           "",
-      v > GlslEs300 ? "precision highp sampler2DMSArray;" : "",
+      use_multisample_2d_array_precision ? "precision highp sampler2DMSArray;" : "",
       v >= GlslEs310 ? "precision highp image2DArray;" : "");
 }
 
