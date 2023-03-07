@@ -9,11 +9,28 @@ std::array<u8*, 5> new_controller_inputs{};
 std::array<u8*, 5> controller_inputs_on_last_frame{};
 int current_controller_number_polled = -1;
 
-ClassMetadata GetWiiApiClassData(const std::string& api_version);
+ClassMetadata GetWiiApiClassData(const std::string& api_version)
+{
+  return {};
+}
 
 ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
-                                     std::vector<ArgHolder>& args_list);
-ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder GetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+                                     std::vector<ArgHolder>& args_list)
+{
+  return {};
+}
+ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return {};
+}
+ArgHolder GetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return {};
+}
 ArgHolder GetInputsForPreviousFrame(ScriptContext* current_script,
-                                    std::vector<ArgHolder>& args_list);
+                                    std::vector<ArgHolder>& args_list)
+{
+  return {};
+}
+
+}  // namespace Scripting::WiiAPI
