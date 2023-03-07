@@ -22,6 +22,7 @@ class QGroupBox;
 class QSpinBox;
 class QString;
 class TASCheckBox;
+class TASSpinBox;
 
 class InputOverrider final
 {
@@ -57,14 +58,15 @@ protected:
                                           u16 zero, int default_, u16 min, u16 max,
                                           Qt::Key shortcut_key, QWidget* shortcut_widget,
                                           std::optional<ControlState> scale = {});
-  QSpinBox* CreateSliderValuePair(std::string_view group_name, std::string_view control_name,
-                                  InputOverrider* overrider, QBoxLayout* layout, u16 zero,
-                                  int default_, u16 min, u16 max,
-                                  QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
-                                  QWidget* shortcut_widget, std::optional<ControlState> scale = {});
-  QSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, u16 max,
-                                  QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
-                                  QWidget* shortcut_widget);
+  TASSpinBox* CreateSliderValuePair(std::string_view group_name, std::string_view control_name,
+                                    InputOverrider* overrider, QBoxLayout* layout, u16 zero,
+                                    int default_, u16 min, u16 max,
+                                    QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
+                                    QWidget* shortcut_widget,
+                                    std::optional<ControlState> scale = {});
+  TASSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, u16 max,
+                                    QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
+                                    QWidget* shortcut_widget);
 
   QGroupBox* m_settings_box;
   QCheckBox* m_use_controller;
@@ -73,10 +75,8 @@ protected:
 
 private:
   std::optional<ControlState> GetButton(TASCheckBox* checkbox, ControlState controller_state);
-  std::optional<ControlState> GetSpinBox(QSpinBox* spin, u16 zero, u16 min, u16 max,
+  std::optional<ControlState> GetSpinBox(TASSpinBox* spin, u16 zero, u16 min, u16 max,
                                          ControlState controller_state);
-  std::optional<ControlState> GetSpinBox(QSpinBox* spin, u16 zero, ControlState controller_state,
+  std::optional<ControlState> GetSpinBox(TASSpinBox* spin, u16 zero, ControlState controller_state,
                                          ControlState scale);
-
-  std::map<QSpinBox*, u16> m_spinbox_most_recent_values;
 };

@@ -343,6 +343,8 @@ add_executable(dolphin-emu
   TAS/TASInputWindow.h
   TAS/TASSlider.cpp
   TAS/TASSlider.h
+  TAS/TASSpinBox.cpp
+  TAS/TASSpinBox.h
   TAS/WiiTASInputWindow.cpp
   TAS/WiiTASInputWindow.h
   ToolBar.cpp

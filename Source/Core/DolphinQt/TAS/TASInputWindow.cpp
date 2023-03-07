@@ -23,6 +23,7 @@
 #include "DolphinQt/TAS/StickWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
 #include "DolphinQt/TAS/TASSlider.h"
+#include "DolphinQt/TAS/TASSpinBox.h"
 
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
@@ -109,11 +110,11 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
   const int y_default = static_cast<int>(std::round(max_y / 2.));
 
   auto* x_layout = new QHBoxLayout;
-  QSpinBox* x_value = CreateSliderValuePair(x_layout, x_default, max_x, x_shortcut_key_sequence,
-                                            Qt::Horizontal, box);
+  TASSpinBox* x_value = CreateSliderValuePair(x_layout, x_default, max_x, x_shortcut_key_sequence,
+                                              Qt::Horizontal, box);
 
   auto* y_layout = new QVBoxLayout;
-  QSpinBox* y_value =
+  TASSpinBox* y_value =
       CreateSliderValuePair(y_layout, y_default, max_y, y_shortcut_key_sequence, Qt::Vertical, box);
   y_value->setMaximumWidth(60);
 
@@ -169,14 +170,14 @@ QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(
   return layout;
 }
 
-QSpinBox* TASInputWindow::CreateSliderValuePair(
+TASSpinBox* TASInputWindow::CreateSliderValuePair(
     std::string_view group_name, std::string_view control_name, InputOverrider* overrider,
     QBoxLayout* layout, u16 zero, int default_, u16 min, u16 max,
     QKeySequence shortcut_key_sequence, Qt::Orientation orientation, QWidget* shortcut_widget,
     std::optional<ControlState> scale)
 {
-  QSpinBox* value = CreateSliderValuePair(layout, default_, max, shortcut_key_sequence, orientation,
-                                          shortcut_widget);
+  TASSpinBox* value = CreateSliderValuePair(layout, default_, max, shortcut_key_sequence,
+                                            orientation, shortcut_widget);
 
   InputOverrider::OverrideFunction func;
   if (scale)
@@ -199,12 +200,12 @@ QSpinBox* TASInputWindow::CreateSliderValuePair(
 
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
 // This is done to avoid ambigous shortcuts
-QSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int default_, u16 max,
-                                                QKeySequence shortcut_key_sequence,
-                                                Qt::Orientation orientation,
-                                                QWidget* shortcut_widget)
+TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int default_, u16 max,
+                                                  QKeySequence shortcut_key_sequence,
+                                                  Qt::Orientation orientation,
+                                                  QWidget* shortcut_widget)
 {
-  auto* value = new QSpinBox();
+  auto* value = new TASSpinBox();
   value->setRange(0, 99999);
   value->setValue(default_);
   connect(value, qOverload<int>(&QSpinBox::valueChanged), [value, max](int i) {
@@ -243,51 +244,27 @@ std::optional<ControlState> TASInputWindow::GetButton(TASCheckBox* checkbox,
   return checkbox->GetValue() ? 1.0 : 0.0;
 }
 
-std::optional<ControlState> TASInputWindow::GetSpinBox(QSpinBox* spin, u16 zero, u16 min, u16 max,
+std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, u16 zero, u16 min, u16 max,
                                                        ControlState controller_state)
 {
   const u16 controller_value =
       ControllerEmu::EmulatedController::MapFloat<u16>(controller_state, zero, 0, max);
 
   if (m_use_controller->isChecked())
-  {
-    if (!m_spinbox_most_recent_values.count(spin) ||
-        m_spinbox_most_recent_values[spin] != controller_value)
-    {
-      QueueOnObjectBlocking(spin, [spin, controller_value] { spin->setValue(controller_value); });
-    }
+    spin->OnControllerValueChanged(controller_value);
 
-    m_spinbox_most_recent_values[spin] = controller_value;
-  }
-  else
-  {
-    m_spinbox_most_recent_values.clear();
-  }
-
-  return ControllerEmu::EmulatedController::MapToFloat<ControlState, u16>(spin->value(), zero, min,
-                                                                          max);
+  return ControllerEmu::EmulatedController::MapToFloat<ControlState, u16>(spin->GetValue(), zero,
+                                                                          min, max);
 }
 
-std::optional<ControlState> TASInputWindow::GetSpinBox(QSpinBox* spin, u16 zero,
+std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, u16 zero,
                                                        ControlState controller_state,
                                                        ControlState scale)
 {
   const u16 controller_value = static_cast<u16>(std::llround(controller_state * scale + zero));
 
   if (m_use_controller->isChecked())
-  {
-    if (!m_spinbox_most_recent_values.count(spin) ||
-        m_spinbox_most_recent_values[spin] != controller_value)
-    {
-      QueueOnObjectBlocking(spin, [spin, controller_value] { spin->setValue(controller_value); });
-    }
+    spin->OnControllerValueChanged(controller_value);
 
-    m_spinbox_most_recent_values[spin] = controller_value;
-  }
-  else
-  {
-    m_spinbox_most_recent_values.clear();
-  }
-
-  return (spin->value() - zero) / scale;
+  return (spin->GetValue() - zero) / scale;
 }

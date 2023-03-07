@@ -12,6 +12,7 @@ class QHideEvent;
 class QShowEvent;
 class QSpinBox;
 class TASCheckBox;
+class TASSpinBox;
 
 namespace WiimoteEmu
 {
@@ -75,8 +76,8 @@ private:
   TASCheckBox* m_classic_up_button;
   TASCheckBox* m_classic_down_button;
   TASCheckBox* m_classic_right_button;
-  QSpinBox* m_ir_x_value;
-  QSpinBox* m_ir_y_value;
+  TASSpinBox* m_ir_x_value;
+  TASSpinBox* m_ir_y_value;
   QGroupBox* m_remote_orientation_box;
   QGroupBox* m_nunchuk_orientation_box;
   QGroupBox* m_ir_box;

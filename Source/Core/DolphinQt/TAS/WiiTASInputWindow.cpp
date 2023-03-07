@@ -29,6 +29,7 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/TAS/IRWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
+#include "DolphinQt/TAS/TASSpinBox.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
