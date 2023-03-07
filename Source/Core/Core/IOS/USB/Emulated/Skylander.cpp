@@ -1236,6 +1236,12 @@ bool SkylanderPortal::RemoveSkylander(u8 sky_num)
   std::lock_guard lock(sky_mutex);
   auto& skylander = skylanders[sky_num];
 
+  if (skylander.sky_file.IsOpen())
+  {
+    skylander.Save();
+    skylander.sky_file.Close();
+  }
+
   if (skylander.status & 1)
   {
     skylander.status = Skylander::REMOVING;
