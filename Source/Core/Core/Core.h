@@ -21,6 +21,8 @@ struct WindowSystemInfo;
 
 namespace Core
 {
+class System;
+
 bool GetIsThrottlerTempDisabled();
 void SetIsThrottlerTempDisabled(bool disable);
 
@@ -28,7 +30,7 @@ void SetIsThrottlerTempDisabled(bool disable);
 double GetActualEmulationSpeed();
 
 void Callback_FramePresented(double actual_emulation_speed = 1.0);
-void Callback_NewField();
+void Callback_NewField(Core::System& system);
 
 enum class State
 {

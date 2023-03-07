@@ -298,10 +298,13 @@ void Reset()
 
 void ScheduleInvalidateCacheThreadSafe(u32 address)
 {
-  if (CPU::GetState() == CPU::State::Running && !Core::IsCPUThread())
+  auto& system = Core::System::GetInstance();
+  auto& cpu = system.GetCPU();
+
+  if (cpu.GetState() == CPU::State::Running && !Core::IsCPUThread())
   {
-    Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
-        0, s_invalidate_cache_thread_safe, address, CoreTiming::FromThread::NON_CPU);
+    system.GetCoreTiming().ScheduleEvent(0, s_invalidate_cache_thread_safe, address,
+                                         CoreTiming::FromThread::NON_CPU);
   }
   else
   {
@@ -637,7 +640,8 @@ void CheckBreakPoints()
 
   if (bp->break_on_hit)
   {
-    CPU::Break();
+    auto& system = Core::System::GetInstance();
+    system.GetCPU().Break();
     if (GDBStub::IsActive())
       GDBStub::TakeControl();
   }

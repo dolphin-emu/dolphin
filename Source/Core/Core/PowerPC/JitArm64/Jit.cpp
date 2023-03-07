@@ -714,6 +714,9 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   std::size_t block_size = m_code_buffer.size();
 
+  auto& system = Core::System::GetInstance();
+  auto& cpu = system.GetCPU();
+
   if (m_enable_debugging)
   {
     // We can link blocks as long as we are not single stepping
@@ -722,7 +725,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
     if (!jo.profile_blocks)
     {
-      if (CPU::IsStepping())
+      if (cpu.IsStepping())
       {
         block_size = 1;
 
@@ -820,6 +823,9 @@ bool JitArm64::SetEmitterStateToFreeCodeRegion()
 
 bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 {
+  auto& system = Core::System::GetInstance();
+  auto& cpu = system.GetCPU();
+
   js.isLastInstruction = false;
   js.firstFPInstructionFound = false;
   js.assumeNoPairedQuantize = false;
@@ -944,7 +950,6 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(exception);
       LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(msr));
       TBZ(ARM64Reg::W30, 15, done_here);  // MSR.EE
-      auto& system = Core::System::GetInstance();
       LDR(IndexType::Unsigned, ARM64Reg::W30, ARM64Reg::X30,
           MOVPage2R(ARM64Reg::X30, &system.GetProcessorInterface().m_interrupt_cause));
       constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
@@ -981,7 +986,6 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(exception);
       LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
       TBZ(WA, 15, done_here);  // MSR.EE
-      auto& system = Core::System::GetInstance();
       LDR(IndexType::Unsigned, WA, XA,
           MOVPage2R(XA, &system.GetProcessorInterface().m_interrupt_cause));
       constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
@@ -1035,7 +1039,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       }
 
       if (m_enable_debugging && PowerPC::breakpoints.IsAddressBreakPoint(op.address) &&
-          !CPU::IsStepping())
+          !cpu.IsStepping())
       {
         FlushCarry();
         gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
@@ -1050,7 +1054,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         BLR(ARM64Reg::X0);
 
         LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
-            MOVPage2R(ARM64Reg::X0, CPU::GetStatePtr()));
+            MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));
         FixupBranch no_breakpoint = CBZ(ARM64Reg::W0);
 
         Cleanup();

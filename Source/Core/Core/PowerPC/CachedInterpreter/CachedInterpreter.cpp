@@ -112,9 +112,10 @@ void CachedInterpreter::Run()
 {
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
+  auto& cpu = system.GetCPU();
 
-  const CPU::State* state_ptr = CPU::GetStatePtr();
-  while (CPU::GetState() == CPU::State::Running)
+  const CPU::State* state_ptr = cpu.GetStatePtr();
+  while (cpu.GetState() == CPU::State::Running)
   {
     // Start new timing slice
     // NOTE: Exceptions may change PC
@@ -199,7 +200,8 @@ static bool CheckProgramException(u32 data)
 static bool CheckBreakpoint(u32 data)
 {
   PowerPC::CheckBreakPoints();
-  if (CPU::GetState() != CPU::State::Running)
+  auto& system = Core::System::GetInstance();
+  if (system.GetCPU().GetState() != CPU::State::Running)
   {
     PowerPC::ppcState.downcount -= data;
     return true;

@@ -52,7 +52,7 @@ void Init(const Sram* override_sram)
   DSP::Init(Config::Get(Config::MAIN_DSP_HLE));
   DVDInterface::Init();
   system.GetGPFifo().Init();
-  CPU::Init(Config::Get(Config::MAIN_CPU_CORE));
+  system.GetCPU().Init(Config::Get(Config::MAIN_CPU_CORE));
   SystemTimers::Init();
 
   if (SConfig::GetInstance().bWii)
@@ -71,7 +71,7 @@ void Shutdown()
   IOS::Shutdown();
 
   SystemTimers::Shutdown();
-  CPU::Shutdown();
+  system.GetCPU().Shutdown();
   DVDInterface::Shutdown();
   DSP::Shutdown();
   MemoryInterface::Shutdown();

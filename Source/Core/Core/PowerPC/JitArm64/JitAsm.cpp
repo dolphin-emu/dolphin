@@ -81,11 +81,14 @@ void JitArm64::GenerateAsm()
 
   dispatcher_no_timing_check = GetCodePtr();
 
+  auto& system = Core::System::GetInstance();
+  auto& cpu = system.GetCPU();
+
   FixupBranch debug_exit;
   if (enable_debugging)
   {
     LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
-        MOVPage2R(ARM64Reg::X0, CPU::GetStatePtr()));
+        MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));
     debug_exit = CBNZ(ARM64Reg::W0);
   }
 
@@ -93,7 +96,6 @@ void JitArm64::GenerateAsm()
 
   bool assembly_dispatcher = true;
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   if (assembly_dispatcher)
@@ -177,7 +179,7 @@ void JitArm64::GenerateAsm()
 
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
-  LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0, MOVPage2R(ARM64Reg::X0, CPU::GetStatePtr()));
+  LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0, MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));
   FixupBranch exit = CBNZ(ARM64Reg::W0);
 
   SetJumpTarget(to_start_of_timing_slice);

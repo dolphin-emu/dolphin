@@ -9,6 +9,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/AudioInterface.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/DVD/DVDThread.h"
@@ -46,6 +47,7 @@ struct System::Impl
   AudioInterface::AudioInterfaceState m_audio_interface_state;
   CoreTiming::CoreTimingManager m_core_timing;
   CommandProcessor::CommandProcessorManager m_command_processor;
+  CPU::CPUManager m_cpu;
   DSP::DSPState m_dsp_state;
   DVDInterface::DVDInterfaceState m_dvd_interface_state;
   DVDThread::DVDThreadState m_dvd_thread_state;
@@ -113,6 +115,11 @@ void System::SetAudioDumpStarted(bool started)
 AudioInterface::AudioInterfaceState& System::GetAudioInterfaceState() const
 {
   return m_impl->m_audio_interface_state;
+}
+
+CPU::CPUManager& System::GetCPU() const
+{
+  return m_impl->m_cpu;
 }
 
 CoreTiming::CoreTimingManager& System::GetCoreTiming() const

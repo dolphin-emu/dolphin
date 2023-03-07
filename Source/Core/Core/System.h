@@ -15,6 +15,10 @@ namespace AudioInterface
 {
 class AudioInterfaceState;
 };
+namespace CPU
+{
+class CPUManager;
+}
 namespace CommandProcessor
 {
 class CommandProcessorManager;
@@ -119,6 +123,7 @@ public:
   void SetAudioDumpStarted(bool started);
 
   AudioInterface::AudioInterfaceState& GetAudioInterfaceState() const;
+  CPU::CPUManager& GetCPU() const;
   CoreTiming::CoreTimingManager& GetCoreTiming() const;
   CommandProcessor::CommandProcessorManager& GetCommandProcessor() const;
   DSP::DSPState& GetDSPState() const;
