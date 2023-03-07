@@ -50,13 +50,12 @@ protected:
   TASCheckBox* CreateButton(const QString& text, std::string_view group_name,
                             std::string_view control_name, InputOverrider* overrider);
   QGroupBox* CreateStickInputs(const QString& text, std::string_view group_name,
-                               InputOverrider* overrider, QSpinBox*& x_value, QSpinBox*& y_value,
-                               u16 min_x, u16 min_y, u16 max_x, u16 max_y, Qt::Key x_shortcut_key,
-                               Qt::Key y_shortcut_key);
+                               InputOverrider* overrider, u16 min_x, u16 min_y, u16 max_x,
+                               u16 max_y, Qt::Key x_shortcut_key, Qt::Key y_shortcut_key);
   QBoxLayout* CreateSliderValuePairLayout(const QString& text, std::string_view group_name,
                                           std::string_view control_name, InputOverrider* overrider,
-                                          QSpinBox*& value, u16 zero, int default_, u16 min,
-                                          u16 max, Qt::Key shortcut_key, QWidget* shortcut_widget,
+                                          u16 zero, int default_, u16 min, u16 max,
+                                          Qt::Key shortcut_key, QWidget* shortcut_widget,
                                           std::optional<ControlState> scale = {});
   QSpinBox* CreateSliderValuePair(std::string_view group_name, std::string_view control_name,
                                   InputOverrider* overrider, QBoxLayout* layout, u16 zero,

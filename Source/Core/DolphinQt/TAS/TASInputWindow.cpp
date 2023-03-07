@@ -93,9 +93,8 @@ TASCheckBox* TASInputWindow::CreateButton(const QString& text, std::string_view 
 }
 
 QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_view group_name,
-                                             InputOverrider* overrider, QSpinBox*& x_value,
-                                             QSpinBox*& y_value, u16 min_x, u16 min_y, u16 max_x,
-                                             u16 max_y, Qt::Key x_shortcut_key,
+                                             InputOverrider* overrider, u16 min_x, u16 min_y,
+                                             u16 max_x, u16 max_y, Qt::Key x_shortcut_key,
                                              Qt::Key y_shortcut_key)
 {
   const QKeySequence x_shortcut_key_sequence = QKeySequence(Qt::ALT | x_shortcut_key);
@@ -110,11 +109,11 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
   const int y_default = static_cast<int>(std::round(max_y / 2.));
 
   auto* x_layout = new QHBoxLayout;
-  x_value = CreateSliderValuePair(x_layout, x_default, max_x, x_shortcut_key_sequence,
-                                  Qt::Horizontal, box);
+  QSpinBox* x_value = CreateSliderValuePair(x_layout, x_default, max_x, x_shortcut_key_sequence,
+                                            Qt::Horizontal, box);
 
   auto* y_layout = new QVBoxLayout;
-  y_value =
+  QSpinBox* y_value =
       CreateSliderValuePair(y_layout, y_default, max_y, y_shortcut_key_sequence, Qt::Vertical, box);
   y_value->setMaximumWidth(60);
 
@@ -153,8 +152,8 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
 
 QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(
     const QString& text, std::string_view group_name, std::string_view control_name,
-    InputOverrider* overrider, QSpinBox*& value, u16 zero, int default_, u16 min, u16 max,
-    Qt::Key shortcut_key, QWidget* shortcut_widget, std::optional<ControlState> scale)
+    InputOverrider* overrider, u16 zero, int default_, u16 min, u16 max, Qt::Key shortcut_key,
+    QWidget* shortcut_widget, std::optional<ControlState> scale)
 {
   const QKeySequence shortcut_key_sequence = QKeySequence(Qt::ALT | shortcut_key);
 
@@ -164,8 +163,8 @@ QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(
   QBoxLayout* layout = new QHBoxLayout;
   layout->addWidget(label);
 
-  value = CreateSliderValuePair(group_name, control_name, overrider, layout, zero, default_, min,
-                                max, shortcut_key_sequence, Qt::Horizontal, shortcut_widget, scale);
+  CreateSliderValuePair(group_name, control_name, overrider, layout, zero, default_, min, max,
+                        shortcut_key_sequence, Qt::Horizontal, shortcut_widget, scale);
 
   return layout;
 }

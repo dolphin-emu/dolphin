@@ -83,19 +83,17 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   ir_layout->addLayout(visual_layout);
   m_ir_box->setLayout(ir_layout);
 
-  m_nunchuk_stick_box = CreateStickInputs(
-      tr("Nunchuk Stick"), WiimoteEmu::Nunchuk::STICK_GROUP, &m_nunchuk_overrider,
-      m_nunchuk_stick_x_value, m_nunchuk_stick_y_value, 0, 0, 255, 255, Qt::Key_X, Qt::Key_Y);
+  m_nunchuk_stick_box =
+      CreateStickInputs(tr("Nunchuk Stick"), WiimoteEmu::Nunchuk::STICK_GROUP, &m_nunchuk_overrider,
+                        0, 0, 255, 255, Qt::Key_X, Qt::Key_Y);
 
   m_classic_left_stick_box =
       CreateStickInputs(tr("Left Stick"), WiimoteEmu::Classic::LEFT_STICK_GROUP,
-                        &m_classic_overrider, m_classic_left_stick_x_value,
-                        m_classic_left_stick_y_value, 0, 0, 63, 63, Qt::Key_F, Qt::Key_G);
+                        &m_classic_overrider, 0, 0, 63, 63, Qt::Key_F, Qt::Key_G);
 
   m_classic_right_stick_box =
       CreateStickInputs(tr("Right Stick"), WiimoteEmu::Classic::RIGHT_STICK_GROUP,
-                        &m_classic_overrider, m_classic_right_stick_x_value,
-                        m_classic_right_stick_y_value, 0, 0, 31, 31, Qt::Key_Q, Qt::Key_W);
+                        &m_classic_overrider, 0, 0, 31, 31, Qt::Key_Q, Qt::Key_W);
 
   // Need to enforce the same minimum width because otherwise the different lengths in the labels
   // used on the QGroupBox will cause the StickWidgets to have different sizes.
@@ -120,23 +118,20 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("X"), WiimoteEmu::Wiimote::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE,
-                                  &m_wiimote_overrider, m_remote_orientation_x_value, ACCEL_ZERO_G,
-                                  ACCEL_ZERO_G, ACCEL_MIN, ACCEL_MAX, Qt::Key_Q,
-                                  m_remote_orientation_box, ACCEL_SCALE);
+                                  &m_wiimote_overrider, ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_MIN,
+                                  ACCEL_MAX, Qt::Key_Q, m_remote_orientation_box, ACCEL_SCALE);
   auto* remote_orientation_y_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("Y"), WiimoteEmu::Wiimote::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE,
-                                  &m_wiimote_overrider, m_remote_orientation_y_value, ACCEL_ZERO_G,
-                                  ACCEL_ZERO_G, ACCEL_MIN, ACCEL_MAX, Qt::Key_W,
-                                  m_remote_orientation_box, ACCEL_SCALE);
+                                  &m_wiimote_overrider, ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_MIN,
+                                  ACCEL_MAX, Qt::Key_W, m_remote_orientation_box, ACCEL_SCALE);
   auto* remote_orientation_z_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("Z"), WiimoteEmu::Wiimote::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::Z_INPUT_OVERRIDE,
-                                  &m_wiimote_overrider, m_remote_orientation_z_value, ACCEL_ZERO_G,
-                                  ACCEL_ONE_G, ACCEL_MIN, ACCEL_MAX, Qt::Key_E,
-                                  m_remote_orientation_box, ACCEL_SCALE);
+                                  &m_wiimote_overrider, ACCEL_ZERO_G, ACCEL_ONE_G, ACCEL_MIN,
+                                  ACCEL_MAX, Qt::Key_E, m_remote_orientation_box, ACCEL_SCALE);
 
   auto* remote_orientation_layout = new QVBoxLayout;
   remote_orientation_layout->addLayout(remote_orientation_x_layout);
@@ -150,23 +145,20 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("X"), WiimoteEmu::Nunchuk::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE,
-                                  &m_nunchuk_overrider, m_nunchuk_orientation_x_value, ACCEL_ZERO_G,
-                                  ACCEL_ZERO_G, ACCEL_MIN, ACCEL_MAX, Qt::Key_I,
-                                  m_nunchuk_orientation_box);
+                                  &m_nunchuk_overrider, ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_MIN,
+                                  ACCEL_MAX, Qt::Key_I, m_nunchuk_orientation_box);
   auto* nunchuk_orientation_y_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("Y"), WiimoteEmu::Nunchuk::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE,
-                                  &m_nunchuk_overrider, m_nunchuk_orientation_y_value, ACCEL_ZERO_G,
-                                  ACCEL_ZERO_G, ACCEL_MIN, ACCEL_MAX, Qt::Key_O,
-                                  m_nunchuk_orientation_box);
+                                  &m_nunchuk_overrider, ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_MIN,
+                                  ACCEL_MAX, Qt::Key_O, m_nunchuk_orientation_box);
   auto* nunchuk_orientation_z_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("Z"), WiimoteEmu::Nunchuk::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::Z_INPUT_OVERRIDE,
-                                  &m_nunchuk_overrider, m_nunchuk_orientation_z_value, ACCEL_ZERO_G,
-                                  ACCEL_ONE_G, ACCEL_MIN, ACCEL_MAX, Qt::Key_P,
-                                  m_nunchuk_orientation_box);
+                                  &m_nunchuk_overrider, ACCEL_ZERO_G, ACCEL_ONE_G, ACCEL_MIN,
+                                  ACCEL_MAX, Qt::Key_P, m_nunchuk_orientation_box);
 
   auto* nunchuk_orientation_layout = new QVBoxLayout;
   nunchuk_orientation_layout->addLayout(nunchuk_orientation_x_layout);
@@ -177,10 +169,10 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_triggers_box = new QGroupBox(tr("Triggers"));
   auto* l_trigger_layout = CreateSliderValuePairLayout(
       tr("Left"), WiimoteEmu::Classic::TRIGGERS_GROUP, WiimoteEmu::Classic::L_ANALOG,
-      &m_classic_overrider, m_left_trigger_value, 0, 0, 0, 31, Qt::Key_N, m_triggers_box);
+      &m_classic_overrider, 0, 0, 0, 31, Qt::Key_N, m_triggers_box);
   auto* r_trigger_layout = CreateSliderValuePairLayout(
       tr("Right"), WiimoteEmu::Classic::TRIGGERS_GROUP, WiimoteEmu::Classic::R_ANALOG,
-      &m_classic_overrider, m_right_trigger_value, 0, 0, 0, 31, Qt::Key_M, m_triggers_box);
+      &m_classic_overrider, 0, 0, 0, 31, Qt::Key_M, m_triggers_box);
 
   auto* triggers_layout = new QVBoxLayout;
   triggers_layout->addLayout(l_trigger_layout);
