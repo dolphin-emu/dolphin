@@ -47,6 +47,10 @@ namespace GPFifo
 {
 class GPFifoManager;
 }
+namespace HSP
+{
+class HSPManager;
+}
 namespace IOS::HLE::USB
 {
 class SkylanderPortal;
@@ -124,6 +128,7 @@ public:
   Fifo::FifoManager& GetFifo() const;
   GeometryShaderManager& GetGeometryShaderManager() const;
   GPFifo::GPFifoManager& GetGPFifo() const;
+  HSP::HSPManager& GetHSP() const;
   IOS::HLE::USB::SkylanderPortal& GetSkylanderPortal() const;
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
