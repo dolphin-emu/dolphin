@@ -610,7 +610,7 @@ static void Do_ARAM_DMA()
     {
       while (state.aram_dma.Cnt.count)
       {
-        memory.Write_U64(HSP::Read(state.aram_dma.ARAddr), state.aram_dma.MMAddr);
+        memory.Write_U64(system.GetHSP().Read(state.aram_dma.ARAddr), state.aram_dma.MMAddr);
         state.aram_dma.MMAddr += 8;
         state.aram_dma.ARAddr += 8;
         state.aram_dma.Cnt.count -= 8;
@@ -662,7 +662,7 @@ static void Do_ARAM_DMA()
     {
       while (state.aram_dma.Cnt.count)
       {
-        HSP::Write(state.aram_dma.ARAddr, memory.Read_U64(state.aram_dma.MMAddr));
+        system.GetHSP().Write(state.aram_dma.ARAddr, memory.Read_U64(state.aram_dma.MMAddr));
 
         state.aram_dma.MMAddr += 8;
         state.aram_dma.ARAddr += 8;

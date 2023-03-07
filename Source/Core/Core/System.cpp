@@ -14,6 +14,7 @@
 #include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GPFifo.h"
+#include "Core/HW/HSP/HSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MemoryInterface.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -52,6 +53,7 @@ struct System::Impl
   Fifo::FifoManager m_fifo;
   GeometryShaderManager m_geometry_shader_manager;
   GPFifo::GPFifoManager m_gp_fifo;
+  HSP::HSPManager m_hsp;
   IOS::HLE::USB::SkylanderPortal m_skylander_portal;
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceState m_memory_interface_state;
@@ -156,6 +158,11 @@ GeometryShaderManager& System::GetGeometryShaderManager() const
 GPFifo::GPFifoManager& System::GetGPFifo() const
 {
   return m_impl->m_gp_fifo;
+}
+
+HSP::HSPManager& System::GetHSP() const
+{
+  return m_impl->m_hsp;
 }
 
 IOS::HLE::USB::SkylanderPortal& System::GetSkylanderPortal() const
