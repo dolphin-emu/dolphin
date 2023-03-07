@@ -65,6 +65,7 @@
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 #include "Core/Scripting/ScriptUtilities.h"
 #include "Core/Scripting/HelperClasses/GCButtons.h"
+#include "Core/Scripting/InternalAPIModules/WiiAPI.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
 #include "Core/System.h"
@@ -1436,6 +1437,22 @@ bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
                    s_temp_input.size());
     EndPlayInput(!s_bReadOnly);
     return false;
+  }
+
+
+  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
+  {
+    Scripting::WiiAPI::current_controller_number_polled = wiimote;
+    Scripting::WiiAPI::overwrite_controller_at_specified_port[wiimote] = false;
+    memcpy(&Scripting::WiiAPI::new_controller_inputs[wiimote],
+           &s_temp_input[s_currentByte], size);
+    Scripting::ScriptUtilities::RunOnWiiInputPolledCallbacks();
+    if (Scripting::WiiAPI::overwrite_controller_at_specified_port[wiimote])
+    {
+      memcpy(&s_temp_input[s_currentByte],
+             &Scripting::WiiAPI::new_controller_inputs[wiimote],
+             size);
+    }
   }
 
   memcpy(rpt.GetDataPtr(), &s_temp_input[s_currentByte], size);

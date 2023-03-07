@@ -78,6 +78,7 @@
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\ImportAPI.h" />
+    <ClInclude Include="Core\Scripting\InternalAPIModules\WiiAPI.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\DefinedScriptingLanguagesEnum.h" />
     <ClInclude Include="Core\Scripting\ScriptContext.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\BitAPI.h" />
@@ -101,7 +102,7 @@
   <ItemGroup>
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.cpp" />
-	<ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.cpp" />
+    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressReadFromCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressWrittenToCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.cpp" />
@@ -116,6 +117,7 @@
     <ClCompile Include="Core\Scripting\InternalAPIModules\StatisticsAPI.cpp" />
     <ClCompile Include="Core\Scripting\HelperClasses\VersionComparisonFunctions.cpp" />
     <ClCompile Include="Core\Scripting\HelperClasses\ArgHolder.cpp" />
+    <ClCompile Include="Core\Scripting\InternalAPIModules\WiiAPI.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.cpp" />
     <ClCompile Include="Core\Scripting\ScriptUtilities.cpp" />
   </ItemGroup>

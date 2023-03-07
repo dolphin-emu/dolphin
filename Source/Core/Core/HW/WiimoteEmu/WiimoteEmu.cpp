@@ -24,6 +24,9 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Movie.h"
 
+#include "Core/Scripting/InternalAPIModules/WiiAPI.h"
+#include "Core/Scripting/ScriptUtilities.h"
+
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
@@ -626,6 +629,14 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
     }
   }
 
+    if (!Movie::IsPlayingInput() && Scripting::ScriptUtilities::IsScriptingCoreInitialized())
+  {
+    Scripting::WiiAPI::current_controller_number_polled = m_index;
+    Scripting::WiiAPI::overwrite_controller_at_specified_port[m_index] = false;
+    Scripting::WiiAPI::new_controller_inputs[m_index] = rpt_builder.GetDataPtr();
+    Scripting::ScriptUtilities::RunOnWiiInputPolledCallbacks();
+    // Since we have a pointer to the actual report builder, we don't need to copy the changed inputs back to the report builder (since if it has been modified, then it's already been updated)
+  }
   Movie::CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
                             GetExtensionEncryptionKey());
 
