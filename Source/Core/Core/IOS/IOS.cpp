@@ -487,14 +487,16 @@ bool Kernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc, const std::string
   if (!boot_content_path.empty())
   {
     // Load the ARM binary to memory (if possible).
-    // Because we do not actually emulate the Starlet, only load the sections that are in MEM1.
+    // In particular, we need to load the sections that are in MEM1 for MIOS, and
+    // while we currently do not LLE the Starlet, we will also load the MEM2 sections
+    // because some titles (notably the Homebrew Channel) require a valid IOS to be loaded.
 
     ARMBinary binary{ReadBootContent(GetFSDevice().get(), boot_content_path, 0xB00000)};
     if (!binary.IsValid())
       return false;
 
     ElfReader elf{binary.GetElf()};
-    if (!elf.LoadIntoMemory(true))
+    if (!elf.LoadIntoMemory())
       return false;
   }
 
