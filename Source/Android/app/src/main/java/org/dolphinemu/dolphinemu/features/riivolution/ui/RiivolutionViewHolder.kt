@@ -50,7 +50,7 @@ class RiivolutionViewHolder(itemView: View, private val binding: ListItemRiivolu
                 item.mSectionIndex,
                 item.mOptionIndex
             )
-            adapter.add(context.getString(R.string.riivolution_disabled))
+            adapter.add(context.getString(R.string.disabled))
             for (i in 0 until choiceCount) {
                 adapter.add(
                     patches.getChoiceName(

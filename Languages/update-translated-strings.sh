@@ -8,3 +8,7 @@
 cd "$(dirname "$0")/.."
 POTFILE=./Languages/po/dolphin-emu.pot
 find ./Languages/po -name '*.po' -exec msgmerge --quiet --update -N --backup=none -s {} $POTFILE \;
+
+# This script takes all of the .po files and converts them into
+# correctly formatted strings.xml files for Android.
+python3 ./Languages/update_android_translated_strings.py

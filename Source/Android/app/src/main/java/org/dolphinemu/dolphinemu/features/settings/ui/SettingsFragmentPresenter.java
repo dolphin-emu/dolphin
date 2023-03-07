@@ -273,15 +273,15 @@ public final class SettingsFragmentPresenter
 
   private void addConfigSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new SubmenuSetting(mContext, R.string.general_submenu, MenuTag.CONFIG_GENERAL));
+    sl.add(new SubmenuSetting(mContext, R.string.menu_general, MenuTag.CONFIG_GENERAL));
     sl.add(new SubmenuSetting(mContext, R.string.interface_submenu, MenuTag.CONFIG_INTERFACE));
     sl.add(new SubmenuSetting(mContext, R.string.audio_submenu, MenuTag.CONFIG_AUDIO));
     sl.add(new SubmenuSetting(mContext, R.string.paths_submenu, MenuTag.CONFIG_PATHS));
     sl.add(new SubmenuSetting(mContext, R.string.gamecube_submenu, MenuTag.CONFIG_GAME_CUBE));
     sl.add(new SubmenuSetting(mContext, R.string.wii_submenu, MenuTag.CONFIG_WII));
-    sl.add(new SubmenuSetting(mContext, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
+    sl.add(new SubmenuSetting(mContext, R.string.menu_advanced, MenuTag.CONFIG_ADVANCED));
     sl.add(new SubmenuSetting(mContext, R.string.log_submenu, MenuTag.CONFIG_LOG));
-    sl.add(new SubmenuSetting(mContext, R.string.debug_submenu, MenuTag.DEBUG));
+    sl.add(new SubmenuSetting(mContext, R.string.debug, MenuTag.DEBUG));
     sl.add(new RunRunnable(mContext, R.string.user_data_submenu, 0, 0, 0, false,
             () -> UserDataActivity.launch(mContext)));
   }
@@ -588,7 +588,7 @@ public final class SettingsFragmentPresenter
 
   private void addWiiSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new HeaderSetting(mContext, R.string.wii_misc_settings, 0));
+    sl.add(new HeaderSetting(mContext, R.string.menu_misc, 0));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.SYSCONF_LANGUAGE, R.string.system_language,
             0, R.array.wiiSystemLanguageEntries, R.array.wiiSystemLanguageValues));
     sl.add(new SwitchSetting(mContext, BooleanSetting.SYSCONF_WIDESCREEN, R.string.wii_widescreen,
@@ -766,7 +766,7 @@ public final class SettingsFragmentPresenter
     sl.add(new DateTimeChoiceSetting(mContext, StringSetting.MAIN_CUSTOM_RTC_VALUE,
             R.string.set_custom_rtc, 0));
 
-    sl.add(new HeaderSetting(mContext, R.string.misc_settings, 0));
+    sl.add(new HeaderSetting(mContext, R.string.menu_misc, 0));
     sl.add(new InvertedSwitchSetting(mContext, BooleanSetting.MAIN_FAST_DISC_SPEED,
             R.string.emulate_disc_speed,
             R.string.emulate_disc_speed_description));
@@ -813,7 +813,7 @@ public final class SettingsFragmentPresenter
 
   private void addGraphicsSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new HeaderSetting(mContext, R.string.graphics_general, 0));
+    sl.add(new HeaderSetting(mContext, R.string.menu_general, 0));
     sl.add(new StringSingleChoiceSetting(mContext, StringSetting.MAIN_GFX_BACKEND,
             R.string.video_backend, 0, R.array.videoBackendEntries, R.array.videoBackendValues));
     sl.add(new SingleChoiceSettingDynamicDescriptions(mContext,
@@ -830,7 +830,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(mContext, R.string.enhancements_submenu, MenuTag.ENHANCEMENTS));
     sl.add(new SubmenuSetting(mContext, R.string.hacks_submenu, MenuTag.HACKS));
     sl.add(new SubmenuSetting(mContext, R.string.statistics_submenu, MenuTag.STATISTICS));
-    sl.add(new SubmenuSetting(mContext, R.string.advanced_graphics_submenu,
+    sl.add(new SubmenuSetting(mContext, R.string.menu_advanced,
             MenuTag.ADVANCED_GRAPHICS));
   }
 
@@ -961,7 +961,7 @@ public final class SettingsFragmentPresenter
   {
     sl.add(new HeaderSetting(mContext, R.string.gfx_mods_and_custom_textures, 0));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_MODS_ENABLE,
-            R.string.gfx_mods, R.string.gfx_mods_description));
+            R.string.menu_gfx_mods, R.string.gfx_mods_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_HIRES_TEXTURES,
             R.string.load_custom_texture, R.string.load_custom_texture_description));
     sl.add(new SwitchSetting(mContext, BooleanSetting.GFX_CACHE_HIRES_TEXTURES,
@@ -1104,7 +1104,7 @@ public final class SettingsFragmentPresenter
               SettingsFile.KEY_GCBIND_CONTROL_RIGHT + gcPadNumber, R.string.generic_right,
               mGameID));
 
-      sl.add(new HeaderSetting(mContext, R.string.controller_c, 0));
+      sl.add(new HeaderSetting(mContext, R.string.gamepad_c_stick, 0));
       sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
               SettingsFile.KEY_GCBIND_C_UP + gcPadNumber, R.string.generic_up, mGameID));
       sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
@@ -1120,7 +1120,7 @@ public final class SettingsFragmentPresenter
       sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
               SettingsFile.KEY_GCBIND_TRIGGER_R + gcPadNumber, R.string.trigger_right, mGameID));
 
-      sl.add(new HeaderSetting(mContext, R.string.controller_dpad, 0));
+      sl.add(new HeaderSetting(mContext, R.string.gamepad_d_pad, 0));
       sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
               SettingsFile.KEY_GCBIND_DPAD_UP + gcPadNumber, R.string.generic_up, mGameID));
       sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
@@ -1242,7 +1242,7 @@ public final class SettingsFragmentPresenter
     sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
             SettingsFile.KEY_WIIBIND_SHAKE_Z + wiimoteNumber, R.string.shake_z, mGameID));
 
-    sl.add(new HeaderSetting(mContext, R.string.controller_dpad, 0));
+    sl.add(new HeaderSetting(mContext, R.string.gamepad_d_pad, 0));
     sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
             SettingsFile.KEY_WIIBIND_DPAD_UP + wiimoteNumber, R.string.generic_up, mGameID));
     sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
@@ -1359,7 +1359,7 @@ public final class SettingsFragmentPresenter
                 SettingsFile.KEY_WIIBIND_CLASSIC_HOME + wiimoteNumber, R.string.button_home,
                 mGameID));
 
-        sl.add(new HeaderSetting(mContext, R.string.classic_leftstick, 0));
+        sl.add(new HeaderSetting(mContext, R.string.gamepad_left_stick, 0));
         sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_UP + wiimoteNumber, R.string.generic_up,
                 mGameID));
@@ -1373,7 +1373,7 @@ public final class SettingsFragmentPresenter
                 SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_RIGHT + wiimoteNumber, R.string.generic_right,
                 mGameID));
 
-        sl.add(new HeaderSetting(mContext, R.string.classic_rightstick, 0));
+        sl.add(new HeaderSetting(mContext, R.string.gamepad_right_stick, 0));
         sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_UP + wiimoteNumber, R.string.generic_up,
                 mGameID));
@@ -1395,7 +1395,7 @@ public final class SettingsFragmentPresenter
                 SettingsFile.KEY_WIIBIND_CLASSIC_TRIGGER_R + wiimoteNumber, R.string.trigger_right,
                 mGameID));
 
-        sl.add(new HeaderSetting(mContext, R.string.controller_dpad, 0));
+        sl.add(new HeaderSetting(mContext, R.string.gamepad_d_pad, 0));
         sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_UP + wiimoteNumber, R.string.generic_up,
                 mGameID));
@@ -1412,7 +1412,7 @@ public final class SettingsFragmentPresenter
       case 3: // Guitar
         sl.add(new HeaderSetting(mContext, R.string.guitar_frets, 0));
         sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_FRET_GREEN + wiimoteNumber, R.string.generic_green,
+                SettingsFile.KEY_WIIBIND_GUITAR_FRET_GREEN + wiimoteNumber, R.string.green,
                 mGameID));
         sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_GUITAR_FRET_RED + wiimoteNumber, R.string.generic_red,
@@ -1474,7 +1474,7 @@ public final class SettingsFragmentPresenter
                 SettingsFile.KEY_WIIBIND_DRUMS_PAD_BLUE + wiimoteNumber, R.string.generic_blue,
                 mGameID));
         sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_PAD_GREEN + wiimoteNumber, R.string.generic_green,
+                SettingsFile.KEY_WIIBIND_DRUMS_PAD_GREEN + wiimoteNumber, R.string.green,
                 mGameID));
         sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_DRUMS_PAD_ORANGE + wiimoteNumber, R.string.generic_orange,

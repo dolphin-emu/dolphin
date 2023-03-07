@@ -46,14 +46,10 @@ public class SystemUpdateResultFragment extends DialogFragment
         message = getString(R.string.region_mismatch);
         break;
       case WiiUtils.UPDATE_RESULT_MISSING_UPDATE_PARTITION:
-        message = getString(R.string.missing_update_partition);
-        break;
       case WiiUtils.UPDATE_RESULT_DISC_READ_FAILED:
         message = getString(R.string.disc_read_failed);
         break;
       case WiiUtils.UPDATE_RESULT_SERVER_FAILED:
-        message = getString(R.string.server_failed);
-        break;
       case WiiUtils.UPDATE_RESULT_DOWNLOAD_FAILED:
         message = getString(R.string.download_failed);
         break;

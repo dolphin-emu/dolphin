@@ -27,6 +27,14 @@ find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
 xgettext -s -p ./Languages/po -o dolphin-emu.pot --package-name="Dolphin Emulator" \
   -j ./Languages/po/qt-strings.pot
 
+# Convert Android string.xml to dolphin-android.pot
+python3 ./Languages/update_android_source_strings.py
+
+# Copy strings from dolphin-android.pot to dolphin-emu.pot
+xgettext -s -p ./Languages/po -o dolphin-emu.pot --package-name="Dolphin Emulator" \
+  -j ./Languages/po/dolphin-android.pot
+
 sed -i "s/SOME DESCRIPTIVE TITLE\./Translation of dolphin-emu.pot to LANGUAGE/" Languages/po/dolphin-emu.pot
 sed -i "s/YEAR THE PACKAGE'S COPYRIGHT HOLDER/2003-2013/" Languages/po/dolphin-emu.pot
 sed -i "s/license as the PACKAGE package/license as the dolphin-emu package/" Languages/po/dolphin-emu.pot
+

@@ -368,7 +368,7 @@ public final class TvMainActivity extends FragmentActivity
 
     rowItems.add(new TvSettingsItem(R.id.menu_settings,
             R.drawable.ic_settings_tv,
-            R.string.grid_menu_settings));
+            R.string.menu_settings));
 
     rowItems.add(new TvSettingsItem(R.id.button_add_directory,
             R.drawable.ic_add_tv,
@@ -411,7 +411,7 @@ public final class TvMainActivity extends FragmentActivity
             R.string.grid_menu_about));
 
     // Create a header for this row.
-    HeaderItem header = new HeaderItem(R.string.settings, getString(R.string.settings));
+    HeaderItem header = new HeaderItem(R.string.menu_settings, getString(R.string.menu_settings));
 
     return new ListRow(header, rowItems);
   }

@@ -177,7 +177,7 @@
         <item>@string/log_error</item>
         <item>@string/log_warning</item>
         <item>@string/log_info</item>
-        <item>@string/log_debug</item>
+        <item>@string/debug</item>
     </string-array>
     <integer-array name="logVerbosityValuesMaxLevelDebug">
         <item>1</item>
@@ -203,7 +203,7 @@
 
     <!-- Wii Remote extensions -->
     <string-array name="wiimoteExtensionsEntries">
-        <item>@string/extension_none</item>
+        <item>@string/none</item>
         <item>@string/extension_nunchuk</item>
         <item>@string/extension_classic</item>
         <item>@string/extension_guitar</item>
@@ -279,7 +279,7 @@
 
     <!-- FSAA Preference -->
     <string-array name="FSAAEntries" translatable="false">
-        <item>@string/multiple_off</item>
+        <item>@string/off</item>
         <item>@string/multiple_two</item>
         <item>@string/multiple_four</item>
         <item>@string/multiple_eight</item>
@@ -293,7 +293,7 @@
 
     <!-- Anisotropic Filtering Preference -->
     <string-array name="anisotropicFilteringEntries">
-        <item>@string/filtering_default</item>
+        <item>@string/option_default</item>
         <item>@string/multiple_two</item>
         <item>@string/multiple_four</item>
         <item>@string/multiple_eight</item>
@@ -309,7 +309,7 @@
 
     <!-- Texture Filtering Preference -->
     <string-array name="textureFilteringEntries">
-        <item>@string/filtering_default</item>
+        <item>@string/option_default</item>
         <item>@string/filtering_nearest</item>
         <item>@string/filtering_linear</item>
     </string-array>
@@ -321,7 +321,7 @@
 
     <!-- Stereoscopy Preference -->
     <string-array name="stereoscopyEntries">
-        <item>@string/stereoscopy_off</item>
+        <item>@string/off</item>
         <item>@string/stereoscopy_side_by_side</item>
         <item>@string/stereoscopy_top_and_bottom</item>
         <item>@string/stereoscopy_anaglyph</item>
@@ -335,7 +335,7 @@
 
     <!-- Aspect Ratio Preference -->
     <string-array name="aspectRatioEntries">
-        <item>@string/aspect_ratio_auto</item>
+        <item>@string/auto</item>
         <item>@string/aspect_ratio_force_sixteen_by_nine</item>
         <item>@string/aspect_ratio_force_four_by_three</item>
         <item>@string/aspect_ratio_stretch</item>
@@ -365,8 +365,8 @@
     </string-array>
 
     <string-array name="gcpadTypeEntries">
-        <item>@string/gcpad_disabled</item>
-        <item>@string/gcpad_emulated</item>
+        <item>@string/disabled</item>
+        <item>@string/emulated</item>
         <item>@string/gcpad_gc_adapter</item>
     </string-array>
     <integer-array name="gcpadTypeValues">
@@ -376,8 +376,8 @@
     </integer-array>
 
     <string-array name="wiimoteTypeEntries">
-        <item>@string/wiimote_disabled</item>
-        <item>@string/wiimote_emulated</item>
+        <item>@string/disabled</item>
+        <item>@string/emulated</item>
         <item>@string/wiimote_real</item>
     </string-array>
     <integer-array name="wiimoteTypeValues">
@@ -392,7 +392,7 @@
         <item>@string/controller_horizontal_wiimote</item>
         <item>@string/controller_wiimote_plus_nunchuk</item>
         <item>@string/controller_classic</item>
-        <item>@string/controller_none</item>
+        <item>@string/none</item>
     </string-array>
     <string-array name="controllersValues">
         <item>None</item>
@@ -460,7 +460,7 @@
     </string-array>
 
     <string-array name="irModeEntries">
-        <item>@string/ir_disabled</item>
+        <item>@string/disabled</item>
         <item>@string/ir_follow</item>
         <item>@string/ir_drag</item>
     </string-array>
@@ -482,7 +482,7 @@
         <item>@string/orientation_landscape</item>
         <item>@string/orientation_landscape_reverse</item>
         <item>@string/orientation_portrait</item>
-        <item>@string/orientation_auto</item>
+        <item>@string/auto</item>
     </string-array>
     <integer-array name="orientationValues">
         <item>0</item>
@@ -493,9 +493,9 @@
 
     <!-- Monet must always have a value exclusive to >= API 31 -->
     <string-array name="themeEntries">
-        <item>@string/theme_default</item>
+        <item>@string/option_default</item>
         <item>@string/theme_material_default</item>
-        <item>@string/theme_green</item>
+        <item>@string/green</item>
         <item>@string/theme_pink</item>
     </string-array>
     <integer-array name="themeValues">
@@ -505,10 +505,10 @@
         <item>4</item>
     </integer-array>
     <string-array name="themeEntriesA12">
-        <item>@string/theme_default</item>
+        <item>@string/option_default</item>
         <item>@string/theme_material_you</item>
         <item>@string/theme_material_default</item>
-        <item>@string/theme_green</item>
+        <item>@string/green</item>
         <item>@string/theme_pink</item>
     </string-array>
     <integer-array name="themeValuesA12">
