@@ -16,7 +16,7 @@ namespace ExpansionInterface
 class CEXIDummy final : public IEXIDevice
 {
 public:
-  explicit CEXIDummy(const std::string& name);
+  CEXIDummy(Core::System& system, const std::string& name);
 
   void ImmWrite(u32 data, u32 size) override;
   u32 ImmRead(u32 size) override;

@@ -343,7 +343,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
 {
   ASSERT(Core::IsCPUThread());
   auto& system = Core::System::GetInstance();
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(system);
 
   const u32 opcode = PowerPC::HostRead_U32(guard, last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);

@@ -15,6 +15,7 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Settings.h"
 
@@ -257,7 +258,7 @@ void ThreadWidget::Update()
     m_thread_table->setRowCount(0);
     UpdateThreadContext({});
 
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     UpdateThreadCallstack(guard, {});
   }
   if (emu_state != Core::State::Paused)
@@ -301,7 +302,7 @@ void ThreadWidget::Update()
   };
 
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
 
     // YAGCD - Section 4.2.1.4 Dolphin OS Globals
     m_current_context->setText(format_hex_from(guard, 0x800000D4));
@@ -471,7 +472,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
 
 void ThreadWidget::OnSelectionChanged(int row)
 {
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
   Common::Debug::PartialContext context;
 
   if (row >= 0 && size_t(row) < m_threads.size())

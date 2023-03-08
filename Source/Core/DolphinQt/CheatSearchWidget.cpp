@@ -37,6 +37,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
@@ -288,7 +289,7 @@ void CheatSearchWidget::OnNextScanClicked()
   }
 
   const Cheats::SearchErrorCode error_code = [this] {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     return m_session->RunSearch(guard);
   }();
 
@@ -397,7 +398,7 @@ bool CheatSearchWidget::RefreshValues()
   tmp->SetFilterType(Cheats::FilterType::DoNotFilter);
 
   const Cheats::SearchErrorCode error_code = [&tmp] {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     return tmp->RunSearch(guard);
   }();
 

@@ -149,7 +149,7 @@ void Init(const Sram* override_sram)
       Memcard::HeaderData header_data;
       Memcard::InitializeHeaderData(&header_data, flash_id, size_mbits, shift_jis, rtc_bias,
                                     sram_language, format_time + i);
-      state.channels[i] = std::make_unique<CEXIChannel>(i, header_data);
+      state.channels[i] = std::make_unique<CEXIChannel>(system, i, header_data);
     }
   }
 

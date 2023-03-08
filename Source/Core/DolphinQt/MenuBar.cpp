@@ -1186,7 +1186,7 @@ void MenuBar::ClearSymbols()
 
 void MenuBar::GenerateSymbolsFromAddress()
 {
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
@@ -1198,7 +1198,7 @@ void MenuBar::GenerateSymbolsFromAddress()
 
 void MenuBar::GenerateSymbolsFromSignatureDB()
 {
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
@@ -1244,7 +1244,7 @@ void MenuBar::GenerateSymbolsFromRSO()
     return;
   }
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   RSOChainView rso_chain;
   if (rso_chain.Load(guard, static_cast<u32>(address)))
@@ -1300,7 +1300,7 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
   RSOChainView rso_chain;
   const u32 address = item.mid(0, item.indexOf(QLatin1Char(' '))).toUInt(nullptr, 16);
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   if (rso_chain.Load(guard, address))
   {
@@ -1315,7 +1315,7 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
 
 RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
 {
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   constexpr std::array<std::string_view, 2> search_for = {".elf", ".plf"};
 
@@ -1429,7 +1429,7 @@ void MenuBar::LoadSymbolMap()
     g_symbolDB.Clear();
 
     {
-      Core::CPUThreadGuard guard;
+      Core::CPUThreadGuard guard(Core::System::GetInstance());
 
       PPCAnalyst::FindFunctions(guard, Memory::MEM1_BASE_ADDR + 0x1300000,
                                 Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal(), &g_symbolDB);
@@ -1523,7 +1523,7 @@ void MenuBar::SaveCode()
 
   bool success;
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     success = g_symbolDB.SaveCodeMap(guard, path);
   }
 
@@ -1537,7 +1537,7 @@ void MenuBar::SaveCode()
 
 bool MenuBar::TryLoadMapFile(const QString& path, const bool bad)
 {
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   if (!g_symbolDB.LoadMap(guard, path.toStdString(), bad))
   {
@@ -1621,7 +1621,7 @@ void MenuBar::ApplySignatureFile()
   SignatureDB db(load_path);
   db.Load(load_path);
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     db.Apply(guard, &g_symbolDB);
   }
   db.List();
@@ -1692,7 +1692,7 @@ void MenuBar::SearchInstruction()
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(system);
 
   bool found = false;
   for (u32 addr = Memory::MEM1_BASE_ADDR; addr < Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal();

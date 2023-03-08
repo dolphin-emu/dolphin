@@ -170,7 +170,7 @@ void OnFrameEnd()
   if (s_memory_watcher)
   {
     ASSERT(IsCPUThread());
-    CPUThreadGuard guard;
+    CPUThreadGuard guard(Core::System::GetInstance());
 
     s_memory_watcher->Step(guard);
   }
@@ -533,7 +533,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
   HW::Init(NetPlay::IsNetPlayRunning() ? &(boot_session_data.GetNetplaySettings()->sram) : nullptr);
 
-  Common::ScopeGuard hw_guard{[] {
+  Common::ScopeGuard hw_guard{[&system] {
     // We must set up this flag before executing HW::Shutdown()
     s_hardware_initialized = false;
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Shutting down HW"));
@@ -550,7 +550,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     PatchEngine::Shutdown();
     HLE::Clear();
 
-    CPUThreadGuard guard;
+    CPUThreadGuard guard(system);
     PowerPC::debug_interface.Clear(guard);
   }};
 
@@ -603,7 +603,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
   {
     ASSERT(IsCPUThread());
-    CPUThreadGuard guard;
+    CPUThreadGuard guard(system);
     if (!CBoot::BootUp(system, guard, std::move(boot)))
       return;
   }
@@ -1058,16 +1058,17 @@ void UpdateInputGate(bool require_focus, bool require_full_focus)
   ControlReference::SetInputGate(focus_passes && full_focus_passes);
 }
 
-CPUThreadGuard::CPUThreadGuard() : m_was_cpu_thread(IsCPUThread())
+CPUThreadGuard::CPUThreadGuard(Core::System& system)
+    : m_system(system), m_was_cpu_thread(IsCPUThread())
 {
   if (!m_was_cpu_thread)
-    m_was_unpaused = PauseAndLock(Core::System::GetInstance(), true, true);
+    m_was_unpaused = PauseAndLock(system, true, true);
 }
 
 CPUThreadGuard::~CPUThreadGuard()
 {
   if (!m_was_cpu_thread)
-    PauseAndLock(Core::System::GetInstance(), false, m_was_unpaused);
+    PauseAndLock(m_system, false, m_was_unpaused);
 }
 
 }  // namespace Core

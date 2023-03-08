@@ -159,6 +159,10 @@ void GeckoSockServer::ClientThread()
   client->disconnect();
 }
 
+CEXIGecko::CEXIGecko(Core::System& system) : IEXIDevice(system)
+{
+}
+
 void CEXIGecko::ImmReadWrite(u32& _uData, u32 _uSize)
 {
   // We don't really care about _uSize

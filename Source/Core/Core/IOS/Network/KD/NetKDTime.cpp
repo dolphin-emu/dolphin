@@ -91,7 +91,8 @@ u64 NetKDTimeDevice::GetAdjustedUTC() const
 {
   using namespace ExpansionInterface;
 
-  const time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
+  const time_t current_time =
+      CEXIIPL::GetEmulatedTime(Core::System::GetInstance(), CEXIIPL::UNIX_EPOCH);
   tm* const gm_time = gmtime(&current_time);
   const u32 emulated_time = mktime(gm_time);
   return u64(s64(emulated_time) + utcdiff);
@@ -101,7 +102,8 @@ void NetKDTimeDevice::SetAdjustedUTC(u64 wii_utc)
 {
   using namespace ExpansionInterface;
 
-  const time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
+  const time_t current_time =
+      CEXIIPL::GetEmulatedTime(Core::System::GetInstance(), CEXIIPL::UNIX_EPOCH);
   tm* const gm_time = gmtime(&current_time);
   const u32 emulated_time = mktime(gm_time);
   utcdiff = s64(emulated_time - wii_utc);

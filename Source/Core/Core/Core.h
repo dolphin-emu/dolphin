@@ -108,7 +108,7 @@ enum class ConsoleType : u32
 class CPUThreadGuard final
 {
 public:
-  CPUThreadGuard();
+  explicit CPUThreadGuard(Core::System& system);
   ~CPUThreadGuard();
 
   CPUThreadGuard(const CPUThreadGuard&) = delete;
@@ -117,6 +117,7 @@ public:
   CPUThreadGuard& operator=(CPUThreadGuard&&) = delete;
 
 private:
+  Core::System& m_system;
   const bool m_was_cpu_thread;
   bool m_was_unpaused = false;
 };

@@ -322,7 +322,7 @@ bool ApplyFramePatches()
   auto& ppc_state = system.GetPPCState();
 
   ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(system);
 
   // Because we're using the VI Interrupt to time this instead of patching the game with a
   // callback hook we can end up catching the game in an exception vector.

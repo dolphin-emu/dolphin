@@ -17,7 +17,7 @@ namespace ExpansionInterface
 class CEXIMic : public IEXIDevice
 {
 public:
-  CEXIMic(const int index);
+  CEXIMic(Core::System& system, const int index);
   virtual ~CEXIMic();
   void SetCS(int cs) override;
   bool IsInterruptSet() override;
