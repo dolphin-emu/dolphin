@@ -51,9 +51,14 @@
     but not the include paths, as passing include paths drastically slows down
     moc, and it doesn't appear to actually need them anyway.
   -->
-  <Import Project="qtmoc.props" />
+  <Import Project="qt_globals.targets"/>
+  <Import Project="qt_tasks.targets"/>
   <ItemDefinitionGroup>
+    <!--From qtmoc.props-->
     <QtMoc>
+      <ExecutionDescription>moc %(Identity)</ExecutionDescription>
+      <QTDIR>$(QtHostToolsDir)</QTDIR>
+      <InputFile>%(FullPath)</InputFile>
       <!--
         moc task does not properly detect outputs are outdated if Qt version changes
         (possibly causing Q_MOC_OUTPUT_REVISION to change). This *might* be because we
@@ -62,14 +67,40 @@
         to avoid conflicts. (the numeric postfix is the value of Q_MOC_OUTPUT_REVISION)
         -->
       <OutputFile>$(QtToolOutDir)moc_68\moc_%(Filename).cpp</OutputFile>
+      <QtMocDir>$(QtToolOutDir)moc_68\</QtMocDir>
+      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+      <DynamicSource>output</DynamicSource>
+      <ParallelProcess>true</ParallelProcess>
+      <CommandLineTemplate>[AllOptions] [AdditionalOptions]</CommandLineTemplate>
+      <Outputs>%(OutputFile)</Outputs>
+      <OverrideClCompile>false</OverrideClCompile>
     </QtMoc>
   </ItemDefinitionGroup>
-  <Import Project="qt_globals.targets"/>
-  <Import Project="qt_tasks.targets"/>
   <Import Project="qtmoc.targets" />
   <Target Name="QtCheckQtDir" BeforeTargets="QtMocInit" Condition="!$(QtDirValid)">
     <Error Text="QTDIR not set or non-existent (pull the submodule?)" />
   </Target>
+
+  <!--Similar story with rcc-->
+  <ItemDefinitionGroup>
+    <!--From qtrcc.props-->
+    <QtRcc>
+      <ExecutionDescription>rcc %(Identity)</ExecutionDescription>
+      <QTDIR>$(QtHostToolsDir)</QTDIR>
+      <InputFile>%(FullPath)</InputFile>
+      <OutputFile>$(QtToolOutDir)rcc\qrc_%(Filename).cpp</OutputFile>
+      <QtRccDir>$(QtToolOutDir)rcc\</QtRccDir>
+      <QtRccFileName>qrc_%(Filename).cpp</QtRccFileName>
+      <InitFuncName>%(Filename)</InitFuncName>
+      <Compression>default</Compression>
+      <TwoPass>false</TwoPass>
+      <DynamicSource>output</DynamicSource>
+      <ParallelProcess>true</ParallelProcess>
+      <CommandLineTemplate>[AllOptions] [AdditionalOptions]</CommandLineTemplate>
+      <Outputs>%(OutputFile)</Outputs>
+    </QtRcc>
+  </ItemDefinitionGroup>
+  <Import Project="qtrcc.targets" />
 
   <!--Expose the new targets to VS-->
   <ItemGroup>
