@@ -61,7 +61,7 @@ bool Load()
   auto& memory = system.GetMemory();
 
   ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(system);
 
   memory.Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   memory.Write_U32(0x09142001, 0x3180);

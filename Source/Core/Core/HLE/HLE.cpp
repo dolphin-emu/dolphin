@@ -169,7 +169,7 @@ void Execute(const Core::CPUThreadGuard& guard, u32 current_pc, u32 hook_index)
 void ExecuteFromJIT(u32 current_pc, u32 hook_index)
 {
   ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
   Execute(guard, current_pc, hook_index);
 }
 

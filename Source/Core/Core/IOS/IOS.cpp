@@ -914,7 +914,7 @@ static void FinishPPCBootstrap(Core::System& system, u64 userdata, s64 cycles_la
     ReleasePPC();
 
   ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(system);
   SConfig::OnNewTitleLoad(guard);
 
   INFO_LOG_FMT(IOS, "Bootstrapping done.");

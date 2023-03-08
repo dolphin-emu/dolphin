@@ -330,7 +330,7 @@ void CodeWidget::UpdateCallstack()
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
 
   const bool success = [&stack] {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     return Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), guard, stack);
   }();
 
@@ -461,8 +461,8 @@ void CodeWidget::StepOver()
   if (!cpu.IsStepping())
     return;
 
-  const UGeckoInstruction inst = [] {
-    Core::CPUThreadGuard guard;
+  const UGeckoInstruction inst = [&] {
+    Core::CPUThreadGuard guard(system);
     return PowerPC::HostRead_Instruction(guard, PowerPC::ppcState.pc);
   }();
 
@@ -506,7 +506,7 @@ void CodeWidget::StepOut()
   clock::time_point timeout = clock::now() + std::chrono::seconds(5);
 
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(system);
 
     PowerPC::breakpoints.ClearAllTemporary();
 

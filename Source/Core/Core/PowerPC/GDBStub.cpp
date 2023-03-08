@@ -997,7 +997,7 @@ void ProcessCommands(bool loop_until_continue)
     case 'm':
     {
       ASSERT(Core::IsCPUThread());
-      Core::CPUThreadGuard guard;
+      Core::CPUThreadGuard guard(system);
 
       ReadMemory(guard);
       break;
@@ -1005,7 +1005,7 @@ void ProcessCommands(bool loop_until_continue)
     case 'M':
     {
       ASSERT(Core::IsCPUThread());
-      Core::CPUThreadGuard guard;
+      Core::CPUThreadGuard guard(system);
 
       WriteMemory(guard);
       auto& ppc_state = system.GetPPCState();

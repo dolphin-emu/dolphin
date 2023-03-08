@@ -23,6 +23,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Debugger/CodeWidget.h"
 #include "DolphinQt/Host.h"
@@ -485,7 +486,7 @@ void CodeDiffDialog::OnSetBLR()
     return;
 
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     PowerPC::debug_interface.SetPatch(guard, symbol->address, 0x4E800020);
   }
 

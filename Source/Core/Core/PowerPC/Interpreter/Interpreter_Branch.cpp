@@ -10,6 +10,7 @@
 #include "Core/HLE/HLE.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 void Interpreter::bx(UGeckoInstruction inst)
 {
@@ -98,7 +99,7 @@ void Interpreter::HLEFunction(UGeckoInstruction inst)
   m_end_block = true;
 
   ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   HLE::Execute(guard, PowerPC::ppcState.pc, inst.hex);
 }

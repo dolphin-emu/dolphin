@@ -16,6 +16,7 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -166,7 +167,7 @@ void WatchWidget::Update()
   m_table->setDisabled(false);
   m_table->clearContents();
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   int size = static_cast<int>(PowerPC::debug_interface.GetWatches().size());
 
@@ -295,7 +296,7 @@ void WatchWidget::OnLoad()
     return;
   }
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   if (ini.GetLines("Watches", &watches, false))
   {
@@ -405,7 +406,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
 
       if (good)
       {
-        Core::CPUThreadGuard guard;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
 
         if (column == COLUMN_INDEX_ADDRESS)
         {
@@ -430,7 +431,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
     {
       PowerPC::debug_interface.UpdateWatchLockedState(row, item->checkState() == Qt::Checked);
       const auto& watch = PowerPC::debug_interface.GetWatch(row);
-      Core::CPUThreadGuard guard;
+      Core::CPUThreadGuard guard(Core::System::GetInstance());
       if (watch.locked)
         LockWatchAddress(guard, watch.address);
       else
@@ -459,7 +460,7 @@ void WatchWidget::LockWatchAddress(const Core::CPUThreadGuard& guard, u32 addres
 void WatchWidget::DeleteSelectedWatches()
 {
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     std::vector<int> row_indices;
     for (const auto& index : m_table->selectionModel()->selectedRows())
     {
@@ -491,7 +492,7 @@ void WatchWidget::DeleteWatch(const Core::CPUThreadGuard& guard, int row)
 void WatchWidget::DeleteWatchAndUpdate(int row)
 {
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     DeleteWatch(guard, row);
   }
 
@@ -517,7 +518,7 @@ void WatchWidget::AddWatch(QString name, u32 addr)
 void WatchWidget::LockSelectedWatches()
 {
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     for (const auto& index : m_table->selectionModel()->selectedRows())
     {
       const auto* item = m_table->item(index.row(), index.column());
@@ -539,7 +540,7 @@ void WatchWidget::LockSelectedWatches()
 void WatchWidget::UnlockSelectedWatches()
 {
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     for (const auto& index : m_table->selectionModel()->selectedRows())
     {
       const auto* item = m_table->item(index.row(), index.column());

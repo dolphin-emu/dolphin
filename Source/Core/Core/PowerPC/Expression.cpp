@@ -83,7 +83,7 @@ static double HostReadFunc(expr_func* f, vec_expr_t* args, void* c)
     return 0;
   const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 0)));
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
   return Common::BitCast<T>(HostRead<U>(guard, address));
 }
 
@@ -95,7 +95,7 @@ static double HostWriteFunc(expr_func* f, vec_expr_t* args, void* c)
   const T var = static_cast<T>(expr_eval(&vec_nth(args, 0)));
   const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 1)));
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
   HostWrite<U>(guard, Common::BitCast<U>(var), address);
   return var;
 }
@@ -115,8 +115,9 @@ static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
   {
-    Core::CPUThreadGuard guard;
-    bool success = Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), guard, stack);
+    auto& system = Core::System::GetInstance();
+    Core::CPUThreadGuard guard(system);
+    bool success = Dolphin_Debugger::GetCallstack(system, guard, stack);
     if (!success)
       return 0;
   }
@@ -163,7 +164,7 @@ static double StreqFunc(expr_func* f, vec_expr_t* args, void* c)
     return 0;
 
   std::array<std::string, 2> strs;
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
   for (int i = 0; i < 2; i++)
   {
     std::optional<std::string> arg = ReadStringArg(guard, &vec_nth(args, i));
