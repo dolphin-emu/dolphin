@@ -148,7 +148,7 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
     INFO_LOG_FMT(BOOT, "Invalid apploader. Your disc image is probably corrupted.");
     return false;
   }
-  DVDRead(volume, offset + 0x20, 0x01200000, *size + *trailer, partition);
+  DVDRead(system, volume, offset + 0x20, 0x01200000, *size + *trailer, partition);
 
   // TODO - Make Apploader(or just RunFunction()) debuggable!!!
 
@@ -195,7 +195,7 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
 
     INFO_LOG_FMT(BOOT, "DVDRead: offset: {:08x}   memOffset: {:08x}   length: {}", dvd_offset,
                  ram_address, length);
-    DVDRead(volume, dvd_offset, ram_address, length, partition);
+    DVDRead(system, volume, dvd_offset, ram_address, length, partition);
 
     DiscIO::Riivolution::ApplyApploaderMemoryPatches(guard, riivolution_patches, ram_address,
                                                      length);
@@ -284,7 +284,7 @@ bool CBoot::EmulatedBS2_GC(Core::System& system, const Core::CPUThreadGuard& gua
   auto& vertex_shader_manager = system.GetVertexShaderManager();
   vertex_shader_manager.InvalidateXFRange(XFMEM_POSTMATRICES + 0x3d * 4, XFMEM_POSTMATRICES_END);
 
-  DVDReadDiscID(volume, 0x00000000);
+  DVDReadDiscID(system, volume, 0x00000000);
 
   auto& memory = system.GetMemory();
   bool streaming = memory.Read_U8(0x80000008);
@@ -554,7 +554,7 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
   const u64 ios = ios_override >= 0 ? Titles::IOS(static_cast<u32>(ios_override)) : tmd.GetIOSId();
 
   const auto console_type = volume.GetTicket(data_partition).GetConsoleType();
-  if (!SetupWiiMemory(system, console_type) || !IOS::HLE::GetIOS()->BootIOS(ios))
+  if (!SetupWiiMemory(system, console_type) || !IOS::HLE::GetIOS()->BootIOS(system, ios))
     return false;
 
   auto di =
@@ -563,13 +563,13 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
   di->InitializeIfFirstTime();
   di->ChangePartition(data_partition);
 
-  DVDReadDiscID(volume, 0x00000000);
+  DVDReadDiscID(system, volume, 0x00000000);
 
   // This is some kind of consistency check that is compared to the 0x00
   // values as the game boots. This location keeps the 4 byte ID for as long
   // as the game is running. The 6 byte ID at 0x00 is overwritten sometime
   // after this check during booting.
-  DVDRead(volume, 0, 0x3180, 4, partition);
+  DVDRead(system, volume, 0, 0x3180, 4, partition);
 
   auto& ppc_state = system.GetPPCState();
 

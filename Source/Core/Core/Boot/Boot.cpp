@@ -321,26 +321,24 @@ static const DiscIO::VolumeDisc* SetDisc(std::unique_ptr<DiscIO::VolumeDisc> dis
   return pointer;
 }
 
-bool CBoot::DVDRead(const DiscIO::VolumeDisc& disc, u64 dvd_offset, u32 output_address, u32 length,
-                    const DiscIO::Partition& partition)
+bool CBoot::DVDRead(Core::System& system, const DiscIO::VolumeDisc& disc, u64 dvd_offset,
+                    u32 output_address, u32 length, const DiscIO::Partition& partition)
 {
   std::vector<u8> buffer(length);
   if (!disc.Read(dvd_offset, length, buffer.data(), partition))
     return false;
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.CopyToEmu(output_address, buffer.data(), length);
   return true;
 }
 
-bool CBoot::DVDReadDiscID(const DiscIO::VolumeDisc& disc, u32 output_address)
+bool CBoot::DVDReadDiscID(Core::System& system, const DiscIO::VolumeDisc& disc, u32 output_address)
 {
   std::array<u8, 0x20> buffer;
   if (!disc.Read(0, buffer.size(), buffer.data(), DiscIO::PARTITION_NONE))
     return false;
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.CopyToEmu(output_address, buffer.data(), buffer.size());
 
@@ -550,14 +548,14 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
         SetupWiiMemory(system, IOS::HLE::IOSC::ConsoleType::Retail);
-        IOS::HLE::GetIOS()->BootIOS(Titles::IOS(58));
+        IOS::HLE::GetIOS()->BootIOS(system, Titles::IOS(58));
       }
       else
       {
         SetupGCMemory(system, guard);
       }
 
-      if (!executable.reader->LoadIntoMemory())
+      if (!executable.reader->LoadIntoMemory(system))
       {
         PanicAlertFmtT("Failed to load the executable to memory.");
         return false;
