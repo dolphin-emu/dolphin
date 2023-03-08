@@ -17,8 +17,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.divider.MaterialDividerItemDecoration;
-
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.databinding.FragmentSettingsBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -146,9 +144,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     recyclerView.setAdapter(mAdapter);
     recyclerView.setLayoutManager(manager);
 
-    MaterialDividerItemDecoration divider =
-            new MaterialDividerItemDecoration(requireActivity(), LinearLayoutManager.VERTICAL);
-    divider.setLastItemDecorated(false);
+    SettingsDividerItemDecoration divider = new SettingsDividerItemDecoration(requireActivity());
     recyclerView.addItemDecoration(divider);
 
     setInsets();
