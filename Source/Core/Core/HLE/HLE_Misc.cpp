@@ -26,7 +26,8 @@ void UnimplementedFunction(const Core::CPUThreadGuard&)
 void HBReload(const Core::CPUThreadGuard&)
 {
   // There isn't much we can do. Just stop cleanly.
-  CPU::Break();
+  auto& system = Core::System::GetInstance();
+  system.GetCPU().Break();
   Host_Message(HostMessageID::WMUserStop);
 }
 

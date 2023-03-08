@@ -253,7 +253,8 @@ void Interpreter::Run()
 {
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
-  while (CPU::GetState() == CPU::State::Running)
+  auto& cpu = system.GetCPU();
+  while (cpu.GetState() == CPU::State::Running)
   {
     // CoreTiming Advance() ends the previous slice and declares the start of the next
     // one so it must always be called at the start. At boot, we are in slice -1 and must
@@ -306,7 +307,7 @@ void Interpreter::Run()
             }
 #endif
             INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", PowerPC::ppcState.pc);
-            CPU::Break();
+            cpu.Break();
             if (GDBStub::IsActive())
               GDBStub::TakeControl();
             if (PowerPC::breakpoints.IsTempBreakPoint(PowerPC::ppcState.pc))
@@ -341,13 +342,14 @@ void Interpreter::Run()
 void Interpreter::unknown_instruction(UGeckoInstruction inst)
 {
   ASSERT(Core::IsCPUThread());
+  auto& system = Core::System::GetInstance();
   Core::CPUThreadGuard guard;
 
   const u32 opcode = PowerPC::HostRead_U32(guard, last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
-  Dolphin_Debugger::PrintCallstack(Core::System::GetInstance(), guard,
-                                   Common::Log::LogType::POWERPC, Common::Log::LogLevel::LNOTICE);
+  Dolphin_Debugger::PrintCallstack(system, guard, Common::Log::LogType::POWERPC,
+                                   Common::Log::LogLevel::LNOTICE);
   NOTICE_LOG_FMT(
       POWERPC,
       "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
@@ -361,8 +363,8 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
              inst.hex, PowerPC::ppcState.pc, last_pc, LR(PowerPC::ppcState));
-  if (Core::System::GetInstance().IsPauseOnPanicMode())
-    CPU::Break();
+  if (system.IsPauseOnPanicMode())
+    system.GetCPU().Break();
 }
 
 void Interpreter::ClearCache()

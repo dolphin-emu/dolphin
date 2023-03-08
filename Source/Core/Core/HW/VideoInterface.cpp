@@ -916,7 +916,7 @@ void Update(u64 ticks)
   // dealing with SI polls, but after potentially sending a swap request to the GPU thread
 
   if (state.half_line_count == 0 || state.half_line_count == GetHalfLinesPerEvenField())
-    Core::Callback_NewField();
+    Core::Callback_NewField(system);
 
   // If an SI poll is scheduled to happen on this half-line, do it!
 

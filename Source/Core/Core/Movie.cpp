@@ -1275,7 +1275,8 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     Core::RunAsCPUThread([] {
       if (!DVDInterface::AutoChangeDisc())
       {
-        CPU::Break();
+        auto& system = Core::System::GetInstance();
+        system.GetCPU().Break();
         PanicAlertFmtT("Change the disc to {0}", s_discChange);
       }
     });
@@ -1355,9 +1356,11 @@ void EndPlayInput(bool cont)
   else if (s_playMode != PlayMode::None)
   {
     // We can be called by EmuThread during boot (CPU::State::PowerDown)
-    bool was_running = Core::IsRunningAndStarted() && !CPU::IsStepping();
+    auto& system = Core::System::GetInstance();
+    auto& cpu = system.GetCPU();
+    bool was_running = Core::IsRunningAndStarted() && !cpu.IsStepping();
     if (was_running && Config::Get(Config::MAIN_MOVIE_PAUSE_MOVIE))
-      CPU::Break();
+      cpu.Break();
     s_rerecords = 0;
     s_currentByte = 0;
     s_playMode = PlayMode::None;

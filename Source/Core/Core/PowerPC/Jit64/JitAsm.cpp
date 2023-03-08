@@ -81,10 +81,12 @@ void Jit64AsmRoutineManager::Generate()
 
   dispatcher_no_timing_check = GetCodePtr();
 
+  auto& system = Core::System::GetInstance();
+
   FixupBranch dbg_exit;
   if (enable_debugging)
   {
-    MOV(64, R(RSCRATCH), ImmPtr(CPU::GetStatePtr()));
+    MOV(64, R(RSCRATCH), ImmPtr(system.GetCPU().GetStatePtr()));
     TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
     dbg_exit = J_CC(CC_NZ, true);
   }
@@ -93,7 +95,6 @@ void Jit64AsmRoutineManager::Generate()
 
   dispatcher_no_check = GetCodePtr();
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   // The following is a translation of JitBaseBlockCache::Dispatch into assembly.
@@ -190,7 +191,7 @@ void Jit64AsmRoutineManager::Generate()
 
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
-  MOV(64, R(RSCRATCH), ImmPtr(CPU::GetStatePtr()));
+  MOV(64, R(RSCRATCH), ImmPtr(system.GetCPU().GetStatePtr()));
   TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
   J_CC(CC_Z, outerLoop);
 

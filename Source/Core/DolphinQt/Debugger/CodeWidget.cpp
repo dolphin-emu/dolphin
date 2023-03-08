@@ -435,7 +435,10 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
 
 void CodeWidget::Step()
 {
-  if (!CPU::IsStepping())
+  auto& system = Core::System::GetInstance();
+  auto& cpu = system.GetCPU();
+
+  if (!cpu.IsStepping())
     return;
 
   Common::Event sync_event;
@@ -443,7 +446,7 @@ void CodeWidget::Step()
   PowerPC::CoreMode old_mode = PowerPC::GetMode();
   PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
   PowerPC::breakpoints.ClearAllTemporary();
-  CPU::StepOpcode(&sync_event);
+  cpu.StepOpcode(&sync_event);
   sync_event.WaitFor(std::chrono::milliseconds(20));
   PowerPC::SetMode(old_mode);
   Core::DisplayMessage(tr("Step successful!").toStdString(), 2000);
@@ -452,7 +455,10 @@ void CodeWidget::Step()
 
 void CodeWidget::StepOver()
 {
-  if (!CPU::IsStepping())
+  auto& system = Core::System::GetInstance();
+  auto& cpu = system.GetCPU();
+
+  if (!cpu.IsStepping())
     return;
 
   const UGeckoInstruction inst = [] {
@@ -464,7 +470,7 @@ void CodeWidget::StepOver()
   {
     PowerPC::breakpoints.ClearAllTemporary();
     PowerPC::breakpoints.Add(PowerPC::ppcState.pc + 4, true);
-    CPU::EnableStepping(false);
+    cpu.EnableStepping(false);
     Core::DisplayMessage(tr("Step over in progress...").toStdString(), 2000);
   }
   else
@@ -489,7 +495,10 @@ static bool WillInstructionReturn(UGeckoInstruction inst)
 
 void CodeWidget::StepOut()
 {
-  if (!CPU::IsStepping())
+  auto& system = Core::System::GetInstance();
+  auto& cpu = system.GetCPU();
+
+  if (!cpu.IsStepping())
     return;
 
   // Keep stepping until the next return instruction or timeout after five seconds

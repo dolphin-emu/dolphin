@@ -173,7 +173,7 @@ BatTable dbat_table;
 static void GenerateDSIException(u32 effective_address, bool write);
 
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
+static T ReadFromHardware(Core::System& system, Memory::MemoryManager& memory, u32 em_address)
 {
   const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
   const u32 em_address_end_page = (em_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
@@ -185,7 +185,10 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
     // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
     u64 var = 0;
     for (u32 i = 0; i < sizeof(T); ++i)
-      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(memory, em_address + i);
+    {
+      var =
+          (var << 8) | ReadFromHardware<flag, u8, never_translate>(system, memory, em_address + i);
+    }
     return static_cast<T>(var);
   }
 
@@ -271,9 +274,9 @@ static T ReadFromHardware(Memory::MemoryManager& memory, u32 em_address)
   }
 
   PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, PowerPC::ppcState.pc);
-  if (Core::System::GetInstance().IsPauseOnPanicMode())
+  if (system.IsPauseOnPanicMode())
   {
-    CPU::Break();
+    system.GetCPU().Break();
     ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
   }
   return 0;
@@ -460,9 +463,9 @@ static void WriteToHardware(Core::System& system, Memory::MemoryManager& memory,
   }
 
   PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, PowerPC::ppcState.pc);
-  if (Core::System::GetInstance().IsPauseOnPanicMode())
+  if (system.IsPauseOnPanicMode())
   {
-    CPU::Break();
+    system.GetCPU().Break();
     ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
   }
 }
@@ -523,7 +526,7 @@ u32 HostRead_Instruction(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  return ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(memory, address);
+  return ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(system, memory, address);
 }
 
 std::optional<ReadResult<u32>> HostTryReadInstruction(const Core::CPUThreadGuard& guard,
@@ -540,20 +543,22 @@ std::optional<ReadResult<u32>> HostTryReadInstruction(const Core::CPUThreadGuard
   {
   case RequestedAddressSpace::Effective:
   {
-    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(memory, address);
+    const u32 value =
+        ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(system, memory, address);
     return ReadResult<u32>(!!PowerPC::ppcState.msr.DR, value);
   }
   case RequestedAddressSpace::Physical:
   {
     const u32 value =
-        ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(memory, address);
+        ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(system, memory, address);
     return ReadResult<u32>(false, value);
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!PowerPC::ppcState.msr.DR)
       return std::nullopt;
-    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(memory, address);
+    const u32 value =
+        ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(system, memory, address);
     return ReadResult<u32>(true, value);
   }
   }
@@ -562,7 +567,7 @@ std::optional<ReadResult<u32>> HostTryReadInstruction(const Core::CPUThreadGuard
   return std::nullopt;
 }
 
-static void Memcheck(u32 address, u64 var, bool write, size_t size)
+static void Memcheck(Core::System& system, u32 address, u64 var, bool write, size_t size)
 {
   if (!memchecks.HasAny())
     return;
@@ -571,7 +576,7 @@ static void Memcheck(u32 address, u64 var, bool write, size_t size)
   if (mc == nullptr)
     return;
 
-  if (CPU::IsStepping())
+  if (system.GetCPU().IsStepping())
   {
     // Disable when stepping so that resume works.
     return;
@@ -583,7 +588,7 @@ static void Memcheck(u32 address, u64 var, bool write, size_t size)
   if (!pause)
     return;
 
-  CPU::Break();
+  system.GetCPU().Break();
 
   if (GDBStub::IsActive())
     GDBStub::TakeControl();
@@ -602,8 +607,8 @@ u8 Read_U8(const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(memory, address);
-  Memcheck(address, var, false, 1);
+  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(system, memory, address);
+  Memcheck(system, address, var, false, 1);
   return var;
 }
 
@@ -611,8 +616,8 @@ u16 Read_U16(const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(memory, address);
-  Memcheck(address, var, false, 2);
+  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(system, memory, address);
+  Memcheck(system, address, var, false, 2);
   return var;
 }
 
@@ -620,8 +625,8 @@ u32 Read_U32(const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(memory, address);
-  Memcheck(address, var, false, 4);
+  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(system, memory, address);
+  Memcheck(system, address, var, false, 4);
   return var;
 }
 
@@ -629,8 +634,8 @@ u64 Read_U64(const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(memory, address);
-  Memcheck(address, var, false, 8);
+  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(system, memory, address);
+  Memcheck(system, address, var, false, 8);
   return var;
 }
 
@@ -662,19 +667,19 @@ static std::optional<ReadResult<T>> HostTryReadUX(const Core::CPUThreadGuard& gu
   {
   case RequestedAddressSpace::Effective:
   {
-    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(memory, address);
+    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(system, memory, address);
     return ReadResult<T>(!!PowerPC::ppcState.msr.DR, std::move(value));
   }
   case RequestedAddressSpace::Physical:
   {
-    T value = ReadFromHardware<XCheckTLBFlag::NoException, T, true>(memory, address);
+    T value = ReadFromHardware<XCheckTLBFlag::NoException, T, true>(system, memory, address);
     return ReadResult<T>(false, std::move(value));
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!PowerPC::ppcState.msr.DR)
       return std::nullopt;
-    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(memory, address);
+    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(system, memory, address);
     return ReadResult<T>(true, std::move(value));
   }
   }
@@ -737,17 +742,17 @@ u32 Read_U16_ZX(const u32 address)
 
 void Write_U8(const u32 var, const u32 address)
 {
-  Memcheck(address, var, true, 1);
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+  Memcheck(system, address, var, true, 1);
   WriteToHardware<XCheckTLBFlag::Write>(system, memory, address, var, 1);
 }
 
 void Write_U16(const u32 var, const u32 address)
 {
-  Memcheck(address, var, true, 2);
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+  Memcheck(system, address, var, true, 2);
   WriteToHardware<XCheckTLBFlag::Write>(system, memory, address, var, 2);
 }
 void Write_U16_Swap(const u32 var, const u32 address)
@@ -757,9 +762,9 @@ void Write_U16_Swap(const u32 var, const u32 address)
 
 void Write_U32(const u32 var, const u32 address)
 {
-  Memcheck(address, var, true, 4);
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+  Memcheck(system, address, var, true, 4);
   WriteToHardware<XCheckTLBFlag::Write>(system, memory, address, var, 4);
 }
 void Write_U32_Swap(const u32 var, const u32 address)
@@ -769,9 +774,9 @@ void Write_U32_Swap(const u32 var, const u32 address)
 
 void Write_U64(const u64 var, const u32 address)
 {
-  Memcheck(address, var, true, 8);
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+  Memcheck(system, address, var, true, 8);
   WriteToHardware<XCheckTLBFlag::Write>(system, memory, address, static_cast<u32>(var >> 32), 4);
   WriteToHardware<XCheckTLBFlag::Write>(system, memory, address + sizeof(u32),
                                         static_cast<u32>(var), 4);
@@ -792,28 +797,28 @@ u8 HostRead_U8(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(memory, address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(system, memory, address);
 }
 
 u16 HostRead_U16(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(memory, address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(system, memory, address);
 }
 
 u32 HostRead_U32(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(memory, address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(system, memory, address);
 }
 
 u64 HostRead_U64(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(memory, address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(system, memory, address);
 }
 
 float HostRead_F32(const Core::CPUThreadGuard& guard, const u32 address)
@@ -1374,13 +1379,14 @@ TranslateResult JitCache_TranslateAddress(u32 address)
 static void GenerateDSIException(u32 effective_address, bool write)
 {
   // DSI exceptions are only supported in MMU mode.
-  if (!Core::System::GetInstance().IsMMUMode())
+  auto& system = Core::System::GetInstance();
+  if (!system.IsMMUMode())
   {
     PanicAlertFmt("Invalid {} {:#010x}, PC = {:#010x}", write ? "write to" : "read from",
                   effective_address, PowerPC::ppcState.pc);
-    if (Core::System::GetInstance().IsPauseOnPanicMode())
+    if (system.IsPauseOnPanicMode())
     {
-      CPU::Break();
+      system.GetCPU().Break();
       ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
     }
     return;

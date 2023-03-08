@@ -213,7 +213,8 @@ void JitBase::CleanUpAfterStackFault()
 
 bool JitBase::CanMergeNextInstructions(int count) const
 {
-  if (CPU::IsStepping() || js.instructionsLeft < count)
+  auto& system = Core::System::GetInstance();
+  if (system.GetCPU().IsStepping() || js.instructionsLeft < count)
     return false;
   // Be careful: a breakpoint kills flags in between instructions
   for (int i = 1; i <= count; i++)

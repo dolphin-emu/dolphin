@@ -210,7 +210,8 @@ static void ReadCommand()
   }
   else if (c == 0x03)
   {
-    CPU::Break();
+    auto& system = Core::System::GetInstance();
+    system.GetCPU().Break();
     SendSignal(Signal::Sigtrap);
     s_has_control = true;
     INFO_LOG_FMT(GDB_STUB, "gdb: CPU::Break due to break command");
@@ -859,7 +860,8 @@ static void WriteMemory(const Core::CPUThreadGuard& guard)
 
 static void Step()
 {
-  CPU::EnableStepping(true);
+  auto& system = Core::System::GetInstance();
+  system.GetCPU().EnableStepping(true);
   Core::CallOnStateChangedCallbacks(Core::State::Paused);
 }
 
@@ -939,9 +941,11 @@ static void HandleRemoveBreakpoint()
 void ProcessCommands(bool loop_until_continue)
 {
   s_just_connected = false;
+  auto& system = Core::System::GetInstance();
+  auto& cpu = system.GetCPU();
   while (IsActive())
   {
-    if (CPU::GetState() == CPU::State::PowerDown)
+    if (cpu.GetState() == CPU::State::PowerDown)
     {
       Deinit();
       INFO_LOG_FMT(GDB_STUB, "killed by power down");
@@ -1004,7 +1008,6 @@ void ProcessCommands(bool loop_until_continue)
       Core::CPUThreadGuard guard;
 
       WriteMemory(guard);
-      auto& system = Core::System::GetInstance();
       auto& ppc_state = system.GetPPCState();
       ppc_state.iCache.Reset();
       Host_UpdateDisasmDialog();
@@ -1015,7 +1018,7 @@ void ProcessCommands(bool loop_until_continue)
       return;
     case 'C':
     case 'c':
-      CPU::Continue();
+      cpu.Continue();
       s_has_control = false;
       return;
     case 'z':
