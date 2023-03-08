@@ -26,9 +26,12 @@ enum class ArgTypeEnum
   ErrorStringType,
   YieldType,
   RegistrationInputType,
+  RegistrationWithAutoDeregistrationInputType,
   UnregistrationInputType,
   RegistrationReturnType,
-  UnregistrationReturnType
+  RegistrationWithAutoDeregistrationReturnType,
+  UnregistrationReturnType,
+  ShutdownType
 };
 }
 #endif

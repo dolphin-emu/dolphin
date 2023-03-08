@@ -8,6 +8,9 @@ const char* class_name = "OnGCControllerPolled";
 
 static std::array all_on_gc_controller_polled_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(value)", Register, ArgTypeEnum::RegistrationReturnType, {ArgTypeEnum::RegistrationInputType}),
+    FunctionMetadata("registerWithAutoDeregistration", "1.0",
+                     "registerWithAutoDeregisteration(value)", RegisterWithAutoDeregistration,
+                     ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType, {ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(value)", Unregister, ArgTypeEnum::UnregistrationReturnType, {ArgTypeEnum::UnregistrationInputType})};
 
 ClassMetadata GetOnGCControllerPolledCallbackApiClassData(const std::string& api_version)
@@ -20,6 +23,13 @@ ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_l
 {
   return CreateRegistrationReturnTypeArgHolder(
       current_script->RegisterOnGCCControllerPolledCallbacks(args_list[0].void_pointer_val));
+}
+
+ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
+                                         std::vector<ArgHolder>& args_list)
+{
+  current_script->RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(args_list[0].void_pointer_val);
+  return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)

@@ -170,6 +170,14 @@ ArgHolder CreateRegistrationInputTypeArgHolder(void* new_val)
   return return_val;
 }
 
+ArgHolder CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(void* new_val)
+{
+  ArgHolder return_val = {};
+  return_val.argument_type = ArgTypeEnum::RegistrationWithAutoDeregistrationInputType;
+  return_val.void_pointer_val = new_val;
+  return return_val;
+}
+
 ArgHolder CreateUnregistrationInputTypeArgHolder(void* new_val)
 {
   ArgHolder return_val = {};
@@ -186,11 +194,26 @@ ArgHolder CreateRegistrationReturnTypeArgHolder(void* new_val)
   return return_val;
 }
 
+ArgHolder CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder()
+{
+  ArgHolder return_val = {};
+  return_val.argument_type = ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType;
+  return return_val;
+}
+
+
 ArgHolder CreateUnregistrationReturnTypeArgHolder(void* new_val)
 {
   ArgHolder return_val = {};
   return_val.argument_type = ArgTypeEnum::UnregistrationReturnType;
   return_val.void_pointer_val = new_val;
+  return return_val;
+}
+
+ArgHolder CreateShutdownTypeArgHolder()
+{
+  ArgHolder return_val = {};
+  return_val.argument_type = ArgTypeEnum::ShutdownType;
   return return_val;
 }
 

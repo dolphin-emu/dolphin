@@ -59,8 +59,11 @@ ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val);
 ArgHolder CreateYieldTypeArgHolder();
 ArgHolder CreateVoidTypeArgHolder();
 ArgHolder CreateRegistrationInputTypeArgHolder(void* new_val);
+ArgHolder CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(void* new_val);
 ArgHolder CreateUnregistrationInputTypeArgHolder(void* new_val);
 ArgHolder CreateRegistrationReturnTypeArgHolder(void* new_val);
+ArgHolder CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 ArgHolder CreateUnregistrationReturnTypeArgHolder(void* new_val);
+ArgHolder CreateShutdownTypeArgHolder();
 }  // namespace Scripting
 #endif

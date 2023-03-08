@@ -3,6 +3,7 @@
 
 #include "fmt/format.h"
 #include "lua.hpp"
+#include <atomic>
 #include <memory>
 #include <utility>
 #include <functional>
@@ -37,7 +38,6 @@ public:
   lua_State* gc_controller_input_polled_callback_lua_thread;
   lua_State* wii_input_polled_callback_lua_thread;
 
-  lua_State* current_lua_state_thread;
 
   std::vector<int> frame_callback_locations;
   std::vector<int> gc_controller_input_polled_callback_locations;
@@ -52,6 +52,13 @@ public:
 
   std::unordered_map<size_t, std::vector<int>>
       map_of_memory_address_written_to_to_lua_callback_locations;
+
+  std::atomic<size_t> number_of_frame_callbacks_to_auto_deregister;
+  std::atomic<size_t> number_of_gc_controller_input_callbacks_to_auto_deregister;
+  std::atomic<size_t> number_of_wii_input_callbacks_to_auto_deregister;
+  std::atomic<size_t> number_of_instruction_address_callbacks_to_auto_deregister;
+  std::atomic<size_t> number_of_memory_address_read_callbacks_to_auto_deregister;
+  std::atomic<size_t> number_of_memory_address_write_callbacks_to_auto_deregister;
 
   static int CustomPrintFunction(lua_State* lua_state)
   {
@@ -92,13 +99,24 @@ public:
     return 0;
   }
 
+  int getNumberOfCallbacksInMap(std::unordered_map<size_t, std::vector<int>>& input_map) {
+    int return_val = 0;
+    for (auto& element : input_map)
+    {
+      return_val += (int) element.second.size();
+    }
+    return return_val;
+  }
+
   bool ShouldCallEndScriptFunction() {
-    if (finished_with_global_code && frame_callback_locations.size() == 0 &&
-        gc_controller_input_polled_callback_locations.size() == 0 &&
-        wii_controller_input_polled_callback_locations.size() == 0 &&
-        map_of_instruction_address_to_lua_callback_locations.size() == 0 &&
-        map_of_memory_address_read_from_to_lua_callback_locations.size() == 0 &&
-        map_of_memory_address_written_to_to_lua_callback_locations.size() == 0)
+    if
+      (finished_with_global_code &&
+      (frame_callback_locations.size() == 0 || frame_callback_locations.size() - number_of_frame_callbacks_to_auto_deregister <= 0) &&
+      (gc_controller_input_polled_callback_locations.size() == 0 || gc_controller_input_polled_callback_locations.size() - number_of_gc_controller_input_callbacks_to_auto_deregister <= 0) &&
+      (wii_controller_input_polled_callback_locations.size() == 0 || wii_controller_input_polled_callback_locations.size() - number_of_wii_input_callbacks_to_auto_deregister <= 0) &&
+      (map_of_instruction_address_to_lua_callback_locations.size() == 0 || getNumberOfCallbacksInMap(map_of_instruction_address_to_lua_callback_locations) - number_of_instruction_address_callbacks_to_auto_deregister <= 0) &&
+      (map_of_memory_address_read_from_to_lua_callback_locations.size() == 0 || getNumberOfCallbacksInMap(map_of_memory_address_read_from_to_lua_callback_locations) - number_of_memory_address_read_callbacks_to_auto_deregister <= 0) &&
+      (map_of_memory_address_written_to_to_lua_callback_locations.size() == 0 || getNumberOfCallbacksInMap(map_of_memory_address_written_to_to_lua_callback_locations) - number_of_memory_address_write_callbacks_to_auto_deregister <= 0))
       return true;
     return false;
 
@@ -111,6 +129,13 @@ public:
       : ScriptContext(new_unique_script_identifier, new_script_filename,
                       new_pointer_to_list_of_all_scripts)
   {
+    number_of_frame_callbacks_to_auto_deregister = 0;
+    number_of_gc_controller_input_callbacks_to_auto_deregister = 0;
+    number_of_wii_input_callbacks_to_auto_deregister = 0;
+    number_of_instruction_address_callbacks_to_auto_deregister = 0;
+    number_of_memory_address_read_callbacks_to_auto_deregister = 0;
+    number_of_memory_address_write_callbacks_to_auto_deregister = 0;
+
     if (!set_print_callback)
     {
       print_callback = new_print_callback;
@@ -124,8 +149,8 @@ public:
     index_of_next_frame_callback_to_execute = 0;
 
     const std::lock_guard<std::mutex> lock(script_specific_lock);
+    current_script_call_location = ScriptCallLocations::FromScriptStartup;
     main_lua_thread = luaL_newstate();
-    current_lua_state_thread = main_lua_thread;
     luaL_openlibs(main_lua_thread);
     std::string executionString =
         (std::string("package.path = package.path .. ';") + File::GetUserPath(D_LOAD_IDX) +
@@ -196,25 +221,34 @@ public:
   virtual void RunOnWiiInputPolledCallbacks();
 
   virtual void* RegisterOnFrameStartCallbacks(void* callbacks);
+  virtual void RegisterOnFrameStartWithAutoDeregistrationCallbacks(void* callbacks);
   virtual bool UnregisterOnFrameStartCallbacks(void* callbacks);
 
   virtual void* RegisterOnGCCControllerPolledCallbacks(void* callbacks);
+  virtual void RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(void* callbacks);
   virtual bool UnregisterOnGCControllerPolledCallbacks(void* callbacks);
 
   virtual void* RegisterOnInstructionReachedCallbacks(size_t address, void* callbacks);
+  virtual void RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(size_t address, void* callbacks);
   virtual bool UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks);
 
   virtual void* RegisterOnMemoryAddressReadFromCallbacks(size_t memory_address,
                                                          void* callbacks);
+  virtual void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(size_t memory_address,
+                                                                              void* callbacks);
   virtual bool UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address,
                                                            void* callbacks);
 
   virtual void* RegisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
                                                           void* callbacks);
+  virtual void
+  RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(size_t memory_address,
+                                                                  void* callbacks);
   virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
                                                             void* callbacks);
 
   virtual void* RegisterOnWiiInputPolledCallbacks(void* callbacks);
+  virtual void RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(void* callbacks);
   virtual bool UnregisterOnWiiInputPolledCallbacks(void* callbacks);
 
   private:
@@ -225,9 +259,11 @@ public:
                                          bool yields_are_allowed);
 
   void* RegisterForVectorHelper(std::vector<int>& input_vector, void* callbacks);
+  void RegisterForVectorWithAutoDeregistrationHelper(std::vector<int>& input_vector, void* callbacks, std::atomic<size_t>& number_of_auto_deregister_callbacks);
   bool UnregisterForVectorHelper(std::vector<int>& input_vector, void* callbacks);
 
   void* RegisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks);
+  void RegisterForMapWithAutoDeregistrationHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks);
   bool UnregisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks);
   virtual void ShutdownScript();
 };

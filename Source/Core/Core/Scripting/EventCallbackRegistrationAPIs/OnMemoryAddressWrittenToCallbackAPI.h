@@ -12,6 +12,8 @@ extern const char* class_name;
 ClassMetadata GetOnMemoryAddressWrittenToCallbackApiClassData(const std::string& api_version);
 
 ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
+                                         std::vector<ArgHolder>& args_list);
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 
 }  // namespace Scripting::OnMemoryAddressWrittenToCallbackAPI

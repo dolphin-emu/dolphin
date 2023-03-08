@@ -9,6 +9,10 @@ const char* class_name = "OnMemoryAddressReadFrom";
 static std::array all_on_memory_address_read_from_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(memoryAddress, value)", Register,
                      ArgTypeEnum::RegistrationReturnType, {ArgTypeEnum::LongLong, ArgTypeEnum::RegistrationInputType}),
+    FunctionMetadata("registerWithAutoDeregistration", "1.0",
+                     "registerWithAutoDeregistration(memoryAddress, value)",
+                     RegisterWithAutoDeregistration,
+                     ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType, {ArgTypeEnum::LongLong, ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(memoryAddress, value)", Unregister,
                      ArgTypeEnum::UnregistrationReturnType,
                      {ArgTypeEnum::LongLong, ArgTypeEnum::UnregistrationInputType})};
@@ -25,6 +29,14 @@ ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_l
 {
   return CreateRegistrationReturnTypeArgHolder(
       current_script->RegisterOnMemoryAddressReadFromCallbacks(args_list[0].long_long_val, args_list[1].void_pointer_val));
+}
+
+ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
+                                         std::vector<ArgHolder>& args_list)
+{
+  current_script->RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(
+      args_list[0].long_long_val, args_list[1].void_pointer_val);
+  return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)

@@ -45,21 +45,27 @@ public:
   virtual void RunOnWiiInputPolledCallbacks() = 0;
 
   virtual void* RegisterOnFrameStartCallbacks(void* callbacks) = 0;
+  virtual void RegisterOnFrameStartWithAutoDeregistrationCallbacks(void* callbacks) = 0;
   virtual bool UnregisterOnFrameStartCallbacks(void* callbacks) = 0;
 
   virtual void* RegisterOnGCCControllerPolledCallbacks(void* callbacks) = 0;
+  virtual void RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(void* callbacks) = 0;
   virtual bool UnregisterOnGCControllerPolledCallbacks(void* callbacks) = 0;
 
   virtual void* RegisterOnInstructionReachedCallbacks(size_t address, void* callbacks) = 0;
+  virtual void RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(size_t address, void* callbacks) = 0;
   virtual bool UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks) = 0;
 
   virtual void* RegisterOnMemoryAddressReadFromCallbacks(size_t memory_address, void* callbacks) = 0;
+  virtual void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(size_t memory_address, void* callbacks) = 0;
   virtual bool UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address, void* callbacks) = 0;
 
   virtual void* RegisterOnMemoryAddressWrittenToCallbacks(size_t memory_address, void* callbacks) = 0;
+  virtual void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(size_t memory_address, void* callbacks) = 0;
   virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address, void* callbacks) = 0;
 
   virtual void* RegisterOnWiiInputPolledCallbacks(void* callbacks) = 0;
+  virtual void RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(void* callbacks) = 0;
   virtual bool UnregisterOnWiiInputPolledCallbacks(void* callbacks) = 0;
 
   virtual void ShutdownScript() = 0;

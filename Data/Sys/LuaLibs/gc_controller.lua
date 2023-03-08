@@ -171,7 +171,7 @@ function clearMappings()
 	end
 end
 
-OnFrameStart:register(clearMappings)
+OnFrameStart:registerWithAutoDeregistration(clearMappings)
 
 function GameCubeControllerAPILuaLibrary:addInputs(portNumber, controllerValuesTable)
 	checkPortNumber("addInputs(portNumber, controllerValuesTable)", portNumber)
@@ -334,7 +334,7 @@ function applyRequestedInputAlterFunctions()
 	GameCubeControllerAPI:setInputsForPoll(currentControllerInput)
 end
 
-OnGCControllerPolled:register(applyRequestedInputAlterFunctions)
+OnGCControllerPolled:registerWithAutoDeregistration(applyRequestedInputAlterFunctions)
 
 -- The code below here is the public code that the user can use (the user should never try to call functions or classes listed above this point from another file, except for using the gc_controller object to call the functions specified below.
 

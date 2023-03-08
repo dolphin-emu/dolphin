@@ -8,6 +8,9 @@ const char* class_name = "OnFrameStart";
 static std::array all_on_frame_start_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(value)", Register, ArgTypeEnum::RegistrationReturnType,
                      {ArgTypeEnum::RegistrationInputType}),
+    FunctionMetadata("registerWithAutoDeregistration", "1.0", "registerWithAutoDeregistration(value)",
+                     RegisterWithAutoDeregistration,
+                     ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType, {ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(value)", Unregister, ArgTypeEnum::UnregistrationReturnType,
                      {ArgTypeEnum::UnregistrationInputType})};
 
@@ -22,6 +25,14 @@ ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_l
 {
   return CreateRegistrationReturnTypeArgHolder(current_script->RegisterOnFrameStartCallbacks(args_list[0].void_pointer_val));
 }
+
+ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
+                                         std::vector<ArgHolder>& args_list)
+{
+  current_script->RegisterOnFrameStartWithAutoDeregistrationCallbacks(args_list[0].void_pointer_val);
+  return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
+}
+
 
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
