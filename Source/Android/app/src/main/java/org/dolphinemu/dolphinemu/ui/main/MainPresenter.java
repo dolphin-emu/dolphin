@@ -319,7 +319,7 @@ public final class MainPresenter
     SystemUpdateProgressBarDialogFragment progressBarFragment =
             new SystemUpdateProgressBarDialogFragment();
     progressBarFragment
-            .show(activity.getSupportFragmentManager(), "SystemUpdateProgressBarDialogFragment");
+            .show(activity.getSupportFragmentManager(), SystemUpdateProgressBarDialogFragment.TAG);
     progressBarFragment.setCancelable(false);
   }
 
