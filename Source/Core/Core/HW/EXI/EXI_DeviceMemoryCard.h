@@ -36,7 +36,8 @@ enum class AllowMovieFolder
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-  CEXIMemoryCard(Slot slot, bool gci_folder, const Memcard::HeaderData& header_data);
+  CEXIMemoryCard(Core::System& system, Slot slot, bool gci_folder,
+                 const Memcard::HeaderData& header_data);
   ~CEXIMemoryCard() override;
   void SetCS(int cs) override;
   bool IsInterruptSet() override;

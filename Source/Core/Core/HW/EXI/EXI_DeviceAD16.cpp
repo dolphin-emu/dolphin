@@ -9,7 +9,9 @@
 
 namespace ExpansionInterface
 {
-CEXIAD16::CEXIAD16() = default;
+CEXIAD16::CEXIAD16(Core::System& system) : IEXIDevice(system)
+{
+}
 
 void CEXIAD16::SetCS(int cs)
 {

@@ -49,7 +49,7 @@ private:
 class CEXIGecko : public IEXIDevice, private GeckoSockServer
 {
 public:
-  CEXIGecko() {}
+  explicit CEXIGecko(Core::System& system);
   bool IsPresent() const override { return true; }
   void ImmReadWrite(u32& _uData, u32 _uSize) override;
 

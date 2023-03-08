@@ -196,8 +196,8 @@ void CEXIMic::StreamReadOne()
 
 u8 const CEXIMic::exi_id[] = {0, 0x0a, 0, 0, 0};
 
-CEXIMic::CEXIMic(int index)
-    : slot(index)
+CEXIMic::CEXIMic(Core::System& system, int index)
+    : IEXIDevice(system), slot(index)
 #ifdef _WIN32
       ,
       m_work_queue("Mic Worker", [](const std::function<void()>& func) { func(); })
@@ -265,13 +265,13 @@ void CEXIMic::SetCS(int cs)
 void CEXIMic::UpdateNextInterruptTicks()
 {
   int diff = (SystemTimers::GetTicksPerSecond() / sample_rate) * buff_size_samples;
-  next_int_ticks = Core::System::GetInstance().GetCoreTiming().GetTicks() + diff;
+  next_int_ticks = m_system.GetCoreTiming().GetTicks() + diff;
   ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, diff);
 }
 
 bool CEXIMic::IsInterruptSet()
 {
-  if (next_int_ticks && Core::System::GetInstance().GetCoreTiming().GetTicks() >= next_int_ticks)
+  if (next_int_ticks && m_system.GetCoreTiming().GetTicks() >= next_int_ticks)
   {
     if (status.is_active)
       UpdateNextInterruptTicks();

@@ -44,10 +44,10 @@
 
 namespace
 {
-void PresetTimeBaseTicks(const Core::CPUThreadGuard& guard)
+void PresetTimeBaseTicks(Core::System& system, const Core::CPUThreadGuard& guard)
 {
   const u64 emulated_time =
-      ExpansionInterface::CEXIIPL::GetEmulatedTime(ExpansionInterface::CEXIIPL::GC_EPOCH);
+      ExpansionInterface::CEXIIPL::GetEmulatedTime(system, ExpansionInterface::CEXIIPL::GC_EPOCH);
 
   const u64 time_base_ticks = emulated_time * 40500000ULL;
 
@@ -248,7 +248,7 @@ void CBoot::SetupGCMemory(Core::System& system, const Core::CPUThreadGuard& guar
   PowerPC::HostWrite_U32(guard, 0x4c000064, 0x80000800);  // Write default FPU Handler:     rfi
   PowerPC::HostWrite_U32(guard, 0x4c000064, 0x80000C00);  // Write default Syscall Handler: rfi
 
-  PresetTimeBaseTicks(guard);
+  PresetTimeBaseTicks(system, guard);
 
   // HIO checks this
   // PowerPC::HostWrite_U16(0x8200, 0x000030e6);   // Console type

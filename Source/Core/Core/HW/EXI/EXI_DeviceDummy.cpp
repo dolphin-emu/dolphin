@@ -10,7 +10,8 @@
 
 namespace ExpansionInterface
 {
-CEXIDummy::CEXIDummy(const std::string& name) : m_name{name}
+CEXIDummy::CEXIDummy(Core::System& system, const std::string& name)
+    : IEXIDevice(system), m_name{name}
 {
 }
 

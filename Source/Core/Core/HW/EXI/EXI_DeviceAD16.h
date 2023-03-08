@@ -12,7 +12,7 @@ namespace ExpansionInterface
 class CEXIAD16 : public IEXIDevice
 {
 public:
-  CEXIAD16();
+  explicit CEXIAD16(Core::System& system);
   void SetCS(int cs) override;
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;

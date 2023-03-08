@@ -99,7 +99,7 @@ void CEXIIPL::Descrambler(u8* data, u32 size)
   }
 }
 
-CEXIIPL::CEXIIPL()
+CEXIIPL::CEXIIPL(Core::System& system) : IEXIDevice(system)
 {
   // Fill the ROM
   m_rom = std::make_unique<u8[]>(ROM_SIZE);
@@ -130,7 +130,7 @@ CEXIIPL::CEXIIPL()
     LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_WINDOWS_1252), 0x1fcf00);
   }
 
-  auto& sram = Core::System::GetInstance().GetSRAM();
+  auto& sram = system.GetSRAM();
 
   // Clear RTC
   sram.rtc = 0;
@@ -146,7 +146,7 @@ CEXIIPL::~CEXIIPL() = default;
 
 void CEXIIPL::DoState(PointerWrap& p)
 {
-  auto& sram = Core::System::GetInstance().GetSRAM();
+  auto& sram = m_system.GetSRAM();
 
   p.Do(sram);
   p.Do(g_rtc_flags);
@@ -251,8 +251,8 @@ void CEXIIPL::SetCS(int cs)
 
 void CEXIIPL::UpdateRTC()
 {
-  auto& sram = Core::System::GetInstance().GetSRAM();
-  sram.rtc = GetEmulatedTime(GC_EPOCH);
+  auto& sram = m_system.GetSRAM();
+  sram.rtc = GetEmulatedTime(m_system, GC_EPOCH);
 }
 
 bool CEXIIPL::IsPresent() const
@@ -342,7 +342,7 @@ void CEXIIPL::TransferByte(u8& data)
     }
     else if (IN_RANGE(SRAM))
     {
-      auto& sram = Core::System::GetInstance().GetSRAM();
+      auto& sram = m_system.GetSRAM();
       u32 dev_addr = DEV_ADDR_CURSOR(SRAM);
       if (m_command.is_write())
         sram[dev_addr] = data;
@@ -396,7 +396,7 @@ void CEXIIPL::TransferByte(u8& data)
   }
 }
 
-u32 CEXIIPL::GetEmulatedTime(u32 epoch)
+u32 CEXIIPL::GetEmulatedTime(Core::System& system, u32 epoch)
 {
   u64 ltime = 0;
 
@@ -405,16 +405,14 @@ u32 CEXIIPL::GetEmulatedTime(u32 epoch)
     ltime = Movie::GetRecordingStartTime();
 
     // let's keep time moving forward, regardless of what it starts at
-    ltime +=
-        Core::System::GetInstance().GetCoreTiming().GetTicks() / SystemTimers::GetTicksPerSecond();
+    ltime += system.GetCoreTiming().GetTicks() / SystemTimers::GetTicksPerSecond();
   }
   else if (NetPlay::IsNetPlayRunning())
   {
     ltime = NetPlay_GetEmulatedTime();
 
     // let's keep time moving forward, regardless of what it starts at
-    ltime +=
-        Core::System::GetInstance().GetCoreTiming().GetTicks() / SystemTimers::GetTicksPerSecond();
+    ltime += system.GetCoreTiming().GetTicks() / SystemTimers::GetTicksPerSecond();
   }
   else
   {

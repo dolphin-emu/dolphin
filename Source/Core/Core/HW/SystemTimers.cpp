@@ -284,7 +284,7 @@ void Init()
 
   core_timing.SetFakeTBStartValue(static_cast<u64>(s_cpu_core_clock / TIMER_RATIO) *
                                   static_cast<u64>(ExpansionInterface::CEXIIPL::GetEmulatedTime(
-                                      ExpansionInterface::CEXIIPL::GC_EPOCH)));
+                                      system, ExpansionInterface::CEXIIPL::GC_EPOCH)));
 
   core_timing.SetFakeTBStartTicks(core_timing.GetTicks());
 
