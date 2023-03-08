@@ -29,6 +29,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -457,6 +458,20 @@ void Settings::SetCheatsEnabled(bool enabled)
     Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, enabled);
     emit EnableCheatsChanged(enabled);
   }
+}
+
+void Settings::SetHardcoreModeEnabled(bool enabled)
+{
+  if (IsHardcoreModeEnabled() != enabled)
+  {
+    Config::SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED, enabled);
+    emit HardcoreModeToggled(enabled);
+  }
+}
+
+bool Settings::IsHardcoreModeEnabled() const
+{
+  return Config::Get(Config::RA_HARDCORE_ENABLED);
 }
 
 void Settings::SetDebugModeEnabled(bool enabled)
