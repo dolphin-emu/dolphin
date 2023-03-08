@@ -16,7 +16,11 @@ static std::array all_game_cube_controller_functions_metadata_list = {
     FunctionMetadata("getInputsForPoll", "1.0", "getInputsForPoll()", GetInputsForPoll,
                      ArgTypeEnum::ControllerStateObject, {}),
     FunctionMetadata("getInputsForPreviousFrame", "1.0", "getInputsForPreviousFrame(1)",
-                     GetInputsForPreviousFrame, ArgTypeEnum::ControllerStateObject, {ArgTypeEnum::LongLong})};
+                     GetInputsForPreviousFrame, ArgTypeEnum::ControllerStateObject, {ArgTypeEnum::LongLong}),
+    FunctionMetadata("isGcControllerInPort", "1.0", "isGcControllerInPort(1)", IsGcControllerInPort,
+                     ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong}),
+    FunctionMetadata("isUsingPort", "1.0", "isUsingPort(1)", IsUsingPort, ArgTypeEnum::Boolean,
+                     {ArgTypeEnum::LongLong})};
 
 std::array<bool, 4> overwrite_controller_at_specified_port{};
 std::array<Movie::ControllerState, 4> new_controller_inputs{};
@@ -59,4 +63,24 @@ ArgHolder GetInputsForPreviousFrame(ScriptContext* current_script, std::vector<A
 
   return CreateControllerStateArgHolder(controller_inputs_on_last_frame[controller_port_number - 1]);
 }
+
+ArgHolder IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  long long controller_port_number = args_list[0].long_long_val;
+
+  if (controller_port_number < 1 || controller_port_number > 4)
+    return CreateErrorStringArgHolder("controller port number was outside the valid range of 1-4");
+
+  return CreateBoolArgHolder(Movie::IsUsingGCController(controller_port_number - 1));
+}
+
+ArgHolder IsUsingPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  long long controller_port_number = args_list[0].long_long_val;
+  if (controller_port_number < 1 || controller_port_number > 4)
+    return CreateErrorStringArgHolder("controller port number was outside the valid range of 1-4");
+
+  return CreateBoolArgHolder(Movie::IsUsingPad(controller_port_number - 1));
+}
+
 }  // namespace Scripting::GameCubeControllerAPI

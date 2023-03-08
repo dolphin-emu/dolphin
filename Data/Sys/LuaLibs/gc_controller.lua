@@ -531,3 +531,13 @@ function GameCubeControllerAPILuaLibrary:getControllerInputsForPreviousFrame(por
 	checkPortNumber(portNumber, "getControllerInputsForPreviousFrame(portNumber)")
 	return GameCubeControllerAPI:getInputsForPreviousFrame(portNumber)
 end
+
+function GameCubeControllerAPILuaLibrary:isGcControllerInPort(portNumber)
+	checkPortNumber(portNumber, "isGcControllerInPort(portNumber)")
+	return GameCubeControllerAPI:isGcControllerInPort(portNumber)
+end
+
+function GameCubeControllerAPILuaLibrary:isUsingPort(portNumber)
+	checkPortNumber(portNumber, "isUsingPort(portNumber)")
+	return GameCubeControllerAPI:isUsingPort(portNumber)
+end

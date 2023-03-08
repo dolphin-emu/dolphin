@@ -21,9 +21,7 @@ static std::array all_statistics_functions_metadata_list = {
   FunctionMetadata("getCurrentInputCount", "1.0", "getCurrentInputCount()", GetCurrentInputCount, ArgTypeEnum::LongLong, {}),
   FunctionMetadata("getTotalInputCount", "1.0", "getTotalInputCount()", GetTotalInputCount, ArgTypeEnum::LongLong, {}),
   FunctionMetadata("getCurrentLagCount", "1.0", "getCurrentlagCount()", GetCurrentLagCount, ArgTypeEnum::LongLong, {}),
-  FunctionMetadata("getTotalLagCount", "1.0", "getTotalLagCount()", GetTotalLagCount, ArgTypeEnum::LongLong, {}),
-  FunctionMetadata("isGcControllerInPort", "1.0", "isGcControllerInPort(1)", IsGcControllerInPort, ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong}),
-  FunctionMetadata("isUsingPort", "1.0", "isUsingPort(1)", IsUsingPort, ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong})
+  FunctionMetadata("getTotalLagCount", "1.0", "getTotalLagCount()", GetTotalLagCount, ArgTypeEnum::LongLong, {})
 };
 
  ClassMetadata GetStatisticsApiClassData(const std::string& api_version)
@@ -86,25 +84,6 @@ ArgHolder GetCurrentLagCount(ScriptContext* current_script, std::vector<ArgHolde
 ArgHolder GetTotalLagCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(Movie::GetTotalLagCount());
-}
-
-ArgHolder IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
-{
-  long long controller_port_number = args_list[0].long_long_val;
-  
-  if (controller_port_number < 1 || controller_port_number > 4)
-    return CreateErrorStringArgHolder("controller port number was outside the valid range of 1-4");
-
-  return CreateBoolArgHolder(Movie::IsUsingGCController(controller_port_number - 1));
-}
-
-ArgHolder IsUsingPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
-{
-  long long controller_port_number = args_list[0].long_long_val;
-  if (controller_port_number < 1 || controller_port_number > 4)
-    return CreateErrorStringArgHolder("controller port number was outside the valid range of 1-4");
-
-  return CreateBoolArgHolder(Movie::IsUsingPad(controller_port_number - 1));
 }
 
 }  // namespace Scripting::StatisticsApi

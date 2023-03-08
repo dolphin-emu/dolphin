@@ -26,8 +26,4 @@ ArgHolder GetCurrentInputCount(ScriptContext* current_script, std::vector<ArgHol
 ArgHolder GetTotalInputCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetCurrentLagCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetTotalLagCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-
-ArgHolder IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder IsUsingPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-
 }  // namespace Scripting::StatisticsApi

@@ -53,11 +53,3 @@ end
 function StatisticsClass:getTotalLagCount()
 	return StatisticsAPI:getTotalLagCount()
 end
-
-function StatisticsClass:isGcControllerInPort(portNumber)
-	return StatisticsAPI:isGcControllerInPort(portNumber)
-end
-
-function StatisticsClass:isUsingPort(portNumber)
-	return StatisticsAPI:isUsingPort(portNumber)
-end

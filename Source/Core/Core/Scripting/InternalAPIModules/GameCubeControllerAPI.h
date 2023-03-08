@@ -29,5 +29,7 @@ ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>
 ArgHolder GetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetInputsForPreviousFrame(ScriptContext* current_script,
                                     std::vector<ArgHolder>& args_list);
+ArgHolder IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder IsUsingPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 
 }  // namespace Scripting::GameCubeControllerAPI

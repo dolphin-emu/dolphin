@@ -1,5 +1,6 @@
 require ("emu")
 require ("statistics")
+require ("gc_controller")
 
 funcRef = 0
 baseMovieFilePath  = "testBaseRecording.dtm"
@@ -31,8 +32,8 @@ function statisticsGeneralUnitTests()
 	singleStatisticTest("getTotalInputCount()", statistics:getTotalInputCount())	
 	singleStatisticTest("getCurrentLagCount()", statistics:getCurrentLagCount())
 	singleStatisticTest("getTotalLagCount()", statistics:getTotalLagCount())
-	singleStatisticTest("isGcControllerInPort(1)", statistics:isGcControllerInPort(1))
-	singleStatisticTest("isUsingPort(1)", statistics:isUsingPort(1))
+	singleStatisticTest("isGcControllerInPort(1)", gc_controller:isGcControllerInPort(1))
+	singleStatisticTest("isUsingPort(1)", gc_controller:isUsingPort(1))
 end
 
 file = io.open("LuaExamplesAndTests/TestResults/LuaStatisticsTestsResults.txt", "w")
