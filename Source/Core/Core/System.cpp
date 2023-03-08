@@ -36,7 +36,8 @@ namespace Core
 struct System::Impl
 {
   explicit Impl(System& system)
-      : m_core_timing(system), m_gp_fifo(system), m_ppc_state(PowerPC::ppcState)
+      : m_audio_interface(system), m_core_timing(system), m_gp_fifo(system),
+        m_ppc_state(PowerPC::ppcState)
   {
   }
 
@@ -44,7 +45,7 @@ struct System::Impl
   bool m_sound_stream_running = false;
   bool m_audio_dump_started = false;
 
-  AudioInterface::AudioInterfaceState m_audio_interface_state;
+  AudioInterface::AudioInterfaceManager m_audio_interface;
   CoreTiming::CoreTimingManager m_core_timing;
   CommandProcessor::CommandProcessorManager m_command_processor;
   CPU::CPUManager m_cpu;
@@ -112,9 +113,9 @@ void System::SetAudioDumpStarted(bool started)
   m_impl->m_audio_dump_started = started;
 }
 
-AudioInterface::AudioInterfaceState& System::GetAudioInterfaceState() const
+AudioInterface::AudioInterfaceManager& System::GetAudioInterface() const
 {
-  return m_impl->m_audio_interface_state;
+  return m_impl->m_audio_interface;
 }
 
 CPU::CPUManager& System::GetCPU() const

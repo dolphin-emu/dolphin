@@ -40,7 +40,7 @@ void Init(const Sram* override_sram)
   State::Init();
 
   // Init the whole Hardware
-  AudioInterface::Init();
+  system.GetAudioInterface().Init();
   VideoInterface::Init();
   SerialInterface::Init();
   system.GetProcessorInterface().Init();
@@ -80,7 +80,7 @@ void Shutdown()
   system.GetHSP().Shutdown();
   ExpansionInterface::Shutdown();
   SerialInterface::Shutdown();
-  AudioInterface::Shutdown();
+  system.GetAudioInterface().Shutdown();
 
   State::Shutdown();
   system.GetCoreTiming().Shutdown();
@@ -107,7 +107,7 @@ void DoState(PointerWrap& p)
   p.DoMarker("GPFifo");
   ExpansionInterface::DoState(p);
   p.DoMarker("ExpansionInterface");
-  AudioInterface::DoState(p);
+  system.GetAudioInterface().DoState(p);
   p.DoMarker("AudioInterface");
   system.GetHSP().DoState(p);
   p.DoMarker("HSP");
