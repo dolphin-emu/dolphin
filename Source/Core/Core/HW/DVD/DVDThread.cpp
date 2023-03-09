@@ -379,13 +379,14 @@ static void FinishRead(Core::System& system, u64 id, s64 cycles_late)
                 (system.GetCoreTiming().GetTicks() - request.time_started_ticks) /
                     (SystemTimers::GetTicksPerSecond() / 1000000));
 
+  auto& dvd_interface = system.GetDVDInterface();
   DVDInterface::DIInterruptType interrupt;
   if (buffer.size() != request.length)
   {
     PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
                    request.dvd_offset + request.length);
 
-    DVDInterface::SetDriveError(DVDInterface::DriveError::ReadError);
+    dvd_interface.SetDriveError(DVDInterface::DriveError::ReadError);
     interrupt = DVDInterface::DIInterruptType::DEINT;
   }
   else
@@ -400,7 +401,7 @@ static void FinishRead(Core::System& system, u64 id, s64 cycles_late)
   }
 
   // Notify the emulated software that the command has been executed
-  DVDInterface::FinishExecutingCommand(request.reply_type, interrupt, cycles_late, buffer);
+  dvd_interface.FinishExecutingCommand(request.reply_type, interrupt, cycles_late, buffer);
 }
 
 static void DVDThread()

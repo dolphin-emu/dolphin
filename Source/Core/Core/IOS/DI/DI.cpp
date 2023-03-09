@@ -214,8 +214,8 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
       return DIResult::SecurityError;
     }
     m_last_length = position;  // An actual mistake in IOS
-    DVDInterface::PerformDecryptingRead(position, length, request.buffer_out, m_current_partition,
-                                        DVDInterface::ReplyType::IOS);
+    system.GetDVDInterface().PerformDecryptingRead(
+        position, length, request.buffer_out, m_current_partition, DVDInterface::ReplyType::IOS);
     return {};
   }
   case DIIoctl::DVDLowWaitForCoverClose:
@@ -274,12 +274,12 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
   }
   case DIIoctl::DVDLowMaskCoverInterrupt:
     INFO_LOG_FMT(IOS_DI, "DVDLowMaskCoverInterrupt");
-    DVDInterface::SetInterruptEnabled(DVDInterface::DIInterruptType::CVRINT, false);
+    system.GetDVDInterface().SetInterruptEnabled(DVDInterface::DIInterruptType::CVRINT, false);
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DI_INTERRUPT_MASK_COMMAND);
     return DIResult::Success;
   case DIIoctl::DVDLowClearCoverInterrupt:
     DEBUG_LOG_FMT(IOS_DI, "DVDLowClearCoverInterrupt");
-    DVDInterface::ClearInterrupt(DVDInterface::DIInterruptType::CVRINT);
+    system.GetDVDInterface().ClearInterrupt(DVDInterface::DIInterruptType::CVRINT);
     return DIResult::Success;
   case DIIoctl::DVDLowUnmaskStatusInterrupts:
     INFO_LOG_FMT(IOS_DI, "DVDLowUnmaskStatusInterrupts");
@@ -287,13 +287,15 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     // Dummied out
     return DIResult::Success;
   case DIIoctl::DVDLowGetCoverStatus:
+  {
     // TODO: handle resetting case
-    INFO_LOG_FMT(IOS_DI, "DVDLowGetCoverStatus: Disc {}Inserted",
-                 DVDInterface::IsDiscInside() ? "" : "Not ");
-    return WriteIfFits(request, DVDInterface::IsDiscInside() ? 2 : 1);
+    const bool is_disc_inside = system.GetDVDInterface().IsDiscInside();
+    INFO_LOG_FMT(IOS_DI, "DVDLowGetCoverStatus: Disc {}Inserted", is_disc_inside ? "" : "Not ");
+    return WriteIfFits(request, is_disc_inside ? 2 : 1);
+  }
   case DIIoctl::DVDLowUnmaskCoverInterrupt:
     INFO_LOG_FMT(IOS_DI, "DVDLowUnmaskCoverInterrupt");
-    DVDInterface::SetInterruptEnabled(DVDInterface::DIInterruptType::CVRINT, true);
+    system.GetDVDInterface().SetInterruptEnabled(DVDInterface::DIInterruptType::CVRINT, true);
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DI_INTERRUPT_MASK_COMMAND);
     return DIResult::Success;
   case DIIoctl::DVDLowReset:
@@ -362,7 +364,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
           DIMAR = request.buffer_out;
           m_last_length = length;
           DILENGTH = length;
-          DVDInterface::ForceOutOfBoundsRead(DVDInterface::ReplyType::IOS);
+          system.GetDVDInterface().ForceOutOfBoundsRead(DVDInterface::ReplyType::IOS);
           return {};
         }
         else
@@ -579,7 +581,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartDMATransfer(u32 command_length,
   m_last_length = command_length;
   DILENGTH = command_length;
 
-  DVDInterface::ExecuteCommand(DVDInterface::ReplyType::IOS);
+  Core::System::GetInstance().GetDVDInterface().ExecuteCommand(DVDInterface::ReplyType::IOS);
   // Reply will be posted when done by FinishIOCtl.
   return {};
 }
@@ -597,7 +599,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartImmediateTransfer(const IOCtlRe
 
   m_executing_command->m_copy_diimmbuf = write_to_buf;
 
-  DVDInterface::ExecuteCommand(DVDInterface::ReplyType::IOS);
+  Core::System::GetInstance().GetDVDInterface().ExecuteCommand(DVDInterface::ReplyType::IOS);
   // Reply will be posted when done by FinishIOCtl.
   return {};
 }
@@ -814,12 +816,13 @@ void DIDevice::ResetDIRegisters()
 {
   // Clear transfer complete and error interrupts (normally r/z, but here we just directly write
   // zero)
-  DVDInterface::ClearInterrupt(DVDInterface::DIInterruptType::TCINT);
-  DVDInterface::ClearInterrupt(DVDInterface::DIInterruptType::DEINT);
+  auto& di = Core::System::GetInstance().GetDVDInterface();
+  di.ClearInterrupt(DVDInterface::DIInterruptType::TCINT);
+  di.ClearInterrupt(DVDInterface::DIInterruptType::DEINT);
   // Enable transfer complete and error interrupts, and disable cover interrupt
-  DVDInterface::SetInterruptEnabled(DVDInterface::DIInterruptType::TCINT, true);
-  DVDInterface::SetInterruptEnabled(DVDInterface::DIInterruptType::DEINT, true);
-  DVDInterface::SetInterruptEnabled(DVDInterface::DIInterruptType::CVRINT, false);
+  di.SetInterruptEnabled(DVDInterface::DIInterruptType::TCINT, true);
+  di.SetInterruptEnabled(DVDInterface::DIInterruptType::DEINT, true);
+  di.SetInterruptEnabled(DVDInterface::DIInterruptType::CVRINT, false);
   // Close the current partition, if there is one
   ChangePartition(DiscIO::PARTITION_NONE);
 }

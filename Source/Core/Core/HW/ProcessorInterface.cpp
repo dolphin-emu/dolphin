@@ -120,7 +120,7 @@ void ProcessorInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                                 processor_interface.m_reset_code);
                    if (!SConfig::GetInstance().bWii && ~processor_interface.m_reset_code & 0x4)
                    {
-                     DVDInterface::ResetDrive(true);
+                     system.GetDVDInterface().ResetDrive(true);
                    }
                  }));
 

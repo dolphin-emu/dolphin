@@ -208,13 +208,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   mmio->Register(base | GPIOB_OUT, MMIO::DirectRead<u32>(&g_gpio_out.m_hex),
-                 MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    g_gpio_out.m_hex =
                        (val & gpio_owner.m_hex) | (g_gpio_out.m_hex & ~gpio_owner.m_hex);
                    if (g_gpio_out[GPIO::DO_EJECT])
                    {
                      INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
-                     DVDInterface::EjectDisc(DVDInterface::EjectCause::Software);
+                     system.GetDVDInterface().EjectDisc(DVDInterface::EjectCause::Software);
                    }
                    // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
                    // TODO: AVE, SLOT_LED
@@ -223,9 +223,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
                    gpio_dir.m_hex = (val & gpio_owner.m_hex) | (gpio_dir.m_hex & ~gpio_owner.m_hex);
                  }));
-  mmio->Register(base | GPIOB_IN, MMIO::ComplexRead<u32>([](Core::System&, u32) {
+  mmio->Register(base | GPIOB_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
                    Common::Flags<GPIO> gpio_in;
-                   gpio_in[GPIO::SLOT_IN] = DVDInterface::IsDiscInside();
+                   gpio_in[GPIO::SLOT_IN] = system.GetDVDInterface().IsDiscInside();
                    return gpio_in.m_hex;
                  }),
                  MMIO::Nop<u32>());
@@ -241,13 +241,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // go through the HW_GPIOB registers if the corresponding bit is set in the HW_GPIO_OWNER
   // register.
   mmio->Register(base | GPIO_OUT, MMIO::DirectRead<u32>(&g_gpio_out.m_hex),
-                 MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    g_gpio_out.m_hex =
                        (g_gpio_out.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
                    if (g_gpio_out[GPIO::DO_EJECT])
                    {
                      INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
-                     DVDInterface::EjectDisc(DVDInterface::EjectCause::Software);
+                     system.GetDVDInterface().EjectDisc(DVDInterface::EjectCause::Software);
                    }
                    // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
                    // TODO: AVE, SLOT_LED
@@ -256,15 +256,15 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
                    gpio_dir.m_hex = (gpio_dir.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
                  }));
-  mmio->Register(base | GPIO_IN, MMIO::ComplexRead<u32>([](Core::System&, u32) {
+  mmio->Register(base | GPIO_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
                    Common::Flags<GPIO> gpio_in;
-                   gpio_in[GPIO::SLOT_IN] = DVDInterface::IsDiscInside();
+                   gpio_in[GPIO::SLOT_IN] = system.GetDVDInterface().IsDiscInside();
                    return gpio_in.m_hex;
                  }),
                  MMIO::Nop<u32>());
 
   mmio->Register(base | HW_RESETS, MMIO::DirectRead<u32>(&resets),
-                 MMIO::ComplexWrite<u32>([](Core::System&, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    // A reset occurs when the corresponding bit is cleared
                    const bool di_reset_triggered = (resets & 0x400) && !(val & 0x400);
                    resets = val;
@@ -273,7 +273,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                      // The GPIO *disables* spinning up the drive
                      const bool spinup = !g_gpio_out[GPIO::DI_SPIN];
                      INFO_LOG_FMT(WII_IPC, "Resetting DI {} spinup", spinup ? "with" : "without");
-                     DVDInterface::ResetDrive(spinup);
+                     system.GetDVDInterface().ResetDrive(spinup);
                    }
                  }));
 
