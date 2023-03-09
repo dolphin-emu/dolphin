@@ -2,7 +2,11 @@
 #define LUA_SCRIPT_CONTEXT
 
 #include "fmt/format.h"
-#include "lua.hpp"
+
+#include "lauxlib.h"
+#include "lua.h"
+#include "lualib.h"
+
 #include <atomic>
 #include <memory>
 #include <utility>
