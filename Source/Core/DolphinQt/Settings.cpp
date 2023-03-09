@@ -448,11 +448,13 @@ void Settings::ResetNetPlayServer(NetPlay::NetPlayServer* server)
 
 bool Settings::GetCheatsEnabled() const
 {
-  return Config::Get(Config::MAIN_ENABLE_CHEATS);
+  return !IsHardcoreModeEnabled() && Config::Get(Config::MAIN_ENABLE_CHEATS);
 }
 
 void Settings::SetCheatsEnabled(bool enabled)
 {
+  if (IsHardcoreModeEnabled())
+    enabled = false;
   if (Config::Get(Config::MAIN_ENABLE_CHEATS) != enabled)
   {
     Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, enabled);
@@ -466,6 +468,10 @@ void Settings::SetHardcoreModeEnabled(bool enabled)
   {
     Config::SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED, enabled);
     emit HardcoreModeToggled(enabled);
+  }
+  if (enabled)
+  {
+    SetCheatsEnabled(false);
   }
 }
 

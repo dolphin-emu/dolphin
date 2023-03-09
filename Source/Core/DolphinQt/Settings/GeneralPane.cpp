@@ -55,6 +55,8 @@ GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &GeneralPane::OnEmulationStateChanged);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GeneralPane::LoadConfig);
+  connect(&Settings::Instance(), &Settings::HardcoreModeToggled, this,
+          &GeneralPane::OnHardcoreModeToggled);
 
   OnEmulationStateChanged(Core::GetState());
 }
@@ -83,12 +85,33 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
   const bool running = state != Core::State::Uninitialized;
 
   m_checkbox_dualcore->setEnabled(!running);
-  m_checkbox_cheats->setEnabled(!running);
   m_checkbox_override_region_settings->setEnabled(!running);
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setEnabled(!running);
 #endif
   m_combobox_fallback_region->setEnabled(!running);
+
+  if (Settings::Instance().IsHardcoreModeEnabled())
+  {
+    m_checkbox_cheats->setEnabled(false);
+  }
+  else
+  {
+    m_checkbox_cheats->setEnabled(!running);
+  }
+}
+
+void GeneralPane::OnHardcoreModeToggled(bool enabled)
+{
+  if (enabled)
+  {
+    m_checkbox_cheats->setEnabled(false);
+    m_checkbox_cheats->setChecked(false);
+  }
+  else
+  {
+    m_checkbox_cheats->setEnabled(!Core::IsRunning());
+  }
 }
 
 void GeneralPane::ConnectLayout()

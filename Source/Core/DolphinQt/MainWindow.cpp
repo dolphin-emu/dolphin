@@ -42,6 +42,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
+#include <Core/Config/AchievementSettings.h>
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/WiimoteSettings.h"
@@ -229,6 +230,8 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 #ifdef USE_RETRO_ACHIEVEMENTS
   // This has to be done before CreateComponents() so it's initialized.
   AchievementManager::GetInstance()->Init();
+  // If hardcore mode is enabled upon startup need to immediately disable cheats
+  Settings::Instance().SetHardcoreModeEnabled(Config::Get(Config::RA_HARDCORE_ENABLED));
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   CreateComponents();
