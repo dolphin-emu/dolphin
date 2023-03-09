@@ -3,9 +3,12 @@
 
 #include "fmt/format.h"
 
+extern "C" {
+
 #include "lauxlib.h"
 #include "lua.h"
 #include "lualib.h"
+}
 
 #include <atomic>
 #include <memory>
