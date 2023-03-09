@@ -163,7 +163,7 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
 
   // TODO: Determine how emulation speed will be used in audio
   // const float emulation_speed = g_perf_metrics.GetSpeed();
-  const float emulation_speed = m_config_emulation_speed;
+  const float emulation_speed = 1.0;
   const int timing_variance = m_config_timing_variance;
   if (m_config_audio_stretch)
   {
