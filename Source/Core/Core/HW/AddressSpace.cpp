@@ -212,19 +212,22 @@ struct AuxiliaryAddressSpaceAccessors : Accessors
   }
   u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    const u8* base = DSP::GetARAMPtr();
+    const u8* base = Core::System::GetInstance().GetDSP().GetARAMPtr();
     return base[address];
   }
 
   void WriteU8(const Core::CPUThreadGuard& guard, u32 address, u8 value) override
   {
-    u8* base = DSP::GetARAMPtr();
+    u8* base = Core::System::GetInstance().GetDSP().GetARAMPtr();
     base[address] = value;
   }
 
-  iterator begin() const override { return DSP::GetARAMPtr(); }
+  iterator begin() const override { return Core::System::GetInstance().GetDSP().GetARAMPtr(); }
 
-  iterator end() const override { return DSP::GetARAMPtr() + GetSize(); }
+  iterator end() const override
+  {
+    return Core::System::GetInstance().GetDSP().GetARAMPtr() + GetSize();
+  }
 
   std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_offset,
                             const u8* needle_start, std::size_t needle_size,

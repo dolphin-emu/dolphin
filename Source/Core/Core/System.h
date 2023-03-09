@@ -29,7 +29,7 @@ class CoreTimingManager;
 }
 namespace DSP
 {
-class DSPState;
+class DSPManager;
 }
 namespace DVDInterface
 {
@@ -126,7 +126,7 @@ public:
   CPU::CPUManager& GetCPU() const;
   CoreTiming::CoreTimingManager& GetCoreTiming() const;
   CommandProcessor::CommandProcessorManager& GetCommandProcessor() const;
-  DSP::DSPState& GetDSPState() const;
+  DSP::DSPManager& GetDSP() const;
   DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
   DVDThread::DVDThreadState& GetDVDThreadState() const;
   ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;

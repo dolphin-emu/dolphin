@@ -15,6 +15,7 @@
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/System.h"
 
 namespace DSP::HLE
 {
@@ -79,7 +80,7 @@ void ASndUCode::Update()
   // This is dubious in general, since we set the interrupt parameter on m_mail_handler.PushMail
   if (m_mail_handler.HasPending())
   {
-    DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    Core::System::GetInstance().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
   }
 }
 
