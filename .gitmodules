@@ -21,7 +21,7 @@
 [submodule "Externals/Lua/Lua"]
 	path = Externals/Lua/Lua
 	url = https://github.com/lua/lua.git
-	branch = v5.4.4
+	branch = master
 	shallow = true
 [submodule "Externals/spirv_cross/SPIRV-Cross"]
 	path = Externals/spirv_cross/SPIRV-Cross
