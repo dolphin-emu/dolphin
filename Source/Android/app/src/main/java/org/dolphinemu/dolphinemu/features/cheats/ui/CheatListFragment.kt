@@ -13,11 +13,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.color.MaterialColors
-import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.elevation.ElevationOverlayProvider
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.FragmentCheatListBinding
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsDividerItemDecoration
 
 class CheatListFragment : Fragment() {
     private var _binding: FragmentCheatListBinding? = null
@@ -39,8 +39,7 @@ class CheatListFragment : Fragment() {
         binding.cheatList.adapter = CheatsAdapter(activity, viewModel)
         binding.cheatList.layoutManager = LinearLayoutManager(activity)
 
-        val divider = MaterialDividerItemDecoration(requireActivity(), LinearLayoutManager.VERTICAL)
-        divider.isLastItemDecorated = false
+        val divider = SettingsDividerItemDecoration(requireActivity())
         binding.cheatList.addItemDecoration(divider)
 
         @ColorInt val color =

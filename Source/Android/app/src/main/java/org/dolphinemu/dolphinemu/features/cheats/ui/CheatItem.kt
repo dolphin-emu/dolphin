@@ -22,8 +22,8 @@ class CheatItem {
     }
 
     companion object {
-        const val TYPE_CHEAT = 0
-        const val TYPE_HEADER = 1
+        const val TYPE_HEADER = 0
+        const val TYPE_CHEAT = 1
         const val TYPE_ACTION = 2
     }
 }
