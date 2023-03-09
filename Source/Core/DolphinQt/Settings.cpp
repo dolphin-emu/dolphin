@@ -30,6 +30,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/Config/AchievementSettings.h"
+#include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -475,6 +476,7 @@ void Settings::SetHardcoreModeEnabled(bool enabled)
     SetDebugModeEnabled(false);
     if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
       Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
   }
 }
 
