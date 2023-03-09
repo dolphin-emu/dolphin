@@ -37,12 +37,6 @@ private:
   TASCheckBox* m_up_button;
   TASCheckBox* m_down_button;
   TASCheckBox* m_right_button;
-  QSpinBox* m_l_trigger_value;
-  QSpinBox* m_r_trigger_value;
-  QSpinBox* m_x_main_stick_value;
-  QSpinBox* m_y_main_stick_value;
-  QSpinBox* m_x_c_stick_value;
-  QSpinBox* m_y_c_stick_value;
   QGroupBox* m_main_stick_box;
   QGroupBox* m_c_stick_box;
   QGroupBox* m_triggers_box;
