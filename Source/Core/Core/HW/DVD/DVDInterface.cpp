@@ -311,11 +311,12 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
 {
   auto& system = Core::System::GetInstance();
   auto& state = system.GetDVDInterfaceState().GetData();
+  auto& ai = system.GetAudioInterface();
 
   // Actual games always set this to 48 KHz
   // but let's make sure to use GetAISSampleRateDivisor()
   // just in case it changes to 32 KHz
-  const u32 sample_rate_divisor = AudioInterface::GetAISSampleRateDivisor();
+  const u32 sample_rate_divisor = ai.GetAISSampleRateDivisor();
 
   // Determine which audio data to read next.
 
@@ -334,7 +335,7 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
     SoundStream* sound_stream = system.GetSoundStream();
     sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(), state.pending_samples);
 
-    if (state.stream && AudioInterface::IsPlaying())
+    if (state.stream && ai.IsPlaying())
     {
       read_offset = state.audio_position;
       read_length = AdvanceDTK(maximum_samples, &state.pending_samples);

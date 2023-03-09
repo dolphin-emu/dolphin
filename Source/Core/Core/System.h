@@ -13,7 +13,7 @@ class VertexShaderManager;
 
 namespace AudioInterface
 {
-class AudioInterfaceState;
+class AudioInterfaceManager;
 };
 namespace CPU
 {
@@ -122,7 +122,7 @@ public:
   bool IsAudioDumpStarted() const;
   void SetAudioDumpStarted(bool started);
 
-  AudioInterface::AudioInterfaceState& GetAudioInterfaceState() const;
+  AudioInterface::AudioInterfaceManager& GetAudioInterface() const;
   CPU::CPUManager& GetCPU() const;
   CoreTiming::CoreTimingManager& GetCoreTiming() const;
   CommandProcessor::CommandProcessorManager& GetCommandProcessor() const;

@@ -105,7 +105,8 @@ void DSPCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 int GetAudioDMACallbackPeriod()
 {
   // System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
-  return static_cast<u64>(s_cpu_core_clock) * AudioInterface::GetAIDSampleRateDivisor() /
+  auto& system = Core::System::GetInstance();
+  return static_cast<u64>(s_cpu_core_clock) * system.GetAudioInterface().GetAIDSampleRateDivisor() /
          (Mixer::FIXED_SAMPLE_RATE_DIVIDEND * 4 / 32);
 }
 
