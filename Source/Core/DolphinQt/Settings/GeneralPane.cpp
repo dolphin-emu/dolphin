@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QSlider>
+#include <QStandardItemModel>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -107,9 +108,17 @@ void GeneralPane::OnHardcoreModeToggled(bool enabled)
   {
     m_checkbox_cheats->setEnabled(false);
     m_checkbox_cheats->setChecked(false);
+    auto* model = qobject_cast<QStandardItemModel*>(m_combobox_speedlimit->model());
+    for (int ix = 1; ix < 10; ix++)
+      model->item(ix)->setEnabled(false);
+    if (m_combobox_speedlimit->currentIndex() < 10 && m_combobox_speedlimit->currentIndex() > 0)
+      m_combobox_speedlimit->setCurrentIndex(10);
   }
   else
   {
+    auto* model = qobject_cast<QStandardItemModel*>(m_combobox_speedlimit->model());
+    for (int ix = 1; ix < 10; ix++)
+      model->item(ix)->setEnabled(true);
     m_checkbox_cheats->setEnabled(!Core::IsRunning());
   }
 }
@@ -194,6 +203,9 @@ void GeneralPane::CreateBasic()
 
     m_combobox_speedlimit->addItem(str);
   }
+  auto* model = qobject_cast<QStandardItemModel*>(m_combobox_speedlimit->model());
+  for (int ix = 1; ix < 10; ix++)
+    model->item(ix)->setEnabled(!Settings::Instance().IsHardcoreModeEnabled());
 
   speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
 }

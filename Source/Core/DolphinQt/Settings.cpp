@@ -473,6 +473,8 @@ void Settings::SetHardcoreModeEnabled(bool enabled)
   {
     SetCheatsEnabled(false);
     SetDebugModeEnabled(false);
+    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
   }
 }
 
