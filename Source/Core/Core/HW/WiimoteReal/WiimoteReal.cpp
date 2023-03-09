@@ -131,6 +131,11 @@ void ProcessWiimotePool()
   }
 }
 
+bool IsScannerReady()
+{
+  return s_wiimote_scanner.IsReady();
+}
+
 void AddWiimoteToPool(std::unique_ptr<Wiimote> wiimote)
 {
   // Our real wiimote class requires an index.

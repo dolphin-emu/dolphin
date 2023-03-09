@@ -223,4 +223,5 @@ void InitAdapterClass();
 void HandleWiimotesInControllerInterfaceSettingChange();
 void PopulateDevices();
 void ProcessWiimotePool();
+bool IsScannerReady();
 }  // namespace WiimoteReal
