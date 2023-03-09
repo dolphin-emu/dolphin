@@ -230,7 +230,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 #ifdef USE_RETRO_ACHIEVEMENTS
   // This has to be done before CreateComponents() so it's initialized.
   AchievementManager::GetInstance()->Init();
-  // If hardcore mode is enabled upon startup need to immediately disable cheats
+  // If hardcore mode is enabled upon startup need to immediately disable cheats and debug
   Settings::Instance().SetHardcoreModeEnabled(Config::Get(Config::RA_HARDCORE_ENABLED));
 #endif  // USE_RETRO_ACHIEVEMENTS
 

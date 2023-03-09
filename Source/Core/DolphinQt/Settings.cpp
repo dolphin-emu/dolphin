@@ -472,6 +472,7 @@ void Settings::SetHardcoreModeEnabled(bool enabled)
   if (enabled)
   {
     SetCheatsEnabled(false);
+    SetDebugModeEnabled(false);
   }
 }
 
@@ -482,7 +483,9 @@ bool Settings::IsHardcoreModeEnabled() const
 
 void Settings::SetDebugModeEnabled(bool enabled)
 {
-  if (IsDebugModeEnabled() != enabled)
+  if (IsHardcoreModeEnabled())
+    enabled = false;
+  if (Config::Get(Config::MAIN_ENABLE_DEBUGGING) != enabled)
   {
     Config::SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
     emit DebugModeToggled(enabled);
@@ -493,7 +496,7 @@ void Settings::SetDebugModeEnabled(bool enabled)
 
 bool Settings::IsDebugModeEnabled() const
 {
-  return Config::Get(Config::MAIN_ENABLE_DEBUGGING);
+  return !IsHardcoreModeEnabled() && Config::Get(Config::MAIN_ENABLE_DEBUGGING);
 }
 
 void Settings::SetRegistersVisible(bool enabled)

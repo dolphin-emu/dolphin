@@ -24,6 +24,7 @@ private:
   void ConnectLayout();
   void LoadConfig();
   void OnSaveConfig();
+  void OnHardcoreModeToggled(bool enabled);
   void OnCursorVisibleMovement();
   void OnCursorVisibleNever();
   void OnCursorVisibleAlways();
