@@ -453,6 +453,7 @@
     <ClInclude Include="DiscIO\RiivolutionParser.h" />
     <ClInclude Include="DiscIO\RiivolutionPatcher.h" />
     <ClInclude Include="DiscIO\ScrubbedBlob.h" />
+    <ClInclude Include="DiscIO\SplitFileBlob.h" />
     <ClInclude Include="DiscIO\TGCBlob.h" />
     <ClInclude Include="DiscIO\Volume.h" />
     <ClInclude Include="DiscIO\VolumeDisc.h" />
@@ -1078,6 +1079,7 @@
     <ClCompile Include="DiscIO\RiivolutionParser.cpp" />
     <ClCompile Include="DiscIO\RiivolutionPatcher.cpp" />
     <ClCompile Include="DiscIO\ScrubbedBlob.cpp" />
+    <ClCompile Include="DiscIO\SplitFileBlob.cpp" />
     <ClCompile Include="DiscIO\TGCBlob.cpp" />
     <ClCompile Include="DiscIO\Volume.cpp" />
     <ClCompile Include="DiscIO\VolumeDisc.cpp" />
