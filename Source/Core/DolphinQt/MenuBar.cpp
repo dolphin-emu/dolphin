@@ -117,10 +117,10 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_stop_action->setVisible(running);
   m_reset_action->setEnabled(running);
   m_fullscreen_action->setEnabled(running);
-  m_frame_advance_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
   m_state_save_menu->setEnabled(running);
 
+  m_frame_advance_action->setEnabled(!Settings::Instance().IsHardcoreModeEnabled() && running);
   m_state_load_menu->setEnabled(!Settings::Instance().IsHardcoreModeEnabled() && running);
 
   // Movie
