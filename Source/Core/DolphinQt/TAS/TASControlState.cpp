@@ -7,7 +7,7 @@
 
 #include "Common/CommonTypes.h"
 
-u16 TASControlState::GetValue() const
+int TASControlState::GetValue() const
 {
   const State ui_thread_state = m_ui_thread_state.load(std::memory_order_relaxed);
   const State cpu_thread_state = m_cpu_thread_state.load(std::memory_order_relaxed);
@@ -16,7 +16,7 @@ u16 TASControlState::GetValue() const
       .value;
 }
 
-bool TASControlState::OnControllerValueChanged(u16 new_value)
+bool TASControlState::OnControllerValueChanged(int new_value)
 {
   const State cpu_thread_state = m_cpu_thread_state.load(std::memory_order_relaxed);
 
@@ -26,13 +26,13 @@ bool TASControlState::OnControllerValueChanged(u16 new_value)
     return false;
   }
 
-  const State new_state{static_cast<u16>(cpu_thread_state.version + 1), new_value};
+  const State new_state{static_cast<int>(cpu_thread_state.version + 1), new_value};
   m_cpu_thread_state.store(new_state, std::memory_order_relaxed);
 
   return true;
 }
 
-void TASControlState::OnUIValueChanged(u16 new_value)
+void TASControlState::OnUIValueChanged(int new_value)
 {
   const State ui_thread_state = m_ui_thread_state.load(std::memory_order_relaxed);
 
@@ -40,7 +40,7 @@ void TASControlState::OnUIValueChanged(u16 new_value)
   m_ui_thread_state.store(new_state, std::memory_order_relaxed);
 }
 
-u16 TASControlState::ApplyControllerValueChange()
+int TASControlState::ApplyControllerValueChange()
 {
   const State ui_thread_state = m_ui_thread_state.load(std::memory_order_relaxed);
   const State cpu_thread_state = m_cpu_thread_state.load(std::memory_order_relaxed);

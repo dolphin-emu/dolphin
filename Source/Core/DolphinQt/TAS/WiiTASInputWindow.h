@@ -42,6 +42,7 @@ private:
   void UpdateExt();
 
   WiimoteEmu::ExtensionNumber m_active_extension;
+  bool m_is_motion_plus_attached;
   int m_num;
 
   InputOverrider m_wiimote_overrider;
@@ -78,8 +79,9 @@ private:
   TASCheckBox* m_classic_right_button;
   TASSpinBox* m_ir_x_value;
   TASSpinBox* m_ir_y_value;
-  QGroupBox* m_remote_orientation_box;
-  QGroupBox* m_nunchuk_orientation_box;
+  QGroupBox* m_remote_accelerometer_box;
+  QGroupBox* m_remote_gyroscope_box;
+  QGroupBox* m_nunchuk_accelerometer_box;
   QGroupBox* m_ir_box;
   QGroupBox* m_nunchuk_stick_box;
   QGroupBox* m_classic_left_stick_box;

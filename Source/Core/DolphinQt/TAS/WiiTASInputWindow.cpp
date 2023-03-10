@@ -22,6 +22,7 @@
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
@@ -40,8 +41,8 @@ using namespace WiimoteCommon;
 
 WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(parent), m_num(num)
 {
-  const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_F);
-  const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_G);
+  const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_X);
+  const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_C);
 
   m_ir_box = new QGroupBox(QStringLiteral("%1 (%2/%3)")
                                .arg(tr("IR"),
@@ -86,7 +87,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   m_nunchuk_stick_box =
       CreateStickInputs(tr("Nunchuk Stick"), WiimoteEmu::Nunchuk::STICK_GROUP, &m_nunchuk_overrider,
-                        0, 0, 255, 255, Qt::Key_X, Qt::Key_Y);
+                        0, 0, 255, 255, Qt::Key_F, Qt::Key_G);
 
   m_classic_left_stick_box =
       CreateStickInputs(tr("Left Stick"), WiimoteEmu::Classic::LEFT_STICK_GROUP,
@@ -101,13 +102,13 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_ir_box->setMinimumWidth(20);
   m_nunchuk_stick_box->setMinimumWidth(20);
 
-  m_remote_orientation_box = new QGroupBox(tr("Wii Remote Orientation"));
-
   auto* top_layout = new QHBoxLayout;
   top_layout->addWidget(m_ir_box);
   top_layout->addWidget(m_nunchuk_stick_box);
   top_layout->addWidget(m_classic_left_stick_box);
   top_layout->addWidget(m_classic_right_stick_box);
+
+  m_remote_accelerometer_box = new QGroupBox(tr("Wii Remote Accelerometer"));
 
   constexpr u16 ACCEL_ZERO_G = WiimoteEmu::Wiimote::ACCEL_ZERO_G << 2;
   constexpr u16 ACCEL_ONE_G = WiimoteEmu::Wiimote::ACCEL_ONE_G << 2;
@@ -115,57 +116,97 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   constexpr u16 ACCEL_MAX = (1 << 10) - 1;
   constexpr double ACCEL_SCALE = (ACCEL_ONE_G - ACCEL_ZERO_G) / MathUtil::GRAVITY_ACCELERATION;
 
-  auto* remote_orientation_x_layout =
+  auto* remote_accelerometer_x_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("X"), WiimoteEmu::Wiimote::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE,
                                   &m_wiimote_overrider, ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_MIN,
-                                  ACCEL_MAX, Qt::Key_Q, m_remote_orientation_box, ACCEL_SCALE);
-  auto* remote_orientation_y_layout =
+                                  ACCEL_MAX, Qt::Key_Q, m_remote_accelerometer_box, ACCEL_SCALE);
+  auto* remote_accelerometer_y_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("Y"), WiimoteEmu::Wiimote::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE,
                                   &m_wiimote_overrider, ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_MIN,
-                                  ACCEL_MAX, Qt::Key_W, m_remote_orientation_box, ACCEL_SCALE);
-  auto* remote_orientation_z_layout =
+                                  ACCEL_MAX, Qt::Key_W, m_remote_accelerometer_box, ACCEL_SCALE);
+  auto* remote_accelerometer_z_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("Z"), WiimoteEmu::Wiimote::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::Z_INPUT_OVERRIDE,
                                   &m_wiimote_overrider, ACCEL_ZERO_G, ACCEL_ONE_G, ACCEL_MIN,
-                                  ACCEL_MAX, Qt::Key_E, m_remote_orientation_box, ACCEL_SCALE);
+                                  ACCEL_MAX, Qt::Key_E, m_remote_accelerometer_box, ACCEL_SCALE);
 
-  auto* remote_orientation_layout = new QVBoxLayout;
-  remote_orientation_layout->addLayout(remote_orientation_x_layout);
-  remote_orientation_layout->addLayout(remote_orientation_y_layout);
-  remote_orientation_layout->addLayout(remote_orientation_z_layout);
-  m_remote_orientation_box->setLayout(remote_orientation_layout);
+  auto* remote_accelerometer_layout = new QVBoxLayout;
+  remote_accelerometer_layout->addLayout(remote_accelerometer_x_layout);
+  remote_accelerometer_layout->addLayout(remote_accelerometer_y_layout);
+  remote_accelerometer_layout->addLayout(remote_accelerometer_z_layout);
+  m_remote_accelerometer_box->setLayout(remote_accelerometer_layout);
 
-  m_nunchuk_orientation_box = new QGroupBox(tr("Nunchuk Orientation"));
+  m_remote_gyroscope_box = new QGroupBox(tr("Wii Remote Gyroscope"));
 
-  auto* nunchuk_orientation_x_layout =
+  // MotionPlus can report values using either a slow scale (greater precision) or a fast scale
+  // (greater range). To ensure the user can select every possible value, TAS input uses the
+  // precision of the slow scale and the range of the fast scale. This does mean TAS input has more
+  // selectable values than MotionPlus has reportable values, but that's not too big of a problem.
+  constexpr double GYRO_STRETCH =
+      static_cast<double>(WiimoteEmu::MotionPlus::CALIBRATION_FAST_SCALE_DEGREES) /
+      WiimoteEmu::MotionPlus::CALIBRATION_SLOW_SCALE_DEGREES;
+
+  constexpr u32 GYRO_MIN = 0;
+  constexpr u32 GYRO_MAX = WiimoteEmu::MotionPlus::MAX_VALUE * GYRO_STRETCH;
+  constexpr u32 GYRO_ZERO = WiimoteEmu::MotionPlus::ZERO_VALUE * GYRO_STRETCH;
+  constexpr double GYRO_SCALE = GYRO_MAX / 2 / WiimoteEmu::MotionPlus::FAST_MAX_RAD_PER_SEC;
+
+  auto* remote_gyroscope_x_layout =
+      // i18n: Refers to a 3D axis (used when mapping motion controls)
+      CreateSliderValuePairLayout(tr("X"), WiimoteEmu::Wiimote::GYROSCOPE_GROUP,
+                                  ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE,
+                                  &m_wiimote_overrider, GYRO_ZERO, GYRO_ZERO, GYRO_MIN, GYRO_MAX,
+                                  Qt::Key_R, m_remote_gyroscope_box, GYRO_SCALE);
+  auto* remote_gyroscope_y_layout =
+      // i18n: Refers to a 3D axis (used when mapping motion controls)
+      CreateSliderValuePairLayout(tr("Y"), WiimoteEmu::Wiimote::GYROSCOPE_GROUP,
+                                  ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE,
+                                  &m_wiimote_overrider, GYRO_ZERO, GYRO_ZERO, GYRO_MIN, GYRO_MAX,
+                                  Qt::Key_T, m_remote_gyroscope_box, GYRO_SCALE);
+  auto* remote_gyroscope_z_layout =
+      // i18n: Refers to a 3D axis (used when mapping motion controls)
+      CreateSliderValuePairLayout(tr("Z"), WiimoteEmu::Wiimote::GYROSCOPE_GROUP,
+                                  ControllerEmu::ReshapableInput::Z_INPUT_OVERRIDE,
+                                  &m_wiimote_overrider, GYRO_ZERO, GYRO_ZERO, GYRO_MIN, GYRO_MAX,
+                                  Qt::Key_Y, m_remote_gyroscope_box, GYRO_SCALE);
+
+  auto* remote_gyroscope_layout = new QVBoxLayout;
+  remote_gyroscope_layout->addLayout(remote_gyroscope_x_layout);
+  remote_gyroscope_layout->addLayout(remote_gyroscope_y_layout);
+  remote_gyroscope_layout->addLayout(remote_gyroscope_z_layout);
+  m_remote_gyroscope_box->setLayout(remote_gyroscope_layout);
+
+  m_nunchuk_accelerometer_box = new QGroupBox(tr("Nunchuk Accelerometer"));
+
+  auto* nunchuk_accelerometer_x_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("X"), WiimoteEmu::Nunchuk::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE,
                                   &m_nunchuk_overrider, ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_MIN,
-                                  ACCEL_MAX, Qt::Key_I, m_nunchuk_orientation_box);
-  auto* nunchuk_orientation_y_layout =
+                                  ACCEL_MAX, Qt::Key_I, m_nunchuk_accelerometer_box);
+  auto* nunchuk_accelerometer_y_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("Y"), WiimoteEmu::Nunchuk::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE,
                                   &m_nunchuk_overrider, ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_MIN,
-                                  ACCEL_MAX, Qt::Key_O, m_nunchuk_orientation_box);
-  auto* nunchuk_orientation_z_layout =
+                                  ACCEL_MAX, Qt::Key_O, m_nunchuk_accelerometer_box);
+  auto* nunchuk_accelerometer_z_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
       CreateSliderValuePairLayout(tr("Z"), WiimoteEmu::Nunchuk::ACCELEROMETER_GROUP,
                                   ControllerEmu::ReshapableInput::Z_INPUT_OVERRIDE,
                                   &m_nunchuk_overrider, ACCEL_ZERO_G, ACCEL_ONE_G, ACCEL_MIN,
-                                  ACCEL_MAX, Qt::Key_P, m_nunchuk_orientation_box);
+                                  ACCEL_MAX, Qt::Key_P, m_nunchuk_accelerometer_box);
 
-  auto* nunchuk_orientation_layout = new QVBoxLayout;
-  nunchuk_orientation_layout->addLayout(nunchuk_orientation_x_layout);
-  nunchuk_orientation_layout->addLayout(nunchuk_orientation_y_layout);
-  nunchuk_orientation_layout->addLayout(nunchuk_orientation_z_layout);
-  m_nunchuk_orientation_box->setLayout(nunchuk_orientation_layout);
+  auto* nunchuk_accelerometer_layout = new QVBoxLayout;
+  nunchuk_accelerometer_layout->addLayout(nunchuk_accelerometer_x_layout);
+  nunchuk_accelerometer_layout->addLayout(nunchuk_accelerometer_y_layout);
+  nunchuk_accelerometer_layout->addLayout(nunchuk_accelerometer_z_layout);
+  m_nunchuk_accelerometer_box->setLayout(nunchuk_accelerometer_layout);
 
   m_triggers_box = new QGroupBox(tr("Triggers"));
   auto* l_trigger_layout = CreateSliderValuePairLayout(
@@ -294,8 +335,9 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   auto* layout = new QVBoxLayout;
   layout->addLayout(top_layout);
-  layout->addWidget(m_remote_orientation_box);
-  layout->addWidget(m_nunchuk_orientation_box);
+  layout->addWidget(m_remote_accelerometer_box);
+  layout->addWidget(m_remote_gyroscope_box);
+  layout->addWidget(m_nunchuk_accelerometer_box);
   layout->addWidget(m_triggers_box);
   layout->addWidget(m_remote_buttons_box);
   layout->addWidget(m_nunchuk_buttons_box);
@@ -307,13 +349,16 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   if (Core::IsRunning())
   {
     m_active_extension = GetWiimote()->GetActiveExtensionNumber();
+    m_is_motion_plus_attached = GetWiimote()->IsMotionPlusAttached();
   }
   else
   {
     IniFile ini;
     ini.Load(File::GetUserPath(D_CONFIG_IDX) + "WiimoteNew.ini");
+    const std::string section_name = "Wiimote" + std::to_string(num + 1);
+
     std::string extension;
-    ini.GetIfExists("Wiimote" + std::to_string(num + 1), "Extension", &extension);
+    ini.GetIfExists(section_name, "Extension", &extension);
 
     if (extension == "Nunchuk")
       m_active_extension = WiimoteEmu::ExtensionNumber::NUNCHUK;
@@ -321,6 +366,9 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
       m_active_extension = WiimoteEmu::ExtensionNumber::CLASSIC;
     else
       m_active_extension = WiimoteEmu::ExtensionNumber::NONE;
+
+    m_is_motion_plus_attached = true;
+    ini.GetIfExists(section_name, "Extension/Attach MotionPlus", &m_is_motion_plus_attached);
   }
   UpdateExt();
 }
@@ -351,8 +399,9 @@ void WiiTASInputWindow::UpdateExt()
     m_nunchuk_stick_box->show();
     m_classic_right_stick_box->hide();
     m_classic_left_stick_box->hide();
-    m_remote_orientation_box->show();
-    m_nunchuk_orientation_box->show();
+    m_remote_accelerometer_box->show();
+    m_remote_gyroscope_box->setVisible(m_is_motion_plus_attached);
+    m_nunchuk_accelerometer_box->show();
     m_triggers_box->hide();
     m_nunchuk_buttons_box->show();
     m_remote_buttons_box->show();
@@ -365,8 +414,9 @@ void WiiTASInputWindow::UpdateExt()
     m_nunchuk_stick_box->hide();
     m_classic_right_stick_box->show();
     m_classic_left_stick_box->show();
-    m_remote_orientation_box->hide();
-    m_nunchuk_orientation_box->hide();
+    m_remote_accelerometer_box->hide();
+    m_remote_gyroscope_box->hide();
+    m_nunchuk_accelerometer_box->hide();
     m_triggers_box->show();
     m_remote_buttons_box->hide();
     m_nunchuk_buttons_box->hide();
@@ -379,8 +429,9 @@ void WiiTASInputWindow::UpdateExt()
     m_nunchuk_stick_box->hide();
     m_classic_right_stick_box->hide();
     m_classic_left_stick_box->hide();
-    m_remote_orientation_box->show();
-    m_nunchuk_orientation_box->hide();
+    m_remote_accelerometer_box->show();
+    m_remote_gyroscope_box->setVisible(m_is_motion_plus_attached);
+    m_nunchuk_accelerometer_box->hide();
     m_triggers_box->hide();
     m_remote_buttons_box->show();
     m_nunchuk_buttons_box->hide();

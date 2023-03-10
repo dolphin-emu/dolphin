@@ -94,8 +94,8 @@ TASCheckBox* TASInputWindow::CreateButton(const QString& text, std::string_view 
 }
 
 QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_view group_name,
-                                             InputOverrider* overrider, u16 min_x, u16 min_y,
-                                             u16 max_x, u16 max_y, Qt::Key x_shortcut_key,
+                                             InputOverrider* overrider, int min_x, int min_y,
+                                             int max_x, int max_y, Qt::Key x_shortcut_key,
                                              Qt::Key y_shortcut_key)
 {
   const QKeySequence x_shortcut_key_sequence = QKeySequence(Qt::ALT | x_shortcut_key);
@@ -153,7 +153,7 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
 
 QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(
     const QString& text, std::string_view group_name, std::string_view control_name,
-    InputOverrider* overrider, u16 zero, int default_, u16 min, u16 max, Qt::Key shortcut_key,
+    InputOverrider* overrider, int zero, int default_, int min, int max, Qt::Key shortcut_key,
     QWidget* shortcut_widget, std::optional<ControlState> scale)
 {
   const QKeySequence shortcut_key_sequence = QKeySequence(Qt::ALT | shortcut_key);
@@ -172,7 +172,7 @@ QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(
 
 TASSpinBox* TASInputWindow::CreateSliderValuePair(
     std::string_view group_name, std::string_view control_name, InputOverrider* overrider,
-    QBoxLayout* layout, u16 zero, int default_, u16 min, u16 max,
+    QBoxLayout* layout, int zero, int default_, int min, int max,
     QKeySequence shortcut_key_sequence, Qt::Orientation orientation, QWidget* shortcut_widget,
     std::optional<ControlState> scale)
 {
@@ -200,7 +200,7 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(
 
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
 // This is done to avoid ambigous shortcuts
-TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int default_, u16 max,
+TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
                                                   QKeySequence shortcut_key_sequence,
                                                   Qt::Orientation orientation,
                                                   QWidget* shortcut_widget)
@@ -244,24 +244,24 @@ std::optional<ControlState> TASInputWindow::GetButton(TASCheckBox* checkbox,
   return checkbox->GetValue() ? 1.0 : 0.0;
 }
 
-std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, u16 zero, u16 min, u16 max,
+std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, int zero, int min, int max,
                                                        ControlState controller_state)
 {
-  const u16 controller_value =
-      ControllerEmu::EmulatedController::MapFloat<u16>(controller_state, zero, 0, max);
+  const int controller_value =
+      ControllerEmu::EmulatedController::MapFloat<int>(controller_state, zero, 0, max);
 
   if (m_use_controller->isChecked())
     spin->OnControllerValueChanged(controller_value);
 
-  return ControllerEmu::EmulatedController::MapToFloat<ControlState, u16>(spin->GetValue(), zero,
+  return ControllerEmu::EmulatedController::MapToFloat<ControlState, int>(spin->GetValue(), zero,
                                                                           min, max);
 }
 
-std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, u16 zero,
+std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, int zero,
                                                        ControlState controller_state,
                                                        ControlState scale)
 {
-  const u16 controller_value = static_cast<u16>(std::llround(controller_state * scale + zero));
+  const int controller_value = static_cast<int>(std::llround(controller_state * scale + zero));
 
   if (m_use_controller->isChecked())
     spin->OnControllerValueChanged(controller_value);
