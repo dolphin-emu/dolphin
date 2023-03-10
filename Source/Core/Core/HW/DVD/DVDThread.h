@@ -50,15 +50,15 @@ namespace DVD
 {
 enum class ReplyType : u32;
 
-class DVDThreadManager
+class DVDThread
 {
 public:
-  explicit DVDThreadManager(Core::System& system);
-  DVDThreadManager(const DVDThreadManager&) = delete;
-  DVDThreadManager(DVDThreadManager&&) = delete;
-  DVDThreadManager& operator=(const DVDThreadManager&) = delete;
-  DVDThreadManager& operator=(DVDThreadManager&&) = delete;
-  ~DVDThreadManager();
+  explicit DVDThread(Core::System& system);
+  DVDThread(const DVDThread&) = delete;
+  DVDThread(DVDThread&&) = delete;
+  DVDThread& operator=(const DVDThread&) = delete;
+  DVDThread& operator=(DVDThread&&) = delete;
+  ~DVDThread();
 
   void Start();
   void Stop();

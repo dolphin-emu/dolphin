@@ -36,13 +36,13 @@
 
 namespace DVD
 {
-DVDThreadManager::DVDThreadManager(Core::System& system) : m_system(system)
+DVDThread::DVDThread(Core::System& system) : m_system(system)
 {
 }
 
-DVDThreadManager::~DVDThreadManager() = default;
+DVDThread::~DVDThread() = default;
 
-void DVDThreadManager::Start()
+void DVDThread::Start()
 {
   m_finish_read = m_system.GetCoreTiming().RegisterEvent("FinishReadDVDThread", GlobalFinishRead);
 
@@ -58,20 +58,20 @@ void DVDThreadManager::Start()
   StartDVDThread();
 }
 
-void DVDThreadManager::StartDVDThread()
+void DVDThread::StartDVDThread()
 {
   ASSERT(!m_dvd_thread.joinable());
   m_dvd_thread_exiting.Clear();
-  m_dvd_thread = std::thread(&DVDThreadManager::DVDThreadMain, this);
+  m_dvd_thread = std::thread(&DVDThread::DVDThreadMain, this);
 }
 
-void DVDThreadManager::Stop()
+void DVDThread::Stop()
 {
   StopDVDThread();
   m_disc.reset();
 }
 
-void DVDThreadManager::StopDVDThread()
+void DVDThread::StopDVDThread()
 {
   ASSERT(m_dvd_thread.joinable());
 
@@ -84,7 +84,7 @@ void DVDThreadManager::StopDVDThread()
   m_dvd_thread.join();
 }
 
-void DVDThreadManager::DoState(PointerWrap& p)
+void DVDThread::DoState(PointerWrap& p)
 {
   // By waiting for the DVD thread to be done working, we ensure
   // that request_queue will be empty and that the DVD thread
@@ -128,48 +128,48 @@ void DVDThreadManager::DoState(PointerWrap& p)
   // was made. Handling that properly may be more effort than it's worth.
 }
 
-void DVDThreadManager::SetDisc(std::unique_ptr<DiscIO::Volume> disc)
+void DVDThread::SetDisc(std::unique_ptr<DiscIO::Volume> disc)
 {
   WaitUntilIdle();
   m_disc = std::move(disc);
 }
 
-bool DVDThreadManager::HasDisc() const
+bool DVDThread::HasDisc() const
 {
   return m_disc != nullptr;
 }
 
-bool DVDThreadManager::HasWiiHashes() const
+bool DVDThread::HasWiiHashes() const
 {
   // HasWiiHashes is thread-safe, so calling WaitUntilIdle isn't necessary.
   return m_disc->HasWiiHashes();
 }
 
-DiscIO::Platform DVDThreadManager::GetDiscType() const
+DiscIO::Platform DVDThread::GetDiscType() const
 {
   // GetVolumeType is thread-safe, so calling WaitUntilIdle isn't necessary.
   return m_disc->GetVolumeType();
 }
 
-u64 DVDThreadManager::PartitionOffsetToRawOffset(u64 offset, const DiscIO::Partition& partition)
+u64 DVDThread::PartitionOffsetToRawOffset(u64 offset, const DiscIO::Partition& partition)
 {
   // PartitionOffsetToRawOffset is thread-safe, so calling WaitUntilIdle isn't necessary.
   return m_disc->PartitionOffsetToRawOffset(offset, partition);
 }
 
-IOS::ES::TMDReader DVDThreadManager::GetTMD(const DiscIO::Partition& partition)
+IOS::ES::TMDReader DVDThread::GetTMD(const DiscIO::Partition& partition)
 {
   WaitUntilIdle();
   return m_disc->GetTMD(partition);
 }
 
-IOS::ES::TicketReader DVDThreadManager::GetTicket(const DiscIO::Partition& partition)
+IOS::ES::TicketReader DVDThread::GetTicket(const DiscIO::Partition& partition)
 {
   WaitUntilIdle();
   return m_disc->GetTicket(partition);
 }
 
-bool DVDThreadManager::IsInsertedDiscRunning()
+bool DVDThread::IsInsertedDiscRunning()
 {
   if (!m_disc)
     return false;
@@ -179,8 +179,8 @@ bool DVDThreadManager::IsInsertedDiscRunning()
   return SConfig::GetInstance().GetGameID() == m_disc->GetGameID();
 }
 
-bool DVDThreadManager::UpdateRunningGameMetadata(const DiscIO::Partition& partition,
-                                                 std::optional<u64> title_id)
+bool DVDThread::UpdateRunningGameMetadata(const DiscIO::Partition& partition,
+                                          std::optional<u64> title_id)
 {
   if (!m_disc)
     return false;
@@ -198,7 +198,7 @@ bool DVDThreadManager::UpdateRunningGameMetadata(const DiscIO::Partition& partit
   return true;
 }
 
-void DVDThreadManager::WaitUntilIdle()
+void DVDThread::WaitUntilIdle()
 {
   ASSERT(Core::IsCPUThread());
 
@@ -209,23 +209,23 @@ void DVDThreadManager::WaitUntilIdle()
   StartDVDThread();
 }
 
-void DVDThreadManager::StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
-                                 DVD::ReplyType reply_type, s64 ticks_until_completion)
+void DVDThread::StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
+                          DVD::ReplyType reply_type, s64 ticks_until_completion)
 {
   StartReadInternal(false, 0, dvd_offset, length, partition, reply_type, ticks_until_completion);
 }
 
-void DVDThreadManager::StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
-                                              const DiscIO::Partition& partition,
-                                              DVD::ReplyType reply_type, s64 ticks_until_completion)
+void DVDThread::StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
+                                       const DiscIO::Partition& partition,
+                                       DVD::ReplyType reply_type, s64 ticks_until_completion)
 {
   StartReadInternal(true, output_address, dvd_offset, length, partition, reply_type,
                     ticks_until_completion);
 }
 
-void DVDThreadManager::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset,
-                                         u32 length, const DiscIO::Partition& partition,
-                                         DVD::ReplyType reply_type, s64 ticks_until_completion)
+void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
+                                  const DiscIO::Partition& partition, DVD::ReplyType reply_type,
+                                  s64 ticks_until_completion)
 {
   ASSERT(Core::IsCPUThread());
 
@@ -252,12 +252,12 @@ void DVDThreadManager::StartReadInternal(bool copy_to_ram, u32 output_address, u
   core_timing.ScheduleEvent(ticks_until_completion, m_finish_read, id);
 }
 
-void DVDThreadManager::GlobalFinishRead(Core::System& system, u64 id, s64 cycles_late)
+void DVDThread::GlobalFinishRead(Core::System& system, u64 id, s64 cycles_late)
 {
   system.GetDVDThread().FinishRead(id, cycles_late);
 }
 
-void DVDThreadManager::FinishRead(u64 id, s64 cycles_late)
+void DVDThread::FinishRead(u64 id, s64 cycles_late)
 {
   // We can't simply pop result_queue and always get the ReadResult
   // we want, because the DVD thread may add ReadResults to the queue
@@ -328,7 +328,7 @@ void DVDThreadManager::FinishRead(u64 id, s64 cycles_late)
   dvd_interface.FinishExecutingCommand(request.reply_type, interrupt, cycles_late, buffer);
 }
 
-void DVDThreadManager::DVDThreadMain()
+void DVDThread::DVDThreadMain()
 {
   Common::SetCurrentThreadName("DVD thread");
 
