@@ -117,7 +117,7 @@ void DVDInterfaceManager::DoState(PointerWrap& p)
 
   p.Do(m_disc_path_to_insert);
 
-  DVDThread::DoState(p);
+  m_system.GetDVDThread().DoState(p);
 
   m_adpcm_decoder.DoState(p);
 }
@@ -228,8 +228,8 @@ void DVDInterfaceManager::DTKStreamingCallback(DIInterruptType interrupt_type,
   ticks_to_dtk -= cycles_late;
   if (read_length > 0)
   {
-    DVDThread::StartRead(read_offset, read_length, DiscIO::PARTITION_NONE, ReplyType::DTK,
-                         ticks_to_dtk);
+    m_system.GetDVDThread().StartRead(read_offset, read_length, DiscIO::PARTITION_NONE,
+                                      ReplyType::DTK, ticks_to_dtk);
   }
   else
   {
@@ -243,7 +243,7 @@ void DVDInterfaceManager::Init()
 {
   ASSERT(!IsDiscInside());
 
-  DVDThread::Start();
+  m_system.GetDVDThread().Start();
 
   m_DISR.Hex = 0;
   m_DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
@@ -317,7 +317,7 @@ void DVDInterfaceManager::ResetDrive(bool spinup)
 
 void DVDInterfaceManager::Shutdown()
 {
-  DVDThread::Stop();
+  m_system.GetDVDThread().Stop();
 }
 
 static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
@@ -390,7 +390,7 @@ void DVDInterfaceManager::SetDisc(
   if (had_disc != has_disc)
     ExpansionInterface::g_rtc_flags[ExpansionInterface::RTCFlag::DiscChanged] = true;
 
-  DVDThread::SetDisc(std::move(disc));
+  m_system.GetDVDThread().SetDisc(std::move(disc));
   SetLidOpen();
 
   ResetDrive(false);
@@ -398,7 +398,7 @@ void DVDInterfaceManager::SetDisc(
 
 bool DVDInterfaceManager::IsDiscInside() const
 {
-  return DVDThread::HasDisc();
+  return m_system.GetDVDThread().HasDisc();
 }
 
 void DVDInterfaceManager::AutoChangeDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate)
@@ -494,10 +494,12 @@ void DVDInterfaceManager::SetLidOpen()
 
 bool DVDInterfaceManager::UpdateRunningGameMetadata(std::optional<u64> title_id)
 {
-  if (!DVDThread::HasDisc())
+  auto& dvd_thread = m_system.GetDVDThread();
+
+  if (!dvd_thread.HasDisc())
     return false;
 
-  return DVDThread::UpdateRunningGameMetadata(IOS::HLE::DIDevice::GetCurrentPartition(), title_id);
+  return dvd_thread.UpdateRunningGameMetadata(IOS::HLE::DIDevice::GetCurrentPartition(), title_id);
 }
 
 void DVDInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
@@ -1069,7 +1071,7 @@ void DVDInterfaceManager::ExecuteCommand(ReplyType reply_type)
     const bool force_eject = eject && !kill;
 
     if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !Movie::IsPlayingInput() &&
-        DVDThread::IsInsertedDiscRunning() && !m_auto_disc_change_paths.empty())
+        m_system.GetDVDThread().IsInsertedDiscRunning() && !m_auto_disc_change_paths.empty())
     {
       m_system.GetCoreTiming().ScheduleEvent(
           force_eject ? 0 : SystemTimers::GetTicksPerSecond() / 2, m_auto_change_disc);
@@ -1306,7 +1308,8 @@ void DVDInterfaceManager::ScheduleReads(u64 offset, u32 length, const DiscIO::Pa
   auto& core_timing = m_system.GetCoreTiming();
   const u64 current_time = core_timing.GetTicks();
   const u32 ticks_per_second = SystemTimers::GetTicksPerSecond();
-  const bool wii_disc = DVDThread::GetDiscType() == DiscIO::Platform::WiiDisc;
+  auto& dvd_thread = m_system.GetDVDThread();
+  const bool wii_disc = dvd_thread.GetDiscType() == DiscIO::Platform::WiiDisc;
 
   // Whether we have performed a seek.
   bool seek = false;
@@ -1323,7 +1326,7 @@ void DVDInterfaceManager::ScheduleReads(u64 offset, u32 length, const DiscIO::Pa
   // The variable dvd_offset tracks the actual offset on the DVD
   // that the disc drive starts reading at, which differs in two ways:
   // It's rounded to a whole ECC block and never uses Wii partition addressing.
-  u64 dvd_offset = DVDThread::PartitionOffsetToRawOffset(offset, partition);
+  u64 dvd_offset = dvd_thread.PartitionOffsetToRawOffset(offset, partition);
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
   const u64 first_block = dvd_offset;
 
@@ -1388,7 +1391,7 @@ void DVDInterfaceManager::ScheduleReads(u64 offset, u32 length, const DiscIO::Pa
   u32 buffered_blocks = 0;
   u32 unbuffered_blocks = 0;
 
-  const u32 bytes_per_chunk = partition != DiscIO::PARTITION_NONE && DVDThread::HasWiiHashes() ?
+  const u32 bytes_per_chunk = partition != DiscIO::PARTITION_NONE && dvd_thread.HasWiiHashes() ?
                                   DiscIO::VolumeWii::BLOCK_DATA_SIZE :
                                   DVD_ECC_BLOCK_SIZE;
 
@@ -1449,7 +1452,7 @@ void DVDInterfaceManager::ScheduleReads(u64 offset, u32 length, const DiscIO::Pa
 
     // Schedule this read to complete at the appropriate time
     const ReplyType chunk_reply_type = chunk_length == length ? reply_type : ReplyType::NoReply;
-    DVDThread::StartReadToEmulatedRAM(output_address, offset, chunk_length, partition,
+    dvd_thread.StartReadToEmulatedRAM(output_address, offset, chunk_length, partition,
                                       chunk_reply_type, ticks_until_completion);
 
     // Advance the read window

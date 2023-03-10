@@ -37,7 +37,7 @@ struct System::Impl
 {
   explicit Impl(System& system)
       : m_audio_interface(system), m_core_timing(system), m_dsp(system), m_dvd_interface(system),
-        m_gp_fifo(system), m_ppc_state(PowerPC::ppcState)
+        m_dvd_thread(system), m_gp_fifo(system), m_ppc_state(PowerPC::ppcState)
   {
   }
 
@@ -51,7 +51,7 @@ struct System::Impl
   CPU::CPUManager m_cpu;
   DSP::DSPManager m_dsp;
   DVDInterface::DVDInterfaceManager m_dvd_interface;
-  DVDThread::DVDThreadState m_dvd_thread_state;
+  DVDThread::DVDThreadManager m_dvd_thread;
   ExpansionInterface::ExpansionInterfaceState m_expansion_interface_state;
   Fifo::FifoManager m_fifo;
   GeometryShaderManager m_geometry_shader_manager;
@@ -143,9 +143,9 @@ DVDInterface::DVDInterfaceManager& System::GetDVDInterface() const
   return m_impl->m_dvd_interface;
 }
 
-DVDThread::DVDThreadState& System::GetDVDThreadState() const
+DVDThread::DVDThreadManager& System::GetDVDThread() const
 {
-  return m_impl->m_dvd_thread_state;
+  return m_impl->m_dvd_thread;
 }
 
 ExpansionInterface::ExpansionInterfaceState& System::GetExpansionInterfaceState() const

@@ -741,11 +741,12 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
     INFO_LOG_FMT(IOS_DI, "DVDLowOpenPartition: partition_offset {:#011x}", partition_offset);
 
     // Read TMD to the buffer
-    const ES::TMDReader tmd = DVDThread::GetTMD(m_current_partition);
+    auto& dvd_thread = system.GetDVDThread();
+    const ES::TMDReader tmd = dvd_thread.GetTMD(m_current_partition);
     const std::vector<u8>& raw_tmd = tmd.GetBytes();
     memory.CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
 
-    ReturnCode es_result = m_ios.GetES()->DIVerify(tmd, DVDThread::GetTicket(m_current_partition));
+    ReturnCode es_result = m_ios.GetES()->DIVerify(tmd, dvd_thread.GetTicket(m_current_partition));
     memory.Write_U32(es_result, request.io_vectors[1].address);
 
     return_value = DIResult::Success;
