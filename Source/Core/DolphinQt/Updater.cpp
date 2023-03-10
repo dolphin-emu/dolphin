@@ -3,6 +3,7 @@
 
 #include "DolphinQt/Updater.h"
 
+#include <cstdlib>
 #include <utility>
 
 #include <QCheckBox>
@@ -41,6 +42,16 @@ void Updater::CheckForUpdate()
 
 void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 {
+  if (std::getenv("DOLPHIN_UPDATE_SERVER_URL"))
+  {
+    TriggerUpdate(info, AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
+    RunOnObject(m_parent, [this] {
+      m_parent->close();
+      return 0;
+    });
+    return;
+  }
+
   bool later = false;
 
   std::optional<int> choice = RunOnObject(m_parent, [&] {

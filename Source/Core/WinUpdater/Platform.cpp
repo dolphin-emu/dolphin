@@ -194,9 +194,12 @@ static bool VCRuntimeUpdate(const BuildInfo& build_info)
 
   Common::ScopeGuard redist_deleter([&] { File::Delete(redist_path_u8); });
 
-  // The installer also supports /passive and /quiet. We pass neither to allow the user to see and
-  // interact with the installer.
+  // The installer also supports /passive and /quiet. We normally pass neither (the
+  // exception being test automation) to allow the user to see and interact with the installer.
   std::wstring cmdline = redist_path.filename().wstring() + L" /install /norestart";
+  if (UI::IsTestMode())
+    cmdline += L" /passive /quiet";
+
   STARTUPINFOW startup_info{.cb = sizeof(startup_info)};
   PROCESS_INFORMATION process_info;
   if (!CreateProcessW(redist_path.c_str(), cmdline.data(), nullptr, nullptr, TRUE, 0, nullptr,
@@ -213,7 +216,8 @@ static bool VCRuntimeUpdate(const BuildInfo& build_info)
   CloseHandle(process_info.hProcess);
   // NOTE: Some nonzero exit codes can still be considered success (e.g. if installation was
   // bypassed because the same version already installed).
-  return has_exit_code && exit_code == EXIT_SUCCESS;
+  return has_exit_code &&
+         (exit_code == ERROR_SUCCESS || exit_code == ERROR_SUCCESS_REBOOT_REQUIRED);
 }
 
 static BuildVersion CurrentOSVersion()
@@ -287,11 +291,16 @@ bool CheckBuildInfo(const BuildInfos& build_infos)
   // Check if application being launched needs more recent version of VC Redist. If so, download
   // latest updater and execute it.
   auto vc_check = VCRuntimeVersionCheck(build_infos);
-  if (vc_check.status != VersionCheckStatus::NothingToDo)
+  const auto is_test_mode = UI::IsTestMode();
+  if (vc_check.status != VersionCheckStatus::NothingToDo || is_test_mode)
   {
-    // Don't bother checking status of the install itself, just check if we actually see the new
-    // version.
-    VCRuntimeUpdate(build_infos.next);
+    auto update_ok = VCRuntimeUpdate(build_infos.next);
+    if (!update_ok && is_test_mode)
+    {
+      // For now, only check return value when test automation is running.
+      // The vc_redist exe may return other non-zero status that we don't check for, yet.
+      return false;
+    }
     vc_check = VCRuntimeVersionCheck(build_infos);
     if (vc_check.status == VersionCheckStatus::UpdateRequired)
     {
