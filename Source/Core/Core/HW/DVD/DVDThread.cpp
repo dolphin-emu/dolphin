@@ -34,7 +34,7 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
-namespace DVDThread
+namespace DVD
 {
 DVDThreadManager::DVDThreadManager(Core::System& system) : m_system(system)
 {
@@ -358,4 +358,4 @@ void DVDThreadManager::DVDThreadMain()
     }
   }
 }
-}  // namespace DVDThread
+}  // namespace DVD

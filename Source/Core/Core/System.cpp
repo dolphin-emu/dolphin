@@ -51,7 +51,7 @@ struct System::Impl
   CPU::CPUManager m_cpu;
   DSP::DSPManager m_dsp;
   DVD::DVDInterface m_dvd_interface;
-  DVDThread::DVDThreadManager m_dvd_thread;
+  DVD::DVDThreadManager m_dvd_thread;
   ExpansionInterface::ExpansionInterfaceState m_expansion_interface_state;
   Fifo::FifoManager m_fifo;
   GeometryShaderManager m_geometry_shader_manager;
@@ -143,7 +143,7 @@ DVD::DVDInterface& System::GetDVDInterface() const
   return m_impl->m_dvd_interface;
 }
 
-DVDThread::DVDThreadManager& System::GetDVDThread() const
+DVD::DVDThreadManager& System::GetDVDThread() const
 {
   return m_impl->m_dvd_thread;
 }

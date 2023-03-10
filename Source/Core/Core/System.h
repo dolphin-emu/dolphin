@@ -34,11 +34,8 @@ class DSPManager;
 namespace DVD
 {
 class DVDInterface;
-}
-namespace DVDThread
-{
 class DVDThreadManager;
-}
+}  // namespace DVD
 namespace ExpansionInterface
 {
 class ExpansionInterfaceState;
@@ -128,7 +125,7 @@ public:
   CommandProcessor::CommandProcessorManager& GetCommandProcessor() const;
   DSP::DSPManager& GetDSP() const;
   DVD::DVDInterface& GetDVDInterface() const;
-  DVDThread::DVDThreadManager& GetDVDThread() const;
+  DVD::DVDThreadManager& GetDVDThread() const;
   ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;
   Fifo::FifoManager& GetFifo() const;
   GeometryShaderManager& GetGeometryShaderManager() const;

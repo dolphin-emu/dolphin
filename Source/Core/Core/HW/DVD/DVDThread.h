@@ -34,11 +34,6 @@ namespace DiscIO
 struct Partition;
 }
 
-namespace DVD
-{
-enum class ReplyType : u32;
-}
-
 namespace DiscIO
 {
 enum class Platform;
@@ -51,8 +46,10 @@ class TMDReader;
 class TicketReader;
 }  // namespace IOS::ES
 
-namespace DVDThread
+namespace DVD
 {
+enum class ReplyType : u32;
+
 class DVDThreadManager
 {
 public:
@@ -148,4 +145,4 @@ private:
 
   Core::System& m_system;
 };
-}  // namespace DVDThread
+}  // namespace DVD
