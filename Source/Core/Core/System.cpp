@@ -36,7 +36,7 @@ namespace Core
 struct System::Impl
 {
   explicit Impl(System& system)
-      : m_audio_interface(system), m_core_timing(system), m_gp_fifo(system),
+      : m_audio_interface(system), m_core_timing(system), m_dsp(system), m_gp_fifo(system),
         m_ppc_state(PowerPC::ppcState)
   {
   }
@@ -49,7 +49,7 @@ struct System::Impl
   CoreTiming::CoreTimingManager m_core_timing;
   CommandProcessor::CommandProcessorManager m_command_processor;
   CPU::CPUManager m_cpu;
-  DSP::DSPState m_dsp_state;
+  DSP::DSPManager m_dsp;
   DVDInterface::DVDInterfaceState m_dvd_interface_state;
   DVDThread::DVDThreadState m_dvd_thread_state;
   ExpansionInterface::ExpansionInterfaceState m_expansion_interface_state;
@@ -133,9 +133,9 @@ CommandProcessor::CommandProcessorManager& System::GetCommandProcessor() const
   return m_impl->m_command_processor;
 }
 
-DSP::DSPState& System::GetDSPState() const
+DSP::DSPManager& System::GetDSP() const
 {
-  return m_impl->m_dsp_state;
+  return m_impl->m_dsp;
 }
 
 DVDInterface::DVDInterfaceState& System::GetDVDInterfaceState() const

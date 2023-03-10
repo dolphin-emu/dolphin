@@ -97,9 +97,9 @@ void DSPCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   // splits up the cycle budget in case lle is used
   // for hle, just gives all of the slice to hle
-  DSP::UpdateDSPSlice(static_cast<int>(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate));
-  system.GetCoreTiming().ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate,
-                                       et_DSP);
+  auto& dsp = system.GetDSP();
+  dsp.UpdateDSPSlice(static_cast<int>(dsp.GetDSPEmulator()->DSP_UpdateRate() - cyclesLate));
+  system.GetCoreTiming().ScheduleEvent(dsp.GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
 }
 
 int GetAudioDMACallbackPeriod()
@@ -112,7 +112,7 @@ int GetAudioDMACallbackPeriod()
 
 void AudioDMACallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  DSP::UpdateAudioDMA();  // Push audio to speakers.
+  system.GetDSP().UpdateAudioDMA();  // Push audio to speakers.
   system.GetCoreTiming().ScheduleEvent(GetAudioDMACallbackPeriod() - cyclesLate, et_AudioDMA);
 }
 
