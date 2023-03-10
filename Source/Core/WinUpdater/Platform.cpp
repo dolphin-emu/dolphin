@@ -241,7 +241,7 @@ static VersionCheckResult OSVersionCheck(const BuildInfo& build_info)
 
 std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& to_update,
                                          const std::string& install_base_path,
-                                         const std::string& temp_dir, FILE* log_fp)
+                                         const std::string& temp_dir)
 {
   const auto op_it = std::find_if(to_update.cbegin(), to_update.cend(),
                                   [&](const auto& op) { return op.filename == "build_info.txt"; });
@@ -255,7 +255,7 @@ std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& 
   if (!File::ReadFileToString(build_info_path, build_info_content) ||
       op.new_hash != ComputeHash(build_info_content))
   {
-    fprintf(log_fp, "Failed to read %s\n.", build_info_path.c_str());
+    LogToFile("Failed to read %s\n.", build_info_path.c_str());
     return {};
   }
   BuildInfos build_infos;
@@ -266,7 +266,7 @@ std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& 
   if (File::ReadFileToString(build_info_path, build_info_content))
   {
     if (op.old_hash != ComputeHash(build_info_content))
-      fprintf(log_fp, "Using modified existing BuildInfo %s.\n", build_info_path.c_str());
+      LogToFile("Using modified existing BuildInfo %s.\n", build_info_path.c_str());
     build_infos.current = Platform::BuildInfo(build_info_content);
   }
   return build_infos;
@@ -305,9 +305,9 @@ bool CheckBuildInfo(const BuildInfos& build_infos)
 }
 
 bool VersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
-                  const std::string& install_base_path, const std::string& temp_dir, FILE* log_fp)
+                  const std::string& install_base_path, const std::string& temp_dir)
 {
-  auto build_infos = InitBuildInfos(to_update, install_base_path, temp_dir, log_fp);
+  auto build_infos = InitBuildInfos(to_update, install_base_path, temp_dir);
   // If there's no build info, it means the check should be skipped.
   if (!build_infos.has_value())
   {
