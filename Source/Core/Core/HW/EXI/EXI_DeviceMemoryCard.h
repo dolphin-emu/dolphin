@@ -59,7 +59,7 @@ public:
 private:
   void SetupGciFolder(const Memcard::HeaderData& header_data);
   void SetupRawMemcard(u16 size_mb);
-  static void EventCompleteFindInstance(u64 userdata,
+  static void EventCompleteFindInstance(Core::System& system, u64 userdata,
                                         std::function<void(CEXIMemoryCard*)> callback);
 
   // Scheduled when a command that required delayed end signaling is done.

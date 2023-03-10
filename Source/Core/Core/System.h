@@ -38,7 +38,7 @@ class DVDThread;
 }  // namespace DVD
 namespace ExpansionInterface
 {
-class ExpansionInterfaceState;
+class ExpansionInterfaceManager;
 };
 namespace Fifo
 {
@@ -126,7 +126,7 @@ public:
   DSP::DSPManager& GetDSP() const;
   DVD::DVDInterface& GetDVDInterface() const;
   DVD::DVDThread& GetDVDThread() const;
-  ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;
+  ExpansionInterface::ExpansionInterfaceManager& GetExpansionInterface() const;
   Fifo::FifoManager& GetFifo() const;
   GeometryShaderManager& GetGeometryShaderManager() const;
   GPFifo::GPFifoManager& GetGPFifo() const;

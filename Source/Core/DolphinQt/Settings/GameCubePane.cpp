@@ -32,6 +32,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/NetPlayServer.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
@@ -496,7 +497,8 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
     {
       // ChangeDevice unplugs the device for 1 second, which means that games should notice that
       // the path has changed and thus the memory card contents have changed
-      ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::MemoryCard);
+      Core::System::GetInstance().GetExpansionInterface().ChangeDevice(
+          slot, ExpansionInterface::EXIDeviceType::MemoryCard);
     }
   }
 
@@ -601,7 +603,8 @@ bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& pa
     {
       // ChangeDevice unplugs the device for 1 second, which means that games should notice that
       // the path has changed and thus the memory card contents have changed
-      ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::MemoryCardFolder);
+      Core::System::GetInstance().GetExpansionInterface().ChangeDevice(
+          slot, ExpansionInterface::EXIDeviceType::MemoryCardFolder);
     }
   }
 
@@ -637,7 +640,8 @@ void GameCubePane::SetAGPRom(ExpansionInterface::Slot slot, const QString& filen
     // cartridge without unplugging it, and it's not clear if the AGP software actually notices
     // that it's been unplugged or the cartridge has changed, but this was done for memcards so
     // we might as well do it for the AGP too.
-    ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::AGP);
+    Core::System::GetInstance().GetExpansionInterface().ChangeDevice(
+        slot, ExpansionInterface::EXIDeviceType::AGP);
   }
 
   LoadSettings();
@@ -761,7 +765,7 @@ void GameCubePane::SaveSettings()
 
     if (Core::IsRunning() && current_exi_device != dev)
     {
-      ExpansionInterface::ChangeDevice(slot, dev);
+      Core::System::GetInstance().GetExpansionInterface().ChangeDevice(slot, dev);
     }
 
     Config::SetBaseOrCurrent(Config::GetInfoForEXIDevice(slot), dev);
