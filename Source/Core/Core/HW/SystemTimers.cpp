@@ -149,8 +149,9 @@ void PerfTrackerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 void VICallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   auto& core_timing = system.GetCoreTiming();
-  VideoInterface::Update(core_timing.GetTicks() - cyclesLate);
-  core_timing.ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
+  auto& vi = system.GetVideoInterface();
+  vi.Update(core_timing.GetTicks() - cyclesLate);
+  core_timing.ScheduleEvent(vi.GetTicksPerHalfLine() - cyclesLate, et_VI);
 }
 
 void DecrementerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
@@ -164,7 +165,7 @@ void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   // We have 2 periods, a 1000 cycle error period and the VI period.
   // We have to carefully combine these together so that we stay on the VI period without drifting.
-  u32 vi_interval = VideoInterface::GetTicksPerField();
+  u32 vi_interval = system.GetVideoInterface().GetTicksPerField();
   s64 cycles_pruned = (userdata + cycles_late) % vi_interval;
   s64 next_schedule = 0;
 
@@ -282,6 +283,7 @@ void Init()
 
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
+  auto& vi = system.GetVideoInterface();
 
   core_timing.SetFakeTBStartValue(static_cast<u64>(s_cpu_core_clock / TIMER_RATIO) *
                                   static_cast<u64>(ExpansionInterface::CEXIIPL::GetEmulatedTime(
@@ -303,11 +305,11 @@ void Init()
 
   core_timing.ScheduleEvent(0, et_perf_tracker);
   core_timing.ScheduleEvent(0, et_GPU_sleeper);
-  core_timing.ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
+  core_timing.ScheduleEvent(vi.GetTicksPerHalfLine(), et_VI);
   core_timing.ScheduleEvent(0, et_DSP);
   core_timing.ScheduleEvent(GetAudioDMACallbackPeriod(), et_AudioDMA);
 
-  core_timing.ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
+  core_timing.ScheduleEvent(vi.GetTicksPerField(), et_PatchEngine);
 
   if (SConfig::GetInstance().bWii)
     core_timing.ScheduleEvent(s_ipc_hle_period, et_IPC_HLE);

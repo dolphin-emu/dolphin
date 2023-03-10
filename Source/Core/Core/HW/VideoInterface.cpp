@@ -36,54 +36,11 @@
 
 namespace VideoInterface
 {
-struct VideoInterfaceState::Data
-{
-  // Registers listed in order:
-  UVIVerticalTimingRegister vertical_timing_register;
-  UVIDisplayControlRegister display_control_register;
-  UVIHorizontalTiming0 h_timing_0;
-  UVIHorizontalTiming1 h_timing_1;
-  UVIVBlankTimingRegister vblank_timing_odd;
-  UVIVBlankTimingRegister vblank_timing_even;
-  UVIBurstBlankingRegister burst_blanking_odd;
-  UVIBurstBlankingRegister burst_blanking_even;
-  UVIFBInfoRegister xfb_info_top;
-  UVIFBInfoRegister xfb_info_bottom;
-  UVIFBInfoRegister xfb_3d_info_top;  // Start making your stereoscopic demos! :p
-  UVIFBInfoRegister xfb_3d_info_bottom;
-  std::array<UVIInterruptRegister, 4> interrupt_register{};
-  std::array<UVILatchRegister, 2> latch_register{};
-  PictureConfigurationRegister picture_configuration;
-  UVIHorizontalScaling horizontal_scaling;
-  SVIFilterCoefTables filter_coef_tables;
-  u32 unknown_aa_register = 0;  // ??? 0x00FF0000
-  u16 clock = 0;                // 0: 27MHz, 1: 54MHz
-  UVIDTVStatus dtv_status;
-  UVIHorizontalStepping fb_width;  // Only correct when scaling is enabled?
-  UVIBorderBlankRegister border_hblank;
-  // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
-  // 0xcc002080 - 0xcc002100 even more unknown
-
-  double target_refresh_rate = 0;
-  u32 target_refresh_rate_numerator = 0;
-  u32 target_refresh_rate_denominator = 1;
-
-  u64 ticks_last_line_start = 0;      // number of ticks when the current full scanline started
-  u32 half_line_count = 0;            // number of halflines that have occurred for this full frame
-  u32 half_line_of_next_si_poll = 0;  // halfline when next SI poll results should be available
-
-  // below indexes are 0-based
-  u32 even_field_first_hl = 0;  // index first halfline of the even field
-  u32 odd_field_first_hl = 0;   // index first halfline of the odd field
-  u32 even_field_last_hl = 0;   // index last halfline of the even field
-  u32 odd_field_last_hl = 0;    // index last halfline of the odd field
-};
-
-VideoInterfaceState::VideoInterfaceState() : m_data(std::make_unique<Data>())
+VideoInterfaceManager::VideoInterfaceManager(Core::System& system) : m_system(system)
 {
 }
 
-VideoInterfaceState::~VideoInterfaceState() = default;
+VideoInterfaceManager::~VideoInterfaceManager() = default;
 
 static constexpr std::array<u32, 2> CLOCK_FREQUENCIES{{
     27000000,
@@ -92,139 +49,133 @@ static constexpr std::array<u32, 2> CLOCK_FREQUENCIES{{
 
 static constexpr u32 NUM_HALF_LINES_FOR_SI_POLL = (7 * 2) + 1;  // this is how long an SI poll takes
 
-void DoState(PointerWrap& p)
+void VideoInterfaceManager::DoState(PointerWrap& p)
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-
-  p.Do(state.vertical_timing_register);
-  p.Do(state.display_control_register);
-  p.Do(state.h_timing_0);
-  p.Do(state.h_timing_1);
-  p.Do(state.vblank_timing_odd);
-  p.Do(state.vblank_timing_even);
-  p.Do(state.burst_blanking_odd);
-  p.Do(state.burst_blanking_even);
-  p.Do(state.xfb_info_top);
-  p.Do(state.xfb_info_bottom);
-  p.Do(state.xfb_3d_info_top);
-  p.Do(state.xfb_3d_info_bottom);
-  p.DoArray(state.interrupt_register);
-  p.DoArray(state.latch_register);
-  p.Do(state.picture_configuration);
-  p.Do(state.horizontal_scaling);
-  p.DoArray(state.filter_coef_tables.Tables02);
-  p.DoArray(state.filter_coef_tables.Tables36);
-  p.Do(state.unknown_aa_register);
-  p.Do(state.clock);
-  p.Do(state.dtv_status);
-  p.Do(state.fb_width);
-  p.Do(state.border_hblank);
-  p.Do(state.target_refresh_rate);
-  p.Do(state.target_refresh_rate_numerator);
-  p.Do(state.target_refresh_rate_denominator);
-  p.Do(state.ticks_last_line_start);
-  p.Do(state.half_line_count);
-  p.Do(state.half_line_of_next_si_poll);
-  p.Do(state.even_field_first_hl);
-  p.Do(state.odd_field_first_hl);
-  p.Do(state.even_field_last_hl);
-  p.Do(state.odd_field_last_hl);
+  p.Do(m_vertical_timing_register);
+  p.Do(m_display_control_register);
+  p.Do(m_h_timing_0);
+  p.Do(m_h_timing_1);
+  p.Do(m_vblank_timing_odd);
+  p.Do(m_vblank_timing_even);
+  p.Do(m_burst_blanking_odd);
+  p.Do(m_burst_blanking_even);
+  p.Do(m_xfb_info_top);
+  p.Do(m_xfb_info_bottom);
+  p.Do(m_xfb_3d_info_top);
+  p.Do(m_xfb_3d_info_bottom);
+  p.DoArray(m_interrupt_register);
+  p.DoArray(m_latch_register);
+  p.Do(m_picture_configuration);
+  p.Do(m_horizontal_scaling);
+  p.DoArray(m_filter_coef_tables.Tables02);
+  p.DoArray(m_filter_coef_tables.Tables36);
+  p.Do(m_unknown_aa_register);
+  p.Do(m_clock);
+  p.Do(m_dtv_status);
+  p.Do(m_fb_width);
+  p.Do(m_border_hblank);
+  p.Do(m_target_refresh_rate);
+  p.Do(m_target_refresh_rate_numerator);
+  p.Do(m_target_refresh_rate_denominator);
+  p.Do(m_ticks_last_line_start);
+  p.Do(m_half_line_count);
+  p.Do(m_half_line_of_next_si_poll);
+  p.Do(m_even_field_first_hl);
+  p.Do(m_odd_field_first_hl);
+  p.Do(m_even_field_last_hl);
+  p.Do(m_odd_field_last_hl);
 }
 
 // Executed after Init, before game boot
-void Preset(bool _bNTSC)
+void VideoInterfaceManager::Preset(bool _bNTSC)
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-
   // NOTE: Make sure all registers are set to the correct initial state. The
   //	variables are not going to start zeroed if another game has been run
   //	previously (and mutated everything).
 
-  state.vertical_timing_register.EQU = 6;
-  state.vertical_timing_register.ACV = 0;
+  m_vertical_timing_register.EQU = 6;
+  m_vertical_timing_register.ACV = 0;
 
-  state.display_control_register.ENB = 1;
-  state.display_control_register.RST = 0;
-  state.display_control_register.NIN = 0;
-  state.display_control_register.DLR = 0;
-  state.display_control_register.LE0 = 0;
-  state.display_control_register.LE1 = 0;
-  state.display_control_register.FMT = _bNTSC ? 0 : 1;
+  m_display_control_register.ENB = 1;
+  m_display_control_register.RST = 0;
+  m_display_control_register.NIN = 0;
+  m_display_control_register.DLR = 0;
+  m_display_control_register.LE0 = 0;
+  m_display_control_register.LE1 = 0;
+  m_display_control_register.FMT = _bNTSC ? 0 : 1;
 
-  state.h_timing_0.HLW = 429;
-  state.h_timing_0.HCE = 105;
-  state.h_timing_0.HCS = 71;
-  state.h_timing_1.HSY = 64;
-  state.h_timing_1.HBE640 = 162;
-  state.h_timing_1.HBS640 = 373;
+  m_h_timing_0.HLW = 429;
+  m_h_timing_0.HCE = 105;
+  m_h_timing_0.HCS = 71;
+  m_h_timing_1.HSY = 64;
+  m_h_timing_1.HBE640 = 162;
+  m_h_timing_1.HBS640 = 373;
 
-  state.vblank_timing_odd.PRB = 502;
-  state.vblank_timing_odd.PSB = 5;
-  state.vblank_timing_even.PRB = 503;
-  state.vblank_timing_even.PSB = 4;
+  m_vblank_timing_odd.PRB = 502;
+  m_vblank_timing_odd.PSB = 5;
+  m_vblank_timing_even.PRB = 503;
+  m_vblank_timing_even.PSB = 4;
 
-  state.burst_blanking_odd.BS0 = 12;
-  state.burst_blanking_odd.BE0 = 520;
-  state.burst_blanking_odd.BS2 = 12;
-  state.burst_blanking_odd.BE2 = 520;
-  state.burst_blanking_even.BS0 = 13;
-  state.burst_blanking_even.BE0 = 519;
-  state.burst_blanking_even.BS2 = 13;
-  state.burst_blanking_even.BE2 = 519;
+  m_burst_blanking_odd.BS0 = 12;
+  m_burst_blanking_odd.BE0 = 520;
+  m_burst_blanking_odd.BS2 = 12;
+  m_burst_blanking_odd.BE2 = 520;
+  m_burst_blanking_even.BS0 = 13;
+  m_burst_blanking_even.BE0 = 519;
+  m_burst_blanking_even.BS2 = 13;
+  m_burst_blanking_even.BE2 = 519;
 
-  state.xfb_info_top.Hex = 0;
-  state.xfb_info_bottom.Hex = 0;
-  state.xfb_3d_info_top.Hex = 0;
-  state.xfb_3d_info_bottom.Hex = 0;
+  m_xfb_info_top.Hex = 0;
+  m_xfb_info_bottom.Hex = 0;
+  m_xfb_3d_info_top.Hex = 0;
+  m_xfb_3d_info_bottom.Hex = 0;
 
-  state.interrupt_register[0].HCT = 430;
-  state.interrupt_register[0].VCT = 263;
-  state.interrupt_register[0].IR_MASK = 1;
-  state.interrupt_register[0].IR_INT = 0;
-  state.interrupt_register[1].HCT = 1;
-  state.interrupt_register[1].VCT = 1;
-  state.interrupt_register[1].IR_MASK = 1;
-  state.interrupt_register[1].IR_INT = 0;
-  state.interrupt_register[2].Hex = 0;
-  state.interrupt_register[3].Hex = 0;
+  m_interrupt_register[0].HCT = 430;
+  m_interrupt_register[0].VCT = 263;
+  m_interrupt_register[0].IR_MASK = 1;
+  m_interrupt_register[0].IR_INT = 0;
+  m_interrupt_register[1].HCT = 1;
+  m_interrupt_register[1].VCT = 1;
+  m_interrupt_register[1].IR_MASK = 1;
+  m_interrupt_register[1].IR_INT = 0;
+  m_interrupt_register[2].Hex = 0;
+  m_interrupt_register[3].Hex = 0;
 
-  state.latch_register = {};
+  m_latch_register = {};
 
-  state.picture_configuration.STD = 40;
-  state.picture_configuration.WPL = 40;
+  m_picture_configuration.STD = 40;
+  m_picture_configuration.WPL = 40;
 
-  state.horizontal_scaling.Hex = 0;
-  state.filter_coef_tables = {};
-  state.unknown_aa_register = 0;
+  m_horizontal_scaling.Hex = 0;
+  m_filter_coef_tables = {};
+  m_unknown_aa_register = 0;
 
   DiscIO::Region region = SConfig::GetInstance().m_region;
 
   // 54MHz, capable of progressive scan
-  state.clock = DiscIO::IsNTSC(region);
+  m_clock = DiscIO::IsNTSC(region);
 
   // Say component cable is plugged
-  state.dtv_status.component_plugged = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
-  state.dtv_status.ntsc_j = region == DiscIO::Region::NTSC_J;
+  m_dtv_status.component_plugged = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
+  m_dtv_status.ntsc_j = region == DiscIO::Region::NTSC_J;
 
-  state.fb_width.Hex = 0;
-  state.border_hblank.Hex = 0;
+  m_fb_width.Hex = 0;
+  m_border_hblank.Hex = 0;
 
-  state.ticks_last_line_start = 0;
-  state.half_line_count = 0;
-  state.half_line_of_next_si_poll = NUM_HALF_LINES_FOR_SI_POLL;  // first sampling starts at vsync
+  m_ticks_last_line_start = 0;
+  m_half_line_count = 0;
+  m_half_line_of_next_si_poll = NUM_HALF_LINES_FOR_SI_POLL;  // first sampling starts at vsync
 
   UpdateParameters();
 }
 
-void Init()
+void VideoInterfaceManager::Init()
 {
   Preset(true);
 }
 
-void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void VideoInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-
   struct MappedVar
   {
     u32 addr;
@@ -232,52 +183,52 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   };
 
   std::array<MappedVar, 46> directly_mapped_vars{{
-      {VI_VERTICAL_TIMING, &state.vertical_timing_register.Hex},
-      {VI_HORIZONTAL_TIMING_0_HI, &state.h_timing_0.Hi},
-      {VI_HORIZONTAL_TIMING_0_LO, &state.h_timing_0.Lo},
-      {VI_HORIZONTAL_TIMING_1_HI, &state.h_timing_1.Hi},
-      {VI_HORIZONTAL_TIMING_1_LO, &state.h_timing_1.Lo},
-      {VI_VBLANK_TIMING_ODD_HI, &state.vblank_timing_odd.Hi},
-      {VI_VBLANK_TIMING_ODD_LO, &state.vblank_timing_odd.Lo},
-      {VI_VBLANK_TIMING_EVEN_HI, &state.vblank_timing_even.Hi},
-      {VI_VBLANK_TIMING_EVEN_LO, &state.vblank_timing_even.Lo},
-      {VI_BURST_BLANKING_ODD_HI, &state.burst_blanking_odd.Hi},
-      {VI_BURST_BLANKING_ODD_LO, &state.burst_blanking_odd.Lo},
-      {VI_BURST_BLANKING_EVEN_HI, &state.burst_blanking_even.Hi},
-      {VI_BURST_BLANKING_EVEN_LO, &state.burst_blanking_even.Lo},
-      {VI_FB_LEFT_TOP_LO, &state.xfb_info_top.Lo},
-      {VI_FB_RIGHT_TOP_LO, &state.xfb_3d_info_top.Lo},
-      {VI_FB_LEFT_BOTTOM_LO, &state.xfb_info_bottom.Lo},
-      {VI_FB_RIGHT_BOTTOM_LO, &state.xfb_3d_info_bottom.Lo},
-      {VI_PRERETRACE_LO, &state.interrupt_register[0].Lo},
-      {VI_POSTRETRACE_LO, &state.interrupt_register[1].Lo},
-      {VI_DISPLAY_INTERRUPT_2_LO, &state.interrupt_register[2].Lo},
-      {VI_DISPLAY_INTERRUPT_3_LO, &state.interrupt_register[3].Lo},
-      {VI_DISPLAY_LATCH_0_HI, &state.latch_register[0].Hi},
-      {VI_DISPLAY_LATCH_0_LO, &state.latch_register[0].Lo},
-      {VI_DISPLAY_LATCH_1_HI, &state.latch_register[1].Hi},
-      {VI_DISPLAY_LATCH_1_LO, &state.latch_register[1].Lo},
-      {VI_HSCALEW, &state.picture_configuration.Hex},
-      {VI_HSCALER, &state.horizontal_scaling.Hex},
-      {VI_FILTER_COEF_0_HI, &state.filter_coef_tables.Tables02[0].Hi},
-      {VI_FILTER_COEF_0_LO, &state.filter_coef_tables.Tables02[0].Lo},
-      {VI_FILTER_COEF_1_HI, &state.filter_coef_tables.Tables02[1].Hi},
-      {VI_FILTER_COEF_1_LO, &state.filter_coef_tables.Tables02[1].Lo},
-      {VI_FILTER_COEF_2_HI, &state.filter_coef_tables.Tables02[2].Hi},
-      {VI_FILTER_COEF_2_LO, &state.filter_coef_tables.Tables02[2].Lo},
-      {VI_FILTER_COEF_3_HI, &state.filter_coef_tables.Tables36[0].Hi},
-      {VI_FILTER_COEF_3_LO, &state.filter_coef_tables.Tables36[0].Lo},
-      {VI_FILTER_COEF_4_HI, &state.filter_coef_tables.Tables36[1].Hi},
-      {VI_FILTER_COEF_4_LO, &state.filter_coef_tables.Tables36[1].Lo},
-      {VI_FILTER_COEF_5_HI, &state.filter_coef_tables.Tables36[2].Hi},
-      {VI_FILTER_COEF_5_LO, &state.filter_coef_tables.Tables36[2].Lo},
-      {VI_FILTER_COEF_6_HI, &state.filter_coef_tables.Tables36[3].Hi},
-      {VI_FILTER_COEF_6_LO, &state.filter_coef_tables.Tables36[3].Lo},
-      {VI_CLOCK, &state.clock},
-      {VI_DTV_STATUS, &state.dtv_status.Hex},
-      {VI_FBWIDTH, &state.fb_width.Hex},
-      {VI_BORDER_BLANK_END, &state.border_hblank.Lo},
-      {VI_BORDER_BLANK_START, &state.border_hblank.Hi},
+      {VI_VERTICAL_TIMING, &m_vertical_timing_register.Hex},
+      {VI_HORIZONTAL_TIMING_0_HI, &m_h_timing_0.Hi},
+      {VI_HORIZONTAL_TIMING_0_LO, &m_h_timing_0.Lo},
+      {VI_HORIZONTAL_TIMING_1_HI, &m_h_timing_1.Hi},
+      {VI_HORIZONTAL_TIMING_1_LO, &m_h_timing_1.Lo},
+      {VI_VBLANK_TIMING_ODD_HI, &m_vblank_timing_odd.Hi},
+      {VI_VBLANK_TIMING_ODD_LO, &m_vblank_timing_odd.Lo},
+      {VI_VBLANK_TIMING_EVEN_HI, &m_vblank_timing_even.Hi},
+      {VI_VBLANK_TIMING_EVEN_LO, &m_vblank_timing_even.Lo},
+      {VI_BURST_BLANKING_ODD_HI, &m_burst_blanking_odd.Hi},
+      {VI_BURST_BLANKING_ODD_LO, &m_burst_blanking_odd.Lo},
+      {VI_BURST_BLANKING_EVEN_HI, &m_burst_blanking_even.Hi},
+      {VI_BURST_BLANKING_EVEN_LO, &m_burst_blanking_even.Lo},
+      {VI_FB_LEFT_TOP_LO, &m_xfb_info_top.Lo},
+      {VI_FB_RIGHT_TOP_LO, &m_xfb_3d_info_top.Lo},
+      {VI_FB_LEFT_BOTTOM_LO, &m_xfb_info_bottom.Lo},
+      {VI_FB_RIGHT_BOTTOM_LO, &m_xfb_3d_info_bottom.Lo},
+      {VI_PRERETRACE_LO, &m_interrupt_register[0].Lo},
+      {VI_POSTRETRACE_LO, &m_interrupt_register[1].Lo},
+      {VI_DISPLAY_INTERRUPT_2_LO, &m_interrupt_register[2].Lo},
+      {VI_DISPLAY_INTERRUPT_3_LO, &m_interrupt_register[3].Lo},
+      {VI_DISPLAY_LATCH_0_HI, &m_latch_register[0].Hi},
+      {VI_DISPLAY_LATCH_0_LO, &m_latch_register[0].Lo},
+      {VI_DISPLAY_LATCH_1_HI, &m_latch_register[1].Hi},
+      {VI_DISPLAY_LATCH_1_LO, &m_latch_register[1].Lo},
+      {VI_HSCALEW, &m_picture_configuration.Hex},
+      {VI_HSCALER, &m_horizontal_scaling.Hex},
+      {VI_FILTER_COEF_0_HI, &m_filter_coef_tables.Tables02[0].Hi},
+      {VI_FILTER_COEF_0_LO, &m_filter_coef_tables.Tables02[0].Lo},
+      {VI_FILTER_COEF_1_HI, &m_filter_coef_tables.Tables02[1].Hi},
+      {VI_FILTER_COEF_1_LO, &m_filter_coef_tables.Tables02[1].Lo},
+      {VI_FILTER_COEF_2_HI, &m_filter_coef_tables.Tables02[2].Hi},
+      {VI_FILTER_COEF_2_LO, &m_filter_coef_tables.Tables02[2].Lo},
+      {VI_FILTER_COEF_3_HI, &m_filter_coef_tables.Tables36[0].Hi},
+      {VI_FILTER_COEF_3_LO, &m_filter_coef_tables.Tables36[0].Lo},
+      {VI_FILTER_COEF_4_HI, &m_filter_coef_tables.Tables36[1].Hi},
+      {VI_FILTER_COEF_4_LO, &m_filter_coef_tables.Tables36[1].Lo},
+      {VI_FILTER_COEF_5_HI, &m_filter_coef_tables.Tables36[2].Hi},
+      {VI_FILTER_COEF_5_LO, &m_filter_coef_tables.Tables36[2].Lo},
+      {VI_FILTER_COEF_6_HI, &m_filter_coef_tables.Tables36[3].Hi},
+      {VI_FILTER_COEF_6_LO, &m_filter_coef_tables.Tables36[3].Lo},
+      {VI_CLOCK, &m_clock},
+      {VI_DTV_STATUS, &m_dtv_status.Hex},
+      {VI_FBWIDTH, &m_fb_width.Hex},
+      {VI_BORDER_BLANK_END, &m_border_hblank.Lo},
+      {VI_BORDER_BLANK_START, &m_border_hblank.Hi},
   }};
 
   // Declare all the boilerplate direct MMIOs.
@@ -288,61 +239,61 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 
   std::array<MappedVar, 8> update_params_on_read_vars{{
-      {VI_VERTICAL_TIMING, &state.vertical_timing_register.Hex},
-      {VI_HORIZONTAL_TIMING_0_HI, &state.h_timing_0.Hi},
-      {VI_HORIZONTAL_TIMING_0_LO, &state.h_timing_0.Lo},
-      {VI_VBLANK_TIMING_ODD_HI, &state.vblank_timing_odd.Hi},
-      {VI_VBLANK_TIMING_ODD_LO, &state.vblank_timing_odd.Lo},
-      {VI_VBLANK_TIMING_EVEN_HI, &state.vblank_timing_even.Hi},
-      {VI_VBLANK_TIMING_EVEN_LO, &state.vblank_timing_even.Lo},
-      {VI_CLOCK, &state.clock},
+      {VI_VERTICAL_TIMING, &m_vertical_timing_register.Hex},
+      {VI_HORIZONTAL_TIMING_0_HI, &m_h_timing_0.Hi},
+      {VI_HORIZONTAL_TIMING_0_LO, &m_h_timing_0.Lo},
+      {VI_VBLANK_TIMING_ODD_HI, &m_vblank_timing_odd.Hi},
+      {VI_VBLANK_TIMING_ODD_LO, &m_vblank_timing_odd.Lo},
+      {VI_VBLANK_TIMING_EVEN_HI, &m_vblank_timing_even.Hi},
+      {VI_VBLANK_TIMING_EVEN_LO, &m_vblank_timing_even.Lo},
+      {VI_CLOCK, &m_clock},
   }};
 
   // Declare all the MMIOs that update timing params.
   for (auto& mapped_var : update_params_on_read_vars)
   {
     mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
-                   MMIO::ComplexWrite<u16>([mapped_var](Core::System&, u32, u16 val) {
+                   MMIO::ComplexWrite<u16>([mapped_var](Core::System& system, u32, u16 val) {
                      *mapped_var.ptr = val;
-                     UpdateParameters();
+                     system.GetVideoInterface().UpdateParameters();
                    }));
   }
 
   // XFB related MMIOs that require special handling on writes.
-  mmio->Register(base | VI_FB_LEFT_TOP_HI, MMIO::DirectRead<u16>(&state.xfb_info_top.Hi),
+  mmio->Register(base | VI_FB_LEFT_TOP_HI, MMIO::DirectRead<u16>(&m_xfb_info_top.Hi),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   state_.xfb_info_top.Hi = val;
-                   if (state_.xfb_info_top.CLRPOFF)
-                     state_.xfb_info_top.POFF = 0;
+                   auto& vi = system.GetVideoInterface();
+                   vi.m_xfb_info_top.Hi = val;
+                   if (vi.m_xfb_info_top.CLRPOFF)
+                     vi.m_xfb_info_top.POFF = 0;
                  }));
-  mmio->Register(base | VI_FB_LEFT_BOTTOM_HI, MMIO::DirectRead<u16>(&state.xfb_info_bottom.Hi),
+  mmio->Register(base | VI_FB_LEFT_BOTTOM_HI, MMIO::DirectRead<u16>(&m_xfb_info_bottom.Hi),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   state_.xfb_info_bottom.Hi = val;
-                   if (state_.xfb_info_bottom.CLRPOFF)
-                     state_.xfb_info_bottom.POFF = 0;
+                   auto& vi = system.GetVideoInterface();
+                   vi.m_xfb_info_bottom.Hi = val;
+                   if (vi.m_xfb_info_bottom.CLRPOFF)
+                     vi.m_xfb_info_bottom.POFF = 0;
                  }));
-  mmio->Register(base | VI_FB_RIGHT_TOP_HI, MMIO::DirectRead<u16>(&state.xfb_3d_info_top.Hi),
+  mmio->Register(base | VI_FB_RIGHT_TOP_HI, MMIO::DirectRead<u16>(&m_xfb_3d_info_top.Hi),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   state_.xfb_3d_info_top.Hi = val;
-                   if (state_.xfb_3d_info_top.CLRPOFF)
-                     state_.xfb_3d_info_top.POFF = 0;
+                   auto& vi = system.GetVideoInterface();
+                   vi.m_xfb_3d_info_top.Hi = val;
+                   if (vi.m_xfb_3d_info_top.CLRPOFF)
+                     vi.m_xfb_3d_info_top.POFF = 0;
                  }));
-  mmio->Register(base | VI_FB_RIGHT_BOTTOM_HI, MMIO::DirectRead<u16>(&state.xfb_3d_info_bottom.Hi),
+  mmio->Register(base | VI_FB_RIGHT_BOTTOM_HI, MMIO::DirectRead<u16>(&m_xfb_3d_info_bottom.Hi),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   state_.xfb_3d_info_bottom.Hi = val;
-                   if (state_.xfb_3d_info_bottom.CLRPOFF)
-                     state_.xfb_3d_info_bottom.POFF = 0;
+                   auto& vi = system.GetVideoInterface();
+                   vi.m_xfb_3d_info_bottom.Hi = val;
+                   if (vi.m_xfb_3d_info_bottom.CLRPOFF)
+                     vi.m_xfb_3d_info_bottom.POFF = 0;
                  }));
 
   // MMIOs with unimplemented writes that trigger warnings.
   mmio->Register(
       base | VI_VERTICAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-        auto& state_ = system.GetVideoInterfaceState().GetData();
-        return 1 + (state_.half_line_count) / 2;
+        auto& vi = system.GetVideoInterface();
+        return 1 + (vi.m_half_line_count) / 2;
       }),
       MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
         WARN_LOG_FMT(
@@ -351,12 +302,12 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       }));
   mmio->Register(
       base | VI_HORIZONTAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-        auto& state_ = system.GetVideoInterfaceState().GetData();
+        auto& vi = system.GetVideoInterface();
         u16 value = static_cast<u16>(
-            1 + state_.h_timing_0.HLW *
-                    (system.GetCoreTiming().GetTicks() - state_.ticks_last_line_start) /
-                    (GetTicksPerHalfLine()));
-        return std::clamp<u16>(value, 1, state_.h_timing_0.HLW * 2);
+            1 + vi.m_h_timing_0.HLW *
+                    (system.GetCoreTiming().GetTicks() - vi.m_ticks_last_line_start) /
+                    (vi.GetTicksPerHalfLine()));
+        return std::clamp<u16>(value, 1, vi.m_h_timing_0.HLW * 2);
       }),
       MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
         WARN_LOG_FMT(
@@ -367,79 +318,78 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // The following MMIOs are interrupts related and update interrupt status
   // on writes.
-  mmio->Register(base | VI_PRERETRACE_HI, MMIO::DirectRead<u16>(&state.interrupt_register[0].Hi),
+  mmio->Register(base | VI_PRERETRACE_HI, MMIO::DirectRead<u16>(&m_interrupt_register[0].Hi),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   state_.interrupt_register[0].Hi = val;
-                   UpdateInterrupts();
+                   auto& vi = system.GetVideoInterface();
+                   vi.m_interrupt_register[0].Hi = val;
+                   vi.UpdateInterrupts();
                  }));
-  mmio->Register(base | VI_POSTRETRACE_HI, MMIO::DirectRead<u16>(&state.interrupt_register[1].Hi),
+  mmio->Register(base | VI_POSTRETRACE_HI, MMIO::DirectRead<u16>(&m_interrupt_register[1].Hi),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   state_.interrupt_register[1].Hi = val;
-                   UpdateInterrupts();
+                   auto& vi = system.GetVideoInterface();
+                   vi.m_interrupt_register[1].Hi = val;
+                   vi.UpdateInterrupts();
                  }));
   mmio->Register(base | VI_DISPLAY_INTERRUPT_2_HI,
-                 MMIO::DirectRead<u16>(&state.interrupt_register[2].Hi),
+                 MMIO::DirectRead<u16>(&m_interrupt_register[2].Hi),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   state_.interrupt_register[2].Hi = val;
-                   UpdateInterrupts();
+                   auto& vi = system.GetVideoInterface();
+                   vi.m_interrupt_register[2].Hi = val;
+                   vi.UpdateInterrupts();
                  }));
   mmio->Register(base | VI_DISPLAY_INTERRUPT_3_HI,
-                 MMIO::DirectRead<u16>(&state.interrupt_register[3].Hi),
+                 MMIO::DirectRead<u16>(&m_interrupt_register[3].Hi),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   state_.interrupt_register[3].Hi = val;
-                   UpdateInterrupts();
+                   auto& vi = system.GetVideoInterface();
+                   vi.m_interrupt_register[3].Hi = val;
+                   vi.UpdateInterrupts();
                  }));
 
   // Unknown anti-aliasing related MMIO register: puts a warning on log and
   // needs to shift/mask when reading/writing.
   mmio->Register(base | VI_UNK_AA_REG_HI, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   return state_.unknown_aa_register >> 16;
+                   auto& vi = system.GetVideoInterface();
+                   return vi.m_unknown_aa_register >> 16;
                  }),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   state_.unknown_aa_register =
-                       (state_.unknown_aa_register & 0x0000FFFF) | ((u32)val << 16);
+                   auto& vi = system.GetVideoInterface();
+                   vi.m_unknown_aa_register =
+                       (vi.m_unknown_aa_register & 0x0000FFFF) | ((u32)val << 16);
                    WARN_LOG_FMT(VIDEOINTERFACE, "Writing to the unknown AA register (hi)");
                  }));
   mmio->Register(base | VI_UNK_AA_REG_LO, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   return state_.unknown_aa_register & 0xFFFF;
+                   auto& vi = system.GetVideoInterface();
+                   return vi.m_unknown_aa_register & 0xFFFF;
                  }),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
-                   state_.unknown_aa_register = (state_.unknown_aa_register & 0xFFFF0000) | val;
+                   auto& vi = system.GetVideoInterface();
+                   vi.m_unknown_aa_register = (vi.m_unknown_aa_register & 0xFFFF0000) | val;
                    WARN_LOG_FMT(VIDEOINTERFACE, "Writing to the unknown AA register (lo)");
                  }));
 
   // Control register writes only updates some select bits, and additional
   // processing needs to be done if a reset is requested.
-  mmio->Register(base | VI_CONTROL_REGISTER,
-                 MMIO::DirectRead<u16>(&state.display_control_register.Hex),
+  mmio->Register(base | VI_CONTROL_REGISTER, MMIO::DirectRead<u16>(&m_display_control_register.Hex),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetVideoInterfaceState().GetData();
+                   auto& vi = system.GetVideoInterface();
 
                    UVIDisplayControlRegister tmpConfig(val);
-                   state_.display_control_register.ENB = tmpConfig.ENB;
-                   state_.display_control_register.NIN = tmpConfig.NIN;
-                   state_.display_control_register.DLR = tmpConfig.DLR;
-                   state_.display_control_register.LE0 = tmpConfig.LE0;
-                   state_.display_control_register.LE1 = tmpConfig.LE1;
-                   state_.display_control_register.FMT = tmpConfig.FMT;
+                   vi.m_display_control_register.ENB = tmpConfig.ENB;
+                   vi.m_display_control_register.NIN = tmpConfig.NIN;
+                   vi.m_display_control_register.DLR = tmpConfig.DLR;
+                   vi.m_display_control_register.LE0 = tmpConfig.LE0;
+                   vi.m_display_control_register.LE1 = tmpConfig.LE1;
+                   vi.m_display_control_register.FMT = tmpConfig.FMT;
 
                    if (tmpConfig.RST)
                    {
                      // shuffle2 clear all data, reset to default vals, and enter idle mode
-                     state_.display_control_register.RST = 0;
-                     state_.interrupt_register = {};
-                     UpdateInterrupts();
+                     vi.m_display_control_register.RST = 0;
+                     vi.m_interrupt_register = {};
+                     vi.UpdateInterrupts();
                    }
 
-                   UpdateParameters();
+                   vi.UpdateParameters();
                  }));
 
   // Map 8 bit reads (not writes) to 16 bit reads.
@@ -458,72 +408,63 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 }
 
-void UpdateInterrupts()
+void VideoInterfaceManager::UpdateInterrupts()
 {
-  auto& system = Core::System::GetInstance();
-  auto& state = system.GetVideoInterfaceState().GetData();
-  if ((state.interrupt_register[0].IR_INT && state.interrupt_register[0].IR_MASK) ||
-      (state.interrupt_register[1].IR_INT && state.interrupt_register[1].IR_MASK) ||
-      (state.interrupt_register[2].IR_INT && state.interrupt_register[2].IR_MASK) ||
-      (state.interrupt_register[3].IR_INT && state.interrupt_register[3].IR_MASK))
+  if ((m_interrupt_register[0].IR_INT && m_interrupt_register[0].IR_MASK) ||
+      (m_interrupt_register[1].IR_INT && m_interrupt_register[1].IR_MASK) ||
+      (m_interrupt_register[2].IR_INT && m_interrupt_register[2].IR_MASK) ||
+      (m_interrupt_register[3].IR_INT && m_interrupt_register[3].IR_MASK))
   {
-    system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_VI, true);
+    m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_VI, true);
   }
   else
   {
-    system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_VI, false);
+    m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_VI, false);
   }
 }
 
-u32 GetXFBAddressTop()
+u32 VideoInterfaceManager::GetXFBAddressTop() const
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-  if (state.xfb_info_top.POFF)
-    return state.xfb_info_top.FBB << 5;
+  if (m_xfb_info_top.POFF)
+    return m_xfb_info_top.FBB << 5;
   else
-    return state.xfb_info_top.FBB;
+    return m_xfb_info_top.FBB;
 }
 
-u32 GetXFBAddressBottom()
+u32 VideoInterfaceManager::GetXFBAddressBottom() const
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-
   // POFF for XFB bottom is connected to POFF for XFB top
-  if (state.xfb_info_top.POFF)
-    return state.xfb_info_bottom.FBB << 5;
+  if (m_xfb_info_top.POFF)
+    return m_xfb_info_bottom.FBB << 5;
   else
-    return state.xfb_info_bottom.FBB;
+    return m_xfb_info_bottom.FBB;
 }
 
-static u32 GetHalfLinesPerEvenField()
+u32 VideoInterfaceManager::GetHalfLinesPerEvenField() const
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-  return (3 * state.vertical_timing_register.EQU + state.vblank_timing_even.PRB +
-          2 * state.vertical_timing_register.ACV + state.vblank_timing_even.PSB);
+  return (3 * m_vertical_timing_register.EQU + m_vblank_timing_even.PRB +
+          2 * m_vertical_timing_register.ACV + m_vblank_timing_even.PSB);
 }
 
-static u32 GetHalfLinesPerOddField()
+u32 VideoInterfaceManager::GetHalfLinesPerOddField() const
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-  return (3 * state.vertical_timing_register.EQU + state.vblank_timing_odd.PRB +
-          2 * state.vertical_timing_register.ACV + state.vblank_timing_odd.PSB);
+  return (3 * m_vertical_timing_register.EQU + m_vblank_timing_odd.PRB +
+          2 * m_vertical_timing_register.ACV + m_vblank_timing_odd.PSB);
 }
 
-static u32 GetTicksPerEvenField()
+u32 VideoInterfaceManager::GetTicksPerEvenField() const
 {
   return GetTicksPerHalfLine() * GetHalfLinesPerEvenField();
 }
 
-static u32 GetTicksPerOddField()
+u32 VideoInterfaceManager::GetTicksPerOddField() const
 {
   return GetTicksPerHalfLine() * GetHalfLinesPerOddField();
 }
 
 // Get the aspect ratio of VI's active area.
-float GetAspectRatio()
+float VideoInterfaceManager::GetAspectRatio() const
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-
   // The picture of a PAL/NTSC TV signal is defined to have a 4:3 aspect ratio,
   // but it's only 4:3 if the picture fill the entire active area.
   // All games configure VideoInterface to add padding in both the horizontal and vertical
@@ -538,9 +479,8 @@ float GetAspectRatio()
   // multiply the result by 1.33333..
 
   // 1. Get our active area in BT.601 samples (more or less pixels)
-  int active_lines = state.vertical_timing_register.ACV;
-  int active_width_samples =
-      (state.h_timing_0.HLW + state.h_timing_1.HBS640 - state.h_timing_1.HBE640);
+  int active_lines = m_vertical_timing_register.ACV;
+  int active_width_samples = (m_h_timing_0.HLW + m_h_timing_1.HBS640 - m_h_timing_1.HBE640);
 
   // 2. TVs are analog and don't have pixels. So we convert to seconds.
   float tick_length = (1.0f / SystemTimers::GetTicksPerSecond());
@@ -565,7 +505,7 @@ float GetAspectRatio()
   //    NOTE: With the exception of selecting between PAL-M and NTSC color encoding on Brazilian
   //          GameCubes, the FMT field doesn't actually do anything on real hardware. But
   //          Nintendo's SDK always sets it appropriately to match the number of lines.
-  if (state.display_control_register.FMT == 1)  // 625 line TV (PAL)
+  if (m_display_control_register.FMT == 1)  // 625 line TV (PAL)
   {
     // PAL defines the horizontal active area as 52us of the 64us line.
     // BT.470-6 defines the blanking period as 12.0us +0.0 -0.3 [table on page 5]
@@ -744,67 +684,59 @@ float GetAspectRatio()
 // L523 [ ACV | ACV ] [hl1046:hl1047]
 // L524 [ ePS | ePS ] [hl1048:hl1049]
 
-void UpdateParameters()
+void VideoInterfaceManager::UpdateParameters()
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-  u32 equ_hl = 3 * state.vertical_timing_register.EQU;
-  u32 acv_hl = 2 * state.vertical_timing_register.ACV;
-  state.odd_field_first_hl = equ_hl + state.vblank_timing_odd.PRB;
-  state.odd_field_last_hl = state.odd_field_first_hl + acv_hl - 1;
+  u32 equ_hl = 3 * m_vertical_timing_register.EQU;
+  u32 acv_hl = 2 * m_vertical_timing_register.ACV;
+  m_odd_field_first_hl = equ_hl + m_vblank_timing_odd.PRB;
+  m_odd_field_last_hl = m_odd_field_first_hl + acv_hl - 1;
 
-  state.even_field_first_hl = equ_hl + state.vblank_timing_even.PRB + GetHalfLinesPerOddField();
-  state.even_field_last_hl = state.even_field_first_hl + acv_hl - 1;
+  m_even_field_first_hl = equ_hl + m_vblank_timing_even.PRB + GetHalfLinesPerOddField();
+  m_even_field_last_hl = m_even_field_first_hl + acv_hl - 1;
 
-  state.target_refresh_rate_numerator = SystemTimers::GetTicksPerSecond() * 2;
-  state.target_refresh_rate_denominator = GetTicksPerEvenField() + GetTicksPerOddField();
-  state.target_refresh_rate = static_cast<double>(state.target_refresh_rate_numerator) /
-                              state.target_refresh_rate_denominator;
+  m_target_refresh_rate_numerator = SystemTimers::GetTicksPerSecond() * 2;
+  m_target_refresh_rate_denominator = GetTicksPerEvenField() + GetTicksPerOddField();
+  m_target_refresh_rate =
+      static_cast<double>(m_target_refresh_rate_numerator) / m_target_refresh_rate_denominator;
 }
 
-double GetTargetRefreshRate()
+double VideoInterfaceManager::GetTargetRefreshRate() const
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-  return state.target_refresh_rate;
+  return m_target_refresh_rate;
 }
 
-u32 GetTargetRefreshRateNumerator()
+u32 VideoInterfaceManager::GetTargetRefreshRateNumerator() const
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-  return state.target_refresh_rate_numerator;
+  return m_target_refresh_rate_numerator;
 }
 
-u32 GetTargetRefreshRateDenominator()
+u32 VideoInterfaceManager::GetTargetRefreshRateDenominator() const
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-  return state.target_refresh_rate_denominator;
+  return m_target_refresh_rate_denominator;
 }
 
-u32 GetTicksPerSample()
+u32 VideoInterfaceManager::GetTicksPerSample() const
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-  return 2 * SystemTimers::GetTicksPerSecond() / CLOCK_FREQUENCIES[state.clock];
+  return 2 * SystemTimers::GetTicksPerSecond() / CLOCK_FREQUENCIES[m_clock];
 }
 
-u32 GetTicksPerHalfLine()
+u32 VideoInterfaceManager::GetTicksPerHalfLine() const
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-  return GetTicksPerSample() * state.h_timing_0.HLW;
+  return GetTicksPerSample() * m_h_timing_0.HLW;
 }
 
-u32 GetTicksPerField()
+u32 VideoInterfaceManager::GetTicksPerField() const
 {
   return GetTicksPerEvenField();
 }
 
-static void LogField(FieldType field, u32 xfb_address)
+void VideoInterfaceManager::LogField(FieldType field, u32 xfb_address) const
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-
   static constexpr std::array<const char*, 2> field_type_names{{"Odd", "Even"}};
 
   const std::array<const UVIVBlankTimingRegister*, 2> vert_timing{{
-      &state.vblank_timing_odd,
-      &state.vblank_timing_even,
+      &m_vblank_timing_odd,
+      &m_vblank_timing_even,
   }};
 
   const auto field_index = static_cast<size_t>(field);
@@ -812,31 +744,29 @@ static void LogField(FieldType field, u32 xfb_address)
   DEBUG_LOG_FMT(VIDEOINTERFACE,
                 "(VI->BeginField): Address: {:08X} | WPL {} | STD {} | EQ {} | PRB {} | "
                 "ACV {} | PSB {} | Field {}",
-                xfb_address, state.picture_configuration.WPL, state.picture_configuration.STD,
-                state.vertical_timing_register.EQU, vert_timing[field_index]->PRB,
-                state.vertical_timing_register.ACV, vert_timing[field_index]->PSB,
+                xfb_address, m_picture_configuration.WPL, m_picture_configuration.STD,
+                m_vertical_timing_register.EQU, vert_timing[field_index]->PRB,
+                m_vertical_timing_register.ACV, vert_timing[field_index]->PSB,
                 field_type_names[field_index]);
 
   DEBUG_LOG_FMT(VIDEOINTERFACE, "HorizScaling: {:04x} | fbwidth {} | {} | {}",
-                state.horizontal_scaling.Hex, state.fb_width.Hex, GetTicksPerEvenField(),
+                m_horizontal_scaling.Hex, m_fb_width.Hex, GetTicksPerEvenField(),
                 GetTicksPerOddField());
 }
 
-static void OutputField(FieldType field, u64 ticks)
+void VideoInterfaceManager::OutputField(FieldType field, u64 ticks)
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-
   // Could we fit a second line of data in the stride?
   // (Datel's Wii FreeLoaders are the only titles known to set WPL to 0)
   bool potentially_interlaced_xfb =
-      state.picture_configuration.WPL != 0 &&
-      ((state.picture_configuration.STD / state.picture_configuration.WPL) == 2);
+      m_picture_configuration.WPL != 0 &&
+      ((m_picture_configuration.STD / m_picture_configuration.WPL) == 2);
   // Are there an odd number of half-lines per field (definition of interlaced video)
   bool interlaced_video_mode = (GetHalfLinesPerEvenField() & 1) == 1;
 
-  u32 fbStride = state.picture_configuration.STD * 16;
-  u32 fbWidth = state.picture_configuration.WPL * 16;
-  u32 fbHeight = state.vertical_timing_register.ACV;
+  u32 fbStride = m_picture_configuration.STD * 16;
+  u32 fbWidth = m_picture_configuration.WPL * 16;
+  u32 fbHeight = m_vertical_timing_register.ACV;
 
   u32 xfbAddr;
 
@@ -869,14 +799,14 @@ static void OutputField(FieldType field, u64 ticks)
     // has the first line. For the field with the second line, we
     // offset the xfb by (-stride_of_one_line) to get the start
     // address of the full xfb.
-    if (field == FieldType::Odd &&
-        state.vblank_timing_odd.PRB == state.vblank_timing_even.PRB + 1 && xfbAddr)
+    if (field == FieldType::Odd && m_vblank_timing_odd.PRB == m_vblank_timing_even.PRB + 1 &&
+        xfbAddr)
     {
       xfbAddr -= fbStride;
     }
 
-    if (field == FieldType::Even &&
-        state.vblank_timing_odd.PRB == state.vblank_timing_even.PRB - 1 && xfbAddr)
+    if (field == FieldType::Even && m_vblank_timing_odd.PRB == m_vblank_timing_even.PRB - 1 &&
+        xfbAddr)
     {
       xfbAddr -= fbStride;
     }
@@ -891,7 +821,7 @@ static void OutputField(FieldType field, u64 ticks)
     g_video_backend->Video_OutputXFB(xfbAddr, fbWidth, fbStride, fbHeight, ticks);
 }
 
-static void BeginField(FieldType field, u64 ticks)
+void VideoInterfaceManager::BeginField(FieldType field, u64 ticks)
 {
   // Outputting the frame at the beginning of scanout reduces latency. This assumes the game isn't
   // going to change the VI registers while a frame is scanning out.
@@ -899,7 +829,7 @@ static void BeginField(FieldType field, u64 ticks)
     OutputField(field, ticks);
 }
 
-static void EndField(FieldType field, u64 ticks)
+void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
 {
   // If the game does change VI registers while a frame is scanning out, we can defer output
   // until the end so the last register values are used. This still isn't accurate, but it does
@@ -914,34 +844,31 @@ static void EndField(FieldType field, u64 ticks)
 
 // Purpose: Send VI interrupt when triggered
 // Run when: When a frame is scanned (progressive/interlace)
-void Update(u64 ticks)
+void VideoInterfaceManager::Update(u64 ticks)
 {
-  auto& system = Core::System::GetInstance();
-  auto& state = system.GetVideoInterfaceState().GetData();
-
   // Movie's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
 
-  if (state.half_line_count == 0 || state.half_line_count == GetHalfLinesPerEvenField())
+  if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
     Movie::FrameUpdate();
 
   // If this half-line is at some boundary of the "active video lines" in either field, we either
   // need to (a) send a request to the GPU thread to actually render the XFB, or (b) increment
   // the number of frames we've actually drawn
 
-  if (state.half_line_count == state.even_field_first_hl)
+  if (m_half_line_count == m_even_field_first_hl)
   {
     BeginField(FieldType::Even, ticks);
   }
-  else if (state.half_line_count == state.odd_field_first_hl)
+  else if (m_half_line_count == m_odd_field_first_hl)
   {
     BeginField(FieldType::Odd, ticks);
   }
-  else if (state.half_line_count == state.even_field_last_hl)
+  else if (m_half_line_count == m_even_field_last_hl)
   {
     EndField(FieldType::Even, ticks);
   }
-  else if (state.half_line_count == state.odd_field_last_hl)
+  else if (m_half_line_count == m_odd_field_last_hl)
   {
     EndField(FieldType::Odd, ticks);
   }
@@ -949,57 +876,57 @@ void Update(u64 ticks)
   // If this half-line is at a field boundary, deal with frame stepping before potentially
   // dealing with SI polls, but after potentially sending a swap request to the GPU thread
 
-  if (state.half_line_count == 0 || state.half_line_count == GetHalfLinesPerEvenField())
-    Core::Callback_NewField(system);
+  if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
+    Core::Callback_NewField(m_system);
 
   // If an SI poll is scheduled to happen on this half-line, do it!
 
-  if (state.half_line_of_next_si_poll == state.half_line_count)
+  if (m_half_line_of_next_si_poll == m_half_line_count)
   {
     Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
                           Config::Get(Config::MAIN_LOCK_CURSOR));
     SerialInterface::UpdateDevices();
-    state.half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
+    m_half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
   }
 
   // If this half-line is at the actual boundary of either field, schedule an SI poll to happen
   // some number of half-lines in the future
 
-  if (state.half_line_count == 0)
+  if (m_half_line_count == 0)
   {
-    state.half_line_of_next_si_poll = NUM_HALF_LINES_FOR_SI_POLL;  // first results start at vsync
+    m_half_line_of_next_si_poll = NUM_HALF_LINES_FOR_SI_POLL;  // first results start at vsync
   }
-  if (state.half_line_count == GetHalfLinesPerEvenField())
+  if (m_half_line_count == GetHalfLinesPerEvenField())
   {
-    state.half_line_of_next_si_poll = GetHalfLinesPerEvenField() + NUM_HALF_LINES_FOR_SI_POLL;
+    m_half_line_of_next_si_poll = GetHalfLinesPerEvenField() + NUM_HALF_LINES_FOR_SI_POLL;
   }
 
   // Move to the next half-line and potentially roll-over the count to zero. If we've reached
   // the beginning of a new full-line, update the timer
 
-  state.half_line_count++;
-  if (state.half_line_count == GetHalfLinesPerEvenField() + GetHalfLinesPerOddField())
+  m_half_line_count++;
+  if (m_half_line_count == GetHalfLinesPerEvenField() + GetHalfLinesPerOddField())
   {
-    state.half_line_count = 0;
+    m_half_line_count = 0;
   }
 
-  if (!(state.half_line_count & 1))
+  auto& core_timing = m_system.GetCoreTiming();
+  if (!(m_half_line_count & 1))
   {
-    state.ticks_last_line_start = system.GetCoreTiming().GetTicks();
+    m_ticks_last_line_start = core_timing.GetTicks();
   }
 
   // TODO: Findout why skipping interrupts acts as a frameskip
-  if (system.GetCoreTiming().GetVISkip())
+  if (core_timing.GetVISkip())
     return;
 
   // Check if we need to assert IR_INT. Note that the granularity of our current horizontal
   // position is limited to half-lines.
 
-  for (UVIInterruptRegister& reg : state.interrupt_register)
+  for (UVIInterruptRegister& reg : m_interrupt_register)
   {
-    u32 target_halfline = (reg.HCT > state.h_timing_0.HLW) ? 1 : 0;
-    if ((1 + (state.half_line_count) / 2 == reg.VCT) &&
-        ((state.half_line_count & 1) == target_halfline))
+    u32 target_halfline = (reg.HCT > m_h_timing_0.HLW) ? 1 : 0;
+    if ((1 + (m_half_line_count) / 2 == reg.VCT) && ((m_half_line_count & 1) == target_halfline))
     {
       reg.IR_INT = 1;
     }
@@ -1009,10 +936,9 @@ void Update(u64 ticks)
 }
 
 // Create a fake VI mode for a fifolog
-void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride, u32 fb_height)
+void VideoInterfaceManager::FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride,
+                                         u32 fb_height)
 {
-  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
-
   bool interlaced = fb_height > 480 / 2;
   if (interlaced)
   {
@@ -1020,31 +946,31 @@ void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride, u32 fb_height)
     fb_stride = fb_stride * 2;
   }
 
-  state.xfb_info_top.POFF = 1;
-  state.xfb_info_bottom.POFF = 1;
-  state.vertical_timing_register.ACV = fb_height;
-  state.vertical_timing_register.EQU = 6;
-  state.vblank_timing_odd.PRB = 502 - fb_height * 2;
-  state.vblank_timing_odd.PSB = 5;
-  state.vblank_timing_even.PRB = 503 - fb_height * 2;
-  state.vblank_timing_even.PSB = 4;
-  state.picture_configuration.WPL = fb_width / 16;
-  state.picture_configuration.STD = (fb_stride / 2) / 16;
+  m_xfb_info_top.POFF = 1;
+  m_xfb_info_bottom.POFF = 1;
+  m_vertical_timing_register.ACV = fb_height;
+  m_vertical_timing_register.EQU = 6;
+  m_vblank_timing_odd.PRB = 502 - fb_height * 2;
+  m_vblank_timing_odd.PSB = 5;
+  m_vblank_timing_even.PRB = 503 - fb_height * 2;
+  m_vblank_timing_even.PSB = 4;
+  m_picture_configuration.WPL = fb_width / 16;
+  m_picture_configuration.STD = (fb_stride / 2) / 16;
 
   UpdateParameters();
 
   u32 total_halflines = GetHalfLinesPerEvenField() + GetHalfLinesPerOddField();
 
-  if ((state.half_line_count - state.even_field_first_hl) % total_halflines <
-      (state.half_line_count - state.odd_field_first_hl) % total_halflines)
+  if ((m_half_line_count - m_even_field_first_hl) % total_halflines <
+      (m_half_line_count - m_odd_field_first_hl) % total_halflines)
   {
     // Even/Bottom field is next.
-    state.xfb_info_bottom.FBB = interlaced ? (xfb_address + fb_width * 2) >> 5 : xfb_address >> 5;
+    m_xfb_info_bottom.FBB = interlaced ? (xfb_address + fb_width * 2) >> 5 : xfb_address >> 5;
   }
   else
   {
     // Odd/Top field is next
-    state.xfb_info_top.FBB = (xfb_address >> 5);
+    m_xfb_info_top.FBB = (xfb_address >> 5);
   }
 }
 

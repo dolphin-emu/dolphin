@@ -38,7 +38,7 @@ struct System::Impl
   explicit Impl(System& system)
       : m_audio_interface(system), m_core_timing(system), m_dsp(system), m_dvd_interface(system),
         m_dvd_thread(system), m_expansion_interface(system), m_gp_fifo(system),
-        m_ppc_state(PowerPC::ppcState)
+        m_ppc_state(PowerPC::ppcState), m_video_interface(system)
   {
   }
 
@@ -68,7 +68,7 @@ struct System::Impl
   SerialInterface::SerialInterfaceState m_serial_interface_state;
   Sram m_sram;
   VertexShaderManager m_vertex_shader_manager;
-  VideoInterface::VideoInterfaceState m_video_interface_state;
+  VideoInterface::VideoInterfaceManager m_video_interface;
 };
 
 System::System() : m_impl{std::make_unique<Impl>(*this)}
@@ -224,8 +224,8 @@ VertexShaderManager& System::GetVertexShaderManager() const
   return m_impl->m_vertex_shader_manager;
 }
 
-VideoInterface::VideoInterfaceState& System::GetVideoInterfaceState() const
+VideoInterface::VideoInterfaceManager& System::GetVideoInterface() const
 {
-  return m_impl->m_video_interface_state;
+  return m_impl->m_video_interface;
 }
 }  // namespace Core

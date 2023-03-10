@@ -51,7 +51,7 @@ void MemoryManager::InitMMIO(bool is_wii)
   auto& system = Core::System::GetInstance();
   system.GetCommandProcessor().RegisterMMIO(system, m_mmio_mapping.get(), 0x0C000000);
   system.GetPixelEngine().RegisterMMIO(m_mmio_mapping.get(), 0x0C001000);
-  VideoInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
+  system.GetVideoInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
   system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
   system.GetMemoryInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
   system.GetDSP().RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);

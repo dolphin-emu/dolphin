@@ -82,7 +82,7 @@ class SerialInterfaceState;
 };
 namespace VideoInterface
 {
-class VideoInterfaceState;
+class VideoInterfaceManager;
 };
 
 namespace Core
@@ -141,7 +141,7 @@ public:
   SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;
   Sram& GetSRAM() const;
   VertexShaderManager& GetVertexShaderManager() const;
-  VideoInterface::VideoInterfaceState& GetVideoInterfaceState() const;
+  VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
 
 private:
   System();

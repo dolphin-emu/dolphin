@@ -6,6 +6,7 @@
 #include "Common/ChunkFile.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
+#include "Core/System.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -249,7 +250,8 @@ float Presenter::CalculateDrawAspectRatio() const
   if (aspect_mode == AspectMode::Stretch)
     return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
 
-  const float aspect_ratio = VideoInterface::GetAspectRatio();
+  auto& vi = Core::System::GetInstance().GetVideoInterface();
+  const float aspect_ratio = vi.GetAspectRatio();
 
   if (aspect_mode == AspectMode::AnalogWide ||
       (aspect_mode == AspectMode::Auto && g_widescreen->IsGameWidescreen()))
@@ -378,7 +380,8 @@ void Presenter::UpdateDrawRectangle()
   // Don't know if there is a better place for this code so there isn't a 1 frame delay
   if (g_ActiveConfig.bWidescreenHack)
   {
-    float source_aspect = VideoInterface::GetAspectRatio();
+    auto& vi = Core::System::GetInstance().GetVideoInterface();
+    float source_aspect = vi.GetAspectRatio();
     if (g_widescreen->IsGameWidescreen())
       source_aspect = AspectToWidescreen(source_aspect);
 
