@@ -53,7 +53,7 @@ void MemoryManager::InitMMIO(bool is_wii)
   system.GetPixelEngine().RegisterMMIO(m_mmio_mapping.get(), 0x0C001000);
   VideoInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
   system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
-  MemoryInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
+  system.GetMemoryInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
   system.GetDSP().RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
   system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
   SerialInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006400);

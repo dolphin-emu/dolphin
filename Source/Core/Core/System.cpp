@@ -60,7 +60,7 @@ struct System::Impl
   HSP::HSPManager m_hsp;
   IOS::HLE::USB::SkylanderPortal m_skylander_portal;
   Memory::MemoryManager m_memory;
-  MemoryInterface::MemoryInterfaceState m_memory_interface_state;
+  MemoryInterface::MemoryInterfaceManager m_memory_interface;
   PixelEngine::PixelEngineManager m_pixel_engine;
   PixelShaderManager m_pixel_shader_manager;
   PowerPC::PowerPCState& m_ppc_state;
@@ -184,9 +184,9 @@ Memory::MemoryManager& System::GetMemory() const
   return m_impl->m_memory;
 }
 
-MemoryInterface::MemoryInterfaceState& System::GetMemoryInterfaceState() const
+MemoryInterface::MemoryInterfaceManager& System::GetMemoryInterface() const
 {
-  return m_impl->m_memory_interface_state;
+  return m_impl->m_memory_interface;
 }
 
 PixelEngine::PixelEngineManager& System::GetPixelEngine() const

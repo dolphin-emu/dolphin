@@ -48,7 +48,7 @@ void Init(const Sram* override_sram)
   system.GetHSP().Init();
   system.GetMemory().Init();  // Needs to be initialized before AddressSpace
   AddressSpace::Init();
-  MemoryInterface::Init();
+  system.GetMemoryInterface().Init();
   system.GetDSP().Init(Config::Get(Config::MAIN_DSP_HLE));
   system.GetDVDInterface().Init();
   system.GetGPFifo().Init();
@@ -74,7 +74,7 @@ void Shutdown()
   system.GetCPU().Shutdown();
   system.GetDVDInterface().Shutdown();
   system.GetDSP().Shutdown();
-  MemoryInterface::Shutdown();
+  system.GetMemoryInterface().Shutdown();
   AddressSpace::Shutdown();
   system.GetMemory().Shutdown();
   system.GetHSP().Shutdown();
@@ -91,7 +91,7 @@ void DoState(PointerWrap& p)
   auto& system = Core::System::GetInstance();
   system.GetMemory().DoState(p);
   p.DoMarker("Memory");
-  MemoryInterface::DoState(p);
+  system.GetMemoryInterface().DoState(p);
   p.DoMarker("MemoryInterface");
   VideoInterface::DoState(p);
   p.DoMarker("VideoInterface");

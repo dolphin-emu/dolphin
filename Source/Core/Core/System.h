@@ -62,7 +62,7 @@ class MemoryManager;
 };
 namespace MemoryInterface
 {
-class MemoryInterfaceState;
+class MemoryInterfaceManager;
 };
 namespace PixelEngine
 {
@@ -133,7 +133,7 @@ public:
   HSP::HSPManager& GetHSP() const;
   IOS::HLE::USB::SkylanderPortal& GetSkylanderPortal() const;
   Memory::MemoryManager& GetMemory() const;
-  MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
+  MemoryInterface::MemoryInterfaceManager& GetMemoryInterface() const;
   PixelEngine::PixelEngineManager& GetPixelEngine() const;
   PixelShaderManager& GetPixelShaderManager() const;
   PowerPC::PowerPCState& GetPPCState() const;
