@@ -50,7 +50,7 @@ struct System::Impl
   CommandProcessor::CommandProcessorManager m_command_processor;
   CPU::CPUManager m_cpu;
   DSP::DSPManager m_dsp;
-  DVD::DVDInterfaceManager m_dvd_interface;
+  DVD::DVDInterface m_dvd_interface;
   DVDThread::DVDThreadManager m_dvd_thread;
   ExpansionInterface::ExpansionInterfaceState m_expansion_interface_state;
   Fifo::FifoManager m_fifo;
@@ -138,7 +138,7 @@ DSP::DSPManager& System::GetDSP() const
   return m_impl->m_dsp;
 }
 
-DVD::DVDInterfaceManager& System::GetDVDInterface() const
+DVD::DVDInterface& System::GetDVDInterface() const
 {
   return m_impl->m_dvd_interface;
 }

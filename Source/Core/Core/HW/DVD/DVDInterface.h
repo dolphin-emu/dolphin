@@ -120,15 +120,15 @@ enum class EjectCause
   Software,
 };
 
-class DVDInterfaceManager
+class DVDInterface
 {
 public:
-  explicit DVDInterfaceManager(Core::System& system);
-  DVDInterfaceManager(const DVDInterfaceManager&) = delete;
-  DVDInterfaceManager(DVDInterfaceManager&&) = delete;
-  DVDInterfaceManager& operator=(const DVDInterfaceManager&) = delete;
-  DVDInterfaceManager& operator=(DVDInterfaceManager&&) = delete;
-  ~DVDInterfaceManager();
+  explicit DVDInterface(Core::System& system);
+  DVDInterface(const DVDInterface&) = delete;
+  DVDInterface(DVDInterface&&) = delete;
+  DVDInterface& operator=(const DVDInterface&) = delete;
+  DVDInterface& operator=(DVDInterface&&) = delete;
+  ~DVDInterface();
 
   void Init();
   void ResetDrive(bool spinup);
