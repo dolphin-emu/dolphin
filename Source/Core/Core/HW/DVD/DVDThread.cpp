@@ -210,15 +210,14 @@ void DVDThreadManager::WaitUntilIdle()
 }
 
 void DVDThreadManager::StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
-                                 DVDInterface::ReplyType reply_type, s64 ticks_until_completion)
+                                 DVD::ReplyType reply_type, s64 ticks_until_completion)
 {
   StartReadInternal(false, 0, dvd_offset, length, partition, reply_type, ticks_until_completion);
 }
 
 void DVDThreadManager::StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
                                               const DiscIO::Partition& partition,
-                                              DVDInterface::ReplyType reply_type,
-                                              s64 ticks_until_completion)
+                                              DVD::ReplyType reply_type, s64 ticks_until_completion)
 {
   StartReadInternal(true, output_address, dvd_offset, length, partition, reply_type,
                     ticks_until_completion);
@@ -226,8 +225,7 @@ void DVDThreadManager::StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset
 
 void DVDThreadManager::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset,
                                          u32 length, const DiscIO::Partition& partition,
-                                         DVDInterface::ReplyType reply_type,
-                                         s64 ticks_until_completion)
+                                         DVD::ReplyType reply_type, s64 ticks_until_completion)
 {
   ASSERT(Core::IsCPUThread());
 
@@ -306,14 +304,14 @@ void DVDThreadManager::FinishRead(u64 id, s64 cycles_late)
                     (SystemTimers::GetTicksPerSecond() / 1000000));
 
   auto& dvd_interface = m_system.GetDVDInterface();
-  DVDInterface::DIInterruptType interrupt;
+  DVD::DIInterruptType interrupt;
   if (buffer.size() != request.length)
   {
     PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
                    request.dvd_offset + request.length);
 
-    dvd_interface.SetDriveError(DVDInterface::DriveError::ReadError);
-    interrupt = DVDInterface::DIInterruptType::DEINT;
+    dvd_interface.SetDriveError(DVD::DriveError::ReadError);
+    interrupt = DVD::DIInterruptType::DEINT;
   }
   else
   {
@@ -323,7 +321,7 @@ void DVDThreadManager::FinishRead(u64 id, s64 cycles_late)
       memory.CopyToEmu(request.output_address, buffer.data(), request.length);
     }
 
-    interrupt = DVDInterface::DIInterruptType::TCINT;
+    interrupt = DVD::DIInterruptType::TCINT;
   }
 
   // Notify the emulated software that the command has been executed

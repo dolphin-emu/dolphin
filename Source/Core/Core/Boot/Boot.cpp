@@ -344,7 +344,7 @@ bool CBoot::DVDReadDiscID(Core::System& system, const DiscIO::VolumeDisc& disc, 
 
   // Transition out of the DiscIdNotRead state (which the drive should be in at this point,
   // on the assumption that this is only used for the first read)
-  system.GetDVDInterface().SetDriveState(DVDInterface::DriveState::ReadyNoReadsMade);
+  system.GetDVDInterface().SetDriveState(DVD::DriveState::ReadyNoReadsMade);
   return true;
 }
 

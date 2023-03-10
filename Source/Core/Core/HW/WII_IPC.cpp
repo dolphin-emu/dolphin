@@ -214,7 +214,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (g_gpio_out[GPIO::DO_EJECT])
                    {
                      INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
-                     system.GetDVDInterface().EjectDisc(DVDInterface::EjectCause::Software);
+                     system.GetDVDInterface().EjectDisc(DVD::EjectCause::Software);
                    }
                    // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
                    // TODO: AVE, SLOT_LED
@@ -247,7 +247,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (g_gpio_out[GPIO::DO_EJECT])
                    {
                      INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
-                     system.GetDVDInterface().EjectDisc(DVDInterface::EjectCause::Software);
+                     system.GetDVDInterface().EjectDisc(DVD::EjectCause::Software);
                    }
                    // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
                    // TODO: AVE, SLOT_LED

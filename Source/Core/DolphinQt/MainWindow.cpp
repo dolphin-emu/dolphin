@@ -752,9 +752,8 @@ void MainWindow::ChangeDisc()
 
 void MainWindow::EjectDisc()
 {
-  Core::RunAsCPUThread([] {
-    Core::System::GetInstance().GetDVDInterface().EjectDisc(DVDInterface::EjectCause::User);
-  });
+  Core::RunAsCPUThread(
+      [] { Core::System::GetInstance().GetDVDInterface().EjectDisc(DVD::EjectCause::User); });
 }
 
 void MainWindow::OpenUserFolder()

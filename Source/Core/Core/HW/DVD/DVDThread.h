@@ -34,7 +34,7 @@ namespace DiscIO
 struct Partition;
 }
 
-namespace DVDInterface
+namespace DVD
 {
 enum class ReplyType : u32;
 }
@@ -84,10 +84,10 @@ public:
                                  std::optional<u64> title_id = {});
 
   void StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
-                 DVDInterface::ReplyType reply_type, s64 ticks_until_completion);
+                 DVD::ReplyType reply_type, s64 ticks_until_completion);
   void StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
-                              const DiscIO::Partition& partition,
-                              DVDInterface::ReplyType reply_type, s64 ticks_until_completion);
+                              const DiscIO::Partition& partition, DVD::ReplyType reply_type,
+                              s64 ticks_until_completion);
 
 private:
   void StartDVDThread();
@@ -95,7 +95,7 @@ private:
   void WaitUntilIdle();
 
   void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
-                         const DiscIO::Partition& partition, DVDInterface::ReplyType reply_type,
+                         const DiscIO::Partition& partition, DVD::ReplyType reply_type,
                          s64 ticks_until_completion);
 
   static void GlobalFinishRead(Core::System& system, u64 id, s64 cycles_late);
@@ -114,7 +114,7 @@ private:
     // This determines which code DVDInterface will run to reply
     // to the emulated software. We can't use callbacks,
     // because function pointers can't be stored in savestates.
-    DVDInterface::ReplyType reply_type = DVDInterface::ReplyType::NoReply;
+    DVD::ReplyType reply_type = DVD::ReplyType::NoReply;
 
     // IDs are used to uniquely identify a request. They must not be
     // identical to IDs of any other requests that currently exist, but

@@ -31,7 +31,7 @@ namespace DSP
 {
 class DSPManager;
 }
-namespace DVDInterface
+namespace DVD
 {
 class DVDInterfaceManager;
 }
@@ -127,7 +127,7 @@ public:
   CoreTiming::CoreTimingManager& GetCoreTiming() const;
   CommandProcessor::CommandProcessorManager& GetCommandProcessor() const;
   DSP::DSPManager& GetDSP() const;
-  DVDInterface::DVDInterfaceManager& GetDVDInterface() const;
+  DVD::DVDInterfaceManager& GetDVDInterface() const;
   DVDThread::DVDThreadManager& GetDVDThread() const;
   ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;
   Fifo::FifoManager& GetFifo() const;

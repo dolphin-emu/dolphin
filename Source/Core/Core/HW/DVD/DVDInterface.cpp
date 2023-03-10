@@ -63,7 +63,7 @@ constexpr u64 DVD_ECC_BLOCK_SIZE = 16 * DVD_SECTOR_SIZE;
 // is already buffered. Measured in bytes per second.
 constexpr u64 BUFFER_TRANSFER_RATE = 32 * 1024 * 1024;
 
-namespace DVDInterface
+namespace DVD
 {
 // internal hardware addresses
 constexpr u32 DI_STATUS_REGISTER = 0x00;
@@ -1517,4 +1517,4 @@ void DVDInterfaceManager::ScheduleReads(u64 offset, u32 length, const DiscIO::Pa
                 ticks_until_completion * 1000000 / SystemTimers::GetTicksPerSecond());
 }
 
-}  // namespace DVDInterface
+}  // namespace DVD

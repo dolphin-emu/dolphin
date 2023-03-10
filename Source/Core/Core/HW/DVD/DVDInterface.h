@@ -33,7 +33,7 @@ namespace MMIO
 class Mapping;
 }
 
-namespace DVDInterface
+namespace DVD
 {
 enum class DICommand : u8
 {
@@ -301,4 +301,4 @@ private:
 
   Core::System& m_system;
 };
-}  // namespace DVDInterface
+}  // namespace DVD
