@@ -55,14 +55,14 @@ void MemoryManager::InitMMIO(bool is_wii)
   system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
   MemoryInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
   system.GetDSP().RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
-  DVDInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
+  system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
   SerialInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006400);
   ExpansionInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006800);
   system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006C00);
   if (is_wii)
   {
     IOS::RegisterMMIO(m_mmio_mapping.get(), 0x0D000000);
-    DVDInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006000, true);
+    system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006000, true);
     SerialInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006400);
     ExpansionInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
     system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);

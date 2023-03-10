@@ -295,11 +295,11 @@ bool CBoot::EmulatedBS2_GC(Core::System& system, const Core::CPUThreadGuard& gua
     // No known game uses a size other than the default.
     if (streaming_size == 0)
       streaming_size = 10;
-    DVDInterface::AudioBufferConfig(true, streaming_size);
+    system.GetDVDInterface().AudioBufferConfig(true, streaming_size);
   }
   else
   {
-    DVDInterface::AudioBufferConfig(false, 0);
+    system.GetDVDInterface().AudioBufferConfig(false, 0);
   }
 
   const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);

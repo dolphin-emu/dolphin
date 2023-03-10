@@ -50,7 +50,7 @@ void Init(const Sram* override_sram)
   AddressSpace::Init();
   MemoryInterface::Init();
   system.GetDSP().Init(Config::Get(Config::MAIN_DSP_HLE));
-  DVDInterface::Init();
+  system.GetDVDInterface().Init();
   system.GetGPFifo().Init();
   system.GetCPU().Init(Config::Get(Config::MAIN_CPU_CORE));
   SystemTimers::Init();
@@ -72,7 +72,7 @@ void Shutdown()
 
   SystemTimers::Shutdown();
   system.GetCPU().Shutdown();
-  DVDInterface::Shutdown();
+  system.GetDVDInterface().Shutdown();
   system.GetDSP().Shutdown();
   MemoryInterface::Shutdown();
   AddressSpace::Shutdown();
@@ -101,7 +101,7 @@ void DoState(PointerWrap& p)
   p.DoMarker("ProcessorInterface");
   system.GetDSP().DoState(p);
   p.DoMarker("DSP");
-  DVDInterface::DoState(p);
+  system.GetDVDInterface().DoState(p);
   p.DoMarker("DVDInterface");
   system.GetGPFifo().DoState(p);
   p.DoMarker("GPFifo");
