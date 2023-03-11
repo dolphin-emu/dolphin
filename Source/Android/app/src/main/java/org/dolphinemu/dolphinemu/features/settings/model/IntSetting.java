@@ -171,12 +171,7 @@ public enum IntSetting implements AbstractIntSetting
     NativeConfig.setInt(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
   }
 
-  public int getIntGlobal()
-  {
-    return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
-  }
-
-  public void setIntGlobal(int layer, int newValue)
+  public void setInt(int layer, int newValue)
   {
     if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {

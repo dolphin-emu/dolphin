@@ -44,7 +44,7 @@ class RiivolutionBootActivity : AppCompatActivity() {
         val revision = intent.getIntExtra(ARG_REVISION, -1)
         val discNumber = intent.getIntExtra(ARG_DISC_NUMBER, -1)
 
-        var loadPath = StringSetting.MAIN_LOAD_PATH.stringGlobal
+        var loadPath = StringSetting.MAIN_LOAD_PATH.string
         if (loadPath.isEmpty()) loadPath = DirectoryInitialization.getUserDirectory() + "/Load"
 
         binding.textSdRoot.text = getString(R.string.riivolution_sd_root, "$loadPath/Riivolution")

@@ -21,7 +21,7 @@ object Analytics {
     @JvmStatic
     fun checkAnalyticsInit(activity: FragmentActivity) {
         AfterDirectoryInitializationRunner().runWithoutLifecycle {
-            if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.booleanGlobal) {
+            if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.boolean) {
                 AnalyticsDialog().show(activity.supportFragmentManager, AnalyticsDialog.TAG)
             }
         }

@@ -102,7 +102,7 @@ public final class InputOverlayDrawableJoystick
 
   public boolean TrackEvent(MotionEvent event)
   {
-    boolean reCenter = BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBooleanGlobal();
+    boolean reCenter = BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBoolean();
     int action = event.getActionMasked();
     boolean firstPointer = action != MotionEvent.ACTION_POINTER_DOWN &&
             action != MotionEvent.ACTION_POINTER_UP;
