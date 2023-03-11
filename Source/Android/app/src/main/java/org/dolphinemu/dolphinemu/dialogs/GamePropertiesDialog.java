@@ -92,7 +92,7 @@ public class GamePropertiesDialog extends DialogFragment
         {
           settings.loadSettings();
           StringSetting.MAIN_DEFAULT_ISO.setString(settings, path);
-          settings.saveSettings(null, getContext());
+          settings.saveSettings(getContext());
         }
       });
     }

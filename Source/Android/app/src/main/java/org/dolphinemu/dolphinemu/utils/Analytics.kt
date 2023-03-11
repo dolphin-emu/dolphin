@@ -34,7 +34,7 @@ object Analytics {
             BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.setBoolean(settings, true)
 
             // Context is set to null to avoid toasts
-            settings.saveSettings(null, null)
+            settings.saveSettings(null)
         }
     }
 

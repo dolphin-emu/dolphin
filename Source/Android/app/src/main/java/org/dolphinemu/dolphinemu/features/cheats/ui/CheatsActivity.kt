@@ -160,7 +160,7 @@ class CheatsActivity : AppCompatActivity(), PanelSlideListener {
 
     fun loadGameSpecificSettings(): Settings {
         val settings = Settings()
-        settings.loadSettings(null, gameId, revision, isWii)
+        settings.loadSettings(gameId, revision, isWii)
         return settings
     }
 

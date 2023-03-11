@@ -9,7 +9,6 @@ import android.widget.Toast;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.input.model.MappingCommon;
-import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 
 import java.io.Closeable;
@@ -78,10 +77,10 @@ public class Settings implements Closeable
   public void loadSettings()
   {
     // The value of isWii doesn't matter if we don't have any SettingsActivity
-    loadSettings(null, true);
+    loadSettings(true);
   }
 
-  public void loadSettings(SettingsActivityView view, boolean isWii)
+  public void loadSettings(boolean isWii)
   {
     mIsWii = isWii;
     mSettingsLoaded = true;
@@ -98,14 +97,14 @@ public class Settings implements Closeable
     mLoadedRecursiveIsoPathsValue = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean();
   }
 
-  public void loadSettings(SettingsActivityView view, String gameId, int revision, boolean isWii)
+  public void loadSettings(String gameId, int revision, boolean isWii)
   {
     mGameId = gameId;
     mRevision = revision;
-    loadSettings(view, isWii);
+    loadSettings(isWii);
   }
 
-  public void saveSettings(SettingsActivityView view, Context context)
+  public void saveSettings(Context context)
   {
     if (!isGameSpecific())
     {

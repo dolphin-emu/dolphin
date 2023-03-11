@@ -423,7 +423,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   protected void onStop()
   {
     super.onStop();
-    mSettings.saveSettings(null, null);
+    mSettings.saveSettings(null);
   }
 
   public void onTitleChanged()
