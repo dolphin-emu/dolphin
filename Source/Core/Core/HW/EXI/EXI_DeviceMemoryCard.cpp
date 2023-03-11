@@ -56,11 +56,11 @@ static Common::EnumMap<char, MAX_MEMCARD_SLOT> s_card_short_names{'A', 'B'};
 
 // Takes care of the nasty recovery of the 'this' pointer from card_slot,
 // stored in the userdata parameter of the CoreTiming event.
-void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata,
+void CEXIMemoryCard::EventCompleteFindInstance(Core::System& system, u64 userdata,
                                                std::function<void(CEXIMemoryCard*)> callback)
 {
   Slot card_slot = static_cast<Slot>(userdata);
-  IEXIDevice* self = ExpansionInterface::GetDevice(card_slot);
+  IEXIDevice* self = system.GetExpansionInterface().GetDevice(card_slot);
   if (self != nullptr)
   {
     if (self->m_device_type == EXIDeviceType::MemoryCard ||
@@ -73,12 +73,13 @@ void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata,
 
 void CEXIMemoryCard::CmdDoneCallback(Core::System& system, u64 userdata, s64)
 {
-  EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance) { instance->CmdDone(); });
+  EventCompleteFindInstance(system, userdata,
+                            [](CEXIMemoryCard* instance) { instance->CmdDone(); });
 }
 
 void CEXIMemoryCard::TransferCompleteCallback(Core::System& system, u64 userdata, s64)
 {
-  EventCompleteFindInstance(userdata,
+  EventCompleteFindInstance(system, userdata,
                             [](CEXIMemoryCard* instance) { instance->TransferComplete(); });
 }
 
@@ -256,13 +257,14 @@ void CEXIMemoryCard::CmdDone()
   m_status &= ~MC_STATUS_BUSY;
 
   m_interrupt_set = true;
-  ExpansionInterface::UpdateInterrupts();
+  m_system.GetExpansionInterface().UpdateInterrupts();
 }
 
 void CEXIMemoryCard::TransferComplete()
 {
   // Transfer complete, send interrupt
-  ExpansionInterface::GetChannel(ExpansionInterface::SlotToEXIChannel(m_card_slot))
+  m_system.GetExpansionInterface()
+      .GetChannel(ExpansionInterface::SlotToEXIChannel(m_card_slot))
       ->SendTransferComplete();
 }
 

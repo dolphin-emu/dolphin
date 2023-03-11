@@ -38,7 +38,7 @@ class DVDThread;
 }  // namespace DVD
 namespace ExpansionInterface
 {
-class ExpansionInterfaceState;
+class ExpansionInterfaceManager;
 };
 namespace Fifo
 {
@@ -62,7 +62,7 @@ class MemoryManager;
 };
 namespace MemoryInterface
 {
-class MemoryInterfaceState;
+class MemoryInterfaceManager;
 };
 namespace PixelEngine
 {
@@ -126,14 +126,14 @@ public:
   DSP::DSPManager& GetDSP() const;
   DVD::DVDInterface& GetDVDInterface() const;
   DVD::DVDThread& GetDVDThread() const;
-  ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;
+  ExpansionInterface::ExpansionInterfaceManager& GetExpansionInterface() const;
   Fifo::FifoManager& GetFifo() const;
   GeometryShaderManager& GetGeometryShaderManager() const;
   GPFifo::GPFifoManager& GetGPFifo() const;
   HSP::HSPManager& GetHSP() const;
   IOS::HLE::USB::SkylanderPortal& GetSkylanderPortal() const;
   Memory::MemoryManager& GetMemory() const;
-  MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
+  MemoryInterface::MemoryInterfaceManager& GetMemoryInterface() const;
   PixelEngine::PixelEngineManager& GetPixelEngine() const;
   PixelShaderManager& GetPixelShaderManager() const;
   PowerPC::PowerPCState& GetPPCState() const;

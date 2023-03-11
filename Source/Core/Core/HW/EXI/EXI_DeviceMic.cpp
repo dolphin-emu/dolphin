@@ -266,7 +266,7 @@ void CEXIMic::UpdateNextInterruptTicks()
 {
   int diff = (SystemTimers::GetTicksPerSecond() / sample_rate) * buff_size_samples;
   next_int_ticks = m_system.GetCoreTiming().GetTicks() + diff;
-  ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, diff);
+  m_system.GetExpansionInterface().ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, diff);
 }
 
 bool CEXIMic::IsInterruptSet()
