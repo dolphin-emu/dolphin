@@ -36,6 +36,7 @@ extern "C" {
 #include "Core/ConfigManager.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/System.h"
 
 #include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -65,10 +66,11 @@ namespace
 {
 AVRational GetTimeBaseForCurrentRefreshRate()
 {
+  auto& vi = Core::System::GetInstance().GetVideoInterface();
   int num;
   int den;
-  av_reduce(&num, &den, int(VideoInterface::GetTargetRefreshRateDenominator()),
-            int(VideoInterface::GetTargetRefreshRateNumerator()), std::numeric_limits<int>::max());
+  av_reduce(&num, &den, int(vi.GetTargetRefreshRateDenominator()),
+            int(vi.GetTargetRefreshRateNumerator()), std::numeric_limits<int>::max());
   return AVRational{num, den};
 }
 

@@ -76,7 +76,8 @@ double PerformanceMetrics::GetMaxSpeed() const
 
 double PerformanceMetrics::GetLastSpeedDenominator() const
 {
-  return DT_s(m_speed_counter.GetLastRawDt()).count() * VideoInterface::GetTargetRefreshRate();
+  return DT_s(m_speed_counter.GetLastRawDt()).count() *
+         Core::System::GetInstance().GetVideoInterface().GetTargetRefreshRate();
 }
 
 void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
