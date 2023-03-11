@@ -975,6 +975,8 @@ add_subdirectory(Externals/rangeset)
 
 add_subdirectory(Externals/FatFs)
 
+add_subdirectory(Externals/rcheevos)
+
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header
 #
