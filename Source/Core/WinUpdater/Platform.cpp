@@ -103,7 +103,10 @@ private:
       auto key_it = map.find(key);
       if (key_it == map.end())
         continue;
-      key_it->second = line.substr(equals_index + 1);
+      auto val_start = equals_index + 1;
+      auto eol = line.find('\r', val_start);
+      auto val_size = (eol == line.npos) ? line.npos : eol - val_start;
+      key_it->second = line.substr(val_start, val_size);
     }
   }
   Map map;
