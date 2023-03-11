@@ -1,22 +1,6 @@
 #include "Core/Scripting/HelperClasses/GCButtons.h"
 
-bool IsBinaryButton(GcButtonName button)
-{
-  return (button == GcButtonName::A || button == GcButtonName::B || button == GcButtonName::X ||
-          button == GcButtonName::Y || button == GcButtonName::Z || button == GcButtonName::L ||
-          button == GcButtonName::R || button == GcButtonName::Start ||
-          button == GcButtonName::Reset || button == GcButtonName::DPadUp ||
-          button == GcButtonName::DPadDown || button == GcButtonName::DPadLeft ||
-          button == GcButtonName::DPadRight);
-}
-
-bool IsAnalogButton(GcButtonName button)
-{
-  return (button == GcButtonName::AnalogStickX || button == GcButtonName::AnalogStickY ||
-          button == GcButtonName::CStickX || button == GcButtonName::CStickY ||
-          button == GcButtonName::TriggerL || button == GcButtonName::TriggerR);
-}
-bool IsEqualIgnoreCase(const char* string_1, const char* string_2)
+static bool IsEqualIgnoreCase(const char* string_1, const char* string_2)
 {
   int index = 0;
   while (string_1[index] != '\0')

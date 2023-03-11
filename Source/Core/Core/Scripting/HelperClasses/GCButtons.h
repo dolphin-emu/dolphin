@@ -25,8 +25,5 @@ enum class GcButtonName
   Unknown
 };
 
-extern bool IsBinaryButton(GcButtonName button);
-extern bool IsAnalogButton(GcButtonName button);
-extern bool IsEqualIgnoreCase(const char* string_1, const char* string_2);
 extern GcButtonName ParseGCButton(const char* button_name);
 extern const char* ConvertButtonEnumToString(GcButtonName button);

@@ -5,6 +5,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/Movie.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
+#include "Core/Scripting/HelperClasses/WiiControllerRepresentation.h"
 
 namespace Scripting
 {
@@ -33,6 +34,11 @@ struct ArgHolder
   std::map<long long, s8> address_to_signed_byte_map;
   std::map<long long, s16> address_to_byte_map;
   Movie::ControllerState controller_state_val;
+  IRRepresentation ir_val;
+  WiimoteRepresentation wiimote_state_val;
+  NunchuckRepresentation nunchuck_state_val;
+  ClassicControllerRepresentation classic_controller_state_val;
+
   std::string error_string_val;
 };
 
@@ -55,6 +61,11 @@ ArgHolder CreateAddressToSignedByteMapArgHolder(const std::map<long long, s8>& n
 ArgHolder CreateAddressToByteMapArgHolder(const std::map<long long, s16>& new_address_to_byte_map);
 
 ArgHolder CreateControllerStateArgHolder(const Movie::ControllerState& new_controller_state_val);
+ArgHolder CreateIRRepresentationArgHolder(const IRRepresentation& new_ir);
+ArgHolder CreateWiimoteRepresentationArgHolder(const WiimoteRepresentation& new_wiimote_state);
+ArgHolder CreateNunhuckRepresentationArgHolder(const NunchuckRepresentation& new_nunchuck_state);
+ArgHolder CreateClassicControllerRepresentationArgHolder(const ClassicControllerRepresentation& new_classic_controller);
+
 ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val);
 ArgHolder CreateYieldTypeArgHolder();
 ArgHolder CreateVoidTypeArgHolder();

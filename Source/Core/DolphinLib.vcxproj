@@ -77,6 +77,7 @@
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressWrittenToCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\WiiControllerRepresentation.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\ImportAPI.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\WiiAPI.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\DefinedScriptingLanguagesEnum.h" />
@@ -107,6 +108,7 @@
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressWrittenToCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.cpp" />
+    <ClCompile Include="Core\Scripting\HelperClasses\WiiControllerRepresentation.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\ImportAPI.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\BitAPI.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\EmuAPI.cpp" />
