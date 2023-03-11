@@ -159,6 +159,9 @@ public:
       if (location.system == Config::System::Session)
         continue;
 
+      if (location.system == Config::System::GameSettingsOnly)
+        continue;
+
       auto ini = inis.find(location.system);
       if (ini == inis.end())
       {

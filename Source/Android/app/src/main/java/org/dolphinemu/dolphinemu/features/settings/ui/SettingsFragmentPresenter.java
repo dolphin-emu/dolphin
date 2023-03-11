@@ -29,10 +29,10 @@ import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialogPresenter;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AdHocStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing;
 import org.dolphinemu.dolphinemu.features.settings.model.ScaledIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -1198,7 +1198,7 @@ public final class SettingsFragmentPresenter
     String[] profiles = new ProfileDialogPresenter(mMenuTag).getProfileNames(false);
     String profileKey = profileString + "Profile" + controllerNumber;
     sl.add(new StringSingleChoiceSetting(mContext,
-            new LegacyStringSetting("", "Controls", profileKey, ""),
+            new AdHocStringSetting(Settings.FILE_GAME_SETTINGS_ONLY, "Controls", profileKey, ""),
             R.string.input_profile, 0, profiles, profiles, R.string.input_profiles_empty));
   }
 

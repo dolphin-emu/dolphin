@@ -43,6 +43,10 @@ static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, 
   {
     system = Config::System::WiiPad;
   }
+  else if (decoded_file == "GameSettingsOnly")
+  {
+    system = Config::System::GameSettingsOnly;
+  }
   else
   {
     ASSERT(false);

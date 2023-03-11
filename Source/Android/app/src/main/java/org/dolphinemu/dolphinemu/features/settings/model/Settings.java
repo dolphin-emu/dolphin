@@ -26,6 +26,7 @@ public class Settings implements Closeable
   public static final String FILE_GFX = "GFX";
   public static final String FILE_LOGGER = "Logger";
   public static final String FILE_WIIMOTE = "WiimoteNew";
+  public static final String FILE_GAME_SETTINGS_ONLY = "GameSettingsOnly";
 
   public static final String SECTION_INI_ANDROID = "Android";
   public static final String SECTION_INI_ANDROID_OVERLAY_BUTTONS = "AndroidOverlayButtons";
