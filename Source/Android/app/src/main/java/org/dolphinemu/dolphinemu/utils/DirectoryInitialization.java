@@ -98,17 +98,22 @@ public final class DirectoryInitialization
     return new File(externalPath, "dolphin-emu");
   }
 
-  private static boolean setDolphinUserDirectory(Context context)
+  @Nullable
+  public static File getUserDirectoryPath(Context context)
   {
     if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
-      return false;
+      return null;
 
     isUsingLegacyUserDirectory =
             preferLegacyUserDirectory(context) && PermissionsHandler.hasWriteAccess(context);
 
-    File path = isUsingLegacyUserDirectory ?
+    return isUsingLegacyUserDirectory ?
             getLegacyUserDirectoryPath() : context.getExternalFilesDir(null);
+  }
 
+  private static boolean setDolphinUserDirectory(Context context)
+  {
+    File path = DirectoryInitialization.getUserDirectoryPath(context);
     if (path == null)
       return false;
 
