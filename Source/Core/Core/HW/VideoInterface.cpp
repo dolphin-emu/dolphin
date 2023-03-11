@@ -94,7 +94,41 @@ static constexpr u32 NUM_HALF_LINES_FOR_SI_POLL = (7 * 2) + 1;  // this is how l
 
 void DoState(PointerWrap& p)
 {
-  p.Do(Core::System::GetInstance().GetVideoInterfaceState().GetData());
+  auto& state = Core::System::GetInstance().GetVideoInterfaceState().GetData();
+
+  p.Do(state.vertical_timing_register);
+  p.Do(state.display_control_register);
+  p.Do(state.h_timing_0);
+  p.Do(state.h_timing_1);
+  p.Do(state.vblank_timing_odd);
+  p.Do(state.vblank_timing_even);
+  p.Do(state.burst_blanking_odd);
+  p.Do(state.burst_blanking_even);
+  p.Do(state.xfb_info_top);
+  p.Do(state.xfb_info_bottom);
+  p.Do(state.xfb_3d_info_top);
+  p.Do(state.xfb_3d_info_bottom);
+  p.DoArray(state.interrupt_register);
+  p.DoArray(state.latch_register);
+  p.Do(state.picture_configuration);
+  p.Do(state.horizontal_scaling);
+  p.DoArray(state.filter_coef_tables.Tables02);
+  p.DoArray(state.filter_coef_tables.Tables36);
+  p.Do(state.unknown_aa_register);
+  p.Do(state.clock);
+  p.Do(state.dtv_status);
+  p.Do(state.fb_width);
+  p.Do(state.border_hblank);
+  p.Do(state.target_refresh_rate);
+  p.Do(state.target_refresh_rate_numerator);
+  p.Do(state.target_refresh_rate_denominator);
+  p.Do(state.ticks_last_line_start);
+  p.Do(state.half_line_count);
+  p.Do(state.half_line_of_next_si_poll);
+  p.Do(state.even_field_first_hl);
+  p.Do(state.odd_field_first_hl);
+  p.Do(state.even_field_last_hl);
+  p.Do(state.odd_field_last_hl);
 }
 
 // Executed after Init, before game boot
