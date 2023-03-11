@@ -298,10 +298,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   @Override
   public boolean isOverridden(@NonNull Settings settings)
   {
-    if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
-      return settings.getSection(mFile, mSection).exists(mKey);
-    else
-      return NativeConfig.isOverridden(mFile, mSection, mKey);
+    return NativeConfig.isOverridden(mFile, mSection, mKey);
   }
 
   @Override
@@ -322,53 +319,42 @@ public enum BooleanSetting implements AbstractBooleanSetting
   @Override
   public boolean delete(@NonNull Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
     }
-    else
-    {
-      return settings.getSection(mFile, mSection).delete(mKey);
-    }
+
+    return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
   }
 
   @Override
   public boolean getBoolean(@NonNull Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
-    {
-      return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey,
-              mDefaultValue);
-    }
-    else
-    {
-      return settings.getSection(mFile, mSection).getBoolean(mKey, mDefaultValue);
-    }
+    return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
 
   @Override
   public void setBoolean(@NonNull Settings settings, boolean newValue)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setBoolean(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
     }
-    else
-    {
-      settings.getSection(mFile, mSection).setBoolean(mKey, newValue);
-    }
+
+    NativeConfig.setBoolean(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
   }
 
   public void setBoolean(int layerType, boolean newValue)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setBoolean(layerType, mFile, mSection, mKey, newValue);
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
     }
-    else
-    {
-      throw new UnsupportedOperationException("The old config system doesn't support layers");
-    }
+
+    NativeConfig.setBoolean(layerType, mFile, mSection, mKey, newValue);
   }
 
   public boolean getBooleanGlobal()
@@ -378,6 +364,12 @@ public enum BooleanSetting implements AbstractBooleanSetting
 
   public void setBooleanGlobal(int layer, boolean newValue)
   {
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    {
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
+    }
+
     NativeConfig.setBoolean(layer, mFile, mSection, mKey, newValue);
   }
 

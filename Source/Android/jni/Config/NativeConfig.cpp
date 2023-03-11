@@ -138,12 +138,14 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_unloadGameIn
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_save(
     JNIEnv*, jclass, jint layer)
 {
-  const std::shared_ptr<Config::Layer> layer_ptr = GetLayer(layer, {});
+  return GetLayer(layer, {})->Save();
+}
 
-  // Workaround for the Settings class carrying around a legacy map of settings it always saves
-  layer_ptr->MarkAsDirty();
-
-  return layer_ptr->Save();
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_deleteAllKeys(JNIEnv*, jclass,
+                                                                                  jint layer)
+{
+  return GetLayer(layer, {})->DeleteAllKeys();
 }
 
 JNIEXPORT jboolean JNICALL
@@ -164,6 +166,16 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_deleteKey(
   if (had_value)
     Config::OnConfigChanged();
   return static_cast<jboolean>(had_value);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_exists(JNIEnv* env, jclass,
+                                                                           jint layer, jstring file,
+                                                                           jstring section,
+                                                                           jstring key)
+{
+  const Config::Location location = GetLocation(env, file, section, key);
+  return static_cast<jboolean>(GetLayer(layer, location)->Exists(location));
 }
 
 JNIEXPORT jstring JNICALL

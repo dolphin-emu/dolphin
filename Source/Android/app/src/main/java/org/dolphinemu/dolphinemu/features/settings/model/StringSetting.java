@@ -67,10 +67,7 @@ public enum StringSetting implements AbstractStringSetting
   @Override
   public boolean isOverridden(@NonNull Settings settings)
   {
-    if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
-      return settings.getSection(mFile, mSection).exists(mKey);
-    else
-      return NativeConfig.isOverridden(mFile, mSection, mKey);
+    return NativeConfig.isOverridden(mFile, mSection, mKey);
   }
 
   @Override
@@ -88,41 +85,25 @@ public enum StringSetting implements AbstractStringSetting
   @Override
   public boolean delete(@NonNull Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
-    {
-      return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
-    }
-    else
-    {
-      return settings.getSection(mFile, mSection).delete(mKey);
-    }
+    return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
   }
 
   @NonNull @Override
   public String getString(@NonNull Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.getString(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey,
-              mDefaultValue);
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
     }
-    else
-    {
-      return settings.getSection(mFile, mSection).getString(mKey, mDefaultValue);
-    }
+
+    return NativeConfig.getString(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
 
   @Override
   public void setString(@NonNull Settings settings, @NonNull String newValue)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
-    {
-      NativeConfig.setString(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
-    }
-    else
-    {
-      settings.getSection(mFile, mSection).setString(mKey, newValue);
-    }
+    NativeConfig.setString(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
   }
 
   public String getStringGlobal()

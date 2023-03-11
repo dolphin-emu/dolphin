@@ -123,10 +123,7 @@ public enum IntSetting implements AbstractIntSetting
   @Override
   public boolean isOverridden(@NonNull Settings settings)
   {
-    if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
-      return settings.getSection(mFile, mSection).exists(mKey);
-    else
-      return NativeConfig.isOverridden(mFile, mSection, mKey);
+    return NativeConfig.isOverridden(mFile, mSection, mKey);
   }
 
   @Override
@@ -147,40 +144,31 @@ public enum IntSetting implements AbstractIntSetting
   @Override
   public boolean delete(@NonNull Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
     }
-    else
-    {
-      return settings.getSection(mFile, mSection).delete(mKey);
-    }
+
+    return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
   }
 
   @Override
   public int getInt(@NonNull Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
-    {
-      return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
-    }
-    else
-    {
-      return settings.getSection(mFile, mSection).getInt(mKey, mDefaultValue);
-    }
+    return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
 
   @Override
   public void setInt(@NonNull Settings settings, int newValue)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setInt(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
     }
-    else
-    {
-      settings.getSection(mFile, mSection).setInt(mKey, newValue);
-    }
+
+    NativeConfig.setInt(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
   }
 
   public int getIntGlobal()
@@ -190,6 +178,12 @@ public enum IntSetting implements AbstractIntSetting
 
   public void setIntGlobal(int layer, int newValue)
   {
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    {
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
+    }
+
     NativeConfig.setInt(layer, mFile, mSection, mKey, newValue);
   }
 

@@ -66,7 +66,7 @@ public final class SettingsActivityPresenter
   {
     mView.hideLoading();
 
-    if (mSettings.isEmpty())
+    if (!mSettings.areSettingsLoaded())
     {
       if (!TextUtils.isEmpty(mGameId))
       {
@@ -99,9 +99,9 @@ public final class SettingsActivityPresenter
     return mSettings;
   }
 
-  public void clearSettings()
+  public void clearGameSettings()
   {
-    mSettings.clearSettings();
+    mSettings.clearGameSettings();
     onSettingChanged();
   }
 
