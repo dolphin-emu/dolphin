@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -35,6 +36,8 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   private SettingsActivityView mActivity;
 
   private SettingsAdapter mAdapter;
+
+  private int mOldControllerSettingsWarningHeight = 0;
 
   private static final Map<MenuTag, Integer> titles = new HashMap<>();
 
@@ -65,14 +68,26 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     titles.put(MenuTag.GCPAD_2, R.string.controller_1);
     titles.put(MenuTag.GCPAD_3, R.string.controller_2);
     titles.put(MenuTag.GCPAD_4, R.string.controller_3);
-    titles.put(MenuTag.WIIMOTE_1, R.string.wiimote_4);
-    titles.put(MenuTag.WIIMOTE_2, R.string.wiimote_5);
-    titles.put(MenuTag.WIIMOTE_3, R.string.wiimote_6);
-    titles.put(MenuTag.WIIMOTE_4, R.string.wiimote_7);
-    titles.put(MenuTag.WIIMOTE_EXTENSION_1, R.string.wiimote_extension_4);
-    titles.put(MenuTag.WIIMOTE_EXTENSION_2, R.string.wiimote_extension_5);
-    titles.put(MenuTag.WIIMOTE_EXTENSION_3, R.string.wiimote_extension_6);
-    titles.put(MenuTag.WIIMOTE_EXTENSION_4, R.string.wiimote_extension_7);
+    titles.put(MenuTag.WIIMOTE_1, R.string.wiimote_0);
+    titles.put(MenuTag.WIIMOTE_2, R.string.wiimote_1);
+    titles.put(MenuTag.WIIMOTE_3, R.string.wiimote_2);
+    titles.put(MenuTag.WIIMOTE_4, R.string.wiimote_3);
+    titles.put(MenuTag.WIIMOTE_EXTENSION_1, R.string.wiimote_extension_0);
+    titles.put(MenuTag.WIIMOTE_EXTENSION_2, R.string.wiimote_extension_1);
+    titles.put(MenuTag.WIIMOTE_EXTENSION_3, R.string.wiimote_extension_2);
+    titles.put(MenuTag.WIIMOTE_EXTENSION_4, R.string.wiimote_extension_3);
+    titles.put(MenuTag.WIIMOTE_GENERAL_1, R.string.wiimote_general);
+    titles.put(MenuTag.WIIMOTE_GENERAL_2, R.string.wiimote_general);
+    titles.put(MenuTag.WIIMOTE_GENERAL_3, R.string.wiimote_general);
+    titles.put(MenuTag.WIIMOTE_GENERAL_4, R.string.wiimote_general);
+    titles.put(MenuTag.WIIMOTE_MOTION_SIMULATION_1, R.string.wiimote_motion_simulation);
+    titles.put(MenuTag.WIIMOTE_MOTION_SIMULATION_2, R.string.wiimote_motion_simulation);
+    titles.put(MenuTag.WIIMOTE_MOTION_SIMULATION_3, R.string.wiimote_motion_simulation);
+    titles.put(MenuTag.WIIMOTE_MOTION_SIMULATION_4, R.string.wiimote_motion_simulation);
+    titles.put(MenuTag.WIIMOTE_MOTION_INPUT_1, R.string.wiimote_motion_input);
+    titles.put(MenuTag.WIIMOTE_MOTION_INPUT_2, R.string.wiimote_motion_input);
+    titles.put(MenuTag.WIIMOTE_MOTION_INPUT_3, R.string.wiimote_motion_input);
+    titles.put(MenuTag.WIIMOTE_MOTION_INPUT_4, R.string.wiimote_motion_input);
   }
 
   private FragmentSettingsBinding mBinding;
@@ -204,6 +219,12 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
+  public void showDialogFragment(DialogFragment fragment)
+  {
+    mActivity.showDialogFragment(fragment);
+  }
+
+  @Override
   public void showToastMessage(String message)
   {
     mActivity.showToastMessage(message);
@@ -222,6 +243,13 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
+  public void onControllerSettingsChanged()
+  {
+    mAdapter.notifyAllSettingsChanged();
+    mPresenter.updateOldControllerSettingsWarningVisibility();
+  }
+
+  @Override
   public void onMenuTagAction(@NonNull MenuTag menuTag, int value)
   {
     mActivity.onMenuTagAction(menuTag, value);
@@ -232,13 +260,35 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     return mActivity.hasMenuTagActionForValue(menuTag, value);
   }
 
+  @Override
+  public void setMappingAllDevices(boolean allDevices)
+  {
+    mActivity.setMappingAllDevices(allDevices);
+  }
+
+  @Override
+  public boolean isMappingAllDevices()
+  {
+    return mActivity.isMappingAllDevices();
+  }
+
+  @Override
+  public void setOldControllerSettingsWarningVisibility(boolean visible)
+  {
+    mOldControllerSettingsWarningHeight =
+            mActivity.setOldControllerSettingsWarningVisibility(visible);
+
+    // Trigger the insets listener we've registered
+    mBinding.listSettings.requestApplyInsets();
+  }
+
   private void setInsets()
   {
     ViewCompat.setOnApplyWindowInsetsListener(mBinding.listSettings, (v, windowInsets) ->
     {
       Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-      v.setPadding(0, 0, 0,
-              insets.bottom + getResources().getDimensionPixelSize(R.dimen.spacing_list));
+      int listSpacing = getResources().getDimensionPixelSize(R.dimen.spacing_list);
+      v.setPadding(0, 0, 0, insets.bottom + listSpacing + mOldControllerSettingsWarningHeight);
       return windowInsets;
     });
   }

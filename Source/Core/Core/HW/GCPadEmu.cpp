@@ -60,20 +60,20 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
     m_triggers->AddInput(ControllerEmu::Translate, named_trigger);
   }
 
-  // rumble
-  groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(RUMBLE_GROUP));
-  m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
-
-  // Microphone
-  groups.emplace_back(m_mic = new ControllerEmu::Buttons(MIC_GROUP));
-  m_mic->AddInput(ControllerEmu::Translate, _trans("Button"));
-
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
     m_dpad->AddInput(ControllerEmu::Translate, named_direction);
   }
+
+  // Microphone
+  groups.emplace_back(m_mic = new ControllerEmu::Buttons(MIC_GROUP));
+  m_mic->AddInput(ControllerEmu::Translate, _trans("Button"));
+
+  // rumble
+  groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(RUMBLE_GROUP));
+  m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(OPTIONS_GROUP));
@@ -170,12 +170,16 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
+#ifdef ANDROID
+  // Rumble
+  m_rumble->SetControlExpression(0, "`Android/0/Device Sensors:Motor 0`");
+#else
   // Buttons
-  m_buttons->SetControlExpression(0, "`X`");  // A
-  m_buttons->SetControlExpression(1, "`Z`");  // B
-  m_buttons->SetControlExpression(2, "`C`");  // X
-  m_buttons->SetControlExpression(3, "`S`");  // Y
-  m_buttons->SetControlExpression(4, "`D`");  // Z
+  m_buttons->SetControlExpression(0, "`X`");       // A
+  m_buttons->SetControlExpression(1, "`Z`");       // B
+  m_buttons->SetControlExpression(2, "`C`");       // X
+  m_buttons->SetControlExpression(3, "`S`");       // Y
+  m_buttons->SetControlExpression(4, "`D`");       // Z
 #ifdef _WIN32
   m_buttons->SetControlExpression(5, "`RETURN`");  // Start
 #else
@@ -225,6 +229,7 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   // Triggers
   m_triggers->SetControlExpression(0, "`Q`");  // L
   m_triggers->SetControlExpression(1, "`W`");  // R
+#endif
 }
 
 bool GCPad::GetMicButton() const

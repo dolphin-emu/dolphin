@@ -129,6 +129,9 @@ public:
   static constexpr const char* PLUS_BUTTON = "+";
   static constexpr const char* HOME_BUTTON = "Home";
 
+  static constexpr const char* UPRIGHT_OPTION = "Upright Wiimote";
+  static constexpr const char* SIDEWAYS_OPTION = "Sideways Wiimote";
+
   explicit Wiimote(unsigned int index);
   ~Wiimote();
 

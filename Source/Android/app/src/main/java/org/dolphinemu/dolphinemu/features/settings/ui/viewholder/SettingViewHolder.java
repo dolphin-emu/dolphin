@@ -83,7 +83,7 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
   {
     SettingsItem item = getItem();
 
-    if (item == null || !item.hasSetting())
+    if (item == null || !item.canClear())
       return false;
 
     if (!item.isEditable())

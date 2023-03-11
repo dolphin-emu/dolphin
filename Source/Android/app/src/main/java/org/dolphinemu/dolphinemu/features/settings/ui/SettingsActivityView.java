@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
 
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
@@ -20,6 +21,13 @@ public interface SettingsActivityView
    * @param addToStack Whether or not this fragment should replace a previous one.
    */
   void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack, String gameId);
+
+  /**
+   * Shows a DialogFragment.
+   *
+   * Only one can be shown at a time.
+   */
+  void showDialogFragment(DialogFragment fragment);
 
   /**
    * Called by a contained Fragment to get access to the Setting HashMap
@@ -61,6 +69,14 @@ public interface SettingsActivityView
   void onSettingChanged();
 
   /**
+   * Refetches the values of all controller settings.
+   *
+   * To be used when loading an input profile or performing some other action that changes all
+   * controller settings at once.
+   */
+  void onControllerSettingsChanged();
+
+  /**
    * Called by a containing Fragment to tell the containing Activity that the user wants to open the
    * MenuTag associated with a setting.
    *
@@ -97,4 +113,25 @@ public interface SettingsActivityView
    * Accesses the material toolbar layout and changes the title
    */
   void setToolbarTitle(String title);
+
+  /**
+   * Sets whether the input mapping dialog should detect inputs from all devices,
+   * not just the device configured for the controller.
+   */
+  void setMappingAllDevices(boolean allDevices);
+
+  /**
+   * Returns whether the input mapping dialog should detect inputs from all devices,
+   * not just the device configured for the controller.
+   */
+  boolean isMappingAllDevices();
+
+  /**
+   * Shows or hides a warning telling the user that they're using incompatible controller settings.
+   * The warning is hidden by default.
+   *
+   * @param visible Whether the warning should be visible.
+   * @return The height of the warning view, or 0 if the view is now invisible.
+   */
+  int setOldControllerSettingsWarningVisibility(boolean visible);
 }

@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.input.model.MappingCommon;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
@@ -24,7 +25,6 @@ public class Settings implements Closeable
   public static final String FILE_SYSCONF = "SYSCONF";
   public static final String FILE_GFX = "GFX";
   public static final String FILE_LOGGER = "Logger";
-  public static final String FILE_GCPAD = "GCPadNew";
   public static final String FILE_WIIMOTE = "WiimoteNew";
 
   public static final String SECTION_INI_ANDROID = "Android";
@@ -46,10 +46,7 @@ public class Settings implements Closeable
 
   public static final String SECTION_STEREOSCOPY = "Stereoscopy";
 
-  public static final String SECTION_WIIMOTE = "Wiimote";
-
   public static final String SECTION_BINDINGS = "Android";
-  public static final String SECTION_CONTROLS = "Controls";
   public static final String SECTION_PROFILE = "Profile";
 
   public static final String SECTION_ANALYTICS = "Analytics";
@@ -64,7 +61,6 @@ public class Settings implements Closeable
           FILE_WIIMOTE};
 
   private Map<String, IniFile> mIniFiles = new HashMap<>();
-  private final Map<String, IniFile> mWiimoteProfileFiles = new HashMap<>();
 
   private boolean mLoadedRecursiveIsoPathsValue = false;
 
@@ -97,50 +93,6 @@ public class Settings implements Closeable
   public boolean isWii()
   {
     return mIsWii;
-  }
-
-  public IniFile getWiimoteProfile(String profile, int padID)
-  {
-    IniFile wiimoteProfileIni = mWiimoteProfileFiles.computeIfAbsent(profile, profileComputed ->
-    {
-      IniFile newIni = new IniFile();
-      newIni.load(SettingsFile.getWiiProfile(profileComputed), false);
-      return newIni;
-    });
-
-    if (!wiimoteProfileIni.exists(SECTION_PROFILE))
-    {
-      String defaultWiiProfilePath = DirectoryInitialization.getUserDirectory() +
-              "/Config/Profiles/Wiimote/WiimoteProfile.ini";
-
-      wiimoteProfileIni.load(defaultWiiProfilePath, false);
-
-      wiimoteProfileIni
-              .setString(SECTION_PROFILE, "Device", "Android/" + (padID + 4) + "/Touchscreen");
-    }
-
-    return wiimoteProfileIni;
-  }
-
-  public void enableWiimoteProfile(Settings settings, String profile, String profileKey)
-  {
-    getWiimoteControlsSection(settings).setString(profileKey, profile);
-  }
-
-  public boolean disableWiimoteProfile(Settings settings, String profileKey)
-  {
-    return getWiimoteControlsSection(settings).delete(profileKey);
-  }
-
-  public boolean isWiimoteProfileEnabled(Settings settings, String profile,
-          String profileKey)
-  {
-    return profile.equals(getWiimoteControlsSection(settings).getString(profileKey, ""));
-  }
-
-  private IniFile.Section getWiimoteControlsSection(Settings settings)
-  {
-    return settings.getSection(GAME_SETTINGS_PLACEHOLDER_FILE_NAME, SECTION_CONTROLS);
   }
 
   public int getWriteLayer()
@@ -218,13 +170,14 @@ public class Settings implements Closeable
         SettingsFile.saveFile(entry.getKey(), entry.getValue(), view);
       }
 
+      MappingCommon.save();
+
       NativeConfig.save(NativeConfig.LAYER_BASE);
 
       if (!NativeLibrary.IsRunning())
       {
         // Notify the native code of the changes to legacy settings
         NativeLibrary.ReloadConfig();
-        NativeLibrary.ReloadWiimoteConfig();
       }
 
       // LogManager does use the new config system, but doesn't pick up on changes automatically
@@ -250,11 +203,6 @@ public class Settings implements Closeable
       SettingsFile.saveCustomGameSettings(mGameId, getGameSpecificFile());
 
       NativeConfig.save(NativeConfig.LAYER_LOCAL_GAME);
-    }
-
-    for (Map.Entry<String, IniFile> entry : mWiimoteProfileFiles.entrySet())
-    {
-      entry.getValue().save(SettingsFile.getWiiProfile(entry.getKey()));
     }
   }
 

@@ -3,6 +3,7 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -55,6 +56,8 @@ public interface SettingsFragmentView
    */
   void loadSubMenu(MenuTag menuKey);
 
+  void showDialogFragment(DialogFragment fragment);
+
   /**
    * Tell the Fragment to tell the containing activity to display a toast message.
    *
@@ -73,6 +76,14 @@ public interface SettingsFragmentView
   void onSettingChanged();
 
   /**
+   * Refetches the values of all controller settings.
+   *
+   * To be used when loading an input profile or performing some other action that changes all
+   * controller settings at once.
+   */
+  void onControllerSettingsChanged();
+
+  /**
    * Have the fragment tell the containing Activity that the user wants to open the MenuTag
    * associated with a setting.
    *
@@ -89,4 +100,24 @@ public interface SettingsFragmentView
    * @param value   The current value of the setting.
    */
   boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value);
+
+  /**
+   * Sets whether the input mapping dialog should detect inputs from all devices,
+   * not just the device configured for the controller.
+   */
+  void setMappingAllDevices(boolean allDevices);
+
+  /**
+   * Returns whether the input mapping dialog should detect inputs from all devices,
+   * not just the device configured for the controller.
+   */
+  boolean isMappingAllDevices();
+
+  /**
+   * Shows or hides a warning telling the user that they're using incompatible controller settings.
+   * The warning is hidden by default.
+   *
+   * @param visible Whether the warning should be visible.
+   */
+  void setOldControllerSettingsWarningVisibility(boolean visible);
 }

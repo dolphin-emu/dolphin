@@ -23,6 +23,14 @@ public abstract class SliderSetting extends SettingsItem
     mStepSize = stepSize;
   }
 
+  public SliderSetting(CharSequence name, CharSequence description, int min, int max, String units)
+  {
+    super(name, description);
+    mMin = min;
+    mMax = max;
+    mUnits = units;
+  }
+
   public abstract int getSelectedValue(Settings settings);
 
   public int getMin()

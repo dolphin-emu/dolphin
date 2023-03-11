@@ -20,9 +20,8 @@
         android:title="@string/emulation_control_joystick_rel_center"/>
 
     <item
-        android:id="@+id/menu_emulation_rumble"
-        android:checkable="true"
-        android:title="@string/emulation_control_rumble"/>
+        android:id="@+id/menu_emulation_choose_controller"
+        android:title="@string/emulation_choose_controller"/>
 
     <item
         android:id="@+id/menu_emulation_reset_overlay"

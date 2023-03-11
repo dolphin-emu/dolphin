@@ -13,7 +13,6 @@ static jclass s_string_class;
 
 static jclass s_native_library_class;
 static jmethodID s_display_alert_msg;
-static jmethodID s_do_rumble;
 static jmethodID s_update_touch_pointer;
 static jmethodID s_on_title_changed;
 static jmethodID s_finish_emulation_activity;
@@ -84,6 +83,34 @@ static jfieldID s_riivolution_patches_pointer;
 static jclass s_wii_update_cb_class;
 static jmethodID s_wii_update_cb_run;
 
+static jclass s_control_class;
+static jfieldID s_control_pointer;
+static jmethodID s_control_constructor;
+
+static jclass s_numeric_setting_class;
+static jfieldID s_numeric_setting_pointer;
+static jmethodID s_numeric_setting_constructor;
+
+static jclass s_control_group_class;
+static jfieldID s_control_group_pointer;
+static jmethodID s_control_group_constructor;
+
+static jclass s_control_reference_class;
+static jfieldID s_control_reference_pointer;
+static jmethodID s_control_reference_constructor;
+
+static jclass s_emulated_controller_class;
+static jfieldID s_emulated_controller_pointer;
+static jmethodID s_emulated_controller_constructor;
+
+static jclass s_core_device_class;
+static jfieldID s_core_device_pointer;
+static jmethodID s_core_device_constructor;
+
+static jclass s_core_device_control_class;
+static jfieldID s_core_device_control_pointer;
+static jmethodID s_core_device_control_constructor;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -122,11 +149,6 @@ jclass GetNativeLibraryClass()
 jmethodID GetDisplayAlertMsg()
 {
   return s_display_alert_msg;
-}
-
-jmethodID GetDoRumble()
-{
-  return s_do_rumble;
 }
 
 jmethodID GetUpdateTouchPointer()
@@ -389,6 +411,111 @@ jmethodID GetWiiUpdateCallbackFunction()
   return s_wii_update_cb_run;
 }
 
+jclass GetControlClass()
+{
+  return s_control_class;
+}
+
+jfieldID GetControlPointer()
+{
+  return s_control_pointer;
+}
+
+jmethodID GetControlConstructor()
+{
+  return s_control_constructor;
+}
+
+jclass GetControlGroupClass()
+{
+  return s_control_group_class;
+}
+
+jfieldID GetControlGroupPointer()
+{
+  return s_control_group_pointer;
+}
+
+jmethodID GetControlGroupConstructor()
+{
+  return s_control_group_constructor;
+}
+
+jclass GetControlReferenceClass()
+{
+  return s_control_reference_class;
+}
+
+jfieldID GetControlReferencePointer()
+{
+  return s_control_reference_pointer;
+}
+
+jmethodID GetControlReferenceConstructor()
+{
+  return s_control_reference_constructor;
+}
+
+jclass GetEmulatedControllerClass()
+{
+  return s_emulated_controller_class;
+}
+
+jfieldID GetEmulatedControllerPointer()
+{
+  return s_emulated_controller_pointer;
+}
+
+jmethodID GetEmulatedControllerConstructor()
+{
+  return s_emulated_controller_constructor;
+}
+
+jclass GetNumericSettingClass()
+{
+  return s_numeric_setting_class;
+}
+
+jfieldID GetNumericSettingPointer()
+{
+  return s_numeric_setting_pointer;
+}
+
+jmethodID GetNumericSettingConstructor()
+{
+  return s_numeric_setting_constructor;
+}
+
+jclass GetCoreDeviceClass()
+{
+  return s_core_device_class;
+}
+
+jfieldID GetCoreDevicePointer()
+{
+  return s_core_device_pointer;
+}
+
+jmethodID GetCoreDeviceConstructor()
+{
+  return s_core_device_constructor;
+}
+
+jclass GetCoreDeviceControlClass()
+{
+  return s_core_device_control_class;
+}
+
+jfieldID GetCoreDeviceControlPointer()
+{
+  return s_core_device_control_pointer;
+}
+
+jmethodID GetCoreDeviceControlConstructor()
+{
+  return s_core_device_control_constructor;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -408,7 +535,6 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_native_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(native_library_class));
   s_display_alert_msg = env->GetStaticMethodID(s_native_library_class, "displayAlertMsg",
                                                "(Ljava/lang/String;Ljava/lang/String;ZZZ)Z");
-  s_do_rumble = env->GetStaticMethodID(s_native_library_class, "rumble", "(ID)V");
   s_update_touch_pointer =
       env->GetStaticMethodID(s_native_library_class, "updateTouchPointer", "()V");
   s_on_title_changed = env->GetStaticMethodID(s_native_library_class, "onTitleChanged", "()V");
@@ -548,6 +674,59 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_wii_update_cb_run = env->GetMethodID(s_wii_update_cb_class, "run", "(IIJ)Z");
   env->DeleteLocalRef(wii_update_cb_class);
 
+  const jclass control_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/controlleremu/Control");
+  s_control_class = reinterpret_cast<jclass>(env->NewGlobalRef(control_class));
+  s_control_pointer = env->GetFieldID(control_class, "mPointer", "J");
+  s_control_constructor = env->GetMethodID(control_class, "<init>", "(J)V");
+  env->DeleteLocalRef(control_class);
+
+  const jclass control_group_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/controlleremu/ControlGroup");
+  s_control_group_class = reinterpret_cast<jclass>(env->NewGlobalRef(control_group_class));
+  s_control_group_pointer = env->GetFieldID(control_group_class, "mPointer", "J");
+  s_control_group_constructor = env->GetMethodID(control_group_class, "<init>", "(J)V");
+  env->DeleteLocalRef(control_group_class);
+
+  const jclass control_reference_class = env->FindClass(
+      "org/dolphinemu/dolphinemu/features/input/model/controlleremu/ControlReference");
+  s_control_reference_class = reinterpret_cast<jclass>(env->NewGlobalRef(control_reference_class));
+  s_control_reference_pointer = env->GetFieldID(control_reference_class, "mPointer", "J");
+  s_control_reference_constructor = env->GetMethodID(control_reference_class, "<init>", "(J)V");
+  env->DeleteLocalRef(control_reference_class);
+
+  const jclass emulated_controller_class = env->FindClass(
+      "org/dolphinemu/dolphinemu/features/input/model/controlleremu/EmulatedController");
+  s_emulated_controller_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(emulated_controller_class));
+  s_emulated_controller_pointer = env->GetFieldID(emulated_controller_class, "mPointer", "J");
+  s_emulated_controller_constructor = env->GetMethodID(emulated_controller_class, "<init>", "(J)V");
+  env->DeleteLocalRef(emulated_controller_class);
+
+  const jclass numeric_setting_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/controlleremu/NumericSetting");
+  s_numeric_setting_class = reinterpret_cast<jclass>(env->NewGlobalRef(numeric_setting_class));
+  s_numeric_setting_pointer = env->GetFieldID(numeric_setting_class, "mPointer", "J");
+  s_numeric_setting_constructor = env->GetMethodID(numeric_setting_class, "<init>", "(J)V");
+  env->DeleteLocalRef(numeric_setting_class);
+
+  const jclass core_device_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/CoreDevice");
+  s_core_device_class = reinterpret_cast<jclass>(env->NewGlobalRef(core_device_class));
+  s_core_device_pointer = env->GetFieldID(core_device_class, "mPointer", "J");
+  s_core_device_constructor = env->GetMethodID(core_device_class, "<init>", "(J)V");
+  env->DeleteLocalRef(core_device_class);
+
+  const jclass core_device_control_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/CoreDevice$Control");
+  s_core_device_control_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(core_device_control_class));
+  s_core_device_control_pointer = env->GetFieldID(core_device_control_class, "mPointer", "J");
+  s_core_device_control_constructor =
+      env->GetMethodID(core_device_control_class, "<init>",
+                       "(Lorg/dolphinemu/dolphinemu/features/input/model/CoreDevice;J)V");
+  env->DeleteLocalRef(core_device_control_class);
+
   return JNI_VERSION;
 }
 
@@ -575,5 +754,12 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_graphics_mod_class);
   env->DeleteGlobalRef(s_riivolution_patches_class);
   env->DeleteGlobalRef(s_wii_update_cb_class);
+  env->DeleteGlobalRef(s_control_class);
+  env->DeleteGlobalRef(s_control_group_class);
+  env->DeleteGlobalRef(s_control_reference_class);
+  env->DeleteGlobalRef(s_emulated_controller_class);
+  env->DeleteGlobalRef(s_numeric_setting_class);
+  env->DeleteGlobalRef(s_core_device_class);
+  env->DeleteGlobalRef(s_core_device_control_class);
 }
 }

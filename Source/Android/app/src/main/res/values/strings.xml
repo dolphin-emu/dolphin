@@ -6,109 +6,55 @@
     <string name="host">app</string>
     <string name="scheme">dolphinemu</string>
 
+    <string name="none">None</string>
+
     <string name="controller_0">GameCube Controller 1</string>
     <string name="controller_1">GameCube Controller 2</string>
     <string name="controller_2">GameCube Controller 3</string>
     <string name="controller_3">GameCube Controller 4</string>
 
-    <string name="controller_control">Control Stick</string>
-    <string name="controller_c">C Stick</string>
-    <string name="controller_trig">Triggers</string>
-    <string name="controller_dpad">D-Pad</string>
-    <string name="modifier_range">Modifier Range</string>
-    <string name="analog_radius">Analog Radius (High value = High sensitivity)</string>
-    <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
+    <string name="wiimote_0">Wii Remote 1</string>
+    <string name="wiimote_1">Wii Remote 2</string>
+    <string name="wiimote_2">Wii Remote 3</string>
+    <string name="wiimote_3">Wii Remote 4</string>
 
-    <string name="wiimote_4">Wii Remote 1</string>
-    <string name="wiimote_5">Wii Remote 2</string>
-    <string name="wiimote_6">Wii Remote 3</string>
-    <string name="wiimote_7">Wii Remote 4</string>
+    <string name="wiimote_extension_0">Wii Remote Extension 1</string>
+    <string name="wiimote_extension_1">Wii Remote Extension 2</string>
+    <string name="wiimote_extension_2">Wii Remote Extension 3</string>
+    <string name="wiimote_extension_3">Wii Remote Extension 4</string>
 
-    <string name="wiimote_extension_4">Wii Remote Extension 1</string>
-    <string name="wiimote_extension_5">Wii Remote Extension 2</string>
-    <string name="wiimote_extension_6">Wii Remote Extension 3</string>
-    <string name="wiimote_extension_7">Wii Remote Extension 4</string>
-
+    <string name="wiimote">Wii Remote</string>
+    <string name="wiimote_general">Buttons</string>
+    <string name="wiimote_motion_simulation">Motion Simulation</string>
+    <string name="wiimote_motion_input">Motion Input</string>
     <string name="wiimote_extensions">Extension</string>
-    <string name="wiimote_extensions_description">Choose and bind the Wii Remote extension.</string>
-    <string name="wiimote_ir">IR</string>
-    <string name="wiimote_swing">Swing</string>
-    <string name="wiimote_tilt">Tilt</string>
-    <string name="wiimote_shake">Shake</string>
+
+    <string name="input_device">Device</string>
+    <string name="input_device_all_devices">Create Mappings for Other Devices</string>
+    <string name="input_device_all_devices_description">Detects inputs from all devices, not just the selected device.</string>
+    <string name="input_profile">Profile</string>
+    <string name="input_profiles_empty">You haven\'t created any profiles yet.</string>
+    <string name="input_profiles">Profiles</string>
+    <string name="input_profile_new">(New Profile)</string>
+    <string name="input_profile_load">Load</string>
+    <string name="input_profile_save">Save</string>
+    <string name="input_profile_delete">Delete</string>
+    <string name="input_profile_confirm_load">Do you want to discard your current controller settings and load the profile \"%1$s\"?</string>
+    <string name="input_profile_confirm_save">Do you want to overwrite the profile \"%1$s\"?</string>
+    <string name="input_profile_confirm_delete">Do you want to delete the profile \"%1$s\"?</string>
+    <string name="input_reset_to_default">Default</string>
+    <string name="input_reset_to_default_description">Reset settings for this controller to the default.</string>
+    <string name="input_clear">Clear</string>
+    <string name="input_clear_description">Clear settings for this controller.</string>
+    <string name="input_reset_warning">Are you sure? Your current controller settings will be deleted.</string>
+    <string name="old_controller_settings">Your controller settings are from an old version of Dolphin and won\'t work in this version. Press \"Default\" to start over with new settings.</string>
 
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>
-    <string name="input_rumble_description">Press or move any input to set rumble.</string>
-
-    <!-- Generic buttons (Shared with lots of stuff) -->
-    <string name="generic_buttons">Buttons</string>
-    <string name="generic_up">Up</string>
-    <string name="generic_down">Down</string>
-    <string name="generic_left">Left</string>
-    <string name="generic_right">Right</string>
-    <string name="generic_forward">Forward</string>
-    <string name="generic_backward">Backward</string>
-    <string name="generic_stick">Stick</string>
-    <string name="generic_green">Green</string>
-    <string name="generic_red">Red</string>
-    <string name="generic_yellow">Yellow</string>
-    <string name="generic_blue">Blue</string>
-    <string name="generic_orange">Orange</string>
-
-    <!-- GameCube buttons (May be shared with other stuff too) -->
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_start">START</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
-    <string name="button_z">Z</string>
-    <string name="trigger_left">L</string>
-    <string name="trigger_right">R</string>
-
-    <!-- Wii Remote buttons (May be shared with other stuff too) -->
-    <string name="button_one">1</string>
-    <string name="button_two">2</string>
-    <string name="button_minus">-</string>
-    <string name="button_plus">+</string>
-    <string name="button_home">HOME</string>
-    <string name="ir_hide">Hide</string>
-    <string name="tilt_modifier">Modifier</string>
-    <string name="shake_x">X</string>
-    <string name="shake_y">Y</string>
-    <string name="shake_z">Z</string>
-
-    <!-- Nunchuk only buttons -->
-    <string name="nunchuk_button_c">C</string>
-
-    <!-- Classic only buttons -->
-    <string name="classic_button_zl">ZL</string>
-    <string name="classic_button_zr">ZR</string>
-    <string name="classic_leftstick">Left Stick</string>
-    <string name="classic_rightstick">Right Stick</string>
-
-    <!-- Guitar only buttons -->
-    <string name="guitar_frets">Frets</string>
-    <string name="guitar_strum">Strum</string>
-    <string name="guitar_whammy">Whammy</string>
-    <string name="guitar_whammy_bar">Bar</string>
-
-    <!-- Drums only buttons -->
-    <string name="drums_pads">Pads</string>
-    <string name="drums_pad_bass">Bass</string>
-
-    <!-- Turntable only buttons -->
-    <string name="turntable_button_green_left">Green Left</string>
-    <string name="turntable_button_red_left">Red Left</string>
-    <string name="turntable_button_blue_left">Blue Left</string>
-    <string name="turntable_button_green_right">Green Right</string>
-    <string name="turntable_button_red_right">Red Right</string>
-    <string name="turntable_button_blue_right">Blue Right</string>
-    <string name="turntable_button_euphoria">Euphoria</string>
-    <string name="turntable_table_left">Table Left</string>
-    <string name="turntable_table_right">Table Right</string>
-    <string name="turntable_effect">Effect</string>
-    <string name="turntable_effect_dial">Dial</string>
-    <string name="turntable_crossfade">Crossfade</string>
+    <string name="input_binding_no_device">You need to select a device first!</string>
+    <string name="input_configure_input">Configure Input</string>
+    <string name="input_configure_output">Configure Output</string>
+    <string name="input_expression">Expression</string>
 
     <!-- Main Preference Fragment -->
     <string name="settings">Settings</string>
@@ -479,6 +425,7 @@
     <string name="other">Other</string>
     <string name="continue_anyway">Continue Anyway</string>
     <string name="more_settings">More Settings</string>
+    <string name="advanced_settings">Advanced Settings</string>
 
     <!-- Game Grid Screen-->
     <string name="platform_gamecube">GameCube Games</string>
@@ -528,7 +475,6 @@
     <string name="preferences_save_exit">Save and Exit</string>
     <string name="preferences_game_properties">Game Properties</string>
     <string name="preferences_game_properties_with_game_id">Game Properties: %1$s</string>
-    <string name="preferences_extensions">Extension Bindings</string>
     <string name="game_ini_junk_title">Junk Data Found</string>
     <string name="game_ini_junk_question">The settings file for this game contains extraneous data added by an old version of Dolphin. This will likely prevent global settings from working as intended.\n\nWould you like to fix this by deleting the settings file for this game? All game-specific settings and cheats that you have added will be removed. This cannot be undone.</string>
 
@@ -626,8 +572,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_control_opacity">Opacity</string>
     <string name="emulation_control_adjustments">Adjust Controls</string>
     <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
-    <string name="emulation_control_rumble">Rumble</string>
     <string name="emulation_choose_controller">Choose Controller</string>
+    <string name="emulation_more_controller_settings">More Settings</string>
     <string name="emulation_menu_help">Press Back to access the menu.\nLong press Back to exit emulation.</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
     <string name="emulation_ir_group">Touch IR Pointer</string>
@@ -635,20 +581,12 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_ir_mode">IR Mode</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
     <string name="emulation_choose_doubletap">Double tap button</string>
-    <string name="emulation_motion_controls">Motion Controls</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>
     <string name="gc_adapter_rumble_description">Enable the vibration function for this GameCube controller.</string>
     <string name="gc_adapter_bongos">Bongo Controller</string>
     <string name="gc_adapter_bongos_description">Enable this if you are using bongos on this port.</string>
-
-    <!-- Wii Remote Input Menu-->
-    <string name="header_wiimote_general">General</string>
-    <string name="header_controllers">Controllers</string>
-
-    <!-- Rumble -->
-    <string name="rumble_not_found">Device rumble not found</string>
 
     <string name="path_not_changeable_scoped_storage">Due to the Scoped Storage policy in Android 11 and newer, you can\'t change this path.</string>
     <string name="load_settings">Loading Settings…</string>
@@ -674,14 +612,12 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="unavailable_paths">Dolphin does not have permission to access one or more configured paths. Would you like to fix this before starting?</string>
 
     <!-- Misc -->
-    <string name="pitch">Total Pitch</string>
-    <string name="yaw">Total Yaw</string>
-    <string name="vertical_offset">Vertical Offset</string>
+    <string name="enabled">Enabled</string>
     <string name="default_values">Default Values</string>
     <string name="slider_setting_value">%1$d%2$s</string>
     <string name="disc_number">Disc %1$d</string>
     <string name="replug_gc_adapter">GameCube Adapter couldn\'t be opened. Please re-plug the device.</string>
-    <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
+    <string name="disabled_gc_overlay_notice">The selected GameCube controller is set to \"None\"</string>
     <string name="ignore_warning_alert_messages">Ignore for this session</string>
 
     <!-- UI CPU Core selection -->
@@ -824,14 +760,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="wiimote_disabled">Disabled</string>
     <string name="wiimote_emulated">Emulated</string>
     <string name="wiimote_real">Real Wii Remote (DolphinBar required)</string>
-
-    <!-- Controller Types -->
-    <string name="controller_gc">GameCube Controller</string>
-    <string name="controller_wiimote">Wii Remote</string>
-    <string name="controller_horizontal_wiimote">Horizontal Wii Remote</string>
-    <string name="controller_wiimote_plus_nunchuk">Wii Remote + Nunchuk</string>
-    <string name="controller_classic">Classic Controller</string>
-    <string name="controller_none">None</string>
 
     <!-- Gamepad Controls -->
     <string name="gamepad_start">Start</string>
