@@ -65,7 +65,7 @@ public enum StringSetting implements AbstractStringSetting
   }
 
   @Override
-  public boolean isOverridden(@NonNull Settings settings)
+  public boolean isOverridden()
   {
     return NativeConfig.isOverridden(mFile, mSection, mKey);
   }
@@ -89,7 +89,7 @@ public enum StringSetting implements AbstractStringSetting
   }
 
   @NonNull @Override
-  public String getString(@NonNull Settings settings)
+  public String getString()
   {
     if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {

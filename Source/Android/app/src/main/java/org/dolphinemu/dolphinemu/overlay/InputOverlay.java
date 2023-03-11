@@ -36,7 +36,6 @@ import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedCont
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -145,13 +144,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     requestFocus();
   }
 
-  public void setSurfacePosition(Settings settings, Rect rect)
+  public void setSurfacePosition(Rect rect)
   {
     mSurfacePosition = rect;
-    initTouchPointer(settings);
+    initTouchPointer();
   }
 
-  public void initTouchPointer(Settings settings)
+  public void initTouchPointer()
   {
     // Check if we have all the data we need yet
     boolean aspectRatioAvailable = NativeLibrary.IsRunningAndStarted();
@@ -164,7 +163,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     int doubleTapButton = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getIntGlobal();
 
-    if (getConfiguredControllerType(settings) != InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
+    if (getConfiguredControllerType() != InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
             doubleTapButton == ButtonType.CLASSIC_BUTTON_A)
     {
       doubleTapButton = ButtonType.WIIMOTE_BUTTON_A;
@@ -792,7 +791,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     }
   }
 
-  public void refreshControls(Settings settings)
+  public void refreshControls()
   {
     unregisterControllers();
 
@@ -805,11 +804,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
                     "-Portrait" : "";
 
-    mControllerType = getConfiguredControllerType(settings);
+    mControllerType = getConfiguredControllerType();
 
     IntSetting controllerSetting = NativeLibrary.IsEmulatingWii() ?
             IntSetting.MAIN_OVERLAY_WII_CONTROLLER : IntSetting.MAIN_OVERLAY_GC_CONTROLLER;
-    int controllerIndex = controllerSetting.getInt(settings);
+    int controllerIndex = controllerSetting.getInt();
 
     if (BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBooleanGlobal())
     {
@@ -817,7 +816,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       switch (mControllerType)
       {
         case OVERLAY_GAMECUBE:
-          if (IntSetting.getSettingForSIDevice(controllerIndex).getInt(settings) ==
+          if (IntSetting.getSettingForSIDevice(controllerIndex).getInt() ==
                   DISABLED_GAMECUBE_CONTROLLER && mIsFirstRun)
           {
             Toast.makeText(getContext(), R.string.disabled_gc_overlay_notice, Toast.LENGTH_SHORT)
@@ -866,21 +865,21 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     invalidate();
   }
 
-  public void refreshOverlayPointer(Settings settings)
+  public void refreshOverlayPointer()
   {
     if (overlayPointer != null)
     {
-      overlayPointer.setMode(IntSetting.MAIN_IR_MODE.getInt(settings));
-      overlayPointer.setRecenter(BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBoolean(settings));
+      overlayPointer.setMode(IntSetting.MAIN_IR_MODE.getInt());
+      overlayPointer.setRecenter(BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBoolean());
     }
   }
 
-  public void resetButtonPlacement(Settings settings)
+  public void resetButtonPlacement()
   {
     boolean isLandscape =
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
 
-    final int controller = getConfiguredControllerType(settings);
+    final int controller = getConfiguredControllerType();
     if (controller == OVERLAY_GAMECUBE)
     {
       if (isLandscape)
@@ -908,26 +907,26 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         wiiOnlyPortraitDefaultOverlay();
       }
     }
-    refreshControls(settings);
+    refreshControls();
   }
 
-  public static int getConfiguredControllerType(Settings settings)
+  public static int getConfiguredControllerType()
   {
     IntSetting controllerSetting = NativeLibrary.IsEmulatingWii() ?
             IntSetting.MAIN_OVERLAY_WII_CONTROLLER : IntSetting.MAIN_OVERLAY_GC_CONTROLLER;
-    int controllerIndex = controllerSetting.getInt(settings);
+    int controllerIndex = controllerSetting.getInt();
 
     if (controllerIndex >= 0 && controllerIndex < 4)
     {
       // GameCube controller
-      if (IntSetting.getSettingForSIDevice(controllerIndex).getInt(settings) == 6)
+      if (IntSetting.getSettingForSIDevice(controllerIndex).getInt() == 6)
         return OVERLAY_GAMECUBE;
     }
     else if (controllerIndex >= 4 && controllerIndex < 8)
     {
       // Wii Remote
       int wiimoteIndex = controllerIndex - 4;
-      if (IntSetting.getSettingForWiimoteSource(wiimoteIndex).getInt(settings) == 1)
+      if (IntSetting.getSettingForWiimoteSource(wiimoteIndex).getInt() == 1)
       {
         int attachmentIndex = EmulatedController.getSelectedWiimoteAttachment(wiimoteIndex);
         switch (attachmentIndex)
@@ -939,7 +938,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         }
 
         NumericSetting sidewaysSetting = EmulatedController.getSidewaysWiimoteSetting(wiimoteIndex);
-        boolean sideways = new InputMappingBooleanSetting(sidewaysSetting).getBoolean(settings);
+        boolean sideways = new InputMappingBooleanSetting(sidewaysSetting).getBoolean();
 
         return sideways ? OVERLAY_WIIMOTE_SIDEWAYS : OVERLAY_WIIMOTE;
       }

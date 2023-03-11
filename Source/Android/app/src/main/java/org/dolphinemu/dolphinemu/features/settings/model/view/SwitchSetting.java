@@ -26,9 +26,9 @@ public class SwitchSetting extends SettingsItem
     mSetting = setting;
   }
 
-  public boolean isChecked(Settings settings)
+  public boolean isChecked()
   {
-    return mSetting.getBoolean(settings);
+    return mSetting.getBoolean();
   }
 
   public void setChecked(Settings settings, boolean checked)

@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 public interface AbstractStringSetting extends AbstractSetting
 {
   @NonNull
-  String getString(@NonNull Settings settings);
+  String getString();
 
   void setString(@NonNull Settings settings, @NonNull String newValue);
 }

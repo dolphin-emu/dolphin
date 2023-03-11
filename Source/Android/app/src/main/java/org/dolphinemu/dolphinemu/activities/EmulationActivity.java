@@ -400,7 +400,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
       WindowManager.LayoutParams attributes = getWindow().getAttributes();
 
       attributes.layoutInDisplayCutoutMode =
-              BooleanSetting.MAIN_EXPAND_TO_CUTOUT_AREA.getBoolean(mSettings) ?
+              BooleanSetting.MAIN_EXPAND_TO_CUTOUT_AREA.getBoolean() ?
                       WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES :
                       WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
 
@@ -437,7 +437,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     setTitle(NativeLibrary.GetCurrentTitleDescription());
 
-    mEmulationFragment.refreshInputOverlay(mSettings);
+    mEmulationFragment.refreshInputOverlay();
   }
 
   @Override
@@ -521,7 +521,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
   private void updateOrientation()
   {
-    setRequestedOrientation(IntSetting.MAIN_EMULATION_ORIENTATION.getInt(mSettings));
+    setRequestedOrientation(IntSetting.MAIN_EMULATION_ORIENTATION.getInt());
   }
 
   private boolean closeSubmenu()
@@ -589,11 +589,11 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     // Populate the switch value for joystick center on touch
     menu.findItem(R.id.menu_emulation_joystick_rel_center)
-            .setChecked(BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBoolean(mSettings));
+            .setChecked(BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBoolean());
     if (wii)
     {
       menu.findItem(R.id.menu_emulation_ir_recenter)
-              .setChecked(BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBoolean(mSettings));
+              .setChecked(BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBoolean());
     }
 
     popup.setOnMenuItemClickListener(this::onOptionsItemSelected);
@@ -794,7 +794,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   private void toggleRecenter(boolean state)
   {
     BooleanSetting.MAIN_IR_ALWAYS_RECENTER.setBoolean(mSettings, state);
-    mEmulationFragment.refreshOverlayPointer(mSettings);
+    mEmulationFragment.refreshOverlayPointer();
   }
 
   private void editControlsPlacement()
@@ -831,7 +831,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.emulation_toggle_controls);
 
-    int currentController = InputOverlay.getConfiguredControllerType(mSettings);
+    int currentController = InputOverlay.getConfiguredControllerType();
 
     if (currentController == InputOverlay.OVERLAY_GAMECUBE)
     {
@@ -840,7 +840,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
       for (int i = 0; i < gcEnabledButtons.length; i++)
       {
-        gcEnabledButtons[i] = BooleanSetting.valueOf(gcSettingBase + i).getBoolean(mSettings);
+        gcEnabledButtons[i] = BooleanSetting.valueOf(gcSettingBase + i).getBoolean();
       }
       builder.setMultiChoiceItems(R.array.gcpadButtons, gcEnabledButtons,
               (dialog, indexSelected, isChecked) -> BooleanSetting
@@ -854,7 +854,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
       for (int i = 0; i < wiiClassicEnabledButtons.length; i++)
       {
         wiiClassicEnabledButtons[i] =
-                BooleanSetting.valueOf(classicSettingBase + i).getBoolean(mSettings);
+                BooleanSetting.valueOf(classicSettingBase + i).getBoolean();
       }
       builder.setMultiChoiceItems(R.array.classicButtons, wiiClassicEnabledButtons,
               (dialog, indexSelected, isChecked) -> BooleanSetting
@@ -868,7 +868,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
       for (int i = 0; i < wiiEnabledButtons.length; i++)
       {
-        wiiEnabledButtons[i] = BooleanSetting.valueOf(wiiSettingBase + i).getBoolean(mSettings);
+        wiiEnabledButtons[i] = BooleanSetting.valueOf(wiiSettingBase + i).getBoolean();
       }
       if (currentController == InputOverlay.OVERLAY_WIIMOTE_NUNCHUK)
       {
@@ -887,15 +887,15 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     builder.setNeutralButton(R.string.emulation_toggle_all,
                     (dialogInterface, i) -> mEmulationFragment.toggleInputOverlayVisibility(mSettings))
             .setPositiveButton(R.string.ok, (dialogInterface, i) ->
-                    mEmulationFragment.refreshInputOverlay(mSettings))
+                    mEmulationFragment.refreshInputOverlay())
             .show();
   }
 
   public void chooseDoubleTapButton()
   {
-    int currentValue = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getInt(mSettings);
+    int currentValue = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getInt();
 
-    int buttonList = InputOverlay.getConfiguredControllerType(mSettings) ==
+    int buttonList = InputOverlay.getConfiguredControllerType() ==
             InputOverlay.OVERLAY_WIIMOTE_CLASSIC ? R.array.doubleTapWithClassic : R.array.doubleTap;
 
     int checkedItem = -1;
@@ -914,7 +914,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
                     (DialogInterface dialog, int which) -> IntSetting.MAIN_DOUBLE_TAP_BUTTON.setInt(
                             mSettings, InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)))
             .setPositiveButton(R.string.ok,
-                    (dialogInterface, i) -> mEmulationFragment.initInputPointer(mSettings))
+                    (dialogInterface, i) -> mEmulationFragment.initInputPointer())
             .show();
   }
 
@@ -925,7 +925,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     final Slider scaleSlider = dialogBinding.inputScaleSlider;
     final TextView scaleValue = dialogBinding.inputScaleValue;
     scaleSlider.setValueTo(150);
-    scaleSlider.setValue(IntSetting.MAIN_CONTROL_SCALE.getInt(mSettings));
+    scaleSlider.setValue(IntSetting.MAIN_CONTROL_SCALE.getInt());
     scaleSlider.setStepSize(1);
     scaleSlider.addOnChangeListener(
             (slider, progress, fromUser) -> scaleValue.setText(((int) progress + 50) + "%"));
@@ -935,7 +935,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     final Slider sliderOpacity = dialogBinding.inputOpacitySlider;
     final TextView valueOpacity = dialogBinding.inputOpacityValue;
     sliderOpacity.setValueTo(100);
-    sliderOpacity.setValue(IntSetting.MAIN_CONTROL_OPACITY.getInt(mSettings));
+    sliderOpacity.setValue(IntSetting.MAIN_CONTROL_OPACITY.getInt());
     sliderOpacity.setStepSize(1);
     sliderOpacity.addOnChangeListener(
             (slider, progress, fromUser) -> valueOpacity.setText(((int) progress) + "%"));
@@ -948,13 +948,13 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
             {
               IntSetting.MAIN_CONTROL_SCALE.setInt(mSettings, (int) scaleSlider.getValue());
               IntSetting.MAIN_CONTROL_OPACITY.setInt(mSettings, (int) sliderOpacity.getValue());
-              mEmulationFragment.refreshInputOverlay(mSettings);
+              mEmulationFragment.refreshInputOverlay();
             })
             .setNeutralButton(R.string.default_values, (dialog, which) ->
             {
               IntSetting.MAIN_CONTROL_SCALE.delete(mSettings);
               IntSetting.MAIN_CONTROL_OPACITY.delete(mSettings);
-              mEmulationFragment.refreshInputOverlay(mSettings);
+              mEmulationFragment.refreshInputOverlay();
             })
             .show();
   }
@@ -962,7 +962,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   private void addControllerIfNotNone(List<CharSequence> entries, List<Integer> values,
           IntSetting controller, int entry, int value)
   {
-    if (controller.getInt(mSettings) != 0)
+    if (controller.getInt() != 0)
     {
       entries.add(getString(entry));
       values.add(value);
@@ -992,7 +992,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     IntSetting controllerSetting = NativeLibrary.IsEmulatingWii() ?
             IntSetting.MAIN_OVERLAY_WII_CONTROLLER : IntSetting.MAIN_OVERLAY_GC_CONTROLLER;
-    int currentValue = controllerSetting.getInt(mSettings);
+    int currentValue = controllerSetting.getInt();
 
     int checkedItem = -1;
     for (int i = 0; i < values.size(); i++)
@@ -1013,7 +1013,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
             .setPositiveButton(R.string.ok, (dialogInterface, i) ->
             {
               editor.apply();
-              mEmulationFragment.refreshInputOverlay(mSettings);
+              mEmulationFragment.refreshInputOverlay();
             })
             .setNeutralButton(R.string.emulation_more_controller_settings,
                     (dialogInterface, i) -> SettingsActivity.launch(this, MenuTag.SETTINGS))
@@ -1025,11 +1025,11 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.emulation_ir_mode)
             .setSingleChoiceItems(R.array.irModeEntries,
-                    IntSetting.MAIN_IR_MODE.getInt(mSettings),
+                    IntSetting.MAIN_IR_MODE.getInt(),
                     (dialog, indexSelected) ->
                             IntSetting.MAIN_IR_MODE.setInt(mSettings, indexSelected))
             .setPositiveButton(R.string.ok, (dialogInterface, i) ->
-                    mEmulationFragment.refreshOverlayPointer(mSettings))
+                    mEmulationFragment.refreshOverlayPointer())
             .show();
   }
 
@@ -1065,7 +1065,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     new MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.emulation_touch_overlay_reset))
             .setPositiveButton(R.string.yes,
-                    (dialogInterface, i) -> mEmulationFragment.resetInputOverlay(mSettings))
+                    (dialogInterface, i) -> mEmulationFragment.resetInputOverlay())
             .setNegativeButton(R.string.cancel, null)
             .show();
   }
@@ -1160,7 +1160,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
   public void initInputPointer()
   {
-    mEmulationFragment.initInputPointer(mSettings);
+    mEmulationFragment.initInputPointer();
   }
 
   @Override

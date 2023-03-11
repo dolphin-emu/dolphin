@@ -25,9 +25,9 @@ public final class FilePicker extends SettingsItem
     mDefaultPathRelativeToUserDirectory = defaultPathRelativeToUserDirectory;
   }
 
-  public String getSelectedValue(Settings settings)
+  public String getSelectedValue()
   {
-    return mSetting.getString(settings);
+    return mSetting.getString();
   }
 
   public void setSelectedValue(Settings settings, String selection)

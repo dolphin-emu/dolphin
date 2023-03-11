@@ -296,7 +296,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean isOverridden(@NonNull Settings settings)
+  public boolean isOverridden()
   {
     return NativeConfig.isOverridden(mFile, mSection, mKey);
   }
@@ -329,7 +329,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean getBoolean(@NonNull Settings settings)
+  public boolean getBoolean()
   {
     return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }

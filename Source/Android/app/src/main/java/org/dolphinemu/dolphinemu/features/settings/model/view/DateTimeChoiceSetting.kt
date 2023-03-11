@@ -25,7 +25,7 @@ class DateTimeChoiceSetting(
         setting.setString(settings, selection)
     }
 
-    fun getSelectedValue(settings: Settings): String {
-        return setting.getString(settings)
+    fun getSelectedValue(): String {
+        return setting.getString()
     }
 }

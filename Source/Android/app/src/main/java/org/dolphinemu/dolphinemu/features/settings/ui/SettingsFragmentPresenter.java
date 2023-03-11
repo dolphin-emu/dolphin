@@ -368,9 +368,9 @@ public final class SettingsFragmentPresenter
     AbstractIntSetting appTheme = new AbstractIntSetting()
     {
       @Override
-      public boolean isOverridden(@NonNull Settings settings)
+      public boolean isOverridden()
       {
-        return IntSetting.MAIN_INTERFACE_THEME.isOverridden(settings);
+        return IntSetting.MAIN_INTERFACE_THEME.isOverridden();
       }
 
       @Override
@@ -388,9 +388,9 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public int getInt(@NonNull Settings settings)
+      public int getInt()
       {
-        return IntSetting.MAIN_INTERFACE_THEME.getInt(settings);
+        return IntSetting.MAIN_INTERFACE_THEME.getInt();
       }
 
       @Override
@@ -416,9 +416,9 @@ public final class SettingsFragmentPresenter
     AbstractIntSetting themeMode = new AbstractIntSetting()
     {
       @Override
-      public boolean isOverridden(@NonNull Settings settings)
+      public boolean isOverridden()
       {
-        return IntSetting.MAIN_INTERFACE_THEME_MODE.isOverridden(settings);
+        return IntSetting.MAIN_INTERFACE_THEME_MODE.isOverridden();
       }
 
       @Override
@@ -436,9 +436,9 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public int getInt(@NonNull Settings settings)
+      public int getInt()
       {
-        return IntSetting.MAIN_INTERFACE_THEME_MODE.getInt(settings);
+        return IntSetting.MAIN_INTERFACE_THEME_MODE.getInt();
       }
 
       @Override
@@ -455,9 +455,9 @@ public final class SettingsFragmentPresenter
     AbstractBooleanSetting blackBackgrounds = new AbstractBooleanSetting()
     {
       @Override
-      public boolean isOverridden(@NonNull Settings settings)
+      public boolean isOverridden()
       {
-        return BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.isOverridden(settings);
+        return BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.isOverridden();
       }
 
       @Override
@@ -474,9 +474,9 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public boolean getBoolean(@NonNull Settings settings)
+      public boolean getBoolean()
       {
-        return BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBoolean(settings);
+        return BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBoolean();
       }
 
       @Override
@@ -500,15 +500,15 @@ public final class SettingsFragmentPresenter
     AbstractIntSetting dspEmulationEngine = new AbstractIntSetting()
     {
       @Override
-      public int getInt(@NonNull Settings settings)
+      public int getInt()
       {
-        if (BooleanSetting.MAIN_DSP_HLE.getBoolean(settings))
+        if (BooleanSetting.MAIN_DSP_HLE.getBoolean())
         {
           return DSP_HLE;
         }
         else
         {
-          boolean jit = BooleanSetting.MAIN_DSP_JIT.getBoolean(settings);
+          boolean jit = BooleanSetting.MAIN_DSP_JIT.getBoolean();
           return jit ? DSP_LLE_RECOMPILER : DSP_LLE_INTERPRETER;
         }
       }
@@ -536,10 +536,10 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public boolean isOverridden(@NonNull Settings settings)
+      public boolean isOverridden()
       {
-        return BooleanSetting.MAIN_DSP_HLE.isOverridden(settings) ||
-                BooleanSetting.MAIN_DSP_JIT.isOverridden(settings);
+        return BooleanSetting.MAIN_DSP_HLE.isOverridden() ||
+                BooleanSetting.MAIN_DSP_JIT.isOverridden();
       }
 
       @Override
@@ -681,15 +681,15 @@ public final class SettingsFragmentPresenter
     AbstractIntSetting synchronizeGpuThread = new AbstractIntSetting()
     {
       @Override
-      public int getInt(@NonNull Settings settings)
+      public int getInt()
       {
-        if (BooleanSetting.MAIN_SYNC_GPU.getBoolean(settings))
+        if (BooleanSetting.MAIN_SYNC_GPU.getBoolean())
         {
           return SYNC_GPU_ALWAYS;
         }
         else
         {
-          boolean syncOnSkipIdle = BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.getBoolean(settings);
+          boolean syncOnSkipIdle = BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.getBoolean();
           return syncOnSkipIdle ? SYNC_GPU_ON_IDLE_SKIP : SYNC_GPU_NEVER;
         }
       }
@@ -717,10 +717,10 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public boolean isOverridden(@NonNull Settings settings)
+      public boolean isOverridden()
       {
-        return BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.isOverridden(settings) ||
-                BooleanSetting.MAIN_SYNC_GPU.isOverridden(settings);
+        return BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.isOverridden() ||
+                BooleanSetting.MAIN_SYNC_GPU.isOverridden();
       }
 
       @Override
@@ -879,7 +879,7 @@ public final class SettingsFragmentPresenter
             R.string.texture_filtering, R.string.texture_filtering_description,
             R.array.textureFilteringEntries, R.array.textureFilteringValues));
 
-    int stereoModeValue = IntSetting.GFX_STEREO_MODE.getInt(mSettings);
+    int stereoModeValue = IntSetting.GFX_STEREO_MODE.getInt();
     final int anaglyphMode = 3;
     String[] shaderList = stereoModeValue == anaglyphMode ?
             PostProcessing.getAnaglyphShaderList() : PostProcessing.getShaderList();
@@ -1216,7 +1216,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SwitchSetting(mContext, new AbstractBooleanSetting()
     {
       @Override
-      public boolean isOverridden(Settings settings)
+      public boolean isOverridden()
       {
         return false;
       }
@@ -1228,20 +1228,20 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
-      public boolean delete(Settings settings)
+      public boolean delete(@NonNull Settings settings)
       {
         mView.setMappingAllDevices(false);
         return true;
       }
 
       @Override
-      public boolean getBoolean(Settings settings)
+      public boolean getBoolean()
       {
         return mView.isMappingAllDevices();
       }
 
       @Override
-      public void setBoolean(Settings settings, boolean newValue)
+      public void setBoolean(@NonNull Settings settings, boolean newValue)
       {
         mView.setMappingAllDevices(newValue);
       }

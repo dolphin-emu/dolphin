@@ -24,13 +24,13 @@ public class InputDeviceSetting extends StringSingleChoiceSetting
   }
 
   @Override
-  public String getSelectedChoice(Settings settings)
+  public String getSelectedChoice()
   {
     return mController.getDefaultDevice();
   }
 
   @Override
-  public String getSelectedValue(Settings settings)
+  public String getSelectedValue()
   {
     return mController.getDefaultDevice();
   }

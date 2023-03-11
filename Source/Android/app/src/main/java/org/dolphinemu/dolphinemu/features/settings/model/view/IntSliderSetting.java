@@ -19,9 +19,9 @@ public final class IntSliderSetting extends SliderSetting
     mSetting = setting;
   }
 
-  public int getSelectedValue(Settings settings)
+  public int getSelectedValue()
   {
-    return mSetting.getInt(settings);
+    return mSetting.getInt();
   }
 
   public void setSelectedValue(Settings settings, int selection)

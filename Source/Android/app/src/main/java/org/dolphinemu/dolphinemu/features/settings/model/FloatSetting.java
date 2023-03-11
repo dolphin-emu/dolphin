@@ -25,7 +25,7 @@ public enum FloatSetting implements AbstractFloatSetting
   }
 
   @Override
-  public boolean isOverridden(@NonNull Settings settings)
+  public boolean isOverridden()
   {
     return NativeConfig.isOverridden(mFile, mSection, mKey);
   }
@@ -49,7 +49,7 @@ public enum FloatSetting implements AbstractFloatSetting
   }
 
   @Override
-  public float getFloat(@NonNull Settings settings)
+  public float getFloat()
   {
     return NativeConfig.getFloat(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }

@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.input.model;
 
+import androidx.annotation.NonNull;
+
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -16,19 +18,19 @@ public class InputMappingBooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean getBoolean(Settings settings)
+  public boolean getBoolean()
   {
     return mNumericSetting.getBooleanValue();
   }
 
   @Override
-  public void setBoolean(Settings settings, boolean newValue)
+  public void setBoolean(@NonNull Settings settings, boolean newValue)
   {
     mNumericSetting.setBooleanValue(newValue);
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden()
   {
     return false;
   }
@@ -40,7 +42,7 @@ public class InputMappingBooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     mNumericSetting.setBooleanValue(mNumericSetting.getBooleanDefaultValue());
     return true;

@@ -18,7 +18,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoice
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class SingleChoiceViewHolder extends SettingViewHolder
 {
@@ -39,9 +39,6 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
 
     mBinding.textSettingName.setText(item.getName());
 
-    SettingsAdapter adapter = getAdapter();
-    Settings settings = adapter.getSettings();
-
     if (!TextUtils.isEmpty(item.getDescription()))
     {
       mBinding.textSettingDescription.setText(item.getDescription());
@@ -49,7 +46,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
     else if (item instanceof SingleChoiceSetting)
     {
       SingleChoiceSetting setting = (SingleChoiceSetting) item;
-      int selected = setting.getSelectedValue(settings);
+      int selected = setting.getSelectedValue();
       Resources resMgr = mBinding.textSettingDescription.getContext().getResources();
       String[] choices = resMgr.getStringArray(setting.getChoicesId());
       int[] values = resMgr.getIntArray(setting.getValuesId());
@@ -64,14 +61,14 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
     else if (item instanceof StringSingleChoiceSetting)
     {
       StringSingleChoiceSetting setting = (StringSingleChoiceSetting) item;
-      String choice = setting.getSelectedChoice(settings);
+      String choice = setting.getSelectedChoice();
       mBinding.textSettingDescription.setText(choice);
     }
     else if (item instanceof SingleChoiceSettingDynamicDescriptions)
     {
       SingleChoiceSettingDynamicDescriptions setting =
               (SingleChoiceSettingDynamicDescriptions) item;
-      int selected = setting.getSelectedValue(settings);
+      int selected = setting.getSelectedValue();
       Resources resMgr = mBinding.textSettingDescription.getContext().getResources();
       String[] choices = resMgr.getStringArray(setting.getDescriptionChoicesId());
       int[] values = resMgr.getIntArray(setting.getDescriptionValuesId());
@@ -85,7 +82,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
     }
 
     MenuTag menuTag = null;
-    Function<Settings, Integer> getSelectedValue = null;
+    Supplier<Integer> getSelectedValue = null;
     if (item instanceof SingleChoiceSetting)
     {
       SingleChoiceSetting setting = (SingleChoiceSetting) item;
@@ -99,15 +96,14 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
       getSelectedValue = setting::getSelectedValueIndex;
     }
 
-    if (menuTag != null &&
-            adapter.hasMenuTagActionForValue(menuTag, getSelectedValue.apply(settings)))
+    if (menuTag != null && getAdapter().hasMenuTagActionForValue(menuTag, getSelectedValue.get()))
     {
       mBinding.buttonMoreSettings.setVisibility(View.VISIBLE);
 
       final MenuTag finalMenuTag = menuTag;
-      final Function<Settings, Integer> finalGetSelectedValue = getSelectedValue;
+      final Supplier<Integer> finalGetSelectedValue = getSelectedValue;
       mBinding.buttonMoreSettings.setOnClickListener((view) ->
-              adapter.onMenuTagAction(finalMenuTag, finalGetSelectedValue.apply(settings)));
+              getAdapter().onMenuTagAction(finalMenuTag, finalGetSelectedValue.get()));
     }
     else
     {

@@ -95,7 +95,7 @@ public class Settings implements Closeable
       NativeConfig.loadGameInis(mGameId, mRevision);
     }
 
-    mLoadedRecursiveIsoPathsValue = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this);
+    mLoadedRecursiveIsoPathsValue = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean();
   }
 
   public void loadSettings(SettingsActivityView view, String gameId, int revision, boolean isWii)
@@ -119,7 +119,7 @@ public class Settings implements Closeable
       NativeLibrary.ReloadLoggerConfig();
       NativeLibrary.UpdateGCAdapterScanThread();
 
-      if (mLoadedRecursiveIsoPathsValue != BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this))
+      if (mLoadedRecursiveIsoPathsValue != BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean())
       {
         // Refresh game library
         GameFileCacheManager.startRescan();

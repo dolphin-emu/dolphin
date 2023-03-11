@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.input.model;
 
+import androidx.annotation.NonNull;
+
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -16,19 +18,19 @@ public class InputMappingIntSetting implements AbstractIntSetting
   }
 
   @Override
-  public int getInt(Settings settings)
+  public int getInt()
   {
     return mNumericSetting.getIntValue();
   }
 
   @Override
-  public void setInt(Settings settings, int newValue)
+  public void setInt(@NonNull Settings settings, int newValue)
   {
     mNumericSetting.setIntValue(newValue);
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden()
   {
     return false;
   }
@@ -40,7 +42,7 @@ public class InputMappingIntSetting implements AbstractIntSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     mNumericSetting.setIntValue(mNumericSetting.getIntDefaultValue());
     return true;

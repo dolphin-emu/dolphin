@@ -43,9 +43,9 @@ public final class SingleChoiceSetting extends SettingsItem
     return mValuesId;
   }
 
-  public int getSelectedValue(Settings settings)
+  public int getSelectedValue()
   {
-    return mSetting.getInt(settings);
+    return mSetting.getInt();
   }
 
   public MenuTag getMenuTag()

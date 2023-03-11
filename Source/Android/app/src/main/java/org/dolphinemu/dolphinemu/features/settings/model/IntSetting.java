@@ -121,7 +121,7 @@ public enum IntSetting implements AbstractIntSetting
   }
 
   @Override
-  public boolean isOverridden(@NonNull Settings settings)
+  public boolean isOverridden()
   {
     return NativeConfig.isOverridden(mFile, mSection, mKey);
   }
@@ -154,7 +154,7 @@ public enum IntSetting implements AbstractIntSetting
   }
 
   @Override
-  public int getInt(@NonNull Settings settings)
+  public int getInt()
   {
     return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
