@@ -230,7 +230,7 @@ static void DoState(PointerWrap& p)
   p.DoMarker("CoreTiming");
 
   // HW needs to be restored before PowerPC because the data cache might need to be flushed.
-  HW::DoState(p);
+  HW::DoState(system, p);
   p.DoMarker("HW");
 
   PowerPC::DoState(p);
