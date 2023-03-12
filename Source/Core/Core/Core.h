@@ -116,6 +116,8 @@ public:
   CPUThreadGuard& operator=(const CPUThreadGuard&) = delete;
   CPUThreadGuard& operator=(CPUThreadGuard&&) = delete;
 
+  Core::System& GetSystem() const { return m_system; }
+
 private:
   Core::System& m_system;
   const bool m_was_cpu_thread;

@@ -7,6 +7,7 @@
 
 #include "Common/BitUtils.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
@@ -125,7 +126,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
   bool Matches(const Core::CPUThreadGuard& guard, u32 haystack_start, const u8* needle_start,
                std::size_t needle_size) const
   {
-    auto& system = Core::System::GetInstance();
+    auto& system = guard.GetSystem();
     auto& memory = system.GetMemory();
 
     u32 page_base = haystack_start & 0xfffff000;
@@ -212,13 +213,13 @@ struct AuxiliaryAddressSpaceAccessors : Accessors
   }
   u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    const u8* base = Core::System::GetInstance().GetDSP().GetARAMPtr();
+    const u8* base = guard.GetSystem().GetDSP().GetARAMPtr();
     return base[address];
   }
 
   void WriteU8(const Core::CPUThreadGuard& guard, u32 address, u8 value) override
   {
-    u8* base = Core::System::GetInstance().GetDSP().GetARAMPtr();
+    u8* base = guard.GetSystem().GetDSP().GetARAMPtr();
     base[address] = value;
   }
 
