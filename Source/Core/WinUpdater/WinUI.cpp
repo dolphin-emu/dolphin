@@ -179,11 +179,13 @@ void ResetCurrentProgress()
 
 void Error(const std::string& text)
 {
-  auto wide_text = UTF8ToWString(text);
+  auto message = L"A fatal error occurred and the updater cannot continue:\n " +
+                 UTF8ToWString(text) + L"\n" +
+                 L"If the issue persists, please manually download the latest version from "
+                 L"dolphin-emu.org/download and extract it overtop your existing installation.\n" +
+                 L"Also consider filing a bug at bugs.dolphin-emu.org/projects/emulator";
 
-  MessageBox(nullptr,
-             (L"A fatal error occured and the updater cannot continue:\n " + wide_text).c_str(),
-             L"Error", MB_ICONERROR);
+  MessageBox(nullptr, message.c_str(), L"Error", MB_ICONERROR);
 
   if (taskbar_list)
   {
