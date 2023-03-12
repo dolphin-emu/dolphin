@@ -1439,22 +1439,6 @@ bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
     return false;
   }
 
-
-  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
-  {
-    Scripting::WiiAPI::current_controller_number_polled = wiimote;
-    Scripting::WiiAPI::overwrite_controller_at_specified_port[wiimote] = false;
-    memcpy(&Scripting::WiiAPI::new_controller_inputs[wiimote],
-           &s_temp_input[s_currentByte], size);
-    Scripting::ScriptUtilities::RunOnWiiInputPolledCallbacks();
-    if (Scripting::WiiAPI::overwrite_controller_at_specified_port[wiimote])
-    {
-      memcpy(&s_temp_input[s_currentByte],
-             &Scripting::WiiAPI::new_controller_inputs[wiimote],
-             size);
-    }
-  }
-
   memcpy(rpt.GetDataPtr(), &s_temp_input[s_currentByte], size);
   s_currentByte += size;
 

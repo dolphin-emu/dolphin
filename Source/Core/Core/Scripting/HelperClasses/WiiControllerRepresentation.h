@@ -1,14 +1,17 @@
+#ifndef WIIMOTE_ENUMS
+#define WIIMOTE_ENUMS
 #include "Common/CommonTypes.h"
 
 namespace WiiControllerEnums
 {
+/*
 struct AccelerationRepresentation
 {
   u16 x;
   u16 y;
   u16 z;
 };
-
+*/
 enum class AccelerationEnum
 {
   X,
@@ -17,11 +20,14 @@ enum class AccelerationEnum
   Unknown
 };
 
+/*
 struct IRRepresentation
 {
   u16 x;
   u16 y;
 };
+*/
+
 
 enum class IREnum
 {
@@ -30,6 +36,7 @@ enum class IREnum
   Unknown
 };
 
+/*
 struct WiimoteRepresentation
 {
   bool DPadLeft;
@@ -45,8 +52,9 @@ struct WiimoteRepresentation
   bool Home;
   bool has_accel;
   AccelerationRepresentation acceleration;
-  IREnum ir;
+  IREnum ir[4];
 };
+*/
 
 enum class WiimoteButtonsEnum
 {
@@ -65,6 +73,7 @@ enum class WiimoteButtonsEnum
   Unknown
 };
 
+/*
 struct NunchuckRepresentation
 {
   bool C;
@@ -74,6 +83,7 @@ struct NunchuckRepresentation
   bool has_accel;
   AccelerationRepresentation acceleration;
 };
+*/
 
 enum class NunchuckButtonsEnum
 {
@@ -85,6 +95,7 @@ enum class NunchuckButtonsEnum
   Unknown
 };
 
+/*
 struct ClassicControllerRepresentation
 {
   bool Left;
@@ -107,6 +118,7 @@ struct ClassicControllerRepresentation
   u8 Right_Stick_X;
   u8 Right_Stick_Y;
 };
+*/
 
 enum class ClassicControllerButtonsEnum
 {
@@ -132,6 +144,7 @@ enum class ClassicControllerButtonsEnum
   Unknown
 };
 
+/*
 struct WiiSlot
 {
   bool is_wiimote_connected;
@@ -144,7 +157,7 @@ struct WiiSlot
   NunchuckRepresentation nunuchk;
   ClassicControllerRepresentation classic_controller;
 };
-
+*/
 extern WiimoteButtonsEnum ParseWiimoteButton(const char* button_name);
 extern const char* ConvertWiimoteButtonToString(WiimoteButtonsEnum button);
 
@@ -160,3 +173,4 @@ extern const char* ConvertNunchuckButtonToString(NunchuckButtonsEnum button);
 extern ClassicControllerButtonsEnum ParseClassicControllerButton(const char* button_name);
 extern const char* ConvertClassicControllerButtonToString(ClassicControllerButtonsEnum button);
 }  // namespace WiiControllerEnums
+#endif

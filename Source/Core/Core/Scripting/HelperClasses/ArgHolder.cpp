@@ -140,38 +140,6 @@ ArgHolder CreateControllerStateArgHolder(const Movie::ControllerState& new_contr
   return return_val;
 }
 
-ArgHolder CreateIRRepresentationArgHolder(const IRRepresentation& new_ir)
-{
-  ArgHolder return_val = {};
-  return_val.argument_type = ArgTypeEnum::IR_Type;
-  return_val.ir_val = new_ir;
-  return return_val;
-}
-
-ArgHolder CreateWiimoteRepresentationArgHolder(const WiimoteRepresentation& new_wiimote_state)
-{
-  ArgHolder return_val = {};
-  return_val.argument_type = ArgTypeEnum::WiimoteStateObject;
-  return_val.wiimote_state_val = new_wiimote_state;
-  return return_val;
-}
-
-ArgHolder CreateNunhuckRepresentationArgHolder(const NunchuckRepresentation& new_nunchuck_state)
-{
-  ArgHolder return_val = {};
-  return_val.argument_type = ArgTypeEnum::NunchuckStateObject;
-  return_val.nunchuck_state_val = new_nunchuck_state;
-  return return_val;
-}
-
-ArgHolder CreateClassicControllerRepresentationArgHolder(const ClassicControllerRepresentation& new_classic_controller)
-{
-  ArgHolder return_val = {};
-  return_val.argument_type = ArgTypeEnum::ClassicControllerStateObject;
-  return_val.classic_controller_state_val = new_classic_controller;
-  return return_val;
-}
-
 ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val)
 {
   ArgHolder return_val = {};
