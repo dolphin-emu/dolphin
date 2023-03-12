@@ -96,7 +96,7 @@ u32 PerfQuery::GetQueryResult(PerfQueryType type)
     result = m_results[PQG_EFB_COPY_CLOCKS].load(std::memory_order_relaxed);
   }
 
-  return result;
+  return result / 4;
 }
 
 void PerfQuery::FlushOne()
