@@ -92,7 +92,7 @@ void JitBaseBlockCache::RunOnBlocks(std::function<void(const JitBlock&)> f)
 
 JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 {
-  const u32 physical_address = PowerPC::JitCache_TranslateAddress(em_address).address;
+  const u32 physical_address = m_jit.m_mmu.JitCache_TranslateAddress(em_address).address;
   JitBlock& b = block_map.emplace(physical_address, JitBlock())->second;
   b.effectiveAddress = em_address;
   b.physicalAddress = physical_address;
@@ -147,7 +147,7 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
   u32 translated_addr = addr;
   if (UReg_MSR(msr).IR)
   {
-    auto translated = PowerPC::JitCache_TranslateAddress(addr);
+    auto translated = m_jit.m_mmu.JitCache_TranslateAddress(addr);
     if (!translated.valid)
     {
       return nullptr;
@@ -186,7 +186,7 @@ const u8* JitBaseBlockCache::Dispatch()
 void JitBaseBlockCache::InvalidateICacheLine(u32 address)
 {
   const u32 cache_line_address = address & ~0x1f;
-  const auto translated = PowerPC::JitCache_TranslateAddress(cache_line_address);
+  const auto translated = m_jit.m_mmu.JitCache_TranslateAddress(cache_line_address);
   if (translated.valid)
     InvalidateICacheInternal(translated.address, cache_line_address, 32, false);
 }
@@ -197,7 +197,7 @@ void JitBaseBlockCache::InvalidateICache(u32 initial_address, u32 initial_length
   u32 length = initial_length;
   while (length > 0)
   {
-    const auto translated = PowerPC::JitCache_TranslateAddress(address);
+    const auto translated = m_jit.m_mmu.JitCache_TranslateAddress(address);
 
     const bool address_from_bat = translated.valid && translated.translated && translated.from_bat;
     const int shift = address_from_bat ? PowerPC::BAT_INDEX_SHIFT : PowerPC::HW_PAGE_INDEX_SHIFT;

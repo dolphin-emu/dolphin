@@ -15,13 +15,14 @@ class System;
 }
 namespace PowerPC
 {
+class MMU;
 struct PowerPCState;
-}
+}  // namespace PowerPC
 
 class Interpreter : public CPUCoreBase
 {
 public:
-  Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state);
+  Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state, PowerPC::MMU& mmu);
   Interpreter(const Interpreter&) = delete;
   Interpreter(Interpreter&&) = delete;
   Interpreter& operator=(const Interpreter&) = delete;
@@ -312,6 +313,7 @@ private:
 
   Core::System& m_system;
   PowerPC::PowerPCState& m_ppc_state;
+  PowerPC::MMU& m_mmu;
 
   UGeckoInstruction m_prev_inst{};
   u32 m_last_pc = 0;

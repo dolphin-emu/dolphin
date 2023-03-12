@@ -193,18 +193,19 @@ void WatchWidget::Update()
 
     QBrush brush = QPalette().brush(QPalette::Text);
 
-    if (!Core::IsRunning() || !PowerPC::HostIsRAMAddress(guard, entry.address))
+    if (!Core::IsRunning() || !PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       brush.setColor(Qt::red);
 
     if (Core::IsRunning())
     {
-      if (PowerPC::HostIsRAMAddress(guard, entry.address))
+      if (PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       {
-        hex->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U32(guard, entry.address), 8, 16,
-                                              QLatin1Char('0')));
-        decimal->setText(QString::number(PowerPC::HostRead_U32(guard, entry.address)));
-        string->setText(QString::fromStdString(PowerPC::HostGetString(guard, entry.address, 32)));
-        floatValue->setText(QString::number(PowerPC::HostRead_F32(guard, entry.address)));
+        hex->setText(QStringLiteral("%1").arg(PowerPC::MMU::HostRead_U32(guard, entry.address), 8,
+                                              16, QLatin1Char('0')));
+        decimal->setText(QString::number(PowerPC::MMU::HostRead_U32(guard, entry.address)));
+        string->setText(
+            QString::fromStdString(PowerPC::MMU::HostGetString(guard, entry.address, 32)));
+        floatValue->setText(QString::number(PowerPC::MMU::HostRead_F32(guard, entry.address)));
         lockValue->setCheckState(entry.locked ? Qt::Checked : Qt::Unchecked);
       }
     }
@@ -418,7 +419,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
         }
         else
         {
-          PowerPC::HostWrite_U32(guard, value, PowerPC::debug_interface.GetWatch(row).address);
+          PowerPC::MMU::HostWrite_U32(guard, value, PowerPC::debug_interface.GetWatch(row).address);
         }
       }
       else
@@ -446,7 +447,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
 
 void WatchWidget::LockWatchAddress(const Core::CPUThreadGuard& guard, u32 address)
 {
-  const std::string memory_data_as_string = PowerPC::HostGetString(guard, address, 4);
+  const std::string memory_data_as_string = PowerPC::MMU::HostGetString(guard, address, 4);
 
   std::vector<u8> bytes;
   for (const char c : memory_data_as_string)

@@ -166,7 +166,7 @@ u32 HashSignatureDB::ComputeCodeChecksum(const Core::CPUThreadGuard& guard, u32 
   u32 sum = 0;
   for (u32 offset = offsetStart; offset <= offsetEnd; offset += 4)
   {
-    u32 opcode = PowerPC::HostRead_Instruction(guard, offset);
+    u32 opcode = PowerPC::MMU::HostRead_Instruction(guard, offset);
     u32 op = opcode & 0xFC000000;
     u32 op2 = 0;
     u32 op3 = 0;

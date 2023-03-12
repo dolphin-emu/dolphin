@@ -61,7 +61,8 @@ void JitTrampoline(JitBase& jit, u32 em_address)
 }
 
 JitBase::JitBase(Core::System& system)
-    : m_code_buffer(code_buffer_size), m_system(system), m_ppc_state(system.GetPPCState())
+    : m_code_buffer(code_buffer_size), m_system(system), m_ppc_state(system.GetPPCState()),
+      m_mmu(system.GetMMU())
 {
   m_registered_config_callback_id = Config::AddConfigChangedCallback(
       [this] { Core::RunAsCPUThread([this] { RefreshConfig(); }); });

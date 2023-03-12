@@ -10,6 +10,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Core/Core.h"
 #include "Core/HLE/HLE_VarArgs.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -56,11 +57,11 @@ void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterType para
   std::string report_message;
 
   // Is gpr3 pointing to a pointer (including nullptr) rather than an ASCII string
-  if (PowerPC::HostIsRAMAddress(guard, ppc_state.gpr[3]) &&
-      (PowerPC::HostIsRAMAddress(guard, PowerPC::HostRead_U32(guard, ppc_state.gpr[3])) ||
-       PowerPC::HostRead_U32(guard, ppc_state.gpr[3]) == 0))
+  if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[3]) &&
+      (PowerPC::MMU::HostIsRAMAddress(guard, PowerPC::MMU::HostRead_U32(guard, ppc_state.gpr[3])) ||
+       PowerPC::MMU::HostRead_U32(guard, ppc_state.gpr[3]) == 0))
   {
-    if (PowerPC::HostIsRAMAddress(guard, ppc_state.gpr[4]))
+    if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[4]))
     {
       // ___blank(void* this, const char* fmt, ...);
       report_message = GetStringVA(system, guard, 4, parameter_type);
@@ -73,7 +74,7 @@ void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterType para
   }
   else
   {
-    if (PowerPC::HostIsRAMAddress(guard, ppc_state.gpr[3]))
+    if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[3]))
     {
       // ___blank(const char* fmt, ...);
       report_message = GetStringVA(system, guard, 3, parameter_type);
@@ -106,13 +107,13 @@ void HLE_GeneralDebugVPrint(const Core::CPUThreadGuard& guard)
 // __write_console(int fd, const void* buffer, const u32* size)
 void HLE_write_console(const Core::CPUThreadGuard& guard)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
 
   std::string report_message = GetStringVA(system, guard, 4);
-  if (PowerPC::HostIsRAMAddress(guard, ppc_state.gpr[5]))
+  if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[5]))
   {
-    const u32 size = PowerPC::Read_U32(ppc_state.gpr[5]);
+    const u32 size = system.GetMMU().Read_U32(ppc_state.gpr[5]);
     if (size > report_message.size())
       WARN_LOG_FMT(OSREPORT_HLE, "__write_console uses an invalid size of {:#010x}", size);
     else if (size == 0)
@@ -169,16 +170,16 @@ void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_ty
   // The structure FILE is implementation defined.
   // Both libogc and Dolphin SDK seem to store the fd at the same address.
   int fd = -1;
-  if (PowerPC::HostIsRAMAddress(guard, ppc_state.gpr[3]) &&
-      PowerPC::HostIsRAMAddress(guard, ppc_state.gpr[3] + 0xF))
+  if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[3]) &&
+      PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[3] + 0xF))
   {
     // The fd is stored as a short at FILE+0xE.
-    fd = static_cast<short>(PowerPC::HostRead_U16(guard, ppc_state.gpr[3] + 0xE));
+    fd = static_cast<short>(PowerPC::MMU::HostRead_U16(guard, ppc_state.gpr[3] + 0xE));
   }
   if (fd != 1 && fd != 2)
   {
     // On RVL SDK it seems stored at FILE+0x2.
-    fd = static_cast<short>(PowerPC::HostRead_U16(guard, ppc_state.gpr[3] + 0x2));
+    fd = static_cast<short>(PowerPC::MMU::HostRead_U16(guard, ppc_state.gpr[3] + 0x2));
   }
   if (fd != 1 && fd != 2)
     return;
@@ -210,7 +211,7 @@ std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard,
 
   std::string ArgumentBuffer;
   std::string result;
-  std::string string = PowerPC::HostGetString(guard, ppc_state.gpr[str_reg]);
+  std::string string = PowerPC::MMU::HostGetString(guard, ppc_state.gpr[str_reg]);
   auto ap =
       parameter_type == ParameterType::VariableArgumentList ?
           std::make_unique<HLE::SystemVABI::VAListStruct>(system, guard,
@@ -242,8 +243,9 @@ std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard,
       switch (string[i])
       {
       case 's':
-        result += StringFromFormat(ArgumentBuffer.c_str(),
-                                   PowerPC::HostGetString(guard, ap->GetArgT<u32>(guard)).c_str());
+        result +=
+            StringFromFormat(ArgumentBuffer.c_str(),
+                             PowerPC::MMU::HostGetString(guard, ap->GetArgT<u32>(guard)).c_str());
         break;
 
       case 'a':

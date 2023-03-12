@@ -64,8 +64,8 @@ void Interpreter::UpdatePC()
   m_ppc_state.pc = m_ppc_state.npc;
 }
 
-Interpreter::Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state)
-    : m_system(system), m_ppc_state(ppc_state)
+Interpreter::Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state, PowerPC::MMU& mmu)
+    : m_system(system), m_ppc_state(ppc_state), m_mmu(mmu)
 {
 }
 
@@ -124,7 +124,7 @@ int Interpreter::SingleStepInner()
   }
 
   m_ppc_state.npc = m_ppc_state.pc + sizeof(UGeckoInstruction);
-  m_prev_inst.hex = PowerPC::Read_Opcode(m_ppc_state.pc);
+  m_prev_inst.hex = m_mmu.Read_Opcode(m_ppc_state.pc);
 
   const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst);
 
@@ -316,7 +316,7 @@ void Interpreter::unknown_instruction(Interpreter& interpreter, UGeckoInstructio
   Core::CPUThreadGuard guard(system);
 
   const u32 last_pc = interpreter.m_last_pc;
-  const u32 opcode = PowerPC::HostRead_U32(guard, last_pc);
+  const u32 opcode = PowerPC::MMU::HostRead_U32(guard, last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
   Dolphin_Debugger::PrintCallstack(system, guard, Common::Log::LogType::POWERPC,

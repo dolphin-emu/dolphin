@@ -18,10 +18,12 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
+#include "Core/System.h"
 
 PPCSymbolDB g_symbolDB;
 
@@ -407,16 +409,17 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     if (strlen(name) > 0)
     {
       // Can't compute the checksum if not in RAM
-      bool good = !bad && PowerPC::HostIsInstructionRAMAddress(guard, vaddress) &&
-                  PowerPC::HostIsInstructionRAMAddress(guard, vaddress + size - 4);
+      bool good = !bad && PowerPC::MMU::HostIsInstructionRAMAddress(guard, vaddress) &&
+                  PowerPC::MMU::HostIsInstructionRAMAddress(guard, vaddress + size - 4);
       if (!good)
       {
         // check for BLR before function
-        PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(vaddress - 4);
+        PowerPC::TryReadInstResult read_result =
+            guard.GetSystem().GetMMU().TryReadInstruction(vaddress - 4);
         if (read_result.valid && read_result.hex == 0x4e800020)
         {
           // check for BLR at end of function
-          read_result = PowerPC::TryReadInstruction(vaddress + size - 4);
+          read_result = guard.GetSystem().GetMMU().TryReadInstruction(vaddress + size - 4);
           good = read_result.valid && read_result.hex == 0x4e800020;
         }
       }

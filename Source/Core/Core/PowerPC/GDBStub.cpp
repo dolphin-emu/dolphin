@@ -821,7 +821,7 @@ static void ReadMemory(const Core::CPUThreadGuard& guard)
   if (len * 2 > sizeof reply)
     SendReply("E01");
 
-  if (!PowerPC::HostIsRAMAddress(guard, addr))
+  if (!PowerPC::MMU::HostIsRAMAddress(guard, addr))
     return SendReply("E00");
 
   auto& system = Core::System::GetInstance();
@@ -848,7 +848,7 @@ static void WriteMemory(const Core::CPUThreadGuard& guard)
     len = (len << 4) | Hex2char(s_cmd_bfr[i++]);
   INFO_LOG_FMT(GDB_STUB, "gdb: write memory: {:08x} bytes to {:08x}", len, addr);
 
-  if (!PowerPC::HostIsRAMAddress(guard, addr))
+  if (!PowerPC::MMU::HostIsRAMAddress(guard, addr))
     return SendReply("E00");
 
   auto& system = Core::System::GetInstance();

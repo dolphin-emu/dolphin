@@ -1351,7 +1351,7 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
 
         for (; len < MODULE_NAME_MAX_LENGTH; ++len)
         {
-          const auto res = PowerPC::HostRead_U8(guard, *found_addr - (len + 1));
+          const auto res = PowerPC::MMU::HostRead_U8(guard, *found_addr - (len + 1));
           if (!std::isprint(res))
           {
             break;
@@ -1406,8 +1406,8 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
       const auto module_name_offset = accessors->ReadU32(guard, *found_addr);
 
       // Go to the beginning of the RSO header
-      matches.emplace_back(*found_addr - 16,
-                           PowerPC::HostGetString(guard, module_name_offset, module_name_length));
+      matches.emplace_back(*found_addr - 16, PowerPC::MMU::HostGetString(guard, module_name_offset,
+                                                                         module_name_length));
 
       progress.SetLabelText(tr("Modules found: %1").arg(matches.size()));
     }
@@ -1698,8 +1698,8 @@ void MenuBar::SearchInstruction()
   for (u32 addr = Memory::MEM1_BASE_ADDR; addr < Memory::MEM1_BASE_ADDR + memory.GetRamSizeReal();
        addr += 4)
   {
-    const auto ins_name =
-        QString::fromStdString(PPCTables::GetInstructionName(PowerPC::HostRead_U32(guard, addr)));
+    const auto ins_name = QString::fromStdString(
+        PPCTables::GetInstructionName(PowerPC::MMU::HostRead_U32(guard, addr)));
     if (op == ins_name)
     {
       NOTICE_LOG_FMT(POWERPC, "Found {} at {:08x}", op.toStdString(), addr);

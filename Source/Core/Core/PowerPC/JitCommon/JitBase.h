@@ -198,6 +198,7 @@ public:
 
   Core::System& m_system;
   PowerPC::PowerPCState& m_ppc_state;
+  PowerPC::MMU& m_mmu;
 };
 
 void JitTrampoline(JitBase& jit, u32 em_address);
