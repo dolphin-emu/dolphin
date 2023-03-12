@@ -24,7 +24,6 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Movie.h"
 
-#include "Core/Scripting/InternalAPIModules/WiiAPI.h"
 #include "Core/Scripting/ScriptUtilities.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"

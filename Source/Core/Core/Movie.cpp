@@ -65,7 +65,6 @@
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 #include "Core/Scripting/ScriptUtilities.h"
 #include "Core/Scripting/HelperClasses/GCButtons.h"
-#include "Core/Scripting/InternalAPIModules/WiiAPI.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
 #include "Core/System.h"

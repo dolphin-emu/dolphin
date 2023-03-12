@@ -10,6 +10,7 @@
 #include "Core/Scripting/InternalAPIModules/BitAPI.h"
 #include "Core/Scripting/InternalAPIModules/EmuAPI.h"
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
+#include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 #include "Core/Scripting/InternalAPIModules/ImportAPI.h"
 #include "Core/Scripting/InternalAPIModules/MemoryAPI.h"
 #include "Core/Scripting/InternalAPIModules/RegistersAPI.h"
@@ -31,6 +32,9 @@ ClassMetadata GetClassMetadataForModule(const std::string& module_name, const st
 
   else if (module_name == Scripting::GameCubeControllerApi::class_name)
     return Scripting::GameCubeControllerApi::GetGameCubeControllerApiClassData(version_number);
+
+  else if (module_name == Scripting::GraphicsAPI::class_name)
+    return Scripting::GraphicsAPI::GetGraphicsApiClassData(version_number);
 
   else if (module_name == Scripting::ImportAPI::class_name)
     return Scripting::ImportAPI::GetImportApiClassData(version_number);
