@@ -7,10 +7,10 @@
 
 namespace SerialInterface
 {
-class CSIDevice_GCSteeringWheel : public CSIDevice_GCController
+class CSIDevice_GCSteeringWheel final : public CSIDevice_GCController
 {
 public:
-  CSIDevice_GCSteeringWheel(SIDevices device, int device_number);
+  CSIDevice_GCSteeringWheel(Core::System& system, SIDevices device, int device_number);
 
   int RunBuffer(u8* buffer, int request_length) override;
   bool GetData(u32& hi, u32& low) override;

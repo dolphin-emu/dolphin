@@ -5,8 +5,8 @@
 
 namespace SerialInterface
 {
-CSIDevice_Null::CSIDevice_Null(SIDevices device, int device_number)
-    : ISIDevice{device, device_number}
+CSIDevice_Null::CSIDevice_Null(Core::System& system, SIDevices device, int device_number)
+    : ISIDevice{system, device, device_number}
 {
 }
 

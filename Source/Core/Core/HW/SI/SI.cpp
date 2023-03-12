@@ -367,7 +367,7 @@ void DoState(PointerWrap& p)
 
     if (type != device->GetDeviceType())
     {
-      AddDevice(SIDevice_Create(type, i));
+      AddDevice(SIDevice_Create(Core::System::GetInstance(), type, i));
     }
 
     device->DoState(p);
@@ -672,7 +672,7 @@ void AddDevice(std::unique_ptr<ISIDevice> device)
 
 void AddDevice(const SIDevices device, int device_number)
 {
-  AddDevice(SIDevice_Create(device, device_number));
+  AddDevice(SIDevice_Create(Core::System::GetInstance(), device, device_number));
 }
 
 void ChangeDevice(SIDevices device, int channel)
