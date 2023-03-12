@@ -38,7 +38,7 @@ struct System::Impl
   explicit Impl(System& system)
       : m_audio_interface(system), m_core_timing(system), m_dsp(system), m_dvd_interface(system),
         m_dvd_thread(system), m_expansion_interface(system), m_gp_fifo(system),
-        m_ppc_state(PowerPC::ppcState), m_video_interface(system)
+        m_ppc_state(PowerPC::ppcState), m_serial_interface(system), m_video_interface(system)
   {
   }
 
@@ -65,7 +65,7 @@ struct System::Impl
   PixelShaderManager m_pixel_shader_manager;
   PowerPC::PowerPCState& m_ppc_state;
   ProcessorInterface::ProcessorInterfaceManager m_processor_interface;
-  SerialInterface::SerialInterfaceState m_serial_interface_state;
+  SerialInterface::SerialInterfaceManager m_serial_interface;
   Sram m_sram;
   VertexShaderManager m_vertex_shader_manager;
   VideoInterface::VideoInterfaceManager m_video_interface;
@@ -209,9 +209,9 @@ ProcessorInterface::ProcessorInterfaceManager& System::GetProcessorInterface() c
   return m_impl->m_processor_interface;
 }
 
-SerialInterface::SerialInterfaceState& System::GetSerialInterfaceState() const
+SerialInterface::SerialInterfaceManager& System::GetSerialInterface() const
 {
-  return m_impl->m_serial_interface_state;
+  return m_impl->m_serial_interface;
 }
 
 Sram& System::GetSRAM() const

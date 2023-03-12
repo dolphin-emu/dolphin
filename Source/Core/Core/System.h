@@ -78,7 +78,7 @@ class ProcessorInterfaceManager;
 }
 namespace SerialInterface
 {
-class SerialInterfaceState;
+class SerialInterfaceManager;
 };
 namespace VideoInterface
 {
@@ -138,7 +138,7 @@ public:
   PixelShaderManager& GetPixelShaderManager() const;
   PowerPC::PowerPCState& GetPPCState() const;
   ProcessorInterface::ProcessorInterfaceManager& GetProcessorInterface() const;
-  SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;
+  SerialInterface::SerialInterfaceManager& GetSerialInterface() const;
   Sram& GetSRAM() const;
   VertexShaderManager& GetVertexShaderManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
