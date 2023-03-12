@@ -26,7 +26,7 @@ public:
   bool IsWii() const override { return m_is_wii; }
   bool IsAncast() const { return m_is_ancast; };
   u32 GetEntryPoint() const override { return m_dolheader.entryPoint; }
-  bool LoadIntoMemory(bool only_in_mem1 = false) const override;
+  bool LoadIntoMemory(Core::System& system, bool only_in_mem1 = false) const override;
   bool LoadSymbols(const Core::CPUThreadGuard& guard) const override { return false; }
 
 private:
@@ -63,5 +63,5 @@ private:
   // Copy sections to internal buffers
   bool Initialize(const std::vector<u8>& buffer);
 
-  bool LoadAncastIntoMemory() const;
+  bool LoadAncastIntoMemory(Core::System& system) const;
 };

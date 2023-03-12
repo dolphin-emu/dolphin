@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -41,14 +43,17 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   private static final String ARG_GAME_ID = "game_id";
   private static final String ARG_REVISION = "revision";
   private static final String ARG_IS_WII = "is_wii";
+  private static final String KEY_MAPPING_ALL_DEVICES = "all_devices";
   private static final String FRAGMENT_TAG = "settings";
+  private static final String FRAGMENT_DIALOG_TAG = "settings_dialog";
+
   private SettingsActivityPresenter mPresenter;
-
   private AlertDialog dialog;
-
   private CollapsingToolbarLayout mToolbarLayout;
 
   private ActivitySettingsBinding mBinding;
+
+  private boolean mMappingAllDevices = false;
 
   public static void launch(Context context, MenuTag menuTag, String gameId, int revision,
           boolean isWii)
@@ -81,6 +86,10 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     if (savedInstanceState == null)
     {
       MainPresenter.skipRescanningLibrary();
+    }
+    else
+    {
+      mMappingAllDevices = savedInstanceState.getBoolean(KEY_MAPPING_ALL_DEVICES);
     }
 
     mBinding = ActivitySettingsBinding.inflate(getLayoutInflater());
@@ -125,7 +134,10 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   {
     // Critical: If super method is not called, rotations will be busted.
     super.onSaveInstanceState(outState);
+
     mPresenter.saveState(outState);
+
+    outState.putBoolean(KEY_MAPPING_ALL_DEVICES, mMappingAllDevices);
   }
 
   @Override
@@ -179,6 +191,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
             SettingsFragment.newInstance(menuTag, gameID, extras), FRAGMENT_TAG);
 
     transaction.commit();
+  }
+
+  @Override
+  public void showDialogFragment(DialogFragment fragment)
+  {
+    fragment.show(getSupportFragmentManager(), FRAGMENT_DIALOG_TAG);
   }
 
   private boolean areSystemAnimationsEnabled()
@@ -305,27 +323,21 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
-  public void onSerialPort1SettingChanged(MenuTag menuTag, int value)
+  public void onControllerSettingsChanged()
   {
-    mPresenter.onSerialPort1SettingChanged(menuTag, value);
+    getFragment().onControllerSettingsChanged();
   }
 
   @Override
-  public void onGcPadSettingChanged(MenuTag key, int value)
+  public void onMenuTagAction(@NonNull MenuTag menuTag, int value)
   {
-    mPresenter.onGcPadSettingChanged(key, value);
+    mPresenter.onMenuTagAction(menuTag, value);
   }
 
   @Override
-  public void onWiimoteSettingChanged(MenuTag section, int value)
+  public boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value)
   {
-    mPresenter.onWiimoteSettingChanged(section, value);
-  }
-
-  @Override
-  public void onExtensionSettingChanged(MenuTag menuTag, int value)
-  {
-    mPresenter.onExtensionSettingChanged(menuTag, value);
+    return mPresenter.hasMenuTagActionForValue(menuTag, value);
   }
 
   @Override
@@ -342,7 +354,27 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
   public void setToolbarTitle(String title)
   {
-    mToolbarLayout.setTitle(title);
+    mBinding.toolbarSettingsLayout.setTitle(title);
+  }
+
+  @Override
+  public void setMappingAllDevices(boolean allDevices)
+  {
+    mMappingAllDevices = allDevices;
+  }
+
+  @Override
+  public boolean isMappingAllDevices()
+  {
+    return mMappingAllDevices;
+  }
+
+  @Override
+  public int setOldControllerSettingsWarningVisibility(boolean visible)
+  {
+    // We use INVISIBLE instead of GONE to avoid getting a stale height for the return value
+    mBinding.oldControllerSettingsWarning.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
+    return visible ? mBinding.oldControllerSettingsWarning.getHeight() : 0;
   }
 
   private void setInsets()
@@ -354,6 +386,10 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
       InsetsHelper.insetAppBar(insets, mBinding.appbarSettings);
 
       mBinding.frameContentSettings.setPadding(insets.left, 0, insets.right, 0);
+
+      int textPadding = getResources().getDimensionPixelSize(R.dimen.spacing_large);
+      mBinding.oldControllerSettingsWarning.setPadding(textPadding + insets.left, textPadding,
+              textPadding + insets.right, textPadding + insets.bottom);
 
       InsetsHelper.applyNavbarWorkaround(insets.bottom, mBinding.workaroundView);
       ThemeHelper.setNavigationBarColor(this,

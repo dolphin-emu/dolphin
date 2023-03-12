@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Common/HookableEvent.h"
 #include "Common/MathUtil.h"
 
 #include "VideoCommon/RenderState.h"
@@ -161,11 +162,14 @@ public:
   bool UseGeometryShaderForUI() const;
 
   // Returns info about the main surface (aka backbuffer)
-  virtual SurfaceInfo GetSurfaceInfo() const { return {}; }
+  virtual SurfaceInfo GetSurfaceInfo() const = 0;
 
 protected:
   AbstractFramebuffer* m_current_framebuffer = nullptr;
   const AbstractPipeline* m_current_pipeline = nullptr;
+
+private:
+  Common::EventHook m_config_changed;
 };
 
 extern std::unique_ptr<AbstractGfx> g_gfx;

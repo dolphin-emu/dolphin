@@ -36,6 +36,8 @@ add_library(discio
   RiivolutionPatcher.h
   ScrubbedBlob.cpp
   ScrubbedBlob.h
+  SplitFileBlob.cpp
+  SplitFileBlob.h
   TGCBlob.cpp
   TGCBlob.h
   Volume.cpp

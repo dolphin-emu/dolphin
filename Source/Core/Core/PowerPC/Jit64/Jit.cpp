@@ -19,7 +19,6 @@
 #include "Common/GekkoDisassembler.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/MemoryUtil.h"
 #include "Common/PerformanceCounter.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
@@ -117,108 +116,21 @@ using namespace PowerPC;
     and such, but it's currently limited to integer ops only. This can definitely be made better.
 */
 
-// The BLR optimization is nice, but it means that JITted code can overflow the
-// native stack by repeatedly running BL.  (The chance of this happening in any
-// retail game is close to 0, but correctness is correctness...) Also, the
-// overflow might not happen directly in the JITted code but in a C++ function
-// called from it, so we can't just adjust RSP in the case of a fault.
-// Instead, we have to have extra stack space preallocated under the fault
-// point which allows the code to continue, after wiping the JIT cache so we
-// can reset things at a safe point.  Once this condition trips, the
-// optimization is permanently disabled, under the assumption this will never
-// happen in practice.
-
-// On Unix, we just mark an appropriate region of the stack as PROT_NONE and
-// handle it the same way as fastmem faults.  It's safe to take a fault with a
-// bad RSP, because on Linux we can use sigaltstack and on OS X we're already
-// on a separate thread.
-
-// Windows is... under-documented.
-// It already puts guard pages so it can automatically grow the stack and it
-// doesn't look like there is a way to hook into a guard page fault and implement
-// our own logic.
-// But when windows reaches the last guard page, it raises a "Stack Overflow"
-// exception which we can hook into, however by default it leaves you with less
-// than 4kb of stack. So we use SetThreadStackGuarantee to trigger the Stack
-// Overflow early while we still have 512kb of stack remaining.
-// After resetting the stack to the top, we call _resetstkoflw() to restore
-// the guard page at the 512kb mark.
-
-enum
-{
-  STACK_SIZE = 2 * 1024 * 1024,
-  SAFE_STACK_SIZE = 512 * 1024,
-  GUARD_SIZE = 0x10000,  // two guards - bottom (permanent) and middle (see above)
-  GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE,
-};
-
 Jit64::Jit64() : QuantizedMemoryRoutines(*this)
 {
 }
 
 Jit64::~Jit64() = default;
 
-void Jit64::AllocStack()
-{
-#ifndef _WIN32
-  m_stack = static_cast<u8*>(Common::AllocateMemoryPages(STACK_SIZE));
-  Common::ReadProtectMemory(m_stack, GUARD_SIZE);
-  Common::ReadProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
-#else
-  // For windows we just keep using the system stack and reserve a large amount of memory at the end
-  // of the stack.
-  ULONG reserveSize = SAFE_STACK_SIZE;
-  SetThreadStackGuarantee(&reserveSize);
-#endif
-}
-
-void Jit64::FreeStack()
-{
-#ifndef _WIN32
-  if (m_stack)
-  {
-    Common::FreeMemoryPages(m_stack, STACK_SIZE);
-    m_stack = nullptr;
-  }
-#endif
-}
-
-bool Jit64::HandleStackFault()
-{
-  // It's possible the stack fault might have been caused by something other than
-  // the BLR optimization. If the fault was triggered from another thread, or
-  // when BLR optimization isn't enabled then there is nothing we can do about the fault.
-  // Return false so the regular stack overflow handler can trigger (which crashes)
-  if (!m_enable_blr_optimization || !Core::IsCPUThread())
-    return false;
-
-  WARN_LOG_FMT(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
-
-  m_enable_blr_optimization = false;
-#ifndef _WIN32
-  // Windows does this automatically.
-  Common::UnWriteProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
-#endif
-  // We're going to need to clear the whole cache to get rid of the bad
-  // CALLs, but we can't yet.  Fake the downcount so we're forced to the
-  // dispatcher (no block linking), and clear the cache so we're sent to
-  // Jit. In the case of Windows, we will also need to call _resetstkoflw()
-  // to reset the guard page.
-  // Yeah, it's kind of gross.
-  GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
-  Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(0);
-  m_cleanup_after_stackfault = true;
-
-  return true;
-}
-
 bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 {
-  uintptr_t stack = (uintptr_t)m_stack;
-  uintptr_t diff = access_address - stack;
+  const uintptr_t stack_guard = reinterpret_cast<uintptr_t>(m_stack_guard);
   // In the trap region?
-  if (m_enable_blr_optimization && diff >= GUARD_OFFSET && diff < GUARD_OFFSET + GUARD_SIZE)
+  if (m_enable_blr_optimization && access_address >= stack_guard &&
+      access_address < stack_guard + GUARD_SIZE)
+  {
     return HandleStackFault();
+  }
 
   // This generates some fairly heavy trampolines, but it doesn't really hurt.
   // Only instructions that access I/O will get these, and there won't be that
@@ -319,7 +231,7 @@ bool Jit64::BackPatch(SContext* ctx)
       *ptr = Common::swap64(static_cast<u64>(*ptr));
       break;
     default:
-      DEBUG_ASSERT(0);
+      DEBUG_ASSERT(false);
       break;
     }
   }
@@ -329,7 +241,7 @@ bool Jit64::BackPatch(SContext* ctx)
   if (info.offsetAddedToAddress)
   {
     u64* ptr = ContextRN(ctx, info.op_arg.GetSimpleReg());
-    *ptr -= static_cast<u32>(info.offset);
+    *ptr = static_cast<u32>(*ptr - info.offset);
   }
 
   ctx->CTX_PC = reinterpret_cast<u64>(trampoline);
@@ -365,17 +277,10 @@ void Jit64::Init()
   m_const_pool.Init(AllocChildCodeSpace(constpool_size), constpool_size);
   ResetCodePtr();
 
-  // BLR optimization has the same consequences as block linking, as well as
-  // depending on the fault handler to be safe in the event of excessive BL.
-  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
-  m_cleanup_after_stackfault = false;
-
-  m_stack = nullptr;
-  if (m_enable_blr_optimization)
-    AllocStack();
+  m_stack_guard = nullptr;
 
   blocks.Init();
-  asm_routines.Init(m_stack ? (m_stack + STACK_SIZE) : nullptr);
+  asm_routines.Init();
 
   // important: do this *after* generating the global asm routines, because we can't use farcode in
   // them.
@@ -415,7 +320,6 @@ void Jit64::ResetFreeMemoryRanges()
 
 void Jit64::Shutdown()
 {
-  FreeStack();
   FreeCodeSpace();
 
   auto& system = Core::System::GetInstance();
@@ -735,14 +639,22 @@ void Jit64::WriteExternalExceptionExit()
 
 void Jit64::Run()
 {
+  ProtectStack();
+
   CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
+
+  UnprotectStack();
 }
 
 void Jit64::SingleStep()
 {
+  ProtectStack();
+
   CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
+
+  UnprotectStack();
 }
 
 void Jit64::Trace()
@@ -779,15 +691,7 @@ void Jit64::Jit(u32 em_address)
 
 void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 {
-  if (m_cleanup_after_stackfault)
-  {
-    ClearCache();
-    m_cleanup_after_stackfault = false;
-#ifdef _WIN32
-    // The stack is in an invalid state with no guard page, reset it.
-    _resetstkoflw();
-#endif
-  }
+  CleanUpAfterStackFault();
 
   if (trampolines.IsAlmostFull() || SConfig::GetInstance().bJITNoBlockCache)
   {
@@ -816,7 +720,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
     if (!jo.profile_blocks)
     {
-      if (CPU::IsStepping())
+      if (Core::System::GetInstance().GetCPU().IsStepping())
       {
         block_size = 1;
 
@@ -918,6 +822,8 @@ bool Jit64::SetEmitterStateToFreeCodeRegion()
 
 bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 {
+  auto& system = Core::System::GetInstance();
+
   js.firstFPInstructionFound = false;
   js.isLastInstruction = false;
   js.blockStart = em_address;
@@ -1038,7 +944,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       js.mustCheckFifo = false;
       BitSet32 registersInUse = CallerSavedRegistersInUse();
       ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-      ABI_CallFunctionP(GPFifo::FastCheckGatherPipe, &Core::System::GetInstance().GetGPFifo());
+      ABI_CallFunctionP(GPFifo::FastCheckGatherPipe, &system.GetGPFifo());
       ABI_PopRegistersAndAdjustStack(registersInUse, 0);
       gatherPipeIntCheck = true;
     }
@@ -1055,7 +961,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(extException);
       TEST(32, PPCSTATE(msr), Imm32(0x0008000));
       FixupBranch noExtIntEnable = J_CC(CC_Z, true);
-      auto& system = Core::System::GetInstance();
       MOV(64, R(RSCRATCH), ImmPtr(&system.GetProcessorInterface().m_interrupt_cause));
       TEST(32, MatR(RSCRATCH),
            Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN |
@@ -1108,7 +1013,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      if (m_enable_debugging && breakpoints.IsAddressBreakPoint(op.address) && !CPU::IsStepping())
+      auto& cpu = system.GetCPU();
+      if (m_enable_debugging && breakpoints.IsAddressBreakPoint(op.address) && !cpu.IsStepping())
       {
         gpr.Flush();
         fpr.Flush();
@@ -1117,7 +1023,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         ABI_PushRegistersAndAdjustStack({}, 0);
         ABI_CallFunction(PowerPC::CheckBreakPoints);
         ABI_PopRegistersAndAdjustStack({}, 0);
-        MOV(64, R(RSCRATCH), ImmPtr(CPU::GetStatePtr()));
+        MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
         TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
         FixupBranch noBreakpoint = J_CC(CC_Z);
 

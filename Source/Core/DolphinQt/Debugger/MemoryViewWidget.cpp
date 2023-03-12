@@ -25,6 +25,7 @@
 #include "Core/HW/AddressSpace.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -153,7 +154,7 @@ public:
     u32 end_address = address + static_cast<u32>(bytes.size()) - 1;
     AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_view->GetAddressSpace());
 
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
 
     if (!bytes.empty() && accessors->IsValidAddress(guard, address) &&
         accessors->IsValidAddress(guard, end_address))
@@ -442,7 +443,7 @@ void MemoryViewWidget::UpdateColumns()
 
   if (Core::GetState() == Core::State::Paused)
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     UpdateColumns(&guard);
   }
   else
@@ -850,7 +851,7 @@ void MemoryViewWidget::OnCopyHex(u32 addr)
   const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
 
   const u64 value = [addr, accessors] {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     return accessors->ReadU64(guard, addr);
   }();
 
@@ -873,7 +874,7 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
       [this, addr] {
         const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
 
-        Core::CPUThreadGuard guard;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
         return accessors->IsValidAddress(guard, addr);
       }();
 

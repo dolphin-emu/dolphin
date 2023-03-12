@@ -34,6 +34,7 @@ public:
   std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
                                                    const void* cache_data = nullptr,
                                                    size_t cache_data_length = 0) override;
+  SurfaceInfo GetSurfaceInfo() const override { return {}; }
 };
 
 class NullRenderer final : public Renderer

@@ -45,16 +45,16 @@ Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
   constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
   groups.emplace_back(m_stick = new ControllerEmu::OctagonAnalogStick(STICK_GROUP, gate_radius));
 
-  // swing
-  groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
+  // Shake
+  // Inverse the default intensity so shake is opposite that of wiimote.
+  // This is needed by Donkey Kong Country Returns for proper shake action detection.
+  groups.emplace_back(m_shake = new ControllerEmu::Shake(_trans("Shake"), -1));
 
   // tilt
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
 
-  // Shake
-  // Inverse the default intensity so shake is opposite that of wiimote.
-  // This is needed by DKCR for proper shake action detection.
-  groups.emplace_back(m_shake = new ControllerEmu::Shake(_trans("Shake"), -1));
+  // swing
+  groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
 
   // accelerometer
   groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
@@ -198,6 +198,7 @@ void Nunchuk::DoState(PointerWrap& p)
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 {
+#ifndef ANDROID
   // Stick
   m_stick->SetControlExpression(0, "W");  // up
   m_stick->SetControlExpression(1, "S");  // down
@@ -228,5 +229,6 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
     m_shake->SetControlExpression(i, "`Click 2`");
 #endif
   }
+#endif
 }
 }  // namespace WiimoteEmu

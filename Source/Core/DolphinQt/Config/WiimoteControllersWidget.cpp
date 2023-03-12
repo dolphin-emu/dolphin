@@ -50,6 +50,11 @@ WiimoteControllersWidget::WiimoteControllersWidget(QWidget* parent) : QWidget(pa
   LoadSettings(Core::GetState());
 }
 
+void WiimoteControllersWidget::UpdateBluetoothAvailableStatus()
+{
+  m_bluetooth_unavailable->setHidden(WiimoteReal::IsScannerReady());
+}
+
 static int GetRadioButtonIndicatorWidth()
 {
   const QStyle* style = QApplication::style();
@@ -150,6 +155,10 @@ void WiimoteControllersWidget::CreateLayout()
   int continuous_scanning_row = m_wiimote_layout->rowCount();
   m_wiimote_layout->addWidget(m_wiimote_continuous_scanning, continuous_scanning_row, 0, 1, 3);
   m_wiimote_layout->addWidget(m_wiimote_refresh, continuous_scanning_row, 3);
+
+  m_bluetooth_unavailable = new QLabel(tr("A supported Bluetooth device could not be found.\n"
+                                          "You must manually connect your Wii Remote."));
+  m_wiimote_layout->addWidget(m_bluetooth_unavailable, m_wiimote_layout->rowCount(), 1, 1, -1);
 
   auto* layout = new QVBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);

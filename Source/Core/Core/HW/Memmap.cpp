@@ -51,21 +51,21 @@ void MemoryManager::InitMMIO(bool is_wii)
   auto& system = Core::System::GetInstance();
   system.GetCommandProcessor().RegisterMMIO(system, m_mmio_mapping.get(), 0x0C000000);
   system.GetPixelEngine().RegisterMMIO(m_mmio_mapping.get(), 0x0C001000);
-  VideoInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
+  system.GetVideoInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
   system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
-  MemoryInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
-  DSP::RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
-  DVDInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
+  system.GetMemoryInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
+  system.GetDSP().RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
+  system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
   SerialInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006400);
-  ExpansionInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006800);
-  AudioInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006C00);
+  system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006800);
+  system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006C00);
   if (is_wii)
   {
     IOS::RegisterMMIO(m_mmio_mapping.get(), 0x0D000000);
-    DVDInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006000, true);
+    system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006000, true);
     SerialInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006400);
-    ExpansionInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
-    AudioInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
+    system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
+    system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
   }
 }
 

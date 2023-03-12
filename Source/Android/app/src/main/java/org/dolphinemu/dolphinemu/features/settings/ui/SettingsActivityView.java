@@ -4,6 +4,9 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
+
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 /**
@@ -18,6 +21,13 @@ public interface SettingsActivityView
    * @param addToStack Whether or not this fragment should replace a previous one.
    */
   void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack, String gameId);
+
+  /**
+   * Shows a DialogFragment.
+   *
+   * Only one can be shown at a time.
+   */
+  void showDialogFragment(DialogFragment fragment);
 
   /**
    * Called by a contained Fragment to get access to the Setting HashMap
@@ -59,40 +69,30 @@ public interface SettingsActivityView
   void onSettingChanged();
 
   /**
-   * Called by a containing Fragment to tell the containing Activity that the Serial Port 1 setting
-   * was modified.
+   * Refetches the values of all controller settings.
    *
-   * @param menuTag Identifier for the SerialPort that was modified.
-   * @param value   New setting for the SerialPort.
+   * To be used when loading an input profile or performing some other action that changes all
+   * controller settings at once.
    */
-  void onSerialPort1SettingChanged(MenuTag menuTag, int value);
+  void onControllerSettingsChanged();
 
   /**
-   * Called by a containing Fragment to tell the containing Activity that a GCPad's setting
-   * was modified.
+   * Called by a containing Fragment to tell the containing Activity that the user wants to open the
+   * MenuTag associated with a setting.
    *
-   * @param menuTag Identifier for the GCPad that was modified.
-   * @param value   New setting for the GCPad.
+   * @param menuTag The MenuTag of the setting.
+   * @param value   The current value of the setting.
    */
-  void onGcPadSettingChanged(MenuTag menuTag, int value);
+  void onMenuTagAction(@NonNull MenuTag menuTag, int value);
 
   /**
-   * Called by a containing Fragment to tell the containing Activity that a Wiimote's setting
-   * was modified.
+   * Returns whether anything will happen when the user wants to open the MenuTag associated with a
+   * setting, given the current value of the setting.
    *
-   * @param menuTag Identifier for Wiimote that was modified.
-   * @param value   New setting for the Wiimote.
+   * @param menuTag The MenuTag of the setting.
+   * @param value   The current value of the setting.
    */
-  void onWiimoteSettingChanged(MenuTag menuTag, int value);
-
-  /**
-   * Called by a containing Fragment to tell the containing Activity that an extension setting
-   * was modified.
-   *
-   * @param menuTag Identifier for the extension that was modified.
-   * @param value   New setting for the extension.
-   */
-  void onExtensionSettingChanged(MenuTag menuTag, int value);
+  boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value);
 
   /**
    * Show loading dialog while loading the settings
@@ -113,4 +113,25 @@ public interface SettingsActivityView
    * Accesses the material toolbar layout and changes the title
    */
   void setToolbarTitle(String title);
+
+  /**
+   * Sets whether the input mapping dialog should detect inputs from all devices,
+   * not just the device configured for the controller.
+   */
+  void setMappingAllDevices(boolean allDevices);
+
+  /**
+   * Returns whether the input mapping dialog should detect inputs from all devices,
+   * not just the device configured for the controller.
+   */
+  boolean isMappingAllDevices();
+
+  /**
+   * Shows or hides a warning telling the user that they're using incompatible controller settings.
+   * The warning is hidden by default.
+   *
+   * @param visible Whether the warning should be visible.
+   * @return The height of the warning view, or 0 if the view is now invisible.
+   */
+  int setOldControllerSettingsWarningVisibility(boolean visible);
 }

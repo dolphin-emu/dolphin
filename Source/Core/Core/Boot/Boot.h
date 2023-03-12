@@ -171,9 +171,10 @@ public:
   static bool LoadMapFromFilename(const Core::CPUThreadGuard& guard);
 
 private:
-  static bool DVDRead(const DiscIO::VolumeDisc& disc, u64 dvd_offset, u32 output_address,
-                      u32 length, const DiscIO::Partition& partition);
-  static bool DVDReadDiscID(const DiscIO::VolumeDisc& disc, u32 output_address);
+  static bool DVDRead(Core::System& system, const DiscIO::VolumeDisc& disc, u64 dvd_offset,
+                      u32 output_address, u32 length, const DiscIO::Partition& partition);
+  static bool DVDReadDiscID(Core::System& system, const DiscIO::VolumeDisc& disc,
+                            u32 output_address);
   static void RunFunction(Core::System& system, u32 address);
 
   static void UpdateDebugger_MapLoaded();
@@ -213,7 +214,7 @@ public:
   virtual u32 GetEntryPoint() const = 0;
   virtual bool IsValid() const = 0;
   virtual bool IsWii() const = 0;
-  virtual bool LoadIntoMemory(bool only_in_mem1 = false) const = 0;
+  virtual bool LoadIntoMemory(Core::System& system, bool only_in_mem1 = false) const = 0;
   virtual bool LoadSymbols(const Core::CPUThreadGuard& guard) const = 0;
 
 protected:

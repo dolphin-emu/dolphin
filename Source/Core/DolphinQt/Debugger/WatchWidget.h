@@ -48,6 +48,7 @@ private:
 
   void UpdateButtonsEnabled();
   void Update();
+  void SetEmptyRow(int row);
 
   void ShowContextMenu();
   void OnItemChanged(QTableWidgetItem* item);

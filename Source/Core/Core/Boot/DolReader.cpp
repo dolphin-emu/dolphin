@@ -110,15 +110,14 @@ bool DolReader::Initialize(const std::vector<u8>& buffer)
   return true;
 }
 
-bool DolReader::LoadIntoMemory(bool only_in_mem1) const
+bool DolReader::LoadIntoMemory(Core::System& system, bool only_in_mem1) const
 {
   if (!m_is_valid)
     return false;
 
   if (m_is_ancast)
-    return LoadAncastIntoMemory();
+    return LoadAncastIntoMemory(system);
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   // load all text (code) sections
@@ -149,7 +148,7 @@ bool DolReader::LoadIntoMemory(bool only_in_mem1) const
 }
 
 // On a real console this would be done in the Espresso bootrom
-bool DolReader::LoadAncastIntoMemory() const
+bool DolReader::LoadAncastIntoMemory(Core::System& system) const
 {
   // The ancast image will always be in data section 0
   const auto& section = m_data_sections[0];
@@ -227,7 +226,6 @@ bool DolReader::LoadAncastIntoMemory() const
                   body_size))
     return false;
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   // Copy the Ancast header to the emu

@@ -1594,7 +1594,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
 
     if (hires_tex)
     {
-      const auto& level = hires_tex->m_levels[0];
+      const auto& level = hires_tex->GetData().m_levels[0];
       if (level.width != width || level.height != height)
       {
         width = level.width;
@@ -1612,7 +1612,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
 #endif
   // how many levels the allocated texture shall have
   const u32 texLevels = no_mips   ? 1 :
-                        hires_tex ? (u32)hires_tex->m_levels.size() :
+                        hires_tex ? (u32)hires_tex->GetData().m_levels.size() :
                                     texture_info.GetLevelCount();
 
   // We can decode on the GPU if it is a supported format and the flag is enabled.
@@ -1634,7 +1634,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   ArbitraryMipmapDetector arbitrary_mip_detector;
   if (hires_tex)
   {
-    const auto& level = hires_tex->m_levels[0];
+    const auto& level = hires_tex->GetData().m_levels[0];
     entry->texture->Load(0, level.width, level.height, level.row_length, level.data.data(),
                          level.data.size());
   }
@@ -1719,7 +1719,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   {
     for (u32 level_index = 1; level_index != texLevels; ++level_index)
     {
-      const auto& level = hires_tex->m_levels[level_index];
+      const auto& level = hires_tex->GetData().m_levels[level_index];
       entry->texture->Load(level_index, level.width, level.height, level.row_length,
                            level.data.data(), level.data.size());
     }

@@ -296,7 +296,7 @@ void RegisterWidget::AutoStep(const std::string& reg) const
   while (true)
   {
     const AutoStepResults results = [&trace] {
-      Core::CPUThreadGuard guard;
+      Core::CPUThreadGuard guard(Core::System::GetInstance());
       return trace.AutoStepping(guard, true);
     }();
 

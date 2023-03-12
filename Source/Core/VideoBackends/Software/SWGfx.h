@@ -49,6 +49,8 @@ public:
   void ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEnable, bool alphaEnable,
                    bool zEnable, u32 color, u32 z) override;
 
+  SurfaceInfo GetSurfaceInfo() const override;
+
 private:
   std::unique_ptr<SWOGLWindow> m_window;
 };

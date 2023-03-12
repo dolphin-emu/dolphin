@@ -25,8 +25,9 @@ enum
   EXI_READWRITE
 };
 
-CEXIChannel::CEXIChannel(u32 channel_id, const Memcard::HeaderData& memcard_header_data)
-    : m_channel_id(channel_id), m_memcard_header_data(memcard_header_data)
+CEXIChannel::CEXIChannel(Core::System& system, u32 channel_id,
+                         const Memcard::HeaderData& memcard_header_data)
+    : m_system(system), m_channel_id(channel_id), m_memcard_header_data(memcard_header_data)
 {
   if (m_channel_id == 0 || m_channel_id == 1)
     m_status.EXTINT = 1;
@@ -34,7 +35,7 @@ CEXIChannel::CEXIChannel(u32 channel_id, const Memcard::HeaderData& memcard_head
     m_status.CHIP_SELECT = 1;
 
   for (auto& device : m_devices)
-    device = EXIDevice_Create(EXIDeviceType::None, m_channel_id, m_memcard_header_data);
+    device = EXIDevice_Create(system, EXIDeviceType::None, m_channel_id, m_memcard_header_data);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -61,7 +62,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
                    return m_status.Hex;
                  }),
-                 MMIO::ComplexWrite<u32>([this](Core::System&, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([this](Core::System& system, u32, u32 val) {
                    UEXI_STATUS new_status(val);
 
                    m_status.EXIINTMASK = new_status.EXIINTMASK;
@@ -90,7 +91,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (device != nullptr)
                      device->SetCS(m_status.CHIP_SELECT);
 
-                   ExpansionInterface::UpdateInterrupts();
+                   system.GetExpansionInterface().UpdateInterrupts();
                  }));
 
   mmio->Register(base + EXI_DMA_ADDRESS, MMIO::DirectRead<u32>(&m_dma_memory_address),
@@ -159,7 +160,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 void CEXIChannel::SendTransferComplete()
 {
   m_status.TCINT = 1;
-  ExpansionInterface::UpdateInterrupts();
+  m_system.GetExpansionInterface().UpdateInterrupts();
 }
 
 void CEXIChannel::RemoveDevices()
@@ -170,7 +171,8 @@ void CEXIChannel::RemoveDevices()
 
 void CEXIChannel::AddDevice(const EXIDeviceType device_type, const int device_num)
 {
-  AddDevice(EXIDevice_Create(device_type, m_channel_id, m_memcard_header_data), device_num);
+  AddDevice(EXIDevice_Create(m_system, device_type, m_channel_id, m_memcard_header_data),
+            device_num);
 }
 
 void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num,
@@ -193,7 +195,7 @@ void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device
     if (m_channel_id != 2)
     {
       m_status.EXTINT = 1;
-      ExpansionInterface::UpdateInterrupts();
+      m_system.GetExpansionInterface().UpdateInterrupts();
     }
   }
 }
@@ -255,7 +257,7 @@ void CEXIChannel::DoState(PointerWrap& p)
     else
     {
       std::unique_ptr<IEXIDevice> save_device =
-          EXIDevice_Create(type, m_channel_id, m_memcard_header_data);
+          EXIDevice_Create(m_system, type, m_channel_id, m_memcard_header_data);
       save_device->DoState(p);
       AddDevice(std::move(save_device), device_index, false);
     }
@@ -278,8 +280,8 @@ void CEXIChannel::DoState(PointerWrap& p)
       // the new device type are identical in this case. I assume there is a reason we have this
       // grace period when switching in the GUI.
       AddDevice(EXIDeviceType::None, device_index);
-      ExpansionInterface::ChangeDevice(m_channel_id, device_index, EXIDeviceType::MemoryCardFolder,
-                                       CoreTiming::FromThread::CPU);
+      m_system.GetExpansionInterface().ChangeDevice(
+          m_channel_id, device_index, EXIDeviceType::MemoryCardFolder, CoreTiming::FromThread::CPU);
     }
   }
 }

@@ -64,7 +64,8 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
     return std::nullopt;
 #endif
 
-  std::string result = external_relative_path.starts_with('/') ? m_sd_root : m_patch_root;
+  const std::string& root = external_relative_path.starts_with('/') ? m_sd_root : m_patch_root;
+  std::string result = root;
   std::string_view work = external_relative_path;
 
   // Strip away all leading and trailing path separators.
@@ -116,6 +117,33 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
       // Append path element to result string.
       result += '/';
       result += element;
+
+      // Riivolution assumes a case-insensitive file system, which means it's possible that an XML
+      // file references a 'file.bin' but the actual file is named 'File.bin' or 'FILE.BIN'. To
+      // preserve this behavior, we modify the file path to match any existing file in the file
+      // system, if one exists.
+      if (!::File::Exists(result))
+      {
+        // Drop path element again so we can search in the directory.
+        result.erase(result.size() - element.size(), element.size());
+
+        // Re-attach an element that actually matches the capitalization in the host filesystem.
+        auto possible_files = ::File::ScanDirectoryTree(result, false);
+        bool found = false;
+        for (auto& f : possible_files.children)
+        {
+          if (Common::CaseInsensitiveEquals(element, f.virtualName))
+          {
+            result += f.virtualName;
+            found = true;
+            break;
+          }
+        }
+
+        // If there isn't any file that matches just use the given element.
+        if (!found)
+          result += element;
+      }
     }
 
     // If this was the last path element, we're done.
@@ -320,14 +348,6 @@ static void ApplyPatchToFile(const Patch& patch, const File& file_patch,
                    file_patch.m_fileoffset, file_patch.m_length, file_patch.m_resize);
 }
 
-static bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
-{
-  if (a.size() != b.size())
-    return false;
-  return std::equal(a.begin(), a.end(), b.begin(),
-                    [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
-}
-
 static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTBuilderNode>* fst,
                                          bool create_if_not_exists)
 {
@@ -335,7 +355,7 @@ static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTB
   const bool is_file = path_separator == std::string_view::npos;
   const std::string_view name = is_file ? path : path.substr(0, path_separator);
   const auto it = std::find_if(fst->begin(), fst->end(), [&](const FSTBuilderNode& node) {
-    return CaseInsensitiveEquals(node.m_filename, name);
+    return Common::CaseInsensitiveEquals(node.m_filename, name);
   });
 
   if (it == fst->end())
@@ -377,7 +397,7 @@ static DiscIO::FSTBuilderNode* FindFilenameNodeInFST(std::string_view filename,
       if (result)
         return result;
     }
-    else if (CaseInsensitiveEquals(node.m_filename, filename))
+    else if (Common::CaseInsensitiveEquals(node.m_filename, filename))
     {
       return &node;
     }
@@ -398,7 +418,7 @@ static void ApplyFilePatchToFST(const Patch& patch, const File& file,
     if (node)
       ApplyPatchToFile(patch, file, node);
   }
-  else if (dol_node && CaseInsensitiveEquals(file.m_disc, "main.dol"))
+  else if (dol_node && Common::CaseInsensitiveEquals(file.m_disc, "main.dol"))
   {
     // Special case: If the filename is "main.dol", we want to patch the main executable.
     ApplyPatchToFile(patch, file, dol_node);

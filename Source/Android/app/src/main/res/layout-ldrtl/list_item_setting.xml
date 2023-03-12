@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@+id/root"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:nextFocusLeft="@id/button_more_settings">
+
+    <TextView
+        android:id="@+id/text_setting_name"
+        style="@style/TextAppearance.MaterialComponents.Headline5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginTop="@dimen/spacing_large"
+        android:textSize="16sp"
+        android:textAlignment="viewStart"
+        android:layout_toStartOf="@+id/button_more_settings"
+        tools:text="Setting Name" />
+
+    <TextView
+        android:id="@+id/text_setting_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignStart="@+id/text_setting_name"
+        android:layout_below="@+id/text_setting_name"
+        android:layout_marginBottom="@dimen/spacing_large"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginTop="@dimen/spacing_small"
+        android:layout_toStartOf="@+id/button_more_settings"
+        android:textAlignment="viewStart"
+        tools:text="@string/overclock_enable_description" />
+
+    <Button
+        android:id="@+id/button_more_settings"
+        style="?attr/materialIconButtonStyle"
+        android:contentDescription="@string/more_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="@dimen/spacing_small"
+        android:nextFocusRight="@id/root"
+        android:visibility="gone"
+        app:icon="@drawable/ic_settings"
+        app:iconTint="?attr/colorOnPrimaryContainer" />
+
+</RelativeLayout>

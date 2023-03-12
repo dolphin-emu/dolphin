@@ -41,6 +41,7 @@ enum class BlobType
   RVZ,
   MOD_DESCRIPTOR,
   NFS,
+  SPLIT_PLAIN,
 };
 
 // If you convert an ISO file to another format and then call GetDataSize on it, what is the result?

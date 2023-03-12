@@ -232,7 +232,8 @@ public:
     IsPlayingBackFifologWithBrokenEFBCopies = m_parent->m_File->HasBrokenEFBCopies();
     // Without this call, we deadlock in initialization in dual core, as the FIFO is disabled and
     // thus ClearEfb()'s call to WaitForGPUInactive() never returns
-    CPU::EnableStepping(false);
+    auto& system = Core::System::GetInstance();
+    system.GetCPU().EnableStepping(false);
 
     m_parent->m_CurrentFrame = m_parent->m_FrameRangeStart;
     m_parent->LoadMemory();
@@ -254,17 +255,19 @@ public:
   const char* GetName() const override { return "FifoPlayer"; }
   void Run() override
   {
-    while (CPU::GetState() == CPU::State::Running)
+    auto& system = Core::System::GetInstance();
+    auto& cpu = system.GetCPU();
+    while (cpu.GetState() == CPU::State::Running)
     {
       switch (m_parent->AdvanceFrame())
       {
       case CPU::State::PowerDown:
-        CPU::Break();
+        cpu.Break();
         Host_Message(HostMessageID::WMUserStop);
         break;
 
       case CPU::State::Stepping:
-        CPU::Break();
+        cpu.Break();
         Host_UpdateMainFrame();
         break;
 
@@ -411,9 +414,9 @@ FifoPlayer& FifoPlayer::GetInstance()
 void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
   // Core timing information
+  auto& vi = Core::System::GetInstance().GetVideoInterface();
   m_CyclesPerFrame = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
-                     VideoInterface::GetTargetRefreshRateDenominator() /
-                     VideoInterface::GetTargetRefreshRateNumerator();
+                     vi.GetTargetRefreshRateDenominator() / vi.GetTargetRefreshRateNumerator();
   m_ElapsedCycles = 0;
   m_FrameFifoSize = static_cast<u32>(frame.fifoData.size());
 
@@ -519,6 +522,7 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
   u32 lastBurstEnd = end - 1;
 
   auto& system = Core::System::GetInstance();
+  auto& cpu = system.GetCPU();
   auto& core_timing = system.GetCoreTiming();
   auto& gpfifo = system.GetGPFifo();
   auto& ppc_state = system.GetPPCState();
@@ -528,7 +532,7 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
   {
     while (IsHighWatermarkSet())
     {
-      if (CPU::GetState() != CPU::State::Running)
+      if (cpu.GetState() != CPU::State::Running)
         break;
       core_timing.Idle();
       core_timing.Advance();
@@ -733,10 +737,12 @@ void FifoPlayer::FlushWGP()
 
 void FifoPlayer::WaitForGPUInactive()
 {
-  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+  auto& cpu = system.GetCPU();
 
   // Sleep while the GPU is active
-  while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
+  while (!IsIdleSet() && cpu.GetState() != CPU::State::PowerDown)
   {
     core_timing.Idle();
     core_timing.Advance();

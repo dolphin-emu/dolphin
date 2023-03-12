@@ -872,6 +872,26 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
     if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
       ERROR_LOG_FMT(IOS_NET, "Failed to set SO_NOSIGPIPE on socket");
 #endif
+
+    // Wii UDP sockets can use broadcast address by default
+    if (!is_rw)
+    {
+      const auto state = Common::SaveNetworkErrorState();
+      Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
+
+      int socket_type;
+      socklen_t option_length = sizeof(socket_type);
+      const bool is_udp = getsockopt(fd, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&socket_type),
+                                     &option_length) == 0 &&
+                          socket_type == SOCK_DGRAM;
+      const int opt_broadcast = 1;
+      if (is_udp &&
+          setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&opt_broadcast),
+                     sizeof(opt_broadcast)) != 0)
+      {
+        ERROR_LOG_FMT(IOS_NET, "Failed to set SO_BROADCAST on socket");
+      }
+    }
   }
 
   SetLastNetError(wii_fd);

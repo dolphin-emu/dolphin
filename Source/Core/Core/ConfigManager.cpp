@@ -93,6 +93,254 @@ void SConfig::SaveSettings()
 void SConfig::LoadSettings()
 {
   INFO_LOG_FMT(BOOT, "Loading Settings from {}", File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  Config::Load();
+}
+
+void SConfig::ResetRunningGameMetadata()
+{
+  SetRunningGameMetadata("00000000", "", 0, 0, DiscIO::Region::Unknown);
+}
+
+void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
+                                     const DiscIO::Partition& partition)
+{
+  if (partition == volume.GetGamePartition())
+  {
+    SetRunningGameMetadata(volume.GetGameID(), volume.GetGameTDBID(),
+                           volume.GetTitleID().value_or(0), volume.GetRevision().value_or(0),
+                           volume.GetRegion());
+  }
+  else
+  {
+    SetRunningGameMetadata(volume.GetGameID(partition), volume.GetGameTDBID(),
+                           volume.GetTitleID(partition).value_or(0),
+                           volume.GetRevision(partition).value_or(0), volume.GetRegion());
+  }
+}
+
+void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform)
+{
+  const u64 tmd_title_id = tmd.GetTitleId();
+
+  // If we're launching a disc game, we want to read the revision from
+  // the disc header instead of the TMD. They can differ.
+  // (IOS HLE ES calls us with a TMDReader rather than a volume when launching
+  // a disc game, because ES has no reason to be accessing the disc directly.)
+  if (platform == DiscIO::Platform::WiiWAD ||
+      !Core::System::GetInstance().GetDVDInterface().UpdateRunningGameMetadata(tmd_title_id))
+  {
+    // If not launching a disc game, just read everything from the TMD.
+    SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), tmd_title_id, tmd.GetTitleVersion(),
+                           tmd.GetRegion());
+  }
+}
+
+void SConfig::SetRunningGameMetadata(const std::string& game_id)
+{
+  SetRunningGameMetadata(game_id, "", 0, 0, DiscIO::Region::Unknown);
+}
+
+void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
+                                     u64 title_id, u16 revision, DiscIO::Region region)
+{
+  const bool was_changed = m_game_id != game_id || m_gametdb_id != gametdb_id ||
+                           m_title_id != title_id || m_revision != revision;
+  m_game_id = game_id;
+  m_gametdb_id = gametdb_id;
+  m_title_id = title_id;
+  m_revision = revision;
+
+  if (game_id.length() == 6)
+  {
+    m_debugger_game_id = game_id;
+  }
+  else if (title_id != 0)
+  {
+    m_debugger_game_id =
+        fmt::format("{:08X}_{:08X}", static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
+  }
+  else
+  {
+    m_debugger_game_id.clear();
+  }
+
+  if (!was_changed)
+    return;
+
+  if (game_id == "00000000")
+  {
+    m_title_name.clear();
+    m_title_description.clear();
+    return;
+  }
+
+  const Core::TitleDatabase title_database;
+  const DiscIO::Language language = GetLanguageAdjustedForRegion(bWii, region);
+  m_title_name = title_database.GetTitleName(m_gametdb_id, language);
+  m_title_description = title_database.Describe(m_gametdb_id, language);
+  NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
+  Host_TitleChanged();
+  if (Core::IsRunning())
+  {
+    Core::UpdateTitle();
+  }
+
+  Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
+  Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
+
+  if (Core::IsRunning())
+    DolphinAnalytics::Instance().ReportGameStart();
+}
+
+void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
+{
+  if (!Core::IsRunning())
+    return;
+
+  if (!g_symbolDB.IsEmpty())
+  {
+    g_symbolDB.Clear();
+    Host_NotifyMapLoaded();
+  }
+  CBoot::LoadMapFromFilename(guard);
+  auto& system = Core::System::GetInstance();
+  HLE::Reload(system);
+  PatchEngine::Reload();
+  HiresTexture::Update();
+}
+
+void SConfig::LoadDefaults()
+{
+  bAutomaticStart = false;
+  bBootToPause = false;
+
+  bWii = false;
+
+  ResetRunningGameMetadata();
+}
+
+// Static method to make a simple game ID for elf/dol files
+std::string SConfig::MakeGameID(std::string_view file_name)
+{
+  size_t lastdot = file_name.find_last_of(".");
+  if (lastdot == std::string::npos)
+    return "ID-" + std::string(file_name);
+  return "ID-" + std::string(file_name.substr(0, lastdot));
+}
+
+struct SetGameMetadata
+{
+  SetGameMetadata(SConfig* config_, DiscIO::Region* region_) : config(config_), region(region_) {}
+  bool operator()(const BootParameters::Disc& disc) const
+  {
+    *region = disc.volume->GetRegion();
+    config->bWii = disc.volume->GetVolumeType() == DiscIO::Platform::WiiDisc;
+    config->m_disc_booted_from_game_list = true;
+    config->SetRunningGameMetadata(*disc.volume, disc.volume->GetGamePartition());
+    return true;
+  }
+
+  bool operator()(const BootParameters::Executable& executable) const
+  {
+    if (!executable.reader->IsValid())
+      return false;
+
+    *region = DiscIO::Region::Unknown;
+    config->bWii = executable.reader->IsWii();
+
+    // Strip the .elf/.dol file extension and directories before the name
+    SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
+
+    // Set DOL/ELF game ID appropriately
+    std::string executable_path = executable.path;
+    constexpr char BACKSLASH = '\\';
+    constexpr char FORWARDSLASH = '/';
+    std::replace(executable_path.begin(), executable_path.end(), BACKSLASH, FORWARDSLASH);
+    config->SetRunningGameMetadata(SConfig::MakeGameID(PathToFileName(executable_path)));
+
+    Host_TitleChanged();
+
+    return true;
+  }
+
+  bool operator()(const DiscIO::VolumeWAD& wad) const
+  {
+    if (!wad.GetTMD().IsValid())
+    {
+      PanicAlertFmtT("This WAD is not valid.");
+      return false;
+    }
+    if (!IOS::ES::IsChannel(wad.GetTMD().GetTitleId()))
+    {
+      PanicAlertFmtT("This WAD is not bootable.");
+      return false;
+    }
+
+    const IOS::ES::TMDReader& tmd = wad.GetTMD();
+    *region = tmd.GetRegion();
+    config->bWii = true;
+    config->SetRunningGameMetadata(tmd, DiscIO::Platform::WiiWAD);
+
+    return true;
+  }
+
+  bool operator()(const BootParameters::NANDTitle& nand_title) const
+  {
+    IOS::HLE::Kernel ios;
+    const IOS::ES::TMDReader tmd = ios.GetES()->FindInstalledTMD(nand_title.id);
+    if (!tmd.IsValid() || !IOS::ES::IsChannel(nand_title.id))
+    {
+      PanicAlertFmtT("This title cannot be booted.");
+      return false;
+    }
+
+    *region = tmd.GetRegion();
+    config->bWii = true;
+    config->SetRunningGameMetadata(tmd, DiscIO::Platform::WiiWAD);
+
+    return true;
+  }
+
+  bool operator()(const BootParameters::IPL& ipl) const
+  {
+    *region = ipl.region;
+    config->bWii = false;
+    Host_TitleChanged();
+
+    return true;
+  }
+
+  bool operator()(const BootParameters::DFF& dff) const
+  {
+    std::unique_ptr<FifoDataFile> dff_file(FifoDataFile::Load(dff.dff_path, true));
+    if (!dff_file)
+      return false;
+
+    *region = DiscIO::Region::NTSC_U;
+    config->bWii = dff_file->GetIsWii();
+    Host_TitleChanged();
+
+    return true;
+  }
+
+private:
+  SConfig* config;
+  DiscIO::Region* region;
+};
+
+bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
+{
+  m_is_mios = false;
+  m_disc_booted_from_game_list = false;
+  if (!std::visit(SetGameMetadata(this, &m_region), boot.parameters))
+    return false;
+
+  if (m_region == DiscIO::Region::Unknown)
+    m_region = Config::Get(Config::MAIN_FALLBACK_REGION);
+
+  // Set up paths
+  const std::string region_dir = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(m_region));
+  m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
   m_strBootROM = Config::GetBootROMPath(region_dir);
 
   return true;

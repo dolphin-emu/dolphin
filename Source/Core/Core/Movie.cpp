@@ -201,7 +201,8 @@ std::string GetRTCDisplay()
 {
   using ExpansionInterface::CEXIIPL;
 
-  const time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
+  const time_t current_time =
+      CEXIIPL::GetEmulatedTime(Core::System::GetInstance(), CEXIIPL::UNIX_EPOCH);
   const tm* const gm_time = gmtime(&current_time);
 
   std::ostringstream format_time;
@@ -1273,9 +1274,10 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
   if (s_padState.disc)
   {
     Core::RunAsCPUThread([] {
-      if (!DVDInterface::AutoChangeDisc())
+      auto& system = Core::System::GetInstance();
+      if (!system.GetDVDInterface().AutoChangeDisc())
       {
-        CPU::Break();
+        system.GetCPU().Break();
         PanicAlertFmtT("Change the disc to {0}", s_discChange);
       }
     });
@@ -1355,9 +1357,11 @@ void EndPlayInput(bool cont)
   else if (s_playMode != PlayMode::None)
   {
     // We can be called by EmuThread during boot (CPU::State::PowerDown)
-    bool was_running = Core::IsRunningAndStarted() && !CPU::IsStepping();
+    auto& system = Core::System::GetInstance();
+    auto& cpu = system.GetCPU();
+    bool was_running = Core::IsRunningAndStarted() && !cpu.IsStepping();
     if (was_running && Config::Get(Config::MAIN_MOVIE_PAUSE_MOVIE))
-      CPU::Break();
+      cpu.Break();
     s_rerecords = 0;
     s_currentByte = 0;
     s_playMode = PlayMode::None;

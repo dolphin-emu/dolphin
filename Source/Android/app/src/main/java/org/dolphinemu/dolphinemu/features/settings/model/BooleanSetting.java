@@ -100,8 +100,6 @@ public enum BooleanSetting implements AbstractBooleanSetting
           "UseBlackBackgrounds", false),
   MAIN_JOYSTICK_REL_CENTER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "JoystickRelCenter", true),
-  MAIN_PHONE_RUMBLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
-          "PhoneRumble", true),
   MAIN_SHOW_INPUT_OVERLAY(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "ShowInputOverlay", true),
   MAIN_IR_ALWAYS_RECENTER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,

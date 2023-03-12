@@ -33,6 +33,7 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "DolphinQt/Debugger/PatchInstructionDialog.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
@@ -258,7 +259,7 @@ void CodeViewWidget::Update()
 
   if (Core::GetState() == Core::State::Paused)
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     Update(&guard);
   }
   else
@@ -532,7 +533,7 @@ void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
 
 void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
 {
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   PowerPC::debug_interface.SetPatch(guard, address,
                                     replace == ReplaceWith::BLR ? 0x4e800020 : 0x60000000);
@@ -594,7 +595,7 @@ void CodeViewWidget::OnContextMenu()
   bool follow_branch_enabled = false;
   if (paused)
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     const std::string disasm = PowerPC::debug_interface.Disassemble(&guard, PowerPC::ppcState.pc);
 
     if (addr == PowerPC::ppcState.pc)
@@ -650,7 +651,7 @@ void CodeViewWidget::AutoStep(CodeTrace::AutoStop option)
   // Autosteps and follows value in the target (left-most) register. The Used and Changed options
   // silently follows target through reshuffles in memory and registers and stops on use or update.
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   CodeTrace code_trace;
   bool repeat = false;
@@ -741,7 +742,7 @@ void CodeViewWidget::OnCopyTargetAddress()
   const u32 addr = GetContextAddress();
 
   const std::string code_line = [addr] {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     return PowerPC::debug_interface.Disassemble(&guard, addr);
   }();
 
@@ -771,7 +772,7 @@ void CodeViewWidget::OnShowTargetInMemory()
   const u32 addr = GetContextAddress();
 
   const std::string code_line = [addr] {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     return PowerPC::debug_interface.Disassemble(&guard, addr);
   }();
 
@@ -790,7 +791,7 @@ void CodeViewWidget::OnCopyCode()
   const u32 addr = GetContextAddress();
 
   const std::string text = [addr] {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     return PowerPC::debug_interface.Disassemble(&guard, addr);
   }();
 
@@ -808,7 +809,7 @@ void CodeViewWidget::OnCopyFunction()
   std::string text = symbol->name + "\r\n";
 
   {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
 
     // we got a function
     const u32 start = symbol->address;
@@ -828,7 +829,7 @@ void CodeViewWidget::OnCopyHex()
   const u32 addr = GetContextAddress();
 
   const u32 instruction = [addr] {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     return PowerPC::debug_interface.ReadInstruction(guard, addr);
   }();
 
@@ -856,7 +857,7 @@ void CodeViewWidget::OnAddFunction()
 {
   const u32 addr = GetContextAddress();
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   g_symbolDB.AddFunction(guard, addr);
   emit SymbolsChanged();
@@ -882,7 +883,7 @@ void CodeViewWidget::OnFollowBranch()
   const u32 addr = GetContextAddress();
 
   const u32 branch_addr = [addr] {
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     return GetBranchFromAddress(guard, addr);
   }();
 
@@ -945,7 +946,7 @@ void CodeViewWidget::OnSetSymbolSize()
   if (!good)
     return;
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   PPCAnalyst::ReanalyzeFunction(guard, symbol->address, *symbol, size);
   emit SymbolsChanged();
@@ -973,7 +974,7 @@ void CodeViewWidget::OnSetSymbolEndAddress()
   if (!good)
     return;
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   PPCAnalyst::ReanalyzeFunction(guard, symbol->address, *symbol, address - symbol->address);
   emit SymbolsChanged();
@@ -982,7 +983,7 @@ void CodeViewWidget::OnSetSymbolEndAddress()
 
 void CodeViewWidget::OnReplaceInstruction()
 {
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   const u32 addr = GetContextAddress();
 
@@ -1004,7 +1005,7 @@ void CodeViewWidget::OnReplaceInstruction()
 
 void CodeViewWidget::OnRestoreInstruction()
 {
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   const u32 addr = GetContextAddress();
 

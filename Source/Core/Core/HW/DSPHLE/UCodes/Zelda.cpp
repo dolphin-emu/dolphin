@@ -16,6 +16,7 @@
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/System.h"
 
 namespace DSP::HLE
 {
@@ -367,7 +368,7 @@ void ZeldaUCode::HandleMailLight(u32 mail)
     m_sync_max_voice_id = 0xFFFFFFFF;
     m_sync_voice_skip_flags.fill(0xFFFF);
     RenderAudio();
-    DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    Core::System::GetInstance().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
     break;
 
   case MailState::HALTED:
@@ -1354,7 +1355,9 @@ void ZeldaAudioRenderer::FetchVPB(u16 voice_id, VPB* vpb)
 void ZeldaAudioRenderer::StoreVPB(u16 voice_id, VPB* vpb)
 {
   u16* vpb_words = (u16*)vpb;
-  u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(m_vpb_base_addr);
+  // volatile is a workaround for msvc optimizer bug, see
+  // https://developercommunity.visualstudio.com/t/VS-175-bad-codegen-optimizing-loop-with/10291620
+  volatile u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(m_vpb_base_addr);
 
   size_t vpb_size = (m_flags & TINY_VPB) ? 0x80 : 0xC0;
   size_t base_idx = voice_id * vpb_size;
@@ -1540,7 +1543,7 @@ void* ZeldaAudioRenderer::GetARAMPtr() const
   if (m_aram_base_addr)
     return HLEMemory_Get_Pointer(m_aram_base_addr);
   else
-    return DSP::GetARAMPtr();
+    return Core::System::GetInstance().GetDSP().GetARAMPtr();
 }
 
 template <typename T>

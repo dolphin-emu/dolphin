@@ -43,9 +43,6 @@
     <ClCompile Include="mgba\src\core\rewind.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mgba\src\core\scripting.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mgba\src\core\serialize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -89,6 +86,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\gb\mbc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\huc-3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\licensed.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\mbc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\pocket-cam.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\tama5.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\unlicensed.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\gb\memory.c">
@@ -238,16 +253,7 @@
     <ClCompile Include="mgba\src\util\configuration.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mgba\src\util\convolve.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mgba\src\util\crc32.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mgba\src\util\elf-read.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mgba\src\util\export.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\util\formatting.c">
@@ -257,6 +263,27 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\util\hash.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\string.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\table.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\vector.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\vfs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\convolve.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\elf-read.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\export.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\util\patch.c">
@@ -277,16 +304,10 @@
     <ClCompile Include="mgba\src\util\ring-fifo.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mgba\src\util\string.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mgba\src\util\table.c">
+    <ClCompile Include="mgba\src\util\sfo.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\util\text-codec.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mgba\src\util\vfs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="version.c">
@@ -401,6 +422,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\feature\thread-proxy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\feature\updater.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\feature\video-logger.c">

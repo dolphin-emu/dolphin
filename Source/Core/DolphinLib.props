@@ -453,6 +453,7 @@
     <ClInclude Include="DiscIO\RiivolutionParser.h" />
     <ClInclude Include="DiscIO\RiivolutionPatcher.h" />
     <ClInclude Include="DiscIO\ScrubbedBlob.h" />
+    <ClInclude Include="DiscIO\SplitFileBlob.h" />
     <ClInclude Include="DiscIO\TGCBlob.h" />
     <ClInclude Include="DiscIO\Volume.h" />
     <ClInclude Include="DiscIO\VolumeDisc.h" />
@@ -659,6 +660,7 @@
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\PrintAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\ScaleAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\SkipAction.h" />
+    <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\CustomTextureData.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\FBInfo.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionData.h" />
@@ -1077,6 +1079,7 @@
     <ClCompile Include="DiscIO\RiivolutionParser.cpp" />
     <ClCompile Include="DiscIO\RiivolutionPatcher.cpp" />
     <ClCompile Include="DiscIO\ScrubbedBlob.cpp" />
+    <ClCompile Include="DiscIO\SplitFileBlob.cpp" />
     <ClCompile Include="DiscIO\TGCBlob.cpp" />
     <ClCompile Include="DiscIO\Volume.cpp" />
     <ClCompile Include="DiscIO\VolumeDisc.cpp" />
@@ -1260,10 +1263,10 @@
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\PrintAction.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\ScaleAction.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\SkipAction.cpp" />
+    <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\CustomTextureData.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\FBInfo.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionFactory.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModManager.cpp" />
-    <ClCompile Include="VideoCommon\HiresTextures_DDSLoader.cpp" />
     <ClCompile Include="VideoCommon\HiresTextures.cpp" />
     <ClCompile Include="VideoCommon\IndexGenerator.cpp" />
     <ClCompile Include="VideoCommon\LightingShaderGen.cpp" />

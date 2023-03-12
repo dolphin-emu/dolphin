@@ -99,7 +99,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_equalsImpl(JNIEn
   return *GetPointer(env, obj) == *GetPointer(env, other);
 }
 
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_trySetImpl(
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_setCheatImpl(
     JNIEnv* env, jobject obj, jstring name, jstring creator, jstring notes, jstring code_string)
 {
   Gecko::GeckoCode* code = GetPointer(env, obj);

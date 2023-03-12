@@ -31,21 +31,24 @@ import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.DialogAdvancedMappingBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogInputStringBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogSliderBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemHeaderBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemMappingBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSettingSwitchBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSubmenuBinding;
-import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
+import org.dolphinemu.dolphinemu.features.input.ui.AdvancedMappingDialog;
+import org.dolphinemu.dolphinemu.features.input.ui.MotionAlertDialog;
+import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
+import org.dolphinemu.dolphinemu.features.input.ui.viewholder.InputMappingControlSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.DateTimeChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FloatSliderSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.IntSliderSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
@@ -57,9 +60,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.DateTimeSetting
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.FilePickerViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderHyperLinkViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderViewHolder;
-import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputBindingSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputStringSettingViewHolder;
-import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RumbleBindingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RunRunnableViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SingleChoiceViewHolder;
@@ -124,13 +125,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       case SettingsItem.TYPE_SUBMENU:
         return new SubmenuViewHolder(ListItemSubmenuBinding.inflate(inflater), this);
 
-      case SettingsItem.TYPE_INPUT_BINDING:
-        return new InputBindingSettingViewHolder(ListItemSettingBinding.inflate(inflater), this,
-                mContext);
-
-      case SettingsItem.TYPE_RUMBLE_BINDING:
-        return new RumbleBindingViewHolder(ListItemSettingBinding.inflate(inflater), this,
-                mContext);
+      case SettingsItem.TYPE_INPUT_MAPPING_CONTROL:
+        return new InputMappingControlSettingViewHolder(ListItemMappingBinding.inflate(inflater),
+                this);
 
       case SettingsItem.TYPE_FILE_PICKER:
         return new FilePickerViewHolder(ListItemSettingBinding.inflate(inflater), this);
@@ -259,11 +256,26 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mClickedItem = item;
     mClickedPosition = position;
 
-    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
-            .setTitle(item.getName())
-            .setSingleChoiceItems(item.getChoices(), item.getSelectedValueIndex(getSettings()),
-                    this)
-            .show();
+    item.refreshChoicesAndValues();
+
+    String[] choices = item.getChoices();
+    int noChoicesAvailableString = item.getNoChoicesAvailableString();
+    if (noChoicesAvailableString != 0 && choices.length == 0)
+    {
+      mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+              .setTitle(item.getName())
+              .setMessage(noChoicesAvailableString)
+              .setPositiveButton(R.string.ok, null)
+              .show();
+    }
+    else
+    {
+      mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+              .setTitle(item.getName())
+              .setSingleChoiceItems(item.getChoices(), item.getSelectedValueIndex(getSettings()),
+                      this)
+              .show();
+    }
   }
 
   public void onSingleChoiceDynamicDescriptionsClick(SingleChoiceSettingDynamicDescriptions item,
@@ -314,9 +326,19 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mView.loadSubMenu(item.getMenuKey());
   }
 
-  public void onInputBindingClick(final InputBindingSetting item, final int position)
+  public void onInputMappingClick(final InputMappingControlSetting item, final int position)
   {
-    final MotionAlertDialog dialog = new MotionAlertDialog(mContext, item, this);
+    if (item.getController().getDefaultDevice().isEmpty() && !mView.isMappingAllDevices())
+    {
+      new MaterialAlertDialogBuilder(mView.getActivity())
+              .setMessage(R.string.input_binding_no_device)
+              .setPositiveButton(R.string.ok, this)
+              .show();
+      return;
+    }
+
+    final MotionAlertDialog dialog = new MotionAlertDialog(mView.getActivity(), item,
+            mView.isMappingAllDevices());
 
     Drawable background = ContextCompat.getDrawable(mContext, R.drawable.dialog_round);
     @ColorInt int color = new ElevationOverlayProvider(dialog.getContext()).compositeOverlay(
@@ -326,18 +348,54 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     dialog.getWindow().setBackgroundDrawable(background);
 
     dialog.setTitle(R.string.input_binding);
-    dialog.setMessage(String.format(mContext.getString(
-                    item instanceof RumbleBindingSetting ?
-                            R.string.input_rumble_description : R.string.input_binding_description),
+    dialog.setMessage(String.format(mContext.getString(R.string.input_binding_description),
             item.getName()));
     dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
     dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear),
-            (dialogInterface, i) -> item.clearValue(getSettings()));
+            (dialogInterface, i) -> item.clearValue());
     dialog.setOnDismissListener(dialog1 ->
     {
       notifyItemChanged(position);
       mView.onSettingChanged();
     });
+    dialog.setCanceledOnTouchOutside(false);
+    dialog.show();
+  }
+
+  public void onAdvancedInputMappingClick(final InputMappingControlSetting item, final int position)
+  {
+    LayoutInflater inflater = LayoutInflater.from(mContext);
+
+    DialogAdvancedMappingBinding binding = DialogAdvancedMappingBinding.inflate(inflater);
+
+    final AdvancedMappingDialog dialog = new AdvancedMappingDialog(mContext, binding,
+            item.getControlReference(), item.getController());
+
+    Drawable background = ContextCompat.getDrawable(mContext, R.drawable.dialog_round);
+    @ColorInt int color = new ElevationOverlayProvider(dialog.getContext()).compositeOverlay(
+            MaterialColors.getColor(dialog.getWindow().getDecorView(), R.attr.colorSurface),
+            dialog.getWindow().getDecorView().getElevation());
+    background.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+    dialog.getWindow().setBackgroundDrawable(background);
+
+    dialog.setTitle(item.isInput() ?
+            R.string.input_configure_input : R.string.input_configure_output);
+    dialog.setView(binding.getRoot());
+    dialog.setButton(AlertDialog.BUTTON_POSITIVE, mContext.getString(R.string.ok),
+            (dialogInterface, i) ->
+            {
+              item.setValue(dialog.getExpression());
+              notifyItemChanged(position);
+              mView.onSettingChanged();
+            });
+    dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
+    dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear),
+            (dialogInterface, i) ->
+            {
+              item.clearValue();
+              notifyItemChanged(position);
+              mView.onSettingChanged();
+            });
     dialog.setCanceledOnTouchOutside(false);
     dialog.show();
   }
@@ -467,30 +525,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     }
   }
 
-  private void handleMenuTag(MenuTag menuTag, int value)
+  public void onMenuTagAction(@NonNull MenuTag menuTag, int value)
   {
-    if (menuTag != null)
-    {
-      if (menuTag.isSerialPort1Menu())
-      {
-        mView.onSerialPort1SettingChanged(menuTag, value);
-      }
+    mView.onMenuTagAction(menuTag, value);
+  }
 
-      if (menuTag.isGCPadMenu())
-      {
-        mView.onGcPadSettingChanged(menuTag, value);
-      }
-
-      if (menuTag.isWiimoteMenu())
-      {
-        mView.onWiimoteSettingChanged(menuTag, value);
-      }
-
-      if (menuTag.isWiimoteExtensionMenu())
-      {
-        mView.onExtensionSettingChanged(menuTag, value);
-      }
-    }
+  public boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value)
+  {
+    return mView.hasMenuTagActionForValue(menuTag, value);
   }
 
   @Override
@@ -503,8 +545,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       int value = getValueForSingleChoiceSelection(scSetting, which);
       if (scSetting.getSelectedValue(getSettings()) != value)
         mView.onSettingChanged();
-
-      handleMenuTag(scSetting.getMenuTag(), value);
 
       scSetting.setSelectedValue(getSettings(), value);
 
@@ -529,8 +569,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       String value = scSetting.getValueAt(which);
       if (!scSetting.getSelectedValue(getSettings()).equals(value))
         mView.onSettingChanged();
-
-      handleMenuTag(scSetting.getMenuTag(), which);
 
       scSetting.setSelectedValue(getSettings(), value);
 

@@ -12,6 +12,7 @@ class QHideEvent;
 class QShowEvent;
 class QSpinBox;
 class TASCheckBox;
+class TASSpinBox;
 
 namespace WiimoteEmu
 {
@@ -41,6 +42,7 @@ private:
   void UpdateExt();
 
   WiimoteEmu::ExtensionNumber m_active_extension;
+  bool m_is_motion_plus_attached;
   int m_num;
 
   InputOverrider m_wiimote_overrider;
@@ -75,24 +77,11 @@ private:
   TASCheckBox* m_classic_up_button;
   TASCheckBox* m_classic_down_button;
   TASCheckBox* m_classic_right_button;
-  QSpinBox* m_remote_orientation_x_value;
-  QSpinBox* m_remote_orientation_y_value;
-  QSpinBox* m_remote_orientation_z_value;
-  QSpinBox* m_nunchuk_orientation_x_value;
-  QSpinBox* m_nunchuk_orientation_y_value;
-  QSpinBox* m_nunchuk_orientation_z_value;
-  QSpinBox* m_ir_x_value;
-  QSpinBox* m_ir_y_value;
-  QSpinBox* m_nunchuk_stick_x_value;
-  QSpinBox* m_nunchuk_stick_y_value;
-  QSpinBox* m_classic_left_stick_x_value;
-  QSpinBox* m_classic_left_stick_y_value;
-  QSpinBox* m_classic_right_stick_x_value;
-  QSpinBox* m_classic_right_stick_y_value;
-  QSpinBox* m_left_trigger_value;
-  QSpinBox* m_right_trigger_value;
-  QGroupBox* m_remote_orientation_box;
-  QGroupBox* m_nunchuk_orientation_box;
+  TASSpinBox* m_ir_x_value;
+  TASSpinBox* m_ir_y_value;
+  QGroupBox* m_remote_accelerometer_box;
+  QGroupBox* m_remote_gyroscope_box;
+  QGroupBox* m_nunchuk_accelerometer_box;
   QGroupBox* m_ir_box;
   QGroupBox* m_nunchuk_stick_box;
   QGroupBox* m_classic_left_stick_box;

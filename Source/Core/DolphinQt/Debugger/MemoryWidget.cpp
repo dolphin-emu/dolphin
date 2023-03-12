@@ -32,6 +32,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
+#include "Core/System.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -496,7 +497,7 @@ void MemoryWidget::SetAddress(u32 address)
     AddressSpace::Accessors* accessors =
         AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     good = accessors->IsValidAddress(guard, current_addr);
   }
 
@@ -653,7 +654,7 @@ void MemoryWidget::OnSetValue()
     return;
   }
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
   u32 end_address = target_addr.address + static_cast<u32>(bytes.size()) - 1;
@@ -715,7 +716,7 @@ void MemoryWidget::OnSetValueFromFile()
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  Core::CPUThreadGuard guard;
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
   for (u8 b : file_contents)
     accessors->WriteU8(guard, target_addr.address++, b);
@@ -833,7 +834,7 @@ void MemoryWidget::FindValue(bool next)
     AddressSpace::Accessors* accessors =
         AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-    Core::CPUThreadGuard guard;
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
     return accessors->Search(guard, target_addr.address,
                              reinterpret_cast<const u8*>(search_for.data()),
                              static_cast<u32>(search_for.size()), next);

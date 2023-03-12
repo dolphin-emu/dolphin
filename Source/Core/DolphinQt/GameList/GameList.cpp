@@ -52,6 +52,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/WiiSave.h"
+#include "Core/System.h"
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/Blob.h"
@@ -852,7 +853,9 @@ void GameList::ChangeDisc()
   if (!game)
     return;
 
-  Core::RunAsCPUThread([file_path = game->GetFilePath()] { DVDInterface::ChangeDisc(file_path); });
+  Core::RunAsCPUThread([file_path = game->GetFilePath()] {
+    Core::System::GetInstance().GetDVDInterface().ChangeDisc(file_path);
+  });
 }
 
 QAbstractItemView* GameList::GetActiveView() const

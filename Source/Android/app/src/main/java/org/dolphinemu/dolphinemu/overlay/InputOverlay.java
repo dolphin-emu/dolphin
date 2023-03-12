@@ -29,15 +29,17 @@ import androidx.preference.PreferenceManager;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.NativeLibrary.ButtonType;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.input.model.InputMappingBooleanSetting;
 import org.dolphinemu.dolphinemu.features.input.model.InputOverrider;
 import org.dolphinemu.dolphinemu.features.input.model.InputOverrider.ControlId;
+import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController;
+import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
-import org.dolphinemu.dolphinemu.utils.IniFile;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -66,9 +68,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   private Rect mSurfacePosition = null;
 
   private boolean mIsFirstRun = true;
-  private boolean mGameCubeRegistered = false;
-  private boolean mWiiRegistered = false;
+  private boolean[] mGcPadRegistered = new boolean[4];
+  private boolean[] mWiimoteRegistered = new boolean[4];
   private boolean mIsInEditMode = false;
+  private int mControllerType = -1;
+  private int mControllerIndex = 0;
   private InputOverlayDrawableButton mButtonBeingConfigured;
   private InputOverlayDrawableDpad mDpadBeingConfigured;
   private InputOverlayDrawableJoystick mJoystickBeingConfigured;
@@ -131,10 +135,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     if (!mPreferences.getBoolean("OverlayInitV3", false))
       defaultOverlay();
 
-    // Load the controls if we can. If not, EmulationActivity has to do it later.
-    if (NativeLibrary.IsGameMetadataValid())
-      refreshControls();
-
     // Set the on touch listener.
     setOnTouchListener(this);
 
@@ -145,13 +145,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     requestFocus();
   }
 
-  public void setSurfacePosition(Rect rect)
+  public void setSurfacePosition(Settings settings, Rect rect)
   {
     mSurfacePosition = rect;
-    initTouchPointer();
+    initTouchPointer(settings);
   }
 
-  public void initTouchPointer()
+  public void initTouchPointer(Settings settings)
   {
     // Check if we have all the data we need yet
     boolean aspectRatioAvailable = NativeLibrary.IsRunningAndStarted();
@@ -164,7 +164,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     int doubleTapButton = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getIntGlobal();
 
-    if (getConfiguredControllerType() != InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
+    if (getConfiguredControllerType(settings) != InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
             doubleTapButton == ButtonType.CLASSIC_BUTTON_A)
     {
       doubleTapButton = ButtonType.WIIMOTE_BUTTON_A;
@@ -186,7 +186,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     overlayPointer = new InputOverlayPointer(mSurfacePosition, doubleTapControl,
             IntSetting.MAIN_IR_MODE.getIntGlobal(),
-            BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBooleanGlobal());
+            BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBooleanGlobal(), mControllerIndex);
   }
 
   @Override
@@ -239,11 +239,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             button.setPressedState(true);
             button.setTrackId(event.getPointerId(pointerIndex));
             pressed = true;
-            InputOverrider.setControlState(0, button.getControl(), 1.0);
+            InputOverrider.setControlState(mControllerIndex, button.getControl(), 1.0);
 
             int analogControl = getAnalogControlForTrigger(button.getControl());
             if (analogControl >= 0)
-              InputOverrider.setControlState(0, analogControl, 1.0);
+              InputOverrider.setControlState(mControllerIndex, analogControl, 1.0);
           }
           break;
         case MotionEvent.ACTION_UP:
@@ -252,11 +252,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           if (button.getTrackId() == event.getPointerId(pointerIndex))
           {
             button.setPressedState(false);
-            InputOverrider.setControlState(0, button.getControl(), 0.0);
+            InputOverrider.setControlState(mControllerIndex, button.getControl(), 0.0);
 
             int analogControl = getAnalogControlForTrigger(button.getControl());
             if (analogControl >= 0)
-              InputOverrider.setControlState(0, analogControl, 0.0);
+              InputOverrider.setControlState(mControllerIndex, analogControl, 0.0);
 
             button.setTrackId(-1);
           }
@@ -298,7 +298,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             {
               if (!dpadPressed[i])
               {
-                InputOverrider.setControlState(0, dpad.getControl(i), 0.0);
+                InputOverrider.setControlState(mControllerIndex, dpad.getControl(i), 0.0);
               }
             }
             // Press buttons
@@ -306,7 +306,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             {
               if (dpadPressed[i])
               {
-                InputOverrider.setControlState(0, dpad.getControl(i), 1.0);
+                InputOverrider.setControlState(mControllerIndex, dpad.getControl(i), 1.0);
               }
             }
             setDpadState(dpad, dpadPressed[0], dpadPressed[1], dpadPressed[2], dpadPressed[3]);
@@ -320,7 +320,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             for (int i = 0; i < 4; i++)
             {
               dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT);
-              InputOverrider.setControlState(0, dpad.getControl(i), 0.0);
+              InputOverrider.setControlState(mControllerIndex, dpad.getControl(i), 0.0);
             }
             dpad.setTrackId(-1);
           }
@@ -336,16 +336,18 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           pressed = true;
       }
 
-      InputOverrider.setControlState(0, joystick.getXControl(), joystick.getX());
-      InputOverrider.setControlState(0, joystick.getYControl(), -joystick.getY());
+      InputOverrider.setControlState(mControllerIndex, joystick.getXControl(), joystick.getX());
+      InputOverrider.setControlState(mControllerIndex, joystick.getYControl(), -joystick.getY());
     }
 
     // No button/joystick pressed, safe to move pointer
     if (!pressed && overlayPointer != null)
     {
       overlayPointer.onTouch(event);
-      InputOverrider.setControlState(0, ControlId.WIIMOTE_IR_X, overlayPointer.getX());
-      InputOverrider.setControlState(0, ControlId.WIIMOTE_IR_Y, -overlayPointer.getY());
+      InputOverrider.setControlState(mControllerIndex, ControlId.WIIMOTE_IR_X,
+              overlayPointer.getX());
+      InputOverrider.setControlState(mControllerIndex, ControlId.WIIMOTE_IR_Y,
+              -overlayPointer.getY());
     }
 
     invalidate();
@@ -359,7 +361,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     int fingerPositionX = (int) event.getX(pointerIndex);
     int fingerPositionY = (int) event.getY(pointerIndex);
 
-    int controller = getConfiguredControllerType();
     String orientation =
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
                     "-Portrait" : "";
@@ -398,7 +399,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             // Persist button position by saving new place.
             saveControlPosition(mButtonBeingConfigured.getLegacyId(),
                     mButtonBeingConfigured.getBounds().left,
-                    mButtonBeingConfigured.getBounds().top, controller, orientation);
+                    mButtonBeingConfigured.getBounds().top, orientation);
             mButtonBeingConfigured = null;
           }
           break;
@@ -436,7 +437,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             // Persist button position by saving new place.
             saveControlPosition(mDpadBeingConfigured.getLegacyId(),
                     mDpadBeingConfigured.getBounds().left, mDpadBeingConfigured.getBounds().top,
-                    controller, orientation);
+                    orientation);
             mDpadBeingConfigured = null;
           }
           break;
@@ -469,7 +470,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           {
             saveControlPosition(mJoystickBeingConfigured.getLegacyId(),
                     mJoystickBeingConfigured.getBounds().left,
-                    mJoystickBeingConfigured.getBounds().top, controller, orientation);
+                    mJoystickBeingConfigured.getBounds().top, orientation);
             mJoystickBeingConfigured = null;
           }
           break;
@@ -486,14 +487,20 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   private void unregisterControllers()
   {
-    if (mGameCubeRegistered)
-      InputOverrider.unregisterGameCube(0);
+    for (int i = 0; i < mGcPadRegistered.length; i++)
+    {
+      if (mGcPadRegistered[i])
+        InputOverrider.unregisterGameCube(i);
+    }
 
-    if (mWiiRegistered)
-      InputOverrider.unregisterWii(0);
+    for (int i = 0; i < mWiimoteRegistered.length; i++)
+    {
+      if (mWiimoteRegistered[i])
+        InputOverrider.unregisterWii(i);
+    }
 
-    mGameCubeRegistered = false;
-    mWiiRegistered = false;
+    Arrays.fill(mGcPadRegistered, false);
+    Arrays.fill(mWiimoteRegistered, false);
   }
 
   private int getAnalogControlForTrigger(int control)
@@ -785,7 +792,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     }
   }
 
-  public void refreshControls()
+  public void refreshControls(Settings settings)
   {
     unregisterControllers();
 
@@ -798,67 +805,60 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
                     "-Portrait" : "";
 
+    mControllerType = getConfiguredControllerType(settings);
+
+    IntSetting controllerSetting = NativeLibrary.IsEmulatingWii() ?
+            IntSetting.MAIN_OVERLAY_WII_CONTROLLER : IntSetting.MAIN_OVERLAY_GC_CONTROLLER;
+    int controllerIndex = controllerSetting.getInt(settings);
+
     if (BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBooleanGlobal())
     {
       // Add all the enabled overlay items back to the HashSet.
-      if (!NativeLibrary.IsEmulatingWii())
+      switch (mControllerType)
       {
-        IniFile dolphinIni = new IniFile(SettingsFile.getSettingsFile(Settings.FILE_DOLPHIN));
+        case OVERLAY_GAMECUBE:
+          if (IntSetting.getSettingForSIDevice(controllerIndex).getInt(settings) ==
+                  DISABLED_GAMECUBE_CONTROLLER && mIsFirstRun)
+          {
+            Toast.makeText(getContext(), R.string.disabled_gc_overlay_notice, Toast.LENGTH_SHORT)
+                    .show();
+          }
 
-        switch (dolphinIni.getInt(Settings.SECTION_INI_CORE, SettingsFile.KEY_GCPAD_PLAYER_1,
-                EMULATED_GAMECUBE_CONTROLLER))
-        {
-          case DISABLED_GAMECUBE_CONTROLLER:
-            if (mIsFirstRun)
-            {
-              Toast.makeText(getContext(), R.string.disabled_gc_overlay_notice, Toast.LENGTH_SHORT)
-                      .show();
-            }
-            break;
+          mControllerIndex = controllerIndex;
+          InputOverrider.registerGameCube(mControllerIndex);
+          mGcPadRegistered[mControllerIndex] = true;
 
-          case EMULATED_GAMECUBE_CONTROLLER:
-            InputOverrider.registerGameCube(0);
-            mGameCubeRegistered = true;
-            addGameCubeOverlayControls(orientation);
-            break;
+          addGameCubeOverlayControls(orientation);
+          break;
 
-          case GAMECUBE_ADAPTER:
-            break;
-        }
-      }
-      else
-      {
-        switch (getConfiguredControllerType())
-        {
-          case OVERLAY_GAMECUBE:
-            InputOverrider.registerGameCube(0);
-            mGameCubeRegistered = true;
-            addGameCubeOverlayControls(orientation);
-            break;
+        case OVERLAY_WIIMOTE:
+        case OVERLAY_WIIMOTE_SIDEWAYS:
+          mControllerIndex = controllerIndex - 4;
+          InputOverrider.registerWii(mControllerIndex);
+          mWiimoteRegistered[mControllerIndex] = true;
 
-          case OVERLAY_WIIMOTE:
-          case OVERLAY_WIIMOTE_SIDEWAYS:
-            InputOverrider.registerWii(0);
-            mWiiRegistered = true;
-            addWiimoteOverlayControls(orientation);
-            break;
+          addWiimoteOverlayControls(orientation);
+          break;
 
-          case OVERLAY_WIIMOTE_NUNCHUK:
-            InputOverrider.registerWii(0);
-            mWiiRegistered = true;
-            addWiimoteOverlayControls(orientation);
-            addNunchukOverlayControls(orientation);
-            break;
+        case OVERLAY_WIIMOTE_NUNCHUK:
+          mControllerIndex = controllerIndex - 4;
+          InputOverrider.registerWii(mControllerIndex);
+          mWiimoteRegistered[mControllerIndex] = true;
 
-          case OVERLAY_WIIMOTE_CLASSIC:
-            InputOverrider.registerWii(0);
-            mWiiRegistered = true;
-            addClassicOverlayControls(orientation);
-            break;
+          addWiimoteOverlayControls(orientation);
+          addNunchukOverlayControls(orientation);
+          break;
 
-          case OVERLAY_NONE:
-            break;
-        }
+        case OVERLAY_WIIMOTE_CLASSIC:
+          mControllerIndex = controllerIndex - 4;
+          InputOverrider.registerWii(mControllerIndex);
+          mWiimoteRegistered[mControllerIndex] = true;
+
+          addClassicOverlayControls(orientation);
+          break;
+
+        case OVERLAY_NONE:
+          break;
       }
     }
 
@@ -875,20 +875,20 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     }
   }
 
-  public void resetButtonPlacement()
+  public void resetButtonPlacement(Settings settings)
   {
     boolean isLandscape =
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
 
-    // Values for these come from R.array.controllersEntries
-    if (!NativeLibrary.IsEmulatingWii() || getConfiguredControllerType() == OVERLAY_GAMECUBE)
+    final int controller = getConfiguredControllerType(settings);
+    if (controller == OVERLAY_GAMECUBE)
     {
       if (isLandscape)
         gcDefaultOverlay();
       else
         gcPortraitDefaultOverlay();
     }
-    else if (getConfiguredControllerType() == OVERLAY_WIIMOTE_CLASSIC)
+    else if (controller == OVERLAY_WIIMOTE_CLASSIC)
     {
       if (isLandscape)
         wiiClassicDefaultOverlay();
@@ -908,27 +908,52 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         wiiOnlyPortraitDefaultOverlay();
       }
     }
-    refreshControls();
+    refreshControls(settings);
   }
 
-  public static int getConfiguredControllerType(Context context)
+  public static int getConfiguredControllerType(Settings settings)
   {
-    return PreferenceManager.getDefaultSharedPreferences(context)
-            .getInt("wiiController", OVERLAY_WIIMOTE_NUNCHUK);
+    IntSetting controllerSetting = NativeLibrary.IsEmulatingWii() ?
+            IntSetting.MAIN_OVERLAY_WII_CONTROLLER : IntSetting.MAIN_OVERLAY_GC_CONTROLLER;
+    int controllerIndex = controllerSetting.getInt(settings);
+
+    if (controllerIndex >= 0 && controllerIndex < 4)
+    {
+      // GameCube controller
+      if (IntSetting.getSettingForSIDevice(controllerIndex).getInt(settings) == 6)
+        return OVERLAY_GAMECUBE;
+    }
+    else if (controllerIndex >= 4 && controllerIndex < 8)
+    {
+      // Wii Remote
+      int wiimoteIndex = controllerIndex - 4;
+      if (IntSetting.getSettingForWiimoteSource(wiimoteIndex).getInt(settings) == 1)
+      {
+        int attachmentIndex = EmulatedController.getSelectedWiimoteAttachment(wiimoteIndex);
+        switch (attachmentIndex)
+        {
+          case 1:
+            return OVERLAY_WIIMOTE_NUNCHUK;
+          case 2:
+            return OVERLAY_WIIMOTE_CLASSIC;
+        }
+
+        NumericSetting sidewaysSetting = EmulatedController.getSidewaysWiimoteSetting(wiimoteIndex);
+        boolean sideways = new InputMappingBooleanSetting(sidewaysSetting).getBoolean(settings);
+
+        return sideways ? OVERLAY_WIIMOTE_SIDEWAYS : OVERLAY_WIIMOTE;
+      }
+    }
+
+    return OVERLAY_NONE;
   }
 
-  private int getConfiguredControllerType()
-  {
-    return mPreferences.getInt("wiiController", OVERLAY_WIIMOTE_NUNCHUK);
-  }
-
-  private void saveControlPosition(int sharedPrefsId, int x, int y, int controller,
-          String orientation)
+  private void saveControlPosition(int sharedPrefsId, int x, int y, String orientation)
   {
     final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
     SharedPreferences.Editor sPrefsEditor = sPrefs.edit();
-    sPrefsEditor.putFloat(getXKey(sharedPrefsId, controller, orientation), x);
-    sPrefsEditor.putFloat(getYKey(sharedPrefsId, controller, orientation), y);
+    sPrefsEditor.putFloat(getXKey(sharedPrefsId, mControllerType, orientation), x);
+    sPrefsEditor.putFloat(getYKey(sharedPrefsId, mControllerType, orientation), y);
     sPrefsEditor.apply();
   }
 
@@ -989,7 +1014,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
    * @param control      Control identifier for the button the InputOverlayDrawableButton represents.
    * @return An {@link InputOverlayDrawableButton} with the correct drawing bounds set.
    */
-  private static InputOverlayDrawableButton initializeOverlayButton(Context context,
+  private InputOverlayDrawableButton initializeOverlayButton(Context context,
           int defaultResId, int pressedResId, int legacyId, int control, String orientation)
   {
     // Resources handle for fetching the initial Drawable resource.
@@ -997,7 +1022,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableButton.
     final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-    int controller = getConfiguredControllerType(context);
 
     // Decide scale based on button ID and user preference
     float scale;
@@ -1023,7 +1047,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         break;
       case ButtonType.WIIMOTE_BUTTON_1:
       case ButtonType.WIIMOTE_BUTTON_2:
-        if (controller == 2)
+        if (mControllerType == OVERLAY_WIIMOTE_SIDEWAYS)
           scale = 0.14f;
         else
           scale = 0.0875f;
@@ -1061,8 +1085,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
     // These were set in the input overlay configuration menu.
-    int drawableX = (int) sPrefs.getFloat(getXKey(legacyId, controller, orientation), 0f);
-    int drawableY = (int) sPrefs.getFloat(getYKey(legacyId, controller, orientation), 0f);
+    int drawableX = (int) sPrefs.getFloat(getXKey(legacyId, mControllerType, orientation), 0f);
+    int drawableY = (int) sPrefs.getFloat(getYKey(legacyId, mControllerType, orientation), 0f);
 
     int width = overlayDrawable.getWidth();
     int height = overlayDrawable.getHeight();
@@ -1092,7 +1116,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
    * @param rightControl              Control identifier for the right button.
    * @return the initialized {@link InputOverlayDrawableDpad}
    */
-  private static InputOverlayDrawableDpad initializeOverlayDpad(Context context,
+  private InputOverlayDrawableDpad initializeOverlayDpad(Context context,
           int defaultResId,
           int pressedOneDirectionResId,
           int pressedTwoDirectionsResId,
@@ -1108,7 +1132,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableDpad.
     final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-    int controller = getConfiguredControllerType(context);
 
     // Decide scale based on button ID and user preference
     float scale;
@@ -1122,7 +1145,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         scale = 0.275f;
         break;
       default:
-        if (controller == 2 || controller == 1)
+        if (mControllerType == OVERLAY_WIIMOTE_SIDEWAYS || mControllerType == OVERLAY_WIIMOTE)
           scale = 0.275f;
         else
           scale = 0.2125f;
@@ -1148,8 +1171,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
     // These were set in the input overlay configuration menu.
-    int drawableX = (int) sPrefs.getFloat(getXKey(legacyId, controller, orientation), 0f);
-    int drawableY = (int) sPrefs.getFloat(getYKey(legacyId, controller, orientation), 0f);
+    int drawableX = (int) sPrefs.getFloat(getXKey(legacyId, mControllerType, orientation), 0f);
+    int drawableY = (int) sPrefs.getFloat(getYKey(legacyId, mControllerType, orientation), 0f);
 
     int width = overlayDrawable.getWidth();
     int height = overlayDrawable.getHeight();
@@ -1177,16 +1200,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
    * @param yControl        Control identifier for the Y axis.
    * @return the initialized {@link InputOverlayDrawableJoystick}.
    */
-  private static InputOverlayDrawableJoystick initializeOverlayJoystick(Context context,
-          int resOuter, int defaultResInner, int pressedResInner, int legacyId, int xControl,
-          int yControl, String orientation)
+  private InputOverlayDrawableJoystick initializeOverlayJoystick(Context context, int resOuter,
+          int defaultResInner, int pressedResInner, int legacyId, int xControl, int yControl,
+          String orientation)
   {
     // Resources handle for fetching the initial Drawable resource.
     final Resources res = context.getResources();
 
     // SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableJoystick.
     final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-    int controller = getConfiguredControllerType(context);
 
     // Decide scale based on user preference
     float scale = 0.275f;
@@ -1201,8 +1223,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
     // These were set in the input overlay configuration menu.
-    int drawableX = (int) sPrefs.getFloat(getXKey(legacyId, controller, orientation), 0f);
-    int drawableY = (int) sPrefs.getFloat(getYKey(legacyId, controller, orientation), 0f);
+    int drawableX = (int) sPrefs.getFloat(getXKey(legacyId, mControllerType, orientation), 0f);
+    int drawableY = (int) sPrefs.getFloat(getYKey(legacyId, mControllerType, orientation), 0f);
 
     // Decide inner scale based on joystick ID
     float innerScale;
@@ -1225,7 +1247,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     // Send the drawableId to the joystick so it can be referenced when saving control position.
     final InputOverlayDrawableJoystick overlayDrawable =
             new InputOverlayDrawableJoystick(res, bitmapOuter, bitmapInnerDefault,
-                    bitmapInnerPressed, outerRect, innerRect, legacyId, xControl, yControl);
+                    bitmapInnerPressed, outerRect, innerRect, legacyId, xControl, yControl,
+                    mControllerIndex);
 
     // Need to set the image's position
     overlayDrawable.setPosition(drawableX, drawableY);
