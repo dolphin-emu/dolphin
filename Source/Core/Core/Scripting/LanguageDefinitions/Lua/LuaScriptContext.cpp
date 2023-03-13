@@ -82,6 +82,10 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
       std::map<long long, u8> address_to_unsigned_byte_map;
       std::map<long long, s8> address_to_signed_byte_map;
       std::map<long long, s16> address_to_byte_map;
+      std::vector<ImVec2> list_of_points;
+      float point1;
+      float point2;
+      int debug = 0;
       Movie::ControllerState controller_state_arg;
       GcButtonName all_gc_buttons[] = {GcButtonName::A,
                                        GcButtonName::B,
@@ -379,6 +383,28 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
           }
 
           arguments.push_back(CreateControllerStateArgHolder(controller_state_arg));
+          break;
+
+          case ArgTypeEnum::ListOfPoints:
+          list_of_points = std::vector<ImVec2>();
+          lua_pushnil(lua_state);
+          while (lua_next(lua_state, next_index_in_args) != 0)
+          {
+            debug = lua_tointeger(lua_state, -2);
+            lua_pushnil(lua_state);
+            lua_next(lua_state, -2);
+            debug = lua_tointeger(lua_state, -2);
+            point1 = lua_tonumber(lua_state, -1);
+            lua_pop(lua_state, 1);
+            lua_next(lua_state, -2);
+            lua_tointeger(lua_state, -2);
+            point2 = lua_tonumber(lua_state, -1);
+            lua_pop(lua_state, 1);
+            lua_next(lua_state, -2);
+            lua_pop(lua_state, 1);
+            list_of_points.push_back({point1, point2});
+          }
+          arguments.push_back(CreateListOfPointsArgHolder(list_of_points));
           break;
 
         default:

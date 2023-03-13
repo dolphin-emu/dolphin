@@ -3,9 +3,24 @@ require ("emu")
 
 while true do
 	emu:frameAdvance()
+	--GraphicsAPI:drawLine(45.7, 300.0, 1000.1, 300.0, 8.0, "0x50903fff")
+	--GraphicsAPI:drawFilledRectangle(400.0, 400.0, 800.0, 800.0, "red")
+	--GraphicsAPI:drawEmptyRectangle(400.0, 400.0, 800.0, 800.0, 10.0, "green")
+	--GraphicsAPI:drawEmptyTriangle(50.0, 700.0, 700.0, 700.0, 375.0, 200.0, 6.0, "green")
+	--GraphicsAPI:drawFilledTriangle(50.7, 700.0, 700.0, 700.0, 375.0, 200.0, "green")
+	--GraphicsAPI:drawEmptyCircle(200.0, 200.0, 150.0, "red", 5.0)
+	--GraphicsAPI:drawFilledCircle(200.0, 200.0, 150.0, "yellow")
+	--GraphicsAPI:drawEmptyPolygon({ {400.0, 400.0}, {500.0, 500.0}, {700.0, 500.0}, {800.0, 400.0}, {700.0, 300.0}, {500.0, 300.0}}, 12.3, "red")
+	--GraphicsAPI:drawFilledPolygon({ {400.0, 400.0}, {500.0, 500.0}, {700.0, 500.0}, {800.0, 400.0}, {700.0, 300.0}, {500.0, 300.0}}, "green")
+	--GraphicsAPI:drawText(100.0, 150.0, "green", "Hello World!")
+	GraphicsAPI:drawEmptyPolygon({ {400.0, 400.0}, {500.0, 500.0}, {700.0, 500.0}, {800.0, 400.0}, {700.0, 300.0}, {500.0, 300.0}}, 12.3, "red")
+	GraphicsAPI:beginWindow("OuterWindow")
 	GraphicsAPI:drawLine(45.7, 300.0, 1000.1, 300.0, 8.0, "0x50903fff")
+	GraphicsAPI:beginWindow("innerWindow")
+	GraphicsAPI:drawEmptyCircle(100.0, 100.0, 100.0, "red", 4.0)
+	GraphicsAPI:endWindow()
+	GraphicsAPI:drawEmptyTriangle(50.0, 75.0, 85.0, 95.0, 110.0, 130.0, 5.0, "green")
+	GraphicsAPI:endWindow()
 	GraphicsAPI:drawFilledRectangle(400.0, 400.0, 800.0, 800.0, "red")
-	GraphicsAPI:drawEmptyRectangle(400.0, 400.0, 800.0, 800.0, 10.0, "green")
-
-
+	
 end

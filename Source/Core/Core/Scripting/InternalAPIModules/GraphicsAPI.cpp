@@ -1,30 +1,76 @@
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 
 #include <cstdlib>
-#include <string>
 #include <imgui.h>
 #include <implot.h>
+#include <string>
+#include <atomic>
 
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 
 namespace Scripting::GraphicsAPI
 {
+
+ std::atomic<int> window_depth = 0;
 const char* class_name = "GraphicsAPI";
 static std::array all_graphics_functions_metadata_list = {
     FunctionMetadata("drawLine", "1.0", "drawLine(40.3, 80, 60.3, 80, 0.8, lineColorString)",
                      DrawLine, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float,
                       ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String}),
+
     FunctionMetadata("drawEmptyRectangle", "1.0",
                      "drawEmptyRectangle(20.5, 45.8, 100.4, 75.9, 3.0, lineColorString)",
                      DrawEmptyRectangle, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float,
                       ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String}),
+
     FunctionMetadata("drawFilledRectangle", "1.0",
                      "drawFilledRectangle(20.5, 45.8, 200.4, 75.9, fillColorString)",
-                     DrawFilledRectangle, ArgTypeEnum::VoidType, {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String})};
+                     DrawFilledRectangle, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float,
+                      ArgTypeEnum::Float, ArgTypeEnum::String}),
 
+    FunctionMetadata(
+        "drawEmptyTriangle", "1.0", "drawEmptyTriangle(x1, y1, x2, y2, x3, y3, thickness, color)",
+        DrawEmptyTriangle, ArgTypeEnum::VoidType,
+        {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float,
+         ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String}),
 
+    FunctionMetadata(
+        "drawFilledTriangle", "1.0", "drawFilledTriangle(x1, y1, x2, y2, x3, y3, color)",
+        DrawFilledTriangle, ArgTypeEnum::VoidType,
+        {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float,
+         ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String}),
+
+    FunctionMetadata("drawEmptyCircle", "1.0",
+                     "drawEmptyCircle(centerX, centerY, radius, colorString, thickness)",
+                     DrawEmptyCircle, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float,
+                      ArgTypeEnum::String, ArgTypeEnum::Float}),
+
+    FunctionMetadata(
+        "drawFilledCircle", "1.0", "drawFillecCircle(centerX, centerY, radius, fillColorString)",
+        DrawFilledCircle, ArgTypeEnum::VoidType,
+        {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String}),
+
+    FunctionMetadata("drawEmptyPolygon", "1.0",
+                     "drawEmptyPolygon({ {45.0, 100.0}, {45.0, 500.0}, {67.4, 54.2}}, 12.3, color)",
+                     DrawEmptyPolygon, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::ListOfPoints, ArgTypeEnum::Float, ArgTypeEnum::String}),
+
+    FunctionMetadata("drawFilledPolygon", "1.0",
+                     "drawFilledPolygon( {45.0, 100.0}, {45.0, 500.0}, {67.4, 54.2}}, color)",
+                     DrawFilledPolygon, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::ListOfPoints, ArgTypeEnum::String}),
+
+    FunctionMetadata("drawText", "1.0", "drawText(30.0, 45.0, colorString, \"Hello World!\")",
+                     DrawText, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String, ArgTypeEnum::String}),
+
+    FunctionMetadata("beginWindow", "1.0", "beginWindow(windowName)", BeginWindow, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String}),
+    FunctionMetadata("endWindow", "1.0", "endWindow()", EndWindow, ArgTypeEnum::VoidType, {})};
 
 static bool IsEqualIgnoreCase(const char* string_1, const char* string_2)
 {
@@ -126,7 +172,6 @@ u32 ParseColor(const char* color_string)
       brightness_float = (1.0 * brightness_int) / 255.0;
 
     return ImGui::GetColorU32(ImVec4(red_float, green_float, blue_float, brightness_float));
-
   }
   else if (IsEqualIgnoreCase(color_string, "red"))
     return ImGui::GetColorU32(ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
@@ -152,18 +197,24 @@ ClassMetadata GetGraphicsApiClassData(const std::string& api_version)
 }
 
 ArgHolder DrawLine(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
-{ 
+{
   float x_coord_1 = args_list[0].float_val;
   float y_coord_1 = args_list[1].float_val;
   float x_coord_2 = args_list[2].float_val;
   float y_coord_2 = args_list[3].float_val;
   float thickness = args_list[4].float_val;
-
   std::string color = args_list[5].string_val;
-  ImGui::GetForegroundDrawList()->AddLine({x_coord_1, y_coord_1}, {x_coord_2, y_coord_2},
-                                          ParseColor(color.c_str()), thickness);
-  return CreateVoidTypeArgHolder();
+  ImDrawList* draw_list = nullptr;
 
+  if (window_depth == 0)
+    draw_list = ImGui::GetForegroundDrawList();
+  else
+    draw_list = ImGui::GetWindowDrawList();
+
+  ImVec2 window_edge = ImGui::GetCursorScreenPos();
+  draw_list->AddLine({window_edge.x + x_coord_1, window_edge.y + y_coord_1}, {window_edge.x + x_coord_2, window_edge.y + y_coord_2}, ParseColor(color.c_str()), thickness);
+
+  return CreateVoidTypeArgHolder();
 }
 
 ArgHolder DrawEmptyRectangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
@@ -174,11 +225,16 @@ ArgHolder DrawEmptyRectangle(ScriptContext* current_script, std::vector<ArgHolde
   float top_right_y = args_list[3].float_val;
   float thickness = args_list[4].float_val;
   std::string outline_color = args_list[5].string_val;
+  ImDrawList* draw_list = nullptr;
 
-  ImGui::GetForegroundDrawList()->AddRect({bottom_left_x, bottom_left_y},
-                                          {top_right_x, top_right_y}, ParseColor(outline_color.c_str()),
-      0.0, 0, thickness);
+  if (window_depth == 0)
+    draw_list = ImGui::GetForegroundDrawList();
+  else
+    draw_list = ImGui::GetWindowDrawList();
 
+  ImVec2 window_edge = ImGui::GetCursorScreenPos();
+  draw_list->AddRect({window_edge.x +  bottom_left_x, window_edge.y + bottom_left_y}, {window_edge.x + top_right_x, window_edge.y + top_right_y}, ParseColor(outline_color.c_str()), 0.0, 0, thickness);
+ 
   return CreateVoidTypeArgHolder();
 }
 
@@ -189,11 +245,196 @@ ArgHolder DrawFilledRectangle(ScriptContext* current_script, std::vector<ArgHold
   float top_right_x = args_list[2].float_val;
   float top_right_y = args_list[3].float_val;
   std::string fill_color = args_list[4].string_val;
+  ImDrawList* draw_list = nullptr;
 
-  ImGui::GetForegroundDrawList()->AddRectFilled({bottom_left_x, bottom_left_y},
-                                                {top_right_x, top_right_y},
-                                                ParseColor(fill_color.c_str()), 0.0, 0);
+  if (window_depth == 0)
+    draw_list = ImGui::GetForegroundDrawList();
+  else
+    draw_list = ImGui::GetWindowDrawList();
+
+  ImVec2 window_edge = ImGui::GetCursorScreenPos();
+  draw_list->AddRectFilled({window_edge.x + bottom_left_x, window_edge.y + bottom_left_y}, {window_edge.x + top_right_x, window_edge.y + top_right_y}, ParseColor(fill_color.c_str()), 0.0, 0);
+ 
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder DrawEmptyTriangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  float x1 = args_list[0].float_val;
+  float y1 = args_list[1].float_val;
+  float x2 = args_list[2].float_val;
+  float y2 = args_list[3].float_val;
+  float x3 = args_list[4].float_val;
+  float y3 = args_list[5].float_val;
+  float thickness = args_list[6].float_val;
+  std::string color = args_list[7].string_val;
+  ImDrawList* draw_list = nullptr;
+
+  if (window_depth == 0)
+    draw_list = ImGui::GetForegroundDrawList();
+  else
+    draw_list = ImGui::GetWindowDrawList();
+
+  ImVec2 window_edge = ImGui::GetCursorScreenPos();
+  draw_list->AddTriangle({window_edge.x + x1, window_edge.y + y1}, {window_edge.x + x2, window_edge.y + y2}, {window_edge.x + x3, window_edge.y + y3}, ParseColor(color.c_str()), thickness);
 
   return CreateVoidTypeArgHolder();
 }
+
+ArgHolder DrawFilledTriangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  float x1 = args_list[0].float_val;
+  float y1 = args_list[1].float_val;
+  float x2 = args_list[2].float_val;
+  float y2 = args_list[3].float_val;
+  float x3 = args_list[4].float_val;
+  float y3 = args_list[5].float_val;
+  std::string fill_color = args_list[6].string_val;
+  ImDrawList* draw_list = nullptr;
+
+  if (window_depth == 0)
+    draw_list = ImGui::GetForegroundDrawList();
+  else
+    draw_list = ImGui::GetWindowDrawList();
+
+  ImVec2 window_edge = ImGui::GetCursorScreenPos();
+  draw_list->AddTriangleFilled({window_edge.x + x1, window_edge.y + y1}, {window_edge.x + x2, window_edge.y + y2}, {window_edge.x + x3, window_edge.y + y3}, ParseColor(fill_color.c_str()));
+
+  return CreateVoidTypeArgHolder();
 }
+
+ArgHolder DrawEmptyCircle(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  float centerX = args_list[0].float_val;
+  float centerY = args_list[1].float_val;
+  float radius = args_list[2].float_val;
+  std::string outline_color = args_list[3].string_val;
+  float thickness = args_list[4].float_val;
+  ImDrawList* draw_list = nullptr;
+
+  if (window_depth == 0)
+    draw_list = ImGui::GetForegroundDrawList();
+  else
+    draw_list = ImGui::GetWindowDrawList();
+
+  ImVec2 window_edge = ImGui::GetCursorScreenPos();
+  draw_list->AddCircle({window_edge.x + centerX, window_edge.y + centerY}, radius, ParseColor(outline_color.c_str()), 0, thickness);
+
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder DrawFilledCircle(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  float centerX = args_list[0].float_val;
+  float centerY = args_list[1].float_val;
+  float radius = args_list[2].float_val;
+  std::string fill_color = args_list[3].string_val;
+  ImDrawList* draw_list = nullptr;
+
+  if (window_depth == 0)
+    draw_list = ImGui::GetForegroundDrawList();
+  else
+    draw_list = ImGui::GetWindowDrawList();
+
+  ImVec2 window_edge = ImGui::GetCursorScreenPos();
+  draw_list->AddCircleFilled({window_edge.x + centerX, window_edge.y + centerY}, radius, ParseColor(fill_color.c_str()), 0);
+
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder DrawEmptyPolygon(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  std::vector<ImVec2> list_of_points = args_list[0].list_of_points;
+  float thickness = args_list[1].float_val;
+  std::string line_color = args_list[2].string_val;
+
+  ImVec2 window_edge = ImGui::GetCursorScreenPos();
+  for (int i = 0; i < list_of_points.size(); ++i)
+  {
+    list_of_points[i] = {list_of_points[i].x + window_edge.x, list_of_points[i].y + window_edge.y};
+  }
+
+  ImDrawList* draw_list = nullptr;
+  if (window_depth == 0)
+    draw_list = ImGui::GetForegroundDrawList();
+  else
+    draw_list = ImGui::GetWindowDrawList();
+
+    draw_list->AddPolyline(&list_of_points[0], (int)list_of_points.size(),
+                                              ParseColor(line_color.c_str()), ImDrawFlags_Closed,
+                                              thickness);
+
+  return CreateVoidTypeArgHolder();
+}
+
+
+ArgHolder DrawFilledPolygon(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  std::vector<ImVec2> list_of_points = args_list[0].list_of_points;
+  std::string line_color = args_list[1].string_val;
+
+  ImVec2 window_edge = ImGui::GetCursorScreenPos(); 
+  for (int i = 0; i < list_of_points.size(); ++i)
+  {
+    list_of_points[i] = {list_of_points[i].x + window_edge.x, list_of_points[i].y + window_edge.y};
+  }
+
+  ImDrawList* draw_list = nullptr;
+  if (window_depth == 0)
+    draw_list = ImGui::GetForegroundDrawList();
+  else
+    draw_list = ImGui::GetWindowDrawList();
+
+  draw_list->AddConvexPolyFilled(&list_of_points[0], (int)list_of_points.size(), ParseColor(line_color.c_str()));
+
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder DrawText(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  float x = args_list[0].float_val;
+  float y = args_list[1].float_val;
+  std::string color_string = args_list[2].string_val;
+  std::string display_text = args_list[3].string_val;
+  ImDrawList* draw_list = nullptr;
+
+  if (window_depth == 0)
+    draw_list = ImGui::GetForegroundDrawList();
+  else
+    draw_list = ImGui::GetWindowDrawList();
+
+  ImVec2 window_edge = ImGui::GetCursorScreenPos();
+  draw_list->AddText({window_edge.x + x, window_edge.y + y}, ParseColor(color_string.c_str()), display_text.c_str(), nullptr);
+
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder BeginWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  bool is_open = true;
+  if (window_depth == 0)
+    ImGui::Begin(args_list[0].string_val.c_str());
+  else
+  {
+    is_open = ImGui::TreeNode(args_list[0].string_val.c_str());
+  }
+
+
+  if (is_open)
+    ++window_depth;
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder EndWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  if (window_depth == 0)
+    return CreateVoidTypeArgHolder();
+  else if (window_depth <= 1)
+    ImGui::End();
+  else
+    ImGui::TreePop();
+
+  --window_depth;
+  return CreateVoidTypeArgHolder();
+}
+}  // namespace Scripting::GraphicsAPI

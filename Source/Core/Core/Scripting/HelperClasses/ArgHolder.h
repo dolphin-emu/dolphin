@@ -5,6 +5,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/Movie.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
+#include <imgui.h>
 
 namespace Scripting
 {
@@ -33,6 +34,7 @@ struct ArgHolder
   std::map<long long, s8> address_to_signed_byte_map;
   std::map<long long, s16> address_to_byte_map;
   Movie::ControllerState controller_state_val;
+  std::vector<ImVec2> list_of_points;
 
   std::string error_string_val;
 };
@@ -57,6 +59,7 @@ ArgHolder CreateAddressToByteMapArgHolder(const std::map<long long, s16>& new_ad
 
 ArgHolder CreateControllerStateArgHolder(const Movie::ControllerState& new_controller_state_val);
 
+ArgHolder CreateListOfPointsArgHolder(const std::vector<ImVec2>& new_points_list);
 ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val);
 ArgHolder CreateYieldTypeArgHolder();
 ArgHolder CreateVoidTypeArgHolder();

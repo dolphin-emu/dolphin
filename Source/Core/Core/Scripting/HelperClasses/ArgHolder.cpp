@@ -140,6 +140,14 @@ ArgHolder CreateControllerStateArgHolder(const Movie::ControllerState& new_contr
   return return_val;
 }
 
+ArgHolder CreateListOfPointsArgHolder(const std::vector<ImVec2>& new_points_list)
+{
+  ArgHolder return_val = {};
+  return_val.argument_type = ArgTypeEnum::ListOfPoints;
+  return_val.list_of_points = new_points_list;
+  return return_val;
+}
+
 ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val)
 {
   ArgHolder return_val = {};

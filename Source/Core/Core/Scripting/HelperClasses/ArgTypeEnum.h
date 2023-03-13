@@ -23,6 +23,7 @@ enum class ArgTypeEnum
   AddressToSignedByteMap,
   AddressToByteMap,
   ControllerStateObject,
+  ListOfPoints,
   ErrorStringType,
   YieldType,
   RegistrationInputType,

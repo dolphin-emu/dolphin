@@ -11,6 +11,13 @@ ClassMetadata GetGraphicsApiClassData(const std::string& api_version);
 ArgHolder DrawLine(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder DrawEmptyRectangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder DrawFilledRectangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-
-
+ArgHolder DrawEmptyTriangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DrawFilledTriangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DrawEmptyCircle(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DrawFilledCircle(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DrawEmptyPolygon(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DrawFilledPolygon(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DrawText(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder BeginWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder EndWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 }
