@@ -137,12 +137,15 @@ public final class ControllerInterface
   {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
     {
-      return new DolphinVibratorManagerPassthrough(device.getVibratorManager());
+      DolphinVibratorManagerPassthrough manager =
+              new DolphinVibratorManagerPassthrough(device.getVibratorManager());
+      if (manager.getVibratorIds().length != 0)
+      {
+        return manager;
+      }
     }
-    else
-    {
-      return new DolphinVibratorManagerCompat(device.getVibrator());
-    }
+
+    return new DolphinVibratorManagerCompat(device.getVibrator());
   }
 
   @Keep @NonNull
