@@ -178,7 +178,8 @@ public:
 private:
   void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vector<u8>& audio_data,
                             s64 cycles_late);
-  size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8>& audio_data);
+  size_t ProcessDTKSamples(s16* target_samples, size_t sample_count,
+                           const std::vector<u8>& audio_data);
   u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process);
 
   void SetLidOpen();

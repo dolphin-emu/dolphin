@@ -4,6 +4,8 @@
 #include "Core/HW/DVD/DVDInterface.h"
 
 #include <algorithm>
+#include <array>
+#include <cmath>
 #include <memory>
 #include <optional>
 #include <string>
@@ -122,18 +124,19 @@ void DVDInterface::DoState(PointerWrap& p)
   m_adpcm_decoder.DoState(p);
 }
 
-size_t DVDInterface::ProcessDTKSamples(std::vector<s16>* temp_pcm,
+size_t DVDInterface::ProcessDTKSamples(s16* target_samples, size_t sample_count,
                                        const std::vector<u8>& audio_data)
 {
   size_t samples_processed = 0;
   size_t bytes_processed = 0;
-  while (samples_processed < temp_pcm->size() / 2 && bytes_processed < audio_data.size())
+  while (samples_processed < sample_count && bytes_processed < audio_data.size())
   {
-    m_adpcm_decoder.DecodeBlock(&(*temp_pcm)[samples_processed * 2], &audio_data[bytes_processed]);
+    m_adpcm_decoder.DecodeBlock(&target_samples[samples_processed * 2],
+                                &audio_data[bytes_processed]);
     for (size_t i = 0; i < StreamADPCM::SAMPLES_PER_BLOCK * 2; ++i)
     {
       // TODO: Fix the mixer so it can accept non-byte-swapped samples.
-      s16* sample = &(*temp_pcm)[samples_processed * 2 + i];
+      s16* sample = &target_samples[samples_processed * 2 + i];
       *sample = Common::swap16(*sample);
     }
     samples_processed += StreamADPCM::SAMPLES_PER_BLOCK;
@@ -198,12 +201,24 @@ void DVDInterface::DTKStreamingCallback(DIInterruptType interrupt_type,
 
   if (interrupt_type == DIInterruptType::TCINT)
   {
+    // maximum_samples can only be 112 (if running at 32khz) or 168 (if running at 48khz), so just
+    // prepare stack space for the biggest possible case. This is true even for the GameCube's not
+    // quite correct sample rates.
+    constexpr u32 MAX_POSSIBLE_SAMPLES = 168;
+
     // Send audio to the mixer.
-    std::vector<s16> temp_pcm(m_pending_samples * 2, 0);
-    ProcessDTKSamples(&temp_pcm, audio_data);
+    std::array<s16, MAX_POSSIBLE_SAMPLES * 2> temp_pcm;
+    ASSERT(m_pending_samples <= MAX_POSSIBLE_SAMPLES);
+    const u32 pending_samples = std::min(m_pending_samples, MAX_POSSIBLE_SAMPLES);
+    const size_t samples_processed =
+        ProcessDTKSamples(temp_pcm.data(), pending_samples, audio_data);
+
+    // Fill unprocessed space up with zero samples.
+    const size_t samples_free = pending_samples - samples_processed;
+    std::fill_n(temp_pcm.data() + samples_processed * 2, samples_free * 2, 0);
 
     SoundStream* sound_stream = m_system.GetSoundStream();
-    sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(), m_pending_samples);
+    sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(), pending_samples);
 
     if (m_stream && ai.IsPlaying())
     {
