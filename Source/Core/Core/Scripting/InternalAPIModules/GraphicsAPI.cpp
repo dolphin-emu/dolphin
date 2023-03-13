@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <implot.h>
 #include <string>
+#include <stack>
 #include <atomic>
 
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
@@ -11,7 +12,8 @@
 namespace Scripting::GraphicsAPI
 {
 
- std::atomic<int> window_depth = 0;
+std::stack<bool> display_stack = std::stack<bool>();
+bool window_is_open = false;
 const char* class_name = "GraphicsAPI";
 static std::array all_graphics_functions_metadata_list = {
     FunctionMetadata("drawLine", "1.0", "drawLine(40.3, 80, 60.3, 80, 0.8, lineColorString)",
@@ -206,10 +208,14 @@ ArgHolder DrawLine(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   std::string color = args_list[5].string_val;
   ImDrawList* draw_list = nullptr;
 
-  if (window_depth == 0)
+  if (!window_is_open)
     draw_list = ImGui::GetForegroundDrawList();
   else
+  {
+    if (display_stack.empty() || !display_stack.top())
+      return CreateVoidTypeArgHolder();
     draw_list = ImGui::GetWindowDrawList();
+  }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
   draw_list->AddLine({window_edge.x + x_coord_1, window_edge.y + y_coord_1}, {window_edge.x + x_coord_2, window_edge.y + y_coord_2}, ParseColor(color.c_str()), thickness);
@@ -227,10 +233,14 @@ ArgHolder DrawEmptyRectangle(ScriptContext* current_script, std::vector<ArgHolde
   std::string outline_color = args_list[5].string_val;
   ImDrawList* draw_list = nullptr;
 
-  if (window_depth == 0)
+  if (!window_is_open)
     draw_list = ImGui::GetForegroundDrawList();
   else
+  {
+    if (display_stack.empty() || !display_stack.top())
+      return CreateVoidTypeArgHolder();
     draw_list = ImGui::GetWindowDrawList();
+  }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
   draw_list->AddRect({window_edge.x +  bottom_left_x, window_edge.y + bottom_left_y}, {window_edge.x + top_right_x, window_edge.y + top_right_y}, ParseColor(outline_color.c_str()), 0.0, 0, thickness);
@@ -247,10 +257,14 @@ ArgHolder DrawFilledRectangle(ScriptContext* current_script, std::vector<ArgHold
   std::string fill_color = args_list[4].string_val;
   ImDrawList* draw_list = nullptr;
 
-  if (window_depth == 0)
+  if (!window_is_open)
     draw_list = ImGui::GetForegroundDrawList();
   else
+  {
+    if (display_stack.empty() || !display_stack.top())
+      return CreateVoidTypeArgHolder();
     draw_list = ImGui::GetWindowDrawList();
+  }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
   draw_list->AddRectFilled({window_edge.x + bottom_left_x, window_edge.y + bottom_left_y}, {window_edge.x + top_right_x, window_edge.y + top_right_y}, ParseColor(fill_color.c_str()), 0.0, 0);
@@ -270,10 +284,14 @@ ArgHolder DrawEmptyTriangle(ScriptContext* current_script, std::vector<ArgHolder
   std::string color = args_list[7].string_val;
   ImDrawList* draw_list = nullptr;
 
-  if (window_depth == 0)
+    if (!window_is_open)
     draw_list = ImGui::GetForegroundDrawList();
   else
+  {
+    if (display_stack.empty() || !display_stack.top())
+      return CreateVoidTypeArgHolder();
     draw_list = ImGui::GetWindowDrawList();
+  }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
   draw_list->AddTriangle({window_edge.x + x1, window_edge.y + y1}, {window_edge.x + x2, window_edge.y + y2}, {window_edge.x + x3, window_edge.y + y3}, ParseColor(color.c_str()), thickness);
@@ -292,10 +310,14 @@ ArgHolder DrawFilledTriangle(ScriptContext* current_script, std::vector<ArgHolde
   std::string fill_color = args_list[6].string_val;
   ImDrawList* draw_list = nullptr;
 
-  if (window_depth == 0)
+  if (!window_is_open)
     draw_list = ImGui::GetForegroundDrawList();
   else
+  {
+    if (display_stack.empty() || !display_stack.top())
+      return CreateVoidTypeArgHolder();
     draw_list = ImGui::GetWindowDrawList();
+  }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
   draw_list->AddTriangleFilled({window_edge.x + x1, window_edge.y + y1}, {window_edge.x + x2, window_edge.y + y2}, {window_edge.x + x3, window_edge.y + y3}, ParseColor(fill_color.c_str()));
@@ -312,10 +334,14 @@ ArgHolder DrawEmptyCircle(ScriptContext* current_script, std::vector<ArgHolder>&
   float thickness = args_list[4].float_val;
   ImDrawList* draw_list = nullptr;
 
-  if (window_depth == 0)
+  if (!window_is_open)
     draw_list = ImGui::GetForegroundDrawList();
   else
+  {
+    if (display_stack.empty() || !display_stack.top())
+      return CreateVoidTypeArgHolder();
     draw_list = ImGui::GetWindowDrawList();
+  }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
   draw_list->AddCircle({window_edge.x + centerX, window_edge.y + centerY}, radius, ParseColor(outline_color.c_str()), 0, thickness);
@@ -331,10 +357,14 @@ ArgHolder DrawFilledCircle(ScriptContext* current_script, std::vector<ArgHolder>
   std::string fill_color = args_list[3].string_val;
   ImDrawList* draw_list = nullptr;
 
-  if (window_depth == 0)
+  if (!window_is_open)
     draw_list = ImGui::GetForegroundDrawList();
   else
+  {
+    if (display_stack.empty() || !display_stack.top())
+      return CreateVoidTypeArgHolder();
     draw_list = ImGui::GetWindowDrawList();
+  }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
   draw_list->AddCircleFilled({window_edge.x + centerX, window_edge.y + centerY}, radius, ParseColor(fill_color.c_str()), 0);
@@ -355,10 +385,14 @@ ArgHolder DrawEmptyPolygon(ScriptContext* current_script, std::vector<ArgHolder>
   }
 
   ImDrawList* draw_list = nullptr;
-  if (window_depth == 0)
+  if (!window_is_open)
     draw_list = ImGui::GetForegroundDrawList();
   else
+  {
+    if (display_stack.empty() || !display_stack.top())
+      return CreateVoidTypeArgHolder();
     draw_list = ImGui::GetWindowDrawList();
+  }
 
     draw_list->AddPolyline(&list_of_points[0], (int)list_of_points.size(),
                                               ParseColor(line_color.c_str()), ImDrawFlags_Closed,
@@ -380,10 +414,14 @@ ArgHolder DrawFilledPolygon(ScriptContext* current_script, std::vector<ArgHolder
   }
 
   ImDrawList* draw_list = nullptr;
-  if (window_depth == 0)
+  if (!window_is_open)
     draw_list = ImGui::GetForegroundDrawList();
   else
+  {
+    if (display_stack.empty() || !display_stack.top())
+      return CreateVoidTypeArgHolder();
     draw_list = ImGui::GetWindowDrawList();
+  }
 
   draw_list->AddConvexPolyFilled(&list_of_points[0], (int)list_of_points.size(), ParseColor(line_color.c_str()));
 
@@ -398,10 +436,14 @@ ArgHolder DrawText(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   std::string display_text = args_list[3].string_val;
   ImDrawList* draw_list = nullptr;
 
-  if (window_depth == 0)
+  if (!window_is_open)
     draw_list = ImGui::GetForegroundDrawList();
   else
+  {
+    if (display_stack.empty() || !display_stack.top())
+      return CreateVoidTypeArgHolder();
     draw_list = ImGui::GetWindowDrawList();
+  }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
   draw_list->AddText({window_edge.x + x, window_edge.y + y}, ParseColor(color_string.c_str()), display_text.c_str(), nullptr);
@@ -411,30 +453,39 @@ ArgHolder DrawText(ScriptContext* current_script, std::vector<ArgHolder>& args_l
 
 ArgHolder BeginWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  bool is_open = true;
-  if (window_depth == 0)
-    ImGui::Begin(args_list[0].string_val.c_str());
+  if (!window_is_open)
+  {
+    window_is_open = true;
+    display_stack.push(ImGui::Begin(args_list[0].string_val.c_str()));
+  }
   else
   {
-    is_open = ImGui::TreeNode(args_list[0].string_val.c_str());
+    display_stack.push(ImGui::TreeNode(args_list[0].string_val.c_str()));
   }
 
-
-  if (is_open)
-    ++window_depth;
   return CreateVoidTypeArgHolder();
 }
 
 ArgHolder EndWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  if (window_depth == 0)
+  if (!window_is_open)
     return CreateVoidTypeArgHolder();
-  else if (window_depth <= 1)
-    ImGui::End();
   else
-    ImGui::TreePop();
-
-  --window_depth;
+  {
+    if (display_stack.empty())
+      return CreateErrorStringArgHolder(
+          "endWindow() was in an invalid internal state, with an empty list of windows to display "
+          "but with 1 or more windows/treenodes open!");
+    bool was_displayed = display_stack.top();
+    display_stack.pop();
+    if (display_stack.empty())
+    {
+      window_is_open = false;
+      ImGui::End();
+    }
+    else if (was_displayed)
+      ImGui::TreePop();
+  }
   return CreateVoidTypeArgHolder();
 }
 }  // namespace Scripting::GraphicsAPI

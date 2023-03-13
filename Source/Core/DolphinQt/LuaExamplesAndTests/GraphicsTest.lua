@@ -19,7 +19,7 @@ while true do
 	GraphicsAPI:beginWindow("innerWindow")
 	GraphicsAPI:drawEmptyCircle(100.0, 100.0, 100.0, "red", 4.0)
 	GraphicsAPI:endWindow()
-	GraphicsAPI:drawEmptyTriangle(50.0, 75.0, 85.0, 95.0, 110.0, 130.0, 5.0, "green")
+	GraphicsAPI:drawEmptyTriangle(50.0, 700.0, 700.0, 700.0, 375.0, 200.0, 6.0, "green")
 	GraphicsAPI:endWindow()
 	GraphicsAPI:drawFilledRectangle(400.0, 400.0, 800.0, 800.0, "red")
 	
