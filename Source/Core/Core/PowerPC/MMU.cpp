@@ -15,6 +15,7 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
@@ -524,7 +525,7 @@ TryReadInstResult TryReadInstruction(u32 address)
 
 u32 HostRead_Instruction(const Core::CPUThreadGuard& guard, const u32 address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
   return ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(system, memory, address);
 }
@@ -536,7 +537,7 @@ std::optional<ReadResult<u32>> HostTryReadInstruction(const Core::CPUThreadGuard
   if (!HostIsInstructionRAMAddress(guard, address, space))
     return std::nullopt;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
 
   switch (space)
@@ -660,7 +661,7 @@ static std::optional<ReadResult<T>> HostTryReadUX(const Core::CPUThreadGuard& gu
   if (!HostIsRAMAddress(guard, address, space))
     return std::nullopt;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
 
   switch (space)
@@ -795,28 +796,28 @@ void Write_F64(const double var, const u32 address)
 
 u8 HostRead_U8(const Core::CPUThreadGuard& guard, const u32 address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
   return ReadFromHardware<XCheckTLBFlag::NoException, u8>(system, memory, address);
 }
 
 u16 HostRead_U16(const Core::CPUThreadGuard& guard, const u32 address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
   return ReadFromHardware<XCheckTLBFlag::NoException, u16>(system, memory, address);
 }
 
 u32 HostRead_U32(const Core::CPUThreadGuard& guard, const u32 address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
   return ReadFromHardware<XCheckTLBFlag::NoException, u32>(system, memory, address);
 }
 
 u64 HostRead_U64(const Core::CPUThreadGuard& guard, const u32 address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
   return ReadFromHardware<XCheckTLBFlag::NoException, u64>(system, memory, address);
 }
@@ -837,28 +838,28 @@ double HostRead_F64(const Core::CPUThreadGuard& guard, const u32 address)
 
 void HostWrite_U8(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
   WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, 1);
 }
 
 void HostWrite_U16(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
   WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, 2);
 }
 
 void HostWrite_U32(const Core::CPUThreadGuard& guard, const u32 var, const u32 address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
   WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, var, 4);
 }
 
 void HostWrite_U64(const Core::CPUThreadGuard& guard, const u64 var, const u32 address)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
   WriteToHardware<XCheckTLBFlag::NoException>(system, memory, address, static_cast<u32>(var >> 32),
                                               4);
@@ -887,7 +888,7 @@ static std::optional<WriteResult> HostTryWriteUX(const Core::CPUThreadGuard& gua
   if (!HostIsRAMAddress(guard, address, space))
     return std::nullopt;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
 
   switch (space)
@@ -1041,7 +1042,7 @@ static bool IsRAMAddress(Memory::MemoryManager& memory, u32 address, bool transl
 
 bool HostIsRAMAddress(const Core::CPUThreadGuard& guard, u32 address, RequestedAddressSpace space)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
 
   switch (space)
@@ -1067,7 +1068,7 @@ bool HostIsInstructionRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
   if (address & 3)
     return false;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& memory = system.GetMemory();
 
   switch (space)

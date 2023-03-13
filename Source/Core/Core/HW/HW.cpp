@@ -31,9 +31,8 @@
 
 namespace HW
 {
-void Init(const Sram* override_sram)
+void Init(Core::System& system, const Sram* override_sram)
 {
-  auto& system = Core::System::GetInstance();
   system.GetCoreTiming().Init();
   SystemTimers::PreInit();
 
@@ -62,10 +61,8 @@ void Init(const Sram* override_sram)
   }
 }
 
-void Shutdown()
+void Shutdown(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
-
   // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown();  // Depends on Memory
   IOS::Shutdown();
@@ -86,9 +83,8 @@ void Shutdown()
   system.GetCoreTiming().Shutdown();
 }
 
-void DoState(PointerWrap& p)
+void DoState(Core::System& system, PointerWrap& p)
 {
-  auto& system = Core::System::GetInstance();
   system.GetMemory().DoState(p);
   p.DoMarker("Memory");
   system.GetMemoryInterface().DoState(p);
