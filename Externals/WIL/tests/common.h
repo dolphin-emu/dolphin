@@ -204,6 +204,15 @@ namespace witest
 #endif
     }
 
+    [[noreturn]]
+    inline void __stdcall FakeFailfastWithContext(const wil::FailureInfo&) noexcept
+    {
+        ::RaiseException(STATUS_STACK_BUFFER_OVERRUN, 0, 0, nullptr);
+#ifdef __clang__
+        __builtin_unreachable();
+#endif
+    }
+
     constexpr DWORD msvc_exception_code = 0xE06D7363;
 
     // This is a MAJOR hack. Catch2 registers a vectored exception handler - which gets run before our handler below -
@@ -241,6 +250,7 @@ namespace witest
     {
         // See above; we don't want to actually fail fast, so make sure we raise a different exception instead
         auto restoreHandler = AssignTemporaryValue(&wil::details::g_pfnRaiseFailFastException, TranslateFailFastException);
+        auto restoreHandler2 = AssignTemporaryValue(&wil::details::g_pfnFailfastWithContextCallback, FakeFailfastWithContext);
 
         auto handler = AddVectoredExceptionHandler(1, TranslateExceptionCodeHandler);
         auto removeVectoredHandler = wil::scope_exit([&] { RemoveVectoredExceptionHandler(handler); });
@@ -335,7 +345,7 @@ namespace witest
         return S_OK;
     }
 
-#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) && (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
 
     struct TestFolder
     {
