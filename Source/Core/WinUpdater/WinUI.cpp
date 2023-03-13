@@ -3,12 +3,14 @@
 
 #include "UpdaterCommon/UI.h"
 
+#include <cstdlib>
 #include <string>
 #include <thread>
 
 #include <Windows.h>
 #include <CommCtrl.h>
 #include <ShObjIdl.h>
+#include <ShlObj.h>
 #include <shellapi.h>
 #include <wrl/client.h>
 
@@ -253,11 +255,34 @@ void Stop()
   ui_thread.join();
 }
 
+bool IsTestMode()
+{
+  return std::getenv("DOLPHIN_UPDATE_SERVER_URL") != nullptr;
+}
+
 void LaunchApplication(std::string path)
 {
-  // Indirectly start the application via explorer. This effectively drops admin priviliges because
-  // explorer is running as current user.
-  ShellExecuteW(nullptr, nullptr, L"explorer.exe", UTF8ToWString(path).c_str(), nullptr, SW_SHOW);
+  const auto wpath = UTF8ToWString(path);
+  if (IsUserAnAdmin())
+  {
+    // Indirectly start the application via explorer. This effectively drops admin privileges
+    // because explorer is running as current user.
+    ShellExecuteW(nullptr, nullptr, L"explorer.exe", wpath.c_str(), nullptr, SW_SHOW);
+  }
+  else
+  {
+    std::wstring cmdline = wpath;
+    STARTUPINFOW startup_info{.cb = sizeof(startup_info)};
+    PROCESS_INFORMATION process_info;
+    if (IsTestMode())
+      SetEnvironmentVariableA("DOLPHIN_UPDATE_TEST_DONE", "1");
+    if (CreateProcessW(wpath.c_str(), cmdline.data(), nullptr, nullptr, TRUE, 0, nullptr, nullptr,
+                       &startup_info, &process_info))
+    {
+      CloseHandle(process_info.hThread);
+      CloseHandle(process_info.hProcess);
+    }
+  }
 }
 
 void Sleep(int sleep)

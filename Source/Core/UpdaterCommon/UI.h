@@ -29,4 +29,6 @@ void Init();
 void Sleep(int seconds);
 void WaitForPID(u32 pid);
 void LaunchApplication(std::string path);
+
+bool IsTestMode();
 }  // namespace UI
