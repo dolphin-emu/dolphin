@@ -7,6 +7,10 @@ namespace Scripting::GraphicsAPI
 {
 
 extern const char* class_name;
+extern long long checkbox_number;
+extern long long radio_group_number;
+extern long long offset_into_radio_group;
+
 ClassMetadata GetGraphicsApiClassData(const std::string& api_version);
 ArgHolder DrawLine(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder DrawEmptyRectangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
@@ -18,6 +22,9 @@ ArgHolder DrawFilledCircle(ScriptContext* current_script, std::vector<ArgHolder>
 ArgHolder DrawEmptyPolygon(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder DrawFilledPolygon(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder DrawText(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder AddCheckbox(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder AddRadioButtonGroup(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder BeginWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder EndWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 }

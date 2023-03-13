@@ -1,6 +1,7 @@
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 
 #include <cstdlib>
+#include <deque>
 #include <imgui.h>
 #include <implot.h>
 #include <string>
@@ -15,6 +16,14 @@ namespace Scripting::GraphicsAPI
 std::stack<bool> display_stack = std::stack<bool>();
 bool window_is_open = false;
 const char* class_name = "GraphicsAPI";
+long long checkbox_number = 0;
+long long radio_group_number = 0;
+long long offset_into_radio_group = 0;
+static std::deque<bool> all_checkboxes = std::deque<bool>();
+static std::map<long long, bool*> id_to_checkbox_map = std::map<long long, bool*>();
+static std::map<long long, int*> id_to_radio_group_map = std::map<long long, int*>();
+static std::deque<int> all_radio_groups = std::deque<int>();
+
 static std::array all_graphics_functions_metadata_list = {
     FunctionMetadata("drawLine", "1.0", "drawLine(40.3, 80, 60.3, 80, 0.8, lineColorString)",
                      DrawLine, ArgTypeEnum::VoidType,
@@ -69,6 +78,14 @@ static std::array all_graphics_functions_metadata_list = {
     FunctionMetadata("drawText", "1.0", "drawText(30.0, 45.0, colorString, \"Hello World!\")",
                      DrawText, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String, ArgTypeEnum::String}),
+
+  FunctionMetadata("addCheckbox", "1.0", "addCheckbox(checkboxLabel, 42)", AddCheckbox,
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
+
+  FunctionMetadata("addRadioButtonGroup", "1.0", "addRadioButtonGroup(42)", AddRadioButtonGroup,
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong}),
+
+  FunctionMetadata("addRadioButton", "1.0", "addRadioButton(\"apples\", 42, 0)", AddRadioButton, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
 
     FunctionMetadata("beginWindow", "1.0", "beginWindow(windowName)", BeginWindow, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::String}),
@@ -447,6 +464,77 @@ ArgHolder DrawText(ScriptContext* current_script, std::vector<ArgHolder>& args_l
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
   draw_list->AddText({window_edge.x + x, window_edge.y + y}, ParseColor(color_string.c_str()), display_text.c_str(), nullptr);
+
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder AddCheckbox(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  std::string checkbox_name = args_list[0].string_val;
+  long long id = args_list[1].long_long_val;
+
+  if (!window_is_open)
+  {
+    return CreateErrorStringArgHolder(
+        "Must have window open (using GraphicsAPI:beginWindow(\"winName\") before you can add a "
+        "checkbox!");
+  }
+  else 
+  {
+    if (id_to_checkbox_map.count(id) == 0)
+    {
+      all_checkboxes.push_back(false);
+      id_to_checkbox_map[id] = &all_checkboxes[all_checkboxes.size() - 1];
+    }
+
+    if (!display_stack.empty() && display_stack.top())
+      ImGui::Checkbox(checkbox_name.c_str(), id_to_checkbox_map[id]);
+    return CreateVoidTypeArgHolder();
+  }
+}
+
+ArgHolder AddRadioButtonGroup(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  long long id = args_list[0].long_long_val;
+  if (!window_is_open)
+  {
+    return CreateErrorStringArgHolder(
+        "Must have window open (using GraphicsAPI:beginWindow(\"winName\") before you can add a "
+        "RadioButtonGroup!");
+  }
+  else
+  {
+    if (id_to_radio_group_map.count(id) == 0)
+    {
+      all_radio_groups.push_back(0);
+      id_to_radio_group_map[id] = &all_radio_groups[all_radio_groups.size() - 1];
+    }
+    return CreateVoidTypeArgHolder();
+  }
+}
+
+ArgHolder AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  std::string button_name = args_list[0].string_val;
+  long long radio_button_group_id = args_list[1].long_long_val;
+  long long radio_button_id = args_list[2].long_long_val;
+  if (!window_is_open)
+  {
+    return CreateErrorStringArgHolder(
+        "Must have window open (using GraphicsAPI:beginWindow(\"winName\") before you can add a "
+        "RadioButton!");
+  }
+  else if (id_to_radio_group_map.count(radio_button_group_id) == 0)
+  {
+    return CreateErrorStringArgHolder(
+        fmt::format("Attempted to add radio button to an invalid group of {}. Please create the "
+                    "Radio Button Group by calling GraphicsAPI:addRadioButtonGroup(idNumber) "
+                    "before trying to pass IdNumber into this function for the radio group number!",
+                    radio_group_number));
+  }
+  else if (!display_stack.empty() && !display_stack.top())
+    ImGui::RadioButton(button_name.c_str(), id_to_radio_group_map[radio_button_group_id],
+                       radio_button_id);
 
   return CreateVoidTypeArgHolder();
 }

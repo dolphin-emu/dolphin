@@ -29,6 +29,7 @@ void StartScript(int unique_script_identifier, const std::string& script_locatio
 
 void StopScript(int unique_script_identifier);
 
+void DoFrameStartSetup();
 void RunGlobalCode();
 void RunOnFrameStartCallbacks();
 void RunOnGCInputPolledCallbacks();

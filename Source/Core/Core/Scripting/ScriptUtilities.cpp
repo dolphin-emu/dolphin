@@ -1,4 +1,5 @@
 #include "Core/Scripting/ScriptUtilities.h"
+#include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 #include "Core/Scripting/LanguageDefinitions/Lua/LuaScriptContext.h"
 
 namespace Scripting::ScriptUtilities {
@@ -75,6 +76,13 @@ void StopScript(int unique_script_identifier)
   initialization_and_destruction_lock.unlock();
 }
 
+void DoFrameStartSetup()
+{
+  GraphicsAPI::checkbox_number = 0;
+  GraphicsAPI::radio_group_number = 0;
+  GraphicsAPI::offset_into_radio_group = 0;
+}
+
 void RunGlobalCode()
 {
   std::lock_guard<std::mutex> lock(global_code_and_frame_callback_running_lock);
@@ -84,7 +92,7 @@ void RunGlobalCode()
   {
     ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
     current_script->script_specific_lock.lock();
-    if (current_script->is_script_active)
+    if (current_script->is_script_active && !current_script->finished_with_global_code)
     {
       current_script->current_script_call_location = ScriptCallLocations::FromFrameStartGlobalScope;
       current_script->RunGlobalScopeCode();
