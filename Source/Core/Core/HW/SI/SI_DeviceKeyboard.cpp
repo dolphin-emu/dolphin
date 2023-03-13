@@ -16,8 +16,8 @@
 namespace SerialInterface
 {
 // --- GameCube keyboard ---
-CSIDevice_Keyboard::CSIDevice_Keyboard(SIDevices device, int device_number)
-    : ISIDevice(device, device_number)
+CSIDevice_Keyboard::CSIDevice_Keyboard(Core::System& system, SIDevices device, int device_number)
+    : ISIDevice(system, device, device_number)
 {
 }
 

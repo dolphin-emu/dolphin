@@ -8,6 +8,10 @@
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
+namespace Core
+{
+class System;
+}
 
 namespace SerialInterface
 {
@@ -105,7 +109,7 @@ std::istream& operator>>(std::istream& stream, SIDevices& device);
 class ISIDevice
 {
 public:
-  ISIDevice(SIDevices device_type, int device_number);
+  ISIDevice(Core::System& system, SIDevices device_type, int device_number);
   virtual ~ISIDevice();
 
   int GetDeviceNumber() const;
@@ -128,6 +132,8 @@ public:
   virtual void OnEvent(u64 userdata, s64 cycles_late);
 
 protected:
+  Core::System& m_system;
+
   int m_device_number;
   SIDevices m_device_type;
 };
@@ -135,5 +141,5 @@ protected:
 int SIDevice_GetGBATransferTime(EBufferCommands cmd);
 bool SIDevice_IsGCController(SIDevices type);
 
-std::unique_ptr<ISIDevice> SIDevice_Create(SIDevices device, int port_number);
+std::unique_ptr<ISIDevice> SIDevice_Create(Core::System& system, SIDevices device, int port_number);
 }  // namespace SerialInterface

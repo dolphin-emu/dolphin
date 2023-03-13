@@ -53,7 +53,7 @@ protected:
 
 public:
   // Constructor
-  CSIDevice_GCController(SIDevices device, int device_number);
+  CSIDevice_GCController(Core::System& system, SIDevices device, int device_number);
   ~CSIDevice_GCController() override;
 
   // Run the SI Buffer
@@ -92,10 +92,10 @@ private:
 };
 
 // "TaruKonga", the DK Bongo controller
-class CSIDevice_TaruKonga : public CSIDevice_GCController
+class CSIDevice_TaruKonga final : public CSIDevice_GCController
 {
 public:
-  CSIDevice_TaruKonga(SIDevices device, int device_number);
+  CSIDevice_TaruKonga(Core::System& system, SIDevices device, int device_number);
 
   bool GetData(u32& hi, u32& low) override;
 

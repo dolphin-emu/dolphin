@@ -140,13 +140,12 @@ void GBASockServer::Disconnect()
   m_booted = false;
 }
 
-void GBASockServer::ClockSync()
+void GBASockServer::ClockSync(Core::System& system)
 {
   if (!m_clock_sync)
     if (!(m_clock_sync = GetNextClock()))
       return;
 
-  auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
 
   u32 time_slice = 0;
@@ -263,7 +262,8 @@ void GBASockServer::Flush()
   }
 }
 
-CSIDevice_GBA::CSIDevice_GBA(SIDevices device, int device_number) : ISIDevice(device, device_number)
+CSIDevice_GBA::CSIDevice_GBA(Core::System& system, SIDevices device, int device_number)
+    : ISIDevice(system, device, device_number)
 {
 }
 
@@ -273,7 +273,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
   {
   case NextAction::SendCommand:
   {
-    m_sock_server.ClockSync();
+    m_sock_server.ClockSync(m_system);
     if (m_sock_server.Connect())
     {
 #ifdef _DEBUG
@@ -289,15 +289,14 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
     }
 
     m_last_cmd = static_cast<EBufferCommands>(buffer[0]);
-    m_timestamp_sent = Core::System::GetInstance().GetCoreTiming().GetTicks();
+    m_timestamp_sent = m_system.GetCoreTiming().GetTicks();
     m_next_action = NextAction::WaitTransferTime;
     return 0;
   }
 
   case NextAction::WaitTransferTime:
   {
-    int elapsed_time =
-        static_cast<int>(Core::System::GetInstance().GetCoreTiming().GetTicks() - m_timestamp_sent);
+    int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
     // Tell SI to ask again after TransferInterval() cycles
     if (SIDevice_GetGBATransferTime(m_last_cmd) > elapsed_time)
       return 0;

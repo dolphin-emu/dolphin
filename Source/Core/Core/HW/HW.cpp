@@ -42,7 +42,7 @@ void Init(const Sram* override_sram)
   // Init the whole Hardware
   system.GetAudioInterface().Init();
   system.GetVideoInterface().Init();
-  SerialInterface::Init();
+  system.GetSerialInterface().Init();
   system.GetProcessorInterface().Init();
   system.GetExpansionInterface().Init(override_sram);  // Needs to be initialized before Memory
   system.GetHSP().Init();
@@ -79,7 +79,7 @@ void Shutdown()
   system.GetMemory().Shutdown();
   system.GetHSP().Shutdown();
   system.GetExpansionInterface().Shutdown();
-  SerialInterface::Shutdown();
+  system.GetSerialInterface().Shutdown();
   system.GetAudioInterface().Shutdown();
 
   State::Shutdown();
@@ -95,7 +95,7 @@ void DoState(PointerWrap& p)
   p.DoMarker("MemoryInterface");
   system.GetVideoInterface().DoState(p);
   p.DoMarker("VideoInterface");
-  SerialInterface::DoState(p);
+  system.GetSerialInterface().DoState(p);
   p.DoMarker("SerialInterface");
   system.GetProcessorInterface().DoState(p);
   p.DoMarker("ProcessorInterface");
