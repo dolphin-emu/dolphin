@@ -1196,7 +1196,7 @@ public final class SettingsFragmentPresenter
           int controllerNumber)
   {
     String[] profiles = new ProfileDialogPresenter(mMenuTag).getProfileNames(false);
-    String profileKey = profileString + "Profile" + controllerNumber;
+    String profileKey = profileString + "Profile" + (controllerNumber + 1);
     sl.add(new StringSingleChoiceSetting(mContext,
             new LegacyStringSetting("", "Controls", profileKey, ""),
             R.string.input_profile, 0, profiles, profiles, R.string.input_profiles_empty));
