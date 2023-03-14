@@ -23,6 +23,8 @@ ArgHolder DrawEmptyPolygon(ScriptContext* current_script, std::vector<ArgHolder>
 ArgHolder DrawFilledPolygon(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder DrawText(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder AddCheckbox(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder GetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder SetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder AddRadioButtonGroup(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder BeginWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list);

@@ -82,6 +82,12 @@ static std::array all_graphics_functions_metadata_list = {
   FunctionMetadata("addCheckbox", "1.0", "addCheckbox(checkboxLabel, 42)", AddCheckbox,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
 
+  FunctionMetadata("getCheckboxValue", "1.0", "getCheckboxValue(42)", GetCheckboxValue,
+                     ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong}),
+
+  FunctionMetadata("setCheckboxValue", "1.0", "setCheckboxValue(42, true)", SetCheckboxValue,
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::Boolean}),
+
   FunctionMetadata("addRadioButtonGroup", "1.0", "addRadioButtonGroup(42)", AddRadioButtonGroup,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong}),
 
@@ -491,6 +497,31 @@ ArgHolder AddCheckbox(ScriptContext* current_script, std::vector<ArgHolder>& arg
       ImGui::Checkbox(checkbox_name.c_str(), id_to_checkbox_map[id]);
     return CreateVoidTypeArgHolder();
   }
+}
+
+ArgHolder GetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  long long checkbox_id = args_list[0].long_long_val;
+  if (id_to_checkbox_map.count(checkbox_id) == 0)
+    return CreateErrorStringArgHolder(fmt::format(
+        "Attempted to get the value of an undefined checkbox with an index of {}. User must call addCheckbox() before they can get the checkbox's value!", checkbox_id));
+
+  return CreateBoolArgHolder(*(id_to_checkbox_map[checkbox_id]));
+}
+
+ArgHolder SetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  long long checkbox_id = args_list[0].long_long_val;
+  bool new_bool_value = args_list[1].bool_val;
+  if (id_to_checkbox_map.count(checkbox_id) == 0)
+    return CreateErrorStringArgHolder(fmt::format(
+        "Attempted to set the value of a checkbox with an index of {} before creating it. User "
+        "must call addCheckbox() to create the checkbox before they can set its value!",
+        checkbox_id));
+
+  *(id_to_checkbox_map[checkbox_id]) = new_bool_value;
+
+  return CreateVoidTypeArgHolder();
 }
 
 ArgHolder AddRadioButtonGroup(ScriptContext* current_script, std::vector<ArgHolder>& args_list)

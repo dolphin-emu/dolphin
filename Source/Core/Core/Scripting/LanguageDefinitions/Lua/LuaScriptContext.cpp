@@ -139,7 +139,7 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
         {
         case ArgTypeEnum::Boolean:
           arguments.push_back(
-              CreateBoolArgHolder(luaL_checkinteger(lua_state, next_index_in_args)));
+              CreateBoolArgHolder(lua_toboolean(lua_state, next_index_in_args)));
           break;
         case ArgTypeEnum::U8:
           arguments.push_back(CreateU8ArgHolder(luaL_checkinteger(lua_state, next_index_in_args)));
