@@ -28,6 +28,5 @@ void TASSpinBox::OnUIValueChanged(int new_value)
 
 void TASSpinBox::ApplyControllerValueChange()
 {
-  const QSignalBlocker blocker(this);
   setValue(m_state.ApplyControllerValueChange());
 }
