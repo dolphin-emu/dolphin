@@ -222,6 +222,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             title = NativeLibrary.GetCurrentTitleDescription()
 
             emulationFragment?.refreshInputOverlay()
+
+            updateDisplaySettings()
         } catch (_: IllegalStateException) {
             // Most likely the core delivered an onTitleChanged while emulation was shutting down.
             // Let's just ignore it, since we're about to shut down anyway.
