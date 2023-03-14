@@ -38,6 +38,7 @@
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/CustomTextureData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
@@ -1327,12 +1328,6 @@ TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
 RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize,
                                            const TextureInfo& texture_info)
 {
-  u32 expanded_width = texture_info.GetExpandedWidth();
-  u32 expanded_height = texture_info.GetExpandedHeight();
-
-  u32 width = texture_info.GetRawWidth();
-  u32 height = texture_info.GetRawHeight();
-
   // Hash assigned to texcache entry (also used to generate filenames used for texture dumping and
   // custom texture lookup)
   u64 base_hash = TEXHASH_INVALID;
@@ -1587,69 +1582,89 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     InvalidateTexture(oldest_entry);
   }
 
-  std::shared_ptr<HiresTexture> hires_tex;
+  VideoCommon::CustomTextureData* data = nullptr;
+  bool has_arbitrary_mipmaps = false;
+  std::shared_ptr<HiresTexture> hires_texture;
   if (g_ActiveConfig.bHiresTextures)
   {
-    hires_tex = HiresTexture::Search(texture_info);
-
-    if (hires_tex)
+    hires_texture = HiresTexture::Search(texture_info);
+    if (hires_texture)
     {
-      const auto& level = hires_tex->GetData().m_levels[0];
-      if (level.width != width || level.height != height)
-      {
-        width = level.width;
-        height = level.height;
-      }
-      expanded_width = level.width;
-      expanded_height = level.height;
+      data = &hires_texture->GetData();
+      has_arbitrary_mipmaps = hires_texture->HasArbitraryMipmaps();
     }
   }
 
+  return CreateTextureEntry(
+      TextureCreationInfo{base_hash, full_hash, bytes_per_block, palette_size}, texture_info,
+      textureCacheSafetyColorSampleSize, data, has_arbitrary_mipmaps);
+}
+
+RcTcacheEntry TextureCacheBase::CreateTextureEntry(
+    const TextureCreationInfo& creation_info, const TextureInfo& texture_info,
+    const int safety_color_sample_size, VideoCommon::CustomTextureData* custom_texture_data,
+    const bool custom_arbitrary_mipmaps)
+{
 #ifdef __APPLE__
   const bool no_mips = g_ActiveConfig.bNoMipmapping;
 #else
   const bool no_mips = false;
 #endif
-  // how many levels the allocated texture shall have
-  const u32 texLevels = no_mips   ? 1 :
-                        hires_tex ? (u32)hires_tex->GetData().m_levels.size() :
-                                    texture_info.GetLevelCount();
 
-  // We can decode on the GPU if it is a supported format and the flag is enabled.
-  // Currently we don't decode RGBA8 textures from TMEM, as that would require copying from both
-  // banks, and if we're doing an copy we may as well just do the whole thing on the CPU, since
-  // there's no conversion between formats. In the future this could be extended with a separate
-  // shader, however.
-  const bool decode_on_gpu =
-      !hires_tex && g_ActiveConfig.UseGPUTextureDecoding() &&
-      !(texture_info.IsFromTmem() && texture_info.GetTextureFormat() == TextureFormat::RGBA8);
-
-  // create the entry/texture
-  const TextureConfig config(width, height, texLevels, 1, 1,
-                             hires_tex ? hires_tex->GetFormat() : AbstractTextureFormat::RGBA8, 0);
-  RcTcacheEntry entry = AllocateCacheEntry(config);
-  if (!entry)
-    return entry;
-
-  ArbitraryMipmapDetector arbitrary_mip_detector;
-  if (hires_tex)
+  RcTcacheEntry entry;
+  if (custom_texture_data && custom_texture_data->m_levels.size() >= 1)
   {
-    const auto& level = hires_tex->GetData().m_levels[0];
-    entry->texture->Load(0, level.width, level.height, level.row_length, level.data.data(),
-                         level.data.size());
+    const u32 texLevels = no_mips ? 1 : (u32)custom_texture_data->m_levels.size();
+    const auto& first_level = custom_texture_data->m_levels[0];
+    const TextureConfig config(first_level.width, first_level.height, texLevels, 1, 1,
+                               first_level.format, 0);
+    entry = AllocateCacheEntry(config);
+    if (!entry) [[unlikely]]
+      return entry;
+    for (u32 level_index = 0; level_index != texLevels; ++level_index)
+    {
+      const auto& level = custom_texture_data->m_levels[level_index];
+      entry->texture->Load(level_index, level.width, level.height, level.row_length,
+                           level.data.data(), level.data.size());
+    }
+
+    entry->has_arbitrary_mips = custom_arbitrary_mipmaps;
+    entry->is_custom_tex = true;
   }
-
-  // Initialized to null because only software loading uses this buffer
-  u8* dst_buffer = nullptr;
-
-  if (!hires_tex)
+  else
   {
+    const u32 texLevels = no_mips ? 1 : texture_info.GetLevelCount();
+    const u32 expanded_width = texture_info.GetExpandedWidth();
+    const u32 expanded_height = texture_info.GetExpandedHeight();
+
+    const u32 width = texture_info.GetRawWidth();
+    const u32 height = texture_info.GetRawHeight();
+
+    const TextureConfig config(width, height, texLevels, 1, 1, AbstractTextureFormat::RGBA8, 0);
+    entry = AllocateCacheEntry(config);
+    if (!entry) [[unlikely]]
+      return entry;
+
+    // We can decode on the GPU if it is a supported format and the flag is enabled.
+    // Currently we don't decode RGBA8 textures from TMEM, as that would require copying from both
+    // banks, and if we're doing an copy we may as well just do the whole thing on the CPU, since
+    // there's no conversion between formats. In the future this could be extended with a separate
+    // shader, however.
+    const bool decode_on_gpu =
+        g_ActiveConfig.UseGPUTextureDecoding() &&
+        !(texture_info.IsFromTmem() && texture_info.GetTextureFormat() == TextureFormat::RGBA8);
+
+    ArbitraryMipmapDetector arbitrary_mip_detector;
+
+    // Initialized to null because only software loading uses this buffer
+    u8* dst_buffer = nullptr;
+
     if (!decode_on_gpu ||
-        !DecodeTextureOnGPU(entry, 0, texture_info.GetData(), texture_info.GetTextureSize(),
-                            texture_info.GetTextureFormat(), width, height, expanded_width,
-                            expanded_height,
-                            bytes_per_block * (expanded_width / texture_info.GetBlockWidth()),
-                            texture_info.GetTlutAddress(), texture_info.GetTlutFormat()))
+        !DecodeTextureOnGPU(
+            entry, 0, texture_info.GetData(), texture_info.GetTextureSize(),
+            texture_info.GetTextureFormat(), width, height, expanded_width, expanded_height,
+            creation_info.bytes_per_block * (expanded_width / texture_info.GetBlockWidth()),
+            texture_info.GetTlutAddress(), texture_info.GetTlutFormat()))
     {
       size_t decoded_texture_size = expanded_width * sizeof(u32) * expanded_height;
 
@@ -1690,42 +1705,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
 
       dst_buffer += decoded_texture_size;
     }
-  }
 
-  iter = textures_by_address.emplace(texture_info.GetRawAddress(), entry);
-  if (textureCacheSafetyColorSampleSize == 0 ||
-      std::max(texture_info.GetTextureSize(), palette_size) <=
-          (u32)textureCacheSafetyColorSampleSize * 8)
-  {
-    entry->textures_by_hash_iter = textures_by_hash.emplace(full_hash, entry);
-  }
-
-  entry->SetGeneralParameters(texture_info.GetRawAddress(), texture_info.GetTextureSize(),
-                              full_format, false);
-  entry->SetDimensions(texture_info.GetRawWidth(), texture_info.GetRawHeight(),
-                       texture_info.GetLevelCount());
-  entry->SetHashes(base_hash, full_hash);
-  entry->is_custom_tex = hires_tex != nullptr;
-  entry->memory_stride = entry->BytesPerRow();
-  entry->SetNotCopy();
-
-  std::string basename;
-  if (g_ActiveConfig.bDumpTextures && !hires_tex)
-  {
-    basename = HiresTexture::GenBaseName(texture_info, true);
-  }
-
-  if (hires_tex)
-  {
-    for (u32 level_index = 1; level_index != texLevels; ++level_index)
-    {
-      const auto& level = hires_tex->GetData().m_levels[level_index];
-      entry->texture->Load(level_index, level.width, level.height, level.row_length,
-                           level.data.data(), level.data.size());
-    }
-  }
-  else
-  {
     for (u32 level = 1; level != texLevels; ++level)
     {
       auto mip_level = texture_info.GetMipMapLevel(level - 1);
@@ -1733,12 +1713,13 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
         continue;
 
       if (!decode_on_gpu ||
-          !DecodeTextureOnGPU(
-              entry, level, mip_level->GetData(), mip_level->GetTextureSize(),
-              texture_info.GetTextureFormat(), mip_level->GetRawWidth(), mip_level->GetRawHeight(),
-              mip_level->GetExpandedWidth(), mip_level->GetExpandedHeight(),
-              bytes_per_block * (mip_level->GetExpandedWidth() / texture_info.GetBlockWidth()),
-              texture_info.GetTlutAddress(), texture_info.GetTlutFormat()))
+          !DecodeTextureOnGPU(entry, level, mip_level->GetData(), mip_level->GetTextureSize(),
+                              texture_info.GetTextureFormat(), mip_level->GetRawWidth(),
+                              mip_level->GetRawHeight(), mip_level->GetExpandedWidth(),
+                              mip_level->GetExpandedHeight(),
+                              creation_info.bytes_per_block *
+                                  (mip_level->GetExpandedWidth() / texture_info.GetBlockWidth()),
+                              texture_info.GetTlutAddress(), texture_info.GetTlutFormat()))
       {
         // No need to call CheckTempSize here, as the whole buffer is preallocated at the beginning
         const u32 decoded_mip_size =
@@ -1755,18 +1736,36 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
         dst_buffer += decoded_mip_size;
       }
     }
-  }
 
-  entry->has_arbitrary_mips = hires_tex ? hires_tex->HasArbitraryMipmaps() :
-                                          arbitrary_mip_detector.HasArbitraryMipmaps(dst_buffer);
+    entry->has_arbitrary_mips = arbitrary_mip_detector.HasArbitraryMipmaps(dst_buffer);
 
-  if (g_ActiveConfig.bDumpTextures && !hires_tex)
-  {
-    for (u32 level = 0; level < texLevels; ++level)
+    if (g_ActiveConfig.bDumpTextures)
     {
-      DumpTexture(entry, basename, level, entry->has_arbitrary_mips);
+      const std::string basename = HiresTexture::GenBaseName(texture_info, true);
+      for (u32 level = 0; level < texLevels; ++level)
+      {
+        DumpTexture(entry, basename, level, entry->has_arbitrary_mips);
+      }
     }
   }
+
+  const auto iter = textures_by_address.emplace(texture_info.GetRawAddress(), entry);
+  if (safety_color_sample_size == 0 ||
+      std::max(texture_info.GetTextureSize(), creation_info.palette_size) <=
+          (u32)safety_color_sample_size * 8)
+  {
+    entry->textures_by_hash_iter = textures_by_hash.emplace(creation_info.full_hash, entry);
+  }
+
+  const TextureAndTLUTFormat full_format(texture_info.GetTextureFormat(),
+                                         texture_info.GetTlutFormat());
+  entry->SetGeneralParameters(texture_info.GetRawAddress(), texture_info.GetTextureSize(),
+                              full_format, false);
+  entry->SetDimensions(texture_info.GetRawWidth(), texture_info.GetRawHeight(),
+                       texture_info.GetLevelCount());
+  entry->SetHashes(creation_info.base_hash, creation_info.full_hash);
+  entry->memory_stride = entry->BytesPerRow();
+  entry->SetNotCopy();
 
   INCSTAT(g_stats.num_textures_uploaded);
   SETSTAT(g_stats.num_textures_alive, static_cast<int>(textures_by_address.size()));
@@ -1776,6 +1775,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
 
   // This should only be needed if the texture was updated, or used GPU decoding.
   entry->texture->FinishedRendering();
+
   return entry;
 }
 
