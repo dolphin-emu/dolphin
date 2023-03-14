@@ -361,30 +361,29 @@ public final class DirectoryInitialization
   private static void checkThemeSettings(Context context)
   {
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    if (IntSetting.MAIN_INTERFACE_THEME.getIntGlobal() !=
+    if (IntSetting.MAIN_INTERFACE_THEME.getInt() !=
             preferences.getInt(ThemeHelper.CURRENT_THEME, ThemeHelper.DEFAULT))
     {
       preferences.edit()
-              .putInt(ThemeHelper.CURRENT_THEME, IntSetting.MAIN_INTERFACE_THEME.getIntGlobal())
+              .putInt(ThemeHelper.CURRENT_THEME, IntSetting.MAIN_INTERFACE_THEME.getInt())
               .apply();
     }
 
-    if (IntSetting.MAIN_INTERFACE_THEME_MODE.getIntGlobal() !=
+    if (IntSetting.MAIN_INTERFACE_THEME_MODE.getInt() !=
             preferences.getInt(ThemeHelper.CURRENT_THEME_MODE,
                     AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM))
     {
       preferences.edit()
-              .putInt(ThemeHelper.CURRENT_THEME_MODE,
-                      IntSetting.MAIN_INTERFACE_THEME_MODE.getIntGlobal())
+              .putInt(ThemeHelper.CURRENT_THEME_MODE, IntSetting.MAIN_INTERFACE_THEME_MODE.getInt())
               .apply();
     }
 
-    if (BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBooleanGlobal() !=
+    if (BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBoolean() !=
             preferences.getBoolean(ThemeHelper.USE_BLACK_BACKGROUNDS, false))
     {
       preferences.edit()
               .putBoolean(ThemeHelper.USE_BLACK_BACKGROUNDS,
-                      BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBooleanGlobal())
+                      BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBoolean())
               .apply();
     }
   }

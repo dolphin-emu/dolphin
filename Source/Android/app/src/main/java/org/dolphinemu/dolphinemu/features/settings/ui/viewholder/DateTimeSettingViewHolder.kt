@@ -22,7 +22,7 @@ class DateTimeSettingViewHolder(
 
     override fun bind(item: SettingsItem) {
         mItem = item as DateTimeChoiceSetting
-        val inputTime = mItem!!.getSelectedValue(adapter.settings)
+        val inputTime = mItem!!.getSelectedValue()
         binding.textSettingName.text = item.getName()
 
         if (!TextUtils.isEmpty(inputTime)) {

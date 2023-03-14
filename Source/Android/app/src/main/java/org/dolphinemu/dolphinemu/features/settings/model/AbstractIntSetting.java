@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 
 public interface AbstractIntSetting extends AbstractSetting
 {
-  int getInt(@NonNull Settings settings);
+  int getInt();
 
   void setInt(@NonNull Settings settings, int newValue);
 }

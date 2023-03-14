@@ -37,7 +37,7 @@ object CoilUtils {
                     }
                 )
             }
-        } else if (BooleanSetting.MAIN_USE_GAME_COVERS.booleanGlobal) {
+        } else if (BooleanSetting.MAIN_USE_GAME_COVERS.boolean) {
             imageView.load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile))) {
                 error(R.drawable.no_banner)
                 target(
@@ -58,13 +58,13 @@ object CoilUtils {
     }
 
     private fun enableInnerTitle(gameViewHolder: GameViewHolder?) {
-        if (gameViewHolder != null && !BooleanSetting.MAIN_SHOW_GAME_TITLES.booleanGlobal) {
+        if (gameViewHolder != null && !BooleanSetting.MAIN_SHOW_GAME_TITLES.boolean) {
             gameViewHolder.binding.textGameTitleInner.visibility = View.VISIBLE
         }
     }
 
     private fun disableInnerTitle(gameViewHolder: GameViewHolder?) {
-        if (gameViewHolder != null && !BooleanSetting.MAIN_SHOW_GAME_TITLES.booleanGlobal) {
+        if (gameViewHolder != null && !BooleanSetting.MAIN_SHOW_GAME_TITLES.boolean) {
             gameViewHolder.binding.textGameTitleInner.visibility = View.GONE
         }
     }

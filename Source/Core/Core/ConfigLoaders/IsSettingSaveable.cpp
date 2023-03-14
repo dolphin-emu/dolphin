@@ -18,7 +18,8 @@ bool IsSettingSaveable(const Config::Location& config_location)
 {
   for (Config::System system :
        {Config::System::SYSCONF, Config::System::GFX, Config::System::DualShockUDPClient,
-        Config::System::Logger, Config::System::FreeLook, Config::System::Main})
+        Config::System::Logger, Config::System::FreeLook, Config::System::Main,
+        Config::System::GameSettingsOnly})
   {
     if (config_location.system == system)
       return true;

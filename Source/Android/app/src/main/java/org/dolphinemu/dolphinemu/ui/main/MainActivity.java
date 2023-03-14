@@ -378,7 +378,7 @@ public final class MainActivity extends AppCompatActivity
               public void onTabSelected(@NonNull TabLayout.Tab tab)
               {
                 super.onTabSelected(tab);
-                IntSetting.MAIN_LAST_PLATFORM_TAB.setIntGlobal(NativeConfig.LAYER_BASE,
+                IntSetting.MAIN_LAST_PLATFORM_TAB.setInt(NativeConfig.LAYER_BASE,
                         tab.getPosition());
               }
             });
@@ -388,7 +388,7 @@ public final class MainActivity extends AppCompatActivity
       mBinding.tabsPlatforms.getTabAt(i).setIcon(PlatformPagerAdapter.TAB_ICONS[i]);
     }
 
-    mBinding.pagerPlatforms.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getIntGlobal());
+    mBinding.pagerPlatforms.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getInt());
 
     showGames();
     GameFileCacheManager.startLoad();

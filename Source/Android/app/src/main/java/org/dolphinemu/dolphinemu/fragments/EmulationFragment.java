@@ -115,7 +115,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       {
         int overlayX = mInputOverlay.getLeft();
         int overlayY = mInputOverlay.getTop();
-        mInputOverlay.setSurfacePosition(activity.getSettings(), new Rect(
+        mInputOverlay.setSurfacePosition(new Rect(
                 surfaceView.getLeft() - overlayX, surfaceView.getTop() - overlayY,
                 surfaceView.getRight() - overlayX, surfaceView.getBottom() - overlayY));
       });
@@ -135,7 +135,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     super.onResume();
 
     if (mInputOverlay != null && NativeLibrary.IsGameMetadataValid())
-      mInputOverlay.refreshControls(activity.getSettings());
+      mInputOverlay.refreshControls();
 
     run(activity.isActivityRecreated());
   }
@@ -171,34 +171,34 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   public void toggleInputOverlayVisibility(Settings settings)
   {
     BooleanSetting.MAIN_SHOW_INPUT_OVERLAY
-            .setBoolean(settings, !BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBoolean(settings));
+            .setBoolean(settings, !BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBoolean());
 
     if (mInputOverlay != null)
-      mInputOverlay.refreshControls(settings);
+      mInputOverlay.refreshControls();
   }
 
-  public void initInputPointer(Settings settings)
+  public void initInputPointer()
   {
     if (mInputOverlay != null)
-      mInputOverlay.initTouchPointer(settings);
+      mInputOverlay.initTouchPointer();
   }
 
-  public void refreshInputOverlay(Settings settings)
+  public void refreshInputOverlay()
   {
     if (mInputOverlay != null)
-      mInputOverlay.refreshControls(settings);
+      mInputOverlay.refreshControls();
   }
 
-  public void refreshOverlayPointer(Settings settings)
+  public void refreshOverlayPointer()
   {
     if (mInputOverlay != null)
-      mInputOverlay.refreshOverlayPointer(settings);
+      mInputOverlay.refreshOverlayPointer();
   }
 
-  public void resetInputOverlay(Settings settings)
+  public void resetInputOverlay()
   {
     if (mInputOverlay != null)
-      mInputOverlay.resetButtonPlacement(settings);
+      mInputOverlay.resetButtonPlacement();
   }
 
   @Override

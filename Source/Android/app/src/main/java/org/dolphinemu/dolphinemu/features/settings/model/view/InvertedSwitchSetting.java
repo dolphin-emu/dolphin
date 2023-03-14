@@ -17,9 +17,9 @@ public final class InvertedSwitchSetting extends SwitchSetting
   }
 
   @Override
-  public boolean isChecked(Settings settings)
+  public boolean isChecked()
   {
-    return !mSetting.getBoolean(settings);
+    return !mSetting.getBoolean();
   }
 
   @Override

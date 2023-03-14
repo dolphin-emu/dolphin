@@ -60,9 +60,9 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
     return mDescriptionValuesId;
   }
 
-  public int getSelectedValue(Settings settings)
+  public int getSelectedValue()
   {
-    return mSetting.getInt(settings);
+    return mSetting.getInt();
   }
 
   public MenuTag getMenuTag()

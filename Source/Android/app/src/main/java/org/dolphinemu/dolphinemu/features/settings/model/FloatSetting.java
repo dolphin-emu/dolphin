@@ -25,12 +25,9 @@ public enum FloatSetting implements AbstractFloatSetting
   }
 
   @Override
-  public boolean isOverridden(@NonNull Settings settings)
+  public boolean isOverridden()
   {
-    if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
-      return settings.getSection(mFile, mSection).exists(mKey);
-    else
-      return NativeConfig.isOverridden(mFile, mSection, mKey);
+    return NativeConfig.isOverridden(mFile, mSection, mKey);
   }
 
   @Override
@@ -42,48 +39,34 @@ public enum FloatSetting implements AbstractFloatSetting
   @Override
   public boolean delete(@NonNull Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
     }
-    else
-    {
-      return settings.getSection(mFile, mSection).delete(mKey);
-    }
+
+    return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
   }
 
   @Override
-  public float getFloat(@NonNull Settings settings)
+  public float getFloat()
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
-    {
-      return NativeConfig.getFloat(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
-    }
-    else
-    {
-      return settings.getSection(mFile, mSection).getFloat(mKey, mDefaultValue);
-    }
+    return NativeConfig.getFloat(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
 
   @Override
   public void setFloat(@NonNull Settings settings, float newValue)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setFloat(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
     }
-    else
-    {
-      settings.getSection(mFile, mSection).setFloat(mKey, newValue);
-    }
+
+    NativeConfig.setFloat(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
   }
 
-  public float getFloatGlobal()
-  {
-    return NativeConfig.getFloat(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
-  }
-
-  public void setFloatGlobal(int layer, float newValue)
+  public void setFloat(int layer, float newValue)
   {
     NativeConfig.setFloat(layer, mFile, mSection, mKey, newValue);
   }

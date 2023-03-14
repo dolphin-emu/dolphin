@@ -94,19 +94,19 @@ public class StringSingleChoiceSetting extends SettingsItem
     return "";
   }
 
-  public String getSelectedChoice(Settings settings)
+  public String getSelectedChoice()
   {
-    return getChoiceAt(getSelectedValueIndex(settings));
+    return getChoiceAt(getSelectedValueIndex());
   }
 
-  public String getSelectedValue(Settings settings)
+  public String getSelectedValue()
   {
-    return mSetting.getString(settings);
+    return mSetting.getString();
   }
 
-  public int getSelectedValueIndex(Settings settings)
+  public int getSelectedValueIndex()
   {
-    String selectedValue = getSelectedValue(settings);
+    String selectedValue = getSelectedValue();
     for (int i = 0; i < mValues.length; i++)
     {
       if (mValues[i].equals(selectedValue))

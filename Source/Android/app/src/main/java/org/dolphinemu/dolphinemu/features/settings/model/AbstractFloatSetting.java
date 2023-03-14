@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 
 public interface AbstractFloatSetting extends AbstractSetting
 {
-  float getFloat(@NonNull Settings settings);
+  float getFloat();
 
   void setFloat(@NonNull Settings settings, float newValue);
 }

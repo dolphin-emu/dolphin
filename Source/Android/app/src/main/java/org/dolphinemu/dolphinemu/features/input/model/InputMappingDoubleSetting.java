@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.input.model;
 
+import androidx.annotation.NonNull;
+
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractFloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -17,19 +19,19 @@ public class InputMappingDoubleSetting implements AbstractFloatSetting
   }
 
   @Override
-  public float getFloat(Settings settings)
+  public float getFloat()
   {
     return (float) mNumericSetting.getDoubleValue();
   }
 
   @Override
-  public void setFloat(Settings settings, float newValue)
+  public void setFloat(@NonNull Settings settings, float newValue)
   {
     mNumericSetting.setDoubleValue(newValue);
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden()
   {
     return false;
   }
@@ -41,7 +43,7 @@ public class InputMappingDoubleSetting implements AbstractFloatSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     mNumericSetting.setDoubleValue(mNumericSetting.getDoubleDefaultValue());
     return true;

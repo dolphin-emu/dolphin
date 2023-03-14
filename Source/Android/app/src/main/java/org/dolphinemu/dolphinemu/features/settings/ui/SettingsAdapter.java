@@ -217,7 +217,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     DialogInputStringBinding binding = DialogInputStringBinding.inflate(inflater);
     TextInputEditText input = binding.input;
-    input.setText(item.getSelectedValue(getSettings()));
+    input.setText(item.getSelectedValue());
 
     mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
             .setView(binding.getRoot())
@@ -226,7 +226,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
             {
               String editTextInput = input.getText().toString();
 
-              if (!item.getSelectedValue(mView.getSettings()).equals(editTextInput))
+              if (!item.getSelectedValue().equals(editTextInput))
               {
                 notifyItemChanged(position);
                 mView.onSettingChanged();
@@ -272,7 +272,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     {
       mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
               .setTitle(item.getName())
-              .setSingleChoiceItems(item.getChoices(), item.getSelectedValueIndex(getSettings()),
+              .setSingleChoiceItems(item.getChoices(), item.getSelectedValueIndex(),
                       this)
               .show();
     }
@@ -296,7 +296,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     mClickedItem = item;
     mClickedPosition = position;
-    mSeekbarProgress = item.getSelectedValue(getSettings());
+    mSeekbarProgress = item.getSelectedValue();
 
     LayoutInflater inflater = LayoutInflater.from(mView.getActivity());
     DialogSliderBinding binding = DialogSliderBinding.inflate(inflater);
@@ -430,8 +430,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
     {
-      intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,
-              filePicker.getSelectedValue(mView.getSettings()));
+      intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, filePicker.getSelectedValue());
     }
 
     mView.getActivity().startActivityForResult(intent, filePicker.getRequestType());
@@ -441,7 +440,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     mClickedItem = item;
     mClickedPosition = position;
-    long storedTime = Long.decode(item.getSelectedValue(mView.getSettings())) * 1000;
+    long storedTime = Long.decode(item.getSelectedValue()) * 1000;
 
     // Helper to extract hour and minute from epoch time
     Calendar calendar = Calendar.getInstance();
@@ -481,7 +480,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       epochTime += (long) timePicker.getHour() * 60 * 60;
       epochTime += (long) timePicker.getMinute() * 60;
       String rtcString = "0x" + Long.toHexString(epochTime);
-      if (!item.getSelectedValue(mView.getSettings()).equals(rtcString))
+      if (!item.getSelectedValue().equals(rtcString))
       {
         notifyItemChanged(mClickedPosition);
         mView.onSettingChanged();
@@ -498,7 +497,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     FilePicker filePicker = (FilePicker) mClickedItem;
 
-    if (!filePicker.getSelectedValue(mView.getSettings()).equals(selectedFile))
+    if (!filePicker.getSelectedValue().equals(selectedFile))
     {
       notifyItemChanged(mClickedPosition);
       mView.onSettingChanged();
@@ -543,7 +542,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       SingleChoiceSetting scSetting = (SingleChoiceSetting) mClickedItem;
 
       int value = getValueForSingleChoiceSelection(scSetting, which);
-      if (scSetting.getSelectedValue(getSettings()) != value)
+      if (scSetting.getSelectedValue() != value)
         mView.onSettingChanged();
 
       scSetting.setSelectedValue(getSettings(), value);
@@ -556,7 +555,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
               (SingleChoiceSettingDynamicDescriptions) mClickedItem;
 
       int value = getValueForSingleChoiceDynamicDescriptionsSelection(scSetting, which);
-      if (scSetting.getSelectedValue(getSettings()) != value)
+      if (scSetting.getSelectedValue() != value)
         mView.onSettingChanged();
 
       scSetting.setSelectedValue(getSettings(), value);
@@ -567,7 +566,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     {
       StringSingleChoiceSetting scSetting = (StringSingleChoiceSetting) mClickedItem;
       String value = scSetting.getValueAt(which);
-      if (!scSetting.getSelectedValue(getSettings()).equals(value))
+      if (!scSetting.getSelectedValue().equals(value))
         mView.onSettingChanged();
 
       scSetting.setSelectedValue(getSettings(), value);
@@ -577,7 +576,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     else if (mClickedItem instanceof IntSliderSetting)
     {
       IntSliderSetting sliderSetting = (IntSliderSetting) mClickedItem;
-      if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
+      if (sliderSetting.getSelectedValue() != mSeekbarProgress)
         mView.onSettingChanged();
 
       sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
@@ -587,7 +586,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     else if (mClickedItem instanceof FloatSliderSetting)
     {
       FloatSliderSetting sliderSetting = (FloatSliderSetting) mClickedItem;
-      if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
+      if (sliderSetting.getSelectedValue() != mSeekbarProgress)
         mView.onSettingChanged();
 
       sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
@@ -637,7 +636,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   private int getSelectionForSingleChoiceValue(SingleChoiceSetting item)
   {
-    int value = item.getSelectedValue(getSettings());
+    int value = item.getSelectedValue();
     int valuesId = item.getValuesId();
 
     if (valuesId > 0)
@@ -679,7 +678,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   private int getSelectionForSingleChoiceDynamicDescriptionsValue(
           SingleChoiceSettingDynamicDescriptions item)
   {
-    int value = item.getSelectedValue(getSettings());
+    int value = item.getSelectedValue();
     int valuesId = item.getValuesId();
 
     if (valuesId > 0)

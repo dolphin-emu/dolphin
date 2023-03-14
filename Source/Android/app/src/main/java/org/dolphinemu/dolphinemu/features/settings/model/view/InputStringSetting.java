@@ -43,9 +43,9 @@ public class InputStringSetting extends SettingsItem
     this(context, setting, titleId, descriptionId, choicesId, valuesId, null);
   }
 
-  public String getSelectedValue(Settings settings)
+  public String getSelectedValue()
   {
-    return mSetting.getString(settings);
+    return mSetting.getString();
   }
 
   public MenuTag getMenuTag()

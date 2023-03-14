@@ -38,7 +38,7 @@ public final class SwitchSettingViewHolder extends SettingViewHolder
     mBinding.textSettingName.setText(item.getName());
     mBinding.textSettingDescription.setText(item.getDescription());
 
-    mBinding.settingSwitch.setChecked(mItem.isChecked(getAdapter().getSettings()));
+    mBinding.settingSwitch.setChecked(mItem.isChecked());
     mBinding.settingSwitch.setEnabled(mItem.isEditable());
 
     // Check for IPL to make sure user can skip.
@@ -56,14 +56,7 @@ public final class SwitchSettingViewHolder extends SettingViewHolder
         }
       }
 
-      if (mItem.isChecked(getAdapter().getSettings()))
-      {
-        mBinding.settingSwitch.setEnabled(iplExists);
-      }
-      else
-      {
-        mBinding.settingSwitch.setEnabled(true);
-      }
+      mBinding.settingSwitch.setEnabled(iplExists || !mItem.isChecked());
     }
 
     mBinding.settingSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
@@ -95,7 +88,7 @@ public final class SwitchSettingViewHolder extends SettingViewHolder
 
     if (mItem.getSetting() == BooleanSetting.MAIN_SKIP_IPL && !iplExists)
     {
-      if (mItem.isChecked(getAdapter().getSettings()))
+      if (mItem.isChecked())
       {
         showIplNotAvailableError();
         return;

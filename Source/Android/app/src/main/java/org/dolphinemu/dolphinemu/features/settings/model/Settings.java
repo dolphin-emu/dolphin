@@ -9,15 +9,9 @@ import android.widget.Toast;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.input.model.MappingCommon;
-import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
-import org.dolphinemu.dolphinemu.utils.IniFile;
 
 import java.io.Closeable;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Settings implements Closeable
 {
@@ -26,6 +20,7 @@ public class Settings implements Closeable
   public static final String FILE_GFX = "GFX";
   public static final String FILE_LOGGER = "Logger";
   public static final String FILE_WIIMOTE = "WiimoteNew";
+  public static final String FILE_GAME_SETTINGS_ONLY = "GameSettingsOnly";
 
   public static final String SECTION_INI_ANDROID = "Android";
   public static final String SECTION_INI_ANDROID_OVERLAY_BUTTONS = "AndroidOverlayButtons";
@@ -51,39 +46,13 @@ public class Settings implements Closeable
 
   public static final String SECTION_ANALYTICS = "Analytics";
 
-  public static final String GAME_SETTINGS_PLACEHOLDER_FILE_NAME = "";
-
   private String mGameId;
   private int mRevision;
   private boolean mIsWii;
 
-  private static final String[] configFiles = new String[]{FILE_DOLPHIN, FILE_GFX, FILE_LOGGER,
-          FILE_WIIMOTE};
-
-  private Map<String, IniFile> mIniFiles = new HashMap<>();
+  private boolean mSettingsLoaded = false;
 
   private boolean mLoadedRecursiveIsoPathsValue = false;
-
-  private IniFile getGameSpecificFile()
-  {
-    if (!isGameSpecific() || mIniFiles.size() != 1)
-      throw new IllegalStateException();
-
-    return mIniFiles.get(GAME_SETTINGS_PLACEHOLDER_FILE_NAME);
-  }
-
-  public IniFile.Section getSection(String fileName, String sectionName)
-  {
-    if (!isGameSpecific())
-    {
-      return mIniFiles.get(fileName).getOrCreateSection(sectionName);
-    }
-    else
-    {
-      return getGameSpecificFile()
-              .getOrCreateSection(SettingsFile.mapSectionNameFromIni(sectionName));
-    }
-  }
 
   public boolean isGameSpecific()
   {
@@ -100,91 +69,56 @@ public class Settings implements Closeable
     return isGameSpecific() ? NativeConfig.LAYER_LOCAL_GAME : NativeConfig.LAYER_BASE_OR_CURRENT;
   }
 
-  public boolean isEmpty()
+  public boolean areSettingsLoaded()
   {
-    return mIniFiles.isEmpty();
+    return mSettingsLoaded;
   }
 
   public void loadSettings()
   {
     // The value of isWii doesn't matter if we don't have any SettingsActivity
-    loadSettings(null, true);
+    loadSettings(true);
   }
 
-  public void loadSettings(SettingsActivityView view, boolean isWii)
+  public void loadSettings(boolean isWii)
   {
     mIsWii = isWii;
+    mSettingsLoaded = true;
 
-    mIniFiles = new HashMap<>();
-
-    if (!isGameSpecific())
-    {
-      loadDolphinSettings(view);
-    }
-    else
+    if (isGameSpecific())
     {
       // Loading game INIs while the core is running will mess with the game INIs loaded by the core
       if (NativeLibrary.IsRunning())
         throw new IllegalStateException("Attempted to load game INI while emulating");
 
       NativeConfig.loadGameInis(mGameId, mRevision);
-      loadCustomGameSettings(mGameId, view);
     }
 
-    mLoadedRecursiveIsoPathsValue = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this);
+    mLoadedRecursiveIsoPathsValue = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean();
   }
 
-  private void loadDolphinSettings(SettingsActivityView view)
-  {
-    for (String fileName : configFiles)
-    {
-      IniFile ini = new IniFile();
-      SettingsFile.readFile(fileName, ini, view);
-      mIniFiles.put(fileName, ini);
-    }
-  }
-
-  private void loadCustomGameSettings(String gameId, SettingsActivityView view)
-  {
-    IniFile ini = new IniFile();
-    SettingsFile.readCustomGameSettings(gameId, ini, view);
-    mIniFiles.put(GAME_SETTINGS_PLACEHOLDER_FILE_NAME, ini);
-  }
-
-  public void loadSettings(SettingsActivityView view, String gameId, int revision, boolean isWii)
+  public void loadSettings(String gameId, int revision, boolean isWii)
   {
     mGameId = gameId;
     mRevision = revision;
-    loadSettings(view, isWii);
+    loadSettings(isWii);
   }
 
-  public void saveSettings(SettingsActivityView view, Context context)
+  public void saveSettings(Context context)
   {
     if (!isGameSpecific())
     {
       if (context != null)
         Toast.makeText(context, R.string.settings_saved, Toast.LENGTH_SHORT).show();
 
-      for (Map.Entry<String, IniFile> entry : mIniFiles.entrySet())
-      {
-        SettingsFile.saveFile(entry.getKey(), entry.getValue(), view);
-      }
-
       MappingCommon.save();
 
       NativeConfig.save(NativeConfig.LAYER_BASE);
 
-      if (!NativeLibrary.IsRunning())
-      {
-        // Notify the native code of the changes to legacy settings
-        NativeLibrary.ReloadConfig();
-      }
-
-      // LogManager does use the new config system, but doesn't pick up on changes automatically
       NativeLibrary.ReloadLoggerConfig();
       NativeLibrary.UpdateGCAdapterScanThread();
 
-      if (mLoadedRecursiveIsoPathsValue != BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this))
+      if (mLoadedRecursiveIsoPathsValue != BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean())
       {
         // Refresh game library
         GameFileCacheManager.startRescan();
@@ -200,18 +134,13 @@ public class Settings implements Closeable
                 Toast.LENGTH_SHORT).show();
       }
 
-      SettingsFile.saveCustomGameSettings(mGameId, getGameSpecificFile());
-
       NativeConfig.save(NativeConfig.LAYER_LOCAL_GAME);
     }
   }
 
-  public void clearSettings()
+  public void clearGameSettings()
   {
-    for (String fileName : mIniFiles.keySet())
-    {
-      mIniFiles.put(fileName, new IniFile());
-    }
+    NativeConfig.deleteAllKeys(NativeConfig.LAYER_LOCAL_GAME);
   }
 
   public boolean gameIniContainsJunk()
@@ -237,7 +166,8 @@ public class Settings implements Closeable
     if (!isGameSpecific())
       return false;
 
-    return getSection(Settings.FILE_DOLPHIN, SECTION_INI_INTERFACE).exists("ThemeName");
+    return NativeConfig.exists(NativeConfig.LAYER_LOCAL_GAME, FILE_DOLPHIN, SECTION_INI_INTERFACE,
+            "ThemeName");
   }
 
   @Override

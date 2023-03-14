@@ -75,10 +75,10 @@ public abstract class SettingsItem
 
   protected abstract AbstractSetting getSetting();
 
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden()
   {
     AbstractSetting setting = getSetting();
-    return setting != null && setting.isOverridden(settings);
+    return setting != null && setting.isOverridden();
   }
 
   public boolean isEditable()

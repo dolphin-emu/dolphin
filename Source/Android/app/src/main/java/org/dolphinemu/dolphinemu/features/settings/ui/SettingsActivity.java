@@ -276,7 +276,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     new MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.game_ini_junk_title))
             .setMessage(getString(R.string.game_ini_junk_question))
-            .setPositiveButton(R.string.yes, (dialogInterface, i) -> mPresenter.clearSettings())
+            .setPositiveButton(R.string.yes, (dialogInterface, i) -> mPresenter.clearGameSettings())
             .setNegativeButton(R.string.no, null)
             .show();
   }
