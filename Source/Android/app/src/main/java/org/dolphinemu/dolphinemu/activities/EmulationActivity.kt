@@ -109,8 +109,6 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         settings = Settings()
         settings.loadSettings()
 
-        updateOrientation()
-
         // Set these options now so that the SurfaceView the game renders into is the right size.
         enableFullscreenImmersive()
 
@@ -203,21 +201,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
         super.onResume()
 
-        // Only android 9+ support this feature.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val attributes = window.attributes
-
-            attributes.layoutInDisplayCutoutMode =
-                if (BooleanSetting.MAIN_EXPAND_TO_CUTOUT_AREA.boolean) {
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-                } else {
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
-                }
-
-            window.attributes = attributes
-        }
-
-        updateOrientation()
+        updateDisplaySettings()
 
         DolphinSensorEventListener.setDeviceRotation(windowManager.defaultDisplay.rotation)
     }
@@ -338,7 +322,20 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
     }
 
-    private fun updateOrientation() {
+    private fun updateDisplaySettings() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val attributes = window.attributes
+
+            attributes.layoutInDisplayCutoutMode =
+                if (BooleanSetting.MAIN_EXPAND_TO_CUTOUT_AREA.boolean) {
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                } else {
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
+                }
+
+            window.attributes = attributes
+        }
+
         requestedOrientation = IntSetting.MAIN_EMULATION_ORIENTATION.int
     }
 
