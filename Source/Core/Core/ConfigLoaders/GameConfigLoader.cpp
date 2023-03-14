@@ -28,6 +28,9 @@
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
+#include "Core/HotkeyManager.h"
+
+#include "InputCommon/InputConfig.h"
 
 namespace ConfigLoaders
 {
@@ -249,9 +252,46 @@ private:
     }
   }
 
+  void LoadGameSpecificHotkeyConfig(const IniFile::Section& section) const
+  {
+    const std::string path_to_all_hotkey_profiles =
+        File::GetUserPath(D_CONFIG_IDX) + "Profiles/Hotkeys/";
+
+    const std::map<std::string, std::string, CaseInsensitiveStringCompare> game_hotkey_profiles =
+        section.GetValues();
+
+    if (game_hotkey_profiles.empty() || game_hotkey_profiles.begin()->first != "HotkeyProfile")
+    {
+      return;
+    }
+
+    const std::string game_hotkey_profile_name = game_hotkey_profiles.begin()->second;
+
+    const std::string path_to_game_hotkey_profile =
+        path_to_all_hotkey_profiles + game_hotkey_profile_name + ".ini";
+
+    if (!File::Exists(path_to_game_hotkey_profile))
+    {
+      return;
+    }
+
+    IniFile game_hotkey_profile;
+    game_hotkey_profile.Load(path_to_game_hotkey_profile);
+
+    const InputConfig* current_hotkey_config = HotkeyManagerEmu::GetConfig();
+    current_hotkey_config->GetController(0)->LoadConfig(
+        game_hotkey_profile.GetOrCreateSection("Profile"));
+  }
+
   void LoadFromSystemSection(Config::Layer* layer, const IniFile::Section& section) const
   {
     const std::string section_name = section.GetName();
+
+    if (section_name == "Hotkeys")
+    {
+      LoadGameSpecificHotkeyConfig(section);
+      return;
+    }
 
     // Regular key,value pairs
     const IniFile::Section::SectionMap& section_map = section.GetValues();
