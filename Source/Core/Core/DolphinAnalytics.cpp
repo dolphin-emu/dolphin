@@ -256,6 +256,12 @@ void DolphinAnalytics::MakeBaseBuilder()
   builder.AddData("version-branch", Common::GetScmBranchStr());
   builder.AddData("version-dist", Common::GetScmDistributorStr());
 
+#ifdef STEAM
+  builder.AddData("version-source", "steam");
+#else
+  builder.AddData("version-source", "other");
+#endif
+
   // Auto-Update information.
   builder.AddData("update-track", Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 
