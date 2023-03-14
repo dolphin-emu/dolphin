@@ -2,7 +2,7 @@
 
 package org.dolphinemu.dolphinemu.utils;
 
-import androidx.core.app.ComponentActivity;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
@@ -18,10 +18,10 @@ public class AfterDirectoryInitializationRunner
    * be executed immediately. If this is called before directory initialization has finished,
    * the Runnable will be executed after directory initialization finishes.
    *
-   * If the passed-in activity gets destroyed before this operation finishes,
-   * it will be automatically canceled.
+   * If the passed-in LifecycleOwner gets destroyed before this operation finishes,
+   * the operation will be automatically canceled.
    */
-  public void runWithLifecycle(ComponentActivity activity, Runnable runnable)
+  public void runWithLifecycle(LifecycleOwner lifecycleOwner, Runnable runnable)
   {
     if (DirectoryInitialization.areDolphinDirectoriesReady())
     {
@@ -30,7 +30,7 @@ public class AfterDirectoryInitializationRunner
     else
     {
       mObserver = createObserver(runnable);
-      DirectoryInitialization.getDolphinDirectoriesState().observe(activity, mObserver);
+      DirectoryInitialization.getDolphinDirectoriesState().observe(lifecycleOwner, mObserver);
     }
   }
 
