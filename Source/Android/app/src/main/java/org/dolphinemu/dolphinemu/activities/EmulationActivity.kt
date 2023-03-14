@@ -56,6 +56,7 @@ import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import kotlin.math.roundToInt
@@ -201,7 +202,19 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
         super.onResume()
 
-        updateDisplaySettings()
+        // If the whole app process was recreated, directory initialization might not be done yet.
+        // If that's the case, we can't read settings, so skip reading the settings for now and do
+        // it once onTitleChanged runs instead.
+        if (DirectoryInitialization.areDolphinDirectoriesReady()) {
+            updateDisplaySettings();
+        } else {
+            // If the process was recreated and DolphinApplication.onStart didn't think it should
+            // start directory initialization, we have to start it, otherwise emulation will never
+            // start. Technically it would be nicer to ask the user for write permission first,
+            // but because this problem can only happen in very convoluted situations, this code is
+            // going to get essentially no testing, so let's go with the simplest possible fix.
+            DirectoryInitialization.start(this);
+        }
 
         DolphinSensorEventListener.setDeviceRotation(windowManager.defaultDisplay.rotation)
     }
