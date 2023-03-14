@@ -23,6 +23,12 @@ class Mapping;
 
 namespace AudioInterface
 {
+enum class SampleRate
+{
+  AI32KHz,
+  AI48KHz,
+};
+
 class AudioInterfaceManager
 {
 public:
@@ -45,18 +51,17 @@ public:
   u32 GetAIDSampleRateDivisor() const;
   u32 GetAISSampleRateDivisor() const;
 
+  // The configured sample rate based on the control registers. Note that on GameCube, the named
+  // rates are slightly higher than the names would suggest due to a hardware bug.
+  SampleRate GetAIDSampleRate() const;
+  SampleRate GetAISSampleRate() const;
+
   u32 Get32KHzSampleRateDivisor() const;
   u32 Get48KHzSampleRateDivisor() const;
 
   void GenerateAISInterrupt();
 
 private:
-  enum class SampleRate
-  {
-    AI32KHz,
-    AI48KHz,
-  };
-
   // AI Control Register
   union AICR
   {

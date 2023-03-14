@@ -105,7 +105,7 @@ void DVDInterface::DoState(PointerWrap& p)
   p.Do(m_current_length);
   p.Do(m_next_start);
   p.Do(m_next_length);
-  p.Do(m_pending_samples);
+  p.Do(m_pending_blocks);
   p.Do(m_enable_dtk);
   p.Do(m_dtk_buffer_length);
 
@@ -124,32 +124,34 @@ void DVDInterface::DoState(PointerWrap& p)
   m_adpcm_decoder.DoState(p);
 }
 
-size_t DVDInterface::ProcessDTKSamples(s16* target_samples, size_t sample_count,
+size_t DVDInterface::ProcessDTKSamples(s16* target_samples, size_t target_block_count,
                                        const std::vector<u8>& audio_data)
 {
+  const size_t block_count_to_process =
+      std::min(target_block_count, audio_data.size() / StreamADPCM::ONE_BLOCK_SIZE);
   size_t samples_processed = 0;
   size_t bytes_processed = 0;
-  while (samples_processed < sample_count && bytes_processed < audio_data.size())
+  for (size_t i = 0; i < block_count_to_process; ++i)
   {
     m_adpcm_decoder.DecodeBlock(&target_samples[samples_processed * 2],
                                 &audio_data[bytes_processed]);
-    for (size_t i = 0; i < StreamADPCM::SAMPLES_PER_BLOCK * 2; ++i)
+    for (size_t j = 0; j < StreamADPCM::SAMPLES_PER_BLOCK * 2; ++j)
     {
       // TODO: Fix the mixer so it can accept non-byte-swapped samples.
-      s16* sample = &target_samples[samples_processed * 2 + i];
+      s16* sample = &target_samples[samples_processed * 2 + j];
       *sample = Common::swap16(*sample);
     }
     samples_processed += StreamADPCM::SAMPLES_PER_BLOCK;
     bytes_processed += StreamADPCM::ONE_BLOCK_SIZE;
   }
-  return samples_processed;
+  return block_count_to_process;
 }
 
-u32 DVDInterface::AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
+u32 DVDInterface::AdvanceDTK(u32 maximum_blocks, u32* blocks_to_process)
 {
   u32 bytes_to_process = 0;
-  *samples_to_process = 0;
-  while (*samples_to_process < maximum_samples)
+  *blocks_to_process = 0;
+  while (*blocks_to_process < maximum_blocks)
   {
     if (m_audio_position >= m_current_start + m_current_length)
     {
@@ -175,7 +177,7 @@ u32 DVDInterface::AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
 
     m_audio_position += StreamADPCM::ONE_BLOCK_SIZE;
     bytes_to_process += StreamADPCM::ONE_BLOCK_SIZE;
-    *samples_to_process += StreamADPCM::SAMPLES_PER_BLOCK;
+    *blocks_to_process += 1;
   }
 
   return bytes_to_process;
@@ -189,57 +191,51 @@ void DVDInterface::DTKStreamingCallback(DIInterruptType interrupt_type,
   // Actual games always set this to 48 KHz
   // but let's make sure to use GetAISSampleRateDivisor()
   // just in case it changes to 32 KHz
+  const auto sample_rate = ai.GetAISSampleRate();
   const u32 sample_rate_divisor = ai.GetAISSampleRateDivisor();
 
   // Determine which audio data to read next.
 
   // 3.5 ms of samples
-  const u32 maximum_samples =
-      ((Mixer::FIXED_SAMPLE_RATE_DIVIDEND / 2000) * 7) / sample_rate_divisor;
+  constexpr u32 MAX_POSSIBLE_BLOCKS = 6;
+  constexpr u32 MAX_POSSIBLE_SAMPLES = MAX_POSSIBLE_BLOCKS * StreamADPCM::SAMPLES_PER_BLOCK;
+  const u32 maximum_blocks = sample_rate == AudioInterface::SampleRate::AI32KHz ? 4 : 6;
   u64 read_offset = 0;
   u32 read_length = 0;
 
   if (interrupt_type == DIInterruptType::TCINT)
   {
-    // maximum_samples can only be 112 (if running at 32khz) or 168 (if running at 48khz), so just
-    // prepare stack space for the biggest possible case. This is true even for the GameCube's not
-    // quite correct sample rates.
-    constexpr u32 MAX_POSSIBLE_SAMPLES = 168;
-
     // Send audio to the mixer.
-    std::array<s16, MAX_POSSIBLE_SAMPLES * 2> temp_pcm;
-    ASSERT(m_pending_samples <= MAX_POSSIBLE_SAMPLES);
-    const u32 pending_samples = std::min(m_pending_samples, MAX_POSSIBLE_SAMPLES);
-    const size_t samples_processed =
-        ProcessDTKSamples(temp_pcm.data(), pending_samples, audio_data);
-
-    // Fill unprocessed space up with zero samples.
-    const size_t samples_free = pending_samples - samples_processed;
-    std::fill_n(temp_pcm.data() + samples_processed * 2, samples_free * 2, 0);
+    std::array<s16, MAX_POSSIBLE_SAMPLES * 2> temp_pcm{};
+    ASSERT(m_pending_blocks <= MAX_POSSIBLE_BLOCKS);
+    const u32 pending_blocks = std::min(m_pending_blocks, MAX_POSSIBLE_BLOCKS);
+    ProcessDTKSamples(temp_pcm.data(), pending_blocks, audio_data);
 
     SoundStream* sound_stream = m_system.GetSoundStream();
-    sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(), pending_samples);
+    sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(),
+                                                   pending_blocks * StreamADPCM::SAMPLES_PER_BLOCK);
 
     if (m_stream && ai.IsPlaying())
     {
       read_offset = m_audio_position;
-      read_length = AdvanceDTK(maximum_samples, &m_pending_samples);
+      read_length = AdvanceDTK(maximum_blocks, &m_pending_blocks);
     }
     else
     {
       read_length = 0;
-      m_pending_samples = maximum_samples;
+      m_pending_blocks = maximum_blocks;
     }
   }
   else
   {
     read_length = 0;
-    m_pending_samples = maximum_samples;
+    m_pending_blocks = maximum_blocks;
   }
 
   // Read the next chunk of audio data asynchronously.
-  s64 ticks_to_dtk = SystemTimers::GetTicksPerSecond() * s64(m_pending_samples) *
-                     sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
+  s64 ticks_to_dtk = SystemTimers::GetTicksPerSecond() * s64(m_pending_blocks) *
+                     StreamADPCM::SAMPLES_PER_BLOCK * sample_rate_divisor /
+                     Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
   ticks_to_dtk -= cycles_late;
   if (read_length > 0)
   {
@@ -297,7 +293,7 @@ void DVDInterface::ResetDrive(bool spinup)
   m_next_length = 0;
   m_current_start = 0;
   m_current_length = 0;
-  m_pending_samples = 0;
+  m_pending_blocks = 0;
   m_enable_dtk = false;
   m_dtk_buffer_length = 0;
 
