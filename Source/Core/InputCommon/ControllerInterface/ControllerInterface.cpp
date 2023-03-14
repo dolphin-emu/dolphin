@@ -372,6 +372,14 @@ void ControllerInterface::UpdateInput()
 
   // TODO: if we are an emulation input channel, we should probably always lock
   // Prefer outdated values over blocking UI or CPU thread (avoids short but noticeable frame drop)
+
+  // Lock this first to avoid deadlock with m_devices_mutex in certain cases (such as a Wii Remote
+  // getting disconnected)
+  if (!m_devices_population_mutex.try_lock())
+    return;
+
+  std::lock_guard population_lock(m_devices_population_mutex, std::adopt_lock);
+
   if (!m_devices_mutex.try_lock())
     return;
 
