@@ -335,6 +335,16 @@ u32 AudioInterfaceManager::GetAISSampleRateDivisor() const
   return m_ais_sample_rate_divisor;
 }
 
+SampleRate AudioInterfaceManager::GetAIDSampleRate() const
+{
+  return m_control.AIDFR == AID_48KHz ? SampleRate::AI48KHz : SampleRate::AI32KHz;
+}
+
+SampleRate AudioInterfaceManager::GetAISSampleRate() const
+{
+  return m_control.AISFR == AIS_32KHz ? SampleRate::AI32KHz : SampleRate::AI48KHz;
+}
+
 u32 AudioInterfaceManager::Get32KHzSampleRateDivisor() const
 {
   return Get48KHzSampleRateDivisor() * 3 / 2;
