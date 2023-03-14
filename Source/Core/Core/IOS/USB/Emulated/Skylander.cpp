@@ -7,6 +7,7 @@
 #include <mutex>
 #include <vector>
 
+#include "AudioCommon/AudioCommon.h"
 #include "Common/Logging/Log.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
@@ -903,15 +904,21 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   s32 expected_count;
   u64 expected_time_us;
   // Audio requests are 64 bytes long, are the only Interrupt requests longer than 32 bytes,
-  // echo the request as the response and respond after 1ms
+  // echo the request as the response and respond immediately
   if (cmd->length > 32 && cmd->length <= 64)
   {
+    // Play audio through Portal Mixer
+    // Audio is unsigned 16 bit, supplied as 64 bytes which is 32 samples
+    SoundStream* sound_stream = system.GetSoundStream();
+    sound_stream->GetMixer()->PushSkylanderPortalSamples(buf, cmd->length / 2);
+
     std::array<u8, 64> audio_interrupt_response = {};
     u8* audio_buf = audio_interrupt_response.data();
     memcpy(audio_buf, buf, cmd->length);
-    expected_time_us = 1000;
+    expected_time_us = 0;
     expected_count = cmd->length;
     ScheduleTransfer(std::move(cmd), audio_interrupt_response, expected_count, expected_time_us);
+
     return 0;
   }
   // If some data was requested from the Control Message, then the Interrupt message needs to
