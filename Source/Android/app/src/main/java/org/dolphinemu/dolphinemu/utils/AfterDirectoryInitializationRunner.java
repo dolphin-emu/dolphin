@@ -12,20 +12,11 @@ public class AfterDirectoryInitializationRunner
   private Observer<DirectoryInitializationState> mObserver;
 
   /**
-   * Executes a Runnable after directory initialization has finished.
+   * Executes a Runnable once directory initialization finishes.
    *
-   * If this is called when directory initialization already is done,
-   * the Runnable will be executed immediately. If this is called before
-   * directory initialization is done, the Runnable will be executed
-   * after directory initialization finishes successfully, or never
-   * in case directory initialization doesn't finish successfully.
-   *
-   * Calling this function multiple times per object is not supported.
-   *
-   * If abortOnFailure is true and external storage was not found, a message
-   * will be shown to the user and the Runnable will not run. If it is false,
-   * the attempt to run the Runnable will never be aborted, and the Runnable
-   * is guaranteed to run if directory initialization ever finishes.
+   * If this is called when directory initialization already has finished, the Runnable will
+   * be executed immediately. If this is called before directory initialization has finished,
+   * the Runnable will be executed after directory initialization finishes.
    *
    * If the passed-in activity gets destroyed before this operation finishes,
    * it will be automatically canceled.
@@ -44,20 +35,11 @@ public class AfterDirectoryInitializationRunner
   }
 
   /**
-   * Executes a Runnable after directory initialization has finished.
+   * Executes a Runnable once directory initialization finishes.
    *
-   * If this is called when directory initialization already is done,
-   * the Runnable will be executed immediately. If this is called before
-   * directory initialization is done, the Runnable will be executed
-   * after directory initialization finishes successfully, or never
-   * in case directory initialization doesn't finish successfully.
-   *
-   * Calling this function multiple times per object is not supported.
-   *
-   * If abortOnFailure is true and external storage was not found, a message
-   * will be shown to the user and the Runnable will not run. If it is false,
-   * the attempt to run the Runnable will never be aborted, and the Runnable
-   * is guaranteed to run if directory initialization ever finishes.
+   * If this is called when directory initialization already has finished, the Runnable will
+   * be executed immediately. If this is called before directory initialization has finished,
+   * the Runnable will be executed after directory initialization finishes.
    */
   public void runWithoutLifecycle(Runnable runnable)
   {
