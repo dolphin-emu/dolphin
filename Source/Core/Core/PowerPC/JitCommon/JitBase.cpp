@@ -125,6 +125,8 @@ void JitBase::ProtectStack()
   ULONG reserveSize = SAFE_STACK_SIZE;
   SetThreadStackGuarantee(&reserveSize);
 #else
+  m_second_stack = static_cast<u8*>(Common::AllocateMemoryPages(SECOND_STACK_SIZE));
+
   auto [stack_addr, stack_size] = Common::GetCurrentThreadStack();
 
   const uintptr_t stack_base_addr = reinterpret_cast<uintptr_t>(stack_addr);
@@ -167,6 +169,11 @@ void JitBase::UnprotectStack()
   {
     Common::UnWriteProtectMemory(m_stack_guard, GUARD_SIZE);
     m_stack_guard = nullptr;
+  }
+  if (m_second_stack)
+  {
+    Common::FreeMemoryPages(m_second_stack, SECOND_STACK_SIZE);
+    m_second_stack = nullptr;
   }
 #endif
 }

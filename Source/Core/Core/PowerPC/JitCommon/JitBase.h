@@ -59,6 +59,7 @@ protected:
   static constexpr size_t MIN_STACK_SIZE = SAFE_STACK_SIZE + MIN_UNSAFE_STACK_SIZE;
   static constexpr size_t GUARD_SIZE = 64 * 1024;
   static constexpr size_t GUARD_OFFSET = SAFE_STACK_SIZE - GUARD_SIZE;
+  static constexpr size_t SECOND_STACK_SIZE = 2 * 1024 * 1024;
 
   struct JitOptions
   {
@@ -147,6 +148,8 @@ protected:
   bool m_enable_blr_optimization = false;
   bool m_cleanup_after_stackfault = false;
   u8* m_stack_guard = nullptr;
+  u8* m_second_stack = nullptr;
+  u8* m_saved_stack_pointer = nullptr;
 
   void RefreshConfig();
 
