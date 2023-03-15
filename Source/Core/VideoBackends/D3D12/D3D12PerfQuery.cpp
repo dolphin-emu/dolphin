@@ -13,6 +13,7 @@
 #include "VideoBackends/D3D12/DX12Context.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace DX12
 {
@@ -244,9 +245,11 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
     std::memcpy(&result, mapped_ptr + (index * sizeof(PerfQueryDataType)), sizeof(result));
 
     // NOTE: Reported pixel metrics should be referenced to native resolution
-    const u64 native_res_result = static_cast<u64>(result) * EFB_WIDTH /
-                                  g_framebuffer_manager->GetEFBWidth() * EFB_HEIGHT /
-                                  g_framebuffer_manager->GetEFBHeight();
+    u64 native_res_result = static_cast<u64>(result) * EFB_WIDTH /
+                            g_framebuffer_manager->GetEFBWidth() * EFB_HEIGHT /
+                            g_framebuffer_manager->GetEFBHeight();
+    if (g_ActiveConfig.iMultisamples > 1)
+      native_res_result /= g_ActiveConfig.iMultisamples;
     m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
                                            std::memory_order_relaxed);
   }
