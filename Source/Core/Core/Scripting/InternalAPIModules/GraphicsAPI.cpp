@@ -81,17 +81,16 @@ static std::array all_graphics_functions_metadata_list = {
 
   FunctionMetadata("addCheckbox", "1.0", "addCheckbox(checkboxLabel, 42)", AddCheckbox,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-
   FunctionMetadata("getCheckboxValue", "1.0", "getCheckboxValue(42)", GetCheckboxValue,
                      ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong}),
-
   FunctionMetadata("setCheckboxValue", "1.0", "setCheckboxValue(42, true)", SetCheckboxValue,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::Boolean}),
 
   FunctionMetadata("addRadioButtonGroup", "1.0", "addRadioButtonGroup(42)", AddRadioButtonGroup,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong}),
-
   FunctionMetadata("addRadioButton", "1.0", "addRadioButton(\"apples\", 42, 0)", AddRadioButton, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+  FunctionMetadata("getRadioButtonGroupValue", "1.0", "getRadioButtonGroupValue((42)", GetRadioButtonGroupValue, ArgTypeEnum::LongLong, {ArgTypeEnum::LongLong}),
+  FunctionMetadata("setRadioButtonGroupValue", "1.0", "setRadioButtonGroupValue(42, 1)", SetRadioButtonGroupValue, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
 
     FunctionMetadata("beginWindow", "1.0", "beginWindow(windowName)", BeginWindow, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::String}),
@@ -395,6 +394,25 @@ ArgHolder DrawFilledCircle(ScriptContext* current_script, std::vector<ArgHolder>
   return CreateVoidTypeArgHolder();
 }
 
+/*
+ArgHolder DrawEmptyArc(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  float x1 = args_list[0].float_val;
+  float y1 = args_list[1].float_val;
+  float x2 = args_list[2].float_val;
+  float y2 = args_list[3].float_val;
+  float x3 = args_list[4].float_val;
+  float y3 = args_list[5].float_val;
+  float x4 = args_list[6].float_val;
+  float y4 = args_list[7].float_val;
+  long long num_sides = args_list[6].long_long_val;
+
+  ImGui::GetForegroundDrawList()->AddBezierCubic({x1, y1}, {x2, y2}, {x3, y3},
+                                                     {x4, y4} , ParseColor("yellow"), 5.0, num_sides);
+  return CreateVoidTypeArgHolder();
+}
+*/
+
 ArgHolder DrawEmptyPolygon(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   std::vector<ImVec2> list_of_points = args_list[0].list_of_points;
@@ -563,10 +581,33 @@ ArgHolder AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder>& 
                     "before trying to pass IdNumber into this function for the radio group number!",
                     radio_group_number));
   }
-  else if (!display_stack.empty() && !display_stack.top())
+  else if (!display_stack.empty() && display_stack.top())
     ImGui::RadioButton(button_name.c_str(), id_to_radio_group_map[radio_button_group_id],
                        radio_button_id);
 
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder GetRadioButtonGroupValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  long long radio_group_id = args_list[0].long_long_val;
+  if (id_to_radio_group_map.count(radio_group_id) == 0)
+    return CreateErrorStringArgHolder(fmt::format(
+        "Attempted to get the value of an undefined radio group with an ID of {}. User must call "
+        "addRadioButtonGroup() before they can get the radio button's value!", radio_group_id));
+  return CreateLongLongArgHolder(*(id_to_radio_group_map[radio_group_id]));
+}
+
+ArgHolder SetRadioButtonGroupValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  long long radio_group_id = args_list[0].long_long_val;
+  long long new_int_value = args_list[1].long_long_val;
+  if (id_to_radio_group_map.count(radio_group_id) == 0)
+    return CreateErrorStringArgHolder(
+        fmt::format("Attempted to set the value of a radio group with an ID of {} before creating "
+                    "it. User must call addRadioButtonGroup() before they can set the value of a "
+                    "radio button group!", radio_group_id));
+  *(id_to_radio_group_map[radio_group_id]) = new_int_value;
   return CreateVoidTypeArgHolder();
 }
 
