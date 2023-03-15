@@ -46,8 +46,8 @@ public class InputDeviceSetting extends StringSingleChoiceSetting
   {
     String[] devices = ControllerInterface.getAllDeviceStrings();
 
-    mChoices = devices;
-    mValues = devices;
+    setChoices(devices);
+    setValues(devices);
   }
 
   @Override
