@@ -160,8 +160,8 @@ public final class GameFileCacheManager
 
   public static GameFile addOrGet(String gamePath)
   {
-    // Common case: The game is in the cache, so just grab it from there.
-    // (Actually, addOrGet already checks for this case, but we want to avoid calling it if possible
+    // Common case: The game is in the cache, so just grab it from there. (GameFileCache.addOrGet
+    // actually already checks for this case, but we want to avoid calling it if possible
     // because the executor thread may hold a lock on sGameFileCache for extended periods of time.)
     GameFile[] allGames = sGameFiles.getValue();
     for (GameFile game : allGames)
@@ -198,6 +198,8 @@ public final class GameFileCacheManager
 
     if (sRunRescanAfterLoad)
     {
+      // Without this, there will be a short blip where the loading indicator in the GUI disappears
+      // because neither sLoadInProgress nor sRescanInProgress is true
       sRescanInProgress.postValue(true);
     }
 
