@@ -2,9 +2,14 @@
 
 package org.dolphinemu.dolphinemu.services;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.ConfigChangedCallback;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
@@ -26,6 +31,7 @@ public final class GameFileCacheManager
           new MutableLiveData<>(new GameFile[]{});
   private static boolean sFirstLoadDone = false;
   private static boolean sRunRescanAfterLoad = false;
+  private static boolean sRecursiveScanEnabled;
 
   private static final ExecutorService sExecutor = Executors.newFixedThreadPool(1);
   private static final MutableLiveData<Boolean> sLoadInProgress = new MutableLiveData<>(false);
@@ -182,6 +188,7 @@ public final class GameFileCacheManager
     if (!sFirstLoadDone)
     {
       sFirstLoadDone = true;
+      setUpAutomaticRescan();
       sGameFileCache.load();
       if (sGameFileCache.getSize() != 0)
       {
@@ -257,5 +264,20 @@ public final class GameFileCacheManager
     {
       sGameFileCache = new GameFileCache();
     }
+  }
+
+  private static void setUpAutomaticRescan()
+  {
+    sRecursiveScanEnabled = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean();
+    new ConfigChangedCallback(() ->
+            new Handler(Looper.getMainLooper()).post(() ->
+            {
+              boolean recursiveScanEnabled = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean();
+              if (sRecursiveScanEnabled != recursiveScanEnabled)
+              {
+                sRecursiveScanEnabled = recursiveScanEnabled;
+                startRescan();
+              }
+            }));
   }
 }
