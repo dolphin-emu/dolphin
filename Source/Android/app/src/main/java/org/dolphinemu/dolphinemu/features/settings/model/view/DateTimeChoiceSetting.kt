@@ -19,6 +19,6 @@ class DateTimeChoiceSetting(
     }
 
     fun getSelectedValue(): String {
-        return setting.getString()
+        return setting.string
     }
 }
