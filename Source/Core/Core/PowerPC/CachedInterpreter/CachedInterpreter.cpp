@@ -19,6 +19,7 @@ struct CachedInterpreter::Instruction
 {
   using CommonCallback = void (*)(UGeckoInstruction);
   using ConditionalCallback = bool (*)(u32);
+  using InterpreterCallback = void (*)(Interpreter&, UGeckoInstruction);
 
   Instruction() {}
   Instruction(const CommonCallback c, UGeckoInstruction i)
@@ -31,17 +32,24 @@ struct CachedInterpreter::Instruction
   {
   }
 
+  Instruction(const InterpreterCallback c, UGeckoInstruction i)
+      : interpreter_callback(c), data(i.hex), type(Type::Interpreter)
+  {
+  }
+
   enum class Type
   {
     Abort,
     Common,
     Conditional,
+    Interpreter,
   };
 
   union
   {
     const CommonCallback common_callback = nullptr;
     const ConditionalCallback conditional_callback;
+    const InterpreterCallback interpreter_callback;
   };
 
   u32 data = 0;
@@ -98,6 +106,10 @@ void CachedInterpreter::ExecuteOneBlock()
     case Instruction::Type::Conditional:
       if (code->conditional_callback(code->data))
         return;
+      break;
+
+    case Instruction::Type::Interpreter:
+      code->interpreter_callback(*Interpreter::getInstance(), UGeckoInstruction(code->data));
       break;
 
     default:

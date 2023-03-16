@@ -11,7 +11,7 @@
 #include "Core/PowerPC/PowerPC.h"
 
 // These "binary instructions" do not alter FPSCR.
-void Interpreter::ps_sel(UGeckoInstruction inst)
+void Interpreter::ps_sel(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -25,7 +25,7 @@ void Interpreter::ps_sel(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_neg(UGeckoInstruction inst)
+void Interpreter::ps_neg(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& b = PowerPC::ppcState.ps[inst.FB];
 
@@ -36,7 +36,7 @@ void Interpreter::ps_neg(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_mr(UGeckoInstruction inst)
+void Interpreter::ps_mr(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.ps[inst.FD] = PowerPC::ppcState.ps[inst.FB];
 
@@ -44,7 +44,7 @@ void Interpreter::ps_mr(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_nabs(UGeckoInstruction inst)
+void Interpreter::ps_nabs(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& b = PowerPC::ppcState.ps[inst.FB];
 
@@ -55,7 +55,7 @@ void Interpreter::ps_nabs(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_abs(UGeckoInstruction inst)
+void Interpreter::ps_abs(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& b = PowerPC::ppcState.ps[inst.FB];
 
@@ -67,7 +67,7 @@ void Interpreter::ps_abs(UGeckoInstruction inst)
 }
 
 // These are just moves, double is OK.
-void Interpreter::ps_merge00(UGeckoInstruction inst)
+void Interpreter::ps_merge00(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -78,7 +78,7 @@ void Interpreter::ps_merge00(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_merge01(UGeckoInstruction inst)
+void Interpreter::ps_merge01(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -89,7 +89,7 @@ void Interpreter::ps_merge01(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_merge10(UGeckoInstruction inst)
+void Interpreter::ps_merge10(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -100,7 +100,7 @@ void Interpreter::ps_merge10(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_merge11(UGeckoInstruction inst)
+void Interpreter::ps_merge11(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -112,7 +112,7 @@ void Interpreter::ps_merge11(UGeckoInstruction inst)
 }
 
 // From here on, the real deal.
-void Interpreter::ps_div(UGeckoInstruction inst)
+void Interpreter::ps_div(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -131,7 +131,7 @@ void Interpreter::ps_div(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_res(UGeckoInstruction inst)
+void Interpreter::ps_res(Interpreter& interpreter, UGeckoInstruction inst)
 {
   // this code is based on the real hardware tests
   const double a = PowerPC::ppcState.ps[inst.FB].PS0AsDouble();
@@ -159,7 +159,7 @@ void Interpreter::ps_res(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_rsqrte(UGeckoInstruction inst)
+void Interpreter::ps_rsqrte(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const double ps0 = PowerPC::ppcState.ps[inst.FB].PS0AsDouble();
   const double ps1 = PowerPC::ppcState.ps[inst.FB].PS1AsDouble();
@@ -194,7 +194,7 @@ void Interpreter::ps_rsqrte(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_sub(UGeckoInstruction inst)
+void Interpreter::ps_sub(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -213,7 +213,7 @@ void Interpreter::ps_sub(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_add(UGeckoInstruction inst)
+void Interpreter::ps_add(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -232,7 +232,7 @@ void Interpreter::ps_add(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_mul(UGeckoInstruction inst)
+void Interpreter::ps_mul(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& c = PowerPC::ppcState.ps[inst.FC];
@@ -252,7 +252,7 @@ void Interpreter::ps_mul(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_msub(UGeckoInstruction inst)
+void Interpreter::ps_msub(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -275,7 +275,7 @@ void Interpreter::ps_msub(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_madd(UGeckoInstruction inst)
+void Interpreter::ps_madd(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -298,7 +298,7 @@ void Interpreter::ps_madd(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_nmsub(UGeckoInstruction inst)
+void Interpreter::ps_nmsub(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -324,7 +324,7 @@ void Interpreter::ps_nmsub(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_nmadd(UGeckoInstruction inst)
+void Interpreter::ps_nmadd(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -350,7 +350,7 @@ void Interpreter::ps_nmadd(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_sum0(UGeckoInstruction inst)
+void Interpreter::ps_sum0(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -368,7 +368,7 @@ void Interpreter::ps_sum0(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_sum1(UGeckoInstruction inst)
+void Interpreter::ps_sum1(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -386,7 +386,7 @@ void Interpreter::ps_sum1(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_muls0(UGeckoInstruction inst)
+void Interpreter::ps_muls0(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& c = PowerPC::ppcState.ps[inst.FC];
@@ -404,7 +404,7 @@ void Interpreter::ps_muls0(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_muls1(UGeckoInstruction inst)
+void Interpreter::ps_muls1(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& c = PowerPC::ppcState.ps[inst.FC];
@@ -422,7 +422,7 @@ void Interpreter::ps_muls1(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_madds0(UGeckoInstruction inst)
+void Interpreter::ps_madds0(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -443,7 +443,7 @@ void Interpreter::ps_madds0(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_madds1(UGeckoInstruction inst)
+void Interpreter::ps_madds1(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -464,7 +464,7 @@ void Interpreter::ps_madds1(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::ps_cmpu0(UGeckoInstruction inst)
+void Interpreter::ps_cmpu0(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -472,7 +472,7 @@ void Interpreter::ps_cmpu0(UGeckoInstruction inst)
   Helper_FloatCompareUnordered(inst, a.PS0AsDouble(), b.PS0AsDouble());
 }
 
-void Interpreter::ps_cmpo0(UGeckoInstruction inst)
+void Interpreter::ps_cmpo0(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -480,7 +480,7 @@ void Interpreter::ps_cmpo0(UGeckoInstruction inst)
   Helper_FloatCompareOrdered(inst, a.PS0AsDouble(), b.PS0AsDouble());
 }
 
-void Interpreter::ps_cmpu1(UGeckoInstruction inst)
+void Interpreter::ps_cmpu1(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
@@ -488,7 +488,7 @@ void Interpreter::ps_cmpu1(UGeckoInstruction inst)
   Helper_FloatCompareUnordered(inst, a.PS1AsDouble(), b.PS1AsDouble());
 }
 
-void Interpreter::ps_cmpo1(UGeckoInstruction inst)
+void Interpreter::ps_cmpo1(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];

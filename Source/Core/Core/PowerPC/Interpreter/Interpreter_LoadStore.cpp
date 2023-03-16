@@ -37,7 +37,7 @@ static u32 Helper_Get_EA_UX(const PowerPC::PowerPCState& ppcs, const UGeckoInstr
   return (ppcs.gpr[inst.RA] + ppcs.gpr[inst.RB]);
 }
 
-void Interpreter::lbz(UGeckoInstruction inst)
+void Interpreter::lbz(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 temp = PowerPC::Read_U8(Helper_Get_EA(PowerPC::ppcState, inst));
 
@@ -45,7 +45,7 @@ void Interpreter::lbz(UGeckoInstruction inst)
     PowerPC::ppcState.gpr[inst.RD] = temp;
 }
 
-void Interpreter::lbzu(UGeckoInstruction inst)
+void Interpreter::lbzu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U8(address);
@@ -57,7 +57,7 @@ void Interpreter::lbzu(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lfd(UGeckoInstruction inst)
+void Interpreter::lfd(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
@@ -73,7 +73,7 @@ void Interpreter::lfd(UGeckoInstruction inst)
     PowerPC::ppcState.ps[inst.FD].SetPS0(temp);
 }
 
-void Interpreter::lfdu(UGeckoInstruction inst)
+void Interpreter::lfdu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
@@ -92,7 +92,7 @@ void Interpreter::lfdu(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lfdux(UGeckoInstruction inst)
+void Interpreter::lfdux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
@@ -111,7 +111,7 @@ void Interpreter::lfdux(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lfdx(UGeckoInstruction inst)
+void Interpreter::lfdx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -127,7 +127,7 @@ void Interpreter::lfdx(UGeckoInstruction inst)
     PowerPC::ppcState.ps[inst.FD].SetPS0(temp);
 }
 
-void Interpreter::lfs(UGeckoInstruction inst)
+void Interpreter::lfs(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
@@ -146,7 +146,7 @@ void Interpreter::lfs(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lfsu(UGeckoInstruction inst)
+void Interpreter::lfsu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
@@ -166,7 +166,7 @@ void Interpreter::lfsu(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lfsux(UGeckoInstruction inst)
+void Interpreter::lfsux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
@@ -186,7 +186,7 @@ void Interpreter::lfsux(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lfsx(UGeckoInstruction inst)
+void Interpreter::lfsx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -205,7 +205,7 @@ void Interpreter::lfsx(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lha(UGeckoInstruction inst)
+void Interpreter::lha(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 temp = u32(s32(s16(PowerPC::Read_U16(Helper_Get_EA(PowerPC::ppcState, inst)))));
 
@@ -215,7 +215,7 @@ void Interpreter::lha(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lhau(UGeckoInstruction inst)
+void Interpreter::lhau(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
   const u32 temp = u32(s32(s16(PowerPC::Read_U16(address))));
@@ -227,7 +227,7 @@ void Interpreter::lhau(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lhz(UGeckoInstruction inst)
+void Interpreter::lhz(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 temp = PowerPC::Read_U16(Helper_Get_EA(PowerPC::ppcState, inst));
 
@@ -237,7 +237,7 @@ void Interpreter::lhz(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lhzu(UGeckoInstruction inst)
+void Interpreter::lhzu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U16(address);
@@ -250,7 +250,7 @@ void Interpreter::lhzu(UGeckoInstruction inst)
 }
 
 // FIXME: lmw should do a total rollback if a DSI occurs
-void Interpreter::lmw(UGeckoInstruction inst)
+void Interpreter::lmw(Interpreter& interpreter, UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
@@ -278,7 +278,7 @@ void Interpreter::lmw(UGeckoInstruction inst)
 }
 
 // FIXME: stmw should do a total rollback if a DSI occurs
-void Interpreter::stmw(UGeckoInstruction inst)
+void Interpreter::stmw(Interpreter& interpreter, UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
@@ -300,7 +300,7 @@ void Interpreter::stmw(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lwz(UGeckoInstruction inst)
+void Interpreter::lwz(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U32(address);
@@ -311,7 +311,7 @@ void Interpreter::lwz(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lwzu(UGeckoInstruction inst)
+void Interpreter::lwzu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U32(address);
@@ -323,12 +323,12 @@ void Interpreter::lwzu(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::stb(UGeckoInstruction inst)
+void Interpreter::stb(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::Write_U8(PowerPC::ppcState.gpr[inst.RS], Helper_Get_EA(PowerPC::ppcState, inst));
 }
 
-void Interpreter::stbu(UGeckoInstruction inst)
+void Interpreter::stbu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
@@ -339,7 +339,7 @@ void Interpreter::stbu(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::stfd(UGeckoInstruction inst)
+void Interpreter::stfd(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
@@ -352,7 +352,7 @@ void Interpreter::stfd(UGeckoInstruction inst)
   PowerPC::Write_U64(PowerPC::ppcState.ps[inst.FS].PS0AsU64(), address);
 }
 
-void Interpreter::stfdu(UGeckoInstruction inst)
+void Interpreter::stfdu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
@@ -369,7 +369,7 @@ void Interpreter::stfdu(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::stfs(UGeckoInstruction inst)
+void Interpreter::stfs(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
@@ -382,7 +382,7 @@ void Interpreter::stfs(UGeckoInstruction inst)
   PowerPC::Write_U32(ConvertToSingle(PowerPC::ppcState.ps[inst.FS].PS0AsU64()), address);
 }
 
-void Interpreter::stfsu(UGeckoInstruction inst)
+void Interpreter::stfsu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
@@ -399,12 +399,12 @@ void Interpreter::stfsu(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::sth(UGeckoInstruction inst)
+void Interpreter::sth(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::Write_U16(PowerPC::ppcState.gpr[inst.RS], Helper_Get_EA(PowerPC::ppcState, inst));
 }
 
-void Interpreter::sthu(UGeckoInstruction inst)
+void Interpreter::sthu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
@@ -415,12 +415,12 @@ void Interpreter::sthu(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::stw(UGeckoInstruction inst)
+void Interpreter::stw(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::Write_U32(PowerPC::ppcState.gpr[inst.RS], Helper_Get_EA(PowerPC::ppcState, inst));
 }
 
-void Interpreter::stwu(UGeckoInstruction inst)
+void Interpreter::stwu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
@@ -431,12 +431,12 @@ void Interpreter::stwu(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::dcba(UGeckoInstruction inst)
+void Interpreter::dcba(Interpreter& interpreter, UGeckoInstruction inst)
 {
   ASSERT_MSG(POWERPC, 0, "dcba - Not implemented - not a Gekko instruction");
 }
 
-void Interpreter::dcbf(UGeckoInstruction inst)
+void Interpreter::dcbf(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
   if (!PowerPC::ppcState.m_enable_dcache)
@@ -451,7 +451,7 @@ void Interpreter::dcbf(UGeckoInstruction inst)
   PowerPC::FlushDCacheLine(address);
 }
 
-void Interpreter::dcbi(UGeckoInstruction inst)
+void Interpreter::dcbi(Interpreter& interpreter, UGeckoInstruction inst)
 {
   if (PowerPC::ppcState.msr.PR)
   {
@@ -472,7 +472,7 @@ void Interpreter::dcbi(UGeckoInstruction inst)
   PowerPC::InvalidateDCacheLine(address);
 }
 
-void Interpreter::dcbst(UGeckoInstruction inst)
+void Interpreter::dcbst(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
   if (!PowerPC::ppcState.m_enable_dcache)
@@ -491,15 +491,15 @@ void Interpreter::dcbst(UGeckoInstruction inst)
 // data cache. But the CPU is never guaranteed to do this fetch, and in practice it's not more
 // performant to emulate it.
 
-void Interpreter::dcbt(UGeckoInstruction inst)
+void Interpreter::dcbt(Interpreter& interpreter, UGeckoInstruction inst)
 {
 }
 
-void Interpreter::dcbtst(UGeckoInstruction inst)
+void Interpreter::dcbtst(Interpreter& interpreter, UGeckoInstruction inst)
 {
 }
 
-void Interpreter::dcbz(UGeckoInstruction inst)
+void Interpreter::dcbz(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 dcbz_addr = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -523,7 +523,7 @@ void Interpreter::dcbz(UGeckoInstruction inst)
   PowerPC::ClearDCacheLine(dcbz_addr & (~31));
 }
 
-void Interpreter::dcbz_l(UGeckoInstruction inst)
+void Interpreter::dcbz_l(Interpreter& interpreter, UGeckoInstruction inst)
 {
   if (!HID2(PowerPC::ppcState).LCE)
   {
@@ -544,7 +544,7 @@ void Interpreter::dcbz_l(UGeckoInstruction inst)
 
 // eciwx/ecowx technically should access the specified device
 // We just do it instantly from ppc...and hey, it works! :D
-void Interpreter::eciwx(UGeckoInstruction inst)
+void Interpreter::eciwx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 EA = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -563,7 +563,7 @@ void Interpreter::eciwx(UGeckoInstruction inst)
   PowerPC::ppcState.gpr[inst.RD] = PowerPC::Read_U32(EA);
 }
 
-void Interpreter::ecowx(UGeckoInstruction inst)
+void Interpreter::ecowx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 EA = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -582,7 +582,7 @@ void Interpreter::ecowx(UGeckoInstruction inst)
   PowerPC::Write_U32(PowerPC::ppcState.gpr[inst.RS], EA);
 }
 
-void Interpreter::eieio(UGeckoInstruction inst)
+void Interpreter::eieio(Interpreter& interpreter, UGeckoInstruction inst)
 {
   // Basically ensures that loads/stores before this instruction
   // have completed (in order) before executing the next op.
@@ -590,14 +590,14 @@ void Interpreter::eieio(UGeckoInstruction inst)
   // But (at least in interpreter) we do everything realtime anyways.
 }
 
-void Interpreter::icbi(UGeckoInstruction inst)
+void Interpreter::icbi(Interpreter& interpreter, UGeckoInstruction inst)
 {
   // TODO: Raise DSI if translation fails (except for direct-store segments).
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
   PowerPC::ppcState.iCache.Invalidate(address);
 }
 
-void Interpreter::lbzux(UGeckoInstruction inst)
+void Interpreter::lbzux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U8(address);
@@ -609,7 +609,7 @@ void Interpreter::lbzux(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lbzx(UGeckoInstruction inst)
+void Interpreter::lbzx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 temp = PowerPC::Read_U8(Helper_Get_EA_X(PowerPC::ppcState, inst));
 
@@ -619,7 +619,7 @@ void Interpreter::lbzx(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lhaux(UGeckoInstruction inst)
+void Interpreter::lhaux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
   const s32 temp = s32{s16(PowerPC::Read_U16(address))};
@@ -631,7 +631,7 @@ void Interpreter::lhaux(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lhax(UGeckoInstruction inst)
+void Interpreter::lhax(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const s32 temp = s32{s16(PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst)))};
 
@@ -641,7 +641,7 @@ void Interpreter::lhax(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lhbrx(UGeckoInstruction inst)
+void Interpreter::lhbrx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 temp = Common::swap16(PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst)));
 
@@ -651,7 +651,7 @@ void Interpreter::lhbrx(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lhzux(UGeckoInstruction inst)
+void Interpreter::lhzux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U16(address);
@@ -663,7 +663,7 @@ void Interpreter::lhzux(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lhzx(UGeckoInstruction inst)
+void Interpreter::lhzx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 temp = PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst));
 
@@ -674,7 +674,7 @@ void Interpreter::lhzx(UGeckoInstruction inst)
 }
 
 // FIXME: Should rollback if a DSI occurs
-void Interpreter::lswx(UGeckoInstruction inst)
+void Interpreter::lswx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -706,7 +706,7 @@ void Interpreter::lswx(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lwbrx(UGeckoInstruction inst)
+void Interpreter::lwbrx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 temp = Common::swap32(PowerPC::Read_U32(Helper_Get_EA_X(PowerPC::ppcState, inst)));
 
@@ -716,7 +716,7 @@ void Interpreter::lwbrx(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lwzux(UGeckoInstruction inst)
+void Interpreter::lwzux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U32(address);
@@ -728,7 +728,7 @@ void Interpreter::lwzux(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::lwzx(UGeckoInstruction inst)
+void Interpreter::lwzx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U32(address);
@@ -739,7 +739,7 @@ void Interpreter::lwzx(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::stbux(UGeckoInstruction inst)
+void Interpreter::stbux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
@@ -750,12 +750,12 @@ void Interpreter::stbux(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::stbx(UGeckoInstruction inst)
+void Interpreter::stbx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::Write_U8(PowerPC::ppcState.gpr[inst.RS], Helper_Get_EA_X(PowerPC::ppcState, inst));
 }
 
-void Interpreter::stfdux(UGeckoInstruction inst)
+void Interpreter::stfdux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
@@ -772,7 +772,7 @@ void Interpreter::stfdux(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::stfdx(UGeckoInstruction inst)
+void Interpreter::stfdx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -786,7 +786,7 @@ void Interpreter::stfdx(UGeckoInstruction inst)
 }
 
 // Stores Floating points into Integers indeXed
-void Interpreter::stfiwx(UGeckoInstruction inst)
+void Interpreter::stfiwx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -799,7 +799,7 @@ void Interpreter::stfiwx(UGeckoInstruction inst)
   PowerPC::Write_U32(PowerPC::ppcState.ps[inst.FS].PS0AsU32(), address);
 }
 
-void Interpreter::stfsux(UGeckoInstruction inst)
+void Interpreter::stfsux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
@@ -816,7 +816,7 @@ void Interpreter::stfsux(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::stfsx(UGeckoInstruction inst)
+void Interpreter::stfsx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -829,12 +829,12 @@ void Interpreter::stfsx(UGeckoInstruction inst)
   PowerPC::Write_U32(ConvertToSingle(PowerPC::ppcState.ps[inst.FS].PS0AsU64()), address);
 }
 
-void Interpreter::sthbrx(UGeckoInstruction inst)
+void Interpreter::sthbrx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::Write_U16_Swap(PowerPC::ppcState.gpr[inst.RS], Helper_Get_EA_X(PowerPC::ppcState, inst));
 }
 
-void Interpreter::sthux(UGeckoInstruction inst)
+void Interpreter::sthux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
@@ -845,14 +845,14 @@ void Interpreter::sthux(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::sthx(UGeckoInstruction inst)
+void Interpreter::sthx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::Write_U16(PowerPC::ppcState.gpr[inst.RS], Helper_Get_EA_X(PowerPC::ppcState, inst));
 }
 
 // lswi - bizarro string instruction
 // FIXME: Should rollback if a DSI occurs
-void Interpreter::lswi(UGeckoInstruction inst)
+void Interpreter::lswi(Interpreter& interpreter, UGeckoInstruction inst)
 {
   u32 EA = 0;
   if (inst.RA != 0)
@@ -899,7 +899,7 @@ void Interpreter::lswi(UGeckoInstruction inst)
 // todo : optimize ?
 // stswi - bizarro string instruction
 // FIXME: Should rollback if a DSI occurs
-void Interpreter::stswi(UGeckoInstruction inst)
+void Interpreter::stswi(Interpreter& interpreter, UGeckoInstruction inst)
 {
   u32 EA = 0;
   if (inst.RA != 0)
@@ -939,7 +939,7 @@ void Interpreter::stswi(UGeckoInstruction inst)
 }
 
 // TODO: is this right? is it DSI interruptible?
-void Interpreter::stswx(UGeckoInstruction inst)
+void Interpreter::stswx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -968,7 +968,7 @@ void Interpreter::stswx(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::stwbrx(UGeckoInstruction inst)
+void Interpreter::stwbrx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -978,7 +978,7 @@ void Interpreter::stwbrx(UGeckoInstruction inst)
 // The following two instructions are for SMP communications. On a single
 // CPU, they cannot fail unless an interrupt happens in between.
 
-void Interpreter::lwarx(UGeckoInstruction inst)
+void Interpreter::lwarx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -999,7 +999,7 @@ void Interpreter::lwarx(UGeckoInstruction inst)
 }
 
 // Stores Word Conditional indeXed
-void Interpreter::stwcxd(UGeckoInstruction inst)
+void Interpreter::stwcxd(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
@@ -1026,7 +1026,7 @@ void Interpreter::stwcxd(UGeckoInstruction inst)
   PowerPC::ppcState.cr.SetField(0, PowerPC::ppcState.GetXER_SO());
 }
 
-void Interpreter::stwux(UGeckoInstruction inst)
+void Interpreter::stwux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
@@ -1037,19 +1037,19 @@ void Interpreter::stwux(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::stwx(UGeckoInstruction inst)
+void Interpreter::stwx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
   PowerPC::Write_U32(PowerPC::ppcState.gpr[inst.RS], address);
 }
 
-void Interpreter::sync(UGeckoInstruction inst)
+void Interpreter::sync(Interpreter& interpreter, UGeckoInstruction inst)
 {
   // ignored
 }
 
-void Interpreter::tlbie(UGeckoInstruction inst)
+void Interpreter::tlbie(Interpreter& interpreter, UGeckoInstruction inst)
 {
   if (PowerPC::ppcState.msr.PR)
   {
@@ -1063,7 +1063,7 @@ void Interpreter::tlbie(UGeckoInstruction inst)
   PowerPC::InvalidateTLBEntry(address);
 }
 
-void Interpreter::tlbsync(UGeckoInstruction inst)
+void Interpreter::tlbsync(Interpreter& interpreter, UGeckoInstruction inst)
 {
   if (PowerPC::ppcState.msr.PR)
   {

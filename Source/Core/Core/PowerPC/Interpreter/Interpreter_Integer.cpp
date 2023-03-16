@@ -26,7 +26,7 @@ u32 Interpreter::Helper_Carry(u32 value1, u32 value2)
   return value2 > (~value1);
 }
 
-void Interpreter::addi(UGeckoInstruction inst)
+void Interpreter::addi(Interpreter& interpreter, UGeckoInstruction inst)
 {
   if (inst.RA)
     PowerPC::ppcState.gpr[inst.RD] = PowerPC::ppcState.gpr[inst.RA] + u32(inst.SIMM_16);
@@ -34,7 +34,7 @@ void Interpreter::addi(UGeckoInstruction inst)
     PowerPC::ppcState.gpr[inst.RD] = u32(inst.SIMM_16);
 }
 
-void Interpreter::addic(UGeckoInstruction inst)
+void Interpreter::addic(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.gpr[inst.RA];
   const u32 imm = u32(s32{inst.SIMM_16});
@@ -43,13 +43,13 @@ void Interpreter::addic(UGeckoInstruction inst)
   PowerPC::ppcState.SetCarry(Helper_Carry(a, imm));
 }
 
-void Interpreter::addic_rc(UGeckoInstruction inst)
+void Interpreter::addic_rc(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  addic(inst);
+  addic(interpreter, inst);
   Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RD]);
 }
 
-void Interpreter::addis(UGeckoInstruction inst)
+void Interpreter::addis(Interpreter& interpreter, UGeckoInstruction inst)
 {
   if (inst.RA)
     PowerPC::ppcState.gpr[inst.RD] = PowerPC::ppcState.gpr[inst.RA] + u32(inst.SIMM_16 << 16);
@@ -57,13 +57,13 @@ void Interpreter::addis(UGeckoInstruction inst)
     PowerPC::ppcState.gpr[inst.RD] = u32(inst.SIMM_16 << 16);
 }
 
-void Interpreter::andi_rc(UGeckoInstruction inst)
+void Interpreter::andi_rc(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = PowerPC::ppcState.gpr[inst.RS] & inst.UIMM;
   Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::andis_rc(UGeckoInstruction inst)
+void Interpreter::andis_rc(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = PowerPC::ppcState.gpr[inst.RS] & (u32{inst.UIMM} << 16);
   Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
@@ -87,36 +87,36 @@ void Interpreter::Helper_IntCompare(UGeckoInstruction inst, T a, T b)
   PowerPC::ppcState.cr.SetField(inst.CRFD, cr_field);
 }
 
-void Interpreter::cmpi(UGeckoInstruction inst)
+void Interpreter::cmpi(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const s32 a = static_cast<s32>(PowerPC::ppcState.gpr[inst.RA]);
   const s32 b = inst.SIMM_16;
   Helper_IntCompare(inst, a, b);
 }
 
-void Interpreter::cmpli(UGeckoInstruction inst)
+void Interpreter::cmpli(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.gpr[inst.RA];
   const u32 b = inst.UIMM;
   Helper_IntCompare(inst, a, b);
 }
 
-void Interpreter::mulli(UGeckoInstruction inst)
+void Interpreter::mulli(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RD] = u32(s32(PowerPC::ppcState.gpr[inst.RA]) * inst.SIMM_16);
 }
 
-void Interpreter::ori(UGeckoInstruction inst)
+void Interpreter::ori(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = PowerPC::ppcState.gpr[inst.RS] | inst.UIMM;
 }
 
-void Interpreter::oris(UGeckoInstruction inst)
+void Interpreter::oris(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = PowerPC::ppcState.gpr[inst.RS] | (u32{inst.UIMM} << 16);
 }
 
-void Interpreter::subfic(UGeckoInstruction inst)
+void Interpreter::subfic(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const s32 immediate = inst.SIMM_16;
   PowerPC::ppcState.gpr[inst.RD] = u32(immediate - s32(PowerPC::ppcState.gpr[inst.RA]));
@@ -124,7 +124,7 @@ void Interpreter::subfic(UGeckoInstruction inst)
                              (Helper_Carry(0 - PowerPC::ppcState.gpr[inst.RA], u32(immediate))));
 }
 
-void Interpreter::twi(UGeckoInstruction inst)
+void Interpreter::twi(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const s32 a = s32(PowerPC::ppcState.gpr[inst.RA]);
   const s32 b = inst.SIMM_16;
@@ -141,17 +141,17 @@ void Interpreter::twi(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::xori(UGeckoInstruction inst)
+void Interpreter::xori(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = PowerPC::ppcState.gpr[inst.RS] ^ inst.UIMM;
 }
 
-void Interpreter::xoris(UGeckoInstruction inst)
+void Interpreter::xoris(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = PowerPC::ppcState.gpr[inst.RS] ^ (u32{inst.UIMM} << 16);
 }
 
-void Interpreter::rlwimix(UGeckoInstruction inst)
+void Interpreter::rlwimix(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   PowerPC::ppcState.gpr[inst.RA] = (PowerPC::ppcState.gpr[inst.RA] & ~mask) |
@@ -161,7 +161,7 @@ void Interpreter::rlwimix(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::rlwinmx(UGeckoInstruction inst)
+void Interpreter::rlwinmx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   PowerPC::ppcState.gpr[inst.RA] = std::rotl(PowerPC::ppcState.gpr[inst.RS], inst.SH) & mask;
@@ -170,7 +170,7 @@ void Interpreter::rlwinmx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::rlwnmx(UGeckoInstruction inst)
+void Interpreter::rlwnmx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   PowerPC::ppcState.gpr[inst.RA] =
@@ -180,7 +180,7 @@ void Interpreter::rlwnmx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::andx(UGeckoInstruction inst)
+void Interpreter::andx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = PowerPC::ppcState.gpr[inst.RS] & PowerPC::ppcState.gpr[inst.RB];
 
@@ -188,7 +188,7 @@ void Interpreter::andx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::andcx(UGeckoInstruction inst)
+void Interpreter::andcx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = PowerPC::ppcState.gpr[inst.RS] & ~PowerPC::ppcState.gpr[inst.RB];
 
@@ -196,21 +196,21 @@ void Interpreter::andcx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::cmp(UGeckoInstruction inst)
+void Interpreter::cmp(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const s32 a = static_cast<s32>(PowerPC::ppcState.gpr[inst.RA]);
   const s32 b = static_cast<s32>(PowerPC::ppcState.gpr[inst.RB]);
   Helper_IntCompare(inst, a, b);
 }
 
-void Interpreter::cmpl(UGeckoInstruction inst)
+void Interpreter::cmpl(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.gpr[inst.RA];
   const u32 b = PowerPC::ppcState.gpr[inst.RB];
   Helper_IntCompare(inst, a, b);
 }
 
-void Interpreter::cntlzwx(UGeckoInstruction inst)
+void Interpreter::cntlzwx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = u32(std::countl_zero(PowerPC::ppcState.gpr[inst.RS]));
 
@@ -218,7 +218,7 @@ void Interpreter::cntlzwx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::eqvx(UGeckoInstruction inst)
+void Interpreter::eqvx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] =
       ~(PowerPC::ppcState.gpr[inst.RS] ^ PowerPC::ppcState.gpr[inst.RB]);
@@ -227,7 +227,7 @@ void Interpreter::eqvx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::extsbx(UGeckoInstruction inst)
+void Interpreter::extsbx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = u32(s32(s8(PowerPC::ppcState.gpr[inst.RS])));
 
@@ -235,7 +235,7 @@ void Interpreter::extsbx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::extshx(UGeckoInstruction inst)
+void Interpreter::extshx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = u32(s32(s16(PowerPC::ppcState.gpr[inst.RS])));
 
@@ -243,7 +243,7 @@ void Interpreter::extshx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::nandx(UGeckoInstruction inst)
+void Interpreter::nandx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] =
       ~(PowerPC::ppcState.gpr[inst.RS] & PowerPC::ppcState.gpr[inst.RB]);
@@ -252,7 +252,7 @@ void Interpreter::nandx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::norx(UGeckoInstruction inst)
+void Interpreter::norx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] =
       ~(PowerPC::ppcState.gpr[inst.RS] | PowerPC::ppcState.gpr[inst.RB]);
@@ -261,7 +261,7 @@ void Interpreter::norx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::orx(UGeckoInstruction inst)
+void Interpreter::orx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = PowerPC::ppcState.gpr[inst.RS] | PowerPC::ppcState.gpr[inst.RB];
 
@@ -269,7 +269,7 @@ void Interpreter::orx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::orcx(UGeckoInstruction inst)
+void Interpreter::orcx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] =
       PowerPC::ppcState.gpr[inst.RS] | (~PowerPC::ppcState.gpr[inst.RB]);
@@ -278,7 +278,7 @@ void Interpreter::orcx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::slwx(UGeckoInstruction inst)
+void Interpreter::slwx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 amount = PowerPC::ppcState.gpr[inst.RB];
   PowerPC::ppcState.gpr[inst.RA] =
@@ -288,7 +288,7 @@ void Interpreter::slwx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::srawx(UGeckoInstruction inst)
+void Interpreter::srawx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 rb = PowerPC::ppcState.gpr[inst.RB];
 
@@ -318,7 +318,7 @@ void Interpreter::srawx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::srawix(UGeckoInstruction inst)
+void Interpreter::srawix(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 amount = inst.SH;
   const s32 rrs = s32(PowerPC::ppcState.gpr[inst.RS]);
@@ -330,7 +330,7 @@ void Interpreter::srawix(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::srwx(UGeckoInstruction inst)
+void Interpreter::srwx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 amount = PowerPC::ppcState.gpr[inst.RB];
   PowerPC::ppcState.gpr[inst.RA] =
@@ -340,7 +340,7 @@ void Interpreter::srwx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RA]);
 }
 
-void Interpreter::tw(UGeckoInstruction inst)
+void Interpreter::tw(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const s32 a = s32(PowerPC::ppcState.gpr[inst.RA]);
   const s32 b = s32(PowerPC::ppcState.gpr[inst.RB]);
@@ -357,7 +357,7 @@ void Interpreter::tw(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::xorx(UGeckoInstruction inst)
+void Interpreter::xorx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.gpr[inst.RA] = PowerPC::ppcState.gpr[inst.RS] ^ PowerPC::ppcState.gpr[inst.RB];
 
@@ -372,7 +372,7 @@ static bool HasAddOverflowed(u32 x, u32 y, u32 result)
   return (((x ^ result) & (y ^ result)) >> 31) != 0;
 }
 
-void Interpreter::addx(UGeckoInstruction inst)
+void Interpreter::addx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.gpr[inst.RA];
   const u32 b = PowerPC::ppcState.gpr[inst.RB];
@@ -387,7 +387,7 @@ void Interpreter::addx(UGeckoInstruction inst)
     Helper_UpdateCR0(result);
 }
 
-void Interpreter::addcx(UGeckoInstruction inst)
+void Interpreter::addcx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.gpr[inst.RA];
   const u32 b = PowerPC::ppcState.gpr[inst.RB];
@@ -403,7 +403,7 @@ void Interpreter::addcx(UGeckoInstruction inst)
     Helper_UpdateCR0(result);
 }
 
-void Interpreter::addex(UGeckoInstruction inst)
+void Interpreter::addex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 carry = PowerPC::ppcState.GetCarry();
   const u32 a = PowerPC::ppcState.gpr[inst.RA];
@@ -420,7 +420,7 @@ void Interpreter::addex(UGeckoInstruction inst)
     Helper_UpdateCR0(result);
 }
 
-void Interpreter::addmex(UGeckoInstruction inst)
+void Interpreter::addmex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 carry = PowerPC::ppcState.GetCarry();
   const u32 a = PowerPC::ppcState.gpr[inst.RA];
@@ -437,7 +437,7 @@ void Interpreter::addmex(UGeckoInstruction inst)
     Helper_UpdateCR0(result);
 }
 
-void Interpreter::addzex(UGeckoInstruction inst)
+void Interpreter::addzex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 carry = PowerPC::ppcState.GetCarry();
   const u32 a = PowerPC::ppcState.gpr[inst.RA];
@@ -453,7 +453,7 @@ void Interpreter::addzex(UGeckoInstruction inst)
     Helper_UpdateCR0(result);
 }
 
-void Interpreter::divwx(UGeckoInstruction inst)
+void Interpreter::divwx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const auto a = s32(PowerPC::ppcState.gpr[inst.RA]);
   const auto b = s32(PowerPC::ppcState.gpr[inst.RB]);
@@ -478,7 +478,7 @@ void Interpreter::divwx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RD]);
 }
 
-void Interpreter::divwux(UGeckoInstruction inst)
+void Interpreter::divwux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.gpr[inst.RA];
   const u32 b = PowerPC::ppcState.gpr[inst.RB];
@@ -500,7 +500,7 @@ void Interpreter::divwux(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RD]);
 }
 
-void Interpreter::mulhwx(UGeckoInstruction inst)
+void Interpreter::mulhwx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const s64 a = static_cast<s32>(PowerPC::ppcState.gpr[inst.RA]);
   const s64 b = static_cast<s32>(PowerPC::ppcState.gpr[inst.RB]);
@@ -512,7 +512,7 @@ void Interpreter::mulhwx(UGeckoInstruction inst)
     Helper_UpdateCR0(d);
 }
 
-void Interpreter::mulhwux(UGeckoInstruction inst)
+void Interpreter::mulhwux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u64 a = PowerPC::ppcState.gpr[inst.RA];
   const u64 b = PowerPC::ppcState.gpr[inst.RB];
@@ -524,7 +524,7 @@ void Interpreter::mulhwux(UGeckoInstruction inst)
     Helper_UpdateCR0(d);
 }
 
-void Interpreter::mullwx(UGeckoInstruction inst)
+void Interpreter::mullwx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const s64 a = static_cast<s32>(PowerPC::ppcState.gpr[inst.RA]);
   const s64 b = static_cast<s32>(PowerPC::ppcState.gpr[inst.RB]);
@@ -539,7 +539,7 @@ void Interpreter::mullwx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RD]);
 }
 
-void Interpreter::negx(UGeckoInstruction inst)
+void Interpreter::negx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.gpr[inst.RA];
 
@@ -552,7 +552,7 @@ void Interpreter::negx(UGeckoInstruction inst)
     Helper_UpdateCR0(PowerPC::ppcState.gpr[inst.RD]);
 }
 
-void Interpreter::subfx(UGeckoInstruction inst)
+void Interpreter::subfx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = ~PowerPC::ppcState.gpr[inst.RA];
   const u32 b = PowerPC::ppcState.gpr[inst.RB];
@@ -567,7 +567,7 @@ void Interpreter::subfx(UGeckoInstruction inst)
     Helper_UpdateCR0(result);
 }
 
-void Interpreter::subfcx(UGeckoInstruction inst)
+void Interpreter::subfcx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = ~PowerPC::ppcState.gpr[inst.RA];
   const u32 b = PowerPC::ppcState.gpr[inst.RB];
@@ -583,7 +583,7 @@ void Interpreter::subfcx(UGeckoInstruction inst)
     Helper_UpdateCR0(result);
 }
 
-void Interpreter::subfex(UGeckoInstruction inst)
+void Interpreter::subfex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = ~PowerPC::ppcState.gpr[inst.RA];
   const u32 b = PowerPC::ppcState.gpr[inst.RB];
@@ -601,7 +601,7 @@ void Interpreter::subfex(UGeckoInstruction inst)
 }
 
 // sub from minus one
-void Interpreter::subfmex(UGeckoInstruction inst)
+void Interpreter::subfmex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = ~PowerPC::ppcState.gpr[inst.RA];
   const u32 b = 0xFFFFFFFF;
@@ -619,7 +619,7 @@ void Interpreter::subfmex(UGeckoInstruction inst)
 }
 
 // sub from zero
-void Interpreter::subfzex(UGeckoInstruction inst)
+void Interpreter::subfzex(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 a = ~PowerPC::ppcState.gpr[inst.RA];
   const u32 carry = PowerPC::ppcState.GetCarry();

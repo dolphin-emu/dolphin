@@ -308,7 +308,7 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
   ppcs->ps[instRD].SetBoth(ps0, ps1);
 }
 
-void Interpreter::psq_l(UGeckoInstruction inst)
+void Interpreter::psq_l(Interpreter& interpreter, UGeckoInstruction inst)
 {
   if (HID2(PowerPC::ppcState).LSQE == 0)
   {
@@ -320,7 +320,7 @@ void Interpreter::psq_l(UGeckoInstruction inst)
   Helper_Dequantize(&PowerPC::ppcState, EA, inst.I, inst.RD, inst.W);
 }
 
-void Interpreter::psq_lu(UGeckoInstruction inst)
+void Interpreter::psq_lu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   if (HID2(PowerPC::ppcState).LSQE == 0)
   {
@@ -339,7 +339,7 @@ void Interpreter::psq_lu(UGeckoInstruction inst)
   PowerPC::ppcState.gpr[inst.RA] = EA;
 }
 
-void Interpreter::psq_st(UGeckoInstruction inst)
+void Interpreter::psq_st(Interpreter& interpreter, UGeckoInstruction inst)
 {
   if (HID2(PowerPC::ppcState).LSQE == 0)
   {
@@ -351,7 +351,7 @@ void Interpreter::psq_st(UGeckoInstruction inst)
   Helper_Quantize(&PowerPC::ppcState, EA, inst.I, inst.RS, inst.W);
 }
 
-void Interpreter::psq_stu(UGeckoInstruction inst)
+void Interpreter::psq_stu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   if (HID2(PowerPC::ppcState).LSQE == 0)
   {
@@ -370,21 +370,21 @@ void Interpreter::psq_stu(UGeckoInstruction inst)
   PowerPC::ppcState.gpr[inst.RA] = EA;
 }
 
-void Interpreter::psq_lx(UGeckoInstruction inst)
+void Interpreter::psq_lx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 EA = inst.RA ? (PowerPC::ppcState.gpr[inst.RA] + PowerPC::ppcState.gpr[inst.RB]) :
                            PowerPC::ppcState.gpr[inst.RB];
   Helper_Dequantize(&PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
 }
 
-void Interpreter::psq_stx(UGeckoInstruction inst)
+void Interpreter::psq_stx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 EA = inst.RA ? (PowerPC::ppcState.gpr[inst.RA] + PowerPC::ppcState.gpr[inst.RB]) :
                            PowerPC::ppcState.gpr[inst.RB];
   Helper_Quantize(&PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);
 }
 
-void Interpreter::psq_lux(UGeckoInstruction inst)
+void Interpreter::psq_lux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 EA = PowerPC::ppcState.gpr[inst.RA] + PowerPC::ppcState.gpr[inst.RB];
   Helper_Dequantize(&PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
@@ -397,7 +397,7 @@ void Interpreter::psq_lux(UGeckoInstruction inst)
   PowerPC::ppcState.gpr[inst.RA] = EA;
 }
 
-void Interpreter::psq_stux(UGeckoInstruction inst)
+void Interpreter::psq_stux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   const u32 EA = PowerPC::ppcState.gpr[inst.RA] + PowerPC::ppcState.gpr[inst.RB];
   Helper_Quantize(&PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);

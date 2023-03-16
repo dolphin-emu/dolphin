@@ -199,7 +199,8 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 
   Interpreter::Instruction instr = Interpreter::GetInterpreterOp(inst);
   MOVP2R(ARM64Reg::X8, instr);
-  MOVI2R(ARM64Reg::W0, inst.hex);
+  MOVP2R(ARM64Reg::W0, Interpreter::getInstance());
+  MOVI2R(ARM64Reg::W1, inst.hex);
   BLR(ARM64Reg::X8);
 
   // If the instruction wrote to any registers which were marked as discarded,
