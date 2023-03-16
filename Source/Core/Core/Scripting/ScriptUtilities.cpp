@@ -12,6 +12,7 @@ std::mutex instruction_hit_callback_running_lock;
 std::mutex memory_address_read_from_callback_running_lock;
 std::mutex memory_address_written_to_callback_running_lock;
 std::mutex wii_input_polled_callback_running_lock;
+std::mutex graphics_callback_running_lock;
 
 const std::string newest_api_version = "1.0.0";
 
@@ -47,6 +48,7 @@ void StopScript(int unique_script_identifier)
   memory_address_read_from_callback_running_lock.lock();
   memory_address_written_to_callback_running_lock.lock();
   wii_input_polled_callback_running_lock.lock();
+  graphics_callback_running_lock.lock();
 
   ScriptContext* script_to_delete = nullptr;
 
@@ -67,6 +69,7 @@ void StopScript(int unique_script_identifier)
     delete script_to_delete;
   }
 
+  graphics_callback_running_lock.unlock();
   wii_input_polled_callback_running_lock.unlock();
   memory_address_written_to_callback_running_lock.unlock();
   memory_address_read_from_callback_running_lock.unlock();

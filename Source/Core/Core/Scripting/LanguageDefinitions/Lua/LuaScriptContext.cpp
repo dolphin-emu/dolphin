@@ -194,6 +194,19 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
           function_reference = luaL_ref(lua_state, LUA_REGISTRYINDEX);
           arguments.push_back(
               CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(*((void**)(&function_reference))));
+          break;
+        case ArgTypeEnum::RegistrationForButtonCallbackInputType:
+          if (corresponding_script_context->map_of_button_id_to_callback.count(
+                  (arguments[arguments.size() - 1]).long_long_val) == 0) // This is a horrible hack - but it works. In this case, we need to register the function.
+          {
+            lua_pushvalue(lua_state, next_index_in_args);
+            function_reference = luaL_ref(lua_state, LUA_REGISTRYINDEX);
+            corresponding_script_context->AddButtonCallback(
+                arguments[arguments.size() - 1].long_long_val, *(void**)(&function_reference));
+          }
+          function_reference = corresponding_script_context->map_of_button_id_to_callback[arguments[arguments.size() - 1].long_long_val];
+          arguments.push_back(CreateRegistrationForButtonCallbackInputTypeArgHolder(*(void**)(&function_reference)));
+          break;
         case ArgTypeEnum::UnregistrationInputType:
           function_reference = lua_tointeger(lua_state, next_index_in_args);
           luaL_unref(lua_state, LUA_REGISTRYINDEX, function_reference);
@@ -946,7 +959,28 @@ bool LuaScriptContext::UnregisterOnFrameStartCallbacks(void* callbacks)
   return this->UnregisterForVectorHelper(this->wii_controller_input_polled_callback_locations, callbacks);
  }
 
-void LuaScriptContext::ShutdownScript()
+
+void LuaScriptContext::AddButtonCallback(long long button_id, void* callbacks)
+ {
+  int function_reference = *((int*)(&callbacks));
+  map_of_button_id_to_callback[button_id] = function_reference;
+}
+
+ void LuaScriptContext::RunButtonCallback(long long button_id)
+ {
+  bool yielded_on_last_call = false;
+  int next_index = 0;
+  std::vector<int> inputVector{map_of_button_id_to_callback[button_id]};
+  this->GenericRunCallbacksHelperFunction(button_callback_thread, inputVector, next_index,
+                                          yielded_on_last_call, true);
+ }
+
+bool LuaScriptContext::IsCallbackDefinedForButtonId(long long button_id)
+{
+  return map_of_button_id_to_callback.count(button_id) > 0;
+}
+
+ void LuaScriptContext::ShutdownScript()
  {
   this->is_script_active = false;
   (*script_end_callback)(this->unique_script_identifier);

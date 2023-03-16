@@ -28,6 +28,7 @@ enum class ArgTypeEnum
   YieldType,
   RegistrationInputType,
   RegistrationWithAutoDeregistrationInputType,
+  RegistrationForButtonCallbackInputType,
   UnregistrationInputType,
   RegistrationReturnType,
   RegistrationWithAutoDeregistrationReturnType,

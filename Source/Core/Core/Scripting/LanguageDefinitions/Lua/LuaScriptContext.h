@@ -44,7 +44,7 @@ public:
   lua_State* memory_address_written_to_callback_lua_thread;
   lua_State* gc_controller_input_polled_callback_lua_thread;
   lua_State* wii_input_polled_callback_lua_thread;
-
+  lua_State* button_callback_thread;
 
   std::vector<int> frame_callback_locations;
   std::vector<int> gc_controller_input_polled_callback_locations;
@@ -59,6 +59,8 @@ public:
 
   std::unordered_map<size_t, std::vector<int>>
       map_of_memory_address_written_to_to_lua_callback_locations;
+
+  std::unordered_map<long long, int> map_of_button_id_to_callback;
 
   std::atomic<size_t> number_of_frame_callbacks_to_auto_deregister;
   std::atomic<size_t> number_of_gc_controller_input_callbacks_to_auto_deregister;
@@ -184,6 +186,7 @@ public:
     memory_address_written_to_callback_lua_thread = lua_newthread(main_lua_thread);
     gc_controller_input_polled_callback_lua_thread = lua_newthread(main_lua_thread);
     wii_input_polled_callback_lua_thread = lua_newthread(main_lua_thread);
+    button_callback_thread = lua_newthread(main_lua_thread);
 
     if (luaL_loadfile(main_lua_thread,
                       script_filename.c_str()) != LUA_OK)
@@ -272,6 +275,10 @@ public:
   void* RegisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks);
   void RegisterForMapWithAutoDeregistrationHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks);
   bool UnregisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks);
+  virtual void AddButtonCallback(long long button_id, void* callbacks);
+  virtual void RunButtonCallback(long long button_id);
+  virtual bool IsCallbackDefinedForButtonId(long long button_id);
+
   virtual void ShutdownScript();
 };
 }  // namespace Scripting

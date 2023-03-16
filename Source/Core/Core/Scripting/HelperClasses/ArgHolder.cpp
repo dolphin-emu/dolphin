@@ -186,6 +186,14 @@ ArgHolder CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(void* new_v
   return return_val;
 }
 
+ArgHolder CreateRegistrationForButtonCallbackInputTypeArgHolder(void* new_val)
+{
+  ArgHolder return_val = {};
+  return_val.argument_type = ArgTypeEnum::RegistrationForButtonCallbackInputType;
+  return_val.void_pointer_val = new_val;
+  return return_val;
+}
+
 ArgHolder CreateUnregistrationInputTypeArgHolder(void* new_val)
 {
   ArgHolder return_val = {};

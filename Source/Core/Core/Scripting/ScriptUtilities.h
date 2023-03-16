@@ -19,6 +19,7 @@ extern std::mutex instruction_hit_callback_running_lock;
 extern std::mutex memory_address_read_from_callback_running_lock;
 extern std::mutex memory_address_written_to_callback_running_lock;
 extern std::mutex wii_input_polled_callback_running_lock;
+extern std::mutex graphics_callback_running_lock;
 
 bool IsScriptingCoreInitialized();
 

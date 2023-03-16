@@ -3,12 +3,14 @@
 #include <cstdlib>
 #include <deque>
 #include <imgui.h>
+#include <imgui_stdlib.h>
 #include <implot.h>
 #include <string>
 #include <stack>
 #include <atomic>
 
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
+#include "Core/Scripting/ScriptUtilities.h"
 
 namespace Scripting::GraphicsAPI
 {
@@ -19,10 +21,15 @@ const char* class_name = "GraphicsAPI";
 long long checkbox_number = 0;
 long long radio_group_number = 0;
 long long offset_into_radio_group = 0;
+
 static std::deque<bool> all_checkboxes = std::deque<bool>();
 static std::map<long long, bool*> id_to_checkbox_map = std::map<long long, bool*>();
-static std::map<long long, int*> id_to_radio_group_map = std::map<long long, int*>();
+
 static std::deque<int> all_radio_groups = std::deque<int>();
+static std::map<long long, int*> id_to_radio_group_map = std::map<long long, int*>();
+
+static std::deque<std::string> all_text_boxes = std::deque<std::string>();
+static std::map<long long, std::string*> id_to_text_box_map = std::map<long long, std::string*>();
 
 static std::array all_graphics_functions_metadata_list = {
     FunctionMetadata("drawLine", "1.0", "drawLine(40.3, 80, 60.3, 80, 0.8, lineColorString)",
@@ -92,9 +99,16 @@ static std::array all_graphics_functions_metadata_list = {
   FunctionMetadata("getRadioButtonGroupValue", "1.0", "getRadioButtonGroupValue((42)", GetRadioButtonGroupValue, ArgTypeEnum::LongLong, {ArgTypeEnum::LongLong}),
   FunctionMetadata("setRadioButtonGroupValue", "1.0", "setRadioButtonGroupValue(42, 1)", SetRadioButtonGroupValue, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
 
-    FunctionMetadata("beginWindow", "1.0", "beginWindow(windowName)", BeginWindow, ArgTypeEnum::VoidType,
+  FunctionMetadata("addTextBox", "1.0", "addTextBox(42, \"Textbox Label\")", AddTextBox, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::String}),
+  FunctionMetadata("getTextBoxValue", "1.0", "getTextBoxValue(42)", GetTextBoxValue, ArgTypeEnum::String, {ArgTypeEnum::LongLong}),
+  FunctionMetadata("setTextBoxValue", "1.0", "setTextBoxValue(42, \"Hello World!\")", SetTextBoxValue, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::String}),
+
+  FunctionMetadata("addButton", "1.0", "addButton(\"Button Label\", 42, callbackFunc, 100.0, 45.0)", AddButton, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::RegistrationForButtonCallbackInputType, ArgTypeEnum::Float, ArgTypeEnum::Float}),
+  FunctionMetadata("pressButton", "1.0", "pressButton(42)", PressButton, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong}),
+
+  FunctionMetadata("beginWindow", "1.0", "beginWindow(windowName)", BeginWindow, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::String}),
-    FunctionMetadata("endWindow", "1.0", "endWindow()", EndWindow, ArgTypeEnum::VoidType, {})};
+  FunctionMetadata("endWindow", "1.0", "endWindow()", EndWindow, ArgTypeEnum::VoidType, {})};
 
 static bool IsEqualIgnoreCase(const char* string_1, const char* string_2)
 {
@@ -609,6 +623,98 @@ ArgHolder SetRadioButtonGroupValue(ScriptContext* current_script, std::vector<Ar
                     "radio button group!", radio_group_id));
   *(id_to_radio_group_map[radio_group_id]) = new_int_value;
   return CreateVoidTypeArgHolder();
+}
+
+ArgHolder AddTextBox(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  long long text_box_id = args_list[0].long_long_val;
+  std::string text_box_name = args_list[1].string_val;
+
+   if (!window_is_open)
+  {
+    return CreateErrorStringArgHolder(
+        "Must have window open (using GraphicsAPI:beginWindow(\"winName\") before you can add a "
+        "TextBox!");
+  }
+  else
+  {
+   if (id_to_text_box_map.count(text_box_id) == 0)
+    {
+      all_text_boxes.push_back("");
+      id_to_text_box_map[text_box_id] = &(all_text_boxes[all_text_boxes.size() - 1]);
+    }
+
+    if (!display_stack.empty() && display_stack.top())
+      ImGui::InputText(text_box_name.c_str(), id_to_text_box_map[text_box_id]);
+  }
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder GetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  long long text_box_id = args_list[0].long_long_val;
+  if (id_to_text_box_map.count(text_box_id) == 0)
+    return CreateErrorStringArgHolder(fmt::format(
+        "Attempted to get the textbox value of an invalid textbox with an ID of {}. User must call "
+        "addTextBox() to create a text box before they can get its value!",
+        text_box_id));
+  return CreateStringArgHolder(*(id_to_text_box_map[text_box_id]));
+}
+
+ArgHolder SetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  long long text_box_id = args_list[0].long_long_val;
+  std::string new_string_value = args_list[1].string_val;
+  if (id_to_text_box_map.count(text_box_id) == 0)
+    return CreateErrorStringArgHolder("Attempted to set the value of a text box which had not been created. User "
+                    "must call addTextBox() to create a text box before they can set its value!");
+  *(id_to_text_box_map[text_box_id]) = new_string_value;
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder AddButton(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  std::string button_label = args_list[0].string_val;
+  long long button_id = args_list[1].long_long_val;
+  //void* function_callback = args_list[2].void_pointer_val;
+  float button_width = args_list[3].float_val;
+  float button_height = args_list[4].float_val;
+
+  if (!window_is_open)
+  {
+    return CreateErrorStringArgHolder("Cannot add button directly to screen - must open a window "
+                                      "first by calling GraphicsAPI:beginWindow()");
+  }
+  bool button_pressed = ImGui::Button(button_label.c_str(), {button_width, button_height});  // true when button was pressed, and false otherwise
+  if (!display_stack.empty() && display_stack.top() && button_pressed)
+  {
+    std::lock_guard<std::mutex> lock(ScriptUtilities::graphics_callback_running_lock);
+    current_script->RunButtonCallback(button_id);
+  }
+
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder PressButton(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  long long button_id = args_list[0].long_long_val;
+
+  if (!window_is_open || display_stack.empty() || !display_stack.top())
+  {
+    return CreateErrorStringArgHolder("Cannot press button which is not displayed on screen!");
+  }
+
+  if (!current_script->IsCallbackDefinedForButtonId(button_id))
+    return CreateErrorStringArgHolder(
+        fmt::format("Attempted to press undefined button of {}. User must call "
+                    "GraphicsAPI:addButton() before they can call GraphicsAPI:pressButton()",
+                    button_id));
+
+  std::lock_guard<std::mutex> lock(ScriptUtilities::graphics_callback_running_lock);
+  current_script->RunButtonCallback(button_id);
+
+  return CreateVoidTypeArgHolder();
+
 }
 
 ArgHolder BeginWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list)

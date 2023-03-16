@@ -68,6 +68,10 @@ public:
   virtual void RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(void* callbacks) = 0;
   virtual bool UnregisterOnWiiInputPolledCallbacks(void* callbacks) = 0;
 
+  virtual void AddButtonCallback(long long button_id, void* callbacks) = 0;
+  virtual void RunButtonCallback(long long button_id) = 0;
+  virtual bool IsCallbackDefinedForButtonId(long long button_id) = 0;
+
   virtual void ShutdownScript() = 0;
 };
 

@@ -65,6 +65,7 @@ ArgHolder CreateYieldTypeArgHolder();
 ArgHolder CreateVoidTypeArgHolder();
 ArgHolder CreateRegistrationInputTypeArgHolder(void* new_val);
 ArgHolder CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(void* new_val);
+ArgHolder CreateRegistrationForButtonCallbackInputTypeArgHolder(void* new_val);
 ArgHolder CreateUnregistrationInputTypeArgHolder(void* new_val);
 ArgHolder CreateRegistrationReturnTypeArgHolder(void* new_val);
 ArgHolder CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();

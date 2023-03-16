@@ -1,6 +1,10 @@
 dolphin:importModule("GraphicsAPI", "1.0")
 require ("emu")
 
+function callback()
+	print("In the callback from clicking the button...")
+end
+
 startPos = 0;
 while true do
 	emu:frameAdvance()
@@ -40,11 +44,14 @@ while true do
 	
 	--GraphicsAPI:drawFilledRectangle(400.0, 400.0, 800.0, 800.0, "red")
 	
-	GraphicsAPI:drawEmptyCircle(startPos, 400, 20, "yellow", 5.0)
-	startPos = startPos + 30
-	
-	if (startPos >= 2400) then
-		startPos = 0
+	GraphicsAPI:beginWindow("TestWindow")
+	GraphicsAPI:addButton("TestButton", 42, callback, 300.0, 100.0)
+	GraphicsAPI:addTextBox(42, "Test TextBox")
+	temp = GraphicsAPI:getTextBoxValue(42)
+	if temp == "Run the callback!" then
+		GraphicsAPI:setTextBoxValue(42, "")
+		GraphicsAPI:pressButton(42)
 	end
+	GraphicsAPI:endWindow()
 	
 end
