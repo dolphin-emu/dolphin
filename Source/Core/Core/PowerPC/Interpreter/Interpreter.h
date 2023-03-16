@@ -304,6 +304,7 @@ private:
   static void Helper_FloatCompareUnordered(UGeckoInstruction inst, double a, double b);
 
   void UpdatePC();
+  bool IsInvalidPairedSingleExecution(UGeckoInstruction inst);
 
   void Trace(const UGeckoInstruction& inst);
 
